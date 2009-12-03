@@ -1,78 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f187.google.com ([209.85.210.187]:47024 "EHLO
-	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756042AbZLDE7Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 23:59:25 -0500
-Message-ID: <4B189737.1010100@gmail.com>
-Date: Thu, 03 Dec 2009 20:59:35 -0800
-From: "Justin P. Mattock" <justinmattock@gmail.com>
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:45317 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756088AbZLCNyY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 08:54:24 -0500
+Message-ID: <4B17C311.6050500@gmail.com>
+Date: Thu, 03 Dec 2009 21:54:25 +0800
+From: "David T. L. Wong" <davidtlwong@gmail.com>
 MIME-Version: 1.0
-To: Daniel Ritz <daniel.ritz@gmx.ch>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] uvcvideo: add another YUYV format GUID
-References: <1259711324.13720.20.camel@MacRitz2>	 <200912032115.30431.laurent.pinchart@ideasonboard.com> <1259892337.2335.34.camel@MacRitz2>
-In-Reply-To: <1259892337.2335.34.camel@MacRitz2>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Randy Dunlap <randy.dunlap@oracle.com>
+CC: linux-next@vger.kernel.org,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] max2165 32bit build patch
+References: <20091130175346.3f3345ed.sfr@canb.auug.org.au>	<4B1409D9.1050901@oracle.com> <20091202100406.e25b2322.randy.dunlap@oracle.com>
+In-Reply-To: <20091202100406.e25b2322.randy.dunlap@oracle.com>
+Content-Type: multipart/mixed;
+ boundary="------------060404090507030301090501"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/03/09 18:05, Daniel Ritz wrote:
-> Hi Laurent
->
-> On Thu, 2009-12-03 at 21:15 +0100, Laurent Pinchart wrote:
->> Hi Daniel,
->>
->> On Wednesday 02 December 2009 00:48:44 Daniel Ritz wrote:
->>> For some unknown reason, on a MacBookPro5,3 the iSight
->>
->> Could you please send me the output of lsusb -v both with the correct and
->> wrong GUID ?
->
-> sure. i attached three files:
->    isight-good.txt, isight-bad.txt, isight-good2.txt
->
-> this is three reboots in a row from like 10 minutes ago. the first
-> boot into linux was actually rebooting from OSX...first cold boot
-> today directly into linux had the right GUID.
->
->>
->>> _sometimes_ report a different video format GUID.
->>
->> Sometimes only ? Now that's weird. Is that completely random ?
->
-> yes, sometimes only. it seems to be related to reboots, but i don't
-> know what exactly triggers it. rmmod/modprobe doesn't trigger it.
-> also, when the wrong GUID is reported, the only way of fixing it is
-> to reboot. it really is just the GUID. even when the wrong one is
-> reported, the device works just fine.
->
-> i started with a plain ubuntu 9.10, kernel 2.6.31 which was supposed
-> to fail, so i upgraded to a 2.6.32-rc8 to fix the iSight and some other
-> things, just to see it fail again. a reboot later and it worked, some
-> time and reboot later it failed again...
->
-> rgds
-> -daniel
->
->>> This patch add the other (wrong) GUID to the format table, making the iSight
->>> work always w/o other problems.
->>>
->>> What it should report: 32595559-0000-0010-8000-00aa00389b71
->>> What it often reports: 32595559-0000-0010-8000-000000389b71
->>>
->>> Signed-off-by: Daniel Ritz<daniel.ritz@gmx.ch>
->>
->> --
->> Regards,
->>
->> Laurent Pinchart
->
+This is a multi-part message in MIME format.
+--------------060404090507030301090501
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-I get weiredness whenever
-I shutdown the machine and then boot.
-If I boot, then reboot things work.
+Randy Dunlap wrote:
+> On Mon, 30 Nov 2009 10:07:21 -0800 Randy Dunlap wrote:
+> 
+>> Stephen Rothwell wrote:
+>>> Hi all,
+>>>
+>>> Changes since 20091127:
+>>>
+>>> The v4l-dvb tree lost its conflict.
+>>
+>> on i386 (X86_32):
+>>
+>> a 'double' variable is used, causing:
+>>
+>> ERROR: "__floatunsidf" [drivers/media/common/tuners/max2165.ko] undefined!
+>> ERROR: "__adddf3" [drivers/media/common/tuners/max2165.ko] undefined!
+>> ERROR: "__fixunsdfsi" [drivers/media/common/tuners/max2165.ko] undefined!
+> 
+> 
+> linux-next-20091202:
+> 
+> still have this one (above) and similar with
+> drivers/media/dvb/frontends/atbm8830.c:
+> 
+> drivers/built-in.o: In function `atbm8830_init':
+> atbm8830.c:(.text+0x9012f9): undefined reference to `__udivdi3'
+> atbm8830.c:(.text+0x901384): undefined reference to `__floatunsidf'
+> atbm8830.c:(.text+0x901395): undefined reference to `__muldf3'
+> atbm8830.c:(.text+0x9013a5): undefined reference to `__floatunsidf'
+> atbm8830.c:(.text+0x9013b2): undefined reference to `__divdf3'
+> atbm8830.c:(.text+0x9013c3): undefined reference to `__muldf3'
+> atbm8830.c:(.text+0x9013cd): undefined reference to `__fixunsdfsi'
+> 
+> ---
+> ~Randy
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Justin P. Mattock
+This patch drops usage of floating point variable for 32bit build
+
+Signed-off-by: David T. L. Wong <davidtlwong@gmail.com>
+
+--------------060404090507030301090501
+Content-Type: text/x-patch;
+ name="max2165_no_float.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="max2165_no_float.patch"
+
+diff --git a/linux/drivers/media/common/tuners/max2165.c b/linux/drivers/media/common/tuners/max2165.c
+--- a/linux/drivers/media/common/tuners/max2165.c
++++ b/linux/drivers/media/common/tuners/max2165.c
+@@ -193,7 +193,7 @@
+ {
+ 	u8 tf;
+ 	u8 tf_ntch;
+-	double t;
++	u32 t;
+ 	u32 quotient, fraction;
+ 
+ 	/* Set PLL divider according to RF frequency */
+@@ -217,9 +217,6 @@
+ 	t += (priv->tf_balun_hi_ref - priv->tf_balun_low_ref)
+ 		* (freq / 1000 - 470000) / (780000 - 470000);
+ 
+-#if 0
+-	tf = t + 0.5; /* round up */
+-#endif
+ 	tf = t;
+ 	dprintk("tf = %X\n", tf);
+ 	tf |= tf_ntch << 4;
+
+
+--------------060404090507030301090501--
