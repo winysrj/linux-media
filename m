@@ -1,55 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from khc.piap.pl ([195.187.100.11]:46964 "EHLO khc.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754963AbZLHNv5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2009 08:51:57 -0500
-From: Krzysztof Halasa <khc@pm.waw.pl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Jon Smirl <jonsmirl@gmail.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
+Received: from mail-yx0-f187.google.com ([209.85.210.187]:36960 "EHLO
+	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751699AbZLDXP0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2009 18:15:26 -0500
+Date: Fri, 4 Dec 2009 15:15:28 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Christoph Bartelmus <lirc@bartelmus.de>
+Cc: awalls@radix.net, j@jannau.net, jarod@redhat.com,
+	jarod@wilsonet.com, jonsmirl@gmail.com, khc@pm.waw.pl,
 	kraxel@redhat.com, linux-input@vger.kernel.org,
 	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR 	system?
+	mchehab@redhat.com, superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+	IR  system?
+Message-ID: <20091204231527.GA3682@core.coreip.homeip.net>
 References: <20091204220708.GD25669@core.coreip.homeip.net> <BEJgSGGXqgB@lirc>
-	<9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>
-	<1260070593.3236.6.camel@pc07.localdom.local>
-	<20091206065512.GA14651@core.coreip.homeip.net>
-	<4B1B99A5.2080903@redhat.com> <m3638k6lju.fsf@intrepid.localdomain>
-	<9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
-	<m3skbn6dv1.fsf@intrepid.localdomain>
-	<9e4733910912061323x22c618ccyf6edcee5b021cbe3@mail.gmail.com>
-	<4B1D934E.7030103@redhat.com>
-Date: Tue, 08 Dec 2009 14:52:00 +0100
-In-Reply-To: <4B1D934E.7030103@redhat.com> (Mauro Carvalho Chehab's message of
-	"Mon, 07 Dec 2009 21:44:14 -0200")
-Message-ID: <m3hbs1vain.fsf@intrepid.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <BEJgSGGXqgB@lirc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab <mchehab@redhat.com> writes:
+On Sat, Dec 05, 2009 at 12:01:00AM +0100, Christoph Bartelmus wrote:
+> Hi Dmitry,
+> 
+> on 04 Dec 09 at 14:07, Dmitry Torokhov wrote:
+> > On Fri, Dec 04, 2009 at 10:46:00PM +0100, Christoph Bartelmus wrote:
+> >> Hi Mauro,
+> >>
+> >> on 04 Dec 09 at 12:33, Mauro Carvalho Chehab wrote:
+> >>> Christoph Bartelmus wrote:
+> >>>>>> Consider passing the decoded data through lirc_dev.
+> >> [...]
+> >>>> Consider cases like this:
+> >>>> http://lirc.sourceforge.net/remotes/lg/6711A20015N
+> >>>>
+> >>>> This is an air-conditioner remote.
+> >>>> The entries that you see in this config file are not really separate
+> >>>> buttons. Instead the remote just sends the current settings for e.g.
+> >>>> temperature encoded in the protocol when you press some up/down key. You
+> >>>> really don't want to map all possible temperature settings to KEY_*
+> >>>> events. For such cases it would be nice to have access at the raw scan
+> >>>> codes from user space to do interpretation of the data.
+> >>>> The default would still be to pass the data to the input layer, but it
+> >>>> won't hurt to have the possibility to access the raw data somehow.
+> >>
+> >>> Interesting. IMHO, the better would be to add an evdev ioctl to return the
+> >>> scancode for such cases, instead of returning the keycode.
+> >>
+> >> That means you would have to set up a pseudo keymap, so that you can get
+> >> the key event which you could than react on with a ioctl. Or are you
+> >> generating KEY_UNKNOWN for every scancode that is not mapped?
+> >> What if different scan codes are mapped to the same key event? How do you
+> >> retrieve the scan code for the key event?
+> >> I don't think it can work this way.
+> >>
+> 
+> > EV_MSC/MSC_SCAN.
+> 
+> How would I get the 64 bit scan codes that the iMON devices generate?
+> How would I know that the scan code is 64 bit?
+> input_event.value is __s32.
+> 
 
->> What is the interface for attaching an in-kernel decoder?
->
-> IMO, it should use the kfifo for it. However, if we allow both raw data and
-> in-kernel decoders to read data there, we'll need a spinlock to protect the
-> kfifo.
+I suppose we could add MSC_SCAN_END event so that we can transmit
+"scancodes" of arbitrary length. You'd get several MSC_SCAN followed by
+MSC_SCAN_END marker. If you don't get MSC_SCAN_END assume the code is 32
+bit.
 
-This may be an option, but I think we should be able to attach protocol
-decoders in parallel, directly to the IRQ handler. At least with RC-5
-(that's what I personally use) it means reliable decoding, no need for
-any timeouts, the code is clean, fast (can be a part of hard IRQ
-handler) and simple.
+FWIW there is MSC_RAW as well.
 
-The decoder needs something like
-	rc5_signal_change(ptr, space_or_mark, microseconds).
-
-At least mark->space or space->mark events must be reported. For better
-reliability, both of them.
 -- 
-Krzysztof Halasa
+Dmitry
