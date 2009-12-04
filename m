@@ -1,91 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f219.google.com ([209.85.219.219]:40037 "EHLO
-	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757327AbZLPTmF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2009 14:42:05 -0500
-Received: by ewy19 with SMTP id 19so916583ewy.21
-        for <linux-media@vger.kernel.org>; Wed, 16 Dec 2009 11:42:03 -0800 (PST)
-Message-Id: <B68DE306-878E-4A79-9D15-990CC97B8D96@gmail.com>
-From: Tomasz Belina <tomasz.belina@gmail.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-In-Reply-To: <938B2714-17EB-476A-8EB0-5C42894E60DC@lollisoft.de>
-Content-Type: text/plain;
-	charset=utf-8;
-	format=flowed;
-	delsp=yes
-Content-Transfer-Encoding: 8BIT
-Mime-Version: 1.0 (iPhone Mail 7D11)
-Subject: Re: [linux-dvb] SheevaBox as a media Server and a Fit-PC as a streaming client?
-Date: Wed, 16 Dec 2009 20:42:21 +0100
-References: <938B2714-17EB-476A-8EB0-5C42894E60DC@lollisoft.de>
+Received: from moutng.kundenserver.de ([212.227.17.8]:65152 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757339AbZLDVrY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2009 16:47:24 -0500
+Date: 04 Dec 2009 22:46:00 +0100
+From: lirc@bartelmus.de (Christoph Bartelmus)
+To: mchehab@redhat.com
+Cc: awalls@radix.net
+Cc: dmitry.torokhov@gmail.com
+Cc: j@jannau.net
+Cc: jarod@redhat.com
+Cc: jarod@wilsonet.com
+Cc: jonsmirl@gmail.com
+Cc: khc@pm.waw.pl
+Cc: kraxel@redhat.com
+Cc: linux-input@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Cc: superm1@ubuntu.com
+Message-ID: <BEFgL6sXqgB@lirc>
+In-Reply-To: <4B191DD4.8030903@redhat.com>
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Mauro,
 
-I've got sheeva plug device. It works as file server over smb. I  
-didn't check how it works with Full HD movies but there is no problem  
-with HD Ready movies. I can check things like max transfer rate and  
-let you know what this thing can do.
+on 04 Dec 09 at 12:33, Mauro Carvalho Chehab wrote:
+> Christoph Bartelmus wrote:
+>>>> Consider passing the decoded data through lirc_dev.
+[...]
+>> Consider cases like this:
+>> http://lirc.sourceforge.net/remotes/lg/6711A20015N
+>>
+>> This is an air-conditioner remote.
+>> The entries that you see in this config file are not really separate
+>> buttons. Instead the remote just sends the current settings for e.g.
+>> temperature encoded in the protocol when you press some up/down key. You
+>> really don't want to map all possible temperature settings to KEY_*
+>> events. For such cases it would be nice to have access at the raw scan
+>> codes from user space to do interpretation of the data.
+>> The default would still be to pass the data to the input layer, but it
+>> won't hurt to have the possibility to access the raw data somehow.
 
-Best Regards
--- 
-Tomasz Belina
+> Interesting. IMHO, the better would be to add an evdev ioctl to return the
+> scancode for such cases, instead of returning the keycode.
 
-Dnia 2009-12-16 o godz. 16:12 Lothar Behrens <lothar.behrens@lollisoft.de 
- > napisał(a):
+That means you would have to set up a pseudo keymap, so that you can get  
+the key event which you could than react on with a ioctl. Or are you  
+generating KEY_UNKNOWN for every scancode that is not mapped?
+What if different scan codes are mapped to the same key event? How do you  
+retrieve the scan code for the key event?
+I don't think it can work this way.
 
-> Hi,
->
-> I am new here and start with a setup question.
->
-> The media or NAS server I think about: http://plugcomputer.org/
->
-> It has a high speed USB 2.0 port and a gigabit Lan.
->
-> Using Linux and VLC as the streaming server, would this be good for  
-> streaming full HD videos from a attached USB hard drive?
-> The streaming client in mind: http://www.fit-pc.com/web/
->
-> Would it be possible to use this box (the cheapest one is about 299  
-> € + shipping in germany) with XBMC or other stuff?
-> I mean saving the hard drives in the client box when a SAN is used.  
-> Both could use Linux and thus fully controlled and tweaked for best  
-> performing as a media center solution.
->
-> The reason why I ask is because my brother want's to save money and  
-> don't like to waste money for hardware components that may not  
-> really needed.
->
-> Other devices in mind were these components:
->
-> http://www.openpr.de/news/365458/Movie-Cube-S800H-Genuss-fuer-Augen-und-Ohren.html
-> http://www.tomsnetworking.de/content/aktuelles/news_beitrag/news/3828/index.html
->
-> But is there the opportunity to use the media from the movie cube to  
-> be streamed to other computers?
->
-> Thanks for your help,
->
-> Lothar
->
-> -- | Rapid Prototyping | XSLT Codegeneration | http://www.lollisoft.de
-> Lothar Behrens
-> Heinrich-Scheufelen-Platz 2
-> 73252 Lenningen
->
->
->
->
->
->
->
->
->
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux- 
-> media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Christoph
