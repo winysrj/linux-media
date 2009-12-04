@@ -1,117 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-05.arcor-online.net ([151.189.21.45]:44331 "EHLO
-	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753330AbZLST4D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Dec 2009 14:56:03 -0500
-Subject: Re: How to make a Zaapa LR301AP DVB-T card work
-From: hermann pitton <hermann-pitton@arcor.de>
-To: amlopezalonso@gmail.com
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <200912191400.37814.amlopezalonso@gmail.com>
-References: <200912191400.37814.amlopezalonso@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Date: Sat, 19 Dec 2009 20:53:37 +0100
-Message-Id: <1261252417.3220.3.camel@pc07.localdom.local>
+Received: from bombadil.infradead.org ([18.85.46.34]:37575 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750765AbZLDAsL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 19:48:11 -0500
+Date: Thu, 3 Dec 2009 22:48:09 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Andy Walls <awalls@radix.net>,
+	Patrick Boettcher <pboettcher@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Replace Mercurial with GIT as SCM
+Message-ID: <20091203224809.2ce0b227@pedra>
+In-Reply-To: <Pine.LNX.4.64.0912032239550.4328@axis700.grange>
+References: <alpine.LRH.2.00.0912011003480.30797@pub3.ifh.de>
+	<1259709900.3102.3.camel@palomino.walls.org>
+	<200912031012.41889.hverkuil@xs4all.nl>
+	<Pine.LNX.4.64.0912032239550.4328@axis700.grange>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em Thu, 3 Dec 2009 22:42:38 +0100 (CET)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
 
-Am Samstag, den 19.12.2009, 14:00 +0000 schrieb Antonio Marcos López
-Alonso:
-> Hi all,
+> On Thu, 3 Dec 2009, Hans Verkuil wrote:
 > 
-> I borrowed a Zaapa LR301AP DVB-T card from a friend to try to make it work in 
-> Linux, so I kindly request your help. The card features one antenna input, one 
-> IR input (remote and sensor wire being lost) and one AV input. Here follows 
-> the system info:
-> 
-> 
-> On-board printed info:
-> ************************
-> Main chip: Philips SAA 7134 HL
-> Other chips: TDA 10046A, TDA 8274, MDT 2005ES-G.
-> 
-> lspci -vnn
-> ****************
-> 00:0c.0 Multimedia controller [0480]: Philips Semiconductors SAA7134/SAA7135HL 
-> Video Broadcast Decoder [1131:7134] (rev 01)
-> Subsystem: Device [4e42:0301]                                                                                      
-> Flags: bus master, medium devsel, latency 64, IRQ 11                                                               
-> Memory at dffffc00 (32-bit, non-prefetchable) [size=1K]                                                            
-> Capabilities: [40] Power Management version 1                                                                      
-> Kernel driver in use: saa7134                                         
-> 
-> dmesg | grep saa
-> *******************
-> saa7130/34: v4l2 driver version 0.2.15 loaded                                                                                                                                                         
-> [    8.854415] saa7134 0000:00:0c.0: PCI INT A -> Link[LNKB] -> GSI 11 (level, 
-> low) -> IRQ 11
-> [    8.854423] saa7134[0]: found at 0000:00:0c.0, rev: 1, irq: 11, latency: 
-> 64, mmio: 0xdffffc00
-> [    8.854430] saa7134[0]: subsystem: 4e42:0301, board: UNKNOWN/GENERIC 
-> [card=0,autodetected]
-> [    8.854453] saa7134[0]: board init: gpio is 10000
-> [    8.854458] IRQ 11/saa7134[0]: IRQF_DISABLED is not guaranteed on shared 
-> IRQs
-> [    9.004012] saa7134[0]: i2c eeprom 00: 42 4e 01 03 54 20 1c 00 43 43 a9 1c 
-> 55 d2 b2 92
-> [    9.004022] saa7134[0]: i2c eeprom 10: 00 ff 86 0f ff 20 ff ff ff ff ff ff 
-> ff ff ff ff
-> [    9.004030] saa7134[0]: i2c eeprom 20: 01 40 01 03 03 01 01 03 08 ff 01 e2 
-> ff ff ff ff
-> [    9.004038] saa7134[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff 
-> ff ff ff ff
-> [    9.004045] saa7134[0]: i2c eeprom 40: ff 1b 00 c0 ff 10 01 00 ff ff ff ff 
-> ff ff ff ff
-> [    9.004052] saa7134[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff 
-> ff ff ff ff
-> [    9.004059] saa7134[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff 
-> ff ff ff ff
-> [    9.004067] saa7134[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff 
-> ff ff ff ff
-> [    9.004074] saa7134[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff 
-> ff ff ff ff
-> [    9.004081] saa7134[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff 
-> ff ff ff ff
-> [    9.004089] saa7134[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff 
-> ff ff ff ff
-> [    9.004096] saa7134[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff 
-> ff ff ff ff
-> [    9.004103] saa7134[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff 
-> ff ff ff ff
-> [    9.004111] saa7134[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff 
-> ff ff ff ff
-> [    9.004118] saa7134[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff 
-> ff ff ff ff
-> [    9.004125] saa7134[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff 
-> ff ff ff ff
-> [    9.004271] saa7134[0]: registered device video0 [v4l2]
-> [    9.004299] saa7134[0]: registered device vbi0
-> [    9.565411] saa7134 ALSA driver for DMA sound loaded
-> [    9.565424] IRQ 11/saa7134[0]: IRQF_DISABLED is not guaranteed on shared 
-> IRQs
-> [    9.565451] saa7134[0]/alsa: saa7134[0] at 0xdffffc00 irq 11 registered as 
-> card -1
-> [ 3368.737762] saa7134[0]/irq[10,4295734480]: r=0x20 s=0x00 PE
-> [ 3368.737770] saa7134[0]/irq: looping -- clearing PE (parity error!) enable 
-> bit
-> ************************************************************************************
-> 
-> No DVB-T button appears in Kaffeine, so the card is not being detected by the 
-> app.
-> 
+> > On Wednesday 02 December 2009 04:55:00 Andy Walls wrote:
+> > > On Tue, 2009-12-01 at 15:59 +0100, Patrick Boettcher wrote:
+> > > > Hi all,
+> > > >
+> > > > I would like to start a discussion which ideally results in either
+> > > > changing the SCM of v4l-dvb to git _or_ leaving everything as it is today
+> > > > with mercurial.
+> > > >
+> > > >
+> > > > I'm waiting for comments.
 
-please try with "card=86".
+GIT.
 
-If everything is fine, we add it to auto detection.
+However, just using what we have in -hg at -git won't give much benefits. We
+should really move forward and use a clone of Linus tree.
+
+I intend to work on a way to allow us to move to -git, while preserving our
+building system. My target is to do it at the beginning of the next year.
+
+> > >
+> > > I only have one requirement: reduce bandwidth usage between the server
+> > > and my home.
+> > >
+> > > The less I have to clone out 65 M of history to start a new series of
+> > > patches the better.  I suppose that would include a rebase...
+
+The first clone of the Linus -git tree will be more painful than 65 Mb of downloads
+Well, -git supports partial clone, were it discards the old history:
+
+$git help clone
+...
+       --depth <depth>
+              Create a shallow clone with a history truncated to the specified number of revisions. A shallow
+              repository has a number of limitations (you cannot clone or fetch from it, nor push from nor into it),
+              but is adequate if you are only interested in the recent history of a large project with a long history,
+              and would want to send in fixes as patches.
+...
+
+I never used it, so I can't tell if this works properly.
+
+However, the big advantage with -git is that, once you have one local clone,
+you may do other clones that will use a shared repository of objects.
+
+Here, I use one git full clone of the Linus tree, created with:
+	git clone --bare <git repository> master-git-repo.git
+
+Being a bare tree, it will only contain the objects (we generally name bare repos with .git extension).
+
+Then, my -git working dirs are created with:
+	git clone -s git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git linux-2.6.git
+
+This clone is very fast, since it is local and is sharing the bare objects.
+
+I then add, at myclone/.git/config two remote repositories, like:
+
+[remote "linus"]
+        URL = /home/myhome/tokernel/bare/linus.git/
+        fetch = +refs/tags/*:refs/remotes/linus/*
+        fetch = +refs/heads/master:refs/remotes/linus/upstream
+        tagopt = --no-tags
+[remote "origin"]
+        URL = ssh://my.remote.site.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
+        fetch = +refs/heads/*:refs/remotes/linux-2.6.git/*
+        Push = refs/heads/*:refs/heads/*
+
+This way, every time I want to update from upstream or from my remote repo,
+I run a script with something like:
+
+$ (cd linux-2.6.git && git fetch)
+$ (cd myclone && git remote update)
+
+And, every time I want to push to my remote repo, i do:
+$ git push origin
+
+The advantage of having a bare directory is that I can have several other local git
+trees, each completely independent from the bare, and all with all the files checked-out.
+
+If you're doing lots of things at the same time, this is a way safer than using branches.
+
+Btw, git branch work really really well. Also, as git revlog provides a changelog history,
+you can do rollbacks if needed.
+
+Ah, with respect to rebase, the better way, IMHO, to rebase your directory is to create
+a new branch based on the latest upstream, pull the patches there, and then rebase.
+The big advantage is that you'll keep your old work untouched, so, if you do something wrong,
+you can simply delete the new branch an do it again.
+
+> > 
+> > Unfortunately, one reason for moving to git would be to finally be able to 
+> > make changes to the arch directory tree. The fact that that part is 
+> > unavailable in v4l-dvb is a big problem when working with SoCs. And these will 
+> > become much more important in the near future.
+> 
+> FWIW, tomorrow (or a day or two later) I'll have to spend time again 
+> back-porting arch changes from git to hg, to be able to push my current 
+> patches...
+
+My current maintainership live is to do ports/backports between hg and git. This is
+very time demanding those days... Moving to git will be really great.
+
+
+
 
 Cheers,
-Hermann
-
-
-
-
+Mauro
