@@ -1,58 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50266 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754034AbZLHLX2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2009 06:23:28 -0500
-Message-ID: <4B1E3727.9090106@redhat.com>
-Date: Tue, 08 Dec 2009 09:23:19 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-yx0-f187.google.com ([209.85.210.187]:47024 "EHLO
+	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756042AbZLDE7Z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 23:59:25 -0500
+Message-ID: <4B189737.1010100@gmail.com>
+Date: Thu, 03 Dec 2009 20:59:35 -0800
+From: "Justin P. Mattock" <justinmattock@gmail.com>
 MIME-Version: 1.0
-To: Jon Smirl <jonsmirl@gmail.com>
-CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
-	kraxel@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR 	system?
-References: <20091204220708.GD25669@core.coreip.homeip.net> <BEJgSGGXqgB@lirc>	 <9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>	 <1260070593.3236.6.camel@pc07.localdom.local>	 <20091206065512.GA14651@core.coreip.homeip.net>	 <4B1B99A5.2080903@redhat.com> <m3638k6lju.fsf@intrepid.localdomain>	 <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>	 <m3skbn6dv1.fsf@intrepid.localdomain>	 <20091207184153.GD998@core.coreip.homeip.net> <9e4733910912071644y234beebepd426f9f5760507ce@mail.gmail.com>
-In-Reply-To: <9e4733910912071644y234beebepd426f9f5760507ce@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Daniel Ritz <daniel.ritz@gmx.ch>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] uvcvideo: add another YUYV format GUID
+References: <1259711324.13720.20.camel@MacRitz2>	 <200912032115.30431.laurent.pinchart@ideasonboard.com> <1259892337.2335.34.camel@MacRitz2>
+In-Reply-To: <1259892337.2335.34.camel@MacRitz2>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jon Smirl wrote:
-> On Mon, Dec 7, 2009 at 1:41 PM, Dmitry Torokhov
-> <dmitry.torokhov@gmail.com> wrote:
->> That is why I think we should go the other way around - introduce the
->> core which receivers could plug into and decoder framework and once it
->> is ready register lirc-dev as one of the available decoders.
-> 
-> The core needs to allow for RF remotes too.
-> 
-> -Bluetooth remotes are already in kernel somehow, I don't know how they work,
-> -RF4CE, the 802.15.4 stack has been recently merged, the remotes use a
-> protocol on top of that. These remotes will hit the consumer market
-> next year. Sony, Panasonic and other big names are behind this.
-> -Zwave, the Harmony remotes use Zwave. There is no Zwave support in
-> the kernel that I am aware of. Zwave is proprietary.
-> 
-> After these protocols are decoded you end up with scancodes. The
-> scancodes need to get injected into input somehow and then flow
-> through the mapping process. Decoding down to the scancodes probably
-> happens over in the networking code.
-> 
-> After an in-kernel IR decoder runs it needs to hand off the scancodes
-> into the input subsystem. This same API can be used by the networking
-> code to hand off RF scancodes.
-> 
+On 12/03/09 18:05, Daniel Ritz wrote:
+> Hi Laurent
+>
+> On Thu, 2009-12-03 at 21:15 +0100, Laurent Pinchart wrote:
+>> Hi Daniel,
+>>
+>> On Wednesday 02 December 2009 00:48:44 Daniel Ritz wrote:
+>>> For some unknown reason, on a MacBookPro5,3 the iSight
+>>
+>> Could you please send me the output of lsusb -v both with the correct and
+>> wrong GUID ?
+>
+> sure. i attached three files:
+>    isight-good.txt, isight-bad.txt, isight-good2.txt
+>
+> this is three reboots in a row from like 10 minutes ago. the first
+> boot into linux was actually rebooting from OSX...first cold boot
+> today directly into linux had the right GUID.
+>
+>>
+>>> _sometimes_ report a different video format GUID.
+>>
+>> Sometimes only ? Now that's weird. Is that completely random ?
+>
+> yes, sometimes only. it seems to be related to reboots, but i don't
+> know what exactly triggers it. rmmod/modprobe doesn't trigger it.
+> also, when the wrong GUID is reported, the only way of fixing it is
+> to reboot. it really is just the GUID. even when the wrong one is
+> reported, the device works just fine.
+>
+> i started with a plain ubuntu 9.10, kernel 2.6.31 which was supposed
+> to fail, so i upgraded to a 2.6.32-rc8 to fix the iSight and some other
+> things, just to see it fail again. a reboot later and it worked, some
+> time and reboot later it failed again...
+>
+> rgds
+> -daniel
+>
+>>> This patch add the other (wrong) GUID to the format table, making the iSight
+>>> work always w/o other problems.
+>>>
+>>> What it should report: 32595559-0000-0010-8000-00aa00389b71
+>>> What it often reports: 32595559-0000-0010-8000-000000389b71
+>>>
+>>> Signed-off-by: Daniel Ritz<daniel.ritz@gmx.ch>
+>>
+>> --
+>> Regards,
+>>
+>> Laurent Pinchart
+>
 
-Yes, the same core should be able to work with non infra red remotes, but, depending
-on how the device is implemented.
+I get weiredness whenever
+I shutdown the machine and then boot.
+If I boot, then reboot things work.
 
-Cheers,
-Mauro.
+Justin P. Mattock
