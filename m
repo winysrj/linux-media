@@ -1,161 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:49829 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752620AbZLIPyK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2009 10:54:10 -0500
-Received: by bwz27 with SMTP id 27so5335443bwz.21
-        for <linux-media@vger.kernel.org>; Wed, 09 Dec 2009 07:54:15 -0800 (PST)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Andy Walls <awalls@radix.net>
-Subject: Re: IR Receiver on an Tevii S470
-Date: Wed, 9 Dec 2009 17:54:09 +0200
-Cc: Matthias Fechner <idefix@fechner.net>, linux-media@vger.kernel.org,
-	stoth@kernellabs.com
-References: <4B0459B1.50600@fechner.net> <200912081959.21245.liplianin@me.by> <1260359266.3093.15.camel@palomino.walls.org>
-In-Reply-To: <1260359266.3093.15.camel@palomino.walls.org>
+Received: from fg-out-1718.google.com ([72.14.220.152]:29646 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751297AbZLDFRo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2009 00:17:44 -0500
+Received: by fg-out-1718.google.com with SMTP id e21so995122fga.1
+        for <linux-media@vger.kernel.org>; Thu, 03 Dec 2009 21:17:50 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+In-Reply-To: <829197380912032021t3232e391qc3a4c840529f7ed6@mail.gmail.com>
+References: <44c6f3de0912032000g3aa2a7cbla26b5132d229a6ac@mail.gmail.com>
+	 <829197380912032021t3232e391qc3a4c840529f7ed6@mail.gmail.com>
+Date: Fri, 4 Dec 2009 00:17:50 -0500
+Message-ID: <829197380912032117h1d01f80akf3b1ed7d81e3c6bf@mail.gmail.com>
+Subject: Re: Hauppage hvr-950q au0828 transfer problem affecting audio and
+	perhaps video
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: John S Gruber <johnsgruber@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200912091754.09985.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 9 Ð´ÐµÐºÐ°Ð±Ñ€Ñ 2009 13:47:46 Andy Walls wrote:
-> On Tue, 2009-12-08 at 19:59 +0200, Igor M. Liplianin wrote:
-> > On 7 Ð´ÐµÐºÐ°Ð±Ñ€Ñ 2009 05:35:46 Andy Walls wrote:
-> > > Igor and Matthias,
-> > >
-> > > Please try the changes that I have for the TeVii S470 that are here:
-> > >
-> > > 	http://linuxtv.org/hg/~awalls/cx23885-ir
-> > >
-> > > You will want to modprobe the driver modules like this to get debugging
-> > > information:
-> > >
-> > > 	# modprobe cx25840 ir_debug=2
-> > > 	# modprobe cx23885 ir_input_debug=1
-> > >
-> > > With that debugging you will get output something like this in dmesg or
-> > > your logs when you press a button on the remote (this is RC-5 using a
-> > > CX23888 chip not NEC using a CX23885 chip):
-> > >
-> > > cx23885[0]/888-ir: IRQ Status:  tsr rsr             rby
-> > > cx23885[0]/888-ir: IRQ Enables:     rse rte roe
-> > > cx23885[0]/888-ir: IRQ Status:  tsr rsr             rby
-> > > cx23885[0]/888-ir: IRQ Enables:     rse rte roe
-> > > cx23885[0]/888-ir: IRQ Status:  tsr rsr             rby
-> > > cx23885[0]/888-ir: IRQ Enables:     rse rte roe
-> > > cx23885[0]/888-ir: IRQ Status:  tsr rsr             rby
-> > > cx23885[0]/888-ir: IRQ Enables:     rse rte roe
-> > > cx23885[0]/888-ir: IRQ Status:  tsr rsr             rby
-> > > cx23885[0]/888-ir: IRQ Enables:     rse rte roe
-> > > cx23885[0]/888-ir: IRQ Status:  tsr     rto
-> > > cx23885[0]/888-ir: IRQ Enables:     rse rte roe
-> > > cx23885[0]/888-ir: rx read:     817000 ns  mark
-> > > cx23885[0]/888-ir: rx read:     838926 ns  space
-> > > cx23885[0]/888-ir: rx read:    1572259 ns  mark
-> > > cx23885[0]/888-ir: rx read:    1705296 ns  space
-> > > [...]
-> > > cx23885[0]/888-ir: rx read:     838037 ns  space
-> > > cx23885[0]/888-ir: rx read:     746333 ns  mark
-> > > cx23885[0]/888-ir: rx read:    1705741 ns  space
-> > > cx23885[0]/888-ir: rx read:    1619370 ns  mark
-> > > cx23885[0]/888-ir: rx read: end of rx
-> > >
-> > > If you do not see good or many NEC timing measurments in the logs, the
-> > > first thing to try is to change lines 533-534 of
-> > > linux/drivers/media/cx23885/cx23885-input.c:
-> > >
-> > >                params.modulation = true;
-> > >                params.invert_level = false;
-> > >
-> > > If you see no timing measurements or few timing measurements, change
-> > > the "modulation" to "false".  If the chip is expecting carrier pulses
-> > > and an external circuit or capacitor is smoothing carrier bursts into
-> > > baseband pulses, then the hardware won't make measurements properly.
-> > >
-> > > If you see inverted mark and space inverted when "modulation" is set to
-> > > "false", then set "invert_level" to "true".
-> > >
-> > > Those are the two things I had to really guess at.
-> > >
-> > > Regards,
-> > > Andy
-> >
-> > No luck :(
-> > Nothing in logs
-> >
-> :(
+On Thu, Dec 3, 2009 at 11:21 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> On Thu, Dec 3, 2009 at 11:00 PM, John S Gruber <johnsgruber@gmail.com> wrote:
+>> I have problems with my audio that I've tracked down to the transfer
+>> of audio from the au0828
+>> in my hvr-950Q. I spotted the following comment about green screen
+>> detection and I wonder
+>> if it might be related.
+>>
+>> drivers/media/video/au0828/au0828-video.c:
+>>
+>>        /* Workaround for a bug in the au0828 hardware design that sometimes
+>>           results in the colorspace being inverted */
+>>
+>> The problem is that sound/usb/usbaudio.c assumes that each urb data
+>> field contains an integer
+>> number of audio frames (aka audio slots), in this case a integer
+>> number of left channel-right
+>> channel pairs. About 12 times a second for my device a urb doesn't.
+>> This causes a flutter noise
+>> with non-quiet audio that contains a difference between the channels.
+>>
+>> I found this by using audacity to look at wave forms and a usb trace
+>> to see the problematic urb's.
+>> I've confirmed by relaxing the constraint in sound/usb/usbaudio.c with
+>> a patch and can confirm that
+>> it clears up the audio.
+>>
+>>
+>> Is the code comment at the top related to my problem?
+>>
+>> More importantly, is there the possibility of setting up the transfer
+>> differently so that
+>> audio slots aren't split between urbs?
+>>
+>>
+>> From what I have read in the spec I believe the split of the audio
+>> slots between urb's is non-
+>> conformant. Therefore I think it would be a mistake to change the
+>> default behaviour of
+>> usbaudio.c since, as it is now,usbaudio.c won't swap channels in the
+>> case of dropped urbs.
+>> It would be optimal if the hvr-950q could be set up to conform by not
+>> splitting audio slots.
+>>
+>> I think the problem also occurs for video when blue will turn to pink
+>> for a flash until the top
+>> of frame resyncs things up--because of the corresponding swap of UY
+>> with VY. This seems
+>> to be related to how busy my system is and what usb slot I'm using on
+>> my laptop. Again
+>> I could see in a usb trace the urb's with data_lengths such that UY
+>> would be split from the
+>> corresponding VY. The video transfer is a straight byte copy so
+>> ordinarily this isn't a
+>> problem but would be if an abnormally sized urb were dropped and the
+>> device and host
+>> were to get out of sync regarding V and U.
+>>
+>> I also have caught an occasional odd number of bytes transferred in
+>> traces, which requires
+>> the drop of incomplete samples in usbaudio.c. I wonder if this is
+>> related to the green screen
+>> problem on video from the top comment.
+>>
+>> The easiest way to reproduce the audio problem is to use the composite
+>> video input but only
+>> hook up either the left or the right audio. With earphonesyou can hear
+>> the audio rapidly
+>> go from ear to ear.
+>>
+>> Thanks for those on the list for their hard work on getting devices
+>> such as this to work. I'd
+>> appreciate any answers, comments, corrections, or information.
 >
-> OK.
+> Hi John,
 >
-> 1. I assume you have the v4l-cx23885-avcore-01.fw file available for the
-> cx25840 module, just so there is no problem initializing the CX23885 AV
-> core.
+> I have actually actively debugging the au0828 audio this evening.  The
+> comment you referred to (which I wrote) has to do with the delivery of
+> the UYVY data from the demodulator to the au0828 bridge, which can
+> cause the start of the stream to be off-by-one (the pink/green you see
+> is the colorspace inverted when the decoder loses sync).
 >
+> It is unrelated to audio.
 >
-> 2. Does dmesg or the logs show the input device being created?
-> Somewhere in the log you should see:
->
-> 	"cx23885 IR (TeVii S470)"
->
-> when the input device is created.
->
->
-> 3. With the "debug=7" option to the cx23885 module, do you see any IR
-> interrupts coming in?  In dmesg or the log you should see:
->
-> 	"(PCI_MSK_IR        0x...)"
->
-> when an IR interrupt happens.
+> I'm working an issue now where the audio keeps dropping out.  If you
+> want to show me the code change you did to usbaudio.c, it might give
+> me a better understand the issue.
 
-cx25840 3-0044: cx23885 A/V decoder found @ 0x88 (cx23885[0])
-cx25840 3-0044: firmware: requesting v4l-cx23885-avcore-01.fw
-cx25840 3-0044: loaded v4l-cx23885-avcore-01.fw firmware (16382 bytes)
-cx23885_dvb_register() allocating 1 frontend(s)
-cx23885[0]: cx23885 based dvb card
-DS3000 chip version: 0.192 attached.
-DVB: registering new adapter (cx23885[0])
-dvb_register_frontend
-DVB: registering adapter 0 frontend 0 (Montage Technology DS3000/TS2020)...
-cx23885_dev_checkrevision() Hardware revision = 0xb0
-cx23885[0]/0: found at 0000:02:00.0, rev: 2, irq: 16, latency: 0, mmio: 0xfea00000
-cx23885 0000:02:00.0: setting latency timer to 64
-IRQ 16/cx23885[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-input: cx23885 IR (TeVii S470) as /class/input/input5
+I am definitely seeing what you are saying with regards to the channel
+flipping back and forth.  Do you know what size URBs are being
+delivered?  If you've got a hacked up version of usbaudio.c, how about
+adding a printk() line which dumps out the URB size and send me a
+dump?
 
-That's all.
-
-In fact some time ago I was writing some code for cx23885 IR, but not reached IR interrupts to 
-work. Though I used PCI_MSK_AV_CORE (1 << 27), then test register PIN_CTRL for field 
-FLD_IR_IRQ_STAT.
-
-I have Compro E650F with RC6 remote, also have RC5 remote from TV set.
-I will made little hack to test Compro & RC5.
-
-
->
->
-> Tonight I will:
->
-> a. Add a guess at HVR-1800 support so maybe Steve can help us debug as
-> well.  I know the NEC decoder works; I tested it.  What I don't know is
-> if the CX23885 AV IR implementation works (I don't have CX23885 hardware
-> at the moment).
->
-> b. Add a temporary patch to add a /dev/videoN node for the TeVii S470 so
-> you can use "v4l2-ctl --log-status" to show the status of the IR
-> controller and v4l2-dbg to dump the cx23885 and cx23885-av-core
-> registers, so I can see if everthying is set right.
->
-> c. Review the register settings to make sure interrupts should be
-> enabled for the IR controller.
->
-> Regards,
-> Andy
+Devin
 
 -- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
