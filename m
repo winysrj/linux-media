@@ -1,240 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cp-out4.libero.it ([212.52.84.104]:57323 "EHLO
-	cp-out4.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756470AbZLOK4W (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Dec 2009 05:56:22 -0500
-Received: from wmail43 (172.31.0.232) by cp-out4.libero.it (8.5.107)
-        id 4B228E4100296DE7 for linux-media@vger.kernel.org; Tue, 15 Dec 2009 11:50:57 +0100
-Message-ID: <32513776.2417971260874257455.JavaMail.defaultUser@defaultHost>
-Date: Tue, 15 Dec 2009 11:50:57 +0100 (CET)
-From: "lucaberto@libero.it" <lucaberto@libero.it>
-Reply-To: "lucaberto@libero.it" <lucaberto@libero.it>
-To: linux-media@vger.kernel.org
-Subject: 
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:35160 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932271AbZLDSDR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2009 13:03:17 -0500
+Received: by ewy19 with SMTP id 19so3121020ewy.1
+        for <linux-media@vger.kernel.org>; Fri, 04 Dec 2009 10:03:23 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <829197380912031403l6b828821q87f407fa95bc25f9@mail.gmail.com>
+References: <1259695756.5239.2.camel@desktop>
+	 <loom.20091202T230047-299@post.gmane.org>
+	 <37219a840912021508s75535fa6v83006d3bad0c301@mail.gmail.com>
+	 <1259874920.2151.13.camel@desktop>
+	 <41ef408f0912031347j6b9a704flc6d9c302f4e0517@mail.gmail.com>
+	 <829197380912031403l6b828821q87f407fa95bc25f9@mail.gmail.com>
+Date: Fri, 4 Dec 2009 13:03:23 -0500
+Message-ID: <37219a840912041003o4d8ebe27wbe3f1c47f55ba7dc@mail.gmail.com>
+Subject: Re: af9015: tuner id:179 not supported, please report!
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Bert Massop <bert.massop@gmail.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hello i have write i little c program for test :
-here is the program:
-
-#include
-
-<stdio.h>
-#include </usr/include/linux/dvb/frontend.h>
-#include <stdlib.h>
-
-
-#include <stdint.h>
-#include <ctype.h>
-#include <sys/ioctl.h>
-#include
-
-<sys/poll.h>
-#include <unistd.h>
-#include <error.h>
-#include <errno.h>
-#include
-
-<sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <time.h>
-
-
-#include <unistd.h>
-#include <linux/dvb/dmx.h>
-#include <linux/dvb/frontend.h>
-
-
-#include <linux/dvb/dmx.h>
-
-#define MIA "/dev/dvb/adapter0/frontend0"
-#define
-
-MD "/dev/dvb/adapter0/demux0"
-//#define DVR "/dev/dvb/adapter0/dvr0"
-#define
-
-DVR_FILE "/home/lucak904/Scrivania/Luca/prog_c/sat/mio.dat"
-#define BUFFY
-
-(188*20)
-
-main()
-
-{
-    struct dvb_frontend_info luca;
-    struct
-
-dvb_frontend_parameters parametri;
-    struct dvb_frontend_parameters luca2;
-
-
-    struct dmx_pes_filter_params filtri;
-
-    parametri.frequency = 1197700;
-
-
-    parametri.inversion = INVERSION_AUTO;
-    parametri.u.qpsk.symbol_rate =
-
-2750000;
-    parametri.u.qpsk.fec_inner   = FEC_AUTO;
-
-
-    fe_status_t status;
-
-
-    int fd, min, max,chiudo_fd, chiudo_md, chiudo_dvr ,stato, pp, freq,
-
-ritorno, sy_rate, tt, md,fec_inn, inv, dvr, dvr_out,len;
-    uint8_t buf
-
-[BUFFY];
-
-
-if((fd = open(MIA,O_RDWR)) < 0){
-                perror("FRONTEND
-
-DEVICE: ");
-                return -1;
-    }
-if (ioctl(fd, FE_SET_FRONTEND,
-
-&parametri) < 0){
-                perror("QPSK TUNE: ");
-                return
-
--1;
-    }
-    if (ioctl(fd, FE_GET_FRONTEND ,&luca2) <0){
-                
-perror
-("GET_INFO: ");
-                return -1;
-    }
-
-printf("\nfreq :%d", 
-luca2.
-frequency);
-    printf("\nsimbol_rate : %d", luca2.u.qpsk.symbol_rate);
-
-   
-printf("\ninversion : %d", luca2.inversion);
-    printf("\nfec : %d", luca2.
-u.
-qpsk.fec_inner);
-
-
-    if (ioctl(fd, FE_GET_INFO  ,&luca) <0){
-
-               
-perror("GET_INFO: ");
-                return -1;
-    }
-
-printf
-("\nfreq min:%
-d", luca.frequency_min);
-printf("\nfreq max:%d", luca.
-frequency_max);
-
-if
-(ioctl(fd, FE_READ_STATUS  ,&status) <0){
-                
-perror
-("FE_READ_STATUS: ");
-                return -1;
-    }
-
-    // apro il 
-demux
-
-
-    printf("\nstato :%d", status);
-    if((md = open(MD,
-O_RDWR|O_NONBLOCK)) < 0)
-{
-                perror("DEMUX DEVICE: ");
-
-                return -1;
-    }
-
-
-    //setto il demux
-
-    filtri.pid = 1296;
-
-    filtri.input =
-DMX_IN_FRONTEND;
-    filtri.output = DMX_OUT_TAP;
-    filtri.
-pes_type =
-DMX_PES_OTHER;
-    filtri.flags = DMX_IMMEDIATE_START;
-    if (ioctl
-(md,
-DMX_SET_PES_FILTER, &filtri) < 0) {
-            perror("DEMUX DEVICE: ");
-
-
-            return -1;
-    }
-
-    //apro il dvr
-
-    //if ((dvr = open(DVR,
-
-O_RDONLY|O_NONBLOCK)) < 0) {
-      //      perror("DVR DEVICE : ");
-//       
-
-/    return -1;
-  //  }
-
-    if ((dvr_out = open
-
-("/home/lucak904/Scrivania/Luca/prog_c/sat/prova_scar.txt", O_WRONLY)) < 0) {
-
-
-            perror(" DVR FILE : ");
-            return -1;
-    }
-
-
-    if((len
-
-= read(md,buf, BUFFY)) < 0){
-        perror("non leggo");
-    }
-    else{
-
-
-        write(dvr_out,buf,len);
-
-    }
-
-    chiudo_fd = close(fd);
-   
-
-chiudo_md = close(md);
-    //chiudo_dvr = close(dvr);
-}
-
-It is just a test
-
-
-every time i get Resource temporarily unavailable
-For my understanding it means
-
-that nothing is readed from demux device, wath is wrong , the pid and frequency
-
-are ok the SNR is more than 70%
-
-Thanks
-
-Luca 
+On Thu, Dec 3, 2009 at 5:03 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> On Thu, Dec 3, 2009 at 4:47 PM, Bert Massop <bert.massop@gmail.com> wrote:
+>> Hi Jan,
+>>
+>> The datasheet for the TDA18218 can be obtained from NXP:
+>> http://www.nxp.com/documents/data_sheet/TDA18218HN.pdf
+>>
+>> That's all the information I have at the moment, maybe Mike has some
+>> other information (like the Application Note mentioned in the
+>> datasheet, that claims to contain information on writing drivers, but
+>> cannot be found anywhere).
+>>
+>> Best regards,
+>>
+>> Bert
+>
+> Took a quick look at that datasheet.  I would guess between that
+> datasheet and a usbsnoop, there is probably enough there to write a
+> driver that basically works for your particular hardware if you know
+> what you are doing.  The register map is abbreviated, but probably
+> good enough...
+>
+> Devin
+
+The datasheet is missing too much important information needed to
+write a fully featured driver for the part, and I wouldn't recommend
+using a usbsnoop for this type of tuner, but be my guest and prove me
+wrong.
+
+You might be able to get it working, but you'll end up with tons of
+binary blobs hardcoded for each frequency, unless you use a
+programming guide.  Unfortunately, I don't have one that I can share
+:-/
+
+I think you would be much better off purchasing supported hardware, instead.
+
+Good luck, though...
+
+-Mike
