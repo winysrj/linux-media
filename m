@@ -1,90 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:42413 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755450AbZLOU3x convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Dec 2009 15:29:53 -0500
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:36771 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757282AbZLDVLt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2009 16:11:49 -0500
+Received: by bwz27 with SMTP id 27so2282322bwz.21
+        for <linux-media@vger.kernel.org>; Fri, 04 Dec 2009 13:11:54 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20091215201933.GK24406@elf.ucw.cz>
-References: <4B1B99A5.2080903@redhat.com>
-	 <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
-	 <m3skbn6dv1.fsf@intrepid.localdomain>
-	 <20091207184153.GD998@core.coreip.homeip.net>
-	 <4B24DABA.9040007@redhat.com> <20091215115011.GB1385@ucw.cz>
-	 <4B279017.3080303@redhat.com> <20091215195859.GI24406@elf.ucw.cz>
-	 <9e4733910912151214n68161fc7tca0ffbf34c2c4e4@mail.gmail.com>
-	 <20091215201933.GK24406@elf.ucw.cz>
-Date: Tue, 15 Dec 2009 15:29:51 -0500
-Message-ID: <9e4733910912151229o371ee017tf3640d8f85728011@mail.gmail.com>
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
-	system?
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
-	kraxel@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
+In-Reply-To: <829197380912040743q620feb3es60f8cd292c26eb7a@mail.gmail.com>
+References: <44c6f3de0912032000g3aa2a7cbla26b5132d229a6ac@mail.gmail.com>
+	<829197380912032021t3232e391qc3a4c840529f7ed6@mail.gmail.com>
+	<829197380912032117h1d01f80akf3b1ed7d81e3c6bf@mail.gmail.com>
+	<44c6f3de0912040631m7a8c195bldf9df89af7df36fa@mail.gmail.com>
+	<829197380912040743q620feb3es60f8cd292c26eb7a@mail.gmail.com>
+From: John S Gruber <johnsgruber@gmail.com>
+Date: Fri, 4 Dec 2009 16:11:34 -0500
+Message-ID: <44c6f3de0912041311v24e2736aqbb70998a5dc62b87@mail.gmail.com>
+Subject: Re: Hauppage hvr-950q au0828 transfer problem affecting audio and
+	perhaps video
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 15, 2009 at 3:19 PM, Pavel Machek <pavel@ucw.cz> wrote:
-> On Tue 2009-12-15 15:14:02, Jon Smirl wrote:
->> On Tue, Dec 15, 2009 at 2:58 PM, Pavel Machek <pavel@ucw.cz> wrote:
->> > Hi!
->> >
->> >>       (11) if none is against renaming IR as RC, I'll do it on a next patch;
->> >
->> > Call it irc -- infrared remote control. Bluetooth remote controls will
->> > have very different characteristics.
->>
->> How are they different after the scancode is extracted from the
->> network packet? The scancode still needs to be passed to the input
->> system, go through a keymap, and end up on an evdev device.
->>
->> I would expect the code for extracting the scancode to live in the
->> networking stack, but after it is recovered the networking code would
->> use the same API as IR to submit it to input.
+On Fri, Dec 4, 2009 at 10:43 AM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> On Fri, Dec 4, 2009 at 9:31 AM, John S Gruber <johnsgruber@gmail.com> wrote:
+>> I produced the dump of URB sizes you requested by adding that printk() line. The
+>> results are at http://pastebin.com/f26f29133
 >
-> For one thing,  bluetooth (etc) has concept of devices (and reliable
-> transfer). If you have two same bluetooth remotes, you can tell them
-> apart, unlike IR.
-
-IR has the same concept of devices. That's what those codes you enter
-into a universal remote do - they set the device.
-
-There are three classes of remotes..
-Fixed function - the device is hardwired
-Universal - you can change the device
-Multi-function - a universal that can be multiple devices - TV, cable,
-audio, etc
-
-If you set two Bluetooth remotes both to the same device you can't
-tell them apart either.
-Two identical fixed function remotes can be distinguished and they
-shouldn't be distinguishable.
-
-To distinguish between universal remotes just change the device being emulated.
-
-
+> Hi John,
 >
-> So yes, keymapping is the same, but that's pretty much it. Decoding
-> will not be the same (IR is special), etc...
->                                                                        Pavel
+> This is good info (especially since you have kernel timestamps enabled).
+>
+> Did you have a specific reference to the USB audio spec which said the
+> packet size has to be on an integer boundary?  I took a look at the
+> spec last night and didn't see anything to that end.
+>
+> Do you have a proposed patch to usbaudio.c which "works for you"?  If
+> so, feel free to send it along and I will review and provide comments.
+>  If the spec does not require the packets to be on an integer
+> boundary, perhaps the driver just improperly assumes they will be (and
+> they were for whatever developer wrote the original code).
+>
+> Devin
 >
 > --
-> (english) http://www.livejournal.com/~pavelmachek
-> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
 >
+Hi Devin,
 
+You might look at this:
+http://www.usb.org/developers/devclass_docs/Audio2.0_final.zip
+File: Frmts20 final.pdf
+Sections 2.3.1.3, 2.3.1.4 and 2.3.1.5 on page 15
+This is from release 2.0 from 5/31/2006
 
+Also http://www.usb.org/developers/devclass_docs/frmts10.pdf
+Sections 2.2.2, 2.2.3 and 2.2.4 on page 9. This is the 1998 1.0 release.
 
--- 
-Jon Smirl
-jonsmirl@gmail.com
+Thanks for your offer to review my patch. I'll try to post it yet
+today.  I'm still messing around with it.
