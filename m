@@ -1,158 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225]:53999 "EHLO
-	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752366AbZL0BHj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Dec 2009 20:07:39 -0500
-Received: by fxm25 with SMTP id 25so3908839fxm.21
-        for <linux-media@vger.kernel.org>; Sat, 26 Dec 2009 17:07:37 -0800 (PST)
-MIME-Version: 1.0
-Date: Sun, 27 Dec 2009 02:07:37 +0100
-Message-ID: <355c45860912261707w49478f15oaadd65a61f992ede@mail.gmail.com>
-Subject: Afatech USB ID 1b80:e39a (please disregard my last mail)
-From: Tomislav Strelar <tstrelar@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from comal.ext.ti.com ([198.47.26.152]:40548 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752125AbZLDGoi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2009 01:44:38 -0500
+From: "Nori, Sekhar" <nsekhar@ti.com>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+CC: "davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>
+Date: Fri, 4 Dec 2009 12:14:35 +0530
+Subject: RE: [PATCH v0 1/2] V4L - vpfe capture - convert ccdc drivers to
+	platform drivers
+Message-ID: <B85A65D85D7EB246BE421B3FB0FBB59301DE90CA4E@dbde02.ent.ti.com>
+References: <1259691333-32164-1-git-send-email-m-karicheri2@ti.com>
+	<19F8576C6E063C45BE387C64729E7394043716AE11@dbde02.ent.ti.com>
+ <A69FA2915331DC488A831521EAE36FE40155B775E9@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40155B775E9@dlee06.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sorry, I accidentally pushed the "Send button" before time. :) So here
-it is again (and complete this time) :)
+On Fri, Dec 04, 2009 at 01:21:43, Karicheri, Muralidharan wrote:
+>
 
+[...]
 
-Hi everyone,
+> >
+> >> +  if (!res) {
+> >> +          status = -EBUSY;
+> >> +          goto fail_nores;
+> >> +  }
+> >> +
+> >> +  ccdc_base_addr = ioremap_nocache(res->start, res_len);
+> >> +  if (!ccdc_base_addr) {
+> >> +          status = -EBUSY;
+> >[Hiremath, Vaibhav] Is -EBUSY right return value, I think it should be -
+> >ENXIO or -ENOMEM.
+> >
+> I see -ENXIO & -ENOMEM being used by drivers. -ENXIO stands for "No such device or address". ENOMEM stands for "Out of memory" . Since we are trying to map the address here, -ENXIO looks reasonable to me. Same if request_mem_region() fails.
+>
 
-Would it be possible to add support for KWorld USB Stick II,
-KW-D-395UR? It's USB ID is 1b80:e39a?
-On the chip it's written:
-AF9015A-N1
-0817 HL2R2
+Sergei had posted on this earlier[1]. Quoting him here:
 
-There is a support for KWorld USB Stick II in current version of
-v4l-dvb. However, it seems that supported device(s) (VS-DVB-T 395U)
-are not the same as KW-D-395UR. Their IDs are e395, e396 and e39b.
-I've tried just adding e39a, but had no luck in making it work.
+"
+> What are the proper error codes when platform_get_resource,
 
-This is what happens when I connect the device after adding newly built fw:
-Dec 27 02:03:30 Studio kernel: [ 2407.329254] dvb-usb: found a 'KWorld
-USB DVB-T TV Stick II (VS-DVB-T 395U)' in cold state, will try to load
-a firmware
-Dec 27 02:03:30 Studio kernel: [ 2407.329261] usb 1-4: firmware:
-requesting dvb-usb-af9015.fw
-Dec 27 02:03:30 Studio kernel: [ 2407.345722] dvb-usb: downloading
-firmware from file 'dvb-usb-af9015.fw'
-Dec 27 02:03:30 Studio kernel: [ 2407.399634] dvb-usb: found a 'KWorld
-USB DVB-T TV Stick II (VS-DVB-T 395U)' in warm state.
-Dec 27 02:03:30 Studio kernel: [ 2407.399682] dvb-usb: will pass the
-complete MPEG2 transport stream to the software demuxer.
-Dec 27 02:03:30 Studio kernel: [ 2407.400029] DVB: registering new
-adapter (KWorld USB DVB-T TV Stick II (VS-DVB-T 395U))
-Dec 27 02:03:32 Studio kernel: [ 2409.400212] af9015: recv bulk
-message failed:-110
-Dec 27 02:03:34 Studio kernel: [ 2411.410168] af9015: bulk message
-failed:-110 (8/0)
-Dec 27 02:03:36 Studio kernel: [ 2413.400122] af9015: bulk message
-failed:-110 (8/0)
-Dec 27 02:03:38 Studio kernel: [ 2415.400076] af9015: bulk message
-failed:-110 (8/0)
-Dec 27 02:03:40 Studio kernel: [ 2417.400156] af9015: bulk message
-failed:-110 (8/0)
+    -ENODEV.
 
-The last message then repeats forever.
+> request_mem_region
 
-Kernel is 2.6.31-15-generic
+    -EBUSY.
 
-lsusb output for device:
+> and ioremap functions fail?.
 
-Device Descriptor:
- bLength                18
- bDescriptorType         1
- bcdUSB               2.00
- bDeviceClass            0 (Defined at Interface level)
- bDeviceSubClass         0
- bDeviceProtocol         0
- bMaxPacketSize0        64
- idVendor           0x1b80 Afatech
- idProduct          0xe39a
- bcdDevice            2.00
- iManufacturer           1 Afatech
- iProduct                2 DVB-T 2
- iSerial                 0
- bNumConfigurations      1
- Configuration Descriptor:
-   bLength                 9
-   bDescriptorType         2
-   wTotalLength           46
-   bNumInterfaces          1
-   bConfigurationValue     1
-   iConfiguration          0
-   bmAttributes         0x80
-     (Bus Powered)
-   MaxPower              500mA
-   Interface Descriptor:
-     bLength                 9
-     bDescriptorType         4
-     bInterfaceNumber        0
-     bAlternateSetting       0
-     bNumEndpoints           4
-     bInterfaceClass       255 Vendor Specific Class
-     bInterfaceSubClass      0
-     bInterfaceProtocol      0
-     iInterface              0
-     Endpoint Descriptor:
-       bLength                 7
-       bDescriptorType         5
-       bEndpointAddress     0x81  EP 1 IN
-       bmAttributes            2
-         Transfer Type            Bulk
-         Synch Type               None
-         Usage Type               Data
-       wMaxPacketSize     0x0200  1x 512 bytes
-       bInterval               0
-     Endpoint Descriptor:
-       bLength                 7
-       bDescriptorType         5
-       bEndpointAddress     0x02  EP 2 OUT
-       bmAttributes            2
-         Transfer Type            Bulk
-         Synch Type               None
-         Usage Type               Data
-       wMaxPacketSize     0x0200  1x 512 bytes
-       bInterval               0
-     Endpoint Descriptor:
-       bLength                 7
-       bDescriptorType         5
-       bEndpointAddress     0x84  EP 4 IN
-       bmAttributes            2
-         Transfer Type            Bulk
-         Synch Type               None
-         Usage Type               Data
-       wMaxPacketSize     0x0200  1x 512 bytes
-       bInterval               0
-     Endpoint Descriptor:
-       bLength                 7
-       bDescriptorType         5
-       bEndpointAddress     0x85  EP 5 IN
-       bmAttributes            2
-         Transfer Type            Bulk
-         Synch Type               None
-         Usage Type               Data
-       wMaxPacketSize     0x0200  1x 512 bytes
-       bInterval               0
-Device Qualifier (for other device speed):
- bLength                10
- bDescriptorType         6
- bcdUSB               2.00
- bDeviceClass            0 (Defined at Interface level)
- bDeviceSubClass         0
- bDeviceProtocol         0
- bMaxPacketSize0        64
- bNumConfigurations      1
-Device Status:     0x0000
- (Bus Powered)
+    -ENOMEM.
+"
 
-Thanks.
+Not sure if ioremap failure can relate to absence of a device.
 
-Cheerio!
-Tomislav
+Thanks,
+Sekhar
+
+[1] http://www.mail-archive.com/davinci-linux-open-source@linux.davincidsp.com/msg14973.html
+
