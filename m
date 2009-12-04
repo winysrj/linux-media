@@ -1,93 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gv-out-0910.google.com ([216.239.58.188]:63498 "EHLO
-	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760980AbZLJQ4X convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2009 11:56:23 -0500
-Received: by gv-out-0910.google.com with SMTP id r4so10179gve.37
-        for <linux-media@vger.kernel.org>; Thu, 10 Dec 2009 08:56:29 -0800 (PST)
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:61848 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752125AbZLDGhy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2009 01:37:54 -0500
+Received: by ewy19 with SMTP id 19so2425459ewy.1
+        for <linux-media@vger.kernel.org>; Thu, 03 Dec 2009 22:38:00 -0800 (PST)
+Message-ID: <4B18AE42.6010000@gmail.com>
+Date: Fri, 04 Dec 2009 07:37:54 +0100
+From: "tomlohave@gmail.com" <tomlohave@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1259106230.3069.16.camel@palomino.walls.org>
-References: <34373e030911241005r7f499297y1a84a93e0696f550@mail.gmail.com>
-	 <1259106230.3069.16.camel@palomino.walls.org>
-Date: Thu, 10 Dec 2009 11:56:29 -0500
-Message-ID: <34373e030912100856r2ba80741yca8f79c84ee730e3@mail.gmail.com>
-Subject: Re: [linux-dvb] Hauppauge PVR-150 Vertical sync issue?
-From: Robert Longfield <robert.longfield@gmail.com>
-To: Andy Walls <awalls@radix.net>
-Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: hermann pitton <hermann-pitton@arcor.de>
+CC: linux-media@vger.kernel.org, jpnews13@free.fr
+Subject: Re: saa7134  (not very) new board 5168:0307
+References: <4B03F15D.1090907@gmail.com>	 <1258585719.3275.14.camel@pc07.localdom.local> <4B1101B0.5010008@gmail.com> <1259543353.4436.21.camel@pc07.localdom.local>
+In-Reply-To: <1259543353.4436.21.camel@pc07.localdom.local>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ok I've been able to do some troubleshooting with some interesting results.
-I removed the one splitter being used, connected to the main cable
-coming into the house, isolated the grounds with no change in sync
-issues.
-I pulled the pvr-150 card out of the linux machine and put it into my
-window box, hooked it up to the original setup splitter and no ground
-isolation and the video is crystal clear with no sync issues.
+Hi hermann,
 
-I can only come up with a few possible problems, but I am sure there are more.
-Could this be a driver issue on my linux box?
-Could a bad or failing PCI slot cause this problem? However the sync
-problem is not on every channel.
+we are this results :
 
-I'm going to try moving the linux box across the house to see if there
-is a source of EMI near by, but since the windows box doesn't have
-this issue I assume this is a problem with the linux box.
+with
 
--Rob
+&tda827x_cfg_0, &tda827x_cfg_1 or &tda827x_cfg_2
 
-On Tue, Nov 24, 2009 at 6:43 PM, Andy Walls <awalls@radix.net> wrote:
-> On Tue, 2009-11-24 at 13:05 -0500, Robert Longfield wrote:
->> I have a PVR-150 card running on mythbuntu 9 and it appears that my
->> card is suffering a vertical (and possibly a horizontal) sync issue.
->>
->> The video jumps around, shifts from side to side, up and down and when
->> it shifts the video wraps. I'm including a link to a screen shot
->> showing the vertical sync problem
->>
->> http://imagebin.ca/view/6fS-14Yi.html
->
-> It looks like you have strong singal reflections in your cable due to
-> impedance mismatches, a bad splitter, a bad cable or connector, etc.
->
-> Please read:
->
-> http://www.ivtvdriver.org/index.php/Howto:Improve_signal_quality
->
-> and take steps to ensure you've got a good cabling plant in your home.
->
-> Regards,
-> Andy
->
->> This is pretty tame to what happens sometimes. I haven't noticed this
->> on all channels as we are mostly using this to record shows for my
->> son.
->>
->> Here is my setup. Pentium 4 2 Ghz with a gig of ram. 40 gig OS drive,
->> 150 gig drive for recording, 250 gig drive for backup and storage, a
->> dvd-burner.
->> The 150 gig drive is on a Promise Ultra133 TX2 card but exhibits no
->> issues on reads or writes.
->> I have cable connected to the internal tuner of my PVR-150 card and
->> S-video from an Nvidia card (running Nvidea drivers) out to the TV.
->>
->> I don't know what else I can provide to help out but let me know and
->> I'll get it.
->>
->> Thanks,
->> -Rob
->> _______________________________________________
->> linux-dvb users mailing list
->> For V4L/DVB development, please use instead linux-media@vger.kernel.org
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+we have a perfect image without sound on the analogic part (test with mplayer),
+a partial result with dvb-t : we need to initialize first with analogic (with cold boot, the card doesn't work on dvb)
+but only for few seconds(sound and image are ok) 
+then re-initialize with analogic, work for few seconds on dvb and then nothing
+maybe i am wrong but, the sound part for analogic is a problem of redirection, isn't it  ?
+
+here are our configuration for this card :
+
+in saa7134-dvb.c
+
+static struct tda1004x_config tda827x_flydvbtduo_medion_config = {
+	.demod_address = 0x08,
+	.invert        = 1,
+	.invert_oclk   = 0,
+	.xtal_freq     = TDA10046_XTAL_16M,
+	.agc_config    = TDA10046_AGC_TDA827X,
+	.gpio_config   = TDA10046_GP01_I,
+	.if_freq       = TDA10046_FREQ_045,
+	.i2c_gate      = 0x4b,
+	.tuner_address = 0x61,
+	.antenna_switch = 2,
+	.request_firmware = philips_tda1004x_request_firmware
+};
+
+case SAA7134_BOARD_FLYDVBTDUO_MEDION:
+		if (configure_tda827x_fe(dev, &tda827x_flydvbtduo_medion_config,
+					 &tda827x_cfg_2) < 0)
+			goto dettach_frontend;
+		break;
+	default:
+		wprintk("Huh? unknown DVB card?\n");
+		break;
+
+
+in saa7134-cards.c
+
+    [SAA7134_BOARD_FLYDVBTDUO_MEDION] = {
+        .name           = "LifeView FlyDVB-T DUO Medion",
+        .audio_clock    = 0x00187de7,
+        .tuner_type     = TUNER_PHILIPS_TDA8290,
+        .radio_type     = UNSET,
+        .tuner_addr    = ADDR_UNSET,
+        .radio_addr    = ADDR_UNSET,
+        .gpiomask    = 0x00200000,
+        .mpeg           = SAA7134_MPEG_DVB,
+        .inputs         = {{
+            .name = name_tv,
+            .vmux = 1,
+            .amux = TV,
+            .gpio = 0x200000,     /* GPIO21=High for TV input */
+            .tv   = 1,
+        },{
+            .name = name_comp1,    /* Composite signal on S-Video input */
+            .vmux = 3,
+            .amux = LINE1,
+        },{
+            .name = name_svideo,    /* S-Video signal on S-Video input */
+            .vmux = 8,
+            .amux = LINE1,
+        }},
+        .radio = {
+            .name = name_radio,
+            .amux = TV,
+            .gpio = 0x000000,    /* GPIO21=Low for FM radio antenna */
+        },
+
+
+.vendor       = PCI_VENDOR_ID_PHILIPS,
+        .device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+        .subvendor    = 0x5168,        
+        .subdevice    = 0x0307,  /* LR307-N */      
+        .driver_data  = SAA7134_BOARD_FLYDVBTDUO_MEDION,
+
+case SAA7134_BOARD_FLYDVBTDUO_MEDION:
+    {
+        /* this is a hybrid board, initialize to analog mode
+         * and configure firmware eeprom address
+         */
+        u8 data[] = { 0x3c, 0x33, 0x60};
+        struct i2c_msg msg = {.addr=0x08, .flags=0, .buf=data, .len = 
+sizeof(data)};
+        i2c_transfer(&dev->i2c_adap, &msg, 1);
+        break;
+
+
+
+
+What can we do to have dvb fully supported ?
+
+thanks in advance,
+
+Cheers,
+
+Thomas
+
