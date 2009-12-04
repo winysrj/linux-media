@@ -1,812 +1,263 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33726 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935551AbZLHALj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Dec 2009 19:11:39 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	khilman@deeprootsystems.com
-Cc: davinci-linux-open-source@linux.davincidsp.com, hvaibhav@ti.com,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH v1 - 3/4] V4L - vpfe capture - Make dm355 ccdc a platform driver
-Date: Mon,  7 Dec 2009 19:11:39 -0500
-Message-Id: <1260231100-1226-3-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1260231100-1226-2-git-send-email-m-karicheri2@ti.com>
-References: <1260231100-1226-1-git-send-email-m-karicheri2@ti.com>
- <1260231100-1226-2-git-send-email-m-karicheri2@ti.com>
+Received: from mx1.redhat.com ([209.132.183.28]:22895 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751645AbZLDOMy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Dec 2009 09:12:54 -0500
+Date: Fri, 4 Dec 2009 12:12:34 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Gerd Hoffmann <kraxel@redhat.com>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jonsmirl@gmail.com, khc@pm.waw.pl,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR  system?
+Message-ID: <20091204121234.5144836b@pedra>
+In-Reply-To: <20091204100642.GD22570@core.coreip.homeip.net>
+References: <BDodf9W1qgB@lirc>
+	<4B14EDE3.5050201@redhat.com>
+	<4B1524DD.3080708@redhat.com>
+	<4B153617.8070608@redhat.com>
+	<A6D5FF84-2DB8-4543-ACCB-287305CA0739@wilsonet.com>
+	<4B17AA6A.9060702@redhat.com>
+	<20091203175531.GB776@core.coreip.homeip.net>
+	<20091203163328.613699e5@pedra>
+	<20091204100642.GD22570@core.coreip.homeip.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+Em Fri, 4 Dec 2009 02:06:42 -0800
+Dmitry Torokhov <dmitry.torokhov@gmail.com> escreveu:
 
-This combines the two patches sent earlier to change the clock configuration
-and converting ccdc drivers to platform drivers. This has updated comments
-against v0 of these patches.
+> On Thu, Dec 03, 2009 at 04:33:28PM -0200, Mauro Carvalho Chehab wrote:
+> > Let me draw my view:
+> > 
+> > Em Thu, 3 Dec 2009 09:55:31 -0800
+> > Dmitry Torokhov <dmitry.torokhov@gmail.com> escreveu:
+> > 
+> > > No, please, wait just a minute. I know it is tempting to just merge
+> > > lirc_dev and start working, but can we first agree on the overall
+> > > subsystem structure before doing so. It is still quite inclear to me.
+> > > 
+> > > The open questions (for me at least):
+> > > 
+> > > - do we create a new class infrastructure for all receivers or only for
+> > >   ones plugged into lirc_dev? Remember that classifying objects affects
+> > >   how udev and friemds see them and may either help or hurt writing PnP
+> > >   rules.
+> > 
+> > IMO, I would create it as /sys/class/input/IR (just like the /mice). I
+> 
+> That will not work. Driver core does not support notion of subclasses,
+> Greg and Kay insist on flat class namespace. Mice do not belong to a
+> separate [sub]class, they all members of input class, with peculiar
+> directory structure.
+> 
+> IRs however, I believe, deserve a full-fledged class (since they are in
+> my view are parents to the input devices representing remotes). I would
+> argus for the following sysfs hierarchy for the main device tree:
+> 
+> /sys/devices/pcipci0000:00/../pci.../../irrcv0/input14/event16
+> /sys/devices/pcipci0000:00/../usb.../../irrcv1/input15/event17
+> 					      /input16/event18
+> 
+> And corresponding class:
+> 
+> /sys/class/irrcv/irrcv0
+>                  irrcv1
+> 
+> and so on.
 
-In this patch, the probe() function is modified to do the vpss master and
-slave clock configuration. It is assumed that the clock names are same
-across all ccdc IPs. If not, this will have to use configurable clock names
-as done in previous patch (Vaibhav to check this for OMAP). The static
-variables used in the driver are encapsulated inside a structure (ccdc_cfg)
-as part of clean up.
+Seems fine to me.
+> 
+> >
+> > don't see why do we need to different lirc than no-lirc drivers in the
+> > case of sysfs class.
+> 
+> I do agree that _all_ infrared receivers should belong to this class,
+> and not only ones utilizing lirc_dev.
+> 
+> > As devices with raw input capabilities will have
+> > another dev to communicate, this means that we'll need a /lirc node
+> > there to point to lirc dev.
+> > 
+> > > 
+> > > - do we intend to support in-kernel sotfware decoders?
+> > 
+> > Yes.
+> > 
+> 
+> Good.
+> 
+> > > - What is the structure? Do we organize them as a module to be used by driver
+> > >   directly or the driver "streams" the data to IR core and the core
+> > >   applies decoders (in the same fashion input events from drivers flow
+> > >   into input core and then distributed to all bound interfaces for
+> > >   processing/conversion/transmission to userspace)?
+> > 
+> > My plan is to expand ir-common.ko module and rename it to ir-core, to be 
+> > the IR core module for the evdev interface. I'm already working on it. 
+> > My idea for an architecture is that the lirc-core module will use 
+> > ir-common where the IR decoders will be, and the evdev interface.
+> >
+> 
+> How related lirc-core to the current lirc code? If it is not the same
+> maybe we should not call it lirc to avoid confusion.
 
-Reviewed-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
----
-Applies to v4l-dvb linux-next
- drivers/media/video/davinci/dm355_ccdc.c |  409 +++++++++++++++++++-----------
- 1 files changed, 256 insertions(+), 153 deletions(-)
+Just for better illustrate what I'm seeing, I broke the IR generic
+code into two components:
 
-diff --git a/drivers/media/video/davinci/dm355_ccdc.c b/drivers/media/video/davinci/dm355_ccdc.c
-index 56fbefe..36cde21 100644
---- a/drivers/media/video/davinci/dm355_ccdc.c
-+++ b/drivers/media/video/davinci/dm355_ccdc.c
-@@ -37,8 +37,11 @@
- #include <linux/platform_device.h>
- #include <linux/uaccess.h>
- #include <linux/videodev2.h>
-+#include <linux/clk.h>
-+
- #include <media/davinci/dm355_ccdc.h>
- #include <media/davinci/vpss.h>
-+
- #include "dm355_ccdc_regs.h"
- #include "ccdc_hw_device.h"
- 
-@@ -46,67 +49,75 @@ MODULE_LICENSE("GPL");
- MODULE_DESCRIPTION("CCDC Driver for DM355");
- MODULE_AUTHOR("Texas Instruments");
- 
--static struct device *dev;
--
--/* Object for CCDC raw mode */
--static struct ccdc_params_raw ccdc_hw_params_raw = {
--	.pix_fmt = CCDC_PIXFMT_RAW,
--	.frm_fmt = CCDC_FRMFMT_PROGRESSIVE,
--	.win = CCDC_WIN_VGA,
--	.fid_pol = VPFE_PINPOL_POSITIVE,
--	.vd_pol = VPFE_PINPOL_POSITIVE,
--	.hd_pol = VPFE_PINPOL_POSITIVE,
--	.gain = {
--		.r_ye = 256,
--		.gb_g = 256,
--		.gr_cy = 256,
--		.b_mg = 256
--	},
--	.config_params = {
--		.datasft = 2,
--		.data_sz = CCDC_DATA_10BITS,
--		.mfilt1 = CCDC_NO_MEDIAN_FILTER1,
--		.mfilt2 = CCDC_NO_MEDIAN_FILTER2,
--		.alaw = {
--			.gama_wd = 2,
-+static struct ccdc_oper_config {
-+	struct device *dev;
-+	/* CCDC interface type */
-+	enum vpfe_hw_if_type if_type;
-+	/* Raw Bayer configuration */
-+	struct ccdc_params_raw bayer;
-+	/* YCbCr configuration */
-+	struct ccdc_params_ycbcr ycbcr;
-+	/* Master clock */
-+	struct clk *mclk;
-+	/* slave clock */
-+	struct clk *sclk;
-+	/* ccdc base address */
-+	void __iomem *base_addr;
-+} ccdc_cfg = {
-+	/* Raw configurations */
-+	.bayer = {
-+		.pix_fmt = CCDC_PIXFMT_RAW,
-+		.frm_fmt = CCDC_FRMFMT_PROGRESSIVE,
-+		.win = CCDC_WIN_VGA,
-+		.fid_pol = VPFE_PINPOL_POSITIVE,
-+		.vd_pol = VPFE_PINPOL_POSITIVE,
-+		.hd_pol = VPFE_PINPOL_POSITIVE,
-+		.gain = {
-+			.r_ye = 256,
-+			.gb_g = 256,
-+			.gr_cy = 256,
-+			.b_mg = 256
- 		},
--		.blk_clamp = {
--			.sample_pixel = 1,
--			.dc_sub = 25
--		},
--		.col_pat_field0 = {
--			.olop = CCDC_GREEN_BLUE,
--			.olep = CCDC_BLUE,
--			.elop = CCDC_RED,
--			.elep = CCDC_GREEN_RED
--		},
--		.col_pat_field1 = {
--			.olop = CCDC_GREEN_BLUE,
--			.olep = CCDC_BLUE,
--			.elop = CCDC_RED,
--			.elep = CCDC_GREEN_RED
-+		.config_params = {
-+			.datasft = 2,
-+			.mfilt1 = CCDC_NO_MEDIAN_FILTER1,
-+			.mfilt2 = CCDC_NO_MEDIAN_FILTER2,
-+			.alaw = {
-+				.gama_wd = 2,
-+			},
-+			.blk_clamp = {
-+				.sample_pixel = 1,
-+				.dc_sub = 25
-+			},
-+			.col_pat_field0 = {
-+				.olop = CCDC_GREEN_BLUE,
-+				.olep = CCDC_BLUE,
-+				.elop = CCDC_RED,
-+				.elep = CCDC_GREEN_RED
-+			},
-+			.col_pat_field1 = {
-+				.olop = CCDC_GREEN_BLUE,
-+				.olep = CCDC_BLUE,
-+				.elop = CCDC_RED,
-+				.elep = CCDC_GREEN_RED
-+			},
- 		},
- 	},
-+	/* YCbCr configuration */
-+	.ycbcr = {
-+		.win = CCDC_WIN_PAL,
-+		.pix_fmt = CCDC_PIXFMT_YCBCR_8BIT,
-+		.frm_fmt = CCDC_FRMFMT_INTERLACED,
-+		.fid_pol = VPFE_PINPOL_POSITIVE,
-+		.vd_pol = VPFE_PINPOL_POSITIVE,
-+		.hd_pol = VPFE_PINPOL_POSITIVE,
-+		.bt656_enable = 1,
-+		.pix_order = CCDC_PIXORDER_CBYCRY,
-+		.buf_type = CCDC_BUFTYPE_FLD_INTERLEAVED
-+	},
- };
- 
- 
--/* Object for CCDC ycbcr mode */
--static struct ccdc_params_ycbcr ccdc_hw_params_ycbcr = {
--	.win = CCDC_WIN_PAL,
--	.pix_fmt = CCDC_PIXFMT_YCBCR_8BIT,
--	.frm_fmt = CCDC_FRMFMT_INTERLACED,
--	.fid_pol = VPFE_PINPOL_POSITIVE,
--	.vd_pol = VPFE_PINPOL_POSITIVE,
--	.hd_pol = VPFE_PINPOL_POSITIVE,
--	.bt656_enable = 1,
--	.pix_order = CCDC_PIXORDER_CBYCRY,
--	.buf_type = CCDC_BUFTYPE_FLD_INTERLEAVED
--};
--
--static enum vpfe_hw_if_type ccdc_if_type;
--static void *__iomem ccdc_base_addr;
--static int ccdc_addr_size;
--
- /* Raw Bayer formats */
- static u32 ccdc_raw_bayer_pix_formats[] =
- 		{V4L2_PIX_FMT_SBGGR8, V4L2_PIX_FMT_SBGGR16};
-@@ -118,18 +129,12 @@ static u32 ccdc_raw_yuv_pix_formats[] =
- /* register access routines */
- static inline u32 regr(u32 offset)
- {
--	return __raw_readl(ccdc_base_addr + offset);
-+	return __raw_readl(ccdc_cfg.base_addr + offset);
- }
- 
- static inline void regw(u32 val, u32 offset)
- {
--	__raw_writel(val, ccdc_base_addr + offset);
--}
--
--static void ccdc_set_ccdc_base(void *addr, int size)
--{
--	ccdc_base_addr = addr;
--	ccdc_addr_size = size;
-+	__raw_writel(val, ccdc_cfg.base_addr + offset);
- }
- 
- static void ccdc_enable(int en)
-@@ -153,12 +158,12 @@ static void ccdc_enable_output_to_sdram(int en)
- static void ccdc_config_gain_offset(void)
- {
- 	/* configure gain */
--	regw(ccdc_hw_params_raw.gain.r_ye, RYEGAIN);
--	regw(ccdc_hw_params_raw.gain.gr_cy, GRCYGAIN);
--	regw(ccdc_hw_params_raw.gain.gb_g, GBGGAIN);
--	regw(ccdc_hw_params_raw.gain.b_mg, BMGGAIN);
-+	regw(ccdc_cfg.bayer.gain.r_ye, RYEGAIN);
-+	regw(ccdc_cfg.bayer.gain.gr_cy, GRCYGAIN);
-+	regw(ccdc_cfg.bayer.gain.gb_g, GBGGAIN);
-+	regw(ccdc_cfg.bayer.gain.b_mg, BMGGAIN);
- 	/* configure offset */
--	regw(ccdc_hw_params_raw.ccdc_offset, OFFSET);
-+	regw(ccdc_cfg.bayer.ccdc_offset, OFFSET);
- }
- 
- /*
-@@ -169,7 +174,7 @@ static int ccdc_restore_defaults(void)
- {
- 	int i;
- 
--	dev_dbg(dev, "\nstarting ccdc_restore_defaults...");
-+	dev_dbg(ccdc_cfg.dev, "\nstarting ccdc_restore_defaults...");
- 	/* set all registers to zero */
- 	for (i = 0; i <= CCDC_REG_LAST; i += 4)
- 		regw(0, i);
-@@ -180,30 +185,29 @@ static int ccdc_restore_defaults(void)
- 	regw(CULH_DEFAULT, CULH);
- 	regw(CULV_DEFAULT, CULV);
- 	/* Set default Gain and Offset */
--	ccdc_hw_params_raw.gain.r_ye = GAIN_DEFAULT;
--	ccdc_hw_params_raw.gain.gb_g = GAIN_DEFAULT;
--	ccdc_hw_params_raw.gain.gr_cy = GAIN_DEFAULT;
--	ccdc_hw_params_raw.gain.b_mg = GAIN_DEFAULT;
-+	ccdc_cfg.bayer.gain.r_ye = GAIN_DEFAULT;
-+	ccdc_cfg.bayer.gain.gb_g = GAIN_DEFAULT;
-+	ccdc_cfg.bayer.gain.gr_cy = GAIN_DEFAULT;
-+	ccdc_cfg.bayer.gain.b_mg = GAIN_DEFAULT;
- 	ccdc_config_gain_offset();
- 	regw(OUTCLIP_DEFAULT, OUTCLIP);
- 	regw(LSCCFG2_DEFAULT, LSCCFG2);
- 	/* select ccdc input */
- 	if (vpss_select_ccdc_source(VPSS_CCDCIN)) {
--		dev_dbg(dev, "\ncouldn't select ccdc input source");
-+		dev_dbg(ccdc_cfg.dev, "\ncouldn't select ccdc input source");
- 		return -EFAULT;
- 	}
- 	/* select ccdc clock */
- 	if (vpss_enable_clock(VPSS_CCDC_CLOCK, 1) < 0) {
--		dev_dbg(dev, "\ncouldn't enable ccdc clock");
-+		dev_dbg(ccdc_cfg.dev, "\ncouldn't enable ccdc clock");
- 		return -EFAULT;
- 	}
--	dev_dbg(dev, "\nEnd of ccdc_restore_defaults...");
-+	dev_dbg(ccdc_cfg.dev, "\nEnd of ccdc_restore_defaults...");
- 	return 0;
- }
- 
- static int ccdc_open(struct device *device)
- {
--	dev = device;
- 	return ccdc_restore_defaults();
- }
- 
-@@ -226,7 +230,7 @@ static void ccdc_setwin(struct v4l2_rect *image_win,
- 	int vert_start, vert_nr_lines;
- 	int mid_img = 0;
- 
--	dev_dbg(dev, "\nStarting ccdc_setwin...");
-+	dev_dbg(ccdc_cfg.dev, "\nStarting ccdc_setwin...");
- 
- 	/*
- 	 * ppc - per pixel count. indicates how many pixels per cell
-@@ -260,45 +264,46 @@ static void ccdc_setwin(struct v4l2_rect *image_win,
- 	regw(vert_start & CCDC_START_VER_ONE_MASK, SLV0);
- 	regw(vert_start & CCDC_START_VER_TWO_MASK, SLV1);
- 	regw(vert_nr_lines & CCDC_NUM_LINES_VER, NLV);
--	dev_dbg(dev, "\nEnd of ccdc_setwin...");
-+	dev_dbg(ccdc_cfg.dev, "\nEnd of ccdc_setwin...");
- }
- 
- static int validate_ccdc_param(struct ccdc_config_params_raw *ccdcparam)
- {
- 	if (ccdcparam->datasft < CCDC_DATA_NO_SHIFT ||
- 	    ccdcparam->datasft > CCDC_DATA_SHIFT_6BIT) {
--		dev_dbg(dev, "Invalid value of data shift\n");
-+		dev_dbg(ccdc_cfg.dev, "Invalid value of data shift\n");
- 		return -EINVAL;
- 	}
- 
- 	if (ccdcparam->mfilt1 < CCDC_NO_MEDIAN_FILTER1 ||
- 	    ccdcparam->mfilt1 > CCDC_MEDIAN_FILTER1) {
--		dev_dbg(dev, "Invalid value of median filter1\n");
-+		dev_dbg(ccdc_cfg.dev, "Invalid value of median filter1\n");
- 		return -EINVAL;
- 	}
- 
- 	if (ccdcparam->mfilt2 < CCDC_NO_MEDIAN_FILTER2 ||
- 	    ccdcparam->mfilt2 > CCDC_MEDIAN_FILTER2) {
--		dev_dbg(dev, "Invalid value of median filter2\n");
-+		dev_dbg(ccdc_cfg.dev, "Invalid value of median filter2\n");
- 		return -EINVAL;
- 	}
- 
- 	if ((ccdcparam->med_filt_thres < 0) ||
- 	   (ccdcparam->med_filt_thres > CCDC_MED_FILT_THRESH)) {
--		dev_dbg(dev, "Invalid value of median filter thresold\n");
-+		dev_dbg(ccdc_cfg.dev,
-+			"Invalid value of median filter thresold\n");
- 		return -EINVAL;
- 	}
- 
- 	if (ccdcparam->data_sz < CCDC_DATA_16BITS ||
- 	    ccdcparam->data_sz > CCDC_DATA_8BITS) {
--		dev_dbg(dev, "Invalid value of data size\n");
-+		dev_dbg(ccdc_cfg.dev, "Invalid value of data size\n");
- 		return -EINVAL;
- 	}
- 
- 	if (ccdcparam->alaw.enable) {
- 		if (ccdcparam->alaw.gama_wd < CCDC_GAMMA_BITS_13_4 ||
- 		    ccdcparam->alaw.gama_wd > CCDC_GAMMA_BITS_09_0) {
--			dev_dbg(dev, "Invalid value of ALAW\n");
-+			dev_dbg(ccdc_cfg.dev, "Invalid value of ALAW\n");
- 			return -EINVAL;
- 		}
- 	}
-@@ -306,12 +311,14 @@ static int validate_ccdc_param(struct ccdc_config_params_raw *ccdcparam)
- 	if (ccdcparam->blk_clamp.b_clamp_enable) {
- 		if (ccdcparam->blk_clamp.sample_pixel < CCDC_SAMPLE_1PIXELS ||
- 		    ccdcparam->blk_clamp.sample_pixel > CCDC_SAMPLE_16PIXELS) {
--			dev_dbg(dev, "Invalid value of sample pixel\n");
-+			dev_dbg(ccdc_cfg.dev,
-+				"Invalid value of sample pixel\n");
- 			return -EINVAL;
- 		}
- 		if (ccdcparam->blk_clamp.sample_ln < CCDC_SAMPLE_1LINES ||
- 		    ccdcparam->blk_clamp.sample_ln > CCDC_SAMPLE_16LINES) {
--			dev_dbg(dev, "Invalid value of sample lines\n");
-+			dev_dbg(ccdc_cfg.dev,
-+				"Invalid value of sample lines\n");
- 			return -EINVAL;
- 		}
- 	}
-@@ -325,18 +332,18 @@ static int ccdc_set_params(void __user *params)
- 	int x;
- 
- 	/* only raw module parameters can be set through the IOCTL */
--	if (ccdc_if_type != VPFE_RAW_BAYER)
-+	if (ccdc_cfg.if_type != VPFE_RAW_BAYER)
- 		return -EINVAL;
- 
- 	x = copy_from_user(&ccdc_raw_params, params, sizeof(ccdc_raw_params));
- 	if (x) {
--		dev_dbg(dev, "ccdc_set_params: error in copying ccdc"
-+		dev_dbg(ccdc_cfg.dev, "ccdc_set_params: error in copying ccdc"
- 			"params, %d\n", x);
- 		return -EFAULT;
- 	}
- 
- 	if (!validate_ccdc_param(&ccdc_raw_params)) {
--		memcpy(&ccdc_hw_params_raw.config_params,
-+		memcpy(&ccdc_cfg.bayer.config_params,
- 			&ccdc_raw_params,
- 			sizeof(ccdc_raw_params));
- 		return 0;
-@@ -347,11 +354,11 @@ static int ccdc_set_params(void __user *params)
- /* This function will configure CCDC for YCbCr video capture */
- static void ccdc_config_ycbcr(void)
- {
--	struct ccdc_params_ycbcr *params = &ccdc_hw_params_ycbcr;
-+	struct ccdc_params_ycbcr *params = &ccdc_cfg.ycbcr;
- 	u32 temp;
- 
- 	/* first set the CCDC power on defaults values in all registers */
--	dev_dbg(dev, "\nStarting ccdc_config_ycbcr...");
-+	dev_dbg(ccdc_cfg.dev, "\nStarting ccdc_config_ycbcr...");
- 	ccdc_restore_defaults();
- 
- 	/* configure pixel format & video frame format */
-@@ -403,7 +410,7 @@ static void ccdc_config_ycbcr(void)
- 		regw(CCDC_SDOFST_FIELD_INTERLEAVED, SDOFST);
- 	}
- 
--	dev_dbg(dev, "\nEnd of ccdc_config_ycbcr...\n");
-+	dev_dbg(ccdc_cfg.dev, "\nEnd of ccdc_config_ycbcr...\n");
- }
- 
- /*
-@@ -483,7 +490,7 @@ int ccdc_write_dfc_entry(int index, struct ccdc_vertical_dft *dfc)
- 	 */
- 
- 	if (count) {
--		dev_err(dev, "defect table write timeout !!!\n");
-+		dev_err(ccdc_cfg.dev, "defect table write timeout !!!\n");
- 		return -1;
- 	}
- 	return 0;
-@@ -605,12 +612,12 @@ static void ccdc_config_color_patterns(struct ccdc_col_pat *pat0,
- /* This function will configure CCDC for Raw mode image capture */
- static int ccdc_config_raw(void)
- {
--	struct ccdc_params_raw *params = &ccdc_hw_params_raw;
-+	struct ccdc_params_raw *params = &ccdc_cfg.bayer;
- 	struct ccdc_config_params_raw *config_params =
--		&ccdc_hw_params_raw.config_params;
-+					&ccdc_cfg.bayer.config_params;
- 	unsigned int val;
- 
--	dev_dbg(dev, "\nStarting ccdc_config_raw...");
-+	dev_dbg(ccdc_cfg.dev, "\nStarting ccdc_config_raw...");
- 
- 	/* restore power on defaults to register */
- 	ccdc_restore_defaults();
-@@ -659,7 +666,7 @@ static int ccdc_config_raw(void)
- 	val |= (config_params->datasft & CCDC_DATASFT_MASK) <<
- 		CCDC_DATASFT_SHIFT;
- 	regw(val , MODESET);
--	dev_dbg(dev, "\nWriting 0x%x to MODESET...\n", val);
-+	dev_dbg(ccdc_cfg.dev, "\nWriting 0x%x to MODESET...\n", val);
- 
- 	/* Configure the Median Filter threshold */
- 	regw((config_params->med_filt_thres) & CCDC_MED_FILT_THRESH, MEDFILT);
-@@ -681,7 +688,7 @@ static int ccdc_config_raw(void)
- 		(config_params->mfilt2 << CCDC_MFILT2_SHIFT));
- 
- 	regw(val, GAMMAWD);
--	dev_dbg(dev, "\nWriting 0x%x to GAMMAWD...\n", val);
-+	dev_dbg(ccdc_cfg.dev, "\nWriting 0x%x to GAMMAWD...\n", val);
- 
- 	/* configure video window */
- 	ccdc_setwin(&params->win, params->frm_fmt, 1);
-@@ -706,7 +713,7 @@ static int ccdc_config_raw(void)
- 	/* Configure the Gain  & offset control */
- 	ccdc_config_gain_offset();
- 
--	dev_dbg(dev, "\nWriting %x to COLPTN...\n", val);
-+	dev_dbg(ccdc_cfg.dev, "\nWriting %x to COLPTN...\n", val);
- 
- 	/* Configure DATAOFST  register */
- 	val = (config_params->data_offset.horz_offset & CCDC_DATAOFST_MASK) <<
-@@ -726,7 +733,7 @@ static int ccdc_config_raw(void)
- 			CCDC_HSIZE_VAL_MASK;
- 
- 		/* adjust to multiple of 32 */
--		dev_dbg(dev, "\nWriting 0x%x to HSIZE...\n",
-+		dev_dbg(ccdc_cfg.dev, "\nWriting 0x%x to HSIZE...\n",
- 		       (((params->win.width) + 31) >> 5) &
- 			CCDC_HSIZE_VAL_MASK);
- 	} else {
-@@ -734,7 +741,7 @@ static int ccdc_config_raw(void)
- 		val |= (((params->win.width * 2) + 31) >> 5) &
- 			CCDC_HSIZE_VAL_MASK;
- 
--		dev_dbg(dev, "\nWriting 0x%x to HSIZE...\n",
-+		dev_dbg(ccdc_cfg.dev, "\nWriting 0x%x to HSIZE...\n",
- 		       (((params->win.width * 2) + 31) >> 5) &
- 			CCDC_HSIZE_VAL_MASK);
- 	}
-@@ -745,34 +752,34 @@ static int ccdc_config_raw(void)
- 		if (params->image_invert_enable) {
- 			/* For interlace inverse mode */
- 			regw(CCDC_SDOFST_INTERLACE_INVERSE, SDOFST);
--			dev_dbg(dev, "\nWriting %x to SDOFST...\n",
-+			dev_dbg(ccdc_cfg.dev, "\nWriting %x to SDOFST...\n",
- 				CCDC_SDOFST_INTERLACE_INVERSE);
- 		} else {
- 			/* For interlace non inverse mode */
- 			regw(CCDC_SDOFST_INTERLACE_NORMAL, SDOFST);
--			dev_dbg(dev, "\nWriting %x to SDOFST...\n",
-+			dev_dbg(ccdc_cfg.dev, "\nWriting %x to SDOFST...\n",
- 				CCDC_SDOFST_INTERLACE_NORMAL);
- 		}
- 	} else if (params->frm_fmt == CCDC_FRMFMT_PROGRESSIVE) {
- 		if (params->image_invert_enable) {
- 			/* For progessive inverse mode */
- 			regw(CCDC_SDOFST_PROGRESSIVE_INVERSE, SDOFST);
--			dev_dbg(dev, "\nWriting %x to SDOFST...\n",
-+			dev_dbg(ccdc_cfg.dev, "\nWriting %x to SDOFST...\n",
- 				CCDC_SDOFST_PROGRESSIVE_INVERSE);
- 		} else {
- 			/* For progessive non inverse mode */
- 			regw(CCDC_SDOFST_PROGRESSIVE_NORMAL, SDOFST);
--			dev_dbg(dev, "\nWriting %x to SDOFST...\n",
-+			dev_dbg(ccdc_cfg.dev, "\nWriting %x to SDOFST...\n",
- 				CCDC_SDOFST_PROGRESSIVE_NORMAL);
- 		}
- 	}
--	dev_dbg(dev, "\nend of ccdc_config_raw...");
-+	dev_dbg(ccdc_cfg.dev, "\nend of ccdc_config_raw...");
- 	return 0;
- }
- 
- static int ccdc_configure(void)
- {
--	if (ccdc_if_type == VPFE_RAW_BAYER)
-+	if (ccdc_cfg.if_type == VPFE_RAW_BAYER)
- 		return ccdc_config_raw();
- 	else
- 		ccdc_config_ycbcr();
-@@ -781,23 +788,23 @@ static int ccdc_configure(void)
- 
- static int ccdc_set_buftype(enum ccdc_buftype buf_type)
- {
--	if (ccdc_if_type == VPFE_RAW_BAYER)
--		ccdc_hw_params_raw.buf_type = buf_type;
-+	if (ccdc_cfg.if_type == VPFE_RAW_BAYER)
-+		ccdc_cfg.bayer.buf_type = buf_type;
- 	else
--		ccdc_hw_params_ycbcr.buf_type = buf_type;
-+		ccdc_cfg.ycbcr.buf_type = buf_type;
- 	return 0;
- }
- static enum ccdc_buftype ccdc_get_buftype(void)
- {
--	if (ccdc_if_type == VPFE_RAW_BAYER)
--		return ccdc_hw_params_raw.buf_type;
--	return ccdc_hw_params_ycbcr.buf_type;
-+	if (ccdc_cfg.if_type == VPFE_RAW_BAYER)
-+		return ccdc_cfg.bayer.buf_type;
-+	return ccdc_cfg.ycbcr.buf_type;
- }
- 
- static int ccdc_enum_pix(u32 *pix, int i)
- {
- 	int ret = -EINVAL;
--	if (ccdc_if_type == VPFE_RAW_BAYER) {
-+	if (ccdc_cfg.if_type == VPFE_RAW_BAYER) {
- 		if (i < ARRAY_SIZE(ccdc_raw_bayer_pix_formats)) {
- 			*pix = ccdc_raw_bayer_pix_formats[i];
- 			ret = 0;
-@@ -813,20 +820,19 @@ static int ccdc_enum_pix(u32 *pix, int i)
- 
- static int ccdc_set_pixel_format(u32 pixfmt)
- {
--	struct ccdc_a_law *alaw =
--		&ccdc_hw_params_raw.config_params.alaw;
-+	struct ccdc_a_law *alaw = &ccdc_cfg.bayer.config_params.alaw;
- 
--	if (ccdc_if_type == VPFE_RAW_BAYER) {
--		ccdc_hw_params_raw.pix_fmt = CCDC_PIXFMT_RAW;
-+	if (ccdc_cfg.if_type == VPFE_RAW_BAYER) {
-+		ccdc_cfg.bayer.pix_fmt = CCDC_PIXFMT_RAW;
- 		if (pixfmt == V4L2_PIX_FMT_SBGGR8)
- 			alaw->enable = 1;
- 		else if (pixfmt != V4L2_PIX_FMT_SBGGR16)
- 			return -EINVAL;
- 	} else {
- 		if (pixfmt == V4L2_PIX_FMT_YUYV)
--			ccdc_hw_params_ycbcr.pix_order = CCDC_PIXORDER_YCBYCR;
-+			ccdc_cfg.ycbcr.pix_order = CCDC_PIXORDER_YCBYCR;
- 		else if (pixfmt == V4L2_PIX_FMT_UYVY)
--			ccdc_hw_params_ycbcr.pix_order = CCDC_PIXORDER_CBYCRY;
-+			ccdc_cfg.ycbcr.pix_order = CCDC_PIXORDER_CBYCRY;
- 		else
- 			return -EINVAL;
- 	}
-@@ -834,17 +840,16 @@ static int ccdc_set_pixel_format(u32 pixfmt)
- }
- static u32 ccdc_get_pixel_format(void)
- {
--	struct ccdc_a_law *alaw =
--		&ccdc_hw_params_raw.config_params.alaw;
-+	struct ccdc_a_law *alaw = &ccdc_cfg.bayer.config_params.alaw;
- 	u32 pixfmt;
- 
--	if (ccdc_if_type == VPFE_RAW_BAYER)
-+	if (ccdc_cfg.if_type == VPFE_RAW_BAYER)
- 		if (alaw->enable)
- 			pixfmt = V4L2_PIX_FMT_SBGGR8;
- 		else
- 			pixfmt = V4L2_PIX_FMT_SBGGR16;
- 	else {
--		if (ccdc_hw_params_ycbcr.pix_order == CCDC_PIXORDER_YCBYCR)
-+		if (ccdc_cfg.ycbcr.pix_order == CCDC_PIXORDER_YCBYCR)
- 			pixfmt = V4L2_PIX_FMT_YUYV;
- 		else
- 			pixfmt = V4L2_PIX_FMT_UYVY;
-@@ -853,53 +858,53 @@ static u32 ccdc_get_pixel_format(void)
- }
- static int ccdc_set_image_window(struct v4l2_rect *win)
- {
--	if (ccdc_if_type == VPFE_RAW_BAYER)
--		ccdc_hw_params_raw.win = *win;
-+	if (ccdc_cfg.if_type == VPFE_RAW_BAYER)
-+		ccdc_cfg.bayer.win = *win;
- 	else
--		ccdc_hw_params_ycbcr.win = *win;
-+		ccdc_cfg.ycbcr.win = *win;
- 	return 0;
- }
- 
- static void ccdc_get_image_window(struct v4l2_rect *win)
- {
--	if (ccdc_if_type == VPFE_RAW_BAYER)
--		*win = ccdc_hw_params_raw.win;
-+	if (ccdc_cfg.if_type == VPFE_RAW_BAYER)
-+		*win = ccdc_cfg.bayer.win;
- 	else
--		*win = ccdc_hw_params_ycbcr.win;
-+		*win = ccdc_cfg.ycbcr.win;
- }
- 
- static unsigned int ccdc_get_line_length(void)
- {
- 	struct ccdc_config_params_raw *config_params =
--		&ccdc_hw_params_raw.config_params;
-+				&ccdc_cfg.bayer.config_params;
- 	unsigned int len;
- 
--	if (ccdc_if_type == VPFE_RAW_BAYER) {
-+	if (ccdc_cfg.if_type == VPFE_RAW_BAYER) {
- 		if ((config_params->alaw.enable) ||
- 		    (config_params->data_sz == CCDC_DATA_8BITS))
--			len = ccdc_hw_params_raw.win.width;
-+			len = ccdc_cfg.bayer.win.width;
- 		else
--			len = ccdc_hw_params_raw.win.width * 2;
-+			len = ccdc_cfg.bayer.win.width * 2;
- 	} else
--		len = ccdc_hw_params_ycbcr.win.width * 2;
-+		len = ccdc_cfg.ycbcr.win.width * 2;
- 	return ALIGN(len, 32);
- }
- 
- static int ccdc_set_frame_format(enum ccdc_frmfmt frm_fmt)
- {
--	if (ccdc_if_type == VPFE_RAW_BAYER)
--		ccdc_hw_params_raw.frm_fmt = frm_fmt;
-+	if (ccdc_cfg.if_type == VPFE_RAW_BAYER)
-+		ccdc_cfg.bayer.frm_fmt = frm_fmt;
- 	else
--		ccdc_hw_params_ycbcr.frm_fmt = frm_fmt;
-+		ccdc_cfg.ycbcr.frm_fmt = frm_fmt;
- 	return 0;
- }
- 
- static enum ccdc_frmfmt ccdc_get_frame_format(void)
- {
--	if (ccdc_if_type == VPFE_RAW_BAYER)
--		return ccdc_hw_params_raw.frm_fmt;
-+	if (ccdc_cfg.if_type == VPFE_RAW_BAYER)
-+		return ccdc_cfg.bayer.frm_fmt;
- 	else
--		return ccdc_hw_params_ycbcr.frm_fmt;
-+		return ccdc_cfg.ycbcr.frm_fmt;
- }
- 
- static int ccdc_getfid(void)
-@@ -916,14 +921,14 @@ static inline void ccdc_setfbaddr(unsigned long addr)
- 
- static int ccdc_set_hw_if_params(struct vpfe_hw_if_param *params)
- {
--	ccdc_if_type = params->if_type;
-+	ccdc_cfg.if_type = params->if_type;
- 
- 	switch (params->if_type) {
- 	case VPFE_BT656:
- 	case VPFE_YCBCR_SYNC_16:
- 	case VPFE_YCBCR_SYNC_8:
--		ccdc_hw_params_ycbcr.vd_pol = params->vdpol;
--		ccdc_hw_params_ycbcr.hd_pol = params->hdpol;
-+		ccdc_cfg.ycbcr.vd_pol = params->vdpol;
-+		ccdc_cfg.ycbcr.hd_pol = params->hdpol;
- 		break;
- 	default:
- 		/* TODO add support for raw bayer here */
-@@ -938,7 +943,6 @@ static struct ccdc_hw_device ccdc_hw_dev = {
- 	.hw_ops = {
- 		.open = ccdc_open,
- 		.close = ccdc_close,
--		.set_ccdc_base = ccdc_set_ccdc_base,
- 		.enable = ccdc_enable,
- 		.enable_out_to_sdram = ccdc_enable_output_to_sdram,
- 		.set_hw_if_params = ccdc_set_hw_if_params,
-@@ -959,19 +963,118 @@ static struct ccdc_hw_device ccdc_hw_dev = {
- 	},
- };
- 
--static int __init dm355_ccdc_init(void)
-+static int __init dm355_ccdc_probe(struct platform_device *pdev)
- {
--	printk(KERN_NOTICE "dm355_ccdc_init\n");
--	if (vpfe_register_ccdc_device(&ccdc_hw_dev) < 0)
--		return -1;
--	printk(KERN_NOTICE "%s is registered with vpfe.\n",
--		ccdc_hw_dev.name);
-+	void (*setup_pinmux)(void);
-+	struct resource	*res;
-+	int status = 0;
-+
-+	/*
-+	 * first try to register with vpfe. If not correct platform, then we
-+	 * don't have to iomap
-+	 */
-+	status = vpfe_register_ccdc_device(&ccdc_hw_dev);
-+	if (status < 0)
-+		return status;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!res) {
-+		status = -ENODEV;
-+		goto fail_nores;
-+	}
-+
-+	res = request_mem_region(res->start, resource_size(res), res->name);
-+	if (!res) {
-+		status = -EBUSY;
-+		goto fail_nores;
-+	}
-+
-+	ccdc_cfg.base_addr = ioremap_nocache(res->start, resource_size(res));
-+	if (!ccdc_cfg.base_addr) {
-+		status = -ENOMEM;
-+		goto fail_nomem;
-+	}
-+
-+	/* Get and enable Master clock */
-+	ccdc_cfg.mclk = clk_get(&pdev->dev, "vpss_master");
-+	if (NULL == ccdc_cfg.mclk) {
-+		status = -ENODEV;
-+		goto fail_nomap;
-+	}
-+	if (clk_enable(ccdc_cfg.mclk)) {
-+		status = -ENODEV;
-+		goto mclk_fail;
-+	}
-+
-+	/* Get and enable Slave clock */
-+	ccdc_cfg.sclk = clk_get(&pdev->dev, "vpss_slave");
-+	if (NULL == ccdc_cfg.sclk) {
-+		status = -ENODEV;
-+		goto mclk_fail;
-+	}
-+	if (clk_enable(ccdc_cfg.sclk)) {
-+		status = -ENODEV;
-+		goto sclk_fail;
-+	}
-+
-+	/* Platform data holds setup_pinmux function ptr */
-+	if (NULL == pdev->dev.platform_data) {
-+		status = -ENODEV;
-+		goto sclk_fail;
-+	}
-+	setup_pinmux = pdev->dev.platform_data;
-+	/*
-+	 * setup Mux configuration for ccdc which may be different for
-+	 * different SoCs using this CCDC
-+	 */
-+	setup_pinmux();
-+	ccdc_cfg.dev = &pdev->dev;
-+	printk(KERN_NOTICE "%s is registered with vpfe.\n", ccdc_hw_dev.name);
- 	return 0;
-+sclk_fail:
-+	clk_put(ccdc_cfg.sclk);
-+mclk_fail:
-+	clk_put(ccdc_cfg.mclk);
-+fail_nomap:
-+	iounmap(ccdc_cfg.base_addr);
-+fail_nomem:
-+	release_mem_region(res->start, resource_size(res));
-+fail_nores:
-+	vpfe_unregister_ccdc_device(&ccdc_hw_dev);
-+	return status;
- }
- 
--static void __exit dm355_ccdc_exit(void)
-+static int dm355_ccdc_remove(struct platform_device *pdev)
- {
-+	struct resource	*res;
-+
-+	clk_put(ccdc_cfg.mclk);
-+	clk_put(ccdc_cfg.sclk);
-+	iounmap(ccdc_cfg.base_addr);
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (res)
-+		release_mem_region(res->start, resource_size(res));
- 	vpfe_unregister_ccdc_device(&ccdc_hw_dev);
-+	return 0;
-+}
-+
-+static struct platform_driver dm355_ccdc_driver = {
-+	.driver = {
-+		.name	= "dm355_ccdc",
-+		.owner = THIS_MODULE,
-+	},
-+	.remove = __devexit_p(dm355_ccdc_remove),
-+	.probe = dm355_ccdc_probe,
-+};
-+
-+static int dm355_ccdc_init(void)
-+{
-+	return platform_driver_register(&dm355_ccdc_driver);
-+}
-+
-+static void dm355_ccdc_exit(void)
-+{
-+	platform_driver_unregister(&dm355_ccdc_driver);
- }
- 
- module_init(dm355_ccdc_init);
--- 
-1.6.0.4
+	lirc core - the module that receives raw pulse/space and creates
+		    a device to receive raw API pulse/space events;
 
+	IR core - the module that receives scancodes, convert them into
+		  keycodes and send via evdev interface.
+
+We may change latter the nomenclature, but I'm seeing the core as two different
+modules, since there are cases where lirc core won't be used (those
+devices were there's no way to get pulse/space events).
+
+> > Not sure if I got your idea. Basically, what I see is:
+> > 
+> > 	For device drivers that work in raw mode:
+> > [IR physical device] ==> [IR receiver driver]  ==> [lirc-core] ==> [decoder] ==> [ir-core] ==> [evdev]
+> > 
+> > (eventually, we can merge decoder and ir-core into one module at the beginning,
+> > depending on the size of the decoders)
+> > 
+> > 	For device drivers that work only in evdev mode (those with hardware decoders):
+> > 
+> > [IR physical device] ==> [IR receiver driver]  ==> [ir-core] ==> [evdev]
+> >
+> 
+> Maybe we are talking about the same things and it is just names that are
+> confusing. I'd imagine something like this:
+> 
+> 
+> In-kernel decoding:
+> 
+> [IR physical device] => [IR receiver driver] => [IR core] => [decoder] => [input core] => [evdev]
+> 							  => [decoder] => [input core] => [evdev]  
+> 
+> Hardware decoder:
+> [IR physical device] => [IR receiver driver] => [IR core]
+> 					     => [input core] => [evdev]  
+> 
+> I.e we still register with IR core but driver communicates directly with input device.
+> 
+> Userspace decoging:
+> [IR physical device] => [IR receiver driver] => [IR core] => [lirc_dev] => [lircd] => [uinput] => [input core] => [evdev]
+
+I think, we're thinking the same thing, but I've broke the IR core into two parts:
+the lirc core, where the LIRC API will be handled, and the IR core, where the input API will be handled.
+
+I've assumed that we'll use lirc API only for raw IR decode. So, in the hardware decoder case,
+we will expose only the evdev. 
+
+So a drawing showing those two components will be:
+
+In-kernel decoding:
+
+[IR physical device] => [IR receiver driver] => [LIRC core] => [decoder] => [IR core] => [input core] => [evdev]
+						   ||
+						    => [Lirc API device]
+
+Hardware decoder:
+[IR physical device] => [IR receiver driver] => [IR core]
+					     => [input core] => [evdev]
+
+Userspace decoding:
+[IR physical device] => [IR receiver driver] => [LIRC core] => [Lirc API device] => [lircd] => [uinput] => [input core] => [evdev]
+
+Of course, for userspace, there is trivial case where it will 
+just directly read from evdev without using any userspace program:
+
+Userspace direct usage of IR:
+[IR physical device] => [IR receiver driver] => [IR core] => [input core] => [evdev]
+
+> Essentially lirc_dev becomes a special case of decoder that, instead of
+> connecting inptu core and creating input devices passes the data to
+> userspace.
+
+Yes.
+
+> I did not show the block that you call ir-core since I expect it to be more
+> like a library rather than an object in overall structure.
+> 
+>  
+> > > 
+> > > Now as far as input core goes I see very limited number of changes that
+> > > may be needed:
+> > > 
+> > > - Allow to extend size of "scancode" in EVIOC{S,G}KEYCODE if we are
+> > >   unable to limit ourselves to 32 bits (keeping compatibility of course)
+> > 
+> > Yes, but the way EVIOC{S,G}KEYCODE currently works, it performs poorly when you have a
+> > table with 2^64 size. The table is very sparsed, but, as the key to get/set a code is
+> > the scancode, it is very hard to enumberate what are the actual entries there. The
+> > better is to use an index parameter for they, instead of using the scancode as such.
+> > 
+> 
+> evdev does not really care what you use as scancode. So nobody stops
+> your driver to report index as a scancode and accept index from the
+> ioctl. The true "scancode" will thus be competely hidden from userspace.
+> In fact a few drivers do just that.
+
+Let me better express here. It is all about how we'll expand the limits of those
+ioctls to fulfill the needs.
+
+The point is that we'll have, let's say something like to 50-500 scancode/keycode tuples
+sparsely spread into a 2^64 scancode universe (assuming 64 bits - Not sure if is there any
+IR protocol/code with a bigger scancode).
+
+On such universe if we want to get all keycodes with the current ioctls for a scancode in
+the range of 32 bits, we need to do something like:
+
+u32 code;
+int codes[2];
+for (code = 0; code <= (unsigned u32) - 1; code++) {
+	codes[0] = (int)code;
+	if (!ioctl(fd, EVIOCGKEYCODE, codes))
+		printf("scancode 0x%08x = keycode 0x%08x\n", codes[0], codes[1]);
+}
+
+So, on the 32 bits case, we'll do about 4 billions calls to EVIOGKEYCODE ioctl to
+read the complete scancode space, to get those 50-500 useful codes.
+
+Due to the current API limit, we don't have any way to use the full 64bits space for scancodes.
+
+if we use code[0] as an index, this means that we'll need to share the 32 bits on code[1]
+for scancode/keycode. Even using an 32 bits integer for keycode, it is currently limited to:
+
+#define KEY_MAX                 0x2ff
+#define KEY_CNT                 (KEY_MAX+1)
+
+So, we have 10 bits already used for keycode. This gives only 22 bits for scancodes, if we share
+codes[1] for both keycode/scancode. By sharing the 32 bits, we'll need to be care to not extend
+KEY_MAX to be bigger than 0x3ff, otherwise the keytable won't be able to represent all keys of the
+key universe.
+
+What is need for this case is that the arguments for get key/set key to be something like:
+
+struct {
+	u16	index;
+	u64	scancode;
+	u32	keycode;
+};
+
+Eventually, if we want to be more careful about the number of bits for scancode, the better is to
+think on some ways to allow extending the scancode universe, like using u64 scancode[2],
+adding some reserved fields, or using a pair of size/pointer for the the scancode. 
+In the latter case, we'll need to write some compat32 code for handling the pointer. Comments?
+
+It should be noticed that just changing the number of bits at EVIO[G|S]KEYCODE will break
+the kernel API. One alternative would be to just define a new pair of ioctls that allows
+using more bits there.
+
+Cheers,
+Mauro
