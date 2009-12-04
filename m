@@ -1,114 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f219.google.com ([209.85.219.219]:45064 "EHLO
-	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753002AbZLYM3p (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Dec 2009 07:29:45 -0500
-Received: by ewy19 with SMTP id 19so158363ewy.21
-        for <linux-media@vger.kernel.org>; Fri, 25 Dec 2009 04:29:43 -0800 (PST)
-Date: Fri, 25 Dec 2009 13:29:40 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: TAXI <taxi@a-city.de>
-cc: linux-media@vger.kernel.org
-Subject: Re: Bad image/sound quality with Medion MD 95700
-In-Reply-To: <4B34961D.6060207@a-city.de>
-Message-ID: <alpine.DEB.2.01.0912251246540.5481@ybpnyubfg.ybpnyqbznva>
-References: <4B33F4CA.7060607@a-city.de> <alpine.DEB.2.01.0912251021210.5481@ybpnyubfg.ybpnyqbznva> <4B34961D.6060207@a-city.de>
+Received: from mail-qy0-f192.google.com ([209.85.221.192]:51002 "EHLO
+	mail-qy0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752216AbZLDI3G convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2009 03:29:06 -0500
+Received: by qyk30 with SMTP id 30so968270qyk.33
+        for <linux-media@vger.kernel.org>; Fri, 04 Dec 2009 00:29:12 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <1259889036.12423.9.camel@pc07.localdom.local>
+References: <200912031656.20893.herton@mandriva.com.br>
+	 <1259877269.10943.3.camel@pc07.localdom.local>
+	 <200912032104.10785.herton@mandriva.com.br>
+	 <1259889036.12423.9.camel@pc07.localdom.local>
+Date: Fri, 4 Dec 2009 03:29:11 -0500
+Message-ID: <303a8ee30912040029s1fc48eebs203dfceefdaae012@mail.gmail.com>
+Subject: Re: V4L1 compatibility broken for VIDIOCGTUNER with radio
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: Herton Ronaldo Krzesinski <herton@mandriva.com.br>,
+	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moin moin, TAXI...
+On Thu, Dec 3, 2009 at 8:10 PM, hermann pitton <hermann-pitton@arcor.de> wrote:
+>
+> Am Donnerstag, den 03.12.2009, 21:04 -0200 schrieb Herton Ronaldo
+> Krzesinski:
+>> Em Qui 03 Dez 2009, às 19:54:29, hermann pitton escreveu:
+>> > Hi,
+>> >
+>> > Am Donnerstag, den 03.12.2009, 16:56 -0200 schrieb Herton Ronaldo
+>> > Krzesinski:
+>> > > Hi,
+>> > >
+>> > > After commit 9bedc7f ("V4L/DVB (12429): v4l2-ioctl: fix G_STD and G_PARM
+>> > > default handlers"), radio software using V4L1 stopped to work on a saa7134
+>> > > card, a git bisect pointed to this commit introducing the regression. All
+>> > > VIDIOCGTUNER calls on a v4l1 application are returning -EINVAL after this
+>> > > commit.
+>> > >
+>> > > Investigating the issue, it turns out that v4l1_compat_get_tuner calls
+>> > > VIDIOC_G_STD ioctl, but as it is a radio device (saa7134-radio) it now is
+>> > > returning -EINVAL to user space applications which are being confused about
+>> > > this.
+>> > >
+>> > > May be VIDIOC_G_STD change in the commit above should be reverted, or
+>> > > v4l1_compat_get_tuner changed to not return error with G_STD, or not call
+>> > > G_STD ioctl for a radio device?
+>> > >
+>> > > --
+>> > > []'s
+>> > > Herton
+>> >
+>> > it was fixed here.
+>> >
+>> > http://linuxtv.org/hg/v4l-dvb/rev/58ecda742a70
+>>
+>> Indeed, thanks for the pointer. I forgot to check latest v4l1-compat.c /o\
+>>
+>> >
+>> > Maybe it was not ported to stable?
+>>
+>> Not on latest stable (2.6.31.6), perhaps it should be forwarded.
+>>
+>
+> Yes, for sure. It's our fault.
+>
+> Seems we had an "internal server error" :(
+>
+> I came across it by accident.
+>
+>> The only other issue I'm aware of is that radio is broken since guessed
+>> 8 weeks on my tuners, only realized when testing on enabling external
+>> active antenna voltage for DVB-T on a/some 310i.
+>
+> I did the bisect with some delay and Hans marked the fix with priority
+> "high", but we missed to point Mike at it for stable explicitly.
+>
+> Mike, please review and forward.
+>
+> Sorry,
+> Hermann
 
-On Fri, 25 Dec 2009, TAXI wrote:
+Already done.  It's queued for 2.6.31.7  The delay was due to the
+standard bureaucracy ...  nothing we haven't seen before -- hopefully
+the distros will take in in once it's merged to stable, which should
+probably be within the next week or two.
 
-> BOUWSMA Barry schrieb:
-> > The other thing to note is that this device delivers a full
-> > unfiltered Transport Stream, which with the 13,27Mbit/sec typical
-> > bandwidth per channel used in your country (apart from some local
-> > exceptions of greater values), will require a USB2 interface.
+Thanks,
 
-> it is a USB2 interface:
-> [    3.965425] usb 1-3.1: new high speed USB device using ehci_hcd and
-> address 6 (it's the USB hub in the box)
-
-Na gut -- so habe ich erwartet.  Aber sicher ist sicher, vertrauen 
-ist gut, usw.
-
-Or in english, I expected that, but it is always good to be sure, 
-as it is one of the problems or bottlenecks which I regularly
-experience.
-
-
-> > around line 620 in my reference code, there is a line that sets
-> > the alternate interface to 6.  This is expected to be bulk, but
-> > on my boxes is isoc.
-> > 
-> > You can change this to interface 0, on which my boxes delivers
-> > bulk data flawlessly.
-
-> I think isoc would be okay on 2.6.32, so no need to change that, right?
-
-Das Problem ist, der Treiber erwartet BULK Datei, nicht ISOC, aber
-das Kistchen liefert ISOC (isochronous) Datei.  Deswegen kommt es
-zu Probleme.
-
-Or, the thing is, Linux is expecting to be seeing bulk data on 
-this particular alternate interface (6).  If the receiver is not
-delivering this, but is instead delivering isochronous data, it's
-not in the same format and isn't properly handled by the driver.
-
-Changing it so that the driver reads from alternate interface 0
-results in all my hacked versions being able to read the data
-properly.  Even before reading isoc data through hubs was fixed
-sometime around or before 2.6.18-ish.
-
-
-
-> > but when
-> > I have my machine operating fully again (yeahright), I can send
-> > you some of these alternative patches to try -- running 
-> > successfully on 2.6.14 and 2.6.27-rc4.
-
-> That would be nice.
-> 
-> P.S. my english is not the best so I don't understand all you wrote but
-> why don't you put the patches upstream?
-
-Mein deutsch ist noch schlimmer, wie Du siehst  :-)  Verzeihung 
-wegen meine Muttersprache -- gerne schreibe ich, falls moeglich,
-einfacher und verstaendlich.
-
-Es gibt zwei moegliche Loesungen, entweder einen anderen Dateityp
-aus'm `Endpunkt' zu lesen, oder aus ein anderem `Endpunkt' lesen.
-Mein Kode ist leider nicht sauber.  Es laeuft bei mir, aber 
-koennte Probleme bei anderen verursachen.  Ich kann keine 
-Unterschiede zwischen `bulk' und `isoc' Datei auch mit 'nem 
-200MHz Server feststellen, und kann deswegen keine gute Wahl 
-zwischen die beiden entscheiden.  Ich bin auch mit meiner Loesung 
-nicht ganz zufrieden.
-
-Or, I hope you see from my dreadful sentences above that you need
-not be ashamed of your english, but I will be happy to re-phrase
-and try to clarify anything I have written.
-
-My work-in-progress patches try to use the two possible solutions,
-without affecting anyone whose receivers work, but I have not 
-found a clear reason to favour one solution over the other.  The
-solution which I think stomps less on the existing code is not
-perfect (first tuning fails), and after getting my receivers to
-work with both possibilities, I have not tried to clean up the
-two solutions for submissions as possible patches.
-
-
-Hast Du die 2.6.32 Quellkode?  Kannst Du aus `patches' etwas 
-schaffen, und dabei die beide Moeglichkeiten testen?
-
-(Are you able to build a new kernel to test my patches to see
-if they solve your problem?)
-
-
-barry bouwsma
-('tschuldigung, wegen moi' Tastatur, Grammatik, Woerterschatz,
-und allgemein Bloedheit)
+Mike
