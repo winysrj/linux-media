@@ -1,66 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:59705 "EHLO mail1.radix.net"
+Received: from comal.ext.ti.com ([198.47.26.152]:56913 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752915AbZLCBV1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Dec 2009 20:21:27 -0500
-Subject: Re: [RFC v2] Another approach to IR
-From: Andy Walls <awalls@radix.net>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Jarod Wilson <jarod@wilsonet.com>, Jarod Wilson <jarod@redhat.com>,
-	Jon Smirl <jonsmirl@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>, j@jannau.net,
-	khc@pm.waw.pl, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	lirc-list@lists.sourceforge.net, superm1@ubuntu.com,
-	Christoph Bartelmus <lirc@bartelmus.de>
-In-Reply-To: <20091202201404.GD22689@core.coreip.homeip.net>
-References: <4B1567D8.7080007@redhat.com>
-	 <20091201201158.GA20335@core.coreip.homeip.net>
-	 <4B15852D.4050505@redhat.com>
-	 <20091202093803.GA8656@core.coreip.homeip.net>
-	 <4B16614A.3000208@redhat.com>
-	 <20091202171059.GC17839@core.coreip.homeip.net>
-	 <9e4733910912020930t3c9fe973k16fd353e916531a4@mail.gmail.com>
-	 <4B16BE6A.7000601@redhat.com>
-	 <20091202195634.GB22689@core.coreip.homeip.net>
-	 <2D11378A-041C-4B56-91FF-3E62F5F19753@wilsonet.com>
-	 <20091202201404.GD22689@core.coreip.homeip.net>
-Content-Type: text/plain
-Date: Wed, 02 Dec 2009 20:19:39 -0500
-Message-Id: <1259803179.3085.24.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	id S1754966AbZLDXFX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2009 18:05:23 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: "Nori, Sekhar" <nsekhar@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+CC: "davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>
+Date: Fri, 4 Dec 2009 17:05:28 -0600
+Subject: RE: [PATCH v0 1/2] V4L - vpfe capture - convert ccdc drivers to
+	platform drivers
+Message-ID: <A69FA2915331DC488A831521EAE36FE40155BEBE21@dlee06.ent.ti.com>
+References: <1259691333-32164-1-git-send-email-m-karicheri2@ti.com>
+	<19F8576C6E063C45BE387C64729E7394043716AE11@dbde02.ent.ti.com>
+ <A69FA2915331DC488A831521EAE36FE40155B775E9@dlee06.ent.ti.com>
+ <B85A65D85D7EB246BE421B3FB0FBB59301DE90CA4E@dbde02.ent.ti.com>
+In-Reply-To: <B85A65D85D7EB246BE421B3FB0FBB59301DE90CA4E@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2009-12-02 at 12:14 -0800, Dmitry Torokhov wrote:
-> On Wed, Dec 02, 2009 at 03:04:30PM -0500, Jarod Wilson wrote:
+Sekhar,
 
+>> >> +		status = -EBUSY;
+>> >[Hiremath, Vaibhav] Is -EBUSY right return value, I think it should be -
+>> >ENXIO or -ENOMEM.
+>> >
+>> I see -ENXIO & -ENOMEM being used by drivers. -ENXIO stands for "No such
+>device or address". ENOMEM stands for "Out of memory" . Since we are trying
+>to map the address here, -ENXIO looks reasonable to me. Same if
+>request_mem_region() fails.
+>>
+>
+>Sergei had posted on this earlier[1]. Quoting him here:
 
-> Didn't Jon posted his example whith programmable remote pretending to be
-> several separate remotes (depending on the mode of operation) so that
-> several devices/applications can be controlled without interfering with
-> each other?
+Was this his personal opinion or has he given any reference to support it?
+I did a grep for this in the driver directory and the result I got is in inline with Sergie's suggestion. So I am going to update the patch with these and send it again.
 
-
-There are a few features that can be used to distinguish remotes:
-
-1. Carrier freq
-2. Protocol (NEC, Sony, JVC, RC-5...)
-3. Protocol variant (NEC original, NEC with extended addresses,
-		     RC-5, RC-5 with exteneded commands,
-		     RC-6 Mode 0, RC-6 Mode 6B, ...)
-4. System # or Address sent by the remote (16 bits max, I think)
-5. Set of possible Commands or Information words sent from the remote.
-6. Pulse width deviation from standard (mean, variance)
-
-
-1, 5, and 6 are really a sort of "fingerprint" and likely not worth the
-effort, even if you have hardware that can measure things with some
-accuracy.
-
-Regards,
-Andy
+-Murali
+>
+>"
+>> What are the proper error codes when platform_get_resource,
+>
+>    -ENODEV.
+>
+>> request_mem_region
+>
+>    -EBUSY.
+>
+>> and ioremap functions fail?.
+>
+>    -ENOMEM.
+>"
+>
+>Not sure if ioremap failure can relate to absence of a device.
+>
+>Thanks,
+>Sekhar
+>
+>[1] http://www.mail-archive.com/davinci-linux-open-
+>source@linux.davincidsp.com/msg14973.html
 
