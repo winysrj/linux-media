@@ -1,94 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f184.google.com ([209.85.222.184]:50395 "EHLO
-	mail-pz0-f184.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755452AbZLCRzd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 12:55:33 -0500
-Date: Thu, 3 Dec 2009 09:55:31 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Gerd Hoffmann <kraxel@redhat.com>
-Cc: Jarod Wilson <jarod@wilsonet.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jonsmirl@gmail.com, khc@pm.waw.pl,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
-	IR  system?
-Message-ID: <20091203175531.GB776@core.coreip.homeip.net>
-References: <BDodf9W1qgB@lirc> <4B14EDE3.5050201@redhat.com> <4B1524DD.3080708@redhat.com> <4B153617.8070608@redhat.com> <A6D5FF84-2DB8-4543-ACCB-287305CA0739@wilsonet.com> <4B17AA6A.9060702@redhat.com>
+Received: from bombadil.infradead.org ([18.85.46.34]:51496 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757438AbZLDV6k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2009 16:58:40 -0500
+Message-ID: <4B19860E.7000408@infradead.org>
+Date: Fri, 04 Dec 2009 19:58:38 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4B17AA6A.9060702@redhat.com>
+To: Randy Dunlap <randy.dunlap@oracle.com>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	linux-media@vger.kernel.org
+Subject: Re: linux-next i386 allmodconfig
+References: <20091203225737.1613b137.akpm@linux-foundation.org> <20091204082134.419e9580.randy.dunlap@oracle.com>
+In-Reply-To: <20091204082134.419e9580.randy.dunlap@oracle.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 03, 2009 at 01:09:14PM +0100, Gerd Hoffmann wrote:
-> On 12/03/09 05:29, Jarod Wilson wrote:
->> On Dec 1, 2009, at 10:28 AM, Gerd Hoffmann wrote:
+Randy Dunlap wrote:
+> On Thu, 3 Dec 2009 22:57:37 -0800 Andrew Morton wrote:
+> 
+>> ERROR: "__divdf3" [drivers/media/dvb/frontends/atbm8830.ko] undefined!
+>> ERROR: "__adddf3" [drivers/media/dvb/frontends/atbm8830.ko] undefined!
+>> ERROR: "__fixunsdfsi" [drivers/media/dvb/frontends/atbm8830.ko] undefined!
+>> ERROR: "__udivdi3" [drivers/media/dvb/frontends/atbm8830.ko] undefined!
+>> ERROR: "__floatsidf" [drivers/media/dvb/frontends/atbm8830.ko] undefined!
+>> ERROR: "__muldf3" [drivers/media/dvb/frontends/atbm8830.ko] undefined!
+>> ERROR: "__adddf3" [drivers/media/common/tuners/max2165.ko] undefined!
+>> ERROR: "__fixunsdfsi" [drivers/media/common/tuners/max2165.ko] undefined!
+>> ERROR: "__floatsidf" [drivers/media/common/tuners/max2165.ko] undefined!
 >>
->>>> Anyway, we shouldn't postpone lirc drivers addition due to that.
->>>> There are still lots of work to do before we'll be able to split
->>>> the tables from the kernel drivers.
->>>
->>> Indeed.  The sysfs bits are future work for both lirc and evdev
->>> drivers.  There is no reason to make the lirc merge wait for it.
->>
->> At this point, my plan is to try to finish cleaning up lirc_dev and
->> lirc_mceusb at least over the weekend while at FUDCon up in Toronto,
->> and resubmit them next week.
->
-> Good plan IMHO.  Having lirc_dev merged quickly allows in-kernel drivers  
-> start supporting lirc.
+>> would be nice to get that fixed up before merging.
+>> --
+> 
+> Already reported and patches sent to me & tested/acked.
 
-No, please, wait just a minute. I know it is tempting to just merge
-lirc_dev and start working, but can we first agree on the overall
-subsystem structure before doing so. It is still quite inclear to me.
+I've merged it on my linux-next tree today.
 
-The open questions (for me at least):
-
-- do we create a new class infrastructure for all receivers or only for
-  ones plugged into lirc_dev? Remember that classifying objects affects
-  how udev and friemds see them and may either help or hurt writing PnP
-  rules.
-
-- do we intend to support in-kernel sotfware decoders? What is the
-  structure? Do we organize them as a module to be used by driver
-  directly or the driver "streams" the data to IR core and the core
-  applies decoders (in the same fashion input events from drivers flow
-  into input core and then distributed to all bound interfaces for
-  processing/conversion/transmission to userspace)?
-
-- how do we control which decoder should handle particular
-  receiver/remote? Is it driver's decision, decoder's decision, user's
-  or all of the above?
-
-- do we allow to have several decorers active at once for a receiver?
-
-- who decides that we want to utilize lirc_dev? Driver's themselves, IR
-  core (looking at the driver/device "capabilities"), something else?
-
-- do we recognize and create input devices "on-fly" or require user
-  intervention? Semantics for splitting into several input/event
-  devices?
-
-Could anyone please draw me a picture, starting with a "receiver"
-piece of hardware. I am not concerned much with how exactly receiver is
-plugged into a particular subsystem (DVB/V4L etc) since it would be
-_their_ implementation detail, but with the flow in/out of that
-"receiver" device.
-
-Now as far as input core goes I see very limited number of changes that
-may be needed:
-
-- Allow to extend size of "scancode" in EVIOC{S,G}KEYCODE if we are
-  unable to limit ourselves to 32 bits (keeping compatibility of course)
-
-- Maybe adding new ioctl to "zap" the keymap table
-
-- Adding more key EV_KEY/KEY_* definitons, if needed
-
-Thanks.
-
--- 
-Dmitry
+Cheers,
+Mauro.
