@@ -1,64 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:48207 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753713AbZLYOAX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Dec 2009 09:00:23 -0500
-Subject: Re: How to know which camera is /dev/videoX
-From: Andy Walls <awalls@radix.net>
-To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-Cc: Guennadi <g.liakhovetski@gmx.de>,
-	Linux-V4L2 <linux-media@vger.kernel.org>
-In-Reply-To: <uy6krzull.wl%morimoto.kuninori@renesas.com>
-References: <uy6krzull.wl%morimoto.kuninori@renesas.com>
-Content-Type: text/plain
-Date: Fri, 25 Dec 2009 08:58:49 -0500
-Message-Id: <1261749529.3093.2.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-fx0-f221.google.com ([209.85.220.221]:50988 "EHLO
+	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755242AbZLDEVl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 23:21:41 -0500
+Received: by fxm21 with SMTP id 21so2214288fxm.1
+        for <linux-media@vger.kernel.org>; Thu, 03 Dec 2009 20:21:46 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <44c6f3de0912032000g3aa2a7cbla26b5132d229a6ac@mail.gmail.com>
+References: <44c6f3de0912032000g3aa2a7cbla26b5132d229a6ac@mail.gmail.com>
+Date: Thu, 3 Dec 2009 23:21:45 -0500
+Message-ID: <829197380912032021t3232e391qc3a4c840529f7ed6@mail.gmail.com>
+Subject: Re: Hauppage hvr-950q au0828 transfer problem affecting audio and
+	perhaps video
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: John S Gruber <johnsgruber@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2009-12-25 at 10:54 +0900, Kuninori Morimoto wrote:
-> Dear Guennadi
-> 
-> Now my board (EcoVec) can use 2 soc-camera (mt9t112 / tw9910),
-> and mt9t112 can attach/detach.
-> 
-> If mt9t112 is attached,
-> /dev/video0 = mt9t112
-> /dev/video1 = tw9910
-> 
-> But if mt9t112 is detached, it will
-> /dev/video0 = tw9910
-> 
-> Now I would like to know which camera is /dev/video0.
-> my /dev/video0 is
-> 
-> > ls -l /dev/video0
-> > crw--w----  1 root 1000 81, 0 Jun  9  2009 /dev/video0
-> 
-> I cheked 81:0 's name
-> 
-> > cat /sys/dev/char/81\:0/name
-> > sh_mobile_ceu.1
-> 
-> Above name is host of soc-camera for me.
-> Are there any way to know camera name (mt9t112/tw9910) ?
+On Thu, Dec 3, 2009 at 11:00 PM, John S Gruber <johnsgruber@gmail.com> wrote:
+> I have problems with my audio that I've tracked down to the transfer
+> of audio from the au0828
+> in my hvr-950Q. I spotted the following comment about green screen
+> detection and I wonder
+> if it might be related.
+>
+> drivers/media/video/au0828/au0828-video.c:
+>
+>        /* Workaround for a bug in the au0828 hardware design that sometimes
+>           results in the colorspace being inverted */
+>
+> The problem is that sound/usb/usbaudio.c assumes that each urb data
+> field contains an integer
+> number of audio frames (aka audio slots), in this case a integer
+> number of left channel-right
+> channel pairs. About 12 times a second for my device a urb doesn't.
+> This causes a flutter noise
+> with non-quiet audio that contains a difference between the channels.
+>
+> I found this by using audacity to look at wave forms and a usb trace
+> to see the problematic urb's.
+> I've confirmed by relaxing the constraint in sound/usb/usbaudio.c with
+> a patch and can confirm that
+> it clears up the audio.
+>
+>
+> Is the code comment at the top related to my problem?
+>
+> More importantly, is there the possibility of setting up the transfer
+> differently so that
+> audio slots aren't split between urbs?
+>
+>
+> From what I have read in the spec I believe the split of the audio
+> slots between urb's is non-
+> conformant. Therefore I think it would be a mistake to change the
+> default behaviour of
+> usbaudio.c since, as it is now,usbaudio.c won't swap channels in the
+> case of dropped urbs.
+> It would be optimal if the hvr-950q could be set up to conform by not
+> splitting audio slots.
+>
+> I think the problem also occurs for video when blue will turn to pink
+> for a flash until the top
+> of frame resyncs things up--because of the corresponding swap of UY
+> with VY. This seems
+> to be related to how busy my system is and what usb slot I'm using on
+> my laptop. Again
+> I could see in a usb trace the urb's with data_lengths such that UY
+> would be split from the
+> corresponding VY. The video transfer is a straight byte copy so
+> ordinarily this isn't a
+> problem but would be if an abnormally sized urb were dropped and the
+> device and host
+> were to get out of sync regarding V and U.
+>
+> I also have caught an occasional odd number of bytes transferred in
+> traces, which requires
+> the drop of incomplete samples in usbaudio.c. I wonder if this is
+> related to the green screen
+> problem on video from the top comment.
+>
+> The easiest way to reproduce the audio problem is to use the composite
+> video input but only
+> hook up either the left or the right audio. With earphonesyou can hear
+> the audio rapidly
+> go from ear to ear.
+>
+> Thanks for those on the list for their hard work on getting devices
+> such as this to work. I'd
+> appreciate any answers, comments, corrections, or information.
 
-Maybe some of these will help:
+Hi John,
 
-$ v4l2-ctl --list-devices
-$ v4l2-ctl -d /dev/video0 -D
-$ v4l2-ctl -d /dev/video0 --log-status
-$ v4l2-ctl -d /dev/video1 -D
-$ v4l2-ctl -d /dev/video1 --log-status
+I have actually actively debugging the au0828 audio this evening.  The
+comment you referred to (which I wrote) has to do with the delivery of
+the UYVY data from the demodulator to the au0828 bridge, which can
+cause the start of the stream to be off-by-one (the pink/green you see
+is the colorspace inverted when the decoder loses sync).
 
-Regards,
-Andy
+It is unrelated to audio.
 
-> Best regards
-> --
-> Kuninori Morimoto
->  
+I'm working an issue now where the audio keeps dropping out.  If you
+want to show me the code change you did to usbaudio.c, it might give
+me a better understand the issue.
 
+Cheers,
 
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
