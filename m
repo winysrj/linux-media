@@ -1,56 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo-p00-ob.rzone.de ([81.169.146.161]:41417 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753355AbZLQQCd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2009 11:02:33 -0500
-Received: from metzlerbros.de
-	(ip-62-143-72-79.unitymediagroup.de [62.143.72.79])
-	by post.strato.de (klopstock mo62) (RZmta 22.5)
-	with ESMTP id v02aaclBHFc9zt for <linux-media@vger.kernel.org>;
-	Thu, 17 Dec 2009 17:02:27 +0100 (MET)
-Received: from rjkm by valen.metzler with local (Exim 4.69 #1 (Debian))
-	id 1NLIo7-000237-3U
-	for <linux-media@vger.kernel.org>; Thu, 17 Dec 2009 17:02:27 +0100
-From: rjkm <rjkm@metzlerbros.de>
+Received: from mail-yw0-f182.google.com ([209.85.211.182]:61510 "EHLO
+	mail-yw0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755756AbZLDLFi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2009 06:05:38 -0500
+Received: by ywh12 with SMTP id 12so2442634ywh.21
+        for <linux-media@vger.kernel.org>; Fri, 04 Dec 2009 03:05:45 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Message-ID: <19242.22034.312020.662761@valen.metzler>
-Date: Thu, 17 Dec 2009 17:02:26 +0100
-To: <linux-media@vger.kernel.org>
-Subject: Re: Cinergy 2400i - Micronas APB 7202A Open Sourced!
-In-Reply-To: <8735422.255531261062196817.JavaMail.defaultUser@defaultHost>
-References: <8735422.255531261062196817.JavaMail.defaultUser@defaultHost>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40155B76E2F@dlee06.ent.ti.com>
+References: <1259681414-30246-1-git-send-email-m-karicheri2@ti.com>
+	 <aec7e5c30912011904o285ff2d8w25ad6868a352a1b5@mail.gmail.com>
+	 <A69FA2915331DC488A831521EAE36FE40155B76E2F@dlee06.ent.ti.com>
+Date: Fri, 4 Dec 2009 20:05:44 +0900
+Message-ID: <aec7e5c30912040305j5ca179b3u7156c15050a0dc8b@mail.gmail.com>
+Subject: Re: [PATCH] V4L - Fix videobuf_dma_contig_user_get() getting page
+	aligned physical address
+From: Magnus Damm <magnus.damm@gmail.com>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"mchehab@infradead.org" <mchehab@infradead.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-sijones2006@o2.co.uk writes:
- >  
- > > The PCI-e bridge (MICRONAS APB 7202A) has now an open source 
- > driver. 
- > > It is available here git://projects.vdr-developer.org/mediapointer-
- > dvb-
- > > s2.git 
- > > could this now be pulled into the main V4L source? as it has been 
- > > brought upto date with the current DVB tree.
- > 
- > >The driver cannot be pulled in 'as is' for various reasons, but we 
- > are
- > >currently preparing the driver to make it ready for inclusion into 
- > the
- > >master HG repository/kernel.
- > 
- > Is there a repository that I can use to build / test this? and is the 
- > tuner supported as well??
+Hi again Murali,
 
-I am not sure about the git repo but the original release included
-drivers for the cards on the market (dual DVBS2 by DigitalDevices, 
-Terratec Cinergy and an ATSC card) and all prototype cards.
-Since most of the driver was written in 2005 it is a little 
-"behind" regarding kernel API changes and available in-kernel drivers for 
-tuners and demods. But you should be able to get hints from it
-to adapt it to the current kernel/DVB repo. 
+Thanks for your work on this.
 
+On Thu, Dec 3, 2009 at 12:48 AM, Karicheri, Muralidharan
+<m-karicheri2@ti.com> wrote:
+> Magnus,
+>
+>>Thanks for the patch. For non-page aligned user space pointers I agree
+>>that a fix is needed. Don't you think the while loop in
+>>videobuf_dma_contig_user_get() also needs to be adjusted to include
+>>the last page? I think the while loop checks one page too little in
+>>the non-aligned case today.
+>
+> Thanks for reviewing my patch. It had worked for non-aligned address in
+> my testing. If I understand this code correctly, the physical address of
+> the user page start is determined in the first loop (pages_done == 0)
+> and additional loops are run to make sure the memory is physically
+> contiguous. Initially the mem->size is set to number of pages aligned to
+> page size.
+>
+> Assume we pass 4097 bytes as size.
+>
+> mem->size = PAGE_ALIGN(vb->size); => 2
+>
+> Inside the loop, iteration is done for 0 to pages-1.
+>
+> pages_done < (mem->size >> 12) => pages_done < 2 => iterate 2 times
+>
+> For size of 4096, we iterate once.
+> For size of 4095, we iterate once.
+>
+> So IMO the loop is already iterate one more time when we pass non-aligned address since size is aligned to include the last page. So based on this
+> could you ack my patch so that we could ask Mauro to merge it with priority?
 
--Ralph Metzler
+I think your observations are correct, but I also think there is one
+more hidden issue. In the case where the offset within the page is
+other than 0 then we should loop once more to also check the final
+page. Right now no one is checking if the last page is contiguous or
+not in the case on non-page-aligned offset..
+
+So in your case with a 4096 or 4095 size, but if the offset withing
+the page is non-zero then we should loop twice to make sure the pages
+really are physically contiguous. Today we only loop once based on the
+size. We should also include the offset in the calculation of number
+of pages to check.
+
+If you can include that fix in your patch that would be great. If not
+then i'll fix it up myself.
+
+Thanks!
+
+/ magnus
