@@ -1,63 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f212.google.com ([209.85.217.212]:55863 "EHLO
-	mail-gx0-f212.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761457AbZLKIPm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2009 03:15:42 -0500
-Received: by gxk4 with SMTP id 4so836207gxk.8
-        for <linux-media@vger.kernel.org>; Fri, 11 Dec 2009 00:15:49 -0800 (PST)
-From: Magnus Damm <magnus.damm@gmail.com>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1601 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754455AbZLDTqn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2009 14:46:43 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id nB4Jki7N001908
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 4 Dec 2009 20:46:48 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 4 Dec 2009 20:46:44 +0100 (CET)
+Message-Id: <200912041946.nB4Jki7N001908@smtp-vbr12.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, Magnus Damm <magnus.damm@gmail.com>,
-	m-karicheri2@ti.com, g.liakhovetski@gmx.de, mchehab@infradead.org
-Date: Fri, 11 Dec 2009 17:10:06 +0900
-Message-Id: <20091211081006.16358.10589.sendpatchset@rxone.opensource.se>
-Subject: [PATCH] sh_mobile_ceu_camera: Add physical address alignment checks V2
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Magnus Damm <damm@opensource.se>
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Make sure physical addresses are 32-bit aligned in the SuperH
-Mobile CEU driver V2. The lowest two bits of the frame address
-registers are fixed to zero so frame buffers have to be 32-bit
-aligned. The V4L2 mmap() case is using dma_alloc_coherent() for
-this driver which will return already aligned addresses, but in
-the USERPTR case we must make sure that the user space pointer
-is valid.
+Results of the daily build of v4l-dvb:
 
-Signed-off-by: Magnus Damm <damm@opensource.se>
----
+date:        Fri Dec  4 19:00:05 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13538:e0cd9a337600
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
- Tested with a hacked up capture.c on a sh7722 Migo-R board.
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-armv5: OK
+linux-2.6.32-armv5-davinci: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-armv5-ixp: OK
+linux-2.6.32-armv5-ixp: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: OK
+linux-2.6.32-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: OK
+linux-2.6.31-i686: OK
+linux-2.6.32-i686: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-m32r: OK
+linux-2.6.30-mips: OK
+linux-2.6.31-mips: OK
+linux-2.6.32-mips: OK
+linux-2.6.30-powerpc64: OK
+linux-2.6.31-powerpc64: OK
+linux-2.6.32-powerpc64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: OK
+linux-2.6.31-x86_64: OK
+linux-2.6.32-x86_64: OK
+spec: OK
+sparse (linux-2.6.32): ERRORS
+linux-2.6.16.61-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
- V2 moves the checks to sh_mobile_ceu_videobuf_prepare()
+Detailed results are available here:
 
- drivers/media/video/sh_mobile_ceu_camera.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
---- 0010/drivers/media/video/sh_mobile_ceu_camera.c
-+++ work/drivers/media/video/sh_mobile_ceu_camera.c	2009-12-11 16:52:19.000000000 +0900
-@@ -339,7 +339,7 @@ static int sh_mobile_ceu_videobuf_prepar
- 	}
- 
- 	vb->size = vb->width * vb->height * ((buf->fmt->depth + 7) >> 3);
--	if (0 != vb->baddr && vb->bsize < vb->size) {
-+	if (0 != vb->baddr && vb->bsize < vb->size && !(vb->width & 3)) {
- 		ret = -EINVAL;
- 		goto out;
- 	}
-@@ -348,6 +348,13 @@ static int sh_mobile_ceu_videobuf_prepar
- 		ret = videobuf_iolock(vq, vb, NULL);
- 		if (ret)
- 			goto fail;
-+
-+		/* the physical address must be 32-bit aligned (USERPTR) */
-+		if (videobuf_to_dma_contig(vb) & 3) {
-+			ret = -EINVAL;
-+			goto fail;
-+		}
-+
- 		vb->state = VIDEOBUF_PREPARED;
- 	}
- 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
