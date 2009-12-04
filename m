@@ -1,40 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34943 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751824AbZLAP3y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Dec 2009 10:29:54 -0500
-Received: from int-mx03.intmail.prod.int.phx2.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.16])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id nB1FU05L006794
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 1 Dec 2009 10:30:00 -0500
-Received: from patchwork.usersys.redhat.com (dell-pe1800-02.lab.bos.redhat.com [10.16.42.196])
-	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id nB1FU0C9018525
-	for <linux-media@vger.kernel.org>; Tue, 1 Dec 2009 10:30:00 -0500
-Date: Tue, 1 Dec 2009 10:31:39 -0500
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] bttv: fix MODULE_PARM_DESC for i2c_debug and i2c_hw
-Message-ID: <20091201153139.GA10871@redhat.com>
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:49518 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751613AbZLDHZk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2009 02:25:40 -0500
+Received: by ewy19 with SMTP id 19so2451666ewy.1
+        for <linux-media@vger.kernel.org>; Thu, 03 Dec 2009 23:25:46 -0800 (PST)
+Date: Fri, 4 Dec 2009 08:25:38 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Justin Hornsby <justin0hornsby@gmail.com>
+cc: linux-media@vger.kernel.org
+Subject: Re: Fwd: DVB-APPS patch for uk-WinterHill
+In-Reply-To: <751357790912030731g5b09bac8w322f4c1754c3d87d@mail.gmail.com>
+Message-ID: <alpine.DEB.2.01.0912040752330.16617@ybpnyubfg.ybpnyqbznva>
+References: <751357790912030639l6ddcb4bar486fdea6b9aa1a8e@mail.gmail.com> <751357790912030731g5b09bac8w322f4c1754c3d87d@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently, i2c_debug shows up w/o a desc in modinfo, and i2c_hw shows
-up with i2c_debug's desc. Fix that.
+On Thu, 3 Dec 2009, Justin Hornsby wrote:
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
+> Since 02 Dec 2009 the UK WinterHill transmitter site has been
+> broadcasting on different frequencies & in a different mode with
+> different modulation.  Channels have been re-arranged to occupy five
+> multiplexes and the original BBC 'B' mux is now broadcasting DVB-T2
+> for high definition services (which of course cannot yet be tuned by
+> mere mortals). The 'WinterHill B' transmitter stopped broadcasting on
+> 02 Dec.
+> 
+> The attached file is a patch to reflect these changes.
 
-diff -r e0cd9a337600 linux/drivers/media/video/bt8xx/bttv-i2c.c
---- a/linux/drivers/media/video/bt8xx/bttv-i2c.c	Sun Nov 29 12:08:02 2009 -0200
-+++ b/linux/drivers/media/video/bt8xx/bttv-i2c.c	Tue Dec 01 10:23:54 2009 -0500
-@@ -40,7 +40,7 @@
- static int i2c_hw;
- static int i2c_scan;
- module_param(i2c_debug, int, 0644);
--MODULE_PARM_DESC(i2c_hw,"configure i2c debug level");
-+MODULE_PARM_DESC(i2c_debug,"configure i2c debug level");
- module_param(i2c_hw,    int, 0444);
- MODULE_PARM_DESC(i2c_hw,"force use of hardware i2c support, "
- 			"instead of software bitbang");
+> +T 746000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+> +T 770000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+> +T 778000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+> +T 794000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+> +T 801833000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+
+While the DVB-T2 multiplex (MUX B) cannot be tuned by existing
+DVB-T-only devices, and I don't know if the dvb-apps are being
+prepared for DVB-T2 (there don't appear to be any of the
+known DVB-S2 transponders listed in a couple positions), the
+modulation parameters, for future reference, are probably
+something like
+
++# T2 738000000 8MHz 2/3 NONE QAM256 32k 1/128 NONE	#E54 DVB-T2 HD MUX B
+
+There may need to be additional details specified, I'm no expert.
+These values are, of course, unconfirmed.
+
+The same would be true for Crystal Palace at 10kW, but on channel
+E31, or 554000000, no offset.
+
+
+barry bouwsma
