@@ -1,63 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.navvo.net ([74.208.67.6]:42205 "EHLO mail.navvo.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757954AbZLPVbv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2009 16:31:51 -0500
-From: santiago.nunez@ridgerun.com
-To: davinci-linux-open-source@linux.davincidsp.com
-Cc: linux-media@vger.kernel.org, nsnehaprabha@ti.com,
-	m-karicheri2@ti.com, diego.dompe@ridgerun.com,
-	todd.fischer@ridgerun.com, mgrosen@ti.com,
-	Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-Date: Wed, 16 Dec 2009 15:32:12 -0600
-Message-Id: <1260999132-28383-1-git-send-email-santiago.nunez@ridgerun.com>
-Subject: [PATCH 4/4 v12] Menu support for TVP7002 in DM365
+Received: from mail-vw0-f192.google.com ([209.85.212.192]:57952 "EHLO
+	mail-vw0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757045AbZLDUCH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2009 15:02:07 -0500
+Received: by vws30 with SMTP id 30so1338355vws.33
+        for <linux-media@vger.kernel.org>; Fri, 04 Dec 2009 12:02:09 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4B07290B.4060307@jusst.de>
+References: <20091022211330.6e84c6e7@hyperion.delvare>
+	 <4B02FDA4.5030508@infradead.org>
+	 <1a297b360911200129pe5af064wf9cf239851ac5c46@mail.gmail.com>
+	 <200911201237.31537.julian@jusst.de>
+	 <1a297b360911200808k12676112lf7a11f3dfd44a187@mail.gmail.com>
+	 <4B07290B.4060307@jusst.de>
+Date: Fri, 4 Dec 2009 12:02:09 -0800
+Message-ID: <a3ef07920912041202u78f4d12av8d7a49f5f91b3d56@mail.gmail.com>
+Subject: Re: Details about DVB frontend API
+From: VDR User <user.vdr@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+No activity in this thread for 2 weeks now.  Has there been any progress?
 
-This patch provides menu configuration options for the TVP7002
-decoder driver in DM365. Includes only TVP7002.
-
-Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
----
- drivers/media/video/Kconfig  |    9 +++++++++
- drivers/media/video/Makefile |    1 +
- 2 files changed, 10 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index e6186b3..25f5735 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -392,6 +392,15 @@ config VIDEO_TVP5150
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called tvp5150.
- 
-+config VIDEO_TVP7002
-+	tristate "Texas Instruments TVP7002 video decoder"
-+	depends on VIDEO_V4L2 && I2C
-+	---help---
-+	  Support for the Texas Instruments TVP7002 video decoder.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called tvp7002.
-+
- config VIDEO_VPX3220
- 	tristate "vpx3220a, vpx3216b & vpx3214c video decoders"
- 	depends on VIDEO_V4L2 && I2C
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index e541932..a4fff2a 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -56,6 +56,7 @@ obj-$(CONFIG_VIDEO_THS7303) += ths7303.o
- obj-$(CONFIG_VIDEO_VINO) += indycam.o
- obj-$(CONFIG_VIDEO_TVP5150) += tvp5150.o
- obj-$(CONFIG_VIDEO_TVP514X) += tvp514x.o
-+obj-$(CONFIG_VIDEO_TVP7002) += tvp7002.o
- obj-$(CONFIG_VIDEO_MSP3400) += msp3400.o
- obj-$(CONFIG_VIDEO_CS5345) += cs5345.o
- obj-$(CONFIG_VIDEO_CS53L32A) += cs53l32a.o
--- 
-1.6.0.4
-
+Regards.
