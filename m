@@ -1,99 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:3503 "EHLO
-	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750929AbZLATrx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2009 14:47:53 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr17.xs4all.nl (8.13.8/8.13.8) with ESMTP id nB1JltLm031870
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 1 Dec 2009 20:47:59 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 1 Dec 2009 20:47:55 +0100 (CET)
-Message-Id: <200912011947.nB1JltLm031870@smtp-vbr17.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from waikiki.ops.eusc.inter.net ([84.23.254.155]:51847 "EHLO
+	waikiki.ops.eusc.inter.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753789AbZLEB67 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Dec 2009 20:58:59 -0500
+Received: from waikiki.ops.eusc.inter.net ([10.155.10.19] helo=localhost)
+	by waikiki.ops.eusc.inter.net with esmtpsa (Exim 4.69)
+	id 1NGjYn-0002fI-7g
+	for linux-media@vger.kernel.org; Sat, 05 Dec 2009 02:35:45 +0100
+Received: from [192.168.100.23] (pec23.gallier.dorf [192.168.100.23])
+	by pec6.gallier.dorf (8.13.8/8.13.8/SuSE Linux 0.8) with ESMTP id nB51ZeCw001769
+	for <linux-media@vger.kernel.org>; Sat, 5 Dec 2009 02:35:43 +0100
+Message-ID: <4B19B8EE.30107@pec.homeip.net>
+Date: Sat, 05 Dec 2009 02:35:42 +0100
+From: Peter Evertz <leo2@pec.homeip.net>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: WARNINGS
+Subject: mantis based cards and transponder 11303 on 19.2E
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi !
+After a change  on Transponder 11303 on Astra 19.2 (adding  of  ORF HD)  
+it is not longer possible to get  a lock with mantis based cards.
 
-Results of the daily build of v4l-dvb:
+Users on vdrportal have reported that other cards do not have problems.
 
-date:        Tue Dec  1 19:00:02 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13538:e0cd9a337600
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+All TT S2 3200 users ( like myself)  are not able to get a lock on that 
+transponder anymore. 
+So "ServusTV HD" (one of the not to many HD freeview channels) is no 
+longer accessible.
 
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-rc8-armv5: OK
-linux-2.6.32-rc8-armv5-davinci: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-armv5-ixp: OK
-linux-2.6.32-rc8-armv5-ixp: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: OK
-linux-2.6.32-rc8-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: OK
-linux-2.6.31-i686: OK
-linux-2.6.32-rc8-i686: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-rc8-m32r: OK
-linux-2.6.30-mips: OK
-linux-2.6.31-mips: OK
-linux-2.6.32-rc8-mips: OK
-linux-2.6.30-powerpc64: OK
-linux-2.6.31-powerpc64: OK
-linux-2.6.32-rc8-powerpc64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: OK
-linux-2.6.31-x86_64: OK
-linux-2.6.32-rc8-x86_64: OK
-spec: OK
-sparse (linux-2.6.31): ERRORS
-sparse (linux-2.6.32-rc8): ERRORS
-linux-2.6.16.61-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+I have tried recent liplianin drivers, and some old "multiproto_plus" 
+drivers without success.
 
-Detailed results are available here:
+Hope somebody can help.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Peter
