@@ -1,151 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from maznak.stinadla.net ([77.78.111.75]:60892 "EHLO
-	maznak.stinadla.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934649AbZLPHcW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2009 02:32:22 -0500
-Message-ID: <4B288D02.3080306@teptin.net>
-Date: Wed, 16 Dec 2009 08:32:18 +0100
-From: Jan Korbel <jackc@teptin.net>
+Received: from mns9.alterhosting.net ([74.55.211.66]:43935 "EHLO
+	mns9.alterhosting.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756954AbZLERuk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2009 12:50:40 -0500
+Message-ID: <4B1A9BD7.2070704@columbusbase.com>
+Date: Sat, 05 Dec 2009 12:43:51 -0500
+From: subvet_646 <subvet646@columbusbase.com>
 MIME-Version: 1.0
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-CC: Markus Suvanto <markus.suvanto@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: High cpu load (dvb_usb_dib0700)
-References: <bcf98daa0911270513v7463260dm36e0a5e2557b797f@mail.gmail.com> <4B2750BD.6000700@teptin.net> <alpine.LRH.2.00.0912151203580.16159@pub6.ifh.de>
-In-Reply-To: <alpine.LRH.2.00.0912151203580.16159@pub6.ifh.de>
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms080506060708050000040305"
+To: linux-media@vger.kernel.org
+Subject: Linux Video Capture
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a cryptographically signed message in MIME format.
+Xpert DVD Maker USB 2.0
+V-STREAM (Empia Newest High-Quality USB2.0 Chipset)
+USB2.0 Support to 720x480
+VS-USB2800D
 
---------------ms080506060708050000040305
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+DMESG LOG:
 
-Hello.
+usb 1-3: new high speed USB device using ehci_hcd and address 2
+usb 1-3: New USB device found, idVendor=eb1a, idProduct=2800
+usb 1-3: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+usb 1-3: configuration #1 chosen from 1 choice
+Linux video capture interface: v2.00
+em28xx: New device @ 480 Mbps (eb1a:2800, interface 0, class 0)
+em28xx #0: Identified as Unknown EM2800 video grabber (card=0)
+em28xx #0: em28xx chip ID = 7
+em28xx #0: board has no eeprom
+em28xx #0: Your board has no unique USB ID and thus need a hint to be 
+detected.
+em28xx #0: You may try to use card=<n> insmod option to workaround that.
+em28xx #0: Please send an email with this log to:
+em28xx #0:     V4L Mailing List <linux-media@vger.kernel.org>
+em28xx #0: Board eeprom hash is 0x00000000
+em28xx #0: Board i2c devicelist hash is 0x1b800080
+em28xx #0: Here is a list of valid choices for the card=<n> insmod option:
+em28xx #0:     card=0 -> Unknown EM2800 video grabber
+em28xx #0:     card=1 -> Unknown EM2750/28xx video grabber
+em28xx #0:     card=2 -> Terratec Cinergy 250 USB
+em28xx #0:     card=3 -> Pinnacle PCTV USB 2
+em28xx #0:     card=4 -> Hauppauge WinTV USB 2
+em28xx #0:     card=5 -> MSI VOX USB 2.0
+em28xx #0:     card=6 -> Terratec Cinergy 200 USB
+em28xx #0:     card=7 -> Leadtek Winfast USB II
+em28xx #0:     card=8 -> Kworld USB2800
+em28xx #0:     card=9 -> Pinnacle Dazzle DVC 90/100/101/107 / Kaiser 
+Baas Video to DVD maker
+em28xx #0:     card=10 -> Hauppauge WinTV HVR 900
+em28xx #0:     card=11 -> Terratec Hybrid XS
+em28xx #0:     card=12 -> Kworld PVR TV 2800 RF
+em28xx #0:     card=13 -> Terratec Prodigy XS
+em28xx #0:     card=14 -> SIIG AVTuner-PVR / Pixelview Prolink PlayTV 
+USB 2.0
+em28xx #0:     card=15 -> V-Gear PocketTV
+em28xx #0:     card=16 -> Hauppauge WinTV HVR 950
+em28xx #0:     card=17 -> Pinnacle PCTV HD Pro Stick
+em28xx #0:     card=18 -> Hauppauge WinTV HVR 900 (R2)
+em28xx #0:     card=19 -> PointNix Intra-Oral Camera
+em28xx #0:     card=20 -> AMD ATI TV Wonder HD 600
+em28xx #0:     card=21 -> eMPIA Technology, Inc. GrabBeeX+ Video Encoder
+em28xx #0:     card=22 -> Unknown EM2750/EM2751 webcam grabber
+em28xx #0:     card=23 -> Huaqi DLCW-130
+em28xx #0:     card=24 -> D-Link DUB-T210 TV Tuner
+em28xx #0:     card=25 -> Gadmei UTV310
+em28xx #0:     card=26 -> Hercules Smart TV USB 2.0
+em28xx #0:     card=27 -> Pinnacle PCTV USB 2 (Philips FM1216ME)
+em28xx #0:     card=28 -> Leadtek Winfast USB II Deluxe
+em28xx #0:     card=29 -> <NULL>
+em28xx #0:     card=30 -> Videology 20K14XUSB USB2.0
+em28xx #0:     card=31 -> Usbgear VD204v9
+em28xx #0:     card=32 -> Supercomp USB 2.0 TV
+em28xx #0:     card=33 -> <NULL>
+em28xx #0:     card=34 -> Terratec Cinergy A Hybrid XS
+em28xx #0:     card=35 -> Typhoon DVD Maker
+em28xx #0:     card=36 -> NetGMBH Cam
+em28xx #0:     card=37 -> Gadmei UTV330
+em28xx #0:     card=38 -> Yakumo MovieMixer
+em28xx #0:     card=39 -> KWorld PVRTV 300U
+em28xx #0:     card=40 -> Plextor ConvertX PX-TV100U
+em28xx #0:     card=41 -> Kworld 350 U DVB-T
+em28xx #0:     card=42 -> Kworld 355 U DVB-T
+em28xx #0:     card=43 -> Terratec Cinergy T XS
+em28xx #0:     card=44 -> Terratec Cinergy T XS (MT2060)
+em28xx #0:     card=45 -> Pinnacle PCTV DVB-T
+em28xx #0:     card=46 -> Compro, VideoMate U3
+em28xx #0:     card=47 -> KWorld DVB-T 305U
+em28xx #0:     card=48 -> KWorld DVB-T 310U
+em28xx #0:     card=49 -> MSI DigiVox A/D
+em28xx #0:     card=50 -> MSI DigiVox A/D II
+em28xx #0:     card=51 -> Terratec Hybrid XS Secam
+em28xx #0:     card=52 -> DNT DA2 Hybrid
+em28xx #0:     card=53 -> Pinnacle Hybrid Pro
+em28xx #0:     card=54 -> Kworld VS-DVB-T 323UR
+em28xx #0:     card=55 -> Terratec Hybrid XS (em2882)
+em28xx #0:     card=56 -> Pinnacle Hybrid Pro (2)
+em28xx #0:     card=57 -> Kworld PlusTV HD Hybrid 330
+em28xx #0:     card=58 -> Compro VideoMate ForYou/Stereo
+em28xx #0:     card=59 -> <NULL>
+em28xx #0:     card=60 -> Hauppauge WinTV HVR 850
+em28xx #0:     card=61 -> Pixelview PlayTV Box 4 USB 2.0
+em28xx #0:     card=62 -> Gadmei TVR200
+em28xx #0:     card=63 -> Kaiomy TVnPC U2
+em28xx #0:     card=64 -> Easy Cap Capture DC-60
+em28xx #0:     card=65 -> IO-DATA GV-MVP/SZ
+em28xx #0: Config register raw data: 0x42
+em28xx #0: No AC97 audio processor
+em28xx #0: v4l2 driver version 0.1.2
+em28xx #0: V4L2 device registered as /dev/video0 and /dev/vbi0
+usbcore: registered new interface driver em28xx
+em28xx driver loaded
+em28xx-audio.c: probing for em28x1 non standard usbaudio
+em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+Em28xx: Initialized (Em28xx Audio Extension) extension
+usb 1-3: selecting invalid altsetting 7
+bash-4.0$
 
-Patrick Boettcher wrote:
-> Have you tried to load dvb-usb with disable_rc_polling=1 ?
-> 
-> It may or may not help.
-> 
-> If it helps it will necessary to have a look at the ir-polling code to 
-> see whether there is some thing like 'scheduling'.
-> 
-> regards,
 
-It helps :) Thanks.
-
-J.
-
---------------ms080506060708050000040305
-Content-Type: application/x-pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIQ4DCC
-BIowggNyoAMCAQICECf06hH0eobEbp27bqkXBwcwDQYJKoZIhvcNAQEFBQAwbzELMAkGA1UE
-BhMCU0UxFDASBgNVBAoTC0FkZFRydXN0IEFCMSYwJAYDVQQLEx1BZGRUcnVzdCBFeHRlcm5h
-bCBUVFAgTmV0d29yazEiMCAGA1UEAxMZQWRkVHJ1c3QgRXh0ZXJuYWwgQ0EgUm9vdDAeFw0w
-NTA2MDcwODA5MTBaFw0yMDA1MzAxMDQ4MzhaMIGuMQswCQYDVQQGEwJVUzELMAkGA1UECBMC
-VVQxFzAVBgNVBAcTDlNhbHQgTGFrZSBDaXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNUIE5l
-dHdvcmsxITAfBgNVBAsTGGh0dHA6Ly93d3cudXNlcnRydXN0LmNvbTE2MDQGA1UEAxMtVVRO
-LVVTRVJGaXJzdC1DbGllbnQgQXV0aGVudGljYXRpb24gYW5kIEVtYWlsMIIBIjANBgkqhkiG
-9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsjmFpPJ9q0E7YkY3rs3BYHW8OWX5ShpHornMSMxqmNVN
-NRm5pELlzkniii8efNIxB8dOtINknS4p1aJkxIW9hVE1eaROaJB7HHqkkqgX8pgV8pPMyaQy
-lbsMTzC9mKALi+VuG6JG+ni8om+rWV6lL8/K2m2qL+usobNqqrcuZzWLeeEeaYji5kbNoKXq
-vgvOdjp6Dpvq/NonWz1zHyLmSGHGTPNpsaguG7bUMSAsvIKKjqQOpdeJQ/wWWq8dcdcRWdq6
-hw2v+vPhwvCkxWeM1tZUOt4KpLoDd7NlyP0e03RiqhjKaJMeoYV+9Udly/hNVyh00jT/MLbu
-9mIwFIws6wIDAQABo4HhMIHeMB8GA1UdIwQYMBaAFK29mHo0tCb3+sQmVO8DveAky1QaMB0G
-A1UdDgQWBBSJgmd9xJ0mcABLtFBIfN49rgRufTAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/
-BAUwAwEB/zB7BgNVHR8EdDByMDigNqA0hjJodHRwOi8vY3JsLmNvbW9kb2NhLmNvbS9BZGRU
-cnVzdEV4dGVybmFsQ0FSb290LmNybDA2oDSgMoYwaHR0cDovL2NybC5jb21vZG8ubmV0L0Fk
-ZFRydXN0RXh0ZXJuYWxDQVJvb3QuY3JsMA0GCSqGSIb3DQEBBQUAA4IBAQAZ2IkRbyispgCi
-54fBm5AD236hEv0e8+LwAamUVEJrmgnEoG3XkJIEA2Z5Q3H8+G+v23ZF4jcaPd3kWQR4rBz0
-g0bzes9bhHIt5UbBuhgRKfPLSXmHPLptBZ2kbWhPrXIUNqi5sf2/z3/wpGqUNVCPz4FtVbHd
-WTBK322gnGQfSXzvNrv042n0+DmPWq1LhTq3Du3Tzw1EovsEv+QvcI4l+1pUBrPQxLxtjftz
-Mizpm4QkLdZ/kXpoAlAfDj9N6cz1u2fo3BwuO/xOzf4CjuOoEwqlJkRl6RDyTVKnrtw+ymsy
-XEFs/vVdoOr/0fqbhlhtPZZH5f4ulQTCAMyOofK7MIIGJTCCBQ2gAwIBAgIRALXk0MQ5KusQ
-0lRANX04qqowDQYJKoZIhvcNAQEFBQAwga4xCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJVVDEX
-MBUGA1UEBxMOU2FsdCBMYWtlIENpdHkxHjAcBgNVBAoTFVRoZSBVU0VSVFJVU1QgTmV0d29y
-azEhMB8GA1UECxMYaHR0cDovL3d3dy51c2VydHJ1c3QuY29tMTYwNAYDVQQDEy1VVE4tVVNF
-UkZpcnN0LUNsaWVudCBBdXRoZW50aWNhdGlvbiBhbmQgRW1haWwwHhcNMDkwOTI3MDAwMDAw
-WhcNMTAwOTI3MjM1OTU5WjCB1jE1MDMGA1UECxMsQ29tb2RvIFRydXN0IE5ldHdvcmsgLSBQ
-RVJTT05BIE5PVCBWQUxJREFURUQxRjBEBgNVBAsTPVRlcm1zIGFuZCBDb25kaXRpb25zIG9m
-IHVzZTogaHR0cDovL3d3dy5jb21vZG8ubmV0L3JlcG9zaXRvcnkxHzAdBgNVBAsTFihjKTIw
-MDMgQ29tb2RvIExpbWl0ZWQxEzARBgNVBAMTCkphbiBLb3JiZWwxHzAdBgkqhkiG9w0BCQEW
-EGphY2tjQHRlcHRpbi5uZXQwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC7L4KH
-3giL1zJhnQJD7LPvsxjiqA6Xg1oZGxyhnlZbXSvp96PNqBwa+0m3VrLkdc/HXK5l4mqQvLgb
-aIRxi3eroTlHh3q3CyDgpm17gStCABsJyCaaQjxnE452WOdFZohBy1QW5grKrIS0cLe+KXCF
-o+BNnzFha14NmgNY34UOuS9V1XH3gxY0m1PRPBfzFeJ2T477cLZ2AKkbzLje3Z+X6oiSdpcw
-bVjP0klenUgf4jfMzdG3tYtjtOxjFtg/oYCh38jid3rp0H5O65KFOGN9H7GopzRbIb0TP2IL
-TMhsx66AaI+NpTEc7P+9sHKndeYtRcpUMggtut4GtGC2c2ZhAgMBAAGjggISMIICDjAfBgNV
-HSMEGDAWgBSJgmd9xJ0mcABLtFBIfN49rgRufTAdBgNVHQ4EFgQU5oVPqvBUmjgf1z7OwR6y
-5scTl/cwDgYDVR0PAQH/BAQDAgWgMAwGA1UdEwEB/wQCMAAwIAYDVR0lBBkwFwYIKwYBBQUH
-AwQGCysGAQQBsjEBAwUCMBEGCWCGSAGG+EIBAQQEAwIFIDBGBgNVHSAEPzA9MDsGDCsGAQQB
-sjEBAgEBATArMCkGCCsGAQUFBwIBFh1odHRwczovL3NlY3VyZS5jb21vZG8ubmV0L0NQUzCB
-pQYDVR0fBIGdMIGaMEygSqBIhkZodHRwOi8vY3JsLmNvbW9kb2NhLmNvbS9VVE4tVVNFUkZp
-cnN0LUNsaWVudEF1dGhlbnRpY2F0aW9uYW5kRW1haWwuY3JsMEqgSKBGhkRodHRwOi8vY3Js
-LmNvbW9kby5uZXQvVVROLVVTRVJGaXJzdC1DbGllbnRBdXRoZW50aWNhdGlvbmFuZEVtYWls
-LmNybDBsBggrBgEFBQcBAQRgMF4wNgYIKwYBBQUHMAKGKmh0dHA6Ly9jcnQuY29tb2RvY2Eu
-Y29tL1VUTkFBQUNsaWVudENBLmNydDAkBggrBgEFBQcwAYYYaHR0cDovL29jc3AuY29tb2Rv
-Y2EuY29tMBsGA1UdEQQUMBKBEGphY2tjQHRlcHRpbi5uZXQwDQYJKoZIhvcNAQEFBQADggEB
-ABkrQsQfIs+GfzsLG5+1mOURBlob3vxDNFFB98mNE82wpQFjZgRPam0toXQZXvGlocnvPvNf
-Bq15qDVv206Exsbx9ccMOFQrCMiGLZ41FAzgJfPkXs1VTxM8ZQ0btCm3F1zpextZcFW0ZcG8
-sbSpoHpuJiH9fwbscu8BNy6hMcnPB5VsguiNZ1R9IKo2yV+5W3jSU+Yi2gz/0BFgVa3WRZqS
-S2AFgJjkyHkOmKtUlXNF8orbf8AtKmqoHo5X9S1JrBFbm01F5UquoiUiJFRchQHxoxhhOl4O
-lglQkge411tO46qPTU6Ua+486r5RRXGc8blFvptbhlRrMdwlhsVG6EkwggYlMIIFDaADAgEC
-AhEAteTQxDkq6xDSVEA1fTiqqjANBgkqhkiG9w0BAQUFADCBrjELMAkGA1UEBhMCVVMxCzAJ
-BgNVBAgTAlVUMRcwFQYDVQQHEw5TYWx0IExha2UgQ2l0eTEeMBwGA1UEChMVVGhlIFVTRVJU
-UlVTVCBOZXR3b3JrMSEwHwYDVQQLExhodHRwOi8vd3d3LnVzZXJ0cnVzdC5jb20xNjA0BgNV
-BAMTLVVUTi1VU0VSRmlyc3QtQ2xpZW50IEF1dGhlbnRpY2F0aW9uIGFuZCBFbWFpbDAeFw0w
-OTA5MjcwMDAwMDBaFw0xMDA5MjcyMzU5NTlaMIHWMTUwMwYDVQQLEyxDb21vZG8gVHJ1c3Qg
-TmV0d29yayAtIFBFUlNPTkEgTk9UIFZBTElEQVRFRDFGMEQGA1UECxM9VGVybXMgYW5kIENv
-bmRpdGlvbnMgb2YgdXNlOiBodHRwOi8vd3d3LmNvbW9kby5uZXQvcmVwb3NpdG9yeTEfMB0G
-A1UECxMWKGMpMjAwMyBDb21vZG8gTGltaXRlZDETMBEGA1UEAxMKSmFuIEtvcmJlbDEfMB0G
-CSqGSIb3DQEJARYQamFja2NAdGVwdGluLm5ldDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCC
-AQoCggEBALsvgofeCIvXMmGdAkPss++zGOKoDpeDWhkbHKGeVltdK+n3o82oHBr7SbdWsuR1
-z8dcrmXiapC8uBtohHGLd6uhOUeHercLIOCmbXuBK0IAGwnIJppCPGcTjnZY50VmiEHLVBbm
-CsqshLRwt74pcIWj4E2fMWFrXg2aA1jfhQ65L1XVcfeDFjSbU9E8F/MV4nZPjvtwtnYAqRvM
-uN7dn5fqiJJ2lzBtWM/SSV6dSB/iN8zN0be1i2O07GMW2D+hgKHfyOJ3eunQfk7rkoU4Y30f
-sainNFshvRM/YgtMyGzHroBoj42lMRzs/72wcqd15i1FylQyCC263ga0YLZzZmECAwEAAaOC
-AhIwggIOMB8GA1UdIwQYMBaAFImCZ33EnSZwAEu0UEh83j2uBG59MB0GA1UdDgQWBBTmhU+q
-8FSaOB/XPs7BHrLmxxOX9zAOBgNVHQ8BAf8EBAMCBaAwDAYDVR0TAQH/BAIwADAgBgNVHSUE
-GTAXBggrBgEFBQcDBAYLKwYBBAGyMQEDBQIwEQYJYIZIAYb4QgEBBAQDAgUgMEYGA1UdIAQ/
-MD0wOwYMKwYBBAGyMQECAQEBMCswKQYIKwYBBQUHAgEWHWh0dHBzOi8vc2VjdXJlLmNvbW9k
-by5uZXQvQ1BTMIGlBgNVHR8EgZ0wgZowTKBKoEiGRmh0dHA6Ly9jcmwuY29tb2RvY2EuY29t
-L1VUTi1VU0VSRmlyc3QtQ2xpZW50QXV0aGVudGljYXRpb25hbmRFbWFpbC5jcmwwSqBIoEaG
-RGh0dHA6Ly9jcmwuY29tb2RvLm5ldC9VVE4tVVNFUkZpcnN0LUNsaWVudEF1dGhlbnRpY2F0
-aW9uYW5kRW1haWwuY3JsMGwGCCsGAQUFBwEBBGAwXjA2BggrBgEFBQcwAoYqaHR0cDovL2Ny
-dC5jb21vZG9jYS5jb20vVVROQUFBQ2xpZW50Q0EuY3J0MCQGCCsGAQUFBzABhhhodHRwOi8v
-b2NzcC5jb21vZG9jYS5jb20wGwYDVR0RBBQwEoEQamFja2NAdGVwdGluLm5ldDANBgkqhkiG
-9w0BAQUFAAOCAQEAGStCxB8iz4Z/Owsbn7WY5REGWhve/EM0UUH3yY0TzbClAWNmBE9qbS2h
-dBle8aWhye8+818GrXmoNW/bToTGxvH1xww4VCsIyIYtnjUUDOAl8+RezVVPEzxlDRu0KbcX
-XOl7G1lwVbRlwbyxtKmgem4mIf1/Buxy7wE3LqExyc8HlWyC6I1nVH0gqjbJX7lbeNJT5iLa
-DP/QEWBVrdZFmpJLYAWAmOTIeQ6Yq1SVc0Xyitt/wC0qaqgejlf1LUmsEVubTUXlSq6iJSIk
-VFyFAfGjGGE6Xg6WCVCSB7jXW07jqo9NTpRr7jzqvlFFcZzxuUW+m1uGVGsx3CWGxUboSTGC
-BGAwggRcAgEBMIHEMIGuMQswCQYDVQQGEwJVUzELMAkGA1UECBMCVVQxFzAVBgNVBAcTDlNh
-bHQgTGFrZSBDaXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNUIE5ldHdvcmsxITAfBgNVBAsT
-GGh0dHA6Ly93d3cudXNlcnRydXN0LmNvbTE2MDQGA1UEAxMtVVROLVVTRVJGaXJzdC1DbGll
-bnQgQXV0aGVudGljYXRpb24gYW5kIEVtYWlsAhEAteTQxDkq6xDSVEA1fTiqqjAJBgUrDgMC
-GgUAoIICcDAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0wOTEy
-MTYwNzMyMThaMCMGCSqGSIb3DQEJBDEWBBQXh+Gvt0rMNkBHgT0QEr8eROFN7zBfBgkqhkiG
-9w0BCQ8xUjBQMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYI
-KoZIhvcNAwICAUAwBwYFKw4DAgcwDQYIKoZIhvcNAwICASgwgdUGCSsGAQQBgjcQBDGBxzCB
-xDCBrjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAlVUMRcwFQYDVQQHEw5TYWx0IExha2UgQ2l0
-eTEeMBwGA1UEChMVVGhlIFVTRVJUUlVTVCBOZXR3b3JrMSEwHwYDVQQLExhodHRwOi8vd3d3
-LnVzZXJ0cnVzdC5jb20xNjA0BgNVBAMTLVVUTi1VU0VSRmlyc3QtQ2xpZW50IEF1dGhlbnRp
-Y2F0aW9uIGFuZCBFbWFpbAIRALXk0MQ5KusQ0lRANX04qqowgdcGCyqGSIb3DQEJEAILMYHH
-oIHEMIGuMQswCQYDVQQGEwJVUzELMAkGA1UECBMCVVQxFzAVBgNVBAcTDlNhbHQgTGFrZSBD
-aXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNUIE5ldHdvcmsxITAfBgNVBAsTGGh0dHA6Ly93
-d3cudXNlcnRydXN0LmNvbTE2MDQGA1UEAxMtVVROLVVTRVJGaXJzdC1DbGllbnQgQXV0aGVu
-dGljYXRpb24gYW5kIEVtYWlsAhEAteTQxDkq6xDSVEA1fTiqqjANBgkqhkiG9w0BAQEFAASC
-AQB5aTXYvSN4YRw6Lvv+lX0PkaJJxG8ug7uXGguAgAh7TpfzB3xqdLYX1GR5R3/qZwGlAl9c
-JSjySFatEaA6HGoIEdoJe2uNFH6KyrNz/mzq+Ylzq4B2HNoPe3moD/IiIZDU41fsApkrZzq8
-jIKlExEAyiV7+Mst53KBXcjAvnZDc6bJrIM7qc6WqYELHqRjXV7xvW4uay1G+LVKAM2NDyEJ
-rsMphIKdy5x4m6d+1HKdzN9fcONofrjWN5OyWl3f2wN//V/YOnw/zE/LSeE3QUttMo9dWKGM
-qUgFe+Hkn/ZsfwIHNNw7J2mciLms5yIIuy+dqH3X9h6CxRWR8d5rYi+fAAAAAAAA
---------------ms080506060708050000040305--
