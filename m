@@ -1,77 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49038 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966965AbZLIA25 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2009 19:28:57 -0500
-Message-ID: <4B1EEF40.30609@redhat.com>
-Date: Tue, 08 Dec 2009 22:28:48 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-qy0-f192.google.com ([209.85.221.192]:43842 "EHLO
+	mail-qy0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757651AbZLEDpu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2009 22:45:50 -0500
 MIME-Version: 1.0
-To: Jon Smirl <jonsmirl@gmail.com>
-CC: Andy Walls <awalls@radix.net>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	Christoph Bartelmus <lirc@bartelmus.de>, j@jannau.net,
-	jarod@redhat.com, linux-input@vger.kernel.org,
+In-Reply-To: <1259977687.27969.18.camel@localhost>
+References: <20091204220708.GD25669@core.coreip.homeip.net> <BEJgSGGXqgB@lirc>
+	 <9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>
+	 <1259977687.27969.18.camel@localhost>
+Date: Fri, 4 Dec 2009 22:45:55 -0500
+Message-ID: <9e4733910912041945g14732dcfgbb2ef6437ef62bb6@mail.gmail.com>
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
+	system?
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Andy Walls <awalls@radix.net>
+Cc: Christoph Bartelmus <lirc@bartelmus.de>, dmitry.torokhov@gmail.com,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com, khc@pm.waw.pl,
+	kraxel@redhat.com, linux-input@vger.kernel.org,
 	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
- 	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-References: <BDRae8rZjFB@christoph>	 <20091208042210.GA11147@core.coreip.homeip.net>	 <1260275743.3094.6.camel@palomino.walls.org>	 <4B1E54FF.8060404@redhat.com>	 <9e4733910912080547j75c2c885o29664470ff5e2c6a@mail.gmail.com>	 <4B1E5BDF.7010202@redhat.com>	 <9e4733910912080619t36089c9bg5e54114844b9694a@mail.gmail.com>	 <4B1E640B.6030705@redhat.com>	 <9e4733910912080756j7e1fac32qc552c6514a307b7d@mail.gmail.com>	 <4B1E7E56.80701@redhat.com> <9e4733910912081015he8b9b63o27ee802dea7adcfc@mail.gmail.com>
-In-Reply-To: <9e4733910912081015he8b9b63o27ee802dea7adcfc@mail.gmail.com>
+	mchehab@redhat.com, superm1@ubuntu.com
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jon Smirl wrote:
+On Fri, Dec 4, 2009 at 8:48 PM, Andy Walls <awalls@radix.net> wrote:
+> On Fri, 2009-12-04 at 19:28 -0500, Jon Smirl wrote:
+>> On Fri, Dec 4, 2009 at 6:01 PM, Christoph Bartelmus <lirc@bartelmus.de> wrote:
+>> > BTW, I just came across a XMP remote that seems to generate 3x64 bit scan
+>> > codes. Anyone here has docs on the XMP protocol?
+>>
+>> Assuming a general purpose receiver (not one with fixed hardware
+>> decoding), is it important for Linux to receive IR signals from all
+>> possible remotes no matter how old or obscure?
+>
+> Importance of any particular requirement is relative/subjective.  As is
+> usefulness of any existing functionality.
+>
+> Personally, I just think it's cool to pick up a random remote and use
+> Linux to figure out its protocol and its codes and get it working.
 
->> I don't like the idea of automatically loading 3 different keycodes at the
->> same time. You may have overlaps between different keycode tables. The
->> better is to have some userspace GUI that will allow the user to select
->> what keycode table(s) he want to be available, if he decides to not use the
->> bundled IR.
-> 
-> Of course there is going to be overlap of the keycodes, but not the
-> scancodes. There should be almost 100% overlap.
+You are a technical user.
 
-What prevents users to create overlaps at scancodes? We might add some
-protection, but, providing that different keycode tables can be used by
-different applications, why do we need to prevent it?
+>
+>
+>
+>>  Or is it acceptable to
+>> tell the user to throw away their dedicated remote and buy a universal
+>> multi-function one?
+>
+> Nope.  That other OS provider forces device obsolescence or arbitrary
+> constraints on users quite often and I don't like it myself.  That's why
+> I use Linux.
+>
+>
+>>   Universal multi-function remotes are $12 in my
+>> grocery store - I don't even have to go to an electronics store.
+>
+> The old remote in my possession costs $0, and I don't even have to leave
+> the house.
+>
+>
+>> I've been working off the premise of getting rid of obscure remotes
+>> and replacing them with a universal one. The universal one can be set
+>> to send a common protocol like JVC or Sony. That implies that we only
+>> need one or two protocol decoders in-kernel which greatly reduces the
+>> surface area of the problem.
+>
+> The design should serve the users, the users should not serve the
+> design.  If the reduction of requirements scope starts forcing users to
+> buy new hardware, are we really serving the users or just asking them to
+> pay to compensate for our shortcomings?
 
-> The three maps are there to support a non-technical user, a
-> sophisticated user will disable two of them. This works because the
-> non-technical user is only going to use one of the three IR device
-> profiles. The other two may be loaded, but the user isn't sending any
-> IR signals that match their maps.
+Use of arbitrary remotes is a complex process. It almost certainly can
+not be done in a transparent "just works" manner.
 
-I doubt you can map all cases with just three profiles.
+Let me rephrase, is it ok to tell people to buy a new remote if they
+want to avoid a complex, technical configuration process that isn't
+even guaranteed to work (they might have a 56K remote and a 38K
+receiver or a Sony remote and a fixed RC-5 receiver).
 
-> 
-> Where this breaks down is if they are using SciAtlanta_DVR to control
-> MythTV and they also happen to have a physical Motorola DVR in the
-> same room. 
-> The Linux box is going to pick up the commands meant for
-> the Motorola DVR and both boxes will respond.. In that cause they will
-> need to figure figure out how to disable the Motorola DVR profile.
+I'm not proposing that we prevent arbitrary remotes from working,
+you're just going to need to expend more effort to make them work.
+For example, you have to have a fair amount of IR knowledge to figure
+out why those two cases above don't work. You might have to install
+LIRC and futz with irrecord and build your own config files and
+mapping tables, etc...
 
-I used to have a Set Top Box that has some broken code to decode IR. So,
-sometimes, when I used to press a key on my TV IR, the STB were getting
-the code, producing a really bad result. That's really bad.
+It doesn't have to only be a universal remote, we can pre-install
+mapping tables for the remotes commonly shipped with the v4l hardware.
+When the v4l drivers load they could even poke the default map for
+their bundled remotes directly into the input system if they wanted
+to. Doing that might save a lot of config issues.
 
-A normal user is able to click on some graphical application and
-select his IR model. The app may even have some photos or pictures
-representing the most used IR's. This is better than letting him to to
-to some forum, asking his friends, etc, trying to figure out why his
-PC is doing something wrong when he changes a channel on his TV.
+How this for new goals?
+  Specific IR drivers autoload maps for their bundled remotes by
+poking them into the input subsystem during module load
+  IR always has default map for a universal remote - it provides five
+devices and uses a common protocol like JVC (may not work for fixed
+hardware, you have to set these five common devices into the universal
+remote)
+  All of these maps can be overriden with user space commands (which
+lets you configure funky remotes)
 
-> But is a non-technical person likely to have two DVRs in the same
-> room?
-
-Well, I know someone that has an 8 year old children with a setup like this: 
-a PC monitor that has an IR, and a PC with a TV board also with IR.
-Of course, both the monitor and the PC are at the same room.
-
-Cheers,
-Mauro.
+-- 
+Jon Smirl
+jonsmirl@gmail.com
