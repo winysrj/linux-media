@@ -1,71 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet12.oracle.com ([141.146.126.234]:33469 "EHLO
-	acsinet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755484AbZLCRZc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 12:25:32 -0500
-Date: Thu, 3 Dec 2009 09:25:01 -0800
-From: Randy Dunlap <randy.dunlap@oracle.com>
-To: "David T. L. Wong" <davidtlwong@gmail.com>
-Cc: linux-next@vger.kernel.org,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] atbm8830: replace 64-bit division and floating point
- usage
-Message-Id: <20091203092501.118ecf81.randy.dunlap@oracle.com>
-In-Reply-To: <4B17C3AE.6070207@gmail.com>
-References: <20091130175346.3f3345ed.sfr@canb.auug.org.au>
-	<4B1409D9.1050901@oracle.com>
-	<20091202100406.e25b2322.randy.dunlap@oracle.com>
-	<4B17C3AE.6070207@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from bombadil.infradead.org ([18.85.46.34]:34721 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752028AbZLERaZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2009 12:30:25 -0500
+Message-ID: <4B1A98B4.3050606@infradead.org>
+Date: Sat, 05 Dec 2009 15:30:28 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Michael Krufky <mkrufky@kernellabs.com>
+CC: VDR User <user.vdr@gmail.com>, LMML <linux-media@vger.kernel.org>
+Subject: Re: Details about DVB frontend API
+References: <20091022211330.6e84c6e7@hyperion.delvare>	 <4B02FDA4.5030508@infradead.org>	 <1a297b360911200129pe5af064wf9cf239851ac5c46@mail.gmail.com>	 <200911201237.31537.julian@jusst.de>	 <1a297b360911200808k12676112lf7a11f3dfd44a187@mail.gmail.com>	 <4B07290B.4060307@jusst.de>	 <a3ef07920912041202u78f4d12av8d7a49f5f91b3d56@mail.gmail.com> <37219a840912041259w499f2347he1b25c16550d671f@mail.gmail.com>
+In-Reply-To: <37219a840912041259w499f2347he1b25c16550d671f@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 03 Dec 2009 21:57:02 +0800 David T. L. Wong wrote:
-
-> Randy Dunlap wrote:
-> > On Mon, 30 Nov 2009 10:07:21 -0800 Randy Dunlap wrote:
-> > 
-> >> Stephen Rothwell wrote:
-> >>> Hi all,
-> >>>
-> >>> Changes since 20091127:
-> >>>
-> >>> The v4l-dvb tree lost its conflict.
-> >>
-> >> on i386 (X86_32):
-> >>
-> >> a 'double' variable is used, causing:
-> >>
-> >> ERROR: "__floatunsidf" [drivers/media/common/tuners/max2165.ko] undefined!
-> >> ERROR: "__adddf3" [drivers/media/common/tuners/max2165.ko] undefined!
-> >> ERROR: "__fixunsdfsi" [drivers/media/common/tuners/max2165.ko] undefined!
-> > 
-> > 
-> > linux-next-20091202:
-> > 
-> > still have this one (above) and similar with
-> > drivers/media/dvb/frontends/atbm8830.c:
-> > 
-> > drivers/built-in.o: In function `atbm8830_init':
-> > atbm8830.c:(.text+0x9012f9): undefined reference to `__udivdi3'
-> > atbm8830.c:(.text+0x901384): undefined reference to `__floatunsidf'
-> > atbm8830.c:(.text+0x901395): undefined reference to `__muldf3'
-> > atbm8830.c:(.text+0x9013a5): undefined reference to `__floatunsidf'
-> > atbm8830.c:(.text+0x9013b2): undefined reference to `__divdf3'
-> > atbm8830.c:(.text+0x9013c3): undefined reference to `__muldf3'
-> > atbm8830.c:(.text+0x9013cd): undefined reference to `__fixunsdfsi'
-> > 
-> > ---
-> This patch replace 64-bit division by do_div() macro and remove usage of 
-> floating point variable
+Michael Krufky wrote:
+> On Fri, Dec 4, 2009 at 3:02 PM, VDR User <user.vdr@gmail.com> wrote:
+> I have stated that I like Manu's proposal, but I would prefer that the
+> get_property (s2api) interface were used, because it totally provides
+> an interface that is sufficient for this feature.
 > 
-> Signed-off-by: David T. L. Wong <davidtlwong@gmail.com>
+> Manu and I agree that these values should all be read at once.
+> 
+> I think we all (except Mauro) agree that the behavior within the
+> driver should fetch all statistics at once and return it to userspace
+> as a single structure with all the information as it all relates to
+> each other.
 
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+You're contradicting yourself: by using S2API, the userspace API won't
+be using a single structure, since S2API will break them into pairs of
+attributes/values.
 
----
-~Randy
+Nothing limits that the in-kernel API will group those values into a struct,
+but the internal API should be smart enough to not return to userspace
+the values that weren't requested by the call.
+
+Cheers,
+Mauro.
+
