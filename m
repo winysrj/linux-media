@@ -1,149 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:64134 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754687AbZLHNWw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2009 08:22:52 -0500
-Message-ID: <4B1E532C.9040903@redhat.com>
-Date: Tue, 08 Dec 2009 11:22:52 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Julian Scheel <julian@jusst.de>
+Received: from static-ip-85-25-59-232.inaddr.intergenia.de ([85.25.59.232]:42079
+	"EHLO smtp.eikelenboom.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755829AbZLFJYJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Dec 2009 04:24:09 -0500
+Date: Sun, 6 Dec 2009 10:24:14 +0100
+From: Sander Eikelenboom <linux@eikelenboom.it>
+Message-ID: <965906892.20091206102414@eikelenboom.it>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
 CC: linux-media@vger.kernel.org
-Subject: Re: New DVB-Statistics API
-References: <4B1E1974.6000207@jusst.de>
-In-Reply-To: <4B1E1974.6000207@jusst.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Subject: Re: [em28xx] BUG: unable to handle kernel NULL pointer dereference at 0000000000000000 IP: [<ffffffffa00997be>] :ir_common:ir_input_free+0x26/0x3e
+In-Reply-To: <4B1B0094.6080000@redhat.com>
+References: <255535957.20091206000510@eikelenboom.it> <4B1B0094.6080000@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Julian,
+Hello Mauro,
 
-Let me add some corrections to your technical analysis.
+With the patch the  NULL pointer dereference is fixed.
 
-Julian Scheel wrote:
-> Hello together,
-> 
-> after the last thread which asked about signal statistics details
-> degenerated into a discussion about the technical possibilites for
-> implementing an entirely new API, which lead to nothing so far, I wanted
-> to open a new thread to bring this forward. Maybe some more people can
-> give their votes for the different options
-> 
-> Actually Manu did propose a new API for fetching enhanced statistics. It
-> uses new IOCTL to directly fetch the statistical data in one go from the
-> frontend. This propose was so far rejected by Mauro who wants to use the
-> S2API get/set calls instead.
-> 
-> Now to give everyone a quick overview about the advantages and
-> disadvantages of both approaches I will try to summarize it up:
-> 
-> 1st approach: Introduce new IOCTL
-> 
-> Pros:
-> - Allows a quick fetch of the entire dataset, which ensures that:
->  1. all values are fetched in one go (as long as possible) from the
-> frontend, so that they can be treated as one united and be valued in
-> conjunction
->  2. the requested values arrive the caller in an almost constant
-> timeframe, as the ioctl is directly executed by the driver
-> - It does not interfere with the existing statistics API, which has to
-> be kept alive as it is in use for a long time already. (unifying it's
-> data is not the approach of this new API)
-> 
-> Cons:
-> - Forces the application developers to interact with two APIs. The S2API
-> for tuning on the one hand and the Statistics API for reading signal
-> values on the other hand.
-> 
-> 2nd approach: Set up S2API calls for reading statistics
-> 
-> Pros:
-> - Continous unification of the linuxtv API, allowing all calls to be
-> made through one API. -> easy for application developers
+Thx,
 
-- Scaling values can be retrieved/negotiated (if we implement the set
-mode) before requesting the stats, using the same API;
+Sander
 
-- API can be easily extended to support other statistics that may be needed
-by newer DTV standards.
 
-> 
-> Cons:
-> - Due to the key/value pairs used for S2API getters the statistical
-> values can't be read as a unique block, so we loose the guarantee, that
-> all of the values can be treatend as one unit expressing the signals
-> state at a concrete time.
 
-You missed the point here. The proposal patch groups all S2API
-pairs into a _single_ call into the driver:
+Sunday, December 6, 2009, 1:53:40 AM, you wrote:
 
-> +		for (i = 0; i < tvps->num; i++)
-> +			need_get_ops += dtv_property_prepare_get_stats(fe,
-> +							 tvp + i, inode, file);
+> Sander Eikelenboom wrote:
+>> Hi All,
+>> 
+>> Tried to update my v4l-dvb modules today, but got a bug with my pinnacle card, seems to be related to the recent changes in the ir code.
+>> I have added dmesg output of the bug (changeset a871d61b614f tip), and dmesg output of the previous modules (working).
+>> 
+>> --
+>> Sander
+>> 
+>> Dec  5 23:30:25 security kernel: [    5.596128] em28xx: New device Pinnacle Systems GmbH PCTV USB2 PAL @ 480 Mbps (2304:0208, interface 0, class 0)
+>> Dec  5 23:30:25 security kernel: [    5.596535] em28xx #1: chip ID is em2820 (or em2710)
+>> Dec  5 23:30:25 security kernel: [    5.726154] em28xx #1: i2c eeprom 00: 1a eb 67 95 04 23 08 02 10 00 1e 03 98 1e 6a 2e
+>> Dec  5 23:30:25 security kernel: [    5.726181] em28xx #1: i2c eeprom 10: 00 00 06 57 6e 00 00 00 8e 00 00 00 07 00 00 00
+>> Dec  5 23:30:25 security kernel: [    5.726203] em28xx #1: i2c eeprom 20: 16 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00
+>> Dec  5 23:30:25 security kernel: [    5.726226] em28xx #1: i2c eeprom 30: 00 00 20 40 20 80 02 20 10 01 00 00 00 00 00 00
+>> Dec  5 23:30:25 security kernel: [    5.726247] em28xx #1: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>> Dec  5 23:30:25 security kernel: [    5.726270] em28xx #1: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>> Dec  5 23:30:25 security kernel: [    5.726290] em28xx #1: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 2e 03 50 00 69 00
+>> Dec  5 23:30:25 security kernel: [    5.726312] em28xx #1: i2c eeprom 70: 6e 00 6e 00 61 00 63 00 6c 00 65 00 20 00 53 00
+>> Dec  5 23:30:25 security kernel: [    5.726333] em28xx #1: i2c eeprom 80: 79 00 73 00 74 00 65 00 6d 00 73 00 20 00 47 00
+>> Dec  5 23:30:25 security kernel: [    5.726354] em28xx #1: i2c eeprom 90: 6d 00 62 00 48 00 00 00 1e 03 50 00 43 00 54 00
+>> Dec  5 23:30:25 security kernel: [    5.726376] em28xx #1: i2c eeprom a0: 56 00 20 00 55 00 53 00 42 00 32 00 20 00 50 00
+>> Dec  5 23:30:25 security kernel: [    5.726397] em28xx #1: i2c eeprom b0: 41 00 4c 00 00 00 06 03 31 00 00 00 00 00 00 00
+>> Dec  5 23:30:25 security kernel: [    5.726420] em28xx #1: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>> Dec  5 23:30:25 security kernel: [    5.726440] em28xx #1: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>> Dec  5 23:30:25 security kernel: [    5.726461] em28xx #1: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>> Dec  5 23:30:25 security kernel: [    5.726484] em28xx #1: i2c eeprom f0: 00 00 00 00 00 00 00 00 07 56 d9 35 01 ed 0b f8
+>> Dec  5 23:30:25 security kernel: [    5.726506] em28xx #1: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x0fd77740
+>> Dec  5 23:30:25 security kernel: [    5.726513] em28xx #1: EEPROM info:
+>> Dec  5 23:30:25 security kernel: [    5.726517] em28xx #1:      AC97 audio (5 sample rates)
+>> Dec  5 23:30:25 security kernel: [    5.726522] em28xx #1:      500mA max power
+>> Dec  5 23:30:25 security kernel: [    5.726528] em28xx #1:      Table at 0x06, strings=0x1e98, 0x2e6a, 0x0000
+>> Dec  5 23:30:25 security kernel: [    5.726534] em28xx #1: Identified as Pinnacle PCTV USB 2 (card=3)
+>> Dec  5 23:30:25 security kernel: [    5.735698] BUG: unable to handle kernel NULL pointer dereference at 0000000000000000
+>> Dec  5 23:30:25 security kernel: [    5.735716] IP: [<ffffffffa00997be>] :ir_common:ir_input_free+0x26/0x3e
+>> Dec  5 23:30:25 security kernel: [    5.735736] PGD 1fdcb067 PUD 1f65d067 PMD 0 
+>> Dec  5 23:30:25 security kernel: [    5.735744] Oops: 0000 [1] SMP 
+>> Dec  5 23:30:25 security kernel: [    5.735750] CPU 0 
+>> Dec  5 23:30:25 security kernel: [    5.735754] Modules linked in: ir_kbd_i2c(+) saa7115 usbhid(+) hid ff_memless em28xx(+) v4l2_common videodev v4l1_compat v4l2_compat_ioctl32 ir_common videobuf_vmalloc videobuf_core tveeprom i2c_core evdev ext3 jbd mbcache ohci_hcd ohci1394 ieee1394 ehci_hcd uhci_hcd thermal_sys
+>> Dec  5 23:30:25 security kernel: [    5.735793] Pid: 1091, comm: modprobe Not tainted 2.6.26-2-xen-amd64 #1
+>> Dec  5 23:30:25 security kernel: [    5.735798] RIP: e030:[<ffffffffa00997be>]  [<ffffffffa00997be>] :ir_common:ir_input_free+0x26/0x3e
+
+> It is weird to call ir_input_free during the boot. This means that something
+> got wrong during IR initialization.
+
+> Anyway, I think I know here's the bug: the first thing the routine does is this:
+
+>         struct ir_scancode_table *rc_tab = input_get_drvdata(dev);
+
+> However, if ir_input_init() doesn't initialize fine, rc_tab will be null.
+
+> Could you please test if the enclosed patch fixes the issue?
+
+> ---
+
+> Avoid usage of an initialized drvdata
+
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+> diff --git a/linux/drivers/media/common/ir-keytable.c b/linux/drivers/media/common/ir-keytable.c
+> --- a/linux/drivers/media/common/ir-keytable.c
+> +++ b/linux/drivers/media/common/ir-keytable.c
+> @@ -427,6 +427,9 @@ void ir_input_free(struct input_dev *dev
+>  {
+>         struct ir_scancode_table *rc_tab = input_get_drvdata(dev);
+>  
+> +       if (!rc_tab)
+> +               return;
 > +
-> +		if (!fe->dtv_property_cache.need_stats) {
-> +			need_get_ops++;
-> +		} else {
-> +			if (fe->ops.get_stats) {
-> +				err = fe->ops.get_stats(fe);
-> +				if (err < 0)
-> +					return err;
-> +			}
-> +		}
-
-The dtv_property_prepare_get_stats will generate a bitmap field (need_stats) that
-will describe all value pairs that userspace is expecting. After doing it,
-a single call is done to get_stats() callback.
-
-All the driver need to do is to fill all values at dtv_property_cache. If the driver
-fills more values than requested by the user, the extra values will simply be discarded.
-
-In order to reduce latency, the driver may opt to not read the register values for the
-data that aren't requested by the user, like I did on cx24123 driver.
-
-Those values will all be returned at the same time to userspace by a single copy_to_user()
-operation.
-
-> - Due to the general architecture of the S2API the delay between
-> requesting and receiving the actual data could become too big to allow
-> realtime interpretation of the data (as it is needed for applications
-> like satellite finders, etc.)
-
-Not true. As pointed at the previous answer, the difference between a new ioctl
-and S2API is basically the code at dtv_property_prepare_get_stats() and
-dtv_property_process_get(). This is a pure code that uses a continuous struct
-that will likely be at L3 cache, inside the CPU chip. So, this code will run
-really quickly.
-
-As current CPU's runs at the order of Teraflops (as the CPU clocks are at gigahertz
-order, and CPU's can handle multiple instructions per clock cycle), the added delay
-is in de order of nanosseconds. 
-
-On the other hand, a simple read of a value from an i2c device is in the order
-of milisseconds, since I2C serial bus, speed is slow (typically operating at
-100 Kbps).
-
-So, the delay is determined by the number of I2C calls you have at the code.
-
-With the new ioctl proposal, as you need to read all data from I2C (even the ones
-that userspace don't need), you'll have two situations:
-	- if you use S2API call to request all data provided by ioctl approach,
-the delay will be the same;
-	- if you use S2API call to request less stats, the S2API delay will
-be shorter. 
-
-For example, with cx24123, the S2API delay it will be 6 times shorter than the
-ioctl, if you request just the signal strength - as just one read is needed
-to get signal strength, while you need to do 6 reads to get all 3 stats.
-
-So, if you want to do some realtime usage and delay is determinant, a call
-via S2API containing just the values you need will be better than the new
-ioctl call.
-
-The only cons I can think is that the S2API payload for a complete retrival of all
-stats will be a little bigger.
+>         IR_dprintk(1, "Freed keycode table\n");
+>  
+>         rc_tab->size = 0;
 
 
-Cheers,
-Mauro.
+
+-- 
+Best regards,
+ Sander                            mailto:linux@eikelenboom.it
+
