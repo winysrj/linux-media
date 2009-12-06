@@ -1,39 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:63916 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756123AbZLFDI5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Dec 2009 22:08:57 -0500
-Subject: Heads up, I'm adding IR stuff to cx23885 and cx25840
-From: Andy Walls <awalls@radix.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from moutng.kundenserver.de ([212.227.126.186]:58035 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753945AbZLFMNr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Dec 2009 07:13:47 -0500
+Date: 06 Dec 2009 13:12:00 +0100
+From: lirc@bartelmus.de (Christoph Bartelmus)
+To: jonsmirl@gmail.com
+Cc: awalls@radix.net
+Cc: dmitry.torokhov@gmail.com
+Cc: j@jannau.net
+Cc: jarod@redhat.com
+Cc: jarod@wilsonet.com
+Cc: khc@pm.waw.pl
+Cc: kraxel@redhat.com
+Cc: linux-input@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 Cc: linux-media@vger.kernel.org
-Content-Type: text/plain
-Date: Sat, 05 Dec 2009 22:07:45 -0500
-Message-Id: <1260068865.3105.50.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Cc: mchehab@redhat.com
+Cc: superm1@ubuntu.com
+Message-ID: <BENh5lRHqgB@lirc>
+In-Reply-To: <9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+Hi Jon,
 
-I noticed you've added some changes to th v4l-dvb tree for IR.
+on 04 Dec 09 at 19:28, Jon Smirl wrote:
+>> BTW, I just came across a XMP remote that seems to generate 3x64 bit
+>> scan codes. Anyone here has docs on the XMP protocol?
+>
+> Assuming a general purpose receiver (not one with fixed hardware
+> decoding), is it important for Linux to receive IR signals from all
+> possible remotes no matter how old or obscure? Or is it acceptable to
+[...]
+> Of course transmitting is a completely different problem, but we
+> haven't been talking about transmitting. I can see how we would need
+> to record any IR protocol in order to retransmit it. But that's in the
+> 5% of users world, not the 90% that want MythTV to "just work".  Use
+> something like LIRC if you want to transmit.
 
-Just to let you know, I've added an NEC protocol implementation to
-cx23885-input.c.   The two relevant changes are here:
+I don't think anyone here is in the position to be able to tell what is  
+90% or 5%. Personally I use LIRC exclusively for transmit to my settop box  
+using an old and obscure RECS80 protocol.
+No, I won't replace my setup just because it's old and obscure.
 
-	cx23885: Convert from struct card_ir to struct cx23885_ir_input for IR Rx
-	http://linuxtv.org/hg/~awalls/cx23885-ir/rev/c51daeba32cb
+Cable companies tend to provide XMP based boxes to subscribers more often  
+these days. Simply not supporting these setups is a no-go for me.
 
-	cx23885: Add NEC protocol decoding for IR Rx
-	http://linuxtv.org/hg/~awalls/cx23885-ir/rev/6cba2fc1ea99
-
-I haven't kept track with all your changes so far, but just wanted to
-let you know these would be ready sometime before Christmas for
-hopefully the HVR-1800 and TeVii S470.  Hopefully, the changes will also
-be brought up to date with your changes by then too.
-
-Regards,
-Andy
-
+Christoph
