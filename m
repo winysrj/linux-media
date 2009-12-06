@@ -1,39 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpfb1-g21.free.fr ([212.27.42.9]:38535 "HELO
-	smtpfb1-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932190AbZLMCn3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Dec 2009 21:43:29 -0500
-Received: from smtp1-g21.free.fr (smtp1-g21.free.fr [212.27.42.1])
-	by smtpfb1-g21.free.fr (Postfix) with ESMTP id F070477C6DF
-	for <linux-media@vger.kernel.org>; Sat, 12 Dec 2009 17:06:20 +0100 (CET)
-Received: from smtp1-g21.free.fr (localhost [127.0.0.1])
-	by smtp1-g21.free.fr (Postfix) with ESMTP id AC911940078
-	for <linux-media@vger.kernel.org>; Sat, 12 Dec 2009 17:05:09 +0100 (CET)
-Received: from [192.168.15.210] (napalm.rochet.org [81.57.142.20])
-	by smtp1-g21.free.fr (Postfix) with ESMTP id B9945940181
-	for <linux-media@vger.kernel.org>; Sat, 12 Dec 2009 17:05:06 +0100 (CET)
-Subject: [linux-dvb] Is there somobody dealing with DVB cards here ?!?
-From: dvblinux <dvblinux@free.fr>
-To: linux-media@vger.kernel.org
-In-Reply-To: <200912121359.16169.liplianin@me.by>
-References: <267bb6670912120230m59eeeeffqc52cfb320ac05ec2@mail.gmail.com>
-	 <200912121359.16169.liplianin@me.by>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 12 Dec 2009 17:04:24 +0100
-Message-Id: <1260633864.2329.4.camel@hercules.rochet.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from qw-out-2122.google.com ([74.125.92.24]:2086 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933969AbZLFRwF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Dec 2009 12:52:05 -0500
+MIME-Version: 1.0
+In-Reply-To: <m3638k6lju.fsf@intrepid.localdomain>
+References: <20091204220708.GD25669@core.coreip.homeip.net> <BEJgSGGXqgB@lirc>
+	 <9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>
+	 <1260070593.3236.6.camel@pc07.localdom.local>
+	 <20091206065512.GA14651@core.coreip.homeip.net>
+	 <4B1B99A5.2080903@redhat.com> <m3638k6lju.fsf@intrepid.localdomain>
+Date: Sun, 6 Dec 2009 12:52:11 -0500
+Message-ID: <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
+	system?
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Krzysztof Halasa <khc@pm.waw.pl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
+	kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all.
+On Sun, Dec 6, 2009 at 12:48 PM, Krzysztof Halasa <khc@pm.waw.pl> wrote:
+> Once again: how about agreement about the LIRC interface
+> (kernel-userspace) and merging the actual LIRC code first? In-kernel
+> decoding can wait a bit, it doesn't change any kernel-user interface.
 
-I kindly asked a question yesterday, no answer at all, of any kind...
-        
-Is there somebody dealing with DVB-T/DVB-S cards here ?!?
-        
-Regards.
+I'd like to see a semi-complete design for an in-kernel IR system
+before anything is merged from any source.
 
-
-
+-- 
+Jon Smirl
+jonsmirl@gmail.com
