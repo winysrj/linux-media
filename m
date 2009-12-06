@@ -1,106 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f209.google.com ([209.85.219.209]:58901 "EHLO
-	mail-ew0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751199AbZLKUns convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2009 15:43:48 -0500
-Received: by ewy1 with SMTP id 1so1560595ewy.28
-        for <linux-media@vger.kernel.org>; Fri, 11 Dec 2009 12:43:54 -0800 (PST)
-From: Antonio Marcos =?iso-8859-1?q?L=F3pez_Alonso?=
-	<amlopezalonso@gmail.com>
-Reply-To: amlopezalonso@gmail.com
-To: "'linux-media@vger.kernel.org'" <linux-media@vger.kernel.org>
-Subject: [SOLVED] dib0700: Nova-T-500 remote - mixed button codes
-Date: Fri, 11 Dec 2009 20:43:48 +0000
-References: <200912111509.51455.amlopezalonso@gmail.com> <CFDDDF371FF6814E9445C4C937125CE6027007F3C6@CROP3MMBX03.mail.aig.net>
-In-Reply-To: <CFDDDF371FF6814E9445C4C937125CE6027007F3C6@CROP3MMBX03.mail.aig.net>
+Received: from viefep19-int.chello.at ([62.179.121.39]:28307 "EHLO
+	viefep19-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756804AbZLFMwT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Dec 2009 07:52:19 -0500
+Message-ID: <4B1BA901.3080703@waechter.wiz.at>
+Date: Sun, 06 Dec 2009 13:52:17 +0100
+From: =?UTF-8?B?TWF0dGhpYXMgV8OkY2h0ZXI=?= <matthias@waechter.wiz.at>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <200912112043.48541.amlopezalonso@gmail.com>
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Mantis =?UTF-8?B?4oCTIGFueW9uZT8=?=
+References: <4B0E6CC0.9030207@waechter.wiz.at> <1a297b360912042154q619caa3dkf3818793f46c2c50@mail.gmail.com>
+In-Reply-To: <1a297b360912042154q619caa3dkf3818793f46c2c50@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Spot on, Christophe!
+Manu,
 
-I didn't realize I have not tried swapping the sensor wires and this little 
-damned thing is working now!
+Thanks for taking care.
 
-However I must point the "faulty" sensor wire works right with the HVR-1100. I 
-cannot tell which sensor belongs to which card (both of them are identical 
-except the "working" Nova-T-500 wire that shows a label with what seems to be 
-a P/N or a S/N on it) so I suppose the Nova-T-500 wire works well with the 
-HVR-1100 but not the opposite (maybe a bandwidth issue). To support this 
-theory there is the fact that the spurious keycodes are not random but always 
-the same per remote button (but the happening frequency is random indeed).
+> Please try http://jusst.de/hg/v4l-dvb
+> and report the issues
 
-Thanks a lot for your help!
+It looks as if dependencies and frontends are not in line.
 
-Antonio
+• dependencies for my card’s relevant frontends STB0899, STB6100, and
+LNBP21 are missing from Kconfig,
+• dependency for CU1216 is in, but frontend driver source missing. It’s
+neither in my kernel 2.6.32 sources nor in linuxtv’s v4l-dvb.
 
+So, mantis_core is automatically selected and compiled, hopper too, but
+not mantis.
 
+Worked around it by adding/replacing the dependencies (in fact, removing
+the dependency for CU1216 should have enabled build of mantis).
 
-El Viernes 11 Diciembre 2009, Rochet, Christophe escribi�:
-> Hi Antonio.
-> 
-> Did you switched also the IR remote sensor itself ?
-> 
-> I experienced same weird things with a WinovaTV years ago, and finally the
->  IR phototransistor in the small round receiver was crappy. When I changed
->  it by a common spare it all came right.
-> 
-> Protect also your IR sensor from AC lights...
-> 
-> If you experiment "random" keys, a noisy IR signal or dead receiver is
->  perhaps the cause.
-> 
-> If you experiment always the same button jam, that's something else.
-> 
-> Regards.
-> 
-> -----Message d'origine-----
-> De : linux-media-owner@vger.kernel.org
->  [mailto:linux-media-owner@vger.kernel.org] De la part de Antonio Marcos
->  L�pez Alonso Envoy� : vendredi 11 d�cembre 2009 16:10
-> � : linux-media@vger.kernel.org
-> Objet : dib0700: Nova-T-500 remote - mixed button codes
-> 
-> Hi all,
-> 
-> I own a Hauppauge Nova-T-500 in a box running Mythbuntu 9.10. The card runs
-> fine except when it comes to the in-built remote sensor:
-> 
-> Whenever I press any button, the remote sensor seems to receive some other
-> keycodes aside the proper one (i.e. when I press Volume Up button the
->  sensor receives it most of the time, but sometimes it understands some
->  other buttons are pressed like ArrowDown, Red button and so, making MythTV
->  experience very annoying). There are only three buttons that are always
->  well received with no confusion at all: "OK", "ArrowDown" and "Play". This
->  behavior occurs with two identical remotes I own (one of them belonging to
->  a WinTV HVR-1100) and another card user has reported a similar behavior
->  with its own and same remote.
-> 
-> I tested both remotes with the HVR-1100 and they behave perfectly, so I
->  guess this is not a remote related issue.
-> 
-> Though I have tried several LIRC setup files and swapped dvb_usb_dib0700
-> firmware files (1.10 and 1.20 versions) they make no working difference at
-> all.
-> 
-> I also tried rebuilding v4l-dvb code to no avail.
-> 
-> Any suggestions? I would gladly provide further info/logs upon request.
-> 
-> Cheers,
-> Antonio
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Remaining issues for me:
 
+• Can’t lock to 19.2/11303h (looks like something new, related to the
+change of the transponder’s feed, but other cards – e.g. TBS 6920 and
+Tevii 470 – do sync without a problem). Looks like a frontend issue to
+me (STB0899/STB6100), as mantis and budget-ci cards are affected in the
+same way. This correlates with perfect and quick lock of 19.2/11362h
+which is about the same frequency and has the same DVB parameters
+(22000/hC23M5O35S1).
+
+• Sometimes very slow lock at transponder change, slow enough to trace
+it in femon. femon first shows high BER rates and the picture is blocky,
+reducing within 3 or 4 Seconds to BER=0 and perfect picture. I should be
+able to repeat that and give you some logs if you need it.
+
+• Sometimes lock to a transponder only in certain order of previous
+transponder. Hard to formalize, though. Verbose module output shows 1 to
+2 unsuccessful locking attempts per second by the driver.
+
+• Still no 0x0000-0xffff SNR and STR range.
+
+• Currently no lock on 19.2/12693h either, but this may be a signal
+quality issue on my side.
+
+• Have not yet tried it with two mantis cards in a system, but there was
+a problem at least with ci handling in such a setup using s2-liplianin
+for a friend of mine. Will test that next week.
+
+• Have not tried IR (I use a radio RCU with lirc).
+
+– Matthias
