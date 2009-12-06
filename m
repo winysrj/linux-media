@@ -1,152 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-15.arcor-online.net ([151.189.21.55]:38883 "EHLO
-	mail-in-15.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753903AbZLWWzr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Dec 2009 17:55:47 -0500
-Subject: Re: saa7134  (not very) new board 5168:0307
-From: hermann pitton <hermann-pitton@arcor.de>
-To: "tomlohave@gmail.com" <tomlohave@gmail.com>
-Cc: linux-media@vger.kernel.org, jpnews13@free.fr
-In-Reply-To: <4B320A43.4000308@gmail.com>
-References: <4B03F15D.1090907@gmail.com>
-	 <1258585719.3275.14.camel@pc07.localdom.local> <4B1101B0.5010008@gmail.com>
-	 <1259543353.4436.21.camel@pc07.localdom.local> <4B18AE42.6010000@gmail.com>
-	 <4B320A43.4000308@gmail.com>
-Content-Type: text/plain
-Date: Wed, 23 Dec 2009 23:54:04 +0100
-Message-Id: <1261608844.7606.9.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from qw-out-2122.google.com ([74.125.92.24]:2812 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932753AbZLFQit convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Dec 2009 11:38:49 -0500
+MIME-Version: 1.0
+In-Reply-To: <BENh5lRHqgB@lirc>
+References: <9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>
+	 <BENh5lRHqgB@lirc>
+Date: Sun, 6 Dec 2009 11:38:55 -0500
+Message-ID: <9e4733910912060838j29f107cpd827e2d7b8a20c1c@mail.gmail.com>
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
+	system?
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Christoph Bartelmus <lirc@bartelmus.de>
+Cc: awalls@radix.net, dmitry.torokhov@gmail.com, j@jannau.net,
+	jarod@redhat.com, jarod@wilsonet.com, khc@pm.waw.pl,
+	kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	mchehab@redhat.com, superm1@ubuntu.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tom,
+On Sun, Dec 6, 2009 at 7:12 AM, Christoph Bartelmus <lirc@bartelmus.de> wrote:
+> Hi Jon,
+>
+> on 04 Dec 09 at 19:28, Jon Smirl wrote:
+>>> BTW, I just came across a XMP remote that seems to generate 3x64 bit
+>>> scan codes. Anyone here has docs on the XMP protocol?
+>>
+>> Assuming a general purpose receiver (not one with fixed hardware
+>> decoding), is it important for Linux to receive IR signals from all
+>> possible remotes no matter how old or obscure? Or is it acceptable to
+> [...]
+>> Of course transmitting is a completely different problem, but we
+>> haven't been talking about transmitting. I can see how we would need
+>> to record any IR protocol in order to retransmit it. But that's in the
+>> 5% of users world, not the 90% that want MythTV to "just work".  Use
+>> something like LIRC if you want to transmit.
+>
+> I don't think anyone here is in the position to be able to tell what is
+> 90% or 5%. Personally I use LIRC exclusively for transmit to my settop box
+> using an old and obscure RECS80 protocol.
+> No, I won't replace my setup just because it's old and obscure.
 
-Am Mittwoch, den 23.12.2009, 13:17 +0100 schrieb tomlohave@gmail.com:
-> Some news,
-> > Hi hermann,
-> >
-> > we are this results :
-> >
-> > with
-> >
-> > &tda827x_cfg_0, &tda827x_cfg_1 or &tda827x_cfg_2
-> >
-> 
-> > we have a perfect image without sound on the analogic part (test with 
-> > mplayer),
-> > a partial result with dvb-t : we need to initialize first with 
-> > analogic (with cold boot, the card doesn't work on dvb)
-> > but only for few seconds(sound and image are ok) then re-initialize 
-> > with analogic, work for few seconds on dvb and then nothing
-> 
-> > maybe i am wrong but, the sound part for analogic is a problem of 
-> > redirection, isn't it  ?
-> fixed
-> >
-> > here are our configuration for this card :
-> >
-> > in saa7134-dvb.c
-> >
-> > static struct tda1004x_config tda827x_flydvbtduo_medion_config = {
-> >     .demod_address = 0x08,
-> >     .invert        = 1,
-> >     .invert_oclk   = 0,
-> >     .xtal_freq     = TDA10046_XTAL_16M,
-> >     .agc_config    = TDA10046_AGC_TDA827X,
-> >     .gpio_config   = TDA10046_GP01_I,
-> >     .if_freq       = TDA10046_FREQ_045,
-> >     .i2c_gate      = 0x4b,
-> >     .tuner_address = 0x61,
-> >     .antenna_switch = 2,
-> >     .request_firmware = philips_tda1004x_request_firmware
-> > };
-> >
-> > case SAA7134_BOARD_FLYDVBTDUO_MEDION:
-> >         if (configure_tda827x_fe(dev, &tda827x_flydvbtduo_medion_config,
-> >                      &tda827x_cfg_2) < 0)
-> >             goto dettach_frontend;
-> >         break;
-> >     default:
-> >         wprintk("Huh? unknown DVB card?\n");
-> >         break;
-> >
-> >
-> > in saa7134-cards.c
-> >
-> >    [SAA7134_BOARD_FLYDVBTDUO_MEDION] = {
-> >        .name           = "LifeView FlyDVB-T DUO Medion",
-> 
-> >
-> >        .audio_clock    = 0x00187de7,
-> change with  0x00200000 and there is a perfect sound :)
+There are two groups, technically oriented people who can handle
+messing around with IR protocols and everyone else.  I'm not proposing
+to remove any capabilities from the first group. Instead I'd like to
+see the creation of a "just works" option for the other group. We
+don't know the size of the everyone else group yet because that option
+doesn't exist. In general non-technical people way out number the
+technical ones in broad user bases. For example I had to use LIRC to
+get my remotes working, but I would have rather been in the everyone
+else group and not had to learn about IR.
 
-fine. In README.saa7134 since Gerd wrote it the first time ;)
+> Cable companies tend to provide XMP based boxes to subscribers more often
+> these days. Simply not supporting these setups is a no-go for me.
 
-> >        .tuner_type     = TUNER_PHILIPS_TDA8290,
-> >        .radio_type     = UNSET,
-> >        .tuner_addr    = ADDR_UNSET,
-> >        .radio_addr    = ADDR_UNSET,
-> >        .gpiomask    = 0x00200000,
-> >        .mpeg           = SAA7134_MPEG_DVB,
-> >        .inputs         = {{
-> >            .name = name_tv,
-> >            .vmux = 1,
-> >            .amux = TV,
-> >            .gpio = 0x200000,     /* GPIO21=High for TV input */
-> >            .tv   = 1,
-> >        },{
-> >            .name = name_comp1,    /* Composite signal on S-Video input */
-> >            .vmux = 3,
-> >            .amux = LINE1,
-> >        },{
-> >            .name = name_svideo,    /* S-Video signal on S-Video input */
-> >            .vmux = 8,
-> >            .amux = LINE1,
-> >        }},
-> >        .radio = {
-> >            .name = name_radio,
-> >            .amux = TV,
-> >            .gpio = 0x000000,    /* GPIO21=Low for FM radio antenna */
-> >        },
-> >
-> >
-> > .vendor       = PCI_VENDOR_ID_PHILIPS,
-> >        .device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-> >        .subvendor    = 0x5168,               .subdevice    = 0x0307,  
-> > /* LR307-N */             .driver_data  = 
-> > SAA7134_BOARD_FLYDVBTDUO_MEDION,
-> >
-> > case SAA7134_BOARD_FLYDVBTDUO_MEDION:
-> >    {
-> >        /* this is a hybrid board, initialize to analog mode
-> >         * and configure firmware eeprom address
-> >         */
-> >        u8 data[] = { 0x3c, 0x33, 0x60};
-> >        struct i2c_msg msg = {.addr=0x08, .flags=0, .buf=data, .len = 
-> > sizeof(data)};
-> >        i2c_transfer(&dev->i2c_adap, &msg, 1);
-> >        break;
-> >
-> >
-> >
-> >
-> > What can we do to have dvb fully supported ?
-> Can someone point me in the right direction ?
-> >
+I suspect what we categorize as "just works" will expand over time.
+The in-kernel support can start small and add protocols and maps over
+time. Support for XMP can start in LIRC and migrate into the kernel
+after we fully understand the protocol and know that enough people are
+using it to justify the effort of maintaining it in-kernel.  Adding
+in-kernel support for a protocol is not going to make LIRC disappear.
 
-Hmmm, is there not anything with i2c_debug=1 before it fails after a few
-seconds?
+The critical part is getting the initial design of the in-kernel IR
+system right. That design is very hard to change after it gets into
+everyone's systems and apps start depending on it. Writing up use
+cases, modular protocols, figuring out how many bits are needed in
+fields, how are maps written, can they be autoloaded, transmitting,
+etc, etc. These are the important things to be discussing. LIRC users
+obviously have a lot of knowledge in this area to contribute.
 
-Gpio pins can trigger cascades of switches, so to know the gpio status
-of the card for working DVB-T on m$ might still be a desire. Maybe chips
-power off.
+PS - another area we need to be thinking about is radio remotes like
+the new RF4CE devices. The button presses from these remotes will come
+in on the 802.15.4 networking stack and need to get routed into the
+input subsystem somehow.
 
-Also, for 99.99% only a shot at the dark side of the moon before ever
-seen, but I would also try to force TS_SERIAL to have it visited.
-
-Cheers,
-Hermann
-
-
+-- 
+Jon Smirl
+jonsmirl@gmail.com
