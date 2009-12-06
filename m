@@ -1,60 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f192.google.com ([209.85.221.192]:57013 "EHLO
-	mail-qy0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965258AbZLHAoO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Dec 2009 19:44:14 -0500
+Received: from anny.lostinspace.de ([80.190.182.2]:53358 "EHLO
+	anny.lostinspace.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934317AbZLFWhH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Dec 2009 17:37:07 -0500
+Message-ID: <4B1C3209.20000@fechner.net>
+Date: Sun, 06 Dec 2009 23:36:57 +0100
+From: Matthias Fechner <idefix@fechner.net>
 MIME-Version: 1.0
-In-Reply-To: <20091207184153.GD998@core.coreip.homeip.net>
-References: <20091204220708.GD25669@core.coreip.homeip.net> <BEJgSGGXqgB@lirc>
-	 <9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>
-	 <1260070593.3236.6.camel@pc07.localdom.local>
-	 <20091206065512.GA14651@core.coreip.homeip.net>
-	 <4B1B99A5.2080903@redhat.com> <m3638k6lju.fsf@intrepid.localdomain>
-	 <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
-	 <m3skbn6dv1.fsf@intrepid.localdomain>
-	 <20091207184153.GD998@core.coreip.homeip.net>
-Date: Mon, 7 Dec 2009 19:44:20 -0500
-Message-ID: <9e4733910912071644y234beebepd426f9f5760507ce@mail.gmail.com>
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
-	system?
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Krzysztof Halasa <khc@pm.waw.pl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
-	kraxel@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Content-Type: text/plain; charset=ISO-8859-1
+To: Andy Walls <awalls@radix.net>
+CC: "Igor M. Liplianin" <liplianin@me.by>, linux-media@vger.kernel.org
+Subject: Re: IR Receiver on an Tevii S470
+References: <4B0459B1.50600@fechner.net> <4B081F0B.1060204@fechner.net>	 <1258836102.1794.7.camel@localhost>  <200911220303.36715.liplianin@me.by> <1260135654.3101.15.camel@palomino.walls.org>
+In-Reply-To: <1260135654.3101.15.camel@palomino.walls.org>
+Content-Type: multipart/mixed;
+ boundary="------------070407030006010705080206"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 7, 2009 at 1:41 PM, Dmitry Torokhov
-<dmitry.torokhov@gmail.com> wrote:
-> That is why I think we should go the other way around - introduce the
-> core which receivers could plug into and decoder framework and once it
-> is ready register lirc-dev as one of the available decoders.
+This is a multi-part message in MIME format.
+--------------070407030006010705080206
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-The core needs to allow for RF remotes too.
+Hi Andy,
 
--Bluetooth remotes are already in kernel somehow, I don't know how they work,
--RF4CE, the 802.15.4 stack has been recently merged, the remotes use a
-protocol on top of that. These remotes will hit the consumer market
-next year. Sony, Panasonic and other big names are behind this.
--Zwave, the Harmony remotes use Zwave. There is no Zwave support in
-the kernel that I am aware of. Zwave is proprietary.
+Andy Walls wrote:
+>
+> 1. Does the remote for the TeVii S470 use the same codes as
+>
+> linux/drivers/media/common/ir-keymaps.c : ir_codes_tevii_nec[]
+>
+> or some other remote code table we have in the kernel?
+>   
 
-After these protocols are decoded you end up with scancodes. The
-scancodes need to get injected into input somehow and then flow
-through the mapping process. Decoding down to the scancodes probably
-happens over in the networking code.
+I don't know how it should work with the kernel but I use the remote 
+together with lirc with the attached config files.
+Maybe that helps you a little bit.
 
-After an in-kernel IR decoder runs it needs to hand off the scancodes
-into the input subsystem. This same API can be used by the networking
-code to hand off RF scancodes.
+Bye,
+Matthias
 
 -- 
-Jon Smirl
-jonsmirl@gmail.com
+"Programming today is a race between software engineers striving to build bigger and better idiot-proof programs, and the universe trying to produce bigger and better idiots. So far, the universe is winning." -- Rich Cook
+
+
+--------------070407030006010705080206
+Content-Type: text/plain; x-mac-type="0"; x-mac-creator="0";
+ name="lirc-tevii.conf"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="lirc-tevii.conf"
+
+IwojIHRoaXMgY29uZmlnIGZpbGUgd2FzIGF1dG9tYXRpY2FsbHkgZ2VuZXJhdGVkCiMgdXNp
+bmcgbGlyYy0wLjguNChkZWZhdWx0KSBvbiBTdW4gSnVsIDEyIDEyOjA1OjA2IDIwMDkKIwoj
+IGNvbnRyaWJ1dGVkIGJ5CiMKIyBicmFuZDogICAgICAgICAgICAgICAgICAgICAgVGVWaWkK
+IyBtb2RlbCBuby4gb2YgcmVtb3RlIGNvbnRyb2w6CiMgZGV2aWNlcyBiZWluZyBjb250cm9s
+bGVkIGJ5IHRoaXMgcmVtb3RlOiBUZVZpaSBTNjUwIERWQi1TMiBVU0IKIwoKYmVnaW4gcmVt
+b3RlCgogIG5hbWUgIFRlVmlpX1M0NzAKICBiaXRzICAgICAgICAgICAxNgogIGZsYWdzIFNQ
+QUNFX0VOQ3xDT05TVF9MRU5HVEgKICBlcHMgICAgICAgICAgICAzMAogIGFlcHMgICAgICAg
+ICAgMTAwCgogIGhlYWRlciAgICAgICA5MDMyICA0NDQwCiAgb25lICAgICAgICAgICA1OTQg
+IDE2NTEKICB6ZXJvICAgICAgICAgIDU5NCAgIDUyNwogIHB0cmFpbCAgICAgICAgNTkyCiAg
+cmVwZWF0CTkwMzIJMjIxMgogIHByZV9kYXRhX2JpdHMgICAxNgogIHByZV9kYXRhICAgICAg
+IDB4RkYKICBnYXAgICAgICAgICAgMTA3NzE1CiAgdG9nZ2xlX2JpdF9tYXNrIDB4ODAwMAoK
+ICAgICBiZWdpbiBjb2RlcwogICAgICAgICAgUG93ZXIgICAgICAgICAgICAgICAgICAgIDB4
+NTBBRgogICAgICAgICAgTXV0ZSAgICAgICAgICAgICAgICAgICAgIDB4MzBDRgogICAgICAg
+ICAgMSAgICAgICAgICAgICAgICAgICAgICAgIDB4ODg3NwogICAgICAgICAgMiAgICAgICAg
+ICAgICAgICAgICAgICAgIDB4NDhCNwogICAgICAgICAgMyAgICAgICAgICAgICAgICAgICAg
+ICAgIDB4QzgzNwogICAgICAgICAgNCAgICAgICAgICAgICAgICAgICAgICAgIDB4MjhENwog
+ICAgICAgICAgNSAgICAgICAgICAgICAgICAgICAgICAgIDB4QTg1NwogICAgICAgICAgNiAg
+ICAgICAgICAgICAgICAgICAgICAgIDB4Njg5NwogICAgICAgICAgNyAgICAgICAgICAgICAg
+ICAgICAgICAgIDB4RTgxNwogICAgICAgICAgOCAgICAgICAgICAgICAgICAgICAgICAgIDB4
+MThFNwogICAgICAgICAgOSAgICAgICAgICAgICAgICAgICAgICAgIDB4OTg2NwogICAgICAg
+ICAgMCAgICAgICAgICAgICAgICAgICAgICAgIDB4MDhGNwogICAgICAgICAgcmVjYWxsICAg
+ICAgICAgICAgICAgICAgIDB4NThBNwogICAgICAgICAgZmF2ICAgICAgICAgICAgICAgICAg
+ICAgIDB4RDgyNwogICAgICAgICAgVm9sKyAgICAgICAgICAgICAgICAgICAgIDB4OTA2Rgog
+ICAgICAgICAgVm9sLSAgICAgICAgICAgICAgICAgICAgIDB4RjAwRgogICAgICAgICAgQ2hh
+bisgICAgICAgICAgICAgICAgICAgIDB4MTBFRgogICAgICAgICAgQ2hhbi0gICAgICAgICAg
+ICAgICAgICAgIDB4NjA5RgogICAgICAgICAgTW9kZUxpdmUgICAgICAgICAgICAgICAgIDB4
+QTA1RgogICAgICAgICAgTW9kZVBsYXkgICAgICAgICAgICAgICAgIDB4RTAxRgogICAgICAg
+ICAgVXAgICAgICAgICAgICAgICAgICAgICAgIDB4MDBGRgogICAgICAgICAgRG93biAgICAg
+ICAgICAgICAgICAgICAgIDB4ODA3RgogICAgICAgICAgTGVmdCAgICAgICAgICAgICAgICAg
+ICAgIDB4QzAzRgogICAgICAgICAgUmlnaHQgICAgICAgICAgICAgICAgICAgIDB4NDBCRgog
+ICAgICAgICAgT2sgICAgICAgICAgICAgICAgICAgICAgIDB4RjgwNwogICAgICAgICAgTWVu
+dSAgICAgICAgICAgICAgICAgICAgIDB4MzhDNwogICAgICAgICAgQmFjayAgICAgICAgICAg
+ICAgICAgICAgIDB4Qjg0NwogICAgICAgICAgUGxheSAgICAgICAgICAgICAgICAgICAgIDB4
+MDJGRAogICAgICAgICAgRmFzdFJldyAgICAgICAgICAgICAgICAgIDB4Nzg4NwogICAgICAg
+ICAgRmFzdEZ3ZCAgICAgICAgICAgICAgICAgIDB4QjI0RAogICAgICAgICAgRVBHICAgICAg
+ICAgICAgICAgICAgICAgIDB4MjJERAogICAgICAgICAgUmVjICAgICAgICAgICAgICAgICAg
+ICAgIDB4MjBERgogICAgICAgICAgVGltZXIgICAgICAgICAgICAgICAgICAgIDB4RDAyRgog
+ICAgICAgICAgT3BlbiAgICAgICAgICAgICAgICAgICAgIDB4NzA4RgogICAgICAgICAgSW5m
+byAgICAgICAgICAgICAgICAgICAgIDB4MzJDRAogICAgICAgICAgYS9iICAgICAgICAgICAg
+ICAgICAgICAgICAweDgyN0QKICAgICAgICAgIEF1ZGlvICAgICAgICAgICAgICAgICAgICAw
+eEMyM0QKICAgICAgICAgIHN1YnMgICAgICAgICAgICAgICAgICAgICAweEEyNUQKICAgICAg
+ICAgIExpc3QgICAgICAgICAgICAgICAgICAgICAweDUyQUQKICAgICAgICAgIEYxICAgICAg
+ICAgICAgICAgICAgICAgICAweDYyOUQKICAgICAgICAgIEYyICAgICAgICAgICAgICAgICAg
+ICAgICAweEUyMUQKICAgICAgICAgIEYzICAgICAgICAgICAgICAgICAgICAgICAweDdBODUK
+ICAgICAgICAgIEY0ICAgICAgICAgICAgICAgICAgICAgICAweDNBQzUKICAgICAgICAgIEY1
+ICAgICAgICAgICAgICAgICAgICAgICAweDRBQjUKICAgICAgICAgIEY2ICAgICAgICAgICAg
+ICAgICAgICAgICAweDVBQTUKICAgICAgICAgIG1vbSAgICAgICAgICAgICAgICAgICAgICAw
+eDZBOTUKICAgICAgICAgIGZzICAgICAgICAgICAgICAgICAgICAgICAweDFBRTUKICAgICAg
+ZW5kIGNvZGVzCgplbmQgcmVtb3RlCgo=
+--------------070407030006010705080206--
