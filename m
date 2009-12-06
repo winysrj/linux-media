@@ -1,290 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:46001 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754610AbZLIUqu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Dec 2009 15:46:50 -0500
-From: Tobias Lorenz <tobias.lorenz@gmx.net>
-To: Joonyoung Shim <jy0922.shim@samsung.com>
-Subject: Re: [PATCH v2 2/3] radio-si470x: support RDS on si470x i2c driver
-Date: Wed, 9 Dec 2009 21:46:48 +0100
-Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com
-References: <4B17B5B7.8070300@samsung.com>
-In-Reply-To: <4B17B5B7.8070300@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:3516 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754306AbZLFAxi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 5 Dec 2009 19:53:38 -0500
+Message-ID: <4B1B0094.6080000@redhat.com>
+Date: Sat, 05 Dec 2009 22:53:40 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: Sander Eikelenboom <linux@eikelenboom.it>
+CC: linux-media@vger.kernel.org
+Subject: Re: [em28xx] BUG: unable to handle kernel NULL pointer dereference
+ at 0000000000000000 IP: [<ffffffffa00997be>] :ir_common:ir_input_free+0x26/0x3e
+References: <255535957.20091206000510@eikelenboom.it>
+In-Reply-To: <255535957.20091206000510@eikelenboom.it>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <200912092146.49264.tobias.lorenz@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-I'm unable to test the functionality, due to missing devices.
-But the code compiles cleanly.
-
-Acked-by: Tobias Lorenz <tobias.lorenz@gmx.net>
-
-Bye,
-Toby
-
-Am Donnerstag 03 Dezember 2009 13:57:27 schrieb Joonyoung Shim:
-> This patch is to support RDS on si470x i2c driver. The routine of RDS
-> operation is almost same with thing of usb driver, but this uses RDS
-> interrupt.
+Sander Eikelenboom wrote:
+> Hi All,
 > 
-> Signed-off-by: Joonyoung Shim <jy0922.shim@samsung.com>
-> ---
->  drivers/media/radio/si470x/radio-si470x-i2c.c |  164 +++++++++++++++++++++++--
->  drivers/media/radio/si470x/radio-si470x.h     |    1 +
->  2 files changed, 155 insertions(+), 10 deletions(-)
+> Tried to update my v4l-dvb modules today, but got a bug with my pinnacle card, seems to be related to the recent changes in the ir code.
+> I have added dmesg output of the bug (changeset a871d61b614f tip), and dmesg output of the previous modules (working).
 > 
-> diff --git a/drivers/media/radio/si470x/radio-si470x-i2c.c b/drivers/media/radio/si470x/radio-si470x-i2c.c
-> index 6a40db8..5466015 100644
-> --- a/drivers/media/radio/si470x/radio-si470x-i2c.c
-> +++ b/drivers/media/radio/si470x/radio-si470x-i2c.c
-> @@ -22,22 +22,17 @@
->   */
->  
->  
-> -/*
-> - * ToDo:
-> - * - RDS support
-> - */
-> -
-> -
->  /* driver definitions */
->  #define DRIVER_AUTHOR "Joonyoung Shim <jy0922.shim@samsung.com>";
-> -#define DRIVER_KERNEL_VERSION KERNEL_VERSION(1, 0, 0)
-> +#define DRIVER_KERNEL_VERSION KERNEL_VERSION(1, 0, 1)
->  #define DRIVER_CARD "Silicon Labs Si470x FM Radio Receiver"
->  #define DRIVER_DESC "I2C radio driver for Si470x FM Radio Receivers"
-> -#define DRIVER_VERSION "1.0.0"
-> +#define DRIVER_VERSION "1.0.1"
->  
->  /* kernel includes */
->  #include <linux/i2c.h>
->  #include <linux/delay.h>
-> +#include <linux/interrupt.h>
->  
->  #include "radio-si470x.h"
->  
-> @@ -62,6 +57,20 @@ static int radio_nr = -1;
->  module_param(radio_nr, int, 0444);
->  MODULE_PARM_DESC(radio_nr, "Radio Nr");
->  
-> +/* RDS buffer blocks */
-> +static unsigned int rds_buf = 100;
-> +module_param(rds_buf, uint, 0444);
-> +MODULE_PARM_DESC(rds_buf, "RDS buffer entries: *100*");
-> +
-> +/* RDS maximum block errors */
-> +static unsigned short max_rds_errors = 1;
-> +/* 0 means   0  errors requiring correction */
-> +/* 1 means 1-2  errors requiring correction (used by original USBRadio.exe) */
-> +/* 2 means 3-5  errors requiring correction */
-> +/* 3 means   6+ errors or errors in checkword, correction not possible */
-> +module_param(max_rds_errors, ushort, 0644);
-> +MODULE_PARM_DESC(max_rds_errors, "RDS maximum block errors: *1*");
-> +
->  
->  
->  /**************************************************************************
-> @@ -181,12 +190,21 @@ int si470x_fops_open(struct file *file)
->  	mutex_lock(&radio->lock);
->  	radio->users++;
->  
-> -	if (radio->users == 1)
-> +	if (radio->users == 1) {
->  		/* start radio */
->  		retval = si470x_start(radio);
-> +		if (retval < 0)
-> +			goto done;
-> +
-> +		/* enable RDS interrupt */
-> +		radio->registers[SYSCONFIG1] |= SYSCONFIG1_RDSIEN;
-> +		radio->registers[SYSCONFIG1] &= ~SYSCONFIG1_GPIO2;
-> +		radio->registers[SYSCONFIG1] |= 0x1 << 2;
-> +		retval = si470x_set_register(radio, SYSCONFIG1);
-> +	}
->  
-> +done:
->  	mutex_unlock(&radio->lock);
-> -
->  	return retval;
->  }
->  
-> @@ -242,6 +260,105 @@ int si470x_vidioc_querycap(struct file *file, void *priv,
->   **************************************************************************/
->  
->  /*
-> + * si470x_i2c_interrupt_work - rds processing function
-> + */
-> +static void si470x_i2c_interrupt_work(struct work_struct *work)
-> +{
-> +	struct si470x_device *radio = container_of(work,
-> +			struct si470x_device, radio_work);
-> +	unsigned char regnr;
-> +	unsigned char blocknum;
-> +	unsigned short bler; /* rds block errors */
-> +	unsigned short rds;
-> +	unsigned char tmpbuf[3];
-> +	int retval = 0;
-> +
-> +	/* safety checks */
-> +	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
-> +		return;
-> +
-> +	/* Update RDS registers */
-> +	for (regnr = 0; regnr < RDS_REGISTER_NUM; regnr++) {
-> +		retval = si470x_get_register(radio, STATUSRSSI + regnr);
-> +		if (retval < 0)
-> +			return;
-> +	}
-> +
-> +	/* get rds blocks */
-> +	if ((radio->registers[STATUSRSSI] & STATUSRSSI_RDSR) == 0)
-> +		/* No RDS group ready, better luck next time */
-> +		return;
-> +
-> +	for (blocknum = 0; blocknum < 4; blocknum++) {
-> +		switch (blocknum) {
-> +		default:
-> +			bler = (radio->registers[STATUSRSSI] &
-> +					STATUSRSSI_BLERA) >> 9;
-> +			rds = radio->registers[RDSA];
-> +			break;
-> +		case 1:
-> +			bler = (radio->registers[READCHAN] &
-> +					READCHAN_BLERB) >> 14;
-> +			rds = radio->registers[RDSB];
-> +			break;
-> +		case 2:
-> +			bler = (radio->registers[READCHAN] &
-> +					READCHAN_BLERC) >> 12;
-> +			rds = radio->registers[RDSC];
-> +			break;
-> +		case 3:
-> +			bler = (radio->registers[READCHAN] &
-> +					READCHAN_BLERD) >> 10;
-> +			rds = radio->registers[RDSD];
-> +			break;
-> +		};
-> +
-> +		/* Fill the V4L2 RDS buffer */
-> +		put_unaligned_le16(rds, &tmpbuf);
-> +		tmpbuf[2] = blocknum;		/* offset name */
-> +		tmpbuf[2] |= blocknum << 3;	/* received offset */
-> +		if (bler > max_rds_errors)
-> +			tmpbuf[2] |= 0x80;	/* uncorrectable errors */
-> +		else if (bler > 0)
-> +			tmpbuf[2] |= 0x40;	/* corrected error(s) */
-> +
-> +		/* copy RDS block to internal buffer */
-> +		memcpy(&radio->buffer[radio->wr_index], &tmpbuf, 3);
-> +		radio->wr_index += 3;
-> +
-> +		/* wrap write pointer */
-> +		if (radio->wr_index >= radio->buf_size)
-> +			radio->wr_index = 0;
-> +
-> +		/* check for overflow */
-> +		if (radio->wr_index == radio->rd_index) {
-> +			/* increment and wrap read pointer */
-> +			radio->rd_index += 3;
-> +			if (radio->rd_index >= radio->buf_size)
-> +				radio->rd_index = 0;
-> +		}
-> +	}
-> +
-> +	if (radio->wr_index != radio->rd_index)
-> +		wake_up_interruptible(&radio->read_queue);
-> +}
-> +
-> +
-> +/*
-> + * si470x_i2c_interrupt - interrupt handler
-> + */
-> +static irqreturn_t si470x_i2c_interrupt(int irq, void *dev_id)
-> +{
-> +	struct si470x_device *radio = dev_id;
-> +
-> +	if (!work_pending(&radio->radio_work))
-> +		schedule_work(&radio->radio_work);
-> +
-> +	return IRQ_HANDLED;
-> +}
-> +
-> +
-> +/*
->   * si470x_i2c_probe - probe for the device
->   */
->  static int __devinit si470x_i2c_probe(struct i2c_client *client,
-> @@ -257,6 +374,8 @@ static int __devinit si470x_i2c_probe(struct i2c_client *client,
->  		retval = -ENOMEM;
->  		goto err_initial;
->  	}
-> +
-> +	INIT_WORK(&radio->radio_work, si470x_i2c_interrupt_work);
->  	radio->users = 0;
->  	radio->client = client;
->  	mutex_init(&radio->lock);
-> @@ -308,6 +427,26 @@ static int __devinit si470x_i2c_probe(struct i2c_client *client,
->  	/* set initial frequency */
->  	si470x_set_freq(radio, 87.5 * FREQ_MUL); /* available in all regions */
->  
-> +	/* rds buffer allocation */
-> +	radio->buf_size = rds_buf * 3;
-> +	radio->buffer = kmalloc(radio->buf_size, GFP_KERNEL);
-> +	if (!radio->buffer) {
-> +		retval = -EIO;
-> +		goto err_video;
-> +	}
-> +
-> +	/* rds buffer configuration */
-> +	radio->wr_index = 0;
-> +	radio->rd_index = 0;
-> +	init_waitqueue_head(&radio->read_queue);
-> +
-> +	retval = request_irq(client->irq, si470x_i2c_interrupt,
-> +			IRQF_TRIGGER_FALLING, DRIVER_NAME, radio);
-> +	if (retval) {
-> +		dev_err(&client->dev, "Failed to register interrupt\n");
-> +		goto err_rds;
-> +	}
-> +
->  	/* register video device */
->  	retval = video_register_device(radio->videodev, VFL_TYPE_RADIO,
->  			radio_nr);
-> @@ -319,6 +458,9 @@ static int __devinit si470x_i2c_probe(struct i2c_client *client,
->  
->  	return 0;
->  err_all:
-> +	free_irq(client->irq, radio);
-> +err_rds:
-> +	kfree(radio->buffer);
->  err_video:
->  	video_device_release(radio->videodev);
->  err_radio:
-> @@ -335,6 +477,8 @@ static __devexit int si470x_i2c_remove(struct i2c_client *client)
->  {
->  	struct si470x_device *radio = i2c_get_clientdata(client);
->  
-> +	free_irq(client->irq, radio);
-> +	cancel_work_sync(&radio->radio_work);
->  	video_unregister_device(radio->videodev);
->  	kfree(radio);
->  	i2c_set_clientdata(client, NULL);
-> diff --git a/drivers/media/radio/si470x/radio-si470x.h b/drivers/media/radio/si470x/radio-si470x.h
-> index f646f79..29e05cf 100644
-> --- a/drivers/media/radio/si470x/radio-si470x.h
-> +++ b/drivers/media/radio/si470x/radio-si470x.h
-> @@ -181,6 +181,7 @@ struct si470x_device {
->  
->  #if defined(CONFIG_I2C_SI470X) || defined(CONFIG_I2C_SI470X_MODULE)
->  	struct i2c_client *client;
-> +	struct work_struct radio_work;
->  #endif
->  };
->  
+> --
+> Sander
 > 
+> Dec  5 23:30:25 security kernel: [    5.596128] em28xx: New device Pinnacle Systems GmbH PCTV USB2 PAL @ 480 Mbps (2304:0208, interface 0, class 0)
+> Dec  5 23:30:25 security kernel: [    5.596535] em28xx #1: chip ID is em2820 (or em2710)
+> Dec  5 23:30:25 security kernel: [    5.726154] em28xx #1: i2c eeprom 00: 1a eb 67 95 04 23 08 02 10 00 1e 03 98 1e 6a 2e
+> Dec  5 23:30:25 security kernel: [    5.726181] em28xx #1: i2c eeprom 10: 00 00 06 57 6e 00 00 00 8e 00 00 00 07 00 00 00
+> Dec  5 23:30:25 security kernel: [    5.726203] em28xx #1: i2c eeprom 20: 16 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00
+> Dec  5 23:30:25 security kernel: [    5.726226] em28xx #1: i2c eeprom 30: 00 00 20 40 20 80 02 20 10 01 00 00 00 00 00 00
+> Dec  5 23:30:25 security kernel: [    5.726247] em28xx #1: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> Dec  5 23:30:25 security kernel: [    5.726270] em28xx #1: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> Dec  5 23:30:25 security kernel: [    5.726290] em28xx #1: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 2e 03 50 00 69 00
+> Dec  5 23:30:25 security kernel: [    5.726312] em28xx #1: i2c eeprom 70: 6e 00 6e 00 61 00 63 00 6c 00 65 00 20 00 53 00
+> Dec  5 23:30:25 security kernel: [    5.726333] em28xx #1: i2c eeprom 80: 79 00 73 00 74 00 65 00 6d 00 73 00 20 00 47 00
+> Dec  5 23:30:25 security kernel: [    5.726354] em28xx #1: i2c eeprom 90: 6d 00 62 00 48 00 00 00 1e 03 50 00 43 00 54 00
+> Dec  5 23:30:25 security kernel: [    5.726376] em28xx #1: i2c eeprom a0: 56 00 20 00 55 00 53 00 42 00 32 00 20 00 50 00
+> Dec  5 23:30:25 security kernel: [    5.726397] em28xx #1: i2c eeprom b0: 41 00 4c 00 00 00 06 03 31 00 00 00 00 00 00 00
+> Dec  5 23:30:25 security kernel: [    5.726420] em28xx #1: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> Dec  5 23:30:25 security kernel: [    5.726440] em28xx #1: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> Dec  5 23:30:25 security kernel: [    5.726461] em28xx #1: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> Dec  5 23:30:25 security kernel: [    5.726484] em28xx #1: i2c eeprom f0: 00 00 00 00 00 00 00 00 07 56 d9 35 01 ed 0b f8
+> Dec  5 23:30:25 security kernel: [    5.726506] em28xx #1: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x0fd77740
+> Dec  5 23:30:25 security kernel: [    5.726513] em28xx #1: EEPROM info:
+> Dec  5 23:30:25 security kernel: [    5.726517] em28xx #1:      AC97 audio (5 sample rates)
+> Dec  5 23:30:25 security kernel: [    5.726522] em28xx #1:      500mA max power
+> Dec  5 23:30:25 security kernel: [    5.726528] em28xx #1:      Table at 0x06, strings=0x1e98, 0x2e6a, 0x0000
+> Dec  5 23:30:25 security kernel: [    5.726534] em28xx #1: Identified as Pinnacle PCTV USB 2 (card=3)
+> Dec  5 23:30:25 security kernel: [    5.735698] BUG: unable to handle kernel NULL pointer dereference at 0000000000000000
+> Dec  5 23:30:25 security kernel: [    5.735716] IP: [<ffffffffa00997be>] :ir_common:ir_input_free+0x26/0x3e
+> Dec  5 23:30:25 security kernel: [    5.735736] PGD 1fdcb067 PUD 1f65d067 PMD 0 
+> Dec  5 23:30:25 security kernel: [    5.735744] Oops: 0000 [1] SMP 
+> Dec  5 23:30:25 security kernel: [    5.735750] CPU 0 
+> Dec  5 23:30:25 security kernel: [    5.735754] Modules linked in: ir_kbd_i2c(+) saa7115 usbhid(+) hid ff_memless em28xx(+) v4l2_common videodev v4l1_compat v4l2_compat_ioctl32 ir_common videobuf_vmalloc videobuf_core tveeprom i2c_core evdev ext3 jbd mbcache ohci_hcd ohci1394 ieee1394 ehci_hcd uhci_hcd thermal_sys
+> Dec  5 23:30:25 security kernel: [    5.735793] Pid: 1091, comm: modprobe Not tainted 2.6.26-2-xen-amd64 #1
+> Dec  5 23:30:25 security kernel: [    5.735798] RIP: e030:[<ffffffffa00997be>]  [<ffffffffa00997be>] :ir_common:ir_input_free+0x26/0x3e
+
+It is weird to call ir_input_free during the boot. This means that something
+got wrong during IR initialization.
+
+Anyway, I think I know here's the bug: the first thing the routine does is this:
+
+        struct ir_scancode_table *rc_tab = input_get_drvdata(dev);
+
+However, if ir_input_init() doesn't initialize fine, rc_tab will be null.
+
+Could you please test if the enclosed patch fixes the issue?
+
+---
+
+Avoid usage of an initialized drvdata
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/linux/drivers/media/common/ir-keytable.c b/linux/drivers/media/common/ir-keytable.c
+--- a/linux/drivers/media/common/ir-keytable.c
++++ b/linux/drivers/media/common/ir-keytable.c
+@@ -427,6 +427,9 @@ void ir_input_free(struct input_dev *dev
+ {
+ 	struct ir_scancode_table *rc_tab = input_get_drvdata(dev);
+ 
++	if (!rc_tab)
++		return;
++
+ 	IR_dprintk(1, "Freed keycode table\n");
+ 
+ 	rc_tab->size = 0;
