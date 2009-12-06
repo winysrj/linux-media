@@ -1,45 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225]:62254 "EHLO
-	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751037AbZL0WX0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Dec 2009 17:23:26 -0500
-Received: by fxm25 with SMTP id 25so4256779fxm.21
-        for <linux-media@vger.kernel.org>; Sun, 27 Dec 2009 14:23:25 -0800 (PST)
+Received: from khc.piap.pl ([195.187.100.11]:33551 "EHLO khc.piap.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757547AbZLFUTD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 6 Dec 2009 15:19:03 -0500
+From: Krzysztof Halasa <khc@pm.waw.pl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Gerd Hoffmann <kraxel@redhat.com>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jonsmirl@gmail.com,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
+References: <BDodf9W1qgB@lirc> <4B14EDE3.5050201@redhat.com>
+	<4B1524DD.3080708@redhat.com> <4B153617.8070608@redhat.com>
+	<A6D5FF84-2DB8-4543-ACCB-287305CA0739@wilsonet.com>
+	<4B17AA6A.9060702@redhat.com>
+	<20091203175531.GB776@core.coreip.homeip.net>
+	<20091203163328.613699e5@pedra>
+	<20091204100642.GD22570@core.coreip.homeip.net>
+	<20091204121234.5144836b@pedra>
+	<20091206070929.GB14651@core.coreip.homeip.net>
+	<4B1B8F83.5080009@redhat.com>
+Date: Sun, 06 Dec 2009 21:19:06 +0100
+In-Reply-To: <4B1B8F83.5080009@redhat.com> (Mauro Carvalho Chehab's message of
+	"Sun, 06 Dec 2009 09:03:31 -0200")
+Message-ID: <m31vj77t51.fsf@intrepid.localdomain>
 MIME-Version: 1.0
-In-Reply-To: <1261673477.2119.1.camel@slash.doma>
-References: <4B1D6194.4090308@freenet.de> <1261578615.8948.4.camel@slash.doma>
-	 <200912231753.28988.liplianin@me.by>
-	 <1261586462.8948.23.camel@slash.doma> <4B3269AE.6080602@freenet.de>
-	 <1a297b360912231124v6e31c9e6ja24d205f6b5dc39@mail.gmail.com>
-	 <1261611901.8948.37.camel@slash.doma> <4B339A8F.8020201@freenet.de>
-	 <1261673477.2119.1.camel@slash.doma>
-Date: Mon, 28 Dec 2009 02:23:25 +0400
-Message-ID: <1a297b360912271423x2f5b48caw7b2adad8849280ee@mail.gmail.com>
-Subject: Re: Which modules for the VP-2033? Where is the module "mantis.ko"?
-From: Manu Abraham <abraham.manu@gmail.com>
-To: =?UTF-8?Q?Alja=C5=BE_Prusnik?= <prusnik@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-13
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Aljaz,
+Mauro Carvalho Chehab <mchehab@redhat.com> writes:
 
-On Thu, Dec 24, 2009 at 8:51 PM, Aljaþ Prusnik <prusnik@gmail.com> wrote:
-> On èet, 2009-12-24 at 17:45 +0100, Ruediger Dohmhardt wrote:
->> Aljaþ, thanks for the "reply". As Manu said above there was a build problem.
->> As said already in this Thread, I downloaded version 2315248f648c, which
->> compiles fine and
->> has all modules for the 2033 DVB-C.
+> All the IR's I found with V4L/DVB use up to 16 bits code (or 24 bits, for NEC extended protocol).
+> However, currently, the drivers were getting only 7 bits, due to the old way to implement
+> EVIO[S|G]KEYCODE. 
 >
-> I have the same version and it doesn't work for me. I have a 2040
-> module.
+> I know, however, one i2c chip that returns a 5 byte scancode when you press a key. 
+> We're currently just discarding the remaining bits, so I'm not really sure what's there.
 
-Can you please do a lspci -vn for the Mantis card you have ? Also try
-loading the mantis.ko module with verbose=5 module parameter, to get
-more debug information.
+Right. This will have to be investigated by owners of the exact hardware
+in question. What we can do is to try to make it easy for them.
+There is no hurry, though - it can and will continue to work the current
+way.
 
-Regards,
-Manu
+> In general, the scancode contains 8 or 16 bits for address, and 8 bits for command.
+
+Right. I think the kernel shouldn't differentiate between address and
+command too much.
+
+> at include/linux/input.h, we'll add a code like:
+>
+> struct input_keytable_entry {
+>  	u16	index;
+>  	u64	scancode;
+>  	u32	keycode;
+> } __attribute__ ((packed));
+>
+> (the attribute packed avoids needing a compat for 64 bits)
+
+Maybe { u64 scancode; u32 keycode; u16 index; u16 reserved } would be a
+bit better, no alignment problems and we could eventually change
+"reserved" into something useful.
+
+But I think, if we are going to redesign it, we better use scancodes of
+arbitrary length (e.g. protocol-dependent length). It should be opaque
+except for the protocol handler.
+-- 
+Krzysztof Halasa
