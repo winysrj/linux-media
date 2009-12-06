@@ -1,231 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2687 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753178AbZLBDEN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2009 22:04:13 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 2/2 v2] soc-camera: convert to the new mediabus API
-Date: Wed, 2 Dec 2009 08:32:27 +0530
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Paul Mundt <lethal@linux-sh.org>
-References: <Pine.LNX.4.64.0911261509100.5450@axis700.grange> <200912011545.24634.hverkuil@xs4all.nl> <Pine.LNX.4.64.0912011153170.4701@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0912011153170.4701@axis700.grange>
+Received: from khc.piap.pl ([195.187.100.11]:46295 "EHLO khc.piap.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756929AbZLFRsR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 6 Dec 2009 12:48:17 -0500
+From: Krzysztof Halasa <khc@pm.waw.pl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Jon Smirl <jonsmirl@gmail.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
+	kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
+References: <20091204220708.GD25669@core.coreip.homeip.net> <BEJgSGGXqgB@lirc>
+	<9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>
+	<1260070593.3236.6.camel@pc07.localdom.local>
+	<20091206065512.GA14651@core.coreip.homeip.net>
+	<4B1B99A5.2080903@redhat.com>
+Date: Sun, 06 Dec 2009 18:48:21 +0100
+In-Reply-To: <4B1B99A5.2080903@redhat.com> (Mauro Carvalho Chehab's message of
+	"Sun, 06 Dec 2009 09:46:45 -0200")
+Message-ID: <m3638k6lju.fsf@intrepid.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200912020832.27424.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 01 December 2009 16:33:08 Guennadi Liakhovetski wrote:
-> On Tue, 1 Dec 2009, Hans Verkuil wrote:
-> > On Monday 30 November 2009 15:48:24 Guennadi Liakhovetski wrote:
-> > > On Mon, 30 Nov 2009, Hans Verkuil wrote:
-> > > > On Fri, 27 Nov 2009, Guennadi Liakhovetski wrote:
-> > > > > On Fri, 27 Nov 2009, Hans Verkuil wrote:
-> > > > > > Hi Guennadi,
-> > > > > >
-> > > > > > > Convert soc-camera core and all soc-camera drivers to the new
-> > > > > > > mediabus API. This also takes soc-camera client drivers one
-> > > > > > > step closer to also be
-> > > > > > > usable with generic v4l2-subdev host drivers.
-> > > > > >
-> > > > > > Just a quick question:
-> > > > > > > @@ -323,28 +309,39 @@ static int mt9m001_s_fmt(struct
-> > > > > > > v4l2_subdev *sd, struct v4l2_format *f)
-> > > > > > >  	/* No support for scaling so far, just crop. TODO: use
-> > > > > > > skipping */ ret = mt9m001_s_crop(sd, &a);
-> > > > > > >  	if (!ret) {
-> > > > > > > -		pix->width = mt9m001->rect.width;
-> > > > > > > -		pix->height = mt9m001->rect.height;
-> > > > > > > -		mt9m001->fourcc = pix->pixelformat;
-> > > > > > > +		mf->width	= mt9m001->rect.width;
-> > > > > > > +		mf->height	= mt9m001->rect.height;
-> > > > > > > +		mt9m001->fmt	= soc_mbus_find_datafmt(mf->code,
-> > > > > > > +					mt9m001->fmts, mt9m001->num_fmts);
-> > > > > > > +		mf->colorspace	= mt9m001->fmt->colorspace;
-> > > > > > >  	}
-> > > > > > >
-> > > > > > >  	return ret;
-> > > > > > >  }
-> > > > > > >
-> > > > > > > -static int mt9m001_try_fmt(struct v4l2_subdev *sd, struct
-> > > > > > > v4l2_format *f)
-> > > > > > > +static int mt9m001_try_fmt(struct v4l2_subdev *sd,
-> > > > > > > +			   struct v4l2_mbus_framefmt *mf)
-> > > > > > >  {
-> > > > > > >  	struct i2c_client *client = sd->priv;
-> > > > > > >  	struct mt9m001 *mt9m001 = to_mt9m001(client);
-> > > > > > > -	struct v4l2_pix_format *pix = &f->fmt.pix;
-> > > > > > > +	const struct soc_mbus_datafmt *fmt;
-> > > > > > >
-> > > > > > > -	v4l_bound_align_image(&pix->width, MT9M001_MIN_WIDTH,
-> > > > > > > +	v4l_bound_align_image(&mf->width, MT9M001_MIN_WIDTH,
-> > > > > > >  		MT9M001_MAX_WIDTH, 1,
-> > > > > > > -		&pix->height, MT9M001_MIN_HEIGHT + mt9m001->y_skip_top,
-> > > > > > > +		&mf->height, MT9M001_MIN_HEIGHT + mt9m001->y_skip_top,
-> > > > > > >  		MT9M001_MAX_HEIGHT + mt9m001->y_skip_top, 0, 0);
-> > > > > > >
-> > > > > > > -	if (pix->pixelformat == V4L2_PIX_FMT_SBGGR8 ||
-> > > > > > > -	    pix->pixelformat == V4L2_PIX_FMT_SBGGR16)
-> > > > > > > -		pix->height = ALIGN(pix->height - 1, 2);
-> > > > > > > +	if (mt9m001->fmts == mt9m001_colour_fmts)
-> > > > > > > +		mf->height = ALIGN(mf->height - 1, 2);
-> > > > > > > +
-> > > > > > > +	fmt = soc_mbus_find_datafmt(mf->code, mt9m001->fmts,
-> > > > > > > +				    mt9m001->num_fmts);
-> > > > > > > +	if (!fmt) {
-> > > > > > > +		fmt = mt9m001->fmt;
-> > > > > > > +		mf->code = fmt->code;
-> > > > > > > +	}
-> > > > > > > +
-> > > > > > > +	mf->colorspace	= fmt->colorspace;
-> > > > > > >
-> > > > > > >  	return 0;
-> > > > > > >  }
-> > > > > >
-> > > > > > Why do the sensor drivers use soc_mbus_find_datafmt? They only
-> > > > > > seem to be interested in the colorspace field, but I don't see
-> > > > > > the reason for that. Most if not all sensors have a fixed
-> > > > > > colorspace depending on the pixelcode, so they can just ignore
-> > > > > > the colorspace that the caller requested and replace it with
-> > > > > > their own.
-> > > > >
-> > > > > Right, that's exactly what's done here. mt9m001 and mt9v022 drivers
-> > > > > support different formats, depending on the exact detected or
-> > > > > specified by the user model. That's why they have to search for the
-> > > > > requested format in supported list. and then - yes, they just put
-> > > > > the found format into user
-> > > > >
-> > > > > request:
-> > > > > > > +	mf->colorspace	= fmt->colorspace;
-> > > > > >
-> > > > > > I didn't have time for a full review, so I might have missed
-> > > > > > something.
-> > > >
-> > > > I looked at this more closely and I realized that I did indeed miss
-> > > > that soc_mbus_find_datafmt just searched in the pixelcode ->
-> > > > colorspace mapping array.
-> > > >
-> > > > I also realized that there is no need for that data structure and
-> > > > function to be soc-camera specific. I believe I said otherwise in an
-> > > > earlier review. My apologies for that, all I can say is that I had
-> > > > very little time to do the reviews...
-> > >
-> > > No, you did not say otherwise about _these_ struct and function - they
-> > > only appeared in v2 of the mediabus API, after you'd suggested to move
-> > > colorspace into struct v4l2_mbus_framefmt.
-> > >
-> > > > That said, there is no need for both the soc_mbus_datafmt struct and
-> > > > the soc_mbus_find_datafmt function. These can easily be replaced by
-> > > > something like this as a local function in each subdev:
-> > > >
-> > > > static enum v4l2_colorspace mt9m111_g_colorspace(enum
-> > > > v4l2_mbus_pixelcode code)
-> > > > {
-> > > > 	switch (code) {
-> > > > 	case V4L2_MBUS_FMT_YUYV:
-> > > > 	case V4L2_MBUS_FMT_YVYU:
-> > > > 	case V4L2_MBUS_FMT_UYVY:
-> > > > 	case V4L2_MBUS_FMT_VYUY:
-> > > > 		return V4L2_COLORSPACE_JPEG;
-> > > >
-> > > > 	case V4L2_MBUS_FMT_RGB555:
-> > > > 	case V4L2_MBUS_FMT_RGB565:
-> > > > 	case V4L2_MBUS_FMT_SBGGR8:
-> > > > 	case V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE:
-> > > > 		return V4L2_COLORSPACE_SRGB;
-> > > >
-> > > > 	default:
-> > > > 		return 0;
-> > > > 	}
-> > > > }
-> > > >
-> > > > So if mt9m111_g_colorspace() returns 0, then the format wasn't found.
-> > > > (Note that the compiler might give a warning for the return 0, so
-> > > > that might need some editing)
-> > > >
-> > > > Much simpler and much easier to understand.
-> > >
-> > > Drivers are not forced to use that small and trivial function -
-> > > everyone is welcome to reinvent the wheel:-) In many cases it is indeed
-> > > an overkill, like mt9t031, which only supports one format. However, in
-> > > some other drivers this is not that trivial. First, as I said, mt9m001
-> > > and mt9v022 generate that array dynamically, depending on the chip
-> > > version and platform configuration. So, you anyway would have to
-> > > iterate over the array. In other drivers, like ov772x and the recently
-> > > submitted mt9t112 this function is also used to retrieve register
-> > > configuration for a specific pixel code. So, I still think that
-> > > function is useful, and being kept under soc-camera mediabus
-> > > extensions, and being inline, it shouldn't cause too many problems.
-> >
-> > It definitely shouldn't be in a soc-camera header. If this is going to be
-> > used as a common utility, then it should be in v4l2-mediabus.h.
->
-> Sorry, I don't understand. IMHO soc_mbus_get_fmtdesc() and
-> soc_mbus_bytes_per_line() are much more likely to be useful for non
-> soc-camera drivers, and still you wanted them to remain soc-camera
-> specific. Now this small and trivial function, which, as you say, only
-> very few need, so, I made it soc-camera specific, now you want it to be
-> available to all...
+Mauro Carvalho Chehab <mchehab@redhat.com> writes:
 
-It's very simple: i2c subdev drivers should not depend on anything but v4l2 
-core headers/modules because they have to be reusable and not tied to any 
-specific bridge driver. So when I see them including a soc header I 
-immediately trigger on that. I am not (much) interested in what happens inside 
-the soc-camera bridge driver, but I am very interested in what happens inside 
-i2c subdev drivers.
+>> I do not believe you are being realistic. Sometimes we just need to say
+>> that the device is a POS and is just not worth it. Remember, there is
+>> still "lirc hole" for the hard core people still using solder to produce
+>> something out of the spare electronic components that may be made to
+>> work
 
-> > But frankly the only two places where I think it is useful are mt9m001
-> > and mt9v022. In all other cases is can be replaced by simpler code. For
-> > ov772x I would just add the pixelcode and colorspace fields to the
-> > ov772x_color_format struct instead and you iterate of the elements of the
-> > ov772x_cfmts array to find the one that matches the desired pixelcode.
-> >
-> > I think the usefulness of the datastructure and utility function depends
-> > very much on the sensor driver which is why I prefer to have this being
-> > just part of the driver source itself rather than in a generic header.
-> > That gives the impression that driver writers *have* to do it that way,
-> > when often it can be done much simpler.
->
-> Ok, how about this: I preserve the function as is in soc-camera, and leave
-> it as is in mt9m001, mt9v022, and ov772x (and in the forthcoming mt9t112).
-> In other drivers with constant format lists, where this function is only
-> used to find the colorspace, I'll replace it with a switch-case.
+Which device? It was about a remote controller, not the receiver. The IR
+receivers are frequently coupled with a DVB etc. receiver. There is
+absolutely no problem supporting almost any remote if the hardware is
+compatible with the receiver (i.e. IR to IR, the carrier frequency is
+not 36 vs 56 kHz, the receiver supports the protocol etc).
 
-For the reason stated above it should *not* be a soc-camera function. Just 
-copy the datastruct and function directly into those drivers that actually 
-need it. And I really urge you change the way the 0v772x uses it since it 
-makes that driver unnecessarily complicated.
+I don't say we need to support in-kernel decoding for arbitrary
+protocols.
 
-> I _really_ do not understand why soc-camera internal APIs now suddenly
-> receive such attention.
+>> (never mind that it causes the CPU constantly poll the device, not
+>> letting it sleep and wasting electricity as a result - just hypotetical
+>> example here).
 
-I triggered on the use of a soc header, and then I started reviewing what that 
-code actually did. And I didn't really like the way it was used.
+Very hypotetical, indeed :-)
 
-I probably wouldn't have given it much notice if it was in v4l2-mediabus.h 
-from the start...
+Most (all?) home-made receivers don't need polling, they use IRQs
+instead ("the" home-made receiver is based on serial port and uses IRQ).
+They are hardly the "obscure hardware" that nobody has.
 
-Another reason is that I am trying to do more code reviews before new drivers 
-are merged. Too many of our existing drivers are in pretty poor shape in part 
-because of insufficient attention to code quality. And I have a particular 
-interest in anything touching subdevs.
+The "more advanced" receivers using shift registers may use polling.
 
-Regards,
+> Fully agreed. The costs (our time) to add and keep supporting an in-kernel
+> driver for an IR that just one person is still using is higher than 
+> asking the user to get a new IR. This time would be better spent adding a new
+> driver for other devices.
 
-	Hans
+Agreed, I think nobody argues we should support such things in the
+kernel.
 
->
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
 
+Once again: how about agreement about the LIRC interface
+(kernel-userspace) and merging the actual LIRC code first? In-kernel
+decoding can wait a bit, it doesn't change any kernel-user interface.
+-- 
+Krzysztof Halasa
