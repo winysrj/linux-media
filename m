@@ -1,38 +1,33 @@
-Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx05.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.9])
-	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id nBGF29t2007653
-	for <video4linux-list@redhat.com>; Wed, 16 Dec 2009 10:02:09 -0500
-Received: from mail9.myhsphere.biz (smtp7.myhsphere.biz [204.10.105.69])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id nBGF1rL7022147
-	for <video4linux-list@redhat.com>; Wed, 16 Dec 2009 10:01:54 -0500
-From: balakrishnan <balakrishnan@e-consystems.com>
-To: video4linux-list@redhat.com
-Content-Type: text/plain
-Date: Wed, 16 Dec 2009 20:31:33 +0530
-Message-Id: <1260975693.13983.2.camel@balakrishnan-desktop>
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from f113.mail.ru ([217.69.128.73])
+	by mail.linuxtv.org with esmtp (Exim 4.69)
+	(envelope-from <kozkna@mail.ru>) id 1NHMU5-0007RR-A1
+	for linux-dvb@linuxtv.org; Sun, 06 Dec 2009 20:09:29 +0100
+Received: from mail by f113.mail.ru with local id 1NHMTX-0000WJ-00
+	for linux-dvb@linuxtv.org; Sun, 06 Dec 2009 22:08:55 +0300
+From: =?koi8-r?Q?=EE=C9=CB_=EB=CF=DA?= <kozkna@mail.ru>
+To: linux-dvb@linuxtv.org
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Subject: PXA27x-v4l2 support
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
-List-ID: <video4linux-list@redhat.com>
+Date: Sun, 06 Dec 2009 22:08:55 +0300
+Message-Id: <E1NHMTX-0000WJ-00.kozkna-mail-ru@f113.mail.ru>
+Subject: [linux-dvb] cc
+Reply-To: linux-media@vger.kernel.org,
+	=?koi8-r?Q?=EE=C9=CB_=EB=CF=DA?= <kozkna@mail.ru>
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="koi8-r"
+Content-Transfer-Encoding: base64
+Sender: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
-   Any patches is there to support v4l2 on pxa27x ARM platform?
-
-with
-J.Balakrishnan 
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+CgrxINcg7c/FzSDtydLFIC0gaHR0cDovL215Lm1haWwucnUvbWFpbC9rb3prbmEvCgpfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgdXNlcnMg
+bWFpbGluZyBsaXN0CkZvciBWNEwvRFZCIGRldmVsb3BtZW50LCBwbGVhc2UgdXNlIGluc3RlYWQg
+bGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnCmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8v
+d3d3LmxpbnV4dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
