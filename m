@@ -1,154 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:34110 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750946AbZLXNMM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Dec 2009 08:12:12 -0500
-Received: from lyakh (helo=localhost)
-	by axis700.grange with local-esmtp (Exim 4.63)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1NNnUF-0001Zx-1w
-	for linux-media@vger.kernel.org; Thu, 24 Dec 2009 14:12:15 +0100
-Date: Thu, 24 Dec 2009 14:12:15 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] soc-camera: adjust coding style to match V4L preferences
-Message-ID: <Pine.LNX.4.64.0912241409420.5167@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-in-17.arcor-online.net ([151.189.21.57]:38504 "EHLO
+	mail-in-17.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758027AbZLFDis (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 5 Dec 2009 22:38:48 -0500
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+	IR  system?
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Jon Smirl <jonsmirl@gmail.com>
+Cc: Christoph Bartelmus <lirc@bartelmus.de>, dmitry.torokhov@gmail.com,
+	awalls@radix.net, j@jannau.net, jarod@redhat.com,
+	jarod@wilsonet.com, khc@pm.waw.pl, kraxel@redhat.com,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, mchehab@redhat.com, superm1@ubuntu.com
+In-Reply-To: <9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>
+References: <20091204220708.GD25669@core.coreip.homeip.net>
+	 <BEJgSGGXqgB@lirc>
+	 <9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>
+Content-Type: text/plain
+Date: Sun, 06 Dec 2009 04:36:33 +0100
+Message-Id: <1260070593.3236.6.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/soc_mediabus.c |   45 ++++++++++++++++++++++++------------
- 1 files changed, 30 insertions(+), 15 deletions(-)
+Hi,
 
-diff --git a/drivers/media/video/soc_mediabus.c b/drivers/media/video/soc_mediabus.c
-index f8d5c87..0149290 100644
---- a/drivers/media/video/soc_mediabus.c
-+++ b/drivers/media/video/soc_mediabus.c
-@@ -24,91 +24,106 @@ static const struct soc_mbus_pixelfmt mbus_fmt[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
--	}, [MBUS_IDX(YVYU8_2X8_LE)] = {
-+	},
-+	[MBUS_IDX(YVYU8_2X8_LE)] = {
- 		.fourcc			= V4L2_PIX_FMT_YVYU,
- 		.name			= "YVYU",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
--	}, [MBUS_IDX(YUYV8_2X8_BE)] = {
-+	},
-+	[MBUS_IDX(YUYV8_2X8_BE)] = {
- 		.fourcc			= V4L2_PIX_FMT_UYVY,
- 		.name			= "UYVY",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
--	}, [MBUS_IDX(YVYU8_2X8_BE)] = {
-+	},
-+	[MBUS_IDX(YVYU8_2X8_BE)] = {
- 		.fourcc			= V4L2_PIX_FMT_VYUY,
- 		.name			= "VYUY",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
--	}, [MBUS_IDX(RGB555_2X8_PADHI_LE)] = {
-+	},
-+	[MBUS_IDX(RGB555_2X8_PADHI_LE)] = {
- 		.fourcc			= V4L2_PIX_FMT_RGB555,
- 		.name			= "RGB555",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
--	}, [MBUS_IDX(RGB555_2X8_PADHI_BE)] = {
-+	},
-+	[MBUS_IDX(RGB555_2X8_PADHI_BE)] = {
- 		.fourcc			= V4L2_PIX_FMT_RGB555X,
- 		.name			= "RGB555X",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
--	}, [MBUS_IDX(RGB565_2X8_LE)] = {
-+	},
-+	[MBUS_IDX(RGB565_2X8_LE)] = {
- 		.fourcc			= V4L2_PIX_FMT_RGB565,
- 		.name			= "RGB565",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
--	}, [MBUS_IDX(RGB565_2X8_BE)] = {
-+	},
-+	[MBUS_IDX(RGB565_2X8_BE)] = {
- 		.fourcc			= V4L2_PIX_FMT_RGB565X,
- 		.name			= "RGB565X",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
--	}, [MBUS_IDX(SBGGR8_1X8)] = {
-+	},
-+	[MBUS_IDX(SBGGR8_1X8)] = {
- 		.fourcc			= V4L2_PIX_FMT_SBGGR8,
- 		.name			= "Bayer 8 BGGR",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_NONE,
- 		.order			= SOC_MBUS_ORDER_LE,
--	}, [MBUS_IDX(SBGGR10_1X10)] = {
-+	},
-+	[MBUS_IDX(SBGGR10_1X10)] = {
- 		.fourcc			= V4L2_PIX_FMT_SBGGR10,
- 		.name			= "Bayer 10 BGGR",
- 		.bits_per_sample	= 10,
- 		.packing		= SOC_MBUS_PACKING_EXTEND16,
- 		.order			= SOC_MBUS_ORDER_LE,
--	}, [MBUS_IDX(GREY8_1X8)] = {
-+	},
-+	[MBUS_IDX(GREY8_1X8)] = {
- 		.fourcc			= V4L2_PIX_FMT_GREY,
- 		.name			= "Grey",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_NONE,
- 		.order			= SOC_MBUS_ORDER_LE,
--	}, [MBUS_IDX(Y10_1X10)] = {
-+	},
-+	[MBUS_IDX(Y10_1X10)] = {
- 		.fourcc			= V4L2_PIX_FMT_Y10,
- 		.name			= "Grey 10bit",
- 		.bits_per_sample	= 10,
- 		.packing		= SOC_MBUS_PACKING_EXTEND16,
- 		.order			= SOC_MBUS_ORDER_LE,
--	}, [MBUS_IDX(SBGGR10_2X8_PADHI_LE)] = {
-+	},
-+	[MBUS_IDX(SBGGR10_2X8_PADHI_LE)] = {
- 		.fourcc			= V4L2_PIX_FMT_SBGGR10,
- 		.name			= "Bayer 10 BGGR",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
--	}, [MBUS_IDX(SBGGR10_2X8_PADLO_LE)] = {
-+	},
-+	[MBUS_IDX(SBGGR10_2X8_PADLO_LE)] = {
- 		.fourcc			= V4L2_PIX_FMT_SBGGR10,
- 		.name			= "Bayer 10 BGGR",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADLO,
- 		.order			= SOC_MBUS_ORDER_LE,
--	}, [MBUS_IDX(SBGGR10_2X8_PADHI_BE)] = {
-+	},
-+	[MBUS_IDX(SBGGR10_2X8_PADHI_BE)] = {
- 		.fourcc			= V4L2_PIX_FMT_SBGGR10,
- 		.name			= "Bayer 10 BGGR",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_BE,
--	}, [MBUS_IDX(SBGGR10_2X8_PADLO_BE)] = {
-+	},
-+	[MBUS_IDX(SBGGR10_2X8_PADLO_BE)] = {
- 		.fourcc			= V4L2_PIX_FMT_SBGGR10,
- 		.name			= "Bayer 10 BGGR",
- 		.bits_per_sample	= 8,
--- 
-1.6.2.4
+Am Freitag, den 04.12.2009, 19:28 -0500 schrieb Jon Smirl:
+> On Fri, Dec 4, 2009 at 6:01 PM, Christoph Bartelmus <lirc@bartelmus.de> wrote:
+> > BTW, I just came across a XMP remote that seems to generate 3x64 bit scan
+> > codes. Anyone here has docs on the XMP protocol?
+> 
+> Assuming a general purpose receiver (not one with fixed hardware
+> decoding), is it important for Linux to receive IR signals from all
+> possible remotes no matter how old or obscure? Or is it acceptable to
+> tell the user to throw away their dedicated remote and buy a universal
+> multi-function one?  Universal multi-function remotes are $12 in my
+> grocery store - I don't even have to go to an electronics store.
+
+finally we have some point here, IMHO, that is not acceptable and I told
+you previously not to bet on such. Start some poll and win it, and I'll
+shut up :)
+
+To be frank, you are quite mad at this point, or deliver working other
+remotes to __all__ for free.
+
+Cheers,
+Hermann
+
+
+
 
