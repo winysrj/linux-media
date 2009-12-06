@@ -1,16 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fg-out-1718.google.com ([72.14.220.157])
+Received: from defout.telus.net ([204.209.205.13])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <dehqan65@gmail.com>) id 1NJPF9-0006i1-9W
-	for linux-dvb@linuxtv.org; Sat, 12 Dec 2009 11:30:31 +0100
-Received: by fg-out-1718.google.com with SMTP id e12so749917fga.5
-	for <linux-dvb@linuxtv.org>; Sat, 12 Dec 2009 02:30:27 -0800 (PST)
-MIME-Version: 1.0
-Date: Sat, 12 Dec 2009 14:00:25 +0330
-Message-ID: <267bb6670912120230m59eeeeffqc52cfb320ac05ec2@mail.gmail.com>
-From: dehqan65 <dehqan65@gmail.com>
+	(envelope-from <sandy@voytech.biz>) id 1NH7GZ-0000pJ-DX
+	for linux-dvb@linuxtv.org; Sun, 06 Dec 2009 03:54:32 +0100
+Received: from edmwaa02.telusplanet.net ([207.216.216.254])
+	by priv-edmwes25.telusplanet.net
+	(InterMail vM.7.08.04.00 201-2186-134-20080326) with ESMTP id
+	<20091206025423.DDWR7884.priv-edmwes25.telusplanet.net@edmwaa02.telusplanet.net>
+	for <linux-dvb@linuxtv.org>; Sat, 5 Dec 2009 19:54:23 -0700
+Received: from [10.1.1.10] (d207-216-216-254.bchsia.telus.net
+	[207.216.216.254])
+	by edmwaa02.telusplanet.net (BorderWare Security Platform) with ESMTP
+	id 59980146279E9801
+	for <linux-dvb@linuxtv.org>; Sat,  5 Dec 2009 19:54:22 -0700 (MST)
+From: Sandy macDonald <sandy@voytech.biz>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Does Prof-tuner 7500 DVB-S2 BOX work in linux ?
+Date: Sat, 05 Dec 2009 18:54:24 -0800
+Message-ID: <1260068064.5339.21.camel@bubbles.local>
+Mime-Version: 1.0
+Subject: [linux-dvb] Sky2PC Rev. 3.1
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -19,51 +27,59 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0289542953=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0289542953==
-Content-Type: multipart/alternative; boundary=0016e65b60a2667f76047a858765
 
---0016e65b60a2667f76047a858765
-Content-Type: text/plain; charset=ISO-8859-1
+Hello:
 
-In The Name Of God The compassionate merciful
+I've had a Sky2PC (ver 3.1) DVB-S card kicking around for a while and
+I'd like to get it operational.
 
-Hello ;
-Good day everyone ;
+According to the v4l-dvb wiki, this card requires a definition, and to
+post the details to the linuxtv mailing list, so here goes..
 
-Does Prof-tuner 7500 DVB-S2 BOX<http://www.prof-tuners.com/eng/prof7500.html>
-work in linux ?
-Any experience ?
+Thank you.
+Sandy MacDonald
 
-Regards dehqan
+On the back of the card:
 
---0016e65b60a2667f76047a858765
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Model: SKY2PC
+P/N: 92105-20101
+Rev: 3.1
+Serial no. and MAC address
 
-<div dir=3D"ltr">In The Name Of God The compassionate merciful<br><br>Hello=
- ;<br>Good day everyone ; <br><br>Does <a href=3D"http://www.prof-tuners.co=
-m/eng/prof7500.html">Prof-tuner 7500 DVB-S2 BOX</a>=A0 work in linux ?<br>A=
-ny experience ?<br>
-<br>Regards dehqan <br></div>
+The front of the card:
 
---0016e65b60a2667f76047a858765--
+DBC1201 (on the metal shielding), nothing else.
+Main chip: B2C2 Flexcop III
+	M3B9E-001 0215
+
+lspci -v
+
+01:0e.0 Network controller: Techsan Electronics Co Ltd B2C2 FlexCopIII
+DVB chip / Technisat SkyStar2 DVB card (rev 01)
+	Subsystem: Techsan Electronics Co Ltd Device 2104
+	Flags: bus master, slow devsel, latency 64, IRQ 10
+	Memory at f4100000 (32-bit, non-prefetchable) [size=64K]
+	I/O ports at 3400 [size=32]
+
+lspci -vn
+
+01:0e.0 0280: 13d0:2200 (rev 01)
+	Subsystem: 13d0:2104
+	Flags: bus master, slow devsel, latency 64, IRQ 10
+	Memory at f4100000 (32-bit, non-prefetchable) [size=64K]
+	I/O ports at 3400 [size=32]
 
 
---===============0289542953==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0289542953==--
