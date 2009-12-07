@@ -1,209 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51785 "EHLO bear.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:51143 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757484AbZLIXJt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Dec 2009 18:09:49 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	khilman@deeprootsystems.com
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH - v2 4/4] DaVinci - vpfe capture converting ccdc drivers to platform driver
-Date: Wed,  9 Dec 2009 18:09:52 -0500
-Message-Id: <1260400192-32527-4-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1260400192-32527-3-git-send-email-m-karicheri2@ti.com>
-References: <1260400192-32527-1-git-send-email-m-karicheri2@ti.com>
- <1260400192-32527-2-git-send-email-m-karicheri2@ti.com>
- <1260400192-32527-3-git-send-email-m-karicheri2@ti.com>
+	id S932685AbZLGPhB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Dec 2009 10:37:01 -0500
+Message-ID: <4B1D2109.9090108@redhat.com>
+Date: Mon, 07 Dec 2009 13:36:41 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Jon Smirl <jonsmirl@gmail.com>
+CC: Krzysztof Halasa <khc@pm.waw.pl>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
+	kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR 	system?
+References: <20091204220708.GD25669@core.coreip.homeip.net> <BEJgSGGXqgB@lirc>	 <9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>	 <1260070593.3236.6.camel@pc07.localdom.local>	 <20091206065512.GA14651@core.coreip.homeip.net>	 <4B1B99A5.2080903@redhat.com> <m3638k6lju.fsf@intrepid.localdomain> <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
+In-Reply-To: <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+Jon Smirl wrote:
+> On Sun, Dec 6, 2009 at 12:48 PM, Krzysztof Halasa <khc@pm.waw.pl> wrote:
+>> Once again: how about agreement about the LIRC interface
+>> (kernel-userspace) and merging the actual LIRC code first? 
 
-This combines the two patches sent earlier to change the clock configuration
-and converting ccdc drivers to platform drivers. This has updated comments
-against v1 of these patches. Two new clocks are defined for ccdc driver
-as per comments from Kevin Hilman.
+That's fine for me.
 
-This adds platform code for ccdc driver on DM355 and DM6446.
+>> In-kernel
+>> decoding can wait a bit, it doesn't change any kernel-user interface.
 
-Reviewed-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Reviewed-by: Kevin Hilman <khilman@deeprootsystems.com>
+This may occur in parallel, but, as we've been discussing, there are
+still some needs there that will require kernel-user interfaces.
 
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
----
-Applies to linux-davinci tree
- arch/arm/mach-davinci/dm355.c  |   51 ++++++++++++++++++++++++++++++---------
- arch/arm/mach-davinci/dm644x.c |   30 ++++++++++++++++++++++-
- 2 files changed, 68 insertions(+), 13 deletions(-)
+> I'd like to see a semi-complete design for an in-kernel IR system
+> before anything is merged from any source.
 
-diff --git a/arch/arm/mach-davinci/dm355.c b/arch/arm/mach-davinci/dm355.c
-index 2244e8c..3cfa709 100644
---- a/arch/arm/mach-davinci/dm355.c
-+++ b/arch/arm/mach-davinci/dm355.c
-@@ -335,6 +335,16 @@ static struct clk usb_clk = {
- 	.lpsc = DAVINCI_LPSC_USB,
- };
- 
-+static struct clk ccdc_master_clk = {
-+	.name		= "dm355_ccdc",
-+	.parent		= &vpss_master_clk,
-+};
-+
-+static struct clk ccdc_slave_clk = {
-+	.name		= "dm355_ccdc",
-+	.parent		= &vpss_slave_clk,
-+};
-+
- static struct davinci_clk dm355_clks[] = {
- 	CLK(NULL, "ref", &ref_clk),
- 	CLK(NULL, "pll1", &pll1_clk),
-@@ -378,6 +388,8 @@ static struct davinci_clk dm355_clks[] = {
- 	CLK(NULL, "timer3", &timer3_clk),
- 	CLK(NULL, "rto", &rto_clk),
- 	CLK(NULL, "usb", &usb_clk),
-+	CLK("dm355_ccdc", "master", &ccdc_master_clk),
-+	CLK("dm355_ccdc", "slave", &ccdc_slave_clk),
- 	CLK(NULL, NULL, NULL),
- };
- 
-@@ -665,6 +677,17 @@ static struct platform_device dm355_asp1_device = {
- 	.resource	= dm355_asp1_resources,
- };
- 
-+static void dm355_ccdc_setup_pinmux(void)
-+{
-+	davinci_cfg_reg(DM355_VIN_PCLK);
-+	davinci_cfg_reg(DM355_VIN_CAM_WEN);
-+	davinci_cfg_reg(DM355_VIN_CAM_VD);
-+	davinci_cfg_reg(DM355_VIN_CAM_HD);
-+	davinci_cfg_reg(DM355_VIN_YIN_EN);
-+	davinci_cfg_reg(DM355_VIN_CINL_EN);
-+	davinci_cfg_reg(DM355_VIN_CINH_EN);
-+}
-+
- static struct resource dm355_vpss_resources[] = {
- 	{
- 		/* VPSS BL Base address */
-@@ -701,6 +724,10 @@ static struct resource vpfe_resources[] = {
- 		.end            = IRQ_VDINT1,
- 		.flags          = IORESOURCE_IRQ,
- 	},
-+};
-+
-+static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
-+static struct resource dm355_ccdc_resource[] = {
- 	/* CCDC Base address */
- 	{
- 		.flags          = IORESOURCE_MEM,
-@@ -708,8 +735,18 @@ static struct resource vpfe_resources[] = {
- 		.end            = 0x01c70600 + 0x1ff,
- 	},
- };
-+static struct platform_device dm355_ccdc_dev = {
-+	.name           = "dm355_ccdc",
-+	.id             = -1,
-+	.num_resources  = ARRAY_SIZE(dm355_ccdc_resource),
-+	.resource       = dm355_ccdc_resource,
-+	.dev = {
-+		.dma_mask               = &vpfe_capture_dma_mask,
-+		.coherent_dma_mask      = DMA_BIT_MASK(32),
-+		.platform_data		= dm355_ccdc_setup_pinmux,
-+	},
-+};
- 
--static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
- static struct platform_device vpfe_capture_dev = {
- 	.name		= CAPTURE_DRV_NAME,
- 	.id		= -1,
-@@ -860,17 +897,7 @@ static int __init dm355_init_devices(void)
- 	davinci_cfg_reg(DM355_INT_EDMA_CC);
- 	platform_device_register(&dm355_edma_device);
- 	platform_device_register(&dm355_vpss_device);
--	/*
--	 * setup Mux configuration for vpfe input and register
--	 * vpfe capture platform device
--	 */
--	davinci_cfg_reg(DM355_VIN_PCLK);
--	davinci_cfg_reg(DM355_VIN_CAM_WEN);
--	davinci_cfg_reg(DM355_VIN_CAM_VD);
--	davinci_cfg_reg(DM355_VIN_CAM_HD);
--	davinci_cfg_reg(DM355_VIN_YIN_EN);
--	davinci_cfg_reg(DM355_VIN_CINL_EN);
--	davinci_cfg_reg(DM355_VIN_CINH_EN);
-+	platform_device_register(&dm355_ccdc_dev);
- 	platform_device_register(&vpfe_capture_dev);
- 
- 	return 0;
-diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
-index e65e29e..ca0843a 100644
---- a/arch/arm/mach-davinci/dm644x.c
-+++ b/arch/arm/mach-davinci/dm644x.c
-@@ -277,6 +277,16 @@ static struct clk timer2_clk = {
- 	.usecount = ATOMIC_INIT(1), /* REVISIT: why cant' this be disabled? */
- };
- 
-+static struct clk ccdc_master_clk = {
-+	.name		= "dm644x_ccdc",
-+	.parent		= &vpss_master_clk,
-+};
-+
-+static struct clk ccdc_slave_clk = {
-+	.name		= "dm644x_ccdc",
-+	.parent		= &vpss_slave_clk,
-+};
-+
- struct davinci_clk dm644x_clks[] = {
- 	CLK(NULL, "ref", &ref_clk),
- 	CLK(NULL, "pll1", &pll1_clk),
-@@ -315,6 +325,8 @@ struct davinci_clk dm644x_clks[] = {
- 	CLK(NULL, "timer0", &timer0_clk),
- 	CLK(NULL, "timer1", &timer1_clk),
- 	CLK("watchdog", NULL, &timer2_clk),
-+	CLK("dm644x_ccdc", "master", &ccdc_master_clk),
-+	CLK("dm644x_ccdc", "slave", &ccdc_slave_clk),
- 	CLK(NULL, NULL, NULL),
- };
- 
-@@ -612,6 +624,11 @@ static struct resource vpfe_resources[] = {
- 		.end            = IRQ_VDINT1,
- 		.flags          = IORESOURCE_IRQ,
- 	},
-+};
-+
-+static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
-+static struct resource dm644x_ccdc_resource[] = {
-+	/* CCDC Base address */
- 	{
- 		.start          = 0x01c70400,
- 		.end            = 0x01c70400 + 0xff,
-@@ -619,7 +636,17 @@ static struct resource vpfe_resources[] = {
- 	},
- };
- 
--static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
-+static struct platform_device dm644x_ccdc_dev = {
-+	.name           = "dm644x_ccdc",
-+	.id             = -1,
-+	.num_resources  = ARRAY_SIZE(dm644x_ccdc_resource),
-+	.resource       = dm644x_ccdc_resource,
-+	.dev = {
-+		.dma_mask               = &vpfe_capture_dma_mask,
-+		.coherent_dma_mask      = DMA_BIT_MASK(32),
-+	},
-+};
-+
- static struct platform_device vpfe_capture_dev = {
- 	.name		= CAPTURE_DRV_NAME,
- 	.id		= -1,
-@@ -772,6 +799,7 @@ static int __init dm644x_init_devices(void)
- 	platform_device_register(&dm644x_edma_device);
- 	platform_device_register(&dm644x_emac_device);
- 	platform_device_register(&dm644x_vpss_device);
-+	platform_device_register(&dm644x_ccdc_dev);
- 	platform_device_register(&vpfe_capture_dev);
- 
- 	return 0;
--- 
-1.6.0.4
+There are some tasks there that are independent of any API design.
 
+For example, I'm currently doing some cleanups and improvements 
+at the existing IR in-kernel code to create a common IR core that replaces
+the already existing feature of handling 7-bits scancode/keycode table to
+use the complete scancodes found at the current in-kernel drivers.
+
+This approach works for the current drivers, as none of them currently support
+any protocol that requires more than 16 bits for scancodes. However, the
+current EVIOGKEYCODE implementation won't scale with bigger scancode spaces.
+
+This code is written to be generic enough to be used by V4L, DVB and LIRC
+drivers. So, after having this work done, it should be easy to connect the lirc_dev
+to a decoder and to this core support. There are already some in-kernel decoders
+that can be used for some protocols, but the better is to review the decoders in
+the light of lirc. I expect that the lirc decoders will be in a better shape.
+
+While I'm here, I intend also to create the sysfs bits to create sys/class/irrcv,
+as already discussed and submit the patch here for discussions.
+
+Of course, after writing different API's to control the IR tables, we'll
+need to improve it, but this depends on the results of the architecture discussions.
+
+Cheers,
+Mauro
