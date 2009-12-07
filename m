@@ -1,78 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:56162 "EHLO
-	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755364AbZLHOvO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2009 09:51:14 -0500
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:43307 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756639AbZLGCAE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Dec 2009 21:00:04 -0500
+Received: by bwz27 with SMTP id 27so3176765bwz.21
+        for <linux-media@vger.kernel.org>; Sun, 06 Dec 2009 18:00:09 -0800 (PST)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: linux-media@vger.kernel.org, Steven Toth <stoth@linuxtv.org>
+Subject: Success for Compro E650F analog television and alsa sound.
+Date: Mon, 7 Dec 2009 04:00:03 +0200
 MIME-Version: 1.0
-In-Reply-To: <4B1E5DA3.7000206@redhat.com>
-References: <20091204220708.GD25669@core.coreip.homeip.net>
-	 <20091206065512.GA14651@core.coreip.homeip.net>
-	 <4B1B99A5.2080903@redhat.com> <m3638k6lju.fsf@intrepid.localdomain>
-	 <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
-	 <m3skbn6dv1.fsf@intrepid.localdomain>
-	 <9e4733910912061323x22c618ccyf6edcee5b021cbe3@mail.gmail.com>
-	 <4B1D934E.7030103@redhat.com> <m3hbs1vain.fsf@intrepid.localdomain>
-	 <4B1E5DA3.7000206@redhat.com>
-Date: Tue, 8 Dec 2009 09:51:20 -0500
-Message-ID: <9e4733910912080651s30d600aay4c37f59e60e9c697@mail.gmail.com>
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
-	system?
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Krzysztof Halasa <khc@pm.waw.pl>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
-	kraxel@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200912070400.03469.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 8, 2009 at 9:07 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Krzysztof Halasa wrote:
->> Mauro Carvalho Chehab <mchehab@redhat.com> writes:
->>
->>>> What is the interface for attaching an in-kernel decoder?
->>> IMO, it should use the kfifo for it. However, if we allow both raw data and
->>> in-kernel decoders to read data there, we'll need a spinlock to protect the
->>> kfifo.
->>
->> This may be an option, but I think we should be able to attach protocol
->> decoders in parallel, directly to the IRQ handler. At least with RC-5
->> (that's what I personally use) it means reliable decoding, no need for
->> any timeouts, the code is clean, fast (can be a part of hard IRQ
->> handler) and simple.
->>
->> The decoder needs something like
->>       rc5_signal_change(ptr, space_or_mark, microseconds).
->>
->> At least mark->space or space->mark events must be reported. For better
->> reliability, both of them.
->
-> If you use a kfifo to store the event (space_or_mark, timestamp),
-> the IRQ handler can return immediately, and a separate kernel thread
-> can do the decode without needing to touch at the IRQ. It also helps to
-> have a decoder independent of the kernel driver.
+Hi Steve
 
-The first version of my code ran the decoders from the IRQ. That
-wasn't a good model for sharing decoders between drivers. So I
-switched to using a kernel thread. There is also the problem of
-handing decoded events off up the chain. You can't do that from IRQ
-context.
+I'm able to watch now analog television with Compro E650F.
+I rich this by merging your cx23885-alsa tree and adding some modifications
+for Compro card definition.
+Actually, I take it from Mygica definition, only tuner type and DVB port is different.
+Tested with Tvtime.
 
-If I remember correctly the kernel thread would run approximately two
-times per IR message received. But sometimes it would only run once.
-It's a random function of the load on the system. The kernel thread
-empties the FIFO and sends the pulses in parallel to the decoders.
+tvtime | arecord -D hw:2,0 -r 32000 -c 2 -f S16_LE | aplay -
 
-Code for doing this is in the patches I posted. I wasn't aware of
-kfifo when I wrote them so I coded my own fifo.
+My tv card is third for alsa, so parameter -D for arecord is hw:2,0.
+SECAM works well also.
+I didn't test component input, though it present in my card.
 
--- 
-Jon Smirl
-jonsmirl@gmail.com
+diff -r 121066e283e5 linux/drivers/media/video/cx23885/Kconfig
+--- a/linux/drivers/media/video/cx23885/Kconfig	Sun Dec 06 09:32:49 2009 -0200
++++ b/linux/drivers/media/video/cx23885/Kconfig	Mon Dec 07 03:48:12 2009 +0200
+@@ -1,6 +1,7 @@
+ config VIDEO_CX23885
+ 	tristate "Conexant cx23885 (2388x successor) support"
+-	depends on DVB_CORE && VIDEO_DEV && PCI && I2C && INPUT
++	depends on DVB_CORE && VIDEO_DEV && PCI && I2C && INPUT && SND
++	select SND_PCM
+ 	select I2C_ALGOBIT
+ 	select VIDEO_BTCX
+ 	select VIDEO_TUNER
+diff -r 121066e283e5 linux/drivers/media/video/cx23885/cx23885-cards.c
+--- a/linux/drivers/media/video/cx23885/cx23885-cards.c	Sun Dec 06 09:32:49 2009 -0200
++++ b/linux/drivers/media/video/cx23885/cx23885-cards.c	Mon Dec 07 03:48:12 2009 +0200
+@@ -163,7 +163,29 @@
+ 	},
+ 	[CX23885_BOARD_COMPRO_VIDEOMATE_E650F] = {
+ 		.name		= "Compro VideoMate E650F",
++		.porta		= CX23885_ANALOG_VIDEO,
+ 		.portc		= CX23885_MPEG_DVB,
++		.tuner_type	= TUNER_XC2028,
++		.tuner_addr	= 0x61,
++		.input		= {
++			{
++				.type   = CX23885_VMUX_TELEVISION,
++				.vmux   = CX25840_COMPOSITE2,
++			}, {
++				.type   = CX23885_VMUX_COMPOSITE1,
++				.vmux   = CX25840_COMPOSITE8,
++			}, {
++				.type   = CX23885_VMUX_SVIDEO,
++				.vmux   = CX25840_SVIDEO_LUMA3 |
++					CX25840_SVIDEO_CHROMA4,
++			}, {
++				.type   = CX23885_VMUX_COMPONENT,
++				.vmux   = CX25840_COMPONENT_ON |
++					CX25840_VIN1_CH1 |
++					CX25840_VIN6_CH2 |
++					CX25840_VIN7_CH3,
++			},
++		},
+ 	},
+ 	[CX23885_BOARD_TBS_6920] = {
+ 		.name		= "TurboSight TBS 6920",
+
