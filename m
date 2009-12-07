@@ -1,95 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out2.blueyonder.co.uk ([195.188.213.5]:38675 "EHLO
-	smtp-out2.blueyonder.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752783AbZLIJe1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Dec 2009 04:34:27 -0500
-Received: from [172.23.170.147] (helo=anti-virus03-10)
-	by smtp-out2.blueyonder.co.uk with smtp (Exim 4.52)
-	id 1NIIwG-0001TP-Ey
-	for linux-media@vger.kernel.org; Wed, 09 Dec 2009 09:34:28 +0000
-Received: from [62.31.89.131] (helo=esdelle.homelinux.org)
-	by asmtp-out6.blueyonder.co.uk with smtp (Exim 4.52)
-	id 1NIIwF-0000jL-Rx
-	for linux-media@vger.kernel.org; Wed, 09 Dec 2009 09:34:27 +0000
-Message-ID: <4B1F6F1F.7010900@esdelle.co.uk>
-Date: Wed, 09 Dec 2009 09:34:23 +0000
-From: Rob Beard <rob@esdelle.co.uk>
-MIME-Version: 1.0
-To: Lukasz Sokol <el_es_cr@yahoo.co.uk>
-CC: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Subject: Re: WinTV HVR-900 USB (B3C0)
-References: <4B1E8E4D.9010101@esdelle.co.uk> <4B1F6AE3.20303@yahoo.co.uk>
-In-Reply-To: <4B1F6AE3.20303@yahoo.co.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:49015
+	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965065AbZLGVrN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Dec 2009 16:47:13 -0500
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was: Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+Mime-Version: 1.0 (Apple Message framework v1077)
+Content-Type: text/plain; charset=us-ascii
+From: Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <1259264614.1781.47.camel@localhost>
+Date: Mon, 7 Dec 2009 13:19:12 -0500
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, superm1@ubuntu.com
+Content-Transfer-Encoding: 8BIT
+Message-Id: <6B4C84CD-F146-4B8B-A8BB-9963E0BA4C47@wilsonet.com>
+References: <BDRae8rZjFB@christoph> <1259024037.3871.36.camel@palomino.walls.org> <m3k4xe7dtz.fsf@intrepid.localdomain>  <4B0E8B32.3020509@redhat.com> <1259264614.1781.47.camel@localhost>
+To: Andy Walls <awalls@radix.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/12/2009 09:16, Lukasz Sokol wrote:
-> Rob Beard wrote:
->    
->> Hi folks,
->>
->> I've borrowed a WinTV HVR-900 USB stick from a friend of mine to see if
->> I can get any reception in my area before forking out for one however
->> I've run in to a couple of problems and wondered if anyone had used one
->> of these sticks?
->>
->>      
-> [snip]
->    
->> I just wondered if anyone else had one of these sticks actually working
->> under Ubuntu 9.10?  (I'm running kernel 2.6.31-16-generic-pae).
->>
->> Rob
->>
->>      
->
-> Hi Rob,
-> this device uses empia chips.
->
-> I have a similar situation with Pinnacle Hybrid Pro 330e (yes, 3_3_0e) : the only
-> driver that works (and was great at it) was Markus Rechberger's em28xx-new project.
-> (my device has cx88 tuner IIRC). The em28xx-new project had some modifications to
-> some tuner drivers too. They were based both on RE and documentation for which
-> Markus had NDA's signed (a vague recollection of past googling).
->
-> The mainline kernel unfortunately does not support it out of the box, and it is not only
-> about the firmware you have to download; There is something severely nonfunctional.
->
-> Why am I writing in past tense ?
-> This driver (em28xx-new) has recently been abandoned, and its author went proprietary.
-> I was using a ubuntu package prepared by some ubuntu user, named gborzi.
-> Unfortunately the package cannot apply to more recent kernels any more.
-> The last kernel it worked with, was 2.6.27-14 (Ubuntu terminology) and I'm stuck with it.
->
-> I have emailed Markus but he seems to have lost any interest in the em28xx-new...
-> can't blame him though, he gave his reasons, some of them unfortunately true.
->
-> To v4l developers : as it is the case now that we can consider em28xx-new abandonware,
-> could somebody see, what got devices like ours working in his driver, and push it to
-> mainline, please ? Just the DVB support would be fine...
->
-> To Markus : the above is not a call to _steal_your_code_ but merely to somebody have
-> a look and modify the mainline drivers so it could support A 5 YEAR OLD DEVICE like mine.
-> People could employ a 'clean room' like in alternative to Broadcom (b43) development.
->
-> At least mine, is a 5 YEARS OLD design (bought in 2006).
-> On my computer, which was middle spec 5 years ago, I've always had problems with this device
-> under Windows (XP) : 100% CPU on max frequency (1.6GHz) all the time, when playing.
-> Under Linux, stock Ubuntu 8.10 Kaffeine, and em28xx-new, it is max 30% CPU at lowest freq (800MHz)).
->
-> Stock em28xx driver only supports analog (with no sound under stock tvtime, supposedly patched tvtime required).
->
-> el es
->    
+On Nov 26, 2009, at 2:43 PM, Andy Walls wrote:
 
-Thanks for the heads up, I think I'll have a look and see what else is 
-available out there then, luckily I only borrowed it to test if it would 
-work.
+> On Thu, 2009-11-26 at 12:05 -0200, Mauro Carvalho Chehab wrote:
+>> Krzysztof Halasa wrote:
+>>> Andy Walls <awalls@radix.net> writes:
+>>> 
+>>>> I would also note that RC-6 Mode 6A, used by most MCE remotes, was
+>>>> developed by Philips, but Microsoft has some sort of licensing interest
+>>>> in it and it is almost surely encumbered somwhow:
+>>> 
+>>> I don't know about legal problems in some countries but from the
+>>> technical POV handling the protocol in the kernel is more efficient
+>>> or (/and) simpler.
+>> 
+>> A software licensing from Microsoft won't apply to Linux kernel, so I'm
+>> assuming that you're referring to some patent that they could be filled
+>> about RC6 mode 6A.
+>> 
+>> I don't know if is there any US patent pending about it (AFAIK, only US
+>> accepts software patents), but there are some prior-art for IR key
+>> decoding. So, I don't see what "innovation" RC6 would be adding. 
+>> If it is some new way to transmit waves, the patent issues
+>> aren't related to software, and the device manufacturer had already handled
+>> it when they made their devices.
+>> 
+>> If it is just a new keytable, this issue 
+>> could be easily solved by loading the keytable via userspace.
+>> 
+>> Also, assuming that you can use the driver only with a hardware that comes
+>> with a licensed software, the user has already the license for using it.
+>> 
+>> Do you have any details on what patents they are claiming?
+> 
+> The US Philips RC-6 patent is US Patent 5,877,702
+> 
+> http://www.google.com/patents?vid=USPAT5877702
+> 
+> Click on download PDF to get a copy of the whole patent.
+> 
+> I am not a lawyer.  Philips claims' all appear to tie to a transmitter
+> or receiver as part of a system, but most of the claims are about
+> information and bit positions and lengths.
+...
+> IMO, given
+> 
+> a. the dearth of public information about RC-6, indicating someone
+> thinks it's their trade secret or intellectual property
+> 
+> b. Microsoft claiming to license something related to the MCE remote
+> protocols (which are obviously RC-6 Mode 6A),
+> 
+> c. my inability to draw a "clear, bright line" that RC-6 Mode 6A
+> encoding and decoding, as needed by MCE remotes, implemented in software
+> doesn't violate anyone's government granted rights to exclusivity.
+> 
+> I think it's much better to implement software RC-6 Mode 6A encoding and
+> decoding in user space, doing only the minimum needed to get the
+> hardware setup and going in the kernel.  
+> 
+> Encoding/decoding of RC-6 by microcontrollers with firmware doesn't
+> worry me. 
+> 
+> 
+> Maybe I'm being too conservative here, but I have a personal interest in
+> keeping Linux free and unencumbered even in the US which, I cannot deny,
+> has a patent system that is screwed up.
 
-Regards,
+So I had one of the people who does all the license and patent audits for Fedora packages look at the Philips patent on RC-6. He's 100% positive that the patent *only* covers hardware, there should be no problem whatsoever writing a software decoder for RC-6.
 
-Rob
+-- 
+Jarod Wilson
+jarod@wilsonet.com
+
+
 
