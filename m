@@ -1,99 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.oregonstate.edu ([128.193.15.36]:36329 "EHLO
-	smtp2.oregonstate.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751618AbZLNUe7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Dec 2009 15:34:59 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by smtp2.oregonstate.edu (Postfix) with ESMTP id 112E43C0EB
-	for <linux-media@vger.kernel.org>; Mon, 14 Dec 2009 12:23:46 -0800 (PST)
-Received: from smtp2.oregonstate.edu ([127.0.0.1])
-	by localhost (smtp.oregonstate.edu [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id FBudQZBsPn8F for <linux-media@vger.kernel.org>;
-	Mon, 14 Dec 2009 12:23:45 -0800 (PST)
-Received: from [10.192.126.45] (spike.nws.oregonstate.edu [10.192.126.45])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by smtp2.oregonstate.edu (Postfix) with ESMTPSA id DE04E3C0F1
-	for <linux-media@vger.kernel.org>; Mon, 14 Dec 2009 12:23:45 -0800 (PST)
-Message-ID: <4B269F1A.30107@onid.orst.edu>
-Date: Mon, 14 Dec 2009 12:24:58 -0800
-From: Michael Akey <akeym@onid.orst.edu>
+Received: from mail-gx0-f226.google.com ([209.85.217.226]:33390 "EHLO
+	mail-gx0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935309AbZLGXrn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Dec 2009 18:47:43 -0500
+Received: by gxk26 with SMTP id 26so4644045gxk.1
+        for <linux-media@vger.kernel.org>; Mon, 07 Dec 2009 15:47:50 -0800 (PST)
+To: "Karicheri\, Muralidharan" <m-karicheri2@ti.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Hiremath\, Vaibhav" <hvaibhav@ti.com>,
+	"linux-media\@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source\@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>
+Subject: Re: architecture part of video driver patch
+References: <A69FA2915331DC488A831521EAE36FE40155B7686A@dlee06.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Date: Mon, 07 Dec 2009 15:47:46 -0800
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40155B7686A@dlee06.ent.ti.com> (Muralidharan Karicheri's message of "Tue\, 1 Dec 2009 09\:42\:12 -0600")
+Message-ID: <87638i73dp.fsf@deeprootsystems.com>
 MIME-Version: 1.0
-To: Linux Media <linux-media@vger.kernel.org>
-Subject: scan/scan-s2 doesn't tune, but dvbtune does?
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I can't get the scan/scan-s2 utilities to lock any transponders 
-(DVB-S).  My test satellite is AMC1 103W, the Pentagon Channel tp. This 
-is probably some simple user error on my part, but I can't figure it 
-out.  I have a Corotor II with polarity changed via serial command to an 
-external IRD.  C/Ku is switched by 22KHz tone, voltage is always 18V.  
-Ku is with tone off, C with tone on.  Speaking of which, is there a way 
-to manually set the tone from the arguments on the scan utilities?
+"Karicheri, Muralidharan" <m-karicheri2@ti.com> writes:
 
-Here's what I've tried and the results:
+> Kevin,
+>
+> Following patch merged to v4l-dvb linux-next has an architectural 
+> part as attached. If you have not merged it to your next branch
+> for linux-davinci tree, please do so at your earliest convenience
+> so that they are in sync.
 
-$ ./scan-s2 -a 0 -v -o zap -l 10750 INIT
-API major 5, minor 0
-scanning INIT
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder DVB-S  12100000 H 20000000 AUTO AUTO AUTO
-initial transponder DVB-S2 12100000 H 20000000 AUTO AUTO AUTO
-----------------------------------> Using DVB-S
- >>> tune to: 12100:h:0:20000
-DVB-S IF freq is 1350000
- >>> tuning status == 0x03
- >>> tuning status == 0x01
- >>> tuning status == 0x03
- >>> tuning status == 0x01
- >>> tuning status == 0x03
- >>> tuning status == 0x00
- >>> tuning status == 0x01
- >>> tuning status == 0x03
- >>> tuning status == 0x00
- >>> tuning status == 0x00
-WARNING: >>> tuning failed!!!
- >>> tune to: 12100:h:0:20000 (tuning failed)
-DVB-S IF freq is 1350000
- >>> tuning status == 0x03
- >>> tuning status == 0x01
- >>> tuning status == 0x00
- >>> tuning status == 0x00
-...snip...
+OK, applying to davinci git, and queuing for 2.6.34.
 
-Same thing happens if I use just 'scan' and not 'scan-s2.'
+> Patch merged to linux-next is available at
+>
+> http://git.kernel.org/?p=linux/kernel/git/mchehab/linux-next.git;a=commitdiff;h=600cc66f7f3ec93ab4f09cf6b63980f4c5e8f8db
+>
+> I will be pushing some more patches to upstream that are having
+> changes to arch part. I will notify once they are merged to linux-next.
 
-If I use dvbtune, it works though..
+OK, thanks,
 
-$ dvbtune -f 1350000 -p H -s 20000 -c 0 -tone 0 -m
-Using DVB card "Conexant CX24116/CX24118"
-tuning DVB-S to L-Band:0, Pol:H Srate=20000000, 22kHz=off
-polling....
-Getting frontend event
-FE_STATUS:
-polling....
-Getting frontend event
-FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI 
-FE_HAS_SYNC
-Bit error rate: 0
-Signal strength: 51648
-SNR: 26215
-FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI 
-FE_HAS_SYNC
-Signal=51648, Verror=0, SNR=26215dB, BlockErrors=0, (S|L|C|V|SY|)
-Signal=51776, Verror=0, SNR=26624dB, BlockErrors=0, (S|L|C|V|SY|)
+Kevin
 
-The tuning file 'INIT' contains only the following line:
-S 12100000 H 20000000 AUTO
-
-I'm using v4l-dvb drivers from the main repo as of about a week ago.  I 
-am running kernel 2.6.32 on Debian testing.  Any help is appreciated 
-..and hopefully it's just a simple flub on my part!
-
---Mike
-
-
+> Murali Karicheri
+> Software Design Engineer
+> Texas Instruments Inc.
+> Germantown, MD 20874
+> phone: 301-407-9583
+> email: m-karicheri2@ti.com
+>
+> From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+> Subject: [PATCH 3/6] Davinci VPFE Capture: Take i2c adapter id through platform data
+> To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+> CC: "davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>
+> Date: Tue, 13 Oct 2009 10:08:54 -0500
+>
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+>
+> The I2C adapter ID is actually depends on Board and may vary, Davinci
+> uses id=1, but in case of AM3517 id=3.
+>
+> So modified respective davinci board files.
+>
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> ---
+>  arch/arm/mach-davinci/board-dm355-evm.c  |    1 +
+>  arch/arm/mach-davinci/board-dm644x-evm.c |    1 +
+>  2 files changed, 2 insertions(+), 0 deletions(-)
+>
+> diff --git a/arch/arm/mach-davinci/board-dm355-evm.c b/arch/arm/mach-davinci/board-dm355-evm.c
+> index f683559..4a9252a 100644
+> --- a/arch/arm/mach-davinci/board-dm355-evm.c
+> +++ b/arch/arm/mach-davinci/board-dm355-evm.c
+> @@ -372,6 +372,7 @@ static struct vpfe_subdev_info vpfe_sub_devs[] = {
+>  
+>  static struct vpfe_config vpfe_cfg = {
+>  	.num_subdevs = ARRAY_SIZE(vpfe_sub_devs),
+> +	.i2c_adapter_id = 1,
+>  	.sub_devs = vpfe_sub_devs,
+>  	.card_name = "DM355 EVM",
+>  	.ccdc = "DM355 CCDC",
+> diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-davinci/board-dm644x-evm.c
+> index cfd9afa..fed64e2 100644
+> --- a/arch/arm/mach-davinci/board-dm644x-evm.c
+> +++ b/arch/arm/mach-davinci/board-dm644x-evm.c
+> @@ -257,6 +257,7 @@ static struct vpfe_subdev_info vpfe_sub_devs[] = {
+>  
+>  static struct vpfe_config vpfe_cfg = {
+>  	.num_subdevs = ARRAY_SIZE(vpfe_sub_devs),
+> +	.i2c_adapter_id = 1,
+>  	.sub_devs = vpfe_sub_devs,
+>  	.card_name = "DM6446 EVM",
+>  	.ccdc = "DM6446 CCDC",
+> -- 
+> 1.6.2.4
+>
+> _______________________________________________
+> Davinci-linux-open-source mailing list
+> Davinci-linux-open-source@linux.davincidsp.com
+> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
+> ----------
