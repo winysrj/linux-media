@@ -1,40 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f184.google.com ([209.85.222.184]:37928 "EHLO
-	mail-pz0-f184.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755510AbZLCRbG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 12:31:06 -0500
-Date: Thu, 3 Dec 2009 09:31:06 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Ferenc Wagner <wferi@niif.hu>, Jarod Wilson <jarod@wilsonet.com>,
-	Jarod Wilson <jarod@redhat.com>,
-	Jon Smirl <jonsmirl@gmail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>, awalls@radix.net,
-	j@jannau.net, khc@pm.waw.pl, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	lirc-list@lists.sourceforge.net, superm1@ubuntu.com,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: [RFC v2] Another approach to IR
-Message-ID: <20091203173105.GA776@core.coreip.homeip.net>
-References: <9e4733910912020930t3c9fe973k16fd353e916531a4@mail.gmail.com> <4B16BE6A.7000601@redhat.com> <20091202195634.GB22689@core.coreip.homeip.net> <2D11378A-041C-4B56-91FF-3E62F5F19753@wilsonet.com> <20091202201404.GD22689@core.coreip.homeip.net> <4B16CCD7.20601@redhat.com> <20091202205323.GF22689@core.coreip.homeip.net> <4B16D87F.7080701@redhat.com> <87tyw8ujsr.fsf@tac.ki.iif.hu> <4B17E874.5020003@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:13754 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935597AbZLGVXz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Dec 2009 16:23:55 -0500
+Message-ID: <4B1D726D.3010409@redhat.com>
+Date: Mon, 07 Dec 2009 19:23:57 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4B17E874.5020003@redhat.com>
+To: Michael Krufky <mkrufky@kernellabs.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: Details about DVB frontend API
+References: <20091022211330.6e84c6e7@hyperion.delvare>	 <4B02FDA4.5030508@infradead.org>	 <1a297b360911200129pe5af064wf9cf239851ac5c46@mail.gmail.com>	 <200911201237.31537.julian@jusst.de>	 <1a297b360911200808k12676112lf7a11f3dfd44a187@mail.gmail.com>	 <4B07290B.4060307@jusst.de>	 <a3ef07920912041202u78f4d12av8d7a49f5f91b3d56@mail.gmail.com> <37219a840912041259w499f2347he1b25c16550d671f@mail.gmail.com> <4B1D6CFA.2020602@infradead.org>
+In-Reply-To: <4B1D6CFA.2020602@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 03, 2009 at 02:33:56PM -0200, Mauro Carvalho Chehab wrote:
-> Ferenc Wagner wrote:
-> > Mauro Carvalho Chehab <mchehab@redhat.com> writes:
+Mauro Carvalho Chehab wrote:
+> Michael Krufky wrote:
+>> On Fri, Dec 4, 2009 at 3:02 PM, VDR User <user.vdr@gmail.com> wrote:
+>>> No activity in this thread for 2 weeks now.  Has there been any progress?
 > 
-> We should not forget that simple IR's don't have any key to select the address,
-> so the produced codes there will never have KEY_TV/KEY_DVD, etc.
+>> I have stated that I like Manu's proposal, but I would prefer that the
+>> get_property (s2api) interface were used, because it totally provides
+>> an interface that is sufficient for this feature.
+> 
+> I've ported Manu's proposal to S2API way of handling it. It is just compiled
+> only. I haven't test it yet on a real driver.
+> 
+> Comments?
+> 
+> ---
+> 
+> Add support for frontend statistics via S2API
+> 
+> The current DVB V3 API to handle statistics has two issues:
+> 	- Retrieving several values can't be done atomically;
+> 	- There's no indication about scale information.
+> 
+> This patch solves those two issues by adding a group of S2API
+> that handles the needed statistics operations. It basically ports the
+> proposal of Manu Abraham <abraham.manu@gmail.com> To S2API.
+> 
+> As the original patch, both of the above issues were addressed.
+> 
+> In order to demonstrate the changes on an existing driver for the new API, I've
+> implemented it at the cx24123 driver.
+> 
+> There are some advantages of using this approach over using the static structs
+> of the original proposal:
+> 	- userspace can select an arbitrary number of parameters on his get request;
+> 	- the latency to retrieve just one parameter is lower than retrieving
+> several parameters. On the cx24123 example, if user wants just signal strength,
+> the latency is the same as reading one register via i2c bus. If using the original
+> proposal, the latency would be 6 times worse, since you would need to get 3 properties
+> at the same time;
+> 	- the latency for reading all 3 parameters at the same time is equal to
+> the latency of the original proposal;
+> 	- if newer statistics parameters will be needed in the future, it is just
+> a matter of adding additional S2API command/value pairs;
+> 	- the DVB V3 calls can be easily implemented as a call to the new get_stats ops,
+> without adding extra latency time.
 
-Wait, wait, KEY_TV, KEY_DVD, KEY_TAPE - they should be used to select
-media inputs in a device/application. My receiver accepts codees like
-that.
+In time:
 
--- 
-Dmitry
+I only wrote the get callback. It could be interesting to implement also the set callback
+for the DTV_FE*_UNIT parameters if there are some cases where the same driver can provide
+a different set of units/parameters. This way, it is possible for userspace to
+negotiate what parameter type he wants, on such drivers.
+> 
+> Thanks to Manu Abraham <abraham.manu@gmail.com> for his initial proposal.
+> 
+
+Cheers,
+Mauro.
