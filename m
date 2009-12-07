@@ -1,1133 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:35142 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753582AbZLWNRs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Dec 2009 08:17:48 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Wed, 23 Dec 2009 14:17:34 +0100
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: [PATCH v2.1 2/2] V4L: Add a mem-to-mem V4L2 framework test device.
-In-reply-to: <1261574255-23386-1-git-send-email-p.osciak@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com
-Message-id: <1261574255-23386-3-git-send-email-p.osciak@samsung.com>
-References: <1261574255-23386-1-git-send-email-p.osciak@samsung.com>
+Received: from mail-yx0-f187.google.com ([209.85.210.187]:63492 "EHLO
+	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758576AbZLGHsY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Dec 2009 02:48:24 -0500
+Date: Sun, 6 Dec 2009 23:48:18 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Gerd Hoffmann <kraxel@redhat.com>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jonsmirl@gmail.com, khc@pm.waw.pl,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+	IR  system?
+Message-ID: <20091207074818.GA24958@core.coreip.homeip.net>
+References: <4B1524DD.3080708@redhat.com> <4B153617.8070608@redhat.com> <A6D5FF84-2DB8-4543-ACCB-287305CA0739@wilsonet.com> <4B17AA6A.9060702@redhat.com> <20091203175531.GB776@core.coreip.homeip.net> <20091203163328.613699e5@pedra> <20091204100642.GD22570@core.coreip.homeip.net> <20091204121234.5144836b@pedra> <20091206070929.GB14651@core.coreip.homeip.net> <4B1B8F83.5080009@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4B1B8F83.5080009@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a virtual device driver for testing the mem-to-mem V4L2 framework.
-It simulates a device that uses memory buffers for both source and
-destination, processes the data and issues an "IRQ" (simulated by a timer).
-The device is capable of multi-instance, multi-buffer-per-transaction
-operation (via the mem2mem framework).
+On Sun, Dec 06, 2009 at 09:03:31AM -0200, Mauro Carvalho Chehab wrote:
+> Dmitry Torokhov wrote:
+> > On Fri, Dec 04, 2009 at 12:12:34PM -0200, Mauro Carvalho Chehab wrote:
+> >> Em Fri, 4 Dec 2009 02:06:42 -0800
+> >> Dmitry Torokhov <dmitry.torokhov@gmail.com> escreveu:
+> >>
+> >>> evdev does not really care what you use as scancode. So nobody stops
+> >>> your driver to report index as a scancode and accept index from the
+> >>> ioctl. The true "scancode" will thus be competely hidden from userspace.
+> >>> In fact a few drivers do just that.
+> >> Let me better express here. It is all about how we'll expand the limits of those
+> >> ioctls to fulfill the needs.
+> >>
+> >> The point is that we'll have, let's say something like to 50-500 scancode/keycode tuples
+> >> sparsely spread into a 2^64 scancode universe (assuming 64 bits - Not sure if is there any
+> >> IR protocol/code with a bigger scancode).
+> >>
+> >> On such universe if we want to get all keycodes with the current ioctls for a scancode in
+> >> the range of 32 bits, we need to do something like:
+> >>
+> >> u32 code;
+> >> int codes[2];
+> >> for (code = 0; code <= (unsigned u32) - 1; code++) {
+> >> 	codes[0] = (int)code;
+> >> 	if (!ioctl(fd, EVIOCGKEYCODE, codes))
+> >> 		printf("scancode 0x%08x = keycode 0x%08x\n", codes[0], codes[1]);
+> >> }
+> >>
+> >> So, on the 32 bits case, we'll do about 4 billions calls to EVIOGKEYCODE ioctl to
+> >> read the complete scancode space, to get those 50-500 useful codes.
+> >>
+> > 
+> > Right, currently there is no need to query all scancodes defined by
+> > device. Quite often drivers don't even know what scancodes device
+> > actually generates (ex AT keyboard).
+> > 
+> > Could you describe in more detail how you are using this data?
+> 
+> It is useful if you want to dump the keycode maps into file with the current
+> scancode attribution, in order to modify some keystrokes.
+> 
+> Right now, programs like dumpkeys (from kbd package) allow you to dump for example
+> the attribution keys from your keyboard.
+> 
+> In the case of IR's this functionality is very important.
+> 
+> For example, you may need to replace the scancode/KEY_CHANNELUP tuple by scancode/KEY_UP,
+> in order to make your IR to work with some applications that don't recognize the IR
+> specific keycodes.
+> 
+> In practice, with such applications, you'll need to replace several different scancodes.
+> 
+> So, you may end by having different scancodes producing the same keycode, as such applications
+> aren't capable of differentiating an UP key from a CHANNELUP key. This is the case, for example
+> of the popular tvtime application.
+> 
+> The better way is to just generate a dump file, modify the needed entries and reload the
+> table by calling EVIOSKEYCODE, in order to use the new table.
+> 
+> I wrote a small application that just do the above, and I use to load some special tables
+> to work with some applications like tvtime and mplayer. (with mplayer, you need to map 
+> <channel down> as KEY_H and <channel up> as KEY_K).
+> 
+> I hope that, after we finish addressing IR's, we'll finally have media applications handling
+> directly the proper keycodes, but people may still need to write different keycodes to do
+> other things. I used to have a keymap file in order to use an IR to control the slide show
+> with openoffice.
+> 
+> >> Due to the current API limit, we don't have any way to use the full 64bits space for scancodes.
+> >>
+> > 
+> > Can we probably reduce the "scancode" space? ARe all 64 bits in
+> > protocols used to represent keypresses or some are used for some kind of
+> > addressing?
+> 
+> All the IR's I found with V4L/DVB use up to 16 bits code (or 24 bits, for NEC extended protocol).
+> However, currently, the drivers were getting only 7 bits, due to the old way to implement
+> EVIO[S|G]KEYCODE. 
+> 
+> I know, however, one i2c chip that returns a 5 byte scancode when you press a key. 
+> We're currently just discarding the remaining bits, so I'm not really sure what's there.
+> 
+> 
+> The usage of 7 bits, in practice, were meaning that it weren't possible to use
+> a different remote than the one provided by the device manufacturer, as the scancodes produced
+> by other remotes differ on more than 7 bits. Also, this means that, if your TV and your PC
+> are using the same protocol, like RC5, if you press a button on your TV remote, the PC will
+> also get it.
+> 
+> I know, however, one IR driver that produces 6 bytes when you press a key. 
+> We're currently just discarding the remaining bits, so I'm not really sure
+> what else is there. Some badly optimized protocol? a bigger scancode? a protocol indication?
+> 
+> In general, the scancode contains 8 or 16 bits for address, and 8 bits for command.
+> 
+> However, the scancode table needs to handle the address as well, since we don't want that a
+> scancode meant to go to your TV to be handled by the PC, but we may want to get codes from
+> different addresses there, as we may need to use the address to differentiate the commands
+> meant to control the TV volume, for example, than the same command meant to control the PC
+> master volume.
 
-Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Reviewed-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/Kconfig           |   14 +
- drivers/media/video/Makefile          |    1 +
- drivers/media/video/mem2mem_testdev.c | 1052 +++++++++++++++++++++++++++++++++
- 3 files changed, 1067 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/mem2mem_testdev.c
+Right, but this data is not interesting to userspace. For userpsace
+scancode is just a cookie that is uniquely identifies a button for which
+a keycode can be assigned.
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 4e97dcf..4e7d703 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -1089,3 +1089,17 @@ menuconfig V4L_MEM2MEM_DRIVERS
- 	  use system memory for both source and destination buffers, as opposed
- 	  to capture and output drivers, which use memory buffers for just
- 	  one of those.
-+
-+if V4L_MEM2MEM_DRIVERS
-+
-+config VIDEO_MEM2MEM_TESTDEV
-+	tristate "Virtual test device for mem2mem framework"
-+	depends on VIDEO_DEV && VIDEO_V4L2
-+	select VIDEOBUF_VMALLOC
-+	select V4L2_MEM2MEM_DEV
-+	default n
-+	---help---
-+	  This is a virtual test device for the memory-to-memory driver
-+	  framework.
-+
-+endif # V4L_MEM2MEM_DRIVERS
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index 9fe7d40..8667f1c 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -149,6 +149,7 @@ obj-$(CONFIG_VIDEO_IVTV) += ivtv/
- obj-$(CONFIG_VIDEO_CX18) += cx18/
- 
- obj-$(CONFIG_VIDEO_VIVI) += vivi.o
-+obj-$(CONFIG_VIDEO_MEM2MEM_TESTDEV) += mem2mem_testdev.o
- obj-$(CONFIG_VIDEO_CX23885) += cx23885/
- 
- obj-$(CONFIG_VIDEO_OMAP2)		+= omap2cam.o
-diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
-new file mode 100644
-index 0000000..ea54a68
---- /dev/null
-+++ b/drivers/media/video/mem2mem_testdev.c
-@@ -0,0 +1,1052 @@
-+/*
-+ * A virtual v4l2-mem2mem example device.
-+ *
-+ * This is a virtual device driver for testing the mem-to-mem V4L2 framework.
-+ * It simulates a device that uses memory buffers for both source and
-+ * destination, processes the data and issues an "IRQ" (simulated by a timer).
-+ * The device is capable of multi-instance, multi-buffer-per-transaction
-+ * operation (via the mem2mem framework).
-+ *
-+ * Copyright (c) 2009 Samsung Electronics Co., Ltd.
-+ * Pawel Osciak, <p.osciak@samsung.com>
-+ * Marek Szyprowski, <m.szyprowski@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the
-+ * License, or (at your option) any later version
-+ */
-+#include <linux/module.h>
-+#include <linux/delay.h>
-+#include <linux/fs.h>
-+#include <linux/version.h>
-+#include <linux/timer.h>
-+#include <linux/sched.h>
-+
-+#include <linux/platform_device.h>
-+#include <media/v4l2-mem2mem.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/videobuf-vmalloc.h>
-+
-+#define MEM2MEM_TEST_MODULE_NAME "mem2mem-testdev"
-+
-+MODULE_DESCRIPTION("Virtual device for mem2mem framework testing");
-+MODULE_AUTHOR("Pawel Osciak, <p.osciak@samsung.com>");
-+MODULE_LICENSE("GPL");
-+
-+
-+#define MIN_W 32
-+#define MIN_H 32
-+#define MAX_W 640
-+#define MAX_H 480
-+#define DIM_ALIGN_MASK 0x08 /* 8-alignment for dimensions */
-+
-+/* Flags that indicate a format can be used for capture/output */
-+#define MEM2MEM_CAPTURE	(1 << 0)
-+#define MEM2MEM_OUTPUT	(1 << 1)
-+
-+#define MEM2MEM_MAX_INSTANCES	10
-+#define MEM2MEM_NAME		"m2m-testdev"
-+
-+/* Per queue */
-+#define MEM2MEM_DEF_NUM_BUFS	32
-+/* In bytes, per queue */
-+#define MEM2MEM_VID_MEM_LIMIT	(16 * 1024 * 1024)
-+
-+/* Default transaction time in msec */
-+#define MEM2MEM_DEF_TRANSTIME	1000
-+/* Default number of buffers per transaction */
-+#define MEM2MEM_DEF_TRANSLEN	1
-+#define MEM2MEM_COLOR_STEP	(0xff >> 4)
-+#define MEM2MEM_NUM_TILES	10
-+
-+#define dprintk(dev, fmt, arg...) \
-+	v4l2_dbg(1, 1, &dev->v4l2_dev, "%s: " fmt, __func__, ## arg)
-+
-+
-+void m2mtest_dev_release(struct device *dev)
-+{}
-+
-+static struct platform_device m2mtest_pdev = {
-+	.name		= MEM2MEM_NAME,
-+	.dev.release	= m2mtest_dev_release,
-+};
-+
-+struct m2mtest_fmt {
-+	char	*name;
-+	u32	fourcc;          /* v4l2 format id */
-+	int	depth;
-+	/* Types the format can be used for */
-+	u32	types;
-+};
-+
-+static struct m2mtest_fmt formats[] = {
-+	{
-+		.name	= "RGB565 (BE)",
-+		.fourcc	= V4L2_PIX_FMT_RGB565X, /* rrrrrggg gggbbbbb */
-+		.depth	= 16,
-+		/* Both capture and output format */
-+		.types	= MEM2MEM_CAPTURE | MEM2MEM_OUTPUT,
-+	},
-+	{
-+		.name	= "4:2:2, packed, YUYV",
-+		.fourcc	= V4L2_PIX_FMT_YUYV,
-+		.depth	= 16,
-+		/* Output-only format */
-+		.types	= MEM2MEM_OUTPUT,
-+	},
-+};
-+
-+/* Per-queue, driver-specific private data */
-+struct m2mtest_q_data
-+{
-+	unsigned int		width;
-+	unsigned int		height;
-+	unsigned int		sizeimage;
-+	struct m2mtest_fmt	*fmt;
-+};
-+
-+enum {
-+	V4L2_M2M_SRC = 0,
-+	V4L2_M2M_DST = 1,
-+};
-+
-+/* Source and destination queue data */
-+static struct m2mtest_q_data q_data[2];
-+
-+static struct m2mtest_q_data *get_q_data(enum v4l2_buf_type type)
-+{
-+	switch (type) {
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-+		return &q_data[V4L2_M2M_SRC];
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-+		return &q_data[V4L2_M2M_DST];
-+	default:
-+		BUG();
-+		return NULL;
-+	}
-+}
-+
-+
-+#define V4L2_CID_TRANS_TIME_MSEC	V4L2_CID_PRIVATE_BASE
-+#define V4L2_CID_TRANS_NUM_BUFS		(V4L2_CID_PRIVATE_BASE + 1)
-+
-+static struct v4l2_queryctrl m2mtest_ctrls[] = {
-+	{
-+		.id		= V4L2_CID_TRANS_TIME_MSEC,
-+		.type		= V4L2_CTRL_TYPE_INTEGER,
-+		.name		= "Transaction time (msec)",
-+		.minimum	= 1,
-+		.maximum	= 10000,
-+		.step		= 100,
-+		.default_value	= 1000,
-+		.flags		= 0,
-+	}, {
-+		.id		= V4L2_CID_TRANS_NUM_BUFS,
-+		.type		= V4L2_CTRL_TYPE_INTEGER,
-+		.name		= "Buffers per transaction",
-+		.minimum	= 1,
-+		.maximum	= MEM2MEM_DEF_NUM_BUFS,
-+		.step		= 1,
-+		.default_value	= 1,
-+		.flags		= 0,
-+	},
-+};
-+
-+#define NUM_FORMATS ARRAY_SIZE(formats)
-+
-+static struct m2mtest_fmt *find_format(struct v4l2_format *f)
-+{
-+	struct m2mtest_fmt *fmt;
-+	unsigned int k;
-+
-+	for (k = 0; k < NUM_FORMATS; k++) {
-+		fmt = &formats[k];
-+		if (fmt->fourcc == f->fmt.pix.pixelformat)
-+			break;
-+	}
-+
-+	if (k == NUM_FORMATS)
-+		return NULL;
-+
-+	return &formats[k];
-+}
-+
-+struct m2mtest_dev {
-+	struct v4l2_device	v4l2_dev;
-+	struct video_device	*vfd;
-+
-+	atomic_t		num_inst;
-+	struct mutex		dev_mutex;
-+	spinlock_t		irqlock;
-+
-+	struct timer_list	timer;
-+
-+	struct v4l2_m2m_dev	*m2m_dev;
-+};
-+
-+struct m2mtest_ctx {
-+	struct m2mtest_dev	*dev;
-+
-+	/* Processed buffers in this transaction */
-+	u8			num_processed;
-+
-+	/* Transaction length (i.e. how many buffers per transaction) */
-+	u32			translen;
-+	/* Transaction time (i.e. simulated processing time) in miliseconds */
-+	u32			transtime;
-+
-+	/* Abort requested by m2m */
-+	int			aborting;
-+
-+	struct v4l2_m2m_ctx	*m2m_ctx;
-+};
-+
-+struct m2mtest_buffer {
-+	/* vb must be first! */
-+	struct videobuf_buffer	vb;
-+};
-+
-+static struct v4l2_queryctrl *get_ctrl(int id)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(m2mtest_ctrls); ++i) {
-+		if (id == m2mtest_ctrls[i].id) {
-+			return &m2mtest_ctrls[i];
-+		}
-+	}
-+
-+	return NULL;
-+}
-+
-+static int device_process(struct m2mtest_ctx *ctx,
-+			  struct m2mtest_buffer *in_buf,
-+			  struct m2mtest_buffer *out_buf)
-+{
-+	struct m2mtest_dev *dev = ctx->dev;
-+	u8 *p_in, *p_out;
-+	int x, y, t, w;
-+	int tile_w, bytes_left;
-+	struct videobuf_queue *src_q;
-+	struct videobuf_queue *dst_q;
-+
-+	src_q = v4l2_m2m_get_src_vq(ctx->m2m_ctx);
-+	dst_q = v4l2_m2m_get_dst_vq(ctx->m2m_ctx);
-+	p_in = videobuf_queue_to_vmalloc(src_q, &in_buf->vb);
-+	p_out = videobuf_queue_to_vmalloc(dst_q, &out_buf->vb);
-+	if (!p_in || !p_out) {
-+		v4l2_err(&dev->v4l2_dev,
-+			 "Acquiring kernel pointers to buffers failed\n");
-+		return 1;
-+	}
-+
-+	if (in_buf->vb.size < out_buf->vb.size) {
-+		v4l2_err(&dev->v4l2_dev, "Output buffer is too small\n");
-+		return 1;
-+	}
-+
-+	tile_w = (in_buf->vb.width * (q_data[V4L2_M2M_DST].fmt->depth >> 3))
-+		/ MEM2MEM_NUM_TILES;
-+	bytes_left = in_buf->vb.bytesperline - tile_w * MEM2MEM_NUM_TILES;
-+	w = 0;
-+
-+	for (y = 0; y < in_buf->vb.height; ++y) {
-+		for (t = 0; t < MEM2MEM_NUM_TILES; ++t) {
-+			if (w & 0x1) {
-+				for (x = 0; x < tile_w; ++x)
-+					*p_out++ = *p_in++ + MEM2MEM_COLOR_STEP;
-+			} else {
-+				for (x = 0; x < tile_w; ++x)
-+					*p_out++ = *p_in++ - MEM2MEM_COLOR_STEP;
-+			}
-+			++w;
-+		}
-+		p_in += bytes_left;
-+		p_out += bytes_left;
-+	}
-+
-+	return 0;
-+}
-+
-+static void schedule_irq(struct m2mtest_dev *dev, int msec_timeout)
-+{
-+	dprintk(dev, "Scheduling a fake irq\n");
-+	mod_timer(&dev->timer, jiffies + msecs_to_jiffies(msec_timeout));
-+}
-+
-+/*
-+ * mem2mem callbacks
-+ */
-+
-+/**
-+ * job_ready - check whether an instance is ready to be scheduled to run
-+ */
-+static int job_ready(void *priv)
-+{
-+	struct m2mtest_ctx *ctx = priv;
-+
-+	if (v4l2_m2m_num_src_bufs_ready(ctx->m2m_ctx) < ctx->translen
-+	    || v4l2_m2m_num_dst_bufs_ready(ctx->m2m_ctx) < ctx->translen) {
-+		dprintk(ctx->dev, "Not enough buffers available\n");
-+		return 0;
-+	}
-+
-+	return 1;
-+}
-+
-+static void job_abort(void *priv)
-+{
-+	struct m2mtest_ctx *ctx = priv;
-+
-+	/* Will cancel the transaction in the next interrupt handler */
-+	ctx->aborting = 1;
-+}
-+
-+/* device_run() - prepares and starts the device
-+ *
-+ * This simulates all the immediate preparations required
-+ * before starting a device.
-+ * This should be called by the framework when it devides to
-+ * schedule a particular instance.
-+ */
-+static void device_run(void *priv)
-+{
-+	struct m2mtest_ctx *ctx = priv;
-+	struct m2mtest_dev *dev = ctx->dev;
-+	struct m2mtest_buffer *src_buf, *dst_buf;
-+
-+	src_buf = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
-+	dst_buf = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
-+
-+	device_process(ctx, src_buf, dst_buf);
-+
-+	/* Run a timer, which simulates a hardware irq  */
-+	schedule_irq(dev, ctx->transtime);
-+}
-+
-+
-+static void device_isr(unsigned long priv)
-+{
-+	struct m2mtest_dev *m2mtest_dev = (struct m2mtest_dev *)priv;
-+	struct m2mtest_ctx *curr_ctx;
-+	struct m2mtest_buffer *src_buf, *dst_buf;
-+
-+	curr_ctx = v4l2_m2m_get_curr_priv(m2mtest_dev->m2m_dev);
-+
-+	if (NULL == curr_ctx) {
-+		printk(KERN_ERR
-+			"Instance released before end of transaction\n");
-+		return;
-+	}
-+
-+	src_buf = v4l2_m2m_src_buf_remove(curr_ctx->m2m_ctx);
-+	dst_buf = v4l2_m2m_dst_buf_remove(curr_ctx->m2m_ctx);
-+	curr_ctx->num_processed++;
-+
-+	if (curr_ctx->num_processed == curr_ctx->translen
-+	    || curr_ctx->aborting) {
-+		dprintk(curr_ctx->dev, "Finishing transaction\n");
-+		curr_ctx->num_processed = 0;
-+		v4l2_m2m_job_finish(m2mtest_dev->m2m_dev, curr_ctx->m2m_ctx);
-+		src_buf->vb.state = dst_buf->vb.state = VIDEOBUF_DONE;
-+		wake_up(&src_buf->vb.done);
-+		wake_up(&dst_buf->vb.done);
-+	} else {
-+		src_buf->vb.state = dst_buf->vb.state = VIDEOBUF_DONE;
-+		wake_up(&src_buf->vb.done);
-+		wake_up(&dst_buf->vb.done);
-+		device_run(curr_ctx);
-+	}
-+
-+	return;
-+}
-+
-+
-+/*
-+ * video ioctls
-+ */
-+
-+static int vidioc_querycap(struct file *file, void *priv,
-+			   struct v4l2_capability *cap)
-+{
-+	strncpy(cap->driver, MEM2MEM_NAME, sizeof(cap->driver) - 1);
-+	strncpy(cap->card, MEM2MEM_NAME, sizeof(cap->card) - 1);
-+	cap->bus_info[0] = 0;
-+	cap->version = KERNEL_VERSION(0, 1, 0);
-+	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT
-+			  | V4L2_CAP_STREAMING;
-+
-+	return 0;
-+}
-+
-+static int enum_fmt(struct v4l2_fmtdesc *f, u32 type)
-+{
-+	int i, num;
-+	struct m2mtest_fmt *fmt;
-+
-+	num = 0;
-+
-+	for (i = 0; i < NUM_FORMATS; ++i) {
-+		if (formats[i].types & type) {
-+			/* index-th format of type type found ? */
-+			if (num == f->index)
-+				break;
-+			/* Correct type but haven't reached our index yet,
-+			 * just increment per-type index */
-+			++num;
-+		}
-+	}
-+
-+	if (i < NUM_FORMATS) {
-+		/* Format found */
-+		fmt = &formats[i];
-+		strncpy(f->description, fmt->name, sizeof(f->description) - 1);
-+		f->pixelformat = fmt->fourcc;
-+		return 0;
-+	}
-+
-+	/* Format not found */
-+	return -EINVAL;
-+}
-+
-+static int vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
-+				   struct v4l2_fmtdesc *f)
-+{
-+	return enum_fmt(f, MEM2MEM_CAPTURE);
-+}
-+
-+static int vidioc_enum_fmt_vid_out(struct file *file, void *priv,
-+				   struct v4l2_fmtdesc *f)
-+{
-+	return enum_fmt(f, MEM2MEM_OUTPUT);
-+}
-+
-+static int vidioc_g_fmt(struct m2mtest_ctx *ctx, struct v4l2_format *f)
-+{
-+	struct videobuf_queue *vq;
-+	struct m2mtest_q_data *q_data;
-+
-+	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
-+	q_data = get_q_data(f->type);
-+
-+	f->fmt.pix.width	= q_data->width;
-+	f->fmt.pix.height	= q_data->height;
-+	f->fmt.pix.field	= vq->field;
-+	f->fmt.pix.pixelformat	= q_data->fmt->fourcc;
-+	f->fmt.pix.bytesperline	= (q_data->width * q_data->fmt->depth) >> 3;
-+	f->fmt.pix.sizeimage	= q_data->sizeimage;
-+
-+	return 0;
-+}
-+
-+static int vidioc_g_fmt_vid_out(struct file *file, void *priv,
-+				struct v4l2_format *f)
-+{
-+	return vidioc_g_fmt(priv, f);
-+}
-+
-+static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
-+				struct v4l2_format *f)
-+{
-+	return vidioc_g_fmt(priv, f);
-+}
-+
-+static int vidioc_try_fmt(struct v4l2_format *f, struct m2mtest_fmt *fmt)
-+{
-+	enum v4l2_field field;
-+
-+	field = f->fmt.pix.field;
-+
-+	if (field == V4L2_FIELD_ANY)
-+		field = V4L2_FIELD_NONE;
-+	else if (V4L2_FIELD_NONE != field)
-+		return -EINVAL;
-+
-+	/* V4L2 specification suggests the driver corrects the format struct
-+	 * if any of the dimensions is unsupported */
-+	f->fmt.pix.field = field;
-+
-+	if (f->fmt.pix.height < MIN_H)
-+		f->fmt.pix.height = MIN_H;
-+	else if (f->fmt.pix.height > MAX_H)
-+		f->fmt.pix.height = MAX_H;
-+
-+	if (f->fmt.pix.width < MIN_W)
-+		f->fmt.pix.width = MIN_W;
-+	else if (f->fmt.pix.width > MAX_W)
-+		f->fmt.pix.width = MAX_W;
-+
-+	f->fmt.pix.width &= ~DIM_ALIGN_MASK;
-+	f->fmt.pix.bytesperline = (f->fmt.pix.width * fmt->depth) >> 3;
-+	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
-+
-+	return 0;
-+}
-+
-+static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
-+				  struct v4l2_format *f)
-+{
-+	struct m2mtest_fmt *fmt;
-+	struct m2mtest_ctx *ctx = priv;
-+
-+	fmt = find_format(f);
-+	if (!fmt || !(fmt->types & MEM2MEM_CAPTURE)) {
-+		v4l2_err(&ctx->dev->v4l2_dev,
-+			 "Fourcc format (0x%08x) invalid.\n",
-+			 f->fmt.pix.pixelformat);
-+		return -EINVAL;
-+	}
-+
-+	return vidioc_try_fmt(f, fmt);
-+}
-+
-+static int vidioc_try_fmt_vid_out(struct file *file, void *priv,
-+				  struct v4l2_format *f)
-+{
-+	struct m2mtest_fmt *fmt;
-+	struct m2mtest_ctx *ctx = priv;
-+
-+	fmt = find_format(f);
-+	if (!fmt || !(fmt->types & MEM2MEM_OUTPUT)) {
-+		v4l2_err(&ctx->dev->v4l2_dev,
-+			 "Fourcc format (0x%08x) invalid.\n",
-+			 f->fmt.pix.pixelformat);
-+		return -EINVAL;
-+	}
-+
-+	return vidioc_try_fmt(f, fmt);
-+}
-+
-+static int vidioc_s_fmt(struct m2mtest_ctx *ctx, struct v4l2_format *f)
-+{
-+	struct m2mtest_q_data *q_data;
-+	struct videobuf_queue *vq;
-+	int ret = 0;
-+
-+	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
-+	q_data = get_q_data(f->type);
-+	if (!q_data)
-+		return -EINVAL;
-+
-+	mutex_lock(&vq->vb_lock);
-+
-+	if (videobuf_queue_is_busy(vq)) {
-+		v4l2_err(&ctx->dev->v4l2_dev,
-+			 "%s queue busy\n", __func__);
-+		ret = -EBUSY;
-+		goto out;
-+	}
-+
-+	q_data->fmt		= find_format(f);
-+	q_data->width		= f->fmt.pix.width;
-+	q_data->height		= f->fmt.pix.height;
-+	q_data->sizeimage	= q_data->width * q_data->height
-+				* q_data->fmt->depth >> 3;
-+	vq->field		= f->fmt.pix.field;
-+
-+	dprintk(ctx->dev,
-+		"Setting format for type %d, wxh: %dx%d, fmt: %d\n",
-+		f->type, q_data->width, q_data->height, q_data->fmt->fourcc);
-+
-+out:
-+	mutex_unlock(&vq->vb_lock);
-+	return ret;
-+}
-+
-+static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
-+				struct v4l2_format *f)
-+{
-+	int ret;
-+
-+	ret = vidioc_try_fmt_vid_cap(file, priv, f);
-+	if (ret)
-+		return ret;
-+
-+	return vidioc_s_fmt(priv, f);
-+}
-+
-+static int vidioc_s_fmt_vid_out(struct file *file, void *priv,
-+				struct v4l2_format *f)
-+{
-+	int ret;
-+
-+	ret = vidioc_try_fmt_vid_out(file, priv, f);
-+	if (ret)
-+		return ret;
-+
-+	return vidioc_s_fmt(priv, f);
-+}
-+
-+static int vidioc_reqbufs(struct file *file, void *priv,
-+			  struct v4l2_requestbuffers *reqbufs)
-+{
-+	struct m2mtest_ctx *ctx = priv;
-+
-+	return v4l2_m2m_reqbufs(file, ctx->m2m_ctx, reqbufs);
-+}
-+
-+static int vidioc_querybuf(struct file *file, void *priv,
-+			   struct v4l2_buffer *buf)
-+{
-+	struct m2mtest_ctx *ctx = priv;
-+
-+	return v4l2_m2m_querybuf(file, ctx->m2m_ctx, buf);
-+}
-+
-+static int vidioc_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
-+{
-+	struct m2mtest_ctx *ctx = priv;
-+
-+	return v4l2_m2m_qbuf(file, ctx->m2m_ctx, buf);
-+}
-+
-+static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
-+{
-+	struct m2mtest_ctx *ctx = priv;
-+
-+	return v4l2_m2m_dqbuf(file, ctx->m2m_ctx, buf);
-+}
-+
-+static int vidioc_streamon(struct file *file, void *priv,
-+			   enum v4l2_buf_type type)
-+{
-+	struct m2mtest_ctx *ctx = priv;
-+
-+	return v4l2_m2m_streamon(file, ctx->m2m_ctx, type);
-+}
-+
-+static int vidioc_streamoff(struct file *file, void *priv,
-+			    enum v4l2_buf_type type)
-+{
-+	struct m2mtest_ctx *ctx = priv;
-+
-+	return v4l2_m2m_streamoff(file, ctx->m2m_ctx, type);
-+}
-+
-+static int vidioc_queryctrl(struct file *file, void *priv,
-+			    struct v4l2_queryctrl *qc)
-+{
-+	struct v4l2_queryctrl *c;
-+
-+	c = get_ctrl(qc->id);
-+	if (!c)
-+		return -EINVAL;
-+
-+	*qc = *c;
-+	return 0;
-+}
-+
-+static int vidioc_g_ctrl(struct file *file, void *priv,
-+			 struct v4l2_control *ctrl)
-+{
-+	struct m2mtest_ctx *ctx = priv;
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_TRANS_TIME_MSEC:
-+		ctrl->value = ctx->transtime;
-+		break;
-+
-+	case V4L2_CID_TRANS_NUM_BUFS:
-+		ctrl->value = ctx->translen;
-+		break;
-+
-+	default:
-+		v4l2_err(&ctx->dev->v4l2_dev, "Invalid control\n");
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int check_ctrl_val(struct m2mtest_ctx *ctx, struct v4l2_control *ctrl)
-+{
-+	struct v4l2_queryctrl *c;
-+
-+	c = get_ctrl(ctrl->id);
-+	if (!c)
-+		return -EINVAL;
-+
-+	if (ctrl->value < c->minimum
-+	    || ctrl->value > c->maximum) {
-+		v4l2_err(&ctx->dev->v4l2_dev, "Value out of range\n");
-+		return -ERANGE;
-+	}
-+
-+	return 0;
-+}
-+
-+static int vidioc_s_ctrl(struct file *file, void *priv,
-+			 struct v4l2_control *ctrl)
-+{
-+	struct m2mtest_ctx *ctx = priv;
-+	int ret = 0;
-+
-+	ret = check_ctrl_val(ctx, ctrl);
-+	if (ret != 0)
-+		return ret;
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_TRANS_TIME_MSEC:
-+		ctx->transtime = ctrl->value;
-+		break;
-+
-+	case V4L2_CID_TRANS_NUM_BUFS:
-+		ctx->translen = ctrl->value;
-+		break;
-+
-+	default:
-+		v4l2_err(&ctx->dev->v4l2_dev, "Invalid control\n");
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+
-+static const struct v4l2_ioctl_ops m2mtest_ioctl_ops = {
-+	.vidioc_querycap	= vidioc_querycap,
-+
-+	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
-+	.vidioc_g_fmt_vid_cap	= vidioc_g_fmt_vid_cap,
-+	.vidioc_try_fmt_vid_cap	= vidioc_try_fmt_vid_cap,
-+	.vidioc_s_fmt_vid_cap	= vidioc_s_fmt_vid_cap,
-+
-+	.vidioc_enum_fmt_vid_out = vidioc_enum_fmt_vid_out,
-+	.vidioc_g_fmt_vid_out	= vidioc_g_fmt_vid_out,
-+	.vidioc_try_fmt_vid_out	= vidioc_try_fmt_vid_out,
-+	.vidioc_s_fmt_vid_out	= vidioc_s_fmt_vid_out,
-+
-+	.vidioc_reqbufs		= vidioc_reqbufs,
-+	.vidioc_querybuf	= vidioc_querybuf,
-+
-+	.vidioc_qbuf		= vidioc_qbuf,
-+	.vidioc_dqbuf		= vidioc_dqbuf,
-+
-+	.vidioc_streamon	= vidioc_streamon,
-+	.vidioc_streamoff	= vidioc_streamoff,
-+
-+	.vidioc_queryctrl	= vidioc_queryctrl,
-+	.vidioc_g_ctrl		= vidioc_g_ctrl,
-+	.vidioc_s_ctrl		= vidioc_s_ctrl,
-+};
-+
-+
-+/*
-+ * Queue operations
-+ */
-+
-+static void m2mtest_buf_release(struct videobuf_queue *vq,
-+				struct videobuf_buffer *vb)
-+{
-+	struct m2mtest_ctx *ctx = vq->priv_data;
-+
-+	dprintk(ctx->dev, "type: %d, index: %d, state: %d\n",
-+		vq->type, vb->i, vb->state);
-+
-+	videobuf_vmalloc_free(vb);
-+	vb->state = VIDEOBUF_NEEDS_INIT;
-+}
-+
-+static int m2mtest_buf_setup(struct videobuf_queue *vq, unsigned int *count,
-+			  unsigned int *size)
-+{
-+	struct m2mtest_ctx *ctx = vq->priv_data;
-+	struct m2mtest_q_data *q_data;
-+
-+	q_data = get_q_data(vq->type);
-+
-+	*size = q_data->width * q_data->height * q_data->fmt->depth >> 3;
-+	dprintk(ctx->dev, "size:%d, w/h %d/%d, depth: %d\n",
-+		*size, q_data->width, q_data->height, q_data->fmt->depth);
-+
-+	if (0 == *count)
-+		*count = MEM2MEM_DEF_NUM_BUFS;
-+
-+	while (*size * *count > MEM2MEM_VID_MEM_LIMIT)
-+		(*count)--;
-+
-+	v4l2_info(&ctx->dev->v4l2_dev,
-+		  "%d buffers of size %d set up.\n", *count, *size);
-+
-+	return 0;
-+}
-+
-+static int m2mtest_buf_prepare(struct videobuf_queue *vq,
-+			       struct videobuf_buffer *vb,
-+			       enum v4l2_field field)
-+{
-+	struct m2mtest_ctx *ctx = vq->priv_data;
-+	struct m2mtest_q_data *q_data;
-+	int ret;
-+
-+	dprintk(ctx->dev, "type: %d, index: %d, state: %d\n",
-+		vq->type, vb->i, vb->state);
-+
-+	q_data = get_q_data(vq->type);
-+
-+	if (vb->baddr) {
-+		/* User-provided buffer */
-+		if (vb->bsize < q_data->sizeimage) {
-+			/* Buffer too small to fit a frame */
-+			v4l2_err(&ctx->dev->v4l2_dev,
-+				 "User-provided buffer too small (%d < %d)\n",
-+				 q_data->sizeimage, vb->bsize);
-+			return -EINVAL;
-+		}
-+	} else if (vb->state != VIDEOBUF_NEEDS_INIT
-+			&& vb->bsize < q_data->sizeimage) {
-+		/* We provide the buffer, but it's already been inited
-+		 * and is too small */
-+		return -EINVAL;
-+	}
-+
-+	vb->width	= q_data->width;
-+	vb->height	= q_data->height;
-+	vb->bytesperline = (q_data->width * q_data->fmt->depth) >> 3;
-+	vb->size	= q_data->sizeimage;
-+	vb->field	= field;
-+
-+	if (VIDEOBUF_NEEDS_INIT == vb->state) {
-+		ret = videobuf_iolock(vq, vb, NULL);
-+		if (ret) {
-+			v4l2_err(&ctx->dev->v4l2_dev,
-+				 "Iolock failed\n");
-+			goto fail;
-+		}
-+	}
-+
-+	vb->state = VIDEOBUF_PREPARED;
-+
-+	return 0;
-+fail:
-+	m2mtest_buf_release(vq, vb);
-+	return ret;
-+}
-+
-+static void m2mtest_buf_queue(struct videobuf_queue *vq,
-+			   struct videobuf_buffer *vb)
-+{
-+	struct m2mtest_ctx *ctx = vq->priv_data;
-+
-+	v4l2_m2m_buf_queue(ctx->m2m_ctx, vq, vb);
-+}
-+
-+static struct videobuf_queue_ops m2mtest_qops = {
-+	.buf_setup	= m2mtest_buf_setup,
-+	.buf_prepare	= m2mtest_buf_prepare,
-+	.buf_queue	= m2mtest_buf_queue,
-+	.buf_release	= m2mtest_buf_release,
-+};
-+
-+static void queue_init(void *priv, struct videobuf_queue *vq,
-+		       enum v4l2_buf_type type)
-+{
-+	struct m2mtest_ctx *ctx = priv;
-+
-+	videobuf_queue_vmalloc_init(vq, &m2mtest_qops, ctx->dev->v4l2_dev.dev,
-+				    &ctx->dev->irqlock, type, V4L2_FIELD_NONE,
-+				    sizeof(struct m2mtest_buffer), priv);
-+}
-+
-+
-+/*
-+ * File operations
-+ */
-+static int m2mtest_open(struct file *file)
-+{
-+	struct m2mtest_dev *dev = video_drvdata(file);
-+	struct m2mtest_ctx *ctx = NULL;
-+
-+	atomic_inc(&dev->num_inst);
-+
-+	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
-+	if (!ctx) {
-+		atomic_dec(&dev->num_inst);
-+		return -ENOMEM;
-+	}
-+
-+	file->private_data = ctx;
-+	ctx->dev = dev;
-+	ctx->translen = MEM2MEM_DEF_TRANSLEN;
-+	ctx->transtime = MEM2MEM_DEF_TRANSTIME;
-+	ctx->num_processed = 0;
-+
-+	ctx->m2m_ctx = v4l2_m2m_ctx_init(ctx, dev->m2m_dev, queue_init);
-+
-+	if (IS_ERR(ctx->m2m_ctx)) {
-+		kfree(ctx);
-+		atomic_dec(&dev->num_inst);
-+		return PTR_ERR(ctx->m2m_ctx);
-+	}
-+
-+	dprintk(dev, "Created instance %p, m2m_ctx: %p\n", ctx, ctx->m2m_ctx);
-+
-+	return 0;
-+}
-+
-+static int m2mtest_release(struct file *file)
-+{
-+	struct m2mtest_dev *dev = video_drvdata(file);
-+	struct m2mtest_ctx *ctx = file->private_data;
-+
-+	dprintk(dev, "Releasing instance %p\n", ctx);
-+
-+	v4l2_m2m_ctx_release(ctx->m2m_ctx);
-+	kfree(ctx);
-+
-+	atomic_dec(&dev->num_inst);
-+
-+	return 0;
-+}
-+
-+static unsigned int m2mtest_poll(struct file *file,
-+				 struct poll_table_struct *wait)
-+{
-+	struct m2mtest_ctx *ctx = (struct m2mtest_ctx *)file->private_data;
-+
-+	return v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
-+}
-+
-+static int m2mtest_mmap(struct file *file, struct vm_area_struct *vma)
-+{
-+	struct m2mtest_ctx *ctx = (struct m2mtest_ctx *)file->private_data;
-+
-+	return v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
-+}
-+
-+static const struct v4l2_file_operations m2mtest_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= m2mtest_open,
-+	.release	= m2mtest_release,
-+	.poll		= m2mtest_poll,
-+	.ioctl		= video_ioctl2,
-+	.mmap		= m2mtest_mmap,
-+};
-+
-+static struct video_device m2mtest_videodev = {
-+	.name		= MEM2MEM_NAME,
-+	.fops		= &m2mtest_fops,
-+	.ioctl_ops	= &m2mtest_ioctl_ops,
-+	.minor		= -1,
-+	.release	= video_device_release,
-+};
-+
-+static struct v4l2_m2m_ops m2m_ops = {
-+	.device_run	= device_run,
-+	.job_ready	= job_ready,
-+	.job_abort	= job_abort,
-+};
-+
-+static int m2mtest_probe(struct platform_device *pdev)
-+{
-+	struct m2mtest_dev *dev;
-+	struct video_device *vfd;
-+	int ret;
-+
-+	dev = kzalloc(sizeof *dev, GFP_KERNEL);
-+	if (!dev)
-+		return -ENOMEM;
-+
-+	spin_lock_init(&dev->irqlock);
-+
-+	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
-+	if (ret)
-+		goto free_dev;
-+
-+	atomic_set(&dev->num_inst, 0);
-+	mutex_init(&dev->dev_mutex);
-+
-+	vfd = video_device_alloc();
-+	if (!vfd) {
-+		v4l2_err(&dev->v4l2_dev, "Failed to allocate video device\n");
-+		goto unreg_dev;
-+	}
-+
-+	*vfd = m2mtest_videodev;
-+
-+	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
-+	if (ret) {
-+		v4l2_err(&dev->v4l2_dev, "Failed to register video device\n");
-+		goto rel_vdev;
-+	}
-+
-+	video_set_drvdata(vfd, dev);
-+	snprintf(vfd->name, sizeof(vfd->name), "%s", m2mtest_videodev.name);
-+	dev->vfd = vfd;
-+	v4l2_info(&dev->v4l2_dev, MEM2MEM_TEST_MODULE_NAME
-+			"Device registered as /dev/video%d\n", vfd->num);
-+
-+	setup_timer(&dev->timer, device_isr, (long)dev);
-+	platform_set_drvdata(pdev, dev);
-+
-+	dev->m2m_dev = v4l2_m2m_init(&m2m_ops);
-+	if (IS_ERR(dev->m2m_dev)) {
-+		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem device\n");
-+		ret = PTR_ERR(dev->m2m_dev);
-+		goto err_m2m;
-+	}
-+
-+	return 0;
-+
-+err_m2m:
-+	video_unregister_device(dev->vfd);
-+rel_vdev:
-+	video_device_release(vfd);
-+unreg_dev:
-+	v4l2_device_unregister(&dev->v4l2_dev);
-+free_dev:
-+	kfree(dev);
-+
-+	return ret;
-+}
-+
-+static int m2mtest_remove(struct platform_device *pdev)
-+{
-+	struct m2mtest_dev *dev =
-+		(struct m2mtest_dev *)platform_get_drvdata(pdev);
-+
-+	v4l2_info(&dev->v4l2_dev, "Removing " MEM2MEM_TEST_MODULE_NAME);
-+	v4l2_m2m_release(dev->m2m_dev);
-+	del_timer_sync(&dev->timer);
-+	video_unregister_device(dev->vfd);
-+	v4l2_device_unregister(&dev->v4l2_dev);
-+	kfree(dev);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver m2mtest_pdrv = {
-+	.probe		= m2mtest_probe,
-+	.remove		= m2mtest_remove,
-+	.driver		= {
-+		.name	= MEM2MEM_NAME,
-+		.owner	= THIS_MODULE,
-+	},
-+};
-+
-+static void __exit m2mtest_exit(void)
-+{
-+	platform_driver_unregister(&m2mtest_pdrv);
-+	platform_device_unregister(&m2mtest_pdev);
-+}
-+
-+static int __init m2mtest_init(void)
-+{
-+	int ret;
-+
-+	ret = platform_device_register(&m2mtest_pdev);
-+	if (ret)
-+		return ret;
-+
-+	ret = platform_driver_register(&m2mtest_pdrv);
-+	if (ret)
-+		platform_device_unregister(&m2mtest_pdev);
-+
-+	return 0;
-+}
-+
-+module_init(m2mtest_init);
-+module_exit(m2mtest_exit);
-+
+> 
+> >> if we use code[0] as an index, this means that we'll need to share the 32 bits on code[1]
+> >> for scancode/keycode. Even using an 32 bits integer for keycode, it is currently limited to:
+> >>
+> >> #define KEY_MAX                 0x2ff
+> >> #define KEY_CNT                 (KEY_MAX+1)
+> >>
+> >> So, we have 10 bits already used for keycode. This gives only 22 bits for scancodes, if we share
+> >> codes[1] for both keycode/scancode. By sharing the 32 bits, we'll need to be care to not extend
+> >> KEY_MAX to be bigger than 0x3ff, otherwise the keytable won't be able to represent all keys of the
+> >> key universe.
+> >>
+> >> What is need for this case is that the arguments for get key/set key to be something like:
+> >>
+> >> struct {
+> >> 	u16	index;
+> >> 	u64	scancode;
+> >> 	u32	keycode;
+> >> };
+> >>
+> > 
+> > Hmm, so what is this index? I am confused...
+> 
+> It is the sequence number of a scancode/keycode tuple stored at the keycode table.
+> 
+> Better than saying it in words, let me put a code snippet:
+> 
+> at include/linux/input.h, we'll add a code like:
+> 
+> struct input_keytable_entry {
+>  	u16	index;
+>  	u64	scancode;
+>  	u32	keycode;
+> } __attribute__ ((packed));
+> 
+> (the attribute packed avoids needing a compat for 64 bits)
+> 
+> #define EVIOGKEYCODEENTRY _IOR('E', 0x85, struct input_keytable_entry)
+> 
+> (and a similar ioctl for setkeycode)
+> 
+> This struct will be used by the new 
+> 
+> at include/media/ir-common.h, we already have:
+> 
+> struct ir_scancode {
+>         u16     scancode;
+>         u32     keycode;
+> };
+> 
+> struct ir_scancode_table {
+>         struct ir_scancode *scan;
+>         int size;
+> 	...
+> };
+> 
+> The code at ir core that will handle the ioctl will be like:
+> 
+> static int ir_getkeycode_entry(struct input_dev *dev, struct input_keytable_entry *ike)
+> {
+> 	struct ir_scancode_table *rc_tab = input_get_drvdata(dev);
+> 
+> 	if (rc_tab->size >= ike->index)
+> 		return -EINVAL;
+> 
+> 	irk->scancode = rctab->scan->scancode;
+> 	irk->keycode = rctab->scan->keycode;
+> 	
+> 	return 0;
+> }
+>
+
+OK, but why do you even want to expose scancode to userpsace using
+evdev here? Lircd-type applications might be interested, but they are
+going to use lircd. For the rest of userpsace index can be used as a
+"scancode" just as easily.
+
+Scancodes in input system never been real scancodes. Even if you look
+into atkbd it uses some synthetic data composed out of real scancodes
+sent to the keyboard, and noone cares. If you are unsatisfied with
+mapping you fire up evtest, press the key, take whatever the driver
+[mis]represents as a scancode and use it to load the new definition. And
+you don't care at all whether the thing that driver calls cancode makes
+any sense to the hardware device.
+
 -- 
-1.6.4.2.253.g0b1fac
-
+Dmitry
