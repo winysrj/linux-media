@@ -1,55 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:49342 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752371AbZLNIhQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Dec 2009 03:37:16 -0500
-Date: Mon, 14 Dec 2009 09:37:30 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS,
- 2.6.16-2.6.21: ERRORS
-Message-ID: <20091214093730.75a5a0a2@tele>
-In-Reply-To: <4B2552A4.5090901@freemail.hu>
-References: <200912131922.nBDJMMUm030337@smtp-vbr6.xs4all.nl>
-	<4B2552A4.5090901@freemail.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:56601 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935596AbZLGViN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Dec 2009 16:38:13 -0500
+Date: Mon, 7 Dec 2009 13:38:11 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Krzysztof Halasa <khc@pm.waw.pl>
+Cc: Jon Smirl <jonsmirl@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
+	kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+	IR  system?
+Message-ID: <20091207213811.GE998@core.coreip.homeip.net>
+References: <BEJgSGGXqgB@lirc> <9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com> <1260070593.3236.6.camel@pc07.localdom.local> <20091206065512.GA14651@core.coreip.homeip.net> <4B1B99A5.2080903@redhat.com> <m3638k6lju.fsf@intrepid.localdomain> <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com> <m3skbn6dv1.fsf@intrepid.localdomain> <20091207184153.GD998@core.coreip.homeip.net> <m3my1u35t2.fsf@intrepid.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <m3my1u35t2.fsf@intrepid.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 13 Dec 2009 21:46:28 +0100
-Németh Márton <nm127@freemail.hu> wrote:
+On Mon, Dec 07, 2009 at 09:08:57PM +0100, Krzysztof Halasa wrote:
+> Dmitry Torokhov <dmitry.torokhov@gmail.com> writes:
+> 
+> >> There is only one thing which needs attention before/when merging LIRC:
+> >> the LIRC user-kernel interface. In-kernel "IR system" is irrelevant and,
+> >> actually, making a correct IR core design without the LIRC merged can be
+> >> only harder.
+> >
+> > This sounds like "merge first, think later"...
+> 
+> I'd say "merge the sane agreed and stable things first and think later
+> about improvements".
+> 
+> > The question is why we need to merge lirc interface right now, before we
+> > agreed on the sybsystem architecture?
+> 
+> Because we need the features and we can't improve something which is
+> outside the kernel. What "subsystem architecture" do you want to
+> discuss? Unrelated (input layer) interface?
+>
 
-> It seems that kernels before 2.6.24 (inclusively) do not have
-> "__devinitconst", so  conex.c and etoms.c can only build with 2.6.25
-> and later. Should USB_GSPCA_CONEX and USB_GSPCA_ETOMS be added to
-> v4l/versions.txt?
+No, the IR core responsible for registering receivers and decoders.
 
-The fix is not the right one. Some other gspca subdrivers use
-"__devinitconst" (pac7302, pac7311, sonixb and spca506). The fix is to
-define the macro for kernels < 2.6.25:
+> Those are simple things. The only part which needs to be stable is the
+> (in this case LIRC) kernel-user interface.
 
-diff -r 174ad3097f17 linux/drivers/media/video/gspca/gspca.h
---- a/linux/drivers/media/video/gspca/gspca.h   Sun Dec 13 18:11:07
-2009 +0100
-+++ b/linux/drivers/media/video/gspca/gspca.h   Mon Dec 14 09:28:51
-2009 +0100 @@ -11,6 +11,10 @@ /* compilation option */
- #define GSPCA_DEBUG 1
- 
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 25)
-+#define __devinitconst __section(.devinit.rodata)
-+#endif
-+
- #ifdef GSPCA_DEBUG
- /* GSPCA our debug messages */
- extern int gspca_debug;
+For which some questions are still open. I believe Jon just oulined some
+of them.
 
-I will ask to upload the changeset (actually in my test repository) as
-soon as it is validated (i.e. if it works with hal).
+> 
+> > Noone _in kernel_ user lirc-dev
+> > yet and, looking at the way things are shaping, no drivers will be
+> > _directly_ using it after it is complete. So, even if we merge it right
+> > away, the code will have to be restructured and reworked.
+> 
+> Sure. We do this constantly to every part of the kernel.
+
+No we do not. We do not merge something that we expect to rework almost
+completely (no, not the lirc-style device userspace inetrface, although
+even it is not completely finalized I believe, but the rest of the
+subsystem).
+
+> 
+> > Unfortunately,
+> > just merging what Jarod posted, will introduce sysfs hierarchy which
+> > is userspace interface as well (although we not as good maintaining it
+> > at times) and will add more constraints on us.
+> 
+> Then perhaps it should be skipped, leaving only the things udev needs to
+> create /dev/ entries. They don't have to be particularly stable.
+> Perhaps it should go to the staging first. We can't work with the code
+> outside the kernel, staging has not such limitation.
+
+OK, say we add this to staging as is. What is next? Who will be using
+this code that is now in staging? Do we encougrage driver's writers to
+hook into it (given that we intend on redoing it soon)? Do something
+else?
+
+> 
+> > That is why I think we should go the other way around - introduce the
+> > core which receivers could plug into and decoder framework and once it
+> > is ready register lirc-dev as one of the available decoders.
+> 
+> That means all the work has to be kept and then merged "atomically",
+> it seems there is a lack of manpower for this.
+
+No, not at all. You merge core subsystem code, then start addig
+decoders... In the meantime driver-writers could start preparing their
+drivers to plug into it.
+
+In the mean time out-of-tree LIRC can be used by consumers undisturbed.
 
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Dmitry
