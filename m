@@ -1,42 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:51496 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757438AbZLDV6k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2009 16:58:40 -0500
-Message-ID: <4B19860E.7000408@infradead.org>
-Date: Fri, 04 Dec 2009 19:58:38 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from mout5.freenet.de ([195.4.92.95]:34850 "EHLO mout5.freenet.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932394AbZLGUMA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Dec 2009 15:12:00 -0500
+Message-ID: <4B1D6194.4090308@freenet.de>
+Date: Mon, 07 Dec 2009 21:12:04 +0100
+From: Ruediger Dohmhardt <ruediger.dohmhardt@freenet.de>
 MIME-Version: 1.0
-To: Randy Dunlap <randy.dunlap@oracle.com>
-CC: Andrew Morton <akpm@linux-foundation.org>,
-	linux-media@vger.kernel.org
-Subject: Re: linux-next i386 allmodconfig
-References: <20091203225737.1613b137.akpm@linux-foundation.org> <20091204082134.419e9580.randy.dunlap@oracle.com>
-In-Reply-To: <20091204082134.419e9580.randy.dunlap@oracle.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Manu Abraham <abraham.manu@gmail.com>, linux-media@vger.kernel.org
+Subject: Which modules for the VP-2033? Where is the module "mantis.ko"?
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Randy Dunlap wrote:
-> On Thu, 3 Dec 2009 22:57:37 -0800 Andrew Morton wrote:
-> 
->> ERROR: "__divdf3" [drivers/media/dvb/frontends/atbm8830.ko] undefined!
->> ERROR: "__adddf3" [drivers/media/dvb/frontends/atbm8830.ko] undefined!
->> ERROR: "__fixunsdfsi" [drivers/media/dvb/frontends/atbm8830.ko] undefined!
->> ERROR: "__udivdi3" [drivers/media/dvb/frontends/atbm8830.ko] undefined!
->> ERROR: "__floatsidf" [drivers/media/dvb/frontends/atbm8830.ko] undefined!
->> ERROR: "__muldf3" [drivers/media/dvb/frontends/atbm8830.ko] undefined!
->> ERROR: "__adddf3" [drivers/media/common/tuners/max2165.ko] undefined!
->> ERROR: "__fixunsdfsi" [drivers/media/common/tuners/max2165.ko] undefined!
->> ERROR: "__floatsidf" [drivers/media/common/tuners/max2165.ko] undefined!
->>
->> would be nice to get that fixed up before merging.
->> --
-> 
-> Already reported and patches sent to me & tested/acked.
+Hi Manu,
 
-I've merged it on my linux-next tree today.
+the driver from http://jusst.de/hg/v4l-dvb/ compiles fine on Suse-11.1
+(2.6.27.39-0.2-default).
 
-Cheers,
-Mauro.
+However, it does not build the module "mantis.ko", as it used to be.
+Where is it?
+A search for mantis like
+
+    cd v4l-dvb-ccd0c555c680
+    find . -name "mantis*.ko"
+
+    -> ./v4l/mantis_core.ko
+
+shows up just the mantis_core.ko.
+
+Which modules I'm supposed to load for the VP-2033?
+
+Ciao Ruediger
+
+
+
