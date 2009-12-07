@@ -1,30 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37498 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752070AbZLAQLT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Dec 2009 11:11:19 -0500
-Message-ID: <4B15402B.4070907@iki.fi>
-Date: Tue, 01 Dec 2009 18:11:23 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:33924 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757698AbZLGWtU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Dec 2009 17:49:20 -0500
+Received: by bwz27 with SMTP id 27so3979728bwz.21
+        for <linux-media@vger.kernel.org>; Mon, 07 Dec 2009 14:49:25 -0800 (PST)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: linux-media@vger.kernel.org,
+	Patrick Boettcher <patrick.boettcher@desy.de>,
+	Olivier Grenie <olivier.grenie@dibcom.fr>
+Subject: dib0090.h need attention - copy-paste errors
+Date: Tue, 8 Dec 2009 00:49:10 +0200
 MIME-Version: 1.0
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Replace Mercurial with GIT as SCM
-References: <alpine.LRH.2.00.0912011003480.30797@pub3.ifh.de>
-In-Reply-To: <alpine.LRH.2.00.0912011003480.30797@pub3.ifh.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200912080049.10790.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/01/2009 04:59 PM, Patrick Boettcher wrote:
-> I'm waiting for comments.
+Part of dib0090.h:
 
-GIT
+91 static inline enum frontend_tune_state dib0090_get_tune_state(struct dvb_frontend *fe)
+92 {
+93 printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+94 return CT_DONE;
+95 }
+96
+97 static inline int dib0090_set_tune_state(struct dvb_frontend *fe, enum frontend_tune_state 
+tune_state)
+98 {
+99 printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+100 return -ENODEV;
+101 }
+102
+103 static inline num frontend_tune_state dib0090_get_tune_state(struct dvb_frontend *fe)
+104 {
+105 printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+106 return CT_SHUTDOWN,}
+107 
 
-I have never used Git but as it is used by main Linux kernel devel tree 
-I would prefer that too.
-
-Antti
 -- 
-http://palosaari.fi/
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
