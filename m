@@ -1,51 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet11.oracle.com ([141.146.126.233]:41605 "EHLO
-	acsinet11.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751466AbZLSDTb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Dec 2009 22:19:31 -0500
-Date: Fri, 18 Dec 2009 19:18:59 -0800
-From: Randy Dunlap <randy.dunlap@oracle.com>
-To: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-media@vger.kernel.org
-Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-Subject: Re: linux-next: Tree for December 19 (media/mantis)
-Message-Id: <20091218191859.ca78c2f1.randy.dunlap@oracle.com>
-In-Reply-To: <20091219110457.d6c5de1f.sfr@canb.auug.org.au>
-References: <20091219110457.d6c5de1f.sfr@canb.auug.org.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from znsun1.ifh.de ([141.34.1.16]:54767 "EHLO znsun1.ifh.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933848AbZLGL1T (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Dec 2009 06:27:19 -0500
+Received: from pub6.ifh.de (pub6.ifh.de [141.34.15.118])
+	by znsun1.ifh.de (8.12.11.20060614/8.12.11) with ESMTP id nB7BRLxR019162
+	for <linux-media@vger.kernel.org>; Mon, 7 Dec 2009 12:27:21 +0100 (MET)
+Received: from localhost (localhost [127.0.0.1])
+	by pub6.ifh.de (Postfix) with ESMTP id CFB21300124
+	for <linux-media@vger.kernel.org>; Mon,  7 Dec 2009 12:27:20 +0100 (CET)
+Date: Mon, 7 Dec 2009 12:27:20 +0100 (CET)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: DiB0700: streaming buffer size changed
+Message-ID: <alpine.LRH.2.00.0912071224350.13793@pub6.ifh.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 19 Dec 2009 11:04:57 +1100 Stephen Rothwell wrote:
+Hello DiB0700-users,
 
-> Hi all,
-> 
-> I said:
-> > News:  there will be no linux-next releases until at least Dec 24 and,
-> > more likely, Dec 29.  Have a Merry Christmas and take a break.  :-)
-> 
-> Well, I decided I had time for one more so it will be based in -rc1).
-> 
-> This one has not had the build testing *between* merges, but has had all
-> the normal build testing at the end.  Since the latter testing showed no
-> problems, this just means that there may be more unbisectable points in
-> the tree (but that is unlikely).
+Soon Mauro will pull in some changes on the dib0700-usb bridge which will 
+change the streaming-buffer-size by default.
 
+According to our tests this should not create any problems and 
+unfortunately it won't fix anything except some timeouts on low-bitrate 
+services/sections when HW-PID-filtering is enabled.
 
+If anyone of you DiB0700-users experiences any odd behaviour after the 
+patch has been applied to v4l-dvb, please report immediatly.
 
-ERROR: "ir_input_register" [drivers/media/dvb/mantis/mantis_core.ko] undefined!
-ERROR: "ir_input_unregister" [drivers/media/dvb/mantis/mantis_core.ko] undefined!
-ERROR: "ir_input_init" [drivers/media/dvb/mantis/mantis_core.ko] undefined!
-ERROR: "input_free_device" [drivers/media/dvb/mantis/mantis_core.ko] undefined!
-ERROR: "input_allocate_device" [drivers/media/dvb/mantis/mantis_core.ko] undefined!
+thanks,
 
+--
 
-
-CONFIG_INPUT=n
-
-
----
-~Randy
+Patrick
+http://www.kernellabs.com/
