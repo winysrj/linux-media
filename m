@@ -1,86 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f209.google.com ([209.85.219.209]:48399 "EHLO
-	mail-ew0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756854AbZLKORr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2009 09:17:47 -0500
-Received: by ewy1 with SMTP id 1so1077772ewy.28
-        for <linux-media@vger.kernel.org>; Fri, 11 Dec 2009 06:17:53 -0800 (PST)
-Message-ID: <4B2254A4.3080105@flumotion.com>
-Date: Fri, 11 Dec 2009 15:18:12 +0100
-From: =?ISO-8859-1?Q?Guillem_Sol=E0?= <garanda@flumotion.com>
+Received: from mx1.redhat.com ([209.132.183.28]:35797 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935711AbZLGXuj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Dec 2009 18:50:39 -0500
+Message-ID: <4B1D94C4.3030102@redhat.com>
+Date: Mon, 07 Dec 2009 21:50:28 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: TveiiS470 and DVBWorld2005 not working
-References: <4B21260D.9080408@flumotion.com>
-In-Reply-To: <4B21260D.9080408@flumotion.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+To: Christoph Bartelmus <lirc@bartelmus.de>
+CC: jonsmirl@gmail.com, awalls@radix.net, dmitry.torokhov@gmail.com,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com, khc@pm.waw.pl,
+	kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR  system?
+References: <BENh5lRHqgB@lirc>
+In-Reply-To: <BENh5lRHqgB@lirc>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guillem Solà wrote:
-> Hi,
->
-> I come to this list as my last resort. I have two DVB-S PCIE cards and 
-> no one can get channels, but I have another computer with a PCI 
-> SAA7146 that can get 1400 services from same dish.
->
-> * Tveii S470 *
->
-> One is the Tveii S470. I guess that the S470 should work because you 
-> are working in IR support.
->
-> I have tried V4L tip, drivers from website, from website and patched 
-> like in wiki says... but all I get is:
->
-> scandvb -a 0 /usr/share/dvb-apps/dvb-s/Astra-19.2E
->
-> scanning /usr/share/dvb-apps/dvb-s/Astra-19.2E
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> initial transponder 12551500 V 22000000 5
-> >>> tune to: 12551:v:0:22000
-> WARNING: filter timeout pid 0x0011
-> WARNING: filter timeout pid 0x0000
-> WARNING: filter timeout pid 0x0010it's going on
->
-> dumping lists (0 services)
->
-> Done.
->
->
-> * DVBWorld 2005 *
->
-> The other is the DVBWorld DVB-S2 2005. I have tried also latest V4l, 
-> liplianin branch... and I get the same: 0 services.
->
->
-> The hardware were I'm trying to run this is a Dell 1 unit Rack Server 
-> with RHEL with kernels 2.6.30, 2.6.31 and 2.6.32 patched by myself.
->
-> As I said I have another computer with a PCI dvb-s card that can get 
-> lot of channels so I thing that the disk is working well.
->
->
-> Any idea about what's going on?
->
-> Thanks in advance,
->
-> Guillem Solà
-Sorry for the noise,
+Christoph Bartelmus wrote:
+> Hi Jon,
+> 
+> on 04 Dec 09 at 19:28, Jon Smirl wrote:
+>>> BTW, I just came across a XMP remote that seems to generate 3x64 bit
+>>> scan codes. Anyone here has docs on the XMP protocol?
+>> Assuming a general purpose receiver (not one with fixed hardware
+>> decoding), is it important for Linux to receive IR signals from all
+>> possible remotes no matter how old or obscure? Or is it acceptable to
+> [...]
+>> Of course transmitting is a completely different problem, but we
+>> haven't been talking about transmitting. I can see how we would need
+>> to record any IR protocol in order to retransmit it. But that's in the
+>> 5% of users world, not the 90% that want MythTV to "just work".  Use
+>> something like LIRC if you want to transmit.
+> 
+> I don't think anyone here is in the position to be able to tell what is  
+> 90% or 5%.
 
-The sooner I wrote the email, the sooner my TeviiS470 started to work!
+True. Yet, cases like IR devices made by someone's own use is something
+that we don't need to care to have an in-kernel driver.
 
-I did it work with the latest s2-liplianin tip, of course firmwares were 
-in /lib/firmware dir.
+> Personally I use LIRC exclusively for transmit to my settop box  
+> using an old and obscure RECS80 protocol.
+> No, I won't replace my setup just because it's old and obscure.
+> 
+> Cable companies tend to provide XMP based boxes to subscribers more often  
+> these days. Simply not supporting these setups is a no-go for me.
 
-Now I'm doing some compatibility tests. As I said I can get a few less 
-channels than with the saa7164 that I'm using in old computers.
+I don't see any reason why not supporting STB protocols. Several such
+hardware use Linux, anyway. So, eventually the STB manufacturers may send
+us decoders that work with their IR's.
 
-My aim is to certify it for the company I work for, so if there is 
-something I could do testing it to help the community, I could do it 
-during my work journey.
+Cheers,
+Mauro.
 
-regards,
 
-Guillem
+
