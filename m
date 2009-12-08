@@ -1,84 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2697 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965392AbZLHCW7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Dec 2009 21:22:59 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: santiago.nunez@ridgerun.com
-Subject: Re: [PATCH 0/4 v11] Support for TVP7002 in DM365
-Date: Tue, 8 Dec 2009 07:50:50 +0530
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"Narnakaje, Snehaprabha" <nsnehaprabha@ti.com>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"Grosen, Mark" <mgrosen@ti.com>,
-	Diego Dompe <diego.dompe@ridgerun.com>,
-	"todd.fischer@ridgerun.com" <todd.fischer@ridgerun.com>
-References: <4B13E9EB.8020309@ridgerun.com> <4B1D6233.1040704@ridgerun.com>
-In-Reply-To: <4B1D6233.1040704@ridgerun.com>
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:63199 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934543AbZLHEWK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Dec 2009 23:22:10 -0500
+Date: Mon, 7 Dec 2009 20:22:10 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Andy Walls <awalls@radix.net>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	Christoph Bartelmus <lirc@bartelmus.de>, j@jannau.net,
+	jarod@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
+	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+Message-ID: <20091208042210.GA11147@core.coreip.homeip.net>
+References: <BDRae8rZjFB@christoph> <1259024037.3871.36.camel@palomino.walls.org> <m3k4xe7dtz.fsf@intrepid.localdomain> <4B0E8B32.3020509@redhat.com> <1259264614.1781.47.camel@localhost> <6B4C84CD-F146-4B8B-A8BB-9963E0BA4C47@wilsonet.com> <1260240142.3086.14.camel@palomino.walls.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Message-Id: <200912080750.51463.hverkuil@xs4all.nl>
+In-Reply-To: <1260240142.3086.14.camel@palomino.walls.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 08 December 2009 01:44:43 Santiago Nunez-Corrales wrote:
-> Hans,
+On Mon, Dec 07, 2009 at 09:42:22PM -0500, Andy Walls wrote:
+> On Mon, 2009-12-07 at 13:19 -0500, Jarod Wilson wrote:
+> > On Nov 26, 2009, at 2:43 PM, Andy Walls wrote:
+> > 
+> > > On Thu, 2009-11-26 at 12:05 -0200, Mauro Carvalho Chehab wrote:
+> > >> Krzysztof Halasa wrote:
+> > >>> Andy Walls <awalls@radix.net> writes:
+> > >>> 
+> > >>>> I would also note that RC-6 Mode 6A, used by most MCE remotes, was
+> > >>>> developed by Philips, but Microsoft has some sort of licensing interest
+> > >>>> in it and it is almost surely encumbered somwhow:
+> > >>> 
+> > >>> I don't know about legal problems in some countries but from the
+> > >>> technical POV handling the protocol in the kernel is more efficient
+> > >>> or (/and) simpler.
+> > >> 
+> > >> A software licensing from Microsoft won't apply to Linux kernel, so I'm
+> > >> assuming that you're referring to some patent that they could be filled
+> > >> about RC6 mode 6A.
+> > >> 
+> > >> I don't know if is there any US patent pending about it (AFAIK, only US
+> > >> accepts software patents), but there are some prior-art for IR key
+> > >> decoding. So, I don't see what "innovation" RC6 would be adding. 
+> > >> If it is some new way to transmit waves, the patent issues
+> > >> aren't related to software, and the device manufacturer had already handled
+> > >> it when they made their devices.
+> > >> 
+> > >> If it is just a new keytable, this issue 
+> > >> could be easily solved by loading the keytable via userspace.
+> > >> 
+> > >> Also, assuming that you can use the driver only with a hardware that comes
+> > >> with a licensed software, the user has already the license for using it.
+> > >> 
+> > >> Do you have any details on what patents they are claiming?
+> > > 
+> > > The US Philips RC-6 patent is US Patent 5,877,702
+> > > 
+> > > http://www.google.com/patents?vid=USPAT5877702
+> > > 
+> > > Click on download PDF to get a copy of the whole patent.
+> > > 
+> > > I am not a lawyer.  Philips claims' all appear to tie to a transmitter
+> > > or receiver as part of a system, but most of the claims are about
+> > > information and bit positions and lengths.
+> > ...
+> > > IMO, given
+> > > 
+> > > a. the dearth of public information about RC-6, indicating someone
+> > > thinks it's their trade secret or intellectual property
+> > > 
+> > > b. Microsoft claiming to license something related to the MCE remote
+> > > protocols (which are obviously RC-6 Mode 6A),
+> > > 
+> > > c. my inability to draw a "clear, bright line" that RC-6 Mode 6A
+> > > encoding and decoding, as needed by MCE remotes, implemented in software
+> > > doesn't violate anyone's government granted rights to exclusivity.
+> > > 
+> > > I think it's much better to implement software RC-6 Mode 6A encoding and
+> > > decoding in user space, doing only the minimum needed to get the
+> > > hardware setup and going in the kernel.  
+> > > 
+> > > Encoding/decoding of RC-6 by microcontrollers with firmware doesn't
+> > > worry me. 
+> > > 
+> > > 
+> > > Maybe I'm being too conservative here, but I have a personal interest in
+> > > keeping Linux free and unencumbered even in the US which, I cannot deny,
+> > > has a patent system that is screwed up.
+> > 
+> > So I had one of the people who does all the license and patent audits
+> > for Fedora packages look at the Philips patent on RC-6. He's 100%
+> > positive that the patent *only* covers hardware, there should be no
+> > problem whatsoever writing a software decoder for RC-6.
 > 
+> OK.  Thanks for having some professionals take a look.  (I'm assuming
+> that's the only patent.)
 > 
-> Hi. Have you had a chance to look at this version of the driver?
+> So I'll whip up an RC-6 Mode 6A decoder for cx23885-input.c before the
+> end of the month.
+> 
+> I can setup the CX2388[58] hardware to look for both RC-5 and RC-6 with
+> a common set of parameters, so I may be able to set up the decoders to
+> handle decoding from two different remote types at once.  The HVR boards
+> can ship with either type of remote AFAIK.
+> 
+> I wonder if I can flip the keytables on the fly or if I have to create
+> two different input devices?
+> 
 
-Sorry, no. I hope to have some time on Thursday. I'm abroad for business at
-the moment and unfortunately that leaves me with little time for reviewing.
+Can you distinguish between the 2 remotes (not receivers)? Like I said,
+I think the preferred way is to represent every remote that can be
+distinguished from each other as a separate input device. Applications
+expect to query device capabilities and expect them to stay somewhat
+stable (we do support keymap change but I don't think anyone expectes
+flip-flopping).
 
-This is not just true for this driver, but also for the dm365 series that was
-posted recently. And possibly others that I missed :-(
-
-Regards,
-
-	Hans
-
-> 
-> Regards,
-> 
-> 
-> Santiago.
-> 
-> Santiago Nunez-Corrales wrote:
-> > This series of patches provide support for the TVP7002 decoder in DM365.
-> >
-> > Support includes:
-> >
-> > * Inclusion of the chip in v4l2 definitions
-> > * Definition of TVP7002 specific data structures
-> > * Kconfig and Makefile support
-> >
-> > This series corrects many issued pointed out by Snehaprabha Narnakaje,
-> > Muralidharan Karicheri, Vaibhav Hiremath and Hans Verkuil and solves
-> > testing problems.  Tested on DM365 TI EVM with resolutions 720p,
-> > 1080i@60, 576P and 480P with video capture application and video
-> > output in 480P, 576P, 720P and 1080I. This driver depends upon
-> > board-dm365-evm.c and vpfe_capture.c to be ready for complete
-> > integration. Uses the new V4L2 DV API sent by Muralidharan Karicheri.
-> > Removed shadow register values. Removed unnecesary power down and up
-> > of the device (tests work fine). Improved readability.
-> >
-> >
-> 
-> 
-> -- 
-> Santiago Nunez-Corrales, Eng.
-> RidgeRun Engineering, LLC
-> 
-> Guayabos, Curridabat
-> San Jose, Costa Rica
-> +(506) 2271 1487
-> +(506) 8313 0536
-> http://www.ridgerun.com
-> 
-> 
-> 
+-- 
+Dmitry
