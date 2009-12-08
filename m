@@ -1,79 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:34238 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752859AbZLWPxV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Dec 2009 10:53:21 -0500
-Received: by bwz27 with SMTP id 27so4827117bwz.21
-        for <linux-media@vger.kernel.org>; Wed, 23 Dec 2009 07:53:20 -0800 (PST)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: =?utf-8?q?Alja=C5=BE_Prusnik?= <prusnik@gmail.com>
-Subject: Re: Which modules for the VP-2033? Where is the module "mantis.ko"?
-Date: Wed, 23 Dec 2009 17:53:28 +0200
-Cc: linux-media@vger.kernel.org
-References: <4B1D6194.4090308@freenet.de> <1261578615.8948.4.camel@slash.doma>
-In-Reply-To: <1261578615.8948.4.camel@slash.doma>
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:56162 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755364AbZLHOvO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2009 09:51:14 -0500
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+In-Reply-To: <4B1E5DA3.7000206@redhat.com>
+References: <20091204220708.GD25669@core.coreip.homeip.net>
+	 <20091206065512.GA14651@core.coreip.homeip.net>
+	 <4B1B99A5.2080903@redhat.com> <m3638k6lju.fsf@intrepid.localdomain>
+	 <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
+	 <m3skbn6dv1.fsf@intrepid.localdomain>
+	 <9e4733910912061323x22c618ccyf6edcee5b021cbe3@mail.gmail.com>
+	 <4B1D934E.7030103@redhat.com> <m3hbs1vain.fsf@intrepid.localdomain>
+	 <4B1E5DA3.7000206@redhat.com>
+Date: Tue, 8 Dec 2009 09:51:20 -0500
+Message-ID: <9e4733910912080651s30d600aay4c37f59e60e9c697@mail.gmail.com>
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
+	system?
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Krzysztof Halasa <khc@pm.waw.pl>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
+	kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200912231753.28988.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23 декабря 2009 16:30:16 Aljaž Prusnik wrote:
-> In the same vein, I'm interested in this one, namely:
+On Tue, Dec 8, 2009 at 9:07 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Krzysztof Halasa wrote:
+>> Mauro Carvalho Chehab <mchehab@redhat.com> writes:
+>>
+>>>> What is the interface for attaching an in-kernel decoder?
+>>> IMO, it should use the kfifo for it. However, if we allow both raw data and
+>>> in-kernel decoders to read data there, we'll need a spinlock to protect the
+>>> kfifo.
+>>
+>> This may be an option, but I think we should be able to attach protocol
+>> decoders in parallel, directly to the IRQ handler. At least with RC-5
+>> (that's what I personally use) it means reliable decoding, no need for
+>> any timeouts, the code is clean, fast (can be a part of hard IRQ
+>> handler) and simple.
+>>
+>> The decoder needs something like
+>> � � � rc5_signal_change(ptr, space_or_mark, microseconds).
+>>
+>> At least mark->space or space->mark events must be reported. For better
+>> reliability, both of them.
 >
-> I have tried the http://jusst.de/hg/v4l-dvb, since recently the
-> liplianin mantis driver is not working (unknown symbols...).
->
-> However, the problems I have as opposed to the previously working driver
-> are:
-> - the module does not install in a way it gets autoloaded on startup - I
-> have to manually add it (modprobe) or put it into /etc/modules (debian)
-> - while the card itself works, I don't have IR functionality anymore.
->
-> >From what I gather from the kernel log, the input line
->
-> input: Mantis VP-2040 IR Receiver as /devices/virtual/input/input4
->
-> just doesn't exist anymore. Further more the whole bunch is missing:
->
-> mantis_ca_init (0): Registering EN50221 device
-> mantis_ca_init (0): Registered EN50221 device
-> mantis_hif_init (0): Adapter(0) Initializing Mantis Host Interface
-> input: Mantis VP-2040 IR Receiver as /devices/virtual/input/input4
-> Creating IR device irrcv0
->
->
-> I tried 2.6.32 kernel which worked before, now I'm using 2.6.33-rc1
-> where I had to comment out #include <linux/autoconf.h> the from the
-> v4l-dvb/v4l/config-compat.h.
->
->
-> Any ideas how to get the comfort back? ;)
->
-> Regards,
-> Aljaz
->
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> If you use a kfifo to store the event (space_or_mark, timestamp),
+> the IRQ handler can return immediately, and a separate kernel thread
+> can do the decode without needing to touch at the IRQ. It also helps to
+> have a decoder independent of the kernel driver.
 
-Since module ir-common.ko moved to IR directory just remove old one.
+The first version of my code ran the decoders from the IRQ. That
+wasn't a good model for sharing decoders between drivers. So I
+switched to using a kernel thread. There is also the problem of
+handing decoded events off up the chain. You can't do that from IRQ
+context.
 
-	rm /lib/modules/$(uname -r)/kernel/drivers/media/common/ir-common.ko
+If I remember correctly the kernel thread would run approximately two
+times per IR message received. But sometimes it would only run once.
+It's a random function of the load on the system. The kernel thread
+empties the FIFO and sends the pulses in parallel to the decoders.
 
-Also it would be good to do
-
-	make remove
-
-Then again build and install drivers.
+Code for doing this is in the patches I posted. I wasn't aware of
+kfifo when I wrote them so I coded my own fifo.
 
 -- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+Jon Smirl
+jonsmirl@gmail.com
