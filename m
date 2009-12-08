@@ -1,16 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-fx0-f224.google.com ([209.85.220.224])
+Received: from smtp-out2.blueyonder.co.uk ([195.188.213.5])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <dehqan65@gmail.com>) id 1NJPK0-0007WD-0g
-	for linux-dvb@linuxtv.org; Sat, 12 Dec 2009 11:35:32 +0100
-Received: by fxm24 with SMTP id 24so177291fxm.11
-	for <linux-dvb@linuxtv.org>; Sat, 12 Dec 2009 02:34:58 -0800 (PST)
+	(envelope-from <rob@esdelle.co.uk>) id 1NI3y5-0006yS-C6
+	for linux-dvb@linuxtv.org; Tue, 08 Dec 2009 18:35:22 +0100
+Received: from [172.23.170.142] (helo=anti-virus02-09)
+	by smtp-out2.blueyonder.co.uk with smtp (Exim 4.52)
+	id 1NI3y1-0002nb-Ad
+	for linux-dvb@linuxtv.org; Tue, 08 Dec 2009 17:35:17 +0000
+Received: from [62.31.89.131] (helo=esdelle.homelinux.org)
+	by asmtp-out3.blueyonder.co.uk with smtp (Exim 4.52)
+	id 1NI3xy-0002qP-TB
+	for linux-dvb@linuxtv.org; Tue, 08 Dec 2009 17:35:15 +0000
+Message-ID: <4B1E8E4D.9010101@esdelle.co.uk>
+Date: Tue, 08 Dec 2009 17:35:09 +0000
+From: Rob Beard <rob@esdelle.co.uk>
 MIME-Version: 1.0
-Date: Sat, 12 Dec 2009 14:04:58 +0330
-Message-ID: <267bb6670912120234m55fc0a2fjb0ec8959ddd5c0a5@mail.gmail.com>
-From: dehqan65 <dehqan65@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Which one of s660 s650 Tevii boxes ?
+Subject: [linux-dvb] WinTV HVR-900 USB (B3C0)
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -19,58 +25,47 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1300269693=="
-Mime-version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1300269693==
-Content-Type: multipart/alternative; boundary=0016363ba84a8eae40047a859763
+Hi folks,
 
---0016363ba84a8eae40047a859763
-Content-Type: text/plain; charset=ISO-8859-1
+I've borrowed a WinTV HVR-900 USB stick from a friend of mine to see if 
+I can get any reception in my area before forking out for one however 
+I've run in to a couple of problems and wondered if anyone had used one 
+of these sticks?
 
-In The Name Of God The compassionate merciful
+The device appears to support both analogue and DVB-T (Freeview) TV 
+however when I plug the device in it only appears to enable the analogue 
+side of things (it comes up as /dev/video1 as I have a webcam on my laptop).
 
-Hello ;
+I've downloaded and installed the firmware in /lib/firmware as per the 
+instructions on the LinuxDVB web site
+ and it appears to pick it up and I've even tried compiling the v4l-dvb 
+drivers too which didn't appear to make any difference.
 
-Which one of s660 s650 Tevii boxes , has better tuner ?
+Just to check it wasn't me going mad, I tried the dvb-utils scan utility 
+and also Kaffene, both of which doesn't work (and I can't find a 
+/dev/dvb directory either).
 
-S650 > CAN Tuner (Conexant chips inside)
-S660 > Silicon tuner (Montage chips)
+If it helps, the output from /var/log/messages is here: 
+http://pastebin.com/m34f1048f
 
-which one of these 2 boxes is better in quality ?
-what is your opinion ?
+I just wondered if anyone else had one of these sticks actually working 
+under Ubuntu 9.10?  (I'm running kernel 2.6.31-16-generic-pae).
 
-
-Regards dehqan
-
---0016363ba84a8eae40047a859763
-Content-Type: text/html; charset=ISO-8859-1
-
-<div dir="ltr">In The Name Of God The compassionate merciful<br>
-<br>
-Hello ; <br>
-<br>Which one of s660 s650 Tevii boxes , has better tuner ?<br><br>S650 &gt; CAN Tuner (Conexant chips inside)<br>S660 &gt; Silicon tuner (Montage chips)<br><br>which one of these 2 boxes is better in quality ?<br>
-
-what is your opinion ? <br><br>
-<br>
-Regards dehqan<br>
-</div>
-
---0016363ba84a8eae40047a859763--
+Rob
 
 
---===============1300269693==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+
+
+
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1300269693==--
