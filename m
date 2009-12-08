@@ -1,124 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:63199 "EHLO
-	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934543AbZLHEWK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Dec 2009 23:22:10 -0500
-Date: Mon, 7 Dec 2009 20:22:10 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Andy Walls <awalls@radix.net>
-Cc: Jarod Wilson <jarod@wilsonet.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	Christoph Bartelmus <lirc@bartelmus.de>, j@jannau.net,
-	jarod@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
-	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-Message-ID: <20091208042210.GA11147@core.coreip.homeip.net>
-References: <BDRae8rZjFB@christoph> <1259024037.3871.36.camel@palomino.walls.org> <m3k4xe7dtz.fsf@intrepid.localdomain> <4B0E8B32.3020509@redhat.com> <1259264614.1781.47.camel@localhost> <6B4C84CD-F146-4B8B-A8BB-9963E0BA4C47@wilsonet.com> <1260240142.3086.14.camel@palomino.walls.org>
+Received: from ey-out-2122.google.com ([74.125.78.27]:26329 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965801AbZLHVAT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2009 16:00:19 -0500
+Received: by ey-out-2122.google.com with SMTP id d26so1486599eyd.19
+        for <linux-media@vger.kernel.org>; Tue, 08 Dec 2009 13:00:24 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1260240142.3086.14.camel@palomino.walls.org>
+In-Reply-To: <db09c9680912080810r16b5aae7v800114f4e894bbbd@mail.gmail.com>
+References: <13c90c570909070123r2ba1f5f6w2b288703f5e98738@mail.gmail.com>
+	 <37219a840909070718q47890f5bgbf76a00ea8826880@mail.gmail.com>
+	 <20090907151809.GA12556@systol-ng.god.lan>
+	 <37219a840909070912h3678fb2cm94102d7437bec5df@mail.gmail.com>
+	 <20090908212733.GA19438@systol-ng.god.lan>
+	 <37219a840909081457u610b9c65le6141e79567ab629@mail.gmail.com>
+	 <20090909140147.GA24722@systol-ng.god.lan>
+	 <303a8ee30909090808u46acfb49l760d660f8a28f503@mail.gmail.com>
+	 <303a8ee30909140906h7a3dc120u6c63d2431a156239@mail.gmail.com>
+	 <db09c9680912080810r16b5aae7v800114f4e894bbbd@mail.gmail.com>
+Date: Tue, 8 Dec 2009 16:00:24 -0500
+Message-ID: <37219a840912081300o68389771i94192122bd660fc4@mail.gmail.com>
+Subject: Re: [PATCH] Add support for Zolid Hybrid PCI card
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Sander Pientka <cumulus0007@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 07, 2009 at 09:42:22PM -0500, Andy Walls wrote:
-> On Mon, 2009-12-07 at 13:19 -0500, Jarod Wilson wrote:
-> > On Nov 26, 2009, at 2:43 PM, Andy Walls wrote:
-> > 
-> > > On Thu, 2009-11-26 at 12:05 -0200, Mauro Carvalho Chehab wrote:
-> > >> Krzysztof Halasa wrote:
-> > >>> Andy Walls <awalls@radix.net> writes:
-> > >>> 
-> > >>>> I would also note that RC-6 Mode 6A, used by most MCE remotes, was
-> > >>>> developed by Philips, but Microsoft has some sort of licensing interest
-> > >>>> in it and it is almost surely encumbered somwhow:
-> > >>> 
-> > >>> I don't know about legal problems in some countries but from the
-> > >>> technical POV handling the protocol in the kernel is more efficient
-> > >>> or (/and) simpler.
-> > >> 
-> > >> A software licensing from Microsoft won't apply to Linux kernel, so I'm
-> > >> assuming that you're referring to some patent that they could be filled
-> > >> about RC6 mode 6A.
-> > >> 
-> > >> I don't know if is there any US patent pending about it (AFAIK, only US
-> > >> accepts software patents), but there are some prior-art for IR key
-> > >> decoding. So, I don't see what "innovation" RC6 would be adding. 
-> > >> If it is some new way to transmit waves, the patent issues
-> > >> aren't related to software, and the device manufacturer had already handled
-> > >> it when they made their devices.
-> > >> 
-> > >> If it is just a new keytable, this issue 
-> > >> could be easily solved by loading the keytable via userspace.
-> > >> 
-> > >> Also, assuming that you can use the driver only with a hardware that comes
-> > >> with a licensed software, the user has already the license for using it.
-> > >> 
-> > >> Do you have any details on what patents they are claiming?
-> > > 
-> > > The US Philips RC-6 patent is US Patent 5,877,702
-> > > 
-> > > http://www.google.com/patents?vid=USPAT5877702
-> > > 
-> > > Click on download PDF to get a copy of the whole patent.
-> > > 
-> > > I am not a lawyer.  Philips claims' all appear to tie to a transmitter
-> > > or receiver as part of a system, but most of the claims are about
-> > > information and bit positions and lengths.
-> > ...
-> > > IMO, given
-> > > 
-> > > a. the dearth of public information about RC-6, indicating someone
-> > > thinks it's their trade secret or intellectual property
-> > > 
-> > > b. Microsoft claiming to license something related to the MCE remote
-> > > protocols (which are obviously RC-6 Mode 6A),
-> > > 
-> > > c. my inability to draw a "clear, bright line" that RC-6 Mode 6A
-> > > encoding and decoding, as needed by MCE remotes, implemented in software
-> > > doesn't violate anyone's government granted rights to exclusivity.
-> > > 
-> > > I think it's much better to implement software RC-6 Mode 6A encoding and
-> > > decoding in user space, doing only the minimum needed to get the
-> > > hardware setup and going in the kernel.  
-> > > 
-> > > Encoding/decoding of RC-6 by microcontrollers with firmware doesn't
-> > > worry me. 
-> > > 
-> > > 
-> > > Maybe I'm being too conservative here, but I have a personal interest in
-> > > keeping Linux free and unencumbered even in the US which, I cannot deny,
-> > > has a patent system that is screwed up.
-> > 
-> > So I had one of the people who does all the license and patent audits
-> > for Fedora packages look at the Philips patent on RC-6. He's 100%
-> > positive that the patent *only* covers hardware, there should be no
-> > problem whatsoever writing a software decoder for RC-6.
-> 
-> OK.  Thanks for having some professionals take a look.  (I'm assuming
-> that's the only patent.)
-> 
-> So I'll whip up an RC-6 Mode 6A decoder for cx23885-input.c before the
-> end of the month.
-> 
-> I can setup the CX2388[58] hardware to look for both RC-5 and RC-6 with
-> a common set of parameters, so I may be able to set up the decoders to
-> handle decoding from two different remote types at once.  The HVR boards
-> can ship with either type of remote AFAIK.
-> 
-> I wonder if I can flip the keytables on the fly or if I have to create
-> two different input devices?
-> 
+> 2009/9/14 Michael Krufky <mkrufky@kernellabs.com>:
+>> On Wed, Sep 9, 2009 at 11:08 AM, Michael Krufky <mkrufky@kernellabs.com> wrote:
+>>> On Wed, Sep 9, 2009 at 10:01 AM,  <spam@systol-ng.god.lan> wrote:
+>>>> On Tue, Sep 08, 2009 at 05:57:12PM -0400, Michael Krufky wrote:
+>>>>>
+>>>>> Henk,
+>>>>>
+>>>>> Why do you expect a 8295?  If your board uses the SAA7131, then we
+>>>>> would expect an 8290 IF demod.
+>>>>>
+>>>>> Ah, I just checked the history of this email thread -- I must have
+>>>>> read one of your previous emails too quickly.  :-)  Perhaps there is a
+>>>>> typo in the document that you read -- tda8290 is correct.
+>>>>>
+>>>> Just to come back to this point,
+>>>>
+>>>> Well zolid has a SAA7131E, if you look at the datasheet (botom of page 15)
+>>>> http://www.nxp.com/acrobat_download/datasheets/SAA7131E_3.pdf
+>>>>
+>>>> it says:
+>>>> "The SAA7131E is functionally compatible with the SAA7135 audio and video
+>>>> broadcast decoder device and the stand-alone low-IF device TDA8295."
+>>>>
+>>>> So thats why I asked.
+>>>>
+>>>> Regards,
+>>>> Henk
+>>>>
+>>>
+>>> FIX YOUR MAILER!!
+>>>
+>>> It's a pain to reply to your emails -- I have to insert your actual
+>>> email address each time :-(
+>>>
+>>> Anyway, I am under the impression that it's a typo in the datasheet.
+>>> It is actually a tda8290.
+>>
+>> Henk,
+>>
+>> Just FYI, I merged your patch to my saa7134 repository last week:
+>>
+>> http://www.kernellabs.com/hg/~mkrufky/saa7134
+>>
+>> I thought that I had replied to you already but that message seems to
+>> have gotten dropped somewhere :-/
+>>
+>> I intend to send a pull request to Mauro for this, in addition to some
+>> other pending patches after he merges what I have already pending.
+>>
+>> Thanks again for your work.
+>>
+>> Regards,
+>>
+>> Mike Krufky
 
-Can you distinguish between the 2 remotes (not receivers)? Like I said,
-I think the preferred way is to represent every remote that can be
-distinguished from each other as a separate input device. Applications
-expect to query device capabilities and expect them to stay somewhat
-stable (we do support keymap change but I don't think anyone expectes
-flip-flopping).
+On Tue, Dec 8, 2009 at 11:10 AM, Sander Pientka <cumulus0007@gmail.com> wrote:
+> I accidently sent this mail to Michael's private address, I'm sorry for that.
+>
+> Hi,
+>
+> I bought the same card a couple of months ago and back then, it just
+> wouldn't work. I set up a wiki page, which henk has updated with links
+> to patches, to document the card as well as possible. I set up a
+> thread on this mailing list
+> (http://osdir.com/ml/video4linux-list/2009-05/msg00102.html) on making
+> the card work, but that resulted to nothing. I was surprised to find
+> this thread when I accidently searched for "Zolid" in my mailbox. I'm
+> at my internship at the moment, but I'll try this patch as soon as I
+> get home :)
+>
+> If you need the card for further development/testing: I'm willing to
+> send it to you by mail. I just want it back when you're done testing,
+> so I can finally watch tv on my computer :)
+>
+>
+> Greetings, Sander Pientka
 
--- 
-Dmitry
+
+Please do not top-quote.  The policy on this mailing list is to
+include the reply BELOW the quoted text.
+
+Anyway, don't even bother testing any patch -- just use the latest
+v4l-dvb tree -- the code is all merged up.
+
+Regards,
+
+Mike
