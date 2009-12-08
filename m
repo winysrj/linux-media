@@ -1,106 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f189.google.com ([209.85.216.189]:57360 "EHLO
-	mail-px0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751944AbZL2WbL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Dec 2009 17:31:11 -0500
-Message-Id: <2044EA95-168E-4ACE-A19E-732BB4A34CA7@gmail.com>
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Jarod Wilson <jarod@wilsonet.com>
-Content-Type: text/plain;
-	charset=us-ascii;
-	format=flowed;
-	delsp=yes
+Received: from mx1.redhat.com ([209.132.183.28]:64134 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754687AbZLHNWw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Dec 2009 08:22:52 -0500
+Message-ID: <4B1E532C.9040903@redhat.com>
+Date: Tue, 08 Dec 2009 11:22:52 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Julian Scheel <julian@jusst.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: New DVB-Statistics API
+References: <4B1E1974.6000207@jusst.de>
+In-Reply-To: <4B1E1974.6000207@jusst.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0 (iPhone Mail 7C144)
-Subject: Re: [PATCH] input: imon driver for SoundGraph iMON/Antec Veris IR devices
-Date: Tue, 29 Dec 2009 14:30:51 -0800
-Cc: Jarod Wilson <jarod@redhat.com>,
-	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 29, 2009 at 12:04:00AM -0500, Jarod Wilson wrote:
-> On Dec 28, 2009, at 4:31 AM, Dmitry Torokhov wrote:
->>
->> Hm, will this work on big-endian?
->
-> Good question. Not sure offhand. Probably not. Unfortunately, the  
-> only devices I have to test with at the moment are integrated into  
-> cases with x86 boards in them, so testing isn't particularly  
-> straight-forward. I should probably get ahold of one of the plain  
-> external usb devices to play with... Mind if I just add a TODO  
-> marker near that for now?
->
+Hi Julian,
 
-How about just do le32_to_cpu() instead of memcpy()ing and that's
-probably it?
+Let me add some corrections to your technical analysis.
 
->>> +
->>> +    printk(KERN_INFO "%s: iMON device (intf%d) disconnected\n",
->>> +           __func__, ifnum);
->>
->> dev_dbg().
->
-> Ah. I think I was thinking it might not be safe to use at this point  
-> in time. Which is what led me to look back at free_imon_context to  
-> see what it was doing. Looks like both here and to fix  
-> free_imon_context's use-after-free, I'll need to create a local  
-> struct device to pass over to dev_dbg().
->
->
->>> +static int imon_resume(struct usb_interface *intf)
->>> +{
->>> +    int rc = 0;
->>> +    struct imon_context *context = usb_get_intfdata(intf);
->>> +    int ifnum = intf->cur_altsetting->desc.bInterfaceNumber;
->>> +
->>> +    if (ifnum == 0) {
->>> +        usb_fill_int_urb(context->rx_urb_intf0, context- 
->>> >usbdev_intf0,
->>> +            usb_rcvintpipe(context->usbdev_intf0,
->>> +                context->rx_endpoint_intf0->bEndpointAddress),
->>> +            context->usb_rx_buf, sizeof(context->usb_rx_buf),
->>> +            usb_rx_callback_intf0, context,
->>> +            context->rx_endpoint_intf0->bInterval);
->>> +
->>> +        rc = usb_submit_urb(context->rx_urb_intf0, GFP_ATOMIC);
->>> +
->>> +    } else {
->>> +        usb_fill_int_urb(context->rx_urb_intf1, context- 
->>> >usbdev_intf1,
->>> +            usb_rcvintpipe(context->usbdev_intf1,
->>> +                context->rx_endpoint_intf1->bEndpointAddress),
->>> +            context->usb_rx_buf, sizeof(context->usb_rx_buf),
->>> +            usb_rx_callback_intf1, context,
->>> +            context->rx_endpoint_intf1->bInterval);
->>> +
->>> +        rc = usb_submit_urb(context->rx_urb_intf1, GFP_ATOMIC);
->>> +    }
->>
->> We have pretty different behavior depending on the interface, maybe  
->> the
->> driver should be split further?
->
-> This is what we'll call a "fun" topic... These devices expose two  
-> interfaces, and a while back in the lirc_imon days, they actually  
-> loaded up as two separate lirc devices. But there's a catch: they  
-> can't operate independently. Some keys come in via intf0, some via  
-> intf1, even from the very same remote. And the interfaces share a  
-> hardware-internal buffer (or something), and if you're only  
-> listening to one of the two devices, and a key is decoded and sent  
-> via the interface you're not listening to, it wedges the entire  
-> device until you flush the other interface. Horribly bad hardware  
-> design at play there, imo, but meh. What exactly did you have in  
-> mind as far as a split? (And/or does it still apply with the above  
-> info taken into consideration? ;).
+Julian Scheel wrote:
+> Hello together,
+> 
+> after the last thread which asked about signal statistics details
+> degenerated into a discussion about the technical possibilites for
+> implementing an entirely new API, which lead to nothing so far, I wanted
+> to open a new thread to bring this forward. Maybe some more people can
+> give their votes for the different options
+> 
+> Actually Manu did propose a new API for fetching enhanced statistics. It
+> uses new IOCTL to directly fetch the statistical data in one go from the
+> frontend. This propose was so far rejected by Mauro who wants to use the
+> S2API get/set calls instead.
+> 
+> Now to give everyone a quick overview about the advantages and
+> disadvantages of both approaches I will try to summarize it up:
+> 
+> 1st approach: Introduce new IOCTL
+> 
+> Pros:
+> - Allows a quick fetch of the entire dataset, which ensures that:
+>  1. all values are fetched in one go (as long as possible) from the
+> frontend, so that they can be treated as one united and be valued in
+> conjunction
+>  2. the requested values arrive the caller in an almost constant
+> timeframe, as the ioctl is directly executed by the driver
+> - It does not interfere with the existing statistics API, which has to
+> be kept alive as it is in use for a long time already. (unifying it's
+> data is not the approach of this new API)
+> 
+> Cons:
+> - Forces the application developers to interact with two APIs. The S2API
+> for tuning on the one hand and the Statistics API for reading signal
+> values on the other hand.
+> 
+> 2nd approach: Set up S2API calls for reading statistics
+> 
+> Pros:
+> - Continous unification of the linuxtv API, allowing all calls to be
+> made through one API. -> easy for application developers
 
-Ok, fair enough. I'd still want to see larger functions split up a bit  
-though.
+- Scaling values can be retrieved/negotiated (if we implement the set
+mode) before requesting the stats, using the same API;
 
-Thanks.
+- API can be easily extended to support other statistics that may be needed
+by newer DTV standards.
 
--- 
-Dmitry
+> 
+> Cons:
+> - Due to the key/value pairs used for S2API getters the statistical
+> values can't be read as a unique block, so we loose the guarantee, that
+> all of the values can be treatend as one unit expressing the signals
+> state at a concrete time.
+
+You missed the point here. The proposal patch groups all S2API
+pairs into a _single_ call into the driver:
+
+> +		for (i = 0; i < tvps->num; i++)
+> +			need_get_ops += dtv_property_prepare_get_stats(fe,
+> +							 tvp + i, inode, file);
+> +
+> +		if (!fe->dtv_property_cache.need_stats) {
+> +			need_get_ops++;
+> +		} else {
+> +			if (fe->ops.get_stats) {
+> +				err = fe->ops.get_stats(fe);
+> +				if (err < 0)
+> +					return err;
+> +			}
+> +		}
+
+The dtv_property_prepare_get_stats will generate a bitmap field (need_stats) that
+will describe all value pairs that userspace is expecting. After doing it,
+a single call is done to get_stats() callback.
+
+All the driver need to do is to fill all values at dtv_property_cache. If the driver
+fills more values than requested by the user, the extra values will simply be discarded.
+
+In order to reduce latency, the driver may opt to not read the register values for the
+data that aren't requested by the user, like I did on cx24123 driver.
+
+Those values will all be returned at the same time to userspace by a single copy_to_user()
+operation.
+
+> - Due to the general architecture of the S2API the delay between
+> requesting and receiving the actual data could become too big to allow
+> realtime interpretation of the data (as it is needed for applications
+> like satellite finders, etc.)
+
+Not true. As pointed at the previous answer, the difference between a new ioctl
+and S2API is basically the code at dtv_property_prepare_get_stats() and
+dtv_property_process_get(). This is a pure code that uses a continuous struct
+that will likely be at L3 cache, inside the CPU chip. So, this code will run
+really quickly.
+
+As current CPU's runs at the order of Teraflops (as the CPU clocks are at gigahertz
+order, and CPU's can handle multiple instructions per clock cycle), the added delay
+is in de order of nanosseconds. 
+
+On the other hand, a simple read of a value from an i2c device is in the order
+of milisseconds, since I2C serial bus, speed is slow (typically operating at
+100 Kbps).
+
+So, the delay is determined by the number of I2C calls you have at the code.
+
+With the new ioctl proposal, as you need to read all data from I2C (even the ones
+that userspace don't need), you'll have two situations:
+	- if you use S2API call to request all data provided by ioctl approach,
+the delay will be the same;
+	- if you use S2API call to request less stats, the S2API delay will
+be shorter. 
+
+For example, with cx24123, the S2API delay it will be 6 times shorter than the
+ioctl, if you request just the signal strength - as just one read is needed
+to get signal strength, while you need to do 6 reads to get all 3 stats.
+
+So, if you want to do some realtime usage and delay is determinant, a call
+via S2API containing just the values you need will be better than the new
+ioctl call.
+
+The only cons I can think is that the S2API payload for a complete retrival of all
+stats will be a little bigger.
+
+
+Cheers,
+Mauro.
