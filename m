@@ -1,68 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:57033 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760556AbZLJLNL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2009 06:13:11 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [RFC,PATCH] VIDIOC_G_EXT_CTRLS does not handle NULL pointer correctly
-Date: Thu, 10 Dec 2009 12:14:22 +0100
-Cc: linux-media@vger.kernel.org, nm127@freemail.hu
-References: <200905251317.02633.laurent.pinchart@skynet.be> <20090610105357.14aad29f@pedra.chehab.org> <200906102358.31879.laurent.pinchart@skynet.be>
-In-Reply-To: <200906102358.31879.laurent.pinchart@skynet.be>
+Received: from moutng.kundenserver.de ([212.227.17.10]:49868 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966658AbZLHWd4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2009 17:33:56 -0500
+Date: 08 Dec 2009 23:25:00 +0100
+From: lirc@bartelmus.de (Christoph Bartelmus)
+To: jonsmirl@gmail.com
+Cc: awalls@radix.net
+Cc: dmitry.torokhov@gmail.com
+Cc: hermann-pitton@arcor.de
+Cc: j@jannau.net
+Cc: jarod@redhat.com
+Cc: jarod@wilsonet.com
+Cc: khc@pm.waw.pl
+Cc: kraxel@redhat.com
+Cc: linux-input@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com
+Cc: superm1@ubuntu.com
+Message-ID: <BEVhz2BHqgB@lirc>
+In-Reply-To: <9e4733910912080534m1fe8c5bakb9219c6a55f0bcaa@mail.gmail.com>
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 8BIT
-Message-Id: <200912101214.22154.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Jon,
 
-On Wednesday 10 June 2009 23:58:31 Laurent Pinchart wrote:
-> On Wednesday 10 June 2009 15:53:57 Mauro Carvalho Chehab wrote:
-> > Em Wed, 10 Jun 2009 10:52:28 -0300
-> >
-> > Mauro Carvalho Chehab <mchehab@infradead.org> escreveu:
-> > > Em Mon, 25 May 2009 11:16:34 -0300
-> > >
-> > > Mauro Carvalho Chehab <mchehab@infradead.org> escreveu:
-> > > > Em Mon, 25 May 2009 13:17:02 +0200
-> > > >
-> > > > Laurent Pinchart <laurent.pinchart@skynet.be> escreveu:
-> > > > > Hi everybody,
-> > > > >
-> > > > > Márton Németh found an integer overflow bug in the extended control
-> > > > > ioctl handling code. This affects both video_usercopy and
-> > > > > video_ioctl2. See http://bugzilla.kernel.org/show_bug.cgi?id=13357
-> > > > > for a detailed description of the problem.
-> > > > >
-> > > > >
-> > > > > Restricting v4l2_ext_controls::count to values smaller than
-> > > > > KMALLOC_MAX_SIZE / sizeof(struct v4l2_ext_control) should be
-> > > > > enough, but we might want to restrict the value even further. I'd
-> > > > > like opinions on this.
-> > > >
-> > > > Seems fine to my eyes, but being so close to kmalloc size doesn't
-> > > > seem to be a good idea. It seems better to choose an arbitrary size
-> > > > big enough to handle all current needs.
-> > >
-> > > I'll apply the current version, but I still think we should restrict it
-> > > to a lower value.
-> >
-> > Hmm... SOB is missing. Márton and Laurent, could you please sign it
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@skynet.be>
+on 08 Dec 09 at 08:34, Jon Smirl wrote:
+[...]
+> The point of those design review questions was to illustrate that the
+> existing LIRC system is only partially designed. Subsystems need to be
+> fully designed before they get merged.
 
-Márton reminded me that the patch has still not been applied.
+I'd say that a system that has proven itself in real world applications  
+for >10 years, does not deserve to be called partially designed.
 
-Please replace the above SOB line with
+> For example 36-40K and 56K IR signals are both in use. It is a simple
+> matter to design a receiver (or buy two receivers)  that would support
+> both these frequencies. But the current LIRC model only supports  a
+> single IR receiver. Adjusting it to support two receivers is going to
+> break the ABI.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Really? When we added support for multiple transmitters, we somehow  
+managed to do without breaking the ABI. Do I miss something?
 
--- 
-Regards,
+Your example could even now be solved by using the LIRC_SET_REC_CARRIER  
+ioctl. The driver would have to choose the receiver that best fits the  
+requested frequency.
 
-Laurent Pinchart
+[...]
+> We need to think about all of these use cases before designing the
+> ABI.  Only after we think we have a good ABI design should code start
+> being merged. Of course we may make mistakes and have to fix the ABI,
+> but there is nothing to be gained by merging the existing ABI if we
+> already know it has problems.
+
+The point is that we did not get up this morning and started to think  
+about how the LIRC interface should look like. That happened 10 years ago.
+
+I'm not saying that the interface is the nicest thing ever invented, but  
+it works and is extendable. If you see that something is missing please  
+bring it up.
+
+Christoph
