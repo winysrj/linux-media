@@ -1,69 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f221.google.com ([209.85.220.221]:56406 "EHLO
-	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932740AbZLRUYX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Dec 2009 15:24:23 -0500
-Received: by fxm21 with SMTP id 21so3186827fxm.21
-        for <linux-media@vger.kernel.org>; Fri, 18 Dec 2009 12:24:22 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:7690 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755415AbZLHOQ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Dec 2009 09:16:27 -0500
+Message-ID: <4B1E5FAF.40201@redhat.com>
+Date: Tue, 08 Dec 2009 12:16:15 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.01.0912182107371.31371@ybpnyubfg.ybpnyqbznva>
-References: <34373e030911241005r7f499297y1a84a93e0696f550@mail.gmail.com>
-	 <1259106230.3069.16.camel@palomino.walls.org>
-	 <34373e030912100856r2ba80741yca8f79c84ee730e3@mail.gmail.com>
-	 <1260523942.3087.21.camel@palomino.walls.org>
-	 <34373e030912181159k32d36a40yc989dfd777504aaa@mail.gmail.com>
-	 <alpine.DEB.2.01.0912182107371.31371@ybpnyubfg.ybpnyqbznva>
-Date: Fri, 18 Dec 2009 15:24:21 -0500
-Message-ID: <34373e030912181224y7f8c6511w4cc1dd919e208e1@mail.gmail.com>
-Subject: Re: [linux-dvb] Hauppauge PVR-150 Vertical sync issue?
-From: Robert Longfield <robert.longfield@gmail.com>
-To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-Cc: Andy Walls <awalls@radix.net>, linux-dvb@linuxtv.org,
-	linux-media@vger.kernel.org
+To: Jon Smirl <jonsmirl@gmail.com>
+CC: Andy Walls <awalls@radix.net>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	Christoph Bartelmus <lirc@bartelmus.de>, j@jannau.net,
+	jarod@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
+ 	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+References: <BDRae8rZjFB@christoph> <m3k4xe7dtz.fsf@intrepid.localdomain>	 <4B0E8B32.3020509@redhat.com> <1259264614.1781.47.camel@localhost>	 <6B4C84CD-F146-4B8B-A8BB-9963E0BA4C47@wilsonet.com>	 <1260240142.3086.14.camel@palomino.walls.org>	 <20091208042210.GA11147@core.coreip.homeip.net>	 <1260275743.3094.6.camel@palomino.walls.org>	 <9e4733910912080452p42efa794mb7fd608fa4fbad7c@mail.gmail.com>	 <4B1E5746.7010305@redhat.com> <9e4733910912080601s1a814720qd909e47ac09f91fc@mail.gmail.com>
+In-Reply-To: <9e4733910912080601s1a814720qd909e47ac09f91fc@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey Barry,
+Jon Smirl wrote:
+> On Tue, Dec 8, 2009 at 8:40 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> Jon Smirl wrote:
+>>> On Tue, Dec 8, 2009 at 7:35 AM, Andy Walls <awalls@radix.net> wrote:
+>>>> On Mon, 2009-12-07 at 20:22 -0800, Dmitry Torokhov wrote:
+>>>>> On Mon, Dec 07, 2009 at 09:42:22PM -0500, Andy Walls wrote:
+>>>>>> So I'll whip up an RC-6 Mode 6A decoder for cx23885-input.c before the
+>>>>>> end of the month.
+>>>>>>
+>>>>>> I can setup the CX2388[58] hardware to look for both RC-5 and RC-6 with
+>>>>>> a common set of parameters, so I may be able to set up the decoders to
+>>>>>> handle decoding from two different remote types at once.  The HVR boards
+>>>>>> can ship with either type of remote AFAIK.
+>>>>>>
+>>>>>> I wonder if I can flip the keytables on the fly or if I have to create
+>>>>>> two different input devices?
+>>>>>>
+>>>>> Can you distinguish between the 2 remotes (not receivers)?
+>>>> Yes.  RC-6 and RC-5 are different enough to distinguish between the two.
+>>>> (Honestly I could pile on more protocols that have similar pulse time
+>>>> periods, but that's complexity for no good reason and I don't know of a
+>>>> vendor that bundles 3 types of remotes per TV card.)
+>>>>
+>>>>
+>>>>>  Like I said,
+>>>>> I think the preferred way is to represent every remote that can be
+>>>>> distinguished from each other as a separate input device.
+>>>> OK.  With RC-5, NEC, and RC-6 at least there is also an address or
+>>>> system byte or word to distingish different remotes.  However creating
+>>>> multiple input devices on the fly for detected remotes would be madness
+>>>> - especially with a decoding error in the address bits.
+>>> I agree that creating devices on the fly has problems. Another
+>>> solution is to create one device for each map that is loaded. There
+>>> would be a couple built-in maps for bundled remotes - each would
+>>> create a device. Then the user could load more maps with each map
+>>> creating a device.
+>> No, please. We currently have already 89 different keymaps in-kernel. Creating
+>> 89 different interfaces per IR receiver is not useful at all.
+>>
+>> IMO, the interfaces should be created as the keymaps are associated
+>> to an specific IR receiver.
+> 
+> Each IR receiver device driver would have a built-in keymap for the
+> remote bundled with it. When you load the driver it will poke the
+> input system and install the map. Any additional keymaps would get
+> loaded from user space. You would load one keymap per input device.
+> 
+> You might have 89 maps in the kernel with each map being built into
+> the device driver for those 89 IR receivers. But you'll only own one
+> or two of those devices so only one or two of the 89 maps will load.
+> Building the map for the bundled receiver into the device driver is an
+> important part of achieving "just works".
+> 
+> I suspect we'll have a 1,000 maps defined after ten years, most of
+> these maps will be loaded from user space. But you'll only have two or
+> three loaded at any one time into your kernel. You need one map per
+> input device created. These maps are tiny, less than 1KB.
+> 
+> Having all of these maps is the price of allowing everyone to use any
+> more that they please. If you force the use of universal remotes most
+> of the maps can be eliminated.
 
-Well that is certainly could be part of the problem, I was using
-mplayer to play back the video recorded onto the computer monitor.
-I wasn't too overly concerned with it as I thought it might be a playback issue.
-I certainly have a lot more trouble shooting to do before I figure out
-where the issue lies with this hardware.
+Makes sense. Yet, I would add an option at Kbuild to create a module or not
+with the bundled IR keymaps.
 
--Rob
+So, it should be possible to have all of them completely on userspace or
+having them at kernelspace.
 
-On Fri, Dec 18, 2009 at 3:17 PM, BOUWSMA Barry
-<freebeer.bouwsma@gmail.com> wrote:
-> On Fri, 18 Dec 2009, Robert Longfield wrote:
->
->> Ok so I ran a live CD on my windows box and there were no sync
->> problems. I installed the latest Ubuntu CD and dual booted my windows
->> machine and there was no sync problems but there was other issues,
->> many tiny black lines on edges during fast movement when I did a $ cat
->> /dev/video0 > foo.mpg.
->
-> This sounds like an interlacing issue -- I suspect you are using
-> some player that delivers 25 full frames per second to your
-> display instead of somehow getting 50 partial fields from them
-> or interpolating the fields into 50 frames per second.
->
-> This is fairly normal when not dealing with progressive material
-> (720p HD video, or 1080i HD or even SD video taken from source
-> material such as film shot at 24 fps).  Most players have options
-> to enable one of any number of deinterlacers, some of which work
-> better than others for selected movement.  (There are many
-> different commandline options for `mplayer', one of which will
-> present the fields of a 576i video as 288-line images which helps
-> decipher fast-scrolling text, for example.)
->
-> If you are reproducing your video at your display's native
-> resolution without zooming it to fullscreen, you can see each
-> of the jagged lines matching one pixel vertical resolution.
->
->
-> barrry bouwsma
->
+Cheers,
+Mauro.
