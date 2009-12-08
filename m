@@ -1,119 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:45703 "EHLO mail1.radix.net"
+Received: from smtp.work.de ([212.12.32.49]:58273 "EHLO smtp.work.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965413AbZLHCoh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Dec 2009 21:44:37 -0500
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
- Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-From: Andy Walls <awalls@radix.net>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, superm1@ubuntu.com
-In-Reply-To: <6B4C84CD-F146-4B8B-A8BB-9963E0BA4C47@wilsonet.com>
-References: <BDRae8rZjFB@christoph>
-	 <1259024037.3871.36.camel@palomino.walls.org>
-	 <m3k4xe7dtz.fsf@intrepid.localdomain>  <4B0E8B32.3020509@redhat.com>
-	 <1259264614.1781.47.camel@localhost>
-	 <6B4C84CD-F146-4B8B-A8BB-9963E0BA4C47@wilsonet.com>
-Content-Type: text/plain
-Date: Mon, 07 Dec 2009 21:42:22 -0500
-Message-Id: <1260240142.3086.14.camel@palomino.walls.org>
-Mime-Version: 1.0
+	id S1751412AbZLHJQ2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Dec 2009 04:16:28 -0500
+Received: from [127.0.0.2] (helo=julian-macbook.fritz.box)
+	by smtp.work.de with esmtpa (Exim 4.63)
+	(envelope-from <julian@jusst.de>)
+	id 1NHwBN-0008Vf-Kc
+	for linux-media@vger.kernel.org; Tue, 08 Dec 2009 10:16:33 +0100
+Message-ID: <4B1E1974.6000207@jusst.de>
+Date: Tue, 08 Dec 2009 10:16:36 +0100
+From: Julian Scheel <julian@jusst.de>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: New USB-Statistics API
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2009-12-07 at 13:19 -0500, Jarod Wilson wrote:
-> On Nov 26, 2009, at 2:43 PM, Andy Walls wrote:
-> 
-> > On Thu, 2009-11-26 at 12:05 -0200, Mauro Carvalho Chehab wrote:
-> >> Krzysztof Halasa wrote:
-> >>> Andy Walls <awalls@radix.net> writes:
-> >>> 
-> >>>> I would also note that RC-6 Mode 6A, used by most MCE remotes, was
-> >>>> developed by Philips, but Microsoft has some sort of licensing interest
-> >>>> in it and it is almost surely encumbered somwhow:
-> >>> 
-> >>> I don't know about legal problems in some countries but from the
-> >>> technical POV handling the protocol in the kernel is more efficient
-> >>> or (/and) simpler.
-> >> 
-> >> A software licensing from Microsoft won't apply to Linux kernel, so I'm
-> >> assuming that you're referring to some patent that they could be filled
-> >> about RC6 mode 6A.
-> >> 
-> >> I don't know if is there any US patent pending about it (AFAIK, only US
-> >> accepts software patents), but there are some prior-art for IR key
-> >> decoding. So, I don't see what "innovation" RC6 would be adding. 
-> >> If it is some new way to transmit waves, the patent issues
-> >> aren't related to software, and the device manufacturer had already handled
-> >> it when they made their devices.
-> >> 
-> >> If it is just a new keytable, this issue 
-> >> could be easily solved by loading the keytable via userspace.
-> >> 
-> >> Also, assuming that you can use the driver only with a hardware that comes
-> >> with a licensed software, the user has already the license for using it.
-> >> 
-> >> Do you have any details on what patents they are claiming?
-> > 
-> > The US Philips RC-6 patent is US Patent 5,877,702
-> > 
-> > http://www.google.com/patents?vid=USPAT5877702
-> > 
-> > Click on download PDF to get a copy of the whole patent.
-> > 
-> > I am not a lawyer.  Philips claims' all appear to tie to a transmitter
-> > or receiver as part of a system, but most of the claims are about
-> > information and bit positions and lengths.
-> ...
-> > IMO, given
-> > 
-> > a. the dearth of public information about RC-6, indicating someone
-> > thinks it's their trade secret or intellectual property
-> > 
-> > b. Microsoft claiming to license something related to the MCE remote
-> > protocols (which are obviously RC-6 Mode 6A),
-> > 
-> > c. my inability to draw a "clear, bright line" that RC-6 Mode 6A
-> > encoding and decoding, as needed by MCE remotes, implemented in software
-> > doesn't violate anyone's government granted rights to exclusivity.
-> > 
-> > I think it's much better to implement software RC-6 Mode 6A encoding and
-> > decoding in user space, doing only the minimum needed to get the
-> > hardware setup and going in the kernel.  
-> > 
-> > Encoding/decoding of RC-6 by microcontrollers with firmware doesn't
-> > worry me. 
-> > 
-> > 
-> > Maybe I'm being too conservative here, but I have a personal interest in
-> > keeping Linux free and unencumbered even in the US which, I cannot deny,
-> > has a patent system that is screwed up.
-> 
-> So I had one of the people who does all the license and patent audits
-> for Fedora packages look at the Philips patent on RC-6. He's 100%
-> positive that the patent *only* covers hardware, there should be no
-> problem whatsoever writing a software decoder for RC-6.
+Hello together,
 
-OK.  Thanks for having some professionals take a look.  (I'm assuming
-that's the only patent.)
+after the last thread which asked about signal statistics details 
+degenerated into a discussion about the technical possibilites for 
+implementing an entirely new API, which lead to nothing so far, I wanted 
+to open a new thread to bring this forward. Maybe some more people can 
+give their votes for the different options
 
-So I'll whip up an RC-6 Mode 6A decoder for cx23885-input.c before the
-end of the month.
+Actually Manu did propose a new API for fetching enhanced statistics. It 
+uses new IOCTL to directly fetch the statistical data in one go from the 
+frontend. This propose was so far rejected by Mauro who wants to use the 
+S2API get/set calls instead.
 
-I can setup the CX2388[58] hardware to look for both RC-5 and RC-6 with
-a common set of parameters, so I may be able to set up the decoders to
-handle decoding from two different remote types at once.  The HVR boards
-can ship with either type of remote AFAIK.
+Now to give everyone a quick overview about the advantages and 
+disadvantages of both approaches I will try to summarize it up:
 
-I wonder if I can flip the keytables on the fly or if I have to create
-two different input devices?
+1st approach: Introduce new IOCTL
 
-Regards,
-Andy
+Pros:
+- Allows a quick fetch of the entire dataset, which ensures that:
+  1. all values are fetched in one go (as long as possible) from the 
+frontend, so that they can be treated as one united and be valued in 
+conjunction
+  2. the requested values arrive the caller in an almost constant 
+timeframe, as the ioctl is directly executed by the driver
+- It does not interfere with the existing statistics API, which has to 
+be kept alive as it is in use for a long time already. (unifying it's 
+data is not the approach of this new API)
 
+Cons:
+- Forces the application developers to interact with two APIs. The S2API 
+for tuning on the one hand and the Statistics API for reading signal 
+values on the other hand.
+
+2nd approach: Set up S2API calls for reading statistics
+
+Pros:
+- Continous unification of the linuxtv API, allowing all calls to be 
+made through one API. -> easy for application developers
+
+Cons:
+- Due to the key/value pairs used for S2API getters the statistical 
+values can't be read as a unique block, so we loose the guarantee, that 
+all of the values can be treatend as one unit expressing the signals 
+state at a concrete time.
+- Due to the general architecture of the S2API the delay between 
+requesting and receiving the actual data could become too big to allow 
+realtime interpretation of the data (as it is needed for applications 
+like satellite finders, etc.)
+
+I hope that this summary is technically correct in all points, if not 
+I'd be thankful for objective corrections. I am not going to articulate 
+my personal opinion in this mail, but I will do it in another mail in 
+reply to this one, so that this mail can be seen as a neutral summary of 
+the current situation.
+
+So now it's everyones turn to think about the options and give an 
+opinion. In the end I am quite sure that all of us would have great 
+benefits of an improved statistics API.
+
+Cheers,
+Julian
