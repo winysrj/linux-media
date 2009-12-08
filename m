@@ -1,62 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f221.google.com ([209.85.220.221]:52630 "EHLO
-	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758263AbZLJVPd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2009 16:15:33 -0500
-Received: by fxm21 with SMTP id 21so362598fxm.1
-        for <linux-media@vger.kernel.org>; Thu, 10 Dec 2009 13:15:39 -0800 (PST)
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:60159 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754148AbZLHMvz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2009 07:51:55 -0500
 MIME-Version: 1.0
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE40155C80C7B@dlee06.ent.ti.com>
-References: <A69FA2915331DC488A831521EAE36FE40155C809AB@dlee06.ent.ti.com>
-	 <846899810912101139g6e8a36f7j78fa650e6629ad1b@mail.gmail.com>
-	 <4B2156AA.80309@emlix.com>
-	 <A69FA2915331DC488A831521EAE36FE40155C80C7B@dlee06.ent.ti.com>
-Date: Thu, 10 Dec 2009 22:15:39 +0100
-Message-ID: <846899810912101315o6e576ed8y150c93ea44cb0d66@mail.gmail.com>
-Subject: Re: Latest stack that can be merged on top of linux-next tree
-From: HoP <jpetrous@gmail.com>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Cc: =?ISO-8859-1?Q?Daniel_Gl=F6ckner?= <dg@emlix.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <1260275743.3094.6.camel@palomino.walls.org>
+References: <BDRae8rZjFB@christoph>
+	 <1259024037.3871.36.camel@palomino.walls.org>
+	 <m3k4xe7dtz.fsf@intrepid.localdomain> <4B0E8B32.3020509@redhat.com>
+	 <1259264614.1781.47.camel@localhost>
+	 <6B4C84CD-F146-4B8B-A8BB-9963E0BA4C47@wilsonet.com>
+	 <1260240142.3086.14.camel@palomino.walls.org>
+	 <20091208042210.GA11147@core.coreip.homeip.net>
+	 <1260275743.3094.6.camel@palomino.walls.org>
+Date: Tue, 8 Dec 2009 07:52:02 -0500
+Message-ID: <9e4733910912080452p42efa794mb7fd608fa4fbad7c@mail.gmail.com>
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
+	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Andy Walls <awalls@radix.net>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	Christoph Bartelmus <lirc@bartelmus.de>, j@jannau.net,
+	jarod@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-2009/12/10 Karicheri, Muralidharan <m-karicheri2@ti.com>:
-> Hi,
+On Tue, Dec 8, 2009 at 7:35 AM, Andy Walls <awalls@radix.net> wrote:
+> On Mon, 2009-12-07 at 20:22 -0800, Dmitry Torokhov wrote:
+>> On Mon, Dec 07, 2009 at 09:42:22PM -0500, Andy Walls wrote:
 >
-> Thanks for the email.
+>> > So I'll whip up an RC-6 Mode 6A decoder for cx23885-input.c before the
+>> > end of the month.
+>> >
+>> > I can setup the CX2388[58] hardware to look for both RC-5 and RC-6 with
+>> > a common set of parameters, so I may be able to set up the decoders to
+>> > handle decoding from two different remote types at once.  The HVR boards
+>> > can ship with either type of remote AFAIK.
+>> >
+>> > I wonder if I can flip the keytables on the fly or if I have to create
+>> > two different input devices?
+>> >
+>>
+>> Can you distinguish between the 2 remotes (not receivers)?
 >
-> Any idea how i2c drivers can work with this?
+> Yes.  RC-6 and RC-5 are different enough to distinguish between the two.
+> (Honestly I could pile on more protocols that have similar pulse time
+> periods, but that's complexity for no good reason and I don't know of a
+> vendor that bundles 3 types of remotes per TV card.)
 >
-> Currently in my board, I have adapter id = 1 for main i2c bus. So when this mux driver is built into the kernel, I guess I can access it using a different adapter id, right? If so, what is the adapter id?
+>
+>>  Like I said,
+>> I think the preferred way is to represent every remote that can be
+>> distinguished from each other as a separate input device.
+>
+> OK.  With RC-5, NEC, and RC-6 at least there is also an address or
+> system byte or word to distingish different remotes.  However creating
+> multiple input devices on the fly for detected remotes would be madness
+> - especially with a decoding error in the address bits.
 
-Yes, exactly that is way of using - additional i2c buses were born when pca954x
-started.
+I agree that creating devices on the fly has problems. Another
+solution is to create one device for each map that is loaded. There
+would be a couple built-in maps for bundled remotes - each would
+create a device. Then the user could load more maps with each map
+creating a device.
 
-Daniel already described this in his mail:
+Incoming scancodes are matched against all of the loaded maps and a
+keycode event is generated if a match occurs.
 
-"With these patches the bus segments beyond the i2c multiplexer will be
-registered as separate i2c busses. Access to a device on those busses
-will then automatically reconfigure the multiplexer."
+This illustrates why there should an EV_IR event which communicates
+scancodes, without this event you can't see the scancodes that don't
+match a map entry. A scancode would be first matched against the map,
+then if there as no match an EV_IR event would be reported.
 
-Additional i2c buses (adapters) were counted from number +1 higher
-then highest i2c bus number. If you main i2c bus is i2c-1, then you
-you should find i2c-2,i2c-3,i2c-4,i2c-5 new buses after pca954x loading.
-
-You can check that with i2cdetect tools.
 
 >
-> How do I use this with MT9T031 driver? Any idea to share?
+> Any one vendor usually picks one address for their bundled remote.
+> Hauppaugue uses address 0x1e for it's RC-5 remotes AFAICT.
+>
+>
+>
+>>  Applications
+>> expect to query device capabilities and expect them to stay somewhat
+>> stable (we do support keymap change but I don't think anyone expectes
+>> flip-flopping).
+>
+> OK.
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-input" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
 
-I never had a look inside mt9t031 driver, but in general - you simply
-point to some of that additional adaper by i2c_get_adapter(x)
 
-Idea is very smart. You don't need to manage pca954x on your own.
-Driver do it itself :)
 
-/Honza
+-- 
+Jon Smirl
+jonsmirl@gmail.com
