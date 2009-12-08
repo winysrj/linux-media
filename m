@@ -1,282 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:58810 "EHLO bear.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:50266 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761193AbZLJRAb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2009 12:00:31 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	khilman@deeprootsystems.com, nsekhar@ti.com, hvaibhav@ti.com
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH - v1 6/6] DaVinci - Adding support for vpfe capture on DM365
-Date: Thu, 10 Dec 2009 12:00:24 -0500
-Message-Id: <1260464429-10537-1-git-send-email-m-karicheri2@ti.com>
+	id S1754034AbZLHLX2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Dec 2009 06:23:28 -0500
+Message-ID: <4B1E3727.9090106@redhat.com>
+Date: Tue, 08 Dec 2009 09:23:19 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Jon Smirl <jonsmirl@gmail.com>
+CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
+	kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR 	system?
+References: <20091204220708.GD25669@core.coreip.homeip.net> <BEJgSGGXqgB@lirc>	 <9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>	 <1260070593.3236.6.camel@pc07.localdom.local>	 <20091206065512.GA14651@core.coreip.homeip.net>	 <4B1B99A5.2080903@redhat.com> <m3638k6lju.fsf@intrepid.localdomain>	 <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>	 <m3skbn6dv1.fsf@intrepid.localdomain>	 <20091207184153.GD998@core.coreip.homeip.net> <9e4733910912071644y234beebepd426f9f5760507ce@mail.gmail.com>
+In-Reply-To: <9e4733910912071644y234beebepd426f9f5760507ce@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+Jon Smirl wrote:
+> On Mon, Dec 7, 2009 at 1:41 PM, Dmitry Torokhov
+> <dmitry.torokhov@gmail.com> wrote:
+>> That is why I think we should go the other way around - introduce the
+>> core which receivers could plug into and decoder framework and once it
+>> is ready register lirc-dev as one of the available decoders.
+> 
+> The core needs to allow for RF remotes too.
+> 
+> -Bluetooth remotes are already in kernel somehow, I don't know how they work,
+> -RF4CE, the 802.15.4 stack has been recently merged, the remotes use a
+> protocol on top of that. These remotes will hit the consumer market
+> next year. Sony, Panasonic and other big names are behind this.
+> -Zwave, the Harmony remotes use Zwave. There is no Zwave support in
+> the kernel that I am aware of. Zwave is proprietary.
+> 
+> After these protocols are decoded you end up with scancodes. The
+> scancodes need to get injected into input somehow and then flow
+> through the mapping process. Decoding down to the scancodes probably
+> happens over in the networking code.
+> 
+> After an in-kernel IR decoder runs it needs to hand off the scancodes
+> into the input subsystem. This same API can be used by the networking
+> code to hand off RF scancodes.
+> 
 
-Adding platform code for supporting vpfe capture and ISIF driver on DM365.
+Yes, the same core should be able to work with non infra red remotes, but, depending
+on how the device is implemented.
 
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
----
- arch/arm/mach-davinci/board-dm365-evm.c    |   71 +++++++++++++++++++
- arch/arm/mach-davinci/dm365.c              |  106 +++++++++++++++++++++++++++-
- arch/arm/mach-davinci/include/mach/dm365.h |    2 +
- 3 files changed, 178 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-davinci/board-dm365-evm.c b/arch/arm/mach-davinci/board-dm365-evm.c
-index 8d23972..267898f 100644
---- a/arch/arm/mach-davinci/board-dm365-evm.c
-+++ b/arch/arm/mach-davinci/board-dm365-evm.c
-@@ -37,6 +37,8 @@
- #include <mach/nand.h>
- #include <mach/keyscan.h>
- 
-+#include <media/tvp514x.h>
-+
- static inline int have_imager(void)
- {
- 	/* REVISIT when it's supported, trigger via Kconfig */
-@@ -305,6 +307,73 @@ static void dm365evm_mmc_configure(void)
- 	davinci_cfg_reg(DM365_SD1_DATA0);
- }
- 
-+static struct tvp514x_platform_data tvp5146_pdata = {
-+	.clk_polarity = 0,
-+	.hs_polarity = 1,
-+	.vs_polarity = 1
-+};
-+
-+#define TVP514X_STD_ALL        (V4L2_STD_NTSC | V4L2_STD_PAL)
-+/* Inputs available at the TVP5146 */
-+static struct v4l2_input tvp5146_inputs[] = {
-+	{
-+		.index = 0,
-+		.name = "Composite",
-+		.type = V4L2_INPUT_TYPE_CAMERA,
-+		.std = TVP514X_STD_ALL,
-+	},
-+	{
-+		.index = 1,
-+		.name = "S-Video",
-+		.type = V4L2_INPUT_TYPE_CAMERA,
-+		.std = TVP514X_STD_ALL,
-+	},
-+};
-+
-+/*
-+ * this is the route info for connecting each input to decoder
-+ * ouput that goes to vpfe. There is a one to one correspondence
-+ * with tvp5146_inputs
-+ */
-+static struct vpfe_route tvp5146_routes[] = {
-+	{
-+		.input = INPUT_CVBS_VI2B,
-+		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
-+	},
-+{
-+		.input = INPUT_SVIDEO_VI2C_VI1C,
-+		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
-+	},
-+};
-+
-+static struct vpfe_subdev_info vpfe_sub_devs[] = {
-+	{
-+		.name = "tvp5146",
-+		.grp_id = 0,
-+		.num_inputs = ARRAY_SIZE(tvp5146_inputs),
-+		.inputs = tvp5146_inputs,
-+		.routes = tvp5146_routes,
-+		.can_route = 1,
-+		.ccdc_if_params = {
-+			.if_type = VPFE_BT656,
-+			.hdpol = VPFE_PINPOL_POSITIVE,
-+			.vdpol = VPFE_PINPOL_POSITIVE,
-+		},
-+		.board_info = {
-+			I2C_BOARD_INFO("tvp5146", 0x5d),
-+			.platform_data = &tvp5146_pdata,
-+		},
-+	},
-+};
-+
-+static struct vpfe_config vpfe_cfg = {
-+       .num_subdevs = ARRAY_SIZE(vpfe_sub_devs),
-+       .sub_devs = vpfe_sub_devs,
-+	.i2c_adapter_id = 1,
-+       .card_name = "DM365 EVM",
-+       .ccdc = "ISIF",
-+};
-+
- static void __init evm_init_i2c(void)
- {
- 	davinci_init_i2c(&i2c_pdata);
-@@ -496,6 +565,8 @@ static struct davinci_uart_config uart_config __initdata = {
- 
- static void __init dm365_evm_map_io(void)
- {
-+	/* setup input configuration for VPFE input devices */
-+	dm365_set_vpfe_config(&vpfe_cfg);
- 	dm365_init();
- }
- 
-diff --git a/arch/arm/mach-davinci/dm365.c b/arch/arm/mach-davinci/dm365.c
-index cc3bae4..96eb83d 100644
---- a/arch/arm/mach-davinci/dm365.c
-+++ b/arch/arm/mach-davinci/dm365.c
-@@ -403,6 +403,11 @@ static struct clk mjcp_clk = {
- 	.lpsc		= DM365_LPSC_MJCP,
- };
- 
-+static struct clk isif_clk = {
-+	.name		= "isif",
-+	.parent		= &vpss_master_clk,
-+};
-+
- static struct davinci_clk dm365_clks[] = {
- 	CLK(NULL, "ref", &ref_clk),
- 	CLK(NULL, "pll1", &pll1_clk),
-@@ -459,6 +464,7 @@ static struct davinci_clk dm365_clks[] = {
- 	CLK("davinci-asp.0", NULL, &asp0_clk),
- 	CLK(NULL, "rto", &rto_clk),
- 	CLK(NULL, "mjcp", &mjcp_clk),
-+	CLK("isif", "master", &isif_clk),
- 	CLK(NULL, NULL, NULL),
- };
- 
-@@ -1009,6 +1015,97 @@ void __init dm365_init(void)
- 	davinci_common_init(&davinci_soc_info_dm365);
- }
- 
-+static struct resource dm365_vpss_resources[] = {
-+	{
-+		/* VPSS ISP5 Base address */
-+		.name           = "isp5",
-+		.start          = 0x01c70000,
-+		.end            = 0x01c70000 + 0xff,
-+		.flags          = IORESOURCE_MEM,
-+	},
-+	{
-+		/* VPSS CLK Base address */
-+		.name           = "vpss",
-+		.start          = 0x01c70200,
-+		.end            = 0x01c70200 + 0xff,
-+		.flags          = IORESOURCE_MEM,
-+	},
-+};
-+
-+static struct platform_device dm365_vpss_device = {
-+       .name                   = "vpss",
-+       .id                     = -1,
-+       .dev.platform_data      = "dm365_vpss",
-+       .num_resources          = ARRAY_SIZE(dm365_vpss_resources),
-+       .resource               = dm365_vpss_resources,
-+};
-+
-+static struct resource vpfe_resources[] = {
-+	{
-+		.start          = IRQ_VDINT0,
-+		.end            = IRQ_VDINT0,
-+		.flags          = IORESOURCE_IRQ,
-+	},
-+	{
-+		.start          = IRQ_VDINT1,
-+		.end            = IRQ_VDINT1,
-+		.flags          = IORESOURCE_IRQ,
-+	},
-+};
-+
-+static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
-+static struct platform_device vpfe_capture_dev = {
-+	.name           = CAPTURE_DRV_NAME,
-+	.id             = -1,
-+	.num_resources  = ARRAY_SIZE(vpfe_resources),
-+	.resource       = vpfe_resources,
-+	.dev = {
-+		.dma_mask               = &vpfe_capture_dma_mask,
-+		.coherent_dma_mask      = DMA_BIT_MASK(32),
-+	},
-+};
-+
-+static void dm365_isif_setup_pinmux(void)
-+{
-+	davinci_cfg_reg(DM365_VIN_CAM_WEN);
-+	davinci_cfg_reg(DM365_VIN_CAM_VD);
-+	davinci_cfg_reg(DM365_VIN_CAM_HD);
-+	davinci_cfg_reg(DM365_VIN_YIN4_7_EN);
-+	davinci_cfg_reg(DM365_VIN_YIN0_3_EN);
-+}
-+
-+static struct resource isif_resource[] = {
-+	/* ISIF Base address */
-+	{
-+		.start          = 0x01c71000,
-+		.end            = 0x01c71000 + 0x1ff,
-+		.flags          = IORESOURCE_MEM,
-+	},
-+	/* ISIF Linearization table 0 */
-+	{
-+		.start          = 0x1C7C000,
-+		.end            = 0x1C7C000 + 0x2ff,
-+		.flags          = IORESOURCE_MEM,
-+	},
-+	/* ISIF Linearization table 1 */
-+	{
-+		.start          = 0x1C7C400,
-+		.end            = 0x1C7C400 + 0x2ff,
-+		.flags          = IORESOURCE_MEM,
-+	},
-+};
-+static struct platform_device dm365_isif_dev = {
-+	.name           = "isif",
-+	.id             = -1,
-+	.num_resources  = ARRAY_SIZE(isif_resource),
-+	.resource       = isif_resource,
-+	.dev = {
-+		.dma_mask               = &vpfe_capture_dma_mask,
-+		.coherent_dma_mask      = DMA_BIT_MASK(32),
-+		.platform_data		= dm365_isif_setup_pinmux,
-+	},
-+};
-+
- static int __init dm365_init_devices(void)
- {
- 	if (!cpu_is_davinci_dm365())
-@@ -1017,7 +1114,14 @@ static int __init dm365_init_devices(void)
- 	davinci_cfg_reg(DM365_INT_EDMA_CC);
- 	platform_device_register(&dm365_edma_device);
- 	platform_device_register(&dm365_emac_device);
--
-+	platform_device_register(&dm365_vpss_device);
-+	platform_device_register(&dm365_isif_dev);
-+	platform_device_register(&vpfe_capture_dev);
- 	return 0;
- }
- postcore_initcall(dm365_init_devices);
-+
-+void dm365_set_vpfe_config(struct vpfe_config *cfg)
-+{
-+       vpfe_capture_dev.dev.platform_data = cfg;
-+}
-diff --git a/arch/arm/mach-davinci/include/mach/dm365.h b/arch/arm/mach-davinci/include/mach/dm365.h
-index 3c07a88..9b40f42 100644
---- a/arch/arm/mach-davinci/include/mach/dm365.h
-+++ b/arch/arm/mach-davinci/include/mach/dm365.h
-@@ -16,6 +16,7 @@
- #include <linux/platform_device.h>
- #include <linux/davinci_emac.h>
- #include <mach/hardware.h>
-+#include <media/davinci/vpfe_capture.h>
- #include <mach/asp.h>
- #include <mach/keyscan.h>
- 
-@@ -36,4 +37,5 @@ void __init dm365_init_asp(struct snd_platform_data *pdata);
- void __init dm365_init_ks(struct davinci_ks_platform_data *pdata);
- void __init dm365_init_rtc(void);
- 
-+void dm365_set_vpfe_config(struct vpfe_config *cfg);
- #endif /* __ASM_ARCH_DM365_H */
--- 
-1.6.0.4
-
+Cheers,
+Mauro.
