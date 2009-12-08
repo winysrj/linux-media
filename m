@@ -1,44 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f187.google.com ([209.85.210.187]:61340 "EHLO
-	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758027AbZLFDVt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2009 22:21:49 -0500
-Received: by yxe17 with SMTP id 17so3097806yxe.33
-        for <linux-media@vger.kernel.org>; Sat, 05 Dec 2009 19:21:56 -0800 (PST)
-Message-ID: <4B1B2353.9030604@voltagex.org>
-Date: Sun, 06 Dec 2009 14:21:55 +1100
-From: Adam Baxter <voltagex@voltagex.org>
+Received: from khc.piap.pl ([195.187.100.11]:55366 "EHLO khc.piap.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755342AbZLHOG2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Dec 2009 09:06:28 -0500
+From: Krzysztof Halasa <khc@pm.waw.pl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Gerd Hoffmann <kraxel@redhat.com>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jonsmirl@gmail.com,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
+References: <BDodf9W1qgB@lirc> <4B14EDE3.5050201@redhat.com>
+	<4B1524DD.3080708@redhat.com> <4B153617.8070608@redhat.com>
+	<A6D5FF84-2DB8-4543-ACCB-287305CA0739@wilsonet.com>
+	<4B17AA6A.9060702@redhat.com>
+	<20091203175531.GB776@core.coreip.homeip.net>
+	<20091203163328.613699e5@pedra>
+	<20091204100642.GD22570@core.coreip.homeip.net>
+	<20091204121234.5144836b@pedra>
+	<20091206070929.GB14651@core.coreip.homeip.net>
+	<4B1B8F83.5080009@redhat.com> <m31vj77t51.fsf@intrepid.localdomain>
+	<4B1D9714.5060000@redhat.com>
+Date: Tue, 08 Dec 2009 15:06:31 +0100
+In-Reply-To: <4B1D9714.5060000@redhat.com> (Mauro Carvalho Chehab's message of
+	"Mon, 07 Dec 2009 22:00:20 -0200")
+Message-ID: <m3zl5ttva0.fsf@intrepid.localdomain>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: AF9035 USB2 DVB-T device
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi guys,
-I see some work has been done on the AF9015 driver, but I've found yet 
-another variant.
-It was branded "WandTV".
+Mauro Carvalho Chehab <mchehab@redhat.com> writes:
 
-|[ 3531.496078] usb 1-4: new high speed USB device using ehci_hcd and 
-address 15
-[ 3531.634713] usb 1-4: New USB device found, idVendor=15a4, idProduct=1001
-[ 3531.634777] usb 1-4: New USB device strings: Mfr=1, Product=2, 
-SerialNumber=3
-[ 3531.634832] usb 1-4: Product: AF9035A USB Device
-[ 3531.634875] usb 1-4: Manufacturer: Afa Technologies Inc.
-[ 3531.634922] usb 1-4: SerialNumber: AF0102020700001
-[ 3531.635169] usb 1-4: configuration #1 chosen from 1 choice
-[ 3531.644931] input: Afa Technologies Inc. AF9035A USB Device as 
-/devices/pci0000:00/0000:00:1d.7/usb1/1-4/1-4:1.1/input/input9
-[ 3531.645175] generic-usb 0003:15A4:1001.0005: input,hidraw0: USB HID 
-v1.01 Keyboard [Afa Technologies Inc. AF9035A USB Device] on 
-usb-0000:00:1d.7-4/input1|
+> Yes, an opaque type for scancode at the userspace API can be better, but
+> passing a pointer to kernel will require some compat32 logic (as pointer
+> size is different on 32 and 64 bits).
 
-Any ideas where to start? The main variation seems to be the firmware 
-(on Windows), but I'm not experienced enough to fire up usbsnoop.
+Yes. I think we can't avoid that, but it's a single compat handler,
+I wouldn't worry about it too much. We don't need it in every driver
+fortunately.
 
-Thanks,
-Adam Baxter
+> We may use something like an u8[] with an arbitrary large number of
+> bytes.
 
+Yes. All of this pointed to by the pointer.
+
+> In this case, we need to take some care to avoid LSB/MSB troubles.
+
+Sure.
+-- 
+Krzysztof Halasa
