@@ -1,234 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54733 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761155AbZLJRAa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2009 12:00:30 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	khilman@deeprootsystems.com, nsekhar@ti.com, hvaibhav@ti.com
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH - v1 4/6] V4L - vpfe_capture bug fix and enhancements
-Date: Thu, 10 Dec 2009 12:00:29 -0500
-Message-Id: <1260464429-10537-6-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1260464429-10537-5-git-send-email-m-karicheri2@ti.com>
-References: <1260464429-10537-1-git-send-email-m-karicheri2@ti.com>
- <1260464429-10537-2-git-send-email-m-karicheri2@ti.com>
- <1260464429-10537-3-git-send-email-m-karicheri2@ti.com>
- <1260464429-10537-4-git-send-email-m-karicheri2@ti.com>
- <1260464429-10537-5-git-send-email-m-karicheri2@ti.com>
+Received: from khc.piap.pl ([195.187.100.11]:51895 "EHLO khc.piap.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755137AbZLHNyB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Dec 2009 08:54:01 -0500
+From: Krzysztof Halasa <khc@pm.waw.pl>
+To: Jon Smirl <jonsmirl@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
+	kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
+References: <20091204220708.GD25669@core.coreip.homeip.net>
+	<9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>
+	<1260070593.3236.6.camel@pc07.localdom.local>
+	<20091206065512.GA14651@core.coreip.homeip.net>
+	<4B1B99A5.2080903@redhat.com> <m3638k6lju.fsf@intrepid.localdomain>
+	<9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
+	<m3skbn6dv1.fsf@intrepid.localdomain>
+	<9e4733910912061323x22c618ccyf6edcee5b021cbe3@mail.gmail.com>
+	<4B1D934E.7030103@redhat.com>
+	<9e4733910912071628x3f3eba82r4c964982f9d8c5a4@mail.gmail.com>
+Date: Tue, 08 Dec 2009 14:54:03 +0100
+In-Reply-To: <9e4733910912071628x3f3eba82r4c964982f9d8c5a4@mail.gmail.com>
+	(Jon Smirl's message of "Mon, 7 Dec 2009 19:28:13 -0500")
+Message-ID: <m3d42pvaf8.fsf@intrepid.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+Jon Smirl <jonsmirl@gmail.com> writes:
 
-Added a experimental IOCTL, to read the CCDC parameters.
-Default handler was not getting the original pointer from the core.
-So a wrapper function added to handle the default handler properly.
-Also fixed a bug in the probe() in the linux-next tree
+> Data could be sent to the in-kernel decoders first and then if they
+> don't handle it, send it to user space.
 
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
----
- drivers/media/video/davinci/vpfe_capture.c |  119 +++++++++++++++++-----------
- include/media/davinci/vpfe_capture.h       |   12 ++-
- 2 files changed, 81 insertions(+), 50 deletions(-)
-
-diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
-index 091750e..8c6d856 100644
---- a/drivers/media/video/davinci/vpfe_capture.c
-+++ b/drivers/media/video/davinci/vpfe_capture.c
-@@ -759,12 +759,83 @@ static unsigned int vpfe_poll(struct file *file, poll_table *wait)
- 	return 0;
- }
- 
-+static long vpfe_param_handler(struct file *file, void *priv,
-+		int cmd, void *param)
-+{
-+	struct vpfe_device *vpfe_dev = video_drvdata(file);
-+	int ret = 0;
-+
-+	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_param_handler\n");
-+
-+	if (NULL == param) {
-+		v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
-+			"Invalid user ptr\n");
-+	}
-+
-+	if (vpfe_dev->started) {
-+		/* only allowed if streaming is not started */
-+		v4l2_err(&vpfe_dev->v4l2_dev, "device already started\n");
-+		return -EBUSY;
-+	}
-+
-+
-+	switch (cmd) {
-+	case VPFE_CMD_S_CCDC_RAW_PARAMS:
-+		v4l2_warn(&vpfe_dev->v4l2_dev,
-+			  "VPFE_CMD_S_CCDC_RAW_PARAMS: experimental ioctl\n");
-+		ret = mutex_lock_interruptible(&vpfe_dev->lock);
-+		if (ret)
-+			return ret;
-+		ret = ccdc_dev->hw_ops.set_params(param);
-+		if (ret) {
-+			v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
-+				"Error in setting parameters in CCDC\n");
-+			goto unlock_out;
-+		}
-+
-+		if (vpfe_get_ccdc_image_format(vpfe_dev, &vpfe_dev->fmt) < 0) {
-+			v4l2_err(&vpfe_dev->v4l2_dev,
-+				"Invalid image format at CCDC\n");
-+			ret = -EINVAL;
-+		}
-+unlock_out:
-+		mutex_unlock(&vpfe_dev->lock);
-+		break;
-+	case VPFE_CMD_G_CCDC_RAW_PARAMS:
-+		v4l2_warn(&vpfe_dev->v4l2_dev,
-+			  "VPFE_CMD_G_CCDC_RAW_PARAMS: experimental ioctl\n");
-+		if (!ccdc_dev->hw_ops.get_params) {
-+			ret = -EINVAL;
-+			break;
-+		}
-+		ret = ccdc_dev->hw_ops.get_params(param);
-+		if (ret) {
-+			v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
-+				"Error in getting parameters from CCDC\n");
-+		}
-+		break;
-+
-+	default:
-+		ret = -EINVAL;
-+	}
-+	return ret;
-+}
-+
-+static long vpfe_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
-+{
-+	if (cmd == VPFE_CMD_S_CCDC_RAW_PARAMS ||
-+	    cmd == VPFE_CMD_G_CCDC_RAW_PARAMS)
-+		return vpfe_param_handler(file, file->private_data, cmd,
-+					 (void *)arg);
-+	return video_ioctl2(file, cmd, arg);
-+}
-+
- /* vpfe capture driver file operations */
- static const struct v4l2_file_operations vpfe_fops = {
- 	.owner = THIS_MODULE,
- 	.open = vpfe_open,
- 	.release = vpfe_release,
--	.unlocked_ioctl = video_ioctl2,
-+	.unlocked_ioctl = vpfe_ioctl,
- 	.mmap = vpfe_mmap,
- 	.poll = vpfe_poll
- };
-@@ -1682,50 +1753,6 @@ unlock_out:
- 	return ret;
- }
- 
--
--static long vpfe_param_handler(struct file *file, void *priv,
--		int cmd, void *param)
--{
--	struct vpfe_device *vpfe_dev = video_drvdata(file);
--	int ret = 0;
--
--	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_param_handler\n");
--
--	if (vpfe_dev->started) {
--		/* only allowed if streaming is not started */
--		v4l2_err(&vpfe_dev->v4l2_dev, "device already started\n");
--		return -EBUSY;
--	}
--
--	ret = mutex_lock_interruptible(&vpfe_dev->lock);
--	if (ret)
--		return ret;
--
--	switch (cmd) {
--	case VPFE_CMD_S_CCDC_RAW_PARAMS:
--		v4l2_warn(&vpfe_dev->v4l2_dev,
--			  "VPFE_CMD_S_CCDC_RAW_PARAMS: experimental ioctl\n");
--		ret = ccdc_dev->hw_ops.set_params(param);
--		if (ret) {
--			v4l2_err(&vpfe_dev->v4l2_dev,
--				"Error in setting parameters in CCDC\n");
--			goto unlock_out;
--		}
--		if (vpfe_get_ccdc_image_format(vpfe_dev, &vpfe_dev->fmt) < 0) {
--			v4l2_err(&vpfe_dev->v4l2_dev,
--				"Invalid image format at CCDC\n");
--			goto unlock_out;
--		}
--		break;
--	default:
--		ret = -EINVAL;
--	}
--unlock_out:
--	mutex_unlock(&vpfe_dev->lock);
--	return ret;
--}
--
--
- /* vpfe capture ioctl operations */
- static const struct v4l2_ioctl_ops vpfe_ioctl_ops = {
- 	.vidioc_querycap	 = vpfe_querycap,
-@@ -1751,7 +1778,6 @@ static const struct v4l2_ioctl_ops vpfe_ioctl_ops = {
- 	.vidioc_cropcap		 = vpfe_cropcap,
- 	.vidioc_g_crop		 = vpfe_g_crop,
- 	.vidioc_s_crop		 = vpfe_s_crop,
--	.vidioc_default		 = vpfe_param_handler,
- };
- 
- static struct vpfe_device *vpfe_initialize(void)
-@@ -1923,6 +1949,7 @@ static __init int vpfe_probe(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, vpfe_dev);
- 	/* set driver private data */
- 	video_set_drvdata(vpfe_dev->video_dev, vpfe_dev);
-+	vpfe_cfg = pdev->dev.platform_data;
- 	i2c_adap = i2c_get_adapter(vpfe_cfg->i2c_adapter_id);
- 	num_subdevs = vpfe_cfg->num_subdevs;
- 	vpfe_dev->sd = kmalloc(sizeof(struct v4l2_subdev *) * num_subdevs,
-diff --git a/include/media/davinci/vpfe_capture.h b/include/media/davinci/vpfe_capture.h
-index d863e5e..23043bd 100644
---- a/include/media/davinci/vpfe_capture.h
-+++ b/include/media/davinci/vpfe_capture.h
-@@ -31,8 +31,6 @@
- #include <media/videobuf-dma-contig.h>
- #include <media/davinci/vpfe_types.h>
- 
--#define VPFE_CAPTURE_NUM_DECODERS        5
--
- /* Macros */
- #define VPFE_MAJOR_RELEASE              0
- #define VPFE_MINOR_RELEASE              0
-@@ -91,8 +89,9 @@ struct vpfe_config {
- 	char *card_name;
- 	/* ccdc name */
- 	char *ccdc;
--	/* vpfe clock */
-+	/* vpfe clock. Obsolete! Will be removed in next patch */
- 	struct clk *vpssclk;
-+	/* Obsolete! Will be removed in next patch */
- 	struct clk *slaveclk;
- };
- 
-@@ -193,8 +192,13 @@ struct vpfe_config_params {
-  * color space conversion, culling etc. This is an experimental ioctl that
-  * will change in future kernels. So use this ioctl with care !
-  * TODO: This is to be split into multiple ioctls and also explore the
-- * possibility of extending the v4l2 api to include this
-+ * possibility of extending the v4l2 api to include this.
-+ * VPFE_CMD_G_CCDC_RAW_PARAMS - EXPERIMENTAL IOCTL to get the current raw
-+ * capture parameters
-  **/
- #define VPFE_CMD_S_CCDC_RAW_PARAMS _IOW('V', BASE_VIDIOC_PRIVATE + 1, \
- 					void *)
-+#define VPFE_CMD_G_CCDC_RAW_PARAMS _IOR('V', BASE_VIDIOC_PRIVATE + 2, \
-+					void *)
-+
- #endif				/* _DAVINCI_VPFE_H */
+Nope. It should be sent to all of them, they aren't dependent.
 -- 
-1.6.0.4
-
+Krzysztof Halasa
