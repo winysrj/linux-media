@@ -1,103 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:45317 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756088AbZLCNyY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 08:54:24 -0500
-Message-ID: <4B17C311.6050500@gmail.com>
-Date: Thu, 03 Dec 2009 21:54:25 +0800
-From: "David T. L. Wong" <davidtlwong@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:8076 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932264AbZLHPtu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Dec 2009 10:49:50 -0500
+Message-ID: <4B1E756D.2090908@redhat.com>
+Date: Tue, 08 Dec 2009 13:49:01 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Randy Dunlap <randy.dunlap@oracle.com>
-CC: linux-next@vger.kernel.org,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] max2165 32bit build patch
-References: <20091130175346.3f3345ed.sfr@canb.auug.org.au>	<4B1409D9.1050901@oracle.com> <20091202100406.e25b2322.randy.dunlap@oracle.com>
-In-Reply-To: <20091202100406.e25b2322.randy.dunlap@oracle.com>
-Content-Type: multipart/mixed;
- boundary="------------060404090507030301090501"
+To: Krzysztof Halasa <khc@pm.waw.pl>
+CC: Jon Smirl <jonsmirl@gmail.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
+	kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR 	system?
+References: <20091204220708.GD25669@core.coreip.homeip.net> <BEJgSGGXqgB@lirc>	<9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>	<1260070593.3236.6.camel@pc07.localdom.local>	<20091206065512.GA14651@core.coreip.homeip.net>	<4B1B99A5.2080903@redhat.com> <m3638k6lju.fsf@intrepid.localdomain>	<9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>	<m3skbn6dv1.fsf@intrepid.localdomain>	<9e4733910912061323x22c618ccyf6edcee5b021cbe3@mail.gmail.com>	<4B1D934E.7030103@redhat.com> <m3hbs1vain.fsf@intrepid.localdomain>	<4B1E5DA3.7000206@redhat.com> <m3y6ldscut.fsf@intrepid.localdomain>
+In-Reply-To: <m3y6ldscut.fsf@intrepid.localdomain>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------060404090507030301090501
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-
-Randy Dunlap wrote:
-> On Mon, 30 Nov 2009 10:07:21 -0800 Randy Dunlap wrote:
+Krzysztof Halasa wrote:
+> Mauro Carvalho Chehab <mchehab@redhat.com> writes:
 > 
->> Stephen Rothwell wrote:
->>> Hi all,
->>>
->>> Changes since 20091127:
->>>
->>> The v4l-dvb tree lost its conflict.
->>
->> on i386 (X86_32):
->>
->> a 'double' variable is used, causing:
->>
->> ERROR: "__floatunsidf" [drivers/media/common/tuners/max2165.ko] undefined!
->> ERROR: "__adddf3" [drivers/media/common/tuners/max2165.ko] undefined!
->> ERROR: "__fixunsdfsi" [drivers/media/common/tuners/max2165.ko] undefined!
+>> If you use a kfifo to store the event (space_or_mark, timestamp), 
+>> the IRQ handler can return immediately, and a separate kernel thread 
+>> can do the decode without needing to touch at the IRQ.
 > 
-> 
-> linux-next-20091202:
-> 
-> still have this one (above) and similar with
-> drivers/media/dvb/frontends/atbm8830.c:
-> 
-> drivers/built-in.o: In function `atbm8830_init':
-> atbm8830.c:(.text+0x9012f9): undefined reference to `__udivdi3'
-> atbm8830.c:(.text+0x901384): undefined reference to `__floatunsidf'
-> atbm8830.c:(.text+0x901395): undefined reference to `__muldf3'
-> atbm8830.c:(.text+0x9013a5): undefined reference to `__floatunsidf'
-> atbm8830.c:(.text+0x9013b2): undefined reference to `__divdf3'
-> atbm8830.c:(.text+0x9013c3): undefined reference to `__muldf3'
-> atbm8830.c:(.text+0x9013cd): undefined reference to `__fixunsdfsi'
-> 
-> ---
-> ~Randy
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> But the decoding itself is a really simple thing, why complicate it?
+> There is no need for the kernel thread if the handler is fast (and it
+> is).
 
-This patch drops usage of floating point variable for 32bit build
+The decoding of just one protocol may be fast, but having several decoders
+serialized (without kthreads, you're serializing the decoders) will possibly
+not be that fast.
 
-Signed-off-by: David T. L. Wong <davidtlwong@gmail.com>
+Also, you don't need wake the decoders kthreads for every event, but wait
+for some number of events to happen before waking it. For example,
+16 pulse/space events correspond to 8 bits of data on most protocols, 
+so you can wake the kthread only after 16 events for really simple decoders,
+or if a timeout event is detected. The number of events to wake may be customized
+per decoder.
 
---------------060404090507030301090501
-Content-Type: text/x-patch;
- name="max2165_no_float.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="max2165_no_float.patch"
-
-diff --git a/linux/drivers/media/common/tuners/max2165.c b/linux/drivers/media/common/tuners/max2165.c
---- a/linux/drivers/media/common/tuners/max2165.c
-+++ b/linux/drivers/media/common/tuners/max2165.c
-@@ -193,7 +193,7 @@
- {
- 	u8 tf;
- 	u8 tf_ntch;
--	double t;
-+	u32 t;
- 	u32 quotient, fraction;
- 
- 	/* Set PLL divider according to RF frequency */
-@@ -217,9 +217,6 @@
- 	t += (priv->tf_balun_hi_ref - priv->tf_balun_low_ref)
- 		* (freq / 1000 - 470000) / (780000 - 470000);
- 
--#if 0
--	tf = t + 0.5; /* round up */
--#endif
- 	tf = t;
- 	dprintk("tf = %X\n", tf);
- 	tf |= tf_ntch << 4;
-
-
---------------060404090507030301090501--
+Cheers,
+Mauro.
