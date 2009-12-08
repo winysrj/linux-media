@@ -1,61 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from khc.piap.pl ([195.187.100.11]:47685 "EHLO khc.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754966AbZLHONl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2009 09:13:41 -0500
-From: Krzysztof Halasa <khc@pm.waw.pl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Andy Walls <awalls@radix.net>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>, j@jannau.net,
-	jarod@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was: Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-References: <BDRae8rZjFB@christoph>
-	<1259024037.3871.36.camel@palomino.walls.org>
-	<m3k4xe7dtz.fsf@intrepid.localdomain> <4B0E8B32.3020509@redhat.com>
-	<1259264614.1781.47.camel@localhost>
-	<6B4C84CD-F146-4B8B-A8BB-9963E0BA4C47@wilsonet.com>
-	<1260240142.3086.14.camel@palomino.walls.org>
-	<20091208042210.GA11147@core.coreip.homeip.net>
-	<4B1E3C1D.7070704@redhat.com>
-Date: Tue, 08 Dec 2009 15:13:42 +0100
-In-Reply-To: <4B1E3C1D.7070704@redhat.com> (Mauro Carvalho Chehab's message of
-	"Tue, 08 Dec 2009 09:44:29 -0200")
-Message-ID: <m3vdghtuy1.fsf@intrepid.localdomain>
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:35291 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965713AbZLHR7Y convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2009 12:59:24 -0500
+Received: by bwz27 with SMTP id 27so4597347bwz.21
+        for <linux-media@vger.kernel.org>; Tue, 08 Dec 2009 09:59:30 -0800 (PST)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: Andy Walls <awalls@radix.net>
+Subject: Re: IR Receiver on an Tevii S470
+Date: Tue, 8 Dec 2009 19:59:20 +0200
+Cc: Matthias Fechner <idefix@fechner.net>, linux-media@vger.kernel.org
+References: <4B0459B1.50600@fechner.net> <200912070323.14440.liplianin@me.by> <1260156946.1809.25.camel@localhost>
+In-Reply-To: <1260156946.1809.25.camel@localhost>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <200912081959.21245.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab <mchehab@redhat.com> writes:
+On 7 декабря 2009 05:35:46 Andy Walls wrote:
+> On Mon, 2009-12-07 at 03:23 +0200, Igor M. Liplianin wrote:
+> > On 6 декабря 2009 23:40:54 Andy Walls wrote:
+> > > On Sun, 2009-11-22 at 03:03 +0200, Igor M. Liplianin wrote:
+> > > > On 21 ноября 2009 22:41:42 Andy Walls wrote:
+> > > > > > Matthias Fechner schrieb:
+> > > > > > > I bought some days ago a Tevii S470 DVB-S2 (PCI-E) card and got
+> > > > > > > it running with the driver from:
+> > > > > > > http://mercurial.intuxication.org/hg/s2-liplianin
+> > > > > > >
+> > > > > > > But I was not successfull in got the IR receiver working.
+> > > > > > > It seems that it is not supported yet by the driver.
+> > > > > > >
+> > > > > > > Is there maybe some code available to get the IR receiver with
+> > > > > > > evdev running?
+> > > > >
+> > > > > If the card is using the built in IR controller in the CX23885,
+> > > > > then you'll have to wait until I port my CX23888 IR controller
+> > > > > changes to work with the IR controller in the CX23885.  That should
+> > > > > be somewhat straightforward, but will take time.  Then we'll still
+> > > > > need you to experiment with a patch.
+> > > >
+> > > > It's cx23885 definitely.
+> > > > Remote uses NEC codes.
+> > > > In any case I can test.
+> > >
+> > > On Mon, 2009-11-23, Igor M. Liplianin wrote:
+> > > > Receiver connected to cx23885 IR_RX(pin 106). It is not difficult to
+> > > > track.
+> > >
+> > > Igor,
+> >
+> > Hi Andy,
+> >
+> > > As I make patches for test, perhaps you can help answer some questions
+> > > which will save some experimentation:
+> > >
+> > >
+> > > 1. Does the remote for the TeVii S470 use the same codes as
+> > >
+> > > linux/drivers/media/common/ir-keymaps.c : ir_codes_tevii_nec[]
+> >
+> > That is correct table for cx88 based TeVii card with the same remote.
+> > I believe there is no difference for cx23885.
+> >
+> > > or some other remote code table we have in the kernel?
+> > >
+> > >
+> > > 2. Does the remote for the TeVii S470, like other TeVii remotes, use a
+> > > standard NEC address of 0x00 (so that Addr'Addr is 0xff00) ?  Or does
+> > > it use another address?
+> >
+> > Again like in cx88, the address is standard.
+> >
+> > > 3. When you traced board wiring from the IR receiver to the IR_RX pin
+> > > on the CX23885, did you notice any external components that might
+> > > modify the signal?  For example, a capacitor that integrates carrier
+> > > bursts into baseband pulses.
+> >
+> > Yet again I believe there is no capacitors.
+> > Very same scheme like in cx88 variants for TeVii and others.
+>
+> Igor and Matthias,
+>
+> Please try the changes that I have for the TeVii S470 that are here:
+>
+> 	http://linuxtv.org/hg/~awalls/cx23885-ir
+>
+> You will want to modprobe the driver modules like this to get debugging
+> information:
+>
+> 	# modprobe cx25840 ir_debug=2
+> 	# modprobe cx23885 ir_input_debug=1
+>
+> With that debugging you will get output something like this in dmesg or
+> your logs when you press a button on the remote (this is RC-5 using a
+> CX23888 chip not NEC using a CX23885 chip):
+>
+> cx23885[0]/888-ir: IRQ Status:  tsr rsr             rby
+> cx23885[0]/888-ir: IRQ Enables:     rse rte roe
+> cx23885[0]/888-ir: IRQ Status:  tsr rsr             rby
+> cx23885[0]/888-ir: IRQ Enables:     rse rte roe
+> cx23885[0]/888-ir: IRQ Status:  tsr rsr             rby
+> cx23885[0]/888-ir: IRQ Enables:     rse rte roe
+> cx23885[0]/888-ir: IRQ Status:  tsr rsr             rby
+> cx23885[0]/888-ir: IRQ Enables:     rse rte roe
+> cx23885[0]/888-ir: IRQ Status:  tsr rsr             rby
+> cx23885[0]/888-ir: IRQ Enables:     rse rte roe
+> cx23885[0]/888-ir: IRQ Status:  tsr     rto
+> cx23885[0]/888-ir: IRQ Enables:     rse rte roe
+> cx23885[0]/888-ir: rx read:     817000 ns  mark
+> cx23885[0]/888-ir: rx read:     838926 ns  space
+> cx23885[0]/888-ir: rx read:    1572259 ns  mark
+> cx23885[0]/888-ir: rx read:    1705296 ns  space
+> [...]
+> cx23885[0]/888-ir: rx read:     838037 ns  space
+> cx23885[0]/888-ir: rx read:     746333 ns  mark
+> cx23885[0]/888-ir: rx read:    1705741 ns  space
+> cx23885[0]/888-ir: rx read:    1619370 ns  mark
+> cx23885[0]/888-ir: rx read: end of rx
+>
+> NEC would actually have this sort of timing:
+>
+> 8257296 ns  mark
+> 4206185 ns  space
+>  482926 ns  mark
+>  545296 ns  space
+>  481296 ns  mark
+> 1572259 ns  space
+>  481148 ns  mark
+>  546333 ns  space
+> [...]
+>  433593 ns  mark
+> 1618333 ns  space
+>  454481 ns  mark
+> end of rx
+>
+> 8255519 ns  mark
+> 2130926 ns  space
+>  480556 ns  mark
+> end of rx
+>
+>
+> The NEC decoder will also log the decoded 32 bits it receives and
+> separate out the address and the command bits.
+>
+>
+> If you do not see good or many NEC timing measurments in the logs, the
+> first thing to try is to change lines 533-534 of
+> linux/drivers/media/cx23885/cx23885-input.c:
+>
+>                params.modulation = true;
+>                params.invert_level = false;
+>
+> If you see no timing measurements or few timing measurements, change the
+> "modulation" to "false".  If the chip is expecting carrier pulses and an
+> external circuit or capacitor is smoothing carrier bursts into baseband
+> pulses, then the hardware won't make measurements properly.
+>
+> If you see inverted mark and space inverted when "modulation" is set to
+> "false", then set "invert_level" to "true".
+>
+> Those are the two things I had to really guess at.
+>
+>
+> BTW, I'm not accessing the CX23885 AV Core registers across the I2C bus
+> in a very conservative way.  If you notice some performance problem with
+> an occasionally missed pulse measurement, then I know there is room for
+> improvement by being smarter about I2C bus transactions.
+>
+> Good Luck.
+>
+> Regards,
+> Andy
 
-> With RC-5, you have no fields describing the remote. So, all the driver could
-> do is an educated guess.
+No luck :(
+Nothing in logs
 
-It can't even do that, e.g. single remotes (even the dumb ones) can send
-different code groups (addresses) for different keys.
-
-> IMO, the better is to have an API to allow creation of multiple interfaces
-> per IR receiver, based on some scancode matching table and/or on some
-> matching mask.
-
-I think setting the keytables for each logical device would do.
-
-I.e. just have a way to create additional logical devices. Each can have
-its own keytable. The decoders would send their output to all logical
-remotes, trying to match the tables etc.
-
-> It should be possible to use the filter API to match different IR's by
-> vendor/product on protocols that supports it,
-
-That would mean unnecessary limiting.
-
-> or to match address/command
-> tuples on protocols where you just have those fields.
-
-Precisely.
 -- 
-Krzysztof Halasa
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
+
