@@ -1,59 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f192.google.com ([209.85.221.192]:48317 "EHLO
-	mail-qy0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753544AbZLERmI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2009 12:42:08 -0500
-Received: by qyk30 with SMTP id 30so1475892qyk.33
-        for <linux-media@vger.kernel.org>; Sat, 05 Dec 2009 09:42:14 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:58057 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935276AbZLHABD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Dec 2009 19:01:03 -0500
+Message-ID: <4B1D9714.5060000@redhat.com>
+Date: Mon, 07 Dec 2009 22:00:20 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <4B1A98B4.3050606@infradead.org>
-References: <20091022211330.6e84c6e7@hyperion.delvare>
-	 <4B02FDA4.5030508@infradead.org>
-	 <1a297b360911200129pe5af064wf9cf239851ac5c46@mail.gmail.com>
-	 <200911201237.31537.julian@jusst.de>
-	 <1a297b360911200808k12676112lf7a11f3dfd44a187@mail.gmail.com>
-	 <4B07290B.4060307@jusst.de>
-	 <a3ef07920912041202u78f4d12av8d7a49f5f91b3d56@mail.gmail.com>
-	 <37219a840912041259w499f2347he1b25c16550d671f@mail.gmail.com>
-	 <4B1A98B4.3050606@infradead.org>
-Date: Sat, 5 Dec 2009 12:42:14 -0500
-Message-ID: <303a8ee30912050942u21d8904et5c8d850045a462a6@mail.gmail.com>
-Subject: Re: Details about DVB frontend API
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: VDR User <user.vdr@gmail.com>, LMML <linux-media@vger.kernel.org>
+To: Krzysztof Halasa <khc@pm.waw.pl>
+CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Gerd Hoffmann <kraxel@redhat.com>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jonsmirl@gmail.com,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR  system?
+References: <BDodf9W1qgB@lirc> <4B14EDE3.5050201@redhat.com>	<4B1524DD.3080708@redhat.com> <4B153617.8070608@redhat.com>	<A6D5FF84-2DB8-4543-ACCB-287305CA0739@wilsonet.com>	<4B17AA6A.9060702@redhat.com>	<20091203175531.GB776@core.coreip.homeip.net>	<20091203163328.613699e5@pedra>	<20091204100642.GD22570@core.coreip.homeip.net>	<20091204121234.5144836b@pedra>	<20091206070929.GB14651@core.coreip.homeip.net>	<4B1B8F83.5080009@redhat.com> <m31vj77t51.fsf@intrepid.localdomain>
+In-Reply-To: <m31vj77t51.fsf@intrepid.localdomain>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Dec 5, 2009 at 12:30 PM, Mauro Carvalho Chehab
-<mchehab@infradead.org> wrote:
-> Michael Krufky wrote:
->> On Fri, Dec 4, 2009 at 3:02 PM, VDR User <user.vdr@gmail.com> wrote:
->> I have stated that I like Manu's proposal, but I would prefer that the
->> get_property (s2api) interface were used, because it totally provides
->> an interface that is sufficient for this feature.
+Krzysztof Halasa wrote:
+> Mauro Carvalho Chehab <mchehab@redhat.com> writes:
+> 
+
+>> struct input_keytable_entry {
+>>  	u16	index;
+>>  	u64	scancode;
+>>  	u32	keycode;
+>> } __attribute__ ((packed));
 >>
->> Manu and I agree that these values should all be read at once.
->>
->> I think we all (except Mauro) agree that the behavior within the
->> driver should fetch all statistics at once and return it to userspace
->> as a single structure with all the information as it all relates to
->> each other.
->
-> You're contradicting yourself: by using S2API, the userspace API won't
-> be using a single structure, since S2API will break them into pairs of
-> attributes/values.
+>> (the attribute packed avoids needing a compat for 64 bits)
+> 
+> Maybe { u64 scancode; u32 keycode; u16 index; u16 reserved } would be a
+> bit better, no alignment problems and we could eventually change
+> "reserved" into something useful.
+> 
+> But I think, if we are going to redesign it, we better use scancodes of
+> arbitrary length (e.g. protocol-dependent length). It should be opaque
+> except for the protocol handler.
 
-Incorrect.  Userspace would issue a get_property call and kernelspace
-would return a block of key/value pairs.
+Yes, an opaque type for scancode at the userspace API can be better, but
+passing a pointer to kernel will require some compat32 logic (as pointer
+size is different on 32 and 64 bits).
 
-> Nothing limits that the in-kernel API will group those values into a struct,
-> but the internal API should be smart enough to not return to userspace
-> the values that weren't requested by the call.
+We may use something like an u8[] with an arbitrary large number of bytes.
+In this case, we need to take some care to avoid LSB/MSB troubles.
 
-The call should be generic, something like get_property_signalstats
-...  Kernelspace should return all related information, and userspace
-should pick out what it needs.
-
--Mike
+Cheers,
+Mauro.
