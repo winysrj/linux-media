@@ -1,87 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from legolas.alcom.aland.fi ([194.112.1.132]:48894 "EHLO
-	legolas.alcom.aland.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752177AbZLEJpN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2009 04:45:13 -0500
-Received: from aragon.alcom.aland.fi (aragon [194.112.0.1])
-	by legolas.alcom.aland.fi (8.12.11.20060308/8.12.11) with ESMTP id nB59jIKc017106
-	for <linux-media@vger.kernel.org>; Sat, 5 Dec 2009 11:45:18 +0200
-Received: from [10.0.0.2] (82-199-168-58.bredband.aland.net [82.199.168.58])
-	(authenticated bits=0)
-	by aragon.alcom.aland.fi (8.12.11.20060308/8.12.11) with ESMTP id nB59jGiU016807
-	for <linux-media@vger.kernel.org>; Sat, 5 Dec 2009 11:45:16 +0200
-Subject: Re: af9015: tuner id:179 not supported, please report!
-From: Jan Sundman <jan.sundman@aland.net>
-To: linux-media@vger.kernel.org
-In-Reply-To: <37219a840912041003o4d8ebe27wbe3f1c47f55ba7dc@mail.gmail.com>
-References: <1259695756.5239.2.camel@desktop>
-	 <loom.20091202T230047-299@post.gmane.org>
-	 <37219a840912021508s75535fa6v83006d3bad0c301@mail.gmail.com>
-	 <1259874920.2151.13.camel@desktop>
-	 <41ef408f0912031347j6b9a704flc6d9c302f4e0517@mail.gmail.com>
-	 <829197380912031403l6b828821q87f407fa95bc25f9@mail.gmail.com>
-	 <37219a840912041003o4d8ebe27wbe3f1c47f55ba7dc@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 05 Dec 2009 11:45:10 +0200
-Message-ID: <1260006310.3702.3.camel@desktop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from moutng.kundenserver.de ([212.227.17.9]:50844 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966628AbZLHWdz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2009 17:33:55 -0500
+Date: 08 Dec 2009 23:27:00 +0100
+From: lirc@bartelmus.de (Christoph Bartelmus)
+To: dmitry.torokhov@gmail.com
+Cc: awalls@radix.net
+Cc: j@jannau.net
+Cc: jarod@redhat.com
+Cc: jarod@wilsonet.com
+Cc: jonsmirl@gmail.com
+Cc: khc@pm.waw.pl
+Cc: kraxel@redhat.com
+Cc: linux-input@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com
+Cc: superm1@ubuntu.com
+Message-ID: <BEVi1jXHqgB@lirc>
+In-Reply-To: <20091207075100.GB24958@core.coreip.homeip.net>
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, 
+Hi Dmitry,
 
-Thanks for the info, I will have a look and see if it is worth the
-trouble. 
+on 06 Dec 09 at 23:51, Dmitry Torokhov wrote:
+[...]
+>>> I suppose we could add MSC_SCAN_END event so that we can transmit
+>>> "scancodes" of arbitrary length. You'd get several MSC_SCAN followed by
+>>> MSC_SCAN_END marker. If you don't get MSC_SCAN_END assume the code is 32
+>>> bit.
+>>
+>> And I set a timeout to know that no MSC_SCAN_END will arrive? This is
+>> broken design IMHO.
+>>
 
-Br,
+> EV_SYN signals the end of state transmission.
 
-// Jan
+>> Furthermore lircd needs to know the length of the scan code in bits, not
+>> as a multiple of 32.
 
-On Fri, 2009-12-04 at 13:03 -0500, Michael Krufky wrote:
-> On Thu, Dec 3, 2009 at 5:03 PM, Devin Heitmueller
-> <dheitmueller@kernellabs.com> wrote:
-> > On Thu, Dec 3, 2009 at 4:47 PM, Bert Massop <bert.massop@gmail.com> wrote:
-> >> Hi Jan,
-> >>
-> >> The datasheet for the TDA18218 can be obtained from NXP:
-> >> http://www.nxp.com/documents/data_sheet/TDA18218HN.pdf
-> >>
-> >> That's all the information I have at the moment, maybe Mike has some
-> >> other information (like the Application Note mentioned in the
-> >> datasheet, that claims to contain information on writing drivers, but
-> >> cannot be found anywhere).
-> >>
-> >> Best regards,
-> >>
-> >> Bert
-> >
-> > Took a quick look at that datasheet.  I would guess between that
-> > datasheet and a usbsnoop, there is probably enough there to write a
-> > driver that basically works for your particular hardware if you know
-> > what you are doing.  The register map is abbreviated, but probably
-> > good enough...
-> >
-> > Devin
-> 
-> The datasheet is missing too much important information needed to
-> write a fully featured driver for the part, and I wouldn't recommend
-> using a usbsnoop for this type of tuner, but be my guest and prove me
-> wrong.
-> 
-> You might be able to get it working, but you'll end up with tons of
-> binary blobs hardcoded for each frequency, unless you use a
-> programming guide.  Unfortunately, I don't have one that I can share
-> :-/
-> 
-> I think you would be much better off purchasing supported hardware, instead.
-> 
-> Good luck, though...
-> 
-> -Mike
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I really do not think that LIRCD is the type of application that should
+> be using evdev interface, but rather other way around.
 
+Well, all I'm asking is that lircd can keep using the LIRC interface for  
+getting the scan codes. ;-)
 
+Christoph
