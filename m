@@ -1,100 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34415 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752354AbZLVAWC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Dec 2009 19:22:02 -0500
-Message-Id: <200912220021.nBM0Ll1Q004931@imap1.linux-foundation.org>
-Subject: [patch 1/3] drivers/media/video: Move dereference after NULL test
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
-	julia@diku.dk
-From: akpm@linux-foundation.org
-Date: Mon, 21 Dec 2009 16:21:47 -0800
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55103 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965973AbZLHUJq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2009 15:09:46 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
+CC: "davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>
+Date: Tue, 8 Dec 2009 14:09:50 -0600
+Subject: RE: [PATCH - v0 2/2] DaVinci - vpfe capture - Make clocks
+ configurable
+Message-ID: <A69FA2915331DC488A831521EAE36FE40155C8010D@dlee06.ent.ti.com>
+References: <1259687940-31435-1-git-send-email-m-karicheri2@ti.com>
+ <1259687940-31435-2-git-send-email-m-karicheri2@ti.com>
+ <19F8576C6E063C45BE387C64729E7394043716B186@dbde02.ent.ti.com>
+ <A69FA2915331DC488A831521EAE36FE40155B773C5@dlee06.ent.ti.com>
+ <19F8576C6E063C45BE387C64729E739404372105B5@dbde02.ent.ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E739404372105B5@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Julia Lawall <julia@diku.dk>
+Vaibhav,
 
-In quickcam_messenger.c, if the NULL test on uvd is needed, then the
-dereference should be after the NULL test.
+I have posted a re-worked patch with clocks configuration moved
+to ccdc. From your response below, I understand the clocks
+are being called differently on different SoCs even though they
+use the same IP. So IMO, it is better to customize it on a SoC 
+by defining the clock names in the respective platform file as
+done by my original patch. This will avoid confusion since we need to
+keep the name in sync with hardware signal names.
 
-In vpif_display.c, std_info is initialized to the address of a structure
-field.  This seems unlikely to be NULL.  If it could somehow be NULL, then
-the assignment should be moved after the NULL test.  Alternatively, perhaps
-the NULL test is intended to test std_info->stdid rather than std_info?
+-Murali
+>[Hiremath, Vaibhav] Murali,
+>
+>They might be using different naming conventions but the number of clocks
+>will always remain the same. If not, then they are not same IP and most
+>probably will not use same driver.
+>
+>Just to clarify more on your Q, AM3517 also uses 2 clocks
+>
+>- vpfe_ck (functional clock)
+>- vpfe_pck (external clock, pixel clock)
+>
 
-In saa7134-alsa.c, the function is only called from one place, where the
-chip argument has already been dereferenced.  On the other hand, if it
-should be kept, then card should be initialized after it.
-
-A simplified version of the semantic match that detects this problem is as
-follows (http://coccinelle.lip6.fr/):
-
-// <smpl>
-@match exists@
-expression x, E;
-identifier fld;
-@@
-
-* x->fld
-  ... when != \(x = E\|&x\)
-* x == NULL
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/media/video/davinci/vpif_display.c        |    2 --
- drivers/media/video/saa7134/saa7134-alsa.c        |    2 --
- drivers/media/video/usbvideo/quickcam_messenger.c |    3 ++-
- 3 files changed, 2 insertions(+), 5 deletions(-)
-
-diff -puN drivers/media/video/davinci/vpif_display.c~drivers-media-video-move-dereference-after-null-test drivers/media/video/davinci/vpif_display.c
---- a/drivers/media/video/davinci/vpif_display.c~drivers-media-video-move-dereference-after-null-test
-+++ a/drivers/media/video/davinci/vpif_display.c
-@@ -383,8 +383,6 @@ static int vpif_get_std_info(struct chan
- 	int index;
- 
- 	std_info->stdid = vid_ch->stdid;
--	if (!std_info)
--		return -1;
- 
- 	for (index = 0; index < ARRAY_SIZE(ch_params); index++) {
- 		config = &ch_params[index];
-diff -puN drivers/media/video/saa7134/saa7134-alsa.c~drivers-media-video-move-dereference-after-null-test drivers/media/video/saa7134/saa7134-alsa.c
---- a/drivers/media/video/saa7134/saa7134-alsa.c~drivers-media-video-move-dereference-after-null-test
-+++ a/drivers/media/video/saa7134/saa7134-alsa.c
-@@ -1011,8 +1011,6 @@ static int snd_card_saa7134_new_mixer(sn
- 	unsigned int idx;
- 	int err, addr;
- 
--	if (snd_BUG_ON(!chip))
--		return -EINVAL;
- 	strcpy(card->mixername, "SAA7134 Mixer");
- 
- 	for (idx = 0; idx < ARRAY_SIZE(snd_saa7134_volume_controls); idx++) {
-diff -puN drivers/media/video/usbvideo/quickcam_messenger.c~drivers-media-video-move-dereference-after-null-test drivers/media/video/usbvideo/quickcam_messenger.c
---- a/drivers/media/video/usbvideo/quickcam_messenger.c~drivers-media-video-move-dereference-after-null-test
-+++ a/drivers/media/video/usbvideo/quickcam_messenger.c
-@@ -692,12 +692,13 @@ static int qcm_start_data(struct uvd *uv
- 
- static void qcm_stop_data(struct uvd *uvd)
- {
--	struct qcm *cam = (struct qcm *) uvd->user_data;
-+	struct qcm *cam;
- 	int i, j;
- 	int ret;
- 
- 	if ((uvd == NULL) || (!uvd->streaming) || (uvd->dev == NULL))
- 		return;
-+	cam = (struct qcm *) uvd->user_data;
- 
- 	ret = qcm_camera_off(uvd);
- 	if (ret)
-_
+>Whereas you are referring them as master and slave clock.
+>
+>Thanks,
+>Vaibhav
+>
+>
+>> Murali
+>> >Thanks,
+>> >Vaibhav
+>> >
+>> >>  };
+>> >>
+>> >>  static struct platform_device *davinci_evm_devices[] __initdata
+>> = {
+>> >> diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c
+>> >> b/arch/arm/mach-davinci/board-dm644x-evm.c
+>> >> index fd0398b..45beb99 100644
+>> >> --- a/arch/arm/mach-davinci/board-dm644x-evm.c
+>> >> +++ b/arch/arm/mach-davinci/board-dm644x-evm.c
+>> >> @@ -250,6 +250,8 @@ static struct vpfe_config vpfe_cfg = {
+>> >>  	.sub_devs = vpfe_sub_devs,
+>> >>  	.card_name = "DM6446 EVM",
+>> >>  	.ccdc = "DM6446 CCDC",
+>> >> +	.num_clocks = 2,
+>> >> +	.clocks = {"vpss_master", "vpss_slave"},
+>> >>  };
+>> >>
+>> >>  static struct platform_device rtc_dev = {
+>> >> --
+>> >> 1.6.0.4
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-
+>> media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
