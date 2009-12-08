@@ -1,57 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout6.freenet.de ([195.4.92.96]:33043 "EHLO mout6.freenet.de"
+Received: from khc.piap.pl ([195.187.100.11]:36444 "EHLO khc.piap.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756806AbZLWUBr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Dec 2009 15:01:47 -0500
-Message-ID: <4B327726.2080705@freenet.de>
-Date: Wed, 23 Dec 2009 21:01:42 +0100
-From: Ruediger Dohmhardt <ruediger.dohmhardt@freenet.de>
+	id S1756050AbZLHP3n (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Dec 2009 10:29:43 -0500
+From: Krzysztof Halasa <khc@pm.waw.pl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Jon Smirl <jonsmirl@gmail.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
+	kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR 	system?
+References: <20091204220708.GD25669@core.coreip.homeip.net> <BEJgSGGXqgB@lirc>
+	<9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>
+	<1260070593.3236.6.camel@pc07.localdom.local>
+	<20091206065512.GA14651@core.coreip.homeip.net>
+	<4B1B99A5.2080903@redhat.com> <m3638k6lju.fsf@intrepid.localdomain>
+	<9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
+	<m3skbn6dv1.fsf@intrepid.localdomain>
+	<9e4733910912061323x22c618ccyf6edcee5b021cbe3@mail.gmail.com>
+	<4B1D934E.7030103@redhat.com> <m3hbs1vain.fsf@intrepid.localdomain>
+	<4B1E5DA3.7000206@redhat.com>
+Date: Tue, 08 Dec 2009 16:29:46 +0100
+In-Reply-To: <4B1E5DA3.7000206@redhat.com> (Mauro Carvalho Chehab's message of
+	"Tue, 08 Dec 2009 12:07:31 -0200")
+Message-ID: <m3y6ldscut.fsf@intrepid.localdomain>
 MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: =?UTF-8?B?QWxqYcW+IFBydXNuaWs=?= <prusnik@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Which modules for the VP-2033? Where is the module "mantis.ko"?
-References: <4B1D6194.4090308@freenet.de> <1261578615.8948.4.camel@slash.doma>	 <200912231753.28988.liplianin@me.by>	 <1261586462.8948.23.camel@slash.doma> <4B3269AE.6080602@freenet.de> <1a297b360912231124v6e31c9e6ja24d205f6b5dc39@mail.gmail.com>
-In-Reply-To: <1a297b360912231124v6e31c9e6ja24d205f6b5dc39@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Manu Abraham schrieb:
-> Hello Ruediger,
->
-> On Wed, Dec 23, 2009 at 11:04 PM, Ruediger Dohmhardt
-> <ruediger.dohmhardt@freenet.de> wrote:
->   
->> Aljaž Prusnik schrieb:
->>     
->>> If using the http://jusst.de/hg/v4l-dvb tree, everything compiles ok,
->>> module loads, but there is no remote anywhere (there is an IR folder
->>> with the ir-common.ko file, under common there is not).
->>>
->>>
->>>       
->> Aljaz, do you have the module mantis.ko?
->>
->> Ruediger
->>
->>     
->
-> There was a build issue when i posted the link originally, but it had
-> been fixed..
->
->   
-Yupp, it works now!
+Mauro Carvalho Chehab <mchehab@redhat.com> writes:
 
-I just downloaded version 2315248f648c. It compiles fine on Suse 11.1 and
-it works here with vdr-1.7.10 and xineliboutput (from CVS).
+> If you use a kfifo to store the event (space_or_mark, timestamp), 
+> the IRQ handler can return immediately, and a separate kernel thread 
+> can do the decode without needing to touch at the IRQ.
 
-However, as Aljaž also noted, the driver does not "autoload".
-I need to do modprobe mantis.ko.
+But the decoding itself is a really simple thing, why complicate it?
+There is no need for the kernel thread if the handler is fast (and it
+is).
 
-Manu, this used to work, but I do not remember when the "autoload was lost".
-
-
-Ciao Ruediger D.
-
+Userspace is obviously different.
+-- 
+Krzysztof Halasa
