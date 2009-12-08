@@ -1,149 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:64543 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:28949 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750999AbZLARDo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Dec 2009 12:03:44 -0500
-Message-ID: <4B154C54.5090906@redhat.com>
-Date: Tue, 01 Dec 2009 15:03:16 -0200
+	id S1755329AbZLHOAO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Dec 2009 09:00:14 -0500
+Message-ID: <4B1E5BDF.7010202@redhat.com>
+Date: Tue, 08 Dec 2009 11:59:59 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
 To: Jon Smirl <jonsmirl@gmail.com>
-CC: Maxim Levitsky <maximlevitsky@gmail.com>, awalls@radix.net,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, khc@pm.waw.pl, linux-input@vger.kernel.org,
+CC: Andy Walls <awalls@radix.net>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	Christoph Bartelmus <lirc@bartelmus.de>, j@jannau.net,
+	jarod@redhat.com, linux-input@vger.kernel.org,
 	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	lirc-list@lists.sourceforge.net, superm1@ubuntu.com,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: [RFC v2] Another approach to IR
-References: <9e4733910912010708u1064e2c6mbc08a01293c3e7fd@mail.gmail.com>	 <1259682428.18599.10.camel@maxim-laptop> <9e4733910912010816q32e829a2uce180bfda69ef86d@mail.gmail.com>
-In-Reply-To: <9e4733910912010816q32e829a2uce180bfda69ef86d@mail.gmail.com>
+	superm1@ubuntu.com
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
+ 	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+References: <BDRae8rZjFB@christoph>	 <1259024037.3871.36.camel@palomino.walls.org>	 <m3k4xe7dtz.fsf@intrepid.localdomain> <4B0E8B32.3020509@redhat.com>	 <1259264614.1781.47.camel@localhost>	 <6B4C84CD-F146-4B8B-A8BB-9963E0BA4C47@wilsonet.com>	 <1260240142.3086.14.camel@palomino.walls.org>	 <20091208042210.GA11147@core.coreip.homeip.net>	 <1260275743.3094.6.camel@palomino.walls.org>	 <4B1E54FF.8060404@redhat.com> <9e4733910912080547j75c2c885o29664470ff5e2c6a@mail.gmail.com>
+In-Reply-To: <9e4733910912080547j75c2c885o29664470ff5e2c6a@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jon,
-
 Jon Smirl wrote:
-> On Tue, Dec 1, 2009 at 10:47 AM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
->> On Tue, 2009-12-01 at 10:08 -0500, Jon Smirl wrote:
->>> While reading all of these IR threads another way of handling IR
->>> occurred to me that pretty much eliminates the need for LIRC and
->>> configuration files in default cases. The best way to make everything
->>> "just work" is to eliminate it.
->>>
->>> The first observation is that the IR profile of various devices are
->>> well known. Most devices profiles are in the published One-for-All
->>> database. These device profiles consist of vendor/device/command
->>> triplets. There is one triplet for each command like play, pause, 1,
->>> 2, 3, power, etc.
->>>
->>> The second observation is that universal remotes know how to generate
->>> commands for all of the common devices.
->>>
->>> Let's define evdev messages for IR than contain vendor/device/command
->>> triplets. I already posted code for doing that in my original patch
->>> set. These messages are generated from in-kernel code.
->>>
->>> Now add a small amount of code to MythTV, etc to act on these evdev
->>> messages. Default MythTV, etc to respond to the IR commands for a
->>> common DVR device. Program your universal remote to send the commands
->>> for this device. You're done. Everything will "just work" - no LIRC,
->>> no irrecord, no config files, no command mapping, etc.
->> You are making one  big wrong assumption that everyone that has a remote
->> uses mythtv, and only it.
->>
->> Many users including me, use the remote just like a keyboard, or even
->> like a mouse.
+> On Tue, Dec 8, 2009 at 8:30 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> Andy Walls wrote:
+>>> On Mon, 2009-12-07 at 20:22 -0800, Dmitry Torokhov wrote:
+>>>> On Mon, Dec 07, 2009 at 09:42:22PM -0500, Andy Walls wrote:
+>>>>> So I'll whip up an RC-6 Mode 6A decoder for cx23885-input.c before the
+>>>>> end of the month.
+>>>>>
+>>>>> I can setup the CX2388[58] hardware to look for both RC-5 and RC-6 with
+>>>>> a common set of parameters, so I may be able to set up the decoders to
+>>>>> handle decoding from two different remote types at once.  The HVR boards
+>>>>> can ship with either type of remote AFAIK.
+>>>>>
+>>>>> I wonder if I can flip the keytables on the fly or if I have to create
+>>>>> two different input devices?
+>>>>>
+>>>> Can you distinguish between the 2 remotes (not receivers)?
+>>> Yes.  RC-6 and RC-5 are different enough to distinguish between the two.
+>>> (Honestly I could pile on more protocols that have similar pulse time
+>>> periods, but that's complexity for no good reason and I don't know of a
+>>> vendor that bundles 3 types of remotes per TV card.)
+>> You'll be distinguishing the protocol, not the remote. If I understood
+>> Dmitry's question, he is asking if you can distinguish between two different
+>> remotes that may, for example, be using both RC-5 or both RC-6 or one RC-5
+>> and another RC-6.
 > 
-> So let's try and figure out a "just works" scheme for doing this. What
-> I'm trying to do is to get everyone to step back and think about this
-> problem instead of rushing head long into merging LIRC as is. irrecord
-> is not something a non-technical user can easily handle.
+> RC-5 and RC-6 both contain an address field.  My opinion is that
+> different addresses represent different devices and in general they
+> should appear on an input devices per address.
+
+The same IR can produce two different addresses. The IR bundled with my satellite
+STB produces two different codes, depending if you previously pressed <TV> or <SAT>
+key (in fact, I think it can even produce different protocols for TV, as it can
+be configured to work with different TV sets).
+
+> However, I prefer a different scheme for splitting the signals apart.
+> Load separate maps containing scancodes for each address. When the IR
+> signals come in they are matched against the maps and a keycode is
+> generated when a match is found. Now there is no need to distinguish
+> between the remotes. It doesn't matter which remote generated the
+> signal.
 > 
-> A basic scheme that can be used to eliminate configuration is to take
-> well known IR device profiles and emulate them in Linux.  So pick
-> another well known device to emulate (call it A) and map it to
-> mouse/keyboard events.  Mapping vendor/device/command codes for a
-> couple devices to mouse/keyboard events is a tiny amount of data and
-> can be done in-kernel.
+> scancode RC5/12/1 - protocol, address, command tuplet. Map this to
+> KP_1 on interface 1.
+> scancode RC5/7/1 - protocol, address, command tuplet. Map this to KP_1
+> on interface 2.
 > 
-> This case could also be made to "just work". Set your universal remote
-> to device A. Commands from for device A will arrive and be mapped into
-> generic keyboard/mouse commands.
+> Using the maps to split the commands out also fixes the problem with
+> Sony remotes which use multiple protocols to control a single device.
+> scancode Sony12/12/1 - protocol, address, command tuplet. Map this to
+> power_on on interface 1.
+> scancode Sony15/12/1 - protocol, address, command tuplet. Map this to
+> KP_1 on interface 1.
 > 
-> There are probably other solutions to making IR work without needing
-> irrecord and configuration. What would be some other possibilities?
-> 
-> Also consider the long term strategy of defining standard device
-> profiles and getting them into the IR database. Make an IR profile for
-> mouse/keyboard. After this gets into the database a universal remote
-> can be set to this profile which will be a better match than emulating
-> another device.
 
-This is basically the way the current in-kernel IR drivers work. The
-driver converts scancodes (device address/command sequence) into
-an evdev standard code.
-
-Just taking an example from the dibcom0700 driver (as the same driver 
-supports several different RC5 and NEC codes at the same time), 
-the kernel table has several keycodes added there, all working
-at the same time. Providing that the scancodes won't overlap, you can
-map two different scancodes (from different IR's) to return the same
-keycode (table is not complete - I just got a few common keycodes):
-
-# SCAN Key_code
-#
-0xeb13 KEY_RIGHT
-0x1e17 KEY_RIGHT
-0x1d17 KEY_RIGHT
-0x860f KEY_RIGHT
-
-0xeb11 KEY_LEFT
-0x1e16 KEY_LEFT
-0x1d16 KEY_LEFT
-0x860e KEY_LEFT
-
-0x0703 KEY_VOLUMEUP
-0xeb1c KEY_VOLUMEUP
-0x1e10 KEY_VOLUMEUP
-0x037d KEY_VOLUMEUP
-0x1d10 KEY_VOLUMEUP
-0x8610 KEY_VOLUMEUP
-0x7a12 KEY_VOLUMEUP
-
-0x0709 KEY_VOLUMEDOWN
-0xeb1e KEY_VOLUMEDOWN
-0x1e11 KEY_VOLUMEDOWN
-0x017d KEY_VOLUMEDOWN
-0x1d11 KEY_VOLUMEDOWN
-0x860c KEY_VOLUMEDOWN
-0x7a13 KEY_VOLUMEDOWN
-
-0x0706 KEY_CHANNELUP
-0xeb1b KEY_CHANNELUP
-0x1e20 KEY_CHANNELUP
-0x0242 KEY_CHANNELUP
-0x1d20 KEY_CHANNELUP
-0x860d KEY_CHANNELUP
-0x7a10 KEY_CHANNELUP
-
-0x070c KEY_CHANNELDOWN
-0xeb1f KEY_CHANNELDOWN
-0x1e21 KEY_CHANNELDOWN
-0x007d KEY_CHANNELDOWN
-0x1d21 KEY_CHANNELDOWN
-0x8619 KEY_CHANNELDOWN
-0x7a11 KEY_CHANNELDOWN
-
-It should be noticed, however, that some devices may be provided with a shipped
-IR with a different keytable where the keycodes may overlap with this table.
-
-So, what we can do is to have a "default" keycode table mapping several
-different IR's there to be used by drivers that are shipped with an IR
-that can be fully mapped by the default table. However, for devices
-with scancodes that overlaps with the default table, we'll need a separate
-table.
+I agree.
 
 Cheers,
 Mauro.
