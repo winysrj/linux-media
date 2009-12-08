@@ -1,100 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54756 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751784AbZLCQfu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Dec 2009 11:35:50 -0500
-Message-ID: <4B17E874.5020003@redhat.com>
-Date: Thu, 03 Dec 2009 14:33:56 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:62431 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751093AbZLHJDR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2009 04:03:17 -0500
+Received: by pzk1 with SMTP id 1so2015317pzk.33
+        for <linux-media@vger.kernel.org>; Tue, 08 Dec 2009 01:03:24 -0800 (PST)
 MIME-Version: 1.0
-To: Ferenc Wagner <wferi@niif.hu>
-CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Jarod Wilson <jarod@redhat.com>,
-	Jon Smirl <jonsmirl@gmail.com>,
+In-Reply-To: <36364.64.213.30.2.1260252173.squirrel@webmail.exetel.com.au>
+References: <33305.64.213.30.2.1259216241.squirrel@webmail.exetel.com.au>
+	 <50104.115.70.135.213.1259224041.squirrel@webmail.exetel.com.au>
+	 <702870ef0911260137r35f1784exc27498d0db3769c2@mail.gmail.com>
+	 <56069.115.70.135.213.1259234530.squirrel@webmail.exetel.com.au>
+	 <46566.64.213.30.2.1259278557.squirrel@webmail.exetel.com.au>
+	 <702870ef0912010118r1e5e3been840726e6364d991a@mail.gmail.com>
+	 <829197380912020657v52e42690k46172f047ebd24b0@mail.gmail.com>
+	 <36364.64.213.30.2.1260252173.squirrel@webmail.exetel.com.au>
+Date: Tue, 8 Dec 2009 20:03:23 +1100
+Message-ID: <702870ef0912080103x58eaeaa2w625a6cc76bba2831@mail.gmail.com>
+Subject: Re: [RESEND] Re: DViCO FusionHDTV DVB-T Dual Digital 4 (rev 1) tuning
+	regression
+From: Vincent McIntyre <vincent.mcintyre@gmail.com>
+To: Robert Lowery <rglowery@exemail.com.au>
+Cc: mchehab@redhat.com,
 	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>, awalls@radix.net,
-	j@jannau.net, khc@pm.waw.pl, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	lirc-list@lists.sourceforge.net, superm1@ubuntu.com,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: [RFC v2] Another approach to IR
-References: <4B15852D.4050505@redhat.com>	<20091202093803.GA8656@core.coreip.homeip.net>	<4B16614A.3000208@redhat.com>	<20091202171059.GC17839@core.coreip.homeip.net>	<9e4733910912020930t3c9fe973k16fd353e916531a4@mail.gmail.com>	<4B16BE6A.7000601@redhat.com>	<20091202195634.GB22689@core.coreip.homeip.net>	<2D11378A-041C-4B56-91FF-3E62F5F19753@wilsonet.com>	<20091202201404.GD22689@core.coreip.homeip.net>	<4B16CCD7.20601@redhat.com>	<20091202205323.GF22689@core.coreip.homeip.net>	<4B16D87F.7080701@redhat.com> <87tyw8ujsr.fsf@tac.ki.iif.hu>
-In-Reply-To: <87tyw8ujsr.fsf@tac.ki.iif.hu>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	terrywu2009@gmail.com, awalls@radix.net,
+	linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=001636e1f8f5ac7d85047a33d8af
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ferenc Wagner wrote:
-> Mauro Carvalho Chehab <mchehab@redhat.com> writes:
-> 
->> Dmitry Torokhov wrote:
->>
+--001636e1f8f5ac7d85047a33d8af
+Content-Type: text/plain; charset=ISO-8859-1
 
-> The interesting thing is that input.h defines KEY_TV, KEY_PC, KEY_SAT,
-> KEY_CD, KEY_TAPE etc., but no corresponding scan codes will ever be sent
-> by any remote (ok, I'm stretching it a bit). 
+> Mauro,
+>
+> Resend of my proposed patch attached that reverts tuning regressions with
+> my DViCO card, whilst still fixing the original 6Mhz tuning issue.  Please
+> merge or let me know how else I should proceed to get this merged.
+>
+> Thanks
+>
+> -Rob
 
-Unfortunately, this is not true. Some IR's do send a keycode for TV/PC/SAT/CD, etc.
+perhaps the attached notes will help Rob's case here.
+I did a few more tests, with just one tuner.
+First I changed a cable that I was suspicious of (it was way too long anyway)
+but I got no significant improvement.
+Then I applied the 'revert2.diff' patch that Rob sent and cold-booted.
+I reran the test and got significantly lower BER and UNC values.
 
-On those remotes, if you press TV and then press for example Channel UP
-and press Radio, then press Channel UP, the channel UP code will be the same.
+There is still something odd going on, in that the UNC seem to get
+worse with repeated tunings to the same channel, a few minutes apart
+(less than 10min). This might be a
+measurement artefact, I don't know. I might try changing the channel
+order - that should
+test whether the trend of the UNC values is with frequency or order in
+the tuning sequence.
 
-For example, on Hauppauge Grey IR, we have:
+Cheers
+VInce
 
-<TV>
-[13425.128525] ir_g_keycode_from_table: em28xx IR (em28xx #0): scancode 0x1e1c keycode 0x179
-[13425.136733] ir_input_key_event: em28xx IR (em28xx #0): key event code=377 down=1
-[13425.144170] ir_input_key_event: em28xx IR (em28xx #0): key event code=377 down=0
+--001636e1f8f5ac7d85047a33d8af
+Content-Type: text/plain; charset=US-ASCII; name="test-tuning-revert.txt"
+Content-Disposition: attachment; filename="test-tuning-revert.txt"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: file0
 
-<CHANNEL UP>
-[13428.350223] ir_g_keycode_from_table: em28xx IR (em28xx #0): scancode 0x1e20 keycode 0x192
-[13428.358434] ir_input_key_event: em28xx IR (em28xx #0): key event code=402 down=1
-[13428.365871] ir_input_key_event: em28xx IR (em28xx #0): key event code=402 down=0
-
-<Radio>
-[13430.672266] ir_g_keycode_from_table: em28xx IR (em28xx #0): scancode 0x1e0c keycode 0x181
-[13430.680473] ir_input_key_event: em28xx IR (em28xx #0): key event code=385 down=1
-[13430.687913] ir_input_key_event: em28xx IR (em28xx #0): key event code=385 down=0
-
-<CHANNEL UP>
-[13433.697268] ir_g_keycode_from_table: em28xx IR (em28xx #0): scancode 0x1e20 keycode 0x192
-[13433.705480] ir_input_key_event: em28xx IR (em28xx #0): key event code=402 down=1
-[13433.712916] ir_input_key_event: em28xx IR (em28xx #0): key event code=402 down=0
-
-In this IR, the address is bogus: it is always 0x1e. This scenario is very common with the
-shipped IR's.
-
-> Instead, a multifunction
-> remote (or two distinct remotes) would send different scan codes[1],
-> which should be mapped to KEY_PLAYCD and KEY_PLAYDVD for example.
-> Btw. the former is already defined, besides the generic KEY_PLAY.
-> 
-> Even if all this worked, user space would need integration with
-> hal/devicekit to open the new input devices appearing on the fly (if
-> it's initiated by the arrival of a scan code belonging to some new
-> protocol), and also be able to decide whether the new event source is
-> for it or not.
-> 
-> Given that commodity home appliances manage not to be confused by
-> multiple or multifunction remotes, decent software should be able to do
-> so as well.
-> 
-> [1] scan codes in the broadest possible sense, containing vendor,
-> address and whatever, and only treating the case which is possible to
-> handle in principle.
-
-I see two alternatives for it:
-	1) to map a multifunction scancode Address=TV/command=channel up as two
-separate events: KEY_TV | KEY_CHANNELUP and let some userspace program to
-handle it (lirc or other programs that knows IR keycodes);
-
-	2) to implement Jon's filter idea of splitting one evdev interface into
-several evdevs interface, one for each address.
-
-We should not forget that simple IR's don't have any key to select the address,
-so the produced codes there will never have KEY_TV/KEY_DVD, etc.
-
-Cheers,
-Mauro.
+MjAwOS0xMi0wNwoKVHJ5IHNpZ25hbHRlc3QucGwgYWdhaW4uCgpGaXJzdCwgd2l0aCBvbGQgY2Fi
+bGUgYW5kIG5vIGNvZGUgY2hhbmdlcwpoZyBpZGVudGlmeSA9IGM1N2Y0N2NmYjBlOCsgdGlwCgp0
+dW5lciAwIGlzIHVzYmlkIDBmZTk6ZGI3OApkbyB0aHJlZSBjb25zZWN1dGl2ZSBydW5zIHRvIHNl
+ZSBpZiB0aGluZ3Mgd29yc2VuIHdpdGggcmVwZWF0ZWQgdHVuaW5nLgoKRnJlcXVlbmN5ICAgICAg
+IFNpZ25hbCAgICAgICAgICBCZXIgICAgICAgICAgICAgVW5jCj09PT09PT09PSAgICAgICA9PT09
+PT09PSAgICAgICAgPT09PT09PT0gICAgICAgID09PT09PT09CjE3NzUwMDAwMCAgICAgICAgIDc1
+LjkgJSAgICAgICAgICAgMzE4LjkgICAgICAgICAgIDM3Ni4yCjE5MTYyNTAwMCAgICAgICAgIDc0
+LjUgJSAgICAgICAgICAgMjgwLjEgICAgICAgICAgIDkwNC45CjIxOTUwMDAwMCAgICAgICAgIDc3
+LjAgJSAgICAgICAgICAgMjQ1LjIgICAgICAgICAgMTg2Mi4yCjIyNjUwMDAwMCAgICAgICAgIDc3
+LjAgJSAgICAgICAgICAgMTg2LjQgICAgICAgICAgMzUyNS40CjU3MTUwMDAwMCAgICAgICAgIDc3
+LjEgJSAgICAgICAgICAgNTAyLjkgICAgICAgICAgNjE2MS4zCjU3ODUwMDAwMCAgICAgICAgIDc3
+LjIgJSAgICAgICAgICAgNTQxLjEgICAgICAgICAgOTEyOC44CgpGcmVxdWVuY3kgICAgICAgU2ln
+bmFsICAgICAgICAgIEJlciAgICAgICAgICAgICBVbmMKPT09PT09PT09ICAgICAgID09PT09PT09
+ICAgICAgICA9PT09PT09PSAgICAgICAgPT09PT09PT0KMTc3NTAwMDAwICAgICAgICAgNzUuNSAl
+ICAgICAgICAgICAzMTQuNiAgICAgICAgIDExMjE5LjIKMTkxNjI1MDAwICAgICAgICAgNzQuMCAl
+ICAgICAgICAgICAzODQuMyAgICAgICAgIDEyMDU3LjMKMjE5NTAwMDAwICAgICAgICAgNzYuOCAl
+ICAgICAgICAgICAxMTguNyAgICAgICAgIDEzMjM2LjkKMjI2NTAwMDAwICAgICAgICAgNzYuOCAl
+ICAgICAgICAgICAxNzMuNSAgICAgICAgIDE1MjU2LjYKNTcxNTAwMDAwICAgICAgICAgNzcuMCAl
+ICAgICAgICAgICA0NzIuMyAgICAgICAgIDE3OTMwLjcKNTc4NTAwMDAwICAgICAgICAgNzcuMSAl
+ICAgICAgICAgICA1NTAuMCAgICAgICAgIDIwODg4LjgKCkZyZXF1ZW5jeSAgICAgICBTaWduYWwg
+ICAgICAgICAgQmVyICAgICAgICAgICAgIFVuYwo9PT09PT09PT0gICAgICAgPT09PT09PT0gICAg
+ICAgID09PT09PT09ICAgICAgICA9PT09PT09PQoxNzc1MDAwMDAgICAgICAgICA3NS40ICUgICAg
+ICAgICAgIDM0Ni4wICAgICAgICAgMjMwNTIuOAoxOTE2MjUwMDAgICAgICAgICA3My4zICUgICAg
+ICAgICAgIDM0Ny41ICAgICAgICAgMjQwODcuNwoyMTk1MDAwMDAgICAgICAgICA3Ni43ICUgICAg
+ICAgICAgIDIzNi4wICAgICAgICAgMjUyODkuMAoyMjY1MDAwMDAgICAgICAgICA3Ni44ICUgICAg
+ICAgICAgIDE5MC4xICAgICAgICAgMjcyNDEuMAo1NzE1MDAwMDAgICAgICAgICA3Ni45ICUgICAg
+ICAgICAgIDU0MS4xICAgICAgICAgMjk5MTAuMAo1Nzg1MDAwMDAgICAgICAgICA3Ny4xICUgICAg
+ICAgICAgIDUxMS43ICAgICAgICAgMzI5MDIuMQoKCk5vdyByZXBlYXQgd2l0aCB0aGUgMS41bSBj
+YWJsZSBjb25uZWN0aW5nIHdhbGwgc29ja2V0IHRvIHNwbGl0dGVyLgpjb2xkIGJvb3QgdGhlIG1h
+Y2hpbmUKaGcgaWRlbnRpZnkgPSBjNTdmNDdjZmIwZTgrIHRpcAoKZHZiMC5mcm9udGVuZDA6IHVz
+YmlkIDBmZTk6ZGI3OAoKRnJlcXVlbmN5ICAgICAgIFNpZ25hbCAgICAgICAgICBCZXIgICAgICAg
+ICAgICAgVW5jCj09PT09PT09PSAgICAgICA9PT09PT09PSAgICAgICAgPT09PT09PT0gICAgICAg
+ID09PT09PT09CjE3NzUwMDAwMCAgICAgICAgIDc0LjAgJSAgICAgICAgICAgMjg4LjIgICAgICAg
+ICAgIDc4NC44CjE5MTYyNTAwMCAgICAgICAgIDczLjMgJSAgICAgICAgICAgNDg3LjIgICAgICAg
+ICAgMTg5MC45CjIxOTUwMDAwMCAgICAgICAgIDc2LjcgJSAgICAgICAgICAgMTQ3LjIgICAgICAg
+ICAgMzE4OS44CjIyNjUwMDAwMCAgICAgICAgIDc2LjggJSAgICAgICAgICAgMjAyLjIgICAgICAg
+ICAgNTA5NC43CjU3MTUwMDAwMCAgICAgICAgIDc2LjkgJSAgICAgICAgICAgNDQzLjEgICAgICAg
+ICAgNzY0MC42CjU3ODUwMDAwMCAgICAgICAgIDc2LjkgJSAgICAgICAgICAgNDk5LjkgICAgICAg
+ICAxMDY3NS4zCgpGcmVxdWVuY3kgICAgICAgU2lnbmFsICAgICAgICAgIEJlciAgICAgICAgICAg
+ICBVbmMKPT09PT09PT09ICAgICAgID09PT09PT09ICAgICAgICA9PT09PT09PSAgICAgICAgPT09
+PT09PT0KMTc3NTAwMDAwICAgICAgICAgNzMuMCAlICAgICAgICAgICAzMzAuNyAgICAgICAgIDEy
+Nzk1LjQKMTkxNjI1MDAwICAgICAgICAgNzIuNiAlICAgICAgICAgICAyOTEuOCAgICAgICAgIDEz
+ODQ0LjMKMjE5NTAwMDAwICAgICAgICAgNzYuNyAlICAgICAgICAgICAxMzIuNSAgICAgICAgIDE1
+MDA1LjUKMjI2NTAwMDAwICAgICAgICAgNzYuOCAlICAgICAgICAgICAxMzYuMiAgICAgICAgIDE2
+OTI4LjAKNTcxNTAwMDAwICAgICAgICAgNzYuOSAlICAgICAgICAgICA1MjUuMiAgICAgICAgIDE5
+NDgwLjcKNTc4NTAwMDAwICAgICAgICAgNzcuMCAlICAgICAgICAgICA1MjIuNyAgICAgICAgIDIy
+MzYxLjcKCkZyZXF1ZW5jeSAgICAgICBTaWduYWwgICAgICAgICAgQmVyICAgICAgICAgICAgIFVu
+Ywo9PT09PT09PT0gICAgICAgPT09PT09PT0gICAgICAgID09PT09PT09ICAgICAgICA9PT09PT09
+PQoxNzc1MDAwMDAgICAgICAgICA3NS41ICUgICAgICAgICAgIDM2MS42ICAgICAgICAgMjQ1ODQu
+MgoxOTE2MjUwMDAgICAgICAgICA3My44ICUgICAgICAgICAgIDQ4MC45ICAgICAgICAgMjU4MTYu
+NAoyMTk1MDAwMDAgICAgICAgICA3Ni43ICUgICAgICAgICAgIDE0My40ICAgICAgICAgMjY5NjIu
+MgoyMjY1MDAwMDAgICAgICAgICA3Ni44ICUgICAgICAgICAgIDE4Ny41ICAgICAgICAgMjg4NDYu
+MQo1NzE1MDAwMDAgICAgICAgICA3Ny4wICUgICAgICAgICAgIDQ2OC40ICAgICAgICAgMzE0NDgu
+OQo1Nzg1MDAwMDAgICAgICAgICA3Ny4wICUgICAgICAgICAgIDU0Ny4zICAgICAgICAgMzQ1MTEu
+OAoKCk5vdyBtYWtlIHRoZSBjb2RlIGNoYW5nZS4gQ29sZCBib290LgpkdmIwLmZyb250ZW5kMDog
+dXNiaWQgMGZlOTpkYjc4CgpGcmVxdWVuY3kgICAgICAgU2lnbmFsICAgICAgICAgIEJlciAgICAg
+ICAgICAgICBVbmMKPT09PT09PT09ICAgICAgID09PT09PT09ICAgICAgICA9PT09PT09PSAgICAg
+ICAgPT09PT09PT0KMTc3NTAwMDAwICAgICAgICAgNzYuNSAlICAgICAgICAgICAgIDAuMCAgICAg
+ICAgICAgICAwLjAKMTkxNjI1MDAwICAgICAgICAgNzYuOSAlICAgICAgICAgICAxMzYuOCAgICAg
+ICAgICAgMTAyLjMKMjE5NTAwMDAwICAgICAgICAgNzYuOSAlICAgICAgICAgICAyOTcuNiAgICAg
+ICAgICAgNTQ5LjAKMjI2NTAwMDAwICAgICAgICAgNzYuOCAlICAgICAgICAgICAzMDQuNyAgICAg
+ICAgICAxNDYxLjQKNTcxNTAwMDAwICAgICAgICAgNzYuOSAlICAgICAgICAgICA1MDUuMCAgICAg
+ICAgICAzODAxLjAKNTc4NTAwMDAwICAgICAgICAgNzcuMCAlICAgICAgICAgICA1NzMuNyAgICAg
+ICAgICA2ODE4LjYKCkZyZXF1ZW5jeSAgICAgICBTaWduYWwgICAgICAgICAgQmVyICAgICAgICAg
+ICAgIFVuYwo9PT09PT09PT0gICAgICAgPT09PT09PT0gICAgICAgID09PT09PT09ICAgICAgICA9
+PT09PT09PQoxNzc1MDAwMDAgICAgICAgICA3Ni40ICUgICAgICAgICAgICAgMC4wICAgICAgICAg
+IDgzNDUuMAoxOTE2MjUwMDAgICAgICAgICA3Ni44ICUgICAgICAgICAgIDE2OS43ICAgICAgICAg
+IDg0NzYuMAoyMTk1MDAwMDAgICAgICAgICA3Ni43ICUgICAgICAgICAgIDI0My44ICAgICAgICAg
+IDg5NjcuMgoyMjY1MDAwMDAgICAgICAgICA3Ni45ICUgICAgICAgICAgIDI3MS42ICAgICAgICAg
+IDk5MDQuNwo1NzE1MDAwMDAgICAgICAgICA3Ni45ICUgICAgICAgICAgIDUyNS45ICAgICAgICAg
+MTIwOTcuNAo1Nzg1MDAwMDAgICAgICAgICA3Ny4xICUgICAgICAgICAgIDU1NC45ICAgICAgICAg
+MTUzNjQuOQoKRnJlcXVlbmN5ICAgICAgIFNpZ25hbCAgICAgICAgICBCZXIgICAgICAgICAgICAg
+VW5jCj09PT09PT09PSAgICAgICA9PT09PT09PSAgICAgICAgPT09PT09PT0gICAgICAgID09PT09
+PT09CjE3NzUwMDAwMCAgICAgICAgIDc2LjMgJSAgICAgICAgICAgICAxLjMgICAgICAgICAxNjgz
+NS4wCjE5MTYyNTAwMCAgICAgICAgIDc2LjcgJSAgICAgICAgICAgMjI1LjAgICAgICAgICAxNjk0
+OS43CjIxOTUwMDAwMCAgICAgICAgIDc2LjcgJSAgICAgICAgICAgMjY3LjEgICAgICAgICAxNzQz
+Mi41CjIyNjUwMDAwMCAgICAgICAgIDc2LjggJSAgICAgICAgICAgMjU0LjQgICAgICAgICAxODM3
+Mi45CjU3MTUwMDAwMCAgICAgICAgIDc2LjkgJSAgICAgICAgICAgNTc1LjIgICAgICAgICAyMDU3
+My43CjU3ODUwMDAwMCAgICAgICAgIDc3LjAgJSAgICAgICAgICAgNTEyLjcgICAgICAgICAyMzc3
+MS4yCgo=
+--001636e1f8f5ac7d85047a33d8af--
