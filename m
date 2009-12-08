@@ -1,83 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:56791 "EHLO comal.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:14081 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751757AbZLJUCS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2009 15:02:18 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Kevin Hilman <khilman@deeprootsystems.com>
-CC: "davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Thu, 10 Dec 2009 14:02:22 -0600
-Subject: RE: [PATCH - v1 1/2] V4L - vpfe capture - make clocks configurable
-Message-ID: <A69FA2915331DC488A831521EAE36FE40155C80BFC@dlee06.ent.ti.com>
-References: <1259687940-31435-1-git-send-email-m-karicheri2@ti.com>
-	<87hbs0xhlx.fsf@deeprootsystems.com>
-	<A69FA2915331DC488A831521EAE36FE40155C805C3@dlee06.ent.ti.com>
-	<A69FA2915331DC488A831521EAE36FE40155C805F7@dlee06.ent.ti.com>
-	<A69FA2915331DC488A831521EAE36FE40155C806EE@dlee06.ent.ti.com>
- <87ws0ups22.fsf@deeprootsystems.com>
-In-Reply-To: <87ws0ups22.fsf@deeprootsystems.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	id S1754148AbZLHL7J (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Dec 2009 06:59:09 -0500
+Message-ID: <4B1E3F7D.9070806@redhat.com>
+Date: Tue, 08 Dec 2009 09:58:53 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+CC: Jon Smirl <jonsmirl@gmail.com>, Krzysztof Halasa <khc@pm.waw.pl>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
+	kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR  system?
+References: <BEJgSGGXqgB@lirc> <9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com> <1260070593.3236.6.camel@pc07.localdom.local> <20091206065512.GA14651@core.coreip.homeip.net> <4B1B99A5.2080903@redhat.com> <m3638k6lju.fsf@intrepid.localdomain> <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com> <m3skbn6dv1.fsf@intrepid.localdomain> <9e4733910912061323x22c618ccyf6edcee5b021cbe3@mail.gmail.com> <4B1D934E.7030103@redhat.com> <20091208042340.GC11147@core.coreip.homeip.net>
+In-Reply-To: <20091208042340.GC11147@core.coreip.homeip.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Dmitry Torokhov wrote:
+> On Mon, Dec 07, 2009 at 09:44:14PM -0200, Mauro Carvalho Chehab wrote:
 
->> Kevin,
->>
->> I think I have figured it out...
->>
->> First issue was that I was adding my entry at the end of dm644x_clks[]
->> array. I need to add it before the CLK(NULL, NULL, NULL)
->>
->> secondly, your suggestion didn't work as is. This is what I had to
->> do to get it working...
->>
->> static struct clk ccdc_master_clk = {
->> 	.name = "dm644x_ccdc",
->> 	.parent = &vpss_master_clk,
->> };
->>
->> static struct clk ccdc_slave_clk = {
->> 	.name = "dm644x_ccdc",
->> 	.parent = &vpss_slave_clk,
->> };
+>>> What about capabilities of the receiver, what frequencies?
+>>> If a receiver has multiple frequencies, how do you report what
+>>> frequency the data came in on?
+>> IMO, via sysfs.
+> 
+> We probably need to think what exactly we report through sysfs siunce it
+> is ABI of sorts.
 
-It doesn't work with out doing this. The cat /proc/davinci_clocks hangs with
-your suggestion implemented...
+Yes, sure.
 
->
->You should not need to add new clocks with new names.  I don't thinke
->the name field of the struct clk is used anywhere in the matching.
->I think it's only used in /proc/davinci_clocks
->
->> static struct davinci_clk dm365_clks = {
->> ....
->> ....
->> CLK("dm644x_ccdc", "master", &ccdc_master_clk),
->> CLK("dm644x_ccdc", "slave", &ccdc_slave_clk),
->
->Looks like the drivers name is 'dm644x_ccdc', not 'isif'.  I'm
->guessing just this should work without having to add new clock names.
->
-No. I have mixed up the names. ISIF is for the new ISIF driver on DM365.
-Below are for DM644x ccdc driver. With just these entries added, two
-things observed....
+Probably, the exact needs will popup only when we start to actually writing that
+part of the core.
 
-1) Only one clock is shown disabled (usually many are shown disabled) during bootup
-2) cat /proc/davinci_clocks hangs.
+My intention for now is to just create a /sys/class/irrcv, with one node
+per each IR receiver and adding a protocol enumeration/selection node
+there, and add some capabilities for the in-kernel decoders and lirc_dev
+to create new nodes under that class.
 
-So this is the only way I got it working.
-
->CLK("dm644x_ccdc", "master", &vpss_master_clk),
->CLK("dm644x_ccdc", "slave", &vpss_slave_clk),
->
->> CLK(NULL, NULL, NULL);
+When the decoders/lirc_dev patches popup, we'll need to review those sysfs
+API's.
+ 
+>>> What about multiple apps simultaneously using the pulse data?
+>> IMO, the better is to limit the raw interface to just one open.
 >>
->> Let me know if you think there is anything wrong with the above scheme.
->
->Kevin
+> 
+> Why woudl we want to do this? Quite often there is a need for "observer"
+> that maybe does not act on data but allows capturing it. Single-user
+> inetrfaces are PITA. 
+
+That should work fine as well, but I'm not sure how we'll detect overrun with
+several kfifo readers.
+
+>>> How big is the receive queue?
+>> It should be big enough to receive at least one keycode event. Considering that
+>> the driver will use kfifo (IMO, it is a good strategy, especially since you
+>> won't need any lock if just one open is allowed), it will require a power of two size.
+>>
+> 
+> Would not it be wither driver- or protocol-specific?
+
+Probably.
+
+> 
+>>> How does access work, root only or any user?
+>> IMO, it should be the same requirement as used by an input interface.
+>>
+>>> How are capabilities exposed, sysfs, etc?
+>> IMO, sysfs.
+>>
+>>> What is the interface for attaching an in-kernel decoder?
+>> IMO, it should use the kfifo for it. However, if we allow both raw data and
+>> in-kernel decoders to read data there, we'll need a spinlock to protect the
+>> kfifo.
+>>
+> 
+> I think Jon meant userspace interface for attaching particular decoder.
+
+I don't think we need an userspace interface for the in-kernel decoders. All
+it needs is to enable/disable the protocol decoders, imo via sysfs interface.
+
+>>> If there is an in-kernel decoder should the pulse data stop being
+>>> reported, partially stopped, something else?
+>> I don't have a strong opinion here, but, from the previous discussions, it
+>> seems that people want it to be double-reported by default. If so, I think
+>> we need to implement a command at the raw interface to allow disabling the
+>> in-kernel decoder, while the raw interface is kept open.
+> 
+> Why don't you simply let consumers decide where they will get their data?
+
+How?
+
+Cheers,
+Mauro.
