@@ -1,108 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.navvo.net ([74.208.67.6]:47922 "EHLO mail.navvo.net"
+Received: from khc.piap.pl ([195.187.100.11]:55200 "EHLO khc.piap.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933357AbZLOTYG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Dec 2009 14:24:06 -0500
-Message-ID: <4B27E263.3020707@ridgerun.com>
-Date: Tue, 15 Dec 2009 13:24:19 -0600
-From: Santiago Nunez-Corrales <snunez@ridgerun.com>
-Reply-To: santiago.nunez@ridgerun.com
+	id S1755243AbZLHOBV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Dec 2009 09:01:21 -0500
+From: Krzysztof Halasa <khc@pm.waw.pl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Jon Smirl <jonsmirl@gmail.com>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
+	kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
+References: <BEJgSGGXqgB@lirc>
+	<9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>
+	<1260070593.3236.6.camel@pc07.localdom.local>
+	<20091206065512.GA14651@core.coreip.homeip.net>
+	<4B1B99A5.2080903@redhat.com> <m3638k6lju.fsf@intrepid.localdomain>
+	<9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
+	<m3skbn6dv1.fsf@intrepid.localdomain>
+	<9e4733910912061323x22c618ccyf6edcee5b021cbe3@mail.gmail.com>
+	<4B1D934E.7030103@redhat.com>
+	<20091208042340.GC11147@core.coreip.homeip.net>
+	<4B1E3F7D.9070806@redhat.com>
+Date: Tue, 08 Dec 2009 15:01:25 +0100
+In-Reply-To: <4B1E3F7D.9070806@redhat.com> (Mauro Carvalho Chehab's message of
+	"Tue, 08 Dec 2009 09:58:53 -0200")
+Message-ID: <m34oo1va2y.fsf@intrepid.localdomain>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"Narnakaje, Snehaprabha" <nsnehaprabha@ti.com>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"Grosen, Mark" <mgrosen@ti.com>,
-	Diego Dompe <diego.dompe@ridgerun.com>,
-	"todd.fischer@ridgerun.com" <todd.fischer@ridgerun.com>
-References: <4B13E9EB.8020309@ridgerun.com> <4B1D6233.1040704@ridgerun.com> <200912080750.51463.hverkuil@xs4all.nl>
-In-Reply-To: <200912080750.51463.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH 0/4 v11] Support for TVP7002 in DM365
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Mauro Carvalho Chehab <mchehab@redhat.com> writes:
 
+> I don't think we need an userspace interface for the in-kernel
+> decoders.
 
-I know you'be been busy and in the road lately. Just checking if you had 
-the chance to review this version of the code.
+Of course we need it, to set (and probably retrieve) scancode-keycode
+mappings. This could probably be, ATM, the existing input layer channel.
 
-Regards,
+> All
+> it needs is to enable/disable the protocol decoders, imo via sysfs interface.
 
-Hans Verkuil wrote:
-> On Tuesday 08 December 2009 01:44:43 Santiago Nunez-Corrales wrote:
->   
->> Hans,
->>
->>
->> Hi. Have you had a chance to look at this version of the driver?
->>     
->
-> Sorry, no. I hope to have some time on Thursday. I'm abroad for business at
-> the moment and unfortunately that leaves me with little time for reviewing.
->
-> This is not just true for this driver, but also for the dm365 series that was
-> posted recently. And possibly others that I missed :-(
->
-> Regards,
->
-> 	Hans
->
->   
->> Regards,
->>
->>
->> Santiago.
->>
->> Santiago Nunez-Corrales wrote:
->>     
->>> This series of patches provide support for the TVP7002 decoder in DM365.
->>>
->>> Support includes:
->>>
->>> * Inclusion of the chip in v4l2 definitions
->>> * Definition of TVP7002 specific data structures
->>> * Kconfig and Makefile support
->>>
->>> This series corrects many issued pointed out by Snehaprabha Narnakaje,
->>> Muralidharan Karicheri, Vaibhav Hiremath and Hans Verkuil and solves
->>> testing problems.  Tested on DM365 TI EVM with resolutions 720p,
->>> 1080i@60, 576P and 480P with video capture application and video
->>> output in 480P, 576P, 720P and 1080I. This driver depends upon
->>> board-dm365-evm.c and vpfe_capture.c to be ready for complete
->>> integration. Uses the new V4L2 DV API sent by Muralidharan Karicheri.
->>> Removed shadow register values. Removed unnecesary power down and up
->>> of the device (tests work fine). Improved readability.
->>>
->>>
->>>       
->> -- 
->> Santiago Nunez-Corrales, Eng.
->> RidgeRun Engineering, LLC
->>
->> Guayabos, Curridabat
->> San Jose, Costa Rica
->> +(506) 2271 1487
->> +(506) 8313 0536
->> http://www.ridgerun.com
->>
->>
->>
->>     
-
-
+This isn't IMHO needed at all. The protocol is enabled when at least one
+key using it is configured, otherwise it's disabled. We probably need
+some "wildcard" as well, to capture decoded scancodes (through the input
+layer).
+This is BTW pure optimization, the protocol could stay enabled all the
+time, only wasting the cycles.
 -- 
-Santiago Nunez-Corrales, Eng.
-RidgeRun Engineering, LLC
-
-Guayabos, Curridabat
-San Jose, Costa Rica
-+(506) 2271 1487
-+(506) 8313 0536
-http://www.ridgerun.com
-
-
+Krzysztof Halasa
