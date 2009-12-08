@@ -1,103 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from anny.lostinspace.de ([80.190.182.2]:53358 "EHLO
-	anny.lostinspace.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934317AbZLFWhH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Dec 2009 17:37:07 -0500
-Message-ID: <4B1C3209.20000@fechner.net>
-Date: Sun, 06 Dec 2009 23:36:57 +0100
-From: Matthias Fechner <idefix@fechner.net>
+Received: from thsmsgxrt13p.thalesgroup.com ([192.54.144.136]:59471 "EHLO
+	thsmsgxrt13p.thalesgroup.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751934AbZLHJdd convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Dec 2009 04:33:33 -0500
+Message-ID: <4B1E1CEF.7050706@thalesgroup.com>
+Date: Tue, 08 Dec 2009 10:31:27 +0100
+From: =?ISO-8859-1?Q?Emmanuel_Fust=E9?= <emmanuel.fuste@thalesgroup.com>
 MIME-Version: 1.0
-To: Andy Walls <awalls@radix.net>
-CC: "Igor M. Liplianin" <liplianin@me.by>, linux-media@vger.kernel.org
-Subject: Re: IR Receiver on an Tevii S470
-References: <4B0459B1.50600@fechner.net> <4B081F0B.1060204@fechner.net>	 <1258836102.1794.7.camel@localhost>  <200911220303.36715.liplianin@me.by> <1260135654.3101.15.camel@palomino.walls.org>
-In-Reply-To: <1260135654.3101.15.camel@palomino.walls.org>
-Content-Type: multipart/mixed;
- boundary="------------070407030006010705080206"
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+CC: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR system?
+References: <4B1D415F.5090308@thalesgroup.com> <20091207182438.GB998@core.coreip.homeip.net>
+In-Reply-To: <20091207182438.GB998@core.coreip.homeip.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------070407030006010705080206
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-
-Hi Andy,
-
-Andy Walls wrote:
->
-> 1. Does the remote for the TeVii S470 use the same codes as
->
-> linux/drivers/media/common/ir-keymaps.c : ir_codes_tevii_nec[]
->
-> or some other remote code table we have in the kernel?
+Dmitry Torokhov a écrit :
+> On Mon, Dec 07, 2009 at 06:54:39PM +0100, Emmanuel Fusté wrote:
 >   
+>> Mauro Carvalho Chehab wrote:
+>>
+>>     
+>>> In summary,
+>>>
+>>> While the current EVIO[G|S]KEYCODE works sub-optimally for scancodes up 
+>>> to 16 bytes
+>>> (since a read loop for 2^16 is not that expensive), the current approach
+>>> won't scale with bigger scancode spaces. So, it is needed expand it
+>>> to work with bigger scancode spaces, used by more recent IR protocols.
+>>>
+>>> I'm afraid that any tricks we may try to go around the current limits to still
+>>> keep using the same ioctl definition will sooner or later cause big headaches.
+>>> The better is to redesign it to allow using different scancode spaces.
+>>>
+>>>
+>>>   
+>>>       
+>> I second you: input layer events from drivers should be augmented with a
+>> protocol member, allowing us to define new ioctl and new ways to
+>> efficiently store and manage sparse scancode spaces (tree, hashtable
+>> ....).
+>>     
+>
+> Userspace has no business knowing how driver maps hardware data stream
+> into a keycode, only what is being mapped to what. The way is is done
+> can change from driver-to-driver, from release to release. If I come up
+> with an super-smart or super-stupid way of storing key mapping I won't
+> want to modify userpsace tools to support it.
+>
+>   
+But this is the point for IR. Userspace need a stable and "universal" 
+driver to driver way to represent the hardware data stream. This is 
+needed for only one but very important application: creating and 
+modifying exchangeable remote mappings.
+The way of storing in kernel key mapping should not have any impacts on 
+usersapce tools. If this is the case, this is because the actual ioctl 
+is too tied to the way these mapping are stored. These need to changed 
+or be expanded for IR.
+>> It will allow us to abstract the scancode value and to use
+>> variable length scancode depending on the used protocol, and using the
+>> most appropriate scheme to store the scancode/keycode mapping per protocol.
+>> The today scancode space will be the legacy one, the default if not
+>> specified "protocol". It will permit to progressively clean up the
+>> actual acceptable mess in the input layer and finally using real
+>> scancode -> keycode mappings everywhere if it is cleaner/convenient.
+>>
+>>     
+>
+> I am unable to parse this part, sorry.
+>
+>   
+My bad, my English is awful, sorry. :-(
 
-I don't know how it should work with the kernel but I use the remote 
-together with lirc with the attached config files.
-Maybe that helps you a little bit.
-
-Bye,
-Matthias
-
--- 
-"Programming today is a race between software engineers striving to build bigger and better idiot-proof programs, and the universe trying to produce bigger and better idiots. So far, the universe is winning." -- Rich Cook
-
-
---------------070407030006010705080206
-Content-Type: text/plain; x-mac-type="0"; x-mac-creator="0";
- name="lirc-tevii.conf"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename="lirc-tevii.conf"
-
-IwojIHRoaXMgY29uZmlnIGZpbGUgd2FzIGF1dG9tYXRpY2FsbHkgZ2VuZXJhdGVkCiMgdXNp
-bmcgbGlyYy0wLjguNChkZWZhdWx0KSBvbiBTdW4gSnVsIDEyIDEyOjA1OjA2IDIwMDkKIwoj
-IGNvbnRyaWJ1dGVkIGJ5CiMKIyBicmFuZDogICAgICAgICAgICAgICAgICAgICAgVGVWaWkK
-IyBtb2RlbCBuby4gb2YgcmVtb3RlIGNvbnRyb2w6CiMgZGV2aWNlcyBiZWluZyBjb250cm9s
-bGVkIGJ5IHRoaXMgcmVtb3RlOiBUZVZpaSBTNjUwIERWQi1TMiBVU0IKIwoKYmVnaW4gcmVt
-b3RlCgogIG5hbWUgIFRlVmlpX1M0NzAKICBiaXRzICAgICAgICAgICAxNgogIGZsYWdzIFNQ
-QUNFX0VOQ3xDT05TVF9MRU5HVEgKICBlcHMgICAgICAgICAgICAzMAogIGFlcHMgICAgICAg
-ICAgMTAwCgogIGhlYWRlciAgICAgICA5MDMyICA0NDQwCiAgb25lICAgICAgICAgICA1OTQg
-IDE2NTEKICB6ZXJvICAgICAgICAgIDU5NCAgIDUyNwogIHB0cmFpbCAgICAgICAgNTkyCiAg
-cmVwZWF0CTkwMzIJMjIxMgogIHByZV9kYXRhX2JpdHMgICAxNgogIHByZV9kYXRhICAgICAg
-IDB4RkYKICBnYXAgICAgICAgICAgMTA3NzE1CiAgdG9nZ2xlX2JpdF9tYXNrIDB4ODAwMAoK
-ICAgICBiZWdpbiBjb2RlcwogICAgICAgICAgUG93ZXIgICAgICAgICAgICAgICAgICAgIDB4
-NTBBRgogICAgICAgICAgTXV0ZSAgICAgICAgICAgICAgICAgICAgIDB4MzBDRgogICAgICAg
-ICAgMSAgICAgICAgICAgICAgICAgICAgICAgIDB4ODg3NwogICAgICAgICAgMiAgICAgICAg
-ICAgICAgICAgICAgICAgIDB4NDhCNwogICAgICAgICAgMyAgICAgICAgICAgICAgICAgICAg
-ICAgIDB4QzgzNwogICAgICAgICAgNCAgICAgICAgICAgICAgICAgICAgICAgIDB4MjhENwog
-ICAgICAgICAgNSAgICAgICAgICAgICAgICAgICAgICAgIDB4QTg1NwogICAgICAgICAgNiAg
-ICAgICAgICAgICAgICAgICAgICAgIDB4Njg5NwogICAgICAgICAgNyAgICAgICAgICAgICAg
-ICAgICAgICAgIDB4RTgxNwogICAgICAgICAgOCAgICAgICAgICAgICAgICAgICAgICAgIDB4
-MThFNwogICAgICAgICAgOSAgICAgICAgICAgICAgICAgICAgICAgIDB4OTg2NwogICAgICAg
-ICAgMCAgICAgICAgICAgICAgICAgICAgICAgIDB4MDhGNwogICAgICAgICAgcmVjYWxsICAg
-ICAgICAgICAgICAgICAgIDB4NThBNwogICAgICAgICAgZmF2ICAgICAgICAgICAgICAgICAg
-ICAgIDB4RDgyNwogICAgICAgICAgVm9sKyAgICAgICAgICAgICAgICAgICAgIDB4OTA2Rgog
-ICAgICAgICAgVm9sLSAgICAgICAgICAgICAgICAgICAgIDB4RjAwRgogICAgICAgICAgQ2hh
-bisgICAgICAgICAgICAgICAgICAgIDB4MTBFRgogICAgICAgICAgQ2hhbi0gICAgICAgICAg
-ICAgICAgICAgIDB4NjA5RgogICAgICAgICAgTW9kZUxpdmUgICAgICAgICAgICAgICAgIDB4
-QTA1RgogICAgICAgICAgTW9kZVBsYXkgICAgICAgICAgICAgICAgIDB4RTAxRgogICAgICAg
-ICAgVXAgICAgICAgICAgICAgICAgICAgICAgIDB4MDBGRgogICAgICAgICAgRG93biAgICAg
-ICAgICAgICAgICAgICAgIDB4ODA3RgogICAgICAgICAgTGVmdCAgICAgICAgICAgICAgICAg
-ICAgIDB4QzAzRgogICAgICAgICAgUmlnaHQgICAgICAgICAgICAgICAgICAgIDB4NDBCRgog
-ICAgICAgICAgT2sgICAgICAgICAgICAgICAgICAgICAgIDB4RjgwNwogICAgICAgICAgTWVu
-dSAgICAgICAgICAgICAgICAgICAgIDB4MzhDNwogICAgICAgICAgQmFjayAgICAgICAgICAg
-ICAgICAgICAgIDB4Qjg0NwogICAgICAgICAgUGxheSAgICAgICAgICAgICAgICAgICAgIDB4
-MDJGRAogICAgICAgICAgRmFzdFJldyAgICAgICAgICAgICAgICAgIDB4Nzg4NwogICAgICAg
-ICAgRmFzdEZ3ZCAgICAgICAgICAgICAgICAgIDB4QjI0RAogICAgICAgICAgRVBHICAgICAg
-ICAgICAgICAgICAgICAgIDB4MjJERAogICAgICAgICAgUmVjICAgICAgICAgICAgICAgICAg
-ICAgIDB4MjBERgogICAgICAgICAgVGltZXIgICAgICAgICAgICAgICAgICAgIDB4RDAyRgog
-ICAgICAgICAgT3BlbiAgICAgICAgICAgICAgICAgICAgIDB4NzA4RgogICAgICAgICAgSW5m
-byAgICAgICAgICAgICAgICAgICAgIDB4MzJDRAogICAgICAgICAgYS9iICAgICAgICAgICAg
-ICAgICAgICAgICAweDgyN0QKICAgICAgICAgIEF1ZGlvICAgICAgICAgICAgICAgICAgICAw
-eEMyM0QKICAgICAgICAgIHN1YnMgICAgICAgICAgICAgICAgICAgICAweEEyNUQKICAgICAg
-ICAgIExpc3QgICAgICAgICAgICAgICAgICAgICAweDUyQUQKICAgICAgICAgIEYxICAgICAg
-ICAgICAgICAgICAgICAgICAweDYyOUQKICAgICAgICAgIEYyICAgICAgICAgICAgICAgICAg
-ICAgICAweEUyMUQKICAgICAgICAgIEYzICAgICAgICAgICAgICAgICAgICAgICAweDdBODUK
-ICAgICAgICAgIEY0ICAgICAgICAgICAgICAgICAgICAgICAweDNBQzUKICAgICAgICAgIEY1
-ICAgICAgICAgICAgICAgICAgICAgICAweDRBQjUKICAgICAgICAgIEY2ICAgICAgICAgICAg
-ICAgICAgICAgICAweDVBQTUKICAgICAgICAgIG1vbSAgICAgICAgICAgICAgICAgICAgICAw
-eDZBOTUKICAgICAgICAgIGZzICAgICAgICAgICAgICAgICAgICAgICAweDFBRTUKICAgICAg
-ZW5kIGNvZGVzCgplbmQgcmVtb3RlCgo=
---------------070407030006010705080206--
+Best regards,
+Emmanuel.
