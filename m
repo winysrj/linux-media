@@ -1,95 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f184.google.com ([209.85.222.184]:58692 "EHLO
-	mail-pz0-f184.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751824AbZLBUUh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Dec 2009 15:20:37 -0500
-Date: Wed, 2 Dec 2009 12:14:05 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Jarod Wilson <jarod@redhat.com>, Jon Smirl <jonsmirl@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>, awalls@radix.net,
-	j@jannau.net, khc@pm.waw.pl, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	lirc-list@lists.sourceforge.net, superm1@ubuntu.com,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: [RFC v2] Another approach to IR
-Message-ID: <20091202201404.GD22689@core.coreip.homeip.net>
-References: <4B1567D8.7080007@redhat.com> <20091201201158.GA20335@core.coreip.homeip.net> <4B15852D.4050505@redhat.com> <20091202093803.GA8656@core.coreip.homeip.net> <4B16614A.3000208@redhat.com> <20091202171059.GC17839@core.coreip.homeip.net> <9e4733910912020930t3c9fe973k16fd353e916531a4@mail.gmail.com> <4B16BE6A.7000601@redhat.com> <20091202195634.GB22689@core.coreip.homeip.net> <2D11378A-041C-4B56-91FF-3E62F5F19753@wilsonet.com>
+Received: from moutng.kundenserver.de ([212.227.17.10]:65357 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966742AbZLHWd7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2009 17:33:59 -0500
+Date: 08 Dec 2009 23:30:00 +0100
+From: lirc@bartelmus.de (Christoph Bartelmus)
+To: awalls@radix.net
+Cc: dmitry.torokhov@gmail.com
+Cc: hermann-pitton@arcor.de
+Cc: j@jannau.net
+Cc: jarod@redhat.com
+Cc: jarod@wilsonet.com
+Cc: jonsmirl@gmail.com
+Cc: khc@pm.waw.pl
+Cc: kraxel@redhat.com
+Cc: linux-input@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com
+Cc: superm1@ubuntu.com
+Message-ID: <BEVi56a1qgB@lirc>
+In-Reply-To: <1260245456.3086.91.camel@palomino.walls.org>
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2D11378A-041C-4B56-91FF-3E62F5F19753@wilsonet.com>
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Dec 02, 2009 at 03:04:30PM -0500, Jarod Wilson wrote:
-> On Dec 2, 2009, at 2:56 PM, Dmitry Torokhov wrote:
-> 
-> > On Wed, Dec 02, 2009 at 02:22:18PM -0500, Jarod Wilson wrote:
-> >> On 12/2/09 12:30 PM, Jon Smirl wrote:
-> >>>>>> (for each remote/substream that they can recognize).
-> >>>>>>> 
-> >>>>>>> I'm assuming that, by remote, you're referring to a remote receiver (and not to
-> >>>>>>> the remote itself), right?
-> >>>>> 
-> >>>>> If we could separate by remote transmitter that would be the best I
-> >>>>> think, but I understand that it is rarely possible?
-> >>> 
-> >>> The code I posted using configfs did that. Instead of making apps IR
-> >>> aware it mapped the vendor/device/command triplets into standard Linux
-> >>> keycodes.  Each remote was its own evdev device.
-> >> 
-> >> Note, of course, that you can only do that iff each remote uses distinct  
-> >> triplets. A good portion of mythtv users use a universal of some sort,  
-> >> programmed to emulate another remote, such as the mce remote bundled  
-> >> with mceusb transceivers, or the imon remote bundled with most imon  
-> >> receivers. I do just that myself.
-> >> 
-> >> Personally, I've always considered the driver/interface to be the  
-> >> receiver, not the remote. The lirc drivers operate at the receiver  
-> >> level, anyway, and the distinction between different remotes is made by  
-> >> the lirc daemon.
-> > 
-> > The fact that lirc does it this way does not necessarily mean it is the
-> > most corerct way.
-> 
-> No, I know that, I'm just saying that's how I've always looked at it, and that's how lirc does it right now, not that it must be that way.
-> 
-> > Do you expect all bluetooth input devices be presented
-> > as a single blob just because they happen to talk to the sane receiver
-> > in yoru laptop? Do you expect your USB mouse and keyboard be merged
-> > together just because they end up being serviced by the same host
-> > controller? If not why remotes should be any different?
-> 
-> A bluetooth remote has a specific device ID that the receiver has to
-> pair with. Your usb mouse and keyboard each have specific device IDs.
-> A usb IR *receiver* has a specific device ID, the remotes do not. So
-> there's the major difference from your examples.
-> 
+Hi Andy,
 
-Not exactly... I can have 2 identical USB keyboadrs form the same
-manufacturer and they will still be treated separately. BT has session
-ID to help distinguish between devices.
+on 07 Dec 09 at 23:10, Andy Walls wrote:
+[...]
+> (Christoph can correct me if I get anything wrong.)
 
-> > Now I understand that if 2 remotes send completely identical signals we
-> > won't be able to separete them, but in cases when we can I think we
-> > should.
-> 
-> I don't have a problem with that, if its a truly desired feature. But
-> for the most part, I don't see the point. Generally, you go from
-> having multiple remotes, one per device (where "device" is your TV,
-> amplifier, set top box, htpc, etc), to having a single universal
-> remote that controls all of those devices. But for each device (IR
-> receiver), *one* IR command set. The desire to use multiple distinct
-> remotes with a single IR receiver doesn't make sense to me. Perhaps
-> I'm just not creative enough in my use of IR. :)
+Just a few additions.
 
-Didn't Jon posted his example whith programmable remote pretending to be
-several separate remotes (depending on the mode of operation) so that
-several devices/applications can be controlled without interfering with
-each other?
+[...]
+>> What is the time standard for the data, where does it come from?
 
--- 
-Dmitry
+> I think it is usec, IIRC.
+
+Yes, it is.
+
+> I know that the hardware I work with has sub 100 ns resolution,
+
+Highest IR carrier frequency I know is 500kHz. usec resolution is enough  
+even for raw modulated IR pulses. But you only look at the signal after it  
+has been demodulated by the IR chip, so higher resolution would be  
+overkill.
+
+[...]
+>> How do you define the start and stop of sequences?
+
+> For the end of Rx signalling:
+>
+> Well with the Conexant hardware I can set a maximum pulse (mark or
+> space) width, and the hardware will generate an Rx Timeout interrupt to
+> signal the end of Rx when a space ends up longer than that max pulse
+> width.  The hardware also puts a special marker in the hardware pulse
+> widht measurement FIFO (in band signalling essentially).
+>
+> I'm not sure anything like that gets communicated to userspace via
+> lirc_dev, and I'm too tired to doublecheck right now.
+
+There is no such thing in the protocol. Some devices cannot provide any  
+end of signal marker, so lircd handles this using timers.
+
+If there is some interest, the MODE2 protocol can be extended. We still  
+have 7 bits unused...
+
+> If you have determined the protocol you are after, it's easy to know
+> what the pulse count should be and what the max pulse width should be (+
+> slop for crappy hardware) so finding the end of an Rx isn't hard.  The
+> button repeats intervals are *very* large.  I've never seen a remote
+> rapid fire codes back to back.
+
+I did. There are some protocols that have a gap of only 6000 us between  
+signals. And the settop boxes are very picky about this. If you make it  
+too long, they won't accept the command.
+
+[...]
+>> Is transmitting synchronous or queued?
+
+> kfifo's IIRC.
+
+No, it's synchronous.
+
+>> How big is the transmit queue?
+
+No queue.
+
+[...]
+> My particular gripes about the current LIRC interface:
+>
+> 1. The one thing that I wish were documented better were the distinction
+> between LIRC_MODE_PULSE, LIRC_MODE_RAW, and LIRC_MODE2 modes of
+> operation.  I think I've figured it out, but I had to look at a lot of
+> LIRC drivers to do so.
+
+No driver uses RAW until now and lircd does not support it.
+PULSE is used on the transmit path, MODE2 on the receive path.
+There is no special reasoning for that, it's rather historic.
+MODE2 makes sense on the receive path because you can easily distinguish  
+between pulse/space.
+
+> 2. I have hardware where I can set max_pulse_width so I can optimize
+> pulse timer resolution and have the hardware time out rapidly on end of
+> RX.  I also have hardware where I can set a min_pulse_width to set a
+> hardware low-pass/glitch filter.  Currently LIRC doesn't have any way to
+> set these, but it would be nice to have.
+
+Should be really easy to add these. The actual values could be derived  
+from the config files easily.
+
+> In band signalling of a
+> hardware detected "end of Rx" may also make sense then too.
+
+See above.
+
+> 3. As I mentioned before, it would be nice if LIRC could set a batch of
+> parameters atomically somehow, instead of with a series of ioctl()s.  I
+> can work around this in kernel though.
+
+Is there any particular sequence that you are concerned about?
+Setting carrier frequency and then duty cycle is a bit problematic.
+Currently it's solved by resetting the duty cycle to 50% each time you  
+change the carrier frequency.
+But as the LIRC interface is "one user only", I don't see a real problem.
+
+Christoph
