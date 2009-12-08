@@ -1,138 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1-out1.atlantis.sk ([80.94.52.55]:47063 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753346AbZLDMrx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2009 07:47:53 -0500
-To: linux-media@vger.kernel.org
-Subject: [PATCH] [resend] radio-sf16fmi: add autoprobing
-Content-Disposition: inline
-From: Ondrej Zary <linux@rainbow-software.org>
-Date: Fri, 4 Dec 2009 13:47:57 +0100
+Received: from mail-qy0-f192.google.com ([209.85.221.192]:42000 "EHLO
+	mail-qy0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932409AbZLHP4P convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2009 10:56:15 -0500
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200912041347.57542.linux@rainbow-software.org>
+In-Reply-To: <4B1E640B.6030705@redhat.com>
+References: <BDRae8rZjFB@christoph>
+	 <6B4C84CD-F146-4B8B-A8BB-9963E0BA4C47@wilsonet.com>
+	 <1260240142.3086.14.camel@palomino.walls.org>
+	 <20091208042210.GA11147@core.coreip.homeip.net>
+	 <1260275743.3094.6.camel@palomino.walls.org>
+	 <4B1E54FF.8060404@redhat.com>
+	 <9e4733910912080547j75c2c885o29664470ff5e2c6a@mail.gmail.com>
+	 <4B1E5BDF.7010202@redhat.com>
+	 <9e4733910912080619t36089c9bg5e54114844b9694a@mail.gmail.com>
+	 <4B1E640B.6030705@redhat.com>
+Date: Tue, 8 Dec 2009 10:56:21 -0500
+Message-ID: <9e4733910912080756j7e1fac32qc552c6514a307b7d@mail.gmail.com>
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
+	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Andy Walls <awalls@radix.net>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	Christoph Bartelmus <lirc@bartelmus.de>, j@jannau.net,
+	jarod@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add automatic probing of ports 0x284 and 0x384 to radio-sf16fmi if no card is
-found using PnP.
+On Tue, Dec 8, 2009 at 9:34 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Jon Smirl wrote:
+>> On Tue, Dec 8, 2009 at 8:59 AM, Mauro Carvalho Chehab
+>> <mchehab@redhat.com> wrote:
+>>> Jon Smirl wrote:
+>>>> On Tue, Dec 8, 2009 at 8:30 AM, Mauro Carvalho Chehab
+>>>> <mchehab@redhat.com> wrote:
+>>>>> Andy Walls wrote:
+>>>>>> On Mon, 2009-12-07 at 20:22 -0800, Dmitry Torokhov wrote:
+>>>>>>> On Mon, Dec 07, 2009 at 09:42:22PM -0500, Andy Walls wrote:
+>>>>>>>> So I'll whip up an RC-6 Mode 6A decoder for cx23885-input.c before the
+>>>>>>>> end of the month.
+>>>>>>>>
+>>>>>>>> I can setup the CX2388[58] hardware to look for both RC-5 and RC-6 with
+>>>>>>>> a common set of parameters, so I may be able to set up the decoders to
+>>>>>>>> handle decoding from two different remote types at once.  The HVR boards
+>>>>>>>> can ship with either type of remote AFAIK.
+>>>>>>>>
+>>>>>>>> I wonder if I can flip the keytables on the fly or if I have to create
+>>>>>>>> two different input devices?
+>>>>>>>>
+>>>>>>> Can you distinguish between the 2 remotes (not receivers)?
+>>>>>> Yes.  RC-6 and RC-5 are different enough to distinguish between the two.
+>>>>>> (Honestly I could pile on more protocols that have similar pulse time
+>>>>>> periods, but that's complexity for no good reason and I don't know of a
+>>>>>> vendor that bundles 3 types of remotes per TV card.)
+>>>>> You'll be distinguishing the protocol, not the remote. If I understood
+>>>>> Dmitry's question, he is asking if you can distinguish between two different
+>>>>> remotes that may, for example, be using both RC-5 or both RC-6 or one RC-5
+>>>>> and another RC-6.
+>>>> RC-5 and RC-6 both contain an address field.  My opinion is that
+>>>> different addresses represent different devices and in general they
+>>>> should appear on an input devices per address.
+>>> The same IR can produce two different addresses. The IR bundled with my satellite
+>>> STB produces two different codes, depending if you previously pressed <TV> or <SAT>
+>>> key (in fact, I think it can even produce different protocols for TV, as it can
+>>> be configured to work with different TV sets).
+>>
+>> You have a multi-function remote.
+>
+> Yes.
+>
+>> That's why those keys don't send codes. When writing code you should
+>> think of this remote as being two indpendent virtual remotes, not a
+>> single one.
+>
+> Not really. I may think on it as a single device and use the two groups
+> of functions to control two aspects at the same application.
+>
+> For example, I may map the <TV> group on kaffeine for DVB reception and the
+> <SAT> group for DVD (well, probably, in this case, I'll use an IR with
+> <TV> and <DVD> keys, instead ;) ).
+>
+>> By using maps containing the two different addresses for <TV> and
+>> <SAT> you can split these commands onto two different evdev devices.
+>
+> True. I can do it, but I can opt to have both mapped as one evdev device as well.
+> This will basically depend on how I want to mount my environment.
+>
+>> This model is complicated by the fact that some remotes that look like
+>> multi-function remotes aren't really multifunction. The remote bundled
+>> with the MS MCE receiver is one. That remote is a single function
+>> device even though it has function buttons for TV, Music, Pictures,
+>> etc.
+>
+> It is very common to have such remotes bundled with multimedia devices.
+>
+> An unsolved question on my mind is how should we map such IR's? Should we
+> provide a way for them to emulate a multifunction IR (for example, after pressing
+> TV key, subsequent keystrokes would be directed to the TV evdev device?), or
+> should we let this up to some userspace app to handle this case?
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+Splitting them into multiple devices requires remembering state and
+scripting so it needs to be done in user space. If the user wants to
+control a radio app and a home automation app they need to choose.
+Keep the bundled remote and do some non-trivial scripting or buy a
+universal remote.
 
---- linux-source-2.6.31/drivers/media/radio/Kconfig.1	2009-11-28 21:40:32.000000000 +0100
-+++ linux-source-2.6.31/drivers/media/radio/Kconfig	2009-11-28 21:32:58.000000000 +0100
-@@ -199,10 +199,7 @@
- 	tristate "SF16-FMI/SF16-FMP Radio"
- 	depends on ISA && VIDEO_V4L2
- 	---help---
--	  Choose Y here if you have one of these FM radio cards.  If you
--	  compile the driver into the kernel and your card is not PnP one, you
--	  have to add "sf16fm=<io>" to the kernel command line (I/O address is
--	  0x284 or 0x384).
-+	  Choose Y here if you have one of these FM radio cards.
- 
- 	  In order to control your radio card, you will need to use programs
- 	  that are compatible with the Video For Linux API.  Information on
---- linux-source-2.6.31/drivers/media/radio/radio-sf16fmi.c.1	2009-11-28 21:27:22.000000000 +0100
-+++ linux-source-2.6.31/drivers/media/radio/radio-sf16fmi.c	2009-11-28 22:15:57.000000000 +0100
-@@ -54,6 +54,7 @@ struct fmi
- 
- static struct fmi fmi_card;
- static struct pnp_dev *dev;
-+bool pnp_attached;
- 
- /* freq is in 1/16 kHz to internal number, hw precision is 50 kHz */
- /* It is only useful to give freq in interval of 800 (=0.05Mhz),
-@@ -316,26 +317,54 @@ static int __init fmi_init(void)
- {
- 	struct fmi *fmi = &fmi_card;
- 	struct v4l2_device *v4l2_dev = &fmi->v4l2_dev;
--	int res;
-+	int res, i;
-+	int probe_ports[] = { 0, 0x284, 0x384 };
- 
--	if (io < 0)
--		io = isapnp_fmi_probe();
--	strlcpy(v4l2_dev->name, "sf16fmi", sizeof(v4l2_dev->name));
--	fmi->io = io;
--	if (fmi->io < 0) {
--		v4l2_err(v4l2_dev, "No PnP card found.\n");
--		return fmi->io;
-+	if (io < 0) {
-+		for (i = 0; i < ARRAY_SIZE(probe_ports); i++) {
-+			io = probe_ports[i];
-+			if (io == 0) {
-+				io = isapnp_fmi_probe();
-+				if (io < 0)
-+					continue;
-+				pnp_attached = 1;
-+			}
-+			if (!request_region(io, 2, "radio-sf16fmi")) {
-+				if (pnp_attached)
-+					pnp_device_detach(dev);
-+				io = -1;
-+				continue;
-+			}
-+			if (pnp_attached ||
-+			    ((inb(io) & 0xf9) == 0xf9 && (inb(io) & 0x4) == 0))
-+				break;
-+			release_region(io, 2);
-+			io = -1;
-+		}
-+	} else {
-+		if (!request_region(io, 2, "radio-sf16fmi")) {
-+			printk(KERN_ERR "radio-sf16fmi: port %#x already in use\n", io);
-+			return -EBUSY;
-+		}
-+		if (inb(io) == 0xff) {
-+			printk(KERN_ERR "radio-sf16fmi: card not present at %#x\n", io);
-+			release_region(io, 2);
-+			return -ENODEV;
-+		}
- 	}
--	if (!request_region(io, 2, "radio-sf16fmi")) {
--		v4l2_err(v4l2_dev, "port 0x%x already in use\n", fmi->io);
--		pnp_device_detach(dev);
--		return -EBUSY;
-+	if (io < 0) {
-+		printk(KERN_ERR "radio-sf16fmi: no cards found\n");
-+		return -ENODEV;
- 	}
- 
-+	strlcpy(v4l2_dev->name, "sf16fmi", sizeof(v4l2_dev->name));
-+	fmi->io = io;
-+
- 	res = v4l2_device_register(NULL, v4l2_dev);
- 	if (res < 0) {
- 		release_region(fmi->io, 2);
--		pnp_device_detach(dev);
-+		if (pnp_attached)
-+			pnp_device_detach(dev);
- 		v4l2_err(v4l2_dev, "Could not register v4l2_device\n");
- 		return res;
- 	}
-@@ -352,7 +381,8 @@ static int __init fmi_init(void)
- 	if (video_register_device(&fmi->vdev, VFL_TYPE_RADIO, radio_nr) < 0) {
- 		v4l2_device_unregister(v4l2_dev);
- 		release_region(fmi->io, 2);
--		pnp_device_detach(dev);
-+		if (pnp_attached)
-+			pnp_device_detach(dev);
- 		return -EINVAL;
- 	}
- 
-@@ -369,7 +399,7 @@ static void __exit fmi_exit(void)
- 	video_unregister_device(&fmi->vdev);
- 	v4l2_device_unregister(&fmi->v4l2_dev);
- 	release_region(fmi->io, 2);
--	if (dev)
-+	if (dev && pnp_attached)
- 		pnp_device_detach(dev);
- }
- 
+Universal remotes make it much easier to achieve "just works".
+
+The IR core can contain default universal profiles for various classes
+of devices. Say Morotola_DVR and SciAtlanta_DVR. The core would check
+if the receiver is cable of receiving these profiles before loading
+them. There would be ten of these default universal profiles at most
+and you can unload them from RAM if they aren't needed.
+
+Now Myth can have a menu with three remote choices:
+ Universal Morotola_DVR
+ Universal SciAtlanta_DVR
+ Bundled
+
+The Bundled choice came from the map built into the IR receiver's device driver.
+The other two choices were loaded by the IR core after ensuring that
+the hardware could receive from a universal remote.
+
+The core would also load a couple of default radio profiles
+ Univeral SonyDR112_RADIO
+ Univeral OnkyoTX8255_RADIO
+Same for automation and mouse/keyboard emulation.
+
+Myth looks in sysfs and builds a menu containing DVR devices and all
+bundled entries. First app to open the "Bundled" device gets to keep
+it.
+
+These apps could take "just works" even farther. When they start up
+they could listen on all three evdev devices:  Morotola_DVR,
+SciAtlanta_DVR,   Bundled. And then if you find Myth responding to
+unwanted commands you could disable the unwanted profiles by
+deselecting them in the Myth UI.
+
+All of this may seem complicated to build, but the purpose is to
+create an environment where a non-technical user can get an IR remote
+working without needing detailed knowledge about how IR protocols
+work.
+
+
+
+
+
 
 
 -- 
-Ondrej Zary
+Jon Smirl
+jonsmirl@gmail.com
