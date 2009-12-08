@@ -1,99 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2306 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751131AbZLNTZR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Dec 2009 14:25:17 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id nBEJPEgO000190
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 14 Dec 2009 20:25:15 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 14 Dec 2009 20:25:14 +0100 (CET)
-Message-Id: <200912141925.nBEJPEgO000190@smtp-vbr10.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mail1.radix.net ([207.192.128.31]:55078 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754311AbZLHMhr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Dec 2009 07:37:47 -0500
+Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
+ Re: [PATCH 1/3 v2] lirc core device driver infrastructure
+From: Andy Walls <awalls@radix.net>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	Christoph Bartelmus <lirc@bartelmus.de>, j@jannau.net,
+	jarod@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+In-Reply-To: <20091208042210.GA11147@core.coreip.homeip.net>
+References: <BDRae8rZjFB@christoph>
+	 <1259024037.3871.36.camel@palomino.walls.org>
+	 <m3k4xe7dtz.fsf@intrepid.localdomain> <4B0E8B32.3020509@redhat.com>
+	 <1259264614.1781.47.camel@localhost>
+	 <6B4C84CD-F146-4B8B-A8BB-9963E0BA4C47@wilsonet.com>
+	 <1260240142.3086.14.camel@palomino.walls.org>
+	 <20091208042210.GA11147@core.coreip.homeip.net>
+Content-Type: text/plain
+Date: Tue, 08 Dec 2009 07:35:43 -0500
+Message-Id: <1260275743.3094.6.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Mon, 2009-12-07 at 20:22 -0800, Dmitry Torokhov wrote:
+> On Mon, Dec 07, 2009 at 09:42:22PM -0500, Andy Walls wrote:
 
-Results of the daily build of v4l-dvb:
+> > So I'll whip up an RC-6 Mode 6A decoder for cx23885-input.c before the
+> > end of the month.
+> > 
+> > I can setup the CX2388[58] hardware to look for both RC-5 and RC-6 with
+> > a common set of parameters, so I may be able to set up the decoders to
+> > handle decoding from two different remote types at once.  The HVR boards
+> > can ship with either type of remote AFAIK.
+> > 
+> > I wonder if I can flip the keytables on the fly or if I have to create
+> > two different input devices?
+> > 
+> 
+> Can you distinguish between the 2 remotes (not receivers)?
 
-date:        Mon Dec 14 19:00:07 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13690:2dfce98fc6dc
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Yes.  RC-6 and RC-5 are different enough to distinguish between the two.
+(Honestly I could pile on more protocols that have similar pulse time
+periods, but that's complexity for no good reason and I don't know of a
+vendor that bundles 3 types of remotes per TV card.)
 
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-armv5: OK
-linux-2.6.32-armv5-davinci: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.31-armv5-ixp: WARNINGS
-linux-2.6.32-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.31-armv5-omap2: WARNINGS
-linux-2.6.32-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-i686: WARNINGS
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: WARNINGS
-linux-2.6.32-mips: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-powerpc64: OK
-linux-2.6.32-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: OK
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-x86_64: WARNINGS
-spec: OK
-sparse (linux-2.6.32): ERRORS
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
 
-Detailed results are available here:
+>  Like I said,
+> I think the preferred way is to represent every remote that can be
+> distinguished from each other as a separate input device.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+OK.  With RC-5, NEC, and RC-6 at least there is also an address or
+system byte or word to distingish different remotes.  However creating
+multiple input devices on the fly for detected remotes would be madness
+- especially with a decoding error in the address bits.  
 
-Full logs are available here:
+Any one vendor usually picks one address for their bundled remote.
+Hauppaugue uses address 0x1e for it's RC-5 remotes AFAICT.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-The V4L-DVB specification from this daily build is here:
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+>  Applications
+> expect to query device capabilities and expect them to stay somewhat
+> stable (we do support keymap change but I don't think anyone expectes
+> flip-flopping).
+
+OK.
+
