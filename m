@@ -1,541 +1,238 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34217 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754667AbZLAViy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Dec 2009 16:38:54 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	khilman@deeprootsystems.com
-Cc: davinci-linux-open-source@linux.davincidsp.com, hvaibhav@ti.com,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH 3/5] V4L - vpfe-capture - updates to vpss module to support DM365
-Date: Tue,  1 Dec 2009 16:38:51 -0500
-Message-Id: <1259703533-1789-3-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1259703533-1789-2-git-send-email-m-karicheri2@ti.com>
-References: <1259703533-1789-1-git-send-email-m-karicheri2@ti.com>
- <1259703533-1789-2-git-send-email-m-karicheri2@ti.com>
+Received: from acorn.exetel.com.au ([220.233.0.21]:44033 "EHLO
+	acorn.exetel.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933068AbZLHGC6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2009 01:02:58 -0500
+Message-ID: <36364.64.213.30.2.1260252173.squirrel@webmail.exetel.com.au>
+In-Reply-To: <829197380912020657v52e42690k46172f047ebd24b0@mail.gmail.com>
+References: <33305.64.213.30.2.1259216241.squirrel@webmail.exetel.com.au>
+    <50104.115.70.135.213.1259224041.squirrel@webmail.exetel.com.au>
+    <702870ef0911260137r35f1784exc27498d0db3769c2@mail.gmail.com>
+    <56069.115.70.135.213.1259234530.squirrel@webmail.exetel.com.au>
+    <46566.64.213.30.2.1259278557.squirrel@webmail.exetel.com.au>
+    <702870ef0912010118r1e5e3been840726e6364d991a@mail.gmail.com>
+    <829197380912020657v52e42690k46172f047ebd24b0@mail.gmail.com>
+Date: Tue, 8 Dec 2009 17:02:53 +1100 (EST)
+Subject: [RESEND] Re: DViCO FusionHDTV DVB-T Dual Digital 4 (rev 1) tuning
+     regression
+From: "Robert Lowery" <rglowery@exemail.com.au>
+To: mchehab@redhat.com
+Cc: "Devin Heitmueller" <dheitmueller@kernellabs.com>,
+	"Vincent McIntyre" <vincent.mcintyre@gmail.com>,
+	terrywu2009@gmail.com, awalls@radix.net,
+	linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: multipart/mixed;boundary="----=_20091208170253_10240"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+------=_20091208170253_10240
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
 
-This patch does following changes:-
-	1) Added support for ISP5 and VPSS modules configuration for DM365
-	2) renamed few variables to make it more generic
+> On Tue, Dec 1, 2009 at 4:18 AM, Vincent McIntyre
+> <vincent.mcintyre@gmail.com> wrote:
+>> Hi Rob
+>>
+>> I missed your followup and tested the 'revert.diff' patch, attached
+>> for reference.
+>> I have been slow replying because I've been scratching my head over the
+>> results.
+>>
+>> I used 'signaltest.pl' to test[1], which uses tzap under the hood.
+>> Perhaps this is not the best choice, but I wanted something that I
+>> thought would
+>> allow objective comparisons. That's trickier than I thought...
+>> Unfortunately I only discovered last night how easy 'vlc
+>> ./channels.conf' makes doing quick visual checks. I didn't have enough
+>> time to re-patch and test again.
+>>
+>> My test procedure was:
+>>  - get a baseline with tzap and signaltest.pl
+>>  - patch, make, install. cold boot.
+>>  - test with tzap and signaltest.pl
+>>  - revert patch, for the moment.
+>>
+>> I tested two kernels, and both cards. I tested all the tuners but I'll
+>> spare you that for now.
+>>
+>>  * 2.6.24-23-rt + v4l (c57f47cfb0e8+ tip)
+>>
+>>   I got rather different baseline results. All channels had
+>> significantly higher BER
+>>   than I'd noticed before. After patching, snr on some channels
+>> seemed a little higher
+>>   and BER was lower. On ch9, I think snr was up and BER improved a
+>> little.
+>>
+>>  here are the signaltest summary tables:
+>>  without patch. usb device (dvb0) usbid db78:0fe9
+>>  Frequency       Signal          Ber             Unc
+>>  =========       ========        ========        ========
+>>  177500000         76.0 %           322.6           672.4  Seven
+>>  191625000         76.0 %           320.2          1783.3  Nine
+>>  219500000         76.8 %           329.8          2948.2  Ten
+>>  226500000         76.9 %           296.6          4885.0  ABC
+>>  571500000         77.0 %           542.0          7529.4  SBS
+>>  578500000         77.1 %           539.5         10669.7  D44
+>>
+>>  with patch. usb device (dvb0) usbid db78:0fe9
+>>  Frequency       Signal          Ber             Unc
+>>  =========       ========        ========        ========
+>>  177500000         76.6 %             2.3             0.0
+>>  191625000         77.0 %           235.5            83.3
+>>  219500000         76.9 %           288.0           501.8
+>>  226500000         76.9 %           295.1          1416.4
+>>  571500000         77.0 %           523.4          3980.0
+>>  578500000         77.1 %           549.9          7409.4
+>>
+>>  without patch. pcie device (dvb1) pciid db78:18ac
+>>  Frequency       Signal          Ber             Unc
+>>  =========       ========        ========        ========
+>>  177500000         71.2 %             3.1             0.0
+>>  191625000         21.7 %           645.4           246.4
+>>  219500000         73.6 %             1.9          1632.0
+>>  226500000         73.5 %             2.8          1632.0
+>>  571500000         73.9 %            13.6          2134.6
+>>  578500000         72.7 %            58.2          6393.4
+>>
+>>  with patch. pcie device (dvb1) pciid db78:18ac
+>>  Frequency       Signal          Ber             Unc
+>>  =========       ========        ========        ========
+>>  177500000         73.2 %             4.0             0.0
+>>  191625000         74.0 %            37.0             0.0
+>>  219500000         73.9 %             0.0             0.0
+>>  226500000         73.0 %             4.6             0.0
+>>  571500000         74.2 %            76.7           193.6
+>>  578500000         72.8 %           213.8          4480.3
+>>
+>>
+>>  * 2.6.31-14-generic + v4l (19c0469c02c3+ tip)
+>>  Hard to say if I'm seeing an improvement.
+>>
+>> before patching - adapter0 usbid db78:0fe9
+>> Frequency       Signal          Ber             Unc
+>> =========       ========        ========        ========
+>> 177500000         75.5 %           293.7          1926.4
+>> 191625000         75.9 %           363.2          2993.3
+>> 219500000         76.7 %           304.5          4225.8
+>> 226500000         76.9 %           223.8          6153.3
+>> 571500000         77.0 %           491.7          8726.0
+>> 578500000         77.1 %           558.9         11787.1
+>>
+>> adapter0 repeat usbid db78:0fe9 (not sure what happened to UNC here..)
+>> Frequency       Signal          Ber             Unc
+>> =========       ========        ========        ========
+>> 177500000         75.9 %           327.9         13893.6
+>> 191625000         76.0 %           392.8         14939.0
+>> 219500000         76.7 %           252.0         16052.0
+>> 226500000         76.8 %           254.0         18063.1
+>> 571500000         76.9 %           533.2         20644.1
+>> 578500000         76.9 %           464.1         23836.8
+>>
+>> after patching - adapter0 usbid db78:0fe9
+>> Frequency       Signal          Ber             Unc
+>> =========       ========        ========        ========
+>> 177500000         76.3 %             2.5             0.0
+>> 191625000         76.8 %           227.6           119.0
+>> 219500000         76.8 %           262.6           604.5
+>> 226500000         76.8 %           282.7          1545.4
+>> 571500000         77.0 %           486.8          3541.7
+>> 578500000         77.1 %           521.5          6537.7
+>>
+>>
+>> before patching - adapter1 pciid db78:18ac
+>> Frequency       Signal          Ber             Unc
+>> =========       ========        ========        ========
+>> 177500000         70.9 %             0.0             0.0
+>> 191625000         69.8 %             2.7             0.0
+>> 219500000         73.2 %             4.1             0.0
+>> 226500000         73.4 %             4.5             0.0
+>> 571500000         74.0 %             0.0             0.0
+>> 578500000         72.3 %           125.7          3589.3
+>>
+>> after patching - adapter2 pciid  db78:18ac  (enumeration order changed)
+>> Frequency       Signal          Ber             Unc
+>> =========       ========        ========        ========
+>> 177500000         73.6 %             0.6             0.0
+>> 191625000         74.2 %             0.0             0.0
+>> 219500000         74.0 %             4.9             0.0
+>> 226500000         73.3 %           163.2           349.7
+>> 571500000         74.4 %           267.0          1014.6
+>> 578500000         72.7 %            70.7          4906.0
+>
+> The stats above suggest that reverting the patch in question
+> significantly reduces the instances of uncorrectable errors.
+>
+> It looks like indeed that a regression was introduced.
+>
+> Mauro, any thoughts on this?  I had heard things from a couple of
+> other zl10353/xc3028 users that the tuning performance was pretty
+> crappy compared to the mrec xc3028 driver.  This could definitely be
+> the cause.
 
-NOTE: This is the initial version for review.
+Mauro,
 
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
----
- drivers/media/video/davinci/vpss.c |  290 +++++++++++++++++++++++++++++-------
- include/media/davinci/vpss.h       |   41 +++++-
- 2 files changed, 277 insertions(+), 54 deletions(-)
+Resend of my proposed patch attached that reverts tuning regressions with
+my DViCO card, whilst still fixing the original 6Mhz tuning issue.  Please
+merge or let me know how else I should proceed to get this merged.
 
-diff --git a/drivers/media/video/davinci/vpss.c b/drivers/media/video/davinci/vpss.c
-index 6d709ca..3820e13 100644
---- a/drivers/media/video/davinci/vpss.c
-+++ b/drivers/media/video/davinci/vpss.c
-@@ -15,7 +15,7 @@
-  * along with this program; if not, write to the Free Software
-  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  *
-- * common vpss driver for all video drivers.
-+ * common vpss system module platform driver for all video drivers.
-  */
- #include <linux/kernel.h>
- #include <linux/sched.h>
-@@ -35,12 +35,52 @@ MODULE_AUTHOR("Texas Instruments");
- /* DM644x defines */
- #define DM644X_SBL_PCR_VPSS		(4)
- 
-+#define DM355_VPSSBL_INTSEL		0x10
-+#define DM355_VPSSBL_EVTSEL		0x14
- /* vpss BL register offsets */
- #define DM355_VPSSBL_CCDCMUX		0x1c
- /* vpss CLK register offsets */
- #define DM355_VPSSCLK_CLKCTRL		0x04
- /* masks and shifts */
- #define VPSS_HSSISEL_SHIFT		4
-+/*
-+ * VDINT0 - vpss_int0, VDINT1 - vpss_int1, H3A - vpss_int4,
-+ * IPIPE_INT1_SDR - vpss_int5
-+ */
-+#define DM355_VPSSBL_INTSEL_DEFAULT	0xff83ff10
-+/* VENCINT - vpss_int8 */
-+#define DM355_VPSSBL_EVTSEL_DEFAULT	0x4
-+
-+#define DM365_ISP5_PCCR 		0x04
-+#define DM365_ISP5_INTSEL1		0x10
-+#define DM365_ISP5_INTSEL2		0x14
-+#define DM365_ISP5_INTSEL3		0x18
-+#define DM365_ISP5_CCDCMUX 		0x20
-+#define DM365_ISP5_PG_FRAME_SIZE 	0x28
-+#define DM365_VPBE_CLK_CTRL 		0x00
-+/*
-+ * vpss interrupts. VDINT0 - vpss_int0, VDINT1 - vpss_int1,
-+ * AF - vpss_int3
-+ */
-+#define DM365_ISP5_INTSEL1_DEFAULT	0x0b1f0100
-+/* AEW - vpss_int6, RSZ_INT_DMA - vpss_int5 */
-+#define DM365_ISP5_INTSEL2_DEFAULT	0x1f0a0f1f
-+/* VENC - vpss_int8 */
-+#define DM365_ISP5_INTSEL3_DEFAULT	0x00000015
-+
-+/* masks and shifts for DM365*/
-+#define DM365_CCDC_PG_VD_POL_SHIFT 	0
-+#define DM365_CCDC_PG_HD_POL_SHIFT 	1
-+
-+#define CCD_SRC_SEL_MASK		(BIT_MASK(5) | BIT_MASK(4))
-+#define CCD_SRC_SEL_SHIFT		4
-+
-+/* Different SoC platforms supported by this driver */
-+enum vpss_platform_type {
-+	DM644X,
-+	DM355,
-+	DM365,
-+};
- 
- /*
-  * vpss operations. Depends on platform. Not all functions are available
-@@ -59,13 +99,9 @@ struct vpss_hw_ops {
- 
- /* vpss configuration */
- struct vpss_oper_config {
--	__iomem void *vpss_bl_regs_base;
--	__iomem void *vpss_regs_base;
--	struct resource		*r1;
--	resource_size_t		len1;
--	struct resource		*r2;
--	resource_size_t		len2;
--	char vpss_name[32];
-+	__iomem void *vpss_regs_base0;
-+	__iomem void *vpss_regs_base1;
-+	enum vpss_platform_type platform;
- 	spinlock_t vpss_lock;
- 	struct vpss_hw_ops hw_ops;
- };
-@@ -75,22 +111,46 @@ static struct vpss_oper_config oper_cfg;
- /* register access routines */
- static inline u32 bl_regr(u32 offset)
- {
--	return __raw_readl(oper_cfg.vpss_bl_regs_base + offset);
-+	return __raw_readl(oper_cfg.vpss_regs_base0 + offset);
- }
- 
- static inline void bl_regw(u32 val, u32 offset)
- {
--	__raw_writel(val, oper_cfg.vpss_bl_regs_base + offset);
-+	__raw_writel(val, oper_cfg.vpss_regs_base0 + offset);
- }
- 
- static inline u32 vpss_regr(u32 offset)
- {
--	return __raw_readl(oper_cfg.vpss_regs_base + offset);
-+	return __raw_readl(oper_cfg.vpss_regs_base1 + offset);
- }
- 
- static inline void vpss_regw(u32 val, u32 offset)
- {
--	__raw_writel(val, oper_cfg.vpss_regs_base + offset);
-+	__raw_writel(val, oper_cfg.vpss_regs_base1 + offset);
-+}
-+
-+/* For DM365 only */
-+static inline u32 isp5_read(u32 offset)
-+{
-+	return __raw_readl(oper_cfg.vpss_regs_base0 + offset);
-+}
-+
-+/* For DM365 only */
-+static inline void isp5_write(u32 val, u32 offset)
-+{
-+	__raw_writel(val, oper_cfg.vpss_regs_base0 + offset);
-+}
-+
-+static void dm365_select_ccdc_source(enum vpss_ccdc_source_sel src_sel)
-+{
-+	u32 temp = isp5_read(DM365_ISP5_CCDCMUX) & ~CCD_SRC_SEL_MASK;
-+
-+	/* if we are using pattern generator, enable it */
-+	if (src_sel == VPSS_PGLPBK || src_sel == VPSS_CCDCPG)
-+		temp |= 0x08;
-+
-+	temp |= (src_sel << CCD_SRC_SEL_SHIFT);
-+	isp5_write(temp, DM365_ISP5_CCDCMUX);
- }
- 
- static void dm355_select_ccdc_source(enum vpss_ccdc_source_sel src_sel)
-@@ -101,9 +161,9 @@ static void dm355_select_ccdc_source(enum vpss_ccdc_source_sel src_sel)
- int vpss_select_ccdc_source(enum vpss_ccdc_source_sel src_sel)
- {
- 	if (!oper_cfg.hw_ops.select_ccdc_source)
--		return -1;
-+		return -EINVAL;
- 
--	dm355_select_ccdc_source(src_sel);
-+	oper_cfg.hw_ops.select_ccdc_source(src_sel);
- 	return 0;
- }
- EXPORT_SYMBOL(vpss_select_ccdc_source);
-@@ -114,7 +174,7 @@ static int dm644x_clear_wbl_overflow(enum vpss_wbl_sel wbl_sel)
- 
- 	if (wbl_sel < VPSS_PCR_AEW_WBL_0 ||
- 	    wbl_sel > VPSS_PCR_CCDC_WBL_O)
--		return -1;
-+		return -EINVAL;
- 
- 	/* writing a 0 clear the overflow */
- 	mask = ~(mask << wbl_sel);
-@@ -126,7 +186,7 @@ static int dm644x_clear_wbl_overflow(enum vpss_wbl_sel wbl_sel)
- int vpss_clear_wbl_overflow(enum vpss_wbl_sel wbl_sel)
- {
- 	if (!oper_cfg.hw_ops.clear_wbl_overflow)
--		return -1;
-+		return -EINVAL;
- 
- 	return oper_cfg.hw_ops.clear_wbl_overflow(wbl_sel);
- }
-@@ -166,7 +226,7 @@ static int dm355_enable_clock(enum vpss_clock_sel clock_sel, int en)
- 	default:
- 		printk(KERN_ERR "dm355_enable_clock:"
- 				" Invalid selector: %d\n", clock_sel);
--		return -1;
-+		return -EINVAL;
- 	}
- 
- 	spin_lock_irqsave(&oper_cfg.vpss_lock, flags);
-@@ -181,100 +241,224 @@ static int dm355_enable_clock(enum vpss_clock_sel clock_sel, int en)
- 	return 0;
- }
- 
-+static int dm365_enable_clock(enum vpss_clock_sel clock_sel, int en)
-+{
-+	unsigned long flags;
-+	u32 utemp, mask = 0x1, shift = 0, offset = DM365_ISP5_PCCR;
-+	u32 (*read)(u32 offset) = isp5_read;
-+	void(*write)(u32 val, u32 offset) = isp5_write;
-+
-+	switch (clock_sel) {
-+	case VPSS_BL_CLOCK:
-+		break;
-+	case VPSS_CCDC_CLOCK:
-+		shift = 1;
-+		break;
-+	case VPSS_H3A_CLOCK:
-+		shift = 2;
-+		break;
-+	case VPSS_RSZ_CLOCK:
-+		shift = 3;
-+		break;
-+	case VPSS_IPIPE_CLOCK:
-+		shift = 4;
-+		break;
-+	case VPSS_IPIPEIF_CLOCK:
-+		shift = 5;
-+		break;
-+	case VPSS_PCLK_INTERNAL:
-+		shift = 6;
-+		break;
-+	case VPSS_PSYNC_CLOCK_SEL:
-+		shift = 7;
-+		break;
-+	case VPSS_VPBE_CLOCK:
-+		read = vpss_regr;
-+		write = vpss_regw;
-+		offset = DM365_VPBE_CLK_CTRL;
-+		break;
-+	case VPSS_VENC_CLOCK_SEL:
-+		shift = 2;
-+		read = vpss_regr;
-+		write = vpss_regw;
-+		offset = DM365_VPBE_CLK_CTRL;
-+		break;
-+	case VPSS_LDC_CLOCK:
-+		shift = 3;
-+		read = vpss_regr;
-+		write = vpss_regw;
-+		offset = DM365_VPBE_CLK_CTRL;
-+		break;
-+	case VPSS_FDIF_CLOCK:
-+		shift = 4;
-+		read = vpss_regr;
-+		write = vpss_regw;
-+		offset = DM365_VPBE_CLK_CTRL;
-+		break;
-+	case VPSS_OSD_CLOCK_SEL:
-+		shift = 6;
-+		read = vpss_regr;
-+		write = vpss_regw;
-+		offset = DM365_VPBE_CLK_CTRL;
-+		break;
-+	case VPSS_LDC_CLOCK_SEL:
-+		shift = 7;
-+		read = vpss_regr;
-+		write = vpss_regw;
-+		offset = DM365_VPBE_CLK_CTRL;
-+		break;
-+	default:
-+		printk(KERN_ERR "dm365_enable_clock: Invalid selector: %d\n",
-+		       clock_sel);
-+		return -1;
-+	}
-+
-+	spin_lock_irqsave(&oper_cfg.vpss_lock, flags);
-+	utemp = read(offset);
-+	if (!en) {
-+		mask = ~mask;
-+		utemp &= (mask << shift);
-+	} else
-+		utemp |= (mask << shift);
-+
-+	write(utemp, offset);
-+	spin_unlock_irqrestore(&oper_cfg.vpss_lock, flags);
-+
-+	return 0;
-+}
-+
- int vpss_enable_clock(enum vpss_clock_sel clock_sel, int en)
- {
- 	if (!oper_cfg.hw_ops.enable_clock)
--		return -1;
-+		return -EINVAL;
- 
- 	return oper_cfg.hw_ops.enable_clock(clock_sel, en);
- }
- EXPORT_SYMBOL(vpss_enable_clock);
- 
-+void dm365_vpss_set_sync_pol(struct vpss_sync_pol sync)
-+{
-+	int val = 0;
-+	val = isp5_read(DM365_ISP5_CCDCMUX);
-+
-+	val |= (sync.ccdpg_hdpol << DM365_CCDC_PG_HD_POL_SHIFT);
-+	val |= (sync.ccdpg_vdpol << DM365_CCDC_PG_VD_POL_SHIFT);
-+
-+	isp5_write(val, DM365_ISP5_CCDCMUX);
-+}
-+EXPORT_SYMBOL(dm365_vpss_set_sync_pol);
-+
-+void dm365_vpss_set_pg_frame_size(struct vpss_pg_frame_size frame_size)
-+{
-+	int current_reg = ((frame_size.hlpfr >> 1) - 1) << 16;
-+
-+	current_reg |= (frame_size.pplen - 1);
-+	isp5_write(current_reg, DM365_ISP5_PG_FRAME_SIZE);
-+}
-+EXPORT_SYMBOL(dm365_vpss_set_pg_frame_size);
-+
- static int __init vpss_probe(struct platform_device *pdev)
- {
--	int status, dm355 = 0;
-+	resource_size_t		len1, len2;
-+	struct resource		*r1, *r2;
-+	char *platform_name;
-+	int status;
- 
- 	if (!pdev->dev.platform_data) {
- 		dev_err(&pdev->dev, "no platform data\n");
- 		return -ENOENT;
- 	}
--	strcpy(oper_cfg.vpss_name, pdev->dev.platform_data);
- 
--	if (!strcmp(oper_cfg.vpss_name, "dm355_vpss"))
--		dm355 = 1;
--	else if (strcmp(oper_cfg.vpss_name, "dm644x_vpss")) {
-+	platform_name = pdev->dev.platform_data;
-+	if (!strcmp(platform_name, "dm355_vpss"))
-+		oper_cfg.platform = DM355;
-+	else if (!strcmp(platform_name, "dm365_vpss"))
-+		oper_cfg.platform = DM365;
-+	else if (!strcmp(platform_name, "dm644x_vpss"))
-+		oper_cfg.platform = DM644X;
-+	else {
- 		dev_err(&pdev->dev, "vpss driver not supported on"
- 			" this platform\n");
- 		return -ENODEV;
- 	}
- 
--	dev_info(&pdev->dev, "%s vpss probed\n", oper_cfg.vpss_name);
--	oper_cfg.r1 = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!oper_cfg.r1)
-+	dev_info(&pdev->dev, "%s vpss probed\n", platform_name);
-+	r1 = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!r1)
- 		return -ENOENT;
- 
--	oper_cfg.len1 = oper_cfg.r1->end - oper_cfg.r1->start + 1;
-+	len1 = r1->end - r1->start + 1;
- 
--	oper_cfg.r1 = request_mem_region(oper_cfg.r1->start, oper_cfg.len1,
--					 oper_cfg.r1->name);
--	if (!oper_cfg.r1)
-+	r1 = request_mem_region(r1->start, len1, r1->name);
-+	if (!r1)
- 		return -EBUSY;
- 
--	oper_cfg.vpss_bl_regs_base = ioremap(oper_cfg.r1->start, oper_cfg.len1);
--	if (!oper_cfg.vpss_bl_regs_base) {
-+	oper_cfg.vpss_regs_base0 = ioremap(r1->start, len1);
-+	if (!oper_cfg.vpss_regs_base0) {
- 		status = -EBUSY;
- 		goto fail1;
- 	}
- 
--	if (dm355) {
--		oper_cfg.r2 = platform_get_resource(pdev, IORESOURCE_MEM, 1);
--		if (!oper_cfg.r2) {
-+	if (oper_cfg.platform == DM355 || oper_cfg.platform == DM365) {
-+		r2 = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+		if (!r2) {
- 			status = -ENOENT;
- 			goto fail2;
- 		}
--		oper_cfg.len2 = oper_cfg.r2->end - oper_cfg.r2->start + 1;
--		oper_cfg.r2 = request_mem_region(oper_cfg.r2->start,
--						 oper_cfg.len2,
--						 oper_cfg.r2->name);
--		if (!oper_cfg.r2) {
-+		len2 = r2->end - r2->start + 1;
-+		r2 = request_mem_region(r2->start, len2, r2->name);
-+		if (!r2) {
- 			status = -EBUSY;
- 			goto fail2;
- 		}
- 
--		oper_cfg.vpss_regs_base = ioremap(oper_cfg.r2->start,
--						  oper_cfg.len2);
--		if (!oper_cfg.vpss_regs_base) {
-+		oper_cfg.vpss_regs_base1 = ioremap(r2->start, len2);
-+		if (!oper_cfg.vpss_regs_base1) {
- 			status = -EBUSY;
- 			goto fail3;
- 		}
- 	}
- 
--	if (dm355) {
-+	if (oper_cfg.platform == DM355) {
- 		oper_cfg.hw_ops.enable_clock = dm355_enable_clock;
- 		oper_cfg.hw_ops.select_ccdc_source = dm355_select_ccdc_source;
-+		/* Setup vpss interrupts */
-+		bl_regw(DM355_VPSSBL_INTSEL_DEFAULT, DM355_VPSSBL_INTSEL);
-+		bl_regw(DM355_VPSSBL_EVTSEL_DEFAULT, DM355_VPSSBL_EVTSEL);
-+	} else if (oper_cfg.platform == DM365) {
-+		oper_cfg.hw_ops.enable_clock = dm365_enable_clock;
-+		oper_cfg.hw_ops.select_ccdc_source = dm365_select_ccdc_source;
-+		/* Setup vpss interrupts */
-+		isp5_write(DM365_ISP5_INTSEL1_DEFAULT, DM365_ISP5_INTSEL1);
-+		isp5_write(DM365_ISP5_INTSEL2_DEFAULT, DM365_ISP5_INTSEL2);
-+		isp5_write(DM365_ISP5_INTSEL3_DEFAULT, DM365_ISP5_INTSEL3);
- 	} else
- 		oper_cfg.hw_ops.clear_wbl_overflow = dm644x_clear_wbl_overflow;
- 
- 	spin_lock_init(&oper_cfg.vpss_lock);
--	dev_info(&pdev->dev, "%s vpss probe success\n", oper_cfg.vpss_name);
-+	dev_info(&pdev->dev, "%s vpss probe success\n", platform_name);
- 	return 0;
- 
- fail3:
--	release_mem_region(oper_cfg.r2->start, oper_cfg.len2);
-+	release_mem_region(r2->start, len2);
- fail2:
--	iounmap(oper_cfg.vpss_bl_regs_base);
-+	iounmap(oper_cfg.vpss_regs_base0);
- fail1:
--	release_mem_region(oper_cfg.r1->start, oper_cfg.len1);
-+	release_mem_region(r1->start, len1);
- 	return status;
- }
- 
- static int vpss_remove(struct platform_device *pdev)
- {
--	iounmap(oper_cfg.vpss_bl_regs_base);
--	release_mem_region(oper_cfg.r1->start, oper_cfg.len1);
--	if (!strcmp(oper_cfg.vpss_name, "dm355_vpss")) {
--		iounmap(oper_cfg.vpss_regs_base);
--		release_mem_region(oper_cfg.r2->start, oper_cfg.len2);
-+	struct resource		*res;
-+
-+	iounmap(oper_cfg.vpss_regs_base0);
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	release_mem_region(res->start, res->end - res->start + 1);
-+	if (oper_cfg.platform == DM355 || oper_cfg.platform == DM365) {
-+		iounmap(oper_cfg.vpss_regs_base1);
-+		res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+		release_mem_region(res->start, res->end - res->start + 1);
- 	}
- 	return 0;
- }
-diff --git a/include/media/davinci/vpss.h b/include/media/davinci/vpss.h
-index fcdff74..c59cc02 100644
---- a/include/media/davinci/vpss.h
-+++ b/include/media/davinci/vpss.h
-@@ -29,7 +29,19 @@
- /* selector for ccdc input selection on DM355 */
- enum vpss_ccdc_source_sel {
- 	VPSS_CCDCIN,
--	VPSS_HSSIIN
-+	VPSS_HSSIIN,
-+	VPSS_PGLPBK,	/* for DM365 only */
-+	VPSS_CCDCPG	/* for DM365 only */
-+};
-+
-+struct vpss_sync_pol {
-+	unsigned int ccdpg_hdpol:1;
-+	unsigned int ccdpg_vdpol:1;
-+};
-+
-+struct vpss_pg_frame_size {
-+	short hlpfr;
-+	short pplen;
- };
- 
- /* Used for enable/diable VPSS Clock */
-@@ -47,12 +59,38 @@ enum vpss_clock_sel {
- 	 */
- 	VPSS_VENC_CLOCK_SEL,
- 	VPSS_VPBE_CLOCK,
-+	/* DM365 only clocks */
-+	VPSS_IPIPEIF_CLOCK,
-+	VPSS_RSZ_CLOCK,
-+	VPSS_BL_CLOCK,
-+	/*
-+	 * When using VPSS_PCLK_INTERNAL in vpss_enable_clock() api
-+	 * following applies:-
-+	 * en = 0 disable internal PCLK
-+	 * en = 1 enables internal PCLK
-+	 */
-+	VPSS_PCLK_INTERNAL,
-+	/*
-+	 * When using VPSS_PSYNC_CLOCK_SEL in vpss_enable_clock() api
-+	 * following applies:-
-+	 * en = 0 enables MMR clock
-+	 * en = 1 enables VPSS clock
-+	 */
-+	VPSS_PSYNC_CLOCK_SEL,
-+	VPSS_LDC_CLOCK_SEL,
-+	VPSS_OSD_CLOCK_SEL,
-+	VPSS_FDIF_CLOCK,
-+	VPSS_LDC_CLOCK
- };
- 
- /* select input to ccdc on dm355 */
- int vpss_select_ccdc_source(enum vpss_ccdc_source_sel src_sel);
- /* enable/disable a vpss clock, 0 - success, -1 - failure */
- int vpss_enable_clock(enum vpss_clock_sel clock_sel, int en);
-+/* set sync polarity, only for DM365*/
-+void dm365_vpss_set_sync_pol(struct vpss_sync_pol);
-+/* set the PG_FRAME_SIZE register, only for DM365 */
-+void dm365_vpss_set_pg_frame_size(struct vpss_pg_frame_size);
- 
- /* wbl reset for dm644x */
- enum vpss_wbl_sel {
-@@ -65,5 +103,6 @@ enum vpss_wbl_sel {
- 	VPSS_PCR_PREV_WBL_0,
- 	VPSS_PCR_CCDC_WBL_O,
- };
-+/* clear wbl overflow flag for DM6446 */
- int vpss_clear_wbl_overflow(enum vpss_wbl_sel wbl_sel);
- #endif
--- 
-1.6.0.4
+Thanks
+
+-Rob
+
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
+>
+
+------=_20091208170253_10240
+Content-Type: application/octet-stream; name="revert2.diff"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="revert2.diff"
+
+ZGlmZiAtciAzMmIyYTE4NzU3NTIgbGludXgvZHJpdmVycy9tZWRpYS9jb21tb24vdHVuZXJzL3R1
+bmVyLXhjMjAyOC5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvY29tbW9uL3R1bmVycy90dW5l
+ci14YzIwMjguYwlGcmkgTm92IDIwIDEyOjQ3OjQwIDIwMDkgKzAxMDAKKysrIGIvbGludXgvZHJp
+dmVycy9tZWRpYS9jb21tb24vdHVuZXJzL3R1bmVyLXhjMjAyOC5jCUZyaSBOb3YgMjcgMTA6Mjk6
+MjIgMjAwOSArMTEwMApAQCAtOTM0LDI5ICs5MzQsMjMgQEAKIAkgKiB0aGF0IHhjMjAyOCB3aWxs
+IGJlIGluIGEgc2FmZSBzdGF0ZS4KIAkgKiBNYXliZSB0aGlzIG1pZ2h0IGFsc28gYmUgbmVlZGVk
+IGZvciBEVFYuCiAJICovCi0JaWYgKG5ld19tb2RlID09IFRfQU5BTE9HX1RWKQorCWlmIChuZXdf
+bW9kZSA9PSBUX0FOQUxPR19UVikgewogCQlyYyA9IHNlbmRfc2VxKHByaXYsIHsweDAwLCAweDAw
+fSk7Ci0KLQkvKgotCSAqIERpZ2l0YWwgbW9kZXMgcmVxdWlyZSBhbiBvZmZzZXQgdG8gYWRqdXN0
+IHRvIHRoZQotCSAqIHByb3BlciBmcmVxdWVuY3kuCi0JICogQW5hbG9nIG1vZGVzIHJlcXVpcmUg
+b2Zmc2V0ID0gMAotCSAqLwotCWlmIChuZXdfbW9kZSA9PSBUX0RJR0lUQUxfVFYpIHsKLQkJLyog
+U2V0cyB0aGUgb2Zmc2V0IGFjY29yZGluZyB3aXRoIGZpcm13YXJlICovCi0JCWlmIChwcml2LT5j
+dXJfZncudHlwZSAmIERUVjYpCi0JCQlvZmZzZXQgPSAxNzUwMDAwOwotCQllbHNlIGlmIChwcml2
+LT5jdXJfZncudHlwZSAmIERUVjcpCi0JCQlvZmZzZXQgPSAyMjUwMDAwOwotCQllbHNlCS8qIERU
+Vjggb3IgRFRWNzggKi8KLQkJCW9mZnNldCA9IDI3NTAwMDA7Ci0KKwl9IGVsc2UgaWYgKHByaXYt
+PmN1cl9mdy50eXBlICYgRFRWNikgeworCQlvZmZzZXQgPSAxNzUwMDAwOworCX0gZWxzZSB7CisJ
+CW9mZnNldCA9IDI3NTAwMDA7CisJCiAJCS8qCi0JCSAqIFdlIG11c3QgYWRqdXN0IHRoZSBvZmZz
+ZXQgYnkgNTAwa0h6ICB3aGVuCi0JCSAqIHR1bmluZyBhIDdNSHogVkhGIGNoYW5uZWwgd2l0aCBE
+VFY3OCBmaXJtd2FyZQotCQkgKiAodXNlZCBpbiBBdXN0cmFsaWEsIEl0YWx5IGFuZCBHZXJtYW55
+KQorCQkgKiBXZSBtdXN0IGFkanVzdCB0aGUgb2Zmc2V0IGJ5IDUwMGtIeiBpbiB0d28gY2FzZXMg
+aW4gb3JkZXIKKwkJICogdG8gY29ycmVjdGx5IGNlbnRlciB0aGUgSUYgb3V0cHV0OgorCQkgKiAx
+KSBXaGVuIHRoZSBaQVJMSU5LNDU2IG9yIERJQkNPTTUyIHRhYmxlcyB3ZXJlIGV4cGxpY2l0bHkK
+KwkJICogICAgc2VsZWN0ZWQgYW5kIGEgN01IeiBjaGFubmVsIGlzIHR1bmVkOworCQkgKiAyKSBX
+aGVuIHR1bmluZyBhIFZIRiBjaGFubmVsIHdpdGggRFRWNzggZmlybXdhcmUuCiAJCSAqLwotCQlp
+ZiAoKHByaXYtPmN1cl9mdy50eXBlICYgRFRWNzgpICYmIGZyZXEgPCA0NzAwMDAwMDApCisJCWlm
+ICgoKHByaXYtPmN1cl9mdy50eXBlICYgRFRWNykgJiYKKwkJICAgICAocHJpdi0+Y3VyX2Z3LnNj
+b2RlX3RhYmxlICYgKFpBUkxJTks0NTYgfCBESUJDT001MikpKSB8fAorCQkgICAgKChwcml2LT5j
+dXJfZncudHlwZSAmIERUVjc4KSAmJiBmcmVxIDwgNDcwMDAwMDAwKSkKIAkJCW9mZnNldCAtPSA1
+MDAwMDA7CiAJfQogCkBAIC0xMTE0LDE5ICsxMTA4LDggQEAKIAl9CiAKIAkvKiBBbGwgUy1jb2Rl
+IHRhYmxlcyBuZWVkIGEgMjAwa0h6IHNoaWZ0ICovCi0JaWYgKHByaXYtPmN0cmwuZGVtb2QpIHsK
+KwlpZiAocHJpdi0+Y3RybC5kZW1vZCkKIAkJZGVtb2QgPSBwcml2LT5jdHJsLmRlbW9kICsgMjAw
+OwotCQkvKgotCQkgKiBUaGUgRFRWNyBTLWNvZGUgdGFibGUgbmVlZHMgYSA3MDAga0h6IHNoaWZ0
+LgotCQkgKiBUaGFua3MgdG8gVGVycnkgV3UgPHRlcnJ5d3UyMDA5QGdtYWlsLmNvbT4gZm9yIHJl
+cG9ydGluZyB0aGlzCi0JCSAqCi0JCSAqIERUVjcgaXMgb25seSB1c2VkIGluIEF1c3RyYWxpYS4g
+IEdlcm1hbnkgb3IgSXRhbHkgbWF5IGFsc28KLQkJICogdXNlIHRoaXMgZmlybXdhcmUgYWZ0ZXIg
+aW5pdGlhbGl6YXRpb24sIGJ1dCBhIHR1bmUgdG8gYSBVSEYKLQkJICogY2hhbm5lbCBzaG91bGQg
+dGhlbiBjYXVzZSBEVFY3OCB0byBiZSB1c2VkLgotCQkgKi8KLQkJaWYgKHR5cGUgJiBEVFY3KQot
+CQkJZGVtb2QgKz0gNTAwOwotCX0KIAogCXJldHVybiBnZW5lcmljX3NldF9mcmVxKGZlLCBwLT5m
+cmVxdWVuY3ksCiAJCQkJVF9ESUdJVEFMX1RWLCB0eXBlLCAwLCBkZW1vZCk7Cg==
+------=_20091208170253_10240--
+
 
