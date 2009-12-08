@@ -1,64 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:41246 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934884AbZLPQKk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2009 11:10:40 -0500
-From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
-	<u.kleine-koenig@pengutronix.de>
-To: linux-kernel@vger.kernel.org
-Cc: David Vrabel <dvrabel@arcom.com>,
-	Greg Kroah-Hartman <gregkh@suse.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Magnus Damm <damm@igel.co.jp>,
-	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
-	Paul Mundt <lethal@linux-sh.org>, linux-media@vger.kernel.org
-Subject: [PATCH 3/7] V4L/DVB sh_mobile_ceu: don't check platform_get_irq's return value against zero
-Date: Wed, 16 Dec 2009 17:10:05 +0100
-Message-Id: <1260979809-24811-3-git-send-email-u.kleine-koenig@pengutronix.de>
-In-Reply-To: <1260979809-24811-2-git-send-email-u.kleine-koenig@pengutronix.de>
-References: <1260979809-24811-1-git-send-email-u.kleine-koenig@pengutronix.de>
- <1260979809-24811-2-git-send-email-u.kleine-koenig@pengutronix.de>
+Received: from mail.gmx.net ([213.165.64.20]:46430 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1755440AbZLHPEt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Dec 2009 10:04:49 -0500
+Message-ID: <4B1E6B14.1040802@gmx.ch>
+Date: Tue, 08 Dec 2009 16:04:52 +0100
+From: Daniel Ritz <daniel.ritz@gmx.ch>
 MIME-Version: 1.0
+To: "Justin P. Mattock" <justinmattock@gmail.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] uvcvideo: add another YUYV format GUID
+References: <1259711324.13720.20.camel@MacRitz2>	 <200912032115.30431.laurent.pinchart@ideasonboard.com> <1259892337.2335.34.camel@MacRitz2> <4B189737.1010100@gmail.com>
+In-Reply-To: <4B189737.1010100@gmail.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-platform_get_irq returns -ENXIO on failure, so !irq was probably
-always true.  Better use (int)irq <= 0.  Note that a return value of
-zero is still handled as error even though this could mean irq0.
+On 04.12.2009 05:59, Justin P. Mattock wrote:
+> On 12/03/09 18:05, Daniel Ritz wrote:
+>> Hi Laurent
+>>
+>> On Thu, 2009-12-03 at 21:15 +0100, Laurent Pinchart wrote:
+>>> Hi Daniel,
+>>>
+>>> On Wednesday 02 December 2009 00:48:44 Daniel Ritz wrote:
+>>>> For some unknown reason, on a MacBookPro5,3 the iSight
+>>> Could you please send me the output of lsusb -v both with the correct and
+>>> wrong GUID ?
+>> sure. i attached three files:
+>>    isight-good.txt, isight-bad.txt, isight-good2.txt
+>>
+>> this is three reboots in a row from like 10 minutes ago. the first
+>> boot into linux was actually rebooting from OSX...first cold boot
+>> today directly into linux had the right GUID.
+>>
+>>>> _sometimes_ report a different video format GUID.
+>>> Sometimes only ? Now that's weird. Is that completely random ?
+>> yes, sometimes only. it seems to be related to reboots, but i don't
+>> know what exactly triggers it. rmmod/modprobe doesn't trigger it.
+>> also, when the wrong GUID is reported, the only way of fixing it is
+>> to reboot. it really is just the GUID. even when the wrong one is
+>> reported, the device works just fine.
+>>
+>> i started with a plain ubuntu 9.10, kernel 2.6.31 which was supposed
+>> to fail, so i upgraded to a 2.6.32-rc8 to fix the iSight and some other
+>> things, just to see it fail again. a reboot later and it worked, some
+>> time and reboot later it failed again...
+>>
+>> rgds
+>> -daniel
+>>
+>>>> This patch add the other (wrong) GUID to the format table, making the iSight
+>>>> work always w/o other problems.
+>>>>
+>>>> What it should report: 32595559-0000-0010-8000-00aa00389b71
+>>>> What it often reports: 32595559-0000-0010-8000-000000389b71
+>>>>
+>>>> Signed-off-by: Daniel Ritz<daniel.ritz@gmx.ch>
+>>> --
+>>> Regards,
+>>>
+>>> Laurent Pinchart
+> 
+> I get weiredness whenever
+> I shutdown the machine and then boot.
+> If I boot, then reboot things work.
+> 
 
-This is a followup to 305b3228f9ff4d59f49e6d34a7034d44ee8ce2f0 that
-changed the return value of platform_get_irq from 0 to -ENXIO on error.
+interesting...does my little patch work for you as well?
 
-Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
-Cc: David Vrabel <dvrabel@arcom.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Magnus Damm <damm@igel.co.jp>
-Cc: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: linux-media@vger.kernel.org
----
- drivers/media/video/sh_mobile_ceu_camera.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+thanks
+-daniel
 
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index 961e448..f18e674 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -1709,7 +1709,7 @@ static int __devinit sh_mobile_ceu_probe(struct platform_device *pdev)
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	irq = platform_get_irq(pdev, 0);
--	if (!res || !irq) {
-+	if (!res || (int)irq <= 0) {
- 		dev_err(&pdev->dev, "Not enough CEU platform resources.\n");
- 		err = -ENODEV;
- 		goto exit;
--- 
-1.6.5.2
+> Justin P. Mattock
+> 
 
