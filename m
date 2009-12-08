@@ -1,82 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:37126 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751022AbZLRKMJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Dec 2009 05:12:09 -0500
-Message-ID: <4B2B5574.3090407@infradead.org>
-Date: Fri, 18 Dec 2009 08:12:04 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from khc.piap.pl ([195.187.100.11]:46964 "EHLO khc.piap.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754963AbZLHNv5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Dec 2009 08:51:57 -0500
+From: Krzysztof Halasa <khc@pm.waw.pl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Jon Smirl <jonsmirl@gmail.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
+	kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR 	system?
+References: <20091204220708.GD25669@core.coreip.homeip.net> <BEJgSGGXqgB@lirc>
+	<9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>
+	<1260070593.3236.6.camel@pc07.localdom.local>
+	<20091206065512.GA14651@core.coreip.homeip.net>
+	<4B1B99A5.2080903@redhat.com> <m3638k6lju.fsf@intrepid.localdomain>
+	<9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
+	<m3skbn6dv1.fsf@intrepid.localdomain>
+	<9e4733910912061323x22c618ccyf6edcee5b021cbe3@mail.gmail.com>
+	<4B1D934E.7030103@redhat.com>
+Date: Tue, 08 Dec 2009 14:52:00 +0100
+In-Reply-To: <4B1D934E.7030103@redhat.com> (Mauro Carvalho Chehab's message of
+	"Mon, 07 Dec 2009 21:44:14 -0200")
+Message-ID: <m3hbs1vain.fsf@intrepid.localdomain>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Created files in patch comment intended?
-References: <Pine.LNX.4.64.0912180756580.4406@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0912180756580.4406@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Mauro Carvalho Chehab <mchehab@redhat.com> writes:
 
-Guennadi Liakhovetski wrote:
-> Hi Mauro
-> 
-> Looking at how my mediabus patches got committed into the mainline, I 
-> noticed, that the add-mediabus patch contains a list of added files 
-> between the patch description and the Sob's:
-> 
->      create mode 100644 drivers/media/video/soc_mediabus.c
->      create mode 100644 include/media/soc_mediabus.h
->      create mode 100644 include/media/v4l2-mediabus.h
-> 
-> Is this intended, and if yes - why? If not, maybe you'd like to fix this 
-> in your hg-git export scripts.
-> 
-No, this is not intentional. The scripts have a logic to identify the description
-body of a mercurial commit and of a patch received by email. The logic should
-just import whatever description is provided on -hg.
+>> What is the interface for attaching an in-kernel decoder?
+>
+> IMO, it should use the kfifo for it. However, if we allow both raw data and
+> in-kernel decoders to read data there, we'll need a spinlock to protect the
+> kfifo.
 
-By looking on your commit for this patch on mercurial, we have:
+This may be an option, but I think we should be able to attach protocol
+decoders in parallel, directly to the IRQ handler. At least with RC-5
+(that's what I personally use) it means reliable decoding, no need for
+any timeouts, the code is clean, fast (can be a part of hard IRQ
+handler) and simple.
 
-$ hg log -r 13658 -v
-changeset:   13658:2c60bd900a7a
-user:        Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-date:        Fri Dec 11 15:41:28 2009 +0100
-files:       linux/drivers/media/video/Makefile linux/drivers/media/video/soc_mediabus.c linux/include/media/soc_mediabus.h linux/include/media/v4l2-mediabus.h linux/include/media/v4l2-subdev.h
-description:
-v4l: add a media-bus API for configuring v4l2 subdev pixel and frame formats
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+The decoder needs something like
+	rc5_signal_change(ptr, space_or_mark, microseconds).
 
-Video subdevices, like cameras, decoders, connect to video bridges over
-specialised busses. Data is being transferred over these busses in various
-formats, which only loosely correspond to fourcc codes, describing how video
-data is stored in RAM. This is not a one-to-one correspondence, therefore we
-cannot use fourcc codes to configure subdevice output data formats. This patch
-adds codes for several such on-the-bus formats and an API, similar to the
-familiar .s_fmt(), .g_fmt(), .try_fmt(), .enum_fmt() API for configuring those
-codes. After all users of the old API in struct v4l2_subdev_video_ops are
-converted, it will be removed. Also add helper routines to support generic
-pass-through mode for the soc-camera framework.
-
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/Makefile       |    2 +-
- drivers/media/video/soc_mediabus.c |  157 ++++++++++++++++++++++++++++++++++++
- include/media/soc_mediabus.h       |   65 +++++++++++++++
- include/media/v4l2-mediabus.h      |   61 ++++++++++++++
- include/media/v4l2-subdev.h        |   19 ++++-
- 5 files changed, 302 insertions(+), 2 deletions(-)
- create mode 100644 drivers/media/video/soc_mediabus.c
- create mode 100644 include/media/soc_mediabus.h
- create mode 100644 include/media/v4l2-mediabus.h
-
-
-As you see, you added those comments at the end of the patch, together with a diffstat.
-While the script has a logic to remove diffstats, it doesn't contain anything to remove
-the "create mode" lines that you've added at the end of the patch description.
-
-Cheers,
-Mauro.
+At least mark->space or space->mark events must be reported. For better
+reliability, both of them.
+-- 
+Krzysztof Halasa
