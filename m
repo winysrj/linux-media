@@ -1,83 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.24]:2812 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932753AbZLFQit convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Dec 2009 11:38:49 -0500
-MIME-Version: 1.0
-In-Reply-To: <BENh5lRHqgB@lirc>
-References: <9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>
-	 <BENh5lRHqgB@lirc>
-Date: Sun, 6 Dec 2009 11:38:55 -0500
-Message-ID: <9e4733910912060838j29f107cpd827e2d7b8a20c1c@mail.gmail.com>
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
-	system?
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Christoph Bartelmus <lirc@bartelmus.de>
-Cc: awalls@radix.net, dmitry.torokhov@gmail.com, j@jannau.net,
-	jarod@redhat.com, jarod@wilsonet.com, khc@pm.waw.pl,
-	kraxel@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com, superm1@ubuntu.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail1.radix.net ([207.192.128.31]:48993 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755149AbZLILtf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Dec 2009 06:49:35 -0500
+Subject: Re: IR Receiver on an Tevii S470
+From: Andy Walls <awalls@radix.net>
+To: "Igor M. Liplianin" <liplianin@me.by>
+Cc: Matthias Fechner <idefix@fechner.net>, linux-media@vger.kernel.org,
+	stoth@kernellabs.com
+In-Reply-To: <200912081959.21245.liplianin@me.by>
+References: <4B0459B1.50600@fechner.net>
+	 <200912070323.14440.liplianin@me.by> <1260156946.1809.25.camel@localhost>
+	 <200912081959.21245.liplianin@me.by>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 09 Dec 2009 06:47:46 -0500
+Message-Id: <1260359266.3093.15.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Dec 6, 2009 at 7:12 AM, Christoph Bartelmus <lirc@bartelmus.de> wrote:
-> Hi Jon,
->
-> on 04 Dec 09 at 19:28, Jon Smirl wrote:
->>> BTW, I just came across a XMP remote that seems to generate 3x64 bit
->>> scan codes. Anyone here has docs on the XMP protocol?
->>
->> Assuming a general purpose receiver (not one with fixed hardware
->> decoding), is it important for Linux to receive IR signals from all
->> possible remotes no matter how old or obscure? Or is it acceptable to
-> [...]
->> Of course transmitting is a completely different problem, but we
->> haven't been talking about transmitting. I can see how we would need
->> to record any IR protocol in order to retransmit it. But that's in the
->> 5% of users world, not the 90% that want MythTV to "just work". �Use
->> something like LIRC if you want to transmit.
->
-> I don't think anyone here is in the position to be able to tell what is
-> 90% or 5%. Personally I use LIRC exclusively for transmit to my settop box
-> using an old and obscure RECS80 protocol.
-> No, I won't replace my setup just because it's old and obscure.
+On Tue, 2009-12-08 at 19:59 +0200, Igor M. Liplianin wrote:
+> On 7 декабря 2009 05:35:46 Andy Walls wrote:
 
-There are two groups, technically oriented people who can handle
-messing around with IR protocols and everyone else.  I'm not proposing
-to remove any capabilities from the first group. Instead I'd like to
-see the creation of a "just works" option for the other group. We
-don't know the size of the everyone else group yet because that option
-doesn't exist. In general non-technical people way out number the
-technical ones in broad user bases. For example I had to use LIRC to
-get my remotes working, but I would have rather been in the everyone
-else group and not had to learn about IR.
+> > Igor and Matthias,
+> >
+> > Please try the changes that I have for the TeVii S470 that are here:
+> >
+> > 	http://linuxtv.org/hg/~awalls/cx23885-ir
+> >
+> > You will want to modprobe the driver modules like this to get debugging
+> > information:
+> >
+> > 	# modprobe cx25840 ir_debug=2
+> > 	# modprobe cx23885 ir_input_debug=1
+> >
+> > With that debugging you will get output something like this in dmesg or
+> > your logs when you press a button on the remote (this is RC-5 using a
+> > CX23888 chip not NEC using a CX23885 chip):
+> >
+> > cx23885[0]/888-ir: IRQ Status:  tsr rsr             rby
+> > cx23885[0]/888-ir: IRQ Enables:     rse rte roe
+> > cx23885[0]/888-ir: IRQ Status:  tsr rsr             rby
+> > cx23885[0]/888-ir: IRQ Enables:     rse rte roe
+> > cx23885[0]/888-ir: IRQ Status:  tsr rsr             rby
+> > cx23885[0]/888-ir: IRQ Enables:     rse rte roe
+> > cx23885[0]/888-ir: IRQ Status:  tsr rsr             rby
+> > cx23885[0]/888-ir: IRQ Enables:     rse rte roe
+> > cx23885[0]/888-ir: IRQ Status:  tsr rsr             rby
+> > cx23885[0]/888-ir: IRQ Enables:     rse rte roe
+> > cx23885[0]/888-ir: IRQ Status:  tsr     rto
+> > cx23885[0]/888-ir: IRQ Enables:     rse rte roe
+> > cx23885[0]/888-ir: rx read:     817000 ns  mark
+> > cx23885[0]/888-ir: rx read:     838926 ns  space
+> > cx23885[0]/888-ir: rx read:    1572259 ns  mark
+> > cx23885[0]/888-ir: rx read:    1705296 ns  space
+> > [...]
+> > cx23885[0]/888-ir: rx read:     838037 ns  space
+> > cx23885[0]/888-ir: rx read:     746333 ns  mark
+> > cx23885[0]/888-ir: rx read:    1705741 ns  space
+> > cx23885[0]/888-ir: rx read:    1619370 ns  mark
+> > cx23885[0]/888-ir: rx read: end of rx
 
-> Cable companies tend to provide XMP based boxes to subscribers more often
-> these days. Simply not supporting these setups is a no-go for me.
+> > If you do not see good or many NEC timing measurments in the logs, the
+> > first thing to try is to change lines 533-534 of
+> > linux/drivers/media/cx23885/cx23885-input.c:
+> >
+> >                params.modulation = true;
+> >                params.invert_level = false;
+> >
+> > If you see no timing measurements or few timing measurements, change the
+> > "modulation" to "false".  If the chip is expecting carrier pulses and an
+> > external circuit or capacitor is smoothing carrier bursts into baseband
+> > pulses, then the hardware won't make measurements properly.
+> >
+> > If you see inverted mark and space inverted when "modulation" is set to
+> > "false", then set "invert_level" to "true".
+> >
+> > Those are the two things I had to really guess at.
 
-I suspect what we categorize as "just works" will expand over time.
-The in-kernel support can start small and add protocols and maps over
-time. Support for XMP can start in LIRC and migrate into the kernel
-after we fully understand the protocol and know that enough people are
-using it to justify the effort of maintaining it in-kernel.  Adding
-in-kernel support for a protocol is not going to make LIRC disappear.
+> > Regards,
+> > Andy
+> 
+> No luck :(
+> Nothing in logs
 
-The critical part is getting the initial design of the in-kernel IR
-system right. That design is very hard to change after it gets into
-everyone's systems and apps start depending on it. Writing up use
-cases, modular protocols, figuring out how many bits are needed in
-fields, how are maps written, can they be autoloaded, transmitting,
-etc, etc. These are the important things to be discussing. LIRC users
-obviously have a lot of knowledge in this area to contribute.
+:(
 
-PS - another area we need to be thinking about is radio remotes like
-the new RF4CE devices. The button presses from these remotes will come
-in on the 802.15.4 networking stack and need to get routed into the
-input subsystem somehow.
+OK.
 
--- 
-Jon Smirl
-jonsmirl@gmail.com
+1. I assume you have the v4l-cx23885-avcore-01.fw file available for the
+cx25840 module, just so there is no problem initializing the CX23885 AV
+core.
+
+
+2. Does dmesg or the logs show the input device being created?
+Somewhere in the log you should see:
+
+	"cx23885 IR (TeVii S470)"
+
+when the input device is created.
+
+
+3. With the "debug=7" option to the cx23885 module, do you see any IR
+interrupts coming in?  In dmesg or the log you should see:
+
+	"(PCI_MSK_IR        0x...)"
+
+when an IR interrupt happens.
+
+
+Tonight I will:
+
+a. Add a guess at HVR-1800 support so maybe Steve can help us debug as
+well.  I know the NEC decoder works; I tested it.  What I don't know is
+if the CX23885 AV IR implementation works (I don't have CX23885 hardware
+at the moment).
+
+b. Add a temporary patch to add a /dev/videoN node for the TeVii S470 so
+you can use "v4l2-ctl --log-status" to show the status of the IR
+controller and v4l2-dbg to dump the cx23885 and cx23885-av-core
+registers, so I can see if everthying is set right.
+
+c. Review the register settings to make sure interrupts should be
+enabled for the IR controller.
+
+Regards,
+Andy
+
