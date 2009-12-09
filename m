@@ -1,64 +1,227 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from thsmsgxrt12p.thalesgroup.com ([192.54.144.135]:50379 "EHLO
-	thsmsgxrt12p.thalesgroup.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758226AbZLGRzj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Dec 2009 12:55:39 -0500
-Received: from thsmsgirt22p.corp.thales (unknown [10.33.231.6])
-	by thsmsgxrt12p.thalesgroup.com (Postfix) with ESMTP id 9E2A641D1E6
-	for <linux-media@vger.kernel.org>; Mon,  7 Dec 2009 18:55:45 +0100 (CET)
-Received: from thsmsgiav13p.corp.thales (10.33.231.33) by thsmsgirt22p.corp.thales (8.5.103)
-        id 4B0E9B9B001722B5 for linux-media@vger.kernel.org; Mon, 7 Dec 2009 18:55:45 +0100
-Received: from d3smsg01p.services.thales (unknown [10.221.30.27])
-	by thsmsgirt12p.corp.thales (Postfix) with ESMTP id 691E0391BBE
-	for <linux-media@vger.kernel.org>; Mon,  7 Dec 2009 18:55:45 +0100 (CET)
-Received: from d3smsg01p.services.thales (10.221.30.17) by d3smsg01p.services.thales (7.3.136)
-        id 4AFFF991001B6374 for linux-media@vger.kernel.org; Mon, 7 Dec 2009 18:55:45 +0100
-Received: from d3smsg01p.services.thales (localhost.localdomain [127.0.0.1])
-	by localhost (Postfix) with SMTP id 236214A30054
-	for <linux-media@vger.kernel.org>; Mon,  7 Dec 2009 18:55:45 +0100 (CET)
-Received: from [142.58.148.188] (unknown [142.58.148.188])
-	by d3smsg01p.services.thales (Postfix) with ESMTP id C392A4A30030
-	for <linux-media@vger.kernel.org>; Mon,  7 Dec 2009 18:55:44 +0100 (CET)
-Message-ID: <4B1D411F.309@thalesgroup.com>
-Date: Mon, 07 Dec 2009 18:53:35 +0100
-From: =?ISO-8859-1?Q?Emmanuel_Fust=E9?= <emmanuel.fuste@thalesgroup.com>
+Received: from mail-ew0-f209.google.com ([209.85.219.209]:46726 "EHLO
+	mail-ew0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758195AbZLIWgj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2009 17:36:39 -0500
+Received: by ewy1 with SMTP id 1so4943181ewy.28
+        for <linux-media@vger.kernel.org>; Wed, 09 Dec 2009 14:36:44 -0800 (PST)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR system?
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <59cf47a80912091420x32c2cac6ve55a4cced8517da1@mail.gmail.com>
+References: <51be034e0912091153n663111c5pe920f405c5befa13@mail.gmail.com>
+	 <loom.20091209T205650-546@post.gmane.org>
+	 <59cf47a80912091353o634f234nb83e64eaf7f52dd1@mail.gmail.com>
+	 <51be034e0912091404k34642412waa104abd8e419245@mail.gmail.com>
+	 <59cf47a80912091420x32c2cac6ve55a4cced8517da1@mail.gmail.com>
+Date: Wed, 9 Dec 2009 23:36:40 +0100
+Message-ID: <51be034e0912091436l6308f894xdb6997fb0b20ca42@mail.gmail.com>
+Subject: Re: MSI StarCam working in vlc only (with poor colors)
+From: Jozef Riha <jose1711@gmail.com>
+To: Paulo Assis <pj.assis@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
+setting quirks to 2 unfortunately did not help. gucview's 1.2.1 output below
 
-> In summary,
->
-> While the current EVIO[G|S]KEYCODE works sub-optimally for scancodes up to 16 
-> bytes
-> (since a read loop for 2^16 is not that expensive), the current approach
-> won't scale with bigger scancode spaces. So, it is needed expand it
-> to work with bigger scancode spaces, used by more recent IR protocols.
->
-> I'm afraid that any tricks we may try to go around the current limits to still
-> keep using the same ioctl definition will sooner or later cause big headaches.
-> The better is to redesign it to allow using different scancode spaces.
->
->
->   
-I second you: input layer events from drivers should be augmented with a 
-protocol member, allowing us to define new ioctl and new ways to 
-efficiently store and manage sparse scancode spaces (tree, hashtable 
-....). It will allow us to abstract the scancode value and to use 
-variable length scancode depending on the used protocol, and using the 
-most appropriate scheme to store the scancode/keycode mapping per protocol.
-The today scancode space will be the legacy one, the default if not 
-specified "protocol". It will permit to progressively clean up the 
-actual acceptable mess in the input layer and finally using real 
-scancode -> keycode mappings everywhere if it is cleaner/convenient.
+[jose@darkstar ~]$ LC_ALL=C guvcview --verbose
+guvcview 1.2.1
+unexpected integer value (1) for snd_numsec
+Strings must be quoted
+video_device: /dev/video0
+vid_sleep: 0
+cap_meth: 1
+resolution: 640 x 480
+windowsize: 480 x 700
+vert pane: 0
+spin behavior: 0
+mode: mjpg
+fps: 1/25
+Display Fps: 0
+bpp: 0
+hwaccel: 1
+avi_format: 0
+sound: 1
+sound Device: 0
+sound samp rate: 0
+sound Channels: 0
+Sound delay: 0 nanosec
+Sound Format: 80
+Sound bit Rate: 160 Kbps
+Pan Step: 2 degrees
+Tilt Step: 2 degrees
+Video Filter Flags: 0
+image inc: 0
+profile(default):/home/jose/default.gpfl
+starting portaudio...
+language catalog=> dir:/usr/share/locale type:C lang:C cat:guvcview.mo
+mjpg: setting format to 1196444237
+capture method = 1
+video device: /dev/video0
+/dev/video0 - device 1
+Init. UVC Camera (1b3b:2951) (location: usb-0000:00:1d.1-1)
+{ pixelformat = 'MJPG', description = 'MJPEG' }
+{ discrete: width = 640, height = 480 }
+	Time interval between frame: 1/30,
+{ discrete: width = 320, height = 240 }
+	Time interval between frame: 1/30,
+{ discrete: width = 160, height = 120 }
+	Time interval between frame: 1/30,
+vid:1b3b
+pid:2951
+driver:uvcvideo
+checking format: 1196444237
+VIDIOC_S_FORMAT - Unable to set format: Input/output error
+Init v4L2 failed !!
+Init video returned -2
+trying minimum setup ...
+capture method = 1
+video device: /dev/video0
+/dev/video0 - device 1
+Init. UVC Camera (1b3b:2951) (location: usb-0000:00:1d.1-1)
+{ pixelformat = 'MJPG', description = 'MJPEG' }
+{ discrete: width = 640, height = 480 }
+	Time interval between frame: 1/30,
+{ discrete: width = 320, height = 240 }
+	Time interval between frame: 1/30,
+{ discrete: width = 160, height = 120 }
+	Time interval between frame: 1/30,
+vid:1b3b
+pid:2951
+driver:uvcvideo
+checking format: 1196444237
+VIDIOC_S_FORMAT - Unable to set format: Input/output error
+Init v4L2 failed !!
+ERROR: Minimum Setup Failed.
+ Exiting...
+free audio mutex
+VIDIOC_REQBUFS - Failed to delete buffers: Invalid argument (errno 22)
+closed v4l2 strutures
+free controls - vidState
+cleaned allocations - 100%
+Closing portaudio ...OK
+Terminated.
 
-Best regards,
-Emmanuel.
+are you sure with the web-page? i cannot see a relationship between
+dvb and uvcvideo. shouldn't i download the most recent driver from
+http://linux-uvc.berlios.de/#download ?
 
+thank you,
+
+joe
+
+On Wed, Dec 9, 2009 at 11:20 PM, Paulo Assis <pj.assis@gmail.com> wrote:
+> Hi, could you try the following:
+>
+> echo 2 > /sys/module/uvcvideo/parameters/quirks
+>
+> this will set uvcvideo quirks to 2
+>
+> or you can also try the latest uvcvideo:
+> http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+>
+> please if you can, use the latest version for guvcview (1.2.1)  :D
+>
+> Regards,
+> Paulo
+>
+> 2009/12/9 Jozef Riha <jose1711@gmail.com>:
+>> [jose@darkstar ~]$ LC_ALL=C guvcview --verbose
+>> guvcview 1.1.4
+>> video_device: /dev/video0
+>> vid_sleep: 0
+>> cap_meth: 1
+>> resolution: 640 x 480
+>> windowsize: 480 x 700
+>> vert pane: 0
+>> spin behavior: 0
+>> mode: mjpg
+>> fps: 1/25
+>> Display Fps: 0
+>> bpp: 0
+>> hwaccel: 1
+>> avi_format: 0
+>> sound: 1
+>> sound Device: 0
+>> sound samp rate: 0
+>> sound Channels: 0
+>> Sound Block Size: 1 seconds
+>> Sound Format: 80
+>> Sound bit Rate: 160 Kbps
+>> Pan Step: 2 degrees
+>> Tilt Step: 2 degrees
+>> Video Filter Flags: 0
+>> image inc: 0
+>> profile(default):/home/jose/default.gpfl
+>> starting portaudio...
+>> language catalog=> dir:/usr/share/locale type:C lang:C cat:guvcview.mo
+>>
+>> (guvcview:31380): GLib-GObject-WARNING **: IA__g_object_set_valist:
+>> object class `GtkSettings' has no property named `gtk-button-images'
+>> mjpg: setting format to 1196444237
+>> capture method = 1
+>> video device: /dev/video0
+>> /dev/video0 - device 1
+>> Init. UVC Camera (1b3b:2951) (location: usb-0000:00:1d.1-1)
+>> { pixelformat = 'MJPG', description = 'MJPEG' }
+>> { discrete: width = 640, height = 480 }
+>>        Time interval between frame: 1/30,
+>> { discrete: width = 320, height = 240 }
+>>        Time interval between frame: 1/30,
+>> { discrete: width = 160, height = 120 }
+>>        Time interval between frame: 1/30,
+>> checking format: 1196444237
+>> VIDIOC_S_FORMAT - Unable to set format: Input/output error
+>> Init v4L2 failed !!
+>> Init video returned -2
+>> trying minimum setup ...
+>> capture method = 1
+>> video device: /dev/video0
+>> /dev/video0 - device 1
+>> Init. UVC Camera (1b3b:2951) (location: usb-0000:00:1d.1-1)
+>> { pixelformat = 'MJPG', description = 'MJPEG' }
+>> { discrete: width = 640, height = 480 }
+>>        Time interval between frame: 1/30,
+>> { discrete: width = 320, height = 240 }
+>>        Time interval between frame: 1/30,
+>> { discrete: width = 160, height = 120 }
+>>        Time interval between frame: 1/30,
+>> checking format: 1196444237
+>> VIDIOC_S_FORMAT - Unable to set format: Input/output error
+>> Init v4L2 failed !!
+>> ERROR: Minimum Setup Failed.
+>>  Exiting...
+>> Terminated.
+>>
+>>
+>> On Wed, Dec 9, 2009 at 10:53 PM, Paulo Assis <pj.assis@gmail.com> wrote:
+>>> Hi,
+>>> Could you please try guvcview ( http://guvcview.berlios.de )
+>>>
+>>> Please post me the output of guvcview --verbose
+>>>
+>>> Best regards,
+>>> Paulo
+>>>
+>>> 2009/12/9 Jozef Riha <jose1711@gmail.com>:
+>>>> Jozef Riha <jose1711 <at> gmail.com> writes:
+>>>>
+>>>>>
+>>>>> Hello dear ML members,
+>>>>>
+>>>>> I wonder whether you can help me with the following issue. My webcam
+>>>>> MSI StarCam (http://www.aaronpc.cz/produkty/msi-starcam-370i)
+>>>>> identified as
+>>>>>
+>>>>> ...
+>>>>
+>>>>
+>>>> Sorry I forgot to add kernel version. It is 2.6.32, config at
+>>>> http://repos.archlinux.org/wsvn/packages/kernel26/repos/core-i686/config
+>>>>
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>
