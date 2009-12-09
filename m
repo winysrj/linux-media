@@ -1,187 +1,419 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.9]:50279 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753164AbZLXXKG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Dec 2009 18:10:06 -0500
-Received: from mail01.m-online.net (mail.m-online.net [192.168.3.149])
-	by mail-out.m-online.net (Postfix) with ESMTP id 136211C15DE5
-	for <linux-media@vger.kernel.org>; Fri, 25 Dec 2009 00:10:04 +0100 (CET)
-Received: from localhost (dynscan2.mnet-online.de [192.168.1.215])
-	by mail.m-online.net (Postfix) with ESMTP id A8F22902F6
-	for <linux-media@vger.kernel.org>; Fri, 25 Dec 2009 00:10:04 +0100 (CET)
-Received: from mail.mnet-online.de ([192.168.3.149])
-	by localhost (dynscan2.mnet-online.de [192.168.1.215]) (amavisd-new, port 10024)
-	with ESMTP id C642xrZZjKSD for <linux-media@vger.kernel.org>;
-	Fri, 25 Dec 2009 00:10:03 +0100 (CET)
-Received: from [192.168.1.5] (ppp-88-217-19-215.dynamic.mnet-online.de [88.217.19.215])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mail.mnet-online.de (Postfix) with ESMTP
-	for <linux-media@vger.kernel.org>; Fri, 25 Dec 2009 00:10:03 +0100 (CET)
-Message-ID: <4B33F4CA.7060607@a-city.de>
-Date: Fri, 25 Dec 2009 00:10:02 +0100
-From: TAXI <taxi@a-city.de>
+Received: from mx1.redhat.com ([209.132.183.28]:47797 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756930AbZLISwo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Dec 2009 13:52:44 -0500
+Message-ID: <4B1FF1FF.6000001@redhat.com>
+Date: Wed, 09 Dec 2009 16:52:47 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Bad image/sound quality with Medion MD 95700
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 8bit
+To: Huang Shijie <shijie8@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 09/11] add audio support for tlg2300
+References: <1258687493-4012-1-git-send-email-shijie8@gmail.com> <1258687493-4012-2-git-send-email-shijie8@gmail.com> <1258687493-4012-3-git-send-email-shijie8@gmail.com> <1258687493-4012-4-git-send-email-shijie8@gmail.com> <1258687493-4012-5-git-send-email-shijie8@gmail.com> <1258687493-4012-6-git-send-email-shijie8@gmail.com> <1258687493-4012-7-git-send-email-shijie8@gmail.com> <1258687493-4012-8-git-send-email-shijie8@gmail.com> <1258687493-4012-9-git-send-email-shijie8@gmail.com> <1258687493-4012-10-git-send-email-shijie8@gmail.com>
+In-Reply-To: <1258687493-4012-10-git-send-email-shijie8@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-I tried a Medion MD 95700 with kernel 2.6.32 (for tests: 2.6.30.9) and
-have a very bad image and sound quality.
-Right now I'm using 2.6.32 with V4L/DVB from SVN (v4l-dvb-4506e2d54126)
+Huang Shijie wrote:
+> The module uses ALSA for the audio, it will register
+> a new card for tlg2300.
 
-Here is an example: http://img200.imageshack.us/img200/3950/dvbtlinux.png
-and another: http://img130.imageshack.us/img130/6278/dvbt2.png
+This one seems ok, but it is better to c/c alsa ML also, when adding a new
+alsa module, for they to help reviewing it.
 
-The DVB-T stream seems to be good:
-femon
-FE: Conexant CX22702 DVB-T (DVBT)
-status SCVYL | signal 6565 | snr ffff | ber 00000000 | unc 00000000 |
-FE_HAS_LOCK
-status SCVYL | signal 6565 | snr ffff | ber 00000000 | unc 00000000 |
-FE_HAS_LOCK
-status SCVYL | signal 6565 | snr ffff | ber 00000000 | unc 00000000 |
-FE_HAS_LOCK
-status SCVYL | signal 6565 | snr ffff | ber 00000000 | unc 00000000 |
-FE_HAS_LOCK
-status SCVYL | signal 6565 | snr ffff | ber 00000000 | unc 00000000 |
-FE_HAS_LOCK
-status SCVYL | signal 6565 | snr ffff | ber 00000000 | unc 00000000 |
-FE_HAS_LOCK
-status SCVYL | signal 6565 | snr ffff | ber 00000000 | unc 00000000 |
-FE_HAS_LOCK
-(it's a bit bad right now, normally the signal is around 50%)
+> 
+> Signed-off-by: Huang Shijie <shijie8@gmail.com>
+> ---
+>  drivers/media/video/tlg2300/pd-alsa.c |  379 +++++++++++++++++++++++++++++++++
+>  1 files changed, 379 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/video/tlg2300/pd-alsa.c
+> 
+> diff --git a/drivers/media/video/tlg2300/pd-alsa.c b/drivers/media/video/tlg2300/pd-alsa.c
+> new file mode 100644
+> index 0000000..54a5aaa
+> --- /dev/null
+> +++ b/drivers/media/video/tlg2300/pd-alsa.c
+> @@ -0,0 +1,379 @@
+> +#include <linux/kernel.h>
+> +#include <linux/usb.h>
+> +#include <linux/init.h>
+> +#include <linux/sound.h>
+> +#include <linux/spinlock.h>
+> +#include <linux/soundcard.h>
+> +#include <linux/slab.h>
+> +#include <linux/vmalloc.h>
+> +#include <linux/proc_fs.h>
+> +#include <linux/module.h>
+> +#include <sound/core.h>
+> +#include <sound/pcm.h>
+> +#include <sound/pcm_params.h>
+> +#include <sound/info.h>
+> +#include <sound/initval.h>
+> +#include <sound/control.h>
+> +#include <media/v4l2-common.h>
+> +#include "pd-common.h"
+> +#include "vendorcmds.h"
+> +
+> +static void complete_handler_audio(struct urb *urb);
+> +#define ANOLOG_AUDIO_ID	(0)
+> +#define FM_ID		(1)
+> +#define AUDIO_EP	(0x83)
+> +#define AUDIO_BUF_SIZE	(512)
+> +#define PERIOD_SIZE	(1024 * 8)
+> +#define PERIOD_MIN	(4)
+> +#define PERIOD_MAX 	PERIOD_MIN
+> +
+> +static struct snd_pcm_hardware snd_pd_hw_capture = {
+> +	.info = SNDRV_PCM_INFO_BLOCK_TRANSFER |
+> +		SNDRV_PCM_INFO_MMAP           |
+> +		SNDRV_PCM_INFO_INTERLEAVED |
+> +		SNDRV_PCM_INFO_MMAP_VALID,
+> +
+> +	.formats = SNDRV_PCM_FMTBIT_S16_LE,
+> +	.rates = SNDRV_PCM_RATE_48000,
+> +
+> +	.rate_min = 48000,
+> +	.rate_max = 48000,
+> +	.channels_min = 2,
+> +	.channels_max = 2,
+> +	.buffer_bytes_max = PERIOD_SIZE * PERIOD_MIN,
+> +	.period_bytes_min = PERIOD_SIZE,
+> +	.period_bytes_max = PERIOD_SIZE,
+> +	.periods_min = PERIOD_MIN,
+> +	.periods_max = PERIOD_MAX,
+> +	/*
+> +	.buffer_bytes_max = 62720 * 8,
+> +	.period_bytes_min = 64,
+> +	.period_bytes_max = 12544,
+> +	.periods_min = 2,
+> +	.periods_max = 98
+> +	*/
+> +};
+> +
+> +static int snd_pd_capture_open(struct snd_pcm_substream *substream)
+> +{
+> +	struct poseidon *p = snd_pcm_substream_chip(substream);
+> +	struct poseidon_audio *pa = &p->audio;
+> +	struct snd_pcm_runtime *runtime = substream->runtime;
+> +
+> +	if (!p)
+> +		return -ENODEV;
+> +	pa->users++;
+> +	pa->card_close 		= 0;
+> +	pa->capture_pcm_substream	= substream;
+> +	runtime->private_data		= p;
+> +
+> +	runtime->hw = snd_pd_hw_capture;
+> +	snd_pcm_hw_constraint_integer(runtime, SNDRV_PCM_HW_PARAM_PERIODS);
+> +	usb_autopm_get_interface(p->interface);
+> +	kref_get(&p->kref);
+> +	return 0;
+> +}
+> +
+> +static int snd_pd_pcm_close(struct snd_pcm_substream *substream)
+> +{
+> +	struct poseidon *p = snd_pcm_substream_chip(substream);
+> +	struct poseidon_audio *pa = &p->audio;
+> +
+> +	pa->users--;
+> +	pa->card_close 		= 1;
+> +	kref_put(&p->kref, poseidon_delete);
+> +	usb_autopm_put_interface(p->interface);
+> +	return 0;
+> +}
+> +
+> +static int snd_pd_hw_capture_params(struct snd_pcm_substream *substream,
+> +					struct snd_pcm_hw_params *hw_params)
+> +{
+> +	struct snd_pcm_runtime *runtime = substream->runtime;
+> +	unsigned int size;
+> +
+> +	size = params_buffer_bytes(hw_params);
+> +	if (runtime->dma_area) {
+> +		if (runtime->dma_bytes > size)
+> +			return 0;
+> +		vfree(runtime->dma_area);
+> +	}
+> +	runtime->dma_area = vmalloc(size);
+> +	if (!runtime->dma_area)
+> +		return -ENOMEM;
+> +	else
+> +		runtime->dma_bytes = size;
+> +	return 0;
+> +}
+> +
+> +static int audio_buf_free(struct poseidon *p)
+> +{
+> +	struct poseidon_audio *pa = &p->audio;
+> +	int i;
+> +
+> +	for (i = 0; i < AUDIO_BUFS; i++) {
+> +		struct urb *urb = pa->urb[i];
+> +
+> +		if (!urb)
+> +			continue;
+> +		usb_buffer_free(p->udev, urb->transfer_buffer_length,
+> +				urb->transfer_buffer, urb->transfer_dma);
+> +		usb_free_urb(urb);
+> +		pa->urb[i] = NULL;
+> +	}
+> +	return 0;
+> +}
+> +
+> +static int audio_buf_init(struct poseidon *p)
+> +{
+> +	int       i, ret;
+> +	struct poseidon_audio *pa = &p->audio;
+> +
+> +	for (i = 0; i < AUDIO_BUFS; i++) {
+> +		struct urb *urb;
+> +		char *mem = NULL;
+> +
+> +		if (pa->urb[i])
+> +			continue;
+> +
+> +		urb = usb_alloc_urb(0, GFP_ATOMIC);
+> +		if (!urb) {
+> +			ret = -ENOMEM;
+> +			goto init_err;
+> +		}
+> +		mem = usb_buffer_alloc(p->udev, AUDIO_BUF_SIZE,
+> +					GFP_ATOMIC, &urb->transfer_dma);
+> +		if (!mem) {
+> +			usb_free_urb(urb);
+> +			goto init_err;
+> +		}
+> +		usb_fill_bulk_urb(urb, p->udev,
+> +				usb_rcvbulkpipe(p->udev, AUDIO_EP),
+> +				mem, AUDIO_BUF_SIZE,
+> +				complete_handler_audio,
+> +				pa);
+> +		urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
+> +		pa->urb[i] = urb;
+> +	}
+> +	return 0;
+> +
+> +init_err:
+> +	audio_buf_free(p);
+> +	return ret;
+> +}
+> +
+> +static int snd_pd_hw_capture_free(struct snd_pcm_substream *substream)
+> +{
+> +	struct poseidon *p = snd_pcm_substream_chip(substream);
+> +
+> +	audio_buf_free(p);
+> +	return 0;
+> +}
+> +
+> +static int snd_pd_prepare(struct snd_pcm_substream *substream)
+> +{
+> +	return 0;
+> +}
+> +
+> +#define AUDIO_TRAILER_SIZE	(16)
+> +static inline void handle_audio_data(struct urb *urb, int *period_elapsed)
+> +{
+> +	struct poseidon_audio *pa = urb->context;
+> +	struct snd_pcm_runtime *runtime = pa->capture_pcm_substream->runtime;
+> +
+> +	int stride	= runtime->frame_bits >> 3;
+> +	int len		= urb->actual_length / stride;
+> +	unsigned char *cp	= urb->transfer_buffer;
+> +	unsigned int oldptr	= pa->rcv_position;
+> +
+> +	if (urb->actual_length == AUDIO_BUF_SIZE - 4)
+> +		len -= (AUDIO_TRAILER_SIZE / stride);
+> +
+> +	/* do the copy */
+> +	if (oldptr + len >= runtime->buffer_size) {
+> +		unsigned int cnt = runtime->buffer_size - oldptr;
+> +
+> +		memcpy(runtime->dma_area + oldptr * stride, cp, cnt * stride);
+> +		memcpy(runtime->dma_area, (cp + cnt * stride),
+> +					(len * stride - cnt * stride));
+> +	} else
+> +		memcpy(runtime->dma_area + oldptr * stride, cp, len * stride);
+> +
+> +	/* update the statas */
+> +	snd_pcm_stream_lock(pa->capture_pcm_substream);
+> +	pa->rcv_position	+= len;
+> +	if (pa->rcv_position >= runtime->buffer_size)
+> +		pa->rcv_position -= runtime->buffer_size;
+> +
+> +	pa->copied_position += (len);
+> +	if (pa->copied_position >= runtime->period_size) {
+> +		pa->copied_position -= runtime->period_size;
+> +		*period_elapsed = 1;
+> +	}
+> +	snd_pcm_stream_unlock(pa->capture_pcm_substream);
+> +}
+> +
+> +static void complete_handler_audio(struct urb *urb)
+> +{
+> +	struct poseidon_audio *pa = urb->context;
+> +	struct snd_pcm_substream *substream = pa->capture_pcm_substream;
+> +	int    period_elapsed = 0;
+> +	int    ret;
+> +
+> +	if (1 == pa->card_close || pa->capture_stream == STREAM_OFF)
+> +		return;
+> +
+> +	if (urb->status != 0) {
+> +		/*if (urb->status == -ESHUTDOWN)*/
+> +			return;
+> +	}
+> +
+> +	if (pa->capture_stream == STREAM_ON && substream && !urb->status) {
+> +		if (urb->actual_length) {
+> +			handle_audio_data(urb, &period_elapsed);
+> +			if (period_elapsed)
+> +				snd_pcm_period_elapsed(substream);
+> +		}
+> +	}
+> +
+> +	ret = usb_submit_urb(urb, GFP_ATOMIC);
+> +	if (ret < 0)
+> +		log("audio urb failed (errcod = %i)", ret);
+> +	return;
+> +}
+> +
+> +static int snd_pd_capture_trigger(struct snd_pcm_substream *substream, int cmd)
+> +{
+> +	struct poseidon *p = snd_pcm_substream_chip(substream);
+> +	struct poseidon_audio *pa = &p->audio;
+> +	int i, ret;
+> +
+> +	if (debug_mode)
+> +		log("cmd %d\n", cmd);
+> +
+> +	switch (cmd) {
+> +	case SNDRV_PCM_TRIGGER_RESUME:
+> +	case SNDRV_PCM_TRIGGER_START:
+> +		if (audio_in_hibernate(p))
+> +			return 0;
+> +		if (pa->capture_stream == STREAM_ON)
+> +			return 0;
+> +
+> +		pa->rcv_position = pa->copied_position = 0;
+> +		pa->capture_stream = STREAM_ON;
+> +
+> +		audio_buf_init(p);
+> +		for (i = 0; i < AUDIO_BUFS; i++) {
+> +			ret = usb_submit_urb(pa->urb[i], GFP_KERNEL);
+> +			if (ret)
+> +				log("urb err : %d", ret);
+> +		}
+> +		return 0;
+> +	case SNDRV_PCM_TRIGGER_SUSPEND:
+> +	case SNDRV_PCM_TRIGGER_STOP:
+> +		pa->capture_stream = STREAM_OFF;
+> +		return 0;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +}
+> +
+> +static snd_pcm_uframes_t
+> +snd_pd_capture_pointer(struct snd_pcm_substream *substream)
+> +{
+> +	struct poseidon *p = snd_pcm_substream_chip(substream);
+> +	struct poseidon_audio *pa = &p->audio;
+> +	return pa->rcv_position;
+> +}
+> +
+> +static struct page *snd_pcm_pd_get_page(struct snd_pcm_substream *subs,
+> +					     unsigned long offset)
+> +{
+> +	void *pageptr = subs->runtime->dma_area + offset;
+> +	return vmalloc_to_page(pageptr);
+> +}
+> +
+> +static struct snd_pcm_ops pcm_capture_ops = {
+> +	.open      = snd_pd_capture_open,
+> +	.close     = snd_pd_pcm_close,
+> +	.ioctl     = snd_pcm_lib_ioctl,
+> +	.hw_params = snd_pd_hw_capture_params,
+> +	.hw_free   = snd_pd_hw_capture_free,
+> +	.prepare   = snd_pd_prepare,
+> +	.trigger   = snd_pd_capture_trigger,
+> +	.pointer   = snd_pd_capture_pointer,
+> +	.page      = snd_pcm_pd_get_page,
+> +};
+> +
+> +#ifdef CONFIG_PM
+> +int pm_alsa_suspend(struct poseidon *p)
+> +{
+> +	struct poseidon_audio *pa = &p->audio;
+> +	int i;
+> +
+> +	snd_pcm_suspend(pa->capture_pcm_substream);
+> +
+> +	for (i = 0; i < AUDIO_BUFS; i++)
+> +		usb_kill_urb(pa->urb[i]);
+> +
+> +	audio_buf_free(p);
+> +	return 0;
+> +}
+> +
+> +int pm_alsa_resume(struct poseidon *p)
+> +{
+> +	struct poseidon_audio *pa = &p->audio;
+> +
+> +	if (audio_in_hibernate(p)) {
+> +		pa->pm_state = 0;
+> +		usb_autopm_get_interface(p->interface);
+> +	}
+> +	snd_pd_capture_trigger(pa->capture_pcm_substream,
+> +				SNDRV_PCM_TRIGGER_START);
+> +	return 0;
+> +}
+> +#endif
+> +
+> +int poseidon_audio_init(struct poseidon *p)
+> +{
+> +	struct poseidon_audio *pa = &p->audio;
+> +	struct snd_card *card;
+> +	struct snd_pcm *pcm;
+> +	int ret;
+> +
+> +	if (audio_in_hibernate(p))
+> +		return 0;
+> +
+> +	ret = snd_card_create(-1, "poseidon_audio", THIS_MODULE, 0, &card);
+> +	if (ret != 0)
+> +		return ret;
+> +
+> +	ret = snd_pcm_new(card, "poseidon audio", 0, 0, 1, &pcm);
+> +	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_CAPTURE, &pcm_capture_ops);
+> +	pcm->info_flags   = 0;
+> +	pcm->private_data = p;
+> +	strcpy(pcm->name, "poseidon audio capture");
+> +
+> +	strcpy(card->driver, "ALSA driver");
+> +	strcpy(card->shortname, "poseidon Audio");
+> +	strcpy(card->longname, "poseidon ALSA Audio");
+> +
+> +	if (snd_card_register(card)) {
+> +		snd_card_free(card);
+> +		return -ENOMEM;
+> +	}
+> +	pa->card = card;
+> +	return 0;
+> +}
+> +
+> +int poseidon_audio_free(struct poseidon *p)
+> +{
+> +	struct poseidon_audio *pa = &p->audio;
+> +
+> +	if (audio_in_hibernate(p))
+> +		return 0;
+> +
+> +	if (pa->card)
+> +		snd_card_free(pa->card);
+> +	return 0;
+> +}
 
-under windows XP the image and sound is perfect.
-
-P.S. this is the output from mplayer after looking DVB-T for a few seconds:
-mplayer "dvb://ProSieben(ProSiebenSat.1)"
-MPlayer SVN-r29796-4.4.2 (C) 2000-2009 MPlayer Team
-
-Spiele dvb://ProSieben(ProSiebenSat.1).
-dvb_tune Freq: 690000000
-TS-Dateiformat erkannt!
-VIDEO MPEG2(pid=511) AUDIO MPA(pid=512) NO SUBS (yet)!  PROGRAM N. 0
-VIDEO:  MPEG2  720x576  (aspect 3)  25.000 fps  15000.0 kbps (1875.0
-kbyte/s)
-==========================================================================
-Öffne Videodecoder: [mpegpes] MPEG 1/2 Video passthrough
-Konnte keinen passenden Farbraum finden - neuer Versuch mit '-vf scale'...
-Öffne Videofilter: [scale]
-Der ausgewählte Videoausgabetreiber ist nicht kompatibel mit diesem Codec.
-Versuche den scale-Filter zu deiner Filterliste hinzuzufügen,
-z.B. mit -vf spp,scale an Stelle von -vf spp.
-Initialisierung des Videodecoders fehlgeschlagen   :(
-Öffne Videodecoder: [ffmpeg] FFmpeg's libavcodec codec family
-Unsupported PixelFormat -1
-Ausgewählter Videocodec: [ffmpeg2] vfm: ffmpeg (FFmpeg MPEG-2)
-==========================================================================
-==========================================================================
-Öffne Audiodecoder: [mp3lib] MPEG layer-2, layer-3
-AUDIO: 48000 Hz, 2 ch, s16le, 192.0 kbit/12.50% (ratio: 24000->192000)
-Ausgewählter Audiocodec: [mp3] afm: mp3lib (mp3lib MPEG layer-2, layer-3)
-==========================================================================
-AO: [alsa] 48000Hz 2ch s16le (2 bytes per sample)
-Starte Wiedergabe...
-Film-Aspekt ist 1,78:1 - Vorskalierung zur Korrektur der Seitenverhältnisse.
-VO: [xv] 720x576 => 1024x576 Planar YV12
-[mpeg2video @ 0xc62be0]ac-tex damaged at 23 4
-[mpeg2video @ 0xc62be0]ac-tex damaged at 14 9
-[mpeg2video @ 0xc62be0]skipped MB in I frame at 40 10
-[mpeg2video @ 0xc62be0]invalid mb type in I Frame at 29 15
-[mpeg2video @ 0xc62be0]skipped MB in I frame at 32 19
-[mpeg2video @ 0xc62be0]ac-tex damaged at 34 33
-[mpeg2video @ 0xc62be0]Warning MVs not available
-[mpeg2video @ 0xc62be0]concealing 319 DC, 319 AC, 319 MV errors
-[mpeg2video @ 0xc62be0]concealing 319 DC, 319 AC, 319 MV errors?% 0 0
-[mpeg2video @ 0xc62be0]concealing 319 DC, 319 AC, 319 MV errors% 0 0
-[mpeg2video @ 0xc62be0]mb incr damaged,008   3/  3 ??% ??% ??,?% 0 0
-[mpeg2video @ 0xc62be0]00 motion_type at 27 17
-[mpeg2video @ 0xc62be0]Warning MVs not available
-[mpeg2video @ 0xc62be0]concealing 98 DC, 98 AC, 98 MV errors
-[mpeg2video @ 0xc62be0]00 motion_type at 34 54/  4 ??% ??% ??,?% 0 0
-[mpeg2video @ 0xc62be0]Warning MVs not available
-[mpeg2video @ 0xc62be0]concealing 90 DC, 90 AC, 90 MV errors
-[mpeg2video @ 0xc62be0]00 motion_type at 35 95/  5 ??% ??% ??,?% 0 0
-[mpeg2video @ 0xc62be0]concealing 90 DC, 90 AC, 90 MV errors
-[mpeg2video @ 0xc62be0]ac-tex damaged at 36 86/  6 ??% ??% ??,?% 0 0
-[mpeg2video @ 0xc62be0]invalid cbp at 25 13
-[mpeg2video @ 0xc62be0]ac-tex damaged at 4 23
-[mpeg2video @ 0xc62be0]concealing 157 DC, 157 AC, 157 MV errors
-[mpeg2video @ 0xc62be0]00 motion_type at 8 8 7/  7 ??% ??% ??,?% 0 0
-[mpeg2video @ 0xc62be0]concealing 90 DC, 90 AC, 90 MV errors
-[mpeg2video @ 0xc62be0]concealing 50 DC, 50 AC, 50 MV errors?,?% 0 0
-Bindung für Taste 'c' nicht gefunden.                         ?% 0 0
-[mpeg2video @ 0xc62be0]invalid mb type in P Frame at 4 16
-[mpeg2video @ 0xc62be0]concealing 45 DC, 45 AC, 45 MV errors
-[mpeg2video @ 0xc62be0]invalid mb type in B Frame at 0 31% ??,?% 0 0
-[mpeg2video @ 0xc62be0]concealing 225 DC, 225 AC, 225 MV errors
-[mpeg2video @ 0xc62be0]mb incr damaged,040  11/ 11 ??% ??% ??,?% 0 0
-[mpeg2video @ 0xc62be0]invalid cbp at 28 30
-[mpeg2video @ 0xc62be0]concealing 203 DC, 203 AC, 203 MV errors
-[mpeg2video @ 0xc62be0]ac-tex damaged at 24 72/ 12 ??% ??% ??,?% 0 0
-[mpeg2video @ 0xc62be0]skipped MB in I frame at 6 12
-[mpeg2video @ 0xc62be0]skipped MB in I frame at 1 19
-[mpeg2video @ 0xc62be0]skipped MB in I frame at 23 25
-[mpeg2video @ 0xc62be0]concealing 186 DC, 186 AC, 186 MV errors
-[mpeg2video @ 0xc62be0]00 motion_type at 14 22/ 13 ??% ??% ??,?% 0 0
-[mpeg2video @ 0xc62be0]concealing 45 DC, 45 AC, 45 MV errors
-[mpeg2video @ 0xc62be0]concealing 258 DC, 258 AC, 258 MV errors% 0 0
-[mpeg2video @ 0xc62be0]ac-tex damaged at 12 24/ 15 25%  4% 13,0% 0 0
-[mpeg2video @ 0xc62be0]ac-tex damaged at 10 31
-[mpeg2video @ 0xc62be0]concealing 270 DC, 270 AC, 270 MV errors
-[mpeg2video @ 0xc62be0]00 motion_type at 40 13/ 16 25%  4% 12,2% 0 0
-[mpeg2video @ 0xc62be0]00 motion_type at 43 17
-[mpeg2video @ 0xc62be0]slice mismatch
-[mpeg2video @ 0xc62be0]concealing 270 DC, 270 AC, 270 MV errors
-[mpeg2video @ 0xc62be0]00 motion_type at 1 717/ 17 24%  3% 20,2% 0 0
-[mpeg2video @ 0xc62be0]concealing 151 DC, 151 AC, 151 MV errors
-[mpeg2video @ 0xc62be0]ac-tex damaged at 29 88/ 18 23%  3% 19,1% 0 0
-[mpeg2video @ 0xc62be0]mb incr damaged
-[mpeg2video @ 0xc62be0]concealing 135 DC, 135 AC, 135 MV errors
-[mpeg2video @ 0xc62be0]00 motion_type at 23 17/ 19 23%  3% 18,0% 0 0
-[mpeg2video @ 0xc62be0]concealing 136 DC, 136 AC, 136 MV errors
-[mpeg2video @ 0xc62be0]ac-tex damaged at 21 23/ 20 23%  3% 17,1% 0 0
-[mpeg2video @ 0xc62be0]concealing 119 DC, 119 AC, 119 MV errors
-[mpeg2video @ 0xc62be0]ac-tex damaged at 22 01/ 21 22%  3% 25,5% 0 0
-[mpeg2video @ 0xc62be0]ac-tex damaged at 42 9
-[mpeg2video @ 0xc62be0]ac-tex damaged at 31 10
-[mpeg2video @ 0xc62be0]invalid mb type in P Frame at 35 12
-[mpeg2video @ 0xc62be0]00 motion_type at 18 17
-[mpeg2video @ 0xc62be0]00 motion_type at 1 22
-[mpeg2video @ 0xc62be0]ac-tex damaged at 29 23
-[mpeg2video @ 0xc62be0]ac-tex damaged at 38 31
-[mpeg2video @ 0xc62be0]concealing 450 DC, 450 AC, 450 MV errors
-[mpeg2video @ 0xc62be0]00 motion_type at 22 12/ 22 22%  2% 24,3% 0 0
-[mpeg2video @ 0xc62be0]00 motion_type at 12 14
-[mpeg2video @ 0xc62be0]00 motion_type at 29 22
-[mpeg2video @ 0xc62be0]concealing 180 DC, 180 AC, 180 MV errors
-[mpeg2video @ 0xc62be0]00 motion_type at 16 73/ 23 22%  2% 23,3% 0 0
-[mpeg2video @ 0xc62be0]ac-tex damaged at 10 14
-[mpeg2video @ 0xc62be0]concealing 132 DC, 132 AC, 132 MV errors
-[mpeg2video @ 0xc62be0]ac-tex damaged at 17 84/ 24 22%  2% 37,0% 0 0
-[mpeg2video @ 0xc62be0]ac-tex damaged at 18 11
-[mpeg2video @ 0xc62be0]ac-tex damaged at 16 13
-[mpeg2video @ 0xc62be0]ac-tex damaged at 11 15
-[mpeg2video @ 0xc62be0]invalid mb type in I Frame at 27 20
-[mpeg2video @ 0xc62be0]skipped MB in I frame at 29 23
-[mpeg2video @ 0xc62be0]invalid mb type in I Frame at 38 31
-[mpeg2video @ 0xc62be0]concealing 421 DC, 421 AC, 421 MV errors
-[mpeg2video @ 0xc62be0]concealing 90 DC, 90 AC, 90 MV errors4,4% 1 0
-[mpeg2video @ 0xc62be0]00 motion_type at 29 13/ 26 21%  2% 70,7% 2 0
-[mpeg2video @ 0xc62be0]00 motion_type at 6 21
-[mpeg2video @ 0xc62be0]concealing 180 DC, 180 AC, 180 MV errors
-[mpeg2video @ 0xc62be0]ac-tex damaged at 21 67/ 27 21%  2% 104,0% 3 0
-[mpeg2video @ 0xc62be0]ac-tex damaged at 19 14
-[mpeg2video @ 0xc62be0]ac-tex damaged at 1 25
-[mpeg2video @ 0xc62be0]mb incr damaged
-[mpeg2video @ 0xc62be0]concealing 251 DC, 251 AC, 251 MV errors
-A:20536,2 V:20535,2 A-V:  0,997 ct: -0,101  28/ 28 21%  2% 135,0% 4 0
-Beenden... (Ende)
-
-P.S. sry if sended twice, I don't know if the first mail was sended right.
