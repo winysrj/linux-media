@@ -1,67 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:55532 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752809AbZLJNG3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2009 08:06:29 -0500
-Date: Thu, 10 Dec 2009 14:06:50 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Magnus Damm <magnus.damm@gmail.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, m-karicheri2@ti.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] sh_mobile_ceu_camera: Remove frame size page alignment
-In-Reply-To: <20091209131624.8044.18187.sendpatchset@rxone.opensource.se>
-Message-ID: <Pine.LNX.4.64.0912101359060.4487@axis700.grange>
-References: <20091209131624.8044.18187.sendpatchset@rxone.opensource.se>
+Received: from mail-fx0-f213.google.com ([209.85.220.213]:36314 "EHLO
+	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754136AbZLIRSk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2009 12:18:40 -0500
+Received: by fxm5 with SMTP id 5so7781502fxm.28
+        for <linux-media@vger.kernel.org>; Wed, 09 Dec 2009 09:18:46 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <ad6681df0912090914o5e80c6fwa877ccb9580bc6d9@mail.gmail.com>
+References: <ad6681df0912090617k768b7f22p9abfb462ff32026f@mail.gmail.com>
+	 <59cf47a80912090806j7f75c578g1fa5a638b2fd7c39@mail.gmail.com>
+	 <ad6681df0912090823s23c3dd11xe7b56b66803720d7@mail.gmail.com>
+	 <59cf47a80912090838h61deade9y5bbf846e92027c85@mail.gmail.com>
+	 <ad6681df0912090914o5e80c6fwa877ccb9580bc6d9@mail.gmail.com>
+Date: Wed, 9 Dec 2009 12:18:45 -0500
+Message-ID: <829197380912090918n32ea33eq2658ea57b27dedaa@mail.gmail.com>
+Subject: Re: v4l-dvb from source on 2.6.31.5 opensuse kernel - not working
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Valerio Bontempi <valerio.bontempi@gmail.com>
+Cc: Paulo Assis <pj.assis@gmail.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 9 Dec 2009, Magnus Damm wrote:
+On Wed, Dec 9, 2009 at 12:14 PM, Valerio Bontempi
+> Hi Paulo,
+>
+> no luck with your suggestion, I have no errors compiling and
+> installing the drivers but after rebooting it is not working at all.
+> Modprobe em28xx produces the same error already sent in the previous mail
 
-> From: Magnus Damm <damm@opensource.se>
-> 
-> This patch updates the SuperH Mobile CEU driver to
-> not page align the frame size. Useful in the case of
-> USERPTR with non-page aligned frame sizes and offsets.
-> 
-> Signed-off-by: Magnus Damm <damm@opensource.se>
-> ---
-> 
->  drivers/media/video/sh_mobile_ceu_camera.c |    5 ++---
->  1 file changed, 2 insertions(+), 3 deletions(-)
-> 
-> --- 0010/drivers/media/video/sh_mobile_ceu_camera.c
-> +++ work/drivers/media/video/sh_mobile_ceu_camera.c	2009-12-09 17:54:37.000000000 +0900
-> @@ -199,14 +199,13 @@ static int sh_mobile_ceu_videobuf_setup(
->  	struct sh_mobile_ceu_dev *pcdev = ici->priv;
->  	int bytes_per_pixel = (icd->current_fmt->depth + 7) >> 3;
->  
-> -	*size = PAGE_ALIGN(icd->user_width * icd->user_height *
-> -			   bytes_per_pixel);
-> +	*size = icd->user_width * icd->user_height * bytes_per_pixel;
->  
->  	if (0 == *count)
->  		*count = 2;
->  
->  	if (pcdev->video_limit) {
-> -		while (*size * *count > pcdev->video_limit)
-> +		while (PAGE_ALIGN(*size) * *count > pcdev->video_limit)
->  			(*count)--;
->  	}
+You're seeing an error when you modprobe?  What is the error?  Your
+dmesg did not show any errors, just that the driver didn't load.
 
-Please, correct me if I'm wrong. Currently most (all?) sh platforms, using 
-this driver, and wishing to use V4L2_MEMORY_MMAP, reserve contiguous 
-memory in their platform code. In this case pcdev->video_limit is set to 
-the size of that area. videobuf-dma-contig.c::__videobuf_mmap_mapper() 
-will anyway allocate page-aligned buffers for V4L2_MEMORY_MMAP, so, even 
-for the case of a platform, not reserving RAM at boot-time, it should 
-work. Similarly it should work for the V4L2_MEMORY_USERPTR case. So, looks 
-ok to me, queued, thanks.
+Devin
 
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
