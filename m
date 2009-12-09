@@ -1,162 +1,214 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:57790 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752154AbZL3DW2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Dec 2009 22:22:28 -0500
-Date: Tue, 29 Dec 2009 22:22:26 -0500 (EST)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Sean <knife@toaster.net>
-cc: Andrew Morton <akpm@linux-foundation.org>,
-	<bugzilla-daemon@bugzilla.kernel.org>,
-	<linux-media@vger.kernel.org>,
-	USB list <linux-usb@vger.kernel.org>,
-	Ingo Molnar <mingo@elte.hu>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	"H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [Bugme-new] [Bug 14564] New: capture-example sleeping function
- called from invalid context at arch/x86/mm/fault.c
-In-Reply-To: <4B3AA0BE.1000305@toaster.net>
-Message-ID: <Pine.LNX.4.44L0.0912292201360.11209-100000@netrider.rowland.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:60570 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754610AbZLIUdD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2009 15:33:03 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	Kevin Hilman <khilman@deeprootsystems.com>
+CC: "davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 9 Dec 2009 14:33:07 -0600
+Subject: RE: [PATCH - v1 1/2] V4L - vpfe capture - make clocks configurable
+Message-ID: <A69FA2915331DC488A831521EAE36FE40155C806EE@dlee06.ent.ti.com>
+References: <1259687940-31435-1-git-send-email-m-karicheri2@ti.com>
+	<87hbs0xhlx.fsf@deeprootsystems.com>
+ <A69FA2915331DC488A831521EAE36FE40155C805C3@dlee06.ent.ti.com>
+ <A69FA2915331DC488A831521EAE36FE40155C805F7@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40155C805F7@dlee06.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 29 Dec 2009, Sean wrote:
+Kevin,
 
-> Alan,
-> 
-> Thanks for the debug patch. I'll send you the dmesg.log output in 
-> another email. It is 2MB.
+I think I have figured it out...
 
-Got it.  It's not good enough; the initial error occurred before the 
-start of your extract.  Here's yet another version of the patch; this 
-one will stop printing the debug messages when an error is first 
-detected so maybe it won't overrun your log buffer.
+First issue was that I was adding my entry at the end of dm644x_clks[]
+array. I need to add it before the CLK(NULL, NULL, NULL)
 
-Alan Stern
+secondly, your suggestion didn't work as is. This is what I had to
+do to get it working...
 
+static struct clk ccdc_master_clk = {
+	.name = "dm644x_ccdc",
+	.parent = &vpss_master_clk,
+};
 
-Index: usb-2.6/drivers/usb/host/ohci-hcd.c
-===================================================================
---- usb-2.6.orig/drivers/usb/host/ohci-hcd.c
-+++ usb-2.6/drivers/usb/host/ohci-hcd.c
-@@ -201,7 +201,7 @@ static int ohci_urb_enqueue (
- 
- 	/* allocate the TDs (deferring hash chain updates) */
- 	for (i = 0; i < size; i++) {
--		urb_priv->td [i] = td_alloc (ohci, mem_flags);
-+		urb_priv->td [i] = td_alloc (ohci, mem_flags, urb->dev, urb->ep);
- 		if (!urb_priv->td [i]) {
- 			urb_priv->length = i;
- 			urb_free_priv (ohci, urb_priv);
-@@ -580,6 +580,7 @@ static int ohci_run (struct ohci_hcd *oh
- 	struct usb_hcd		*hcd = ohci_to_hcd(ohci);
- 
- 	disable (ohci);
-+	ohci->testing = 1;
- 
- 	/* boot firmware should have set this up (5.1.1.3.1) */
- 	if (first) {
-Index: usb-2.6/drivers/usb/host/ohci-mem.c
-===================================================================
---- usb-2.6.orig/drivers/usb/host/ohci-mem.c
-+++ usb-2.6/drivers/usb/host/ohci-mem.c
-@@ -82,7 +82,8 @@ dma_to_td (struct ohci_hcd *hc, dma_addr
- 
- /* TDs ... */
- static struct td *
--td_alloc (struct ohci_hcd *hc, gfp_t mem_flags)
-+td_alloc (struct ohci_hcd *hc, gfp_t mem_flags, struct usb_device *udev,
-+	struct usb_host_endpoint *ep)
- {
- 	dma_addr_t	dma;
- 	struct td	*td;
-@@ -94,6 +95,9 @@ td_alloc (struct ohci_hcd *hc, gfp_t mem
- 		td->hwNextTD = cpu_to_hc32 (hc, dma);
- 		td->td_dma = dma;
- 		/* hashed in td_fill */
-+		if (hc->testing)
-+			ohci_dbg(hc, "td alloc for %s ep%x: %p\n",
-+				udev->devpath, ep->desc.bEndpointAddress, td);
- 	}
- 	return td;
- }
-@@ -101,14 +105,32 @@ td_alloc (struct ohci_hcd *hc, gfp_t mem
- static void
- td_free (struct ohci_hcd *hc, struct td *td)
- {
--	struct td	**prev = &hc->td_hash [TD_HASH_FUNC (td->td_dma)];
--
--	while (*prev && *prev != td)
-+	int		hash = TD_HASH_FUNC(td->td_dma);
-+	struct td	**prev = &hc->td_hash[hash];
-+	int		n = 0;
-+
-+	if (hc->testing)
-+		ohci_dbg(hc, "td free %p\n", td);
-+	while (*prev && *prev != td) {
-+		if ((unsigned long) *prev == 0xa7a7a7a7) {
-+			ohci_dbg(hc, "poisoned hash at %p (%d %d) %p\n", prev,
-+					hash, n, hc->td_hash[hash]);
-+			return;
-+		}
- 		prev = &(*prev)->td_hash;
--	if (*prev)
-+		++n;
-+	}
-+	if (*prev) {
- 		*prev = td->td_hash;
--	else if ((td->hwINFO & cpu_to_hc32(hc, TD_DONE)) != 0)
--		ohci_dbg (hc, "no hash for td %p\n", td);
-+		if (hc->testing) {
-+			ohci_dbg(hc, "(%d %d) %p -> %p\n", hash, n, prev, *prev);
-+			if (td->td_hash == td)
-+				hc->testing = 0;
-+		}
-+	} else {
-+		ohci_dbg(hc, "no hash for td %p: %d %p\n", td,
-+				hash, hc->td_hash[hash]);
-+	}
- 	dma_pool_free (hc->td_cache, td, td->td_dma);
- }
- 
-Index: usb-2.6/drivers/usb/host/ohci-q.c
-===================================================================
---- usb-2.6.orig/drivers/usb/host/ohci-q.c
-+++ usb-2.6/drivers/usb/host/ohci-q.c
-@@ -406,7 +406,7 @@ static struct ed *ed_get (
- 		}
- 
- 		/* dummy td; end of td list for ed */
--		td = td_alloc (ohci, GFP_ATOMIC);
-+		td = td_alloc (ohci, GFP_ATOMIC, udev, ep);
- 		if (!td) {
- 			/* out of memory */
- 			ed_free (ohci, ed);
-@@ -560,6 +560,11 @@ td_fill (struct ohci_hcd *ohci, u32 info
- 	hash = TD_HASH_FUNC (td->td_dma);
- 	td->td_hash = ohci->td_hash [hash];
- 	ohci->td_hash [hash] = td;
-+	if (ohci->testing) {
-+		ohci_dbg(ohci, "hash %p to %d -> %p\n", td, hash, td->td_hash);
-+		if (td->td_hash == td)
-+			ohci->testing = 0;
-+	}
- 
- 	/* HC might read the TD (or cachelines) right away ... */
- 	wmb ();
-Index: usb-2.6/drivers/usb/host/ohci.h
-===================================================================
---- usb-2.6.orig/drivers/usb/host/ohci.h
-+++ usb-2.6/drivers/usb/host/ohci.h
-@@ -346,6 +346,7 @@ typedef struct urb_priv {
- 
- struct ohci_hcd {
- 	spinlock_t		lock;
-+	int			testing;
- 
- 	/*
- 	 * I/O memory used to communicate with the HC (dma-consistent)
+static struct clk ccdc_slave_clk = {
+	.name = "dm644x_ccdc",
+	.parent = &vpss_slave_clk,
+};
 
+static struct davinci_clk dm365_clks = {
+....
+....
+CLK("dm644x_ccdc", "master", &ccdc_master_clk),
+CLK("dm644x_ccdc", "slave", &ccdc_slave_clk),
+CLK(NULL, NULL, NULL); 
+
+Let me know if you think there is anything wrong with the above scheme.
+
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+phone: 301-407-9583
+email: m-karicheri2@ti.com
+
+>-----Original Message-----
+>From: Karicheri, Muralidharan
+>Sent: Wednesday, December 09, 2009 1:22 PM
+>To: Karicheri, Muralidharan; Kevin Hilman
+>Cc: davinci-linux-open-source@linux.davincidsp.com; linux-
+>media@vger.kernel.org
+>Subject: RE: [PATCH - v1 1/2] V4L - vpfe capture - make clocks configurable
+>
+>Kevin,
+>
+>I tried the following and I get error in clk_enable(). Do you know what
+>might be wrong?
+>
+>in DM365.c
+>
+>CLK("isif", "master", &vpss_master_clk)
+>
+>The driver name is isif. I call clk_get(&pdev->dev, "master") from isif
+>driver. The platform device name is "isif". This call succeeds, but
+>clk_enable() fails...
+>
+>clk_ptr = clk_get(&pdev->dev, "master");
+>clk_enable(clk_ptr);
+>
+>root@dm355-evm:~# cat /proc/davinci_clocks
+>ref_clk           users= 7      24000000 Hz
+>  pll1            users= 6 pll 486000000 Hz
+>    pll1_aux_clk  users= 3 pll  24000000 Hz
+>      uart0       users= 1 psc  24000000 Hz
+>      i2c         users= 1 psc  24000000 Hz
+>      spi4        users= 0 psc  24000000 Hz
+>      pwm0        users= 0 psc  24000000 Hz
+>      pwm1        users= 0 psc  24000000 Hz
+>      pwm2        users= 0 psc  24000000 Hz
+>      timer0      users= 1 psc  24000000 Hz
+>      timer1      users= 0 psc  24000000 Hz
+>      timer2      users= 1 psc  24000000 Hz
+>      timer3      users= 0 psc  24000000 Hz
+>      usb         users= 0 psc  24000000 Hz
+>    pll1_sysclkbp users= 0 pll  24000000 Hz
+>    clkout0       users= 0 pll  24000000 Hz
+>    pll1_sysclk1  users= 0 pll 486000000 Hz
+>    pll1_sysclk2  users= 0 pll 243000000 Hz
+>    pll1_sysclk3  users= 0 pll 243000000 Hz
+>      vpss_dac    users= 0 psc 243000000 Hz
+>      mjcp        users= 0 psc 243000000 Hz
+>    pll1_sysclk4  users= 3 pll 121500000 Hz
+>      uart1       users= 0 psc 121500000 Hz
+>      mmcsd1      users= 0 psc 121500000 Hz
+>      spi0        users= 0 psc 121500000 Hz
+>      spi1        users= 0 psc 121500000 Hz
+>      spi2        users= 0 psc 121500000 Hz
+>      spi3        users= 0 psc 121500000 Hz
+>      gpio        users= 1 psc 121500000 Hz
+>      aemif       users= 1 psc 121500000 Hz
+>      emac        users= 1 psc 121500000 Hz
+>      asp0        users= 0 psc 121500000 Hz
+>      rto         users= 0 psc 121500000 Hz
+>    pll1_sysclk5  users= 0 pll 243000000 Hz
+>      vpss_master users= 0 psc 243000000 Hz
+>    pll1_sysclk6  users= 0 pll  27000000 Hz
+>    pll1_sysclk7  users= 0 pll 486000000 Hz
+>    pll1_sysclk8  users= 0 pll 121500000 Hz
+>      mmcsd0      users= 0 psc 121500000 Hz
+>    pll1_sysclk9  users= 0 pll 243000000 Hz
+>  pll2            users= 1 pll 594000000 Hz
+>    pll2_aux_clk  users= 0 pll  24000000 Hz
+>    clkout1       users= 0 pll  24000000 Hz
+>    pll2_sysclk1  users= 0 pll 594000000 Hz
+>    pll2_sysclk2  users= 1 pll 297000000 Hz
+>      arm_clk     users= 1 psc 297000000 Hz
+>    pll2_sysclk3  users= 0 pll 594000000 Hz
+>    pll2_sysclk4  users= 0 pll  20482758 Hz
+>      voice_codec users= 0 psc  20482758 Hz
+>    pll2_sysclk5  users= 0 pll  74250000 Hz
+>    pll2_sysclk6  users= 0 pll 594000000 Hz
+>    pll2_sysclk7  users= 0 pll 594000000 Hz
+>    pll2_sysclk8  users= 0 pll 594000000 Hz
+>    pll2_sysclk9  users= 0 pll 594000000 Hz
+>  pwm3            users= 0 psc  24000000 Hz
+>root@dm355-evm:~#
+>
+>
+>
+>Murali Karicheri
+>Software Design Engineer
+>Texas Instruments Inc.
+>Germantown, MD 20874
+>phone: 301-407-9583
+>email: m-karicheri2@ti.com
+>
+>>-----Original Message-----
+>>From: davinci-linux-open-source-bounces@linux.davincidsp.com
+>>[mailto:davinci-linux-open-source-bounces@linux.davincidsp.com] On Behalf
+>>Of Karicheri, Muralidharan
+>>Sent: Wednesday, December 09, 2009 12:45 PM
+>>To: Kevin Hilman
+>>Cc: davinci-linux-open-source@linux.davincidsp.com; linux-
+>>media@vger.kernel.org
+>>Subject: RE: [PATCH - v1 1/2] V4L - vpfe capture - make clocks
+>configurable
+>>
+>>Kevin,
+>>
+>>>> +/**
+>>>> + * vpfe_disable_clock() - Disable clocks for vpfe capture driver
+>>>> + * @vpfe_dev - ptr to vpfe capture device
+>>>> + *
+>>>> + * Disables clocks defined in vpfe configuration.
+>>>> + */
+>>>>  static void vpfe_disable_clock(struct vpfe_device *vpfe_dev)
+>>>>  {
+>>>>  	struct vpfe_config *vpfe_cfg = vpfe_dev->cfg;
+>>>> +	int i;
+>>>>
+>>>> -	clk_disable(vpfe_cfg->vpssclk);
+>>>> -	clk_put(vpfe_cfg->vpssclk);
+>>>> -	clk_disable(vpfe_cfg->slaveclk);
+>>>> -	clk_put(vpfe_cfg->slaveclk);
+>>>> -	v4l2_info(vpfe_dev->pdev->driver,
+>>>> -		 "vpfe vpss master & slave clocks disabled\n");
+>>>> +	for (i = 0; i < vpfe_cfg->num_clocks; i++) {
+>>>> +		clk_disable(vpfe_dev->clks[i]);
+>>>> +		clk_put(vpfe_dev->clks[i]);
+>>>
+>>>While cleaning this up, you should move the clk_put() to module
+>>>disable/unload time.
+>>
+>>[MK] vpfe_disable_clock() is called from remove(). In the new
+>>patch, from ccdc driver remove() function, clk_put() will be called.
+>>Why do you think it should be moved to exit() function of the module?
+>>
+>>>You dont' need to put he clock on every disable.
+>>>The same for clk_get(). You don't need to get the clock for every
+>>>enable.  Just do a clk_get() at init time.
+>>
+>>Are you suggesting to call clk_get() during init() and call clk_put()
+>>from exit()? What is wrong with calling clk_get() from probe()?
+>>I thought following is correct:-
+>>Probe()
+>>clk_get() followed by clk_enable()
+>>Remove()
+>>clk_disable() followed by clk_put()
+>>Suspend()
+>>clk_disable()
+>>Resume()
+>>clk_enable()
+>>Please confirm.
+>>_______________________________________________
+>>Davinci-linux-open-source mailing list
+>>Davinci-linux-open-source@linux.davincidsp.com
+>>http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
