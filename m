@@ -1,59 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:40618 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750951AbZLUBnN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Dec 2009 20:43:13 -0500
-Received: by qw-out-2122.google.com with SMTP id 3so948502qwe.37
-        for <linux-media@vger.kernel.org>; Sun, 20 Dec 2009 17:43:13 -0800 (PST)
-Message-ID: <4B2EFC5E.7040900@gmail.com>
-Date: Sun, 20 Dec 2009 23:41:02 -0500
-From: Douglas Schilling Landgraf <dougsland@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:58944 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755448AbZLINCK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Dec 2009 08:02:10 -0500
+Message-ID: <4B1F9FD0.4020702@redhat.com>
+Date: Wed, 09 Dec 2009 11:02:08 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Yves <ydebx6@free.fr>
-CC: linux-media@vger.kernel.org
-Subject: Re: Nova-T 500 Dual DVB-T
-References: <4B2DDE8E.4090708@free.fr>
-In-Reply-To: <4B2DDE8E.4090708@free.fr>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: Julian Scheel <julian@jusst.de>, linux-media@vger.kernel.org
+Subject: Re: New DVB-Statistics API
+References: <4B1E1974.6000207@jusst.de> <4B1E532C.9040903@redhat.com>	 <1a297b360912081346k45b7844bg5d408d47a38da5b4@mail.gmail.com>	 <4B1EE49A.8030701@redhat.com> <1a297b360912090342r3c73496x3abe8ccba62b701@mail.gmail.com>
+In-Reply-To: <1a297b360912090342r3c73496x3abe8ccba62b701@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Yves,
+Manu Abraham wrote:
+> On Wed, Dec 9, 2009 at 3:43 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
 
-On 12/20/2009 03:21 AM, Yves wrote:
-> Hi,
->
-> I have a Nova-T 500 Dual DVB-T card that used to work very well under 
-> Mandriva 2008.1 (kernel 2.6.24.7).
->
-> I moved to Mandriva 2009.1, then 2010.0 (kernel 2.6.31.6) and it 
-> doesn't work well any more. Scan can't find channels. I tried hading 
-> "options dvb-usb-dib0700 force_lna_activation=1" in 
-> /etc/modprobe.conf. It improve just a bit. Scan find only a few 
-> channels. If I revert to Mandriva 2008.1 (in another partition), all 
-> things are good (without adding anything in modprobe.conf).
->
-> Is there a new version of the driver (dvb_usb_dib0700) that correct 
-> this behavior.
-> If not, how to install the driver from kernel 2.6.24.7 in kernel 
-> 2.6.31.6 ?
->
+>> Even with STB, let's assume a very slow cpu that runs at 100 Megabytes/second. So, the clock
+>> speed is 10 nanoseconds. Assuming that this CPU doesn't have a good pipeline, being
+>> capable of handling only one instruction per second, you'll have one instruction at executed
+>> at each 10 nanoseconds (as a reference, a Pentium 1, running at 133 Mbps is faster than this).
+> 
+> Incorrect.
+> A CPU doesn't execute instruction per clock cycle. Clock cycles
+> required to execute an instruction do vary from 2 cycles 12 cycles
+> varying from CPU to CPU.
 
-Please try the current driver available at v4l/dvb develpment tree and 
-share your results here.
+See the description of an old Pentium MMX processor (the sucessor of i586, running up to 200 MHz):
+	http://www.intel.com/design/archives/processors/mmx/docs/243185.htm
 
-hg clone http://linuxtv.org/hg/v4l-dvb
-make
-make rmmod
-make install
+Thanks to superscalar architecture, it runs 2 instructions per clock cycle (IPC).
 
-Finally, just restart your machine and test your favourite application.
+Newer processors can run more instructions per clock cycle. For example, any Pentium-4 processor,
+can do 3 IPC:
+	http://www.intel.com/support/processors/pentium4/sb/CS-017371.htm
 
-For additional info:
+>> So, even on such bad hardware that is at least 20x slower than a netbook running at 1Gbps,
+>> what determines the delay is the amount of I/O you're doing, and not the number of extra
+>> code.
+> 
+> 
+> The I/O overhead required to read 4 registers from hardware is the
+> same whether you use the ioctl approach or s2api.
 
-http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+It seems you got my point. What will determinate the delay is the number of I/O's, and not the
+amount of instructions.
+ 
+> Eventually, as you have pointed out yourself, The data struct will be
+> in the cache all the time for the ioctl approach. The only new
+> addition to the existing API in the ioctl case is a CALL instruction
+> as compared to the numerous instructions in comparison to that you
+> have pointed out as with the s2api approach.
+
+True, but, as shown, the additional delay introduced by the code is less than 0.01%, even on
+a processor that has half of the speed of a 12-year old very slow CPU (a Pentium MMX @ 100 MHz
+is capable of 2 IPC. My calculus assumed 1 IPC).
+
+So, what will affect the delay is the number of I/O you need to do.
+
+To get all data that the ioctl approach struct has, the delay for S2API will be equal.
+To get less data, S2API will have a small delay.
 
 Cheers,
-Douglas
+Mauro.
