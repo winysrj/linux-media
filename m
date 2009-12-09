@@ -1,66 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:55847 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934118AbZLLBBI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2009 20:01:08 -0500
-Subject: Re: IR Receiver on an Tevii S470
-From: Andy Walls <awalls@radix.net>
-To: "Igor M. Liplianin" <liplianin@me.by>
-Cc: linux-media@vger.kernel.org, Steven Toth <stoth@linuxtv.org>,
-	Matthias Fechner <idefix@fechner.net>
-In-Reply-To: <200912120230.36902.liplianin@me.by>
-References: <200912120230.36902.liplianin@me.by>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 11 Dec 2009 20:00:37 -0500
-Message-Id: <1260579637.1826.4.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:56750 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751050AbZLIO3C (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2009 09:29:02 -0500
+To: linux-media@vger.kernel.org
+Subject: [PATCH] [resend] radio-sf16fmi: fix mute, add SF16-FMP to texts
+Content-Disposition: inline
+From: Ondrej Zary <linux@rainbow-software.org>
+Date: Wed, 9 Dec 2009 15:29:05 +0100
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200912091529.06280.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2009-12-12 at 02:30 +0200, Igor M. Liplianin wrote:
-> On 11 декабря 2009, "Igor M. Liplianin" <liplianin@me.by> wrote:
-> > On Thu, 2009-12-10 at 18:16 +0200, Igor M. Liplianin wrote:
-> > > On 10 декабря 2009 03:12:39 Andy Walls wrote:
-> > > > On Wed, 2009-12-09 at 17:54 +0200, Igor M. Liplianin wrote:
-> > > > > > > > Igor and Matthias,
-> > > > > > > >
-> > > > > > > > Please try the changes that I have for the TeVii S470 that are
-> > > > > > > > here:
-> > > > > > > >
-> > > > > > > > 	http://linuxtv.org/hg/~awalls/cx23885-ir
+Fix completely broken mute handling radio-sf16fmi.
+The sound was muted immediately after tuning in KRadio.
+Also fix typos and add SF16-FMP to the texts.
 
-> > > First try, without pressing IR keys
-> > >
-> > > cx25840 3-0044: IRQ Enables:     rse rte roe
-> > > cx25840 3-0044: IRQ Status:  tsr
-> > > cx25840 3-0044: IRQ Enables:     rse rte roe
-> > > irq 16: nobody cared (try booting with the "irqpoll" option)
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-> > please try again when you have time.
-> >
-> > 	# modprobe cx25840 debug=2 ir_debug=2
-> > 	# modprobe cx23885 debug=7
-> >
-> dmesg is full of repeated lines:
-> 
-> cx25840 3-0044: AV Core IRQ status (entry):           
-> cx25840 3-0044: AV Core IRQ status (exit):           
+diff -urp linux-source-2.6.31-orig/drivers/media/radio/Kconfig linux-source-2.6.31/drivers/media/radio/Kconfig
+--- linux-source-2.6.31-orig/drivers/media/radio/Kconfig	2009-09-10 00:13:59.000000000 +0200
++++ linux-source-2.6.31/drivers/media/radio/Kconfig	2009-11-28 11:51:42.000000000 +0100
+@@ -196,7 +196,7 @@ config RADIO_MAESTRO
+ 	  module will be called radio-maestro.
+ 
+ config RADIO_SF16FMI
+-	tristate "SF16FMI Radio"
++	tristate "SF16-FMI/SF16-FMP Radio"
+ 	depends on ISA && VIDEO_V4L2
+ 	---help---
+ 	  Choose Y here if you have one of these FM radio cards.  If you
+diff -urp linux-source-2.6.31-orig/drivers/media/radio/radio-sf16fmi.c linux-source-2.6.31/drivers/media/radio/radio-sf16fmi.c
+--- linux-source-2.6.31-orig/drivers/media/radio/radio-sf16fmi.c	2009-09-10 00:13:59.000000000 +0200
++++ linux-source-2.6.31/drivers/media/radio/radio-sf16fmi.c	2009-11-28 11:39:35.000000000 +0100
+@@ -1,4 +1,4 @@
+-/* SF16FMI radio driver for Linux radio support
++/* SF16-FMI and SF16-FMP radio driver for Linux radio support
+  * heavily based on rtrack driver...
+  * (c) 1997 M. Kirkwood
+  * (c) 1998 Petr Vandrovec, vandrove@vc.cvut.cz
+@@ -11,7 +11,7 @@
+  *
+  *  Frequency control is done digitally -- ie out(port,encodefreq(95.8));
+  *  No volume control - only mute/unmute - you have to use line volume
+- *  control on SB-part of SF16FMI
++ *  control on SB-part of SF16-FMI/SF16-FMP
+  *
+  * Converted to V4L2 API by Mauro Carvalho Chehab <mchehab@infradead.org>
+  */
+@@ -30,14 +30,14 @@
+ #include <media/v4l2-ioctl.h>
+ 
+ MODULE_AUTHOR("Petr Vandrovec, vandrove@vc.cvut.cz and M. Kirkwood");
+-MODULE_DESCRIPTION("A driver for the SF16MI radio.");
++MODULE_DESCRIPTION("A driver for the SF16-FMI and SF16-FMP radio.");
+ MODULE_LICENSE("GPL");
+ 
+ static int io = -1;
+ static int radio_nr = -1;
+ 
+ module_param(io, int, 0);
+-MODULE_PARM_DESC(io, "I/O address of the SF16MI card (0x284 or 0x384)");
++MODULE_PARM_DESC(io, "I/O address of the SF16-FMI or SF16-FMP card (0x284 or 0x384)");
+ module_param(radio_nr, int, 0);
+ 
+ #define RADIO_VERSION KERNEL_VERSION(0, 0, 2)
+@@ -47,7 +47,7 @@ struct fmi
+ 	struct v4l2_device v4l2_dev;
+ 	struct video_device vdev;
+ 	int io;
+-	int curvol; /* 1 or 0 */
++	bool mute;
+ 	unsigned long curfreq; /* freq in kHz */
+ 	struct mutex lock;
+ };
+@@ -105,7 +105,7 @@ static inline int fmi_setfreq(struct fmi
+ 	outbits(8, 0xC0, fmi->io);
+ 	msleep(143);		/* was schedule_timeout(HZ/7) */
+ 	mutex_unlock(&fmi->lock);
+-	if (fmi->curvol)
++	if (!fmi->mute)
+ 		fmi_unmute(fmi);
+ 	return 0;
+ }
+@@ -116,7 +116,7 @@ static inline int fmi_getsigstr(struct f
+ 	int res;
+ 
+ 	mutex_lock(&fmi->lock);
+-	val = fmi->curvol ? 0x08 : 0x00;	/* unmute/mute */
++	val = fmi->mute ? 0x00 : 0x08;	/* mute/unmute */
+ 	outb(val, fmi->io);
+ 	outb(val | 0x10, fmi->io);
+ 	msleep(143); 		/* was schedule_timeout(HZ/7) */
+@@ -204,7 +204,7 @@ static int vidioc_g_ctrl(struct file *fi
+ 
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_AUDIO_MUTE:
+-		ctrl->value = fmi->curvol;
++		ctrl->value = fmi->mute;
+ 		return 0;
+ 	}
+ 	return -EINVAL;
+@@ -221,7 +221,7 @@ static int vidioc_s_ctrl(struct file *fi
+ 			fmi_mute(fmi);
+ 		else
+ 			fmi_unmute(fmi);
+-		fmi->curvol = ctrl->value;
++		fmi->mute = ctrl->value;
+ 		return 0;
+ 	}
+ 	return -EINVAL;
 
-A strange thing here is that under this condition my changes should
-never claim the AV Core interrupt is "handled".  I don't know why you
-didn't get the "nobody cared" message again.
-
-> cx23885[0]/0: pci_status: 0x083f4000  pci_mask: 0x08000001
-> cx23885[0]/0: vida_status: 0x00000000 vida_mask: 0x00000000 count: 0x0
-> cx23885[0]/0: ts1_status: 0x00000000  ts1_mask: 0x00000000 count: 0x20
-> cx23885[0]/0: ts2_status: 0x00000000  ts2_mask: 0x00000000 count: 0xc7383f3a
-> cx23885[0]/0:  (PCI_MSK_AV_CORE   0x08000000)
-
-I'll read over the documentation again to see if I missed something.
-I'll have some changes later tonight that will always try to clear every
-interrupt that the AV Core could possibly generate.
-
--Andy
-
-
+-- 
+Ondrej Zary
