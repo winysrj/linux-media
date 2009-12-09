@@ -1,58 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:65152 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757339AbZLDVrY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2009 16:47:24 -0500
-Date: 04 Dec 2009 22:46:00 +0100
-From: lirc@bartelmus.de (Christoph Bartelmus)
-To: mchehab@redhat.com
-Cc: awalls@radix.net
-Cc: dmitry.torokhov@gmail.com
-Cc: j@jannau.net
-Cc: jarod@redhat.com
-Cc: jarod@wilsonet.com
-Cc: jonsmirl@gmail.com
-Cc: khc@pm.waw.pl
-Cc: kraxel@redhat.com
-Cc: linux-input@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org
-Cc: superm1@ubuntu.com
-Message-ID: <BEFgL6sXqgB@lirc>
-In-Reply-To: <4B191DD4.8030903@redhat.com>
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
+Received: from mgw1.diku.dk ([130.225.96.91]:52731 "EHLO mgw1.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757216AbZLITXo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Dec 2009 14:23:44 -0500
+Date: Wed, 9 Dec 2009 20:23:49 +0100 (CET)
+From: Julia Lawall <julia@diku.dk>
+To: Laurent Pinchart <laurent.pinchart@skynet.be>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [PATCH 5/12] drivers/media/video/uvc: Correct size given to memset
+Message-ID: <Pine.LNX.4.64.0912092023310.1870@ask.diku.dk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Julia Lawall <julia@diku.dk>
 
-on 04 Dec 09 at 12:33, Mauro Carvalho Chehab wrote:
-> Christoph Bartelmus wrote:
->>>> Consider passing the decoded data through lirc_dev.
-[...]
->> Consider cases like this:
->> http://lirc.sourceforge.net/remotes/lg/6711A20015N
->>
->> This is an air-conditioner remote.
->> The entries that you see in this config file are not really separate
->> buttons. Instead the remote just sends the current settings for e.g.
->> temperature encoded in the protocol when you press some up/down key. You
->> really don't want to map all possible temperature settings to KEY_*
->> events. For such cases it would be nice to have access at the raw scan
->> codes from user space to do interpretation of the data.
->> The default would still be to pass the data to the input layer, but it
->> won't hurt to have the possibility to access the raw data somehow.
+Memset should be given the size of the structure, not the size of the pointer.
 
-> Interesting. IMHO, the better would be to add an evdev ioctl to return the
-> scancode for such cases, instead of returning the keycode.
+The semantic patch that makes this change is as follows:
+(http://coccinelle.lip6.fr/)
 
-That means you would have to set up a pseudo keymap, so that you can get  
-the key event which you could than react on with a ioctl. Or are you  
-generating KEY_UNKNOWN for every scancode that is not mapped?
-What if different scan codes are mapped to the same key event? How do you  
-retrieve the scan code for the key event?
-I don't think it can work this way.
+// <smpl>
+@@
+type T;
+T *x;
+expression E;
+@@
 
-Christoph
+memset(x, E, sizeof(
++ *
+ x))
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+
+---
+ drivers/media/video/uvc/uvc_video.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff -u -p a/drivers/media/video/uvc/uvc_video.c b/drivers/media/video/uvc/uvc_video.c
+--- a/drivers/media/video/uvc/uvc_video.c
++++ b/drivers/media/video/uvc/uvc_video.c
+@@ -145,7 +145,7 @@ static int uvc_get_video_ctrl(struct uvc
+ 		uvc_warn_once(stream->dev, UVC_WARN_MINMAX, "UVC non "
+ 			"compliance - GET_MIN/MAX(PROBE) incorrectly "
+ 			"supported. Enabling workaround.\n");
+-		memset(ctrl, 0, sizeof ctrl);
++		memset(ctrl, 0, sizeof *ctrl);
+ 		ctrl->wCompQuality = le16_to_cpup((__le16 *)data);
+ 		ret = 0;
+ 		goto out;
