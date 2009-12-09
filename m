@@ -1,111 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:29287 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753203AbZLYVUI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Dec 2009 16:20:08 -0500
-Message-ID: <4B352C79.2060004@redhat.com>
-Date: Fri, 25 Dec 2009 19:19:53 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp124.mail.ukl.yahoo.com ([77.238.184.55]:44304 "HELO
+	smtp124.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752552AbZLIJXA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Dec 2009 04:23:00 -0500
+Message-ID: <4B1F6AE3.20303@yahoo.co.uk>
+Date: Wed, 09 Dec 2009 09:16:19 +0000
+From: Lukasz Sokol <el_es_cr@yahoo.co.uk>
 MIME-Version: 1.0
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [RFC] dvb-apps ported for ISDB-T
-References: <4B32CF33.3030201@redhat.com> <4B342CEE.8020205@redhat.com> <alpine.LRH.2.00.0912251219090.30046@pub4.ifh.de>
-In-Reply-To: <alpine.LRH.2.00.0912251219090.30046@pub4.ifh.de>
+To: linux-media@vger.kernel.org
+CC: linux-dvb@linuxtv.org, rob@esdelle.co.uk
+Subject: Re: WinTV HVR-900 USB (B3C0)
+References: <4B1E8E4D.9010101@esdelle.co.uk>
+In-Reply-To: <4B1E8E4D.9010101@esdelle.co.uk>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 25-12-2009 09:25, Patrick Boettcher escreveu:
-> Hi Mauro,
+Rob Beard wrote:
+> Hi folks,
 > 
-> On Fri, 25 Dec 2009, Mauro Carvalho Chehab wrote:
+> I've borrowed a WinTV HVR-900 USB stick from a friend of mine to see if
+> I can get any reception in my area before forking out for one however
+> I've run in to a couple of problems and wondered if anyone had used one
+> of these sticks?
 > 
->> Em 24-12-2009 00:17, Mauro Carvalho Chehab escreveu:
->>> I wrote several patches those days in order to allow dvb-apps to
->>> properly
->>> parse ISDB-T channel.conf.
->>>
->>> On ISDB-T, there are several new parameters, so the parsing is more
->>> complex
->>> than all the other currently supported video standards.
->>>
->>> I've added the changes at:
->>>
->>> http://linuxtv.org/hg/~mchehab/dvb-apps-isdbt/
->>>
->>> I've merged there Patrick's dvb-apps-isdbt tree.
->>>
->>> While there, I fixed a few bugs I noticed on the parser and converted it
->>> to work with the DVB API v5 headers that are bundled together with
->>> dvb-apps.
->>> This helps to avoid adding lots of extra #if DVB_ABI_VERSION tests.
->>> The ones
->>> there can now be removed.
->>>
->>> TODO:
->>> =====
->>>
->>> The new ISDB-T parameters are parsed, but I haven't add yet a code to
->>> make
->>> them to be used;
->>>
->>> There are 3 optional parameters with ISDB-T, related to 1seg/3seg: the
->>> segment parameters. Currently, the parser will fail if those
->>> parameters are found.
->>>
->>> gnutv is still reporting ISDB-T as "DVB-T".
->>>
->>
->> I've just fixed the issues on the TODO list. The DVB v5 code is now
->> working fine
->> for ISDB-T.
->>
->> Pending stuff (patches are welcome):
->>     - Implement v5 calls for other video standards;
->>     - Remove the duplicated DVBv5 code on /util/scan/scan.c (the code
->> for calling
->> DVBv5 is now at /lib/libdvbapi/v5api.c);
->>     - Test/use the functions to retrieve values via DVBv5 API. The
->> function is
->> already there, but I haven't tested.
->>
->> With the DVBv5 API implementation, zap is now working properly with
->> ISDB-T.
->> gnutv also works (although some outputs - like decoder - may need some
->> changes, in
->> order to work with mpeg4/AAC video/audio codecs).
+[snip]
 > 
-> Very good job!
+> I just wondered if anyone else had one of these sticks actually working
+> under Ubuntu 9.10?  (I'm running kernel 2.6.31-16-generic-pae).
+> 
+> Rob
+> 
 
-Thanks!
 
-> Have you had a look here on this one
-> 
-> http://www.mail-archive.com/vdr@linuxtv.org/msg11125.html
-> 
-> ?
-> 
-> I had this on my list because I wanted to spent some time on DVB-S2
-> myself and it seemed to be a good step to merge it (back) into dvb-apps.
-> Though I haven't yet looked at it in detail.
-> 
-> I will check your changes soon, but after the holidays.
-> 
-> So, now you should have some quiet time for yourself! ;-)
+Hi Rob,
+this device uses empia chips.
 
-It shouldn't be hard to add DVB-S2 to dvb-apps, now that I've added
-support for ISDB-T.
+I have a similar situation with Pinnacle Hybrid Pro 330e (yes, 3_3_0e) : the only
+driver that works (and was great at it) was Markus Rechberger's em28xx-new project.
+(my device has cx88 tuner IIRC). The em28xx-new project had some modifications to
+some tuner drivers too. They were based both on RE and documentation for which
+Markus had NDA's signed (a vague recollection of past googling).
 
-Basically, it needs to move the DVB-S code that it is inside
-/util/scan/scan.c to /lib/libdvbapi/v5api.c, extend it to DVB-S2
-and write the parser and the new fields for DVB-S2.
+The mainline kernel unfortunately does not support it out of the box, and it is not only
+about the firmware you have to download; There is something severely nonfunctional.
 
-Since the dvb-apps library has an abstraction layer, the biggest
-part is to add the abstraction layer bits, but this is not a hard
-part, and, as DVB-S2 will share several parts with DVB-S, probably
-it will require less work.
+Why am I writing in past tense ?
+This driver (em28xx-new) has recently been abandoned, and its author went proprietary.
+I was using a ubuntu package prepared by some ubuntu user, named gborzi.
+Unfortunately the package cannot apply to more recent kernels any more.
+The last kernel it worked with, was 2.6.27-14 (Ubuntu terminology) and I'm stuck with it.
 
-Cheers,
-Mauro.
+I have emailed Markus but he seems to have lost any interest in the em28xx-new...
+can't blame him though, he gave his reasons, some of them unfortunately true. 
+
+To v4l developers : as it is the case now that we can consider em28xx-new abandonware,
+could somebody see, what got devices like ours working in his driver, and push it to 
+mainline, please ? Just the DVB support would be fine...
+
+To Markus : the above is not a call to _steal_your_code_ but merely to somebody have
+a look and modify the mainline drivers so it could support A 5 YEAR OLD DEVICE like mine.
+People could employ a 'clean room' like in alternative to Broadcom (b43) development.
+
+At least mine, is a 5 YEARS OLD design (bought in 2006).
+On my computer, which was middle spec 5 years ago, I've always had problems with this device
+under Windows (XP) : 100% CPU on max frequency (1.6GHz) all the time, when playing.
+Under Linux, stock Ubuntu 8.10 Kaffeine, and em28xx-new, it is max 30% CPU at lowest freq (800MHz)).
+
+Stock em28xx driver only supports analog (with no sound under stock tvtime, supposedly patched tvtime required).
+
+el es
