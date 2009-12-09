@@ -1,32 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web23208.mail.ird.yahoo.com ([217.146.189.63]:46205 "HELO
-	web23208.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751037AbZLVQhT convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Dec 2009 11:37:19 -0500
-Message-ID: <650504.20712.qm@web23208.mail.ird.yahoo.com>
-Date: Tue, 22 Dec 2009 16:37:17 +0000 (GMT)
-From: Newsy Paper <newspaperman_germany@yahoo.com>
-Subject: tt s2-3200: dvb-s2 problem transponders fixed :) concerns SR 30000 3/4 8psk mode
-To: linux-media@vger.kernel.org
+Received: from wic-core-1.wic.co.nz ([202.20.97.20]:34951 "EHLO mx-1.wic.co.nz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754091AbZLIKIO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Dec 2009 05:08:14 -0500
+Received: from [10.1.1.15] (stfleming.actrix.co.nz [202.154.159.197])
+	by mx-1.wic.co.nz (Postfix) with ESMTP id E1EB62EB6A
+	for <linux-media@vger.kernel.org>; Wed,  9 Dec 2009 22:41:16 +1300 (NZDT)
+Message-ID: <4B1F70BB.5030507@wic.co.nz>
+Date: Wed, 09 Dec 2009 22:41:15 +1300
+From: Stu Fleming <stewart@wic.co.nz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+To: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] WinTV HVR-900 USB (B3C0)
+References: <4B1E8E4D.9010101@esdelle.co.uk> <4B1F6AE3.20303@yahoo.co.uk> <4B1F6F1F.7010900@esdelle.co.uk>
+In-Reply-To: <4B1F6F1F.7010900@esdelle.co.uk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-thanks to Andreas Regel + Manu Abraham for their work.
 
-I just tested those problem transponders. If I set SR to 29998 instead of 30000 they finally work with recent s2-liplian changeset.
-
-Thank you for your great work and thanks to all the others involved in v4l driver development.
-
-kind regards
-
-
-Newsy
-
-__________________________________________________
-Do You Yahoo!?
-Sie sind Spam leid? Yahoo! Mail verfügt über einen herausragenden Schutz gegen Massenmails. 
-http://mail.yahoo.com 
+>
+> Thanks for the heads up, I think I'll have a look and see what else is 
+> available out there then, luckily I only borrowed it to test if it 
+> would work.
+>
+> Regards,
+>
+> Rob
+http://www.kernellabs.com/blog/?p=761
