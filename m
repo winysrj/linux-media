@@ -1,45 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway-1237.mvista.com ([206.112.117.35]:36088 "HELO
-	imap.sh.mvista.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with SMTP id S934607AbZLPHVt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2009 02:21:49 -0500
-Subject: Re: USB MAssage Storage drivers
-From: Philby John <pjohn@in.mvista.com>
-To: Gopala Gottumukkala <ggottumu@Cernium.com>
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	linux-media@vger.kernel.org
-In-Reply-To: <03A2FA9E0D3DC841992E682BF5287718016D39D9@lipwig.Cernium.local>
-References: <1259596313-16712-1-git-send-email-santiago.nunez@ridgerun.com>
-	 <200912152149.33065.hverkuil@xs4all.nl>
-	 <03A2FA9E0D3DC841992E682BF5287718016D39D9@lipwig.Cernium.local>
-Content-Type: text/plain
-Date: Wed, 16 Dec 2009 12:51:45 +0530
-Message-Id: <1260948105.4253.21.camel@localhost.localdomain>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-ew0-f209.google.com ([209.85.219.209]:36985 "EHLO
+	mail-ew0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753632AbZLIRQB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2009 12:16:01 -0500
+Received: by ewy1 with SMTP id 1so4525092ewy.28
+        for <linux-media@vger.kernel.org>; Wed, 09 Dec 2009 09:16:06 -0800 (PST)
+Message-ID: <4B1FDB55.6040707@gmail.com>
+Date: Wed, 09 Dec 2009 18:16:05 +0100
+From: Hector Oses <oseszgz@gmail.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Make libv4l
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2009-12-15 at 18:46 -0500, Gopala Gottumukkala wrote:
-> My target is not recognizing the USB massage storage. I am working the
-> 2.6.32 Davinci kernel
-> 
-> Any suggestion and ideas.
+When i try to:
+make PREFIX=/usr/hector
+or make PREFIX=/usr
 
-ahah, this information isn't enough. Your Vendor/Product ID for this
-device is compared in a lookup a table. If no match is found, your
-device probably won't be detected as mass storage. You could check in
-the unusual_devs.h to see if your device is included there, if your
-device is relatively new you could submit a Vendor/Product ID to the USB
-dev list for inclusion.
+# make install PREFIX=/usr/hector
 
+make -C libv4lconvert V4L2_LIB_VERSION=0.6.3 install
+make[1]: se ingresa al directorio `/home/hector/Comando para webcam con
+libv4l/libv4l-0.6.3/libv4lconvert'
+cc -Wp,-MMD,"libv4lconvert.d",-MQ,"libv4lconvert.o",-MP -c -I../include
+-I../../../include -fvisibility=hidden -fPIC
+-DLIBDIR=\"/usr/hector/lib\" -DLIBSUBDIR=\"libv4l\" -g -O1 -Wall
+-Wno-unused -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -o
+libv4lconvert.o libv4lconvert.c
+/bin/sh: cc: no se encontró la orden
+make[1]: *** [libv4lconvert.o] Error 127
+make[1]: se sale del directorio `/home/hector/Comando para webcam con
+libv4l/libv4l-0.6.3/libv4lconvert'
+make: *** [install] Error 2
 
-Regards,
-Philby
-
-
-
-
-
-
+And i cant compile the program. I need it cose my webcam is inverted. Thanks
