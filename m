@@ -1,99 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1365 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752220AbZLWTXM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Dec 2009 14:23:12 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id nBNJN6aJ031659
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 23 Dec 2009 20:23:10 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 23 Dec 2009 20:23:06 +0100 (CET)
-Message-Id: <200912231923.nBNJN6aJ031659@smtp-vbr15.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mx06.syd.iprimus.net.au ([210.50.76.235]:49463 "EHLO
+	mx06.syd.iprimus.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757458AbZLIWMe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2009 17:12:34 -0500
+From: Primusmail <mike_booth76@iprimus.com.au>
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Subject: Re: Details about DVB frontend AP
+Date: Thu, 10 Dec 2009 09:02:10 +1100
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200912100902.11042.mike_booth76@iprimus.com.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+n Saturday 05 December 2009 07:59:16 Michael Krufky wrote:
+> On Fri, Dec 4, 2009 at 3:02 PM, VDR User <user.vdr@gmail.com> wrote:
+> > No activity in this thread for 2 weeks now.  Has there been any progress?
+>
+> I think I speak on behalf of most LinuxTV developers, when I say that
+> nobody wants to spend their free personal time working on something
+> that might get shot down with such controversy.
+>
+> I have stated that I like Manu's proposal, but I would prefer that the
+> get_property (s2api) interface were used, because it totally provides
+> an interface that is sufficient for this feature.
+>
+> Manu and I agree that these values should all be read at once.
+>
+> I think we all (except Mauro) agree that the behavior within the
+> driver should fetch all statistics at once and return it to userspace
+> as a single structure with all the information as it all relates to
+> each other.
+>
+> Furthermore, I think we all know that we cant just remove the current
+> structures, and we should do something to normalize the current
+> reporting values.
+>
+> The longer this thread gets, the less likely anybody is to do anything
+> about it.
+>
+> Let me state my opinion again:
+>
+> I would like to see a solution merged, and I think Manu's solution is
+> reasonable, although it may be complicated -- if all drivers are
+> updated to support it, then it will all be worth it.  The question is,
+> will all drivers update to support this?  I don't know.
+>
+> We have the S2API's set / get property API -- In my opinion, we should
+> use this API to fetch statistic information and have it return a
+> single atomic structure.  Applications can use only the information
+> that they're interested in.
+>
+> In the meanwhile, as a SEPARATE PROJECT, we should do something to
+> standardize the values reported by the CURRENT API across the entire
+> subsystem.  This should not be confused with Manu's initiative to
+> create a better API -- we cant remove the current API, but it should
+> be standardized.
+>
+> I volunteer to work on the standardization of the CURRENT Api, and I
+> am all for seeing a new API introduced for better statistical
+> reporting, provided that the get property method is used as an
+> interface, rather than adding new ioctls.  However, if we add a new
+> API, we haev to make sure that all the current drivers are updated to
+> support it -- do we have all the information that we need for this?
+> Do we have the manpower and the drive to get it done?
+>
+> My urge to do this work is a strong urge, but I have no desire to do
+> this if people want to continue arguing about it... In the meanwhile,
+> I am working on new drivers for new devices, and this is much more
+> interesting that worrying about how strong a signal is for a device
+> that already works.
+>
+> When you folks stop talking about this, that's when I will push the
+> trees containing all the work that I've done already thus far -- we
+> need to standardize the current API, and that has nothing to do with
+> Manu's proposal.
+>
+> We should not confuse standardization the current reporting units with
+> the introduction of a new API -- both should be done, but the more
+> arguing there is about it, the less of a chance that anybody will
+> volunteer their own time to work on it.
+>
+> ...and just to clarify -- I think I said it twice already, but
+> repeating again -- I (mostly) like Manu's proposal, but if we cant
+> update the drivers to support it, then is it worth the trouble?
+>
+> Regards,
+>
+> Mike Krufky
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Results of the daily build of v4l-dvb:
 
-date:        Wed Dec 23 19:00:13 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13842:4506e2d54126
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
 
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-armv5: OK
-linux-2.6.32-armv5-davinci: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-armv5-ixp: OK
-linux-2.6.32-armv5-ixp: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: OK
-linux-2.6.32-armv5-omap2: OK
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: ERRORS
-linux-2.6.28-i686: ERRORS
-linux-2.6.29.1-i686: ERRORS
-linux-2.6.30-i686: ERRORS
-linux-2.6.31-i686: ERRORS
-linux-2.6.32-i686: ERRORS
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: OK
-linux-2.6.32-mips: OK
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-powerpc64: OK
-linux-2.6.32-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: ERRORS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: OK
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-x86_64: WARNINGS
-spec: OK
-sparse (linux-2.6.32): ERRORS
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
 
-Detailed results are available here:
+Good to hear that this is still in someones consciousness. A friend of mine 
+has taken Manus patch and has modified the vdr-femon and vdr-rotor plugins to 
+display Signal Strength and signal to Noise again. Not accurate numbers but 
+they do show when tuning is improving or worsening and thats all I need. This 
+is only for TTS2-3200 cards , THis might be of interest to someone.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Mike
