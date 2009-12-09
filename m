@@ -1,79 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:50510 "EHLO lo.gmane.org"
+Received: from mail1.radix.net ([207.192.128.31]:39969 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752155AbZLWXpZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Dec 2009 18:45:25 -0500
-Received: from list by lo.gmane.org with local (Exim 4.50)
-	id 1NNatP-0002qJ-6L
-	for linux-media@vger.kernel.org; Thu, 24 Dec 2009 00:45:23 +0100
-Received: from upc.si.94.140.72.111.dc.cable.static.telemach.net ([94.140.72.111])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Thu, 24 Dec 2009 00:45:23 +0100
-Received: from prusnik by upc.si.94.140.72.111.dc.cable.static.telemach.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Thu, 24 Dec 2009 00:45:23 +0100
-To: linux-media@vger.kernel.org
-From: =?UTF-8?Q?Alja=C5=BE?= Prusnik <prusnik@gmail.com>
-Subject: Re: Which modules for the VP-2033? Where is the module "mantis.ko"?
-Date: Thu, 24 Dec 2009 00:45:02 +0100
-Message-ID: <1261611901.8948.37.camel@slash.doma>
-References: <4B1D6194.4090308@freenet.de>
-	 <1261578615.8948.4.camel@slash.doma> <200912231753.28988.liplianin@me.by>
-	 <1261586462.8948.23.camel@slash.doma> <4B3269AE.6080602@freenet.de>
-	 <1a297b360912231124v6e31c9e6ja24d205f6b5dc39@mail.gmail.com>
+	id S1754843AbZLICXH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Dec 2009 21:23:07 -0500
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR  system?
+From: Andy Walls <awalls@radix.net>
+To: Christoph Bartelmus <lirc@bartelmus.de>
+Cc: dmitry.torokhov@gmail.com, hermann-pitton@arcor.de, j@jannau.net,
+	jarod@redhat.com, jarod@wilsonet.com, jonsmirl@gmail.com,
+	khc@pm.waw.pl, kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	mchehab@redhat.com, superm1@ubuntu.com
+In-Reply-To: <BEVi56a1qgB@lirc>
+References: <BEVi56a1qgB@lirc>
+Content-Type: text/plain
+Date: Tue, 08 Dec 2009 21:21:30 -0500
+Message-Id: <1260325290.3091.40.camel@palomino.walls.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-In-Reply-To: <1a297b360912231124v6e31c9e6ja24d205f6b5dc39@mail.gmail.com>
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On sre, 2009-12-23 at 23:24 +0400, Manu Abraham wrote:
-> > Aljaz, do you have the module mantis.ko?
-> There was a build issue when i posted the link originally, but it had
-> been fixed..
+On Tue, 2009-12-08 at 23:30 +0100, Christoph Bartelmus wrote:
+> Hi Andy,
 > 
-> manu@manu-04:/stor/work/merge/v4l-dvb/v4l> ls *.ko |grep mantis
-> mantis_core.ko
-> mantis.ko
+> on 07 Dec 09 at 23:10, Andy Walls wrote:
+> [...]
+> > (Christoph can correct me if I get anything wrong.)
 > 
+> Just a few additions.
 
-Yup, I have both of them. I just compiled http://jusst.de/hg/v4l-dvb
-again and the result is (depmode -a was run):
+Christoph,
 
-- ir-common.ko is under drivers/media/common (not drivers/media/IR like
-Igor suggested but that is probably because it's a different
-repository).
-- mantis.ko and mantis_core.ko are under drivers/media/dvb/mantis
+Thanks for the corrections and additions. :)
 
-The modules loaded are:
-mantis                 14728  0 
-mantis_core            23909  12 mantis
-ir_common              27005  1 mantis_core
-mb86a16                16598  1 mantis
-tda10021                4822  1 mantis
-tda10023                5823  1 mantis
-zl10353                 5893  1 mantis
-stv0299                 7860  1 mantis
-dvb_core               75201  2 mantis_core,stv0299
+> [...]
 
-kernel log has only these lines on mantis:
-Mantis 0000:03:07.0: PCI INT A -> GSI 21 (level, low) -> IRQ 21
-DVB: registering new adapter (Mantis DVB adapter)
-DVB: registering adapter 0 frontend 0 (Philips TDA10023 DVB-C)...
+> > I know that the hardware I work with has sub 100 ns resolution,
+> 
+> Highest IR carrier frequency I know is 500kHz. usec resolution is enough  
+> even for raw modulated IR pulses. But you only look at the signal after it  
+> has been demodulated by the IR chip, so higher resolution would be  
+> overkill.
 
-and that's it. No VP-2040 to be seen anywhere and it's not there even if
-I do cat /proc/bus/input/devices (used to be one of the inputs).
+Yes, it's overkill.  It is more of a side effect of how I set up the
+hardware to uses as much of the bits in the pulse width measurement
+counter as possible for the longest expected valid measurment width.
+The LSB of the hardware pulse width measurement counter can convey a
+time change of as little as 74 ns depending on the setup of the Conexant
+integrated IR controller.
 
-So I guess this is now the work in progress if I understand correctly or
-should the input be recognized regardless?
 
-Just to confirm on the autoload: no, it does not happen by default. I
-have to manually put modules under /etc/modules to load them on startup.
+> [...]
+> >> How do you define the start and stop of sequences?
+> 
+> > For the end of Rx signalling:
+> >
+> > Well with the Conexant hardware I can set a maximum pulse (mark or
+> > space) width, and the hardware will generate an Rx Timeout interrupt to
+> > signal the end of Rx when a space ends up longer than that max pulse
+> > width.  The hardware also puts a special marker in the hardware pulse
+> > widht measurement FIFO (in band signalling essentially).
+> >
+> > I'm not sure anything like that gets communicated to userspace via
+> > lirc_dev, and I'm too tired to doublecheck right now.
+> 
+> There is no such thing in the protocol. Some devices cannot provide any  
+> end of signal marker, so lircd handles this using timers.
+> 
+> If there is some interest, the MODE2 protocol can be extended. We still  
+> have 7 bits unused...
+
+As I thought about this more, I could just pass up a space the length of
+the pulse width measurment timeout from the kernel up to LIRC.  LIRC's
+decoders should know that the space is too long as well.  No changes
+needed - I think.
+
+
+
+
+> [...]
+> >> Is transmitting synchronous or queued?
+> 
+> > kfifo's IIRC.
+> 
+> No, it's synchronous.
+> 
+> >> How big is the transmit queue?
+> 
+> No queue.
+
+Oops, thanks for the correction.
+
+
+
+> [...]
+> > My particular gripes about the current LIRC interface:
+
+> > 2. I have hardware where I can set max_pulse_width so I can optimize
+> > pulse timer resolution and have the hardware time out rapidly on end of
+> > RX.  I also have hardware where I can set a min_pulse_width to set a
+> > hardware low-pass/glitch filter.  Currently LIRC doesn't have any way to
+> > set these, but it would be nice to have.
+> 
+> Should be really easy to add these. The actual values could be derived  
+> from the config files easily.
+
+Good.  I thought it would be so.
+
+> > In band signalling of a
+> > hardware detected "end of Rx" may also make sense then too.
+> 
+> See above.
+> 
+> > 3. As I mentioned before, it would be nice if LIRC could set a batch of
+> > parameters atomically somehow, instead of with a series of ioctl()s.  I
+> > can work around this in kernel though.
+> 
+> Is there any particular sequence that you are concerned about?
+> Setting carrier frequency and then duty cycle is a bit problematic.
+> Currently it's solved by resetting the duty cycle to 50% each time you  
+> change the carrier frequency.
+> But as the LIRC interface is "one user only", I don't see a real problem.
+
+The case I worry about is enabling the IR Rx hardware without the low
+pass filter properly set up to be consistent with the minimum expected
+Rx pulse width and the desired Rx carrier window or maximum expected Rx
+pulse width.  The result could be a lot of useless interrupts from IR
+"glitch" measurements in bad ambient light conditions until all the
+parameters are consistent.
 
 Regards,
-Aljaz
+Andy
+
+> Christoph
 
 
