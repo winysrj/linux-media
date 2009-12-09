@@ -1,38 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f221.google.com ([209.85.220.221]:63519 "EHLO
-	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755863AbZLCJrv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 04:47:51 -0500
-From: Alexander Beregalov <a.beregalov@gmail.com>
-To: hverkuil@xs4all.nl, mchehab@redhat.com,
-	linux-media@vger.kernel.org, linux-next@vger.kernel.org
-Cc: Alexander Beregalov <a.beregalov@gmail.com>
-Subject: [PATCH] V4L/DVB: pms: KERNEL_VERSION requires version.h
-Date: Thu,  3 Dec 2009 12:48:27 +0300
-Message-Id: <1259833707-23776-1-git-send-email-a.beregalov@gmail.com>
+Received: from web23206.mail.ird.yahoo.com ([217.146.189.61]:25325 "HELO
+	web23206.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751050AbZLIUWA convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Dec 2009 15:22:00 -0500
+Message-ID: <211341.40316.qm@web23206.mail.ird.yahoo.com>
+Date: Wed, 9 Dec 2009 20:15:24 +0000 (GMT)
+From: Newsy Paper <newspaperman_germany@yahoo.com>
+Subject: no locking on dvb-s2 22000 2/3 8PSK transponder on Astra 19.2E with tt s2-3200
+To: linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix this build error:
-drivers/media/video/pms.c:682: error: implicit declaration of function 'KERNEL_VERSION'
+Hi,
 
-Signed-off-by: Alexander Beregalov <a.beregalov@gmail.com>
----
- drivers/media/video/pms.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+no matter if I use Igors or Manus driver, there's no lock on 11303 h 22000 2/3 8psk. Other users at vdr-portal report same problem.
 
-diff --git a/drivers/media/video/pms.c b/drivers/media/video/pms.c
-index 00228d5..a118bb1 100644
---- a/drivers/media/video/pms.c
-+++ b/drivers/media/video/pms.c
-@@ -35,6 +35,7 @@
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-device.h>
- #include <linux/mutex.h>
-+#include <linux/version.h>
- 
- #include <asm/uaccess.h>
- 
--- 
-1.6.5.3
+The strange thing is that all other transponders that use 22000 2/3 8psk do work but this transponder doesn't. It worked fine until december 3rd when uplink moved to Vienna. I think they changed a parameter like rolloff or inversion and the dvb-s2 part of stb6100 is buggy.
 
+regards
+
+Newspaperman
+
+__________________________________________________
+Do You Yahoo!?
+Sie sind Spam leid? Yahoo! Mail verfügt über einen herausragenden Schutz gegen Massenmails. 
+http://mail.yahoo.com 
