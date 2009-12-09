@@ -1,97 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225]:33125 "EHLO
-	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750984AbZL0WIp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Dec 2009 17:08:45 -0500
-Received: by fxm25 with SMTP id 25so4252094fxm.21
-        for <linux-media@vger.kernel.org>; Sun, 27 Dec 2009 14:08:43 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4B342CEE.8020205@redhat.com>
-References: <4B32CF33.3030201@redhat.com> <4B342CEE.8020205@redhat.com>
-Date: Mon, 28 Dec 2009 02:08:43 +0400
-Message-ID: <1a297b360912271408w191f35f4uc8c928a328a22a71@mail.gmail.com>
-Subject: Re: [RFC] dvb-apps ported for ISDB-T
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from bear.ext.ti.com ([192.94.94.41]:56907 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753733AbZLIRpG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2009 12:45:06 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>
+Date: Wed, 9 Dec 2009 11:45:10 -0600
+Subject: RE: [PATCH - v1 1/2] V4L - vpfe capture - make clocks configurable
+Message-ID: <A69FA2915331DC488A831521EAE36FE40155C805C3@dlee06.ent.ti.com>
+References: <1259687940-31435-1-git-send-email-m-karicheri2@ti.com>
+ <87hbs0xhlx.fsf@deeprootsystems.com>
+In-Reply-To: <87hbs0xhlx.fsf@deeprootsystems.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro,
+Kevin,
 
-
-On Fri, Dec 25, 2009 at 7:09 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em 24-12-2009 00:17, Mauro Carvalho Chehab escreveu:
->> I wrote several patches those days in order to allow dvb-apps to properly
->> parse ISDB-T channel.conf.
+>> +/**
+>> + * vpfe_disable_clock() - Disable clocks for vpfe capture driver
+>> + * @vpfe_dev - ptr to vpfe capture device
+>> + *
+>> + * Disables clocks defined in vpfe configuration.
+>> + */
+>>  static void vpfe_disable_clock(struct vpfe_device *vpfe_dev)
+>>  {
+>>  	struct vpfe_config *vpfe_cfg = vpfe_dev->cfg;
+>> +	int i;
 >>
->> On ISDB-T, there are several new parameters, so the parsing is more complex
->> than all the other currently supported video standards.
->>
->> I've added the changes at:
->>
->> http://linuxtv.org/hg/~mchehab/dvb-apps-isdbt/
->>
->> I've merged there Patrick's dvb-apps-isdbt tree.
->>
->> While there, I fixed a few bugs I noticed on the parser and converted it
->> to work with the DVB API v5 headers that are bundled together with dvb-apps.
->> This helps to avoid adding lots of extra #if DVB_ABI_VERSION tests. The ones
->> there can now be removed.
->>
->> TODO:
->> =====
->>
->> The new ISDB-T parameters are parsed, but I haven't add yet a code to make
->> them to be used;
->>
->> There are 3 optional parameters with ISDB-T, related to 1seg/3seg: the
->> segment parameters. Currently, the parser will fail if those parameters are found.
->>
->> gnutv is still reporting ISDB-T as "DVB-T".
->>
+>> -	clk_disable(vpfe_cfg->vpssclk);
+>> -	clk_put(vpfe_cfg->vpssclk);
+>> -	clk_disable(vpfe_cfg->slaveclk);
+>> -	clk_put(vpfe_cfg->slaveclk);
+>> -	v4l2_info(vpfe_dev->pdev->driver,
+>> -		 "vpfe vpss master & slave clocks disabled\n");
+>> +	for (i = 0; i < vpfe_cfg->num_clocks; i++) {
+>> +		clk_disable(vpfe_dev->clks[i]);
+>> +		clk_put(vpfe_dev->clks[i]);
 >
-> I've just fixed the issues on the TODO list. The DVB v5 code is now working fine
-> for ISDB-T.
->
-> Pending stuff (patches are welcome):
->        - Implement v5 calls for other video standards;
->        - Remove the duplicated DVBv5 code on /util/scan/scan.c (the code for calling
-> DVBv5 is now at /lib/libdvbapi/v5api.c);
->        - Test/use the functions to retrieve values via DVBv5 API. The function is
-> already there, but I haven't tested.
->
-> With the DVBv5 API implementation, zap is now working properly with ISDB-T.
-> gnutv also works (although some outputs - like decoder - may need some changes, in
-> order to work with mpeg4/AAC video/audio codecs).
+>While cleaning this up, you should move the clk_put() to module
+>disable/unload time. 
 
+[MK] vpfe_disable_clock() is called from remove(). In the new
+patch, from ccdc driver remove() function, clk_put() will be called.
+Why do you think it should be moved to exit() function of the module?
 
-Few comments on your changes (that came up on a first glance):
+>You dont' need to put he clock on every disable.
+>The same for clk_get(). You don't need to get the clock for every
+>enable.  Just do a clk_get() at init time.
 
-- dvb-apps don't need a DCO (S-O-B) as for kernel related code (though
-not an issue, whether it is there or not)
-
-- changeset 1334 is a regression:
-
-dvb-apps look at libraries that are shipped with the distribution
-alone. The headers in there are a copy for szap2 alone for test cases
-and szap2 is not a generic application such as zap and hence doesn't
-need to be ported.
-
-- get_v5_frontend keeps on malloc with no free .....
-
-- the basic design we have in the libraries is that we don't allow the
-library to do the allocation but allocation is done by the user
-(application)
-
-- the library is not meant to handle the basic in-kernel API alone,
-there are others that's the whole intention for the library.
-
-- changeset 1341 is broken
-
-Regards,
-Manu
+Are you suggesting to call clk_get() during init() and call clk_put()
+from exit()? What is wrong with calling clk_get() from probe()?
+I thought following is correct:-
+Probe()
+clk_get() followed by clk_enable()  
+Remove()
+clk_disable() followed by clk_put()
+Suspend()
+clk_disable()
+Resume()
+clk_enable()
+Please confirm.
