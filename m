@@ -1,89 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:56112 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755454AbZLDEA6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 23:00:58 -0500
-Received: by bwz27 with SMTP id 27so1679581bwz.21
-        for <linux-media@vger.kernel.org>; Thu, 03 Dec 2009 20:01:03 -0800 (PST)
+Received: from mail-fx0-f213.google.com ([209.85.220.213]:51053 "EHLO
+	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755074AbZLIORS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2009 09:17:18 -0500
+Received: by fxm5 with SMTP id 5so7547259fxm.28
+        for <linux-media@vger.kernel.org>; Wed, 09 Dec 2009 06:17:24 -0800 (PST)
 MIME-Version: 1.0
-From: John S Gruber <johnsgruber@gmail.com>
-Date: Thu, 3 Dec 2009 23:00:40 -0500
-Message-ID: <44c6f3de0912032000g3aa2a7cbla26b5132d229a6ac@mail.gmail.com>
-Subject: Hauppage hvr-950q au0828 transfer problem affecting audio and perhaps
-	video
+From: Valerio Bontempi <valerio.bontempi@gmail.com>
+Date: Wed, 9 Dec 2009 15:17:04 +0100
+Message-ID: <ad6681df0912090617k768b7f22p9abfb462ff32026f@mail.gmail.com>
+Subject: v4l-dvb from source on 2.6.31.5 opensuse kernel - not working
 To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have problems with my audio that I've tracked down to the transfer
-of audio from the au0828
-in my hvr-950Q. I spotted the following comment about green screen
-detection and I wonder
-if it might be related.
+Hi all,
 
-drivers/media/video/au0828/au0828-video.c:
+I am trying to install v4l-dvb drivers from source because my device
+(Terratec Cinergy T XS, usb device DVB only) isn't supported by
+official v4l-dvb released in last kernel version yet: it is simply
+detected with the wrong firmware, but modifing the source code of the
+driver is works fine, tested successfully on ubuntu 9.10 (I have
+already submitted the patch to v4l team).
 
-        /* Workaround for a bug in the au0828 hardware design that sometimes
-           results in the colorspace being inverted */
+I compiled v4l-dvb drivers and installed them through make install,
+but then v4l-dvb driver is not working anymore: the video device is
+not created, and I don't find any information about my device in dmesg
+(neither the message about the wrong firmware). So I am supposing that
+v4l-dvb is not working at all.
 
-The problem is that sound/usb/usbaudio.c assumes that each urb data
-field contains an integer
-number of audio frames (aka audio slots), in this case a integer
-number of left channel-right
-channel pairs. About 12 times a second for my device a urb doesn't.
-This causes a flutter noise
-with non-quiet audio that contains a difference between the channels.
+Does someone know how I can understand where is the problem?
 
-I found this by using audacity to look at wave forms and a usb trace
-to see the problematic urb's.
-I've confirmed by relaxing the constraint in sound/usb/usbaudio.c with
-a patch and can confirm that
-it clears up the audio.
+Best regards
 
-
-Is the code comment at the top related to my problem?
-
-More importantly, is there the possibility of setting up the transfer
-differently so that
-audio slots aren't split between urbs?
-
-
->From what I have read in the spec I believe the split of the audio
-slots between urb's is non-
-conformant. Therefore I think it would be a mistake to change the
-default behaviour of
-usbaudio.c since, as it is now,usbaudio.c won't swap channels in the
-case of dropped urbs.
-It would be optimal if the hvr-950q could be set up to conform by not
-splitting audio slots.
-
-I think the problem also occurs for video when blue will turn to pink
-for a flash until the top
-of frame resyncs things up--because of the corresponding swap of UY
-with VY. This seems
-to be related to how busy my system is and what usb slot I'm using on
-my laptop. Again
-I could see in a usb trace the urb's with data_lengths such that UY
-would be split from the
-corresponding VY. The video transfer is a straight byte copy so
-ordinarily this isn't a
-problem but would be if an abnormally sized urb were dropped and the
-device and host
-were to get out of sync regarding V and U.
-
-I also have caught an occasional odd number of bytes transferred in
-traces, which requires
-the drop of incomplete samples in usbaudio.c. I wonder if this is
-related to the green screen
-problem on video from the top comment.
-
-The easiest way to reproduce the audio problem is to use the composite
-video input but only
-hook up either the left or the right audio. With earphonesyou can hear
-the audio rapidly
-go from ear to ear.
-
-Thanks for those on the list for their hard work on getting devices
-such as this to work. I'd
-appreciate any answers, comments, corrections, or information.
+Valerio
