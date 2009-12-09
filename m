@@ -1,64 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34661 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757076AbZLPQpy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2009 11:45:54 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"khilman@deeprootsystems.com" <khilman@deeprootsystems.com>,
-	"Nori, Sekhar" <nsekhar@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>
-Date: Wed, 16 Dec 2009 10:45:51 -0600
-Subject: RE: [PATCH - v1 4/6] V4L - vpfe_capture bug fix and enhancements
-Message-ID: <A69FA2915331DC488A831521EAE36FE401625D0DCF@dlee06.ent.ti.com>
-References: <1260464429-10537-1-git-send-email-m-karicheri2@ti.com>
- <200912152220.41459.hverkuil@xs4all.nl>
- <A69FA2915331DC488A831521EAE36FE401625D0BCC@dlee06.ent.ti.com>
- <200912160841.57444.hverkuil@xs4all.nl>
-In-Reply-To: <200912160841.57444.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mail-fx0-f213.google.com ([209.85.220.213]:52726 "EHLO
+	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756294AbZLIRuF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2009 12:50:05 -0500
+Received: by fxm5 with SMTP id 5so7823228fxm.28
+        for <linux-media@vger.kernel.org>; Wed, 09 Dec 2009 09:50:11 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <829197380912090918n32ea33eq2658ea57b27dedaa@mail.gmail.com>
+References: <ad6681df0912090617k768b7f22p9abfb462ff32026f@mail.gmail.com>
+	<59cf47a80912090806j7f75c578g1fa5a638b2fd7c39@mail.gmail.com>
+	<ad6681df0912090823s23c3dd11xe7b56b66803720d7@mail.gmail.com>
+	<59cf47a80912090838h61deade9y5bbf846e92027c85@mail.gmail.com>
+	<ad6681df0912090914o5e80c6fwa877ccb9580bc6d9@mail.gmail.com>
+	<829197380912090918n32ea33eq2658ea57b27dedaa@mail.gmail.com>
+From: Valerio Bontempi <valerio.bontempi@gmail.com>
+Date: Wed, 9 Dec 2009 18:49:50 +0100
+Message-ID: <ad6681df0912090949r108d1a81r481dc249d8f56868@mail.gmail.com>
+Subject: Re: v4l-dvb from source on 2.6.31.5 opensuse kernel - not working
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Paulo Assis <pj.assis@gmail.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hans,
+2009/12/9 Devin Heitmueller <dheitmueller@kernellabs.com>:
+> On Wed, Dec 9, 2009 at 12:14 PM, Valerio Bontempi
+>> Hi Paulo,
+>>
+>> no luck with your suggestion, I have no errors compiling and
+>> installing the drivers but after rebooting it is not working at all.
+>> Modprobe em28xx produces the same error already sent in the previous mail
+>
+> You're seeing an error when you modprobe?  What is the error?  Your
+> dmesg did not show any errors, just that the driver didn't load.
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
+>
 
->>
->> Yes, isif_config_bclamp() set values in the register.
->
->Huh? That does not explain why apparently bc->horz.win_h_sz_calc can be
->larger
->than ISIF_HORZ_BC_WIN_H_SIZE_MASK.
-because the values come from the user and since we can't use the enum
-for the types, I have to make sure the value is within range. Other way
-to do is to check the value in the validate() function. I am inclined to
-do the validation so that the & statements with masks can be removed while setting it in the register.
+Here is the error after modprobe
 
->
->Regards,
->
->	Hans
->
->>
->> >
->> >It would be interesting to know if people know of good ways of making
->> >awkward
->> >code like this more elegant (or at least less awkward).
->> >
->> >Regards,
->> >
->> >	Hans
->> >
->> >--
->> >Hans Verkuil - video4linux developer - sponsored by TANDBERG
->>
->>
->
->--
->Hans Verkuil - video4linux developer - sponsored by TANDBERG
+modprobe em28xx
+WARNING: Error inserting ir_common
+(/lib/modules/2.6.31.5-0.1-desktop/updates/kernel/drivers/media/common/ir-common.ko):
+Unknown symbol in module, or unknown parameter (see dmesg)
+WARNING: Error inserting v4l2_compat_ioctl32
+(/lib/modules/2.6.31.5-0.1-desktop/updates/kernel/drivers/media/video/v4l2-compat-ioctl32.ko):
+Unknown symbol in module, or unknown parameter (see dmesg)
+WARNING: Error inserting v4l1_compat
+(/lib/modules/2.6.31.5-0.1-desktop/updates/kernel/drivers/media/video/v4l1-compat.ko):
+Unknown symbol in module, or unknown parameter (see dmesg)
+WARNING: Error inserting videodev
+(/lib/modules/2.6.31.5-0.1-desktop/updates/kernel/drivers/media/video/videodev.ko):
+Unknown symbol in module, or unknown parameter (see dmesg)
+WARNING: Error inserting v4l2_common
+(/lib/modules/2.6.31.5-0.1-desktop/updates/kernel/drivers/media/video/v4l2-common.ko):
+Unknown symbol in module, or unknown parameter (see dmesg)
+FATAL: Error inserting em28xx
+(/lib/modules/2.6.31.5-0.1-desktop/updates/kernel/drivers/media/video/em28xx/em28xx.ko):
+Unknown symbol in module, or unknown parameter (see dmesg)
