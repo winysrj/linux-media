@@ -1,57 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f213.google.com ([209.85.220.213]:42048 "EHLO
-	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750976AbZLEFyX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2009 00:54:23 -0500
-Received: by fxm5 with SMTP id 5so3205999fxm.28
-        for <linux-media@vger.kernel.org>; Fri, 04 Dec 2009 21:54:29 -0800 (PST)
+Received: from devils.ext.ti.com ([198.47.26.153]:35468 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752869AbZLIPeY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2009 10:34:24 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Magnus Damm <magnus.damm@gmail.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"mchehab@infradead.org" <mchehab@infradead.org>
+Date: Wed, 9 Dec 2009 09:34:06 -0600
+Subject: RE: [PATCH - v1] V4L-Fix videobuf_dma_contig_user_get() for
+ 	non-aligned offsets
+Message-ID: <A69FA2915331DC488A831521EAE36FE40155C80479@dlee06.ent.ti.com>
+References: <1260308217-22871-1-git-send-email-m-karicheri2@ti.com>
+ <aec7e5c30912090459q1854c483hdfbe370a73ea94a8@mail.gmail.com>
+In-Reply-To: <aec7e5c30912090459q1854c483hdfbe370a73ea94a8@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-In-Reply-To: <4B0E6CC0.9030207@waechter.wiz.at>
-References: <4B0E6CC0.9030207@waechter.wiz.at>
-Date: Sat, 5 Dec 2009 09:54:27 +0400
-Message-ID: <1a297b360912042154q619caa3dkf3818793f46c2c50@mail.gmail.com>
-Subject: =?windows-1252?Q?Re=3A_Mantis_=96_anyone=3F?=
-From: Manu Abraham <abraham.manu@gmail.com>
-To: =?ISO-8859-1?Q?Matthias_W=E4chter?= <matthias@waechter.wiz.at>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/11/26 Matthias Wächter <matthias@waechter.wiz.at>:
-> I am now playing around with the available code for quite some time now
-> with mixed success, but no solution comes near the term “stable”.
->
-> • kernel: nothing in there. Well, reasonable.
-> • v4l-dvb: nothing in there.
-> • s2-liplianin: mantis available, but obviously not under
-> development/bugfixing. IR seems to work, CI handling looks quite broken,
-> hangups/lockups are the rule, additional problems with more than one of
-> these cards in the system.
-> • mantis-v4l: does not compile out of the box for recent kernels. When
-> hand-knitting the files into a kernel source directory (2.6.31), works
-> quite unstable, module reloading frequently segfaults. IR does not work
-> (at least for VDR), CI handling looks better than s2-liplianin.
->
-> Conclusion: Stability is way below a level for reasonable usage while
-> bug fixing.
->
-> [1] gives an overview of the current state of (non-)development. Does
-> this still apply?
->
-> My questions are:
->
-> • Is there someone feeling responsible for that baby?
-> • What is the main part of the mantis stuff not working – mantis itself,
-> the frontend, or adaptions from multiproto to s2api?
-> • What can someone owning some of these cards (one Terratec, two
-> Technisat) do to help the (former) authors to continue their work?
-> • Is there some documentation available which would enable ‘the
-> community’ to work on that further?
+Magnus,
 
-Please try http://jusst.de/hg/v4l-dvb
-and report the issues
+Thanks for testing and approving the patch.
 
-Regards,
-Manu
+Mauro,
+
+Could you merge this bug fix?
+
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+phone: 301-407-9583
+email: m-karicheri2@ti.com
+
+>-----Original Message-----
+>From: Magnus Damm [mailto:magnus.damm@gmail.com]
+>Sent: Wednesday, December 09, 2009 8:00 AM
+>To: Karicheri, Muralidharan
+>Cc: linux-media@vger.kernel.org
+>Subject: Re: [PATCH - v1] V4L-Fix videobuf_dma_contig_user_get() for non-
+>aligned offsets
+>
+>On Wed, Dec 9, 2009 at 6:36 AM,  <m-karicheri2@ti.com> wrote:
+>> From: Muralidharan Karicheri <m-karicheri2@ti.com>
+>>
+>> If a USERPTR address that is not aligned to page boundary is passed to
+>the
+>> videobuf_dma_contig_user_get() function, it saves a page aligned address
+>to
+>> the dma_handle. This is not correct. This issue is observed when using
+>USERPTR
+>> IO machism for buffer exchange.
+>>
+>> Updates from last version:-
+>>
+>> Adding offset for size calculation as per comment from Magnus Damm. This
+>> ensures the last page is also included for checking if memory is
+>> contiguous.
+>>
+>> Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+>
+>Hi Murali,
+>
+>I've spent some time testing this patch with the SuperH CEU driver in
+>USERPTR mode. My test case is based on capture.c with places a bunch
+>of QVGA frames directly after each other. The size of each QVGA frame
+>is not an even multiple of 4k page size, so some of the frames will
+>use a non-aligned start addresses. Currently the CEU driver page
+>aligns the size of each frame, but I'll fix that in an upcoming patch.
+>Thank you!
+>
+>Acked-by: Magnus Damm <damm@opensource.se>
