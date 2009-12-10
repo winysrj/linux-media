@@ -1,239 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:50040 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752654AbZLWW3S convert rfc822-to-8bit (ORCPT
+Received: from mail-fx0-f221.google.com ([209.85.220.221]:52630 "EHLO
+	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758263AbZLJVPd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Dec 2009 17:29:18 -0500
+	Thu, 10 Dec 2009 16:15:33 -0500
+Received: by fxm21 with SMTP id 21so362598fxm.1
+        for <linux-media@vger.kernel.org>; Thu, 10 Dec 2009 13:15:39 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <1261562933-26987-3-git-send-email-p.osciak@samsung.com>
-References: <1261562933-26987-1-git-send-email-p.osciak@samsung.com>
-	 <1261562933-26987-3-git-send-email-p.osciak@samsung.com>
-Date: Thu, 24 Dec 2009 01:29:17 +0300
-Message-ID: <208cbae30912231429o4821ca2fm9722532b0b277865@mail.gmail.com>
-Subject: Re: [PATCH 2/2] [ARM] samsung-rotator: Add Samsung S3C/S5P rotator
-	driver
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Pawel Osciak <p.osciak@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40155C80C7B@dlee06.ent.ti.com>
+References: <A69FA2915331DC488A831521EAE36FE40155C809AB@dlee06.ent.ti.com>
+	 <846899810912101139g6e8a36f7j78fa650e6629ad1b@mail.gmail.com>
+	 <4B2156AA.80309@emlix.com>
+	 <A69FA2915331DC488A831521EAE36FE40155C80C7B@dlee06.ent.ti.com>
+Date: Thu, 10 Dec 2009 22:15:39 +0100
+Message-ID: <846899810912101315o6e576ed8y150c93ea44cb0d66@mail.gmail.com>
+Subject: Re: Latest stack that can be merged on top of linux-next tree
+From: HoP <jpetrous@gmail.com>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Cc: =?ISO-8859-1?Q?Daniel_Gl=F6ckner?= <dg@emlix.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi,
 
-On Wed, Dec 23, 2009 at 1:08 PM, Pawel Osciak <p.osciak@samsung.com> wrote:
-> The rotator device present on Samsung S3C and S5P series SoCs allows image
-> rotation and flipping. It requires contiguous memory buffers to operate,
-> as it does not have scatter-gather support. It is also an example of
-> a memory-to-memory device, and so uses the mem-2-mem device V4L2 framework.
+2009/12/10 Karicheri, Muralidharan <m-karicheri2@ti.com>:
+> Hi,
+>
+> Thanks for the email.
+>
+> Any idea how i2c drivers can work with this?
+>
+> Currently in my board, I have adapter id = 1 for main i2c bus. So when this mux driver is built into the kernel, I guess I can access it using a different adapter id, right? If so, what is the adapter id?
 
-[...]
+Yes, exactly that is way of using - additional i2c buses were born when pca954x
+started.
 
-> +
-> +static const struct v4l2_file_operations s3c_rotator_fops = {
-> +       .owner          = THIS_MODULE,
-> +       .open           = s3c_rotator_open,
-> +       .release        = s3c_rotator_release,
-> +       .poll           = s3c_rotator_poll,
-> +       .ioctl          = video_ioctl2,
-> +       .mmap           = s3c_rotator_mmap,
-> +};
-> +
-> +static struct video_device m2mtest_videodev = {
-> +       .name           = S3C_ROTATOR_NAME,
-> +       .fops           = &s3c_rotator_fops,
-> +       .ioctl_ops      = &s3c_rotator_ioctl_ops,
-> +       .minor          = -1,
-> +       .release        = video_device_release,
-> +};
-> +
-> +static struct v4l2_m2m_ops m2m_ops = {
-> +       .device_run     = device_run,
-> +       .job_abort      = job_abort,
-> +};
-> +
-> +static int s3c_rotator_probe(struct platform_device *pdev)
-> +{
-> +       struct s3c_rotator_dev *dev;
-> +       struct video_device *vfd;
-> +       struct resource *res;
-> +       int ret = -ENOENT;
+Daniel already described this in his mail:
 
-Here ^^^ (see below please for comments)
+"With these patches the bus segments beyond the i2c multiplexer will be
+registered as separate i2c busses. Access to a device on those busses
+will then automatically reconfigure the multiplexer."
 
-> +
-> +       dev = kzalloc(sizeof *dev, GFP_KERNEL);
-> +       if (!dev)
-> +               return -ENOMEM;
-> +
-> +       spin_lock_init(&dev->irqlock);
-> +       ret = -ENOENT;
+Additional i2c buses (adapters) were counted from number +1 higher
+then highest i2c bus number. If you main i2c bus is i2c-1, then you
+you should find i2c-2,i2c-3,i2c-4,i2c-5 new buses after pca954x loading.
 
-It's probably bad pedantic part of me speaking but looks like you set
-ret equals to -ENOENT two times. Most likely you don't need
-assignment second time.
+You can check that with i2cdetect tools.
 
+>
+> How do I use this with MT9T031 driver? Any idea to share?
+>
 
-> +       dev->irq = platform_get_irq(pdev, 0);
-> +       if (dev->irq <= 0) {
-> +               dev_err(&pdev->dev, "Failed to acquire irq\n");
-> +               goto free_dev;
-> +       }
-> +
-> +       res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +       if (!res) {
-> +               dev_err(&pdev->dev,
-> +                       "Failed to acquire memory region resource\n");
-> +               goto free_irq;
-> +       }
-> +
-> +       dev->regs_res = request_mem_region(res->start, resource_size(res),
-> +                                          dev_name(&pdev->dev));
-> +       if (!dev->regs_res) {
-> +               dev_err(&pdev->dev, "Failed to reserve memory region\n");
-> +               goto free_irq;
-> +       }
-> +
-> +       dev->regs_base = ioremap(res->start, resource_size(res));
-> +       if (!dev->regs_base) {
-> +               dev_err(&pdev->dev, "Ioremap failed\n");
-> +               ret = -ENXIO;
-> +               goto rel_res;
-> +       }
-> +
-> +       ret = request_irq(dev->irq, s3c_rotator_isr, 0,
-> +                         S3C_ROTATOR_NAME, dev);
-> +       if (ret) {
-> +               dev_err(&pdev->dev, "Requesting irq failed\n");
-> +               goto regs_unmap;
-> +       }
-> +
-> +       ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
-> +       if (ret)
-> +               goto regs_unmap;
-> +
-> +       atomic_set(&dev->num_inst, 0);
-> +
-> +       vfd = video_device_alloc();
-> +       if (!vfd) {
-> +               v4l2_err(&dev->v4l2_dev, "Failed to allocate video device\n");
-> +               goto unreg_dev;
-> +       }
-> +
-> +       *vfd = m2mtest_videodev;
-> +
-> +       ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
-> +       if (ret) {
-> +               v4l2_err(&dev->v4l2_dev, "Failed to register video device\n");
-> +               goto rel_vdev;
-> +       }
-> +
-> +       video_set_drvdata(vfd, dev);
-> +       snprintf(vfd->name, sizeof(vfd->name), "%s", m2mtest_videodev.name);
-> +       dev->vfd = vfd;
-> +       v4l2_info(&dev->v4l2_dev,
-> +                       "Device registered as /dev/video%d\n", vfd->num);
-> +
-> +       platform_set_drvdata(pdev, dev);
-> +
-> +       dev->m2m_dev = v4l2_m2m_init(&m2m_ops);
-> +       if (IS_ERR(dev->m2m_dev)) {
-> +               v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem device\n");
-> +               ret = PTR_ERR(dev->m2m_dev);
-> +               goto err_m2m;
-> +       }
-> +
-> +       return 0;
-> +
-> +err_m2m:
-> +       video_unregister_device(dev->vfd);
-> +rel_vdev:
-> +       video_device_release(vfd);
-> +unreg_dev:
-> +       v4l2_device_unregister(&dev->v4l2_dev);
-> +regs_unmap:
-> +       iounmap(dev->regs_base);
-> +rel_res:
-> +       release_resource(dev->regs_res);
-> +       kfree(dev->regs_res);
-> +free_irq:
-> +       free_irq(dev->irq, dev);
-> +free_dev:
-> +       kfree(dev);
-> +
-> +       return ret;
-> +}
-> +
-> +static int s3c_rotator_remove(struct platform_device *pdev)
-> +{
-> +       struct s3c_rotator_dev *dev =
-> +               (struct s3c_rotator_dev *)platform_get_drvdata(pdev);
-> +
-> +       v4l2_info(&dev->v4l2_dev, "Removing %s\n", S3C_ROTATOR_NAME);
-> +
-> +       v4l2_m2m_release(dev->m2m_dev);
-> +       video_unregister_device(dev->vfd);
-> +       v4l2_device_unregister(&dev->v4l2_dev);
-> +       iounmap(dev->regs_base);
-> +       release_resource(dev->regs_res);
-> +       kfree(dev->regs_res);
-> +       free_irq(dev->irq, dev);
-> +       kfree(dev);
-> +
-> +       return 0;
-> +}
-> +
-> +static int s3c_rotator_suspend(struct device *dev)
-> +{
-> +       return 0;
-> +}
-> +
-> +static int s3c_rotator_resume(struct device *dev)
-> +{
-> +       return 0;
-> +}
-> +
-> +static struct dev_pm_ops s3c_rotator_pm_ops = {
-> +       .suspend = s3c_rotator_suspend,
-> +       .resume = s3c_rotator_resume,
-> +};
-> +
-> +static struct platform_driver s3c_rotator_pdrv = {
-> +       .probe          = s3c_rotator_probe,
-> +       .remove         = s3c_rotator_remove,
-> +       .driver         = {
-> +               .name   = S3C_ROTATOR_NAME,
-> +               .owner  = THIS_MODULE,
-> +               .pm     = &s3c_rotator_pm_ops
-> +       },
-> +};
-> +
-> +static char banner[] __initdata =
-> +       KERN_INFO "S3C Rotator V4L2 Driver, (c) 2009 Samsung Electronics\n";
-> +
-> +static int __init s3c_rotator_init(void)
-> +{
-> +       printk(banner);
-> +       return platform_driver_register(&s3c_rotator_pdrv);
-> +}
-> +
-> +static void __devexit s3c_rotator_exit(void)
-> +{
-> +       platform_driver_unregister(&s3c_rotator_pdrv);
-> +}
-> +
-> +module_init(s3c_rotator_init);
-> +module_exit(s3c_rotator_exit);
-> +
-> +MODULE_LICENSE("GPL");
-> +MODULE_AUTHOR("Pawel Osciak <p.osciak@samsung.com>");
-> +MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
+I never had a look inside mt9t031 driver, but in general - you simply
+point to some of that additional adaper by i2c_get_adapter(x)
 
+Idea is very smart. You don't need to manage pca954x on your own.
+Driver do it itself :)
 
-
--- 
-Best regards, Klimov Alexey
+/Honza
