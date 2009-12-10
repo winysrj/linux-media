@@ -1,29 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from n21.bullet.mail.ukl.yahoo.com ([87.248.110.138]:28612 "HELO
-	n21.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S932314AbZLRRbf convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Dec 2009 12:31:35 -0500
-Message-ID: <152097.39183.qm@web25406.mail.ukl.yahoo.com>
-Date: Fri, 18 Dec 2009 09:25:57 -0800 (PST)
-From: fabio tirapelle <ftirapelle@yahoo.it>
-Subject: WinTV 1100 HD Model 1108
-To: linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:35977 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761268AbZLJS2Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Dec 2009 13:28:16 -0500
+Date: Thu, 10 Dec 2009 16:28:05 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: David Woodhouse <dwmw2@infradead.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Firmware for dib0700
+Message-ID: <20091210162805.5e1b6319@pedra>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi 
+Hi David,
 
-I use the Hauppauge WinTV 1100 HD Model 1108 on Ubuntu 9.10 with Mythtv 0.22
-Do you know if there is problem with this card? This question as the signal sometimes scratch.
-It seems a problem during process the mpeg stream from DVB-T
+Please pull from:
 
-Thanks 
+ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-firmware.git master
 
+For dib0700 firmware.
 
+-- 
 
-      
-
+Cheers,
+Mauro
