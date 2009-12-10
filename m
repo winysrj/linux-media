@@ -1,39 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dyn60-31.dsl.spy.dnainternet.fi ([83.102.60.31]:38681 "EHLO
-	shogun.pilppa.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751654AbZL1V4m (ORCPT
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:44508 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760968AbZLJQqx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Dec 2009 16:56:42 -0500
-Date: Mon, 28 Dec 2009 23:47:15 +0200 (EET)
-From: Mika Laitio <lamikr@pilppa.org>
-To: VDR User <user.vdr@gmail.com>
-cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Acoustical mode for femon
-In-Reply-To: <a3ef07920912272212p901718drbaf3c441c2d371ed@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0912282340180.23947@shogun.pilppa.org>
-References: <200912232220.29626.mes@seesslen.net>
- <a3ef07920912272212p901718drbaf3c441c2d371ed@mail.gmail.com>
+	Thu, 10 Dec 2009 11:46:53 -0500
+Received: by ewy19 with SMTP id 19so40135ewy.21
+        for <linux-media@vger.kernel.org>; Thu, 10 Dec 2009 08:46:58 -0800 (PST)
+Message-ID: <4B21260D.9080408@flumotion.com>
+Date: Thu, 10 Dec 2009 17:47:09 +0100
+From: =?ISO-8859-1?Q?Guillem_Sol=E0?= <garanda@flumotion.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+To: linux-media@vger.kernel.org
+Subject: TveiiS470 and DVBWorld2005 not working
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> The monitoring application produces a sound indicating the signal quality. The
->> higher the beep the better the signal quality.
->> This is useful while mounting the antenna for finding the best position without
->> having to look at the monitor or without even having a monitor.
->
-> Thank you for this!  Very useful since it's hard to be outside aiming
-> and inside looking at a monitor at the same time.  :)
+Hi,
 
-While I was trying to locate astra on last year by rotating the dish I 
-used both the cheap (10 euro) beeper that was but in the satellite cable 
-end to find out the abbroximately dish direction. Fine tuning was done by 
-starring the laptop screen szap output to find out when it started to 
-printout LOCKED output. (I used ssh from the laptop to dvb card computer 
-where I had put the channel info for one astra channel and tried to szap 
-for that one. That of course meant that I needed the correct channel info 
-for one channel in satellite even before I could try to scan channels from 
-that satellite...)
+I come to this list as my last resort. I have two DVB-S PCIE cards and 
+no one can get channels, but I have another computer with a PCI SAA7146 
+that can get 1400 services from same dish.
 
-Mika
+* Tveii S470 *
+
+One is the Tveii S470. I guess that the S470 should work because you are 
+working in IR support.
+
+I have tried V4L tip, drivers from website, from website and patched 
+like in wiki says... but all I get is:
+
+scandvb -a 0 /usr/share/dvb-apps/dvb-s/Astra-19.2E
+
+scanning /usr/share/dvb-apps/dvb-s/Astra-19.2E
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+initial transponder 12551500 V 22000000 5
+ >>> tune to: 12551:v:0:22000
+WARNING: filter timeout pid 0x0011
+WARNING: filter timeout pid 0x0000
+WARNING: filter timeout pid 0x0010it's going on
+
+dumping lists (0 services)
+
+Done.
+
+
+* DVBWorld 2005 *
+
+The other is the DVBWorld DVB-S2 2005. I have tried also latest V4l, 
+liplianin branch... and I get the same: 0 services.
+
+
+The hardware were I'm trying to run this is a Dell 1 unit Rack Server 
+with RHEL with kernels 2.6.30, 2.6.31 and 2.6.32 patched by myself.
+
+As I said I have another computer with a PCI dvb-s card that can get lot 
+of channels so I thing that the disk is working well.
+
+
+Any idea about what's going on?
+
+Thanks in advance,
+
+Guillem Solà
