@@ -1,56 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f219.google.com ([209.85.219.219]:49518 "EHLO
-	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751613AbZLDHZk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2009 02:25:40 -0500
-Received: by ewy19 with SMTP id 19so2451666ewy.1
-        for <linux-media@vger.kernel.org>; Thu, 03 Dec 2009 23:25:46 -0800 (PST)
-Date: Fri, 4 Dec 2009 08:25:38 +0100 (CET)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Justin Hornsby <justin0hornsby@gmail.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: Fwd: DVB-APPS patch for uk-WinterHill
-In-Reply-To: <751357790912030731g5b09bac8w322f4c1754c3d87d@mail.gmail.com>
-Message-ID: <alpine.DEB.2.01.0912040752330.16617@ybpnyubfg.ybpnyqbznva>
-References: <751357790912030639l6ddcb4bar486fdea6b9aa1a8e@mail.gmail.com> <751357790912030731g5b09bac8w322f4c1754c3d87d@mail.gmail.com>
+Received: from perceval.irobotique.be ([92.243.18.41]:57033 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760556AbZLJLNL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Dec 2009 06:13:11 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [RFC,PATCH] VIDIOC_G_EXT_CTRLS does not handle NULL pointer correctly
+Date: Thu, 10 Dec 2009 12:14:22 +0100
+Cc: linux-media@vger.kernel.org, nm127@freemail.hu
+References: <200905251317.02633.laurent.pinchart@skynet.be> <20090610105357.14aad29f@pedra.chehab.org> <200906102358.31879.laurent.pinchart@skynet.be>
+In-Reply-To: <200906102358.31879.laurent.pinchart@skynet.be>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 8BIT
+Message-Id: <200912101214.22154.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 3 Dec 2009, Justin Hornsby wrote:
+Hi Mauro,
 
-> Since 02 Dec 2009 the UK WinterHill transmitter site has been
-> broadcasting on different frequencies & in a different mode with
-> different modulation. Â Channels have been re-arranged to occupy five
-> multiplexes and the original BBC 'B' mux is now broadcasting DVB-T2
-> for high definition services (which of course cannot yet be tuned by
-> mere mortals). The 'WinterHill B' transmitter stopped broadcasting on
-> 02 Dec.
+On Wednesday 10 June 2009 23:58:31 Laurent Pinchart wrote:
+> On Wednesday 10 June 2009 15:53:57 Mauro Carvalho Chehab wrote:
+> > Em Wed, 10 Jun 2009 10:52:28 -0300
+> >
+> > Mauro Carvalho Chehab <mchehab@infradead.org> escreveu:
+> > > Em Mon, 25 May 2009 11:16:34 -0300
+> > >
+> > > Mauro Carvalho Chehab <mchehab@infradead.org> escreveu:
+> > > > Em Mon, 25 May 2009 13:17:02 +0200
+> > > >
+> > > > Laurent Pinchart <laurent.pinchart@skynet.be> escreveu:
+> > > > > Hi everybody,
+> > > > >
+> > > > > Márton Németh found an integer overflow bug in the extended control
+> > > > > ioctl handling code. This affects both video_usercopy and
+> > > > > video_ioctl2. See http://bugzilla.kernel.org/show_bug.cgi?id=13357
+> > > > > for a detailed description of the problem.
+> > > > >
+> > > > >
+> > > > > Restricting v4l2_ext_controls::count to values smaller than
+> > > > > KMALLOC_MAX_SIZE / sizeof(struct v4l2_ext_control) should be
+> > > > > enough, but we might want to restrict the value even further. I'd
+> > > > > like opinions on this.
+> > > >
+> > > > Seems fine to my eyes, but being so close to kmalloc size doesn't
+> > > > seem to be a good idea. It seems better to choose an arbitrary size
+> > > > big enough to handle all current needs.
+> > >
+> > > I'll apply the current version, but I still think we should restrict it
+> > > to a lower value.
+> >
+> > Hmm... SOB is missing. Márton and Laurent, could you please sign it
 > 
-> The attached file is a patch to reflect these changes.
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@skynet.be>
 
-> +T 746000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> +T 770000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> +T 778000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> +T 794000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> +T 801833000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+Márton reminded me that the patch has still not been applied.
 
-While the DVB-T2 multiplex (MUX B) cannot be tuned by existing
-DVB-T-only devices, and I don't know if the dvb-apps are being
-prepared for DVB-T2 (there don't appear to be any of the
-known DVB-S2 transponders listed in a couple positions), the
-modulation parameters, for future reference, are probably
-something like
+Please replace the above SOB line with
 
-+# T2 738000000 8MHz 2/3 NONE QAM256 32k 1/128 NONE	#E54 DVB-T2 HD MUX B
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-There may need to be additional details specified, I'm no expert.
-These values are, of course, unconfirmed.
+-- 
+Regards,
 
-The same would be true for Crystal Palace at 10kW, but on channel
-E31, or 554000000, no offset.
-
-
-barry bouwsma
+Laurent Pinchart
