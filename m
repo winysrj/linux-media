@@ -1,101 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:49195 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751037AbZLVQnb (ORCPT
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:52747 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760986AbZLJSf7 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Dec 2009 11:43:31 -0500
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, iivanov@mm-sol.com,
-	hverkuil@xs4all.nl, gururaj.nagendra@intel.com
-Subject: [RFC v2 7/7] V4L: Events: Support all events
-Date: Tue, 22 Dec 2009 18:43:11 +0200
-Message-Id: <1261500191-9441-7-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <1261500191-9441-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-References: <4B30F713.8070004@maxwell.research.nokia.com>
- <1261500191-9441-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
- <1261500191-9441-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
- <1261500191-9441-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
- <1261500191-9441-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
- <1261500191-9441-5-git-send-email-sakari.ailus@maxwell.research.nokia.com>
- <1261500191-9441-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+	Thu, 10 Dec 2009 13:35:59 -0500
+Received: by bwz27 with SMTP id 27so69581bwz.21
+        for <linux-media@vger.kernel.org>; Thu, 10 Dec 2009 10:36:04 -0800 (PST)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: Guillem =?utf-8?q?Sol=C3=A0?= <garanda@flumotion.com>
+Subject: Re: TveiiS470 and DVBWorld2005 not working
+Date: Thu, 10 Dec 2009 20:35:59 +0200
+Cc: linux-media@vger.kernel.org
+References: <4B21260D.9080408@flumotion.com>
+In-Reply-To: <4B21260D.9080408@flumotion.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200912102035.59356.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for subscribing V4L2_EVENT_ALL. After V4L2_EVENT_ALL is
-subscribed, unsubscribing any event leads to unsubscription of all events.
+On 10 декабря 2009 18:47:09 Guillem Solà wrote:
+> Hi,
+>
+> I come to this list as my last resort. I have two DVB-S PCIE cards and
+> no one can get channels, but I have another computer with a PCI SAA7146
+> that can get 1400 services from same dish.
+>
+> * Tveii S470 *
+>
+> One is the Tveii S470. I guess that the S470 should work because you are
+> working in IR support.
+>
+> I have tried V4L tip, drivers from website, from website and patched
+> like in wiki says... but all I get is:
+>
+> scandvb -a 0 /usr/share/dvb-apps/dvb-s/Astra-19.2E
+>
+> scanning /usr/share/dvb-apps/dvb-s/Astra-19.2E
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> initial transponder 12551500 V 22000000 5
+>
+>  >>> tune to: 12551:v:0:22000
+>
+> WARNING: filter timeout pid 0x0011
+> WARNING: filter timeout pid 0x0000
+> WARNING: filter timeout pid 0x0010it's going on
+>
+> dumping lists (0 services)
+>
+> Done.
+>
+>
+> * DVBWorld 2005 *
+>
+> The other is the DVBWorld DVB-S2 2005. I have tried also latest V4l,
+> liplianin branch... and I get the same: 0 services.
+>
+>
+> The hardware were I'm trying to run this is a Dell 1 unit Rack Server
+> with RHEL with kernels 2.6.30, 2.6.31 and 2.6.32 patched by myself.
+>
+> As I said I have another computer with a PCI dvb-s card that can get lot
+> of channels so I thing that the disk is working well.
+>
+>
+> Any idea about what's going on?
+Hi Guillem,
+I think you are missing firmwares, though you give too little information.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- drivers/media/video/v4l2-event.c |   34 ++++++++++++++++++++++++----------
- 1 files changed, 24 insertions(+), 10 deletions(-)
+>
+> Thanks in advance,
+>
+> Guillem Solà
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
-index cc2bf57..95b3917 100644
---- a/drivers/media/video/v4l2-event.c
-+++ b/drivers/media/video/v4l2-event.c
-@@ -62,6 +62,22 @@ void v4l2_event_init_fh(struct v4l2_fh *fh)
- }
- EXPORT_SYMBOL_GPL(v4l2_event_init_fh);
- 
-+static void __v4l2_event_unsubscribe_all(struct v4l2_fh *fh)
-+{
-+	struct v4l2_events *events = &fh->events;
-+
-+	while (!list_empty(&events->subscribed)) {
-+		struct v4l2_subscribed_event *sub;
-+
-+		sub = list_entry(events->subscribed.next,
-+				struct v4l2_subscribed_event, list);
-+
-+		list_del(&sub->list);
-+
-+		kfree(sub);
-+	}
-+}
-+
- void v4l2_event_exit_fh(struct v4l2_fh *fh)
- {
- 	struct v4l2_events *events = &fh->events;
-@@ -77,16 +93,7 @@ void v4l2_event_exit_fh(struct v4l2_fh *fh)
- 		kmem_cache_free(event_kmem, ev);
- 	}
- 
--	while (!list_empty(&events->subscribed)) {
--		struct v4l2_subscribed_event *sub;
--
--		sub = list_entry(events->subscribed.next,
--				struct v4l2_subscribed_event, list);
--
--		list_del(&sub->list);
--
--		kfree(sub);
--	}
-+	__v4l2_event_unsubscribe_all(fh);
- }
- EXPORT_SYMBOL_GPL(v4l2_event_exit_fh);
- 
-@@ -125,6 +132,11 @@ static struct v4l2_subscribed_event *__v4l2_event_subscribed(
- 	struct v4l2_events *events = &fh->events;
- 	struct v4l2_subscribed_event *ev;
- 
-+	ev = container_of(events->subscribed.next,
-+			  struct v4l2_subscribed_event, list);
-+	if (ev->type == V4L2_EVENT_ALL)
-+		return ev;
-+
- 	list_for_each_entry(ev, &events->subscribed, list) {
- 		if (ev->type == type)
- 			return ev;
-@@ -237,6 +249,8 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
- 	INIT_LIST_HEAD(&ev->list);
- 	ev->type = sub->type;
- 
-+	if (ev->type == V4L2_EVENT_ALL)
-+		__v4l2_event_unsubscribe_all(fh);
- 	list_add(&ev->list, &events->subscribed);
- 
- out:
 -- 
-1.5.6.5
-
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
