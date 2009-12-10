@@ -1,59 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:55046 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750815AbZLAOKg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2009 09:10:36 -0500
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR  system?
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: Andy Walls <awalls@radix.net>
-Cc: Christoph Bartelmus <lirc@bartelmus.de>, jonsmirl@gmail.com,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, khc@pm.waw.pl, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	lirc-list@lists.sourceforge.net, mchehab@redhat.com,
-	superm1@ubuntu.com
-In-Reply-To: <1259667480.3100.10.camel@palomino.walls.org>
-References: <BE3edeNXqgB@lirc> <1259667480.3100.10.camel@palomino.walls.org>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 01 Dec 2009 16:10:35 +0200
-Message-ID: <1259676635.18599.5.camel@maxim-laptop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:55532 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752809AbZLJNG3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Dec 2009 08:06:29 -0500
+Date: Thu, 10 Dec 2009 14:06:50 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Magnus Damm <magnus.damm@gmail.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, m-karicheri2@ti.com,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] sh_mobile_ceu_camera: Remove frame size page alignment
+In-Reply-To: <20091209131624.8044.18187.sendpatchset@rxone.opensource.se>
+Message-ID: <Pine.LNX.4.64.0912101359060.4487@axis700.grange>
+References: <20091209131624.8044.18187.sendpatchset@rxone.opensource.se>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2009-12-01 at 06:38 -0500, Andy Walls wrote: 
-> On Tue, 2009-12-01 at 08:45 +0100, Christoph Bartelmus wrote:
-> > Hi Jon,
-> > 
-> > on 30 Nov 09 at 16:35, Jon Smirl wrote:
+On Wed, 9 Dec 2009, Magnus Damm wrote:
+
+> From: Magnus Damm <damm@opensource.se>
 > 
+> This patch updates the SuperH Mobile CEU driver to
+> not page align the frame size. Useful in the case of
+> USERPTR with non-page aligned frame sizes and offsets.
 > 
-> > Currently I would tend to an approach like this:
-> > - raw interface to userspace using LIRC
-> > - fixed set of in-kernel decoders that can handle bundled remotes
-> > 
-> > That would allow zero configuration for simple use cases and full  
-> > flexibility for more advanced use cases.
-> > 
-> > Christoph
+> Signed-off-by: Magnus Damm <damm@opensource.se>
+> ---
 > 
-> I'd also prefer that approach.
+>  drivers/media/video/sh_mobile_ceu_camera.c |    5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
+> 
+> --- 0010/drivers/media/video/sh_mobile_ceu_camera.c
+> +++ work/drivers/media/video/sh_mobile_ceu_camera.c	2009-12-09 17:54:37.000000000 +0900
+> @@ -199,14 +199,13 @@ static int sh_mobile_ceu_videobuf_setup(
+>  	struct sh_mobile_ceu_dev *pcdev = ici->priv;
+>  	int bytes_per_pixel = (icd->current_fmt->depth + 7) >> 3;
+>  
+> -	*size = PAGE_ALIGN(icd->user_width * icd->user_height *
+> -			   bytes_per_pixel);
+> +	*size = icd->user_width * icd->user_height * bytes_per_pixel;
+>  
+>  	if (0 == *count)
+>  		*count = 2;
+>  
+>  	if (pcdev->video_limit) {
+> -		while (*size * *count > pcdev->video_limit)
+> +		while (PAGE_ALIGN(*size) * *count > pcdev->video_limit)
+>  			(*count)--;
+>  	}
 
-I also agree with this approach.
-This way, there will be no need for configfs hacks, but just static
-table for bundled remotes, and in fact this is very clean approach.
-Also, since bundled remotes use standard protocols, there will be no
-problem to add decoders for them.
+Please, correct me if I'm wrong. Currently most (all?) sh platforms, using 
+this driver, and wishing to use V4L2_MEMORY_MMAP, reserve contiguous 
+memory in their platform code. In this case pcdev->video_limit is set to 
+the size of that area. videobuf-dma-contig.c::__videobuf_mmap_mapper() 
+will anyway allocate page-aligned buffers for V4L2_MEMORY_MMAP, so, even 
+for the case of a platform, not reserving RAM at boot-time, it should 
+work. Similarly it should work for the V4L2_MEMORY_USERPTR case. So, looks 
+ok to me, queued, thanks.
 
-For the rest, the remotes that were never meant to be used with the
-computer, lircd will do just fine.
-
-So, it a deal?
-
-Best regards,
-Maxim Levitsky
-
-
-
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
