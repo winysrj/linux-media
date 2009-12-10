@@ -1,236 +1,281 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48811 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753757AbZLARVp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2009 12:21:45 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 1 Dec 2009 11:21:47 -0600
-Subject: FW: [PATCH - v1 1/2] V4L - vpfe capture - make clocks configurable
-Message-ID: <A69FA2915331DC488A831521EAE36FE40155B76979@dlee06.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:60657 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761833AbZLJVzm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Dec 2009 16:55:42 -0500
+Received: by ewy19 with SMTP id 19so354298ewy.21
+        for <linux-media@vger.kernel.org>; Thu, 10 Dec 2009 13:55:48 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <51be034e0912101136v153e4376g719c79f5bc9729f4@mail.gmail.com>
+References: <51be034e0912091153n663111c5pe920f405c5befa13@mail.gmail.com>
+	 <loom.20091209T205650-546@post.gmane.org>
+	 <59cf47a80912091353o634f234nb83e64eaf7f52dd1@mail.gmail.com>
+	 <51be034e0912091404k34642412waa104abd8e419245@mail.gmail.com>
+	 <59cf47a80912091420x32c2cac6ve55a4cced8517da1@mail.gmail.com>
+	 <51be034e0912091436l6308f894xdb6997fb0b20ca42@mail.gmail.com>
+	 <59cf47a80912091453v685784b8h54f3cbfd5afad0c0@mail.gmail.com>
+	 <51be034e0912101136v153e4376g719c79f5bc9729f4@mail.gmail.com>
+Date: Thu, 10 Dec 2009 21:55:47 +0000
+Message-ID: <59cf47a80912101355qa37d31fveb153868504052b9@mail.gmail.com>
+Subject: Re: MSI StarCam working in vlc only (with poor colors)
+From: Paulo Assis <pj.assis@gmail.com>
+To: Jozef Riha <jose1711@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans,
+Josef,
+white balance temperature and hue controls are being blacklisted in
+uvcvideo for all cameras due to a bug in the driver.
+A patch fixing the issue was committed recently
+(https://lists.berlios.de/pipermail/linux-uvc-devel/2009-December/005396.html)
+but I'm not sure when it will be available.
+These controls if supported by your camera could help improve the image color.
 
-Could you please add this to your hg tree and send a pull
-request to Mauro? This was reviewed by Vaibhav and tested on
-DM355, DM6446, AM3517 & DM365. I will request Kevin to pull
-the Architecture part of this patch.
+Best regards,
+Paulo
 
-Thanks.
-
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-phone: 301-407-9583
-email: m-karicheri2@ti.com
-
->-----Original Message-----
->From: Karicheri, Muralidharan
->Sent: Tuesday, December 01, 2009 12:19 PM
->To: linux-media@vger.kernel.org; hverkuil@xs4all.nl;
->khilman@deeprootsystems.com
->Cc: davinci-linux-open-source@linux.davincidsp.com; Hiremath, Vaibhav;
->Karicheri, Muralidharan
->Subject: [PATCH - v1 1/2] V4L - vpfe capture - make clocks configurable
+2009/12/10 Jozef Riha <jose1711@gmail.com>:
+> thank you again, paulo, for your off-list help. cam is now working
+> nicely with xawtv, guvcview and skype. the colors slightly improved
+> during day-light, when artificial light is used they still look bad
+> though. i fiddled around with just about all v4l controls but couldn't
+> really fix it. i'll run a comparison with windows driver when i have a
+> chance.
 >
->From: Muralidharan Karicheri <m-karicheri2@ti.com>
+> for others interested: the fix was indeed the quirks mode. i had to
+> set it like this:
 >
->v1  - updated based on comments from Vaibhav Hiremath.
+> $ cat /etc/modprobe.d/uvcvideo.conf
+> options uvcvideo trace=15 quirks=2
 >
->On DM365 we use only vpss master clock, where as on DM355 and
->DM6446, we use vpss master and slave clocks for vpfe capture and AM3517
->we use internal clock and pixel clock. So this patch makes it configurable
->on a per platform basis. This is needed for supporting DM365 for which
->patches
->will be available soon.
+> regards all,
 >
->Tested-by: Vaibhav Hiremath <hvaibhav@ti.com>, Muralidharan Karicheri <m-
->karicheri2@ti.com>
->Acked-by: Vaibhav Hiremath <hvaibhav@ti.com>
->Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
->---
-> drivers/media/video/davinci/vpfe_capture.c |   98 +++++++++++++++++-------
->---
-> include/media/davinci/vpfe_capture.h       |   11 ++-
-> 2 files changed, 70 insertions(+), 39 deletions(-)
+> joe
 >
->diff --git a/drivers/media/video/davinci/vpfe_capture.c
->b/drivers/media/video/davinci/vpfe_capture.c
->index 12a1b3d..c3468ee 100644
->--- a/drivers/media/video/davinci/vpfe_capture.c
->+++ b/drivers/media/video/davinci/vpfe_capture.c
->@@ -1787,61 +1787,87 @@ static struct vpfe_device *vpfe_initialize(void)
-> 	return vpfe_dev;
-> }
+> On Wed, Dec 9, 2009 at 11:53 PM, Paulo Assis <pj.assis@gmail.com> wrote:
+>> You must reload the driver,
+>>
+>> rmmod uvcvideo
+>> modprobe uvcvideo
+>>
+>> otherwise the quirks want have any effect.
+>>
+>> uvcvideo is now mantained in the mercurial repo at linuxtv,
+>> installing v4l-dvb will also install uvcvideo, but if you want, just
+>> follow the instructions on the wiki to compile, but use:
+>>  hg clone http://linuxtv.org/hg/~pinchartl/uvcvideo/
+>> so that you get the very latest (testing) uvc code.
+>> In any case the quirks should be enough:
+>> http://lists.berlios.de/pipermail/linux-uvc-devel/2009-October/005235.html
+>>
+>> Best regards,
+>> Paulo
+>>
+>> 2009/12/9 Jozef Riha <jose1711@gmail.com>:
+>>> setting quirks to 2 unfortunately did not help. gucview's 1.2.1 output below
+>>>
+>>> [jose@darkstar ~]$ LC_ALL=C guvcview --verbose
+>>> guvcview 1.2.1
+>>> unexpected integer value (1) for snd_numsec
+>>> Strings must be quoted
+>>> video_device: /dev/video0
+>>> vid_sleep: 0
+>>> cap_meth: 1
+>>> resolution: 640 x 480
+>>> windowsize: 480 x 700
+>>> vert pane: 0
+>>> spin behavior: 0
+>>> mode: mjpg
+>>> fps: 1/25
+>>> Display Fps: 0
+>>> bpp: 0
+>>> hwaccel: 1
+>>> avi_format: 0
+>>> sound: 1
+>>> sound Device: 0
+>>> sound samp rate: 0
+>>> sound Channels: 0
+>>> Sound delay: 0 nanosec
+>>> Sound Format: 80
+>>> Sound bit Rate: 160 Kbps
+>>> Pan Step: 2 degrees
+>>> Tilt Step: 2 degrees
+>>> Video Filter Flags: 0
+>>> image inc: 0
+>>> profile(default):/home/jose/default.gpfl
+>>> starting portaudio...
+>>> language catalog=> dir:/usr/share/locale type:C lang:C cat:guvcview.mo
+>>> mjpg: setting format to 1196444237
+>>> capture method = 1
+>>> video device: /dev/video0
+>>> /dev/video0 - device 1
+>>> Init. UVC Camera (1b3b:2951) (location: usb-0000:00:1d.1-1)
+>>> { pixelformat = 'MJPG', description = 'MJPEG' }
+>>> { discrete: width = 640, height = 480 }
+>>>        Time interval between frame: 1/30,
+>>> { discrete: width = 320, height = 240 }
+>>>        Time interval between frame: 1/30,
+>>> { discrete: width = 160, height = 120 }
+>>>        Time interval between frame: 1/30,
+>>> vid:1b3b
+>>> pid:2951
+>>> driver:uvcvideo
+>>> checking format: 1196444237
+>>> VIDIOC_S_FORMAT - Unable to set format: Input/output error
+>>> Init v4L2 failed !!
+>>> Init video returned -2
+>>> trying minimum setup ...
+>>> capture method = 1
+>>> video device: /dev/video0
+>>> /dev/video0 - device 1
+>>> Init. UVC Camera (1b3b:2951) (location: usb-0000:00:1d.1-1)
+>>> { pixelformat = 'MJPG', description = 'MJPEG' }
+>>> { discrete: width = 640, height = 480 }
+>>>        Time interval between frame: 1/30,
+>>> { discrete: width = 320, height = 240 }
+>>>        Time interval between frame: 1/30,
+>>> { discrete: width = 160, height = 120 }
+>>>        Time interval between frame: 1/30,
+>>> vid:1b3b
+>>> pid:2951
+>>> driver:uvcvideo
+>>> checking format: 1196444237
+>>> VIDIOC_S_FORMAT - Unable to set format: Input/output error
+>>> Init v4L2 failed !!
+>>> ERROR: Minimum Setup Failed.
+>>>  Exiting...
+>>> free audio mutex
+>>> VIDIOC_REQBUFS - Failed to delete buffers: Invalid argument (errno 22)
+>>> closed v4l2 strutures
+>>> free controls - vidState
+>>> cleaned allocations - 100%
+>>> Closing portaudio ...OK
+>>> Terminated.
+>>>
+>>> are you sure with the web-page? i cannot see a relationship between
+>>> dvb and uvcvideo. shouldn't i download the most recent driver from
+>>> http://linux-uvc.berlios.de/#download ?
+>>>
+>>> thank you,
+>>>
+>>> joe
+>>>
+>>> On Wed, Dec 9, 2009 at 11:20 PM, Paulo Assis <pj.assis@gmail.com> wrote:
+>>>> Hi, could you try the following:
+>>>>
+>>>> echo 2 > /sys/module/uvcvideo/parameters/quirks
+>>>>
+>>>> this will set uvcvideo quirks to 2
+>>>>
+>>>> or you can also try the latest uvcvideo:
+>>>> http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+>>>>
+>>>> please if you can, use the latest version for guvcview (1.2.1)  :D
+>>>>
+>>>> Regards,
+>>>> Paulo
+>>>>
+>>>> 2009/12/9 Jozef Riha <jose1711@gmail.com>:
+>>>>> [jose@darkstar ~]$ LC_ALL=C guvcview --verbose
+>>>>> guvcview 1.1.4
+>>>>> video_device: /dev/video0
+>>>>> vid_sleep: 0
+>>>>> cap_meth: 1
+>>>>> resolution: 640 x 480
+>>>>> windowsize: 480 x 700
+>>>>> vert pane: 0
+>>>>> spin behavior: 0
+>>>>> mode: mjpg
+>>>>> fps: 1/25
+>>>>> Display Fps: 0
+>>>>> bpp: 0
+>>>>> hwaccel: 1
+>>>>> avi_format: 0
+>>>>> sound: 1
+>>>>> sound Device: 0
+>>>>> sound samp rate: 0
+>>>>> sound Channels: 0
+>>>>> Sound Block Size: 1 seconds
+>>>>> Sound Format: 80
+>>>>> Sound bit Rate: 160 Kbps
+>>>>> Pan Step: 2 degrees
+>>>>> Tilt Step: 2 degrees
+>>>>> Video Filter Flags: 0
+>>>>> image inc: 0
+>>>>> profile(default):/home/jose/default.gpfl
+>>>>> starting portaudio...
+>>>>> language catalog=> dir:/usr/share/locale type:C lang:C cat:guvcview.mo
+>>>>>
+>>>>> (guvcview:31380): GLib-GObject-WARNING **: IA__g_object_set_valist:
+>>>>> object class `GtkSettings' has no property named `gtk-button-images'
+>>>>> mjpg: setting format to 1196444237
+>>>>> capture method = 1
+>>>>> video device: /dev/video0
+>>>>> /dev/video0 - device 1
+>>>>> Init. UVC Camera (1b3b:2951) (location: usb-0000:00:1d.1-1)
+>>>>> { pixelformat = 'MJPG', description = 'MJPEG' }
+>>>>> { discrete: width = 640, height = 480 }
+>>>>>        Time interval between frame: 1/30,
+>>>>> { discrete: width = 320, height = 240 }
+>>>>>        Time interval between frame: 1/30,
+>>>>> { discrete: width = 160, height = 120 }
+>>>>>        Time interval between frame: 1/30,
+>>>>> checking format: 1196444237
+>>>>> VIDIOC_S_FORMAT - Unable to set format: Input/output error
+>>>>> Init v4L2 failed !!
+>>>>> Init video returned -2
+>>>>> trying minimum setup ...
+>>>>> capture method = 1
+>>>>> video device: /dev/video0
+>>>>> /dev/video0 - device 1
+>>>>> Init. UVC Camera (1b3b:2951) (location: usb-0000:00:1d.1-1)
+>>>>> { pixelformat = 'MJPG', description = 'MJPEG' }
+>>>>> { discrete: width = 640, height = 480 }
+>>>>>        Time interval between frame: 1/30,
+>>>>> { discrete: width = 320, height = 240 }
+>>>>>        Time interval between frame: 1/30,
+>>>>> { discrete: width = 160, height = 120 }
+>>>>>        Time interval between frame: 1/30,
+>>>>> checking format: 1196444237
+>>>>> VIDIOC_S_FORMAT - Unable to set format: Input/output error
+>>>>> Init v4L2 failed !!
+>>>>> ERROR: Minimum Setup Failed.
+>>>>>  Exiting...
+>>>>> Terminated.
+>>>>>
+>>>>>
+>>>>> On Wed, Dec 9, 2009 at 10:53 PM, Paulo Assis <pj.assis@gmail.com> wrote:
+>>>>>> Hi,
+>>>>>> Could you please try guvcview ( http://guvcview.berlios.de )
+>>>>>>
+>>>>>> Please post me the output of guvcview --verbose
+>>>>>>
+>>>>>> Best regards,
+>>>>>> Paulo
+>>>>>>
+>>>>>> 2009/12/9 Jozef Riha <jose1711@gmail.com>:
+>>>>>>> Jozef Riha <jose1711 <at> gmail.com> writes:
+>>>>>>>
+>>>>>>>>
+>>>>>>>> Hello dear ML members,
+>>>>>>>>
+>>>>>>>> I wonder whether you can help me with the following issue. My webcam
+>>>>>>>> MSI StarCam (http://www.aaronpc.cz/produkty/msi-starcam-370i)
+>>>>>>>> identified as
+>>>>>>>>
+>>>>>>>> ...
+>>>>>>>
+>>>>>>>
+>>>>>>> Sorry I forgot to add kernel version. It is 2.6.32, config at
+>>>>>>> http://repos.archlinux.org/wsvn/packages/kernel26/repos/core-i686/config
+>>>>>>>
+>>>>>>> --
+>>>>>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>>>>
 >
->+/**
->+ * vpfe_disable_clock() - Disable clocks for vpfe capture driver
->+ * @vpfe_dev - ptr to vpfe capture device
->+ *
->+ * Disables clocks defined in vpfe configuration.
->+ */
-> static void vpfe_disable_clock(struct vpfe_device *vpfe_dev)
-> {
-> 	struct vpfe_config *vpfe_cfg = vpfe_dev->cfg;
->+	int i;
->
->-	clk_disable(vpfe_cfg->vpssclk);
->-	clk_put(vpfe_cfg->vpssclk);
->-	clk_disable(vpfe_cfg->slaveclk);
->-	clk_put(vpfe_cfg->slaveclk);
->-	v4l2_info(vpfe_dev->pdev->driver,
->-		 "vpfe vpss master & slave clocks disabled\n");
->+	for (i = 0; i < vpfe_cfg->num_clocks; i++) {
->+		clk_disable(vpfe_dev->clks[i]);
->+		clk_put(vpfe_dev->clks[i]);
->+	}
->+	kfree(vpfe_dev->clks);
->+	v4l2_info(vpfe_dev->pdev->driver, "vpfe capture clocks disabled\n");
-> }
->
->+/**
->+ * vpfe_enable_clock() - Enable clocks for vpfe capture driver
->+ * @vpfe_dev - ptr to vpfe capture device
->+ *
->+ * Enables clocks defined in vpfe configuration. The function
->+ * assumes that at least one clock is to be defined which is
->+ * true as of now. re-visit this if this assumption is not true
->+ */
-> static int vpfe_enable_clock(struct vpfe_device *vpfe_dev)
-> {
-> 	struct vpfe_config *vpfe_cfg = vpfe_dev->cfg;
->-	int ret = -ENOENT;
->+	int i;
->
->-	vpfe_cfg->vpssclk = clk_get(vpfe_dev->pdev, "vpss_master");
->-	if (NULL == vpfe_cfg->vpssclk) {
->-		v4l2_err(vpfe_dev->pdev->driver, "No clock defined for"
->-			 "vpss_master\n");
->-		return ret;
->-	}
->+	if (!vpfe_cfg->num_clocks)
->+		return 0;
->
->-	if (clk_enable(vpfe_cfg->vpssclk)) {
->-		v4l2_err(vpfe_dev->pdev->driver,
->-			"vpfe vpss master clock not enabled\n");
->-		goto out;
->-	}
->-	v4l2_info(vpfe_dev->pdev->driver,
->-		 "vpfe vpss master clock enabled\n");
->+	vpfe_dev->clks = kzalloc(vpfe_cfg->num_clocks *
->+				   sizeof(struct clock *), GFP_KERNEL);
->
->-	vpfe_cfg->slaveclk = clk_get(vpfe_dev->pdev, "vpss_slave");
->-	if (NULL == vpfe_cfg->slaveclk) {
->-		v4l2_err(vpfe_dev->pdev->driver,
->-			"No clock defined for vpss slave\n");
->-		goto out;
->+	if (NULL == vpfe_dev->clks) {
->+		v4l2_err(vpfe_dev->pdev->driver, "Memory allocation failed\n");
->+		return -ENOMEM;
-> 	}
->
->-	if (clk_enable(vpfe_cfg->slaveclk)) {
->-		v4l2_err(vpfe_dev->pdev->driver,
->-			 "vpfe vpss slave clock not enabled\n");
->-		goto out;
->+	for (i = 0; i < vpfe_cfg->num_clocks; i++) {
->+		if (NULL == vpfe_cfg->clocks[i]) {
->+			v4l2_err(vpfe_dev->pdev->driver,
->+				"clock %s is not defined in vpfe config\n",
->+				vpfe_cfg->clocks[i]);
->+			goto out;
->+		}
->+
->+		vpfe_dev->clks[i] = clk_get(vpfe_dev->pdev,
->+					      vpfe_cfg->clocks[i]);
->+		if (NULL == vpfe_dev->clks[i]) {
->+			v4l2_err(vpfe_dev->pdev->driver,
->+				"Failed to get clock %s\n",
->+				vpfe_cfg->clocks[i]);
->+			goto out;
->+		}
->+
->+		if (clk_enable(vpfe_dev->clks[i])) {
->+			v4l2_err(vpfe_dev->pdev->driver,
->+				"vpfe clock %s not enabled\n",
->+				vpfe_cfg->clocks[i]);
->+			goto out;
->+		}
->+
->+		v4l2_info(vpfe_dev->pdev->driver, "vpss clock %s enabled",
->+			  vpfe_cfg->clocks[i]);
-> 	}
->-	v4l2_info(vpfe_dev->pdev->driver, "vpfe vpss slave clock enabled\n");
-> 	return 0;
-> out:
->-	if (vpfe_cfg->vpssclk)
->-		clk_put(vpfe_cfg->vpssclk);
->-	if (vpfe_cfg->slaveclk)
->-		clk_put(vpfe_cfg->slaveclk);
->-
->-	return -1;
->+	for (i = 0; i < vpfe_cfg->num_clocks; i++) {
->+		if (vpfe_dev->clks[i])
->+			clk_put(vpfe_dev->clks[i]);
->+	}
->+	kfree(vpfe_dev->clks);
->+	return -EFAULT;
-> }
->
->+
-> /*
->  * vpfe_probe : This function creates device entries by register
->  * itself to the V4L2 driver and initializes fields of each
->diff --git a/include/media/davinci/vpfe_capture.h
->b/include/media/davinci/vpfe_capture.h
->index d863e5e..7b62a5c 100644
->--- a/include/media/davinci/vpfe_capture.h
->+++ b/include/media/davinci/vpfe_capture.h
->@@ -31,8 +31,6 @@
-> #include <media/videobuf-dma-contig.h>
-> #include <media/davinci/vpfe_types.h>
->
->-#define VPFE_CAPTURE_NUM_DECODERS        5
->-
-> /* Macros */
-> #define VPFE_MAJOR_RELEASE              0
-> #define VPFE_MINOR_RELEASE              0
->@@ -91,9 +89,14 @@ struct vpfe_config {
-> 	char *card_name;
-> 	/* ccdc name */
-> 	char *ccdc;
->-	/* vpfe clock */
->+	/* vpfe clock. Obsolete! Will be removed in next patch */
-> 	struct clk *vpssclk;
->+	/* Obsolete! Will be removed in next patch */
-> 	struct clk *slaveclk;
->+	/* number of clocks */
->+	int num_clocks;
->+	/* clocks used for vpfe capture */
->+	char *clocks[];
-> };
->
-> struct vpfe_device {
->@@ -104,6 +107,8 @@ struct vpfe_device {
-> 	struct v4l2_subdev **sd;
-> 	/* vpfe cfg */
-> 	struct vpfe_config *cfg;
->+	/* clock ptrs for vpfe capture */
->+	struct clk **clks;
-> 	/* V4l2 device */
-> 	struct v4l2_device v4l2_dev;
-> 	/* parent device */
->--
->1.6.0.4
-
