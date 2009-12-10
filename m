@@ -1,71 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f187.google.com ([209.85.210.187]:51015 "EHLO
-	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755620AbZLINMq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2009 08:12:46 -0500
-Received: by yxe17 with SMTP id 17so5872230yxe.33
-        for <linux-media@vger.kernel.org>; Wed, 09 Dec 2009 05:12:53 -0800 (PST)
-From: Magnus Damm <magnus.damm@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, Magnus Damm <magnus.damm@gmail.com>,
-	m-karicheri2@ti.com, g.liakhovetski@gmx.de, mchehab@infradead.org
-Date: Wed, 09 Dec 2009 22:07:12 +0900
-Message-Id: <20091209130712.32292.81708.sendpatchset@rxone.opensource.se>
-Subject: [PATCH] sh_mobile_ceu_camera: Add physical address alignment checks
+Received: from comal.ext.ti.com ([198.47.26.152]:56791 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751757AbZLJUCS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Dec 2009 15:02:18 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+CC: "davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Thu, 10 Dec 2009 14:02:22 -0600
+Subject: RE: [PATCH - v1 1/2] V4L - vpfe capture - make clocks configurable
+Message-ID: <A69FA2915331DC488A831521EAE36FE40155C80BFC@dlee06.ent.ti.com>
+References: <1259687940-31435-1-git-send-email-m-karicheri2@ti.com>
+	<87hbs0xhlx.fsf@deeprootsystems.com>
+	<A69FA2915331DC488A831521EAE36FE40155C805C3@dlee06.ent.ti.com>
+	<A69FA2915331DC488A831521EAE36FE40155C805F7@dlee06.ent.ti.com>
+	<A69FA2915331DC488A831521EAE36FE40155C806EE@dlee06.ent.ti.com>
+ <87ws0ups22.fsf@deeprootsystems.com>
+In-Reply-To: <87ws0ups22.fsf@deeprootsystems.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Magnus Damm <damm@opensource.se>
 
-Make sure physical addresses are 32-bit aligned in the
-SuperH Mobile CEU driver. The lowest two bits of the
-address registers are fixed to zero so frame buffers
-have to bit 32-bit aligned. The V4L2 mmap() case is
-using dma_alloc_coherent() for this driver which will
-return aligned addresses, but in the USERPTR case we
-must make sure that the user space pointer is valid.
+>> Kevin,
+>>
+>> I think I have figured it out...
+>>
+>> First issue was that I was adding my entry at the end of dm644x_clks[]
+>> array. I need to add it before the CLK(NULL, NULL, NULL)
+>>
+>> secondly, your suggestion didn't work as is. This is what I had to
+>> do to get it working...
+>>
+>> static struct clk ccdc_master_clk = {
+>> 	.name = "dm644x_ccdc",
+>> 	.parent = &vpss_master_clk,
+>> };
+>>
+>> static struct clk ccdc_slave_clk = {
+>> 	.name = "dm644x_ccdc",
+>> 	.parent = &vpss_slave_clk,
+>> };
 
-Signed-off-by: Magnus Damm <damm@opensource.se>
----
+It doesn't work with out doing this. The cat /proc/davinci_clocks hangs with
+your suggestion implemented...
 
- drivers/media/video/sh_mobile_ceu_camera.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+>
+>You should not need to add new clocks with new names.  I don't thinke
+>the name field of the struct clk is used anywhere in the matching.
+>I think it's only used in /proc/davinci_clocks
+>
+>> static struct davinci_clk dm365_clks = {
+>> ....
+>> ....
+>> CLK("dm644x_ccdc", "master", &ccdc_master_clk),
+>> CLK("dm644x_ccdc", "slave", &ccdc_slave_clk),
+>
+>Looks like the drivers name is 'dm644x_ccdc', not 'isif'.  I'm
+>guessing just this should work without having to add new clock names.
+>
+No. I have mixed up the names. ISIF is for the new ISIF driver on DM365.
+Below are for DM644x ccdc driver. With just these entries added, two
+things observed....
 
---- 0001/drivers/media/video/sh_mobile_ceu_camera.c
-+++ work/drivers/media/video/sh_mobile_ceu_camera.c	2009-12-09 17:16:47.000000000 +0900
-@@ -278,9 +278,14 @@ static int sh_mobile_ceu_capture(struct 
- 
- 	phys_addr_top = videobuf_to_dma_contig(pcdev->active);
- 	ceu_write(pcdev, CDAYR, phys_addr_top);
-+	if (phys_addr_top & 3)
-+		return -EINVAL;
-+
- 	if (pcdev->is_interlaced) {
- 		phys_addr_bottom = phys_addr_top + icd->user_width;
- 		ceu_write(pcdev, CDBYR, phys_addr_bottom);
-+		if (phys_addr_bottom & 3)
-+			return -EINVAL;
- 	}
- 
- 	switch (icd->current_fmt->fourcc) {
-@@ -288,13 +293,16 @@ static int sh_mobile_ceu_capture(struct 
- 	case V4L2_PIX_FMT_NV21:
- 	case V4L2_PIX_FMT_NV16:
- 	case V4L2_PIX_FMT_NV61:
--		phys_addr_top += icd->user_width *
--			icd->user_height;
-+		phys_addr_top += icd->user_width * icd->user_height;
- 		ceu_write(pcdev, CDACR, phys_addr_top);
-+		if (phys_addr_top & 3)
-+			return -EINVAL;
-+
- 		if (pcdev->is_interlaced) {
--			phys_addr_bottom = phys_addr_top +
--				icd->user_width;
-+			phys_addr_bottom = phys_addr_top + icd->user_width;
- 			ceu_write(pcdev, CDBCR, phys_addr_bottom);
-+			if (phys_addr_bottom & 3)
-+				return -EINVAL;
- 		}
- 	}
- 
+1) Only one clock is shown disabled (usually many are shown disabled) during bootup
+2) cat /proc/davinci_clocks hangs.
+
+So this is the only way I got it working.
+
+>CLK("dm644x_ccdc", "master", &vpss_master_clk),
+>CLK("dm644x_ccdc", "slave", &vpss_slave_clk),
+>
+>> CLK(NULL, NULL, NULL);
+>>
+>> Let me know if you think there is anything wrong with the above scheme.
+>
+>Kevin
