@@ -1,70 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f212.google.com ([209.85.217.212]:35852 "EHLO
-	mail-gx0-f212.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761551AbZLJTGY (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2671 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761550AbZLJTKR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2009 14:06:24 -0500
-Received: by gxk4 with SMTP id 4so211828gxk.8
-        for <linux-media@vger.kernel.org>; Thu, 10 Dec 2009 11:06:31 -0800 (PST)
-To: "Karicheri\, Muralidharan" <m-karicheri2@ti.com>
-Cc: "davinci-linux-open-source\@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"linux-media\@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH - v1 1/2] V4L - vpfe capture - make clocks configurable
-References: <1259687940-31435-1-git-send-email-m-karicheri2@ti.com>
-	<87hbs0xhlx.fsf@deeprootsystems.com>
-	<A69FA2915331DC488A831521EAE36FE40155C805C3@dlee06.ent.ti.com>
-	<A69FA2915331DC488A831521EAE36FE40155C805F7@dlee06.ent.ti.com>
-	<A69FA2915331DC488A831521EAE36FE40155C806EE@dlee06.ent.ti.com>
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Date: Thu, 10 Dec 2009 11:06:29 -0800
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE40155C806EE@dlee06.ent.ti.com> (Muralidharan Karicheri's message of "Wed\, 9 Dec 2009 14\:33\:07 -0600")
-Message-ID: <87ws0ups22.fsf@deeprootsystems.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+	Thu, 10 Dec 2009 14:10:17 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id nBAJAMEN053278
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 10 Dec 2009 20:10:22 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 10 Dec 2009 20:10:22 +0100 (CET)
+Message-Id: <200912101910.nBAJAMEN053278@smtp-vbr15.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-"Karicheri, Muralidharan" <m-karicheri2@ti.com> writes:
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-> Kevin,
->
-> I think I have figured it out...
->
-> First issue was that I was adding my entry at the end of dm644x_clks[]
-> array. I need to add it before the CLK(NULL, NULL, NULL)
->
-> secondly, your suggestion didn't work as is. This is what I had to
-> do to get it working...
->
-> static struct clk ccdc_master_clk = {
-> 	.name = "dm644x_ccdc",
-> 	.parent = &vpss_master_clk,
-> };
->
-> static struct clk ccdc_slave_clk = {
-> 	.name = "dm644x_ccdc",
-> 	.parent = &vpss_slave_clk,
-> };
+Results of the daily build of v4l-dvb:
 
-You should not need to add new clocks with new names.  I don't thinke
-the name field of the struct clk is used anywhere in the matching.
-I think it's only used in /proc/davinci_clocks
+date:        Thu Dec 10 19:00:04 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13592:1e6049b8cb4c
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-> static struct davinci_clk dm365_clks = {
-> ....
-> ....
-> CLK("dm644x_ccdc", "master", &ccdc_master_clk),
-> CLK("dm644x_ccdc", "slave", &ccdc_slave_clk),
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-armv5: OK
+linux-2.6.32-armv5-davinci: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-armv5-ixp: OK
+linux-2.6.32-armv5-ixp: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: OK
+linux-2.6.32-armv5-omap2: OK
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: ERRORS
+linux-2.6.27-i686: ERRORS
+linux-2.6.28-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30-i686: OK
+linux-2.6.31-i686: OK
+linux-2.6.32-i686: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-m32r: OK
+linux-2.6.30-mips: OK
+linux-2.6.31-mips: OK
+linux-2.6.32-mips: OK
+linux-2.6.30-powerpc64: OK
+linux-2.6.31-powerpc64: OK
+linux-2.6.32-powerpc64: OK
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: ERRORS
+linux-2.6.27-x86_64: ERRORS
+linux-2.6.28-x86_64: ERRORS
+linux-2.6.29.1-x86_64: ERRORS
+linux-2.6.30-x86_64: OK
+linux-2.6.31-x86_64: OK
+linux-2.6.32-x86_64: OK
+spec: OK
+sparse (linux-2.6.32): ERRORS
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-Looks like the drivers name is 'dm644x_ccdc', not 'isif'.  I'm
-guessing just this should work without having to add new clock names.
+Detailed results are available here:
 
-CLK("dm644x_ccdc", "master", &vpss_master_clk),
-CLK("dm644x_ccdc", "slave", &vpss_slave_clk),
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-> CLK(NULL, NULL, NULL); 
->
-> Let me know if you think there is anything wrong with the above scheme.
+Full logs are available here:
 
-Kevin
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
