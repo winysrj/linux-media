@@ -1,55 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from khc.piap.pl ([195.187.100.11]:55366 "EHLO khc.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755342AbZLHOG2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2009 09:06:28 -0500
-From: Krzysztof Halasa <khc@pm.waw.pl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Gerd Hoffmann <kraxel@redhat.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jonsmirl@gmail.com,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
-References: <BDodf9W1qgB@lirc> <4B14EDE3.5050201@redhat.com>
-	<4B1524DD.3080708@redhat.com> <4B153617.8070608@redhat.com>
-	<A6D5FF84-2DB8-4543-ACCB-287305CA0739@wilsonet.com>
-	<4B17AA6A.9060702@redhat.com>
-	<20091203175531.GB776@core.coreip.homeip.net>
-	<20091203163328.613699e5@pedra>
-	<20091204100642.GD22570@core.coreip.homeip.net>
-	<20091204121234.5144836b@pedra>
-	<20091206070929.GB14651@core.coreip.homeip.net>
-	<4B1B8F83.5080009@redhat.com> <m31vj77t51.fsf@intrepid.localdomain>
-	<4B1D9714.5060000@redhat.com>
-Date: Tue, 08 Dec 2009 15:06:31 +0100
-In-Reply-To: <4B1D9714.5060000@redhat.com> (Mauro Carvalho Chehab's message of
-	"Mon, 07 Dec 2009 22:00:20 -0200")
-Message-ID: <m3zl5ttva0.fsf@intrepid.localdomain>
+Received: from mail-fx0-f213.google.com ([209.85.220.213]:54235 "EHLO
+	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761206AbZLJTBP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Dec 2009 14:01:15 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+In-Reply-To: <20091210162805.5e1b6319@pedra>
+References: <20091210162805.5e1b6319@pedra>
+Date: Thu, 10 Dec 2009 14:01:15 -0500
+Message-ID: <829197380912101101t39079ebal54b437ea11ffdb34@mail.gmail.com>
+Subject: Re: Firmware for dib0700
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: David Woodhouse <dwmw2@infradead.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab <mchehab@redhat.com> writes:
+On Thu, Dec 10, 2009 at 1:28 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Hi David,
+>
+> Please pull from:
+>
+> ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-firmware.git master
+>
+> For dib0700 firmware.
 
-> Yes, an opaque type for scancode at the userspace API can be better, but
-> passing a pointer to kernel will require some compat32 logic (as pointer
-> size is different on 32 and 64 bits).
+Mauro,
 
-Yes. I think we can't avoid that, but it's a single compat handler,
-I wouldn't worry about it too much. We don't need it in every driver
-fortunately.
+I had David pull in this firmware months ago (so it could be included
+in time for the release of Ubuntu Karmic):
 
-> We may use something like an u8[] with an arbitrary large number of
-> bytes.
+http://git.kernel.org/?p=linux/kernel/git/dwmw2/linux-firmware.git;a=commit;h=f20b0674534a444ae74239843cac19f72c64912b
 
-Yes. All of this pointed to by the pointer.
+Am I missing something?
 
-> In this case, we need to take some care to avoid LSB/MSB troubles.
+Devin
 
-Sure.
 -- 
-Krzysztof Halasa
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
