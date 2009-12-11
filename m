@@ -1,86 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ms01.sssup.it ([193.205.80.99]:36885 "EHLO sssup.it"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751269AbZLPQDx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2009 11:03:53 -0500
-Message-ID: <4B2904E3.3000000@panicking.kicks-ass.org>
-Date: Wed, 16 Dec 2009 17:03:47 +0100
-From: Michael Trimarchi <michael@panicking.kicks-ass.org>
+Received: from mail-yx0-f187.google.com ([209.85.210.187]:48830 "EHLO
+	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753432AbZLKSEb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Dec 2009 13:04:31 -0500
+Received: by yxe17 with SMTP id 17so1012816yxe.33
+        for <linux-media@vger.kernel.org>; Fri, 11 Dec 2009 10:04:38 -0800 (PST)
 MIME-Version: 1.0
-To: Gopala Gottumukkala <ggottumu@Cernium.com>
-CC: Philby John <pjohn@in.mvista.com>,
-	davinci-linux-open-source@linux.davincidsp.com,
-	linux-media@vger.kernel.org
-Subject: Re: USB MAssage Storage drivers
-References: <1259596313-16712-1-git-send-email-santiago.nunez@ridgerun.com> <200912152149.33065.hverkuil@xs4all.nl> <03A2FA9E0D3DC841992E682BF5287718016D39D9@lipwig.Cernium.local> <1260948105.4253.21.camel@localhost.localdomain> <03A2FA9E0D3DC841992E682BF5287718016D3A53@lipwig.Cernium.local>
-In-Reply-To: <03A2FA9E0D3DC841992E682BF5287718016D3A53@lipwig.Cernium.local>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <Pine.LNX.4.64.0912111826300.5084@axis700.grange>
+References: <37367b3a0912071113y41efc736h20a6fe203244811d@mail.gmail.com>
+	 <Pine.LNX.4.64.0912072052030.8481@axis700.grange>
+	 <37367b3a0912080842h601be618tdc4151ba226bbb60@mail.gmail.com>
+	 <37367b3a0912110856p24462203q481d6c330380c665@mail.gmail.com>
+	 <Pine.LNX.4.64.0912111826300.5084@axis700.grange>
+Date: Fri, 11 Dec 2009 15:57:16 -0200
+Message-ID: <37367b3a0912110957w7f603cbar81ee59183a55f535@mail.gmail.com>
+Subject: Re: soc_camera: OV2640
+From: Alan Carvalho de Assis <acassis@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Guennadi,
 
-Gopala Gottumukkala wrote:
-> (gcc version 3.4.3 (MontaVista 3.4.3-25.0.104.0600975 2006-07-06)) #4
-> PREEMPT Tue Dec 15 18:10:24 EST 2009
-> CPU: ARM926EJ-S [41069265] revision 5 (ARMv5TEJ), cr=00053177
-> CPU: VIVT data cache, VIVT instruction cache
-> Machine: DaVinci DM644x EVM
-> Memory policy: ECC disabled, Data cache writeback
-> DaVinci dm6446 variant 0x0
-> Built 1 zonelists in Zone order, mobility grouping on.  Total pages:
-> 50800
-> 
-> I have compile the kernel 2.6.32 and boot up the target.  But when I
-> plug in the mass storage like external HDD or Pendrive it is not
-> recognizing.
+On 12/11/09, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> On Fri, 11 Dec 2009, Alan Carvalho de Assis wrote:
+>> I got mx27_camera from pengutronix tree and modified it to work with
+>> kernel 2.6.32 (few modifications).
+>
+> Sorry, I cannot help you with an out-of-tree driver, and generally I would
+> expect significant changes when going to 2.6.32.
+>
 
-Do you compile the usb support? Do you have in your config?
+Right, I can post a patch to add mx27_camera on mainstream kernel
+since Sascha (original author) let me do it.
 
-Michael
+Sascha, can I submit it?
 
+Best Regards,
 
-> 
-> Any help appreciated.
-> 
-> - GG
-> 
-> -----Original Message-----
-> From: Philby John [mailto:pjohn@in.mvista.com] 
-> Sent: Wednesday, December 16, 2009 2:22 AM
-> To: Gopala Gottumukkala
-> Cc: davinci-linux-open-source@linux.davincidsp.com;
-> linux-media@vger.kernel.org
-> Subject: Re: USB MAssage Storage drivers
-> 
-> On Tue, 2009-12-15 at 18:46 -0500, Gopala Gottumukkala wrote:
->> My target is not recognizing the USB massage storage. I am working the
->> 2.6.32 Davinci kernel
->>
->> Any suggestion and ideas.
-> 
-> ahah, this information isn't enough. Your Vendor/Product ID for this
-> device is compared in a lookup a table. If no match is found, your
-> device probably won't be detected as mass storage. You could check in
-> the unusual_devs.h to see if your device is included there, if your
-> device is relatively new you could submit a Vendor/Product ID to the USB
-> dev list for inclusion.
-> 
-> 
-> Regards,
-> Philby
-> 
-> 
-> 
-> 
-> 
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+Alan
