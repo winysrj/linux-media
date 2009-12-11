@@ -1,110 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:37216 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752054AbZLKJdO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2009 04:33:14 -0500
-Subject: Re: [linux-dvb] Hauppauge PVR-150 Vertical sync issue?
-From: Andy Walls <awalls@radix.net>
-To: Robert Longfield <robert.longfield@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-In-Reply-To: <34373e030912100856r2ba80741yca8f79c84ee730e3@mail.gmail.com>
-References: <34373e030911241005r7f499297y1a84a93e0696f550@mail.gmail.com>
-	 <1259106230.3069.16.camel@palomino.walls.org>
-	 <34373e030912100856r2ba80741yca8f79c84ee730e3@mail.gmail.com>
-Content-Type: text/plain
-Date: Fri, 11 Dec 2009 04:32:22 -0500
-Message-Id: <1260523942.3087.21.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:55720 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933370AbZLKBjO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Dec 2009 20:39:14 -0500
+Received: by bwz27 with SMTP id 27so323188bwz.21
+        for <linux-media@vger.kernel.org>; Thu, 10 Dec 2009 17:39:19 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <829197380912072020s79199b84g20dbc341e4d231e1@mail.gmail.com>
+References: <44c6f3de0912041415r54d8ab6fq486f2a82edb91a68@mail.gmail.com>
+	<829197380912041526r764a0deeyb64910a22e92d75d@mail.gmail.com>
+	<829197380912072020s79199b84g20dbc341e4d231e1@mail.gmail.com>
+From: John S Gruber <johnsgruber@gmail.com>
+Date: Thu, 10 Dec 2009 20:38:59 -0500
+Message-ID: <44c6f3de0912101738h7f102929i54fbcceceb616edf@mail.gmail.com>
+Subject: Re: [PATCH] sound/usb: Relax urb data alignment restriciton for
+	HVR-950Q only
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2009-12-10 at 11:56 -0500, Robert Longfield wrote:
-> Ok I've been able to do some troubleshooting with some interesting results.
-> I removed the one splitter being used, connected to the main cable
-> coming into the house, isolated the grounds with no change in sync
-> issues.
-> I pulled the pvr-150 card out of the linux machine and put it into my
-> window box, hooked it up to the original setup splitter and no ground
-> isolation and the video is crystal clear with no sync issues.
-> 
-> I can only come up with a few possible problems, but I am sure there are more.
-> Could this be a driver issue on my linux box?
+> After reviewing the patch as well as the spec, your change looks
+> pretty reasonable (aside from the fact that you need the other USB
+> IDs).  It seems pretty clear that the au0828 violates the spec, but
+> the spec does indicate how to handle that case, which is what your
+> code addresses.
+>
 
-Given your results, yes it is most likely a linux driver issue.  The
-suspects would be the cx25840 module, or the modules for the analog
-tuner.
+I think you found something in the specification I haven't found. What did you
+see that indicated how to deal with equipment misbehaving in this way?
 
-What analog tuner assembly type does the tveeprom module show for your
-card in dmesg?
+I found the following list of USB ID's. Just double checking, but is
+the 850 enough like the
+950 line for me to include it?
 
-Also what video standard are you capturing: NTSC or something else?
-
-
-> Could a bad or failing PCI slot cause this problem?
-
-No.  A *very* busy PCI bus may cause some I2C transactions that set up
-the tuner or CX25843 to fail, but it is more likely simply a suboptimal
-tuner or CX25843 configuration issue.
+        case 72000: /* WinTV-HVR950q (Retail, IR, ATSC/QAM */
+        case 72001: /* WinTV-HVR950q (Retail, IR, ATSC/QAM and analog video */
+        case 72211: /* WinTV-HVR950q (OEM, IR, ATSC/QAM and analog video */
+        case 72221: /* WinTV-HVR950q (OEM, IR, ATSC/QAM and analog video */
+        case 72231: /* WinTV-HVR950q (OEM, IR, ATSC/QAM and analog video */
+        case 72241: /* WinTV-HVR950q (OEM, No IR, ATSC/QAM and analog video */
+        case 72251: /* WinTV-HVR950q (Retail, IR, ATSC/QAM and analog video */
+-->   case 72301: /* WinTV-HVR850 (Retail, IR, ATSC and analog video */
+        case 72500: /* WinTV-HVR950q (OEM, No IR, ATSC/QAM */
 
 
-> However the sync
-> problem is not on every channel.
-> 
-> I'm going to try moving the linux box across the house to see if there
-> is a source of EMI near by, but since the windows box doesn't have
-> this issue I assume this is a problem with the linux box.
+Thanks again, not only for your help with my change, but with all you did to
+provide support for the Hauppage equipment.
 
-I suppose you could try a linux liveCD in the Windows box and use
+I'd add that being the beginner at making kernel changes your review
+is particularly
+helpful to me (and to my confidence).
 
-	$ cat /dev/video0 > foo.mpg
-
-to capture video.  Then move foo.mpg to a USB flash disk and play back
-foo.mpg where ever it is convenient.  If foo.mpg shows artifacts then
-you can be somewhat sure of a linux driver issue.
-
-
-> -Rob
-> 
-> On Tue, Nov 24, 2009 at 6:43 PM, Andy Walls <awalls@radix.net> wrote:
-> > On Tue, 2009-11-24 at 13:05 -0500, Robert Longfield wrote:
-> >> I have a PVR-150 card running on mythbuntu 9 and it appears that my
-> >> card is suffering a vertical (and possibly a horizontal) sync issue.
-> >>
-> >> The video jumps around, shifts from side to side, up and down and when
-> >> it shifts the video wraps. I'm including a link to a screen shot
-> >> showing the vertical sync problem
-> >>
-> >> http://imagebin.ca/view/6fS-14Yi.html
-> >
-> > It looks like you have strong singal reflections in your cable due to
-> > impedance mismatches, a bad splitter, a bad cable or connector, etc.
-> >
-> > Please read:
-> >
-> > http://www.ivtvdriver.org/index.php/Howto:Improve_signal_quality
-> >
-> > and take steps to ensure you've got a good cabling plant in your home.
-> >
-> > Regards,
-> > Andy
-> >
-> >> This is pretty tame to what happens sometimes. I haven't noticed this
-> >> on all channels as we are mostly using this to record shows for my
-> >> son.
-> >>
-> >> Here is my setup. Pentium 4 2 Ghz with a gig of ram. 40 gig OS drive,
-> >> 150 gig drive for recording, 250 gig drive for backup and storage, a
-> >> dvd-burner.
-> >> The 150 gig drive is on a Promise Ultra133 TX2 card but exhibits no
-> >> issues on reads or writes.
-> >> I have cable connected to the internal tuner of my PVR-150 card and
-> >> S-video from an Nvidia card (running Nvidea drivers) out to the TV.
-> >>
-> >> I don't know what else I can provide to help out but let me know and
-> >> I'll get it.
-> >>
-> >> Thanks,
-> >> -Rob
-
-
+John
