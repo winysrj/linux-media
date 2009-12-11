@@ -1,48 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42477 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756801AbZLJT6Y convert rfc822-to-8bit (ORCPT
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:63192 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760725AbZLKCyh convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2009 14:58:24 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Kevin Hilman <khilman@deeprootsystems.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>
-Date: Thu, 10 Dec 2009 13:58:28 -0600
-Subject: RE: [PATCH - v1 1/2] V4L - vpfe capture - make clocks configurable
-Message-ID: <A69FA2915331DC488A831521EAE36FE40155C80BF0@dlee06.ent.ti.com>
-References: <1259687940-31435-1-git-send-email-m-karicheri2@ti.com>
-	<87hbs0xhlx.fsf@deeprootsystems.com>
-	<A69FA2915331DC488A831521EAE36FE40155C805C3@dlee06.ent.ti.com>
- <877hsur6tv.fsf@deeprootsystems.com>
-In-Reply-To: <877hsur6tv.fsf@deeprootsystems.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Thu, 10 Dec 2009 21:54:37 -0500
+Received: by bwz27 with SMTP id 27so346679bwz.21
+        for <linux-media@vger.kernel.org>; Thu, 10 Dec 2009 18:54:43 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <829197380912101749w5f1d1635gbdda2ac2fb980b8c@mail.gmail.com>
+References: <44c6f3de0912041415r54d8ab6fq486f2a82edb91a68@mail.gmail.com>
+	<829197380912041526r764a0deeyb64910a22e92d75d@mail.gmail.com>
+	<829197380912072020s79199b84g20dbc341e4d231e1@mail.gmail.com>
+	<44c6f3de0912101738h7f102929i54fbcceceb616edf@mail.gmail.com>
+	<829197380912101749w5f1d1635gbdda2ac2fb980b8c@mail.gmail.com>
+From: John S Gruber <johnsgruber@gmail.com>
+Date: Thu, 10 Dec 2009 21:54:22 -0500
+Message-ID: <44c6f3de0912101854t4fc4603dn1ec4afbb77362e42@mail.gmail.com>
+Subject: Re: [PATCH] sound/usb: Relax urb data alignment restriciton for
+	HVR-950Q only
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu, Dec 10, 2009 at 8:49 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> Hello John,
+>
+> On Thu, Dec 10, 2009 at 8:38 PM, John S Gruber <johnsgruber@gmail.com> wrote:
+>> I think you found something in the specification I haven't found. What did you
+>> see that indicated how to deal with equipment misbehaving in this way?
+>
+> I'm referring to section 2.3.2.3 of "Universal Serial Bus Device Class
+> Definition for Audio Data Formats"
+>
+>> I found the following list of USB ID's. Just double checking, but is
+>> the 850 enough like the
+>> 950 line for me to include it?
+>>
+>>        case 72000: /* WinTV-HVR950q (Retail, IR, ATSC/QAM */
+>>        case 72001: /* WinTV-HVR950q (Retail, IR, ATSC/QAM and analog video */
+>>        case 72211: /* WinTV-HVR950q (OEM, IR, ATSC/QAM and analog video */
+>>        case 72221: /* WinTV-HVR950q (OEM, IR, ATSC/QAM and analog video */
+>>        case 72231: /* WinTV-HVR950q (OEM, IR, ATSC/QAM and analog video */
+>>        case 72241: /* WinTV-HVR950q (OEM, No IR, ATSC/QAM and analog video */
+>>        case 72251: /* WinTV-HVR950q (Retail, IR, ATSC/QAM and analog video */
+>> -->   case 72301: /* WinTV-HVR850 (Retail, IR, ATSC and analog video */
+>>        case 72500: /* WinTV-HVR950q (OEM, No IR, ATSC/QAM */
+>
+> Yes, the HVR-850 should be included in the list.
+>
+>> I'd add that being the beginner at making kernel changes your review
+>> is particularly
+>> helpful to me (and to my confidence).
+>
+> You are likely to receive a more thorough/critical review when you
+> send to the alsa-devel mailing list, as they have considerably more
+> expertise in this area than I do.
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
+>
 
->> I thought following is correct:-
->> Probe()
->> clk_get() followed by clk_enable()
->> Remove()
->> clk_disable() followed by clk_put()
->> Suspend()
->> clk_disable()
->> Resume()
->> clk_enable()
->
->Yes, that is correct.
->
->I didn't look at the whole driver.  My concern was that if the driver
->was enhanced to more aggressive clock management, you shouldn't do a
->clk_get() every time you do a clk_enable(), same for put.
-Got you. I am in sync with your thinking.
--Murali
->
->Kevin
+I'll do that.
