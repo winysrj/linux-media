@@ -1,107 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3237 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932305AbZLOVBZ (ORCPT
+Received: from rcsinet12.oracle.com ([148.87.113.124]:39469 "EHLO
+	rcsinet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752862AbZLKRg4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Dec 2009 16:01:25 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: santiago.nunez@ridgerun.com
-Subject: Re: [PATCH 0/4 v11] Support for TVP7002 in DM365
-Date: Tue, 15 Dec 2009 22:01:45 +0100
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"Narnakaje, Snehaprabha" <nsnehaprabha@ti.com>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"Grosen, Mark" <mgrosen@ti.com>,
-	Diego Dompe <diego.dompe@ridgerun.com>,
-	"todd.fischer@ridgerun.com" <todd.fischer@ridgerun.com>
-References: <4B13E9EB.8020309@ridgerun.com> <200912080750.51463.hverkuil@xs4all.nl> <4B27E263.3020707@ridgerun.com>
-In-Reply-To: <4B27E263.3020707@ridgerun.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+	Fri, 11 Dec 2009 12:36:56 -0500
+Date: Fri, 11 Dec 2009 09:36:37 -0800
+From: Randy Dunlap <randy.dunlap@oracle.com>
+To: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-media@vger.kernel.org
+Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Subject: Re: linux-next: Tree for December 11 (media/dvb/frontends)
+Message-Id: <20091211093637.be0b6584.randy.dunlap@oracle.com>
+In-Reply-To: <20091211160151.6b71078e.sfr@canb.auug.org.au>
+References: <20091211160151.6b71078e.sfr@canb.auug.org.au>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <200912152201.45659.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 15 December 2009 20:24:19 Santiago Nunez-Corrales wrote:
-> Hi Hans,
-> 
-> 
-> I know you'be been busy and in the road lately. Just checking if you had 
-> the chance to review this version of the code.
+On Fri, 11 Dec 2009 16:01:51 +1100 Stephen Rothwell wrote:
 
-Done!
+> Hi all,
+> 
+> My usual call for calm: please do not put stuff destined for 2.6.34 into
+> linux-next trees until after 2.6.33-rc1.
+> 
+> Changes since 20091210:
 
-Regards,
 
-	Hans
+drivers/media/dvb/frontends/dib0090.h:103: error: expected '=', ',', ';', 'asm' or '__attribute__' before 'frontend_tune_state'
 
-> 
-> Regards,
-> 
-> Hans Verkuil wrote:
-> > On Tuesday 08 December 2009 01:44:43 Santiago Nunez-Corrales wrote:
-> >   
-> >> Hans,
-> >>
-> >>
-> >> Hi. Have you had a chance to look at this version of the driver?
-> >>     
-> >
-> > Sorry, no. I hope to have some time on Thursday. I'm abroad for business at
-> > the moment and unfortunately that leaves me with little time for reviewing.
-> >
-> > This is not just true for this driver, but also for the dm365 series that was
-> > posted recently. And possibly others that I missed :-(
-> >
-> > Regards,
-> >
-> > 	Hans
-> >
-> >   
-> >> Regards,
-> >>
-> >>
-> >> Santiago.
-> >>
-> >> Santiago Nunez-Corrales wrote:
-> >>     
-> >>> This series of patches provide support for the TVP7002 decoder in DM365.
-> >>>
-> >>> Support includes:
-> >>>
-> >>> * Inclusion of the chip in v4l2 definitions
-> >>> * Definition of TVP7002 specific data structures
-> >>> * Kconfig and Makefile support
-> >>>
-> >>> This series corrects many issued pointed out by Snehaprabha Narnakaje,
-> >>> Muralidharan Karicheri, Vaibhav Hiremath and Hans Verkuil and solves
-> >>> testing problems.  Tested on DM365 TI EVM with resolutions 720p,
-> >>> 1080i@60, 576P and 480P with video capture application and video
-> >>> output in 480P, 576P, 720P and 1080I. This driver depends upon
-> >>> board-dm365-evm.c and vpfe_capture.c to be ready for complete
-> >>> integration. Uses the new V4L2 DV API sent by Muralidharan Karicheri.
-> >>> Removed shadow register values. Removed unnecesary power down and up
-> >>> of the device (tests work fine). Improved readability.
-> >>>
-> >>>
-> >>>       
-> >>
-> >> Guayabos, Curridabat
-> >> San Jose, Costa Rica
-> >> +(506) 2271 1487
-> >> +(506) 8313 0536
-> >> http://www.ridgerun.com
-> >>
-> >>
-> >>
-> >>     
-> 
-> 
-> 
+static inline num frontend_tune_state dib0090_get_tune_state(struct dvb_frontend *fe)
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+s/num/enum/
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+drivers/media/dvb/frontends/dib8000.h:104: error: expected expression before '}' token
+drivers/media/dvb/frontends/dib8000.h:104: warning: left-hand operand of comma expression has no effect
+
+    return CT_SHUTDOWN,
+
+s/,/;/
+and use tab to indent.
+
+
+
+someone built/tested these??
+
+---
+~Randy
