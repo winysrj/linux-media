@@ -1,97 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:36559 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756443AbZLCPbe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 10:31:34 -0500
-Received: by bwz27 with SMTP id 27so1190528bwz.21
-        for <linux-media@vger.kernel.org>; Thu, 03 Dec 2009 07:31:39 -0800 (PST)
+Received: from mail-ew0-f209.google.com ([209.85.219.209]:48399 "EHLO
+	mail-ew0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756854AbZLKORr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Dec 2009 09:17:47 -0500
+Received: by ewy1 with SMTP id 1so1077772ewy.28
+        for <linux-media@vger.kernel.org>; Fri, 11 Dec 2009 06:17:53 -0800 (PST)
+Message-ID: <4B2254A4.3080105@flumotion.com>
+Date: Fri, 11 Dec 2009 15:18:12 +0100
+From: =?ISO-8859-1?Q?Guillem_Sol=E0?= <garanda@flumotion.com>
 MIME-Version: 1.0
-In-Reply-To: <751357790912030639l6ddcb4bar486fdea6b9aa1a8e@mail.gmail.com>
-References: <751357790912030639l6ddcb4bar486fdea6b9aa1a8e@mail.gmail.com>
-Date: Thu, 3 Dec 2009 15:31:39 +0000
-Message-ID: <751357790912030731g5b09bac8w322f4c1754c3d87d@mail.gmail.com>
-Subject: Fwd: DVB-APPS patch for uk-WinterHill
-From: Justin Hornsby <justin0hornsby@gmail.com>
 To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=00032555999e004b010479d4b0c6
+Subject: Re: TveiiS470 and DVBWorld2005 not working
+References: <4B21260D.9080408@flumotion.com>
+In-Reply-To: <4B21260D.9080408@flumotion.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---00032555999e004b010479d4b0c6
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Guillem Solà wrote:
+> Hi,
+>
+> I come to this list as my last resort. I have two DVB-S PCIE cards and 
+> no one can get channels, but I have another computer with a PCI 
+> SAA7146 that can get 1400 services from same dish.
+>
+> * Tveii S470 *
+>
+> One is the Tveii S470. I guess that the S470 should work because you 
+> are working in IR support.
+>
+> I have tried V4L tip, drivers from website, from website and patched 
+> like in wiki says... but all I get is:
+>
+> scandvb -a 0 /usr/share/dvb-apps/dvb-s/Astra-19.2E
+>
+> scanning /usr/share/dvb-apps/dvb-s/Astra-19.2E
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> initial transponder 12551500 V 22000000 5
+> >>> tune to: 12551:v:0:22000
+> WARNING: filter timeout pid 0x0011
+> WARNING: filter timeout pid 0x0000
+> WARNING: filter timeout pid 0x0010it's going on
+>
+> dumping lists (0 services)
+>
+> Done.
+>
+>
+> * DVBWorld 2005 *
+>
+> The other is the DVBWorld DVB-S2 2005. I have tried also latest V4l, 
+> liplianin branch... and I get the same: 0 services.
+>
+>
+> The hardware were I'm trying to run this is a Dell 1 unit Rack Server 
+> with RHEL with kernels 2.6.30, 2.6.31 and 2.6.32 patched by myself.
+>
+> As I said I have another computer with a PCI dvb-s card that can get 
+> lot of channels so I thing that the disk is working well.
+>
+>
+> Any idea about what's going on?
+>
+> Thanks in advance,
+>
+> Guillem Solà
+Sorry for the noise,
 
-Since 02 Dec 2009 the UK WinterHill transmitter site has been
-broadcasting on different frequencies & in a different mode with
-different modulation. =A0Channels have been re-arranged to occupy five
-multiplexes and the original BBC 'B' mux is now broadcasting DVB-T2
-for high definition services (which of course cannot yet be tuned by
-mere mortals). The 'WinterHill B' transmitter stopped broadcasting on
-02 Dec.
+The sooner I wrote the email, the sooner my TeviiS470 started to work!
 
-The attached file is a patch to reflect these changes.
+I did it work with the latest s2-liplianin tip, of course firmwares were 
+in /lib/firmware dir.
 
-NOTE: All UK DVB-T services will eventually be moving to 8k mode in
-64QAM & other local frequencies will be changing once DSO (digital
-switch over) is complete in each area.
+Now I'm doing some compatibility tests. As I said I can get a few less 
+channels than with the saa7164 that I'm using in old computers.
 
-Hope this info is of use to you folks :-)
+My aim is to certify it for the company I work for, so if there is 
+something I could do testing it to help the community, I could do it 
+during my work journey.
 
-Regards,
-Justin
+regards,
 
-uk-WinterHill.patch
-
---- uk-WinterHill =A0 =A0 =A0 2009-12-03 14:30:32.000000000 +0000
-+++ uk-WinterHill.new =A0 2009-12-03 14:26:05.000000000 +0000
-@@ -1,13 +1,11 @@
-=A0# UK, Winter Hill
--# Auto-generated from http://www.dtg.org.uk/retailer/dtt_channels.html
--# and http://www.ofcom.org.uk/static/reception_advice/index.asp.html
-+# Populated by J. Hornsby from a scan of active multiplexes
-=A0# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 754167000 8MHz 3/4 NONE QAM16 2k 1/32 NONE
--T 834167000 8MHz 2/3 NONE QAM64 2k 1/32 NONE
--T 850167000 8MHz 2/3 NONE QAM64 2k 1/32 NONE
--T 842167000 8MHz 3/4 NONE QAM16 2k 1/32 NONE
--T 786167000 8MHz 3/4 NONE QAM16 2k 1/32 NONE
--T 810167000 8MHz 3/4 NONE QAM16 2k 1/32 NONE
--# UK, Winter Hill B
--T 650000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE
--T 626000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE
-+T 746000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-+T 770000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-+T 778000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-+T 794000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-+T 801833000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-+
-+# UK, Winter Hill B Ceased broadcasting on 02 December 2009
-+
-
---00032555999e004b010479d4b0c6
-Content-Type: text/x-patch; charset=US-ASCII; name="uk-WinterHill.patch"
-Content-Disposition: attachment; filename="uk-WinterHill.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_g2rmq0vb0
-
-LS0tIHVrLVdpbnRlckhpbGwJMjAwOS0xMi0wMyAxNDozMDozMi4wMDAwMDAwMDAgKzAwMDAKKysr
-IHVrLVdpbnRlckhpbGwubmV3CTIwMDktMTItMDMgMTQ6MjY6MDUuMDAwMDAwMDAwICswMDAwCkBA
-IC0xLDEzICsxLDExIEBACiAjIFVLLCBXaW50ZXIgSGlsbAotIyBBdXRvLWdlbmVyYXRlZCBmcm9t
-IGh0dHA6Ly93d3cuZHRnLm9yZy51ay9yZXRhaWxlci9kdHRfY2hhbm5lbHMuaHRtbAotIyBhbmQg
-aHR0cDovL3d3dy5vZmNvbS5vcmcudWsvc3RhdGljL3JlY2VwdGlvbl9hZHZpY2UvaW5kZXguYXNw
-Lmh0bWwKKyMgUG9wdWxhdGVkIGJ5IEouIEhvcm5zYnkgZnJvbSBhIHNjYW4gb2YgYWN0aXZlIG11
-bHRpcGxleGVzCiAjIFQgZnJlcSBidyBmZWNfaGkgZmVjX2xvIG1vZCB0cmFuc21pc3Npb24tbW9k
-ZSBndWFyZC1pbnRlcnZhbCBoaWVyYXJjaHkKLVQgNzU0MTY3MDAwIDhNSHogMy80IE5PTkUgUUFN
-MTYgMmsgMS8zMiBOT05FCi1UIDgzNDE2NzAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDJrIDEvMzIg
-Tk9ORQotVCA4NTAxNjcwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCAyayAxLzMyIE5PTkUKLVQgODQy
-MTY3MDAwIDhNSHogMy80IE5PTkUgUUFNMTYgMmsgMS8zMiBOT05FCi1UIDc4NjE2NzAwMCA4TUh6
-IDMvNCBOT05FIFFBTTE2IDJrIDEvMzIgTk9ORQotVCA4MTAxNjcwMDAgOE1IeiAzLzQgTk9ORSBR
-QU0xNiAyayAxLzMyIE5PTkUKLSMgVUssIFdpbnRlciBIaWxsIEIKLVQgNjUwMDAwMDAwIDhNSHog
-My80IE5PTkUgUUFNMTYgMmsgMS8zMiBOT05FCi1UIDYyNjAwMDAwMCA4TUh6IDMvNCBOT05FIFFB
-TTE2IDJrIDEvMzIgTk9ORQorVCA3NDYwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzMy
-IE5PTkUKK1QgNzcwMDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS8zMiBOT05FCitUIDc3
-ODAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvMzIgTk9ORQorVCA3OTQwMDAwMDAgOE1I
-eiAyLzMgTk9ORSBRQU02NCA4ayAxLzMyIE5PTkUKK1QgODAxODMzMDAwIDhNSHogMi8zIE5PTkUg
-UUFNNjQgOGsgMS8zMiBOT05FCisKKyMgVUssIFdpbnRlciBIaWxsIEIgQ2Vhc2VkIGJyb2FkY2Fz
-dGluZyBvbiAwMiBEZWNlbWJlciAyMDA5CisK
---00032555999e004b010479d4b0c6--
+Guillem
