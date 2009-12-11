@@ -1,36 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f221.google.com ([209.85.220.221]:45238 "EHLO
+Received: from mail-fx0-f221.google.com ([209.85.220.221]:45584 "EHLO
 	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752253AbZLTScH (ORCPT
+	with ESMTP id S1756483AbZLKWcz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Dec 2009 13:32:07 -0500
-Received: by fxm21 with SMTP id 21so4152074fxm.21
-        for <linux-media@vger.kernel.org>; Sun, 20 Dec 2009 10:32:05 -0800 (PST)
+	Fri, 11 Dec 2009 17:32:55 -0500
+Received: by fxm21 with SMTP id 21so1547112fxm.1
+        for <linux-media@vger.kernel.org>; Fri, 11 Dec 2009 14:32:58 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <74fd948d0912200907j21fcc7b1qd2bfd2da00d4f72@mail.gmail.com>
-References: <74fd948d0912200907j21fcc7b1qd2bfd2da00d4f72@mail.gmail.com>
-Date: Sun, 20 Dec 2009 13:32:05 -0500
-Message-ID: <829197380912201032re3590ael3c4f70ce2afa6349@mail.gmail.com>
-Subject: Re: Pinnacle PCTV Hybrid (2) dvb woes
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Pedro Ribeiro <pedrib@gmail.com>
-Cc: linux-media@vger.kernel.org
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40155CEE312@dlee06.ent.ti.com>
+References: <A69FA2915331DC488A831521EAE36FE40155C809AB@dlee06.ent.ti.com>
+	 <846899810912101139g6e8a36f7j78fa650e6629ad1b@mail.gmail.com>
+	 <4B2156AA.80309@emlix.com>
+	 <A69FA2915331DC488A831521EAE36FE40155C80C7B@dlee06.ent.ti.com>
+	 <846899810912101315o6e576ed8y150c93ea44cb0d66@mail.gmail.com>
+	 <A69FA2915331DC488A831521EAE36FE40155CEE312@dlee06.ent.ti.com>
+Date: Fri, 11 Dec 2009 23:32:58 +0100
+Message-ID: <846899810912111432p2e3d5423v63b8460ad3e921b7@mail.gmail.com>
+Subject: Re: Latest stack that can be merged on top of linux-next tree
+From: HoP <jpetrous@gmail.com>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Cc: =?ISO-8859-1?Q?Daniel_Gl=F6ckner?= <dg@emlix.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Dec 20, 2009 at 12:07 PM, Pedro Ribeiro <pedrib@gmail.com> wrote:
-> Hello all,
+Hi
+
+2009/12/11 Karicheri, Muralidharan <m-karicheri2@ti.com>:
+> Hi,
 >
-> I'm having trouble setting up DVB for my Pinnacle PCTV Hybrid Stick
-> (2), AKA 330e.
+> Thanks for the response. One more question that I have is if
+> the devices on the two buses can use the same i2c address.
+> That is the case for my board. So wondering if this works as
+> well.
+>
 
-You can check the linux-media archives for more info, but I can tell
-you that the 330e is not currently supported for DVB mode (analog
-only).
+That is IMHO exactly reason of existence such "expanders".
+We, for example have two DVB-S2 tuners, using totally
+same i2c addresses (for demod & pll).
 
-Devin
+If you are carefull and access such devices only using
+those virtual i2c buses, then you not need to manage
+switching between them at all. It is job for pca954x
+driver. Simple and easy :)
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+/Honza
