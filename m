@@ -1,149 +1,356 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:17249 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760199AbZLONds (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Dec 2009 08:33:48 -0500
-Message-ID: <4B279017.3080303@redhat.com>
-Date: Tue, 15 Dec 2009 11:33:11 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail.gmx.net ([213.165.64.20]:50425 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754203AbZLKRZO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Dec 2009 12:25:14 -0500
+Date: Fri, 11 Dec 2009 18:25:29 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] document new pixel formats
+Message-ID: <Pine.LNX.4.64.0912111820270.5084@axis700.grange>
 MIME-Version: 1.0
-To: Pavel Machek <pavel@ucw.cz>
-CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	Jon Smirl <jonsmirl@gmail.com>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
-	kraxel@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR  system?
-References: <BEJgSGGXqgB@lirc> <9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com> <1260070593.3236.6.camel@pc07.localdom.local> <20091206065512.GA14651@core.coreip.homeip.net> <4B1B99A5.2080903@redhat.com> <m3638k6lju.fsf@intrepid.localdomain> <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com> <m3skbn6dv1.fsf@intrepid.localdomain> <20091207184153.GD998@core.coreip.homeip.net> <4B24DABA.9040007@redhat.com> <20091215115011.GB1385@ucw.cz>
-In-Reply-To: <20091215115011.GB1385@ucw.cz>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Pavel Machek wrote:
->>> That is why I think we should go the other way around - introduce the
->>> core which receivers could plug into and decoder framework and once it
->>> is ready register lirc-dev as one of the available decoders.
->>>
->> I've committed already some IR restruct code on my linux-next -git tree:
->>
->> http://git.kernel.org/?p=linux/kernel/git/mchehab/linux-next.git
->>
->> The code there basically moves the input/evdev registering code and 
->> scancode/keycode management code into a separate ir-core module.
->>
->> To make my life easy, I've moved the code temporarily into drivers/media/IR.
->> This way, it helps me to move V4L specific code outside ir-core and to later
->> use it for DVB. After having it done, probably the better is to move it to
->> be under /drivers or /drivers/input.
-> 
-> Well, -next is for stuff to be merged into 2.6.34. You are quite an
-> optimist.
-> 									Pavel
+Document all four 10-bit Bayer formats, 10-bit monochrome and a missing 
+8-bit Bayer formats.
 
-Well, we need those changes anyway for the in-kernel drivers, and I'm not seeing
-on the current patches any reason for not having them for 2.6.34.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-I've added all the ir-core patches I did so far at linux-next. This helps people
-to review and contribute.
+Notice, this is a linux git patch, so, it includes manual additions to 
+media-entities.tmpl, which will hopefully not be needed for hg. I'm also 
+adding all four 10-bit Bayer formats here, including the 
+V4L2_PIX_FMT_SGRBG10, which is already documented in pixfmt.xml. We can 
+remove that bit then.
 
-The patches are already working with the in-kernel em28xx driver, allowing to
-replace the keycode table and the protocol used by the hardware IR decoder.
-I tested here by replacing an RC-5 based IR table (Hauppauge Grey) by a NEC
-based IR table (Terratec Cinergy XS remote controller).
-
-The current Remote Controller core module (ir-core) is currently doing:
-
-	- Implementation of the existing EVIO[G|S]KEYCODE, expanding/feeing memory
-dynamically, based on the needed size for scancode/keycode table;
-
-	- scancodes can be up to 16 bits currently;
-
-	- sysfs is registering /sys/class/irrcv and creating one branch for each
-different RC receiver, numbering from irrcv0 to irrcv255;
-
-	- one irrcv note is created: current_protocol;
-
-	- reading /sys/class/irrcv/irrcv*/current_protocol returns the protocol
-currently used by the driver;
-
-	- writing to /sys/class/irrcv/irrcv*/current_protocol changes the protocol
-to a new one, by calling a callback, asking the driver to change the protocol. If
-the protocol is not support, it returns -EINVAL;
-
-	- all V4L drivers are already using ir-core;
-
-	- em28xx driver is implementing current_protocol show/store support.
-
-TODO:
- 	1) Port DVB drivers to use ir-core, removing the duplicated (and incomplete
-          - as table size can't change on DVB's implementation) code that exists there;
-
-	2) add current_protocol support on other drivers;
-
-	3) link the corresponding input/evdev interfaces with /sys/class/irrcv/irrcv*;
-
-	4) make the keytable.c application aware of the sysfs vars;
-
-	5) add an attribute to uniquely identify a remote controller;
-
-	6) write or convert an existing application to load IR tables at runtime;
-
-	7) get the complete 16-bit scancodes used by V4L drivers;
-
-	8) add decoder/lirc_dev glue to ir-core;
-
-	9) add lirc_dev module and in-kernel decoders;
-
-	10) extend keycode table replacement to support big/variable sized scancodes;
-
-	11) rename IR->RC;
-
-	12) redesign or remove ir-common module. It currently handles in-kernel
-            keycode tables and a few helper routines for raw pulse/space decode;
-
-	13) move drivers/media/IR to a better place;
-
-
-comments:
-
-	Tasks (1) to (6) for sure can happen to 2.6.34, depending on people's spare
-time for it;
-
-	(7) is probably the more complex task, since it requires to re-test all in-kernel
-supported remote controlle scancode/keycode tables, to get the complete IR keycode
-and rewrite the getkeycode functions that are currently masking the IR code into 7 bits. 
-We'll need users help on this task, but this can be done gradually, like I did with
-two RC keytables on em28xx driver, while preserving the other keytables as-is.
-
-	(8) I suggest that this glue will be submitted together with lirc_dev patch
-series, as the biggest client for it is lirc. In principle, kfifo seems the better
-interface for lirc_dev -> decoders interface. For the decoders -> RC core interface,
-there's an interface already used on V4L drivers, provided by ir-common, using evdev
-kernel API. This may need some review.
-
-	(9) depends on lirc API discusions. My proposal is that people submit an RFC
-with the lirc API reviewed to the ML's, for people to ack/nack/comment. After that, 
-re-submit the lirc_dev module integrating it into ir-core and with the reviewed API;
-
-	(10) depends on EVIO[G|S]KEYCODE discussions we've already started. I did a proposal
-about it. I'll review, based on the comments and re-submit it;
-
-	(11) if none is against renaming IR as RC, I'll do it on a next patch;
-
-	(12) depends on having lirc_dev added, for the removal of ir-functions.c. With
-respect to the keytables, maybe one interesting alternative is to use a logic close to
-nls tables that exists at fs, allowing to individually insert or remove an IR keytable
-in-kernel.
-
-	(13) has low priority. While not finishing the DVB integration with RC core
-and reviewing the remaining bits of the ir-common module.
-
-Cheers,
-Mauro.
+diff --git a/Documentation/DocBook/media-entities.tmpl b/Documentation/DocBook/media-entities.tmpl
+index bb5ab74..5524e32 100644
+--- a/Documentation/DocBook/media-entities.tmpl
++++ b/Documentation/DocBook/media-entities.tmpl
+@@ -222,8 +222,11 @@
+ <!ENTITY sub-sbggr8 SYSTEM "v4l/pixfmt-sbggr8.xml">
+ <!ENTITY sub-sgbrg8 SYSTEM "v4l/pixfmt-sgbrg8.xml">
+ <!ENTITY sub-sgrbg8 SYSTEM "v4l/pixfmt-sgrbg8.xml">
++<!ENTITY sub-srggb8 SYSTEM "v4l/pixfmt-srggb8.xml">
++<!ENTITY sub-srggb10 SYSTEM "v4l/pixfmt-srggb10.xml">
+ <!ENTITY sub-uyvy SYSTEM "v4l/pixfmt-uyvy.xml">
+ <!ENTITY sub-vyuy SYSTEM "v4l/pixfmt-vyuy.xml">
++<!ENTITY sub-y10 SYSTEM "v4l/pixfmt-y10.xml">
+ <!ENTITY sub-y16 SYSTEM "v4l/pixfmt-y16.xml">
+ <!ENTITY sub-y41p SYSTEM "v4l/pixfmt-y41p.xml">
+ <!ENTITY sub-yuv410 SYSTEM "v4l/pixfmt-yuv410.xml">
+@@ -313,8 +316,11 @@
+ <!ENTITY sbggr8 SYSTEM "v4l/pixfmt-sbggr8.xml">
+ <!ENTITY sgbrg8 SYSTEM "v4l/pixfmt-sgbrg8.xml">
+ <!ENTITY sgrbg8 SYSTEM "v4l/pixfmt-sgrbg8.xml">
++<!ENTITY srggb8 SYSTEM "v4l/pixfmt-srggb8.xml">
++<!ENTITY srggb10 SYSTEM "v4l/pixfmt-srggb10.xml">
+ <!ENTITY uyvy SYSTEM "v4l/pixfmt-uyvy.xml">
+ <!ENTITY vyuy SYSTEM "v4l/pixfmt-vyuy.xml">
++<!ENTITY y10 SYSTEM "v4l/pixfmt-y10.xml">
+ <!ENTITY y16 SYSTEM "v4l/pixfmt-y16.xml">
+ <!ENTITY y41p SYSTEM "v4l/pixfmt-y41p.xml">
+ <!ENTITY yuv410 SYSTEM "v4l/pixfmt-yuv410.xml">
+diff --git a/Documentation/DocBook/v4l/pixfmt-srggb10.xml b/Documentation/DocBook/v4l/pixfmt-srggb10.xml
+new file mode 100644
+index 0000000..1be1815
+--- /dev/null
++++ b/Documentation/DocBook/v4l/pixfmt-srggb10.xml
+@@ -0,0 +1,98 @@
++    <refentry>
++      <refmeta>
++	<refentrytitle>V4L2_PIX_FMT_SRGGB10 ('RG10'),
++	 V4L2_PIX_FMT_SGRBG10 ('BA10'),
++	 V4L2_PIX_FMT_SGBRG10 ('GB10'),
++	 V4L2_PIX_FMT_SBGGR10 ('BG10'),
++	 </refentrytitle>
++	&manvol;
++      </refmeta>
++      <refnamediv>
++	<refname id="V4L2-PIX-FMT-SRGGB10"><constant>V4L2_PIX_FMT_SRGGB10</constant></refname>
++	<refname id="V4L2-PIX-FMT-SGRBG10"><constant>V4L2_PIX_FMT_SGRBG10</constant></refname>
++	<refname id="V4L2-PIX-FMT-SGBRG10"><constant>V4L2_PIX_FMT_SGBRG10</constant></refname>
++	<refname id="V4L2-PIX-FMT-SBGGR10"><constant>V4L2_PIX_FMT_SBGGR10</constant></refname>
++	<refpurpose>10-bit Bayer formats expanded to 16 bits</refpurpose>
++      </refnamediv>
++      <refsect1>
++	<title>Description</title>
++
++	<para>The following four pixel formats are raw sRGB / Bayer formats with
++10 bits per colour. Each colour component is stored in a 16-bit word, with 6
++unused high bits filled with zeros. Each n-pixel row contains n/2 green samples
++and n/2 blue or red samples, with alternating red and blue rows. Bytes are
++stored in memory in little endian order. They are conventionally described
++as GRGR... BGBG..., RGRG... GBGB..., etc. Below is an example of one of these
++formats</para>
++
++    <example>
++      <title><constant>V4L2_PIX_FMT_SBGGR10</constant> 4 &times; 4
++pixel image</title>
++
++      <formalpara>
++	<title>Byte Order.</title>
++	<para>Each cell is one byte, high 6 bits in high bytes are 0.
++	  <informaltable frame="none">
++	    <tgroup cols="5" align="center">
++	      <colspec align="left" colwidth="2*" />
++	      <tbody valign="top">
++		<row>
++		  <entry>start&nbsp;+&nbsp;0:</entry>
++		  <entry>B<subscript>00low</subscript></entry>
++		  <entry>B<subscript>00high</subscript></entry>
++		  <entry>G<subscript>01low</subscript></entry>
++		  <entry>G<subscript>01high</subscript></entry>
++		  <entry>B<subscript>02low</subscript></entry>
++		  <entry>B<subscript>02high</subscript></entry>
++		  <entry>G<subscript>03low</subscript></entry>
++		  <entry>G<subscript>03high</subscript></entry>
++		</row>
++		<row>
++		  <entry>start&nbsp;+&nbsp;8:</entry>
++		  <entry>G<subscript>10low</subscript></entry>
++		  <entry>G<subscript>10high</subscript></entry>
++		  <entry>R<subscript>11low</subscript></entry>
++		  <entry>R<subscript>11high</subscript></entry>
++		  <entry>G<subscript>12low</subscript></entry>
++		  <entry>G<subscript>12high</subscript></entry>
++		  <entry>R<subscript>13low</subscript></entry>
++		  <entry>R<subscript>13high</subscript></entry>
++		</row>
++		<row>
++		  <entry>start&nbsp;+&nbsp;16:</entry>
++		  <entry>B<subscript>20low</subscript></entry>
++		  <entry>B<subscript>20high</subscript></entry>
++		  <entry>G<subscript>21low</subscript></entry>
++		  <entry>G<subscript>21high</subscript></entry>
++		  <entry>B<subscript>22low</subscript></entry>
++		  <entry>B<subscript>22high</subscript></entry>
++		  <entry>G<subscript>23low</subscript></entry>
++		  <entry>G<subscript>23high</subscript></entry>
++		</row>
++		<row>
++		  <entry>start&nbsp;+&nbsp;24:</entry>
++		  <entry>G<subscript>30low</subscript></entry>
++		  <entry>G<subscript>30high</subscript></entry>
++		  <entry>R<subscript>31low</subscript></entry>
++		  <entry>R<subscript>31high</subscript></entry>
++		  <entry>G<subscript>32low</subscript></entry>
++		  <entry>G<subscript>32high</subscript></entry>
++		  <entry>R<subscript>33low</subscript></entry>
++		  <entry>R<subscript>33high</subscript></entry>
++		</row>
++	      </tbody>
++	    </tgroup>
++	  </informaltable>
++	</para>
++      </formalpara>
++    </example>
++  </refsect1>
++</refentry>
++
++  <!--
++Local Variables:
++mode: sgml
++sgml-parent-document: "pixfmt.sgml"
++indent-tabs-mode: nil
++End:
++  -->
+diff --git a/Documentation/DocBook/v4l/pixfmt-srggb8.xml b/Documentation/DocBook/v4l/pixfmt-srggb8.xml
+new file mode 100644
+index 0000000..cfae228
+--- /dev/null
++++ b/Documentation/DocBook/v4l/pixfmt-srggb8.xml
+@@ -0,0 +1,75 @@
++    <refentry id="V4L2-PIX-FMT-SRGGB8">
++      <refmeta>
++	<refentrytitle>V4L2_PIX_FMT_SRGGB8 ('RGGB')</refentrytitle>
++	&manvol;
++      </refmeta>
++      <refnamediv>
++	<refname><constant>V4L2_PIX_FMT_SRGGB8</constant></refname>
++	<refpurpose>Bayer RGB format</refpurpose>
++      </refnamediv>
++      <refsect1>
++	<title>Description</title>
++
++	<para>This is commonly the native format of digital cameras,
++reflecting the arrangement of sensors on the CCD device. Only one red,
++green or blue value is given for each pixel. Missing components must
++be interpolated from neighbouring pixels. From left to right the first
++row consists of a red and green value, the second row of a green and
++blue value. This scheme repeats to the right and down for every two
++columns and rows.</para>
++
++	<example>
++	  <title><constant>V4L2_PIX_FMT_SRGGB8</constant> 4 &times; 4
++pixel image</title>
++
++	  <formalpara>
++	    <title>Byte Order.</title>
++	    <para>Each cell is one byte.
++	      <informaltable frame="none">
++		<tgroup cols="5" align="center">
++		  <colspec align="left" colwidth="2*" />
++		  <tbody valign="top">
++		    <row>
++		      <entry>start&nbsp;+&nbsp;0:</entry>
++		      <entry>R<subscript>00</subscript></entry>
++		      <entry>G<subscript>01</subscript></entry>
++		      <entry>R<subscript>02</subscript></entry>
++		      <entry>G<subscript>03</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;4:</entry>
++		      <entry>G<subscript>10</subscript></entry>
++		      <entry>B<subscript>11</subscript></entry>
++		      <entry>G<subscript>12</subscript></entry>
++		      <entry>B<subscript>13</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;8:</entry>
++		      <entry>R<subscript>20</subscript></entry>
++		      <entry>G<subscript>21</subscript></entry>
++		      <entry>R<subscript>22</subscript></entry>
++		      <entry>G<subscript>23</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;12:</entry>
++		      <entry>G<subscript>30</subscript></entry>
++		      <entry>B<subscript>31</subscript></entry>
++		      <entry>G<subscript>32</subscript></entry>
++		      <entry>B<subscript>33</subscript></entry>
++		    </row>
++		  </tbody>
++		</tgroup>
++	      </informaltable>
++	    </para>
++	  </formalpara>
++	</example>
++      </refsect1>
++    </refentry>
++
++  <!--
++Local Variables:
++mode: sgml
++sgml-parent-document: "pixfmt.sgml"
++indent-tabs-mode: nil
++End:
++  -->
+diff --git a/Documentation/DocBook/v4l/pixfmt-y10.xml b/Documentation/DocBook/v4l/pixfmt-y10.xml
+new file mode 100644
+index 0000000..d22c9b9
+--- /dev/null
++++ b/Documentation/DocBook/v4l/pixfmt-y10.xml
+@@ -0,0 +1,87 @@
++<refentry id="V4L2-PIX-FMT-Y10">
++  <refmeta>
++    <refentrytitle>V4L2_PIX_FMT_Y10 ('Y10 ')</refentrytitle>
++    &manvol;
++  </refmeta>
++  <refnamediv>
++    <refname><constant>V4L2_PIX_FMT_Y10</constant></refname>
++    <refpurpose>Grey-scale image</refpurpose>
++  </refnamediv>
++  <refsect1>
++    <title>Description</title>
++
++    <para>This is a grey-scale image with a depth of 10 bits per pixel. Pixels
++are stored in 16-bit words with unused high bits padded with 0. The least
++significant byte is stored at lower memory addresses (little-endian).</para>
++
++    <example>
++      <title><constant>V4L2_PIX_FMT_Y10</constant> 4 &times; 4
++pixel image</title>
++
++      <formalpara>
++	<title>Byte Order.</title>
++	<para>Each cell is one byte.
++	  <informaltable frame="none">
++	    <tgroup cols="9" align="center">
++	      <colspec align="left" colwidth="2*" />
++	      <tbody valign="top">
++		<row>
++		  <entry>start&nbsp;+&nbsp;0:</entry>
++		  <entry>Y'<subscript>00low</subscript></entry>
++		  <entry>Y'<subscript>00high</subscript></entry>
++		  <entry>Y'<subscript>01low</subscript></entry>
++		  <entry>Y'<subscript>01high</subscript></entry>
++		  <entry>Y'<subscript>02low</subscript></entry>
++		  <entry>Y'<subscript>02high</subscript></entry>
++		  <entry>Y'<subscript>03low</subscript></entry>
++		  <entry>Y'<subscript>03high</subscript></entry>
++		</row>
++		<row>
++		  <entry>start&nbsp;+&nbsp;8:</entry>
++		  <entry>Y'<subscript>10low</subscript></entry>
++		  <entry>Y'<subscript>10high</subscript></entry>
++		  <entry>Y'<subscript>11low</subscript></entry>
++		  <entry>Y'<subscript>11high</subscript></entry>
++		  <entry>Y'<subscript>12low</subscript></entry>
++		  <entry>Y'<subscript>12high</subscript></entry>
++		  <entry>Y'<subscript>13low</subscript></entry>
++		  <entry>Y'<subscript>13high</subscript></entry>
++		</row>
++		<row>
++		  <entry>start&nbsp;+&nbsp;16:</entry>
++		  <entry>Y'<subscript>20low</subscript></entry>
++		  <entry>Y'<subscript>20high</subscript></entry>
++		  <entry>Y'<subscript>21low</subscript></entry>
++		  <entry>Y'<subscript>21high</subscript></entry>
++		  <entry>Y'<subscript>22low</subscript></entry>
++		  <entry>Y'<subscript>22high</subscript></entry>
++		  <entry>Y'<subscript>23low</subscript></entry>
++		  <entry>Y'<subscript>23high</subscript></entry>
++		</row>
++		<row>
++		  <entry>start&nbsp;+&nbsp;24:</entry>
++		  <entry>Y'<subscript>30low</subscript></entry>
++		  <entry>Y'<subscript>30high</subscript></entry>
++		  <entry>Y'<subscript>31low</subscript></entry>
++		  <entry>Y'<subscript>31high</subscript></entry>
++		  <entry>Y'<subscript>32low</subscript></entry>
++		  <entry>Y'<subscript>32high</subscript></entry>
++		  <entry>Y'<subscript>33low</subscript></entry>
++		  <entry>Y'<subscript>33high</subscript></entry>
++		</row>
++	      </tbody>
++	    </tgroup>
++	  </informaltable>
++	</para>
++      </formalpara>
++    </example>
++  </refsect1>
++</refentry>
++
++  <!--
++Local Variables:
++mode: sgml
++sgml-parent-document: "pixfmt.sgml"
++indent-tabs-mode: nil
++End:
++  -->
+diff --git a/Documentation/DocBook/v4l/pixfmt.xml b/Documentation/DocBook/v4l/pixfmt.xml
+index 885968d..71fc5c5 100644
+--- a/Documentation/DocBook/v4l/pixfmt.xml
++++ b/Documentation/DocBook/v4l/pixfmt.xml
+@@ -566,7 +566,9 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
+     &sub-sbggr8;
+     &sub-sgbrg8;
+     &sub-sgrbg8;
++    &sub-srggb8;
+     &sub-sbggr16;
++    &sub-srggb10;
+   </section>
+ 
+   <section id="yuv-formats">
+@@ -589,6 +591,7 @@ information.</para>
+ 
+     &sub-packed-yuv;
+     &sub-grey;
++    &sub-y10;
+     &sub-y16;
+     &sub-yuyv;
+     &sub-uyvy;
