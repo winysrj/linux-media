@@ -1,70 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:33441 "HELO mail.gmx.net"
+Received: from mail.gmx.net ([213.165.64.20]:39499 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753727AbZLCVjB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Dec 2009 16:39:01 -0500
-Date: Thu, 3 Dec 2009 22:39:07 +0100 (CET)
+	id S1755448AbZLKR3D (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Dec 2009 12:29:03 -0500
+Date: Fri, 11 Dec 2009 18:29:21 +0100 (CET)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
-	Marek Vasut <marek.vasut@gmail.com>
-Subject: soc-camera: what's in the queue for 2.6.33
-Message-ID: <Pine.LNX.4.64.0912032226000.4328@axis700.grange>
+To: Alan Carvalho de Assis <acassis@gmail.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: soc_camera: OV2640
+In-Reply-To: <37367b3a0912110856p24462203q481d6c330380c665@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0912111826300.5084@axis700.grange>
+References: <37367b3a0912071113y41efc736h20a6fe203244811d@mail.gmail.com>
+ <Pine.LNX.4.64.0912072052030.8481@axis700.grange>
+ <37367b3a0912080842h601be618tdc4151ba226bbb60@mail.gmail.com>
+ <37367b3a0912110856p24462203q481d6c330380c665@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all
+On Fri, 11 Dec 2009, Alan Carvalho de Assis wrote:
 
-while waiting for (hopefully) an approval from Hans of my last mediabus 
-version, and taking into account the freshly released 2.6.32, here are 
-patches pending for 2.6.33:
+> Hi Guennadi,
+> 
+> On 12/8/09, Alan Carvalho de Assis <acassis@gmail.com> wrote:
+> > Hi Guennadi,
+> ...
+> >>> I am trying to use an OV2640 camera with soc_camera.
+> >>>
+> >>> I'm using ov772x driver as base, but it needs too much modification to
+> >>> work with ov2640.
+> >>
+> >> I don't know that sensor specifically, but they can be quite different.
+> >>
+> >
+> > Yes, in fact ov2640 appears quite different compared to ov772x and ov9640.
+> >
+> >>> The OV2640 chip remaps all registers when register 0xFF is 1 or when it
+> >>> is
+> >>> 0.
+> >>
+> >> This is not unusual. There are a few ways to implement this, for example,
+> >> drivers/media/video/rj54n1cb0c.c uses 16-bit addresses, and decodes them
+> >> to bank:register pairs in its reg_read() and reg_write() routines.
+> >>
+> >
+> > Ok, I will try to implement it this way, case nobody suggests me a
+> > better approach.
+> >
+> 
+> I got mx27_camera from pengutronix tree and modified it to work with
+> kernel 2.6.32 (few modifications).
 
-Guennadi Liakhovetski (14):
-      soc-camera: remove no longer needed struct members
-      v4l: add new v4l2-subdev sensor operations, use g_skip_top_lines in soc-camera
-      soc-camera: fix multi-line comment coding style
-      sh_mobile_ceu_camera: do not mark host occupied, when adding a client fails
-      v4l: Add a 10-bit monochrome and missing 8- and 10-bit Bayer fourcc codes
-      soc-camera: add a private field to struct soc_camera_link
-      soc-camera: switch drivers and platforms to use .priv in struct soc_camera_link
-      sh_mobile_ceu_camera: document the scaling and cropping algorithm
-      mx3: add support for the mt9v022 camera sensor to pcm037 platform
-      v4l: add a media-bus API for configuring v4l2 subdev pixel and frame formats
-      soc-camera: convert to the new mediabus API
-      rj54n1cb0c: Add cropping, auto white balance, restrict sizes, add platform data
-      mt9t031: make the use of the soc-camera client API optional
-      soc-camera: Add mt9t112 camera driver
+Sorry, I cannot help you with an out-of-tree driver, and generally I would 
+expect significant changes when going to 2.6.32.
 
-Kuninori Morimoto (14):
-      tw9910: The driver can also handle revision 1 of the chip
-      tw9910: Add revision control
-      tw9910: simplify chip ID calculation
-      tw9910: Tri-state pins when idle
-      tw9910: Add power control
-      tw9910: tw9910_set_hsync clean up
-      tw9910: Add revision control to tw9910_set_hsync
-      sh_mobile_ceu: Add V4L2_FIELD_INTERLACED_BT/TB support
-      tw9910: use V4L2_FIELD_INTERLACED_BT
-      sh_mobile_ceu_camera: Add support for sync polarity selection
-      tw9910: modify V/H outpit pin setting to use VALID
-      tw9910: modify output format
-      tw9910: remove cropping
-      tw9910: Add sync polarity support
-
-Please, everybody, have a look and let me know if anything is missing. The 
-stack is also available for download from 
-http://download.open-technology.de/soc-camera/20091203/ based on 
-linux-next of today.
-
-Morimoto-san: I modified a bit your mt9t112 driver, apart from just 
-porting it to the current mediabus version. Please check, if you agree 
-with all changes and if it still works:-)
-
-Marek, I enabled the RGB555 and RGB565 formats in your ov9640 driver, 
-would be cool if you could test it.
+> I added platform data/device on my
+> board using pcm970-baseboard.c as example.
+> 
+> In the kernel config I selected:
+> CONFIG_VIDEO_MX27
+> CONFIG_SOC_CAMERA_OV9640
+> 
+> 
+> I noticed a strange behavior: the ov9640 driver is called before mx27_camera:
+> 
+> Linux video capture interface: v2.00
+> >>> Probe OK until now, going to ProbeVideo <<<
+> >>> Probing OV9640 <<<
+> Parent missing or invalid!
+> Driver for 1-wire Dallas network protocol.
+> i.MX SDHC driver
+> usbcore: registered new interface driver usbhid
+> usbhid: v2.6:USB HID core driver
+> oprofile: using timer interrupt.
+> TCP cubic registered
+> NET: Registered protocol family 17
+> mx27-camera mx27-camera.0: initialising
+> >>> mx27_camera: IRQ request OK!
+> >>> mx27_camera: pcdev OK!
+> >>> mx27_camera: clk_csi OK!
+> mx27-camera mx27-camera.0: Camera clock frequency: 26600000
+> >>> mx27_camera: DMA request OK!
+> mx27-camera mx27-camera.0: Using EMMA
+> >>> mx27_camera: probe OK until now!
+> mx27-camera mx27-camera.0: Non-NULL drvdata on register
+> >>> mx27_camera: soc_camera_host_register returned 0!
+> 
+> Then ov9640 returns error because icd->dev.parent doesn't exist.
+> 
+> Did you already see this issue?
 
 Thanks
 Guennadi
