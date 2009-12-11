@@ -1,30 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (ext-mx09.extmail.prod.ext.phx2.redhat.com
 	[10.5.110.13])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id nB1Cg6Sw032238
-	for <video4linux-list@redhat.com>; Tue, 1 Dec 2009 07:42:06 -0500
-Received: from insvr08.insite.com.br (insvr08.insite.com.br [66.135.42.188])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id nB1Cfo8Y029277
-	for <video4linux-list@redhat.com>; Tue, 1 Dec 2009 07:41:50 -0500
-Received: from sk.insite.com.br (sk.insite.com.br [66.135.32.93])
-	by insvr08.insite.com.br (Postfix) with ESMTPS id 06FC5162006D
-	for <video4linux-list@redhat.com>;
-	Tue,  1 Dec 2009 10:41:50 -0200 (BRST)
-Received: from [201.82.105.195] (port=9337 helo=darkwork.localnet)
-	by sk.insite.com.br with esmtps (TLSv1:AES256-SHA:256) (Exim 4.69)
-	(envelope-from <diniz@wimobilis.com.br>) id 1NFS3B-0002EC-Io
-	for video4linux-list@redhat.com; Tue, 01 Dec 2009 10:41:49 -0200
-From: Rafael Diniz <diniz@wimobilis.com.br>
-To: "V4L-Linux" <video4linux-list@redhat.com>
-Date: Tue, 1 Dec 2009 10:44:07 -0200
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id nBBLIjir022096
+	for <video4linux-list@redhat.com>; Fri, 11 Dec 2009 16:18:45 -0500
+Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de
+	[92.198.50.35])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id nBBLIX7e019144
+	for <video4linux-list@redhat.com>; Fri, 11 Dec 2009 16:18:33 -0500
+Date: Fri, 11 Dec 2009 22:18:29 +0100
+From: Robert Schwebel <r.schwebel@pengutronix.de>
+To: Carlos Lavin <carlos.lavin@vista-silicon.com>
+Message-ID: <20091211211829.GI22533@pengutronix.de>
+References: <fe6fd5f60912110228s80ce93ax1f73e019c697ec46@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-15
 Content-Disposition: inline
-Message-Id: <200912011044.07212.diniz@wimobilis.com.br>
-Subject: ISDB-T DibCom 10b8:1fa0 support
+In-Reply-To: <fe6fd5f60912110228s80ce93ax1f73e019c697ec46@mail.gmail.com>
+Cc: video4linux-list <video4linux-list@redhat.com>
+Subject: Re: imx27_camera is correct
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,15 +30,23 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi people,
-I'm looking at the mercurial v4l-dvb repository, but I could not found the 
-DibCom 10b8:1fa0 driver.
-I read that Mauro is developing a driver for it - Mauro, can I download it 
-from somewhere?
-What is the status of ISDB-T support? Is there any new api and so on?
+On Fri, Dec 11, 2009 at 11:28:26AM +0100, Carlos Lavin wrote:
+> hello, I'll want the host camera imx27_camera driver from PHYTEC,his
+> repository is:
+> git://git.pengutronix.de/git/phytec/linux-2.6.git
+> 
+> but I don't know if this file is correct. Have someone used it before? is a
+> good file or this file isn't correct?
 
-Thanks,
-Rafael Diniz
+Yes, it is in use here. However, the code needs probably some work in
+order to be ready for mainline.
+
+rsc
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
 
 --
 video4linux-list mailing list
