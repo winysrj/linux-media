@@ -1,127 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acorn.exetel.com.au ([220.233.0.21]:42019 "EHLO
-	acorn.exetel.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754893AbZLOXtx (ORCPT
+Received: from comal.ext.ti.com ([198.47.26.152]:40743 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751494AbZLKUsa convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Dec 2009 18:49:53 -0500
-Message-ID: <1328.64.213.30.2.1260920972.squirrel@webmail.exetel.com.au>
-In-Reply-To: <36364.64.213.30.2.1260252173.squirrel@webmail.exetel.com.au>
-References: <33305.64.213.30.2.1259216241.squirrel@webmail.exetel.com.au>
-    <50104.115.70.135.213.1259224041.squirrel@webmail.exetel.com.au>
-    <702870ef0911260137r35f1784exc27498d0db3769c2@mail.gmail.com>
-    <56069.115.70.135.213.1259234530.squirrel@webmail.exetel.com.au>
-    <46566.64.213.30.2.1259278557.squirrel@webmail.exetel.com.au>
-    <702870ef0912010118r1e5e3been840726e6364d991a@mail.gmail.com>
-    <829197380912020657v52e42690k46172f047ebd24b0@mail.gmail.com>
-    <36364.64.213.30.2.1260252173.squirrel@webmail.exetel.com.au>
-Date: Wed, 16 Dec 2009 10:49:32 +1100 (EST)
-Subject: Re: [RESEND] Re: DViCO FusionHDTV DVB-T Dual Digital 4 (rev 1)
-     tuning      regression
-From: "Robert Lowery" <rglowery@exemail.com.au>
-To: mchehab@redhat.com
-Cc: "Devin Heitmueller" <dheitmueller@kernellabs.com>,
-	"Vincent McIntyre" <vincent.mcintyre@gmail.com>,
-	terrywu2009@gmail.com, awalls@radix.net,
-	linux-media@vger.kernel.org
+	Fri, 11 Dec 2009 15:48:30 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+CC: "davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Fri, 11 Dec 2009 14:48:36 -0600
+Subject: RE: [PATCH - v1 1/2] V4L - vpfe capture - make clocks configurable
+Message-ID: <A69FA2915331DC488A831521EAE36FE40155CEE244@dlee06.ent.ti.com>
+References: <1259687940-31435-1-git-send-email-m-karicheri2@ti.com>
+	<87hbs0xhlx.fsf@deeprootsystems.com>
+	<A69FA2915331DC488A831521EAE36FE40155C805C3@dlee06.ent.ti.com>
+	<A69FA2915331DC488A831521EAE36FE40155C805F7@dlee06.ent.ti.com>
+	<A69FA2915331DC488A831521EAE36FE40155C806EE@dlee06.ent.ti.com>
+	<87ws0ups22.fsf@deeprootsystems.com>
+	<A69FA2915331DC488A831521EAE36FE40155C80BFC@dlee06.ent.ti.com>
+ <871vj1iclh.fsf@deeprootsystems.com>
+In-Reply-To: <871vj1iclh.fsf@deeprootsystems.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: multipart/mixed;boundary="----=_20091216104932_67007"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-------=_20091216104932_67007
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
+Kevin,
 
-Mauro,
+That is what I had seen. I will check it again on Monday
+and let you know.
 
-I've split the revert2.diff that I sent you previously to fix the tuning
-regression on my DViCO Dual Digital 4 (rev 1) into three separate patches
-that will hopefully allow you to review more easily.
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+phone: 301-407-9583
+email: m-karicheri2@ti.com
 
-The first two patches revert their respective changesets and nothing else,
-fixing the issue for me.
-12167:966ce12c444d tuner-xc2028: Fix 7 MHz DVB-T
-11918:e6a8672631a0 tuner-xc2028: Fix offset frequencies for DVB @ 6MHz
-
-The third patch does what I believe is the obvious equivalent fix to
-e6a8672631a0 but without the cleanup that breaks tuning on my card.
-
-Please review and merge
-
-Signed-off-by: Robert Lowery <rglowery@exemail.com.au>
-
-Thanks
-
--Rob
-
-------=_20091216104932_67007
-Content-Type: /; name="01_revert_966ce12c444d.diff"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="01_revert_966ce12c444d.diff"
-
-ZGlmZiAtciAzMmIyYTE4NzU3NTIgbGludXgvZHJpdmVycy9tZWRpYS9jb21tb24vdHVuZXJzL3R1
-bmVyLXhjMjAyOC5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvY29tbW9uL3R1bmVycy90dW5l
-ci14YzIwMjguYwlGcmkgTm92IDIwIDEyOjQ3OjQwIDIwMDkgKzAxMDAKKysrIGIvbGludXgvZHJp
-dmVycy9tZWRpYS9jb21tb24vdHVuZXJzL3R1bmVyLXhjMjAyOC5jCUZyaSBOb3YgMjcgMTA6Mjk6
-MjIgMjAwOSArMTEwMApAQCAtMTExNCwxOSArMTEwOCw4IEBACiAJfQogCiAJLyogQWxsIFMtY29k
-ZSB0YWJsZXMgbmVlZCBhIDIwMGtIeiBzaGlmdCAqLwotCWlmIChwcml2LT5jdHJsLmRlbW9kKSB7
-CisJaWYgKHByaXYtPmN0cmwuZGVtb2QpCiAJCWRlbW9kID0gcHJpdi0+Y3RybC5kZW1vZCArIDIw
-MDsKLQkJLyoKLQkJICogVGhlIERUVjcgUy1jb2RlIHRhYmxlIG5lZWRzIGEgNzAwIGtIeiBzaGlm
-dC4KLQkJICogVGhhbmtzIHRvIFRlcnJ5IFd1IDx0ZXJyeXd1MjAwOUBnbWFpbC5jb20+IGZvciBy
-ZXBvcnRpbmcgdGhpcwotCQkgKgotCQkgKiBEVFY3IGlzIG9ubHkgdXNlZCBpbiBBdXN0cmFsaWEu
-ICBHZXJtYW55IG9yIEl0YWx5IG1heSBhbHNvCi0JCSAqIHVzZSB0aGlzIGZpcm13YXJlIGFmdGVy
-IGluaXRpYWxpemF0aW9uLCBidXQgYSB0dW5lIHRvIGEgVUhGCi0JCSAqIGNoYW5uZWwgc2hvdWxk
-IHRoZW4gY2F1c2UgRFRWNzggdG8gYmUgdXNlZC4KLQkJICovCi0JCWlmICh0eXBlICYgRFRWNykK
-LQkJCWRlbW9kICs9IDUwMDsKLQl9CiAKIAlyZXR1cm4gZ2VuZXJpY19zZXRfZnJlcShmZSwgcC0+
-ZnJlcXVlbmN5LAogCQkJCVRfRElHSVRBTF9UViwgdHlwZSwgMCwgZGVtb2QpOwo=
-------=_20091216104932_67007
-Content-Type: /; name="02_revert_e6a8672631a0.diff"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="02_revert_e6a8672631a0.diff"
-
-ZGlmZiAtciAzMmIyYTE4NzU3NTIgbGludXgvZHJpdmVycy9tZWRpYS9jb21tb24vdHVuZXJzL3R1
-bmVyLXhjMjAyOC5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvY29tbW9uL3R1bmVycy90dW5l
-ci14YzIwMjguYwlGcmkgTm92IDIwIDEyOjQ3OjQwIDIwMDkgKzAxMDAKKysrIGIvbGludXgvZHJp
-dmVycy9tZWRpYS9jb21tb24vdHVuZXJzL3R1bmVyLXhjMjAyOC5jCUZyaSBOb3YgMjcgMTA6Mjk6
-MjIgMjAwOSArMTEwMApAQCAtOTM0LDI5ICs5MzQsMjMgQEAKIAkgKiB0aGF0IHhjMjAyOCB3aWxs
-IGJlIGluIGEgc2FmZSBzdGF0ZS4KIAkgKiBNYXliZSB0aGlzIG1pZ2h0IGFsc28gYmUgbmVlZGVk
-IGZvciBEVFYuCiAJICovCi0JaWYgKG5ld19tb2RlID09IFRfQU5BTE9HX1RWKQorCWlmIChuZXdf
-bW9kZSA9PSBUX0FOQUxPR19UVikgewogCQlyYyA9IHNlbmRfc2VxKHByaXYsIHsweDAwLCAweDAw
-fSk7Ci0KLQkvKgotCSAqIERpZ2l0YWwgbW9kZXMgcmVxdWlyZSBhbiBvZmZzZXQgdG8gYWRqdXN0
-IHRvIHRoZQotCSAqIHByb3BlciBmcmVxdWVuY3kuCi0JICogQW5hbG9nIG1vZGVzIHJlcXVpcmUg
-b2Zmc2V0ID0gMAotCSAqLwotCWlmIChuZXdfbW9kZSA9PSBUX0RJR0lUQUxfVFYpIHsKLQkJLyog
-U2V0cyB0aGUgb2Zmc2V0IGFjY29yZGluZyB3aXRoIGZpcm13YXJlICovCi0JCWlmIChwcml2LT5j
-dXJfZncudHlwZSAmIERUVjYpCi0JCQlvZmZzZXQgPSAxNzUwMDAwOwotCQllbHNlIGlmIChwcml2
-LT5jdXJfZncudHlwZSAmIERUVjcpCi0JCQlvZmZzZXQgPSAyMjUwMDAwOwotCQllbHNlCS8qIERU
-Vjggb3IgRFRWNzggKi8KLQkJCW9mZnNldCA9IDI3NTAwMDA7Ci0KKwl9IGVsc2UgaWYgKHByaXYt
-PmN1cl9mdy50eXBlICYgQVRTQykgeworCQlvZmZzZXQgPSAxNzUwMDAwOworCX0gZWxzZSB7CisJ
-CW9mZnNldCA9IDI3NTAwMDA7CisJCiAJCS8qCi0JCSAqIFdlIG11c3QgYWRqdXN0IHRoZSBvZmZz
-ZXQgYnkgNTAwa0h6ICB3aGVuCi0JCSAqIHR1bmluZyBhIDdNSHogVkhGIGNoYW5uZWwgd2l0aCBE
-VFY3OCBmaXJtd2FyZQotCQkgKiAodXNlZCBpbiBBdXN0cmFsaWEsIEl0YWx5IGFuZCBHZXJtYW55
-KQorCQkgKiBXZSBtdXN0IGFkanVzdCB0aGUgb2Zmc2V0IGJ5IDUwMGtIeiBpbiB0d28gY2FzZXMg
-aW4gb3JkZXIKKwkJICogdG8gY29ycmVjdGx5IGNlbnRlciB0aGUgSUYgb3V0cHV0OgorCQkgKiAx
-KSBXaGVuIHRoZSBaQVJMSU5LNDU2IG9yIERJQkNPTTUyIHRhYmxlcyB3ZXJlIGV4cGxpY2l0bHkK
-KwkJICogICAgc2VsZWN0ZWQgYW5kIGEgN01IeiBjaGFubmVsIGlzIHR1bmVkOworCQkgKiAyKSBX
-aGVuIHR1bmluZyBhIFZIRiBjaGFubmVsIHdpdGggRFRWNzggZmlybXdhcmUuCiAJCSAqLwotCQlp
-ZiAoKHByaXYtPmN1cl9mdy50eXBlICYgRFRWNzgpICYmIGZyZXEgPCA0NzAwMDAwMDApCisJCWlm
-ICgoKHByaXYtPmN1cl9mdy50eXBlICYgRFRWNykgJiYKKwkJICAgICAocHJpdi0+Y3VyX2Z3LnNj
-b2RlX3RhYmxlICYgKFpBUkxJTks0NTYgfCBESUJDT001MikpKSB8fAorCQkgICAgKChwcml2LT5j
-dXJfZncudHlwZSAmIERUVjc4KSAmJiBmcmVxIDwgNDcwMDAwMDAwKSkKIAkJCW9mZnNldCAtPSA1
-MDAwMDA7CiAJfQo=
-------=_20091216104932_67007
-Content-Type: /; name="03_refix_e6a8672631a0.diff"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="03_refix_e6a8672631a0.diff"
-
-ZGlmZiAtciAzMmIyYTE4NzU3NTIgbGludXgvZHJpdmVycy9tZWRpYS9jb21tb24vdHVuZXJzL3R1
-bmVyLXhjMjAyOC5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvY29tbW9uL3R1bmVycy90dW5l
-ci14YzIwMjguYwlGcmkgTm92IDIwIDEyOjQ3OjQwIDIwMDkgKzAxMDAKKysrIGIvbGludXgvZHJp
-dmVycy9tZWRpYS9jb21tb24vdHVuZXJzL3R1bmVyLXhjMjAyOC5jCUZyaSBOb3YgMjcgMTA6Mjk6
-MjIgMjAwOSArMTEwMApAQCAtOTM2LDcgKzkzNiw3IEBADQogCSAqLw0KIAlpZiAobmV3X21vZGUg
-PT0gVF9BTkFMT0dfVFYpIHsNCiAJCXJjID0gc2VuZF9zZXEocHJpdiwgezB4MDAsIDB4MDB9KTsN
-Ci0JfSBlbHNlIGlmIChwcml2LT5jdXJfZncudHlwZSAmIEFUU0MpIHsNCisJfSBlbHNlIGlmIChw
-cml2LT5jdXJfZncudHlwZSAmIERUVjYpIHsNCiAJCW9mZnNldCA9IDE3NTAwMDA7DQogCX0gZWxz
-ZSB7DQogCQlvZmZzZXQgPSAyNzUwMDAwOw0K
-------=_20091216104932_67007--
-
+>-----Original Message-----
+>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>Sent: Friday, December 11, 2009 1:35 PM
+>To: Karicheri, Muralidharan
+>Cc: davinci-linux-open-source@linux.davincidsp.com; linux-
+>media@vger.kernel.org
+>Subject: Re: [PATCH - v1 1/2] V4L - vpfe capture - make clocks configurable
+>
+>"Karicheri, Muralidharan" <m-karicheri2@ti.com> writes:
+>
+>>>> Kevin,
+>>>>
+>>>> I think I have figured it out...
+>>>>
+>>>> First issue was that I was adding my entry at the end of dm644x_clks[]
+>>>> array. I need to add it before the CLK(NULL, NULL, NULL)
+>>>>
+>>>> secondly, your suggestion didn't work as is. This is what I had to
+>>>> do to get it working...
+>>>>
+>>>> static struct clk ccdc_master_clk = {
+>>>> 	.name = "dm644x_ccdc",
+>>>> 	.parent = &vpss_master_clk,
+>>>> };
+>>>>
+>>>> static struct clk ccdc_slave_clk = {
+>>>> 	.name = "dm644x_ccdc",
+>>>> 	.parent = &vpss_slave_clk,
+>>>> };
+>>
+>> It doesn't work with out doing this. The cat /proc/davinci_clocks hangs
+>with
+>> your suggestion implemented...
+>
+>Can you track down the hang.  It sounds like a bug in the walking of
+>the clock tree for davinci_clocks.
+>
+>>>
+>>>You should not need to add new clocks with new names.  I don't thinke
+>>>the name field of the struct clk is used anywhere in the matching.
+>>>I think it's only used in /proc/davinci_clocks
+>>>
+>>>> static struct davinci_clk dm365_clks = {
+>>>> ....
+>>>> ....
+>>>> CLK("dm644x_ccdc", "master", &ccdc_master_clk),
+>>>> CLK("dm644x_ccdc", "slave", &ccdc_slave_clk),
+>>>
+>>>Looks like the drivers name is 'dm644x_ccdc', not 'isif'.  I'm
+>>>guessing just this should work without having to add new clock names.
+>>>
+>> No. I have mixed up the names. ISIF is for the new ISIF driver on DM365.
+>> Below are for DM644x ccdc driver. With just these entries added, two
+>> things observed....
+>>
+>> 1) Only one clock is shown disabled (usually many are shown disabled)
+>during bootup
+>> 2) cat /proc/davinci_clocks hangs.
+>>
+>> So this is the only way I got it working.
+>
+>Hmm, it worked just fine for me without any of these side effects.  I
+>applied the simple patch below on top of current master branch.  It booted
+>fine showing all the unused clocks being disabled, and I was able to
+>see davinci_clocks just fine:
+>
+>
+>diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-
+>davinci/dm644x.c
+>index e65e29e..e6f3570 100644
+>--- a/arch/arm/mach-davinci/dm644x.c
+>+++ b/arch/arm/mach-davinci/dm644x.c
+>@@ -293,8 +293,8 @@ struct davinci_clk dm644x_clks[] = {
+>        CLK(NULL, "dsp", &dsp_clk),
+>        CLK(NULL, "arm", &arm_clk),
+>        CLK(NULL, "vicp", &vicp_clk),
+>-       CLK(NULL, "vpss_master", &vpss_master_clk),
+>-       CLK(NULL, "vpss_slave", &vpss_slave_clk),
+>+       CLK("dm644x_ccdc", "master", &vpss_master_clk),
+>+       CLK("dm644x_ccdc", "slave", &vpss_slave_clk),
+>        CLK(NULL, "arm", &arm_clk),
+>        CLK(NULL, "uart0", &uart0_clk),
+>        CLK(NULL, "uart1", &uart1_clk),
+>
+>
+>[...]
+>Clocks: disable unused uart1
+>Clocks: disable unused uart2
+>Clocks: disable unused emac
+>Clocks: disable unused ide
+>Clocks: disable unused asp0
+>Clocks: disable unused mmcsd
+>Clocks: disable unused spi
+>Clocks: disable unused usb
+>Clocks: disable unused vlynq
+>Clocks: disable unused pwm0
+>Clocks: disable unused pwm1
+>Clocks: disable unused pwm2
+>Clocks: disable unused timer1
+>[...]
+>
+>root@DM644x:~# uname -r
+>2.6.32-arm-davinci-default-06873-g1a7277b-dirty
+>root@DM644x:~# cat /debug/davinci_clocks
+>ref_clk           users= 8      27000000 Hz
+>  pll1            users= 8 pll 594000000 Hz
+>    pll1_sysclk1  users= 0 pll 594000000 Hz
+>      dsp         users= 1 psc 594000000 Hz
+>    pll1_sysclk2  users= 2 pll 297000000 Hz
+>      arm         users= 2 psc 297000000 Hz
+>    pll1_sysclk3  users= 0 pll 198000000 Hz
+>      vpss_master users= 0 psc 198000000 Hz
+>      vpss_slave  users= 0 psc 198000000 Hz
+>    pll1_sysclk5  users= 3 pll  99000000 Hz
+>      emac        users= 1 psc  99000000 Hz
+>      ide         users= 0 psc  99000000 Hz
+>      asp0        users= 0 psc  99000000 Hz
+>      mmcsd       users= 0 psc  99000000 Hz
+>      spi         users= 0 psc  99000000 Hz
+>      gpio        users= 1 psc  99000000 Hz
+>      usb         users= 0 psc  99000000 Hz
+>      vlynq       users= 0 psc  99000000 Hz
+>      aemif       users= 1 psc  99000000 Hz
+>    pll1_aux_clk  users= 3 pll  27000000 Hz
+>      uart0       users= 1 psc  27000000 Hz
+>      uart1       users= 0 psc  27000000 Hz
+>      uart2       users= 0 psc  27000000 Hz
+>      i2c         users= 1 psc  27000000 Hz
+>      pwm0        users= 0 psc  27000000 Hz
+>      pwm1        users= 0 psc  27000000 Hz
+>      pwm2        users= 0 psc  27000000 Hz
+>      timer0      users= 1 psc  27000000 Hz
+>      timer1      users= 0 psc  27000000 Hz
+>      timer2      users= 1 psc  27000000 Hz
+>    pll1_sysclkbp users= 0 pll  27000000 Hz
+>  pll2            users= 0 pll 648000000 Hz
+>    pll2_sysclk1  users= 0 pll  54000000 Hz
+>    pll2_sysclk2  users= 0 pll 324000000 Hz
+>    pll2_sysclkbp users= 0 pll  13500000 Hz
+>root@DM644x:~#
 
