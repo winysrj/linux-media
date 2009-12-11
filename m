@@ -1,130 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:48993 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755149AbZLILtf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Dec 2009 06:49:35 -0500
-Subject: Re: IR Receiver on an Tevii S470
-From: Andy Walls <awalls@radix.net>
-To: "Igor M. Liplianin" <liplianin@me.by>
-Cc: Matthias Fechner <idefix@fechner.net>, linux-media@vger.kernel.org,
-	stoth@kernellabs.com
-In-Reply-To: <200912081959.21245.liplianin@me.by>
-References: <4B0459B1.50600@fechner.net>
-	 <200912070323.14440.liplianin@me.by> <1260156946.1809.25.camel@localhost>
-	 <200912081959.21245.liplianin@me.by>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 09 Dec 2009 06:47:46 -0500
-Message-Id: <1260359266.3093.15.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mail-ew0-f209.google.com ([209.85.219.209]:60689 "EHLO
+	mail-ew0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758301AbZLKO4o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Dec 2009 09:56:44 -0500
+Received: by ewy1 with SMTP id 1so1126722ewy.28
+        for <linux-media@vger.kernel.org>; Fri, 11 Dec 2009 06:56:49 -0800 (PST)
+To: linux-media@vger.kernel.org
+Subject: dib0700: Nova-T-500 remote - mixed button codes
+From: Antonio Marcos =?utf-8?q?L=C3=B3pez_Alonso?=
+	<amlopezalonso@gmail.com>
+Reply-To: amlopezalonso@gmail.com
+Date: Fri, 11 Dec 2009 14:56:45 +0000
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200912111456.45947.amlopezalonso@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2009-12-08 at 19:59 +0200, Igor M. Liplianin wrote:
-> On 7 декабря 2009 05:35:46 Andy Walls wrote:
+Hi all,
 
-> > Igor and Matthias,
-> >
-> > Please try the changes that I have for the TeVii S470 that are here:
-> >
-> > 	http://linuxtv.org/hg/~awalls/cx23885-ir
-> >
-> > You will want to modprobe the driver modules like this to get debugging
-> > information:
-> >
-> > 	# modprobe cx25840 ir_debug=2
-> > 	# modprobe cx23885 ir_input_debug=1
-> >
-> > With that debugging you will get output something like this in dmesg or
-> > your logs when you press a button on the remote (this is RC-5 using a
-> > CX23888 chip not NEC using a CX23885 chip):
-> >
-> > cx23885[0]/888-ir: IRQ Status:  tsr rsr             rby
-> > cx23885[0]/888-ir: IRQ Enables:     rse rte roe
-> > cx23885[0]/888-ir: IRQ Status:  tsr rsr             rby
-> > cx23885[0]/888-ir: IRQ Enables:     rse rte roe
-> > cx23885[0]/888-ir: IRQ Status:  tsr rsr             rby
-> > cx23885[0]/888-ir: IRQ Enables:     rse rte roe
-> > cx23885[0]/888-ir: IRQ Status:  tsr rsr             rby
-> > cx23885[0]/888-ir: IRQ Enables:     rse rte roe
-> > cx23885[0]/888-ir: IRQ Status:  tsr rsr             rby
-> > cx23885[0]/888-ir: IRQ Enables:     rse rte roe
-> > cx23885[0]/888-ir: IRQ Status:  tsr     rto
-> > cx23885[0]/888-ir: IRQ Enables:     rse rte roe
-> > cx23885[0]/888-ir: rx read:     817000 ns  mark
-> > cx23885[0]/888-ir: rx read:     838926 ns  space
-> > cx23885[0]/888-ir: rx read:    1572259 ns  mark
-> > cx23885[0]/888-ir: rx read:    1705296 ns  space
-> > [...]
-> > cx23885[0]/888-ir: rx read:     838037 ns  space
-> > cx23885[0]/888-ir: rx read:     746333 ns  mark
-> > cx23885[0]/888-ir: rx read:    1705741 ns  space
-> > cx23885[0]/888-ir: rx read:    1619370 ns  mark
-> > cx23885[0]/888-ir: rx read: end of rx
+I own a Hauppauge Nova-T-500 in a box running Mythbuntu 9.10. The card runs 
+fine except when it comes to the in-built remote sensor: 
 
-> > If you do not see good or many NEC timing measurments in the logs, the
-> > first thing to try is to change lines 533-534 of
-> > linux/drivers/media/cx23885/cx23885-input.c:
-> >
-> >                params.modulation = true;
-> >                params.invert_level = false;
-> >
-> > If you see no timing measurements or few timing measurements, change the
-> > "modulation" to "false".  If the chip is expecting carrier pulses and an
-> > external circuit or capacitor is smoothing carrier bursts into baseband
-> > pulses, then the hardware won't make measurements properly.
-> >
-> > If you see inverted mark and space inverted when "modulation" is set to
-> > "false", then set "invert_level" to "true".
-> >
-> > Those are the two things I had to really guess at.
+Whenever I press any button, the remote sensor seems to receive some other 
+keycodes aside the proper one (i.e. when I press Volume Up button the sensor 
+receives it most of the time, but sometimes it understands some other buttons 
+are pressed like ArrowDown, Red button and so, making MythTV experience very 
+annoying). There are only three buttons that are always well received with no 
+confusion at all: "OK", "ArrowDown" and "Play". This behavior occurs with two 
+identical remotes I own (one of them belonging to a WinTV HVR-1100) and 
+another card user has reported a similar behavior with its own and same 
+remote.
 
-> > Regards,
-> > Andy
-> 
-> No luck :(
-> Nothing in logs
+I tested both remotes with the HVR-1100 and they behave perfectly, so I guess 
+this is not a remote related issue.
 
-:(
+Though I have tried several LIRC setup files and swapped dvb_usb_dib0700 
+firmware files (1.10 and 1.20 versions) they make no working difference at 
+all.
 
-OK.
+I also tried rebuilding v4l-dvb code to no avail.
 
-1. I assume you have the v4l-cx23885-avcore-01.fw file available for the
-cx25840 module, just so there is no problem initializing the CX23885 AV
-core.
+Any suggestions? I would gladly provide further info/logs upon request.
 
-
-2. Does dmesg or the logs show the input device being created?
-Somewhere in the log you should see:
-
-	"cx23885 IR (TeVii S470)"
-
-when the input device is created.
-
-
-3. With the "debug=7" option to the cx23885 module, do you see any IR
-interrupts coming in?  In dmesg or the log you should see:
-
-	"(PCI_MSK_IR        0x...)"
-
-when an IR interrupt happens.
-
-
-Tonight I will:
-
-a. Add a guess at HVR-1800 support so maybe Steve can help us debug as
-well.  I know the NEC decoder works; I tested it.  What I don't know is
-if the CX23885 AV IR implementation works (I don't have CX23885 hardware
-at the moment).
-
-b. Add a temporary patch to add a /dev/videoN node for the TeVii S470 so
-you can use "v4l2-ctl --log-status" to show the status of the IR
-controller and v4l2-dbg to dump the cx23885 and cx23885-av-core
-registers, so I can see if everthying is set right.
-
-c. Review the register settings to make sure interrupts should be
-enabled for the IR controller.
-
-Regards,
-Andy
-
+Cheers,
+Antonio
