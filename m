@@ -1,41 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:55928 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755434AbZLWKI4 (ORCPT
+Received: from mail01a.mail.t-online.hu ([84.2.40.6]:49584 "EHLO
+	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754165AbZLKVdf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Dec 2009 05:08:56 -0500
-Date: Wed, 23 Dec 2009 11:08:50 +0100
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: [PATCH 0/2] [ARM] Add Samsung S3C/S5P image rotator driver
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com
-Message-id: <1261562933-26987-1-git-send-email-p.osciak@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
+	Fri, 11 Dec 2009 16:33:35 -0500
+Message-ID: <4B22BAB0.5070604@freemail.hu>
+Date: Fri, 11 Dec 2009 22:33:36 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+MIME-Version: 1.0
+To: Jean-Francois Moine <moinejf@free.fr>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] gspca m5602: eliminate sparse warnings
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+From: Márton Németh <nm127@freemail.hu>
 
-this is a driver for Samsung S3C/S5P series image rotator device driver.
-This driver utilizes the proposed memory-to-memory V4L2 framework, just posted
-by me in the previous patch series.
+Eliminate the following sparse warnings (see "make C=1"):
+ * v4l/m5602_s5k4aa.c:530:23: warning: dubious: x | !y
+ * v4l/m5602_s5k4aa.c:575:23: warning: dubious: x | !y
 
-An example application for testing the device is also included.
-
-
-This series contains:
-
-[PATCH 1/2] [ARM] samsung-rotator: Add rotator device platform definitions.
-[PATCH 2/2] [ARM] samsung-rotator: Add Samsung S3C/S5P rotator driver
-[EXAMPLE] S3C/S5P image rotator test application
-
-
-Best regards
---
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+../../m5602_s5k4aa_dubious.patch
+diff -r f5662ce08663 linux/drivers/media/video/gspca/m5602/m5602_s5k4aa.c
+--- a/linux/drivers/media/video/gspca/m5602/m5602_s5k4aa.c	Fri Dec 11 09:53:41 2009 +0100
++++ b/linux/drivers/media/video/gspca/m5602/m5602_s5k4aa.c	Fri Dec 11 22:25:50 2009 +0100
+@@ -527,7 +527,7 @@
+ 	err = m5602_read_sensor(sd, S5K4AA_ROWSTART_LO, &data, 1);
+ 	if (err < 0)
+ 		return err;
+-	data = (data & 0xfe) | !val;
++	data = (data & 0xfe) | (val ? 0 : 1);
+ 	err = m5602_write_sensor(sd, S5K4AA_ROWSTART_LO, &data, 1);
+ 	return err;
+ }
+@@ -572,7 +572,7 @@
+ 	err = m5602_read_sensor(sd, S5K4AA_COLSTART_LO, &data, 1);
+ 	if (err < 0)
+ 		return err;
+-	data = (data & 0xfe) | !val;
++	data = (data & 0xfe) | (val ? 0 : 1);
+ 	err = m5602_write_sensor(sd, S5K4AA_COLSTART_LO, &data, 1);
+ 	return err;
+ }
