@@ -1,133 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:3543 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935324AbZLGXoc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Dec 2009 18:44:32 -0500
-Message-ID: <4B1D934E.7030103@redhat.com>
-Date: Mon, 07 Dec 2009 21:44:14 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:33734 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752189AbZLLAaa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Dec 2009 19:30:30 -0500
+Received: by bwz27 with SMTP id 27so1000371bwz.21
+        for <linux-media@vger.kernel.org>; Fri, 11 Dec 2009 16:30:36 -0800 (PST)
+To: linux-media@vger.kernel.org
+Subject: Re: IR Receiver on an Tevii S470
+Content-Disposition: inline
+From: "Igor M. Liplianin" <liplianin@me.by>
+Cc: Steven Toth <stoth@linuxtv.org>,
+	Matthias Fechner <idefix@fechner.net>,
+	Andy Walls <awalls@radix.net>
+Date: Sat, 12 Dec 2009 02:30:36 +0200
 MIME-Version: 1.0
-To: Jon Smirl <jonsmirl@gmail.com>
-CC: Krzysztof Halasa <khc@pm.waw.pl>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
-	kraxel@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR 	system?
-References: <20091204220708.GD25669@core.coreip.homeip.net> <BEJgSGGXqgB@lirc>	 <9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>	 <1260070593.3236.6.camel@pc07.localdom.local>	 <20091206065512.GA14651@core.coreip.homeip.net>	 <4B1B99A5.2080903@redhat.com> <m3638k6lju.fsf@intrepid.localdomain>	 <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>	 <m3skbn6dv1.fsf@intrepid.localdomain> <9e4733910912061323x22c618ccyf6edcee5b021cbe3@mail.gmail.com>
-In-Reply-To: <9e4733910912061323x22c618ccyf6edcee5b021cbe3@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <200912120230.36902.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Let me add my view for those questions.
+On 11 декабря 2009, "Igor M. Liplianin" <liplianin@me.by> wrote:
+> On Thu, 2009-12-10 at 18:16 +0200, Igor M. Liplianin wrote:
+> > On 10 декабря 2009 03:12:39 Andy Walls wrote:
+> > > On Wed, 2009-12-09 at 17:54 +0200, Igor M. Liplianin wrote:
+> > > > > > > Igor and Matthias,
+> > > > > > >
+> > > > > > > Please try the changes that I have for the TeVii S470 that are
+> > > > > > > here:
+> > > > > > >
+> > > > > > > 	http://linuxtv.org/hg/~awalls/cx23885-ir
+> > > >
+> > > > In fact some time ago I was writing some code for cx23885 IR, but not
+> > > > reached IR interrupts to work. Though I used PCI_MSK_AV_CORE (1 <<
+> > > > 27), then test register PIN_CTRL for field FLD_IR_IRQ_STAT.
+> > >
+> > > Igor,
+> > >
+> > > You are exactly right on this.  I used the wrong interrupt status flag.
+> > > I have pushed a patch to my repository to use the PCI_MSK_AV_CORE
+> > > status flag.
+> > >
+> > > Could you please update an test the TeVii S470 again when you have
+> > > time?
+> > >
+> > > > I have Compro E650F with RC6 remote, also have RC5 remote from TV
+> > > > set. I will made little hack to test Compro & RC5.
+> > >
+> > > OK. Thank you.
+> > >
+> > > Regards,
+> > > Andy
+> >
+> > First try, without pressing IR keys
+> >
+> > cx25840 3-0044: IRQ Enables:     rse rte roe
+> > cx25840 3-0044: IRQ Status:  tsr
+> > cx25840 3-0044: IRQ Enables:     rse rte roe
+> > irq 16: nobody cared (try booting with the "irqpoll" option)
+> > Pid: 0, comm: swapper Not tainted 2.6.32 #2
+> > Call Trace:
+> >  [<c1052db0>] ? __report_bad_irq+0x24/0x69
+> >  [<c1052db7>] ? __report_bad_irq+0x2b/0x69
+> >  [<c1052edc>] ? note_interrupt+0xe7/0x13f
+> >  [<c1053416>] ? handle_fasteoi_irq+0x7a/0x97
+> >  [<c1004411>] ? handle_irq+0x38/0x3f
+> >  [<c1003bd1>] ? do_IRQ+0x38/0x89
+> >  [<c1002ea9>] ? common_interrupt+0x29/0x30
+> >  [<c1007a1e>] ? mwait_idle+0x7a/0x7f
+> >  [<c1001b93>] ? cpu_idle+0x37/0x4c
+> > handlers:
+> > [<c13179ad>] (usb_hcd_irq+0x0/0x59)
+> > [<f85ba5e7>] (azx_interrupt+0x0/0xe7 [snd_hda_intel])
+> > [<f88b1d2b>] (cx23885_irq+0x0/0x4a5 [cx23885])
+> > Disabling IRQ #16
+> > cx25840 3-0044: IRQ Status:  tsr
+> > cx25840 3-0044: IRQ Enables:     rse rte roe
+> > cx25840 3-0044: IRQ Status:  tsr
+>
+> OK.  We're getting interrupts from the A/V core, but they are not IR
+> related.  They must be audio and video interrupts from the A/V core.
+>
+> I have checked in new changes:
+>
+> 	http://linuxtv.org/hg/~awalls/cx23885-ir
+>
+> please try again when you have time.
+>
+> 	# modprobe cx25840 debug=2 ir_debug=2
+> 	# modprobe cx23885 debug=7
+>
+> My only concern now, is that I have not turned off all the audio
+> interrupts from the A/V core - I could not determine if registers
+> 0x80c-0x80f were improtant to set.
+>
+> Regards,
+> Andy
+dmesg is full of repeated lines:
 
-Jon Smirl wrote:
-> On Sun, Dec 6, 2009 at 3:34 PM, Krzysztof Halasa <khc@pm.waw.pl> wrote:
->> Jon Smirl <jonsmirl@gmail.com> writes:
->>
->>>> Once again: how about agreement about the LIRC interface
->>>> (kernel-userspace) and merging the actual LIRC code first? In-kernel
->>>> decoding can wait a bit, it doesn't change any kernel-user interface.
->>> I'd like to see a semi-complete design for an in-kernel IR system
->>> before anything is merged from any source.
->> This is a way to nowhere, there is no logical dependency between LIRC
->> and input layer IR.
->>
->> There is only one thing which needs attention before/when merging LIRC:
->> the LIRC user-kernel interface. In-kernel "IR system" is irrelevant and,
->> actually, making a correct IR core design without the LIRC merged can be
->> only harder.
-> 
-> Here's a few design review questions on the LIRC drivers that were posted....
-> 
-> How is the pulse data going to be communicated to user space?
-
-lirc_dev will implement a revised version of the lirc API. I'm assuming that
-Jerod and Christoph will do this review, in order to be sure that it is stable
-enough for kernel inclusion (as proposed by Gerd).
-
-> Can the pulse data be reported via an existing interface without
-> creating a new one?
-
-Raw pulse data should be reported only via lirc_dev, but it can be converted
-into a keycode and reported via evdev as well, via an existing interface.
-
-> Where is the documentation for the protocol?
-
-I'm not sure what you're meaning here. I've started a doc about IR at the media
-docbook. This is currently inside the kernel Documents/DocBook. If you want
-to browse, it is also available as:
-
-	http://linuxtv.org/downloads/v4l-dvb-apis/ch17.html
-
-For sure we need to better document the IR's, and explain the API's there.
-
-> Is it a device interface or something else?
-
-lirc_dev should create a device interface.
-
-> What about capabilities of the receiver, what frequencies?
-> If a receiver has multiple frequencies, how do you report what
-> frequency the data came in on?
-
-IMO, via sysfs.
-
-> What about multiple apps simultaneously using the pulse data?
-
-IMO, the better is to limit the raw interface to just one open.
-
-> How big is the receive queue?
-
-It should be big enough to receive at least one keycode event. Considering that
-the driver will use kfifo (IMO, it is a good strategy, especially since you
-won't need any lock if just one open is allowed), it will require a power of two size.
-
-> How does access work, root only or any user?
-
-IMO, it should be the same requirement as used by an input interface.
-
-> How are capabilities exposed, sysfs, etc?
-
-IMO, sysfs.
-
-> What is the interface for attaching an in-kernel decoder?
-
-IMO, it should use the kfifo for it. However, if we allow both raw data and
-in-kernel decoders to read data there, we'll need a spinlock to protect the
-kfifo.
-
-> If there is an in-kernel decoder should the pulse data stop being
-> reported, partially stopped, something else?
-
-I don't have a strong opinion here, but, from the previous discussions, it
-seems that people want it to be double-reported by default. If so, I think
-we need to implement a command at the raw interface to allow disabling the
-in-kernel decoder, while the raw interface is kept open.
-
-> What is the mechanism to make sure both system don't process the same pulses?
-
-I don't see a good way to avoid it.
-
-> Does it work with poll, epoll, etc?
-> What is the time standard for the data, where does it come from?
-> How do you define the start and stop of sequences?
-> Is receiving synchronous or queued?
-> What about transmit, how do you get pulse data into the device?
-> Transmitter frequencies?
-> Multiple transmitters?
-> Is transmitting synchronous or queued?
-> How big is the transmit queue?
-
-I don't have a clear answer for those. I'll let those to LIRC developers to answer.
+cx25840 3-0044: AV Core IRQ status (entry):           
+cx25840 3-0044: AV Core IRQ status (exit):           
+cx23885[0]/0: pci_status: 0x083f4000  pci_mask: 0x08000001
+cx23885[0]/0: vida_status: 0x00000000 vida_mask: 0x00000000 count: 0x0
+cx23885[0]/0: ts1_status: 0x00000000  ts1_mask: 0x00000000 count: 0x20
+cx23885[0]/0: ts2_status: 0x00000000  ts2_mask: 0x00000000 count: 0xc7383f3a
+cx23885[0]/0:  (PCI_MSK_AV_CORE   0x08000000)
 
 
-Cheers,
-Mauro
-
-
+Igor
