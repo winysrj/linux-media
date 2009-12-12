@@ -1,48 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.9]:46639 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752009AbZLYKi2 (ORCPT
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:36983 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751788AbZLLL7I convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Dec 2009 05:38:28 -0500
-Message-ID: <4B34961D.6060207@a-city.de>
-Date: Fri, 25 Dec 2009 11:38:21 +0100
-From: TAXI <taxi@a-city.de>
+	Sat, 12 Dec 2009 06:59:08 -0500
+Received: by bwz27 with SMTP id 27so1138441bwz.21
+        for <linux-media@vger.kernel.org>; Sat, 12 Dec 2009 03:59:14 -0800 (PST)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Does Prof-tuner 7500 DVB-S2 BOX work in linux ?
+Date: Sat, 12 Dec 2009 13:59:15 +0200
+References: <267bb6670912120230m59eeeeffqc52cfb320ac05ec2@mail.gmail.com>
+In-Reply-To: <267bb6670912120230m59eeeeffqc52cfb320ac05ec2@mail.gmail.com>
 MIME-Version: 1.0
-To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Bad image/sound quality with Medion MD 95700
-References: <4B33F4CA.7060607@a-city.de> <alpine.DEB.2.01.0912251021210.5481@ybpnyubfg.ybpnyqbznva>
-In-Reply-To: <alpine.DEB.2.01.0912251021210.5481@ybpnyubfg.ybpnyqbznva>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain;
+  charset="koi8-r"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200912121359.16169.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-BOUWSMA Barry schrieb:
-> The other thing to note is that this device delivers a full
-> unfiltered Transport Stream, which with the 13,27Mbit/sec typical
-> bandwidth per channel used in your country (apart from some local
-> exceptions of greater values), will require a USB2 interface.
-it is a USB2 interface:
-[    3.965425] usb 1-3.1: new high speed USB device using ehci_hcd and
-address 6 (it's the USB hub in the box)
+On 12 декабря 2009 12:30:25 dehqan65 wrote:
+> In The Name Of God The compassionate merciful
+>
+> Hello ;
+> Good day everyone ;
+>
+> Does Prof-tuner 7500 DVB-S2
+> BOX<http://www.prof-tuners.com/eng/prof7500.html> work in linux ?
+> Any experience ?
+>
+> Regards dehqan
+Sorry, it is in russian, but you can get firmware and my patch for v4l-dvb from there.
 
-I also thought the USB chipset could be the problem and testet it with
-an extra USB2 card.
+http://forum.free-
+x.de/wbb/index.php?page=Thread&threadID=798&s=89144c8c54ac16eb4cf986e61a8940be497599ad
 
-> around line 620 in my reference code, there is a line that sets
-> the alternate interface to 6.  This is expected to be bulk, but
-> on my boxes is isoc.
-> 
-> You can change this to interface 0, on which my boxes delivers
-> bulk data flawlessly.
-I think isoc would be okay on 2.6.32, so no need to change that, right?
+Welcome to test.
 
-> but when
-> I have my machine operating fully again (yeahright), I can send
-> you some of these alternative patches to try -- running 
-> successfully on 2.6.14 and 2.6.27-rc4.
-That would be nice.
-
-P.S. my english is not the best so I don't understand all you wrote but
-why don't you put the patches upstream?
+-- 
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
