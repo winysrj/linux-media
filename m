@@ -1,24 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from defout.telus.net ([204.209.205.13])
+Received: from mail-fx0-f224.google.com ([209.85.220.224])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <sandy@voytech.biz>) id 1NH7GZ-0000pJ-DX
-	for linux-dvb@linuxtv.org; Sun, 06 Dec 2009 03:54:32 +0100
-Received: from edmwaa02.telusplanet.net ([207.216.216.254])
-	by priv-edmwes25.telusplanet.net
-	(InterMail vM.7.08.04.00 201-2186-134-20080326) with ESMTP id
-	<20091206025423.DDWR7884.priv-edmwes25.telusplanet.net@edmwaa02.telusplanet.net>
-	for <linux-dvb@linuxtv.org>; Sat, 5 Dec 2009 19:54:23 -0700
-Received: from [10.1.1.10] (d207-216-216-254.bchsia.telus.net
-	[207.216.216.254])
-	by edmwaa02.telusplanet.net (BorderWare Security Platform) with ESMTP
-	id 59980146279E9801
-	for <linux-dvb@linuxtv.org>; Sat,  5 Dec 2009 19:54:22 -0700 (MST)
-From: Sandy macDonald <sandy@voytech.biz>
+	(envelope-from <dehqan65@gmail.com>) id 1NJPK0-0007WD-0g
+	for linux-dvb@linuxtv.org; Sat, 12 Dec 2009 11:35:32 +0100
+Received: by fxm24 with SMTP id 24so177291fxm.11
+	for <linux-dvb@linuxtv.org>; Sat, 12 Dec 2009 02:34:58 -0800 (PST)
+MIME-Version: 1.0
+Date: Sat, 12 Dec 2009 14:04:58 +0330
+Message-ID: <267bb6670912120234m55fc0a2fjb0ec8959ddd5c0a5@mail.gmail.com>
+From: dehqan65 <dehqan65@gmail.com>
 To: linux-dvb@linuxtv.org
-Date: Sat, 05 Dec 2009 18:54:24 -0800
-Message-ID: <1260068064.5339.21.camel@bubbles.local>
-Mime-Version: 1.0
-Subject: [linux-dvb] Sky2PC Rev. 3.1
+Subject: [linux-dvb] Which one of s660 s650 Tevii boxes ?
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -27,59 +19,58 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1300269693=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+--===============1300269693==
+Content-Type: multipart/alternative; boundary=0016363ba84a8eae40047a859763
 
-Hello:
+--0016363ba84a8eae40047a859763
+Content-Type: text/plain; charset=ISO-8859-1
 
-I've had a Sky2PC (ver 3.1) DVB-S card kicking around for a while and
-I'd like to get it operational.
+In The Name Of God The compassionate merciful
 
-According to the v4l-dvb wiki, this card requires a definition, and to
-post the details to the linuxtv mailing list, so here goes..
+Hello ;
 
-Thank you.
-Sandy MacDonald
+Which one of s660 s650 Tevii boxes , has better tuner ?
 
-On the back of the card:
+S650 > CAN Tuner (Conexant chips inside)
+S660 > Silicon tuner (Montage chips)
 
-Model: SKY2PC
-P/N: 92105-20101
-Rev: 3.1
-Serial no. and MAC address
-
-The front of the card:
-
-DBC1201 (on the metal shielding), nothing else.
-Main chip: B2C2 Flexcop III
-	M3B9E-001 0215
-
-lspci -v
-
-01:0e.0 Network controller: Techsan Electronics Co Ltd B2C2 FlexCopIII
-DVB chip / Technisat SkyStar2 DVB card (rev 01)
-	Subsystem: Techsan Electronics Co Ltd Device 2104
-	Flags: bus master, slow devsel, latency 64, IRQ 10
-	Memory at f4100000 (32-bit, non-prefetchable) [size=64K]
-	I/O ports at 3400 [size=32]
-
-lspci -vn
-
-01:0e.0 0280: 13d0:2200 (rev 01)
-	Subsystem: 13d0:2104
-	Flags: bus master, slow devsel, latency 64, IRQ 10
-	Memory at f4100000 (32-bit, non-prefetchable) [size=64K]
-	I/O ports at 3400 [size=32]
+which one of these 2 boxes is better in quality ?
+what is your opinion ?
 
 
+Regards dehqan
 
+--0016363ba84a8eae40047a859763
+Content-Type: text/html; charset=ISO-8859-1
+
+<div dir="ltr">In The Name Of God The compassionate merciful<br>
+<br>
+Hello ; <br>
+<br>Which one of s660 s650 Tevii boxes , has better tuner ?<br><br>S650 &gt; CAN Tuner (Conexant chips inside)<br>S660 &gt; Silicon tuner (Montage chips)<br><br>which one of these 2 boxes is better in quality ?<br>
+
+what is your opinion ? <br><br>
+<br>
+Regards dehqan<br>
+</div>
+
+--0016363ba84a8eae40047a859763--
+
+
+--===============1300269693==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1300269693==--
