@@ -1,17 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-fx0-f228.google.com ([209.85.220.228])
+Received: from fg-out-1718.google.com ([72.14.220.158])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <snvtlns@gmail.com>) id 1NGFus-00071B-BW
-	for linux-dvb@linuxtv.org; Thu, 03 Dec 2009 18:56:34 +0100
-Received: by fxm28 with SMTP id 28so1657331fxm.5
-	for <linux-dvb@linuxtv.org>; Thu, 03 Dec 2009 09:56:00 -0800 (PST)
+	(envelope-from <dehqan65@gmail.com>) id 1NJPJP-0007SC-12
+	for linux-dvb@linuxtv.org; Sat, 12 Dec 2009 11:34:55 +0100
+Received: by fg-out-1718.google.com with SMTP id e12so750612fga.5
+	for <linux-dvb@linuxtv.org>; Sat, 12 Dec 2009 02:34:51 -0800 (PST)
 MIME-Version: 1.0
-Date: Thu, 3 Dec 2009 17:56:00 +0000
-Message-ID: <762d2e290912030956w46cef9f3t61e00c998e8e9c26@mail.gmail.com>
-From: moneir ouali <snvtlns@gmail.com>
+Date: Sat, 12 Dec 2009 14:04:51 +0330
+Message-ID: <267bb6670912120234l60d92e03p6339d1f273e2e1e5@mail.gmail.com>
+From: dehqan65 <dehqan65@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] how to install a driver of videomate compro S300 on
-	Opensuse 11.2
+Subject: [linux-dvb] Some questions about Tevii s660
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -20,45 +19,48 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1940667367=="
+Content-Type: multipart/mixed; boundary="===============1770041060=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1940667367==
-Content-Type: multipart/alternative; boundary=0015174a047a3e62ae0479d6b4d6
+--===============1770041060==
+Content-Type: multipart/alternative; boundary=0016364179ed22be9e047a85971b
 
---0015174a047a3e62ae0479d6b4d6
+--0016364179ed22be9e047a85971b
 Content-Type: text/plain; charset=ISO-8859-1
 
-hi
- ( P4 3.2 Ghz, 1Gb, Videomate compro S300 , opensuse11.2 )
+In The Name Of God The compassionate merciful
 
-the system recongnize videomate T300.
+Hello ;
+Good day everyone ;
 
-where can i find a good version of v4l-dvb , that support videomate
-comproS300.
-i have tested many versions without a result.
-i hope to find a good "How to install videomate compro S300 on opensuse
-11.2" .
-regards to all
+1-Someone said s660 has problem with locking at Symbol rates more than 27500
+with FEC 3/4 in S2 , and someone said he/she has this not problem with his
+s650 box , does anyone have the same problem with s660 ?
 
---0015174a047a3e62ae0479d6b4d6
+2-Does it's linux driver support Dish motor access ?
+3-Does it work completely in linux ?
+
+
+Regards dehqan
+
+--0016364179ed22be9e047a85971b
 Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
 
-<div dir=3D"ltr">hi<br>=A0( P4 3.2 Ghz, 1Gb, Videomate compro S300 , opensu=
-se11.2 )<br><br>the system recongnize videomate T300.<br><br>where can i fi=
-nd a good version of v4l-dvb , that support videomate comproS300.<br>i have=
- tested many versions without a result.<br>
-i hope to find a good &quot;How to install videomate compro S300 on opensus=
-e 11.2&quot; .<br>regards to all <br><br>=A0<br></div>
+<div dir="ltr">In The Name Of God The compassionate merciful<br>
+<br>
+Hello ;<br>
+Good day everyone ; <br><br>1-Someone said s660 has problem with locking at Symbol rates more than 27500 with FEC 3/4 in S2 , and someone said he/she has this not problem with his s650 box , does anyone have the same problem with s660 ?<br>
+<br>
 
---0015174a047a3e62ae0479d6b4d6--
+2-Does it&#39;s linux driver support Dish motor access ?<br>3-Does it work completely in linux ? <br><br><br>Regards dehqan<br></div>
+
+--0016364179ed22be9e047a85971b--
 
 
---===============1940667367==
+--===============1770041060==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -69,4 +71,4 @@ linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1940667367==--
+--===============1770041060==--
