@@ -1,58 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:55720 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933370AbZLKBjO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2009 20:39:14 -0500
-Received: by bwz27 with SMTP id 27so323188bwz.21
-        for <linux-media@vger.kernel.org>; Thu, 10 Dec 2009 17:39:19 -0800 (PST)
+Received: from mail.lang.hm ([64.81.33.126]:60564 "HELO bifrost.lang.hm"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S932650AbZLMBRM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Dec 2009 20:17:12 -0500
+Date: Sat, 12 Dec 2009 14:52:33 -0800 (PST)
+From: david@lang.hm
+To: Krzysztof Halasa <khc@pm.waw.pl>
+cc: Andy Walls <awalls@radix.net>, Jon Smirl <jonsmirl@gmail.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
+	jarod@wilsonet.com, kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	mchehab@redhat.com, superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR  system?
+In-Reply-To: <m3aaxw6mjz.fsf@intrepid.localdomain>
+Message-ID: <alpine.DEB.2.00.0912121445290.3370@asgard.lang.hm>
+References: <20091204220708.GD25669@core.coreip.homeip.net> <BEJgSGGXqgB@lirc> <9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com> <1259977687.27969.18.camel@localhost> <9e4733910912041945g14732dcfgbb2ef6437ef62bb6@mail.gmail.com>
+ <1260066624.3105.33.camel@palomino.walls.org> <m3aaxw6mjz.fsf@intrepid.localdomain>
 MIME-Version: 1.0
-In-Reply-To: <829197380912072020s79199b84g20dbc341e4d231e1@mail.gmail.com>
-References: <44c6f3de0912041415r54d8ab6fq486f2a82edb91a68@mail.gmail.com>
-	<829197380912041526r764a0deeyb64910a22e92d75d@mail.gmail.com>
-	<829197380912072020s79199b84g20dbc341e4d231e1@mail.gmail.com>
-From: John S Gruber <johnsgruber@gmail.com>
-Date: Thu, 10 Dec 2009 20:38:59 -0500
-Message-ID: <44c6f3de0912101738h7f102929i54fbcceceb616edf@mail.gmail.com>
-Subject: Re: [PATCH] sound/usb: Relax urb data alignment restriciton for
-	HVR-950Q only
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> After reviewing the patch as well as the spec, your change looks
-> pretty reasonable (aside from the fact that you need the other USB
-> IDs).  It seems pretty clear that the au0828 violates the spec, but
-> the spec does indicate how to handle that case, which is what your
-> code addresses.
+On Sun, 6 Dec 2009, Krzysztof Halasa wrote:
+
+> Andy Walls <awalls@radix.net> writes:
 >
+>> Yes, I agree.  I do not know what percentage of current Linux users are
+>> technical vs non-technical, so I cannot gauge the current improtance.
+>>
+>> I can see the trend line though: as time goes by, the percentage of all
+>> linux users that have a technical bent will only get smaller.
+>
+> This IMHO shouldn't matter. If users can configure their keymaps for
+> e.g. games with a graphical utility (and  they easily can), they can do
+> the same with their remotes, at least with these using common sane
+> protocols. The only thing needed is a good GUI utility. Ergo - it's not
+> a kernel issue.
+>
+> The "default bundled", or PnP, won't work well in comparison to a GUI
+> utility, I wouldn't worry about it too much (though adding it to udev
+> and co is trivial and we should do it - even if not PnP but asking first
+> about the actual remote used).
 
-I think you found something in the specification I haven't found. What did you
-see that indicated how to deal with equipment misbehaving in this way?
+how is this problem any different from figuring out the keymap of a 
+keyboard?
 
-I found the following list of USB ID's. Just double checking, but is
-the 850 enough like the
-950 line for me to include it?
+there are many defined keymaps (including cases where keys are labled 
+different things on the keyboard but send identical codes)
 
-        case 72000: /* WinTV-HVR950q (Retail, IR, ATSC/QAM */
-        case 72001: /* WinTV-HVR950q (Retail, IR, ATSC/QAM and analog video */
-        case 72211: /* WinTV-HVR950q (OEM, IR, ATSC/QAM and analog video */
-        case 72221: /* WinTV-HVR950q (OEM, IR, ATSC/QAM and analog video */
-        case 72231: /* WinTV-HVR950q (OEM, IR, ATSC/QAM and analog video */
-        case 72241: /* WinTV-HVR950q (OEM, No IR, ATSC/QAM and analog video */
-        case 72251: /* WinTV-HVR950q (Retail, IR, ATSC/QAM and analog video */
--->   case 72301: /* WinTV-HVR850 (Retail, IR, ATSC and analog video */
-        case 72500: /* WinTV-HVR950q (OEM, No IR, ATSC/QAM */
+currently in linux distros the user can either select the keymap, or the 
+installer will ask the user to press specific keys (or indicate that they 
+don't exist) until the installer can guess the keymap to use.
 
+why would this not work for IR remotes as well?
 
-Thanks again, not only for your help with my change, but with all you did to
-provide support for the Hauppage equipment.
+and just like linux has some default keymaps that it uses that mostly work 
+for the common case, there could be default IR keymaps that map the common 
+keys for all remotes to the appropriate keycodes. it will mean that by 
+default you won't see a difference between a DVD, VCR, DVR, etc play 
+button, but it will mean that someone picking up a random remote and 
+pointing it at the linux box will probably get minimal functionality.
 
-I'd add that being the beginner at making kernel changes your review
-is particularly
-helpful to me (and to my confidence).
+then with a utility to tweak the keymap (or load a more specific one) the 
+user can do better.
 
-John
+this would also integrate very nicely with they 'multimedia keyboards' 
+that have lots of buttons on them as well, unless you tell it otherwise, 
+play is play is play no matter which play button is pressed.
+
+David Lang
