@@ -1,65 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from col0-omc2-s17.col0.hotmail.com ([65.55.34.91]:50192 "EHLO
-	col0-omc2-s17.col0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753064AbZLJIhZ convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2009 03:37:25 -0500
-Message-ID: <COL124-W3374D284D1613BFF7C9620B28D0@phx.gbl>
-From: Marco Berizzi <pupilla@hotmail.com>
-To: <linux-media@vger.kernel.org>
-Subject: RE: hauppauge hvr 2200: lost FE_HAS_LOCK
-Date: Thu, 10 Dec 2009 09:36:32 +0100
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-MIME-Version: 1.0
+Received: from mail1.radix.net ([207.192.128.31]:42060 "HELO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S933444AbZLMB3f convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Dec 2009 20:29:35 -0500
+Subject: Re: IR Receiver on an Tevii S470
+From: Andy Walls <awalls@radix.net>
+To: "Igor M. Liplianin" <liplianin@me.by>
+Cc: linux-media@vger.kernel.org, Steven Toth <stoth@linuxtv.org>,
+	Matthias Fechner <idefix@fechner.net>
+In-Reply-To: <200912121349.58436.liplianin@me.by>
+References: <200912120230.36902.liplianin@me.by>
+	 <200912120342.40061.liplianin@me.by> <1260586728.1826.11.camel@localhost>
+	 <200912121349.58436.liplianin@me.by>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 12 Dec 2009 09:15:27 -0500
+Message-Id: <1260627327.3104.13.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Sat, 2009-12-12 at 13:49 +0200, Igor M. Liplianin wrote:
+> On 12 декабря 2009 04:58:48 Andy Walls wrote:
+> > On Sat, 2009-12-12 at 03:42 +0200, Igor M. Liplianin wrote:
+> > > On 12 декабря 2009 03:00:37 Andy Walls wrote:
+> > > > On Sat, 2009-12-12 at 02:30 +0200, Igor M. Liplianin wrote:
+> > > > > On 11 декабря 2009, "Igor M. Liplianin" <liplianin@me.by> wrote:
+> > > > > > On Thu, 2009-12-10 at 18:16 +0200, Igor M. Liplianin wrote:
+> > > > > > > On 10 декабря 2009 03:12:39 Andy Walls wrote:
+> > > > > > > > On Wed, 2009-12-09 at 17:54 +0200, Igor M. Liplianin wrote:
+> > > > > > > > > > > > Igor and Matthias,
+> > > > > > > > > > > >
+> > > > > > > > > > > > Please try the changes that I have for the TeVii S470
+> > > > > > > > > > > > that are here:
+> > > > > > > > > > > >
+> > > > > > > > > > > > 	http://linuxtv.org/hg/~awalls/cx23885-ir
+> > > > > > >
 
-> From: Marco Berizzi
-> To: linux-media@vger.kernel.org
-> Subject: hauppauge hvr 2200: lost FE_HAS_LOCK
-> Date: Mon, 16 Nov 2009 09:43:49 +0100
->
->
-> Hi Folks,
->
-> I have found a problem with the hauppauge wintv hvr 2200
-> on linux 2.6.32-rc7 x86-64.
-> When I initialize the second tuner with tzap the first
-> lose the FE_HAS_LOCK, and viceversa. Here is an example:
->
-> tzap -a 1 "LA7(MBone)"
-> using '/dev/dvb/adapter1/frontend0' and '/dev/dvb/adapter1/demux0'
-> reading channels from file '/root/.tzap/channels.conf'
-> tuning to 826000000 Hz
-> video pid 0x0101, audio pid 0x0102
-> status 00 | signal d5d5 | snr 0044 | ber 0000ffff | unc 00000000 |
-> status 1f | signal fdfd | snr 00d7 | ber 00000617 | unc 00000045 | FE_HAS_LOCK
-> status 1f | signal fcfc | snr 00c6 | ber 0000094e | unc 00000000 | FE_HAS_LOCK
-> status 1f | signal fafa | snr 00a8 | ber 000009db | unc 00000046 | FE_HAS_LOCK
-> status 01 | signal 0000 | snr 0005 | ber 0000ffff | unc 00000000 |
-> status 1f | signal fdfd | snr 00c6 | ber 000007d8 | unc 00000000 | FE_HAS_LOCK
-> status 1f | signal fcfc | snr 00c6 | ber 00000750 | unc 00000000 | FE_HAS_LOCK
-> status 1f | signal fcfc | snr 00d7 | ber 0000082c | unc 00000000 | FE_HAS_LOCK
-> status 1f | signal fcfc | snr 00b9 | ber 00000898 | unc 00000000 | FE_HAS_LOCK
->
-> 'status 01' happened when running 'tzap MTV'.
-> I have discovered this behaviour while watching tv with
-> both vlc and kaffeine: when one of the two application are
-> opened or closed, the image is garbled for about 1 seconds.
-> Any feedback are welcome.
+> >
+> > I have checked in more changes, please try when you get the chance.
 
-Same problem with 2.6.32
-However, only the adapter 1 is affected by the adapter 0
-initialize. Just to be clear: adapter 1 lose the FE_HAS_LOCK
-when adapter 0 is tzapped and _not_ the viceversa, has I have
-previously mistakenly reported.
+> cx23885[0]/0: pci_status: 0x08304000  pci_mask: 0x08000000
+> cx23885[0]/0: vida_status: 0x00000000 vida_mask: 0x00000000 count: 0x0
+> cx23885[0]/0: ts1_status: 0x00000000  ts1_mask: 0x00000000 count: 0x0
+> cx23885[0]/0: ts2_status: 0x00000000  ts2_mask: 0x00000000 count: 0x47381f2a
+> cx23885[0]/0:  (PCI_MSK_AV_CORE   0x08000000)
 
-I'm available for any kind of tests.
-Any response are welcome.
-TIA
- 		 	   		  
-_________________________________________________________________
-Windows Live: Friends get your Flickr, Yelp, and Digg updates when they e-mail you.
-http://www.microsoft.com/middleeast/windows/windowslive/see-it-in-action/social-network-basics.aspx?ocid=PID23461::T:WLMTAGL:ON:WL:en-xm:SI_SB_3:092010
+> cx25840 3-0044: AV Core IRQ status (entry): ir        
+> cx25840 3-0044: IRQ Status:  tsr                    
+> cx25840 3-0044: IRQ Enables:     rse rte roe
+
+?! 
+
+Those three lines make no sense together.  Maybe I should take out the
+V4L2_SUBDEV_IO_PIN_ACTIVE_LOW setting in cx23885-cards.c.
+
+I'm going to have to buy some hardware and experiment for myself.
+
+
+BTW, what happens you press a button on an NEC remote?
+
+Thanks for all your help.
+
+Regards,
+Andy
+
+
+
