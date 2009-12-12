@@ -1,87 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46994 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761471AbZLKWXm convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1667 "HELO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1759851AbZLMBKD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2009 17:23:42 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: HoP <jpetrous@gmail.com>
-CC: =?iso-8859-1?Q?Daniel_Gl=F6ckner?= <dg@emlix.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Fri, 11 Dec 2009 16:23:24 -0600
-Subject: RE: Latest stack that can be merged on top of linux-next tree
-Message-ID: <A69FA2915331DC488A831521EAE36FE40155CEE312@dlee06.ent.ti.com>
-References: <A69FA2915331DC488A831521EAE36FE40155C809AB@dlee06.ent.ti.com>
-	 <846899810912101139g6e8a36f7j78fa650e6629ad1b@mail.gmail.com>
-	 <4B2156AA.80309@emlix.com>
-	 <A69FA2915331DC488A831521EAE36FE40155C80C7B@dlee06.ent.ti.com>
- <846899810912101315o6e576ed8y150c93ea44cb0d66@mail.gmail.com>
-In-Reply-To: <846899810912101315o6e576ed8y150c93ea44cb0d66@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Sat, 12 Dec 2009 20:10:03 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id nBCJMRZR079444
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 12 Dec 2009 20:22:28 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 12 Dec 2009 20:22:27 +0100 (CET)
+Message-Id: <200912121922.nBCJMRZR079444@smtp-vbr4.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Thanks for the response. One more question that I have is if
-the devices on the two buses can use the same i2c address.
-That is the case for my board. So wondering if this works as
-well.
+Results of the daily build of v4l-dvb:
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-phone: 301-407-9583
-email: m-karicheri2@ti.com
+date:        Sat Dec 12 19:00:07 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13625:f14c1d8b1729
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
->-----Original Message-----
->From: HoP [mailto:jpetrous@gmail.com]
->Sent: Thursday, December 10, 2009 4:16 PM
->To: Karicheri, Muralidharan
->Cc: Daniel Glöckner; linux-media@vger.kernel.org
->Subject: Re: Latest stack that can be merged on top of linux-next tree
->
->Hi,
->
->2009/12/10 Karicheri, Muralidharan <m-karicheri2@ti.com>:
->> Hi,
->>
->> Thanks for the email.
->>
->> Any idea how i2c drivers can work with this?
->>
->> Currently in my board, I have adapter id = 1 for main i2c bus. So when
->this mux driver is built into the kernel, I guess I can access it using a
->different adapter id, right? If so, what is the adapter id?
->
->Yes, exactly that is way of using - additional i2c buses were born when
->pca954x
->started.
->
->Daniel already described this in his mail:
->
->"With these patches the bus segments beyond the i2c multiplexer will be
->registered as separate i2c busses. Access to a device on those busses
->will then automatically reconfigure the multiplexer."
->
->Additional i2c buses (adapters) were counted from number +1 higher
->then highest i2c bus number. If you main i2c bus is i2c-1, then you
->you should find i2c-2,i2c-3,i2c-4,i2c-5 new buses after pca954x loading.
->
->You can check that with i2cdetect tools.
->
->>
->> How do I use this with MT9T031 driver? Any idea to share?
->>
->
->I never had a look inside mt9t031 driver, but in general - you simply
->point to some of that additional adaper by i2c_get_adapter(x)
->
->Idea is very smart. You don't need to manage pca954x on your own.
->Driver do it itself :)
->
->/Honza
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-armv5: OK
+linux-2.6.32-armv5-davinci: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-armv5-ixp: OK
+linux-2.6.32-armv5-ixp: ERRORS
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: OK
+linux-2.6.32-armv5-omap2: OK
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: OK
+linux-2.6.31-i686: OK
+linux-2.6.32-i686: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-m32r: OK
+linux-2.6.30-mips: OK
+linux-2.6.31-mips: OK
+linux-2.6.32-mips: ERRORS
+linux-2.6.30-powerpc64: OK
+linux-2.6.31-powerpc64: OK
+linux-2.6.32-powerpc64: OK
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: OK
+linux-2.6.31-x86_64: OK
+linux-2.6.32-x86_64: OK
+spec: OK
+sparse (linux-2.6.32): ERRORS
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
