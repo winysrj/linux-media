@@ -1,50 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.10]:50060 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752492AbZL0Qhj (ORCPT
+Received: from mail1.radix.net ([207.192.128.31]:42060 "HELO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S932741AbZLMBZt convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Dec 2009 11:37:39 -0500
-To: linux-media@vger.kernel.org
-cc: Manu Abraham <manu@linuxtv.org>
-Subject: Mantis driver on TechniSat "CableStar HD 2"
-From: Wolfgang Denk <wd@denx.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Date: Sun, 27 Dec 2009 17:37:36 +0100
-Message-Id: <20091227163736.CC9C03F6D6@gemini.denx.de>
+	Sat, 12 Dec 2009 20:25:49 -0500
+Subject: Re: IR Receiver on an Tevii S470
+From: Andy Walls <awalls@radix.net>
+To: "Igor M. Liplianin" <liplianin@me.by>
+Cc: linux-media@vger.kernel.org, Steven Toth <stoth@linuxtv.org>,
+	Matthias Fechner <idefix@fechner.net>
+In-Reply-To: <200912121822.01184.liplianin@me.by>
+References: <200912120230.36902.liplianin@me.by>
+	 <200912121349.58436.liplianin@me.by>
+	 <1260627327.3104.13.camel@palomino.walls.org>
+	 <200912121822.01184.liplianin@me.by>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 12 Dec 2009 11:59:34 -0500
+Message-Id: <1260637174.3085.3.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have problems getting a TechniSat "CableStar HD 2" DVB-C card
-running with the latest Mantis driver on a Fedora 12 system (using
-their current standard 2.6.31.9-174.fc12.i686.PAE kernel in
-combination with the drivers from the http://linuxtv.org/hg/v4l-dvb
-repository). Tests have been done on two different mainboards.
+On Sat, 2009-12-12 at 18:22 +0200, Igor M. Liplianin wrote:
+> On 12 декабря 2009 16:15:27 Andy Walls wrote:
+> > V4L2_SUBDEV_IO_PIN_ACTIVE_LOW
+> After I removed this from ir_rx_pin_cfg, interrupts stopped.
 
-I can run a channel scan (using kaffeine) perfectly fine, also tuning
-to channels appears to work. I see a load of some 1,300 interrupts per
-sec when I have kaffeine running and tuned, and it seems there is data
-transferred between the card and the application.
+If we are lucky, that was the problem.
 
-The problem is: there is no video nor sound.
+If it was the problem, now it is a matter of setting the 
 
-I have bought this card second-hand on, so I am not really sure if it
-is a software issue, or if eventually the hardware is broken.
+	params.modulation
+	params.invert_level
+
+properly for the TeVii S470 in cx23885-input.c to have the hardware
+generate interrupts when it makes a few pulse measurements.
 
 
-Can anybody recommend a way how to verify the driver or the hardware?
-Or can you recommend a specific kernel version the Mantis driver has
-been tested against?
+If it was not the problem, then we still have some interrupt(s) coming
+from the AV Core and have just supressed all of the interrupts from the
+AV Core. :)
 
-Any help welcome. Thanks in advance.
+Regards,
+Andy
 
-Best regards,
-
-Wolfgang Denk
-
--- 
-DENX Software Engineering GmbH,     MD: Wolfgang Denk & Detlev Zundel
-HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
-Phone: (+49)-8142-66989-10 Fax: (+49)-8142-66989-80 Email: wd@denx.de
-Another megabytes the dust.
