@@ -1,185 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:35291 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965713AbZLHR7Y convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2009 12:59:24 -0500
-Received: by bwz27 with SMTP id 27so4597347bwz.21
-        for <linux-media@vger.kernel.org>; Tue, 08 Dec 2009 09:59:30 -0800 (PST)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Andy Walls <awalls@radix.net>
-Subject: Re: IR Receiver on an Tevii S470
-Date: Tue, 8 Dec 2009 19:59:20 +0200
-Cc: Matthias Fechner <idefix@fechner.net>, linux-media@vger.kernel.org
-References: <4B0459B1.50600@fechner.net> <200912070323.14440.liplianin@me.by> <1260156946.1809.25.camel@localhost>
-In-Reply-To: <1260156946.1809.25.camel@localhost>
+Received: from forward9.mail.yandex.net ([77.88.61.48]:56252 "HELO
+	forward9.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932646AbZLMBRX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Dec 2009 20:17:23 -0500
+Message-ID: <4B239C27.2040201@yandex.ru>
+Date: Sat, 12 Dec 2009 15:35:35 +0200
+From: geroin22 <geroin22@yandex.ru>
 MIME-Version: 1.0
-Content-Disposition: inline
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <200912081959.21245.liplianin@me.by>
+To: linux-media@vger.kernel.org, stoth@linuxtv.org
+Subject: [PATCH] Analog TV for Compro E800 and cx23885-alsa
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 7 декабря 2009 05:35:46 Andy Walls wrote:
-> On Mon, 2009-12-07 at 03:23 +0200, Igor M. Liplianin wrote:
-> > On 6 декабря 2009 23:40:54 Andy Walls wrote:
-> > > On Sun, 2009-11-22 at 03:03 +0200, Igor M. Liplianin wrote:
-> > > > On 21 ноября 2009 22:41:42 Andy Walls wrote:
-> > > > > > Matthias Fechner schrieb:
-> > > > > > > I bought some days ago a Tevii S470 DVB-S2 (PCI-E) card and got
-> > > > > > > it running with the driver from:
-> > > > > > > http://mercurial.intuxication.org/hg/s2-liplianin
-> > > > > > >
-> > > > > > > But I was not successfull in got the IR receiver working.
-> > > > > > > It seems that it is not supported yet by the driver.
-> > > > > > >
-> > > > > > > Is there maybe some code available to get the IR receiver with
-> > > > > > > evdev running?
-> > > > >
-> > > > > If the card is using the built in IR controller in the CX23885,
-> > > > > then you'll have to wait until I port my CX23888 IR controller
-> > > > > changes to work with the IR controller in the CX23885.  That should
-> > > > > be somewhat straightforward, but will take time.  Then we'll still
-> > > > > need you to experiment with a patch.
-> > > >
-> > > > It's cx23885 definitely.
-> > > > Remote uses NEC codes.
-> > > > In any case I can test.
-> > >
-> > > On Mon, 2009-11-23, Igor M. Liplianin wrote:
-> > > > Receiver connected to cx23885 IR_RX(pin 106). It is not difficult to
-> > > > track.
-> > >
-> > > Igor,
-> >
-> > Hi Andy,
-> >
-> > > As I make patches for test, perhaps you can help answer some questions
-> > > which will save some experimentation:
-> > >
-> > >
-> > > 1. Does the remote for the TeVii S470 use the same codes as
-> > >
-> > > linux/drivers/media/common/ir-keymaps.c : ir_codes_tevii_nec[]
-> >
-> > That is correct table for cx88 based TeVii card with the same remote.
-> > I believe there is no difference for cx23885.
-> >
-> > > or some other remote code table we have in the kernel?
-> > >
-> > >
-> > > 2. Does the remote for the TeVii S470, like other TeVii remotes, use a
-> > > standard NEC address of 0x00 (so that Addr'Addr is 0xff00) ?  Or does
-> > > it use another address?
-> >
-> > Again like in cx88, the address is standard.
-> >
-> > > 3. When you traced board wiring from the IR receiver to the IR_RX pin
-> > > on the CX23885, did you notice any external components that might
-> > > modify the signal?  For example, a capacitor that integrates carrier
-> > > bursts into baseband pulses.
-> >
-> > Yet again I believe there is no capacitors.
-> > Very same scheme like in cx88 variants for TeVii and others.
->
-> Igor and Matthias,
->
-> Please try the changes that I have for the TeVii S470 that are here:
->
-> 	http://linuxtv.org/hg/~awalls/cx23885-ir
->
-> You will want to modprobe the driver modules like this to get debugging
-> information:
->
-> 	# modprobe cx25840 ir_debug=2
-> 	# modprobe cx23885 ir_input_debug=1
->
-> With that debugging you will get output something like this in dmesg or
-> your logs when you press a button on the remote (this is RC-5 using a
-> CX23888 chip not NEC using a CX23885 chip):
->
-> cx23885[0]/888-ir: IRQ Status:  tsr rsr             rby
-> cx23885[0]/888-ir: IRQ Enables:     rse rte roe
-> cx23885[0]/888-ir: IRQ Status:  tsr rsr             rby
-> cx23885[0]/888-ir: IRQ Enables:     rse rte roe
-> cx23885[0]/888-ir: IRQ Status:  tsr rsr             rby
-> cx23885[0]/888-ir: IRQ Enables:     rse rte roe
-> cx23885[0]/888-ir: IRQ Status:  tsr rsr             rby
-> cx23885[0]/888-ir: IRQ Enables:     rse rte roe
-> cx23885[0]/888-ir: IRQ Status:  tsr rsr             rby
-> cx23885[0]/888-ir: IRQ Enables:     rse rte roe
-> cx23885[0]/888-ir: IRQ Status:  tsr     rto
-> cx23885[0]/888-ir: IRQ Enables:     rse rte roe
-> cx23885[0]/888-ir: rx read:     817000 ns  mark
-> cx23885[0]/888-ir: rx read:     838926 ns  space
-> cx23885[0]/888-ir: rx read:    1572259 ns  mark
-> cx23885[0]/888-ir: rx read:    1705296 ns  space
-> [...]
-> cx23885[0]/888-ir: rx read:     838037 ns  space
-> cx23885[0]/888-ir: rx read:     746333 ns  mark
-> cx23885[0]/888-ir: rx read:    1705741 ns  space
-> cx23885[0]/888-ir: rx read:    1619370 ns  mark
-> cx23885[0]/888-ir: rx read: end of rx
->
-> NEC would actually have this sort of timing:
->
-> 8257296 ns  mark
-> 4206185 ns  space
->  482926 ns  mark
->  545296 ns  space
->  481296 ns  mark
-> 1572259 ns  space
->  481148 ns  mark
->  546333 ns  space
-> [...]
->  433593 ns  mark
-> 1618333 ns  space
->  454481 ns  mark
-> end of rx
->
-> 8255519 ns  mark
-> 2130926 ns  space
->  480556 ns  mark
-> end of rx
->
->
-> The NEC decoder will also log the decoded 32 bits it receives and
-> separate out the address and the command bits.
->
->
-> If you do not see good or many NEC timing measurments in the logs, the
-> first thing to try is to change lines 533-534 of
-> linux/drivers/media/cx23885/cx23885-input.c:
->
->                params.modulation = true;
->                params.invert_level = false;
->
-> If you see no timing measurements or few timing measurements, change the
-> "modulation" to "false".  If the chip is expecting carrier pulses and an
-> external circuit or capacitor is smoothing carrier bursts into baseband
-> pulses, then the hardware won't make measurements properly.
->
-> If you see inverted mark and space inverted when "modulation" is set to
-> "false", then set "invert_level" to "true".
->
-> Those are the two things I had to really guess at.
->
->
-> BTW, I'm not accessing the CX23885 AV Core registers across the I2C bus
-> in a very conservative way.  If you notice some performance problem with
-> an occasionally missed pulse measurement, then I know there is room for
-> improvement by being smarter about I2C bus transactions.
->
-> Good Luck.
->
-> Regards,
-> Andy
+Hi Steve
 
-No luck :(
-Nothing in logs
+Use your cx23885-alsa tree and this message 
+http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/13481, 
+I have analog TV for Compro E800 now. But I have no sound on some PAL 
+channels (maybe they have stereo sound, or some other).   
+Tested with Tvtime and mplayer.
+Other inputs not tested.
 
--- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+
+diff -Naur a/linux/drivers/media/video/cx23885/cx23885-cards.c 
+b/linux/drivers/media/video/cx23885/cx23885-cards.c
+--- a/linux/drivers/media/video/cx23885/cx23885-cards.c    2009-11-27 
+16:52:15.000000000 +0200
++++ b/linux/drivers/media/video/cx23885/cx23885-cards.c    2009-12-12 
+15:26:41.370488942 +0200
+@@ -287,7 +287,29 @@
+     },
+     [CX23885_BOARD_COMPRO_VIDEOMATE_E800] = {
+         .name        = "Compro VideoMate E800",
+-        .portc        = CX23885_MPEG_DVB,
++        .porta        = CX23885_ANALOG_VIDEO,
++         .portc        = CX23885_MPEG_DVB,
++        .tuner_type    = TUNER_XC2028,
++        .tuner_addr    = 0x61,
++        .input        = {
++            {
++                .type   = CX23885_VMUX_TELEVISION,
++                .vmux   = CX25840_COMPOSITE2,
++            }, {
++                .type   = CX23885_VMUX_COMPOSITE1,
++                .vmux   = CX25840_COMPOSITE8,
++            }, {
++                .type   = CX23885_VMUX_SVIDEO,
++                .vmux   = CX25840_SVIDEO_LUMA3 |
++                    CX25840_SVIDEO_CHROMA4,
++            }, {
++                .type   = CX23885_VMUX_COMPONENT,
++                .vmux   = CX25840_COMPONENT_ON |
++                    CX25840_VIN1_CH1 |
++                    CX25840_VIN6_CH2 |
++                    CX25840_VIN7_CH3,
++            },
++        },
+     },
+     [CX23885_BOARD_HAUPPAUGE_HVR1290] = {
+         .name        = "Hauppauge WinTV-HVR1290",
+
+
+
+
+                                             
 
