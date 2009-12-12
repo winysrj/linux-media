@@ -1,50 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:55167 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758146AbZLKPJu (ORCPT
+Received: from smtp3-g21.free.fr ([212.27.42.3]:40710 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756162AbZLLKV2 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2009 10:09:50 -0500
-Received: by bwz27 with SMTP id 27so663103bwz.21
-        for <linux-media@vger.kernel.org>; Fri, 11 Dec 2009 07:09:56 -0800 (PST)
-To: linux-media@vger.kernel.org
-Subject: dib0700: Nova-T-500 remote - mixed button codes
-From: Antonio Marcos =?utf-8?q?L=C3=B3pez_Alonso?=
-	<amlopezalonso@gmail.com>
-Reply-To: amlopezalonso@gmail.com
-Date: Fri, 11 Dec 2009 15:09:51 +0000
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200912111509.51455.amlopezalonso@gmail.com>
+	Sat, 12 Dec 2009 05:21:28 -0500
+Date: Sat, 12 Dec 2009 11:21:45 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+Cc: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] gspca m5602: eliminate sparse warnings
+Message-ID: <20091212112145.228bb01c@tele>
+In-Reply-To: <4B22BAB0.5070604@freemail.hu>
+References: <4B22BAB0.5070604@freemail.hu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On Fri, 11 Dec 2009 22:33:36 +0100
+Németh Márton <nm127@freemail.hu> wrote:
 
-I own a Hauppauge Nova-T-500 in a box running Mythbuntu 9.10. The card runs 
-fine except when it comes to the in-built remote sensor: 
+> From: Márton Németh <nm127@freemail.hu>
+> 
+> Eliminate the following sparse warnings (see "make C=1"):
+>  * v4l/m5602_s5k4aa.c:530:23: warning: dubious: x | !y
+>  * v4l/m5602_s5k4aa.c:575:23: warning: dubious: x | !y
+> 
+> Signed-off-by: Márton Németh <nm127@freemail.hu>
+> ---
+> ../../m5602_s5k4aa_dubious.patch
+> diff -r f5662ce08663
+> linux/drivers/media/video/gspca/m5602/m5602_s5k4aa.c ---
+> a/linux/drivers/media/video/gspca/m5602/m5602_s5k4aa.c	Fri Dec
+> 11 09:53:41 2009 +0100 +++
+> b/linux/drivers/media/video/gspca/m5602/m5602_s5k4aa.c	Fri Dec
+> 11 22:25:50 2009 +0100 @@ -527,7 +527,7 @@ err =
+> m5602_read_sensor(sd, S5K4AA_ROWSTART_LO, &data, 1); if (err < 0)
+> return err;
+> -	data = (data & 0xfe) | !val;
+> +	data = (data & 0xfe) | (val ? 0 : 1);
+>  	err = m5602_write_sensor(sd, S5K4AA_ROWSTART_LO, &data, 1);
+>  	return err;
+>  }
+> @@ -572,7 +572,7 @@
+>  	err = m5602_read_sensor(sd, S5K4AA_COLSTART_LO, &data, 1);
+>  	if (err < 0)
+>  		return err;
+> -	data = (data & 0xfe) | !val;
+> +	data = (data & 0xfe) | (val ? 0 : 1);
+>  	err = m5602_write_sensor(sd, S5K4AA_COLSTART_LO, &data, 1);
+>  	return err;
+>  }
 
-Whenever I press any button, the remote sensor seems to receive some other 
-keycodes aside the proper one (i.e. when I press Volume Up button the sensor 
-receives it most of the time, but sometimes it understands some other buttons 
-are pressed like ArrowDown, Red button and so, making MythTV experience very 
-annoying). There are only three buttons that are always well received with no 
-confusion at all: "OK", "ArrowDown" and "Play". This behavior occurs with two 
-identical remotes I own (one of them belonging to a WinTV HVR-1100) and 
-another card user has reported a similar behavior with its own and same 
-remote.
+Thanks, but I fixed it in an other way.
 
-I tested both remotes with the HVR-1100 and they behave perfectly, so I guess 
-this is not a remote related issue.
+Regards.
 
-Though I have tried several LIRC setup files and swapped dvb_usb_dib0700 
-firmware files (1.10 and 1.20 versions) they make no working difference at 
-all.
-
-I also tried rebuilding v4l-dvb code to no avail.
-
-Any suggestions? I would gladly provide further info/logs upon request.
-
-Cheers,
-Antonio
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
