@@ -1,85 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:52747 "EHLO
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:62803 "EHLO
 	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760986AbZLJSf7 convert rfc822-to-8bit (ORCPT
+	with ESMTP id S1762665AbZLLBmc convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2009 13:35:59 -0500
-Received: by bwz27 with SMTP id 27so69581bwz.21
-        for <linux-media@vger.kernel.org>; Thu, 10 Dec 2009 10:36:04 -0800 (PST)
+	Fri, 11 Dec 2009 20:42:32 -0500
+Received: by bwz27 with SMTP id 27so1018524bwz.21
+        for <linux-media@vger.kernel.org>; Fri, 11 Dec 2009 17:42:38 -0800 (PST)
 From: "Igor M. Liplianin" <liplianin@me.by>
-To: Guillem =?utf-8?q?Sol=C3=A0?= <garanda@flumotion.com>
-Subject: Re: TveiiS470 and DVBWorld2005 not working
-Date: Thu, 10 Dec 2009 20:35:59 +0200
-Cc: linux-media@vger.kernel.org
-References: <4B21260D.9080408@flumotion.com>
-In-Reply-To: <4B21260D.9080408@flumotion.com>
+To: Andy Walls <awalls@radix.net>
+Subject: Re: IR Receiver on an Tevii S470
+Date: Sat, 12 Dec 2009 03:42:39 +0200
+Cc: linux-media@vger.kernel.org, Steven Toth <stoth@linuxtv.org>,
+	Matthias Fechner <idefix@fechner.net>
+References: <200912120230.36902.liplianin@me.by> <1260579637.1826.4.camel@localhost>
+In-Reply-To: <1260579637.1826.4.camel@localhost>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 8BIT
 Content-Disposition: inline
-Message-Id: <200912102035.59356.liplianin@me.by>
+Message-Id: <200912120342.40061.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10 декабря 2009 18:47:09 Guillem Solà wrote:
-> Hi,
+On 12 декабря 2009 03:00:37 Andy Walls wrote:
+> On Sat, 2009-12-12 at 02:30 +0200, Igor M. Liplianin wrote:
+> > On 11 декабря 2009, "Igor M. Liplianin" <liplianin@me.by> wrote:
+> > > On Thu, 2009-12-10 at 18:16 +0200, Igor M. Liplianin wrote:
+> > > > On 10 декабря 2009 03:12:39 Andy Walls wrote:
+> > > > > On Wed, 2009-12-09 at 17:54 +0200, Igor M. Liplianin wrote:
+> > > > > > > > > Igor and Matthias,
+> > > > > > > > >
+> > > > > > > > > Please try the changes that I have for the TeVii S470 that
+> > > > > > > > > are here:
+> > > > > > > > >
+> > > > > > > > > 	http://linuxtv.org/hg/~awalls/cx23885-ir
+> > > >
+> > > > First try, without pressing IR keys
+> > > >
+> > > > cx25840 3-0044: IRQ Enables:     rse rte roe
+> > > > cx25840 3-0044: IRQ Status:  tsr
+> > > > cx25840 3-0044: IRQ Enables:     rse rte roe
+> > > > irq 16: nobody cared (try booting with the "irqpoll" option)
+> > >
+> > > please try again when you have time.
+> > >
+> > > 	# modprobe cx25840 debug=2 ir_debug=2
+> > > 	# modprobe cx23885 debug=7
+> >
+> > dmesg is full of repeated lines:
+> >
+> > cx25840 3-0044: AV Core IRQ status (entry):
+> > cx25840 3-0044: AV Core IRQ status (exit):
 >
-> I come to this list as my last resort. I have two DVB-S PCIE cards and
-> no one can get channels, but I have another computer with a PCI SAA7146
-> that can get 1400 services from same dish.
->
-> * Tveii S470 *
->
-> One is the Tveii S470. I guess that the S470 should work because you are
-> working in IR support.
->
-> I have tried V4L tip, drivers from website, from website and patched
-> like in wiki says... but all I get is:
->
-> scandvb -a 0 /usr/share/dvb-apps/dvb-s/Astra-19.2E
->
-> scanning /usr/share/dvb-apps/dvb-s/Astra-19.2E
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> initial transponder 12551500 V 22000000 5
->
->  >>> tune to: 12551:v:0:22000
->
-> WARNING: filter timeout pid 0x0011
-> WARNING: filter timeout pid 0x0000
-> WARNING: filter timeout pid 0x0010it's going on
->
-> dumping lists (0 services)
->
-> Done.
->
->
-> * DVBWorld 2005 *
->
-> The other is the DVBWorld DVB-S2 2005. I have tried also latest V4l,
-> liplianin branch... and I get the same: 0 services.
->
->
-> The hardware were I'm trying to run this is a Dell 1 unit Rack Server
-> with RHEL with kernels 2.6.30, 2.6.31 and 2.6.32 patched by myself.
->
-> As I said I have another computer with a PCI dvb-s card that can get lot
-> of channels so I thing that the disk is working well.
->
->
-> Any idea about what's going on?
-Hi Guillem,
-I think you are missing firmwares, though you give too little information.
+> A strange thing here is that under this condition my changes should
+> never claim the AV Core interrupt is "handled".  I don't know why you
+> didn't get the "nobody cared" message again.
+I did, but not frequently. I thought it is obvious :)
 
->
-> Thanks in advance,
->
-> Guillem Solà
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+cx23885[0]/0: pci_status: 0x083f4000  pci_mask: 0x08000001
+cx23885[0]/0: vida_status: 0x00000000 vida_mask: 0x00000000 count: 0x0
+cx23885[0]/0: ts1_status: 0x00000000  ts1_mask: 0x00000000 count: 0x20
+cx23885[0]/0: ts2_status: 0x00000000  ts2_mask: 0x00000000 count: 0xc7383f3a
+cx23885[0]/0:  (PCI_MSK_AV_CORE   0x08000000)
+cx25840 3-0044: AV Core IRQ status (entry):           
+cx25840 3-0044: AV Core IRQ status (exit):           
+irq 16: nobody cared (try booting with the "irqpoll" option)
+Pid: 2521, comm: syslogd Not tainted 2.6.32 #2
+Call Trace:
+ [<c1052db0>] ? __report_bad_irq+0x24/0x69
+ [<c1052db7>] ? __report_bad_irq+0x2b/0x69
+ [<c1052edc>] ? note_interrupt+0xe7/0x13f
+ [<c1053416>] ? handle_fasteoi_irq+0x7a/0x97
+ [<c1004411>] ? handle_irq+0x38/0x3f
+ [<c1003bd1>] ? do_IRQ+0x38/0x89
+ [<c1002ea9>] ? common_interrupt+0x29/0x30
+handlers:
+[<c13179ad>] (usb_hcd_irq+0x0/0x59)
+[<f86275e7>] (azx_interrupt+0x0/0xe7 [snd_hda_intel])
+[<f88a8d2b>] (cx23885_irq+0x0/0x4e1 [cx23885])
+Disabling IRQ #16
+cx23885[0]/0: pci_status: 0x083f4000  pci_mask: 0x08000001
+cx23885[0]/0: vida_status: 0x00000000 vida_mask: 0x00000000 count: 0x0
+cx23885[0]/0: ts1_status: 0x00000000  ts1_mask: 0x00000000 count: 0x20
+cx23885[0]/0: ts2_status: 0x00000000  ts2_mask: 0x00000000 count: 0xc7383f3a
+cx23885[0]/0:  (PCI_MSK_AV_CORE   0x08000000)
 
--- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+Igor
+
