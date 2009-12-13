@@ -1,36 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:14479 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965731AbZLIAHw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2009 19:07:52 -0500
-Message-ID: <4B1EEA51.8000600@redhat.com>
-Date: Tue, 08 Dec 2009 22:07:45 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-CC: Andy Walls <awalls@radix.net>, Jarod Wilson <jarod@wilsonet.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	Christoph Bartelmus <lirc@bartelmus.de>, j@jannau.net,
-	jarod@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
- Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-References: <BDRae8rZjFB@christoph> <1259024037.3871.36.camel@palomino.walls.org> <m3k4xe7dtz.fsf@intrepid.localdomain> <4B0E8B32.3020509@redhat.com> <1259264614.1781.47.camel@localhost> <6B4C84CD-F146-4B8B-A8BB-9963E0BA4C47@wilsonet.com> <1260240142.3086.14.camel@palomino.walls.org> <4B1E394A.1090807@redhat.com> <1260276412.3094.17.camel@palomino.walls.org> <20091208171931.GE14143@core.coreip.homeip.net>
-In-Reply-To: <20091208171931.GE14143@core.coreip.homeip.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2462 "HELO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751506AbZLMTWY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Dec 2009 14:22:24 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id nBDJMMUm030337
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 13 Dec 2009 20:22:22 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 13 Dec 2009 20:22:22 +0100 (CET)
+Message-Id: <200912131922.nBDJMMUm030337@smtp-vbr6.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dmitry Torokhov wrote:
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-> I am a resonable guy ;) In cases when we can certainly say that there
-> are 2 separate remotes (and we know characteristics somehow) we need to
-> create 2 input devices. Otherwise we can't ;)
- 
-Only on very few specific cases (a few protocols), you can be (almost) sure.
-Even on this case, universal remotes can fake another IR.
+Results of the daily build of v4l-dvb:
 
-Cheers,
-Mauro.
+date:        Sun Dec 13 19:00:05 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13631:05d734027b4a
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
+
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-armv5: OK
+linux-2.6.32-armv5-davinci: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-armv5-ixp: OK
+linux-2.6.32-armv5-ixp: ERRORS
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: OK
+linux-2.6.32-armv5-omap2: OK
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: OK
+linux-2.6.31-i686: OK
+linux-2.6.32-i686: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-m32r: OK
+linux-2.6.30-mips: OK
+linux-2.6.31-mips: OK
+linux-2.6.32-mips: ERRORS
+linux-2.6.30-powerpc64: OK
+linux-2.6.31-powerpc64: OK
+linux-2.6.32-powerpc64: OK
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: OK
+linux-2.6.31-x86_64: OK
+linux-2.6.32-x86_64: OK
+spec: OK
+sparse (linux-2.6.32): ERRORS
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
