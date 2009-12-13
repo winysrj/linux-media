@@ -1,99 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2037 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762817AbZLPSoR (ORCPT
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:36584 "HELO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752484AbZLMSy4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2009 13:44:17 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id nBGIiDi0032906
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 16 Dec 2009 19:44:14 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 16 Dec 2009 19:44:13 +0100 (CET)
-Message-Id: <200912161844.nBGIiDi0032906@smtp-vbr11.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Sun, 13 Dec 2009 13:54:56 -0500
+Received: by ewy19 with SMTP id 19so2702809ewy.21
+        for <linux-media@vger.kernel.org>; Sun, 13 Dec 2009 10:54:54 -0800 (PST)
+Subject: [PATCH] MAINTAINERS file
+From: Olivier Lorin <olorin75@gmail.com>
+To: V4L Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain
+Date: Sun, 13 Dec 2009 19:54:48 +0100
+Message-Id: <1260730488.24064.3.camel@miniol>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Patch of the MAINTAINERS file to include the gspca_gl860 driver
 
-Results of the daily build of v4l-dvb:
+Signed-off-by: Olivier Lorin <olorin75@gmail.com>
+Signed-off-by: Jean-Francois Moine <moinejf@free.fr>
 
-date:        Wed Dec 16 19:00:10 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13821:783912da1ad0
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+---
+diff ../orgn/MAINTAINERS MAINTAINERS -rupN
+--- ../orgn/MAINTAINERS	2009-12-05 22:21:59.000000000 +0100
++++ MAINTAINERS	2009-09-20 03:35:18.000000000 +0200
+@@ -2224,6 +2224,13 @@ T:	git git://git.kernel.org/pub/scm/linu
+ S:	Maintained
+ F:	drivers/media/video/gspca/finepix.c
+ 
++GSPCA GL860 SUBDRIVER
++M:	Olivier Lorin <olorin75@gmail.com>
++L:	linux-media@vger.kernel.org
++T:	git
+git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
++S:	Maintained
++F:	drivers/media/video/gspca/gl860/
++
+ GSPCA M5602 SUBDRIVER
+ M:	Erik Andren <erik.andren@gmail.com>
+ L:	linux-media@vger.kernel.org
 
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-armv5: OK
-linux-2.6.32-armv5-davinci: OK
-linux-2.6.30-armv5-ixp: ERRORS
-linux-2.6.31-armv5-ixp: ERRORS
-linux-2.6.32-armv5-ixp: ERRORS
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: OK
-linux-2.6.32-armv5-omap2: OK
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: ERRORS
-linux-2.6.27-i686: ERRORS
-linux-2.6.28-i686: ERRORS
-linux-2.6.29.1-i686: ERRORS
-linux-2.6.30-i686: ERRORS
-linux-2.6.31-i686: ERRORS
-linux-2.6.32-i686: ERRORS
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: OK
-linux-2.6.32-mips: OK
-linux-2.6.30-powerpc64: ERRORS
-linux-2.6.31-powerpc64: ERRORS
-linux-2.6.32-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: ERRORS
-linux-2.6.26-x86_64: ERRORS
-linux-2.6.27-x86_64: ERRORS
-linux-2.6.28-x86_64: ERRORS
-linux-2.6.29.1-x86_64: ERRORS
-linux-2.6.30-x86_64: ERRORS
-linux-2.6.31-x86_64: ERRORS
-linux-2.6.32-x86_64: ERRORS
-spec: OK
-sparse (linux-2.6.32): ERRORS
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
