@@ -1,196 +1,336 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www84.your-server.de ([213.133.104.84]:49197 "EHLO
-	www84.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750797AbZLRMw5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Dec 2009 07:52:57 -0500
-Subject: Re: [Fwd: [patch] media video cx23888 driver: ported to new kfifo
- API]
-From: Stefani Seibold <stefani@seibold.net>
-To: Andy Walls <awalls@radix.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	akpm@linux-foundation.org
-In-Reply-To: <1261137648.3080.36.camel@palomino.walls.org>
-References: <4B2B5622.80604@infradead.org>
-	 <1261137648.3080.36.camel@palomino.walls.org>
-Content-Type: text/plain; charset="ISO-8859-15"
-Date: Fri, 18 Dec 2009 13:11:05 +0100
-Message-ID: <1261138265.8293.2.camel@wall-e>
+Received: from smtp3-g21.free.fr ([212.27.42.3]:39273 "HELO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751388AbZLMIr4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Dec 2009 03:47:56 -0500
+Date: Sun, 13 Dec 2009 09:48:06 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Francesco Lavra <francescolavra@interfree.it>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Adding support for Benq DC E300 camera
+Message-ID: <20091213094806.239b3b9d@tele>
+In-Reply-To: <1260646884.23354.22.camel@localhost>
+References: <1260646884.23354.22.camel@localhost>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="MP_/zA8IVe/xJCumfE5xK40+cnA"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Freitag, den 18.12.2009, 07:00 -0500 schrieb Andy Walls:
-> On Fri, 2009-12-18 at 08:14 -0200, Mauro Carvalho Chehab wrote:
-> > Andy,
-> > 
-> > Please review. The lack of porting cx23885 to new kfifo is stopping the merge
-> > of the redesigned kfifo upstream.
-> 
-> 
-> Stefani and Mauro,
-> 
-> My comments/concerns are in line:
-> 
-> > -------- Mensagem original --------
-> > Assunto: [patch] media video cx23888 driver: ported to new kfifo API
-> > Data: Fri, 18 Dec 2009 09:12:34 +0100
-> > De: Stefani Seibold <stefani@seibold.net>
-> > Para: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>,  Mauro Carvalho Chehab <mchehab@infradead.org>
-> > 
-> > This patch will fix the cx23888 driver to use the new kfifo API.
-> > 
-> > The patch-set is against current mm tree from 11-Dec-2009
-> > 
-> > Greetings,
-> > Stefani
-> > 
-> > Signed-off-by: Stefani Seibold <stefani@seibold.net>
-> > ---
-> >  cx23888-ir.c |   35 ++++++++++-------------------------
-> >  1 file changed, 10 insertions(+), 25 deletions(-)
-> > 
-> > --- mmotm.orig/drivers/media/video/cx23885/cx23888-ir.c	2009-12-18 08:42:53.936778002 +0100
-> > +++ mmotm/drivers/media/video/cx23885/cx23888-ir.c	2009-12-18 09:03:04.808703259 +0100
-> > @@ -124,15 +124,12 @@ struct cx23888_ir_state {
-> >  	atomic_t rxclk_divider;
-> >  	atomic_t rx_invert;
-> >  
-> > -	struct kfifo *rx_kfifo;
-> > +	struct kfifo rx_kfifo;
-> >  	spinlock_t rx_kfifo_lock;
-> >  
-> >  	struct v4l2_subdev_ir_parameters tx_params;
-> >  	struct mutex tx_params_lock;
-> >  	atomic_t txclk_divider;
-> > -
-> > -	struct kfifo *tx_kfifo;
-> > -	spinlock_t tx_kfifo_lock;
-> >  };
-> >  
-> >  static inline struct cx23888_ir_state *to_state(struct v4l2_subdev *sd)
-> > @@ -594,8 +591,9 @@ static int cx23888_ir_irq_handler(struct
-> >  			if (i == 0)
-> >  				break;
-> >  			j = i * sizeof(u32);
-> > -			k = kfifo_put(state->rx_kfifo,
-> > -				      (unsigned char *) rx_data, j);
-> > +			k = kfifo_in_locked(&state->rx_kfifo,
-> > +				      (unsigned char *) rx_data, j,
-> > +				      &state->rx_kfifo_lock);
-> >  			if (k != j)
-> >  				kror++; /* rx_kfifo over run */
-> >  		}
-> > @@ -631,7 +629,7 @@ static int cx23888_ir_irq_handler(struct
-> >  		cx23888_ir_write4(dev, CX23888_IR_CNTRL_REG, cntrl);
-> >  		*handled = true;
-> >  	}
-> > -	if (kfifo_len(state->rx_kfifo) >= CX23888_IR_RX_KFIFO_SIZE / 2)
-> > +	if (kfifo_len(&state->rx_kfifo) >= CX23888_IR_RX_KFIFO_SIZE / 2)
-> >  		events |= V4L2_SUBDEV_IR_RX_FIFO_SERVICE_REQ;
-> >  
-> >  	if (events)
-> 
-> I am concerned about reading the kfifo_len() without taking the lock,
-> since another thread on another CPU may be reading from the kfifo at the
-> same time.
-> 
-> If the new kfifo implementation has an atomic_read() or something behind
-> the kfifo_len() call, then OK.
-> 
-> 
-> > @@ -657,7 +655,7 @@ static int cx23888_ir_rx_read(struct v4l
-> >  		return 0;
-> >  	}
-> >  
-> > -	n = kfifo_get(state->rx_kfifo, buf, n);
-> > +	n = kfifo_out_locked(&state->rx_kfifo, buf, n, &state->rx_kfifo_lock);
-> >  
-> >  	n /= sizeof(u32);
-> >  	*num = n * sizeof(u32);
-> > @@ -785,7 +783,7 @@ static int cx23888_ir_rx_s_parameters(st
-> >  	o->interrupt_enable = p->interrupt_enable;
-> >  	o->enable = p->enable;
-> >  	if (p->enable) {
-> > -		kfifo_reset(state->rx_kfifo);
-> > +		kfifo_reset(&state->rx_kfifo);
-> >  		if (p->interrupt_enable)
-> >  			irqenable_rx(dev, IRQEN_RSE | IRQEN_RTE | IRQEN_ROE);
-> >  		control_rx_enable(dev, p->enable);
-> 
-> Same concern about kfifo_reset() not taking the lock, and another thread
-> reading data from the kfifo at the same time.  In the cx23885 module,
-> this would mostly likely happen only during module unload as things are
-> being shut down.
-> 
-> 
-> > @@ -892,7 +890,6 @@ static int cx23888_ir_tx_s_parameters(st
-> >  	o->interrupt_enable = p->interrupt_enable;
-> >  	o->enable = p->enable;
-> >  	if (p->enable) {
-> > -		kfifo_reset(state->tx_kfifo);
-> >  		if (p->interrupt_enable)
-> >  			irqenable_tx(dev, IRQEN_TSE);
-> >  		control_tx_enable(dev, p->enable);
-> 
-> I don't mind the currently unused tx_kfifo being removed from the
-> current implementation.  However, could you leave a comment at this line
-> about reseting a tx_kfifo?  Otherwise, I may forget this one when I go
-> to implement transmit.
-> 
-> 
-> > @@ -1168,19 +1165,9 @@ int cx23888_ir_probe(struct cx23885_dev 
-> >  		return -ENOMEM;
-> >  
-> >  	spin_lock_init(&state->rx_kfifo_lock);
-> > -	state->rx_kfifo = kfifo_alloc(CX23888_IR_RX_KFIFO_SIZE, GFP_KERNEL,
-> > -				      &state->rx_kfifo_lock);
-> > -	if (state->rx_kfifo == NULL)
-> > +	if (kfifo_alloc(&state->rx_kfifo, CX23888_IR_RX_KFIFO_SIZE, GFP_KERNEL))
-> >  		return -ENOMEM;
-> >  
-> > -	spin_lock_init(&state->tx_kfifo_lock);
-> > -	state->tx_kfifo = kfifo_alloc(CX23888_IR_TX_KFIFO_SIZE, GFP_KERNEL,
-> > -				      &state->tx_kfifo_lock);
-> > -	if (state->tx_kfifo == NULL) {
-> > -		kfifo_free(state->rx_kfifo);
-> > -		return -ENOMEM;
-> > -	}
-> > -
-> >  	state->dev = dev;
-> >  	state->id = V4L2_IDENT_CX23888_IR;
-> >  	state->rev = 0;
-> > @@ -1211,8 +1198,7 @@ int cx23888_ir_probe(struct cx23885_dev 
-> >  		       sizeof(struct v4l2_subdev_ir_parameters));
-> >  		v4l2_subdev_call(sd, ir, tx_s_parameters, &default_params);
-> >  	} else {
-> > -		kfifo_free(state->rx_kfifo);
-> > -		kfifo_free(state->tx_kfifo);
-> > +		kfifo_free(&state->rx_kfifo);
-> >  	}
-> >  	return ret;
-> >  }
-> > @@ -1231,8 +1217,7 @@ int cx23888_ir_remove(struct cx23885_dev
-> >  
-> >  	state = to_state(sd);
-> >  	v4l2_device_unregister_subdev(sd);
-> > -	kfifo_free(state->rx_kfifo);
-> > -	kfifo_free(state->tx_kfifo);
-> > +	kfifo_free(&state->rx_kfifo);
-> >  	kfree(state);
-> >  	/* Nothing more to free() as state held the actual v4l2_subdev object */
-> >  	return 0;
-> > 
-> > 
-> 
-> 
-> That's it.  Thanks for taking the time to work up a patch.
+--MP_/zA8IVe/xJCumfE5xK40+cnA
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Sorry, i ported it only to the new API. I did not touch the
-functionality. Feel free to fix it and post it.
+On Sat, 12 Dec 2009 20:41:24 +0100
+Francesco Lavra <francescolavra@interfree.it> wrote:
+> I'm trying to get my Benq DC E300 camera to work under Linux.
+> It has an Atmel AT76C113 chip. I don't know how many Linux users would
+> benefit from a driver supporting this camera (and possibly other
+> models, too), so my question is: if/when such a driver will be
+> written, is there someone willing to review it and finally get it
+> merged? If the answer is yes, I will try to write something working.
+>=20
+> This camera USB interface has 10 alternate settings, and altsetting 5
+> is used to stream data; it uses two isochronous endpoints to transfer
+> an AVI-formatted video stream (320x240) to the USB host.
+> It would be great if someone could give me some information to make
+> writing the driver easier: so far, I have only USB sniffer capture
+> logs from the Windows driver.
 
-Stefani
+Hi Francesco,
 
+gspca already handles some cameras and some Benq webcams. From a USB
+snoop, it may be easy to write a new gspca subdriver.
 
+I join the tcl script I use to extract the important information from
+raw snoop traces. May you send me the result with your logs? Then, I
+could see if an existing subdriver could be used or if a new one has to
+be created.
+
+Regards.
+
+--=20
+Ken ar c'henta=F1	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
+
+--MP_/zA8IVe/xJCumfE5xK40+cnA
+Content-Type: text/x-tcl
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=parsnoop.tcl
+
+#!/bin/sh
+# -*- tcl -*- \
+exec tclsh "$0" ${1+"$@"}
+
+proc usage {} {
+	puts "Parse a ms-win USB snoop
+Usage:
+	parsnoop \[options\] <usbsnoop file>
+Options:
+	-nb	Don't display the Bulk/Interrupt messages
+	-ni	Don't display the Isochronous messages
+	-t	Display the delta time between exchanges"
+	exit
+}
+
+proc isoc {fd} {
+	global deltatime noisoc
+	set in 0
+	while {[gets $fd line] >= 0} {
+		switch -regexp -- $line {
+		    "  URB " break
+		    StartFrame {
+			if {[string compare [lindex $line 2] 00000000] != 0} {
+				set in 1
+			}
+		    }
+		    TransferBufferLength {
+			set l [lindex $line 2]
+		    }
+		    NumberOfPackets {
+			set n [lindex $line 2]
+		    }
+		}
+	}
+	if {!$in || $noisoc} {
+		return $line
+	}
+	puts -nonewline $deltatime
+	puts [format "<isoc \[%d\] l:%d" 0x$n 0x$l]
+	return $line
+}
+
+proc vendor {fd} {
+# outgoing message
+	global deltatime
+	set out 0
+	set b {}
+	while {[gets $fd line] >= 0} {
+		switch -regexp -- $line {
+		    "  URB " break
+		    DIRECTION_OUT {
+			set out 1
+		    }
+		    TransferBufferLength {
+#			set l 0x[lindex $line 3]
+		    }
+		    00000..0: {
+			if {$out} {
+				if {[string length $b] != 0} {
+					append b "\n\t\t  "
+				}
+				append b [lrange $line 1 end]
+			}
+		    }
+		    "Request" {
+			set r [format %02x 0x[lindex $line 2]]
+		    }
+		    "Value" {
+			set v [format %04x 0x[lindex $line 2]]
+		    }
+		    "Index" {
+			set i [format %04x 0x[lindex $line 2]]
+		    }
+		}
+	}
+	if {$out} {
+		puts -nonewline $deltatime
+		puts " SET $r $v $i $b"
+	}
+	return $line
+}
+
+proc ctrl {fd} {
+# incoming message
+	global deltatime
+	set in 0
+	set b {}
+	set setup 0
+	while {[gets $fd line] >= 0} {
+		switch -regexp -- $line {
+		    "  URB " break
+		    DIRECTION_IN {
+			set in 1
+		    }
+		    SetupPacket {
+			set setup 1
+		    }
+		    "  00000" {
+			if {!$in} continue
+			if {!$setup} {
+				if {[string length $b] == 0} {
+					set b [lrange $line 1 end]
+				} else {
+					append b "\n<\t\t  "
+					append b [lrange $line 1 end]
+				}
+			} else {
+				set r [lindex $line 2]
+				set v [lindex $line 4][lindex $line 3]
+				set i [lindex $line 6][lindex $line 5]
+			}
+		    }
+		}
+	}
+	if {$in} {
+		puts -nonewline $deltatime
+		puts "<GET $r $v $i $b"
+	}
+	return $line
+}
+
+proc interf {fd} {
+# select interface
+	global deltatime
+	set i {??}
+	set a {??}
+	while {[gets $fd line] >= 0} {
+		switch -regexp -- $line {
+		    "  URB " break
+		    InterfaceNumber {
+			set i [format %02x 0x[lindex $line 3]]
+		    }
+		    AlternateSetting {
+			set a [format %02x 0x[lindex $line 3]]
+		    }
+		}
+	}
+	puts -nonewline $deltatime
+	puts " intf $i alt $a"
+	return $line
+}
+
+proc feature {fd} {
+	global deltatime
+	while {[gets $fd line] >= 0} {
+		switch -regexp -- $line {
+		    "  URB " break
+		}
+	}
+puts -nonewline $deltatime
+puts "feature"
+	return $line
+}
+
+proc transf {fd} {
+# bulk or interrupt transfer
+	global deltatime nobulk
+	set in 0
+	set b {}
+	while {[gets $fd line] >= 0} {
+		switch -regexp -- $line {
+		    DIRECTION_IN {
+			set in 1
+		    }
+		    "  000000" {
+			if {!$nobulk} {
+			    if {[string length $b] == 0} {
+				set b [lrange $line 1 end]
+			    } else {
+				append b "\n\t      "
+				append b [lrange $line 1 end]
+			    }
+			}
+		    }
+		    "  00000100" {
+			if {!$nobulk} {
+				append b "\n\t      ..."
+			}
+		    }
+		    "  URB " break
+		}
+	}
+	if {$nobulk || [string length $b] == 0} {
+		return $line
+	}
+	puts -nonewline $deltatime
+	if {$in} {
+		puts "<Bulk/Int IN  $b"
+	} else {
+		puts " Bulk/Int OUT $b"
+	}
+	return $line
+}
+
+proc main {argv} {
+	global nowtime prevtime withtime deltatime nobulk noisoc
+	set withtime 0
+	set nobulk 0
+	set noisoc 0
+	set deltatime {}
+	set fn {}
+	foreach a $argv {
+		switch -- $a {
+		    -t {
+			set withtime 1
+		    }
+		    -nb {
+			set nobulk 1
+		    }
+		    -ni {
+			set noisoc 1
+		    }
+		    default {
+			if {[string length $fn] != 0} usage
+			set fn $a
+		    }
+		}
+	}
+	if {[string length $fn] == 0} usage
+	if {[catch {open $fn r} fd]} {
+		puts "cannot open '$fn'"
+		exit 1
+	}
+	set nowtime 0
+	set prevtime 0
+	set nisoc 0
+	while {[gets $fd line] >= 0} {
+		set isoc 0
+		switch -regexp -- $line {
+		    URB_FUNCTION_ISOCH_TRANSFER {
+			set line [isoc $fd]
+			set isoc 1
+			incr nisoc
+		    }
+		    URB_FUNCTION_VENDOR {
+			set line [vendor $fd]
+		    }
+		    URB_FUNCTION_CONTROL_TRANSFER {
+			set line [ctrl $fd]
+		    }
+		    URB_FUNCTION_SELECT_INTERFACE {
+			set line [interf $fd]
+		    }
+		    URB_FUNCTION_SET_FEATURE_TO_DEVICE {
+			set line [feature $fd]
+		    }
+		    URB_FUNCTION_BULK_OR_INTERRUPT_TRANSFER {
+			set line [transf $fd]
+		    }
+		}
+		if {!$noisoc && !$isoc && $nisoc != 0} {
+			puts -nonewline $deltatime
+			puts "$nisoc isoc"
+			set nisoc 0
+		}
+		if {[regexp {\[([0-9]+) ms\]} $line dum ntime]} {
+			set prevtime $nowtime
+			set nowtime $ntime
+			if {[string first down $line] > 0} {
+				if {$withtime} {
+					set deltatime [format "%4d " \
+						[expr {$nowtime - $prevtime}]]
+				} elseif {$nowtime > $prevtime + 2} {
+					puts "== +[expr {$nowtime - $prevtime}] ms"
+				}
+			}
+			if {$nowtime > $prevtime + 200} {
+				puts "== \[$nowtime ms\]"
+			}
+		}
+	}
+}
+
+main $argv
+
+--MP_/zA8IVe/xJCumfE5xK40+cnA--
