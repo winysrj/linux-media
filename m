@@ -1,68 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51143 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932685AbZLGPhB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Dec 2009 10:37:01 -0500
-Message-ID: <4B1D2109.9090108@redhat.com>
-Date: Mon, 07 Dec 2009 13:36:41 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-vw0-f192.google.com ([209.85.212.192]:46546 "HELO
+	mail-vw0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753125AbZLMS7o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Dec 2009 13:59:44 -0500
+Received: by vws30 with SMTP id 30so443113vws.33
+        for <linux-media@vger.kernel.org>; Sun, 13 Dec 2009 10:59:41 -0800 (PST)
 MIME-Version: 1.0
-To: Jon Smirl <jonsmirl@gmail.com>
-CC: Krzysztof Halasa <khc@pm.waw.pl>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
-	kraxel@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR 	system?
-References: <20091204220708.GD25669@core.coreip.homeip.net> <BEJgSGGXqgB@lirc>	 <9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>	 <1260070593.3236.6.camel@pc07.localdom.local>	 <20091206065512.GA14651@core.coreip.homeip.net>	 <4B1B99A5.2080903@redhat.com> <m3638k6lju.fsf@intrepid.localdomain> <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
-In-Reply-To: <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
+In-Reply-To: <1260729576.2469.5.camel@hercules.rochet.org>
+References: <267bb6670912120230m59eeeeffqc52cfb320ac05ec2@mail.gmail.com>
+	 <200912121359.16169.liplianin@me.by>
+	 <1260633864.2329.4.camel@hercules.rochet.org>
+	 <a3ef07920912122043u2aaec2c6vd3d5296cdaae4c22@mail.gmail.com>
+	 <1260729576.2469.5.camel@hercules.rochet.org>
+Date: Sun, 13 Dec 2009 10:59:40 -0800
+Message-ID: <a3ef07920912131059s79e5cefbw7b42d6b698996c5d@mail.gmail.com>
+Subject: Re: [linux-dvb] Is there somobody dealing with DVB cards here ?!?
+From: VDR User <user.vdr@gmail.com>
+To: dvblinux <dvblinux@free.fr>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jon Smirl wrote:
-> On Sun, Dec 6, 2009 at 12:48 PM, Krzysztof Halasa <khc@pm.waw.pl> wrote:
->> Once again: how about agreement about the LIRC interface
->> (kernel-userspace) and merging the actual LIRC code first? 
+On Sun, Dec 13, 2009 at 10:39 AM, dvblinux <dvblinux@free.fr> wrote:
+> My question was specific:
 
-That's fine for me.
+Asking if people deal with DVB-T/DVB-S is really generic.  There's
+nothing specific about it.  See below.
 
->> In-kernel
->> decoding can wait a bit, it doesn't change any kernel-user interface.
+> Support for device ASUS (1043:48cd) lacks in current saa driver;
+>
+> I managed to make it work by modifying current version, since it's a
+> clone of ASUS (1043:4876) device;
+>
+> How could I share this, if this list is the relevant audience of
+> linux-dvb stuff.
+>
+> Perhaps this list is NOT the right place to deal with dvb driver
+> development, I don't know.
 
-This may occur in parallel, but, as we've been discussing, there are
-still some needs there that will require kernel-user interfaces.
+You should have posted all this the first time but to answer your
+questions..  Create a patch and post it with an explanation of what it
+does.  Someone will likely sign-off on it as long as there's no
+problems.  Yes, this is the right list for media-related things.
 
-> I'd like to see a semi-complete design for an in-kernel IR system
-> before anything is merged from any source.
-
-There are some tasks there that are independent of any API design.
-
-For example, I'm currently doing some cleanups and improvements 
-at the existing IR in-kernel code to create a common IR core that replaces
-the already existing feature of handling 7-bits scancode/keycode table to
-use the complete scancodes found at the current in-kernel drivers.
-
-This approach works for the current drivers, as none of them currently support
-any protocol that requires more than 16 bits for scancodes. However, the
-current EVIOGKEYCODE implementation won't scale with bigger scancode spaces.
-
-This code is written to be generic enough to be used by V4L, DVB and LIRC
-drivers. So, after having this work done, it should be easy to connect the lirc_dev
-to a decoder and to this core support. There are already some in-kernel decoders
-that can be used for some protocols, but the better is to review the decoders in
-the light of lirc. I expect that the lirc decoders will be in a better shape.
-
-While I'm here, I intend also to create the sysfs bits to create sys/class/irrcv,
-as already discussed and submit the patch here for discussions.
-
-Of course, after writing different API's to control the IR tables, we'll
-need to improve it, but this depends on the results of the architecture discussions.
-
-Cheers,
-Mauro
+Regards.
