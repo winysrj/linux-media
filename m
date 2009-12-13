@@ -1,31 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wic-core-1.wic.co.nz ([202.20.97.20]:34951 "EHLO mx-1.wic.co.nz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754091AbZLIKIO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Dec 2009 05:08:14 -0500
-Received: from [10.1.1.15] (stfleming.actrix.co.nz [202.154.159.197])
-	by mx-1.wic.co.nz (Postfix) with ESMTP id E1EB62EB6A
-	for <linux-media@vger.kernel.org>; Wed,  9 Dec 2009 22:41:16 +1300 (NZDT)
-Message-ID: <4B1F70BB.5030507@wic.co.nz>
-Date: Wed, 09 Dec 2009 22:41:15 +1300
-From: Stu Fleming <stewart@wic.co.nz>
+Received: from mail02d.mail.t-online.hu ([84.2.42.7]:61202 "HELO
+	mail02d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753322AbZLMUqc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Dec 2009 15:46:32 -0500
+Message-ID: <4B2552A4.5090901@freemail.hu>
+Date: Sun, 13 Dec 2009 21:46:28 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] WinTV HVR-900 USB (B3C0)
-References: <4B1E8E4D.9010101@esdelle.co.uk> <4B1F6AE3.20303@yahoo.co.uk> <4B1F6F1F.7010900@esdelle.co.uk>
-In-Reply-To: <4B1F6F1F.7010900@esdelle.co.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21:
+ ERRORS
+References: <200912131922.nBDJMMUm030337@smtp-vbr6.xs4all.nl>
+In-Reply-To: <200912131922.nBDJMMUm030337@smtp-vbr6.xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hans Verkuil wrote:
+> Detailed results are available here:
+> 
+> http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+>> linux-2.6.24.7-i686: ERRORS
+>>
+>> /marune/build/v4l-dvb-master/v4l/conex.c:1049: error: expected '=', ',', ';', 'asm' or '__attribute__' before '__devinitconst'
+>> /marune/build/v4l-dvb-master/v4l/conex.c:1065: error: 'device_table' undeclared here (not in a function)
+>> make[3]: *** [/marune/build/v4l-dvb-master/v4l/conex.o] Error 1
+>> make[3]: *** Waiting for unfinished jobs....
+>> /marune/build/v4l-dvb-master/v4l/etoms.c:873: error: expected '=', ',', ';', 'asm' or '__attribute__' before '__devinitconst'
+>> /marune/build/v4l-dvb-master/v4l/etoms.c:893: error: 'device_table' undeclared here (not in a function)
+>> make[3]: *** [/marune/build/v4l-dvb-master/v4l/etoms.o] Error 1
+>> make[2]: *** [_module_/marune/build/v4l-dvb-master/v4l] Error 2
+>> make[2]: Leaving directory `/marune/build/trees/i686/linux-2.6.24.7'
+>> make[1]: *** [default] Error 2
+>> make[1]: Leaving directory `/marune/build/v4l-dvb-master/v4l'
+>> make: *** [all] Error 2
+>> Sun Dec 13 19:13:59 CET 2009
 
->
-> Thanks for the heads up, I think I'll have a look and see what else is 
-> available out there then, luckily I only borrowed it to test if it 
-> would work.
->
-> Regards,
->
-> Rob
-http://www.kernellabs.com/blog/?p=761
+It seems that kernels before 2.6.24 (inclusively) do not have "__devinitconst", so  conex.c
+and etoms.c can only build with 2.6.25 and later. Should USB_GSPCA_CONEX and USB_GSPCA_ETOMS
+be added to v4l/versions.txt?
+
+---
+From: Márton Németh <nm127@freemail.hu>
+
+The conex and etoms drivers only build with kernel version 2.6.25 and later.
+
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+diff -r e2f13778b5dc v4l/versions.txt
+--- a/v4l/versions.txt	Sat Dec 12 17:25:43 2009 +0100
++++ b/v4l/versions.txt	Sun Dec 13 21:40:58 2009 +0100
+@@ -54,6 +54,11 @@
+ RADIO_SI4713
+ I2C_SI4713
+
++[2.6.25]
++# The drivers uses "__devinitconst"
++USB_GSPCA_CONEX
++USB_GSPCA_ETOMS
++
+ [2.6.24]
+ # Some freezer routines
+ USB_GSPCA_SN9C20X_EVDEV
+
