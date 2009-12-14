@@ -1,53 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f213.google.com ([209.85.220.213]:36457 "EHLO
-	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757203AbZLISxB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2009 13:53:01 -0500
-Received: by fxm5 with SMTP id 5so7905592fxm.28
-        for <linux-media@vger.kernel.org>; Wed, 09 Dec 2009 10:53:07 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <ad6681df0912091021j63de38f1t17e5beaa935931d1@mail.gmail.com>
-References: <ad6681df0912090617k768b7f22p9abfb462ff32026f@mail.gmail.com>
-	 <829197380912090754j416e7058obae074df83420704@mail.gmail.com>
-	 <ad6681df0912090806o173d3e0do6d48a125e21a49f8@mail.gmail.com>
-	 <829197380912090826w3821ce97i3df653a2d7c83f0f@mail.gmail.com>
-	 <ad6681df0912090911w13a1c2e1q2a4e59cec2c4e000@mail.gmail.com>
-	 <829197380912090916q61d45ddbraf89852dc524dcf3@mail.gmail.com>
-	 <ad6681df0912090949k2bbdd926tc6b14ab690e9bb26@mail.gmail.com>
-	 <829197380912090951u38928896ne85d1202d22eba8a@mail.gmail.com>
-	 <829197380912090952g3ade79dbg9bbba03dcb18a4a7@mail.gmail.com>
-	 <ad6681df0912091021j63de38f1t17e5beaa935931d1@mail.gmail.com>
-Date: Wed, 9 Dec 2009 13:53:06 -0500
-Message-ID: <829197380912091053o7cad8737o8acf76a3d6abe8fd@mail.gmail.com>
-Subject: Re: v4l-dvb from source on 2.6.31.5 opensuse kernel - not working
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Valerio Bontempi <valerio.bontempi@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-in-05.arcor-online.net ([151.189.21.45]:42360 "EHLO
+	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752171AbZLNBoy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Dec 2009 20:44:54 -0500
+Subject: Re: New ASUS P3-100 DVB-T/DVB-S device (1043:48cd)
+From: hermann pitton <hermann-pitton@arcor.de>
+To: dvblinux@free.fr
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <1260543775.4b225f1f4cec9@imp.free.fr>
+References: <200912111456.45947.amlopezalonso@gmail.com>
+	 <1260543775.4b225f1f4cec9@imp.free.fr>
+Content-Type: text/plain
+Date: Mon, 14 Dec 2009 02:36:20 +0100
+Message-Id: <1260754580.3275.20.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Dec 9, 2009 at 1:21 PM, Valerio Bontempi
-> I don't know how it is happened, because I followed the normal way to
-> compile v4l-dvb, so it seems a very strange behaviour...
->
-> however, how can I solve, cleaning out all the in-kernel modules and
-> all the modules I need to remove?
+Hi,
 
-Well, the problem wasn't that you compiled v4l-dvb.  It's that you had
-these third party em28xx modules installed (which rely on v4l-dvb).
-And a recompile of v4l-dvb breaks compatibility for those third party
-modules.
+sorry for delay, no time for the list during the last days.
 
-Without knowing how you installed the third party em28xx stuff, I
-cannot really advise you on the best way to remove them.  If it were
-me, I would probably just move all of those files to some temporary
-directory and reboot (which would allow me to restore them if I
-screwed something up).  However, I wouldn't want to be held
-responsible for a user screwing up his machine.
+Am Freitag, den 11.12.2009, 16:02 +0100 schrieb dvblinux@free.fr:
+> Hi all, I'm new on this list.
+> 
+> I modified on my own the SAA driver to manage an ASUS PS3-100 combo card not
+> supported yet in current version.
+> 
+> It features two DVB-S and DVB-T receivers packed on the same PCI card.
 
-Devin
+I'm not aware of such an Asus PCI card with two DVB-S and DVB-T
+receivers. We might hang in wording ...
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Maybe one DVB-S, one DVB-T/analog hybrid tuner/demod and also support
+for analog radio and external S-Video/Composite and analog audio in?
+
+> The DVB-T part is identical to ASUS P7131 Hybrid and therefore is managed thru
+> the existing driver after a light patch in the driver source (and card.c):
+> copying relevant stuff from (1043:4876) to (1043:48cd).
+> 
+> I'm not a developper, how to share my successfull experiments ?
+
+We have support for the Asus Tiger 3in1 since last summer.
+This board was OEM only and also does not come with a remote, but your
+stuff is very likely based on that one.
+
+Please try all functions and inputs and post related "dmesg" output
+loading the saa7134 driver with "card=147 i2c_scan=1".
+
+It has the same LNA config like the ASUS P7131 Hybrid LNA too.
+
+I can't tell anything about a possible remote, but last on Asus was a
+transmitter labeled PC-39 that far and that one we do support.
+
+Cheers,
+Hermann
+
+
+
+
+
+
+
+
