@@ -1,43 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:5515 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758458AbZLGXCz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Dec 2009 18:02:55 -0500
-Message-ID: <4B1D898A.5070000@redhat.com>
-Date: Mon, 07 Dec 2009 21:02:34 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail.gmx.net ([213.165.64.20]:59514 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1757406AbZLNPIF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Dec 2009 10:08:05 -0500
+Date: Mon, 14 Dec 2009 16:08:15 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: Latest stack that can be merged on top of linux-next tree
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40155CEE4E4@dlee06.ent.ti.com>
+Message-ID: <Pine.LNX.4.64.0912141606180.4957@axis700.grange>
+References: <A69FA2915331DC488A831521EAE36FE40155C809AB@dlee06.ent.ti.com>
+ <Pine.LNX.4.64.0912120141160.5084@axis700.grange>
+ <A69FA2915331DC488A831521EAE36FE40155CEE4E4@dlee06.ent.ti.com>
 MIME-Version: 1.0
-To: Jarod Wilson <jarod@wilsonet.com>
-CC: Andy Walls <awalls@radix.net>, Krzysztof Halasa <khc@pm.waw.pl>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, superm1@ubuntu.com
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
- Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-References: <BDRae8rZjFB@christoph> <1259024037.3871.36.camel@palomino.walls.org> <m3k4xe7dtz.fsf@intrepid.localdomain>  <4B0E8B32.3020509@redhat.com> <1259264614.1781.47.camel@localhost> <6B4C84CD-F146-4B8B-A8BB-9963E0BA4C47@wilsonet.com>
-In-Reply-To: <6B4C84CD-F146-4B8B-A8BB-9963E0BA4C47@wilsonet.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jarod Wilson wrote:
-> On Nov 26, 2009, at 2:43 PM, Andy Walls wrote:
+On Mon, 14 Dec 2009, Karicheri, Muralidharan wrote:
+
+> Guennadi,
 > 
->> On Thu, 2009-11-26 at 12:05 -0200, Mauro Carvalho Chehab wrote:
+> I marged relevant files from the latest of your v4l tree after seeing 
+> your pull request. I worked fine for VGA capture.
 
->> Maybe I'm being too conservative here, but I have a personal interest in
->> keeping Linux free and unencumbered even in the US which, I cannot deny,
->> has a patent system that is screwed up.
-> 
-> So I had one of the people who does all the license and patent audits for 
-> Fedora packages look at the Philips patent on RC-6. He's 100% positive 
-> that the patent *only* covers hardware, there should be no problem whatsoever
-> writing a software decoder for RC-6.
+Good.
 
-That's good!
+> But I need to enable 
+> SOC_CAMERA to get the MT9T031 enabled which looks improper to me. Can we 
+> remove this restriction from KConfig?
 
-Cheers,
-Mauro.
+Sure, as long as we have a valid case where the driver can and does work 
+without soc-camera, which we now do, we shall remove this dependency.
 
+> I plan to send a vpfe capture 
+> patch to support capture using this driver this week.
+
+Good, looking forward to it.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
