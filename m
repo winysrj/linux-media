@@ -1,65 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f213.google.com ([209.85.220.213]:52726 "EHLO
-	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756294AbZLIRuF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2009 12:50:05 -0500
-Received: by fxm5 with SMTP id 5so7823228fxm.28
-        for <linux-media@vger.kernel.org>; Wed, 09 Dec 2009 09:50:11 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <829197380912090918n32ea33eq2658ea57b27dedaa@mail.gmail.com>
-References: <ad6681df0912090617k768b7f22p9abfb462ff32026f@mail.gmail.com>
-	<59cf47a80912090806j7f75c578g1fa5a638b2fd7c39@mail.gmail.com>
-	<ad6681df0912090823s23c3dd11xe7b56b66803720d7@mail.gmail.com>
-	<59cf47a80912090838h61deade9y5bbf846e92027c85@mail.gmail.com>
-	<ad6681df0912090914o5e80c6fwa877ccb9580bc6d9@mail.gmail.com>
-	<829197380912090918n32ea33eq2658ea57b27dedaa@mail.gmail.com>
-From: Valerio Bontempi <valerio.bontempi@gmail.com>
-Date: Wed, 9 Dec 2009 18:49:50 +0100
-Message-ID: <ad6681df0912090949r108d1a81r481dc249d8f56868@mail.gmail.com>
-Subject: Re: v4l-dvb from source on 2.6.31.5 opensuse kernel - not working
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Paulo Assis <pj.assis@gmail.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from rcsinet11.oracle.com ([148.87.113.123]:59699 "EHLO
+	rgminet11.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757989AbZLNRJC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Dec 2009 12:09:02 -0500
+Date: Mon, 14 Dec 2009 09:08:13 -0800
+From: Randy Dunlap <randy.dunlap@oracle.com>
+To: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-media@vger.kernel.org
+Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH -next] radio/si470x: #include <sched.h>
+Message-Id: <20091214090813.a9e3d77f.randy.dunlap@oracle.com>
+In-Reply-To: <20091214165927.c08c4784.sfr@canb.auug.org.au>
+References: <20091214165927.c08c4784.sfr@canb.auug.org.au>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/12/9 Devin Heitmueller <dheitmueller@kernellabs.com>:
-> On Wed, Dec 9, 2009 at 12:14 PM, Valerio Bontempi
->> Hi Paulo,
->>
->> no luck with your suggestion, I have no errors compiling and
->> installing the drivers but after rebooting it is not working at all.
->> Modprobe em28xx produces the same error already sent in the previous mail
->
-> You're seeing an error when you modprobe?  What is the error?  Your
-> dmesg did not show any errors, just that the driver didn't load.
->
-> Devin
->
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
->
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Here is the error after modprobe
+Driver needs to #include <sched.h>:
 
-modprobe em28xx
-WARNING: Error inserting ir_common
-(/lib/modules/2.6.31.5-0.1-desktop/updates/kernel/drivers/media/common/ir-common.ko):
-Unknown symbol in module, or unknown parameter (see dmesg)
-WARNING: Error inserting v4l2_compat_ioctl32
-(/lib/modules/2.6.31.5-0.1-desktop/updates/kernel/drivers/media/video/v4l2-compat-ioctl32.ko):
-Unknown symbol in module, or unknown parameter (see dmesg)
-WARNING: Error inserting v4l1_compat
-(/lib/modules/2.6.31.5-0.1-desktop/updates/kernel/drivers/media/video/v4l1-compat.ko):
-Unknown symbol in module, or unknown parameter (see dmesg)
-WARNING: Error inserting videodev
-(/lib/modules/2.6.31.5-0.1-desktop/updates/kernel/drivers/media/video/videodev.ko):
-Unknown symbol in module, or unknown parameter (see dmesg)
-WARNING: Error inserting v4l2_common
-(/lib/modules/2.6.31.5-0.1-desktop/updates/kernel/drivers/media/video/v4l2-common.ko):
-Unknown symbol in module, or unknown parameter (see dmesg)
-FATAL: Error inserting em28xx
-(/lib/modules/2.6.31.5-0.1-desktop/updates/kernel/drivers/media/video/em28xx/em28xx.ko):
-Unknown symbol in module, or unknown parameter (see dmesg)
+drivers/media/radio/si470x/radio-si470x-common.c:452: error: 'TASK_INTERRUPTIBLE' undeclared (first use in this function)
+drivers/media/radio/si470x/radio-si470x-common.c:452: error: implicit declaration of function 'signal_pending'
+drivers/media/radio/si470x/radio-si470x-common.c:452: error: implicit declaration of function 'schedule'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+---
+ drivers/media/radio/si470x/radio-si470x.h |    1 +
+ 1 file changed, 1 insertion(+)
+
+--- linux-next-20091214.orig/drivers/media/radio/si470x/radio-si470x.h
++++ linux-next-20091214/drivers/media/radio/si470x/radio-si470x.h
+@@ -29,6 +29,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
++#include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/smp_lock.h>
+ #include <linux/input.h>
