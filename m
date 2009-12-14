@@ -1,206 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:60322 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754630AbZLDIfs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Dec 2009 03:35:48 -0500
-Date: Fri, 4 Dec 2009 09:35:59 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [PATCH 1/2 v4] v4l: add a media-bus API for configuring v4l2
- subdev pixel and frame formats
-In-Reply-To: <200912040946.24152.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.0912040816390.3981@axis700.grange>
-References: <Pine.LNX.4.64.0911261509100.5450@axis700.grange>
- <200912022257.33941.hverkuil@xs4all.nl> <Pine.LNX.4.64.0912031036510.4328@axis700.grange>
- <200912040946.24152.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:16507 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757018AbZLNLyJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Dec 2009 06:54:09 -0500
+Message-ID: <4B262741.8050107@redhat.com>
+Date: Mon, 14 Dec 2009 09:53:37 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Jeremy Simmons <jeremy@impactmoto.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Douglas Landgraf <dougsland@gmail.com>
+Subject: Re: Compile Error - ir-keytable
+References: <A8BEBCEF90A5AC498E0DAEADEBB06AD7EA9C2BEB08@DC.impactmoto.com>
+In-Reply-To: <A8BEBCEF90A5AC498E0DAEADEBB06AD7EA9C2BEB08@DC.impactmoto.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 4 Dec 2009, Hans Verkuil wrote:
+Jeremy Simmons wrote:
+> I'm having the same problem.  Any solution?
 
-> > diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-> > new file mode 100644
-> > index 0000000..5cf2a6d
-> > --- /dev/null
-> > +++ b/include/media/v4l2-mediabus.h
-> > @@ -0,0 +1,61 @@
-> > +/*
-> > + * Media Bus API header
-> > + *
-> > + * Copyright (C) 2009, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of the GNU General Public License version 2 as
-> > + * published by the Free Software Foundation.
-> > + */
-> > +
-> > +#ifndef V4L2_MEDIABUS_H
-> > +#define V4L2_MEDIABUS_H
-> > +
-> > +/*
-> > + * These pixel codes uniquely identify data formats on the media bus. Mostly
-> > + * they correspond to similarly named V4L2_PIX_FMT_* formats, format 0 is
-> > + * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client pairs, where the
-> > + * data format is fixed. Additionally, "2X8" means that one pixel is transferred
-> > + * in two 8-bit samples, "BE" or "LE" specify in which order those samples are
-> > + * transferred over the bus: "LE" means that the least significant bits are
-> > + * transferred first, "BE" means that the most significant bits are transferred
-> > + * first, and "PADHI" and "PADLO" define which bits - low or high, in the
-> > + * incomplete high byte, are filled with padding bits.
-> > + */
-> > +enum v4l2_mbus_pixelcode {
-> > +	V4L2_MBUS_FMT_FIXED = 1,
-> > +	V4L2_MBUS_FMT_YUYV8_2X8,
-> > +	V4L2_MBUS_FMT_YVYU8_2X8,
-> > +	V4L2_MBUS_FMT_UYVY8_2X8,
-> > +	V4L2_MBUS_FMT_VYUY8_2X8,
-> 
-> Darn, I was so hoping that I could sign off on it, but this makes no sense
-> now.
-> 
-> Either it is:
-> 
-> 	V4L2_MBUS_FMT_YUYV8_1X8,
-> 	V4L2_MBUS_FMT_YVYU8_1X8,
-> 	V4L2_MBUS_FMT_UYVY8_1X8,
-> 	V4L2_MBUS_FMT_VYUY8_1X8
-> 
-> where the 'YUYV' code tells you the order of the Y, U and V samples over the
-> bus, or it is:
-> 
-> 	V4L2_MBUS_FMT_YUYV8_2X8_BE,
-> 	V4L2_MBUS_FMT_YUYV8_2X8_LE,
-> 	V4L2_MBUS_FMT_YVYU8_2X8_BE,
-> 	V4L2_MBUS_FMT_YVYU8_2X8_LE,
-> 
-> Where the BE or LE suffix tells you the order in which the YU/YV pairs are
-> arriving.
+The new IR keycode is not compatible with any kernel older than 2.6.22. Also, newer
+versions may even require latter codes, due to the sysfs code.
 
-No. In nXk n is the number of k-bit wide _electrical_ samples of the bus 
-to get (an equivalent of) one _pixel_. So, for 16-bit formats on 8-bit bus 
-it's _definitely_ 2X8.
+The fix is simple: 
+	- Don't compile any code from ir-sysfs.c with older kernels;
+	- Don't implement EVIO[G|S]KEYCODE ioctls;
+	- Replace the new code to get a key by an old code at ir-keytable.c,
+	  if kernels <= 2.6.22.
 
-And no, BE and LE is the order of _samples_ within one _pixel_, not the 
-order of pixels within one megapixel ("YU/YV pairs are arriving"), but 
-that's also what you meant above, judging by the names.
+There's nothing reasonable that we can do to support keycode replacements
+with older kernels, as the scancode tables were expanded to 16 bits (and 
+will probably be expanded to 32 or 64 bits), and, with the legacy kernels,
+the scancode/keycode table needs to be an array of the size of the scancode space.
+So, a keycode table for 32 bits would waste 4Gb of ram (while we're still using
+16 bits, the table won't be that big, but as we expect to soon support
+RC6 protocols, it is not worth to port a code for 16 bits that will just
+be dropped in a month or two).
 
-So, I'll go with the 2X8_[LB]E variant, where
+Due to that, the support for < 2.6.22 kernels will provide a limited IR
+code, after the backport: just the bundled IR will work.
 
-YUYV8_2X8_LE == YUYV with LE packing
-YUYV8_2X8_BE == UYVY with LE packing
-YVYU8_2X8_LE == YVYU with LE packing
-YVYU8_2X8_BE == VYUY with LE packing
+I asked Douglas to do this backport after I finish the main changes at the module.
 
-> Personally I prefer the first (1X8) representation.
-> Just pick one of these two and you can send it again and add my signed-off-by:
-> 
-> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
-
-I'll make it an "Acked-by." You can only put an Sob, if you forward a 
-patch. Otherwise you can only add an Acked-by or a Reviewed-by.
-
-Thanks
-Guennadi
+He'll likely start looking on it soon, as I've merged late yesterday the changes.
 
 > 
-> Regards,
+> -Jeremy
 > 
-> 	Hans
 > 
-> > +	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
-> > +	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
-> > +	V4L2_MBUS_FMT_RGB565_2X8_LE,
-> > +	V4L2_MBUS_FMT_RGB565_2X8_BE,
-> > +	V4L2_MBUS_FMT_SBGGR8_1X8,
-> > +	V4L2_MBUS_FMT_SBGGR10_1X10,
-> > +	V4L2_MBUS_FMT_GREY8_1X8,
-> > +	V4L2_MBUS_FMT_Y10_1X10,
-> > +	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
-> > +	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
-> > +	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
-> > +	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
-> > +};
-> > +
-> > +/**
-> > + * struct v4l2_mbus_framefmt - frame format on the media bus
-> > + * @width:	frame width
-> > + * @height:	frame height
-> > + * @code:	data format code
-> > + * @field:	used interlacing type
-> > + * @colorspace:	colorspace of the data
-> > + */
-> > +struct v4l2_mbus_framefmt {
-> > +	__u32				width;
-> > +	__u32				height;
-> > +	enum v4l2_mbus_pixelcode	code;
-> > +	enum v4l2_field			field;
-> > +	enum v4l2_colorspace		colorspace;
-> > +};
-> > +
-> > +#endif
-> > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> > index 544ce87..c53d462 100644
-> > --- a/include/media/v4l2-subdev.h
-> > +++ b/include/media/v4l2-subdev.h
-> > @@ -22,6 +22,7 @@
-> >  #define _V4L2_SUBDEV_H
-> >  
-> >  #include <media/v4l2-common.h>
-> > +#include <media/v4l2-mediabus.h>
-> >  
-> >  /* generic v4l2_device notify callback notification values */
-> >  #define V4L2_SUBDEV_IR_RX_NOTIFY		_IOW('v', 0, u32)
-> > @@ -207,7 +208,7 @@ struct v4l2_subdev_audio_ops {
-> >     s_std_output: set v4l2_std_id for video OUTPUT devices. This is ignored by
-> >  	video input devices.
-> >  
-> > -  s_crystal_freq: sets the frequency of the crystal used to generate the
-> > +   s_crystal_freq: sets the frequency of the crystal used to generate the
-> >  	clocks in Hz. An extra flags field allows device specific configuration
-> >  	regarding clock frequency dividers, etc. If not used, then set flags
-> >  	to 0. If the frequency is not supported, then -EINVAL is returned.
-> > @@ -217,6 +218,14 @@ struct v4l2_subdev_audio_ops {
-> >  
-> >     s_routing: see s_routing in audio_ops, except this version is for video
-> >  	devices.
-> > +
-> > +   enum_mbus_fmt: enumerate pixel formats, provided by a video data source
-> > +
-> > +   g_mbus_fmt: get the current pixel format, provided by a video data source
-> > +
-> > +   try_mbus_fmt: try to set a pixel format on a video data source
-> > +
-> > +   s_mbus_fmt: set a pixel format on a video data source
-> >   */
-> >  struct v4l2_subdev_video_ops {
-> >  	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32 config);
-> > @@ -240,6 +249,14 @@ struct v4l2_subdev_video_ops {
-> >  	int (*s_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
-> >  	int (*enum_framesizes)(struct v4l2_subdev *sd, struct v4l2_frmsizeenum *fsize);
-> >  	int (*enum_frameintervals)(struct v4l2_subdev *sd, struct v4l2_frmivalenum *fival);
-> > +	int (*enum_mbus_fmt)(struct v4l2_subdev *sd, int index,
-> > +			     enum v4l2_mbus_pixelcode *code);
-> > +	int (*g_mbus_fmt)(struct v4l2_subdev *sd,
-> > +			  struct v4l2_mbus_framefmt *fmt);
-> > +	int (*try_mbus_fmt)(struct v4l2_subdev *sd,
-> > +			    struct v4l2_mbus_framefmt *fmt);
-> > +	int (*s_mbus_fmt)(struct v4l2_subdev *sd,
-> > +			  struct v4l2_mbus_framefmt *fmt);
-> >  };
-> >  
-> >  /**
-> > -- 
-> > 1.6.2.4
-> > 
-> > 
 > 
+> 
+> ________________________________________
+> * Subject: Compile Error - ir-keytable 
+> * From: David Carlo <dcarlo@xxxxxxxxxxxx> 
+> * Date: Wed, 2 Dec 2009 11:56:22 -0500 
+> ________________________________________
+> Hello.  I'm compiling the v4l kernel drivers in an attempt to use my hdpvr
+> with CentOS 5.4.  When I compile v4l, I'm getting this error:
+> 
+> =============================================================================
+> <snip>
+>   CC [M]  /usr/local/src/v4l-dvb/v4l/ir-functions.o
+>   CC [M]  /usr/local/src/v4l-dvb/v4l/ir-keymaps.o
+>   CC [M]  /usr/local/src/v4l-dvb/v4l/ir-keytable.o
+> /usr/local/src/v4l-dvb/v4l/ir-keytable.c: In function
+> 'ir_g_keycode_from_table':
+> /usr/local/src/v4l-dvb/v4l/ir-keytable.c:181: error: implicit declaration of
+> function 'input_get_drvdata'
+> /usr/local/src/v4l-dvb/v4l/ir-keytable.c:181: warning: initialization makes
+> pointer from integer without a cast
+> /usr/local/src/v4l-dvb/v4l/ir-keytable.c: In function 'ir_input_free':
+> /usr/local/src/v4l-dvb/v4l/ir-keytable.c:236: warning: initialization makes
+> pointer from integer without a cast
+> make[3]: *** [/usr/local/src/v4l-dvb/v4l/ir-keytable.o] Error 1
+> make[2]: *** [_module_/usr/local/src/v4l-dvb/v4l] Error 2
+> make[2]: Leaving directory `/usr/src/kernels/2.6.18-164.6.1.el5-x86_64'
+> make[1]: *** [default] Error 2
+> make[1]: Leaving directory `/usr/local/src/v4l-dvb/v4l'
+> make: *** [all] Error 2
+> =============================================================================
+> 
+> Here are the stats on my box:
+>   CentOS 5.4 x86_64
+>   kernel 2.6.18-164.6.1.el5-x86_64
+>   gcc 4.1.2
+> 
+> Has anyone else seen this?
+> 
+>     --Dave
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
