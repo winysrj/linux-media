@@ -1,68 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41894 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752828AbZLARhb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Dec 2009 12:37:31 -0500
-Message-ID: <4B15543F.1000604@redhat.com>
-Date: Tue, 01 Dec 2009 15:37:03 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from fg-out-1718.google.com ([72.14.220.158]:43849 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751206AbZLNRhk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Dec 2009 12:37:40 -0500
+Received: by fg-out-1718.google.com with SMTP id e21so49969fga.1
+        for <linux-media@vger.kernel.org>; Mon, 14 Dec 2009 09:37:39 -0800 (PST)
 MIME-Version: 1.0
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-CC: Jon Smirl <jonsmirl@gmail.com>, awalls@radix.net,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, khc@pm.waw.pl, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	lirc-list@lists.sourceforge.net, superm1@ubuntu.com,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: [RFC v2] Another approach to IR
-References: <9e4733910912010708u1064e2c6mbc08a01293c3e7fd@mail.gmail.com> <1259682428.18599.10.camel@maxim-laptop>
-In-Reply-To: <1259682428.18599.10.camel@maxim-laptop>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20091214171756.GB20967@pathfinder.pcs.usp.br>
+References: <20091214171756.GB20967@pathfinder.pcs.usp.br>
+Date: Mon, 14 Dec 2009 17:37:39 +0000
+Message-ID: <59cf47a80912140937i5c16fa42o3eb9c06c7b781456@mail.gmail.com>
+Subject: Re: problems compiling webcam driver
+From: Paulo Assis <pj.assis@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Maxim Levitsky wrote:
-> On Tue, 2009-12-01 at 10:08 -0500, Jon Smirl wrote: 
->> While reading all of these IR threads another way of handling IR
->> occurred to me that pretty much eliminates the need for LIRC and
->> configuration files in default cases. The best way to make everything
->> "just work" is to eliminate it.
->>
->> The first observation is that the IR profile of various devices are
->> well known. Most devices profiles are in the published One-for-All
->> database. These device profiles consist of vendor/device/command
->> triplets. There is one triplet for each command like play, pause, 1,
->> 2, 3, power, etc.
->>
->> The second observation is that universal remotes know how to generate
->> commands for all of the common devices.
->>
->> Let's define evdev messages for IR than contain vendor/device/command
->> triplets. I already posted code for doing that in my original patch
->> set. These messages are generated from in-kernel code.
->>
->> Now add a small amount of code to MythTV, etc to act on these evdev
->> messages. Default MythTV, etc to respond to the IR commands for a
->> common DVR device. Program your universal remote to send the commands
->> for this device. You're done. Everything will "just work" - no LIRC,
->> no irrecord, no config files, no command mapping, etc.
-> You are making one  big wrong assumption that everyone that has a remote
-> uses mythtv, and only it.
-> 
-> Many users including me, use the remote just like a keyboard, or even
-> like a mouse.
+Hi,
+You have to unload the all the old modules before loading the new ones:
+http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers#First_Use:_Out_with_the_Old.2C_In_with_the_New
 
-+1. 
+otherwise you will get that type of errors.
 
-I also use the remote as a keyboard replacement. I used an IR like
-that for a long time while teaching, using a standard USB video board,
-as a way to remotely control my notebook.
+Regards,
+Paulo
 
-Well, now I have an USB IR for this usage, using HID, that emulates
-both keyboard and mouse. In fact, the application didn't change. 
-I'm just using the standard USB class for HID, instead of using
-vendor class to generate the same kind of evdev events ;)
-
-Cheers,
-Mauro.
+2009/12/14 Nicolau Werneck <nwerneck@gmail.com>:
+> Hello. I have modified the t613 driver to support a new sensor (code
+> 0x0802), and I am now trying to prepare a patch to submit.
+>
+> The problem is that now that I started to work with the driver again,
+> I started to get this error message... Does anybody know what is this
+> about? I already tried to switch from the 2.6.31 kernel to the 2.6.32,
+> but the same happened.
+>
+>
+> [ 1524.864013] usb 6-2: new full speed USB device using uhci_hcd and address 3
+> [ 1525.026046] usb 6-2: New USB device found, idVendor=17a1, idProduct=0128
+> [ 1525.026049] usb 6-2: New USB device strings: Mfr=32, Product=38, SerialNumber=0
+> [ 1525.026052] usb 6-2: Product: USB2.0 JPEG WebCam
+> [ 1525.026054] usb 6-2: Manufacturer: TASCORP
+> [ 1525.026131] usb 6-2: configuration #1 chosen from 1 choice
+> [ 1525.072916] gspca_main: disagrees about version of symbol video_devdata
+> [ 1525.072918] gspca_main: Unknown symbol video_devdata
+> [ 1525.073060] gspca_main: disagrees about version of symbol video_unregister_device
+> [ 1525.073062] gspca_main: Unknown symbol video_unregister_device
+> [ 1525.073118] gspca_main: disagrees about version of symbol video_register_device
+> [ 1525.073119] gspca_main: Unknown symbol video_register_device
+> [ 1525.073649] gspca_t613: Unknown symbol gspca_frame_add
+> [ 1525.073731] gspca_t613: Unknown symbol gspca_debug
+> [ 1525.073878] gspca_t613: Unknown symbol gspca_disconnect
+> [ 1525.073931] gspca_t613: Unknown symbol gspca_resume
+> [ 1525.073985] gspca_t613: Unknown symbol gspca_dev_probe
+> [ 1525.074038] gspca_t613: Unknown symbol gspca_suspend
+>
+>
+> see you,
+>  ++nicolau
+>
+> --
+> Nicolau Werneck <nwerneck@gmail.com>          1AAB 4050 1999 BDFF 4862
+> http://www.lti.pcs.usp.br/~nwerneck           4A33 D2B5 648B 4789 0327
+> Linux user #460716
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
