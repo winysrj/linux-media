@@ -1,53 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:50844 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966628AbZLHWdz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2009 17:33:55 -0500
-Date: 08 Dec 2009 23:27:00 +0100
-From: lirc@bartelmus.de (Christoph Bartelmus)
-To: dmitry.torokhov@gmail.com
-Cc: awalls@radix.net
-Cc: j@jannau.net
-Cc: jarod@redhat.com
-Cc: jarod@wilsonet.com
-Cc: jonsmirl@gmail.com
-Cc: khc@pm.waw.pl
-Cc: kraxel@redhat.com
-Cc: linux-input@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com
-Cc: superm1@ubuntu.com
-Message-ID: <BEVi1jXHqgB@lirc>
-In-Reply-To: <20091207075100.GB24958@core.coreip.homeip.net>
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
+Received: from bear.ext.ti.com ([192.94.94.41]:54903 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752260AbZLNPCQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Dec 2009 10:02:16 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Mon, 14 Dec 2009 09:02:13 -0600
+Subject: RE: Latest stack that can be merged on top of linux-next tree
+Message-ID: <A69FA2915331DC488A831521EAE36FE40155CEE4E4@dlee06.ent.ti.com>
+References: <A69FA2915331DC488A831521EAE36FE40155C809AB@dlee06.ent.ti.com>
+ <Pine.LNX.4.64.0912120141160.5084@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0912120141160.5084@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dmitry,
+Guennadi,
 
-on 06 Dec 09 at 23:51, Dmitry Torokhov wrote:
-[...]
->>> I suppose we could add MSC_SCAN_END event so that we can transmit
->>> "scancodes" of arbitrary length. You'd get several MSC_SCAN followed by
->>> MSC_SCAN_END marker. If you don't get MSC_SCAN_END assume the code is 32
->>> bit.
+I marged relevant files from the latest of your v4l tree after seeing your pull request. I worked fine for VGA capture. But I need to enable SOC_CAMERA to get the MT9T031 enabled which looks improper to me. Can we remove this restriction from KConfig? I plan to send a vpfe capture patch to support capture using this driver this week.
+
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+phone: 301-407-9583
+email: m-karicheri2@ti.com
+
+>-----Original Message-----
+>From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+>Sent: Friday, December 11, 2009 7:47 PM
+>To: Karicheri, Muralidharan
+>Cc: linux-media@vger.kernel.org
+>Subject: Re: Latest stack that can be merged on top of linux-next tree
+>
+>Hi Muralidharan
+>
+>On Thu, 10 Dec 2009, Karicheri, Muralidharan wrote:
+>
+>> Guennadi,
 >>
->> And I set a timeout to know that no MSC_SCAN_END will arrive? This is
->> broken design IMHO.
+>> I am not sure if your MT9T031 changes are part of linux-next tree at
+>> v4l-dvb. If not, can you point me to the latest stack that I can apply
+>> on top of linux-next tree to get your latest changes for MT9T031 sensor
+>> driver?
+>
+>As you probably have seen, I posted a pull request a couple of hours ago,
+>which also contains the change to mt9t031, that you're asking about.
+>
+>> I plan to do integrate sensor driver with vpfe capture driver this week.
 >>
-
-> EV_SYN signals the end of state transmission.
-
->> Furthermore lircd needs to know the length of the scan code in bits, not
->> as a multiple of 32.
-
-> I really do not think that LIRCD is the type of application that should
-> be using evdev interface, but rather other way around.
-
-Well, all I'm asking is that lircd can keep using the LIRC interface for  
-getting the scan codes. ;-)
-
-Christoph
+>> BTW, Is there a driver for the PCA9543 i2c switch that is part of
+>> MT9T031 headboard?
+>
+>Thanks
+>Guennadi
+>---
+>Guennadi Liakhovetski, Ph.D.
+>Freelance Open-Source Software Developer
+>http://www.open-technology.de/
