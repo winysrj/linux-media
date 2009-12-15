@@ -1,74 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp124.mail.ukl.yahoo.com ([77.238.184.55]:44304 "HELO
-	smtp124.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752552AbZLIJXA (ORCPT
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:56808 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932785AbZLOViP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Dec 2009 04:23:00 -0500
-Message-ID: <4B1F6AE3.20303@yahoo.co.uk>
-Date: Wed, 09 Dec 2009 09:16:19 +0000
-From: Lukasz Sokol <el_es_cr@yahoo.co.uk>
+	Tue, 15 Dec 2009 16:38:15 -0500
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: linux-dvb@linuxtv.org, rob@esdelle.co.uk
-Subject: Re: WinTV HVR-900 USB (B3C0)
-References: <4B1E8E4D.9010101@esdelle.co.uk>
-In-Reply-To: <4B1E8E4D.9010101@esdelle.co.uk>
+In-Reply-To: <9e4733910912151245ne442a5dlcfee92609e364f70@mail.gmail.com>
+References: <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
+	 <4B24DABA.9040007@redhat.com> <20091215115011.GB1385@ucw.cz>
+	 <4B279017.3080303@redhat.com> <20091215195859.GI24406@elf.ucw.cz>
+	 <9e4733910912151214n68161fc7tca0ffbf34c2c4e4@mail.gmail.com>
+	 <20091215201933.GK24406@elf.ucw.cz>
+	 <9e4733910912151229o371ee017tf3640d8f85728011@mail.gmail.com>
+	 <20091215203300.GL24406@elf.ucw.cz>
+	 <9e4733910912151245ne442a5dlcfee92609e364f70@mail.gmail.com>
+Date: Tue, 15 Dec 2009 16:38:14 -0500
+Message-ID: <9e4733910912151338n62b30af5i35f8d0963e6591c@mail.gmail.com>
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
+	system?
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
+	kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rob Beard wrote:
-> Hi folks,
-> 
-> I've borrowed a WinTV HVR-900 USB stick from a friend of mine to see if
-> I can get any reception in my area before forking out for one however
-> I've run in to a couple of problems and wondered if anyone had used one
-> of these sticks?
-> 
-[snip]
-> 
-> I just wondered if anyone else had one of these sticks actually working
-> under Ubuntu 9.10?  (I'm running kernel 2.6.31-16-generic-pae).
-> 
-> Rob
-> 
+On Tue, Dec 15, 2009 at 3:45 PM, Jon Smirl <jonsmirl@gmail.com> wrote:
+> On Tue, Dec 15, 2009 at 3:33 PM, Pavel Machek <pavel@ucw.cz> wrote:
+>> Untrue. Like ethernets and wifis, bluetooth devices have unique
+>> addresses. Communication is bidirectional.
+
+I read a little about how Bluetooth remotes work. Correct me if I get
+things wrong....
+
+They create pairings between the remote and the device. Each of these
+pairings is assigned a device type. Multiple devices in the same room
+are handled by the remote remembering the pairings and sending
+directed packets instead of broadcast. That lets you have two TVs in
+the same room.
+
+Bluetooth devices need to advertise what profiles they support. So on
+the Linux box you'd run a command to load the Bluetooth profile for
+TV. This command would create an evdev subdevice, load the Bluetooth
+keymap for TV, and tell the networking stack to advertise TV support.
+Next you initiate the pairing from the Bluetooth remote and pick the
+Linux box. This causes a pairing established exchange which tells the
+Linux box to make the pairing persistent.
+
+I believe the Bluetooth remote profile is handled in user space by the
+BlueZ stack. BlueZ should be aware of the remote pairings. When it
+decodes a button press it would need to inject the scancode into the
+correct evdev subdevice. Evdev would translate it in the keymap and
+create the keyevent. This is the same mechanism LIRC is using.
 
 
-Hi Rob,
-this device uses empia chips.
+At a more general level we're missing a way for something like Myth to
+declare that it is a DVR device. Myth should load, say I'm a DVR, and
+then the remote control subsystem should automatically create a
+Bluetooth DVR profile, load an IR profile for Motorola DVR on a
+universal remote if the box has Bluetooth, IR or 802.15.4.
 
-I have a similar situation with Pinnacle Hybrid Pro 330e (yes, 3_3_0e) : the only
-driver that works (and was great at it) was Markus Rechberger's em28xx-new project.
-(my device has cx88 tuner IIRC). The em28xx-new project had some modifications to
-some tuner drivers too. They were based both on RE and documentation for which
-Markus had NDA's signed (a vague recollection of past googling).
+The whole concept of a remote control subsystem seems like it needs
+more design work done. We keep coming up with big areas that no one
+has thought about.
 
-The mainline kernel unfortunately does not support it out of the box, and it is not only
-about the firmware you have to download; There is something severely nonfunctional.
-
-Why am I writing in past tense ?
-This driver (em28xx-new) has recently been abandoned, and its author went proprietary.
-I was using a ubuntu package prepared by some ubuntu user, named gborzi.
-Unfortunately the package cannot apply to more recent kernels any more.
-The last kernel it worked with, was 2.6.27-14 (Ubuntu terminology) and I'm stuck with it.
-
-I have emailed Markus but he seems to have lost any interest in the em28xx-new...
-can't blame him though, he gave his reasons, some of them unfortunately true. 
-
-To v4l developers : as it is the case now that we can consider em28xx-new abandonware,
-could somebody see, what got devices like ours working in his driver, and push it to 
-mainline, please ? Just the DVB support would be fine...
-
-To Markus : the above is not a call to _steal_your_code_ but merely to somebody have
-a look and modify the mainline drivers so it could support A 5 YEAR OLD DEVICE like mine.
-People could employ a 'clean room' like in alternative to Broadcom (b43) development.
-
-At least mine, is a 5 YEARS OLD design (bought in 2006).
-On my computer, which was middle spec 5 years ago, I've always had problems with this device
-under Windows (XP) : 100% CPU on max frequency (1.6GHz) all the time, when playing.
-Under Linux, stock Ubuntu 8.10 Kaffeine, and em28xx-new, it is max 30% CPU at lowest freq (800MHz)).
-
-Stock em28xx driver only supports analog (with no sound under stock tvtime, supposedly patched tvtime required).
-
-el es
+-- 
+Jon Smirl
+jonsmirl@gmail.com
