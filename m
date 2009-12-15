@@ -1,60 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:53641 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757488AbZLZAr0 (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:52535 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759242AbZLOJxH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Dec 2009 19:47:26 -0500
-Date: Sat, 26 Dec 2009 01:47:12 +0100 (CET)
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Subject: [PATCH v4l/dvb] firedtv: add missing NULL pointer check
-To: linux-media@vger.kernel.org
-cc: linux1394-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
-Message-ID: <tkrat.4fbf5b89c63dc096@s5r6.in-berlin.de>
+	Tue, 15 Dec 2009 04:53:07 -0500
+Message-ID: <4B275CA2.406@tripleplay-services.com>
+Date: Tue, 15 Dec 2009 09:53:38 +0000
+From: Lou Otway <louis.otway@tripleplay-services.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=us-ascii
-Content-Disposition: INLINE
+To: Michael Akey <akeym@onid.orst.edu>
+CC: Linux Media <linux-media@vger.kernel.org>
+Subject: Re: scan/scan-s2 doesn't tune, but dvbtune does?
+References: <4B269F1A.30107@onid.orst.edu>
+In-Reply-To: <4B269F1A.30107@onid.orst.edu>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If there is ever going to be a FireDTV or FloppyDTV firmware which does
-not provide a minimal ASCII textual descriptor for Model_Id --- or if
-the descriptor is provided indirectly in a descriptor directory ---
-the ieee1394 variant of the device probe of firedtv would dereference a
-NULL pointer.  The firewire variant of firedtv's device probe is not
-affected.
 
-The fix makes sure that such an unexpected firmware is safely recognized
-by fdtv_alloc as an unknown firmware.
 
-Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
----
- drivers/media/dvb/firewire/firedtv-1394.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+Michael Akey wrote:
+> I can't get the scan/scan-s2 utilities to lock any transponders 
+> (DVB-S).  My test satellite is AMC1 103W, the Pentagon Channel tp. 
+> This is probably some simple user error on my part, but I can't figure 
+> it out.  I have a Corotor II with polarity changed via serial command 
+> to an external IRD.  C/Ku is switched by 22KHz tone, voltage is always 
+> 18V.  Ku is with tone off, C with tone on.  Speaking of which, is 
+> there a way to manually set the tone from the arguments on the scan 
+> utilities?
+>
+> Here's what I've tried and the results:
+>
+> $ ./scan-s2 -a 0 -v -o zap -l 10750 INIT
+> API major 5, minor 0
+> scanning INIT
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> initial transponder DVB-S  12100000 H 20000000 AUTO AUTO AUTO
+> initial transponder DVB-S2 12100000 H 20000000 AUTO AUTO AUTO
+> ----------------------------------> Using DVB-S
+> >>> tune to: 12100:h:0:20000
+> DVB-S IF freq is 1350000
+> >>> tuning status == 0x03
+> >>> tuning status == 0x01
+> >>> tuning status == 0x03
+> >>> tuning status == 0x01
+> >>> tuning status == 0x03
+> >>> tuning status == 0x00
+> >>> tuning status == 0x01
+> >>> tuning status == 0x03
+> >>> tuning status == 0x00
+> >>> tuning status == 0x00
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 12100:h:0:20000 (tuning failed)
+> DVB-S IF freq is 1350000
+> >>> tuning status == 0x03
+> >>> tuning status == 0x01
+> >>> tuning status == 0x00
+> >>> tuning status == 0x00
+> ...snip...
+>
+> Same thing happens if I use just 'scan' and not 'scan-s2.'
+>
+> If I use dvbtune, it works though..
+>
+> $ dvbtune -f 1350000 -p H -s 20000 -c 0 -tone 0 -m
+> Using DVB card "Conexant CX24116/CX24118"
+> tuning DVB-S to L-Band:0, Pol:H Srate=20000000, 22kHz=off
+> polling....
+> Getting frontend event
+> FE_STATUS:
+> polling....
+> Getting frontend event
+> FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI 
+> FE_HAS_SYNC
+> Bit error rate: 0
+> Signal strength: 51648
+> SNR: 26215
+> FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI 
+> FE_HAS_SYNC
+> Signal=51648, Verror=0, SNR=26215dB, BlockErrors=0, (S|L|C|V|SY|)
+> Signal=51776, Verror=0, SNR=26624dB, BlockErrors=0, (S|L|C|V|SY|)
+>
+> The tuning file 'INIT' contains only the following line:
+> S 12100000 H 20000000 AUTO
+>
+> I'm using v4l-dvb drivers from the main repo as of about a week ago.  
+> I am running kernel 2.6.32 on Debian testing.  Any help is appreciated 
+> ..and hopefully it's just a simple flub on my part!
+>
+> --Mike
+Try using a non-auto FEC and rolloff.
 
-Index: linux-2.6.33-rc2/drivers/media/dvb/firewire/firedtv-1394.c
-===================================================================
---- linux-2.6.33-rc2.orig/drivers/media/dvb/firewire/firedtv-1394.c
-+++ linux-2.6.33-rc2/drivers/media/dvb/firewire/firedtv-1394.c
-@@ -193,9 +193,13 @@ static int node_probe(struct device *dev
- 	int kv_len, err;
- 	void *kv_str;
- 
--	kv_len = (ud->model_name_kv->value.leaf.len - 2) * sizeof(quadlet_t);
--	kv_str = CSR1212_TEXTUAL_DESCRIPTOR_LEAF_DATA(ud->model_name_kv);
--
-+	if (ud->model_name_kv) {
-+		kv_len = (ud->model_name_kv->value.leaf.len - 2) * 4;
-+		kv_str = CSR1212_TEXTUAL_DESCRIPTOR_LEAF_DATA(ud->model_name_kv);
-+	} else {
-+		kv_len = 0;
-+		kv_str = NULL;
-+	}
- 	fdtv = fdtv_alloc(dev, &fdtv_1394_backend, kv_str, kv_len);
- 	if (!fdtv)
- 		return -ENOMEM;
+Some devices won't accept auto for these parameters.
 
--- 
-Stefan Richter
--=====-==--= ==-- ==-=-
-http://arcgraph.de/sr/
+Cheers,
+
+Lou
 
