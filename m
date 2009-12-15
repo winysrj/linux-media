@@ -1,49 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 0x55535970.adsl.cybercity.dk ([85.83.89.112]:29025 "EHLO
-	kultorvet.udgaard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753676AbZLCUa7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 15:30:59 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by kultorvet.udgaard.com (8.14.3/8.14.3) with ESMTP id nB3K9mLI002846
-	for <linux-media@vger.kernel.org>; Thu, 3 Dec 2009 21:09:48 +0100
-Message-ID: <4B181B0C.2070503@udgaard.com>
-Date: Thu, 03 Dec 2009 21:09:48 +0100
-From: Peter Rasmussen <plr@udgaard.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:49668 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932554AbZLOT7K (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Dec 2009 14:59:10 -0500
+Date: Tue, 15 Dec 2009 20:58:59 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	Jon Smirl <jonsmirl@gmail.com>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
+	kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR  system?
+Message-ID: <20091215195859.GI24406@elf.ucw.cz>
+References: <1260070593.3236.6.camel@pc07.localdom.local>
+ <20091206065512.GA14651@core.coreip.homeip.net>
+ <4B1B99A5.2080903@redhat.com>
+ <m3638k6lju.fsf@intrepid.localdomain>
+ <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
+ <m3skbn6dv1.fsf@intrepid.localdomain>
+ <20091207184153.GD998@core.coreip.homeip.net>
+ <4B24DABA.9040007@redhat.com>
+ <20091215115011.GB1385@ucw.cz>
+ <4B279017.3080303@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: How to help with RTL2832U based TV?
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4B279017.3080303@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I looked around in the archives of:
+Hi!
 
-	http://dir.gmane.org/gmane.linux.drivers.video-input-infrastructure
-	http://www.spinics.net/lists/linux-media/
+> 	(11) if none is against renaming IR as RC, I'll do it on a next patch;
 
-as mentioned in the welcome email of this list, but it isn't apparent to me what the status in Linux of using a device based on this chip is?
+Call it irc -- infrared remote control. Bluetooth remote controls will
+have very different characteristics.
 
-
-When inserting the USB dongle I get the following:
-
-Dec  3 20:56:22 kultorvet kernel: usb 1-1: new high speed USB device 
-using ehci_hcd and address 5
-Dec  3 20:56:22 kultorvet kernel: usb 1-1: New USB device found, 
-idVendor=1d19, idProduct=1102
-Dec  3 20:56:22 kultorvet kernel: usb 1-1: New USB device strings: 
-Mfr=1, Product=2, SerialNumber=3
-Dec  3 20:56:22 kultorvet kernel: usb 1-1: Product: Rtl2832UDVB
-Dec  3 20:56:22 kultorvet kernel: usb 1-1: Manufacturer: Realtek
-Dec  3 20:56:22 kultorvet kernel: usb 1-1: SerialNumber: 1
-Dec  3 20:56:22 kultorvet kernel: usb 1-1: configuration #1 chosen from 
-1 choice
-
-In Windows Vista it runs fine, showing TV using both MPEG2 and MPEG4 
-encoded signals, but I would much rather run it with Linux.
-
-I am also developing software for a living, but not this close to 
-hardware, however I would like to help out the way I can.
-
-Thanks,
-Peter
+									Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
