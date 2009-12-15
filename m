@@ -1,87 +1,276 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:12152 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751465AbZLCPcM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 10:32:12 -0500
-Received: from eu_spt2 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0KU300AY41TTJY@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 03 Dec 2009 15:32:17 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0KU3008S21TSQG@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 03 Dec 2009 15:32:16 +0000 (GMT)
-Date: Thu, 03 Dec 2009 16:31:57 +0100
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: Syncing videobuf buffers before an operation
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
-Message-id: <E4D3F24EA6C9E54F817833EAE0D912AC09C3031E06@bssrvexch01.BS.local>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: en-US
-Content-transfer-encoding: 7BIT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1797 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933255AbZLOVBA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Dec 2009 16:01:00 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: santiago.nunez@ridgerun.com
+Subject: Re: [PATCH 2/4 v11] Definitions for TVP7002 in DM365
+Date: Tue, 15 Dec 2009 22:01:20 +0100
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	linux-media@vger.kernel.org, nsnehaprabha@ti.com,
+	m-karicheri2@ti.com, diego.dompe@ridgerun.com,
+	todd.fischer@ridgerun.com, mgrosen@ti.com
+References: <1259596298-16689-1-git-send-email-santiago.nunez@ridgerun.com>
+In-Reply-To: <1259596298-16689-1-git-send-email-santiago.nunez@ridgerun.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200912152201.20452.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello!
+On Monday 30 November 2009 16:51:38 santiago.nunez@ridgerun.com wrote:
+> From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+> 
+> This patch provides the required definitions for the TVP7002 driver
+> in DM365.
+> 
+> Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+> ---
+>  drivers/media/video/tvp7002_reg.h |  150 +++++++++++++++++++++++++++++++++++++
+>  include/media/tvp7002.h           |   57 ++++++++++++++
+>  2 files changed, 207 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/video/tvp7002_reg.h
+>  create mode 100644 include/media/tvp7002.h
+> 
+> diff --git a/drivers/media/video/tvp7002_reg.h b/drivers/media/video/tvp7002_reg.h
+> new file mode 100644
+> index 0000000..0e34ca9
+> --- /dev/null
+> +++ b/drivers/media/video/tvp7002_reg.h
+> @@ -0,0 +1,150 @@
+> +/* Texas Instruments Triple 8-/10-BIT 165-/110-MSPS Video and Graphics
+> + * Digitizer with Horizontal PLL registers
+> + *
+> + * Copyright (C) 2009 Texas Instruments Inc
+> + * Author: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+> + *
+> + * This code is partially based upon the TVP5150 driver
+> + * written by Mauro Carvalho Chehab (mchehab@infradead.org),
+> + * the TVP514x driver written by Vaibhav Hiremath <hvaibhav@ti.com>
+> + * and the TVP7002 driver in the TI LSP 2.10.00.14
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> + */
+> +
+> +/* Naming conventions
+> + * ------------------
+> + *
+> + * FDBK:  Feedback
+> + * DIV:   Divider
+> + * CTL:   Control
+> + * SEL:   Select
+> + * IN:    Input
+> + * OUT:   Output
+> + * R:     Red
+> + * G:     Green
+> + * B:     Blue
+> + * OFF:   Offset
+> + * THRS:  Threshold
+> + * DGTL:  Digital
+> + * LVL:   Level
+> + * PWR:   Power
+> + * MVIS:  Macrovision
+> + * W:     Width
+> + * H:     Height
+> + * ALGN:  Alignment
+> + * CLK:   Clocks
+> + * TOL:   Tolerance
+> + * BWTH:  Bandwidth
+> + * COEF:  Coefficient
+> + * STAT:  Status
+> + * AUTO:  Automatic
+> + * FLD:   Field
+> + * L:	  Line
+> + */
+> +
+> +#define TVP7002_CHIP_REV		0x00
+> +#define TVP7002_HPLL_FDBK_DIV_MSBS	0x01
+> +#define TVP7002_HPLL_FDBK_DIV_LSBS	0x02
+> +#define TVP7002_HPLL_CRTL		0x03
+> +#define TVP7002_HPLL_PHASE_SEL		0x04
+> +#define TVP7002_CLAMP_START		0x05
+> +#define TVP7002_CLAMP_W			0x06
+> +#define TVP7002_HSYNC_OUT_W		0x07
+> +#define TVP7002_B_FINE_GAIN		0x08
+> +#define TVP7002_G_FINE_GAIN		0x09
+> +#define TVP7002_R_FINE_GAIN		0x0a
+> +#define TVP7002_B_FINE_OFF_MSBS		0x0b
+> +#define TVP7002_G_FINE_OFF_MSBS         0x0c
+> +#define TVP7002_R_FINE_OFF_MSBS         0x0d
+> +#define TVP7002_SYNC_CTL_1		0x0e
+> +#define TVP7002_HPLL_AND_CLAMP_CTL	0x0f
+> +#define TVP7002_SYNC_ON_G_THRS		0x10
+> +#define TVP7002_SYNC_SEPARATOR_THRS	0x11
+> +#define TVP7002_HPLL_PRE_COAST		0x12
+> +#define TVP7002_HPLL_POST_COAST		0x13
+> +#define TVP7002_SYNC_DETECT_STAT	0x14
+> +#define TVP7002_OUT_FORMATTER		0x15
+> +#define TVP7002_MISC_CTL_1		0x16
+> +#define TVP7002_MISC_CTL_2              0x17
+> +#define TVP7002_MISC_CTL_3              0x18
+> +#define TVP7002_IN_MUX_SEL_1		0x19
+> +#define TVP7002_IN_MUX_SEL_2            0x1a
+> +#define TVP7002_B_AND_G_COARSE_GAIN	0x1b
+> +#define TVP7002_R_COARSE_GAIN		0x1c
+> +#define TVP7002_FINE_OFF_LSBS		0x1d
+> +#define TVP7002_B_COARSE_OFF		0x1e
+> +#define TVP7002_G_COARSE_OFF            0x1f
+> +#define TVP7002_R_COARSE_OFF            0x20
+> +#define TVP7002_HSOUT_OUT_START		0x21
+> +#define TVP7002_MISC_CTL_4		0x22
+> +#define TVP7002_B_DGTL_ALC_OUT_LSBS	0x23
+> +#define TVP7002_G_DGTL_ALC_OUT_LSBS     0x24
+> +#define TVP7002_R_DGTL_ALC_OUT_LSBS     0x25
+> +#define TVP7002_AUTO_LVL_CTL_ENABLE	0x26
+> +#define TVP7002_DGTL_ALC_OUT_MSBS	0x27
+> +#define TVP7002_AUTO_LVL_CTL_FILTER	0x28
+> +/* Reserved 0x29*/
+> +#define TVP7002_FINE_CLAMP_CTL		0x2a
+> +#define TVP7002_PWR_CTL			0x2b
+> +#define TVP7002_ADC_SETUP		0x2c
+> +#define TVP7002_COARSE_CLAMP_CTL	0x2d
+> +#define TVP7002_SOG_CLAMP		0x2e
+> +#define TVP7002_RGB_COARSE_CLAMP_CTL	0x2f
+> +#define TVP7002_SOG_COARSE_CLAMP_CTL	0x30
+> +#define TVP7002_ALC_PLACEMENT		0x31
+> +/* Reserved 0x32 */
+> +/* Reserved 0x33 */
+> +#define TVP7002_MVIS_STRIPPER_W		0x34
+> +#define TVP7002_VSYNC_ALGN		0x35
+> +#define TVP7002_SYNC_BYPASS		0x36
+> +#define TVP7002_L_FRAME_STAT_LSBS	0x37
+> +#define TVP7002_L_FRAME_STAT_MSBS	0x38
+> +#define TVP7002_CLK_L_STAT_LSBS		0x39
+> +#define TVP7002_CLK_L_STAT_MSBS      	0x3a
+> +#define TVP7002_HSYNC_W			0x3b
+> +#define TVP7002_VSYNC_W                 0x3c
+> +#define TVP7002_L_LENGTH_TOL 		0x3d
+> +/* Reserved 0x3e */
+> +#define TVP7002_VIDEO_BWTH_CTL		0x3f
+> +#define TVP7002_AVID_START_PIXEL_LSBS	0x40
+> +#define TVP7002_AVID_START_PIXEL_MSBS   0x41
+> +#define TVP7002_AVID_STOP_PIXEL_LSBS  	0x42
+> +#define TVP7002_AVID_STOP_PIXEL_MSBS    0x43
+> +#define TVP7002_VBLK_F_0_START_L_OFF	0x44
+> +#define TVP7002_VBLK_F_1_START_L_OFF    0x45
+> +#define TVP7002_VBLK_F_0_DURATION	0x46
+> +#define TVP7002_VBLK_F_1_DURATION       0x47
+> +#define TVP7002_FBIT_F_0_START_L_OFF	0x48
+> +#define TVP7002_FBIT_F_1_START_L_OFF    0x49
+> +#define TVP7002_YUV_Y_G_COEF_LSBS	0x4a
+> +#define TVP7002_YUV_Y_G_COEF_MSBS       0x4b
+> +#define TVP7002_YUV_Y_B_COEF_LSBS       0x4c
+> +#define TVP7002_YUV_Y_B_COEF_MSBS       0x4d
+> +#define TVP7002_YUV_Y_R_COEF_LSBS       0x4e
+> +#define TVP7002_YUV_Y_R_COEF_MSBS       0x4f
+> +#define TVP7002_YUV_U_G_COEF_LSBS       0x50
+> +#define TVP7002_YUV_U_G_COEF_MSBS       0x51
+> +#define TVP7002_YUV_U_B_COEF_LSBS       0x52
+> +#define TVP7002_YUV_U_B_COEF_MSBS       0x53
+> +#define TVP7002_YUV_U_R_COEF_LSBS       0x54
+> +#define TVP7002_YUV_U_R_COEF_MSBS       0x55
+> +#define TVP7002_YUV_V_G_COEF_LSBS       0x56
+> +#define TVP7002_YUV_V_G_COEF_MSBS       0x57
+> +#define TVP7002_YUV_V_B_COEF_LSBS       0x58
+> +#define TVP7002_YUV_V_B_COEF_MSBS       0x59
+> +#define TVP7002_YUV_V_R_COEF_LSBS       0x5a
+> +#define TVP7002_YUV_V_R_COEF_MSBS       0x5b
+> +
+> diff --git a/include/media/tvp7002.h b/include/media/tvp7002.h
+> new file mode 100644
+> index 0000000..3619f66
+> --- /dev/null
+> +++ b/include/media/tvp7002.h
+> @@ -0,0 +1,57 @@
+> +/* Texas Instruments Triple 8-/10-BIT 165-/110-MSPS Video and Graphics
+> + * Digitizer with Horizontal PLL registers
+> + *
+> + * Copyright (C) 2009 Texas Instruments Inc
+> + * Author: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+> + *
+> + * This code is partially based upon the TVP5150 driver
+> + * written by Mauro Carvalho Chehab (mchehab@infradead.org),
+> + * the TVP514x driver written by Vaibhav Hiremath <hvaibhav@ti.com>
+> + * and the TVP7002 driver in the TI LSP 2.10.00.14
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> + */
+> +#ifndef _TVP7002_H_
+> +#define _TVP7002_H_
+> +
+> +/* Platform-dependent data
+> + *
+> + * clk_polarity:
+> + * 			0 -> data clocked out on rising edge of DATACLK signal
+> + * 			1 -> data clocked out on falling edge of DATACLK signal
+> + * hs_polarity:
+> + * 			0 -> active low HSYNC output
+> + * 			1 -> active high HSYNC output
+> + * sog_polarity:
+> + * 			0 -> normal operation
+> + * 			1 -> operation with polarity inverted
+> + * vs_polarity:
+> + * 			0 -> active low VSYNC output
+> + * 			1 -> active high VSYNC output
+> + * fid_polarity: (*)
+> + * 			0 -> even field ID output
+> + * 			1 -> odd field ID output
+> + * (*) Note: FID polarity controls the timing on which interlaced video frames
+> + *     are displayed. This is given in terms of raising and falling edge times
+> + *     set for the device.
 
-We have been facing the problem of sync()ing buffers before performing
-operations on them.
+I'm sorry, but this still does not tell the reader what a fid_polarity of 0 actually
+means.
 
-This is the current buffer life cycle in videobuf (for streaming, slightly
-simplified):
+Why not just use the text from the datasheet:
 
-- qbuf:
-  buf_prepare, from which drivers call videobuf_iolock() if the state is
-  VIDEOBUF_NEEDS_INIT (i.e. once per streamon)
+fid_polarity:
+		0 -> the field ID output is set to logic 1 for an odd field (field 1) and
+		     set to logic 0 for an even field (field 0).
+		1 -> operation with polarity inverted.
 
-- dqbuf:
-  where per-memory method sync() is called
+Regards,
 
-- streamoff:
-  where buffers are released (i.e. iolock is "released")
+	Hans
 
+> + */
+> +struct tvp7002_config {
+> +	u8 clk_polarity;
+> +	u8 hs_polarity;
+> +	u8 vs_polarity;
+> +	u8 fid_polarity;
+> +	u8 sog_polarity;
+> +};
+> +#endif
+> 
 
-We are working with devices that have a non-coherent cache (ARM-based).
-For them sync()ing means flushing CPU cache for the physical memory to
-contain valid data. We require syncing buffers not only after, but before
-running the operation as well.
-
-For CAPTURE devices this prevents corruption in case a flush occurs after
-the operation has finished and overwrites the results with old data (from
-before the operation).
-
-For OUTPUT-type devices sync()ing is even more important, as the source
-data may be completely invalid before the operation - before DMA can
-be started, CPU cache has to be flushed.
-
-
-We have divided sync operations into the following types:
-- sync CAPTURE buffers before the operation
-- sync CAPTURE buffers after the operation
-- sync OUTPUT buffers before the operation
-
-Our idea is to add an additional sync() call to videobuf_qbuf and
-a parameter that would allow differentiating between syncs before and
-after the operation. Alternatively, an additional function for that
-could be added, if we don't want to change the API.
-
-Please note that this is different from iolock(). Iolock is performed
-once per streamon and what we need is a sync (which should also be
-more lightweight than a full iolock) per each qbuf.
-
-I would be grateful for your opinions on this topic. We'd like to
-propose a patch if we come to an agreement on this as well.
-Thank you!
-
-
-Best regards
---
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
