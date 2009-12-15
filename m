@@ -1,40 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:59660 "HELO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750875AbZLMOFa (ORCPT
+Received: from smtp3-g21.free.fr ([212.27.42.3]:49505 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750926AbZLOHya convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Dec 2009 09:05:30 -0500
-Received: by pwj9 with SMTP id 9so1447149pwj.21
-        for <linux-media@vger.kernel.org>; Sun, 13 Dec 2009 06:05:29 -0800 (PST)
-From: Huang Weiyi <weiyi.huang@gmail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org, Huang Weiyi <weiyi.huang@gmail.com>
-Subject: [PATCH 2/6] V4L/DVB: Davinci VPFE Capture: remove unused #include <linux/version.h>
-Date: Sun, 13 Dec 2009 22:05:21 +0800
-Message-Id: <1260713121-5428-1-git-send-email-weiyi.huang@gmail.com>
+	Tue, 15 Dec 2009 02:54:30 -0500
+Date: Tue, 15 Dec 2009 08:54:45 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Luis Maia <lmaia@royalhat.org>
+Cc: linux-media@vger.kernel.org
+Subject: Re: PATCH- gspca: added chipset revision sensor
+Message-ID: <20091215085445.093ebfd8@tele>
+In-Reply-To: <4B27063C.6020200@royalhat.org>
+References: <4B27063C.6020200@royalhat.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove unused #include <linux/version.h>('s) in
-  drivers/media/video/davinci/vpfe_capture.c
+On Tue, 15 Dec 2009 03:45:00 +0000
+Luis Maia <lmaia@royalhat.org> wrote:
 
-Signed-off-by: Huang Weiyi <weiyi.huang@gmail.com>
----
- drivers/media/video/davinci/vpfe_capture.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+> Added extra chipset revision (sensor) to fix camera zc0301 with  ID: 
+> 0ac8:301b .
+> Since i own one of this cameras fixed and tested it.
 
-diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
-index 12a1b3d..08e51d7 100644
---- a/drivers/media/video/davinci/vpfe_capture.c
-+++ b/drivers/media/video/davinci/vpfe_capture.c
-@@ -70,7 +70,6 @@
- #include <linux/init.h>
- #include <linux/platform_device.h>
- #include <linux/interrupt.h>
--#include <linux/version.h>
- #include <media/v4l2-common.h>
- #include <linux/io.h>
- #include <media/davinci/vpfe_capture.h>
+> -------------
+> 
+> diff -uNr linux-2.6.32.1/drivers/media/video/gspca/zc3xx.c 
+> linux-2.6.32.1-patch/drivers/media/video/gspca/zc3xx.c
+> --- linux-2.6.32.1/drivers/media/video/gspca/zc3xx.c    2009-12-14 
+> 17:47:25.000000000 +0000
+> +++ linux-2.6.32.1-patch/drivers/media/video/gspca/zc3xx.c
+> 2009-12-15 02:42:13.000000000 +0000
+> @@ -6868,6 +6868,7 @@
+>      {0x8001, 0x13},
+>      {0x8000, 0x14},        /* CS2102K */
+>      {0x8400, 0x15},        /* TAS5130K */
+> +    {0xe400, 0x15},
+>  };
+>  
+>  static int vga_3wr_probe(struct gspca_dev *gspca_dev)
+> @@ -7634,7 +7635,7 @@
+>      {USB_DEVICE(0x0698, 0x2003)},
+>      {USB_DEVICE(0x0ac8, 0x0301), .driver_info = SENSOR_PAS106},
+>      {USB_DEVICE(0x0ac8, 0x0302), .driver_info = SENSOR_PAS106},
+> -    {USB_DEVICE(0x0ac8, 0x301b)},
+> +    {USB_DEVICE(0x0ac8, 0x301b), .driver_info = SENSOR_PB0330},
+>      {USB_DEVICE(0x0ac8, 0x303b)},
+>      {USB_DEVICE(0x0ac8, 0x305b), .driver_info =
+> SENSOR_TAS5130C_VF0250}, {USB_DEVICE(0x0ac8, 0x307b)},
+
+Hello Luis,
+
+I don't understand your patch:
+1) you added 0xe400 in the chipset table giving the sensor tas5130c K
+2) in the device table you say that the 0ac8:301b sensor is a pb0330
+   (but this information is not used: the sensor type in .driver_info
+   may be only pas106 for sif probe or mc501cb/tas5130_vf0250 for no
+   probe.
+
+What is exactly the sensor of your webcam?
+
 -- 
-1.6.1.3
-
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
