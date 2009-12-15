@@ -1,46 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f219.google.com ([209.85.219.219]:36584 "HELO
-	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752484AbZLMSy4 (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:51923 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755221AbZLOUdJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Dec 2009 13:54:56 -0500
-Received: by ewy19 with SMTP id 19so2702809ewy.21
-        for <linux-media@vger.kernel.org>; Sun, 13 Dec 2009 10:54:54 -0800 (PST)
-Subject: [PATCH] MAINTAINERS file
-From: Olivier Lorin <olorin75@gmail.com>
-To: V4L Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain
-Date: Sun, 13 Dec 2009 19:54:48 +0100
-Message-Id: <1260730488.24064.3.camel@miniol>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 15 Dec 2009 15:33:09 -0500
+Date: Tue, 15 Dec 2009 21:33:01 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Jon Smirl <jonsmirl@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
+	kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR system?
+Message-ID: <20091215203300.GL24406@elf.ucw.cz>
+References: <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
+ <m3skbn6dv1.fsf@intrepid.localdomain>
+ <20091207184153.GD998@core.coreip.homeip.net>
+ <4B24DABA.9040007@redhat.com>
+ <20091215115011.GB1385@ucw.cz>
+ <4B279017.3080303@redhat.com>
+ <20091215195859.GI24406@elf.ucw.cz>
+ <9e4733910912151214n68161fc7tca0ffbf34c2c4e4@mail.gmail.com>
+ <20091215201933.GK24406@elf.ucw.cz>
+ <9e4733910912151229o371ee017tf3640d8f85728011@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <9e4733910912151229o371ee017tf3640d8f85728011@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patch of the MAINTAINERS file to include the gspca_gl860 driver
+On Tue 2009-12-15 15:29:51, Jon Smirl wrote:
+> On Tue, Dec 15, 2009 at 3:19 PM, Pavel Machek <pavel@ucw.cz> wrote:
+> > On Tue 2009-12-15 15:14:02, Jon Smirl wrote:
+> >> On Tue, Dec 15, 2009 at 2:58 PM, Pavel Machek <pavel@ucw.cz> wrote:
+> >> > Hi!
+> >> >
+> >> >>       (11) if none is against renaming IR as RC, I'll do it on a next patch;
+> >> >
+> >> > Call it irc -- infrared remote control. Bluetooth remote controls will
+> >> > have very different characteristics.
+> >>
+> >> How are they different after the scancode is extracted from the
+> >> network packet? The scancode still needs to be passed to the input
+> >> system, go through a keymap, and end up on an evdev device.
+> >>
+> >> I would expect the code for extracting the scancode to live in the
+> >> networking stack, but after it is recovered the networking code would
+> >> use the same API as IR to submit it to input.
+> >
+> > For one thing,  bluetooth (etc) has concept of devices (and reliable
+> > transfer). If you have two same bluetooth remotes, you can tell them
+> > apart, unlike IR.
+> 
+> IR has the same concept of devices. That's what those codes you enter
+> into a universal remote do - they set the device.
 
-Signed-off-by: Olivier Lorin <olorin75@gmail.com>
-Signed-off-by: Jean-Francois Moine <moinejf@free.fr>
+They set the device _model_.
 
----
-diff ../orgn/MAINTAINERS MAINTAINERS -rupN
---- ../orgn/MAINTAINERS	2009-12-05 22:21:59.000000000 +0100
-+++ MAINTAINERS	2009-09-20 03:35:18.000000000 +0200
-@@ -2224,6 +2224,13 @@ T:	git git://git.kernel.org/pub/scm/linu
- S:	Maintained
- F:	drivers/media/video/gspca/finepix.c
- 
-+GSPCA GL860 SUBDRIVER
-+M:	Olivier Lorin <olorin75@gmail.com>
-+L:	linux-media@vger.kernel.org
-+T:	git
-git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
-+S:	Maintained
-+F:	drivers/media/video/gspca/gl860/
-+
- GSPCA M5602 SUBDRIVER
- M:	Erik Andren <erik.andren@gmail.com>
- L:	linux-media@vger.kernel.org
+> There are three classes of remotes..
+> Fixed function - the device is hardwired
+> Universal - you can change the device
+> Multi-function - a universal that can be multiple devices - TV, cable,
+> audio, etc
+> 
+> If you set two Bluetooth remotes both to the same device you can't
+> tell them apart either.
 
+Untrue. Like ethernets and wifis, bluetooth devices have unique
+addresses. Communication is bidirectional.
 
+Imagine wifi connected bluetooth. It is very different from infrared.
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
