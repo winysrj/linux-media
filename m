@@ -1,35 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:58646 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752157AbZLRG7j (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Dec 2009 01:59:39 -0500
-Date: Fri, 18 Dec 2009 07:59:38 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Created files in patch comment intended?
-Message-ID: <Pine.LNX.4.64.0912180756580.4406@axis700.grange>
+Received: from mail.hauppauge.com ([167.206.143.4]:2694 "EHLO
+	mail.hauppauge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755742AbZLOWYL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Dec 2009 17:24:11 -0500
+Message-ID: <4B280C72.1030908@linuxtv.org>
+Date: Tue, 15 Dec 2009 17:23:46 -0500
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+CC: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] lgdt3305: make one-bit bitfields unsigned
+References: <4B27F6F3.5000300@freemail.hu>
+In-Reply-To: <4B27F6F3.5000300@freemail.hu>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro
+Thanks -- I'll push this in through the lgdt3305 repository... I'll send 
+in a pull request to Mauro shortly.
 
-Looking at how my mediabus patches got committed into the mainline, I 
-noticed, that the add-mediabus patch contains a list of added files 
-between the patch description and the Sob's:
+-Mike
 
-     create mode 100644 drivers/media/video/soc_mediabus.c
-     create mode 100644 include/media/soc_mediabus.h
-     create mode 100644 include/media/v4l2-mediabus.h
+Németh Márton wrote:
+> From: Márton Németh <nm127@freemail.hu>
+>
+> Make one-bit bitfields unsigned which will remove the following
+> sparse warning messages (see "make C=1"):
+>  * lgdt3305.h:57:21: error: dubious one-bit signed bitfield
+>  * lgdt3305.h:60:26: error: dubious one-bit signed bitfield
+>  * lgdt3305.h:63:19: error: dubious one-bit signed bitfield
+>
+> Signed-off-by: Márton Németh <nm127@freemail.hu>
+> ---
+> diff -r ba8d6bf077aa linux/drivers/media/dvb/frontends/lgdt3305.h
+> --- a/linux/drivers/media/dvb/frontends/lgdt3305.h	Tue Dec 15 17:40:44 2009 +0100
+> +++ b/linux/drivers/media/dvb/frontends/lgdt3305.h	Tue Dec 15 21:47:53 2009 +0100
+> @@ -54,13 +54,13 @@
+>  	u16 usref_qam256; /* default: 0x2a80 */
+>
+>  	/* disable i2c repeater - 0:repeater enabled 1:repeater disabled */
+> -	int deny_i2c_rptr:1;
+> +	unsigned int deny_i2c_rptr:1;
+>
+>  	/* spectral inversion - 0:disabled 1:enabled */
+> -	int spectral_inversion:1;
+> +	unsigned int spectral_inversion:1;
+>
+>  	/* use RF AGC loop - 0:disabled 1:enabled */
+> -	int rf_agc_loop:1;
+> +	unsigned int rf_agc_loop:1;
+>
+>  	enum lgdt3305_mpeg_mode mpeg_mode;
+>  	enum lgdt3305_tp_clock_edge tpclk_edge;
+>   
 
-Is this intended, and if yes - why? If not, maybe you'd like to fix this 
-in your hg-git export scripts.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
