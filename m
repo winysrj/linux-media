@@ -1,74 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:21157 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933672AbZLFLXK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Dec 2009 06:23:10 -0500
-Message-ID: <4B1B9416.809@redhat.com>
-Date: Sun, 06 Dec 2009 09:23:02 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:52795 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752616AbZLOIvc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Dec 2009 03:51:32 -0500
+Received: by ewy19 with SMTP id 19so239442ewy.21
+        for <linux-media@vger.kernel.org>; Tue, 15 Dec 2009 00:51:31 -0800 (PST)
+Date: Tue, 15 Dec 2009 09:51:25 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Michael Akey <akeym@onid.orst.edu>
+cc: Linux Media <linux-media@vger.kernel.org>
+Subject: Re: scan/scan-s2 doesn't tune, but dvbtune does?
+In-Reply-To: <4B269F1A.30107@onid.orst.edu>
+Message-ID: <alpine.DEB.2.01.0912150922430.31371@ybpnyubfg.ybpnyqbznva>
+References: <4B269F1A.30107@onid.orst.edu>
 MIME-Version: 1.0
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-CC: Gerd Hoffmann <kraxel@redhat.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jonsmirl@gmail.com, khc@pm.waw.pl,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR  system?
-References: <BDodf9W1qgB@lirc> <4B14EDE3.5050201@redhat.com> <4B1524DD.3080708@redhat.com> <4B153617.8070608@redhat.com> <A6D5FF84-2DB8-4543-ACCB-287305CA0739@wilsonet.com> <4B17AA6A.9060702@redhat.com> <20091203175531.GB776@core.coreip.homeip.net> <20091203163328.613699e5@pedra> <20091204100642.GD22570@core.coreip.homeip.net> <20091204121234.5144836b@pedra> <20091206071450.GC14651@core.coreip.homeip.net>
-In-Reply-To: <20091206071450.GC14651@core.coreip.homeip.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dmitry Torokhov wrote:
-> On Fri, Dec 04, 2009 at 12:12:34PM -0200, Mauro Carvalho Chehab wrote:
->>> How related lirc-core to the current lirc code? If it is not the same
->>> maybe we should not call it lirc to avoid confusion.
->> Just for better illustrate what I'm seeing, I broke the IR generic
->> code into two components:
->>
->> 	lirc core - the module that receives raw pulse/space and creates
->> 		    a device to receive raw API pulse/space events;
->>
->> 	IR core - the module that receives scancodes, convert them into
->> 		  keycodes and send via evdev interface.
->>
->> We may change latter the nomenclature, but I'm seeing the core as two different
->> modules, since there are cases where lirc core won't be used (those
->> devices were there's no way to get pulse/space events).
->>
+On Mon, 14 Dec 2009, Michael Akey wrote:
+
+> I can't get the scan/scan-s2 utilities to lock any transponders (DVB-S).  My
+> test satellite is AMC1 103W, the Pentagon Channel tp. This is probably some
+> simple user error on my part, but I can't figure it out.  I have a Corotor II
+> with polarity changed via serial command to an external IRD.  C/Ku is switched
+> by 22KHz tone, voltage is always 18V.  Ku is with tone off, C with tone on.
+
+I'm afraid that I have a european background into which your use
+does not fit my expectations.  What I expect is that the voltage
+will be determined by what sort of polarisation you are trying to
+receive (your fixed 18V would correspond to horizontally polarised
+transponders) whilst the 22kHz tone would be used to select within
+the Ku band between the low and high band (switchover between a
+universal LNB's 9750 and 10 600 MHz IF at actual frequency near
+11 700 MHz).
+
+Variants thereupon may depend on older installations, and while
+C band does exist, I've never personally bothered to use it or
+play with LNBs and such to learn those details.  With this
+background, I'll attempt to interpret what I see below.
+
+
+> $ ./scan-s2 -a 0 -v -o zap -l 10750 INIT
+
+> initial transponder DVB-S  12100000 H 20000000 AUTO AUTO AUTO
+> initial transponder DVB-S2 12100000 H 20000000 AUTO AUTO AUTO
+> ----------------------------------> Using DVB-S
+> >>> tune to: 12100:h:0:20000
+> DVB-S IF freq is 1350000
+
+This frequency would normally be tuned with 22kHz tone on, with
+a traditional Universal LNB.  I can't be arsed to look up the
+particular bird on which your transponder lies to get its
+particulars (frequency 12100h, SR 20000 I will take from your
+parameters), but if this utility is selecting the 22kHz
+switching signal based on the frequency, it may assume
+that 12100 needs this tone, in spite of your specifying the
+LO intermediate frequency, which apparently you use to select
+between Ku band and when active, C band.
+
+
+> If I use dvbtune, it works though..
 > 
-> OK, I think we are close but not exactly close. I believe that what you
-> call lirc core will be used always - it is the code that create3s class
-> devices, connectes decorers with the data streams, etc. I believe it
-> will be utilized even in case of devices using hardware decoders. That
-> is why we should probably stop calling it "lirc core" just tso we don't
-> confuse it with original lirc.
-> 
-> Then we have decoders and lirc_dev - which implements original lirc
-> interface (or maybe its modified version) and allows lircd to continue
-> working.
-> 
-> Lastly we have what you call IR core which is IR-to-input bridge of
-> sorts.
+> $ dvbtune -f 1350000 -p H -s 20000 -c 0 -tone 0 -m
 
-It seems to be just nomenclacure ;)
+> tuning DVB-S to L-Band:0, Pol:H Srate=20000000, 22kHz=off
 
-what I called "IR core" you called "lirc core"
-what I called "lirc core" you called "lirc_dev"
+Here you're tuning directly to the IF frequency which the
+above utility determines from your specified LO value and
+desired tuning frequency.
 
-What I called IR core is the one that will be used by every IR driver, handling
-sysfs, evdev's, calling decoders, etc.
+I'd look at the source code for the above utilities which
+fail to see if it's deciding 22kHz tone based on the tuned
+frequencies.  If so, and there aren't options to work around
+this as you can with directly specifying the IF to `dvbtune'
+as above, then it may work to massage the input values you
+feed to `scan' not to be the actual frequencies.
 
-I opted to use the nomenclature Lirc to the part of the IR subsystem that
-will create the Lirc interface.
 
-Currently, I almost finished the evdev part of the "IR core", using the current
-API to control the dynamic keycode allocation. It is already working fine with
-V4L drivers.
+> The tuning file 'INIT' contains only the following line:
+> S 12100000 H 20000000 AUTO
 
-Cheers,
-Mauro.
+If this corresponds to 1 350 000 kHz IF, and you faked that
+your LNB had an IF of 9750 MHz, the corresponding ``tuning
+frequency'' would be 11 100 MHz, or 11100000 H in the above
+line.  Horizontal polarisation corresponds to your 18V
+nicely.  Otherwise it's a particular configuration which would
+be alien to me with my limited hands-on experience.
+
+Note that what you get back from parsing the NIT tables when
+tuning the above transponder at the hacked value would need
+to be again adjusted similarly.  But I don't know what the
+frequencies and bands are that are used by this bird, nor do
+I know what sort of consumer equipment is used outside the
+part of the world where I learned my knowledge of the trade.
+
+Anyway, that's how I interpret your results.  I'd be happy if
+someone with more intimate knowledge of those utilities, their
+options, and other setups, could give you a one-line cure for
+your woes -- otherwise I hope I've provided a bit of background
+to help you better understand what may be going on.
