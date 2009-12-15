@@ -1,1588 +1,1440 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1910 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755828AbZLOH5b (ORCPT
+Received: from mail-yw0-f182.google.com ([209.85.211.182]:49278 "EHLO
+	mail-yw0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753994AbZLOOBd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Dec 2009 02:57:31 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: m-karicheri2@ti.com
-Subject: Re: [PATCH - v1 3/6] V4L-vpfe-capture-Adding ISIF driver for DM365 - source
-Date: Tue, 15 Dec 2009 08:57:48 +0100
-Cc: linux-media@vger.kernel.org, khilman@deeprootsystems.com,
-	nsekhar@ti.com, hvaibhav@ti.com,
-	davinci-linux-open-source@linux.davincidsp.com
-References: <1260464429-10537-1-git-send-email-m-karicheri2@ti.com> <1260464429-10537-2-git-send-email-m-karicheri2@ti.com> <1260464429-10537-3-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1260464429-10537-3-git-send-email-m-karicheri2@ti.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200912150857.48640.hverkuil@xs4all.nl>
+	Tue, 15 Dec 2009 09:01:33 -0500
+Received: by ywh12 with SMTP id 12so4370608ywh.21
+        for <linux-media@vger.kernel.org>; Tue, 15 Dec 2009 06:01:32 -0800 (PST)
+From: Alan Carvalho de Assis <acassis@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: s.hauer@pengutronix.de, mchehab@infradead.org,
+	Alan Carvalho de Assis <acassis@gmail.com>
+Subject: [PATCH] RFC: mx27: Add soc_camera support
+Date: Tue, 15 Dec 2009 12:01:26 -0200
+Message-Id: <1260885686-8478-1-git-send-email-acassis@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 10 December 2009 18:00:26 m-karicheri2@ti.com wrote:
-> From: Muralidharan Karicheri <m-karicheri2@ti.com>
-> 
-> This is the source file for ISIF driver for DM365. This has comments incorporated from
-> initial version.
-> 
-> ISIF driver is equivalent to CCDC driver on DM355 and DM644x. This driver is tested for
-> YUV capture from TVP514x driver. This patch contains the header files required for
-> this driver. The name of the file is changed to reflect the name of IP.
-> 
-> Reviewed-by: Nori, Sekhar <nsekhar@ti.com>
-> Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-> ---
-> Applies to linux-next tree of v4l-dvb 
->  drivers/media/video/davinci/isif.c | 1498 ++++++++++++++++++++++++++++++++++++
->  1 files changed, 1498 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/davinci/isif.c
-> 
-> diff --git a/drivers/media/video/davinci/isif.c b/drivers/media/video/davinci/isif.c
-> new file mode 100644
-> index 0000000..916afab
-> --- /dev/null
-> +++ b/drivers/media/video/davinci/isif.c
-> @@ -0,0 +1,1498 @@
-> +/*
-> + * Copyright (C) 2008-2009 Texas Instruments Inc
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-> + *
-> + * This is the isif hardware module.
-> + * TODO: 1) Raw bayer parameter settings and bayer capture
-> + *	 2) Add support for control ioctl
-> + */
-> +#include <linux/delay.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/uaccess.h>
-> +#include <linux/io.h>
-> +#include <linux/videodev2.h>
-> +#include <linux/clk.h>
-> +
-> +#include <mach/mux.h>
-> +
-> +#include <media/davinci/isif.h>
-> +#include <media/davinci/vpss.h>
-> +
-> +#include "isif_regs.h"
-> +#include "ccdc_hw_device.h"
-> +
-> +/* Defauts for module configuation paramaters */
+This is the soc_camera support developed by Sascha Hauer.
+I just modified original driver to get it working on recent kernel.
 
-Typos: 'Defaults', 'configuration' and 'parameters'.
+Signed-off-by: Alan Carvalho de Assis <acassis@gmail.com>
+---
+ arch/arm/mach-mx2/clock_imx27.c          |    2 +-
+ arch/arm/mach-mx2/devices.c              |   32 +
+ arch/arm/mach-mx2/devices.h              |    1 +
+ arch/arm/plat-mxc/include/mach/imx_cam.h |   47 ++
+ drivers/media/video/Kconfig              |   13 +
+ drivers/media/video/Makefile             |    3 +
+ drivers/media/video/mx27_camera.c        | 1224 ++++++++++++++++++++++++++++++
+ 7 files changed, 1321 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/plat-mxc/include/mach/imx_cam.h
+ create mode 100644 drivers/media/video/mx27_camera.c
 
-BTW: Please comment somewhere what 'ISIF' stands for!
-
-> +static struct isif_config_params_raw isif_config_defaults = {
-> +	.linearize = {
-> +		.en = 0,
-> +		.corr_shft = ISIF_NO_SHIFT,
-> +		.scale_fact = {1, 0},
-> +	},
-> +	.df_csc = {
-> +		.df_or_csc = 0,
-> +		.csc = {
-> +			.en = 0,
-> +		},
-> +	},
-> +	.dfc = {
-> +		.en = 0,
-> +	},
-> +	.bclamp = {
-> +		.en = 0,
-> +	},
-> +	.gain_offset = {
-> +		.gain = {
-> +			.r_ye = {1, 0},
-> +			.gr_cy = {1, 0},
-> +			.gb_g = {1, 0},
-> +			.b_mg = {1, 0},
-> +		},
-> +	},
-> +	.culling = {
-> +		.hcpat_odd = 0xff,
-> +		.hcpat_even = 0xff,
-> +		.vcpat = 0xff,
-> +	},
-> +	.compress = {
-> +		.alg = ISIF_ALAW,
-> +	},
-> +};
-> +
-> +/* ISIF operation configuration */
-> +static struct isif_oper_config {
-> +	struct device *dev;
-> +	enum vpfe_hw_if_type if_type;
-> +	struct isif_ycbcr_config ycbcr;
-> +	struct isif_params_raw bayer;
-> +	enum isif_data_pack data_pack;
-> +	/* Master clock */
-> +	struct clk *mclk;
-> +	/* ISIF base address */
-> +	void __iomem *base_addr;
-> +	/* ISIF Linear Table 0 */
-> +	void __iomem *linear_tbl0_addr;
-> +	/* ISIF Linear Table 1 */
-> +	void __iomem *linear_tbl1_addr;
-> +} isif_cfg = {
-> +	.ycbcr = {
-> +		.pix_fmt = CCDC_PIXFMT_YCBCR_8BIT,
-> +		.frm_fmt = CCDC_FRMFMT_INTERLACED,
-> +		.win = ISIF_WIN_NTSC,
-> +		.fid_pol = VPFE_PINPOL_POSITIVE,
-> +		.vd_pol = VPFE_PINPOL_POSITIVE,
-> +		.hd_pol = VPFE_PINPOL_POSITIVE,
-> +		.pix_order = CCDC_PIXORDER_CBYCRY,
-> +		.buf_type = CCDC_BUFTYPE_FLD_INTERLEAVED,
-> +	},
-> +	.bayer = {
-> +		.pix_fmt = CCDC_PIXFMT_RAW,
-> +		.frm_fmt = CCDC_FRMFMT_PROGRESSIVE,
-> +		.win = ISIF_WIN_VGA,
-> +		.fid_pol = VPFE_PINPOL_POSITIVE,
-> +		.vd_pol = VPFE_PINPOL_POSITIVE,
-> +		.hd_pol = VPFE_PINPOL_POSITIVE,
-> +		.gain = {
-> +			.r_ye = {1, 0},
-> +			.gr_cy = {1, 0},
-> +			.gb_g = {1, 0},
-> +			.b_mg = {1, 0},
-> +		},
-> +		.cfa_pat = ISIF_CFA_PAT_MOSAIC,
-> +		.data_msb = ISIF_BIT_MSB_11,
-> +		.config_params = {
-> +			.data_shift = ISIF_NO_SHIFT,
-> +			.col_pat_field0 = {
-> +				.olop = ISIF_GREEN_BLUE,
-> +				.olep = ISIF_BLUE,
-> +				.elop = ISIF_RED,
-> +				.elep = ISIF_GREEN_RED,
-> +			},
-> +			.col_pat_field1 = {
-> +				.olop = ISIF_GREEN_BLUE,
-> +				.olep = ISIF_BLUE,
-> +				.elop = ISIF_RED,
-> +				.elep = ISIF_GREEN_RED,
-> +			},
-> +			.test_pat_gen = 0,
-> +		},
-> +	},
-> +	.data_pack = ISIF_DATA_PACK8,
-> +};
-> +
-> +/* Raw Bayer formats */
-> +static u32 isif_raw_bayer_pix_formats[] =
-> +		{V4L2_PIX_FMT_SBGGR8, V4L2_PIX_FMT_SBGGR16};
-> +
-> +/* Raw YUV formats */
-> +static u32 isif_raw_yuv_pix_formats[] =
-> +		{V4L2_PIX_FMT_UYVY, V4L2_PIX_FMT_YUYV};
-
-Can these two arrays be const? Just wondering.
-
-> +
-> +/* register access routines */
-> +static inline u32 regr(u32 offset)
-> +{
-> +	return __raw_readl(isif_cfg.base_addr + offset);
-> +}
-> +
-> +static inline void regw(u32 val, u32 offset)
-> +{
-> +	__raw_writel(val, isif_cfg.base_addr + offset);
-> +}
-> +
-> +/* reg_modify() - read, modify and write register */
-> +static inline u32 reg_modify(u32 mask, u32 val, u32 offset)
-> +{
-> +	u32 new_val = (regr(offset) & ~mask) | (val & mask);
-> +
-> +	regw(new_val, offset);
-> +	return new_val;
-> +}
-> +
-> +static inline void regw_lin_tbl(u32 val, u32 offset, int i)
-> +{
-> +	if (!i)
-> +		__raw_writel(val, isif_cfg.linear_tbl0_addr + offset);
-> +	else
-> +		__raw_writel(val, isif_cfg.linear_tbl1_addr + offset);
-> +}
-> +
-> +static void isif_disable_all_modules(void)
-> +{
-> +	/* disable BC */
-> +	regw(0, CLAMPCFG);
-> +	/* disable vdfc */
-> +	regw(0, DFCCTL);
-> +	/* disable CSC */
-> +	regw(0, CSCCTL);
-> +	/* disable linearization */
-> +	regw(0, LINCFG0);
-> +	/* disable other modules here as they are supported */
-> +}
-> +
-> +static void isif_enable(int en)
-> +{
-> +	if (!en) {
-> +		/* Before disable isif, disable all ISIF modules */
-> +		isif_disable_all_modules();
-> +		/*
-> +		 * wait for next VD. Assume lowest scan rate is 12 Hz. So
-> +		 * 100 msec delay is good enough
-> +		 */
-> +		msleep(100);
-> +	}
-> +	reg_modify(ISIF_SYNCEN_VDHDEN_MASK, en, SYNCEN);
-> +}
-> +
-> +static void isif_enable_output_to_sdram(int en)
-> +{
-> +	reg_modify(ISIF_SYNCEN_WEN_MASK, en << ISIF_SYNCEN_WEN_SHIFT, SYNCEN);
-> +}
-> +
-> +static void isif_config_culling(struct isif_cul *cul)
-> +{
-> +	u32 val;
-> +
-> +	/* Horizontal pattern */
-> +	val = (cul->hcpat_even << CULL_PAT_EVEN_LINE_SHIFT) | cul->hcpat_odd;
-> +	regw(val, CULH);
-> +
-> +	/* vertical pattern */
-> +	regw(cul->vcpat, CULV);
-> +
-> +	/* LPF */
-> +	reg_modify(ISIF_LPF_MASK << ISIF_LPF_SHIFT,
-> +		  cul->en_lpf << ISIF_LPF_SHIFT, MODESET);
-> +}
-> +
-> +static void isif_config_gain_offset(void)
-> +{
-> +	struct isif_gain_offsets_adj *gain_off_p =
-> +		&isif_cfg.bayer.config_params.gain_offset;
-> +	u32 val;
-> +
-> +	val = (!!gain_off_p->gain_sdram_en << GAIN_SDRAM_EN_SHIFT) |
-> +		(!!gain_off_p->gain_ipipe_en << GAIN_IPIPE_EN_SHIFT) |
-> +		(!!gain_off_p->gain_h3a_en << GAIN_H3A_EN_SHIFT) |
-> +		(!!gain_off_p->offset_sdram_en << OFST_SDRAM_EN_SHIFT) |
-> +		(!!gain_off_p->offset_ipipe_en << OFST_IPIPE_EN_SHIFT) |
-> +		(!!gain_off_p->offset_h3a_en << OFST_H3A_EN_SHIFT);
-> +
-> +	reg_modify(GAIN_OFFSET_EN_MASK, val, CGAMMAWD);
-> +
-> +	val = ((gain_off_p->gain.r_ye.integer & GAIN_INTEGER_MASK) <<
-> +		GAIN_INTEGER_SHIFT) |
-> +		(gain_off_p->gain.r_ye.decimal & GAIN_DECIMAL_MASK);
-> +	regw(val, CRGAIN);
-> +
-> +	val = ((gain_off_p->gain.gr_cy.integer & GAIN_INTEGER_MASK) <<
-> +		GAIN_INTEGER_SHIFT) |
-> +		(gain_off_p->gain.gr_cy.decimal & GAIN_DECIMAL_MASK);
-> +	regw(val, CGRGAIN);
-> +
-> +	val = ((gain_off_p->gain.gb_g.integer & GAIN_INTEGER_MASK) <<
-> +		GAIN_INTEGER_SHIFT) |
-> +		(gain_off_p->gain.gb_g.decimal & GAIN_DECIMAL_MASK);
-> +	regw(val, CGBGAIN);
-> +
-> +	val = ((gain_off_p->gain.b_mg.integer & GAIN_INTEGER_MASK) <<
-> +		GAIN_INTEGER_SHIFT) |
-> +		(gain_off_p->gain.b_mg.decimal & GAIN_DECIMAL_MASK);
-> +	regw(val, CBGAIN);
-> +
-> +	regw((gain_off_p->offset & OFFSET_MASK), COFSTA);
-> +}
-> +
-> +static void isif_restore_defaults(void)
-> +{
-> +	enum vpss_ccdc_source_sel source = VPSS_CCDCIN;
-> +
-> +	dev_dbg(isif_cfg.dev, "\nstarting isif_restore_defaults...");
-> +	memcpy(&isif_cfg.bayer.config_params, &isif_config_defaults,
-> +		sizeof(struct isif_config_params_raw));
-> +	/* Enable clock to ISIF, IPIPEIF and BL */
-> +	vpss_enable_clock(VPSS_CCDC_CLOCK, 1);
-> +	vpss_enable_clock(VPSS_IPIPEIF_CLOCK, 1);
-> +	vpss_enable_clock(VPSS_BL_CLOCK, 1);
-> +	/* Set default offset and gain */
-> +	isif_config_gain_offset();
-> +	vpss_select_ccdc_source(source);
-> +	dev_dbg(isif_cfg.dev, "\nEnd of isif_restore_defaults...");
-> +}
-> +
-> +static int isif_open(struct device *device)
-> +{
-> +	isif_restore_defaults();
-> +	return 0;
-> +}
-> +
-> +/* This function will configure the window size to be capture in ISIF reg */
-> +static void isif_setwin(struct v4l2_rect *image_win,
-> +			enum ccdc_frmfmt frm_fmt, int ppc)
-> +{
-> +	int horz_start, horz_nr_pixels;
-> +	int vert_start, vert_nr_lines;
-> +	int mid_img = 0;
-> +
-> +	dev_dbg(isif_cfg.dev, "\nStarting isif_setwin...");
-> +	/*
-> +	 * ppc - per pixel count. indicates how many pixels per cell
-> +	 * output to SDRAM. example, for ycbcr, it is one y and one c, so 2.
-> +	 * raw capture this is 1
-> +	 */
-> +	horz_start = image_win->left << (ppc - 1);
-> +	horz_nr_pixels = ((image_win->width) << (ppc - 1)) - 1;
-> +
-> +	/* Writing the horizontal info into the registers */
-> +	regw(horz_start & START_PX_HOR_MASK, SPH);
-> +	regw(horz_nr_pixels & NUM_PX_HOR_MASK, LNH);
-> +	vert_start = image_win->top;
-> +
-> +	if (frm_fmt == CCDC_FRMFMT_INTERLACED) {
-> +		vert_nr_lines = (image_win->height >> 1) - 1;
-> +		vert_start >>= 1;
-> +		/* To account for VD since line 0 doesn't have any data */
-> +		vert_start += 1;
-> +	} else {
-> +		/* To account for VD since line 0 doesn't have any data */
-> +		vert_start += 1;
-> +		vert_nr_lines = image_win->height - 1;
-> +		/* configure VDINT0 and VDINT1 */
-> +		mid_img = vert_start + (image_win->height / 2);
-> +		regw(mid_img, VDINT1);
-> +	}
-> +
-> +	regw(0, VDINT0);
-> +	regw(vert_start & START_VER_ONE_MASK, SLV0);
-> +	regw(vert_start & START_VER_TWO_MASK, SLV1);
-> +	regw(vert_nr_lines & NUM_LINES_VER, LNV);
-> +}
-> +
-> +static void isif_config_bclamp(struct isif_black_clamp *bc)
-> +{
-> +	u32 val;
-> +
-> +	/*
-> +	 * DC Offset is always added to image data irrespective of bc enable
-> +	 * status
-> +	 */
-> +	val = bc->dc_offset & ISIF_BC_DCOFFSET_MASK;
-> +	regw(val, CLDCOFST);
-> +
-> +	if (bc->en) {
-> +		val = (bc->bc_mode_color & ISIF_BC_MODE_COLOR_MASK) <<
-> +			ISIF_BC_MODE_COLOR_SHIFT;
-> +
-> +		/* Enable BC and horizontal clamp caculation paramaters */
-> +		val = val | 1 | ((bc->horz.mode & ISIF_HORZ_BC_MODE_MASK) <<
-> +			ISIF_HORZ_BC_MODE_SHIFT);
-> +
-> +		regw(val, CLAMPCFG);
-> +
-> +		if (bc->horz.mode != ISIF_HORZ_BC_DISABLE) {
-> +			/*
-> +			 * Window count for calculation
-> +			 * Base window selection
-> +			 * pixel limit
-> +			 * Horizontal size of window
-> +			 * vertical size of the window
-> +			 * Horizontal start position of the window
-> +			 * Vertical start position of the window
-> +			 */
-> +			val = (bc->horz.win_count_calc &
-> +				ISIF_HORZ_BC_WIN_COUNT_MASK) |
-> +				((!!bc->horz.base_win_sel_calc) <<
-> +				ISIF_HORZ_BC_WIN_SEL_SHIFT) |
-> +				((!!bc->horz.clamp_pix_limit) <<
-> +				ISIF_HORZ_BC_PIX_LIMIT_SHIFT) |
-> +				((bc->horz.win_h_sz_calc &
-> +				ISIF_HORZ_BC_WIN_H_SIZE_MASK) <<
-> +				ISIF_HORZ_BC_WIN_H_SIZE_SHIFT) |
-> +				((bc->horz.win_v_sz_calc &
-> +				ISIF_HORZ_BC_WIN_V_SIZE_MASK) <<
-> +				ISIF_HORZ_BC_WIN_V_SIZE_SHIFT);
-> +
-> +			regw(val, CLHWIN0);
-> +
-> +			regw(bc->horz.win_start_h_calc &
-> +			     ISIF_HORZ_BC_WIN_START_H_MASK, CLHWIN1);
-> +
-> +			regw(bc->horz.win_start_v_calc &
-> +			     ISIF_HORZ_BC_WIN_START_V_MASK, CLHWIN2);
-> +		}
-> +
-> +		/* vertical clamp caculation paramaters */
-> +
-> +		/* OB H Valid */
-> +		val = (bc->vert.ob_h_sz_calc & ISIF_VERT_BC_OB_H_SZ_MASK);
-> +
-> +		/* Reset clamp value sel for previous line */
-> +		val |= ((bc->vert.reset_val_sel &
-> +			ISIF_VERT_BC_RST_VAL_SEL_MASK) <<
-> +			ISIF_VERT_BC_RST_VAL_SEL_SHIFT) |
-> +			(bc->vert.line_ave_coef <<
-> +			ISIF_VERT_BC_LINE_AVE_COEF_SHIFT);
-> +		regw(val, CLVWIN0);
-> +
-> +		/* Configured reset value */
-> +		if (bc->vert.reset_val_sel ==
-> +		    ISIF_VERT_BC_USE_CONFIG_CLAMP_VAL) {
-> +			regw(bc->vert.reset_clamp_val &
-> +			       ISIF_VERT_BC_RST_VAL_MASK, CLVRV);
-> +		}
-> +
-> +		/* Optical Black horizontal start position */
-> +		regw(bc->vert.ob_start_h & ISIF_VERT_BC_OB_START_HORZ_MASK,
-> +		     CLVWIN1);
-> +
-> +		/* Optical Black vertical start position */
-> +		regw(bc->vert.ob_start_v & ISIF_VERT_BC_OB_START_VERT_MASK,
-> +		     CLVWIN2);
-> +
-> +		regw(bc->vert.ob_v_sz_calc & ISIF_VERT_BC_OB_VERT_SZ_MASK,
-> +		     CLVWIN3);
-> +
-> +		/* Vertical start position for BC subtraction */
-> +		regw(bc->vert_start_sub & ISIF_BC_VERT_START_SUB_V_MASK, CLSV);
-> +	}
-> +}
-> +
-> +static void isif_config_linearization(struct isif_linearize *linearize)
-> +{
-> +	u32 val, i;
-> +
-> +	if (!linearize->en) {
-> +		regw(0, LINCFG0);
-> +		return;
-> +	}
-> +
-> +	/* shift value for correction & enable linearization (set lsb) */
-> +	val = (linearize->corr_shft & ISIF_LIN_CORRSFT_MASK) <<
-> +	       ISIF_LIN_CORRSFT_SHIFT | 1;
-> +	regw(val, LINCFG0);
-> +
-> +	/* Scale factor */
-> +	val = ((!!linearize->scale_fact.integer) <<
-> +	      ISIF_LIN_SCALE_FACT_INTEG_SHIFT) |
-> +	      (linearize->scale_fact.decimal &
-> +	       ISIF_LIN_SCALE_FACT_DECIMAL_MASK);
-> +	regw(val, LINCFG1);
-> +
-> +	for (i = 0; i < ISIF_LINEAR_TAB_SIZE; i++) {
-> +		val = linearize->table[i] & ISIF_LIN_ENTRY_MASK;
-> +		if (i % 2)
-> +			regw_lin_tbl(val, ((i >> 1) << 2), 1);
-> +		else
-> +			regw_lin_tbl(val, ((i >> 1) << 2), 0);
-> +	}
-> +}
-> +
-> +static int isif_config_dfc(struct isif_dfc *vdfc)
-> +{
-> +	/* initialize retries to loop for max ~ 250 usec */
-> +	u32 val, count, retries = loops_per_jiffy / (4000/HZ);
-> +	int i;
-> +
-> +	if (!vdfc->en)
-> +		return 0;
-> +
-> +	/* Correction mode */
-> +	val = ((vdfc->corr_mode & ISIF_VDFC_CORR_MOD_MASK) <<
-> +		ISIF_VDFC_CORR_MOD_SHIFT);
-> +
-> +	/* Correct whole line or partial */
-> +	if (vdfc->corr_whole_line)
-> +		val |= 1 << ISIF_VDFC_CORR_WHOLE_LN_SHIFT;
-> +
-> +	/* level shift value */
-> +	val |= (vdfc->def_level_shift & ISIF_VDFC_LEVEL_SHFT_MASK) <<
-> +		ISIF_VDFC_LEVEL_SHFT_SHIFT;
-> +
-> +	regw(val, DFCCTL);
-> +
-> +	/* Defect saturation level */
-> +	val = vdfc->def_sat_level & ISIF_VDFC_SAT_LEVEL_MASK;
-> +	regw(val, VDFSATLV);
-> +
-> +	regw(vdfc->table[0].pos_vert & ISIF_VDFC_POS_MASK, DFCMEM0);
-> +	regw(vdfc->table[0].pos_horz & ISIF_VDFC_POS_MASK, DFCMEM1);
-> +	if (vdfc->corr_mode == ISIF_VDFC_NORMAL ||
-> +	    vdfc->corr_mode == ISIF_VDFC_HORZ_INTERPOL_IF_SAT) {
-> +		regw(vdfc->table[0].level_at_pos, DFCMEM2);
-> +		regw(vdfc->table[0].level_up_pixels, DFCMEM3);
-> +		regw(vdfc->table[0].level_low_pixels, DFCMEM4);
-> +	}
-> +
-> +	/* set DFCMARST and set DFCMWR */
-> +	val = regr(DFCMEMCTL) | (1 << ISIF_DFCMEMCTL_DFCMARST_SHIFT) | 1;
-> +	regw(val, DFCMEMCTL);
-> +
-> +	count = retries;
-> +	while (count && (regr(DFCMEMCTL) & 0x1))
-> +		count--;
-> +
-> +	if (!count) {
-> +		dev_dbg(isif_cfg.dev, "defect table write timeout !!!\n");
-> +		return -1;
-> +	}
-> +
-> +	for (i = 1; i < vdfc->num_vdefects; i++) {
-> +		regw(vdfc->table[i].pos_vert & ISIF_VDFC_POS_MASK,
-> +			   DFCMEM0);
-> +		regw(vdfc->table[i].pos_horz & ISIF_VDFC_POS_MASK,
-> +			   DFCMEM1);
-> +		if (vdfc->corr_mode == ISIF_VDFC_NORMAL ||
-> +		    vdfc->corr_mode == ISIF_VDFC_HORZ_INTERPOL_IF_SAT) {
-> +			regw(vdfc->table[i].level_at_pos, DFCMEM2);
-> +			regw(vdfc->table[i].level_up_pixels, DFCMEM3);
-> +			regw(vdfc->table[i].level_low_pixels, DFCMEM4);
-> +		}
-> +		val = regr(DFCMEMCTL);
-> +		/* clear DFCMARST and set DFCMWR */
-> +		val &= ~BIT(ISIF_DFCMEMCTL_DFCMARST_SHIFT);
-> +		val |= 1;
-> +		regw(val, DFCMEMCTL);
-> +
-> +		count = retries;
-> +		while (count && (regr(DFCMEMCTL) & 0x1))
-> +			count--;
-> +
-> +		if (!count) {
-> +			dev_err(isif_cfg.dev,
-> +				"defect table write timeout !!!\n");
-> +			return -1;
-> +		}
-> +	}
-> +	if (vdfc->num_vdefects < ISIF_VDFC_TABLE_SIZE) {
-> +		/* Extra cycle needed */
-> +		regw(0, DFCMEM0);
-> +		regw(0x1FFF, DFCMEM1);
-> +		regw(1, DFCMEMCTL);
-> +	}
-> +
-> +	/* enable VDFC */
-> +	reg_modify((1 << ISIF_VDFC_EN_SHIFT), (1 << ISIF_VDFC_EN_SHIFT),
-> +		   DFCCTL);
-> +	return 0;
-> +}
-> +
-> +static void isif_config_csc(struct isif_df_csc *df_csc)
-> +{
-> +	u32 val1 = 0, val2 = 0, i;
-> +
-> +	if (!df_csc->csc.en) {
-> +		regw(0, CSCCTL);
-> +		return;
-> +	}
-> +	for (i = 0; i < ISIF_CSC_NUM_COEFF; i++) {
-> +		if ((i % 2) == 0) {
-> +			/* CSCM - LSB */
-> +			val1 = ((df_csc->csc.coeff[i].integer &
-> +				ISIF_CSC_COEF_INTEG_MASK) <<
-> +				ISIF_CSC_COEF_INTEG_SHIFT) |
-> +				((df_csc->csc.coeff[i].decimal &
-> +				ISIF_CSC_COEF_DECIMAL_MASK));
-> +		} else {
-> +
-> +			/* CSCM - MSB */
-> +			val2 = ((df_csc->csc.coeff[i].integer &
-> +				ISIF_CSC_COEF_INTEG_MASK) <<
-> +				ISIF_CSC_COEF_INTEG_SHIFT) |
-> +				((df_csc->csc.coeff[i].decimal &
-> +				ISIF_CSC_COEF_DECIMAL_MASK));
-> +			val2 <<= ISIF_CSCM_MSB_SHIFT;
-> +			val2 |= val1;
-> +			regw(val2, (CSCM0 + ((i - 1) << 1)));
-> +		}
-> +	}
-> +
-> +	/* program the active area */
-> +	regw(df_csc->start_pix & ISIF_DF_CSC_SPH_MASK, FMTSPH);
-> +	/*
-> +	 * one extra pixel as required for CSC. Actually number of
-> +	 * pixel - 1 should be configured in this register. So we
-> +	 * need to subtract 1 before writing to FMTSPH, but we will
-> +	 * not do this since csc requires one extra pixel
-> +	 */
-> +	regw((df_csc->num_pixels) & ISIF_DF_CSC_SPH_MASK, FMTLNH);
-> +	regw(df_csc->start_line & ISIF_DF_CSC_SPH_MASK, FMTSLV);
-> +	/*
-> +	 * one extra line as required for CSC. See reason documented for
-> +	 * num_pixels
-> +	 */
-> +	regw((df_csc->num_lines) & ISIF_DF_CSC_SPH_MASK, FMTLNV);
-> +
-> +	/* Enable CSC */
-> +	regw(1, CSCCTL);
-> +}
-> +
-> +static int isif_config_raw(void)
-> +{
-> +	struct isif_params_raw *params = &isif_cfg.bayer;
-> +	struct isif_config_params_raw *module_params =
-> +		&isif_cfg.bayer.config_params;
-> +	struct vpss_pg_frame_size frame_size;
-> +	struct vpss_sync_pol sync;
-> +	u32 val;
-> +
-> +	dev_dbg(isif_cfg.dev, "\nStarting isif_config_raw..\n");
-> +
-> +	/*
-> +	 * Configure CCDCFG register:-
-> +	 * Set CCD Not to swap input since input is RAW data
-> +	 * Set FID detection function to Latch at V-Sync
-> +	 * Set WENLOG - isif valid area
-> +	 * Set TRGSEL
-> +	 * Set EXTRG
-> +	 * Packed to 8 or 16 bits
-> +	 */
-> +
-> +	val = ISIF_YCINSWP_RAW | ISIF_CCDCFG_FIDMD_LATCH_VSYNC |
-> +		ISIF_CCDCFG_WENLOG_AND | ISIF_CCDCFG_TRGSEL_WEN |
-> +		ISIF_CCDCFG_EXTRG_DISABLE | (isif_cfg.data_pack &
-> +		ISIF_DATA_PACK_MASK);
-> +
-> +	dev_dbg(isif_cfg.dev, "Writing 0x%x to ...CCDCFG \n", val);
-> +	regw(val, CCDCFG);
-> +
-> +	/*
-> +	 * Configure the vertical sync polarity(MODESET.VDPOL)
-> +	 * Configure the horizontal sync polarity (MODESET.HDPOL)
-> +	 * Configure frame id polarity (MODESET.FLDPOL)
-> +	 * Configure data polarity
-> +	 * Configure External WEN Selection
-> +	 * Configure frame format(progressive or interlace)
-> +	 * Configure pixel format (Input mode)
-> +	 * Configure the data shift
-> +	 */
-> +
-> +	val = ISIF_VDHDOUT_INPUT |
-> +		((params->vd_pol & ISIF_VD_POL_MASK) << ISIF_VD_POL_SHIFT) |
-> +		((params->hd_pol & ISIF_HD_POL_MASK) << ISIF_HD_POL_SHIFT) |
-> +		((params->fid_pol & ISIF_FID_POL_MASK) << ISIF_FID_POL_SHIFT) |
-> +		((ISIF_DATAPOL_NORMAL & ISIF_DATAPOL_MASK) <<
-> +		ISIF_DATAPOL_SHIFT) |
-> +		((ISIF_EXWEN_DISABLE & ISIF_EXWEN_MASK) << ISIF_EXWEN_SHIFT) |
-> +		((params->frm_fmt & ISIF_FRM_FMT_MASK) << ISIF_FRM_FMT_SHIFT) |
-> +		((params->pix_fmt & ISIF_INPUT_MASK) << ISIF_INPUT_SHIFT) |
-> +		((params->config_params.data_shift & ISIF_DATASFT_MASK) <<
-> +		ISIF_DATASFT_SHIFT);
-> +
-> +	regw(val, MODESET);
-> +	dev_dbg(isif_cfg.dev, "Writing 0x%x to MODESET...\n", val);
-> +
-> +	/*
-> +	 * Configure GAMMAWD register
-> +	 * CFA pattern setting
-> +	 */
-> +	val = (params->cfa_pat & ISIF_GAMMAWD_CFA_MASK) <<
-> +		ISIF_GAMMAWD_CFA_SHIFT;
-> +
-> +	/* Gamma msb */
-> +	if (module_params->compress.alg == ISIF_ALAW)
-> +		val |= ISIF_ALAW_ENABLE;
-> +
-> +	val |= ((params->data_msb & ISIF_ALAW_GAMA_WD_MASK) <<
-> +			ISIF_ALAW_GAMA_WD_SHIFT);
-> +
-> +	regw(val, CGAMMAWD);
-> +
-> +	/* Configure DPCM compression settings */
-> +	if (module_params->compress.alg == ISIF_DPCM) {
-> +		val =  BIT(ISIF_DPCM_EN_SHIFT) |
-> +		       ((module_params->compress.pred &
-> +			ISIF_DPCM_PREDICTOR_MASK) << ISIF_DPCM_PREDICTOR_SHIFT);
-> +	}
-> +
-> +	regw(val, MISC);
-> +
-> +	/* Configure Gain & Offset */
-> +	isif_config_gain_offset();
-> +
-> +	/* Configure Color pattern */
-> +	val = (params->config_params.col_pat_field0.olop) |
-> +	(params->config_params.col_pat_field0.olep << 2) |
-> +	(params->config_params.col_pat_field0.elop << 4) |
-> +	(params->config_params.col_pat_field0.elep << 6) |
-> +	(params->config_params.col_pat_field1.olop << 8) |
-> +	(params->config_params.col_pat_field1.olep << 10) |
-> +	(params->config_params.col_pat_field1.elop << 12) |
-> +	(params->config_params.col_pat_field1.elep << 14);
-> +	regw(val, CCOLP);
-> +	dev_dbg(isif_cfg.dev, "Writing %x to CCOLP ...\n", val);
-> +
-> +	/* Configure HSIZE register  */
-> +	val = (params->horz_flip_en & ISIF_HSIZE_FLIP_MASK) <<
-> +		ISIF_HSIZE_FLIP_SHIFT;
-> +
-> +	/* calculate line offset in 32 bytes based on pack value */
-> +	if (isif_cfg.data_pack == ISIF_PACK_8BIT)
-> +		val |= (((params->win.width + 31) >> 5) & ISIF_LINEOFST_MASK);
-> +	else if (isif_cfg.data_pack == ISIF_PACK_12BIT)
-> +		val |= ((((params->win.width +
-> +			(params->win.width >> 2)) + 31) >> 5) &
-> +			ISIF_LINEOFST_MASK);
-> +	else
-> +		val |= ((((params->win.width * 2) + 31) >> 5) &
-> +			ISIF_LINEOFST_MASK);
-> +	regw(val, HSIZE);
-> +
-> +	/* Configure SDOFST register  */
-> +	if (params->frm_fmt == CCDC_FRMFMT_INTERLACED) {
-> +		if (params->image_invert_en) {
-> +			/* For interlace inverse mode */
-> +			regw(0x4B6D, SDOFST);
-> +			dev_dbg(isif_cfg.dev, "Writing 0x4B6D to SDOFST...\n");
-> +		} else {
-> +			/* For interlace non inverse mode */
-> +			regw(0x0B6D, SDOFST);
-> +			dev_dbg(isif_cfg.dev, "Writing 0x0B6D to SDOFST...\n");
-> +		}
-> +	} else if (params->frm_fmt == CCDC_FRMFMT_PROGRESSIVE) {
-> +		if (params->image_invert_en) {
-> +			/* For progessive inverse mode */
-
-Typo: progressive
-
-> +			regw(0x4000, SDOFST);
-> +			dev_dbg(isif_cfg.dev, "Writing 0x4000 to SDOFST...\n");
-> +		} else {
-> +			/* For progessive non inverse mode */
-> +			regw(0x0000, SDOFST);
-> +			dev_dbg(isif_cfg.dev, "Writing 0x0000 to SDOFST...\n");
-> +		}
-> +	}
-> +
-> +	/* Configure video window */
-> +	isif_setwin(&params->win, params->frm_fmt, 1);
-> +
-> +	/* Configure Black Clamp */
-> +	isif_config_bclamp(&module_params->bclamp);
-> +
-> +	/* Configure Vertical Defection Pixel Correction */
-> +	if (isif_config_dfc(&module_params->dfc) < 0)
-> +		return -EFAULT;
-> +
-> +	if (!module_params->df_csc.df_or_csc)
-> +		/* Configure Color Space Conversion */
-> +		isif_config_csc(&module_params->df_csc);
-> +
-> +	isif_config_linearization(&module_params->linearize);
-> +
-> +	/* Configure Culling */
-> +	isif_config_culling(&module_params->culling);
-> +
-> +	/* Configure Horizontal and vertical offsets(DFC,LSC,Gain) */
-> +	val = module_params->horz_offset & ISIF_DATA_H_OFFSET_MASK;
-> +	regw(val, DATAHOFST);
-> +
-> +	val = module_params->vert_offset & ISIF_DATA_V_OFFSET_MASK;
-> +	regw(val, DATAVOFST);
-> +
-> +	/* Setup test pattern if enabled */
-> +	if (params->config_params.test_pat_gen) {
-> +		/* Use the HD/VD pol settings from user */
-> +		sync.ccdpg_hdpol = params->hd_pol & ISIF_HD_POL_MASK;
-> +		sync.ccdpg_vdpol = params->vd_pol & ISIF_VD_POL_MASK;
-> +
-> +		dm365_vpss_set_sync_pol(sync);
-> +
-> +		frame_size.hlpfr = isif_cfg.bayer.win.width;
-> +		frame_size.pplen = isif_cfg.bayer.win.height;
-> +		dm365_vpss_set_pg_frame_size(frame_size);
-> +		vpss_select_ccdc_source(VPSS_PGLPBK);
-> +	}
-> +
-> +	dev_dbg(isif_cfg.dev, "\nEnd of isif_config_ycbcr...\n");
-> +	return 0;
-> +}
-> +
-> +static int isif_validate_df_csc_params(struct isif_df_csc *df_csc)
-> +{
-> +	struct isif_color_space_conv *csc;
-> +	int i, csc_df_en = 0;
-> +	int err = -EINVAL;
-> +
-> +	if (!df_csc->df_or_csc) {
-> +		/* csc configuration */
-> +		csc = &df_csc->csc;
-> +		if (csc->en) {
-
-You can save one level of indent by doing:
-
-if (!df_csc->df_or_csc && df_csc->csc.en)
-
-> +			csc_df_en = 1;
-> +			for (i = 0; i < ISIF_CSC_NUM_COEFF; i++) {
-> +				if (csc->coeff[i].integer >
-> +					ISIF_CSC_COEF_INTEG_MASK ||
-> +				    csc->coeff[i].decimal >
-> +					ISIF_CSC_COEF_DECIMAL_MASK) {
-> +					dev_dbg(isif_cfg.dev,
-> +					       "invalid csc coefficients \n");
-> +					return err;
-> +				}
-> +			}
-> +		}
-> +	}
-> +
-> +	if (df_csc->start_pix > ISIF_DF_CSC_SPH_MASK) {
-> +		dev_dbg(isif_cfg.dev, "invalid df_csc start pix value \n");
-> +		return err;
-> +	}
-> +	if (df_csc->num_pixels > ISIF_DF_NUMPIX) {
-> +		dev_dbg(isif_cfg.dev, "invalid df_csc num pixels value \n");
-> +		return err;
-> +	}
-> +	if (df_csc->start_line > ISIF_DF_CSC_LNH_MASK) {
-> +		dev_dbg(isif_cfg.dev, "invalid df_csc start_line value \n");
-> +		return err;
-> +	}
-> +	if (df_csc->num_lines > ISIF_DF_NUMLINES) {
-> +		dev_dbg(isif_cfg.dev, "invalid df_csc num_lines value \n");
-> +		return err;
-> +	}
-> +	return 0;
-> +}
-> +
-> +static int isif_validate_dfc_params(struct isif_dfc *dfc)
-> +{
-> +	int err = -EINVAL;
-> +	int i;
-> +
-> +	if (dfc->en) {
-
-Please invert:
-
-	if (!dfc->en)
-		return 0;
-
-The remainder of this function can now be shifted one tab to the left.
-
-> +		if (dfc->corr_whole_line > 1) {
-> +			dev_dbg(isif_cfg.dev,
-> +				"invalid corr_whole_line value\n");
-> +			return err;
-> +		}
-> +
-> +		if (dfc->def_level_shift > 4) {
-> +			dev_dbg(isif_cfg.dev,
-> +				"invalid def_level_shift value\n");
-> +			return err;
-> +		}
-> +
-> +		if (dfc->def_sat_level > 4095) {
-> +			dev_dbg(isif_cfg.dev, "invalid def_sat_level value \n");
-> +			return err;
-> +		}
-> +		if ((!dfc->num_vdefects) || (dfc->num_vdefects > 8)) {
-> +			dev_dbg(isif_cfg.dev, "invalid num_vdefects value \n");
-> +			return err;
-> +		}
-> +		for (i = 0; i < ISIF_VDFC_TABLE_SIZE; i++) {
-> +			if (dfc->table[i].pos_vert > 0x1fff) {
-> +				dev_dbg(isif_cfg.dev,
-> +					"invalid pos_vert value \n");
-> +				return err;
-> +			}
-> +			if (dfc->table[i].pos_horz > 0x1fff) {
-> +				dev_dbg(isif_cfg.dev,
-> +					"invalid pos_horz value \n");
-> +				return err;
-> +			}
-> +		}
-> +	}
-> +	return 0;
-> +}
-> +
-> +static int isif_validate_bclamp_params(struct isif_black_clamp *bclamp)
-> +{
-> +	int err = -EINVAL;
-> +
-> +	if (bclamp->dc_offset > 0x1fff) {
-> +		dev_dbg(isif_cfg.dev, "invalid bclamp dc_offset value \n");
-> +		return err;
-> +	}
-> +
-> +	if (bclamp->en) {
-
-Ditto.
-
-> +		if (bclamp->horz.clamp_pix_limit > 1) {
-> +			dev_dbg(isif_cfg.dev,
-> +			       "invalid bclamp horz clamp_pix_limit value \n");
-> +			return err;
-> +		}
-> +
-> +		if (bclamp->horz.win_count_calc < 1 ||
-> +		    bclamp->horz.win_count_calc > 32) {
-> +			dev_dbg(isif_cfg.dev,
-> +			       "invalid bclamp horz win_count_calc value \n");
-> +			return err;
-> +		}
-> +
-> +		if (bclamp->horz.win_start_h_calc > 0x1fff) {
-> +			dev_dbg(isif_cfg.dev,
-> +			       "invalid bclamp win_start_v_calc value \n");
-> +			return err;
-> +		}
-> +
-> +		if (bclamp->horz.win_start_v_calc > 0x1fff) {
-> +			dev_dbg(isif_cfg.dev,
-> +			       "invalid bclamp win_start_v_calc value \n");
-> +			return err;
-> +		}
-> +
-> +		if (bclamp->vert.reset_clamp_val > 0xfff) {
-> +			dev_dbg(isif_cfg.dev,
-> +			       "invalid bclamp reset_clamp_val value \n");
-> +			return err;
-> +		}
-> +
-> +		if (bclamp->vert.ob_v_sz_calc > 0x1fff) {
-> +			dev_dbg(isif_cfg.dev,
-> +				"invalid bclamp ob_v_sz_calc value \n");
-> +			return err;
-> +		}
-> +
-> +		if (bclamp->vert.ob_start_h > 0x1fff) {
-> +			dev_dbg(isif_cfg.dev,
-> +				"invalid bclamp ob_start_h value \n");
-> +			return err;
-> +		}
-> +
-> +		if (bclamp->vert.ob_start_v > 0x1fff) {
-> +			dev_dbg(isif_cfg.dev,
-> +				"invalid bclamp ob_start_h value \n");
-> +			return err;
-> +		}
-> +	}
-> +	return 0;
-> +}
-> +
-> +static int isif_validate_gain_ofst_params(struct isif_gain_offsets_adj
-> +					  *gain_offset)
-> +{
-> +	int err = -EINVAL;
-> +
-> +	if (gain_offset->gain_sdram_en ||
-> +	    gain_offset->gain_ipipe_en ||
-> +	    gain_offset->gain_h3a_en) {
-> +		if ((gain_offset->gain.r_ye.integer > 7) ||
-> +		    (gain_offset->gain.r_ye.decimal > 0x1ff)) {
-> +			dev_dbg(isif_cfg.dev, "invalid  gain r_ye\n");
-> +			return err;
-> +		}
-> +		if ((gain_offset->gain.gr_cy.integer > 7) ||
-> +		    (gain_offset->gain.gr_cy.decimal > 0x1ff)) {
-> +			dev_dbg(isif_cfg.dev, "invalid  gain gr_cy\n");
-> +			return err;
-> +		}
-> +		if ((gain_offset->gain.gb_g.integer > 7) ||
-> +		    (gain_offset->gain.gb_g.decimal > 0x1ff)) {
-> +			dev_dbg(isif_cfg.dev, "invalid  gain gb_g\n");
-> +			return err;
-> +		}
-> +		if ((gain_offset->gain.b_mg.integer > 7) ||
-> +		    (gain_offset->gain.b_mg.decimal > 0x1ff)) {
-> +			dev_dbg(isif_cfg.dev, "invalid  gain b_mg\n");
-> +			return err;
-> +		}
-> +	}
-> +	if (gain_offset->offset_sdram_en ||
-> +	    gain_offset->offset_ipipe_en ||
-> +	    gain_offset->offset_h3a_en) {
-> +		if (gain_offset->offset > 0xfff) {
-> +			dev_dbg(isif_cfg.dev, "invalid  gain b_mg\n");
-> +			return err;
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int
-> +validate_isif_config_params_raw(struct isif_config_params_raw *params)
-> +{
-> +	int err;
-> +
-> +	err = isif_validate_df_csc_params(&params->df_csc);
-> +	if (err)
-> +		goto exit;
-
-Why goto? Just return here. Ditto for the next two gotos.
-
-> +	err = isif_validate_dfc_params(&params->dfc);
-> +	if (err)
-> +		goto exit;
-> +	err = isif_validate_bclamp_params(&params->bclamp);
-> +	if (err)
-> +		goto exit;
-> +	err = isif_validate_gain_ofst_params(&params->gain_offset);
-> +exit:
-> +	return err;
-> +}
-> +
-> +static int isif_set_buftype(enum ccdc_buftype buf_type)
-> +{
-> +	if (isif_cfg.if_type == VPFE_RAW_BAYER)
-> +		isif_cfg.bayer.buf_type = buf_type;
-> +	else
-> +		isif_cfg.ycbcr.buf_type = buf_type;
-> +
-> +	return 0;
-> +
-> +}
-> +static enum ccdc_buftype isif_get_buftype(void)
-> +{
-> +	if (isif_cfg.if_type == VPFE_RAW_BAYER)
-> +		return isif_cfg.bayer.buf_type;
-> +
-> +	return isif_cfg.ycbcr.buf_type;
-> +}
-> +
-> +static int isif_enum_pix(u32 *pix, int i)
-> +{
-> +	int ret = -EINVAL;
-> +
-> +	if (isif_cfg.if_type == VPFE_RAW_BAYER) {
-> +		if (i < ARRAY_SIZE(isif_raw_bayer_pix_formats)) {
-> +			*pix = isif_raw_bayer_pix_formats[i];
-> +			ret = 0;
-> +		}
-> +	} else {
-> +		if (i < ARRAY_SIZE(isif_raw_yuv_pix_formats)) {
-> +			*pix = isif_raw_yuv_pix_formats[i];
-> +			ret = 0;
-> +		}
-> +	}
-> +
-> +	return ret;
-> +}
-> +
-> +static int isif_set_pixel_format(unsigned int pixfmt)
-> +{
-> +	if (isif_cfg.if_type == VPFE_RAW_BAYER) {
-> +		if (pixfmt == V4L2_PIX_FMT_SBGGR8) {
-> +			if ((isif_cfg.bayer.config_params.compress.alg !=
-> +			     ISIF_ALAW) &&
-> +			    (isif_cfg.bayer.config_params.compress.alg !=
-> +			     ISIF_DPCM)) {
-> +				dev_dbg(isif_cfg.dev,
-> +					"Either configure A-Law or DPCM\n");
-> +				return -EINVAL;
-> +			}
-> +			isif_cfg.data_pack = ISIF_PACK_8BIT;
-> +		} else if (pixfmt == V4L2_PIX_FMT_SBGGR16) {
-> +			isif_cfg.bayer.config_params.compress.alg =
-> +					ISIF_NO_COMPRESSION;
-> +			isif_cfg.data_pack = ISIF_PACK_16BIT;
-> +		} else
-> +			return -EINVAL;
-> +		isif_cfg.bayer.pix_fmt = CCDC_PIXFMT_RAW;
-> +	} else {
-> +		if (pixfmt == V4L2_PIX_FMT_YUYV)
-> +			isif_cfg.ycbcr.pix_order = CCDC_PIXORDER_YCBYCR;
-> +		else if (pixfmt == V4L2_PIX_FMT_UYVY)
-> +			isif_cfg.ycbcr.pix_order = CCDC_PIXORDER_CBYCRY;
-> +		else
-> +			return -EINVAL;
-> +		isif_cfg.data_pack = ISIF_PACK_8BIT;
-> +	}
-> +	return 0;
-> +}
-> +
-> +static u32 isif_get_pixel_format(void)
-> +{
-> +	u32 pixfmt;
-> +
-> +	if (isif_cfg.if_type == VPFE_RAW_BAYER)
-> +		if (isif_cfg.bayer.config_params.compress.alg
-> +			== ISIF_ALAW
-> +			|| isif_cfg.bayer.config_params.compress.alg
-> +			== ISIF_DPCM)
-> +				pixfmt = V4L2_PIX_FMT_SBGGR8;
-> +		else
-> +			pixfmt = V4L2_PIX_FMT_SBGGR16;
-> +	else {
-> +		if (isif_cfg.ycbcr.pix_order == CCDC_PIXORDER_YCBYCR)
-> +			pixfmt = V4L2_PIX_FMT_YUYV;
-> +		else
-> +			pixfmt = V4L2_PIX_FMT_UYVY;
-> +	}
-> +	return pixfmt;
-> +}
-> +
-> +static int isif_set_image_window(struct v4l2_rect *win)
-> +{
-> +	if (isif_cfg.if_type == VPFE_RAW_BAYER) {
-> +		isif_cfg.bayer.win.top = win->top;
-> +		isif_cfg.bayer.win.left = win->left;
-> +		isif_cfg.bayer.win.width = win->width;
-> +		isif_cfg.bayer.win.height = win->height;
-> +	} else {
-> +		isif_cfg.ycbcr.win.top = win->top;
-> +		isif_cfg.ycbcr.win.left = win->left;
-> +		isif_cfg.ycbcr.win.width = win->width;
-> +		isif_cfg.ycbcr.win.height = win->height;
-> +	}
-> +	return 0;
-> +}
-> +
-> +static void isif_get_image_window(struct v4l2_rect *win)
-> +{
-> +	if (isif_cfg.if_type == VPFE_RAW_BAYER)
-> +		*win = isif_cfg.bayer.win;
-> +	else
-> +		*win = isif_cfg.ycbcr.win;
-> +}
-> +
-> +static unsigned int isif_get_line_length(void)
-> +{
-> +	unsigned int len;
-> +
-> +	if (isif_cfg.if_type == VPFE_RAW_BAYER) {
-> +		if (isif_cfg.data_pack == ISIF_PACK_8BIT)
-> +			len = ((isif_cfg.bayer.win.width));
-> +		else if (isif_cfg.data_pack == ISIF_PACK_12BIT)
-> +			len = (((isif_cfg.bayer.win.width * 2) +
-> +				 (isif_cfg.bayer.win.width >> 2)));
-> +		else
-> +			len = (((isif_cfg.bayer.win.width * 2)));
-> +	} else
-> +		len = (((isif_cfg.ycbcr.win.width * 2)));
-> +
-> +	return ALIGN(len, 32);
-> +}
-> +
-> +static int isif_set_frame_format(enum ccdc_frmfmt frm_fmt)
-> +{
-> +	if (isif_cfg.if_type == VPFE_RAW_BAYER)
-> +		isif_cfg.bayer.frm_fmt = frm_fmt;
-> +	else
-> +		isif_cfg.ycbcr.frm_fmt = frm_fmt;
-> +
-> +	return 0;
-> +}
-> +static enum ccdc_frmfmt isif_get_frame_format(void)
-> +{
-> +	if (isif_cfg.if_type == VPFE_RAW_BAYER)
-> +		return isif_cfg.bayer.frm_fmt;
-> +	else
-
-'else' is not needed here.
-
-> +		return isif_cfg.ycbcr.frm_fmt;
-> +}
-> +
-> +static int isif_getfid(void)
-> +{
-> +	return (regr(MODESET) >> 15) & 0x1;
-> +}
-> +
-> +/* misc operations */
-> +static void isif_setfbaddr(unsigned long addr)
-> +{
-> +	regw((addr >> 21) & 0x07ff, CADU);
-> +	regw((addr >> 5) & 0x0ffff, CADL);
-> +}
-> +
-> +static int isif_set_hw_if_params(struct vpfe_hw_if_param *params)
-> +{
-> +	isif_cfg.if_type = params->if_type;
-> +
-> +	switch (params->if_type) {
-> +	case VPFE_BT656:
-> +	case VPFE_BT656_10BIT:
-> +	case VPFE_YCBCR_SYNC_8:
-> +		isif_cfg.ycbcr.pix_fmt = CCDC_PIXFMT_YCBCR_8BIT;
-> +		isif_cfg.ycbcr.pix_order = CCDC_PIXORDER_CBYCRY;
-> +		break;
-> +	case VPFE_BT1120:
-> +	case VPFE_YCBCR_SYNC_16:
-> +		isif_cfg.ycbcr.pix_fmt = CCDC_PIXFMT_YCBCR_16BIT;
-> +		isif_cfg.ycbcr.pix_order = CCDC_PIXORDER_CBYCRY;
-> +		break;
-> +	case VPFE_RAW_BAYER:
-> +		isif_cfg.bayer.pix_fmt = CCDC_PIXFMT_RAW;
-> +		break;
-> +	default:
-> +		dev_dbg(isif_cfg.dev, "Invalid interface type\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +/* Parameter operations */
-> +static int isif_get_params(void __user *params)
-> +{
-> +	/* only raw module parameters can be set through the IOCTL */
-> +	if (isif_cfg.if_type != VPFE_RAW_BAYER)
-> +		return -EINVAL;
-> +
-> +	if (copy_to_user(params,
-> +			&isif_cfg.bayer.config_params,
-> +			sizeof(isif_cfg.bayer.config_params))) {
-> +		dev_dbg(isif_cfg.dev,
-> +			"isif_get_params: error in copying isif params\n");
-> +		return -EFAULT;
-> +	}
-> +	return 0;
-> +}
-> +
-> +/* Parameter operations */
-> +static int isif_set_params(void __user *params)
-> +{
-> +	struct isif_config_params_raw *isif_raw_params;
-> +	int ret = -EINVAL;
-> +
-> +	/* only raw module parameters can be set through the IOCTL */
-> +	if (isif_cfg.if_type != VPFE_RAW_BAYER)
-> +		return ret;
-> +
-> +	isif_raw_params = kzalloc(sizeof(*isif_raw_params), GFP_KERNEL);
-> +
-> +	if (NULL == isif_raw_params)
-> +		return -ENOMEM;
-> +
-> +	ret = copy_from_user(isif_raw_params,
-> +			     params, sizeof(*isif_raw_params));
-> +	if (ret) {
-> +		dev_dbg(isif_cfg.dev, "isif_set_params: error in copying isif"
-> +			"params, %d\n", ret);
-> +		ret = -EFAULT;
-> +		goto free_out;
-> +	}
-> +
-> +	if (!validate_isif_config_params_raw(isif_raw_params)) {
-> +		memcpy(&isif_cfg.bayer.config_params,
-> +			isif_raw_params,
-> +			sizeof(*isif_raw_params));
-> +		ret = 0;
-> +	} else
-> +		ret = -EINVAL;
-> +free_out:
-> +	kfree(isif_raw_params);
-> +	return ret;
-> +}
-> +
-> +/* This function will configure ISIF for YCbCr parameters. */
-> +static int isif_config_ycbcr(void)
-> +{
-> +	struct isif_ycbcr_config *params = &isif_cfg.ycbcr;
-> +	struct vpss_pg_frame_size frame_size;
-> +	u32 modeset = 0, ccdcfg = 0;
-> +	struct vpss_sync_pol sync;
-> +
-> +	dev_dbg(isif_cfg.dev, "\nStarting isif_config_ycbcr...");
-> +
-> +	/* configure pixel format or input mode */
-> +	modeset = modeset | ((params->pix_fmt & ISIF_INPUT_MASK)
-> +		<< ISIF_INPUT_SHIFT) |
-> +	((params->frm_fmt & ISIF_FRM_FMT_MASK) << ISIF_FRM_FMT_SHIFT) |
-> +	(((params->fid_pol & ISIF_FID_POL_MASK) << ISIF_FID_POL_SHIFT))	|
-> +	(((params->hd_pol & ISIF_HD_POL_MASK) << ISIF_HD_POL_SHIFT)) |
-> +	(((params->vd_pol & ISIF_VD_POL_MASK) << ISIF_VD_POL_SHIFT));
-> +
-> +	/* pack the data to 8-bit ISIFCFG */
-> +	switch (isif_cfg.if_type) {
-> +	case VPFE_BT656:
-> +		if (params->pix_fmt != CCDC_PIXFMT_YCBCR_8BIT) {
-> +			dev_dbg(isif_cfg.dev, "Invalid pix_fmt(input mode)\n");
-> +			return -1;
-> +		}
-> +		modeset |=
-> +			((VPFE_PINPOL_NEGATIVE & ISIF_VD_POL_MASK)
-> +			<< ISIF_VD_POL_SHIFT);
-> +		regw(3, REC656IF);
-> +		ccdcfg = ccdcfg | ISIF_DATA_PACK8 | ISIF_YCINSWP_YCBCR;
-> +		break;
-> +	case VPFE_BT656_10BIT:
-> +		if (params->pix_fmt != CCDC_PIXFMT_YCBCR_8BIT) {
-> +			dev_dbg(isif_cfg.dev, "Invalid pix_fmt(input mode)\n");
-> +			return -1;
-> +		}
-> +		/* setup BT.656, embedded sync  */
-> +		regw(3, REC656IF);
-> +		/* enable 10 bit mode in ccdcfg */
-> +		ccdcfg = ccdcfg | ISIF_DATA_PACK8 | ISIF_YCINSWP_YCBCR |
-> +			ISIF_BW656_ENABLE;
-> +		break;
-> +	case VPFE_BT1120:
-> +		if (params->pix_fmt != CCDC_PIXFMT_YCBCR_16BIT) {
-> +			dev_dbg(isif_cfg.dev, "Invalid pix_fmt(input mode)\n");
-> +			return -EINVAL;
-> +		}
-> +		regw(3, REC656IF);
-> +		break;
-> +
-> +	case VPFE_YCBCR_SYNC_8:
-> +		ccdcfg |= ISIF_DATA_PACK8;
-> +		ccdcfg |= ISIF_YCINSWP_YCBCR;
-> +		if (params->pix_fmt != CCDC_PIXFMT_YCBCR_8BIT) {
-> +			dev_dbg(isif_cfg.dev, "Invalid pix_fmt(input mode)\n");
-> +			return -EINVAL;
-> +		}
-> +		break;
-> +	case VPFE_YCBCR_SYNC_16:
-> +		if (params->pix_fmt != CCDC_PIXFMT_YCBCR_16BIT) {
-> +			dev_dbg(isif_cfg.dev, "Invalid pix_fmt(input mode)\n");
-> +			return -EINVAL;
-> +		}
-> +		break;
-> +	default:
-> +		/* should never come here */
-> +		dev_dbg(isif_cfg.dev, "Invalid interface type\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	regw(modeset, MODESET);
-> +
-> +	/* Set up pix order */
-> +	ccdcfg |= (params->pix_order & ISIF_PIX_ORDER_MASK) <<
-> +		ISIF_PIX_ORDER_SHIFT;
-> +
-> +	regw(ccdcfg, CCDCFG);
-> +
-> +	/* configure video window */
-> +	if ((isif_cfg.if_type == VPFE_BT1120) ||
-> +	    (isif_cfg.if_type == VPFE_YCBCR_SYNC_16))
-> +		isif_setwin(&params->win, params->frm_fmt, 1);
-> +	else
-> +		isif_setwin(&params->win, params->frm_fmt, 2);
-> +
-> +	/*
-> +	 * configure the horizontal line offset
-> +	 * this is done by rounding up width to a multiple of 16 pixels
-> +	 * and multiply by two to account for y:cb:cr 4:2:2 data
-> +	 */
-> +	regw(((((params->win.width * 2) + 31) & 0xffffffe0) >> 5), HSIZE);
-> +
-> +	/* configure the memory line offset */
-> +	if ((params->frm_fmt == CCDC_FRMFMT_INTERLACED) &&
-> +	    (params->buf_type == CCDC_BUFTYPE_FLD_INTERLEAVED))
-> +		/* two fields are interleaved in memory */
-> +		regw(0x00000249, SDOFST);
-> +
-> +	/* Setup test pattern if enabled */
-> +	if (isif_cfg.bayer.config_params.test_pat_gen) {
-> +		sync.ccdpg_hdpol = (params->hd_pol & ISIF_HD_POL_MASK);
-> +		sync.ccdpg_vdpol = (params->vd_pol & ISIF_VD_POL_MASK);
-> +		dm365_vpss_set_sync_pol(sync);
-> +		dm365_vpss_set_pg_frame_size(frame_size);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int isif_configure(void)
-> +{
-> +	if (isif_cfg.if_type == VPFE_RAW_BAYER)
-> +		return isif_config_raw();
-> +	else
-
-'else' not needed here.
-
-> +		isif_config_ycbcr();
-> +	return 0;
-> +}
-> +
-> +static int isif_close(struct device *device)
-> +{
-> +	/* copy defaults to module params */
-> +	memcpy(&isif_cfg.bayer.config_params,
-> +	       &isif_config_defaults,
-> +	       sizeof(struct isif_config_params_raw));
-
-Can you also do: isif_cfg.bayer.config_params = isif_config_defaults?
-
-> +	return 0;
-> +}
-> +
-> +static struct ccdc_hw_device isif_hw_dev = {
-> +	.name = "ISIF",
-> +	.owner = THIS_MODULE,
-> +	.hw_ops = {
-> +		.open = isif_open,
-> +		.close = isif_close,
-> +		.enable = isif_enable,
-> +		.enable_out_to_sdram = isif_enable_output_to_sdram,
-> +		.set_hw_if_params = isif_set_hw_if_params,
-> +		.set_params = isif_set_params,
-> +		.get_params = isif_get_params,
-> +		.configure = isif_configure,
-> +		.set_buftype = isif_set_buftype,
-> +		.get_buftype = isif_get_buftype,
-> +		.enum_pix = isif_enum_pix,
-> +		.set_pixel_format = isif_set_pixel_format,
-> +		.get_pixel_format = isif_get_pixel_format,
-> +		.set_frame_format = isif_set_frame_format,
-> +		.get_frame_format = isif_get_frame_format,
-> +		.set_image_window = isif_set_image_window,
-> +		.get_image_window = isif_get_image_window,
-> +		.get_line_length = isif_get_line_length,
-> +		.setfbaddr = isif_setfbaddr,
-> +		.getfid = isif_getfid,
-> +	},
-> +};
-> +
-> +static int __init isif_probe(struct platform_device *pdev)
-> +{
-> +	void (*setup_pinmux)(void);
-> +	struct resource	*res;
-> +	void *__iomem addr;
-> +	int status = 0, i;
-> +
-> +	/*
-> +	 * first try to register with vpfe. If not correct platform, then we
-> +	 * don't have to iomap
-> +	 */
-> +	status = vpfe_register_ccdc_device(&isif_hw_dev);
-> +	if (status < 0)
-> +		return status;
-> +
-> +	/* Get and enable Master clock */
-> +	isif_cfg.mclk = clk_get(&pdev->dev, "master");
-> +	if (NULL == isif_cfg.mclk) {
-> +		status = -ENODEV;
-> +		goto fail_mclk;
-> +	}
-> +	if (clk_enable(isif_cfg.mclk)) {
-> +		status = -ENODEV;
-> +		goto fail_mclk;
-> +	}
-> +
-> +	/* Platform data holds setup_pinmux function ptr */
-> +	if (NULL == pdev->dev.platform_data) {
-> +		status = -ENODEV;
-> +		goto fail_mclk;
-> +	}
-> +	setup_pinmux = pdev->dev.platform_data;
-> +	/*
-> +	 * setup Mux configuration for ccdc which may be different for
-> +	 * different SoCs using this CCDC
-> +	 */
-> +	setup_pinmux();
-> +
-> +	i = 0;
-> +	/* Get the ISIF base address, linearization table0 and table1 addr. */
-> +	while (i < 3) {
-> +		res = platform_get_resource(pdev, IORESOURCE_MEM, i);
-> +		if (!res) {
-> +			status = -ENODEV;
-> +			goto fail_nobase_res;
-> +		}
-> +		res = request_mem_region(res->start, resource_size(res),
-> +					 res->name);
-> +		if (!res) {
-> +			status = -EBUSY;
-> +			goto fail_nobase_res;
-> +		}
-> +		addr = ioremap_nocache(res->start, resource_size(res));
-> +		if (!addr) {
-> +			status = -ENOMEM;
-> +			goto fail_base_iomap;
-> +		}
-> +		switch (i) {
-> +		case 0:
-> +			/* ISIF base address */
-> +			isif_cfg.base_addr = addr;
-> +			break;
-> +		case 1:
-> +			/* ISIF linear tbl0 address */
-> +			isif_cfg.linear_tbl0_addr = addr;
-> +			break;
-> +		default:
-> +			/* ISIF linear tbl0 address */
-> +			isif_cfg.linear_tbl1_addr = addr;
-> +			break;
-> +		}
-> +		i++;
-> +	}
-> +	isif_cfg.dev = &pdev->dev;
-> +
-> +	printk(KERN_NOTICE "%s is registered with vpfe.\n",
-> +		isif_hw_dev.name);
-> +	return 0;
-> +fail_base_iomap:
-> +	release_mem_region(res->start, resource_size(res));
-> +	i--;
-> +fail_nobase_res:
-> +	if (isif_cfg.base_addr)
-> +		iounmap(isif_cfg.base_addr);
-> +	if (isif_cfg.linear_tbl0_addr)
-> +		iounmap(isif_cfg.linear_tbl0_addr);
-> +
-> +	while (i >= 0) {
-> +		res = platform_get_resource(pdev, IORESOURCE_MEM, i);
-> +		release_mem_region(res->start, resource_size(res));
-> +		i--;
-> +	}
-> +fail_mclk:
-> +	clk_put(isif_cfg.mclk);
-> +	vpfe_unregister_ccdc_device(&isif_hw_dev);
-> +	return status;
-> +}
-> +
-> +static int isif_remove(struct platform_device *pdev)
-> +{
-> +	struct resource	*res;
-> +	int i = 0;
-> +
-> +	iounmap(isif_cfg.base_addr);
-> +	iounmap(isif_cfg.linear_tbl0_addr);
-> +	iounmap(isif_cfg.linear_tbl1_addr);
-> +	while (i < 3) {
-> +		res = platform_get_resource(pdev, IORESOURCE_MEM, i);
-> +		if (res)
-> +			release_mem_region(res->start, resource_size(res));
-> +		i++;
-> +	}
-> +	vpfe_unregister_ccdc_device(&isif_hw_dev);
-> +	return 0;
-> +}
-> +
-> +static struct platform_driver isif_driver = {
-> +	.driver = {
-> +		.name	= "isif",
-> +		.owner = THIS_MODULE,
-> +	},
-> +	.remove = __devexit_p(isif_remove),
-> +	.probe = isif_probe,
-> +};
-> +
-> +static int __init isif_init(void)
-> +{
-> +	return platform_driver_register(&isif_driver);
-> +}
-> +
-> +static void isif_exit(void)
-> +{
-> +	platform_driver_unregister(&isif_driver);
-> +}
-> +
-> +module_init(isif_init);
-> +module_exit(isif_exit);
-> +
-> +MODULE_LICENSE("GPL");
-> 
-
+diff --git a/arch/arm/mach-mx2/clock_imx27.c b/arch/arm/mach-mx2/clock_imx27.c
+index b010bf9..1ad0408 100644
+--- a/arch/arm/mach-mx2/clock_imx27.c
++++ b/arch/arm/mach-mx2/clock_imx27.c
+@@ -642,7 +642,7 @@ static struct clk_lookup lookups[] = {
+ 	_REGISTER_CLOCK("spi_imx.1", NULL, cspi2_clk)
+ 	_REGISTER_CLOCK("spi_imx.2", NULL, cspi3_clk)
+ 	_REGISTER_CLOCK("imx-fb.0", NULL, lcdc_clk)
+-	_REGISTER_CLOCK(NULL, "csi", csi_clk)
++	_REGISTER_CLOCK("mx27-camera.0", NULL, csi_clk)
+ 	_REGISTER_CLOCK("fsl-usb2-udc", "usb", usb_clk)
+ 	_REGISTER_CLOCK("fsl-usb2-udc", "usb_ahb", usb_clk1)
+ 	_REGISTER_CLOCK("mxc-ehci.0", "usb", usb_clk)
+diff --git a/arch/arm/mach-mx2/devices.c b/arch/arm/mach-mx2/devices.c
+index 3d398ce..d47ea55 100644
+--- a/arch/arm/mach-mx2/devices.c
++++ b/arch/arm/mach-mx2/devices.c
+@@ -31,6 +31,7 @@
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
+ #include <linux/gpio.h>
++#include <linux/dma-mapping.h>
+ 
+ #include <mach/irqs.h>
+ #include <mach/hardware.h>
+@@ -39,6 +40,37 @@
+ 
+ #include "devices.h"
+ 
++#ifdef CONFIG_MACH_MX27
++static struct resource mx27_camera_resources[] = {
++	{
++	       .start = CSI_BASE_ADDR,
++	       .end = CSI_BASE_ADDR + 0x1f,
++	       .flags = IORESOURCE_MEM,
++	}, {
++	       .start = EMMA_PRP_BASE_ADDR,
++	       .end = EMMA_PRP_BASE_ADDR + 0x1f,
++	       .flags = IORESOURCE_MEM,
++	}, {
++	       .start = MXC_INT_CSI,
++	       .end = MXC_INT_CSI,
++	       .flags = IORESOURCE_IRQ,
++	},{
++	       .start = MXC_INT_EMMAPRP,
++	       .end = MXC_INT_EMMAPRP,
++	       .flags = IORESOURCE_IRQ,
++	},
++};
++struct platform_device mx27_camera_device = {
++	.name = "mx27-camera",
++	.id = 0,
++	.num_resources = ARRAY_SIZE(mx27_camera_resources),
++	.resource = mx27_camera_resources,
++	.dev = {
++		.coherent_dma_mask = 0xffffffff,
++	},
++};
++#endif
++
+ /*
+  * SPI master controller
+  *
+diff --git a/arch/arm/mach-mx2/devices.h b/arch/arm/mach-mx2/devices.h
+index 97306aa..58ce4dc 100644
+--- a/arch/arm/mach-mx2/devices.h
++++ b/arch/arm/mach-mx2/devices.h
+@@ -20,6 +20,7 @@ extern struct platform_device mxc_i2c_device1;
+ extern struct platform_device mxc_sdhc_device0;
+ extern struct platform_device mxc_sdhc_device1;
+ extern struct platform_device mxc_otg_udc_device;
++extern struct platform_device mx27_camera_device;
+ extern struct platform_device mxc_otg_host;
+ extern struct platform_device mxc_usbh1;
+ extern struct platform_device mxc_usbh2;
+diff --git a/arch/arm/plat-mxc/include/mach/imx_cam.h b/arch/arm/plat-mxc/include/mach/imx_cam.h
+new file mode 100644
+index 0000000..2d704ae
+--- /dev/null
++++ b/arch/arm/plat-mxc/include/mach/imx_cam.h
+@@ -0,0 +1,47 @@
++/*
++    imx-cam.h - i.MX27 camera driver header file
++
++    Copyright (C) 2003, Intel Corporation
++    Copyright (C) 2008, Sascha Hauer <s.hauer@pengutronix.de>
++
++    This program is free software; you can redistribute it and/or modify
++    it under the terms of the GNU General Public License as published by
++    the Free Software Foundation; either version 2 of the License, or
++    (at your option) any later version.
++
++    This program is distributed in the hope that it will be useful,
++    but WITHOUT ANY WARRANTY; without even the implied warranty of
++    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++    GNU General Public License for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with this program; if not, write to the Free Software
++    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++*/
++
++#ifndef __ASM_ARCH_CAMERA_H_
++#define __ASM_ARCH_CAMERA_H_
++
++#define MX27_CAMERA_SWAP16		(1 << 0)
++#define MX27_CAMERA_EXT_VSYNC		(1 << 1)
++#define MX27_CAMERA_CCIR		(1 << 2)
++#define MX27_CAMERA_CCIR_INTERLACE	(1 << 3)
++#define MX27_CAMERA_HSYNC_HIGH		(1 << 4)
++#define MX27_CAMERA_GATED_CLOCK		(1 << 5)
++#define MX27_CAMERA_INV_DATA		(1 << 6)
++#define MX27_CAMERA_PCLK_SAMPLE_RISING	(1 << 7)
++#define MX27_CAMERA_PACK_DIR_MSB	(1 << 8)
++
++struct mx27_camera_platform_data {
++	int (*init)(struct platform_device *);
++	int (*exit)(struct platform_device *);
++
++	unsigned long flags;
++
++	unsigned long clk;
++};
++
++extern int mx27_init_camera(struct mx27_camera_platform_data *);
++
++#endif /* __ASM_ARCH_CAMERA_H_ */
++
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index e6186b3..8c7c826 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -909,6 +909,19 @@ config VIDEO_OMAP2
+ 	---help---
+ 	  This is a v4l2 driver for the TI OMAP2 camera capture interface
+ 
++config MX2_VIDEO
++        bool
++
++config VIDEO_MX27
++	tristate "i.MX27 Quick Capture Interface driver"
++	depends on VIDEO_DEV && MACH_MX27
++	select SOC_CAMERA
++	select VIDEOBUF_DMA_CONTIG
++	select MX2_VIDEO
++	---help---
++	  This is a v4l2 driver for the i.MX27 Capture Interface
++
++
+ #
+ # USB Multimedia device configuration
+ #
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index e541932..b720c0e 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -118,6 +118,8 @@ obj-$(CONFIG_VIDEO_CX2341X) += cx2341x.o
+ 
+ obj-$(CONFIG_VIDEO_CAFE_CCIC) += cafe_ccic.o
+ 
++obj-$(CONFIG_VIDEO_MXC_IPU_CAMERA) += mxc/capture/
++
+ obj-$(CONFIG_USB_DABUSB)        += dabusb.o
+ obj-$(CONFIG_USB_OV511)         += ov511.o
+ obj-$(CONFIG_USB_SE401)         += se401.o
+@@ -152,6 +154,7 @@ obj-$(CONFIG_SOC_CAMERA_PLATFORM)	+= soc_camera_platform.o
+ # soc-camera host drivers have to be linked after camera drivers
+ obj-$(CONFIG_VIDEO_MX1)			+= mx1_camera.o
+ obj-$(CONFIG_VIDEO_MX3)			+= mx3_camera.o
++obj-$(CONFIG_VIDEO_MX27)		+= mx27_camera.o
+ obj-$(CONFIG_VIDEO_PXA27x)		+= pxa_camera.o
+ obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
+ 
+diff --git a/drivers/media/video/mx27_camera.c b/drivers/media/video/mx27_camera.c
+new file mode 100644
+index 0000000..426fcf4
+--- /dev/null
++++ b/drivers/media/video/mx27_camera.c
+@@ -0,0 +1,1224 @@
++/*
++ * V4L2 Driver for MX27 camera host
++ *
++ * Copyright (C) 2008, Sascha Hauer, Pengutronix
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/io.h>
++#include <linux/delay.h>
++#include <linux/dma-mapping.h>
++#include <linux/errno.h>
++#include <linux/fs.h>
++#include <linux/interrupt.h>
++#include <linux/kernel.h>
++#include <linux/mm.h>
++#include <linux/moduleparam.h>
++#include <linux/time.h>
++#include <linux/version.h>
++#include <linux/device.h>
++#include <linux/platform_device.h>
++#include <linux/mutex.h>
++#include <linux/clk.h>
++
++#include <media/v4l2-common.h>
++#include <media/v4l2-dev.h>
++#include <media/videobuf-dma-contig.h>
++#include <media/soc_camera.h>
++
++#include <linux/videodev2.h>
++
++#include <mach/imx_cam.h>
++#include <asm/dma.h>
++#include <mach/dma-mx1-mx2.h>
++
++#include <asm/dma.h>
++
++#define MX27_CAM_DRV_NAME "mx27-camera"
++#define MX27_CAM_VERSION_CODE KERNEL_VERSION(0, 0, 5) /* FIXME: Whats this? */
++
++static const char *mx27_cam_driver_description = "i.MX27_Camera";
++
++/* reset values */
++#define CSICR1_RESET_VAL	0x40000800
++#define CSICR2_RESET_VAL	0x0
++#define CSICR3_RESET_VAL	0x0
++
++/* csi control reg 1 */
++#define CSICR1_SWAP16_EN	(1 << 31)
++#define CSICR1_EXT_VSYNC	(1 << 30)
++#define CSICR1_EOF_INTEN	(1 << 29)
++#define CSICR1_PRP_IF_EN	(1 << 28)
++#define CSICR1_CCIR_MODE	(1 << 27)
++#define CSICR1_COF_INTEN	(1 << 26)
++#define CSICR1_SF_OR_INTEN	(1 << 25)
++#define CSICR1_RF_OR_INTEN	(1 << 24)
++#define CSICR1_STATFF_LEVEL	(3 << 22)
++#define CSICR1_STATFF_INTEN	(1 << 21)
++#define CSICR1_RXFF_LEVEL(l)	(((l) & 3) << 19)
++#define CSICR1_RXFF_INTEN	(1 << 18)
++#define CSICR1_SOF_POL		(1 << 17)
++#define CSICR1_SOF_INTEN	(1 << 16)
++#define CSICR1_MCLKDIV(d)	(((d) & 0xF) << 12)
++#define CSICR1_HSYNC_POL	(1 << 11)
++#define CSICR1_CCIR_EN		(1 << 10)
++#define CSICR1_MCLKEN		(1 << 9)
++#define CSICR1_FCC		(1 << 8)
++#define CSICR1_PACK_DIR		(1 << 7)
++#define CSICR1_CLR_STATFIFO	(1 << 6)
++#define CSICR1_CLR_RXFIFO	(1 << 5)
++#define CSICR1_GCLK_MODE	(1 << 4)
++#define CSICR1_INV_DATA		(1 << 3)
++#define CSICR1_INV_PCLK		(1 << 2)
++#define CSICR1_REDGE		(1 << 1)
++
++#define SHIFT_STATFF_LEVEL	22
++#define SHIFT_RXFF_LEVEL	19
++#define SHIFT_MCLKDIV		12
++
++/* control reg 3 */
++#define CSICR3_FRMCNT		(0xFFFF << 16)
++#define CSICR3_FRMCNT_RST	(1 << 15)
++#define CSICR3_CSI_SUP		(1 << 3)
++#define CSICR3_ZERO_PACK_EN	(1 << 2)
++#define CSICR3_ECC_INT_EN	(1 << 1)
++#define CSICR3_ECC_AUTO_EN	(1 << 0)
++
++#define SHIFT_FRMCNT		16
++
++/* csi status reg */
++#define CSISR_SFF_OR_INT	(1 << 25)
++#define CSISR_RFF_OR_INT	(1 << 24)
++#define CSISR_STATFF_INT	(1 << 21)
++#define CSISR_RXFF_INT		(1 << 18)
++#define CSISR_EOF_INT		(1 << 17)
++#define CSISR_SOF_INT		(1 << 16)
++#define CSISR_F2_INT		(1 << 15)
++#define CSISR_F1_INT		(1 << 14)
++#define CSISR_COF_INT		(1 << 13)
++#define CSISR_ECC_INT		(1 << 1)
++#define CSISR_DRDY		(1 << 0)
++
++#define CSICR1		0x00
++#define CSICR2		0x04
++#define CSISR		0x08
++#define CSISTATFIFO	0x0c
++#define CSIRFIFO	0x10
++#define CSIRXCNT	0x14
++#define CSICR3		0x1C
++
++/* EMMA PrP */
++#define PRP_CNTL			0x00
++#define PRP_INTR_CNTL			0x04
++#define PRP_INTRSTATUS			0x08
++#define PRP_SOURCE_Y_PTR		0x0c
++#define PRP_SOURCE_CB_PTR		0x10
++#define PRP_SOURCE_CR_PTR		0x14
++#define PRP_DEST_RGB1_PTR		0x18
++#define PRP_DEST_RGB2_PTR		0x1c
++#define PRP_DEST_Y_PTR			0x20
++#define PRP_DEST_CB_PTR			0x24
++#define PRP_DEST_CR_PTR			0x28
++#define PRP_SRC_FRAME_SIZE		0x2c
++#define PRP_DEST_CH1_LINE_STRIDE	0x30
++#define PRP_SRC_PIXEL_FORMAT_CNTL	0x34
++#define PRP_CH1_PIXEL_FORMAT_CNTL	0x38
++#define PRP_CH1_OUT_IMAGE_SIZE		0x3c
++#define PRP_CH2_OUT_IMAGE_SIZE		0x40
++#define PRP_SRC_LINE_STRIDE		0x44
++#define PRP_CSC_COEF_012		0x48
++#define PRP_CSC_COEF_345		0x4c
++#define PRP_CSC_COEF_678		0x50
++#define PRP_CH1_RZ_HORI_COEF1		0x54
++#define PRP_CH1_RZ_HORI_COEF2		0x58
++#define PRP_CH1_RZ_HORI_VALID		0x5c
++#define PRP_CH1_RZ_VERT_COEF1		0x60
++#define PRP_CH1_RZ_VERT_COEF2		0x64
++#define PRP_CH1_RZ_VERT_VALID		0x68
++#define PRP_CH2_RZ_HORI_COEF1		0x6c
++#define PRP_CH2_RZ_HORI_COEF2		0x70
++#define PRP_CH2_RZ_HORI_VALID		0x74
++#define PRP_CH2_RZ_VERT_COEF1		0x78
++#define PRP_CH2_RZ_VERT_COEF2		0x7c
++#define PRP_CH2_RZ_VERT_VALID		0x80
++
++#define PRP_CNTL_CH1EN		(1 << 0)
++#define PRP_CNTL_CH2EN		(1 << 1)
++#define PRP_CNTL_CSIEN		(1 << 2)
++#define PRP_CNTL_DATA_IN_YUV420	(0 << 3)
++#define PRP_CNTL_DATA_IN_YUV422	(1 << 3)
++#define PRP_CNTL_DATA_IN_RGB16	(2 << 3)
++#define PRP_CNTL_DATA_IN_RGB32	(3 << 3)
++#define PRP_CNTL_CH1_OUT_RGB8	(0 << 5)
++#define PRP_CNTL_CH1_OUT_RGB16	(1 << 5)
++#define PRP_CNTL_CH1_OUT_RGB32	(2 << 5)
++#define PRP_CNTL_CH1_OUT_YUV422	(3 << 5)
++#define PRP_CNTL_CH2_OUT_YUV420	(0 << 7)
++#define PRP_CNTL_CH2_OUT_YUV422 (1 << 7)
++#define PRP_CNTL_CH2_OUT_YUV444	(2 << 7)
++#define PRP_CNTL_CH1_LEN	(1 << 9)
++#define PRP_CNTL_CH2_LEN	(1 << 10)
++#define PRP_CNTL_SKIP_FRAME	(1 << 11)
++#define PRP_CNTL_SWRST		(1 << 12)
++#define PRP_CNTL_CLKEN		(1 << 13)
++#define PRP_CNTL_WEN		(1 << 14)
++#define PRP_CNTL_CH1BYP		(1 << 15)
++#define PRP_CNTL_IN_TSKIP(x)	((x) << 16)
++#define PRP_CNTL_CH1_TSKIP(x)	((x) << 19)
++#define PRP_CNTL_CH2_TSKIP(x)	((x) << 22)
++#define PRP_CNTL_INPUT_FIFO_LEVEL(x)	((x) << 25)
++#define PRP_CNTL_RZ_FIFO_LEVEL(x)	((x) << 27)
++#define PRP_CNTL_CH2B1EN	(1 << 29)
++#define PRP_CNTL_CH2B2EN	(1 << 30)
++#define PRP_CNTL_CH2FEN		(1 << 31)
++
++/* IRQ Enable and status register */
++#define PRP_INTR_RDERR		(1 << 0)
++#define PRP_INTR_CH1WERR	(1 << 1)
++#define PRP_INTR_CH2WERR	(1 << 2)
++#define PRP_INTR_CH1FC		(1 << 3)
++#define PRP_INTR_CH2FC		(1 << 5)
++#define PRP_INTR_LBOVF		(1 << 7)
++#define PRP_INTR_CH2OVF		(1 << 8)
++
++#define mx27_camera_emma(pcdev)	(pcdev->use_emma)
++
++/* Currently we do not need irqs. All we need is DMA callback
++ * Leave it here for reference for some time.
++ */
++#undef MX27_CAMERA_USE_IRQ
++
++struct mx27_camera_dev {
++	struct device		*dev;
++	struct soc_camera_device *icd;
++	struct clk		*clk_csi, *clk_emma;
++
++	unsigned int		irq_csi, irq_emma;
++	void __iomem		*base_csi, *base_emma;
++
++	struct mx27_camera_platform_data *pdata;
++	struct resource		*res_csi, *res_emma;
++	unsigned long		platform_flags;
++
++	struct list_head	capture;
++	struct list_head	active_bufs;
++
++	spinlock_t		lock;
++
++	int			dma;
++	struct mx27_buffer	*active;
++
++	int			use_emma;
++
++	unsigned int		csicr1;
++
++	void __iomem		*discard_buffer;
++	dma_addr_t		discard_buffer_dma;
++	size_t			discard_size;
++};
++
++/* buffer for one video frame */
++struct mx27_buffer {
++	/* common v4l buffer stuff -- must be first */
++	struct videobuf_buffer vb;
++
++	const struct soc_camera_data_format        *fmt;
++
++	int bufnum;
++};
++
++static DEFINE_MUTEX(camera_lock);
++
++static int mclk_get_divisor(struct mx27_camera_dev *pcdev)
++{
++	dev_info(pcdev->dev, "%s not implemented. Running at max speed\n",
++			__func__);
++
++#if 0
++	unsigned int mclk = pcdev->pdata->clk_csi;
++	unsigned int pclk = clk_get_rate(pcdev->clk_csi);
++	int i;
++
++	dev_dbg(pcdev->dev, "%s: %ld %ld\n", __func__, mclk, pclk);
++
++	for (i = 0; i < 0xf; i++)
++		if ((i + 1) * 2 * mclk <= pclk)
++			break;
++	return i;
++#endif
++	return 0;
++}
++
++static void mx27_camera_deactivate(struct mx27_camera_dev *pcdev)
++{
++	clk_disable(pcdev->clk_csi);
++	writel(0, pcdev->base_csi + CSICR1);
++	if (mx27_camera_emma(pcdev))
++		writel(0, pcdev->base_emma + PRP_CNTL);
++}
++
++/* The following two functions absolutely depend on the fact, that
++ * there can be only one camera on mx27 quick capture interface */
++static int mx27_camera_add_device(struct soc_camera_device *icd)
++{
++	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
++	struct mx27_camera_dev *pcdev = ici->priv;
++	int ret;
++	u32 csicr1;
++
++	mutex_lock(&camera_lock);
++
++	if (pcdev->icd) {
++		ret = -EBUSY;
++		goto ebusy;
++	}
++
++	dev_info(&icd->dev, "Camera driver attached to camera %d\n",
++		 icd->devnum);
++
++	clk_enable(pcdev->clk_csi);
++
++	csicr1 = CSICR1_MCLKDIV(mclk_get_divisor(pcdev)) |
++			CSICR1_MCLKEN;
++	if (mx27_camera_emma(pcdev)) {
++		csicr1 |= CSICR1_PRP_IF_EN | CSICR1_FCC |
++			CSICR1_RXFF_LEVEL(0);
++	} else
++		csicr1 |= CSICR1_SOF_INTEN | CSICR1_RXFF_LEVEL(2);
++
++	pcdev->csicr1 = csicr1;
++	writel(pcdev->csicr1, pcdev->base_csi + CSICR1);
++
++	pcdev->icd = icd;
++
++ebusy:
++	mutex_unlock(&camera_lock);
++
++	return ret;
++}
++
++static void mx27_camera_remove_device(struct soc_camera_device *icd)
++{
++	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
++	struct mx27_camera_dev *pcdev = ici->priv;
++
++	BUG_ON(icd != pcdev->icd);
++
++	dev_info(&icd->dev, "Camera driver detached from camera %d\n",
++		 icd->devnum);
++
++	mx27_camera_deactivate(pcdev);
++
++	if (pcdev->discard_buffer) {
++		dma_free_coherent(NULL, pcdev->discard_size,
++				pcdev->discard_buffer,
++				pcdev->discard_buffer_dma);
++	}
++	pcdev->discard_buffer = 0;
++
++	pcdev->icd = NULL;
++}
++
++static void mx27_camera_dma_enable(struct mx27_camera_dev *pcdev)
++{
++	u32 tmp;
++
++	imx_dma_enable(pcdev->dma);
++
++	tmp = readl(pcdev->base_csi + CSICR1);
++	tmp |= CSICR1_RF_OR_INTEN;
++	writel(tmp, pcdev->base_csi + CSICR1);
++}
++
++static irqreturn_t mx27_camera_irq(int irq_csi, void *data)
++{
++	struct mx27_camera_dev *pcdev = data;
++	u32 status = readl(pcdev->base_csi + CSISR);
++
++	if (status & CSISR_SOF_INT && pcdev->active) {
++		u32 tmp;
++
++		tmp = readl(pcdev->base_csi + CSICR1);
++		tmp |= CSICR1_CLR_RXFIFO;
++		writel(tmp, pcdev->base_csi + CSICR1);
++		mx27_camera_dma_enable(pcdev);
++		writel(CSISR_SOF_INT | CSISR_RFF_OR_INT,
++				pcdev->base_csi + CSISR);
++		status &= ~CSISR_RFF_OR_INT;
++	}
++
++	writel(CSISR_SOF_INT | CSISR_RFF_OR_INT, pcdev->base_csi + CSISR);
++
++	return IRQ_HANDLED;
++}
++
++static unsigned int vid_limit = 16;	/* Video memory limit, in Mb */
++
++/*
++ *  Videobuf operations
++ */
++static int mx27_videobuf_setup(struct videobuf_queue *vq, unsigned int *count,
++			      unsigned int *size)
++{
++	struct soc_camera_device *icd = vq->priv_data;
++
++	dev_dbg(&icd->dev, "count=%d, size=%d\n", *count, *size);
++
++	*size = icd->user_width * icd->user_height *
++		((icd->current_fmt->depth + 7) >> 3);
++
++	if (0 == *count)
++		*count = 32;
++	while (*size * *count > vid_limit * 1024 * 1024)
++		(*count)--;
++
++	return 0;
++}
++
++static void free_buffer(struct videobuf_queue *vq, struct mx27_buffer *buf)
++{
++	struct soc_camera_device *icd = vq->priv_data;
++
++	BUG_ON(in_interrupt());
++
++	dev_dbg(&icd->dev, "%s (vb=0x%p) 0x%08lx %d\n", __func__,
++		&buf->vb, buf->vb.baddr, buf->vb.bsize);
++
++	/* This waits until this buffer is out of danger, i.e., until it is no
++	 * longer in STATE_QUEUED or STATE_ACTIVE */
++	videobuf_waiton(&buf->vb, 0, 0);
++
++	videobuf_dma_contig_free(vq, &buf->vb);
++	dev_dbg(&icd->dev, "%s freed\n", __func__);
++
++	buf->vb.state = VIDEOBUF_NEEDS_INIT;
++}
++
++static int mx27_videobuf_prepare(struct videobuf_queue *vq,
++		struct videobuf_buffer *vb, enum v4l2_field field)
++{
++	struct soc_camera_device *icd = vq->priv_data;
++	struct mx27_buffer *buf = container_of(vb, struct mx27_buffer, vb);
++	int ret = 0;
++
++#ifdef DEBUG
++	/* This can be useful if you want to see if we actually fill
++	 * the buffer with something */
++	memset((void *)vb->baddr, 0xaa, vb->bsize);
++#endif
++
++	dev_dbg(&icd->dev, "%s (vb=0x%p) 0x%08lx %d\n", __func__,
++		vb, vb->baddr, vb->bsize);
++
++	if (buf->fmt	!= icd->current_fmt ||
++	    vb->width	!= icd->user_width ||
++	    vb->height	!= icd->user_height ||
++	    vb->field	!= field) {
++		buf->fmt	= icd->current_fmt;
++		vb->width	= icd->user_width;
++		vb->height	= icd->user_height;
++		vb->field	= field;
++		vb->state	= VIDEOBUF_NEEDS_INIT;
++	}
++
++	vb->size = vb->width * vb->height * ((buf->fmt->depth + 7) >> 3);
++	if (vb->baddr && vb->bsize < vb->size) {
++		ret = -EINVAL;
++		goto out;
++	}
++
++	if (vb->state == VIDEOBUF_NEEDS_INIT) {
++		ret = videobuf_iolock(vq, vb, NULL);
++		if (ret)
++			goto fail;
++
++		vb->state = VIDEOBUF_PREPARED;
++	}
++
++	return 0;
++
++fail:
++	free_buffer(vq, buf);
++out:
++	return ret;
++}
++
++#define CSI_BASE_ADDR 0x80000000 /* FIXME: get from resources */
++
++static void mx27_videobuf_queue(struct videobuf_queue *vq,
++			       struct videobuf_buffer *vb)
++{
++	struct soc_camera_device *icd = vq->priv_data;
++	struct soc_camera_host *ici =
++		to_soc_camera_host(icd->dev.parent);
++	struct mx27_camera_dev *pcdev = ici->priv;
++	struct mx27_buffer *buf = container_of(vb, struct mx27_buffer, vb);
++	unsigned long flags;
++	int ret;
++
++	dev_dbg(&icd->dev, "%s (vb=0x%p) 0x%08lx %d\n", __func__,
++		vb, vb->baddr, vb->bsize);
++
++	spin_lock_irqsave(&pcdev->lock, flags);
++
++	if (mx27_camera_emma(pcdev)) {
++		list_add_tail(&vb->queue, &pcdev->capture);
++		vb->state = VIDEOBUF_QUEUED;
++	} else {
++		list_add_tail(&vb->queue, &pcdev->capture);
++		vb->state = VIDEOBUF_ACTIVE;
++
++		if (!pcdev->active) {
++			ret = imx_dma_setup_single(pcdev->dma,
++					videobuf_to_dma_contig(vb), vb->size,
++					CSI_BASE_ADDR + 0x10, DMA_MODE_READ);
++			if (ret) {
++				vb->state = VIDEOBUF_ERROR;
++				wake_up(&vb->done);
++				goto out;
++			}
++
++			pcdev->active = buf;
++		}
++	}
++
++out:
++	spin_unlock_irqrestore(&pcdev->lock, flags);
++}
++
++static void mx27_videobuf_release(struct videobuf_queue *vq,
++				 struct videobuf_buffer *vb)
++{
++	struct mx27_buffer *buf = container_of(vb, struct mx27_buffer, vb);
++
++#ifdef DEBUG
++	struct soc_camera_device *icd = vq->priv_data;
++
++	dev_dbg(&icd->dev, "%s (vb=0x%p) 0x%08lx %d\n", __func__,
++		vb, vb->baddr, vb->bsize);
++
++	switch (vb->state) {
++	case VIDEOBUF_ACTIVE:
++		dev_info(&icd->dev, "%s (active)\n", __func__);
++		break;
++	case VIDEOBUF_QUEUED:
++		dev_info(&icd->dev, "%s (queued)\n", __func__);
++		break;
++	case VIDEOBUF_PREPARED:
++		dev_info(&icd->dev, "%s (prepared)\n", __func__);
++		break;
++	default:
++		dev_info(&icd->dev, "%s (unknown) %d\n", __func__,
++				vb->state);
++		break;
++	}
++#endif
++
++	free_buffer(vq, buf);
++}
++
++static struct videobuf_queue_ops mx27_videobuf_ops = {
++	.buf_setup      = mx27_videobuf_setup,
++	.buf_prepare    = mx27_videobuf_prepare,
++	.buf_queue      = mx27_videobuf_queue,
++	.buf_release    = mx27_videobuf_release,
++};
++
++static void mx27_camera_init_videobuf(struct videobuf_queue *q,
++			      struct soc_camera_device *icd)
++{
++	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
++	struct mx27_camera_dev *pcdev = ici->priv;
++
++	videobuf_queue_dma_contig_init(q, &mx27_videobuf_ops, pcdev->dev,
++			&pcdev->lock, V4L2_BUF_TYPE_VIDEO_CAPTURE,
++			V4L2_FIELD_NONE, sizeof(struct mx27_buffer), icd);
++}
++
++#define MX27_BUS_FLAGS	(SOCAM_DATAWIDTH_8 | \
++			SOCAM_MASTER | \
++			SOCAM_VSYNC_ACTIVE_HIGH | \
++			SOCAM_HSYNC_ACTIVE_HIGH | \
++			SOCAM_HSYNC_ACTIVE_LOW | \
++			SOCAM_PCLK_SAMPLE_RISING | \
++			SOCAM_PCLK_SAMPLE_FALLING | \
++			SOCAM_DATA_ACTIVE_HIGH | \
++			SOCAM_DATA_ACTIVE_LOW)
++
++
++static int mx27_camera_emma_prp_reset(struct mx27_camera_dev *pcdev)
++{
++	unsigned int cntl;
++
++	cntl = readl(pcdev->base_emma + PRP_CNTL);
++	writel(PRP_CNTL_SWRST, pcdev->base_emma + PRP_CNTL);
++	while (readl(pcdev->base_emma + PRP_CNTL) & PRP_CNTL_SWRST)
++		barrier();
++
++	return 0;
++}
++
++static int mx27_camera_set_bus_param(struct soc_camera_device *icd,
++		__u32 pixfmt)
++{
++	struct soc_camera_host *ici =
++		to_soc_camera_host(icd->dev.parent);
++	struct mx27_camera_dev *pcdev = ici->priv;
++	unsigned long camera_flags, common_flags;
++	int ret = 0;
++	u32 csicr1 = pcdev->csicr1;
++
++	camera_flags = icd->ops->query_bus_param(icd);
++
++	common_flags = soc_camera_bus_param_compatible(camera_flags,
++				MX27_BUS_FLAGS);
++	if (!common_flags)
++		return -EINVAL;
++
++	if ((common_flags & SOCAM_HSYNC_ACTIVE_HIGH) &&
++	    (common_flags & SOCAM_HSYNC_ACTIVE_LOW)) {
++		if (pcdev->platform_flags & MX27_CAMERA_HSYNC_HIGH)
++			common_flags &= ~SOCAM_HSYNC_ACTIVE_LOW;
++		else
++			common_flags &= ~SOCAM_HSYNC_ACTIVE_HIGH;
++	}
++
++	if ((common_flags & SOCAM_PCLK_SAMPLE_RISING) &&
++	    (common_flags & SOCAM_PCLK_SAMPLE_FALLING)) {
++		if (pcdev->platform_flags & MX27_CAMERA_PCLK_SAMPLE_RISING)
++			common_flags &= ~SOCAM_PCLK_SAMPLE_FALLING;
++		else
++			common_flags &= ~SOCAM_PCLK_SAMPLE_RISING;
++	}
++
++	ret = icd->ops->set_bus_param(icd, common_flags);
++	if (ret < 0)
++		return ret;
++
++	if (common_flags & SOCAM_PCLK_SAMPLE_FALLING)
++		csicr1 |= CSICR1_INV_PCLK;
++	if (common_flags & SOCAM_HSYNC_ACTIVE_HIGH)
++		csicr1 |= CSICR1_HSYNC_POL;
++	if (pcdev->platform_flags & MX27_CAMERA_SWAP16)
++		csicr1 |= CSICR1_SWAP16_EN;
++	if (pcdev->platform_flags & MX27_CAMERA_EXT_VSYNC)
++		csicr1 |= CSICR1_EXT_VSYNC;
++	if (pcdev->platform_flags & MX27_CAMERA_CCIR)
++		csicr1 |= CSICR1_CCIR_EN;
++	if (pcdev->platform_flags & MX27_CAMERA_CCIR_INTERLACE)
++		csicr1 |= CSICR1_CCIR_MODE;
++	if (pcdev->platform_flags & MX27_CAMERA_GATED_CLOCK)
++		csicr1 |= CSICR1_GCLK_MODE;
++	if (pcdev->platform_flags & MX27_CAMERA_INV_DATA)
++		csicr1 |= CSICR1_INV_DATA;
++	if (pcdev->platform_flags & MX27_CAMERA_PACK_DIR_MSB)
++		csicr1 |= CSICR1_PACK_DIR;
++
++	if (mx27_camera_emma(pcdev)) {
++		int bytesperline = (icd->user_width * icd->current_fmt->depth) >> 3;
++
++		if (mx27_camera_emma_prp_reset(pcdev))
++			return -ENODEV;
++
++		if (pcdev->discard_buffer)
++			dma_free_coherent(NULL, pcdev->discard_size,
++				pcdev->discard_buffer,
++				pcdev->discard_buffer_dma);
++
++		/* I didn't manage to properly enable/disable the prp
++		 * on a per frame basis during running transfers,
++		 * thus we allocate a buffer here and use it to
++		 * discard frames when no buffer is available.
++		 * Feel free to work on this ;)
++		 */
++		pcdev->discard_size = icd->user_height * bytesperline;
++		pcdev->discard_buffer = dma_alloc_coherent(NULL,
++				pcdev->discard_size, &pcdev->discard_buffer_dma,
++				GFP_KERNEL);
++		if (!pcdev->discard_buffer)
++			return -ENOMEM;
++
++		writel(pcdev->discard_buffer_dma,
++				pcdev->base_emma + PRP_DEST_RGB1_PTR);
++		writel(pcdev->discard_buffer_dma,
++				pcdev->base_emma + PRP_DEST_RGB2_PTR);
++
++		/* We only use the EMMA engine to get rid of the f**king
++		 * DMA Engine. No color space consversion at the moment.
++		 * We adjust incoming and outgoing pixelformat to rgb16
++		 * and adjust the bytesperline accordingly.
++		 */
++		writel(PRP_CNTL_CH1EN |
++			PRP_CNTL_CSIEN |
++			PRP_CNTL_DATA_IN_RGB16 |
++			PRP_CNTL_CH1_OUT_RGB16 |
++			PRP_CNTL_CH1_LEN |
++			PRP_CNTL_CH1BYP |
++			PRP_CNTL_CH1_TSKIP(0) |
++			PRP_CNTL_IN_TSKIP(0),
++			pcdev->base_emma + PRP_CNTL);
++
++		writel(((bytesperline >> 1) << 16) | icd->user_height,
++				pcdev->base_emma + PRP_SRC_FRAME_SIZE);
++		writel(((bytesperline >> 1) << 16) | icd->user_height,
++				pcdev->base_emma + PRP_CH1_OUT_IMAGE_SIZE);
++		writel(bytesperline,
++				pcdev->base_emma + PRP_DEST_CH1_LINE_STRIDE);
++		writel(0x2ca00565,
++				pcdev->base_emma + PRP_SRC_PIXEL_FORMAT_CNTL);
++		writel(0x2ca00565,
++				pcdev->base_emma + PRP_CH1_PIXEL_FORMAT_CNTL);
++
++		/* Enable interrupts */
++		writel(PRP_INTR_RDERR |
++			PRP_INTR_CH1WERR |
++			PRP_INTR_CH2WERR |
++			PRP_INTR_CH1FC |
++			PRP_INTR_CH2FC |
++			PRP_INTR_LBOVF |
++			PRP_INTR_CH2OVF
++			, pcdev->base_emma + PRP_INTR_CNTL);
++	}
++
++	pcdev->csicr1 = csicr1;
++
++	writel(csicr1, pcdev->base_csi + CSICR1);
++
++	return 0;
++}
++
++static int mx27_camera_set_crop(struct soc_camera_device *icd,
++				struct v4l2_crop *a)
++{
++	struct v4l2_rect *rect = &a->c;
++	//struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
++	//struct mx27_camera_dev *mx27_cam = ici->priv;
++	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
++	struct v4l2_format f = {.type = V4L2_BUF_TYPE_VIDEO_CAPTURE};
++	struct v4l2_pix_format *pix = &f.fmt.pix;
++	int ret;
++
++	soc_camera_limit_side(&rect->left, &rect->width, 0, 2, 4096);
++	soc_camera_limit_side(&rect->top, &rect->height, 0, 2, 4096);
++
++	ret = v4l2_subdev_call(sd, video, s_crop, a);
++	if (ret < 0)
++		return ret;
++
++	/* The capture device might have changed its output  */
++	ret = v4l2_subdev_call(sd, video, g_fmt, &f);
++	if (ret < 0)
++		return ret;
++
++	dev_dbg(icd->dev.parent, "Sensor cropped %dx%d\n",
++		pix->width, pix->height);
++
++	icd->user_width = pix->width;
++	icd->user_height = pix->height;
++
++	return ret;
++}
++
++static int mx27_camera_set_fmt(struct soc_camera_device *icd,
++			       struct v4l2_format *f)
++{
++	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
++	const struct soc_camera_format_xlate *xlate;
++	__u32 pixfmt = f->fmt.pix.pixelformat;
++	struct v4l2_format cam_f = *f;
++	int ret;
++
++	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
++	if (!xlate) {
++		dev_warn(icd->dev.parent, "Format %x not found\n", pixfmt);
++		return -EINVAL;
++	}
++
++	cam_f.fmt.pix.pixelformat = xlate->cam_fmt->fourcc;
++	ret = ici->ops->set_fmt(icd, &cam_f);
++
++	if (!ret) {
++		icd->buswidth = xlate->buswidth;
++		icd->current_fmt = xlate->host_fmt;
++	}
++
++	return ret;
++}
++
++static int mx27_camera_try_fmt(struct soc_camera_device *icd,
++				  struct v4l2_format *f)
++{
++	return 0;
++}
++
++static int mx27_camera_querycap(struct soc_camera_host *ici,
++			       struct v4l2_capability *cap)
++{
++	/* cap->name is set by the friendly caller:-> */
++	strlcpy(cap->card, mx27_cam_driver_description, sizeof(cap->card));
++	cap->version = MX27_CAM_VERSION_CODE;
++	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
++
++	return 0;
++}
++
++static int mx27_camera_reqbufs(struct soc_camera_file *icf,
++			      struct v4l2_requestbuffers *p)
++{
++	int i;
++
++	for (i = 0; i < p->count; i++) {
++		struct mx27_buffer *buf = container_of(icf->vb_vidq.bufs[i],
++						      struct mx27_buffer, vb);
++		INIT_LIST_HEAD(&buf->vb.queue);
++	}
++
++	return 0;
++}
++
++static void mx27_camera_frame_done(struct mx27_camera_dev *pcdev, int state)
++{
++	struct videobuf_buffer *vb;
++	struct mx27_buffer *buf;
++	int ret;
++
++	if (!pcdev->active) {
++		dev_err(pcdev->dev, "%s called with no active buffer!\n",
++				__func__);
++		return;
++	}
++
++	vb = &pcdev->active->vb;
++	buf = container_of(vb, struct mx27_buffer, vb);
++	WARN_ON(list_empty(&vb->queue));
++	dev_dbg(pcdev->dev, "%s (vb=0x%p) 0x%08lx %d\n", __func__,
++		vb, vb->baddr, vb->bsize);
++
++	/* _init is used to debug races, see comment in pxa_camera_reqbufs() */
++	list_del_init(&vb->queue);
++	vb->state = state;
++	do_gettimeofday(&vb->ts);
++	vb->field_count++;
++
++	wake_up(&vb->done);
++
++	if (list_empty(&pcdev->capture)) {
++		pcdev->active = NULL;
++		return;
++	}
++
++	pcdev->active = list_entry(pcdev->capture.next,
++			struct mx27_buffer, vb.queue);
++
++	vb = &pcdev->active->vb;
++	vb->state = VIDEOBUF_ACTIVE;
++
++	ret = imx_dma_setup_single(pcdev->dma, videobuf_to_dma_contig(vb),
++			vb->size, CSI_BASE_ADDR + 0x10, DMA_MODE_READ);
++	if (ret) {
++		vb->state = VIDEOBUF_ERROR;
++		wake_up(&vb->done);
++		return;
++	}
++}
++
++static void mx27_camera_dma_err_callback(int channel, void *data, int err)
++{
++	struct mx27_camera_dev *pcdev = data;
++	unsigned long flags;
++
++	spin_lock_irqsave(&pcdev->lock, flags);
++
++	mx27_camera_frame_done(pcdev, VIDEOBUF_ERROR);
++
++	spin_unlock_irqrestore(&pcdev->lock, flags);
++}
++
++static void mx27_camera_dma_callback(int channel, void *data)
++{
++	struct mx27_camera_dev *pcdev = data;
++	unsigned long flags;
++
++	spin_lock_irqsave(&pcdev->lock, flags);
++
++	mx27_camera_frame_done(pcdev, VIDEOBUF_DONE);
++
++	spin_unlock_irqrestore(&pcdev->lock, flags);
++}
++
++static unsigned int mx27_camera_poll(struct file *file, poll_table *pt)
++{
++	struct soc_camera_file *icf = file->private_data;
++	struct mx27_buffer *buf;
++
++	buf = list_entry(icf->vb_vidq.stream.next, struct mx27_buffer,
++			 vb.stream);
++
++	poll_wait(file, &buf->vb.done, pt);
++
++	if (buf->vb.state == VIDEOBUF_DONE ||
++	    buf->vb.state == VIDEOBUF_ERROR)
++		return POLLIN | POLLRDNORM;
++
++	return 0;
++}
++
++static struct soc_camera_host_ops mx27_soc_camera_host_ops = {
++	.owner		= THIS_MODULE,
++	.add		= mx27_camera_add_device,
++	.remove		= mx27_camera_remove_device,
++	.set_fmt	= mx27_camera_set_fmt,
++	.set_crop	= mx27_camera_set_crop,
++	.try_fmt	= mx27_camera_try_fmt,
++	.init_videobuf	= mx27_camera_init_videobuf,
++	.reqbufs	= mx27_camera_reqbufs,
++	.poll		= mx27_camera_poll,
++	.querycap	= mx27_camera_querycap,
++	.set_bus_param	= mx27_camera_set_bus_param,
++};
++
++static void mx27_camera_frame_done_emma(struct mx27_camera_dev *pcdev,
++		int bufnum, int state)
++{
++	struct mx27_buffer *buf;
++	struct videobuf_buffer *vb;
++	unsigned long phys;
++
++	if (!list_empty(&pcdev->active_bufs)) {
++		buf = list_entry(pcdev->active_bufs.next,
++			struct mx27_buffer, vb.queue);
++
++		if (buf->bufnum == bufnum) {
++			vb = &buf->vb;
++#ifdef DEBUG
++			phys = videobuf_to_dma_contig(vb);
++			if (readl(pcdev->base_emma + PRP_DEST_RGB1_PTR +
++						4 * bufnum) != phys) {
++				dev_err(pcdev->dev, "%p != %p\n", phys,
++						readl(pcdev->base_emma +
++						PRP_DEST_RGB1_PTR +
++						4 * bufnum));
++			}
++#endif
++			dev_dbg(pcdev->dev, "%s (vb=0x%p) 0x%08lx %d\n",
++					__func__, vb, vb->baddr, vb->bsize);
++
++			list_del(&vb->queue);
++			vb->state = state;
++			do_gettimeofday(&vb->ts);
++			vb->field_count++;
++
++			wake_up(&vb->done);
++		}
++	}
++
++	if (list_empty(&pcdev->capture)) {
++		writel(pcdev->discard_buffer_dma, pcdev->base_emma +
++				PRP_DEST_RGB1_PTR + 4 * bufnum);
++		return;
++	}
++
++	buf = list_entry(pcdev->capture.next,
++			struct mx27_buffer, vb.queue);
++
++	buf->bufnum = bufnum;
++
++	list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
++
++	vb = &buf->vb;
++	vb->state = VIDEOBUF_ACTIVE;
++
++	phys = videobuf_to_dma_contig(vb);
++	writel(phys, pcdev->base_emma + PRP_DEST_RGB1_PTR + 4 * bufnum);
++}
++
++static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
++{
++	struct mx27_camera_dev *pcdev = data;
++	unsigned int status = readl(pcdev->base_emma + PRP_INTRSTATUS);
++
++	if (status & (1 << 6))
++		mx27_camera_frame_done_emma(pcdev, 0, VIDEOBUF_DONE);
++	if (status & (1 << 5))
++		mx27_camera_frame_done_emma(pcdev, 1, VIDEOBUF_DONE);
++	if (status & (1 << 7)) {
++		uint32_t cntl;
++		cntl = readl(pcdev->base_emma + PRP_CNTL);
++		writel(cntl & ~PRP_CNTL_CH1EN, pcdev->base_emma + PRP_CNTL);
++		writel(cntl, pcdev->base_emma + PRP_CNTL);
++	}
++
++	writel(status, pcdev->base_emma + PRP_INTRSTATUS);
++
++	return IRQ_HANDLED;
++}
++
++/* Should be allocated dynamically too, but we have only one. */
++static struct soc_camera_host mx27_soc_camera_host = {
++	.drv_name		= MX27_CAM_DRV_NAME,
++	.ops			= &mx27_soc_camera_host_ops,
++};
++
++int mx27_camera_emma_init(struct mx27_camera_dev *pcdev)
++{
++	struct resource *res_emma = pcdev->res_emma;
++	int err = 0;
++
++	if (!request_mem_region(res_emma->start, resource_size(res_emma),
++				MX27_CAM_DRV_NAME)) {
++		err = -EBUSY;
++		goto out;
++	}
++
++	pcdev->base_emma = ioremap(res_emma->start, resource_size(res_emma));
++	if (!pcdev->base_emma) {
++		err = -ENOMEM;
++		goto exit_release;
++	}
++
++	err = request_irq(pcdev->irq_emma, mx27_camera_emma_irq, 0,
++			MX27_CAM_DRV_NAME, pcdev);
++	if (err) {
++		dev_err(pcdev->dev, "Camera EMMA interrupt register failed \n");
++		goto exit_iounmap;
++	}
++
++	pcdev->clk_emma = clk_get(NULL, "emma");
++	if (IS_ERR(pcdev->clk_emma)) {
++		err = PTR_ERR(pcdev->clk_emma);
++		goto exit_free_irq;
++	}
++
++	clk_enable(pcdev->clk_emma);
++
++	err = mx27_camera_emma_prp_reset(pcdev);
++	if (err)
++		goto exit_clk_emma_put;
++
++	return err;
++
++exit_clk_emma_put:
++	clk_disable(pcdev->clk_emma);
++	clk_put(pcdev->clk_emma);
++exit_free_irq:
++	free_irq(pcdev->irq_emma, pcdev);
++exit_iounmap:
++	iounmap(pcdev->base_emma);
++exit_release:
++	release_mem_region(res_emma->start, resource_size(res_emma));
++out:
++	return err;
++}
++
++#define DMA_REQ_CSI_RX          31 /* FIXME: Add this to a resource */
++
++static int mx27_camera_probe(struct platform_device *pdev)
++{
++	struct mx27_camera_dev *pcdev;
++	struct resource *res_csi, *res_emma;
++	void __iomem *base_csi;
++	unsigned int irq_csi, irq_emma;
++	int err = 0;
++
++	dev_info(&pdev->dev, "initialising\n");
++
++	res_csi = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	irq_csi = platform_get_irq(pdev, 0);
++	if (!res_csi || !irq_csi) {
++		dev_err(&pdev->dev, "No platform irq\n");
++		err = -ENODEV;
++		goto exit;
++	}
++
++	pcdev = kzalloc(sizeof(*pcdev), GFP_KERNEL);
++	if (!pcdev) {
++		dev_err(&pdev->dev, "Could not allocate pcdev\n");
++		err = -ENOMEM;
++		goto exit;
++	}
++
++	pcdev->clk_csi = clk_get(&pdev->dev, NULL);
++	if (IS_ERR(pcdev->clk_csi)) {
++		err = PTR_ERR(pcdev->clk_csi);
++		goto exit_kfree;
++	}
++
++	dev_info(&pdev->dev, "Camera clock frequency: %ld\n",
++			clk_get_rate(pcdev->clk_csi));
++
++	/* Initialize DMA */
++	pcdev->dma = imx_dma_request_by_prio("CSI RX DMA", DMA_PRIO_HIGH);
++	if (pcdev->dma < 0) {
++		dev_err(&pdev->dev,
++			"mxc_v4l_read failed to request DMA channel\n");
++		err = -EIO;
++		goto exit_clk_put;
++	}
++
++	err = imx_dma_setup_handlers(pcdev->dma, mx27_camera_dma_callback,
++					mx27_camera_dma_err_callback, pcdev);
++	if (err != 0) {
++		dev_err(&pdev->dev,
++				"mxc_v4l_read failed to set DMA callback\n");
++		err = -EIO;
++		goto exit_dma_free;
++	}
++
++	imx_dma_config_channel(pcdev->dma,
++			IMX_DMA_MEMSIZE_32 | IMX_DMA_TYPE_FIFO,
++			IMX_DMA_MEMSIZE_32 | IMX_DMA_TYPE_LINEAR,
++			DMA_REQ_CSI_RX, 1);
++
++	imx_dma_config_burstlen(pcdev->dma, 64);
++
++	dev_set_drvdata(&pdev->dev, pcdev);
++	pcdev->res_csi = res_csi;
++
++	pcdev->pdata = pdev->dev.platform_data;
++	pcdev->platform_flags = pcdev->pdata->flags;
++
++	/* FIXME: clk_round_rate first! */
++	clk_set_rate(pcdev->clk_csi, pcdev->pdata->clk * 2);
++
++	INIT_LIST_HEAD(&pcdev->capture);
++	INIT_LIST_HEAD(&pcdev->active_bufs);
++	spin_lock_init(&pcdev->lock);
++
++	/*
++	 * Request the regions.
++	 */
++	if (!request_mem_region(res_csi->start, resource_size(res_csi),
++				MX27_CAM_DRV_NAME)) {
++		err = -EBUSY;
++		goto exit_dma_free;
++	}
++
++	base_csi = ioremap(res_csi->start, resource_size(res_csi));
++	if (!base_csi) {
++		err = -ENOMEM;
++		goto exit_release;
++	}
++	pcdev->irq_csi = irq_csi;
++	pcdev->base_csi = base_csi;
++	pcdev->dev = &pdev->dev;
++
++	pcdev->pdata->init(pdev);
++
++	err = request_irq(pcdev->irq_csi, mx27_camera_irq, 0, MX27_CAM_DRV_NAME,
++			  pcdev);
++	if (err) {
++		dev_err(pcdev->dev, "Camera interrupt register failed \n");
++		goto exit_iounmap;
++	}
++
++	mx27_soc_camera_host.priv	= pcdev;
++	mx27_soc_camera_host.v4l2_dev.dev	= &pdev->dev;
++	mx27_soc_camera_host.nr		= pdev->id;
++
++	/* EMMA support */
++	res_emma = platform_get_resource(pdev, IORESOURCE_MEM, 1);
++	irq_emma = platform_get_irq(pdev, 1);
++
++	if (res_emma && irq_emma) {
++		dev_info(&pdev->dev, "Using EMMA\n");
++		pcdev->use_emma = 1;
++		pcdev->res_emma = res_emma;
++		pcdev->irq_emma = irq_emma;
++		if (mx27_camera_emma_init(pcdev))
++			goto exit_free_irq;
++	}
++
++	err = soc_camera_host_register(&mx27_soc_camera_host);
++	if (err)
++		goto exit_free_emma;
++
++	return 0;
++
++exit_free_emma:
++	free_irq(pcdev->irq_emma, pcdev);
++	clk_disable(pcdev->clk_emma);
++	clk_put(pcdev->clk_emma);
++	iounmap(pcdev->base_emma);
++	release_mem_region(res_emma->start, resource_size(res_emma));
++exit_free_irq:
++	free_irq(pcdev->irq_csi, pcdev);
++exit_iounmap:
++	iounmap(base_csi);
++exit_release:
++	release_mem_region(res_csi->start, resource_size(res_csi));
++exit_dma_free:
++	imx_dma_free(pcdev->dma);
++exit_clk_put:
++	clk_put(pcdev->clk_csi);
++exit_kfree:
++	kfree(pcdev);
++exit:
++	return err;
++}
++
++static int __devexit mx27_camera_remove(struct platform_device *pdev)
++{
++	struct mx27_camera_dev *pcdev = platform_get_drvdata(pdev);
++	struct resource *res;
++
++	clk_put(pcdev->clk_csi);
++	imx_dma_free(pcdev->dma);
++	free_irq(pcdev->irq_csi, pcdev);
++	if (mx27_camera_emma(pcdev))
++		free_irq(pcdev->irq_emma, pcdev);
++
++	soc_camera_host_unregister(&mx27_soc_camera_host);
++
++	iounmap(pcdev->base_csi);
++
++	if (mx27_camera_emma(pcdev)) {
++		clk_disable(pcdev->clk_emma);
++		clk_put(pcdev->clk_emma);
++		iounmap(pcdev->base_emma);
++		res = pcdev->res_emma;
++		release_mem_region(res->start, resource_size(res));
++	}
++
++	pcdev->pdata->exit(pdev);
++
++	res = pcdev->res_csi;
++	release_mem_region(res->start, resource_size(res));
++
++	kfree(pcdev);
++
++	dev_info(&pdev->dev, "MX27 Camera driver unloaded\n");
++
++	return 0;
++}
++
++static struct platform_driver mx27_camera_driver = {
++	.driver 	= {
++		.name	= MX27_CAM_DRV_NAME,
++	},
++	.probe		= mx27_camera_probe,
++	.remove		= __exit_p(mx27_camera_remove),
++};
++
++
++static int __devinit mx27_camera_init(void)
++{
++	return platform_driver_register(&mx27_camera_driver);
++}
++
++static void __exit mx27_camera_exit(void)
++{
++	return platform_driver_unregister(&mx27_camera_driver);
++}
++
++module_init(mx27_camera_init);
++module_exit(mx27_camera_exit);
++
++MODULE_DESCRIPTION("i.MX27 SoC Camera Host driver");
++MODULE_AUTHOR("Sascha Hauer <sha@pengutronix.de>");
++MODULE_LICENSE("GPL");
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+1.6.0.4
+
