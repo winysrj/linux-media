@@ -1,86 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:61154 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751155AbZLCIQN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 03:16:13 -0500
-Received: by bwz27 with SMTP id 27so870590bwz.21
-        for <linux-media@vger.kernel.org>; Thu, 03 Dec 2009 00:16:18 -0800 (PST)
-Date: Thu, 3 Dec 2009 17:19:54 +0900
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>
-Subject: saa7134 and =?UTF-8?B?wrVQRDYxMTUx?= MPEG2 encoder
-Message-ID: <20091203171954.2465b145@glory.loctelecom.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:41567 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933109AbZLOUTl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Dec 2009 15:19:41 -0500
+Date: Tue, 15 Dec 2009 21:19:33 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Jon Smirl <jonsmirl@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
+	kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR system?
+Message-ID: <20091215201933.GK24406@elf.ucw.cz>
+References: <4B1B99A5.2080903@redhat.com>
+ <m3638k6lju.fsf@intrepid.localdomain>
+ <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
+ <m3skbn6dv1.fsf@intrepid.localdomain>
+ <20091207184153.GD998@core.coreip.homeip.net>
+ <4B24DABA.9040007@redhat.com>
+ <20091215115011.GB1385@ucw.cz>
+ <4B279017.3080303@redhat.com>
+ <20091215195859.GI24406@elf.ucw.cz>
+ <9e4733910912151214n68161fc7tca0ffbf34c2c4e4@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <9e4733910912151214n68161fc7tca0ffbf34c2c4e4@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All
+On Tue 2009-12-15 15:14:02, Jon Smirl wrote:
+> On Tue, Dec 15, 2009 at 2:58 PM, Pavel Machek <pavel@ucw.cz> wrote:
+> > Hi!
+> >
+> >>       (11) if none is against renaming IR as RC, I'll do it on a next patch;
+> >
+> > Call it irc -- infrared remote control. Bluetooth remote controls will
+> > have very different characteristics.
+> 
+> How are they different after the scancode is extracted from the
+> network packet? The scancode still needs to be passed to the input
+> system, go through a keymap, and end up on an evdev device.
+> 
+> I would expect the code for extracting the scancode to live in the
+> networking stack, but after it is recovered the networking code would
+> use the same API as IR to submit it to input.
 
-Our new TV card has MPEG-2 encoder NEC ÂµPD61151. This encoder hasn't I2C bus, only SPI.
-I wrote SPI bitbang master for saa7134.
+For one thing,  bluetooth (etc) has concept of devices (and reliable
+transfer). If you have two same bluetooth remotes, you can tell them
+apart, unlike IR.
 
-[   74.482290] Linux video capture interface: v2.00
-[   74.534047] saa7130/34: v4l2 driver version 0.2.15 loaded
-[   74.534081] saa7134 0000:04:01.0: PCI INT A -> GSI 19 (level, low) -> IRQ 19
-[   74.534086] saa7133[0]: found at 0000:04:01.0, rev: 209, irq: 19, latency: 32, mmio: 0xe5100000
-[   74.534092] saa7133[0]: subsystem: 5ace:7595, board: Beholder BeholdTV X7 [card=171,autodetected]
-[   74.534101] saa7133[0]: board init: gpio is 200000
-[   74.534108] IRQ 19/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-[   74.684510] saa7133[0]: i2c eeprom 00: ce 5a 95 75 54 20 00 00 00 00 00 00 00 00 00 01
-[   74.684531] saa7133[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[   74.684548] saa7133[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[   74.684565] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[   74.684582] saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[   74.684599] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[   74.684616] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[   74.684633] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[   74.684650] saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[   74.684667] saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[   74.684684] saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[   74.684701] saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[   74.684709] saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[   74.684717] saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-[   74.684725] saa7133[0]: i2c eeprom e0: 00 00 00 00 ff ff ff ff ff ff ff ff ff ff ff ff
-[   74.684733] saa7133[0]: i2c eeprom f0: 42 54 56 30 30 30 30 ff ff ff ff ff ff ff ff ff
-[   74.684743] i2c-adapter i2c-7: Invalid 7-bit address 0x7a
-[   74.712024] tuner 7-0061: chip found @ 0xc2 (saa7133[0])
-[   74.819118] xc5000 7-0061: creating new instance
-[   74.828015] xc5000: Successfully identified at address 0x61
-[   74.828019] xc5000: Firmware has not been loaded previously
-[  103.120811] input: i2c IR (BeholdTV) as /class/input/input5
-[  103.120847] ir-kbd-i2c: i2c IR (BeholdTV) detected at i2c-7/7-002d/ir0 [saa7133[0]]
-[  103.152055] saa7133[0]: found muPD61151 MPEG encoder
-[  103.152216] saa7134 0000:04:01.0: spi master registered: bus_num=32766 num_chipselect=1
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+So yes, keymapping is the same, but that's pretty much it. Decoding
+will not be the same (IR is special), etc...
+									Pavel
 
-[  103.152322] saa7133[0]: registered device video0 [v4l2]
-[  103.152340] saa7133[0]: registered device vbi0
-[  103.152358] saa7133[0]: registered device radio0
-[  103.168060] saa7133[0]: registered device video1 [mpeg]
-[  103.196503] saa7134 ALSA driver for DMA sound loaded
-[  103.196514] IRQ 19/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-[  103.196531] saa7133[0]/alsa: saa7133[0] at 0xe5100000 irq 19 registered as card -1
-[  103.198892] xc5000: I2C write failed (len=4)
-[  103.300018] xc5000: I2C write failed (len=4)
-[  103.304799] xc5000: I2C read failed
-[  103.304808] xc5000: I2C read failed
-[  103.304810] xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.fw)...
-[  103.304813] saa7134 0000:04:01.0: firmware: requesting dvb-fe-xc5000-1.6.114.fw
-[  103.347409] xc5000: firmware read 12401 bytes.
-[  103.347413] xc5000: firmware uploading...
-[  106.676008] xc5000: firmware upload complete...
-
-Next point I think is write v4l2 workaround for SPI like I2C bus.
-
-Functions:
-v4l2_i2c_new_subdev -> v4l2_spi_new_subdev
-v4l2_i2c_new_subdev_cfg -> v4l2_spi_new_subdev_cfg
-v4l2_i2c_new_subdev_board -> v4l2_spi_new_subdev_board
-v4l2_i2c_subdev_init -> v4l2_spi_subdev_init
-i2c_set_clientdata -> spi_set_clientdata
-
-Who can do it?? Or help me with it??
-
-With my best regards, Dmitry.
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
