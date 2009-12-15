@@ -1,69 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from khc.piap.pl ([195.187.100.11]:57411 "EHLO khc.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756013AbZLHPYh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2009 10:24:37 -0500
-From: Krzysztof Halasa <khc@pm.waw.pl>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Jon Smirl <jonsmirl@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
-	kraxel@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
-References: <BEJgSGGXqgB@lirc>
-	<9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>
-	<1260070593.3236.6.camel@pc07.localdom.local>
-	<20091206065512.GA14651@core.coreip.homeip.net>
-	<4B1B99A5.2080903@redhat.com> <m3638k6lju.fsf@intrepid.localdomain>
-	<9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
-	<m3skbn6dv1.fsf@intrepid.localdomain>
-	<20091207184153.GD998@core.coreip.homeip.net>
-	<m3my1u35t2.fsf@intrepid.localdomain>
-	<20091207213811.GE998@core.coreip.homeip.net>
-Date: Tue, 08 Dec 2009 16:24:40 +0100
-In-Reply-To: <20091207213811.GE998@core.coreip.homeip.net> (Dmitry Torokhov's
-	message of "Mon, 7 Dec 2009 13:38:11 -0800")
-Message-ID: <m37hsxtrnr.fsf@intrepid.localdomain>
+Received: from smtp.nokia.com ([192.100.105.134]:48871 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753666AbZLOMMx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Dec 2009 07:12:53 -0500
+Message-ID: <4B277D2A.7050201@maxwell.research.nokia.com>
+Date: Tue, 15 Dec 2009 14:12:26 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Guru Raj <gururaj.nagendra@intel.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Mike Krufky <mkrufky@linuxtv.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	"Ivan T. Ivanov" <iivanov@mm-sol.com>,
+	Zutshi Vimarsh <vimarsh.zutshi@nokia.com>
+Subject: [RFC 0/4] V4L2 file handles and event interface
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dmitry Torokhov <dmitry.torokhov@gmail.com> writes:
+Hi,
 
-> No, the IR core responsible for registering receivers and decoders.
+Here's the first version of the V4L2 file handle and event interface 
+patchset. I posted it as RFC since there are a few issues with the 
+contents and I have no assurrances that this even is functional at the 
+moment.
 
-Well. This makes me think now that LIRC can be just "another decoder".
+The first patch adds the V4L2 file handle support and the rest are for 
+V4L2 events.
 
->> Those are simple things. The only part which needs to be stable is the
->> (in this case LIRC) kernel-user interface.
->
-> For which some questions are still open. I believe Jon just oulined some
-> of them.
+A few notes on the patches:
 
-Those are rather "how does it work", not "let's change something because
-it's not optimal".
+- I don't like the locking too much. Perhaps the file handle specific 
+lock (events->lock) could be dropped in favour of the lock for 
+v4l2_file_handle in video_device.
 
-> No we do not. We do not merge something that we expect to rework almost
-> completely (no, not the lirc-style device userspace inetrface, although
-> even it is not completely finalized I believe, but the rest of the
-> subsystem).
+- Event queue depth is not controlled at the moment.
 
-I don't think we need to rework it almost completely. Perhaps we need to
-change a hook here or there.
+- (Un)subscribing all events is not supported.
 
-> No, not at all. You merge core subsystem code, then start addig
-> decoders...
+Comments are very welcome.
 
-You must have at least one common decoder merged with the core code,
-otherwise you don't know if the core is adequate. And you have to have
-at least one common input device.
+Cheers,
 
-But perhaps it is a workable idea after all, given the "another
-decoder".
 -- 
-Krzysztof Halasa
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
+
+
+
