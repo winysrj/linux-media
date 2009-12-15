@@ -1,96 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46911 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754397AbZLAVG0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Dec 2009 16:06:26 -0500
-Message-ID: <4B15852D.4050505@redhat.com>
-Date: Tue, 01 Dec 2009 19:05:49 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Jon Smirl <jonsmirl@gmail.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com, khc@pm.waw.pl,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, lirc-list@lists.sourceforge.net,
-	superm1@ubuntu.com, Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: [RFC v2] Another approach to IR
-References: <9e4733910912010708u1064e2c6mbc08a01293c3e7fd@mail.gmail.com> <1259682428.18599.10.camel@maxim-laptop> <9e4733910912010816q32e829a2uce180bfda69ef86d@mail.gmail.com> <4B154C54.5090906@redhat.com> <829197380912010909m59cb1078q5bd2e00af0368aaf@mail.gmail.com> <4B155288.1060509@redhat.com> <20091201175400.GA19259@core.coreip.homeip.net> <4B1567D8.7080007@redhat.com> <20091201201158.GA20335@core.coreip.homeip.net>
-In-Reply-To: <20091201201158.GA20335@core.coreip.homeip.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1264 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933331AbZLOTNb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Dec 2009 14:13:31 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id nBFJDT9k031020
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 15 Dec 2009 20:13:30 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 15 Dec 2009 20:13:29 +0100 (CET)
+Message-Id: <200912151913.nBFJDT9k031020@smtp-vbr11.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dmitry Torokhov wrote:
-> On Tue, Dec 01, 2009 at 05:00:40PM -0200, Mauro Carvalho Chehab wrote:
->> Dmitry Torokhov wrote:
->>> On Tue, Dec 01, 2009 at 03:29:44PM -0200, Mauro Carvalho Chehab wrote:
->>>> For sure we need to add an EVIOSETPROTO ioctl to allow the driver 
->>>> to change the protocol in runtime.
->>>>
->>> Mauro,
->>>
->>> I think this kind of confuguration belongs to lirc device space,
->>> not input/evdev. This is the same as protocol selection for psmouse
->>> module: while it is normally auto-detected we have sysfs attribute to
->>> force one or another and it is tied to serio device, not input
->>> device.
->> Dmitry,
->>
->> This has nothing to do with the raw interface nor with lirc. This problem 
->> happens with the evdev interface and already affects the in-kernel drivers.
->>
->> In this case, psmouse is not a good example. With a mouse, when a movement
->> occurs, you'll receive some data from its port. So, a software can autodetect
->> the protocol. The same principle can be used also with a raw pulse/space
->> interface, where software can autodetect the protocol.
-> 
-> Or, in certain cases, it can not.
-> 
-> [... skipped rationale for adding a way to control protocol (with which
-> I agree) ...]
-> 
->> To solve this, we really need to extend evdev API to do 3 things: enumberate the
->> supported protocols, get the current protocol(s), and select the protocol(s) that
->> will be used by a newer table.
->>
-> 
-> And here we start disagreeing. My preference would be for adding this
-> API on lirc device level (i.e. /syc/class/lirc/lircX/blah namespace),
-> since it only applicable to IR, not to input devices in general.
-> 
-> Once you selected proper protocol(s) and maybe instantiated several
-> input devices then udev (by examining input device capabilities and
-> optionally looking up at the parent device properties) would use
-> input evdev API to load proper keymap. Because translation of
-> driver-specific codes into standard key definitions is in the input
-> realm. Reading these driver-specific codes from hardware is outside of
-> input layer domain.
-> 
-> Just as psmouse ability to specify protocol is not shoved into evdev;
-> just as atkbd quirks (force release key list and other driver-specific
-> options) are not in evdev either; we should not overload evdev interface
-> with IR-specific items.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-I'm not against mapping those features as sysfs atributes, but they don't belong
-to lirc, as far as I understand. From all we've discussed, we'll create a lirc
-interface to allow the direct usage of raw IO. However, IR protocol is a property
-that is not related to raw IO mode but, instead, to evdev mode.
+Results of the daily build of v4l-dvb:
 
-We might add a /sys/class/IR and add IR specific stuff there, but it seems
-overkill to me and will hide the fact that those parameters are part of the evdev
-interface.
+date:        Tue Dec 15 19:00:05 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13698:79fc32bba0a0
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-So, I would just add the IR sysfs parameters at the /sys/class/input, if
-the device is an IR (or create it is /sys/class/input/IR).
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-armv5: OK
+linux-2.6.32-armv5-davinci: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-armv5-ixp: OK
+linux-2.6.32-armv5-ixp: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: OK
+linux-2.6.32-armv5-omap2: OK
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: ERRORS
+linux-2.6.28-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30-i686: ERRORS
+linux-2.6.31-i686: ERRORS
+linux-2.6.32-i686: ERRORS
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.32-mips: OK
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-powerpc64: OK
+linux-2.6.32-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: OK
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-x86_64: WARNINGS
+spec: OK
+sparse (linux-2.6.32): ERRORS
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-I agree that the code to implement the IR specific sysfs parameter should be kept
-oustide input core, as they're specific to IR implementations.
+Detailed results are available here:
 
-Would this work for you?
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Cheers,
-Mauro.
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
