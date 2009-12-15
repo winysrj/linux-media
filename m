@@ -1,336 +1,531 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:39273 "HELO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751388AbZLMIr4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Dec 2009 03:47:56 -0500
-Date: Sun, 13 Dec 2009 09:48:06 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Francesco Lavra <francescolavra@interfree.it>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Adding support for Benq DC E300 camera
-Message-ID: <20091213094806.239b3b9d@tele>
-In-Reply-To: <1260646884.23354.22.camel@localhost>
-References: <1260646884.23354.22.camel@localhost>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/zA8IVe/xJCumfE5xK40+cnA"
+Received: from mx1.redhat.com ([209.132.183.28]:62692 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932719AbZLOSEN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Dec 2009 13:04:13 -0500
+Message-ID: <4B27CF77.1050008@redhat.com>
+Date: Tue, 15 Dec 2009 16:03:35 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: HoP <jpetrous@gmail.com>
+CC: o.endriss@gmx.de, patrick.boettcher@desy.de, kraxel@bytesex.org,
+	ajurik@quick.cz, hermann pitton <hermann-pitton@arcor.de>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] isl6421.c - added tone control and temporary diseqc
+ 	overcurrent
+References: <846899810912150749q38d8a1ffy96b135cf355fe8eb@mail.gmail.com>
+In-Reply-To: <846899810912150749q38d8a1ffy96b135cf355fe8eb@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---MP_/zA8IVe/xJCumfE5xK40+cnA
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+HoP wrote:
+> Hi Mauro,
+> 
+> I have finally found some time for reworking our patch
+> with regards of notes I got in disscussion.
+> 
+> BTW, I learnt that sending patch for review to original
+> authors is right thing (tm),
 
-On Sat, 12 Dec 2009 20:41:24 +0100
-Francesco Lavra <francescolavra@interfree.it> wrote:
-> I'm trying to get my Benq DC E300 camera to work under Linux.
-> It has an Atmel AT76C113 chip. I don't know how many Linux users would
-> benefit from a driver supporting this camera (and possibly other
-> models, too), so my question is: if/when such a driver will be
-> written, is there someone willing to review it and finally get it
-> merged? If the answer is yes, I will try to write something working.
->=20
-> This camera USB interface has 10 alternate settings, and altsetting 5
-> is used to stream data; it uses two isochronous endpoints to transfer
-> an AVI-formatted video stream (320x240) to the USB host.
-> It would be great if someone could give me some information to make
-> writing the driver easier: so far, I have only USB sniffer capture
-> logs from the Windows driver.
+Yes, it is, but sending the emails to linux-media also works, since
+the maintainers are all there.
 
-Hi Francesco,
+> so I have added Oliver,
+> as isl6421.c author, Patrick as flexcop author, Gerd
+> as cx88/saa7134 author (I hope I found correct persons,
+> if no please ignore posting).
 
-gspca already handles some cameras and some Benq webcams. From a USB
-snoop, it may be easy to write a new gspca subdriver.
+Gerd is not maintaining cx88/saa7134 anymore. I took his place on
+maintaining those drivers some years ago.
 
-I join the tcl script I use to extract the important information from
-raw snoop traces. May you send me the result with your logs? Then, I
-could see if an existing subdriver could be used or if a new one has to
-be created.
+I'm still missing a driver or a board entry that requires those
+changes. Could you please send it together with this patch series?
 
-Regards.
+Also, you forgot to send your Signed-off-By. This is required for
+patch submission.
 
---=20
-Ken ar c'henta=F1	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+> 
+> Regards
+> 
+> /Honza
+> 
+> ---
+> 
+> isl6421.c - added tone control and temporary diseqc overcurrent
 
---MP_/zA8IVe/xJCumfE5xK40+cnA
-Content-Type: text/x-tcl
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=parsnoop.tcl
+Please, always send patches in-lined. makes easier for commenting.
 
-#!/bin/sh
-# -*- tcl -*- \
-exec tclsh "$0" ${1+"$@"}
+> diff -r 79fc32bba0a0 linux/drivers/media/dvb/b2c2/flexcop-fe-tuner.c
+> --- a/linux/drivers/media/dvb/b2c2/flexcop-fe-tuner.c	Mon Dec 14 17:43:13 2009 -0200
+> +++ b/linux/drivers/media/dvb/b2c2/flexcop-fe-tuner.c	Tue Dec 15 16:36:14 2009 +0100
+> @@ -302,6 +302,12 @@ static struct itd1000_config skystar2_re
+>  	.i2c_address = 0x61,
+>  };
+>  
+> +static struct isl6421_config skystar2_rev2_7_isl6421_config = {
+> +	.i2c_address = 0x08,
+> +	.override_set = 0x01,
+> +	.override_clear = 0x01,
+> +};
+> +
+>  static int skystar2_rev27_attach(struct flexcop_device *fc,
+>  	struct i2c_adapter *i2c)
+>  {
+> @@ -325,7 +331,7 @@ static int skystar2_rev27_attach(struct 
+>  	/* enable no_base_addr - no repeated start when reading */
+>  	fc->fc_i2c_adap[2].no_base_addr = 1;
+>  	if (!dvb_attach(isl6421_attach, fc->fe, &fc->fc_i2c_adap[2].i2c_adap,
+> -			0x08, 1, 1)) {
+> +			&skystar2_rev2_7_isl6421_config)) {
+>  		err("ISL6421 could NOT be attached");
+>  		goto fail_isl;
+>  	}
+> @@ -368,6 +374,12 @@ static const struct cx24113_config skyst
+>  	.xtal_khz = 10111,
+>  };
+>  
+> +static struct isl6421_config skystar2_rev2_8_isl6421_config = {
+> +	.i2c_address = 0x08,
 
-proc usage {} {
-	puts "Parse a ms-win USB snoop
-Usage:
-	parsnoop \[options\] <usbsnoop file>
-Options:
-	-nb	Don't display the Bulk/Interrupt messages
-	-ni	Don't display the Isochronous messages
-	-t	Display the delta time between exchanges"
-	exit
-}
+> +	.override_set = 0x00,
+> +	.override_clear = 0x00,
 
-proc isoc {fd} {
-	global deltatime noisoc
-	set in 0
-	while {[gets $fd line] >= 0} {
-		switch -regexp -- $line {
-		    "  URB " break
-		    StartFrame {
-			if {[string compare [lindex $line 2] 00000000] != 0} {
-				set in 1
-			}
-		    }
-		    TransferBufferLength {
-			set l [lindex $line 2]
-		    }
-		    NumberOfPackets {
-			set n [lindex $line 2]
-		    }
-		}
-	}
-	if {!$in || $noisoc} {
-		return $line
-	}
-	puts -nonewline $deltatime
-	puts [format "<isoc \[%d\] l:%d" 0x$n 0x$l]
-	return $line
-}
+Please, do not set any static value to zero. Kernel module support already
+does that, and this will just add uneeded stuff into BSS.
 
-proc vendor {fd} {
-# outgoing message
-	global deltatime
-	set out 0
-	set b {}
-	while {[gets $fd line] >= 0} {
-		switch -regexp -- $line {
-		    "  URB " break
-		    DIRECTION_OUT {
-			set out 1
-		    }
-		    TransferBufferLength {
-#			set l 0x[lindex $line 3]
-		    }
-		    00000..0: {
-			if {$out} {
-				if {[string length $b] != 0} {
-					append b "\n\t\t  "
-				}
-				append b [lrange $line 1 end]
-			}
-		    }
-		    "Request" {
-			set r [format %02x 0x[lindex $line 2]]
-		    }
-		    "Value" {
-			set v [format %04x 0x[lindex $line 2]]
-		    }
-		    "Index" {
-			set i [format %04x 0x[lindex $line 2]]
-		    }
-		}
-	}
-	if {$out} {
-		puts -nonewline $deltatime
-		puts " SET $r $v $i $b"
-	}
-	return $line
-}
+> +};
+> +
+>  static int skystar2_rev28_attach(struct flexcop_device *fc,
+>  	struct i2c_adapter *i2c)
+>  {
+> @@ -391,7 +403,7 @@ static int skystar2_rev28_attach(struct 
+>  
+>  	fc->fc_i2c_adap[2].no_base_addr = 1;
+>  	if (!dvb_attach(isl6421_attach, fc->fe, &fc->fc_i2c_adap[2].i2c_adap,
+> -			0x08, 0, 0)) {
+> +			&skystar2_rev2_8_isl6421_config)) {
+>  		err("ISL6421 could NOT be attached");
+>  		fc->fc_i2c_adap[2].no_base_addr = 0;
+>  		return 0;
+> diff -r 79fc32bba0a0 linux/drivers/media/dvb/frontends/isl6421.c
+> --- a/linux/drivers/media/dvb/frontends/isl6421.c	Mon Dec 14 17:43:13 2009 -0200
+> +++ b/linux/drivers/media/dvb/frontends/isl6421.c	Tue Dec 15 16:36:14 2009 +0100
+> @@ -3,6 +3,9 @@
+>   *
+>   * Copyright (C) 2006 Andrew de Quincey
+>   * Copyright (C) 2006 Oliver Endriss
+> + * Copyright (C) 2009 Ales Jurik and Jan Petrous (added optional 22k tone
+> + *                    support and temporary diseqc overcurrent enable until
+> + *                    next command - set voltage or tone)
+>   *
+>   * This program is free software; you can redistribute it and/or
+>   * modify it under the terms of the GNU General Public License
+> @@ -36,37 +39,88 @@
+>  #include "isl6421.h"
+>  
+>  struct isl6421 {
+> -	u8			config;
+> -	u8			override_or;
+> -	u8			override_and;
+> -	struct i2c_adapter	*i2c;
+> -	u8			i2c_addr;
+> +	const struct isl6421_config	*config;
+> +	u8				reg1;
 
-proc ctrl {fd} {
-# incoming message
-	global deltatime
-	set in 0
-	set b {}
-	set setup 0
-	while {[gets $fd line] >= 0} {
-		switch -regexp -- $line {
-		    "  URB " break
-		    DIRECTION_IN {
-			set in 1
-		    }
-		    SetupPacket {
-			set setup 1
-		    }
-		    "  00000" {
-			if {!$in} continue
-			if {!$setup} {
-				if {[string length $b] == 0} {
-					set b [lrange $line 1 end]
-				} else {
-					append b "\n<\t\t  "
-					append b [lrange $line 1 end]
-				}
-			} else {
-				set r [lindex $line 2]
-				set v [lindex $line 4][lindex $line 3]
-				set i [lindex $line 6][lindex $line 5]
-			}
-		    }
-		}
-	}
-	if {$in} {
-		puts -nonewline $deltatime
-		puts "<GET $r $v $i $b"
-	}
-	return $line
-}
+reg1 seems a very bad name. Based on the datasheet, maybe
+you could call it as sys_config or sys_reg_config.
 
-proc interf {fd} {
-# select interface
-	global deltatime
-	set i {??}
-	set a {??}
-	while {[gets $fd line] >= 0} {
-		switch -regexp -- $line {
-		    "  URB " break
-		    InterfaceNumber {
-			set i [format %02x 0x[lindex $line 3]]
-		    }
-		    AlternateSetting {
-			set a [format %02x 0x[lindex $line 3]]
-		    }
-		}
-	}
-	puts -nonewline $deltatime
-	puts " intf $i alt $a"
-	return $line
-}
+> +
+> +	struct i2c_adapter *i2c;
+> +
+> +	int (*diseqc_send_master_cmd_orig)(struct dvb_frontend *fe,
+> +			struct dvb_diseqc_master_cmd *cmd);
+>  };
+>  
+>  static int isl6421_set_voltage(struct dvb_frontend *fe, fe_sec_voltage_t voltage)
+>  {
+>  	struct isl6421 *isl6421 = (struct isl6421 *) fe->sec_priv;
+> -	struct i2c_msg msg = {	.addr = isl6421->i2c_addr, .flags = 0,
+> -				.buf = &isl6421->config,
+> -				.len = sizeof(isl6421->config) };
+> +	struct i2c_msg msg = {	.addr = isl6421->config->i2c_addr, .flags = 0,
+> +				.buf = &isl6421->reg1,
+> +				.len = sizeof(isl6421->reg1) };
+>  
+> -	isl6421->config &= ~(ISL6421_VSEL1 | ISL6421_EN1);
+> +	isl6421->reg1 &= ~(ISL6421_VSEL1 | ISL6421_EN1);
+>  
+>  	switch(voltage) {
+>  	case SEC_VOLTAGE_OFF:
+>  		break;
+>  	case SEC_VOLTAGE_13:
+> -		isl6421->config |= ISL6421_EN1;
+> +		isl6421->reg1 |= ISL6421_EN1;
+>  		break;
+>  	case SEC_VOLTAGE_18:
+> -		isl6421->config |= (ISL6421_EN1 | ISL6421_VSEL1);
+> +		isl6421->reg1 |= (ISL6421_EN1 | ISL6421_VSEL1);
+>  		break;
+>  	default:
+>  		return -EINVAL;
+>  	};
+>  
+> -	isl6421->config |= isl6421->override_or;
+> -	isl6421->config &= isl6421->override_and;
+> +	isl6421->reg1 |= isl6421->config->override_set;
+> +	isl6421->reg1 &= ~isl6421->config->override_clear;
+> +
+> +	return (i2c_transfer(isl6421->i2c, &msg, 1) == 1) ? 0 : -EIO;
+> +}
+> +
+> +static int isl6421_send_diseqc(struct dvb_frontend *fe,
+> +				struct dvb_diseqc_master_cmd *cmd)
 
-proc feature {fd} {
-	global deltatime
-	while {[gets $fd line] >= 0} {
-		switch -regexp -- $line {
-		    "  URB " break
-		}
-	}
-puts -nonewline $deltatime
-puts "feature"
-	return $line
-}
+Please add a comment explaining that this function is only called
+when diseqc_send_master_cmd_orig() is defined. On a first look, it seemed
+to me that you would cause a crash by not checking if diseqc_send_master_cmd_orig()
+is not null.
 
-proc transf {fd} {
-# bulk or interrupt transfer
-	global deltatime nobulk
-	set in 0
-	set b {}
-	while {[gets $fd line] >= 0} {
-		switch -regexp -- $line {
-		    DIRECTION_IN {
-			set in 1
-		    }
-		    "  000000" {
-			if {!$nobulk} {
-			    if {[string length $b] == 0} {
-				set b [lrange $line 1 end]
-			    } else {
-				append b "\n\t      "
-				append b [lrange $line 1 end]
-			    }
-			}
-		    }
-		    "  00000100" {
-			if {!$nobulk} {
-				append b "\n\t      ..."
-			}
-		    }
-		    "  URB " break
-		}
-	}
-	if {$nobulk || [string length $b] == 0} {
-		return $line
-	}
-	puts -nonewline $deltatime
-	if {$in} {
-		puts "<Bulk/Int IN  $b"
-	} else {
-		puts " Bulk/Int OUT $b"
-	}
-	return $line
-}
+> +{
+> +	struct isl6421 *isl6421 = (struct isl6421 *) fe->sec_priv;
+> +	struct i2c_msg msg = {	.addr = isl6421->config->i2c_addr, .flags = 0,
+> +				.buf = &isl6421->reg1,
+> +				.len = sizeof(isl6421->reg1) };
+> +
+> +	isl6421->reg1 |= ISL6421_DCL;
+> +
+> +	isl6421->reg1 |= isl6421->config->override_set;
+> +	isl6421->reg1 &= ~isl6421->config->override_clear;
+> +
+> +	if (i2c_transfer(isl6421->i2c, &msg, 1) != 1)
+> +		return -EIO;
+> +
+> +	isl6421->reg1 &= ~ISL6421_DCL;
+> +
+> +	return isl6421->diseqc_send_master_cmd_orig(fe, cmd);
+> +}
+> +
+> +static int isl6421_set_tone(struct dvb_frontend *fe, fe_sec_tone_mode_t tone)
+> +{
+> +	struct isl6421 *isl6421 = (struct isl6421 *) fe->sec_priv;
+> +	struct i2c_msg msg = {	.addr = isl6421->config->i2c_addr, .flags = 0,
+> +				.buf = &isl6421->reg1,
+> +				.len = sizeof(isl6421->reg1) };
+> +
+> +	isl6421->reg1 &= ~(ISL6421_ENT1);
+> +
+> +	printk(KERN_INFO "%s: %s\n", __func__, ((tone == SEC_TONE_OFF) ?
+> +				"Off" : "On"));
+> +
+> +	switch (tone) {
+> +	case SEC_TONE_ON:
+> +		isl6421->reg1 |= ISL6421_ENT1;
+> +		break;
+> +	case SEC_TONE_OFF:
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	};
+> +
+> +	isl6421->reg1 |= isl6421->config->override_set;
+> +	isl6421->reg1 &= ~isl6421->config->override_clear;
+>  
+>  	return (i2c_transfer(isl6421->i2c, &msg, 1) == 1) ? 0 : -EIO;
+>  }
+> @@ -74,49 +128,52 @@ static int isl6421_enable_high_lnb_volta
+>  static int isl6421_enable_high_lnb_voltage(struct dvb_frontend *fe, long arg)
+>  {
+>  	struct isl6421 *isl6421 = (struct isl6421 *) fe->sec_priv;
+> -	struct i2c_msg msg = {	.addr = isl6421->i2c_addr, .flags = 0,
+> -				.buf = &isl6421->config,
+> -				.len = sizeof(isl6421->config) };
+> +	struct i2c_msg msg = {	.addr = isl6421->config->i2c_addr, .flags = 0,
+> +				.buf = &isl6421->reg1,
+> +				.len = sizeof(isl6421->reg1) };
+>  
+>  	if (arg)
+> -		isl6421->config |= ISL6421_LLC1;
+> +		isl6421->reg1 |= ISL6421_LLC1;
+>  	else
+> -		isl6421->config &= ~ISL6421_LLC1;
+> +		isl6421->reg1 &= ~ISL6421_LLC1;
+>  
+> -	isl6421->config |= isl6421->override_or;
+> -	isl6421->config &= isl6421->override_and;
+> +	isl6421->reg1 |= isl6421->config->override_set;
+> +	isl6421->reg1 &= ~isl6421->config->override_clear;
+>  
+>  	return (i2c_transfer(isl6421->i2c, &msg, 1) == 1) ? 0 : -EIO;
+>  }
+>  
+>  static void isl6421_release(struct dvb_frontend *fe)
+>  {
+> +	struct isl6421 *isl6421 = (struct isl6421 *) fe->sec_priv;
+> +
+>  	/* power off */
+>  	isl6421_set_voltage(fe, SEC_VOLTAGE_OFF);
+> +
+> +	if (isl6421->config->disable_overcurrent_protection)
+> +		fe->ops.diseqc_send_master_cmd =
+> +			isl6421->diseqc_send_master_cmd_orig;
 
-proc main {argv} {
-	global nowtime prevtime withtime deltatime nobulk noisoc
-	set withtime 0
-	set nobulk 0
-	set noisoc 0
-	set deltatime {}
-	set fn {}
-	foreach a $argv {
-		switch -- $a {
-		    -t {
-			set withtime 1
-		    }
-		    -nb {
-			set nobulk 1
-		    }
-		    -ni {
-			set noisoc 1
-		    }
-		    default {
-			if {[string length $fn] != 0} usage
-			set fn $a
-		    }
-		}
-	}
-	if {[string length $fn] == 0} usage
-	if {[catch {open $fn r} fd]} {
-		puts "cannot open '$fn'"
-		exit 1
-	}
-	set nowtime 0
-	set prevtime 0
-	set nisoc 0
-	while {[gets $fd line] >= 0} {
-		set isoc 0
-		switch -regexp -- $line {
-		    URB_FUNCTION_ISOCH_TRANSFER {
-			set line [isoc $fd]
-			set isoc 1
-			incr nisoc
-		    }
-		    URB_FUNCTION_VENDOR {
-			set line [vendor $fd]
-		    }
-		    URB_FUNCTION_CONTROL_TRANSFER {
-			set line [ctrl $fd]
-		    }
-		    URB_FUNCTION_SELECT_INTERFACE {
-			set line [interf $fd]
-		    }
-		    URB_FUNCTION_SET_FEATURE_TO_DEVICE {
-			set line [feature $fd]
-		    }
-		    URB_FUNCTION_BULK_OR_INTERRUPT_TRANSFER {
-			set line [transf $fd]
-		    }
-		}
-		if {!$noisoc && !$isoc && $nisoc != 0} {
-			puts -nonewline $deltatime
-			puts "$nisoc isoc"
-			set nisoc 0
-		}
-		if {[regexp {\[([0-9]+) ms\]} $line dum ntime]} {
-			set prevtime $nowtime
-			set nowtime $ntime
-			if {[string first down $line] > 0} {
-				if {$withtime} {
-					set deltatime [format "%4d " \
-						[expr {$nowtime - $prevtime}]]
-				} elseif {$nowtime > $prevtime + 2} {
-					puts "== +[expr {$nowtime - $prevtime}] ms"
-				}
-			}
-			if {$nowtime > $prevtime + 200} {
-				puts "== \[$nowtime ms\]"
-			}
-		}
-	}
-}
+You need to test if this function pointer were defined or not at the config struct.
 
-main $argv
+>  
+>  	/* free */
+>  	kfree(fe->sec_priv);
+>  	fe->sec_priv = NULL;
+>  }
+>  
+> -struct dvb_frontend *isl6421_attach(struct dvb_frontend *fe, struct i2c_adapter *i2c, u8 i2c_addr,
+> -		   u8 override_set, u8 override_clear)
+> +struct dvb_frontend *isl6421_attach(struct dvb_frontend *fe,
+> +					   struct i2c_adapter *i2c,
+> +					   const struct isl6421_config *config)
+>  {
+>  	struct isl6421 *isl6421 = kmalloc(sizeof(struct isl6421), GFP_KERNEL);
+> +
+>  	if (!isl6421)
+>  		return NULL;
+>  
+> -	/* default configuration */
+> -	isl6421->config = ISL6421_ISEL1;
+> +	isl6421->config	= config;
+>  	isl6421->i2c = i2c;
+> -	isl6421->i2c_addr = i2c_addr;
+>  	fe->sec_priv = isl6421;
+>  
+> -	/* bits which should be forced to '1' */
+> -	isl6421->override_or = override_set;
+> -
+> -	/* bits which should be forced to '0' */
+> -	isl6421->override_and = ~override_clear;
+> +	/* default configuration */
+> +	isl6421->reg1 = ISL6421_ISEL1;
+>  
+>  	/* detect if it is present or not */
+>  	if (isl6421_set_voltage(fe, SEC_VOLTAGE_OFF)) {
+> @@ -131,11 +188,38 @@ struct dvb_frontend *isl6421_attach(stru
+>  	/* override frontend ops */
+>  	fe->ops.set_voltage = isl6421_set_voltage;
+>  	fe->ops.enable_high_lnb_voltage = isl6421_enable_high_lnb_voltage;
+> +	if (config->tone_control)
+> +		fe->ops.set_tone = isl6421_set_tone;
+> +
+> +	printk(KERN_INFO "ISL6421 attached on addr=%x\n", config->i2c_addr);
+> +
+> +	if (config->disable_overcurrent_protection) {
+> +		if ((config->override_set & ISL6421_DCL) ||
+> +				(config->override_clear & ISL6421_DCL)) {
+> +			/* there is no sense to use overcurrent_enable
+> +			 * with DCL bit set in any override byte */
+> +			if (config->override_set & ISL6421_DCL)
+> +				printk(KERN_WARNING "ISL6421 overcurrent_enable"
+> +						" with DCL bit in override_set,"
+> +						" overcurrent_enable ignored\n");
+> +			if (config->override_clear & ISL6421_DCL)
+> +				printk(KERN_WARNING "ISL6421 overcurrent_enable"
+> +						" with DCL bit in override_clear,"
+> +						" overcurrent_enable ignored\n");
+> +		} else {
+> +			printk(KERN_WARNING "ISL6421 overcurrent_enable "
+> +					" activated. WARNING: it can be "
+> +					" dangerous for your hardware!");
+> +			isl6421->diseqc_send_master_cmd_orig =
+> +				fe->ops.diseqc_send_master_cmd;
+> +			fe->ops.diseqc_send_master_cmd = isl6421_send_diseqc;
+> +		}
+> +	}
+>  
+>  	return fe;
+>  }
+>  EXPORT_SYMBOL(isl6421_attach);
+>  
+>  MODULE_DESCRIPTION("Driver for lnb supply and control ic isl6421");
+> -MODULE_AUTHOR("Andrew de Quincey & Oliver Endriss");
+> +MODULE_AUTHOR("Andrew de Quincey,Oliver Endriss,Ales Jurik,Jan Petrous");
+>  MODULE_LICENSE("GPL");
+> diff -r 79fc32bba0a0 linux/drivers/media/dvb/frontends/isl6421.h
+> --- a/linux/drivers/media/dvb/frontends/isl6421.h	Mon Dec 14 17:43:13 2009 -0200
+> +++ b/linux/drivers/media/dvb/frontends/isl6421.h	Tue Dec 15 16:36:14 2009 +0100
+> @@ -39,14 +39,40 @@
+>  #define ISL6421_ISEL1	0x20
+>  #define ISL6421_DCL	0x40
+>  
+> +struct isl6421_config {
+> +	/* I2C address */
+> +	u8 i2c_addr;
+> +
+> +	/* Enable DISEqC tone control mode */
+> +	bool tone_control;
+> +
+> +	/*
+> +	 * Disable isl6421 overcurrent protection.
+> +	 *
+> +	 * WARNING: Don't disable the protection unless you are 100% sure about
+> +	 *          what you're doing, otherwise you may damage your board.
+> +	 *          Only a few designs require to disable the protection, since
+> +	 *          the hardware designer opted to use a hardware protection instead
+> +	 */
+> +	bool disable_overcurrent_protection;
+> +
+> +	/* bits which should be forced to '1' */
+> +	u8 override_set;
+> +
+> +	/* bits which should be forced to '0' */
+> +	u8 override_clear;
+> +};
+> +
+> +
+>  #if defined(CONFIG_DVB_ISL6421) || (defined(CONFIG_DVB_ISL6421_MODULE) && defined(MODULE))
+>  /* override_set and override_clear control which system register bits (above) to always set & clear */
+> -extern struct dvb_frontend *isl6421_attach(struct dvb_frontend *fe, struct i2c_adapter *i2c, u8 i2c_addr,
+> -			  u8 override_set, u8 override_clear);
+> +extern struct dvb_frontend *isl6421_attach(struct dvb_frontend *fe,
+> +					   struct i2c_adapter *i2c,
+> +					   const struct isl6421_config *config);
+>  #else
+> -static inline struct dvb_frontend *isl6421_attach(struct dvb_frontend *fe, struct i2c_adapter *i2c, u8 i2c_addr,
+> -						  u8 override_set, u8 override_clear)
+> -{
+> +static struct dvb_frontend *isl6421_attach(struct dvb_frontend *fe,
+> +					   struct i2c_adapter *i2c,
+> +					   const struct isl6421_config *config);
+>  	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+>  	return NULL;
+>  }
+> diff -r 79fc32bba0a0 linux/drivers/media/video/cx88/cx88-dvb.c
+> --- a/linux/drivers/media/video/cx88/cx88-dvb.c	Mon Dec 14 17:43:13 2009 -0200
+> +++ b/linux/drivers/media/video/cx88/cx88-dvb.c	Tue Dec 15 16:36:14 2009 +0100
+> @@ -456,6 +456,12 @@ static struct cx24123_config hauppauge_n
+>  	.set_ts_params = cx24123_set_ts_param,
+>  };
+>  
+> +static struct isl6421_config hauppauge_novas_isl6421_config = {
+> +	.i2c_address = 0x08,
+> +	.override_set = ISL6421_DCL,
 
---MP_/zA8IVe/xJCumfE5xK40+cnA--
+> +	.override_clear = 0x00,
+
+Don't initialize a value with zero.
+
+> +};
+> +
+>  static struct cx24123_config kworld_dvbs_100_config = {
+>  	.demod_address = 0x15,
+>  	.set_ts_params = cx24123_set_ts_param,
+> @@ -614,6 +620,12 @@ static struct cx24116_config hauppauge_h
+>  	.reset_device           = cx24116_reset_device,
+>  };
+>  
+> +static struct isl6421_config hauppauge_hvr4000_isl6421_config = {
+> +	.i2c_address = 0x08,
+> +	.override_set = ISL6421_DCL,
+
+> +	.override_clear = 0x00,
+
+Don't initialize a value with zero.
+
+> +};
+> +
+>  static struct cx24116_config tevii_s460_config = {
+>  	.demod_address = 0x55,
+>  	.set_ts_params = cx24116_set_ts_param,
+> @@ -757,7 +769,7 @@ static int dvb_register(struct cx8802_de
+>  			if (!dvb_attach(isl6421_attach,
+>  					fe0->dvb.frontend,
+>  					&dev->core->i2c_adap,
+> -					0x08, ISL6421_DCL, 0x00))
+> +					&hauppauge_novas_isl6421_config))
+>  				goto frontend_detach;
+>  		}
+>  		/* MFE frontend 2 */
+> @@ -995,7 +1007,8 @@ static int dvb_register(struct cx8802_de
+>  					       &core->i2c_adap);
+>  		if (fe0->dvb.frontend) {
+>  			if (!dvb_attach(isl6421_attach, fe0->dvb.frontend,
+> -					&core->i2c_adap, 0x08, ISL6421_DCL, 0x00))
+> +					&core->i2c_adap,
+> +					&hauppauge_novas_isl6421_config))
+>  				goto frontend_detach;
+>  		}
+>  		break;
+> @@ -1100,7 +1113,7 @@ static int dvb_register(struct cx8802_de
+>  			if (!dvb_attach(isl6421_attach,
+>  					fe0->dvb.frontend,
+>  					&dev->core->i2c_adap,
+> -					0x08, ISL6421_DCL, 0x00))
+> +					&hauppauge_hvr4000_isl6421_config))
+>  				goto frontend_detach;
+>  		}
+>  		/* MFE frontend 2 */
+> @@ -1128,7 +1141,7 @@ static int dvb_register(struct cx8802_de
+>  			if (!dvb_attach(isl6421_attach,
+>  					fe0->dvb.frontend,
+>  					&dev->core->i2c_adap,
+> -					0x08, ISL6421_DCL, 0x00))
+> +					&hauppauge_hvr4000_isl6421_config))
+>  				goto frontend_detach;
+>  		}
+>  		break;
+> diff -r 79fc32bba0a0 linux/drivers/media/video/saa7134/saa7134-dvb.c
+> --- a/linux/drivers/media/video/saa7134/saa7134-dvb.c	Mon Dec 14 17:43:13 2009 -0200
+> +++ b/linux/drivers/media/video/saa7134/saa7134-dvb.c	Tue Dec 15 16:36:14 2009 +0100
+> @@ -716,6 +716,12 @@ static struct tda1004x_config lifeview_t
+>  	.request_firmware = philips_tda1004x_request_firmware
+>  };
+>  
+> +static struct isl6421_config lifeview_trio_isl6421_config = {
+> +	.i2c_address = 0x08,
+
+> +	.override_set = 0x00,
+> +	.override_clear = 0x00,
+
+Don't initialize a value with zero.
+
+> +};
+> +
+>  static struct tda1004x_config tevion_dvbt220rf_config = {
+>  	.demod_address = 0x08,
+>  	.invert        = 1,
+> @@ -895,6 +901,12 @@ static struct tda10086_config flydvbs = 
+>  	.invert = 0,
+>  	.diseqc_tone = 0,
+>  	.xtal_freq = TDA10086_XTAL_16M,
+> +};
+> +
+> +static struct isl6421_config flydvbs_isl6421_config = {
+> +	.i2c_address = 0x08,
+
+> +	.override_set = 0x00,
+> +	.override_clear = 0x00,
+
+Don't initialize a value with zero.
+
+
+>  };
+>  
+>  static struct tda10086_config sd1878_4m = {
+> @@ -1248,7 +1260,7 @@ static int dvb_init(struct saa7134_dev *
+>  					goto dettach_frontend;
+>  				}
+>  				if (dvb_attach(isl6421_attach, fe0->dvb.frontend, &dev->i2c_adap,
+> -										0x08, 0, 0) == NULL) {
+> +									&lifeview_trio_isl6421_config) == NULL) {
+>  					wprintk("%s: Lifeview Trio, No ISL6421 found!\n", __func__);
+>  					goto dettach_frontend;
+>  				}
+> @@ -1349,7 +1361,8 @@ static int dvb_init(struct saa7134_dev *
+>  				goto dettach_frontend;
+>  			}
+>  			if (dvb_attach(isl6421_attach, fe0->dvb.frontend,
+> -				       &dev->i2c_adap, 0x08, 0, 0) == NULL) {
+> +				       &dev->i2c_adap,
+> +				       &flydvbs_isl6421_config) == NULL) {
+>  				wprintk("%s: No ISL6421 found!\n", __func__);
+>  				goto dettach_frontend;
+>  			}
+
+
