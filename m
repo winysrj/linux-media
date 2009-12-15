@@ -1,109 +1,240 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:39638 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750986AbZLWQlh convert rfc822-to-8bit (ORCPT
+Received: from cp-out4.libero.it ([212.52.84.104]:57323 "EHLO
+	cp-out4.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756470AbZLOK4W (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Dec 2009 11:41:37 -0500
-Received: from list by lo.gmane.org with local (Exim 4.50)
-	id 1NNUH7-0002IK-IK
-	for linux-media@vger.kernel.org; Wed, 23 Dec 2009 17:41:25 +0100
-Received: from upc.si.94.140.72.111.dc.cable.static.telemach.net ([94.140.72.111])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 23 Dec 2009 17:41:25 +0100
-Received: from prusnik by upc.si.94.140.72.111.dc.cable.static.telemach.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 23 Dec 2009 17:41:25 +0100
+	Tue, 15 Dec 2009 05:56:22 -0500
+Received: from wmail43 (172.31.0.232) by cp-out4.libero.it (8.5.107)
+        id 4B228E4100296DE7 for linux-media@vger.kernel.org; Tue, 15 Dec 2009 11:50:57 +0100
+Message-ID: <32513776.2417971260874257455.JavaMail.defaultUser@defaultHost>
+Date: Tue, 15 Dec 2009 11:50:57 +0100 (CET)
+From: "lucaberto@libero.it" <lucaberto@libero.it>
+Reply-To: "lucaberto@libero.it" <lucaberto@libero.it>
 To: linux-media@vger.kernel.org
-From: =?UTF-8?Q?Alja=C5=BE?= Prusnik <prusnik@gmail.com>
-Subject: Re: Which modules for the VP-2033? Where is the module "mantis.ko"?
-Date: Wed, 23 Dec 2009 17:41:03 +0100
-Message-ID: <1261586462.8948.23.camel@slash.doma>
-References: <4B1D6194.4090308@freenet.de>
-	 <1261578615.8948.4.camel@slash.doma>  <200912231753.28988.liplianin@me.by>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-In-Reply-To: <200912231753.28988.liplianin@me.by>
+Subject: 
+MIME-Version: 1.0
+Content-Type: text/plain;charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On sre, 2009-12-23 at 17:53 +0200, Igor M. Liplianin wrote:
-> Since module ir-common.ko moved to IR directory just remove old one.
-> 
-> 	rm /lib/modules/$(uname -r)/kernel/drivers/media/common/ir-common.ko
-> 
-> Also it would be good to do
-> 
-> 	make remove
-> 
-> Then again build and install drivers.
-> 
+hello i have write i little c program for test :
+here is the program:
 
-Ok. There was no common folder in the above path. Anyway, I did rm and
-make remove and did a new build (2.6.33-rc1). First, there were
-warnings:
-WARNING:
-"ir_input_register" [/mnt/storage/temp/technisat/s2-liplianin/v4l/saa7134.ko] undefined!
-WARNING:
-"ir_input_unregister" [/mnt/storage/temp/technisat/s2-liplianin/v4l/saa7134.ko] undefined!
-WARNING:
-"ir_input_register" [/mnt/storage/temp/technisat/s2-liplianin/v4l/mantis.ko] undefined!
-WARNING:
-"ir_input_register" [/mnt/storage/temp/technisat/s2-liplianin/v4l/ir-kbd-i2c.ko] undefined!
-WARNING:
-"ir_input_unregister" [/mnt/storage/temp/technisat/s2-liplianin/v4l/ir-kbd-i2c.ko] undefined!
-WARNING:
-"ir_core_debug" [/mnt/storage/temp/technisat/s2-liplianin/v4l/ir-common.ko] undefined!
-WARNING:
-"ir_g_keycode_from_table" [/mnt/storage/temp/technisat/s2-liplianin/v4l/ir-common.ko] undefined!
-WARNING:
-"ir_input_register" [/mnt/storage/temp/technisat/s2-liplianin/v4l/em28xx.ko] undefined!
-WARNING:
-"ir_input_unregister" [/mnt/storage/temp/technisat/s2-liplianin/v4l/em28xx.ko] undefined!
-WARNING:
-"ir_input_register" [/mnt/storage/temp/technisat/s2-liplianin/v4l/cx88xx.ko] undefined!
-WARNING:
-"ir_input_unregister" [/mnt/storage/temp/technisat/s2-liplianin/v4l/cx88xx.ko] undefined!
-WARNING:
-"ir_input_register" [/mnt/storage/temp/technisat/s2-liplianin/v4l/cx23885.ko] undefined!
-WARNING:
-"ir_input_unregister" [/mnt/storage/temp/technisat/s2-liplianin/v4l/cx23885.ko] undefined!
-WARNING:
-"ir_input_register" [/mnt/storage/temp/technisat/s2-liplianin/v4l/bttv.ko] undefined!
-WARNING:
-"ir_input_unregister" [/mnt/storage/temp/technisat/s2-liplianin/v4l/bttv.ko] undefined!
+#include
 
-Then I restarted the machine and this is in the kernel log:
-ir_common: Unknown symbol ir_g_keycode_from_table
-ir_common: Unknown symbol ir_core_debug
-+ no mantis module loaded.
-
-I have the IR folder under lib/modules where ir-common.ko resides. In
-the common folder there is no file ir-common.ko.
-
-If I do manual loading, I get:
-sudo modprobe mantis
-WARNING: Error inserting mb86a16
-(/lib/modules/2.6.33-rc1/kernel/drivers/media/dvb/frontends/mb86a16.ko):
-Unknown symbol in module, or unknown parameter (see dmesg)
-FATAL: Error inserting mantis
-(/lib/modules/2.6.33-rc1/kernel/drivers/media/dvb/mantis/mantis.ko):
-Unknown symbol in module, or unknown parameter (see dmesg)
-
-dmesg says:
-[  289.939402] ir_common: Unknown symbol ir_g_keycode_from_table
-[  289.939690] ir_common: Unknown symbol ir_core_debug
+<stdio.h>
+#include </usr/include/linux/dvb/frontend.h>
+#include <stdlib.h>
 
 
-This is the s2-liplianin tree.
+#include <stdint.h>
+#include <ctype.h>
+#include <sys/ioctl.h>
+#include
 
-If using the http://jusst.de/hg/v4l-dvb tree, everything compiles ok,
-module loads, but there is no remote anywhere (there is an IR folder
-with the ir-common.ko file, under common there is not).
+<sys/poll.h>
+#include <unistd.h>
+#include <error.h>
+#include <errno.h>
+#include
+
+<sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <time.h>
 
 
-Aljaz
+#include <unistd.h>
+#include <linux/dvb/dmx.h>
+#include <linux/dvb/frontend.h>
 
 
+#include <linux/dvb/dmx.h>
 
+#define MIA "/dev/dvb/adapter0/frontend0"
+#define
+
+MD "/dev/dvb/adapter0/demux0"
+//#define DVR "/dev/dvb/adapter0/dvr0"
+#define
+
+DVR_FILE "/home/lucak904/Scrivania/Luca/prog_c/sat/mio.dat"
+#define BUFFY
+
+(188*20)
+
+main()
+
+{
+    struct dvb_frontend_info luca;
+    struct
+
+dvb_frontend_parameters parametri;
+    struct dvb_frontend_parameters luca2;
+
+
+    struct dmx_pes_filter_params filtri;
+
+    parametri.frequency = 1197700;
+
+
+    parametri.inversion = INVERSION_AUTO;
+    parametri.u.qpsk.symbol_rate =
+
+2750000;
+    parametri.u.qpsk.fec_inner   = FEC_AUTO;
+
+
+    fe_status_t status;
+
+
+    int fd, min, max,chiudo_fd, chiudo_md, chiudo_dvr ,stato, pp, freq,
+
+ritorno, sy_rate, tt, md,fec_inn, inv, dvr, dvr_out,len;
+    uint8_t buf
+
+[BUFFY];
+
+
+if((fd = open(MIA,O_RDWR)) < 0){
+                perror("FRONTEND
+
+DEVICE: ");
+                return -1;
+    }
+if (ioctl(fd, FE_SET_FRONTEND,
+
+&parametri) < 0){
+                perror("QPSK TUNE: ");
+                return
+
+-1;
+    }
+    if (ioctl(fd, FE_GET_FRONTEND ,&luca2) <0){
+                
+perror
+("GET_INFO: ");
+                return -1;
+    }
+
+printf("\nfreq :%d", 
+luca2.
+frequency);
+    printf("\nsimbol_rate : %d", luca2.u.qpsk.symbol_rate);
+
+   
+printf("\ninversion : %d", luca2.inversion);
+    printf("\nfec : %d", luca2.
+u.
+qpsk.fec_inner);
+
+
+    if (ioctl(fd, FE_GET_INFO  ,&luca) <0){
+
+               
+perror("GET_INFO: ");
+                return -1;
+    }
+
+printf
+("\nfreq min:%
+d", luca.frequency_min);
+printf("\nfreq max:%d", luca.
+frequency_max);
+
+if
+(ioctl(fd, FE_READ_STATUS  ,&status) <0){
+                
+perror
+("FE_READ_STATUS: ");
+                return -1;
+    }
+
+    // apro il 
+demux
+
+
+    printf("\nstato :%d", status);
+    if((md = open(MD,
+O_RDWR|O_NONBLOCK)) < 0)
+{
+                perror("DEMUX DEVICE: ");
+
+                return -1;
+    }
+
+
+    //setto il demux
+
+    filtri.pid = 1296;
+
+    filtri.input =
+DMX_IN_FRONTEND;
+    filtri.output = DMX_OUT_TAP;
+    filtri.
+pes_type =
+DMX_PES_OTHER;
+    filtri.flags = DMX_IMMEDIATE_START;
+    if (ioctl
+(md,
+DMX_SET_PES_FILTER, &filtri) < 0) {
+            perror("DEMUX DEVICE: ");
+
+
+            return -1;
+    }
+
+    //apro il dvr
+
+    //if ((dvr = open(DVR,
+
+O_RDONLY|O_NONBLOCK)) < 0) {
+      //      perror("DVR DEVICE : ");
+//       
+
+/    return -1;
+  //  }
+
+    if ((dvr_out = open
+
+("/home/lucak904/Scrivania/Luca/prog_c/sat/prova_scar.txt", O_WRONLY)) < 0) {
+
+
+            perror(" DVR FILE : ");
+            return -1;
+    }
+
+
+    if((len
+
+= read(md,buf, BUFFY)) < 0){
+        perror("non leggo");
+    }
+    else{
+
+
+        write(dvr_out,buf,len);
+
+    }
+
+    chiudo_fd = close(fd);
+   
+
+chiudo_md = close(md);
+    //chiudo_dvr = close(dvr);
+}
+
+It is just a test
+
+
+every time i get Resource temporarily unavailable
+For my understanding it means
+
+that nothing is readed from demux device, wath is wrong , the pid and frequency
+
+are ok the SNR is more than 70%
+
+Thanks
+
+Luca 
