@@ -1,31 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web23206.mail.ird.yahoo.com ([217.146.189.61]:25325 "HELO
-	web23206.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751050AbZLIUWA convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Dec 2009 15:22:00 -0500
-Message-ID: <211341.40316.qm@web23206.mail.ird.yahoo.com>
-Date: Wed, 9 Dec 2009 20:15:24 +0000 (GMT)
-From: Newsy Paper <newspaperman_germany@yahoo.com>
-Subject: no locking on dvb-s2 22000 2/3 8PSK transponder on Astra 19.2E with tt s2-3200
-To: linux-media@vger.kernel.org
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:47266 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1760492AbZLOVPb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Dec 2009 16:15:31 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Mitar <mitar@tnode.com>
+Subject: Re: uvcvideo Logitech patch
+Date: Tue, 15 Dec 2009 22:15:19 +0100
+Cc: laurent.pinchart@ideasonboard.com,
+	linux-uvc-devel@lists.berlios.de, linux-media@vger.kernel.org
+References: <4B27DD88.3090900@tnode.com>
+In-Reply-To: <4B27DD88.3090900@tnode.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200912152215.21467.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Tuesday 15 December 2009 20:03:36 Mitar wrote:
+> Hi!
+>
+> I have Logitech QuickCam Pro 9000 webcam and I had the same problems
+> described here:
+>
+> http://patchwork.kernel.org/patch/52261/
+>
+> I have applied the patch and it did not help. But it helped when I
+> increased UVC_CTRL_CONTROL_TIMEOUT to 1000 and
+> UVC_CTRL_STREAMING_TIMEOUT 5000. So 300 and 3000 values were not enough.
+> I do not know if it was really necessary to increase
+> UVC_CTRL_CONTROL_TIMEOUT or if it would be enough something between 3000
+> and 5000 for UVC_CTRL_STREAMING_TIMEOUT as I did not have more time to
+> test it.
+>
+> So maybe 5000 would be a good default for UVC_CTRL_STREAMING_TIMEOUT?
+>
+> I have been doing this on 2.6.30 amd64 system.
+>
+> Just to let you know. And thanks for the patch.
+>
+>
+> Mitar
 
-no matter if I use Igors or Manus driver, there's no lock on 11303 h 22000 2/3 8psk. Other users at vdr-portal report same problem.
+[Added UVC mailing lists to CC]
 
-The strange thing is that all other transponders that use 22000 2/3 8psk do work but this transponder doesn't. It worked fine until december 3rd when uplink moved to Vienna. I think they changed a parameter like rolloff or inversion and the dvb-s2 part of stb6100 is buggy.
 
-regards
-
-Newspaperman
-
-__________________________________________________
-Do You Yahoo!?
-Sie sind Spam leid? Yahoo! Mail verfügt über einen herausragenden Schutz gegen Massenmails. 
-http://mail.yahoo.com 
+-- 
+Ondrej Zary
