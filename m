@@ -1,64 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:27472 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762081AbZLKBtb convert rfc822-to-8bit (ORCPT
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:47720 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761022AbZLOUOE convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2009 20:49:31 -0500
-Received: by fg-out-1718.google.com with SMTP id 16so817018fgg.1
-        for <linux-media@vger.kernel.org>; Thu, 10 Dec 2009 17:49:31 -0800 (PST)
+	Tue, 15 Dec 2009 15:14:04 -0500
 MIME-Version: 1.0
-In-Reply-To: <44c6f3de0912101738h7f102929i54fbcceceb616edf@mail.gmail.com>
-References: <44c6f3de0912041415r54d8ab6fq486f2a82edb91a68@mail.gmail.com>
-	 <829197380912041526r764a0deeyb64910a22e92d75d@mail.gmail.com>
-	 <829197380912072020s79199b84g20dbc341e4d231e1@mail.gmail.com>
-	 <44c6f3de0912101738h7f102929i54fbcceceb616edf@mail.gmail.com>
-Date: Thu, 10 Dec 2009 20:49:31 -0500
-Message-ID: <829197380912101749w5f1d1635gbdda2ac2fb980b8c@mail.gmail.com>
-Subject: Re: [PATCH] sound/usb: Relax urb data alignment restriciton for
-	HVR-950Q only
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: John S Gruber <johnsgruber@gmail.com>
-Cc: linux-media@vger.kernel.org
+In-Reply-To: <20091215195859.GI24406@elf.ucw.cz>
+References: <1260070593.3236.6.camel@pc07.localdom.local>
+	 <4B1B99A5.2080903@redhat.com> <m3638k6lju.fsf@intrepid.localdomain>
+	 <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
+	 <m3skbn6dv1.fsf@intrepid.localdomain>
+	 <20091207184153.GD998@core.coreip.homeip.net>
+	 <4B24DABA.9040007@redhat.com> <20091215115011.GB1385@ucw.cz>
+	 <4B279017.3080303@redhat.com> <20091215195859.GI24406@elf.ucw.cz>
+Date: Tue, 15 Dec 2009 15:14:02 -0500
+Message-ID: <9e4733910912151214n68161fc7tca0ffbf34c2c4e4@mail.gmail.com>
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
+	system?
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
+	kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello John,
-
-On Thu, Dec 10, 2009 at 8:38 PM, John S Gruber <johnsgruber@gmail.com> wrote:
-> I think you found something in the specification I haven't found. What did you
-> see that indicated how to deal with equipment misbehaving in this way?
-
-I'm referring to section 2.3.2.3 of "Universal Serial Bus Device Class
-Definition for Audio Data Formats"
-
-> I found the following list of USB ID's. Just double checking, but is
-> the 850 enough like the
-> 950 line for me to include it?
+On Tue, Dec 15, 2009 at 2:58 PM, Pavel Machek <pavel@ucw.cz> wrote:
+> Hi!
 >
->        case 72000: /* WinTV-HVR950q (Retail, IR, ATSC/QAM */
->        case 72001: /* WinTV-HVR950q (Retail, IR, ATSC/QAM and analog video */
->        case 72211: /* WinTV-HVR950q (OEM, IR, ATSC/QAM and analog video */
->        case 72221: /* WinTV-HVR950q (OEM, IR, ATSC/QAM and analog video */
->        case 72231: /* WinTV-HVR950q (OEM, IR, ATSC/QAM and analog video */
->        case 72241: /* WinTV-HVR950q (OEM, No IR, ATSC/QAM and analog video */
->        case 72251: /* WinTV-HVR950q (Retail, IR, ATSC/QAM and analog video */
-> -->   case 72301: /* WinTV-HVR850 (Retail, IR, ATSC and analog video */
->        case 72500: /* WinTV-HVR950q (OEM, No IR, ATSC/QAM */
+>>       (11) if none is against renaming IR as RC, I'll do it on a next patch;
+>
+> Call it irc -- infrared remote control. Bluetooth remote controls will
+> have very different characteristics.
 
-Yes, the HVR-850 should be included in the list.
+How are they different after the scancode is extracted from the
+network packet? The scancode still needs to be passed to the input
+system, go through a keymap, and end up on an evdev device.
 
-> I'd add that being the beginner at making kernel changes your review
-> is particularly
-> helpful to me (and to my confidence).
-
-You are likely to receive a more thorough/critical review when you
-send to the alsa-devel mailing list, as they have considerably more
-expertise in this area than I do.
-
-Devin
+I would expect the code for extracting the scancode to live in the
+networking stack, but after it is recovered the networking code would
+use the same API as IR to submit it to input.
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Jon Smirl
+jonsmirl@gmail.com
