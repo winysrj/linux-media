@@ -1,70 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:62481 "EHLO znsun1.ifh.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750841AbZLAO7U (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Dec 2009 09:59:20 -0500
-Received: from pub6.ifh.de (pub6.ifh.de [141.34.15.118])
-	by znsun1.ifh.de (8.12.11.20060614/8.12.11) with ESMTP id nB1ExK7d015326
-	for <linux-media@vger.kernel.org>; Tue, 1 Dec 2009 15:59:20 +0100 (MET)
-Received: from localhost (localhost [127.0.0.1])
-	by pub6.ifh.de (Postfix) with ESMTP id 1F45A300124
-	for <linux-media@vger.kernel.org>; Tue,  1 Dec 2009 15:59:20 +0100 (CET)
-Date: Tue, 1 Dec 2009 15:59:20 +0100 (CET)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Replace Mercurial with GIT as SCM
-Message-ID: <alpine.LRH.2.00.0912011003480.30797@pub3.ifh.de>
+Received: from ey-out-2122.google.com ([74.125.78.25]:61350 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759789AbZLOK5j convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Dec 2009 05:57:39 -0500
+Received: by ey-out-2122.google.com with SMTP id d26so1092419eyd.19
+        for <linux-media@vger.kernel.org>; Tue, 15 Dec 2009 02:57:37 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+In-Reply-To: <21846845.2414981260873072666.JavaMail.defaultUser@defaultHost>
+References: <21846845.2414981260873072666.JavaMail.defaultUser@defaultHost>
+From: ALi <osatien@gmail.com>
+Date: Tue, 15 Dec 2009 11:57:17 +0100
+Message-ID: <431ff28c0912150257n4155816frc49bd64e87cb839e@mail.gmail.com>
+Subject: Re: [linux-dvb] capture emm and ecm stream
+To: linux-media@vger.kernel.org,
+	"lucaberto@libero.it" <lucaberto@libero.it>
+Cc: linux-dvb@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+when i did my first emm decoder (;->) i took the source code from
+dvbsnoop and it worked for me ..... can you try it?
 
-I would like to start a discussion which ideally results in either 
-changing the SCM of v4l-dvb to git _or_ leaving everything as it is today 
-with mercurial.
+can you try first dvbsnoop with the parameters you want?
 
-To start right away: I'm in favour of using GIT because of difficulties I 
-have with my "daily" work with v4l-dvb. It is in my nature do to mistakes, 
-so I need a tool which assists me in fixing those, I have not found a 
-simple way to do my stuff with HG.
-
-I'm helping out myself using a citation from which basically describes why 
-GIT fits the/my needs better than HG (*):
-
-"The culture of mercurial is one of immutability. This is quite a good
-thing, and it's one of my favorite aspects of gnu arch. If I commit
-something, I like to know that it's going to be there. Because of this,
-there are no tools to manipulate history by default.
-
-git is all about manipulating history. There's rebase, commit amend,
-reset, filter-branch, and probably other commands I'm not thinking of,
-many of which make it into day-to-day workflows. Then again, there's
-reflog, which adds a big safety net around this mutability."
-
-The first paragraph here describes exactly my problem and the second 
-descibes how to solve it.
-
-My suggestion is not to have the full Linux Kernel source as a new base 
-for v4l-dvb development, but "only" to replace the current v4l-dvb hg with 
-a GIT one. Importing all the history and everything.
-
-Unfortunately it will change nothing for Mauro's job.
-
-I also understand that it does not give a lot to people who haven't used 
-GIT until now other than a new SCM to learn. But believe me, once you've 
-done a rebase when Mauro has asked you to rebuild your tree before he can 
-merge it, you will see what I mean.
-
-I'm waiting for comments.
-
-Thanks,
-
-(*)
-http://www.rockstarprogrammer.org/post/2008/apr/06/differences-between-mercurial-and-git/
-
---
-
-Patrick
-http://www.kernellabs.com/
+On Tue, Dec 15, 2009 at 11:31 AM, lucaberto@libero.it
+<lucaberto@libero.it> wrote:
+> hello i have write i little c program for test :
+> here is the program:
+>
+> #include
+> <stdio.h>
+> #include </usr/include/linux/dvb/frontend.h>
+> #include <stdlib.h>
+>
+> #include <stdint.h>
+> #include <ctype.h>
+> #include <sys/ioctl.h>
+> #include
+> <sys/poll.h>
+> #include <unistd.h>
+> #include <error.h>
+> #include <errno.h>
+> #include
+> <sys/types.h>
+> #include <sys/stat.h>
+> #include <fcntl.h>
+> #include <time.h>
+>
+> #include <unistd.h>
+> #include <linux/dvb/dmx.h>
+> #include <linux/dvb/frontend.h>
+>
+> #include <linux/dvb/dmx.h>
+>
+> #define MIA "/dev/dvb/adapter0/frontend0"
+> #define
+> MD "/dev/dvb/adapter0/demux0"
+> //#define DVR "/dev/dvb/adapter0/dvr0"
+> #define
+> DVR_FILE "/home/lucak904/Scrivania/Luca/prog_c/sat/mio.dat"
+> #define BUFFY
+> (188*20)
+>
+> main()
+>
+> {
+>    struct dvb_frontend_info luca;
+>    struct
+> dvb_frontend_parameters parametri;
+>    struct dvb_frontend_parameters luca2;
+>
+>    struct dmx_pes_filter_params filtri;
+>
+>    parametri.frequency = 1197700;
+>
+>    parametri.inversion = INVERSION_AUTO;
+>    parametri.u.qpsk.symbol_rate =
+> 2750000;
+>    parametri.u.qpsk.fec_inner   = FEC_AUTO;
+>
+>
+>    fe_status_t status;
+>
+>    int fd, min, max,chiudo_fd, chiudo_md, chiudo_dvr ,stato, pp, freq,
+> ritorno, sy_rate, tt, md,fec_inn, inv, dvr, dvr_out,len;
+>    uint8_t buf
+> [BUFFY];
+>
+>
+>        if((fd = open(MIA,O_RDWR)) < 0){
+>                perror("FRONTEND
+> DEVICE: ");
+>                return -1;
+>    }
+>        if (ioctl(fd, FE_SET_FRONTEND,
+> &parametri) < 0){
+>                perror("QPSK TUNE: ");
+>                return
+> -1;
+>    }
+>    if (ioctl(fd, FE_GET_FRONTEND ,&luca2) <0){
+>                perror
+> ("GET_INFO: ");
+>                return -1;
+>    }
+>
+>        printf("\nfreq :%d", luca2.
+> frequency);
+>    printf("\nsimbol_rate : %d", luca2.u.qpsk.symbol_rate);
+>
+> printf("\ninversion : %d", luca2.inversion);
+>    printf("\nfec : %d", luca2.u.
+> qpsk.fec_inner);
+>
+>
+>    if (ioctl(fd, FE_GET_INFO  ,&luca) <0){
+>
+> perror("GET_INFO: ");
+>                return -1;
+>    }
+>
+>        printf("\nfreq min:%
+> d", luca.frequency_min);
+>        printf("\nfreq max:%d", luca.frequency_max);
+>
+>        if
+> (ioctl(fd, FE_READ_STATUS  ,&status) <0){
+>                perror
+> ("FE_READ_STATUS: ");
+>                return -1;
+>    }
+>
+>    // apro il demux
+>
+>
+>    printf("\nstato :%d", status);
+>    if((md = open(MD,O_RDWR|O_NONBLOCK)) < 0)
+> {
+>                perror("DEMUX DEVICE: ");
+>                return -1;
+>    }
+>
+>
+>    //setto il demux
+>
+>    filtri.pid = 1296;
+>    filtri.input =
+> DMX_IN_FRONTEND;
+>    filtri.output = DMX_OUT_TAP;
+>    filtri.pes_type =
+> DMX_PES_OTHER;
+>    filtri.flags = DMX_IMMEDIATE_START;
+>    if (ioctl(md,
+> DMX_SET_PES_FILTER, &filtri) < 0) {
+>            perror("DEMUX DEVICE: ");
+>
+>            return -1;
+>    }
+>
+>    //apro il dvr
+>
+>    //if ((dvr = open(DVR,
+> O_RDONLY|O_NONBLOCK)) < 0) {
+>      //      perror("DVR DEVICE : ");
+> //
+> /    return -1;
+>  //  }
+>
+>    if ((dvr_out = open
+> ("/home/lucak904/Scrivania/Luca/prog_c/sat/prova_scar.txt", O_WRONLY)) < 0) {
+>
+>            perror(" DVR FILE : ");
+>            return -1;
+>    }
+>
+>
+>    if((len
+> = read(md,buf, BUFFY)) < 0){
+>        perror("non leggo");
+>    }
+>    else{
+>
+>        write(dvr_out,buf,len);
+>
+>    }
+>
+>    chiudo_fd = close(fd);
+>
+> chiudo_md = close(md);
+>    //chiudo_dvr = close(dvr);
+> }
+>
+> It is just a test
+>
+> every time i get Resource temporarily unavailable
+> For my understanding it means
+> that nothing is readed from demux device, wath is wrong , the pid and frequency
+> are ok the SNR is more than 70%
+>
+> Thanks
+>
+> Luca
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
