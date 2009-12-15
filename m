@@ -1,55 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:48871 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753666AbZLOMMx (ORCPT
+Received: from mail01a.mail.t-online.hu ([84.2.40.6]:56440 "EHLO
+	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756853AbZLOUwN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Dec 2009 07:12:53 -0500
-Message-ID: <4B277D2A.7050201@maxwell.research.nokia.com>
-Date: Tue, 15 Dec 2009 14:12:26 +0200
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+	Tue, 15 Dec 2009 15:52:13 -0500
+Message-ID: <4B27F6F3.5000300@freemail.hu>
+Date: Tue, 15 Dec 2009 21:52:03 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Guru Raj <gururaj.nagendra@intel.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Mike Krufky <mkrufky@linuxtv.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	"Ivan T. Ivanov" <iivanov@mm-sol.com>,
-	Zutshi Vimarsh <vimarsh.zutshi@nokia.com>
-Subject: [RFC 0/4] V4L2 file handles and event interface
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Michael Krufky <mkrufky@linuxtv.org>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] lgdt3305: make one-bit bitfields unsigned
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Márton Németh <nm127@freemail.hu>
 
-Here's the first version of the V4L2 file handle and event interface 
-patchset. I posted it as RFC since there are a few issues with the 
-contents and I have no assurrances that this even is functional at the 
-moment.
+Make one-bit bitfields unsigned which will remove the following
+sparse warning messages (see "make C=1"):
+ * lgdt3305.h:57:21: error: dubious one-bit signed bitfield
+ * lgdt3305.h:60:26: error: dubious one-bit signed bitfield
+ * lgdt3305.h:63:19: error: dubious one-bit signed bitfield
 
-The first patch adds the V4L2 file handle support and the rest are for 
-V4L2 events.
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+diff -r ba8d6bf077aa linux/drivers/media/dvb/frontends/lgdt3305.h
+--- a/linux/drivers/media/dvb/frontends/lgdt3305.h	Tue Dec 15 17:40:44 2009 +0100
++++ b/linux/drivers/media/dvb/frontends/lgdt3305.h	Tue Dec 15 21:47:53 2009 +0100
+@@ -54,13 +54,13 @@
+ 	u16 usref_qam256; /* default: 0x2a80 */
 
-A few notes on the patches:
+ 	/* disable i2c repeater - 0:repeater enabled 1:repeater disabled */
+-	int deny_i2c_rptr:1;
++	unsigned int deny_i2c_rptr:1;
 
-- I don't like the locking too much. Perhaps the file handle specific 
-lock (events->lock) could be dropped in favour of the lock for 
-v4l2_file_handle in video_device.
+ 	/* spectral inversion - 0:disabled 1:enabled */
+-	int spectral_inversion:1;
++	unsigned int spectral_inversion:1;
 
-- Event queue depth is not controlled at the moment.
+ 	/* use RF AGC loop - 0:disabled 1:enabled */
+-	int rf_agc_loop:1;
++	unsigned int rf_agc_loop:1;
 
-- (Un)subscribing all events is not supported.
-
-Comments are very welcome.
-
-Cheers,
-
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
-
-
-
+ 	enum lgdt3305_mpeg_mode mpeg_mode;
+ 	enum lgdt3305_tp_clock_edge tpclk_edge;
