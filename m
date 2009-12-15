@@ -1,55 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52097 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754390AbZLCQb3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Dec 2009 11:31:29 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH - v1] V4L - Documentation:Adds EBUSY error code for S_STD and QUERYSTD ioctls
-Date: Thu,  3 Dec 2009 11:31:30 -0500
-Message-Id: <1259857890-570-1-git-send-email-m-karicheri2@ti.com>
+Received: from mail-gx0-f211.google.com ([209.85.217.211]:43748 "EHLO
+	mail-gx0-f211.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760137AbZLOMVA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Dec 2009 07:21:00 -0500
+Received: by gxk3 with SMTP id 3so5584981gxk.1
+        for <linux-media@vger.kernel.org>; Tue, 15 Dec 2009 04:20:59 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <alpine.LRH.2.00.0912151203580.16159@pub6.ifh.de>
+References: <bcf98daa0911270513v7463260dm36e0a5e2557b797f@mail.gmail.com>
+	 <4B2750BD.6000700@teptin.net>
+	 <alpine.LRH.2.00.0912151203580.16159@pub6.ifh.de>
+Date: Tue, 15 Dec 2009 14:20:59 +0200
+Message-ID: <bcf98daa0912150420u586a16b8k5c49076b01407a8e@mail.gmail.com>
+Subject: Re: High cpu load (dvb_usb_dib0700)
+From: Markus Suvanto <markus.suvanto@gmail.com>
+To: Patrick Boettcher <pboettcher@kernellabs.com>
+Cc: Jan Korbel <jackc@teptin.net>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+> Have you tried to load dvb-usb with disable_rc_polling=1 ?
+>
+> It may or may not help.
+>
+> If it helps it will necessary to have a look at the ir-polling code to see
+> whether there is some thing like 'scheduling'.
 
-During review of Video Timing API documentation, Hans Verkuil had a comment
-on adding EBUSY error code for VIDIOC_S_STD and VIDIOC_QUERYSTD ioctls. This
-patch updates the document for this.
+Yes it helps.
+echo 1 >  /sys/module/dvb_usb/parameters/disable_rc_polling
+and my cpu load goes down but remote control don't work anymore.
 
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
----
-diff -uNr v4l-dvb-e0cd9a337600_master/linux/Documentation/DocBook/v4l/vidioc-g-std.xml v4l-dvb_patch1/linux/Documentation/DocBook/v4l/vidioc-g-std.xml
---- v4l-dvb-e0cd9a337600_master/linux/Documentation/DocBook/v4l/vidioc-g-std.xml	2009-12-01 17:02:04.000000000 -0500
-+++ v4l-dvb_patch1/linux/Documentation/DocBook/v4l/vidioc-g-std.xml	2009-12-03 11:18:34.000000000 -0500
-@@ -86,6 +86,12 @@
- <constant>VIDIOC_S_STD</constant> parameter was unsuitable.</para>
- 	</listitem>
-       </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>EBUSY</errorcode></term>
-+	<listitem>
-+	  <para>The device is busy and therefore can not change the standard</para>
-+	</listitem>
-+      </varlistentry>
-     </variablelist>
-   </refsect1>
- </refentry>
-diff -uNr v4l-dvb-e0cd9a337600_master/linux/Documentation/DocBook/v4l/vidioc-querystd.xml v4l-dvb_patch1/linux/Documentation/DocBook/v4l/vidioc-querystd.xml
---- v4l-dvb-e0cd9a337600_master/linux/Documentation/DocBook/v4l/vidioc-querystd.xml	2009-12-01 17:02:04.000000000 -0500
-+++ v4l-dvb_patch1/linux/Documentation/DocBook/v4l/vidioc-querystd.xml	2009-12-03 11:18:44.000000000 -0500
-@@ -70,6 +70,12 @@
- 	  <para>This ioctl is not supported.</para>
- 	</listitem>
-       </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>EBUSY</errorcode></term>
-+	<listitem>
-+	  <para>The device is busy and therefore can not detect the standard</para>
-+	</listitem>
-+      </varlistentry>
-     </variablelist>
-   </refsect1>
- </refentry>
+-Markus
