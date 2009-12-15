@@ -1,77 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35468 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752869AbZLIPeY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2009 10:34:24 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Magnus Damm <magnus.damm@gmail.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"mchehab@infradead.org" <mchehab@infradead.org>
-Date: Wed, 9 Dec 2009 09:34:06 -0600
-Subject: RE: [PATCH - v1] V4L-Fix videobuf_dma_contig_user_get() for
- 	non-aligned offsets
-Message-ID: <A69FA2915331DC488A831521EAE36FE40155C80479@dlee06.ent.ti.com>
-References: <1260308217-22871-1-git-send-email-m-karicheri2@ti.com>
- <aec7e5c30912090459q1854c483hdfbe370a73ea94a8@mail.gmail.com>
-In-Reply-To: <aec7e5c30912090459q1854c483hdfbe370a73ea94a8@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-MIME-Version: 1.0
+Received: from smtp.nokia.com ([192.100.122.233]:32497 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753777AbZLOMUR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Dec 2009 07:20:17 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	gururaj.nagendra@intel.com, mchehab@infradead.org,
+	mkrufky@linuxtv.org, dheitmueller@kernellabs.com,
+	iivanov@mm-sol.com, vimarsh.zutshi@nokia.com
+Subject: [RFC 3/4] V4L: Events: Support event handling in do_ioctl
+Date: Tue, 15 Dec 2009 14:19:50 +0200
+Message-Id: <1260879591-14376-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1260879591-14376-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+References: <4B277D2A.7050201@maxwell.research.nokia.com>
+ <1260879591-14376-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+ <1260879591-14376-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Magnus,
+Add support for event handling to do_ioctl.
 
-Thanks for testing and approving the patch.
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/v4l2-ioctl.c |   48 ++++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-ioctl.h       |    7 +++++
+ 2 files changed, 55 insertions(+), 0 deletions(-)
 
-Mauro,
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index bfc4696..067ab3a 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -1797,7 +1797,55 @@ static long __video_do_ioctl(struct file *file,
+ 		}
+ 		break;
+ 	}
++	case VIDIOC_DQEVENT:
++	{
++		struct v4l2_event *ev = arg;
++
++		if (!ops->vidioc_dqevent)
++			break;
++
++		ret = ops->vidioc_dqevent(file, ev);
++		if (ret < 0) {
++			dbgarg(cmd, "no pending events?");
++			break;
++		}
++		dbgarg(cmd,
++		       "count=%d, type=0x%8.8x, sequence=%d, "
++		       "timestamp=%d.%9.9lu ",
++		       ev->count, ev->type, ev->sequence,
++		       (int)ev->timestamp.tv_sec, ev->timestamp.tv_nsec);
++		break;
++	}
++	case VIDIOC_SUBSCRIBE_EVENT:
++	{
++		struct v4l2_event_subscription *sub = arg;
+ 
++		if (!ops->vidioc_subscribe_event)
++			break;
++
++		ret = ops->vidioc_subscribe_event(file, sub);
++		if (ret < 0) {
++			dbgarg(cmd, "failed, ret=%ld", ret);
++			break;
++		}
++		dbgarg(cmd, "type=0x%8.8x", sub->type);
++		break;
++	}
++	case VIDIOC_UNSUBSCRIBE_EVENT:
++	{
++		struct v4l2_event_subscription *sub = arg;
++
++		if (!ops->vidioc_unsubscribe_event)
++			break;
++
++		ret = ops->vidioc_unsubscribe_event(file, sub);
++		if (ret < 0) {
++			dbgarg(cmd, "failed, ret=%ld", ret);
++			break;
++		}
++		dbgarg(cmd, "type=0x%8.8x", sub->type);
++		break;
++	}
+ 	default:
+ 	{
+ 		if (!ops->vidioc_default)
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index 7a4529d..77a71cc 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -239,6 +239,13 @@ struct v4l2_ioctl_ops {
+ 	int (*vidioc_enum_frameintervals) (struct file *file, void *fh,
+ 					   struct v4l2_frmivalenum *fival);
+ 
++	int (*vidioc_dqevent)	       (struct file *file,
++					struct v4l2_event *ev);
++	int (*vidioc_subscribe_event)  (struct file *file,
++					struct v4l2_event_subscription *sub);
++	int (*vidioc_unsubscribe_event) (struct file *file,
++					 struct v4l2_event_subscription *sub);
++
+ 	/* For other private ioctls */
+ 	long (*vidioc_default)	       (struct file *file, void *fh,
+ 					int cmd, void *arg);
+-- 
+1.5.6.5
 
-Could you merge this bug fix?
-
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-phone: 301-407-9583
-email: m-karicheri2@ti.com
-
->-----Original Message-----
->From: Magnus Damm [mailto:magnus.damm@gmail.com]
->Sent: Wednesday, December 09, 2009 8:00 AM
->To: Karicheri, Muralidharan
->Cc: linux-media@vger.kernel.org
->Subject: Re: [PATCH - v1] V4L-Fix videobuf_dma_contig_user_get() for non-
->aligned offsets
->
->On Wed, Dec 9, 2009 at 6:36 AM,  <m-karicheri2@ti.com> wrote:
->> From: Muralidharan Karicheri <m-karicheri2@ti.com>
->>
->> If a USERPTR address that is not aligned to page boundary is passed to
->the
->> videobuf_dma_contig_user_get() function, it saves a page aligned address
->to
->> the dma_handle. This is not correct. This issue is observed when using
->USERPTR
->> IO machism for buffer exchange.
->>
->> Updates from last version:-
->>
->> Adding offset for size calculation as per comment from Magnus Damm. This
->> ensures the last page is also included for checking if memory is
->> contiguous.
->>
->> Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
->
->Hi Murali,
->
->I've spent some time testing this patch with the SuperH CEU driver in
->USERPTR mode. My test case is based on capture.c with places a bunch
->of QVGA frames directly after each other. The size of each QVGA frame
->is not an even multiple of 4k page size, so some of the frames will
->use a non-aligned start addresses. Currently the CEU driver page
->aligns the size of each frame, but I'll fix that in an upcoming patch.
->Thank you!
->
->Acked-by: Magnus Damm <damm@opensource.se>
