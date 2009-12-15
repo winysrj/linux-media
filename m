@@ -1,121 +1,1311 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:6971 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753938AbZLHLSC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2009 06:18:02 -0500
-Message-ID: <4B1E35D6.6000602@redhat.com>
-Date: Tue, 08 Dec 2009 09:17:42 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1806 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754027AbZLOUtQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Dec 2009 15:49:16 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: santiago.nunez@ridgerun.com
+Subject: Re: [PATCH 3/4 v11] TVP7002 driver for DM365
+Date: Tue, 15 Dec 2009 21:49:33 +0100
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	linux-media@vger.kernel.org, nsnehaprabha@ti.com,
+	m-karicheri2@ti.com, diego.dompe@ridgerun.com,
+	todd.fischer@ridgerun.com, mgrosen@ti.com
+References: <1259596313-16712-1-git-send-email-santiago.nunez@ridgerun.com>
+In-Reply-To: <1259596313-16712-1-git-send-email-santiago.nunez@ridgerun.com>
 MIME-Version: 1.0
-To: Jon Smirl <jonsmirl@gmail.com>
-CC: Krzysztof Halasa <khc@pm.waw.pl>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
-	kraxel@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR 	system?
-References: <20091204220708.GD25669@core.coreip.homeip.net>	 <9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>	 <1260070593.3236.6.camel@pc07.localdom.local>	 <20091206065512.GA14651@core.coreip.homeip.net>	 <4B1B99A5.2080903@redhat.com> <m3638k6lju.fsf@intrepid.localdomain>	 <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>	 <m3skbn6dv1.fsf@intrepid.localdomain>	 <9e4733910912061323x22c618ccyf6edcee5b021cbe3@mail.gmail.com>	 <4B1D934E.7030103@redhat.com> <9e4733910912071628x3f3eba82r4c964982f9d8c5a4@mail.gmail.com>
-In-Reply-To: <9e4733910912071628x3f3eba82r4c964982f9d8c5a4@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
+Message-Id: <200912152149.33065.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jon Smirl wrote:
-> On Mon, Dec 7, 2009 at 6:44 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
+Hi Santiago,
 
->>> Where is the documentation for the protocol?
->> I'm not sure what you're meaning here. I've started a doc about IR at the media
+Some quick review comments:
+
+On Monday 30 November 2009 16:51:53 santiago.nunez@ridgerun.com wrote:
+> From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
 > 
-> What is the format of the pulse stream data coming out of the lirc device?
-
-AFAIK, it is at:
-	http://www.lirc.org/html/index.html
-
-It would be nice to to add it to DocBook after integrating the API in kernel.
-
->> docbook. This is currently inside the kernel Documents/DocBook. If you want
->> to browse, it is also available as:
->>
->>        http://linuxtv.org/downloads/v4l-dvb-apis/ch17.html
->>
->> For sure we need to better document the IR's, and explain the API's there.
->>
->>> Is it a device interface or something else?
->> lirc_dev should create a device interface.
->>
->>> What about capabilities of the receiver, what frequencies?
->>> If a receiver has multiple frequencies, how do you report what
->>> frequency the data came in on?
->> IMO, via sysfs.
+> This patch provides the implementation of the TVP7002 decoder
+> driver for DM365. Implemented using the V4L2 DV presets API.
+> Removed shadow register values. Testing shows that the device
+> needs not to be powered down and up for correct behaviour.
+> Improved readability.
 > 
-> Say you have a hardware device with two IR diodes, one at 38K and one
-> at 56K. Both of these receivers can get pulses. How do we tell the
-> user space app which frequency the pulses were received on? Seems to
-> me like there has to be a header on the pulse data indicating the
-> received carrier frequency. There is also baseband signaling. sysfs
-> won't work for this because of the queuing latency.
-
-Simply create two interfaces. One for each IR receiver. At sysfs, you'll
-have /sys/class/irrcv/irrcv0 for the first one and /sys/class/irrcv/irrcv1.
+> Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+> ---
+>  drivers/media/video/tvp7002.c | 1227 +++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 1227 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/video/tvp7002.c
 > 
-> How is over-run signaled to the app? You'd get an over-run if the app
-> is too slow at reading the data out of the FIFO. If you ignore
-> over-run you'll be processing bad data because part of the message was
-> lost. An over-run signal tell the abort to abort the signal and start
-> over.
+> diff --git a/drivers/media/video/tvp7002.c b/drivers/media/video/tvp7002.c
+> new file mode 100644
+> index 0000000..9ed7b89
+> --- /dev/null
+> +++ b/drivers/media/video/tvp7002.c
+> @@ -0,0 +1,1227 @@
+> +/* Texas Instruments Triple 8-/10-BIT 165-/110-MSPS Video and Graphics
+> + * Digitizer with Horizontal PLL registers
+> + *
+> + * Copyright (C) 2009 Texas Instruments Inc
+> + * Author: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+> + *
+> + * This code is partially based upon the TVP5150 driver
+> + * written by Mauro Carvalho Chehab (mchehab@infradead.org),
+> + * the TVP514x driver written by Vaibhav Hiremath <hvaibhav@ti.com>
+> + * and the TVP7002 driver in the TI LSP 2.10.00.14. Revisions by
+> + * Muralidharan Karicheri and Snehaprabha Narnakaje (TI).
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> + */
+> +#include <linux/delay.h>
+> +#include <linux/i2c.h>
+> +#include <linux/videodev2.h>
+> +#include <media/tvp7002.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-chip-ident.h>
+> +#include "tvp7002_reg.h"
+> +
+> +MODULE_DESCRIPTION("TI TVP7002 Video and Graphics Digitizer driver");
+> +MODULE_AUTHOR("Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>");
+> +MODULE_LICENSE("GPL");
+> +
+> +/* Module Name */
+> +#define TVP7002_MODULE_NAME	"tvp7002"
+> +
+> +/* I2C retry attempts */
+> +#define I2C_RETRY_COUNT		(5)
+> +
+> +/* End of registers */
+> +#define TVP7002_EOR		0x5c
+> +
+> +/* Read write definition for registers */
+> +#define TVP7002_READ		0
+> +#define TVP7002_WRITE		1
+> +#define TVP7002_RESERVED	2
+> +
+> +/* Interlaced vs progressive mask and shift */
+> +#define TVP7002_IP_SHIFT	5
+> +#define TVP7002_INPR_MASK	(0x01 << TVP7002_IP_SHIFT)
+> +
+> +/* Shift for CPL and LPF registers */
+> +#define TVP7002_CL_SHIFT	8
+> +#define TVP7002_CL_MASK		0x0f
+> +
+> +/* Debug functions */
+> +static int debug;
+> +module_param(debug, bool, 0644);
+> +MODULE_PARM_DESC(debug, "Debug level (0-2)");
+> +
+> +/* Structure for register values */
+> +struct i2c_reg_value {
+> +	u8 reg;
+> +	u8 value;
+> +	u8 type;
+> +};
+> +
+> +/*
+> + * Register default values (according to tvp7002 datasheet)
+> + * In the case of read-only registers, the value (0xff) is
+> + * never written. R/W functionality is controlled by the
+> + * writable bit in the register struct definition.
+> + */
+> +static const struct i2c_reg_value tvp7002_init_default[] = {
+> +	{ TVP7002_CHIP_REV, 0xff, TVP7002_READ },
+> +	{ TVP7002_HPLL_FDBK_DIV_MSBS, 0x67, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_FDBK_DIV_LSBS, 0x20, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_CRTL, 0xa0, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_PHASE_SEL, 0x80, TVP7002_WRITE },
+> +	{ TVP7002_CLAMP_START, 0x32, TVP7002_WRITE },
+> +	{ TVP7002_CLAMP_W, 0x20, TVP7002_WRITE },
+> +	{ TVP7002_HSYNC_OUT_W, 0x60, TVP7002_WRITE },
+> +	{ TVP7002_B_FINE_GAIN, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_G_FINE_GAIN, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_R_FINE_GAIN, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_B_FINE_OFF_MSBS, 0x80, TVP7002_WRITE },
+> +	{ TVP7002_G_FINE_OFF_MSBS, 0x80, TVP7002_WRITE },
+> +	{ TVP7002_R_FINE_OFF_MSBS, 0x80, TVP7002_WRITE },
+> +	{ TVP7002_SYNC_CTL_1, 0x20, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_AND_CLAMP_CTL, 0x2e, TVP7002_WRITE },
+> +	{ TVP7002_SYNC_ON_G_THRS, 0x5d, TVP7002_WRITE },
+> +	{ TVP7002_SYNC_SEPARATOR_THRS, 0x47, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_PRE_COAST, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_POST_COAST, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_SYNC_DETECT_STAT, 0xff, TVP7002_READ },
+> +	{ TVP7002_OUT_FORMATTER, 0x47, TVP7002_WRITE },
+> +	{ TVP7002_MISC_CTL_1, 0x01, TVP7002_WRITE },
+> +	{ TVP7002_MISC_CTL_2, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_MISC_CTL_3, 0x01, TVP7002_WRITE },
+> +	{ TVP7002_IN_MUX_SEL_1, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_IN_MUX_SEL_2, 0x67, TVP7002_WRITE },
+> +	{ TVP7002_B_AND_G_COARSE_GAIN, 0x77, TVP7002_WRITE },
+> +	{ TVP7002_R_COARSE_GAIN, 0x07, TVP7002_WRITE },
+> +	{ TVP7002_FINE_OFF_LSBS, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_B_COARSE_OFF, 0x10, TVP7002_WRITE },
+> +	{ TVP7002_G_COARSE_OFF, 0x10, TVP7002_WRITE },
+> +	{ TVP7002_R_COARSE_OFF, 0x10, TVP7002_WRITE },
+> +	{ TVP7002_HSOUT_OUT_START, 0x08, TVP7002_WRITE },
+> +	{ TVP7002_MISC_CTL_4, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_B_DGTL_ALC_OUT_LSBS, 0xff, TVP7002_READ },
+> +	{ TVP7002_G_DGTL_ALC_OUT_LSBS, 0xff, TVP7002_READ },
+> +	{ TVP7002_R_DGTL_ALC_OUT_LSBS, 0xff, TVP7002_READ },
+> +	{ TVP7002_AUTO_LVL_CTL_ENABLE, 0x80, TVP7002_WRITE },
+> +	{ TVP7002_DGTL_ALC_OUT_MSBS, 0xff, TVP7002_READ },
+> +	{ TVP7002_AUTO_LVL_CTL_FILTER, 0x53, TVP7002_WRITE },
+> +	{ 0x29, 0x08, TVP7002_RESERVED },
+> +	{ TVP7002_FINE_CLAMP_CTL, 0x07, TVP7002_WRITE },
+> +	/* PWR_CTL is controlled only by the probe and reset functions */
+> +	{ TVP7002_PWR_CTL, 0x00, TVP7002_RESERVED },
+> +	{ TVP7002_ADC_SETUP, 0x50, TVP7002_WRITE },
+> +	{ TVP7002_COARSE_CLAMP_CTL, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_SOG_CLAMP, 0x80, TVP7002_WRITE },
+> +	{ TVP7002_RGB_COARSE_CLAMP_CTL, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_SOG_COARSE_CLAMP_CTL, 0x04, TVP7002_WRITE },
+> +	{ TVP7002_ALC_PLACEMENT, 0x5a, TVP7002_WRITE },
+> +	{ 0x32, 0x18, TVP7002_RESERVED },
+> +	{ 0x33, 0x60, TVP7002_RESERVED },
+> +	{ TVP7002_MVIS_STRIPPER_W, 0xff, TVP7002_RESERVED },
+> +	{ TVP7002_VSYNC_ALGN, 0x10, TVP7002_WRITE },
+> +	{ TVP7002_SYNC_BYPASS, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_L_FRAME_STAT_LSBS, 0xff, TVP7002_READ },
+> +	{ TVP7002_L_FRAME_STAT_MSBS, 0xff, TVP7002_READ },
+> +	{ TVP7002_CLK_L_STAT_LSBS, 0xff, TVP7002_READ },
+> +	{ TVP7002_CLK_L_STAT_MSBS, 0xff, TVP7002_READ },
+> +	{ TVP7002_HSYNC_W, 0xff, TVP7002_READ },
+> +	{ TVP7002_VSYNC_W, 0xff, TVP7002_READ },
+> +	{ TVP7002_L_LENGTH_TOL, 0x03, TVP7002_WRITE },
+> +	{ 0x3e, 0x60, TVP7002_RESERVED },
+> +	{ TVP7002_VIDEO_BWTH_CTL, 0x01, TVP7002_WRITE },
+> +	{ TVP7002_AVID_START_PIXEL_LSBS, 0x01, TVP7002_WRITE },
+> +	{ TVP7002_AVID_START_PIXEL_MSBS, 0x2c, TVP7002_WRITE },
+> +	{ TVP7002_AVID_STOP_PIXEL_LSBS, 0x06, TVP7002_WRITE },
+> +	{ TVP7002_AVID_STOP_PIXEL_MSBS, 0x2c, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_0_START_L_OFF, 0x05, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_1_START_L_OFF, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_0_DURATION, 0x1e, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_1_DURATION, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_FBIT_F_0_START_L_OFF, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_FBIT_F_1_START_L_OFF, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_YUV_Y_G_COEF_LSBS, 0xe3, TVP7002_WRITE },
+> +	{ TVP7002_YUV_Y_G_COEF_MSBS, 0x16, TVP7002_WRITE },
+> +	{ TVP7002_YUV_Y_B_COEF_LSBS, 0x4f, TVP7002_WRITE },
+> +	{ TVP7002_YUV_Y_B_COEF_MSBS, 0x02, TVP7002_WRITE },
+> +	{ TVP7002_YUV_Y_R_COEF_LSBS, 0xce, TVP7002_WRITE },
+> +	{ TVP7002_YUV_Y_R_COEF_MSBS, 0x06, TVP7002_WRITE },
+> +	{ TVP7002_YUV_U_G_COEF_LSBS, 0xab, TVP7002_WRITE },
+> +	{ TVP7002_YUV_U_G_COEF_MSBS, 0xf3, TVP7002_WRITE },
+> +	{ TVP7002_YUV_U_B_COEF_LSBS, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_YUV_U_B_COEF_MSBS, 0x10, TVP7002_WRITE },
+> +	{ TVP7002_YUV_U_R_COEF_LSBS, 0x55, TVP7002_WRITE },
+> +	{ TVP7002_YUV_U_R_COEF_MSBS, 0xfc, TVP7002_WRITE },
+> +	{ TVP7002_YUV_V_G_COEF_LSBS, 0x78, TVP7002_WRITE },
+> +	{ TVP7002_YUV_V_G_COEF_MSBS, 0xf1, TVP7002_WRITE },
+> +	{ TVP7002_YUV_V_B_COEF_LSBS, 0x88, TVP7002_WRITE },
+> +	{ TVP7002_YUV_V_B_COEF_MSBS, 0xfe, TVP7002_WRITE },
+> +	{ TVP7002_YUV_V_R_COEF_LSBS, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_YUV_V_R_COEF_MSBS, 0x10, TVP7002_WRITE },
+> +	/* This signals end of register values */
+> +	{ TVP7002_EOR, 0xff, TVP7002_RESERVED }
+> +};
+> +
+> +/* Register parameters for 480P */
+> +static const struct i2c_reg_value tvp7002_parms_480P[] = {
+> +	{ TVP7002_HPLL_FDBK_DIV_MSBS, 0x35, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_FDBK_DIV_LSBS, 0x0a, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_CRTL, 0x02, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_PHASE_SEL, 0x14, TVP7002_WRITE },
+> +	{ TVP7002_AVID_START_PIXEL_LSBS, 0x91, TVP7002_WRITE },
+> +	{ TVP7002_AVID_START_PIXEL_MSBS, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_AVID_STOP_PIXEL_LSBS, 0x0B, TVP7002_WRITE },
+> +	{ TVP7002_AVID_STOP_PIXEL_MSBS, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_0_START_L_OFF, 0x03, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_1_START_L_OFF, 0x01, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_0_DURATION, 0x13, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_1_DURATION, 0x13, TVP7002_WRITE },
+> +	{ TVP7002_ALC_PLACEMENT, 0x18, TVP7002_WRITE },
+> +	{ TVP7002_CLAMP_START, 0x06, TVP7002_WRITE },
+> +	{ TVP7002_CLAMP_W, 0x10, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_PRE_COAST, 0x03, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_POST_COAST, 0x03, TVP7002_WRITE },
+> +	{ TVP7002_EOR, 0xff, TVP7002_RESERVED }
+> +};
+> +
+> +/* Register parameters for 576P */
+> +static const struct i2c_reg_value tvp7002_parms_576P[] = {
+> +	{ TVP7002_HPLL_FDBK_DIV_MSBS, 0x36, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_FDBK_DIV_LSBS, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_CRTL, 0x18, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_PHASE_SEL, 0x14, TVP7002_WRITE },
+> +	{ TVP7002_AVID_START_PIXEL_LSBS, 0x9B, TVP7002_WRITE },
+> +	{ TVP7002_AVID_START_PIXEL_MSBS, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_AVID_STOP_PIXEL_LSBS, 0x0F, TVP7002_WRITE },
+> +	{ TVP7002_AVID_STOP_PIXEL_MSBS, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_0_START_L_OFF, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_1_START_L_OFF, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_0_DURATION, 0x2D, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_1_DURATION, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_ALC_PLACEMENT, 0x18, TVP7002_WRITE },
+> +	{ TVP7002_CLAMP_START, 0x06, TVP7002_WRITE },
+> +	{ TVP7002_CLAMP_W, 0x10, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_PRE_COAST, 0x03, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_POST_COAST, 0x03, TVP7002_WRITE },
+> +	{ TVP7002_EOR, 0xff, TVP7002_RESERVED }
+> +};
+> +
+> +/* Register parameters for 1080I60 */
+> +static const struct i2c_reg_value tvp7002_parms_1080I60[] = {
+> +	{ TVP7002_HPLL_FDBK_DIV_MSBS, 0x89, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_FDBK_DIV_LSBS, 0x08, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_CRTL, 0x98, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_PHASE_SEL, 0x14, TVP7002_WRITE },
+> +	{ TVP7002_AVID_START_PIXEL_LSBS, 0x06, TVP7002_WRITE },
+> +	{ TVP7002_AVID_START_PIXEL_MSBS, 0x01, TVP7002_WRITE },
+> +	{ TVP7002_AVID_STOP_PIXEL_LSBS, 0x8a, TVP7002_WRITE },
+> +	{ TVP7002_AVID_STOP_PIXEL_MSBS, 0x08, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_0_START_L_OFF, 0x02, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_1_START_L_OFF, 0x02, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_0_DURATION, 0x16, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_1_DURATION, 0x17, TVP7002_WRITE },
+> +	{ TVP7002_ALC_PLACEMENT, 0x5a, TVP7002_WRITE },
+> +	{ TVP7002_CLAMP_START, 0x32, TVP7002_WRITE },
+> +	{ TVP7002_CLAMP_W, 0x20, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_PRE_COAST, 0x01, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_POST_COAST, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_EOR, 0xff, TVP7002_RESERVED }
+> +};
+> +
+> +/* Register parameters for 1080P60 */
+> +static const struct i2c_reg_value tvp7002_parms_1080P60[] = {
+> +	{ TVP7002_HPLL_FDBK_DIV_MSBS, 0x89, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_FDBK_DIV_LSBS, 0x08, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_CRTL, 0xE0, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_PHASE_SEL, 0x14, TVP7002_WRITE },
+> +	{ TVP7002_AVID_START_PIXEL_LSBS, 0x06, TVP7002_WRITE },
+> +	{ TVP7002_AVID_START_PIXEL_MSBS, 0x01, TVP7002_WRITE },
+> +	{ TVP7002_AVID_STOP_PIXEL_LSBS, 0x8a, TVP7002_WRITE },
+> +	{ TVP7002_AVID_STOP_PIXEL_MSBS, 0x08, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_0_START_L_OFF, 0x02, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_1_START_L_OFF, 0x02, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_0_DURATION, 0x16, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_1_DURATION, 0x17, TVP7002_WRITE },
+> +	{ TVP7002_ALC_PLACEMENT, 0x5a, TVP7002_WRITE },
+> +	{ TVP7002_CLAMP_START, 0x32, TVP7002_WRITE },
+> +	{ TVP7002_CLAMP_W, 0x20, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_PRE_COAST, 0x01, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_POST_COAST, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_EOR, 0xff, TVP7002_RESERVED }
+> +};
+> +
+> +/* Register parameters for 1080I50 */
+> +static const struct i2c_reg_value tvp7002_parms_1080I50[] = {
+> +	{ TVP7002_HPLL_FDBK_DIV_MSBS, 0xa5, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_FDBK_DIV_LSBS, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_CRTL, 0x98, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_PHASE_SEL, 0x14, TVP7002_WRITE },
+> +	{ TVP7002_AVID_START_PIXEL_LSBS, 0x06, TVP7002_WRITE },
+> +	{ TVP7002_AVID_START_PIXEL_MSBS, 0x01, TVP7002_WRITE },
+> +	{ TVP7002_AVID_STOP_PIXEL_LSBS, 0x8a, TVP7002_WRITE },
+> +	{ TVP7002_AVID_STOP_PIXEL_MSBS, 0x08, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_0_START_L_OFF, 0x02, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_1_START_L_OFF, 0x02, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_0_DURATION, 0x16, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_1_DURATION, 0x17, TVP7002_WRITE },
+> +	{ TVP7002_ALC_PLACEMENT, 0x5a, TVP7002_WRITE },
+> +	{ TVP7002_CLAMP_START, 0x32, TVP7002_WRITE },
+> +	{ TVP7002_CLAMP_W, 0x20, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_PRE_COAST, 0x01, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_POST_COAST, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_EOR, 0xff, TVP7002_RESERVED }
+> +};
+> +
+> +/* Register parameters for 720P60 */
+> +static const struct i2c_reg_value tvp7002_parms_720P60[] = {
+> +	{ TVP7002_HPLL_FDBK_DIV_MSBS, 0x67, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_FDBK_DIV_LSBS, 0x02, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_CRTL, 0xa0, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_PHASE_SEL, 0x16, TVP7002_WRITE },
+> +	{ TVP7002_AVID_START_PIXEL_LSBS, 0x47, TVP7002_WRITE },
+> +	{ TVP7002_AVID_START_PIXEL_MSBS, 0x01, TVP7002_WRITE },
+> +	{ TVP7002_AVID_STOP_PIXEL_LSBS, 0x4B, TVP7002_WRITE },
+> +	{ TVP7002_AVID_STOP_PIXEL_MSBS, 0x06, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_0_START_L_OFF, 0x05, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_1_START_L_OFF, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_0_DURATION, 0x2D, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_1_DURATION, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_ALC_PLACEMENT, 0x5a, TVP7002_WRITE },
+> +	{ TVP7002_CLAMP_START, 0x32, TVP7002_WRITE },
+> +	{ TVP7002_CLAMP_W, 0x20, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_PRE_COAST, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_POST_COAST, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_EOR, 0xff, TVP7002_RESERVED }
+> +};
+> +
+> +/* Register parameters for 720P50 */
+> +static const struct i2c_reg_value tvp7002_parms_720P50[] = {
+> +	{ TVP7002_HPLL_FDBK_DIV_MSBS, 0x7b, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_FDBK_DIV_LSBS, 0x0c, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_CRTL, 0x98, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_PHASE_SEL, 0x16, TVP7002_WRITE },
+> +	{ TVP7002_AVID_START_PIXEL_LSBS, 0x47, TVP7002_WRITE },
+> +	{ TVP7002_AVID_START_PIXEL_MSBS, 0x01, TVP7002_WRITE },
+> +	{ TVP7002_AVID_STOP_PIXEL_LSBS, 0x4B, TVP7002_WRITE },
+> +	{ TVP7002_AVID_STOP_PIXEL_MSBS, 0x06, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_0_START_L_OFF, 0x05, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_1_START_L_OFF, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_0_DURATION, 0x2D, TVP7002_WRITE },
+> +	{ TVP7002_VBLK_F_1_DURATION, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_ALC_PLACEMENT, 0x5a, TVP7002_WRITE },
+> +	{ TVP7002_CLAMP_START, 0x32, TVP7002_WRITE },
+> +	{ TVP7002_CLAMP_W, 0x20, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_PRE_COAST, 0x01, TVP7002_WRITE },
+> +	{ TVP7002_HPLL_POST_COAST, 0x00, TVP7002_WRITE },
+> +	{ TVP7002_EOR, 0xff, TVP7002_RESERVED }
+> +};
+> +
+> +/* Struct list for available formats */
+> +static const struct v4l2_fmtdesc tvp7002_fmt_list[] = {
+> +	{
+> +	 .index = 0,
+> +	 .type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
+> +	 .flags = 0,
+> +	 .description = "8-bit UYVY 4:2:2 Format",
+> +	 .pixelformat = V4L2_PIX_FMT_UYVY,
+> +	},
+> +};
+> +
+> +#define NUM_FORMATS		ARRAY_SIZE(tvp7002_fmt_list)
+> +
+> +/* Preset definition for handling device operation */
+> +struct tvp7002_preset_definition {
+> +	struct v4l2_dv_enum_preset p_data;
+> +	const struct i2c_reg_value *p_settings;
+> +	enum v4l2_colorspace color_space;
+> +	enum v4l2_field scanmode;
+> +	u16 progressive;
+> +	u16 lines_per_frame;
+> +	u16 cpl_min;
+> +	u16 cpl_max;
+> +};
+> +
+> +/* Struct list for digital video presets */
+> +static const struct tvp7002_preset_definition tvp7002_presets[] = {
+> +	{
+> +		{
+> +			.index = 0,
+> +			.preset = V4L2_DV_720P60,
+> +			.name = "720P-60",
+> +			.width = 1280,
+> +			.height = 720,
+> +		},
 
-The API should provide that info. Maybe it is already solved.
+A few days ago the new helper function from Murali was merged that will allow
+you to get rid of the 'struct v4l2_dv_enum_preset p_data'. Instead just call
+that new function (v4l_fill_dv_preset_info).
 
->>> What about multiple apps simultaneously using the pulse data?
->> IMO, the better is to limit the raw interface to just one open.
->>
->>> How big is the receive queue?
->> It should be big enough to receive at least one keycode event. Considering that
->> the driver will use kfifo (IMO, it is a good strategy, especially since you
->> won't need any lock if just one open is allowed), it will require a power of two size.
+> +		tvp7002_parms_720P60,
+> +		V4L2_COLORSPACE_REC709,
+> +		V4L2_FIELD_SEQ_TB,
+> +		1,
+> +		0x2EE,
+> +		135,
+> +		153
+> +	},
+> +	{
+> +		{
+> +			.index = 1,
+> +			.preset = V4L2_DV_1080I60,
+> +			.name = "1080I-30",
+> +			.width = 1920,
+> +			.height = 1080,
+> +		},
+> +		tvp7002_parms_1080I60,
+> +		V4L2_COLORSPACE_REC709,
+> +		V4L2_FIELD_INTERLACED,
+> +		0,
+> +		0x465,
+> +		181,
+> +		205
+> +	},
+> +	{
+> +		{
+> +			.index = 2,
+> +			.preset = V4L2_DV_1080I50,
+> +			.name = "1080I-25",
+> +			.width = 1920,
+> +			.height = 1080,
+> +		},
+> +		tvp7002_parms_1080I50,
+> +		V4L2_COLORSPACE_REC709,
+> +		V4L2_FIELD_INTERLACED,
+> +		0,
+> +		0x465,
+> +		217,
+> +		245
+> +	},
+> +	{
+> +		{
+> +			.index = 3,
+> +			.preset = V4L2_DV_720P50,
+> +			.name = "720P-50",
+> +			.width = 1280,
+> +			.height = 720,
+> +		},
+> +		tvp7002_parms_720P50,
+> +		V4L2_COLORSPACE_REC709,
+> +		V4L2_FIELD_SEQ_TB,
+> +		1,
+> +		0x2EE,
+> +		163,
+> +		183
+> +	},
+> +	{
+> +		{
+> +			.index = 4,
+> +			.preset = V4L2_DV_1080P60,
+> +			.name = "1080P-60",
+> +			.width = 1920,
+> +			.height = 1080,
+> +		},
+> +		tvp7002_parms_1080P60,
+> +		V4L2_COLORSPACE_REC709,
+> +		V4L2_FIELD_SEQ_TB,
+> +		1,
+> +		0x465,
+> +		90,
+> +		102
+> +	},
+> +	{
+> +		{
+> +			.index = 5,
+> +			.preset = V4L2_DV_480P59_94,
+> +			.name = "480P-60",
+> +			.width = 720,
+> +			.height = 480,
+> +		},
+> +		tvp7002_parms_480P,
+> +		V4L2_COLORSPACE_SMPTE170M,
+> +		V4L2_FIELD_SEQ_TB,
+> +		1,
+> +		0x20D,
+> +		0xffff,
+> +		0xffff
+> +	},
+> +	{
+> +		{
+> +			.index = 6,
+> +			.preset = V4L2_DV_576P50,
+> +			.name = "576P-50",
+> +			.width = 720,
+> +			.height = 576,
+> +		},
+> +		tvp7002_parms_576P,
+> +		V4L2_COLORSPACE_SMPTE170M,
+> +		V4L2_FIELD_SEQ_TB,
+> +		1,
+> +		0x271,
+> +		0xffff,
+> +		0xffff
+> +	}
+> +};
+> +
+> +#define NUM_PRESETS	ARRAY_SIZE(tvp7002_presets)
+> +
+> +/* Device definition */
+> +struct tvp7002 {
+> +	struct v4l2_subdev sd;
+> +	const struct tvp7002_config *pdata;
+> +
+> +	int ver;
+> +	int streaming;
+> +
+> +	struct v4l2_pix_format pix;
+> +	const struct tvp7002_preset_definition *current_preset;
+> +	u8 gain;
+> +};
+> +
+> +/*
+> + * to_tvp7002 - Obtain device handler TVP7002
+> + * @sd: ptr to v4l2_subdev struct
+> + *
+> + * Returns device handler tvp7002.
+> + */
+> +static inline struct tvp7002 *to_tvp7002(struct v4l2_subdev *sd)
+> +{
+> +	return container_of(sd, struct tvp7002, sd);
+> +}
+> +
+> +/*
+> + * tvp7002_read - Read a value from a register in an TVP7002
+> + * @sd: ptr to v4l2_subdev struct
+> + * @reg: TVP7002 register address
+> + * @dst: pointer to 8-bit destination
+> + *
+> + * Returns value read if successful, or non-zero (-1) otherwise.
+> + */
+> +static int tvp7002_read(struct v4l2_subdev *sd, u8 addr, u8 *dst)
+> +{
+> +	struct i2c_client *c = v4l2_get_subdevdata(sd);
+> +	int retry;
+> +	int error;
+> +
+> +	for (retry = 0; retry < I2C_RETRY_COUNT; retry++) {
+> +		error = i2c_smbus_read_byte_data(c, addr);
+> +
+> +		if (error >= 0) {
+> +			*dst = (u8)error;
+> +			return 0;
+> +		}
+> +
+> +		msleep_interruptible(10);
+> +	}
+> +	v4l2_err(sd, "TVP7002 read error %d\n", error);
+> +	return error;
+> +}
+> +
+> +/*
+> + * tvp7002_read_err() - Read a register value with error code
+> + * @sd: pointer to standard V4L2 sub-device structure
+> + * @reg: destination register
+> + * @val: value to be read
+> + * @error: pointer to error value
+> + *
+> + * Read a value in a register and save error value in pointer.
+> + * Also update the register table if successful
+> + */
+> +static inline void tvp7002_read_err(struct v4l2_subdev *sd, u8 reg,
+> +							u8 *dst, int *err)
+> +{
+> +	if (!*err)
+> +		*err = tvp7002_read(sd, reg, dst);
+> +}
+> +
+> +/*
+> + * tvp7002_write() - Write a value to a register in TVP7002
+> + * @sd: ptr to v4l2_subdev struct
+> + * @addr: TVP7002 register address
+> + * @value: value to be written to the register
+> + *
+> + * Write a value to a register in an TVP7002 decoder device.
+> + * Returns zero if successful, or non-zero otherwise.
+> + */
+> +static int tvp7002_write(struct v4l2_subdev *sd, u8 addr, u8 value)
+> +{
+> +	struct i2c_client *c;
+> +	int retry;
+> +	int error;
+> +
+> +	c = v4l2_get_subdevdata(sd);
+> +
+> +	for (retry = 0; retry < I2C_RETRY_COUNT; retry++) {
+> +		error = i2c_smbus_write_byte_data(c, addr, value);
+> +
+> +		if (error >= 0)
+> +			return 0;
+> +
+> +		v4l2_warn(sd, "Write: retry ... %d\n", retry);
+> +		msleep_interruptible(10);
+> +	}
+> +	v4l2_err(sd, "TVP7002 write error %d\n", error);
+> +	return error;
+> +}
+> +
+> +/*
+> + * tvp7002_write_err() - Write a register value with error code
+> + * @sd: pointer to standard V4L2 sub-device structure
+> + * @reg: destination register
+> + * @val: value to be written
+> + * @error: pointer to error value
+> + *
+> + * Write a value in a register and save error value in pointer.
+> + * Also update the register table if successful
+> + */
+> +static inline void tvp7002_write_err(struct v4l2_subdev *sd, u8 reg,
+> +							u8 val, int *err)
+> +{
+> +	if (!*err)
+> +		*err = tvp7002_write(sd, reg, val);
+> +}
+> +
+> +/*
+> + * tvp7002_g_chip_ident() - Get chip identification number
+> + * @sd: ptr to v4l2_subdev struct
+> + * @chip: ptr to v4l2_dbg_chip_ident struct
+> + *
+> + * Obtains the chip's identification number.
+> + * Returns zero or -EINVAL if read operation fails.
+> + */
+> +static int tvp7002_g_chip_ident(struct v4l2_subdev *sd,
+> +					struct v4l2_dbg_chip_ident *chip)
+> +{
+> +	u8 rev;
+> +	int error;
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +
+> +	error = tvp7002_read(sd, TVP7002_CHIP_REV, &rev);
+> +
+> +	if (error < 0)
+> +		return error;
+> +
+> +	return v4l2_chip_ident_i2c_client(client, chip, V4L2_IDENT_TVP7002, rev);
+> +}
+> +
+> +/*
+> + * tvp7002_write_inittab() - Write initialization values
+> + * @sd: ptr to v4l2_subdev struct
+> + * @regs: ptr to i2c_reg_value struct
+> + *
+> + * Write initialization values.
+> + * Returns zero or -EINVAL if read operation fails.
+> + */
+> +static int tvp7002_write_inittab(struct v4l2_subdev *sd,
+> +					const struct i2c_reg_value *regs)
+> +{
+> +	int error = 0;
+> +
+> +	/* Initialize the first (defined) registers */
+> +	while (TVP7002_EOR != regs->reg) {
+> +		if (TVP7002_WRITE == regs->type)
+> +			tvp7002_write_err(sd, regs->reg, regs->value, &error);
+> +		regs++;
+> +	}
+> +
+> +	return error;
+> +}
+> +
+> +/*
+> + * tvp7002_s_dv_preset() - Set digital video preset
+> + * @sd: ptr to v4l2_subdev struct
+> + * @std: ptr to v4l2_dv_preset struct
+> + *
+> + * Set the digital video preset for a TVP7002 decoder device.
+> + * Returns zero when successful or -EINVAL if register access fails.
+> + */
+> +static int tvp7002_s_dv_preset(struct v4l2_subdev *sd,
+> +					struct v4l2_dv_preset *dv_preset)
+> +{
+> +	const struct v4l2_dv_enum_preset *preset;
+> +	struct tvp7002 *device = to_tvp7002(sd);
+> +	int i;
+> +
+> +	for (i = 0; i < NUM_PRESETS; i++) {
+> +		preset = &tvp7002_presets[i].p_data;
+> +		if (preset->preset == dv_preset->preset) {
+> +			device->current_preset = &tvp7002_presets[i];
+> +			return tvp7002_write_inittab(sd, tvp7002_presets[i].p_settings);
+> +		}
+> +	}
+> +
+> +	return -EINVAL;
+> +}
+> +
+> +/*
+> + * tvp7002_g_ctrl() - Get a control
+> + * @sd: ptr to v4l2_subdev struct
+> + * @ctrl: ptr to v4l2_control struct
+> + *
+> + * Get a control for a TVP7002 decoder device.
+> + * Returns zero when successful or -EINVAL if register access fails.
+> + */
+> +static int tvp7002_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+> +{
+> +	struct tvp7002 *device = to_tvp7002(sd);
+> +
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_GAIN:
+> +		ctrl->value = device->gain;
+> +		return 0;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +}
+> +
+> +/*
+> + * tvp7002_s_ctrl() - Set a control
+> + * @sd: ptr to v4l2_subdev struct
+> + * @ctrl: ptr to v4l2_control struct
+> + *
+> + * Set a control in TVP7002 decoder device.
+> + * Returns zero when successful or -EINVAL if register access fails.
+> + */
+> +static int tvp7002_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+> +{
+> +	struct tvp7002 *device = to_tvp7002(sd);
+> +	int error = 0;
+> +
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_GAIN:
+> +		tvp7002_write_err(sd, TVP7002_R_FINE_GAIN,
+> +						ctrl->value & 0xff, &error);
+> +		tvp7002_write_err(sd, TVP7002_G_FINE_GAIN,
+> +						ctrl->value & 0xff, &error);
+> +		tvp7002_write_err(sd, TVP7002_B_FINE_GAIN,
+> +						ctrl->value & 0xff, &error);
+> +
+> +		if (error < 0)
+> +			return -EINVAL;
+
+Please return 'error' here to propagate the actual error.
+
+> +
+> +		/* Set only after knowing there is no error */
+> +		device->gain = ctrl->value & 0xff;
+> +		return 0;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +}
+> +
+> +/*
+> + * tvp7002_queryctrl() - Query a control
+> + * @sd: ptr to v4l2_subdev struct
+> + * @ctrl: ptr to v4l2_queryctrl struct
+> + *
+> + * Query a control of a TVP7002 decoder device.
+> + * Returns zero when successful or -EINVAL if register read fails.
+> + */
+> +static int tvp7002_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc)
+> +{
+> +	switch (qc->id) {
+> +	case V4L2_CID_GAIN:
+> +		/*
+> +		 * Gain is supported [0-255, default=0, step=1]
+> +		 */
+> +		return v4l2_ctrl_query_fill(qc, 0, 255, 1, 0);
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +}
+> +
+> +/*
+> + * tvp7002_try_fmt_cap() - V4L2 decoder interface handler for try_fmt
+> + * @sd: pointer to standard V4L2 sub-device structure
+> + * @f: pointer to standard V4L2 VIDIOC_TRY_FMT ioctl structure
+> + *
+> + * Implement the VIDIOC_TRY_FMT ioctl for the CAPTURE buffer type. This
+> + * ioctl is used to negotiate the image capture size and pixel format
+> + * without actually making it take effect.
+> + */
+> +static int tvp7002_try_fmt_cap(struct v4l2_subdev *sd, struct v4l2_format *f)
+> +{
+> +	const struct tvp7002_preset_definition *preset;
+> +	struct tvp7002 *device = to_tvp7002(sd);
+> +	struct v4l2_pix_format *pix;
+> +
+> +	pix = &f->fmt.pix;
+> +
+> +	/* Calculate height and width based on current standard */
+> +	preset = device->current_preset;
+> +
+> +	pix->width = preset->p_data.width;
+> +	pix->height = preset->p_data.height;
+> +	pix->pixelformat = V4L2_PIX_FMT_UYVY;
+> +	pix->field = preset->scanmode;
+> +	pix->bytesperline = pix->width * 2;
+> +	pix->sizeimage = pix->bytesperline * pix->height;
+> +	pix->colorspace = preset->color_space;
+> +	pix->priv = 0;
+> +
+> +	v4l2_dbg(1, debug, sd, "Try FMT: pixelformat - %s, bytesperline - %d"
+> +			"Width - %d, Height - %d", "8-bit UYVY 4:2:2 Format",
+> +			pix->bytesperline, pix->width, pix->height);
+> +	return 0;
+> +}
+> +
+> +/*
+> + * tvp7002_s_fmt() - V4L2 decoder interface handler for s_fmt
+> + * @sd: pointer to standard V4L2 sub-device structure
+> + * @f: pointer to standard V4L2 VIDIOC_S_FMT ioctl structure
+> + *
+> + * If the requested format is supported, configures the HW to use that
+> + * format, returns error code if format not supported or HW can't be
+> + * correctly configured.
+> + */
+> +static int tvp7002_s_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
+> +{
+> +	struct tvp7002 *decoder = to_tvp7002(sd);
+> +	struct v4l2_pix_format *pix;
+> +	int rval;
+> +
+> +	pix = &f->fmt.pix;
+> +	rval = tvp7002_try_fmt_cap(sd, f);
+> +	if (rval)
+
+Shouldn't this be 'if (!rval)'?
+
+> +		decoder->pix = *pix;
+
+And why use the 'pix' temporary variable? You can just use f->fmt.pix here.
+
+> +	return rval;
+> +}
+> +
+> +/*
+> + * tvp7002_g_fmt() - V4L2 decoder interface handler for tvp7002_g_fmt
+> + * @sd: pointer to standard V4L2 sub-device structure
+> + * @f: pointer to standard V4L2 v4l2_format structure
+> + *
+> + * Returns the decoder's current pixel format in the v4l2_format
+> + * parameter.
+> + */
+> +static int tvp7002_g_fmt(struct v4l2_subdev *sd, struct v4l2_format *f)
+> +{
+> +	struct tvp7002 *decoder = to_tvp7002(sd);
+> +
+> +	f->fmt.pix = decoder->pix;
+> +
+> +	v4l2_dbg(1, debug, sd, "Current FMT: bytesperline - %d"
+> +			"Width - %d, Height - %d",
+> +			decoder->pix.bytesperline,
+> +			decoder->pix.width, decoder->pix.height);
+> +	return 0;
+> +}
+> +
+> +/*
+> + * tvp7002_query_dv_preset() - query DV preset
+> + * @sd: pointer to standard V4L2 sub-device structure
+> + * @std_id: standard V4L2 v4l2_dv_preset
+> + *
+> + * Returns the current DV preset by TVP7002. If no active input is
+> + * detected, returns -EINVAL
+> + */
+> +static int tvp7002_query_dv_preset(struct v4l2_subdev *sd,
+> +						struct v4l2_dv_preset *qpreset)
+> +{
+> +	const struct tvp7002_preset_definition *presets = tvp7002_presets;
+> +	struct tvp7002 *device;
+> +	u8 progressive;
+> +	u32 lpfr;
+> +	u32 cpln;
+> +	int error = 0;
+> +	u8 lpf_lsb;
+> +	u8 lpf_msb;
+> +	u8 cpl_lsb;
+> +	u8 cpl_msb;
+> +	int index;
+> +
+> +	device = to_tvp7002(sd);
+> +
+> +	/* Read standards from device registers */
+> +	tvp7002_read_err(sd, TVP7002_L_FRAME_STAT_LSBS, &lpf_lsb, &error);
+> +	tvp7002_read_err(sd, TVP7002_L_FRAME_STAT_MSBS, &lpf_msb, &error);
+> +
+> +	if (error < 0)
+> +		return -EINVAL;
+
+Return 'error' directly instead of replacing it with -EINVAL.
+
+> +
+> +	tvp7002_read_err(sd, TVP7002_CLK_L_STAT_LSBS, &cpl_lsb, &error);
+> +	tvp7002_read_err(sd, TVP7002_CLK_L_STAT_MSBS, &cpl_msb, &error);
+> +
+> +	if (error < 0)
+> +		return -EINVAL;
+
+Ditto.
+
+> +
+> +	/* Get lines per frame, clocks per line and interlaced/progresive */
+> +	lpfr = lpf_lsb | ((TVP7002_CL_MASK & lpf_msb) << TVP7002_CL_SHIFT);
+> +	cpln = cpl_lsb | ((TVP7002_CL_MASK & cpl_msb) << TVP7002_CL_SHIFT);
+> +	progressive = (lpf_msb & TVP7002_INPR_MASK) >> TVP7002_IP_SHIFT;
+> +
+> +	/* Do checking of video modes */
+> +	for (index = 0; index < NUM_PRESETS; index++, presets++)
+> +		if (lpfr  == presets->lines_per_frame &&
+> +			progressive == presets->progressive) {
+> +			if (presets->cpl_min == 0xffff)
+> +				break;
+> +			if (cpln >= presets->cpl_min && cpln <= presets->cpl_max)
+> +				break;
+> +		}
+> +
+> +	if (index == NUM_PRESETS) {
+> +		v4l2_err(sd, "querystd error, lpf = %x, cpl = %x\n",
+> +								lpfr, cpln);
+> +		return -EINVAL;
+> +	}
+> +
+> +	/* Set values in found preset */
+> +	qpreset->preset = presets->p_data.preset;
+> +
+> +	/* Update lines per frame and clocks per line info */
+> +	v4l2_dbg(1, debug, sd, "Current preset: %d %d",
+> +				presets->p_data.width, presets->p_data.height);
+> +	return 0;
+> +}
+> +
+> +#ifdef CONFIG_VIDEO_ADV_DEBUG
+> +/*
+> + * tvp7002_g_register() - Get the value of a register
+> + * @sd: ptr to v4l2_subdev struct
+> + * @vreg: ptr to v4l2_dbg_register struct
+> + *
+> + * Get the value of a TVP7002 decoder device register.
+> + * Returns zero when successful, -EINVAL if register read fails or
+> + * access to I2C client fails, -EPERM if the call is not allowed
+> + * by diabled CAP_SYS_ADMIN.
+> + */
+> +static int tvp7002_g_register(struct v4l2_subdev *sd,
+> +						struct v4l2_dbg_register *reg)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +
+> +	if (!v4l2_chip_match_i2c_client(client, &reg->match))
+> +		return -EINVAL;
+> +	if (!capable(CAP_SYS_ADMIN))
+> +		return -EPERM;
+> +
+> +	return reg->val < 0 ? -EINVAL : 0;
+> +}
+> +
+> +/*
+> + * tvp7002_s_register() - set a control
+> + * @sd: ptr to v4l2_subdev struct
+> + * @ctrl: ptr to v4l2_control struct
+> + *
+> + * Get the value of a TVP7002 decoder device register.
+> + * Returns zero when successful or -EINVAL if register read fails.
+> + */
+> +static int tvp7002_s_register(struct v4l2_subdev *sd,
+> +						struct v4l2_dbg_register *reg)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +	struct tvp7002 *device = to_tvp7002(sd);
+> +	int wres;
+> +
+> +	if (!v4l2_chip_match_i2c_client(client, &reg->match))
+> +		return -EINVAL;
+> +	if (!capable(CAP_SYS_ADMIN))
+> +		return -EPERM;
+> +
+> +	wres = tvp7002_write(sd, reg->reg & 0xff, reg->val & 0xff);
+> +
+> +	/* Update the register value in device's table */
+> +	if (!wres)
+> +		device->registers[reg->reg].value = reg->val;
+> +
+> +	return wres < 0 ? -EINVAL : 0;
+> +}
+> +#endif
+> +
+> +/*
+> + * tvp7002_enum_fmt() - Enum supported formats
+> + * @sd: pointer to standard V4L2 sub-device structure
+> + * @enable: pointer to format struct
+> + *
+> + * Enumerate supported formats.
+> + */
+> +
+> +static int tvp7002_enum_fmt(struct v4l2_subdev *sd,
+> +						struct v4l2_fmtdesc *fmtdesc)
+> +{
+> +	/* Check requested format index is within range */
+> +	if (fmtdesc->index < 0 || fmtdesc->index >= NUM_FORMATS)
+> +		return -EINVAL;
+> +	*fmtdesc = tvp7002_fmt_list[fmtdesc->index];
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> + * tvp7002_s_stream() - V4L2 decoder i/f handler for s_stream
+> + * @sd: pointer to standard V4L2 sub-device structure
+> + * @enable: streaming enable or disable
+> + *
+> + * Sets streaming to enable or disable, if possible.
+> + */
+> +static int tvp7002_s_stream(struct v4l2_subdev *sd, int enable)
+> +{
+> +	struct tvp7002 *device = to_tvp7002(sd);
+> +	int error = 0;
+> +
+> +	if (device->streaming == enable)
+> +		return 0;
+> +
+> +	if (enable) {
+> +		/* Set output state on (low impedance means stream on) */
+> +		error = tvp7002_write(sd, TVP7002_MISC_CTL_2, 0x00);
+> +		device->streaming = enable;
+> +	} else {
+> +		/* Set output state off (high impedance means stream off) */
+> +		error = tvp7002_write(sd, TVP7002_MISC_CTL_2, 0x03);
+> +		if (error) {
+> +			v4l2_dbg(1, debug, sd, "Unable to stop streaming\n");
+> +			error = -EINVAL;
+
+Why replace the error code with -EINVAL?
+
+> +		}
+> +
+> +		device->streaming = enable;
+> +	}
+> +
+> +	return error;
+> +}
+> +
+> +/*
+> + * tvp7002_log_status() - Print information about register settings
+> + * @sd: ptr to v4l2_subdev struct
+> + *
+> + * Log register values of a TVP7002 decoder device.
+> + * Returns zero or -EINVAL if read operation fails.
+> + */
+> +static int tvp7002_log_status(struct v4l2_subdev *sd)
+> +{
+> +	const struct tvp7002_preset_definition *presets = tvp7002_presets;
+> +	struct tvp7002 *device = to_tvp7002(sd);
+> +	struct v4l2_dv_preset detected;
+> +	int i;
+> +
+> +	/* Find my current standard*/
+> +	tvp7002_query_dv_preset(sd, &detected);
+
+You probably want to either check the result code of tvp7002_query_dv_preset
+or initialize detected.preset to some invalid value (I think there is a
+V4L2_DV_INVALID that might work well).
+
+Since if tvp7002_query_dv_preset returns an error, the detected.preset field
+is currently undefined.
+
+> +
+> +	/* Print standard related code values */
+> +	for (i = 0; i < NUM_PRESETS; i++, presets++)
+> +		if (presets->p_data.preset == detected.preset)
+> +			break;
+> +
+> +	v4l2_info(sd, "Selected DV Preset: %s\n",
+> +					device->current_preset->p_data.name);
+> +	v4l2_info(sd, "   Pixels per line: %u\n",
+> +					device->current_preset->p_data.width);
+> +	v4l2_info(sd, "   Lines per frame: %u\n\n",
+> +					device->current_preset->p_data.height);
+> +	if (i == NUM_PRESETS) {
+> +		v4l2_info(sd, "Detected DV Preset: None\n");
+> +	} else {
+> +		v4l2_info(sd, "Detected DV Preset: %s\n", presets->p_data.name);
+> +		v4l2_info(sd, "  Pixels per line: %u\n", presets->p_data.width);
+> +		v4l2_info(sd, "  Lines per frame: %u\n\n", presets->p_data.height);
+> +	}
+> +	v4l2_info(sd, "Streaming enabled: %s\n",
+> +					device->streaming ? "yes" : "no");
+> +
+> +	/* Print the current value of the gain control */
+> +	v4l2_info(sd, "Gain: %u\n", device->gain);
+> +
+> +	return 0;
+> +}
+> +
+> +/* V4L2 core operation handlers */
+> +static const struct v4l2_subdev_core_ops tvp7002_core_ops = {
+> +	.g_chip_ident = tvp7002_g_chip_ident,
+> +	.log_status = tvp7002_log_status,
+> +	.g_ctrl = tvp7002_g_ctrl,
+> +	.s_ctrl = tvp7002_s_ctrl,
+> +	.queryctrl = tvp7002_queryctrl,
+> +#ifdef CONFIG_VIDEO_ADV_DEBUG
+> +	.g_register = tvp7002_g_register,
+> +	.s_register = tvp7002_s_register,
+> +#endif
+> +};
+> +
+> +/* Specific video subsystem operation handlers */
+> +static const struct v4l2_subdev_video_ops tvp7002_video_ops = {
+> +	.s_dv_preset = tvp7002_s_dv_preset,
+> +	.query_dv_preset = tvp7002_query_dv_preset,
+> +	.s_stream = tvp7002_s_stream,
+> +	.g_fmt = tvp7002_g_fmt,
+> +	.s_fmt = tvp7002_s_fmt,
+> +	.enum_fmt = tvp7002_enum_fmt,
+> +};
+> +
+> +/* V4L2 top level operation handlers */
+> +static const struct v4l2_subdev_ops tvp7002_ops = {
+> +	.core = &tvp7002_core_ops,
+> +	.video = &tvp7002_video_ops,
+> +};
+> +
+> +static struct tvp7002 tvp7002_dev = {
+> +	.streaming = 0,
+> +
+> +	.pix = {
+> +		.width = 1280,
+> +		.height = 720,
+> +		.pixelformat = V4L2_PIX_FMT_UYVY,
+> +		.field = V4L2_FIELD_NONE,
+> +		.bytesperline = 1280 * 2,
+> +		.sizeimage = 1280 * 2 * 720,
+> +		.colorspace = V4L2_COLORSPACE_REC709,
+> +		},
+> +
+> +	.current_preset = tvp7002_presets,
+> +	.gain = 0,
+> +};
+> +
+> +/*
+> + * tvp7002_probe - Probe a TVP7002 device
+> + * @sd: ptr to v4l2_subdev struct
+> + * @ctrl: ptr to i2c_device_id struct
+> + *
+> + * Initialize the TVP7002 device
+> + * Returns zero when successful or -EINVAL if register read fails.
+> + */
+> +static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
+> +{
+> +	struct v4l2_subdev *sd;
+> +	struct tvp7002 *device;
+> +	struct v4l2_dv_preset preset;
+> +	u32 current_preset;
+> +	int polarity_a;
+> +	int polarity_b;
+> +	u8 revision;
+> +
+> +	int error;
+> +
+> +	/* Check if the adapter supports the needed features */
+> +	if (!i2c_check_functionality(c->adapter,
+> +		I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA))
+> +		return -EIO;
+> +
+> +	if (!c->dev.platform_data) {
+> +		v4l2_err(c, "No platform data!!\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	device = kmalloc(sizeof(struct tvp7002), GFP_KERNEL);
+> +
+> +	if (!device)
+> +		return -ENOMEM;
+> +
+> +	*device = tvp7002_dev;
+> +	sd = &device->sd;
+> +	device->pdata = c->dev.platform_data;
+> +
+> +	/* Tell v4l2 the device is ready */
+> +	v4l2_i2c_subdev_init(sd, c, &tvp7002_ops);
+> +	v4l_info(c, "tvp7002 found @ 0x%02x (%s)\n",
+> +					c->addr, c->adapter->name);
+> +
+> +	error = tvp7002_read(sd, TVP7002_CHIP_REV, &revision);
+> +	if (error < 0)
+> +		goto found_error;
+> +
+> +	/* Get revision number */
+> +	v4l2_info(sd, "Rev. %02x detected.\n", revision);
+> +	if (revision != 0x02)
+> +		v4l2_info(sd, "Unknown revision detected.\n");
+> +
+> +	/* Initializes TVP7002 to its default values */
+> +	error = tvp7002_write_inittab(sd, tvp7002_init_default);
+> +
+> +	if (error < 0)
+> +		goto found_error;
+> +
+> +	/* Set polarity information after registers have been set */
+> +	polarity_a = 0x20 | device->pdata->hs_polarity << 5
+> +			| device->pdata->vs_polarity << 2;
+> +	error = tvp7002_write(sd, TVP7002_SYNC_CTL_1, polarity_a);
+> +	if (error < 0)
+> +		goto found_error;
+> +
+> +	polarity_b = 0x01  | device->pdata->fid_polarity << 2
+> +			| device->pdata->sog_polarity << 1
+> +			| device->pdata->clk_polarity;
+> +	error = tvp7002_write(sd, TVP7002_MISC_CTL_3, polarity_b);
+> +	if (error < 0)
+> +		goto found_error;
+> +
+> +	/* Set registers according to default video mode */
+> +	current_preset = device->current_preset->p_data.index;
+> +	preset.preset = tvp7002_presets[current_preset].p_data.preset;
+> +	error = tvp7002_s_dv_preset(sd, &preset);
+> +
+> +	if (error < 0) {
+> +		kfree(device);
+> +		return error;
+> +	}
+> +
+> +found_error:
+> +	return error;
+> +}
+> +
+> +/*
+> + * tvp7002_remove - Remove TVP7002 device support
+> + * @c: ptr to i2c_client struct
+> + *
+> + * Reset the TVP7002 device
+> + * Returns zero.
+> + */
+> +static int tvp7002_remove(struct i2c_client *c)
+> +{
+> +	struct v4l2_subdev *sd = i2c_get_clientdata(c);
+> +	struct tvp7002 *device = to_tvp7002(sd);
+> +
+> +	v4l2_dbg(1, debug, sd, "Removing tvp7002 adapter"
+> +				"on address 0x%x\n", c->addr);
+> +
+> +	v4l2_device_unregister_subdev(sd);
+> +	kfree(device);
+> +	return 0;
+> +}
+> +
+> +/* I2C Device ID table */
+> +static const struct i2c_device_id tvp7002_id[] = {
+> +	{ "tvp7002", 0 },
+> +	{ }
+> +};
+> +MODULE_DEVICE_TABLE(i2c, tvp7002_id);
+> +
+> +/* I2C driver data */
+> +static struct i2c_driver tvp7002_driver = {
+> +	.driver = {
+> +		.owner = THIS_MODULE,
+> +		.name = TVP7002_MODULE_NAME,
+> +	},
+> +	.probe = tvp7002_probe,
+> +	.remove = tvp7002_remove,
+> +	.id_table = tvp7002_id,
+> +};
+> +
+> +/*
+> + * tvp7002_init - Initialize driver via I2C interface
+> + *
+> + * Register the TVP7002 driver.
+> + * Returns 0 on success or < 0 on failure.
+> + */
+> +static int __init tvp7002_init(void)
+> +{
+> +	return i2c_add_driver(&tvp7002_driver);
+> +}
+> +
+> +/*
+> + * tvp7002_exit - Remove driver via I2C interface
+> + *
+> + * Unregister the TVP7002 driver.
+> + * Returns 0 on success or < 0 on failure.
+> + */
+> +static void __exit tvp7002_exit(void)
+> +{
+> +	i2c_del_driver(&tvp7002_driver);
+> +}
+> +
+> +module_init(tvp7002_init);
+> +module_exit(tvp7002_exit);
 > 
-> How is end of a pulse train detected? timeout? without decoding the
-> protocol there is no way to tell the end of signal other than timeout.
 
-The API should provide that info. Provided that lirc works, I'm assuming that
-this is already solved.
-
->>> How does access work, root only or any user?
->> IMO, it should be the same requirement as used by an input interface.
->>
->>> How are capabilities exposed, sysfs, etc?
->> IMO, sysfs.
->>
->>> What is the interface for attaching an in-kernel decoder?
->> IMO, it should use the kfifo for it. However, if we allow both raw data and
->> in-kernel decoders to read data there, we'll need a spinlock to protect the
->> kfifo.
->>
->>> If there is an in-kernel decoder should the pulse data stop being
->>> reported, partially stopped, something else?
->> I don't have a strong opinion here, but, from the previous discussions, it
->> seems that people want it to be double-reported by default. If so, I think
->> we need to implement a command at the raw interface to allow disabling the
->> in-kernel decoder, while the raw interface is kept open.
-> 
-> Data could be sent to the in-kernel decoders first and then if they
-> don't handle it, send it to user space.
-
-Hmm... like adding a delay if the raw userspace is open and, if the raw userspace
-doesn't read all pulse data, it will send via in-kernel decoder instead? This can
-work, but I'm not sure if this is the better way, and will require some logic to
-synchronize lirc_dev and IR core modules. Also, doing it key by key will introduce
-some delay.
-
-If you're afraid of having the userspace app hanged and having no IR output, 
-it would be simpler to just close the raw interface if an available data won't be
-read after a bigger timeout (3 seconds? 5 seconds?).
-
-Cheers,
-Mauro.
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
