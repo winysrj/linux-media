@@ -1,63 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iw0-f171.google.com ([209.85.223.171]:38212 "EHLO
-	mail-iw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932078AbZLFHOs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Dec 2009 02:14:48 -0500
-Date: Sat, 5 Dec 2009 23:14:50 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Gerd Hoffmann <kraxel@redhat.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jonsmirl@gmail.com, khc@pm.waw.pl,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
-	IR  system?
-Message-ID: <20091206071450.GC14651@core.coreip.homeip.net>
-References: <BDodf9W1qgB@lirc> <4B14EDE3.5050201@redhat.com> <4B1524DD.3080708@redhat.com> <4B153617.8070608@redhat.com> <A6D5FF84-2DB8-4543-ACCB-287305CA0739@wilsonet.com> <4B17AA6A.9060702@redhat.com> <20091203175531.GB776@core.coreip.homeip.net> <20091203163328.613699e5@pedra> <20091204100642.GD22570@core.coreip.homeip.net> <20091204121234.5144836b@pedra>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4857 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932664AbZLOVU0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Dec 2009 16:20:26 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: m-karicheri2@ti.com
+Subject: Re: [PATCH - v1 4/6] V4L - vpfe_capture bug fix and enhancements
+Date: Tue, 15 Dec 2009 22:20:41 +0100
+Cc: linux-media@vger.kernel.org, khilman@deeprootsystems.com,
+	nsekhar@ti.com, hvaibhav@ti.com,
+	davinci-linux-open-source@linux.davincidsp.com
+References: <1260464429-10537-1-git-send-email-m-karicheri2@ti.com> <1260464429-10537-6-git-send-email-m-karicheri2@ti.com> <200912152205.25491.hverkuil@xs4all.nl>
+In-Reply-To: <200912152205.25491.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20091204121234.5144836b@pedra>
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200912152220.41459.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Dec 04, 2009 at 12:12:34PM -0200, Mauro Carvalho Chehab wrote:
-> > >
-> > 
-> > How related lirc-core to the current lirc code? If it is not the same
-> > maybe we should not call it lirc to avoid confusion.
-> 
-> Just for better illustrate what I'm seeing, I broke the IR generic
-> code into two components:
-> 
-> 	lirc core - the module that receives raw pulse/space and creates
-> 		    a device to receive raw API pulse/space events;
-> 
-> 	IR core - the module that receives scancodes, convert them into
-> 		  keycodes and send via evdev interface.
-> 
-> We may change latter the nomenclature, but I'm seeing the core as two different
-> modules, since there are cases where lirc core won't be used (those
-> devices were there's no way to get pulse/space events).
-> 
+Note that the other patches from this series are fine as far as I am concerned.
 
-OK, I think we are close but not exactly close. I believe that what you
-call lirc core will be used always - it is the code that create3s class
-devices, connectes decorers with the data streams, etc. I believe it
-will be utilized even in case of devices using hardware decoders. That
-is why we should probably stop calling it "lirc core" just tso we don't
-confuse it with original lirc.
+One general note: I always have difficulties with constructions like this:
 
-Then we have decoders and lirc_dev - which implements original lirc
-interface (or maybe its modified version) and allows lircd to continue
-working.
+> +                     val = (bc->horz.win_count_calc &
+> +                             ISIF_HORZ_BC_WIN_COUNT_MASK) |
+> +                             ((!!bc->horz.base_win_sel_calc) <<
+> +                             ISIF_HORZ_BC_WIN_SEL_SHIFT) |
+> +                             ((!!bc->horz.clamp_pix_limit) <<
+> +                             ISIF_HORZ_BC_PIX_LIMIT_SHIFT) |
+> +                             ((bc->horz.win_h_sz_calc &
+> +                             ISIF_HORZ_BC_WIN_H_SIZE_MASK) <<
+> +                             ISIF_HORZ_BC_WIN_H_SIZE_SHIFT) |
+> +                             ((bc->horz.win_v_sz_calc &
+> +                             ISIF_HORZ_BC_WIN_V_SIZE_MASK) <<
+> +                             ISIF_HORZ_BC_WIN_V_SIZE_SHIFT);
 
-Lastly we have what you call IR core which is IR-to-input bridge of
-sorts.
+It's just about impossible for me to parse. And some of the patches in this
+series are full of such constructs.
 
-Right?
+Unfortunately, I do not have a magic bullet solution. In some cases I suspect
+that a static inline function can help.
+
+In other cases it might help to split it up in smaller parts. For example:
+
+u32 tmp;
+
+val = bc->horz.win_count_calc &
+	ISIF_HORZ_BC_WIN_COUNT_MASK;
+val |= !!bc->horz.base_win_sel_calc <<
+	ISIF_HORZ_BC_WIN_SEL_SHIFT;
+val |= !!bc->horz.clamp_pix_limit <<
+	ISIF_HORZ_BC_PIX_LIMIT_SHIFT;
+tmp = bc->horz.win_h_sz_calc &
+	ISIF_HORZ_BC_WIN_H_SIZE_MASK;
+val |= tmp << ISIF_HORZ_BC_WIN_H_SIZE_SHIFT;
+tmp = bc->horz.win_v_sz_calc &
+	ISIF_HORZ_BC_WIN_V_SIZE_MASK;
+val |= tmp << ISIF_HORZ_BC_WIN_V_SIZE_SHIFT;
+
+Of course, in this particular piece of code from the function isif_config_bclamp()
+I am also wondering why bc->horz.win_h_sz_calc and bc->horz.win_v_sz_calc need to
+be ANDed anyway. I would expect that to happen when these values are set. But I
+did not look at this in-depth, so I may well have missed some subtlety here.
+
+It would be interesting to know if people know of good ways of making awkward
+code like this more elegant (or at least less awkward).
+
+Regards,
+
+	Hans
 
 -- 
-Dmitry
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
