@@ -1,131 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:59076 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754587AbZLHOTB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2009 09:19:01 -0500
-MIME-Version: 1.0
-In-Reply-To: <4B1E5BDF.7010202@redhat.com>
-References: <BDRae8rZjFB@christoph> <4B0E8B32.3020509@redhat.com>
-	 <1259264614.1781.47.camel@localhost>
-	 <6B4C84CD-F146-4B8B-A8BB-9963E0BA4C47@wilsonet.com>
-	 <1260240142.3086.14.camel@palomino.walls.org>
-	 <20091208042210.GA11147@core.coreip.homeip.net>
-	 <1260275743.3094.6.camel@palomino.walls.org>
-	 <4B1E54FF.8060404@redhat.com>
-	 <9e4733910912080547j75c2c885o29664470ff5e2c6a@mail.gmail.com>
-	 <4B1E5BDF.7010202@redhat.com>
-Date: Tue, 8 Dec 2009 09:19:07 -0500
-Message-ID: <9e4733910912080619t36089c9bg5e54114844b9694a@mail.gmail.com>
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
-	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Andy Walls <awalls@radix.net>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	Christoph Bartelmus <lirc@bartelmus.de>, j@jannau.net,
-	jarod@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from smtp.nokia.com ([192.100.105.134]:49522 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753788AbZLOMUS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Dec 2009 07:20:18 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	gururaj.nagendra@intel.com, mchehab@infradead.org,
+	mkrufky@linuxtv.org, dheitmueller@kernellabs.com,
+	iivanov@mm-sol.com, vimarsh.zutshi@nokia.com
+Subject: [RFC 2/4] V4L: Events: Add new ioctls for events
+Date: Tue, 15 Dec 2009 14:19:49 +0200
+Message-Id: <1260879591-14376-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1260879591-14376-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+References: <4B277D2A.7050201@maxwell.research.nokia.com>
+ <1260879591-14376-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 8, 2009 at 8:59 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Jon Smirl wrote:
->> On Tue, Dec 8, 2009 at 8:30 AM, Mauro Carvalho Chehab
->> <mchehab@redhat.com> wrote:
->>> Andy Walls wrote:
->>>> On Mon, 2009-12-07 at 20:22 -0800, Dmitry Torokhov wrote:
->>>>> On Mon, Dec 07, 2009 at 09:42:22PM -0500, Andy Walls wrote:
->>>>>> So I'll whip up an RC-6 Mode 6A decoder for cx23885-input.c before the
->>>>>> end of the month.
->>>>>>
->>>>>> I can setup the CX2388[58] hardware to look for both RC-5 and RC-6 with
->>>>>> a common set of parameters, so I may be able to set up the decoders to
->>>>>> handle decoding from two different remote types at once.  The HVR boards
->>>>>> can ship with either type of remote AFAIK.
->>>>>>
->>>>>> I wonder if I can flip the keytables on the fly or if I have to create
->>>>>> two different input devices?
->>>>>>
->>>>> Can you distinguish between the 2 remotes (not receivers)?
->>>> Yes.  RC-6 and RC-5 are different enough to distinguish between the two.
->>>> (Honestly I could pile on more protocols that have similar pulse time
->>>> periods, but that's complexity for no good reason and I don't know of a
->>>> vendor that bundles 3 types of remotes per TV card.)
->>> You'll be distinguishing the protocol, not the remote. If I understood
->>> Dmitry's question, he is asking if you can distinguish between two different
->>> remotes that may, for example, be using both RC-5 or both RC-6 or one RC-5
->>> and another RC-6.
->>
->> RC-5 and RC-6 both contain an address field.  My opinion is that
->> different addresses represent different devices and in general they
->> should appear on an input devices per address.
->
-> The same IR can produce two different addresses. The IR bundled with my satellite
-> STB produces two different codes, depending if you previously pressed <TV> or <SAT>
-> key (in fact, I think it can even produce different protocols for TV, as it can
-> be configured to work with different TV sets).
+This patch adds a set of new ioctls to the V4L2 API. The ioctls conform to
+V4L2 Events RFC version 2.3:
 
-You have a multi-function remote. Multi-function remotes combine
-multiple single function remotes into a single device. All universal
-remotes I have seen are multi-function. They usually combine three to
-five single function remotes.
+<URL:http://www.spinics.net/lists/linux-media/msg12033.html>
 
-Yours is a two function remote <TV> and <SAT>. When you push <TV> and
-<SAT> you are changing which single function remote is being emulated.
-That's why those keys don't send codes. When writing code you should
-think of this remote as being two indpendent virtual remotes, not a
-single one.
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/v4l2-compat-ioctl32.c |    3 +++
+ drivers/media/video/v4l2-ioctl.c          |    3 +++
+ include/linux/videodev2.h                 |   24 ++++++++++++++++++++++++
+ 3 files changed, 30 insertions(+), 0 deletions(-)
 
-Note that it is common for multfunction remotes to completely change
-IR protocol families when you switch which single function remote you
-are emulating. I have my universal set for a Sony TV , JVC DVD player
-and a Comcast STB. All three of those use different IR protocols.
-
-By using maps containing the two different addresses for <TV> and
-<SAT> you can split these commands onto two different evdev devices.
-
-This model is complicated by the fact that some remotes that look like
-multi-function remotes aren't really multifunction. The remote bundled
-with the MS MCE receiver is one. That remote is a single function
-device even though it has function buttons for TV, Music, Pictures,
-etc.
-
-
->
->> However, I prefer a different scheme for splitting the signals apart.
->> Load separate maps containing scancodes for each address. When the IR
->> signals come in they are matched against the maps and a keycode is
->> generated when a match is found. Now there is no need to distinguish
->> between the remotes. It doesn't matter which remote generated the
->> signal.
->>
->> scancode RC5/12/1 - protocol, address, command tuplet. Map this to
->> KP_1 on interface 1.
->> scancode RC5/7/1 - protocol, address, command tuplet. Map this to KP_1
->> on interface 2.
->>
->> Using the maps to split the commands out also fixes the problem with
->> Sony remotes which use multiple protocols to control a single device.
->> scancode Sony12/12/1 - protocol, address, command tuplet. Map this to
->> power_on on interface 1.
->> scancode Sony15/12/1 - protocol, address, command tuplet. Map this to
->> KP_1 on interface 1.
->>
->
-> I agree.
->
-> Cheers,
-> Mauro.
->
-
-
-
+diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
+index 997975d..cba704c 100644
+--- a/drivers/media/video/v4l2-compat-ioctl32.c
++++ b/drivers/media/video/v4l2-compat-ioctl32.c
+@@ -1077,6 +1077,9 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+ 	case VIDIOC_DBG_G_REGISTER:
+ 	case VIDIOC_DBG_G_CHIP_IDENT:
+ 	case VIDIOC_S_HW_FREQ_SEEK:
++	case VIDIOC_DQEVENT:
++	case VIDIOC_SUBSCRIBE_EVENT:
++	case VIDIOC_UNSUBSCRIBE_EVENT:
+ 		ret = do_video_ioctl(file, cmd, arg);
+ 		break;
+ 
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 30cc334..bfc4696 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -283,6 +283,9 @@ static const char *v4l2_ioctls[] = {
+ 
+ 	[_IOC_NR(VIDIOC_DBG_G_CHIP_IDENT)] = "VIDIOC_DBG_G_CHIP_IDENT",
+ 	[_IOC_NR(VIDIOC_S_HW_FREQ_SEEK)]   = "VIDIOC_S_HW_FREQ_SEEK",
++	[_IOC_NR(VIDIOC_DQEVENT)]	   = "VIDIOC_DQEVENT",
++	[_IOC_NR(VIDIOC_SUBSCRIBE_EVENT)]  = "VIDIOC_SUBSCRIBE_EVENT",
++	[_IOC_NR(VIDIOC_UNSUBSCRIBE_EVENT)] = "VIDIOC_UNSUBSCRIBE_EVENT",
+ #endif
+ };
+ #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 54af357..397f8eb 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1536,6 +1536,27 @@ struct v4l2_streamparm {
+ };
+ 
+ /*
++ *	E V E N T S
++ */
++
++struct v4l2_event {
++	__u32		count;
++	__u32		type;
++	__u32		sequence;
++	struct timespec	timestamp;
++	__u32		reserved[8];
++	__u8		data[64];
++};
++
++struct v4l2_event_subscription {
++	__u32		type;
++	__u32		reserved[8];
++};
++
++#define V4L2_EVENT_ALL				0
++#define V4L2_EVENT_PRIVATE_START		0x08000000
++
++/*
+  *	A D V A N C E D   D E B U G G I N G
+  *
+  *	NOTE: EXPERIMENTAL API, NEVER RELY ON THIS IN APPLICATIONS!
+@@ -1651,6 +1672,9 @@ struct v4l2_dbg_chip_ident {
+ #endif
+ 
+ #define VIDIOC_S_HW_FREQ_SEEK	 _IOW('V', 82, struct v4l2_hw_freq_seek)
++#define VIDIOC_DQEVENT		 _IOR('V', 83, struct v4l2_event)
++#define VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 84, struct v4l2_event_subscription)
++#define VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 85, struct v4l2_event_subscription)
+ /* Reminder: when adding new ioctls please add support for them to
+    drivers/media/video/v4l2-compat-ioctl32.c as well! */
+ 
 -- 
-Jon Smirl
-jonsmirl@gmail.com
+1.5.6.5
+
