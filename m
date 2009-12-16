@@ -1,98 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2548 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757974AbZLETop (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Dec 2009 14:44:45 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id nB5JioqL084013
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 5 Dec 2009 20:44:50 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 5 Dec 2009 20:44:50 +0100 (CET)
-Message-Id: <200912051944.nB5JioqL084013@smtp-vbr10.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: WARNINGS
+Received: from mail-fx0-f221.google.com ([209.85.220.221]:38112 "EHLO
+	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759929AbZLOXeS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Dec 2009 18:34:18 -0500
+Received: by fxm21 with SMTP id 21so437647fxm.21
+        for <linux-media@vger.kernel.org>; Tue, 15 Dec 2009 15:34:16 -0800 (PST)
+Message-ID: <4B282B04.20708@royalhat.org>
+Date: Wed, 16 Dec 2009 00:34:12 +0000
+From: Luis Maia <lmaia@royalhat.org>
+MIME-Version: 1.0
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: leandro Costantino <lcostantino@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: PATCH- gspca: added chipset revision sensor
+References: <4B27063C.6020200@royalhat.org>	<20091215085445.093ebfd8@tele>	<c2fe070d0912150525m623dbc48hff9e3ac5c1227db0@mail.gmail.com> <20091215174706.5d5cbd5b@tele>
+In-Reply-To: <20091215174706.5d5cbd5b@tele>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+I found an email that discussed the similar problem that my camera had, 
+showing up just a black screen, it's dated but  i think maybe it wasn't 
+fully solved because there's no answer.
 
-Results of the daily build of v4l-dvb:
+http://osdir.com/ml/drivers.spca50x.devel/2006-11/msg00036.html
 
-date:        Sat Dec  5 19:00:05 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13546:309f16461cf4
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Note the : ">/ > /Vimicro/zc3xx.h: [zcxx_probeSensor:307] sensor 3w Vga 
+??? 0xC400"
 
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-armv5: OK
-linux-2.6.32-armv5-davinci: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-armv5-ixp: OK
-linux-2.6.32-armv5-ixp: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: OK
-linux-2.6.32-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: OK
-linux-2.6.31-i686: OK
-linux-2.6.32-i686: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-m32r: OK
-linux-2.6.30-mips: OK
-linux-2.6.31-mips: OK
-linux-2.6.32-mips: OK
-linux-2.6.30-powerpc64: OK
-linux-2.6.31-powerpc64: OK
-linux-2.6.32-powerpc64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: OK
-linux-2.6.31-x86_64: OK
-linux-2.6.32-x86_64: OK
-spec: OK
-sparse (linux-2.6.32): ERRORS
-linux-2.6.16.61-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+/Do you know if this was solved?!
+Because i suspect that maybe there are more 0x?400 revision of the chipset.
+Btw, if this is a pattern could we consider to mask the bits in retword 
+(retword &= 0x0FFF)?
+Because looking at the current table it seems to make more sense.
 
-Detailed results are available here:
+Best regards,
+Luis Maia.
+Jean-Francois Moine wrote:
+> On Tue, 15 Dec 2009 10:25:29 -0300
+> leandro Costantino <lcostantino@gmail.com> wrote:
+>
+>   
+>> Jean,
+>> let me know , if you need to the test this patch, since i added the
+>> tas1530k long time ago, and still have the webcam :)
+>> Best Regards
+>>
+>> On Tue, Dec 15, 2009 at 4:54 AM, Jean-Francois Moine
+>> <moinejf@free.fr> wrote:
+>>     
+>>> On Tue, 15 Dec 2009 03:45:00 +0000
+>>> Luis Maia <lmaia@royalhat.org> wrote:
+>>>
+>>>       
+>>>> Added extra chipset revision (sensor) to fix camera zc0301 with
+>>>>  ID: 0ac8:301b .
+>>>> Since i own one of this cameras fixed and tested it.
+>>>>         
+>>>> -------------
+>>>>
+>>>> diff -uNr linux-2.6.32.1/drivers/media/video/gspca/zc3xx.c
+>>>> linux-2.6.32.1-patch/drivers/media/video/gspca/zc3xx.c
+>>>> --- linux-2.6.32.1/drivers/media/video/gspca/zc3xx.c    2009-12-14
+>>>> 17:47:25.000000000 +0000
+>>>> +++ linux-2.6.32.1-patch/drivers/media/video/gspca/zc3xx.c
+>>>> 2009-12-15 02:42:13.000000000 +0000
+>>>> @@ -6868,6 +6868,7 @@
+>>>>      {0x8001, 0x13},
+>>>>      {0x8000, 0x14},        /* CS2102K */
+>>>>      {0x8400, 0x15},        /* TAS5130K */
+>>>> +    {0xe400, 0x15},
+>>>>  };
+>>>>
+>>>>  static int vga_3wr_probe(struct gspca_dev *gspca_dev)
+>>>> @@ -7634,7 +7635,7 @@
+>>>>      {USB_DEVICE(0x0698, 0x2003)},
+>>>>      {USB_DEVICE(0x0ac8, 0x0301), .driver_info = SENSOR_PAS106},
+>>>>      {USB_DEVICE(0x0ac8, 0x0302), .driver_info = SENSOR_PAS106},
+>>>> -    {USB_DEVICE(0x0ac8, 0x301b)},
+>>>> +    {USB_DEVICE(0x0ac8, 0x301b), .driver_info = SENSOR_PB0330},
+>>>>      {USB_DEVICE(0x0ac8, 0x303b)},
+>>>>      {USB_DEVICE(0x0ac8, 0x305b), .driver_info =
+>>>> SENSOR_TAS5130C_VF0250}, {USB_DEVICE(0x0ac8, 0x307b)},
+>>>>         
+>
+> Hello Luis and Leandro,
+>
+> Thanks for the patch. Luis said his sensor is the tas5130K, so the 2nd
+> part of the patch is useless. But, maybe, Leandro, have you heard about
+> other chipset revision IDs?
+>
+> Best regards.
+>
+>   
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
