@@ -1,43 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from khc.piap.pl ([195.187.100.11]:41278 "EHLO khc.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753892AbZLCRbR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Dec 2009 12:31:17 -0500
-From: Krzysztof Halasa <khc@pm.waw.pl>
-To: lirc@bartelmus.de (Christoph Bartelmus)
-Cc: jonsmirl@gmail.com, awalls@radix.net, dmitry.torokhov@gmail.com,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, lirc-list@lists.sourceforge.net,
-	mchehab@redhat.com, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
-References: <BE3edeNXqgB@lirc>
-Date: Thu, 03 Dec 2009 18:31:20 +0100
-In-Reply-To: <BE3edeNXqgB@lirc> (Christoph Bartelmus's message of "01 Dec 2009
-	08:45:00 +0100")
-Message-ID: <m3k4x42cd3.fsf@intrepid.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from gateway-1237.mvista.com ([206.112.117.35]:36088 "HELO
+	imap.sh.mvista.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with SMTP id S934607AbZLPHVt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Dec 2009 02:21:49 -0500
+Subject: Re: USB MAssage Storage drivers
+From: Philby John <pjohn@in.mvista.com>
+To: Gopala Gottumukkala <ggottumu@Cernium.com>
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	linux-media@vger.kernel.org
+In-Reply-To: <03A2FA9E0D3DC841992E682BF5287718016D39D9@lipwig.Cernium.local>
+References: <1259596313-16712-1-git-send-email-santiago.nunez@ridgerun.com>
+	 <200912152149.33065.hverkuil@xs4all.nl>
+	 <03A2FA9E0D3DC841992E682BF5287718016D39D9@lipwig.Cernium.local>
+Content-Type: text/plain
+Date: Wed, 16 Dec 2009 12:51:45 +0530
+Message-Id: <1260948105.4253.21.camel@localhost.localdomain>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-lirc@bartelmus.de (Christoph Bartelmus) writes:
+On Tue, 2009-12-15 at 18:46 -0500, Gopala Gottumukkala wrote:
+> My target is not recognizing the USB massage storage. I am working the
+> 2.6.32 Davinci kernel
+> 
+> Any suggestion and ideas.
 
-> Currently I would tend to an approach like this:
-> - raw interface to userspace using LIRC
-> - fixed set of in-kernel decoders that can handle bundled remotes
+ahah, this information isn't enough. Your Vendor/Product ID for this
+device is compared in a lookup a table. If no match is found, your
+device probably won't be detected as mass storage. You could check in
+the unusual_devs.h to see if your device is included there, if your
+device is relatively new you could submit a Vendor/Product ID to the USB
+dev list for inclusion.
 
-I'd modify it a bit:
-- raw interface to userspace using LIRC
-- fixed set of in-kernel decoders
 
-Longer term:
+Regards,
+Philby
 
-Removing the key assignment tables from the kernel. Plug-and-play can be
-then achieved with udev. The only thing needed from the kernel is
-indicating the tuner/sensor type, udev can guess the bundled remote type.
 
-Porting the in-kernel drivers (such as ir-common) to LIRC interface
-(while not removing the input layer mode).
--- 
-Krzysztof Halasa
+
+
+
+
