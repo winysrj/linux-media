@@ -1,468 +1,251 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45456 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752496AbZLAT2q convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2009 14:28:46 -0500
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-	"khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
-CC: "davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>
-Date: Wed, 2 Dec 2009 00:58:36 +0530
-Subject: RE: [PATCH v0 1/2] V4L - vpfe capture - convert ccdc drivers to
- platform drivers
-Message-ID: <19F8576C6E063C45BE387C64729E7394043716AE11@dbde02.ent.ti.com>
-References: <1259691333-32164-1-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1259691333-32164-1-git-send-email-m-karicheri2@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from mail.navvo.net ([74.208.67.6]:42184 "EHLO mail.navvo.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757923AbZLPVbd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Dec 2009 16:31:33 -0500
+From: santiago.nunez@ridgerun.com
+To: davinci-linux-open-source@linux.davincidsp.com
+Cc: linux-media@vger.kernel.org, nsnehaprabha@ti.com,
+	m-karicheri2@ti.com, diego.dompe@ridgerun.com,
+	todd.fischer@ridgerun.com, mgrosen@ti.com,
+	Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+Date: Wed, 16 Dec 2009 15:31:54 -0600
+Message-Id: <1260999114-28291-1-git-send-email-santiago.nunez@ridgerun.com>
+Subject: [PATCH 2/4 v12] Definitions for TVP7002 in DM365
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> -----Original Message-----
-> From: Karicheri, Muralidharan
-> Sent: Tuesday, December 01, 2009 11:46 PM
-> To: linux-media@vger.kernel.org; hverkuil@xs4all.nl;
-> khilman@deeprootsystems.com
-> Cc: davinci-linux-open-source@linux.davincidsp.com; Hiremath,
-> Vaibhav; Karicheri, Muralidharan
-> Subject: [PATCH v0 1/2] V4L - vpfe capture - convert ccdc drivers to
-> platform drivers
-> 
-> From: Muralidharan Karicheri <m-karicheri2@ti.com>
-> 
-> Current implementation defines ccdc memory map in vpfe capture
-> platform
-> file and update the same in ccdc through a function call. This will
-> not
-> scale well. For example for DM365 CCDC, there are are additional
-> memory
-> map for Linear table. So it is cleaner to define memory map for ccdc
-> driver in the platform file and read it by the ccdc platform driver
-> during
-> probe.
-> 
-> Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-> ---
-> Applies to V4L-DVB linux-next tree
->  drivers/media/video/davinci/dm355_ccdc.c   |   89
-> ++++++++++++++++++++++++----
->  drivers/media/video/davinci/dm644x_ccdc.c  |   78
-> ++++++++++++++++++++----
->  drivers/media/video/davinci/vpfe_capture.c |   49 +--------------
->  3 files changed, 145 insertions(+), 71 deletions(-)
-> 
-> diff --git a/drivers/media/video/davinci/dm355_ccdc.c
-> b/drivers/media/video/davinci/dm355_ccdc.c
-> index 56fbefe..aacb95f 100644
-> --- a/drivers/media/video/davinci/dm355_ccdc.c
-> +++ b/drivers/media/video/davinci/dm355_ccdc.c
-> @@ -37,6 +37,7 @@
->  #include <linux/platform_device.h>
->  #include <linux/uaccess.h>
->  #include <linux/videodev2.h>
-> +#include <mach/mux.h>
-[Hiremath, Vaibhav] This should not be here, this should get handled in board file. The driver should be generic.
+From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
 
->  #include <media/davinci/dm355_ccdc.h>
->  #include <media/davinci/vpss.h>
->  #include "dm355_ccdc_regs.h"
-> @@ -105,7 +106,6 @@ static struct ccdc_params_ycbcr
-> ccdc_hw_params_ycbcr = {
-> 
->  static enum vpfe_hw_if_type ccdc_if_type;
->  static void *__iomem ccdc_base_addr;
-> -static int ccdc_addr_size;
-> 
->  /* Raw Bayer formats */
->  static u32 ccdc_raw_bayer_pix_formats[] =
-> @@ -126,12 +126,6 @@ static inline void regw(u32 val, u32 offset)
->  	__raw_writel(val, ccdc_base_addr + offset);
->  }
-> 
-> -static void ccdc_set_ccdc_base(void *addr, int size)
-> -{
-> -	ccdc_base_addr = addr;
-> -	ccdc_addr_size = size;
-> -}
-> -
->  static void ccdc_enable(int en)
->  {
->  	unsigned int temp;
-> @@ -938,7 +932,6 @@ static struct ccdc_hw_device ccdc_hw_dev = {
->  	.hw_ops = {
->  		.open = ccdc_open,
->  		.close = ccdc_close,
-> -		.set_ccdc_base = ccdc_set_ccdc_base,
->  		.enable = ccdc_enable,
->  		.enable_out_to_sdram = ccdc_enable_output_to_sdram,
->  		.set_hw_if_params = ccdc_set_hw_if_params,
-> @@ -959,19 +952,89 @@ static struct ccdc_hw_device ccdc_hw_dev = {
->  	},
->  };
-> 
-> -static int __init dm355_ccdc_init(void)
-> +static int __init dm355_ccdc_probe(struct platform_device *pdev)
->  {
-> -	printk(KERN_NOTICE "dm355_ccdc_init\n");
-> -	if (vpfe_register_ccdc_device(&ccdc_hw_dev) < 0)
-> -		return -1;
-> +	static resource_size_t  res_len;
-> +	struct resource	*res;
-> +	int status = 0;
-> +
-> +	/**
-> +	 * first try to register with vpfe. If not correct platform,
-> then we
-> +	 * don't have to iomap
-> +	 */
-> +	status = vpfe_register_ccdc_device(&ccdc_hw_dev);
-> +	if (status < 0)
-> +		return status;
-> +
-> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	if (!res) {
-> +		status = -ENOENT;
-[Hiremath, Vaibhav] I think right return value is -ENODEV.
+This patch provides the required definitions for the TVP7002 driver
+in DM365.
 
-> +		goto fail_nores;
-> +	}
-> +	res_len = res->end - res->start + 1;
-> +
-> +	res = request_mem_region(res->start, res_len, res->name);
-[Hiremath, Vaibhav] You should use "resource_size" here for res_len here.
+Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+---
+ drivers/media/video/tvp7002_reg.h |  150 +++++++++++++++++++++++++++++++++++++
+ include/media/tvp7002.h           |   56 ++++++++++++++
+ 2 files changed, 206 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/tvp7002_reg.h
+ create mode 100644 include/media/tvp7002.h
 
-> +	if (!res) {
-> +		status = -EBUSY;
-> +		goto fail_nores;
-> +	}
-> +
-> +	ccdc_base_addr = ioremap_nocache(res->start, res_len);
-> +	if (!ccdc_base_addr) {
-> +		status = -EBUSY;
-[Hiremath, Vaibhav] Is -EBUSY right return value, I think it should be -ENXIO or -ENOMEM.
-
-> +		goto fail;
-> +	}
-> +	/**
-> +	 * setup Mux configuration for vpfe input and register
-> +	 * vpfe capture platform device
-> +	 */
-> +	davinci_cfg_reg(DM355_VIN_PCLK);
-> +	davinci_cfg_reg(DM355_VIN_CAM_WEN);
-> +	davinci_cfg_reg(DM355_VIN_CAM_VD);
-> +	davinci_cfg_reg(DM355_VIN_CAM_HD);
-> +	davinci_cfg_reg(DM355_VIN_YIN_EN);
-> +	davinci_cfg_reg(DM355_VIN_CINL_EN);
-> +	davinci_cfg_reg(DM355_VIN_CINH_EN);
-> +
-[Hiremath, Vaibhav] This should not be here, this code must be generic and might get used in another SoC.
-
->  	printk(KERN_NOTICE "%s is registered with vpfe.\n",
->  		ccdc_hw_dev.name);
->  	return 0;
-> +fail:
-> +	release_mem_region(res->start, res_len);
-> +fail_nores:
-> +	vpfe_unregister_ccdc_device(&ccdc_hw_dev);
-> +	return status;
->  }
-> 
-> -static void __exit dm355_ccdc_exit(void)
-> +static int dm355_ccdc_remove(struct platform_device *pdev)
->  {
-> +	struct resource	*res;
-> +
-> +	iounmap(ccdc_base_addr);
-> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	if (res)
-> +		release_mem_region(res->start, res->end - res->start +
-> 1);
-[Hiremath, Vaibhav] Please use "resource_size" here for size.
-
->  	vpfe_unregister_ccdc_device(&ccdc_hw_dev);
-> +	return 0;
-> +}
-> +
-> +static struct platform_driver dm355_ccdc_driver = {
-> +	.driver = {
-> +		.name	= "dm355_ccdc",
-> +		.owner = THIS_MODULE,
-> +	},
-> +	.remove = __devexit_p(dm355_ccdc_remove),
-> +	.probe = dm355_ccdc_probe,
-> +};
-> +
-> +static int __init dm355_ccdc_init(void)
-> +{
-> +	return platform_driver_register(&dm355_ccdc_driver);
-> +}
-> +
-> +static void __exit dm355_ccdc_exit(void)
-> +{
-> +	platform_driver_unregister(&dm355_ccdc_driver);
->  }
-> 
->  module_init(dm355_ccdc_init);
-> diff --git a/drivers/media/video/davinci/dm644x_ccdc.c
-> b/drivers/media/video/davinci/dm644x_ccdc.c
-> index d5fa193..89ea6ae 100644
-> --- a/drivers/media/video/davinci/dm644x_ccdc.c
-> +++ b/drivers/media/video/davinci/dm644x_ccdc.c
-> @@ -85,7 +85,6 @@ static u32 ccdc_raw_yuv_pix_formats[] =
->  	{V4L2_PIX_FMT_UYVY, V4L2_PIX_FMT_YUYV};
-> 
->  static void *__iomem ccdc_base_addr;
-> -static int ccdc_addr_size;
->  static enum vpfe_hw_if_type ccdc_if_type;
-> 
->  /* register access routines */
-> @@ -99,12 +98,6 @@ static inline void regw(u32 val, u32 offset)
->  	__raw_writel(val, ccdc_base_addr + offset);
->  }
-> 
-> -static void ccdc_set_ccdc_base(void *addr, int size)
-> -{
-> -	ccdc_base_addr = addr;
-> -	ccdc_addr_size = size;
-> -}
-> -
->  static void ccdc_enable(int flag)
->  {
->  	regw(flag, CCDC_PCR);
-> @@ -838,7 +831,6 @@ static struct ccdc_hw_device ccdc_hw_dev = {
->  	.hw_ops = {
->  		.open = ccdc_open,
->  		.close = ccdc_close,
-> -		.set_ccdc_base = ccdc_set_ccdc_base,
->  		.reset = ccdc_sbl_reset,
->  		.enable = ccdc_enable,
->  		.set_hw_if_params = ccdc_set_hw_if_params,
-> @@ -859,19 +851,79 @@ static struct ccdc_hw_device ccdc_hw_dev = {
->  	},
->  };
-> 
-> -static int __init dm644x_ccdc_init(void)
-> +static int __init dm644x_ccdc_probe(struct platform_device *pdev)
->  {
-> -	printk(KERN_NOTICE "dm644x_ccdc_init\n");
-> -	if (vpfe_register_ccdc_device(&ccdc_hw_dev) < 0)
-> -		return -1;
-> +	static resource_size_t  res_len;
-> +	struct resource	*res;
-> +	int status = 0;
-> +
-> +	/**
-> +	 * first try to register with vpfe. If not correct platform,
-> then we
-> +	 * don't have to iomap
-> +	 */
-> +	status = vpfe_register_ccdc_device(&ccdc_hw_dev);
-> +	if (status < 0)
-> +		return status;
-> +
-> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	if (!res) {
-> +		status = -ENOENT;
-> +		goto fail_nores;
-> +	}
-> +
-> +	res_len = res->end - res->start + 1;
-> +
-> +	res = request_mem_region(res->start, res_len, res->name);
-> +	if (!res) {
-> +		status = -EBUSY;
-> +		goto fail_nores;
-> +	}
-> +
-> +	ccdc_base_addr = ioremap_nocache(res->start, res_len);
-> +	if (!ccdc_base_addr) {
-> +		status = -EBUSY;
-> +		goto fail;
-> +	}
-> +
->  	printk(KERN_NOTICE "%s is registered with vpfe.\n",
->  		ccdc_hw_dev.name);
->  	return 0;
-> +fail:
-> +	release_mem_region(res->start, res_len);
-> +fail_nores:
-> +	vpfe_unregister_ccdc_device(&ccdc_hw_dev);
-> +	return status;
-> +}
-> +
-> +static int dm644x_ccdc_remove(struct platform_device *pdev)
-> +{
-> +	struct resource	*res;
-> +
-> +	iounmap(ccdc_base_addr);
-> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	if (res)
-> +		release_mem_region(res->start, res->end - res->start +
-> 1);
-> +	vpfe_unregister_ccdc_device(&ccdc_hw_dev);
-> +	return 0;
-> +}
-> +
-> +static struct platform_driver dm644x_ccdc_driver = {
-> +	.driver = {
-> +		.name	= "dm644x_ccdc",
-> +		.owner = THIS_MODULE,
-> +	},
-> +	.remove = __devexit_p(dm644x_ccdc_remove),
-> +	.probe = dm644x_ccdc_probe,
-> +};
-> +
-> +static int __init dm644x_ccdc_init(void)
-> +{
-> +	return platform_driver_register(&dm644x_ccdc_driver);
->  }
-> 
->  static void __exit dm644x_ccdc_exit(void)
->  {
-> -	vpfe_unregister_ccdc_device(&ccdc_hw_dev);
-> +	platform_driver_unregister(&dm644x_ccdc_driver);
->  }
-[Hiremath, Vaibhav] All above comments mentioned for DM355 applicable here too.
-
-Thanks,
-Vaibhav
-
-> 
->  module_init(dm644x_ccdc_init);
-> diff --git a/drivers/media/video/davinci/vpfe_capture.c
-> b/drivers/media/video/davinci/vpfe_capture.c
-> index c3468ee..35bbb08 100644
-> --- a/drivers/media/video/davinci/vpfe_capture.c
-> +++ b/drivers/media/video/davinci/vpfe_capture.c
-> @@ -108,9 +108,6 @@ struct ccdc_config {
->  	int vpfe_probed;
->  	/* name of ccdc device */
->  	char name[32];
-> -	/* for storing mem maps for CCDC */
-> -	int ccdc_addr_size;
-> -	void *__iomem ccdc_addr;
->  };
-> 
->  /* data structures */
-> @@ -230,7 +227,6 @@ int vpfe_register_ccdc_device(struct
-> ccdc_hw_device *dev)
->  	BUG_ON(!dev->hw_ops.set_image_window);
->  	BUG_ON(!dev->hw_ops.get_image_window);
->  	BUG_ON(!dev->hw_ops.get_line_length);
-> -	BUG_ON(!dev->hw_ops.setfbaddr);
->  	BUG_ON(!dev->hw_ops.getfid);
-> 
->  	mutex_lock(&ccdc_lock);
-> @@ -241,25 +237,23 @@ int vpfe_register_ccdc_device(struct
-> ccdc_hw_device *dev)
->  		 * walk through it during vpfe probe
->  		 */
->  		printk(KERN_ERR "vpfe capture not initialized\n");
-> -		ret = -1;
-> +		ret = -EFAULT;
->  		goto unlock;
->  	}
-> 
->  	if (strcmp(dev->name, ccdc_cfg->name)) {
->  		/* ignore this ccdc */
-> -		ret = -1;
-> +		ret = -EINVAL;
->  		goto unlock;
->  	}
-> 
->  	if (ccdc_dev) {
->  		printk(KERN_ERR "ccdc already registered\n");
-> -		ret = -1;
-> +		ret = -EINVAL;
->  		goto unlock;
->  	}
-> 
->  	ccdc_dev = dev;
-> -	dev->hw_ops.set_ccdc_base(ccdc_cfg->ccdc_addr,
-> -				  ccdc_cfg->ccdc_addr_size);
->  unlock:
->  	mutex_unlock(&ccdc_lock);
->  	return ret;
-> @@ -1947,37 +1941,12 @@ static __init int vpfe_probe(struct
-> platform_device *pdev)
->  	}
->  	vpfe_dev->ccdc_irq1 = res1->start;
-> 
-> -	/* Get address base of CCDC */
-> -	res1 = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> -	if (!res1) {
-> -		v4l2_err(pdev->dev.driver,
-> -			"Unable to get register address map\n");
-> -		ret = -ENOENT;
-> -		goto probe_disable_clock;
-> -	}
-> -
-> -	ccdc_cfg->ccdc_addr_size = res1->end - res1->start + 1;
-> -	if (!request_mem_region(res1->start, ccdc_cfg->ccdc_addr_size,
-> -				pdev->dev.driver->name)) {
-> -		v4l2_err(pdev->dev.driver,
-> -			"Failed request_mem_region for ccdc base\n");
-> -		ret = -ENXIO;
-> -		goto probe_disable_clock;
-> -	}
-> -	ccdc_cfg->ccdc_addr = ioremap_nocache(res1->start,
-> -					     ccdc_cfg->ccdc_addr_size);
-> -	if (!ccdc_cfg->ccdc_addr) {
-> -		v4l2_err(pdev->dev.driver, "Unable to ioremap ccdc
-> addr\n");
-> -		ret = -ENXIO;
-> -		goto probe_out_release_mem1;
-> -	}
-> -
->  	ret = request_irq(vpfe_dev->ccdc_irq0, vpfe_isr,
-> IRQF_DISABLED,
->  			  "vpfe_capture0", vpfe_dev);
-> 
->  	if (0 != ret) {
->  		v4l2_err(pdev->dev.driver, "Unable to request
-> interrupt\n");
-> -		goto probe_out_unmap1;
-> +		goto probe_disable_clock;
->  	}
-> 
->  	/* Allocate memory for video device */
-> @@ -2101,10 +2070,6 @@ probe_out_video_release:
->  		video_device_release(vpfe_dev->video_dev);
->  probe_out_release_irq:
->  	free_irq(vpfe_dev->ccdc_irq0, vpfe_dev);
-> -probe_out_unmap1:
-> -	iounmap(ccdc_cfg->ccdc_addr);
-> -probe_out_release_mem1:
-> -	release_mem_region(res1->start, res1->end - res1->start + 1);
->  probe_disable_clock:
->  	vpfe_disable_clock(vpfe_dev);
->  	mutex_unlock(&ccdc_lock);
-> @@ -2120,7 +2085,6 @@ probe_free_dev_mem:
->  static int vpfe_remove(struct platform_device *pdev)
->  {
->  	struct vpfe_device *vpfe_dev = platform_get_drvdata(pdev);
-> -	struct resource *res;
-> 
->  	v4l2_info(pdev->dev.driver, "vpfe_remove\n");
-> 
-> @@ -2128,11 +2092,6 @@ static int vpfe_remove(struct platform_device
-> *pdev)
->  	kfree(vpfe_dev->sd);
->  	v4l2_device_unregister(&vpfe_dev->v4l2_dev);
->  	video_unregister_device(vpfe_dev->video_dev);
-> -	mutex_lock(&ccdc_lock);
-> -	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> -	release_mem_region(res->start, res->end - res->start + 1);
-> -	iounmap(ccdc_cfg->ccdc_addr);
-> -	mutex_unlock(&ccdc_lock);
->  	vpfe_disable_clock(vpfe_dev);
->  	kfree(vpfe_dev);
->  	kfree(ccdc_cfg);
-> --
-> 1.6.0.4
+diff --git a/drivers/media/video/tvp7002_reg.h b/drivers/media/video/tvp7002_reg.h
+new file mode 100644
+index 0000000..0e34ca9
+--- /dev/null
++++ b/drivers/media/video/tvp7002_reg.h
+@@ -0,0 +1,150 @@
++/* Texas Instruments Triple 8-/10-BIT 165-/110-MSPS Video and Graphics
++ * Digitizer with Horizontal PLL registers
++ *
++ * Copyright (C) 2009 Texas Instruments Inc
++ * Author: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
++ *
++ * This code is partially based upon the TVP5150 driver
++ * written by Mauro Carvalho Chehab (mchehab@infradead.org),
++ * the TVP514x driver written by Vaibhav Hiremath <hvaibhav@ti.com>
++ * and the TVP7002 driver in the TI LSP 2.10.00.14
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++/* Naming conventions
++ * ------------------
++ *
++ * FDBK:  Feedback
++ * DIV:   Divider
++ * CTL:   Control
++ * SEL:   Select
++ * IN:    Input
++ * OUT:   Output
++ * R:     Red
++ * G:     Green
++ * B:     Blue
++ * OFF:   Offset
++ * THRS:  Threshold
++ * DGTL:  Digital
++ * LVL:   Level
++ * PWR:   Power
++ * MVIS:  Macrovision
++ * W:     Width
++ * H:     Height
++ * ALGN:  Alignment
++ * CLK:   Clocks
++ * TOL:   Tolerance
++ * BWTH:  Bandwidth
++ * COEF:  Coefficient
++ * STAT:  Status
++ * AUTO:  Automatic
++ * FLD:   Field
++ * L:	  Line
++ */
++
++#define TVP7002_CHIP_REV		0x00
++#define TVP7002_HPLL_FDBK_DIV_MSBS	0x01
++#define TVP7002_HPLL_FDBK_DIV_LSBS	0x02
++#define TVP7002_HPLL_CRTL		0x03
++#define TVP7002_HPLL_PHASE_SEL		0x04
++#define TVP7002_CLAMP_START		0x05
++#define TVP7002_CLAMP_W			0x06
++#define TVP7002_HSYNC_OUT_W		0x07
++#define TVP7002_B_FINE_GAIN		0x08
++#define TVP7002_G_FINE_GAIN		0x09
++#define TVP7002_R_FINE_GAIN		0x0a
++#define TVP7002_B_FINE_OFF_MSBS		0x0b
++#define TVP7002_G_FINE_OFF_MSBS         0x0c
++#define TVP7002_R_FINE_OFF_MSBS         0x0d
++#define TVP7002_SYNC_CTL_1		0x0e
++#define TVP7002_HPLL_AND_CLAMP_CTL	0x0f
++#define TVP7002_SYNC_ON_G_THRS		0x10
++#define TVP7002_SYNC_SEPARATOR_THRS	0x11
++#define TVP7002_HPLL_PRE_COAST		0x12
++#define TVP7002_HPLL_POST_COAST		0x13
++#define TVP7002_SYNC_DETECT_STAT	0x14
++#define TVP7002_OUT_FORMATTER		0x15
++#define TVP7002_MISC_CTL_1		0x16
++#define TVP7002_MISC_CTL_2              0x17
++#define TVP7002_MISC_CTL_3              0x18
++#define TVP7002_IN_MUX_SEL_1		0x19
++#define TVP7002_IN_MUX_SEL_2            0x1a
++#define TVP7002_B_AND_G_COARSE_GAIN	0x1b
++#define TVP7002_R_COARSE_GAIN		0x1c
++#define TVP7002_FINE_OFF_LSBS		0x1d
++#define TVP7002_B_COARSE_OFF		0x1e
++#define TVP7002_G_COARSE_OFF            0x1f
++#define TVP7002_R_COARSE_OFF            0x20
++#define TVP7002_HSOUT_OUT_START		0x21
++#define TVP7002_MISC_CTL_4		0x22
++#define TVP7002_B_DGTL_ALC_OUT_LSBS	0x23
++#define TVP7002_G_DGTL_ALC_OUT_LSBS     0x24
++#define TVP7002_R_DGTL_ALC_OUT_LSBS     0x25
++#define TVP7002_AUTO_LVL_CTL_ENABLE	0x26
++#define TVP7002_DGTL_ALC_OUT_MSBS	0x27
++#define TVP7002_AUTO_LVL_CTL_FILTER	0x28
++/* Reserved 0x29*/
++#define TVP7002_FINE_CLAMP_CTL		0x2a
++#define TVP7002_PWR_CTL			0x2b
++#define TVP7002_ADC_SETUP		0x2c
++#define TVP7002_COARSE_CLAMP_CTL	0x2d
++#define TVP7002_SOG_CLAMP		0x2e
++#define TVP7002_RGB_COARSE_CLAMP_CTL	0x2f
++#define TVP7002_SOG_COARSE_CLAMP_CTL	0x30
++#define TVP7002_ALC_PLACEMENT		0x31
++/* Reserved 0x32 */
++/* Reserved 0x33 */
++#define TVP7002_MVIS_STRIPPER_W		0x34
++#define TVP7002_VSYNC_ALGN		0x35
++#define TVP7002_SYNC_BYPASS		0x36
++#define TVP7002_L_FRAME_STAT_LSBS	0x37
++#define TVP7002_L_FRAME_STAT_MSBS	0x38
++#define TVP7002_CLK_L_STAT_LSBS		0x39
++#define TVP7002_CLK_L_STAT_MSBS      	0x3a
++#define TVP7002_HSYNC_W			0x3b
++#define TVP7002_VSYNC_W                 0x3c
++#define TVP7002_L_LENGTH_TOL 		0x3d
++/* Reserved 0x3e */
++#define TVP7002_VIDEO_BWTH_CTL		0x3f
++#define TVP7002_AVID_START_PIXEL_LSBS	0x40
++#define TVP7002_AVID_START_PIXEL_MSBS   0x41
++#define TVP7002_AVID_STOP_PIXEL_LSBS  	0x42
++#define TVP7002_AVID_STOP_PIXEL_MSBS    0x43
++#define TVP7002_VBLK_F_0_START_L_OFF	0x44
++#define TVP7002_VBLK_F_1_START_L_OFF    0x45
++#define TVP7002_VBLK_F_0_DURATION	0x46
++#define TVP7002_VBLK_F_1_DURATION       0x47
++#define TVP7002_FBIT_F_0_START_L_OFF	0x48
++#define TVP7002_FBIT_F_1_START_L_OFF    0x49
++#define TVP7002_YUV_Y_G_COEF_LSBS	0x4a
++#define TVP7002_YUV_Y_G_COEF_MSBS       0x4b
++#define TVP7002_YUV_Y_B_COEF_LSBS       0x4c
++#define TVP7002_YUV_Y_B_COEF_MSBS       0x4d
++#define TVP7002_YUV_Y_R_COEF_LSBS       0x4e
++#define TVP7002_YUV_Y_R_COEF_MSBS       0x4f
++#define TVP7002_YUV_U_G_COEF_LSBS       0x50
++#define TVP7002_YUV_U_G_COEF_MSBS       0x51
++#define TVP7002_YUV_U_B_COEF_LSBS       0x52
++#define TVP7002_YUV_U_B_COEF_MSBS       0x53
++#define TVP7002_YUV_U_R_COEF_LSBS       0x54
++#define TVP7002_YUV_U_R_COEF_MSBS       0x55
++#define TVP7002_YUV_V_G_COEF_LSBS       0x56
++#define TVP7002_YUV_V_G_COEF_MSBS       0x57
++#define TVP7002_YUV_V_B_COEF_LSBS       0x58
++#define TVP7002_YUV_V_B_COEF_MSBS       0x59
++#define TVP7002_YUV_V_R_COEF_LSBS       0x5a
++#define TVP7002_YUV_V_R_COEF_MSBS       0x5b
++
+diff --git a/include/media/tvp7002.h b/include/media/tvp7002.h
+new file mode 100644
+index 0000000..b894f02
+--- /dev/null
++++ b/include/media/tvp7002.h
+@@ -0,0 +1,56 @@
++/* Texas Instruments Triple 8-/10-BIT 165-/110-MSPS Video and Graphics
++ * Digitizer with Horizontal PLL registers
++ *
++ * Copyright (C) 2009 Texas Instruments Inc
++ * Author: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
++ *
++ * This code is partially based upon the TVP5150 driver
++ * written by Mauro Carvalho Chehab (mchehab@infradead.org),
++ * the TVP514x driver written by Vaibhav Hiremath <hvaibhav@ti.com>
++ * and the TVP7002 driver in the TI LSP 2.10.00.14
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++#ifndef _TVP7002_H_
++#define _TVP7002_H_
++
++/* Platform-dependent data
++ *
++ * clk_polarity:
++ * 			0 -> data clocked out on rising edge of DATACLK signal
++ * 			1 -> data clocked out on falling edge of DATACLK signal
++ * hs_polarity:
++ * 			0 -> active low HSYNC output
++ * 			1 -> active high HSYNC output
++ * sog_polarity:
++ * 			0 -> normal operation
++ * 			1 -> operation with polarity inverted
++ * vs_polarity:
++ * 			0 -> active low VSYNC output
++ * 			1 -> active high VSYNC output
++ * fid_polarity: (*)
++ *			0 -> the field ID output is set to logic 1 for an odd
++ *			     field (field 1) and set to logic 0 for an even
++ *			     field (field 0).
++ *			1 -> operation with polarity inverted.
++ */
++struct tvp7002_config {
++	u8 clk_polarity;
++	u8 hs_polarity;
++	u8 vs_polarity;
++	u8 fid_polarity;
++	u8 sog_polarity;
++};
++#endif
+-- 
+1.6.0.4
 
