@@ -1,99 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47949 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758109AbZLJUrM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2009 15:47:12 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: =?iso-8859-1?Q?Daniel_Gl=F6ckner?= <dg@emlix.com>,
-	HoP <jpetrous@gmail.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Thu, 10 Dec 2009 14:46:53 -0600
-Subject: RE: Latest stack that can be merged on top of linux-next tree
-Message-ID: <A69FA2915331DC488A831521EAE36FE40155C80C7B@dlee06.ent.ti.com>
-References: <A69FA2915331DC488A831521EAE36FE40155C809AB@dlee06.ent.ti.com>
- <846899810912101139g6e8a36f7j78fa650e6629ad1b@mail.gmail.com>
- <4B2156AA.80309@emlix.com>
-In-Reply-To: <4B2156AA.80309@emlix.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+Received: from web23206.mail.ird.yahoo.com ([217.146.189.61]:36840 "HELO
+	web23206.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1759906AbZLPPH1 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Dec 2009 10:07:27 -0500
+Message-ID: <94892.13788.qm@web23206.mail.ird.yahoo.com>
+Date: Wed, 16 Dec 2009 15:07:24 +0000 (GMT)
+From: Newsy Paper <newspaperman_germany@yahoo.com>
+Subject: Re: Anyone capable of fixing inverted spectrum issue on tt s2-3200?
+To: Manu Abraham <abraham.manu@gmail.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <1a297b360912160510x5e8f1094se95560e6584e0337@mail.gmail.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+thx Manu for your quick answer. I tried that patch, at least on those 8psk 30000 3/4 on thor 1 West it didn't solve the problem, but I'm not sure if they really use inverted spectrum on that transponder.
 
-Thanks for the email.
+ORF switched inverted spectrum off again, so I'm in search of an dvb-s2 transponder that has set inverted spectrum on in order to test your change. :(
 
-Any idea how i2c drivers can work with this?
+regards
 
-Currently in my board, I have adapter id = 1 for main i2c bus. So when this mux driver is built into the kernel, I guess I can access it using a different adapter id, right? If so, what is the adapter id?
+Newsy
 
-How do I use this with MT9T031 driver? Any idea to share?
+--- Manu Abraham <abraham.manu@gmail.com> schrieb am Mi, 16.12.2009:
 
-Thanks
+> Von: Manu Abraham <abraham.manu@gmail.com>
+> Betreff: Re: Anyone capable of fixing inverted spectrum issue on tt s2-3200?
+> An: "Newsy Paper" <newspaperman_germany@yahoo.com>
+> CC: linux-media@vger.kernel.org
+> Datum: Mittwoch, 16. Dezember 2009, 14:10
+> On Wed, Dec 16, 2009 at 4:15 PM,
+> Newsy Paper
+> <newspaperman_germany@yahoo.com>
+> wrote:
+> > Hi,
+> >
+> > as the problem with the ORF HD transponder on Astra is
+> now figured out and ORF switched inversion off again, we
+> know know where the bug in the driver is. I don't know if
+> the problem also occours on dvb-s(1) transponders but I'll
+> try to figure that out.
+> >
+> > Is anyone able to fix that dvb-s2 problem? Perhaps it
+> would also solve the problem with some transponders on 1°
+> west?
+> >
+> 
+> 
+> To verify whether an inversion will solve the issue:
+> 
+> Please try changing
+> 
+> line: #1313 .inversion = IQ_SWAP_ON, /* 1 */  to
+> IQ_SWAP_OFF
+> 
+> in
+> 
+> http://linuxtv.org/hg/v4l-dvb/file/79fc32bba0a0/linux/drivers/media/dvb/ttpci/budget-ci.c
+> 
+> and check whether that solves your inversion issue. Please
+> report your findings.
+> 
+> 
+> Regards,
+> Manu
+> 
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-phone: 301-407-9583
-email: m-karicheri2@ti.com
-
->-----Original Message-----
->From: Daniel Glöckner [mailto:dg@emlix.com]
->Sent: Thursday, December 10, 2009 3:15 PM
->To: HoP
->Cc: Karicheri, Muralidharan; linux-media@vger.kernel.org
->Subject: Re: Latest stack that can be merged on top of linux-next tree
->
->Hi,
->
->On 12/10/2009 08:39 PM, HoP wrote:
->> 2009/12/10 Karicheri, Muralidharan <m-karicheri2@ti.com>:
->>> BTW, Is there a driver for the PCA9543 i2c switch that is part of
->MT9T031
->>> headboard?
->>>
->>
->> I would like to know answer also :)
->>
->> I had to add support for pca9542 (what is 2 port switch) for our project.
->> After some googling I found some patches for similar kernel I was
->> working on (2.6.22). You can find original patches for example there:
->> http://www.mail-archive.com/i2c@lm-sensors.org/msg00315.html
->>
->> FYI, the driver pca954x.c seems to be driver for full family of i2c
->> muxes/switches. Such code works fine for me.
->>
->> The only thing I didn't find was why the code was never merged.
->
->the driver that has the greatest chance of being accepted has been
->discussed
->on the linux-i2c list a few days ago:
->
->http://thread.gmane.org/gmane.linux.drivers.i2c/4856
->
->The patchset they are talking about is this one:
->
->http://thread.gmane.org/gmane.linux.drivers.i2c/2998
->
->With these patches the bus segments beyond the i2c multiplexer will be
->registered as separate i2c busses. Access to a device on those busses
->will then automatically reconfigure the multiplexer.
->
->
->Last time we tried to enable only one channel of the pca9543 on the mt9d131
->board it had an effect on the brightness. Unfortunately we don't have the
->schematics of the head board. Can anyone explain what was going on there?
->
->  Daniel
->
->--
->Dipl.-Math. Daniel Glöckner, emlix GmbH, http://www.emlix.com
->Fon +49 551 30664-0, Fax -11, Bahnhofsallee 1b, 37081 Göttingen, Germany
->Sitz der Gesellschaft: Göttingen, Amtsgericht Göttingen HR B 3160
->Geschäftsführer: Dr. Uwe Kracke, Ust-IdNr.: DE 205 198 055
->
->emlix - your embedded linux partner
+__________________________________________________
+Do You Yahoo!?
+Sie sind Spam leid? Yahoo! Mail verfügt über einen herausragenden Schutz gegen Massenmails. 
+http://mail.yahoo.com 
