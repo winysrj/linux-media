@@ -1,222 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f192.google.com ([209.85.221.192]:55954 "EHLO
-	mail-qy0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S937077AbZLHSPO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2009 13:15:14 -0500
+Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:4200 "EHLO
+	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756172AbZLPHlg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Dec 2009 02:41:36 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Subject: Re: [PATCH - v1 4/6] V4L - vpfe_capture bug fix and enhancements
+Date: Wed, 16 Dec 2009 08:41:57 +0100
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"khilman@deeprootsystems.com" <khilman@deeprootsystems.com>,
+	"Nori, Sekhar" <nsekhar@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>
+References: <1260464429-10537-1-git-send-email-m-karicheri2@ti.com> <200912152220.41459.hverkuil@xs4all.nl> <A69FA2915331DC488A831521EAE36FE401625D0BCC@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE401625D0BCC@dlee06.ent.ti.com>
 MIME-Version: 1.0
-In-Reply-To: <4B1E7E56.80701@redhat.com>
-References: <BDRae8rZjFB@christoph>
-	 <20091208042210.GA11147@core.coreip.homeip.net>
-	 <1260275743.3094.6.camel@palomino.walls.org>
-	 <4B1E54FF.8060404@redhat.com>
-	 <9e4733910912080547j75c2c885o29664470ff5e2c6a@mail.gmail.com>
-	 <4B1E5BDF.7010202@redhat.com>
-	 <9e4733910912080619t36089c9bg5e54114844b9694a@mail.gmail.com>
-	 <4B1E640B.6030705@redhat.com>
-	 <9e4733910912080756j7e1fac32qc552c6514a307b7d@mail.gmail.com>
-	 <4B1E7E56.80701@redhat.com>
-Date: Tue, 8 Dec 2009 13:15:20 -0500
-Message-ID: <9e4733910912081015he8b9b63o27ee802dea7adcfc@mail.gmail.com>
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
-	Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Andy Walls <awalls@radix.net>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	Christoph Bartelmus <lirc@bartelmus.de>, j@jannau.net,
-	jarod@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200912160841.57444.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 8, 2009 at 11:27 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Jon Smirl wrote:
->> On Tue, Dec 8, 2009 at 9:34 AM, Mauro Carvalho Chehab
->> <mchehab@redhat.com> wrote:
->>> Jon Smirl wrote:
->>>> On Tue, Dec 8, 2009 at 8:59 AM, Mauro Carvalho Chehab
->>>> <mchehab@redhat.com> wrote:
->>>>> Jon Smirl wrote:
->>>>>> On Tue, Dec 8, 2009 at 8:30 AM, Mauro Carvalho Chehab
->>>>>> <mchehab@redhat.com> wrote:
->>>>>>> Andy Walls wrote:
->>>>>>>> On Mon, 2009-12-07 at 20:22 -0800, Dmitry Torokhov wrote:
->>>>>>>>> On Mon, Dec 07, 2009 at 09:42:22PM -0500, Andy Walls wrote:
->>>>>>>>>> So I'll whip up an RC-6 Mode 6A decoder for cx23885-input.c before the
->>>>>>>>>> end of the month.
->>>>>>>>>>
->>>>>>>>>> I can setup the CX2388[58] hardware to look for both RC-5 and RC-6 with
->>>>>>>>>> a common set of parameters, so I may be able to set up the decoders to
->>>>>>>>>> handle decoding from two different remote types at once.  The HVR boards
->>>>>>>>>> can ship with either type of remote AFAIK.
->>>>>>>>>>
->>>>>>>>>> I wonder if I can flip the keytables on the fly or if I have to create
->>>>>>>>>> two different input devices?
->>>>>>>>>>
->>>>>>>>> Can you distinguish between the 2 remotes (not receivers)?
->>>>>>>> Yes.  RC-6 and RC-5 are different enough to distinguish between the two.
->>>>>>>> (Honestly I could pile on more protocols that have similar pulse time
->>>>>>>> periods, but that's complexity for no good reason and I don't know of a
->>>>>>>> vendor that bundles 3 types of remotes per TV card.)
->>>>>>> You'll be distinguishing the protocol, not the remote. If I understood
->>>>>>> Dmitry's question, he is asking if you can distinguish between two different
->>>>>>> remotes that may, for example, be using both RC-5 or both RC-6 or one RC-5
->>>>>>> and another RC-6.
->>>>>> RC-5 and RC-6 both contain an address field.  My opinion is that
->>>>>> different addresses represent different devices and in general they
->>>>>> should appear on an input devices per address.
->>>>> The same IR can produce two different addresses. The IR bundled with my satellite
->>>>> STB produces two different codes, depending if you previously pressed <TV> or <SAT>
->>>>> key (in fact, I think it can even produce different protocols for TV, as it can
->>>>> be configured to work with different TV sets).
->>>> You have a multi-function remote.
->>> Yes.
->>>
->>>> That's why those keys don't send codes. When writing code you should
->>>> think of this remote as being two indpendent virtual remotes, not a
->>>> single one.
->>> Not really. I may think on it as a single device and use the two groups
->>> of functions to control two aspects at the same application.
->>>
->>> For example, I may map the <TV> group on kaffeine for DVB reception and the
->>> <SAT> group for DVD (well, probably, in this case, I'll use an IR with
->>> <TV> and <DVD> keys, instead ;) ).
->>>
->>>> By using maps containing the two different addresses for <TV> and
->>>> <SAT> you can split these commands onto two different evdev devices.
->>> True. I can do it, but I can opt to have both mapped as one evdev device as well.
->>> This will basically depend on how I want to mount my environment.
->>>
->>>> This model is complicated by the fact that some remotes that look like
->>>> multi-function remotes aren't really multifunction. The remote bundled
->>>> with the MS MCE receiver is one. That remote is a single function
->>>> device even though it has function buttons for TV, Music, Pictures,
->>>> etc.
->>> It is very common to have such remotes bundled with multimedia devices.
->>>
->>> An unsolved question on my mind is how should we map such IR's? Should we
->>> provide a way for them to emulate a multifunction IR (for example, after pressing
->>> TV key, subsequent keystrokes would be directed to the TV evdev device?), or
->>> should we let this up to some userspace app to handle this case?
->>
->> Splitting them into multiple devices requires remembering state and
->> scripting so it needs to be done in user space.
->
-> It shouldn't be hard to do it in kernelspace, since you'll need to have
-> one evdev interface associated with the IR anyway, but this will add
-> some extra complexity at the scancode->keycode conversion, but I'm wandering
-> if we should do it or not.
->
-> Maybe the better is to not do it in kernelspace, to avoid adding there an
-> extra complexity that can easily be done in userspace.
->
->> If the user wants to
->> control a radio app and a home automation app they need to choose.
->> Keep the bundled remote and do some non-trivial scripting or buy a
->> universal remote.
->
-> Ok, but using the shipped IR even without a separate address group for
-> different applications, and having it controlling radio app and tv app
-> (not simultaneously) should not be hard, but I LIRC already covers such
-> usecase, so maybe we don't need to worry about it.
->
->> Universal remotes make it much easier to achieve "just works".
->
-> True.
->
->> The IR core can contain default universal profiles for various classes
->> of devices. Say Morotola_DVR and SciAtlanta_DVR. The core would check
->> if the receiver is cable of receiving these profiles before loading
->> them. There would be ten of these default universal profiles at most
->> and you can unload them from RAM if they aren't needed.
->>
->> Now Myth can have a menu with three remote choices:
->>  Universal Morotola_DVR
->>  Universal SciAtlanta_DVR
->>  Bundled
->>
->> The Bundled choice came from the map built into the IR receiver's device driver.
->> The other two choices were loaded by the IR core after ensuring that
->> the hardware could receive from a universal remote.
->>
->> The core would also load a couple of default radio profiles
->>  Univeral SonyDR112_RADIO
->>  Univeral OnkyoTX8255_RADIO
->> Same for automation and mouse/keyboard emulation.
->
-> Agreed.
->
->> Myth looks in sysfs and builds a menu containing DVR devices and all
->> bundled entries. First app to open the "Bundled" device gets to keep
->> it.
->
-> Myth (or other userspace apps) don't need to to that, since we've standardized
-> the keycode actions (see the IR chapter of the media DocBook). It just
-> needs to support the keycodes already defined, for the common case.
->
->> These apps could take "just works" even farther. When they start up
->> they could listen on all three evdev devices:  Morotola_DVR,
->> SciAtlanta_DVR,   Bundled. And then if you find Myth responding to
->> unwanted commands you could disable the unwanted profiles by
->> deselecting them in the Myth UI.
->
-> I don't like the idea of automatically loading 3 different keycodes at the
-> same time. You may have overlaps between different keycode tables. The
-> better is to have some userspace GUI that will allow the user to select
-> what keycode table(s) he want to be available, if he decides to not use the
-> bundled IR.
+On Wednesday 16 December 2009 00:37:52 Karicheri, Muralidharan wrote:
+> Hans,
+> 
+> I remember there was a comment against an earlier patch that asks
+> for combining such statements since it makes the function appear
+> as big. Not sure who had made that comment. That is the reason you
+> find code like this in this patch. It was initially done with multiple
+> OR statements to construct the value to be written to the register as you stated below as 
+> 
+> >val = bc->horz.win_count_calc &
+> >	ISIF_HORZ_BC_WIN_COUNT_MASK;
+> >val |= !!bc->horz.base_win_sel_calc <<
+> >	ISIF_HORZ_BC_WIN_SEL_SHIFT;
+> 
+> I have checked few other drivers such as bt819.c ir-kbd-i2c.c,
+> mt9m111.c etc, where similar statements are found, but they have used hardcoded values masks which makes it appears less complex. But I 
+> like to reduce magic numbers as much possible in the code.
 
-Of course there is going to be overlap of the keycodes, but not the
-scancodes. There should be almost 100% overlap.
+Personally I have mixed feelings about the use for symbolic names for things
+like this. The problem is that they do not help me understanding the code.
+The names tend to be long, leading to these broken up lines, and if I want
+to know how the bits are distributed in the value I continuously have to
+do the look up in the header containing these defines.
 
-The three maps are there to support a non-technical user, a
-sophisticated user will disable two of them. This works because the
-non-technical user is only going to use one of the three IR device
-profiles. The other two may be loaded, but the user isn't sending any
-IR signals that match their maps.
+Frankly, I have a similar problem with using symbolic names for registers.
+Every time I need to look up a register in the datasheet I first need to
+look up the register number the register name maps to. All datasheets seem
+to be organized around the register addresses and there rarely is a datasheet
+that has an index of symbolic names.
 
-Where this breaks down is if they are using SciAtlanta_DVR to control
-MythTV and they also happen to have a physical Motorola DVR in the
-same room. The Linux box is going to pick up the commands meant for
-the Motorola DVR and both boxes will respond.. In that cause they will
-need to figure figure out how to disable the Motorola DVR profile.
-But is a non-technical person likely to have two DVRs in the same
-room?
+Using hard-coded numbers together with a well written comment tends to be much
+more readable in my opinion. I don't really think there is anything magic about
+these numbers: these are exactly the numbers that I need to know whenever I
+have to deal with the datasheet. Having to go through a layer of obfuscation
+is just plain irritating to me.
 
->
-> The same applies to applications: if you have 3 keymaps loaded, is because you
-> want do do different things with the 3 keymaps (like using keymap 1 for kaffeine,
-> keymap 2 for mplayer, keymap 3 for mythtv).
->
-> So, IR-aware applications should have a setup interface to specify what IR keycodes
-> are relevant to that particular application, and how to associate an evdev interface
-> to an specific group of functions (for applications that supports several different
-> types of media, like MythTV and Kaffeine, where you'll end by having a "TV" keymap/evdev,
-> a "Radio" keymap/evdev, a "CD/DVD" Keymap/evdev, etc).
->
-> Btw, if we're doing that, IMO, we should have an string sysfs alias attribute,
-> to allow associating the userspace application to an specific keymap alias
-> (like "radio", "tv", etc.).
->
->> All of this may seem complicated to build, but the purpose is to
->> create an environment where a non-technical user can get an IR remote
->> working without needing detailed knowledge about how IR protocols
->> work.
->
-> IMO, this is an important requisite to fulfill.
->
-> Cheers,
-> Mauro.
->
+However, I seem to be a minority when it comes to this and I've given up
+arguing for this...
 
+Note that all this assumes that the datasheet is publicly available. If it
+is a reversed engineered driver or based on NDA datasheets only, then the
+symbolic names may be all there is to make you understand what is going on.
 
+> 
+> I think what I can do is to  combine maximum of 2 such expressions in a statement which might make it less complex to read. Such as 
+> 
+> val = (bc->horz.win_count_calc &
+> 	ISIF_HORZ_BC_WIN_COUNT_MASK) |
+>  	((!!bc->horz.base_win_sel_calc) <<
+> 	ISIF_HORZ_BC_WIN_SEL_SHIFT);
+> 
+> val |= (!!bc->horz.clamp_pix_limit) <<
+> 	 ISIF_HORZ_BC_PIX_LIMIT_SHIFT) |
+>  	 ((bc->horz.win_h_sz_calc &
+> 	 ISIF_HORZ_BC_WIN_H_SIZE_MASK) <<
+> 	 ISIF_HORZ_BC_WIN_H_SIZE_SHIFT);
+> val |= ((bc->horz.win_v_sz_calc &
+> 	 ISIF_HORZ_BC_WIN_V_SIZE_MASK) <<
+> 	 ISIF_HORZ_BC_WIN_V_SIZE_SHIFT);
+> 
+> Also to make the line fits in 80 characters, I will consider reducing
+> the number of characters in #define names such as
+> 
+> val = (bc->horz.win_count_calc & HZ_BC_WIN_CNT_MASK) |
+> ((!!bc->horz.base_win_sel_calc) << HZ_BC_WIN_SEL_SHIFT) |
+> (!!bc->horz.clamp_pix_limit) << HZ_BC_PIX_LIMIT_SHIFT);
+> 
+> Let me know if you don't agree.
+
+That seems overkill. I actually think it can be improved a lot by visually
+grouping the lines:
+
+                     val = (bc->horz.win_count_calc &
+                             ISIF_HORZ_BC_WIN_COUNT_MASK) |
+                           ((!!bc->horz.base_win_sel_calc) <<
+                             ISIF_HORZ_BC_WIN_SEL_SHIFT) |
+                           ((!!bc->horz.clamp_pix_limit) <<
+                             ISIF_HORZ_BC_PIX_LIMIT_SHIFT) |
+                           ((bc->horz.win_h_sz_calc &
+                             ISIF_HORZ_BC_WIN_H_SIZE_MASK) <<
+                             ISIF_HORZ_BC_WIN_H_SIZE_SHIFT) |
+                           ((bc->horz.win_v_sz_calc &
+                             ISIF_HORZ_BC_WIN_V_SIZE_MASK) <<
+                             ISIF_HORZ_BC_WIN_V_SIZE_SHIFT);
+
+Now I can at least see the various values that are ORed.
+
+> 
+> >
+> >Of course, in this particular piece of code from the function
+> >isif_config_bclamp()
+> >I am also wondering why bc->horz.win_h_sz_calc and bc->horz.win_v_sz_calc
+> >need to
+> >be ANDed anyway. I would expect that to happen when these values are set.
+> >But I
+> >did not look at this in-depth, so I may well have missed some subtlety here.
+> 
+> Yes, isif_config_bclamp() set values in the register.
+
+Huh? That does not explain why apparently bc->horz.win_h_sz_calc can be larger
+than ISIF_HORZ_BC_WIN_H_SIZE_MASK.
+
+Regards,
+
+	Hans
+
+> 
+> >
+> >It would be interesting to know if people know of good ways of making
+> >awkward
+> >code like this more elegant (or at least less awkward).
+> >
+> >Regards,
+> >
+> >	Hans
+> >
+> >--
+> >Hans Verkuil - video4linux developer - sponsored by TANDBERG
+> 
+> 
 
 -- 
-Jon Smirl
-jonsmirl@gmail.com
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
