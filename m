@@ -1,52 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from snail.duncangibb.com ([217.169.3.184]:4626 "EHLO
-	snail.duncangibb.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759795AbZLLNQL (ORCPT
+Received: from jordan.toaster.net ([69.36.241.228]:3802 "EHLO
+	jordan.toaster.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757511AbZLPXcu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Dec 2009 08:16:11 -0500
-Received: from edna.duncangibb.com ([217.169.3.179])
-	by snail.duncangibb.com with esmtpsa (TLS-1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.63)
-	(envelope-from <dg@duncangibb.com>)
-	id 1NJRRp-000784-Jq
-	for linux-media@vger.kernel.org; Sat, 12 Dec 2009 12:51:47 +0000
-Message-ID: <4B2391E0.3040800@duncangibb.com>
-Date: Sat, 12 Dec 2009 12:51:44 +0000
-From: Duncan Gibb <dg@duncangibb.com>
+	Wed, 16 Dec 2009 18:32:50 -0500
+Message-ID: <4B296D84.7090603@toaster.net>
+Date: Wed, 16 Dec 2009 15:30:12 -0800
+From: Sean <knife@toaster.net>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Alan Stern <stern@rowland.harvard.edu>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	bugzilla-daemon@bugzilla.kernel.org, linux-media@vger.kernel.org,
+	USB list <linux-usb@vger.kernel.org>,
+	Ingo Molnar <mingo@elte.hu>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	"H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [Bugme-new] [Bug 14564] New: capture-example sleeping function
+ called from invalid context at arch/x86/mm/fault.c
+References: <Pine.LNX.4.44L0.0912031601420.4795-100000@iolanthe.rowland.org>
+In-Reply-To: <Pine.LNX.4.44L0.0912031601420.4795-100000@iolanthe.rowland.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Subject: [PATCH] [Trivial] Make saa7134-input.c build for kernels < 2.6.30
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+Thanks, that patch definitely traps the bug. Unfortunately there are so 
+many debug messages that the capture-example.c times out trying to 
+connect to the webcam. The debug messages slow down the process enough 
+to make that happen. But if I modify your patch and take out the extra 
+debug messages, it works well. The modified patch is below.
 
-The current http://linuxtv.org/hg/v4l-dvb tree doesn't build against
-my kernel (2.6.26-2-xen-686 from Debian Lenny) and lots of others
-according to http://www.xs4all.nl/~hverkuil/logs/Friday.log because
-of a typo fixed by this patch.  Apologies for posting what to many
-will be the bleeding obvious.
+Reproducing the bug in four separate instances I got:
+ohci_hcd 0000:00:0a.0: poisoned hash at c67a285c 
+ohci_hcd 0000:00:0a.0: poisoned hash at c67b875c
+ohci_hcd 0000:00:0a.0: poisoned hash at c67a179c
+ohci_hcd 0000:00:0a.0: poisoned hash at c679c79c
 
-Cheers
+Sean Lazar
 
-Duncan
+--- ohci-mem.c.orig    2009-12-16 22:57:49.000000000 +0000
++++ ohci-mem.c    2009-12-16 22:49:37.000000000 +0000
+@@ -103,8 +103,13 @@
+ {
+     struct td    **prev = &hc->td_hash [TD_HASH_FUNC (td->td_dma)];
+ 
+-    while (*prev && *prev != td)
++    while (*prev && *prev != td) {
++        if ((unsigned long) *prev == 0xa7a7a7a7) {
++            ohci_info(hc, "poisoned hash at %p\n", prev);
++            return;
++        }
+         prev = &(*prev)->td_hash;
++    }
+     if (*prev)
+         *prev = td->td_hash;
+     else if ((td->hwINFO & cpu_to_hc32(hc, TD_DONE)) != 0)
+ 
 
-
-Signed-off-by: Duncan Gibb <dg@duncangibb.com>
----
-diff -r db37ff59927f linux/drivers/media/video/saa7134/saa7134-input.c
---- a/linux/drivers/media/video/saa7134/saa7134-input.c Thu Dec 10 18:17:49 2009 -0200
-+++ b/linux/drivers/media/video/saa7134/saa7134-input.c Sat Dec 12 12:08:10 2009 +0000
-@@ -962,7 +962,7 @@
- #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 30)
-                snprintf(ir->c.name, sizeof(ir->c.name), "FlyDVB Trio");
-                ir->get_key   = get_key_flydvb_trio;
--               ir->ir_codes  = ir_codes_flydvb_table;
-+               ir->ir_codes  = &ir_codes_flydvb_table;
- #else
-                dev->init_data.name = "FlyDVB Trio";
-                dev->init_data.get_key = get_key_flydvb_trio;
-
-
+Alan Stern wrote:
+> On Wed, 2 Dec 2009, Sean wrote:
+>
+>   
+>> Is there anything I can do to help? This is a show stopping bug for me.
+>>     
+>
+> Here's a patch you can try.  It will add a _lot_ of debugging
+> information to the system log.  Maybe it will help pin down the source
+> of the problem.
+>
+> Alan Stern
+>
+>
+>
+> Index: 2.6.31/drivers/usb/host/ohci-hcd.c
+> ===================================================================
+> --- 2.6.31.orig/drivers/usb/host/ohci-hcd.c
+> +++ 2.6.31/drivers/usb/host/ohci-hcd.c
+> @@ -197,7 +197,7 @@ static int ohci_urb_enqueue (
+>  
+>  	/* allocate the TDs (deferring hash chain updates) */
+>  	for (i = 0; i < size; i++) {
+> -		urb_priv->td [i] = td_alloc (ohci, mem_flags);
+> +		urb_priv->td [i] = td_alloc (ohci, mem_flags, urb->dev, urb->ep);
+>  		if (!urb_priv->td [i]) {
+>  			urb_priv->length = i;
+>  			urb_free_priv (ohci, urb_priv);
+> Index: 2.6.31/drivers/usb/host/ohci-mem.c
+> ===================================================================
+> --- 2.6.31.orig/drivers/usb/host/ohci-mem.c
+> +++ 2.6.31/drivers/usb/host/ohci-mem.c
+> @@ -82,7 +82,8 @@ dma_to_td (struct ohci_hcd *hc, dma_addr
+>  
+>  /* TDs ... */
+>  static struct td *
+> -td_alloc (struct ohci_hcd *hc, gfp_t mem_flags)
+> +td_alloc (struct ohci_hcd *hc, gfp_t mem_flags, struct usb_device *udev,
+> +	struct usb_host_endpoint *ep)
+>  {
+>  	dma_addr_t	dma;
+>  	struct td	*td;
+> @@ -94,6 +95,8 @@ td_alloc (struct ohci_hcd *hc, gfp_t mem
+>  		td->hwNextTD = cpu_to_hc32 (hc, dma);
+>  		td->td_dma = dma;
+>  		/* hashed in td_fill */
+> +		ohci_info(hc, "td alloc for %s ep%x: %p\n",
+> +			udev->devpath, ep->desc.bEndpointAddress, td);
+>  	}
+>  	return td;
+>  }
+> @@ -103,8 +106,14 @@ td_free (struct ohci_hcd *hc, struct td 
+>  {
+>  	struct td	**prev = &hc->td_hash [TD_HASH_FUNC (td->td_dma)];
+>  
+> -	while (*prev && *prev != td)
+> +	ohci_info(hc, "td free %p\n", td);
+> +	while (*prev && *prev != td) {
+> +		if ((unsigned long) *prev == 0xa7a7a7a7) {
+> +			ohci_info(hc, "poisoned hash at %p\n", prev);
+> +			return;
+> +		}
+>  		prev = &(*prev)->td_hash;
+> +	}
+>  	if (*prev)
+>  		*prev = td->td_hash;
+>  	else if ((td->hwINFO & cpu_to_hc32(hc, TD_DONE)) != 0)
+> Index: 2.6.31/drivers/usb/host/ohci-q.c
+> ===================================================================
+> --- 2.6.31.orig/drivers/usb/host/ohci-q.c
+> +++ 2.6.31/drivers/usb/host/ohci-q.c
+> @@ -403,7 +403,7 @@ static struct ed *ed_get (
+>  		}
+>  
+>  		/* dummy td; end of td list for ed */
+> -		td = td_alloc (ohci, GFP_ATOMIC);
+> +		td = td_alloc (ohci, GFP_ATOMIC, udev, ep);
+>  		if (!td) {
+>  			/* out of memory */
+>  			ed_free (ohci, ed);
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>   
