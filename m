@@ -1,61 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51933 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756297AbZLHVgy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Dec 2009 16:36:54 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org, magnus.damm@gmail.com
-Cc: Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH - v1] V4L-Fix videobuf_dma_contig_user_get() for non-aligned offsets
-Date: Tue,  8 Dec 2009 16:36:57 -0500
-Message-Id: <1260308217-22871-1-git-send-email-m-karicheri2@ti.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:41253 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934952AbZLPQKn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Dec 2009 11:10:43 -0500
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
+	<u.kleine-koenig@pengutronix.de>
+To: linux-kernel@vger.kernel.org
+Cc: David Vrabel <dvrabel@arcom.com>,
+	Greg Kroah-Hartman <gregkh@suse.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Antonio Ospite <ospite@studenti.unina.it>,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 2/7] V4L/DVB mx1_camera: don't check platform_get_irq's return value against zero
+Date: Wed, 16 Dec 2009 17:10:04 +0100
+Message-Id: <1260979809-24811-2-git-send-email-u.kleine-koenig@pengutronix.de>
+In-Reply-To: <1260979809-24811-1-git-send-email-u.kleine-koenig@pengutronix.de>
+References: <1260979809-24811-1-git-send-email-u.kleine-koenig@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+platform_get_irq returns -ENXIO on failure, so !irq was probably
+always true.  Better use (int)irq <= 0.  Note that a return value of
+zero is still handled as error even though this could mean irq0.
 
-If a USERPTR address that is not aligned to page boundary is passed to the
-videobuf_dma_contig_user_get() function, it saves a page aligned address to
-the dma_handle. This is not correct. This issue is observed when using USERPTR
-IO machism for buffer exchange.
+This is a followup to 305b3228f9ff4d59f49e6d34a7034d44ee8ce2f0 that
+changed the return value of platform_get_irq from 0 to -ENXIO on error.
 
-Updates from last version:-
-
-Adding offset for size calculation as per comment from Magnus Damm. This
-ensures the last page is also included for checking if memory is
-contiguous.
-
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+Cc: David Vrabel <dvrabel@arcom.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Antonio Ospite <ospite@studenti.unina.it>
+Cc: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
+Cc: linux-media@vger.kernel.org
 ---
- drivers/media/video/videobuf-dma-contig.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/media/video/mx1_camera.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/video/videobuf-dma-contig.c b/drivers/media/video/videobuf-dma-contig.c
-index d25f284..22c0109 100644
---- a/drivers/media/video/videobuf-dma-contig.c
-+++ b/drivers/media/video/videobuf-dma-contig.c
-@@ -141,9 +141,11 @@ static int videobuf_dma_contig_user_get(struct videobuf_dma_contig_memory *mem,
- 	struct vm_area_struct *vma;
- 	unsigned long prev_pfn, this_pfn;
- 	unsigned long pages_done, user_address;
-+	unsigned int offset;
- 	int ret;
+diff --git a/drivers/media/video/mx1_camera.c b/drivers/media/video/mx1_camera.c
+index 7280229..f7a472f 100644
+--- a/drivers/media/video/mx1_camera.c
++++ b/drivers/media/video/mx1_camera.c
+@@ -650,7 +650,7 @@ static int __init mx1_camera_probe(struct platform_device *pdev)
  
--	mem->size = PAGE_ALIGN(vb->size);
-+	offset = vb->baddr & ~PAGE_MASK;
-+	mem->size = PAGE_ALIGN(vb->size + offset);
- 	mem->is_userptr = 0;
- 	ret = -EINVAL;
- 
-@@ -166,7 +168,7 @@ static int videobuf_dma_contig_user_get(struct videobuf_dma_contig_memory *mem,
- 			break;
- 
- 		if (pages_done == 0)
--			mem->dma_handle = this_pfn << PAGE_SHIFT;
-+			mem->dma_handle = (this_pfn << PAGE_SHIFT) + offset;
- 		else if (this_pfn != (prev_pfn + 1))
- 			ret = -EFAULT;
- 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	irq = platform_get_irq(pdev, 0);
+-	if (!res || !irq) {
++	if (!res || (int)irq <= 0) {
+ 		err = -ENODEV;
+ 		goto exit;
+ 	}
 -- 
-1.6.0.4
+1.6.5.2
 
