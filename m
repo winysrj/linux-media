@@ -1,61 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:47156 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751933AbZLVIiS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Dec 2009 03:38:18 -0500
-From: peterhuewe@gmx.de
-To: Jiri Kosina <trivial@kernel.org>
-Cc: kernel-janitors@vger.kernel.org, Peter Huewe <peterhuewe@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jean Delvare <khali@linux-fr.org>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 10/10] media/dvb: add __init/__exit macros to drivers/media/dvb/bt8xx/bt878.c
-Date: Tue, 22 Dec 2009 09:38:14 +0100
-Message-Id: <1261471095-24272-1-git-send-email-peterhuewe@gmx.de>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2037 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762817AbZLPSoR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Dec 2009 13:44:17 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id nBGIiDi0032906
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 16 Dec 2009 19:44:14 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 16 Dec 2009 19:44:13 +0100 (CET)
+Message-Id: <200912161844.nBGIiDi0032906@smtp-vbr11.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Huewe <peterhuewe@gmx.de>
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Trivial patch which adds the __init/__exit macros to the module_init/
-module_exit functions of
+Results of the daily build of v4l-dvb:
 
-drivers/media/dvb/bt8xx/bt878.c
+date:        Wed Dec 16 19:00:10 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13821:783912da1ad0
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Please have a look at the small patch and either pull it through
-your tree, or please ack' it so Jiri can pull it through the trivial
-tree.
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-armv5: OK
+linux-2.6.32-armv5-davinci: OK
+linux-2.6.30-armv5-ixp: ERRORS
+linux-2.6.31-armv5-ixp: ERRORS
+linux-2.6.32-armv5-ixp: ERRORS
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: OK
+linux-2.6.32-armv5-omap2: OK
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: ERRORS
+linux-2.6.27-i686: ERRORS
+linux-2.6.28-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30-i686: ERRORS
+linux-2.6.31-i686: ERRORS
+linux-2.6.32-i686: ERRORS
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.32-mips: OK
+linux-2.6.30-powerpc64: ERRORS
+linux-2.6.31-powerpc64: ERRORS
+linux-2.6.32-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: ERRORS
+linux-2.6.27-x86_64: ERRORS
+linux-2.6.28-x86_64: ERRORS
+linux-2.6.29.1-x86_64: ERRORS
+linux-2.6.30-x86_64: ERRORS
+linux-2.6.31-x86_64: ERRORS
+linux-2.6.32-x86_64: ERRORS
+spec: OK
+sparse (linux-2.6.32): ERRORS
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-Patch against linux-next-tree, 22. Dez 08:38:18 CET 2009
-but also present in linus tree.
+Detailed results are available here:
 
-Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
----
- drivers/media/dvb/bt8xx/bt878.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-diff --git a/drivers/media/dvb/bt8xx/bt878.c b/drivers/media/dvb/bt8xx/bt878.c
-index a24c125..2a0886a 100644
---- a/drivers/media/dvb/bt8xx/bt878.c
-+++ b/drivers/media/dvb/bt8xx/bt878.c
-@@ -582,7 +582,7 @@ static int bt878_pci_driver_registered;
- /* Module management functions */
- /*******************************/
- 
--static int bt878_init_module(void)
-+static int __init bt878_init_module(void)
- {
- 	bt878_num = 0;
- 	bt878_pci_driver_registered = 0;
-@@ -600,7 +600,7 @@ static int bt878_init_module(void)
- 	return pci_register_driver(&bt878_pci_driver);
- }
- 
--static void bt878_cleanup_module(void)
-+static void __exit bt878_cleanup_module(void)
- {
- 	if (bt878_pci_driver_registered) {
- 		bt878_pci_driver_registered = 0;
--- 
-1.6.4.4
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
