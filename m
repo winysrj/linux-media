@@ -1,67 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f187.google.com ([209.85.210.187]:40573 "EHLO
-	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752194AbZLFGzM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Dec 2009 01:55:12 -0500
-Date: Sat, 5 Dec 2009 22:55:12 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: Jon Smirl <jonsmirl@gmail.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com, khc@pm.waw.pl,
-	kraxel@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
-	IR  system?
-Message-ID: <20091206065512.GA14651@core.coreip.homeip.net>
-References: <20091204220708.GD25669@core.coreip.homeip.net> <BEJgSGGXqgB@lirc> <9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com> <1260070593.3236.6.camel@pc07.localdom.local>
+Received: from maznak.stinadla.net ([77.78.111.75]:60892 "EHLO
+	maznak.stinadla.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934649AbZLPHcW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Dec 2009 02:32:22 -0500
+Message-ID: <4B288D02.3080306@teptin.net>
+Date: Wed, 16 Dec 2009 08:32:18 +0100
+From: Jan Korbel <jackc@teptin.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1260070593.3236.6.camel@pc07.localdom.local>
+To: Patrick Boettcher <pboettcher@kernellabs.com>
+CC: Markus Suvanto <markus.suvanto@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: High cpu load (dvb_usb_dib0700)
+References: <bcf98daa0911270513v7463260dm36e0a5e2557b797f@mail.gmail.com> <4B2750BD.6000700@teptin.net> <alpine.LRH.2.00.0912151203580.16159@pub6.ifh.de>
+In-Reply-To: <alpine.LRH.2.00.0912151203580.16159@pub6.ifh.de>
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms080506060708050000040305"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This is a cryptographically signed message in MIME format.
 
-On Sun, Dec 06, 2009 at 04:36:33AM +0100, hermann pitton wrote:
-> Hi,
+--------------ms080506060708050000040305
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Hello.
+
+Patrick Boettcher wrote:
+> Have you tried to load dvb-usb with disable_rc_polling=1 ?
 > 
-> Am Freitag, den 04.12.2009, 19:28 -0500 schrieb Jon Smirl:
-> > On Fri, Dec 4, 2009 at 6:01 PM, Christoph Bartelmus <lirc@bartelmus.de> wrote:
-> > > BTW, I just came across a XMP remote that seems to generate 3x64 bit scan
-> > > codes. Anyone here has docs on the XMP protocol?
-> > 
-> > Assuming a general purpose receiver (not one with fixed hardware
-> > decoding), is it important for Linux to receive IR signals from all
-> > possible remotes no matter how old or obscure? Or is it acceptable to
-> > tell the user to throw away their dedicated remote and buy a universal
-> > multi-function one?  Universal multi-function remotes are $12 in my
-> > grocery store - I don't even have to go to an electronics store.
+> It may or may not help.
 > 
-> finally we have some point here, IMHO, that is not acceptable and I told
-> you previously not to bet on such. Start some poll and win it, and I'll
-> shut up :)
+> If it helps it will necessary to have a look at the ir-polling code to 
+> see whether there is some thing like 'scheduling'.
 > 
+> regards,
 
-Who would participate in the poll though?
+It helps :) Thanks.
 
-> To be frank, you are quite mad at this point, or deliver working other
-> remotes to __all__ for free.
-> 
+J.
 
-I do not believe you are being realistic. Sometimes we just need to say
-that the device is a POS and is just not worth it. Remember, there is
-still "lirc hole" for the hard core people still using solder to produce
-something out of the spare electronic components that may be made to
-work (never mind that it causes the CPU constantly poll the device, not
-letting it sleep and wasting electricity as a result - just hypotetical
-example here).
+--------------ms080506060708050000040305
+Content-Type: application/x-pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Description: S/MIME Cryptographic Signature
 
-We still need to do cost-benefit analysis and decide whether supporting
-the exotic setups _in kernel_ makes sense if it encumbers implementation
-and causes issues to the other 95% people.
-
--- 
-Dmitry
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIQ4DCC
+BIowggNyoAMCAQICECf06hH0eobEbp27bqkXBwcwDQYJKoZIhvcNAQEFBQAwbzELMAkGA1UE
+BhMCU0UxFDASBgNVBAoTC0FkZFRydXN0IEFCMSYwJAYDVQQLEx1BZGRUcnVzdCBFeHRlcm5h
+bCBUVFAgTmV0d29yazEiMCAGA1UEAxMZQWRkVHJ1c3QgRXh0ZXJuYWwgQ0EgUm9vdDAeFw0w
+NTA2MDcwODA5MTBaFw0yMDA1MzAxMDQ4MzhaMIGuMQswCQYDVQQGEwJVUzELMAkGA1UECBMC
+VVQxFzAVBgNVBAcTDlNhbHQgTGFrZSBDaXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNUIE5l
+dHdvcmsxITAfBgNVBAsTGGh0dHA6Ly93d3cudXNlcnRydXN0LmNvbTE2MDQGA1UEAxMtVVRO
+LVVTRVJGaXJzdC1DbGllbnQgQXV0aGVudGljYXRpb24gYW5kIEVtYWlsMIIBIjANBgkqhkiG
+9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsjmFpPJ9q0E7YkY3rs3BYHW8OWX5ShpHornMSMxqmNVN
+NRm5pELlzkniii8efNIxB8dOtINknS4p1aJkxIW9hVE1eaROaJB7HHqkkqgX8pgV8pPMyaQy
+lbsMTzC9mKALi+VuG6JG+ni8om+rWV6lL8/K2m2qL+usobNqqrcuZzWLeeEeaYji5kbNoKXq
+vgvOdjp6Dpvq/NonWz1zHyLmSGHGTPNpsaguG7bUMSAsvIKKjqQOpdeJQ/wWWq8dcdcRWdq6
+hw2v+vPhwvCkxWeM1tZUOt4KpLoDd7NlyP0e03RiqhjKaJMeoYV+9Udly/hNVyh00jT/MLbu
+9mIwFIws6wIDAQABo4HhMIHeMB8GA1UdIwQYMBaAFK29mHo0tCb3+sQmVO8DveAky1QaMB0G
+A1UdDgQWBBSJgmd9xJ0mcABLtFBIfN49rgRufTAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/
+BAUwAwEB/zB7BgNVHR8EdDByMDigNqA0hjJodHRwOi8vY3JsLmNvbW9kb2NhLmNvbS9BZGRU
+cnVzdEV4dGVybmFsQ0FSb290LmNybDA2oDSgMoYwaHR0cDovL2NybC5jb21vZG8ubmV0L0Fk
+ZFRydXN0RXh0ZXJuYWxDQVJvb3QuY3JsMA0GCSqGSIb3DQEBBQUAA4IBAQAZ2IkRbyispgCi
+54fBm5AD236hEv0e8+LwAamUVEJrmgnEoG3XkJIEA2Z5Q3H8+G+v23ZF4jcaPd3kWQR4rBz0
+g0bzes9bhHIt5UbBuhgRKfPLSXmHPLptBZ2kbWhPrXIUNqi5sf2/z3/wpGqUNVCPz4FtVbHd
+WTBK322gnGQfSXzvNrv042n0+DmPWq1LhTq3Du3Tzw1EovsEv+QvcI4l+1pUBrPQxLxtjftz
+Mizpm4QkLdZ/kXpoAlAfDj9N6cz1u2fo3BwuO/xOzf4CjuOoEwqlJkRl6RDyTVKnrtw+ymsy
+XEFs/vVdoOr/0fqbhlhtPZZH5f4ulQTCAMyOofK7MIIGJTCCBQ2gAwIBAgIRALXk0MQ5KusQ
+0lRANX04qqowDQYJKoZIhvcNAQEFBQAwga4xCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJVVDEX
+MBUGA1UEBxMOU2FsdCBMYWtlIENpdHkxHjAcBgNVBAoTFVRoZSBVU0VSVFJVU1QgTmV0d29y
+azEhMB8GA1UECxMYaHR0cDovL3d3dy51c2VydHJ1c3QuY29tMTYwNAYDVQQDEy1VVE4tVVNF
+UkZpcnN0LUNsaWVudCBBdXRoZW50aWNhdGlvbiBhbmQgRW1haWwwHhcNMDkwOTI3MDAwMDAw
+WhcNMTAwOTI3MjM1OTU5WjCB1jE1MDMGA1UECxMsQ29tb2RvIFRydXN0IE5ldHdvcmsgLSBQ
+RVJTT05BIE5PVCBWQUxJREFURUQxRjBEBgNVBAsTPVRlcm1zIGFuZCBDb25kaXRpb25zIG9m
+IHVzZTogaHR0cDovL3d3dy5jb21vZG8ubmV0L3JlcG9zaXRvcnkxHzAdBgNVBAsTFihjKTIw
+MDMgQ29tb2RvIExpbWl0ZWQxEzARBgNVBAMTCkphbiBLb3JiZWwxHzAdBgkqhkiG9w0BCQEW
+EGphY2tjQHRlcHRpbi5uZXQwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC7L4KH
+3giL1zJhnQJD7LPvsxjiqA6Xg1oZGxyhnlZbXSvp96PNqBwa+0m3VrLkdc/HXK5l4mqQvLgb
+aIRxi3eroTlHh3q3CyDgpm17gStCABsJyCaaQjxnE452WOdFZohBy1QW5grKrIS0cLe+KXCF
+o+BNnzFha14NmgNY34UOuS9V1XH3gxY0m1PRPBfzFeJ2T477cLZ2AKkbzLje3Z+X6oiSdpcw
+bVjP0klenUgf4jfMzdG3tYtjtOxjFtg/oYCh38jid3rp0H5O65KFOGN9H7GopzRbIb0TP2IL
+TMhsx66AaI+NpTEc7P+9sHKndeYtRcpUMggtut4GtGC2c2ZhAgMBAAGjggISMIICDjAfBgNV
+HSMEGDAWgBSJgmd9xJ0mcABLtFBIfN49rgRufTAdBgNVHQ4EFgQU5oVPqvBUmjgf1z7OwR6y
+5scTl/cwDgYDVR0PAQH/BAQDAgWgMAwGA1UdEwEB/wQCMAAwIAYDVR0lBBkwFwYIKwYBBQUH
+AwQGCysGAQQBsjEBAwUCMBEGCWCGSAGG+EIBAQQEAwIFIDBGBgNVHSAEPzA9MDsGDCsGAQQB
+sjEBAgEBATArMCkGCCsGAQUFBwIBFh1odHRwczovL3NlY3VyZS5jb21vZG8ubmV0L0NQUzCB
+pQYDVR0fBIGdMIGaMEygSqBIhkZodHRwOi8vY3JsLmNvbW9kb2NhLmNvbS9VVE4tVVNFUkZp
+cnN0LUNsaWVudEF1dGhlbnRpY2F0aW9uYW5kRW1haWwuY3JsMEqgSKBGhkRodHRwOi8vY3Js
+LmNvbW9kby5uZXQvVVROLVVTRVJGaXJzdC1DbGllbnRBdXRoZW50aWNhdGlvbmFuZEVtYWls
+LmNybDBsBggrBgEFBQcBAQRgMF4wNgYIKwYBBQUHMAKGKmh0dHA6Ly9jcnQuY29tb2RvY2Eu
+Y29tL1VUTkFBQUNsaWVudENBLmNydDAkBggrBgEFBQcwAYYYaHR0cDovL29jc3AuY29tb2Rv
+Y2EuY29tMBsGA1UdEQQUMBKBEGphY2tjQHRlcHRpbi5uZXQwDQYJKoZIhvcNAQEFBQADggEB
+ABkrQsQfIs+GfzsLG5+1mOURBlob3vxDNFFB98mNE82wpQFjZgRPam0toXQZXvGlocnvPvNf
+Bq15qDVv206Exsbx9ccMOFQrCMiGLZ41FAzgJfPkXs1VTxM8ZQ0btCm3F1zpextZcFW0ZcG8
+sbSpoHpuJiH9fwbscu8BNy6hMcnPB5VsguiNZ1R9IKo2yV+5W3jSU+Yi2gz/0BFgVa3WRZqS
+S2AFgJjkyHkOmKtUlXNF8orbf8AtKmqoHo5X9S1JrBFbm01F5UquoiUiJFRchQHxoxhhOl4O
+lglQkge411tO46qPTU6Ua+486r5RRXGc8blFvptbhlRrMdwlhsVG6EkwggYlMIIFDaADAgEC
+AhEAteTQxDkq6xDSVEA1fTiqqjANBgkqhkiG9w0BAQUFADCBrjELMAkGA1UEBhMCVVMxCzAJ
+BgNVBAgTAlVUMRcwFQYDVQQHEw5TYWx0IExha2UgQ2l0eTEeMBwGA1UEChMVVGhlIFVTRVJU
+UlVTVCBOZXR3b3JrMSEwHwYDVQQLExhodHRwOi8vd3d3LnVzZXJ0cnVzdC5jb20xNjA0BgNV
+BAMTLVVUTi1VU0VSRmlyc3QtQ2xpZW50IEF1dGhlbnRpY2F0aW9uIGFuZCBFbWFpbDAeFw0w
+OTA5MjcwMDAwMDBaFw0xMDA5MjcyMzU5NTlaMIHWMTUwMwYDVQQLEyxDb21vZG8gVHJ1c3Qg
+TmV0d29yayAtIFBFUlNPTkEgTk9UIFZBTElEQVRFRDFGMEQGA1UECxM9VGVybXMgYW5kIENv
+bmRpdGlvbnMgb2YgdXNlOiBodHRwOi8vd3d3LmNvbW9kby5uZXQvcmVwb3NpdG9yeTEfMB0G
+A1UECxMWKGMpMjAwMyBDb21vZG8gTGltaXRlZDETMBEGA1UEAxMKSmFuIEtvcmJlbDEfMB0G
+CSqGSIb3DQEJARYQamFja2NAdGVwdGluLm5ldDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCC
+AQoCggEBALsvgofeCIvXMmGdAkPss++zGOKoDpeDWhkbHKGeVltdK+n3o82oHBr7SbdWsuR1
+z8dcrmXiapC8uBtohHGLd6uhOUeHercLIOCmbXuBK0IAGwnIJppCPGcTjnZY50VmiEHLVBbm
+CsqshLRwt74pcIWj4E2fMWFrXg2aA1jfhQ65L1XVcfeDFjSbU9E8F/MV4nZPjvtwtnYAqRvM
+uN7dn5fqiJJ2lzBtWM/SSV6dSB/iN8zN0be1i2O07GMW2D+hgKHfyOJ3eunQfk7rkoU4Y30f
+sainNFshvRM/YgtMyGzHroBoj42lMRzs/72wcqd15i1FylQyCC263ga0YLZzZmECAwEAAaOC
+AhIwggIOMB8GA1UdIwQYMBaAFImCZ33EnSZwAEu0UEh83j2uBG59MB0GA1UdDgQWBBTmhU+q
+8FSaOB/XPs7BHrLmxxOX9zAOBgNVHQ8BAf8EBAMCBaAwDAYDVR0TAQH/BAIwADAgBgNVHSUE
+GTAXBggrBgEFBQcDBAYLKwYBBAGyMQEDBQIwEQYJYIZIAYb4QgEBBAQDAgUgMEYGA1UdIAQ/
+MD0wOwYMKwYBBAGyMQECAQEBMCswKQYIKwYBBQUHAgEWHWh0dHBzOi8vc2VjdXJlLmNvbW9k
+by5uZXQvQ1BTMIGlBgNVHR8EgZ0wgZowTKBKoEiGRmh0dHA6Ly9jcmwuY29tb2RvY2EuY29t
+L1VUTi1VU0VSRmlyc3QtQ2xpZW50QXV0aGVudGljYXRpb25hbmRFbWFpbC5jcmwwSqBIoEaG
+RGh0dHA6Ly9jcmwuY29tb2RvLm5ldC9VVE4tVVNFUkZpcnN0LUNsaWVudEF1dGhlbnRpY2F0
+aW9uYW5kRW1haWwuY3JsMGwGCCsGAQUFBwEBBGAwXjA2BggrBgEFBQcwAoYqaHR0cDovL2Ny
+dC5jb21vZG9jYS5jb20vVVROQUFBQ2xpZW50Q0EuY3J0MCQGCCsGAQUFBzABhhhodHRwOi8v
+b2NzcC5jb21vZG9jYS5jb20wGwYDVR0RBBQwEoEQamFja2NAdGVwdGluLm5ldDANBgkqhkiG
+9w0BAQUFAAOCAQEAGStCxB8iz4Z/Owsbn7WY5REGWhve/EM0UUH3yY0TzbClAWNmBE9qbS2h
+dBle8aWhye8+818GrXmoNW/bToTGxvH1xww4VCsIyIYtnjUUDOAl8+RezVVPEzxlDRu0KbcX
+XOl7G1lwVbRlwbyxtKmgem4mIf1/Buxy7wE3LqExyc8HlWyC6I1nVH0gqjbJX7lbeNJT5iLa
+DP/QEWBVrdZFmpJLYAWAmOTIeQ6Yq1SVc0Xyitt/wC0qaqgejlf1LUmsEVubTUXlSq6iJSIk
+VFyFAfGjGGE6Xg6WCVCSB7jXW07jqo9NTpRr7jzqvlFFcZzxuUW+m1uGVGsx3CWGxUboSTGC
+BGAwggRcAgEBMIHEMIGuMQswCQYDVQQGEwJVUzELMAkGA1UECBMCVVQxFzAVBgNVBAcTDlNh
+bHQgTGFrZSBDaXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNUIE5ldHdvcmsxITAfBgNVBAsT
+GGh0dHA6Ly93d3cudXNlcnRydXN0LmNvbTE2MDQGA1UEAxMtVVROLVVTRVJGaXJzdC1DbGll
+bnQgQXV0aGVudGljYXRpb24gYW5kIEVtYWlsAhEAteTQxDkq6xDSVEA1fTiqqjAJBgUrDgMC
+GgUAoIICcDAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0wOTEy
+MTYwNzMyMThaMCMGCSqGSIb3DQEJBDEWBBQXh+Gvt0rMNkBHgT0QEr8eROFN7zBfBgkqhkiG
+9w0BCQ8xUjBQMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYI
+KoZIhvcNAwICAUAwBwYFKw4DAgcwDQYIKoZIhvcNAwICASgwgdUGCSsGAQQBgjcQBDGBxzCB
+xDCBrjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAlVUMRcwFQYDVQQHEw5TYWx0IExha2UgQ2l0
+eTEeMBwGA1UEChMVVGhlIFVTRVJUUlVTVCBOZXR3b3JrMSEwHwYDVQQLExhodHRwOi8vd3d3
+LnVzZXJ0cnVzdC5jb20xNjA0BgNVBAMTLVVUTi1VU0VSRmlyc3QtQ2xpZW50IEF1dGhlbnRp
+Y2F0aW9uIGFuZCBFbWFpbAIRALXk0MQ5KusQ0lRANX04qqowgdcGCyqGSIb3DQEJEAILMYHH
+oIHEMIGuMQswCQYDVQQGEwJVUzELMAkGA1UECBMCVVQxFzAVBgNVBAcTDlNhbHQgTGFrZSBD
+aXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNUIE5ldHdvcmsxITAfBgNVBAsTGGh0dHA6Ly93
+d3cudXNlcnRydXN0LmNvbTE2MDQGA1UEAxMtVVROLVVTRVJGaXJzdC1DbGllbnQgQXV0aGVu
+dGljYXRpb24gYW5kIEVtYWlsAhEAteTQxDkq6xDSVEA1fTiqqjANBgkqhkiG9w0BAQEFAASC
+AQB5aTXYvSN4YRw6Lvv+lX0PkaJJxG8ug7uXGguAgAh7TpfzB3xqdLYX1GR5R3/qZwGlAl9c
+JSjySFatEaA6HGoIEdoJe2uNFH6KyrNz/mzq+Ylzq4B2HNoPe3moD/IiIZDU41fsApkrZzq8
+jIKlExEAyiV7+Mst53KBXcjAvnZDc6bJrIM7qc6WqYELHqRjXV7xvW4uay1G+LVKAM2NDyEJ
+rsMphIKdy5x4m6d+1HKdzN9fcONofrjWN5OyWl3f2wN//V/YOnw/zE/LSeE3QUttMo9dWKGM
+qUgFe+Hkn/ZsfwIHNNw7J2mciLms5yIIuy+dqH3X9h6CxRWR8d5rYi+fAAAAAAAA
+--------------ms080506060708050000040305--
