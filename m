@@ -1,47 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:26082 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753244AbZLAKqe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Dec 2009 05:46:34 -0500
-Message-ID: <4B14F3EA.4090000@redhat.com>
-Date: Tue, 01 Dec 2009 11:46:02 +0100
-From: Gerd Hoffmann <kraxel@redhat.com>
+Received: from gateway-1237.mvista.com ([206.112.117.35]:10316 "HELO
+	imap.sh.mvista.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with SMTP id S934942AbZLPQSl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Dec 2009 11:18:41 -0500
+Message-ID: <4B2908B9.8030509@ru.mvista.com>
+Date: Wed, 16 Dec 2009 19:20:09 +0300
+From: Sergei Shtylyov <sshtylyov@ru.mvista.com>
 MIME-Version: 1.0
-To: Andy Walls <awalls@radix.net>
-CC: Krzysztof Halasa <khc@pm.waw.pl>, Jon Smirl <jonsmirl@gmail.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	maximlevitsky@gmail.com, mchehab@redhat.com,
-	stefanr@s5r6.in-berlin.de, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR  system?
-References: <m3r5riy7py.fsf@intrepid.localdomain> <BDkdITRHqgB@lirc>	 <9e4733910911280906if1191a1jd3d055e8b781e45c@mail.gmail.com>	 <m3aay6y2m1.fsf@intrepid.localdomain>	 <9e4733910911280937k37551b38g90f4a60b73665853@mail.gmail.com>	 <1259450815.3137.19.camel@palomino.walls.org>	 <m3ocml6ppt.fsf@intrepid.localdomain> <1259542097.5231.78.camel@palomino.walls.org>
-In-Reply-To: <1259542097.5231.78.camel@palomino.walls.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Gopala Gottumukkala <ggottumu@Cernium.com>
+Cc: Philby John <pjohn@in.mvista.com>,
+	davinci-linux-open-source@linux.davincidsp.com,
+	linux-media@vger.kernel.org
+Subject: Re: USB MAssage Storage drivers
+References: <1259596313-16712-1-git-send-email-santiago.nunez@ridgerun.com>	<200912152149.33065.hverkuil@xs4all.nl>	<03A2FA9E0D3DC841992E682BF5287718016D39D9@lipwig.Cernium.local>	<1260948105.4253.21.camel@localhost.localdomain> <03A2FA9E0D3DC841992E682BF5287718016D3A53@lipwig.Cernium.local>
+In-Reply-To: <03A2FA9E0D3DC841992E682BF5287718016D3A53@lipwig.Cernium.local>
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-   Hi,
+Hello.
 
-> A current related problem is that i2c based devices can only be bound to
-> only one of ir-kbd-i2c *or* lirc_i2c *or* lirc_zilog at any one time.
-> Currently it is somewhat up to the bridge driver which binding is
-> preferred.  Discussion about this for the pvrusb2 module had the biggest
-> email churn IIRC.
+Gopala Gottumukkala wrote:
 
-Once lirc_dev is merged you can easily fix this:  You'll have *one* 
-driver which supports *both* evdev and lirc interfaces.  If lircd opens 
-the lirc interface raw data will be sent there, keystrokes come in via 
-uinput.  Otherwise keystrokes are send directly via evdev.  Problem solved.
+> (gcc version 3.4.3 (MontaVista 3.4.3-25.0.104.0600975 2006-07-06)) #4
+> PREEMPT Tue Dec 15 18:10:24 EST 2009
+> CPU: ARM926EJ-S [41069265] revision 5 (ARMv5TEJ), cr=00053177
+> CPU: VIVT data cache, VIVT instruction cache
+> Machine: DaVinci DM644x EVM
+> Memory policy: ECC disabled, Data cache writeback
+> DaVinci dm6446 variant 0x0
+> Built 1 zonelists in Zone order, mobility grouping on.  Total pages:
+> 50800
 
-cheers,
-   Gerd
+> I have compile the kernel 2.6.32 and boot up the target.  But when I
+> plug in the mass storage like external HDD or Pendrive it is not
+> recognizing.
 
-PS:  Not sure this actually makes sense for the i2c case, as far I know
-      these do decoding in hardware and don't provide access to the raw
-      samples, so killing the in-kernel IR limits to make ir-kbd-i2c
-      being on par with lirc_i2c might be more useful in this case.
+> Any help appreciated.
 
+    Try this patch:
+
+http://marc.info/?l=linux-usb&m=126087668419996
+
+WBR, Sergei
