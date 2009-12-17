@@ -1,77 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46287 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751165AbZLRX6b (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Dec 2009 18:58:31 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	khilman@deeprootsystems.com, hvaibhav@ti.com, nsekhar@ti.com
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH - v2 5/6] V4L - vpfe capture - build environment for isif driver
-Date: Fri, 18 Dec 2009 18:58:21 -0500
-Message-Id: <1261180705-8150-2-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1261180705-8150-1-git-send-email-m-karicheri2@ti.com>
-References: <1261180705-8150-1-git-send-email-m-karicheri2@ti.com>
+Received: from mailout2.samsung.com ([203.254.224.25]:45553 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758269AbZLQGjt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Dec 2009 01:39:49 -0500
+Received: from epmmp2 (mailout2.samsung.com [203.254.224.25])
+ by mailout1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0KUS002CKAIALY@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 17 Dec 2009 15:39:47 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0KUS00LX0AIAFG@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 17 Dec 2009 15:39:46 +0900 (KST)
+Date: Thu, 17 Dec 2009 15:39:47 +0900
+From: Joonyoung Shim <jy0922.shim@samsung.com>
+Subject: Question about the signal of struct v4l2_tuner to set value
+To: linux-media@vger.kernel.org
+Message-id: <4B29D233.30901@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+Hi, all.
 
-updated based on comments against v1 of the patch
+I wonder about the usage of the signal variable of struct v4l2_tuner. I
+have found only to use it to get the signal strength on drivers.
 
-Adding Makefile and Kconfig for ISIF driver
+The si470x radio device can set the seek threshold value of
+RSSI(Received Signal Strength Indicator) when the device scans the
+channels, so if the current RSSI value is low than the seek threshold
+value, the device decides the frequency is nonvalidate channel.
 
-Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
-Reviewed-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
----
-Applies to linux-next tree
- drivers/media/video/Kconfig          |   14 +++++++++++++-
- drivers/media/video/davinci/Makefile |    1 +
- 2 files changed, 14 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 2f83be7..bcf3c17 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -548,7 +548,6 @@ config VIDEO_VPSS_SYSTEM
- 	depends on ARCH_DAVINCI
- 	help
- 	  Support for vpss system module for video driver
--	default y
- 
- config VIDEO_VPFE_CAPTURE
- 	tristate "VPFE Video Capture Driver"
-@@ -592,6 +591,19 @@ config VIDEO_DM355_CCDC
- 	   To compile this driver as a module, choose M here: the
- 	   module will be called vpfe.
- 
-+config VIDEO_ISIF
-+	tristate "ISIF HW module"
-+	depends on ARCH_DAVINCI_DM365 && VIDEO_VPFE_CAPTURE
-+	select VIDEO_VPSS_SYSTEM
-+	default y
-+	help
-+	   Enables ISIF hw module. This is the hardware module for
-+	   configuring ISIF in VPFE to capture Raw Bayer RGB data  from
-+	   a image sensor or YUV data from a YUV source.
-+
-+	   To compile this driver as a module, choose M here: the
-+	   module will be called vpfe.
-+
- source "drivers/media/video/bt8xx/Kconfig"
- 
- config VIDEO_PMS
-diff --git a/drivers/media/video/davinci/Makefile b/drivers/media/video/davinci/Makefile
-index 1a8b8f3..a379557 100644
---- a/drivers/media/video/davinci/Makefile
-+++ b/drivers/media/video/davinci/Makefile
-@@ -15,3 +15,4 @@ obj-$(CONFIG_VIDEO_VPSS_SYSTEM) += vpss.o
- obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
- obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
- obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
-+obj-$(CONFIG_VIDEO_ISIF) += isif.o
--- 
-1.6.0.4
-
+So, i need v4l2 interface to set the best seek threshold value and i
+want to use the signal of struct v4l2_tuner for it. Can the signal
+variable be used to set the value?
