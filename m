@@ -1,46 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:33924 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757698AbZLGWtU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Dec 2009 17:49:20 -0500
-Received: by bwz27 with SMTP id 27so3979728bwz.21
-        for <linux-media@vger.kernel.org>; Mon, 07 Dec 2009 14:49:25 -0800 (PST)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: linux-media@vger.kernel.org,
-	Patrick Boettcher <patrick.boettcher@desy.de>,
-	Olivier Grenie <olivier.grenie@dibcom.fr>
-Subject: dib0090.h need attention - copy-paste errors
-Date: Tue, 8 Dec 2009 00:49:10 +0200
+Received: from vader.london.02.net ([82.132.130.150]:54898 "EHLO mail.o2.co.uk"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754341AbZLQMn5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Dec 2009 07:43:57 -0500
+Received: from surtees (82.132.130.219) by mail.o2.co.uk (8.0.013.3) (authenticated as sijones2006)
+        id 4AF809CF09E7F1EC for linux-media@vger.kernel.org; Thu, 17 Dec 2009 12:37:34 +0000
+Message-ID: <18222544.70531261053454346.JavaMail.defaultUser@defaultHost>
+Date: Thu, 17 Dec 2009 12:37:34 +0000 (GMT)
+From: <sijones2006@o2.co.uk>
+Reply-To: <sijones2006@o2.co.uk>
+To: linux-media@vger.kernel.org
+Subject: Cinergy 2400i - Micronas APB 7202A Open Sourced!
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+Content-Type: text/plain;charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200912080049.10790.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Part of dib0090.h:
+Hi,
 
-91 static inline enum frontend_tune_state dib0090_get_tune_state(struct dvb_frontend *fe)
-92 {
-93 printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
-94 return CT_DONE;
-95 }
-96
-97 static inline int dib0090_set_tune_state(struct dvb_frontend *fe, enum frontend_tune_state 
-tune_state)
-98 {
-99 printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
-100 return -ENODEV;
-101 }
-102
-103 static inline num frontend_tune_state dib0090_get_tune_state(struct dvb_frontend *fe)
-104 {
-105 printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
-106 return CT_SHUTDOWN,}
-107 
+I know this has been brought up a number of times on Myth and other 
+lists but there is now a change of circumstances.
 
--- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+The PCI-e bridge (MICRONAS APB 7202A) has now an open source driver. 
+It is available here git://projects.vdr-developer.org/mediapointer-dvb-
+s2.git 
+could this now be pulled into the main V4L source? as it has been 
+brought upto date with the current DVB tree.
+
+The demodulators MICRONAS DRX 3975D seem to have a driver in the 
+current tree.
+
+My only issue is now the 
+
+    * Tuner #1: THOMSON DTT 75202A (with RF connector)
+    * Tuner #2: THOMSON DTT 75207 (with pin RF input)
+
+I can't seem to be able to find a tuner that will work out of the git 
+source I have pulled.
+
+both the ngene and modulator modules I have to modprobe in, if i 
+reboot they dont get reloaded, am currently running Unbuntu 9.10, any 
+help would be appreciated! 
+
+If the source for the PCI-e bridge can be brought into current then it 
+would seem a number of cards would be able to work.
+
+I think someone has already tried some work on another card which uses 
+this bridge as wel
+
+http://article.gmane.org/gmane.linux.drivers.video-input-
+infrastructure/9180/match=ngene
+
+
+Cheers
+
