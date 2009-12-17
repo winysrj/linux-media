@@ -1,68 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet11.oracle.com ([148.87.113.123]:64426 "EHLO
-	rgminet11.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751258AbZLSSaj convert rfc822-to-8bit (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.153]:63775 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965422AbZLQTb0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Dec 2009 13:30:39 -0500
-Date: Sat, 19 Dec 2009 10:30:45 -0800
-From: Randy Dunlap <randy.dunlap@oracle.com>
-To: Manu Abraham <abraham.manu@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-media@vger.kernel.org, linux-next@vger.kernel.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Chehab <mchehab@infradead.org>
-Subject: Re: linux-next: Tree for December 19 (media/mantis)
-Message-Id: <20091219103045.32e1b971.randy.dunlap@oracle.com>
-In-Reply-To: <1a297b360912190911v77b8519dtd5a93556a8693dd9@mail.gmail.com>
-References: <20091219110457.d6c5de1f.sfr@canb.auug.org.au>
-	<20091218191859.ca78c2f1.randy.dunlap@oracle.com>
-	<1a297b360912190911v77b8519dtd5a93556a8693dd9@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Thu, 17 Dec 2009 14:31:26 -0500
+Received: by fg-out-1718.google.com with SMTP id 19so1079961fgg.1
+        for <linux-media@vger.kernel.org>; Thu, 17 Dec 2009 11:31:25 -0800 (PST)
+Message-ID: <4B2A8709.8040401@gmail.com>
+Date: Thu, 17 Dec 2009 20:31:21 +0100
+From: Oliver Fasching <o.fasching.logic.at@gmail.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Cinergy_T_Stick_RC_MKII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 19 Dec 2009 21:11:50 +0400 Manu Abraham wrote:
+Hi,
 
-> On Sat, Dec 19, 2009 at 7:18 AM, Randy Dunlap <randy.dunlap@oracle.com> wrote:
-> > On Sat, 19 Dec 2009 11:04:57 +1100 Stephen Rothwell wrote:
-> >
-> >> Hi all,
-> >>
-> >> I said:
-> >> > News:  there will be no linux-next releases until at least Dec 24 and,
-> >> > more likely, Dec 29.  Have a Merry Christmas and take a break.  :-)
-> >>
-> >> Well, I decided I had time for one more so it will be based in -rc1).
-> >>
-> >> This one has not had the build testing *between* merges, but has had all
-> >> the normal build testing at the end.  Since the latter testing showed no
-> >> problems, this just means that there may be more unbisectable points in
-> >> the tree (but that is unlikely).
-> >
-> >
-> >
-> > ERROR: "ir_input_register" [drivers/media/dvb/mantis/mantis_core.ko] undefined!
-> > ERROR: "ir_input_unregister" [drivers/media/dvb/mantis/mantis_core.ko] undefined!
-> > ERROR: "ir_input_init" [drivers/media/dvb/mantis/mantis_core.ko] undefined!
-> > ERROR: "input_free_device" [drivers/media/dvb/mantis/mantis_core.ko] undefined!
-> > ERROR: "input_allocate_device" [drivers/media/dvb/mantis/mantis_core.ko] undefined!
-> >
-> >
-> >
-> > CONFIG_INPUT=n
-> 
-> Attached patch to fix the issue.
-> 
-> Fix Input dependency for Mantis
-> 
-> From: Manu Abraham <abraham.manu@gmail.com>
-> Signed-off-by: Manu Abraham <manu@linuxtv.org>
+anyone ever seen a usb Cinergy T Stick RC MKII, TerraTec Electronic GmbH
+(0ccd:0097) before? Hints? Is sold as a Cinergy T RC (dvb-t with remote control).
 
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+I am willing to program if someone gives me a hint how to start,
+unfortunately, I am not into kernel programming.
 
-Thanks.
+Official home: http://ftp.terratec.de/Receiver/Cinergy_T_Stick_RC_MKII
+lsusb says "0ccd:0097 TerraTec Electronic GmbH".
+The labels I found inside are:
+        AF9015A-N1, 0940 hm0hh; (Afatech)
+        tda1821hn, cr2809, 10, tsd09352;
+		Could be http://www.nxp.com/documents/data_sheet/TDA18218HN.pdf
+        lizel24c02+si, 0739;
+        JWT12000;
+        16a000l1ap;
+        dm232t ver2.0, rohs 0945;
 
----
-~Randy
+I did
+        add-apt-repository ppa:libv4l
+	aptitude update
+	aptitude full-upgrade
+        hg clone http://linuxtv.org/hg/~jfrancois/gspca/
+on a Ubuntu 9.10, and just to try out, I patched some terratec user id in
+        gspca/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+to 0097. Of course, I only got
+        input: NEWMI USB2.0 DVB-T TV Stick as /devices/pci0000:00/0000:00:0b.1/usb1/1-8/1-8:1.1/input/input11
+        generic-usb 0003:0CCD:0097.0005: input,hidraw0: USB HID v1.01 Keyboard [NEWMI USB2.0 DVB-T TV Stick] on usb-0000:00:0b.1-8/input1
+        af9015: tuner id:179 not supported, please report!
+        usbcore: registered new interface driver dvb_usb_af9015
+
+What to do next if there is no driver for this?
+
+By the way, stick works perfectly in XP (without virtualbox).
+Under XP in virtualbox, I get audio, at least.
+
+Oliver
