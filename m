@@ -1,62 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:41253 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934952AbZLPQKn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2009 11:10:43 -0500
-From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
-	<u.kleine-koenig@pengutronix.de>
-To: linux-kernel@vger.kernel.org
-Cc: David Vrabel <dvrabel@arcom.com>,
-	Greg Kroah-Hartman <gregkh@suse.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Antonio Ospite <ospite@studenti.unina.it>,
-	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 2/7] V4L/DVB mx1_camera: don't check platform_get_irq's return value against zero
-Date: Wed, 16 Dec 2009 17:10:04 +0100
-Message-Id: <1260979809-24811-2-git-send-email-u.kleine-koenig@pengutronix.de>
-In-Reply-To: <1260979809-24811-1-git-send-email-u.kleine-koenig@pengutronix.de>
-References: <1260979809-24811-1-git-send-email-u.kleine-koenig@pengutronix.de>
+Received: from mail.gmx.net ([213.165.64.20]:45657 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1758180AbZLQOiq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Dec 2009 09:38:46 -0500
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: linux-media@vger.kernel.org
+To: sijones2006@o2.co.uk
+Subject: Re: Cinergy 2400i - Micronas APB 7202A Open Sourced!
+Date: Thu, 17 Dec 2009 15:17:37 +0100
+Cc: linux-media@vger.kernel.org
+References: <18222544.70531261053454346.JavaMail.defaultUser@defaultHost>
+In-Reply-To: <18222544.70531261053454346.JavaMail.defaultUser@defaultHost>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200912171517.37844@orion.escape-edv.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-platform_get_irq returns -ENXIO on failure, so !irq was probably
-always true.  Better use (int)irq <= 0.  Note that a return value of
-zero is still handled as error even though this could mean irq0.
+Hi,
 
-This is a followup to 305b3228f9ff4d59f49e6d34a7034d44ee8ce2f0 that
-changed the return value of platform_get_irq from 0 to -ENXIO on error.
+sijones2006@o2.co.uk wrote:
+> I know this has been brought up a number of times on Myth and other 
+> lists but there is now a change of circumstances.
+> 
+> The PCI-e bridge (MICRONAS APB 7202A) has now an open source driver. 
+> It is available here git://projects.vdr-developer.org/mediapointer-dvb-
+> s2.git 
+> could this now be pulled into the main V4L source? as it has been 
+> brought upto date with the current DVB tree.
 
-Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
-Cc: David Vrabel <dvrabel@arcom.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Antonio Ospite <ospite@studenti.unina.it>
-Cc: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
-Cc: linux-media@vger.kernel.org
----
- drivers/media/video/mx1_camera.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+The driver cannot be pulled in 'as is' for various reasons, but we are
+currently preparing the driver to make it ready for inclusion into the
+master HG repository/kernel.
 
-diff --git a/drivers/media/video/mx1_camera.c b/drivers/media/video/mx1_camera.c
-index 7280229..f7a472f 100644
---- a/drivers/media/video/mx1_camera.c
-+++ b/drivers/media/video/mx1_camera.c
-@@ -650,7 +650,7 @@ static int __init mx1_camera_probe(struct platform_device *pdev)
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	irq = platform_get_irq(pdev, 0);
--	if (!res || !irq) {
-+	if (!res || (int)irq <= 0) {
- 		err = -ENODEV;
- 		goto exit;
- 	}
+Please stand by.
+
+CU
+Oliver
+
 -- 
-1.6.5.2
-
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
