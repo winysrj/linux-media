@@ -1,54 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:51128 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751792AbZLARJs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2009 12:09:48 -0500
+Received: from web23203.mail.ird.yahoo.com ([217.146.189.58]:31545 "HELO
+	web23203.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1764227AbZLQJhj convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Dec 2009 04:37:39 -0500
+Message-ID: <755686.42993.qm@web23203.mail.ird.yahoo.com>
+Date: Thu, 17 Dec 2009 09:37:37 +0000 (GMT)
+From: Newsy Paper <newspaperman_germany@yahoo.com>
+Subject: Re: Anyone capable of fixing inverted spectrum issue on tt s2-3200?
+To: Manu Abraham <abraham.manu@gmail.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <1a297b360912160510x5e8f1094se95560e6584e0337@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4B154C54.5090906@redhat.com>
-References: <9e4733910912010708u1064e2c6mbc08a01293c3e7fd@mail.gmail.com>
-	 <1259682428.18599.10.camel@maxim-laptop>
-	 <9e4733910912010816q32e829a2uce180bfda69ef86d@mail.gmail.com>
-	 <4B154C54.5090906@redhat.com>
-Date: Tue, 1 Dec 2009 12:09:53 -0500
-Message-ID: <829197380912010909m59cb1078q5bd2e00af0368aaf@mail.gmail.com>
-Subject: Re: [RFC v2] Another approach to IR
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Jon Smirl <jonsmirl@gmail.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>, awalls@radix.net,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, khc@pm.waw.pl, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	lirc-list@lists.sourceforge.net, superm1@ubuntu.com,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 1, 2009 at 12:03 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Just taking an example from the dibcom0700 driver (as the same driver
-> supports several different RC5 and NEC codes at the same time),
-> the kernel table has several keycodes added there, all working
-> at the same time. Providing that the scancodes won't overlap, you can
-> map two different scancodes (from different IR's) to return the same
-> keycode (table is not complete - I just got a few common keycodes):
+ok this modification does change something as I have no signal on all dvb-s2 transponders that don't use inverted spectrum. I'm still looking for a transponder that has this inverted spectrum still enabled, so I'll give feedback as soon as I find one.
 
-Mauro,
+regards
 
-Just to be clear, the dib0700 does not actually support receiving RC5
-or NEC codes at the same time.  You have to tell the chip which mode
-to operate in, via a REQUEST_SET_RC to the firmware (see
-dib0700_core.c:405).  The em28xx works the same way (you have to tell
-it what type of IR format to receive).
+Newspaperman
+--- Manu Abraham <abraham.manu@gmail.com> schrieb am Mi, 16.12.2009:
 
-The fact that the driver currently uses the same lookup table for both
-types of remote controls however, was perhaps not the best design
-choice.  It really should be separated out, and merged with the
-regular ir-functions.c.  I just never got around to it.
+> Von: Manu Abraham <abraham.manu@gmail.com>
+> Betreff: Re: Anyone capable of fixing inverted spectrum issue on tt s2-3200?
+> An: "Newsy Paper" <newspaperman_germany@yahoo.com>
+> CC: linux-media@vger.kernel.org
+> Datum: Mittwoch, 16. Dezember 2009, 14:10
+> On Wed, Dec 16, 2009 at 4:15 PM,
+> Newsy Paper
+> <newspaperman_germany@yahoo.com>
+> wrote:
+> > Hi,
+> >
+> > as the problem with the ORF HD transponder on Astra is
+> now figured out and ORF switched inversion off again, we
+> know know where the bug in the driver is. I don't know if
+> the problem also occours on dvb-s(1) transponders but I'll
+> try to figure that out.
+> >
+> > Is anyone able to fix that dvb-s2 problem? Perhaps it
+> would also solve the problem with some transponders on 1°
+> west?
+> >
+> 
+> 
+> To verify whether an inversion will solve the issue:
+> 
+> Please try changing
+> 
+> line: #1313 .inversion = IQ_SWAP_ON, /* 1 */  to
+> IQ_SWAP_OFF
+> 
+> in
+> 
+> http://linuxtv.org/hg/v4l-dvb/file/79fc32bba0a0/linux/drivers/media/dvb/ttpci/budget-ci.c
+> 
+> and check whether that solves your inversion issue. Please
+> report your findings.
+> 
+> 
+> Regards,
+> Manu
+> 
 
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+__________________________________________________
+Do You Yahoo!?
+Sie sind Spam leid? Yahoo! Mail verfügt über einen herausragenden Schutz gegen Massenmails. 
+http://mail.yahoo.com 
