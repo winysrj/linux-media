@@ -1,57 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1714 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754871AbZLCEoa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Dec 2009 23:44:30 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andy Walls <awalls@radix.net>
-Subject: Re: Replace Mercurial with GIT as SCM
-Date: Thu, 3 Dec 2009 10:12:41 +0530
-Cc: Patrick Boettcher <pboettcher@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <alpine.LRH.2.00.0912011003480.30797@pub3.ifh.de> <1259709900.3102.3.camel@palomino.walls.org>
-In-Reply-To: <1259709900.3102.3.camel@palomino.walls.org>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200912031012.41889.hverkuil@xs4all.nl>
+Received: from comal.ext.ti.com ([198.47.26.152]:46287 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751165AbZLRX6b (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Dec 2009 18:58:31 -0500
+From: m-karicheri2@ti.com
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	khilman@deeprootsystems.com, hvaibhav@ti.com, nsekhar@ti.com
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: [PATCH - v2 5/6] V4L - vpfe capture - build environment for isif driver
+Date: Fri, 18 Dec 2009 18:58:21 -0500
+Message-Id: <1261180705-8150-2-git-send-email-m-karicheri2@ti.com>
+In-Reply-To: <1261180705-8150-1-git-send-email-m-karicheri2@ti.com>
+References: <1261180705-8150-1-git-send-email-m-karicheri2@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 02 December 2009 04:55:00 Andy Walls wrote:
-> On Tue, 2009-12-01 at 15:59 +0100, Patrick Boettcher wrote:
-> > Hi all,
-> >
-> > I would like to start a discussion which ideally results in either
-> > changing the SCM of v4l-dvb to git _or_ leaving everything as it is today
-> > with mercurial.
-> >
-> >
-> > I'm waiting for comments.
->
-> I only have one requirement: reduce bandwidth usage between the server
-> and my home.
->
-> The less I have to clone out 65 M of history to start a new series of
-> patches the better.  I suppose that would include a rebase...
+From: Muralidharan Karicheri <m-karicheri2@ti.com>
 
-Unfortunately, one reason for moving to git would be to finally be able to 
-make changes to the arch directory tree. The fact that that part is 
-unavailable in v4l-dvb is a big problem when working with SoCs. And these will 
-become much more important in the near future.
+updated based on comments against v1 of the patch
 
-Regards,
+Adding Makefile and Kconfig for ISIF driver
 
-	Hans
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+Reviewed-by: Sergei Shtylyov <sshtylyov@ru.mvista.com>
+Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+---
+Applies to linux-next tree
+ drivers/media/video/Kconfig          |   14 +++++++++++++-
+ drivers/media/video/davinci/Makefile |    1 +
+ 2 files changed, 14 insertions(+), 1 deletions(-)
 
->
-> Regards,
-> Andy
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 2f83be7..bcf3c17 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -548,7 +548,6 @@ config VIDEO_VPSS_SYSTEM
+ 	depends on ARCH_DAVINCI
+ 	help
+ 	  Support for vpss system module for video driver
+-	default y
+ 
+ config VIDEO_VPFE_CAPTURE
+ 	tristate "VPFE Video Capture Driver"
+@@ -592,6 +591,19 @@ config VIDEO_DM355_CCDC
+ 	   To compile this driver as a module, choose M here: the
+ 	   module will be called vpfe.
+ 
++config VIDEO_ISIF
++	tristate "ISIF HW module"
++	depends on ARCH_DAVINCI_DM365 && VIDEO_VPFE_CAPTURE
++	select VIDEO_VPSS_SYSTEM
++	default y
++	help
++	   Enables ISIF hw module. This is the hardware module for
++	   configuring ISIF in VPFE to capture Raw Bayer RGB data  from
++	   a image sensor or YUV data from a YUV source.
++
++	   To compile this driver as a module, choose M here: the
++	   module will be called vpfe.
++
+ source "drivers/media/video/bt8xx/Kconfig"
+ 
+ config VIDEO_PMS
+diff --git a/drivers/media/video/davinci/Makefile b/drivers/media/video/davinci/Makefile
+index 1a8b8f3..a379557 100644
+--- a/drivers/media/video/davinci/Makefile
++++ b/drivers/media/video/davinci/Makefile
+@@ -15,3 +15,4 @@ obj-$(CONFIG_VIDEO_VPSS_SYSTEM) += vpss.o
+ obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
+ obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
+ obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
++obj-$(CONFIG_VIDEO_ISIF) += isif.o
+-- 
+1.6.0.4
 
