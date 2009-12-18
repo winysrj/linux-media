@@ -1,475 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:23062 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754876AbZLWKHo (ORCPT
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:48023 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932653AbZLRUMA convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Dec 2009 05:07:44 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Wed, 23 Dec 2009 11:07:34 +0100
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: [EXAMPLE v2] Mem-to-mem userspace test application.
-In-reply-to: <1261562854-26507-1-git-send-email-p.osciak@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com
-Message-id: <1261562854-26507-4-git-send-email-p.osciak@samsung.com>
-References: <1261562854-26507-1-git-send-email-p.osciak@samsung.com>
+	Fri, 18 Dec 2009 15:12:00 -0500
+Received: by ewy19 with SMTP id 19so1877197ewy.21
+        for <linux-media@vger.kernel.org>; Fri, 18 Dec 2009 12:11:58 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4B2BD6C2.50307@onid.orst.edu>
+References: <4B269F1A.30107@onid.orst.edu>
+	 <4B275CA2.406@tripleplay-services.com>
+	 <83bcf6340912180525h1bbaf229j9b2c81ffacb8fe76@mail.gmail.com>
+	 <4B2BD6C2.50307@onid.orst.edu>
+Date: Fri, 18 Dec 2009 15:11:58 -0500
+Message-ID: <83bcf6340912181211s36d2d0b6v7fc11496e71d3e2e@mail.gmail.com>
+Subject: Re: scan/scan-s2 doesn't tune, but dvbtune does?
+From: Steven Toth <stoth@kernellabs.com>
+To: Michael Akey <akeym@onid.orst.edu>
+Cc: Lou Otway <louis.otway@tripleplay-services.com>,
+	Linux Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an example application for testing mem-to-mem framework using
-mem2mem-testdev device.
+On Fri, Dec 18, 2009 at 2:23 PM, Michael Akey <akeym@onid.orst.edu> wrote:
+> Steven Toth wrote:
+>>
+>> On Tue, Dec 15, 2009 at 4:53 AM, Lou Otway
+>> <louis.otway@tripleplay-services.com> wrote:
+>>
+>>>
+>>> Michael Akey wrote:
+>>>
+>>>>
+>>>> I can't get the scan/scan-s2 utilities to lock any transponders (DVB-S).
+>>>>  My test satellite is AMC1 103W, the Pentagon Channel tp. This is
+>>>> probably
+>>>> some simple user error on my part, but I can't figure it out.  I have a
+>>>> Corotor II with polarity changed via serial command to an external IRD.
+>>>>  C/Ku is switched by 22KHz tone, voltage is always 18V.  Ku is with tone
+>>>> off, C with tone on.  Speaking of which, is there a way to manually set
+>>>> the
+>>>> tone from the arguments on the scan utilities?
+>>>>
+>>>> Here's what I've tried and the results:
+>>>>
+>>>> $ ./scan-s2 -a 0 -v -o zap -l 10750 INIT
+>>>> API major 5, minor 0
+>>>> scanning INIT
+>>>> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+>>>> initial transponder DVB-S  12100000 H 20000000 AUTO AUTO AUTO
+>>>> initial transponder DVB-S2 12100000 H 20000000 AUTO AUTO AUTO
+>>>> ----------------------------------> Using DVB-S
+>>>>
+>>>>>>>
+>>>>>>> tune to: 12100:h:0:20000
+>>>>>>>
+>>>>
+>>>> DVB-S IF freq is 1350000
+>>>>
+>>>>>>>
+>>>>>>> tuning status == 0x03
+>>>>>>> tuning status == 0x01
+>>>>>>> tuning status == 0x03
+>>>>>>> tuning status == 0x01
+>>>>>>> tuning status == 0x03
+>>>>>>> tuning status == 0x00
+>>>>>>> tuning status == 0x01
+>>>>>>> tuning status == 0x03
+>>>>>>> tuning status == 0x00
+>>>>>>> tuning status == 0x00
+>>>>>>>
+>>>>
+>>>> WARNING: >>> tuning failed!!!
+>>>>
+>>>>>>>
+>>>>>>> tune to: 12100:h:0:20000 (tuning failed)
+>>>>>>>
+>>>>
+>>>> DVB-S IF freq is 1350000
+>>>>
+>>>>>>>
+>>>>>>> tuning status == 0x03
+>>>>>>> tuning status == 0x01
+>>>>>>> tuning status == 0x00
+>>>>>>> tuning status == 0x00
+>>>>>>>
+>>>>
+>>>> ...snip...
+>>>>
+>>>> Same thing happens if I use just 'scan' and not 'scan-s2.'
+>>>>
+>>>> If I use dvbtune, it works though..
+>>>>
+>>>> $ dvbtune -f 1350000 -p H -s 20000 -c 0 -tone 0 -m
+>>>> Using DVB card "Conexant CX24116/CX24118"
+>>>> tuning DVB-S to L-Band:0, Pol:H Srate=20000000, 22kHz=off
+>>>> polling....
+>>>> Getting frontend event
+>>>> FE_STATUS:
+>>>> polling....
+>>>> Getting frontend event
+>>>> FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI
+>>>> FE_HAS_SYNC
+>>>> Bit error rate: 0
+>>>> Signal strength: 51648
+>>>> SNR: 26215
+>>>> FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI
+>>>> FE_HAS_SYNC
+>>>> Signal=51648, Verror=0, SNR=26215dB, BlockErrors=0, (S|L|C|V|SY|)
+>>>> Signal=51776, Verror=0, SNR=26624dB, BlockErrors=0, (S|L|C|V|SY|)
+>>>>
+>>>> The tuning file 'INIT' contains only the following line:
+>>>> S 12100000 H 20000000 AUTO
+>>>>
+>>>> I'm using v4l-dvb drivers from the main repo as of about a week ago.  I
+>>>> am
+>>>> running kernel 2.6.32 on Debian testing.  Any help is appreciated ..and
+>>>> hopefully it's just a simple flub on my part!
+>>>>
+>>>> --Mike
+>>>>
+>>>
+>>> Try using a non-auto FEC and rolloff.
+>>>
+>>> Some devices won't accept auto for these parameters.
+>>>
+>>
+>> Michael,
+>>
+>> The silicon in question doesn't do automatic FEC detection. Be sure to
+>> specify which FEC you need for the sat. If in doubt, walk through them
+>> all manually. Pilot auto detect is done in s/w was was added a long
+>> time ago.
+>>
+>> - Steve
+>>
+>>
+>
+> Steve et al,
+>
+> It would appear that it does in fact do auto FEC since I don't specify it
+> with dvbtune and it works just fine (with both my Prof 7300 and 7301.)  I
+> think it's a tone issue, but then again, why does attempting to scan
+> something on both bands C and Ku (tone on, and tone off respectively) not
+> work?  I figured if it's a tone issue that only one band would work.
+>
+> I tried setting the FEC and even the delivery system (S1 rather than S) and
+> it makes no difference.  I could try the DVB-S2 NBC mux on that satellite
+> too.. but I'm not sure why that would make a difference.
+>
+> If you folks have any other ideas, let me know.  Thanks for your responses
+> so far!
 
-It is intended to be executed multiple times in parallel to test multi-instance
-operation and scheduling. Each process can be configured differently using
-command-line arguments.
+It doesn't do auto FEC in S2 mode, only S mode.
 
-The application opens video test device and framebuffer, sets up params,
-queues src/dst buffers and displays processed results on the framebuffer.
-
-Configurable parameters: starting point on the framebuffer, width/height of
-buffers, transaction length (in buffers), transaction duration, total number
-of frames to be processed.
-
-
-Tested on a 800x480 framebuffer with the following script:
-
-#!/bin/bash
-for i in {0..3}
-do
-    ((x=$i * 100))
-    ./process-vmalloc 0 $(($i + 1)) $((2000 - $i * 500)) $((($i+1) * 4)) \
-        $x $x 100 100 &
-done
-
-
-Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-Reviewed-by: Kyungmin Park <kyungmin.park@samsung.com>
----
-
---- /dev/null	2009-11-17 07:51:25.574927259 +0100
-+++ process-vmalloc.c	2009-11-26 11:00:26.000000000 +0100
-@@ -0,0 +1,420 @@
-+/**
-+ * process-vmalloc.c
-+ * Capture+output (process) V4L2 device tester.
-+ *
-+ * Pawel Osciak, p.osciak@samsung.com
-+ * 2009, Samsung Electronics Co., Ltd.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the License, or (at your
-+ * option) any later version
-+ */
-+
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <assert.h>
-+#include <time.h>
-+#include <errno.h>
-+
-+#include <fcntl.h>
-+#include <unistd.h>
-+#include <sys/ioctl.h>
-+#include <sys/types.h>
-+#include <stdint.h>
-+
-+#include <linux/fb.h>
-+#include <linux/videodev2.h>
-+
-+#include <sys/mman.h>
-+
-+#define V4L2_CID_TRANS_TIME_MSEC        (V4L2_CID_PRIVATE_BASE)
-+#define V4L2_CID_TRANS_NUM_BUFS         (V4L2_CID_PRIVATE_BASE + 1)
-+
-+#define VIDEO_DEV_NAME	"/dev/video0"
-+#define FB_DEV_NAME	"/dev/fb0"
-+#define NUM_BUFS	4
-+#define NUM_FRAMES	16
-+
-+#define perror_exit(cond, func)\
-+	if (cond) {\
-+		fprintf(stderr, "%s:%d: ", __func__, __LINE__);\
-+		perror(func);\
-+		exit(EXIT_FAILURE);\
-+	}
-+
-+#define error_exit(cond, func)\
-+	if (cond) {\
-+		fprintf(stderr, "%s:%d: failed\n", func, __LINE__);\
-+		exit(EXIT_FAILURE);\
-+	}
-+
-+#define perror_ret(cond, func)\
-+	if (cond) {\
-+		fprintf(stderr, "%s:%d: ", __func__, __LINE__);\
-+		perror(func);\
-+		return ret;\
-+	}
-+
-+#define memzero(x)\
-+	memset(&(x), 0, sizeof (x));
-+
-+#define PROCESS_DEBUG 1
-+#ifdef PROCESS_DEBUG
-+#define debug(msg, ...)\
-+	fprintf(stderr, "%s: " msg, __func__, ##__VA_ARGS__);
-+#else
-+#define debug(msg, ...)
-+#endif
-+
-+static int vid_fd, fb_fd;
-+static void *fb_addr;
-+static char *p_src_buf[NUM_BUFS], *p_dst_buf[NUM_BUFS];
-+static size_t src_buf_size[NUM_BUFS], dst_buf_size[NUM_BUFS];
-+static uint32_t num_src_bufs = 0, num_dst_bufs = 0;
-+
-+/* Command-line params */
-+int initial_delay = 0;
-+int fb_x, fb_y, width, height;
-+int translen = 1;
-+/* For displaying multi-buffer transaction simulations, indicates current
-+ * buffer in an ongoing transaction */
-+int curr_buf = 0;
-+int transtime = 1000;
-+int num_frames = 0;
-+off_t fb_off, fb_line_w, fb_buf_w;
-+struct fb_var_screeninfo fbinfo;
-+
-+static void init_video_dev(void)
-+{
-+	int ret;
-+	struct v4l2_capability cap;
-+	struct v4l2_format fmt;
-+	struct v4l2_control ctrl;
-+
-+	vid_fd = open(VIDEO_DEV_NAME, O_RDWR | O_NONBLOCK, 0);
-+	perror_exit(vid_fd < 0, "open");
-+
-+	ctrl.id = V4L2_CID_TRANS_TIME_MSEC;
-+	ctrl.value = transtime;
-+	ret = ioctl(vid_fd, VIDIOC_S_CTRL, &ctrl);
-+	perror_exit(ret != 0, "ioctl");
-+
-+	ctrl.id = V4L2_CID_TRANS_NUM_BUFS;
-+	ctrl.value = translen;
-+	ret = ioctl(vid_fd, VIDIOC_S_CTRL, &ctrl);
-+	perror_exit(ret != 0, "ioctl");
-+
-+	ret = ioctl(vid_fd, VIDIOC_QUERYCAP, &cap);
-+	perror_exit(ret != 0, "ioctl");
-+
-+	if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
-+		fprintf(stderr, "Device does not support capture\n");
-+		exit(EXIT_FAILURE);
-+	}
-+	if (!(cap.capabilities & V4L2_CAP_VIDEO_OUTPUT)) {
-+		fprintf(stderr, "Device does not support output\n");
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	/* Set format for capture */
-+	fmt.type		= V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	fmt.fmt.pix.width	= width;
-+	fmt.fmt.pix.height	= height;
-+	fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565X;
-+	fmt.fmt.pix.field	= V4L2_FIELD_ANY;
-+
-+	ret = ioctl(vid_fd, VIDIOC_S_FMT, &fmt);
-+	perror_exit(ret != 0, "ioctl");
-+
-+	/* The same format for output */
-+	fmt.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+	fmt.fmt.pix.width	= width;
-+	fmt.fmt.pix.height	= height;
-+	fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565X;
-+	fmt.fmt.pix.field	= V4L2_FIELD_ANY;
-+	
-+	ret = ioctl(vid_fd, VIDIOC_S_FMT, &fmt);
-+	perror_exit(ret != 0, "ioctl");
-+}
-+
-+static void gen_src_buf(void *p, size_t size)
-+{
-+	uint8_t val;
-+
-+	val = rand() % 256;
-+	memset(p, val, size);
-+}
-+
-+static void gen_dst_buf(void *p, size_t size)
-+{
-+	/* White */
-+	memset(p, 255, 0);
-+}
-+
-+static int read_frame(int last)
-+{
-+	struct v4l2_buffer buf;
-+	int ret;
-+	int j;
-+	char * p_fb = fb_addr + fb_off;
-+
-+	memzero(buf);
-+
-+	buf.type	= V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+	buf.memory	= V4L2_MEMORY_MMAP;
-+
-+	ret = ioctl(vid_fd, VIDIOC_DQBUF, &buf);
-+	debug("Dequeued source buffer, index: %d\n", buf.index);
-+	if (ret) {
-+		switch (errno) {
-+		case EAGAIN:
-+			debug("Got EAGAIN\n");
-+			return 0;
-+
-+		case EIO:
-+			debug("Got EIO\n");
-+			return 0;
-+
-+		default:
-+			perror("ioctl");
-+			return 0;
-+		}
-+	}
-+
-+	/* Verify we've got a correct buffer */
-+	assert(buf.index < num_src_bufs);
-+
-+	/* Enqueue back the buffer (note that the index is preserved) */
-+	if (!last) {
-+		gen_src_buf(p_src_buf[buf.index], src_buf_size[buf.index]);
-+		buf.type	= V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+		buf.memory	= V4L2_MEMORY_MMAP;
-+		ret = ioctl(vid_fd, VIDIOC_QBUF, &buf);
-+		perror_ret(ret != 0, "ioctl");
-+	}
-+
-+
-+	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+
-+	debug("Dequeuing destination buffer\n");
-+	ret = ioctl(vid_fd, VIDIOC_DQBUF, &buf);
-+	if (ret) {
-+		switch (errno) {
-+		case EAGAIN:
-+			debug("Got EAGAIN\n");
-+			return 0;
-+
-+		case EIO:
-+			debug("Got EIO\n");
-+			return 0;
-+
-+		default:
-+			perror("ioctl");
-+			return 1;
-+		}
-+	}
-+	debug("Dequeued dst buffer, index: %d\n", buf.index);
-+	/* Verify we've got a correct buffer */
-+	assert(buf.index < num_dst_bufs);
-+
-+	debug("Current buffer in the transaction: %d\n", curr_buf);
-+	p_fb += curr_buf * (height / translen) * fb_line_w;
-+	++curr_buf;
-+	if (curr_buf >= translen)
-+		curr_buf = 0;
-+
-+	/* Display results */
-+	for (j = 0; j < height / translen; ++j) {
-+		memcpy(p_fb, (void *)p_dst_buf[buf.index], fb_buf_w);
-+		p_fb += fb_line_w;
-+	}
-+
-+	/* Enqueue back the buffer */
-+	if (!last) {
-+		gen_dst_buf(p_dst_buf[buf.index], dst_buf_size[buf.index]);
-+		ret = ioctl(vid_fd, VIDIOC_QBUF, &buf);
-+		perror_ret(ret != 0, "ioctl");
-+		debug("Enqueued back dst buffer\n");
-+	}
-+
-+	return 0;
-+}
-+
-+void init_usage(int argc, char *argv[])
-+{
-+	if (argc != 9) {
-+		printf("Usage: %s initial_delay bufs_per_transaction "
-+			"trans_length_msec num_frames fb_offset_x fb_offset_y "
-+			"width height\n", argv[0]);
-+		exit(EXIT_FAILURE);
-+	}
-+
-+	initial_delay = atoi(argv[1]);
-+	translen = atoi(argv[2]);
-+	transtime = atoi(argv[3]);
-+	num_frames = atoi(argv[4]);
-+	fb_x = atoi(argv[5]);
-+	fb_y = atoi(argv[6]);
-+	width = atoi(argv[7]);
-+	height = atoi(argv[8]);
-+	debug("NEW PROCESS: fb_x: %d, fb_y: %d, width: %d, height: %d, "
-+		"translen: %d, transtime: %d, num_frames: %d\n",
-+		fb_x, fb_y, width, height, translen, transtime, num_frames);
-+}
-+
-+void init_fb(void)
-+{
-+	int ret;
-+	size_t map_size;
-+
-+	fb_fd = open(FB_DEV_NAME, O_RDWR, 0);
-+	perror_exit(fb_fd < 0, "open");
-+
-+	ret = ioctl(fb_fd, FBIOGET_VSCREENINFO, &fbinfo);
-+	perror_exit(ret != 0, "ioctl");
-+	debug("fbinfo: xres: %d, xres_virt: %d, yres: %d, yres_virt: %d\n",
-+		fbinfo.xres, fbinfo.xres_virtual,
-+		fbinfo.yres, fbinfo.yres_virtual);
-+
-+	fb_line_w= fbinfo.xres_virtual * (fbinfo.bits_per_pixel >> 3);
-+	fb_off = fb_y * fb_line_w + fb_x * (fbinfo.bits_per_pixel >> 3);
-+	fb_buf_w = width * (fbinfo.bits_per_pixel >> 3);
-+	map_size = fb_line_w * fbinfo.yres_virtual;
-+
-+	fb_addr = mmap(0, map_size, PROT_WRITE | PROT_READ,
-+			MAP_SHARED, fb_fd, 0);
-+	perror_exit(fb_addr == MAP_FAILED, "mmap");
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	int ret = 0;
-+	int i;
-+	struct v4l2_buffer buf;
-+	struct v4l2_requestbuffers reqbuf;
-+	enum v4l2_buf_type type;
-+	int last = 0;
-+
-+	init_usage(argc, argv);
-+	init_fb();
-+
-+	srand(time(NULL) ^ getpid());
-+	sleep(initial_delay);
-+
-+	init_video_dev();
-+
-+	memzero(reqbuf);
-+	reqbuf.count	= NUM_BUFS;
-+	reqbuf.type	= V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+	type		= V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+	reqbuf.memory	= V4L2_MEMORY_MMAP;
-+	ret = ioctl(vid_fd, VIDIOC_REQBUFS, &reqbuf);
-+	perror_exit(ret != 0, "ioctl");
-+	num_src_bufs = reqbuf.count;
-+	debug("Got %d src buffers\n", num_src_bufs);
-+
-+	reqbuf.count	= NUM_BUFS;
-+	reqbuf.type	= V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	type		= V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	ret = ioctl(vid_fd, VIDIOC_REQBUFS, &reqbuf);
-+	perror_exit(ret != 0, "ioctl");
-+	num_dst_bufs = reqbuf.count;
-+	debug("Got %d dst buffers\n", num_dst_bufs);
-+
-+	for (i = 0; i < num_src_bufs; ++i) {
-+		buf.type	= V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+		buf.memory	= V4L2_MEMORY_MMAP;
-+		buf.index	= i;
-+
-+		ret = ioctl(vid_fd, VIDIOC_QUERYBUF, &buf);
-+		perror_exit(ret != 0, "ioctl");
-+		debug("QUERYBUF returned offset: %x\n", buf.m.offset);
-+
-+		src_buf_size[i] = buf.length;
-+		p_src_buf[i] = mmap(NULL, buf.length,
-+				    PROT_READ | PROT_WRITE, MAP_SHARED,
-+				    vid_fd, buf.m.offset);
-+		perror_exit(MAP_FAILED == p_src_buf[i], "mmap");
-+	}
-+
-+	for (i = 0; i < num_dst_bufs; ++i) {
-+		buf.type	= V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+		buf.memory	= V4L2_MEMORY_MMAP;
-+		buf.index	= i;
-+
-+		ret = ioctl(vid_fd, VIDIOC_QUERYBUF, &buf);
-+		perror_exit(ret != 0, "ioctl");
-+		debug("QUERYBUF returned offset: %x\n", buf.m.offset);
-+
-+		dst_buf_size[i] = buf.length;
-+		p_dst_buf[i] = mmap(NULL, buf.length,
-+				    PROT_READ | PROT_WRITE, MAP_SHARED,
-+				    vid_fd, buf.m.offset);
-+		perror_exit(MAP_FAILED == p_dst_buf[i], "mmap");
-+	}
-+
-+	for (i = 0; i < num_src_bufs; ++i) {
-+
-+		gen_src_buf(p_src_buf[i], src_buf_size[i]);
-+
-+		memzero(buf);
-+		buf.type	= V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+		buf.memory	= V4L2_MEMORY_MMAP;
-+		buf.index	= i;
-+
-+		ret = ioctl(vid_fd, VIDIOC_QBUF, &buf);
-+		perror_exit(ret != 0, "ioctl");
-+	}
-+
-+	for (i = 0; i < num_dst_bufs; ++i) {
-+		memzero(buf);
-+		buf.type	= V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+		buf.memory	= V4L2_MEMORY_MMAP;
-+		buf.index	= i;
-+
-+		ret = ioctl(vid_fd, VIDIOC_QBUF, &buf);
-+		perror_exit(ret != 0, "ioctl");
-+	}
-+
-+	ret = ioctl(vid_fd, VIDIOC_STREAMON, &type);
-+	debug("STREAMON (%d): %d\n", VIDIOC_STREAMON, ret);
-+	perror_exit(ret != 0, "ioctl");
-+
-+	while (num_frames) {
-+		fd_set read_fds;
-+		int r;
-+
-+		FD_ZERO(&read_fds);
-+		FD_SET(vid_fd, &read_fds);
-+
-+		debug("Before select");
-+		r = select(vid_fd + 1, &read_fds, NULL, NULL, 0);
-+		perror_exit(r < 0, "select");
-+		debug("After select");
-+
-+		if (num_frames == 1)
-+			last = 1;
-+		if (read_frame(last)) {
-+			fprintf(stderr, "Read frame failed\n");
-+			break;
-+		}
-+		--num_frames;
-+		printf("FRAMES LEFT: %d\n", num_frames);
-+	}
-+
-+
-+done:
-+	close(vid_fd);
-+	close(fb_fd);
-+
-+	for (i = 0; i < num_src_bufs; ++i)
-+		munmap(p_src_buf[i], src_buf_size[i]);
-+
-+	for (i = 0; i < num_dst_bufs; ++i)
-+		munmap(p_dst_buf[i], dst_buf_size[i]);
-+
-+	return ret;
-+}
-+
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
