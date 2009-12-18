@@ -1,88 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-06.arcor-online.net ([151.189.21.46]:60535 "EHLO
-	mail-in-06.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752437AbZLWBu3 (ORCPT
+Received: from mail-yx0-f187.google.com ([209.85.210.187]:42817 "EHLO
+	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753551AbZLRO5N (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Dec 2009 20:50:29 -0500
-Subject: Re: How to make a Zaapa LR301AP DVB-T card work
-From: hermann pitton <hermann-pitton@arcor.de>
-To: amlopezalonso@gmail.com
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <200912221641.04526.amlopezalonso@gmail.com>
-References: <200912191400.37814.amlopezalonso@gmail.com>
-	 <200912201313.31384.amlopezalonso@gmail.com>
-	 <1261428671.3208.10.camel@pc07.localdom.local>
-	 <200912221641.04526.amlopezalonso@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Date: Wed, 23 Dec 2009 02:50:35 +0100
-Message-Id: <1261533035.4781.13.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	Fri, 18 Dec 2009 09:57:13 -0500
+Received: by yxe17 with SMTP id 17so2949022yxe.33
+        for <linux-media@vger.kernel.org>; Fri, 18 Dec 2009 06:57:11 -0800 (PST)
+Message-ID: <4B2B9842.6040108@gmail.com>
+Date: Fri, 18 Dec 2009 12:57:06 -0200
+From: Mauro Carvalho Chehab <maurochehab@gmail.com>
+MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Paulo Assis <pj.assis@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Adaptec VideOh! DVD Media Center
+References: <59cf47a80912180605o41708efao769d09d46b20a87e@mail.gmail.com> <829197380912180644y31f520fawee04a66ab28666e7@mail.gmail.com>
+In-Reply-To: <829197380912180644y31f520fawee04a66ab28666e7@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Devin Heitmueller wrote:
+> On Fri, Dec 18, 2009 at 9:05 AM, Paulo Assis <pj.assis@gmail.com> wrote:
+>> Hi,
 
-Am Dienstag, den 22.12.2009, 16:41 +0000 schrieb Antonio Marcos López
-Alonso:
-> > 
-> > Antonio,
-> > 
-> > the report for tda10046 firmware loading is missing. Was that OK?
+>> Is there any simpler/standard way of handling these firmware uploads ?
+>>
+>> Regards,
+>> Paulo
 > 
-> Yes:
+> Hi Paulo,
 > 
-> tda1004x: setting up plls for 48MHz sampling clock
-> tda1004x: found firmware revision 29 -- ok
-> 
-> > 
-> > LR301 is a LifeView design. It is very common to see multiple other
-> > subvendors for their cards, but they keep the original subdevice ID.
-> > In this case 0x0301. The subvendor 0x4e42 is usually Typhoon/Anubis and
-> > they are distributing clones of almost all LifeView cards.
-> > 
-> > Gpio init is the same like on the other known LR301 cards and eeprom
-> > differs only for a few bytes, but not for tuner type, tuner and demod
-> > address.
-> > 
-> > http://ubuntuforums.org/archive/index.php/t-328140.html
-> > 
-> > Since this design with a saa7134 chip and tda8274 DVB-T only tuner is very
-> >  old, I don't expect an additional Low Noise Amplifier on it.
-> > 
-> > We can't detect such LNAs and on newer cards they can cause problems, if
-> > not configured correctly and might cause "scan" to fail.
-> > 
-> > If you mean above other card types did previously work for your card,
-> > use them and report.
-> 
-> No, I meant other "physical" cards. Just to ensure it is not likely to be an 
-> aerial problem.
+> I would start by looking at the request_firmware() function, which is
+> used by a variety of other v4l cards.
 
-Good to know. However, the first revisions of silicon tuners like the
-tda8274 can't compete with can tuners. Only the tda8275a hybrid can come
-_close_ to a good can tuner like the FMD1216ME/I H-3 (MK3) on a well
-designed PCB. Signal quality might be still not sufficient for your
-card.
+Yes. Basically, you store all firmwares you need on /lib/firmware and 
+request_firmware loads them when the driver is loaded. 
 
-You also had parity errors on your first report, which likely indicate
-problems on your mobo at least with this PCI slot and/or sharing
-interrupts with other devices there.
-
-> > Sorry, I don't have better ideas for your card so far.
-> 
-> I have not included the "tuner" parameter in the "options" line which I think 
-> it could be the problem. Is this parameter mandatory? If so, which is the 
-> proper one?
-> 
-
-No. You can force tuner types only for analog TV. The tda8274 is not a
-hybrid tuner, it is only used for DVB-T. An early tda8275 hybrid with a
-saa7134 chip would have a separate tda8290 chip for analog IF
-demodulation. Without that no analog TV and no tuner type to set.
-
-For DVB-T the tda8274 is treated like a tda8275.
+You don't need to add any extra udev magic for it to work, since there are
+already some userspace programs that handle firmware requests when using
+request_firmware().
 
 Cheers,
-Hermann
-
-
+Mauro.
