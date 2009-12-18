@@ -1,99 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:3648 "EHLO
-	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752473AbZLBTr7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Dec 2009 14:47:59 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr17.xs4all.nl (8.13.8/8.13.8) with ESMTP id nB2Jm14A099611
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 2 Dec 2009 20:48:05 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 2 Dec 2009 20:48:01 +0100 (CET)
-Message-Id: <200912021948.nB2Jm14A099611@smtp-vbr17.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: WARNINGS
+Received: from mail-fx0-f221.google.com ([209.85.220.221]:49308 "EHLO
+	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752959AbZLROoo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Dec 2009 09:44:44 -0500
+Received: by fxm21 with SMTP id 21so2865024fxm.21
+        for <linux-media@vger.kernel.org>; Fri, 18 Dec 2009 06:44:42 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <59cf47a80912180605o41708efao769d09d46b20a87e@mail.gmail.com>
+References: <59cf47a80912180605o41708efao769d09d46b20a87e@mail.gmail.com>
+Date: Fri, 18 Dec 2009 09:44:42 -0500
+Message-ID: <829197380912180644y31f520fawee04a66ab28666e7@mail.gmail.com>
+Subject: Re: Adaptec VideOh! DVD Media Center
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Paulo Assis <pj.assis@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Fri, Dec 18, 2009 at 9:05 AM, Paulo Assis <pj.assis@gmail.com> wrote:
+> Hi,
+> I'm currently porting the GPL linux-avc2210k driver (
+> http://www.freelists.org/archive/linux-avc2210k/ ) to V4L2.
+> The current version has it's own API that makes it incompatible with
+> any software except for specific user space apps (avcctrl, avctune)
+> bundled with the driver.
+> Since development seems to have halted for some time now, I had no
+> other choice than get my hands dirty :(
+> For the most part this task seems quite straight forward it's mostly a
+> matter of changing ioctls to V4L2 and add some missing support, there
+> are however a few points that I need some advice on:
+> For the box to function it needs a firmware upload. Currently this is
+> managed by a udev script that in turn calls an application (multiload)
+> that provides for the upload.
+> What I would like to know is, if this the best way to handle it?
+> The problem with this process is that it will always require
+> installing and configuring additional software (multiload and udev
+> script), besides the firmware.
+> Is there any simpler/standard way of handling these firmware uploads ?
+>
+> Regards,
+> Paulo
 
-Results of the daily build of v4l-dvb:
+Hi Paulo,
 
-date:        Wed Dec  2 19:00:03 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13538:e0cd9a337600
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+I would start by looking at the request_firmware() function, which is
+used by a variety of other v4l cards.
 
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-rc8-armv5: OK
-linux-2.6.32-rc8-armv5-davinci: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-armv5-ixp: OK
-linux-2.6.32-rc8-armv5-ixp: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: OK
-linux-2.6.32-rc8-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: OK
-linux-2.6.31-i686: OK
-linux-2.6.32-rc8-i686: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-rc8-m32r: OK
-linux-2.6.30-mips: OK
-linux-2.6.31-mips: OK
-linux-2.6.32-rc8-mips: OK
-linux-2.6.30-powerpc64: OK
-linux-2.6.31-powerpc64: OK
-linux-2.6.32-rc8-powerpc64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: OK
-linux-2.6.31-x86_64: OK
-linux-2.6.32-rc8-x86_64: OK
-spec: OK
-sparse (linux-2.6.31): ERRORS
-sparse (linux-2.6.32-rc8): ERRORS
-linux-2.6.16.61-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+Cheers,
 
-Detailed results are available here:
+Devin
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
