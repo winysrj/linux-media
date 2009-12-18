@@ -1,115 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:36213 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751750AbZLCMEd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Dec 2009 07:04:33 -0500
-Subject: Re: [RFC v2] Another approach to IR
-From: Andy Walls <awalls@radix.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Jarod Wilson <jarod@wilsonet.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Jon Smirl <jonsmirl@gmail.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>, j@jannau.net,
-	jarod@redhat.com, khc@pm.waw.pl, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	lirc-list@lists.sourceforge.net, superm1@ubuntu.com,
-	Christoph Bartelmus <lirc@bartelmus.de>
-In-Reply-To: <4B178C4D.1020007@redhat.com>
-References: <9e4733910912010816q32e829a2uce180bfda69ef86d@mail.gmail.com>
-	 <4B154C54.5090906@redhat.com>
-	 <829197380912010909m59cb1078q5bd2e00af0368aaf@mail.gmail.com>
-	 <4B155288.1060509@redhat.com>
-	 <20091201175400.GA19259@core.coreip.homeip.net>
-	 <4B1567D8.7080007@redhat.com>
-	 <20091201201158.GA20335@core.coreip.homeip.net>
-	 <4B15852D.4050505@redhat.com>
-	 <20091202093803.GA8656@core.coreip.homeip.net>
-	 <4B16614A.3000208@redhat.com>
-	 <20091202171059.GC17839@core.coreip.homeip.net>
-	 <4B16C10E.6040907@redhat.com>
-	 <1CA77278-9B8E-4169-8F10-78764A35F64E@wilsonet.com>
-	 <1259802169.3085.10.camel@palomino.walls.org> <4B178C4D.1020007@redhat.com>
-Content-Type: text/plain
-Date: Thu, 03 Dec 2009 07:02:49 -0500
-Message-Id: <1259841769.3100.18.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:41842 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752573AbZLRNZ3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Dec 2009 08:25:29 -0500
+Received: by ewy19 with SMTP id 19so1476193ewy.21
+        for <linux-media@vger.kernel.org>; Fri, 18 Dec 2009 05:25:25 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4B275CA2.406@tripleplay-services.com>
+References: <4B269F1A.30107@onid.orst.edu>
+	 <4B275CA2.406@tripleplay-services.com>
+Date: Fri, 18 Dec 2009 08:25:25 -0500
+Message-ID: <83bcf6340912180525h1bbaf229j9b2c81ffacb8fe76@mail.gmail.com>
+Subject: Re: scan/scan-s2 doesn't tune, but dvbtune does?
+From: Steven Toth <stoth@kernellabs.com>
+To: Lou Otway <louis.otway@tripleplay-services.com>
+Cc: Michael Akey <akeym@onid.orst.edu>,
+	Linux Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2009-12-03 at 08:00 -0200, Mauro Carvalho Chehab wrote:
-> Andy Walls wrote:
-> > On Wed, 2009-12-02 at 14:55 -0500, Jarod Wilson wrote:
-> >> On Dec 2, 2009, at 2:33 PM, Mauro Carvalho Chehab wrote:
+On Tue, Dec 15, 2009 at 4:53 AM, Lou Otway
+<louis.otway@tripleplay-services.com> wrote:
+>
+>
+> Michael Akey wrote:
+>>
+>> I can't get the scan/scan-s2 utilities to lock any transponders (DVB-S).
+>>  My test satellite is AMC1 103W, the Pentagon Channel tp. This is probably
+>> some simple user error on my part, but I can't figure it out.  I have a
+>> Corotor II with polarity changed via serial command to an external IRD.
+>>  C/Ku is switched by 22KHz tone, voltage is always 18V.  Ku is with tone
+>> off, C with tone on.  Speaking of which, is there a way to manually set the
+>> tone from the arguments on the scan utilities?
+>>
+>> Here's what I've tried and the results:
+>>
+>> $ ./scan-s2 -a 0 -v -o zap -l 10750 INIT
+>> API major 5, minor 0
+>> scanning INIT
+>> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+>> initial transponder DVB-S  12100000 H 20000000 AUTO AUTO AUTO
+>> initial transponder DVB-S2 12100000 H 20000000 AUTO AUTO AUTO
+>> ----------------------------------> Using DVB-S
+>> >>> tune to: 12100:h:0:20000
+>> DVB-S IF freq is 1350000
+>> >>> tuning status == 0x03
+>> >>> tuning status == 0x01
+>> >>> tuning status == 0x03
+>> >>> tuning status == 0x01
+>> >>> tuning status == 0x03
+>> >>> tuning status == 0x00
+>> >>> tuning status == 0x01
+>> >>> tuning status == 0x03
+>> >>> tuning status == 0x00
+>> >>> tuning status == 0x00
+>> WARNING: >>> tuning failed!!!
+>> >>> tune to: 12100:h:0:20000 (tuning failed)
+>> DVB-S IF freq is 1350000
+>> >>> tuning status == 0x03
+>> >>> tuning status == 0x01
+>> >>> tuning status == 0x00
+>> >>> tuning status == 0x00
+>> ...snip...
+>>
+>> Same thing happens if I use just 'scan' and not 'scan-s2.'
+>>
+>> If I use dvbtune, it works though..
+>>
+>> $ dvbtune -f 1350000 -p H -s 20000 -c 0 -tone 0 -m
+>> Using DVB card "Conexant CX24116/CX24118"
+>> tuning DVB-S to L-Band:0, Pol:H Srate=20000000, 22kHz=off
+>> polling....
+>> Getting frontend event
+>> FE_STATUS:
+>> polling....
+>> Getting frontend event
+>> FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI
+>> FE_HAS_SYNC
+>> Bit error rate: 0
+>> Signal strength: 51648
+>> SNR: 26215
+>> FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI
+>> FE_HAS_SYNC
+>> Signal=51648, Verror=0, SNR=26215dB, BlockErrors=0, (S|L|C|V|SY|)
+>> Signal=51776, Verror=0, SNR=26624dB, BlockErrors=0, (S|L|C|V|SY|)
+>>
+>> The tuning file 'INIT' contains only the following line:
+>> S 12100000 H 20000000 AUTO
+>>
+>> I'm using v4l-dvb drivers from the main repo as of about a week ago.  I am
+>> running kernel 2.6.32 on Debian testing.  Any help is appreciated ..and
+>> hopefully it's just a simple flub on my part!
+>>
+>> --Mike
+>
+> Try using a non-auto FEC and rolloff.
+>
+> Some devices won't accept auto for these parameters.
 
- 
-> > Both of those IR devices are/will be encapsulated in a v4l2_subdevice
-> > object internally.  I was going to write lirc_v4l glue between the
-> > v4l2_device/v4l2_subdev_ir_ops and lirc_dev.
-> > 
-> > As for the the I2C chips, I was going to go back and encapsulate those
-> > in the v4l2_subdevice object as well, so then my notional lirc_v4l could
-> > pick those up too.  The I2C subsystem only allows one binding to an I2C
-> > client address/name on a bus.  So without some new glue like a notional
-> > lirc_v4l, it *may* be hard to share between ir-kbd-i2c and lirc_i2c and
-> > lirc_zilog.
-> 
-> Maybe you're having a bad time because you may be trying to integrate lirc
-> at the wrong place.
+Michael,
 
-These were just ideas.  I haven't done *anything* yet. ;)
+The silicon in question doesn't do automatic FEC detection. Be sure to
+specify which FEC you need for the sat. If in doubt, walk through them
+all manually. Pilot auto detect is done in s/w was was added a long
+time ago.
 
+- Steve
 
-> All devices at V4L tree including ir-kbd-i2c use ir-common.ko 
-> (at /drivers/media/common tree) module to communicate to IR's. 
-> I'm preparing some patches to extend this also to dvb-usb devices 
-> (that uses a close enough infrastructure). 
-> 
-> Also, most of the decoding code are there, in a form of helper routines.
-> 
-> As the idea is to provide lirc interface to all devices that can work with
-> raw pulse/space, the proper place is to write a subroutine there that, once
-> called, will make those pulse/space raw codes available to lirc and will
-> call the needed decoders to export them also to evdev.
-> 
-> The code at ir-common module was originally built to be used by V4L, but I'm
-> porting the code there to be generic enough to be a library that can be used
-> by other drivers. So, lirc_zilog and other lirc devices that will need to open
-> evdev interfaces after running a decoder can use them.
-
-I think I see what you are saying (I wish could see look at a whiteboard
-somewhere...).  Wherever we come through internally to split to 2
-different userspace interfaces is fine, if you've got a big picture plan
-you think is feasible.
-
-That seems like a bit of perturbation to lirc_zilog and lirc_i2c.  My
-thought was that lirc_v4l using the standardized v4l2_subdev_ir_ops
-interface, and maybe some new calls associted with v4l2_device, could
-subsume/unify all the functionality of lirc_i2c, lirc_zilog, ...
-lirc_whatever.
-
-Maybe that's just a poorly thought out dream though...
-
-
-> Due to that, we shouldn't add v4l2_subdevice there. Nothing prevents to create
-> a v4l2-ir-subdev glue if you want to see the IR's as subdevices, but this should
-> be implemented as a separate module.
-
-The v4l_subdevice just abstracted the IR hardware into a nice (mental)
-box for me -- easier to keep hardware separate from software decoders
-and userspace interface logic.
-
-Also, since v4l2_subdevices may have per subdevice /dev nodes and
-the /dev/../mcN nodes providing a discovery mechanism due to the Meda
-Controller framework, wrapping things in v4l2_subdevice may be handy for
-development and debug.  Or ... as an additional operational interface to
-userspace. :D  *ducks and runs for cover*
-
-Regards,
-Andy
-
-> Cheers,
-> Mauro.
-
-
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
