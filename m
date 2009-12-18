@@ -1,33 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f192.google.com ([209.85.212.192]:32861 "HELO
-	mail-vw0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753961AbZLMTQo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Dec 2009 14:16:44 -0500
-Received: by vws30 with SMTP id 30so445048vws.33
-        for <linux-media@vger.kernel.org>; Sun, 13 Dec 2009 11:16:43 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1260730996.2469.8.camel@hercules.rochet.org>
-References: <267bb6670912120230m59eeeeffqc52cfb320ac05ec2@mail.gmail.com>
-	 <200912121359.16169.liplianin@me.by>
-	 <1260633864.2329.4.camel@hercules.rochet.org>
-	 <a3ef07920912122043u2aaec2c6vd3d5296cdaae4c22@mail.gmail.com>
-	 <1260729576.2469.5.camel@hercules.rochet.org>
-	 <a3ef07920912131059s79e5cefbw7b42d6b698996c5d@mail.gmail.com>
-	 <1260730996.2469.8.camel@hercules.rochet.org>
-Date: Sun, 13 Dec 2009 11:16:43 -0800
-Message-ID: <a3ef07920912131116n47b3b380ma5c8db6e3719b03e@mail.gmail.com>
-Subject: Re: [linux-dvb] Is there somobody dealing with DVB cards here ?!?
-From: VDR User <user.vdr@gmail.com>
-To: dvblinux <dvblinux@free.fr>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail.navvo.net ([74.208.67.6]:48081 "EHLO mail.navvo.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751466AbZLRRH5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Dec 2009 12:07:57 -0500
+From: santiago.nunez@ridgerun.com
+To: davinci-linux-open-source@linux.davincidsp.com
+Cc: linux-media@vger.kernel.org, nsnehaprabha@ti.com,
+	m-karicheri2@ti.com, diego.dompe@ridgerun.com,
+	todd.fischer@ridgerun.com, mgrosen@ti.com,
+	Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+Date: Fri, 18 Dec 2009 11:07:57 -0600
+Message-Id: <1261156077-25897-1-git-send-email-santiago.nunez@ridgerun.com>
+Subject: [PATCH 4/4 v13] Menu support for TVP7002 in DM365
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Dec 13, 2009 at 11:03 AM, dvblinux <dvblinux@free.fr> wrote:
-> I first have to learn what is and how to "create a patch" since I only
-> used my vi to modify the source of the driver and then recompiled it...
+From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
 
-You can use the "diff" command to do it and also see the link the
-other guy posted.  It's pretty simple actually.
+This patch provides menu configuration options for the TVP7002
+decoder driver in DM365. Includes only TVP7002.
+
+Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+---
+ drivers/media/video/Kconfig  |    9 +++++++++
+ drivers/media/video/Makefile |    1 +
+ 2 files changed, 10 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index e6186b3..25f5735 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -392,6 +392,15 @@ config VIDEO_TVP5150
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called tvp5150.
+ 
++config VIDEO_TVP7002
++	tristate "Texas Instruments TVP7002 video decoder"
++	depends on VIDEO_V4L2 && I2C
++	---help---
++	  Support for the Texas Instruments TVP7002 video decoder.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called tvp7002.
++
+ config VIDEO_VPX3220
+ 	tristate "vpx3220a, vpx3216b & vpx3214c video decoders"
+ 	depends on VIDEO_V4L2 && I2C
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index e541932..a4fff2a 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -56,6 +56,7 @@ obj-$(CONFIG_VIDEO_THS7303) += ths7303.o
+ obj-$(CONFIG_VIDEO_VINO) += indycam.o
+ obj-$(CONFIG_VIDEO_TVP5150) += tvp5150.o
+ obj-$(CONFIG_VIDEO_TVP514X) += tvp514x.o
++obj-$(CONFIG_VIDEO_TVP7002) += tvp7002.o
+ obj-$(CONFIG_VIDEO_MSP3400) += msp3400.o
+ obj-$(CONFIG_VIDEO_CS5345) += cs5345.o
+ obj-$(CONFIG_VIDEO_CS53L32A) += cs53l32a.o
+-- 
+1.6.0.4
+
