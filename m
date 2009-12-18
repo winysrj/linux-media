@@ -1,59 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:45714 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753987AbZLECLK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Dec 2009 21:11:10 -0500
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR  system?
-From: Andy Walls <awalls@radix.net>
-To: Jon Smirl <jonsmirl@gmail.com>
-Cc: Christoph Bartelmus <lirc@bartelmus.de>, dmitry.torokhov@gmail.com,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com, khc@pm.waw.pl,
-	kraxel@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com, superm1@ubuntu.com
-In-Reply-To: <1259977687.27969.18.camel@localhost>
-References: <20091204220708.GD25669@core.coreip.homeip.net>
-	 <BEJgSGGXqgB@lirc>
-	 <9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>
-	 <1259977687.27969.18.camel@localhost>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 04 Dec 2009 21:10:34 -0500
-Message-Id: <1259979034.27969.31.camel@localhost>
+Received: from www84.your-server.de ([213.133.104.84]:41995 "EHLO
+	www84.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753257AbZLRWVM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Dec 2009 17:21:12 -0500
+Subject: [patch] media video cx23888 driver: fix possible races using new
+ kfifo_API kfifo_reset()
+From: Stefani Seibold <stefani@seibold.net>
+To: linux-kernel@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Andy Walls <awalls@radix.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="ISO-8859-15"
+Date: Fri, 18 Dec 2009 23:21:10 +0100
+Message-ID: <1261174870.13019.24.camel@wall-e>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2009-12-04 at 20:48 -0500, Andy Walls wrote:
-> On Fri, 2009-12-04 at 19:28 -0500, Jon Smirl wrote:
-> > On Fri, Dec 4, 2009 at 6:01 PM, Christoph Bartelmus <lirc@bartelmus.de> wrote:
-> > > BTW, I just came across a XMP remote that seems to generate 3x64 bit scan
-> > > codes. Anyone here has docs on the XMP protocol?
-> > 
-> > Assuming a general purpose receiver (not one with fixed hardware
-> > decoding), is it important for Linux to receive IR signals from all
-> > possible remotes no matter how old or obscure?
+Fix the cx23888 driver to use the new kfifo API. Using kfifo_reset() may
+result in a possible race conditions. This patch fix it by using
+spinlock around the kfifo_reset() function.
 
-Google reveals that XMP is somewhat new, proprietary, and not limited to
-remotes:
+The patch-set is against mm tree from 11-Dec-2009
 
-http://www.uei.com/html.php?page_id=89
+Greetings,
+Stefani
 
+Signed-off-by: Stefani Seibold <stefani@seibold.net>
+---
+ cx23888-ir.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-UEI is apparently the company responsible for the "One for All" brand of
-remote controls:
-
-http://www.uei.com/html.php?page_id=62
-
-
-
-Here's some random tech details about one XMP remote:
-
-http://irtek.wikidot.com/remotecomcastxmp
-
-
-Regards,
-Andy
+--- mmotm.orig/drivers/media/video/cx23885/cx23888-ir.c	2009-12-18 22:57:13.588337402 +0100
++++ mmotm/drivers/media/video/cx23885/cx23888-ir.c	2009-12-18 23:15:14.651365720 +0100
+@@ -519,6 +519,7 @@ static int cx23888_ir_irq_handler(struct
+ {
+ 	struct cx23888_ir_state *state = to_state(sd);
+ 	struct cx23885_dev *dev = state->dev;
++	unsigned long flags;
+ 
+ 	u32 cntrl = cx23888_ir_read4(dev, CX23888_IR_CNTRL_REG);
+ 	u32 irqen = cx23888_ir_read4(dev, CX23888_IR_IRQEN_REG);
+@@ -629,8 +630,11 @@ static int cx23888_ir_irq_handler(struct
+ 		cx23888_ir_write4(dev, CX23888_IR_CNTRL_REG, cntrl);
+ 		*handled = true;
+ 	}
++
++	spin_lock_irqsave(&state->rx_kfifo_lock, flags);
+ 	if (kfifo_len(&state->rx_kfifo) >= CX23888_IR_RX_KFIFO_SIZE / 2)
+ 		events |= V4L2_SUBDEV_IR_RX_FIFO_SERVICE_REQ;
++	spin_unlock_irqrestore(&state->rx_kfifo_lock, flags);
+ 
+ 	if (events)
+ 		v4l2_subdev_notify(sd, V4L2_SUBDEV_IR_RX_NOTIFY, &events);
+@@ -783,7 +787,12 @@ static int cx23888_ir_rx_s_parameters(st
+ 	o->interrupt_enable = p->interrupt_enable;
+ 	o->enable = p->enable;
+ 	if (p->enable) {
++		unsigned long flags;
++
++		spin_lock_irqsave(&state->rx_kfifo_lock, flags);
+ 		kfifo_reset(&state->rx_kfifo);
++		/* reset tx_fifo too if there is one... */
++		spin_unlock_irqrestore(&state->rx_kfifo_lock, flags);
+ 		if (p->interrupt_enable)
+ 			irqenable_rx(dev, IRQEN_RSE | IRQEN_RTE | IRQEN_ROE);
+ 		control_rx_enable(dev, p->enable);
 
 
