@@ -1,183 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:40743 "EHLO comal.ext.ti.com"
+Received: from mail1.radix.net ([207.192.128.31]:39748 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751494AbZLKUsa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2009 15:48:30 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Kevin Hilman <khilman@deeprootsystems.com>
-CC: "davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Fri, 11 Dec 2009 14:48:36 -0600
-Subject: RE: [PATCH - v1 1/2] V4L - vpfe capture - make clocks configurable
-Message-ID: <A69FA2915331DC488A831521EAE36FE40155CEE244@dlee06.ent.ti.com>
-References: <1259687940-31435-1-git-send-email-m-karicheri2@ti.com>
-	<87hbs0xhlx.fsf@deeprootsystems.com>
-	<A69FA2915331DC488A831521EAE36FE40155C805C3@dlee06.ent.ti.com>
-	<A69FA2915331DC488A831521EAE36FE40155C805F7@dlee06.ent.ti.com>
-	<A69FA2915331DC488A831521EAE36FE40155C806EE@dlee06.ent.ti.com>
-	<87ws0ups22.fsf@deeprootsystems.com>
-	<A69FA2915331DC488A831521EAE36FE40155C80BFC@dlee06.ent.ti.com>
- <871vj1iclh.fsf@deeprootsystems.com>
-In-Reply-To: <871vj1iclh.fsf@deeprootsystems.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	id S932735AbZLRVkU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Dec 2009 16:40:20 -0500
+Subject: Re: [Fwd: [patch] media video cx23888 driver: ported to new kfifo
+ API]
+From: Andy Walls <awalls@radix.net>
+To: Stefani Seibold <stefani@seibold.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	akpm@linux-foundation.org, linux-kernel@vger.kernel.org
+In-Reply-To: <1261138265.8293.2.camel@wall-e>
+References: <4B2B5622.80604@infradead.org>
+	 <1261137648.3080.36.camel@palomino.walls.org>
+	 <1261138265.8293.2.camel@wall-e>
+Content-Type: text/plain
+Date: Fri, 18 Dec 2009 16:39:19 -0500
+Message-Id: <1261172359.3060.11.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Kevin,
+On Fri, 2009-12-18 at 13:11 +0100, Stefani Seibold wrote:
+> Am Freitag, den 18.12.2009, 07:00 -0500 schrieb Andy Walls:
+> > On Fri, 2009-12-18 at 08:14 -0200, Mauro Carvalho Chehab wrote:
 
-That is what I had seen. I will check it again on Monday
-and let you know.
+> > 
+> > Stefani and Mauro,
+> > 
+> > My comments/concerns are in line:
+> > 
+> > > -------- Mensagem original --------
+> > > Assunto: [patch] media video cx23888 driver: ported to new kfifo API
+> > > Data: Fri, 18 Dec 2009 09:12:34 +0100
+> > > De: Stefani Seibold <stefani@seibold.net>
+> > > Para: linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>,  Mauro Carvalho Chehab <mchehab@infradead.org>
+> > > 
+> > > This patch will fix the cx23888 driver to use the new kfifo API.
+> > > 
+> > > The patch-set is against current mm tree from 11-Dec-2009
+> > > 
+> > > Greetings,
+> > > Stefani
+> > > 
+> > > Signed-off-by: Stefani Seibold <stefani@seibold.net>
+> > > ---
+> > >  cx23888-ir.c |   35 ++++++++++-------------------------
+> > >  1 file changed, 10 insertions(+), 25 deletions(-)
+> > > 
+> > > --- mmotm.orig/drivers/media/video/cx23885/cx23888-ir.c	2009-12-18 08:42:53.936778002 +0100
+> > > +++ mmotm/drivers/media/video/cx23885/cx23888-ir.c	2009-12-18 09:03:04.808703259 +0100
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-phone: 301-407-9583
-email: m-karicheri2@ti.com
+> > > @@ -631,7 +629,7 @@ static int cx23888_ir_irq_handler(struct
+> > >  		cx23888_ir_write4(dev, CX23888_IR_CNTRL_REG, cntrl);
+> > >  		*handled = true;
+> > >  	}
+> > > -	if (kfifo_len(state->rx_kfifo) >= CX23888_IR_RX_KFIFO_SIZE / 2)
+> > > +	if (kfifo_len(&state->rx_kfifo) >= CX23888_IR_RX_KFIFO_SIZE / 2)
+> > >  		events |= V4L2_SUBDEV_IR_RX_FIFO_SERVICE_REQ;
+> > >  
+> > >  	if (events)
+> > 
+> > I am concerned about reading the kfifo_len() without taking the lock,
+> > since another thread on another CPU may be reading from the kfifo at the
+> > same time.
+> > 
+> > If the new kfifo implementation has an atomic_read() or something behind
+> > the kfifo_len() call, then OK.
+> > 
+> > 
+> > > @@ -657,7 +655,7 @@ static int cx23888_ir_rx_read(struct v4l
+> > >  		return 0;
+> > >  	}
+> > >  
+> > > -	n = kfifo_get(state->rx_kfifo, buf, n);
+> > > +	n = kfifo_out_locked(&state->rx_kfifo, buf, n, &state->rx_kfifo_lock);
+> > >  
+> > >  	n /= sizeof(u32);
+> > >  	*num = n * sizeof(u32);
+> > > @@ -785,7 +783,7 @@ static int cx23888_ir_rx_s_parameters(st
+> > >  	o->interrupt_enable = p->interrupt_enable;
+> > >  	o->enable = p->enable;
+> > >  	if (p->enable) {
+> > > -		kfifo_reset(state->rx_kfifo);
+> > > +		kfifo_reset(&state->rx_kfifo);
+> > >  		if (p->interrupt_enable)
+> > >  			irqenable_rx(dev, IRQEN_RSE | IRQEN_RTE | IRQEN_ROE);
+> > >  		control_rx_enable(dev, p->enable);
+> > 
+> > Same concern about kfifo_reset() not taking the lock, and another thread
+> > reading data from the kfifo at the same time.  In the cx23885 module,
+> > this would mostly likely happen only during module unload as things are
+> > being shut down.
+> > 
 
->-----Original Message-----
->From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->Sent: Friday, December 11, 2009 1:35 PM
->To: Karicheri, Muralidharan
->Cc: davinci-linux-open-source@linux.davincidsp.com; linux-
->media@vger.kernel.org
->Subject: Re: [PATCH - v1 1/2] V4L - vpfe capture - make clocks configurable
->
->"Karicheri, Muralidharan" <m-karicheri2@ti.com> writes:
->
->>>> Kevin,
->>>>
->>>> I think I have figured it out...
->>>>
->>>> First issue was that I was adding my entry at the end of dm644x_clks[]
->>>> array. I need to add it before the CLK(NULL, NULL, NULL)
->>>>
->>>> secondly, your suggestion didn't work as is. This is what I had to
->>>> do to get it working...
->>>>
->>>> static struct clk ccdc_master_clk = {
->>>> 	.name = "dm644x_ccdc",
->>>> 	.parent = &vpss_master_clk,
->>>> };
->>>>
->>>> static struct clk ccdc_slave_clk = {
->>>> 	.name = "dm644x_ccdc",
->>>> 	.parent = &vpss_slave_clk,
->>>> };
->>
->> It doesn't work with out doing this. The cat /proc/davinci_clocks hangs
->with
->> your suggestion implemented...
->
->Can you track down the hang.  It sounds like a bug in the walking of
->the clock tree for davinci_clocks.
->
->>>
->>>You should not need to add new clocks with new names.  I don't thinke
->>>the name field of the struct clk is used anywhere in the matching.
->>>I think it's only used in /proc/davinci_clocks
->>>
->>>> static struct davinci_clk dm365_clks = {
->>>> ....
->>>> ....
->>>> CLK("dm644x_ccdc", "master", &ccdc_master_clk),
->>>> CLK("dm644x_ccdc", "slave", &ccdc_slave_clk),
->>>
->>>Looks like the drivers name is 'dm644x_ccdc', not 'isif'.  I'm
->>>guessing just this should work without having to add new clock names.
->>>
->> No. I have mixed up the names. ISIF is for the new ISIF driver on DM365.
->> Below are for DM644x ccdc driver. With just these entries added, two
->> things observed....
->>
->> 1) Only one clock is shown disabled (usually many are shown disabled)
->during bootup
->> 2) cat /proc/davinci_clocks hangs.
->>
->> So this is the only way I got it working.
->
->Hmm, it worked just fine for me without any of these side effects.  I
->applied the simple patch below on top of current master branch.  It booted
->fine showing all the unused clocks being disabled, and I was able to
->see davinci_clocks just fine:
->
->
->diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-
->davinci/dm644x.c
->index e65e29e..e6f3570 100644
->--- a/arch/arm/mach-davinci/dm644x.c
->+++ b/arch/arm/mach-davinci/dm644x.c
->@@ -293,8 +293,8 @@ struct davinci_clk dm644x_clks[] = {
->        CLK(NULL, "dsp", &dsp_clk),
->        CLK(NULL, "arm", &arm_clk),
->        CLK(NULL, "vicp", &vicp_clk),
->-       CLK(NULL, "vpss_master", &vpss_master_clk),
->-       CLK(NULL, "vpss_slave", &vpss_slave_clk),
->+       CLK("dm644x_ccdc", "master", &vpss_master_clk),
->+       CLK("dm644x_ccdc", "slave", &vpss_slave_clk),
->        CLK(NULL, "arm", &arm_clk),
->        CLK(NULL, "uart0", &uart0_clk),
->        CLK(NULL, "uart1", &uart1_clk),
->
->
->[...]
->Clocks: disable unused uart1
->Clocks: disable unused uart2
->Clocks: disable unused emac
->Clocks: disable unused ide
->Clocks: disable unused asp0
->Clocks: disable unused mmcsd
->Clocks: disable unused spi
->Clocks: disable unused usb
->Clocks: disable unused vlynq
->Clocks: disable unused pwm0
->Clocks: disable unused pwm1
->Clocks: disable unused pwm2
->Clocks: disable unused timer1
->[...]
->
->root@DM644x:~# uname -r
->2.6.32-arm-davinci-default-06873-g1a7277b-dirty
->root@DM644x:~# cat /debug/davinci_clocks
->ref_clk           users= 8      27000000 Hz
->  pll1            users= 8 pll 594000000 Hz
->    pll1_sysclk1  users= 0 pll 594000000 Hz
->      dsp         users= 1 psc 594000000 Hz
->    pll1_sysclk2  users= 2 pll 297000000 Hz
->      arm         users= 2 psc 297000000 Hz
->    pll1_sysclk3  users= 0 pll 198000000 Hz
->      vpss_master users= 0 psc 198000000 Hz
->      vpss_slave  users= 0 psc 198000000 Hz
->    pll1_sysclk5  users= 3 pll  99000000 Hz
->      emac        users= 1 psc  99000000 Hz
->      ide         users= 0 psc  99000000 Hz
->      asp0        users= 0 psc  99000000 Hz
->      mmcsd       users= 0 psc  99000000 Hz
->      spi         users= 0 psc  99000000 Hz
->      gpio        users= 1 psc  99000000 Hz
->      usb         users= 0 psc  99000000 Hz
->      vlynq       users= 0 psc  99000000 Hz
->      aemif       users= 1 psc  99000000 Hz
->    pll1_aux_clk  users= 3 pll  27000000 Hz
->      uart0       users= 1 psc  27000000 Hz
->      uart1       users= 0 psc  27000000 Hz
->      uart2       users= 0 psc  27000000 Hz
->      i2c         users= 1 psc  27000000 Hz
->      pwm0        users= 0 psc  27000000 Hz
->      pwm1        users= 0 psc  27000000 Hz
->      pwm2        users= 0 psc  27000000 Hz
->      timer0      users= 1 psc  27000000 Hz
->      timer1      users= 0 psc  27000000 Hz
->      timer2      users= 1 psc  27000000 Hz
->    pll1_sysclkbp users= 0 pll  27000000 Hz
->  pll2            users= 0 pll 648000000 Hz
->    pll2_sysclk1  users= 0 pll  54000000 Hz
->    pll2_sysclk2  users= 0 pll 324000000 Hz
->    pll2_sysclkbp users= 0 pll  13500000 Hz
->root@DM644x:~#
+> Sorry, i ported it only to the new API. I did not touch the
+> functionality.
+
+Stefani,
+
+Huh?  The new kfifo implementation you wrote removed the locks from
+kfifo_len() and kfifo_reset().  By changing those two functions to not
+provide locking, you changed the functionality.
+
+
+>  Feel free to fix it and post it.
+
+Please point me to the mmotm tree and I will try to get to this
+tonight. 
+
+I have a blizzard coming tonight threatening to leave 16 to 20 inches of
+snow and I will likely lose power.  I have to purchase gas for my
+generator and go split some wood for the fire.  I might not get the
+change done before I lose power.
+
+If you can't wait for me to provide a patch, just add spin locks and
+unlocks around the calls to kfifo_len() and kfifo_reset() in addition to
+the changes in your current patch.
+
+
+Regards,
+Andy
+
+> Stefani
+
 
