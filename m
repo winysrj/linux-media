@@ -1,77 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:56808 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932785AbZLOViP (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.155]:30389 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752206AbZLRT70 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Dec 2009 16:38:15 -0500
+	Fri, 18 Dec 2009 14:59:26 -0500
+Received: by fg-out-1718.google.com with SMTP id 22so1317456fge.1
+        for <linux-media@vger.kernel.org>; Fri, 18 Dec 2009 11:59:24 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <9e4733910912151245ne442a5dlcfee92609e364f70@mail.gmail.com>
-References: <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
-	 <4B24DABA.9040007@redhat.com> <20091215115011.GB1385@ucw.cz>
-	 <4B279017.3080303@redhat.com> <20091215195859.GI24406@elf.ucw.cz>
-	 <9e4733910912151214n68161fc7tca0ffbf34c2c4e4@mail.gmail.com>
-	 <20091215201933.GK24406@elf.ucw.cz>
-	 <9e4733910912151229o371ee017tf3640d8f85728011@mail.gmail.com>
-	 <20091215203300.GL24406@elf.ucw.cz>
-	 <9e4733910912151245ne442a5dlcfee92609e364f70@mail.gmail.com>
-Date: Tue, 15 Dec 2009 16:38:14 -0500
-Message-ID: <9e4733910912151338n62b30af5i35f8d0963e6591c@mail.gmail.com>
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
-	system?
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
-	kraxel@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
+In-Reply-To: <1260523942.3087.21.camel@palomino.walls.org>
+References: <34373e030911241005r7f499297y1a84a93e0696f550@mail.gmail.com>
+	 <1259106230.3069.16.camel@palomino.walls.org>
+	 <34373e030912100856r2ba80741yca8f79c84ee730e3@mail.gmail.com>
+	 <1260523942.3087.21.camel@palomino.walls.org>
+Date: Fri, 18 Dec 2009 14:59:24 -0500
+Message-ID: <34373e030912181159k32d36a40yc989dfd777504aaa@mail.gmail.com>
+Subject: Re: [linux-dvb] Hauppauge PVR-150 Vertical sync issue?
+From: Robert Longfield <robert.longfield@gmail.com>
+To: Andy Walls <awalls@radix.net>
+Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 15, 2009 at 3:45 PM, Jon Smirl <jonsmirl@gmail.com> wrote:
-> On Tue, Dec 15, 2009 at 3:33 PM, Pavel Machek <pavel@ucw.cz> wrote:
->> Untrue. Like ethernets and wifis, bluetooth devices have unique
->> addresses. Communication is bidirectional.
+Ok so I ran a live CD on my windows box and there were no sync
+problems. I installed the latest Ubuntu CD and dual booted my windows
+machine and there was no sync problems but there was other issues,
+many tiny black lines on edges during fast movement when I did a $ cat
+/dev/video0 > foo.mpg.
+I'm going to reboot into windows and see if this problem persists in Windows.
 
-I read a little about how Bluetooth remotes work. Correct me if I get
-things wrong....
+So it looks like the problem is restricted to my mythbuntu box.
 
-They create pairings between the remote and the device. Each of these
-pairings is assigned a device type. Multiple devices in the same room
-are handled by the remote remembering the pairings and sending
-directed packets instead of broadcast. That lets you have two TVs in
-the same room.
+>What analog tuner assembly type does the tveeprom module show for your
+>card in dmesg?
 
-Bluetooth devices need to advertise what profiles they support. So on
-the Linux box you'd run a command to load the Bluetooth profile for
-TV. This command would create an evdev subdevice, load the Bluetooth
-keymap for TV, and tell the networking stack to advertise TV support.
-Next you initiate the pairing from the Bluetooth remote and pick the
-Linux box. This causes a pairing established exchange which tells the
-Linux box to make the pairing persistent.
+Here is the data from dmesg for tveeprom:
 
-I believe the Bluetooth remote profile is handled in user space by the
-BlueZ stack. BlueZ should be aware of the remote pairings. When it
-decodes a button press it would need to inject the scancode into the
-correct evdev subdevice. Evdev would translate it in the keymap and
-create the keyevent. This is the same mechanism LIRC is using.
+[   27.806567] tveeprom 0-0050: Hauppauge model 26032, rev C199, serial# 8011004
+[   27.806571] tveeprom 0-0050: tuner model is TCL 2002N 5H (idx 99, type 50)
+[   27.806574] tveeprom 0-0050: TV standards NTSC(M) (eeprom 0x08)
+[   27.806576] tveeprom 0-0050: audio processor is CX25841 (idx 35)
+[   27.806579] tveeprom 0-0050: decoder processor is CX25841 (idx 28)
+[   27.806581] tveeprom 0-0050: has no radio, has IR receiver, has IR
+transmitter
 
+>Also what video standard are you capturing: NTSC or something else?
 
-At a more general level we're missing a way for something like Myth to
-declare that it is a DVR device. Myth should load, say I'm a DVR, and
-then the remote control subsystem should automatically create a
-Bluetooth DVR profile, load an IR profile for Motorola DVR on a
-universal remote if the box has Bluetooth, IR or 802.15.4.
+I'm capturing NTSC.
 
-The whole concept of a remote control subsystem seems like it needs
-more design work done. We keep coming up with big areas that no one
-has thought about.
-
--- 
-Jon Smirl
-jonsmirl@gmail.com
+On Fri, Dec 11, 2009 at 4:32 AM, Andy Walls <awalls@radix.net> wrote:
+> On Thu, 2009-12-10 at 11:56 -0500, Robert Longfield wrote:
+>> Ok I've been able to do some troubleshooting with some interesting results.
+>> I removed the one splitter being used, connected to the main cable
+>> coming into the house, isolated the grounds with no change in sync
+>> issues.
+>> I pulled the pvr-150 card out of the linux machine and put it into my
+>> window box, hooked it up to the original setup splitter and no ground
+>> isolation and the video is crystal clear with no sync issues.
+>>
+>> I can only come up with a few possible problems, but I am sure there are more.
+>> Could this be a driver issue on my linux box?
+>
+> Given your results, yes it is most likely a linux driver issue.  The
+> suspects would be the cx25840 module, or the modules for the analog
+> tuner.
+>
+> What analog tuner assembly type does the tveeprom module show for your
+> card in dmesg?
+>
+> Also what video standard are you capturing: NTSC or something else?
+>
+>
+>> Could a bad or failing PCI slot cause this problem?
+>
+> No.  A *very* busy PCI bus may cause some I2C transactions that set up
+> the tuner or CX25843 to fail, but it is more likely simply a suboptimal
+> tuner or CX25843 configuration issue.
+>
+>
+>> However the sync
+>> problem is not on every channel.
+>>
+>> I'm going to try moving the linux box across the house to see if there
+>> is a source of EMI near by, but since the windows box doesn't have
+>> this issue I assume this is a problem with the linux box.
+>
+> I suppose you could try a linux liveCD in the Windows box and use
+>
+>        $ cat /dev/video0 > foo.mpg
+>
+> to capture video.  Then move foo.mpg to a USB flash disk and play back
+> foo.mpg where ever it is convenient.  If foo.mpg shows artifacts then
+> you can be somewhat sure of a linux driver issue.
+>
+>
+>> -Rob
+>>
+>> On Tue, Nov 24, 2009 at 6:43 PM, Andy Walls <awalls@radix.net> wrote:
+>> > On Tue, 2009-11-24 at 13:05 -0500, Robert Longfield wrote:
+>> >> I have a PVR-150 card running on mythbuntu 9 and it appears that my
+>> >> card is suffering a vertical (and possibly a horizontal) sync issue.
+>> >>
+>> >> The video jumps around, shifts from side to side, up and down and when
+>> >> it shifts the video wraps. I'm including a link to a screen shot
+>> >> showing the vertical sync problem
+>> >>
+>> >> http://imagebin.ca/view/6fS-14Yi.html
+>> >
+>> > It looks like you have strong singal reflections in your cable due to
+>> > impedance mismatches, a bad splitter, a bad cable or connector, etc.
+>> >
+>> > Please read:
+>> >
+>> > http://www.ivtvdriver.org/index.php/Howto:Improve_signal_quality
+>> >
+>> > and take steps to ensure you've got a good cabling plant in your home.
+>> >
+>> > Regards,
+>> > Andy
+>> >
+>> >> This is pretty tame to what happens sometimes. I haven't noticed this
+>> >> on all channels as we are mostly using this to record shows for my
+>> >> son.
+>> >>
+>> >> Here is my setup. Pentium 4 2 Ghz with a gig of ram. 40 gig OS drive,
+>> >> 150 gig drive for recording, 250 gig drive for backup and storage, a
+>> >> dvd-burner.
+>> >> The 150 gig drive is on a Promise Ultra133 TX2 card but exhibits no
+>> >> issues on reads or writes.
+>> >> I have cable connected to the internal tuner of my PVR-150 card and
+>> >> S-video from an Nvidia card (running Nvidea drivers) out to the TV.
+>> >>
+>> >> I don't know what else I can provide to help out but let me know and
+>> >> I'll get it.
+>> >>
+>> >> Thanks,
+>> >> -Rob
+>
+>
+>
