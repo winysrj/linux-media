@@ -1,154 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33729 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935569AbZLHALj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Dec 2009 19:11:39 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	khilman@deeprootsystems.com
-Cc: davinci-linux-open-source@linux.davincidsp.com, hvaibhav@ti.com,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH v1 4/4] DaVinci - vpfe capture - converting ccdc drivers to platform driver
-Date: Mon,  7 Dec 2009 19:11:40 -0500
-Message-Id: <1260231100-1226-4-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1260231100-1226-3-git-send-email-m-karicheri2@ti.com>
-References: <1260231100-1226-1-git-send-email-m-karicheri2@ti.com>
- <1260231100-1226-2-git-send-email-m-karicheri2@ti.com>
- <1260231100-1226-3-git-send-email-m-karicheri2@ti.com>
+Received: from ey-out-2122.google.com ([74.125.78.26]:36622 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755284AbZLRUR7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Dec 2009 15:17:59 -0500
+Received: by ey-out-2122.google.com with SMTP id d26so876543eyd.19
+        for <linux-media@vger.kernel.org>; Fri, 18 Dec 2009 12:17:58 -0800 (PST)
+Date: Fri, 18 Dec 2009 21:17:53 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Robert Longfield <robert.longfield@gmail.com>
+cc: Andy Walls <awalls@radix.net>, linux-dvb@linuxtv.org,
+	linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Hauppauge PVR-150 Vertical sync issue?
+In-Reply-To: <34373e030912181159k32d36a40yc989dfd777504aaa@mail.gmail.com>
+Message-ID: <alpine.DEB.2.01.0912182107371.31371@ybpnyubfg.ybpnyqbznva>
+References: <34373e030911241005r7f499297y1a84a93e0696f550@mail.gmail.com> <1259106230.3069.16.camel@palomino.walls.org> <34373e030912100856r2ba80741yca8f79c84ee730e3@mail.gmail.com> <1260523942.3087.21.camel@palomino.walls.org>
+ <34373e030912181159k32d36a40yc989dfd777504aaa@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+On Fri, 18 Dec 2009, Robert Longfield wrote:
 
-This combines the two patches sent earlier to change the clock configuration
-and converting ccdc drivers to platform drivers. This has updated comments
-against v0 of these patches.
+> Ok so I ran a live CD on my windows box and there were no sync
+> problems. I installed the latest Ubuntu CD and dual booted my windows
+> machine and there was no sync problems but there was other issues,
+> many tiny black lines on edges during fast movement when I did a $ cat
+> /dev/video0 > foo.mpg.
 
-This adds platform code for ccdc driver on DM355 and DM6446.
+This sounds like an interlacing issue -- I suspect you are using
+some player that delivers 25 full frames per second to your 
+display instead of somehow getting 50 partial fields from them
+or interpolating the fields into 50 frames per second.
 
-Reviewed-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
----
-Applies to linux-davinci tree
- arch/arm/mach-davinci/dm355.c  |   39 +++++++++++++++++++++++++++------------
- arch/arm/mach-davinci/dm644x.c |   18 +++++++++++++++++-
- 2 files changed, 44 insertions(+), 13 deletions(-)
+This is fairly normal when not dealing with progressive material 
+(720p HD video, or 1080i HD or even SD video taken from source 
+material such as film shot at 24 fps).  Most players have options 
+to enable one of any number of deinterlacers, some of which work 
+better than others for selected movement.  (There are many 
+different commandline options for `mplayer', one of which will 
+present the fields of a 576i video as 288-line images which helps 
+decipher fast-scrolling text, for example.)
 
-diff --git a/arch/arm/mach-davinci/dm355.c b/arch/arm/mach-davinci/dm355.c
-index dedf4d4..0a23820 100644
---- a/arch/arm/mach-davinci/dm355.c
-+++ b/arch/arm/mach-davinci/dm355.c
-@@ -665,6 +665,17 @@ static struct platform_device dm355_asp1_device = {
- 	.resource	= dm355_asp1_resources,
- };
- 
-+static void dm355_ccdc_setup_pinmux(void)
-+{
-+	davinci_cfg_reg(DM355_VIN_PCLK);
-+	davinci_cfg_reg(DM355_VIN_CAM_WEN);
-+	davinci_cfg_reg(DM355_VIN_CAM_VD);
-+	davinci_cfg_reg(DM355_VIN_CAM_HD);
-+	davinci_cfg_reg(DM355_VIN_YIN_EN);
-+	davinci_cfg_reg(DM355_VIN_CINL_EN);
-+	davinci_cfg_reg(DM355_VIN_CINH_EN);
-+}
-+
- static struct resource dm355_vpss_resources[] = {
- 	{
- 		/* VPSS BL Base address */
-@@ -701,6 +712,10 @@ static struct resource vpfe_resources[] = {
- 		.end            = IRQ_VDINT1,
- 		.flags          = IORESOURCE_IRQ,
- 	},
-+};
-+
-+static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
-+static struct resource dm355_ccdc_resource[] = {
- 	/* CCDC Base address */
- 	{
- 		.flags          = IORESOURCE_MEM,
-@@ -708,8 +723,18 @@ static struct resource vpfe_resources[] = {
- 		.end            = 0x01c70600 + 0x1ff,
- 	},
- };
-+static struct platform_device dm355_ccdc_dev = {
-+	.name           = "dm355_ccdc",
-+	.id             = -1,
-+	.num_resources  = ARRAY_SIZE(dm355_ccdc_resource),
-+	.resource       = dm355_ccdc_resource,
-+	.dev = {
-+		.dma_mask               = &vpfe_capture_dma_mask,
-+		.coherent_dma_mask      = DMA_BIT_MASK(32),
-+		.platform_data		= dm355_ccdc_setup_pinmux,
-+	},
-+};
- 
--static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
- static struct platform_device vpfe_capture_dev = {
- 	.name		= CAPTURE_DRV_NAME,
- 	.id		= -1,
-@@ -860,17 +885,7 @@ static int __init dm355_init_devices(void)
- 	davinci_cfg_reg(DM355_INT_EDMA_CC);
- 	platform_device_register(&dm355_edma_device);
- 	platform_device_register(&dm355_vpss_device);
--	/*
--	 * setup Mux configuration for vpfe input and register
--	 * vpfe capture platform device
--	 */
--	davinci_cfg_reg(DM355_VIN_PCLK);
--	davinci_cfg_reg(DM355_VIN_CAM_WEN);
--	davinci_cfg_reg(DM355_VIN_CAM_VD);
--	davinci_cfg_reg(DM355_VIN_CAM_HD);
--	davinci_cfg_reg(DM355_VIN_YIN_EN);
--	davinci_cfg_reg(DM355_VIN_CINL_EN);
--	davinci_cfg_reg(DM355_VIN_CINH_EN);
-+	platform_device_register(&dm355_ccdc_dev);
- 	platform_device_register(&vpfe_capture_dev);
- 
- 	return 0;
-diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
-index 2cd0081..982be1f 100644
---- a/arch/arm/mach-davinci/dm644x.c
-+++ b/arch/arm/mach-davinci/dm644x.c
-@@ -612,6 +612,11 @@ static struct resource vpfe_resources[] = {
- 		.end            = IRQ_VDINT1,
- 		.flags          = IORESOURCE_IRQ,
- 	},
-+};
-+
-+static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
-+static struct resource dm644x_ccdc_resource[] = {
-+	/* CCDC Base address */
- 	{
- 		.start          = 0x01c70400,
- 		.end            = 0x01c70400 + 0xff,
-@@ -619,7 +624,17 @@ static struct resource vpfe_resources[] = {
- 	},
- };
- 
--static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
-+static struct platform_device dm644x_ccdc_dev = {
-+	.name           = "dm644x_ccdc",
-+	.id             = -1,
-+	.num_resources  = ARRAY_SIZE(dm644x_ccdc_resource),
-+	.resource       = dm644x_ccdc_resource,
-+	.dev = {
-+		.dma_mask               = &vpfe_capture_dma_mask,
-+		.coherent_dma_mask      = DMA_BIT_MASK(32),
-+	},
-+};
-+
- static struct platform_device vpfe_capture_dev = {
- 	.name		= CAPTURE_DRV_NAME,
- 	.id		= -1,
-@@ -772,6 +787,7 @@ static int __init dm644x_init_devices(void)
- 	platform_device_register(&dm644x_edma_device);
- 	platform_device_register(&dm644x_emac_device);
- 	platform_device_register(&dm644x_vpss_device);
-+	platform_device_register(&dm644x_ccdc_dev);
- 	platform_device_register(&vpfe_capture_dev);
- 
- 	return 0;
--- 
-1.6.0.4
+If you are reproducing your video at your display's native 
+resolution without zooming it to fullscreen, you can see each
+of the jagged lines matching one pixel vertical resolution.
 
+
+barrry bouwsma
