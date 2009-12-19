@@ -1,48 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:32207 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753902AbZLAKUa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Dec 2009 05:20:30 -0500
-Message-ID: <4B14EDE3.5050201@redhat.com>
-Date: Tue, 01 Dec 2009 11:20:19 +0100
-From: Gerd Hoffmann <kraxel@redhat.com>
-MIME-Version: 1.0
-To: Christoph Bartelmus <lirc@bartelmus.de>
-CC: mchehab@redhat.com, awalls@radix.net, dmitry.torokhov@gmail.com,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
-	jonsmirl@gmail.com, khc@pm.waw.pl, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR  system?
-References: <BDodf9W1qgB@lirc>
-In-Reply-To: <BDodf9W1qgB@lirc>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3554 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752992AbZLSTPE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 Dec 2009 14:15:04 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id nBJJF1hL030075
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 19 Dec 2009 20:15:02 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 19 Dec 2009 20:15:01 +0100 (CET)
+Message-Id: <200912191915.nBJJF1hL030075@smtp-vbr11.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-   Hi,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
->> The point is that for simple usage, like an user plugging his new USB stick
->> he just bought, he should be able to use the shipped IR without needing to
->> configure anything or manually calling any daemon. This currently works
->> with the existing drivers and it is a feature that needs to be kept.
->
-> Admittedly, LIRC is way behind when it comes to plug'n'play.
+Results of the daily build of v4l-dvb:
 
-Should not be that hard to fixup.
+date:        Sat Dec 19 19:00:02 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13836:9defbd461e5f
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-When moving the keytable loading from kernel to userspace the kernel 
-drivers have to inform userspace anyway what kind of hardware the IR 
-device is, so udev can figure what keytable it should load.  A sysfs 
-attribute is the way to go here I think.
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-armv5: OK
+linux-2.6.32-armv5-davinci: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-armv5-ixp: OK
+linux-2.6.32-armv5-ixp: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: OK
+linux-2.6.32-armv5-omap2: OK
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: ERRORS
+linux-2.6.28-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30-i686: ERRORS
+linux-2.6.31-i686: ERRORS
+linux-2.6.32-i686: ERRORS
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.32-mips: OK
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-powerpc64: OK
+linux-2.6.32-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: OK
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-x86_64: WARNINGS
+spec: OK
+sparse (linux-2.6.32): ERRORS
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-lirc drivers can do the same, and lircd can startup with a reasonable 
-(default) configuration.
+Detailed results are available here:
 
-Of course evdev and lirc subsytems/drivers should agree on which 
-attributes should be defined and how they are filled.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-cheers,
-   Gerd
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
