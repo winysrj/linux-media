@@ -1,109 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4896 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751725AbZL2T7w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Dec 2009 14:59:52 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id nBTJxkB3066435
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 29 Dec 2009 20:59:51 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 29 Dec 2009 20:59:46 +0100 (CET)
-Message-Id: <200912291959.nBTJxkB3066435@smtp-vbr9.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from smtp5-g21.free.fr ([212.27.42.5]:44908 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751768AbZLTIVm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Dec 2009 03:21:42 -0500
+Received: from smtp5-g21.free.fr (localhost [127.0.0.1])
+	by smtp5-g21.free.fr (Postfix) with ESMTP id D1B92D48049
+	for <linux-media@vger.kernel.org>; Sun, 20 Dec 2009 09:21:37 +0100 (CET)
+Received: from [192.168.5.201] (lim91-1-88-178-105-125.fbx.proxad.net [88.178.105.125])
+	by smtp5-g21.free.fr (Postfix) with ESMTP id EC36AD480D9
+	for <linux-media@vger.kernel.org>; Sun, 20 Dec 2009 09:21:34 +0100 (CET)
+Message-ID: <4B2DDE8E.4090708@free.fr>
+Date: Sun, 20 Dec 2009 09:21:34 +0100
+From: Yves <ydebx6@free.fr>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: OK
+Subject: Nova-T 500 Dual DVB-T
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of v4l-dvb:
+I have a Nova-T 500 Dual DVB-T card that used to work very well under 
+Mandriva 2008.1 (kernel 2.6.24.7).
 
-date:        Tue Dec 29 19:00:09 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13876:0b9c85378d2f
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+I moved to Mandriva 2009.1, then 2010.0 (kernel 2.6.31.6) and it doesn't 
+work well any more. Scan can't find channels. I tried hading "options 
+dvb-usb-dib0700 force_lna_activation=1" in /etc/modprobe.conf. It 
+improve just a bit. Scan find only a few channels. If I revert to 
+Mandriva 2008.1 (in another partition), all things are good (without 
+adding anything in modprobe.conf).
 
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-armv5: OK
-linux-2.6.33-rc2-armv5: ERRORS
-linux-2.6.32-armv5-davinci: OK
-linux-2.6.33-rc2-armv5-davinci: ERRORS
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-armv5-ixp: OK
-linux-2.6.32-armv5-ixp: OK
-linux-2.6.33-rc2-armv5-ixp: ERRORS
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: OK
-linux-2.6.32-armv5-omap2: OK
-linux-2.6.33-rc2-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: OK
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-i686: WARNINGS
-linux-2.6.33-rc2-i686: ERRORS
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-m32r: OK
-linux-2.6.33-rc2-m32r: ERRORS
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: OK
-linux-2.6.32-mips: OK
-linux-2.6.33-rc2-mips: ERRORS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-powerpc64: OK
-linux-2.6.32-powerpc64: WARNINGS
-linux-2.6.33-rc2-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: OK
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-x86_64: WARNINGS
-linux-2.6.33-rc2-x86_64: ERRORS
-spec: OK
-sparse (linux-2.6.32): ERRORS
-sparse (linux-2.6.33-rc2): ERRORS
-linux-2.6.16.61-i686: OK
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: OK
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: OK
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+Is there a new version of the driver (dvb_usb_dib0700) that correct this 
+behavior.
+If not, how to install the driver from kernel 2.6.24.7 in kernel 2.6.31.6 ?
 
-Detailed results are available here:
+regards
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+Yves
 
-Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
