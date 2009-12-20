@@ -1,39 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f209.google.com ([209.85.219.209]:36985 "EHLO
-	mail-ew0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753632AbZLIRQB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Dec 2009 12:16:01 -0500
-Received: by ewy1 with SMTP id 1so4525092ewy.28
-        for <linux-media@vger.kernel.org>; Wed, 09 Dec 2009 09:16:06 -0800 (PST)
-Message-ID: <4B1FDB55.6040707@gmail.com>
-Date: Wed, 09 Dec 2009 18:16:05 +0100
-From: Hector Oses <oseszgz@gmail.com>
+Received: from mail-fx0-f221.google.com ([209.85.220.221]:45238 "EHLO
+	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752253AbZLTScH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Dec 2009 13:32:07 -0500
+Received: by fxm21 with SMTP id 21so4152074fxm.21
+        for <linux-media@vger.kernel.org>; Sun, 20 Dec 2009 10:32:05 -0800 (PST)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Make libv4l
+In-Reply-To: <74fd948d0912200907j21fcc7b1qd2bfd2da00d4f72@mail.gmail.com>
+References: <74fd948d0912200907j21fcc7b1qd2bfd2da00d4f72@mail.gmail.com>
+Date: Sun, 20 Dec 2009 13:32:05 -0500
+Message-ID: <829197380912201032re3590ael3c4f70ce2afa6349@mail.gmail.com>
+Subject: Re: Pinnacle PCTV Hybrid (2) dvb woes
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Pedro Ribeiro <pedrib@gmail.com>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When i try to:
-make PREFIX=/usr/hector
-or make PREFIX=/usr
+On Sun, Dec 20, 2009 at 12:07 PM, Pedro Ribeiro <pedrib@gmail.com> wrote:
+> Hello all,
+>
+> I'm having trouble setting up DVB for my Pinnacle PCTV Hybrid Stick
+> (2), AKA 330e.
 
-# make install PREFIX=/usr/hector
+You can check the linux-media archives for more info, but I can tell
+you that the 330e is not currently supported for DVB mode (analog
+only).
 
-make -C libv4lconvert V4L2_LIB_VERSION=0.6.3 install
-make[1]: se ingresa al directorio `/home/hector/Comando para webcam con
-libv4l/libv4l-0.6.3/libv4lconvert'
-cc -Wp,-MMD,"libv4lconvert.d",-MQ,"libv4lconvert.o",-MP -c -I../include
--I../../../include -fvisibility=hidden -fPIC
--DLIBDIR=\"/usr/hector/lib\" -DLIBSUBDIR=\"libv4l\" -g -O1 -Wall
--Wno-unused -Wpointer-arith -Wstrict-prototypes -Wmissing-prototypes -o
-libv4lconvert.o libv4lconvert.c
-/bin/sh: cc: no se encontró la orden
-make[1]: *** [libv4lconvert.o] Error 127
-make[1]: se sale del directorio `/home/hector/Comando para webcam con
-libv4l/libv4l-0.6.3/libv4lconvert'
-make: *** [install] Error 2
+Devin
 
-And i cant compile the program. I need it cose my webcam is inverted. Thanks
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
