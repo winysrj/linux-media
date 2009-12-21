@@ -1,46 +1,226 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225]:48621 "EHLO
-	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751831AbZL0NP6 (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:35255 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750882AbZLUG2o convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Dec 2009 08:15:58 -0500
-Received: by fxm25 with SMTP id 25so4070064fxm.21
-        for <linux-media@vger.kernel.org>; Sun, 27 Dec 2009 05:15:56 -0800 (PST)
-Date: Sun, 27 Dec 2009 15:15:29 +0200
-From: Dan Carpenter <error27@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Matthias Schwarzott <zzam@gentoo.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: weird array index in zl10036.c
-Message-ID: <20091227131529.GJ6075@bicker>
+	Mon, 21 Dec 2009 01:28:44 -0500
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
+Date: Mon, 21 Dec 2009 11:58:39 +0530
+Subject: RE: [PATCH] Davinci VPFE Capture: Add Suspend/Resume Support
+Message-ID: <19F8576C6E063C45BE387C64729E73940449F43E2A@dbde02.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1258544075-28771-1-git-send-email-hvaibhav@ti.com>
+ <A69FA2915331DC488A831521EAE36FE40155A51761@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40155A51761@dlee06.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/dvb/frontends/zl10036.c
-   397          /* could also be one block from reg 2 to 13 and additional 10/11 */
-   398          u8 zl10036_init_tab[][2] = {
-   399                  { 0x04, 0x00 },         /*   2/3: div=0x400 - arbitrary value */
-   400                  { 0x8b, _RDIV_REG },    /*   4/5: rfg=0 ba=1 bg=1 len=? */
-   401                                          /*        p0=0 c=0 r=_RDIV_REG */
-   402                  { 0xc0, 0x20 },         /*   6/7: rsd=0 bf=0x10 */
-   403                  { 0xd3, 0x40 },         /*   8/9: from datasheet */
-   404                  { 0xe3, 0x5b },         /* 10/11: lock window level */
-   405                  { 0xf0, 0x28 },         /* 12/13: br=0xa clr=0 tl=0*/
-   406                  { 0xe3, 0xf9 },         /* 10/11: unlock window level */
-   407          };
-   408
-   409          /* invalid values to trigger writing */
-   410          state->br = 0xff;
-   411          state->bf = 0xff;
-   412
-   413          if (!state->config->rf_loop_enable)
-   414                  zl10036_init_tab[1][2] |= 0x01;
- 
-This seems like an off by one error.  I think it maybe should say
-zl10036_init_tab[1][1] |= 0x01;?
+> -----Original Message-----
+> From: Karicheri, Muralidharan
+> Sent: Friday, November 20, 2009 3:31 AM
+> To: Hiremath, Vaibhav; linux-media@vger.kernel.org
+> Cc: hverkuil@xs4all.nl
+> Subject: RE: [PATCH] Davinci VPFE Capture: Add Suspend/Resume
+> Support
+> 
+> Vaibhav,
+> 
+> I have some comments. I have tested this patch for normal
+> use case of tvp5146 capture on DM355. It looks ok. We
+> don't have support for power management on DM355. So I couldn't
+> test the suspend & resume operations.
+> 
+[Hiremath, Vaibhav] Murali,
 
-regards,
-dan carpenter
+If you don't any further comments/analysis, this patch should go in. I will resubmit the patch against the tip.
+
+Thanks,
+Vaibhav
+
+> >
+> > struct ccdc_hw_device {
+> >diff --git a/drivers/media/video/davinci/dm644x_ccdc.c
+> >b/drivers/media/video/davinci/dm644x_ccdc.c
+> >index 5dff8d9..fdab823 100644
+> >--- a/drivers/media/video/davinci/dm644x_ccdc.c
+> >+++ b/drivers/media/video/davinci/dm644x_ccdc.c
+> >@@ -88,6 +88,10 @@ static void *__iomem ccdc_base_addr;
+> > static int ccdc_addr_size;
+> > static enum vpfe_hw_if_type ccdc_if_type;
+> >
+> >+#define CCDC_SZ_REGS			SZ_1K
+> >+
+> >+static u32 ccdc_ctx[CCDC_SZ_REGS / sizeof(u32)];
+> 
+> The last register is at 0x94 on DM6446. So do we need 256
+> entries when we have only 37 registers?
+> 
+> >+
+> > /* register access routines */
+> > static inline u32 regr(u32 offset)
+> > {
+> >@@ -834,6 +838,87 @@ static int ccdc_set_hw_if_params(struct
+> >vpfe_hw_if_param *params)
+> > 	return 0;
+> > }
+> >
+> >+static void ccdc_save_context(void)
+> >+{
+> >+	ccdc_ctx[CCDC_PCR] = regr(CCDC_PCR);
+> 
+> 
+> For this and below, You are using every 4th location in the array
+> for saving register values which is not necessary if you use
+> something like.
+> ccdc_ctx[CCDC_PCR >> 2] = regr(CCDC_PCR);
+> ccdc_ctx[CCDC_SYN_MODE >> 2] = regr(CCDC_SYN_MODE);
+> Any reason why you do this way?
+> 
+> >+	ccdc_ctx[CCDC_SYN_MODE] = regr(CCDC_SYN_MODE);
+> >+	ccdc_ctx[CCDC_HD_VD_WID] = regr(CCDC_HD_VD_WID);
+> >+	ccdc_ctx[CCDC_PIX_LINES] = regr(CCDC_PIX_LINES);
+> >+	ccdc_ctx[CCDC_HORZ_INFO] = regr(CCDC_HORZ_INFO);
+> >+	ccdc_ctx[CCDC_VERT_START] = regr(CCDC_VERT_START);
+> >+	ccdc_ctx[CCDC_VERT_LINES] = regr(CCDC_VERT_LINES);
+> >+	ccdc_ctx[CCDC_CULLING] = regr(CCDC_CULLING);
+> >+	ccdc_ctx[CCDC_HSIZE_OFF] = regr(CCDC_HSIZE_OFF);
+> >+	ccdc_ctx[CCDC_SDOFST] = regr(CCDC_SDOFST);
+> >+	ccdc_ctx[CCDC_SDR_ADDR] = regr(CCDC_SDR_ADDR);
+> >+	ccdc_ctx[CCDC_CLAMP] = regr(CCDC_CLAMP);
+> >+	ccdc_ctx[CCDC_DCSUB] = regr(CCDC_DCSUB);
+> >+	ccdc_ctx[CCDC_COLPTN] = regr(CCDC_COLPTN);
+> >+	ccdc_ctx[CCDC_BLKCMP] = regr(CCDC_BLKCMP);
+> >+	ccdc_ctx[CCDC_FPC] = regr(CCDC_FPC);
+> >+	ccdc_ctx[CCDC_FPC_ADDR] = regr(CCDC_FPC_ADDR);
+> >+	ccdc_ctx[CCDC_VDINT] = regr(CCDC_VDINT);
+> >+	ccdc_ctx[CCDC_ALAW] = regr(CCDC_ALAW);
+> >+	ccdc_ctx[CCDC_REC656IF] = regr(CCDC_REC656IF);
+> >+	ccdc_ctx[CCDC_CCDCFG] = regr(CCDC_CCDCFG);
+> >+	ccdc_ctx[CCDC_FMTCFG] = regr(CCDC_FMTCFG);
+> >+	ccdc_ctx[CCDC_FMT_HORZ] = regr(CCDC_FMT_HORZ);
+> >+	ccdc_ctx[CCDC_FMT_VERT] = regr(CCDC_FMT_VERT);
+> >+	ccdc_ctx[CCDC_FMT_ADDR0] = regr(CCDC_FMT_ADDR0);
+> >+	ccdc_ctx[CCDC_FMT_ADDR1] = regr(CCDC_FMT_ADDR1);
+> >+	ccdc_ctx[CCDC_FMT_ADDR2] = regr(CCDC_FMT_ADDR2);
+> >+	ccdc_ctx[CCDC_FMT_ADDR3] = regr(CCDC_FMT_ADDR3);
+> >+	ccdc_ctx[CCDC_FMT_ADDR4] = regr(CCDC_FMT_ADDR4);
+> >+	ccdc_ctx[CCDC_FMT_ADDR5] = regr(CCDC_FMT_ADDR5);
+> >+	ccdc_ctx[CCDC_FMT_ADDR6] = regr(CCDC_FMT_ADDR6);
+> >+	ccdc_ctx[CCDC_FMT_ADDR7] = regr(CCDC_FMT_ADDR7);
+> >+	ccdc_ctx[CCDC_PRGEVEN_0] = regr(CCDC_PRGEVEN_0);
+> >+	ccdc_ctx[CCDC_PRGEVEN_1] = regr(CCDC_PRGEVEN_1);
+> >+	ccdc_ctx[CCDC_PRGODD_0] = regr(CCDC_PRGODD_0);
+> >+	ccdc_ctx[CCDC_PRGODD_1] = regr(CCDC_PRGODD_1);
+> >+	ccdc_ctx[CCDC_VP_OUT] = regr(CCDC_VP_OUT);
+> >+}
+> >+
+> >+static void ccdc_restore_context(void)
+> >+{
+> >+	regw(ccdc_ctx[CCDC_SYN_MODE], CCDC_SYN_MODE);
+> >+	regw(ccdc_ctx[CCDC_HD_VD_WID], CCDC_HD_VD_WID);
+> >+	regw(ccdc_ctx[CCDC_PIX_LINES], CCDC_PIX_LINES);
+> >+	regw(ccdc_ctx[CCDC_HORZ_INFO], CCDC_HORZ_INFO);
+> >+	regw(ccdc_ctx[CCDC_VERT_START], CCDC_VERT_START);
+> >+	regw(ccdc_ctx[CCDC_VERT_LINES], CCDC_VERT_LINES);
+> >+	regw(ccdc_ctx[CCDC_CULLING], CCDC_CULLING);
+> >+	regw(ccdc_ctx[CCDC_HSIZE_OFF], CCDC_HSIZE_OFF);
+> >+	regw(ccdc_ctx[CCDC_SDOFST], CCDC_SDOFST);
+> >+	regw(ccdc_ctx[CCDC_SDR_ADDR], CCDC_SDR_ADDR);
+> >+	regw(ccdc_ctx[CCDC_CLAMP], CCDC_CLAMP);
+> >+	regw(ccdc_ctx[CCDC_DCSUB], CCDC_DCSUB);
+> >+	regw(ccdc_ctx[CCDC_COLPTN], CCDC_COLPTN);
+> >+	regw(ccdc_ctx[CCDC_BLKCMP], CCDC_BLKCMP);
+> >+	regw(ccdc_ctx[CCDC_FPC], CCDC_FPC);
+> >+	regw(ccdc_ctx[CCDC_FPC_ADDR], CCDC_FPC_ADDR);
+> >+	regw(ccdc_ctx[CCDC_VDINT], CCDC_VDINT);
+> >+	regw(ccdc_ctx[CCDC_ALAW], CCDC_ALAW);
+> >+	regw(ccdc_ctx[CCDC_REC656IF], CCDC_REC656IF);
+> >+	regw(ccdc_ctx[CCDC_CCDCFG], CCDC_CCDCFG);
+> >+	regw(ccdc_ctx[CCDC_FMTCFG], CCDC_FMTCFG);
+> >+	regw(ccdc_ctx[CCDC_FMT_HORZ], CCDC_FMT_HORZ);
+> >+	regw(ccdc_ctx[CCDC_FMT_VERT], CCDC_FMT_VERT);
+> >+	regw(ccdc_ctx[CCDC_FMT_ADDR0], CCDC_FMT_ADDR0);
+> >+	regw(ccdc_ctx[CCDC_FMT_ADDR1], CCDC_FMT_ADDR1);
+> >+	regw(ccdc_ctx[CCDC_FMT_ADDR2], CCDC_FMT_ADDR2);
+> >+	regw(ccdc_ctx[CCDC_FMT_ADDR3], CCDC_FMT_ADDR3);
+> >+	regw(ccdc_ctx[CCDC_FMT_ADDR4], CCDC_FMT_ADDR4);
+> >+	regw(ccdc_ctx[CCDC_FMT_ADDR5], CCDC_FMT_ADDR5);
+> >+	regw(ccdc_ctx[CCDC_FMT_ADDR6], CCDC_FMT_ADDR6);
+> >+	regw(ccdc_ctx[CCDC_FMT_ADDR7], CCDC_FMT_ADDR7);
+> >+	regw(ccdc_ctx[CCDC_PRGEVEN_0], CCDC_PRGEVEN_0);
+> >+	regw(ccdc_ctx[CCDC_PRGEVEN_1], CCDC_PRGEVEN_1);
+> >+	regw(ccdc_ctx[CCDC_PRGODD_0], CCDC_PRGODD_0);
+> >+	regw(ccdc_ctx[CCDC_PRGODD_1], CCDC_PRGODD_1);
+> >+	regw(ccdc_ctx[CCDC_VP_OUT], CCDC_VP_OUT);
+> >+	regw(ccdc_ctx[CCDC_PCR], CCDC_PCR);
+> Ditto
+> >+}
+> > static struct ccdc_hw_device ccdc_hw_dev = {
+> > 	.name = "DM6446 CCDC",
+> > 	.owner = THIS_MODULE,
+> >@@ -858,6 +943,8 @@ static struct ccdc_hw_device ccdc_hw_dev = {
+> > 		.get_line_length = ccdc_get_line_length,
+> > 		.setfbaddr = ccdc_setfbaddr,
+> > 		.getfid = ccdc_getfid,
+> >+		.save_context = ccdc_save_context,
+> >+		.restore_context = ccdc_restore_context,
+> > 	},
+> > };
+> >
+> >diff --git a/drivers/media/video/davinci/vpfe_capture.c
+> >b/drivers/media/video/davinci/vpfe_capture.c
+> >index 9c859a7..9b6b254 100644
+> >--- a/drivers/media/video/davinci/vpfe_capture.c
+> >+++ b/drivers/media/video/davinci/vpfe_capture.c
+> >@@ -2394,18 +2394,31 @@ static int vpfe_remove(struct
+> platform_device
+> >*pdev)
+> > 	return 0;
+> > }
+> >
+> >-static int
+> >-vpfe_suspend(struct device *dev)
+> >+static int vpfe_suspend(struct device *dev)
+> > {
+> >-	/* add suspend code here later */
+> >-	return -1;
+> >+	struct vpfe_device *vpfe_dev = dev_get_drvdata(dev);;
+> >+
+> >+	if (ccdc_dev->hw_ops.save_context)
+> >+		ccdc_dev->hw_ops.save_context();
+> >+	ccdc_dev->hw_ops.enable(0);
+> >+
+> >+	if (vpfe_dev)
+> >+		vpfe_disable_clock(vpfe_dev);
+> >+
+> >+	return 0;
+> > }
+> >
+> >-static int
+> >-vpfe_resume(struct device *dev)
+> >+static int vpfe_resume(struct device *dev)
+> > {
+> >-	/* add resume code here later */
+> >-	return -1;
+> >+	struct vpfe_device *vpfe_dev = dev_get_drvdata(dev);;
+> >+
+> >+	if (vpfe_dev)
+> >+		vpfe_enable_clock(vpfe_dev);
+> >+
+> >+	if (ccdc_dev->hw_ops.restore_context)
+> >+		ccdc_dev->hw_ops.restore_context();
+> >+
+> >+	return 0;
+> > }
+> >
+> > static struct dev_pm_ops vpfe_dev_pm_ops = {
+> >--
+> >1.6.2.4
+
