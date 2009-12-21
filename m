@@ -1,47 +1,265 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f189.google.com ([209.85.216.189]:42072 "EHLO
-	mail-px0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936703AbZLHRZl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Dec 2009 12:25:41 -0500
-Date: Tue, 8 Dec 2009 09:25:43 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Krzysztof Halasa <khc@pm.waw.pl>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jon Smirl <jonsmirl@gmail.com>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
-	kraxel@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
-	IR  system?
-Message-ID: <20091208172543.GA14271@core.coreip.homeip.net>
-References: <1260070593.3236.6.camel@pc07.localdom.local> <20091206065512.GA14651@core.coreip.homeip.net> <4B1B99A5.2080903@redhat.com> <m3638k6lju.fsf@intrepid.localdomain> <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com> <m3skbn6dv1.fsf@intrepid.localdomain> <9e4733910912061323x22c618ccyf6edcee5b021cbe3@mail.gmail.com> <4B1D934E.7030103@redhat.com> <20091208042340.GC11147@core.coreip.homeip.net> <m38wddva9w.fsf@intrepid.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <m38wddva9w.fsf@intrepid.localdomain>
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:37813 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750890AbZLUE4T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Dec 2009 23:56:19 -0500
+Received: by bwz27 with SMTP id 27so3240304bwz.21
+        for <linux-media@vger.kernel.org>; Sun, 20 Dec 2009 20:56:17 -0800 (PST)
+Date: Mon, 21 Dec 2009 14:00:38 +0900
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: linux-media@vger.kernel.org, video4linux-list@redhat.com
+Subject: [PATCH] Add lost config and PCI ID for card of Beholder
+Message-ID: <20091221140038.18ab7b24@glory.loctelecom.ru>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/pHVPk3o+ZiwVJvLXzxmctSS"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 08, 2009 at 02:57:15PM +0100, Krzysztof Halasa wrote:
-> Dmitry Torokhov <dmitry.torokhov@gmail.com> writes:
-> 
-> > Why woudl we want to do this? Quite often there is a need for "observer"
-> > that maybe does not act on data but allows capturing it. Single-user
-> > inetrfaces are PITA.
-> 
-> Lircd can work as a multiplexer. 
+--MP_/pHVPk3o+ZiwVJvLXzxmctSS
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-What this has to do with my statement? Did you mean retransmitter of sorts?
+Hi All
 
-Also I may explicitely not want the data stream to be multiplexed...
+Add lost configuration for our TV card.
 
-> IMHO single-open lirc interface is ok,
-> though we obviously need simultaneous operation of in-kernel decoders.
+diff -r 79fc32bba0a0 linux/drivers/media/video/saa7134/saa7134-cards.c
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Mon Dec 14 17:43:13 2009 -0200
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Wed Dec 16 11:02:53 2009 +0900
+@@ -4199,7 +4199,7 @@
+ 			.amux = LINE2,
+ 		},
+ 	},
+-	[SAA7134_BOARD_BEHOLD_505RDS] = {
++	[SAA7134_BOARD_BEHOLD_505RDS_MK5] = {
+ 		/*       Beholder Intl. Ltd. 2008      */
+ 		/*Dmitry Belimov <d.belimov@gmail.com> */
+ 		.name           = "Beholder BeholdTV 505 RDS",
+@@ -5359,6 +5359,41 @@
+ 			.vmux = 8,
+ 		} },
+ 	},
++	[SAA7134_BOARD_BEHOLD_505RDS_MK3] = {
++		/*       Beholder Intl. Ltd. 2008      */
++		/*Dmitry Belimov <d.belimov@gmail.com> */
++		.name           = "Beholder BeholdTV 505 RDS",
++		.audio_clock    = 0x00200000,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.rds_addr 	= 0x10,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.gpiomask       = 0x00008000,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = LINE2,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.mute = {
++			.name = name_mute,
++			.amux = LINE1,
++		},
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
+ 
+ };
+ 
+@@ -6274,7 +6309,13 @@
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
+ 		.subvendor    = 0x0000,
+ 		.subdevice    = 0x505B,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_505RDS,
++		.driver_data  = SAA7134_BOARD_BEHOLD_505RDS_MK5,
++	}, {
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
++		.subvendor    = 0x0000,
++		.subdevice    = 0x5051,
++		.driver_data  = SAA7134_BOARD_BEHOLD_505RDS_MK3,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
+@@ -6872,7 +6913,8 @@
+ 	case SAA7134_BOARD_BEHOLD_407FM:
+ 	case SAA7134_BOARD_BEHOLD_409:
+ 	case SAA7134_BOARD_BEHOLD_505FM:
+-	case SAA7134_BOARD_BEHOLD_505RDS:
++	case SAA7134_BOARD_BEHOLD_505RDS_MK5:
++	case SAA7134_BOARD_BEHOLD_505RDS_MK3:
+ 	case SAA7134_BOARD_BEHOLD_507_9FM:
+ 	case SAA7134_BOARD_BEHOLD_507RDS_MK3:
+ 	case SAA7134_BOARD_BEHOLD_507RDS_MK5:
+diff -r 79fc32bba0a0 linux/drivers/media/video/saa7134/saa7134-input.c
+--- a/linux/drivers/media/video/saa7134/saa7134-input.c	Mon Dec 14 17:43:13 2009 -0200
++++ b/linux/drivers/media/video/saa7134/saa7134-input.c	Wed Dec 16 11:02:53 2009 +0900
+@@ -625,7 +625,8 @@
+ 	case SAA7134_BOARD_BEHOLD_407FM:
+ 	case SAA7134_BOARD_BEHOLD_409:
+ 	case SAA7134_BOARD_BEHOLD_505FM:
+-	case SAA7134_BOARD_BEHOLD_505RDS:
++	case SAA7134_BOARD_BEHOLD_505RDS_MK5:
++	case SAA7134_BOARD_BEHOLD_505RDS_MK3:
+ 	case SAA7134_BOARD_BEHOLD_507_9FM:
+ 	case SAA7134_BOARD_BEHOLD_507RDS_MK3:
+ 	case SAA7134_BOARD_BEHOLD_507RDS_MK5:
+diff -r 79fc32bba0a0 linux/drivers/media/video/saa7134/saa7134.h
+--- a/linux/drivers/media/video/saa7134/saa7134.h	Mon Dec 14 17:43:13 2009 -0200
++++ b/linux/drivers/media/video/saa7134/saa7134.h	Wed Dec 16 11:02:53 2009 +0900
+@@ -283,7 +283,7 @@
+ #define SAA7134_BOARD_HAUPPAUGE_HVR1120   156
+ #define SAA7134_BOARD_AVERMEDIA_STUDIO_507UA 157
+ #define SAA7134_BOARD_AVERMEDIA_CARDBUS_501 158
+-#define SAA7134_BOARD_BEHOLD_505RDS         159
++#define SAA7134_BOARD_BEHOLD_505RDS_MK5     159
+ #define SAA7134_BOARD_BEHOLD_507RDS_MK3     160
+ #define SAA7134_BOARD_BEHOLD_507RDS_MK5     161
+ #define SAA7134_BOARD_BEHOLD_607FM_MK5      162
+@@ -300,6 +300,7 @@
+ #define SAA7134_BOARD_ZOLID_HYBRID_PCI		173
+ #define SAA7134_BOARD_ASUS_EUROPA_HYBRID	174
+ #define SAA7134_BOARD_LEADTEK_WINFAST_DTV1000S 175
++#define SAA7134_BOARD_BEHOLD_505RDS_MK3     176
+ 
+ #define SAA7134_MAXBOARDS 32
+ #define SAA7134_INPUT_MAX 8
 
-Why is the distinction?
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
 
--- 
-Dmitry
+
+With my best regards, Dmitry.
+--MP_/pHVPk3o+ZiwVJvLXzxmctSS
+Content-Type: text/x-patch; name=behold_505rds_mk3.patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=behold_505rds_mk3.patch
+
+diff -r 79fc32bba0a0 linux/drivers/media/video/saa7134/saa7134-cards.c
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Mon Dec 14 17:43:13 2009 -0200
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Wed Dec 16 11:02:53 2009 +0900
+@@ -4199,7 +4199,7 @@
+ 			.amux = LINE2,
+ 		},
+ 	},
+-	[SAA7134_BOARD_BEHOLD_505RDS] = {
++	[SAA7134_BOARD_BEHOLD_505RDS_MK5] = {
+ 		/*       Beholder Intl. Ltd. 2008      */
+ 		/*Dmitry Belimov <d.belimov@gmail.com> */
+ 		.name           = "Beholder BeholdTV 505 RDS",
+@@ -5359,6 +5359,41 @@
+ 			.vmux = 8,
+ 		} },
+ 	},
++	[SAA7134_BOARD_BEHOLD_505RDS_MK3] = {
++		/*       Beholder Intl. Ltd. 2008      */
++		/*Dmitry Belimov <d.belimov@gmail.com> */
++		.name           = "Beholder BeholdTV 505 RDS",
++		.audio_clock    = 0x00200000,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.rds_addr 	= 0x10,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.gpiomask       = 0x00008000,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = LINE2,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.mute = {
++			.name = name_mute,
++			.amux = LINE1,
++		},
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
+ 
+ };
+ 
+@@ -6274,7 +6309,13 @@
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
+ 		.subvendor    = 0x0000,
+ 		.subdevice    = 0x505B,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_505RDS,
++		.driver_data  = SAA7134_BOARD_BEHOLD_505RDS_MK5,
++	}, {
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
++		.subvendor    = 0x0000,
++		.subdevice    = 0x5051,
++		.driver_data  = SAA7134_BOARD_BEHOLD_505RDS_MK3,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
+@@ -6872,7 +6913,8 @@
+ 	case SAA7134_BOARD_BEHOLD_407FM:
+ 	case SAA7134_BOARD_BEHOLD_409:
+ 	case SAA7134_BOARD_BEHOLD_505FM:
+-	case SAA7134_BOARD_BEHOLD_505RDS:
++	case SAA7134_BOARD_BEHOLD_505RDS_MK5:
++	case SAA7134_BOARD_BEHOLD_505RDS_MK3:
+ 	case SAA7134_BOARD_BEHOLD_507_9FM:
+ 	case SAA7134_BOARD_BEHOLD_507RDS_MK3:
+ 	case SAA7134_BOARD_BEHOLD_507RDS_MK5:
+diff -r 79fc32bba0a0 linux/drivers/media/video/saa7134/saa7134-input.c
+--- a/linux/drivers/media/video/saa7134/saa7134-input.c	Mon Dec 14 17:43:13 2009 -0200
++++ b/linux/drivers/media/video/saa7134/saa7134-input.c	Wed Dec 16 11:02:53 2009 +0900
+@@ -625,7 +625,8 @@
+ 	case SAA7134_BOARD_BEHOLD_407FM:
+ 	case SAA7134_BOARD_BEHOLD_409:
+ 	case SAA7134_BOARD_BEHOLD_505FM:
+-	case SAA7134_BOARD_BEHOLD_505RDS:
++	case SAA7134_BOARD_BEHOLD_505RDS_MK5:
++	case SAA7134_BOARD_BEHOLD_505RDS_MK3:
+ 	case SAA7134_BOARD_BEHOLD_507_9FM:
+ 	case SAA7134_BOARD_BEHOLD_507RDS_MK3:
+ 	case SAA7134_BOARD_BEHOLD_507RDS_MK5:
+diff -r 79fc32bba0a0 linux/drivers/media/video/saa7134/saa7134.h
+--- a/linux/drivers/media/video/saa7134/saa7134.h	Mon Dec 14 17:43:13 2009 -0200
++++ b/linux/drivers/media/video/saa7134/saa7134.h	Wed Dec 16 11:02:53 2009 +0900
+@@ -283,7 +283,7 @@
+ #define SAA7134_BOARD_HAUPPAUGE_HVR1120   156
+ #define SAA7134_BOARD_AVERMEDIA_STUDIO_507UA 157
+ #define SAA7134_BOARD_AVERMEDIA_CARDBUS_501 158
+-#define SAA7134_BOARD_BEHOLD_505RDS         159
++#define SAA7134_BOARD_BEHOLD_505RDS_MK5     159
+ #define SAA7134_BOARD_BEHOLD_507RDS_MK3     160
+ #define SAA7134_BOARD_BEHOLD_507RDS_MK5     161
+ #define SAA7134_BOARD_BEHOLD_607FM_MK5      162
+@@ -300,6 +300,7 @@
+ #define SAA7134_BOARD_ZOLID_HYBRID_PCI		173
+ #define SAA7134_BOARD_ASUS_EUROPA_HYBRID	174
+ #define SAA7134_BOARD_LEADTEK_WINFAST_DTV1000S 175
++#define SAA7134_BOARD_BEHOLD_505RDS_MK3     176
+ 
+ #define SAA7134_MAXBOARDS 32
+ #define SAA7134_INPUT_MAX 8
+
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+
+--MP_/pHVPk3o+ZiwVJvLXzxmctSS--
