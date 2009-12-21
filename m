@@ -1,73 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:38387 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751443AbZL1UGp convert rfc822-to-8bit (ORCPT
+Received: from mail-fx0-f215.google.com ([209.85.220.215]:52606 "EHLO
+	mail-fx0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752186AbZLUPIH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Dec 2009 15:06:45 -0500
-Received: from list by lo.gmane.org with local (Exim 4.50)
-	id 1NPLrW-0006Z1-Qs
-	for linux-media@vger.kernel.org; Mon, 28 Dec 2009 21:06:42 +0100
-Received: from upc.si.94.140.72.111.dc.cable.static.telemach.net ([94.140.72.111])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 28 Dec 2009 21:06:42 +0100
-Received: from prusnik by upc.si.94.140.72.111.dc.cable.static.telemach.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 28 Dec 2009 21:06:42 +0100
-To: linux-media@vger.kernel.org
-From: =?UTF-8?Q?Alja=C5=BE?= Prusnik <prusnik@gmail.com>
-Subject: Re: Which modules for the VP-2033? Where is the module "mantis.ko"?
-Date: Mon, 28 Dec 2009 21:06:16 +0100
-Message-ID: <1262030776.3489.12.camel@slash.doma>
-References: <4B1D6194.4090308@freenet.de>
-	 <1261578615.8948.4.camel@slash.doma> <200912231753.28988.liplianin@me.by>
-	 <1261586462.8948.23.camel@slash.doma> <4B3269AE.6080602@freenet.de>
-	 <1a297b360912231124v6e31c9e6ja24d205f6b5dc39@mail.gmail.com>
-	 <1261611901.8948.37.camel@slash.doma> <4B339A8F.8020201@freenet.de>
-	 <1261673477.2119.1.camel@slash.doma>
-	 <1a297b360912271423x2f5b48caw7b2adad8849280ee@mail.gmail.com>
-	 <1262028495.3489.10.camel@slash.doma>
-Reply-To: Manu Abraham <abraham.manu@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-In-Reply-To: <1262028495.3489.10.camel@slash.doma>
+	Mon, 21 Dec 2009 10:08:07 -0500
+Received: by fxm7 with SMTP id 7so4962631fxm.29
+        for <linux-media@vger.kernel.org>; Mon, 21 Dec 2009 07:08:03 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <74fd948d0912201540u287dedaby81932da32359a11a@mail.gmail.com>
+References: <74fd948d0912200907j21fcc7b1qd2bfd2da00d4f72@mail.gmail.com>
+	 <829197380912201032re3590ael3c4f70ce2afa6349@mail.gmail.com>
+	 <74fd948d0912201540u287dedaby81932da32359a11a@mail.gmail.com>
+Date: Mon, 21 Dec 2009 10:08:03 -0500
+Message-ID: <829197380912210708r5908276ege9854fd5957a0a30@mail.gmail.com>
+Subject: Re: Pinnacle PCTV Hybrid (2) dvb woes
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Pedro Ribeiro <pedrib@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On pon, 2009-12-28 at 20:28 +0100, Aljaž Prusnik wrote:
-> On pon, 2009-12-28 at 02:23 +0400, Manu Abraham wrote:
-> > Can you please do a lspci -vn for the Mantis card you have ? Also try
-> > loading the mantis.ko module with verbose=5 module parameter, to get
-> > more debug information.
-> 
+On Sun, Dec 20, 2009 at 6:40 PM, Pedro Ribeiro <pedrib@gmail.com> wrote:
+> Damn, I suspected that.
+>
+> Anyway, I'm having trouble viewing analog TV. I can scan and watch
+> channels fine, but there is no audio, and I don't know how to
+> configure it. If you could help me, I would really appreciate it
+>
+> Should I use the em28xx soundcard for output or my own internal soundcard?
+>
+> tvtime only uses ALSA, but my internal soundcard as OSS mixer
+> emulation (the em28xx has not). However, I cannot control the volume
+> in tvtime
+>
+> Alsa says that the em28xx soundcard has no mixer controls.
 
-To continue, it seems the module is registering the remote commands, but
-dunno, why irw shows nothing:
+Hello Pedro,
 
-dmesg of typing on remote:
-[ 4854.805594] mantis_uart_read (0): Reading ... <3d>
-[ 4854.805605] mantis_uart_work (0): UART BUF:0 <3d> 
-[ 4854.805609] 
-[ 4854.805615] mantis_uart_read (0): Reading ... <3d>
-[ 4854.805621] mantis_uart_work (0): UART BUF:0 <3d> 
-[ 4854.805624] 
-[ 4895.266923] 
-[ 4895.266926] -- Stat=<4000800> Mask=<800> --<IRQ-1>
-[ 4895.266956] 
-[ 4895.266958] -- Stat=<4000800> Mask=<800> --<IRQ-1>
-[ 4895.266979] 
-[ 4895.266981] -- Stat=<4000800> Mask=<800> --<IRQ-1>
-[ 4895.266999] 
-[ 4895.267000] -- Stat=<4000800> Mask=<800> --<IRQ-1>
-[ 4895.267015] 
-[ 4895.267016] -- Stat=<4000800> Mask=<800> --<IRQ-1>
-[ 4895.267031] 
-[ 4895.267032] -- Stat=<4000800> Mask=<800> --<IRQ-1>
-[ 4895.267043] mantis_uart_read (0): Reading ... <3e>
-[ 4895.267054] mantis_uart_work (0): UART BUF:0 <3e> 
-[ 4895.267058] 
-[ 4895.267065] mantis_uart_read (0): Reading ... <3e>
-[ 4895.267070] mantis_uart_work (0): UART BUF:0 <3e> 
+Tvtime doesn't support reading on ALSA devices - this is an issue not
+specific to the em28xx, but effects pretty much every modern tuner -
+tvtime was written during a time when capture cards had a line out
+cable that you would connect to speakers.  I've written about the
+topic at length on the kernellabs.com blog if you want more info.
 
+Note that the em28xx provides a PCM *input* device.  To get audio, you
+will typically read on the em28xx PCM device and output to your sound
+card.
 
+To make it work in tvtime, run tvtime, open a separate window, and try
+the following:
+
+arecord -D hw:1,0 -c 2 -r 48000 -f S16_LE | aplay -
+
+(assuming that the em28xx board is detected as "1,0" if you run "arecord -l")
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
