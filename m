@@ -1,34 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from viefep17-int.chello.at ([62.179.121.37]:56845 "EHLO
-	viefep17-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762018AbZLPLPG (ORCPT
+Received: from qw-out-2122.google.com ([74.125.92.27]:40618 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750951AbZLUBnN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2009 06:15:06 -0500
-Message-ID: <4B28C133.3020600@waechter.wiz.at>
-Date: Wed, 16 Dec 2009 12:14:59 +0100
-From: =?UTF-8?B?TWF0dGhpYXMgV8OkY2h0ZXI=?= <matthias@waechter.wiz.at>
+	Sun, 20 Dec 2009 20:43:13 -0500
+Received: by qw-out-2122.google.com with SMTP id 3so948502qwe.37
+        for <linux-media@vger.kernel.org>; Sun, 20 Dec 2009 17:43:13 -0800 (PST)
+Message-ID: <4B2EFC5E.7040900@gmail.com>
+Date: Sun, 20 Dec 2009 23:41:02 -0500
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
 MIME-Version: 1.0
-To: Newsy Paper <newspaperman_germany@yahoo.com>
-CC: Oleg Roitburd <oroitburd@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: no locking on dvb-s2 22000 2/3 8PSK transponder on Astra 19.2E
-  with tt s2-3200
-References: <108905.8710.qm@web23208.mail.ird.yahoo.com>
-In-Reply-To: <108905.8710.qm@web23208.mail.ird.yahoo.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Yves <ydebx6@free.fr>
+CC: linux-media@vger.kernel.org
+Subject: Re: Nova-T 500 Dual DVB-T
+References: <4B2DDE8E.4090708@free.fr>
+In-Reply-To: <4B2DDE8E.4090708@free.fr>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 15.12.2009 20:44, schrieb Newsy Paper:
-> yes, this transponder is working again at blog.ors.at they say that they updated the modulator. It is working now again but driver still has this bug, so it's interesting what the update of the modulator changed exactly.
+Hello Yves,
 
-Today I received an answer from Peter Knorr, ORS, where he told me that
-when they activated their modulator on 3 Dec 2009, it was set up to
-output an inverted spectrum. What they did to fix our issue was to
-switch off this inversion.
+On 12/20/2009 03:21 AM, Yves wrote:
+> Hi,
+>
+> I have a Nova-T 500 Dual DVB-T card that used to work very well under 
+> Mandriva 2008.1 (kernel 2.6.24.7).
+>
+> I moved to Mandriva 2009.1, then 2010.0 (kernel 2.6.31.6) and it 
+> doesn't work well any more. Scan can't find channels. I tried hading 
+> "options dvb-usb-dib0700 force_lna_activation=1" in 
+> /etc/modprobe.conf. It improve just a bit. Scan find only a few 
+> channels. If I revert to Mandriva 2008.1 (in another partition), all 
+> things are good (without adding anything in modprobe.conf).
+>
+> Is there a new version of the driver (dvb_usb_dib0700) that correct 
+> this behavior.
+> If not, how to install the driver from kernel 2.6.24.7 in kernel 
+> 2.6.31.6 ?
+>
 
-For me, personally, the issue with 19.2°/11302.75h is closed. Maybe
-someone with knowledge about handling STB6100/STB0899 will be able to
-finally solve the issue with transponders that have an inverted spectrum.
+Please try the current driver available at v4l/dvb develpment tree and 
+share your results here.
 
-– Matthias
+hg clone http://linuxtv.org/hg/v4l-dvb
+make
+make rmmod
+make install
+
+Finally, just restart your machine and test your favourite application.
+
+For additional info:
+
+http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+
+Cheers,
+Douglas
