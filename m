@@ -1,63 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.navvo.net ([74.208.67.6]:48081 "EHLO mail.navvo.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751466AbZLRRH5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Dec 2009 12:07:57 -0500
-From: santiago.nunez@ridgerun.com
-To: davinci-linux-open-source@linux.davincidsp.com
-Cc: linux-media@vger.kernel.org, nsnehaprabha@ti.com,
-	m-karicheri2@ti.com, diego.dompe@ridgerun.com,
-	todd.fischer@ridgerun.com, mgrosen@ti.com,
-	Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-Date: Fri, 18 Dec 2009 11:07:57 -0600
-Message-Id: <1261156077-25897-1-git-send-email-santiago.nunez@ridgerun.com>
-Subject: [PATCH 4/4 v13] Menu support for TVP7002 in DM365
+Received: from ey-out-2122.google.com ([74.125.78.26]:32098 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754127AbZLUAvW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Dec 2009 19:51:22 -0500
+Received: by ey-out-2122.google.com with SMTP id d26so1218635eyd.19
+        for <linux-media@vger.kernel.org>; Sun, 20 Dec 2009 16:51:20 -0800 (PST)
+MIME-Version: 1.0
+Date: Mon, 21 Dec 2009 00:51:20 +0000
+Message-ID: <74fd948d0912201651w60a48ba2vd8e0ac8fb80d18c1@mail.gmail.com>
+Subject: does anyone recommend Hauppauge WinTV-NOVA-T USB 2.0?
+From: Pedro Ribeiro <pedrib@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+Hi all,
 
-This patch provides menu configuration options for the TVP7002
-decoder driver in DM365. Includes only TVP7002.
+I want to buy a cheap card for watching DVB-T in the UK. Currently,
+Amazon and others offer the Hauppauge WinTV-NOVA-T USB 2.0 for only 30
+pounds including delivery, so its very tempting.
 
-Signed-off-by: Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
----
- drivers/media/video/Kconfig  |    9 +++++++++
- drivers/media/video/Makefile |    1 +
- 2 files changed, 10 insertions(+), 0 deletions(-)
+This device is listed as supported in the v4l-Wiki, but I want a real
+recommendation by someone who uses it regularly. So if you have this
+card, do you recommend it?
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index e6186b3..25f5735 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -392,6 +392,15 @@ config VIDEO_TVP5150
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called tvp5150.
- 
-+config VIDEO_TVP7002
-+	tristate "Texas Instruments TVP7002 video decoder"
-+	depends on VIDEO_V4L2 && I2C
-+	---help---
-+	  Support for the Texas Instruments TVP7002 video decoder.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called tvp7002.
-+
- config VIDEO_VPX3220
- 	tristate "vpx3220a, vpx3216b & vpx3214c video decoders"
- 	depends on VIDEO_V4L2 && I2C
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index e541932..a4fff2a 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -56,6 +56,7 @@ obj-$(CONFIG_VIDEO_THS7303) += ths7303.o
- obj-$(CONFIG_VIDEO_VINO) += indycam.o
- obj-$(CONFIG_VIDEO_TVP5150) += tvp5150.o
- obj-$(CONFIG_VIDEO_TVP514X) += tvp514x.o
-+obj-$(CONFIG_VIDEO_TVP7002) += tvp7002.o
- obj-$(CONFIG_VIDEO_MSP3400) += msp3400.o
- obj-$(CONFIG_VIDEO_CS5345) += cs5345.o
- obj-$(CONFIG_VIDEO_CS53L32A) += cs53l32a.o
--- 
-1.6.0.4
+I don't care about HDTV, I just want good signal quality (yes I know
+that depends more on the aerial) on a cheap USB card.
 
+Also a working remote control is very important to me.
+
+
+Thanks,
+Pedro
