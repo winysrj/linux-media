@@ -1,52 +1,72 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx09.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.13])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id nBBLIjir022096
-	for <video4linux-list@redhat.com>; Fri, 11 Dec 2009 16:18:45 -0500
-Received: from metis.ext.pengutronix.de (metis.ext.pengutronix.de
-	[92.198.50.35])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id nBBLIX7e019144
-	for <video4linux-list@redhat.com>; Fri, 11 Dec 2009 16:18:33 -0500
-Date: Fri, 11 Dec 2009 22:18:29 +0100
-From: Robert Schwebel <r.schwebel@pengutronix.de>
+Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.11])
+	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id nBMM0meK031122
+	for <video4linux-list@redhat.com>; Tue, 22 Dec 2009 17:00:48 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id nBMM0WO2005633
+	for <video4linux-list@redhat.com>; Tue, 22 Dec 2009 17:00:34 -0500
+Date: Tue, 22 Dec 2009 23:00:28 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: Carlos Lavin <carlos.lavin@vista-silicon.com>
-Message-ID: <20091211211829.GI22533@pengutronix.de>
-References: <fe6fd5f60912110228s80ce93ax1f73e019c697ec46@mail.gmail.com>
+Subject: Re: I2C of sensor SOC_CAMERA
+In-Reply-To: <fe6fd5f60912220207t1271fd3atc4e3ec0abfdc3b9d@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0912222239180.4919@axis700.grange>
+References: <fe6fd5f60912220207t1271fd3atc4e3ec0abfdc3b9d@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
-In-Reply-To: <fe6fd5f60912110228s80ce93ax1f73e019c697ec46@mail.gmail.com>
-Cc: video4linux-list <video4linux-list@redhat.com>
-Subject: Re: imx27_camera is correct
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+Cc: video4linux-list@redhat.com
+List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
 List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Dec 11, 2009 at 11:28:26AM +0100, Carlos Lavin wrote:
-> hello, I'll want the host camera imx27_camera driver from PHYTEC,his
-> repository is:
-> git://git.pengutronix.de/git/phytec/linux-2.6.git
+Hi
+
+On Tue, 22 Dec 2009, Carlos Lavin wrote:
+
+> hello. I'm developping a driver and I need develop a sensor with soc_camera
+> library, well , I have a problem with the sensor because I can't read
+> correctly of it, I use these instructions when I register the driver:
+> static int __init ov7670_module_init(void)
+> {
 > 
-> but I don't know if this file is correct. Have someone used it before? is a
-> good file or this file isn't correct?
+>     return i2c_add_driver(&ov7670_soc_i2c_driver);
+> }
+> 
+> and in function probe of sensor.
+> ...
+> if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+> ...
+> i2c_set_clientdata(client, priv);
+> ...
+> ret = soc_camera_device_register(icd);
 
-Yes, it is in use here. However, the code needs probably some work in
-order to be ready for mainline.
+If you're using this function, then you're using a very old kernel.
 
-rsc
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+> I don't know why I can't read well of this sensor...the sensor return values
+> incorrect and bad (as "fffffffb") the address I2C is correct, can someone
+> help me? can be that I haven't important function in the driver or in the
+> configuration board?
+
+You should upgrade to the newest kernel, best to the Linus' git tree and 
+port your driver to it. Then the most common reason for non-working I2C is 
+not started master clock on the interface. I would look in that direction.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
 
 --
 video4linux-list mailing list
