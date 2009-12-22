@@ -1,48 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f192.google.com ([209.85.212.192]:46546 "HELO
-	mail-vw0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753125AbZLMS7o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Dec 2009 13:59:44 -0500
-Received: by vws30 with SMTP id 30so443113vws.33
-        for <linux-media@vger.kernel.org>; Sun, 13 Dec 2009 10:59:41 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1260729576.2469.5.camel@hercules.rochet.org>
-References: <267bb6670912120230m59eeeeffqc52cfb320ac05ec2@mail.gmail.com>
-	 <200912121359.16169.liplianin@me.by>
-	 <1260633864.2329.4.camel@hercules.rochet.org>
-	 <a3ef07920912122043u2aaec2c6vd3d5296cdaae4c22@mail.gmail.com>
-	 <1260729576.2469.5.camel@hercules.rochet.org>
-Date: Sun, 13 Dec 2009 10:59:40 -0800
-Message-ID: <a3ef07920912131059s79e5cefbw7b42d6b698996c5d@mail.gmail.com>
-Subject: Re: [linux-dvb] Is there somobody dealing with DVB cards here ?!?
-From: VDR User <user.vdr@gmail.com>
-To: dvblinux <dvblinux@free.fr>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail.gmx.net ([213.165.64.20]:47156 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751933AbZLVIiS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Dec 2009 03:38:18 -0500
+From: peterhuewe@gmx.de
+To: Jiri Kosina <trivial@kernel.org>
+Cc: kernel-janitors@vger.kernel.org, Peter Huewe <peterhuewe@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jean Delvare <khali@linux-fr.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 10/10] media/dvb: add __init/__exit macros to drivers/media/dvb/bt8xx/bt878.c
+Date: Tue, 22 Dec 2009 09:38:14 +0100
+Message-Id: <1261471095-24272-1-git-send-email-peterhuewe@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Dec 13, 2009 at 10:39 AM, dvblinux <dvblinux@free.fr> wrote:
-> My question was specific:
+From: Peter Huewe <peterhuewe@gmx.de>
 
-Asking if people deal with DVB-T/DVB-S is really generic.  There's
-nothing specific about it.  See below.
+Trivial patch which adds the __init/__exit macros to the module_init/
+module_exit functions of
 
-> Support for device ASUS (1043:48cd) lacks in current saa driver;
->
-> I managed to make it work by modifying current version, since it's a
-> clone of ASUS (1043:4876) device;
->
-> How could I share this, if this list is the relevant audience of
-> linux-dvb stuff.
->
-> Perhaps this list is NOT the right place to deal with dvb driver
-> development, I don't know.
+drivers/media/dvb/bt8xx/bt878.c
 
-You should have posted all this the first time but to answer your
-questions..  Create a patch and post it with an explanation of what it
-does.  Someone will likely sign-off on it as long as there's no
-problems.  Yes, this is the right list for media-related things.
+Please have a look at the small patch and either pull it through
+your tree, or please ack' it so Jiri can pull it through the trivial
+tree.
 
-Regards.
+Patch against linux-next-tree, 22. Dez 08:38:18 CET 2009
+but also present in linus tree.
+
+Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
+---
+ drivers/media/dvb/bt8xx/bt878.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/dvb/bt8xx/bt878.c b/drivers/media/dvb/bt8xx/bt878.c
+index a24c125..2a0886a 100644
+--- a/drivers/media/dvb/bt8xx/bt878.c
++++ b/drivers/media/dvb/bt8xx/bt878.c
+@@ -582,7 +582,7 @@ static int bt878_pci_driver_registered;
+ /* Module management functions */
+ /*******************************/
+ 
+-static int bt878_init_module(void)
++static int __init bt878_init_module(void)
+ {
+ 	bt878_num = 0;
+ 	bt878_pci_driver_registered = 0;
+@@ -600,7 +600,7 @@ static int bt878_init_module(void)
+ 	return pci_register_driver(&bt878_pci_driver);
+ }
+ 
+-static void bt878_cleanup_module(void)
++static void __exit bt878_cleanup_module(void)
+ {
+ 	if (bt878_pci_driver_registered) {
+ 		bt878_pci_driver_registered = 0;
+-- 
+1.6.4.4
+
