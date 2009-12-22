@@ -1,149 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:2976 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754354AbZLCSeS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Dec 2009 13:34:18 -0500
-Date: Thu, 3 Dec 2009 16:33:28 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Gerd Hoffmann <kraxel@redhat.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jonsmirl@gmail.com, khc@pm.waw.pl,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR  system?
-Message-ID: <20091203163328.613699e5@pedra>
-In-Reply-To: <20091203175531.GB776@core.coreip.homeip.net>
-References: <BDodf9W1qgB@lirc>
-	<4B14EDE3.5050201@redhat.com>
-	<4B1524DD.3080708@redhat.com>
-	<4B153617.8070608@redhat.com>
-	<A6D5FF84-2DB8-4543-ACCB-287305CA0739@wilsonet.com>
-	<4B17AA6A.9060702@redhat.com>
-	<20091203175531.GB776@core.coreip.homeip.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([192.100.122.230]:36257 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753726AbZLVQow (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Dec 2009 11:44:52 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, iivanov@mm-sol.com,
+	hverkuil@xs4all.nl, gururaj.nagendra@intel.com
+Subject: [RFC v2 1/7] V4L: File handles
+Date: Tue, 22 Dec 2009 18:43:05 +0200
+Message-Id: <1261500191-9441-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4B30F713.8070004@maxwell.research.nokia.com>
+References: <4B30F713.8070004@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Let me draw my view:
+This patch adds a list of v4l2_fh structures to every video_device.
+It allows using file handle related information in V4L2. The event interface
+is one example of such use.
 
-Em Thu, 3 Dec 2009 09:55:31 -0800
-Dmitry Torokhov <dmitry.torokhov@gmail.com> escreveu:
+Video device drivers should use the v4l2_fh pointer as their
+file->private_data.
 
-> No, please, wait just a minute. I know it is tempting to just merge
-> lirc_dev and start working, but can we first agree on the overall
-> subsystem structure before doing so. It is still quite inclear to me.
-> 
-> The open questions (for me at least):
-> 
-> - do we create a new class infrastructure for all receivers or only for
->   ones plugged into lirc_dev? Remember that classifying objects affects
->   how udev and friemds see them and may either help or hurt writing PnP
->   rules.
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/Makefile   |    2 +-
+ drivers/media/video/v4l2-dev.c |    2 +
+ drivers/media/video/v4l2-fh.c  |   57 ++++++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-dev.h       |    4 +++
+ include/media/v4l2-fh.h        |   41 ++++++++++++++++++++++++++++
+ 5 files changed, 105 insertions(+), 1 deletions(-)
+ create mode 100644 drivers/media/video/v4l2-fh.c
+ create mode 100644 include/media/v4l2-fh.h
 
-IMO, I would create it as /sys/class/input/IR (just like the /mice). I
-don't see why do we need to different lirc than no-lirc drivers in the
-case of sysfs class. As devices with raw input capabilities will have
-another dev to communicate, this means that we'll need a /lirc node
-there to point to lirc dev.
-
-> 
-> - do we intend to support in-kernel sotfware decoders?
-
-Yes.
-
-> - What is the structure? Do we organize them as a module to be used by driver
->   directly or the driver "streams" the data to IR core and the core
->   applies decoders (in the same fashion input events from drivers flow
->   into input core and then distributed to all bound interfaces for
->   processing/conversion/transmission to userspace)?
-
-My plan is to expand ir-common.ko module and rename it to ir-core, to be 
-the IR core module for the evdev interface. I'm already working on it. 
-My idea for an architecture is that the lirc-core module will use 
-ir-common where the IR decoders will be, and the evdev interface.
-
-IMO, we should move them from /drivers/media/common to /drivers/input/ir.
-It makes sense to use kfifo to send the data to the in-kernel decoders.
-
-> - how do we control which decoder should handle particular
->   receiver/remote? Is it driver's decision, decoder's decision, user's
->   or all of the above?
-
-It should be all the above, since some hardware will only work with certain
-decoders (hardware limitation) or they may have already a raw mode->scancode
-legacy decoder. In the latter case, those decoders will be removed from
-the existing drivers, but this action will take some time.
-
-Some sysfs attributes are needed to specify a list of the supported protocols
-and the currently used one. I'll prepare a proposed patch for it, after we
-finish aligning the requirements.
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index a61e3f3..1947146 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -10,7 +10,7 @@ stkwebcam-objs	:=	stk-webcam.o stk-sensor.o
  
-> - do we allow to have several decorers active at once for a receiver?
-
-Yes, as an optional requirement, since some hardware won't support it.
-
-> - who decides that we want to utilize lirc_dev? Driver's themselves, IR
->   core (looking at the driver/device "capabilities"), something else?
-
-Drivers that support raw mode, should interface via lirc-core, that will,
-in turn use ir-core.
-
-Drivers that have in-hardware decode will directly use ir-core.
-
-> - do we recognize and create input devices "on-fly" or require user
->   intervention? Semantics for splitting into several input/event
->   devices?
-
-I don't have a strong opinion here. 
-
-I don't see any way for doing it, except with very few protocols that
-sends vendor IDs. I don't care if this feature can be used by the
-drivers/decoders that could support it.
-
-> Could anyone please draw me a picture, starting with a "receiver"
-> piece of hardware. I am not concerned much with how exactly receiver is
-> plugged into a particular subsystem (DVB/V4L etc) since it would be
-> _their_ implementation detail, but with the flow in/out of that
-> "receiver" device.
-
-Not sure if I got your idea. Basically, what I see is:
-
-	For device drivers that work in raw mode:
-[IR physical device] ==> [IR receiver driver]  ==> [lirc-core] ==> [decoder] ==> [ir-core] ==> [evdev]
-
-(eventually, we can merge decoder and ir-core into one module at the beginning,
-depending on the size of the decoders)
-
-	For device drivers that work only in evdev mode (those with hardware decoders):
-
-[IR physical device] ==> [IR receiver driver]  ==> [ir-core] ==> [evdev]
-
-> 
-> Now as far as input core goes I see very limited number of changes that
-> may be needed:
-> 
-> - Allow to extend size of "scancode" in EVIOC{S,G}KEYCODE if we are
->   unable to limit ourselves to 32 bits (keeping compatibility of course)
-
-Yes, but the way EVIOC{S,G}KEYCODE currently works, it performs poorly when you have a
-table with 2^64 size. The table is very sparsed, but, as the key to get/set a code is
-the scancode, it is very hard to enumberate what are the actual entries there. The
-better is to use an index parameter for they, instead of using the scancode as such.
-
-> - Maybe adding new ioctl to "zap" the keymap table
-
-Yes, this is needed.
-
-> - Adding more key EV_KEY/KEY_* definitons, if needed
-
-Probably.
-
+ omap2cam-objs	:=	omap24xxcam.o omap24xxcam-dma.o
+ 
+-videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o
++videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o
+ 
+ # V4L2 core modules
+ 
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index 7090699..15b2ac8 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -421,6 +421,8 @@ static int __video_register_device(struct video_device *vdev, int type, int nr,
+ 	if (!vdev->release)
+ 		return -EINVAL;
+ 
++	v4l2_fh_init(vdev);
++
+ 	/* Part 1: check device type */
+ 	switch (type) {
+ 	case VFL_TYPE_GRABBER:
+diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
+new file mode 100644
+index 0000000..406e4ac
+--- /dev/null
++++ b/drivers/media/video/v4l2-fh.c
+@@ -0,0 +1,57 @@
++/*
++ * drivers/media/video/v4l2-fh.c
++ *
++ * V4L2 file handles.
++ *
++ * Copyright (C) 2009 Nokia Corporation.
++ *
++ * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#include <media/v4l2-dev.h>
++#include <media/v4l2-fh.h>
++
++#include <linux/sched.h>
++#include <linux/vmalloc.h>
++
++int v4l2_fh_add(struct video_device *vdev, struct v4l2_fh *fh)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&vdev->fh_lock, flags);
++	list_add(&fh->list, &vdev->fh);
++	spin_unlock_irqrestore(&vdev->fh_lock, flags);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(v4l2_fh_add);
++
++void v4l2_fh_del(struct video_device *vdev, struct v4l2_fh *fh)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&vdev->fh_lock, flags);
++	list_del(&fh->list);
++	spin_unlock_irqrestore(&vdev->fh_lock, flags);
++}
++EXPORT_SYMBOL_GPL(v4l2_fh_del);
++
++void v4l2_fh_init(struct video_device *vdev)
++{
++	spin_lock_init(&vdev->fh_lock);
++	INIT_LIST_HEAD(&vdev->fh);
++}
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 2dee938..8eac93d 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -16,6 +16,8 @@
+ #include <linux/mutex.h>
+ #include <linux/videodev2.h>
+ 
++#include <media/v4l2-fh.h>
++
+ #define VIDEO_MAJOR	81
+ 
+ #define VFL_TYPE_GRABBER	0
+@@ -77,6 +79,8 @@ struct video_device
+ 	/* attribute to differentiate multiple indices on one physical device */
+ 	int index;
+ 
++	spinlock_t fh_lock;		/* Lock for file handle list */
++	struct list_head fh;		/* File handle list */
+ 	int debug;			/* Activates debug level*/
+ 
+ 	/* Video standard vars */
+diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
+new file mode 100644
+index 0000000..1efa916
+--- /dev/null
++++ b/include/media/v4l2-fh.h
+@@ -0,0 +1,41 @@
++/*
++ * include/media/v4l2-fh.h
++ *
++ * V4L2 file handle.
++ *
++ * Copyright (C) 2009 Nokia Corporation.
++ *
++ * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#ifndef V4L2_FH_H
++#define V4L2_FH_H
++
++#include <linux/types.h>
++#include <linux/list.h>
++
++struct v4l2_fh {
++	struct list_head	list;
++};
++
++struct video_device;
++
++int v4l2_fh_add(struct video_device *vdev, struct v4l2_fh *fh);
++void v4l2_fh_del(struct video_device *vdev, struct v4l2_fh *fh);
++void v4l2_fh_init(struct video_device *vdev);
++
++#endif /* V4L2_EVENT_H */
 -- 
+1.5.6.5
 
-Cheers,
-Mauro
