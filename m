@@ -1,145 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f221.google.com ([209.85.220.221]:56113 "EHLO
-	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752469AbZLBO5W (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Dec 2009 09:57:22 -0500
-Received: by fxm21 with SMTP id 21so317860fxm.1
-        for <linux-media@vger.kernel.org>; Wed, 02 Dec 2009 06:57:28 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <702870ef0912010118r1e5e3been840726e6364d991a@mail.gmail.com>
-References: <33305.64.213.30.2.1259216241.squirrel@webmail.exetel.com.au>
-	 <50104.115.70.135.213.1259224041.squirrel@webmail.exetel.com.au>
-	 <702870ef0911260137r35f1784exc27498d0db3769c2@mail.gmail.com>
-	 <56069.115.70.135.213.1259234530.squirrel@webmail.exetel.com.au>
-	 <46566.64.213.30.2.1259278557.squirrel@webmail.exetel.com.au>
-	 <702870ef0912010118r1e5e3been840726e6364d991a@mail.gmail.com>
-Date: Wed, 2 Dec 2009 09:57:25 -0500
-Message-ID: <829197380912020657v52e42690k46172f047ebd24b0@mail.gmail.com>
-Subject: Re: DViCO FusionHDTV DVB-T Dual Digital 4 (rev 1) tuning regression
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Vincent McIntyre <vincent.mcintyre@gmail.com>
-Cc: Robert Lowery <rglowery@exemail.com.au>, mchehab@redhat.com,
-	terrywu2009@gmail.com, awalls@radix.net,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: base64
+Received: from smtp.nokia.com ([192.100.122.233]:49210 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754108AbZLVQnn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Dec 2009 11:43:43 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, iivanov@mm-sol.com,
+	hverkuil@xs4all.nl, gururaj.nagendra@intel.com
+Subject: [RFC v2 5/7] V4L: Events: Limit event queue length
+Date: Tue, 22 Dec 2009 18:43:09 +0200
+Message-Id: <1261500191-9441-5-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1261500191-9441-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+References: <4B30F713.8070004@maxwell.research.nokia.com>
+ <1261500191-9441-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+ <1261500191-9441-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+ <1261500191-9441-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+ <1261500191-9441-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-T24gVHVlLCBEZWMgMSwgMjAwOSBhdCA0OjE4IEFNLCBWaW5jZW50IE1jSW50eXJlCjx2aW5jZW50
-Lm1jaW50eXJlQGdtYWlsLmNvbT4gd3JvdGU6Cj4gSGkgUm9iCj4KPiBJIG1pc3NlZCB5b3VyIGZv
-bGxvd3VwIGFuZCB0ZXN0ZWQgdGhlICdyZXZlcnQuZGlmZicgcGF0Y2gsIGF0dGFjaGVkCj4gZm9y
-IHJlZmVyZW5jZS4KPiBJIGhhdmUgYmVlbiBzbG93IHJlcGx5aW5nIGJlY2F1c2UgSSd2ZSBiZWVu
-IHNjcmF0Y2hpbmcgbXkgaGVhZCBvdmVyIHRoZSByZXN1bHRzLgo+Cj4gSSB1c2VkICdzaWduYWx0
-ZXN0LnBsJyB0byB0ZXN0WzFdLCB3aGljaCB1c2VzIHR6YXAgdW5kZXIgdGhlIGhvb2QuCj4gUGVy
-aGFwcyB0aGlzIGlzIG5vdCB0aGUgYmVzdCBjaG9pY2UsIGJ1dCBJIHdhbnRlZCBzb21ldGhpbmcg
-dGhhdCBJIHRob3VnaHQgd291bGQKPiBhbGxvdyBvYmplY3RpdmUgY29tcGFyaXNvbnMuIFRoYXQn
-cyB0cmlja2llciB0aGFuIEkgdGhvdWdodC4uLgo+IFVuZm9ydHVuYXRlbHkgSSBvbmx5IGRpc2Nv
-dmVyZWQgbGFzdCBuaWdodCBob3cgZWFzeSAndmxjCj4gLi9jaGFubmVscy5jb25mJyBtYWtlcyBk
-b2luZyBxdWljayB2aXN1YWwgY2hlY2tzLiBJIGRpZG4ndCBoYXZlIGVub3VnaAo+IHRpbWUgdG8g
-cmUtcGF0Y2ggYW5kIHRlc3QgYWdhaW4uCj4KPiBNeSB0ZXN0IHByb2NlZHVyZSB3YXM6Cj4goC0g
-Z2V0IGEgYmFzZWxpbmUgd2l0aCB0emFwIGFuZCBzaWduYWx0ZXN0LnBsCj4goC0gcGF0Y2gsIG1h
-a2UsIGluc3RhbGwuIGNvbGQgYm9vdC4KPiCgLSB0ZXN0IHdpdGggdHphcCBhbmQgc2lnbmFsdGVz
-dC5wbAo+IKAtIHJldmVydCBwYXRjaCwgZm9yIHRoZSBtb21lbnQuCj4KPiBJIHRlc3RlZCB0d28g
-a2VybmVscywgYW5kIGJvdGggY2FyZHMuIEkgdGVzdGVkIGFsbCB0aGUgdHVuZXJzIGJ1dCBJJ2xs
-Cj4gc3BhcmUgeW91IHRoYXQgZm9yIG5vdy4KPgo+IKAqIDIuNi4yNC0yMy1ydCArIHY0bCAoYzU3
-ZjQ3Y2ZiMGU4KyB0aXApCj4KPiCgIEkgZ290IHJhdGhlciBkaWZmZXJlbnQgYmFzZWxpbmUgcmVz
-dWx0cy4gQWxsIGNoYW5uZWxzIGhhZAo+IHNpZ25pZmljYW50bHkgaGlnaGVyIEJFUgo+IKAgdGhh
-biBJJ2Qgbm90aWNlZCBiZWZvcmUuIEFmdGVyIHBhdGNoaW5nLCBzbnIgb24gc29tZSBjaGFubmVs
-cwo+IHNlZW1lZCBhIGxpdHRsZSBoaWdoZXIKPiCgIGFuZCBCRVIgd2FzIGxvd2VyLiBPbiBjaDks
-IEkgdGhpbmsgc25yIHdhcyB1cCBhbmQgQkVSIGltcHJvdmVkIGEgbGl0dGxlLgo+Cj4goGhlcmUg
-YXJlIHRoZSBzaWduYWx0ZXN0IHN1bW1hcnkgdGFibGVzOgo+IKB3aXRob3V0IHBhdGNoLiB1c2Ig
-ZGV2aWNlIChkdmIwKSB1c2JpZCBkYjc4OjBmZTkKPiCgRnJlcXVlbmN5IKAgoCCgIFNpZ25hbCCg
-IKAgoCCgIKBCZXIgoCCgIKAgoCCgIKAgVW5jCj4goD09PT09PT09PSCgIKAgoCA9PT09PT09PSCg
-IKAgoCCgPT09PT09PT0goCCgIKAgoD09PT09PT09Cj4goDE3NzUwMDAwMCCgIKAgoCCgIDc2LjAg
-JSCgIKAgoCCgIKAgMzIyLjYgoCCgIKAgoCCgIDY3Mi40IKBTZXZlbgo+IKAxOTE2MjUwMDAgoCCg
-IKAgoCA3Ni4wICUgoCCgIKAgoCCgIDMyMC4yIKAgoCCgIKAgoDE3ODMuMyCgTmluZQo+IKAyMTk1
-MDAwMDAgoCCgIKAgoCA3Ni44ICUgoCCgIKAgoCCgIDMyOS44IKAgoCCgIKAgoDI5NDguMiCgVGVu
-Cj4goDIyNjUwMDAwMCCgIKAgoCCgIDc2LjkgJSCgIKAgoCCgIKAgMjk2LjYgoCCgIKAgoCCgNDg4
-NS4wIKBBQkMKPiCgNTcxNTAwMDAwIKAgoCCgIKAgNzcuMCAlIKAgoCCgIKAgoCA1NDIuMCCgIKAg
-oCCgIKA3NTI5LjQgoFNCUwo+IKA1Nzg1MDAwMDAgoCCgIKAgoCA3Ny4xICUgoCCgIKAgoCCgIDUz
-OS41IKAgoCCgIKAgMTA2NjkuNyCgRDQ0Cj4KPiCgd2l0aCBwYXRjaC4gdXNiIGRldmljZSAoZHZi
-MCkgdXNiaWQgZGI3ODowZmU5Cj4goEZyZXF1ZW5jeSCgIKAgoCBTaWduYWwgoCCgIKAgoCCgQmVy
-IKAgoCCgIKAgoCCgIFVuYwo+IKA9PT09PT09PT0goCCgIKAgPT09PT09PT0goCCgIKAgoD09PT09
-PT09IKAgoCCgIKA9PT09PT09PQo+IKAxNzc1MDAwMDAgoCCgIKAgoCA3Ni42ICUgoCCgIKAgoCCg
-IKAgMi4zIKAgoCCgIKAgoCCgIDAuMAo+IKAxOTE2MjUwMDAgoCCgIKAgoCA3Ny4wICUgoCCgIKAg
-oCCgIDIzNS41IKAgoCCgIKAgoCCgODMuMwo+IKAyMTk1MDAwMDAgoCCgIKAgoCA3Ni45ICUgoCCg
-IKAgoCCgIDI4OC4wIKAgoCCgIKAgoCA1MDEuOAo+IKAyMjY1MDAwMDAgoCCgIKAgoCA3Ni45ICUg
-oCCgIKAgoCCgIDI5NS4xIKAgoCCgIKAgoDE0MTYuNAo+IKA1NzE1MDAwMDAgoCCgIKAgoCA3Ny4w
-ICUgoCCgIKAgoCCgIDUyMy40IKAgoCCgIKAgoDM5ODAuMAo+IKA1Nzg1MDAwMDAgoCCgIKAgoCA3
-Ny4xICUgoCCgIKAgoCCgIDU0OS45IKAgoCCgIKAgoDc0MDkuNAo+Cj4goHdpdGhvdXQgcGF0Y2gu
-IHBjaWUgZGV2aWNlIChkdmIxKSBwY2lpZCBkYjc4OjE4YWMKPiCgRnJlcXVlbmN5IKAgoCCgIFNp
-Z25hbCCgIKAgoCCgIKBCZXIgoCCgIKAgoCCgIKAgVW5jCj4goD09PT09PT09PSCgIKAgoCA9PT09
-PT09PSCgIKAgoCCgPT09PT09PT0goCCgIKAgoD09PT09PT09Cj4goDE3NzUwMDAwMCCgIKAgoCCg
-IDcxLjIgJSCgIKAgoCCgIKAgoCAzLjEgoCCgIKAgoCCgIKAgMC4wCj4goDE5MTYyNTAwMCCgIKAg
-oCCgIDIxLjcgJSCgIKAgoCCgIKAgNjQ1LjQgoCCgIKAgoCCgIDI0Ni40Cj4goDIxOTUwMDAwMCCg
-IKAgoCCgIDczLjYgJSCgIKAgoCCgIKAgoCAxLjkgoCCgIKAgoCCgMTYzMi4wCj4goDIyNjUwMDAw
-MCCgIKAgoCCgIDczLjUgJSCgIKAgoCCgIKAgoCAyLjggoCCgIKAgoCCgMTYzMi4wCj4goDU3MTUw
-MDAwMCCgIKAgoCCgIDczLjkgJSCgIKAgoCCgIKAgoDEzLjYgoCCgIKAgoCCgMjEzNC42Cj4goDU3
-ODUwMDAwMCCgIKAgoCCgIDcyLjcgJSCgIKAgoCCgIKAgoDU4LjIgoCCgIKAgoCCgNjM5My40Cj4K
-PiCgd2l0aCBwYXRjaC4gcGNpZSBkZXZpY2UgKGR2YjEpIHBjaWlkIGRiNzg6MThhYwo+IKBGcmVx
-dWVuY3kgoCCgIKAgU2lnbmFsIKAgoCCgIKAgoEJlciCgIKAgoCCgIKAgoCBVbmMKPiCgPT09PT09
-PT09IKAgoCCgID09PT09PT09IKAgoCCgIKA9PT09PT09PSCgIKAgoCCgPT09PT09PT0KPiCgMTc3
-NTAwMDAwIKAgoCCgIKAgNzMuMiAlIKAgoCCgIKAgoCCgIDQuMCCgIKAgoCCgIKAgoCAwLjAKPiCg
-MTkxNjI1MDAwIKAgoCCgIKAgNzQuMCAlIKAgoCCgIKAgoCCgMzcuMCCgIKAgoCCgIKAgoCAwLjAK
-PiCgMjE5NTAwMDAwIKAgoCCgIKAgNzMuOSAlIKAgoCCgIKAgoCCgIDAuMCCgIKAgoCCgIKAgoCAw
-LjAKPiCgMjI2NTAwMDAwIKAgoCCgIKAgNzMuMCAlIKAgoCCgIKAgoCCgIDQuNiCgIKAgoCCgIKAg
-oCAwLjAKPiCgNTcxNTAwMDAwIKAgoCCgIKAgNzQuMiAlIKAgoCCgIKAgoCCgNzYuNyCgIKAgoCCg
-IKAgMTkzLjYKPiCgNTc4NTAwMDAwIKAgoCCgIKAgNzIuOCAlIKAgoCCgIKAgoCAyMTMuOCCgIKAg
-oCCgIKA0NDgwLjMKPgo+Cj4goCogMi42LjMxLTE0LWdlbmVyaWMgKyB2NGwgKDE5YzA0NjljMDJj
-MysgdGlwKQo+IKBIYXJkIHRvIHNheSBpZiBJJ20gc2VlaW5nIGFuIGltcHJvdmVtZW50Lgo+Cj4g
-YmVmb3JlIHBhdGNoaW5nIC0gYWRhcHRlcjAgdXNiaWQgZGI3ODowZmU5Cj4gRnJlcXVlbmN5IKAg
-oCCgIFNpZ25hbCCgIKAgoCCgIKBCZXIgoCCgIKAgoCCgIKAgVW5jCj4gPT09PT09PT09IKAgoCCg
-ID09PT09PT09IKAgoCCgIKA9PT09PT09PSCgIKAgoCCgPT09PT09PT0KPiAxNzc1MDAwMDAgoCCg
-IKAgoCA3NS41ICUgoCCgIKAgoCCgIDI5My43IKAgoCCgIKAgoDE5MjYuNAo+IDE5MTYyNTAwMCCg
-IKAgoCCgIDc1LjkgJSCgIKAgoCCgIKAgMzYzLjIgoCCgIKAgoCCgMjk5My4zCj4gMjE5NTAwMDAw
-IKAgoCCgIKAgNzYuNyAlIKAgoCCgIKAgoCAzMDQuNSCgIKAgoCCgIKA0MjI1LjgKPiAyMjY1MDAw
-MDAgoCCgIKAgoCA3Ni45ICUgoCCgIKAgoCCgIDIyMy44IKAgoCCgIKAgoDYxNTMuMwo+IDU3MTUw
-MDAwMCCgIKAgoCCgIDc3LjAgJSCgIKAgoCCgIKAgNDkxLjcgoCCgIKAgoCCgODcyNi4wCj4gNTc4
-NTAwMDAwIKAgoCCgIKAgNzcuMSAlIKAgoCCgIKAgoCA1NTguOSCgIKAgoCCgIDExNzg3LjEKPgo+
-IGFkYXB0ZXIwIHJlcGVhdCB1c2JpZCBkYjc4OjBmZTkgKG5vdCBzdXJlIHdoYXQgaGFwcGVuZWQg
-dG8gVU5DIGhlcmUuLikKPiBGcmVxdWVuY3kgoCCgIKAgU2lnbmFsIKAgoCCgIKAgoEJlciCgIKAg
-oCCgIKAgoCBVbmMKPiA9PT09PT09PT0goCCgIKAgPT09PT09PT0goCCgIKAgoD09PT09PT09IKAg
-oCCgIKA9PT09PT09PQo+IDE3NzUwMDAwMCCgIKAgoCCgIDc1LjkgJSCgIKAgoCCgIKAgMzI3Ljkg
-oCCgIKAgoCAxMzg5My42Cj4gMTkxNjI1MDAwIKAgoCCgIKAgNzYuMCAlIKAgoCCgIKAgoCAzOTIu
-OCCgIKAgoCCgIDE0OTM5LjAKPiAyMTk1MDAwMDAgoCCgIKAgoCA3Ni43ICUgoCCgIKAgoCCgIDI1
-Mi4wIKAgoCCgIKAgMTYwNTIuMAo+IDIyNjUwMDAwMCCgIKAgoCCgIDc2LjggJSCgIKAgoCCgIKAg
-MjU0LjAgoCCgIKAgoCAxODA2My4xCj4gNTcxNTAwMDAwIKAgoCCgIKAgNzYuOSAlIKAgoCCgIKAg
-oCA1MzMuMiCgIKAgoCCgIDIwNjQ0LjEKPiA1Nzg1MDAwMDAgoCCgIKAgoCA3Ni45ICUgoCCgIKAg
-oCCgIDQ2NC4xIKAgoCCgIKAgMjM4MzYuOAo+Cj4gYWZ0ZXIgcGF0Y2hpbmcgLSBhZGFwdGVyMCB1
-c2JpZCBkYjc4OjBmZTkKPiBGcmVxdWVuY3kgoCCgIKAgU2lnbmFsIKAgoCCgIKAgoEJlciCgIKAg
-oCCgIKAgoCBVbmMKPiA9PT09PT09PT0goCCgIKAgPT09PT09PT0goCCgIKAgoD09PT09PT09IKAg
-oCCgIKA9PT09PT09PQo+IDE3NzUwMDAwMCCgIKAgoCCgIDc2LjMgJSCgIKAgoCCgIKAgoCAyLjUg
-oCCgIKAgoCCgIKAgMC4wCj4gMTkxNjI1MDAwIKAgoCCgIKAgNzYuOCAlIKAgoCCgIKAgoCAyMjcu
-NiCgIKAgoCCgIKAgMTE5LjAKPiAyMTk1MDAwMDAgoCCgIKAgoCA3Ni44ICUgoCCgIKAgoCCgIDI2
-Mi42IKAgoCCgIKAgoCA2MDQuNQo+IDIyNjUwMDAwMCCgIKAgoCCgIDc2LjggJSCgIKAgoCCgIKAg
-MjgyLjcgoCCgIKAgoCCgMTU0NS40Cj4gNTcxNTAwMDAwIKAgoCCgIKAgNzcuMCAlIKAgoCCgIKAg
-oCA0ODYuOCCgIKAgoCCgIKAzNTQxLjcKPiA1Nzg1MDAwMDAgoCCgIKAgoCA3Ny4xICUgoCCgIKAg
-oCCgIDUyMS41IKAgoCCgIKAgoDY1MzcuNwo+Cj4KPiBiZWZvcmUgcGF0Y2hpbmcgLSBhZGFwdGVy
-MSBwY2lpZCBkYjc4OjE4YWMKPiBGcmVxdWVuY3kgoCCgIKAgU2lnbmFsIKAgoCCgIKAgoEJlciCg
-IKAgoCCgIKAgoCBVbmMKPiA9PT09PT09PT0goCCgIKAgPT09PT09PT0goCCgIKAgoD09PT09PT09
-IKAgoCCgIKA9PT09PT09PQo+IDE3NzUwMDAwMCCgIKAgoCCgIDcwLjkgJSCgIKAgoCCgIKAgoCAw
-LjAgoCCgIKAgoCCgIKAgMC4wCj4gMTkxNjI1MDAwIKAgoCCgIKAgNjkuOCAlIKAgoCCgIKAgoCCg
-IDIuNyCgIKAgoCCgIKAgoCAwLjAKPiAyMTk1MDAwMDAgoCCgIKAgoCA3My4yICUgoCCgIKAgoCCg
-IKAgNC4xIKAgoCCgIKAgoCCgIDAuMAo+IDIyNjUwMDAwMCCgIKAgoCCgIDczLjQgJSCgIKAgoCCg
-IKAgoCA0LjUgoCCgIKAgoCCgIKAgMC4wCj4gNTcxNTAwMDAwIKAgoCCgIKAgNzQuMCAlIKAgoCCg
-IKAgoCCgIDAuMCCgIKAgoCCgIKAgoCAwLjAKPiA1Nzg1MDAwMDAgoCCgIKAgoCA3Mi4zICUgoCCg
-IKAgoCCgIDEyNS43IKAgoCCgIKAgoDM1ODkuMwo+Cj4gYWZ0ZXIgcGF0Y2hpbmcgLSBhZGFwdGVy
-MiBwY2lpZCCgZGI3ODoxOGFjIKAoZW51bWVyYXRpb24gb3JkZXIgY2hhbmdlZCkKPiBGcmVxdWVu
-Y3kgoCCgIKAgU2lnbmFsIKAgoCCgIKAgoEJlciCgIKAgoCCgIKAgoCBVbmMKPiA9PT09PT09PT0g
-oCCgIKAgPT09PT09PT0goCCgIKAgoD09PT09PT09IKAgoCCgIKA9PT09PT09PQo+IDE3NzUwMDAw
-MCCgIKAgoCCgIDczLjYgJSCgIKAgoCCgIKAgoCAwLjYgoCCgIKAgoCCgIKAgMC4wCj4gMTkxNjI1
-MDAwIKAgoCCgIKAgNzQuMiAlIKAgoCCgIKAgoCCgIDAuMCCgIKAgoCCgIKAgoCAwLjAKPiAyMTk1
-MDAwMDAgoCCgIKAgoCA3NC4wICUgoCCgIKAgoCCgIKAgNC45IKAgoCCgIKAgoCCgIDAuMAo+IDIy
-NjUwMDAwMCCgIKAgoCCgIDczLjMgJSCgIKAgoCCgIKAgMTYzLjIgoCCgIKAgoCCgIDM0OS43Cj4g
-NTcxNTAwMDAwIKAgoCCgIKAgNzQuNCAlIKAgoCCgIKAgoCAyNjcuMCCgIKAgoCCgIKAxMDE0LjYK
-PiA1Nzg1MDAwMDAgoCCgIKAgoCA3Mi43ICUgoCCgIKAgoCCgIKA3MC43IKAgoCCgIKAgoDQ5MDYu
-MAoKVGhlIHN0YXRzIGFib3ZlIHN1Z2dlc3QgdGhhdCByZXZlcnRpbmcgdGhlIHBhdGNoIGluIHF1
-ZXN0aW9uCnNpZ25pZmljYW50bHkgcmVkdWNlcyB0aGUgaW5zdGFuY2VzIG9mIHVuY29ycmVjdGFi
-bGUgZXJyb3JzLgoKSXQgbG9va3MgbGlrZSBpbmRlZWQgdGhhdCBhIHJlZ3Jlc3Npb24gd2FzIGlu
-dHJvZHVjZWQuCgpNYXVybywgYW55IHRob3VnaHRzIG9uIHRoaXM/ICBJIGhhZCBoZWFyZCB0aGlu
-Z3MgZnJvbSBhIGNvdXBsZSBvZgpvdGhlciB6bDEwMzUzL3hjMzAyOCB1c2VycyB0aGF0IHRoZSB0
-dW5pbmcgcGVyZm9ybWFuY2Ugd2FzIHByZXR0eQpjcmFwcHkgY29tcGFyZWQgdG8gdGhlIG1yZWMg
-eGMzMDI4IGRyaXZlci4gIFRoaXMgY291bGQgZGVmaW5pdGVseSBiZQp0aGUgY2F1c2UuCgpEZXZp
-bgoKLS0gCkRldmluIEouIEhlaXRtdWVsbGVyIC0gS2VybmVsIExhYnMKaHR0cDovL3d3dy5rZXJu
-ZWxsYWJzLmNvbQo=
+Limit event queue length to V4L2_MAX_EVENTS. If the queue is full any
+further events will be dropped.
+
+This patch also updates the count field properly, setting it to exactly to
+number of further available events.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/v4l2-event.c |   10 +++++++++-
+ include/media/v4l2-event.h       |    5 +++++
+ 2 files changed, 14 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+index 9fc0c81..72fdf7f 100644
+--- a/drivers/media/video/v4l2-event.c
++++ b/drivers/media/video/v4l2-event.c
+@@ -56,6 +56,8 @@ void v4l2_event_init_fh(struct v4l2_fh *fh)
+ 
+ 	INIT_LIST_HEAD(&events->available);
+ 	INIT_LIST_HEAD(&events->subscribed);
++
++	atomic_set(&events->navailable, 0);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_event_init_fh);
+ 
+@@ -103,7 +105,8 @@ int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
+ 	ev = list_first_entry(&events->available, struct _v4l2_event, list);
+ 	list_del(&ev->list);
+ 
+-	ev->event.count = !list_empty(&events->available);
++	atomic_dec(&events->navailable);
++	ev->event.count = atomic_read(&events->navailable);
+ 
+ 	spin_unlock_irqrestore(&events->lock, flags);
+ 
+@@ -159,6 +162,9 @@ void v4l2_event_queue(struct video_device *vdev, struct v4l2_event *ev)
+ 		if (!v4l2_event_subscribed(fh, ev->type))
+ 			continue;
+ 
++		if (atomic_read(&fh->events.navailable) >= V4L2_MAX_EVENTS)
++			continue;
++
+ 		_ev = kmem_cache_alloc(event_kmem, GFP_ATOMIC);
+ 		if (!_ev)
+ 			continue;
+@@ -169,6 +175,8 @@ void v4l2_event_queue(struct video_device *vdev, struct v4l2_event *ev)
+ 		list_add_tail(&_ev->list, &fh->events.available);
+ 		spin_unlock(&fh->events.lock);
+ 
++		atomic_inc(&fh->events.navailable);
++
+ 		wake_up_all(&fh->events.wait);
+ 	}
+ 
+diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+index b11de92..69305c6 100644
+--- a/include/media/v4l2-event.h
++++ b/include/media/v4l2-event.h
+@@ -28,6 +28,10 @@
+ #include <linux/types.h>
+ #include <linux/videodev2.h>
+ 
++#include <asm/atomic.h>
++
++#define V4L2_MAX_EVENTS		1024 /* Ought to be enough for everyone. */
++
+ struct v4l2_fh;
+ struct video_device;
+ 
+@@ -39,6 +43,7 @@ struct _v4l2_event {
+ struct v4l2_events {
+ 	spinlock_t		lock; /* Protect everything here. */
+ 	struct list_head	available;
++	atomic_t		navailable;
+ 	wait_queue_head_t	wait;
+ 	struct list_head	subscribed; /* Subscribed events. */
+ };
+-- 
+1.5.6.5
+
