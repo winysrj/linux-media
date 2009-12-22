@@ -1,70 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.navvo.net ([74.208.67.6]:58166 "EHLO mail.navvo.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932842AbZLGUOl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Dec 2009 15:14:41 -0500
-Message-ID: <4B1D6233.1040704@ridgerun.com>
-Date: Mon, 07 Dec 2009 14:14:43 -0600
-From: Santiago Nunez-Corrales <snunez@ridgerun.com>
-Reply-To: santiago.nunez@ridgerun.com
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42822 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751964AbZLVAV6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Dec 2009 19:21:58 -0500
+Message-Id: <200912220021.nBM0LlPG004934@imap1.linux-foundation.org>
+Subject: [patch 2/3] proc_fops: convert av7110
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
+	adobriyan@gmail.com
+From: akpm@linux-foundation.org
+Date: Mon, 21 Dec 2009 16:21:47 -0800
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"Narnakaje, Snehaprabha" <nsnehaprabha@ti.com>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"Grosen, Mark" <mgrosen@ti.com>,
-	Diego Dompe <diego.dompe@ridgerun.com>,
-	"todd.fischer@ridgerun.com" <todd.fischer@ridgerun.com>
-References: <4B13E9EB.8020309@ridgerun.com>
-In-Reply-To: <4B13E9EB.8020309@ridgerun.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: Re: [PATCH 0/4 v11] Support for TVP7002 in DM365
+Content-Type: text/plain; charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans,
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
+Drop S_IRUGO, proc entry doesn't contain read hooks.
+Drop S_IFREG, simply unnecessary.
 
-Hi. Have you had a chance to look at this version of the driver?
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Regards,
+ drivers/media/dvb/ttpci/av7110_ir.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-
-Santiago.
-
-Santiago Nunez-Corrales wrote:
-> This series of patches provide support for the TVP7002 decoder in DM365.
->
-> Support includes:
->
-> * Inclusion of the chip in v4l2 definitions
-> * Definition of TVP7002 specific data structures
-> * Kconfig and Makefile support
->
-> This series corrects many issued pointed out by Snehaprabha Narnakaje,
-> Muralidharan Karicheri, Vaibhav Hiremath and Hans Verkuil and solves
-> testing problems.  Tested on DM365 TI EVM with resolutions 720p,
-> 1080i@60, 576P and 480P with video capture application and video
-> output in 480P, 576P, 720P and 1080I. This driver depends upon
-> board-dm365-evm.c and vpfe_capture.c to be ready for complete
-> integration. Uses the new V4L2 DV API sent by Muralidharan Karicheri.
-> Removed shadow register values. Removed unnecesary power down and up
-> of the device (tests work fine). Improved readability.
->
->
-
-
--- 
-Santiago Nunez-Corrales, Eng.
-RidgeRun Engineering, LLC
-
-Guayabos, Curridabat
-San Jose, Costa Rica
-+(506) 2271 1487
-+(506) 8313 0536
-http://www.ridgerun.com
-
-
+diff -puN drivers/media/dvb/ttpci/av7110_ir.c~proc_fops-convert-av7110 drivers/media/dvb/ttpci/av7110_ir.c
+--- a/drivers/media/dvb/ttpci/av7110_ir.c~proc_fops-convert-av7110
++++ a/drivers/media/dvb/ttpci/av7110_ir.c
+@@ -268,8 +268,8 @@ int av7110_check_ir_config(struct av7110
+ 
+ 
+ /* /proc/av7110_ir interface */
+-static int av7110_ir_write_proc(struct file *file, const char __user *buffer,
+-				unsigned long count, void *data)
++static ssize_t av7110_ir_proc_write(struct file *file, const char __user *buffer,
++				    size_t count, loff_t *pos)
+ {
+ 	char *page;
+ 	u32 ir_config;
+@@ -309,6 +309,10 @@ static int av7110_ir_write_proc(struct f
+ 	return count;
+ }
+ 
++static const struct file_operations av7110_ir_proc_fops = {
++	.owner		= THIS_MODULE,
++	.write		= av7110_ir_proc_write,
++};
+ 
+ /* interrupt handler */
+ static void ir_handler(struct av7110 *av7110, u32 ircom)
+@@ -368,11 +372,9 @@ int __devinit av7110_ir_init(struct av71
+ 	input_dev->timer.data = (unsigned long) &av7110->ir;
+ 
+ 	if (av_cnt == 1) {
+-		e = create_proc_entry("av7110_ir", S_IFREG | S_IRUGO | S_IWUSR, NULL);
+-		if (e) {
+-			e->write_proc = av7110_ir_write_proc;
++		e = proc_create("av7110_ir", S_IWUSR, NULL, &av7110_ir_proc_fops);
++		if (e)
+ 			e->size = 4 + 256 * sizeof(u16);
+-		}
+ 	}
+ 
+ 	tasklet_init(&av7110->ir.ir_tasklet, av7110_emit_key, (unsigned long) &av7110->ir);
+_
