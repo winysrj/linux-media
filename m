@@ -1,36 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.26]:32098 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754127AbZLUAvW (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:55928 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755434AbZLWKI4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Dec 2009 19:51:22 -0500
-Received: by ey-out-2122.google.com with SMTP id d26so1218635eyd.19
-        for <linux-media@vger.kernel.org>; Sun, 20 Dec 2009 16:51:20 -0800 (PST)
-MIME-Version: 1.0
-Date: Mon, 21 Dec 2009 00:51:20 +0000
-Message-ID: <74fd948d0912201651w60a48ba2vd8e0ac8fb80d18c1@mail.gmail.com>
-Subject: does anyone recommend Hauppauge WinTV-NOVA-T USB 2.0?
-From: Pedro Ribeiro <pedrib@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Wed, 23 Dec 2009 05:08:56 -0500
+Date: Wed, 23 Dec 2009 11:08:50 +0100
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: [PATCH 0/2] [ARM] Add Samsung S3C/S5P image rotator driver
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com
+Message-id: <1261562933-26987-1-git-send-email-p.osciak@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hello,
 
-I want to buy a cheap card for watching DVB-T in the UK. Currently,
-Amazon and others offer the Hauppauge WinTV-NOVA-T USB 2.0 for only 30
-pounds including delivery, so its very tempting.
+this is a driver for Samsung S3C/S5P series image rotator device driver.
+This driver utilizes the proposed memory-to-memory V4L2 framework, just posted
+by me in the previous patch series.
 
-This device is listed as supported in the v4l-Wiki, but I want a real
-recommendation by someone who uses it regularly. So if you have this
-card, do you recommend it?
-
-I don't care about HDTV, I just want good signal quality (yes I know
-that depends more on the aerial) on a cheap USB card.
-
-Also a working remote control is very important to me.
+An example application for testing the device is also included.
 
 
-Thanks,
-Pedro
+This series contains:
+
+[PATCH 1/2] [ARM] samsung-rotator: Add rotator device platform definitions.
+[PATCH 2/2] [ARM] samsung-rotator: Add Samsung S3C/S5P rotator driver
+[EXAMPLE] S3C/S5P image rotator test application
+
+
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
