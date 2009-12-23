@@ -1,192 +1,475 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:43557 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754446AbZLDWP7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2009 17:15:59 -0500
-Received: by bwz27 with SMTP id 27so2315992bwz.21
-        for <linux-media@vger.kernel.org>; Fri, 04 Dec 2009 14:16:04 -0800 (PST)
-MIME-Version: 1.0
-From: John S Gruber <johnsgruber@gmail.com>
-Date: Fri, 4 Dec 2009 17:15:44 -0500
-Message-ID: <44c6f3de0912041415r54d8ab6fq486f2a82edb91a68@mail.gmail.com>
-Subject: [PATCH] sound/usb: Relax urb data alignment restriciton for HVR-950Q
-	only
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:36343 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755368AbZLWNRu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Dec 2009 08:17:50 -0500
+Date: Wed, 23 Dec 2009 14:17:35 +0100
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: [EXAMPLE v2] Mem-to-mem userspace test application.
+In-reply-to: <1261574255-23386-1-git-send-email-p.osciak@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com
+Message-id: <1261574255-23386-4-git-send-email-p.osciak@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1261574255-23386-1-git-send-email-p.osciak@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Addressing audio quality problem.
+This is an example application for testing mem-to-mem framework using
+mem2mem-testdev device.
 
-In sound/usb/usbaudio.c, for the Hauppage HVR-950Q only, change
-retire_capture_urb to copy the entire byte stream while still counting
-entire audio frames. urbs unaligned on channel sample boundaries are
-still truncated to the next lowest stride (audio slot) size to try to
-retain channel alignment in cases of data loss over usb.
+It is intended to be executed multiple times in parallel to test multi-instance
+operation and scheduling. Each process can be configured differently using
+command-line arguments.
 
-With the HVR950Q the left and right channel samples can be split between
-two different urbs. Throwing away extra channel samples causes a sound
-quality problem for stereo streams as the left and right channels are
-swapped repeatedly.
+The application opens video test device and framebuffer, sets up params,
+queues src/dst buffers and displays processed results on the framebuffer.
 
-	modified:   sound/usb/usbaudio.c
+Configurable parameters: starting point on the framebuffer, width/height of
+buffers, transaction length (in buffers), transaction duration, total number
+of frames to be processed.
 
-Signed-off-by: John S. Gruber <JohnSGruber@gmail.com>
+
+Tested on a 800x480 framebuffer with the following script:
+
+#!/bin/bash
+for i in {0..3}
+do
+    ((x=$i * 100))
+    ./process-vmalloc 0 $(($i + 1)) $((2000 - $i * 500)) $((($i+1) * 4)) \
+        $x $x 100 100 &
+done
+
+
+Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+Reviewed-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- sound/usb/usbaudio.c |   45 +++++++++++++++++++++++++++++++++++----------
- 1 files changed, 35 insertions(+), 10 deletions(-)
 
-diff --git a/sound/usb/usbaudio.c b/sound/usb/usbaudio.c
-index 44b9cdc..64d9d3a 100644
---- a/sound/usb/usbaudio.c
-+++ b/sound/usb/usbaudio.c
-@@ -107,8 +107,9 @@ MODULE_PARM_DESC(ignore_ctl_error,
- #define MAX_PACKS_HS	(MAX_PACKS * 8)	/* in high speed mode */
- #define MAX_URBS	8
- #define SYNC_URBS	4	/* always four urbs for sync */
- #define MAX_QUEUE	24	/* try not to exceed this queue length, in ms */
-+#define ALLOW_SUBSLOT_BOUNDARIES 0x01	/* quirk */
-
- struct audioformat {
- 	struct list_head list;
- 	snd_pcm_format_t format;	/* format type */
-@@ -126,8 +127,9 @@ struct audioformat {
- 	unsigned int rates;		/* rate bitmasks */
- 	unsigned int rate_min, rate_max;	/* min/max rates */
- 	unsigned int nr_rates;		/* number of rate table entries */
- 	unsigned int *rate_table;	/* rate table */
-+	unsigned int txfr_quirks;	/* transfer quirks */
- };
-
- struct snd_usb_substream;
-
-@@ -174,8 +176,11 @@ struct snd_usb_substream {
-
- 	unsigned int running: 1;	/* running status */
-
- 	unsigned int hwptr_done;			/* processed frame position in the buffer */
-+	unsigned int byteptr;		/* position, in bytes, of next move */
-+	unsigned int remainder;		/* extra bytes moved to buffer */
-+	unsigned int txfr_quirks;		/* substream transfer quirks */
- 	unsigned int transfer_done;		/* processed frames since last period update */
- 	unsigned long active_mask;	/* bitmask of active urbs */
- 	unsigned long unlink_mask;	/* bitmask of unlinked urbs */
-
-@@ -342,9 +347,9 @@ static int retire_capture_urb(struct
-snd_usb_substream *subs,
- {
- 	unsigned long flags;
- 	unsigned char *cp;
- 	int i;
--	unsigned int stride, len, oldptr;
-+	unsigned int stride, len, bytelen, oldbyteptr;
- 	int period_elapsed = 0;
-
- 	stride = runtime->frame_bits >> 3;
-
-@@ -353,31 +358,44 @@ static int retire_capture_urb(struct
-snd_usb_substream *subs,
- 		if (urb->iso_frame_desc[i].status) {
- 			snd_printd(KERN_ERR "frame %d active: %d\n", i,
-urb->iso_frame_desc[i].status);
- 			// continue;
- 		}
--		len = urb->iso_frame_desc[i].actual_length / stride;
--		if (! len)
-+		bytelen = (urb->iso_frame_desc[i].actual_length);
-+		if (!bytelen)
- 			continue;
-+		if (!(subs->txfr_quirks & ALLOW_SUBSLOT_BOUNDARIES))
-+			bytelen = (bytelen/stride)*stride;
-+		if (bytelen%(runtime->sample_bits>>3) != 0) {
-+			int oldbytelen = bytelen;
-+			bytelen = ((bytelen/stride)*stride);
-+			printk(KERN_DEBUG "Corrected urb data len. %d -> %d\n",
-+				oldbytelen, bytelen);
+--- /dev/null	2009-11-17 07:51:25.574927259 +0100
++++ process-vmalloc.c	2009-11-26 11:00:26.000000000 +0100
+@@ -0,0 +1,420 @@
++/**
++ * process-vmalloc.c
++ * Capture+output (process) V4L2 device tester.
++ *
++ * Pawel Osciak, p.osciak@samsung.com
++ * 2009, Samsung Electronics Co., Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version
++ */
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <assert.h>
++#include <time.h>
++#include <errno.h>
++
++#include <fcntl.h>
++#include <unistd.h>
++#include <sys/ioctl.h>
++#include <sys/types.h>
++#include <stdint.h>
++
++#include <linux/fb.h>
++#include <linux/videodev2.h>
++
++#include <sys/mman.h>
++
++#define V4L2_CID_TRANS_TIME_MSEC        (V4L2_CID_PRIVATE_BASE)
++#define V4L2_CID_TRANS_NUM_BUFS         (V4L2_CID_PRIVATE_BASE + 1)
++
++#define VIDEO_DEV_NAME	"/dev/video0"
++#define FB_DEV_NAME	"/dev/fb0"
++#define NUM_BUFS	4
++#define NUM_FRAMES	16
++
++#define perror_exit(cond, func)\
++	if (cond) {\
++		fprintf(stderr, "%s:%d: ", __func__, __LINE__);\
++		perror(func);\
++		exit(EXIT_FAILURE);\
++	}
++
++#define error_exit(cond, func)\
++	if (cond) {\
++		fprintf(stderr, "%s:%d: failed\n", func, __LINE__);\
++		exit(EXIT_FAILURE);\
++	}
++
++#define perror_ret(cond, func)\
++	if (cond) {\
++		fprintf(stderr, "%s:%d: ", __func__, __LINE__);\
++		perror(func);\
++		return ret;\
++	}
++
++#define memzero(x)\
++	memset(&(x), 0, sizeof (x));
++
++#define PROCESS_DEBUG 1
++#ifdef PROCESS_DEBUG
++#define debug(msg, ...)\
++	fprintf(stderr, "%s: " msg, __func__, ##__VA_ARGS__);
++#else
++#define debug(msg, ...)
++#endif
++
++static int vid_fd, fb_fd;
++static void *fb_addr;
++static char *p_src_buf[NUM_BUFS], *p_dst_buf[NUM_BUFS];
++static size_t src_buf_size[NUM_BUFS], dst_buf_size[NUM_BUFS];
++static uint32_t num_src_bufs = 0, num_dst_bufs = 0;
++
++/* Command-line params */
++int initial_delay = 0;
++int fb_x, fb_y, width, height;
++int translen = 1;
++/* For displaying multi-buffer transaction simulations, indicates current
++ * buffer in an ongoing transaction */
++int curr_buf = 0;
++int transtime = 1000;
++int num_frames = 0;
++off_t fb_off, fb_line_w, fb_buf_w;
++struct fb_var_screeninfo fbinfo;
++
++static void init_video_dev(void)
++{
++	int ret;
++	struct v4l2_capability cap;
++	struct v4l2_format fmt;
++	struct v4l2_control ctrl;
++
++	vid_fd = open(VIDEO_DEV_NAME, O_RDWR | O_NONBLOCK, 0);
++	perror_exit(vid_fd < 0, "open");
++
++	ctrl.id = V4L2_CID_TRANS_TIME_MSEC;
++	ctrl.value = transtime;
++	ret = ioctl(vid_fd, VIDIOC_S_CTRL, &ctrl);
++	perror_exit(ret != 0, "ioctl");
++
++	ctrl.id = V4L2_CID_TRANS_NUM_BUFS;
++	ctrl.value = translen;
++	ret = ioctl(vid_fd, VIDIOC_S_CTRL, &ctrl);
++	perror_exit(ret != 0, "ioctl");
++
++	ret = ioctl(vid_fd, VIDIOC_QUERYCAP, &cap);
++	perror_exit(ret != 0, "ioctl");
++
++	if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)) {
++		fprintf(stderr, "Device does not support capture\n");
++		exit(EXIT_FAILURE);
++	}
++	if (!(cap.capabilities & V4L2_CAP_VIDEO_OUTPUT)) {
++		fprintf(stderr, "Device does not support output\n");
++		exit(EXIT_FAILURE);
++	}
++
++	/* Set format for capture */
++	fmt.type		= V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	fmt.fmt.pix.width	= width;
++	fmt.fmt.pix.height	= height;
++	fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565X;
++	fmt.fmt.pix.field	= V4L2_FIELD_ANY;
++
++	ret = ioctl(vid_fd, VIDIOC_S_FMT, &fmt);
++	perror_exit(ret != 0, "ioctl");
++
++	/* The same format for output */
++	fmt.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
++	fmt.fmt.pix.width	= width;
++	fmt.fmt.pix.height	= height;
++	fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565X;
++	fmt.fmt.pix.field	= V4L2_FIELD_ANY;
++	
++	ret = ioctl(vid_fd, VIDIOC_S_FMT, &fmt);
++	perror_exit(ret != 0, "ioctl");
++}
++
++static void gen_src_buf(void *p, size_t size)
++{
++	uint8_t val;
++
++	val = rand() % 256;
++	memset(p, val, size);
++}
++
++static void gen_dst_buf(void *p, size_t size)
++{
++	/* White */
++	memset(p, 255, 0);
++}
++
++static int read_frame(int last)
++{
++	struct v4l2_buffer buf;
++	int ret;
++	int j;
++	char * p_fb = fb_addr + fb_off;
++
++	memzero(buf);
++
++	buf.type	= V4L2_BUF_TYPE_VIDEO_OUTPUT;
++	buf.memory	= V4L2_MEMORY_MMAP;
++
++	ret = ioctl(vid_fd, VIDIOC_DQBUF, &buf);
++	debug("Dequeued source buffer, index: %d\n", buf.index);
++	if (ret) {
++		switch (errno) {
++		case EAGAIN:
++			debug("Got EAGAIN\n");
++			return 0;
++
++		case EIO:
++			debug("Got EIO\n");
++			return 0;
++
++		default:
++			perror("ioctl");
++			return 0;
 +		}
- 		/* update the current pointer */
- 		spin_lock_irqsave(&subs->lock, flags);
--		oldptr = subs->hwptr_done;
-+		len = (bytelen + subs->remainder) / stride;
-+		subs->remainder = (bytelen + subs->remainder) % stride;
-+		oldbyteptr = subs->byteptr;
- 		subs->hwptr_done += len;
- 		if (subs->hwptr_done >= runtime->buffer_size)
- 			subs->hwptr_done -= runtime->buffer_size;
- 		subs->transfer_done += len;
- 		if (subs->transfer_done >= runtime->period_size) {
- 			subs->transfer_done -= runtime->period_size;
- 			period_elapsed = 1;
- 		}
-+		subs->byteptr += bytelen;
-+		if (subs->byteptr >= runtime->buffer_size*stride)
-+			subs->byteptr -= runtime->buffer_size*stride;
- 		spin_unlock_irqrestore(&subs->lock, flags);
- 		/* copy a data chunk */
--		if (oldptr + len > runtime->buffer_size) {
--			unsigned int cnt = runtime->buffer_size - oldptr;
--			unsigned int blen = cnt * stride;
--			memcpy(runtime->dma_area + oldptr * stride, cp, blen);
--			memcpy(runtime->dma_area, cp + blen, len * stride - blen);
-+		if ((oldbyteptr +  bytelen) > (runtime->buffer_size*stride)) {
-+			unsigned int blen;
-+			blen = (runtime->buffer_size*stride) - oldbyteptr;
-+			memcpy(runtime->dma_area + oldbyteptr, cp, blen);
-+			memcpy(runtime->dma_area, cp + blen,  bytelen - blen);
- 		} else {
--			memcpy(runtime->dma_area + oldptr * stride, cp, len * stride);
-+			memcpy(runtime->dma_area + oldbyteptr, cp, bytelen);
- 		}
- 	}
- 	if (period_elapsed)
- 		snd_pcm_period_elapsed(subs->pcm_substream);
-@@ -1360,8 +1378,9 @@ static int set_format(struct snd_usb_substream
-*subs, struct audioformat *fmt)
- 	subs->datainterval = fmt->datainterval;
- 	subs->syncpipe = subs->syncinterval = 0;
- 	subs->maxpacksize = fmt->maxpacksize;
- 	subs->fill_max = 0;
-+	subs->txfr_quirks = fmt->txfr_quirks;
-
- 	/* we need a sync pipe in async OUT or adaptive IN mode */
- 	/* check the number of EP, since some devices have broken
- 	 * descriptors which fool us.  if it has only one EP,
-@@ -1529,8 +1548,10 @@ static int snd_usb_pcm_prepare(struct
-snd_pcm_substream *substream)
-
- 	/* reset the pointer */
- 	subs->hwptr_done = 0;
- 	subs->transfer_done = 0;
-+	subs->remainder = 0;
-+	subs->byteptr = 0;
- 	subs->phase = 0;
- 	runtime->delay = 0;
-
- 	/* clear urbs (to be sure) */
-@@ -2773,8 +2794,9 @@ static int parse_audio_endpoints(struct
-snd_usb_audio *chip, int iface_no)
- 		if (snd_usb_get_speed(dev) == USB_SPEED_HIGH)
- 			fp->maxpacksize = (((fp->maxpacksize >> 11) & 3) + 1)
- 					* (fp->maxpacksize & 0x7ff);
- 		fp->attributes = csep ? csep[3] : 0;
-+		fp->txfr_quirks = 0;
-
- 		/* some quirks for attributes here */
-
- 		switch (chip->usb_id) {
-@@ -2801,8 +2823,11 @@ static int parse_audio_endpoints(struct
-snd_usb_audio *chip, int iface_no)
- 				fp->ep_attr |= EP_ATTR_ADAPTIVE;
- 			else
- 				fp->ep_attr |= EP_ATTR_SYNC;
- 			break;
-+		case USB_ID(0x2040, 0x7200): /* Hauppage hvr950Q */
-+			fp->txfr_quirks |= ALLOW_SUBSLOT_BOUNDARIES;
++	}
++
++	/* Verify we've got a correct buffer */
++	assert(buf.index < num_src_bufs);
++
++	/* Enqueue back the buffer (note that the index is preserved) */
++	if (!last) {
++		gen_src_buf(p_src_buf[buf.index], src_buf_size[buf.index]);
++		buf.type	= V4L2_BUF_TYPE_VIDEO_OUTPUT;
++		buf.memory	= V4L2_MEMORY_MMAP;
++		ret = ioctl(vid_fd, VIDIOC_QBUF, &buf);
++		perror_ret(ret != 0, "ioctl");
++	}
++
++
++	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++
++	debug("Dequeuing destination buffer\n");
++	ret = ioctl(vid_fd, VIDIOC_DQBUF, &buf);
++	if (ret) {
++		switch (errno) {
++		case EAGAIN:
++			debug("Got EAGAIN\n");
++			return 0;
++
++		case EIO:
++			debug("Got EIO\n");
++			return 0;
++
++		default:
++			perror("ioctl");
++			return 1;
++		}
++	}
++	debug("Dequeued dst buffer, index: %d\n", buf.index);
++	/* Verify we've got a correct buffer */
++	assert(buf.index < num_dst_bufs);
++
++	debug("Current buffer in the transaction: %d\n", curr_buf);
++	p_fb += curr_buf * (height / translen) * fb_line_w;
++	++curr_buf;
++	if (curr_buf >= translen)
++		curr_buf = 0;
++
++	/* Display results */
++	for (j = 0; j < height / translen; ++j) {
++		memcpy(p_fb, (void *)p_dst_buf[buf.index], fb_buf_w);
++		p_fb += fb_line_w;
++	}
++
++	/* Enqueue back the buffer */
++	if (!last) {
++		gen_dst_buf(p_dst_buf[buf.index], dst_buf_size[buf.index]);
++		ret = ioctl(vid_fd, VIDIOC_QBUF, &buf);
++		perror_ret(ret != 0, "ioctl");
++		debug("Enqueued back dst buffer\n");
++	}
++
++	return 0;
++}
++
++void init_usage(int argc, char *argv[])
++{
++	if (argc != 9) {
++		printf("Usage: %s initial_delay bufs_per_transaction "
++			"trans_length_msec num_frames fb_offset_x fb_offset_y "
++			"width height\n", argv[0]);
++		exit(EXIT_FAILURE);
++	}
++
++	initial_delay = atoi(argv[1]);
++	translen = atoi(argv[2]);
++	transtime = atoi(argv[3]);
++	num_frames = atoi(argv[4]);
++	fb_x = atoi(argv[5]);
++	fb_y = atoi(argv[6]);
++	width = atoi(argv[7]);
++	height = atoi(argv[8]);
++	debug("NEW PROCESS: fb_x: %d, fb_y: %d, width: %d, height: %d, "
++		"translen: %d, transtime: %d, num_frames: %d\n",
++		fb_x, fb_y, width, height, translen, transtime, num_frames);
++}
++
++void init_fb(void)
++{
++	int ret;
++	size_t map_size;
++
++	fb_fd = open(FB_DEV_NAME, O_RDWR, 0);
++	perror_exit(fb_fd < 0, "open");
++
++	ret = ioctl(fb_fd, FBIOGET_VSCREENINFO, &fbinfo);
++	perror_exit(ret != 0, "ioctl");
++	debug("fbinfo: xres: %d, xres_virt: %d, yres: %d, yres_virt: %d\n",
++		fbinfo.xres, fbinfo.xres_virtual,
++		fbinfo.yres, fbinfo.yres_virtual);
++
++	fb_line_w= fbinfo.xres_virtual * (fbinfo.bits_per_pixel >> 3);
++	fb_off = fb_y * fb_line_w + fb_x * (fbinfo.bits_per_pixel >> 3);
++	fb_buf_w = width * (fbinfo.bits_per_pixel >> 3);
++	map_size = fb_line_w * fbinfo.yres_virtual;
++
++	fb_addr = mmap(0, map_size, PROT_WRITE | PROT_READ,
++			MAP_SHARED, fb_fd, 0);
++	perror_exit(fb_addr == MAP_FAILED, "mmap");
++}
++
++int main(int argc, char *argv[])
++{
++	int ret = 0;
++	int i;
++	struct v4l2_buffer buf;
++	struct v4l2_requestbuffers reqbuf;
++	enum v4l2_buf_type type;
++	int last = 0;
++
++	init_usage(argc, argv);
++	init_fb();
++
++	srand(time(NULL) ^ getpid());
++	sleep(initial_delay);
++
++	init_video_dev();
++
++	memzero(reqbuf);
++	reqbuf.count	= NUM_BUFS;
++	reqbuf.type	= V4L2_BUF_TYPE_VIDEO_OUTPUT;
++	type		= V4L2_BUF_TYPE_VIDEO_OUTPUT;
++	reqbuf.memory	= V4L2_MEMORY_MMAP;
++	ret = ioctl(vid_fd, VIDIOC_REQBUFS, &reqbuf);
++	perror_exit(ret != 0, "ioctl");
++	num_src_bufs = reqbuf.count;
++	debug("Got %d src buffers\n", num_src_bufs);
++
++	reqbuf.count	= NUM_BUFS;
++	reqbuf.type	= V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	type		= V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	ret = ioctl(vid_fd, VIDIOC_REQBUFS, &reqbuf);
++	perror_exit(ret != 0, "ioctl");
++	num_dst_bufs = reqbuf.count;
++	debug("Got %d dst buffers\n", num_dst_bufs);
++
++	for (i = 0; i < num_src_bufs; ++i) {
++		buf.type	= V4L2_BUF_TYPE_VIDEO_OUTPUT;
++		buf.memory	= V4L2_MEMORY_MMAP;
++		buf.index	= i;
++
++		ret = ioctl(vid_fd, VIDIOC_QUERYBUF, &buf);
++		perror_exit(ret != 0, "ioctl");
++		debug("QUERYBUF returned offset: %x\n", buf.m.offset);
++
++		src_buf_size[i] = buf.length;
++		p_src_buf[i] = mmap(NULL, buf.length,
++				    PROT_READ | PROT_WRITE, MAP_SHARED,
++				    vid_fd, buf.m.offset);
++		perror_exit(MAP_FAILED == p_src_buf[i], "mmap");
++	}
++
++	for (i = 0; i < num_dst_bufs; ++i) {
++		buf.type	= V4L2_BUF_TYPE_VIDEO_CAPTURE;
++		buf.memory	= V4L2_MEMORY_MMAP;
++		buf.index	= i;
++
++		ret = ioctl(vid_fd, VIDIOC_QUERYBUF, &buf);
++		perror_exit(ret != 0, "ioctl");
++		debug("QUERYBUF returned offset: %x\n", buf.m.offset);
++
++		dst_buf_size[i] = buf.length;
++		p_dst_buf[i] = mmap(NULL, buf.length,
++				    PROT_READ | PROT_WRITE, MAP_SHARED,
++				    vid_fd, buf.m.offset);
++		perror_exit(MAP_FAILED == p_dst_buf[i], "mmap");
++	}
++
++	for (i = 0; i < num_src_bufs; ++i) {
++
++		gen_src_buf(p_src_buf[i], src_buf_size[i]);
++
++		memzero(buf);
++		buf.type	= V4L2_BUF_TYPE_VIDEO_OUTPUT;
++		buf.memory	= V4L2_MEMORY_MMAP;
++		buf.index	= i;
++
++		ret = ioctl(vid_fd, VIDIOC_QBUF, &buf);
++		perror_exit(ret != 0, "ioctl");
++	}
++
++	for (i = 0; i < num_dst_bufs; ++i) {
++		memzero(buf);
++		buf.type	= V4L2_BUF_TYPE_VIDEO_CAPTURE;
++		buf.memory	= V4L2_MEMORY_MMAP;
++		buf.index	= i;
++
++		ret = ioctl(vid_fd, VIDIOC_QBUF, &buf);
++		perror_exit(ret != 0, "ioctl");
++	}
++
++	ret = ioctl(vid_fd, VIDIOC_STREAMON, &type);
++	debug("STREAMON (%d): %d\n", VIDIOC_STREAMON, ret);
++	perror_exit(ret != 0, "ioctl");
++
++	while (num_frames) {
++		fd_set read_fds;
++		int r;
++
++		FD_ZERO(&read_fds);
++		FD_SET(vid_fd, &read_fds);
++
++		debug("Before select");
++		r = select(vid_fd + 1, &read_fds, NULL, NULL, 0);
++		perror_exit(r < 0, "select");
++		debug("After select");
++
++		if (num_frames == 1)
++			last = 1;
++		if (read_frame(last)) {
++			fprintf(stderr, "Read frame failed\n");
 +			break;
- 		}
-
- 		/* ok, let's parse further... */
- 		if (parse_audio_format(chip, fp, format, fmt, stream) < 0) {
--- 
-1.6.3.3
++		}
++		--num_frames;
++		printf("FRAMES LEFT: %d\n", num_frames);
++	}
++
++
++done:
++	close(vid_fd);
++	close(fb_fd);
++
++	for (i = 0; i < num_src_bufs; ++i)
++		munmap(p_src_buf[i], src_buf_size[i]);
++
++	for (i = 0; i < num_dst_bufs; ++i)
++		munmap(p_dst_buf[i], dst_buf_size[i]);
++
++	return ret;
++}
++
