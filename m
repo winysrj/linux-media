@@ -1,419 +1,491 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:23146 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755545AbZLWKJB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Dec 2009 05:09:01 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Wed, 23 Dec 2009 11:08:53 +0100
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: [EXAMPLE] S3C/S5P image rotator test application
-In-reply-to: <1261562933-26987-1-git-send-email-p.osciak@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com
-Message-id: <1261562933-26987-4-git-send-email-p.osciak@samsung.com>
-References: <1261562933-26987-1-git-send-email-p.osciak@samsung.com>
+Received: from mail1.radix.net ([207.192.128.31]:49040 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751045AbZLWBCA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Dec 2009 20:02:00 -0500
+Subject: Re: [RFC v2 4/7] V4L: Events: Add backend
+From: Andy Walls <awalls@radix.net>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	iivanov@mm-sol.com, hverkuil@xs4all.nl, gururaj.nagendra@intel.com
+In-Reply-To: <1261500191-9441-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+References: <4B30F713.8070004@maxwell.research.nokia.com>
+	 <1261500191-9441-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+	 <1261500191-9441-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+	 <1261500191-9441-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+	 <1261500191-9441-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+Content-Type: text/plain
+Date: Tue, 22 Dec 2009 20:01:02 -0500
+Message-Id: <1261530062.3161.29.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an example application for testing the S3C/S5P rotator device.
-It uses framebuffer memory for its source and destination buffers, as the
-device requires them to be in contiguous memory.
-Source image is read from a file passed as an argument and saved to another
-file, which name is also passed as an argument.
+On Tue, 2009-12-22 at 18:43 +0200, Sakari Ailus wrote:
+> Add event handling backend to V4L2. The backend handles event subscription
+> and delivery to file handles. Event subscriptions are based on file handle.
+> Events may be delivered to all subscribed file handles on a device
+> independent of where they originate from.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> ---
+>  drivers/media/video/Makefile     |    3 +-
+>  drivers/media/video/v4l2-dev.c   |   21 +++-
+>  drivers/media/video/v4l2-event.c |  254 ++++++++++++++++++++++++++++++++++++++
+>  drivers/media/video/v4l2-fh.c    |    4 +
+>  include/media/v4l2-event.h       |   65 ++++++++++
+>  include/media/v4l2-fh.h          |    3 +
+>  6 files changed, 346 insertions(+), 4 deletions(-)
+>  create mode 100644 drivers/media/video/v4l2-event.c
+>  create mode 100644 include/media/v4l2-event.h
+> 
+> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+> index 1947146..dd6a853 100644
+> --- a/drivers/media/video/Makefile
+> +++ b/drivers/media/video/Makefile
+> @@ -10,7 +10,8 @@ stkwebcam-objs	:=	stk-webcam.o stk-sensor.o
+>  
+>  omap2cam-objs	:=	omap24xxcam.o omap24xxcam-dma.o
+>  
+> -videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o
+> +videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
+> +			v4l2-event.o
+>  
+>  # V4L2 core modules
+>  
+> diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+> index 15b2ac8..6d25297 100644
+> --- a/drivers/media/video/v4l2-dev.c
+> +++ b/drivers/media/video/v4l2-dev.c
+> @@ -613,22 +613,36 @@ static int __init videodev_init(void)
+>  	dev_t dev = MKDEV(VIDEO_MAJOR, 0);
+>  	int ret;
+>  
+> +	ret = v4l2_event_init();
+> +	if (ret < 0) {
+> +		printk(KERN_WARNING "videodev: unable to initialise events\n");
+> +		return ret;
+> +	}
+> +
+>  	printk(KERN_INFO "Linux video capture interface: v2.00\n");
+>  	ret = register_chrdev_region(dev, VIDEO_NUM_DEVICES, VIDEO_NAME);
+>  	if (ret < 0) {
+>  		printk(KERN_WARNING "videodev: unable to get major %d\n",
+>  				VIDEO_MAJOR);
+> -		return ret;
+> +		goto out_register_chrdev_region;
+>  	}
+>  
+>  	ret = class_register(&video_class);
+>  	if (ret < 0) {
+> -		unregister_chrdev_region(dev, VIDEO_NUM_DEVICES);
+>  		printk(KERN_WARNING "video_dev: class_register failed\n");
+> -		return -EIO;
+> +		ret = -EIO;
+> +		goto out_class_register;
+>  	}
+>  
+>  	return 0;
+> +
+> +out_class_register:
+> +	unregister_chrdev_region(dev, VIDEO_NUM_DEVICES);
+> +
+> +out_register_chrdev_region:
+> +	v4l2_event_exit();
+> +
+> +	return ret;
+>  }
+>  
+>  static void __exit videodev_exit(void)
+> @@ -637,6 +651,7 @@ static void __exit videodev_exit(void)
+>  
+>  	class_unregister(&video_class);
+>  	unregister_chrdev_region(dev, VIDEO_NUM_DEVICES);
+> +	v4l2_event_exit();
+>  }
+>  
+>  module_init(videodev_init)
+> diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+> new file mode 100644
+> index 0000000..9fc0c81
+> --- /dev/null
+> +++ b/drivers/media/video/v4l2-event.c
+> @@ -0,0 +1,254 @@
+> +/*
+> + * drivers/media/video/v4l2-event.c
+> + *
+> + * V4L2 events.
+> + *
+> + * Copyright (C) 2009 Nokia Corporation.
+> + *
+> + * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + */
+> +
+> +#include <media/v4l2-dev.h>
+> +#include <media/v4l2-event.h>
+> +
+> +#include <linux/sched.h>
+> +
+> +static struct kmem_cache *event_kmem;
+> +
+> +int v4l2_event_init(void)
+> +{
+> +	event_kmem = kmem_cache_create("event_kmem",
+> +				       sizeof(struct _v4l2_event), 0,
+> +				       SLAB_HWCACHE_ALIGN,
+> +				       NULL);
+> +
+> +	if (!event_kmem)
+> +		return -ENOMEM;
+> +
+> +	return 0;
+> +}
+> +
+> +void v4l2_event_exit(void)
+> +{
+> +	kmem_cache_destroy(event_kmem);
+> +}
+> +
+> +void v4l2_event_init_fh(struct v4l2_fh *fh)
+> +{
+> +	struct v4l2_events *events = &fh->events;
+> +
+> +	init_waitqueue_head(&events->wait);
+> +	spin_lock_init(&events->lock);
+> +
+> +	INIT_LIST_HEAD(&events->available);
+> +	INIT_LIST_HEAD(&events->subscribed);
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_event_init_fh);
+> +
+> +void v4l2_event_exit_fh(struct v4l2_fh *fh)
+> +{
+> +	struct v4l2_events *events = &fh->events;
+> +
+> +	while (!list_empty(&events->available)) {
+> +		struct _v4l2_event *ev;
+> +
+> +		ev = list_entry(events->available.next,
+> +				struct _v4l2_event, list);
+> +
+> +		list_del(&ev->list);
+> +
+> +		kmem_cache_free(event_kmem, ev);
+> +	}
+> +
+> +	while (!list_empty(&events->subscribed)) {
+> +		struct v4l2_subscribed_event *sub;
+> +
+> +		sub = list_entry(events->subscribed.next,
+> +				struct v4l2_subscribed_event, list);
+> +
+> +		list_del(&sub->list);
+> +
+> +		kfree(sub);
+> +	}
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_event_exit_fh);
+> +
+> +int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
+> +{
+> +	struct v4l2_events *events = &fh->events;
+> +	struct _v4l2_event *ev;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&events->lock, flags);
+> +
+> +	if (list_empty(&events->available)) {
+> +		spin_unlock_irqrestore(&events->lock, flags);
+> +		return -ENOENT;
+> +	}
+> +
+> +	ev = list_first_entry(&events->available, struct _v4l2_event, list);
+> +	list_del(&ev->list);
+> +
+> +	ev->event.count = !list_empty(&events->available);
+> +
+> +	spin_unlock_irqrestore(&events->lock, flags);
+> +
+> +	memcpy(event, &ev->event, sizeof(ev->event));
+> +
+> +	kmem_cache_free(event_kmem, ev);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_event_dequeue);
+> +
+> +static struct v4l2_subscribed_event *__v4l2_event_subscribed(
+> +	struct v4l2_fh *fh, u32 type)
+> +{
+> +	struct v4l2_events *events = &fh->events;
+> +	struct v4l2_subscribed_event *ev;
+> +
+> +	list_for_each_entry(ev, &events->subscribed, list) {
+> +		if (ev->type == type)
+> +			return ev;
+> +	}
+> +
+> +	return NULL;
+> +}
+> +
+> +struct v4l2_subscribed_event *v4l2_event_subscribed(
+> +	struct v4l2_fh *fh, u32 type)
+> +{
+> +	struct v4l2_events *events = &fh->events;
+> +	struct v4l2_subscribed_event *ev;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&events->lock, flags);
+> +
+> +	ev = __v4l2_event_subscribed(fh, type);
+> +
+> +	spin_unlock_irqrestore(&events->lock, flags);
+> +
+> +	return ev;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_event_subscribed);
+> +
+> +void v4l2_event_queue(struct video_device *vdev, struct v4l2_event *ev)
+> +{
+> +	struct v4l2_fh *fh;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&vdev->fh_lock, flags);
+> +
+> +	list_for_each_entry(fh, &vdev->fh, list) {
+> +		struct _v4l2_event *_ev;
+> +
+> +		if (!v4l2_event_subscribed(fh, ev->type))
+> +			continue;
+> +
+> +		_ev = kmem_cache_alloc(event_kmem, GFP_ATOMIC);
+> +		if (!_ev)
+> +			continue;
+> +
+> +		_ev->event = *ev;
+> +
+> +		spin_lock(&fh->events.lock);
+> +		list_add_tail(&_ev->list, &fh->events.available);
+> +		spin_unlock(&fh->events.lock);
+> +
+> +		wake_up_all(&fh->events.wait);
+> +	}
+> +
+> +	spin_unlock_irqrestore(&vdev->fh_lock, flags);
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_event_queue);
+> +
+> +int v4l2_event_pending(struct v4l2_fh *fh)
+> +{
+> +	struct v4l2_events *events = &fh->events;
+> +	unsigned long flags;
+> +	int ret;
+> +
+> +	spin_lock_irqsave(&events->lock, flags);
+> +	ret = !list_empty(&events->available);
+> +	spin_unlock_irqrestore(&events->lock, flags);
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_event_pending);
 
-Configurable parameters: video_node in_file, out_file, format, width, height,
-                         rotation, flip
+Hi Sakari,
 
-Where:
-video_node: video node number
-in_file/out_file: source/destination raw image data
-format: 0: 420, 1: 422, 2: 565, 3: 888
-width/height: dimensions of both images
-rotation: 90, 180, 270
-flip (when rotation==0): 1: horizontal, 2: vertical
+Disabling and restoring local interrupts to check if any events are
+pending seems excessive.
 
----
+Since you added an atomic_t with the number of events available in patch
+5/7, why don't you just check that atomic_t here?
 
---- /dev/null	2009-11-17 07:51:25.574927259 +0100
-+++ rotator-dma-contig.c	2009-12-22 17:22:25.000000000 +0100
-@@ -0,0 +1,375 @@
-+/*
-+ * Samsung S3C/S5P image rotator test application.
-+ *
-+ * Copyright (c) 2009 Samsung Electronics Co., Ltd.
-+ * Pawel Osciak, <p.osciak@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by the
-+ * Free Software Foundation; either version 2 of the
-+ * License, or (at your option) any later version
-+ */
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+#include <assert.h>
-+#include <errno.h>
-+#include <time.h>
-+
-+#include <fcntl.h>
-+#include <unistd.h>
-+#include <sys/ioctl.h>
-+#include <sys/types.h>
-+#include <sys/stat.h>
-+#include <sys/mman.h>
-+#include <stdint.h>
-+
-+#include <linux/fb.h>
-+#include <linux/videodev2.h>
-+
-+#define VIDEO_DEV_NAME	"/dev/video"
-+#define FB_DEV_NAME	"/dev/fb0"
-+
-+#define NUM_SRC_BUFS	1
-+#define NUM_DST_BUFS	1
-+
-+#define V4L2_CID_PRIVATE_ROTATE (V4L2_CID_PRIVATE_BASE + 0)
-+
-+#define perror_exit(cond, func)\
-+	if (cond) {\
-+		fprintf(stderr, "%s:%d: ", __func__, __LINE__);\
-+		perror(func);\
-+		exit(EXIT_FAILURE);\
-+	}
-+
-+#define error_exit(cond, msg)\
-+	if (cond) {\
-+		fprintf(stderr, "%s:%d: " msg "\n", __func__, __LINE__);\
-+		exit(EXIT_FAILURE);\
-+	}
-+
-+#define perror_ret(cond, func)\
-+	if (cond) {\
-+		fprintf(stderr, "%s:%d: ", __func__, __LINE__);\
-+		perror(func);\
-+		return ret;\
-+	}
-+
-+#define memzero(x)\
-+	memset(&(x), 0, sizeof (x));
-+
-+#ifdef _DEBUG
-+#define debug(msg, ...)\
-+	fprintf(stderr, "%s: " msg, __func__, ##__VA_ARGS__);
-+#else
-+#define debug(msg, ...)
-+#endif
-+
-+struct buffer {
-+	char *addr;
-+	unsigned long size;
-+	unsigned int index;
-+};
-+
-+static int vid_fd, fb_fd, src_fd, dst_fd;
-+static void *fb_addr, *src_addr, *dst_addr;
-+static char *in_file, *out_file;
-+static int width, height;
-+static off_t fb_line_w, fb_buf_w, fb_size;
-+static struct fb_var_screeninfo fbinfo;
-+static int in_size;
-+static int vid_node = 0;
-+static int format, framesize, rotation, flip;
-+
-+static void set_rotation(int angle)
-+{
-+	struct v4l2_control ctrl;
-+	int ret;
-+
-+	memzero(ctrl);
-+	ctrl.id = V4L2_CID_PRIVATE_ROTATE;
-+	ctrl.value = angle;
-+	ret = ioctl(vid_fd, VIDIOC_S_CTRL, &ctrl);
-+	perror_exit(ret != 0, "ioctl");
-+}
-+
-+static void set_flip(int flip)
-+{
-+	struct v4l2_control ctrl;
-+	int ret;
-+
-+	memzero(ctrl);
-+	switch (flip) {
-+	case 1:
-+		ctrl.id = V4L2_CID_HFLIP;
-+		break;
-+	case 2:
-+		ctrl.id = V4L2_CID_VFLIP;
-+		break;
-+	default:
-+		error_exit(1, "Invalid params\n");
-+	}
-+
-+	ctrl.value = 1;
-+
-+	ret = ioctl(vid_fd, VIDIOC_S_CTRL, &ctrl);
-+	perror_exit(ret != 0, "ioctl");
-+}
-+
-+static void set_fmt(uint32_t format)
-+{
-+	struct v4l2_format fmt;
-+	int ret;
-+	long page_size;
-+	
-+	memzero(fmt);
-+	switch (format) {
-+	case 0:
-+		fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
-+		framesize = width * height * 2;
-+		fb_buf_w = width * 2;
-+		break;
-+	case 1:
-+		fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV420;
-+		framesize = (width * height * 3) / 2;
-+		fb_buf_w = width * 3 / 2;
-+		break;
-+	case 2:
-+		fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565X;
-+		framesize = width * height * 2;
-+		fb_buf_w = width * 2;
-+		break;
-+	case 3:
-+		fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_BGR32;
-+		framesize = width * height * 4;
-+		fb_buf_w = width * 4;
-+		break;
-+	default:
-+		error_exit(1, "Invalid params\n");
-+		break;
-+	}
-+
-+	page_size = sysconf(_SC_PAGESIZE);
-+	framesize = (framesize + page_size - 1) & ~(page_size - 1);
-+	debug("Framesize: %d\n", framesize);
-+
-+	/* Set format for capture */
-+	fmt.type		= V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	fmt.fmt.pix.width	= width;
-+	fmt.fmt.pix.height	= height;
-+	fmt.fmt.pix.field	= V4L2_FIELD_ANY;
-+
-+	ret = ioctl(vid_fd, VIDIOC_S_FMT, &fmt);
-+	perror_exit(ret != 0, "ioctl");
-+
-+	/* The same format for output */
-+	fmt.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+	fmt.fmt.pix.width	= width;
-+	fmt.fmt.pix.height	= height;
-+	fmt.fmt.pix.field	= V4L2_FIELD_ANY;
-+	
-+	ret = ioctl(vid_fd, VIDIOC_S_FMT, &fmt);
-+	perror_exit(ret != 0, "ioctl");
-+}
-+
-+
-+static void verify_caps(void)
-+{
-+	struct v4l2_capability cap;
-+	int ret;
-+
-+	memzero(cap);
-+	ret = ioctl(vid_fd, VIDIOC_QUERYCAP, &cap);
-+	perror_exit(ret != 0, "ioctl");
-+
-+	if (!(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE))
-+		error_exit(1, "Device does not support capture\n");
-+
-+	if (!(cap.capabilities & V4L2_CAP_VIDEO_OUTPUT))
-+		error_exit(1, "Device does not support output\n");
-+
-+	if (!(cap.capabilities & V4L2_CAP_STREAMING))
-+		error_exit(1, "Device does not support streaming\n");
-+}
-+
-+static void init_video_dev(void)
-+{
-+	char devname[64];
-+
-+	snprintf(devname, 64, "%s%d", VIDEO_DEV_NAME, vid_node);
-+	vid_fd = open(devname, O_RDWR | O_NONBLOCK, 0);
-+	perror_exit(vid_fd < 0, "open");
-+
-+	verify_caps();
-+}
-+
-+void init_fb(void)
-+{
-+	int ret;
-+
-+	fb_fd = open(FB_DEV_NAME, O_RDWR);
-+	perror_exit(fb_fd < 0, "open");
-+
-+	ret = ioctl(fb_fd, FBIOGET_VSCREENINFO, &fbinfo);
-+	perror_exit(ret != 0, "ioctl");
-+	debug("fbinfo: xres: %d, xres_virt: %d, yres: %d, yres_virt: %d\n",
-+		fbinfo.xres, fbinfo.xres_virtual,
-+		fbinfo.yres, fbinfo.yres_virtual);
-+
-+	fb_line_w = fbinfo.xres_virtual * (fbinfo.bits_per_pixel >> 3);
-+	debug("fb_buf_w: %d, fb_line_w: %d\n", fb_buf_w, fb_line_w);
-+	fb_size = fb_line_w * fbinfo.yres_virtual;
-+
-+	fb_addr = mmap(0, fb_size, PROT_WRITE | PROT_READ,
-+			MAP_SHARED, fb_fd, 0);
-+	perror_exit(fb_addr == MAP_FAILED, "mmap");
-+}
-+
-+static void parse_args(int argc, char *argv[])
-+{
-+	if (argc != 9) {
-+		fprintf(stderr, "Usage: "
-+			"%s video_node in_file, out_file, format, width, "
-+			"height, rotation, flip\n"
-+			"rotations: 90, 180, 270;\n"
-+			"flip (when rotation==0): 1 - horiz, 2 - vert\n"
-+			"formats: 0: 420, 1: 422, 2: 565, 3: 888\n",
-+			argv[0]);
-+		error_exit(1, "Invalid number of arguments\n");
-+	}
-+
-+	vid_node = atoi(argv[1]);
-+	in_file = argv[2];
-+	out_file = argv[3];
-+	format = atoi(argv[4]);
-+	width = atoi(argv[5]);
-+	height = atoi(argv[6]);
-+	rotation = atoi(argv[7]);
-+	flip = atoi(argv[8]);
-+}
-+
-+static void get_buffer(struct buffer *buf, unsigned int i)
-+{
-+	if ((i+1) * framesize > fb_size)
-+		error_exit(1, "Framebuffer memory won't fit in the buffer\n");
-+
-+	buf->addr = fb_addr + i * framesize;
-+	buf->size = framesize;
-+}
-+
-+static void request_buffers(unsigned int *num_src_bufs,
-+			    unsigned int *num_dst_bufs)
-+{
-+	struct v4l2_requestbuffers reqbuf;
-+	int ret;
-+
-+	memzero(reqbuf);
-+	reqbuf.count	= *num_src_bufs;
-+	reqbuf.type	= V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+	reqbuf.memory	= V4L2_MEMORY_USERPTR;
-+	ret = ioctl(vid_fd, VIDIOC_REQBUFS, &reqbuf);
-+	perror_exit(ret != 0, "ioctl");
-+	*num_src_bufs	= reqbuf.count;
-+
-+
-+	reqbuf.count	= *num_dst_bufs;
-+	reqbuf.type	= V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	ret = ioctl(vid_fd, VIDIOC_REQBUFS, &reqbuf);
-+	perror_exit(ret != 0, "ioctl");
-+	*num_dst_bufs	= reqbuf.count;
-+}
-+
-+static int process(struct buffer *src_buf, struct buffer *dst_buf)
-+{
-+	struct v4l2_buffer buf;
-+	enum v4l2_buf_type type;
-+	fd_set read_fds;
-+	int r;
-+	int ret;
-+
-+	memzero(buf);
-+	buf.type	= V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+	buf.memory	= V4L2_MEMORY_USERPTR;
-+	buf.index	= src_buf->index;
-+	buf.m.userptr	= (unsigned long)src_buf->addr;
-+	buf.length	= src_buf->size;
-+	type		= V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+	ret = ioctl(vid_fd, VIDIOC_QBUF, &buf);
-+	perror_ret(ret, "ioctl");
-+
-+	buf.type	= V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	buf.index	= dst_buf->index;
-+	buf.m.userptr	= (unsigned long)dst_buf->addr;
-+	buf.length	= dst_buf->size;
-+	type		= V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	ret = ioctl(vid_fd, VIDIOC_QBUF, &buf);
-+	perror_ret(ret, "ioctl");
-+
-+	ret = ioctl(vid_fd, VIDIOC_STREAMON, &type);
-+	perror_ret(ret, "ioctl");
-+
-+	FD_ZERO(&read_fds);
-+	FD_SET(vid_fd, &read_fds);
-+	r = select(vid_fd + 1, &read_fds, NULL, NULL, 0);
-+	perror_ret(ret, "ioctl");
-+
-+	ret = ioctl(vid_fd, VIDIOC_STREAMOFF, &type);
-+	perror_ret(ret, "ioctl");
-+
-+	return 0;
-+}
-+
-+/* Usage: video_node in_file, out_file, format, width, height, rotation, flip
-+ * rotations: 90, 180, 270; flip (when rotation==0): 1 - horiz, 2 - vert
-+ * formats: 0: 420, 1: 422, 2: 565, 3: 888 */
-+int main(int argc, char *argv[])
-+{
-+	struct stat in_stat;
-+	struct buffer src_buffer;
-+	struct buffer dst_buffer;
-+	int ret = 0;
-+	unsigned int num_src_buffers = NUM_SRC_BUFS;
-+	unsigned int num_dst_buffers = NUM_DST_BUFS;
-+
-+	parse_args(argc, argv);
-+
-+	src_fd = open(in_file, O_RDONLY);
-+	perror_exit(src_fd < 0, in_file);
-+	fstat(src_fd, &in_stat);
-+	in_size = in_stat.st_size;
-+	src_addr = mmap(0, in_size, PROT_READ, MAP_SHARED, src_fd, 0);
-+	perror_exit(src_addr == MAP_FAILED, "mmap");
-+
-+	init_fb();
-+
-+	dst_fd = open(out_file, O_RDWR | O_TRUNC | O_CREAT,
-+			S_IRUSR | S_IWUSR );
-+	perror_exit(dst_fd < 0, out_file);
-+	ftruncate(dst_fd, in_size);
-+	dst_addr = mmap(0, in_size, PROT_WRITE, MAP_SHARED, dst_fd, 0);
-+	perror_exit(dst_addr == MAP_FAILED, "mmap");
-+
-+	init_video_dev();
-+	set_fmt(format);
-+
-+	if (rotation)
-+		set_rotation(rotation);
-+	else
-+		set_flip(flip);
-+
-+	request_buffers(&num_src_buffers, &num_dst_buffers);
-+	get_buffer(&src_buffer, 0);
-+	src_buffer.index = 0;
-+	get_buffer(&dst_buffer, 1);
-+	dst_buffer.index = 0;
-+
-+	memcpy(src_buffer.addr, src_addr, framesize);
-+	ret = process(&src_buffer, &dst_buffer);
-+	if (ret)
-+		return ret;
-+
-+	memcpy(dst_addr, dst_buffer.addr, framesize);
-+
-+	return 0;
-+}
-+
+
+Regards,
+Andy
+
+> +
+> +int v4l2_event_subscribe(struct v4l2_fh *fh,
+> +			 struct v4l2_event_subscription *sub)
+> +{
+> +	struct v4l2_events *events = &fh->events;
+> +	struct v4l2_subscribed_event *ev;
+> +	unsigned long flags;
+> +	int ret = 0;
+> +
+> +	/* Allow subscribing to valid events only. */
+> +	if (sub->type < V4L2_EVENT_PRIVATE_START)
+> +		switch (sub->type) {
+> +		case V4L2_EVENT_ALL:
+> +			break;
+> +		default:
+> +			return -EINVAL;
+> +		}
+> +
+> +	ev = kmalloc(sizeof(*ev), GFP_KERNEL);
+> +	if (!ev)
+> +		return -ENOMEM;
+> +
+> +	spin_lock_irqsave(&events->lock, flags);
+> +
+> +	if (__v4l2_event_subscribed(fh, sub->type) != NULL) {
+> +		ret = -EBUSY;
+> +		goto out;
+> +	}
+> +
+> +	INIT_LIST_HEAD(&ev->list);
+> +	ev->type = sub->type;
+> +
+> +	list_add(&ev->list, &events->subscribed);
+> +
+> +out:
+> +	spin_unlock_irqrestore(&events->lock, flags);
+> +
+> +	if (ret)
+> +		kfree(ev);
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_event_subscribe);
+> +
+> +int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+> +			   struct v4l2_event_subscription *sub)
+> +{
+> +	struct v4l2_events *events = &fh->events;
+> +	struct v4l2_subscribed_event *ev;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&events->lock, flags);
+> +
+> +	ev = __v4l2_event_subscribed(fh, sub->type);
+> +
+> +	if (ev != NULL)
+> +		list_del(&ev->list);
+> +
+> +	spin_unlock_irqrestore(&events->lock, flags);
+> +
+> +	return ev == NULL;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_event_unsubscribe);
+> diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
+> index 406e4ac..2b25ec9 100644
+> --- a/drivers/media/video/v4l2-fh.c
+> +++ b/drivers/media/video/v4l2-fh.c
+> @@ -32,6 +32,8 @@ int v4l2_fh_add(struct video_device *vdev, struct v4l2_fh *fh)
+>  {
+>  	unsigned long flags;
+>  
+> +	v4l2_event_init_fh(fh);
+> +
+>  	spin_lock_irqsave(&vdev->fh_lock, flags);
+>  	list_add(&fh->list, &vdev->fh);
+>  	spin_unlock_irqrestore(&vdev->fh_lock, flags);
+> @@ -44,6 +46,8 @@ void v4l2_fh_del(struct video_device *vdev, struct v4l2_fh *fh)
+>  {
+>  	unsigned long flags;
+>  
+> +	v4l2_event_exit_fh(fh);
+> +
+>  	spin_lock_irqsave(&vdev->fh_lock, flags);
+>  	list_del(&fh->list);
+>  	spin_unlock_irqrestore(&vdev->fh_lock, flags);
+> diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+> new file mode 100644
+> index 0000000..b11de92
+> --- /dev/null
+> +++ b/include/media/v4l2-event.h
+> @@ -0,0 +1,65 @@
+> +/*
+> + * include/media/v4l2-event.h
+> + *
+> + * V4L2 events.
+> + *
+> + * Copyright (C) 2009 Nokia Corporation.
+> + *
+> + * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + */
+> +
+> +#ifndef V4L2_EVENT_H
+> +#define V4L2_EVENT_H
+> +
+> +#include <linux/types.h>
+> +#include <linux/videodev2.h>
+> +
+> +struct v4l2_fh;
+> +struct video_device;
+> +
+> +struct _v4l2_event {
+> +	struct list_head	list;
+> +	struct v4l2_event	event;
+> +};
+> +
+> +struct v4l2_events {
+> +	spinlock_t		lock; /* Protect everything here. */
+> +	struct list_head	available;
+> +	wait_queue_head_t	wait;
+> +	struct list_head	subscribed; /* Subscribed events. */
+> +};
+> +
+> +struct v4l2_subscribed_event {
+> +	struct list_head	list;
+> +	u32			type;
+> +};
+> +
+> +int v4l2_event_init(void);
+> +void v4l2_event_exit(void);
+> +void v4l2_event_init_fh(struct v4l2_fh *fh);
+> +void v4l2_event_exit_fh(struct v4l2_fh *fh);
+> +int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event);
+> +struct v4l2_subscribed_event *v4l2_event_subscribed(
+> +	struct v4l2_fh *fh, u32 type);
+> +void v4l2_event_queue(struct video_device *vdev, struct v4l2_event *ev);
+> +int v4l2_event_pending(struct v4l2_fh *fh);
+> +int v4l2_event_subscribe(struct v4l2_fh *fh,
+> +			 struct v4l2_event_subscription *sub);
+> +int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+> +			   struct v4l2_event_subscription *sub);
+> +
+> +#endif /* V4L2_EVENT_H */
+> diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
+> index 1efa916..c15bd13 100644
+> --- a/include/media/v4l2-fh.h
+> +++ b/include/media/v4l2-fh.h
+> @@ -28,8 +28,11 @@
+>  #include <linux/types.h>
+>  #include <linux/list.h>
+>  
+> +#include <media/v4l2-event.h>
+> +
+>  struct v4l2_fh {
+>  	struct list_head	list;
+> +	struct v4l2_events      events; /* events, pending and subscribed */
+>  };
+>  
+>  struct video_device;
+
