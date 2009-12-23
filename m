@@ -1,1557 +1,1133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55894 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753132AbZLSACS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Dec 2009 19:02:18 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	khilman@deeprootsystems.com, hvaibhav@ti.com, nsekhar@ti.com
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH - v2 2/6] V4L - vpfe capture - source for ISIF driver on DM365
-Date: Fri, 18 Dec 2009 19:02:13 -0500
-Message-Id: <1261180933-8244-1-git-send-email-m-karicheri2@ti.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:35142 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753582AbZLWNRs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Dec 2009 08:17:48 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Wed, 23 Dec 2009 14:17:34 +0100
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: [PATCH v2.1 2/2] V4L: Add a mem-to-mem V4L2 framework test device.
+In-reply-to: <1261574255-23386-1-git-send-email-p.osciak@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com
+Message-id: <1261574255-23386-3-git-send-email-p.osciak@samsung.com>
+References: <1261574255-23386-1-git-send-email-p.osciak@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+This is a virtual device driver for testing the mem-to-mem V4L2 framework.
+It simulates a device that uses memory buffers for both source and
+destination, processes the data and issues an "IRQ" (simulated by a timer).
+The device is capable of multi-instance, multi-buffer-per-transaction
+operation (via the mem2mem framework).
 
-Re-sending removing a typo in the source header ....
-
-Updated based on comments against v1 of the patch.
-
-This is the source file for ISIF driver for DM365.  ISIF driver is equivalent
-to CCDC driver on DM355 and DM644x. This driver is tested for
-YUV capture from TVP514x driver. This patch contains the header files required for
-this driver. The name of the file is changed to reflect the name of IP.
-
-Reviewed-by: Nori, Sekhar <nsekhar@ti.com>
-Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Reviewed-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
-Applies to linux-next tree of v4l-dvb 
- drivers/media/video/davinci/isif.c | 1512 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 1512 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/davinci/isif.c
+ drivers/media/video/Kconfig           |   14 +
+ drivers/media/video/Makefile          |    1 +
+ drivers/media/video/mem2mem_testdev.c | 1052 +++++++++++++++++++++++++++++++++
+ 3 files changed, 1067 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/mem2mem_testdev.c
 
-diff --git a/drivers/media/video/davinci/isif.c b/drivers/media/video/davinci/isif.c
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 4e97dcf..4e7d703 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -1089,3 +1089,17 @@ menuconfig V4L_MEM2MEM_DRIVERS
+ 	  use system memory for both source and destination buffers, as opposed
+ 	  to capture and output drivers, which use memory buffers for just
+ 	  one of those.
++
++if V4L_MEM2MEM_DRIVERS
++
++config VIDEO_MEM2MEM_TESTDEV
++	tristate "Virtual test device for mem2mem framework"
++	depends on VIDEO_DEV && VIDEO_V4L2
++	select VIDEOBUF_VMALLOC
++	select V4L2_MEM2MEM_DEV
++	default n
++	---help---
++	  This is a virtual test device for the memory-to-memory driver
++	  framework.
++
++endif # V4L_MEM2MEM_DRIVERS
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index 9fe7d40..8667f1c 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -149,6 +149,7 @@ obj-$(CONFIG_VIDEO_IVTV) += ivtv/
+ obj-$(CONFIG_VIDEO_CX18) += cx18/
+ 
+ obj-$(CONFIG_VIDEO_VIVI) += vivi.o
++obj-$(CONFIG_VIDEO_MEM2MEM_TESTDEV) += mem2mem_testdev.o
+ obj-$(CONFIG_VIDEO_CX23885) += cx23885/
+ 
+ obj-$(CONFIG_VIDEO_OMAP2)		+= omap2cam.o
+diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
 new file mode 100644
-index 0000000..73eedec
+index 0000000..ea54a68
 --- /dev/null
-+++ b/drivers/media/video/davinci/isif.c
-@@ -0,0 +1,1512 @@
++++ b/drivers/media/video/mem2mem_testdev.c
+@@ -0,0 +1,1052 @@
 +/*
-+ * Copyright (C) 2008-2009 Texas Instruments Inc
++ * A virtual v4l2-mem2mem example device.
++ *
++ * This is a virtual device driver for testing the mem-to-mem V4L2 framework.
++ * It simulates a device that uses memory buffers for both source and
++ * destination, processes the data and issues an "IRQ" (simulated by a timer).
++ * The device is capable of multi-instance, multi-buffer-per-transaction
++ * operation (via the mem2mem framework).
++ *
++ * Copyright (c) 2009 Samsung Electronics Co., Ltd.
++ * Pawel Osciak, <p.osciak@samsung.com>
++ * Marek Szyprowski, <m.szyprowski@samsung.com>
 + *
 + * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ *
-+ * Image Sensor Interface (ISIF) driver
-+ *
-+ * This driver is for configuring the ISIF IP available on DM365 or any other
-+ * TI SoCs. This is used for capturing yuv or bayer video or image data
-+ * from a decoder or sensor. This IP is similar to the CCDC IP on DM355
-+ * and DM6446, but with enhanced or additional ip blocks. The driver
-+ * configures the ISIF upon commands from the vpfe bridge driver through
-+ * ccdc_hw_device interface.
-+ *
-+ * TODO: 1) Raw bayer parameter settings and bayer capture
-+ *	 2) Add support for control ioctl
++ * it under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the
++ * License, or (at your option) any later version
 + */
++#include <linux/module.h>
 +#include <linux/delay.h>
++#include <linux/fs.h>
++#include <linux/version.h>
++#include <linux/timer.h>
++#include <linux/sched.h>
++
 +#include <linux/platform_device.h>
-+#include <linux/uaccess.h>
-+#include <linux/io.h>
-+#include <linux/videodev2.h>
-+#include <linux/clk.h>
++#include <media/v4l2-mem2mem.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-ioctl.h>
++#include <media/videobuf-vmalloc.h>
 +
-+#include <mach/mux.h>
++#define MEM2MEM_TEST_MODULE_NAME "mem2mem-testdev"
 +
-+#include <media/davinci/isif.h>
-+#include <media/davinci/vpss.h>
++MODULE_DESCRIPTION("Virtual device for mem2mem framework testing");
++MODULE_AUTHOR("Pawel Osciak, <p.osciak@samsung.com>");
++MODULE_LICENSE("GPL");
 +
-+#include "isif_regs.h"
-+#include "ccdc_hw_device.h"
 +
-+/* Defaults for module configuration parameters */
-+static struct isif_config_params_raw isif_config_defaults = {
-+	.linearize = {
-+		.en = 0,
-+		.corr_shft = ISIF_NO_SHIFT,
-+		.scale_fact = {1, 0},
++#define MIN_W 32
++#define MIN_H 32
++#define MAX_W 640
++#define MAX_H 480
++#define DIM_ALIGN_MASK 0x08 /* 8-alignment for dimensions */
++
++/* Flags that indicate a format can be used for capture/output */
++#define MEM2MEM_CAPTURE	(1 << 0)
++#define MEM2MEM_OUTPUT	(1 << 1)
++
++#define MEM2MEM_MAX_INSTANCES	10
++#define MEM2MEM_NAME		"m2m-testdev"
++
++/* Per queue */
++#define MEM2MEM_DEF_NUM_BUFS	32
++/* In bytes, per queue */
++#define MEM2MEM_VID_MEM_LIMIT	(16 * 1024 * 1024)
++
++/* Default transaction time in msec */
++#define MEM2MEM_DEF_TRANSTIME	1000
++/* Default number of buffers per transaction */
++#define MEM2MEM_DEF_TRANSLEN	1
++#define MEM2MEM_COLOR_STEP	(0xff >> 4)
++#define MEM2MEM_NUM_TILES	10
++
++#define dprintk(dev, fmt, arg...) \
++	v4l2_dbg(1, 1, &dev->v4l2_dev, "%s: " fmt, __func__, ## arg)
++
++
++void m2mtest_dev_release(struct device *dev)
++{}
++
++static struct platform_device m2mtest_pdev = {
++	.name		= MEM2MEM_NAME,
++	.dev.release	= m2mtest_dev_release,
++};
++
++struct m2mtest_fmt {
++	char	*name;
++	u32	fourcc;          /* v4l2 format id */
++	int	depth;
++	/* Types the format can be used for */
++	u32	types;
++};
++
++static struct m2mtest_fmt formats[] = {
++	{
++		.name	= "RGB565 (BE)",
++		.fourcc	= V4L2_PIX_FMT_RGB565X, /* rrrrrggg gggbbbbb */
++		.depth	= 16,
++		/* Both capture and output format */
++		.types	= MEM2MEM_CAPTURE | MEM2MEM_OUTPUT,
 +	},
-+	.df_csc = {
-+		.df_or_csc = 0,
-+		.csc = {
-+			.en = 0,
-+		},
-+	},
-+	.dfc = {
-+		.en = 0,
-+	},
-+	.bclamp = {
-+		.en = 0,
-+	},
-+	.gain_offset = {
-+		.gain = {
-+			.r_ye = {1, 0},
-+			.gr_cy = {1, 0},
-+			.gb_g = {1, 0},
-+			.b_mg = {1, 0},
-+		},
-+	},
-+	.culling = {
-+		.hcpat_odd = 0xff,
-+		.hcpat_even = 0xff,
-+		.vcpat = 0xff,
-+	},
-+	.compress = {
-+		.alg = ISIF_ALAW,
++	{
++		.name	= "4:2:2, packed, YUYV",
++		.fourcc	= V4L2_PIX_FMT_YUYV,
++		.depth	= 16,
++		/* Output-only format */
++		.types	= MEM2MEM_OUTPUT,
 +	},
 +};
 +
-+/* ISIF operation configuration */
-+static struct isif_oper_config {
-+	struct device *dev;
-+	enum vpfe_hw_if_type if_type;
-+	struct isif_ycbcr_config ycbcr;
-+	struct isif_params_raw bayer;
-+	enum isif_data_pack data_pack;
-+	/* Master clock */
-+	struct clk *mclk;
-+	/* ISIF base address */
-+	void __iomem *base_addr;
-+	/* ISIF Linear Table 0 */
-+	void __iomem *linear_tbl0_addr;
-+	/* ISIF Linear Table 1 */
-+	void __iomem *linear_tbl1_addr;
-+} isif_cfg = {
-+	.ycbcr = {
-+		.pix_fmt = CCDC_PIXFMT_YCBCR_8BIT,
-+		.frm_fmt = CCDC_FRMFMT_INTERLACED,
-+		.win = ISIF_WIN_NTSC,
-+		.fid_pol = VPFE_PINPOL_POSITIVE,
-+		.vd_pol = VPFE_PINPOL_POSITIVE,
-+		.hd_pol = VPFE_PINPOL_POSITIVE,
-+		.pix_order = CCDC_PIXORDER_CBYCRY,
-+		.buf_type = CCDC_BUFTYPE_FLD_INTERLEAVED,
-+	},
-+	.bayer = {
-+		.pix_fmt = CCDC_PIXFMT_RAW,
-+		.frm_fmt = CCDC_FRMFMT_PROGRESSIVE,
-+		.win = ISIF_WIN_VGA,
-+		.fid_pol = VPFE_PINPOL_POSITIVE,
-+		.vd_pol = VPFE_PINPOL_POSITIVE,
-+		.hd_pol = VPFE_PINPOL_POSITIVE,
-+		.gain = {
-+			.r_ye = {1, 0},
-+			.gr_cy = {1, 0},
-+			.gb_g = {1, 0},
-+			.b_mg = {1, 0},
-+		},
-+		.cfa_pat = ISIF_CFA_PAT_MOSAIC,
-+		.data_msb = ISIF_BIT_MSB_11,
-+		.config_params = {
-+			.data_shift = ISIF_NO_SHIFT,
-+			.col_pat_field0 = {
-+				.olop = ISIF_GREEN_BLUE,
-+				.olep = ISIF_BLUE,
-+				.elop = ISIF_RED,
-+				.elep = ISIF_GREEN_RED,
-+			},
-+			.col_pat_field1 = {
-+				.olop = ISIF_GREEN_BLUE,
-+				.olep = ISIF_BLUE,
-+				.elop = ISIF_RED,
-+				.elep = ISIF_GREEN_RED,
-+			},
-+			.test_pat_gen = 0,
-+		},
-+	},
-+	.data_pack = ISIF_DATA_PACK8,
++/* Per-queue, driver-specific private data */
++struct m2mtest_q_data
++{
++	unsigned int		width;
++	unsigned int		height;
++	unsigned int		sizeimage;
++	struct m2mtest_fmt	*fmt;
 +};
 +
-+/* Raw Bayer formats */
-+static const u32 isif_raw_bayer_pix_formats[] =
-+		{V4L2_PIX_FMT_SBGGR8, V4L2_PIX_FMT_SBGGR16};
++enum {
++	V4L2_M2M_SRC = 0,
++	V4L2_M2M_DST = 1,
++};
 +
-+/* Raw YUV formats */
-+static const u32 isif_raw_yuv_pix_formats[] =
-+		{V4L2_PIX_FMT_UYVY, V4L2_PIX_FMT_YUYV};
++/* Source and destination queue data */
++static struct m2mtest_q_data q_data[2];
 +
-+/* register access routines */
-+static inline u32 regr(u32 offset)
++static struct m2mtest_q_data *get_q_data(enum v4l2_buf_type type)
 +{
-+	return __raw_readl(isif_cfg.base_addr + offset);
-+}
-+
-+static inline void regw(u32 val, u32 offset)
-+{
-+	__raw_writel(val, isif_cfg.base_addr + offset);
-+}
-+
-+/* reg_modify() - read, modify and write register */
-+static inline u32 reg_modify(u32 mask, u32 val, u32 offset)
-+{
-+	u32 new_val = (regr(offset) & ~mask) | (val & mask);
-+
-+	regw(new_val, offset);
-+	return new_val;
-+}
-+
-+static inline void regw_lin_tbl(u32 val, u32 offset, int i)
-+{
-+	if (!i)
-+		__raw_writel(val, isif_cfg.linear_tbl0_addr + offset);
-+	else
-+		__raw_writel(val, isif_cfg.linear_tbl1_addr + offset);
-+}
-+
-+static void isif_disable_all_modules(void)
-+{
-+	/* disable BC */
-+	regw(0, CLAMPCFG);
-+	/* disable vdfc */
-+	regw(0, DFCCTL);
-+	/* disable CSC */
-+	regw(0, CSCCTL);
-+	/* disable linearization */
-+	regw(0, LINCFG0);
-+	/* disable other modules here as they are supported */
-+}
-+
-+static void isif_enable(int en)
-+{
-+	if (!en) {
-+		/* Before disable isif, disable all ISIF modules */
-+		isif_disable_all_modules();
-+		/*
-+		 * wait for next VD. Assume lowest scan rate is 12 Hz. So
-+		 * 100 msec delay is good enough
-+		 */
-+		msleep(100);
-+	}
-+	reg_modify(ISIF_SYNCEN_VDHDEN_MASK, en, SYNCEN);
-+}
-+
-+static void isif_enable_output_to_sdram(int en)
-+{
-+	reg_modify(ISIF_SYNCEN_WEN_MASK, en << ISIF_SYNCEN_WEN_SHIFT, SYNCEN);
-+}
-+
-+static void isif_config_culling(struct isif_cul *cul)
-+{
-+	u32 val;
-+
-+	/* Horizontal pattern */
-+	val = (cul->hcpat_even << CULL_PAT_EVEN_LINE_SHIFT) | cul->hcpat_odd;
-+	regw(val, CULH);
-+
-+	/* vertical pattern */
-+	regw(cul->vcpat, CULV);
-+
-+	/* LPF */
-+	reg_modify(ISIF_LPF_MASK << ISIF_LPF_SHIFT,
-+		  cul->en_lpf << ISIF_LPF_SHIFT, MODESET);
-+}
-+
-+static void isif_config_gain_offset(void)
-+{
-+	struct isif_gain_offsets_adj *gain_off_p =
-+		&isif_cfg.bayer.config_params.gain_offset;
-+	u32 val;
-+
-+	val = (!!gain_off_p->gain_sdram_en << GAIN_SDRAM_EN_SHIFT) |
-+	      (!!gain_off_p->gain_ipipe_en << GAIN_IPIPE_EN_SHIFT) |
-+	      (!!gain_off_p->gain_h3a_en << GAIN_H3A_EN_SHIFT) |
-+	      (!!gain_off_p->offset_sdram_en << OFST_SDRAM_EN_SHIFT) |
-+	      (!!gain_off_p->offset_ipipe_en << OFST_IPIPE_EN_SHIFT) |
-+	      (!!gain_off_p->offset_h3a_en << OFST_H3A_EN_SHIFT);
-+
-+	reg_modify(GAIN_OFFSET_EN_MASK, val, CGAMMAWD);
-+
-+	val = (gain_off_p->gain.r_ye.integer << GAIN_INTEGER_SHIFT) |
-+	       gain_off_p->gain.r_ye.decimal;
-+	regw(val, CRGAIN);
-+
-+	val = (gain_off_p->gain.gr_cy.integer << GAIN_INTEGER_SHIFT) |
-+	       gain_off_p->gain.gr_cy.decimal;
-+	regw(val, CGRGAIN);
-+
-+	val = (gain_off_p->gain.gb_g.integer << GAIN_INTEGER_SHIFT) |
-+	       gain_off_p->gain.gb_g.decimal;
-+	regw(val, CGBGAIN);
-+
-+	val = (gain_off_p->gain.b_mg.integer << GAIN_INTEGER_SHIFT) |
-+	       gain_off_p->gain.b_mg.decimal;
-+	regw(val, CBGAIN);
-+
-+	regw(gain_off_p->offset, COFSTA);
-+}
-+
-+static void isif_restore_defaults(void)
-+{
-+	enum vpss_ccdc_source_sel source = VPSS_CCDCIN;
-+
-+	dev_dbg(isif_cfg.dev, "\nstarting isif_restore_defaults...");
-+	isif_cfg.bayer.config_params = isif_config_defaults;
-+	/* Enable clock to ISIF, IPIPEIF and BL */
-+	vpss_enable_clock(VPSS_CCDC_CLOCK, 1);
-+	vpss_enable_clock(VPSS_IPIPEIF_CLOCK, 1);
-+	vpss_enable_clock(VPSS_BL_CLOCK, 1);
-+	/* Set default offset and gain */
-+	isif_config_gain_offset();
-+	vpss_select_ccdc_source(source);
-+	dev_dbg(isif_cfg.dev, "\nEnd of isif_restore_defaults...");
-+}
-+
-+static int isif_open(struct device *device)
-+{
-+	isif_restore_defaults();
-+	return 0;
-+}
-+
-+/* This function will configure the window size to be capture in ISIF reg */
-+static void isif_setwin(struct v4l2_rect *image_win,
-+			enum ccdc_frmfmt frm_fmt, int ppc)
-+{
-+	int horz_start, horz_nr_pixels;
-+	int vert_start, vert_nr_lines;
-+	int mid_img = 0;
-+
-+	dev_dbg(isif_cfg.dev, "\nStarting isif_setwin...");
-+	/*
-+	 * ppc - per pixel count. indicates how many pixels per cell
-+	 * output to SDRAM. example, for ycbcr, it is one y and one c, so 2.
-+	 * raw capture this is 1
-+	 */
-+	horz_start = image_win->left << (ppc - 1);
-+	horz_nr_pixels = ((image_win->width) << (ppc - 1)) - 1;
-+
-+	/* Writing the horizontal info into the registers */
-+	regw(horz_start & START_PX_HOR_MASK, SPH);
-+	regw(horz_nr_pixels & NUM_PX_HOR_MASK, LNH);
-+	vert_start = image_win->top;
-+
-+	if (frm_fmt == CCDC_FRMFMT_INTERLACED) {
-+		vert_nr_lines = (image_win->height >> 1) - 1;
-+		vert_start >>= 1;
-+		/* To account for VD since line 0 doesn't have any data */
-+		vert_start += 1;
-+	} else {
-+		/* To account for VD since line 0 doesn't have any data */
-+		vert_start += 1;
-+		vert_nr_lines = image_win->height - 1;
-+		/* configure VDINT0 and VDINT1 */
-+		mid_img = vert_start + (image_win->height / 2);
-+		regw(mid_img, VDINT1);
-+	}
-+
-+	regw(0, VDINT0);
-+	regw(vert_start & START_VER_ONE_MASK, SLV0);
-+	regw(vert_start & START_VER_TWO_MASK, SLV1);
-+	regw(vert_nr_lines & NUM_LINES_VER, LNV);
-+}
-+
-+static void isif_config_bclamp(struct isif_black_clamp *bc)
-+{
-+	u32 val;
-+
-+	/*
-+	 * DC Offset is always added to image data irrespective of bc enable
-+	 * status
-+	 */
-+	regw(bc->dc_offset, CLDCOFST);
-+
-+	if (bc->en) {
-+		val = bc->bc_mode_color << ISIF_BC_MODE_COLOR_SHIFT;
-+
-+		/* Enable BC and horizontal clamp caculation paramaters */
-+		val = val | 1 | (bc->horz.mode << ISIF_HORZ_BC_MODE_SHIFT);
-+
-+		regw(val, CLAMPCFG);
-+
-+		if (bc->horz.mode != ISIF_HORZ_BC_DISABLE) {
-+			/*
-+			 * Window count for calculation
-+			 * Base window selection
-+			 * pixel limit
-+			 * Horizontal size of window
-+			 * vertical size of the window
-+			 * Horizontal start position of the window
-+			 * Vertical start position of the window
-+			 */
-+			val = bc->horz.win_count_calc |
-+			      ((!!bc->horz.base_win_sel_calc) <<
-+				ISIF_HORZ_BC_WIN_SEL_SHIFT) |
-+			      ((!!bc->horz.clamp_pix_limit) <<
-+				ISIF_HORZ_BC_PIX_LIMIT_SHIFT) |
-+			      (bc->horz.win_h_sz_calc <<
-+				ISIF_HORZ_BC_WIN_H_SIZE_SHIFT) |
-+			      (bc->horz.win_v_sz_calc <<
-+				ISIF_HORZ_BC_WIN_V_SIZE_SHIFT);
-+			regw(val, CLHWIN0);
-+
-+			regw(bc->horz.win_start_h_calc, CLHWIN1);
-+			regw(bc->horz.win_start_v_calc, CLHWIN2);
-+		}
-+
-+		/* vertical clamp caculation paramaters */
-+
-+		/* Reset clamp value sel for previous line */
-+		val |=
-+		(bc->vert.reset_val_sel << ISIF_VERT_BC_RST_VAL_SEL_SHIFT) |
-+		(bc->vert.line_ave_coef << ISIF_VERT_BC_LINE_AVE_COEF_SHIFT);
-+		regw(val, CLVWIN0);
-+
-+		/* Optical Black horizontal start position */
-+		regw(bc->vert.ob_start_h, CLVWIN1);
-+		/* Optical Black vertical start position */
-+		regw(bc->vert.ob_start_v, CLVWIN2);
-+		/* Optical Black vertical size for calculation */
-+		regw(bc->vert.ob_v_sz_calc, CLVWIN3);
-+		/* Vertical start position for BC subtraction */
-+		regw(bc->vert_start_sub, CLSV);
++	switch (type) {
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++		return &q_data[V4L2_M2M_SRC];
++	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++		return &q_data[V4L2_M2M_DST];
++	default:
++		BUG();
++		return NULL;
 +	}
 +}
 +
-+static void isif_config_linearization(struct isif_linearize *linearize)
++
++#define V4L2_CID_TRANS_TIME_MSEC	V4L2_CID_PRIVATE_BASE
++#define V4L2_CID_TRANS_NUM_BUFS		(V4L2_CID_PRIVATE_BASE + 1)
++
++static struct v4l2_queryctrl m2mtest_ctrls[] = {
++	{
++		.id		= V4L2_CID_TRANS_TIME_MSEC,
++		.type		= V4L2_CTRL_TYPE_INTEGER,
++		.name		= "Transaction time (msec)",
++		.minimum	= 1,
++		.maximum	= 10000,
++		.step		= 100,
++		.default_value	= 1000,
++		.flags		= 0,
++	}, {
++		.id		= V4L2_CID_TRANS_NUM_BUFS,
++		.type		= V4L2_CTRL_TYPE_INTEGER,
++		.name		= "Buffers per transaction",
++		.minimum	= 1,
++		.maximum	= MEM2MEM_DEF_NUM_BUFS,
++		.step		= 1,
++		.default_value	= 1,
++		.flags		= 0,
++	},
++};
++
++#define NUM_FORMATS ARRAY_SIZE(formats)
++
++static struct m2mtest_fmt *find_format(struct v4l2_format *f)
 +{
-+	u32 val, i;
++	struct m2mtest_fmt *fmt;
++	unsigned int k;
 +
-+	if (!linearize->en) {
-+		regw(0, LINCFG0);
-+		return;
++	for (k = 0; k < NUM_FORMATS; k++) {
++		fmt = &formats[k];
++		if (fmt->fourcc == f->fmt.pix.pixelformat)
++			break;
 +	}
 +
-+	/* shift value for correction & enable linearization (set lsb) */
-+	val = (linearize->corr_shft << ISIF_LIN_CORRSFT_SHIFT) | 1;
-+	regw(val, LINCFG0);
++	if (k == NUM_FORMATS)
++		return NULL;
 +
-+	/* Scale factor */
-+	val = ((!!linearize->scale_fact.integer) <<
-+	       ISIF_LIN_SCALE_FACT_INTEG_SHIFT) |
-+	       linearize->scale_fact.decimal;
-+	regw(val, LINCFG1);
-+
-+	for (i = 0; i < ISIF_LINEAR_TAB_SIZE; i++) {
-+		if (i % 2)
-+			regw_lin_tbl(linearize->table[i], ((i >> 1) << 2), 1);
-+		else
-+			regw_lin_tbl(linearize->table[i], ((i >> 1) << 2), 0);
-+	}
++	return &formats[k];
 +}
 +
-+static int isif_config_dfc(struct isif_dfc *vdfc)
++struct m2mtest_dev {
++	struct v4l2_device	v4l2_dev;
++	struct video_device	*vfd;
++
++	atomic_t		num_inst;
++	struct mutex		dev_mutex;
++	spinlock_t		irqlock;
++
++	struct timer_list	timer;
++
++	struct v4l2_m2m_dev	*m2m_dev;
++};
++
++struct m2mtest_ctx {
++	struct m2mtest_dev	*dev;
++
++	/* Processed buffers in this transaction */
++	u8			num_processed;
++
++	/* Transaction length (i.e. how many buffers per transaction) */
++	u32			translen;
++	/* Transaction time (i.e. simulated processing time) in miliseconds */
++	u32			transtime;
++
++	/* Abort requested by m2m */
++	int			aborting;
++
++	struct v4l2_m2m_ctx	*m2m_ctx;
++};
++
++struct m2mtest_buffer {
++	/* vb must be first! */
++	struct videobuf_buffer	vb;
++};
++
++static struct v4l2_queryctrl *get_ctrl(int id)
 +{
-+	/* initialize retries to loop for max ~ 250 usec */
-+	u32 val, count, retries = loops_per_jiffy / (4000/HZ);
 +	int i;
 +
-+	if (!vdfc->en)
-+		return 0;
-+
-+	/* Correction mode */
-+	val = (vdfc->corr_mode << ISIF_VDFC_CORR_MOD_SHIFT);
-+
-+	/* Correct whole line or partial */
-+	if (vdfc->corr_whole_line)
-+		val |= 1 << ISIF_VDFC_CORR_WHOLE_LN_SHIFT;
-+
-+	/* level shift value */
-+	val |= vdfc->def_level_shift << ISIF_VDFC_LEVEL_SHFT_SHIFT;
-+
-+	regw(val, DFCCTL);
-+
-+	/* Defect saturation level */
-+	regw(vdfc->def_sat_level, VDFSATLV);
-+
-+	regw(vdfc->table[0].pos_vert, DFCMEM0);
-+	regw(vdfc->table[0].pos_horz, DFCMEM1);
-+	if (vdfc->corr_mode == ISIF_VDFC_NORMAL ||
-+	    vdfc->corr_mode == ISIF_VDFC_HORZ_INTERPOL_IF_SAT) {
-+		regw(vdfc->table[0].level_at_pos, DFCMEM2);
-+		regw(vdfc->table[0].level_up_pixels, DFCMEM3);
-+		regw(vdfc->table[0].level_low_pixels, DFCMEM4);
-+	}
-+
-+	/* set DFCMARST and set DFCMWR */
-+	val = regr(DFCMEMCTL) | (1 << ISIF_DFCMEMCTL_DFCMARST_SHIFT) | 1;
-+	regw(val, DFCMEMCTL);
-+
-+	count = retries;
-+	while (count && (regr(DFCMEMCTL) & 0x1))
-+		count--;
-+
-+	if (!count) {
-+		dev_dbg(isif_cfg.dev, "defect table write timeout !!!\n");
-+		return -1;
-+	}
-+
-+	for (i = 1; i < vdfc->num_vdefects; i++) {
-+		regw(vdfc->table[i].pos_vert, DFCMEM0);
-+		regw(vdfc->table[i].pos_horz, DFCMEM1);
-+		if (vdfc->corr_mode == ISIF_VDFC_NORMAL ||
-+		    vdfc->corr_mode == ISIF_VDFC_HORZ_INTERPOL_IF_SAT) {
-+			regw(vdfc->table[i].level_at_pos, DFCMEM2);
-+			regw(vdfc->table[i].level_up_pixels, DFCMEM3);
-+			regw(vdfc->table[i].level_low_pixels, DFCMEM4);
-+		}
-+		val = regr(DFCMEMCTL);
-+		/* clear DFCMARST and set DFCMWR */
-+		val &= ~BIT(ISIF_DFCMEMCTL_DFCMARST_SHIFT);
-+		val |= 1;
-+		regw(val, DFCMEMCTL);
-+
-+		count = retries;
-+		while (count && (regr(DFCMEMCTL) & 0x1))
-+			count--;
-+
-+		if (!count) {
-+			dev_err(isif_cfg.dev,
-+				"defect table write timeout !!!\n");
-+			return -1;
++	for (i = 0; i < ARRAY_SIZE(m2mtest_ctrls); ++i) {
++		if (id == m2mtest_ctrls[i].id) {
++			return &m2mtest_ctrls[i];
 +		}
 +	}
-+	if (vdfc->num_vdefects < ISIF_VDFC_TABLE_SIZE) {
-+		/* Extra cycle needed */
-+		regw(0, DFCMEM0);
-+		regw(0x1FFF, DFCMEM1);
-+		regw(1, DFCMEMCTL);
-+	}
 +
-+	/* enable VDFC */
-+	reg_modify((1 << ISIF_VDFC_EN_SHIFT), (1 << ISIF_VDFC_EN_SHIFT),
-+		   DFCCTL);
-+	return 0;
++	return NULL;
 +}
 +
-+static void isif_config_csc(struct isif_df_csc *df_csc)
++static int device_process(struct m2mtest_ctx *ctx,
++			  struct m2mtest_buffer *in_buf,
++			  struct m2mtest_buffer *out_buf)
 +{
-+	u32 val1 = 0, val2 = 0, i;
++	struct m2mtest_dev *dev = ctx->dev;
++	u8 *p_in, *p_out;
++	int x, y, t, w;
++	int tile_w, bytes_left;
++	struct videobuf_queue *src_q;
++	struct videobuf_queue *dst_q;
 +
-+	if (!df_csc->csc.en) {
-+		regw(0, CSCCTL);
-+		return;
-+	}
-+	for (i = 0; i < ISIF_CSC_NUM_COEFF; i++) {
-+		if ((i % 2) == 0) {
-+			/* CSCM - LSB */
-+			val1 = (df_csc->csc.coeff[i].integer <<
-+				ISIF_CSC_COEF_INTEG_SHIFT) |
-+				df_csc->csc.coeff[i].decimal;
-+		} else {
-+
-+			/* CSCM - MSB */
-+			val2 = (df_csc->csc.coeff[i].integer <<
-+				ISIF_CSC_COEF_INTEG_SHIFT) |
-+				df_csc->csc.coeff[i].decimal;
-+			val2 <<= ISIF_CSCM_MSB_SHIFT;
-+			val2 |= val1;
-+			regw(val2, (CSCM0 + ((i - 1) << 1)));
-+		}
++	src_q = v4l2_m2m_get_src_vq(ctx->m2m_ctx);
++	dst_q = v4l2_m2m_get_dst_vq(ctx->m2m_ctx);
++	p_in = videobuf_queue_to_vmalloc(src_q, &in_buf->vb);
++	p_out = videobuf_queue_to_vmalloc(dst_q, &out_buf->vb);
++	if (!p_in || !p_out) {
++		v4l2_err(&dev->v4l2_dev,
++			 "Acquiring kernel pointers to buffers failed\n");
++		return 1;
 +	}
 +
-+	/* program the active area */
-+	regw(df_csc->start_pix, FMTSPH);
-+	/*
-+	 * one extra pixel as required for CSC. Actually number of
-+	 * pixel - 1 should be configured in this register. So we
-+	 * need to subtract 1 before writing to FMTSPH, but we will
-+	 * not do this since csc requires one extra pixel
-+	 */
-+	regw(df_csc->num_pixels, FMTLNH);
-+	regw(df_csc->start_line, FMTSLV);
-+	/*
-+	 * one extra line as required for CSC. See reason documented for
-+	 * num_pixels
-+	 */
-+	regw(df_csc->num_lines, FMTLNV);
-+
-+	/* Enable CSC */
-+	regw(1, CSCCTL);
-+}
-+
-+static int isif_config_raw(void)
-+{
-+	struct isif_params_raw *params = &isif_cfg.bayer;
-+	struct isif_config_params_raw *module_params =
-+		&isif_cfg.bayer.config_params;
-+	struct vpss_pg_frame_size frame_size;
-+	struct vpss_sync_pol sync;
-+	u32 val;
-+
-+	dev_dbg(isif_cfg.dev, "\nStarting isif_config_raw..\n");
-+
-+	/*
-+	 * Configure CCDCFG register:-
-+	 * Set CCD Not to swap input since input is RAW data
-+	 * Set FID detection function to Latch at V-Sync
-+	 * Set WENLOG - isif valid area
-+	 * Set TRGSEL
-+	 * Set EXTRG
-+	 * Packed to 8 or 16 bits
-+	 */
-+
-+	val = ISIF_YCINSWP_RAW | ISIF_CCDCFG_FIDMD_LATCH_VSYNC |
-+		ISIF_CCDCFG_WENLOG_AND | ISIF_CCDCFG_TRGSEL_WEN |
-+		ISIF_CCDCFG_EXTRG_DISABLE | isif_cfg.data_pack;
-+
-+	dev_dbg(isif_cfg.dev, "Writing 0x%x to ...CCDCFG \n", val);
-+	regw(val, CCDCFG);
-+
-+	/*
-+	 * Configure the vertical sync polarity(MODESET.VDPOL)
-+	 * Configure the horizontal sync polarity (MODESET.HDPOL)
-+	 * Configure frame id polarity (MODESET.FLDPOL)
-+	 * Configure data polarity
-+	 * Configure External WEN Selection
-+	 * Configure frame format(progressive or interlace)
-+	 * Configure pixel format (Input mode)
-+	 * Configure the data shift
-+	 */
-+
-+	val = ISIF_VDHDOUT_INPUT | (params->vd_pol << ISIF_VD_POL_SHIFT) |
-+		(params->hd_pol << ISIF_HD_POL_SHIFT) |
-+		(params->fid_pol << ISIF_FID_POL_SHIFT) |
-+		(ISIF_DATAPOL_NORMAL << ISIF_DATAPOL_SHIFT) |
-+		(ISIF_EXWEN_DISABLE << ISIF_EXWEN_SHIFT) |
-+		(params->frm_fmt << ISIF_FRM_FMT_SHIFT) |
-+		(params->pix_fmt << ISIF_INPUT_SHIFT) |
-+		(params->config_params.data_shift << ISIF_DATASFT_SHIFT);
-+
-+	regw(val, MODESET);
-+	dev_dbg(isif_cfg.dev, "Writing 0x%x to MODESET...\n", val);
-+
-+	/*
-+	 * Configure GAMMAWD register
-+	 * CFA pattern setting
-+	 */
-+	val = params->cfa_pat << ISIF_GAMMAWD_CFA_SHIFT;
-+
-+	/* Gamma msb */
-+	if (module_params->compress.alg == ISIF_ALAW)
-+		val |= ISIF_ALAW_ENABLE;
-+
-+	val |= (params->data_msb << ISIF_ALAW_GAMA_WD_SHIFT);
-+	regw(val, CGAMMAWD);
-+
-+	/* Configure DPCM compression settings */
-+	if (module_params->compress.alg == ISIF_DPCM) {
-+		val =  BIT(ISIF_DPCM_EN_SHIFT) |
-+		       (module_params->compress.pred <<
-+		       ISIF_DPCM_PREDICTOR_SHIFT);
++	if (in_buf->vb.size < out_buf->vb.size) {
++		v4l2_err(&dev->v4l2_dev, "Output buffer is too small\n");
++		return 1;
 +	}
 +
-+	regw(val, MISC);
++	tile_w = (in_buf->vb.width * (q_data[V4L2_M2M_DST].fmt->depth >> 3))
++		/ MEM2MEM_NUM_TILES;
++	bytes_left = in_buf->vb.bytesperline - tile_w * MEM2MEM_NUM_TILES;
++	w = 0;
 +
-+	/* Configure Gain & Offset */
-+	isif_config_gain_offset();
-+
-+	/* Configure Color pattern */
-+	val = (params->config_params.col_pat_field0.olop) |
-+	      (params->config_params.col_pat_field0.olep << 2) |
-+	      (params->config_params.col_pat_field0.elop << 4) |
-+	      (params->config_params.col_pat_field0.elep << 6) |
-+	      (params->config_params.col_pat_field1.olop << 8) |
-+	      (params->config_params.col_pat_field1.olep << 10) |
-+	      (params->config_params.col_pat_field1.elop << 12) |
-+	      (params->config_params.col_pat_field1.elep << 14);
-+	regw(val, CCOLP);
-+	dev_dbg(isif_cfg.dev, "Writing %x to CCOLP ...\n", val);
-+
-+	/* Configure HSIZE register  */
-+	val = (!!params->horz_flip_en) << ISIF_HSIZE_FLIP_SHIFT;
-+
-+	/* calculate line offset in 32 bytes based on pack value */
-+	if (isif_cfg.data_pack == ISIF_PACK_8BIT)
-+		val |= ((params->win.width + 31) >> 5);
-+	else if (isif_cfg.data_pack == ISIF_PACK_12BIT)
-+		val |= (((params->win.width +
-+		       (params->win.width >> 2)) + 31) >> 5);
-+	else
-+		val |= (((params->win.width * 2) + 31) >> 5);
-+	regw(val, HSIZE);
-+
-+	/* Configure SDOFST register  */
-+	if (params->frm_fmt == CCDC_FRMFMT_INTERLACED) {
-+		if (params->image_invert_en) {
-+			/* For interlace inverse mode */
-+			regw(0x4B6D, SDOFST);
-+			dev_dbg(isif_cfg.dev, "Writing 0x4B6D to SDOFST...\n");
-+		} else {
-+			/* For interlace non inverse mode */
-+			regw(0x0B6D, SDOFST);
-+			dev_dbg(isif_cfg.dev, "Writing 0x0B6D to SDOFST...\n");
-+		}
-+	} else if (params->frm_fmt == CCDC_FRMFMT_PROGRESSIVE) {
-+		if (params->image_invert_en) {
-+			/* For progressive inverse mode */
-+			regw(0x4000, SDOFST);
-+			dev_dbg(isif_cfg.dev, "Writing 0x4000 to SDOFST...\n");
-+		} else {
-+			/* For progressive non inverse mode */
-+			regw(0x0000, SDOFST);
-+			dev_dbg(isif_cfg.dev, "Writing 0x0000 to SDOFST...\n");
-+		}
-+	}
-+
-+	/* Configure video window */
-+	isif_setwin(&params->win, params->frm_fmt, 1);
-+
-+	/* Configure Black Clamp */
-+	isif_config_bclamp(&module_params->bclamp);
-+
-+	/* Configure Vertical Defection Pixel Correction */
-+	if (isif_config_dfc(&module_params->dfc) < 0)
-+		return -EFAULT;
-+
-+	if (!module_params->df_csc.df_or_csc)
-+		/* Configure Color Space Conversion */
-+		isif_config_csc(&module_params->df_csc);
-+
-+	isif_config_linearization(&module_params->linearize);
-+
-+	/* Configure Culling */
-+	isif_config_culling(&module_params->culling);
-+
-+	/* Configure horizontal and vertical offsets(DFC,LSC,Gain) */
-+	regw(module_params->horz_offset, DATAHOFST);
-+	regw(module_params->vert_offset, DATAVOFST);
-+
-+	/* Setup test pattern if enabled */
-+	if (params->config_params.test_pat_gen) {
-+		/* Use the HD/VD pol settings from user */
-+		sync.ccdpg_hdpol = params->hd_pol;
-+		sync.ccdpg_vdpol = params->vd_pol;
-+		dm365_vpss_set_sync_pol(sync);
-+		frame_size.hlpfr = isif_cfg.bayer.win.width;
-+		frame_size.pplen = isif_cfg.bayer.win.height;
-+		dm365_vpss_set_pg_frame_size(frame_size);
-+		vpss_select_ccdc_source(VPSS_PGLPBK);
-+	}
-+
-+	dev_dbg(isif_cfg.dev, "\nEnd of isif_config_ycbcr...\n");
-+	return 0;
-+}
-+
-+static int isif_validate_linearization_params(struct isif_linearize *linearize)
-+{
-+	int err = -EINVAL, i;
-+
-+	if (!linearize->en)
-+		return 0;
-+
-+	if (linearize->corr_shft > 6) {
-+		dev_dbg(isif_cfg.dev, "invalid linearization corr_shft val\n");
-+		return err;
-+	}
-+
-+	if (linearize->scale_fact.integer > 1 ||
-+	    linearize->scale_fact.decimal > 0x3FF) {
-+		dev_dbg(isif_cfg.dev, "invalid linearization scale_fact val\n");
-+		return err;
-+	}
-+
-+	for (i = 0; i < ISIF_LINEAR_TAB_SIZE; i++) {
-+		if (linearize->table[i] > 0x3FF) {
-+			dev_dbg(isif_cfg.dev,
-+				"invalid linear table value at index %d\n", i);
-+			return err;
-+		}
-+	}
-+	return 0;
-+}
-+
-+static int isif_validate_df_csc_params(struct isif_df_csc *df_csc)
-+{
-+	struct isif_color_space_conv *csc = &df_csc->csc;
-+	int i, err = -EINVAL;
-+
-+	if (!df_csc->df_or_csc && csc->en) {
-+		for (i = 0; i < ISIF_CSC_NUM_COEFF; i++) {
-+			if (csc->coeff[i].integer > ISIF_CSC_COEF_INTEG_MASK ||
-+			    csc->coeff[i].decimal >
-+					ISIF_CSC_COEF_DECIMAL_MASK) {
-+				dev_dbg(isif_cfg.dev,
-+				       "invalid csc coefficients \n");
-+				return err;
++	for (y = 0; y < in_buf->vb.height; ++y) {
++		for (t = 0; t < MEM2MEM_NUM_TILES; ++t) {
++			if (w & 0x1) {
++				for (x = 0; x < tile_w; ++x)
++					*p_out++ = *p_in++ + MEM2MEM_COLOR_STEP;
++			} else {
++				for (x = 0; x < tile_w; ++x)
++					*p_out++ = *p_in++ - MEM2MEM_COLOR_STEP;
 +			}
++			++w;
 +		}
++		p_in += bytes_left;
++		p_out += bytes_left;
 +	}
 +
-+	if (df_csc->start_pix > ISIF_DF_CSC_SPH_MASK) {
-+		dev_dbg(isif_cfg.dev, "invalid df_csc start pix value \n");
-+		return err;
-+	}
-+	if (df_csc->num_pixels > ISIF_DF_NUMPIX) {
-+		dev_dbg(isif_cfg.dev, "invalid df_csc num pixels value \n");
-+		return err;
-+	}
-+	if (df_csc->start_line > ISIF_DF_CSC_LNH_MASK) {
-+		dev_dbg(isif_cfg.dev, "invalid df_csc start_line value \n");
-+		return err;
-+	}
-+	if (df_csc->num_lines > ISIF_DF_NUMLINES) {
-+		dev_dbg(isif_cfg.dev, "invalid df_csc num_lines value \n");
-+		return err;
-+	}
 +	return 0;
 +}
 +
-+static int isif_validate_dfc_params(struct isif_dfc *dfc)
++static void schedule_irq(struct m2mtest_dev *dev, int msec_timeout)
 +{
-+	int err = -EINVAL;
-+	int i;
++	dprintk(dev, "Scheduling a fake irq\n");
++	mod_timer(&dev->timer, jiffies + msecs_to_jiffies(msec_timeout));
++}
 +
-+	if (!dfc->en)
++/*
++ * mem2mem callbacks
++ */
++
++/**
++ * job_ready - check whether an instance is ready to be scheduled to run
++ */
++static int job_ready(void *priv)
++{
++	struct m2mtest_ctx *ctx = priv;
++
++	if (v4l2_m2m_num_src_bufs_ready(ctx->m2m_ctx) < ctx->translen
++	    || v4l2_m2m_num_dst_bufs_ready(ctx->m2m_ctx) < ctx->translen) {
++		dprintk(ctx->dev, "Not enough buffers available\n");
 +		return 0;
-+
-+	if (dfc->corr_whole_line > 1) {
-+		dev_dbg(isif_cfg.dev, "invalid dfc corr_whole_line value\n");
-+		return err;
-+	}
-+	if (dfc->corr_mode > 2) {
-+		dev_dbg(isif_cfg.dev, "invalid dfc corr_mode value\n");
-+		return err;
 +	}
 +
-+	if (dfc->def_level_shift > 4) {
-+		dev_dbg(isif_cfg.dev, "invalid dfc def_level_shift value\n");
-+		return err;
-+	}
-+
-+	if (dfc->def_sat_level > 4095) {
-+		dev_dbg(isif_cfg.dev, "invalid dfc def_sat_level value \n");
-+		return err;
-+	}
-+	if ((!dfc->num_vdefects) || (dfc->num_vdefects > 8)) {
-+		dev_dbg(isif_cfg.dev, "invalid dfc num_vdefects value \n");
-+		return err;
-+	}
-+	for (i = 0; i < ISIF_VDFC_TABLE_SIZE; i++) {
-+		if (dfc->table[i].pos_vert > 0x1fff) {
-+			dev_dbg(isif_cfg.dev, "invalid dfc pos_vert value \n");
-+			return err;
-+		}
-+		if (dfc->table[i].pos_horz > 0x1fff) {
-+			dev_dbg(isif_cfg.dev, "invalid dfc pos_horz value \n");
-+			return err;
-+		}
-+	}
-+	return 0;
++	return 1;
 +}
 +
-+static int isif_validate_bclamp_params(struct isif_black_clamp *bclamp)
++static void job_abort(void *priv)
 +{
-+	int err = -EINVAL;
++	struct m2mtest_ctx *ctx = priv;
 +
-+	if (bclamp->dc_offset > 0x1fff) {
-+		dev_dbg(isif_cfg.dev, "invalid bclamp dc_offset value \n");
-+		return err;
-+	}
-+
-+	if (!bclamp->en)
-+		return 0;
-+
-+	if (bclamp->bc_mode_color > 1) {
-+		dev_dbg(isif_cfg.dev,
-+		       "invalid bclamp bc_mode_color value \n");
-+		return err;
-+	}
-+
-+	if (bclamp->vert_start_sub > 0x1FFF) {
-+		dev_dbg(isif_cfg.dev,
-+		       "invalid bclamp vert_start_sub value \n");
-+		return err;
-+	}
-+
-+	if (bclamp->horz.mode > 2) {
-+		dev_dbg(isif_cfg.dev,
-+		       "invalid bclamp horz mode value \n");
-+		return err;
-+	}
-+
-+	if (bclamp->horz.clamp_pix_limit > 1) {
-+		dev_dbg(isif_cfg.dev,
-+		       "invalid bclamp horz clamp_pix_limit value \n");
-+		return err;
-+	}
-+
-+	if (bclamp->horz.win_h_sz_calc > 3) {
-+		dev_dbg(isif_cfg.dev,
-+		       "invalid bclamp horz win_h_sz_calc value \n");
-+		return err;
-+	}
-+
-+	if (bclamp->horz.win_v_sz_calc > 3) {
-+		dev_dbg(isif_cfg.dev,
-+		       "invalid bclamp horz win_v_sz_calc value \n");
-+		return err;
-+	}
-+
-+	if (bclamp->horz.win_count_calc < 1 ||
-+	    bclamp->horz.win_count_calc > 32) {
-+		dev_dbg(isif_cfg.dev,
-+		       "invalid bclamp horz win_count_calc value \n");
-+		return err;
-+	}
-+
-+	if (bclamp->horz.win_start_h_calc > 0x1fff) {
-+		dev_dbg(isif_cfg.dev,
-+		       "invalid bclamp win_start_h_calc value \n");
-+		return err;
-+	}
-+
-+	if (bclamp->horz.win_start_v_calc > 0x1fff) {
-+		dev_dbg(isif_cfg.dev,
-+		       "invalid bclamp win_start_v_calc value \n");
-+		return err;
-+	}
-+
-+	if (bclamp->vert.reset_val_sel > 2) {
-+		dev_dbg(isif_cfg.dev,
-+		       "invalid bclamp vert reset_val_sel value \n");
-+		return err;
-+	}
-+
-+	if (bclamp->vert.ob_v_sz_calc > 0x1fff) {
-+		dev_dbg(isif_cfg.dev, "invalid bclamp ob_v_sz_calc value \n");
-+		return err;
-+	}
-+
-+	if (bclamp->vert.ob_start_h > 0x1fff) {
-+		dev_dbg(isif_cfg.dev, "invalid bclamp ob_start_h value \n");
-+		return err;
-+	}
-+
-+	if (bclamp->vert.ob_start_v > 0x1fff) {
-+		dev_dbg(isif_cfg.dev, "invalid bclamp ob_start_h value \n");
-+		return err;
-+	}
-+	return 0;
++	/* Will cancel the transaction in the next interrupt handler */
++	ctx->aborting = 1;
 +}
 +
-+static int isif_validate_gain_ofst_params(struct isif_gain_offsets_adj
-+					  *gain_offset)
++/* device_run() - prepares and starts the device
++ *
++ * This simulates all the immediate preparations required
++ * before starting a device.
++ * This should be called by the framework when it devides to
++ * schedule a particular instance.
++ */
++static void device_run(void *priv)
 +{
-+	int err = -EINVAL;
++	struct m2mtest_ctx *ctx = priv;
++	struct m2mtest_dev *dev = ctx->dev;
++	struct m2mtest_buffer *src_buf, *dst_buf;
 +
-+	if (gain_offset->gain_sdram_en ||
-+	    gain_offset->gain_ipipe_en ||
-+	    gain_offset->gain_h3a_en) {
-+		if ((gain_offset->gain.r_ye.integer > 7) ||
-+		    (gain_offset->gain.r_ye.decimal > 0x1ff)) {
-+			dev_dbg(isif_cfg.dev, "invalid  gain r_ye\n");
-+			return err;
-+		}
-+		if ((gain_offset->gain.gr_cy.integer > 7) ||
-+		    (gain_offset->gain.gr_cy.decimal > 0x1ff)) {
-+			dev_dbg(isif_cfg.dev, "invalid  gain gr_cy\n");
-+			return err;
-+		}
-+		if ((gain_offset->gain.gb_g.integer > 7) ||
-+		    (gain_offset->gain.gb_g.decimal > 0x1ff)) {
-+			dev_dbg(isif_cfg.dev, "invalid  gain gb_g\n");
-+			return err;
-+		}
-+		if ((gain_offset->gain.b_mg.integer > 7) ||
-+		    (gain_offset->gain.b_mg.decimal > 0x1ff)) {
-+			dev_dbg(isif_cfg.dev, "invalid  gain b_mg\n");
-+			return err;
-+		}
-+	}
-+	if (gain_offset->offset_sdram_en ||
-+	    gain_offset->offset_ipipe_en ||
-+	    gain_offset->offset_h3a_en) {
-+		if (gain_offset->offset > 0xfff) {
-+			dev_dbg(isif_cfg.dev, "invalid  gain b_mg\n");
-+			return err;
-+		}
++	src_buf = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
++	dst_buf = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
 +
-+	}
-+	return 0;
++	device_process(ctx, src_buf, dst_buf);
++
++	/* Run a timer, which simulates a hardware irq  */
++	schedule_irq(dev, ctx->transtime);
 +}
 +
-+static int
-+validate_isif_config_params_raw(struct isif_config_params_raw *params)
-+{
-+	int err = -EINVAL;
 +
-+	if (params->compress.alg > ISIF_NO_COMPRESSION) {
-+		dev_dbg(isif_cfg.dev, "invalid compress algorithm\n");
-+		return err;
++static void device_isr(unsigned long priv)
++{
++	struct m2mtest_dev *m2mtest_dev = (struct m2mtest_dev *)priv;
++	struct m2mtest_ctx *curr_ctx;
++	struct m2mtest_buffer *src_buf, *dst_buf;
++
++	curr_ctx = v4l2_m2m_get_curr_priv(m2mtest_dev->m2m_dev);
++
++	if (NULL == curr_ctx) {
++		printk(KERN_ERR
++			"Instance released before end of transaction\n");
++		return;
 +	}
 +
-+	if ((params->compress.alg == ISIF_DPCM) &&
-+	    (params->compress.pred > ISIF_DPCM_PRED2)) {
-+		dev_dbg(isif_cfg.dev, "invalid DPCM predicator\n");
-+		return err;
-+	}
++	src_buf = v4l2_m2m_src_buf_remove(curr_ctx->m2m_ctx);
++	dst_buf = v4l2_m2m_dst_buf_remove(curr_ctx->m2m_ctx);
++	curr_ctx->num_processed++;
 +
-+	if (params->gain_offset.offset_sdram_en ||
-+	    params->gain_offset.offset_ipipe_en ||
-+	    params->gain_offset.offset_h3a_en ||
-+	    params->dfc.en) {
-+		/* common offset values for DFC and Gain-offset */
-+		if (params->horz_offset > ISIF_DATA_H_OFFSET_MASK) {
-+			dev_dbg(isif_cfg.dev,
-+				"invalid Horizontal offset value\n");
-+			return err;
-+		}
-+
-+		if (params->vert_offset  > ISIF_DATA_V_OFFSET_MASK) {
-+			dev_dbg(isif_cfg.dev,
-+				"invalid vertical offset value\n");
-+			return err;
-+		}
-+	}
-+	err = isif_validate_linearization_params(&params->linearize);
-+	if (err)
-+		return err;
-+	err = isif_validate_df_csc_params(&params->df_csc);
-+	if (err)
-+		return err;
-+	err = isif_validate_dfc_params(&params->dfc);
-+	if (err)
-+		return err;
-+	err = isif_validate_bclamp_params(&params->bclamp);
-+	if (err)
-+		return err;
-+	err = isif_validate_gain_ofst_params(&params->gain_offset);
-+	return err;
-+}
-+
-+static int isif_set_buftype(enum ccdc_buftype buf_type)
-+{
-+	if (isif_cfg.if_type == VPFE_RAW_BAYER)
-+		isif_cfg.bayer.buf_type = buf_type;
-+	else
-+		isif_cfg.ycbcr.buf_type = buf_type;
-+
-+	return 0;
-+
-+}
-+static enum ccdc_buftype isif_get_buftype(void)
-+{
-+	if (isif_cfg.if_type == VPFE_RAW_BAYER)
-+		return isif_cfg.bayer.buf_type;
-+
-+	return isif_cfg.ycbcr.buf_type;
-+}
-+
-+static int isif_enum_pix(u32 *pix, int i)
-+{
-+	int ret = -EINVAL;
-+
-+	if (isif_cfg.if_type == VPFE_RAW_BAYER) {
-+		if (i < ARRAY_SIZE(isif_raw_bayer_pix_formats)) {
-+			*pix = isif_raw_bayer_pix_formats[i];
-+			ret = 0;
-+		}
++	if (curr_ctx->num_processed == curr_ctx->translen
++	    || curr_ctx->aborting) {
++		dprintk(curr_ctx->dev, "Finishing transaction\n");
++		curr_ctx->num_processed = 0;
++		v4l2_m2m_job_finish(m2mtest_dev->m2m_dev, curr_ctx->m2m_ctx);
++		src_buf->vb.state = dst_buf->vb.state = VIDEOBUF_DONE;
++		wake_up(&src_buf->vb.done);
++		wake_up(&dst_buf->vb.done);
 +	} else {
-+		if (i < ARRAY_SIZE(isif_raw_yuv_pix_formats)) {
-+			*pix = isif_raw_yuv_pix_formats[i];
-+			ret = 0;
++		src_buf->vb.state = dst_buf->vb.state = VIDEOBUF_DONE;
++		wake_up(&src_buf->vb.done);
++		wake_up(&dst_buf->vb.done);
++		device_run(curr_ctx);
++	}
++
++	return;
++}
++
++
++/*
++ * video ioctls
++ */
++
++static int vidioc_querycap(struct file *file, void *priv,
++			   struct v4l2_capability *cap)
++{
++	strncpy(cap->driver, MEM2MEM_NAME, sizeof(cap->driver) - 1);
++	strncpy(cap->card, MEM2MEM_NAME, sizeof(cap->card) - 1);
++	cap->bus_info[0] = 0;
++	cap->version = KERNEL_VERSION(0, 1, 0);
++	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT
++			  | V4L2_CAP_STREAMING;
++
++	return 0;
++}
++
++static int enum_fmt(struct v4l2_fmtdesc *f, u32 type)
++{
++	int i, num;
++	struct m2mtest_fmt *fmt;
++
++	num = 0;
++
++	for (i = 0; i < NUM_FORMATS; ++i) {
++		if (formats[i].types & type) {
++			/* index-th format of type type found ? */
++			if (num == f->index)
++				break;
++			/* Correct type but haven't reached our index yet,
++			 * just increment per-type index */
++			++num;
 +		}
 +	}
 +
++	if (i < NUM_FORMATS) {
++		/* Format found */
++		fmt = &formats[i];
++		strncpy(f->description, fmt->name, sizeof(f->description) - 1);
++		f->pixelformat = fmt->fourcc;
++		return 0;
++	}
++
++	/* Format not found */
++	return -EINVAL;
++}
++
++static int vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
++				   struct v4l2_fmtdesc *f)
++{
++	return enum_fmt(f, MEM2MEM_CAPTURE);
++}
++
++static int vidioc_enum_fmt_vid_out(struct file *file, void *priv,
++				   struct v4l2_fmtdesc *f)
++{
++	return enum_fmt(f, MEM2MEM_OUTPUT);
++}
++
++static int vidioc_g_fmt(struct m2mtest_ctx *ctx, struct v4l2_format *f)
++{
++	struct videobuf_queue *vq;
++	struct m2mtest_q_data *q_data;
++
++	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
++	q_data = get_q_data(f->type);
++
++	f->fmt.pix.width	= q_data->width;
++	f->fmt.pix.height	= q_data->height;
++	f->fmt.pix.field	= vq->field;
++	f->fmt.pix.pixelformat	= q_data->fmt->fourcc;
++	f->fmt.pix.bytesperline	= (q_data->width * q_data->fmt->depth) >> 3;
++	f->fmt.pix.sizeimage	= q_data->sizeimage;
++
++	return 0;
++}
++
++static int vidioc_g_fmt_vid_out(struct file *file, void *priv,
++				struct v4l2_format *f)
++{
++	return vidioc_g_fmt(priv, f);
++}
++
++static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
++				struct v4l2_format *f)
++{
++	return vidioc_g_fmt(priv, f);
++}
++
++static int vidioc_try_fmt(struct v4l2_format *f, struct m2mtest_fmt *fmt)
++{
++	enum v4l2_field field;
++
++	field = f->fmt.pix.field;
++
++	if (field == V4L2_FIELD_ANY)
++		field = V4L2_FIELD_NONE;
++	else if (V4L2_FIELD_NONE != field)
++		return -EINVAL;
++
++	/* V4L2 specification suggests the driver corrects the format struct
++	 * if any of the dimensions is unsupported */
++	f->fmt.pix.field = field;
++
++	if (f->fmt.pix.height < MIN_H)
++		f->fmt.pix.height = MIN_H;
++	else if (f->fmt.pix.height > MAX_H)
++		f->fmt.pix.height = MAX_H;
++
++	if (f->fmt.pix.width < MIN_W)
++		f->fmt.pix.width = MIN_W;
++	else if (f->fmt.pix.width > MAX_W)
++		f->fmt.pix.width = MAX_W;
++
++	f->fmt.pix.width &= ~DIM_ALIGN_MASK;
++	f->fmt.pix.bytesperline = (f->fmt.pix.width * fmt->depth) >> 3;
++	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
++
++	return 0;
++}
++
++static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
++				  struct v4l2_format *f)
++{
++	struct m2mtest_fmt *fmt;
++	struct m2mtest_ctx *ctx = priv;
++
++	fmt = find_format(f);
++	if (!fmt || !(fmt->types & MEM2MEM_CAPTURE)) {
++		v4l2_err(&ctx->dev->v4l2_dev,
++			 "Fourcc format (0x%08x) invalid.\n",
++			 f->fmt.pix.pixelformat);
++		return -EINVAL;
++	}
++
++	return vidioc_try_fmt(f, fmt);
++}
++
++static int vidioc_try_fmt_vid_out(struct file *file, void *priv,
++				  struct v4l2_format *f)
++{
++	struct m2mtest_fmt *fmt;
++	struct m2mtest_ctx *ctx = priv;
++
++	fmt = find_format(f);
++	if (!fmt || !(fmt->types & MEM2MEM_OUTPUT)) {
++		v4l2_err(&ctx->dev->v4l2_dev,
++			 "Fourcc format (0x%08x) invalid.\n",
++			 f->fmt.pix.pixelformat);
++		return -EINVAL;
++	}
++
++	return vidioc_try_fmt(f, fmt);
++}
++
++static int vidioc_s_fmt(struct m2mtest_ctx *ctx, struct v4l2_format *f)
++{
++	struct m2mtest_q_data *q_data;
++	struct videobuf_queue *vq;
++	int ret = 0;
++
++	vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
++	q_data = get_q_data(f->type);
++	if (!q_data)
++		return -EINVAL;
++
++	mutex_lock(&vq->vb_lock);
++
++	if (videobuf_queue_is_busy(vq)) {
++		v4l2_err(&ctx->dev->v4l2_dev,
++			 "%s queue busy\n", __func__);
++		ret = -EBUSY;
++		goto out;
++	}
++
++	q_data->fmt		= find_format(f);
++	q_data->width		= f->fmt.pix.width;
++	q_data->height		= f->fmt.pix.height;
++	q_data->sizeimage	= q_data->width * q_data->height
++				* q_data->fmt->depth >> 3;
++	vq->field		= f->fmt.pix.field;
++
++	dprintk(ctx->dev,
++		"Setting format for type %d, wxh: %dx%d, fmt: %d\n",
++		f->type, q_data->width, q_data->height, q_data->fmt->fourcc);
++
++out:
++	mutex_unlock(&vq->vb_lock);
 +	return ret;
 +}
 +
-+static int isif_set_pixel_format(unsigned int pixfmt)
++static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
++				struct v4l2_format *f)
 +{
-+	if (isif_cfg.if_type == VPFE_RAW_BAYER) {
-+		if (pixfmt == V4L2_PIX_FMT_SBGGR8) {
-+			if ((isif_cfg.bayer.config_params.compress.alg !=
-+			     ISIF_ALAW) &&
-+			    (isif_cfg.bayer.config_params.compress.alg !=
-+			     ISIF_DPCM)) {
-+				dev_dbg(isif_cfg.dev,
-+					"Either configure A-Law or DPCM\n");
-+				return -EINVAL;
-+			}
-+			isif_cfg.data_pack = ISIF_PACK_8BIT;
-+		} else if (pixfmt == V4L2_PIX_FMT_SBGGR16) {
-+			isif_cfg.bayer.config_params.compress.alg =
-+					ISIF_NO_COMPRESSION;
-+			isif_cfg.data_pack = ISIF_PACK_16BIT;
-+		} else
-+			return -EINVAL;
-+		isif_cfg.bayer.pix_fmt = CCDC_PIXFMT_RAW;
-+	} else {
-+		if (pixfmt == V4L2_PIX_FMT_YUYV)
-+			isif_cfg.ycbcr.pix_order = CCDC_PIXORDER_YCBYCR;
-+		else if (pixfmt == V4L2_PIX_FMT_UYVY)
-+			isif_cfg.ycbcr.pix_order = CCDC_PIXORDER_CBYCRY;
-+		else
-+			return -EINVAL;
-+		isif_cfg.data_pack = ISIF_PACK_8BIT;
-+	}
-+	return 0;
-+}
++	int ret;
 +
-+static u32 isif_get_pixel_format(void)
-+{
-+	u32 pixfmt;
-+
-+	if (isif_cfg.if_type == VPFE_RAW_BAYER)
-+		if (isif_cfg.bayer.config_params.compress.alg == ISIF_ALAW ||
-+		    isif_cfg.bayer.config_params.compress.alg == ISIF_DPCM)
-+			pixfmt = V4L2_PIX_FMT_SBGGR8;
-+		else
-+			pixfmt = V4L2_PIX_FMT_SBGGR16;
-+	else {
-+		if (isif_cfg.ycbcr.pix_order == CCDC_PIXORDER_YCBYCR)
-+			pixfmt = V4L2_PIX_FMT_YUYV;
-+		else
-+			pixfmt = V4L2_PIX_FMT_UYVY;
-+	}
-+	return pixfmt;
-+}
-+
-+static int isif_set_image_window(struct v4l2_rect *win)
-+{
-+	if (isif_cfg.if_type == VPFE_RAW_BAYER) {
-+		isif_cfg.bayer.win.top = win->top;
-+		isif_cfg.bayer.win.left = win->left;
-+		isif_cfg.bayer.win.width = win->width;
-+		isif_cfg.bayer.win.height = win->height;
-+	} else {
-+		isif_cfg.ycbcr.win.top = win->top;
-+		isif_cfg.ycbcr.win.left = win->left;
-+		isif_cfg.ycbcr.win.width = win->width;
-+		isif_cfg.ycbcr.win.height = win->height;
-+	}
-+	return 0;
-+}
-+
-+static void isif_get_image_window(struct v4l2_rect *win)
-+{
-+	if (isif_cfg.if_type == VPFE_RAW_BAYER)
-+		*win = isif_cfg.bayer.win;
-+	else
-+		*win = isif_cfg.ycbcr.win;
-+}
-+
-+static unsigned int isif_get_line_length(void)
-+{
-+	unsigned int len;
-+
-+	if (isif_cfg.if_type == VPFE_RAW_BAYER) {
-+		if (isif_cfg.data_pack == ISIF_PACK_8BIT)
-+			len = ((isif_cfg.bayer.win.width));
-+		else if (isif_cfg.data_pack == ISIF_PACK_12BIT)
-+			len = (((isif_cfg.bayer.win.width * 2) +
-+				 (isif_cfg.bayer.win.width >> 2)));
-+		else
-+			len = (((isif_cfg.bayer.win.width * 2)));
-+	} else
-+		len = (((isif_cfg.ycbcr.win.width * 2)));
-+	return ALIGN(len, 32);
-+}
-+
-+static int isif_set_frame_format(enum ccdc_frmfmt frm_fmt)
-+{
-+	if (isif_cfg.if_type == VPFE_RAW_BAYER)
-+		isif_cfg.bayer.frm_fmt = frm_fmt;
-+	else
-+		isif_cfg.ycbcr.frm_fmt = frm_fmt;
-+	return 0;
-+}
-+static enum ccdc_frmfmt isif_get_frame_format(void)
-+{
-+	if (isif_cfg.if_type == VPFE_RAW_BAYER)
-+		return isif_cfg.bayer.frm_fmt;
-+	return isif_cfg.ycbcr.frm_fmt;
-+}
-+
-+static int isif_getfid(void)
-+{
-+	return (regr(MODESET) >> 15) & 0x1;
-+}
-+
-+/* misc operations */
-+static void isif_setfbaddr(unsigned long addr)
-+{
-+	regw((addr >> 21) & 0x07ff, CADU);
-+	regw((addr >> 5) & 0x0ffff, CADL);
-+}
-+
-+static int isif_set_hw_if_params(struct vpfe_hw_if_param *params)
-+{
-+	isif_cfg.if_type = params->if_type;
-+
-+	switch (params->if_type) {
-+	case VPFE_BT656:
-+	case VPFE_BT656_10BIT:
-+	case VPFE_YCBCR_SYNC_8:
-+		isif_cfg.ycbcr.pix_fmt = CCDC_PIXFMT_YCBCR_8BIT;
-+		isif_cfg.ycbcr.pix_order = CCDC_PIXORDER_CBYCRY;
-+		break;
-+	case VPFE_BT1120:
-+	case VPFE_YCBCR_SYNC_16:
-+		isif_cfg.ycbcr.pix_fmt = CCDC_PIXFMT_YCBCR_16BIT;
-+		isif_cfg.ycbcr.pix_order = CCDC_PIXORDER_CBYCRY;
-+		break;
-+	case VPFE_RAW_BAYER:
-+		isif_cfg.bayer.pix_fmt = CCDC_PIXFMT_RAW;
-+		break;
-+	default:
-+		dev_dbg(isif_cfg.dev, "Invalid interface type\n");
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+/* Parameter operations */
-+static int isif_get_params(void __user *params)
-+{
-+	/* only raw module parameters can be set through the IOCTL */
-+	if (isif_cfg.if_type != VPFE_RAW_BAYER)
-+		return -EINVAL;
-+
-+	if (copy_to_user(params,
-+			&isif_cfg.bayer.config_params,
-+			sizeof(isif_cfg.bayer.config_params))) {
-+		dev_dbg(isif_cfg.dev,
-+			"isif_get_params: error in copying isif params\n");
-+		return -EFAULT;
-+	}
-+	return 0;
-+}
-+
-+/* Parameter operations */
-+static int isif_set_params(void __user *params)
-+{
-+	struct isif_config_params_raw *isif_raw_params;
-+	int ret = -EINVAL;
-+
-+	/* only raw module parameters can be set through the IOCTL */
-+	if (isif_cfg.if_type != VPFE_RAW_BAYER)
++	ret = vidioc_try_fmt_vid_cap(file, priv, f);
++	if (ret)
 +		return ret;
 +
-+	isif_raw_params = kzalloc(sizeof(*isif_raw_params), GFP_KERNEL);
-+	if (NULL == isif_raw_params)
-+		return -ENOMEM;
-+
-+	ret = copy_from_user(isif_raw_params,
-+			     params, sizeof(*isif_raw_params));
-+	if (ret) {
-+		dev_dbg(isif_cfg.dev, "isif_set_params: error in copying isif"
-+			"params, %d\n", ret);
-+		ret = -EFAULT;
-+		goto free_out;
-+	}
-+
-+	if (!validate_isif_config_params_raw(isif_raw_params)) {
-+		memcpy(&isif_cfg.bayer.config_params,
-+			isif_raw_params,
-+			sizeof(*isif_raw_params));
-+		ret = 0;
-+	} else
-+		ret = -EINVAL;
-+free_out:
-+	kfree(isif_raw_params);
-+	return ret;
++	return vidioc_s_fmt(priv, f);
 +}
 +
-+/* This function will configure ISIF for YCbCr parameters. */
-+static int isif_config_ycbcr(void)
++static int vidioc_s_fmt_vid_out(struct file *file, void *priv,
++				struct v4l2_format *f)
 +{
-+	struct isif_ycbcr_config *params = &isif_cfg.ycbcr;
-+	struct vpss_pg_frame_size frame_size;
-+	u32 modeset = 0, ccdcfg = 0;
-+	struct vpss_sync_pol sync;
++	int ret;
 +
-+	dev_dbg(isif_cfg.dev, "\nStarting isif_config_ycbcr...");
++	ret = vidioc_try_fmt_vid_out(file, priv, f);
++	if (ret)
++		return ret;
 +
-+	/* configure pixel format or input mode */
-+	modeset = modeset | (params->pix_fmt << ISIF_INPUT_SHIFT) |
-+		  (params->frm_fmt << ISIF_FRM_FMT_SHIFT) |
-+		  (params->fid_pol << ISIF_FID_POL_SHIFT) |
-+		  (params->hd_pol << ISIF_HD_POL_SHIFT) |
-+		  (params->vd_pol << ISIF_VD_POL_SHIFT);
++	return vidioc_s_fmt(priv, f);
++}
 +
-+	/* pack the data to 8-bit ISIFCFG */
-+	switch (isif_cfg.if_type) {
-+	case VPFE_BT656:
-+		if (params->pix_fmt != CCDC_PIXFMT_YCBCR_8BIT) {
-+			dev_dbg(isif_cfg.dev, "Invalid pix_fmt(input mode)\n");
-+			return -EINVAL;
-+		}
-+		modeset |= (VPFE_PINPOL_NEGATIVE << ISIF_VD_POL_SHIFT);
-+		regw(3, REC656IF);
-+		ccdcfg = ccdcfg | ISIF_DATA_PACK8 | ISIF_YCINSWP_YCBCR;
-+		break;
-+	case VPFE_BT656_10BIT:
-+		if (params->pix_fmt != CCDC_PIXFMT_YCBCR_8BIT) {
-+			dev_dbg(isif_cfg.dev, "Invalid pix_fmt(input mode)\n");
-+			return -EINVAL;
-+		}
-+		/* setup BT.656, embedded sync  */
-+		regw(3, REC656IF);
-+		/* enable 10 bit mode in ccdcfg */
-+		ccdcfg = ccdcfg | ISIF_DATA_PACK8 | ISIF_YCINSWP_YCBCR |
-+			ISIF_BW656_ENABLE;
-+		break;
-+	case VPFE_BT1120:
-+		if (params->pix_fmt != CCDC_PIXFMT_YCBCR_16BIT) {
-+			dev_dbg(isif_cfg.dev, "Invalid pix_fmt(input mode)\n");
-+			return -EINVAL;
-+		}
-+		regw(3, REC656IF);
++static int vidioc_reqbufs(struct file *file, void *priv,
++			  struct v4l2_requestbuffers *reqbufs)
++{
++	struct m2mtest_ctx *ctx = priv;
++
++	return v4l2_m2m_reqbufs(file, ctx->m2m_ctx, reqbufs);
++}
++
++static int vidioc_querybuf(struct file *file, void *priv,
++			   struct v4l2_buffer *buf)
++{
++	struct m2mtest_ctx *ctx = priv;
++
++	return v4l2_m2m_querybuf(file, ctx->m2m_ctx, buf);
++}
++
++static int vidioc_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
++{
++	struct m2mtest_ctx *ctx = priv;
++
++	return v4l2_m2m_qbuf(file, ctx->m2m_ctx, buf);
++}
++
++static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
++{
++	struct m2mtest_ctx *ctx = priv;
++
++	return v4l2_m2m_dqbuf(file, ctx->m2m_ctx, buf);
++}
++
++static int vidioc_streamon(struct file *file, void *priv,
++			   enum v4l2_buf_type type)
++{
++	struct m2mtest_ctx *ctx = priv;
++
++	return v4l2_m2m_streamon(file, ctx->m2m_ctx, type);
++}
++
++static int vidioc_streamoff(struct file *file, void *priv,
++			    enum v4l2_buf_type type)
++{
++	struct m2mtest_ctx *ctx = priv;
++
++	return v4l2_m2m_streamoff(file, ctx->m2m_ctx, type);
++}
++
++static int vidioc_queryctrl(struct file *file, void *priv,
++			    struct v4l2_queryctrl *qc)
++{
++	struct v4l2_queryctrl *c;
++
++	c = get_ctrl(qc->id);
++	if (!c)
++		return -EINVAL;
++
++	*qc = *c;
++	return 0;
++}
++
++static int vidioc_g_ctrl(struct file *file, void *priv,
++			 struct v4l2_control *ctrl)
++{
++	struct m2mtest_ctx *ctx = priv;
++
++	switch (ctrl->id) {
++	case V4L2_CID_TRANS_TIME_MSEC:
++		ctrl->value = ctx->transtime;
 +		break;
 +
-+	case VPFE_YCBCR_SYNC_8:
-+		ccdcfg |= ISIF_DATA_PACK8;
-+		ccdcfg |= ISIF_YCINSWP_YCBCR;
-+		if (params->pix_fmt != CCDC_PIXFMT_YCBCR_8BIT) {
-+			dev_dbg(isif_cfg.dev, "Invalid pix_fmt(input mode)\n");
-+			return -EINVAL;
-+		}
++	case V4L2_CID_TRANS_NUM_BUFS:
++		ctrl->value = ctx->translen;
 +		break;
-+	case VPFE_YCBCR_SYNC_16:
-+		if (params->pix_fmt != CCDC_PIXFMT_YCBCR_16BIT) {
-+			dev_dbg(isif_cfg.dev, "Invalid pix_fmt(input mode)\n");
-+			return -EINVAL;
-+		}
-+		break;
++
 +	default:
-+		/* should never come here */
-+		dev_dbg(isif_cfg.dev, "Invalid interface type\n");
++		v4l2_err(&ctx->dev->v4l2_dev, "Invalid control\n");
 +		return -EINVAL;
 +	}
 +
-+	regw(modeset, MODESET);
++	return 0;
++}
 +
-+	/* Set up pix order */
-+	ccdcfg |= params->pix_order << ISIF_PIX_ORDER_SHIFT;
++static int check_ctrl_val(struct m2mtest_ctx *ctx, struct v4l2_control *ctrl)
++{
++	struct v4l2_queryctrl *c;
 +
-+	regw(ccdcfg, CCDCFG);
++	c = get_ctrl(ctrl->id);
++	if (!c)
++		return -EINVAL;
 +
-+	/* configure video window */
-+	if ((isif_cfg.if_type == VPFE_BT1120) ||
-+	    (isif_cfg.if_type == VPFE_YCBCR_SYNC_16))
-+		isif_setwin(&params->win, params->frm_fmt, 1);
-+	else
-+		isif_setwin(&params->win, params->frm_fmt, 2);
-+
-+	/*
-+	 * configure the horizontal line offset
-+	 * this is done by rounding up width to a multiple of 16 pixels
-+	 * and multiply by two to account for y:cb:cr 4:2:2 data
-+	 */
-+	regw(((((params->win.width * 2) + 31) & 0xffffffe0) >> 5), HSIZE);
-+
-+	/* configure the memory line offset */
-+	if ((params->frm_fmt == CCDC_FRMFMT_INTERLACED) &&
-+	    (params->buf_type == CCDC_BUFTYPE_FLD_INTERLEAVED))
-+		/* two fields are interleaved in memory */
-+		regw(0x00000249, SDOFST);
-+
-+	/* Setup test pattern if enabled */
-+	if (isif_cfg.bayer.config_params.test_pat_gen) {
-+		sync.ccdpg_hdpol = params->hd_pol;
-+		sync.ccdpg_vdpol = params->vd_pol;
-+		dm365_vpss_set_sync_pol(sync);
-+		dm365_vpss_set_pg_frame_size(frame_size);
++	if (ctrl->value < c->minimum
++	    || ctrl->value > c->maximum) {
++		v4l2_err(&ctx->dev->v4l2_dev, "Value out of range\n");
++		return -ERANGE;
 +	}
++
 +	return 0;
 +}
 +
-+static int isif_configure(void)
++static int vidioc_s_ctrl(struct file *file, void *priv,
++			 struct v4l2_control *ctrl)
 +{
-+	if (isif_cfg.if_type == VPFE_RAW_BAYER)
-+		return isif_config_raw();
-+	return isif_config_ycbcr();
-+}
++	struct m2mtest_ctx *ctx = priv;
++	int ret = 0;
 +
-+static int isif_close(struct device *device)
-+{
-+	/* copy defaults to module params */
-+	isif_cfg.bayer.config_params = isif_config_defaults;
++	ret = check_ctrl_val(ctx, ctrl);
++	if (ret != 0)
++		return ret;
++
++	switch (ctrl->id) {
++	case V4L2_CID_TRANS_TIME_MSEC:
++		ctx->transtime = ctrl->value;
++		break;
++
++	case V4L2_CID_TRANS_NUM_BUFS:
++		ctx->translen = ctrl->value;
++		break;
++
++	default:
++		v4l2_err(&ctx->dev->v4l2_dev, "Invalid control\n");
++		return -EINVAL;
++	}
++
 +	return 0;
 +}
 +
-+static struct ccdc_hw_device isif_hw_dev = {
-+	.name = "ISIF",
-+	.owner = THIS_MODULE,
-+	.hw_ops = {
-+		.open = isif_open,
-+		.close = isif_close,
-+		.enable = isif_enable,
-+		.enable_out_to_sdram = isif_enable_output_to_sdram,
-+		.set_hw_if_params = isif_set_hw_if_params,
-+		.set_params = isif_set_params,
-+		.get_params = isif_get_params,
-+		.configure = isif_configure,
-+		.set_buftype = isif_set_buftype,
-+		.get_buftype = isif_get_buftype,
-+		.enum_pix = isif_enum_pix,
-+		.set_pixel_format = isif_set_pixel_format,
-+		.get_pixel_format = isif_get_pixel_format,
-+		.set_frame_format = isif_set_frame_format,
-+		.get_frame_format = isif_get_frame_format,
-+		.set_image_window = isif_set_image_window,
-+		.get_image_window = isif_get_image_window,
-+		.get_line_length = isif_get_line_length,
-+		.setfbaddr = isif_setfbaddr,
-+		.getfid = isif_getfid,
++
++static const struct v4l2_ioctl_ops m2mtest_ioctl_ops = {
++	.vidioc_querycap	= vidioc_querycap,
++
++	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
++	.vidioc_g_fmt_vid_cap	= vidioc_g_fmt_vid_cap,
++	.vidioc_try_fmt_vid_cap	= vidioc_try_fmt_vid_cap,
++	.vidioc_s_fmt_vid_cap	= vidioc_s_fmt_vid_cap,
++
++	.vidioc_enum_fmt_vid_out = vidioc_enum_fmt_vid_out,
++	.vidioc_g_fmt_vid_out	= vidioc_g_fmt_vid_out,
++	.vidioc_try_fmt_vid_out	= vidioc_try_fmt_vid_out,
++	.vidioc_s_fmt_vid_out	= vidioc_s_fmt_vid_out,
++
++	.vidioc_reqbufs		= vidioc_reqbufs,
++	.vidioc_querybuf	= vidioc_querybuf,
++
++	.vidioc_qbuf		= vidioc_qbuf,
++	.vidioc_dqbuf		= vidioc_dqbuf,
++
++	.vidioc_streamon	= vidioc_streamon,
++	.vidioc_streamoff	= vidioc_streamoff,
++
++	.vidioc_queryctrl	= vidioc_queryctrl,
++	.vidioc_g_ctrl		= vidioc_g_ctrl,
++	.vidioc_s_ctrl		= vidioc_s_ctrl,
++};
++
++
++/*
++ * Queue operations
++ */
++
++static void m2mtest_buf_release(struct videobuf_queue *vq,
++				struct videobuf_buffer *vb)
++{
++	struct m2mtest_ctx *ctx = vq->priv_data;
++
++	dprintk(ctx->dev, "type: %d, index: %d, state: %d\n",
++		vq->type, vb->i, vb->state);
++
++	videobuf_vmalloc_free(vb);
++	vb->state = VIDEOBUF_NEEDS_INIT;
++}
++
++static int m2mtest_buf_setup(struct videobuf_queue *vq, unsigned int *count,
++			  unsigned int *size)
++{
++	struct m2mtest_ctx *ctx = vq->priv_data;
++	struct m2mtest_q_data *q_data;
++
++	q_data = get_q_data(vq->type);
++
++	*size = q_data->width * q_data->height * q_data->fmt->depth >> 3;
++	dprintk(ctx->dev, "size:%d, w/h %d/%d, depth: %d\n",
++		*size, q_data->width, q_data->height, q_data->fmt->depth);
++
++	if (0 == *count)
++		*count = MEM2MEM_DEF_NUM_BUFS;
++
++	while (*size * *count > MEM2MEM_VID_MEM_LIMIT)
++		(*count)--;
++
++	v4l2_info(&ctx->dev->v4l2_dev,
++		  "%d buffers of size %d set up.\n", *count, *size);
++
++	return 0;
++}
++
++static int m2mtest_buf_prepare(struct videobuf_queue *vq,
++			       struct videobuf_buffer *vb,
++			       enum v4l2_field field)
++{
++	struct m2mtest_ctx *ctx = vq->priv_data;
++	struct m2mtest_q_data *q_data;
++	int ret;
++
++	dprintk(ctx->dev, "type: %d, index: %d, state: %d\n",
++		vq->type, vb->i, vb->state);
++
++	q_data = get_q_data(vq->type);
++
++	if (vb->baddr) {
++		/* User-provided buffer */
++		if (vb->bsize < q_data->sizeimage) {
++			/* Buffer too small to fit a frame */
++			v4l2_err(&ctx->dev->v4l2_dev,
++				 "User-provided buffer too small (%d < %d)\n",
++				 q_data->sizeimage, vb->bsize);
++			return -EINVAL;
++		}
++	} else if (vb->state != VIDEOBUF_NEEDS_INIT
++			&& vb->bsize < q_data->sizeimage) {
++		/* We provide the buffer, but it's already been inited
++		 * and is too small */
++		return -EINVAL;
++	}
++
++	vb->width	= q_data->width;
++	vb->height	= q_data->height;
++	vb->bytesperline = (q_data->width * q_data->fmt->depth) >> 3;
++	vb->size	= q_data->sizeimage;
++	vb->field	= field;
++
++	if (VIDEOBUF_NEEDS_INIT == vb->state) {
++		ret = videobuf_iolock(vq, vb, NULL);
++		if (ret) {
++			v4l2_err(&ctx->dev->v4l2_dev,
++				 "Iolock failed\n");
++			goto fail;
++		}
++	}
++
++	vb->state = VIDEOBUF_PREPARED;
++
++	return 0;
++fail:
++	m2mtest_buf_release(vq, vb);
++	return ret;
++}
++
++static void m2mtest_buf_queue(struct videobuf_queue *vq,
++			   struct videobuf_buffer *vb)
++{
++	struct m2mtest_ctx *ctx = vq->priv_data;
++
++	v4l2_m2m_buf_queue(ctx->m2m_ctx, vq, vb);
++}
++
++static struct videobuf_queue_ops m2mtest_qops = {
++	.buf_setup	= m2mtest_buf_setup,
++	.buf_prepare	= m2mtest_buf_prepare,
++	.buf_queue	= m2mtest_buf_queue,
++	.buf_release	= m2mtest_buf_release,
++};
++
++static void queue_init(void *priv, struct videobuf_queue *vq,
++		       enum v4l2_buf_type type)
++{
++	struct m2mtest_ctx *ctx = priv;
++
++	videobuf_queue_vmalloc_init(vq, &m2mtest_qops, ctx->dev->v4l2_dev.dev,
++				    &ctx->dev->irqlock, type, V4L2_FIELD_NONE,
++				    sizeof(struct m2mtest_buffer), priv);
++}
++
++
++/*
++ * File operations
++ */
++static int m2mtest_open(struct file *file)
++{
++	struct m2mtest_dev *dev = video_drvdata(file);
++	struct m2mtest_ctx *ctx = NULL;
++
++	atomic_inc(&dev->num_inst);
++
++	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
++	if (!ctx) {
++		atomic_dec(&dev->num_inst);
++		return -ENOMEM;
++	}
++
++	file->private_data = ctx;
++	ctx->dev = dev;
++	ctx->translen = MEM2MEM_DEF_TRANSLEN;
++	ctx->transtime = MEM2MEM_DEF_TRANSTIME;
++	ctx->num_processed = 0;
++
++	ctx->m2m_ctx = v4l2_m2m_ctx_init(ctx, dev->m2m_dev, queue_init);
++
++	if (IS_ERR(ctx->m2m_ctx)) {
++		kfree(ctx);
++		atomic_dec(&dev->num_inst);
++		return PTR_ERR(ctx->m2m_ctx);
++	}
++
++	dprintk(dev, "Created instance %p, m2m_ctx: %p\n", ctx, ctx->m2m_ctx);
++
++	return 0;
++}
++
++static int m2mtest_release(struct file *file)
++{
++	struct m2mtest_dev *dev = video_drvdata(file);
++	struct m2mtest_ctx *ctx = file->private_data;
++
++	dprintk(dev, "Releasing instance %p\n", ctx);
++
++	v4l2_m2m_ctx_release(ctx->m2m_ctx);
++	kfree(ctx);
++
++	atomic_dec(&dev->num_inst);
++
++	return 0;
++}
++
++static unsigned int m2mtest_poll(struct file *file,
++				 struct poll_table_struct *wait)
++{
++	struct m2mtest_ctx *ctx = (struct m2mtest_ctx *)file->private_data;
++
++	return v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
++}
++
++static int m2mtest_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	struct m2mtest_ctx *ctx = (struct m2mtest_ctx *)file->private_data;
++
++	return v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
++}
++
++static const struct v4l2_file_operations m2mtest_fops = {
++	.owner		= THIS_MODULE,
++	.open		= m2mtest_open,
++	.release	= m2mtest_release,
++	.poll		= m2mtest_poll,
++	.ioctl		= video_ioctl2,
++	.mmap		= m2mtest_mmap,
++};
++
++static struct video_device m2mtest_videodev = {
++	.name		= MEM2MEM_NAME,
++	.fops		= &m2mtest_fops,
++	.ioctl_ops	= &m2mtest_ioctl_ops,
++	.minor		= -1,
++	.release	= video_device_release,
++};
++
++static struct v4l2_m2m_ops m2m_ops = {
++	.device_run	= device_run,
++	.job_ready	= job_ready,
++	.job_abort	= job_abort,
++};
++
++static int m2mtest_probe(struct platform_device *pdev)
++{
++	struct m2mtest_dev *dev;
++	struct video_device *vfd;
++	int ret;
++
++	dev = kzalloc(sizeof *dev, GFP_KERNEL);
++	if (!dev)
++		return -ENOMEM;
++
++	spin_lock_init(&dev->irqlock);
++
++	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
++	if (ret)
++		goto free_dev;
++
++	atomic_set(&dev->num_inst, 0);
++	mutex_init(&dev->dev_mutex);
++
++	vfd = video_device_alloc();
++	if (!vfd) {
++		v4l2_err(&dev->v4l2_dev, "Failed to allocate video device\n");
++		goto unreg_dev;
++	}
++
++	*vfd = m2mtest_videodev;
++
++	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
++	if (ret) {
++		v4l2_err(&dev->v4l2_dev, "Failed to register video device\n");
++		goto rel_vdev;
++	}
++
++	video_set_drvdata(vfd, dev);
++	snprintf(vfd->name, sizeof(vfd->name), "%s", m2mtest_videodev.name);
++	dev->vfd = vfd;
++	v4l2_info(&dev->v4l2_dev, MEM2MEM_TEST_MODULE_NAME
++			"Device registered as /dev/video%d\n", vfd->num);
++
++	setup_timer(&dev->timer, device_isr, (long)dev);
++	platform_set_drvdata(pdev, dev);
++
++	dev->m2m_dev = v4l2_m2m_init(&m2m_ops);
++	if (IS_ERR(dev->m2m_dev)) {
++		v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem device\n");
++		ret = PTR_ERR(dev->m2m_dev);
++		goto err_m2m;
++	}
++
++	return 0;
++
++err_m2m:
++	video_unregister_device(dev->vfd);
++rel_vdev:
++	video_device_release(vfd);
++unreg_dev:
++	v4l2_device_unregister(&dev->v4l2_dev);
++free_dev:
++	kfree(dev);
++
++	return ret;
++}
++
++static int m2mtest_remove(struct platform_device *pdev)
++{
++	struct m2mtest_dev *dev =
++		(struct m2mtest_dev *)platform_get_drvdata(pdev);
++
++	v4l2_info(&dev->v4l2_dev, "Removing " MEM2MEM_TEST_MODULE_NAME);
++	v4l2_m2m_release(dev->m2m_dev);
++	del_timer_sync(&dev->timer);
++	video_unregister_device(dev->vfd);
++	v4l2_device_unregister(&dev->v4l2_dev);
++	kfree(dev);
++
++	return 0;
++}
++
++static struct platform_driver m2mtest_pdrv = {
++	.probe		= m2mtest_probe,
++	.remove		= m2mtest_remove,
++	.driver		= {
++		.name	= MEM2MEM_NAME,
++		.owner	= THIS_MODULE,
 +	},
 +};
 +
-+static int __init isif_probe(struct platform_device *pdev)
++static void __exit m2mtest_exit(void)
 +{
-+	void (*setup_pinmux)(void);
-+	struct resource	*res;
-+	void *__iomem addr;
-+	int status = 0, i;
-+
-+	/*
-+	 * first try to register with vpfe. If not correct platform, then we
-+	 * don't have to iomap
-+	 */
-+	status = vpfe_register_ccdc_device(&isif_hw_dev);
-+	if (status < 0)
-+		return status;
-+
-+	/* Get and enable Master clock */
-+	isif_cfg.mclk = clk_get(&pdev->dev, "master");
-+	if (NULL == isif_cfg.mclk) {
-+		status = -ENODEV;
-+		goto fail_mclk;
-+	}
-+	if (clk_enable(isif_cfg.mclk)) {
-+		status = -ENODEV;
-+		goto fail_mclk;
-+	}
-+
-+	/* Platform data holds setup_pinmux function ptr */
-+	if (NULL == pdev->dev.platform_data) {
-+		status = -ENODEV;
-+		goto fail_mclk;
-+	}
-+	setup_pinmux = pdev->dev.platform_data;
-+	/*
-+	 * setup Mux configuration for ccdc which may be different for
-+	 * different SoCs using this CCDC
-+	 */
-+	setup_pinmux();
-+
-+	i = 0;
-+	/* Get the ISIF base address, linearization table0 and table1 addr. */
-+	while (i < 3) {
-+		res = platform_get_resource(pdev, IORESOURCE_MEM, i);
-+		if (!res) {
-+			status = -ENODEV;
-+			goto fail_nobase_res;
-+		}
-+		res = request_mem_region(res->start, resource_size(res),
-+					 res->name);
-+		if (!res) {
-+			status = -EBUSY;
-+			goto fail_nobase_res;
-+		}
-+		addr = ioremap_nocache(res->start, resource_size(res));
-+		if (!addr) {
-+			status = -ENOMEM;
-+			goto fail_base_iomap;
-+		}
-+		switch (i) {
-+		case 0:
-+			/* ISIF base address */
-+			isif_cfg.base_addr = addr;
-+			break;
-+		case 1:
-+			/* ISIF linear tbl0 address */
-+			isif_cfg.linear_tbl0_addr = addr;
-+			break;
-+		default:
-+			/* ISIF linear tbl0 address */
-+			isif_cfg.linear_tbl1_addr = addr;
-+			break;
-+		}
-+		i++;
-+	}
-+	isif_cfg.dev = &pdev->dev;
-+
-+	printk(KERN_NOTICE "%s is registered with vpfe.\n",
-+		isif_hw_dev.name);
-+	return 0;
-+fail_base_iomap:
-+	release_mem_region(res->start, resource_size(res));
-+	i--;
-+fail_nobase_res:
-+	if (isif_cfg.base_addr)
-+		iounmap(isif_cfg.base_addr);
-+	if (isif_cfg.linear_tbl0_addr)
-+		iounmap(isif_cfg.linear_tbl0_addr);
-+
-+	while (i >= 0) {
-+		res = platform_get_resource(pdev, IORESOURCE_MEM, i);
-+		release_mem_region(res->start, resource_size(res));
-+		i--;
-+	}
-+fail_mclk:
-+	clk_put(isif_cfg.mclk);
-+	vpfe_unregister_ccdc_device(&isif_hw_dev);
-+	return status;
++	platform_driver_unregister(&m2mtest_pdrv);
++	platform_device_unregister(&m2mtest_pdev);
 +}
 +
-+static int isif_remove(struct platform_device *pdev)
++static int __init m2mtest_init(void)
 +{
-+	struct resource	*res;
-+	int i = 0;
++	int ret;
 +
-+	iounmap(isif_cfg.base_addr);
-+	iounmap(isif_cfg.linear_tbl0_addr);
-+	iounmap(isif_cfg.linear_tbl1_addr);
-+	while (i < 3) {
-+		res = platform_get_resource(pdev, IORESOURCE_MEM, i);
-+		if (res)
-+			release_mem_region(res->start, resource_size(res));
-+		i++;
-+	}
-+	vpfe_unregister_ccdc_device(&isif_hw_dev);
++	ret = platform_device_register(&m2mtest_pdev);
++	if (ret)
++		return ret;
++
++	ret = platform_driver_register(&m2mtest_pdrv);
++	if (ret)
++		platform_device_unregister(&m2mtest_pdev);
++
 +	return 0;
 +}
 +
-+static struct platform_driver isif_driver = {
-+	.driver = {
-+		.name	= "isif",
-+		.owner = THIS_MODULE,
-+	},
-+	.remove = __devexit_p(isif_remove),
-+	.probe = isif_probe,
-+};
++module_init(m2mtest_init);
++module_exit(m2mtest_exit);
 +
-+static int __init isif_init(void)
-+{
-+	return platform_driver_register(&isif_driver);
-+}
-+
-+static void isif_exit(void)
-+{
-+	platform_driver_unregister(&isif_driver);
-+}
-+
-+module_init(isif_init);
-+module_exit(isif_exit);
-+
-+MODULE_LICENSE("GPL");
 -- 
-1.6.0.4
+1.6.4.2.253.g0b1fac
 
