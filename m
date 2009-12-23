@@ -1,92 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:3516 "EHLO mx1.redhat.com"
+Received: from lo.gmane.org ([80.91.229.12]:39638 "EHLO lo.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754306AbZLFAxi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Dec 2009 19:53:38 -0500
-Message-ID: <4B1B0094.6080000@redhat.com>
-Date: Sat, 05 Dec 2009 22:53:40 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Sander Eikelenboom <linux@eikelenboom.it>
-CC: linux-media@vger.kernel.org
-Subject: Re: [em28xx] BUG: unable to handle kernel NULL pointer dereference
- at 0000000000000000 IP: [<ffffffffa00997be>] :ir_common:ir_input_free+0x26/0x3e
-References: <255535957.20091206000510@eikelenboom.it>
-In-Reply-To: <255535957.20091206000510@eikelenboom.it>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1750986AbZLWQlh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Dec 2009 11:41:37 -0500
+Received: from list by lo.gmane.org with local (Exim 4.50)
+	id 1NNUH7-0002IK-IK
+	for linux-media@vger.kernel.org; Wed, 23 Dec 2009 17:41:25 +0100
+Received: from upc.si.94.140.72.111.dc.cable.static.telemach.net ([94.140.72.111])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 23 Dec 2009 17:41:25 +0100
+Received: from prusnik by upc.si.94.140.72.111.dc.cable.static.telemach.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 23 Dec 2009 17:41:25 +0100
+To: linux-media@vger.kernel.org
+From: =?UTF-8?Q?Alja=C5=BE?= Prusnik <prusnik@gmail.com>
+Subject: Re: Which modules for the VP-2033? Where is the module "mantis.ko"?
+Date: Wed, 23 Dec 2009 17:41:03 +0100
+Message-ID: <1261586462.8948.23.camel@slash.doma>
+References: <4B1D6194.4090308@freenet.de>
+	 <1261578615.8948.4.camel@slash.doma>  <200912231753.28988.liplianin@me.by>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+In-Reply-To: <200912231753.28988.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sander Eikelenboom wrote:
-> Hi All,
+On sre, 2009-12-23 at 17:53 +0200, Igor M. Liplianin wrote:
+> Since module ir-common.ko moved to IR directory just remove old one.
 > 
-> Tried to update my v4l-dvb modules today, but got a bug with my pinnacle card, seems to be related to the recent changes in the ir code.
-> I have added dmesg output of the bug (changeset a871d61b614f tip), and dmesg output of the previous modules (working).
+> 	rm /lib/modules/$(uname -r)/kernel/drivers/media/common/ir-common.ko
 > 
-> --
-> Sander
+> Also it would be good to do
 > 
-> Dec  5 23:30:25 security kernel: [    5.596128] em28xx: New device Pinnacle Systems GmbH PCTV USB2 PAL @ 480 Mbps (2304:0208, interface 0, class 0)
-> Dec  5 23:30:25 security kernel: [    5.596535] em28xx #1: chip ID is em2820 (or em2710)
-> Dec  5 23:30:25 security kernel: [    5.726154] em28xx #1: i2c eeprom 00: 1a eb 67 95 04 23 08 02 10 00 1e 03 98 1e 6a 2e
-> Dec  5 23:30:25 security kernel: [    5.726181] em28xx #1: i2c eeprom 10: 00 00 06 57 6e 00 00 00 8e 00 00 00 07 00 00 00
-> Dec  5 23:30:25 security kernel: [    5.726203] em28xx #1: i2c eeprom 20: 16 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00
-> Dec  5 23:30:25 security kernel: [    5.726226] em28xx #1: i2c eeprom 30: 00 00 20 40 20 80 02 20 10 01 00 00 00 00 00 00
-> Dec  5 23:30:25 security kernel: [    5.726247] em28xx #1: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> Dec  5 23:30:25 security kernel: [    5.726270] em28xx #1: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> Dec  5 23:30:25 security kernel: [    5.726290] em28xx #1: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 2e 03 50 00 69 00
-> Dec  5 23:30:25 security kernel: [    5.726312] em28xx #1: i2c eeprom 70: 6e 00 6e 00 61 00 63 00 6c 00 65 00 20 00 53 00
-> Dec  5 23:30:25 security kernel: [    5.726333] em28xx #1: i2c eeprom 80: 79 00 73 00 74 00 65 00 6d 00 73 00 20 00 47 00
-> Dec  5 23:30:25 security kernel: [    5.726354] em28xx #1: i2c eeprom 90: 6d 00 62 00 48 00 00 00 1e 03 50 00 43 00 54 00
-> Dec  5 23:30:25 security kernel: [    5.726376] em28xx #1: i2c eeprom a0: 56 00 20 00 55 00 53 00 42 00 32 00 20 00 50 00
-> Dec  5 23:30:25 security kernel: [    5.726397] em28xx #1: i2c eeprom b0: 41 00 4c 00 00 00 06 03 31 00 00 00 00 00 00 00
-> Dec  5 23:30:25 security kernel: [    5.726420] em28xx #1: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> Dec  5 23:30:25 security kernel: [    5.726440] em28xx #1: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> Dec  5 23:30:25 security kernel: [    5.726461] em28xx #1: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> Dec  5 23:30:25 security kernel: [    5.726484] em28xx #1: i2c eeprom f0: 00 00 00 00 00 00 00 00 07 56 d9 35 01 ed 0b f8
-> Dec  5 23:30:25 security kernel: [    5.726506] em28xx #1: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x0fd77740
-> Dec  5 23:30:25 security kernel: [    5.726513] em28xx #1: EEPROM info:
-> Dec  5 23:30:25 security kernel: [    5.726517] em28xx #1:      AC97 audio (5 sample rates)
-> Dec  5 23:30:25 security kernel: [    5.726522] em28xx #1:      500mA max power
-> Dec  5 23:30:25 security kernel: [    5.726528] em28xx #1:      Table at 0x06, strings=0x1e98, 0x2e6a, 0x0000
-> Dec  5 23:30:25 security kernel: [    5.726534] em28xx #1: Identified as Pinnacle PCTV USB 2 (card=3)
-> Dec  5 23:30:25 security kernel: [    5.735698] BUG: unable to handle kernel NULL pointer dereference at 0000000000000000
-> Dec  5 23:30:25 security kernel: [    5.735716] IP: [<ffffffffa00997be>] :ir_common:ir_input_free+0x26/0x3e
-> Dec  5 23:30:25 security kernel: [    5.735736] PGD 1fdcb067 PUD 1f65d067 PMD 0 
-> Dec  5 23:30:25 security kernel: [    5.735744] Oops: 0000 [1] SMP 
-> Dec  5 23:30:25 security kernel: [    5.735750] CPU 0 
-> Dec  5 23:30:25 security kernel: [    5.735754] Modules linked in: ir_kbd_i2c(+) saa7115 usbhid(+) hid ff_memless em28xx(+) v4l2_common videodev v4l1_compat v4l2_compat_ioctl32 ir_common videobuf_vmalloc videobuf_core tveeprom i2c_core evdev ext3 jbd mbcache ohci_hcd ohci1394 ieee1394 ehci_hcd uhci_hcd thermal_sys
-> Dec  5 23:30:25 security kernel: [    5.735793] Pid: 1091, comm: modprobe Not tainted 2.6.26-2-xen-amd64 #1
-> Dec  5 23:30:25 security kernel: [    5.735798] RIP: e030:[<ffffffffa00997be>]  [<ffffffffa00997be>] :ir_common:ir_input_free+0x26/0x3e
+> 	make remove
+> 
+> Then again build and install drivers.
+> 
 
-It is weird to call ir_input_free during the boot. This means that something
-got wrong during IR initialization.
+Ok. There was no common folder in the above path. Anyway, I did rm and
+make remove and did a new build (2.6.33-rc1). First, there were
+warnings:
+WARNING:
+"ir_input_register" [/mnt/storage/temp/technisat/s2-liplianin/v4l/saa7134.ko] undefined!
+WARNING:
+"ir_input_unregister" [/mnt/storage/temp/technisat/s2-liplianin/v4l/saa7134.ko] undefined!
+WARNING:
+"ir_input_register" [/mnt/storage/temp/technisat/s2-liplianin/v4l/mantis.ko] undefined!
+WARNING:
+"ir_input_register" [/mnt/storage/temp/technisat/s2-liplianin/v4l/ir-kbd-i2c.ko] undefined!
+WARNING:
+"ir_input_unregister" [/mnt/storage/temp/technisat/s2-liplianin/v4l/ir-kbd-i2c.ko] undefined!
+WARNING:
+"ir_core_debug" [/mnt/storage/temp/technisat/s2-liplianin/v4l/ir-common.ko] undefined!
+WARNING:
+"ir_g_keycode_from_table" [/mnt/storage/temp/technisat/s2-liplianin/v4l/ir-common.ko] undefined!
+WARNING:
+"ir_input_register" [/mnt/storage/temp/technisat/s2-liplianin/v4l/em28xx.ko] undefined!
+WARNING:
+"ir_input_unregister" [/mnt/storage/temp/technisat/s2-liplianin/v4l/em28xx.ko] undefined!
+WARNING:
+"ir_input_register" [/mnt/storage/temp/technisat/s2-liplianin/v4l/cx88xx.ko] undefined!
+WARNING:
+"ir_input_unregister" [/mnt/storage/temp/technisat/s2-liplianin/v4l/cx88xx.ko] undefined!
+WARNING:
+"ir_input_register" [/mnt/storage/temp/technisat/s2-liplianin/v4l/cx23885.ko] undefined!
+WARNING:
+"ir_input_unregister" [/mnt/storage/temp/technisat/s2-liplianin/v4l/cx23885.ko] undefined!
+WARNING:
+"ir_input_register" [/mnt/storage/temp/technisat/s2-liplianin/v4l/bttv.ko] undefined!
+WARNING:
+"ir_input_unregister" [/mnt/storage/temp/technisat/s2-liplianin/v4l/bttv.ko] undefined!
 
-Anyway, I think I know here's the bug: the first thing the routine does is this:
+Then I restarted the machine and this is in the kernel log:
+ir_common: Unknown symbol ir_g_keycode_from_table
+ir_common: Unknown symbol ir_core_debug
++ no mantis module loaded.
 
-        struct ir_scancode_table *rc_tab = input_get_drvdata(dev);
+I have the IR folder under lib/modules where ir-common.ko resides. In
+the common folder there is no file ir-common.ko.
 
-However, if ir_input_init() doesn't initialize fine, rc_tab will be null.
+If I do manual loading, I get:
+sudo modprobe mantis
+WARNING: Error inserting mb86a16
+(/lib/modules/2.6.33-rc1/kernel/drivers/media/dvb/frontends/mb86a16.ko):
+Unknown symbol in module, or unknown parameter (see dmesg)
+FATAL: Error inserting mantis
+(/lib/modules/2.6.33-rc1/kernel/drivers/media/dvb/mantis/mantis.ko):
+Unknown symbol in module, or unknown parameter (see dmesg)
 
-Could you please test if the enclosed patch fixes the issue?
+dmesg says:
+[  289.939402] ir_common: Unknown symbol ir_g_keycode_from_table
+[  289.939690] ir_common: Unknown symbol ir_core_debug
 
----
 
-Avoid usage of an initialized drvdata
+This is the s2-liplianin tree.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+If using the http://jusst.de/hg/v4l-dvb tree, everything compiles ok,
+module loads, but there is no remote anywhere (there is an IR folder
+with the ir-common.ko file, under common there is not).
 
-diff --git a/linux/drivers/media/common/ir-keytable.c b/linux/drivers/media/common/ir-keytable.c
---- a/linux/drivers/media/common/ir-keytable.c
-+++ b/linux/drivers/media/common/ir-keytable.c
-@@ -427,6 +427,9 @@ void ir_input_free(struct input_dev *dev
- {
- 	struct ir_scancode_table *rc_tab = input_get_drvdata(dev);
- 
-+	if (!rc_tab)
-+		return;
-+
- 	IR_dprintk(1, "Freed keycode table\n");
- 
- 	rc_tab->size = 0;
+
+Aljaz
+
+
+
