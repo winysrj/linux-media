@@ -1,49 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:45657 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1758180AbZLQOiq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Dec 2009 09:38:46 -0500
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: linux-media@vger.kernel.org
-To: sijones2006@o2.co.uk
-Subject: Re: Cinergy 2400i - Micronas APB 7202A Open Sourced!
-Date: Thu, 17 Dec 2009 15:17:37 +0100
-Cc: linux-media@vger.kernel.org
-References: <18222544.70531261053454346.JavaMail.defaultUser@defaultHost>
-In-Reply-To: <18222544.70531261053454346.JavaMail.defaultUser@defaultHost>
+Received: from smtp5-g21.free.fr ([212.27.42.5]:56087 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751331AbZLWFoM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Dec 2009 00:44:12 -0500
+Message-ID: <4B31AE21.8040508@free.fr>
+Date: Wed, 23 Dec 2009 06:44:01 +0100
+From: Yves <ydebx6@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200912171517.37844@orion.escape-edv.de>
+To: linux-media@vger.kernel.org
+CC: Douglas Schilling Landgraf <dougsland@gmail.com>
+Subject: Re: Nova-T 500 Dual DVB-T
+References: <4B2DDE8E.4090708@free.fr> <4B2EFC5E.7040900@gmail.com>
+In-Reply-To: <4B2EFC5E.7040900@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Douglas Schilling Landgraf a écrit :
+> Hello Yves,
+>
+> On 12/20/2009 03:21 AM, Yves wrote:
+>> Hi,
+>>
+>> I have a Nova-T 500 Dual DVB-T card that used to work very well under 
+>> Mandriva 2008.1 (kernel 2.6.24.7).
+>>
+>> I moved to Mandriva 2009.1, then 2010.0 (kernel 2.6.31.6) and it 
+>> doesn't work well any more. Scan can't find channels. I tried hading 
+>> "options dvb-usb-dib0700 force_lna_activation=1" in 
+>> /etc/modprobe.conf. It improve just a bit. Scan find only a few 
+>> channels. If I revert to Mandriva 2008.1 (in another partition), all 
+>> things are good (without adding anything in modprobe.conf).
+>>
+>> Is there a new version of the driver (dvb_usb_dib0700) that correct 
+>> this behavior.
+>> If not, how to install the driver from kernel 2.6.24.7 in kernel 
+>> 2.6.31.6 ?
+>>
+>
+> Please try the current driver available at v4l/dvb develpment tree and 
+> share your results here.
+>
+> hg clone http://linuxtv.org/hg/v4l-dvb
+> make
+> make rmmod
+> make install
+>
+> Finally, just restart your machine and test your favourite application.
+>
+> For additional info:
+>
+> http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers 
+>
+>
+> Cheers,
+> Douglas
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
+Hello Douglas,
 
-sijones2006@o2.co.uk wrote:
-> I know this has been brought up a number of times on Myth and other 
-> lists but there is now a change of circumstances.
-> 
-> The PCI-e bridge (MICRONAS APB 7202A) has now an open source driver. 
-> It is available here git://projects.vdr-developer.org/mediapointer-dvb-
-> s2.git 
-> could this now be pulled into the main V4L source? as it has been 
-> brought upto date with the current DVB tree.
+Unfortunately, the compilation did not succeed:
 
-The driver cannot be pulled in 'as is' for various reasons, but we are
-currently preparing the driver to make it ready for inclusion into the
-master HG repository/kernel.
+$ 
+make                                                                                                         
 
-Please stand by.
+make -C 
+/home/mythtv/v4l-dvb/v4l                                                                                                      
 
-CU
-Oliver
+make[1]: entrant dans le répertoire « /home/mythtv/v4l-dvb/v4l 
+»                                                                     
+perl scripts/make_config_compat.pl 
+/lib/modules/2.6.31.6-desktop-1mnb/source ./.myconfig 
+./config-compat.h                           
+creating symbolic 
+links...                                                                                                            
 
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
+make -C firmware 
+prep                                                                                                                 
+
+make[2]: Entering directory 
+`/home/mythtv/v4l-dvb/v4l/firmware'                                                                       
+
+make[2]: Leaving directory 
+`/home/mythtv/v4l-dvb/v4l/firmware'                                                                        
+
+make -C 
+firmware                                                                                                                      
+
+make[2]: Entering directory 
+`/home/mythtv/v4l-dvb/v4l/firmware'                                                                       
+
+  CC  
+ihex2fw                                                                                                                         
+
+Generating 
+vicam/firmware.fw                                                                                                          
+
+Generating 
+dabusb/firmware.fw                                                                                                         
+
+Generating 
+dabusb/bitstream.bin                                                                                                       
+
+Generating 
+ttusb-budget/dspbootcode.bin                                                                                               
+
+Generating 
+cpia2/stv0672_vp4.bin                                                                                                      
+
+Generating 
+av7110/bootcode.bin                                                                                                        
+
+make[2]: Leaving directory 
+`/home/mythtv/v4l-dvb/v4l/firmware'                                                                        
+
+Kernel build directory is 
+/lib/modules/2.6.31.6-desktop-1mnb/build                                                                    
+
+make -C /lib/modules/2.6.31.6-desktop-1mnb/build 
+SUBDIRS=/home/mythtv/v4l-dvb/v4l  
+modules                                           
+make[2]: Entering directory 
+`/usr/src/linux-2.6.31.6-desktop-1mnb'                                                                    
+
+  CC [M]  
+/home/mythtv/v4l-dvb/v4l/tuner-xc2028.o                                                                                     
+
+  CC [M]  
+/home/mythtv/v4l-dvb/v4l/tuner-simple.o                                                                                     
+
+  CC [M]  
+/home/mythtv/v4l-dvb/v4l/tuner-types.o                                                                                      
+
+  CC [M]  
+/home/mythtv/v4l-dvb/v4l/mt20xx.o                                                                                           
+
+
+....
+
+  CC [M]  /home/mythtv/v4l-dvb/v4l/cx88-cards.o
+  CC [M]  /home/mythtv/v4l-dvb/v4l/cx88-core.o
+  CC [M]  /home/mythtv/v4l-dvb/v4l/cx88-i2c.o
+  CC [M]  /home/mythtv/v4l-dvb/v4l/cx88-tvaudio.o
+  CC [M]  /home/mythtv/v4l-dvb/v4l/cx88-dsp.o
+  CC [M]  /home/mythtv/v4l-dvb/v4l/cx88-input.o
+  CC [M]  /home/mythtv/v4l-dvb/v4l/dvbdev.o
+/home/mythtv/v4l-dvb/v4l/dvbdev.c: In function 'init_dvbdev':
+/home/mythtv/v4l-dvb/v4l/dvbdev.c:520: error: 'struct class' has no 
+member named 'nodename'
+make[3]: *** [/home/mythtv/v4l-dvb/v4l/dvbdev.o] Error 1
+make[2]: *** [_module_/home/mythtv/v4l-dvb/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-2.6.31.6-desktop-1mnb'
+make[1]: *** [default] Erreur 2
+make[1]: quittant le répertoire « /home/mythtv/v4l-dvb/v4l »
+make: *** [all] Erreur 2
+
+I don't know that is wrong.
+
+Yves
