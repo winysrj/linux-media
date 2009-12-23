@@ -1,182 +1,253 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acorn.exetel.com.au ([220.233.0.21]:58463 "EHLO
-	acorn.exetel.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752426AbZLAMkD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Dec 2009 07:40:03 -0500
-Message-ID: <13945.64.213.30.2.1259671201.squirrel@webmail.exetel.com.au>
-In-Reply-To: <702870ef0912010118r1e5e3been840726e6364d991a@mail.gmail.com>
-References: <33305.64.213.30.2.1259216241.squirrel@webmail.exetel.com.au>
-    <50104.115.70.135.213.1259224041.squirrel@webmail.exetel.com.au>
-    <702870ef0911260137r35f1784exc27498d0db3769c2@mail.gmail.com>
-    <56069.115.70.135.213.1259234530.squirrel@webmail.exetel.com.au>
-    <46566.64.213.30.2.1259278557.squirrel@webmail.exetel.com.au>
-    <702870ef0912010118r1e5e3been840726e6364d991a@mail.gmail.com>
-Date: Tue, 1 Dec 2009 23:40:01 +1100 (EST)
-Subject: Re: DViCO FusionHDTV DVB-T Dual Digital 4 (rev 1) tuning regression
-From: "Robert Lowery" <rglowery@exemail.com.au>
-To: "Vincent McIntyre" <vincent.mcintyre@gmail.com>
-Cc: mchehab@redhat.com, terrywu2009@gmail.com, awalls@radix.net,
-	linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:36343 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752800AbZLWNRr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Dec 2009 08:17:47 -0500
+Date: Wed, 23 Dec 2009 14:17:32 +0100
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: [PATCH/RFC v2.1 0/2] Mem-to-mem device framework
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com
+Message-id: <1261574255-23386-1-git-send-email-p.osciak@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Hi Rob
->
-> I missed your followup and tested the 'revert.diff' patch, attached
-> for reference.
-> I have been slow replying because I've been scratching my head over the
-> results.
->
-> I used 'signaltest.pl' to test[1], which uses tzap under the hood.
-> Perhaps this is not the best choice, but I wanted something that I thought
-> would
-> allow objective comparisons. That's trickier than I thought...
-> Unfortunately I only discovered last night how easy 'vlc
-> ./channels.conf' makes doing quick visual checks. I didn't have enough
-> time to re-patch and test again.
->
-> My test procedure was:
->  - get a baseline with tzap and signaltest.pl
->  - patch, make, install. cold boot.
->  - test with tzap and signaltest.pl
->  - revert patch, for the moment.
->
-> I tested two kernels, and both cards. I tested all the tuners but I'll
-> spare you that for now.
->
->  * 2.6.24-23-rt + v4l (c57f47cfb0e8+ tip)
->
->    I got rather different baseline results. All channels had
-> significantly higher BER
->    than I'd noticed before. After patching, snr on some channels
-> seemed a little higher
->    and BER was lower. On ch9, I think snr was up and BER improved a
-> little.
->
->   here are the signaltest summary tables:
->   without patch. usb device (dvb0) usbid db78:0fe9
->  Frequency       Signal          Ber             Unc
->  =========       ========        ========        ========
->  177500000         76.0 %           322.6           672.4  Seven
->  191625000         76.0 %           320.2          1783.3  Nine
->  219500000         76.8 %           329.8          2948.2  Ten
->  226500000         76.9 %           296.6          4885.0  ABC
->  571500000         77.0 %           542.0          7529.4  SBS
->  578500000         77.1 %           539.5         10669.7  D44
->
->  with patch. usb device (dvb0) usbid db78:0fe9
->  Frequency       Signal          Ber             Unc
->  =========       ========        ========        ========
->  177500000         76.6 %             2.3             0.0
->  191625000         77.0 %           235.5            83.3
->  219500000         76.9 %           288.0           501.8
->  226500000         76.9 %           295.1          1416.4
->  571500000         77.0 %           523.4          3980.0
->  578500000         77.1 %           549.9          7409.4
->
->  without patch. pcie device (dvb1) pciid db78:18ac
->  Frequency       Signal          Ber             Unc
->  =========       ========        ========        ========
->  177500000         71.2 %             3.1             0.0
->  191625000         21.7 %           645.4           246.4
->  219500000         73.6 %             1.9          1632.0
->  226500000         73.5 %             2.8          1632.0
->  571500000         73.9 %            13.6          2134.6
->  578500000         72.7 %            58.2          6393.4
->
->  with patch. pcie device (dvb1) pciid db78:18ac
->  Frequency       Signal          Ber             Unc
->  =========       ========        ========        ========
->  177500000         73.2 %             4.0             0.0
->  191625000         74.0 %            37.0             0.0
->  219500000         73.9 %             0.0             0.0
->  226500000         73.0 %             4.6             0.0
->  571500000         74.2 %            76.7           193.6
->  578500000         72.8 %           213.8          4480.3
->
->
->  * 2.6.31-14-generic + v4l (19c0469c02c3+ tip)
->   Hard to say if I'm seeing an improvement.
->
-> before patching - adapter0 usbid db78:0fe9
-> Frequency       Signal          Ber             Unc
-> =========       ========        ========        ========
-> 177500000         75.5 %           293.7          1926.4
-> 191625000         75.9 %           363.2          2993.3
-> 219500000         76.7 %           304.5          4225.8
-> 226500000         76.9 %           223.8          6153.3
-> 571500000         77.0 %           491.7          8726.0
-> 578500000         77.1 %           558.9         11787.1
->
-> adapter0 repeat usbid db78:0fe9 (not sure what happened to UNC here..)
-> Frequency       Signal          Ber             Unc
-> =========       ========        ========        ========
-> 177500000         75.9 %           327.9         13893.6
-> 191625000         76.0 %           392.8         14939.0
-> 219500000         76.7 %           252.0         16052.0
-> 226500000         76.8 %           254.0         18063.1
-> 571500000         76.9 %           533.2         20644.1
-> 578500000         76.9 %           464.1         23836.8
->
-> after patching - adapter0 usbid db78:0fe9
-> Frequency       Signal          Ber             Unc
-> =========       ========        ========        ========
-> 177500000         76.3 %             2.5             0.0
-> 191625000         76.8 %           227.6           119.0
-> 219500000         76.8 %           262.6           604.5
-> 226500000         76.8 %           282.7          1545.4
-> 571500000         77.0 %           486.8          3541.7
-> 578500000         77.1 %           521.5          6537.7
->
->
-> before patching - adapter1 pciid db78:18ac
-> Frequency       Signal          Ber             Unc
-> =========       ========        ========        ========
-> 177500000         70.9 %             0.0             0.0
-> 191625000         69.8 %             2.7             0.0
-> 219500000         73.2 %             4.1             0.0
-> 226500000         73.4 %             4.5             0.0
-> 571500000         74.0 %             0.0             0.0
-> 578500000         72.3 %           125.7          3589.3
->
-> after patching - adapter2 pciid  db78:18ac  (enumeration order changed)
-> Frequency       Signal          Ber             Unc
-> =========       ========        ========        ========
-> 177500000         73.6 %             0.6             0.0
-> 191625000         74.2 %             0.0             0.0
-> 219500000         74.0 %             4.9             0.0
-> 226500000         73.3 %           163.2           349.7
-> 571500000         74.4 %           267.0          1014.6
-> 578500000         72.7 %            70.7          4906.0
->
-> Thoughts? What's your test procedure?
+Hello,
 
-Hi Vince
+this is the second version of the proposed implementation for mem-to-mem memory
+device framework. Your comments are very welcome.
 
-My test procedure is to use mythtv :)
+In v2.1:
+I am very sorry for the resend, but somehow an orphaned endif found its way to
+Kconfig during the rebase.
 
-The 2.6.28 ubuntu 9.04 (Jaunty) kernel worked perfectly, but the 2.6.31
-ubuntu 9.10 (karmic) kernel and v4l-dvb tip stutters particularly on
-channel 9.  I then started browsing which changes were made between the
-two kernels and found reverting the patches resolved the problem.  I have
-now been using the reverted drivers for over a week and the stuttering is
-completely gone.
+Changes since v1:
+- v4l2_m2m_buf_queue() now requires m2m_ctx as its argument
+- video_queue private data stores driver private data
+- a new submenu in kconfig for mem-to-mem devices
+- minor rebase leftovers cleanup
 
-Sorry I'm not familiar with all the statistics you are quoting above to
-know good from bad.  I just know my results :)  Hopefully someone more
-knowledgeable can comment
+A second patch series followed v2 with a new driver for a real device -
+Samsung S3C/S5P image rotator, utilizing this framework.
 
--Rob
->
-> Cheers
-> Vince
->
->
->
-> [1] http://linuxtv.org/wiki/index.php/Testing_reception_quality
->
 
+This series contains:
+
+[PATCH v2.1 1/2] V4L: Add memory-to-memory device helper framework for V4L2.
+[PATCH v2.1 2/2] V4L: Add a mem-to-mem V4L2 framework test device.
+[EXAMPLE v2] Mem-to-mem userspace test application.
+
+
+Previous discussion and RFC on this topic:
+http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/10668
+
+
+A mem-to-mem device is a device that uses memory buffers passed by
+userspace applications for both source and destination. This is
+different from existing drivers that use memory buffers for only one
+of those at once.
+In terms of V4L2 such a device would be both of OUTPUT and CAPTURE type.
+Although no such devices are present in the V4L2 framework, a demand for such
+a model exists, e.g. for 'resizer devices'.
+
+
+-------------------------------------------------------------------------------
+Mem-to-mem devices
+-------------------------------------------------------------------------------
+In the previous discussion we concluded that we should use one video node with
+two queues, an output (V4L2_BUF_TYPE_VIDEO_OUTPUT) queue for source buffers and
+a capture queue (V4L2_BUF_TYPE_VIDEO_CAPTURE) for destination buffers.
+
+
+Each instance has its own set of queues: 2 videobuf_queues, each with a ready
+buffer queue, managed by the framework. Everything is encapsulated in the
+queue context struct:
+
+struct v4l2_m2m_queue_ctx {
+        struct videobuf_queue   q;
+     /* ... */
+        /* Queue for buffers ready to be processed as soon as this
+         * instance receives access to the device */
+        struct list_head        rdy_queue;
+     /* ... */
+};
+
+struct v4l2_m2m_ctx {
+     /* ... */
+        /* Capture (output to memory) queue context */
+        struct v4l2_m2m_queue_ctx       cap_q_ctx;
+
+        /* Output (input from memory) queue context */
+        struct v4l2_m2m_queue_ctx       out_q_ctx;
+     /* ... */
+};
+
+Streamon can be called for all instances and will not sleep if another instance
+is streaming.
+
+vidioc_querycap() should report V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT.
+
+-------------------------------------------------------------------------------
+Queuing and dequeuing buffers
+-------------------------------------------------------------------------------
+Applications can queue as many buffers as they want and it is not required to
+queue an equal number of source and destination buffers. If there is not enough
+buffers of any type, a new transaction will simply not be scheduled.
+
+-------------------------------------------------------------------------------
+Source and destination formats
+-------------------------------------------------------------------------------
+Should be set per queue. A helper function to access queues depending on the
+passed type - v4l2_m2m_get_vq() - is supplied. Most of the format-handling code
+is normally located in drivers anyway. The only exception is the "field" member
+of the videobuf_queue struct, which has to be set directly. It breaks
+encapsulation a little bit, but nothing can be done with it.
+
+-------------------------------------------------------------------------------
+Scheduling
+-------------------------------------------------------------------------------
+Requirements/assumptions:
+1. More than one instance can be open at the same time.
+2. Each instance periodically receives exclusive access to the device, performs
+an operation (operations) and yields back the device in a state that allows
+other instances to use it.
+3. When an instance gets access to the device, it performs a
+"transaction"/"job". A transaction/job is defined as the shortest operation
+that cannot/should not be further divided without having to restart it from
+scratch, or without having to perform expensive reconfiguration of a device,
+etc.
+4. Transactions can use multiple source/destination buffers.
+5. Only a driver can tell when it is ready to perform a transaction, so
+a optional callback is provided for that purpose (job_ready()).
+
+
+There are three common requirements for a transaction to be ready to run:
+- at least one source buffer ready
+- at least one destination buffer ready
+- streaming on
+- (optional) driver-specific requirements (driver-specific callback function)
+
+So when buffers are queued by qbuf() or streaming is turned on with
+streamon(), the framework calls v4l2_m2m_try_schedule().
+
+v4l2_m2m_try_schedule()
+1. Checks for the above conditions.
+2. Checks for driver-specific conditions by calling job_ready() callback, if
+supplied.
+3. If all the checks succeed, it calls v4l2_m2m_schedule() to schedule the
+transaction.
+
+v4l2_m2m_schedule()
+1. Checks whether the transaction is already on job queue and schedules it
+if not (by adding it to the job queue).
+2. Calls v4l2_m2m_try_run().
+
+v4l2_m2m_try_run()
+1. Runs a job if and is pending and none is currently running by calling
+device_run() callback.
+
+When the device_run() callback is called, the driver has to begin the
+transaction. When it is finished, the driver has to call v4l2_m2m_job_finish().
+
+v4l2_m2m_job_finish()
+1. Removes the currently running transaction from the job queue and calls
+v4l2_m2m_try_run to (possibly) run the next pending transaction.
+
+There is also support for forced transaction aborting (when an application
+gets killed). The framework calls job_abort() callback and the driver has
+to abort the transaction as soon as possible and call v4l2_m2m_job_finish()
+to indicate that the transaction has been aborted.
+
+
+Additionally, some kind of timeout for transactions could be added to prevent
+instances from claiming the device for too long.
+
+-------------------------------------------------------------------------------
+Acquiring ready buffers to process
+-------------------------------------------------------------------------------
+Ready buffers can be acquired using v4l2_m2m_next_src_buf()/
+v4l2_m2m_next_dst_buf(). After the transaction they are removed from the queues
+with v4l2_m2m_dst_buf_remove()/v4l2_m2m_src_buf_remove(). This is not
+multi-buffer-transaction-safe. It will have to be modified, but ideally after
+we decide how to handle multi-buffer transactions in videobuf core.
+
+-------------------------------------------------------------------------------
+poll()
+-------------------------------------------------------------------------------
+We cannot have poll() for multiple queues on one node, so we use poll() for the
+destination queue only.
+
+-------------------------------------------------------------------------------
+mmap()
+-------------------------------------------------------------------------------
+Requirements:
+- allow mapping buffers from different queues
+- retain "magic" offset values so videobuf can still match buffers by offsets
+
+The proposed solution involves a querybuf() and mmap() multiplexers:
+
+a) When a driver calls querybuf(), we have access to the type and we can
+detect which queue to call videobuf_querybuf() on:
+
+        vq = v4l2_m2m_get_vq(m2m_ctx, buf->type);
+        ret = videobuf_querybuf(vq, buf);
+
+The offsets returned from videobuf_querybuf() for one of the queues are further
+offset by a predefined constant (DST_QUEUE_OFF_BASE). This way the driver
+(and applications) receive different offsets for the same buffer indexes of
+each queue:
+
+        if (buf->memory == V4L2_MEMORY_MMAP
+            && vq->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+                buf->m.offset += DST_QUEUE_OFF_BASE;
+        }
+
+
+b) When the application (driver) calls mmap(), the offsets which were modified
+in querybuf() are detected and the proper queue for them chosen based on that.
+Finally, the modified offsets are passed to videobuf_mmap_mapper() for proper
+queues with their offsets changed back to values recognizable by videobuf:
+
+        unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
+        struct videobuf_queue *vq;
+
+        if (offset < DST_QUEUE_OFF_BASE) {
+                vq = v4l2_m2m_get_src_vq(m2m_ctx);
+        } else {
+                vq = v4l2_m2m_get_dst_vq(m2m_ctx);
+                vma->vm_pgoff -= (DST_QUEUE_OFF_BASE >> PAGE_SHIFT);
+        }
+
+        return videobuf_mmap_mapper(vq, vma);
+
+
+-------------------------------------------------------------------------------
+Test device and a userspace application
+-------------------------------------------------------------------------------
+mem2mem_testdev.c is a test driver for the framework. It uses timers for fake
+interrupts and allows testing transaction with different number of buffers
+and transaction durations simultaneously.
+
+process-vmalloc.c is a capture+output test application for the test device.
+
+-------------------------------------------------------------------------------
+Future work
+-------------------------------------------------------------------------------
+- read/write support
+- transaction/abort timeouts
+- extracting more common code to the framework? (e.g. per-queue format details,
+transaction length, etc.)
+
+
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
 
