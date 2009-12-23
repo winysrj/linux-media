@@ -1,78 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:57481 "EHLO arroyo.ext.ti.com"
+Received: from lo.gmane.org ([80.91.229.12]:50510 "EHLO lo.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754666AbZLAVix (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Dec 2009 16:38:53 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	khilman@deeprootsystems.com
-Cc: davinci-linux-open-source@linux.davincidsp.com, hvaibhav@ti.com,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH 4/5 - v0] V4L - vpfe capture - build environment to support DM365 CCDC
-Date: Tue,  1 Dec 2009 16:38:52 -0500
-Message-Id: <1259703533-1789-4-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1259703533-1789-3-git-send-email-m-karicheri2@ti.com>
-References: <1259703533-1789-1-git-send-email-m-karicheri2@ti.com>
- <1259703533-1789-2-git-send-email-m-karicheri2@ti.com>
- <1259703533-1789-3-git-send-email-m-karicheri2@ti.com>
+	id S1752155AbZLWXpZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Dec 2009 18:45:25 -0500
+Received: from list by lo.gmane.org with local (Exim 4.50)
+	id 1NNatP-0002qJ-6L
+	for linux-media@vger.kernel.org; Thu, 24 Dec 2009 00:45:23 +0100
+Received: from upc.si.94.140.72.111.dc.cable.static.telemach.net ([94.140.72.111])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 24 Dec 2009 00:45:23 +0100
+Received: from prusnik by upc.si.94.140.72.111.dc.cable.static.telemach.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 24 Dec 2009 00:45:23 +0100
+To: linux-media@vger.kernel.org
+From: =?UTF-8?Q?Alja=C5=BE?= Prusnik <prusnik@gmail.com>
+Subject: Re: Which modules for the VP-2033? Where is the module "mantis.ko"?
+Date: Thu, 24 Dec 2009 00:45:02 +0100
+Message-ID: <1261611901.8948.37.camel@slash.doma>
+References: <4B1D6194.4090308@freenet.de>
+	 <1261578615.8948.4.camel@slash.doma> <200912231753.28988.liplianin@me.by>
+	 <1261586462.8948.23.camel@slash.doma> <4B3269AE.6080602@freenet.de>
+	 <1a297b360912231124v6e31c9e6ja24d205f6b5dc39@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+In-Reply-To: <1a297b360912231124v6e31c9e6ja24d205f6b5dc39@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+On sre, 2009-12-23 at 23:24 +0400, Manu Abraham wrote:
+> > Aljaz, do you have the module mantis.ko?
+> There was a build issue when i posted the link originally, but it had
+> been fixed..
+> 
+> manu@manu-04:/stor/work/merge/v4l-dvb/v4l> ls *.ko |grep mantis
+> mantis_core.ko
+> mantis.ko
+> 
 
-Added support for building DM365 CCDC module. Also made VPSS module default
-configuration variable value to n.
+Yup, I have both of them. I just compiled http://jusst.de/hg/v4l-dvb
+again and the result is (depmode -a was run):
 
-NOTE: This patch is for review purpose only
+- ir-common.ko is under drivers/media/common (not drivers/media/IR like
+Igor suggested but that is probably because it's a different
+repository).
+- mantis.ko and mantis_core.ko are under drivers/media/dvb/mantis
 
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
----
- drivers/media/video/Kconfig          |   15 ++++++++++++++-
- drivers/media/video/davinci/Makefile |    1 +
- 2 files changed, 15 insertions(+), 1 deletions(-)
+The modules loaded are:
+mantis                 14728  0 
+mantis_core            23909  12 mantis
+ir_common              27005  1 mantis_core
+mb86a16                16598  1 mantis
+tda10021                4822  1 mantis
+tda10023                5823  1 mantis
+zl10353                 5893  1 mantis
+stv0299                 7860  1 mantis
+dvb_core               75201  2 mantis_core,stv0299
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 9dc74c9..6d3ae06 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -552,7 +552,7 @@ config VIDEO_VPSS_SYSTEM
- 	depends on ARCH_DAVINCI
- 	help
- 	  Support for vpss system module for video driver
--	default y
-+	default n
- 
- config VIDEO_VPFE_CAPTURE
- 	tristate "VPFE Video Capture Driver"
-@@ -596,6 +596,19 @@ config VIDEO_DM355_CCDC
- 	   To compile this driver as a module, choose M here: the
- 	   module will be called vpfe.
- 
-+config VIDEO_DM365_ISIF
-+	tristate "DM365 CCDC/ISIF HW module"
-+	depends on ARCH_DAVINCI_DM365 && VIDEO_VPFE_CAPTURE
-+	select VIDEO_VPSS_SYSTEM
-+	default y
-+	help
-+	   Enables DM365 ISIF hw module. This is the hardware module for
-+	   configuring ISIF in VPFE to capture Raw Bayer RGB data  from
-+	   a image sensor or YUV data from a YUV source.
-+
-+	   To compile this driver as a module, choose M here: the
-+	   module will be called vpfe.
-+
- source "drivers/media/video/bt8xx/Kconfig"
- 
- config VIDEO_PMS
-diff --git a/drivers/media/video/davinci/Makefile b/drivers/media/video/davinci/Makefile
-index 1a8b8f3..3642d79 100644
---- a/drivers/media/video/davinci/Makefile
-+++ b/drivers/media/video/davinci/Makefile
-@@ -15,3 +15,4 @@ obj-$(CONFIG_VIDEO_VPSS_SYSTEM) += vpss.o
- obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
- obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
- obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
-+obj-$(CONFIG_VIDEO_DM365_ISIF) += dm365_ccdc.o
--- 
-1.6.0.4
+kernel log has only these lines on mantis:
+Mantis 0000:03:07.0: PCI INT A -> GSI 21 (level, low) -> IRQ 21
+DVB: registering new adapter (Mantis DVB adapter)
+DVB: registering adapter 0 frontend 0 (Philips TDA10023 DVB-C)...
+
+and that's it. No VP-2040 to be seen anywhere and it's not there even if
+I do cat /proc/bus/input/devices (used to be one of the inputs).
+
+So I guess this is now the work in progress if I understand correctly or
+should the input be recognized regardless?
+
+Just to confirm on the autoload: no, it does not happen by default. I
+have to manually put modules under /etc/modules to load them on startup.
+
+Regards,
+Aljaz
+
 
