@@ -1,86 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:3961 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753016AbZLBTeO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Dec 2009 14:34:14 -0500
-Message-ID: <4B16C10E.6040907@redhat.com>
-Date: Wed, 02 Dec 2009 17:33:34 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Jon Smirl <jonsmirl@gmail.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com, khc@pm.waw.pl,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, lirc-list@lists.sourceforge.net,
-	superm1@ubuntu.com, Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: [RFC v2] Another approach to IR
-References: <9e4733910912010816q32e829a2uce180bfda69ef86d@mail.gmail.com> <4B154C54.5090906@redhat.com> <829197380912010909m59cb1078q5bd2e00af0368aaf@mail.gmail.com> <4B155288.1060509@redhat.com> <20091201175400.GA19259@core.coreip.homeip.net> <4B1567D8.7080007@redhat.com> <20091201201158.GA20335@core.coreip.homeip.net> <4B15852D.4050505@redhat.com> <20091202093803.GA8656@core.coreip.homeip.net> <4B16614A.3000208@redhat.com> <20091202171059.GC17839@core.coreip.homeip.net>
-In-Reply-To: <20091202171059.GC17839@core.coreip.homeip.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-in-06.arcor-online.net ([151.189.21.46]:60535 "EHLO
+	mail-in-06.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752437AbZLWBu3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Dec 2009 20:50:29 -0500
+Subject: Re: How to make a Zaapa LR301AP DVB-T card work
+From: hermann pitton <hermann-pitton@arcor.de>
+To: amlopezalonso@gmail.com
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <200912221641.04526.amlopezalonso@gmail.com>
+References: <200912191400.37814.amlopezalonso@gmail.com>
+	 <200912201313.31384.amlopezalonso@gmail.com>
+	 <1261428671.3208.10.camel@pc07.localdom.local>
+	 <200912221641.04526.amlopezalonso@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Date: Wed, 23 Dec 2009 02:50:35 +0100
+Message-Id: <1261533035.4781.13.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dmitry Torokhov wrote:
->> The raw interface applies only to the devices that doesn't have a hardware decoder
->> (something between 40%-60% of the currently supported devices).
+
+Am Dienstag, den 22.12.2009, 16:41 +0000 schrieb Antonio Marcos López
+Alonso:
+> > 
+> > Antonio,
+> > 
+> > the report for tda10046 firmware loading is missing. Was that OK?
 > 
-> 50% is quite a number I think. But if driver does not allow access to
-> the raw stream - it will refuse binding to lirc_dev interface.
-
-Ok.
-
-> We need to cater to the future cases as well. I don't want to redesign
-> it in 2 years. But for devices that have only hardware decoders I
-> suppose we can short-curcuit "interfaces" and have a library-like module
-> creating input devices directly.
-
-We really need only one interface for those devices. However, protocol selection
-is needed, as it is associated with the scantable on those devices.
-a sysfs entry would solve this issue.
-
-Also, we need a better schema to cleanup the keycode table. Currently, the only way 
-I'm aware is to run a loop from 0 to 65535 associating a scancode to KEY_UNKNOWN or
-to KEY_RESERVED.
-
->> In the case of the cheap devices with just raw interfaces, running in-kernel
->> decoders, while it will work if you create one interface per protocol
->> per IR receiver, this also seems overkill. Why to do that? It sounds that it will
->> just create additional complexity at the kernelspace and at the userspace, since
->> now userspace programs will need to open more than one device to receive the
->> keycodes.
+> Yes:
 > 
-> _Yes_!!! You open as many event devices as there are devices you are
-> interested in receiving data from. Multiplexing devices are bad, bad,
-> bad. Witness /dev/input/mouse and all the attempts at working around the
-> fact that if you have a special driver for one of your devices you
-> receive events from the same device through 2 interfaces and all kind of
-> "grab", "super-grab", "smart-grab" schemes are born.
-
-The only device that the driver can actually see is the IR receiver. There's no way to
-know if there is only one physical IR sending signals to it or several different models,
-especially if we consider that programmable IR's can be able even to generate more than one
-protocol at the same time, and can emulate other IR types.
-
-You might create some artificial schema to try to deal with different IR's being received
-at the same IR receiver, but, IMHO, this will just add a complex abstraction layer.
-
-Also, this won't give any real gain, as either both IR's will generate the same scancodes (and you can't distinguish what IR generated that code), or the scancode is different, and you
-can handle it differently.
-
->>> (for each remote/substream that they can recognize).
->> I'm assuming that, by remote, you're referring to a remote receiver (and not to 
->> the remote itself), right?
+> tda1004x: setting up plls for 48MHz sampling clock
+> tda1004x: found firmware revision 29 -- ok
 > 
-> If we could separate by remote transmitter that would be the best I
-> think, but I understand that it is rarely possible?
+> > 
+> > LR301 is a LifeView design. It is very common to see multiple other
+> > subvendors for their cards, but they keep the original subdevice ID.
+> > In this case 0x0301. The subvendor 0x4e42 is usually Typhoon/Anubis and
+> > they are distributing clones of almost all LifeView cards.
+> > 
+> > Gpio init is the same like on the other known LR301 cards and eeprom
+> > differs only for a few bytes, but not for tuner type, tuner and demod
+> > address.
+> > 
+> > http://ubuntuforums.org/archive/index.php/t-328140.html
+> > 
+> > Since this design with a saa7134 chip and tda8274 DVB-T only tuner is very
+> >  old, I don't expect an additional Low Noise Amplifier on it.
+> > 
+> > We can't detect such LNAs and on newer cards they can cause problems, if
+> > not configured correctly and might cause "scan" to fail.
+> > 
+> > If you mean above other card types did previously work for your card,
+> > use them and report.
+> 
+> No, I meant other "physical" cards. Just to ensure it is not likely to be an 
+> aerial problem.
 
-IMHO, the better is to use a separate interface for the IR transmitters,
-on the devices that support this feature. There are only a few devices
-I'm aware of that are able to transmit IR codes.
+Good to know. However, the first revisions of silicon tuners like the
+tda8274 can't compete with can tuners. Only the tda8275a hybrid can come
+_close_ to a good can tuner like the FMD1216ME/I H-3 (MK3) on a well
+designed PCB. Signal quality might be still not sufficient for your
+card.
+
+You also had parity errors on your first report, which likely indicate
+problems on your mobo at least with this PCI slot and/or sharing
+interrupts with other devices there.
+
+> > Sorry, I don't have better ideas for your card so far.
+> 
+> I have not included the "tuner" parameter in the "options" line which I think 
+> it could be the problem. Is this parameter mandatory? If so, which is the 
+> proper one?
+> 
+
+No. You can force tuner types only for analog TV. The tda8274 is not a
+hybrid tuner, it is only used for DVB-T. An early tda8275 hybrid with a
+saa7134 chip would have a separate tda8290 chip for analog IF
+demodulation. Without that no analog TV and no tuner type to set.
+
+For DVB-T the tda8274 is treated like a tda8275.
 
 Cheers,
-Mauro.
+Hermann
+
 
