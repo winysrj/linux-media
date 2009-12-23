@@ -1,112 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:33734 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752189AbZLLAaa convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1365 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752220AbZLWTXM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Dec 2009 19:30:30 -0500
-Received: by bwz27 with SMTP id 27so1000371bwz.21
-        for <linux-media@vger.kernel.org>; Fri, 11 Dec 2009 16:30:36 -0800 (PST)
+	Wed, 23 Dec 2009 14:23:12 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id nBNJN6aJ031659
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 23 Dec 2009 20:23:10 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 23 Dec 2009 20:23:06 +0100 (CET)
+Message-Id: <200912231923.nBNJN6aJ031659@smtp-vbr15.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: Re: IR Receiver on an Tevii S470
-Content-Disposition: inline
-From: "Igor M. Liplianin" <liplianin@me.by>
-Cc: Steven Toth <stoth@linuxtv.org>,
-	Matthias Fechner <idefix@fechner.net>,
-	Andy Walls <awalls@radix.net>
-Date: Sat, 12 Dec 2009 02:30:36 +0200
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <200912120230.36902.liplianin@me.by>
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11 декабря 2009, "Igor M. Liplianin" <liplianin@me.by> wrote:
-> On Thu, 2009-12-10 at 18:16 +0200, Igor M. Liplianin wrote:
-> > On 10 декабря 2009 03:12:39 Andy Walls wrote:
-> > > On Wed, 2009-12-09 at 17:54 +0200, Igor M. Liplianin wrote:
-> > > > > > > Igor and Matthias,
-> > > > > > >
-> > > > > > > Please try the changes that I have for the TeVii S470 that are
-> > > > > > > here:
-> > > > > > >
-> > > > > > > 	http://linuxtv.org/hg/~awalls/cx23885-ir
-> > > >
-> > > > In fact some time ago I was writing some code for cx23885 IR, but not
-> > > > reached IR interrupts to work. Though I used PCI_MSK_AV_CORE (1 <<
-> > > > 27), then test register PIN_CTRL for field FLD_IR_IRQ_STAT.
-> > >
-> > > Igor,
-> > >
-> > > You are exactly right on this.  I used the wrong interrupt status flag.
-> > > I have pushed a patch to my repository to use the PCI_MSK_AV_CORE
-> > > status flag.
-> > >
-> > > Could you please update an test the TeVii S470 again when you have
-> > > time?
-> > >
-> > > > I have Compro E650F with RC6 remote, also have RC5 remote from TV
-> > > > set. I will made little hack to test Compro & RC5.
-> > >
-> > > OK. Thank you.
-> > >
-> > > Regards,
-> > > Andy
-> >
-> > First try, without pressing IR keys
-> >
-> > cx25840 3-0044: IRQ Enables:     rse rte roe
-> > cx25840 3-0044: IRQ Status:  tsr
-> > cx25840 3-0044: IRQ Enables:     rse rte roe
-> > irq 16: nobody cared (try booting with the "irqpoll" option)
-> > Pid: 0, comm: swapper Not tainted 2.6.32 #2
-> > Call Trace:
-> >  [<c1052db0>] ? __report_bad_irq+0x24/0x69
-> >  [<c1052db7>] ? __report_bad_irq+0x2b/0x69
-> >  [<c1052edc>] ? note_interrupt+0xe7/0x13f
-> >  [<c1053416>] ? handle_fasteoi_irq+0x7a/0x97
-> >  [<c1004411>] ? handle_irq+0x38/0x3f
-> >  [<c1003bd1>] ? do_IRQ+0x38/0x89
-> >  [<c1002ea9>] ? common_interrupt+0x29/0x30
-> >  [<c1007a1e>] ? mwait_idle+0x7a/0x7f
-> >  [<c1001b93>] ? cpu_idle+0x37/0x4c
-> > handlers:
-> > [<c13179ad>] (usb_hcd_irq+0x0/0x59)
-> > [<f85ba5e7>] (azx_interrupt+0x0/0xe7 [snd_hda_intel])
-> > [<f88b1d2b>] (cx23885_irq+0x0/0x4a5 [cx23885])
-> > Disabling IRQ #16
-> > cx25840 3-0044: IRQ Status:  tsr
-> > cx25840 3-0044: IRQ Enables:     rse rte roe
-> > cx25840 3-0044: IRQ Status:  tsr
->
-> OK.  We're getting interrupts from the A/V core, but they are not IR
-> related.  They must be audio and video interrupts from the A/V core.
->
-> I have checked in new changes:
->
-> 	http://linuxtv.org/hg/~awalls/cx23885-ir
->
-> please try again when you have time.
->
-> 	# modprobe cx25840 debug=2 ir_debug=2
-> 	# modprobe cx23885 debug=7
->
-> My only concern now, is that I have not turned off all the audio
-> interrupts from the A/V core - I could not determine if registers
-> 0x80c-0x80f were improtant to set.
->
-> Regards,
-> Andy
-dmesg is full of repeated lines:
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-cx25840 3-0044: AV Core IRQ status (entry):           
-cx25840 3-0044: AV Core IRQ status (exit):           
-cx23885[0]/0: pci_status: 0x083f4000  pci_mask: 0x08000001
-cx23885[0]/0: vida_status: 0x00000000 vida_mask: 0x00000000 count: 0x0
-cx23885[0]/0: ts1_status: 0x00000000  ts1_mask: 0x00000000 count: 0x20
-cx23885[0]/0: ts2_status: 0x00000000  ts2_mask: 0x00000000 count: 0xc7383f3a
-cx23885[0]/0:  (PCI_MSK_AV_CORE   0x08000000)
+Results of the daily build of v4l-dvb:
 
+date:        Wed Dec 23 19:00:13 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13842:4506e2d54126
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Igor
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-armv5: OK
+linux-2.6.32-armv5-davinci: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-armv5-ixp: OK
+linux-2.6.32-armv5-ixp: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: OK
+linux-2.6.32-armv5-omap2: OK
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: ERRORS
+linux-2.6.28-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30-i686: ERRORS
+linux-2.6.31-i686: ERRORS
+linux-2.6.32-i686: ERRORS
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.32-mips: OK
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-powerpc64: OK
+linux-2.6.32-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: OK
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-x86_64: WARNINGS
+spec: OK
+sparse (linux-2.6.32): ERRORS
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
