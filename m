@@ -1,22 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.viadmin.org ([195.145.128.101])
+Received: from moutng.kundenserver.de ([212.227.17.9])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <henrik-dvb@prak.org>) id 1NGCSE-0003qP-C9
-	for linux-dvb@linuxtv.org; Thu, 03 Dec 2009 15:14:46 +0100
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by www.viadmin.org (Postfix) with ESMTP id 18CE54970A
-	for <linux-dvb@linuxtv.org>; Thu,  3 Dec 2009 15:09:51 +0100 (CET)
-Received: from www.viadmin.org ([127.0.0.1])
-	by localhost (www.viadmin.org [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id TcER84wyKSAT for <linux-dvb@linuxtv.org>;
-	Thu,  3 Dec 2009 15:09:20 +0100 (CET)
-Date: Thu, 3 Dec 2009 15:09:20 +0100
-From: "H. Langos" <henrik-dvb@prak.org>
+	(envelope-from <SRS0=5DuQ=IK=gmx.de=jens.nixdorf@srs.kundenserver.de>)
+	id 1NNlEy-00040i-8V
+	for linux-dvb@linuxtv.org; Thu, 24 Dec 2009 11:48:21 +0100
+Received: from miniserver.lan (localhost.localdomain [127.0.0.1])
+	by miniserver.lan (8.13.8/8.13.8/SuSE Linux 0.8) with ESMTP id
+	nBOAljtU025915
+	for <linux-dvb@linuxtv.org>; Thu, 24 Dec 2009 11:47:45 +0100
+Date: Thu, 24 Dec 2009 11:47:38 +0100
+From: Jens Nixdorf <jens.nixdorf@gmx.de>
 To: linux-dvb@linuxtv.org
-Message-ID: <20091203140920.GK10524@www.viadmin.org>
+Message-ID: <200912241147.38182.jens.nixdorf@gmx.de>
+In-Reply-To: <267bb6670912231253y40b6197j454df3ff51944f7d@mail.gmail.com>
+References: <267bb6670912231253y40b6197j454df3ff51944f7d@mail.gmail.com>
 MIME-Version: 1.0
 Content-Disposition: inline
-Subject: [linux-dvb] linuxtv wiki device database progress
+Subject: Re: [linux-dvb] DVB-S2 boxes with CI support ?
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -31,36 +31,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi there,
+Am Mittwoch 23 Dezember 2009 21:53:58 schrieb dehqan65:
+> 
+> 1 - What are DVB-S2 USB boxes with CI support that are supported in
+> Linux/GNU ?
+> one of them is
+> http://linuxtv.org/wiki/index.php/DVBWorld_HD_2104_CA%2BCI_USB_Box anyother
+> ?
+> 2 - Which one those do you advice ?
+> 
 
-I guess I already talked enough about the device database article in
-the wiki, where device data from one template
-http://www.linuxtv.org/wiki/index.php/Template:USB_Device_Data
-can be displayed/filtered in many different articles
-http://www.linuxtv.org/wiki/index.php/DVB-T_USB_Devices#DVB-T_USB_Devices
-http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_Digi_Volar_X_%28A815%29
-http://www.linuxtv.org/wiki/index.php/Artec
-http://www.linuxtv.org/wiki/index.php/MSI_DigiVox_mini_II_V3.0
-...
+Hi,
 
-I'd just like to let you guys know that I'll be mostly offline 
-in the brazilean jungle for some month. Thats why I will not be able to
-work on that project for a while. I hope somebody will pick it up but 
-I'm afraid it will lie dormant for some month.
+the DVBWorld-Box i didnt know, but i'm using the "Technotrend 3650 CI"-S2-USB-
+Box, which works well, even if it is very verbose in the logfiles.
 
-I am not sure if the whole thing is mature enough to mention it in the
-new device article template. I guess to have it there we will need somebody
-to take responsibility for PCI and PCIe devices. There are already a lot of
-those (though no where near as many as USB devices), and it would make sense
-to translate the data from that table, into a structured data set that can 
-be included whereever it is needed.
-
-Take care and see you guys in april.
-
--henrik
-
-PS: I'll unsubscribe from linux-dvb and linux-media for the time being. So
-if there's anything you need to ask, write an email directly to me.
+regards, Jens
 
 _______________________________________________
 linux-dvb users mailing list
