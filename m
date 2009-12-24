@@ -1,134 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:37575 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750765AbZLDAsL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 19:48:11 -0500
-Date: Thu, 3 Dec 2009 22:48:09 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Andy Walls <awalls@radix.net>,
-	Patrick Boettcher <pboettcher@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Replace Mercurial with GIT as SCM
-Message-ID: <20091203224809.2ce0b227@pedra>
-In-Reply-To: <Pine.LNX.4.64.0912032239550.4328@axis700.grange>
-References: <alpine.LRH.2.00.0912011003480.30797@pub3.ifh.de>
-	<1259709900.3102.3.camel@palomino.walls.org>
-	<200912031012.41889.hverkuil@xs4all.nl>
-	<Pine.LNX.4.64.0912032239550.4328@axis700.grange>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-out.m-online.net ([212.18.0.9]:50279 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753164AbZLXXKG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Dec 2009 18:10:06 -0500
+Received: from mail01.m-online.net (mail.m-online.net [192.168.3.149])
+	by mail-out.m-online.net (Postfix) with ESMTP id 136211C15DE5
+	for <linux-media@vger.kernel.org>; Fri, 25 Dec 2009 00:10:04 +0100 (CET)
+Received: from localhost (dynscan2.mnet-online.de [192.168.1.215])
+	by mail.m-online.net (Postfix) with ESMTP id A8F22902F6
+	for <linux-media@vger.kernel.org>; Fri, 25 Dec 2009 00:10:04 +0100 (CET)
+Received: from mail.mnet-online.de ([192.168.3.149])
+	by localhost (dynscan2.mnet-online.de [192.168.1.215]) (amavisd-new, port 10024)
+	with ESMTP id C642xrZZjKSD for <linux-media@vger.kernel.org>;
+	Fri, 25 Dec 2009 00:10:03 +0100 (CET)
+Received: from [192.168.1.5] (ppp-88-217-19-215.dynamic.mnet-online.de [88.217.19.215])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.mnet-online.de (Postfix) with ESMTP
+	for <linux-media@vger.kernel.org>; Fri, 25 Dec 2009 00:10:03 +0100 (CET)
+Message-ID: <4B33F4CA.7060607@a-city.de>
+Date: Fri, 25 Dec 2009 00:10:02 +0100
+From: TAXI <taxi@a-city.de>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Bad image/sound quality with Medion MD 95700
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 3 Dec 2009 22:42:38 +0100 (CET)
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
+Hi,
+I tried a Medion MD 95700 with kernel 2.6.32 (for tests: 2.6.30.9) and
+have a very bad image and sound quality.
+Right now I'm using 2.6.32 with V4L/DVB from SVN (v4l-dvb-4506e2d54126)
 
-> On Thu, 3 Dec 2009, Hans Verkuil wrote:
-> 
-> > On Wednesday 02 December 2009 04:55:00 Andy Walls wrote:
-> > > On Tue, 2009-12-01 at 15:59 +0100, Patrick Boettcher wrote:
-> > > > Hi all,
-> > > >
-> > > > I would like to start a discussion which ideally results in either
-> > > > changing the SCM of v4l-dvb to git _or_ leaving everything as it is today
-> > > > with mercurial.
-> > > >
-> > > >
-> > > > I'm waiting for comments.
+Here is an example: http://img200.imageshack.us/img200/3950/dvbtlinux.png
+and another: http://img130.imageshack.us/img130/6278/dvbt2.png
 
-GIT.
+The DVB-T stream seems to be good:
+femon
+FE: Conexant CX22702 DVB-T (DVBT)
+status SCVYL | signal 6565 | snr ffff | ber 00000000 | unc 00000000 |
+FE_HAS_LOCK
+status SCVYL | signal 6565 | snr ffff | ber 00000000 | unc 00000000 |
+FE_HAS_LOCK
+status SCVYL | signal 6565 | snr ffff | ber 00000000 | unc 00000000 |
+FE_HAS_LOCK
+status SCVYL | signal 6565 | snr ffff | ber 00000000 | unc 00000000 |
+FE_HAS_LOCK
+status SCVYL | signal 6565 | snr ffff | ber 00000000 | unc 00000000 |
+FE_HAS_LOCK
+status SCVYL | signal 6565 | snr ffff | ber 00000000 | unc 00000000 |
+FE_HAS_LOCK
+status SCVYL | signal 6565 | snr ffff | ber 00000000 | unc 00000000 |
+FE_HAS_LOCK
+(it's a bit bad right now, normally the signal is around 50%)
 
-However, just using what we have in -hg at -git won't give much benefits. We
-should really move forward and use a clone of Linus tree.
+under windows XP the image and sound is perfect.
 
-I intend to work on a way to allow us to move to -git, while preserving our
-building system. My target is to do it at the beginning of the next year.
+P.S. this is the output from mplayer after looking DVB-T for a few seconds:
+mplayer "dvb://ProSieben(ProSiebenSat.1)"
+MPlayer SVN-r29796-4.4.2 (C) 2000-2009 MPlayer Team
 
-> > >
-> > > I only have one requirement: reduce bandwidth usage between the server
-> > > and my home.
-> > >
-> > > The less I have to clone out 65 M of history to start a new series of
-> > > patches the better.  I suppose that would include a rebase...
+Spiele dvb://ProSieben(ProSiebenSat.1).
+dvb_tune Freq: 690000000
+TS-Dateiformat erkannt!
+VIDEO MPEG2(pid=511) AUDIO MPA(pid=512) NO SUBS (yet)!  PROGRAM N. 0
+VIDEO:  MPEG2  720x576  (aspect 3)  25.000 fps  15000.0 kbps (1875.0
+kbyte/s)
+==========================================================================
+Öffne Videodecoder: [mpegpes] MPEG 1/2 Video passthrough
+Konnte keinen passenden Farbraum finden - neuer Versuch mit '-vf scale'...
+Öffne Videofilter: [scale]
+Der ausgewählte Videoausgabetreiber ist nicht kompatibel mit diesem Codec.
+Versuche den scale-Filter zu deiner Filterliste hinzuzufügen,
+z.B. mit -vf spp,scale an Stelle von -vf spp.
+Initialisierung des Videodecoders fehlgeschlagen   :(
+Öffne Videodecoder: [ffmpeg] FFmpeg's libavcodec codec family
+Unsupported PixelFormat -1
+Ausgewählter Videocodec: [ffmpeg2] vfm: ffmpeg (FFmpeg MPEG-2)
+==========================================================================
+==========================================================================
+Öffne Audiodecoder: [mp3lib] MPEG layer-2, layer-3
+AUDIO: 48000 Hz, 2 ch, s16le, 192.0 kbit/12.50% (ratio: 24000->192000)
+Ausgewählter Audiocodec: [mp3] afm: mp3lib (mp3lib MPEG layer-2, layer-3)
+==========================================================================
+AO: [alsa] 48000Hz 2ch s16le (2 bytes per sample)
+Starte Wiedergabe...
+Film-Aspekt ist 1,78:1 - Vorskalierung zur Korrektur der Seitenverhältnisse.
+VO: [xv] 720x576 => 1024x576 Planar YV12
+[mpeg2video @ 0xc62be0]ac-tex damaged at 23 4
+[mpeg2video @ 0xc62be0]ac-tex damaged at 14 9
+[mpeg2video @ 0xc62be0]skipped MB in I frame at 40 10
+[mpeg2video @ 0xc62be0]invalid mb type in I Frame at 29 15
+[mpeg2video @ 0xc62be0]skipped MB in I frame at 32 19
+[mpeg2video @ 0xc62be0]ac-tex damaged at 34 33
+[mpeg2video @ 0xc62be0]Warning MVs not available
+[mpeg2video @ 0xc62be0]concealing 319 DC, 319 AC, 319 MV errors
+[mpeg2video @ 0xc62be0]concealing 319 DC, 319 AC, 319 MV errors?% 0 0
+[mpeg2video @ 0xc62be0]concealing 319 DC, 319 AC, 319 MV errors% 0 0
+[mpeg2video @ 0xc62be0]mb incr damaged,008   3/  3 ??% ??% ??,?% 0 0
+[mpeg2video @ 0xc62be0]00 motion_type at 27 17
+[mpeg2video @ 0xc62be0]Warning MVs not available
+[mpeg2video @ 0xc62be0]concealing 98 DC, 98 AC, 98 MV errors
+[mpeg2video @ 0xc62be0]00 motion_type at 34 54/  4 ??% ??% ??,?% 0 0
+[mpeg2video @ 0xc62be0]Warning MVs not available
+[mpeg2video @ 0xc62be0]concealing 90 DC, 90 AC, 90 MV errors
+[mpeg2video @ 0xc62be0]00 motion_type at 35 95/  5 ??% ??% ??,?% 0 0
+[mpeg2video @ 0xc62be0]concealing 90 DC, 90 AC, 90 MV errors
+[mpeg2video @ 0xc62be0]ac-tex damaged at 36 86/  6 ??% ??% ??,?% 0 0
+[mpeg2video @ 0xc62be0]invalid cbp at 25 13
+[mpeg2video @ 0xc62be0]ac-tex damaged at 4 23
+[mpeg2video @ 0xc62be0]concealing 157 DC, 157 AC, 157 MV errors
+[mpeg2video @ 0xc62be0]00 motion_type at 8 8 7/  7 ??% ??% ??,?% 0 0
+[mpeg2video @ 0xc62be0]concealing 90 DC, 90 AC, 90 MV errors
+[mpeg2video @ 0xc62be0]concealing 50 DC, 50 AC, 50 MV errors?,?% 0 0
+Bindung für Taste 'c' nicht gefunden.                         ?% 0 0
+[mpeg2video @ 0xc62be0]invalid mb type in P Frame at 4 16
+[mpeg2video @ 0xc62be0]concealing 45 DC, 45 AC, 45 MV errors
+[mpeg2video @ 0xc62be0]invalid mb type in B Frame at 0 31% ??,?% 0 0
+[mpeg2video @ 0xc62be0]concealing 225 DC, 225 AC, 225 MV errors
+[mpeg2video @ 0xc62be0]mb incr damaged,040  11/ 11 ??% ??% ??,?% 0 0
+[mpeg2video @ 0xc62be0]invalid cbp at 28 30
+[mpeg2video @ 0xc62be0]concealing 203 DC, 203 AC, 203 MV errors
+[mpeg2video @ 0xc62be0]ac-tex damaged at 24 72/ 12 ??% ??% ??,?% 0 0
+[mpeg2video @ 0xc62be0]skipped MB in I frame at 6 12
+[mpeg2video @ 0xc62be0]skipped MB in I frame at 1 19
+[mpeg2video @ 0xc62be0]skipped MB in I frame at 23 25
+[mpeg2video @ 0xc62be0]concealing 186 DC, 186 AC, 186 MV errors
+[mpeg2video @ 0xc62be0]00 motion_type at 14 22/ 13 ??% ??% ??,?% 0 0
+[mpeg2video @ 0xc62be0]concealing 45 DC, 45 AC, 45 MV errors
+[mpeg2video @ 0xc62be0]concealing 258 DC, 258 AC, 258 MV errors% 0 0
+[mpeg2video @ 0xc62be0]ac-tex damaged at 12 24/ 15 25%  4% 13,0% 0 0
+[mpeg2video @ 0xc62be0]ac-tex damaged at 10 31
+[mpeg2video @ 0xc62be0]concealing 270 DC, 270 AC, 270 MV errors
+[mpeg2video @ 0xc62be0]00 motion_type at 40 13/ 16 25%  4% 12,2% 0 0
+[mpeg2video @ 0xc62be0]00 motion_type at 43 17
+[mpeg2video @ 0xc62be0]slice mismatch
+[mpeg2video @ 0xc62be0]concealing 270 DC, 270 AC, 270 MV errors
+[mpeg2video @ 0xc62be0]00 motion_type at 1 717/ 17 24%  3% 20,2% 0 0
+[mpeg2video @ 0xc62be0]concealing 151 DC, 151 AC, 151 MV errors
+[mpeg2video @ 0xc62be0]ac-tex damaged at 29 88/ 18 23%  3% 19,1% 0 0
+[mpeg2video @ 0xc62be0]mb incr damaged
+[mpeg2video @ 0xc62be0]concealing 135 DC, 135 AC, 135 MV errors
+[mpeg2video @ 0xc62be0]00 motion_type at 23 17/ 19 23%  3% 18,0% 0 0
+[mpeg2video @ 0xc62be0]concealing 136 DC, 136 AC, 136 MV errors
+[mpeg2video @ 0xc62be0]ac-tex damaged at 21 23/ 20 23%  3% 17,1% 0 0
+[mpeg2video @ 0xc62be0]concealing 119 DC, 119 AC, 119 MV errors
+[mpeg2video @ 0xc62be0]ac-tex damaged at 22 01/ 21 22%  3% 25,5% 0 0
+[mpeg2video @ 0xc62be0]ac-tex damaged at 42 9
+[mpeg2video @ 0xc62be0]ac-tex damaged at 31 10
+[mpeg2video @ 0xc62be0]invalid mb type in P Frame at 35 12
+[mpeg2video @ 0xc62be0]00 motion_type at 18 17
+[mpeg2video @ 0xc62be0]00 motion_type at 1 22
+[mpeg2video @ 0xc62be0]ac-tex damaged at 29 23
+[mpeg2video @ 0xc62be0]ac-tex damaged at 38 31
+[mpeg2video @ 0xc62be0]concealing 450 DC, 450 AC, 450 MV errors
+[mpeg2video @ 0xc62be0]00 motion_type at 22 12/ 22 22%  2% 24,3% 0 0
+[mpeg2video @ 0xc62be0]00 motion_type at 12 14
+[mpeg2video @ 0xc62be0]00 motion_type at 29 22
+[mpeg2video @ 0xc62be0]concealing 180 DC, 180 AC, 180 MV errors
+[mpeg2video @ 0xc62be0]00 motion_type at 16 73/ 23 22%  2% 23,3% 0 0
+[mpeg2video @ 0xc62be0]ac-tex damaged at 10 14
+[mpeg2video @ 0xc62be0]concealing 132 DC, 132 AC, 132 MV errors
+[mpeg2video @ 0xc62be0]ac-tex damaged at 17 84/ 24 22%  2% 37,0% 0 0
+[mpeg2video @ 0xc62be0]ac-tex damaged at 18 11
+[mpeg2video @ 0xc62be0]ac-tex damaged at 16 13
+[mpeg2video @ 0xc62be0]ac-tex damaged at 11 15
+[mpeg2video @ 0xc62be0]invalid mb type in I Frame at 27 20
+[mpeg2video @ 0xc62be0]skipped MB in I frame at 29 23
+[mpeg2video @ 0xc62be0]invalid mb type in I Frame at 38 31
+[mpeg2video @ 0xc62be0]concealing 421 DC, 421 AC, 421 MV errors
+[mpeg2video @ 0xc62be0]concealing 90 DC, 90 AC, 90 MV errors4,4% 1 0
+[mpeg2video @ 0xc62be0]00 motion_type at 29 13/ 26 21%  2% 70,7% 2 0
+[mpeg2video @ 0xc62be0]00 motion_type at 6 21
+[mpeg2video @ 0xc62be0]concealing 180 DC, 180 AC, 180 MV errors
+[mpeg2video @ 0xc62be0]ac-tex damaged at 21 67/ 27 21%  2% 104,0% 3 0
+[mpeg2video @ 0xc62be0]ac-tex damaged at 19 14
+[mpeg2video @ 0xc62be0]ac-tex damaged at 1 25
+[mpeg2video @ 0xc62be0]mb incr damaged
+[mpeg2video @ 0xc62be0]concealing 251 DC, 251 AC, 251 MV errors
+A:20536,2 V:20535,2 A-V:  0,997 ct: -0,101  28/ 28 21%  2% 135,0% 4 0
+Beenden... (Ende)
 
-The first clone of the Linus -git tree will be more painful than 65 Mb of downloads
-Well, -git supports partial clone, were it discards the old history:
-
-$git help clone
-...
-       --depth <depth>
-              Create a shallow clone with a history truncated to the specified number of revisions. A shallow
-              repository has a number of limitations (you cannot clone or fetch from it, nor push from nor into it),
-              but is adequate if you are only interested in the recent history of a large project with a long history,
-              and would want to send in fixes as patches.
-...
-
-I never used it, so I can't tell if this works properly.
-
-However, the big advantage with -git is that, once you have one local clone,
-you may do other clones that will use a shared repository of objects.
-
-Here, I use one git full clone of the Linus tree, created with:
-	git clone --bare <git repository> master-git-repo.git
-
-Being a bare tree, it will only contain the objects (we generally name bare repos with .git extension).
-
-Then, my -git working dirs are created with:
-	git clone -s git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git linux-2.6.git
-
-This clone is very fast, since it is local and is sharing the bare objects.
-
-I then add, at myclone/.git/config two remote repositories, like:
-
-[remote "linus"]
-        URL = /home/myhome/tokernel/bare/linus.git/
-        fetch = +refs/tags/*:refs/remotes/linus/*
-        fetch = +refs/heads/master:refs/remotes/linus/upstream
-        tagopt = --no-tags
-[remote "origin"]
-        URL = ssh://my.remote.site.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
-        fetch = +refs/heads/*:refs/remotes/linux-2.6.git/*
-        Push = refs/heads/*:refs/heads/*
-
-This way, every time I want to update from upstream or from my remote repo,
-I run a script with something like:
-
-$ (cd linux-2.6.git && git fetch)
-$ (cd myclone && git remote update)
-
-And, every time I want to push to my remote repo, i do:
-$ git push origin
-
-The advantage of having a bare directory is that I can have several other local git
-trees, each completely independent from the bare, and all with all the files checked-out.
-
-If you're doing lots of things at the same time, this is a way safer than using branches.
-
-Btw, git branch work really really well. Also, as git revlog provides a changelog history,
-you can do rollbacks if needed.
-
-Ah, with respect to rebase, the better way, IMHO, to rebase your directory is to create
-a new branch based on the latest upstream, pull the patches there, and then rebase.
-The big advantage is that you'll keep your old work untouched, so, if you do something wrong,
-you can simply delete the new branch an do it again.
-
-> > 
-> > Unfortunately, one reason for moving to git would be to finally be able to 
-> > make changes to the arch directory tree. The fact that that part is 
-> > unavailable in v4l-dvb is a big problem when working with SoCs. And these will 
-> > become much more important in the near future.
-> 
-> FWIW, tomorrow (or a day or two later) I'll have to spend time again 
-> back-porting arch changes from git to hg, to be able to push my current 
-> patches...
-
-My current maintainership live is to do ports/backports between hg and git. This is
-very time demanding those days... Moving to git will be really great.
-
-
-
-
-Cheers,
-Mauro
+P.S. sry if sended twice, I don't know if the first mail was sended right.
