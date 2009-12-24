@@ -1,71 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.24]:1188 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751730AbZLVWrS (ORCPT
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:35220 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754336AbZLXHiT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Dec 2009 17:47:18 -0500
-Received: by ey-out-2122.google.com with SMTP id 25so362552eya.19
-        for <linux-media@vger.kernel.org>; Tue, 22 Dec 2009 14:47:17 -0800 (PST)
+	Thu, 24 Dec 2009 02:38:19 -0500
+Received: by ewy19 with SMTP id 19so7074295ewy.21
+        for <linux-media@vger.kernel.org>; Wed, 23 Dec 2009 23:38:17 -0800 (PST)
+Message-ID: <4B331A66.4020303@gmail.com>
+Date: Thu, 24 Dec 2009 08:38:14 +0100
+From: "tomlohave@gmail.com" <tomlohave@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4B2B9842.6040108@gmail.com>
-References: <59cf47a80912180605o41708efao769d09d46b20a87e@mail.gmail.com>
-	 <829197380912180644y31f520fawee04a66ab28666e7@mail.gmail.com>
-	 <4B2B9842.6040108@gmail.com>
-Date: Tue, 22 Dec 2009 22:47:17 +0000
-Message-ID: <59cf47a80912221447m770e53f2u8d981cb3342b96d1@mail.gmail.com>
-Subject: Re: Adaptec VideOh! DVD Media Center
-From: Paulo Assis <pj.assis@gmail.com>
-To: Mauro Carvalho Chehab <maurochehab@gmail.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: hermann pitton <hermann-pitton@arcor.de>
+CC: linux-media@vger.kernel.org, jpnews13@free.fr
+Subject: Re: saa7134  (not very) new board 5168:0307
+References: <4B03F15D.1090907@gmail.com>	 <1258585719.3275.14.camel@pc07.localdom.local> <4B1101B0.5010008@gmail.com>	 <1259543353.4436.21.camel@pc07.localdom.local> <4B18AE42.6010000@gmail.com>	 <4B320A43.4000308@gmail.com> <1261608844.7606.9.camel@pc07.localdom.local>
+In-Reply-To: <1261608844.7606.9.camel@pc07.localdom.local>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-I'm having a real bad time with this, I've just noticed the strangest thing:
-The product id on the box changes when loading the firmware:
-from the initial vid:pid of 03f3:008b to 03f3:008c I guess the same
-also happens for 03f3:0087 to 03f3:0088
-This is way the original firmware loader uses the inital pid in the
-configuration and the driver module sets the later in the device tab:
-udev loads the firmware, the pid changes and the driver module gets
-loaded.
-So if If I want the driver to request the firmware I have to set both
-pids and end up with two device entries, the first of which will never
-get removed since the inital pid is no more :D
-
-Is there any solution/ideas on how to handle this behaviour?
-Also I exctrated the firmware into a ihex file, I see that existing
-modules use several diferent types of firmware binary files (fw, bin)
-obtained from the ihex file, some even use ihex directly
-(request_ihex_firmware), is there a optimal format for this?
-
-Regards,
-Paulo
-
-2009/12/18 Mauro Carvalho Chehab <maurochehab@gmail.com>:
-> Devin Heitmueller wrote:
->> On Fri, Dec 18, 2009 at 9:05 AM, Paulo Assis <pj.assis@gmail.com> wrote:
->>> Hi,
+hermann pitton a écrit :
+> Hi Tom,
 >
->>> Is there any simpler/standard way of handling these firmware uploads ?
+> Am Mittwoch, den 23.12.2009, 13:17 +0100 schrieb tomlohave@gmail.com:
+>   
+>> Some news,
+>>     
+>>> Hi hermann,
 >>>
->>> Regards,
->>> Paulo
->>
->> Hi Paulo,
->>
->> I would start by looking at the request_firmware() function, which is
->> used by a variety of other v4l cards.
+>>> we are this results :
+>>>
+>>> with
+>>>
+>>> &tda827x_cfg_0, &tda827x_cfg_1 or &tda827x_cfg_2
+>>>
+>>>       
+>>> we have a perfect image without sound on the analogic part (test with 
+>>> mplayer),
+>>> a partial result with dvb-t : we need to initialize first with 
+>>> analogic (with cold boot, the card doesn't work on dvb)
+>>> but only for few seconds(sound and image are ok) then re-initialize 
+>>> with analogic, work for few seconds on dvb and then nothing
+>>>       
+>>> maybe i am wrong but, the sound part for analogic is a problem of 
+>>> redirection, isn't it  ?
+>>>       
+>> fixed
+>>     
+>>> here are our configuration for this card :
+>>>
+>>> in saa7134-dvb.c
+>>>
+>>> static struct tda1004x_config tda827x_flydvbtduo_medion_config = {
+>>>     .demod_address = 0x08,
+>>>     .invert        = 1,
+>>>     .invert_oclk   = 0,
+>>>     .xtal_freq     = TDA10046_XTAL_16M,
+>>>     .agc_config    = TDA10046_AGC_TDA827X,
+>>>     .gpio_config   = TDA10046_GP01_I,
+>>>     .if_freq       = TDA10046_FREQ_045,
+>>>     .i2c_gate      = 0x4b,
+>>>     .tuner_address = 0x61,
+>>>     .antenna_switch = 2,
+>>>     .request_firmware = philips_tda1004x_request_firmware
+>>> };
+>>>
+>>> case SAA7134_BOARD_FLYDVBTDUO_MEDION:
+>>>         if (configure_tda827x_fe(dev, &tda827x_flydvbtduo_medion_config,
+>>>                      &tda827x_cfg_2) < 0)
+>>>             goto dettach_frontend;
+>>>         break;
+>>>     default:
+>>>         wprintk("Huh? unknown DVB card?\n");
+>>>         break;
+>>>
+>>>
+>>> in saa7134-cards.c
+>>>
+>>>    [SAA7134_BOARD_FLYDVBTDUO_MEDION] = {
+>>>        .name           = "LifeView FlyDVB-T DUO Medion",
+>>>       
+>>>        .audio_clock    = 0x00187de7,
+>>>       
+>> change with  0x00200000 and there is a perfect sound :)
+>>     
 >
-> Yes. Basically, you store all firmwares you need on /lib/firmware and
-> request_firmware loads them when the driver is loaded.
+> fine. In README.saa7134 since Gerd wrote it the first time ;)
 >
-> You don't need to add any extra udev magic for it to work, since there are
-> already some userspace programs that handle firmware requests when using
-> request_firmware().
+>   
+>>>        .tuner_type     = TUNER_PHILIPS_TDA8290,
+>>>        .radio_type     = UNSET,
+>>>        .tuner_addr    = ADDR_UNSET,
+>>>        .radio_addr    = ADDR_UNSET,
+>>>        .gpiomask    = 0x00200000,
+>>>        .mpeg           = SAA7134_MPEG_DVB,
+>>>        .inputs         = {{
+>>>            .name = name_tv,
+>>>            .vmux = 1,
+>>>            .amux = TV,
+>>>            .gpio = 0x200000,     /* GPIO21=High for TV input */
+>>>            .tv   = 1,
+>>>        },{
+>>>            .name = name_comp1,    /* Composite signal on S-Video input */
+>>>            .vmux = 3,
+>>>            .amux = LINE1,
+>>>        },{
+>>>            .name = name_svideo,    /* S-Video signal on S-Video input */
+>>>            .vmux = 8,
+>>>            .amux = LINE1,
+>>>        }},
+>>>        .radio = {
+>>>            .name = name_radio,
+>>>            .amux = TV,
+>>>            .gpio = 0x000000,    /* GPIO21=Low for FM radio antenna */
+>>>        },
+>>>
+>>>
+>>> .vendor       = PCI_VENDOR_ID_PHILIPS,
+>>>        .device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+>>>        .subvendor    = 0x5168,               .subdevice    = 0x0307,  
+>>> /* LR307-N */             .driver_data  = 
+>>> SAA7134_BOARD_FLYDVBTDUO_MEDION,
+>>>
+>>> case SAA7134_BOARD_FLYDVBTDUO_MEDION:
+>>>    {
+>>>        /* this is a hybrid board, initialize to analog mode
+>>>         * and configure firmware eeprom address
+>>>         */
+>>>        u8 data[] = { 0x3c, 0x33, 0x60};
+>>>        struct i2c_msg msg = {.addr=0x08, .flags=0, .buf=data, .len = 
+>>> sizeof(data)};
+>>>        i2c_transfer(&dev->i2c_adap, &msg, 1);
+>>>        break;
+>>>
+>>>
+>>>
+>>>
+>>> What can we do to have dvb fully supported ?
+>>>       
+>> Can someone point me in the right direction ?
+>>     
+>
+>   
+hi hermann
+> Hmmm, is there not anything with i2c_debug=1 before it fails after a few
+> seconds?
+>   
+will post this
+> Gpio pins can trigger cascades of switches, so to know the gpio status
+> of the card for working DVB-T on m$ might still be a desire. Maybe chips
+> power off.
+>   
+will post the results of dscaler
+> Also, for 99.99% only a shot at the dark side of the moon before ever
+> seen, but I would also try to force TS_SERIAL to have it visited.
 >
 > Cheers,
-> Mauro.
+> Hermann
 >
+>
+>
+>   
+Thanks for you answer
+Cheers
+
+Thomas
