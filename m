@@ -1,263 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:22895 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751645AbZLDOMy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Dec 2009 09:12:54 -0500
-Date: Fri, 4 Dec 2009 12:12:34 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Gerd Hoffmann <kraxel@redhat.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jonsmirl@gmail.com, khc@pm.waw.pl,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR  system?
-Message-ID: <20091204121234.5144836b@pedra>
-In-Reply-To: <20091204100642.GD22570@core.coreip.homeip.net>
-References: <BDodf9W1qgB@lirc>
-	<4B14EDE3.5050201@redhat.com>
-	<4B1524DD.3080708@redhat.com>
-	<4B153617.8070608@redhat.com>
-	<A6D5FF84-2DB8-4543-ACCB-287305CA0739@wilsonet.com>
-	<4B17AA6A.9060702@redhat.com>
-	<20091203175531.GB776@core.coreip.homeip.net>
-	<20091203163328.613699e5@pedra>
-	<20091204100642.GD22570@core.coreip.homeip.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail.gmx.net ([213.165.64.20]:45156 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1756057AbZLXWJs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Dec 2009 17:09:48 -0500
+From: Martin Dauskardt <martin.dauskardt@gmx.de>
+To: Andy Walls <awalls@radix.net>
+Subject: Re: [ivtv-devel] PVR150 Tinny/fuzzy audio w/ patch?
+Date: Thu, 24 Dec 2009 23:09:34 +0100
+Cc: linux-media@vger.kernel.org,
+	Argus <pthorn-ivtvd@styx2002.no-ip.org>,
+	Chris Kennedy <ivtv@groovy.org>,
+	Moasat <ivtv@moasat.dyndns.org>, Mike Isely <isely@isely.net>,
+	isely@pobox.com, Steven Toth <stoth@kernellabs.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Discussion list for development of the IVTV driver
+	<ivtv-devel@ivtvdriver.org>
+References: <mailman.1.1260010802.13507.ivtv-devel@ivtvdriver.org> <200912061944.43481.martin.dauskardt@gmx.de> <1261671789.12520.14.camel@palomino.walls.org>
+In-Reply-To: <1261671789.12520.14.camel@palomino.walls.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <200912242309.34376.martin.dauskardt@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 4 Dec 2009 02:06:42 -0800
-Dmitry Torokhov <dmitry.torokhov@gmail.com> escreveu:
+Hi everybody and Merry Christmas,
 
-> On Thu, Dec 03, 2009 at 04:33:28PM -0200, Mauro Carvalho Chehab wrote:
-> > Let me draw my view:
-> > 
-> > Em Thu, 3 Dec 2009 09:55:31 -0800
-> > Dmitry Torokhov <dmitry.torokhov@gmail.com> escreveu:
-> > 
-> > > No, please, wait just a minute. I know it is tempting to just merge
-> > > lirc_dev and start working, but can we first agree on the overall
-> > > subsystem structure before doing so. It is still quite inclear to me.
-> > > 
-> > > The open questions (for me at least):
-> > > 
-> > > - do we create a new class infrastructure for all receivers or only for
-> > >   ones plugged into lirc_dev? Remember that classifying objects affects
-> > >   how udev and friemds see them and may either help or hurt writing PnP
-> > >   rules.
-> > 
-> > IMO, I would create it as /sys/class/input/IR (just like the /mice). I
-> 
-> That will not work. Driver core does not support notion of subclasses,
-> Greg and Kay insist on flat class namespace. Mice do not belong to a
-> separate [sub]class, they all members of input class, with peculiar
-> directory structure.
-> 
-> IRs however, I believe, deserve a full-fledged class (since they are in
-> my view are parents to the input devices representing remotes). I would
-> argus for the following sysfs hierarchy for the main device tree:
-> 
-> /sys/devices/pcipci0000:00/../pci.../../irrcv0/input14/event16
-> /sys/devices/pcipci0000:00/../usb.../../irrcv1/input15/event17
-> 					      /input16/event18
-> 
-> And corresponding class:
-> 
-> /sys/class/irrcv/irrcv0
->                  irrcv1
-> 
-> and so on.
+Andy Walls wrote:
 
-Seems fine to me.
+> I have a version of the change for the ivtv/PVR-150 tinny audio fix at
 > 
-> >
-> > don't see why do we need to different lirc than no-lirc drivers in the
-> > case of sysfs class.
-> 
-> I do agree that _all_ infrared receivers should belong to this class,
-> and not only ones utilizing lirc_dev.
-> 
-> > As devices with raw input capabilities will have
-> > another dev to communicate, this means that we'll need a /lirc node
-> > there to point to lirc dev.
-> > 
-> > > 
-> > > - do we intend to support in-kernel sotfware decoders?
-> > 
-> > Yes.
-> > 
-> 
-> Good.
-> 
-> > > - What is the structure? Do we organize them as a module to be used by driver
-> > >   directly or the driver "streams" the data to IR core and the core
-> > >   applies decoders (in the same fashion input events from drivers flow
-> > >   into input core and then distributed to all bound interfaces for
-> > >   processing/conversion/transmission to userspace)?
-> > 
-> > My plan is to expand ir-common.ko module and rename it to ir-core, to be 
-> > the IR core module for the evdev interface. I'm already working on it. 
-> > My idea for an architecture is that the lirc-core module will use 
-> > ir-common where the IR decoders will be, and the evdev interface.
-> >
-> 
-> How related lirc-core to the current lirc code? If it is not the same
-> maybe we should not call it lirc to avoid confusion.
-
-Just for better illustrate what I'm seeing, I broke the IR generic
-code into two components:
-
-	lirc core - the module that receives raw pulse/space and creates
-		    a device to receive raw API pulse/space events;
-
-	IR core - the module that receives scancodes, convert them into
-		  keycodes and send via evdev interface.
-
-We may change latter the nomenclature, but I'm seeing the core as two different
-modules, since there are cases where lirc core won't be used (those
-devices were there's no way to get pulse/space events).
-
-> > Not sure if I got your idea. Basically, what I see is:
-> > 
-> > 	For device drivers that work in raw mode:
-> > [IR physical device] ==> [IR receiver driver]  ==> [lirc-core] ==> [decoder] ==> [ir-core] ==> [evdev]
-> > 
-> > (eventually, we can merge decoder and ir-core into one module at the beginning,
-> > depending on the size of the decoders)
-> > 
-> > 	For device drivers that work only in evdev mode (those with hardware decoders):
-> > 
-> > [IR physical device] ==> [IR receiver driver]  ==> [ir-core] ==> [evdev]
-> >
-> 
-> Maybe we are talking about the same things and it is just names that are
-> confusing. I'd imagine something like this:
+> 	http://linuxtv.org/hg/~awalls/v4l-dvb-bugfix
+> 	http://linuxtv.org/hg/~awalls/v4l-dvb-bugfix/rev/7753cdcebd28
 > 
 > 
-> In-kernel decoding:
+> It separates out the enable/disable of audio & video streaming from each
+> other for the cx25840 module.  Then the ivtv driver can set them
+> independently to avoid both the unpredictable PCI hang and the tinny
+> audio in a very generic way.  Please test when you can.
+
+@ Andy:
+now we have a second 300ms delay in ivtv-streams.c
+
+     2.6  		/* Initialize Digitizer for Capture */
+     2.7 +		/* Avoid tinny audio problem - ensure audio clocks are going */
+     2.8 +		v4l2_subdev_call(itv->sd_audio, audio, s_stream, 1);
+     2.9 +		/* Avoid unpredictable PCI bus hang - disable video clocks */
+    2.10  		v4l2_subdev_call(itv->sd_video, video, s_stream, 0);
+    2.11  		ivtv_msleep_timeout(300, 1);
+    2.12  		ivtv_vapi(itv, CX2341X_ENC_INITIALIZE_INPUT, 0);
+    2.13  		v4l2_subdev_call(itv->sd_video, video, s_stream, 1);
+    2.14 +		ivtv_msleep_timeout(300, 1);
+
+
+This would increase the time for channel switching (using encoder stop/start) 
+noticeable. My suggestion was to move the 300ms sleep at the point after the 
+stream is re-enabled, so we don't need the first msleep.
+
+I have not tested your code, hope I can do this during the next days.
+
 > 
-> [IR physical device] => [IR receiver driver] => [IR core] => [decoder] => [input core] => [evdev]
-> 							  => [decoder] => [input core] => [evdev]  
+> Mike,
 > 
-> Hardware decoder:
-> [IR physical device] => [IR receiver driver] => [IR core]
-> 					     => [input core] => [evdev]  
+> I had to add another subdev call to pvrusb2 to get the same end result
+> of s_stream calls to the cx25840 module.
 > 
-> I.e we still register with IR core but driver communicates directly with input device.
-> 
-> Userspace decoging:
-> [IR physical device] => [IR receiver driver] => [IR core] => [lirc_dev] => [lircd] => [uinput] => [input core] => [evdev]
 
-I think, we're thinking the same thing, but I've broke the IR core into two parts:
-the lirc core, where the LIRC API will be handled, and the IR core, where the input API will be handled.
+@ Mike:
+do you remember my posting in the pvrusb2 list about sporadic black screen 
+after starting a stream? We had the same problem in ivtv, and the 300ms sleep 
+after disabling the digitizer solved the problem.
 
-I've assumed that we'll use lirc API only for raw IR decode. So, in the hardware decoder case,
-we will expose only the evdev. 
+I implemented this in a similary way in the pvrusb2 driver and the problem 
+never appeared again:
 
-So a drawing showing those two components will be:
+--- v4l-dvb-309f16461cf4-orig/linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c	
+2009-12-05 13:34:21.000000000 +0100
++++ v4l-dvb-309f16461cf4-patched/linux/drivers/media/video/pvrusb2/pvrusb2-
+hdw.c	2009-12-24 22:42:49.746899065 +0100
+@@ -4689,6 +4689,7 @@
+ 		del_timer_sync(&hdw->quiescent_timer);
+ 		if (hdw->flag_decoder_missed) return 0;
+ 		if (pvr2_decoder_enable(hdw,!0) < 0) return 0;
++		msleep(300);
+ 		hdw->state_decoder_quiescent = 0;
+ 		hdw->state_decoder_run = !0;
+ 	}
 
-In-kernel decoding:
 
-[IR physical device] => [IR receiver driver] => [LIRC core] => [decoder] => [IR core] => [input core] => [evdev]
-						   ||
-						    => [Lirc API device]
 
-Hardware decoder:
-[IR physical device] => [IR receiver driver] => [IR core]
-					     => [input core] => [evdev]
+My initial idea was to avoid disabling/enabling the digitizer for devices with 
+cx2584x-digitizer.  Channel changing (using encoder stop/start) with a PVR150 
+and HVR1900 took always about a second longer than with saa7115-based devices. 
+Without disabling/enabling the digitizer around the 
+CX2341X_ENC_INITIALIZE_INPUT call it speeds up noticeable.
 
-Userspace decoding:
-[IR physical device] => [IR receiver driver] => [LIRC core] => [Lirc API device] => [lircd] => [uinput] => [input core] => [evdev]
+So this is the alternate patch for the pvrusb2 driver (similar code for ivtv 
+was in my last posting which Andy had in his mail):
 
-Of course, for userspace, there is trivial case where it will 
-just directly read from evdev without using any userspace program:
+--- v4l-dvb-309f16461cf4-orig/linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c	
+2009-12-05 13:34:21.000000000 +0100
++++ v4l-dvb-309f16461cf4-patched/linux/drivers/media/video/pvrusb2/pvrusb2-
+hdw.c	2009-12-24 22:48:03.481899379 +0100
+@@ -4646,9 +4646,9 @@
+ 			    !hdw->state_pipeline_pause &&
+ 			    hdw->state_pathway_ok) return 0;
+ 		}
+-		if (!hdw->flag_decoder_missed) {
+-			pvr2_decoder_enable(hdw,0);
+-		}
++                if (hdw->decoder_client_id != PVR2_CLIENT_ID_CX25840 && !hdw-
+>flag_decoder_missed) {
++         		pvr2_decoder_enable(hdw,0);
++                }
+ 		hdw->state_decoder_quiescent = 0;
+ 		hdw->state_decoder_run = 0;
+ 		/* paranoia - solve race if timer just completed */
+@@ -4688,7 +4688,10 @@
+ 		    !hdw->state_encoder_ok) return 0;
+ 		del_timer_sync(&hdw->quiescent_timer);
+ 		if (hdw->flag_decoder_missed) return 0;
+-		if (pvr2_decoder_enable(hdw,!0) < 0) return 0;
++                if (hdw->decoder_client_id != PVR2_CLIENT_ID_CX25840) {
++		    if (pvr2_decoder_enable(hdw,!0) < 0) return 0;
++                    msleep(300);
++                }
+ 		hdw->state_decoder_quiescent = 0;
+ 		hdw->state_decoder_run = !0;
+ 	}
 
-Userspace direct usage of IR:
-[IR physical device] => [IR receiver driver] => [IR core] => [input core] => [evdev]
+It works fine with a HVR 1900, but should be tested with a PVRUSB2 model 
+24xxx.
 
-> Essentially lirc_dev becomes a special case of decoder that, instead of
-> connecting inptu core and creating input devices passes the data to
-> userspace.
+Greets,
 
-Yes.
-
-> I did not show the block that you call ir-core since I expect it to be more
-> like a library rather than an object in overall structure.
-> 
->  
-> > > 
-> > > Now as far as input core goes I see very limited number of changes that
-> > > may be needed:
-> > > 
-> > > - Allow to extend size of "scancode" in EVIOC{S,G}KEYCODE if we are
-> > >   unable to limit ourselves to 32 bits (keeping compatibility of course)
-> > 
-> > Yes, but the way EVIOC{S,G}KEYCODE currently works, it performs poorly when you have a
-> > table with 2^64 size. The table is very sparsed, but, as the key to get/set a code is
-> > the scancode, it is very hard to enumberate what are the actual entries there. The
-> > better is to use an index parameter for they, instead of using the scancode as such.
-> > 
-> 
-> evdev does not really care what you use as scancode. So nobody stops
-> your driver to report index as a scancode and accept index from the
-> ioctl. The true "scancode" will thus be competely hidden from userspace.
-> In fact a few drivers do just that.
-
-Let me better express here. It is all about how we'll expand the limits of those
-ioctls to fulfill the needs.
-
-The point is that we'll have, let's say something like to 50-500 scancode/keycode tuples
-sparsely spread into a 2^64 scancode universe (assuming 64 bits - Not sure if is there any
-IR protocol/code with a bigger scancode).
-
-On such universe if we want to get all keycodes with the current ioctls for a scancode in
-the range of 32 bits, we need to do something like:
-
-u32 code;
-int codes[2];
-for (code = 0; code <= (unsigned u32) - 1; code++) {
-	codes[0] = (int)code;
-	if (!ioctl(fd, EVIOCGKEYCODE, codes))
-		printf("scancode 0x%08x = keycode 0x%08x\n", codes[0], codes[1]);
-}
-
-So, on the 32 bits case, we'll do about 4 billions calls to EVIOGKEYCODE ioctl to
-read the complete scancode space, to get those 50-500 useful codes.
-
-Due to the current API limit, we don't have any way to use the full 64bits space for scancodes.
-
-if we use code[0] as an index, this means that we'll need to share the 32 bits on code[1]
-for scancode/keycode. Even using an 32 bits integer for keycode, it is currently limited to:
-
-#define KEY_MAX                 0x2ff
-#define KEY_CNT                 (KEY_MAX+1)
-
-So, we have 10 bits already used for keycode. This gives only 22 bits for scancodes, if we share
-codes[1] for both keycode/scancode. By sharing the 32 bits, we'll need to be care to not extend
-KEY_MAX to be bigger than 0x3ff, otherwise the keytable won't be able to represent all keys of the
-key universe.
-
-What is need for this case is that the arguments for get key/set key to be something like:
-
-struct {
-	u16	index;
-	u64	scancode;
-	u32	keycode;
-};
-
-Eventually, if we want to be more careful about the number of bits for scancode, the better is to
-think on some ways to allow extending the scancode universe, like using u64 scancode[2],
-adding some reserved fields, or using a pair of size/pointer for the the scancode. 
-In the latter case, we'll need to write some compat32 code for handling the pointer. Comments?
-
-It should be noticed that just changing the number of bits at EVIO[G|S]KEYCODE will break
-the kernel API. One alternative would be to just define a new pair of ioctls that allows
-using more bits there.
-
-Cheers,
-Mauro
+Martin
