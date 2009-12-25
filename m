@@ -1,58 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f209.google.com ([209.85.219.209]:38114 "EHLO
-	mail-ew0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751928AbZLTXka (ORCPT
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:38302 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755297AbZLYPgD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Dec 2009 18:40:30 -0500
-Received: by ewy1 with SMTP id 1so5787333ewy.28
-        for <linux-media@vger.kernel.org>; Sun, 20 Dec 2009 15:40:28 -0800 (PST)
+	Fri, 25 Dec 2009 10:36:03 -0500
+Received: by ewy19 with SMTP id 19so235466ewy.21
+        for <linux-media@vger.kernel.org>; Fri, 25 Dec 2009 07:36:01 -0800 (PST)
+Date: Fri, 25 Dec 2009 16:35:58 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: TAXI <taxi@a-city.de>
+cc: linux-media@vger.kernel.org
+Subject: Re: Bad image/sound quality with Medion MD 95700
+In-Reply-To: <4B34961D.6060207@a-city.de>
+Message-ID: <alpine.DEB.2.01.0912251529470.5481@ybpnyubfg.ybpnyqbznva>
+References: <4B33F4CA.7060607@a-city.de> <alpine.DEB.2.01.0912251021210.5481@ybpnyubfg.ybpnyqbznva> <4B34961D.6060207@a-city.de>
 MIME-Version: 1.0
-In-Reply-To: <829197380912201032re3590ael3c4f70ce2afa6349@mail.gmail.com>
-References: <74fd948d0912200907j21fcc7b1qd2bfd2da00d4f72@mail.gmail.com>
-	 <829197380912201032re3590ael3c4f70ce2afa6349@mail.gmail.com>
-Date: Sun, 20 Dec 2009 23:40:27 +0000
-Message-ID: <74fd948d0912201540u287dedaby81932da32359a11a@mail.gmail.com>
-Subject: Re: Pinnacle PCTV Hybrid (2) dvb woes
-From: Pedro Ribeiro <pedrib@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Dec 20, 2009 at 6:32 PM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> On Sun, Dec 20, 2009 at 12:07 PM, Pedro Ribeiro <pedrib@gmail.com> wrote:
->> Hello all,
->>
->> I'm having trouble setting up DVB for my Pinnacle PCTV Hybrid Stick
->> (2), AKA 330e.
->
-> You can check the linux-media archives for more info, but I can tell
-> you that the 330e is not currently supported for DVB mode (analog
-> only).
->
-> Devin
->
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
->
+On Fri, 25 Dec 2009, TAXI wrote:
 
-Damn, I suspected that.
+> > I have my machine operating fully again (yeahright), I can send
+> > you some of these alternative patches to try -- running 
+> > successfully on 2.6.14 and 2.6.27-rc4.
 
-Anyway, I'm having trouble viewing analog TV. I can scan and watch
-channels fine, but there is no audio, and I don't know how to
-configure it. If you could help me, I would really appreciate it
+> That would be nice.
 
-Should I use the em28xx soundcard for output or my own internal soundcard?
+Hintergrund (aber nicht so wightig)...
 
-tvtime only uses ALSA, but my internal soundcard as OSS mixer
-emulation (the em28xx has not). However, I cannot control the volume
-in tvtime
+I have not had the chance to update my `git' kernel source since 
+more than a month, and even then, it is on a disk which I cannot
+plug in at present.  The latest source I have at hand which I've
+patched is 2.6.27-rc4.  There may be some differences from the
+present code, so I am not sending a normal patch.
 
-Alsa says that the em28xx soundcard has no mixer controls.
+(Ich verwende aeltere Quellcode, deswegen musst Du per Hand
+etwas aendern)
 
 
-Thanks,
-Pedro
+THIS IS NOT A PATCH TO BE APPLIED BY EVERYONE.  This is only to
+verify that you are seeing the same problem I have had.
+
+As I do not have a simple patch, I will give you the simple
+changes to be made by hand.  Either way should give you a working
+receiver, and both, but not together, should work.
+
+
+Make a copy of the source file...
+$  cd (your linux source)
+$  cd drivers/media/dvb/dvb-usb
+$  cp -pvi  cxusb.c  cxusb.c-DIST
+
+Edit cxusb.c
+
+find the function
+cxusb_cx22702_frontend_attach
+      ^^^^^^^
+it should have the line
+if (usb_set_interface(adap->dev->udev, 0, 6) < 0)
+                                         ^^^
+or something very similar -- change this 6 to 0.
+
+This will cause the driver to look at alternate interface 0 for
+bulk data.
+
+Now rebuild the kernel or the dvb_usb_cxusb module, reboot or load
+the new module, and try it and see if it is better.
+
+
+I will send a second alternative patch, to read isoc data from
+interface 6, in a separate message.
+
+
+barry bouwsma
