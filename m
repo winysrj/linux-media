@@ -1,138 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.oregonstate.edu ([128.193.15.35]:34278 "EHLO
-	smtp1.oregonstate.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752206AbZLRTWb (ORCPT
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:45064 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753002AbZLYM3p (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Dec 2009 14:22:31 -0500
-Message-ID: <4B2BD6C2.50307@onid.orst.edu>
-Date: Fri, 18 Dec 2009 11:23:46 -0800
-From: Michael Akey <akeym@onid.orst.edu>
+	Fri, 25 Dec 2009 07:29:45 -0500
+Received: by ewy19 with SMTP id 19so158363ewy.21
+        for <linux-media@vger.kernel.org>; Fri, 25 Dec 2009 04:29:43 -0800 (PST)
+Date: Fri, 25 Dec 2009 13:29:40 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: TAXI <taxi@a-city.de>
+cc: linux-media@vger.kernel.org
+Subject: Re: Bad image/sound quality with Medion MD 95700
+In-Reply-To: <4B34961D.6060207@a-city.de>
+Message-ID: <alpine.DEB.2.01.0912251246540.5481@ybpnyubfg.ybpnyqbznva>
+References: <4B33F4CA.7060607@a-city.de> <alpine.DEB.2.01.0912251021210.5481@ybpnyubfg.ybpnyqbznva> <4B34961D.6060207@a-city.de>
 MIME-Version: 1.0
-To: Steven Toth <stoth@kernellabs.com>
-CC: Lou Otway <louis.otway@tripleplay-services.com>,
-	Linux Media <linux-media@vger.kernel.org>
-Subject: Re: scan/scan-s2 doesn't tune, but dvbtune does?
-References: <4B269F1A.30107@onid.orst.edu>	 <4B275CA2.406@tripleplay-services.com> <83bcf6340912180525h1bbaf229j9b2c81ffacb8fe76@mail.gmail.com>
-In-Reply-To: <83bcf6340912180525h1bbaf229j9b2c81ffacb8fe76@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Steven Toth wrote:
-> On Tue, Dec 15, 2009 at 4:53 AM, Lou Otway
-> <louis.otway@tripleplay-services.com> wrote:
->   
->> Michael Akey wrote:
->>     
->>> I can't get the scan/scan-s2 utilities to lock any transponders (DVB-S).
->>>  My test satellite is AMC1 103W, the Pentagon Channel tp. This is probably
->>> some simple user error on my part, but I can't figure it out.  I have a
->>> Corotor II with polarity changed via serial command to an external IRD.
->>>  C/Ku is switched by 22KHz tone, voltage is always 18V.  Ku is with tone
->>> off, C with tone on.  Speaking of which, is there a way to manually set the
->>> tone from the arguments on the scan utilities?
->>>
->>> Here's what I've tried and the results:
->>>
->>> $ ./scan-s2 -a 0 -v -o zap -l 10750 INIT
->>> API major 5, minor 0
->>> scanning INIT
->>> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->>> initial transponder DVB-S  12100000 H 20000000 AUTO AUTO AUTO
->>> initial transponder DVB-S2 12100000 H 20000000 AUTO AUTO AUTO
->>> ----------------------------------> Using DVB-S
->>>       
->>>>>> tune to: 12100:h:0:20000
->>>>>>             
->>> DVB-S IF freq is 1350000
->>>       
->>>>>> tuning status == 0x03
->>>>>> tuning status == 0x01
->>>>>> tuning status == 0x03
->>>>>> tuning status == 0x01
->>>>>> tuning status == 0x03
->>>>>> tuning status == 0x00
->>>>>> tuning status == 0x01
->>>>>> tuning status == 0x03
->>>>>> tuning status == 0x00
->>>>>> tuning status == 0x00
->>>>>>             
->>> WARNING: >>> tuning failed!!!
->>>       
->>>>>> tune to: 12100:h:0:20000 (tuning failed)
->>>>>>             
->>> DVB-S IF freq is 1350000
->>>       
->>>>>> tuning status == 0x03
->>>>>> tuning status == 0x01
->>>>>> tuning status == 0x00
->>>>>> tuning status == 0x00
->>>>>>             
->>> ...snip...
->>>
->>> Same thing happens if I use just 'scan' and not 'scan-s2.'
->>>
->>> If I use dvbtune, it works though..
->>>
->>> $ dvbtune -f 1350000 -p H -s 20000 -c 0 -tone 0 -m
->>> Using DVB card "Conexant CX24116/CX24118"
->>> tuning DVB-S to L-Band:0, Pol:H Srate=20000000, 22kHz=off
->>> polling....
->>> Getting frontend event
->>> FE_STATUS:
->>> polling....
->>> Getting frontend event
->>> FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI
->>> FE_HAS_SYNC
->>> Bit error rate: 0
->>> Signal strength: 51648
->>> SNR: 26215
->>> FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI
->>> FE_HAS_SYNC
->>> Signal=51648, Verror=0, SNR=26215dB, BlockErrors=0, (S|L|C|V|SY|)
->>> Signal=51776, Verror=0, SNR=26624dB, BlockErrors=0, (S|L|C|V|SY|)
->>>
->>> The tuning file 'INIT' contains only the following line:
->>> S 12100000 H 20000000 AUTO
->>>
->>> I'm using v4l-dvb drivers from the main repo as of about a week ago.  I am
->>> running kernel 2.6.32 on Debian testing.  Any help is appreciated ..and
->>> hopefully it's just a simple flub on my part!
->>>
->>> --Mike
->>>       
->> Try using a non-auto FEC and rolloff.
->>
->> Some devices won't accept auto for these parameters.
->>     
->
-> Michael,
->
-> The silicon in question doesn't do automatic FEC detection. Be sure to
-> specify which FEC you need for the sat. If in doubt, walk through them
-> all manually. Pilot auto detect is done in s/w was was added a long
-> time ago.
->
-> - Steve
->
->   
-Steve et al,
+Moin moin, TAXI...
 
-It would appear that it does in fact do auto FEC since I don't specify 
-it with dvbtune and it works just fine (with both my Prof 7300 and 
-7301.)  I think it's a tone issue, but then again, why does attempting 
-to scan something on both bands C and Ku (tone on, and tone off 
-respectively) not work?  I figured if it's a tone issue that only one 
-band would work.
+On Fri, 25 Dec 2009, TAXI wrote:
 
-I tried setting the FEC and even the delivery system (S1 rather than S) 
-and it makes no difference.  I could try the DVB-S2 NBC mux on that 
-satellite too.. but I'm not sure why that would make a difference.
+> BOUWSMA Barry schrieb:
+> > The other thing to note is that this device delivers a full
+> > unfiltered Transport Stream, which with the 13,27Mbit/sec typical
+> > bandwidth per channel used in your country (apart from some local
+> > exceptions of greater values), will require a USB2 interface.
 
-If you folks have any other ideas, let me know.  Thanks for your 
-responses so far!
+> it is a USB2 interface:
+> [    3.965425] usb 1-3.1: new high speed USB device using ehci_hcd and
+> address 6 (it's the USB hub in the box)
 
---Mike
+Na gut -- so habe ich erwartet.  Aber sicher ist sicher, vertrauen 
+ist gut, usw.
+
+Or in english, I expected that, but it is always good to be sure, 
+as it is one of the problems or bottlenecks which I regularly
+experience.
 
 
+> > around line 620 in my reference code, there is a line that sets
+> > the alternate interface to 6.  This is expected to be bulk, but
+> > on my boxes is isoc.
+> > 
+> > You can change this to interface 0, on which my boxes delivers
+> > bulk data flawlessly.
+
+> I think isoc would be okay on 2.6.32, so no need to change that, right?
+
+Das Problem ist, der Treiber erwartet BULK Datei, nicht ISOC, aber
+das Kistchen liefert ISOC (isochronous) Datei.  Deswegen kommt es
+zu Probleme.
+
+Or, the thing is, Linux is expecting to be seeing bulk data on 
+this particular alternate interface (6).  If the receiver is not
+delivering this, but is instead delivering isochronous data, it's
+not in the same format and isn't properly handled by the driver.
+
+Changing it so that the driver reads from alternate interface 0
+results in all my hacked versions being able to read the data
+properly.  Even before reading isoc data through hubs was fixed
+sometime around or before 2.6.18-ish.
+
+
+
+> > but when
+> > I have my machine operating fully again (yeahright), I can send
+> > you some of these alternative patches to try -- running 
+> > successfully on 2.6.14 and 2.6.27-rc4.
+
+> That would be nice.
+> 
+> P.S. my english is not the best so I don't understand all you wrote but
+> why don't you put the patches upstream?
+
+Mein deutsch ist noch schlimmer, wie Du siehst  :-)  Verzeihung 
+wegen meine Muttersprache -- gerne schreibe ich, falls moeglich,
+einfacher und verstaendlich.
+
+Es gibt zwei moegliche Loesungen, entweder einen anderen Dateityp
+aus'm `Endpunkt' zu lesen, oder aus ein anderem `Endpunkt' lesen.
+Mein Kode ist leider nicht sauber.  Es laeuft bei mir, aber 
+koennte Probleme bei anderen verursachen.  Ich kann keine 
+Unterschiede zwischen `bulk' und `isoc' Datei auch mit 'nem 
+200MHz Server feststellen, und kann deswegen keine gute Wahl 
+zwischen die beiden entscheiden.  Ich bin auch mit meiner Loesung 
+nicht ganz zufrieden.
+
+Or, I hope you see from my dreadful sentences above that you need
+not be ashamed of your english, but I will be happy to re-phrase
+and try to clarify anything I have written.
+
+My work-in-progress patches try to use the two possible solutions,
+without affecting anyone whose receivers work, but I have not 
+found a clear reason to favour one solution over the other.  The
+solution which I think stomps less on the existing code is not
+perfect (first tuning fails), and after getting my receivers to
+work with both possibilities, I have not tried to clean up the
+two solutions for submissions as possible patches.
+
+
+Hast Du die 2.6.32 Quellkode?  Kannst Du aus `patches' etwas 
+schaffen, und dabei die beide Moeglichkeiten testen?
+
+(Are you able to build a new kernel to test my patches to see
+if they solve your problem?)
+
+
+barry bouwsma
+('tschuldigung, wegen moi' Tastatur, Grammatik, Woerterschatz,
+und allgemein Bloedheit)
