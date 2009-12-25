@@ -1,119 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1-out1.atlantis.sk ([80.94.52.55]:41149 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753346AbZLDMrc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2009 07:47:32 -0500
-To: linux-media@vger.kernel.org
-Subject: [PATCH] [resend] radio-sf16fmi: fix mute, add SF16-FMP to texts
-Content-Disposition: inline
-From: Ondrej Zary <linux@rainbow-software.org>
-Date: Fri, 4 Dec 2009 13:47:35 +0100
+Received: from mx1.redhat.com ([209.132.183.28]:29287 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753203AbZLYVUI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Dec 2009 16:20:08 -0500
+Message-ID: <4B352C79.2060004@redhat.com>
+Date: Fri, 25 Dec 2009 19:19:53 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: Patrick Boettcher <pboettcher@kernellabs.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC] dvb-apps ported for ISDB-T
+References: <4B32CF33.3030201@redhat.com> <4B342CEE.8020205@redhat.com> <alpine.LRH.2.00.0912251219090.30046@pub4.ifh.de>
+In-Reply-To: <alpine.LRH.2.00.0912251219090.30046@pub4.ifh.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <200912041347.35885.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix completely broken mute handling radio-sf16fmi.
-The sound was muted immediately after tuning in KRadio.
-Also fix typos and add SF16-FMP to the texts.
+Em 25-12-2009 09:25, Patrick Boettcher escreveu:
+> Hi Mauro,
+> 
+> On Fri, 25 Dec 2009, Mauro Carvalho Chehab wrote:
+> 
+>> Em 24-12-2009 00:17, Mauro Carvalho Chehab escreveu:
+>>> I wrote several patches those days in order to allow dvb-apps to
+>>> properly
+>>> parse ISDB-T channel.conf.
+>>>
+>>> On ISDB-T, there are several new parameters, so the parsing is more
+>>> complex
+>>> than all the other currently supported video standards.
+>>>
+>>> I've added the changes at:
+>>>
+>>> http://linuxtv.org/hg/~mchehab/dvb-apps-isdbt/
+>>>
+>>> I've merged there Patrick's dvb-apps-isdbt tree.
+>>>
+>>> While there, I fixed a few bugs I noticed on the parser and converted it
+>>> to work with the DVB API v5 headers that are bundled together with
+>>> dvb-apps.
+>>> This helps to avoid adding lots of extra #if DVB_ABI_VERSION tests.
+>>> The ones
+>>> there can now be removed.
+>>>
+>>> TODO:
+>>> =====
+>>>
+>>> The new ISDB-T parameters are parsed, but I haven't add yet a code to
+>>> make
+>>> them to be used;
+>>>
+>>> There are 3 optional parameters with ISDB-T, related to 1seg/3seg: the
+>>> segment parameters. Currently, the parser will fail if those
+>>> parameters are found.
+>>>
+>>> gnutv is still reporting ISDB-T as "DVB-T".
+>>>
+>>
+>> I've just fixed the issues on the TODO list. The DVB v5 code is now
+>> working fine
+>> for ISDB-T.
+>>
+>> Pending stuff (patches are welcome):
+>>     - Implement v5 calls for other video standards;
+>>     - Remove the duplicated DVBv5 code on /util/scan/scan.c (the code
+>> for calling
+>> DVBv5 is now at /lib/libdvbapi/v5api.c);
+>>     - Test/use the functions to retrieve values via DVBv5 API. The
+>> function is
+>> already there, but I haven't tested.
+>>
+>> With the DVBv5 API implementation, zap is now working properly with
+>> ISDB-T.
+>> gnutv also works (although some outputs - like decoder - may need some
+>> changes, in
+>> order to work with mpeg4/AAC video/audio codecs).
+> 
+> Very good job!
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+Thanks!
 
-diff -urp linux-source-2.6.31-orig/drivers/media/radio/Kconfig linux-source-2.6.31/drivers/media/radio/Kconfig
---- linux-source-2.6.31-orig/drivers/media/radio/Kconfig	2009-09-10 00:13:59.000000000 +0200
-+++ linux-source-2.6.31/drivers/media/radio/Kconfig	2009-11-28 11:51:42.000000000 +0100
-@@ -196,7 +196,7 @@ config RADIO_MAESTRO
- 	  module will be called radio-maestro.
- 
- config RADIO_SF16FMI
--	tristate "SF16FMI Radio"
-+	tristate "SF16-FMI/SF16-FMP Radio"
- 	depends on ISA && VIDEO_V4L2
- 	---help---
- 	  Choose Y here if you have one of these FM radio cards.  If you
-diff -urp linux-source-2.6.31-orig/drivers/media/radio/radio-sf16fmi.c linux-source-2.6.31/drivers/media/radio/radio-sf16fmi.c
---- linux-source-2.6.31-orig/drivers/media/radio/radio-sf16fmi.c	2009-09-10 00:13:59.000000000 +0200
-+++ linux-source-2.6.31/drivers/media/radio/radio-sf16fmi.c	2009-11-28 11:39:35.000000000 +0100
-@@ -1,4 +1,4 @@
--/* SF16FMI radio driver for Linux radio support
-+/* SF16-FMI and SF16-FMP radio driver for Linux radio support
-  * heavily based on rtrack driver...
-  * (c) 1997 M. Kirkwood
-  * (c) 1998 Petr Vandrovec, vandrove@vc.cvut.cz
-@@ -11,7 +11,7 @@
-  *
-  *  Frequency control is done digitally -- ie out(port,encodefreq(95.8));
-  *  No volume control - only mute/unmute - you have to use line volume
-- *  control on SB-part of SF16FMI
-+ *  control on SB-part of SF16-FMI/SF16-FMP
-  *
-  * Converted to V4L2 API by Mauro Carvalho Chehab <mchehab@infradead.org>
-  */
-@@ -30,14 +30,14 @@
- #include <media/v4l2-ioctl.h>
- 
- MODULE_AUTHOR("Petr Vandrovec, vandrove@vc.cvut.cz and M. Kirkwood");
--MODULE_DESCRIPTION("A driver for the SF16MI radio.");
-+MODULE_DESCRIPTION("A driver for the SF16-FMI and SF16-FMP radio.");
- MODULE_LICENSE("GPL");
- 
- static int io = -1;
- static int radio_nr = -1;
- 
- module_param(io, int, 0);
--MODULE_PARM_DESC(io, "I/O address of the SF16MI card (0x284 or 0x384)");
-+MODULE_PARM_DESC(io, "I/O address of the SF16-FMI or SF16-FMP card (0x284 or 0x384)");
- module_param(radio_nr, int, 0);
- 
- #define RADIO_VERSION KERNEL_VERSION(0, 0, 2)
-@@ -47,7 +47,7 @@ struct fmi
- 	struct v4l2_device v4l2_dev;
- 	struct video_device vdev;
- 	int io;
--	int curvol; /* 1 or 0 */
-+	bool mute;
- 	unsigned long curfreq; /* freq in kHz */
- 	struct mutex lock;
- };
-@@ -105,7 +105,7 @@ static inline int fmi_setfreq(struct fmi
- 	outbits(8, 0xC0, fmi->io);
- 	msleep(143);		/* was schedule_timeout(HZ/7) */
- 	mutex_unlock(&fmi->lock);
--	if (fmi->curvol)
-+	if (!fmi->mute)
- 		fmi_unmute(fmi);
- 	return 0;
- }
-@@ -116,7 +116,7 @@ static inline int fmi_getsigstr(struct f
- 	int res;
- 
- 	mutex_lock(&fmi->lock);
--	val = fmi->curvol ? 0x08 : 0x00;	/* unmute/mute */
-+	val = fmi->mute ? 0x00 : 0x08;	/* mute/unmute */
- 	outb(val, fmi->io);
- 	outb(val | 0x10, fmi->io);
- 	msleep(143); 		/* was schedule_timeout(HZ/7) */
-@@ -204,7 +204,7 @@ static int vidioc_g_ctrl(struct file *fi
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_AUDIO_MUTE:
--		ctrl->value = fmi->curvol;
-+		ctrl->value = fmi->mute;
- 		return 0;
- 	}
- 	return -EINVAL;
-@@ -221,7 +221,7 @@ static int vidioc_s_ctrl(struct file *fi
- 			fmi_mute(fmi);
- 		else
- 			fmi_unmute(fmi);
--		fmi->curvol = ctrl->value;
-+		fmi->mute = ctrl->value;
- 		return 0;
- 	}
- 	return -EINVAL;
+> Have you had a look here on this one
+> 
+> http://www.mail-archive.com/vdr@linuxtv.org/msg11125.html
+> 
+> ?
+> 
+> I had this on my list because I wanted to spent some time on DVB-S2
+> myself and it seemed to be a good step to merge it (back) into dvb-apps.
+> Though I haven't yet looked at it in detail.
+> 
+> I will check your changes soon, but after the holidays.
+> 
+> So, now you should have some quiet time for yourself! ;-)
 
--- 
-Ondrej Zary
+It shouldn't be hard to add DVB-S2 to dvb-apps, now that I've added
+support for ISDB-T.
+
+Basically, it needs to move the DVB-S code that it is inside
+/util/scan/scan.c to /lib/libdvbapi/v5api.c, extend it to DVB-S2
+and write the parser and the new fields for DVB-S2.
+
+Since the dvb-apps library has an abstraction layer, the biggest
+part is to add the abstraction layer bits, but this is not a hard
+part, and, as DVB-S2 will share several parts with DVB-S, probably
+it will require less work.
+
+Cheers,
+Mauro.
