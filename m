@@ -1,49 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f221.google.com ([209.85.220.221]:52115 "EHLO
-	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753769AbZLJTjT (ORCPT
+Received: from smtp12.mail.tnz.yahoo.co.jp ([203.216.226.140]:42874 "HELO
+	smtp12.mail.tnz.yahoo.co.jp" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753150AbZLYPkj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2009 14:39:19 -0500
-Received: by fxm21 with SMTP id 21so248796fxm.1
-        for <linux-media@vger.kernel.org>; Thu, 10 Dec 2009 11:39:24 -0800 (PST)
+	Fri, 25 Dec 2009 10:40:39 -0500
+Message-ID: <4B34DB3C.6010805@yahoo.co.jp>
+Date: Sat, 26 Dec 2009 00:33:16 +0900
+From: Akihiro TSUKADA <tskd2@yahoo.co.jp>
 MIME-Version: 1.0
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE40155C809AB@dlee06.ent.ti.com>
-References: <A69FA2915331DC488A831521EAE36FE40155C809AB@dlee06.ent.ti.com>
-Date: Thu, 10 Dec 2009 20:39:24 +0100
-Message-ID: <846899810912101139g6e8a36f7j78fa650e6629ad1b@mail.gmail.com>
-Subject: Re: Latest stack that can be merged on top of linux-next tree
-From: HoP <jpetrous@gmail.com>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC] dvb-apps ported for ISDB-T
+References: <4B32CF33.3030201@redhat.com> <4B342CEE.8020205@redhat.com>
+In-Reply-To: <4B342CEE.8020205@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
 
-2009/12/10 Karicheri, Muralidharan <m-karicheri2@ti.com>:
-> Guennadi,
->
-> I am not sure if your MT9T031 changes are part of linux-next tree at v4l-dvb. If not, can you point me to the latest stack that I can apply on top of linux-next tree to get your latest changes for MT9T031 sensor driver?
->
-> I plan to do integrate sensor driver with vpfe capture driver this week.
->
-> BTW, Is there a driver for the PCA9543 i2c switch that is part of MT9T031 headboard?
->
+Hi Mauro,
 
-I would like to know answer also :)
+>> I wrote several patches those days in order to allow dvb-apps to properly
+>> parse ISDB-T channel.conf.
+ 
+I think it would be convenient if channel.conf allows
+the kind of format of PROPNAME=VALUE list, for readability and extensibility
+of the conf file.
 
-I had to add support for pca9542 (what is 2 port switch) for our project.
-After some googling I found some patches for similar kernel I was
-working on (2.6.22). You can find original patches for example there:
-http://www.mail-archive.com/i2c@lm-sensors.org/msg00315.html
+there are already so many parameters in ISDB-T,
+so it is a bit difficult for the users to remember and correctly specify
+all the field in the right order.
+besides they have to be careful in counting the delimiter character
+ when some (most?) parameters can be omitted or be left to the device/region default.
 
-FYI, the driver pca954x.c seems to be driver for full family of i2c
-muxes/switches. Such code works fine for me.
+and when I consider extending this lib to ISDB-S (for example),
+I have to add "TS-id" parameter,
+which leads to the re-definition of the data structure and requires re-building.
+So, it would be convenient if I could write for example like,
+DTV_FREQUENCY=1049480:DTV_ISDBS_TS_ID=1
 
-The only thing I didn't find was why the code was never merged.
-
-I hope it can helps you.
-
-/Honza
+regards,
+akihiro
+--------------------------------------
+Get Disney character's mail address on Yahoo! Mail
+http://pr.mail.yahoo.co.jp/disney/
