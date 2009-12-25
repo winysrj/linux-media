@@ -1,168 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f219.google.com ([209.85.219.219]:35220 "EHLO
-	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754336AbZLXHiT (ORCPT
+Received: from mail-out.m-online.net ([212.18.0.9]:48252 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754902AbZLYNPa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Dec 2009 02:38:19 -0500
-Received: by ewy19 with SMTP id 19so7074295ewy.21
-        for <linux-media@vger.kernel.org>; Wed, 23 Dec 2009 23:38:17 -0800 (PST)
-Message-ID: <4B331A66.4020303@gmail.com>
-Date: Thu, 24 Dec 2009 08:38:14 +0100
-From: "tomlohave@gmail.com" <tomlohave@gmail.com>
+	Fri, 25 Dec 2009 08:15:30 -0500
+Received: from mail01.m-online.net (mail.m-online.net [192.168.3.149])
+	by mail-out.m-online.net (Postfix) with ESMTP id 5B70C1C15CE0
+	for <linux-media@vger.kernel.org>; Fri, 25 Dec 2009 14:15:27 +0100 (CET)
+Received: from localhost (dynscan2.mnet-online.de [192.168.1.215])
+	by mail.m-online.net (Postfix) with ESMTP id EBEF7902F3
+	for <linux-media@vger.kernel.org>; Fri, 25 Dec 2009 14:15:27 +0100 (CET)
+Received: from mail.mnet-online.de ([192.168.3.149])
+	by localhost (dynscan2.mnet-online.de [192.168.1.215]) (amavisd-new, port 10024)
+	with ESMTP id XWKnDS+1iwIt for <linux-media@vger.kernel.org>;
+	Fri, 25 Dec 2009 14:15:26 +0100 (CET)
+Received: from [192.168.1.5] (ppp-88-217-19-215.dynamic.mnet-online.de [88.217.19.215])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.mnet-online.de (Postfix) with ESMTP
+	for <linux-media@vger.kernel.org>; Fri, 25 Dec 2009 14:15:26 +0100 (CET)
+Message-ID: <4B34BAEE.4040104@a-city.de>
+Date: Fri, 25 Dec 2009 14:15:26 +0100
+From: TAXI <taxi@a-city.de>
 MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-CC: linux-media@vger.kernel.org, jpnews13@free.fr
-Subject: Re: saa7134  (not very) new board 5168:0307
-References: <4B03F15D.1090907@gmail.com>	 <1258585719.3275.14.camel@pc07.localdom.local> <4B1101B0.5010008@gmail.com>	 <1259543353.4436.21.camel@pc07.localdom.local> <4B18AE42.6010000@gmail.com>	 <4B320A43.4000308@gmail.com> <1261608844.7606.9.camel@pc07.localdom.local>
-In-Reply-To: <1261608844.7606.9.camel@pc07.localdom.local>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: linux-media@vger.kernel.org
+Subject: Re: Bad image/sound quality with Medion MD 95700
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hermann pitton a écrit :
-> Hi Tom,
->
-> Am Mittwoch, den 23.12.2009, 13:17 +0100 schrieb tomlohave@gmail.com:
->   
->> Some news,
->>     
->>> Hi hermann,
->>>
->>> we are this results :
->>>
->>> with
->>>
->>> &tda827x_cfg_0, &tda827x_cfg_1 or &tda827x_cfg_2
->>>
->>>       
->>> we have a perfect image without sound on the analogic part (test with 
->>> mplayer),
->>> a partial result with dvb-t : we need to initialize first with 
->>> analogic (with cold boot, the card doesn't work on dvb)
->>> but only for few seconds(sound and image are ok) then re-initialize 
->>> with analogic, work for few seconds on dvb and then nothing
->>>       
->>> maybe i am wrong but, the sound part for analogic is a problem of 
->>> redirection, isn't it  ?
->>>       
->> fixed
->>     
->>> here are our configuration for this card :
->>>
->>> in saa7134-dvb.c
->>>
->>> static struct tda1004x_config tda827x_flydvbtduo_medion_config = {
->>>     .demod_address = 0x08,
->>>     .invert        = 1,
->>>     .invert_oclk   = 0,
->>>     .xtal_freq     = TDA10046_XTAL_16M,
->>>     .agc_config    = TDA10046_AGC_TDA827X,
->>>     .gpio_config   = TDA10046_GP01_I,
->>>     .if_freq       = TDA10046_FREQ_045,
->>>     .i2c_gate      = 0x4b,
->>>     .tuner_address = 0x61,
->>>     .antenna_switch = 2,
->>>     .request_firmware = philips_tda1004x_request_firmware
->>> };
->>>
->>> case SAA7134_BOARD_FLYDVBTDUO_MEDION:
->>>         if (configure_tda827x_fe(dev, &tda827x_flydvbtduo_medion_config,
->>>                      &tda827x_cfg_2) < 0)
->>>             goto dettach_frontend;
->>>         break;
->>>     default:
->>>         wprintk("Huh? unknown DVB card?\n");
->>>         break;
->>>
->>>
->>> in saa7134-cards.c
->>>
->>>    [SAA7134_BOARD_FLYDVBTDUO_MEDION] = {
->>>        .name           = "LifeView FlyDVB-T DUO Medion",
->>>       
->>>        .audio_clock    = 0x00187de7,
->>>       
->> change with  0x00200000 and there is a perfect sound :)
->>     
->
-> fine. In README.saa7134 since Gerd wrote it the first time ;)
->
->   
->>>        .tuner_type     = TUNER_PHILIPS_TDA8290,
->>>        .radio_type     = UNSET,
->>>        .tuner_addr    = ADDR_UNSET,
->>>        .radio_addr    = ADDR_UNSET,
->>>        .gpiomask    = 0x00200000,
->>>        .mpeg           = SAA7134_MPEG_DVB,
->>>        .inputs         = {{
->>>            .name = name_tv,
->>>            .vmux = 1,
->>>            .amux = TV,
->>>            .gpio = 0x200000,     /* GPIO21=High for TV input */
->>>            .tv   = 1,
->>>        },{
->>>            .name = name_comp1,    /* Composite signal on S-Video input */
->>>            .vmux = 3,
->>>            .amux = LINE1,
->>>        },{
->>>            .name = name_svideo,    /* S-Video signal on S-Video input */
->>>            .vmux = 8,
->>>            .amux = LINE1,
->>>        }},
->>>        .radio = {
->>>            .name = name_radio,
->>>            .amux = TV,
->>>            .gpio = 0x000000,    /* GPIO21=Low for FM radio antenna */
->>>        },
->>>
->>>
->>> .vendor       = PCI_VENDOR_ID_PHILIPS,
->>>        .device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
->>>        .subvendor    = 0x5168,               .subdevice    = 0x0307,  
->>> /* LR307-N */             .driver_data  = 
->>> SAA7134_BOARD_FLYDVBTDUO_MEDION,
->>>
->>> case SAA7134_BOARD_FLYDVBTDUO_MEDION:
->>>    {
->>>        /* this is a hybrid board, initialize to analog mode
->>>         * and configure firmware eeprom address
->>>         */
->>>        u8 data[] = { 0x3c, 0x33, 0x60};
->>>        struct i2c_msg msg = {.addr=0x08, .flags=0, .buf=data, .len = 
->>> sizeof(data)};
->>>        i2c_transfer(&dev->i2c_adap, &msg, 1);
->>>        break;
->>>
->>>
->>>
->>>
->>> What can we do to have dvb fully supported ?
->>>       
->> Can someone point me in the right direction ?
->>     
->
->   
-hi hermann
-> Hmmm, is there not anything with i2c_debug=1 before it fails after a few
-> seconds?
->   
-will post this
-> Gpio pins can trigger cascades of switches, so to know the gpio status
-> of the card for working DVB-T on m$ might still be a desire. Maybe chips
-> power off.
->   
-will post the results of dscaler
-> Also, for 99.99% only a shot at the dark side of the moon before ever
-> seen, but I would also try to force TS_SERIAL to have it visited.
->
-> Cheers,
-> Hermann
->
->
->
->   
-Thanks for you answer
-Cheers
+BOUWSMA Barry schrieb:
+> > Das Problem ist, der Treiber erwartet BULK Datei, nicht ISOC, aber
+> > das Kistchen liefert ISOC (isochronous) Datei.  Deswegen kommt es
+> > zu Probleme.
+> >
+> > Or, the thing is, Linux is expecting to be seeing bulk data on
+> > this particular alternate interface (6).  If the receiver is not
+> > delivering this, but is instead delivering isochronous data, it's
+> > not in the same format and isn't properly handled by the driver.
+> >
+> > Changing it so that the driver reads from alternate interface 0
+> > results in all my hacked versions being able to read the data
+> > properly.  Even before reading isoc data through hubs was fixed
+> > sometime around or before 2.6.18-ish.
+und diese verwechslung verursacht die bild-/tonfehler?
 
-Thomas
+and this confusion causes the image/sound issues?
+
+> > Hast Du die 2.6.32 Quellkode?  Kannst Du aus `patches' etwas
+> > schaffen, und dabei die beide Moeglichkeiten testen?
+> >
+> > (Are you able to build a new kernel to test my patches to see
+> > if they solve your problem?)
+
+Ja habe ich. Leichte patch anpassungen bekomme ich meist auchnoch hin.
+Wirklich programmieren kann ich aber nicht.
+
+Yes I have. I have little skills in patch adjustments (very little). But
+I'm not a developer so I have no coding skills.
+
+Vielen Dank im vorraus für deine Hilfe.
+Thank you in advance for your help.
+
+P.S. a few words in my text are google translated  ;)
+
+
+
+//forgotten to set the mailer in CC ;)
