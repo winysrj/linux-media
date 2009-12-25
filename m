@@ -1,98 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:16507 "EHLO mx1.redhat.com"
+Received: from mail1.radix.net ([207.192.128.31]:48207 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757018AbZLNLyJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Dec 2009 06:54:09 -0500
-Message-ID: <4B262741.8050107@redhat.com>
-Date: Mon, 14 Dec 2009 09:53:37 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Jeremy Simmons <jeremy@impactmoto.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Douglas Landgraf <dougsland@gmail.com>
-Subject: Re: Compile Error - ir-keytable
-References: <A8BEBCEF90A5AC498E0DAEADEBB06AD7EA9C2BEB08@DC.impactmoto.com>
-In-Reply-To: <A8BEBCEF90A5AC498E0DAEADEBB06AD7EA9C2BEB08@DC.impactmoto.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	id S1753713AbZLYOAX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Dec 2009 09:00:23 -0500
+Subject: Re: How to know which camera is /dev/videoX
+From: Andy Walls <awalls@radix.net>
+To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+Cc: Guennadi <g.liakhovetski@gmx.de>,
+	Linux-V4L2 <linux-media@vger.kernel.org>
+In-Reply-To: <uy6krzull.wl%morimoto.kuninori@renesas.com>
+References: <uy6krzull.wl%morimoto.kuninori@renesas.com>
+Content-Type: text/plain
+Date: Fri, 25 Dec 2009 08:58:49 -0500
+Message-Id: <1261749529.3093.2.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jeremy Simmons wrote:
-> I'm having the same problem.  Any solution?
+On Fri, 2009-12-25 at 10:54 +0900, Kuninori Morimoto wrote:
+> Dear Guennadi
+> 
+> Now my board (EcoVec) can use 2 soc-camera (mt9t112 / tw9910),
+> and mt9t112 can attach/detach.
+> 
+> If mt9t112 is attached,
+> /dev/video0 = mt9t112
+> /dev/video1 = tw9910
+> 
+> But if mt9t112 is detached, it will
+> /dev/video0 = tw9910
+> 
+> Now I would like to know which camera is /dev/video0.
+> my /dev/video0 is
+> 
+> > ls -l /dev/video0
+> > crw--w----  1 root 1000 81, 0 Jun  9  2009 /dev/video0
+> 
+> I cheked 81:0 's name
+> 
+> > cat /sys/dev/char/81\:0/name
+> > sh_mobile_ceu.1
+> 
+> Above name is host of soc-camera for me.
+> Are there any way to know camera name (mt9t112/tw9910) ?
 
-The new IR keycode is not compatible with any kernel older than 2.6.22. Also, newer
-versions may even require latter codes, due to the sysfs code.
+Maybe some of these will help:
 
-The fix is simple: 
-	- Don't compile any code from ir-sysfs.c with older kernels;
-	- Don't implement EVIO[G|S]KEYCODE ioctls;
-	- Replace the new code to get a key by an old code at ir-keytable.c,
-	  if kernels <= 2.6.22.
+$ v4l2-ctl --list-devices
+$ v4l2-ctl -d /dev/video0 -D
+$ v4l2-ctl -d /dev/video0 --log-status
+$ v4l2-ctl -d /dev/video1 -D
+$ v4l2-ctl -d /dev/video1 --log-status
 
-There's nothing reasonable that we can do to support keycode replacements
-with older kernels, as the scancode tables were expanded to 16 bits (and 
-will probably be expanded to 32 or 64 bits), and, with the legacy kernels,
-the scancode/keycode table needs to be an array of the size of the scancode space.
-So, a keycode table for 32 bits would waste 4Gb of ram (while we're still using
-16 bits, the table won't be that big, but as we expect to soon support
-RC6 protocols, it is not worth to port a code for 16 bits that will just
-be dropped in a month or two).
+Regards,
+Andy
 
-Due to that, the support for < 2.6.22 kernels will provide a limited IR
-code, after the backport: just the bundled IR will work.
-
-I asked Douglas to do this backport after I finish the main changes at the module.
-
-He'll likely start looking on it soon, as I've merged late yesterday the changes.
-
-> 
-> -Jeremy
-> 
-> 
-> 
-> 
-> ________________________________________
-> * Subject: Compile Error - ir-keytable 
-> * From: David Carlo <dcarlo@xxxxxxxxxxxx> 
-> * Date: Wed, 2 Dec 2009 11:56:22 -0500 
-> ________________________________________
-> Hello.  I'm compiling the v4l kernel drivers in an attempt to use my hdpvr
-> with CentOS 5.4.  When I compile v4l, I'm getting this error:
-> 
-> =============================================================================
-> <snip>
->   CC [M]  /usr/local/src/v4l-dvb/v4l/ir-functions.o
->   CC [M]  /usr/local/src/v4l-dvb/v4l/ir-keymaps.o
->   CC [M]  /usr/local/src/v4l-dvb/v4l/ir-keytable.o
-> /usr/local/src/v4l-dvb/v4l/ir-keytable.c: In function
-> 'ir_g_keycode_from_table':
-> /usr/local/src/v4l-dvb/v4l/ir-keytable.c:181: error: implicit declaration of
-> function 'input_get_drvdata'
-> /usr/local/src/v4l-dvb/v4l/ir-keytable.c:181: warning: initialization makes
-> pointer from integer without a cast
-> /usr/local/src/v4l-dvb/v4l/ir-keytable.c: In function 'ir_input_free':
-> /usr/local/src/v4l-dvb/v4l/ir-keytable.c:236: warning: initialization makes
-> pointer from integer without a cast
-> make[3]: *** [/usr/local/src/v4l-dvb/v4l/ir-keytable.o] Error 1
-> make[2]: *** [_module_/usr/local/src/v4l-dvb/v4l] Error 2
-> make[2]: Leaving directory `/usr/src/kernels/2.6.18-164.6.1.el5-x86_64'
-> make[1]: *** [default] Error 2
-> make[1]: Leaving directory `/usr/local/src/v4l-dvb/v4l'
-> make: *** [all] Error 2
-> =============================================================================
-> 
-> Here are the stats on my box:
->   CentOS 5.4 x86_64
->   kernel 2.6.18-164.6.1.el5-x86_64
->   gcc 4.1.2
-> 
-> Has anyone else seen this?
-> 
->     --Dave
-> 
+> Best regards
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Kuninori Morimoto
+>  
+
 
