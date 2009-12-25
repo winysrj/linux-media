@@ -1,64 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:56371 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751403AbZLZVVZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Dec 2009 16:21:25 -0500
-Received: from list by lo.gmane.org with local (Exim 4.50)
-	id 1NOe4h-0003k1-0K
-	for linux-media@vger.kernel.org; Sat, 26 Dec 2009 22:21:23 +0100
-Received: from cpc4-dals10-0-0-cust795.hari.cable.virginmedia.com ([92.234.3.28])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sat, 26 Dec 2009 22:21:22 +0100
-Received: from mariofutire by cpc4-dals10-0-0-cust795.hari.cable.virginmedia.com with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sat, 26 Dec 2009 22:21:22 +0100
-To: linux-media@vger.kernel.org
-From: Andrea <mariofutire@googlemail.com>
-Subject: Re: Error using PWC on a PS3
-Date: Sat, 26 Dec 2009 21:20:59 +0000
-Message-ID: <hh5unq$m02$1@ger.gmane.org>
-References: <hh5u7f$km0$1@ger.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <hh5u7f$km0$1@ger.gmane.org>
+Received: from ey-out-2122.google.com ([74.125.78.25]:47053 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752024AbZLYJv7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Dec 2009 04:51:59 -0500
+Received: by ey-out-2122.google.com with SMTP id 25so857199eya.19
+        for <linux-media@vger.kernel.org>; Fri, 25 Dec 2009 01:51:58 -0800 (PST)
+Date: Fri, 25 Dec 2009 10:51:48 +0100 (CET)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: TAXI <taxi@a-city.de>
+cc: linux-media@vger.kernel.org
+Subject: Re: Bad image/sound quality with Medion MD 95700
+In-Reply-To: <4B33F4CA.7060607@a-city.de>
+Message-ID: <alpine.DEB.2.01.0912251021210.5481@ybpnyubfg.ybpnyqbznva>
+References: <4B33F4CA.7060607@a-city.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26/12/09 21:12, Andrea wrote:
-> Hi,
-> 
-> I've tried to attach my Logitech, Inc. QuickCam Pro 4000 to a PS3 running Fedora 12.
-> 
-> I get this error in dmesg
-> 
-> pwc: Failed to set video mode QSIF@10 fps; return code = -110
-> 
-> Everything works well on a standard x86 laptop running Fedora 11.
-> 
-> Anybody has an idea why a different architecture could affect pwc?
-> I don't know, problems with little/big endian?
-> 
+On Fri, 25 Dec 2009, TAXI wrote:
 
-This is what I see in dmesg
+> I tried a Medion MD 95700 with kernel 2.6.32 (for tests: 2.6.30.9) and
+> have a very bad image and sound quality.
 
-Dec 26 21:14:52 localhost kernel: Linux video capture interface: v2.00
-Dec 26 21:14:52 localhost kernel: pwc: Philips webcam module version 10.0.13 loaded.
-Dec 26 21:14:52 localhost kernel: pwc: Supports Philips PCA645/646, PCVC675/680/690,
-PCVC720[40]/730/740/750 & PCVC830/840.
-Dec 26 21:14:52 localhost kernel: pwc: Also supports the Askey VC010, various Logitech Quickcams,
-Samsung MPC-C10 and MPC-C30,
-Dec 26 21:14:52 localhost kernel: pwc: the Creative WebCam 5 & Pro Ex, SOTEC Afina Eye and Visionite
-VCS-UC300 and VCS-UM100.
-Dec 26 21:14:52 localhost kernel: pwc: Logitech QuickCam 4000 Pro USB webcam detected.
-Dec 26 21:14:52 localhost kernel: pwc: Registered as /dev/video0.
-Dec 26 21:14:53 localhost kernel: input: PWC snapshot button as
-/devices/ps3_system/sb_05/usb1/1-2/1-2.1/input/input4
-Dec 26 21:14:53 localhost kernel: usbcore: registered new interface driver Philips webcam
-Dec 26 21:14:54 localhost kernel: pwc: Failed to set video mode QSIF@10 fps; return code = -110
-Dec 26 21:14:55 localhost kernel: pwc: Failed to set video mode QSIF@10 fps; return code = -110
-Dec 26 21:14:57 localhost kernel: pwc: Failed to set video mode QSIF@10 fps; return code = -110
-Dec 26 21:14:58 localhost kernel: pwc: Failed to set video mode QSIF@10 fps; return code = -110
+I have two of these boxes, and they work great -- but I've had to 
+patch the kernel in different ways to have success.
+
+One way for my production machine happily running 2.6.14 with 
+patches, due to the fact that this kernel has a problem with
+isochronous data being passed through an external hub -- the
+95700 has a built-in hub to allow its built-in USB port to co-
+exist with the datastream and the remote control.
+
+The other way works for newer kernels, sort of, and looks for the
+data on a different alternate interface where it can be found (but
+it requires a kick in the pants to get it started), although it
+is possible to successfully use either the isochronous or the bulk
+datastream which the device delivers with these later modern 
+kernels.
+
+The other thing to note is that this device delivers a full
+unfiltered Transport Stream, which with the 13,27Mbit/sec typical
+bandwidth per channel used in your country (apart from some local
+exceptions of greater values), will require a USB2 interface.
+
+I mention this because the last multi-gigahertz-CPU machine I got
+my grubby fingers on still had only a built-in USB1 chipset, 
+although when you write:
 
 
+> under windows XP the image and sound is perfect.
+
+That leads me to believe you have a USB2 interface and can ignore
+this -- although if you're somehow failing to load the EHCI driver
+and falling back to the companion UHCI or EHCI USB1, it will be a
+problem.  You may want to verify that -- I am thwarted by 
+unco-operative hardware that prevents me from using numbered
+kernel revisions as you mention as opposed to my custom kernels
+direct from the `git' repository tuned to my hardware and usually
+with more patches and hacks than are reasonable.
+
+
+> [mpeg2video @ 0xc62be0]ac-tex damaged at 23 4
+> [mpeg2video @ 0xc62be0]ac-tex damaged at 14 9
+> [mpeg2video @ 0xc62be0]skipped MB in I frame at 40 10
+> [mpeg2video @ 0xc62be0]invalid mb type in I Frame at 29 15
+> [mpeg2video @ 0xc62be0]skipped MB in I frame at 32 19
+
+This and the following errors can be caused by any number of 
+reasons for a corrupt data stream -- inadequate bandwidth (use
+of USB1 where USB2 is required for a complete Transport Stream),
+improper antenna orientation, or, with certain kernel revisions,
+attempting to read an isochronous data stream as bulk or vice
+versa.
+
+
+
+Ooops, I just rebooted after a crash before plugging in a more-
+than-one-button-mouse on this machine I never intended to make
+serious use of, so I can't paste the diffs, but...
+
+around line 620 in my reference code, there is a line that sets
+the alternate interface to 6.  This is expected to be bulk, but
+on my boxes is isoc.
+
+You can change this to interface 0, on which my boxes delivers
+bulk data flawlessly.
+
+I've attempted to add a test of what sort of data is present on
+this interface, and if it's not bulk, decides to read isoc data
+from this interface (6) instead.  That also works, but somehow
+needs an extra kick such that the first time it fails, yet is
+fine after that.  (I get occasional failures from other tuner
+cards that work fine immediately after, so I've worked around
+this in the scripts I use.)
+
+
+
+Anyway, I've been meaning to clean up this patch, or the 
+alternative patches, and submit them to be ignored, but when
+I have my machine operating fully again (yeahright), I can send
+you some of these alternative patches to try -- running 
+successfully on 2.6.14 and 2.6.27-rc4.
+
+
+Hope this is helpful in spite of its vagueness...
+
+
+thanks
+barry bouwsma
