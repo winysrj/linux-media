@@ -1,99 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2671 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761550AbZLJTKR (ORCPT
+Received: from mail-out.m-online.net ([212.18.0.10]:37482 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752304AbZL0RCu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Dec 2009 14:10:17 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id nBAJAMEN053278
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 10 Dec 2009 20:10:22 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 10 Dec 2009 20:10:22 +0100 (CET)
-Message-Id: <200912101910.nBAJAMEN053278@smtp-vbr15.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Sun, 27 Dec 2009 12:02:50 -0500
+From: Matthias Schwarzott <zzam@gentoo.org>
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Subject: Re: weird array index in zl10036.c
+Date: Sun, 27 Dec 2009 18:02:45 +0100
+Cc: Dan Carpenter <error27@gmail.com>,
+	Matthias Schwarzott <zzam@gentoo.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <20091227131529.GJ6075@bicker>
+In-Reply-To: <20091227131529.GJ6075@bicker>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <200912271802.46083.zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Sonntag, 27. Dezember 2009, Dan Carpenter wrote:
+> drivers/media/dvb/frontends/zl10036.c
+>    397          /* could also be one block from reg 2 to 13 and additional
+>  10/11 */ 398          u8 zl10036_init_tab[][2] = {
+>    399                  { 0x04, 0x00 },         /*   2/3: div=0x400 -
+>  arbitrary value */ 400                  { 0x8b, _RDIV_REG },    /*   4/5:
+>  rfg=0 ba=1 bg=1 len=? */ 401                                          /*  
+>       p0=0 c=0 r=_RDIV_REG */ 402                  { 0xc0, 0x20 },        
+>  /*   6/7: rsd=0 bf=0x10 */ 403                  { 0xd3, 0x40 },         /*
+>    8/9: from datasheet */ 404                  { 0xe3, 0x5b },         /*
+>  10/11: lock window level */ 405                  { 0xf0, 0x28 },        
+>  /* 12/13: br=0xa clr=0 tl=0*/ 406                  { 0xe3, 0xf9 },        
+>  /* 10/11: unlock window level */ 407          };
+>    408
+>    409          /* invalid values to trigger writing */
+>    410          state->br = 0xff;
+>    411          state->bf = 0xff;
+>    412
+>    413          if (!state->config->rf_loop_enable)
+>    414                  zl10036_init_tab[1][2] |= 0x01;
+> 
+> This seems like an off by one error.  I think it maybe should say
+> zl10036_init_tab[1][1] |= 0x01;?
+> 
 
-Results of the daily build of v4l-dvb:
+Good catch!
+But according to the datasheet it should be
+zl10036_init_tab[1][0] |= 0x01;
 
-date:        Thu Dec 10 19:00:04 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13592:1e6049b8cb4c
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Please submit a patch for it.
 
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-armv5: OK
-linux-2.6.32-armv5-davinci: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-armv5-ixp: OK
-linux-2.6.32-armv5-ixp: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: OK
-linux-2.6.32-armv5-omap2: OK
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: ERRORS
-linux-2.6.27-i686: ERRORS
-linux-2.6.28-i686: ERRORS
-linux-2.6.29.1-i686: ERRORS
-linux-2.6.30-i686: OK
-linux-2.6.31-i686: OK
-linux-2.6.32-i686: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-m32r: OK
-linux-2.6.30-mips: OK
-linux-2.6.31-mips: OK
-linux-2.6.32-mips: OK
-linux-2.6.30-powerpc64: OK
-linux-2.6.31-powerpc64: OK
-linux-2.6.32-powerpc64: OK
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: ERRORS
-linux-2.6.26-x86_64: ERRORS
-linux-2.6.27-x86_64: ERRORS
-linux-2.6.28-x86_64: ERRORS
-linux-2.6.29.1-x86_64: ERRORS
-linux-2.6.30-x86_64: OK
-linux-2.6.31-x86_64: OK
-linux-2.6.32-x86_64: OK
-spec: OK
-sparse (linux-2.6.32): ERRORS
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Regards
+Matthias
