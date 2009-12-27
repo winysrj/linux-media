@@ -1,51 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.lang.hm ([64.81.33.126]:60564 "HELO bifrost.lang.hm"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S932680AbZLMBRP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Dec 2009 20:17:15 -0500
-Date: Sat, 12 Dec 2009 14:04:16 -0800 (PST)
-From: david@lang.hm
-To: Krzysztof Halasa <khc@pm.waw.pl>
-cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, mchehab@redhat.com, superm1@ubuntu.com
-Subject: Re: [RFC] Should we create a raw input interface for IR's ? - Was:
-  Re: [PATCH 1/3 v2] lirc core device driver infrastructure
-In-Reply-To: <m36390rhzp.fsf@intrepid.localdomain>
-Message-ID: <alpine.DEB.2.00.0912121401500.3370@asgard.lang.hm>
-References: <BDRae8rZjFB@christoph> <m3einork1o.fsf@intrepid.localdomain> <829197380911231354y764e01b7hc0c5721b3ebf1f26@mail.gmail.com> <m36390rhzp.fsf@intrepid.localdomain>
+Received: from mail-out.m-online.net ([212.18.0.10]:50060 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752492AbZL0Qhj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 Dec 2009 11:37:39 -0500
+To: linux-media@vger.kernel.org
+cc: Manu Abraham <manu@linuxtv.org>
+Subject: Mantis driver on TechniSat "CableStar HD 2"
+From: Wolfgang Denk <wd@denx.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Date: Sun, 27 Dec 2009 17:37:36 +0100
+Message-Id: <20091227163736.CC9C03F6D6@gemini.denx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 23 Nov 2009, Krzysztof Halasa wrote:
+I have problems getting a TechniSat "CableStar HD 2" DVB-C card
+running with the latest Mantis driver on a Fedora 12 system (using
+their current standard 2.6.31.9-174.fc12.i686.PAE kernel in
+combination with the drivers from the http://linuxtv.org/hg/v4l-dvb
+repository). Tests have been done on two different mainboards.
 
-> Devin Heitmueller <dheitmueller@kernellabs.com> writes:
->
->> There is an argument to be made that since it may be desirable for
->> both IR receivers and transmitters to share the same table of remote
->> control definitions, it might make sense to at least *consider* how
->> the IR transmitter interface is going to work, even if it is decided
->> to not implement such a design in the first revision.
->>
->> Personally, I would hate to see a situation where we find out that we
->> took a bad approach because nobody considered what would be required
->> for IR transmitters to reuse the same remote control definition data.
->
-> I briefly though about such possibility, but dismissed it with
-> assumption that we won't transmit the same codes (including "key" codes)
-> that we receive.
->
-> Perhaps I'm wrong.
+I can run a channel scan (using kaffeine) perfectly fine, also tuning
+to channels appears to work. I see a load of some 1,300 interrupts per
+sec when I have kaffeine running and tuned, and it seems there is data
+transferred between the card and the application.
 
-I could definantly see this happening. the computer receives the 'play' 
-button from a dvd remote, issues commands to control the audio system, dim 
-lights, and then sends the 'play' button to the DVD player inside a 
-cabinet where it can't see the remote directly.
+The problem is: there is no video nor sound.
 
-but in any case, it shouldn't be hard to share a table of mappings.
+I have bought this card second-hand on, so I am not really sure if it
+is a software issue, or if eventually the hardware is broken.
 
-David Lang
+
+Can anybody recommend a way how to verify the driver or the hardware?
+Or can you recommend a specific kernel version the Mantis driver has
+been tested against?
+
+Any help welcome. Thanks in advance.
+
+Best regards,
+
+Wolfgang Denk
+
+-- 
+DENX Software Engineering GmbH,     MD: Wolfgang Denk & Detlev Zundel
+HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
+Phone: (+49)-8142-66989-10 Fax: (+49)-8142-66989-80 Email: wd@denx.de
+Another megabytes the dust.
