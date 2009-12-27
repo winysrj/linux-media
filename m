@@ -1,75 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f187.google.com ([209.85.210.187]:36960 "EHLO
-	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751699AbZLDXP0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Dec 2009 18:15:26 -0500
-Date: Fri, 4 Dec 2009 15:15:28 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Christoph Bartelmus <lirc@bartelmus.de>
-Cc: awalls@radix.net, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, jonsmirl@gmail.com, khc@pm.waw.pl,
-	kraxel@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
-	IR  system?
-Message-ID: <20091204231527.GA3682@core.coreip.homeip.net>
-References: <20091204220708.GD25669@core.coreip.homeip.net> <BEJgSGGXqgB@lirc>
+Received: from mail-fx0-f225.google.com ([209.85.220.225]:42849 "EHLO
+	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751139AbZL0WYn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 Dec 2009 17:24:43 -0500
+Received: by fxm25 with SMTP id 25so4257228fxm.21
+        for <linux-media@vger.kernel.org>; Sun, 27 Dec 2009 14:24:42 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <BEJgSGGXqgB@lirc>
+In-Reply-To: <200912232220.29626.mes@seesslen.net>
+References: <200912232220.29626.mes@seesslen.net>
+Date: Mon, 28 Dec 2009 02:24:41 +0400
+Message-ID: <1a297b360912271424u2437ceafqb35e12f56ef207d7@mail.gmail.com>
+Subject: Re: [linux-dvb] Acoustical mode for femon
+From: Manu Abraham <abraham.manu@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Dec 05, 2009 at 12:01:00AM +0100, Christoph Bartelmus wrote:
-> Hi Dmitry,
-> 
-> on 04 Dec 09 at 14:07, Dmitry Torokhov wrote:
-> > On Fri, Dec 04, 2009 at 10:46:00PM +0100, Christoph Bartelmus wrote:
-> >> Hi Mauro,
-> >>
-> >> on 04 Dec 09 at 12:33, Mauro Carvalho Chehab wrote:
-> >>> Christoph Bartelmus wrote:
-> >>>>>> Consider passing the decoded data through lirc_dev.
-> >> [...]
-> >>>> Consider cases like this:
-> >>>> http://lirc.sourceforge.net/remotes/lg/6711A20015N
-> >>>>
-> >>>> This is an air-conditioner remote.
-> >>>> The entries that you see in this config file are not really separate
-> >>>> buttons. Instead the remote just sends the current settings for e.g.
-> >>>> temperature encoded in the protocol when you press some up/down key. You
-> >>>> really don't want to map all possible temperature settings to KEY_*
-> >>>> events. For such cases it would be nice to have access at the raw scan
-> >>>> codes from user space to do interpretation of the data.
-> >>>> The default would still be to pass the data to the input layer, but it
-> >>>> won't hurt to have the possibility to access the raw data somehow.
-> >>
-> >>> Interesting. IMHO, the better would be to add an evdev ioctl to return the
-> >>> scancode for such cases, instead of returning the keycode.
-> >>
-> >> That means you would have to set up a pseudo keymap, so that you can get
-> >> the key event which you could than react on with a ioctl. Or are you
-> >> generating KEY_UNKNOWN for every scancode that is not mapped?
-> >> What if different scan codes are mapped to the same key event? How do you
-> >> retrieve the scan code for the key event?
-> >> I don't think it can work this way.
-> >>
-> 
-> > EV_MSC/MSC_SCAN.
-> 
-> How would I get the 64 bit scan codes that the iMON devices generate?
-> How would I know that the scan code is 64 bit?
-> input_event.value is __s32.
-> 
+On Thu, Dec 24, 2009 at 1:20 AM, Maximilian Seesslen <mes@seesslen.net> wrote:
+> Hi List,
+>
+> find attached a patch that adds a "Acoustical mode" to femon.
+> The monitoring application produces a sound indicating the signal quality. The
+> higher the beep the better the signal quality.
+> This is useful while mounting the antenna for finding the best position without
+> having to look at the monitor or without even having a monitor.
 
-I suppose we could add MSC_SCAN_END event so that we can transmit
-"scancodes" of arbitrary length. You'd get several MSC_SCAN followed by
-MSC_SCAN_END marker. If you don't get MSC_SCAN_END assume the code is 32
-bit.
+Thanks, applied.
 
-FWIW there is MSC_RAW as well.
-
--- 
-Dmitry
+Regards,
+Manu
