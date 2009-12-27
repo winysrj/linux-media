@@ -1,34 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from khc.piap.pl ([195.187.100.11]:40866 "EHLO khc.piap.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757566AbZLFUWK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Dec 2009 15:22:10 -0500
-From: Krzysztof Halasa <khc@pm.waw.pl>
-To: Jon Smirl <jonsmirl@gmail.com>
-Cc: Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, kraxel@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR  system?
-References: <9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>
-	<BENh5lRHqgB@lirc>
-	<9e4733910912060838j29f107cpd827e2d7b8a20c1c@mail.gmail.com>
-Date: Sun, 06 Dec 2009 21:22:13 +0100
-In-Reply-To: <9e4733910912060838j29f107cpd827e2d7b8a20c1c@mail.gmail.com> (Jon
-	Smirl's message of "Sun, 6 Dec 2009 11:38:55 -0500")
-Message-ID: <m3ws0z6efe.fsf@intrepid.localdomain>
+Received: from mail-fx0-f225.google.com ([209.85.220.225]:48621 "EHLO
+	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751831AbZL0NP6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 Dec 2009 08:15:58 -0500
+Received: by fxm25 with SMTP id 25so4070064fxm.21
+        for <linux-media@vger.kernel.org>; Sun, 27 Dec 2009 05:15:56 -0800 (PST)
+Date: Sun, 27 Dec 2009 15:15:29 +0200
+From: Dan Carpenter <error27@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Matthias Schwarzott <zzam@gentoo.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: weird array index in zl10036.c
+Message-ID: <20091227131529.GJ6075@bicker>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jon Smirl <jonsmirl@gmail.com> writes:
+drivers/media/dvb/frontends/zl10036.c
+   397          /* could also be one block from reg 2 to 13 and additional 10/11 */
+   398          u8 zl10036_init_tab[][2] = {
+   399                  { 0x04, 0x00 },         /*   2/3: div=0x400 - arbitrary value */
+   400                  { 0x8b, _RDIV_REG },    /*   4/5: rfg=0 ba=1 bg=1 len=? */
+   401                                          /*        p0=0 c=0 r=_RDIV_REG */
+   402                  { 0xc0, 0x20 },         /*   6/7: rsd=0 bf=0x10 */
+   403                  { 0xd3, 0x40 },         /*   8/9: from datasheet */
+   404                  { 0xe3, 0x5b },         /* 10/11: lock window level */
+   405                  { 0xf0, 0x28 },         /* 12/13: br=0xa clr=0 tl=0*/
+   406                  { 0xe3, 0xf9 },         /* 10/11: unlock window level */
+   407          };
+   408
+   409          /* invalid values to trigger writing */
+   410          state->br = 0xff;
+   411          state->bf = 0xff;
+   412
+   413          if (!state->config->rf_loop_enable)
+   414                  zl10036_init_tab[1][2] |= 0x01;
+ 
+This seems like an off by one error.  I think it maybe should say
+zl10036_init_tab[1][1] |= 0x01;?
 
-> The in-kernel support can start small and add protocols and maps over
-> time.
-
-Protocols, yes. Maps - we certainly don't want megatons of maps in the
-kernel. The existing ones have to be removed, some time.
--- 
-Krzysztof Halasa
+regards,
+dan carpenter
