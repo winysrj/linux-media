@@ -1,336 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:33599 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754557AbZLAXlD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Dec 2009 18:41:03 -0500
-From: Tobias Lorenz <tobias.lorenz@gmx.net>
-To: Joonyoung Shim <jy0922.shim@samsung.com>
-Subject: Re: [PATCH 2/3] radio-si470x: move some file operations to common file
-Date: Wed, 2 Dec 2009 00:41:05 +0100
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	kyungmin.park@samsung.com
-References: <4B03926A.6030401@samsung.com>
-In-Reply-To: <4B03926A.6030401@samsung.com>
+Received: from mail-fx0-f225.google.com ([209.85.220.225]:33125 "EHLO
+	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750984AbZL0WIp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 Dec 2009 17:08:45 -0500
+Received: by fxm25 with SMTP id 25so4252094fxm.21
+        for <linux-media@vger.kernel.org>; Sun, 27 Dec 2009 14:08:43 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200912020041.06011.tobias.lorenz@gmx.net>
+In-Reply-To: <4B342CEE.8020205@redhat.com>
+References: <4B32CF33.3030201@redhat.com> <4B342CEE.8020205@redhat.com>
+Date: Mon, 28 Dec 2009 02:08:43 +0400
+Message-ID: <1a297b360912271408w191f35f4uc8c928a328a22a71@mail.gmail.com>
+Subject: Re: [RFC] dvb-apps ported for ISDB-T
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hello Mauro,
 
-yes, good point.
 
-Acked-by: Tobias Lorenz <tobias.lorenz@gmx.net>
+On Fri, Dec 25, 2009 at 7:09 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Em 24-12-2009 00:17, Mauro Carvalho Chehab escreveu:
+>> I wrote several patches those days in order to allow dvb-apps to properly
+>> parse ISDB-T channel.conf.
+>>
+>> On ISDB-T, there are several new parameters, so the parsing is more complex
+>> than all the other currently supported video standards.
+>>
+>> I've added the changes at:
+>>
+>> http://linuxtv.org/hg/~mchehab/dvb-apps-isdbt/
+>>
+>> I've merged there Patrick's dvb-apps-isdbt tree.
+>>
+>> While there, I fixed a few bugs I noticed on the parser and converted it
+>> to work with the DVB API v5 headers that are bundled together with dvb-apps.
+>> This helps to avoid adding lots of extra #if DVB_ABI_VERSION tests. The ones
+>> there can now be removed.
+>>
+>> TODO:
+>> =====
+>>
+>> The new ISDB-T parameters are parsed, but I haven't add yet a code to make
+>> them to be used;
+>>
+>> There are 3 optional parameters with ISDB-T, related to 1seg/3seg: the
+>> segment parameters. Currently, the parser will fail if those parameters are found.
+>>
+>> gnutv is still reporting ISDB-T as "DVB-T".
+>>
+>
+> I've just fixed the issues on the TODO list. The DVB v5 code is now working fine
+> for ISDB-T.
+>
+> Pending stuff (patches are welcome):
+>        - Implement v5 calls for other video standards;
+>        - Remove the duplicated DVBv5 code on /util/scan/scan.c (the code for calling
+> DVBv5 is now at /lib/libdvbapi/v5api.c);
+>        - Test/use the functions to retrieve values via DVBv5 API. The function is
+> already there, but I haven't tested.
+>
+> With the DVBv5 API implementation, zap is now working properly with ISDB-T.
+> gnutv also works (although some outputs - like decoder - may need some changes, in
+> order to work with mpeg4/AAC video/audio codecs).
 
-Bye,
-Toby
 
-Am Mittwoch 18 November 2009 07:21:30 schrieb Joonyoung Shim:
-> The read and poll file operations of the si470x usb driver can be used
-> also equally on the si470x i2c driver, so they go to the common file.
-> 
-> Signed-off-by: Joonyoung Shim <jy0922.shim@samsung.com>
-> ---
->  drivers/media/radio/si470x/radio-si470x-common.c |   98 ++++++++++++++++++++++
->  drivers/media/radio/si470x/radio-si470x-i2c.c    |   15 +---
->  drivers/media/radio/si470x/radio-si470x-usb.c    |   97 +---------------------
->  drivers/media/radio/si470x/radio-si470x.h        |    3 +-
->  4 files changed, 104 insertions(+), 109 deletions(-)
-> 
-> diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
-> index 7296cf4..f4645d4 100644
-> --- a/drivers/media/radio/si470x/radio-si470x-common.c
-> +++ b/drivers/media/radio/si470x/radio-si470x-common.c
-> @@ -426,6 +426,104 @@ int si470x_rds_on(struct si470x_device *radio)
->  
->  
->  /**************************************************************************
-> + * File Operations Interface
-> + **************************************************************************/
-> +
-> +/*
-> + * si470x_fops_read - read RDS data
-> + */
-> +static ssize_t si470x_fops_read(struct file *file, char __user *buf,
-> +		size_t count, loff_t *ppos)
-> +{
-> +	struct si470x_device *radio = video_drvdata(file);
-> +	int retval = 0;
-> +	unsigned int block_count = 0;
-> +
-> +	/* switch on rds reception */
-> +	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
-> +		si470x_rds_on(radio);
-> +
-> +	/* block if no new data available */
-> +	while (radio->wr_index == radio->rd_index) {
-> +		if (file->f_flags & O_NONBLOCK) {
-> +			retval = -EWOULDBLOCK;
-> +			goto done;
-> +		}
-> +		if (wait_event_interruptible(radio->read_queue,
-> +			radio->wr_index != radio->rd_index) < 0) {
-> +			retval = -EINTR;
-> +			goto done;
-> +		}
-> +	}
-> +
-> +	/* calculate block count from byte count */
-> +	count /= 3;
-> +
-> +	/* copy RDS block out of internal buffer and to user buffer */
-> +	mutex_lock(&radio->lock);
-> +	while (block_count < count) {
-> +		if (radio->rd_index == radio->wr_index)
-> +			break;
-> +
-> +		/* always transfer rds complete blocks */
-> +		if (copy_to_user(buf, &radio->buffer[radio->rd_index], 3))
-> +			/* retval = -EFAULT; */
-> +			break;
-> +
-> +		/* increment and wrap read pointer */
-> +		radio->rd_index += 3;
-> +		if (radio->rd_index >= radio->buf_size)
-> +			radio->rd_index = 0;
-> +
-> +		/* increment counters */
-> +		block_count++;
-> +		buf += 3;
-> +		retval += 3;
-> +	}
-> +	mutex_unlock(&radio->lock);
-> +
-> +done:
-> +	return retval;
-> +}
-> +
-> +
-> +/*
-> + * si470x_fops_poll - poll RDS data
-> + */
-> +static unsigned int si470x_fops_poll(struct file *file,
-> +		struct poll_table_struct *pts)
-> +{
-> +	struct si470x_device *radio = video_drvdata(file);
-> +	int retval = 0;
-> +
-> +	/* switch on rds reception */
-> +	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
-> +		si470x_rds_on(radio);
-> +
-> +	poll_wait(file, &radio->read_queue, pts);
-> +
-> +	if (radio->rd_index != radio->wr_index)
-> +		retval = POLLIN | POLLRDNORM;
-> +
-> +	return retval;
-> +}
-> +
-> +
-> +/*
-> + * si470x_fops - file operations interface
-> + */
-> +static const struct v4l2_file_operations si470x_fops = {
-> +	.owner			= THIS_MODULE,
-> +	.read			= si470x_fops_read,
-> +	.poll			= si470x_fops_poll,
-> +	.ioctl			= video_ioctl2,
-> +	.open			= si470x_fops_open,
-> +	.release		= si470x_fops_release,
-> +};
-> +
-> +
-> +
-> +/**************************************************************************
->   * Video4Linux Interface
->   **************************************************************************/
->  
-> diff --git a/drivers/media/radio/si470x/radio-si470x-i2c.c b/drivers/media/radio/si470x/radio-si470x-i2c.c
-> index 2d53b6a..4816a6d 100644
-> --- a/drivers/media/radio/si470x/radio-si470x-i2c.c
-> +++ b/drivers/media/radio/si470x/radio-si470x-i2c.c
-> @@ -173,7 +173,7 @@ int si470x_disconnect_check(struct si470x_device *radio)
->  /*
->   * si470x_fops_open - file open
->   */
-> -static int si470x_fops_open(struct file *file)
-> +int si470x_fops_open(struct file *file)
->  {
->  	struct si470x_device *radio = video_drvdata(file);
->  	int retval = 0;
-> @@ -194,7 +194,7 @@ static int si470x_fops_open(struct file *file)
->  /*
->   * si470x_fops_release - file release
->   */
-> -static int si470x_fops_release(struct file *file)
-> +int si470x_fops_release(struct file *file)
->  {
->  	struct si470x_device *radio = video_drvdata(file);
->  	int retval = 0;
-> @@ -215,17 +215,6 @@ static int si470x_fops_release(struct file *file)
->  }
->  
->  
-> -/*
-> - * si470x_fops - file operations interface
-> - */
-> -const struct v4l2_file_operations si470x_fops = {
-> -	.owner		= THIS_MODULE,
-> -	.ioctl		= video_ioctl2,
-> -	.open		= si470x_fops_open,
-> -	.release	= si470x_fops_release,
-> -};
-> -
-> -
->  
->  /**************************************************************************
->   * Video4Linux Interface
-> diff --git a/drivers/media/radio/si470x/radio-si470x-usb.c b/drivers/media/radio/si470x/radio-si470x-usb.c
-> index f2d0e1d..a96e1b9 100644
-> --- a/drivers/media/radio/si470x/radio-si470x-usb.c
-> +++ b/drivers/media/radio/si470x/radio-si470x-usb.c
-> @@ -509,89 +509,9 @@ resubmit:
->   **************************************************************************/
->  
->  /*
-> - * si470x_fops_read - read RDS data
-> - */
-> -static ssize_t si470x_fops_read(struct file *file, char __user *buf,
-> -		size_t count, loff_t *ppos)
-> -{
-> -	struct si470x_device *radio = video_drvdata(file);
-> -	int retval = 0;
-> -	unsigned int block_count = 0;
-> -
-> -	/* switch on rds reception */
-> -	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
-> -		si470x_rds_on(radio);
-> -
-> -	/* block if no new data available */
-> -	while (radio->wr_index == radio->rd_index) {
-> -		if (file->f_flags & O_NONBLOCK) {
-> -			retval = -EWOULDBLOCK;
-> -			goto done;
-> -		}
-> -		if (wait_event_interruptible(radio->read_queue,
-> -			radio->wr_index != radio->rd_index) < 0) {
-> -			retval = -EINTR;
-> -			goto done;
-> -		}
-> -	}
-> -
-> -	/* calculate block count from byte count */
-> -	count /= 3;
-> -
-> -	/* copy RDS block out of internal buffer and to user buffer */
-> -	mutex_lock(&radio->lock);
-> -	while (block_count < count) {
-> -		if (radio->rd_index == radio->wr_index)
-> -			break;
-> -
-> -		/* always transfer rds complete blocks */
-> -		if (copy_to_user(buf, &radio->buffer[radio->rd_index], 3))
-> -			/* retval = -EFAULT; */
-> -			break;
-> -
-> -		/* increment and wrap read pointer */
-> -		radio->rd_index += 3;
-> -		if (radio->rd_index >= radio->buf_size)
-> -			radio->rd_index = 0;
-> -
-> -		/* increment counters */
-> -		block_count++;
-> -		buf += 3;
-> -		retval += 3;
-> -	}
-> -	mutex_unlock(&radio->lock);
-> -
-> -done:
-> -	return retval;
-> -}
-> -
-> -
-> -/*
-> - * si470x_fops_poll - poll RDS data
-> - */
-> -static unsigned int si470x_fops_poll(struct file *file,
-> -		struct poll_table_struct *pts)
-> -{
-> -	struct si470x_device *radio = video_drvdata(file);
-> -	int retval = 0;
-> -
-> -	/* switch on rds reception */
-> -	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
-> -		si470x_rds_on(radio);
-> -
-> -	poll_wait(file, &radio->read_queue, pts);
-> -
-> -	if (radio->rd_index != radio->wr_index)
-> -		retval = POLLIN | POLLRDNORM;
-> -
-> -	return retval;
-> -}
-> -
-> -
-> -/*
->   * si470x_fops_open - file open
->   */
-> -static int si470x_fops_open(struct file *file)
-> +int si470x_fops_open(struct file *file)
->  {
->  	struct si470x_device *radio = video_drvdata(file);
->  	int retval;
-> @@ -645,7 +565,7 @@ done:
->  /*
->   * si470x_fops_release - file release
->   */
-> -static int si470x_fops_release(struct file *file)
-> +int si470x_fops_release(struct file *file)
->  {
->  	struct si470x_device *radio = video_drvdata(file);
->  	int retval = 0;
-> @@ -688,19 +608,6 @@ done:
->  }
->  
->  
-> -/*
-> - * si470x_fops - file operations interface
-> - */
-> -const struct v4l2_file_operations si470x_fops = {
-> -	.owner		= THIS_MODULE,
-> -	.read		= si470x_fops_read,
-> -	.poll		= si470x_fops_poll,
-> -	.ioctl		= video_ioctl2,
-> -	.open		= si470x_fops_open,
-> -	.release	= si470x_fops_release,
-> -};
-> -
-> -
->  
->  /**************************************************************************
->   * Video4Linux Interface
-> diff --git a/drivers/media/radio/si470x/radio-si470x.h b/drivers/media/radio/si470x/radio-si470x.h
-> index d0af194..f646f79 100644
-> --- a/drivers/media/radio/si470x/radio-si470x.h
-> +++ b/drivers/media/radio/si470x/radio-si470x.h
-> @@ -212,7 +212,6 @@ struct si470x_device {
->  /**************************************************************************
->   * Common Functions
->   **************************************************************************/
-> -extern const struct v4l2_file_operations si470x_fops;
->  extern struct video_device si470x_viddev_template;
->  int si470x_get_register(struct si470x_device *radio, int regnr);
->  int si470x_set_register(struct si470x_device *radio, int regnr);
-> @@ -221,5 +220,7 @@ int si470x_set_freq(struct si470x_device *radio, unsigned int freq);
->  int si470x_start(struct si470x_device *radio);
->  int si470x_stop(struct si470x_device *radio);
->  int si470x_rds_on(struct si470x_device *radio);
-> +int si470x_fops_open(struct file *file);
-> +int si470x_fops_release(struct file *file);
->  int si470x_vidioc_querycap(struct file *file, void *priv,
->  		struct v4l2_capability *capability);
-> 
+Few comments on your changes (that came up on a first glance):
+
+- dvb-apps don't need a DCO (S-O-B) as for kernel related code (though
+not an issue, whether it is there or not)
+
+- changeset 1334 is a regression:
+
+dvb-apps look at libraries that are shipped with the distribution
+alone. The headers in there are a copy for szap2 alone for test cases
+and szap2 is not a generic application such as zap and hence doesn't
+need to be ported.
+
+- get_v5_frontend keeps on malloc with no free .....
+
+- the basic design we have in the libraries is that we don't allow the
+library to do the allocation but allocation is done by the user
+(application)
+
+- the library is not meant to handle the basic in-kernel API alone,
+there are others that's the whole intention for the library.
+
+- changeset 1341 is broken
+
+Regards,
+Manu
