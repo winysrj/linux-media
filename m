@@ -1,143 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1-out1.atlantis.sk ([80.94.52.55]:58277 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751821AbZLBNGN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Dec 2009 08:06:13 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Petr Vandrovec <petr@vandrovec.name>
-Subject: Re: [resend] radio-sf16fmi: fix mute, add SF16-FMP to texts
-Date: Wed, 2 Dec 2009 14:06:11 +0100
-Cc: linux-media@vger.kernel.org
-References: <200911301308.34295.zary@gsystems.sk> <4B14E683.9020003@vandrovec.name>
-In-Reply-To: <4B14E683.9020003@vandrovec.name>
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:52006 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751037AbZL0Ux2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 Dec 2009 15:53:28 -0500
+Received: by ewy19 with SMTP id 19so1337470ewy.21
+        for <linux-media@vger.kernel.org>; Sun, 27 Dec 2009 12:53:27 -0800 (PST)
+Message-ID: <4B37C944.3030700@googlemail.com>
+Date: Sun, 27 Dec 2009 20:53:24 +0000
+From: Andrea <mariofutire@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+CC: linux-media@vger.kernel.org
+Subject: Re: Error using PWC on a PS3
+References: <hh5u7f$km0$1@ger.gmane.org> <hh5unq$m02$1@ger.gmane.org>
+In-Reply-To: <hh5unq$m02$1@ger.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200912021406.12539.linux@rainbow-software.org>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 01 December 2009, Petr Vandrovec wrote:
-> Ondrej Zary wrote:
-> > Fix completely broken mute handling radio-sf16fmi.
-> > The sound was muted immediately after tuning in KRadio.
-> > Also fix typos and add SF16-FMP to the texts.
->
-> I do not have device anymore.  Looks OK to me.
->
-> > Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
->
-> Acked-by: Petr Vandrovec <petr@vandrovec.name>
->
-> To whom should I forward this (and your second patch), I did not do any
-> SF16 work for 10 years (and no LKML for 3).
+On 26/12/09 21:20, Andrea wrote:
+> On 26/12/09 21:12, Andrea wrote:
+>> Hi,
+>>
+>> I've tried to attach my Logitech, Inc. QuickCam Pro 4000 to a PS3 running Fedora 12.
+>>
+>> I get this error in dmesg
+>>
+>> pwc: Failed to set video mode QSIF@10 fps; return code = -110
+>>
+>> Everything works well on a standard x86 laptop running Fedora 11.
+>>
+>> Anybody has an idea why a different architecture could affect pwc?
+>> I don't know, problems with little/big endian?
 
-No one seems to care here on linux-media :(
+I've recompiled pwc adding some extra logging and this is the output
 
+The first error is
 
-> 						Thanks,
-> 							Petr
->
-> > diff -urp linux-source-2.6.31-orig/drivers/media/radio/Kconfig
-> > linux-source-2.6.31/drivers/media/radio/Kconfig ---
-> > linux-source-2.6.31-orig/drivers/media/radio/Kconfig	2009-09-10
-> > 00:13:59.000000000 +0200 +++
-> > linux-source-2.6.31/drivers/media/radio/Kconfig	2009-11-28
-> > 11:51:42.000000000 +0100 @@ -196,7 +196,7 @@ config RADIO_MAESTRO
-> >  	  module will be called radio-maestro.
-> >
-> >  config RADIO_SF16FMI
-> > -	tristate "SF16FMI Radio"
-> > +	tristate "SF16-FMI/SF16-FMP Radio"
-> >  	depends on ISA && VIDEO_V4L2
-> >  	---help---
-> >  	  Choose Y here if you have one of these FM radio cards.  If you
-> > diff -urp linux-source-2.6.31-orig/drivers/media/radio/radio-sf16fmi.c
-> > linux-source-2.6.31/drivers/media/radio/radio-sf16fmi.c ---
-> > linux-source-2.6.31-orig/drivers/media/radio/radio-sf16fmi.c	2009-09-10
-> > 00:13:59.000000000 +0200 +++
-> > linux-source-2.6.31/drivers/media/radio/radio-sf16fmi.c	2009-11-28
-> > 11:39:35.000000000 +0100 @@ -1,4 +1,4 @@
-> > -/* SF16FMI radio driver for Linux radio support
-> > +/* SF16-FMI and SF16-FMP radio driver for Linux radio support
-> >   * heavily based on rtrack driver...
-> >   * (c) 1997 M. Kirkwood
-> >   * (c) 1998 Petr Vandrovec, vandrove@vc.cvut.cz
-> > @@ -11,7 +11,7 @@
-> >   *
-> >   *  Frequency control is done digitally -- ie
-> > out(port,encodefreq(95.8)); *  No volume control - only mute/unmute - you
-> > have to use line volume - *  control on SB-part of SF16FMI
-> > + *  control on SB-part of SF16-FMI/SF16-FMP
-> >   *
-> >   * Converted to V4L2 API by Mauro Carvalho Chehab
-> > <mchehab@infradead.org> */
-> > @@ -30,14 +30,14 @@
-> >  #include <media/v4l2-ioctl.h>
-> >
-> >  MODULE_AUTHOR("Petr Vandrovec, vandrove@vc.cvut.cz and M. Kirkwood");
-> > -MODULE_DESCRIPTION("A driver for the SF16MI radio.");
-> > +MODULE_DESCRIPTION("A driver for the SF16-FMI and SF16-FMP radio.");
-> >  MODULE_LICENSE("GPL");
-> >
-> >  static int io = -1;
-> >  static int radio_nr = -1;
-> >
-> >  module_param(io, int, 0);
-> > -MODULE_PARM_DESC(io, "I/O address of the SF16MI card (0x284 or 0x384)");
-> > +MODULE_PARM_DESC(io, "I/O address of the SF16-FMI or SF16-FMP card
-> > (0x284 or 0x384)"); module_param(radio_nr, int, 0);
-> >
-> >  #define RADIO_VERSION KERNEL_VERSION(0, 0, 2)
-> > @@ -47,7 +47,7 @@ struct fmi
-> >  	struct v4l2_device v4l2_dev;
-> >  	struct video_device vdev;
-> >  	int io;
-> > -	int curvol; /* 1 or 0 */
-> > +	bool mute;
-> >  	unsigned long curfreq; /* freq in kHz */
-> >  	struct mutex lock;
-> >  };
-> > @@ -105,7 +105,7 @@ static inline int fmi_setfreq(struct fmi
-> >  	outbits(8, 0xC0, fmi->io);
-> >  	msleep(143);		/* was schedule_timeout(HZ/7) */
-> >  	mutex_unlock(&fmi->lock);
-> > -	if (fmi->curvol)
-> > +	if (!fmi->mute)
-> >  		fmi_unmute(fmi);
-> >  	return 0;
-> >  }
-> > @@ -116,7 +116,7 @@ static inline int fmi_getsigstr(struct f
-> >  	int res;
-> >
-> >  	mutex_lock(&fmi->lock);
-> > -	val = fmi->curvol ? 0x08 : 0x00;	/* unmute/mute */
-> > +	val = fmi->mute ? 0x00 : 0x08;	/* mute/unmute */
-> >  	outb(val, fmi->io);
-> >  	outb(val | 0x10, fmi->io);
-> >  	msleep(143); 		/* was schedule_timeout(HZ/7) */
-> > @@ -204,7 +204,7 @@ static int vidioc_g_ctrl(struct file *fi
-> >
-> >  	switch (ctrl->id) {
-> >  	case V4L2_CID_AUDIO_MUTE:
-> > -		ctrl->value = fmi->curvol;
-> > +		ctrl->value = fmi->mute;
-> >  		return 0;
-> >  	}
-> >  	return -EINVAL;
-> > @@ -221,7 +221,7 @@ static int vidioc_s_ctrl(struct file *fi
-> >  			fmi_mute(fmi);
-> >  		else
-> >  			fmi_unmute(fmi);
-> > -		fmi->curvol = ctrl->value;
-> > +		fmi->mute = ctrl->value;
-> >  		return 0;
-> >  	}
-> >  	return -EINVAL;
+kernel: pwc: Failed to set LED on/off time; error -110 .    <<<<<<<<<<<<<< this is the first error
 
+Does anybody know what -110 means?
 
+Moreover, these 2 lines DON'T happen on a x86
 
--- 
-Ondrej Zary
+kernel: pwc: probe() called [046D 08B2], if 1
+kernel: pwc: probe() called [046D 08B2], if 2
+
+any idea?
+
+Thanks
+
+kernel: usb 1-2.1: new full speed USB device using ps3-ehci-driver and address 4
+kernel: usb 1-2.1: New USB device found, idVendor=046d, idProduct=08b2
+kernel: usb 1-2.1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+kernel: usb 1-2.1: configuration #1 chosen from 1 choice
+kernel: Linux video capture interface: v2.00
+kernel: pwc: Philips webcam module version 10.0.13 loaded.
+kernel: pwc: Supports Philips PCA645/646, PCVC675/680/690, PCVC720[40]/730/740/750 & PCVC830/840.
+kernel: pwc: Also supports the Askey VC010, various Logitech Quickcams, Samsung MPC-C10 and MPC-C30,
+kernel: pwc: the Creative WebCam 5 & Pro Ex, SOTEC Afina Eye and Visionite VCS-UC300 and VCS-UM100.
+kernel: pwc: Trace options: 0x01ff
+kernel: pwc: Registering driver at address 0xd000000000ed9cf0.
+kernel: pwc: probe() called [046D 08B2], if 0
+kernel: pwc: Logitech QuickCam 4000 Pro USB webcam detected.
+kernel: pwc: Device serial number is
+kernel: pwc: Release: 0000
+kernel: pwc: Registered as video0.
+kernel: pwc: probe() function returning struct at 0xc000000006808400.
+kernel: pwc: >> video_open called(vdev = 0xc000000004f2d400).
+kernel: pwc: Doing first time initialization.
+kernel: pwc: This Logitech QuickCam Pro 4000 camera is equipped with a Sony CCD sensor + TDA8787 (32).
+kernel: pwc: probe() called [046D 08B2], if 1
+kernel: pwc: probe() called [046D 08B2], if 2
+kernel: usbcore: registered new interface driver Philips webcam
+kernel: pwc: >> pwc_allocate_buffers(pdev = 0xc000000006808400)
+kernel: pwc: Allocated iso buffer at c00000000ede4000.
+kernel: pwc: Allocated iso buffer at c00000000ed34000.
+kernel: pwc: Allocated frame buffer structure at c000000006516420.
+kernel: pwc: Allocated frame buffer 0 at d000000000f57000.
+kernel: pwc: Allocated frame buffer 1 at d000000000fca000.
+kernel: pwc: Allocated frame buffer 2 at d00000000103d000.
+kernel: pwc: Allocated image buffer at d0000000010b0000.
+kernel: pwc: << pwc_allocate_buffers()
+kernel: pwc: >> pwc_reset_buffers __enter__
+kernel: pwc: << pwc_reset_buffers __leaving__
+kernel: pwc: set_video_mode(176x144 @ 10, palette 15).
+kernel: pwc: decode_size = 1.
+kernel: pwc: Using alternate setting 1.
+kernel: pwc: frame_size=18900, vframes=10, vsize=1, vsnapshot=0, vbandlength=630
+kernel: pwc: Set viewport to 176x144, image size is 160x120.
+kernel: pwc: Setting alternate interface 1
+kernel: pwc: Allocated URB at 0xc00000000652de00
+kernel: pwc: Allocated URB at 0xc00000000652dc00
+kernel: pwc: URB 0xc00000000652de00 submitted.
+kernel: pwc: URB 0xc00000000652dc00 submitted.
+kernel: pwc: << pwc_isoc_init()
+kernel: pwc: << video_open() returns 0.
+kernel: VIDIOC_QUERYCAP
+kernel: pwc: ioctl(VIDIOC_QUERYCAP) This application try to use the v4l2 layer
+kernel: pwc: >> video_close called(vdev = 0xc000000004f2d400).
+kernel: pwc: >> pwc_isoc_cleanup()
+kernel: pwc: Unlinking URB c00000000652de00
+kernel: pwc: URB (c00000000652de00) unlinked synchronuously.
+kernel: pwc: Unlinking URB c00000000652dc00
+kernel: pwc: URB (c00000000652dc00) unlinked synchronuously.
+kernel: pwc: Freeing URB
+kernel: pwc: Freeing URB
+kernel: pwc: << pwc_isoc_cleanup()
+kernel: pwc: Entering free_buffers(c000000006808400).
+kernel: pwc: Freeing ISO buffer at c00000000ede4000.
+kernel: pwc: Freeing ISO buffer at c00000000ed34000.
+kernel: pwc: Freeing frame buffer 0 at d000000000f57000.
+kernel: pwc: Freeing frame buffer 1 at d000000000fca000.
+kernel: pwc: Freeing frame buffer 2 at d00000000103d000.
+kernel: pwc: Freeing decompression buffer at c000000006a40000.
+kernel: pwc: Freeing image buffer at d0000000010b0000.
+kernel: pwc: Leaving free_buffers().
+kernel: pwc: Failed to set LED on/off time; error -110 .    <<<<<<<<<<<<<< this is the first error
+kernel: pwc: << video_close() vopen=0
+kernel: pwc: >> video_open called(vdev = 0xc000000004f2d400).
+kernel: pwc: Failed to set LED on/off time.
+kernel: pwc: >> pwc_allocate_buffers(pdev = 0xc000000006808400)
+kernel: pwc: Allocated iso buffer at c00000000eecc000.
+kernel: pwc: Allocated iso buffer at c000000002af8000.
+kernel: pwc: Allocated frame buffer structure at c000000004f48d80.
+kernel: pwc: Allocated frame buffer 0 at d0000000011fc000.
+kernel: pwc: Allocated frame buffer 1 at d00000000126f000.
+kernel: pwc: Allocated frame buffer 2 at d0000000012e2000.
+kernel: pwc: Allocated image buffer at d000000001355000.
+kernel: pwc: << pwc_allocate_buffers()
+kernel: pwc: >> pwc_reset_buffers __enter__
+kernel: pwc: << pwc_reset_buffers __leaving__
+kernel: pwc: set_video_mode(160x120 @ 10, palette 15).
+kernel: pwc: decode_size = 1.
+kernel: pwc: Using alternate setting 1.
+kernel: pwc: Failed to set video mode QSIF@10 fps; return code = -110
+kernel: pwc: First attempt at set_video_mode failed.
+kernel: pwc: set_video_mode(160x120 @ 10, palette 15).
+kernel: pwc: decode_size = 1.
+kernel: pwc: Using alternate setting 1.
+kernel: pwc: Failed to set video mode QSIF@10 fps; return code = -110
+kernel: pwc: Second attempt at set_video_mode failed.
+kernel: pwc: Entering free_buffers(c000000006808400).
+kernel: pwc: Freeing ISO buffer at c00000000eecc000.
+kernel: pwc: Freeing ISO buffer at c000000002af8000.
+kernel: pwc: Freeing frame buffer 0 at d0000000011fc000.
+kernel: pwc: Freeing frame buffer 1 at d00000000126f000.
+kernel: pwc: Freeing frame buffer 2 at d0000000012e2000.
+kernel: pwc: Freeing decompression buffer at c000000006a40000.
+kernel: pwc: Freeing image buffer at d000000001355000.
+kernel: pwc: Leaving free_buffers().
+kernel: usb 1-2: clear tt 1 (0040) error -110
+kernel: ALSA sound/usb/usbmixer.c:730: 2:1: cannot get min/max values for control 2 (id 2)
+kernel: usbcore: registered new interface driver snd-usb-audio
+kernel: usb 1-2: clear tt 1 (8040) error -110
