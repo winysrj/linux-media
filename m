@@ -1,67 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37804 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754536AbZLBVlV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Dec 2009 16:41:21 -0500
-Message-ID: <4B16DEC3.2070105@redhat.com>
-Date: Wed, 02 Dec 2009 19:40:19 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-fx0-f225.google.com ([209.85.220.225]:62254 "EHLO
+	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751037AbZL0WX0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 Dec 2009 17:23:26 -0500
+Received: by fxm25 with SMTP id 25so4256779fxm.21
+        for <linux-media@vger.kernel.org>; Sun, 27 Dec 2009 14:23:25 -0800 (PST)
 MIME-Version: 1.0
-To: Jarod Wilson <jarod@wilsonet.com>
-CC: Trent Piepho <xyzzy@speakeasy.org>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Jarod Wilson <jarod@redhat.com>,
-	Jon Smirl <jonsmirl@gmail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>, awalls@radix.net,
-	j@jannau.net, khc@pm.waw.pl, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	lirc-list@lists.sourceforge.net, superm1@ubuntu.com,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: [RFC v2] Another approach to IR
-References: <4B15852D.4050505@redhat.com> <20091202093803.GA8656@core.coreip.homeip.net> <4B16614A.3000208@redhat.com> <20091202171059.GC17839@core.coreip.homeip.net> <9e4733910912020930t3c9fe973k16fd353e916531a4@mail.gmail.com> <4B16BE6A.7000601@redhat.com> <20091202195634.GB22689@core.coreip.homeip.net> <2D11378A-041C-4B56-91FF-3E62F5F19753@wilsonet.com> <20091202201404.GD22689@core.coreip.homeip.net> <434927DD-0E66-4D0E-B705-022B7FCCCDB0@wilsonet.com> <20091202204811.GE22689@core.coreip.homeip.net> <B8514BFF-DB1B-4475-9E6D-E2A567A998FA@wilsonet.com> <Pine.LNX.4.58.0912021300270.4729@shell2.speakeasy.net> <582D7897-47F8-44B6-959F-510790EAEA79@wilsonet.com>
-In-Reply-To: <582D7897-47F8-44B6-959F-510790EAEA79@wilsonet.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1261673477.2119.1.camel@slash.doma>
+References: <4B1D6194.4090308@freenet.de> <1261578615.8948.4.camel@slash.doma>
+	 <200912231753.28988.liplianin@me.by>
+	 <1261586462.8948.23.camel@slash.doma> <4B3269AE.6080602@freenet.de>
+	 <1a297b360912231124v6e31c9e6ja24d205f6b5dc39@mail.gmail.com>
+	 <1261611901.8948.37.camel@slash.doma> <4B339A8F.8020201@freenet.de>
+	 <1261673477.2119.1.camel@slash.doma>
+Date: Mon, 28 Dec 2009 02:23:25 +0400
+Message-ID: <1a297b360912271423x2f5b48caw7b2adad8849280ee@mail.gmail.com>
+Subject: Re: Which modules for the VP-2033? Where is the module "mantis.ko"?
+From: Manu Abraham <abraham.manu@gmail.com>
+To: =?UTF-8?Q?Alja=C5=BE_Prusnik?= <prusnik@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-13
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jarod Wilson wrote:
-> On Dec 2, 2009, at 4:12 PM, Trent Piepho wrote:
-> 
->> On Wed, 2 Dec 2009, Jarod Wilson wrote:
->>>>> My main point is that each of these devices has device ID that can be determined without having to first do some protocol analysis and table lookups to figure out which "device" some random IR input is actually coming from.
->>>>>
->>>> Heh, right back at ya ;) The fact that you need to do some more work
->>>> to separate 2 physical devices does not mean it should not be done.
->>> No, but it means added complexity inside the kernel. I'm questioning whether the added complexity is worth it, when I doubt the vast majority of users would take advantage of it, and it can already be done in userspace. Although... Damn. The userspace approach would only work if the device were passing raw IR to userspace, so in the in-kernel decoding case, yeah, I guess you'd need separate input devices for each remote to use them independently. Meh. Doubt I'd ever use it, but I guess I'll concede that it makes some sense to do the extra work.
->> You just need to send a tuple that contrains the keycode plus some kind of
->> id for the remote it came from.  That's what I did for lirc, it decodes the
->> sparc/mark into a remote id and key code tuple.  It's certainly a common
->> thing to want.  Anyone who has existing remotes and components that use
->> them would want it.
-> 
-> What for, exactly?
-> 
->> You don't want your computer turning off when you push
->> the power button on the DVD player's remote, do you?
-> 
-> No, I don't.
+Hello Aljaz,
 
-In this specific case, IMO, the default keytables should map the power button to KEY_POWER2.
-> 
-> Perhaps we should clarify something here. Are we intending to auto-create 
-> a new input device for every IR command set we see arrive at the IR receiver? 
-> I've been assuming we're not going to willy-nilly just auto-create a new device
-> for every IR signal we happen to catch passing by. The receiver should only 
-> be passing along input events for the codeset/remote I've told it to listen
-> for (which by default, is the codes for the receiver's bundled remote).
+On Thu, Dec 24, 2009 at 8:51 PM, Aljaþ Prusnik <prusnik@gmail.com> wrote:
+> On èet, 2009-12-24 at 17:45 +0100, Ruediger Dohmhardt wrote:
+>> Aljaþ, thanks for the "reply". As Manu said above there was a build problem.
+>> As said already in this Thread, I downloaded version 2315248f648c, which
+>> compiles fine and
+>> has all modules for the 2033 DVB-C.
+>
+> I have the same version and it doesn't work for me. I have a 2040
+> module.
 
-Yes, but several bundled IR's have a power button. By default, it doesn't make sense
-to use it to turn the machine off, so KEY_POWER2 is a good option.
+Can you please do a lspci -vn for the Mantis card you have ? Also try
+loading the mantis.ko module with verbose=5 module parameter, to get
+more debug information.
 
-> Otherwise, yeah, I'm going to wind up with my htpc powering off when
-> I hit the button on my harmony remote that is supposed to turn off my tv and amp.
-
-Cheers,
-Mauro.
+Regards,
+Manu
