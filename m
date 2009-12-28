@@ -1,108 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43139 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753552AbZLCLVS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Dec 2009 06:21:18 -0500
-Message-ID: <4B179F19.60108@redhat.com>
-Date: Thu, 03 Dec 2009 09:20:57 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from vint.altlinux.org ([194.107.17.35]:60560 "EHLO
+	vint.altlinux.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751432AbZL1Ue4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Dec 2009 15:34:56 -0500
+Received: from imap.altlinux.org (imap.altlinux.org [194.107.17.38])
+	by vint.altlinux.org (Postfix) with ESMTP id D79183F80219
+	for <linux-media@vger.kernel.org>; Mon, 28 Dec 2009 20:24:48 +0000 (UTC)
+To: linux-media@vger.kernel.org
+Subject: cx18: leadtec pvr 2100 card fix
+From: Sergey Bolshakov <sbolshakov@altlinux.ru>
+Date: Mon, 28 Dec 2009 23:22:18 +0300
+Message-ID: <m31vieyhl1.fsf@hammer.lioka.obninsk.ru>
 MIME-Version: 1.0
-To: Jon Smirl <jonsmirl@gmail.com>
-CC: Jarod Wilson <jarod@wilsonet.com>,
-	Trent Piepho <xyzzy@speakeasy.org>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Jarod Wilson <jarod@redhat.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>, awalls@radix.net,
-	j@jannau.net, khc@pm.waw.pl, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	lirc-list@lists.sourceforge.net, superm1@ubuntu.com,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: [RFC v2] Another approach to IR
-References: <4B155288.1060509@redhat.com> <4B16614A.3000208@redhat.com>	 <20091202171059.GC17839@core.coreip.homeip.net>	 <9e4733910912020930t3c9fe973k16fd353e916531a4@mail.gmail.com>	 <4B16BE6A.7000601@redhat.com>	 <20091202195634.GB22689@core.coreip.homeip.net>	 <2D11378A-041C-4B56-91FF-3E62F5F19753@wilsonet.com>	 <9e4733910912021620s7a2b09a8v88dd45eef38835a@mail.gmail.com>	 <Pine.LNX.4.58.0912021827120.4729@shell2.speakeasy.net>	 <5FED031C-C24B-4F82-9621-EB1C8A5B928B@wilsonet.com> <9e4733910912022118h28058f4dt2815c3da4f717b02@mail.gmail.com>
-In-Reply-To: <9e4733910912022118h28058f4dt2815c3da4f717b02@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="=-=-="
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jon Smirl wrote:
-> On Wed, Dec 2, 2009 at 11:13 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
->> On Dec 2, 2009, at 9:48 PM, Trent Piepho wrote:
->> ...
->>>>>> Now I understand that if 2 remotes send completely identical signals we
->>>>>> won't be able to separate them, but in cases when we can I think we
->>>>>> should.
->>>>> I don't have a problem with that, if its a truly desired feature.  But
->>>>> for the most part, I don't see the point.  Generally, you go from
->>>>> having multiple remotes, one per device (where "device" is your TV,
->>>>> amplifier, set top box, htpc, etc), to having a single universal remote
->>>>> that controls all of those devices.  But for each device (IR receiver),
->>>>> *one* IR command set.  The desire to use multiple distinct remotes with
->>>>> a single IR receiver doesn't make sense to me.  Perhaps I'm just not
->>>>> creative enough in my use of IR.  :)
->>> Most universal remotes I'm familiar with emulate multiple remotes.  I.e.
->>> my tv remote generates one set of scancodes for the numeric keys.  The DVD
->>> remote generates a different set.  The amplifier remote in "tv mode"
->>> generates the same codes as the tv remote, and in "dvd mode" the same codes
->>> as the dvd remote.  From the perspective of the IR receiver there is no
->>> difference between having both the DVD and TV remotes, or using the
->>> aplifier remote to control both devices.
->> Okay, in the above scenario, you've still got a single input device...
->>
->>> Now, my aplifier remote has a number of modes.  Some control devices I
->>> have, like "vcr mode", and there is nothing I can do about that.  Some,
->>> like "md mode" don't control devices I have.  That means they are free to
->>> do things on the computer.  Someone else with the same remote (or any
->>> number of remotes that use the same protocol and scancodes) might have
->>> different devices.
->>>
->>> So I want my computer to do stuff when I push "JVC MD #xx" keys, but ignore
->>> "JVC VCR #yyy" yets.  Someone with an MD player and not a VCR would want to
->>> opposite.  Rather than force everyone to create custom keymaps, it's much
->>> easier if we can use the standard keymaps from a database of common remotes
->>> and simply tell mythtv to only use remote #xxx or not to use remote #yyy.
->> Sure, but the key is that this can't be done automagically. The IR driver has no way of knowing that user A wants JVC MD keys handled and JVC VCR keys ignored, and user B wants vice versa, while user C wants both ignored, etc. This is somewhat tangential to whether or not there's a separate input device per "remote" though. You can use multiple remotes/protocols with a single input device or lirc device already (if the hardware doesn't have to be put explicitly into a mode to listen for that proto, of course, but then its a hardware decoding device feeding a single input device anyway, so...).
->>
->>> It sounds like you're thinking of a receiver that came bundled with a
->>> remote and that's it.  Not someone with a number of remotes that came with
->>> different pieces of AV gear that they want to use with their computer.
->> No, I just pick *one* remote and use it for everything, not schizophrenically hopping from one remote to another, expecting them all the be able to control everything. :) Its a hell of a lot easier to find buttons w/o looking at the remote if you always use the same one for everything, for one.
->>
->> Anyway, I think I'm talking myself in circles. Supporting multiple remotes via multiple input devices (or even via a single input device) isn't at all interesting to me for my own use, but if there really is demand for such support (and it appears there is), then fine, lets do it.
-> 
-> Simple use case:
-> 
-> You have a multifunction remote. Press the CABLE key - it sends out
-> commands that control the cable box, press the TV key - now the
-> commands control the TV, press CD - now the CD player, etc.
-> 
-> Now imagine a headless Linux box running a music server and a home
-> automation app. Press the CD key - commands get routed to the music
-> server, press the AUX key - commands get routed to the home automation
-> app.
-> 
-> This is accomplished by recognizing the device code part of the IR
-> signal and figuring out that there are two different device codes in
-> use. The commands of then routed to two evdev devices corresponding to
-> the two different device codes.
-> 
-> Using things like Alt-Tab to switch apps is impossible. There's no
-> screen to look at.
+--=-=-=
 
-This usecase makes sense to me.
 
-With the risk of repeating myself, you don't have two physical remotes.
-The needed feature is a way to split one source of input events (that
-happens to be an infrared remote, but it could also be any other type of input
-device, like a bluetooth remote) into several different evdev interfaces,
-based on scancode groups. 
+Hi.
+Seems cx18 module has incorrect .xceive_pin value for card,
+as i see lots of i2c errors in dmesg from xc2028.
+i'm using 2.6.32.2, my hardware is:
 
-Also, as you're thinking on 64 bits scancodes, this also means that the
-current evdev KABI and API will require changes to support bigger scancodes.
+# lspci -vnns 00:09.0
+00:09.0 Multimedia video controller [0400]: Conexant Systems, Inc. CX23418 Single-Chip MPEG-2 Encoder with Integrated Analog Video/Broadcast Audio Decoder [14f1:5b7a]
+        Subsystem: LeadTek Research Inc. Device [107d:6f27]
+        Flags: bus master, medium devsel, latency 64, IRQ 17
+        Memory at f0000000 (32-bit, non-prefetchable) [size=64M]
+        Capabilities: [44] Vital Product Data
+        Capabilities: [4c] Power Management version 2
+        Kernel driver in use: cx18
+        Kernel modules: cx18
 
-Anyway, IMO, this subject should be handled as a different requirement than
-integrating the lirc drivers.
+Following fixes this problem for me, the rest seems working:
 
-Cheers,
-Mauro.
+
+--=-=-=
+Content-Type: text/x-patch
+Content-Disposition: inline; filename=pvr2100.diff
+
+diff --git a/drivers/media/video/cx18/cx18-cards.c b/drivers/media/video/cx18/cx18-cards.c
+index f11e47a..f808fb6 100644
+--- a/drivers/media/video/cx18/cx18-cards.c
++++ b/drivers/media/video/cx18/cx18-cards.c
+@@ -393,7 +393,7 @@ static const struct cx18_card cx18_card_leadtek_pvr2100 = {
+ 	.gpio_init.direction = 0x7,
+ 	.gpio_audio_input = { .mask   = 0x7,
+ 			      .tuner  = 0x6, .linein = 0x2, .radio  = 0x2 },
+-	.xceive_pin = 15,
++	.xceive_pin = 1,
+ 	.pci_list = cx18_pci_leadtek_pvr2100,
+ 	.i2c = &cx18_i2c_std,
+ };
+
+--=-=-=
+
+
+-- 
+
+--=-=-=--
