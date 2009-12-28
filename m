@@ -1,62 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:26571 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754015AbZLBD4u (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Dec 2009 22:56:50 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id nB23uvML002008
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 1 Dec 2009 22:56:57 -0500
-Date: Tue, 1 Dec 2009 22:58:36 -0500
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: awilliam@redhat.com
-Subject: [PATCH] bttv: add i2c addr for old WinTV card to IR probe list
-Message-ID: <20091202035836.GA2033@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:20997 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750913AbZL1OuY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Dec 2009 09:50:24 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=us-ascii
+Date: Mon, 28 Dec 2009 15:49:29 +0100
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: RE: [PATCH/RFC v2.1 0/2] Mem-to-mem device framework
+In-reply-to: <200912231605.44181.hverkuil@xs4all.nl>
+To: 'Hans Verkuil' <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	kyungmin.park@samsung.com, 'Vaibhav Hiremath' <hvaibhav@ti.com>,
+	'Muralidharan Karicheri' <m-karicheri2@ti.com>,
+	'Guru Raj' <gururaj.nagendra@intel.com>,
+	'Xiaolin Zhang' <xiaolin.zhang@intel.com>,
+	'Magnus Damm' <magnus.damm@gmail.com>,
+	'Sakari Ailus' <sakari.ailus@maxwell.research.nokia.com>
+Message-id: <000001ca87cc$f599dca0$e0cd95e0$%osciak@samsung.com>
+Content-language: pl
+References: <1261574255-23386-1-git-send-email-p.osciak@samsung.com>
+ <200912231605.44181.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are old bttv-driven Hauppauge WinTV series cards that have
-their IR part at i2c addr 0x71, which doesn't get considered in the
-new 2.6.31 i2c code.
+Hello Hans,
 
->From a 2.6.29 kernel:
 
-lirc_i2c: chip 0x10005 found @ 0x71 (Hauppauge PVR150)
+On Wednesday 23 December 2009 16:06:18 Hans Verkuil wrote:
+> Thank you for working on this! It's much appreciated. Now I've noticed that
+> patches regarding memory-to-memory and memory pool tend to get very few comments.
+> I suspect that the main reason is that these are SoC-specific features that do
+> not occur in consumer-type products. So most v4l developers do not have the
+> interest and motivation (and time!) to look into this.
 
-Minor cosmetic glitch, the card in question isn't actually a PVR-150, its:
+Thank you very much for your response. We were a bit surprised with the lack of
+responses as there seemed to be a good number of people interested in this area.
 
-03:06.0 Multimedia video controller: Brooktree Corporation Bt878 Video Capture (rev 11)
-	Subsystem: Hauppauge computer works Inc. WinTV Series
-	Flags: bus master, medium devsel, latency 32, IRQ 19
-	Memory at f4ffe000 (32-bit, prefetchable) [size=4K]
-	Capabilities: [44] Vital Product Data
-	Capabilities: [4c] Power Management version 2
-	Kernel driver in use: bttv
-	Kernel modules: bttv
+I'm hoping that everybody interested would take a look at the test device posted
+along with the patches. It's virtual, no specific hardware required, but it
+demonstrates the concepts behind the framework, including transactions.
 
-Device ID: 0x109e:0x036e, Sub-Device ID: 0x0070:0x13eb
+> One thing that I am missing is a high-level overview of what we want. Currently
+> there are patches/RFCs floating around for memory-to-memory support, multiplanar
+> support and memory-pool support.
+>
+> What I would like to see is a RFC that ties this all together from the point of
+> view of the public API. I.e. what are the requirements? Possibly solutions? Open
+> questions? Forget about how to implement it for the moment, that will follow
+> from the chosen solutions.
 
-This simply adds 0x71 to the list of addresses i2c_new_probed_device should
-consider, which gets IR working on this card again.
+Yes, that's true, sorry about that. We've been so into it after the memory pool
+discussion and the V4L2 mini-summit that I neglected describing the big picture
+behind this.
 
-Reported-by: Adam Williamson <awilliam@redhat.com>
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
-Tested-by: Adam Williamson <awilliam@redhat.com>
+So to give a more high-level description, from the point of view of applications
+and the V4L2 API:
 
----
-diff -r e0cd9a337600 linux/drivers/media/video/bt8xx/bttv-i2c.c
---- a/linux/drivers/media/video/bt8xx/bttv-i2c.c	Sun Nov 29 12:08:02 2009 -0200
-+++ b/linux/drivers/media/video/bt8xx/bttv-i2c.c	Tue Dec 01 11:23:17 2009 -0500
-@@ -423,7 +423,7 @@
- 		   That's why we probe 0x1a (~0x34) first. CB
- 		*/
- 		const unsigned short addr_list[] = {
--			0x1a, 0x18, 0x4b, 0x64, 0x30,
-+			0x1a, 0x18, 0x4b, 0x64, 0x30, 0x71,
- 			I2C_CLIENT_END
- 		};
- 
+---------------
+Requirements:
+---------------
+(Some of the following were first posted by Laurent in:
+http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/10204).
+
+1. Support for devices that take input data in a source buffer, take a separate
+destination buffer, process the source data and put it in the destination buffer.
+
+2. Allow sharing buffers between devices, effectively chaining them to form
+video pipelines. An example of this could be a video decoder, fed with video
+stream which returns raw frames, which then have to be postprocessed by another
+device and displayed. This is the main scenario we need to have for our S3C/S5P
+series SoCs. Of course, we'd like zero-copy.
+
+3. Allow using more than one buffer by the device at the same time. This is not
+supported by videobuffer (e.g. we have to choose on which buffer we'd like
+to sleep, and we do not always know that). This is not really a requirement
+from the V4L2 API point of view, but has direct influence on how poll() and
+blocking I/O works.
+
+4. Multiplanar buffers. Our devices require them (see the RFC for more details:
+http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/11212).
+
+5. Solve problems with cache coherency on non-x86 architectures, especially in
+videobuf for OUTPUT buffers. We need to flush the cache before starting the
+transaction.
+
+6. Reduce buffer queuing latency, e.g.: move operations such as locking, out
+of qbuf.
+Applications would like to queue a buffer and be able to fire up the device
+as fast as possible.
+
+7. Large buffer allocations, buffer preallocation, etc.
+
+
+---------------
+Solutions:
+---------------
+1. After a detailed discussion, we agreed in:
+http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/10668,
+that we'd like the application to be able to queue/dequeue both OUTPUT (as source)
+and CAPTURE (as destination) buffers on one video node. Activating the device
+(after streamon) would take effect only if there are both types of buffers 
+available. The application would put source data into OUTPUT buffers and expect
+to find it processed in dequeued CAPTURE buffers. Addressed by mem2mem framework.
+
+2. I don't see anything to do here from the API's point of view. The application
+would open two video nodes, e.g. video decoder and video postprocessor and queue
+buffers dequeued from decoder on the postprocessor. To get the best performance,
+this requires the buffers to be marked as non cached somehow to avoid unneeded
+cache syncs.
+
+3. Mem2mem addresses this partially by adding a "transaction" concept. It's
+not bullet-proof though, as it assumes the buffers will be returned in the same
+order as passed. Some videobuffer limitations will have to be addressed here.
+
+4. See my RFC. Patches in progress. 
+
+5. We have narrowed it down to an additional sync() before the operation
+(i.e. in qbuf), but more issues may exist here. I have already added sync()
+support for qbuf with minimal changes to videobuf and will be posting the
+proposal soon. This also requires identifying the direction of the sync, but
+we have found a way to do this without adding anything new (videobuf flags
+are enough).
+
+6. Later. We haven't done anything in this field.
+
+7. We use our own allocator (see
+http://thread.gmane.org/gmane.linux.ports.arm.kernel/56879), but we have a new
+concept for that which we'd like to discuss separately later. 
+
+
+> Note that I would suggest though that the memory-pool part is split into two
+> parts: how to actually allocate the memory is pretty much separate from how v4l
+> will use it. The actual allocation part is probably quite complex and might
+> even be hardware dependent and should be discussed separately. But how to use
+> it is something that can be discussed without needing to know how it was
+> allocated.
+
+Exactly, this is the approach we have assumed right now. We'd like to introduce
+each part of the infrastructure incrementally. The plan was to do exactly as 
+you said: leave the allocator-specific parts for later and for a separate
+discussion.
+We intend to follow with multi-planar buffers and then to focus on dma-contig,
+as this is what our hardware requires.
+
+> BTW, what is the status of the multiplanar RFC? I later realized that that RFC
+> might be very useful for adding meta-data to buffers. There are several cases
+> where that is useful: sensors that provide meta-data when capturing a frame and
+> imagepipelines (particularly in memory-to-memory cases) that want to have all
+> parameters as part of the meta-data associated with the image. There may well
+> be more of those.
+
+This got pushed back but now after m2m, it's become next task on my list. I
+expect to be posting patches in a week or two, hopefully.
+I understand that you'd like to make the pointer in the union and the helper
+struct more generic to use it to pass different types of information? 
+
+
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
+
+
+
+
