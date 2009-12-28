@@ -1,32 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:39067 "HELO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S933722AbZLMBik convert rfc822-to-8bit (ORCPT
+Received: from mail-vw0-f192.google.com ([209.85.212.192]:39590 "EHLO
+	mail-vw0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751760AbZL1GMy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Dec 2009 20:38:40 -0500
-Received: by bwz27 with SMTP id 27so1360551bwz.21
-        for <linux-media@vger.kernel.org>; Sat, 12 Dec 2009 17:38:37 -0800 (PST)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Andy Walls <awalls@radix.net>
-Subject: Re: IR Receiver on an Tevii S470
-Date: Sat, 12 Dec 2009 18:22:00 +0200
-Cc: linux-media@vger.kernel.org, Steven Toth <stoth@linuxtv.org>,
-	Matthias Fechner <idefix@fechner.net>
-References: <200912120230.36902.liplianin@me.by> <200912121349.58436.liplianin@me.by> <1260627327.3104.13.camel@palomino.walls.org>
-In-Reply-To: <1260627327.3104.13.camel@palomino.walls.org>
+	Mon, 28 Dec 2009 01:12:54 -0500
+Received: by vws30 with SMTP id 30so3333169vws.33
+        for <linux-media@vger.kernel.org>; Sun, 27 Dec 2009 22:12:53 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200912121822.01184.liplianin@me.by>
+In-Reply-To: <200912232220.29626.mes@seesslen.net>
+References: <200912232220.29626.mes@seesslen.net>
+Date: Sun, 27 Dec 2009 22:12:53 -0800
+Message-ID: <a3ef07920912272212p901718drbaf3c441c2d371ed@mail.gmail.com>
+Subject: Re: [linux-dvb] Acoustical mode for femon
+From: VDR User <user.vdr@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12 декабря 2009 16:15:27 Andy Walls wrote:
-> V4L2_SUBDEV_IO_PIN_ACTIVE_LOW
-After I removed this from ir_rx_pin_cfg, interrupts stopped.
+On Wed, Dec 23, 2009 at 1:20 PM, Maximilian Seesslen <mes@seesslen.net> wrote:
+> Hi List,
+>
+> find attached a patch that adds a "Acoustical mode" to femon.
+> The monitoring application produces a sound indicating the signal quality. The
+> higher the beep the better the signal quality.
+> This is useful while mounting the antenna for finding the best position without
+> having to look at the monitor or without even having a monitor.
 
--- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+Thank you for this!  Very useful since it's hard to be outside aiming
+and inside looking at a monitor at the same time.  :)
