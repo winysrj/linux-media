@@ -1,75 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web23206.mail.ird.yahoo.com ([217.146.189.61]:36840 "HELO
-	web23206.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1759906AbZLPPH1 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2009 10:07:27 -0500
-Message-ID: <94892.13788.qm@web23206.mail.ird.yahoo.com>
-Date: Wed, 16 Dec 2009 15:07:24 +0000 (GMT)
-From: Newsy Paper <newspaperman_germany@yahoo.com>
-Subject: Re: Anyone capable of fixing inverted spectrum issue on tt s2-3200?
-To: Manu Abraham <abraham.manu@gmail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <1a297b360912160510x5e8f1094se95560e6584e0337@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3980 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751086AbZL1TPv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Dec 2009 14:15:51 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id nBSJFYYc046325
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 28 Dec 2009 20:15:43 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 28 Dec 2009 20:15:34 +0100 (CET)
+Message-Id: <200912281915.nBSJFYYc046325@smtp-vbr16.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-thx Manu for your quick answer. I tried that patch, at least on those 8psk 30000 3/4 on thor 1 West it didn't solve the problem, but I'm not sure if they really use inverted spectrum on that transponder.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-ORF switched inverted spectrum off again, so I'm in search of an dvb-s2 transponder that has set inverted spectrum on in order to test your change. :(
+Results of the daily build of v4l-dvb:
 
-regards
+date:        Mon Dec 28 19:00:03 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13848:75c97b2d1a2a
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Newsy
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-armv5: OK
+linux-2.6.32-armv5-davinci: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-armv5-ixp: OK
+linux-2.6.32-armv5-ixp: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: OK
+linux-2.6.32-armv5-omap2: OK
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: ERRORS
+linux-2.6.28-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30-i686: ERRORS
+linux-2.6.31-i686: ERRORS
+linux-2.6.32-i686: ERRORS
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.32-mips: OK
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-powerpc64: OK
+linux-2.6.32-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: OK
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-x86_64: WARNINGS
+spec: OK
+sparse (linux-2.6.32): ERRORS
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
---- Manu Abraham <abraham.manu@gmail.com> schrieb am Mi, 16.12.2009:
+Detailed results are available here:
 
-> Von: Manu Abraham <abraham.manu@gmail.com>
-> Betreff: Re: Anyone capable of fixing inverted spectrum issue on tt s2-3200?
-> An: "Newsy Paper" <newspaperman_germany@yahoo.com>
-> CC: linux-media@vger.kernel.org
-> Datum: Mittwoch, 16. Dezember 2009, 14:10
-> On Wed, Dec 16, 2009 at 4:15 PM,
-> Newsy Paper
-> <newspaperman_germany@yahoo.com>
-> wrote:
-> > Hi,
-> >
-> > as the problem with the ORF HD transponder on Astra is
-> now figured out and ORF switched inversion off again, we
-> know know where the bug in the driver is. I don't know if
-> the problem also occours on dvb-s(1) transponders but I'll
-> try to figure that out.
-> >
-> > Is anyone able to fix that dvb-s2 problem? Perhaps it
-> would also solve the problem with some transponders on 1°
-> west?
-> >
-> 
-> 
-> To verify whether an inversion will solve the issue:
-> 
-> Please try changing
-> 
-> line: #1313 .inversion = IQ_SWAP_ON, /* 1 */  to
-> IQ_SWAP_OFF
-> 
-> in
-> 
-> http://linuxtv.org/hg/v4l-dvb/file/79fc32bba0a0/linux/drivers/media/dvb/ttpci/budget-ci.c
-> 
-> and check whether that solves your inversion issue. Please
-> report your findings.
-> 
-> 
-> Regards,
-> Manu
-> 
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-__________________________________________________
-Do You Yahoo!?
-Sie sind Spam leid? Yahoo! Mail verfügt über einen herausragenden Schutz gegen Massenmails. 
-http://mail.yahoo.com 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
