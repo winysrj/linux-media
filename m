@@ -1,54 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-17.arcor-online.net ([151.189.21.57]:38504 "EHLO
-	mail-in-17.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758027AbZLFDis (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Dec 2009 22:38:48 -0500
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
-	IR  system?
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Jon Smirl <jonsmirl@gmail.com>
-Cc: Christoph Bartelmus <lirc@bartelmus.de>, dmitry.torokhov@gmail.com,
-	awalls@radix.net, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, khc@pm.waw.pl, kraxel@redhat.com,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, mchehab@redhat.com, superm1@ubuntu.com
-In-Reply-To: <9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>
-References: <20091204220708.GD25669@core.coreip.homeip.net>
-	 <BEJgSGGXqgB@lirc>
-	 <9e4733910912041628g5bedc9d2jbee3b0861aeb5511@mail.gmail.com>
-Content-Type: text/plain
-Date: Sun, 06 Dec 2009 04:36:33 +0100
-Message-Id: <1260070593.3236.6.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp5-g21.free.fr ([212.27.42.5]:58010 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751162AbZL1SBG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Dec 2009 13:01:06 -0500
+Received: from smtp5-g21.free.fr (localhost [127.0.0.1])
+	by smtp5-g21.free.fr (Postfix) with ESMTP id 58B10D4807F
+	for <linux-media@vger.kernel.org>; Mon, 28 Dec 2009 19:01:00 +0100 (CET)
+Received: from [192.168.5.201] (lim91-1-88-178-105-125.fbx.proxad.net [88.178.105.125])
+	by smtp5-g21.free.fr (Postfix) with ESMTP id 5DA0BD481F8
+	for <linux-media@vger.kernel.org>; Mon, 28 Dec 2009 19:00:58 +0100 (CET)
+Message-ID: <4B38F25A.3090709@free.fr>
+Date: Mon, 28 Dec 2009 19:00:58 +0100
+From: Yves <ydebx6@free.fr>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: Nova-T 500 Dual DVB-T
+References: <4B2DDE8E.4090708@free.fr> <4B2EFC5E.7040900@gmail.com> <4B31AE21.8040508@free.fr>
+In-Reply-To: <4B31AE21.8040508@free.fr>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+So, I tried using kernel 2.6.32.2 from http://www.kernel.org. I compiled 
+it OK.
+I still get an error with v4l-dvb :
 
-Am Freitag, den 04.12.2009, 19:28 -0500 schrieb Jon Smirl:
-> On Fri, Dec 4, 2009 at 6:01 PM, Christoph Bartelmus <lirc@bartelmus.de> wrote:
-> > BTW, I just came across a XMP remote that seems to generate 3x64 bit scan
-> > codes. Anyone here has docs on the XMP protocol?
-> 
-> Assuming a general purpose receiver (not one with fixed hardware
-> decoding), is it important for Linux to receive IR signals from all
-> possible remotes no matter how old or obscure? Or is it acceptable to
-> tell the user to throw away their dedicated remote and buy a universal
-> multi-function one?  Universal multi-function remotes are $12 in my
-> grocery store - I don't even have to go to an electronics store.
+[mythtv@localhost v4l-dvb]$ make -j 
+5                                                                                                    
 
-finally we have some point here, IMHO, that is not acceptable and I told
-you previously not to bet on such. Start some poll and win it, and I'll
-shut up :)
+make -C 
+/home/mythtv/v4l-dvb/v4l                                                                                                         
 
-To be frank, you are quite mad at this point, or deliver working other
-remotes to __all__ for free.
+make[1]: entrant dans le répertoire « /home/mythtv/v4l-dvb/v4l 
+»                                                                        
+No version yet, using 
+2.6.32.2                                                                                                           
 
-Cheers,
-Hermann
+make[1]: quittant le répertoire « /home/mythtv/v4l-dvb/v4l 
+»                                                                             
+
+make[1]: entrant dans le répertoire « /home/mythtv/v4l-dvb/v4l 
+»                                                                        
+scripts/make_makefile.pl                                                                                                                 
+
+./scripts/make_kconfig.pl /lib/modules/2.6.32.2/build 
+/lib/modules/2.6.32.2/source                                                       
+
+Updating/Creating 
+.config                                                                                                                
+
+Preparing to compile for kernel version 
+2.6.32                                                                                           
+
+Preparing to compile for kernel version 
+2.6.32                                                                                           
+
+Created default (all yes) .config 
+file                                                                                                   
+
+./scripts/make_myconfig.pl                                                                                                               
+
+make[1]: quittant le répertoire « /home/mythtv/v4l-dvb/v4l 
+»                                                                             
+
+make[1]: entrant dans le répertoire « /home/mythtv/v4l-dvb/v4l 
+»                                                                        
+perl scripts/make_config_compat.pl /lib/modules/2.6.32.2/source 
+./.myconfig ./config-compat.h                                           
+ln -sf . 
+oss                                                                                                                             
+
+creating symbolic 
+links...                                                                                                               
+
+make -C firmware 
+prep                                                                                                                    
+
+make[2]: Entering directory 
+`/home/mythtv/v4l-dvb/v4l/firmware'                                                                          
+
+make[2]: Leaving directory 
+`/home/mythtv/v4l-dvb/v4l/firmware'                                                                           
+
+make -C 
+firmware                                                                                                                         
+
+make[2]: Entering directory 
+`/home/mythtv/v4l-dvb/v4l/firmware'                                                                          
+
+  CC  
+ihex2fw                                                                                                                            
+
+Generating 
+vicam/firmware.fw                                                                                                             
+
+Generating 
+dabusb/firmware.fw                                                                                                            
+
+Generating 
+ttusb-budget/dspbootcode.bin                                                                                                  
+
+Generating 
+dabusb/bitstream.bin                                                                                                          
+
+Generating 
+cpia2/stv0672_vp4.bin                                                                                                         
+
+Generating 
+av7110/bootcode.bin                                                                                                           
+
+make[2]: Leaving directory 
+`/home/mythtv/v4l-dvb/v4l/firmware'                                                                           
+
+Kernel build directory is 
+/lib/modules/2.6.32.2/build                                                                                    
+
+make -C /lib/modules/2.6.32.2/build SUBDIRS=/home/mythtv/v4l-dvb/v4l  
+modules                                                           
+make[2]: Entering directory 
+`/home/mythtv/Téléchargements/linux-2.6.32.2'                                                                
+
+  CC [M]  
+/home/mythtv/v4l-dvb/v4l/tuner-xc2028.o                                                                                        
+
+  CC [M]  
+/home/mythtv/v4l-dvb/v4l/tuner-simple.o                                                                                        
+
+  CC [M]  
+/home/mythtv/v4l-dvb/v4l/tuner-types.o                                                                                         
+
+  ...
+
+  CC [M]  /home/mythtv/v4l-dvb/v4l/radio-si4713.o
+  CC [M]  /home/mythtv/v4l-dvb/v4l/radio-maestro.o
+  CC [M]  /home/mythtv/v4l-dvb/v4l/radio-miropcm20.o
+/home/mythtv/v4l-dvb/v4l/radio-miropcm20.c:20:23: error: sound/aci.h: No 
+such file or directory
+/home/mythtv/v4l-dvb/v4l/radio-miropcm20.c: In function 'pcm20_mute':
+/home/mythtv/v4l-dvb/v4l/radio-miropcm20.c:46: error: implicit 
+declaration of function 'snd_aci_cmd'
+/home/mythtv/v4l-dvb/v4l/radio-miropcm20.c:46: error: 
+'ACI_SET_TUNERMUTE' undeclared (first use in this function)
+/home/mythtv/v4l-dvb/v4l/radio-miropcm20.c:46: error: (Each undeclared 
+identifier is reported only once
+/home/mythtv/v4l-dvb/v4l/radio-miropcm20.c:46: error: for each function 
+it appears in.)
+/home/mythtv/v4l-dvb/v4l/radio-miropcm20.c: In function 'pcm20_stereo':
+/home/mythtv/v4l-dvb/v4l/radio-miropcm20.c:51: error: 
+'ACI_SET_TUNERMONO' undeclared (first use in this function)
+/home/mythtv/v4l-dvb/v4l/radio-miropcm20.c: In function 'pcm20_setfreq':
+/home/mythtv/v4l-dvb/v4l/radio-miropcm20.c:63: error: dereferencing 
+pointer to incomplete type
+/home/mythtv/v4l-dvb/v4l/radio-miropcm20.c:63: error: dereferencing 
+pointer to incomplete type
+/home/mythtv/v4l-dvb/v4l/radio-miropcm20.c:70: error: 'ACI_WRITE_TUNE' 
+undeclared (first use in this function)
+/home/mythtv/v4l-dvb/v4l/radio-miropcm20.c: In function 'pcm20_init':
+/home/mythtv/v4l-dvb/v4l/radio-miropcm20.c:225: error: implicit 
+declaration of function 'snd_aci_get_aci'
+/home/mythtv/v4l-dvb/v4l/radio-miropcm20.c:225: warning: assignment 
+makes pointer from integer without a cast
+make[3]: *** [/home/mythtv/v4l-dvb/v4l/radio-miropcm20.o] Error 1
+make[3]: *** Waiting for unfinished jobs....
+make[2]: *** [_module_/home/mythtv/v4l-dvb/v4l] Error 2
+make[2]: Leaving directory `/home/mythtv/Téléchargements/linux-2.6.32.2'
+make[1]: *** [default] Erreur 2
+make[1]: quittant le répertoire « /home/mythtv/v4l-dvb/v4l »
+make: *** [all] Erreur 2
 
 
+????
 
-
+Yves
