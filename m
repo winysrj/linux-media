@@ -1,68 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43448 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758288AbZLGXQD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Dec 2009 18:16:03 -0500
-Message-ID: <4B1D8CB3.5070800@redhat.com>
-Date: Mon, 07 Dec 2009 21:16:03 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from dyn60-31.dsl.spy.dnainternet.fi ([83.102.60.31]:38681 "EHLO
+	shogun.pilppa.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751654AbZL1V4m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Dec 2009 16:56:42 -0500
+Date: Mon, 28 Dec 2009 23:47:15 +0200 (EET)
+From: Mika Laitio <lamikr@pilppa.org>
+To: VDR User <user.vdr@gmail.com>
+cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Acoustical mode for femon
+In-Reply-To: <a3ef07920912272212p901718drbaf3c441c2d371ed@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0912282340180.23947@shogun.pilppa.org>
+References: <200912232220.29626.mes@seesslen.net>
+ <a3ef07920912272212p901718drbaf3c441c2d371ed@mail.gmail.com>
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Emmanuel_Fust=E9?= <emmanuel.fuste@thalesgroup.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR system?
-References: <4B1D411F.309@thalesgroup.com>
-In-Reply-To: <4B1D411F.309@thalesgroup.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Emmanuel Fusté wrote:
-> Mauro Carvalho Chehab wrote:
-> 
->> In summary,
->>
->> While the current EVIO[G|S]KEYCODE works sub-optimally for scancodes
->> up to 16 bytes
->> (since a read loop for 2^16 is not that expensive), the current approach
->> won't scale with bigger scancode spaces. So, it is needed expand it
->> to work with bigger scancode spaces, used by more recent IR protocols.
->>
->> I'm afraid that any tricks we may try to go around the current limits
->> to still
->> keep using the same ioctl definition will sooner or later cause big
->> headaches.
->> The better is to redesign it to allow using different scancode spaces.
->>
->>
->>   
-> I second you: input layer events from drivers should be augmented with a
-> protocol member,
+>> The monitoring application produces a sound indicating the signal quality. The
+>> higher the beep the better the signal quality.
+>> This is useful while mounting the antenna for finding the best position without
+>> having to look at the monitor or without even having a monitor.
+>
+> Thank you for this!  Very useful since it's hard to be outside aiming
+> and inside looking at a monitor at the same time.  :)
 
-Yeah, I added the protocol type info inside the internal representation of
-the IR table. As I managed to do all the work inside one file (ir-keytable.c),
-changing it to use arbitrary sized scancode lengths will be trivial (currently,
-it is u16 just because just because it currently enough for the in-kernel drivers,
-but this will be changed when integrating with lirc):
+While I was trying to locate astra on last year by rotating the dish I 
+used both the cheap (10 euro) beeper that was but in the satellite cable 
+end to find out the abbroximately dish direction. Fine tuning was done by 
+starring the laptop screen szap output to find out when it started to 
+printout LOCKED output. (I used ssh from the laptop to dvb card computer 
+where I had put the channel info for one astra channel and tried to szap 
+for that one. That of course meant that I needed the correct channel info 
+for one channel in satellite even before I could try to scan channels from 
+that satellite...)
 
-http://linuxtv.org/hg/v4l-dvb/rev/7b983cd30f0f
-
-> allowing us to define new ioctl and new ways to
-> efficiently store and manage sparse scancode spaces (tree, hashtable
-> ....). It will allow us to abstract the scancode value and to use
-> variable length scancode depending on the used protocol, and using the
-> most appropriate scheme to store the scancode/keycode mapping per protocol.
-
-True.
-
-> The today scancode space will be the legacy one, the default if not
-> specified "protocol". It will permit to progressively clean up the
-> actual acceptable mess in the input layer and finally using real
-> scancode -> keycode mappings everywhere if it is cleaner/convenient.
-
-Yes. By purpose, I added IR_TYPE_UNKNOWN as 0. This way, all tables that don't
-specify a protocol can be considered legacy.
-
-Cheers,
-Mauro.
+Mika
