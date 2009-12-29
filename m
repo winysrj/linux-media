@@ -1,44 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway-1237.mvista.com ([206.112.117.35]:44554 "HELO
-	imap.sh.mvista.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with SMTP id S934954AbZLPQUF (ORCPT
+Received: from viefep11-int.chello.at ([62.179.121.31]:6043 "EHLO
+	viefep11-int.chello.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752399AbZL2KoE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Dec 2009 11:20:05 -0500
-Subject: RE: USB MAssage Storage drivers
-From: Philby John <pjohn@in.mvista.com>
-To: Gopala Gottumukkala <ggottumu@Cernium.com>
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	linux-media@vger.kernel.org
-In-Reply-To: <03A2FA9E0D3DC841992E682BF5287718016D3A53@lipwig.Cernium.local>
-References: <1259596313-16712-1-git-send-email-santiago.nunez@ridgerun.com>
-	 <200912152149.33065.hverkuil@xs4all.nl>
-	 <03A2FA9E0D3DC841992E682BF5287718016D39D9@lipwig.Cernium.local>
-	 <1260948105.4253.21.camel@localhost.localdomain>
-	 <03A2FA9E0D3DC841992E682BF5287718016D3A53@lipwig.Cernium.local>
-Content-Type: text/plain
-Date: Wed, 16 Dec 2009 21:50:07 +0530
-Message-Id: <1260980407.4253.65.camel@localhost.localdomain>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 29 Dec 2009 05:44:04 -0500
+Message-ID: <4B39DD6D.3030308@waechter.wiz.at>
+Date: Tue, 29 Dec 2009 11:43:57 +0100
+From: =?UTF-8?B?TWF0dGhpYXMgV8OkY2h0ZXI=?= <matthias@waechter.wiz.at>
+MIME-Version: 1.0
+To: Leszek Koltunski <leszek@koltunski.pl>
+CC: linux-media@vger.kernel.org
+Subject: Re: MANTIS / STB0899 / STB6100 card ( Twinhan VP-1041): problems
+ locking 	to transponder
+References: <8cd7f1780912290138q1a58d3a5xa444a9cdcd577cfd@mail.gmail.com>
+In-Reply-To: <8cd7f1780912290138q1a58d3a5xa444a9cdcd577cfd@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2009-12-16 at 10:53 -0500, Gopala Gottumukkala wrote:
-> (gcc version 3.4.3 (MontaVista 3.4.3-25.0.104.0600975 2006-07-06)) #4
-> PREEMPT Tue Dec 15 18:10:24 EST 2009
-> CPU: ARM926EJ-S [41069265] revision 5 (ARMv5TEJ), cr=00053177
-> CPU: VIVT data cache, VIVT instruction cache
-> Machine: DaVinci DM644x EVM
-> Memory policy: ECC disabled, Data cache writeback
-> DaVinci dm6446 variant 0x0
-> Built 1 zonelists in Zone order, mobility grouping on.  Total pages:
-> 50800
+Am 29.12.2009 10:38, schrieb Leszek Koltunski:
+> Now , some more info:
+> 
+> 1. I've connected a satellite set-top-box to the signal and the STB
+> can tune to and watch channels from both transponders with no problems
+> at all.
+> That IMHO proves that the signal is all right and the problem lies in
+> the drivers, or maybe in dvbstream. ( or hopefully between the chair
+> and the keyboard )
+> 
+> 2. I can ONLY tune to the 'freq 1150 / sr 28125' transponder. All
+> others fail.  But with that one I have no problems at all, I tunes
+> 100% of the time; I got it to stream for 4 days straight with no
+> problems.
+> 
+> 3. You can see that both transponders are C-BAND , H polarization, so
+> theoretically, AFAIK, if I can tune to the '1150' transponder, I
+> should be able to tune to the '1190' one with no magic at all, am I
+> wrong here?
 
-And what good is this above boot log? The log that would be of interest
-is the one generated the moment you connect a USB Pen drive. A
-cat /proc/bus/usb/devices would also give you related information on the
-connected device. Please take a look.
+The same combination of devices (Mantis, STB0899, STB6100) is used in
+various cards, and at my side they still have tuning issues.
 
-Regards,
-Philby
+A few weeks ago, Austrian TV started to feed their transponder theirself
+instead by Astra, and from that moment on it was impossible to tune to
+that transponder. After some days they switched off spectral inversion,
+and the cards were now able to tune again.
 
+Furthermore, tuning is unstable here when signal quality is not optimal
+leading to driver lock-ups. After a reload, tuning is again possible.
+
+Beside some hard reboots caused by the xineliboutput/vdpau frontend,
+this is the one remaining major problem at my setup.
+
+> Could anyone shed some light on this?
+
+– Matthias
