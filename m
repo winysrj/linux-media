@@ -1,100 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:52535 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759242AbZLOJxH (ORCPT
+Received: from mail01d.mail.t-online.hu ([84.2.42.6]:58672 "EHLO
+	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752018AbZL2VVl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Dec 2009 04:53:07 -0500
-Message-ID: <4B275CA2.406@tripleplay-services.com>
-Date: Tue, 15 Dec 2009 09:53:38 +0000
-From: Lou Otway <louis.otway@tripleplay-services.com>
+	Tue, 29 Dec 2009 16:21:41 -0500
+Message-ID: <4B3A72E1.9010107@freemail.hu>
+Date: Tue, 29 Dec 2009 22:21:37 +0100
+From: =?ISO-8859-2?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
 MIME-Version: 1.0
-To: Michael Akey <akeym@onid.orst.edu>
-CC: Linux Media <linux-media@vger.kernel.org>
-Subject: Re: scan/scan-s2 doesn't tune, but dvbtune does?
-References: <4B269F1A.30107@onid.orst.edu>
-In-Reply-To: <4B269F1A.30107@onid.orst.edu>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21:
+ OK
+References: <200912291959.nBTJxkB3066435@smtp-vbr9.xs4all.nl>
+In-Reply-To: <200912291959.nBTJxkB3066435@smtp-vbr9.xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hans Verkuil wrote:
+> Detailed results are available here:
+> 
+> http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
+linux-2.6.33-rc2-armv5: ERRORS
 
-Michael Akey wrote:
-> I can't get the scan/scan-s2 utilities to lock any transponders 
-> (DVB-S).  My test satellite is AMC1 103W, the Pentagon Channel tp. 
-> This is probably some simple user error on my part, but I can't figure 
-> it out.  I have a Corotor II with polarity changed via serial command 
-> to an external IRD.  C/Ku is switched by 22KHz tone, voltage is always 
-> 18V.  Ku is with tone off, C with tone on.  Speaking of which, is 
-> there a way to manually set the tone from the arguments on the scan 
-> utilities?
->
-> Here's what I've tried and the results:
->
-> $ ./scan-s2 -a 0 -v -o zap -l 10750 INIT
-> API major 5, minor 0
-> scanning INIT
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> initial transponder DVB-S  12100000 H 20000000 AUTO AUTO AUTO
-> initial transponder DVB-S2 12100000 H 20000000 AUTO AUTO AUTO
-> ----------------------------------> Using DVB-S
-> >>> tune to: 12100:h:0:20000
-> DVB-S IF freq is 1350000
-> >>> tuning status == 0x03
-> >>> tuning status == 0x01
-> >>> tuning status == 0x03
-> >>> tuning status == 0x01
-> >>> tuning status == 0x03
-> >>> tuning status == 0x00
-> >>> tuning status == 0x01
-> >>> tuning status == 0x03
-> >>> tuning status == 0x00
-> >>> tuning status == 0x00
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 12100:h:0:20000 (tuning failed)
-> DVB-S IF freq is 1350000
-> >>> tuning status == 0x03
-> >>> tuning status == 0x01
-> >>> tuning status == 0x00
-> >>> tuning status == 0x00
-> ...snip...
->
-> Same thing happens if I use just 'scan' and not 'scan-s2.'
->
-> If I use dvbtune, it works though..
->
-> $ dvbtune -f 1350000 -p H -s 20000 -c 0 -tone 0 -m
-> Using DVB card "Conexant CX24116/CX24118"
-> tuning DVB-S to L-Band:0, Pol:H Srate=20000000, 22kHz=off
-> polling....
-> Getting frontend event
-> FE_STATUS:
-> polling....
-> Getting frontend event
-> FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI 
-> FE_HAS_SYNC
-> Bit error rate: 0
-> Signal strength: 51648
-> SNR: 26215
-> FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI 
-> FE_HAS_SYNC
-> Signal=51648, Verror=0, SNR=26215dB, BlockErrors=0, (S|L|C|V|SY|)
-> Signal=51776, Verror=0, SNR=26624dB, BlockErrors=0, (S|L|C|V|SY|)
->
-> The tuning file 'INIT' contains only the following line:
-> S 12100000 H 20000000 AUTO
->
-> I'm using v4l-dvb drivers from the main repo as of about a week ago.  
-> I am running kernel 2.6.32 on Debian testing.  Any help is appreciated 
-> ..and hopefully it's just a simple flub on my part!
->
-> --Mike
-Try using a non-auto FEC and rolloff.
+In file included from <command-line>:0:
+/marune/build/v4l-dvb-master/v4l/config-compat.h:4:28: error: linux/autoconf.h: No such file or directory
+In file included from <command-line>:0:
+/marune/build/v4l-dvb-master/v4l/config-compat.h:4:28: In file included from <command-line>:0error: :
+linux/autoconf.h: No such file or directory
+/marune/build/v4l-dvb-master/v4l/config-compat.h:4:28:In file included from <command-line>:0 error: :
+linux/autoconf.h: No such file or directory
+/marune/build/v4l-dvb-master/v4l/config-compat.h:4:28: error: linux/autoconf.h: No such file or directory
+In file included from <command-line>:0:
+/marune/build/v4l-dvb-master/v4l/config-compat.h:4:28: error: linux/autoconf.h: No such file or directory
+In file included from <command-line>:0:
+/marune/build/v4l-dvb-master/v4l/config-compat.h:4:28: error: linux/autoconf.h: No such file or directory
+In file included from <command-line>:0:
+/marune/build/v4l-dvb-master/v4l/config-compat.h:4:28: error: linux/autoconf.h: No such file or directory
+In file included from <command-line>:0:
+/marune/build/v4l-dvb-master/v4l/config-compat.h:4:28: error: linux/autoconf.h: No such file or directory
+make[3]: *** [/marune/build/v4l-dvb-master/v4l/dvb_filter.o] Error 1
+make[3]: *** Waiting for unfinished jobs....
+make[3]: *** [/marune/build/v4l-dvb-master/v4l/dvbdev.o] Error 1
+make[3]: *** [/marune/build/v4l-dvb-master/v4l/dvb_ringbuffer.o] Error 1
+make[3]: *** [/marune/build/v4l-dvb-master/v4l/dvb_ca_en50221.o] Error 1
+make[3]: *** [/marune/build/v4l-dvb-master/v4l/dmxdev.o] Error 1
+make[3]: *** [/marune/build/v4l-dvb-master/v4l/dvb_demux.o] Error 1
+make[3]: *** [/marune/build/v4l-dvb-master/v4l/dvb_frontend.o] Error 1
+make[3]: *** [/marune/build/v4l-dvb-master/v4l/dvb_net.o] Error 1
+make[2]: *** [_module_/marune/build/v4l-dvb-master/v4l] Error 2
+make[2]: Leaving directory `/marune/build/trees/armv5/linux-2.6.33-rc2'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/marune/build/v4l-dvb-master/v4l'
+make: *** [all] Error 2
+Tue Dec 29 19:01:02 CET 2009
 
-Some devices won't accept auto for these parameters.
+This problem happens because the v4l/config-compat.h includes the
+linux/autoconf.h . This file is generated by v4l/scripts/make_config_compat.pl .
 
-Cheers,
+I found different commits where the inclusion of this file was
+completely removed, like in
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=911f21501f50b16ce77f37b01e90b5b73c8c80bf .
+I doubt whether the line should be completely deleted or a construct
+like this should be used:
 
-Lou
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 33)
+#include <linux/autoconf.h>
+#endif
+
+What do you think?
+
+	Márton Németh
+
 
