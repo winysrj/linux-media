@@ -1,127 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:19485 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750929AbZLAOPF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Dec 2009 09:15:05 -0500
-Message-ID: <4B1524DD.3080708@redhat.com>
-Date: Tue, 01 Dec 2009 12:14:53 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-iw0-f171.google.com ([209.85.223.171]:58549 "EHLO
+	mail-iw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752655AbZL2Jic (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Dec 2009 04:38:32 -0500
+Received: by iwn1 with SMTP id 1so7770492iwn.33
+        for <linux-media@vger.kernel.org>; Tue, 29 Dec 2009 01:38:31 -0800 (PST)
 MIME-Version: 1.0
-To: Gerd Hoffmann <kraxel@redhat.com>
-CC: Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	dmitry.torokhov@gmail.com, j@jannau.net, jarod@redhat.com,
-	jarod@wilsonet.com, jonsmirl@gmail.com, khc@pm.waw.pl,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR  system?
-References: <BDodf9W1qgB@lirc> <4B14EDE3.5050201@redhat.com>
-In-Reply-To: <4B14EDE3.5050201@redhat.com>
+Date: Tue, 29 Dec 2009 17:38:30 +0800
+Message-ID: <8cd7f1780912290138q1a58d3a5xa444a9cdcd577cfd@mail.gmail.com>
+Subject: MANTIS / STB0899 / STB6100 card ( Twinhan VP-1041): problems locking
+	to transponder
+From: Leszek Koltunski <leszek@koltunski.pl>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Gerd Hoffmann wrote:
->   Hi,
-> 
->>> The point is that for simple usage, like an user plugging his new USB
->>> stick
->>> he just bought, he should be able to use the shipped IR without
->>> needing to
->>> configure anything or manually calling any daemon. This currently works
->>> with the existing drivers and it is a feature that needs to be kept.
->>
->> Admittedly, LIRC is way behind when it comes to plug'n'play.
-> 
-> Should not be that hard to fixup.
-> 
-> When moving the keytable loading from kernel to userspace the kernel
-> drivers have to inform userspace anyway what kind of hardware the IR
-> device is, so udev can figure what keytable it should load.  A sysfs
-> attribute is the way to go here I think.
-> 
-> lirc drivers can do the same, and lircd can startup with a reasonable
-> (default) configuration.
-> 
-> Of course evdev and lirc subsytems/drivers should agree on which
-> attributes should be defined and how they are filled.
+Hello linux dvb gurus,
 
-Yes, a sysfs attribute seems appropriate in this case.
+I've got the following setup:
 
-This is the attributes that are currently available via sysfs:
+1. current Mythbuntu 9.10 ( kernel 2.6.31-16-generic-pae )
+2. current v4l-dvb drivers ( freshly checked out from
+http://linuxtv.org/hg/v4l-dvb ;
+I've also tried with Liplianin drivers from
+http://mercurial.intuxication.org/hg/s2-liplianin  with the same
+effect )
+3. a TwinHan VP-1041 DVB-S2 card.
 
-  looking at device '/class/input/input13/event5':
-    KERNEL=="event5"
-    SUBSYSTEM=="input"
-    SYSFS{dev}=="13:69"
+My signal comes from ASIASAT-5 satellite. You can see all the stuff
+this satellite provides in
 
-  looking at parent device '/class/input/input13':
-    ID=="input13"
-    BUS=="input"
-    DRIVER==""
-    SYSFS{name}=="em28xx IR _em28xx #0_"
-    SYSFS{phys}=="usb-0000:00:1d.7-8/input0"
-    SYSFS{uniq}==""
+http://www.tvro.com.tw/SATELLITE/100.5/100.5d.asp
 
-For the currently used attributes, we have:
+( the page is in Chinese, but you can see it has - among others - two
+transponders which I am going to talk about , one is at
 
-The name attribute. If we do some effort to standardize it, it could be an option.
-However, on several drivers, this attribute is filled with something that is generic
-for the entire driver, and on several cases like the above, it adds a device number. 
+4000H  freq 1150 sr 28125  fec 3/4
 
-The phys attribute has to do only with the bus address. Btw, the lirc drivers need
-to follow the conventions here. We did a great effort at 2.6.30 or 2.6.31 to standardize
-the phys attribute, as some drivers were using different conventions for it.
+and another on
 
-The uniq attribute is meant to be used as a serial number (no driver seems to use
-it currently, from my tests with git grep).
+3960H freq 1190 sr 27500 fec 3/4
 
-By looking on other subsystems, ALSA defines two name attributes: a shortname and a longname.
+**************************************************************************************************
 
-The current board naming schema at the V4L drivers are a long name. For example:
-"Pinnacle Dazzle DVC 90/100/101/107 / Kaiser Baas Video to DVD maker"
+Now, I want to stream a whole transponder via UDP. So I try with a first one:
 
-The rationale is that they should be user-friendly.
+$ dvbstream -c 1 -f 1150000 -s 28125 -udp -i 224.224.224.1 -r 1234 8192
+dvbstream v0.6 - (C) Dave Chapman 2001-2004
+Released under the GPL.
+Latest version available from http://www.linuxstb.org/
+Tuning to 1150000 Hz
+Using DVB card "STB0899 Multistandard", freq=1150000
+tuning DVB-S to Freq: 1150000, Pol: Srate=28125000, 22kHz tone=off, LNB: 0
+Setting only tone ON and voltage 18V
+DISEQC SETTING SUCCEDED
+Getting frontend status
+Event:  Frequency: 1150000
+        SymbolRate: 28125000
+        FEC_inner:  9
 
-Maybe a similar concept could be used here: we can add a sort of shortname string
-that will uniquely describe a device and will have a rule to describe them unically.
+Bit error rate: 0
+Signal strength: 65336
+SNR: 93
+FE_STATUS: FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI FE_HAS_SYNC
+dvbstream will stop after -1 seconds (71582788 minutes)
+Using 224.224.224.1:1234:2
+version=2
+Streaming 1 stream
 
-For example, the above device is a Hauppauge HVR950 usb stick, that is supported
-by em28xx driver.
 
-We may call it as "EM28xxHVR950-00" (the last 2 chars is to allow having board revisions, 
-as some devices may have more than one variant).
+and the transponder correctly appears in 224.224.224.1:1234, 100% success rate.
 
-Another alternative would be to create an integer SYSFS atribute and use some rule to
-associate the device number with the driver.
+************************************************************************************************
 
-The big issue here is: how do we document that "EM28xxHVR950-00" is the Hauppauge Grey IR that
-is shipped with their newer devices.
+Now I want to do the same with the other transponder, so I try:
 
-A third approach would be to identify, instead, the Remote Controller directly. So, we would
-add a sysfs field like ir_type.
+$ dvbstream -c 1 -f 1190000 -s 27500 -udp -i 224.224.224.1 -r 1234 8192
+dvbstream v0.6 - (C) Dave Chapman 2001-2004
+Released under the GPL.
+Latest version available from http://www.linuxstb.org/
+Tuning to 1190000 Hz
+Using DVB card "STB0899 Multistandard", freq=1190000
+tuning DVB-S to Freq: 1190000, Pol: Srate=27500000, 22kHz tone=off, LNB: 0
+Setting only tone ON and voltage 18V
+DISEQC SETTING SUCCEDED
+Getting frontend status
+Not able to lock to the signal on the given frequency
+dvbstream will stop after -1 seconds (71582788 minutes)
+Using 224.224.224.1:1234:2
+version=2
+Streaming 1 stream
 
-There are two issues here:
-	1) What's the name for this IR? We'll need to invent names for the existing IR's, as
-those devices don't have a known brand name;
-	2) there are cases where the same device is provided with two or more different IR
-types. If we identify the board type instead of the IR type, userspace can better handle
-it, by providing a list of the possibilities.
+... and it always says 'Not able to lock to the signal on the given
+frequency' , and even though it says 'Streaming 1 stream' , nothing
+appears in the network.
 
----
+************************************************************************************************
 
-No matter how we map, we'll still need to document it somehow to userspace. What would be
-the better? A header file? A set of keymaps from the default IR's that will be added
-on some directory at the Linux tree? A Documentation/IR ?
+Now , some more info:
 
-I'm for having the keymaps on some file at the kernel tree, maybe at Documentation/IR,
-but this is just my 2 cents. We need to think more about that.
+1. I've connected a satellite set-top-box to the signal and the STB
+can tune to and watch channels from both transponders with no problems
+at all.
+That IMHO proves that the signal is all right and the problem lies in
+the drivers, or maybe in dvbstream. ( or hopefully between the chair
+and the keyboard )
 
-Comments?
+2. I can ONLY tune to the 'freq 1150 / sr 28125' transponder. All
+others fail.  But with that one I have no problems at all, I tunes
+100% of the time; I got it to stream for 4 days straight with no
+problems.
 
-Anyway, we shouldn't postpone lirc drivers addition due to that. There are still lots of work
-to do before we'll be able to split the tables from the kernel drivers.
+3. You can see that both transponders are C-BAND , H polarization, so
+theoretically, AFAIK, if I can tune to the '1150' transponder, I
+should be able to tune to the '1190' one with no magic at all, am I
+wrong here?
 
-Cheers,
-Mauro.
+Could anyone shed some light on this?
+
+best,
+
+Leszek
