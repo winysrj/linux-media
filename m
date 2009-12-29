@@ -1,41 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:34084 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752169AbZLCM5K (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Dec 2009 07:57:10 -0500
-Received: from epmmp2 (mailout2.samsung.com [203.254.224.25])
- by mailout1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0KU2009MSUNE6V@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 03 Dec 2009 21:57:15 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0KU200DX3UNECP@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 03 Dec 2009 21:57:14 +0900 (KST)
-Date: Thu, 03 Dec 2009 21:57:16 +0900
-From: Joonyoung Shim <jy0922.shim@samsung.com>
-Subject: [PATCH v2 0/3] patches for radio-si470x-i2c driver
-To: linux-media@vger.kernel.org
-Cc: tobias.lorenz@gmx.net, kyungmin.park@samsung.com
-Message-id: <4B17B5AC.50205@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7BIT
+Received: from mail-fx0-f225.google.com ([209.85.220.225]:39234 "EHLO
+	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752029AbZL2RDS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Dec 2009 12:03:18 -0500
+Date: Tue, 29 Dec 2009 19:01:32 +0200
+From: Dan Carpenter <error27@gmail.com>
+To: Jarod Wilson <jarod@redhat.com>
+Cc: linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] input: imon driver for SoundGraph iMON/Antec Veris IR
+	devices
+Message-ID: <20091229164856.GA29476@bicker>
+References: <20091228051155.GA14301@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20091228051155.GA14301@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
 
-I post patches v2 for radio-si470x-i2c driver.
+I ran smatch (http://repo.or.cz/w/smatch.git) on it and there are
+some bugs worth fixing.
 
-[PATCH v2 1/3] radio-si470x: move some file operations to common file
-[PATCH v2 2/3] radio-si470x: support RDS on si470x i2c driver
-[PATCH v2 3/3] radio-si470x: support PM functions
+drivers/input/misc/imon.c +331 free_imon_context(7) error: dereferencing freed memory 'context'
+Move the debug line earlier.
 
-1/3 patch is same with v1.
-2/3 patch is updated the RDS interrupt enable code by review of Tobias.
-3/3 patch is to support PM.
+drivers/input/misc/imon.c +1812 imon_probe(216) error: dereferencing undefined:  'context->idev'
+drivers/input/misc/imon.c +1876 imon_probe(280) error: dereferencing undefined:  'context->touch'
+The allocation func can return NULL.  They probably won't fail in real 
+life, but it will slightly annoy every person checking running smatch 
+over the entire kernel (me).
 
-And first patch of v1 is unnecessary by 2/3 patch of v2.
+drivers/input/misc/imon.c +1979 imon_probe(383) error: double unlock 'mutex:&context->lock'
+drivers/input/misc/imon.c +1983 imon_probe(387) error: double unlock 'mutex:&context->lock'
+It sometimes unlocks both before and after the goto.
 
-Thanks.
+regards,
+dan carpenter
