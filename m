@@ -1,57 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f221.google.com ([209.85.220.221]:49308 "EHLO
-	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752959AbZLROoo (ORCPT
+Received: from lo.gmane.org ([80.91.229.12]:41328 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751377AbZL2S0K convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Dec 2009 09:44:44 -0500
-Received: by fxm21 with SMTP id 21so2865024fxm.21
-        for <linux-media@vger.kernel.org>; Fri, 18 Dec 2009 06:44:42 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <59cf47a80912180605o41708efao769d09d46b20a87e@mail.gmail.com>
-References: <59cf47a80912180605o41708efao769d09d46b20a87e@mail.gmail.com>
-Date: Fri, 18 Dec 2009 09:44:42 -0500
-Message-ID: <829197380912180644y31f520fawee04a66ab28666e7@mail.gmail.com>
-Subject: Re: Adaptec VideOh! DVD Media Center
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Paulo Assis <pj.assis@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 29 Dec 2009 13:26:10 -0500
+Received: from list by lo.gmane.org with local (Exim 4.50)
+	id 1NPglS-0001ly-PN
+	for linux-media@vger.kernel.org; Tue, 29 Dec 2009 19:25:50 +0100
+Received: from upc.si.94.140.72.111.dc.cable.static.telemach.net ([94.140.72.111])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 29 Dec 2009 19:25:50 +0100
+Received: from prusnik by upc.si.94.140.72.111.dc.cable.static.telemach.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 29 Dec 2009 19:25:50 +0100
+To: linux-media@vger.kernel.org
+From: =?UTF-8?Q?Alja=C5=BE?= Prusnik <prusnik@gmail.com>
+Subject: Re: Which modules for the VP-2033? Where is the module "mantis.ko"?
+Date: Tue, 29 Dec 2009 19:25:13 +0100
+Message-ID: <1262111113.3489.17.camel@slash.doma>
+References: <4B1D6194.4090308@freenet.de>
+	 <1261578615.8948.4.camel@slash.doma> <200912231753.28988.liplianin@me.by>
+	 <1261586462.8948.23.camel@slash.doma> <4B3269AE.6080602@freenet.de>
+	 <1a297b360912231124v6e31c9e6ja24d205f6b5dc39@mail.gmail.com>
+	 <1261611901.8948.37.camel@slash.doma> <4B339A8F.8020201@freenet.de>
+	 <1261673477.2119.1.camel@slash.doma>
+	 <1a297b360912271423x2f5b48caw7b2adad8849280ee@mail.gmail.com>
+	 <1262028495.3489.10.camel@slash.doma> <1262030776.3489.12.camel@slash.doma>
+Reply-To: abraham.manu@gmail.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+In-Reply-To: <1262030776.3489.12.camel@slash.doma>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Dec 18, 2009 at 9:05 AM, Paulo Assis <pj.assis@gmail.com> wrote:
-> Hi,
-> I'm currently porting the GPL linux-avc2210k driver (
-> http://www.freelists.org/archive/linux-avc2210k/ ) to V4L2.
-> The current version has it's own API that makes it incompatible with
-> any software except for specific user space apps (avcctrl, avctune)
-> bundled with the driver.
-> Since development seems to have halted for some time now, I had no
-> other choice than get my hands dirty :(
-> For the most part this task seems quite straight forward it's mostly a
-> matter of changing ioctls to V4L2 and add some missing support, there
-> are however a few points that I need some advice on:
-> For the box to function it needs a firmware upload. Currently this is
-> managed by a udev script that in turn calls an application (multiload)
-> that provides for the upload.
-> What I would like to know is, if this the best way to handle it?
-> The problem with this process is that it will always require
-> installing and configuring additional software (multiload and udev
-> script), besides the firmware.
-> Is there any simpler/standard way of handling these firmware uploads ?
->
-> Regards,
-> Paulo
+On pon, 2009-12-28 at 21:06 +0100, Aljaž Prusnik wrote:
+> On pon, 2009-12-28 at 20:28 +0100, Aljaž Prusnik wrote:
+> > On pon, 2009-12-28 at 02:23 +0400, Manu Abraham wrote:
+> > > Can you please do a lspci -vn for the Mantis card you have ? Also try
+> > > loading the mantis.ko module with verbose=5 module parameter, to get
+> > > more debug information.
+> > 
+> 
+> To continue, it seems the module is registering the remote commands, but
+> dunno, why irw shows nothing:
 
-Hi Paulo,
+Well - to answer myself on this one, it doesn't because there is no
+input device registered. I used to have this under input devices
+(cat /proc/bus/input/devices):
 
-I would start by looking at the request_firmware() function, which is
-used by a variety of other v4l cards.
+I: Bus=0001 Vendor=0000 Product=0000 Version=0001
+N: Name="Mantis VP-2040 IR Receiver"
+P: Phys=pci-0000:03:06.0/ir0
+S: Sysfs=/devices/virtual/input/input5
+U: Uniq=
+H: Handlers=kbd event5
+B: EV=100003
+B: KEY=108fc330 284204100000000 0 2000000018000 218040000801
+9e96c000000000 ffc
 
-Cheers,
+So the question is, why is it not registered as an input anymore?
 
-Devin
+Regards,
+Aljaz
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+
