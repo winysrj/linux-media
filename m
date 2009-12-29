@@ -1,35 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f192.google.com ([209.85.221.192]:54889 "EHLO
-	mail-qy0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753448AbZLVRaa (ORCPT
+Received: from cp-out10.libero.it ([212.52.84.110]:42085 "EHLO
+	cp-out10.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752060AbZL2SrX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Dec 2009 12:30:30 -0500
-Received: by qyk30 with SMTP id 30so3053094qyk.33
-        for <linux-media@vger.kernel.org>; Tue, 22 Dec 2009 09:30:29 -0800 (PST)
-Message-ID: <4B310280.5090601@gmail.com>
-Date: Tue, 22 Dec 2009 13:31:44 -0400
-From: Emmanuel <eallaud@gmail.com>
-MIME-Version: 1.0
+	Tue, 29 Dec 2009 13:47:23 -0500
+Received: from [151.81.53.78] (151.81.53.78) by cp-out10.libero.it (8.5.107)
+        id 4B326F69006BEECE for linux-media@vger.kernel.org; Tue, 29 Dec 2009 19:47:22 +0100
+Subject: [PATCH] IR: Fix sysfs attributes declaration
+From: Francesco Lavra <francescolavra@interfree.it>
 To: linux-media@vger.kernel.org
-Subject: Re: tt s2-3200: dvb-s2 problem transponders fixed :) concerns SR
- 30000 3/4 8psk mode
-References: <650504.20712.qm@web23208.mail.ird.yahoo.com>
-In-Reply-To: <650504.20712.qm@web23208.mail.ird.yahoo.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
+Date: Tue, 29 Dec 2009 19:48:04 +0100
+Message-Id: <1262112484.2707.7.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Newsy Paper a écrit :
-> thanks to Andreas Regel + Manu Abraham for their work.
->
-> I just tested those problem transponders. If I set SR to 29998 instead of 30000 they finally work with recent s2-liplian changeset.
->
-> Thank you for your great work and thanks to all the others involved in v4l driver development.
->   
-Then I guess this is related to a computation being abit off (30000 is 
-probably a threshold also).
-I any case I still have to add 4MHz to the frequencies (with DVB-S) to 
-get a reliable lock with tt s2-3200 (kernel is ubuntu 2.6.31.4)
-Bye
-Manu
+Hi,
+This patch fixes the declaration of the sysfs attributes for IR's, which
+must be a NULL-terminated array of struct attribute *.
+Without this patch, my machine crashes when inserting a DVB card.
+I'm using a 2.6.32 kernel.
+Regards,
+Francesco
+
+Signed-off-by: Francesco Lavra <francescolavra@interfree.it>
+
+--- a/linux/drivers/media/IR/ir-sysfs.c	2009-12-29 19:36:04.000000000 +0100
++++ b/linux/drivers/media/IR/ir-sysfs.c	2009-12-29 19:36:49.000000000 +0100
+@@ -127,6 +127,7 @@ static DEVICE_ATTR(current_protocol, S_I
+ 
+ static struct attribute *ir_dev_attrs[] = {
+ 	&dev_attr_current_protocol.attr,
++	NULL,
+ };
+ 
+ /**
+
+
