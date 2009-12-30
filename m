@@ -1,48 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx-mail.opticon.hu ([85.90.160.75]:48838 "EHLO
-	mx-mail.opticon.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753376AbZL3Uvz (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.155]:41295 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751101AbZL3VsY convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Dec 2009 15:51:55 -0500
-Subject: Re: AverMedia A577 (cx23385, xc3028, af9013)
-From: =?ISO-8859-1?Q?Nov=E1k?= Levente <lnovak@dragon.unideb.hu>
-To: Antti Palosaari <crope@iki.fi>
+	Wed, 30 Dec 2009 16:48:24 -0500
+Received: by fg-out-1718.google.com with SMTP id 22so5007263fge.1
+        for <linux-media@vger.kernel.org>; Wed, 30 Dec 2009 13:48:23 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1262207797.5645.122.camel@palomino.walls.org>
+References: <1262207797.5645.122.camel@palomino.walls.org>
+Date: Wed, 30 Dec 2009 16:48:23 -0500
+Message-ID: <829197380912301348w7ee6769ap32b74d43c67ef110@mail.gmail.com>
+Subject: Re: CX23885 IR support - how the (parts obsolecence) grinch stole
+	Christmas.
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Andy Walls <awalls@radix.net>
 Cc: linux-media@vger.kernel.org
-In-Reply-To: <4B3BB8EF.7020103@iki.fi>
-References: <1262203922.13686.36.camel@szisz-laptop>
-	 <4B3BB8EF.7020103@iki.fi>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 30 Dec 2009 21:51:51 +0100
-Message-ID: <1262206311.13686.38.camel@szisz-laptop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009. 12. 30, szerda keltezÃ©ssel 22.32-kor Antti Palosaari ezt Ã­rta:
-> On 12/30/2009 10:12 PM, NovÃ¡k Levente wrote:
-> > cx23885 (PCIe A/V decoder)
-> > xc3028  (hybrid tuner)
-> > af9013  (demod)
-> >
-> > all of these individual chips are already supported under Linux, only
-> > the "glue" is missing between them, I think.
-> 
-> Yes. Also some code changes for af9013 could be needed. There is no any 
-> af9013 device currently supported, only af9015 which integrates af9013.
-> 
+On Wed, Dec 30, 2009 at 4:16 PM, Andy Walls <awalls@radix.net> wrote:
+>
+> The delivery man just delivered my shiny new HVR-1250 from NewEgg a half
+> an hour ago - Joy!  The unit appears to have a CX23888 instead of the
+> CX23885 - Boo!  So much for debugging first-hand the perpetual CX23885
+> A/V core interrupts when enabling IR.
+>
+>
+> Further research indicates this board is what the Linux drivers call an
+> HVR-1270 Model 22111.  At least I'll get its IR supported.
+>
+> Regards,
+> Andy
 
-Ah, I thought af9013 is already supported.
+I'm pretty sure I've got a cx23885 based HVR-1250, if you want to
+trade it out for your 23888 based unit.
 
-> > I would like to ask for help, what is the next step I should take in
-> > order to make this card work?
-> 
-> Take USB sniff, parse it and comment out data flow command by command. 
-> Look meaning of those bytes from existing drivers. Then use debugs to 
-> see data flow is correct.
+Let me know if you want me to drop it into the mail,
 
-OK, but this card is not USB but ExpressCard.
+Devin
 
-Levente
-
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
