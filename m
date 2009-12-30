@@ -1,118 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:40367 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751939AbZLCJDp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Dec 2009 04:03:45 -0500
-Date: Thu, 3 Dec 2009 10:03:58 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Uwe Taeubert <u.taeubert@road.de>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Problem on RJ54N1CB0C
-In-Reply-To: <200912030948.43627.u.taeubert@road.de>
-Message-ID: <Pine.LNX.4.64.0912030959560.4328@axis700.grange>
-References: <200911130950.30581.u.taeubert@road.de> <200911160807.25160.u.taeubert@road.de>
- <Pine.LNX.4.64.0911170909440.4504@axis700.grange> <200912030948.43627.u.taeubert@road.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from static-72-93-233-3.bstnma.fios.verizon.net ([72.93.233.3]:43527
+	"EHLO mail.wilsonet.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751612AbZL3IDL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Dec 2009 03:03:11 -0500
+Subject: Re: [PATCH] input: imon driver for SoundGraph iMON/Antec Veris IR devices
+Mime-Version: 1.0 (Apple Message framework v1077)
+Content-Type: text/plain; charset=us-ascii
+From: Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <2044EA95-168E-4ACE-A19E-732BB4A34CA7@gmail.com>
+Date: Wed, 30 Dec 2009 03:02:51 -0500
+Cc: Jarod Wilson <jarod@redhat.com>,
+	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <1430BBF0-3A61-471E-86A9-E85CF153A150@wilsonet.com>
+References: <2044EA95-168E-4ACE-A19E-732BB4A34CA7@gmail.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Uwe
+On Dec 29, 2009, at 5:30 PM, Dmitry Torokhov wrote:
 
-On Thu, 3 Dec 2009, Uwe Taeubert wrote:
-
-> Hello Guennadi,
-> now  our driver is working. I found the registers to fix and manipulate the 
-> exposure values. So, now, if I switch from preview to heigher resolution 
-> pictures, the taken photo is as bright as the preview. I read out the preview 
-> exposure data, modify it according to the desired divider settings and then I 
-> switch to the new mode. 
-> Now it is also possible to change exposure values in case of flashlight use 
-> depending on AF values to prevent over exposure of near objects. But, it is 
-> not done, yet.
-> The resolution depending divider switching is not tested in all details, yet. 
-> It is done for our preferred resolutions.
-
-cool! Thanks for sharing your success! I'm currently busy with getting 
-ready for the approaching merge window, but it would be good to get your 
-functionality integrated in the mainline driver. I think, it would also be 
-good for you to migrate to the in-tree version, so, would be cool, if you 
-could try the mainstream version and send us patches against it.
-
-> I'm using the English version.
-
-Hm, good to know...
-
-Thanks
-Guennadi
+> On Tue, Dec 29, 2009 at 12:04:00AM -0500, Jarod Wilson wrote:
+>> On Dec 28, 2009, at 4:31 AM, Dmitry Torokhov wrote:
+>>> 
+>>> Hm, will this work on big-endian?
+>> 
+>> Good question. Not sure offhand. Probably not. Unfortunately, the only devices I have to test with at the moment are integrated into cases with x86 boards in them, so testing isn't particularly straight-forward. I should probably get ahold of one of the plain external usb devices to play with... Mind if I just add a TODO marker near that for now?
+>> 
 > 
-> Regard
-> Uwe
-> 
-> Am Tuesday 17 November 2009 09:28:18 schrieben Sie:
-> > Hi Uwe
-> >
-> > On Mon, 16 Nov 2009, Uwe Taeubert wrote:
-> > > Hi Guennadi
-> > > You will find the driver sources for our Sharp module in lz0p39ha.c and
-> > > the initialization data in lz0p39ha_init.c. In lz0p35du_set_fmt_cap() you
-> > > can see the resolution depending change of the divider. In our system we
-> > > get correct pictures in all resolution mensioned there. But FYI, if no
-> > > flashlight is desired, we do not switch to still mode - only still mode
-> > > generates flash controll signals.
-> > > We are working with the Technical Manual Ver. 2.2C, also under NDA.
-> >
-> > May I ask you if you have an English or a Japanese version?:-) I've got a
-> > 2.3C Japanese...
-> >
-> > > Concerning the exposure control, I know the use of the registers 0x04d8
-> > > and 0x04d9 is more a hack but a solution. And the result is unsatisfying
-> > > - it was a try.divide  
-> > >
-> > > At the moment I'm checking the influence of RAMPCLK- TGCLK-ratio. I was
-> > > able to get higher exposer by changing RAMPCLK but I wasn't able to
-> > > calculate a well doing relation between all clocks and to have a fast
-> > > frame rate.
-> > >
-> > > The driver content is in a preliminary state. I'm working on
-> > > lz0p35du_set_fmt_cap function. We do not diffenrentialte between preview
-> > > and still mode. It makes it easier to handle buffers in VFL at the
-> > > moment.
-> >
-> > Thanks for the code. I looked briefly at it and one essential difference
-> > that occurred to me is, that you're setting the RESIZE registers at the
-> > beginning of the format-change function (lz0p35du_set_fmt_cap()), and I am
-> > doing this following code examples, that I had in the end, followed by a
-> > killer delay of 230ms... You might try to do that in the end, but it might
-> > only become worse, because, as I said, my version of the driver has
-> > problems with bigger images.
-> >
-> > My driver also doesn't set autofocus ATM, as there had been errors in
-> > examples that I had and I didn't have time to experiment with those
-> > values. I'm also relying on the automatic exposure area selection (0x58c
-> > bit 7) instead of setting it automatically. You also don't seem to
-> > dynamically adjust INC_USE_SEL registers, instead you just initialise them
-> > to 0xff. And in my experience that register does make a difference, so,
-> > you might try to play with it a bit. Have a look at my driver, although, I
-> > don't think values I configure there are perfect either.
-> >
-> > In fact, it might indeed become a problem for you, that you're updating
-> > the RESIZE registers too early and not pausing after that.
-> >
-> > Unfortunately, I do not have time now to look at the driver in detail ATM,
-> > let me know your results when you fix your problem.
-> >
-> > Thanks
-> > Guennadi
-> > ---
-> > Guennadi Liakhovetski, Ph.D.
-> > Freelance Open-Source Software Developer
-> > http://www.open-technology.de/
-> 
-> 
-> 
+> How about just do le32_to_cpu() instead of memcpy()ing and that's
+> probably it?
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Hrm. My endian-fu sucks. Not sure what the right way to do it without the memcpy is. I thought I had something together than would work, using 2 lines (memcpy, then le32_to_cpu), but I just realized that'll go south on the keys where we're only looking at half the buffer (i.e., the wrong half on big-endian)... Will see what I can do to fix that up in the morning, was hoping to get this out tonight, but its nearly 3am (again)...
+
+Also, forgot to reply to this bit last time:
+
+>> +	init_completion(&context->tx.finished);
+>> +	atomic_set(&(context->tx.busy), 1);
+> 
+> What does this atomic give you? Atomic operations do not imply memory
+> barriers IIRC...
+
+Code is borrowed from lirc_imon from before my time, honestly hadn't really looked into that much until now. I'm guessing it was *supposed* to provide an assurance that later readers saw the correct value for busy, but indeed, I don't think its actually guaranteeing that. I've changed busy to a bool and inserted smp_rmb()'s after each change to it, which I think *will* provide the desired guarantee. (In practice, its been working just fine either way for me so far).
+
+>>> We have pretty different behavior depending on the interface, maybe the
+>>> driver should be split further?
+>> 
+>> This is what we'll call a "fun" topic... These devices expose two interfaces, and a while back in the lirc_imon days, they actually loaded up as two separate lirc devices. But there's a catch: they can't operate independently. Some keys come in via intf0, some via intf1, even from the very same remote. And the interfaces share a hardware-internal buffer (or something), and if you're only listening to one of the two devices, and a key is decoded and sent via the interface you're not listening to, it wedges the entire device until you flush the other interface. Horribly bad hardware design at play there, imo, but meh. What exactly did you have in mind as far as a split? (And/or does it still apply with the above info taken into consideration? ;).
+> 
+> Ok, fair enough. I'd still want to see larger functions split up a bit though.
+
+I've hacked imon_probe() up into 6 different functions now:
+
+imon_probe()
+ -> imon_init_intf0()
+  -> imon_init_idev()
+  -> imon_init_display()
+ -> imon_init_intf1()
+  -> imon_init_touch()
+
+(and there was an existing imon_set_ir_protocol() in the mix)
+
+Quite a bit more manageable and readable now, I think. Haven't looked yet for other candidates for similar refactoring. Were there others you had in mind? At a glance, imon_incoming_packet() seems to be the only remaining function that is particularly hefty. Well, imon_probe() is still ~180 lines, but it used to be north of 400, I think... So perhaps I try trimming imon_probe() a bit more, and see what can be done to make imon_incoming_packet() less chunky.
+
+Current work-in-progress pushed to git.kernel.org again.
+
+Thanks much,
+
+-- 
+Jarod Wilson
+jarod@wilsonet.com
+
+
+
