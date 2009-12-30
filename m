@@ -1,40 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from exprod6og104.obsmtp.com ([64.18.1.187]:54647 "HELO
-	exprod6og104.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751468AbZL3TQG convert rfc822-to-8bit (ORCPT
+Received: from mail-iw0-f171.google.com ([209.85.223.171]:34020 "EHLO
+	mail-iw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750995AbZL3VfV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Dec 2009 14:16:06 -0500
-Content-class: urn:content-classes:message
+	Wed, 30 Dec 2009 16:35:21 -0500
+Received: by iwn1 with SMTP id 1so8714746iwn.33
+        for <linux-media@vger.kernel.org>; Wed, 30 Dec 2009 13:35:20 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Subject: [PATCH] drivers/media/video/tveeprom.c: use %pM to show MAC address
-Date: Wed, 30 Dec 2009 14:13:10 -0500
-Message-ID: <BD79186B4FD85F4B8E60E381CAEE19090200F650@mi8nycmail19.Mi8.com>
-From: "H Hartley Sweeten" <hartleys@visionengravers.com>
-To: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
+Date: Wed, 30 Dec 2009 16:35:18 -0500
+Message-ID: <39648cc20912301335n292a9460y9eb0e7d73efd781@mail.gmail.com>
+Subject: i915 graphics driver
+From: Neil Sikka <neilsikka@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the %pM kernel extension to display the MAC address.
+Hello. I am trying to get the different display modes working with my
+portege M400 laptop. Im running 2.6.32 with the toshiba_acpi module.
+the problem is that when i do:
 
-Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+echo "lcd_out:0;crt_out:1" > /proc/acpi/toshiba/video
+cat /proc/acpi/toshiba/video
 
----
+i get:
+lcd_out: 1
+crt_out: 0
+tv_out: 0
 
-diff --git a/drivers/media/video/tveeprom.c b/drivers/media/video/tveeprom.c
-index d533ea5..0a87749 100644
---- a/drivers/media/video/tveeprom.c
-+++ b/drivers/media/video/tveeprom.c
-@@ -680,10 +680,7 @@ void tveeprom_hauppauge_analog(struct i2c_client *c, struct tveeprom *tvee,
- 	tveeprom_info("Hauppauge model %d, rev %s, serial# %d\n",
- 		tvee->model, tvee->rev_str, tvee->serial_number);
- 	if (tvee->has_MAC_address == 1)
--		tveeprom_info("MAC address is %02X-%02X-%02X-%02X-%02X-%02X\n",
--			tvee->MAC_address[0], tvee->MAC_address[1],
--			tvee->MAC_address[2], tvee->MAC_address[3],
--			tvee->MAC_address[4], tvee->MAC_address[5]);
-+		tveeprom_info("MAC address is %pM\n", tvee->MAC_address);
- 	tveeprom_info("tuner model is %s (idx %d, type %d)\n",
- 		t_name1, tuner1, tvee->tuner_type);
- 	tveeprom_info("TV standards%s%s%s%s%s%s%s%s (eeprom 0x%02x)\n", 
+I am following the guide at
+http://memebeam.org/toys/ToshibaAcpiDriver. Why does the state of the
+crt_out variable not change? the kernel file where this is handled is:
+kernel/drivers/portability/
+x86/toshiba_acpi.c. I have the same problem as these guys here:
+
+http://osdir.com/ml/linux.hardware.toshiba/2003-04/msg00216.html
+
+I tried doing what was suggested at that link, but that did not work
+either. Is there a known bug where the state of the driver (as seen by
+cat /proc/acpi/toshiba/video) is not updated by writing to it(echo
+"lcd_out:0;crt_out:1" > /proc/acpi/toshiba/video)? It seems that the
+state written to this file is not persistant. I have posted my problem
+in full detail here
+(http://www.linuxquestions.org/questions/linux-laptop-and-netbook-25/tvout-from-toshiba-portege-m400-777822/).
+thanks.
+
+--
+Neil Sikka
