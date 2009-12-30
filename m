@@ -1,33 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp115.rog.mail.re2.yahoo.com ([68.142.225.231]:24623 "HELO
-	smtp115.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752187AbZL3WMF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Dec 2009 17:12:05 -0500
-Message-ID: <4B3BD031.8090909@rogers.com>
-Date: Wed, 30 Dec 2009 17:12:01 -0500
-From: CityK <cityk@rogers.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:60880 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752304AbZL3Ucz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Dec 2009 15:32:55 -0500
+Message-ID: <4B3BB8EF.7020103@iki.fi>
+Date: Wed, 30 Dec 2009 22:32:47 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Neil Sikka <neilsikka@gmail.com>,
-	Linux-media <linux-media@vger.kernel.org>
-Subject: Re: i915 graphics driver
-References: <39648cc20912301335n292a9460y9eb0e7d73efd781@mail.gmail.com>	 <4B3BCBC7.7070902@rogers.com> <39648cc20912301354g3179b7a3ob274f7d03013e857@mail.gmail.com>
-In-Reply-To: <39648cc20912301354g3179b7a3ob274f7d03013e857@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: =?UTF-8?B?Tm92w6FrIExldmVudGU=?= <lnovak@dragon.unideb.hu>
+CC: linux-media@vger.kernel.org
+Subject: Re: AverMedia A577 (cx23385, xc3028, af9013)
+References: <1262203922.13686.36.camel@szisz-laptop>
+In-Reply-To: <1262203922.13686.36.camel@szisz-laptop>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Neil Sikka wrote:
-> hey. isnt this mailing list where the i915 driver was developed?
+On 12/30/2009 10:12 PM, Novák Levente wrote:
+> cx23885 (PCIe A/V decoder)
+> xc3028  (hybrid tuner)
+> af9013  (demod)
 >
-> On Wed, Dec 30, 2009 at 4:53 PM, CityK <cityk@rogers.com> wrote:
->   
->> wrong list Neil -- try xorg user support:
->> http://lists.freedesktop.org/mailman/listinfo/xorg
+> all of these individual chips are already supported under Linux, only
+> the "glue" is missing between them, I think.
 
-(note: added LMML back in .. use "reply all")
+Yes. Also some code changes for af9013 could be needed. There is no any 
+af9013 device currently supported, only af9015 which integrates af9013.
 
-nope.  likely on http://lists.freedesktop.org/archives/intel-gfx/  (or
-some precursor ... see http://intellinuxgraphics.org/  ).  Anyway, xorg
-or the Intel list would likely serve your purposes
+> I would like to ask for help, what is the next step I should take in
+> order to make this card work?
+
+Take USB sniff, parse it and comment out data flow command by command. 
+Look meaning of those bytes from existing drivers. Then use debugs to 
+see data flow is correct.
+
+Antti
+-- 
+http://palosaari.fi/
