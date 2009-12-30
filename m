@@ -1,66 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:42746 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751218AbZLaTlW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Dec 2009 14:41:22 -0500
-Subject: Re: [ivtv-devel] PVR150 Tinny/fuzzy audio w/ patch?
-From: Andy Walls <awalls@radix.net>
-To: Discussion list for development of the IVTV driver
-	<ivtv-devel@ivtvdriver.org>
-Cc: Martin Dauskardt <martin.dauskardt@gmx.de>,
-	Steven Toth <stoth@kernellabs.com>, isely@pobox.com,
-	linux-media@vger.kernel.org
-In-Reply-To: <1262287607.3055.115.camel@palomino.walls.org>
-References: <200912311815.38865.martin.dauskardt@gmx.de>
-	 <1262287607.3055.115.camel@palomino.walls.org>
-Content-Type: text/plain
-Date: Thu, 31 Dec 2009 14:40:15 -0500
-Message-Id: <1262288415.3055.121.camel@palomino.walls.org>
+Received: from mx-mail.opticon.hu ([85.90.160.75]:48452 "EHLO
+	mx-mail.opticon.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751468AbZL3USq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Dec 2009 15:18:46 -0500
+Subject: AverMedia A577 (cx23385, xc3028, af9013)
+From: =?ISO-8859-1?Q?Nov=E1k?= Levente <lnovak@dragon.unideb.hu>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 30 Dec 2009 21:12:02 +0100
+Message-ID: <1262203922.13686.36.camel@szisz-laptop>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2009-12-31 at 14:26 -0500, Andy Walls wrote:
-> On Thu, 2009-12-31 at 18:15 +0100, Martin Dauskardt wrote:
+Hi,
 
-Some corrections to errors:
+Now that DVB-T is finally available in my town, I would like to ask for
+help to make my AverMedia HybridExpress (A577) work under Linux.
 
-> My preferences in summary, is that not matter what the digitizer chip:
+This is the information I have gathered so far:
 
-My preferences are, in summary, that no matter what the digitizer chip:
+Main chips are the following (see
+http://www.ixbt.com/monitor/aver-hybrid-express.shtml for pictures, the
+page is in Russian though):
 
-> a. I'd like to keep the audio clocks always up to avoid tinny audio.
-> 
-> b. I'd also like to inhibit the video clock and add the delay after
-                                                  ^^^
-                                                  refine
-> re-enabling the digitizer to avoid the *potential* for a hung machine.
-A value smaller than 300 ms should work, but a value smaller than 40 ms
-may not work, if my hypothesis is correct.
+cx23885 (PCIe A/V decoder)
+xc3028  (hybrid tuner)
+af9013  (demod)
+
+all of these individual chips are already supported under Linux, only
+the "glue" is missing between them, I think.
+
+I've also got an A885VCap.inf file (which is some 3164 lines long,
+that's why I don't attach it here except if requested), along with other
+files (a885vcap.cat, A885VCap.sys, cpnotify.ax, cxtvrate.dll, but also
+merlinC.rom and cx416enc.rom) from the Windows driver pack. I don't know
+if all of these are really needed, especially cx416enc.rom, since this
+card is not supposed to have a hardware A/V encoder.
+
+I would like to ask for help, what is the next step I should take in
+order to make this card work?
+
+Levente
 
 
-> 
-> c. I do not care to much about the delay after disbaling the video
-> clock, only that it is empirically "long enough".
-> 
-> Thanks for taking the time to test and comment.
-> 
-> Regards,
-> Andy
-
-Regards,
-Andy
-
-> > Greets and Happy New Year 
-> > 
-> > Martin
-> > 
-> > PS:
-> > Readers on the ivtv-devel ML list will miss previous postings (the list was 
-> > down a few days). Please have a look in 
-> > http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/14151
-> > and
-> > http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/14155
 
 
