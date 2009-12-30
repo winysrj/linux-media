@@ -1,109 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3756 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751972AbZL3TzI (ORCPT
+Received: from exprod6og104.obsmtp.com ([64.18.1.187]:54660 "HELO
+	exprod6og104.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751636AbZL3TQH convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Dec 2009 14:55:08 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id nBUJt6qQ009109
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 30 Dec 2009 20:55:06 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 30 Dec 2009 20:55:06 +0100 (CET)
-Message-Id: <200912301955.nBUJt6qQ009109@smtp-vbr6.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: OK
+	Wed, 30 Dec 2009 14:16:07 -0500
+Content-class: urn:content-classes:message
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Subject: [PATCH] drivers/media/video/cx23885/cx23885-dvb.c: use %pM to show MAC address
+Date: Wed, 30 Dec 2009 14:08:57 -0500
+Message-ID: <BD79186B4FD85F4B8E60E381CAEE19090200F64E@mi8nycmail19.Mi8.com>
+From: "H Hartley Sweeten" <hartleys@visionengravers.com>
+To: <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
+Cc: <stoth@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Use the %pM kernel extension to display the MAC address.
 
-Results of the daily build of v4l-dvb:
+Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Cc: Steven Toth <stoth@kernellabs.com>
 
-date:        Wed Dec 30 19:00:08 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13877:59e746a1c5d1
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+---
 
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-armv5: OK
-linux-2.6.33-rc2-armv5: ERRORS
-linux-2.6.32-armv5-davinci: OK
-linux-2.6.33-rc2-armv5-davinci: ERRORS
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-armv5-ixp: OK
-linux-2.6.32-armv5-ixp: OK
-linux-2.6.33-rc2-armv5-ixp: ERRORS
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: OK
-linux-2.6.32-armv5-omap2: OK
-linux-2.6.33-rc2-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: OK
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-i686: WARNINGS
-linux-2.6.33-rc2-i686: ERRORS
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-m32r: OK
-linux-2.6.33-rc2-m32r: ERRORS
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: OK
-linux-2.6.32-mips: OK
-linux-2.6.33-rc2-mips: ERRORS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-powerpc64: OK
-linux-2.6.32-powerpc64: WARNINGS
-linux-2.6.33-rc2-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: OK
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-x86_64: WARNINGS
-linux-2.6.33-rc2-x86_64: ERRORS
-spec: OK
-sparse (linux-2.6.32): ERRORS
-sparse (linux-2.6.33-rc2): ERRORS
-linux-2.6.16.61-i686: OK
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: OK
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: OK
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+diff --git a/drivers/media/video/cx23885/cx23885-dvb.c b/drivers/media/video/cx23885/cx23885-dvb.c
+index e45d2df..f9243de 100644
+--- a/drivers/media/video/cx23885/cx23885-dvb.c
++++ b/drivers/media/video/cx23885/cx23885-dvb.c
+@@ -994,15 +994,8 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		netup_get_card_info(&dev->i2c_bus[0].i2c_adap, &cinfo);
+ 		memcpy(port->frontends.adapter.proposed_mac,
+ 				cinfo.port[port->nr - 1].mac, 6);
+-		printk(KERN_INFO "NetUP Dual DVB-S2 CI card port%d MAC="
+-			"%02X:%02X:%02X:%02X:%02X:%02X\n",
+-			port->nr,
+-			port->frontends.adapter.proposed_mac[0],
+-			port->frontends.adapter.proposed_mac[1],
+-			port->frontends.adapter.proposed_mac[2],
+-			port->frontends.adapter.proposed_mac[3],
+-			port->frontends.adapter.proposed_mac[4],
+-			port->frontends.adapter.proposed_mac[5]);
++		printk(KERN_INFO "NetUP Dual DVB-S2 CI card port%d MAC=%pM\n",
++			port->nr, port->frontends.adapter.proposed_mac);
+ 
+ 		netup_ci_init(port);
+ 		break; 
