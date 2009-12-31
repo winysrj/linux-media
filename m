@@ -1,40 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60880 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752304AbZL3Ucz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Dec 2009 15:32:55 -0500
-Message-ID: <4B3BB8EF.7020103@iki.fi>
-Date: Wed, 30 Dec 2009 22:32:47 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: =?UTF-8?B?Tm92w6FrIExldmVudGU=?= <lnovak@dragon.unideb.hu>
-CC: linux-media@vger.kernel.org
-Subject: Re: AverMedia A577 (cx23385, xc3028, af9013)
-References: <1262203922.13686.36.camel@szisz-laptop>
-In-Reply-To: <1262203922.13686.36.camel@szisz-laptop>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from cp-out10.libero.it ([212.52.84.110]:49398 "EHLO
+	cp-out10.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750733AbZLaLqW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Dec 2009 06:46:22 -0500
+Received: from [151.83.159.146] (151.83.159.146) by cp-out10.libero.it (8.5.107)
+        id 4B326F6900836642 for linux-media@vger.kernel.org; Thu, 31 Dec 2009 12:46:21 +0100
+Subject: [PATCH] em28xx-dvb: fix memleak in dvb_fini()
+From: Francesco Lavra <francescolavra@interfree.it>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain
+Date: Thu, 31 Dec 2009 12:47:11 +0100
+Message-Id: <1262260031.4401.9.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/30/2009 10:12 PM, Novák Levente wrote:
-> cx23885 (PCIe A/V decoder)
-> xc3028  (hybrid tuner)
-> af9013  (demod)
->
-> all of these individual chips are already supported under Linux, only
-> the "glue" is missing between them, I think.
+Hi,
+this patch fixes a memory leak which occurs when an em28xx card with DVB
+extension is unplugged or its DVB extension driver is unloaded. In
+dvb_fini(), dev->dvb must be freed before being set to NULL, as is done
+in dvb_init() in case of error.
+Note that this bug is also present in the latest stable kernel release.
+Regards,
+Francesco
 
-Yes. Also some code changes for af9013 could be needed. There is no any 
-af9013 device currently supported, only af9015 which integrates af9013.
+Signed-off-by: Francesco Lavra <francescolavra@interfree.it>
 
-> I would like to ask for help, what is the next step I should take in
-> order to make this card work?
+--- a/linux/drivers/media/video/em28xx/em28xx-dvb.c	2009-12-31 12:23:53.000000000 +0100
++++ b/linux/drivers/media/video/em28xx/em28xx-dvb.c	2009-12-31 12:23:56.000000000 +0100
+@@ -607,6 +607,7 @@ static int dvb_fini(struct em28xx *dev)
+ 
+ 	if (dev->dvb) {
+ 		unregister_dvb(dev->dvb);
++		kfree(dev->dvb);
+ 		dev->dvb = NULL;
+ 	}
+ 
 
-Take USB sniff, parse it and comment out data flow command by command. 
-Look meaning of those bytes from existing drivers. Then use debugs to 
-see data flow is correct.
 
-Antti
--- 
-http://palosaari.fi/
