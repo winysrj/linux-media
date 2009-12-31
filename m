@@ -1,87 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:47126 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752633AbZLaRPp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Dec 2009 12:15:45 -0500
-To: Andy Walls <awalls@radix.net>
-Subject: Re: [ivtv-devel] PVR150 Tinny/fuzzy audio w/ patch?
-Cc: linux-media@vger.kernel.org,
-	Argus <pthorn-ivtvd@styx2002.no-ip.org>,
-	Chris Kennedy <ivtv@groovy.org>,
-	Moasat <ivtv@moasat.dyndns.org>, Mike Isely <isely@isely.net>,
-	isely@pobox.com, Steven Toth <stoth@kernellabs.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Discussion list for development of the IVTV driver
-	<ivtv-devel@ivtvdriver.org>, pthorn-ivtvd@styx2002.no-ip.org
-From: Martin Dauskardt <martin.dauskardt@gmx.de>
-Date: Thu, 31 Dec 2009 18:15:38 +0100
+Received: from mx1.redhat.com ([209.132.183.28]:24298 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751441AbZLaWXP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Dec 2009 17:23:15 -0500
+Message-ID: <4B3D244D.3030703@redhat.com>
+Date: Thu, 31 Dec 2009 20:23:09 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Patrick Boettcher <pboettcher@kernellabs.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC] dvb-apps ported for ISDB-T
+References: <4B32CF33.3030201@redhat.com> <4B342CEE.8020205@redhat.com> <alpine.LRH.2.00.0912251219090.30046@pub4.ifh.de>
+In-Reply-To: <alpine.LRH.2.00.0912251219090.30046@pub4.ifh.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <200912311815.38865.martin.dauskardt@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everybody,
+Patrick Boettcher wrote:
+> Hi Mauro,
+> 
+> On Fri, 25 Dec 2009, Mauro Carvalho Chehab wrote:
+> 
+>> Em 24-12-2009 00:17, Mauro Carvalho Chehab escreveu:
+>>> I wrote several patches those days in order to allow dvb-apps to
+>>> properly
+>>> parse ISDB-T channel.conf.
+>>>
+>>> On ISDB-T, there are several new parameters, so the parsing is more
+>>> complex
+>>> than all the other currently supported video standards.
+>>>
+>>> I've added the changes at:
+>>>
+>>> http://linuxtv.org/hg/~mchehab/dvb-apps-isdbt/
+>>>
+>>> I've merged there Patrick's dvb-apps-isdbt tree.
+>>>
+>>> While there, I fixed a few bugs I noticed on the parser and converted it
+>>> to work with the DVB API v5 headers that are bundled together with
+>>> dvb-apps.
+>>> This helps to avoid adding lots of extra #if DVB_ABI_VERSION tests.
+>>> The ones
+>>> there can now be removed.
+>>>
+>>> TODO:
+>>> =====
+>>>
+>>> The new ISDB-T parameters are parsed, but I haven't add yet a code to
+>>> make
+>>> them to be used;
+>>>
+>>> There are 3 optional parameters with ISDB-T, related to 1seg/3seg: the
+>>> segment parameters. Currently, the parser will fail if those
+>>> parameters are found.
+>>>
+>>> gnutv is still reporting ISDB-T as "DVB-T".
+>>>
+>>
+>> I've just fixed the issues on the TODO list. The DVB v5 code is now
+>> working fine
+>> for ISDB-T.
+>>
+>> Pending stuff (patches are welcome):
+>>     - Implement v5 calls for other video standards;
+>>     - Remove the duplicated DVBv5 code on /util/scan/scan.c (the code
+>> for calling
+>> DVBv5 is now at /lib/libdvbapi/v5api.c);
+>>     - Test/use the functions to retrieve values via DVBv5 API. The
+>> function is
+>> already there, but I haven't tested.
+>>
+>> With the DVBv5 API implementation, zap is now working properly with
+>> ISDB-T.
+>> gnutv also works (although some outputs - like decoder - may need some
+>> changes, in
+>> order to work with mpeg4/AAC video/audio codecs).
+> 
+> Very good job!
+> 
+> Have you had a look here on this one
+> 
+> http://www.mail-archive.com/vdr@linuxtv.org/msg11125.html
+> 
+> ?
+> 
+> I had this on my list because I wanted to spent some time on DVB-S2
+> myself and it seemed to be a good step to merge it (back) into dvb-apps.
+> Though I haven't yet looked at it in detail.
+> 
+> I will check your changes soon, but after the holidays.
+> 
+> So, now you should have some quiet time for yourself! ;-)
 
-first test results from me:
+Ok, I've added a version 2 of the isdbt-aware dvb-apps scan tools. 
 
-As expected, the double "ivtv_msleep_timeout(300, 1);" in ivtv-streams.c 
-increases the time for stopping/starting a stream. I removed the first call 
-and it still works fine.
+Basically, this version:
+	- checks if v5 API is available on a driver. If not, it falls back to 
+	  v3 API;
+	- v5api.c is now fully internal to libdvbfe. For library clients, it
+is fully transparent if it is using v5 or v3 calls;
+	- scan now uses libdvbfe, instead of directly implementing the
+ioctls for v3 and v5. The code were simplified by the removal of lots of if's
+for v5 API;
+	- scan now supports a few parameters present on DVB-S2, but there
+are still a few missing bits to fully support DVB-S2;
+	- as my previous tree, dvb-apps has a copy of the dvb headers, since
+the headers are stable enough to work with older drivers and since the API
+version check is done by an ioctl call;
+	- it addresses the pertinent issues that Manu pointed.
 
-@ Mike:
-Previously I suggested to add a msleep(300)  in state_eval_decoder_run 
-(pvrusb2-hdw.c), after calling pvr2_decoder_enable(hdw,!0).
+The big advantage of using libvbfe for scan is that we can remove all v5 
+(and v3) calls from scan, having a cleaner code. Also, applications like kaffeine
+that have their own scan codes can benefit on using libdvbfe.
 
-With the change from Andy I now have again sporadic black screens with my 
-saa7115-based PVRUSB2.  So I moved the sleep directly into "static int 
-pvr2_decoder_enable":
+Probably, it makes sense to move some code from scan to libdvbfe or to create
+a libdvbscan, in order to easy the usage of the libdvb for applications that
+want to have the scan code integrated.
 
---- v4l-dvb-bugfix-7753cdcebd28-orig/v4l-dvb-
-bugfix-7753cdcebd28/linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c	2009-12-24 
-17:06:08.000000000 +0100
-+++ v4l-dvb-bugfix-7753cdcebd28-patched/v4l-dvb-
-bugfix-7753cdcebd28/linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c	2009-12-31 
-17:19:22.836251706 +0100
-@@ -1716,6 +1716,7 @@
- 		   (enablefl ? "on" : "off"));
- 	v4l2_device_call_all(&hdw->v4l2_dev, 0, video, s_stream, enablefl);
- 	v4l2_device_call_all(&hdw->v4l2_dev, 0, audio, s_stream, enablefl);
-+	if (enablefl != 0) msleep(300);
- 	if (hdw->decoder_client_id) {
- 		/* We get here if the encoder has been noticed.  Otherwise
- 		   we'll issue a warning to the user (which should
+I started to validate the delivery system descriptors against the EN 300 468
+v 1.9.1, but I haven't finished yet. Due to that, a few new parameters were
+added, making easier to add DVB-S2 support.
 
-Funny- this seems to work, no more black screens appeared.
+I intend later to finish the validation against ETSI for DVB standards and do
+some review on ARIB and ABNT specs to be sure that it is able to get all 
+parameters reported by the NIT tables for ISDB-T.
 
+Yet, this version is not properly tested, but, as I intend to be on vacations
+next week, I wanted to post what I have, even without all tests, to avoid the 
+risk of someone to be working on DVB-S2 or other improvements to do a similar 
+work.
 
-The remaining questions are in my opinion:
+So, the new tree is at:
 
-1.)
-What is Hans opinion about the changes, especially the move of the 300ms sleep 
-from "after disabling the digitizer"  to "after enabling it" ?
+http://linuxtv.org/hg/~mchehab/dvb-apps-isdbt2/
 
-2.)
-Do we want to keep disabling the digitizer during the 
-CX2341X_ENC_INITIALIZE_INPUT call in case the digitizer is a cx25840x ?
-It seems to be necessary only for the saa7115. 
-Note: The cx88-blackbird-driver does also no disabling/enabling of the 
-digitizer (cx2388x) when doing this firmware call. 
+it was tested only with ISDB-T and may not work yet with other DTV standards.
 
-3.)
-Does Andys Patch solve the tinny audio problem for Argus (who originally 
-posted the problem and a different solution in the ivtv-devel list). I add him 
-in cc.
+Enjoy!
 
-Greets and Happy New Year 
-
-Martin
-
-PS:
-Readers on the ivtv-devel ML list will miss previous postings (the list was 
-down a few days). Please have a look in 
-http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/14151
-and
-http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/14155
+Happy New Year!
+Mauro.
