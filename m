@@ -1,52 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet11.oracle.com ([148.87.113.123]:33319 "EHLO
-	rcsinet11.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752192Ab0AOQ4q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jan 2010 11:56:46 -0500
-Date: Fri, 15 Jan 2010 08:55:58 -0800
-From: Randy Dunlap <randy.dunlap@oracle.com>
-To: Christoph Egger <siccegge@stud.informatik.uni-erlangen.de>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Reinhard.Tartler@informatik.uni-erlangen.de
-Subject: Re: [PATCH] obsolete config in kernel source (FB_SOFT_CURSOR)
-Message-Id: <20100115085558.4d908605.randy.dunlap@oracle.com>
-In-Reply-To: <20100115122755.GC3321@faui49.informatik.uni-erlangen.de>
-References: <20100115122755.GC3321@faui49.informatik.uni-erlangen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4479 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751932Ab0AATuO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jan 2010 14:50:14 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id o01Jo1mH081979
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 1 Jan 2010 20:50:13 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 1 Jan 2010 20:50:01 +0100 (CET)
+Message-Id: <201001011950.o01Jo1mH081979@smtp-vbr14.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 15 Jan 2010 13:27:56 +0100 Christoph Egger wrote:
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-> Hi all!
-> 
-> 	As part of the VAMOS[0] research project at the University of
-> Erlangen we're checking referential integrity between kernel KConfig
-> options and in-code Conditional blocks.
-> 
-> 	While probably not strictly a integrity violation (as
-> FB_SOFT_CURSOR can still be set as it is once mentioned in a KConfig
-> select statement this looks like a left-over of
-> c465e05a03209651078b95686158648fd7ed84c5
-> 
-> 	Please keep me informed of this patch getting confirmed /
-> merged so we can keep track of it.
-> 
-> Regards
-> 
-> 	Christoph Egger
-> 
-> [0] http://vamos1.informatik.uni-erlangen.de/
+Results of the daily build of v4l-dvb:
 
-Hi,
+date:        Fri Jan  1 19:00:05 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13879:b6b82258cf5e
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-This one should have gone to the linux-fbdev@vger.kernel.org mailing list
-instead of linux-media.
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-armv5: OK
+linux-2.6.33-rc2-armv5: ERRORS
+linux-2.6.32-armv5-davinci: OK
+linux-2.6.33-rc2-armv5-davinci: ERRORS
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-armv5-ixp: OK
+linux-2.6.32-armv5-ixp: OK
+linux-2.6.33-rc2-armv5-ixp: ERRORS
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: OK
+linux-2.6.32-armv5-omap2: OK
+linux-2.6.33-rc2-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: OK
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-i686: WARNINGS
+linux-2.6.33-rc2-i686: ERRORS
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-m32r: OK
+linux-2.6.33-rc2-m32r: ERRORS
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.32-mips: OK
+linux-2.6.33-rc2-mips: ERRORS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-powerpc64: OK
+linux-2.6.32-powerpc64: WARNINGS
+linux-2.6.33-rc2-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: OK
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-x86_64: WARNINGS
+linux-2.6.33-rc2-x86_64: ERRORS
+spec: OK
+sparse (linux-2.6.32): ERRORS
+sparse (linux-2.6.33-rc2): ERRORS
+linux-2.6.16.61-i686: OK
+linux-2.6.17.14-i686: OK
+linux-2.6.18.8-i686: OK
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.61-x86_64: OK
+linux-2.6.17.14-x86_64: OK
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
-http://vger.kernel.org/vger-lists.html#linux-fbdev
+Detailed results are available here:
 
----
-~Randy
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
