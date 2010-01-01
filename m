@@ -1,91 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp21.services.sfr.fr ([93.17.128.1]:13042 "EHLO
-	smtp21.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756800Ab0AOAA5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jan 2010 19:00:57 -0500
-Received: from smtp21.services.sfr.fr (msfrf2108 [10.18.25.22])
-	by msfrf2105.sfr.fr (SMTP Server) with ESMTP id 9E2267003A3E
-	for <linux-media@vger.kernel.org>; Fri, 15 Jan 2010 00:53:28 +0100 (CET)
-Received: from filter.sfr.fr (localhost [127.0.0.1])
-	by msfrf2108.sfr.fr (SMTP Server) with ESMTP id 73AF0700008C
-	for <linux-media@vger.kernel.org>; Fri, 15 Jan 2010 00:50:26 +0100 (CET)
-Received: from linux-542s.localnet (unknown [87.100.60.13])
-	by msfrf2108.sfr.fr (SMTP Server) with ESMTP id 534A17000087
-	for <linux-media@vger.kernel.org>; Fri, 15 Jan 2010 00:50:26 +0100 (CET)
-From: "ftape-jlc" <ftape-jlc@club-internet.fr>
-Reply-To: ftape-jlc@club-internet.fr
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: FM radio problem with HVR1120
-Date: Fri, 15 Jan 2010 00:50:04 +0100
-References: <201001112239.07084.ftape-jlc@club-internet.fr>
-In-Reply-To: <201001112239.07084.ftape-jlc@club-internet.fr>
+Received: from mail-vw0-f192.google.com ([209.85.212.192]:36120 "EHLO
+	mail-vw0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751316Ab0AAMHK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jan 2010 07:07:10 -0500
+Received: by vws30 with SMTP id 30so4364633vws.33
+        for <linux-media@vger.kernel.org>; Fri, 01 Jan 2010 04:07:09 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201001150050.04652.ftape-jlc@club-internet.fr>
+Date: Fri, 1 Jan 2010 23:07:09 +1100
+Message-ID: <a556718c1001010407j4b94af6sff50d00909fc2211@mail.gmail.com>
+Subject: TV tunes ok but my DVB cards won't tune
+From: Matthew Smith <yo.checkit@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-I didn't received any answer.
-Did anyone used Hauppauge card with v4l2 in recent kernel to listen FM radio ?
+Hi all,
 
-I am not current user of the mailing list. Please confirm if it is right place 
-for this problem.
+I hope this is the right place to try and troubleshoot my DVB setup. I
+have a Conexant based tuner that used to work with the cx88 driver and
+an Avermedia USB tuner. I have moved house and can't get either of
+these cards to tune using the scan or dvbscan utilities.
 
-Regards,
+Mythtv is able to pick up the channels when it scans but it can't tune
+to them later when I try to watch live tv.  As it tunes, I briefly see
+mythtv reporting signal strengths around 40%
 
-ftape-jlc
+My TV is using the same antenna (with a splitter) and it picks up the
+channels and reports 30-33% signal strength and 100% signal quality.
 
+Also, I'm not sure I have the right channel file as I live in country
+Victoria and the closest city is Melbourne so I'm using that file.  I
+would expect to at least tune the major channels.
 
-Le lundi 11 janvier 2010, ftape-jlc a écrit :
-> Hello,
-> 
-> I am user of Huappuage HVR1120, and I have problem with radio FM use in
->  linux mode.
-> 
-> Distribution OpenSuse11.2
-> Kernel 2.6.31.8-0.1-desktop
-> Firmware dvb-fe-tda10048-1.0.fw loaded
-> 
-> Analog and Digital Television are OK in both Windows and Linux.
-> Windows is using Hauppauge WinTV7 v7.027313
-> 
-> Linux is using Kaffeine v1.0-pre2 for Digital Television
-> Linux is using mplayer for analog TV like:
-> mplayer tv:// -tv driver=v4l2:freq=495.750:norm=SECAM-
-> L:input=0:audiorate=32000:immediatemode=0:alsa:forceaudio:adevice=hw.1,0:wi
-> dth=720:height=576:amode=1
-> 
-> The problem is to listen radio.
-> One radio station is OK at 91.5MHz stereo using WintTV7 in Windows.
-> With Linux, the command used is
-> /usr/bin/radio -c /dev/radio0
-> in association with
-> sox -t ossdsp -r 32000 -c 2 /dev/dsp1 -t ossdsp /dev/dsp
-> to listen the sound.
-> 
-> The result is an unstable frecuency. The station is not tuned. Stereo is
-> permanently switching to mono.
-> The 91.5MHz station is mixed permanently with other stations.
-> 
-> How can I check v4l2 ?
-> Do you need dmesg output ?
-> Is this mailing list the right place to solve this problem ?
-> 
-> Thank you for your help.
-> 
-> Regards,
-> 
-> ftape-jlc
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Is this just a case of needing a better antenna or is there something
+else I can try? (I am already using a signal amplifier at the wall
+socket.)
 
+Regards
 
+Matt
+
+$ scan /usr/share/dvb/dvb-t/au-Melbourne
+scanning /usr/share/dvb/dvb-t/au-Melbourne
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+initial transponder 226500000 1 3 9 3 1 1 0
+initial transponder 177500000 1 3 9 3 1 1 0
+initial transponder 191625000 1 3 9 3 1 1 0
+initial transponder 219500000 1 3 9 3 1 1 0
+initial transponder 536625000 1 2 9 3 1 2 0
+>>> tune to: 226500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
+WARNING: >>> tuning failed!!!
+>>> tune to: 226500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
+WARNING: >>> tuning failed!!!
+>>> tune to: 177500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
+WARNING: >>> tuning failed!!!
+>>> tune to: 177500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
+WARNING: >>> tuning failed!!!
+>>> tune to: 191625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
+WARNING: >>> tuning failed!!!
+>>> tune to: 191625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
+WARNING: >>> tuning failed!!!
+>>> tune to: 219500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
+WARNING: >>> tuning failed!!!
+>>> tune to: 219500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
+WARNING: >>> tuning failed!!!
+>>> tune to: 536625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE
+WARNING: >>> tuning failed!!!
+>>> tune to: 536625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE (tuning failed)
+WARNING: >>> tuning failed!!!
+ERROR: initial tuning failed
+dumping lists (0 services)
+Done.
