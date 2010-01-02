@@ -1,141 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.216.174]:37111 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932716Ab0AFURx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jan 2010 15:17:53 -0500
-Received: by pxi4 with SMTP id 4so713862pxi.33
-        for <linux-media@vger.kernel.org>; Wed, 06 Jan 2010 12:17:52 -0800 (PST)
+Received: from netrider.rowland.org ([192.131.102.5]:59905 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751064Ab0ABUn1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Jan 2010 15:43:27 -0500
+Date: Sat, 2 Jan 2010 15:43:26 -0500 (EST)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Sean <knife@toaster.net>
+cc: Andrew Morton <akpm@linux-foundation.org>,
+	<bugzilla-daemon@bugzilla.kernel.org>,
+	<linux-media@vger.kernel.org>,
+	USB list <linux-usb@vger.kernel.org>,
+	Ingo Molnar <mingo@elte.hu>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	"H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [Bugme-new] [Bug 14564] New: capture-example sleeping function
+ called from invalid context at arch/x86/mm/fault.c
+In-Reply-To: <4B3F0B20.4010805@toaster.net>
+Message-ID: <Pine.LNX.4.44L0.1001021511320.9114-100000@netrider.rowland.org>
 MIME-Version: 1.0
-In-Reply-To: <1262428404.1944.22.camel@Core2Duo>
-References: <23582ca0912291306v11d0631fia6ad442918961b48@mail.gmail.com>
-	 <23582ca0912291307l53ff8d74j928f9e22ce09311@mail.gmail.com>
-	 <23582ca0912291323s1be512ebnd60bf2ea1988799@mail.gmail.com>
-	 <1262297232.1913.31.camel@Core2Duo>
-	 <23582ca1001012339h6efa3b88k5eea2799b5b739dc@mail.gmail.com>
-	 <1262428404.1944.22.camel@Core2Duo>
-Date: Wed, 6 Jan 2010 22:17:52 +0200
-Message-ID: <23582ca1001061217v6a67d6a3k8ac61fee5bd861da@mail.gmail.com>
-Subject: Re: Fwd: Compro S300 - ZL10313
-From: Theunis Potgieter <theunis.potgieter@gmail.com>
-To: JD Louw <jd.louw@mweb.co.za>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2010/1/2 JD Louw <jd.louw@mweb.co.za>:
-> On Sat, 2010-01-02 at 09:39 +0200, Theunis Potgieter wrote:
->> 2010/1/1 JD Louw <jd.louw@mweb.co.za>:
->> > On Tue, 2009-12-29 at 23:23 +0200, Theunis Potgieter wrote:
->> >> Hi mailing list,
->> >>
->> >> I have a problem with my Compro S300 pci card under Linux 2.6.32.
->> >>
->> >> I cannot tune with this card and STR/SNRA is very bad compared to my
->> >> Technisat SkyStar 2 pci card, connected to the same dish.
->> >>
->> >> I have this card and are willing to run tests, tested drivers etc to
->> >> make this work.
->> >>
->> >> I currently load the module saa7134 with options: card=169
->> >>
->> >> I enabled some debug parameters on the saa7134, not sure what else I
->> >> should enable. Please find my dmesg log attached.
->> >>
->> >> lsmod shows :
->> >>
->> >> # lsmod
->> >> Module                  Size  Used by
->> >> zl10039                 6268  2
->> >> mt312                  12048  2
->> >> saa7134_dvb            41549  11
->> >> saa7134               195664  1 saa7134_dvb
->> >> nfsd                  416819  11
->> >> videobuf_dvb            8187  1 saa7134_dvb
->> >> dvb_core              148140  1 videobuf_dvb
->> >> ir_common              40625  1 saa7134
->> >> v4l2_common            21544  1 saa7134
->> >> videodev               58341  2 saa7134,v4l2_common
->> >> v4l1_compat            24473  1 videodev
->> >> videobuf_dma_sg        17830  2 saa7134_dvb,saa7134
->> >> videobuf_core          26534  3 saa7134,videobuf_dvb,videobuf_dma_sg
->> >> tveeprom               12550  1 saa7134
->> >> thermal                20547  0
->> >> processor              54638  1
->> >>
->> >> # uname -a
->> >> Linux vbox 2.6.32-gentoo #4 Sat Dec 19 00:54:19 SAST 2009 i686 Pentium
->> >> III (Coppermine) GenuineIntel GNU/Linux
->> >>
->> >> Thanks,
->> >> Theunis
->> >
->> > Hi,
->> >
->> > It's probably the GPIO settings that are wrong for your SAA7133 based
->> > card revision. See http://osdir.com/ml/linux-media/2009-06/msg01256.html
->> > for an explanation. For quick confirmation check if you have 12V - 20V
->> > DC going to your LNB. The relevant lines of code is in
->> > ~/v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c:
->> >
->> > case SAA7134_BOARD_VIDEOMATE_S350:
->> > dev->has_remote = SAA7134_REMOTE_GPIO;
->> > saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x00008000, 0x00008000);
->> > saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x00008000, 0x00008000);
->> > break;
->> >
->> Hi thanks for the hint. I changed it to the following:
->>
->>  case SAA7134_BOARD_VIDEOMATE_S350:
->>  dev->has_remote = SAA7134_REMOTE_GPIO;
->>  saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x0000c000, 0x0000c000);
->>  saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x0000c000, 0x0000c000);
->>  break;
->>
->> I now get the same SNR as on my skystar2 card, signal is still
->> indicating 17% where as the skystar2 would show 68%. At least I'm
->> getting a LOCK on channels :)
->>
->> Thanks!
->>
->> >
->> > Looking at your log, at least the demodulator and tuner is responding
->> > correctly. You can see this by looking at the i2c traffic addressed to
->> > 0x1c (demodulator) and 0xc0 (tuner). Attached is a dmesg trace from my
->> > working SAA7130 based card.
->> >
->> > Regards
->> > JD
->> >
->
-> Hi,
->
-> Just to clarify, can you now watch channels?
->
-> At the moment the signal strength measurement is a bit whacked, so don't
-> worry too much about it. I also get the 75%/17% figures you mentioned
-> when tuning to strong signals. The figure is simply reported wrongly:
-> even weaker signals should tune fine. If you want you can have a look in
-> ~/v4l-dvb/linux/drivers/media/dvb/frontends/mt312.c at
-> mt312_read_signal_strength().
->
-> Also, if you have a multimeter handy, can you confirm that the
-> 0x0000c000 GPIO fix enables LNB voltage? I'd like to issue a patch for
-> this. I've already tested this on my older card with no ill effect.
+On Sat, 2 Jan 2010, Sean wrote:
 
-This is what happened when I started vdr.
+> Alan,
+> 
+> Thanks again. I was able to get the full dmesg output this time. I ran 
+> capture-example three times and each time removing the webcam before 
+> capture-example finished. On the third time I got the poisoned hash 
+> message and I captured the output to a file. Attached is the dmesg output.
 
-Vertical gave a Volt reading between 13.9 and 14.1, Horizontal Gave
-19.4 ~ 19.5. When I stopped vdr, the Voltage went back to 14V. I
-thought that it would read 0V. What is suppose to happen?
+Okay.  Take a look at the following output:
 
-Theunis
+$ egrep -n '[2e]e(80|9c)' dmesg2.log
+680:pci 0000:00:0c.0: reg 14 io port: [0xee80-0xee83]
+727:kobject: 'ieee80211' (c79d5e1c): kobject_add_internal: parent: 
+'class', set: 'class'
+728:kobject: 'ieee80211' (c79d5e1c): kobject_uevent_env
+729:kobject: 'ieee80211' (c79d5e1c): fill_kobj_path: path = 
+'/class/ieee80211'
+4994:ohci_hcd 0000:00:0b.0: td alloc for 2 ep85: c6662e80
+5027:ohci_hcd 0000:00:0b.0: hash c6662e80 to 58 -> (null)
+5185:ohci_hcd 0000:00:0b.0: td alloc for 2 ep85: c676ee80
+5218:ohci_hcd 0000:00:0b.0: hash c676ee80 to 58 -> c6662e80
+5276:ohci_hcd 0000:00:0b.0: td free c6662e80
+5277:ohci_hcd 0000:00:0b.0: (58 1) c676ee9c -> (null)
+5296:ohci_hcd 0000:00:0b.0: td alloc for 2 ep85: c6662e80
+5329:ohci_hcd 0000:00:0b.0: hash c6662e80 to 58 -> c676ee80
+5538:ohci_hcd 0000:00:0b.0: td free c676ee80
+5539:ohci_hcd 0000:00:0b.0: (58 1) c6662e9c -> (null)
+5558:ohci_hcd 0000:00:0b.0: td alloc for 2 ep85: c676ee80
+5591:ohci_hcd 0000:00:0b.0: hash c676ee80 to 58 -> c6662e80
+5644:ohci_hcd 0000:00:0b.0: td free c6662e80
+5645:ohci_hcd 0000:00:0b.0: (58 1) c676ee9c -> (null)
+5720:ohci_hcd 0000:00:0b.0: td alloc for 2 ep85: c6662e80
+5753:ohci_hcd 0000:00:0b.0: hash c6662e80 to 58 -> c676ee80
+5900:ohci_hcd 0000:00:0b.0: td free c676ee80
+5901:ohci_hcd 0000:00:0b.0: (58 1) c6662e9c -> (null)
+5978:ohci_hcd 0000:00:0b.0: td alloc for 2 ep85: c676ee80
+6011:ohci_hcd 0000:00:0b.0: hash c676ee80 to 58 -> c6662e80
+6072:ohci_hcd 0000:00:0b.0: td free c6662e80
+6073:ohci_hcd 0000:00:0b.0: (58 1) c676ee9c -> (null)
+6088:ohci_hcd 0000:00:0b.0: td alloc for 2 ep85: c6662e80
+6121:ohci_hcd 0000:00:0b.0: hash c6662e80 to 58 -> c676ee80
+6324:ohci_hcd 0000:00:0b.0: td free c676ee80
+6325:ohci_hcd 0000:00:0b.0: (58 1) c6662e9c -> (null)
+6343:ohci_hcd 0000:00:0b.0: td alloc for 2 ep85: c676ee80
+6376:ohci_hcd 0000:00:0b.0: hash c676ee80 to 58 -> c6662e80
+6416:ohci_hcd 0000:00:0b.0: td free c6662e80
+6417:ohci_hcd 0000:00:0b.0: (58 1) c676ee9c -> c676ee80
+6492:ohci_hcd 0000:00:0b.0: td alloc for 2 ep85: c6662e80
+6525:ohci_hcd 0000:00:0b.0: hash c6662e80 to 58 -> c676ee80
+6686:ohci_hcd 0000:00:0b.0: td free c676ee80
+6687:ohci_hcd 0000:00:0b.0: (58 1) c6662e9c -> c676ee80
 
->
-> Regards
-> JD
->
->
->
->
+Ignore the first few lines as being irrelevant.  Starting with line
+5185 you can see that this shows two TDs being allocated, hashed,
+freed, and unlinked over and over again, at addresses c6662e80 and
+c676ee80.  When each one is hashed into the list, its td_hash member is
+made to point to the other.  When each is removed from the hash list,
+the other's td_hash member is set to NULL.
+
+It's all very regular and repetitious until line 6417.  At that line,
+the td_hash member of c676ee80 (which is at offset 1c from the start of
+the structure, hence at c676ee9c) is made to point to its own
+structure!  Thus later at line 6687, when c676ee80 is freed, the 
+td_hash member of c6662e80 is set to point at the freed structure.  
+This is what leads to poisoned pointer values later on.
+
+So what went wrong at line 6417?  There's no way to know exactly.  My
+guess is that the write at line 6325, where c6662e9c was supposed to be
+set to NULL, never got recorded properly in the computer's memory.  
+This would mean that c6662e9c still contained the c676ee80 value
+assigned at line 6121, and hence the incorrect value was copied at line
+6417.
+
+In other words, I'm guessing that you're suffering from hardware memory
+errors.  A possible way to test this is to modify the patch.  In
+td_free() where it adds the line:
+
++			ohci_dbg(hc, "(%d %d) %p -> %p\n", hash, n, prev, *prev);
+
+instead add this code:
+
++			barrier();
++			ohci_dbg(hc, "(%d %d) %p -> %p [%p]\n", hash, n,
++					prev, *prev, td->td_hash);
+
+If we find that the value of *prev differs from the value of
+td->td_hash then we'll know for certain.  (Or maybe the presence of the 
+barrier() will cause the object code to change in a way that prevents 
+the error from occurring.)
+
+Alan Stern
+
