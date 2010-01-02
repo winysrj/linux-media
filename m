@@ -1,63 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f226.google.com ([209.85.219.226]:38169 "EHLO
-	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752085Ab0AXASV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jan 2010 19:18:21 -0500
-Received: by ewy26 with SMTP id 26so776984ewy.28
-        for <linux-media@vger.kernel.org>; Sat, 23 Jan 2010 16:18:20 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4B5B8E5B.4020600@barber-family.id.au>
-References: <4B5B0E12.3090706@barber-family.id.au>
-	 <83bcf6341001230700h7db6600i89b9092051049612@mail.gmail.com>
-	 <4B5B837A.6020001@barber-family.id.au>
-	 <83bcf6341001231529o54f3afb9p29fa955bc93a660e@mail.gmail.com>
-	 <4B5B8E5B.4020600@barber-family.id.au>
-Date: Sat, 23 Jan 2010 19:18:20 -0500
-Message-ID: <83bcf6341001231618r59f03dc9t1eb746c39e67b5fc@mail.gmail.com>
-Subject: Re: New Hauppauge HVR-2200 Revision?
-From: Steven Toth <stoth@kernellabs.com>
-To: Francis Barber <fedora@barber-family.id.au>
-Cc: linux-media@vger.kernel.org
+Received: from smtp5-g21.free.fr ([212.27.42.5]:59357 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752508Ab0ABJu4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Jan 2010 04:50:56 -0500
+Date: Sat, 2 Jan 2010 10:50:52 +0100
+From: Thierry Merle <thierry.merle@free.fr>
+To: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+Cc: DUBOST Brice <dubost@crans.ens-cachan.fr>
+Subject: Re: [linux-dvb] SheevaBox as a media Server and a Fit-PC as a
+ streaming client?
+Message-ID: <20100102105052.39a4d13f@gorbag.houroukhai.org>
+In-Reply-To: <4B3E062E.3060709@crans.ens-cachan.fr>
+References: <938B2714-17EB-476A-8EB0-5C42894E60DC@lollisoft.de>
+	<d9def9db1001010622g7a3a6cafh759e4d1d9e17589a@mail.gmail.com>
+	<4B3E062E.3060709@crans.ens-cachan.fr>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-http://www.kernellabs.com/blog/?page_id=17
+Le Fri, 01 Jan 2010 15:26:54 +0100,
+DUBOST Brice <dubost@crans.ens-cachan.fr> a écrit :
 
-Firmware links from here.
+> Markus Rechberger a écrit :
+> > Hi,
+> > 
+> > On Wed, Dec 16, 2009 at 4:12 PM, Lothar Behrens
+> > <lothar.behrens@lollisoft.de> wrote:
+> >> Hi,
+> >>
+> >> I am new here and start with a setup question.
+> >>
+> >> The media or NAS server I think about: http://plugcomputer.org/
+> >>
+> >> It has a high speed USB 2.0 port and a gigabit Lan.
+> >>
+> > 
+> > http://support.sundtek.com/index.php/topic,179.0.html (english)
+> > http://support.sundtek.com/index.php/topic,178.0.html (german)
+> > 
+> > This might be interesting for you.
+> > 
+> > Markus
+> > 
+> 
+> hello
+> 
+> MuMuDVB is reported to work fine on a sheevaplug
+> 
 
-- Steve
+I use my sheevaplug without any problem with a CinergyT2, and I know
+someone who runs with an empia-based hybrid tuner (Terratec Cinergy
+hybrid XS)
+The main bottleneck of the sheevaplug and all ARMv5TE compliant
+processors is the lack of FPU, if you have to do transcoding stuff
+(mpeg4->mpeg2 for example) before streaming. To my mind the 'TE'
+extension should be used for such transcoding but this is off topic.
 
-On Sat, Jan 23, 2010 at 7:03 PM, Francis Barber
-<fedora@barber-family.id.au> wrote:
-> On 24/01/2010 7:29 AM, Steven Toth wrote:
->>
->> I put some new patches into the saa7164-stable earlier today. These
->> will probably help.
->>
->> www.kernellabs.com/hg/saa7164-stable
->>
->> Let me know.
->>
->> Regards,
->>
->> - Steve
->>
->>
->
-> Thanks, I will give this a try later today.
->
-> Presumably I should use the firmware from version 7.6.27.27323 (although
-> there doesn't seem to be any firmware corresponding to dvb-fe-tda10048 with
-> this download)?
->
-> Regards,
-> Frank.
->
+Otherwise, it is perfect to host a streaming server like vlc or
+MuMuDVB, to stream untouched video frames coming from DVB tuners.
 
-
-
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+Cheers,
+Thierry
