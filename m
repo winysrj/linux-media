@@ -1,128 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:37952 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752118Ab0AYN7U (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jan 2010 08:59:20 -0500
-Message-ID: <4B5DA3B4.3080005@infradead.org>
-Date: Mon, 25 Jan 2010 11:59:16 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from mail.gmx.net ([213.165.64.20]:55792 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753127Ab0ACX3S (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 Jan 2010 18:29:18 -0500
+From: Martin Dauskardt <martin.dauskardt@gmx.de>
+To: Andy Walls <awalls@radix.net>
+Subject: Re: [ivtv-devel] PVR150 Tinny/fuzzy audio w/ patch?
+Date: Mon, 4 Jan 2010 00:29:14 +0100
+Cc: Discussion list for development of the IVTV driver
+	<ivtv-devel@ivtvdriver.org>, Steven Toth <stoth@kernellabs.com>,
+	isely@pobox.com, linux-media@vger.kernel.org
+References: <200912311815.38865.martin.dauskardt@gmx.de> <1262287607.3055.115.camel@palomino.walls.org> <1262288415.3055.121.camel@palomino.walls.org>
+In-Reply-To: <1262288415.3055.121.camel@palomino.walls.org>
 MIME-Version: 1.0
-To: Franklin Meng <fmeng2002@yahoo.com>
-CC: linux-media@vger.kernel.org,
-	Douglas Schilling Landgraf <dougsland@gmail.com>
-Subject: Re: [Patch 1/3] Kworld 315U
-References: <647298.8638.qm@web32701.mail.mud.yahoo.com>
-In-Reply-To: <647298.8638.qm@web32701.mail.mud.yahoo.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201001040029.15056.martin.dauskardt@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Franklin Meng wrote:
-> Patch to add the s_power function to the saa7115.c code.
+Am Donnerstag, 31. Dezember 2009 20:40:15 schrieb Andy Walls:
+> On Thu, 2009-12-31 at 14:26 -0500, Andy Walls wrote:
+> > On Thu, 2009-12-31 at 18:15 +0100, Martin Dauskardt wrote:
 > 
-> Signed-off-by: Franklin Meng<fmeng2002@yahoo.com>
+> Some corrections to errors:
+> > My preferences in summary, is that not matter what the digitizer chip:
+> 
+> My preferences are, in summary, that no matter what the digitizer chip:
+> > a. I'd like to keep the audio clocks always up to avoid tinny audio.
+> >
+> > b. I'd also like to inhibit the video clock and add the delay after
+> 
+>                                                   ^^^
+>                                                   refine
+> 
+> > re-enabling the digitizer to avoid the *potential* for a hung machine.
+> 
+> A value smaller than 300 ms should work, but a value smaller than 40 ms
+> may not work, if my hypothesis is correct.
+> 
+> > c. I do not care to much about the delay after disbaling the video
+> > clock, only that it is empirically "long enough".
+> >
+> > Thanks for taking the time to test and comment.
+> >
+> > Regards,
+> > Andy
+> 
+> Regards,
+> Andy
 
-I got an error while applying:
+I tested various sleep values:
+http://home.arcor-online.de/martin.dauskardt/digitizer_msleep.xls
 
-No file to patch.  Skipping patch.
-patch: **** malformed patch at line 22:         return 0;                                        Patch may be line wrapped
+It seems that we only need a total delay of 300ms between the previous actions 
+in ivtv-streams.c and the start of the capture. 
 
-I suspect that your email is destroying your patch.
+This also secures that we don't see disturbance from a previous frequency 
+switch. This happens with smaller sleep values:
+http://home.arcor-online.de/martin.dauskardt/channelswitch.mpg
+and can lead to the infamous flickering problem (http://www.gossamer-
+threads.com/lists/ivtv/devel/32970) . The current driver has this problem only 
+with cx23415 (PVR350), not cx23416.
 
+My preference is:
+-let it how it is (300 ms sleep before the firmware call)
+or
+-split the 300ms to 150 and 150
 
-> 
-> 
-> diff -r b6b82258cf5e linux/drivers/media/video/saa7115.c                              
-> --- a/linux/drivers/media/video/saa7115.c       Thu Dec 31 19:14:54 2009 -0200        
-> +++ b/linux/drivers/media/video/saa7115.c       Sun Jan 17 22:54:21 2010 -0800        
-> @@ -1338,6 +1338,59 @@                                                                
->         return 0;                                                                     
->  }                                                                                    
->                                                                                       
-> +static int saa711x_s_power(struct v4l2_subdev *sd, int val)                          
-> +{                                                                                    
-> +       struct saa711x_state *state = to_state(sd);                                   
-> +                                                                                     
-> +       if(val > 1 || val < 0)                                                        
-> +               return -EINVAL; 
-
-Also, please validade your patch against coding style, with checkpatch.pl (you can use
-make checkpatch, if you're using the -hg tree).
-
-Basically, you need a space between if and ( at the above line.
-
-                                                      
-> +                                                                                     
-> +       /* There really isn't a way to put the chip into power saving                 
-> +               other than by pulling CE to ground so all we do is return             
-> +               out of this function                                                  
-> +       */                                                                            
-> +       if(val == 0)                                                                  
-> +               return 0;                                                             
-> +                                                                                     
-> +       /* When enabling the chip again we need to reinitialize the                   
-> +               all the values                                                        
-> +       */                                                                            
-> +       state->input = -1;                                                            
-> +       state->output = SAA7115_IPORT_ON;                                             
-> +       state->enable = 1;                                                            
-> +       state->radio = 0;                                                             
-> +       state->bright = 128;                                                          
-> +       state->contrast = 64;                                                         
-> +       state->hue = 0;                                                               
-> +       state->sat = 64;                                                              
-> +                                                                                     
-> +       state->audclk_freq = 48000;                                                   
-> +                                                                                     
-> +       v4l2_dbg(1, debug, sd, "writing init values s_power\n");                      
-> +                                                                                     
-> +       /* init to 60hz/48khz */                                                      
-> +       state->crystal_freq = SAA7115_FREQ_24_576_MHZ;                                
-> +       switch (state->ident) {                                                       
-> +       case V4L2_IDENT_SAA7111:                                                      
-> +               saa711x_writeregs(sd, saa7111_init);                                  
-> +               break;                                                                
-> +       case V4L2_IDENT_SAA7113:                                                      
-> +               saa711x_writeregs(sd, saa7113_init);
-> +               break;
-> +       default:
-> +               state->crystal_freq = SAA7115_FREQ_32_11_MHZ;
-> +               saa711x_writeregs(sd, saa7115_init_auto_input);
-> +       }
-> +       if (state->ident != V4L2_IDENT_SAA7111)
-> +               saa711x_writeregs(sd, saa7115_init_misc);
-> +       saa711x_set_v4lstd(sd, V4L2_STD_NTSC);
-> +
-> +       v4l2_dbg(1, debug, sd, "status: (1E) 0x%02x, (1F) 0x%02x\n",
-> +               saa711x_read(sd, R_1E_STATUS_BYTE_1_VD_DEC),
-> +               saa711x_read(sd, R_1F_STATUS_BYTE_2_VD_DEC));
-> +       return 0;
-> +}
-> +
->  static int saa711x_reset(struct v4l2_subdev *sd, u32 val)
->  {
->         v4l2_dbg(1, debug, sd, "decoder RESET\n");
-> @@ -1513,6 +1566,7 @@
->         .s_std = saa711x_s_std,
->         .reset = saa711x_reset,
->         .s_gpio = saa711x_s_gpio,
-> +       .s_power = saa711x_s_power,
->  #ifdef CONFIG_VIDEO_ADV_DEBUG
->         .g_register = saa711x_g_register,
->         .s_register = saa711x_s_register,
-> 
-> 
-> 
-> 
-> 
-> 
-> 
-> 
->       
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Greets,
+Martin
