@@ -1,76 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:65505 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752590Ab0AKIhw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2010 03:37:52 -0500
-Message-ID: <4B4AE349.4000707@redhat.com>
-Date: Mon, 11 Jan 2010 09:37:29 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: Jose Alberto Reguero <jareguero@telefonica.net>,
-	linux-media@vger.kernel.org
-Subject: Re: Problem with gspca and zc3xx
-References: <201001090015.31357.jareguero@telefonica.net> <20100110093730.14be3d7c@tele>
-In-Reply-To: <20100110093730.14be3d7c@tele>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2187 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751719Ab0ACTuT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jan 2010 14:50:19 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id o03JoIjh012466
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 3 Jan 2010 20:50:18 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 3 Jan 2010 20:50:18 +0100 (CET)
+Message-Id: <201001031950.o03JoIjh012466@smtp-vbr4.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-On 01/10/2010 09:37 AM, Jean-Francois Moine wrote:
-> On Sat, 9 Jan 2010 00:15:31 +0100
-> Jose Alberto Reguero<jareguero@telefonica.net>  wrote:
->
->> When capturing with mplayer I have this erros and the bottom of the
->> image is black.
->>
->> [mjpeg @ 0xd2f300]error y=29 x=0
->> [mjpeg @ 0xd2f300]mjpeg_decode_dc: bad vlc: 0:0 (0x2c565b0)
-> 	[snip]
->>
->> gspca: main v2.8.0 registered
->> gspca: probing 046d:08dd
->> zc3xx: Sensor MC501CB
->> gspca: video0 created
->> gspca: probing 046d:08dd
->> gspca: intf != 0
->> gspca: probing 046d:08dd
->> gspca: intf != 0
->> usbcore: registered new interface driver zc3xx
->> zc3xx: registered
->
-> Hello Jose Alberto,
->
-> May you send me a raw image done by my program svv? (look in my web page
-> below - run it by 'svv -rg' and send me the generated image.dat)
->
+Results of the daily build of v4l-dvb:
 
-JF,
+date:        Sun Jan  3 19:00:03 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13879:b6b82258cf5e
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-This is the infamous zc3xx bottom of the image is missing in 320x240 problem,
-with several sensors the register settings we took from the windows driver
-will only give you 320x232 (iirc), we tried changing them to get 320x240,
-but then the camera would not stream. Most likely some timing issue between
-bridge and sensor.
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-armv5: OK
+linux-2.6.33-rc2-armv5: ERRORS
+linux-2.6.32-armv5-davinci: OK
+linux-2.6.33-rc2-armv5-davinci: ERRORS
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-armv5-ixp: OK
+linux-2.6.32-armv5-ixp: OK
+linux-2.6.33-rc2-armv5-ixp: ERRORS
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: OK
+linux-2.6.32-armv5-omap2: OK
+linux-2.6.33-rc2-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: OK
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-i686: WARNINGS
+linux-2.6.33-rc2-i686: ERRORS
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-m32r: OK
+linux-2.6.33-rc2-m32r: ERRORS
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.32-mips: OK
+linux-2.6.33-rc2-mips: ERRORS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-powerpc64: OK
+linux-2.6.32-powerpc64: WARNINGS
+linux-2.6.33-rc2-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: OK
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-x86_64: WARNINGS
+linux-2.6.33-rc2-x86_64: ERRORS
+spec: OK
+sparse (linux-2.6.32): ERRORS
+sparse (linux-2.6.33-rc2): ERRORS
+linux-2.6.16.61-i686: OK
+linux-2.6.17.14-i686: OK
+linux-2.6.18.8-i686: OK
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.61-x86_64: OK
+linux-2.6.17.14-x86_64: OK
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
-I once had a patch fixing this by actually reporting the broken modes as
-320x232, but that never got applied as it breaks app which are hardcoded
-to ask for 320x240. libv4l has had the ability to extend the 320x232 image
-to 320x240 for a while now (by adding a few black lines at the top + bottom),
-fixing the hardcoded apps problem.
+Detailed results are available here:
 
-So I think such a patch can and should be applied now. This will get rid
-of the jpeg decompression errors reported by libv4l and in case if yuv mode
-the ugly green bar with some random noise in it at the bottom.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-I'm afraid my patch is most likely lost, but I can create a new one if you want,
-I have access to quite a few zc3xx camera's, and more over what resolution
-they are actually streaming at can be deducted from the register settings
-in the driver.
+Full logs are available here:
 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-Hans
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
