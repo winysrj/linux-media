@@ -1,137 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.perfora.net ([74.208.4.195]:58879 "EHLO mout.perfora.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753446Ab0AXUHo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jan 2010 15:07:44 -0500
-Message-ID: <4B5CA887.3060606@vorgon.com>
-Date: Sun, 24 Jan 2010 13:07:35 -0700
-From: "Timothy D. Lenz" <tlenz@vorgon.com>
+Received: from mail-fx0-f225.google.com ([209.85.220.225]:53860 "EHLO
+	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752847Ab0ACMa6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jan 2010 07:30:58 -0500
+Received: by fxm25 with SMTP id 25so8051636fxm.21
+        for <linux-media@vger.kernel.org>; Sun, 03 Jan 2010 04:30:56 -0800 (PST)
 MIME-Version: 1.0
+Date: Sun, 3 Jan 2010 13:30:55 +0100
+Message-ID: <90536221001030430i4135f81ew9013e9788bdec4d7@mail.gmail.com>
+Subject: Slovak Republic DVB-T updates
+From: a a <puk007@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: Lost remote after kernel/v4l update cx23885 chipset
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary=0016e65b6174bff0b0047c41c6b6
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After updating from kernel 2.6.26.8 to 2.6.32.2 and from v4l of 
-05/19/2009 to 01/18/2010 I lost remote function with Dvico FusionHDTV7 
-Dual Express. The driver is loading, but not creating an IR device. Went 
-over it with awalls on IRC. The log is at: http://pastebin.com/m4b02ff0c
+--0016e65b6174bff0b0047c41c6b6
+Content-Type: text/plain; charset=ISO-8859-1
 
+Hi all,
 
-I noticed that in the kern.log there where 2 different ways ir-kbd-i2c 
-showed up. ir-kbd-i2c no longer shows up when loading drivers.
+in Slovak Republic there are some updates regarding DVB-T.
+On 22.12.2009 has been DVB-T officially started in some new cities +
+existing transmission has been changed as well.
 
-Jan 17 14:59:32 LLLx64-32 kernel: input: i2c IR (FusionHDTV) as 
-/devices/virtual/input/input5
-Jan 17 14:59:32 LLLx64-32 kernel: ir-kbd-i2c: i2c IR (FusionHDTV) 
-detected at i2c-2/2-006b/ir0 [cx23885[0]]
-------------------
-Jan 18 17:23:27 LLLx64-32 kernel: input: i2c IR (FusionHDTV) as 
-/devices/virtual/input/input5
-Jan 18 17:23:27 LLLx64-32 kernel: Creating IR device irrcv0
-Jan 18 17:23:27 LLLx64-32 kernel: ir-kbd-i2c: i2c IR (FusionHDTV) 
-detected at i2c-1/1-006b/ir0 [cx23885[0]]
+updated ones:
+- Bratislava
+- Kosice
+- Banska Bystrica
 
-Jan 18 18:28:50 LLLx64-32 kernel: input: i2c IR (FusionHDTV) as 
-/devices/virtual/input/input5
-Jan 18 18:28:50 LLLx64-32 kernel: ir-kbd-i2c: i2c IR (FusionHDTV) 
-detected at i2c-2/2-006b/ir0 [cx23885[0]]
+new ones:
+- Bardejov 	
+- Michalovce
+- Namestovo
+- Poprad
+- Rimavska Sobota
+- Trencin
+- Velky Krtis
+- Zilina
 
-------------------
-A driver load that worked:
+updates were made based on official announcement (sorry is slovak):
+http://dvbt.towercom.sk/odbornici.php?article=32
 
-Jan 17 11:22:35 LLLx64-32 kernel: Linux video capture interface: v2.00
-Jan 17 11:22:35 LLLx64-32 kernel: cx23885 driver version 0.0.2 loaded
-Jan 17 11:22:35 LLLx64-32 kernel: ACPI: PCI Interrupt 0000:02:00.0[A] -> 
-Link [APC7] -> GSI 16 (level, low) -> IRQ 16
-Jan 17 11:22:35 LLLx64-32 kernel: CORE cx23885[0]: subsystem: 18ac:d618, 
-board: DViCO FusionHDTV7 Dual Express [card=10,autodetected]
-Jan 17 11:22:35 LLLx64-32 kernel: cx23885_dvb_register() allocating 1 
-frontend(s)
-Jan 17 11:22:35 LLLx64-32 kernel: cx23885[0]: cx23885 based dvb card
-Jan 17 11:22:35 LLLx64-32 kernel: xc5000 2-0064: creating new instance
-Jan 17 11:22:35 LLLx64-32 kernel: xc5000: Successfully identified at 
-address 0x64
-Jan 17 11:22:35 LLLx64-32 kernel: xc5000: Firmware has not been loaded 
-previously
-Jan 17 11:22:35 LLLx64-32 kernel: DVB: registering new adapter (cx23885[0])
-Jan 17 11:22:35 LLLx64-32 kernel: DVB: registering adapter 0 frontend 0 
-(Samsung S5H1411 QAM/8VSB Frontend)...
-Jan 17 11:22:35 LLLx64-32 kernel: cx23885_dvb_register() allocating 1 
-frontend(s)
-Jan 17 11:22:35 LLLx64-32 kernel: cx23885[0]: cx23885 based dvb card
-Jan 17 11:22:35 LLLx64-32 kernel: xc5000 3-0064: creating new instance
-Jan 17 11:22:35 LLLx64-32 kernel: xc5000: Successfully identified at 
-address 0x64
-Jan 17 11:22:35 LLLx64-32 kernel: xc5000: Firmware has not been loaded 
-previously
-Jan 17 11:22:35 LLLx64-32 kernel: DVB: registering new adapter (cx23885[0])
-Jan 17 11:22:35 LLLx64-32 kernel: DVB: registering adapter 1 frontend 0 
-(Samsung S5H1411 QAM/8VSB Frontend)...
-Jan 17 11:22:35 LLLx64-32 kernel: cx23885_dev_checkrevision() Hardware 
-revision = 0xb0
-Jan 17 11:22:35 LLLx64-32 kernel: cx23885[0]/0: found at 0000:02:00.0, 
-rev: 2, irq: 16, latency: 0, mmio: 0xfdc00000
-Jan 17 11:22:35 LLLx64-32 kernel: PCI: Setting latency timer of device 
-0000:02:00.0 to 64
-Jan 17 11:22:35 LLLx64-32 kernel: input: i2c IR (FusionHDTV) as 
-/devices/virtual/input/input8
-Jan 17 11:22:35 LLLx64-32 kernel: ir-kbd-i2c: i2c IR (FusionHDTV) 
-detected at i2c-2/2-006b/ir0 [cx23885[0]]
-Jan 17 11:22:36 LLLx64-32 kernel: xc5000: waiting for firmware upload 
-(dvb-fe-xc5000-1.6.114.fw)...
-Jan 17 11:22:36 LLLx64-32 kernel: firmware: requesting 
-dvb-fe-xc5000-1.6.114.fw
-Jan 17 11:22:36 LLLx64-32 kernel: xc5000: firmware read 12401 bytes.
-Jan 17 11:22:36 LLLx64-32 kernel: xc5000: firmware uploading...
-Jan 17 11:22:37 LLLx64-32 kernel: xc5000: firmware upload complete...
-Jan 17 11:22:37 LLLx64-32 kernel: xc5000: waiting for firmware upload 
-(dvb-fe-xc5000-1.6.114.fw)...
-Jan 17 11:22:37 LLLx64-32 kernel: firmware: requesting 
-dvb-fe-xc5000-1.6.114.fw
-Jan 17 11:22:37 LLLx64-32 kernel: xc5000: firmware read 12401 bytes.
-Jan 17 11:22:37 LLLx64-32 kernel: xc5000: firmware uploading...
-Jan 17 11:22:39 LLLx64-32 kernel: xc5000: firmware upload complete...
-------------------
+Attached are dvb-t config files for all these. Please include them to
+official list if possible.
 
-And what it does now:
-Jan 23 17:10:47 LLLx64-32 kernel: Linux video capture interface: v2.00
-Jan 23 17:10:47 LLLx64-32 kernel: cx23885 driver version 0.0.2 loaded
-Jan 23 17:10:47 LLLx64-32 kernel: cx23885 0000:02:00.0: PCI INT A -> 
-Link[APC7] -> GSI 16 (level, low) -> IRQ 16
-Jan 23 17:10:47 LLLx64-32 kernel: CORE cx23885[0]: subsystem: 18ac:d618, 
-board: DViCO FusionHDTV7 Dual Express [card=10,autodetected]
-Jan 23 17:10:47 LLLx64-32 kernel: cx23885_dvb_register() allocating 1 
-frontend(s)
-Jan 23 17:10:47 LLLx64-32 kernel: cx23885[0]: cx23885 based dvb card
-Jan 23 17:10:47 LLLx64-32 kernel: xc5000 1-0064: creating new instance
-Jan 23 17:10:47 LLLx64-32 kernel: xc5000: Successfully identified at 
-address 0x64
-Jan 23 17:10:47 LLLx64-32 kernel: xc5000: Firmware has not been loaded 
-previously
-Jan 23 17:10:47 LLLx64-32 kernel: DVB: registering new adapter (cx23885[0])
-Jan 23 17:10:47 LLLx64-32 kernel: DVB: registering adapter 0 frontend 0 
-(Samsung S5H1411 QAM/8VSB Frontend)...
-Jan 23 17:10:47 LLLx64-32 kernel: cx23885_dvb_register() allocating 1 
-frontend(s)
-Jan 23 17:10:47 LLLx64-32 kernel: cx23885[0]: cx23885 based dvb card
-Jan 23 17:10:47 LLLx64-32 kernel: xc5000 2-0064: creating new instance
-Jan 23 17:10:47 LLLx64-32 kernel: xc5000: Successfully identified at 
-address 0x64
-Jan 23 17:10:47 LLLx64-32 kernel: xc5000: Firmware has not been loaded 
-previously
-Jan 23 17:10:47 LLLx64-32 kernel: DVB: registering new adapter (cx23885[0])
-Jan 23 17:10:47 LLLx64-32 kernel: DVB: registering adapter 1 frontend 0 
-(Samsung S5H1411 QAM/8VSB Frontend)...
-Jan 23 17:10:47 LLLx64-32 kernel: cx23885_dev_checkrevision() Hardware 
-revision = 0xb0
-Jan 23 17:10:47 LLLx64-32 kernel: cx23885[0]/0: found at 0000:02:00.0, 
-rev: 2, irq: 16, latency: 0, mmio: 0xfdc00000
-Jan 23 17:10:47 LLLx64-32 kernel: cx23885 0000:02:00.0: setting latency 
-timer to 64
-Jan 23 17:10:47 LLLx64-32 kernel: IRQ 16/cx23885[0]: IRQF_DISABLED is 
-not guaranteed on shared IRQs
+I've tested Kosice setting only and it works OK for me.
 
-I put a zip of some logs at: http://24.255.17.209:2400/vdr-logs/logs.zip
+Kind regards
+
+Peter Butkovic
+
+--0016e65b6174bff0b0047c41c6b6
+Content-Type: application/octet-stream; name=sk-BanskaBystrica
+Content-Disposition: attachment; filename=sk-BanskaBystrica
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_g3zssmme0
+
+IyBEVkItVCBCYW5za2EgQnlzdHJpY2EgKEJhbnNrYSBCeXN0cmljYSwgU2xvdmFrIFJlcHVibGlj
+KQojIFQgZnJlcSBidyBmZWNfaGkgZmVjX2xvIG1vZCB0cmFuc21pc3Npb24tbW9kZSBndWFyZC1p
+bnRlcnZhbCBoaWVyYXJjaHkKCiMgb24gY2hhbm5lbCA2NQpUIDgyNjAwMDAwMCA4TUh6IDIvMyBO
+T05FIFFBTTY0IDhrIDEvNCBOT05FCg==
+--0016e65b6174bff0b0047c41c6b6
+Content-Type: application/octet-stream; name=sk-Bardejov
+Content-Disposition: attachment; filename=sk-Bardejov
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_g3zssohl1
+
+IyBEVkItVCBCYXJkZWpvdiAoQmFyZGVqb3YsIFNsb3ZhayBSZXB1YmxpYykKIyBUIGZyZXEgYncg
+ZmVjX2hpIGZlY19sbyBtb2QgdHJhbnNtaXNzaW9uLW1vZGUgZ3VhcmQtaW50ZXJ2YWwgaGllcmFy
+Y2h5CgojIG9uIGNoYW5uZWwgNjIKVCA4MDIwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAx
+LzQgTk9ORQo=
+--0016e65b6174bff0b0047c41c6b6
+Content-Type: application/octet-stream; name=sk-Bratislava
+Content-Disposition: attachment; filename=sk-Bratislava
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_g3zsspl52
+
+IyBEVkItVCBCcmF0aXNsYXZhIChCcmF0aXNsYXZhLCBTbG92YWsgUmVwdWJsaWMpCiMgVCBmcmVx
+IGJ3IGZlY19oaSBmZWNfbG8gbW9kIHRyYW5zbWlzc2lvbi1tb2RlIGd1YXJkLWludGVydmFsIGhp
+ZXJhcmNoeQoKIyBvbiBjaGFubmVsIDY2ClQgODM0MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQg
+OGsgMS80IE5PTkUK
+--0016e65b6174bff0b0047c41c6b6
+Content-Type: application/octet-stream; name=sk-Kosice
+Content-Disposition: attachment; filename=sk-Kosice
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_g3zssqeo3
+
+IyBEVkItVCBLb3NpY2UgKEtvc2ljZSwgU2xvdmFrIFJlcHVibGljKQojIFQgZnJlcSBidyBmZWNf
+aGkgZmVjX2xvIG1vZCB0cmFuc21pc3Npb24tbW9kZSBndWFyZC1pbnRlcnZhbCBoaWVyYXJjaHkK
+CiMgb24gY2hhbm5lbCA2NApUIDgxODAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBO
+T05FCg==
+--0016e65b6174bff0b0047c41c6b6
+Content-Type: application/octet-stream; name=sk-Michalovce
+Content-Disposition: attachment; filename=sk-Michalovce
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_g3zssr604
+
+IyBEVkItVCBNaWNoYWxvdmNlIChNaWNoYWxvdmNlLCBTbG92YWsgUmVwdWJsaWMpCiMgVCBmcmVx
+IGJ3IGZlY19oaSBmZWNfbG8gbW9kIHRyYW5zbWlzc2lvbi1tb2RlIGd1YXJkLWludGVydmFsIGhp
+ZXJhcmNoeQoKIyBvbiBjaGFubmVsIDY0ClQgODE4MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQg
+OGsgMS80IE5PTkUK
+--0016e65b6174bff0b0047c41c6b6
+Content-Type: application/octet-stream; name=sk-Namestovo
+Content-Disposition: attachment; filename=sk-Namestovo
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_g3zssrw05
+
+IyBEVkItVCBOYW1lc3Rvdm8gKE5hbWVzdG92bywgU2xvdmFrIFJlcHVibGljKQojIFQgZnJlcSBi
+dyBmZWNfaGkgZmVjX2xvIG1vZCB0cmFuc21pc3Npb24tbW9kZSBndWFyZC1pbnRlcnZhbCBoaWVy
+YXJjaHkKCiMgb24gY2hhbm5lbCA2OApUIDg1MDAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhr
+IDEvNCBOT05FCg==
+--0016e65b6174bff0b0047c41c6b6
+Content-Type: application/octet-stream; name=sk-Poprad
+Content-Disposition: attachment; filename=sk-Poprad
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_g3zst8756
+
+IyBEVkItVCBQb3ByYWQgKFBvcHJhZCwgU2xvdmFrIFJlcHVibGljKQojIFQgZnJlcSBidyBmZWNf
+aGkgZmVjX2xvIG1vZCB0cmFuc21pc3Npb24tbW9kZSBndWFyZC1pbnRlcnZhbCBoaWVyYXJjaHkK
+CiMgb24gY2hhbm5lbCA2NgpUIDgzNDAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBO
+T05FCg==
+--0016e65b6174bff0b0047c41c6b6
+Content-Type: application/octet-stream; name=sk-RimavskaSobota
+Content-Disposition: attachment; filename=sk-RimavskaSobota
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_g3zst9e17
+
+IyBEVkItVCBSaW1hdnNrYSBTb2JvdGEgKFJpbWF2c2thIFNvYm90YSwgU2xvdmFrIFJlcHVibGlj
+KQojIFQgZnJlcSBidyBmZWNfaGkgZmVjX2xvIG1vZCB0cmFuc21pc3Npb24tbW9kZSBndWFyZC1p
+bnRlcnZhbCBoaWVyYXJjaHkKCiMgb24gY2hhbm5lbCA2MQpUIDc5NDAwMDAwMCA4TUh6IDIvMyBO
+T05FIFFBTTY0IDhrIDEvNCBOT05FCg==
+--0016e65b6174bff0b0047c41c6b6
+Content-Type: application/octet-stream; name=sk-Trencin
+Content-Disposition: attachment; filename=sk-Trencin
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_g3zstaej8
+
+IyBEVkItVCBUcmVuY2luIChUcmVuY2luLCBTbG92YWsgUmVwdWJsaWMpCiMgVCBmcmVxIGJ3IGZl
+Y19oaSBmZWNfbG8gbW9kIHRyYW5zbWlzc2lvbi1tb2RlIGd1YXJkLWludGVydmFsIGhpZXJhcmNo
+eQoKIyBvbiBjaGFubmVsIDY5ClQgODU4MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS80
+IE5PTkUK
+--0016e65b6174bff0b0047c41c6b6
+Content-Type: application/octet-stream; name=sk-VelkyKrtis
+Content-Disposition: attachment; filename=sk-VelkyKrtis
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_g3zstbaz9
+
+IyBEVkItVCBWZWxreSBLcnRpcyAoVmVsa3kgS3J0aXMsIFNsb3ZhayBSZXB1YmxpYykKIyBUIGZy
+ZXEgYncgZmVjX2hpIGZlY19sbyBtb2QgdHJhbnNtaXNzaW9uLW1vZGUgZ3VhcmQtaW50ZXJ2YWwg
+aGllcmFyY2h5CgojIG9uIGNoYW5uZWwgNjUKVCA4MjYwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02
+NCA4ayAxLzQgTk9ORQo=
+--0016e65b6174bff0b0047c41c6b6
+Content-Type: application/octet-stream; name=sk-Zilina
+Content-Disposition: attachment; filename=sk-Zilina
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_g3zstv1s10
+
+IyBEVkItVCBaaWxpbmEgKFppbGluYSwgU2xvdmFrIFJlcHVibGljKQojIFQgZnJlcSBidyBmZWNf
+aGkgZmVjX2xvIG1vZCB0cmFuc21pc3Npb24tbW9kZSBndWFyZC1pbnRlcnZhbCBoaWVyYXJjaHkK
+CiMgb24gY2hhbm5lbCA2OApUIDg1MDAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBO
+T05FCg==
+--0016e65b6174bff0b0047c41c6b6--
