@@ -1,73 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from outbound.rtd.com ([64.9.30.196]:35255 "EHLO OUTBOUND.RTD.COM"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752003Ab0AROPM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2010 09:15:12 -0500
-From: William Tate <wtate@RTD.com>
-To: 'hermann pitton' <hermann-pitton@arcor.de>,
-	Trent Piepho <xyzzy@speakeasy.org>
-CC: Gordon Smith <spider.karma+linux-media@gmail.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"'willytate@gmail.com'" <willytate@gmail.com>
-Date: Mon, 18 Jan 2010 09:13:50 -0500
-Subject: RE: How to use saa7134 gpio via gpio-sysfs?
-Message-ID: <EAF55B080F530E428574542A7925428705EA7F1C66@INTMBX1.RTD.com>
-References: <2df568dc1001111012u627f07b8p9ec0c2577f14b5d9@mail.gmail.com>
-	 <2df568dc1001111059p54de8635k6c207fb3f4d96a14@mail.gmail.com>
-	 <1263266020.3198.37.camel@pc07.localdom.local>
-	 <1263602137.3184.23.camel@pc07.localdom.local>
-	 <Pine.LNX.4.58.1001151650410.4729@shell2.speakeasy.net>
-	 <1263622815.3178.31.camel@pc07.localdom.local>
-	 <Pine.LNX.4.58.1001160400230.4729@shell2.speakeasy.net>
-	 <1263686928.3394.4.camel@pc07.localdom.local>
-	 <1263689544.8899.3.camel@pc07.localdom.local>
- <1263769323.3182.8.camel@pc07.localdom.local>
-In-Reply-To: <1263769323.3182.8.camel@pc07.localdom.local>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from fg-out-1718.google.com ([72.14.220.155]:65174 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752388Ab0ACLbO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jan 2010 06:31:14 -0500
+Received: by fg-out-1718.google.com with SMTP id 22so5832348fge.1
+        for <linux-media@vger.kernel.org>; Sun, 03 Jan 2010 03:31:13 -0800 (PST)
+Content-Type: text/plain; charset=US-ASCII;
+	format=flowed	delsp=yes
+To: "Raena Lea-Shannon" <raen@internode.on.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: DTV2000 H Plus issues
+References: <4B3F6FE0.4040307@internode.on.net> <4B3F7B0D.4030601@mailbox.hu>
+ <4B405381.9090407@internode.on.net>
+Date: Sun, 03 Jan 2010 12:31:19 +0100
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7BIT
+From: "Samuel Rakitnican" <samuel.rakitnican@gmail.com>
+Message-ID: <op.u5yfmghz6dn9rq@crni.lan>
+In-Reply-To: <4B405381.9090407@internode.on.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Gentlemen,
+On Sun, 03 Jan 2010 09:21:21 +0100, Raena Lea-Shannon  
+<raen@internode.on.net> wrote:
 
-I may be able to assist here.  Specifically what information/photographs are you looking for?
+>
+>
+> istvan_v@mailbox.hu wrote:
+>> On 01/02/2010 05:10 PM, Raena Lea-Shannon wrote:
+>>
+>>> I have 2 TV Cards. The DTV2000 H Plus and a Technisat. The Technisat
+>>> works very well. I am trying to get the DVT working for other video
+>>> input devices such as VCR to make copies of old Videos and an inteface
+>>> for my N95 video out.
+>>>
+>>> I do not seem to be able to get it to find a tuner. Seems to be problem
+>>> finding the card. Any suggestions wold be greatly appreciated.
+>>  This card uses an Xceive XC4000 tuner, which is not supported yet.
+>> However, a driver for the tuner chip is being developed at
+>> kernellabs.com, so the card may become supported in the future.
+>> --
+> [snip]
+>
+> That seems odd. This patch on the LinuxTv site
+> http://www.linuxtv.org/pipermail/linux-dvb/2008-June/026379.html
+> seems to be using the cx88 drivers?
 
-Regards,
+[...]
 
+Hi,
 
-William Tate
-RTD Embedded Technologies, Inc.
+I'm not a developer, but I think that your device uses both of these  
+chips. cx88 is the bridge chip, while the Xceive is the tuner chip. So,  
+both of them needs to be supported in order for a device to work properly.
 
------Original Message-----
-From: linux-media-owner@vger.kernel.org [mailto:linux-media-owner@vger.kernel.org] On Behalf Of hermann pitton
-Sent: Sunday, January 17, 2010 6:02 PM
-To: Trent Piepho
-Cc: Gordon Smith; linux-media@vger.kernel.org
-Subject: Re: How to use saa7134 gpio via gpio-sysfs?
+Please see the following link for reference:
+	http://www.kernellabs.com/blog/?p=1045
 
-[snip]
-> 
-> Damned, seems the opto-isolated I/Os might be in question.
-> 
-> For the RTD stuff we don't have any high resolution photographs or
-> anything else ...
-
-Gordon,
-
-we should wait for, if RTD and Philips/NXP do have a agreement on such.
-
-I doubt it, given how it came in.
-
-Else, you can of course still do what you ever want on that driver.
-
-Cheers,
-Hermann
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards
