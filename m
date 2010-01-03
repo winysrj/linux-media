@@ -1,105 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web32701.mail.mud.yahoo.com ([68.142.207.245]:37530 "HELO
-	web32701.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751715Ab0ARHDa convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2010 02:03:30 -0500
-Message-ID: <647298.8638.qm@web32701.mail.mud.yahoo.com>
-Date: Sun, 17 Jan 2010 23:03:29 -0800 (PST)
-From: Franklin Meng <fmeng2002@yahoo.com>
-Subject: [Patch 1/3] Kworld 315U
-To: linux-media@vger.kernel.org
-Cc: " Mauro Carvalho ChehabDevin Heitmueller <dheitmueller@kernellabs.com>"
-	<mchehab@infradead.org>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>
+Received: from netrider.rowland.org ([192.131.102.5]:45757 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752936Ab0ACRf6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jan 2010 12:35:58 -0500
+Date: Sun, 3 Jan 2010 12:35:56 -0500 (EST)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Sean <knife@toaster.net>
+cc: Andrew Morton <akpm@linux-foundation.org>,
+	<bugzilla-daemon@bugzilla.kernel.org>,
+	<linux-media@vger.kernel.org>,
+	USB list <linux-usb@vger.kernel.org>,
+	Ingo Molnar <mingo@elte.hu>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	"H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [Bugme-new] [Bug 14564] New: capture-example sleeping function
+ called from invalid context at arch/x86/mm/fault.c
+In-Reply-To: <4B3FF968.6000706@toaster.net>
+Message-ID: <Pine.LNX.4.44L0.1001031140460.29885-100000@netrider.rowland.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patch to add the s_power function to the saa7115.c code.
+On Sat, 2 Jan 2010, Sean wrote:
 
-Signed-off-by: Franklin Meng<fmeng2002@yahoo.com>
+> Hmm, I applied the changes and I did not see a place where *prev differs 
+> from td->td_hash. I have run memtest86+ on this box and it has passed 16 
+> times, so I do not suspect a hardware memory error. What do you think? 
+> Attached is the latest dmesg output.
+
+I don't know.  The same pattern as before appears here:
+
+$ egrep -n '[1b]e(40|5c)' dmesg3.log
+167:kobject: 'fs' (c7801e40): kobject_add_internal: parent: '<NULL>', set: '<NULL>'
+4990:ohci_hcd 0000:00:0b.0: td alloc for 2 ep85: c6691e40
+5023:ohci_hcd 0000:00:0b.0: hash c6691e40 to 57 -> (null)
+5181:ohci_hcd 0000:00:0b.0: td alloc for 2 ep85: c676be40
+5214:ohci_hcd 0000:00:0b.0: hash c676be40 to 57 -> c6691e40
+5271:ohci_hcd 0000:00:0b.0: td free c6691e40
+5272:ohci_hcd 0000:00:0b.0: (57 1) c676be5c -> (null) [(null)]
+5294:ohci_hcd 0000:00:0b.0: td alloc for 2 ep85: c6691e40
+5327:ohci_hcd 0000:00:0b.0: hash c6691e40 to 57 -> c676be40
+5533:ohci_hcd 0000:00:0b.0: td free c676be40
+5534:ohci_hcd 0000:00:0b.0: (57 1) c6691e5c -> (null) [(null)]
+5556:ohci_hcd 0000:00:0b.0: td alloc for 2 ep85: c676be40
+5589:ohci_hcd 0000:00:0b.0: hash c676be40 to 57 -> c6691e40
+5640:ohci_hcd 0000:00:0b.0: td free c6691e40
+5641:ohci_hcd 0000:00:0b.0: (57 1) c676be5c -> c676be40 [c676be40]
+5713:ohci_hcd 0000:00:0b.0: td alloc for 2 ep85: c6691e40
+5746:ohci_hcd 0000:00:0b.0: hash c6691e40 to 57 -> c676be40
+5899:ohci_hcd 0000:00:0b.0: td free c676be40
+5900:ohci_hcd 0000:00:0b.0: (57 1) c6691e5c -> c676be40 [c676be40]
+
+At line 5641 we see that the td_hash pointer in c676be40 gets
+corrupted.  It is copied from the pointer in c6691e40, which was set to
+NULL in line 5534, but now it points to c676be40.
+
+The question is whether this corruption was caused by a hardware fault 
+or a software bug.  We have added debugging printouts to the only two 
+places where the driver assigns anything to td->td_hash, and they don't 
+show anything wrong.  This leads me to suspect the hardware, but of 
+course this is still just a guess.
+
+Here is a completely new patch.  This one is more directed, to catch 
+the sort of errors we now know to look for.
+
+Alan Stern
 
 
-diff -r b6b82258cf5e linux/drivers/media/video/saa7115.c                              
---- a/linux/drivers/media/video/saa7115.c       Thu Dec 31 19:14:54 2009 -0200        
-+++ b/linux/drivers/media/video/saa7115.c       Sun Jan 17 22:54:21 2010 -0800        
-@@ -1338,6 +1338,59 @@                                                                
-        return 0;                                                                     
- }                                                                                    
-                                                                                      
-+static int saa711x_s_power(struct v4l2_subdev *sd, int val)                          
-+{                                                                                    
-+       struct saa711x_state *state = to_state(sd);                                   
-+                                                                                     
-+       if(val > 1 || val < 0)                                                        
-+               return -EINVAL;                                                       
-+                                                                                     
-+       /* There really isn't a way to put the chip into power saving                 
-+               other than by pulling CE to ground so all we do is return             
-+               out of this function                                                  
-+       */                                                                            
-+       if(val == 0)                                                                  
-+               return 0;                                                             
-+                                                                                     
-+       /* When enabling the chip again we need to reinitialize the                   
-+               all the values                                                        
-+       */                                                                            
-+       state->input = -1;                                                            
-+       state->output = SAA7115_IPORT_ON;                                             
-+       state->enable = 1;                                                            
-+       state->radio = 0;                                                             
-+       state->bright = 128;                                                          
-+       state->contrast = 64;                                                         
-+       state->hue = 0;                                                               
-+       state->sat = 64;                                                              
-+                                                                                     
-+       state->audclk_freq = 48000;                                                   
-+                                                                                     
-+       v4l2_dbg(1, debug, sd, "writing init values s_power\n");                      
-+                                                                                     
-+       /* init to 60hz/48khz */                                                      
-+       state->crystal_freq = SAA7115_FREQ_24_576_MHZ;                                
-+       switch (state->ident) {                                                       
-+       case V4L2_IDENT_SAA7111:                                                      
-+               saa711x_writeregs(sd, saa7111_init);                                  
-+               break;                                                                
-+       case V4L2_IDENT_SAA7113:                                                      
-+               saa711x_writeregs(sd, saa7113_init);
-+               break;
-+       default:
-+               state->crystal_freq = SAA7115_FREQ_32_11_MHZ;
-+               saa711x_writeregs(sd, saa7115_init_auto_input);
-+       }
-+       if (state->ident != V4L2_IDENT_SAA7111)
-+               saa711x_writeregs(sd, saa7115_init_misc);
-+       saa711x_set_v4lstd(sd, V4L2_STD_NTSC);
+
+Index: usb-2.6/drivers/usb/host/ohci-mem.c
+===================================================================
+--- usb-2.6.orig/drivers/usb/host/ohci-mem.c
++++ usb-2.6/drivers/usb/host/ohci-mem.c
+@@ -98,17 +98,56 @@ td_alloc (struct ohci_hcd *hc, gfp_t mem
+ 	return td;
+ }
+ 
++static void td_check(struct ohci_hcd *hc, int hash, char *msg)
++{
++	struct td	*td, *first;
 +
-+       v4l2_dbg(1, debug, sd, "status: (1E) 0x%02x, (1F) 0x%02x\n",
-+               saa711x_read(sd, R_1E_STATUS_BYTE_1_VD_DEC),
-+               saa711x_read(sd, R_1F_STATUS_BYTE_2_VD_DEC));
-+       return 0;
++	first = hc->td_hash[hash];
++	for (td = first; td; td = td->td_hash) {
++		if (td->td_hash == first || td->td_hash == td) {
++			ohci_err(hc, "Circular pointer %s: %d %p %p %p\n",
++					msg, hash, first, td, td->td_hash);
++			td->td_hash = NULL;
++			return;
++		}
++	}
 +}
 +
- static int saa711x_reset(struct v4l2_subdev *sd, u32 val)
++static void td_check_all(struct ohci_hcd *hc, char *msg)
++{
++	int	hash;
++
++	for (hash = 0; hash < TD_HASH_SIZE; ++hash)
++		td_check(hc, hash, msg);
++}
++
+ static void
+ td_free (struct ohci_hcd *hc, struct td *td)
  {
-        v4l2_dbg(1, debug, sd, "decoder RESET\n");
-@@ -1513,6 +1566,7 @@
-        .s_std = saa711x_s_std,
-        .reset = saa711x_reset,
-        .s_gpio = saa711x_s_gpio,
-+       .s_power = saa711x_s_power,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
-        .g_register = saa711x_g_register,
-        .s_register = saa711x_s_register,
+-	struct td	**prev = &hc->td_hash [TD_HASH_FUNC (td->td_dma)];
++	int 		hash = TD_HASH_FUNC(td->td_dma);
++	struct td	**prev = &hc->td_hash[hash];
+ 
+-	while (*prev && *prev != td)
++	td_check(hc, hash, "#1a");
++	while (*prev && *prev != td) {
++		if ((unsigned long) *prev == 0xa7a7a7a7) {
++			ohci_err(hc, "poisoned hash at %p (%d) %p %p\n", prev,
++				hash, td, hc->td_hash[hash]);
++			return;
++		}
+ 		prev = &(*prev)->td_hash;
+-	if (*prev)
++	}
++	if (*prev) {
+ 		*prev = td->td_hash;
++		if (*prev == td) {
++			ohci_err(hc, "invalid hash at %p (%d) %p %p\n", prev,
++				hash, td, hc->td_hash[hash]);
++			*prev = NULL;
++		}
++	}
+ 	else if ((td->hwINFO & cpu_to_hc32(hc, TD_DONE)) != 0)
+ 		ohci_dbg (hc, "no hash for td %p\n", td);
++	mb();
++	td_check(hc, hash, "#1b");
+ 	dma_pool_free (hc->td_cache, td, td->td_dma);
+ }
+ 
+Index: usb-2.6/drivers/usb/host/ohci-q.c
+===================================================================
+--- usb-2.6.orig/drivers/usb/host/ohci-q.c
++++ usb-2.6/drivers/usb/host/ohci-q.c
+@@ -558,12 +558,14 @@ td_fill (struct ohci_hcd *ohci, u32 info
+ 
+ 	/* hash it for later reverse mapping */
+ 	hash = TD_HASH_FUNC (td->td_dma);
++	td_check(ohci, hash, "#2a");
+ 	td->td_hash = ohci->td_hash [hash];
+ 	ohci->td_hash [hash] = td;
+ 
+ 	/* HC might read the TD (or cachelines) right away ... */
+ 	wmb ();
+ 	td->ed->hwTailP = td->hwNextTD;
++	td_check(ohci, hash, "#2b");
+ }
+ 
+ /*-------------------------------------------------------------------------*/
+@@ -1127,9 +1129,11 @@ dl_done_list (struct ohci_hcd *ohci)
+ {
+ 	struct td	*td = dl_reverse_done_list (ohci);
+ 
++	td_check_all(ohci, "#3a");
+ 	while (td) {
+ 		struct td	*td_next = td->next_dl_td;
+ 		takeback_td(ohci, td);
+ 		td = td_next;
+ 	}
++	td_check_all(ohci, "#3b");
+ }
 
-
-
-
-
-
-
-
-      
