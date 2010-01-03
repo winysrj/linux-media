@@ -1,20 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.tu-berlin.de ([130.149.7.33])
+Received: from ipmail03.adl6.internode.on.net ([203.16.214.141])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <hm@seneca.muc.de>) id 1NWpM6-0003Ky-D9
-	for linux-dvb@linuxtv.org; Mon, 18 Jan 2010 12:01:12 +0100
-Received: from colin.muc.de ([193.149.48.1] helo=mail.muc.de)
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-b) with esmtps
-	[TLSv1:AES256-SHA:256] for <linux-dvb@linuxtv.org>
-	id 1NWpM5-00044H-Sj; Mon, 18 Jan 2010 12:01:10 +0100
-Date: Mon, 18 Jan 2010 11:33:31 +0100
-From: Harald Milz <hm@seneca.muc.de>
-To: linux-dvb@linuxtv.org
-Message-ID: <20100118103331.GA13882@seneca.muc.de>
+	(envelope-from <raen@internode.on.net>) id 1NRM0A-0004ON-10
+	for linux-dvb@linuxtv.org; Sun, 03 Jan 2010 09:39:56 +0100
+Message-ID: <4B4057D0.5030808@internode.on.net>
+Date: Sun, 03 Jan 2010 19:39:44 +1100
+From: Raena Lea-Shannon <raen@internode.on.net>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="OgqxwSJOaUobr8KG"
-Content-Disposition: inline
-Subject: [linux-dvb] s2-liplianin & Technotrend TT-Connect S-2400
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] DTV2000 H Plus
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -23,503 +17,252 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+I do not seem to be able to get my DTV2000 to find a tuner. Seems to be 
+problem finding the card. Any suggestions would be greatly appreciated. 
+I am running Kubuntu Karmic 2.6.31-16-generic on AMD64 quadcore.
 
---OgqxwSJOaUobr8KG
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+I came across this Patch which seesm to be on the point
+http://www.linuxtv.org/pipermail/linux-dvb/2008-June/026379.html
 
-Hi,
+but I do not have a cx88-cards.c file? I have compiled latest mercurial 
+v4l. Do I need to make an empty file cx88-cards.c? Excuse my ignorance I 
+am not a developer.
 
-I am trying to use a S-2400 for Hotbird in addition to 2 S2-3650's pointing at
-Astra. For the 3650's I need to use s2-liplianin because the box is not yet
-supported by my stock OpenSUSE 11.1 (update) kernel. The 3650's work fine so
-far. I have no luck with the 2400, though. Attached is the syslog excerpt -
-maybe someone can see what is wrong here. The driver code is s2-liplianin-head
-from last Saturday. 
+I have tried to run modprobe cx88xx card=51 to no avail.
 
-Shortcut question: Do I want to get another 3650 / 3600? I had no luck with a
-quad monoblock LNB either... 
-
-TIA!
-
--- 
-When I was a boy I was told that anybody could become President.  Now
-I'm beginning to believe it.
-		-- Clarence Darrow
-
---OgqxwSJOaUobr8KG
-Content-Type: text/x-nemerle; charset=iso-8859-1
-Content-Disposition: attachment; filename="messages-20100117.n"
-Content-Transfer-Encoding: quoted-printable
-
-Jan 15 15:26:18 seneca kernel: dvb-usb: found a 'Technotrend TT-connect S-2=
-400' in cold state, will try to load a firmware
-Jan 15 15:26:18 seneca kernel: firmware: requesting dvb-usb-tt-s2400-01.fw
-Jan 15 15:26:18 seneca kernel: dvb-usb: downloading firmware from file 'dvb=
--usb-tt-s2400-01.fw'
-Jan 15 15:26:18 seneca kernel: usbcore: registered new interface driver dvb=
-_usb_ttusb2
-Jan 15 15:26:18 seneca kernel: usb 1-2: USB disconnect, address 7
-Jan 15 15:26:18 seneca kernel: dvb-usb: generic DVB-USB module successfully=
- deinitialized and disconnected.
-Jan 15 15:26:20 seneca kernel: usb 1-2: new high speed USB device using ehc=
-i_hcd and address 8
-Jan 15 15:26:20 seneca kernel: usb 1-2: configuration #1 chosen from 1 choi=
-ce
-Jan 15 15:26:20 seneca kernel: dvb-usb: found a 'Technotrend TT-connect S-2=
-400' in warm state.
-Jan 15 15:26:20 seneca kernel: dvb-usb: will pass the complete MPEG2 transp=
-ort stream to the software demuxer.
-Jan 15 15:26:20 seneca kernel: DVB: registering new adapter (Technotrend TT=
--connect S-2400)
-Jan 15 15:26:20 seneca kernel: DVB: registering frontend 0 (Philips TDA1008=
-6 DVB-S)...
-Jan 15 15:26:23 seneca kernel: dvb-usb: recv bulk message failed: -110
-Jan 15 15:26:23 seneca kernel: ttusb2: there might have been an error durin=
-g control message transfer. (rlen =3D 0, was 0)
-Jan 15 15:26:23 seneca kernel: dvb-usb: Technotrend TT-connect S-2400 succe=
-ssfully initialized and connected.
-Jan 15 15:26:23 seneca kernel: usb 1-2: New USB device found, idVendor=3D0b=
-48, idProduct=3D3006
-Jan 15 15:26:23 seneca kernel: usb 1-2: New USB device strings: Mfr=3D1, Pr=
-oduct=3D2, SerialNumber=3D0
-Jan 15 15:26:23 seneca kernel: usb 1-2: Product: TT-USB2.0
-Jan 15 15:26:23 seneca kernel: usb 1-2: Manufacturer: TechnoTrend
-
-Jan 15 15:35:31 seneca kernel: usbcore: deregistering interface driver dvb_=
-usb_ttusb2
-Jan 15 15:35:31 seneca kernel: dvb-usb: bulk message failed: -22 (8/-30720)
-Jan 15 15:35:31 seneca kernel: ttusb2: there might have been an error durin=
-g control message transfer. (rlen =3D 3, was 0)
-Jan 15 15:35:31 seneca kernel: ttusb2: i2c transfer failed.
-Jan 15 15:35:31 seneca kernel: dvb-usb: bulk message failed: -22 (8/-30720)
-Jan 15 15:35:31 seneca kernel: ttusb2: there might have been an error durin=
-g control message transfer. (rlen =3D 4, was 0)
-Jan 15 15:35:31 seneca kernel: ttusb2: i2c transfer failed.
-Jan 15 15:35:31 seneca kernel: dvb-usb: bulk message failed: -22 (9/0)
-Jan 15 15:35:31 seneca kernel: ttusb2: there might have been an error durin=
-g control message transfer. (rlen =3D 3, was 0)
-Jan 15 15:35:31 seneca kernel: ttusb2: i2c transfer failed.
-Jan 15 15:35:31 seneca kernel: dvb-usb: Technotrend TT-connect S-2400 succe=
-ssfully deinitialized and disconnected.
-
-Jan 15 15:36:40 seneca kernel: dvb-usb: found a 'Technotrend TT-connect S-2=
-400' in warm state.
-Jan 15 15:36:42 seneca kernel: dvb-usb: recv bulk message failed: -110
-Jan 15 15:36:42 seneca kernel: ttusb2: there might have been an error durin=
-g control message transfer. (rlen =3D 0, was 0)
-Jan 15 15:36:42 seneca kernel: dvb-usb: will pass the complete MPEG2 transp=
-ort stream to the software demuxer.
-Jan 15 15:36:42 seneca kernel: DVB: registering new adapter (Technotrend TT=
--connect S-2400)
-Jan 15 15:36:42 seneca kernel: DVB: registering adapter 1 frontend 0 (Phili=
-ps TDA10086 DVB-S)...
-Jan 15 15:36:45 seneca kernel: dvb-usb: recv bulk message failed: -110
-Jan 15 15:36:45 seneca kernel: ttusb2: there might have been an error durin=
-g control message transfer. (rlen =3D 0, was 0)
-Jan 15 15:36:45 seneca kernel: dvb-usb: Technotrend TT-connect S-2400 succe=
-ssfully initialized and connected.
-Jan 15 15:36:45 seneca kernel: usbcore: registered new interface driver dvb=
-_usb_ttusb2
-
-Jan 15 15:39:28 seneca kernel: usbcore: deregistering interface driver dvb_=
-usb_ttusb2
-Jan 15 15:39:28 seneca kernel: dvb-usb: bulk message failed: -22 (8/-30720)
-Jan 15 15:39:28 seneca kernel: ttusb2: there might have been an error durin=
-g control message transfer. (rlen =3D 3, was 0)
-Jan 15 15:39:28 seneca kernel: ttusb2: i2c transfer failed.
-Jan 15 15:39:28 seneca kernel: dvb-usb: bulk message failed: -22 (8/4)
-Jan 15 15:39:28 seneca kernel: ttusb2: there might have been an error durin=
-g control message transfer. (rlen =3D 4, was 0)
-Jan 15 15:39:28 seneca kernel: ttusb2: i2c transfer failed.
-Jan 15 15:39:28 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30720)
-Jan 15 15:39:28 seneca kernel: ttusb2: there might have been an error durin=
-g control message transfer. (rlen =3D 3, was 0)
-Jan 15 15:39:28 seneca kernel: ttusb2: i2c transfer failed.
-Jan 15 15:39:28 seneca kernel: dvb-usb: bulk message failed: -22 (9/5)
-Jan 15 15:39:28 seneca kernel: ttusb2: there might have been an error durin=
-g control message transfer. (rlen =3D 3, was 0)
-Jan 15 15:39:28 seneca kernel: ttusb2: i2c transfer failed.
-Jan 15 15:39:28 seneca kernel: dvb-usb: bulk message failed: -22 (8/0)
-Jan 15 15:39:28 seneca kernel: ttusb2: there might have been an error durin=
-g control message transfer. (rlen =3D 4, was 0)
-Jan 15 15:39:28 seneca kernel: ttusb2: i2c transfer failed.
-Jan 15 15:39:28 seneca kernel: dvb-usb: bulk message failed: -22 (9/0)
-Jan 15 15:39:28 seneca kernel: ttusb2: there might have been an error durin=
-g control message transfer. (rlen =3D 3, was 0)
-Jan 15 15:39:28 seneca kernel: ttusb2: i2c transfer failed.
-Jan 15 15:39:28 seneca kernel: BUG: unable to handle kernel paging request =
-at ffff8800c404a800
-Jan 15 15:39:28 seneca kernel: IP: [<ffff8800c404a800>] 0xffff8800c404a800
-Jan 15 15:39:28 seneca kernel: PGD 202063 PUD 12067 PMD 80000000c40001e3=20
-Jan 15 15:39:28 seneca kernel: Oops: 0011 [1] SMP=20
-Jan 15 15:39:28 seneca kernel: last sysfs file: /sys/devices/system/cpu/cpu=
-1/cache/index2/shared_cpu_map
-Jan 15 15:39:28 seneca kernel: CPU 1=20
-Jan 15 15:39:28 seneca kernel: Modules linked in: lnbp21(N) tda826x(N) tda1=
-0086(N) dvb_usb_ttusb2(N-) dvb_usb_pctv452e(N) dvb_usb(N) ttpci_eeprom(N) l=
-nbp22(N) stb0899(N) stb6100(N) dvb_core(N) vboxnetadp(N) vboxnetflt(N) vbox=
-drv(N) nls_iso8859_1 nls_cp437 vfat fat usb_storage af_packet nfsd lockd nf=
-s_acl auth_rpcgss sunrpc exportfs mga drm snd_pcm_oss snd_mixer_oss snd_seq=
- binfmt_misc w83627ehf(N) hwmon_vid cpufreq_conservative cpufreq_userspace =
-cpufreq_powersave powernow_k8 fuse ext3 jbd mbcache cryptoloop loop snd_usb=
-_audio snd_pcm snd_timer snd_page_alloc snd_usb_lib snd_rawmidi snd_seq_dev=
-ice k8temp(N) 8139too 8139cp snd_hwdep pcspkr snd usblp soundcore shpchp pc=
-i_hotplug r8169 i2c_nforce2 mii i2c_core sg sr_mod cdrom button rtc_cmos rt=
-c_core rtc_lib linear usbhid hid ff_memless ohci_hcd sd_mod crc_t10dif ehci=
-_hcd usbcore dm_snapshot edd dm_mod xfs fan ide_pci_generic amd74xx ide_cor=
-e ata_generic pata_jmicron pata_amd thermal processor thermal_sys hwmon ahc=
-i libata scsi_mod dock [last unloaded: dvb_core]
-Jan 15 15:39:28 seneca kernel: Supported: No
-Jan 15 15:39:28 seneca kernel: Pid: 17379, comm: rmmod Tainted: G          =
-2.6.27.42-0.1-default #1
-Jan 15 15:39:28 seneca kernel: RIP: 0010:[<ffff8800c404a800>]  [<ffff8800c4=
-04a800>] 0xffff8800c404a800
-Jan 15 15:39:28 seneca kernel: RSP: 0018:ffff88005e41ddc0  EFLAGS: 00010286
-Jan 15 15:39:28 seneca kernel: RAX: ffff8800c404a800 RBX: ffff8800b7da9030 =
-RCX: ffffffffa0642000
-Jan 15 15:39:28 seneca kernel: RDX: ffffffffa0642d40 RSI: ffffffffa0640718 =
-RDI: ffff8800c404a810
-Jan 15 15:39:28 seneca kernel: RBP: ffff8800c404a810 R08: 00000000ffffffff =
-R09: ffff8800c404a810
-Jan 15 15:39:28 seneca kernel: R10: 000000000000000a R11: 000000010001000e =
-R12: 0000000000000001
-Jan 15 15:39:28 seneca kernel: R13: ffff8800b7da8670 R14: ffffffffa0637e48 =
-R15: 0000000000000000
-Jan 15 15:39:28 seneca kernel: FS:  00007f7c813036f0(0000) GS:ffff88012fad0=
-340(0000) knlGS:00000000f3147b90
-Jan 15 15:39:28 seneca kernel: CS:  0010 DS: 0000 ES: 0000 CR0: 00000000800=
-5003b
-Jan 15 15:39:28 seneca kernel: CR2: ffff8800c404a800 CR3: 000000005e47c000 =
-CR4: 00000000000006e0
-Jan 15 15:39:28 seneca kernel: DR0: 0000000000000000 DR1: 0000000000000000 =
-DR2: 0000000000000000
-Jan 15 15:39:28 seneca kernel: DR3: 0000000000000000 DR6: 00000000ffff0ff0 =
-DR7: 0000000000000400
-Jan 15 15:39:28 seneca kernel: Process rmmod (pid: 17379, threadinfo ffff88=
-005e41c000, task ffff8800529fa400)
-Jan 15 15:39:28 seneca kernel: Stack:  ffffffffa0601edd ffff88005e412e00 ff=
-ff8800b7da9030 ffff8800b7da8000
-Jan 15 15:39:28 seneca kernel:  ffffffffa0628e49 ffff8800b7da9030 ffffffffa=
-06283e8 ffff88004a66e800
-Jan 15 15:39:28 seneca kernel:  ffffffffa0636cc3 ffff880110010430 ffff88011=
-0010400 ffff88004a66e800
-Jan 15 15:39:28 seneca kernel: Call Trace:
-Jan 15 15:39:28 seneca kernel: Inexact backtrace:
-Jan 15 15:39:28 seneca kernel:=20
-Jan 15 15:39:28 seneca kernel:  [<ffffffffa0601edd>] ? dvb_frontend_detach+=
-0x51/0x7d [dvb_core]
-Jan 15 15:39:28 seneca kernel:  [<ffffffffa0628e49>] ? dvb_usb_adapter_fron=
-tend_exit+0x21/0x25 [dvb_usb]
-Jan 15 15:39:28 seneca kernel:  [<ffffffffa06283e8>] ? dvb_usb_exit+0x54/0x=
-de [dvb_usb]
-Jan 15 15:39:28 seneca kernel:  [<ffffffffa06284af>] ? dvb_usb_device_exit+=
-0x3d/0x4f [dvb_usb]
-Jan 15 15:39:28 seneca kernel:  [<ffffffffa0167bd5>] ? usb_unbind_interface=
-+0x5c/0xb7 [usbcore]
-Jan 15 15:39:28 seneca kernel:  [<ffffffff803e6de5>] ? __device_release_dri=
-ver+0x95/0xba
-Jan 15 15:39:28 seneca kernel:  [<ffffffff803e6e88>] ? driver_detach+0x7e/0=
-xab
-Jan 15 15:39:28 seneca kernel:  [<ffffffff803e60e6>] ? bus_remove_driver+0x=
-c3/0xf3
-Jan 15 15:39:28 seneca kernel:  [<ffffffffa0167a03>] ? usb_deregister+0x90/=
-0x99 [usbcore]
-Jan 15 15:39:28 seneca kernel:  [<ffffffff802614fc>] ? sys_delete_module+0x=
-214/0x289
-Jan 15 15:39:28 seneca kernel:  [<ffffffff80364118>] ? __up_write+0x21/0x10f
-Jan 15 15:39:28 seneca kernel:  [<ffffffff8020bffb>] ? system_call_fastpath=
-+0x16/0x1b
-Jan 15 15:39:28 seneca kernel:=20
-Jan 15 15:39:28 seneca kernel:=20
-Jan 15 15:39:28 seneca kernel: Code: 00 00 00 00 00 00 00 00 00 00 00 00 00=
- 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00=
- 00 00 00 00 00 <08> 8d da b7 00 88 ff ff 20 a5 63 a0 ff ff ff ff 50 68 69 =
-6c 69=20
-Jan 15 15:39:29 seneca kernel: RIP  [<ffff8800c404a800>] 0xffff8800c404a800
-Jan 15 15:39:29 seneca kernel:  RSP <ffff88005e41ddc0>
-Jan 15 15:39:29 seneca kernel: CR2: ffff8800c404a800
-Jan 15 15:39:29 seneca kernel: ---[ end trace c28d08190c89a184 ]---
+Here is part of an mplayer, lspci and dmesg follow.
 
 
+Selected driver: v4l2
+  name: Video 4 Linux 2 input
+  author: Martin Olschewski <olschewski@zpr.uni-koeln.de>
+  comment: first try, more to come ;-)
+Selected device: UNKNOWN/GENERIC
+  Capabilites:  video capture  VBI capture device  read/write  streaming
+  supported norms: 0 = NTSC-M; 1 = NTSC-M-JP; 2 = NTSC-443; 3 = PAL-BG; 
+4 = PAL-I; 5 = PAL-DK; 6 = PAL-M; 7 = PAL-N; 8 = PAL-Nc; 9 = PAL-60; 10 
+= SECAM-B; 11 = SECAM-G; 12 = SECAM-H; 13 = SECAM-DK; 14 = SECAM-L;
+  inputs: 0 = Composite1; 1 = Composite2; 2 = Composite3; 3 = Composite4;
 
+I am running Kubuntu Karmic 2.6.31-16-generic on AMD64 quadcore. I have 
+latest mercurial of v4l installed.
 
-Jan 15 15:51:25 seneca kernel: dvb-usb: found a 'Technotrend TT-connect S-2=
-400' in warm state.
-Jan 15 15:51:27 seneca kernel: dvb-usb: recv bulk message failed: -110
-Jan 15 15:51:27 seneca kernel: ttusb2: there might have been an error durin=
-g control message transfer. (rlen =3D 0, was 0)
-Jan 15 15:51:27 seneca kernel: dvb-usb: will pass the complete MPEG2 transp=
-ort stream to the software demuxer.
-Jan 15 15:51:27 seneca kernel: DVB: registering new adapter (Technotrend TT=
--connect S-2400)
-Jan 15 15:51:27 seneca kernel: DVB: registering adapter 1 frontend 0 (Phili=
-ps TDA10086 DVB-S)...
-Jan 15 15:51:29 seneca kernel: dvb-usb: recv bulk message failed: -110
-Jan 15 15:51:29 seneca kernel: ttusb2: there might have been an error durin=
-g control message transfer. (rlen =3D 0, was 0)
-Jan 15 15:51:29 seneca kernel: dvb-usb: Technotrend TT-connect S-2400 succe=
-ssfully initialized and connected.
-Jan 15 15:51:29 seneca kernel: usbcore: registered new interface driver dvb=
-_usb_ttusb2
-=2E..
-Jan 15 15:51:31 seneca kernel: pctv452e_power_ctrl: 1
-Jan 15 15:51:32 seneca vdr: [6211] device 1 provides DVB-S2 ("STB0899 Multi=
-standard")
-Jan 15 15:51:32 seneca vdr: [6211] device 2 provides DVB-S ("Philips TDA100=
-86 DVB-S")
-Jan 15 15:51:32 seneca vdr: [6211] found 2 video devices
-=2E..
-Jan 15 15:51:36 seneca vdr: [6211] switching to channel 1
-Jan 15 15:51:36 seneca kernel: BUG: unable to handle kernel paging request =
-at ffff8800ce529c00
-Jan 15 15:51:36 seneca kernel: IP: [<ffff8800ce529c00>] 0xffff8800ce529c00
-Jan 15 15:51:36 seneca kernel: PGD 202063 PUD 12067 PMD 80000000ce4001e3=20
-Jan 15 15:51:36 seneca kernel: Oops: 0011 [1] SMP=20
-Jan 15 15:51:36 seneca kernel: last sysfs file: /sys/devices/system/cpu/cpu=
-1/cache/index2/shared_cpu_map
-Jan 15 15:51:36 seneca kernel: CPU 1=20
-Jan 15 15:51:36 seneca kernel: Modules linked in: lnbp21(N) tda826x(N) tda1=
-0086(N) dvb_usb_ttusb2(N) dvb_usb_pctv452e(N) dvb_usb(N) ttpci_eeprom(N) ln=
-bp22(N) stb0899(N) stb6100(N) dvb_core(N) af_packet nfsd lockd nfs_acl auth=
-_rpcgss sunrpc exportfs mga drm w83627ehf(N) binfmt_misc snd_pcm_oss snd_mi=
-xer_oss hwmon_vid snd_seq vboxnetadp(N) vboxnetflt(N) vboxdrv(N) cpufreq_co=
-nservative cpufreq_userspace cpufreq_powersave powernow_k8 fuse ext3 jbd mb=
-cache cryptoloop loop snd_usb_audio snd_pcm snd_timer snd_page_alloc snd_us=
-b_lib snd_rawmidi 8139too snd_seq_device 8139cp snd_hwdep snd rtc_cmos rtc_=
-core shpchp soundcore pcspkr r8169 usblp pci_hotplug k8temp(N) i2c_nforce2 =
-rtc_lib mii sr_mod button i2c_core cdrom sg linear usbhid hid ff_memless oh=
-ci_hcd sd_mod ehci_hcd crc_t10dif usbcore dm_snapshot edd dm_mod xfs fan id=
-e_pci_generic amd74xx ide_core ata_generic pata_jmicron pata_amd thermal pr=
-ocessor thermal_sys hwmon ahci libata scsi_mod dock [last unloaded: tda1008=
-6]
-Jan 15 15:51:36 seneca kernel: Supported: No
-Jan 15 15:51:36 seneca kernel: Pid: 6227, comm: tuner on device Tainted: G =
-         2.6.27.42-0.1-default #1
-Jan 15 15:51:36 seneca kernel: RIP: 0010:[<ffff8800ce529c00>]  [<ffff8800ce=
-529c00>] 0xffff8800ce529c00
-Jan 15 15:51:36 seneca kernel: RSP: 0018:ffff8800c7a43d90  EFLAGS: 00010286
-Jan 15 15:51:36 seneca kernel: RAX: ffff8800ce529c00 RBX: ffff880104547c10 =
-RCX: 0000000000000000
-Jan 15 15:51:36 seneca kernel: RDX: 0000000000000002 RSI: ffff8800c7a33a40 =
-RDI: ffff880104547c10
-Jan 15 15:51:36 seneca kernel: RBP: ffff8801030f6501 R08: ffffffffa05f7fb4 =
-R09: 0000000000000002
-Jan 15 15:51:36 seneca kernel: R10: 0000000000000000 R11: 0000000000000282 =
-R12: ffff8800c7a33a40
-Jan 15 15:51:36 seneca kernel: R13: 0000000000000000 R14: 0000000000000000 =
-R15: ffff8800c7a43e28
-Jan 15 15:51:36 seneca kernel: FS:  00007fdcfeffd950(0000) GS:ffff88012fad0=
-340(0000) knlGS:00000000f75a06c0
-Jan 15 15:51:36 seneca kernel: CS:  0010 DS: 0000 ES: 0000 CR0: 00000000800=
-5003b
-Jan 15 15:51:36 seneca kernel: CR2: ffff8800ce529c00 CR3: 00000000c78ba000 =
-CR4: 00000000000006e0
-Jan 15 15:51:36 seneca kernel: DR0: 0000000000000000 DR1: 0000000000000000 =
-DR2: 0000000000000000
-Jan 15 15:51:36 seneca kernel: DR3: 0000000000000000 DR6: 00000000ffff0ff0 =
-DR7: 0000000000000400
-Jan 15 15:51:36 seneca kernel: Process tuner on device (pid: 6227, threadin=
-fo ffff8800c7a42000, task ffff88012bde83c0)
-Jan 15 15:51:36 seneca kernel: Stack:  ffffffffa05f81a7 ffff8800ce453180 ff=
-ff8800c789d118 ffff8801030f65b0
-Jan 15 15:51:36 seneca kernel:  00000000280642b8 ffff8800c7a33a40 ffff88010=
-4547f30 ffff8801030f6400
-Jan 15 15:51:36 seneca kernel:  0000000040106f52 00007fdcfeffd020 ffff8800c=
-7a43e28 0000000000000000
-Jan 15 15:51:36 seneca kernel: Call Trace:
-Jan 15 15:51:36 seneca kernel: Inexact backtrace:
-Jan 15 15:51:36 seneca kernel:=20
-Jan 15 15:51:36 seneca kernel:  [<ffffffffa05f81a7>] ? dvb_frontend_ioctl+0=
-x1f3/0xbec [dvb_core]
-Jan 15 15:51:36 seneca kernel:  [<ffffffffa05f02a0>] ? dvb_usercopy+0xa3/0x=
-ff [dvb_core]
-Jan 15 15:51:36 seneca vdr: [6238] vdr-fritzbox - FritzFonbook.cpp: read 0 =
-entries.
-Jan 15 15:51:36 seneca kernel:  [<ffffffffa05f7fb4>] ? dvb_frontend_ioctl+0=
-x0/0xbec [dvb_core]
-Jan 15 15:51:36 seneca kernel:  [<ffffffff8025a6d1>] ? futex_wake+0x61/0xea
-Jan 15 15:51:36 seneca kernel:  [<ffffffff802bd622>] ? vfs_ioctl+0x56/0x6c
-Jan 15 15:51:36 seneca kernel:  [<ffffffff802bd85a>] ? do_vfs_ioctl+0x222/0=
-x231
-Jan 15 15:51:36 seneca kernel:  [<ffffffff802bd8ba>] ? sys_ioctl+0x51/0x73
-Jan 15 15:51:36 seneca kernel:  [<ffffffff8020bffb>] ? system_call_fastpath=
-+0x16/0x1b
-Jan 15 15:51:36 seneca kernel:=20
-Jan 15 15:51:36 seneca kernel:=20
-Jan 15 15:51:36 seneca kernel: Code: 00 00 00 00 00 00 00 00 00 00 00 00 64=
- 61 74 61 00 67 65 74 5f 45 78 65 52 6f 61 6d 69 6e 67 43 6f 6e 66 69 67 44=
- 69 72 65 63 74 <44> 00 ff 03 00 e2 ff ff 08 8d 86 cb 00 88 ff ff 00 00 00 =
-00 00=20
-Jan 15 15:51:36 seneca vdr: [6211] ERROR (svdrp.c,129): Das Argument ist un=
-g=FCltig
-Jan 15 15:51:36 seneca kernel: RIP  [<ffff8800ce529c00>] 0xffff8800ce529c00
-Jan 15 15:51:37 seneca kernel:  RSP <ffff8800c7a43d90>
-Jan 15 15:51:37 seneca kernel: CR2: ffff8800ce529c00
-Jan 15 15:51:37 seneca kernel: ---[ end trace be5c44b6403925b1 ]---
-Jan 15 15:51:37 seneca vdr: [6211] ERROR (svdrp.c,129): Das Argument ist un=
-g=FCltig
-Jan 15 15:51:37 seneca vdr: [6211] ERROR (svdrp.c,129): Das Argument ist un=
-g=FCltig
-Jan 15 15:51:37 seneca vdr: [6211] ERROR (svdrp.c,129): Das Argument ist un=
-g=FCltig
-Jan 15 15:51:37 seneca vdr: [6211] ERROR (svdrp.c,129): Das Argument ist un=
-g=FCltig
-=2E..
+Here is the Lspci info and dmesg etc
 
+5:05.0 Network controller [0280]: Techsan Electronics Co Ltd B2C2 
+FlexCopII DVB chip / Technisat SkyStar2 DVB card [13d0:2103] (rev 02)
 
-Jan 16 15:35:53 seneca kernel: dvb-usb: found a 'Technotrend TT-connect S-2=
-400' in warm state.
-Jan 16 15:35:55 seneca kernel: dvb-usb: recv bulk message failed: -110
-Jan 16 15:35:55 seneca kernel: ttusb2: there might have been an error durin=
-g control message transfer. (rlen =3D 0, was 0)
-Jan 16 15:35:55 seneca kernel: dvb-usb: will pass the complete MPEG2 transp=
-ort stream to the software demuxer.
-Jan 16 15:35:55 seneca kernel: DVB: registering new adapter (Technotrend TT=
--connect S-2400)
-Jan 16 15:35:55 seneca kernel: DVB: registering adapter 0 frontend 0 (Phili=
-ps TDA10086 DVB-S)...
-Jan 16 15:35:57 seneca kernel: dvb-usb: recv bulk message failed: -110
-Jan 16 15:35:57 seneca kernel: ttusb2: there might have been an error durin=
-g control message transfer. (rlen =3D 0, was 0)
-Jan 16 15:35:57 seneca kernel: dvb-usb: Technotrend TT-connect S-2400 succe=
-ssfully initialized and connected.
-Jan 16 15:35:57 seneca kernel: usbcore: registered new interface driver dvb=
-_usb_ttusb2
-Jan 16 15:36:02 seneca kernel: usbcore: deregistering interface driver dvb_=
-usb_ttusb2
-Jan 16 15:36:02 seneca kernel: dvb-usb: bulk message failed: -22 (8/-30719)
-Jan 16 15:36:02 seneca kernel: ttusb2: there might have been an error durin=
-g control message transfer. (rlen =3D 3, was 0)
-Jan 16 15:36:02 seneca kernel: ttusb2: i2c transfer failed.
-Jan 16 15:36:02 seneca kernel: dvb-usb: bulk message failed: -22 (8/4)
-Jan 16 15:36:02 seneca kernel: ttusb2: there might have been an error durin=
-g control message transfer. (rlen =3D 4, was 0)
-Jan 16 15:36:02 seneca kernel: ttusb2: i2c transfer failed.
-Jan 16 15:36:02 seneca kernel: dvb-usb: bulk message failed: -22 (9/-30720)
-Jan 16 15:36:02 seneca kernel: ttusb2: there might have been an error durin=
-g control message transfer. (rlen =3D 3, was 0)
-Jan 16 15:36:02 seneca kernel: ttusb2: i2c transfer failed.
-Jan 16 15:36:02 seneca kernel: dvb-usb: bulk message failed: -22 (9/5)
-Jan 16 15:36:02 seneca kernel: ttusb2: there might have been an error durin=
-g control message transfer. (rlen =3D 3, was 0)
-Jan 16 15:36:02 seneca kernel: ttusb2: i2c transfer failed.
-Jan 16 15:36:02 seneca kernel: dvb-usb: bulk message failed: -22 (8/0)
-Jan 16 15:36:02 seneca kernel: ttusb2: there might have been an error durin=
-g control message transfer. (rlen =3D 4, was 0)
-Jan 16 15:36:02 seneca kernel: ttusb2: i2c transfer failed.
-Jan 16 15:36:02 seneca kernel: dvb-usb: bulk message failed: -22 (9/0)
-Jan 16 15:36:02 seneca kernel: ttusb2: there might have been an error durin=
-g control message transfer. (rlen =3D 3, was 0)
-Jan 16 15:36:02 seneca kernel: ttusb2: i2c transfer failed.
-Jan 16 15:36:02 seneca kernel: BUG: unable to handle kernel paging request =
-at ffff88012b958000
-Jan 16 15:36:02 seneca kernel: IP: [<ffff88012b958000>] 0xffff88012b958000
-Jan 16 15:36:02 seneca kernel: PGD 202063 PUD 14067 PMD 800000012b8001e3=20
-Jan 16 15:36:02 seneca kernel: Oops: 0011 [1] SMP=20
-Jan 16 15:36:02 seneca kernel: last sysfs file: /sys/devices/system/cpu/cpu=
-1/cache/index2/shared_cpu_map
-Jan 16 15:36:02 seneca kernel: CPU 0=20
-Jan 16 15:36:02 seneca kernel: Modules linked in: lnbp21(N) tda826x(N) tda1=
-0086(N) dvb_usb_ttusb2(N-) dvb_usb(N) dvb_core(N) vboxnetadp(N) vboxnetflt(=
-N) vboxdrv(N) af_packet nfsd lockd nfs_acl auth_rpcgss sunrpc exportfs mga =
-drm snd_pcm_oss snd_mixer_oss snd_seq w83627ehf(N) hwmon_vid binfmt_misc cp=
-ufreq_conservative cpufreq_userspace cpufreq_powersave powernow_k8 fuse ext=
-3 jbd mbcache cryptoloop loop snd_usb_audio snd_pcm snd_timer snd_page_allo=
-c snd_usb_lib 8139too 8139cp snd_rawmidi snd_seq_device snd_hwdep pcspkr sr=
-_mod rtc_cmos k8temp(N) shpchp button snd i2c_nforce2 cdrom soundcore pci_h=
-otplug usblp rtc_core r8169 i2c_core rtc_lib mii sg linear usbhid hid ff_me=
-mless ohci_hcd ehci_hcd sd_mod crc_t10dif usbcore dm_snapshot edd dm_mod xf=
-s fan ide_pci_generic amd74xx ide_core ata_generic pata_jmicron pata_amd th=
-ermal processor thermal_sys hwmon ahci libata scsi_mod dock [last unloaded:=
- tda10086]
-Jan 16 15:36:02 seneca kernel: Supported: No
-Jan 16 15:36:02 seneca kernel: Pid: 12526, comm: rmmod Tainted: G          =
-2.6.27.42-0.1-default #1
-Jan 16 15:36:02 seneca kernel: RIP: 0010:[<ffff88012b958000>]  [<ffff88012b=
-958000>] 0xffff88012b958000
-Jan 16 15:36:02 seneca kernel: RSP: 0018:ffff8800589d1dc0  EFLAGS: 00010286
-Jan 16 15:36:02 seneca kernel: RAX: ffff88012b958000 RBX: ffff88009a959030 =
-RCX: ffffffffa024c000
-Jan 16 15:36:02 seneca kernel: RDX: ffffffffa024cd40 RSI: ffffffffa024a718 =
-RDI: ffff88012b958010
-Jan 16 15:36:03 seneca kernel: RBP: ffff88012b958010 R08: 00000000ffffffff =
-R09: ffff88012b958010
-Jan 16 15:36:03 seneca kernel: R10: 000000000000000a R11: 000000010001000e =
-R12: 0000000000000001
-Jan 16 15:36:03 seneca kernel: R13: ffff88009a958670 R14: ffffffffa0241e48 =
-R15: 0000000000000000
-Jan 16 15:36:03 seneca kernel: FS:  00007fb7f1e0f6f0(0000) GS:ffffffff80a43=
-080(0000) knlGS:00000000f317ab90
-Jan 16 15:36:03 seneca kernel: CS:  0010 DS: 0000 ES: 0000 CR0: 00000000800=
-5003b
-Jan 16 15:36:03 seneca kernel: CR2: ffff88012b958000 CR3: 00000000cb0d5000 =
-CR4: 00000000000006e0
-Jan 16 15:36:03 seneca kernel: DR0: 0000000000000000 DR1: 0000000000000000 =
-DR2: 0000000000000000
-Jan 16 15:36:03 seneca kernel: DR3: 0000000000000000 DR6: 00000000ffff0ff0 =
-DR7: 0000000000000400
-Jan 16 15:36:03 seneca kernel: Process rmmod (pid: 12526, threadinfo ffff88=
-00589d0000, task ffff880054c4a6c0)
-Jan 16 15:36:03 seneca kernel: Stack:  ffffffffa05f5edd ffff88012d1f3300 ff=
-ff88009a959030 ffff88009a958000
-Jan 16 15:36:03 seneca kernel:  ffffffffa0239e49 ffff88009a959030 ffffffffa=
-02393e8 ffff88012c820800
-Jan 16 15:36:03 seneca kernel:  ffffffffa0240cc3 ffff88012cc50430 ffff88012=
-cc50400 ffff88012c820800
-Jan 16 15:36:03 seneca kernel: Call Trace:
-Jan 16 15:36:03 seneca kernel: Inexact backtrace:
-Jan 16 15:36:03 seneca kernel:=20
-Jan 16 15:36:03 seneca kernel:  [<ffffffffa05f5edd>] ? dvb_frontend_detach+=
-0x51/0x7d [dvb_core]
-Jan 16 15:36:03 seneca kernel:  [<ffffffffa0239e49>] ? dvb_usb_adapter_fron=
-tend_exit+0x21/0x25 [dvb_usb]
-Jan 16 15:36:03 seneca kernel:  [<ffffffffa02393e8>] ? dvb_usb_exit+0x54/0x=
-de [dvb_usb]
-Jan 16 15:36:03 seneca kernel:  [<ffffffffa02394af>] ? dvb_usb_device_exit+=
-0x3d/0x4f [dvb_usb]
-Jan 16 15:36:03 seneca kernel:  [<ffffffffa0167bd5>] ? usb_unbind_interface=
-+0x5c/0xb7 [usbcore]
-Jan 16 15:36:03 seneca kernel:  [<ffffffff803e6de5>] ? __device_release_dri=
-ver+0x95/0xba
-Jan 16 15:36:03 seneca kernel:  [<ffffffff803e6e88>] ? driver_detach+0x7e/0=
-xab
-Jan 16 15:36:03 seneca kernel:  [<ffffffff803e60e6>] ? bus_remove_driver+0x=
-c3/0xf3
-Jan 16 15:36:03 seneca kernel:  [<ffffffffa0167a03>] ? usb_deregister+0x90/=
-0x99 [usbcore]
-Jan 16 15:36:03 seneca kernel:  [<ffffffff802614fc>] ? sys_delete_module+0x=
-214/0x289
-Jan 16 15:36:03 seneca kernel:  [<ffffffff80364118>] ? __up_write+0x21/0x10f
-Jan 16 15:36:03 seneca kernel:  [<ffffffff8020bffb>] ? system_call_fastpath=
-+0x16/0x1b
-Jan 16 15:36:03 seneca kernel:=20
-Jan 16 15:36:03 seneca kernel:=20
-Jan 16 15:36:03 seneca kernel: Code: 55 00 4c 8b 58 10 48 8d 05 5e b8 01 00=
- 41 80 7b 1d 00 4c 0f 45 c0 45 85 d2 0f 8e ac 00 00 00 31 f6 31 c9 49 8b b9=
- a8 03 00 00 eb <08> 8d 95 9a 00 88 ff ff 20 45 24 a0 ff ff ff ff 50 68 69 =
-6c 69=20
-Jan 16 15:36:03 seneca kernel: RIP  [<ffff88012b958000>] 0xffff88012b958000
-Jan 16 15:36:03 seneca kernel:  RSP <ffff8800589d1dc0>
-Jan 16 15:36:03 seneca kernel: CR2: ffff88012b958000
-Jan 16 15:36:03 seneca kernel: ---[ end trace 32bb07b47e72b634 ]---
+         Subsystem: Techsan Electronics Co Ltd B2C2 FlexCopII DVB chip / 
+Technisat SkyStar2 DVB card [13d0:2103]
+         Flags: bus master, slow devsel, latency 64, IRQ 20
+         Memory at fbff0000 (32-bit, non-prefetchable) [size=64K]
+         I/O ports at ec00 [size=32]
+         Kernel driver in use: b2c2_flexcop_pci
+         Kernel modules: b2c2-flexcop-pci
 
+05:06.0 Multimedia video controller [0400]: Conexant Systems, Inc. 
+CX23880/1/2/3 PCI Video and Audio Decoder [14f1:8800] (rev 05)
+         Subsystem: LeadTek Research Inc. Device [107d:6f42]
+         Flags: bus master, medium devsel, latency 64, IRQ 21
+         Memory at f8000000 (32-bit, non-prefetchable) [size=16M]
+         Capabilities: <access denied>
+         Kernel driver in use: cx8800
+         Kernel modules: cx8800
 
+05:06.1 Multimedia controller [0480]: Conexant Systems, Inc. 
+CX23880/1/2/3 PCI Video and Audio Decoder [Audio Port] [14f1:8801] (rev 05)
+         Subsystem: LeadTek Research Inc. Device [107d:6f42]
+         Flags: bus master, medium devsel, latency 64, IRQ 21
+         Memory at f9000000 (32-bit, non-prefetchable) [size=16M]
+         Capabilities: <access denied>
+         Kernel driver in use: cx88_audio
+         Kernel modules: cx88-alsa
 
+05:06.2 Multimedia controller [0480]: Conexant Systems, Inc. 
+CX23880/1/2/3 PCI Video and Audio Decoder [MPEG Port] [14f1:8802] (rev 05)
+         Subsystem: LeadTek Research Inc. Device [107d:6f42]
+         Flags: bus master, medium devsel, latency 64, IRQ 10
+         Memory at fa000000 (32-bit, non-prefetchable) [size=16M]
+         Capabilities: <access denied>
+         Kernel modules: cx8802
 
---OgqxwSJOaUobr8KG
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+dmesg in part here:
+[snip]
+
+[   20.387650] b2c2-flexcop: B2C2 FlexcopII/II(b)/III digital TV 
+receiver chip loaded successfully
+[   20.390596] EDAC MC: Ver: 2.1.0 Dec  8 2009
+[   20.392347] flexcop-pci: will use the HW PID filter.
+[   20.392351] flexcop-pci: card revision 2
+[   20.392359]   alloc irq_desc for 20 on node 0
+[   20.392361]   alloc kstat_irqs on node 0
+[   20.392366] b2c2_flexcop_pci 0000:05:05.0: PCI INT A -> GSI 20 
+(level, low) -> IRQ 20
+[   20.403400] EDAC amd64_edac:  Ver: 3.2.0 Dec  8 2009
+[   20.404070] EDAC amd64: This node reports that Memory ECC is 
+currently disabled.
+[   20.404073] EDAC amd64: bit 0x400000 in register F3x44 of the 
+MISC_CONTROL device (0000:00:18.3) should be enabled
+[   20.404076] EDAC amd64: WARNING: ECC is NOT currently enabled by the 
+BIOS. Module will NOT be loaded.
+[   20.404077]     Either Enable ECC in the BIOS, or use the 
+'ecc_enable_override' parameter.
+[   20.404078]     Might be a BIOS bug, if BIOS says ECC is enabled
+[   20.404078]     Use of the override can cause unknown side effects.
+[   20.404541] amd64_edac: probe of 0000:00:18.2 failed with error -22
+[   20.425278] HDA Intel 0000:00:14.2: PCI INT A -> GSI 16 (level, low) 
+-> IRQ 16
+[   20.430203] DVB: registering new adapter (FlexCop Digital TV device)
+[   20.431702] b2c2-flexcop: MAC address = 00:d0:d7:16:5d:8f
+[   20.432308] CX24123: cx24123_i2c_readreg: reg=0x0 (error=-121)
+[   20.432311] CX24123: wrong demod revision: 87
+[   20.547542] Linux video capture interface: v2.00
+[   20.555291] HDA Intel 0000:01:00.1: PCI INT B -> GSI 19 (level, low) 
+-> IRQ 19
+[   20.555310] HDA Intel 0000:01:00.1: setting latency timer to 64
+[   20.608776] EXT3 FS on sda1, internal journal
+[   20.857754] cx88/0: cx2388x v4l2 driver version 0.0.7 loaded
+[   20.859425] cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.7 loaded
+[   20.859959] b2c2-flexcop: found 'Zarlink MT352 DVB-T' .
+[   20.859963] DVB: registering adapter 0 frontend 0 (Zarlink MT352 
+DVB-T)...
+[   20.860017] b2c2-flexcop: initialization of 'Air2PC/AirStar 2 DVB-T' 
+at the 'PCI' bus controlled by a 'FlexCopIIb' complete
+[   20.861717] cx2388x alsa driver version 0.0.7 loaded
+[   20.862371]   alloc irq_desc for 21 on node 0
+[   20.862373]   alloc kstat_irqs on node 0
+[   20.862379] cx8800 0000:05:06.0: PCI INT A -> GSI 21 (level, low) -> 
+IRQ 21
+[   20.862549] cx88[0]: Your board isn't known (yet) to the driver.  You can
+[   20.862550] cx88[0]: try to pick one of the existing card configs via
+[   20.862551] cx88[0]: card=<n> insmod option.  Updating to the latest
+[   20.862552] cx88[0]: version might help as well.
+[   20.862554] cx88[0]: Here is a list of valid choices for the card=<n> 
+insmod option:
+[   20.862556] cx88[0]:    card=0 -> UNKNOWN/GENERIC
+[   20.862558] cx88[0]:    card=1 -> Hauppauge WinTV 34xxx models
+[   20.862559] cx88[0]:    card=2 -> GDI Black Gold
+[   20.862561] cx88[0]:    card=3 -> PixelView
+[   20.862562] cx88[0]:    card=4 -> ATI TV Wonder Pro
+[   20.862563] cx88[0]:    card=5 -> Leadtek Winfast 2000XP Expert
+[   20.862565] cx88[0]:    card=6 -> AverTV Studio 303 (M126)
+[   20.862566] cx88[0]:    card=7 -> MSI TV-@nywhere Master
+[   20.862568] cx88[0]:    card=8 -> Leadtek Winfast DV2000
+[   20.862569] cx88[0]:    card=9 -> Leadtek PVR 2000
+[   20.862571] cx88[0]:    card=10 -> IODATA GV-VCP3/PCI
+[   20.862572] cx88[0]:    card=11 -> Prolink PlayTV PVR
+[   20.862574] cx88[0]:    card=12 -> ASUS PVR-416
+[   20.862575] cx88[0]:    card=13 -> MSI TV-@nywhere
+[   20.862577] cx88[0]:    card=14 -> KWorld/VStream XPert DVB-T
+[   20.862578] cx88[0]:    card=15 -> DViCO FusionHDTV DVB-T1
+[   20.862580] cx88[0]:    card=16 -> KWorld LTV883RF
+[   20.862581] cx88[0]:    card=17 -> DViCO FusionHDTV 3 Gold-Q
+[   20.862583] cx88[0]:    card=18 -> Hauppauge Nova-T DVB-T
+[   20.862584] cx88[0]:    card=19 -> Conexant DVB-T reference design
+[   20.862586] cx88[0]:    card=20 -> Provideo PV259
+[   20.862587] cx88[0]:    card=21 -> DViCO FusionHDTV DVB-T Plus
+[   20.862589] cx88[0]:    card=22 -> pcHDTV HD3000 HDTV
+[   20.862590] cx88[0]:    card=23 -> digitalnow DNTV Live! DVB-T
+[   20.862592] cx88[0]:    card=24 -> Hauppauge WinTV 28xxx (Roslyn) models
+[   20.862593] cx88[0]:    card=25 -> Digital-Logic MICROSPACE 
+Entertainment Center (MEC)
+[   20.862595] cx88[0]:    card=26 -> IODATA GV/BCTV7E
+[   20.862597] cx88[0]:    card=27 -> PixelView PlayTV Ultra Pro (Stereo)
+[   20.862598] cx88[0]:    card=28 -> DViCO FusionHDTV 3 Gold-T
+[   20.862600] cx88[0]:    card=29 -> ADS Tech Instant TV DVB-T PCI
+[   20.862601] cx88[0]:    card=30 -> TerraTec Cinergy 1400 DVB-T
+[   20.862603] cx88[0]:    card=31 -> DViCO FusionHDTV 5 Gold
+[   20.862604] cx88[0]:    card=32 -> AverMedia UltraTV Media Center PCI 550
+[   20.862606] cx88[0]:    card=33 -> Kworld V-Stream Xpert DVD
+[   20.862607] cx88[0]:    card=34 -> ATI HDTV Wonder
+[   20.862609] cx88[0]:    card=35 -> WinFast DTV1000-T
+[   20.862610] cx88[0]:    card=36 -> AVerTV 303 (M126)
+[   20.862611] cx88[0]:    card=37 -> Hauppauge Nova-S-Plus DVB-S
+[   20.862613] cx88[0]:    card=38 -> Hauppauge Nova-SE2 DVB-S
+[   20.862614] cx88[0]:    card=39 -> KWorld DVB-S 100
+[   20.862616] cx88[0]:    card=40 -> Hauppauge WinTV-HVR1100 DVB-T/Hybrid
+[   20.862618] cx88[0]:    card=41 -> Hauppauge WinTV-HVR1100 
+DVB-T/Hybrid (Low Profile)
+[   20.862619] cx88[0]:    card=42 -> digitalnow DNTV Live! DVB-T Pro
+[   20.862621] cx88[0]:    card=43 -> KWorld/VStream XPert DVB-T with 
+cx22702
+[   20.862623] cx88[0]:    card=44 -> DViCO FusionHDTV DVB-T Dual Digital
+[   20.862624] cx88[0]:    card=45 -> KWorld HardwareMpegTV XPert
+[   20.862626] cx88[0]:    card=46 -> DViCO FusionHDTV DVB-T Hybrid
+[   20.862627] cx88[0]:    card=47 -> pcHDTV HD5500 HDTV
+[   20.862628] cx88[0]:    card=48 -> Kworld MCE 200 Deluxe
+[   20.862630] cx88[0]:    card=49 -> PixelView PlayTV P7000
+[   20.862631] cx88[0]:    card=50 -> NPG Tech Real TV FM Top 10
+[   20.862633] cx88[0]:    card=51 -> WinFast DTV2000 H
+[   20.862634] cx88[0]:    card=52 -> Geniatech DVB-S
+[   20.862636] cx88[0]:    card=53 -> Hauppauge WinTV-HVR3000 TriMode 
+Analog/DVB-S/DVB-T
+[   20.862637] cx88[0]:    card=54 -> Norwood Micro TV Tuner
+[   20.862639] cx88[0]:    card=55 -> Shenzhen Tungsten Ages Tech 
+TE-DTV-250 / Swann OEM
+[   20.862641] cx88[0]:    card=56 -> Hauppauge WinTV-HVR1300 
+DVB-T/Hybrid MPEG Encoder
+[   20.862643] cx88[0]:    card=57 -> ADS Tech Instant Video PCI
+[   20.862644] cx88[0]:    card=58 -> Pinnacle PCTV HD 800i
+[   20.862645] cx88[0]:    card=59 -> DViCO FusionHDTV 5 PCI nano
+[   20.862647] cx88[0]:    card=60 -> Pinnacle Hybrid PCTV
+[   20.862648] cx88[0]:    card=61 -> Leadtek TV2000 XP Global
+[   20.862650] cx88[0]:    card=62 -> PowerColor RA330
+[   20.862651] cx88[0]:    card=63 -> Geniatech X8000-MT DVBT
+[   20.862653] cx88[0]:    card=64 -> DViCO FusionHDTV DVB-T PRO
+[   20.862654] cx88[0]:    card=65 -> DViCO FusionHDTV 7 Gold
+[   20.862656] cx88[0]:    card=66 -> Prolink Pixelview MPEG 8000GT
+[   20.862657] cx88[0]:    card=67 -> Kworld PlusTV HD PCI 120 (ATSC 120)
+[   20.862659] cx88[0]:    card=68 -> Hauppauge WinTV-HVR4000 
+DVB-S/S2/T/Hybrid
+[   20.862661] cx88[0]:    card=69 -> Hauppauge WinTV-HVR4000(Lite) DVB-S/S2
+[   20.862662] cx88[0]:    card=70 -> TeVii S460 DVB-S/S2
+[   20.862664] cx88[0]:    card=71 -> Omicom SS4 DVB-S/S2 PCI
+[   20.862665] cx88[0]:    card=72 -> TBS 8920 DVB-S/S2
+[   20.862666] cx88[0]:    card=73 -> TeVii S420 DVB-S
+[   20.862668] cx88[0]:    card=74 -> Prolink Pixelview Global Extreme
+[   20.862669] cx88[0]:    card=75 -> PROF 7300 DVB-S/S2
+[   20.862671] cx88[0]:    card=76 -> SATTRADE ST4200 DVB-S/S2
+[   20.862672] cx88[0]:    card=77 -> TBS 8910 DVB-S
+[   20.862674] cx88[0]:    card=78 -> Prof 6200 DVB-S
+[   20.862675] cx88[0]:    card=79 -> Terratec Cinergy HT PCI MKII
+[   20.862677] cx88[0]:    card=80 -> Hauppauge WinTV-IR Only
+[   20.862678] cx88[0]:    card=81 -> Leadtek WinFast DTV1800 Hybrid
+[   20.862680] cx88[0]:    card=82 -> WinFast DTV2000 H rev. J
+[   20.862681] cx88[0]:    card=83 -> Prof 7301 DVB-S/S2
+[   20.862683] cx88[0]: subsystem: 107d:6f42, board: UNKNOWN/GENERIC 
+[card=0,autodetected], frontend(s): 0
+[   20.862685] cx88[0]: TV tuner type -1, Radio tuner type -1
+[   21.020478] tuner 3-0061: chip found @ 0xc2 (cx88[0])
+[   21.065392] cx88[0]/0: found at 0000:05:06.0, rev: 5, irq: 21, 
+latency: 64, mmio: 0xf8000000
+[   21.065403] IRQ 21/cx88[0]: IRQF_DISABLED is not guaranteed on shared 
+IRQs
+[   21.065461] cx88[0]/0: registered device video0 [v4l2]
+[   21.065480] cx88[0]/0: registered device vbi0
+[   21.065489] tuner 3-0061: tuner type not set
+[   21.074373] cx88[0]/2: cx2388x 8802 Driver Manager
+[   21.074759] cx88_audio 0000:05:06.1: PCI INT A -> GSI 21 (level, low) 
+-> IRQ 21
+[   21.074767] IRQ 21/cx88[0]: IRQF_DISABLED is not guaranteed on shared 
+IRQs
+[   21.074786] cx88[0]/1: CX88x/0: ALSA support for cx2388x boards
+
+23.773910] tun: Universal TUN/TAP device driver, 1.6
+[   23.773912] tun: (C) 1999-2004 Max Krasnyansky <maxk@qualcomm.com>
+[   23.774358] tun0: Disabled Privacy Extensions
+
+[snip]
+  162.841498] tuner 3-0061: tuner type not set
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---OgqxwSJOaUobr8KG--
