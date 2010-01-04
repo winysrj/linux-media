@@ -1,76 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.moondrake.net ([212.85.150.166]:60571 "EHLO
-	mx1.mandriva.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752550Ab0AZKKY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jan 2010 05:10:24 -0500
-From: Arnaud Patard <apatard@mandriva.com>
-To: Stefan Kost <ensonic@hora-obscura.de>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Fix VIDIOC_QBUF compat ioctl32
-References: <m3bpgi448o.fsf@anduin.mandriva.com>
-	<4B5E9FFD.2020708@hora-obscura.de>
-Date: Tue, 26 Jan 2010 11:11:01 +0100
-In-Reply-To: <4B5E9FFD.2020708@hora-obscura.de> (Stefan Kost's message of "Tue, 26 Jan 2010 09:55:41 +0200")
-Message-ID: <m37hr541my.fsf@anduin.mandriva.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35174 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753094Ab0ADOmP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Jan 2010 09:42:15 -0500
+From: hvaibhav@ti.com
+To: linux-media@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, hverkuil@xs4all.nl, tony@atomide.com,
+	Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH 2/2] OMAP2/3: Add V4L2 DSS driver support in device.c
+Date: Mon,  4 Jan 2010 20:12:09 +0530
+Message-Id: <1262616129-23373-3-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stefan Kost <ensonic@hora-obscura.de> writes:
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Hi,
 
-> Arnaud Patard wrote:
->> When using VIDIOC_QBUF with memory type set to V4L2_MEMORY_MMAP, the
->> v4l2_buffer buffer gets unmodified on drivers like uvc (well, only
->> bytesused field is modified). Then some apps like gstreamer are reusing
->> the same buffer later to call munmap (eg passing the buffer "length"
->> field as 2nd parameter of munmap).
->>
->> It's working fine on full 32bits but on 32bits systems with 64bit
->> kernel, the get_v4l2_buffer32() doesn't copy length/m.offset values and
->> then copy garbage to userspace in put_v4l2_buffer32().
->>
->> This has for consequence things like that in the libv4l2 logs:
->>
->> libv4l2: v4l2 unknown munmap 0x2e2b0000, -2145144908
->> libv4l2: v4l2 unknown munmap 0x2e530000, -2145144908
->>
->> The buffer are not unmap'ed and then if the application close and open
->> again the device, it won't work and logs will show something like:
->>
->> libv4l2: error setting pixformat: Device or resource busy
->>
->> The easy solution is to read length and m.offset in get_v4l2_buffer32().
->>
->>
->> Signed-off-by: Arnaud Patard <apatard@mandriva.com>
->> ---
->>   
-> I am not sure it even works fine on 32bit. Just yesterday I discovered
-> https://bugzilla.gnome.org/show_bug.cgi?id=608042
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ arch/arm/plat-omap/devices.c |   29 +++++++++++++++++++++++++++++
+ 1 files changed, 29 insertions(+), 0 deletions(-)
 
-My test app (cheese) is working on the 2 differents 32bits systems I
-tried and with this patch it's working on my system, so it's possible
-that your problem is different. Do you get this bug with cheese too ?
+diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
+index 30b5db7..64f2a3a 100644
+--- a/arch/arm/plat-omap/devices.c
++++ b/arch/arm/plat-omap/devices.c
+@@ -357,6 +357,34 @@ static void omap_init_wdt(void)
+ static inline void omap_init_wdt(void) {}
+ #endif
+ 
++/*---------------------------------------------------------------------------*/
++
++#if defined(CONFIG_VIDEO_OMAP2_VOUT) || \
++	defined(CONFIG_VIDEO_OMAP2_VOUT_MODULE)
++#if defined (CONFIG_FB_OMAP2) || defined (CONFIG_FB_OMAP2_MODULE)
++static struct resource omap_vout_resource[3 - CONFIG_FB_OMAP2_NUM_FBS] = {
++};
++#else
++static struct resource omap_vout_resource[2] = {
++};
++#endif
++
++static struct platform_device omap_vout_device = {
++	.name		= "omap_vout",
++	.num_resources	= ARRAY_SIZE(omap_vout_resource),
++	.resource 	= &omap_vout_resource[0],
++	.id		= -1,
++};
++static void omap_init_vout(void)
++{
++	(void) platform_device_register(&omap_vout_device);
++}
++#else
++static inline void omap_init_vout(void) {}
++#endif
++
++/*---------------------------------------------------------------------------*/
++
+ /*
+  * This gets called after board-specific INIT_MACHINE, and initializes most
+  * on-chip peripherals accessible on this board (except for few like USB):
+@@ -387,6 +415,7 @@ static int __init omap_init_devices(void)
+ 	omap_init_rng();
+ 	omap_init_uwire();
+ 	omap_init_wdt();
++	omap_init_vout();
+ 	return 0;
+ }
+ arch_initcall(omap_init_devices);
+-- 
+1.6.2.4
 
->
-> I get this when using gstreamer with my UVC based camera
->
-> request == VIDIOC_STREAMOFF
-> result == 0
-> libv4l2: v4l2 unknown munmap 0xb6d45000, 38400
-> libv4l2: v4l2 unknown munmap 0xb6d3b000, 38400
->
-> I verified that buffer address and size is correct. The libv4l code for 
-> v4l2_munmap could be a bit more verbose in the case of an error ...
-
-iirc, libv4l2 is telling you "unknown munmap" is a result of getting a
-mmap call handled by the driver and not by libv4l2 (the size of your
-buffer is 38400 and libv4l2 wants/expects the size to be 16777216 to
-handle it). fwiw, I'm getting "unknown munmap" but that doesn't prevent
-me to change the resolution in cheese.
-
-Arnaud
