@@ -1,108 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4785 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754147Ab0AETuN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jan 2010 14:50:13 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id o05JoAkC062395
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 5 Jan 2010 20:50:11 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 5 Jan 2010 20:50:10 +0100 (CET)
-Message-Id: <201001051950.o05JoAkC062395@smtp-vbr4.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from comal.ext.ti.com ([198.47.26.152]:35449 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753424Ab0ADODQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Jan 2010 09:03:16 -0500
+From: hvaibhav@ti.com
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: OK
+Cc: linux-omap@vger.kernel.org, hverkuil@xs4all.nl,
+	davinci-linux-open-source@linux.davincidsp.com,
+	m-karicheri2@ti.com, Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH 8/9] VPFE Capture: Add call back function for interrupt clear to vpfe_cfg
+Date: Mon,  4 Jan 2010 19:33:01 +0530
+Message-Id: <1262613782-20463-9-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Results of the daily build of v4l-dvb:
+For the devices like AM3517, it is expected that driver clears the
+interrupt in ISR. Since this is device spcific, callback function
+added to the platform_data.
 
-date:        Tue Jan  5 19:00:02 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13879:b6b82258cf5e
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ drivers/media/video/ti-media/vpfe_capture.c |   24 ++++++++++++++++++++----
+ include/media/ti-media/vpfe_capture.h       |    2 ++
+ 2 files changed, 22 insertions(+), 4 deletions(-)
 
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-armv5: OK
-linux-2.6.33-rc2-armv5: ERRORS
-linux-2.6.32-armv5-davinci: OK
-linux-2.6.33-rc2-armv5-davinci: ERRORS
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-armv5-ixp: OK
-linux-2.6.32-armv5-ixp: OK
-linux-2.6.33-rc2-armv5-ixp: ERRORS
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: OK
-linux-2.6.32-armv5-omap2: OK
-linux-2.6.33-rc2-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: OK
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-i686: WARNINGS
-linux-2.6.33-rc2-i686: ERRORS
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-m32r: OK
-linux-2.6.33-rc2-m32r: ERRORS
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: OK
-linux-2.6.32-mips: OK
-linux-2.6.33-rc2-mips: ERRORS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-powerpc64: OK
-linux-2.6.32-powerpc64: WARNINGS
-linux-2.6.33-rc2-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: OK
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-x86_64: WARNINGS
-linux-2.6.33-rc2-x86_64: ERRORS
-spec: OK
-sparse (linux-2.6.32): ERRORS
-sparse (linux-2.6.33-rc2): ERRORS
-linux-2.6.16.61-i686: OK
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: OK
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: OK
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+diff --git a/drivers/media/video/ti-media/vpfe_capture.c b/drivers/media/video/ti-media/vpfe_capture.c
+index 7187eaa..95538b2 100644
+--- a/drivers/media/video/ti-media/vpfe_capture.c
++++ b/drivers/media/video/ti-media/vpfe_capture.c
+@@ -475,6 +475,11 @@ static int vpfe_initialize_device(struct vpfe_device *vpfe_dev)
+ 	ret = ccdc_dev->hw_ops.open(vpfe_dev->pdev);
+ 	if (!ret)
+ 		vpfe_dev->initialized = 1;
++
++	/* Clear all VPFE/CCDC interrupts */
++	if (vpfe_dev->cfg->clr_intr)
++		vpfe_dev->cfg->clr_intr(-1);
++
+ unlock:
+ 	mutex_unlock(&ccdc_lock);
+ 	return ret;
+@@ -562,7 +567,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
+ 
+ 	/* if streaming not started, don't do anything */
+ 	if (!vpfe_dev->started)
+-		return IRQ_HANDLED;
++		goto clear_intr;
+ 
+ 	/* only for 6446 this will be applicable */
+ 	if (NULL != ccdc_dev->hw_ops.reset)
+@@ -574,7 +579,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
+ 			"frame format is progressive...\n");
+ 		if (vpfe_dev->cur_frm != vpfe_dev->next_frm)
+ 			vpfe_process_buffer_complete(vpfe_dev);
+-		return IRQ_HANDLED;
++		goto clear_intr;
+ 	}
+ 
+ 	/* interlaced or TB capture check which field we are in hardware */
+@@ -604,7 +609,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
+ 				addr += vpfe_dev->field_off;
+ 				ccdc_dev->hw_ops.setfbaddr(addr);
+ 			}
+-			return IRQ_HANDLED;
++			goto clear_intr;
+ 		}
+ 		/*
+ 		 * if one field is just being captured configure
+@@ -624,6 +629,10 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
+ 		 */
+ 		vpfe_dev->field_id = fid;
+ 	}
++clear_intr:
++	if (vpfe_dev->cfg->clr_intr)
++		vpfe_dev->cfg->clr_intr(irq);
++
+ 	return IRQ_HANDLED;
+ }
+ 
+@@ -635,8 +644,11 @@ static irqreturn_t vdint1_isr(int irq, void *dev_id)
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "\nInside vdint1_isr...\n");
+ 
+ 	/* if streaming not started, don't do anything */
+-	if (!vpfe_dev->started)
++	if (!vpfe_dev->started) {
++		if (vpfe_dev->cfg->clr_intr)
++			vpfe_dev->cfg->clr_intr(irq);
+ 		return IRQ_HANDLED;
++	}
+ 
+ 	spin_lock(&vpfe_dev->dma_queue_lock);
+ 	if ((vpfe_dev->fmt.fmt.pix.field == V4L2_FIELD_NONE) &&
+@@ -644,6 +656,10 @@ static irqreturn_t vdint1_isr(int irq, void *dev_id)
+ 	    vpfe_dev->cur_frm == vpfe_dev->next_frm)
+ 		vpfe_schedule_next_buffer(vpfe_dev);
+ 	spin_unlock(&vpfe_dev->dma_queue_lock);
++
++	if (vpfe_dev->cfg->clr_intr)
++		vpfe_dev->cfg->clr_intr(irq);
++
+ 	return IRQ_HANDLED;
+ }
+ 
+diff --git a/include/media/ti-media/vpfe_capture.h b/include/media/ti-media/vpfe_capture.h
+index 5287368..f0a7b7a 100644
+--- a/include/media/ti-media/vpfe_capture.h
++++ b/include/media/ti-media/vpfe_capture.h
+@@ -94,6 +94,8 @@ struct vpfe_config {
+ 	/* vpfe clock */
+ 	struct clk *vpssclk;
+ 	struct clk *slaveclk;
++	/* Function for Clearing the interrupt */
++	void (*clr_intr)(int vdint);
+ };
+ 
+ struct vpfe_device {
+-- 
+1.6.2.4
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
