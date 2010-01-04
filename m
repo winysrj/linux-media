@@ -1,113 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01a.mail.t-online.hu ([84.2.40.6]:51343 "EHLO
-	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754131Ab0A2VzU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jan 2010 16:55:20 -0500
-Message-ID: <4B635940.1090808@freemail.hu>
-Date: Fri, 29 Jan 2010 22:55:12 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Jean-Francois Moine <moinejf@free.fr>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH gspca_jf tree] gspca zc3xx: signal when unknown packet
- received
-References: <4B63400E.3000502@freemail.hu> <4B6355BF.7090002@redhat.com>
-In-Reply-To: <4B6355BF.7090002@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from comal.ext.ti.com ([198.47.26.152]:35458 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753431Ab0ADODQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Jan 2010 09:03:16 -0500
+From: hvaibhav@ti.com
+To: linux-media@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, hverkuil@xs4all.nl,
+	davinci-linux-open-source@linux.davincidsp.com,
+	m-karicheri2@ti.com, Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH 9/9] DM644x CCDC: Add 10bit BT support
+Date: Mon,  4 Jan 2010 19:33:02 +0530
+Message-Id: <1262613782-20463-10-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans de Goede wrote:
-> Hi,
-> 
-> Nack!
-> 
-> Németh I know you mean well, but please don't go making
-> semi random behavior changes to code you don't have
-> hardware to test with.
-
-I thought it is easier to write the patch I was thinking of than trying
-to describe it in words. Maybe it was not the best idea, sorry about that.
-
-> There is a good reason this code is written the way it is.
-> 
-> Jean-Francois,
-> 
-> If you wonder what this is all about, this is a patch on
-> top of one of my trees which no one else has yet as
-> I have not send any pull request yet, see:
-> http://linuxtv.org/hg/~hgoede/gspca_jf
-> 
-> So back to the reason why this code is written the way it is,
-> the zc3xx sends a steady stream of interrupt packets consisting
-> of usually 8 0 byes, we definitely do not want to print out an
-> error message every time such a packet is received.
-> 
-> On some cams when they are just plugged in the 6th byte (data[5])
-> becomes 1 a couple of times, probably a floating pin.
-> 
-> And on all cams with a button, pressing that will make the
-> 5th byte (data[4]) 1. As said these cam sends a steady
-> stream of interrupt packets, reporting I guess the
-> status of 8 gpio pins independent on whether this status
-> has changed since the last packet or not.
-
-Based on your description the following two lines could be separated:
-  input_report_key(gspca_dev->input_dev, KEY_CAMERA, 1);
-  input_report_key(gspca_dev->input_dev, KEY_CAMERA, 0);
-
-The first line should go when we detect a 0->1 transient (button push),
-the second one when there is an 1->0 transient (button release).
-
-In case of pac7302 there was only one event at button push. So there was
-a need to simulate push and release. The camera haven't sent anything
-when the button was released.
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
 
-> I've tested this with the following cams:
-> Logitech QuickCam IM/Connect    046d:08d9       zc3xx   HV7131R
-> Logitech QuickCam E2500         046d:089d       zc3xx   MC501CB
-> Labtec notebook cam             046d:08aa       zc3xx   PAS202B
-> Creative WebCam Notebook        041e:401f       zc3xx   TAS5130C
-> Creative Live! Cam Video IM     041e:4053       zc3xx   TAS5130-VF250
-> Philips SPC 200NC               0471:0325       zc3xx   PAS106
-> Creative WebCam NX Pro          041e:401e       zc3xx   HV7131B
-> No brand                        0ac8:307b       zc3xx   ADCM2700
-> 
-> Regards,
-> 
-> Hans
-> 
-> 
-> 
-> On 01/29/2010 09:07 PM, Németh Márton wrote:
->> Signed-off-by: Márton Németh<nm127@freemail.hu>
->> ---
->> diff -r 95d3956ea3e5 linux/drivers/media/video/gspca/zc3xx.c
->> --- a/linux/drivers/media/video/gspca/zc3xx.c	Fri Jan 29 15:05:25 2010 +0100
->> +++ b/linux/drivers/media/video/gspca/zc3xx.c	Fri Jan 29 21:01:52 2010 +0100
->> @@ -7213,14 +7213,17 @@
->>   			u8 *data,		/* interrupt packet data */
->>   			int len)		/* interrput packet length */
->>   {
->> +	int ret = -EINVAL;
->> +
->>   	if (len == 8&&  data[4] == 1) {
->>   		input_report_key(gspca_dev->input_dev, KEY_CAMERA, 1);
->>   		input_sync(gspca_dev->input_dev);
->>   		input_report_key(gspca_dev->input_dev, KEY_CAMERA, 0);
->>   		input_sync(gspca_dev->input_dev);
->> +		ret = 0;
->>   	}
->>
->> -	return 0;
->> +	return ret;
->>   }
->>   #endif
->>
-> 
-> 
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ drivers/media/video/ti-media/dm644x_ccdc.c      |   16 +++++++++++++---
+ drivers/media/video/ti-media/dm644x_ccdc_regs.h |    8 ++++++++
+ 2 files changed, 21 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/video/ti-media/dm644x_ccdc.c b/drivers/media/video/ti-media/dm644x_ccdc.c
+index b762f99..8483467 100644
+--- a/drivers/media/video/ti-media/dm644x_ccdc.c
++++ b/drivers/media/video/ti-media/dm644x_ccdc.c
+@@ -401,7 +401,11 @@ void ccdc_config_ycbcr(void)
+ 		 * configure the FID, VD, HD pin polarity,
+ 		 * fld,hd pol positive, vd negative, 8-bit data
+ 		 */
+-		syn_mode |= CCDC_SYN_MODE_VD_POL_NEGATIVE | CCDC_SYN_MODE_8BITS;
++		syn_mode |= CCDC_SYN_MODE_VD_POL_NEGATIVE;
++		if (ccdc_cfg.if_type == VPFE_BT656_10BIT)
++			syn_mode |= CCDC_SYN_MODE_10BITS;
++		else
++			syn_mode |= CCDC_SYN_MODE_8BITS;
+ 	} else {
+ 		/* y/c external sync mode */
+ 		syn_mode |= (((params->fid_pol & CCDC_FID_POL_MASK) <<
+@@ -420,8 +424,13 @@ void ccdc_config_ycbcr(void)
+ 	 * configure the order of y cb cr in SDRAM, and disable latch
+ 	 * internal register on vsync
+ 	 */
+-	regw((params->pix_order << CCDC_CCDCFG_Y8POS_SHIFT) |
+-		 CCDC_LATCH_ON_VSYNC_DISABLE, CCDC_CCDCFG);
++	if (ccdc_cfg.if_type == VPFE_BT656_10BIT)
++		regw((params->pix_order << CCDC_CCDCFG_Y8POS_SHIFT) |
++			CCDC_LATCH_ON_VSYNC_DISABLE | CCDC_CCDCFG_BW656_10BIT,
++			CCDC_CCDCFG);
++	else
++		regw((params->pix_order << CCDC_CCDCFG_Y8POS_SHIFT) |
++			CCDC_LATCH_ON_VSYNC_DISABLE, CCDC_CCDCFG);
+ 
+ 	/*
+ 	 * configure the horizontal line offset. This should be a
+@@ -828,6 +837,7 @@ static int ccdc_set_hw_if_params(struct vpfe_hw_if_param *params)
+ 	case VPFE_BT656:
+ 	case VPFE_YCBCR_SYNC_16:
+ 	case VPFE_YCBCR_SYNC_8:
++	case VPFE_BT656_10BIT:
+ 		ccdc_cfg.ycbcr.vd_pol = params->vdpol;
+ 		ccdc_cfg.ycbcr.hd_pol = params->hdpol;
+ 		break;
+diff --git a/drivers/media/video/ti-media/dm644x_ccdc_regs.h b/drivers/media/video/ti-media/dm644x_ccdc_regs.h
+index 319253a..90370e4 100644
+--- a/drivers/media/video/ti-media/dm644x_ccdc_regs.h
++++ b/drivers/media/video/ti-media/dm644x_ccdc_regs.h
+@@ -135,11 +135,19 @@
+ #define CCDC_SYN_MODE_INPMOD_SHIFT		12
+ #define CCDC_SYN_MODE_INPMOD_MASK		3
+ #define CCDC_SYN_MODE_8BITS			(7 << 8)
++#define CCDC_SYN_MODE_10BITS			(6 << 8)
++#define CCDC_SYN_MODE_11BITS			(5 << 8)
++#define CCDC_SYN_MODE_12BITS			(4 << 8)
++#define CCDC_SYN_MODE_13BITS			(3 << 8)
++#define CCDC_SYN_MODE_14BITS			(2 << 8)
++#define CCDC_SYN_MODE_15BITS			(1 << 8)
++#define CCDC_SYN_MODE_16BITS			(0 << 8)
+ #define CCDC_SYN_FLDMODE_MASK			1
+ #define CCDC_SYN_FLDMODE_SHIFT			7
+ #define CCDC_REC656IF_BT656_EN			3
+ #define CCDC_SYN_MODE_VD_POL_NEGATIVE		(1 << 2)
+ #define CCDC_CCDCFG_Y8POS_SHIFT			11
++#define CCDC_CCDCFG_BW656_10BIT 		(1 << 5)
+ #define CCDC_SDOFST_FIELD_INTERLEAVED		0x249
+ #define CCDC_NO_CULLING				0xffff00ff
+ #endif
+-- 
+1.6.2.4
 
