@@ -1,91 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:34677 "EHLO cnc.isely.net"
+Received: from smtp3-g21.free.fr ([212.27.42.3]:36021 "EHLO smtp3-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755495Ab0ARWmL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2010 17:42:11 -0500
-Date: Mon, 18 Jan 2010 16:42:04 -0600 (CST)
-From: Mike Isely <isely@isely.net>
-To: Andy Walls <awalls@radix.net>
-cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	stoth@kernellabs.com, Hans Verkuil <hverkuil@xs4all.nl>,
-	Mike Isely <isely@isely.net>
-Subject: Re: Do any drivers access the cx25840 module in an atomic context?
-In-Reply-To: <1263852965.7750.31.camel@palomino.walls.org>
-Message-ID: <alpine.DEB.1.10.1001181631020.19606@cnc.isely.net>
-References: <1263791968.5220.87.camel@palomino.walls.org>  <alpine.DEB.1.10.1001181407470.13307@cnc.isely.net> <1263852965.7750.31.camel@palomino.walls.org>
+	id S1751941Ab0ADJSa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jan 2010 04:18:30 -0500
+Date: Mon, 4 Jan 2010 10:19:27 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Bill Whiting <textux@bellsouth.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Lenovo compact webcam 17ef:4802
+Message-ID: <20100104101927.087aa290@tele>
+In-Reply-To: <4B413B99.3020604@bellsouth.net>
+References: <4B413B99.3020604@bellsouth.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 18 Jan 2010, Andy Walls wrote:
+On Sun, 03 Jan 2010 19:51:37 -0500
+Bill Whiting <textux@bellsouth.net> wrote:
 
-> On Mon, 2010-01-18 at 14:18 -0600, Mike Isely wrote:
-> > On Mon, 18 Jan 2010, Andy Walls wrote:> 
-> > > Any definitive confirmation anyone can give on any of these drivers
-> > > would be helpful and would save me some time.
+> I have not been able to get an image from a Lenovo webcam under
+> Fedora 11. It reports to the kernel with USB id 17ef:4802 as below:
 > 
-> 
-> Mike,
-> 
-> Great!  Thank you for the answers.
+>   kernel: usb 1-3: new high speed USB device using ehci_hcd and
+> address 9 kernel: usb 1-3: New USB device found, idVendor=17ef,
+> idProduct=4802 kernel: usb 1-3: New USB device strings: Mfr=1,
+> Product=2, SerialNumber=0 kernel: usb 1-3: Product: Lenovo USB Webcam
+>   kernel: usb 1-3: Manufacturer: Primax
+>   kernel: usb 1-3: configuration #1 chosen from 1 choice
+>   kernel: gspca: probing 17ef:4802
+>   kernel: vc032x: check sensor header 20
+>   kernel: vc032x: Sensor ID 143a (3)
+>   kernel: vc032x: Find Sensor MI1310_SOC
+>   kernel: gspca: probe ok
+	[snip]
 
-You're welcome.
+Hello Bill,
 
+I don't know which version of gspca is included in your kernel.
+First, do you use the v4l library when running cheese or skype?
+Then, may you get the last video stuff from LinuxTv.org and check if it
+works?
 
-> 
-> If you would indulge one more (compound) question:
-> 
-> Looking at the I2C master implementation in pvrusb2, it looks like it
-> would be OK for me to combine the i2c_master_write() and
-> i2c_master_read() in cx25840_read() into a single 2 "msg" i2c_transfer()
-> without the pvrusb2 driver having a problem.
-> 
-> a. Is that correct?
-
-Yes, that is correct.
-
-
-> b. Is there a limit on the combined payload, such that a the
-> cx25840_read4() would not work as a combined i2c_transfer() ?
-
-There is an overall limit on the size of the I2C transfer.  This is due 
-to the underlying firmware on pvrusb2-support devices.  Essentially the 
-entire outgoing transfer plus a few bytes of overhead has to fit inside 
-a single 64 byte URB.  This also limits the atomic read size to roughly 
-64 bytes as well (the URB size on the returned data).  You should be 
-able to reliably write up to 48 bytes at a time, perhaps even a little 
-more.
-
-This issue caused a problem for the cx25840 module a few years back when 
-it used to do firmware downloads with large (e.g. 1024 byte or larger) 
-single I2C transfers.  Hans told me then it was that large because it 
-allowed the ivtv driver to run more efficiently, but we cut it back to 
-48 bytes since it triggered problems with I2C adapters (e.g. pvrusb2) 
-which could not handle such larger transfers at all.
-
-The pvrusb2 driver's I2C adapter is really just a proxy for the I2C 
-implementation in the device at the far end of the USB cable.  So it 
-works at a higher level than one might normally expect - it operates at 
-the transfer level, no bit-banging.  The communications protocol 
-required by the hardware limits the I2C transfers to be either a write 
-of some size, or an atomic write followed by a read of various sizes.  
-The pvrusb2 implementation looks at the incoming transfers and tries to 
-map them as best it can over what the device protocol allows.  
-Generally this means that if it is possible it will do the right thing.  
-In the specific case you mentioned above, the result should in fact be 
-exactly what you need.  (I'm saying that without having looked at that 
-area of code for quite a while, but it's what I remember being in my 
-head when I did that part..)
-
-  -Mike
-
+Regards.
 
 -- 
-
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
