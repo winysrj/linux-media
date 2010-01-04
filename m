@@ -1,52 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:38088 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752578Ab0ASMQs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jan 2010 07:16:48 -0500
-Message-ID: <4B55A2AC.4020009@infradead.org>
-Date: Tue, 19 Jan 2010 10:16:44 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:44612 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752235Ab0ADQHA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jan 2010 11:07:00 -0500
+Date: Mon, 4 Jan 2010 11:06:59 -0500 (EST)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Sean <knife@toaster.net>
+cc: Andrew Morton <akpm@linux-foundation.org>,
+	<bugzilla-daemon@bugzilla.kernel.org>,
+	<linux-media@vger.kernel.org>,
+	USB list <linux-usb@vger.kernel.org>,
+	Ingo Molnar <mingo@elte.hu>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	"H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [Bugme-new] [Bug 14564] New: capture-example sleeping function
+ called from invalid context at arch/x86/mm/fault.c
+In-Reply-To: <4B412CA5.8020507@toaster.net>
+Message-ID: <Pine.LNX.4.44L0.1001041035500.3180-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Douglas Landgraf <dougsland@gmail.com>
-Subject: Re: [ANNOUNCE] git tree repositories
-References: <4B55445A.10300@infradead.org> <829197381001190204l3df81904gf8586f36187f212d@mail.gmail.com>
-In-Reply-To: <829197381001190204l3df81904gf8586f36187f212d@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller wrote:
-> Hello Mauro,
+On Sun, 3 Jan 2010, Sean wrote:
+
+> Alan,
 > 
-> I find it somewhat unfortunate that this is labeled "ANNOUNCE" instead
-> of "RFC".  It shows how little you care about soliciting the opinions
-> of the other developers.  Rather than making a proposal for how the
-> process can be improved and soliciting feedback, you have chosen to
-> decide for all of us what the best approach is and how all of us will
-> develop in the future.
+> I applied the patches and ran capture-example twice. On the second run 
+> of capture-example a circular pointer popped up. I did not need to 
+> remove the camera. Attached are the serial console capture as well as 
+> the dmesg log in debug4.tar.gz. Did you want me to try to reproduce the 
+> poison message?
 
-The announcement by purpose doesn't contain any changes on the process,
-since it requires some discussions before we go there. It is just the
-first step, where -git tree support were created. It also announces
-that I personally won't keep maintaining -hg, delegating its task
-to Douglas.
+No.  Among the things that patch did was to fix up the errors that 
+caused the invalid pointers.  Hence there should not have been any 
+"poisoned hash" messages -- and indeed there weren't.
 
-> The point I'm trying to make is that we need to be having a discussion
-> about what we are optimizing for, and what are the costs to other
-> developers.  This is why I'm perhaps a bit pissed to see an
-> "announcement" declaring how development will be done in the future as
-> opposed to a discussion of what we could be doing and what are the
-> trade-offs.
+The interesting part of the log is the error messages:
 
-I fully understand that supporting the development and tests with an
-out of tree building is important to everybody. So, the plans are
-to keep the out-of-tree building system maintained, and even
-improving it. I'd like to thank to Douglas for his help on making 
-this happen.
+ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
+ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
+ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
+ohci_hcd 0000:00:0b.0: Circular pointer #2b: 1 c6774040 c6542040 c6774040
+ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
+ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
+ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
+ohci_hcd 0000:00:0b.0: Circular pointer #2b: 1 c6774040 c6542040 c6774040
+ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
+ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
+ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
+ohci_hcd 0000:00:0b.0: Circular pointer #2b: 1 c6774040 c6542040 c6774040
+ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
+ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
+ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
+ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
+ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
+ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
 
-Cheers,
-Mauro.
+There are two different hash chains here (32 and 1), but in each case
+see the message is #2b, never #2a.  This means the problem occurs
+between the places where the #2a and #2b messages were inserted, i.e.,
+in td_fill().  The hash chain contained a single TD and was fine to
+begin with; then another TD was added at the start of the chain and the
+pointer in the earlier TD (now at the second position in the chain) got
+messed up.
+
+For example, the error message in the first line above implies that
+originally the 32nd hash chain contained only the TD at c6542800 with
+its td_hash member set to NULL.  But then c6774800 was added to the
+start of the chain, after which c6542800's td_hash pointed to c6774800.
+
+Try inserting a line saying:
+
+	td_check(ohci, hash, "#2c");
+
+two lines above the #2b line, i.e., just after the wmb().  That'll help 
+narrow down the search for the bug.
+
+And by the way, you don't need to post your entire dmesg log.  Just the 
+portion containing the new debugging messages will be enough.
+
+Alan Stern
+
