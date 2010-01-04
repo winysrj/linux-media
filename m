@@ -1,46 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:23359 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756060Ab0ANUR6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jan 2010 15:17:58 -0500
-Received: by qw-out-2122.google.com with SMTP id 8so12456qwh.37
-        for <linux-media@vger.kernel.org>; Thu, 14 Jan 2010 12:17:57 -0800 (PST)
-Message-ID: <4B4F7C11.3030802@gmail.com>
-Date: Thu, 14 Jan 2010 15:18:25 -0500
-From: TJ <one.timothy.jones@gmail.com>
+Received: from moutng.kundenserver.de ([212.227.17.9]:53739 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753628Ab0ADSdi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jan 2010 13:33:38 -0500
+Message-ID: <4B423480.4090902@nexgo.de>
+Date: Mon, 04 Jan 2010 19:33:36 +0100
+From: Martin Berndaner <martin.berndaner@nexgo.de>
 MIME-Version: 1.0
-To: Pete Eberlein <pete@sensoray.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: go7007 driver -- which program you use for capture
-References: <4B47828B.9050000@gmail.com>	 <be3a4a1001081217s1bec67c8odb26bb793700242b@mail.gmail.com>	 <4B47B0EB.6000102@gmail.com> <4B4E34D2.8090202@redhat.com>	 <4B4E4365.5020307@gmail.com> <4B4E4550.7030907@redhat.com>	 <4B4F78A4.8000103@gmail.com> <1263499712.4730.11.camel@pete-desktop>
-In-Reply-To: <1263499712.4730.11.camel@pete-desktop>
+To: Patrick Boettcher <pboettcher@kernellabs.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Technisat SkyStar HD S2 USB
+References: <4B3F919C.2060106@nexgo.de> <alpine.LRH.2.00.1001041514570.23467@pub3.ifh.de>
+In-Reply-To: <alpine.LRH.2.00.1001041514570.23467@pub3.ifh.de>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Patrick,
 
+thank you for the information.
+If i can support, let me know it.
 
-Pete Eberlein wrote:
-> On Thu, 2010-01-14 at 15:03 -0500, TJ wrote:
-> 
->> Pete, Question: I was looking through the code and noticed that you turned s2250
->> driver into v4l2_subdev and go7007 driver initializes it as such and passes it
->> calls via call_all (v4l2_device_call_until_err). How does that affect other
->> drivers? Does that mean they all need to re-written as v4l2_subdev?
-> 
-> That is correct.  The other drivers do not work until they are all
-> converted to the subdev interface.  I'm working on the other drivers
-> now.  I've finished ov7640 and have started on saa7113.
-> 
-> Once the subdev driver conversions are completed, we should be able to
-> move the go7007 driver out of staging.
-> 
-> Pete
-> 
+Regards,
 
-Cool man. I will start working on tw9903 and tw9906, as this is my main area of
-interest. Is there a template for subdev driver or should I just use your s2250
-as an example? -TJ
+Martin.
+
+Patrick Boettcher schrieb:
+> Hi Martin,
+>
+> On Sat, 2 Jan 2010, Martin Berndaner wrote:
+>
+>> Dear all,
+>>
+>> i want to use the Technisat SkyStar HD S2 USB for building a PVR.
+>> Does anyone know, if this Box is supported in the near future?
+>> (USB VID 0x14f7, PID 0x0002)
+>> Actually i couldn`t find a valid driver.
+>
+> That's normal, because there isn't. But there will be at some point in
+> time. I can't give you an exact date right now, but there is a chance
+> that it might happen during the first quarter of 2010.
+>
+> best regards,
+> Patrick.
+>
+>
+
