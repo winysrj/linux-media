@@ -1,67 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f215.google.com ([209.85.220.215]:43243 "EHLO
-	mail-fx0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754005Ab0AXVQF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jan 2010 16:16:05 -0500
-Received: by fxm7 with SMTP id 7so1350340fxm.28
-        for <linux-media@vger.kernel.org>; Sun, 24 Jan 2010 13:16:03 -0800 (PST)
+Received: from jordan.toaster.net ([69.36.241.228]:4081 "EHLO
+	jordan.toaster.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753157Ab0ADW0G (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jan 2010 17:26:06 -0500
+Message-ID: <4B426A8F.2030808@toaster.net>
+Date: Mon, 04 Jan 2010 14:24:15 -0800
+From: Sean <knife@toaster.net>
 MIME-Version: 1.0
-In-Reply-To: <201001242239.10739.anssi.hannula@iki.fi>
-References: <201001242239.10739.anssi.hannula@iki.fi>
-Date: Mon, 25 Jan 2010 01:16:03 +0400
-Message-ID: <1a297b361001241316u529fdf01v5eb589f68a541664@mail.gmail.com>
-Subject: Re: [PATCH] dvb-apps scan: fix zero transport stream id
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Anssi Hannula <anssi.hannula@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Alan Stern <stern@rowland.harvard.edu>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	bugzilla-daemon@bugzilla.kernel.org, linux-media@vger.kernel.org,
+	USB list <linux-usb@vger.kernel.org>,
+	Ingo Molnar <mingo@elte.hu>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	"H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [Bugme-new] [Bug 14564] New: capture-example sleeping function
+ called from invalid context at arch/x86/mm/fault.c
+References: <Pine.LNX.4.44L0.1001041538140.3180-100000@iolanthe.rowland.org>
+In-Reply-To: <Pine.LNX.4.44L0.1001041538140.3180-100000@iolanthe.rowland.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 25, 2010 at 12:39 AM, Anssi Hannula <anssi.hannula@iki.fi> wrote:
-> scan sometimes returns services with transport stream id = 0. This
-> happens when the service is allocated before the transport stream
-> id is known. This patch simply makes copy_transponder propagate
-> transport stream id changes to all services of the transponder.
+Alan Stern wrote:
+> ...
 >
-> Symptoms of zero transport stream id include VDR not showing EPG.
+> All right.  Let's try this patch in place of all the others, then.
 >
-> Signed-off-by: Anssi Hannula <anssi.hannula@iki.fi>
+> Alan Stern
 >
-> ---
 >
-> Index: dvb-apps-1181/util/scan/scan.c
+> Index: usb-2.6/drivers/usb/host/ohci-q.c
 > ===================================================================
-> --- dvb-apps-1181/util/scan/scan.c
-> +++ dvb-apps-1181/util/scan/scan.c      2010-01-24 22:22:25.092513605 +0200
-> @@ -236,6 +236,17 @@
->
->  static void copy_transponder(struct transponder *d, struct transponder *s)
->  {
-> +       struct list_head *pos;
-> +       struct service *service;
+> --- usb-2.6.orig/drivers/usb/host/ohci-q.c
+> +++ usb-2.6/drivers/usb/host/ohci-q.c
+> @@ -505,6 +505,7 @@ td_fill (struct ohci_hcd *ohci, u32 info
+>  	struct urb_priv		*urb_priv = urb->hcpriv;
+>  	int			is_iso = info & TD_ISO;
+>  	int			hash;
+> +	volatile struct td	* volatile td1, * volatile td2;
+>  
+>  	// ASSERT (index < urb_priv->length);
+>  
+> @@ -558,11 +559,30 @@ td_fill (struct ohci_hcd *ohci, u32 info
+>  
+>  	/* hash it for later reverse mapping */
+>  	hash = TD_HASH_FUNC (td->td_dma);
 > +
-> +       if (d->transport_stream_id != s->transport_stream_id) {
-> +               /* propagate change to any already allocated services */
-> +               list_for_each(pos, &d->services) {
-> +                       service = list_entry(pos, struct service, list);
-> +                       service->transport_stream_id = s->transport_stream_id;
-> +               }
-> +       }
+> +	td1 = ohci->td_hash[hash];
+> +	td2 = NULL;
+> +	if (td1) {
+> +		td2 = td1->td_hash;
+> +		if (td2 == td1 || td2 == td) {
+> +			ohci_err(ohci, "Circular hash: %d %p %p %p\n",
+> +					hash, td1, td2, td);
+> +			td2 = td1->td_hash = NULL;
+> +		}
+> +	}
 > +
->        d->network_id = s->network_id;
->        d->original_network_id = s->original_network_id;
->        d->transport_stream_id = s->transport_stream_id;
+>  	td->td_hash = ohci->td_hash [hash];
+>  	ohci->td_hash [hash] = td;
+>  
+>  	/* HC might read the TD (or cachelines) right away ... */
+>  	wmb ();
+> +
+> +	if (td1 && td1->td_hash != td2) {
+> +		ohci_err(ohci, "Hash value changed: %d %p %p %p\n",
+> +					hash, td1, td2, td);
+> +		td1->td_hash = (struct td *) td2;
+> +	}
+> +
+>  	td->ed->hwTailP = td->hwNextTD;
+>  }
+>  
 >
->
-> --
-> Anssi Hannula
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+>   
+Alan,
+This last patch seems to do the job. Thanks so much for your help! Where 
+do I donate/send beer?
 
-Applied, Thanks.
+Sean
