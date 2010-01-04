@@ -1,80 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:52476 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1755234Ab0AFBvx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Jan 2010 20:51:53 -0500
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: linux-media@vger.kernel.org
+Received: from bear.ext.ti.com ([192.94.94.41]:45601 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751860Ab0ADODM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Jan 2010 09:03:12 -0500
+From: hvaibhav@ti.com
 To: linux-media@vger.kernel.org
-Subject: Re: av7110 error reporting
-Date: Wed, 6 Jan 2010 02:44:39 +0100
-References: <4B3BC2F2.30806@dommel.be>
-In-Reply-To: <4B3BC2F2.30806@dommel.be>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201001060244.42935@orion.escape-edv.de>
+Cc: linux-omap@vger.kernel.org, hverkuil@xs4all.nl,
+	davinci-linux-open-source@linux.davincidsp.com,
+	m-karicheri2@ti.com, Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH 0/9] Feature enhancement of VPFE/CCDC Capture driver
+Date: Mon,  4 Jan 2010 19:32:53 +0530
+Message-Id: <1262613782-20463-1-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Johan wrote:
-> I need some guidance on error messages..
-> 
-> The machine receives these messages in the systemlog (dmesg)
-> 
-> [ 7673.168026] dvb-ttpci: StartHWFilter error  buf 0b07 0010 07e9 b96a  
-> ret 0  handle ffff
-> [ 7674.192025] dvb-ttpci: StartHWFilter error  buf 0b07 0010 07ee b96a  
-> ret 0  handle ffff
-> [ 7675.224025] dvb-ttpci: StartHWFilter error  buf 0b07 0010 07f3 b96a  
-> ret 0  handle ffff
-> [ 7676.248128] dvb-ttpci: StartHWFilter error  buf 0b07 0010 07f9 b96a  
-> ret 0  handle ffff
-> [ 7677.280026] dvb-ttpci: StartHWFilter error  buf 0b07 0010 07fd b96a  
-> ret 0  handle ffff
-> [ 7678.312025] dvb-ttpci: StartHWFilter error  buf 0b07 0010 0803 b96a  
-> ret 0  handle ffff
-> 
-> These start as soon as I view or record a channel, and obviously fills 
-> up the log quickly.
-> 
-> I believe the code that generates these messages is at the bottom of 
-> this message (part of av7110.c). This code was introduced in 2005 to 
-> improve error reporting.
+While adding support for AM3517/05 devices I have implemented/came-across
+these features/enhancement/bug-fixes for VPFE-Capture driver.
 
-True.
+Also the important change added is, to introduced "ti-media"
+directory for all TI devices.
 
-> Currently I run today's v4l-dvb (using a hg update), and kernel 
-> 2.6.31-16. (Ubuntu), however the issue occurred in older combinations as 
-> well (over a year ago), so it is not introduced by the last kernels or 
-> DVB driverset.
->
-> The message seems to be triggered by the variable "handle" being larger 
-> then 32. On my system it always reports ffff.
+Vaibhav Hiremath (9):
+  Makfile:Removed duplicate entry of davinci
+  TVP514x:Switch to automode for querystd
+  tvp514x: add YUYV format support
+  Introducing ti-media directory
+  DMx:Update board files for ti-media directory change
+  Davinci VPFE Capture:Return 0 from suspend/resume
+  DM644x CCDC : Add Suspend/Resume Support
+  VPFE Capture: Add call back function for interrupt clear to vpfe_cfg
+  DM644x CCDC: Add 10bit BT support
 
-Handle == ffff means that the av7110 was not able to create a new filter
-entry. This will happen if there are already 32 active filters.
+ arch/arm/mach-davinci/include/mach/dm355.h      |    2 +-
+ arch/arm/mach-davinci/include/mach/dm644x.h     |    2 +-
+ drivers/media/video/Kconfig                     |   84 +-
+ drivers/media/video/Makefile                    |    4 +-
+ drivers/media/video/davinci/Makefile            |   17 -
+ drivers/media/video/davinci/ccdc_hw_device.h    |  110 --
+ drivers/media/video/davinci/dm355_ccdc.c        | 1081 -----------
+ drivers/media/video/davinci/dm355_ccdc_regs.h   |  310 ----
+ drivers/media/video/davinci/dm644x_ccdc.c       |  966 ----------
+ drivers/media/video/davinci/dm644x_ccdc_regs.h  |  145 --
+ drivers/media/video/davinci/vpfe_capture.c      | 2055 ---------------------
+ drivers/media/video/davinci/vpif.c              |  296 ---
+ drivers/media/video/davinci/vpif.h              |  642 -------
+ drivers/media/video/davinci/vpif_capture.c      | 2168 -----------------------
+ drivers/media/video/davinci/vpif_capture.h      |  165 --
+ drivers/media/video/davinci/vpif_display.c      | 1654 -----------------
+ drivers/media/video/davinci/vpif_display.h      |  175 --
+ drivers/media/video/davinci/vpss.c              |  301 ----
+ drivers/media/video/ti-media/Kconfig            |   88 +
+ drivers/media/video/ti-media/Makefile           |   17 +
+ drivers/media/video/ti-media/ccdc_hw_device.h   |  110 ++
+ drivers/media/video/ti-media/dm355_ccdc.c       | 1081 +++++++++++
+ drivers/media/video/ti-media/dm355_ccdc_regs.h  |  310 ++++
+ drivers/media/video/ti-media/dm644x_ccdc.c      | 1090 ++++++++++++
+ drivers/media/video/ti-media/dm644x_ccdc_regs.h |  153 ++
+ drivers/media/video/ti-media/vpfe_capture.c     | 2067 +++++++++++++++++++++
+ drivers/media/video/ti-media/vpif.c             |  296 +++
+ drivers/media/video/ti-media/vpif.h             |  642 +++++++
+ drivers/media/video/ti-media/vpif_capture.c     | 2168 +++++++++++++++++++++++
+ drivers/media/video/ti-media/vpif_capture.h     |  165 ++
+ drivers/media/video/ti-media/vpif_display.c     | 1654 +++++++++++++++++
+ drivers/media/video/ti-media/vpif_display.h     |  175 ++
+ drivers/media/video/ti-media/vpss.c             |  301 ++++
+ drivers/media/video/tvp514x.c                   |   15 +
+ include/media/davinci/ccdc_types.h              |   43 -
+ include/media/davinci/dm355_ccdc.h              |  321 ----
+ include/media/davinci/dm644x_ccdc.h             |  184 --
+ include/media/davinci/vpfe_capture.h            |  200 ---
+ include/media/davinci/vpfe_types.h              |   51 -
+ include/media/davinci/vpss.h                    |   69 -
+ include/media/ti-media/ccdc_types.h             |   43 +
+ include/media/ti-media/dm355_ccdc.h             |  321 ++++
+ include/media/ti-media/dm644x_ccdc.h            |  184 ++
+ include/media/ti-media/vpfe_capture.h           |  202 +++
+ include/media/ti-media/vpfe_types.h             |   51 +
+ include/media/ti-media/vpss.h                   |   69 +
+ 46 files changed, 11207 insertions(+), 11040 deletions(-)
+ delete mode 100644 drivers/media/video/davinci/Makefile
+ delete mode 100644 drivers/media/video/davinci/ccdc_hw_device.h
+ delete mode 100644 drivers/media/video/davinci/dm355_ccdc.c
+ delete mode 100644 drivers/media/video/davinci/dm355_ccdc_regs.h
+ delete mode 100644 drivers/media/video/davinci/dm644x_ccdc.c
+ delete mode 100644 drivers/media/video/davinci/dm644x_ccdc_regs.h
+ delete mode 100644 drivers/media/video/davinci/vpfe_capture.c
+ delete mode 100644 drivers/media/video/davinci/vpif.c
+ delete mode 100644 drivers/media/video/davinci/vpif.h
+ delete mode 100644 drivers/media/video/davinci/vpif_capture.c
+ delete mode 100644 drivers/media/video/davinci/vpif_capture.h
+ delete mode 100644 drivers/media/video/davinci/vpif_display.c
+ delete mode 100644 drivers/media/video/davinci/vpif_display.h
+ delete mode 100644 drivers/media/video/davinci/vpss.c
+ create mode 100644 drivers/media/video/ti-media/Kconfig
+ create mode 100644 drivers/media/video/ti-media/Makefile
+ create mode 100644 drivers/media/video/ti-media/ccdc_hw_device.h
+ create mode 100644 drivers/media/video/ti-media/dm355_ccdc.c
+ create mode 100644 drivers/media/video/ti-media/dm355_ccdc_regs.h
+ create mode 100644 drivers/media/video/ti-media/dm644x_ccdc.c
+ create mode 100644 drivers/media/video/ti-media/dm644x_ccdc_regs.h
+ create mode 100644 drivers/media/video/ti-media/vpfe_capture.c
+ create mode 100644 drivers/media/video/ti-media/vpif.c
+ create mode 100644 drivers/media/video/ti-media/vpif.h
+ create mode 100644 drivers/media/video/ti-media/vpif_capture.c
+ create mode 100644 drivers/media/video/ti-media/vpif_capture.h
+ create mode 100644 drivers/media/video/ti-media/vpif_display.c
+ create mode 100644 drivers/media/video/ti-media/vpif_display.h
+ create mode 100644 drivers/media/video/ti-media/vpss.c
+ delete mode 100644 include/media/davinci/ccdc_types.h
+ delete mode 100644 include/media/davinci/dm355_ccdc.h
+ delete mode 100644 include/media/davinci/dm644x_ccdc.h
+ delete mode 100644 include/media/davinci/vpfe_capture.h
+ delete mode 100644 include/media/davinci/vpfe_types.h
+ delete mode 100644 include/media/davinci/vpss.h
+ create mode 100644 include/media/ti-media/ccdc_types.h
+ create mode 100644 include/media/ti-media/dm355_ccdc.h
+ create mode 100644 include/media/ti-media/dm644x_ccdc.h
+ create mode 100644 include/media/ti-media/vpfe_capture.h
+ create mode 100644 include/media/ti-media/vpfe_types.h
+ create mode 100644 include/media/ti-media/vpss.h
 
-Does it happen for all channels, or only for a specific one?
-If the latter is true: Which channel is causing the problem?
-Does it have a large number of audio pids?
-
-> Am I looking at faulty hardware, or can I resolve this issue more 
-> elegant than just disabling the fault report?
-> (keep in mind that I do not have a programming/coding background)
-
-You may disable the warning, but be warned that some parts of the data
-will not be recorded due to missing filter entries...
-
-Oliver
-
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
