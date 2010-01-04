@@ -1,59 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:51550 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751336Ab0ASNMZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jan 2010 08:12:25 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [ANNOUNCE] git tree repositories
-Date: Tue, 19 Jan 2010 14:12:38 +0100
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Douglas Landgraf <dougsland@gmail.com>
-References: <4B55445A.10300@infradead.org> <201001191356.48403.laurent.pinchart@ideasonboard.com> <4B55AE9B.2030301@infradead.org>
-In-Reply-To: <4B55AE9B.2030301@infradead.org>
+Received: from mail-iw0-f197.google.com ([209.85.223.197]:60668 "EHLO
+	mail-iw0-f197.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751551Ab0ADLho (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jan 2010 06:37:44 -0500
+Received: by iwn35 with SMTP id 35so10316921iwn.4
+        for <linux-media@vger.kernel.org>; Mon, 04 Jan 2010 03:37:43 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201001191412.38617.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1262390254.8927.15.camel@sirius>
+References: <1262390254.8927.15.camel@sirius>
+Date: Mon, 4 Jan 2010 19:37:38 +0800
+Message-ID: <8cd7f1781001040337q71c3cafcl9a2a4c6e77502ce6@mail.gmail.com>
+Subject: Re: DVBWorld DVB-S2 2005 PCI-Express Card
+From: Leszek Koltunski <leszek@koltunski.pl>
+To: =?UTF-8?B?SmFrdWIgTMOhem5pxI1rYQ==?= <jakub@jiznak.cz>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+I have a very similar problem with DVBWorld 2006 DVB-S2 card.
+The v4l-dvb ( freshly pulled ) compiles and loads, firmware is loaded,
+but when I actually try to use it ( dvbstream commands ) the following
+appears in /var/log/messages:
 
-On Tuesday 19 January 2010 14:07:39 Mauro Carvalho Chehab wrote:
-> Laurent Pinchart wrote:
-> > Hi Mauro,
-> >
-> > I've started playing with the linuxtv git repositories. I've cloned v4l-
-> > dvb.git into git://linuxtv.org/pinchartl/uvcvideo.git using git-menu and
-> > now have trouble pushing changes:
-> >
-> > $ git push -v uvcvideo
-> > Pushing to git://linuxtv.org/pinchartl/uvcvideo.git
-> > fatal: The remote end hung up unexpectedly
-> >
-> > What URL should I use to push changes ?
-> 
-> Push will only work if you use the ssh url. the url is basically the same
-> of http, but replacing to ssh:
-> 	ssh://linuxtv.org/git/<tree>
-> 
-> On your case
-> 	ssh://linuxtv.org/git/pinchartl/uvcvideo.git
+Jan  4 18:30:24 november kernel: i2c_sendbytes: i2c error NAK or timeout occur
+Jan  4 18:30:24 november kernel: ds3000_readreg: reg=0xd1(error=-1)
+Jan  4 18:30:25 november kernel: i2c_sendbytes: i2c error NAK or timeout occur
+Jan  4 18:30:25 november kernel: ds3000_readreg: reg=0xd1(error=-1)
+Jan  4 18:30:25 november kernel: i2c_sendbytes: i2c error NAK or timeout occur
+Jan  4 18:30:25 november kernel: ds3000_writereg: writereg error(err
+== -1, reg == 0xf9, value == 0x04)
+Jan  4 18:30:25 november kernel: i2c_sendbytes: i2c error NAK or timeout occur
+Jan  4 18:30:25 november kernel: ds3000_readreg: reg=0xf8(error=-1)
+Jan  4 18:30:25 november kernel: i2c_sendbytes: i2c error NAK or timeout occur
+Jan  4 18:30:25 november kernel: ds3000_writereg: writereg error(err
+== -1, reg == 0x03, value == 0x12)
+Jan  4 18:30:25 november kernel: i2c_sendbytes: i2c error NAK or timeout occur
+Jan  4 18:30:25 november kernel: ds3000_tuner_readreg: reg=0x3d(error=-1)
+Jan  4 18:30:25 november kernel: i2c_sendbytes: i2c error NAK or timeout occur
+Jan  4 18:30:25 november kernel: ds3000_writereg: writereg error(err
+== -1, reg == 0x03, value == 0x12)
+Jan  4 18:30:25 november kernel: i2c_sendbytes: i2c error NAK or timeout occur
+Jan  4 18:30:25 november kernel: ds3000_tuner_readreg: reg=0x21(error=-1)
 
-One step further:
+... and many more of this.
 
-$ git push -v uvcvideo
-Pushing to ssh://linuxtv.org/git/pinchartl/uvcvideo.git
-Permission denied (publickey).
-fatal: The remote end hung up unexpectedly
+Actually I have to say I already tried DVBWorld 2006, NetUP dual
+DVB-S2 and TwinHan VP-1041 ( like the Technisat card ) but no success
+at all. DVBWorld is giving me errors like above, NetUP's driver loads
+but doesn't want to tune to anything, Twinhan can tune to one
+transponder and scan the channels but for reasons far beyond me fails
+to tune to anything else.
 
-Do I need to upload my public key somewhere ? I already use it with hg push 
-(and ssh git-menu) without any issue.
-
--- 
-Cheers,
-
-Laurent Pinchart
+DVB-T ( Leadtek WinFast ) is working for me perfectly, but DVB-S is an
+exercise in frustration...
