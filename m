@@ -1,62 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:63858 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753627Ab0AVRK6 (ORCPT
+Received: from ipmail03.adl6.internode.on.net ([203.16.214.141]:24716 "EHLO
+	ipmail03.adl6.internode.on.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752261Ab0AEBZ1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jan 2010 12:10:58 -0500
-Message-ID: <4B59DC19.1050400@maxwell.research.nokia.com>
-Date: Fri, 22 Jan 2010 19:10:49 +0200
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+	Mon, 4 Jan 2010 20:25:27 -0500
+Message-ID: <4B4294FE.8000309@internode.on.net>
+Date: Tue, 05 Jan 2010 12:25:18 +1100
+From: Raena Lea-Shannon <raen@internode.on.net>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	iivanov@mm-sol.com, gururaj.nagendra@intel.com
-Subject: Re: [RFC v2 4/7] V4L: Events: Add backend
-References: <4B30F713.8070004@maxwell.research.nokia.com> <1261500191-9441-1-git-send-email-sakari.ailus@maxwell.research.nokia.com> <1261500191-9441-2-git-send-email-sakari.ailus@maxwell.research.nokia.com> <1261500191-9441-3-git-send-email-sakari.ailus@maxwell.research.nokia.com> <1261500191-9441-4-git-send-email-sakari.ailus@maxwell.research.nokia.com> <alpine.LNX.2.01.1001181333040.31857@alastor>
-In-Reply-To: <alpine.LNX.2.01.1001181333040.31857@alastor>
-Content-Type: text/plain; charset=ISO-8859-1
+To: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
+CC: linux-media@vger.kernel.org
+Subject: Re: DTV2000 H Plus issues
+References: <4B3F6FE0.4040307@internode.on.net> <4B3F7B0D.4030601@mailbox.hu> <4B405381.9090407@internode.on.net> <4B421BCB.6050909@mailbox.hu>
+In-Reply-To: <4B421BCB.6050909@mailbox.hu>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
-> Hi Sakari,
 
-Hi, Hans!
 
-> The code looks good, but I'm not so sure about the use of kmem_cache_*. It
-> seems serious overkill to me.
+istvan_v@mailbox.hu wrote:
+> On 01/03/2010 09:21 AM, Raena Lea-Shannon wrote:
 > 
-> Most of the time there will only be a handful of event messages pending. So
-> setting up a kmem_cache for this seems unnecessary to me.
+>> That seems odd. This patch on the LinuxTv site
+>> http://www.linuxtv.org/pipermail/linux-dvb/2008-June/026379.html
+>> seems to be using the cx88 drivers?
 > 
-> A much better way to ensure fast event reporting IMHO would be to keep a
-> list
-> of empty event messages rather than destroying an event after it is
-> dequeued.
+> Unfortunately, this patch is for the older DTV 2000H (not Plus)
+> card, which uses a Philips FMD1216 tuner. The main change on the
+> "Plus" card is the replacement of the tuner with the XC4000, and
+> that is why it is not supported yet. However, an XC4000 driver
+> is already under development, and - compiling V4L from source -
+> you could get the card working in the near future. In fact, code
+> that implements support for this card already exists, but it is
+> only for development/testing at the moment.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> So you have two queues per filehandle: pending and empty; initially both
-> are
-> empty. When a new event has to be queued the code checks if there are
-> events
-> available for reuse in the empty queue, and if not a new event struct is
-> allocated and added to the pending queue.
-
-I actually had this kind of setup there for a while. Then I thought it'd
-be too ugly and went for kmem_cache instead.
-
-The other reason is that it's convenient to keep the memory allocated
-even if there are no events subscribed or the device isn't open. For
-1000 events that's 96 kiB. I guess an unused kmem_cache object consumes
-extra memory very little. The cached slabs can be explicitly freed
-anyway by the driver.
-
-The size of the kmem_cache also adjusts based on the number of events in
-the queue. Allocating kmem_cache objects is fast if they already exist,
-too. There can be temporary delays from allocation, of course.
-
-I can bring it back, sure, if you see a fixed allocation better.
-
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+Thanks. Will try again later.
