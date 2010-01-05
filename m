@@ -1,111 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.154]:42354 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752913Ab0AKTYb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2010 14:24:31 -0500
-Received: by fg-out-1718.google.com with SMTP id 19so9033121fgg.1
-        for <linux-media@vger.kernel.org>; Mon, 11 Jan 2010 11:24:29 -0800 (PST)
-Content-Type: text/plain; charset=iso-8859-2; format=flowed; delsp=yes
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: WinTV Radio rev-c121 remote support
-References: <d49708701001051211r447f6293g59dfac2b1af2818c@mail.gmail.com>
- <op.u57s00mk6dn9rq@crni.lan>
-Date: Mon, 11 Jan 2010 20:24:51 +0100
+Received: from iolanthe.rowland.org ([192.131.102.54]:49477 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754639Ab0AEPLK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jan 2010 10:11:10 -0500
+Date: Tue, 5 Jan 2010 10:11:07 -0500 (EST)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Sean <knife@toaster.net>
+cc: Andrew Morton <akpm@linux-foundation.org>,
+	<bugzilla-daemon@bugzilla.kernel.org>,
+	<linux-media@vger.kernel.org>,
+	USB list <linux-usb@vger.kernel.org>,
+	Ingo Molnar <mingo@elte.hu>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	"H. Peter Anvin" <hpa@zytor.com>
+Subject: Re: [Bugme-new] [Bug 14564] New: capture-example sleeping function
+ called from invalid context at arch/x86/mm/fault.c
+In-Reply-To: <4B42B2C6.8050702@toaster.net>
+Message-ID: <Pine.LNX.4.44L0.1001051003080.3002-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-From: "Samuel Rakitnican" <samuel.rakitnican@gmail.com>
-Message-ID: <op.u6duvn0i6dn9rq@crni.lan>
-In-Reply-To: <op.u57s00mk6dn9rq@crni.lan>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 08 Jan 2010 13:59:14 +0100, Samuel Rakitnican  
-<samuel.rakitnican@gmail.com> wrote:
+On Mon, 4 Jan 2010, Sean wrote:
 
-> On Tue, 05 Jan 2010 21:11:59 +0100, Samuel Rakitnièan  
-> <samuel.rakitnican@gmail.com> wrote:
->
->> Hi,
->>
->> I have an old bt878 based analog card. It's 'Hauppauge WinTV Radio'  
->> model 44914,
->> rev C121.
->>
->> I'm trying to workout support for this shipped remote control. I have
+> Alan Stern wrote:
+> > Um, when you say it does the job, what do you mean?
+> It traps the error and prevents the kernel from crashing.
 
-  [...]
+As did some of the earlier patches, right?
 
->> Card: http://linuxtv.org/wiki/index.php/File:Wintv-radio-C121.jpg
->> Remote: http://linuxtv.org/wiki/index.php/File:Wintv-radio-remote.jpg
->
->
-> Did some investigation, maybe this can help to clarify some things.  
-> Still didn't get any response in dmesg from remote.
+> > The job it was _intended_ to do was to prove that your problems are
+> > caused by hardware errors rather than software bugs.  If the patch
+> > causes the problems to stop, without printing any error messages in the
+> > log, then it does indeed prove this.  After all, the only places the
+> > patch changes any persistent values are after it prints an error 
+> > message.
+> >   
+> It did print out error messages:
 
-  [...]
+> .ohci_hcd 0000:00:0b.0: Circular hash: 36 c669f900 c677b900 
+> c677b900                                                 
+> ...ohci_hcd 0000:00:0b.0: Circular hash: 36 c669f900 c677b900 
+> c677b900                                               
+> .ohci_hcd 0000:00:0b.0: Circular hash: 32 c669f800 c677b800 
+> c677b800                                                 
 
-> i2c_scan:
-> bttv0: i2c scan: found device @ 0x30  [IR (hauppauge)]
-> bttv0: i2c scan: found device @ 0xa0  [eeprom]
-> bttv0: i2c scan: found device @ 0xc2  [tuner (analog)]
+Ooh, that's odd.  The "Circular hash" message occurs in the same spot 
+as the "Circular pointer #2a" message in the previous patch -- and that 
+message never got printed!
 
-  [...]
+> > I noticed that your CPU is a Cyrix.  Perhaps it is the culprit.  Have
+> > you tried running the program on a different computer?
+> >   
+> Yes, on other computers I don't get this error. Same os image. Though I 
+> haven't found a computer with an ohci controller yet.
 
-> modprobe ir-kbd-i2c debug=1
-> ir-kbd-i2c: probe 0x1a @ bt878 #0 [sw]: no
-> ir-kbd-i2c: probe 0x18 @ bt878 #0 [sw]: yes
+So that's not a real test, unfortunately.
 
-  [...]
+Still, at this point I'm not sure it's worthwhile to pursue this any
+farther.  I'm convinced it's a hardware problem.  Do you want to 
+continue, or are you happy to switch computers and forget about it?
 
+Alan Stern
 
-OK, patch http://patchwork.kernel.org/patch/70126/ did the trick for  
-kernel oops and segfault. However there is still something wrong in the  
-filtering code for hauppauge remotes that prevents my remote codes for  
-passing through:
-
-drivers/media/video/ir-kbd-i2c.c
-
-  99 	/*
-100 	 * Hauppauge remotes (black/silver) always use
-101 	 * specific device ids. If we do not filter the
-102 	 * device ids then messages destined for devices
-103 	 * such as TVs (id=0) will get through causing
-104 	 * mis-fired events.
-105 	 *
-106 	 * We also filter out invalid key presses which
-107 	 * produce annoying debug log entries.
-108 	 */
-109 	ircode= (start << 12) | (toggle << 11) | (dev << 6) | code;
-110 	if ((ircode & 0x1fff)==0x1fff)
-111 		/* invalid key press */
-112 		return 0;
-113
-114 	if (dev!=0x1e && dev!=0x1f)
-115 		/* not a hauppauge remote */
-116 		return 0;
-117
-118 	if (!range)
-119 		code += 64;
-
-
-When I comment in this part: if (dev!=0x1e && dev!=0x1f), my remote works  
-with a hauppage=1 parameter, althought a few buttons are not mapped  
-correctly.
-
-dmesg example with an empty table (buttons CH+ and CH-):
-: unknown key: key=0x20 down=1
-: unknown key for scancode 0x0020
-: unknown key: key=0x20 down=0
-: unknown key for scancode 0x0021
-: unknown key: key=0x21 down=1
-: unknown key for scancode 0x0021
-: unknown key: key=0x21 down=0
-
-
-Can someone please take a look at this and perhaps fix the code. Thanks in  
-advance.
-
-
-Regards,
-Samuel
