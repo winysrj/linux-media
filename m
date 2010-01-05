@@ -1,68 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:38573 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751592Ab0A3Ue6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Jan 2010 15:34:58 -0500
-Date: Sat, 30 Jan 2010 14:56:56 -0600 (CST)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: =?ISO-8859-15?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-cc: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: PAC7302 short datasheet from PixArt
-In-Reply-To: <4B63E053.80609@freemail.hu>
-Message-ID: <alpine.LNX.2.00.1001301426590.21011@banach.math.auburn.edu>
-References: <4B63E053.80609@freemail.hu>
-MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-863829203-1772792279-1264885018=:21011"
+Received: from mail1.radix.net ([207.192.128.31]:43964 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753472Ab0AEDTS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Jan 2010 22:19:18 -0500
+Subject: Re: [RESEND] Re: DViCO FusionHDTV DVB-T Dual Digital 4 (rev 1)    
+ tuning      regression
+From: Andy Walls <awalls@radix.net>
+To: Robert Lowery <rglowery@exemail.com.au>
+Cc: mchehab@redhat.com,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Vincent McIntyre <vincent.mcintyre@gmail.com>,
+	terrywu2009@gmail.com, linux-media@vger.kernel.org
+In-Reply-To: <1262658469.3054.48.camel@palomino.walls.org>
+References: <33305.64.213.30.2.1259216241.squirrel@webmail.exetel.com.au>
+	 <50104.115.70.135.213.1259224041.squirrel@webmail.exetel.com.au>
+	 <702870ef0911260137r35f1784exc27498d0db3769c2@mail.gmail.com>
+	 <56069.115.70.135.213.1259234530.squirrel@webmail.exetel.com.au>
+	 <46566.64.213.30.2.1259278557.squirrel@webmail.exetel.com.au>
+	 <702870ef0912010118r1e5e3been840726e6364d991a@mail.gmail.com>
+	 <829197380912020657v52e42690k46172f047ebd24b0@mail.gmail.com>
+	 <36364.64.213.30.2.1260252173.squirrel@webmail.exetel.com.au>
+	 <1328.64.213.30.2.1260920972.squirrel@webmail.exetel.com.au>
+	 <2088.115.70.135.213.1262579258.squirrel@webmail.exetel.com.au>
+	 <1262658469.3054.48.camel@palomino.walls.org>
+Content-Type: text/plain
+Date: Mon, 04 Jan 2010 22:18:32 -0500
+Message-Id: <1262661512.3054.67.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Mon, 2010-01-04 at 21:27 -0500, Andy Walls wrote:
+> On Mon, 2010-01-04 at 15:27 +1100, Robert Lowery wrote:
+> > > Mauro,
+> > >
+> > > I've split the revert2.diff that I sent you previously to fix the tuning
+> > > regression on my DViCO Dual Digital 4 (rev 1) into three separate patches
+> > > that will hopefully allow you to review more easily.
+> > >
+> > > The first two patches revert their respective changesets and nothing else,
+> > > fixing the issue for me.
+> > > 12167:966ce12c444d tuner-xc2028: Fix 7 MHz DVB-T
+> > > 11918:e6a8672631a0 tuner-xc2028: Fix offset frequencies for DVB @ 6MHz
+> > >
+> > > The third patch does what I believe is the obvious equivalent fix to
+> > > e6a8672631a0 but without the cleanup that breaks tuning on my card.
+> > >
+> > > Please review and merge
+> > >
+> > > Signed-off-by: Robert Lowery <rglowery@exemail.com.au>
+> > 
+> > Mauro,
+> > 
+> > I'm yet to receive a response from you on this clear regression introduced
+> > in the 2.6.31 kernel.  You attention would be appreciated
+> > 
+> > Thanks
+> > 
+> > -Rob
+> 
+> Robert,
+> 
+> The changes in question (mostly authored by me) are based on
+> documentation on what offsets are to be used with the firmware for
+> various DVB bandwidths and demodulators.  The change was tested by Terry
+> on a Leadtek DVR 3100 H Analog/DVB-T card (CX23418, ZL10353, XC3028) and
+> some other cards I can't remember, using a DVB-T pattern generator for 7
+> and 8 MHz in VHF and UHF, and live DVB-T broadcasts in UHF for 6 MHz.
+> 
+> (Devin,
+>  Maybe you can double check on the offsets in tuner-xc2028.c with any
+>  documentation you have available to you?)
+> 
+> 
+> I haven't been following this thread really at all as the board in the
+> subject line was unfamiliar to me, so sorry for any late response or
+> dumb questions by me.  
+> 
+> May I ask:
+> 
+> 1. what are the exact problem frequencies?
+> 2. what is the data source from which you are getting the frequency
+> information?
+> 3. what does tuner-xc2028 debug logging show as the firmware loaded when
+> tune to one of the the problem frequencies?
 
----863829203-1772792279-1264885018=:21011
-Content-Type: TEXT/PLAIN; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8BIT
+
+Robert,
+
+I just found that ACMA has a very nice compilation licensed DTV
+transmitters in Australia and their frequencies.  Have a look at the
+Excel spreadsheet linked on this page:
+
+	http://acma.gov.au/WEB/STANDARD/pc=PC_9150
+
+The DTV tab has a list of the Area, callsign, and DTV center freq.
+The Glossary tab mentions that DTV broadcasters can have an offset of
++/- 125 kHz from the DTV center freq.
+
+If you could verify that the frequencies you are using for the problem
+stations match the list, that would help eliminate commanded tuning
+frequency as source of the problem.
 
 
+Regards,
+Andy
 
-On Sat, 30 Jan 2010, Németh Márton wrote:
 
-> Hi,
->
-> if anyone interested there is a brief overview datasheet about
-> PixArt PAC7301/PAC7302 at
-> http://www.pixart.com.tw/upload/PAC7301_7302%20%20Spec%20V1_20091228174030.pdf
+> BTW, I note that in linux/drivers/media/dvb/dvb-usb/cxusb.c:
+> cxusb_dvico_xc3028_tuner_attach(), this declaration
+> 
+>         static struct xc2028_ctrl ctl = {
+>                 .fname       = XC2028_DEFAULT_FIRMWARE,
+>                 .max_len     = 64,
+>                 .demod       = XC3028_FE_ZARLINK456,
+>         };
+> 
+> really should have ".type = XC2028_AUTO" or ".type = XC2028_D2633", but
+> since XC2028_AUTO has a value of 0, it probably doesn't matter.
+> 
+> 
+> Regards,
+> Andy
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Márton,
-
-First, I am glad that mouse-copying reproduces the accent in your name. If 
-you can help explain how to reproduce such things by typing while using 
-apine over an ssh connection, using a standard US keyboard, I would be 
-glad of the explanation. My wife is Hungarian, and I am thus very 
-sensitized to the importance of the question, how to do the accents 
-required for writing Hungarian properly.
-
-Now, as to the substance of the mail above, thanks a lot. I had a bunch of 
-the PixArt datasheets already, but I had missed that one. I would have a 
-question, though:
-
-This datasheet gives a lot of information about pinouts on the sensor chip 
-and such good stuff which might be useful if one were constructing a 
-circuit board on which to put the chip. What it does not give, very 
-unfortunately, is any information about the command set which needs to be 
-sent across the USB connection, which in turn actuates the circuits which 
-in turn sends something to the sensor across one of those pins. For 
-example, to set green gain one has to do something on connector X. But how 
-does one send a command from the computer which does something on 
-connector X? Some other datasheets from some other companies (Omnivision, 
-for example) do seem occasionally to provide such information.
-
-Thus, a question for you or for anyone else who reads it:
-
-Has anyone figured out any shortcuts for matching up the missing pieces of 
-information? Probably the answer is "no" but I think this is the kind of 
-question which is worth asking again on some periodic basis.
-
-Theodore Kilgore
----863829203-1772792279-1264885018=:21011--
