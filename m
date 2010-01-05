@@ -1,41 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f226.google.com ([209.85.219.226]:49482 "EHLO
-	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751042Ab0AWPG6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jan 2010 10:06:58 -0500
-Received: by ewy26 with SMTP id 26so370892ewy.28
-        for <linux-media@vger.kernel.org>; Sat, 23 Jan 2010 07:06:57 -0800 (PST)
+Received: from mail.gmx.net ([213.165.64.20]:47909 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751746Ab0AEJdM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 Jan 2010 04:33:12 -0500
+Date: Tue, 5 Jan 2010 10:33:16 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+cc: Linux-V4L2 <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] soc-camera: ov772x: Add buswidth selection flags for
+ platform
+In-Reply-To: <u637ggasq.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.1001051031410.5259@axis700.grange>
+References: <u8wcdf9r8.wl%morimoto.kuninori@renesas.com>
+ <Pine.LNX.4.64.1001050848140.5259@axis700.grange> <u637ggasq.wl%morimoto.kuninori@renesas.com>
 MIME-Version: 1.0
-In-Reply-To: <4B5B0E12.3090706@barber-family.id.au>
-References: <4B5B0E12.3090706@barber-family.id.au>
-Date: Sat, 23 Jan 2010 10:00:10 -0500
-Message-ID: <83bcf6341001230700h7db6600i89b9092051049612@mail.gmail.com>
-Subject: Re: New Hauppauge HVR-2200 Revision?
-From: Steven Toth <stoth@kernellabs.com>
-To: Francis Barber <fedora@barber-family.id.au>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> I'm a confused by 8940 because this isn't listed in the hcw89.inf file on
-> the CD that shipped with the product (driver version 7.6.1.27118).  They
-> list 8900, 8901, 8980, 8991, 8993, 89A0, and 89A1.  I downloaded the latest
-> drivers from the website (7.6.27.27223) and this adds 8951 and 8953, but
-> still not 8940.
->
-> The firmware shipped with 7.6.1.27118 is the same as is available on your
-> website, although they have updated it for 7.6.27.27223.
+On Tue, 5 Jan 2010, Kuninori Morimoto wrote:
 
-> If there is any other information that would be helpful please let me know.
+> 
+> Dear Guennadi
+> 
+> Thank you for checking patch
+> 
+> > Can you explain a bit why this patch is needed? Apart from a slight 
+> > stylistic improvement and a saving of 4 bytes of platform data per camera 
+> > instance? Is it going to be needed for some future changes?
+> 
+> This patch is not so important/necessary at once.
+>  -> for saving of 4 bytes.
+> 
+> > 	if (!is_power_of_2(priv->info->flags & (OV772X_FLAG_8BIT | OV772X_FLAG_10BIT)))
+> > 		return 0;
+> > 
+> > make sense here? Or even just modify your tests above to
+> (snip)
+> > Adding a "default:" case just above the "case OV772X_FLAG_10BIT:" line 
+> > would seem like a good idea to me too.
+> 
+> I understand.
+> 
+> > > +#define OV772X_FLAG_8BIT	(1 << 2) /*  8bit buswidth */
+> > > +#define OV772X_FLAG_10BIT	(1 << 3) /* 10bit buswidth */
+> 
+> May I suggest here ?
+> What do you think if it have only 10BIT flag,
+> and check/operation like this ?
+> 
+> 	if (priv->info->flags & OV772X_FLAG_10BIT) {
+>  		flags |= SOCAM_DATAWIDTH_10;
+>  	else
+>  		flags |= SOCAM_DATAWIDTH_8;
+> 
+> This case, below check became not needed,
+> Does this operation make sense for you ?
 
-Does this actually work under windows? It sounds like the driver
-doesn't support it?
+Do you really want to make 8 bits default? Even though this is, probably, 
+how most implementations will connect the sensor, it is actually a 10-bit 
+device.
 
-Regards,
+> 
+> > >  	/*
+> > > -	 * ov772x only use 8 or 10 bit bus width
+> > > -	 */
+> > > -	if (SOCAM_DATAWIDTH_10 != priv->info->buswidth &&
+> > > -	    SOCAM_DATAWIDTH_8  != priv->info->buswidth) {
+> > > -		dev_err(&client->dev, "bus width error\n");
+> > > -		return -ENODEV;
+> > > -	}
 
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
