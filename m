@@ -1,121 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:36131 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754398Ab0AVLqF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jan 2010 06:46:05 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: Re: gitorious.org/omap3camera: Falied attempt to migrate sensor driver to Zoom2/3 platform
-Date: Fri, 22 Jan 2010 12:46:24 +0100
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <A24693684029E5489D1D202277BE8944517F0987@dlee02.ent.ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE8944517F0987@dlee02.ent.ti.com>
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:33004 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753624Ab0AEPn1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jan 2010 10:43:27 -0500
+Received: by ewy19 with SMTP id 19so8573100ewy.21
+        for <linux-media@vger.kernel.org>; Tue, 05 Jan 2010 07:43:25 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201001221246.24330.laurent.pinchart@ideasonboard.com>
+Date: Tue, 5 Jan 2010 16:43:25 +0100
+Message-ID: <d5cd75471001050743n761e82d9ub5d59689dd4ccd28@mail.gmail.com>
+Subject: Terratec Cinergy C PCI HD - different subsystems
+From: Hemmelig Konto <minforumkonto@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergio,
+Hi there
 
-On Friday 22 January 2010 10:49:17 Aguirre, Sergio wrote:
-> Laurent, Sakari,
-> 
-> While I was trying to adapt my Zoom2/3 sensor drivers into latest 'devel'
->  branch with latest commit:
-> 
-> commit 2e7d09ec5e09ee80462a611c9958e99866ee337c
-> Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Date:   Wed Jan 20 13:49:31 2010 +0100
-> 
->     omap3isp: Work around sg_alloc_table BUG_ON
-> 
->     Work in progress
-> 
->     Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+I'm the owner of two Terratec Cinergy C PCI HD cards.
 
-That last patch shouldn't have been applied to the linux-omap tree. The patch 
-itself is correct, but the commit message isn't. I'll check that with Sakari.
+I'm running on vanilla kernel 2.6.32.0 x64 and is using the s2-liblianin driver.
 
-> And applying the attached patches. I see the following kernel panic on
->  bootup:
-> 
-> omap3isp omap3isp: Revision 2.0 found
-> omap-iommu omap-iommu.0: isp: version 1.1
-> Unable to handle kernel NULL pointer dereference at virtual address
->  00000048 pgd = c0004000
-> [00000048] *pgd=00000000
-> Internal error: Oops: 5 [#1]
-> last sysfs file:
-> Modules linked in:
-> CPU: 0    Not tainted  (2.6.32-07583-gd4ae425-dirty #7)
-> PC is at get_device_parent+0x68/0x114
-> LR is at device_add+0x7c/0x474
-> pc : [<c019345c>]    lr : [<c0194264>]    psr: 60000013
-> sp : cf823dc8  ip : cf95f680  fp : cf91b178
-> r10: c03f37e0  r9 : c0367b06  r8 : c03dc770
-> r7 : ffffffea  r6 : cf91b170  r5 : c03b7748  r4 : 00000000
-> r3 : c03dc770  r2 : 00000000  r1 : c03b7740  r0 : c03b7748
-> Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-> Control: 10c5387d  Table: 80004019  DAC: 00000017
-> Process swapper (pid: 1, stack limit = 0xcf8222e8)
-> Stack: (0xcf823dc8 to 0xcf824000)
-> 3dc0:                   00000000 cf91b170 cf91b170 c0194264 cf823e10
->  c03b7740 3de0: 00000000 cf91b178 00000000 c01670a4 cf91b178 00000000
->  cf91b168 cf91b170 3e00: c03f33dc c03dc770 c0367b06 c03f37e0 c03b787c
->  c0200744 c03b7740 cf91b160 3e20: c03b7740 cf91b000 c03d3cc0 00000000
->  00000000 c01fdcbc c03b8ae0 c03b8fc0 3e40: c03b7738 98f7cec1 cf820a30
->  c03b8f68 00000000 c0067f78 cf82c01c cf821a40 3e60: 00000017 cf820a00
->  cf821bdc 00000000 cf823eac 00000001 00000000 fffffffd 3e80: cf823ebc
->  cf803740 00000000 00000001 cf803744 00000000 00000000 c03ed394 3ea0:
->  cf823ef4 c016630c 00000000 cf80d7a8 00000000 c016630c cf82dfa4 cf80d7a8
->  3ec0: c00e5cdc cf80e608 00000000 c02a8c58 00000000 cf823f10 cf95e7b8
->  c00e6474 3ee0: cf95e7b8 c00e60ac cf95e818 cf95e7b8 cf823f10 c00e6184
->  00000000 cf823f10 3f00: cf95e7b8 cf80e608 00000001 c00e6eec cf80e608
->  00000000 00000000 c03b7740 3f20: c03b7740 c03dc440 cf95dbc0 c03d3cc0
->  00000000 00000000 00000000 c01971e4 3f40: c03b7740 c01963e0 c03b7740
->  c03b7774 c03dc440 cf95dbc0 c03d3cc0 c01964ec 3f60: 00000000 c019648c
->  c03dc440 c0195cb4 cf803af8 cf8459f0 c00222c8 c03dc440 3f80: c03dc440
->  c0195614 c03361b1 c03361b1 00000006 c00222c8 00000000 c03dc440 3fa0:
->  00000000 00000000 00000000 c01967bc c00222c8 00000000 c001c060 00000000
->  3fc0: 00000000 c0027334 00000031 00000000 00000000 00000192 00000000
->  c00222c8 3fe0: 00000000 00000000 00000000 c0008578 00000000 c0028dbc
->  00dbda20 24ffdc02 [<c019345c>] (get_device_parent+0x68/0x114) from
->  [<c0194264>] (device_add+0x7c/0x474) [<c0194264>] (device_add+0x7c/0x474)
->  from [<c0200744>] (media_devnode_register+0x1d0/0x29c) [<c0200744>]
->  (media_devnode_register+0x1d0/0x29c) from [<c01fdcbc>]
->  (omap34xxcam_probe+0x64/0x428) [<c01fdcbc>] (omap34xxcam_probe+0x64/0x428)
->  from [<c01971e4>] (platform_drv_probe+0x18/0x1c) [<c01971e4>]
->  (platform_drv_probe+0x18/0x1c) from [<c01963e0>]
->  (driver_probe_device+0xa0/0x14c) [<c01963e0>]
->  (driver_probe_device+0xa0/0x14c) from [<c01964ec>]
->  (__driver_attach+0x60/0x84) [<c01964ec>] (__driver_attach+0x60/0x84) from
->  [<c0195cb4>] (bus_for_each_dev+0x44/0x74) [<c0195cb4>]
->  (bus_for_each_dev+0x44/0x74) from [<c0195614>] (bus_add_driver+0x9c/0x220)
->  [<c0195614>] (bus_add_driver+0x9c/0x220) from [<c01967bc>]
->  (driver_register+0xa8/0x130) [<c01967bc>] (driver_register+0xa8/0x130)
->  from [<c0027334>] (do_one_initcall+0x5c/0x1b4) [<c0027334>]
->  (do_one_initcall+0x5c/0x1b4) from [<c0008578>] (kernel_init+0x90/0x10c)
->  [<c0008578>] (kernel_init+0x90/0x10c) from [<c0028dbc>]
->  (kernel_thread_exit+0x0/0x8) Code: 18bd8070 e1a05000 e596309c e5932030
->  (e5b23048)
-> ---[ end trace 31cd15fa922e3123 ]---
-> Kernel panic - not syncing: Attempted to kill init!
-> 
-> Do you have any idea what I could be missing?
+My problem is that the driver only see 1 of my 2 cards.
+When I investigate the cards, I see that they have a different
+subsystem identifiers : 153b:1178 which works, and 153b.01788 which
+doesn't work. There are no visible difference between the card, as far
+as I can see.
 
-Yes, I think you're missing the equivalent to commit 
-38f5cbed7710ab373252b64e3fb0701ab5a7b828
+How do I get the driver to "attach" to both the cards so I can get
+both "adapter0" and "adapter1" - today it is only "adapter0" ?
 
-    rx51: Add omap3isp_device pointer to platform data.
-    
-    Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Please help !!!
 
--- 
-Regards,
+/Ole W
 
-Laurent Pinchart
+lspci -vnn output :
+
+06:00.0 Multimedia controller [0480]: Twinhan Technology Co. Ltd
+Mantis DTV PCI Bridge Controller [Ver 1.0] [1822:4e35] (rev 01)
+        Subsystem: TERRATEC Electronic GmbH Device [153b:0178]
+        Flags: bus master, medium devsel, latency 64, IRQ 16
+        Memory at edfff000 (32-bit, prefetchable) [size=4K]
+        Kernel modules: mantis
+
+06:01.0 Multimedia controller [0480]: Twinhan Technology Co. Ltd
+Mantis DTV PCI Bridge Controller [Ver 1.0] [1822:4e35] (rev 01)
+        Subsystem: TERRATEC Electronic GmbH Device [153b:1178]
+        Flags: bus master, medium devsel, latency 64, IRQ 17
+        Memory at fdffe000 (32-bit, prefetchable) [size=4K]
+        Kernel driver in use: Mantis
+        Kernel modules: mantis
+
+dmesg output :
+
+Mantis 0000:06:00.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
+Mantis 0000:06:01.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
+irq: 17, latency: 64
+ memory: 0xfdffe000, mmio: 0xffffc9001178e000
+found a VP-2040 PCI DVB-C device on (06:01.0),
+    Mantis Rev 1 [153b:1178], irq: 17, latency: 64
+    memory: 0xfdffe000, mmio: 0xffffc9001178e000
+    MAC Address=[00:08:ca:1e:88:83]
+mantis_alloc_buffers (1): DMA=0x37c60000 cpu=0xffff880037c60000 size=65536
+mantis_alloc_buffers (1): RISC=0x37c06000 cpu=0xffff880037c06000 size=1000
+DVB: registering new adapter (Mantis dvb adapter)
+input: HDA Digital PCBeep as /devices/pci0000:00/0000:00:1b.0/input/input4
+HDA Intel 0000:01:00.1: PCI INT B -> GSI 17 (level, low) -> IRQ 17
+HDA Intel 0000:01:00.1: setting latency timer to 64
+mantis_frontend_init (1): Probing for CU1216 (DVB-C)
+TDA10023: i2c-addr = 0x0c, id = 0x7d
+mantis_frontend_init (1): found Philips CU1216 DVB-C frontend (TDA10023) @ 0x0c
+mantis_frontend_init (1): Mantis DVB-C Philips CU1216 frontend attach success
+DVB: registering adapter 0 frontend 0 (Philips TDA10023 DVB-C)...
+mantis_ca_init (1): Registering EN50221 device
+mantis_ca_init (1): Registered EN50221 device
+mantis_hif_init (1): Adapter(1) Initializing Mantis Host Interface
+input: Mantis VP-2040 IR Receiver as /devices/virtual/input/input5
+Mantis VP-2040 IR Receiver: unknown key for scancode 0x0000
+Mantis VP-2040 IR Receiver: unknown key: key=0x00 down=1
+Mantis VP-2040 IR Receiver: unknown key: key=0x00 down=0
