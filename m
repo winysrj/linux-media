@@ -1,132 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:60120 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751847Ab0ASFeX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jan 2010 00:34:23 -0500
-Message-ID: <4B55445A.10300@infradead.org>
-Date: Tue, 19 Jan 2010 03:34:18 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Douglas Landgraf <dougsland@gmail.com>
-Subject: [ANNOUNCE] git tree repositories
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail1.radix.net ([207.192.128.31]:43258 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754530Ab0AEC2w (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Jan 2010 21:28:52 -0500
+Subject: Re: [RESEND] Re: DViCO FusionHDTV DVB-T Dual Digital 4 (rev 1)    
+ tuning      regression
+From: Andy Walls <awalls@radix.net>
+To: Robert Lowery <rglowery@exemail.com.au>
+Cc: mchehab@redhat.com,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Vincent McIntyre <vincent.mcintyre@gmail.com>,
+	terrywu2009@gmail.com, linux-media@vger.kernel.org
+In-Reply-To: <2088.115.70.135.213.1262579258.squirrel@webmail.exetel.com.au>
+References: <33305.64.213.30.2.1259216241.squirrel@webmail.exetel.com.au>
+	 <50104.115.70.135.213.1259224041.squirrel@webmail.exetel.com.au>
+	 <702870ef0911260137r35f1784exc27498d0db3769c2@mail.gmail.com>
+	 <56069.115.70.135.213.1259234530.squirrel@webmail.exetel.com.au>
+	 <46566.64.213.30.2.1259278557.squirrel@webmail.exetel.com.au>
+	 <702870ef0912010118r1e5e3been840726e6364d991a@mail.gmail.com>
+	 <829197380912020657v52e42690k46172f047ebd24b0@mail.gmail.com>
+	 <36364.64.213.30.2.1260252173.squirrel@webmail.exetel.com.au>
+	 <1328.64.213.30.2.1260920972.squirrel@webmail.exetel.com.au>
+	 <2088.115.70.135.213.1262579258.squirrel@webmail.exetel.com.au>
+Content-Type: text/plain
+Date: Mon, 04 Jan 2010 21:27:49 -0500
+Message-Id: <1262658469.3054.48.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Mon, 2010-01-04 at 15:27 +1100, Robert Lowery wrote:
+> > Mauro,
+> >
+> > I've split the revert2.diff that I sent you previously to fix the tuning
+> > regression on my DViCO Dual Digital 4 (rev 1) into three separate patches
+> > that will hopefully allow you to review more easily.
+> >
+> > The first two patches revert their respective changesets and nothing else,
+> > fixing the issue for me.
+> > 12167:966ce12c444d tuner-xc2028: Fix 7 MHz DVB-T
+> > 11918:e6a8672631a0 tuner-xc2028: Fix offset frequencies for DVB @ 6MHz
+> >
+> > The third patch does what I believe is the obvious equivalent fix to
+> > e6a8672631a0 but without the cleanup that breaks tuning on my card.
+> >
+> > Please review and merge
+> >
+> > Signed-off-by: Robert Lowery <rglowery@exemail.com.au>
+> 
+> Mauro,
+> 
+> I'm yet to receive a response from you on this clear regression introduced
+> in the 2.6.31 kernel.  You attention would be appreciated
+> 
+> Thanks
+> 
+> -Rob
 
-Today, a step to the future was given, in order to help developers to better
-do their work: the addition of -git support at linuxtv.org server.
+Robert,
 
-This is one idea that is being recurrent along the last years: to start using -git
-as our primary resource for managing the patches at the development[1].
+The changes in question (mostly authored by me) are based on
+documentation on what offsets are to be used with the firmware for
+various DVB bandwidths and demodulators.  The change was tested by Terry
+on a Leadtek DVR 3100 H Analog/DVB-T card (CX23418, ZL10353, XC3028) and
+some other cards I can't remember, using a DVB-T pattern generator for 7
+and 8 MHz in VHF and UHF, and live DVB-T broadcasts in UHF for 6 MHz.
 
-At the beginning, the usage CVS for of a SCM (Source Code Management) were
-choosen on V4L/DVB. Both of the original V4L and DVB trees were developed with the 
-help of cvs. On that time, upstream Linux kernel used to have another tree (BitKeeper).
+(Devin,
+ Maybe you can double check on the offsets in tuner-xc2028.c with any
+ documentation you have available to you?)
 
-In 2005, both V4L and DVB trees got merged into one cvs repository, and we've
-discussed about what would be the better SCM solution. We've discussed more
-about using svn, hg and git. On that time, both hg and git were new technologies,
-based on the concept of a distributed SCM, where you don't need to go to the
-server every time you're doing a command at the SCM.
 
-Yet, Mercurial were more stable and used, while -git were giving his first
-steps[2], being used almost only by the Linux Kernel, and several distros didn't use
-to package it. Git objects were stored uncompressed, generating very large
-trees. Also, -git tools were complex to use, and some "porcelain" packages were
-needed, in order to be used by a normal user.
+I haven't been following this thread really at all as the board in the
+subject line was unfamiliar to me, so sorry for any late response or
+dumb questions by me.  
 
-So, the decision was made to use mercurial. However, as time goes by, -git got much
-more eyes than any other SCM, having all their weakness solved, and being developed
-really fast. Also, it got adopted by several other projects, due to its capability 
-and its number of features.
+May I ask:
 
-Technically speaking, -git is currently the most advanced distributed open-source
-SCM application I know.
+1. what are the exact problem frequencies?
+2. what is the data source from which you are getting the frequency
+information?
+3. what does tuner-xc2028 debug logging show as the firmware loaded when
+tune to one of the the problem frequencies?
 
-Yet, Mercurial has been doing a very good job maintaining the V4L/DVB trees, and, except
-for a few points, it does the job.
 
-However, the entire Linux Kernel development happens around -git. Even the ones that
-were adopting other tools (like -alsa, that used to have also Mercurial repositories)
-migrated to -git.
 
-Despite all technical advantages, the rationale for the migration is quite simple: 
-converting patches between different repositories and SCM tools cause development 
-and merge delays, may cause patch mangling and eats lot of the time for people 
-that are part of the process.
 
-Also, every time a patch needs to touch on files outside the incomplete tree
-used at the subsystem, an workaround need to be done, in order to avoid troubles 
-and to be able to send the patch upstream.
+BTW, I note that in linux/drivers/media/dvb/dvb-usb/cxusb.c:
+cxusb_dvico_xc3028_tuner_attach(), this declaration
 
-So, it is simpler to just use -git.
+        static struct xc2028_ctrl ctl = {
+                .fname       = XC2028_DEFAULT_FIRMWARE,
+                .max_len     = 64,
+                .demod       = XC3028_FE_ZARLINK456,
+        };
 
-Due to all the above reasons, I took some time to add -git support at linuxtv servers.
-Both http and git methods to retrieve trees were enabled.
+really should have ".type = XC2028_AUTO" or ".type = XC2028_D2633", but
+since XC2028_AUTO has a value of 0, it probably doesn't matter.
 
-The new trees will be available at:
-	http://linuxtv.org/git/
 
-The merge tree, where all submitted patches will be merged, before sending upstream is:
-	http://linuxtv.org/git?p=v4l-dvb.git;a=summary
+Regards,
+Andy
 
-This tree is basically a clone of Linus tree, so it runs the latest development kernel.
-It is also (almost) in sync with our -hg tree (needing just a few adjustments).
-
-The above tree will never be rebased, so it should be safe to use it for development.
-
-I'll basically merge there all patches I receive. It is OK to submit patches against -hg,
-since I can still run my old conversion stripts to convert them to -git. However, as
-the conversion script is not fast (it takes between 15-30 secs to convert a single patch
-to -git, since it needs to re-generate the entire tree with v4l/scripts/gentree.pl, for
-ever patch), I kindly ask you to prefer submit me patches directly to -git.
-
-With respect to the -hg tree with the out-of-tree building system, We really want to 
-keep having a way to allow running the drivers with kernels other than the latest -rc 
-one, for both development and testing.
-
-As you all know, the number of drivers and the average number of merges per day is being
-increasing, among with more complexity on some drivers that also touches arch and other
-files outside drivers/media tree. Due to that, lots of my current time is devoted to keep
--hg and -git in sync, distracting me from my develoment and maintanership tasks to do it.
-So, I simply don't have more time to keep maintaining both -hg and -git.
-
-Due to that, I'm delegating the task of keeping -hg in sync with upstream and backporting
-patches to run on older kernels to another person: Douglas has offered his help to keep 
-the tree synchronized with the -git tree, and to add backport support. 
-
-He already started doing that, fixing some incompatibility troubles between some drivers
-and older kernels.
-
-In terms of the out-of-tree building system evolution (e. g. the building system concept
-behind the -hg tree), If people think it is worthy enough, maybe later this could also 
-be converted also to -git, but preserving the building system and the backport patches. 
-Another alternative would be to split the building systems and the backport patches, 
-and apply them into the drivers/media files. Alsa subsystem does something like that. 
-It may also be maintained as-is. So, suggestions are welcome about if and how can we improve 
-the out-of-tree building.
-
-Some details about the -git repositories still need to be defined, and I'll be sending
-the instructions on how to use the repository management tools available at linuxtv site
-to the developers, but the basic infrastructure is already there.
-
-We also need to do more tests with the -git support, in order to be sure that it will
-work as expected, and that it won't be eating much bandwidth or disk space.
-
-In particular, for those who want to test the git, please clone first from kernel.org, and
-then add a remote branch pointing to linuxtv.org. This helps to save our bandwidth.
-
-The instructions on how to do it are in the top of the git page (http://linuxtv.org/git).
-
-Thanks!
-Mauro
-
----
-
-[1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg12676.html
-[2] http://en.wikipedia.org/wiki/Git_(software)
