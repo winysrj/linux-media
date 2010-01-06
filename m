@@ -1,76 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f215.google.com ([209.85.220.215]:53641 "EHLO
-	mail-fx0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751626Ab0AXVOt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jan 2010 16:14:49 -0500
-Received: by fxm7 with SMTP id 7so1349446fxm.28
-        for <linux-media@vger.kernel.org>; Sun, 24 Jan 2010 13:14:48 -0800 (PST)
+Received: from mail-px0-f174.google.com ([209.85.216.174]:37111 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932716Ab0AFURx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jan 2010 15:17:53 -0500
+Received: by pxi4 with SMTP id 4so713862pxi.33
+        for <linux-media@vger.kernel.org>; Wed, 06 Jan 2010 12:17:52 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <7b41dd971001240258h7bce4a9dy7a00d22d6091d3da@mail.gmail.com>
-References: <7b41dd971001240258h7bce4a9dy7a00d22d6091d3da@mail.gmail.com>
-Date: Mon, 25 Jan 2010 01:14:48 +0400
-Message-ID: <1a297b361001241314o7733d2eev2a5c18bd9b75fa08@mail.gmail.com>
-Subject: Re: [PATCH] dvb-apps/util/szap/czap.c "ERROR: cannot parse service
-	data"
-From: Manu Abraham <abraham.manu@gmail.com>
-To: klaas de waal <klaas.de.waal@gmail.com>
-Cc: linux-media@vger.kernel.org, sander@vermin.nl
+In-Reply-To: <1262428404.1944.22.camel@Core2Duo>
+References: <23582ca0912291306v11d0631fia6ad442918961b48@mail.gmail.com>
+	 <23582ca0912291307l53ff8d74j928f9e22ce09311@mail.gmail.com>
+	 <23582ca0912291323s1be512ebnd60bf2ea1988799@mail.gmail.com>
+	 <1262297232.1913.31.camel@Core2Duo>
+	 <23582ca1001012339h6efa3b88k5eea2799b5b739dc@mail.gmail.com>
+	 <1262428404.1944.22.camel@Core2Duo>
+Date: Wed, 6 Jan 2010 22:17:52 +0200
+Message-ID: <23582ca1001061217v6a67d6a3k8ac61fee5bd861da@mail.gmail.com>
+Subject: Re: Fwd: Compro S300 - ZL10313
+From: Theunis Potgieter <theunis.potgieter@gmail.com>
+To: JD Louw <jd.louw@mweb.co.za>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Klaas,
+2010/1/2 JD Louw <jd.louw@mweb.co.za>:
+> On Sat, 2010-01-02 at 09:39 +0200, Theunis Potgieter wrote:
+>> 2010/1/1 JD Louw <jd.louw@mweb.co.za>:
+>> > On Tue, 2009-12-29 at 23:23 +0200, Theunis Potgieter wrote:
+>> >> Hi mailing list,
+>> >>
+>> >> I have a problem with my Compro S300 pci card under Linux 2.6.32.
+>> >>
+>> >> I cannot tune with this card and STR/SNRA is very bad compared to my
+>> >> Technisat SkyStar 2 pci card, connected to the same dish.
+>> >>
+>> >> I have this card and are willing to run tests, tested drivers etc to
+>> >> make this work.
+>> >>
+>> >> I currently load the module saa7134 with options: card=169
+>> >>
+>> >> I enabled some debug parameters on the saa7134, not sure what else I
+>> >> should enable. Please find my dmesg log attached.
+>> >>
+>> >> lsmod shows :
+>> >>
+>> >> # lsmod
+>> >> Module                  Size  Used by
+>> >> zl10039                 6268  2
+>> >> mt312                  12048  2
+>> >> saa7134_dvb            41549  11
+>> >> saa7134               195664  1 saa7134_dvb
+>> >> nfsd                  416819  11
+>> >> videobuf_dvb            8187  1 saa7134_dvb
+>> >> dvb_core              148140  1 videobuf_dvb
+>> >> ir_common              40625  1 saa7134
+>> >> v4l2_common            21544  1 saa7134
+>> >> videodev               58341  2 saa7134,v4l2_common
+>> >> v4l1_compat            24473  1 videodev
+>> >> videobuf_dma_sg        17830  2 saa7134_dvb,saa7134
+>> >> videobuf_core          26534  3 saa7134,videobuf_dvb,videobuf_dma_sg
+>> >> tveeprom               12550  1 saa7134
+>> >> thermal                20547  0
+>> >> processor              54638  1
+>> >>
+>> >> # uname -a
+>> >> Linux vbox 2.6.32-gentoo #4 Sat Dec 19 00:54:19 SAST 2009 i686 Pentium
+>> >> III (Coppermine) GenuineIntel GNU/Linux
+>> >>
+>> >> Thanks,
+>> >> Theunis
+>> >
+>> > Hi,
+>> >
+>> > It's probably the GPIO settings that are wrong for your SAA7133 based
+>> > card revision. See http://osdir.com/ml/linux-media/2009-06/msg01256.html
+>> > for an explanation. For quick confirmation check if you have 12V - 20V
+>> > DC going to your LNB. The relevant lines of code is in
+>> > ~/v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c:
+>> >
+>> > case SAA7134_BOARD_VIDEOMATE_S350:
+>> > dev->has_remote = SAA7134_REMOTE_GPIO;
+>> > saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x00008000, 0x00008000);
+>> > saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x00008000, 0x00008000);
+>> > break;
+>> >
+>> Hi thanks for the hint. I changed it to the following:
+>>
+>>  case SAA7134_BOARD_VIDEOMATE_S350:
+>>  dev->has_remote = SAA7134_REMOTE_GPIO;
+>>  saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x0000c000, 0x0000c000);
+>>  saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x0000c000, 0x0000c000);
+>>  break;
+>>
+>> I now get the same SNR as on my skystar2 card, signal is still
+>> indicating 17% where as the skystar2 would show 68%. At least I'm
+>> getting a LOCK on channels :)
+>>
+>> Thanks!
+>>
+>> >
+>> > Looking at your log, at least the demodulator and tuner is responding
+>> > correctly. You can see this by looking at the i2c traffic addressed to
+>> > 0x1c (demodulator) and 0xc0 (tuner). Attached is a dmesg trace from my
+>> > working SAA7130 based card.
+>> >
+>> > Regards
+>> > JD
+>> >
+>
+> Hi,
+>
+> Just to clarify, can you now watch channels?
+>
+> At the moment the signal strength measurement is a bit whacked, so don't
+> worry too much about it. I also get the 75%/17% figures you mentioned
+> when tuning to strong signals. The figure is simply reported wrongly:
+> even weaker signals should tune fine. If you want you can have a look in
+> ~/v4l-dvb/linux/drivers/media/dvb/frontends/mt312.c at
+> mt312_read_signal_strength().
+>
+> Also, if you have a multimeter handy, can you confirm that the
+> 0x0000c000 GPIO fix enables LNB voltage? I'd like to issue a patch for
+> this. I've already tested this on my older card with no ill effect.
 
-On Sun, Jan 24, 2010 at 2:58 PM, klaas de waal <klaas.de.waal@gmail.com> wrote:
-> The czap utility (dvb-apps/util/szap/czap.c) cannot scan the channel
-> configuration file when compiled on Fedora 12 with gcc-4.4.2.
->
-> The czap output is:
->
-> [klaas@myth2 szap]$ ./czap -c ~/.czap/ziggo-channels.conf Cartoon
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> reading channels from file '/local/klaas/.czap/ziggo-channels.conf'
->  1 Cartoon:356000000:INVERSION_AUTO:6875000:FEC_NONE:QAM_64:1660:1621
-> ERROR: cannot parse service data
->
-> Problem is tha the "sscanf" function uses the "%a[^:]" format
-> specifier. According to "man sscanf" you need to define _GNU_SOURCE if
-> you want this to work because it is a gnu-only extension.
-> Adding a first line "#define _GNU_SOURCE" to czap.c and recompiling
-> solves the problem.
->
-> The czap output is now:
->
-> [klaas@myth2 szap]$ ./czap -c ~/.czap/ziggo-channels.conf Cartoon
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> reading channels from file '/local/klaas/.czap/ziggo-channels.conf'
->  1 Cartoon:356000000:INVERSION_AUTO:6875000:FEC_NONE:QAM_64:1660:1621
->  1 Cartoon: f 356000000, s 6875000, i 2, fec 0, qam 3, v 0x67c, a 0x655
-> status 00 | signal 0000 | snr b7b7 | ber 000fffff | unc 00000098 |
-> status 1f | signal d5d5 | snr f3f3 | ber 000006c0 | unc 0000009b | FE_HAS_LOCK
-> status 1f | signal d5d5 | snr f4f4 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
->
-> This is done on a Linux 2.6.32.2 kernel with a TT C-1501 DVB-C card.
->
-> Signed-off-by: Klaas de Waal <klaas.de.waal@gmail.com>
->
-> -------------------------------------------------------------------------------------------
->
-> diff -r 61b72047a995 util/szap/czap.c
-> --- a/util/szap/czap.c  Sun Jan 17 17:03:27 2010 +0100
-> +++ b/util/szap/czap.c  Sun Jan 24 11:40:43 2010 +0100
-> @@ -1,3 +1,4 @@
-> +#define _GNU_SOURCE
->  #include <sys/types.h>
->  #include <sys/stat.h>
->  #include <sys/ioctl.h>
->
+This is what happened when I started vdr.
 
-There seems to be other instances where _GNU_SOURCE needs to be
-defined, from a quick look. Care to send a patch against the entire
-dvb-apps tree ?
+Vertical gave a Volt reading between 13.9 and 14.1, Horizontal Gave
+19.4 ~ 19.5. When I stopped vdr, the Voltage went back to 14V. I
+thought that it would read 0V. What is suppose to happen?
 
-Regards,
-Manu
+Theunis
+
+>
+> Regards
+> JD
+>
+>
+>
+>
