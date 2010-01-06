@@ -1,40 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:54115 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751565Ab0ARUIO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2010 15:08:14 -0500
-Received: by bwz19 with SMTP id 19so2083433bwz.28
-        for <linux-media@vger.kernel.org>; Mon, 18 Jan 2010 12:08:11 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4B54BEF9.6060501@arcor.de>
-References: <4B547EBF.6080105@arcor.de>
-	 <829197381001180743k789f336er2bb368f4c689a41@mail.gmail.com>
-	 <4B54BEF9.6060501@arcor.de>
-Date: Mon, 18 Jan 2010 15:08:10 -0500
-Message-ID: <829197381001181208k29be4253l3644a63ace312988@mail.gmail.com>
-Subject: Re: Terratec Cinergy Hybrid XE (TM6010 Mediachip)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Stefan Ringel <stefan.ringel@arcor.de>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from www.youplala.net ([88.191.51.216]:41434 "EHLO mail.youplala.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932716Ab0AFVXm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Jan 2010 16:23:42 -0500
+Subject: Re: Call for Testers - dib0700 IR improvements
+From: Nicolas Will <nico@youplala.net>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Harald Gustafsson <hgu1972@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <829197381001060636x311a7bddw73d5e5cb30320dea@mail.gmail.com>
+References: <829197381001040936w3bc9b4e0w22eecded4687d9d3@mail.gmail.com>
+	 <63a62e0a1001060200r11e440abt84daf0822fcb3e8d@mail.gmail.com>
+	 <829197381001060636x311a7bddw73d5e5cb30320dea@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 06 Jan 2010 21:14:43 +0000
+Message-ID: <1262812483.17200.41.camel@youkaida>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 18, 2010 at 3:05 PM, Stefan Ringel <stefan.ringel@arcor.de> wrote:
-> I see. I have set for test "max_len" to 3500 . So can send after main
-> firmware wrote (3411 byte) a quitting request send (base firmware is
-> 9144 byte).
+Hello,
 
-It is highly unlikely that the tm6010 can do 3500 at a time.  Try
-someting more reasonable like "32" or "64".
+On Wed, 2010-01-06 at 09:36 -0500, Devin Heitmueller wrote:
+> Just to be clear, this patch does *not* address the warm reboot
+> problem.  I am continuing to work that issue, but there should be no
+> expectation that this patch allows the device to survive a warm
+> reboot.
+> 
 
-> Is it true that the tuner output frequency and the demodulator input frequency equal is?
+That one would be cool.
 
-Yes, typically the IF out of the tuner should match the IF on the demodulator.
 
-Devin
+> It should address concerns people were seeing where the system load
+> would be between 0.50 and 1.0 just by having the device connected, and
+> *may* help in cases where you start to see mt2060 errors after several
+> hours of operation. 
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+hmmm... 
+
+32 days uptime, no mt2060 error from my NovaT500, outside of a failed
+read at startup.
+
+regarding the load, I'm not sure I am experiencing it, or it is shadowed
+by MythTV's frontend "idling" at 15% cpu...
+
+
+I'll stop the frontend during the night and look at the load in the
+morning. I may be able to provide a graph from munin, as I have multiple
+recordings, some concurrent, of the kids shows in the morning.
+
+If I have the load thing, I'll test the patch, otherwise I'll keep the
+WAF, and KAF, as I would not be a proper guinea pig anyway.
+
+Nico
+
