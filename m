@@ -1,36 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f181.google.com ([209.85.210.181]:59309 "EHLO
-	mail-yx0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753333Ab0AaPHD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Jan 2010 10:07:03 -0500
-Received: by yxe11 with SMTP id 11so3342593yxe.15
-        for <linux-media@vger.kernel.org>; Sun, 31 Jan 2010 07:07:01 -0800 (PST)
+Received: from smtp3.aster.pl ([212.76.33.56]:47595 "EHLO smtp2.aster.pl"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753178Ab0AFTKd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Jan 2010 14:10:33 -0500
+Message-ID: <4B44E026.3060906@aster.pl>
+Date: Wed, 06 Jan 2010 20:10:30 +0100
+From: Daro <ghost-rider@aster.pl>
 MIME-Version: 1.0
-In-Reply-To: <1264941827.28401.3.camel@alkaloid.netup.ru>
-References: <b36f333c1001310412r40cb425cp7a5a0d282c6a716a@mail.gmail.com>
-	 <1264941827.28401.3.camel@alkaloid.netup.ru>
-Date: Sun, 31 Jan 2010 16:07:01 +0100
-Message-ID: <b36f333c1001310707w3397a5a6i758031262d8591a7@mail.gmail.com>
-Subject: Re: CAM appears to introduce packet loss
-From: Marc Schmitt <marc.schmitt@gmail.com>
-To: Abylai Ospan <aospan@netup.ru>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Jean Delvare <khali@linux-fr.org>
+CC: LMML <linux-media@vger.kernel.org>
+Subject: Re: IR device at I2C address 0x7a
+References: <4B324EF0.7090606@aster.pl>	<20100106153909.6bce3183@hyperion.delvare>	<4B44CF62.5060405@aster.pl> <20100106194059.061636d3@hyperion.delvare>
+In-Reply-To: <20100106194059.061636d3@hyperion.delvare>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi there,
-
-On Sun, Jan 31, 2010 at 1:43 PM, Abylai Ospan <aospan@netup.ru> wrote:
-> Hello,
+W dniu 06.01.2010 19:40, Jean Delvare pisze:
+> On Wed, 06 Jan 2010 18:58:58 +0100, Daro wrote:
+>    
+>> It is not the error message itself that bothers me but the fact that IR
+>> remote control device is not detected and I cannot use it (I checked it
+>> on Windows and it's working). After finding this thread I thought it
+>> could have had something to do with this error mesage.
+>> Is there something that can be done to get my IR remote control working?
+>>      
+> Did it ever work on Linux?
 >
-> Try to check raw speed coming from demod:
->
-> echo 1 > /sys/module/dvb_core/parameters/dvb_demux_speedcheck
+>    
 
-What do I need to do to make dvb_demux_speedcheck appear in
-/sys/module/dvb_core/parameters?
+I have no experience on that. I bought this card just few weeks ago and 
+tried it only on Karmic Koala.
 
-Cheers,
-   Marc
