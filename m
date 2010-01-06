@@ -1,149 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ppp-88-217-106-254.dynamic.mnet-online.de ([88.217.106.254]:40848
-	"EHLO gauss.x.fun" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751186Ab0AKTHr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2010 14:07:47 -0500
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org
-Subject: Re: Fwd: Compro S300 - ZL10313
-Date: Mon, 11 Jan 2010 19:57:44 +0100
-Cc: JD Louw <jd.louw@mweb.co.za>,
-	Theunis Potgieter <theunis.potgieter@gmail.com>
-References: <23582ca0912291306v11d0631fia6ad442918961b48@mail.gmail.com> <23582ca1001061217v6a67d6a3k8ac61fee5bd861da@mail.gmail.com> <1263074714.2432.19.camel@Core2Duo>
-In-Reply-To: <1263074714.2432.19.camel@Core2Duo>
+Received: from comal.ext.ti.com ([198.47.26.152]:39536 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932164Ab0AFOo4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jan 2010 09:44:56 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>
+Date: Wed, 6 Jan 2010 08:44:53 -0600
+Subject: RE: [PATCH - v3 4/4] DaVinci - vpfe-capture-converting ccdc drivers
+ to platform driver
+Message-ID: <A69FA2915331DC488A831521EAE36FE40162C23952@dlee06.ent.ti.com>
+References: <1260895054-13232-1-git-send-email-m-karicheri2@ti.com>
+ <871vi4rv25.fsf@deeprootsystems.com>
+In-Reply-To: <871vi4rv25.fsf@deeprootsystems.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201001111957.44623.zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Samstag, 9. Januar 2010, JD Louw wrote:
-> On Wed, 2010-01-06 at 22:17 +0200, Theunis Potgieter wrote:
-> > 2010/1/2 JD Louw <jd.louw@mweb.co.za>:
-> > > On Sat, 2010-01-02 at 09:39 +0200, Theunis Potgieter wrote:
-> > >> 2010/1/1 JD Louw <jd.louw@mweb.co.za>:
-> > >> > On Tue, 2009-12-29 at 23:23 +0200, Theunis Potgieter wrote:
-> > >> >> Hi mailing list,
-> > >> >>
-> > >> >> I have a problem with my Compro S300 pci card under Linux 2.6.32.
-> > >> >>
-> > >> >> I cannot tune with this card and STR/SNRA is very bad compared to
-> > >> >> my Technisat SkyStar 2 pci card, connected to the same dish.
-> > >> >>
-> > >> >> I have this card and are willing to run tests, tested drivers etc
-> > >> >> to make this work.
-> > >> >>
-> > >> >> I currently load the module saa7134 with options: card=169
-> > >> >>
-> > >> >> I enabled some debug parameters on the saa7134, not sure what else
-> > >> >> I should enable. Please find my dmesg log attached.
-> > >> >>
-> > >> >> lsmod shows :
-> > >> >>
-> > >> >> # lsmod
-> > >> >> Module                  Size  Used by
-> > >> >> zl10039                 6268  2
-> > >> >> mt312                  12048  2
-> > >> >> saa7134_dvb            41549  11
-> > >> >> saa7134               195664  1 saa7134_dvb
-> > >> >> nfsd                  416819  11
-> > >> >> videobuf_dvb            8187  1 saa7134_dvb
-> > >> >> dvb_core              148140  1 videobuf_dvb
-> > >> >> ir_common              40625  1 saa7134
-> > >> >> v4l2_common            21544  1 saa7134
-> > >> >> videodev               58341  2 saa7134,v4l2_common
-> > >> >> v4l1_compat            24473  1 videodev
-> > >> >> videobuf_dma_sg        17830  2 saa7134_dvb,saa7134
-> > >> >> videobuf_core          26534  3
-> > >> >> saa7134,videobuf_dvb,videobuf_dma_sg tveeprom               12550 
-> > >> >> 1 saa7134
-> > >> >> thermal                20547  0
-> > >> >> processor              54638  1
-> > >> >>
-> > >> >> # uname -a
-> > >> >> Linux vbox 2.6.32-gentoo #4 Sat Dec 19 00:54:19 SAST 2009 i686
-> > >> >> Pentium III (Coppermine) GenuineIntel GNU/Linux
-> > >> >>
-> > >> >> Thanks,
-> > >> >> Theunis
-> > >> >
-> > >> > Hi,
-> > >> >
-> > >> > It's probably the GPIO settings that are wrong for your SAA7133
-> > >> > based card revision. See
-> > >> > http://osdir.com/ml/linux-media/2009-06/msg01256.html for an
-> > >> > explanation. For quick confirmation check if you have 12V - 20V DC
-> > >> > going to your LNB. The relevant lines of code is in
-> > >> > ~/v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c:
-> > >> >
-> > >> > case SAA7134_BOARD_VIDEOMATE_S350:
-> > >> > dev->has_remote = SAA7134_REMOTE_GPIO;
-> > >> > saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x00008000, 0x00008000);
-> > >> > saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x00008000, 0x00008000);
-> > >> > break;
-> > >>
-> > >> Hi thanks for the hint. I changed it to the following:
-> > >>
-> > >>  case SAA7134_BOARD_VIDEOMATE_S350:
-> > >>  dev->has_remote = SAA7134_REMOTE_GPIO;
-> > >>  saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x0000c000, 0x0000c000);
-> > >>  saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x0000c000, 0x0000c000);
-> > >>  break;
-> > >>
-> > >> I now get the same SNR as on my skystar2 card, signal is still
-> > >> indicating 17% where as the skystar2 would show 68%. At least I'm
-> > >> getting a LOCK on channels :)
-> > >>
-> > >> Thanks!
-> > >>
-> > >> > Looking at your log, at least the demodulator and tuner is
-> > >> > responding correctly. You can see this by looking at the i2c traffic
-> > >> > addressed to 0x1c (demodulator) and 0xc0 (tuner). Attached is a
-> > >> > dmesg trace from my working SAA7130 based card.
-> > >> >
-> > >> > Regards
-> > >> > JD
-> > >
-> > > Hi,
-> > >
-> > > Just to clarify, can you now watch channels?
-> > >
-> > > At the moment the signal strength measurement is a bit whacked, so
-> > > don't worry too much about it. I also get the 75%/17% figures you
-> > > mentioned when tuning to strong signals. The figure is simply reported
-> > > wrongly: even weaker signals should tune fine. If you want you can have
-> > > a look in ~/v4l-dvb/linux/drivers/media/dvb/frontends/mt312.c at
-> > > mt312_read_signal_strength().
-> > >
-> > > Also, if you have a multimeter handy, can you confirm that the
-> > > 0x0000c000 GPIO fix enables LNB voltage? I'd like to issue a patch for
-> > > this. I've already tested this on my older card with no ill effect.
-> >
-> > This is what happened when I started vdr.
-> >
-> > Vertical gave a Volt reading between 13.9 and 14.1, Horizontal Gave
-> > 19.4 ~ 19.5. When I stopped vdr, the Voltage went back to 14V. I
-> > thought that it would read 0V. What is suppose to happen?
-> >
-> > Theunis
-> >
-> > > Regards
-> > > JD
-> 
-> Hi,
-> 
-> The newer revision cards should be able to shut down LNB power when the
-> card is closed. This is what the Windows driver does; not yet
-> implemented in Linux.
+>>  	CLK(NULL, "rto", &rto_clk),
+>>  	CLK(NULL, "usb", &usb_clk),
+>> +	CLK("dm355_ccdc", "master", &vpss_master_clk),
+>> +	CLK("dm355_ccdc", "slave", &vpss_slave_clk),
+>
+>I still don't understand why you have to add new entries here and
+>can't simply rename the existing CLK nodes using vpss_*_clk.
+>
 
-Do you know how this is done hardware-wise? Is this a gpio connected circuit?
+[MK] This will allow multiple drivers define their own clocks derived from
+these. ccdc driver is not the only driver using these clocks. Your earlier
+suggestion was to use as follows :-
 
-If yes, I think it can be enabled in software by saving original pointer to 
-set_voltage and overwriting it by some routine switching gpio and calling 
-original function.
+-	CLK(NULL, "vpss_master", &vpss_master_clk),
+-	CLK(NULL, "vpss_slave", &vpss_slave_clk),
++	CLK("vpfe-capture", "master", &vpss_master_clk),
++	CLK("vpfe-capture", "slave", &vpss_slave_clk),
 
-Regards
-Matthias
+I am not sure if the following will work so that it can be used across
+multiple drivers.
+
++	CLK(NULL, "master", &vpss_master_clk),
++	CLK(NULL, "slave", &vpss_slave_clk),
+
+If yes, I can re-do this patch. Please confirm.
+
+>Same comment for dm644x.c changes.
+>
+>Kevin
+>
+>>  	CLK(NULL, NULL, NULL),
+>>  };
+>>
+>> @@ -665,6 +667,17 @@ static struct platform_device dm355_asp1_device = {
+>>  	.resource	= dm355_asp1_resources,
+>>  };
+>>
+>> +static void dm355_ccdc_setup_pinmux(void)
+>> +{
+>> +	davinci_cfg_reg(DM355_VIN_PCLK);
+>> +	davinci_cfg_reg(DM355_VIN_CAM_WEN);
+>> +	davinci_cfg_reg(DM355_VIN_CAM_VD);
+>> +	davinci_cfg_reg(DM355_VIN_CAM_HD);
+>> +	davinci_cfg_reg(DM355_VIN_YIN_EN);
+>> +	davinci_cfg_reg(DM355_VIN_CINL_EN);
+>> +	davinci_cfg_reg(DM355_VIN_CINH_EN);
+>> +}
+>> +
+>>  static struct resource dm355_vpss_resources[] = {
+>>  	{
+>>  		/* VPSS BL Base address */
+>> @@ -701,6 +714,10 @@ static struct resource vpfe_resources[] = {
+>>  		.end            = IRQ_VDINT1,
+>>  		.flags          = IORESOURCE_IRQ,
+>>  	},
+>> +};
+>> +
+>> +static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
+>> +static struct resource dm355_ccdc_resource[] = {
+>>  	/* CCDC Base address */
+>>  	{
+>>  		.flags          = IORESOURCE_MEM,
+>> @@ -708,8 +725,18 @@ static struct resource vpfe_resources[] = {
+>>  		.end            = 0x01c70600 + 0x1ff,
+>>  	},
+>>  };
+>> +static struct platform_device dm355_ccdc_dev = {
+>> +	.name           = "dm355_ccdc",
+>> +	.id             = -1,
+>> +	.num_resources  = ARRAY_SIZE(dm355_ccdc_resource),
+>> +	.resource       = dm355_ccdc_resource,
+>> +	.dev = {
+>> +		.dma_mask               = &vpfe_capture_dma_mask,
+>> +		.coherent_dma_mask      = DMA_BIT_MASK(32),
+>> +		.platform_data		= dm355_ccdc_setup_pinmux,
+>> +	},
+>> +};
+>>
+>> -static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
+>>  static struct platform_device vpfe_capture_dev = {
+>>  	.name		= CAPTURE_DRV_NAME,
+>>  	.id		= -1,
+>> @@ -860,17 +887,7 @@ static int __init dm355_init_devices(void)
+>>  	davinci_cfg_reg(DM355_INT_EDMA_CC);
+>>  	platform_device_register(&dm355_edma_device);
+>>  	platform_device_register(&dm355_vpss_device);
+>> -	/*
+>> -	 * setup Mux configuration for vpfe input and register
+>> -	 * vpfe capture platform device
+>> -	 */
+>> -	davinci_cfg_reg(DM355_VIN_PCLK);
+>> -	davinci_cfg_reg(DM355_VIN_CAM_WEN);
+>> -	davinci_cfg_reg(DM355_VIN_CAM_VD);
+>> -	davinci_cfg_reg(DM355_VIN_CAM_HD);
+>> -	davinci_cfg_reg(DM355_VIN_YIN_EN);
+>> -	davinci_cfg_reg(DM355_VIN_CINL_EN);
+>> -	davinci_cfg_reg(DM355_VIN_CINH_EN);
+>> +	platform_device_register(&dm355_ccdc_dev);
+>>  	platform_device_register(&vpfe_capture_dev);
+>>
+>>  	return 0;
+>> diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-
+>davinci/dm644x.c
+>> index e65e29e..e5f1ee9 100644
+>> --- a/arch/arm/mach-davinci/dm644x.c
+>> +++ b/arch/arm/mach-davinci/dm644x.c
+>> @@ -315,6 +315,8 @@ struct davinci_clk dm644x_clks[] = {
+>>  	CLK(NULL, "timer0", &timer0_clk),
+>>  	CLK(NULL, "timer1", &timer1_clk),
+>>  	CLK("watchdog", NULL, &timer2_clk),
+>> +	CLK("dm644x_ccdc", "master", &vpss_master_clk),
+>> +	CLK("dm644x_ccdc", "slave", &vpss_slave_clk),
+>>  	CLK(NULL, NULL, NULL),
+>>  };
+>>
+>> @@ -612,6 +614,11 @@ static struct resource vpfe_resources[] = {
+>>  		.end            = IRQ_VDINT1,
+>>  		.flags          = IORESOURCE_IRQ,
+>>  	},
+>> +};
+>> +
+>> +static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
+>> +static struct resource dm644x_ccdc_resource[] = {
+>> +	/* CCDC Base address */
+>>  	{
+>>  		.start          = 0x01c70400,
+>>  		.end            = 0x01c70400 + 0xff,
+>> @@ -619,7 +626,17 @@ static struct resource vpfe_resources[] = {
+>>  	},
+>>  };
+>>
+>> -static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
+>> +static struct platform_device dm644x_ccdc_dev = {
+>> +	.name           = "dm644x_ccdc",
+>> +	.id             = -1,
+>> +	.num_resources  = ARRAY_SIZE(dm644x_ccdc_resource),
+>> +	.resource       = dm644x_ccdc_resource,
+>> +	.dev = {
+>> +		.dma_mask               = &vpfe_capture_dma_mask,
+>> +		.coherent_dma_mask      = DMA_BIT_MASK(32),
+>> +	},
+>> +};
+>> +
+>>  static struct platform_device vpfe_capture_dev = {
+>>  	.name		= CAPTURE_DRV_NAME,
+>>  	.id		= -1,
+>> @@ -772,6 +789,7 @@ static int __init dm644x_init_devices(void)
+>>  	platform_device_register(&dm644x_edma_device);
+>>  	platform_device_register(&dm644x_emac_device);
+>>  	platform_device_register(&dm644x_vpss_device);
+>> +	platform_device_register(&dm644x_ccdc_dev);
+>>  	platform_device_register(&vpfe_capture_dev);
+>>
+>>  	return 0;
+>> --
+>> 1.6.0.4
