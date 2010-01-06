@@ -1,98 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f220.google.com ([209.85.220.220]:52172 "EHLO
-	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751250Ab0ATX7J (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jan 2010 18:59:09 -0500
-Received: by fxm20 with SMTP id 20so766930fxm.1
-        for <linux-media@vger.kernel.org>; Wed, 20 Jan 2010 15:59:08 -0800 (PST)
+Received: from mail-fx0-f225.google.com ([209.85.220.225]:38826 "EHLO
+	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755055Ab0AFP4u convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jan 2010 10:56:50 -0500
+Received: by fxm25 with SMTP id 25so10828171fxm.21
+        for <linux-media@vger.kernel.org>; Wed, 06 Jan 2010 07:56:49 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <4B57912A.9000908@redhat.com>
-References: <846899810912150749q38d8a1ffy96b135cf355fe8eb@mail.gmail.com>
-	 <4B27CF77.1050008@redhat.com>
-	 <846899810912151620m35a96025hf9ffb924d77eafa8@mail.gmail.com>
-	 <846899811001200558g78693d1cy2f399840c6572af0@mail.gmail.com>
-	 <4B574BEB.9040509@redhat.com>
-	 <846899811001201443g60bd03edg9bd6fb5a4d3888a8@mail.gmail.com>
-	 <4B57912A.9000908@redhat.com>
-Date: Thu, 21 Jan 2010 00:59:08 +0100
-Message-ID: <846899811001201559rb456074y7e5d84f48c7c4637@mail.gmail.com>
-Subject: Re: [PATCH v3] isl6421.c - added tone control and temporary diseqc
-	overcurrent
-From: HoP <jpetrous@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: ajurik@quick.cz, linux-media@vger.kernel.org
+In-Reply-To: <1262680804.26250.10.camel@wi-289.weiss.local>
+References: <1262680804.26250.10.camel@wi-289.weiss.local>
+Date: Wed, 6 Jan 2010 10:56:46 -0500
+Message-ID: <829197381001060756q59916baakc178d60f7116181d@mail.gmail.com>
+Subject: Re: em28xx: New device request and tvp5150 distortion issues when
+	capturing from vcr
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: =?ISO-8859-1?Q?Michael_R=FCttgers?= <ich@michael-ruettgers.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org, devin.heitmueller@gmail.com
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2010/1/21 Mauro Carvalho Chehab <mchehab@redhat.com>:
-> HoP wrote:
->> Hi Mauro,
->>
->> 2010/1/20 Mauro Carvalho Chehab <mchehab@redhat.com>:
->>> HoP wrote:
->>>> Hi Mauro,
->>>>
->>>> Not to hassle you, I'm sure you're very busy.
->>>>
->>>> But I'm not yet received a response from you on mail with corrected patch.
->>>>
->>>> Your attention would be appreciated
->>> Hi Honza,
->>>
->>> The patch looks correct to me, but, as I previously mentioned, our policy is
->>> to add new features at the kernel driver only together with a driver that
->>> actually requires it. This helps to avoid increasing the kernel without need.
->>>
->>> So, please re-submit it when you have your driver requiring the isl6421
->>> changes ready for submission, on the same patch series.
->>>
->>
->> Are you sure about such policy?
->>
->> I did small google research and found out the following:
->>
->> My feeling is different otherwise I don't understand why did you
->> accept WITHOUT any word Oliver Endriss' PULL request
->> from December 12th:
->> http://www.mail-archive.com/linux-media@vger.kernel.org/msg13302.html
->>
->> I'm pointing on Oliver's pull request only because he did very similar
->> thing for lnbp21 like I did for isl6421.
->>
->> You very quickly added his patch to 2.6.33 on December 16th:
->> http://www.mail-archive.com/linux-media@vger.kernel.org/msg13429.html
->>
->> So again. If I'm not blind you have accepted same work from him
->> but not from me. Please show me what I have overlooked
->> and this is not true.
->>
->> Another possible explanation is that I'm totally unknow.
->>
->> I hope you have some other explanation otherwise it feels to
->> me like elitism.
+On Tue, Jan 5, 2010 at 3:40 AM, Michael Rüttgers
+<ich@michael-ruettgers.de> wrote:
+> Hello,
 >
-> As far as I understood, those changes are needed by the mantis driver, that
-> got committed on the next day, as shown at the commit logs:
+> a year ago I bought a device named "Hama Video Editor", which was not
+> (and is not yet) supported by the em28xx driver.
+> So I played around with the card parameter and got the device basically
+> working with card=38.
+> Basically working means, that I had a distortion when capturing old
+> VHS-Tapes from my old vcr.
 >
-> http://linuxtv.org/hg/v4l-dvb/rev/07c36cb88bce
-> http://linuxtv.org/hg/v4l-dvb/rev/d644727cd528
+> The problem can be seen here:
+> http://www.michael-ruettgers.de/em28xx/test.avi
 >
-> So, on that time I had already a pull request for the mantis driver.
+> A few weeks ago I started tracking down the reason for this issue with
+> the help of Devin.
+> Wondering, that the device works perfectly in Windows, I compared the
+> i2c commands, that programmed the register of the tvp5150 in Windows.
 >
-> It is fine if I receive two separate pull requests, one depending of the other.
+> Finally I got the device working properly, setting the "TV/VCR" option
+> in the register "Operation Mode Controls Register" at address 02h
+> manually to "Automatic mode determined by the internal detection
+> circuit. (default)":
 >
-> That's said, Oliver is the maintainer of isl6421 driver, so he is the one that better
-> know what bugs are there and what fixes are needed. Due to that, when I receive a
-> patch from a driver maintainer, I'm inclined to ack with the changes, in the belief
-> that he is doing the better for the driver. Even so, I review the driver looking
-> for troubles on his approach taking more care with new exported symbols added and with
-> new userspace API's that the patch might have.
+> 000109:  OUT: 000000 ms 107025 ms 40 02 00 00 b8 00 02 00 >>>  02 00
 >
+> After programming this register, the distortion issue disappeared.
+>
+> So my conclusion was, that the TV/VCR detection mode is forced to
+> TV-mode in the em28xx, which could have been verified by a look into the
+> debug output using the parameter reg_debug=1:
+>
+> OUT: 40 02 00 00 b8 00 02 00 >>> 02 30
+>
+> Bit 4, 5 are used for setting the TV/VCR mode:
+>
+> Description in the Spec:
+>> TV/VCR mode
+>>   00 = Automatic mode determined by the internal detection circuit.
+> (default)
+>>   01 = Reserved
+>>   10 = VCR (nonstandard video) mode
+>>   11 = TV (standard video) mode
+>> With automatic detection enabled, unstable or nonstandard syncs on the
+> input video forces the detector into the VCR
+>> mode. This turns off the comb filters and turns on the chroma trap
+> filter.
+>
+> Thus far the tvp5150 distortion issues when capturing from vcr.
 
-OK, you beat me.
+Mauro,
 
-Good bye
+I have been working with Michael on this issue and I did some research
+into the history of this issue, and it seems like you introduced code
+in rev 2900 which turns off the auto mode and forces the tvp5150 into
+"TV mode" if using a composite input:
 
-/Honza
+http://linuxtv.org/hg/v4l-dvb/rev/e6c585a76c77
+
+Could you provide any information on the rationale for this decision?
+I would think that having it in auto mode would be the appropriate
+default (which is what the Windows driver does), and then you would
+force it to either TV or VCR mode only if absolutely necessary.
+
+The comb filter only gets disabled if the auto mode actually concludes
+the device should be in VCR mode.  Hence, there shouldn't be any
+downside to having it in auto mode unless you have some reason to
+believe the detection code is faulty or error-prone.
+
+We can add a modprobe option to allow the user to force it into one
+mode or the other, if someone finds a case where the detection logic
+has issues.  But forcing it into one particular mode by default
+doesn't seem like the right approach.
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
