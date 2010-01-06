@@ -1,47 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:1350 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752339Ab0A2RK5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jan 2010 12:10:57 -0500
-Message-ID: <4B63169C.70700@redhat.com>
-Date: Fri, 29 Jan 2010 15:10:52 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: "Andrea.Amorosi76@gmail.com" <Andrea.Amorosi76@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: How can I add IR remote to this new device (DIKOM DK300)?
-References: <4B51132A.1000606@gmail.com> <4B5D912F.6000609@redhat.com> <4B5F6914.4080502@gmail.com> <4B5F6BB9.4000203@redhat.com> <4B61E759.5000707@gmail.com>
-In-Reply-To: <4B61E759.5000707@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Received: from smtp.mujha-vel.cz ([81.30.225.246]:60869 "EHLO
+	smtp.mujha-vel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932254Ab0AFRLw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jan 2010 12:11:52 -0500
+From: Jiri Slaby <jslaby@suse.cz>
+To: mchehab@infradead.org
+Cc: linux-kernel@vger.kernel.org, jirislaby@gmail.com,
+	linux-media@vger.kernel.org
+Subject: [PATCH 1/2] media: dvb/siano, fix memory leak
+Date: Wed,  6 Jan 2010 17:45:27 +0100
+Message-Id: <1262796328-17176-1-git-send-email-jslaby@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andrea.Amorosi76@gmail.com wrote:
-> Mauro Carvalho Chehab ha scritto:
->> Andrea.Amorosi76@gmail.com wrote:
->>  
->>   
->>> So since it is necessary to create a new entry, is there any rules to
->>> follow to choose it?
->>>     
->>
->> Just use the existing entry as an example. You'll need to put your
->> card name at the entry, and add a new #define at em28xx.h.
->>
->> Cheers,
->> Mauro
->>
->>   
-> Ok!
-> As far as the auto detection issue is concerned, can I add the EEPROM ID
-> and hash so that to use such data to detect the DIKOM device?
-> I've seen that the same numbers are not present for other devices, so I
-> think adding them should not create problems with other devices, but I'm
-> not sure regard that.
+Stanse found a memory leak in smscore_gpio_configure. buffer is not
+freed/assigned on all paths. Fix that.
 
-Yes, but the code will need to be changed a little bit, since the eeprom id
-detection happens only for some specific usb id's.
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org
+---
+ drivers/media/dvb/siano/smscoreapi.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
 
-Cheers,
-Mauro
+diff --git a/drivers/media/dvb/siano/smscoreapi.c b/drivers/media/dvb/siano/smscoreapi.c
+index ca758bc..4bfd345 100644
+--- a/drivers/media/dvb/siano/smscoreapi.c
++++ b/drivers/media/dvb/siano/smscoreapi.c
+@@ -1459,8 +1459,10 @@ int smscore_gpio_configure(struct smscore_device_t *coredev, u8 PinNum,
+ 	if (!(coredev->device_flags & SMS_DEVICE_FAMILY2)) {
+ 		pMsg->xMsgHeader.msgType = MSG_SMS_GPIO_CONFIG_REQ;
+ 		if (GetGpioPinParams(PinNum, &TranslatedPinNum, &GroupNum,
+-				&groupCfg) != 0)
+-			return -EINVAL;
++				&groupCfg) != 0) {
++			rc = -EINVAL;
++			goto free;
++		}
+ 
+ 		pMsg->msgData[1] = TranslatedPinNum;
+ 		pMsg->msgData[2] = GroupNum;
+@@ -1490,6 +1492,7 @@ int smscore_gpio_configure(struct smscore_device_t *coredev, u8 PinNum,
+ 		else
+ 			sms_err("smscore_gpio_configure error");
+ 	}
++free:
+ 	kfree(buffer);
+ 
+ 	return rc;
+-- 
+1.6.5.7
+
