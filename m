@@ -1,46 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225]:52897 "EHLO
-	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751201Ab0AEMlQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jan 2010 07:41:16 -0500
-Received: by fxm25 with SMTP id 25so9687775fxm.21
-        for <linux-media@vger.kernel.org>; Tue, 05 Jan 2010 04:41:14 -0800 (PST)
-Date: Tue, 5 Jan 2010 14:41:15 +0200
-From: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>
-To: Sergey Bolshakov <sbolshakov@altlinux.ru>
-Cc: linux-media@vger.kernel.org
-Subject: Re: cx18: Need information on SECAM-D/K problem with PVR-2100
-Message-ID: <20100105124115.GA30674@moon>
-References: <1262574635.5963.40.camel@localhost> <m34on2ayio.fsf@hammer.lioka.obninsk.ru>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <m34on2ayio.fsf@hammer.lioka.obninsk.ru>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:34608
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932884Ab0AGJRj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Jan 2010 04:17:39 -0500
+Date: Thu, 07 Jan 2010 01:17:47 -0800 (PST)
+Message-Id: <20100107.011747.54958411.davem@davemloft.net>
+To: hartleys@visionengravers.com
+Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] drivers/media/dvb/dvb-core/dvb_net.c: use %pM to show
+ MAC address
+From: David Miller <davem@davemloft.net>
+In-Reply-To: <201001050945.21446.hartleys@visionengravers.com>
+References: <201001050945.21446.hartleys@visionengravers.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 04, 2010 at 02:40:47PM +0300, Sergey Bolshakov wrote:
-> >>>>> "Andy" == Andy Walls <awalls@radix.net> writes:
+From: H Hartley Sweeten <hartleys@visionengravers.com>
+Date: Tue, 5 Jan 2010 09:45:21 -0700
+
+> Use the %pM kernel extension to display the MAC address and mask.
 > 
->  > Sergey,
->  > On IRC you mentioned a problem of improper detection of SECAM-D/K with
->  > the Leadtek PVR2100 (XC2028 and CX23418) from an RF source.
+> The only difference in the output is that the output is shown in
+> the usual colon-separated hex notation.
 > 
-> It was some misunderstanding, i suppose, i do not have problems with
-> secam, i had improper detection of sound standard (and silence as
-> result) on pal channels. Later i've found, that fully-specified std
-> (pal-d instead of just pal) helps, so i can live with that.
-> 
+> Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
 
-Thats a general problem of any card with XC2028 silicon tuner, user
-(tv app) has to specify a precise substandard (audio carrier frequency)
-for sound to work.
-
-PAL-BG users (western europe, etc) won't notice it, since in case of 
-generic PAL standard set, xceive tuner defaults to BG substandard firmware.
-
-In other cases, you either have to specify correct standard (DK, etc) or
-try to specify PAL-I, which seems to work for BG, DK and I carriers.
-At least it works for me :)
-
-See http://osdir.com/ml/linux-media/2009-09/msg00997.html for more details.
+Applied.
