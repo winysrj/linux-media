@@ -1,49 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail02d.mail.t-online.hu ([84.2.42.7]:51317 "EHLO
-	mail02d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754884Ab0A2UbE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jan 2010 15:31:04 -0500
-Message-ID: <4B63457D.5010702@freemail.hu>
-Date: Fri, 29 Jan 2010 21:30:53 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+Received: from mail-fx0-f225.google.com ([209.85.220.225]:57333 "EHLO
+	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751768Ab0AGUA1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jan 2010 15:00:27 -0500
+Received: by fxm25 with SMTP id 25so12043609fxm.21
+        for <linux-media@vger.kernel.org>; Thu, 07 Jan 2010 12:00:25 -0800 (PST)
 MIME-Version: 1.0
-To: Janne Grunau <j@jannau.net>
-CC: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] hdpvr-core: make module parameters local
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <4B463AC6.2000901@mailbox.hu>
+References: <4B3F6FE0.4040307@internode.on.net> <4B3F7B0D.4030601@mailbox.hu>
+	 <4B405381.9090407@internode.on.net> <4B421BCB.6050909@mailbox.hu>
+	 <4B4294FE.8000309@internode.on.net> <4B463AC6.2000901@mailbox.hu>
+Date: Thu, 7 Jan 2010 15:00:25 -0500
+Message-ID: <829197381001071200n2100df65h84028042ffd4dd11@mail.gmail.com>
+Subject: Re: DTV2000 H Plus issues
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: MÃ¡rton NÃ©meth <nm127@freemail.hu>
+On Thu, Jan 7, 2010 at 2:49 PM, istvan_v@mailbox.hu <istvan_v@mailbox.hu> wrote:
+> On 01/05/2010 02:25 AM, Raena Lea-Shannon wrote:
+>
+>> Thanks. Will try again later.
+>
+> By the way, for those who would like to test it, here is a patch based
+> on Devin Heitmueller's XC4000 driver and Mirek Slugen's older patch,
+> that adds support for this card:
+>  http://www.sharemation.com/IstvanV/v4l/dtv2000h+.patch
+> It can be applied to this version of the v4l-dvb code:
+>  http://linuxtv.org/hg/v4l-dvb/archive/75c97b2d1a2a.tar.bz2
+> This is experimental code, so use it at your own risk. The analogue
+> parts (TV and FM radio) basically work, although there are some minor
+> issues to be fixed. Digital TV is not tested yet, but is theoretically
+> implemented; reports on whether it actually works are welcome.
+> The XC4000 driver also requires a firmware file:
+>  http://www.sharemation.com/IstvanV/v4l/dvb-fe-xc4000-1.4.1.fw
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-The default_video_input and default_audio_input module parameters are
-only used inside the hdpvr-core.c file so make them static.
+Istan_v,
 
-This will remove the following sparse warnings (see "make C=1"):
- * warning: symbol 'default_video_input' was not declared. Should it be static?
- * warning: symbol 'default_audio_input' was not declared. Should it be static?
+Could you please do me a favor and rename your firmware file, both in
+the patch and the file you are redistributing (perhaps as
+dvb-fe-xc4000-1.4.1-istanv.fw)?  I worry that by redistributing a file
+with the exact same name as the "official" release, people are going
+to get confused and it will make it harder for me to debug problems
+given my assumptions about what firmware image they are using is
+incorrect.
 
-Signed-off-by: MÃ¡rton NÃ©meth <nm127@freemail.hu>
----
-diff -r 8b9a62386b64 linux/drivers/media/video/hdpvr/hdpvr-core.c
---- a/linux/drivers/media/video/hdpvr/hdpvr-core.c	Fri Jan 29 01:23:57 2010 -0200
-+++ b/linux/drivers/media/video/hdpvr/hdpvr-core.c	Fri Jan 29 21:25:45 2010 +0100
-@@ -39,12 +39,12 @@
- module_param(hdpvr_debug, int, S_IRUGO|S_IWUSR);
- MODULE_PARM_DESC(hdpvr_debug, "enable debugging output");
+Thanks,
 
--uint default_video_input = HDPVR_VIDEO_INPUTS;
-+static uint default_video_input = HDPVR_VIDEO_INPUTS;
- module_param(default_video_input, uint, S_IRUGO|S_IWUSR);
- MODULE_PARM_DESC(default_video_input, "default video input: 0=Component / "
- 		 "1=S-Video / 2=Composite");
+Devin
 
--uint default_audio_input = HDPVR_AUDIO_INPUTS;
-+static uint default_audio_input = HDPVR_AUDIO_INPUTS;
- module_param(default_audio_input, uint, S_IRUGO|S_IWUSR);
- MODULE_PARM_DESC(default_audio_input, "default audio input: 0=RCA back / "
- 		 "1=RCA front / 2=S/PDIF");
-
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
