@@ -1,41 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.mujha-vel.cz ([81.30.225.246]:59105 "EHLO
-	smtp.mujha-vel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932276Ab0AFRa3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jan 2010 12:30:29 -0500
-From: Jiri Slaby <jslaby@suse.cz>
-To: jbarnes@virtuousgeek.org
-Cc: linux-kernel@vger.kernel.org, jirislaby@gmail.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 1/2] media: video/tuner-core, fix memory leak
-Date: Wed,  6 Jan 2010 17:47:55 +0100
-Message-Id: <1262796476-17737-1-git-send-email-jslaby@suse.cz>
+Received: from mail.juropnet.hu ([212.24.188.131]:48404 "EHLO mail.juropnet.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751456Ab0AGTrL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Jan 2010 14:47:11 -0500
+Received: from kabelnet-196-187.juropnet.hu ([91.147.196.187])
+	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <istvan_v@mailbox.hu>)
+	id 1NSyHf-0003Y4-Ll
+	for linux-media@vger.kernel.org; Thu, 07 Jan 2010 20:44:42 +0100
+Message-ID: <4B463AC6.2000901@mailbox.hu>
+Date: Thu, 07 Jan 2010 20:49:26 +0100
+From: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: DTV2000 H Plus issues
+References: <4B3F6FE0.4040307@internode.on.net> <4B3F7B0D.4030601@mailbox.hu> <4B405381.9090407@internode.on.net> <4B421BCB.6050909@mailbox.hu> <4B4294FE.8000309@internode.on.net>
+In-Reply-To: <4B4294FE.8000309@internode.on.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stanse found a memory leak in tuner_probe. t is not
-freed/assigned on all paths. Fix that.
+On 01/05/2010 02:25 AM, Raena Lea-Shannon wrote:
 
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org
----
- drivers/media/video/tuner-core.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+> Thanks. Will try again later.
 
-diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
-index 5b3eaa1..c4dab6c 100644
---- a/drivers/media/video/tuner-core.c
-+++ b/drivers/media/video/tuner-core.c
-@@ -1078,6 +1078,7 @@ static int tuner_probe(struct i2c_client *client,
- 
- 				goto register_client;
- 			}
-+			kfree(t);
- 			return -ENODEV;
- 		case 0x42:
- 		case 0x43:
--- 
-1.6.5.7
-
+By the way, for those who would like to test it, here is a patch based
+on Devin Heitmueller's XC4000 driver and Mirek Slugen's older patch,
+that adds support for this card:
+  http://www.sharemation.com/IstvanV/v4l/dtv2000h+.patch
+It can be applied to this version of the v4l-dvb code:
+  http://linuxtv.org/hg/v4l-dvb/archive/75c97b2d1a2a.tar.bz2
+This is experimental code, so use it at your own risk. The analogue
+parts (TV and FM radio) basically work, although there are some minor
+issues to be fixed. Digital TV is not tested yet, but is theoretically
+implemented; reports on whether it actually works are welcome.
+The XC4000 driver also requires a firmware file:
+  http://www.sharemation.com/IstvanV/v4l/dvb-fe-xc4000-1.4.1.fw
