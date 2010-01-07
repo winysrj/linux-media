@@ -1,74 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225]:36648 "EHLO
-	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753521Ab0ARRd7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2010 12:33:59 -0500
-Received: by fxm25 with SMTP id 25so698061fxm.21
-        for <linux-media@vger.kernel.org>; Mon, 18 Jan 2010 09:33:58 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <829197381001180836ybc4a4c6l6cf1c2bbabdf96b8@mail.gmail.com>
-References: <ad6681df0912220711p2666f0f5m84317a7bf0ffc137@mail.gmail.com>
-	 <829197380912220750j116894baw8343010b123f929@mail.gmail.com>
-	 <ad6681df0912220841n2f77f2c3v7aad0604575b5564@mail.gmail.com>
-	 <ad6681df1001180701s26584cdfua9e413d9bb843a35@mail.gmail.com>
-	 <829197381001180716v59b84ee2ia8ca2d9be4be5b22@mail.gmail.com>
-	 <4B54864E.1050801@yahoo.it>
-	 <829197381001180817r561bb1cdj9edda6ab3affbba0@mail.gmail.com>
-	 <d9def9db1001180829n733471c6g375295f29fc349ea@mail.gmail.com>
-	 <829197381001180836ybc4a4c6l6cf1c2bbabdf96b8@mail.gmail.com>
-Date: Mon, 18 Jan 2010 18:33:58 +0100
-Message-ID: <d9def9db1001180933x3fc31353g87cd06312a57cbf1@mail.gmail.com>
-Subject: Re: Info
-From: Markus Rechberger <mrechberger@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Adriano Gigante <adrigiga@yahoo.it>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from psmtp13.wxs.nl ([195.121.247.25]:34130 "EHLO psmtp13.wxs.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753396Ab0AGWgg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Jan 2010 17:36:36 -0500
+Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
+ by psmtp13.wxs.nl
+ (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
+ with ESMTP id <0KVW00BV0ESYQD@psmtp13.wxs.nl> for linux-media@vger.kernel.org;
+ Thu, 07 Jan 2010 23:36:35 +0100 (MET)
+Date: Thu, 07 Jan 2010 23:36:29 +0100
+From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Subject: Re: Compro VideoMate U80 DVB-T USB 2.0 High Definition Digital TV Stick
+In-reply-to: <4B3ABD9D.6040207@iinet.net.au>
+To: drappa <drappa@iinet.net.au>
+Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+Message-id: <4B4661ED.3070606@hoogenraad.net>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <4B3ABD9D.6040207@iinet.net.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 18, 2010 at 5:36 PM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> Hello Markus,
->
-> On Mon, Jan 18, 2010 at 11:29 AM, Markus Rechberger
-> <mrechberger@gmail.com> wrote:
->> Just fyi there's a hardware bug with the 0072/terratec hybrid xs fm
->> (cx25843 - xc5000):
->>
->> http://img91.imageshack.us/i/00000004qf8.png/
->> http://img104.imageshack.us/i/00000009cp4.png/
->>
->> nothing that can be fixed with the driver.
->
-> Interesting.  If it cannot be fixed with the driver, how does the
-> Windows driver work then?  Is this some sort of premature hardware
-> failure that occurs (after which point it is irreversible)?
->
+Can you give us the USB ID
+(type on the command line: lsusb, and report the output)
 
-conexant cx25843 - xceive xc5000 failure (as what I've heard conexant
-laid off people in that area years ago while xceive (see their driver
-changelog if you have access to it) tried to fix it with their
-firmware but didn't succeed), it also happens with windows. Those
-screenshots are taken from a videoclip
-it was of course a big problem for business customers (almost all of
-them happily switched away from it)
-This is the same retail hardware as everyone else uses out there. XS
-FM is not being sold anymore.
-I only know one company in Ireland still sticking with it, also in
-terms of videoquality I'd avoid that combination.
+The U90 has a RTL2831 in it. More info on the driver on:
+http://www.linuxtv.org/wiki/index.php/Rtl2831_devices
 
-Markus
+drappa wrote:
+> Hi All
+> 
+> http://www.comprousa.com/en/product/u80/u80.html
+> 
+> I'd be grateful if anyone can tell me if this device is supported yet, 
+> and if so, any pointers to getting it working.
+> 
+> Thanks
+> Drappa
+> 
+> 
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-> Thanks for taking the time to point this out though, since I could
-> totally imagine banging my head against the wall for quite a while
-> once I saw this.
->
-> Devin
->
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
->
+
+-- 
+Jan Hoogenraad
+Hoogenraad Interface Services
+Postbus 2717
+3500 GS Utrecht
