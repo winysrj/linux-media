@@ -1,44 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:49141 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755173Ab0ASLNC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jan 2010 06:13:02 -0500
-Message-ID: <4B5593BA.9080008@infradead.org>
-Date: Tue, 19 Jan 2010 09:12:58 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from mail.juropnet.hu ([212.24.188.131]:41415 "EHLO mail.juropnet.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752312Ab0AGVFa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Jan 2010 16:05:30 -0500
+Message-ID: <4B464D21.2040404@mailbox.hu>
+Date: Thu, 07 Jan 2010 22:07:45 +0100
+From: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Douglas Landgraf <dougsland@gmail.com>
-Subject: Re: [ANNOUNCE] git tree repositories
-References: <4B55445A.10300@infradead.org> <201001190904.29159.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201001190904.29159.laurent.pinchart@ideasonboard.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: DTV2000 H Plus issues
+References: <4B3F6FE0.4040307@internode.on.net> <4B3F7B0D.4030601@mailbox.hu>	 <4B405381.9090407@internode.on.net> <4B421BCB.6050909@mailbox.hu>	 <4B4294FE.8000309@internode.on.net> <4B463AC6.2000901@mailbox.hu> <829197381001071200n2100df65h84028042ffd4dd11@mail.gmail.com>
+In-Reply-To: <829197381001071200n2100df65h84028042ffd4dd11@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent Pinchart wrote:
-> Hi Mauro,
-> 
-> I would like to personally thank you for spending time on git support at 
-> linuxtv.org. Git support was a long-awaited feature for many developers (and I 
-> certainly was one of them).
-> 
-> All the work done behind the scene on linuxtv.org isn't seen by end-users and 
-> can thus be less rewarding than working on the code. However, it's of critical 
-> importance to make the development process as smooth as possible. For that 
-> reason, thank you again.
+On 01/07/2010 09:00 PM, Devin Heitmueller wrote:
 
-You're welcome!
+> Could you please do me a favor and rename your firmware file, both in
+> the patch and the file you are redistributing (perhaps as
+> dvb-fe-xc4000-1.4.1-istanv.fw)?  I worry that by redistributing a file
+> with the exact same name as the "official" release, people are going
+> to get confused and it will make it harder for me to debug problems
+> given my assumptions about what firmware image they are using is
+> incorrect.
 
-Working at the infrastructure spends lots of time and, as you said, people
-generally only note when there's something broken.
-
-I'm quite confident that supporting -git is the proper path to make life easier
-for contributors and developers and opening a new road to the future of the
-subsystem.
-
-Cheers,
-Mauro
+OK, I have renamed the firmware file. The download links are now:
+  http://www.sharemation.com/IstvanV/v4l/dtv2000h+.patch
+  http://www.sharemation.com/IstvanV/v4l/xc4000-dtv2000hp-1.4.1.fw
