@@ -1,37 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:62629 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752482Ab0AJNys (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jan 2010 08:54:48 -0500
-Received: by bwz27 with SMTP id 27so12964039bwz.21
-        for <linux-media@vger.kernel.org>; Sun, 10 Jan 2010 05:54:46 -0800 (PST)
+Received: from mail02d.mail.t-online.hu ([84.2.42.7]:64856 "EHLO
+	mail02d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932336Ab0AGGZv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jan 2010 01:25:51 -0500
+Message-ID: <4B457E69.2010700@freemail.hu>
+Date: Thu, 07 Jan 2010 07:25:45 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-In-Reply-To: <4B48DC34.1080500@infradead.org>
-References: <A69FA2915331DC488A831521EAE36FE40162D43370@dlee06.ent.ti.com>
-	 <4B48DC34.1080500@infradead.org>
-Date: Sun, 10 Jan 2010 08:54:46 -0500
-Message-ID: <55a3e0ce1001100554l76a8b7ccl42afdbc37498410a@mail.gmail.com>
-Subject: Re: building v4l-dvb - compilation error
-From: Muralidharan Karicheri <mkaricheri@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+CC: Michael Krufky <mkrufky@linuxtv.org>, linux-media@vger.kernel.org
+Subject: [RESEND][PATCH] move autoconf.h for 2.6.33
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+From: Márton Németh <nm127@freemail.hu>
 
-I ran the build using my ubunto linux box at home and it has succeeded
-the build.
->
->> make[2]: Leaving directory `/usr/src/kernels/2.6.9-55.0.12.EL-smp-i686'
->
-> The minimum supported version by the backport is 2.6.16.
-Hmm. Does that means, the build is using the kernel source code
-natively available at /usr/src/kernel. Is there a way to force it use
-a specific kernel source code?
+The linux/autoconf.h was moved to generated/autoconf.h as of 2.6.33.
 
--- 
-Murali Karicheri
-mkaricheri@gmail.com
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+diff -r 62ee2b0f6556 v4l/scripts/make_config_compat.pl
+--- a/v4l/scripts/make_config_compat.pl	Wed Dec 30 18:19:11 2009 +0100
++++ b/v4l/scripts/make_config_compat.pl	Thu Dec 31 11:37:34 2009 +0100
+@@ -383,9 +383,19 @@
+ # Do the basic rules
+ open IN, "<$infile" or die "File not found: $infile";
+
+-$out.= "#ifndef __CONFIG_COMPAT_H__\n";
+-$out.= "#define __CONFIG_COMPAT_H__\n\n";
+-$out.= "#include <linux/autoconf.h>\n\n";
++$out .= <<'EOD'
++#ifndef __CONFIG_COMPAT_H__
++#define __CONFIG_COMPAT_H__
++
++#include <linux/version.h>
++#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 33)
++#include <linux/autoconf.h>
++#else
++#include <generated/autoconf.h>
++#endif
++
++EOD
++;
+
+ # mmdebug.h includes autoconf.h. So if this header exists,
+ # then include it before our config is set.
+
+
