@@ -1,97 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1450 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753969Ab0AaTyn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Jan 2010 14:54:43 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id o0VJscx4064897
-	for <linux-media@vger.kernel.org>; Sun, 31 Jan 2010 20:54:42 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 31 Jan 2010 20:54:38 +0100 (CET)
-Message-Id: <201001311954.o0VJscx4064897@smtp-vbr2.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from devils.ext.ti.com ([198.47.26.153]:43325 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752001Ab0AGXZE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jan 2010 18:25:04 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>
+Date: Thu, 7 Jan 2010 17:25:00 -0600
+Subject: RE: [PATCH - v3 4/4] DaVinci - vpfe-capture-converting ccdc drivers
+ to platform driver
+Message-ID: <A69FA2915331DC488A831521EAE36FE40162D43371@dlee06.ent.ti.com>
+References: <1260895054-13232-1-git-send-email-m-karicheri2@ti.com>
+	<871vi4rv25.fsf@deeprootsystems.com>
+	<A69FA2915331DC488A831521EAE36FE40162C23952@dlee06.ent.ti.com>
+	<87k4vvkyo7.fsf@deeprootsystems.com>
+	<A69FA2915331DC488A831521EAE36FE40162C23A3E@dlee06.ent.ti.com>
+	<878wcbkx60.fsf@deeprootsystems.com>
+	<A69FA2915331DC488A831521EAE36FE40162D43099@dlee06.ent.ti.com>
+	<87r5q1ya2w.fsf@deeprootsystems.com>
+	<A69FA2915331DC488A831521EAE36FE40162D43287@dlee06.ent.ti.com>
+ <87my0pwpnk.fsf@deeprootsystems.com>
+In-Reply-To: <87my0pwpnk.fsf@deeprootsystems.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Arch patches are not usually merged in Hans tree.
 
-Results of the daily build of v4l-dvb:
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+phone: 301-407-9583
+email: m-karicheri2@ti.com
 
-date:        Sun Jan 31 19:00:05 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14075:d6520e486ee6
-gcc version: i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:     2.6.32.5
-
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-rc5-armv5: OK
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-rc5-armv5-davinci: OK
-linux-2.6.32.6-armv5-dm365: ERRORS
-linux-2.6.33-rc5-armv5-dm365: ERRORS
-linux-2.6.32.6-armv5-ixp: OK
-linux-2.6.33-rc5-armv5-ixp: OK
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-rc5-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.17-i686: OK
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.20-i686: OK
-linux-2.6.26.8-i686: OK
-linux-2.6.27.44-i686: OK
-linux-2.6.28.10-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: OK
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-rc5-i686: OK
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-rc5-m32r: OK
-linux-2.6.32.6-mips: OK
-linux-2.6.33-rc5-mips: OK
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-rc5-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.17-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-rc5-x86_64: WARNINGS
-spec: OK
-sparse (linux-2.6.32.6): ERRORS
-sparse (linux-2.6.33-rc5): ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+>-----Original Message-----
+>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>Sent: Thursday, January 07, 2010 4:50 PM
+>To: Karicheri, Muralidharan
+>Cc: linux-media@vger.kernel.org; hverkuil@xs4all.nl; davinci-linux-open-
+>source@linux.davincidsp.com
+>Subject: Re: [PATCH - v3 4/4] DaVinci - vpfe-capture-converting ccdc
+>drivers to platform driver
+>
+>"Karicheri, Muralidharan" <m-karicheri2@ti.com> writes:
+>
+>> Can I remove it through a separate patch? This patch is already merged in
+>Hans tree.
+>
+>Hmm, arch patches should not be merged yet as I have not ack'd them.
+>
+>Kevin
+>
+>
+>>>-----Original Message-----
+>>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+>>>Sent: Thursday, January 07, 2010 2:44 PM
+>>>To: Karicheri, Muralidharan
+>>>Cc: linux-media@vger.kernel.org; hverkuil@xs4all.nl; davinci-linux-open-
+>>>source@linux.davincidsp.com
+>>>Subject: Re: [PATCH - v3 4/4] DaVinci - vpfe-capture-converting ccdc
+>>>drivers to platform driver
+>>>
+>>>"Karicheri, Muralidharan" <m-karicheri2@ti.com> writes:
+>>>
+>>>> Kevin,
+>>>>
+>>>>>
+>>>>>OK, I'm not extremely familar with the whole video architecture here,
+>>>>>but are all of these drivers expected to be doing clk_get() and
+>>>>>clk_enable()?
+>>>>>
+>>>>
+>>>> [MK]Many IPs on DaVinci VPFE would require vpss master clock. So
+>>>> it is better to do the way I have done in my patch. So it is expected
+>>>> that clk_get, clk_enable etc are called from other drivers as well.
+>>>
+>>>OK, then you are expecting to add clkdev nodes for the other devices
+>>>as well.  That's ok.
+>>>
+>>>However, you still haven't answered my original question.  AFAICT,
+>>>there are no users of the clkdev nodes "vpss_master" and "vpss_slave".
+>>>Why not remove those and replace them with your new nodes instead of
+>>>leaving them and adding new ones?
+>>>
+>>>Kevin
