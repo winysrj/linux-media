@@ -1,54 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01a.mail.t-online.hu ([84.2.40.6]:62797 "EHLO
-	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751118Ab0APQWE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jan 2010 11:22:04 -0500
-Message-ID: <4B51E7A7.8000507@freemail.hu>
-Date: Sat, 16 Jan 2010 17:21:59 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-MIME-Version: 1.0
-To: Srinivasa Deevi <srinivasa.deevi@conexant.com>
-CC: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] cx231xx: cleanup dvb_attach() return value handling
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3906 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751456Ab0AGTuJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jan 2010 14:50:09 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id o07Jo7Jr087507
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 7 Jan 2010 20:50:07 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 7 Jan 2010 20:50:07 +0100 (CET)
+Message-Id: <201001071950.o07Jo7Jr087507@smtp-vbr8.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Remove the following sparse error (see "make C=1"):
- * error: incompatible types for operation (<)
-       left side has type struct dvb_frontend *
-       right side has type int
+Results of the daily build of v4l-dvb:
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
----
-diff -r 5bcdcc072b6d linux/drivers/media/video/cx231xx/cx231xx-dvb.c
---- a/linux/drivers/media/video/cx231xx/cx231xx-dvb.c	Sat Jan 16 07:25:43 2010 +0100
-+++ b/linux/drivers/media/video/cx231xx/cx231xx-dvb.c	Sat Jan 16 17:21:06 2010 +0100
-@@ -465,9 +465,9 @@
- 		/* define general-purpose callback pointer */
- 		dvb->frontend->callback = cx231xx_tuner_callback;
+date:        Thu Jan  7 19:00:02 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13879:b6b82258cf5e
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
--		if (dvb_attach(xc5000_attach, dev->dvb->frontend,
-+		if (!dvb_attach(xc5000_attach, dev->dvb->frontend,
- 			       &dev->i2c_bus[1].i2c_adap,
--			       &cnxt_rde250_tunerconfig) < 0) {
-+			       &cnxt_rde250_tunerconfig)) {
- 			result = -EINVAL;
- 			goto out_free;
- 		}
-@@ -487,9 +487,9 @@
- 		/* define general-purpose callback pointer */
- 		dvb->frontend->callback = cx231xx_tuner_callback;
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-armv5: OK
+linux-2.6.33-rc2-armv5: ERRORS
+linux-2.6.32-armv5-davinci: OK
+linux-2.6.33-rc2-armv5-davinci: ERRORS
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-armv5-ixp: OK
+linux-2.6.32-armv5-ixp: OK
+linux-2.6.33-rc2-armv5-ixp: ERRORS
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: OK
+linux-2.6.32-armv5-omap2: OK
+linux-2.6.33-rc2-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: OK
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-i686: WARNINGS
+linux-2.6.33-rc2-i686: ERRORS
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-m32r: OK
+linux-2.6.33-rc2-m32r: ERRORS
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.32-mips: OK
+linux-2.6.33-rc2-mips: ERRORS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-powerpc64: OK
+linux-2.6.32-powerpc64: WARNINGS
+linux-2.6.33-rc2-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: OK
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-x86_64: WARNINGS
+linux-2.6.33-rc2-x86_64: ERRORS
+spec: OK
+sparse (linux-2.6.32): ERRORS
+sparse (linux-2.6.33-rc2): ERRORS
+linux-2.6.16.61-i686: OK
+linux-2.6.17.14-i686: OK
+linux-2.6.18.8-i686: OK
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.61-x86_64: OK
+linux-2.6.17.14-x86_64: OK
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
--		if (dvb_attach(xc5000_attach, dev->dvb->frontend,
-+		if (!dvb_attach(xc5000_attach, dev->dvb->frontend,
- 			       &dev->i2c_bus[1].i2c_adap,
--			       &cnxt_rde250_tunerconfig) < 0) {
-+			       &cnxt_rde250_tunerconfig)) {
- 			result = -EINVAL;
- 			goto out_free;
- 		}
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
