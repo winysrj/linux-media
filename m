@@ -1,108 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1896 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755980Ab0AFTuL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jan 2010 14:50:11 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id o06Jo9Yf092659
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 6 Jan 2010 20:50:09 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 6 Jan 2010 20:50:09 +0100 (CET)
-Message-Id: <201001061950.o06Jo9Yf092659@smtp-vbr12.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: OK
+Received: from mail-iw0-f194.google.com ([209.85.223.194]:40491 "EHLO
+	mail-iw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753619Ab0AHPK3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jan 2010 10:10:29 -0500
+Received: by iwn32 with SMTP id 32so3149609iwn.33
+        for <linux-media@vger.kernel.org>; Fri, 08 Jan 2010 07:10:28 -0800 (PST)
+To: "Hiremath\, Vaibhav" <hvaibhav@ti.com>
+Cc: "Karicheri\, Muralidharan" <m-karicheri2@ti.com>,
+	"davinci-linux-open-source\@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	"linux-media\@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH - v3 4/4] DaVinci - vpfe-capture-converting ccdc drivers to platform driver
+References: <1260895054-13232-1-git-send-email-m-karicheri2@ti.com>
+	<871vi4rv25.fsf@deeprootsystems.com>
+	<A69FA2915331DC488A831521EAE36FE40162C23952@dlee06.ent.ti.com>
+	<87k4vvkyo7.fsf@deeprootsystems.com>
+	<A69FA2915331DC488A831521EAE36FE40162C23A3E@dlee06.ent.ti.com>
+	<878wcbkx60.fsf@deeprootsystems.com>
+	<A69FA2915331DC488A831521EAE36FE40162D43099@dlee06.ent.ti.com>
+	<87r5q1ya2w.fsf@deeprootsystems.com>
+	<A69FA2915331DC488A831521EAE36FE40162D43287@dlee06.ent.ti.com>
+	<87my0pwpnk.fsf@deeprootsystems.com>
+	<A69FA2915331DC488A831521EAE36FE40162D43371@dlee06.ent.ti.com>
+	<19F8576C6E063C45BE387C64729E7394044A398045@dbde02.ent.ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Date: Fri, 08 Jan 2010 07:10:26 -0800
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044A398045@dbde02.ent.ti.com> (Vaibhav Hiremath's message of "Fri\, 8 Jan 2010 14\:36\:09 +0530")
+Message-ID: <87zl4oskd9.fsf@deeprootsystems.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+"Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
 
-Results of the daily build of v4l-dvb:
+>> 
+> [Hiremath, Vaibhav] Hi Kevin and Murali,
+>
+> Sorry for jumping into this discussion so late, 
+>
+> Can we use clk_add_alias() function exported by clkdev.c file here?
+> With this board specific file can define aliases for all required
+> platform_data keeping CLK() entry generic.
 
-date:        Wed Jan  6 19:00:02 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13879:b6b82258cf5e
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Yes, this would be a good use case clk_add_alias()
 
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-armv5: OK
-linux-2.6.33-rc2-armv5: ERRORS
-linux-2.6.32-armv5-davinci: OK
-linux-2.6.33-rc2-armv5-davinci: ERRORS
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-armv5-ixp: OK
-linux-2.6.32-armv5-ixp: OK
-linux-2.6.33-rc2-armv5-ixp: ERRORS
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: OK
-linux-2.6.32-armv5-omap2: OK
-linux-2.6.33-rc2-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: OK
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-i686: WARNINGS
-linux-2.6.33-rc2-i686: ERRORS
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-m32r: OK
-linux-2.6.33-rc2-m32r: ERRORS
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: OK
-linux-2.6.32-mips: OK
-linux-2.6.33-rc2-mips: ERRORS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-powerpc64: OK
-linux-2.6.32-powerpc64: WARNINGS
-linux-2.6.33-rc2-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: OK
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-x86_64: WARNINGS
-linux-2.6.33-rc2-x86_64: ERRORS
-spec: OK
-sparse (linux-2.6.32): ERRORS
-sparse (linux-2.6.33-rc2): ERRORS
-linux-2.6.16.61-i686: OK
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: OK
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: OK
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+Kevin
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
