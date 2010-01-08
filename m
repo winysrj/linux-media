@@ -1,34 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:35815 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752865Ab0AIBzZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jan 2010 20:55:25 -0500
-Date: Fri, 8 Jan 2010 20:55:21 -0500
-From: Ralph Siemsen <ralphs@netwinder.org>
-To: linux-media@vger.kernel.org
-Subject: Re: cx23885 oops during loading, WinTV-HVR-1850 card -- SOLVED
-Message-ID: <20100109015521.GK2257@harvey.netwinder.org>
-References: <20100108191459.GJ2257@harvey.netwinder.org>
+Received: from mail-iw0-f194.google.com ([209.85.223.194]:62087 "EHLO
+	mail-iw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753646Ab0AHURt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jan 2010 15:17:49 -0500
+Received: by iwn32 with SMTP id 32so3358539iwn.33
+        for <linux-media@vger.kernel.org>; Fri, 08 Jan 2010 12:17:46 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20100108191459.GJ2257@harvey.netwinder.org>
+In-Reply-To: <4B47828B.9050000@gmail.com>
+References: <4B47828B.9050000@gmail.com>
+Date: Fri, 8 Jan 2010 15:17:46 -0500
+Message-ID: <be3a4a1001081217s1bec67c8odb26bb793700242b@mail.gmail.com>
+Subject: Re: go7007 driver -- which program you use for capture
+From: Jarod Wilson <jarod@wilsonet.com>
+To: TJ <one.timothy.jones@gmail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 08, 2010 at 02:14:59PM -0500, Ralph Siemsen wrote:
-> 
-> I tried replacing only the cx23885.ko driver, as well as installing all
-> of the v4l-dvb drivers -- behaviour seemed to be the same.  With all
-> drivers installed, system bootup does not complete, udev hangs, but I
-> see the same kernel oops from cx23885.
+On Fri, Jan 8, 2010 at 2:07 PM, TJ <one.timothy.jones@gmail.com> wrote:
+> Pete and anybody else out there with go7007 devices, what do you use for capture?
+>
+> Without GO7007 ioctls, I was only able to get vlc to capture in MJPEG format.
 
-Solved this part, the oops was caused by the missing sysfs NULL,
-already reported at http://patchwork.kernel.org/patch/70126/
+Never actually used one myself, but MythTV has support for at least
+the Plextor ConvertX go7007-based devices.
 
-Now the driver loads, and I follow it up with "modprobe tuner".
-Unfortunately, no luck yet using tvtime, it just reports:
-videoinput: No inputs available on video4linux2 device '/dev/video0'.
-But I suspect that is a different issue!
-
--Ralph
+-- 
+Jarod Wilson
+jarod@wilsonet.com
