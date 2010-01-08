@@ -1,51 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [206.15.93.42] ([206.15.93.42]:9423 "EHLO
-	visionfs1.visionengravers.com" rhost-flags-FAIL-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932125Ab0AERDe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Jan 2010 12:03:34 -0500
-From: H Hartley Sweeten <hartleys@visionengravers.com>
-To: Linux Kernel <linux-kernel@vger.kernel.org>
-Subject: [PATCH] drivers/media/dvb/dvb-core/dvb_net.c: use %pM to show MAC address
-Date: Tue, 5 Jan 2010 09:45:21 -0700
-Cc: netdev@vger.kernel.org, linux-media@vger.kernel.org,
-	davem@davemloft.net
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201001050945.21446.hartleys@visionengravers.com>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4916 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753376Ab0AHTuU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jan 2010 14:50:20 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id o08JoHdd006638
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 8 Jan 2010 20:50:18 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 8 Jan 2010 20:50:17 +0100 (CET)
+Message-Id: <201001081950.o08JoHdd006638@smtp-vbr13.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the %pM kernel extension to display the MAC address and mask.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-The only difference in the output is that the output is shown in
-the usual colon-separated hex notation.
+Results of the daily build of v4l-dvb:
 
-Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
-Cc: David S. Miller <davem@davemloft.net>
+date:        Fri Jan  8 19:00:02 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13879:b6b82258cf5e
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
----
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-armv5: OK
+linux-2.6.33-rc2-armv5: ERRORS
+linux-2.6.32-armv5-davinci: OK
+linux-2.6.33-rc2-armv5-davinci: ERRORS
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-armv5-ixp: OK
+linux-2.6.32-armv5-ixp: OK
+linux-2.6.33-rc2-armv5-ixp: ERRORS
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: OK
+linux-2.6.32-armv5-omap2: OK
+linux-2.6.33-rc2-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: OK
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-i686: WARNINGS
+linux-2.6.33-rc2-i686: ERRORS
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-m32r: OK
+linux-2.6.33-rc2-m32r: ERRORS
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: OK
+linux-2.6.32-mips: OK
+linux-2.6.33-rc2-mips: ERRORS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-powerpc64: OK
+linux-2.6.32-powerpc64: WARNINGS
+linux-2.6.33-rc2-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: OK
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-x86_64: WARNINGS
+linux-2.6.33-rc2-x86_64: ERRORS
+spec: OK
+sparse (linux-2.6.32): ERRORS
+sparse (linux-2.6.33-rc2): ERRORS
+linux-2.6.16.61-i686: OK
+linux-2.6.17.14-i686: OK
+linux-2.6.18.8-i686: OK
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.61-x86_64: OK
+linux-2.6.17.14-x86_64: OK
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
-Repost due to merge issues.
+Detailed results are available here:
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_net.c b/drivers/media/dvb/dvb-core/dvb_net.c
-index 8b8558f..da6552d 100644
---- a/drivers/media/dvb/dvb-core/dvb_net.c
-+++ b/drivers/media/dvb/dvb-core/dvb_net.c
-@@ -949,11 +949,8 @@ static int dvb_net_filter_sec_set(struct net_device *dev,
- 	(*secfilter)->filter_mask[10] = mac_mask[1];
- 	(*secfilter)->filter_mask[11]=mac_mask[0];
- 
--	dprintk("%s: filter mac=%02x %02x %02x %02x %02x %02x\n",
--	       dev->name, mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
--	dprintk("%s: filter mask=%02x %02x %02x %02x %02x %02x\n",
--	       dev->name, mac_mask[0], mac_mask[1], mac_mask[2],
--	       mac_mask[3], mac_mask[4], mac_mask[5]);
-+	dprintk("%s: filter mac=%pM\n", dev->name, mac);
-+	dprintk("%s: filter mask=%pM\n", dev->name, mac_mask);
- 
- 	return 0;
- }
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
