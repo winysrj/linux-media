@@ -1,47 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:45743 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752373Ab0AKIHt convert rfc822-to-8bit (ORCPT
+Received: from [206.15.93.42] ([206.15.93.42]:11783 "EHLO
+	visionfs1.visionengravers.com" rhost-flags-FAIL-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754355Ab0AHXAl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2010 03:07:49 -0500
-Date: Mon, 11 Jan 2010 09:09:00 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>,
-	=?UTF-8?B?U3Q=?= =?UTF-8?B?w6lwaGFuZQ==?= Marguet
-	<smarguet@gmail.com>
-Cc: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: gspca_pac7302: sporatdic problem when plugging the device
-Message-ID: <20100111090900.731c50a0@tele>
-In-Reply-To: <4B4A386D.3080106@freemail.hu>
-References: <4B4A0752.6030306@freemail.hu>
-	<20100110204844.770f8fd7@tele>
-	<4B4A386D.3080106@freemail.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Fri, 8 Jan 2010 18:00:41 -0500
+From: H Hartley Sweeten <hartleys@visionengravers.com>
+To: Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH] drivers/media/common: remove unnecessary casts of void *
+Date: Fri, 8 Jan 2010 15:51:42 -0700
+Cc: michael@mihu.de, mchehab@infradead.org
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201001081551.42264.hartleys@visionengravers.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 10 Jan 2010 21:28:29 +0100
-Németh Márton <nm127@freemail.hu> wrote:
+drivers/media/common: Remove unnecessary casts of void *
 
-> I tested the behaviour a little bit more. Out of 100 plug-ins:
-> 
-> OK: 81 times
-> "pac7302: reg_w_page(): Failed to write register to index 0x49, value
-> 0x0, error -71": 19 times
-> 
-> Other error message I haven't got, so 19% of the time writing to
-> register index 0x49 fails in reg_w_page(). So let's try doing fixing
-> the way you described. If you send me a patch I can test it.
+void pointers do not need to be cast to other pointer types.
 
-In some usbsnoop files I have, the index 0x48 is not loaded. May you
-try the attached patch (skip the index 0x48 and remove the delay).
+Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Cc: Michael Hunold <michael@mihu.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 
-(Stéphane, est-ce que tu peux voir aussi ce que ça donne chez toi?)
+---
 
-Regards.
+ drivers/media/common/saa7146_vbi.c   |    6 +++---
+ drivers/media/common/saa7146_video.c |    4 ++--
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+diff --git a/drivers/media/common/saa7146_vbi.c b/drivers/media/common/saa7146_vbi.c
+index 74e2b56..301a795 100644
+--- a/drivers/media/common/saa7146_vbi.c
++++ b/drivers/media/common/saa7146_vbi.c
+@@ -3,7 +3,7 @@
+ static int vbi_pixel_to_capture = 720 * 2;
+ 
+ static int vbi_workaround(struct saa7146_dev *dev)
+-{
++{.remove_casts.hhs~
+ 	struct saa7146_vv *vv = dev->vv_data;
+ 
+ 	u32          *cpu;
+@@ -375,7 +375,7 @@ static void vbi_init(struct saa7146_dev *dev, struct saa7146_vv *vv)
+ 
+ static int vbi_open(struct saa7146_dev *dev, struct file *file)
+ {
+-	struct saa7146_fh *fh = (struct saa7146_fh *)file->private_data;
++	struct saa7146_fh *fh = file->private_data;
+ 
+ 	u32 arbtr_ctrl	= saa7146_read(dev, PCI_BT_V1);
+ 	int ret = 0;
+@@ -437,7 +437,7 @@ static int vbi_open(struct saa7146_dev *dev, struct file *file)
+ 
+ static void vbi_close(struct saa7146_dev *dev, struct file *file)
+ {
+-	struct saa7146_fh *fh = (struct saa7146_fh *)file->private_data;
++	struct saa7146_fh *fh = file->private_data;
+ 	struct saa7146_vv *vv = dev->vv_data;
+ 	DEB_VBI(("dev:%p, fh:%p\n",dev,fh));
+ 
+diff --git a/drivers/media/common/saa7146_video.c b/drivers/media/common/saa7146_video.c
+index becbaad..cfc8634 100644
+--- a/drivers/media/common/saa7146_video.c
++++ b/drivers/media/common/saa7146_video.c
+@@ -1368,7 +1368,7 @@ static void video_init(struct saa7146_dev *dev, struct saa7146_vv *vv)
+ 
+ static int video_open(struct saa7146_dev *dev, struct file *file)
+ {
+-	struct saa7146_fh *fh = (struct saa7146_fh *)file->private_data;
++	struct saa7146_fh *fh = file->private_data;
+ 	struct saa7146_format *sfmt;
+ 
+ 	fh->video_fmt.width = 384;
+@@ -1392,7 +1392,7 @@ static int video_open(struct saa7146_dev *dev, struct file *file)
+ 
+ static void video_close(struct saa7146_dev *dev, struct file *file)
+ {
+-	struct saa7146_fh *fh = (struct saa7146_fh *)file->private_data;
++	struct saa7146_fh *fh = file->private_data;
+ 	struct saa7146_vv *vv = dev->vv_data;
+ 	struct videobuf_queue *q = &fh->video_q;
+ 	int err;
