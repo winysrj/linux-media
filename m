@@ -1,22 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.5])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o0DKSuBv002392
-	for <video4linux-list@redhat.com>; Wed, 13 Jan 2010 15:28:56 -0500
-Received: from mail-ew0-f215.google.com (mail-ew0-f215.google.com
-	[209.85.219.215])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o0DKSePJ003533
-	for <video4linux-list@redhat.com>; Wed, 13 Jan 2010 15:28:40 -0500
-Received: by ewy7 with SMTP id 7so1437454ewy.30
-	for <video4linux-list@redhat.com>; Wed, 13 Jan 2010 12:28:39 -0800 (PST)
-Message-ID: <EA03EC49745B4E36B0CB88F844CAC335@HYDRA>
-From: "Julio Meca Hansen" <jmecahansen@gmail.com>
-To: <video4linux-list@redhat.com>
-Subject: [recommendation] USB TV Tuner card with support for HD resolution
-	(720p at least) under Linux?
-Date: Wed, 13 Jan 2010 21:28:34 +0100
+Received: from mx1.redhat.com (ext-mx03.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.7])
+	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o08MFr0b024720
+	for <video4linux-list@redhat.com>; Fri, 8 Jan 2010 17:15:53 -0500
+Received: from mail-fx0-f224.google.com (mail-fx0-f224.google.com
+	[209.85.220.224])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o08MFaKS012910
+	for <video4linux-list@redhat.com>; Fri, 8 Jan 2010 17:15:37 -0500
+Received: by fxm24 with SMTP id 24so13810680fxm.11
+	for <video4linux-list@redhat.com>; Fri, 08 Jan 2010 14:15:36 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <8c1b69bf1001081353g1991254duf44997703008e68c@mail.gmail.com>
+References: <8c1b69bf1001081353g1991254duf44997703008e68c@mail.gmail.com>
+Date: Fri, 8 Jan 2010 17:15:35 -0500
+Message-ID: <829197381001081415v6b912a33gb38e793a0470486c@mail.gmail.com>
+Subject: Re: Huappauge WinTV-HVR 1850
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Michael Libertin <michael.libertin@yale.edu>
+Cc: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,29 +32,30 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+On Fri, Jan 8, 2010 at 4:53 PM, Michael Libertin
+<michael.libertin@yale.edu> wrote:
+> Hi all,
+>
+> I just wanted to make sure I'm not missing something: Am I correct in saying
+> that the composite video input will not work on this card under linux
+> because analog support hasn't been developed yet? I followed the directions
+> for the 1800 and got digitial cable sort of working, but I can't for the
+> life of me seem to get composite video in to work, which is a bummer....
 
-I think the title says it all, but well... let me explain in a better way...
+Correct, analog is not supported on that board at this time under Linux.
 
-Basically, I have a laptop machine and I would like to be able to play the PS3 I'm intending to buy using a tv tuner instead
-of having to buy a tv, just have a one-for-all machine, let's say it that way, so the laptop will be for work/programming/whatever
-tasks and the PS3 for strict gaming.
+> P.S. If analog support isn't implemented yet, is there anything I can do to
+> help? I don't know C (yet) so I doubt I'd be much help coding, but I'd be
+> more than willing to help in some other way...
 
-The problem I have is I don't really know which hardware would be suitable for that purpose, if any at all... that's why I ask for help
-in this matter.
+Can you contribute $5000.00?
 
-1. Does this kind of hardware actually exists? I don't pretend pulling a full 1080i signal, just 720p would be nice, as my laptop has
-a 15.6" screen at 1366x768, so 1280x720 would make sense.
-2. In case it exists, do I need to connect it with any exotic method? I guess the yellow component cable just delivers standard resolution,
-not high definition, but maybe I'm wrong... any hint would be appreciated
-3. Could I use tvtime with the tuner, if possible?
+Devin
 
-Compilation doesn't matter, I'm using a custom-made (and a bit deviated) LFS/CLFS distro, so I'm accustomed to compile every single
-package I need for my system, which (by the way) it's x86 with no compatibility mode (I mean... no i486-pc-linux-gnu but i686-pc-linux-gnu triplet)
-and the GNOME desktop.
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
 
-Thanks in advance,
-Julio
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
