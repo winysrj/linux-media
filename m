@@ -1,52 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.wa.amnet.net.au ([203.161.124.51]:45593 "EHLO
-	smtp2.wa.amnet.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755796Ab0AWP3f (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jan 2010 10:29:35 -0500
-Message-ID: <4B5B0E12.3090706@barber-family.id.au>
-Date: Sat, 23 Jan 2010 22:56:18 +0800
-From: Francis Barber <fedora@barber-family.id.au>
+Received: from bombadil.infradead.org ([18.85.46.34]:33276 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751241Ab0AIUA1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jan 2010 15:00:27 -0500
+Message-ID: <4B48E054.7000103@infradead.org>
+Date: Sat, 09 Jan 2010 18:00:20 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: stoth@kernellabs.com
-CC: linux-media@vger.kernel.org
-Subject: New Hauppauge HVR-2200 Revision?
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: =?ISO-8859-1?Q?Michael_R=FCttgers?= <ich@michael-ruettgers.de>,
+	linux-media@vger.kernel.org, devin.heitmueller@gmail.com
+Subject: Re: em28xx: New device request and tvp5150 distortion issues when
+ 	capturing from vcr
+References: <1262680804.26250.10.camel@wi-289.weiss.local> <829197381001060756q59916baakc178d60f7116181d@mail.gmail.com>
+In-Reply-To: <829197381001060756q59916baakc178d60f7116181d@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Steven,
+Devin Heitmueller wrote:
+> On Tue, Jan 5, 2010 at 3:40 AM, Michael Rüttgers
+> <ich@michael-ruettgers.de> wrote:
+>> Hello,
+>>
+>> a year ago I bought a device named "Hama Video Editor", which was not
+>> (and is not yet) supported by the em28xx driver.
+>> So I played around with the card parameter and got the device basically
+>> working with card=38.
+>> Basically working means, that I had a distortion when capturing old
+>> VHS-Tapes from my old vcr.
+>>
+>> The problem can be seen here:
+>> http://www.michael-ruettgers.de/em28xx/test.avi
+>>
+>> A few weeks ago I started tracking down the reason for this issue with
+>> the help of Devin.
+>> Wondering, that the device works perfectly in Windows, I compared the
+>> i2c commands, that programmed the register of the tvp5150 in Windows.
+>>
+>> Finally I got the device working properly, setting the "TV/VCR" option
+>> in the register "Operation Mode Controls Register" at address 02h
+>> manually to "Automatic mode determined by the internal detection
+>> circuit. (default)":
+>>
+>> 000109:  OUT: 000000 ms 107025 ms 40 02 00 00 b8 00 02 00 >>>  02 00
+>>
+>> After programming this register, the distortion issue disappeared.
+>>
+>> So my conclusion was, that the TV/VCR detection mode is forced to
+>> TV-mode in the em28xx, which could have been verified by a look into the
+>> debug output using the parameter reg_debug=1:
+>>
+>> OUT: 40 02 00 00 b8 00 02 00 >>> 02 30
+>>
+>> Bit 4, 5 are used for setting the TV/VCR mode:
+>>
+>> Description in the Spec:
+>>> TV/VCR mode
+>>>   00 = Automatic mode determined by the internal detection circuit.
+>> (default)
+>>>   01 = Reserved
+>>>   10 = VCR (nonstandard video) mode
+>>>   11 = TV (standard video) mode
+>>> With automatic detection enabled, unstable or nonstandard syncs on the
+>> input video forces the detector into the VCR
+>>> mode. This turns off the comb filters and turns on the chroma trap
+>> filter.
+>>
+>> Thus far the tvp5150 distortion issues when capturing from vcr.
+> 
+> Mauro,
+> 
+> I have been working with Michael on this issue and I did some research
+> into the history of this issue, and it seems like you introduced code
+> in rev 2900 which turns off the auto mode and forces the tvp5150 into
+> "TV mode" if using a composite input:
+> 
+> http://linuxtv.org/hg/v4l-dvb/rev/e6c585a76c77
+> 
+> Could you provide any information on the rationale for this decision?
+> I would think that having it in auto mode would be the appropriate
+> default (which is what the Windows driver does), and then you would
+> force it to either TV or VCR mode only if absolutely necessary.
+> 
+> The comb filter only gets disabled if the auto mode actually concludes
+> the device should be in VCR mode.  Hence, there shouldn't be any
+> downside to having it in auto mode unless you have some reason to
+> believe the detection code is faulty or error-prone.
+> 
 
-Firstly, thanks for writing the drivers for HVR-2200.  I'd would be 
-delighted if you have some time help me get my hardware supported.  I 
-bought an HVR-2200 today. I built the latest from 
-http://linuxtv.org/hg/v4l-dvb/, but the device is not yet known:
+This is a very old patch, and I forgot the reasons why. On that time, only
+TV were working. I suspect the change were needed in order to get signal
+working at Svideo/composite entry on WinTV USB2. Probably, I tested 
+Svideo/composite with an old VCR I used for tests on that time.
 
-[15596.718263] CORE saa7164[0]: subsystem: 0070:8940, board: Unknown 
-[card=0,autodetected]
-[15596.718270] saa7164[0]/0: found at 0000:03:00.0, rev: 129, irq: 19, 
-latency: 0, mmio: 0xfe800000
+> We can add a modprobe option to allow the user to force it into one
+> mode or the other, if someone finds a case where the detection logic
+> has issues.  But forcing it into one particular mode by default
+> doesn't seem like the right approach.
 
-I'm a confused by 8940 because this isn't listed in the hcw89.inf file 
-on the CD that shipped with the product (driver version 7.6.1.27118).  
-They list 8900, 8901, 8980, 8991, 8993, 89A0, and 89A1.  I downloaded 
-the latest drivers from the website (7.6.27.27223) and this adds 8951 
-and 8953, but still not 8940.
+A modprobe option would be very bad, IMHO. If the problem is with some
+old VCR's, maybe the better is to add a control for it. For example, bttv
+driver has one such control:
 
-The firmware shipped with 7.6.1.27118 is the same as is available on 
-your website, although they have updated it for 7.6.27.27223.
+	V4L2_CID_PRIVATE_VCR_HACK
 
-Some details available by looking at the card:
-- WinTV-HVR-2200 DVB-T, MULTI-PAL, 89619 LF, REV D3F2.
-- Has two NXP TDA10048HN, POS963, 00 01, EPD09322.
-- NXP SAA7064E/3, P1A571.00, 07, ESD09372Y.
-- SAMSUNG 916 that someone seems to have written on with pencil (?!) so 
-I can't read it properly.
-- Made in Indonesia 2009/08/20.
+I agree that it makes sense to keep the autodetect mode on by default, but
+tests are needed to validade if this won't break support with other devices.
 
-If there is any other information that would be helpful please let me know.
-
-Many thanks,
-Frank.
-
+Cheers,
+Mauro.
