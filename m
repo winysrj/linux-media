@@ -1,45 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f215.google.com ([209.85.220.215]:38312 "EHLO
-	mail-fx0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752333Ab0AXJNN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jan 2010 04:13:13 -0500
-Received: by fxm7 with SMTP id 7so906231fxm.28
-        for <linux-media@vger.kernel.org>; Sun, 24 Jan 2010 01:13:11 -0800 (PST)
+Received: from mail.gmx.net ([213.165.64.20]:48207 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754388Ab0AIW0M convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jan 2010 17:26:12 -0500
+Date: Sat, 9 Jan 2010 23:26:11 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [Q] hg patches with non-ASCII symbols
+Message-ID: <alpine.DEB.2.00.1001092321200.18115@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <1264275944.21574.103.camel@slash.doma>
-References: <1264193852.21574.84.camel@slash.doma>
-	 <1264275944.21574.103.camel@slash.doma>
-Date: Sun, 24 Jan 2010 13:13:11 +0400
-Message-ID: <1a297b361001240113j1572ceb1m63bce9696fa21eb9@mail.gmail.com>
-Subject: Re: technisat cablestar hd2, 2.6.33-rc5, no remote (VP2040)
-From: Manu Abraham <abraham.manu@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Mauro, all
 
-On Sat, Jan 23, 2010 at 11:45 PM, Alja≈æ Prusnik <prusnik@gmail.com> wrote:
-> Hi Manu,
->
-> I'm sorry to bother you with this one, but I'd really like to know if
-> there's something I'm doing wrong or is there something more I can
-> provide on this one. Below are some results from the newest kernel RC,
-> while sometime back I also posted some more debug info.
->
-> I just noticed that someone else also reported the same problem:
-> http://www.spinics.net/lists/linux-media/msg14332.html
+I've got a couple of patches from authors with non-ASCII characters in 
+their names. I'm sending this email on purpose from a utf-8 client to 
+better demonstrait this. Here is a header of one of such _git_ patches:
 
-There's nothing wrong with what you are doing in there.
+<quote>
 
-While the driver was pushed in the IR interface related stuff itself
-was very much in flux and caused some issues and hence support for the
-same was not added in at that time.
+>From 7984cae1e117149392548ff102c7a22fce7ae92c Mon Sep 17 00:00:00 2001
+From: =?utf-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+Date: Wed, 16 Dec 2009 17:10:04 +0100
+Subject: [PATCH 1/5] V4L/DVB mx1_camera: don't check platform_get_irq's return value against zero
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 
-I will push out the support as I get free time into the mantis-v4l-dvb tree.
+platform_get_irq returns -ENXIO on failure, so !irq was probably
+always true.  Better use (int)irq <= 0.  Note that a return value of
+zero is still handled as error even though this could mean irq0.
 
-Regards,
-Manu
+This is a followup to 305b3228f9ff4d59f49e6d34a7034d44ee8ce2f0 that
+changed the return value of platform_get_irq from 0 to -ENXIO on error.
+
+Signed-off-by: Uwe Kleine-Kˆnig <u.kleine-koenig@pengutronix.de>
+
+</quote>
+
+As you see, the name in the header is converted to a string like
+
+From: =?utf-8?q?Uwe=20Kleine-K=C3=B6nig?= <u.kleine-koenig@pengutronix.de>
+
+but UTF-8 is preserved in Sob. Is this also how I shall commit such 
+patches to hg or shall I do this somehow differently. Or shall I just wait 
+with these patches until v4l switches to git...
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
