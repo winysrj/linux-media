@@ -1,50 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:30251 "EHLO mx1.redhat.com"
+Received: from mail1.radix.net ([207.192.128.31]:52193 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751476Ab0ALLxm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jan 2010 06:53:42 -0500
-Message-ID: <4B4C62DA.5000404@redhat.com>
-Date: Tue, 12 Jan 2010 12:54:02 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: Jose Alberto Reguero <jareguero@telefonica.net>,
+	id S1750771Ab0AIEYc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 Jan 2010 23:24:32 -0500
+Subject: Re: Leadtek WinFast PVR2100 linux support
+From: Andy Walls <awalls@radix.net>
+To: User discussion about IVTV <ivtv-users@ivtvdriver.org>
+Cc: dennisharrison@gmail.com, ivtv-devel@ivtvdriver.org,
 	linux-media@vger.kernel.org
-Subject: Re: Problem with gspca and zc3xx
-References: <201001090015.31357.jareguero@telefonica.net>	<4B4AE349.4000707@redhat.com>	<20100111105524.157ebdbe@tele>	<201001111549.55439.jareguero@telefonica.net> <20100112093635.66aa9d57@tele>
-In-Reply-To: <20100112093635.66aa9d57@tele>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+In-Reply-To: <1262958952.3054.17.camel@palomino.walls.org>
+References: <6e8b29e1001061428k39e3b2a6w825c8b8336f30b3e@mail.gmail.com>
+	 <1262826612.3065.30.camel@palomino.walls.org>
+	 <829197381001070753s3152f52ai788f675e0a0a3280@mail.gmail.com>
+	 <1262958952.3054.17.camel@palomino.walls.org>
+Content-Type: text/plain
+Date: Fri, 08 Jan 2010 23:24:02 -0500
+Message-Id: <1263011042.25440.6.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Fri, 2010-01-08 at 08:55 -0500, Andy Walls wrote:
+> On Thu, 2010-01-07 at 10:53 -0500, Devin Heitmueller wrote:
+> > On Wed, Jan 6, 2010 at 8:10 PM, Andy Walls <awalls@radix.net> wrote:
+> > >>   I am
+> > >> looking to setup a mythtv box in the house - and I am stuck on
+> > >> satellite.  The only way I can see to get hd content out of the
+> > >> receivers are hdmi and component.  My understanding is that no hdmi
+> > >> capture cards work properly under linux (hours of google - is all I
+> > >> have to go on for this though).  So that leaves component capture, and
+> > >> the leadtek pvr2100 would be the best bang for the buck (I think?).
+> > 
+> > It is probably worth noting that component capture does not
+> > necessarily mean HD component capture.  I suspect this card may very
+> > well only capture 480i/480p.
+> > 
+> > Do you know definitively that it can capture in HD?
+> 
+> Good point.  I'm pretty sure a CX23418 will only ever be able to capture
+> standard resolution using component video in.  Even if I could coax the
+> analog front end into an HD resolution configuration (doubtful), the
+> MPEG encoding engine is still expecting 720x576 as the max resolution
+> (PAL & SECAM).
+> 
+> But component video for cx18 might still be a project I undertake
+> sometime.
 
-On 01/12/2010 09:36 AM, Jean-Francois Moine wrote:
-> On Mon, 11 Jan 2010 15:49:55 +0100
-> Jose Alberto Reguero<jareguero@telefonica.net>  wrote:
->
->> I take another image with 640x480 and the bad bottom lines are 8. The
->> right side look right this time. The good sizes are:
->> 320x240->320x232
->> 640x480->640x472
->
-> Hi Jose Alberto and Hans,
->
-> Hans, I modified a bit your patch to handle the 2 resolutions (also, the
-> problem with pas202b does not exist anymore). May you sign or ack it?
->
+And here's my first stab at cx18 component video:
 
-Thanks!
+	http://linuxtv.org/hg/~awalls/cx18-pvr2100-component
 
-It seems our mails crossed each other, you are right the pas202b
-320x240 issue (the pas202b is a cam I have, and it only had the
-issue at 320x240, hence the incompleteness of my patch) is fixed
-in your tree, excellent!
+for both the Leadtek PVR2100 and DVR3100 H.  It was a little easier than
+I had thought.
 
-The patch is:
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Anyone with one of those boards with the component video hookup, please
+give it a test.
 
 Regards,
+Andy
 
-Hans
