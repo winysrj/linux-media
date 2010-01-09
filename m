@@ -1,36 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.156]:32666 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750878Ab0ABWL0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Jan 2010 17:11:26 -0500
-Received: by fg-out-1718.google.com with SMTP id 22so5730103fge.1
-        for <linux-media@vger.kernel.org>; Sat, 02 Jan 2010 14:11:25 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <3f3a053b1001021407k6ce936b8gd7d3e575a25e734d@mail.gmail.com>
-References: <3f3a053b1001021407k6ce936b8gd7d3e575a25e734d@mail.gmail.com>
-From: Jonas <oj@koekenbier.net>
-Date: Sat, 2 Jan 2010 23:11:08 +0100
-Message-ID: <3f3a053b1001021411i2e9484d7rd2d13f1a355939fe@mail.gmail.com>
-Subject: CI USB
+Received: from smtp-out13.alice.it ([85.33.2.18]:3821 "EHLO
+	smtp-out13.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751612Ab0AIAmv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jan 2010 19:42:51 -0500
+From: Antonio Ospite <ospite@studenti.unina.it>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Cc: Antonio Ospite <ospite@studenti.unina.it>,
+	Jean-Francois Moine <moinejf@free.fr>
+Subject: [PATCH] ov534: allow enumerating supported framerates
+Date: Sat,  9 Jan 2010 01:41:31 +0100
+Message-Id: <1262997691-20651-1-git-send-email-ospite@studenti.unina.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
 
-Does anyone know if there's any progress on USB CI adapter support?
-Last posts I can find are from 2008 (Terratec Cinergy CI USB &
-Hauppauge WinTV-CI).
+---
 
-That attempt seems to have stranded with Luc Brosens (who gave it a
-shot back then) asking for help.
+Historical note:
 
-The chip manufacturer introduced a usb stick as well;
-http://www.smardtv.com/index.php?page=products_listing&rubrique=pctv&section=usbcam
-but besides the scary Vista logo on that page, it looks like they
-target broadcast companies only and not end users.
+This has been re-tested on a reliable machine and it works from guvcview for
+all the framerates; on my old PC I am still having problems with 640x480@60fps
+_regardless_ of this change, so it must be a USB problem.
 
-Cheers,
+Thanks,
+   Antonio
 
-- jonas
+Index: gspca/linux/drivers/media/video/gspca/ov534.c
+===================================================================
+--- gspca.orig/linux/drivers/media/video/gspca/ov534.c
++++ gspca/linux/drivers/media/video/gspca/ov534.c
+@@ -282,6 +282,21 @@
+ 	 .priv = 0},
+ };
+ 
++static const int qvga_rates[] = {125, 100, 75, 60, 50, 40, 30};
++static const int vga_rates[] = {60, 50, 40, 30, 15};
++
++static const struct framerates ov772x_framerates[] = {
++	{ /* 320x240 */
++		.rates = qvga_rates,
++		.nrates = ARRAY_SIZE(qvga_rates),
++	},
++	{ /* 640x480 */
++		.rates = vga_rates,
++		.nrates = ARRAY_SIZE(vga_rates),
++	},
++};
++
++
+ static const u8 bridge_init[][2] = {
+ 	{ 0xc2, 0x0c },
+ 	{ 0x88, 0xf8 },
+@@ -799,6 +814,7 @@
+ 
+ 	cam->cam_mode = ov772x_mode;
+ 	cam->nmodes = ARRAY_SIZE(ov772x_mode);
++	cam->mode_framerates = ov772x_framerates;
+ 
+ 	cam->bulk = 1;
+ 	cam->bulk_size = 16384;
