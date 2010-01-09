@@ -1,57 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f179.google.com ([209.85.211.179]:55619 "EHLO
-	mail-yw0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753227Ab0AaQZe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Jan 2010 11:25:34 -0500
-Received: by ywh9 with SMTP id 9so3688258ywh.19
-        for <linux-media@vger.kernel.org>; Sun, 31 Jan 2010 08:25:33 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1264951975.28401.8.camel@alkaloid.netup.ru>
-References: <b36f333c1001310412r40cb425cp7a5a0d282c6a716a@mail.gmail.com>
-	 <1264941827.28401.3.camel@alkaloid.netup.ru>
-	 <b36f333c1001310707w3397a5a6i758031262d8591a7@mail.gmail.com>
-	 <b36f333c1001310723p561d7a69x955b2d4a6d9b4e1@mail.gmail.com>
-	 <1264951975.28401.8.camel@alkaloid.netup.ru>
-Date: Sun, 31 Jan 2010 17:25:32 +0100
-Message-ID: <b36f333c1001310825n6ae6e5dbg45a0cf135d2e89e@mail.gmail.com>
-Subject: Re: CAM appears to introduce packet loss
-From: Marc Schmitt <marc.schmitt@gmail.com>
-To: Abylai Ospan <aospan@netup.ru>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from poutre.nerim.net ([62.4.16.124]:52837 "EHLO poutre.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754200Ab0AIQPE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Jan 2010 11:15:04 -0500
+Date: Sat, 9 Jan 2010 17:14:57 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: Daro <ghost-rider@aster.pl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	V4L and DVB maintainers <v4l-dvb-maintainer@linuxtv.org>
+Subject: Re: IR device at I2C address 0x7a
+Message-ID: <20100109171457.77439f12@hyperion.delvare>
+In-Reply-To: <4B4871C4.10401@aster.pl>
+References: <4B324EF0.7090606@aster.pl>
+	<20100106153909.6bce3183@hyperion.delvare>
+	<4B44CF62.5060405@aster.pl>
+	<20100106194059.061636d3@hyperion.delvare>
+	<4B44E026.3060906@aster.pl>
+	<20100106212140.11b02d0f@hyperion.delvare>
+	<4B4871C4.10401@aster.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Compiling from source made me stumble across
-http://www.mail-archive.com/ubuntu-devel-discuss@lists.ubuntu.com/msg09422.html
-I just left out the firedtv driver as recommended.
+On Sat, 09 Jan 2010 13:08:36 +0100, Daro wrote:
+> W dniu 06.01.2010 21:21, Jean Delvare pisze:
+> > On Wed, 06 Jan 2010 18:58:58 +0100, Daro wrote:
+> >> It is not the error message itself that bothers me but the fact that IR
+> >> remote control device is not detected and I cannot use it (I checked it
+> >> on Windows and it's working). After finding this thread I thought it
+> >> could have had something to do with this error mesage.
+> >> Is there something that can be done to get my IR remote control working?
+> > You could try loading the saa7134 driver with option card=146 and see
+> > if it helps.
+>
+> It works!
+> 
+> [   15.477875] input: saa7134 IR (ASUSTeK P7131 Analo as 
+> /devices/pci0000:00/0000:00:1e.0/0000:05:00.0/input/input8
+> 
+> Thank you very much fo your help.
 
-I'm getting the following kernel output after enabling dvb_demux_speedcheck:
-[  330.366115] TS speed 40350 Kbits/sec
-[  332.197693] TS speed 40085 Kbits/sec
-[  334.011856] TS speed 40528 Kbits/sec
-[  335.843466] TS speed 40107 Kbits/sec
-[  337.665411] TS speed 40261 Kbits/sec
-[  339.496959] TS speed 40107 Kbits/sec
-[  341.318289] TS speed 40350 Kbits/sec
+Then I would suggest the following patch:
 
-Do you think the CI/CAM can not handle that?
+* * * * *
 
-On Sun, Jan 31, 2010 at 4:32 PM, Abylai Ospan <aospan@netup.ru> wrote:
-> On Sun, 2010-01-31 at 16:23 +0100, Marc Schmitt wrote:
->> Looks like I need to build the DVB subsystem from the latest sources
->> to get this option as it was recently added only
->> (http://udev.netup.ru/cgi-bin/hgwebdir.cgi/v4l-dvb-aospan/rev/1d956b581b02).
->> On it.
-> yes.
->
-> this option should show "raw" bitrate coming from demod and which passed
-> to CI. In user level you may be measuring bitrate after software PID
-> filtering ( may be not ).
->
-> --
-> Abylai Ospan <aospan@netup.ru>
-> NetUP Inc.
->
->
+From: Jean Delvare <khali@linux-fr.org>
+Subject: saa7134: Fix IR support of some ASUS TV-FM 7135 variants
+
+Some variants of the ASUS TV-FM 7135 are handled as the ASUSTeK P7131
+Analog (card=146). However, by the time we find out, some
+card-specific initialization is missed. In particular, the fact that
+the IR is GPIO-based. Set it when we change the card type.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Tested-by: Daro <ghost-rider@aster.pl>
+---
+ linux/drivers/media/video/saa7134/saa7134-cards.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+--- v4l-dvb.orig/linux/drivers/media/video/saa7134/saa7134-cards.c	2009-12-11 09:47:47.000000000 +0100
++++ v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c	2010-01-09 16:23:17.000000000 +0100
+@@ -7257,6 +7257,7 @@ int saa7134_board_init2(struct saa7134_d
+ 		       printk(KERN_INFO "%s: P7131 analog only, using "
+ 						       "entry of %s\n",
+ 		       dev->name, saa7134_boards[dev->board].name);
++			dev->has_remote = SAA7134_REMOTE_GPIO;
+ 	       }
+ 	       break;
+ 	case SAA7134_BOARD_HAUPPAUGE_HVR1150:
+
+
+* * * * *
+
+> I have another question regarding this driver:
+> 
+> [   21.340316] saa7133[0]: dsp access error
+> [   21.340320] saa7133[0]: dsp access error
+> 
+> Do those messages imply something wrong? Can they have something do do 
+> with the fact I cannot get the sound out of tvtime application directly 
+> and have to use "arecord | aplay" workaround which causes undesirable delay?
+
+Yes, the message is certainly related to your sound problem. Maybe
+support for your card is incomplete. But I can't help with this, sorry.
+
+-- 
+Jean Delvare
