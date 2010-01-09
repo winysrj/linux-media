@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <ismokuh@gmail.com>) id 1NWuCc-0007E9-4L
-	for linux-dvb@linuxtv.org; Mon, 18 Jan 2010 17:11:42 +0100
-Received: from mail-fx0-f225.google.com ([209.85.220.225])
+	(envelope-from <valent.turkovic@gmail.com>) id 1NTjbE-0008UE-71
+	for linux-dvb@linuxtv.org; Sat, 09 Jan 2010 23:16:02 +0100
+Received: from mail-bw0-f227.google.com ([209.85.218.227])
 	by mail.tu-berlin.de (exim-4.69/mailfrontend-d) with esmtp
 	for <linux-dvb@linuxtv.org>
-	id 1NWuCb-0000cB-OF; Mon, 18 Jan 2010 17:11:41 +0100
-Received: by fxm25 with SMTP id 25so599597fxm.1
-	for <linux-dvb@linuxtv.org>; Mon, 18 Jan 2010 08:11:40 -0800 (PST)
+	id 1NTjbD-0003vf-Ke; Sat, 09 Jan 2010 23:15:59 +0100
+Received: by bwz27 with SMTP id 27so12484875bwz.1
+	for <linux-dvb@linuxtv.org>; Sat, 09 Jan 2010 14:15:59 -0800 (PST)
 MIME-Version: 1.0
-Date: Mon, 18 Jan 2010 18:11:40 +0200
-Message-ID: <6dcfbe31001180811h21a38381jec0ebb1a991f859d@mail.gmail.com>
-From: Ismo Kuhmonen <ismokuh@gmail.com>
+Date: Sat, 9 Jan 2010 23:15:58 +0100
+Message-ID: <64b14b301001091415l1ce004a4s2770166d8678e623@mail.gmail.com>
+From: Valent Turkovic <valent.turkovic@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Asking
+Subject: [linux-dvb] Genius TVGo DVB-T02Q MCE firmware and module issues
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -23,51 +23,74 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0959359883=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0959359883==
-Content-Type: multipart/alternative; boundary=001485f44e58d0d6d7047d729bd4
+Hi,
+I have Genius DVB-T02Q MCE USB DVB-T tuner. I tried using it on Ubuntu
+and Fedora without success.
 
---001485f44e58d0d6d7047d729bd4
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+Here is the info that I get via dmesg and lsusb:
 
-Hi
-Why my Pinnacle  DVB-T 73=80 USB not working?
+# dmesg
+usb 1-6: new high speed USB device using ehci_hcd and address 8
+usb 1-6: New USB device found, idVendor=0458, idProduct=400f
+usb 1-6: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+usb 1-6: Product: DVB-T02Q MCE
+usb 1-6: Manufacturer: Genius
+usb 1-6: configuration #1 chosen from 1 choice
+input: Genius DVB-T02Q MCE as
+/devices/pci0000:00/0000:00:1d.7/usb1/1-6/1-6:1.0/input/input14
+generic-usb 0003:0458:400F.0007: input,hidraw3: USB HID v1.11 Keyboard
+[Genius DVB-T02Q MCE] on usb-0000:00:1d.7-6/input0
 
---=20
-Ismo Kuhmonen
-Kontiopuisto  7 B 18
-76120 Pieks=E4m=E4ki
-p 046 6336111 &  044 9627227
-ismokuh@gmail.com
+Is the correct driver for this device dvb-usb-m920x ?
 
---001485f44e58d0d6d7047d729bd4
-Content-Type: text/html; charset=windows-1252
-Content-Transfer-Encoding: quoted-printable
+On Fedora 12 with 2.6.31.9-174.fc12.i686 kernel I don't see that this
+module is getting loaded, why?
 
-Hi<br>Why my Pinnacle=A0 DVB-T 73=80 USB not working?<br clear=3D"all"><br>=
--- <br>Ismo Kuhmonen<br>Kontiopuisto =A07 B 18<br>76120 Pieks=E4m=E4ki<br>p=
- 046 6336111 &amp; =A0044 9627227<br> <a href=3D"mailto:ismokuh@gmail.com">=
-ismokuh@gmail.com</a><br>
+I manually loaded dvb-usb-m920x module:
+# modprobe dvb-usb-m920x
+# dmesg
+usbcore: registered new interface driver dvb_usb_m920x
+
+I don't see /dev/dvb or /dev/video0 devices present, so I guess that
+something still is not ok, maybe firmware?
+
+Which is the correct firmware for this device? I downloaded all
+firmware from: http://linuxtv.org/downloads/firmware/ and copied them
+to /lib/firmware and tried reloading the module, still nothing :(
+
+Then I saw post on this mailing list saying that correct firware is
+dvb-usb-megasky-02.fw so I downloaded it also, but still nothing.
+
+Do you have any idea why this device is not working?
+
+Can I give you some more info in order to fix this issue?
+
+Cheers!
 
 
---001485f44e58d0d6d7047d729bd4--
+-- 
+pratite me na twitteru - www.twitter.com/valentt
+http://kernelreloaded.blog385.com/
+linux, blog, anime, spirituality, windsurf, wireless
+registered as user #367004 with the Linux Counter, http://counter.li.org.
+ICQ: 2125241, Skype: valent.turkovic
 
 
---===============0959359883==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+pratite me na twitteru - www.twitter.com/valentt
+http://kernelreloaded.blog385.com/
+linux, blog, anime, spirituality, windsurf, wireless
+registered as user #367004 with the Linux Counter, http://counter.li.org.
+ICQ: 2125241, Skype: valent.turkovic, msn: valent.turkovic@hotmail.com
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0959359883==--
