@@ -1,89 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:50031 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751536Ab0AKXur (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2010 18:50:47 -0500
-Subject: Re: [PATCH 1/1] media: video/cx18, fix potential null dereference
-From: Andy Walls <awalls@radix.net>
-To: Jiri Slaby <jslaby@suse.cz>
-Cc: mchehab@redhat.com, hverkuil@xs4all.nl, ivtv-devel@ivtvdriver.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	jirislaby@gmail.com
-In-Reply-To: <1263113806-7532-1-git-send-email-jslaby@suse.cz>
-References: <1263113806-7532-1-git-send-email-jslaby@suse.cz>
+Received: from mail-in-08.arcor-online.net ([151.189.21.48]:47218 "EHLO
+	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751178Ab0AIXcU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Jan 2010 18:32:20 -0500
+Subject: Re: IR device at I2C address 0x7a
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Daro <ghost-rider@aster.pl>, LMML <linux-media@vger.kernel.org>,
+	V4L and DVB maintainers <v4l-dvb-maintainer@linuxtv.org>
+In-Reply-To: <20100109171457.77439f12@hyperion.delvare>
+References: <4B324EF0.7090606@aster.pl>
+	 <20100106153909.6bce3183@hyperion.delvare> <4B44CF62.5060405@aster.pl>
+	 <20100106194059.061636d3@hyperion.delvare> <4B44E026.3060906@aster.pl>
+	 <20100106212140.11b02d0f@hyperion.delvare> <4B4871C4.10401@aster.pl>
+	 <20100109171457.77439f12@hyperion.delvare>
 Content-Type: text/plain
-Date: Mon, 11 Jan 2010 18:48:29 -0500
-Message-Id: <1263253709.4116.1.camel@palomino.walls.org>
+Date: Sun, 10 Jan 2010 00:18:46 +0100
+Message-Id: <1263079126.3870.65.camel@pc07.localdom.local>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2010-01-10 at 09:56 +0100, Jiri Slaby wrote:
-> Stanse found a potential null dereference in cx18_dvb_start_feed
-> and cx18_dvb_stop_feed. There is a check for stream being NULL,
-> but it is dereferenced earlier. Move the dereference after the
-> check.
+Hi,
+
+Am Samstag, den 09.01.2010, 17:14 +0100 schrieb Jean Delvare:
+> On Sat, 09 Jan 2010 13:08:36 +0100, Daro wrote:
+> > W dniu 06.01.2010 21:21, Jean Delvare pisze:
+> > > On Wed, 06 Jan 2010 18:58:58 +0100, Daro wrote:
+> > >> It is not the error message itself that bothers me but the fact that IR
+> > >> remote control device is not detected and I cannot use it (I checked it
+> > >> on Windows and it's working). After finding this thread I thought it
+> > >> could have had something to do with this error mesage.
+> > >> Is there something that can be done to get my IR remote control working?
+> > > You could try loading the saa7134 driver with option card=146 and see
+> > > if it helps.
+> >
+> > It works!
+> > 
+> > [   15.477875] input: saa7134 IR (ASUSTeK P7131 Analo as 
+> > /devices/pci0000:00/0000:00:1e.0/0000:05:00.0/input/input8
+> > 
+> > Thank you very much fo your help.
 > 
-> Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+> Then I would suggest the following patch:
+> 
+> * * * * *
+> 
+> From: Jean Delvare <khali@linux-fr.org>
+> Subject: saa7134: Fix IR support of some ASUS TV-FM 7135 variants
+> 
+> Some variants of the ASUS TV-FM 7135 are handled as the ASUSTeK P7131
+> Analog (card=146). However, by the time we find out, some
+> card-specific initialization is missed. In particular, the fact that
+> the IR is GPIO-based. Set it when we change the card type.
+> 
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> Tested-by: Daro <ghost-rider@aster.pl>
 
-Reviewed-by: Andy Walls <awalls@radix.net>
-Acked-by: Andy Walls <awalls@radix.net>
-
-Regards,
-Andy
+just to note it, the ASUS TV-FM 7135 with USB remote is different to the
+Asus My Cinema P7134 Analog only, not only for the remote, but also for
+inputs, but they have the same PCI subsystem.
 
 > ---
->  drivers/media/video/cx18/cx18-dvb.c |   18 ++++++++++--------
->  1 files changed, 10 insertions(+), 8 deletions(-)
+>  linux/drivers/media/video/saa7134/saa7134-cards.c |    1 +
+>  1 file changed, 1 insertion(+)
 > 
-> diff --git a/drivers/media/video/cx18/cx18-dvb.c b/drivers/media/video/cx18/cx18-dvb.c
-> index 71ad2d1..0ad5b63 100644
-> --- a/drivers/media/video/cx18/cx18-dvb.c
-> +++ b/drivers/media/video/cx18/cx18-dvb.c
-> @@ -213,10 +213,14 @@ static int cx18_dvb_start_feed(struct dvb_demux_feed *feed)
->  {
->  	struct dvb_demux *demux = feed->demux;
->  	struct cx18_stream *stream = (struct cx18_stream *) demux->priv;
-> -	struct cx18 *cx = stream->cx;
-> +	struct cx18 *cx;
->  	int ret;
->  	u32 v;
->  
-> +	if (!stream)
-> +		return -EINVAL;
-> +
-> +	cx = stream->cx;
->  	CX18_DEBUG_INFO("Start feed: pid = 0x%x index = %d\n",
->  			feed->pid, feed->index);
->  
-> @@ -253,9 +257,6 @@ static int cx18_dvb_start_feed(struct dvb_demux_feed *feed)
->  	if (!demux->dmx.frontend)
->  		return -EINVAL;
->  
-> -	if (!stream)
-> -		return -EINVAL;
-> -
->  	mutex_lock(&stream->dvb.feedlock);
->  	if (stream->dvb.feeding++ == 0) {
->  		CX18_DEBUG_INFO("Starting Transport DMA\n");
-> @@ -279,13 +280,14 @@ static int cx18_dvb_stop_feed(struct dvb_demux_feed *feed)
->  {
->  	struct dvb_demux *demux = feed->demux;
->  	struct cx18_stream *stream = (struct cx18_stream *)demux->priv;
-> -	struct cx18 *cx = stream->cx;
-> +	struct cx18 *cx;
->  	int ret = -EINVAL;
->  
-> -	CX18_DEBUG_INFO("Stop feed: pid = 0x%x index = %d\n",
-> -			feed->pid, feed->index);
-> -
->  	if (stream) {
-> +		cx = stream->cx;
-> +		CX18_DEBUG_INFO("Stop feed: pid = 0x%x index = %d\n",
-> +				feed->pid, feed->index);
-> +
->  		mutex_lock(&stream->dvb.feedlock);
->  		if (--stream->dvb.feeding == 0) {
->  			CX18_DEBUG_INFO("Stopping Transport DMA\n");
+> --- v4l-dvb.orig/linux/drivers/media/video/saa7134/saa7134-cards.c	2009-12-11 09:47:47.000000000 +0100
+> +++ v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c	2010-01-09 16:23:17.000000000 +0100
+> @@ -7257,6 +7257,7 @@ int saa7134_board_init2(struct saa7134_d
+>  		       printk(KERN_INFO "%s: P7131 analog only, using "
+>  						       "entry of %s\n",
+>  		       dev->name, saa7134_boards[dev->board].name);
+> +			dev->has_remote = SAA7134_REMOTE_GPIO;
+>  	       }
+>  	       break;
+>  	case SAA7134_BOARD_HAUPPAUGE_HVR1150:
+> 
+> 
+> * * * * *
+
+Must have been broken at that time, IIRC.
+
+Only moving saa7134_input_init1(dev) to static int saa7134_hwinit2
+in saa7134-core.c did help, AFAIK, but I might be wrong.
+
+> > I have another question regarding this driver:
+> > 
+> > [   21.340316] saa7133[0]: dsp access error
+> > [   21.340320] saa7133[0]: dsp access error
+> > 
+> > Do those messages imply something wrong? Can they have something do do 
+> > with the fact I cannot get the sound out of tvtime application directly 
+> > and have to use "arecord | aplay" workaround which causes undesirable delay?
+> 
+> Yes, the message is certainly related to your sound problem. Maybe
+> support for your card is incomplete. But I can't help with this, sorry.
+
+That is nice ice to slide on, but from all others with that card
+previously not reported so far.
+
+Anyway, it should have also analog audio out, the two pins in the middle
+of the white 4pin connector on the PCB are ground. To know that can
+avoid troubles using older CD-ROM audio cables and get only one of the
+stereo channels.
+
+Cheers,
+Hermann
+
+
+
+
+Hermann
+
 
