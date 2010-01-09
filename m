@@ -1,141 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:54345 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758361Ab0APAK1 convert rfc822-to-8bit (ORCPT
+Received: from mail-in-15.arcor-online.net ([151.189.21.55]:55267 "EHLO
+	mail-in-15.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751040Ab0AIXCE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jan 2010 19:10:27 -0500
-Received: by bwz27 with SMTP id 27so1031837bwz.21
-        for <linux-media@vger.kernel.org>; Fri, 15 Jan 2010 16:10:25 -0800 (PST)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: paul10@planar.id.au, "linux-media" <linux-media@vger.kernel.org>
-Subject: Re: DM1105: could not attach frontend 195d:1105
-Date: Sat, 16 Jan 2010 02:10:11 +0200
-References: <ce9ceb6396947b48531256e715f00390@mail.velocitynet.com.au>
-In-Reply-To: <ce9ceb6396947b48531256e715f00390@mail.velocitynet.com.au>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <201001160210.12048.liplianin@me.by>
+	Sat, 9 Jan 2010 18:02:04 -0500
+Subject: Re: Leadtek Winfast TV2100
+From: hermann pitton <hermann-pitton@arcor.de>
+To: dz-tor <dz-tor@wp.pl>
+Cc: Pavle Predic <pavle.predic@yahoo.co.uk>,
+	video4linux-list@redhat.com, LMML <linux-media@vger.kernel.org>,
+	Terry Wu <terrywu2009@gmail.com>
+In-Reply-To: <1263057295.3870.27.camel@pc07.localdom.local>
+References: <4B40B9CC.1040108@wp.pl>
+	 <1262979242.3246.10.camel@pc07.localdom.local> <4B47B836.3000108@wp.pl>
+	 <279441.7775.qm@web28406.mail.ukl.yahoo.com>  <4B48AD64.1000505@wp.pl>
+	 <1263057295.3870.27.camel@pc07.localdom.local>
+Content-Type: text/plain
+Date: Sat, 09 Jan 2010 23:48:34 +0100
+Message-Id: <1263077314.3870.41.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 16 января 2010 01:14:49 paul10@planar.id.au wrote:
-> On 15 января 2010 11:15:26 paul10@planar.id.au wrote:
-> > I bought a DVB-S card to attach to my mythtv setup.  I knew it was
->
-> perhaps
->
-> > not going to work, and I only spent $15 on it.  However, based on the
->
-> info
->
-> > the guy on eBay provided, it had a pci address of 195d:1105, which I
->
-> could
->
-> > see some people had cards that were working.
-> >
-> > The card itself is a no-name jobby.  I can see the DM1105 chip on it, I
-> > can't see any other chips with any significant pin count (lots with 3 -
->
-> 8
->
-> > pins, but nothing with enough to be important).  There is a metal case
-> > around the connectors that might be hiding a frontend chip of some sort,
-> > but it doesn't seem to have enough connectors in and out to be doing
->
-> much
->
-> > that is important beyond just providing connectivity to the LNB.
->
-> Igor wrote:
-> > Hi Paul,
-> >
-> > Frontend/tuner must lay under cover.
-> > Subsystem: Device 195d:1105 indicates that there is no EEPROM in card.
-> > If you send some links/pictures/photos then it would helped a lot.
-> > Is there a disk with drivers for Windows?
-> > Also I know about dm1105 based cards with tda10086 demod, those are not
->
-> supported in the driver
-> yet.
->
-> > BR
-> > Igor
->
-> Igor,
->
-> Photos:
-> 1.  Front of card.  You can see the DM1105 in the foreground.  There are
-> no other significant looking chips on the card.
-> http://planar.id.au/Photos/img_1964.jpg
->
-> 2.  Back of card - as you can see, there aren't a lot of places where a
-> lot of pins are connecting - mainly the DM1105 itself
-> http://planar.id.au/Photos/img_1965.jpg
->
-> 3.  With the top metal plate removed, and with the other end of the card
-> in better focus.
-> http://planar.id.au/Photos/img_1966.jpg
->
-> Is it likely that there is a tuner under the card labelled "ERIT"?  To
-> take it off I have to unsolder some stuff - I can do that, but I reckon
-> it's only 50% chance the card will work again when I put it back together -
-> my soldering isn't so good.
->
-> Thanks heaps for the assistance.
->
-> Paul
+Hi,
 
-Example of decipher :)
+sorry, there is a typo in the gpio mask on previously attached patch you
+might use against current v4l-dvb with your further findings.
 
-SP2636SVb
+Mask 0x0d is sufficient and we don't need any 0xe0d :(
 
-Company Name
-Model Number
-Size Input Option
-Demodulator Chip
-Chip Solution
-Chassis Type
-Remark
+You might also consider to start with vmux = 3 for Composite1 and vmux =
+0 for Composite2, that is expected to be over the S-Video connector and
+should work too.
 
-Serit
-Platform
+Does save some plugging around with two composite input devices, if
+S-Video is not in use.
 
-1: DVB-S
-2: DVB-S2
+good night,
+Hermann
 
-0 : 10cc
-4 : 14cc
-5 : 16cc
-6 : 16cc
 
-0 : Without Loop Thru
-1 :
-2 :
-3 : Loop Thru
- 
-0 : Half NIM
-1 : WJCE6313
-2 : STV0288
-3 : CX24116
-4 : Si2109
-5 : CX24123
-6 : STV0903
-
-C : Conaxent
-L : Silabs
-M : Montage
-N : Half NIM
-S : ST Micro.
-Z : Intel
-
-V : Vertical
-H : Horizontal
-
-b : Pb Fre
--- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
