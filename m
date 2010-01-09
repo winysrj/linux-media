@@ -1,50 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1972 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752741Ab0A0UKW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jan 2010 15:10:22 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: =?utf-8?q?N=C3=A9meth_M=C3=A1rton?= <nm127@freemail.hu>
-Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
-Date: Wed, 27 Jan 2010 21:10:08 +0100
+Received: from smtp3-g21.free.fr ([212.27.42.3]:42310 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751254Ab0AILNV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Jan 2010 06:13:21 -0500
+Date: Sat, 9 Jan 2010 12:14:31 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: sacarde <sacarde@tiscali.it>
 Cc: linux-media@vger.kernel.org
-References: <201001231959.o0NJx1BI095948@smtp-vbr8.xs4all.nl> <4B609BD6.6030503@freemail.hu>
-In-Reply-To: <4B609BD6.6030503@freemail.hu>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201001272110.08786.hverkuil@xs4all.nl>
+Subject: Re: problem webcam gspca 2.6.32
+Message-ID: <20100109121431.3efb9911@tele>
+In-Reply-To: <201001090932.39996.sacarde@tiscali.it>
+References: <201001090932.39996.sacarde@tiscali.it>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/DjGhcQ8XC3JCuB9cKyUCrmG"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 27 January 2010 21:02:30 Németh Márton wrote:
-> Hello Hans,
-> 
-> Hans Verkuil wrote:
-> > This message is generated daily by a cron job that builds v4l-dvb for
-> > the kernels and architectures in the list below.
-> 
-> The last cron message I saw was on 23rd January, 2010. All warnings and errors
-> were fixed since then ;-) or is there some problem with the cron job?
+--MP_/DjGhcQ8XC3JCuB9cKyUCrmG
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-The build server and my whole home network for that matter were undergoing a
-big upgrade. New harddisks and especially a new linux distro. It's now finished
-and the daily build has just started. So you should see the cron message in
-about two hours (it's a bit late today, tomorrow it is back to the normal
-schedule).
+On Sat, 9 Jan 2010 09:32:39 +0100
+sacarde <sacarde@tiscali.it> wrote:
 
-Regards,
+>  on my archlinux-64 I have a webcam: 0471:0322 Philips DMVC1300K PC
+> Camera=20
+>  until one mounth ago this works OK with driver: gspca_sunplus
+> =20
+>  now with kernel 2.6.32 not works....=20
 
-	Hans
+Hi,
 
-> 
-> Regarsd,
-> 
-> 	Márton Németh
-> 
-> 
+Oops, I introduced a bug in the sunplus driver of the kernel 2.6.32.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+I attach a patch, but this one applies to my gspca development
+repository at LinuxTv.org (http://linuxtv.org/hg/~jfrancois/gspca).
+
+May you get this last version and check the patch?
+
+Thank you.
+
+--=20
+Ken ar c'henta=C3=B1	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
+
+--MP_/DjGhcQ8XC3JCuB9cKyUCrmG
+Content-Type: application/octet-stream; name=sunplus.pat
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename=sunplus.pat
+
+ZGlmZiAtciA2Y2E0NjI0ZmFkZmIgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9nc3BjYS9zdW5w
+bHVzLmMKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9nc3BjYS9zdW5wbHVzLmMJRnJp
+IEphbiAwOCAxMjowODoxMiAyMDEwICswMTAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlk
+ZW8vZ3NwY2Evc3VucGx1cy5jCVNhdCBKYW4gMDkgMTI6MTE6MDIgMjAxMCArMDEwMApAQCAtNzQw
+LDcgKzc0MCw3IEBACiAJCXNwY2E1MDRCX1BvbGxpbmdEYXRhUmVhZHkoZ3NwY2FfZGV2KTsKIAog
+CQkvKiBJbml0IHRoZSBjYW0gd2lkdGggaGVpZ2h0IHdpdGggc29tZSB2YWx1ZXMgZ2V0IG9uIGlu
+aXQgPyAqLwotCQlyZWdfd19yaXYoZ3NwY2FfZGV2LCAweDMxLCAwLCAweDA0KTsKKwkJcmVnX3df
+cml2KGdzcGNhX2RldiwgMHgzMSwgMHgwMDA0LCAweDAwKTsKIAkJc3BjYTUwNEJfV2FpdENtZFN0
+YXR1cyhnc3BjYV9kZXYpOwogCQlzcGNhNTA0Ql9Qb2xsaW5nRGF0YVJlYWR5KGdzcGNhX2Rldik7
+CiAJCWJyZWFrOwpAQCAtODM4LDE0ICs4MzgsMTQgQEAKIAlkZWZhdWx0OgogLyoJY2FzZSBCUklE
+R0VfU1BDQTUzMzogKi8KIC8qCWNhc2UgQlJJREdFX1NQQ0E1MDRCOiAqLwotCQlyZWdfd19yaXYo
+Z3NwY2FfZGV2LCAwLCAweDAwLCAweDIxYWQpOwkvKiBodWUgKi8KLQkJcmVnX3dfcml2KGdzcGNh
+X2RldiwgMCwgMHgwMSwgMHgyMWFjKTsJLyogc2F0L2h1ZSAqLwotCQlyZWdfd19yaXYoZ3NwY2Ff
+ZGV2LCAwLCAweDAwLCAweDIxYTMpOwkvKiBnYW1tYSAqLworCQlyZWdfd19yaXYoZ3NwY2FfZGV2
+LCAwLCAweDIxYWQsIDB4MDApOwkvKiBodWUgKi8KKwkJcmVnX3dfcml2KGdzcGNhX2RldiwgMCwg
+MHgyMWFjLCAweDAxKTsJLyogc2F0L2h1ZSAqLworCQlyZWdfd19yaXYoZ3NwY2FfZGV2LCAwLCAw
+eDIxYTMsIDB4MDApOwkvKiBnYW1tYSAqLwogCQlicmVhazsKIAljYXNlIEJSSURHRV9TUENBNTM2
+OgotCQlyZWdfd19yaXYoZ3NwY2FfZGV2LCAwLCAweDQwLCAweDIwZjUpOwotCQlyZWdfd19yaXYo
+Z3NwY2FfZGV2LCAwLCAweDAxLCAweDIwZjQpOwotCQlyZWdfd19yaXYoZ3NwY2FfZGV2LCAwLCAw
+eDAwLCAweDIwODkpOworCQlyZWdfd19yaXYoZ3NwY2FfZGV2LCAwLCAweDIwZjUsIDB4NDApOwor
+CQlyZWdfd19yaXYoZ3NwY2FfZGV2LCAwLCAweDIwZjQsIDB4MDEpOworCQlyZWdfd19yaXYoZ3Nw
+Y2FfZGV2LCAwLCAweDIwODksIDB4MDApOwogCQlicmVhazsKIAl9CiAJaWYgKHBvbGxyZWcpCkBA
+IC05MTgsMTEgKzkxOCwxMSBAQAogCXN3aXRjaCAoc2QtPmJyaWRnZSkgewogCWNhc2UgQlJJREdF
+X1NQQ0E1MDRCOgogCQlyZWdfd19yaXYoZ3NwY2FfZGV2LCAweDFkLCAweDAwLCAwKTsKLQkJcmVn
+X3dfcml2KGdzcGNhX2RldiwgMCwgMHgwMSwgMHgyMzA2KTsKLQkJcmVnX3dfcml2KGdzcGNhX2Rl
+diwgMCwgMHgwMCwgMHgwZDA0KTsKLQkJcmVnX3dfcml2KGdzcGNhX2RldiwgMCwgMHgwMCwgMHgy
+MDAwKTsKLQkJcmVnX3dfcml2KGdzcGNhX2RldiwgMCwgMHgxMywgMHgyMzAxKTsKLQkJcmVnX3df
+cml2KGdzcGNhX2RldiwgMCwgMHgwMCwgMHgyMzA2KTsKKwkJcmVnX3dfcml2KGdzcGNhX2Rldiwg
+MHgwMCwgMHgyMzA2LCAweDAxKTsKKwkJcmVnX3dfcml2KGdzcGNhX2RldiwgMHgwMCwgMHgwZDA0
+LCAweDAwKTsKKwkJcmVnX3dfcml2KGdzcGNhX2RldiwgMHgwMCwgMHgyMDAwLCAweDAwKTsKKwkJ
+cmVnX3dfcml2KGdzcGNhX2RldiwgMHgwMCwgMHgyMzAxLCAweDEzKTsKKwkJcmVnX3dfcml2KGdz
+cGNhX2RldiwgMHgwMCwgMHgyMzA2LCAweDAwKTsKIAkJLyogZmFsbCB0aHJ1ICovCiAJY2FzZSBC
+UklER0VfU1BDQTUzMzoKIAkJc3BjYTUwNEJfUG9sbGluZ0RhdGFSZWFkeShnc3BjYV9kZXYpOwpA
+QCAtMTAzMSw3ICsxMDMxLDcgQEAKIAkJCXNwY2E1MDRCX1dhaXRDbWRTdGF0dXMoZ3NwY2FfZGV2
+KTsKIAkJCWJyZWFrOwogCQlkZWZhdWx0OgotCQkJcmVnX3dfcml2KGdzcGNhX2RldiwgMHgzMSwg
+MCwgMHgwNCk7CisJCQlyZWdfd19yaXYoZ3NwY2FfZGV2LCAweDMxLCAweDAwMDQsIDB4MDApOwog
+CQkJc3BjYTUwNEJfV2FpdENtZFN0YXR1cyhnc3BjYV9kZXYpOwogCQkJc3BjYTUwNEJfUG9sbGlu
+Z0RhdGFSZWFkeShnc3BjYV9kZXYpOwogCQkJYnJlYWs7Cg==
+
+--MP_/DjGhcQ8XC3JCuB9cKyUCrmG--
