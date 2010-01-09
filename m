@@ -1,25 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx09.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.13])
+Received: from mx1.redhat.com (ext-mx04.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.8])
 	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o04Jbh0L010761
-	for <video4linux-list@redhat.com>; Mon, 4 Jan 2010 14:37:44 -0500
-Received: from swip.net (mailfe16.swipnet.se [212.247.155.225])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o04JbQXi019238
-	for <video4linux-list@redhat.com>; Mon, 4 Jan 2010 14:37:27 -0500
-Received: from [188.126.201.140] (account mc467741@c2i.net HELO
-	laptop002.hselasky.homeunix.org)
-	by mailfe16.swip.net (CommuniGate Pro SMTP 5.2.16)
-	with ESMTPA id 591670537 for video4linux-list@redhat.com;
-	Mon, 04 Jan 2010 20:37:25 +0100
-To: video4linux-list@redhat.com
-Subject: [patch] UVC driver on FreeBSD 8/9
-From: Hans Petter Selasky <hselasky@c2i.net>
-Date: Mon, 4 Jan 2010 20:36:03 +0100
-MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_jMkQLj4DSWCd35g"
-Message-Id: <201001042036.03703.hselasky@c2i.net>
+	id o094F4rS004335
+	for <video4linux-list@redhat.com>; Fri, 8 Jan 2010 23:15:05 -0500
+Received: from mail-in-01.arcor-online.net (mail-in-01.arcor-online.net
+	[151.189.21.41])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o094EoaJ020727
+	for <video4linux-list@redhat.com>; Fri, 8 Jan 2010 23:14:51 -0500
+Subject: Re: Compiling xawtv - libzvbi.h error
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Stuart McKim <mckim@lifetime.oregonstate.edu>
+In-Reply-To: <20100108235715.GC4535@gazelle.rmt.insightsnow.com>
+References: <20100108235715.GC4535@gazelle.rmt.insightsnow.com>
+Date: Sat, 09 Jan 2010 05:03:09 +0100
+Message-Id: <1263009789.3087.1.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Cc: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,83 +24,71 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
---Boundary-00=_jMkQLj4DSWCd35g
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-
 Hi,
 
-The attached patch fixes a segfault on AMD64, because the USB pipe type is of 
-kind "void *" on FreeBSD, whilst on Linux it is an integer. Using long type 
-instead of int type allows the code to work on both systems.
+Am Freitag, den 08.01.2010, 15:57 -0800 schrieb Stuart McKim:
+> I am trying to compile xawtv-3.95, but I have run into an error I can't
+> seem to figure out the source of. I'm not sure if it's a mistake in my
+> installation of zvbi or xawtv.
+> 
+> In order, I installed:
+> tv-fonts-1.1 (successful)
+> zvbi-0.2.33  (successful)
+> xawtv-3.95   (failed)
+> 
+> My procedure for building xawtv is:
+> ./configure
+> make
+> 
+> The output from make is:
+> mckim@eckleburg ~/builds/xawtv-3.95 $ make
+>   CC      console/dump-mixers.o
+>   LD      console/dump-mixers
+>   CC      console/record.o
+>   LD      console/record
+>   CC      console/showriff.o
+>   LD      console/showriff
+>   CC      console/showqt.o
+>   LD      console/showqt
+>   CC      console/streamer.o
+> In file included from ./common/commands.h:1,
+>                  from console/streamer.c:32:
+> ./common/vbi-data.h:5:21: error: libzvbi.h: No such file or directory
+> In file included from ./common/commands.h:1,
+>                  from console/streamer.c:32:
+> ./common/vbi-data.h:10: error: expected specifier-qualifier-list before 'vbi_decoder'
+> ./common/vbi-data.h:36: warning: 'struct vbi_event' declared inside parameter list
+> ./common/vbi-data.h:36: warning: its scope is only this definition or declaration, which is probably not what you want
+> ./common/vbi-data.h:37: warning: 'struct vbi_char' declared inside parameter list
+> ./common/vbi-data.h:39: warning: 'struct vbi_decoder' declared inside parameter list
+> ./common/vbi-data.h:42: warning: 'struct vbi_page' declared inside parameter list
+> ./common/vbi-data.h:43: warning: 'struct vbi_page' declared inside parameter list
+> In file included from console/streamer.c:32:
+> ./common/commands.h:28: warning: 'struct vbi_page' declared inside parameter list
+> make: *** [console/streamer.o] Error 1
+> 
+> 
+> When I tried to locate libzvbi.h, the only copy I found is in the build
+> directory for zvbi-0.2.33.
+> 
+> Can somebody please help me get pointed in the right direction? I am
+> running Slackware64-13.0 on a 2.6.29.6 kernel.
+> 
+> Thanks,
+> Stuart
 
-Please verify and commit the attached patches!
+what about, as always, installing zvbi-devel in such case?
 
---HPS
+Hermann
 
---Boundary-00=_jMkQLj4DSWCd35g
-Content-Type: text/x-patch;
-  charset="utf-8";
-  name="uvc_status.c.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
-	filename="uvc_status.c.diff"
-
---- uvc_status.c.orig	2010-01-03 21:21:21.000000000 +0100
-+++ uvc_status.c	2010-01-03 21:22:04.000000000 +0100
-@@ -174,7 +174,7 @@ static void uvc_status_complete(struct u
- int uvc_status_init(struct uvc_device *dev)
- {
- 	struct usb_host_endpoint *ep = dev->int_ep;
--	unsigned int pipe;
-+	unsigned long pipe;
- 	int interval;
- 
- 	if (ep == NULL)
-
---Boundary-00=_jMkQLj4DSWCd35g
-Content-Type: text/x-patch;
-  charset="utf-8";
-  name="uvc_video.c.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
-	filename="uvc_video.c.diff"
-
---- uvc_video.c.orig	2010-01-03 21:21:35.000000000 +0100
-+++ uvc_video.c	2010-01-03 21:22:48.000000000 +0100
-@@ -34,7 +34,7 @@ static int __uvc_query_ctrl(struct uvc_d
- 			int timeout)
- {
- 	__u8 type = USB_TYPE_CLASS | USB_RECIP_INTERFACE;
--	unsigned int pipe;
-+	unsigned long pipe;
- 
- 	pipe = (query & 0x80) ? usb_rcvctrlpipe(dev->udev, 0)
- 			      : usb_sndctrlpipe(dev->udev, 0);
-@@ -887,7 +887,8 @@ static int uvc_init_video_bulk(struct uv
- 	struct usb_host_endpoint *ep, gfp_t gfp_flags)
- {
- 	struct urb *urb;
--	unsigned int npackets, pipe, i;
-+	unsigned int npackets, i;
-+	unsigned long pipe;
- 	u16 psize;
- 	u32 size;
- 
-
---Boundary-00=_jMkQLj4DSWCd35g
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---Boundary-00=_jMkQLj4DSWCd35g--
