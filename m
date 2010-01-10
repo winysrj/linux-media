@@ -1,72 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:56576 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752095Ab0AQM2M (ORCPT
+Received: from mail02d.mail.t-online.hu ([84.2.42.7]:54596 "EHLO
+	mail02d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750940Ab0AJU2e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jan 2010 07:28:12 -0500
-Message-ID: <4B530251.5000204@infradead.org>
-Date: Sun, 17 Jan 2010 10:28:01 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Sun, 10 Jan 2010 15:28:34 -0500
+Message-ID: <4B4A386D.3080106@freemail.hu>
+Date: Sun, 10 Jan 2010 21:28:29 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-To: Franklin Meng <fmeng2002@yahoo.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Kworld 315U and SAA7113?
-References: <245243.78544.qm@web32707.mail.mud.yahoo.com>
-In-Reply-To: <245243.78544.qm@web32707.mail.mud.yahoo.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: gspca_pac7302: sporatdic problem when plugging the device
+References: <4B4A0752.6030306@freemail.hu> <20100110204844.770f8fd7@tele>
+In-Reply-To: <20100110204844.770f8fd7@tele>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Franklin Meng wrote:
-> Devin, 
+Jean-Francois Moine wrote:
+> On Sun, 10 Jan 2010 17:58:58 +0100
+> Németh Márton <nm127@freemail.hu> wrote:
 > 
->>> I'm actually not really concerned about it's
->> interaction
->>> with a demod.
->>>   I'm more worried about other products that have
->>> saa711[345] that use
->>> a bridge other than em28xx.  The introduction of
->> power
->>> management
->>> could always expose bugs in those bridges (I had this
->>> problem in
->>> several different cases where I had to fix problems
->> in
->>> other drivers
->>> because of the introduction of power management).
->>>
+>> Then I plugged and unplugged the device 16 times. When I last plugged
+>> the device I get the following error in the dmesg:
+>>
+>> [32393.421313] gspca: probing 093a:2626
+>> [32393.426193] gspca: video0 created
+>> [32393.426958] gspca: probing 093a:2626
+>> [32393.426968] gspca: Interface class 1 not handled here
+>> [32394.005917] pac7302: reg_w_page(): Failed to write register to
+>> index 0x49, value 0x0, error -71
+>> [32394.067799] gspca: set alt 8 err -71
+>> [32394.090792] gspca: set alt 8 err -71
+>> [32394.118159] gspca: set alt 8 err -71
+>>
+>> The 17th plug was working correctly again. I executed this test on an
+>> EeePC 901.
+>>
+>> This driver version contains the msleep(4) in the reg_w_buf().
+>> However, here the reg_w_page() fails, which does not have msleep()
+>> inside. I don't know what is the real problem, but I am afraid that
+>> slowing down reg_w_page() would make the time longer when the device
+>> can be used starting from the event when it is plugged.
 > 
-> I retested my device and tried several different GPIO sequences but so far every time I change between the Analog and digital interface, the SAA7113 needs to be reinitialized.  
-
-This happens on several designs. In general, the gpio sequence will turn off either the analog or the digital part of the device,
-in order to save power and to avoid overheating the device.
-
-> I tried leaving both the digital and analog interfaces enabled by setting the GPIO to 7c but then the LG demod does not initialize.  
-
-Don't do that. You may burn your device.
-
-> Either way it looks like I will have to reinitialize the device after switching between interfaces.  
-
-The em28xx driver calls em28xx_set_mode(dev, EM28XX_ANALOG_MODE); when the device is opened in analog mode.
-It seems that we'll need some code there to also call the analog demod to re-initiate the device, after sending
-the gpio commands.
-
+> Hi again,
 > 
-> Other than that do you want me to remove the suspend GPIO?  Since I don't have the equipment to measure the power, 
-> I don't know for a fact if the device really has been put in a suspend state or not.  
+> I don't understand what you mean by:
+>> This driver version contains the msleep(4) in the reg_w_buf().
+>> However, here the reg_w_page() fails, which does not have msleep()
+>> inside.
+I tought that the msleep(4) call introduced recently fixed the plug-in
+problem. It seems I misunderstood something.
 
-In suspend state, it will be cooler than when in normal state. It is better to keep the suspend state
-to increase the lifetime of the device.
+> Indeed the delay will slow down the webcam start (256 * 4 ms = 1s).
 > 
-> Thanks,
-> Franklin Meng
-> 
-> 
->       
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> If having a delay fixes the problem, then, as the error always occurs
+> at the same index 0x49 (3 reports), a single delay could be set before
+> writing to this index. Do you want I code this for test?
+
+I tested the behaviour a little bit more. Out of 100 plug-ins:
+
+OK: 81 times
+"pac7302: reg_w_page(): Failed to write register to index 0x49, value 0x0, error -71": 19 times
+
+Other error message I haven't got, so 19% of the time writing to register
+index 0x49 fails in reg_w_page(). So let's try doing fixing the way you
+described. If you send me a patch I can test it.
+
+Regards,
+
+	Márton Németh
 
