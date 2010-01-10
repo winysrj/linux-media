@@ -1,81 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.mujha-vel.cz ([81.30.225.246]:46239 "EHLO
-	smtp.mujha-vel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754548Ab0AMT7i (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jan 2010 14:59:38 -0500
-From: Jiri Slaby <jslaby@suse.cz>
-To: jkosina@suse.cz
-Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, jirislaby@gmail.com
-Subject: [PATCH 1/1] HID: ignore afatech 9016
-Date: Wed, 13 Jan 2010 20:59:33 +0100
-Message-Id: <1263412773-23220-1-git-send-email-jslaby@suse.cz>
+Received: from mail.perches.com ([173.55.12.10]:1045 "EHLO mail.perches.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750876Ab0AJTEM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Jan 2010 14:04:12 -0500
+Subject: Re: [PATCH 1/1] MAINTAINERS: ivtv-devel is moderated
+From: Joe Perches <joe@perches.com>
+To: Andy Walls <awalls@radix.net>
+Cc: Jiri Slaby <jslaby@suse.cz>, mchehab@infradead.org,
+	akpm@linux-foundation.org, linux-kernel@vger.kernel.org,
+	jirislaby@gmail.com, linux-media@vger.kernel.org
+In-Reply-To: <1263130149.4061.7.camel@palomino.walls.org>
+References: <1263114197-8476-1-git-send-email-jslaby@suse.cz>
+	 <1263130149.4061.7.camel@palomino.walls.org>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 10 Jan 2010 11:04:10 -0800
+Message-ID: <1263150250.1907.22.camel@Joe-Laptop.home>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Let's ignore the device altogether by HID layer. It's handled by
-dvb-usb-remote driver properly already.
+On Sun, 2010-01-10 at 08:29 -0500, Andy Walls wrote:
+> On Sun, 2010-01-10 at 10:03 +0100, Jiri Slaby wrote:
+> > Mark ivtv-devel@ivtvdriver.org as 'moderated for non-subscribers'.
+> Yes, that is true.
+> I don't know why it matters after years of not being marked as such,
+> especially since the moderator will push through on-topic posts.
+> I don't know the implications that such an annotation will have on
+> scripts that try to parse MAINTAINERS for e-mail addresses.
 
-By now, FULLSPEED_INTERVAL quirk was used. It probably made things
-better, but the remote ctrl was still a perfect X killer. This was
-the last user of the particular quirk. So remove the quirk as well.
+I think it's just for people that use MAINTAINERS
+by hand.
 
-With input going through dvb-usb-remote, the remote works
-perfectly.
+As far as I know, scripts/get_maintainer.pl is the
+only script that parses MAINTAINERS.
 
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Jiri Kosina <jkosina@suse.cz>
----
- drivers/hid/usbhid/hid-core.c   |    8 --------
- drivers/hid/usbhid/hid-quirks.c |    2 +-
- include/linux/hid.h             |    1 -
- 3 files changed, 1 insertions(+), 10 deletions(-)
+This annotation doesn't change what lists are returned
+by the script.
 
-diff --git a/drivers/hid/usbhid/hid-core.c b/drivers/hid/usbhid/hid-core.c
-index e2997a8..36a1561 100644
---- a/drivers/hid/usbhid/hid-core.c
-+++ b/drivers/hid/usbhid/hid-core.c
-@@ -938,14 +938,6 @@ static int usbhid_start(struct hid_device *hid)
- 
- 		interval = endpoint->bInterval;
- 
--		/* Some vendors give fullspeed interval on highspeed devides */
--		if (hid->quirks & HID_QUIRK_FULLSPEED_INTERVAL &&
--		    dev->speed == USB_SPEED_HIGH) {
--			interval = fls(endpoint->bInterval*8);
--			printk(KERN_INFO "%s: Fixing fullspeed to highspeed interval: %d -> %d\n",
--			       hid->name, endpoint->bInterval, interval);
--		}
--
- 		/* Change the polling interval of mice. */
- 		if (hid->collection->usage == HID_GD_MOUSE && hid_mousepoll_interval > 0)
- 			interval = hid_mousepoll_interval;
-diff --git a/drivers/hid/usbhid/hid-quirks.c b/drivers/hid/usbhid/hid-quirks.c
-index 38773dc..788d9a3 100644
---- a/drivers/hid/usbhid/hid-quirks.c
-+++ b/drivers/hid/usbhid/hid-quirks.c
-@@ -41,7 +41,7 @@ static const struct hid_blacklist {
- 	{ USB_VENDOR_ID_SAITEK, USB_DEVICE_ID_SAITEK_RUMBLEPAD, HID_QUIRK_BADPAD },
- 	{ USB_VENDOR_ID_TOPMAX, USB_DEVICE_ID_TOPMAX_COBRAPAD, HID_QUIRK_BADPAD },
- 
--	{ USB_VENDOR_ID_AFATECH, USB_DEVICE_ID_AFATECH_AF9016, HID_QUIRK_FULLSPEED_INTERVAL },
-+	{ USB_VENDOR_ID_AFATECH, USB_DEVICE_ID_AFATECH_AF9016, HID_QUIRK_IGNORE },
- 
- 	{ USB_VENDOR_ID_PANTHERLORD, USB_DEVICE_ID_PANTHERLORD_TWIN_USB_JOYSTICK, HID_QUIRK_MULTI_INPUT | HID_QUIRK_SKIP_OUTPUT_REPORTS },
- 	{ USB_VENDOR_ID_PLAYDOTCOM, USB_DEVICE_ID_PLAYDOTCOM_EMS_USBII, HID_QUIRK_MULTI_INPUT },
-diff --git a/include/linux/hid.h b/include/linux/hid.h
-index 8709365..4a33e16 100644
---- a/include/linux/hid.h
-+++ b/include/linux/hid.h
-@@ -311,7 +311,6 @@ struct hid_item {
- #define HID_QUIRK_BADPAD			0x00000020
- #define HID_QUIRK_MULTI_INPUT			0x00000040
- #define HID_QUIRK_SKIP_OUTPUT_REPORTS		0x00010000
--#define HID_QUIRK_FULLSPEED_INTERVAL		0x10000000
- #define HID_QUIRK_NO_INIT_REPORTS		0x20000000
- 
- /*
--- 
-1.6.5.7
+The script does filter lists with a "subscribers-only"
+annotation from other lists and only includes them when
+the command line argument "--s" is set.
+
 
