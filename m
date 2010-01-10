@@ -1,104 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:35013 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751797Ab0ALIfW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jan 2010 03:35:22 -0500
-Date: Tue, 12 Jan 2010 09:36:35 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Jose Alberto Reguero <jareguero@telefonica.net>,
-	Hans de Goede <hdegoede@redhat.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Problem with gspca and zc3xx
-Message-ID: <20100112093635.66aa9d57@tele>
-In-Reply-To: <201001111549.55439.jareguero@telefonica.net>
-References: <201001090015.31357.jareguero@telefonica.net>
-	<4B4AE349.4000707@redhat.com>
-	<20100111105524.157ebdbe@tele>
-	<201001111549.55439.jareguero@telefonica.net>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/FUrwl6_1RvIuPFIsJskwifv"
+Received: from mail-fx0-f225.google.com ([209.85.220.225]:51973 "EHLO
+	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751424Ab0AJCLL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jan 2010 21:11:11 -0500
+Received: by fxm25 with SMTP id 25so13637035fxm.21
+        for <linux-media@vger.kernel.org>; Sat, 09 Jan 2010 18:11:10 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <846899811001021455u28fccb5cr66fd4258d3dddd4d@mail.gmail.com>
+References: <3f3a053b1001021407k6ce936b8gd7d3e575a25e734d@mail.gmail.com>
+	 <3f3a053b1001021411i2e9484d7rd2d13f1a355939fe@mail.gmail.com>
+	 <846899811001021455u28fccb5cr66fd4258d3dddd4d@mail.gmail.com>
+Date: Sun, 10 Jan 2010 03:11:10 +0100
+Message-ID: <d9def9db1001091811s6dbed557vfca9ce410e41d3d3@mail.gmail.com>
+Subject: Re: CI USB
+From: Markus Rechberger <mrechberger@gmail.com>
+To: HoP <jpetrous@gmail.com>
+Cc: Jonas <oj@koekenbier.net>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---MP_/FUrwl6_1RvIuPFIsJskwifv
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+On Sat, Jan 2, 2010 at 11:55 PM, HoP <jpetrous@gmail.com> wrote:
+> Hi Jonas
+>
+>> Does anyone know if there's any progress on USB CI adapter support?
+>> Last posts I can find are from 2008 (Terratec Cinergy CI USB &
+>> Hauppauge WinTV-CI).
+>>
+>> That attempt seems to have stranded with Luc Brosens (who gave it a
+>> shot back then) asking for help.
+>>
+>> The chip manufacturer introduced a usb stick as well;
+>> http://www.smardtv.com/index.php?page=products_listing&rubrique=pctv&section=usbcam
+>> but besides the scary Vista logo on that page, it looks like they
+>> target broadcast companies only and not end users.
+>>
+>
+> You are right. Seems DVB CI stick is not targeted to end consumers.
+>
+> Anyway, it looks interesting, even it requires additional DVB tuner
+> "somewhere in the pc" what means duplicated traffic (to the CI stick
+> for descrambling and back for mpeg a/v decoding).
+>
+> It would be nice to see such stuff working in linux, but because of
+> market targeting i don' t expect that.
+>
+> BTW, Hauppauge's WinTV-CI looked much more promissing.
+> At least when I started reading whole thread about it here:
+> http://www.mail-archive.com/linux-dvb@linuxtv.org/msg28113.html
+>
+> Unfortunatelly, last Steve's note about not getting anything
+> (even any answer) has disappointed me fully. And because
+> google is quiet about any progress on it I pressume
+> no any docu nor driver was released later on.
+>
 
-On Mon, 11 Jan 2010 15:49:55 +0100
-Jose Alberto Reguero <jareguero@telefonica.net> wrote:
+The question is more or less how many people are interested in USB CI
+support for Linux.
+We basically have everything to provide a USB CI solution for linux now.
 
-> I take another image with 640x480 and the bad bottom lines are 8. The
-> right side look right this time. The good sizes are:
-> 320x240->320x232 =20
-> 640x480->640x472
-
-Hi Jose Alberto and Hans,
-
-Hans, I modified a bit your patch to handle the 2 resolutions (also, the
-problem with pas202b does not exist anymore). May you sign or ack it?
-
-Jose Alberto, the attached patch is to be applied to the last version
-of the gspca in my test repository at LinuxTv.org
-	http://linuxtv.org/hg/~jfrancois/gspca
-May you try it?
-
-Regards.
-
---=20
-Ken ar c'henta=C3=B1	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
-
---MP_/FUrwl6_1RvIuPFIsJskwifv
-Content-Type: application/octet-stream; name=zc3xx.pat
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename=zc3xx.pat
-
-ZGlmZiAtciAxNDk2ODA2OTMyZjAgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9nc3BjYS96YzN4
-eC5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vZ3NwY2EvemMzeHguYwlNb24gSmFu
-IDExIDE5OjA2OjEyIDIwMTAgKzAxMDAKKysrIGIvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9n
-c3BjYS96YzN4eC5jCVR1ZSBKYW4gMTIgMDk6Mjk6MjEgMjAxMCArMDEwMApAQCAtMTkyLDYgKzE5
-MiwxOSBAQAogCQkucHJpdiA9IDB9LAogfTsKIAorc3RhdGljIGNvbnN0IHN0cnVjdCB2NGwyX3Bp
-eF9mb3JtYXQgYnJva2VuX3ZnYV9tb2RlW10gPSB7CisJezMyMCwgMjMyLCBWNEwyX1BJWF9GTVRf
-SlBFRywgVjRMMl9GSUVMRF9OT05FLAorCQkuYnl0ZXNwZXJsaW5lID0gMzIwLAorCQkuc2l6ZWlt
-YWdlID0gMzIwICogMjMyICogNCAvIDggKyA1OTAsCisJCS5jb2xvcnNwYWNlID0gVjRMMl9DT0xP
-UlNQQUNFX0pQRUcsCisJCS5wcml2ID0gMX0sCisJezY0MCwgNDcyLCBWNEwyX1BJWF9GTVRfSlBF
-RywgVjRMMl9GSUVMRF9OT05FLAorCQkuYnl0ZXNwZXJsaW5lID0gNjQwLAorCQkuc2l6ZWltYWdl
-ID0gNjQwICogNDcyICogMyAvIDggKyA1OTAsCisJCS5jb2xvcnNwYWNlID0gVjRMMl9DT0xPUlNQ
-QUNFX0pQRUcsCisJCS5wcml2ID0gMH0sCit9OworCiBzdGF0aWMgY29uc3Qgc3RydWN0IHY0bDJf
-cGl4X2Zvcm1hdCBzaWZfbW9kZVtdID0gewogCXsxNzYsIDE0NCwgVjRMMl9QSVhfRk1UX0pQRUcs
-IFY0TDJfRklFTERfTk9ORSwKIAkJLmJ5dGVzcGVybGluZSA9IDE3NiwKQEAgLTY2MDYsNyArNjYx
-OSw2IEBACiAJc3RydWN0IHNkICpzZCA9IChzdHJ1Y3Qgc2QgKikgZ3NwY2FfZGV2OwogCXN0cnVj
-dCBjYW0gKmNhbTsKIAlpbnQgc2Vuc29yOwotCWludCB2Z2EgPSAxOwkJLyogMTogdmdhLCAwOiBz
-aWYgKi8KIAlzdGF0aWMgY29uc3QgdTggZ2FtbWFbU0VOU09SX01BWF0gPSB7CiAJCTQsCS8qIFNF
-TlNPUl9BRENNMjcwMCAwICovCiAJCTQsCS8qIFNFTlNPUl9DUzIxMDIgMSAqLwpAQCAtNjYyOCw2
-ICs2NjQwLDI3IEBACiAJCTMsCS8qIFNFTlNPUl9UQVM1MTMwQ1hYIDE3ICovCiAJCTMsCS8qIFNF
-TlNPUl9UQVM1MTMwQ19WRjAyNTAgMTggKi8KIAl9OworCXN0YXRpYyBjb25zdCB1OCBtb2RlX3Ri
-W1NFTlNPUl9NQVhdID0geworCQkyLAkvKiBTRU5TT1JfQURDTTI3MDAgMCAqLworCQkxLAkvKiBT
-RU5TT1JfQ1MyMTAyIDEgKi8KKwkJMSwJLyogU0VOU09SX0NTMjEwMksgMiAqLworCQkxLAkvKiBT
-RU5TT1JfR0MwMzA1IDMgKi8KKwkJMSwJLyogU0VOU09SX0hEQ1MyMDIwYiA0ICovCisJCTEsCS8q
-IFNFTlNPUl9IVjcxMzFCIDUgKi8KKwkJMSwJLyogU0VOU09SX0hWNzEzMUMgNiAqLworCQkxLAkv
-KiBTRU5TT1JfSUNNMTA1QSA3ICovCisJCTIsCS8qIFNFTlNPUl9NQzUwMUNCIDggKi8KKwkJMSwJ
-LyogU0VOU09SX01JMDM2MFNPQyA5ICovCisJCTIsCS8qIFNFTlNPUl9PVjc2MjAgMTAgKi8KKwkJ
-MSwJLyogU0VOU09SX09WNzYzMEMgMTEgKi8KKwkJMCwJLyogU0VOU09SX1BBUzEwNiAxMiAqLwor
-CQkxLAkvKiBTRU5TT1JfUEFTMjAyQiAxMyAqLworCQkxLAkvKiBTRU5TT1JfUEIwMzMwIDE0ICov
-CisJCTEsCS8qIFNFTlNPUl9QTzIwMzAgMTUgKi8KKwkJMSwJLyogU0VOU09SX1RBUzUxMzBDSyAx
-NiAqLworCQkxLAkvKiBTRU5TT1JfVEFTNTEzMENYWCAxNyAqLworCQkxLAkvKiBTRU5TT1JfVEFT
-NTEzMENfVkYwMjUwIDE4ICovCisJfTsKIAogCS8qIGRlZmluZSBzb21lIHNlbnNvcnMgZnJvbSB0
-aGUgdmVuZG9yL3Byb2R1Y3QgKi8KIAlzZC0+c2hhcnBuZXNzID0gU0hBUlBORVNTX0RFRjsKQEAg
-LTY3MDEsNyArNjczNCw2IEBACiAJCWNhc2UgMHgwZjoKIAkJCVBERUJVRyhEX1BST0JFLCAiRmlu
-ZCBTZW5zb3IgUEFTMTA2Iik7CiAJCQlzZC0+c2Vuc29yID0gU0VOU09SX1BBUzEwNjsKLQkJCXZn
-YSA9IDA7CQkvKiBTSUYgKi8KIAkJCWJyZWFrOwogCQljYXNlIDB4MTA6CiAJCWNhc2UgMHgxMjoK
-QEAgLTY3NzcsMTIgKzY4MDksMjAgQEAKIAljYW0gPSAmZ3NwY2FfZGV2LT5jYW07CiAvKmZpeG1l
-OnRlc3QqLwogCWdzcGNhX2Rldi0+bmJhbHQtLTsKLQlpZiAodmdhKSB7CisJc3dpdGNoIChtb2Rl
-X3RiW3NkLT5zZW5zb3JdKSB7CisJY2FzZSAwOgorCQljYW0tPmNhbV9tb2RlID0gc2lmX21vZGU7
-CisJCWNhbS0+bm1vZGVzID0gQVJSQVlfU0laRShzaWZfbW9kZSk7CisJCWJyZWFrOworCWNhc2Ug
-MToKIAkJY2FtLT5jYW1fbW9kZSA9IHZnYV9tb2RlOwogCQljYW0tPm5tb2RlcyA9IEFSUkFZX1NJ
-WkUodmdhX21vZGUpOwotCX0gZWxzZSB7Ci0JCWNhbS0+Y2FtX21vZGUgPSBzaWZfbW9kZTsKLQkJ
-Y2FtLT5ubW9kZXMgPSBBUlJBWV9TSVpFKHNpZl9tb2RlKTsKKwkJYnJlYWs7CisJZGVmYXVsdDoK
-Ky8qCWNhc2UgMjogKi8KKwkJY2FtLT5jYW1fbW9kZSA9IGJyb2tlbl92Z2FfbW9kZTsKKwkJY2Ft
-LT5ubW9kZXMgPSBBUlJBWV9TSVpFKGJyb2tlbl92Z2FfbW9kZSk7CisJCWJyZWFrOwogCX0KIAlz
-ZC0+YnJpZ2h0bmVzcyA9IEJSSUdIVE5FU1NfREVGOwogCXNkLT5jb250cmFzdCA9IENPTlRSQVNU
-X0RFRjsK
-
---MP_/FUrwl6_1RvIuPFIsJskwifv--
+Markus
