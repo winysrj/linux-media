@@ -1,109 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1281 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750757Ab0ANTK3 (ORCPT
+Received: from mail-qy0-f194.google.com ([209.85.221.194]:44113 "EHLO
+	mail-qy0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752131Ab0AJNIj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jan 2010 14:10:29 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id o0EJARf7029441
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 14 Jan 2010 20:10:27 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 14 Jan 2010 20:10:27 +0100 (CET)
-Message-Id: <201001141910.o0EJARf7029441@smtp-vbr14.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Sun, 10 Jan 2010 08:08:39 -0500
+Received: by qyk32 with SMTP id 32so1389348qyk.4
+        for <linux-media@vger.kernel.org>; Sun, 10 Jan 2010 05:08:38 -0800 (PST)
+Message-ID: <4B49D1A4.4040702@gmail.com>
+Date: Sun, 10 Jan 2010 09:09:56 -0400
+From: Emmanuel <eallaud@gmail.com>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Subject: Re: CI USB
+References: <3f3a053b1001021407k6ce936b8gd7d3e575a25e734d@mail.gmail.com>	 <3f3a053b1001021411i2e9484d7rd2d13f1a355939fe@mail.gmail.com>	 <846899811001021455u28fccb5cr66fd4258d3dddd4d@mail.gmail.com> <d9def9db1001091811s6dbed557vfca9ce410e41d3d3@mail.gmail.com>
+In-Reply-To: <d9def9db1001091811s6dbed557vfca9ce410e41d3d3@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Markus Rechberger a écrit :
+> On Sat, Jan 2, 2010 at 11:55 PM, HoP <jpetrous@gmail.com> wrote:
+>   
+>> Hi Jonas
+>>
+>>     
+>>> Does anyone know if there's any progress on USB CI adapter support?
+>>> Last posts I can find are from 2008 (Terratec Cinergy CI USB &
+>>> Hauppauge WinTV-CI).
+>>>
+>>> That attempt seems to have stranded with Luc Brosens (who gave it a
+>>> shot back then) asking for help.
+>>>
+>>> The chip manufacturer introduced a usb stick as well;
+>>> http://www.smardtv.com/index.php?page=products_listing&rubrique=pctv&section=usbcam
+>>> but besides the scary Vista logo on that page, it looks like they
+>>> target broadcast companies only and not end users.
+>>>
+>>>       
+>> You are right. Seems DVB CI stick is not targeted to end consumers.
+>>
+>> Anyway, it looks interesting, even it requires additional DVB tuner
+>> "somewhere in the pc" what means duplicated traffic (to the CI stick
+>> for descrambling and back for mpeg a/v decoding).
+>>
+>> It would be nice to see such stuff working in linux, but because of
+>> market targeting i don' t expect that.
+>>
+>> BTW, Hauppauge's WinTV-CI looked much more promissing.
+>> At least when I started reading whole thread about it here:
+>> http://www.mail-archive.com/linux-dvb@linuxtv.org/msg28113.html
+>>
+>> Unfortunatelly, last Steve's note about not getting anything
+>> (even any answer) has disappointed me fully. And because
+>> google is quiet about any progress on it I pressume
+>> no any docu nor driver was released later on.
+>>
+>>     
+>
+> The question is more or less how many people are interested in USB CI
+> support for Linux.
+> We basically have everything to provide a USB CI solution for linux now.
+>
+> Markus
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>   
 
-Results of the daily build of v4l-dvb:
-
-date:        Thu Jan 14 19:00:05 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13972:725c07a70453
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
-
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-armv5: OK
-linux-2.6.33-rc2-armv5: OK
-linux-2.6.32-armv5-davinci: OK
-linux-2.6.33-rc2-armv5-davinci: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-armv5-ixp: OK
-linux-2.6.32-armv5-ixp: OK
-linux-2.6.33-rc2-armv5-ixp: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: OK
-linux-2.6.32-armv5-omap2: OK
-linux-2.6.33-rc2-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: ERRORS
-linux-2.6.27-i686: ERRORS
-linux-2.6.28-i686: ERRORS
-linux-2.6.29.1-i686: ERRORS
-linux-2.6.30-i686: ERRORS
-linux-2.6.31-i686: ERRORS
-linux-2.6.32-i686: ERRORS
-linux-2.6.33-rc2-i686: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-m32r: OK
-linux-2.6.33-rc2-m32r: OK
-linux-2.6.30-mips: OK
-linux-2.6.31-mips: OK
-linux-2.6.32-mips: OK
-linux-2.6.33-rc2-mips: OK
-linux-2.6.30-powerpc64: ERRORS
-linux-2.6.31-powerpc64: ERRORS
-linux-2.6.32-powerpc64: ERRORS
-linux-2.6.33-rc2-powerpc64: OK
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: ERRORS
-linux-2.6.26-x86_64: ERRORS
-linux-2.6.27-x86_64: ERRORS
-linux-2.6.28-x86_64: ERRORS
-linux-2.6.29.1-x86_64: ERRORS
-linux-2.6.30-x86_64: ERRORS
-linux-2.6.31-x86_64: ERRORS
-linux-2.6.32-x86_64: ERRORS
-linux-2.6.33-rc2-x86_64: OK
-spec: OK
-sparse (linux-2.6.32): ERRORS
-sparse (linux-2.6.33-rc2): ERRORS
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Well I dont know for others but it really looks interesting as you can 
+have multiple cards with only one CI, meaning only one CAM and only one 
+subscription card which is economically interesting.
+Also some card (at least for DVB-S) are really good but targeted towards 
+free channels, and in France for example, alot of good channels are not.
+If the price is right (tm) I am sure a lot of people would be interested.
+Bye
+Manu
