@@ -1,34 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f220.google.com ([209.85.220.220]:53249 "EHLO
-	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754957Ab0AVPLc (ORCPT
+Received: from cp-out8.libero.it ([212.52.84.108]:36228 "EHLO
+	cp-out8.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752006Ab0AJHsw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jan 2010 10:11:32 -0500
-Message-ID: <4B59C01E.90804@gmail.com>
-Date: Fri, 22 Jan 2010 16:11:26 +0100
-From: Jiri Slaby <jirislaby@gmail.com>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: mchehab@infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] media: dvb-usb/af9015, add IR support for digivox
- mini II
-References: <1263412807-23350-1-git-send-email-jslaby@suse.cz> <4B4F6BE5.2040102@iki.fi>
-In-Reply-To: <4B4F6BE5.2040102@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
+	Sun, 10 Jan 2010 02:48:52 -0500
+Subject: Re: Regression - OOPS when connecting devices with IR support
+From: Francesco Lavra <francescolavra@interfree.it>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Linux media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <829197381001091752v239d3514l32969da7e559cf97@mail.gmail.com>
+References: <829197381001091752v239d3514l32969da7e559cf97@mail.gmail.com>
+Content-Type: text/plain
+Date: Sun, 10 Jan 2010 08:49:43 +0100
+Message-Id: <1263109783.15453.42.camel@localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/14/2010 08:09 PM, Antti Palosaari wrote:
-> Device ID 15a4:9016 is reference design ID and it is used by vary many
-> devices. Also manufacturer string "Afatech" is chipset default one. This
-> leads MSI remote in question configured for many devices using default /
-> reference values which I don't like good idea. Strings and other USB
-> settings are stored to the device eeprom.
+On Sat, 2010-01-09 at 20:52 -0500, Devin Heitmueller wrote:
+> Hey all,
+> 
+> This is going to sound like a bit of a silly question.  Has anyone
+> tried the current v4l-dvb tip with a device that has IR support?
+> 
+> I had been working on separate branches for the last few weeks, and
+> finally updated to the tip.  I'm seeing the exact same OOPS condition
+> for both my em28xx and cx88 based device.
+> 
+> Did someone break the IR core?  This occurs 100% of the time in my
+> environment when loading either cx88 or em28xx based devices that have
+> IR support (a stock Ubuntu 9.10 build (2.6.31-17-generic) with the
+> current v4l-dvb tip as of tonight.
 
-What do you think about the following patches?
+Yes, the IR core is broken, a patch has been submitted by myself some
+time ago (http://patchwork.kernel.org/patch/70126/), but hasn't made it
+to v4l-dvb yet.
+Regards,
+Francesco
 
-thanks,
--- 
-js
