@@ -1,174 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.24]:24156 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750733Ab0ARGR0 (ORCPT
+Received: from mail01d.mail.t-online.hu ([84.2.42.6]:62018 "EHLO
+	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751771Ab0AJQiK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2010 01:17:26 -0500
-Received: by ey-out-2122.google.com with SMTP id d26so609942eyd.19
-        for <linux-media@vger.kernel.org>; Sun, 17 Jan 2010 22:17:24 -0800 (PST)
-Message-ID: <4B53FCF2.7000303@gmail.com>
-Date: Mon, 18 Jan 2010 07:17:22 +0100
-From: "tomlohave@gmail.com" <tomlohave@gmail.com>
+	Sun, 10 Jan 2010 11:38:10 -0500
+Message-ID: <4B4A0268.20104@freemail.hu>
+Date: Sun, 10 Jan 2010 17:38:00 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org,
-	hermann pitton <hermann-pitton@arcor.de>, jpnews13@free.fr
-Subject: [PATCH] [RFC] support for fly dvb duo on medion laptop
-Content-Type: multipart/mixed;
- boundary="------------090208070807030304050705"
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: gspca_sunplus problem: more than one device is created
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------090208070807030304050705
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi,
 
-Hi list,
+I tried the gspca_sunplus driver from http://linuxtv.org/hg/~jfrancois/gspca/
+rev 13915 on top of Linux kernel 2.6.32. When I plug the Trust 610 LCD PowerC@m Zoom
+device in webcam mode (0x06d6:0x0031) then two devices are created: /dev/video0
+and /dev/video1:
 
-this patch add support for lifeview fly dvb duo (hybrid card) on medion 
-laptop
+[31636.528184] usb 3-2: new full speed USB device using uhci_hcd and address 5
+[31636.740722] usb 3-2: New USB device found, idVendor=06d6, idProduct=0031
+[31636.740744] usb 3-2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[31636.740760] usb 3-2: Product: Trust 610 LCD POWERC@M ZOOM
+[31636.740772] usb 3-2: Manufacturer: Trust
+[31636.744229] usb 3-2: configuration #1 chosen from 1 choice
+[31636.747584] gspca: probing 06d6:0031
+[31636.760176] gspca: video0 created
+[31636.760643] gspca: probing 06d6:0031
+[31636.772063] gspca: video1 created
 
-what works : dvb and analogic tv
-not tested :  svideo, composite, radio (i am not the owner of this card)
+The /dev/video0 is working correctly but the /dev/video1 just causes error:
+$ ./svv -d /dev/video1
+raw pixfmt: JPEG 464x480
+pixfmt: RGB3 464x480
+mmap method
+VIDIOC_STREAMON error 5, Input/output error
 
-this card uses gpio 22 for the mode switch between analogic and dvb
+Here is the USB descriptor of the device:
 
-gpio settings  should change when  svideo , composite an radio will be 
-tested
+Trust 610 LCD POWERC@M ZOOM
+Manufacturer: Trust
+Speed: 12Mb/s (full)
+USB Version:  1.00
+Device Class: 00(>ifc )
+Device Subclass: 00
+Device Protocol: 00
+Maximum Default Endpoint Size: 8
+Number of Configurations: 1
+Vendor Id: 06d6
+Product Id: 0031
+Revision Number:  1.00
 
+Config Number: 1
+	Number of Interfaces: 2
+	Attributes: 80
+	MaxPower Needed: 500mA
 
-Cheers,
-Thomas
+	Interface Number: 0
+		Name: sunplus
+		Alternate Number: 0
+		Class: ff(vend.)
+		Sub Class: 00
+		Protocol: 00
+		Number of Endpoints: 1
 
-Signed-off-by : Thomas Genty <tomlohave@gmail.com>
+			Endpoint Address: 81
+			Direction: in
+			Attribute: 1
+			Type: Isoc
+			Max Packet Size: 0
+			Interval: 1ms
 
---------------090208070807030304050705
-Content-Type: text/x-patch;
- name="flymedion.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="flymedion.diff"
+	Interface Number: 0
+		Name: sunplus
+		Alternate Number: 1
+		Class: ff(vend.)
+		Sub Class: 00
+		Protocol: 00
+		Number of Endpoints: 1
 
-diff -r cdcf089168df linux/drivers/media/video/saa7134/saa7134-cards.c
---- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Sun Jan 17 20:42:47 2010 -0200
-+++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Mon Jan 18 07:03:53 2010 +0100
-@@ -5394,7 +5394,37 @@
- 			.amux = LINE2,
- 		},
- 	},
--
-+	[SAA7134_BOARD_FLYDVBTDUO_MEDION] = {
-+		/* Thomas Genty <tomlohave@gmail.com> */
-+		.name           = "LifeView FlyDVB-T DUO Medion",
-+		.audio_clock    = 0x00187de7,
-+		.tuner_type     = TUNER_PHILIPS_TDA8290,
-+		.radio_type     = UNSET,
-+		.tuner_addr	= ADDR_UNSET,
-+		.radio_addr	= ADDR_UNSET,
-+		.gpiomask	= 0x00200000,
-+		.mpeg           = SAA7134_MPEG_DVB,
-+		.inputs         = {{
-+			.name = name_tv,
-+			.vmux = 1,
-+			.amux = TV,
-+			.gpio = 0x200000,
-+			.tv   = 1,
-+		},{
-+			.name = name_comp1,	/* Not tested */
-+			.vmux = 3,
-+			.amux = LINE1,
-+		},{
-+			.name = name_svideo,	/* Not tested */
-+			.vmux = 8,
-+			.amux = LINE1,
-+		}},
-+		.radio = {
-+			.name = name_radio,
-+			.amux = TV,
-+			.gpio = 0x000000,	/* No tested */
-+		},
-+	},
- };
- 
- const unsigned int saa7134_bcount = ARRAY_SIZE(saa7134_boards);
-@@ -6551,6 +6581,12 @@
- 		.subdevice    = 0x6655,
- 		.driver_data  = SAA7134_BOARD_LEADTEK_WINFAST_DTV1000S,
- 	}, {
-+		.vendor       = PCI_VENDOR_ID_PHILIPS,
-+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-+		.subvendor    = 0x5168,         
-+		.subdevice    = 0x0307,  /* LR307-N */       
-+		.driver_data  = SAA7134_BOARD_FLYDVBTDUO_MEDION,
-+	}, {
- 		/* --- boards without eeprom + subsystem ID --- */
- 		.vendor       = PCI_VENDOR_ID_PHILIPS,
- 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
-@@ -7318,6 +7354,7 @@
- 	case SAA7134_BOARD_AVERMEDIA_SUPER_007:
- 	case SAA7134_BOARD_TWINHAN_DTV_DVB_3056:
- 	case SAA7134_BOARD_CREATIX_CTX953:
-+	case SAA7134_BOARD_FLYDVBTDUO_MEDION:
- 	{
- 		/* this is a hybrid board, initialize to analog mode
- 		 * and configure firmware eeprom address
-diff -r cdcf089168df linux/drivers/media/video/saa7134/saa7134-dvb.c
---- a/linux/drivers/media/video/saa7134/saa7134-dvb.c	Sun Jan 17 20:42:47 2010 -0200
-+++ b/linux/drivers/media/video/saa7134/saa7134-dvb.c	Mon Jan 18 07:03:53 2010 +0100
-@@ -825,6 +825,20 @@
- 	.request_firmware = philips_tda1004x_request_firmware
- };
- 
-+static struct tda1004x_config tda827x_flydvbtduo_medion_config = {
-+	.demod_address = 0x08,
-+	.invert        = 1,
-+	.invert_oclk   = 0,
-+	.xtal_freq     = TDA10046_XTAL_16M,
-+	.agc_config    = TDA10046_AGC_TDA827X,
-+	.gpio_config   = TDA10046_GP01_I,
-+	.if_freq       = TDA10046_FREQ_045,
-+	.i2c_gate      = 0x4b,
-+	.tuner_address = 0x61,
-+	.antenna_switch = 2,
-+	.request_firmware = philips_tda1004x_request_firmware
-+};
-+
- /* ------------------------------------------------------------------
-  * special case: this card uses saa713x GPIO22 for the mode switch
-  */
-@@ -1586,6 +1600,22 @@
- 				   &dtv1000s_tda18271_config);
- 		}
- 		break;
-+	case SAA7134_BOARD_FLYDVBTDUO_MEDION:
-+		/* this card uses saa713x GPIO22 for the mode switch */
-+		fe0->dvb.frontend = dvb_attach(tda10046_attach,
-+					       &tda827x_flydvbtduo_medion_config,
-+					       &dev->i2c_adap);
-+		if (fe0->dvb.frontend) {
-+			if (dvb_attach(tda827x_attach,fe0->dvb.frontend,
-+				   tda827x_flydvbtduo_medion_config.tuner_address, &dev->i2c_adap,
-+								&ads_duo_cfg) == NULL) {
-+				wprintk("no tda827x tuner found at addr: %02x\n",
-+					tda827x_flydvbtduo_medion_config.tuner_address);
-+				goto dettach_frontend;
-+			}
-+		} else
-+			wprintk("failed to attach tda10046\n");
-+		break;
- 	default:
- 		wprintk("Huh? unknown DVB card?\n");
- 		break;
-diff -r cdcf089168df linux/drivers/media/video/saa7134/saa7134.h
---- a/linux/drivers/media/video/saa7134/saa7134.h	Sun Jan 17 20:42:47 2010 -0200
-+++ b/linux/drivers/media/video/saa7134/saa7134.h	Mon Jan 18 07:03:53 2010 +0100
-@@ -301,6 +301,7 @@
- #define SAA7134_BOARD_ASUS_EUROPA_HYBRID	174
- #define SAA7134_BOARD_LEADTEK_WINFAST_DTV1000S 175
- #define SAA7134_BOARD_BEHOLD_505RDS_MK3     176
-+#define SAA7134_BOARD_FLYDVBTDUO_MEDION     177
- 
- #define SAA7134_MAXBOARDS 32
- #define SAA7134_INPUT_MAX 8
+			Endpoint Address: 81
+			Direction: in
+			Attribute: 1
+			Type: Isoc
+			Max Packet Size: 128
+			Interval: 1ms
 
---------------090208070807030304050705--
+	Interface Number: 0
+		Name: sunplus
+		Alternate Number: 2
+		Class: ff(vend.)
+		Sub Class: 00
+		Protocol: 00
+		Number of Endpoints: 1
+
+			Endpoint Address: 81
+			Direction: in
+			Attribute: 1
+			Type: Isoc
+			Max Packet Size: 384
+			Interval: 1ms
+
+	Interface Number: 0
+		Name: sunplus
+		Alternate Number: 3
+		Class: ff(vend.)
+		Sub Class: 00
+		Protocol: 00
+		Number of Endpoints: 1
+
+			Endpoint Address: 81
+			Direction: in
+			Attribute: 1
+			Type: Isoc
+			Max Packet Size: 512
+			Interval: 1ms
+
+	Interface Number: 0
+		Name: sunplus
+		Alternate Number: 4
+		Class: ff(vend.)
+		Sub Class: 00
+		Protocol: 00
+		Number of Endpoints: 1
+
+			Endpoint Address: 81
+			Direction: in
+			Attribute: 1
+			Type: Isoc
+			Max Packet Size: 640
+			Interval: 1ms
+
+	Interface Number: 0
+		Name: sunplus
+		Alternate Number: 5
+		Class: ff(vend.)
+		Sub Class: 00
+		Protocol: 00
+		Number of Endpoints: 1
+
+			Endpoint Address: 81
+			Direction: in
+			Attribute: 1
+			Type: Isoc
+			Max Packet Size: 768
+			Interval: 1ms
+
+	Interface Number: 0
+		Name: sunplus
+		Alternate Number: 6
+		Class: ff(vend.)
+		Sub Class: 00
+		Protocol: 00
+		Number of Endpoints: 1
+
+			Endpoint Address: 81
+			Direction: in
+			Attribute: 1
+			Type: Isoc
+			Max Packet Size: 896
+			Interval: 1ms
+
+	Interface Number: 0
+		Name: sunplus
+		Alternate Number: 7
+		Class: ff(vend.)
+		Sub Class: 00
+		Protocol: 00
+		Number of Endpoints: 1
+
+			Endpoint Address: 81
+			Direction: in
+			Attribute: 1
+			Type: Isoc
+			Max Packet Size: 1023
+			Interval: 1ms
+
+	Interface Number: 1
+		Name: sunplus
+		Alternate Number: 0
+		Class: ff(vend.)
+		Sub Class: 00
+		Protocol: 00
+		Number of Endpoints: 3
+
+			Endpoint Address: 82
+			Direction: in
+			Attribute: 2
+			Type: Bulk
+			Max Packet Size: 64
+			Interval: 0ms
+
+			Endpoint Address: 03
+			Direction: out
+			Attribute: 2
+			Type: Bulk
+			Max Packet Size: 64
+			Interval: 0ms
+
+			Endpoint Address: 84
+			Direction: in
+			Attribute: 3
+			Type: Int.
+			Max Packet Size: 1
+			Interval: 1ms
+
+Regards,
+
+	Márton Németh
