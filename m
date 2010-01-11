@@ -1,108 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:60289 "EHLO mail1.radix.net"
+Received: from bear.ext.ti.com ([192.94.94.41]:60324 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752054Ab0AAQ7Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Jan 2010 11:59:24 -0500
-Subject: Re: TV tunes ok but my DVB cards won't tune
-From: Andy Walls <awalls@radix.net>
-To: Matthew Smith <yo.checkit@gmail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <a556718c1001010407j4b94af6sff50d00909fc2211@mail.gmail.com>
-References: <a556718c1001010407j4b94af6sff50d00909fc2211@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 01 Jan 2010 11:58:55 -0500
-Message-Id: <1262365135.17968.15.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	id S1750928Ab0AKEg5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Jan 2010 23:36:57 -0500
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+CC: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Mon, 11 Jan 2010 10:06:47 +0530
+Subject: RE: [PATCH - v3 4/4] DaVinci - vpfe-capture-converting ccdc drivers
+ to platform driver
+Message-ID: <19F8576C6E063C45BE387C64729E7394044A398230@dbde02.ent.ti.com>
+References: <1260895054-13232-1-git-send-email-m-karicheri2@ti.com>
+	<871vi4rv25.fsf@deeprootsystems.com>
+	<A69FA2915331DC488A831521EAE36FE40162C23952@dlee06.ent.ti.com>
+	<87k4vvkyo7.fsf@deeprootsystems.com>
+	<A69FA2915331DC488A831521EAE36FE40162C23A3E@dlee06.ent.ti.com>
+	<878wcbkx60.fsf@deeprootsystems.com>
+	<A69FA2915331DC488A831521EAE36FE40162D43099@dlee06.ent.ti.com>
+	<87r5q1ya2w.fsf@deeprootsystems.com>
+	<A69FA2915331DC488A831521EAE36FE40162D43287@dlee06.ent.ti.com>
+	<87my0pwpnk.fsf@deeprootsystems.com>
+	<A69FA2915331DC488A831521EAE36FE40162D43371@dlee06.ent.ti.com>
+	<19F8576C6E063C45BE387C64729E7394044A398045@dbde02.ent.ti.com>
+ <87zl4oskd9.fsf@deeprootsystems.com>
+In-Reply-To: <87zl4oskd9.fsf@deeprootsystems.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2010-01-01 at 23:07 +1100, Matthew Smith wrote:
-> Hi all,
+
+> -----Original Message-----
+> From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
+> Sent: Friday, January 08, 2010 8:40 PM
+> To: Hiremath, Vaibhav
+> Cc: Karicheri, Muralidharan; davinci-linux-open-
+> source@linux.davincidsp.com; linux-media@vger.kernel.org
+> Subject: Re: [PATCH - v3 4/4] DaVinci - vpfe-capture-converting ccdc
+> drivers to platform driver
 > 
-> I hope this is the right place to try and troubleshoot my DVB setup. I
-> have a Conexant based tuner that used to work with the cx88 driver and
-> an Avermedia USB tuner. I have moved house and can't get either of
-> these cards to tune using the scan or dvbscan utilities.
+> "Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
 > 
-> Mythtv is able to pick up the channels when it scans but it can't tune
-> to them later when I try to watch live tv.  As it tunes, I briefly see
-> mythtv reporting signal strengths around 40%
-
-You can use femon to see if you even get a lock on the channels.
-
-> My TV is using the same antenna (with a splitter) and it picks up the
-> channels and reports 30-33% signal strength and 100% signal quality.
+> >>
+> > [Hiremath, Vaibhav] Hi Kevin and Murali,
+> >
+> > Sorry for jumping into this discussion so late,
+> >
+> > Can we use clk_add_alias() function exported by clkdev.c file
+> here?
+> > With this board specific file can define aliases for all required
+> > platform_data keeping CLK() entry generic.
 > 
-> Also, I'm not sure I have the right channel file as I live in country
-> Victoria and the closest city is Melbourne so I'm using that file.  I
-> would expect to at least tune the major channels.
+> Yes, this would be a good use case clk_add_alias()
 > 
-> Is this just a case of needing a better antenna or is there something
-> else I can try? (I am already using a signal amplifier at the wall
-> socket.)
+[Hiremath, Vaibhav] Thanks Kevin, actually I am already using the clk_add_alias in AM3517 which used same VPFE_Capture driver. But I was not sure whether this is acceptable or not, since nobody in the kernel is using this API.
+Thanks for conforming/clarifying; I will submit the patch now for this.
 
+Thanks,
+Vaibhav
 
-An amplifier at the wall socket is suboptimal.  For weak OTA signals,
-you want a low noise figure ( < 3 dB ) pre-amplifier located as close to
-the antenna as possible - before the splitters, long cable runs, and
-wall plates - so you can maintain as much of your received SNR as
-possible.  (In the US Winegard make some good units.)
-
-Also be aware that over-amplification can overdrive the tuner front ends
-causing intermodulation products that show up as noise and degrade the
-SNR.
-
-You may find the information here useful:
-
-http://ivtvdriver.org/index.php/Howto:Improve_signal_quality
-
-once ivtvdriver.org comes back up.  It seems to be down right now.
-
-Regards,
-Andy
- 
-
-
-> Regards
-> 
-> Matt
-> 
-> $ scan /usr/share/dvb/dvb-t/au-Melbourne
-> scanning /usr/share/dvb/dvb-t/au-Melbourne
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> initial transponder 226500000 1 3 9 3 1 1 0
-> initial transponder 177500000 1 3 9 3 1 1 0
-> initial transponder 191625000 1 3 9 3 1 1 0
-> initial transponder 219500000 1 3 9 3 1 1 0
-> initial transponder 536625000 1 2 9 3 1 2 0
-> >>> tune to: 226500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 226500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 177500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 177500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 191625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 191625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 219500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 219500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 536625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 536625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE (tuning failed)
-> WARNING: >>> tuning failed!!!
-> ERROR: initial tuning failed
-> dumping lists (0 services)
-> Done.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+> Kevin
 
