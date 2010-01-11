@@ -1,45 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:41264 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751854Ab0A1OT7 (ORCPT
+Received: from smtp3-g21.free.fr ([212.27.42.3]:49666 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752509Ab0AKSSQ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2010 09:19:59 -0500
-Received: by bwz27 with SMTP id 27so501333bwz.21
-        for <linux-media@vger.kernel.org>; Thu, 28 Jan 2010 06:19:58 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4B61990E.5010604@epfl.ch>
-References: <4B60CB5A.7000109@epfl.ch> <ac3eb2511001280118s4e00dca3l905a8ed7d532bde2@mail.gmail.com>
-	<4B61990E.5010604@epfl.ch>
-From: Kay Sievers <kay.sievers@vrfy.org>
-Date: Thu, 28 Jan 2010 15:13:50 +0100
-Message-ID: <ac3eb2511001280613p698ad22fmb436650122f3a2eb@mail.gmail.com>
-Subject: Re: [Q] udev and soc-camera
-To: Valentin Longchamp <valentin.longchamp@epfl.ch>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-hotplug@vger.kernel.org" <linux-hotplug@vger.kernel.org>
+	Mon, 11 Jan 2010 13:18:16 -0500
+Date: Mon, 11 Jan 2010 19:19:29 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: gspca_sunplus problem: more than one device is created
+Message-ID: <20100111191929.63f762f8@tele>
+In-Reply-To: <4B4A6F5A.2070003@redhat.com>
+References: <4B4A0268.20104@freemail.hu>
+	<20100110203548.23a07ce2@tele>
+	<4B4A6F5A.2070003@redhat.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 28, 2010 at 15:02, Valentin Longchamp
-<valentin.longchamp@epfl.ch> wrote:
-> Kay Sievers wrote:
-> Thanks a lot Kay, you pointed me exactly where I needed to watch.
-> OpenEmbedded adds udevadm trigger a big list of --susbsystem-nomatch options
-> as soon as you are not doing your first boot anymore and video4linux is
-> among them.
->
-> I either have to remove this option in the script or understand why my other
-> /dev nodes are kept (ttys are doing fine with the same treatment for
-> instance) and not video4linux ones (it looks like they are using DEVCACHE or
-> something like this). But I would prefer the first alternative since cameras
-> may be unplugged on some robots.
+On Mon, 11 Jan 2010 01:22:50 +0100
+Hans de Goede <hdegoede@redhat.com> wrote:
 
-Really, that logic sounds awfully wrong. Any /dev-caching and games
-with skipping selected subsystems at coldplug can never reliably work
-as you have found out. :) You should definitely go for devtmpfs
-instead of such needless and misguided hacks, if a plain "udevadm
-trigger" does not work for some reason.
+> You did not mark this as high priority, still it should go into
+> 2.6.33. can you please send a mail to Mauro asking for this ?
 
-Good luck.
-Kay
+The previous change (test of the interface class) had not a high
+priority, so, it will not go into 2.6.33. Then, both changes will go
+into 2.6.34. I hope you did not mark a high priority to the cpia1 port
+to gspca...
+
+Regards.
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
