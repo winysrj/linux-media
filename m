@@ -1,147 +1,253 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59392 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755304Ab0AVRol convert rfc822-to-8bit (ORCPT
+Received: from mail-pz0-f188.google.com ([209.85.222.188]:48737 "EHLO
+	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751784Ab0AKVgF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jan 2010 12:44:41 -0500
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Fri, 22 Jan 2010 11:46:14 -0600
-Subject: RE: gitorious.org/omap3camera: Falied attempt to migrate sensor
- driver to Zoom2/3 platform
-Message-ID: <A24693684029E5489D1D202277BE8944517F0D9F@dlee02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE8944517F0987@dlee02.ent.ti.com>
- <201001221246.24330.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201001221246.24330.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Mon, 11 Jan 2010 16:36:05 -0500
+Received: by pzk26 with SMTP id 26so12545738pzk.4
+        for <linux-media@vger.kernel.org>; Mon, 11 Jan 2010 13:36:03 -0800 (PST)
+To: m-karicheri2@ti.com
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	hverkuil@xs4all.nl, davinci-linux-open-source@linux.davincidsp.com
+Subject: Re: [PATCH - v4 4/4] DaVinci-vpfe-capture-converting-ccdc-drivers-to-platform-drivers
+References: <1263237778-22361-1-git-send-email-m-karicheri2@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Date: Mon, 11 Jan 2010 13:36:00 -0800
+In-Reply-To: <1263237778-22361-1-git-send-email-m-karicheri2@ti.com> (m-karicheri2@ti.com's message of "Mon\, 11 Jan 2010 14\:22\:55 -0500")
+Message-ID: <87d41gnx33.fsf@deeprootsystems.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+m-karicheri2@ti.com writes:
 
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Friday, January 22, 2010 5:46 AM
-> To: Aguirre, Sergio
-> Cc: Sakari Ailus; linux-media@vger.kernel.org
-> Subject: Re: gitorious.org/omap3camera: Falied attempt to migrate sensor
-> driver to Zoom2/3 platform
-> 
-> Hi Sergio,
-> 
-> On Friday 22 January 2010 10:49:17 Aguirre, Sergio wrote:
-> > Laurent, Sakari,
-> >
-> > While I was trying to adapt my Zoom2/3 sensor drivers into latest
-> 'devel'
-> >  branch with latest commit:
-> >
-> > commit 2e7d09ec5e09ee80462a611c9958e99866ee337c
-> > Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Date:   Wed Jan 20 13:49:31 2010 +0100
-> >
-> >     omap3isp: Work around sg_alloc_table BUG_ON
-> >
-> >     Work in progress
-> >
-> >     Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> That last patch shouldn't have been applied to the linux-omap tree. The
-> patch
-> itself is correct, but the commit message isn't. I'll check that with
-> Sakari.
-> 
-> > And applying the attached patches. I see the following kernel panic on
-> >  bootup:
-> >
-> > omap3isp omap3isp: Revision 2.0 found
-> > omap-iommu omap-iommu.0: isp: version 1.1
-> > Unable to handle kernel NULL pointer dereference at virtual address
-> >  00000048 pgd = c0004000
-> > [00000048] *pgd=00000000
-> > Internal error: Oops: 5 [#1]
-> > last sysfs file:
-> > Modules linked in:
-> > CPU: 0    Not tainted  (2.6.32-07583-gd4ae425-dirty #7)
-> > PC is at get_device_parent+0x68/0x114
-> > LR is at device_add+0x7c/0x474
-> > pc : [<c019345c>]    lr : [<c0194264>]    psr: 60000013
-> > sp : cf823dc8  ip : cf95f680  fp : cf91b178
-> > r10: c03f37e0  r9 : c0367b06  r8 : c03dc770
-> > r7 : ffffffea  r6 : cf91b170  r5 : c03b7748  r4 : 00000000
-> > r3 : c03dc770  r2 : 00000000  r1 : c03b7740  r0 : c03b7748
-> > Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-> > Control: 10c5387d  Table: 80004019  DAC: 00000017
-> > Process swapper (pid: 1, stack limit = 0xcf8222e8)
-> > Stack: (0xcf823dc8 to 0xcf824000)
-> > 3dc0:                   00000000 cf91b170 cf91b170 c0194264 cf823e10
-> >  c03b7740 3de0: 00000000 cf91b178 00000000 c01670a4 cf91b178 00000000
-> >  cf91b168 cf91b170 3e00: c03f33dc c03dc770 c0367b06 c03f37e0 c03b787c
-> >  c0200744 c03b7740 cf91b160 3e20: c03b7740 cf91b000 c03d3cc0 00000000
-> >  00000000 c01fdcbc c03b8ae0 c03b8fc0 3e40: c03b7738 98f7cec1 cf820a30
-> >  c03b8f68 00000000 c0067f78 cf82c01c cf821a40 3e60: 00000017 cf820a00
-> >  cf821bdc 00000000 cf823eac 00000001 00000000 fffffffd 3e80: cf823ebc
-> >  cf803740 00000000 00000001 cf803744 00000000 00000000 c03ed394 3ea0:
-> >  cf823ef4 c016630c 00000000 cf80d7a8 00000000 c016630c cf82dfa4 cf80d7a8
-> >  3ec0: c00e5cdc cf80e608 00000000 c02a8c58 00000000 cf823f10 cf95e7b8
-> >  c00e6474 3ee0: cf95e7b8 c00e60ac cf95e818 cf95e7b8 cf823f10 c00e6184
-> >  00000000 cf823f10 3f00: cf95e7b8 cf80e608 00000001 c00e6eec cf80e608
-> >  00000000 00000000 c03b7740 3f20: c03b7740 c03dc440 cf95dbc0 c03d3cc0
-> >  00000000 00000000 00000000 c01971e4 3f40: c03b7740 c01963e0 c03b7740
-> >  c03b7774 c03dc440 cf95dbc0 c03d3cc0 c01964ec 3f60: 00000000 c019648c
-> >  c03dc440 c0195cb4 cf803af8 cf8459f0 c00222c8 c03dc440 3f80: c03dc440
-> >  c0195614 c03361b1 c03361b1 00000006 c00222c8 00000000 c03dc440 3fa0:
-> >  00000000 00000000 00000000 c01967bc c00222c8 00000000 c001c060 00000000
-> >  3fc0: 00000000 c0027334 00000031 00000000 00000000 00000192 00000000
-> >  c00222c8 3fe0: 00000000 00000000 00000000 c0008578 00000000 c0028dbc
-> >  00dbda20 24ffdc02 [<c019345c>] (get_device_parent+0x68/0x114) from
-> >  [<c0194264>] (device_add+0x7c/0x474) [<c0194264>]
-> (device_add+0x7c/0x474)
-> >  from [<c0200744>] (media_devnode_register+0x1d0/0x29c) [<c0200744>]
-> >  (media_devnode_register+0x1d0/0x29c) from [<c01fdcbc>]
-> >  (omap34xxcam_probe+0x64/0x428) [<c01fdcbc>]
-> (omap34xxcam_probe+0x64/0x428)
-> >  from [<c01971e4>] (platform_drv_probe+0x18/0x1c) [<c01971e4>]
-> >  (platform_drv_probe+0x18/0x1c) from [<c01963e0>]
-> >  (driver_probe_device+0xa0/0x14c) [<c01963e0>]
-> >  (driver_probe_device+0xa0/0x14c) from [<c01964ec>]
-> >  (__driver_attach+0x60/0x84) [<c01964ec>] (__driver_attach+0x60/0x84)
-> from
-> >  [<c0195cb4>] (bus_for_each_dev+0x44/0x74) [<c0195cb4>]
-> >  (bus_for_each_dev+0x44/0x74) from [<c0195614>]
-> (bus_add_driver+0x9c/0x220)
-> >  [<c0195614>] (bus_add_driver+0x9c/0x220) from [<c01967bc>]
-> >  (driver_register+0xa8/0x130) [<c01967bc>] (driver_register+0xa8/0x130)
-> >  from [<c0027334>] (do_one_initcall+0x5c/0x1b4) [<c0027334>]
-> >  (do_one_initcall+0x5c/0x1b4) from [<c0008578>] (kernel_init+0x90/0x10c)
-> >  [<c0008578>] (kernel_init+0x90/0x10c) from [<c0028dbc>]
-> >  (kernel_thread_exit+0x0/0x8) Code: 18bd8070 e1a05000 e596309c e5932030
-> >  (e5b23048)
-> > ---[ end trace 31cd15fa922e3123 ]---
-> > Kernel panic - not syncing: Attempted to kill init!
-> >
-> > Do you have any idea what I could be missing?
-> 
-> Yes, I think you're missing the equivalent to commit
-> 38f5cbed7710ab373252b64e3fb0701ab5a7b828
-> 
->     rx51: Add omap3isp_device pointer to platform data.
-> 
->     Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> 
+> From: Muralidharan Karicheri <m-karicheri2@ti.com>
+>
+> Re-sending the patches based on Kevin's comments.
+> Following are the changes from v3 :-
+>
+>  - replaced CLK entries with clk_add_alias() calls
+>  - removed unused vpss_master and vpss_slave entries
+>
+> This combines the two patches sent earlier to change the clock configuration
+> and converting ccdc drivers to platform drivers. This has updated comments
+> against v2 of these patches. Two new clocks "master" and "slave" are defined for ccdc driver
+> as per comments from Kevin Hilman.
+>
+> This adds platform code for ccdc driver on DM355 and DM6446.
+>
+> Reviewed-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Reviewed-by: Kevin Hilman <khilman@deeprootsystems.com>
+> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+>
+> Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+> ---
+> Applies to Linus tree
+>  arch/arm/mach-davinci/dm355.c  |   58 ++++++++++++++++++++-------------------
+>  arch/arm/mach-davinci/dm644x.c |   36 ++++++++++++++-----------
+>  2 files changed, 50 insertions(+), 44 deletions(-)
+>
+> diff --git a/arch/arm/mach-davinci/dm355.c b/arch/arm/mach-davinci/dm355.c
+> index dedf4d4..b4d0396 100644
+> --- a/arch/arm/mach-davinci/dm355.c
+> +++ b/arch/arm/mach-davinci/dm355.c
+> @@ -112,20 +112,6 @@ static struct clk vpss_dac_clk = {
+>  	.lpsc = DM355_LPSC_VPSS_DAC,
+>  };
+>  
+> -static struct clk vpss_master_clk = {
+> -	.name = "vpss_master",
+> -	.parent = &pll1_sysclk4,
+> -	.lpsc = DAVINCI_LPSC_VPSSMSTR,
+> -	.flags = CLK_PSC,
+> -};
+> -
+> -static struct clk vpss_slave_clk = {
+> -	.name = "vpss_slave",
+> -	.parent = &pll1_sysclk4,
+> -	.lpsc = DAVINCI_LPSC_VPSSSLV,
+> -};
 
-I do have that change. In the patch 0003, I added devices.h, and also provided a pointer to omap3isp_device.
+I suggested removing the duplicate, not removing them both.
 
-Anything else?
+These nodes should stay, and the clock aliases should be created as
+aliaes of these nodes (which can be enabled/disabled) and not the PLL
+outputs directly.
 
-Regards,
-Sergio
-> --
-> Regards,
-> 
-> Laurent Pinchart
+>  static struct clk clkout1_clk = {
+>  	.name = "clkout1",
+>  	.parent = &pll1_aux_clk,
+> @@ -345,8 +331,6 @@ static struct davinci_clk dm355_clks[] = {
+>  	CLK(NULL, "pll1_aux", &pll1_aux_clk),
+>  	CLK(NULL, "pll1_sysclkbp", &pll1_sysclkbp),
+>  	CLK(NULL, "vpss_dac", &vpss_dac_clk),
+> -	CLK(NULL, "vpss_master", &vpss_master_clk),
+> -	CLK(NULL, "vpss_slave", &vpss_slave_clk),
+>  	CLK(NULL, "clkout1", &clkout1_clk),
+>  	CLK(NULL, "clkout2", &clkout2_clk),
+>  	CLK(NULL, "pll2", &pll2_clk),
+> @@ -665,6 +649,17 @@ static struct platform_device dm355_asp1_device = {
+>  	.resource	= dm355_asp1_resources,
+>  };
+>  
+> +static void dm355_ccdc_setup_pinmux(void)
+> +{
+> +	davinci_cfg_reg(DM355_VIN_PCLK);
+> +	davinci_cfg_reg(DM355_VIN_CAM_WEN);
+> +	davinci_cfg_reg(DM355_VIN_CAM_VD);
+> +	davinci_cfg_reg(DM355_VIN_CAM_HD);
+> +	davinci_cfg_reg(DM355_VIN_YIN_EN);
+> +	davinci_cfg_reg(DM355_VIN_CINL_EN);
+> +	davinci_cfg_reg(DM355_VIN_CINH_EN);
+> +}
+> +
+>  static struct resource dm355_vpss_resources[] = {
+>  	{
+>  		/* VPSS BL Base address */
+> @@ -701,6 +696,10 @@ static struct resource vpfe_resources[] = {
+>  		.end            = IRQ_VDINT1,
+>  		.flags          = IORESOURCE_IRQ,
+>  	},
+> +};
+> +
+> +static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
+> +static struct resource dm355_ccdc_resource[] = {
+>  	/* CCDC Base address */
+>  	{
+>  		.flags          = IORESOURCE_MEM,
+> @@ -708,8 +707,18 @@ static struct resource vpfe_resources[] = {
+>  		.end            = 0x01c70600 + 0x1ff,
+>  	},
+>  };
+> +static struct platform_device dm355_ccdc_dev = {
+> +	.name           = "dm355_ccdc",
+> +	.id             = -1,
+> +	.num_resources  = ARRAY_SIZE(dm355_ccdc_resource),
+> +	.resource       = dm355_ccdc_resource,
+> +	.dev = {
+> +		.dma_mask               = &vpfe_capture_dma_mask,
+> +		.coherent_dma_mask      = DMA_BIT_MASK(32),
+> +		.platform_data		= dm355_ccdc_setup_pinmux,
+> +	},
+> +};
+>  
+> -static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
+>  static struct platform_device vpfe_capture_dev = {
+>  	.name		= CAPTURE_DRV_NAME,
+>  	.id		= -1,
+> @@ -857,20 +866,13 @@ static int __init dm355_init_devices(void)
+>  	if (!cpu_is_davinci_dm355())
+>  		return 0;
+>  
+> +	/* Add ccdc clock aliases */
+> +	clk_add_alias("master", dm355_ccdc_dev.name, "pll1_sysclk4", NULL);
+> +	clk_add_alias("slave", dm355_ccdc_dev.name, "pll1_sysclk4", NULL);
+
+Not quite, see above...
+
+The aliases should be of the vpss nodes, not the PLL outputs which
+cannot be enabled/disabled.
+
+Same problem with dm644x below.
+
+Kevin
+
+>  	davinci_cfg_reg(DM355_INT_EDMA_CC);
+>  	platform_device_register(&dm355_edma_device);
+>  	platform_device_register(&dm355_vpss_device);
+> -	/*
+> -	 * setup Mux configuration for vpfe input and register
+> -	 * vpfe capture platform device
+> -	 */
+> -	davinci_cfg_reg(DM355_VIN_PCLK);
+> -	davinci_cfg_reg(DM355_VIN_CAM_WEN);
+> -	davinci_cfg_reg(DM355_VIN_CAM_VD);
+> -	davinci_cfg_reg(DM355_VIN_CAM_HD);
+> -	davinci_cfg_reg(DM355_VIN_YIN_EN);
+> -	davinci_cfg_reg(DM355_VIN_CINL_EN);
+> -	davinci_cfg_reg(DM355_VIN_CINH_EN);
+> +	platform_device_register(&dm355_ccdc_dev);
+>  	platform_device_register(&vpfe_capture_dev);
+>  
+>  	return 0;
+> diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+> index 2cd0081..569c541 100644
+> --- a/arch/arm/mach-davinci/dm644x.c
+> +++ b/arch/arm/mach-davinci/dm644x.c
+> @@ -149,19 +149,6 @@ static struct clk vicp_clk = {
+>  	.usecount = 1,			/* REVISIT how to disable? */
+>  };
+>  
+> -static struct clk vpss_master_clk = {
+> -	.name = "vpss_master",
+> -	.parent = &pll1_sysclk3,
+> -	.lpsc = DAVINCI_LPSC_VPSSMSTR,
+> -	.flags = CLK_PSC,
+> -};
+> -
+> -static struct clk vpss_slave_clk = {
+> -	.name = "vpss_slave",
+> -	.parent = &pll1_sysclk3,
+> -	.lpsc = DAVINCI_LPSC_VPSSSLV,
+> -};
+> -
+>  static struct clk uart0_clk = {
+>  	.name = "uart0",
+>  	.parent = &pll1_aux_clk,
+> @@ -293,8 +280,6 @@ struct davinci_clk dm644x_clks[] = {
+>  	CLK(NULL, "dsp", &dsp_clk),
+>  	CLK(NULL, "arm", &arm_clk),
+>  	CLK(NULL, "vicp", &vicp_clk),
+> -	CLK(NULL, "vpss_master", &vpss_master_clk),
+> -	CLK(NULL, "vpss_slave", &vpss_slave_clk),
+>  	CLK(NULL, "arm", &arm_clk),
+>  	CLK(NULL, "uart0", &uart0_clk),
+>  	CLK(NULL, "uart1", &uart1_clk),
+> @@ -612,6 +597,11 @@ static struct resource vpfe_resources[] = {
+>  		.end            = IRQ_VDINT1,
+>  		.flags          = IORESOURCE_IRQ,
+>  	},
+> +};
+> +
+> +static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
+> +static struct resource dm644x_ccdc_resource[] = {
+> +	/* CCDC Base address */
+>  	{
+>  		.start          = 0x01c70400,
+>  		.end            = 0x01c70400 + 0xff,
+> @@ -619,7 +609,17 @@ static struct resource vpfe_resources[] = {
+>  	},
+>  };
+>  
+> -static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
+> +static struct platform_device dm644x_ccdc_dev = {
+> +	.name           = "dm644x_ccdc",
+> +	.id             = -1,
+> +	.num_resources  = ARRAY_SIZE(dm644x_ccdc_resource),
+> +	.resource       = dm644x_ccdc_resource,
+> +	.dev = {
+> +		.dma_mask               = &vpfe_capture_dma_mask,
+> +		.coherent_dma_mask      = DMA_BIT_MASK(32),
+> +	},
+> +};
+> +
+>  static struct platform_device vpfe_capture_dev = {
+>  	.name		= CAPTURE_DRV_NAME,
+>  	.id		= -1,
+> @@ -769,9 +769,13 @@ static int __init dm644x_init_devices(void)
+>  	if (!cpu_is_davinci_dm644x())
+>  		return 0;
+>  
+> +	/* Add ccdc clock aliases */
+> +	clk_add_alias("master", dm644x_ccdc_dev.name, "pll1_sysclk3", NULL);
+> +	clk_add_alias("slave", dm644x_ccdc_dev.name, "pll1_sysclk3", NULL);
+>  	platform_device_register(&dm644x_edma_device);
+>  	platform_device_register(&dm644x_emac_device);
+>  	platform_device_register(&dm644x_vpss_device);
+> +	platform_device_register(&dm644x_ccdc_dev);
+>  	platform_device_register(&vpfe_capture_dev);
+>  
+>  	return 0;
+> -- 
+> 1.6.0.4
