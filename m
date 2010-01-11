@@ -1,72 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225]:50629 "EHLO
-	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756377Ab0AMWEC convert rfc822-to-8bit (ORCPT
+Received: from smtp3-g21.free.fr ([212.27.42.3]:59535 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753084Ab0AKJyN convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jan 2010 17:04:02 -0500
-Received: by fxm25 with SMTP id 25so712356fxm.21
-        for <linux-media@vger.kernel.org>; Wed, 13 Jan 2010 14:04:00 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <430160.90047.qm@web32702.mail.mud.yahoo.com>
-References: <430160.90047.qm@web32702.mail.mud.yahoo.com>
-Date: Wed, 13 Jan 2010 17:04:00 -0500
-Message-ID: <829197381001131404x48a8596arf16186e476d1744c@mail.gmail.com>
-Subject: Re: Kworld 315U and SAA7113?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Franklin Meng <fmeng2002@yahoo.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 11 Jan 2010 04:54:13 -0500
+Date: Mon, 11 Jan 2010 10:55:24 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Jose Alberto Reguero <jareguero@telefonica.net>,
+	linux-media@vger.kernel.org
+Subject: Re: Problem with gspca and zc3xx
+Message-ID: <20100111105524.157ebdbe@tele>
+In-Reply-To: <4B4AE349.4000707@redhat.com>
+References: <201001090015.31357.jareguero@telefonica.net>
+	<20100110093730.14be3d7c@tele>
+	<4B4AE349.4000707@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jan 9, 2010 at 2:30 PM, Franklin Meng <fmeng2002@yahoo.com> wrote:
-> I tweaked the GPIO's a bit more for the Kworld 315U and switching between analog and digital signals is more reliable now. †Attached is an updated diff.
+On Mon, 11 Jan 2010 09:37:29 +0100
+Hans de Goede <hdegoede@redhat.com> wrote:
 
-Hello Franklin,
+> This is the infamous zc3xx bottom of the image is missing in 320x240
+> problem, with several sensors the register settings we took from the
+> windows driver will only give you 320x232 (iirc), we tried changing
+> them to get 320x240, but then the camera would not stream. Most
+> likely some timing issue between bridge and sensor.
+> 
+> I once had a patch fixing this by actually reporting the broken modes
+> as 320x232, but that never got applied as it breaks app which are
+> hardcoded to ask for 320x240. libv4l has had the ability to extend
+> the 320x232 image to 320x240 for a while now (by adding a few black
+> lines at the top + bottom), fixing the hardcoded apps problem.
+> 
+> So I think such a patch can and should be applied now. This will get
+> rid of the jpeg decompression errors reported by libv4l and in case
+> if yuv mode the ugly green bar with some random noise in it at the
+> bottom.
+> 
+> I'm afraid my patch is most likely lost, but I can create a new one
+> if you want, I have access to quite a few zc3xx camera's, and more
+> over what resolution they are actually streaming at can be deducted
+> from the register settings in the driver.
 
-This is pretty good stuff.  A few questions/comments about your patch:
+Hi Hans,
 
-The code has different GPIO configurations for the two analog modes.
-This is a bit unusual for an em28xx design.  Do you know what the
-difference is in terms of what GPIO7 controls?
+As you may see in Jose Alberto's message, the problem occurs with
+640x480 and, yes, the image bottom is lacking, but also the right side.
 
-The digital GPIO block strobes GPO3 to reset the lgdt3303.  While I
-generally believe that it's good to explicitly strobe the reset low,
-this could cause problems with em28xx devices.  This is because the
-em28xx calls the digital GPIO whenever starting streaming.  Hence, you
-could end up with the chip being reset without the demod driver's
-init() routine being called, resulting in the chip's register state
-not being in sync with the driver's state info.  In fact, we have this
-issue with one of the Terratec boards where the zl10353 driver state
-gets out of sync with the hardware (I still need to submit a patch
-upstream for that case).  Your code at this point should probably only
-ensure the 3303 is not in reset (by setting the GPIO pin high).
+I did not lose your patch, but I did not apply it because most of the
+time, the webcams work in the best resolution (VGA) and the associated
+problem has not found yet a good resolution...
 
-It's not surprising that you would uncover an issue with the suspend
-logic.  Despite the fact that the em28xx driver provides a suspend
-method it is not actually used today in any of the board profiles.
-
-The saa7115 stuff looks pretty reasonable at first glance, although I
-am a bit worried about the possibility that it could cause a
-regression in other products that use that decoder.
-
-Did you actually do any power analysis to confirm that the suspend
-functionality is working properly?
-
-I agree with Mauro though that this should be split into multiple
-patches.  In fact, I would seriously consider three patches instead of
-two - the first patch adds the basic functionality to get the board
-working, the second adds the saa7115 code, and the third adds the
-suspend GPIO changes.  This will make it easier for others who have
-problems to isolate whether any problems are a basic issue with the
-board not working or whether it is related to the suspend and power
-management changes.
-
-Cheers,
-
-Devin
+Regards.
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Ken ar c'henta√±	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
