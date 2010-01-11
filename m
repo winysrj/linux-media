@@ -1,52 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail02d.mail.t-online.hu ([84.2.42.7]:64856 "EHLO
-	mail02d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932336Ab0AGGZv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jan 2010 01:25:51 -0500
-Message-ID: <4B457E69.2010700@freemail.hu>
-Date: Thu, 07 Jan 2010 07:25:45 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+Received: from fg-out-1718.google.com ([72.14.220.153]:6841 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753825Ab0AKS7m convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jan 2010 13:59:42 -0500
+Received: by fg-out-1718.google.com with SMTP id 22so859463fge.1
+        for <linux-media@vger.kernel.org>; Mon, 11 Jan 2010 10:59:41 -0800 (PST)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-CC: Michael Krufky <mkrufky@linuxtv.org>, linux-media@vger.kernel.org
-Subject: [RESEND][PATCH] move autoconf.h for 2.6.33
+In-Reply-To: <2df568dc1001111012u627f07b8p9ec0c2577f14b5d9@mail.gmail.com>
+References: <2df568dc1001111012u627f07b8p9ec0c2577f14b5d9@mail.gmail.com>
+Date: Mon, 11 Jan 2010 11:59:40 -0700
+Message-ID: <2df568dc1001111059p54de8635k6c207fb3f4d96a14@mail.gmail.com>
+Subject: How to use saa7134 gpio via gpio-sysfs?
+From: Gordon Smith <spider.karma+linux-media@gmail.com>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+I need to bit twiddle saa7134 gpio pins from userspace.
+To use gpio-sysfs, I need a "GPIO number" to export each pin, but I
+do not know how to find such a number.
 
-The linux/autoconf.h was moved to generated/autoconf.h as of 2.6.33.
+Card is RTD Embedded Technologies VFG7350 [card=72,autodetected].
+GPIO uses pcf8574 chip.
+Kernel is 2.6.30.
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
----
-diff -r 62ee2b0f6556 v4l/scripts/make_config_compat.pl
---- a/v4l/scripts/make_config_compat.pl	Wed Dec 30 18:19:11 2009 +0100
-+++ b/v4l/scripts/make_config_compat.pl	Thu Dec 31 11:37:34 2009 +0100
-@@ -383,9 +383,19 @@
- # Do the basic rules
- open IN, "<$infile" or die "File not found: $infile";
+gpio-sysfs creates
+    /sys/class/gpio/export
+    /sys/class/gpio/import
+but no gpio<n> entries so far.
 
--$out.= "#ifndef __CONFIG_COMPAT_H__\n";
--$out.= "#define __CONFIG_COMPAT_H__\n\n";
--$out.= "#include <linux/autoconf.h>\n\n";
-+$out .= <<'EOD'
-+#ifndef __CONFIG_COMPAT_H__
-+#define __CONFIG_COMPAT_H__
-+
-+#include <linux/version.h>
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 33)
-+#include <linux/autoconf.h>
-+#else
-+#include <generated/autoconf.h>
-+#endif
-+
-+EOD
-+;
+>From dmesg ("gpiotracking=1")
+    saa7133[0]: board init: gpio is 10000
+    saa7133[0]: gpio: mode=0x0000000 in=0x4011000 out=0x0000000 [pre-init]
+    saa7133[1]: board init: gpio is 10000
+    saa7133[1]: gpio: mode=0x0000000 in=0x4010f00 out=0x0000000 [pre-init]
 
- # mmdebug.h includes autoconf.h. So if this header exists,
- # then include it before our config is set.
+How may I find each "GPIO number" for this board?
 
-
+Thanks in advance for any help.
