@@ -1,130 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:43008 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753020Ab0A0QFK convert rfc822-to-8bit (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:57310 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753006Ab0AKNYK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jan 2010 11:05:10 -0500
-Date: Wed, 27 Jan 2010 17:05:18 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-cc: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] soc_camera: match signedness of soc_camera_limit_side()
-In-Reply-To: <4B5AFD11.6000907@freemail.hu>
-Message-ID: <Pine.LNX.4.64.1001271645440.5073@axis700.grange>
-References: <4B5AFD11.6000907@freemail.hu>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Mon, 11 Jan 2010 08:24:10 -0500
+Date: Mon, 11 Jan 2010 11:24:05 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Huang Shijie <shijie8@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 00/11] add linux driver for chip TLG2300
+Message-ID: <20100111112405.0505c9df@pedra>
+In-Reply-To: <4B1FF5AB.30405@redhat.com>
+References: <1258687493-4012-1-git-send-email-shijie8@gmail.com>
+	<4B1FF5AB.30405@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 23 Jan 2010, Németh Márton wrote:
+Em Wed, 09 Dec 2009 17:08:27 -0200
+Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
 
-> From: Márton Németh <nm127@freemail.hu>
+> Huang Shijie wrote:
+> > The TLG2300 is a chip of Telegent System.
+> > It support analog tv,DVB-T and radio in a single chip.
+> > The chip has been used in several dongles, such as aeromax DH-9000:
+> > 	http://www.b2bdvb.com/dh-9000.htm
+> > 
+> > You can get more info from:
+> > 	[1] http://www.telegent.com/
+> > 	[2] http://www.telegent.com/press/2009Sept14_CSI.html
+> > 
+> > Huang Shijie (10):
+> >   add maitainers for tlg2300
+> >   add readme file for tlg2300
+> >   add Kconfig and Makefile for tlg2300
+> >   add header files for tlg2300
+> >   add the generic file
+> >   add video file for tlg2300
+> >   add vbi code for tlg2300
+> >   add audio support for tlg2300
+> >   add DVB-T support for tlg2300
+> >   add FM support for tlg2300
+> > 
 > 
-> The parameters of soc_camera_limit_side() are either a pointer to
-> a structure element from v4l2_rect, or constants. The structure elements
-> of the v4l2_rect are signed (see <linux/videodev2.h>) so do the computations
-> also with signed values.
+> Ok, finished reviewing it.
 > 
-> This will remove the following sparse warning (see "make C=1"):
->  * incorrect type in argument 1 (different signedness)
->        expected unsigned int *start
->        got signed int *<noident>
-
-Well, it is interesting, but insufficient. And, unfortunately, I don't 
-have a good (and easy) recipe for how to fix this properly.
-
-The problem is, that in soc_camera_limit_side all tests and arithmetics 
-are performed with unsigned in mind, now, if you change them to signed, 
-think what happens, if some of them are negative. No, I don't know when 
-negative members of struct v4l2_rect make sense, having them signed 
-doesn't seem a very good idea to me. But they cannot be changed - that's a 
-part of the user-space API...
-
-Casting all parameters inside that inline to unsigned would be way too 
-ugly. Maybe we could at least keep start_min, length_min, and length_max 
-unsigned, and only change start and length to signed, and only cast those 
-two inside the function. Then, if you grep through all the drivers, 
-there's only one location, where soc_camera_limit_side() is called with 
-the latter 3 parameters not constant - two calls in 
-sh_mobile_ceu_camera.c. So, to keep sparse happy, you'd have to cast 
-there. Ideally, you would also add checks there for negative values...
-
+> Patches 01, 02 and 04 seems ok to me. You didn't sent a patch 03.
+> Patch 05 will likely need some changes (the headers) due to some reviews I did
+> on the other patches.
 > 
-> Signed-off-by: Márton Németh <nm127@freemail.hu>
-> ---
-> diff -r 2a50a0a1c951 linux/include/media/soc_camera.h
-> --- a/linux/include/media/soc_camera.h	Sat Jan 23 00:14:32 2010 -0200
-> +++ b/linux/include/media/soc_camera.h	Sat Jan 23 10:09:41 2010 +0100
-> @@ -264,9 +264,8 @@
->  		common_flags;
->  }
+> The other patches need some adjustments, as commented on separate emails.
 > 
-> -static inline void soc_camera_limit_side(unsigned int *start,
-> -		unsigned int *length, unsigned int start_min,
-> -		unsigned int length_min, unsigned int length_max)
-> +static inline void soc_camera_limit_side(int *start, int *length,
-> +		int start_min, int length_min, int length_max)
->  {
->  	if (*length < length_min)
->  		*length = length_min;
-> diff -r 2a50a0a1c951 linux/drivers/media/video/rj54n1cb0c.c
-> --- a/linux/drivers/media/video/rj54n1cb0c.c	Sat Jan 23 00:14:32 2010 -0200
-> +++ b/linux/drivers/media/video/rj54n1cb0c.c	Sat Jan 23 10:09:41 2010 +0100
-> @@ -555,15 +555,15 @@
->  	return ret;
->  }
-> 
-> -static int rj54n1_sensor_scale(struct v4l2_subdev *sd, u32 *in_w, u32 *in_h,
-> -			       u32 *out_w, u32 *out_h);
-> +static int rj54n1_sensor_scale(struct v4l2_subdev *sd, s32 *in_w, s32 *in_h,
-> +			       s32 *out_w, s32 *out_h);
-> 
->  static int rj54n1_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
->  {
->  	struct i2c_client *client = sd->priv;
->  	struct rj54n1 *rj54n1 = to_rj54n1(client);
->  	struct v4l2_rect *rect = &a->c;
-> -	unsigned int dummy = 0, output_w, output_h,
-> +	int dummy = 0, output_w, output_h,
->  		input_w = rect->width, input_h = rect->height;
->  	int ret;
 
-And these:
+Hi Huang,
 
-	if (output_w > max(512U, input_w / 2)) {
-	if (output_h > max(384U, input_h / 2)) {
+Happy new year!
 
-would now produce compiler warnings... Have you actually tried to compile 
-your patch? You'll also have to change formats in dev_dbg() calls here...
+Had you finish fixing the pointed issues?
 
-> 
-> @@ -638,8 +638,8 @@
->   * the output one, updates the window sizes and returns an error or the resize
->   * coefficient on success. Note: we only use the "Fixed Scaling" on this camera.
->   */
-> -static int rj54n1_sensor_scale(struct v4l2_subdev *sd, u32 *in_w, u32 *in_h,
-> -			       u32 *out_w, u32 *out_h)
-> +static int rj54n1_sensor_scale(struct v4l2_subdev *sd, s32 *in_w, s32 *in_h,
-> +			       s32 *out_w, s32 *out_h)
->  {
->  	struct i2c_client *client = sd->priv;
->  	struct rj54n1 *rj54n1 = to_rj54n1(client);
-> @@ -1017,7 +1017,7 @@
->  	struct i2c_client *client = sd->priv;
->  	struct rj54n1 *rj54n1 = to_rj54n1(client);
->  	const struct rj54n1_datafmt *fmt;
-> -	unsigned int output_w, output_h, max_w, max_h,
-> +	int output_w, output_h, max_w, max_h,
->  		input_w = rj54n1->rect.width, input_h = rj54n1->rect.height;
->  	int ret;
-
-and here.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Cheers,
+Mauro
