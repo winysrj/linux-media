@@ -1,99 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-12.arcor-online.net ([151.189.21.52]:42217 "EHLO
-	mail-in-12.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751423Ab0APAkC (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.154]:42354 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752913Ab0AKTYb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jan 2010 19:40:02 -0500
-Subject: Re: How to use saa7134 gpio via gpio-sysfs?
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Gordon Smith <spider.karma+linux-media@gmail.com>,
-	Trent Piepho <xyzzy@speakeasy.org>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <1263266020.3198.37.camel@pc07.localdom.local>
-References: <2df568dc1001111012u627f07b8p9ec0c2577f14b5d9@mail.gmail.com>
-	 <2df568dc1001111059p54de8635k6c207fb3f4d96a14@mail.gmail.com>
-	 <1263266020.3198.37.camel@pc07.localdom.local>
-Content-Type: text/plain
-Date: Sat, 16 Jan 2010 01:35:37 +0100
-Message-Id: <1263602137.3184.23.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Mon, 11 Jan 2010 14:24:31 -0500
+Received: by fg-out-1718.google.com with SMTP id 19so9033121fgg.1
+        for <linux-media@vger.kernel.org>; Mon, 11 Jan 2010 11:24:29 -0800 (PST)
+Content-Type: text/plain; charset=iso-8859-2; format=flowed; delsp=yes
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: WinTV Radio rev-c121 remote support
+References: <d49708701001051211r447f6293g59dfac2b1af2818c@mail.gmail.com>
+ <op.u57s00mk6dn9rq@crni.lan>
+Date: Mon, 11 Jan 2010 20:24:51 +0100
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+From: "Samuel Rakitnican" <samuel.rakitnican@gmail.com>
+Message-ID: <op.u6duvn0i6dn9rq@crni.lan>
+In-Reply-To: <op.u57s00mk6dn9rq@crni.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Fri, 08 Jan 2010 13:59:14 +0100, Samuel Rakitnican  
+<samuel.rakitnican@gmail.com> wrote:
 
-Am Dienstag, den 12.01.2010, 04:13 +0100 schrieb hermann pitton:
-> Hi!
-> 
-> Am Montag, den 11.01.2010, 11:59 -0700 schrieb Gordon Smith: 
-> > I need to bit twiddle saa7134 gpio pins from userspace.
-> > To use gpio-sysfs, I need a "GPIO number" to export each pin, but I
-> > do not know how to find such a number.
-> > 
-> > Card is RTD Embedded Technologies VFG7350 [card=72,autodetected].
-> > GPIO uses pcf8574 chip.
-> > Kernel is 2.6.30.
-> > 
-> > gpio-sysfs creates
-> >     /sys/class/gpio/export
-> >     /sys/class/gpio/import
-> > but no gpio<n> entries so far.
-> > 
-> > >From dmesg ("gpiotracking=1")
-> >     saa7133[0]: board init: gpio is 10000
-> >     saa7133[0]: gpio: mode=0x0000000 in=0x4011000 out=0x0000000 [pre-init]
-> >     saa7133[1]: board init: gpio is 10000
-> >     saa7133[1]: gpio: mode=0x0000000 in=0x4010f00 out=0x0000000 [pre-init]
-> > 
-> > How may I find each "GPIO number" for this board?
-> > 
-> > Thanks in advance for any help.
-> 
-> There are 28 (0-27) gpio pins on each saa713x chip.
-> 
-> Documentation about possible use cases is publicly available via
-> nxp.com.
-> 
-> You can do what ever you want with them, but to export them to userland
-> seems to be a very bad idea to me.
-> 
-> Likely soon some "advanced hackers" will damage ;) all kind of hardware
-> around and others will claim it as being a GNU/Linux problem within the
-> same time such stuff appears, and of course it will.
-> 
-> In fact these days, only one to three users are involved hacking on a
-> board. It is much cheaper for all involved to give the serial number of
-> those than to imagine every day, what all could happen.
-> 
-> For all others not yet active, avoiding any worst case through
-> contributing is the way to go.
-> 
-> For the rest, we likely should have some fund, for worst cases, payed by
-> themselves.
-> 
-> Cheers,
-> Hermann
+> On Tue, 05 Jan 2010 21:11:59 +0100, Samuel Rakitnièan  
+> <samuel.rakitnican@gmail.com> wrote:
+>
+>> Hi,
+>>
+>> I have an old bt878 based analog card. It's 'Hauppauge WinTV Radio'  
+>> model 44914,
+>> rev C121.
+>>
+>> I'm trying to workout support for this shipped remote control. I have
 
-Hi Trent,
+  [...]
 
-thought there would be straight PROs too, but no reply so far.
+>> Card: http://linuxtv.org/wiki/index.php/File:Wintv-radio-C121.jpg
+>> Remote: http://linuxtv.org/wiki/index.php/File:Wintv-radio-remote.jpg
+>
+>
+> Did some investigation, maybe this can help to clarify some things.  
+> Still didn't get any response in dmesg from remote.
 
-If you ever want, could you elaborate a little, what for userspace gpios
-can be useful at all and why people eventually also can run into
-problems with such pins, since they are "somehow" also under control of
-manufacturers. Means they do use them all different within _some_ rules.
+  [...]
 
-Given all the different use cases of gpio pins, for example on the
-saa7134 driver, which ones should we eventually export to gpio-sysfs to
-try to understand that approach better?
+> i2c_scan:
+> bttv0: i2c scan: found device @ 0x30  [IR (hauppauge)]
+> bttv0: i2c scan: found device @ 0xa0  [eeprom]
+> bttv0: i2c scan: found device @ 0xc2  [tuner (analog)]
 
-Do we have such pins at all?
+  [...]
 
-Cheers,
-Hermann
+> modprobe ir-kbd-i2c debug=1
+> ir-kbd-i2c: probe 0x1a @ bt878 #0 [sw]: no
+> ir-kbd-i2c: probe 0x18 @ bt878 #0 [sw]: yes
+
+  [...]
 
 
+OK, patch http://patchwork.kernel.org/patch/70126/ did the trick for  
+kernel oops and segfault. However there is still something wrong in the  
+filtering code for hauppauge remotes that prevents my remote codes for  
+passing through:
+
+drivers/media/video/ir-kbd-i2c.c
+
+  99 	/*
+100 	 * Hauppauge remotes (black/silver) always use
+101 	 * specific device ids. If we do not filter the
+102 	 * device ids then messages destined for devices
+103 	 * such as TVs (id=0) will get through causing
+104 	 * mis-fired events.
+105 	 *
+106 	 * We also filter out invalid key presses which
+107 	 * produce annoying debug log entries.
+108 	 */
+109 	ircode= (start << 12) | (toggle << 11) | (dev << 6) | code;
+110 	if ((ircode & 0x1fff)==0x1fff)
+111 		/* invalid key press */
+112 		return 0;
+113
+114 	if (dev!=0x1e && dev!=0x1f)
+115 		/* not a hauppauge remote */
+116 		return 0;
+117
+118 	if (!range)
+119 		code += 64;
 
 
+When I comment in this part: if (dev!=0x1e && dev!=0x1f), my remote works  
+with a hauppage=1 parameter, althought a few buttons are not mapped  
+correctly.
+
+dmesg example with an empty table (buttons CH+ and CH-):
+: unknown key: key=0x20 down=1
+: unknown key for scancode 0x0020
+: unknown key: key=0x20 down=0
+: unknown key for scancode 0x0021
+: unknown key: key=0x21 down=1
+: unknown key for scancode 0x0021
+: unknown key: key=0x21 down=0
 
 
+Can someone please take a look at this and perhaps fix the code. Thanks in  
+advance.
+
+
+Regards,
+Samuel
