@@ -1,79 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailrelay003.isp.belgacom.be ([195.238.6.53]:35869 "EHLO
-	mailrelay003.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751526Ab0AWJQW (ORCPT
+Received: from smtp23.services.sfr.fr ([93.17.128.22]:46280 "EHLO
+	smtp23.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750755Ab0AKVlg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jan 2010 04:16:22 -0500
-Message-ID: <4B5ABE5F.50704@skynet.be>
-Date: Sat, 23 Jan 2010 10:16:15 +0100
-From: xof <xof@skynet.be>
+	Mon, 11 Jan 2010 16:41:36 -0500
+Received: from smtp23.services.sfr.fr (msfrf2308 [10.18.27.22])
+	by msfrf2315.sfr.fr (SMTP Server) with ESMTP id 41CC0700F605
+	for <linux-media@vger.kernel.org>; Mon, 11 Jan 2010 22:41:35 +0100 (CET)
+Received: from filter.sfr.fr (localhost [127.0.0.1])
+	by msfrf2308.sfr.fr (SMTP Server) with ESMTP id E65FE70000A0
+	for <linux-media@vger.kernel.org>; Mon, 11 Jan 2010 22:38:33 +0100 (CET)
+Received: from linux-542s.localnet (unknown [87.100.60.13])
+	by msfrf2308.sfr.fr (SMTP Server) with ESMTP id C7A5D7000087
+	for <linux-media@vger.kernel.org>; Mon, 11 Jan 2010 22:38:33 +0100 (CET)
+From: "ftape-jlc" <ftape-jlc@club-internet.fr>
+Reply-To: ftape-jlc@club-internet.fr
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: FM radio problem with HVR1120
+Date: Mon, 11 Jan 2010 22:39:07 +0100
 MIME-Version: 1.0
-To: LiM <lim@brdo.cz>
-CC: linux-media@vger.kernel.org
-Subject: Re: bt878 card: no sound and only xvideo support in 2.6.31 bttv 0.9.18
-References: <4B580AB2.6030005@brdo.cz> <20100121094943.GA2332@localhost.lan> <4B595C40.2070001@brdo.cz>
-In-Reply-To: <4B595C40.2070001@brdo.cz>
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: 8bit
+Message-Id: <201001112239.07084.ftape-jlc@club-internet.fr>
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-LiM a écrit :
-> Leopold Gouverneur napsal(a):
->   
->> On Thu, Jan 21, 2010 at 09:05:06AM +0100, LiM wrote:
->>   
->>     
->>> Hello,
->>>
->>> i have the same problem as http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/11441 also with Hercules Smart TV Stereo ..
->>> works OK audio+video on ..2.6.29-gentoo-r5 + bttv 0.9.17
->>> but NO AUDIO on linux-2.6.31-gentoo-r6 + bttv 0.9.18
->>>
->>>       
->
-> Hi,
->
-> and is any chance it will be working with new version?
->
-> Michal
->   
-A temporary solution (if you can use a solder iron) is to get audio out
-of the (tuner) metal box and inject it at the CD connector on the
-motherboard.
+Hello,
 
-    See : http://www.genicus.be/?p=592
+I am user of Huappuage HVR1120, and I have problem with radio FM use in linux 
+mode.
 
-(It works for me.  There is an audio out pin (AF) on the TDA9801T in the
-metal box. lip-sync is not perfect, but, at least, I hear something...)
+Distribution OpenSuse11.2
+Kernel 2.6.31.8-0.1-desktop
+Firmware dvb-fe-tda10048-1.0.fw loaded
 
-But, of course, it would be better to make the driver work.
+Analog and Digital Television are OK in both Windows and Linux.
+Windows is using Hauppauge WinTV7 v7.027313
 
-I had the same problem in 2008 when somebody changed tvaudio and I did
-not realize I had to specify new options in my /etc/modprobe.d/bttv.conf
-file.  I wonder why 'bttv card=100' is not enough to specify the
-hardware and what to do with it.  There is an entry 'Hercules Smart TV
-Stereo' in bttv-cards.c.  I am not sure what can be done with
-autodetecting chips on an unknown board.  I agree, this is probably
-complex matter but this mix of specification and autodetection is suspect.
+Linux is using Kaffeine v1.0-pre2 for Digital Television
+Linux is using mplayer for analog TV like:
+mplayer tv:// -tv driver=v4l2:freq=495.750:norm=SECAM-
+L:input=0:audiorate=32000:immediatemode=0:alsa:forceaudio:adevice=hw.1,0:width=720:height=576:amode=1
 
-My card is 1540:952b - Hercules Smart TV 2 Stereo.
-    there is a TDA9801T in the metal box labelled TVF-8533-B/DF
-    a Conexant Fusion 878A (~compatible Bt878)
-    a TDA9874AH on the (audio) piggy back
-and two other chips (?pic16c54 (a dip-18 labeled 'B05')? and ? a dip-8
-with Label 'GI0')
+The problem is to listen radio.
+One radio station is OK at 91.5MHz stereo using WintTV7 in Windows.
+With Linux, the command used is 
+/usr/bin/radio -c /dev/radio0
+in association with
+sox -t ossdsp -r 32000 -c 2 /dev/dsp1 -t ossdsp /dev/dsp
+to listen the sound.
 
-http://git.kernel.org/?p=linux/kernel/git/stable/linux-2.6.31.y.git;a=commitdiff;h=859f0277a6c3ba59b0a5a1eb183f8f6ce661a95d
-is difficult to follow as there are changes in i2c handling,
-autodetection, v4l and v4l2 architectures,...  I don't know if there is
-some documentation about the (reverse engineered) wiring of the board
-themselves or is the code 'is/was' the documentation.
+The result is an unstable frecuency. The station is not tuned. Stereo is 
+permanently switching to mono.
+The 91.5MHz station is mixed permanently with other stations.
 
-The 'Hercules Smart TV' is probably not the only card with a sound
-problem after those reorganisations.  I also hope that it is not a 'big
-bug' and that it will be back one of these days but (I feel) it is
-nearly impossible to help from outside.
+How can I check v4l2 ?
+Do you need dmesg output ?
+Is this mailing list the right place to solve this problem ?
+
+Thank you for your help.
+
+Regards,
+
+ftape-jlc
 
 
-xof
