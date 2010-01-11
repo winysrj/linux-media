@@ -1,97 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1281 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932094Ab0ARMsS (ORCPT
+Received: from mail-yx0-f187.google.com ([209.85.210.187]:36962 "EHLO
+	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752224Ab0AKBps convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2010 07:48:18 -0500
-Date: Mon, 18 Jan 2010 13:48:04 +0100 (CET)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	iivanov@mm-sol.com, gururaj.nagendra@intel.com
-Subject: Re: [RFC v2 6/7] V4L: Events: Sequence numbers
-In-Reply-To: <1261500191-9441-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-Message-ID: <alpine.LNX.2.01.1001181344190.31857@alastor>
-References: <4B30F713.8070004@maxwell.research.nokia.com> <1261500191-9441-1-git-send-email-sakari.ailus@maxwell.research.nokia.com> <1261500191-9441-2-git-send-email-sakari.ailus@maxwell.research.nokia.com> <1261500191-9441-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
- <1261500191-9441-4-git-send-email-sakari.ailus@maxwell.research.nokia.com> <1261500191-9441-5-git-send-email-sakari.ailus@maxwell.research.nokia.com> <1261500191-9441-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+	Sun, 10 Jan 2010 20:45:48 -0500
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Date: Sun, 10 Jan 2010 22:45:47 -0300
+Message-ID: <460844bf1001101745r24373097x3c260d38774707c6@mail.gmail.com>
+Subject: Mosaico ITV 300 not work with GNU/Linux
+From: Humberto <lindrix@gmail.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	majordomo@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi, people. My 1st post is on Mosaico ITV 300'
+suport into Linux. Dmesg display that the chipset card's is
+detected (SAA7130), but properly no. You see these messages:
 
-Some more review comments:
+http://www.lindrix.xpg.com.br/log_saa7130_description.txt
 
-On Tue, 22 Dec 2009, Sakari Ailus wrote:
+Excuse me, they are many messages...
 
-> Add sequence numbers to events.
->
-> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> ---
-> drivers/media/video/v4l2-event.c |    8 ++++++++
-> include/media/v4l2-event.h       |    1 +
-> 2 files changed, 9 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
-> index 72fdf7f..cc2bf57 100644
-> --- a/drivers/media/video/v4l2-event.c
-> +++ b/drivers/media/video/v4l2-event.c
-> @@ -58,6 +58,7 @@ void v4l2_event_init_fh(struct v4l2_fh *fh)
-> 	INIT_LIST_HEAD(&events->subscribed);
->
-> 	atomic_set(&events->navailable, 0);
-> +	events->sequence = 0;
+The Mosaico's home page was:
 
-Why not make this atomic_t as well?
+http://www.mosaico.com.tw
 
-> }
-> EXPORT_SYMBOL_GPL(v4l2_event_init_fh);
->
-> @@ -158,10 +159,16 @@ void v4l2_event_queue(struct video_device *vdev, struct v4l2_event *ev)
->
-> 	list_for_each_entry(fh, &vdev->fh, list) {
-> 		struct _v4l2_event *_ev;
-> +		u32 sequence;
->
-> 		if (!v4l2_event_subscribed(fh, ev->type))
-> 			continue;
->
-> +		spin_lock(&fh->events.lock);
-> +		sequence = fh->events.sequence;
-> +		fh->events.sequence++;
-> +		spin_unlock(&fh->events.lock);
+But it is out.
 
-Then you can use atomic_inc_return() here.
+Images:
 
-> +
-> 		if (atomic_read(&fh->events.navailable) >= V4L2_MAX_EVENTS)
-> 			continue;
->
-> @@ -172,6 +179,7 @@ void v4l2_event_queue(struct video_device *vdev, struct v4l2_event *ev)
-> 		_ev->event = *ev;
->
-> 		spin_lock(&fh->events.lock);
-> +		_ev->event.sequence = sequence;
-> 		list_add_tail(&_ev->list, &fh->events.available);
-> 		spin_unlock(&fh->events.lock);
->
-> diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
-> index 69305c6..5a778d4 100644
-> --- a/include/media/v4l2-event.h
-> +++ b/include/media/v4l2-event.h
-> @@ -44,6 +44,7 @@ struct v4l2_events {
-> 	spinlock_t		lock; /* Protect everything here. */
-> 	struct list_head	available;
-> 	atomic_t		navailable;
-> +	u32			sequence;
-> 	wait_queue_head_t	wait;
-> 	struct list_head	subscribed; /* Subscribed events. */
-> };
-> -- 
-> 1.5.6.5
->
+http://www.multimidia.inf.br/media/catalog/product/cache/1/small_image/135x135/5e06319eda06f020e43594a9c230972d/i/m/image_5131_99.jpg
 
-Regards,
 
- 	Hans
+
+
+Thanks to all.
+
+Humberto,
+
+Brazilian.
+
+
+-- 
+José Humberto da Silva Soares
+Licenciado em Computação - UEPB;
+Técnico em Informática.
