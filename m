@@ -1,50 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f187.google.com ([209.85.210.187]:36962 "EHLO
-	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752224Ab0AKBps convert rfc822-to-8bit (ORCPT
+Received: from mail01d.mail.t-online.hu ([84.2.42.6]:51785 "EHLO
+	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752951Ab0AKSHw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jan 2010 20:45:48 -0500
+	Mon, 11 Jan 2010 13:07:52 -0500
+Message-ID: <4B4B68F2.4030003@freemail.hu>
+Date: Mon, 11 Jan 2010 19:07:46 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-Date: Sun, 10 Jan 2010 22:45:47 -0300
-Message-ID: <460844bf1001101745r24373097x3c260d38774707c6@mail.gmail.com>
-Subject: Mosaico ITV 300 not work with GNU/Linux
-From: Humberto <lindrix@gmail.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	majordomo@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: =?UTF-8?B?U3TDqXBoYW5lIE1hcmd1ZXQ=?= <smarguet@gmail.com>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: gspca_pac7302: sporatdic problem when plugging the device
+References: <4B4A0752.6030306@freemail.hu> <20100110204844.770f8fd7@tele> <4B4A386D.3080106@freemail.hu> <20100111091030.298cedd7@tele>
+In-Reply-To: <20100111091030.298cedd7@tele>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, people. My 1st post is on Mosaico ITV 300'
-suport into Linux. Dmesg display that the chipset card's is
-detected (SAA7130), but properly no. You see these messages:
+Jean-Francois Moine Ã­rta:
+> Sorry, I forgot to attach the patch.
+> 
+>> In some usbsnoop files I have, the index 0x48 is not loaded. May you
+>> try the attached patch (skip the index 0x48 and remove the delay).
 
-http://www.lindrix.xpg.com.br/log_saa7130_description.txt
+100 plug-ins out of 100 OK, no errors: I say go for this patch.
 
-Excuse me, they are many messages...
+I applied the patch on top of rev 14000:bc5737e0e757 from
+http://linuxtv.org/hg/~jfrancois/gspca/ . I tested the driver on
+top of 2.6.32 with Labtec Webcam 2200 (0x093a:0x2626).
 
-The Mosaico's home page was:
+Tested-by: MÃ¡rton NÃ©meth <nm127@freemail.hu>
 
-http://www.mosaico.com.tw
+Thanks for the fix.
 
-But it is out.
+Regards,
 
-Images:
-
-http://www.multimidia.inf.br/media/catalog/product/cache/1/small_image/135x135/5e06319eda06f020e43594a9c230972d/i/m/image_5131_99.jpg
-
-
-
-
-Thanks to all.
-
-Humberto,
-
-Brazilian.
-
-
--- 
-José Humberto da Silva Soares
-Licenciado em Computação - UEPB;
-Técnico em Informática.
+	MÃ¡rton NÃ©meth
