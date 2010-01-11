@@ -1,52 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qmta12.westchester.pa.mail.comcast.net ([76.96.59.227]:59912
-	"EHLO qmta12.westchester.pa.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754284Ab0AQUDc (ORCPT
+Received: from mail-ew0-f214.google.com ([209.85.219.214]:36245 "EHLO
+	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751644Ab0AKIVt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jan 2010 15:03:32 -0500
-Subject: Re: bug in pwc_set_shutter_speed v2.6.30.5 and fix
-From: Jef Treece <treecej@comcast.net>
-Reply-To: treece@gsp.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Martin Fuzzey <mfuzzey@gmail.com>, treece@gsp.org,
-	linux-media@vger.kernel.org
-In-Reply-To: <200908251207.06069.laurent.pinchart@ideasonboard.com>
-References: <1251061440.7262.8.camel@stoppy.bicycle.org>
-	 <200908251207.06069.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 17 Jan 2010 12:03:29 -0800
-Message-ID: <1263758609.22914.0.camel@stoppy.bicycle.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Mon, 11 Jan 2010 03:21:49 -0500
+Received: by ewy6 with SMTP id 6so21626974ewy.29
+        for <linux-media@vger.kernel.org>; Mon, 11 Jan 2010 00:21:47 -0800 (PST)
+MIME-Version: 1.0
+Date: Mon, 11 Jan 2010 09:21:46 +0100
+Message-ID: <885896af1001110021h62213059p4e6bcf52593b1ee8@mail.gmail.com>
+Subject: Pinnacle Pctv Hybrid Pro Stick 330E and DVB
+From: Giacomo <delleceste@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'm pretty sure this is still broken as of 2.6.32.2
-Jef Treece
+Good morning.
 
-On Tue, 2009-08-25 at 12:07 +0200, Laurent Pinchart wrote:
-> On Sunday 23 August 2009 23:04:00 Jef Treece wrote:
-> > I found in recent kernel versions, I think somewhere between 2.6.29.3
-> > and 2.6.30.3, pwc_set_shutter_speed regressed.
-> >
-> > I was able to fix it with this one-line change
-> > (drivers/media/video/pwc/pwc-ctrl.c line 755 in 2.6.30.5 source):
-> >
-> > 	ret = send_control_msg(pdev,
-> > 		SET_LUM_CTL, SHUTTER_MODE_FORMATTER, &buf, sizeof(buf));
-> >
-> > change to
-> >
-> > 	ret = send_control_msg(pdev,
-> > 		SET_LUM_CTL, SHUTTER_MODE_FORMATTER, &buf, 1);
-> >
-> > I hope you find this information useful.
-> 
-> This indeed looks like a regression to me.
-> 
-> Martin, as you've introduced the problem, could you look into it and send a 
-> patch ? There might be other occurrences of wrong integer -> sizeof 
-> conversions, so please review them carefully.
-> 
+I have a Pinnacle Pctv Hybrid Pro Stick 330E. Downloaded, compiled and
+install last
+drivers from v4l-dvb via mercurial.
 
+- Downloaded the windows driver fromt
+http://www.steventoth.net/linux/xc5000/HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip
+- Extracted the firmware xc3028-v27.fw  into /lib/firmware
 
+Analog TV works, but what about dvb?
+
+I see /dev/vbi0 in /dev, but it seems not to be enough to have neither
+kdetv nor klear nor dvbscan work...
+
+They are probably looking for something inside /dev/dvb/adapter...
+
+Is this card supported?
+
+I remember, maybe about one year ago, I had watched DVB-T tv with the
+Pctv Hybrid Pro Stick...
+
+Thanks in advance.
+
+Giacomo.
+
+-- 
+Giacomo S.
+http://www.giacomos.it
+
+- - - - - - - - - - - - - - - - - - - - - -
+
+* Aprile 2008: iqfire-wall, un progetto
+  open source che implementa un
+  filtro di pacchetti di rete per Linux,
+  e` disponibile per il download qui:
+  http://sourceforge.net/projects/ipfire-wall
+
+* Informazioni e pagina web ufficiale:
+  http://www.giacomos.it/iqfire/index.html
+
+- - - - - - - - - - - - - - - - - - - - - -
+
+ . ''  `.
+:   :'    :
+ `.  ` '
+    `- Debian GNU/Linux -- The power of freedom
+        http://www.debian.org
