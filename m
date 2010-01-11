@@ -1,109 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2212 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753834Ab0AUULE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jan 2010 15:11:04 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o0LKAvBP000210
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 21 Jan 2010 21:11:01 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 21 Jan 2010 21:10:57 +0100 (CET)
-Message-Id: <201001212011.o0LKAvBP000210@smtp-vbr7.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: WARNINGS
+Received: from smtp3-g21.free.fr ([212.27.42.3]:46753 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752419Ab0AKIJR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jan 2010 03:09:17 -0500
+Date: Mon, 11 Jan 2010 09:10:30 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>,
+	=?UTF-8?B?U3Q=?= =?UTF-8?B?w6lwaGFuZQ==?= Marguet
+	<smarguet@gmail.com>
+Cc: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: gspca_pac7302: sporatdic problem when plugging the device
+Message-ID: <20100111091030.298cedd7@tele>
+In-Reply-To: <4B4A386D.3080106@freemail.hu>
+References: <4B4A0752.6030306@freemail.hu>
+ <20100110204844.770f8fd7@tele>
+ <4B4A386D.3080106@freemail.hu>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/BXIeQsYfFZOUYv3kCHgOY8N"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+--MP_/BXIeQsYfFZOUYv3kCHgOY8N
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Results of the daily build of v4l-dvb:
+Sorry, I forgot to attach the patch.
 
-date:        Thu Jan 21 19:00:03 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14014:e4429a1b736c
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+> In some usbsnoop files I have, the index 0x48 is not loaded. May you
+> try the attached patch (skip the index 0x48 and remove the delay).
+>=20
+> (St=C3=A9phane, est-ce que tu peux voir aussi ce que =C3=A7a donne chez t=
+oi?)
 
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-armv5: OK
-linux-2.6.33-rc2-armv5: OK
-linux-2.6.32-armv5-davinci: WARNINGS
-linux-2.6.33-rc2-armv5-davinci: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.31-armv5-ixp: WARNINGS
-linux-2.6.32-armv5-ixp: WARNINGS
-linux-2.6.33-rc2-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.31-armv5-omap2: WARNINGS
-linux-2.6.32-armv5-omap2: WARNINGS
-linux-2.6.33-rc2-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-i686: WARNINGS
-linux-2.6.33-rc2-i686: WARNINGS
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-m32r: OK
-linux-2.6.33-rc2-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: WARNINGS
-linux-2.6.32-mips: WARNINGS
-linux-2.6.33-rc2-mips: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-powerpc64: WARNINGS
-linux-2.6.32-powerpc64: WARNINGS
-linux-2.6.33-rc2-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-x86_64: WARNINGS
-linux-2.6.33-rc2-x86_64: WARNINGS
-spec: OK
-sparse (linux-2.6.32): ERRORS
-sparse (linux-2.6.33-rc2): ERRORS
-linux-2.6.16.61-i686: OK
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: OK
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: OK
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+Regards.
 
-Detailed results are available here:
+--=20
+Ken ar c'henta=C3=B1	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+--MP_/BXIeQsYfFZOUYv3kCHgOY8N
+Content-Type: application/octet-stream; name=pac7302.pat
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename=pac7302.pat
 
-Full logs are available here:
+ZGlmZiAtciA4YzExYmU0ZWRmMzMgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9nc3BjYS9wYWM3
+MzAyLmMKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9nc3BjYS9wYWM3MzAyLmMJU3Vu
+IEphbiAxMCAyMDozNjo1MyAyMDEwICswMTAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlk
+ZW8vZ3NwY2EvcGFjNzMwMi5jCU1vbiBKYW4gMTEgMDk6MDE6MjQgMjAxMCArMDEwMApAQCAtMzg4
+LDcgKzM4OCw3IEBACiAJMHhhNCwgMHhiOCwgMHhlMCwgMHgyYSwgMHhmNiwgMHgwMCwgMHgwMCwg
+MHgwMCwKIAkweDAwLCAweDFlLCAweDAwLCAweDAwLCAweDAwLCAweDAwLCAweDAwLCAweDAwLAog
+CTB4MDAsIDB4ZmMsIDB4MDAsIDB4ZjIsIDB4MWYsIDB4MDQsIDB4MDAsIDB4MDAsCi0JMHgwMCwg
+MHgwMCwgMHgwMCwgMHhjMCwgMHhjMCwgMHgxMCwgMHgwMCwgMHgwMCwKKwlTS0lQLCAweDAwLCAw
+eDAwLCAweGMwLCAweGMwLCAweDEwLCAweDAwLCAweDAwLAogCTB4MDAsIDB4NDAsIDB4MDAsIDB4
+MDAsIDB4MDAsIDB4MDAsIDB4MDAsIDB4MDAsCiAJMHgwMCwgMHg0MCwgMHhmZiwgMHgwMywgMHgx
+OSwgMHgwMCwgMHgwMCwgMHgwMCwKIAkweDAwLCAweDAwLCAweDAwLCAweDAwLCAweDAwLCAweDAw
+LCAweDAwLCAweDAwLApAQCAtNDE5LDcgKzQxOSw2IEBACiAJCVBERUJVRyhEX0VSUiwgInJlZ193
+X2J1ZigpOiAiCiAJCSJGYWlsZWQgdG8gd3JpdGUgcmVnaXN0ZXJzIHRvIGluZGV4IDB4JXgsIGVy
+cm9yICVpIiwKIAkJaW5kZXgsIHJldCk7Ci0JbXNsZWVwKDQpOwkJLyogZG9uJ3QgZ28gdG9vIHF1
+aWNrbHkgKi8KIAlyZXR1cm4gcmV0OwogfQogCg==
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+--MP_/BXIeQsYfFZOUYv3kCHgOY8N--
