@@ -1,74 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail02d.mail.t-online.hu ([84.2.42.7]:54596 "EHLO
-	mail02d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750940Ab0AJU2e (ORCPT
+Received: from mail-in-04.arcor-online.net ([151.189.21.44]:41915 "EHLO
+	mail-in-04.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750934Ab0ALDRT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jan 2010 15:28:34 -0500
-Message-ID: <4B4A386D.3080106@freemail.hu>
-Date: Sun, 10 Jan 2010 21:28:29 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: gspca_pac7302: sporatdic problem when plugging the device
-References: <4B4A0752.6030306@freemail.hu> <20100110204844.770f8fd7@tele>
-In-Reply-To: <20100110204844.770f8fd7@tele>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Mon, 11 Jan 2010 22:17:19 -0500
+Subject: Re: How to use saa7134 gpio via gpio-sysfs?
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Gordon Smith <spider.karma+linux-media@gmail.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <2df568dc1001111059p54de8635k6c207fb3f4d96a14@mail.gmail.com>
+References: <2df568dc1001111012u627f07b8p9ec0c2577f14b5d9@mail.gmail.com>
+	 <2df568dc1001111059p54de8635k6c207fb3f4d96a14@mail.gmail.com>
+Content-Type: text/plain
+Date: Tue, 12 Jan 2010 04:13:40 +0100
+Message-Id: <1263266020.3198.37.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jean-Francois Moine wrote:
-> On Sun, 10 Jan 2010 17:58:58 +0100
-> Németh Márton <nm127@freemail.hu> wrote:
+Hi!
+
+Am Montag, den 11.01.2010, 11:59 -0700 schrieb Gordon Smith: 
+> I need to bit twiddle saa7134 gpio pins from userspace.
+> To use gpio-sysfs, I need a "GPIO number" to export each pin, but I
+> do not know how to find such a number.
 > 
->> Then I plugged and unplugged the device 16 times. When I last plugged
->> the device I get the following error in the dmesg:
->>
->> [32393.421313] gspca: probing 093a:2626
->> [32393.426193] gspca: video0 created
->> [32393.426958] gspca: probing 093a:2626
->> [32393.426968] gspca: Interface class 1 not handled here
->> [32394.005917] pac7302: reg_w_page(): Failed to write register to
->> index 0x49, value 0x0, error -71
->> [32394.067799] gspca: set alt 8 err -71
->> [32394.090792] gspca: set alt 8 err -71
->> [32394.118159] gspca: set alt 8 err -71
->>
->> The 17th plug was working correctly again. I executed this test on an
->> EeePC 901.
->>
->> This driver version contains the msleep(4) in the reg_w_buf().
->> However, here the reg_w_page() fails, which does not have msleep()
->> inside. I don't know what is the real problem, but I am afraid that
->> slowing down reg_w_page() would make the time longer when the device
->> can be used starting from the event when it is plugged.
+> Card is RTD Embedded Technologies VFG7350 [card=72,autodetected].
+> GPIO uses pcf8574 chip.
+> Kernel is 2.6.30.
 > 
-> Hi again,
+> gpio-sysfs creates
+>     /sys/class/gpio/export
+>     /sys/class/gpio/import
+> but no gpio<n> entries so far.
 > 
-> I don't understand what you mean by:
->> This driver version contains the msleep(4) in the reg_w_buf().
->> However, here the reg_w_page() fails, which does not have msleep()
->> inside.
-I tought that the msleep(4) call introduced recently fixed the plug-in
-problem. It seems I misunderstood something.
-
-> Indeed the delay will slow down the webcam start (256 * 4 ms = 1s).
+> >From dmesg ("gpiotracking=1")
+>     saa7133[0]: board init: gpio is 10000
+>     saa7133[0]: gpio: mode=0x0000000 in=0x4011000 out=0x0000000 [pre-init]
+>     saa7133[1]: board init: gpio is 10000
+>     saa7133[1]: gpio: mode=0x0000000 in=0x4010f00 out=0x0000000 [pre-init]
 > 
-> If having a delay fixes the problem, then, as the error always occurs
-> at the same index 0x49 (3 reports), a single delay could be set before
-> writing to this index. Do you want I code this for test?
+> How may I find each "GPIO number" for this board?
+> 
+> Thanks in advance for any help.
 
-I tested the behaviour a little bit more. Out of 100 plug-ins:
+There are 28 (0-27) gpio pins on each saa713x chip.
 
-OK: 81 times
-"pac7302: reg_w_page(): Failed to write register to index 0x49, value 0x0, error -71": 19 times
+Documentation about possible use cases is publicly available via
+nxp.com.
 
-Other error message I haven't got, so 19% of the time writing to register
-index 0x49 fails in reg_w_page(). So let's try doing fixing the way you
-described. If you send me a patch I can test it.
+You can do what ever you want with them, but to export them to userland
+seems to be a very bad idea to me.
 
-Regards,
+Likely soon some "advanced hackers" will damage ;) all kind of hardware
+around and others will claim it as being a GNU/Linux problem within the
+same time such stuff appears, and of course it will.
 
-	Márton Németh
+In fact these days, only one to three users are involved hacking on a
+board. It is much cheaper for all involved to give the serial number of
+those than to imagine every day, what all could happen.
+
+For all others not yet active, avoiding any worst case through
+contributing is the way to go.
+
+For the rest, we likely should have some fund, for worst cases, payed by
+themselves.
+
+Cheers,
+Hermann
+
+
+
+
+
 
