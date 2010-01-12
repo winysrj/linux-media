@@ -1,109 +1,312 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3968 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752021Ab0AWT7H (ORCPT
+Received: from mail-px0-f174.google.com ([209.85.216.174]:46701 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754101Ab0ALAQt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jan 2010 14:59:07 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id o0NJx1BI095948
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 23 Jan 2010 20:59:02 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 23 Jan 2010 20:59:01 +0100 (CET)
-Message-Id: <201001231959.o0NJx1BI095948@smtp-vbr8.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
+	Mon, 11 Jan 2010 19:16:49 -0500
+Received: by pxi4 with SMTP id 4so4087785pxi.33
+        for <linux-media@vger.kernel.org>; Mon, 11 Jan 2010 16:16:48 -0800 (PST)
+To: m-karicheri2@ti.com
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	hverkuil@xs4all.nl, davinci-linux-open-source@linux.davincidsp.com
+Subject: Re: [PATCH - v4 1/4] V4L-vpfe_capture-remove-clock and platform code
+References: <1263252977-27457-1-git-send-email-m-karicheri2@ti.com>
+	<1263252977-27457-2-git-send-email-m-karicheri2@ti.com>
+	<1263252977-27457-3-git-send-email-m-karicheri2@ti.com>
+	<1263252977-27457-4-git-send-email-m-karicheri2@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Date: Mon, 11 Jan 2010 16:16:45 -0800
+In-Reply-To: <1263252977-27457-4-git-send-email-m-karicheri2@ti.com> (m-karicheri2@ti.com's message of "Mon\, 11 Jan 2010 18\:36\:17 -0500")
+Message-ID: <87skackwia.fsf@deeprootsystems.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+m-karicheri2@ti.com writes:
 
-Results of the daily build of v4l-dvb:
+> From: Muralidharan Karicheri <m-karicheri2@ti.com>
+>
+> This combines the two patches sent earlier to change the clock configuration
+> and converting ccdc drivers to platform drivers. This has updated comments
+> against v1 of these patches.
 
-date:        Sat Jan 23 19:00:07 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14050:2a50a0a1c951
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+This part is also not relevant to the git history, and should be after the '---'
 
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-armv5: OK
-linux-2.6.33-rc2-armv5: OK
-linux-2.6.32-armv5-davinci: WARNINGS
-linux-2.6.33-rc2-armv5-davinci: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.31-armv5-ixp: WARNINGS
-linux-2.6.32-armv5-ixp: WARNINGS
-linux-2.6.33-rc2-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.31-armv5-omap2: WARNINGS
-linux-2.6.32-armv5-omap2: WARNINGS
-linux-2.6.33-rc2-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-i686: WARNINGS
-linux-2.6.33-rc2-i686: WARNINGS
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-m32r: OK
-linux-2.6.33-rc2-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: WARNINGS
-linux-2.6.32-mips: WARNINGS
-linux-2.6.33-rc2-mips: WARNINGS
-linux-2.6.30-powerpc64: ERRORS
-linux-2.6.31-powerpc64: ERRORS
-linux-2.6.32-powerpc64: ERRORS
-linux-2.6.33-rc2-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-x86_64: WARNINGS
-linux-2.6.33-rc2-x86_64: WARNINGS
-spec: OK
-sparse (linux-2.6.32): ERRORS
-sparse (linux-2.6.33-rc2): ERRORS
-linux-2.6.16.61-i686: OK
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: OK
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: OK
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+> In this patch, the clock configuration is moved to ccdc driver since clocks
+> are configured for ccdc. Also adding proper error codes for ccdc register
+> function and removing the ccdc memory resource handling.
 
-Detailed results are available here:
+Also, this doesn't accuratly reflect the changes done in the patch.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+Here the clock configuration isn't moved, it's removed.  You should
+mention it being removed here and added to platform-specific code in
+subsequent patches.
 
-Full logs are available here:
+Sorry to be so nit-picky about the comments, but having a well-written
+and descriptive changelog is extremely importanty.  For the benefit of
+reading the git history later, and also for those of us less familiar
+with the details of these drivers, we rely heavily on a good changelog.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+Kevin
 
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> Reviewed-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Reviewed-by: Kevin Hilman <khilman@deeprootsystems.com>
+> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+>
+> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+> Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+> ---
+> Rebased to latest linux-next tree
+> Applies to linux-next tree of v4l-dvb
+>  drivers/media/video/davinci/vpfe_capture.c |  131 +++-------------------------
+>  1 files changed, 13 insertions(+), 118 deletions(-)
+>
+> diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
+> index de22bc9..885cd54 100644
+> --- a/drivers/media/video/davinci/vpfe_capture.c
+> +++ b/drivers/media/video/davinci/vpfe_capture.c
+> @@ -107,9 +107,6 @@ struct ccdc_config {
+>  	int vpfe_probed;
+>  	/* name of ccdc device */
+>  	char name[32];
+> -	/* for storing mem maps for CCDC */
+> -	int ccdc_addr_size;
+> -	void *__iomem ccdc_addr;
+>  };
+>  
+>  /* data structures */
+> @@ -229,7 +226,6 @@ int vpfe_register_ccdc_device(struct ccdc_hw_device *dev)
+>  	BUG_ON(!dev->hw_ops.set_image_window);
+>  	BUG_ON(!dev->hw_ops.get_image_window);
+>  	BUG_ON(!dev->hw_ops.get_line_length);
+> -	BUG_ON(!dev->hw_ops.setfbaddr);
+>  	BUG_ON(!dev->hw_ops.getfid);
+>  
+>  	mutex_lock(&ccdc_lock);
+> @@ -240,25 +236,23 @@ int vpfe_register_ccdc_device(struct ccdc_hw_device *dev)
+>  		 * walk through it during vpfe probe
+>  		 */
+>  		printk(KERN_ERR "vpfe capture not initialized\n");
+> -		ret = -1;
+> +		ret = -EFAULT;
+>  		goto unlock;
+>  	}
+>  
+>  	if (strcmp(dev->name, ccdc_cfg->name)) {
+>  		/* ignore this ccdc */
+> -		ret = -1;
+> +		ret = -EINVAL;
+>  		goto unlock;
+>  	}
+>  
+>  	if (ccdc_dev) {
+>  		printk(KERN_ERR "ccdc already registered\n");
+> -		ret = -1;
+> +		ret = -EINVAL;
+>  		goto unlock;
+>  	}
+>  
+>  	ccdc_dev = dev;
+> -	dev->hw_ops.set_ccdc_base(ccdc_cfg->ccdc_addr,
+> -				  ccdc_cfg->ccdc_addr_size);
+>  unlock:
+>  	mutex_unlock(&ccdc_lock);
+>  	return ret;
+> @@ -1786,61 +1780,6 @@ static struct vpfe_device *vpfe_initialize(void)
+>  	return vpfe_dev;
+>  }
+>  
+> -static void vpfe_disable_clock(struct vpfe_device *vpfe_dev)
+> -{
+> -	struct vpfe_config *vpfe_cfg = vpfe_dev->cfg;
+> -
+> -	clk_disable(vpfe_cfg->vpssclk);
+> -	clk_put(vpfe_cfg->vpssclk);
+> -	clk_disable(vpfe_cfg->slaveclk);
+> -	clk_put(vpfe_cfg->slaveclk);
+> -	v4l2_info(vpfe_dev->pdev->driver,
+> -		 "vpfe vpss master & slave clocks disabled\n");
+> -}
+> -
+> -static int vpfe_enable_clock(struct vpfe_device *vpfe_dev)
+> -{
+> -	struct vpfe_config *vpfe_cfg = vpfe_dev->cfg;
+> -	int ret = -ENOENT;
+> -
+> -	vpfe_cfg->vpssclk = clk_get(vpfe_dev->pdev, "vpss_master");
+> -	if (NULL == vpfe_cfg->vpssclk) {
+> -		v4l2_err(vpfe_dev->pdev->driver, "No clock defined for"
+> -			 "vpss_master\n");
+> -		return ret;
+> -	}
+> -
+> -	if (clk_enable(vpfe_cfg->vpssclk)) {
+> -		v4l2_err(vpfe_dev->pdev->driver,
+> -			"vpfe vpss master clock not enabled\n");
+> -		goto out;
+> -	}
+> -	v4l2_info(vpfe_dev->pdev->driver,
+> -		 "vpfe vpss master clock enabled\n");
+> -
+> -	vpfe_cfg->slaveclk = clk_get(vpfe_dev->pdev, "vpss_slave");
+> -	if (NULL == vpfe_cfg->slaveclk) {
+> -		v4l2_err(vpfe_dev->pdev->driver,
+> -			"No clock defined for vpss slave\n");
+> -		goto out;
+> -	}
+> -
+> -	if (clk_enable(vpfe_cfg->slaveclk)) {
+> -		v4l2_err(vpfe_dev->pdev->driver,
+> -			 "vpfe vpss slave clock not enabled\n");
+> -		goto out;
+> -	}
+> -	v4l2_info(vpfe_dev->pdev->driver, "vpfe vpss slave clock enabled\n");
+> -	return 0;
+> -out:
+> -	if (vpfe_cfg->vpssclk)
+> -		clk_put(vpfe_cfg->vpssclk);
+> -	if (vpfe_cfg->slaveclk)
+> -		clk_put(vpfe_cfg->slaveclk);
+> -
+> -	return -1;
+> -}
+> -
+>  /*
+>   * vpfe_probe : This function creates device entries by register
+>   * itself to the V4L2 driver and initializes fields of each
+> @@ -1870,7 +1809,7 @@ static __init int vpfe_probe(struct platform_device *pdev)
+>  
+>  	if (NULL == pdev->dev.platform_data) {
+>  		v4l2_err(pdev->dev.driver, "Unable to get vpfe config\n");
+> -		ret = -ENOENT;
+> +		ret = -ENODEV;
+>  		goto probe_free_dev_mem;
+>  	}
+>  
+> @@ -1884,18 +1823,13 @@ static __init int vpfe_probe(struct platform_device *pdev)
+>  		goto probe_free_dev_mem;
+>  	}
+>  
+> -	/* enable vpss clocks */
+> -	ret = vpfe_enable_clock(vpfe_dev);
+> -	if (ret)
+> -		goto probe_free_dev_mem;
+> -
+>  	mutex_lock(&ccdc_lock);
+>  	/* Allocate memory for ccdc configuration */
+>  	ccdc_cfg = kmalloc(sizeof(struct ccdc_config), GFP_KERNEL);
+>  	if (NULL == ccdc_cfg) {
+>  		v4l2_err(pdev->dev.driver,
+>  			 "Memory allocation failed for ccdc_cfg\n");
+> -		goto probe_disable_clock;
+> +		goto probe_free_dev_mem;
+>  	}
+>  
+>  	strncpy(ccdc_cfg->name, vpfe_cfg->ccdc, 32);
+> @@ -1904,61 +1838,34 @@ static __init int vpfe_probe(struct platform_device *pdev)
+>  	if (!res1) {
+>  		v4l2_err(pdev->dev.driver,
+>  			 "Unable to get interrupt for VINT0\n");
+> -		ret = -ENOENT;
+> -		goto probe_disable_clock;
+> +		ret = -ENODEV;
+> +		goto probe_free_ccdc_cfg_mem;
+>  	}
+>  	vpfe_dev->ccdc_irq0 = res1->start;
+>  
+>  	/* Get VINT1 irq resource */
+> -	res1 = platform_get_resource(pdev,
+> -				IORESOURCE_IRQ, 1);
+> +	res1 = platform_get_resource(pdev, IORESOURCE_IRQ, 1);
+>  	if (!res1) {
+>  		v4l2_err(pdev->dev.driver,
+>  			 "Unable to get interrupt for VINT1\n");
+> -		ret = -ENOENT;
+> -		goto probe_disable_clock;
+> +		ret = -ENODEV;
+> +		goto probe_free_ccdc_cfg_mem;
+>  	}
+>  	vpfe_dev->ccdc_irq1 = res1->start;
+>  
+> -	/* Get address base of CCDC */
+> -	res1 = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> -	if (!res1) {
+> -		v4l2_err(pdev->dev.driver,
+> -			"Unable to get register address map\n");
+> -		ret = -ENOENT;
+> -		goto probe_disable_clock;
+> -	}
+> -
+> -	ccdc_cfg->ccdc_addr_size = res1->end - res1->start + 1;
+> -	if (!request_mem_region(res1->start, ccdc_cfg->ccdc_addr_size,
+> -				pdev->dev.driver->name)) {
+> -		v4l2_err(pdev->dev.driver,
+> -			"Failed request_mem_region for ccdc base\n");
+> -		ret = -ENXIO;
+> -		goto probe_disable_clock;
+> -	}
+> -	ccdc_cfg->ccdc_addr = ioremap_nocache(res1->start,
+> -					     ccdc_cfg->ccdc_addr_size);
+> -	if (!ccdc_cfg->ccdc_addr) {
+> -		v4l2_err(pdev->dev.driver, "Unable to ioremap ccdc addr\n");
+> -		ret = -ENXIO;
+> -		goto probe_out_release_mem1;
+> -	}
+> -
+>  	ret = request_irq(vpfe_dev->ccdc_irq0, vpfe_isr, IRQF_DISABLED,
+>  			  "vpfe_capture0", vpfe_dev);
+>  
+>  	if (0 != ret) {
+>  		v4l2_err(pdev->dev.driver, "Unable to request interrupt\n");
+> -		goto probe_out_unmap1;
+> +		goto probe_free_ccdc_cfg_mem;
+>  	}
+>  
+>  	/* Allocate memory for video device */
+>  	vfd = video_device_alloc();
+>  	if (NULL == vfd) {
+>  		ret = -ENOMEM;
+> -		v4l2_err(pdev->dev.driver,
+> -			"Unable to alloc video device\n");
+> +		v4l2_err(pdev->dev.driver, "Unable to alloc video device\n");
+>  		goto probe_out_release_irq;
+>  	}
+>  
+> @@ -2073,12 +1980,7 @@ probe_out_video_release:
+>  		video_device_release(vpfe_dev->video_dev);
+>  probe_out_release_irq:
+>  	free_irq(vpfe_dev->ccdc_irq0, vpfe_dev);
+> -probe_out_unmap1:
+> -	iounmap(ccdc_cfg->ccdc_addr);
+> -probe_out_release_mem1:
+> -	release_mem_region(res1->start, res1->end - res1->start + 1);
+> -probe_disable_clock:
+> -	vpfe_disable_clock(vpfe_dev);
+> +probe_free_ccdc_cfg_mem:
+>  	mutex_unlock(&ccdc_lock);
+>  	kfree(ccdc_cfg);
+>  probe_free_dev_mem:
+> @@ -2092,7 +1994,6 @@ probe_free_dev_mem:
+>  static int __devexit vpfe_remove(struct platform_device *pdev)
+>  {
+>  	struct vpfe_device *vpfe_dev = platform_get_drvdata(pdev);
+> -	struct resource *res;
+>  
+>  	v4l2_info(pdev->dev.driver, "vpfe_remove\n");
+>  
+> @@ -2100,12 +2001,6 @@ static int __devexit vpfe_remove(struct platform_device *pdev)
+>  	kfree(vpfe_dev->sd);
+>  	v4l2_device_unregister(&vpfe_dev->v4l2_dev);
+>  	video_unregister_device(vpfe_dev->video_dev);
+> -	mutex_lock(&ccdc_lock);
+> -	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> -	release_mem_region(res->start, res->end - res->start + 1);
+> -	iounmap(ccdc_cfg->ccdc_addr);
+> -	mutex_unlock(&ccdc_lock);
+> -	vpfe_disable_clock(vpfe_dev);
+>  	kfree(vpfe_dev);
+>  	kfree(ccdc_cfg);
+>  	return 0;
+> -- 
+> 1.6.0.4
