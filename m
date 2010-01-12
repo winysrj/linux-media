@@ -1,80 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:48500 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751104Ab0AZBZs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jan 2010 20:25:48 -0500
-Subject: Re: Problems with cx18
-From: Andy Walls <awalls@radix.net>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <829197381001250747h7bc977c7hc27b4d45be5820cd@mail.gmail.com>
-References: <4B5DB387.70707@redhat.com>
-	 <829197381001250747h7bc977c7hc27b4d45be5820cd@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 25 Jan 2010 20:24:07 -0500
-Message-Id: <1264469047.3973.7.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mail-yw0-f176.google.com ([209.85.211.176]:56403 "EHLO
+	mail-yw0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752340Ab0ALAWI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jan 2010 19:22:08 -0500
+Received: by ywh6 with SMTP id 6so21992263ywh.4
+        for <linux-media@vger.kernel.org>; Mon, 11 Jan 2010 16:22:08 -0800 (PST)
+To: m-karicheri2@ti.com
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	hverkuil@xs4all.nl, davinci-linux-open-source@linux.davincidsp.com
+Subject: Re: [PATCH - v4 2/4] V4L-vpfe-capture-converting dm355 ccdc driver to a platform driver
+References: <1263252977-27457-1-git-send-email-m-karicheri2@ti.com>
+	<1263252977-27457-2-git-send-email-m-karicheri2@ti.com>
+From: Kevin Hilman <khilman@deeprootsystems.com>
+Date: Mon, 11 Jan 2010 16:22:04 -0800
+In-Reply-To: <1263252977-27457-2-git-send-email-m-karicheri2@ti.com> (m-karicheri2@ti.com's message of "Mon\, 11 Jan 2010 18\:36\:15 -0500")
+Message-ID: <87aawkkw9f.fsf@deeprootsystems.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2010-01-25 at 10:47 -0500, Devin Heitmueller wrote:
-> On Mon, Jan 25, 2010 at 10:06 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
-> > Hi Devin/Andy/Jean,
-> >
-> > The cx88-alsa and cx18-drivers are broken: the driver depend of request_modules that doesn't exist
-> > when !CONFIG_MODULES, and has some wrong __init annotations.
-> >
-> > The sq905c has a warning.
-> >
-> > I'm compiling it with:
-> >        make ARCH=i386 allmodconfig drivers/media/|grep -v "^  CC" |grep -v "^  LD"
-> >
-> > Those are the errors found:
-> >
-> > drivers/media/video/cx18/cx18-driver.c:252: warning: ‘request_modules’ used but never defined
-> > WARNING: drivers/media/video/cx18/cx18-alsa.o(.text+0x4de): Section mismatch in reference from the function cx18_alsa_load() to the function .init.text:snd_cx18_init()
-> > The function cx18_alsa_load() references
-> > the function __init snd_cx18_init().
-> > This is often because cx18_alsa_load lacks a __init
-> > annotation or the annotation of snd_cx18_init is wrong.
-> >
-> > WARNING: drivers/media/video/cx18/built-in.o(.text+0x1c022): Section mismatch in reference from the function cx18_alsa_load() to the function .init.text:snd_cx18_init()
-> > The function cx18_alsa_load() references
-> > the function __init snd_cx18_init().
-> > This is often because cx18_alsa_load lacks a __init
-> > annotation or the annotation of snd_cx18_init is wrong.
-> >
-> > drivers/media/video/gspca/sq905c.c: In function ‘sd_config’:
-> > drivers/media/video/gspca/sq905c.c:207: warning: unused variable ‘i’
-> > WARNING: drivers/media/video/built-in.o(.text+0x28d24e): Section mismatch in reference from the function cx18_alsa_load() to the function .init.text:snd_cx18_init()
-> > The function cx18_alsa_load() references
-> > the function __init snd_cx18_init().
-> > This is often because cx18_alsa_load lacks a __init
-> > annotation or the annotation of snd_cx18_init is wrong.
-> >
-> > WARNING: drivers/media/built-in.o(.text+0x2d2a2a): Section mismatch in reference from the function cx18_alsa_load() to the function .init.text:snd_cx18_init()
-> > The function cx18_alsa_load() references
-> > the function __init snd_cx18_init().
-> > This is often because cx18_alsa_load lacks a __init
-> > annotation or the annotation of snd_cx18_init is wrong.
-> 
-> This looks like breakage I probably introduced with the cx18 alsa
-> support.  I will dig into this tonight.
+m-karicheri2@ti.com writes:
 
-Devin,
+> From: Muralidharan Karicheri <m-karicheri2@ti.com>
+>
+> Updated based on Kevin's comments on clock configuration.
 
-If it's easiest to not treat the cx18-alsa stuff as a module and just
-always have the cx18 ALSA device interface available, that's OK by me.
-Your call.
+This part belongs after the '---'
 
-Regards,
-Andy
+> The ccdc now uses a generic name for clocks. "master" and "slave". On individual platforms
+> these clocks will inherit from the platform specific clock. This will allow re-use of
+> the driver for the same IP across different SoCs.
+>
+> Following are the changes done:-
+> 	1) clocks are configured using generic clock names
+> 	2) converting the driver to a platform driver
+> 	3) cleanup - consolidate all static variables inside a structure, ccdc_cfg
+>
+> Reviewed-by: Kevin Hilman <khilman@deeprootsystems.com>
+> Reviewed-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+>
+> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+> Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+> ---
+> Rebased to latest linux-next tree 
+> Applies to linux-next branch of v4l-dvb
+>  drivers/media/video/davinci/dm355_ccdc.c |  409 +++++++++++++++++++-----------
+>  1 files changed, 256 insertions(+), 153 deletions(-)
+>
 
+[...]
 
-> Devin
-> 
+> -static int __init dm355_ccdc_init(void)
+> +static int __init dm355_ccdc_probe(struct platform_device *pdev)
+>  {
+> -	printk(KERN_NOTICE "dm355_ccdc_init\n");
+> -	if (vpfe_register_ccdc_device(&ccdc_hw_dev) < 0)
+> -		return -1;
+> -	printk(KERN_NOTICE "%s is registered with vpfe.\n",
+> -		ccdc_hw_dev.name);
+> +	void (*setup_pinmux)(void);
+> +	struct resource	*res;
+> +	int status = 0;
+> +
+> +	/*
+> +	 * first try to register with vpfe. If not correct platform, then we
+> +	 * don't have to iomap
+> +	 */
+> +	status = vpfe_register_ccdc_device(&ccdc_hw_dev);
+> +	if (status < 0)
+> +		return status;
+> +
+> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	if (!res) {
+> +		status = -ENODEV;
+> +		goto fail_nores;
+> +	}
+> +
+> +	res = request_mem_region(res->start, resource_size(res), res->name);
+> +	if (!res) {
+> +		status = -EBUSY;
+> +		goto fail_nores;
+> +	}
+> +
+> +	ccdc_cfg.base_addr = ioremap_nocache(res->start, resource_size(res));
+> +	if (!ccdc_cfg.base_addr) {
+> +		status = -ENOMEM;
+> +		goto fail_nomem;
+> +	}
+> +
+> +	/* Get and enable Master clock */
+> +	ccdc_cfg.mclk = clk_get(&pdev->dev, "master");
+> +	if (NULL == ccdc_cfg.mclk) {
 
+This should be an IS_ERR() check, not a NULL pointer check.
+
+> +		status = -ENODEV;
+> +		goto fail_nomap;
+> +	}
+> +	if (clk_enable(ccdc_cfg.mclk)) {
+> +		status = -ENODEV;
+> +		goto fail_mclk;
+> +	}
+> +
+> +	/* Get and enable Slave clock */
+> +	ccdc_cfg.sclk = clk_get(&pdev->dev, "slave");
+> +	if (NULL == ccdc_cfg.sclk) {
+
+IS_ERR()
+
+All the same comments for the dm644x version.
+
+Kevin
