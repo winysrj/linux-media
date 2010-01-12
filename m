@@ -1,58 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:59814 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754945Ab0AMLdo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jan 2010 06:33:44 -0500
-Subject: Re: [PATCH 1/1] media: video/cx18, fix potential null dereference
-From: Andy Walls <awalls@radix.net>
-To: Jiri Slaby <jirislaby@gmail.com>
-Cc: mchehab@redhat.com, hverkuil@xs4all.nl, ivtv-devel@ivtvdriver.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-In-Reply-To: <4B4C5CEF.5060601@gmail.com>
-References: <1263113806-7532-1-git-send-email-jslaby@suse.cz>
-	 <1263253709.4116.1.camel@palomino.walls.org>  <4B4C5CEF.5060601@gmail.com>
-Content-Type: text/plain
-Date: Wed, 13 Jan 2010 06:32:27 -0500
-Message-Id: <1263382347.3057.11.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from ms01.sssup.it ([193.205.80.99]:39234 "EHLO sssup.it"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754038Ab0ALUXj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jan 2010 15:23:39 -0500
+Message-ID: <4B4CDA40.9030102@panicking.kicks-ass.org>
+Date: Tue, 12 Jan 2010 21:23:28 +0100
+From: Michael Trimarchi <michael@panicking.kicks-ass.org>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Sergio Aguirre <saaguirre@ti.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [RFC PATCH] Fix and invalid array indexing in isp_csi2_complexio_lanes_config
+Content-Type: multipart/mixed;
+ boundary="------------050607040105010405090108"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2010-01-12 at 12:28 +0100, Jiri Slaby wrote:
-> On 01/12/2010 12:48 AM, Andy Walls wrote:
-> > On Sun, 2010-01-10 at 09:56 +0100, Jiri Slaby wrote:
-> >> Stanse found a potential null dereference in cx18_dvb_start_feed
-> >> and cx18_dvb_stop_feed. There is a check for stream being NULL,
-> >> but it is dereferenced earlier. Move the dereference after the
-> >> check.
-> >>
-> >> Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-> > 
-> > Reviewed-by: Andy Walls <awalls@radix.net>
-> > Acked-by: Andy Walls <awalls@radix.net>
-> 
-> You definitely know the code better, have you checked that it can happen
-> at all? I mean may demux->priv be NULL?
-
-I'm wasn't sure, and that's the one reason I didn't NAK the patch.
-I can tell you no one has ever reported an Ooops or Bug due to that
-condition.
+This is a multi-part message in MIME format.
+--------------050607040105010405090108
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
 
-I know the cx18 code very well.  However, I am less familiar with the
-dvb core code and any bad behavior that may exist there.  When relying
-on data structures the dvb core accesses I would have to research what
-could happen in the dvb core to possibly generate that condition.
+--------------050607040105010405090108
+Content-Type: text/x-diff;
+ name="invalid_pos_data.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="invalid_pos_data.patch"
 
-Since I'm busy this week with work related to my day job (nothing to do
-with Linux), it was easiest to let the NULL check stay in for now.
+Fix and invalid array indexing when refcfg->data[i].pos is equal to 0.
+The code access an invalid location.
 
-If you don't mind a delay of until Sunday or so to get the patch applied
-to the V4L-DVB tree, I can take the patch and work it in my normal path
-through Mauro.  Let me know.
+Signed-off-by: Michael Trimarchi <michael@panicking.kicks-ass.org>
+cc: akari Ailus <sakari.ailus@maxwell.research.nokia.com>
+cc: Sergio Aguirre <saaguirre@ti.com>
 
-Regards,
-Andy
+---
+diff --git a/drivers/media/video/isp/ispcsi2.c b/drivers/media/video/isp/ispcsi2.c
+index fb0f44f..cc8fa39 100644
+--- a/drivers/media/video/isp/ispcsi2.c
++++ b/drivers/media/video/isp/ispcsi2.c
+@@ -85,8 +85,10 @@ int isp_csi2_complexio_lanes_config(struct isp_csi2_device *isp_csi2,
+ 			       " parameters for data lane #%d\n", i);
+ 			goto err_einval;
+ 		}
+-		if (pos_occupied[reqcfg->data[i].pos - 1] &&
+-		    reqcfg->data[i].pos > 0) {
++		if (!reqcfg->data[i].pos)
++			continue;
++
++		if (pos_occupied[reqcfg->data[i].pos - 1]) {
+ 			printk(KERN_ERR "Lane #%d already occupied\n",
+ 			       reqcfg->data[i].pos);
+ 			goto err_einval;
 
-
+--------------050607040105010405090108--
