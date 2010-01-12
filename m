@@ -1,171 +1,298 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f215.google.com ([209.85.220.215]:50573 "EHLO
-	mail-fx0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755187Ab0A0VA5 (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:36603 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753161Ab0ALWJ7 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jan 2010 16:00:57 -0500
-Received: by mail-fx0-f215.google.com with SMTP id 7so3145785fxm.28
-        for <linux-media@vger.kernel.org>; Wed, 27 Jan 2010 13:00:56 -0800 (PST)
-Message-ID: <4B60A983.7040405@gmail.com>
-Date: Wed, 27 Jan 2010 22:00:51 +0100
-From: Sebastian Spiess <sebastian.spiess@gmail.com>
+	Tue, 12 Jan 2010 17:09:59 -0500
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: Michael Trimarchi <michael@panicking.kicks-ass.org>
+CC: Nishanth Menon <menon.nishanth@gmail.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 12 Jan 2010 16:12:30 -0600
+Subject: RE: ISP OMAP3 camera support ov7690
+Message-ID: <A24693684029E5489D1D202277BE8944514AC7F3@dlee02.ent.ti.com>
+References: <4AC7DAAD.2020203@panicking.kicks-ass.org>
+ <4AC8B764.2030101@gmail.com> <4AC93DC9.2080809@panicking.kicks-ass.org>
+ <A24693684029E5489D1D202277BE89444CB3A2CB@dlee02.ent.ti.com>
+ <4B4C75F0.3060108@panicking.kicks-ass.org>
+ <A24693684029E5489D1D202277BE8944514AC214@dlee02.ent.ti.com>
+ <4B4CB241.6050603@panicking.kicks-ass.org>
+ <4B4CE976.5050503@panicking.kicks-ass.org>
+In-Reply-To: <4B4CE976.5050503@panicking.kicks-ass.org>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: dmesg output with Pinnacle PCTV USB Stick
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Michael,
 
-Hi there,
-below is my dmesh output for my Pinnacle PCTV Hybrid Pro
+> -----Original Message-----
+> From: Michael Trimarchi [mailto:michael@panicking.kicks-ass.org]
+> Sent: Tuesday, January 12, 2010 3:28 PM
+> To: Aguirre, Sergio
+> Cc: Nishanth Menon; linux-omap@vger.kernel.org; linux-
+> media@vger.kernel.org
+> Subject: Re: ISP OMAP3 camera support ov7690
+> 
+> Hi,
+> 
+> Michael Trimarchi wrote:
+> > Hi all,
+> >
+> > Aguirre, Sergio wrote:
+> >>
+> >>> -----Original Message-----
+> >>> From: Michael Trimarchi [mailto:michael@panicking.kicks-ass.org]
+> >>> Sent: Tuesday, January 12, 2010 7:15 AM
+> >>> To: Aguirre, Sergio
+> >>> Cc: Nishanth Menon; linux-omap@vger.kernel.org; linux-
+> >>> media@vger.kernel.org
+> >>> Subject: Re: ISP OMAP3 camera support ov7690
+> >>>
+> >>> Hi all,
+> >>>
+> >>> Now I have a good camera pcb and I can test again the driver. My
+> >>> board is
+> >>> an overo gumstix board.
+> >>
+> >> Excellent!
+> >>
+> >> Please let me know if you're having issues with it.
+> >>
+> >> Thanks for your interest!
+> >>
+> >> Regards,
+> >> Sergio
+> >>
+> >
+> > maybe I have done some mistake during writing the email, but I have
+> > asked few things inside the email.
+> > The camera part is ok because I have written a driver using the ov538
+> > bridge but I have some problem
+> > in configuring the isp omap3 device. It opens correctly the camera, and
+> > set xclk frequency. Then
+> > seems that vsync and hsync are not routed to the engine because I don't
+> > receive any interrupt.
+> 
+> --- a/drivers/media/video/isp/isp.c
+> +++ b/drivers/media/video/isp/isp.c
+> @@ -299,6 +299,7 @@ static void isp_enable_interrupts(struct device *dev)
+>                 | IRQ0ENABLE_CSIA_IRQ
+>                 | IRQ0ENABLE_CSIB_IRQ | IRQ0ENABLE_HIST_DONE_IRQ
+>                 | IRQ0ENABLE_H3A_AWB_DONE_IRQ | IRQ0ENABLE_H3A_AF_DONE_IRQ
+> +               | IRQ0ENABLE_HS_VS_IRQ
+>                 | isp->interrupts;
+> 
+>         if (CCDC_PREV_CAPTURE(isp))
+> @@ -328,6 +329,7 @@ static void isp_disable_interrupts(struct device *dev)
+>                 | IRQ0ENABLE_CSIA_IRQ
+>                 | IRQ0ENABLE_CSIB_IRQ | IRQ0ENABLE_HIST_DONE_IRQ
+>                 | IRQ0ENABLE_H3A_AWB_DONE_IRQ | IRQ0ENABLE_H3A_AF_DONE_IRQ
+> +               | IRQ0ENABLE_HS_VS_IRQ
+>                 | isp->interrupts);
+> 
+> Adding this in the irq mask give me interrupt from the camera, but I don't
+> undestarstand
+> why they are disabled. Are they disabled in the latest git code?
 
-hope it helps
+In the past, we used to rely on HS_VS for signaling when to do some actions, like enable ISP preview sub-module, and also had VD0 and VD1 programmable interrupts to do other actions.
 
-[ 8899.390876] em28xx: New device USB 2870 Device @ 480 Mbps (eb1a:2870,
-interface 0, class 0)
-[ 8899.391162] em28xx #0: chip ID is em2870
-[ 8899.474026] em28xx #0: i2c eeprom 00: 1a eb 67 95 1a eb 70 28 c0 12
-81 00 6a 22 00 00
-[ 8899.474096] em28xx #0: i2c eeprom 10: 00 00 04 57 02 0d 00 00 00 00
-00 00 00 00 00 00
-[ 8899.474162] em28xx #0: i2c eeprom 20: 44 00 00 00 f0 10 02 00 00 00
-00 00 5b 00 00 00
-[ 8899.474227] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01
-00 00 6d e0 a3 49
-[ 8899.474311] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[ 8899.474376] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[ 8899.474441] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00
-22 03 55 00 53 00
-[ 8899.474506] em28xx #0: i2c eeprom 70: 42 00 20 00 32 00 38 00 37 00
-30 00 20 00 44 00
-[ 8899.474571] em28xx #0: i2c eeprom 80: 65 00 76 00 69 00 63 00 65 00
-00 00 00 00 00 00
-[ 8899.474640] em28xx #0: i2c eeprom 90: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[ 8899.474706] em28xx #0: i2c eeprom a0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[ 8899.474789] em28xx #0: i2c eeprom b0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[ 8899.474854] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[ 8899.474919] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[ 8899.474984] em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[ 8899.475048] em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[ 8899.475117] em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0xf0ff19c0
-[ 8899.475141] em28xx #0: EEPROM info:
-[ 8899.475146] em28xx #0:	No audio on board.
-[ 8899.475151] em28xx #0:	500mA max power
-[ 8899.475175] em28xx #0:	Table at 0x04, strings=0x226a, 0x0000, 0x0000
-[ 8899.491654] em28xx #0: Identified as Unknown EM2750/28xx video
-grabber (card=1)
-[ 8899.527409] em28xx #0: found i2c device @ 0xa0 [eeprom]
-[ 8899.535029] em28xx #0: found i2c device @ 0xc0 [tuner (analog)]
-[ 8899.550027] em28xx #0: Your board has no unique USB ID and thus need
-a hint to be detected.
-[ 8899.550054] em28xx #0: You may try to use card=<n> insmod option to
-workaround that.
-[ 8899.550061] em28xx #0: Please send an email with this log to:
-[ 8899.550085] em28xx #0: 	V4L Mailing List <linux-media@vger.kernel.org>
-[ 8899.550091] em28xx #0: Board eeprom hash is 0xf0ff19c0
-[ 8899.550115] em28xx #0: Board i2c devicelist hash is 0x4b800080
-[ 8899.550121] em28xx #0: Here is a list of valid choices for the
-card=<n> insmod option:
-[ 8899.550128] em28xx #0:     card=0 -> Unknown EM2800 video grabber
-[ 8899.550153] em28xx #0:     card=1 -> Unknown EM2750/28xx video grabber
-[ 8899.550160] em28xx #0:     card=2 -> Terratec Cinergy 250 USB
-[ 8899.550188] em28xx #0:     card=3 -> Pinnacle PCTV USB 2
-[ 8899.550212] em28xx #0:     card=4 -> Hauppauge WinTV USB 2
-[ 8899.550219] em28xx #0:     card=5 -> MSI VOX USB 2.0
-[ 8899.550242] em28xx #0:     card=6 -> Terratec Cinergy 200 USB
-[ 8899.550249] em28xx #0:     card=7 -> Leadtek Winfast USB II
-[ 8899.550255] em28xx #0:     card=8 -> Kworld USB2800
-[ 8899.550280] em28xx #0:     card=9 -> Pinnacle Dazzle DVC
-90/100/101/107 / Kaiser Baas Video to DVD maker
-[ 8899.550287] em28xx #0:     card=10 -> Hauppauge WinTV HVR 900
-[ 8899.550312] em28xx #0:     card=11 -> Terratec Hybrid XS
-[ 8899.550318] em28xx #0:     card=12 -> Kworld PVR TV 2800 RF
-[ 8899.550342] em28xx #0:     card=13 -> Terratec Prodigy XS
-[ 8899.550349] em28xx #0:     card=14 -> SIIG AVTuner-PVR / Pixelview
-Prolink PlayTV USB 2.0
-[ 8899.550374] em28xx #0:     card=15 -> V-Gear PocketTV
-[ 8899.550380] em28xx #0:     card=16 -> Hauppauge WinTV HVR 950
-[ 8899.550405] em28xx #0:     card=17 -> Pinnacle PCTV HD Pro Stick
-[ 8899.550411] em28xx #0:     card=18 -> Hauppauge WinTV HVR 900 (R2)
-[ 8899.550436] em28xx #0:     card=19 -> EM2860/SAA711X Reference Design
-[ 8899.550443] em28xx #0:     card=20 -> AMD ATI TV Wonder HD 600
-[ 8899.550468] em28xx #0:     card=21 -> eMPIA Technology, Inc.
-GrabBeeX+ Video Encoder
-[ 8899.550475] em28xx #0:     card=22 -> EM2710/EM2750/EM2751 webcam grabber
-[ 8899.550499] em28xx #0:     card=23 -> Huaqi DLCW-130
-[ 8899.550505] em28xx #0:     card=24 -> D-Link DUB-T210 TV Tuner
-[ 8899.550530] em28xx #0:     card=25 -> Gadmei UTV310
-[ 8899.550536] em28xx #0:     card=26 -> Hercules Smart TV USB 2.0
-[ 8899.550543] em28xx #0:     card=27 -> Pinnacle PCTV USB 2 (Philips
-FM1216ME)
-[ 8899.550568] em28xx #0:     card=28 -> Leadtek Winfast USB II Deluxe
-[ 8899.550574] em28xx #0:     card=29 -> <NULL>
-[ 8899.550599] em28xx #0:     card=30 -> Videology 20K14XUSB USB2.0
-[ 8899.550605] em28xx #0:     card=31 -> Usbgear VD204v9
-[ 8899.550629] em28xx #0:     card=32 -> Supercomp USB 2.0 TV
-[ 8899.550635] em28xx #0:     card=33 -> <NULL>
-[ 8899.550659] em28xx #0:     card=34 -> Terratec Cinergy A Hybrid XS
-[ 8899.550665] em28xx #0:     card=35 -> Typhoon DVD Maker
-[ 8899.550689] em28xx #0:     card=36 -> NetGMBH Cam
-[ 8899.550695] em28xx #0:     card=37 -> Gadmei UTV330
-[ 8899.550701] em28xx #0:     card=38 -> Yakumo MovieMixer
-[ 8899.550726] em28xx #0:     card=39 -> KWorld PVRTV 300U
-[ 8899.550732] em28xx #0:     card=40 -> Plextor ConvertX PX-TV100U
-[ 8899.550756] em28xx #0:     card=41 -> Kworld 350 U DVB-T
-[ 8899.550763] em28xx #0:     card=42 -> Kworld 355 U DVB-T
-[ 8899.550787] em28xx #0:     card=43 -> Terratec Cinergy T XS
-[ 8899.550793] em28xx #0:     card=44 -> Terratec Cinergy T XS (MT2060)
-[ 8899.550818] em28xx #0:     card=45 -> Pinnacle PCTV DVB-T
-[ 8899.550850] em28xx #0:     card=46 -> Compro, VideoMate U3
-[ 8899.550857] em28xx #0:     card=47 -> KWorld DVB-T 305U
-[ 8899.550881] em28xx #0:     card=48 -> KWorld DVB-T 310U
-[ 8899.550887] em28xx #0:     card=49 -> MSI DigiVox A/D
-[ 8899.550894] em28xx #0:     card=50 -> MSI DigiVox A/D II
-[ 8899.550918] em28xx #0:     card=51 -> Terratec Hybrid XS Secam
-[ 8899.550924] em28xx #0:     card=52 -> DNT DA2 Hybrid
-[ 8899.550948] em28xx #0:     card=53 -> Pinnacle Hybrid Pro
-[ 8899.550955] em28xx #0:     card=54 -> Kworld VS-DVB-T 323UR
-[ 8899.550979] em28xx #0:     card=55 -> Terratec Hybrid XS (em2882)
-[ 8899.550986] em28xx #0:     card=56 -> Pinnacle Hybrid Pro (2)
-[ 8899.551011] em28xx #0:     card=57 -> Kworld PlusTV HD Hybrid 330
-[ 8899.551017] em28xx #0:     card=58 -> Compro VideoMate ForYou/Stereo
-[ 8899.551042] em28xx #0:     card=59 -> <NULL>
-[ 8899.551048] em28xx #0:     card=60 -> Hauppauge WinTV HVR 850
-[ 8899.551072] em28xx #0:     card=61 -> Pixelview PlayTV Box 4 USB 2.0
-[ 8899.551079] em28xx #0:     card=62 -> Gadmei TVR200
-[ 8899.551103] em28xx #0:     card=63 -> Kaiomy TVnPC U2
-[ 8899.551109] em28xx #0:     card=64 -> Easy Cap Capture DC-60
-[ 8899.551115] em28xx #0:     card=65 -> IO-DATA GV-MVP/SZ
-[ 8899.551139] em28xx #0:     card=66 -> Empire dual TV
-[ 8899.551145] em28xx #0:     card=67 -> Terratec Grabby
-[ 8899.551169] em28xx #0:     card=68 -> Terratec AV350
-[ 8899.551176] em28xx #0:     card=69 -> KWorld ATSC 315U HDTV TV Box
-[ 8899.551200] em28xx #0:     card=70 -> Evga inDtube
-[ 8899.551206] em28xx #0:     card=71 -> Silvercrest Webcam 1.3mpix
-[ 8899.551235] em28xx #0: v4l2 driver version 0.1.2
-[ 8899.588275] em28xx #0: V4L2 device registered as /dev/video1 and
-/dev/vbi0
-[ 9193.427765] em28xx #0: disconnecting em28xx #0 video
-[ 9193.427791] em28xx #0: V4L2 device /dev/vbi0 deregistered
-[ 9193.428093] em28xx #0: V4L2 device /dev/video1 deregistered
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+Nowadays, the usage has changed. We don't really use HS_VS anymore. And we rely mainly on VD0 (generated based on CCDC input) for doing many interframe operations (like targeting for next buffer in the queue, and updating some other settings.)
 
-iEYEARECAAYFAktgqXYACgkQMuBzgG5z7F8L0gCgoTGZtJt5JNrwH4yJKj167vnN
-z+UAniRu8ke2Rj5fgDW19fNkBO4czV77
-=8nwn
------END PGP SIGNATURE-----
+In conclusion, we disabled HS_VS, because we don't use it anymore.
+
+> 
+> how can I get the vrise?
+> 
+> .hsvs_syncdetect        = ISPCTRL_SYNC_DETECT_VSFALL,
+
+.hsvs_syncdetect        = ISPCTRL_SYNC_DETECT_VSRISE,
+
+I'm interested in seeing your board file in which you configure interface from sensor to ISP. (See arch/arm/mach-omap2/board-zoom-camera.c for how I use it)
+
+Regards,
+Sergio
+
+> 
+> 
+> Michael
+> 
+> >>> Aguirre Rodriguez, Sergio Alberto wrote:
+> >>>> Hi Michael,
+> >>>>
+> >>>>> -----Original Message-----
+> >>>>> From: linux-omap-owner@vger.kernel.org
+> >>>>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of michael
+> >>>>> Sent: Sunday, October 04, 2009 7:29 PM
+> >>>>> To: Nishanth Menon
+> >>>>> Cc: linux-omap@vger.kernel.org; linux-media@vger.kernel.org
+> >>>>> Subject: Re: ISP OMAP3 camera support ov7690
+> >>>>>
+> >>>>> Hi,
+> >>>>>
+> >>>>> cc: linux-media
+> >>>>>
+> >>>>> Nishanth Menon wrote:
+> >>>>>> michael said the following on 10/03/2009 06:13 PM:
+> >>>>>>> I'm writing a driver to support the ov7690 camera and I have some
+> >>>>>>> question about the meaning of:
+> >>>>>>>
+> >>>>>>> - datalane configuration
+> >>>>>> CSI2 Data lanes - each CSI2 lane is a differential pair.
+> >>>>> And, at least 1
+> >>>>>> clock and data lane is used in devices.
+> >>>>> Sorry can you explain a little bit more. I have the camera
+> >>>>> connected to the
+> >>>>> cam_hs and cam_vs and the data is 8Bit. I use the the isp init
+> >>>>> structure. The sccb bus works great and I can send
+> >>>>> configuration to it,
+> >>>>> but I don't receive any interrupt from the ics, seems that it
+> >>>>> doen't see
+> >>>>> the transaction:
+> >>>>>
+> >>>>> The ISPCCDC: ###CCDC SYN_MODE=0x31704 seems ok.
+> >>>>>
+> >>>>>
+> >>>>> static struct isp_interface_config ov7690_if_config = {
+> >>>>>         .ccdc_par_ser           = ISP_CSIA,
+> >>>>>         .dataline_shift         = 0x0,
+> >>>>>         .hsvs_syncdetect        = ISPCTRL_SYNC_DETECT_VSFALL,
+> >>>> Can you try with ISPCTRL_SYNC_DETECT_VSRISE ?
+> >>>>
+> >>>>>         .strobe                 = 0x0,
+> >>>>>         .prestrobe              = 0x0,
+> >>>>>         .shutter                = 0x0,
+> >>>>>         .wenlog                 = ISPCCDC_CFG_WENLOG_AND,
+> >>>>>         .wait_hs_vs             = 0x4,
+> >>>>>         .raw_fmt_in             = ISPCCDC_INPUT_FMT_GR_BG,
+> >>>>>         .u.csi.crc              = 0x0,
+> >>>>>         .u.csi.mode             = 0x0,
+> >>>>>         .u.csi.edge             = 0x0,
+> >>>>>         .u.csi.signalling       = 0x0,
+> >>>>>         .u.csi.strobe_clock_inv = 0x0,
+> >>>>>         .u.csi.vs_edge          = 0x0,
+> >>>>>         .u.csi.channel          = 0x0,
+> >>>>>         .u.csi.vpclk            = 0x1,
+> >>>>>         .u.csi.data_start       = 0x0,
+> >>>>>         .u.csi.data_size        = 0x0,
+> >>>>>         .u.csi.format           = V4L2_PIX_FMT_YUYV,
+> >>>>> };
+> >>>>>
+> >>>>> and I don't know the meaning of
+> >>>>>
+> >>>>> lanecfg.clk.pol = OV7690_CSI2_CLOCK_POLARITY;
+> >>>>> lanecfg.clk.pos = OV7690_CSI2_CLOCK_LANE;
+> >>>>> lanecfg.data[0].pol = OV7690_CSI2_DATA0_POLARITY;
+> >>>>> lanecfg.data[0].pos = OV7690_CSI2_DATA0_LANE;
+> >>>>> lanecfg.data[1].pol = OV7690_CSI2_DATA1_POLARITY;
+> >>>>> lanecfg.data[1].pos = OV7690_CSI2_DATA1_LANE;
+> >>>>> lanecfg.data[2].pol = 0;
+> >>>>> lanecfg.data[2].pos = 0;
+> >>>>> lanecfg.data[3].pol = 0;
+> >>>>> lanecfg.data[3].pos = 0;
+> >>>>>
+> >>>> This is the physical connection details:
+> >>>>
+> >>>> - The .pol field stands for the differntial pair polarity.
+> >>>>   (i.e. the order in which the negative and positive connections
+> >>>>   are pugged in to the CSI2 ComplexIO module)
+> >>> What exact the meaning of the pol, sorry? I have a signal that is
+> >>> connected
+> >>> to a pin. If the pos is avalaible can I use it?
+> >>> It's not important how to route the signal but don't route on the same
+> >>> lane.
+> >>> Is it right?
+> >>>
+> >>> This is the timing of the camera so I can check signal, but I don't
+> >>> receive interrupt
+> >>> of isp engine
+> >>>
+> >>> The camera is direct connected to the
+> >>> camera omap camera signal and using the oscilloscope I can see the
+> hs/vs
+> >>> signal
+> >>> The hs is low and go up, like the vs signal. I have only one camera
+> >>> with that use D0 to D7 data bit.
+> >>>
+> >>> http://www.gumstix.net/Hardware/view/I/O-connectors-cabling/Gumstix-
+> Overo-
+> >>>
+> >>> 27-pin-connector-J5-to-manage-camera-controls/112.html
+> >>>
+> >>> static struct isp_interface_config ov7690_if_config = {
+> >>>         .ccdc_par_ser           = ISP_CSIA,
+> >>>         .dataline_shift         = 0x0,
+> >>>         .hsvs_syncdetect        = ISPCTRL_SYNC_DETECT_VSRISE,
+> >>>         .strobe                 = 0x0,
+> >>>         .prestrobe              = 0x0,
+> >>>         .shutter                = 0x0,
+> >>>         .wenlog                 = ISPCCDC_CFG_WENLOG_AND,
+> >>>         .wait_hs_vs             = 0x4,
+> >>>         .raw_fmt_in             = ISPCCDC_INPUT_FMT_GR_BG,
+> >>>         .u.csi.crc              = 0x0,
+> >>>         .u.csi.mode             = 0x0,
+> >>>         .u.csi.edge             = 0x0,
+> >>>         .u.csi.signalling       = 0x0,
+> >>>         .u.csi.strobe_clock_inv = 0x0,
+> >>>         .u.csi.vs_edge          = 0x0,
+> >>>         .u.csi.channel          = 0x0,
+> >>>         .u.csi.vpclk            = 0x1,
+> >>>         .u.csi.data_start       = 0x0,
+> >>>         .u.csi.data_size        = 0x0,
+> >>>         .u.csi.format           = V4L2_PIX_FMT_YUYV,
+> >>> };
+> >>>
+> >>> This is my initial configuration
+> >>> #define OV7690_CSI2_CLOCK_POLARITY      0       /* +/- pin order */
+> >>> #define OV7690_CSI2_DATA0_POLARITY      0       /* +/- pin order */
+> >>> #define OV7690_CSI2_DATA1_POLARITY      0       /* +/- pin order */
+> >>> #define OV7690_CSI2_CLOCK_LANE          1        /* Clock lane
+> >>> position: 1
+> >>> */
+> >>> #define OV7690_CSI2_DATA0_LANE          2        /* Data0 lane
+> >>> position: 2
+> >>> */
+> >>> #define OV7690_CSI2_DATA1_LANE          3        /* Data1 lane
+> >>> position: 3
+> >>> */
+> >>> tim#define OV7690_CSI2_PHY_THS_TERM        2
+> >>> #define OV7690_CSI2_PHY_THS_SETTLE      23
+> >>> #define OV7690_CSI2_PHY_TCLK_TERM       0
+> >>> #define OV7690_CSI2_PHY_TCLK_MISS       1
+> >>> #define OV7690_CSI2_PHY_TCLK_SETTLE     14
+> >>>
+> >>> With this clock polarity
+> >>>
+> >>> lanecfg.clk.pol = OV7690_CSI2_CLOCK_POLARITY;
+> >>> lanecfg.clk.pos = OV7690_CSI2_CLOCK_LANE;
+> >>> lanecfg.data[0].pol = OV7690_CSI2_DATA0_POLARITY;
+> >>> lanecfg.data[0].pos = OV7690_CSI2_DATA0_LANE;
+> >>> lanecfg.data[1].pol = OV7690_CSI2_DATA1_POLARITY;
+> >>> lanecfg.data[1].pos = OV7690_CSI2_DATA1_LANE;
+> >>> lanecfg.data[2].pol = 0;
+> >>> lanecfg.data[2].pos = 0;
+> >>> lanecfg.data[3].pol = 0;
+> >>> lanecfg.data[3].pos = 0;
+> >>> isp_csi2_complexio_lanes_config(&isp->isp_csi2, &lanecfg);
+> >>>
+> >>> Michael
+> >> --
+> >
+> > Regards Michael
+> >
+> >> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> in
+> >> the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media"
+> in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+
