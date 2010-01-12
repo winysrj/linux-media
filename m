@@ -1,61 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f215.google.com ([209.85.220.215]:34124 "EHLO
-	mail-fx0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753399Ab0AXK6j (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jan 2010 05:58:39 -0500
-Received: by fxm7 with SMTP id 7so954659fxm.28
-        for <linux-media@vger.kernel.org>; Sun, 24 Jan 2010 02:58:38 -0800 (PST)
-MIME-Version: 1.0
-Date: Sun, 24 Jan 2010 11:58:37 +0100
-Message-ID: <7b41dd971001240258h7bce4a9dy7a00d22d6091d3da@mail.gmail.com>
-Subject: [PATCH] dvb-apps/util/szap/czap.c "ERROR: cannot parse service data"
-From: klaas de waal <klaas.de.waal@gmail.com>
-To: linux-media@vger.kernel.org, abraham.manu@gmail.com
-Cc: sander@vermin.nl
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp3-g21.free.fr ([212.27.42.3]:35013 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751797Ab0ALIfW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jan 2010 03:35:22 -0500
+Date: Tue, 12 Jan 2010 09:36:35 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Jose Alberto Reguero <jareguero@telefonica.net>,
+	Hans de Goede <hdegoede@redhat.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Problem with gspca and zc3xx
+Message-ID: <20100112093635.66aa9d57@tele>
+In-Reply-To: <201001111549.55439.jareguero@telefonica.net>
+References: <201001090015.31357.jareguero@telefonica.net>
+	<4B4AE349.4000707@redhat.com>
+	<20100111105524.157ebdbe@tele>
+	<201001111549.55439.jareguero@telefonica.net>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/FUrwl6_1RvIuPFIsJskwifv"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The czap utility (dvb-apps/util/szap/czap.c) cannot scan the channel
-configuration file when compiled on Fedora 12 with gcc-4.4.2.
+--MP_/FUrwl6_1RvIuPFIsJskwifv
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-The czap output is:
+On Mon, 11 Jan 2010 15:49:55 +0100
+Jose Alberto Reguero <jareguero@telefonica.net> wrote:
 
-[klaas@myth2 szap]$ ./czap -c ~/.czap/ziggo-channels.conf Cartoon
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-reading channels from file '/local/klaas/.czap/ziggo-channels.conf'
-  1 Cartoon:356000000:INVERSION_AUTO:6875000:FEC_NONE:QAM_64:1660:1621
-ERROR: cannot parse service data
+> I take another image with 640x480 and the bad bottom lines are 8. The
+> right side look right this time. The good sizes are:
+> 320x240->320x232 =20
+> 640x480->640x472
 
-Problem is tha the "sscanf" function uses the "%a[^:]" format
-specifier. According to "man sscanf" you need to define _GNU_SOURCE if
-you want this to work because it is a gnu-only extension.
-Adding a first line "#define _GNU_SOURCE" to czap.c and recompiling
-solves the problem.
+Hi Jose Alberto and Hans,
 
-The czap output is now:
+Hans, I modified a bit your patch to handle the 2 resolutions (also, the
+problem with pas202b does not exist anymore). May you sign or ack it?
 
-[klaas@myth2 szap]$ ./czap -c ~/.czap/ziggo-channels.conf Cartoon
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-reading channels from file '/local/klaas/.czap/ziggo-channels.conf'
-  1 Cartoon:356000000:INVERSION_AUTO:6875000:FEC_NONE:QAM_64:1660:1621
-  1 Cartoon: f 356000000, s 6875000, i 2, fec 0, qam 3, v 0x67c, a 0x655
-status 00 | signal 0000 | snr b7b7 | ber 000fffff | unc 00000098 |
-status 1f | signal d5d5 | snr f3f3 | ber 000006c0 | unc 0000009b | FE_HAS_LOCK
-status 1f | signal d5d5 | snr f4f4 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+Jose Alberto, the attached patch is to be applied to the last version
+of the gspca in my test repository at LinuxTv.org
+	http://linuxtv.org/hg/~jfrancois/gspca
+May you try it?
 
-This is done on a Linux 2.6.32.2 kernel with a TT C-1501 DVB-C card.
+Regards.
 
-Signed-off-by: Klaas de Waal <klaas.de.waal@gmail.com>
+--=20
+Ken ar c'henta=C3=B1	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
 
--------------------------------------------------------------------------------------------
+--MP_/FUrwl6_1RvIuPFIsJskwifv
+Content-Type: application/octet-stream; name=zc3xx.pat
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename=zc3xx.pat
 
-diff -r 61b72047a995 util/szap/czap.c
---- a/util/szap/czap.c	Sun Jan 17 17:03:27 2010 +0100
-+++ b/util/szap/czap.c	Sun Jan 24 11:40:43 2010 +0100
-@@ -1,3 +1,4 @@
-+#define _GNU_SOURCE
- #include <sys/types.h>
- #include <sys/stat.h>
- #include <sys/ioctl.h>
+ZGlmZiAtciAxNDk2ODA2OTMyZjAgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9nc3BjYS96YzN4
+eC5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vZ3NwY2EvemMzeHguYwlNb24gSmFu
+IDExIDE5OjA2OjEyIDIwMTAgKzAxMDAKKysrIGIvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9n
+c3BjYS96YzN4eC5jCVR1ZSBKYW4gMTIgMDk6Mjk6MjEgMjAxMCArMDEwMApAQCAtMTkyLDYgKzE5
+MiwxOSBAQAogCQkucHJpdiA9IDB9LAogfTsKIAorc3RhdGljIGNvbnN0IHN0cnVjdCB2NGwyX3Bp
+eF9mb3JtYXQgYnJva2VuX3ZnYV9tb2RlW10gPSB7CisJezMyMCwgMjMyLCBWNEwyX1BJWF9GTVRf
+SlBFRywgVjRMMl9GSUVMRF9OT05FLAorCQkuYnl0ZXNwZXJsaW5lID0gMzIwLAorCQkuc2l6ZWlt
+YWdlID0gMzIwICogMjMyICogNCAvIDggKyA1OTAsCisJCS5jb2xvcnNwYWNlID0gVjRMMl9DT0xP
+UlNQQUNFX0pQRUcsCisJCS5wcml2ID0gMX0sCisJezY0MCwgNDcyLCBWNEwyX1BJWF9GTVRfSlBF
+RywgVjRMMl9GSUVMRF9OT05FLAorCQkuYnl0ZXNwZXJsaW5lID0gNjQwLAorCQkuc2l6ZWltYWdl
+ID0gNjQwICogNDcyICogMyAvIDggKyA1OTAsCisJCS5jb2xvcnNwYWNlID0gVjRMMl9DT0xPUlNQ
+QUNFX0pQRUcsCisJCS5wcml2ID0gMH0sCit9OworCiBzdGF0aWMgY29uc3Qgc3RydWN0IHY0bDJf
+cGl4X2Zvcm1hdCBzaWZfbW9kZVtdID0gewogCXsxNzYsIDE0NCwgVjRMMl9QSVhfRk1UX0pQRUcs
+IFY0TDJfRklFTERfTk9ORSwKIAkJLmJ5dGVzcGVybGluZSA9IDE3NiwKQEAgLTY2MDYsNyArNjYx
+OSw2IEBACiAJc3RydWN0IHNkICpzZCA9IChzdHJ1Y3Qgc2QgKikgZ3NwY2FfZGV2OwogCXN0cnVj
+dCBjYW0gKmNhbTsKIAlpbnQgc2Vuc29yOwotCWludCB2Z2EgPSAxOwkJLyogMTogdmdhLCAwOiBz
+aWYgKi8KIAlzdGF0aWMgY29uc3QgdTggZ2FtbWFbU0VOU09SX01BWF0gPSB7CiAJCTQsCS8qIFNF
+TlNPUl9BRENNMjcwMCAwICovCiAJCTQsCS8qIFNFTlNPUl9DUzIxMDIgMSAqLwpAQCAtNjYyOCw2
+ICs2NjQwLDI3IEBACiAJCTMsCS8qIFNFTlNPUl9UQVM1MTMwQ1hYIDE3ICovCiAJCTMsCS8qIFNF
+TlNPUl9UQVM1MTMwQ19WRjAyNTAgMTggKi8KIAl9OworCXN0YXRpYyBjb25zdCB1OCBtb2RlX3Ri
+W1NFTlNPUl9NQVhdID0geworCQkyLAkvKiBTRU5TT1JfQURDTTI3MDAgMCAqLworCQkxLAkvKiBT
+RU5TT1JfQ1MyMTAyIDEgKi8KKwkJMSwJLyogU0VOU09SX0NTMjEwMksgMiAqLworCQkxLAkvKiBT
+RU5TT1JfR0MwMzA1IDMgKi8KKwkJMSwJLyogU0VOU09SX0hEQ1MyMDIwYiA0ICovCisJCTEsCS8q
+IFNFTlNPUl9IVjcxMzFCIDUgKi8KKwkJMSwJLyogU0VOU09SX0hWNzEzMUMgNiAqLworCQkxLAkv
+KiBTRU5TT1JfSUNNMTA1QSA3ICovCisJCTIsCS8qIFNFTlNPUl9NQzUwMUNCIDggKi8KKwkJMSwJ
+LyogU0VOU09SX01JMDM2MFNPQyA5ICovCisJCTIsCS8qIFNFTlNPUl9PVjc2MjAgMTAgKi8KKwkJ
+MSwJLyogU0VOU09SX09WNzYzMEMgMTEgKi8KKwkJMCwJLyogU0VOU09SX1BBUzEwNiAxMiAqLwor
+CQkxLAkvKiBTRU5TT1JfUEFTMjAyQiAxMyAqLworCQkxLAkvKiBTRU5TT1JfUEIwMzMwIDE0ICov
+CisJCTEsCS8qIFNFTlNPUl9QTzIwMzAgMTUgKi8KKwkJMSwJLyogU0VOU09SX1RBUzUxMzBDSyAx
+NiAqLworCQkxLAkvKiBTRU5TT1JfVEFTNTEzMENYWCAxNyAqLworCQkxLAkvKiBTRU5TT1JfVEFT
+NTEzMENfVkYwMjUwIDE4ICovCisJfTsKIAogCS8qIGRlZmluZSBzb21lIHNlbnNvcnMgZnJvbSB0
+aGUgdmVuZG9yL3Byb2R1Y3QgKi8KIAlzZC0+c2hhcnBuZXNzID0gU0hBUlBORVNTX0RFRjsKQEAg
+LTY3MDEsNyArNjczNCw2IEBACiAJCWNhc2UgMHgwZjoKIAkJCVBERUJVRyhEX1BST0JFLCAiRmlu
+ZCBTZW5zb3IgUEFTMTA2Iik7CiAJCQlzZC0+c2Vuc29yID0gU0VOU09SX1BBUzEwNjsKLQkJCXZn
+YSA9IDA7CQkvKiBTSUYgKi8KIAkJCWJyZWFrOwogCQljYXNlIDB4MTA6CiAJCWNhc2UgMHgxMjoK
+QEAgLTY3NzcsMTIgKzY4MDksMjAgQEAKIAljYW0gPSAmZ3NwY2FfZGV2LT5jYW07CiAvKmZpeG1l
+OnRlc3QqLwogCWdzcGNhX2Rldi0+bmJhbHQtLTsKLQlpZiAodmdhKSB7CisJc3dpdGNoIChtb2Rl
+X3RiW3NkLT5zZW5zb3JdKSB7CisJY2FzZSAwOgorCQljYW0tPmNhbV9tb2RlID0gc2lmX21vZGU7
+CisJCWNhbS0+bm1vZGVzID0gQVJSQVlfU0laRShzaWZfbW9kZSk7CisJCWJyZWFrOworCWNhc2Ug
+MToKIAkJY2FtLT5jYW1fbW9kZSA9IHZnYV9tb2RlOwogCQljYW0tPm5tb2RlcyA9IEFSUkFZX1NJ
+WkUodmdhX21vZGUpOwotCX0gZWxzZSB7Ci0JCWNhbS0+Y2FtX21vZGUgPSBzaWZfbW9kZTsKLQkJ
+Y2FtLT5ubW9kZXMgPSBBUlJBWV9TSVpFKHNpZl9tb2RlKTsKKwkJYnJlYWs7CisJZGVmYXVsdDoK
+Ky8qCWNhc2UgMjogKi8KKwkJY2FtLT5jYW1fbW9kZSA9IGJyb2tlbl92Z2FfbW9kZTsKKwkJY2Ft
+LT5ubW9kZXMgPSBBUlJBWV9TSVpFKGJyb2tlbl92Z2FfbW9kZSk7CisJCWJyZWFrOwogCX0KIAlz
+ZC0+YnJpZ2h0bmVzcyA9IEJSSUdIVE5FU1NfREVGOwogCXNkLT5jb250cmFzdCA9IENPTlRSQVNU
+X0RFRjsK
+
+--MP_/FUrwl6_1RvIuPFIsJskwifv--
