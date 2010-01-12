@@ -1,74 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36833 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752680Ab0AGVdz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jan 2010 16:33:55 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Kevin Hilman <khilman@deeprootsystems.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>
-Date: Thu, 7 Jan 2010 15:33:53 -0600
-Subject: RE: [PATCH - v3 4/4] DaVinci - vpfe-capture-converting ccdc drivers
- to platform driver
-Message-ID: <A69FA2915331DC488A831521EAE36FE40162D43287@dlee06.ent.ti.com>
-References: <1260895054-13232-1-git-send-email-m-karicheri2@ti.com>
-	<871vi4rv25.fsf@deeprootsystems.com>
-	<A69FA2915331DC488A831521EAE36FE40162C23952@dlee06.ent.ti.com>
-	<87k4vvkyo7.fsf@deeprootsystems.com>
-	<A69FA2915331DC488A831521EAE36FE40162C23A3E@dlee06.ent.ti.com>
-	<878wcbkx60.fsf@deeprootsystems.com>
-	<A69FA2915331DC488A831521EAE36FE40162D43099@dlee06.ent.ti.com>
- <87r5q1ya2w.fsf@deeprootsystems.com>
-In-Reply-To: <87r5q1ya2w.fsf@deeprootsystems.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:30251 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751476Ab0ALLxm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jan 2010 06:53:42 -0500
+Message-ID: <4B4C62DA.5000404@redhat.com>
+Date: Tue, 12 Jan 2010 12:54:02 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: Jose Alberto Reguero <jareguero@telefonica.net>,
+	linux-media@vger.kernel.org
+Subject: Re: Problem with gspca and zc3xx
+References: <201001090015.31357.jareguero@telefonica.net>	<4B4AE349.4000707@redhat.com>	<20100111105524.157ebdbe@tele>	<201001111549.55439.jareguero@telefonica.net> <20100112093635.66aa9d57@tele>
+In-Reply-To: <20100112093635.66aa9d57@tele>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Kevin,
+Hi,
 
-Can I remove it through a separate patch? This patch is already merged in Hans tree.
+On 01/12/2010 09:36 AM, Jean-Francois Moine wrote:
+> On Mon, 11 Jan 2010 15:49:55 +0100
+> Jose Alberto Reguero<jareguero@telefonica.net>  wrote:
+>
+>> I take another image with 640x480 and the bad bottom lines are 8. The
+>> right side look right this time. The good sizes are:
+>> 320x240->320x232
+>> 640x480->640x472
+>
+> Hi Jose Alberto and Hans,
+>
+> Hans, I modified a bit your patch to handle the 2 resolutions (also, the
+> problem with pas202b does not exist anymore). May you sign or ack it?
+>
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-phone: 301-407-9583
-email: m-karicheri2@ti.com
+Thanks!
 
->-----Original Message-----
->From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->Sent: Thursday, January 07, 2010 2:44 PM
->To: Karicheri, Muralidharan
->Cc: linux-media@vger.kernel.org; hverkuil@xs4all.nl; davinci-linux-open-
->source@linux.davincidsp.com
->Subject: Re: [PATCH - v3 4/4] DaVinci - vpfe-capture-converting ccdc
->drivers to platform driver
->
->"Karicheri, Muralidharan" <m-karicheri2@ti.com> writes:
->
->> Kevin,
->>
->>>
->>>OK, I'm not extremely familar with the whole video architecture here,
->>>but are all of these drivers expected to be doing clk_get() and
->>>clk_enable()?
->>>
->>
->> [MK]Many IPs on DaVinci VPFE would require vpss master clock. So
->> it is better to do the way I have done in my patch. So it is expected
->> that clk_get, clk_enable etc are called from other drivers as well.
->
->OK, then you are expecting to add clkdev nodes for the other devices
->as well.  That's ok.
->
->However, you still haven't answered my original question.  AFAICT,
->there are no users of the clkdev nodes "vpss_master" and "vpss_slave".
->Why not remove those and replace them with your new nodes instead of
->leaving them and adding new ones?
->
->Kevin
+It seems our mails crossed each other, you are right the pas202b
+320x240 issue (the pas202b is a cam I have, and it only had the
+issue at 320x240, hence the incompleteness of my patch) is fixed
+in your tree, excellent!
+
+The patch is:
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+
+Regards,
+
+Hans
