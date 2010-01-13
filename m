@@ -1,24 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx05.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.9])
+Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.5])
 	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o0M7o6P8010958
-	for <video4linux-list@redhat.com>; Fri, 22 Jan 2010 02:50:06 -0500
-Received: from mail-ew0-f216.google.com (mail-ew0-f216.google.com
-	[209.85.219.216])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o0M7nrU0014191
-	for <video4linux-list@redhat.com>; Fri, 22 Jan 2010 02:49:53 -0500
-Received: by ewy8 with SMTP id 8so960418ewy.29
-	for <video4linux-list@redhat.com>; Thu, 21 Jan 2010 23:49:52 -0800 (PST)
-Message-ID: <4B595835.1030801@gmail.com>
-Date: Fri, 22 Jan 2010 09:48:05 +0200
-From: mahmut <m.gundes@gmail.com>
+	id o0DKSuBv002392
+	for <video4linux-list@redhat.com>; Wed, 13 Jan 2010 15:28:56 -0500
+Received: from mail-ew0-f215.google.com (mail-ew0-f215.google.com
+	[209.85.219.215])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o0DKSePJ003533
+	for <video4linux-list@redhat.com>; Wed, 13 Jan 2010 15:28:40 -0500
+Received: by ewy7 with SMTP id 7so1437454ewy.30
+	for <video4linux-list@redhat.com>; Wed, 13 Jan 2010 12:28:39 -0800 (PST)
+Message-ID: <EA03EC49745B4E36B0CB88F844CAC335@HYDRA>
+From: "Julio Meca Hansen" <jmecahansen@gmail.com>
+To: <video4linux-list@redhat.com>
+Subject: [recommendation] USB TV Tuner card with support for HD resolution
+	(720p at least) under Linux?
+Date: Wed, 13 Jan 2010 21:28:34 +0100
 MIME-Version: 1.0
-To: Cristiana Tenti <cristenti@gmail.com>
-Subject: Re: streamer
-References: <13c9a3ca1001211916n558736e9ic8dc17f4dfe99d37@mail.gmail.com>
-In-Reply-To: <13c9a3ca1001211916n558736e9ic8dc17f4dfe99d37@mail.gmail.com>
-Cc: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,45 +24,35 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Hi,
 
-     You can also check mjpeg-streamer project. I have been used it for 
-jpeg frame streaming, in addition it can give raw images.
+I think the title says it all, but well... let me explain in a better way...
 
-http://www.quickcamteam.net/software/linux/v4l2-software/mjpg-streamer
+Basically, I have a laptop machine and I would like to be able to play the PS3 I'm intending to buy using a tv tuner instead
+of having to buy a tv, just have a one-for-all machine, let's say it that way, so the laptop will be for work/programming/whatever
+tasks and the PS3 for strict gaming.
 
-Regards,
+The problem I have is I don't really know which hardware would be suitable for that purpose, if any at all... that's why I ask for help
+in this matter.
 
-Mahmut
+1. Does this kind of hardware actually exists? I don't pretend pulling a full 1080i signal, just 720p would be nice, as my laptop has
+a 15.6" screen at 1366x768, so 1280x720 would make sense.
+2. In case it exists, do I need to connect it with any exotic method? I guess the yellow component cable just delivers standard resolution,
+not high definition, but maybe I'm wrong... any hint would be appreciated
+3. Could I use tvtime with the tuner, if possible?
 
-Cristiana Tenti wrote:
-> Hello,
-> I'm a new user :)
->
-> I'm working on a simple project and for that I only need to a software for
-> uclinux to acquire a raw image from my usb webcam.
-> On Ubuntu I'm using STREAMER but I cannot find the source code to install it
-> on my uclinux platform.
->
-> Anyway I found xawtv and I saw that this usefull software has as tool
-> STREAMER.
->
-> Do you know if it is possible compile only streamer and not all package of
-> xawtv?
->
-> Please, if you can help me answer me!!!
->
-> Thank you in advance,
->
-> Best Regards
->
->   
+Compilation doesn't matter, I'm using a custom-made (and a bit deviated) LFS/CLFS distro, so I'm accustomed to compile every single
+package I need for my system, which (by the way) it's x86 with no compatibility mode (I mean... no i486-pc-linux-gnu but i686-pc-linux-gnu triplet)
+and the GNOME desktop.
 
+Thanks in advance,
+Julio
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
