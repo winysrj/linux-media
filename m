@@ -1,40 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01a.mail.t-online.hu ([84.2.40.6]:56653 "EHLO
-	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752594Ab0APRfJ (ORCPT
+Received: from impaqm2.telefonica.net ([213.4.138.2]:60578 "EHLO
+	IMPaqm2.telefonica.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754299Ab0AMNur convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jan 2010 12:35:09 -0500
-Message-ID: <4B51F8C7.1040202@freemail.hu>
-Date: Sat, 16 Jan 2010 18:35:03 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+	Wed, 13 Jan 2010 08:50:47 -0500
+From: Jose Alberto Reguero <jareguero@telefonica.net>
+To: "Jean-Francois Moine" <moinejf@free.fr>
+Subject: Re: Problem with gspca and zc3xx
+Date: Wed, 13 Jan 2010 14:50:44 +0100
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org
+References: <201001090015.31357.jareguero@telefonica.net> <20100112093635.66aa9d57@tele> <201001121557.10312.jareguero@telefonica.net>
+In-Reply-To: <201001121557.10312.jareguero@telefonica.net>
 MIME-Version: 1.0
-To: Patrick Boettcher <pboettcher@dibcom.fr>,
-	Olivier Grenie <olivier.grenie@dibcom.fr>
-CC: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] dib0090: cleanup dib0090_dcc_freq()
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201001131450.44689.jareguero@telefonica.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+El Martes, 12 de Enero de 2010, Jose Alberto Reguero escribió:
+> El Martes, 12 de Enero de 2010, Jean-Francois Moine escribió:
+> > On Mon, 11 Jan 2010 15:49:55 +0100
+> >
+> > Jose Alberto Reguero <jareguero@telefonica.net> wrote:
+> > > I take another image with 640x480 and the bad bottom lines are 8. The
+> > > right side look right this time. The good sizes are:
+> > > 320x240->320x232
+> > > 640x480->640x472
+> >
+> > Hi Jose Alberto and Hans,
+> >
+> > Hans, I modified a bit your patch to handle the 2 resolutions (also, the
+> > problem with pas202b does not exist anymore). May you sign or ack it?
+> >
+> > Jose Alberto, the attached patch is to be applied to the last version
+> > of the gspca in my test repository at LinuxTv.org
+> > 	http://linuxtv.org/hg/~jfrancois/gspca
+> > May you try it?
+> >
+> > Regards.
+> 
+>  The patch works well.
+> There is another problem. When autogain is on(default), the image is bad.
+>  It is possible to put autogain off by default?
+> 
+> Thanks.
+> Jose Alberto
 
-'extern' is not needed at function definition.
+Autogain works well again. I can't reproduce the problem. Perhaps the debug 
+messages. (Now I have debug off).
 
-This will remove the following sparse warning (see "make C=1"):
- * function 'dib0090_dcc_freq' with external linkage has definition
-
-Signed-off-by: Márton Németh <nm127@freemail.hu>
----
-diff -r 5bcdcc072b6d linux/drivers/media/dvb/frontends/dib0090.c
---- a/linux/drivers/media/dvb/frontends/dib0090.c	Sat Jan 16 07:25:43 2010 +0100
-+++ b/linux/drivers/media/dvb/frontends/dib0090.c	Sat Jan 16 18:33:43 2010 +0100
-@@ -283,7 +283,7 @@
- 	return 0;
- }
-
--extern void dib0090_dcc_freq(struct dvb_frontend *fe, u8 fast)
-+void dib0090_dcc_freq(struct dvb_frontend *fe, u8 fast)
- {
- 	struct dib0090_state *state = fe->tuner_priv;
- 	if (fast)
+Thanks.
+Jose Alberto
