@@ -1,66 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailrelay008.isp.belgacom.be ([195.238.6.174]:38361 "EHLO
-	mailrelay008.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757349Ab0ANR16 (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2361 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755430Ab0AMT6r (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jan 2010 12:27:58 -0500
-Message-ID: <4B4F541A.9040200@skynet.be>
-Date: Thu, 14 Jan 2010 18:27:54 +0100
-From: xof <xof@skynet.be>
-MIME-Version: 1.0
+	Wed, 13 Jan 2010 14:58:47 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id o0DJwi8v025256
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 13 Jan 2010 20:58:45 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 13 Jan 2010 20:58:44 +0100 (CET)
+Message-Id: <201001131958.o0DJwi8v025256@smtp-vbr9.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: Re: VL4-DVB compilation issue not covered by Daily Automated
-References: <4B4CE912.1000906@von-eitzen.de>	 <829197381001121344l3ad94bdajdd4eb0345b895f2b@mail.gmail.com>	 <4B4D852F.4030506@skynet.be> <829197381001130744m24da5ea3xe1cb5135237b1127@mail.gmail.com>
-In-Reply-To: <829197381001130744m24da5ea3xe1cb5135237b1127@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller a écrit :
-> On Wed, Jan 13, 2010 at 3:32 AM, xof <xof@skynet.be> wrote:
->   
->> Are you sure? (it is an Ubuntu-only issue)
->>
->> I can see several
->>     
->>> #include <asm/asm.h>
->>>       
->> in the v4l tree that compile fine on Ubuntu
->> but only linux/drivers/media/dvb/firewire/firedtv-1394.c contains
->>     
->>> #include <asm.h>
->>>       
->> and doesn't compile.
->>
->> Unfortunately the asm.h asm/asm.h is not the only issue with
->> firedtv-1394.c (on Ubuntu/Karmic Koala?).
->> The /drivers/ieee1394/*.h seem to be in the linux-sources tree and not
->> in the linux-headers one (?)
->>
->> Everywhere I look, I read "don't bother, just disable firedtv-1394.c"
->> until they fix it.
->>     
->
-> I think perhaps you meant to write "dma.h" and not "asm.h".
->
-> All of the missing includes in the error log (including "dma.h") are
-> for files that are found in the iee1394 source directory, which are
-> not provided in the Ubuntu linux-headers package.
->
-> Devin
->
->   
-Oups!  You are right...
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Thank you.
+Results of the daily build of v4l-dvb:
 
+date:        Wed Jan 13 19:00:08 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13942:d490d84a64ac
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-xof
--------------------------
-PS: I signaled the problem to the Ubuntu community
-    https://bugs.launchpad.net/ubuntu/+source/linux/+bug/507154
-I hope this was the right thing to do... I did not find any mention of
-the problem there.
-There is no reaction yet, it is just one of 5000 other things to look at...
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-armv5: OK
+linux-2.6.33-rc2-armv5: OK
+linux-2.6.32-armv5-davinci: OK
+linux-2.6.33-rc2-armv5-davinci: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-armv5-ixp: OK
+linux-2.6.32-armv5-ixp: OK
+linux-2.6.33-rc2-armv5-ixp: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: OK
+linux-2.6.32-armv5-omap2: OK
+linux-2.6.33-rc2-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: OK
+linux-2.6.31-i686: OK
+linux-2.6.32-i686: OK
+linux-2.6.33-rc2-i686: ERRORS
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-m32r: OK
+linux-2.6.33-rc2-m32r: OK
+linux-2.6.30-mips: OK
+linux-2.6.31-mips: OK
+linux-2.6.32-mips: OK
+linux-2.6.33-rc2-mips: OK
+linux-2.6.30-powerpc64: OK
+linux-2.6.31-powerpc64: OK
+linux-2.6.32-powerpc64: OK
+linux-2.6.33-rc2-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: OK
+linux-2.6.31-x86_64: OK
+linux-2.6.32-x86_64: OK
+linux-2.6.33-rc2-x86_64: ERRORS
+spec: OK
+sparse (linux-2.6.32): ERRORS
+sparse (linux-2.6.33-rc2): ERRORS
+linux-2.6.16.61-i686: OK
+linux-2.6.17.14-i686: OK
+linux-2.6.18.8-i686: OK
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.61-x86_64: OK
+linux-2.6.17.14-x86_64: OK
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
