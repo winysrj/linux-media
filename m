@@ -1,57 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ms01.sssup.it ([193.205.80.99]:59018 "EHLO sssup.it"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755469Ab0ANTIX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jan 2010 14:08:23 -0500
-Message-ID: <4B4F6BA2.50402@panicking.kicks-ass.org>
-Date: Thu, 14 Jan 2010 20:08:18 +0100
-From: Michael Trimarchi <michael@panicking.kicks-ass.org>
+Received: from mail-fx0-f225.google.com ([209.85.220.225]:35975 "EHLO
+	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754946Ab0AMLn5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jan 2010 06:43:57 -0500
 MIME-Version: 1.0
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	akari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: [RFC PATCH] fix try_pix_parm loop
-References: <4B4F0762.4040007@panicking.kicks-ass.org> <A24693684029E5489D1D202277BE894451538FFB@dlee02.ent.ti.com> <4B4F537B.7000708@panicking.kicks-ass.org> <A24693684029E5489D1D202277BE894451539065@dlee02.ent.ti.com> <4B4F56C8.7060108@panicking.kicks-ass.org>
-In-Reply-To: <4B4F56C8.7060108@panicking.kicks-ass.org>
-Content-Type: multipart/mixed;
- boundary="------------080407020209070305000908"
+In-Reply-To: <4B4C5CEF.5060601@gmail.com>
+References: <1263113806-7532-1-git-send-email-jslaby@suse.cz>
+	 <1263253709.4116.1.camel@palomino.walls.org>
+	 <4B4C5CEF.5060601@gmail.com>
+Date: Wed, 13 Jan 2010 15:43:54 +0400
+Message-ID: <1a297b361001130343r9071b3fv93ade93264109f96@mail.gmail.com>
+Subject: Re: [PATCH 1/1] media: video/cx18, fix potential null dereference
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Jiri Slaby <jirislaby@gmail.com>
+Cc: Andy Walls <awalls@radix.net>, mchehab@redhat.com,
+	hverkuil@xs4all.nl, ivtv-devel@ivtvdriver.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------080407020209070305000908
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On Tue, Jan 12, 2010 at 3:28 PM, Jiri Slaby <jirislaby@gmail.com> wrote:
+> On 01/12/2010 12:48 AM, Andy Walls wrote:
+>> On Sun, 2010-01-10 at 09:56 +0100, Jiri Slaby wrote:
+>>> Stanse found a potential null dereference in cx18_dvb_start_feed
+>>> and cx18_dvb_stop_feed. There is a check for stream being NULL,
+>>> but it is dereferenced earlier. Move the dereference after the
+>>> check.
+>>>
+>>> Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+>>
+>> Reviewed-by: Andy Walls <awalls@radix.net>
+>> Acked-by: Andy Walls <awalls@radix.net>
+>
+> You definitely know the code better, have you checked that it can happen
+> at all? I mean may demux->priv be NULL?
 
+It is highly unlikely that demux->priv becoming NULL. The only time
+that could happen would be when there is a dvb register failed. But in
+which case, it wouldn't reach the stage where you want to start/stop a
+stream.
 
-
---------------080407020209070305000908
-Content-Type: text/x-diff;
- name="dont-skip-format.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="dont-skip-format.patch"
-
-This patch fix try_pix_parm loop that try to find a suitable format for
-the isp engine
-
-Signed-off-by: Michael Trimarchi <michael@panicking.kicks-ass.org>
-Cc: akari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Cc: Sergio Aguirre <saaguirre@ti.com>
-
----
-diff --git a/drivers/media/video/omap34xxcam.c b/drivers/media/video/omap34xxcam.c
-index 53b587e..bf7db71 100644
---- a/drivers/media/video/omap34xxcam.c
-+++ b/drivers/media/video/omap34xxcam.c
-@@ -470,7 +470,7 @@ static int try_pix_parm(struct omap34xxcam_videodev *vdev,
- 			pix_tmp_out = *wanted_pix_out;
- 			rval = isp_try_fmt_cap(isp, &pix_tmp_in, &pix_tmp_out);
- 			if (rval)
--				return rval;
-+				continue;
- 
- 			dev_dbg(&vdev->vfd->dev, "this w %d\th %d\tfmt %8.8x\t"
- 				"-> w %d\th %d\t fmt %8.8x"
-
---------------080407020209070305000908--
+Regards,
+Manu
