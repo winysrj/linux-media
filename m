@@ -1,94 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-07.arcor-online.net ([151.189.21.47]:54041 "EHLO
-	mail-in-07.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752422Ab0ARWnE (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.154]:17802 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753473Ab0AMNQp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2010 17:43:04 -0500
-Subject: RE: How to use saa7134 gpio via gpio-sysfs?
-From: hermann pitton <hermann-pitton@arcor.de>
-To: William Tate <wtate@RTD.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Trent Piepho <xyzzy@speakeasy.org>,
-	Gordon Smith <spider.karma+linux-media@gmail.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"'willytate@gmail.com'" <willytate@gmail.com>
-In-Reply-To: <EAF55B080F530E428574542A7925428705EA7F1C66@INTMBX1.RTD.com>
-References: <2df568dc1001111012u627f07b8p9ec0c2577f14b5d9@mail.gmail.com>
-	 <2df568dc1001111059p54de8635k6c207fb3f4d96a14@mail.gmail.com>
-	 <1263266020.3198.37.camel@pc07.localdom.local>
-	 <1263602137.3184.23.camel@pc07.localdom.local>
-	 <Pine.LNX.4.58.1001151650410.4729@shell2.speakeasy.net>
-	 <1263622815.3178.31.camel@pc07.localdom.local>
-	 <Pine.LNX.4.58.1001160400230.4729@shell2.speakeasy.net>
-	 <1263686928.3394.4.camel@pc07.localdom.local>
-	 <1263689544.8899.3.camel@pc07.localdom.local>
-	 <1263769323.3182.8.camel@pc07.localdom.local>
-	 <EAF55B080F530E428574542A7925428705EA7F1C66@INTMBX1.RTD.com>
-Content-Type: text/plain; charset=UTF-8
-Date: Mon, 18 Jan 2010 23:40:00 +0100
-Message-Id: <1263854400.6804.15.camel@pc07.localdom.local>
-Mime-Version: 1.0
+	Wed, 13 Jan 2010 08:16:45 -0500
+Received: by fg-out-1718.google.com with SMTP id 19so43918fgg.1
+        for <linux-media@vger.kernel.org>; Wed, 13 Jan 2010 05:16:43 -0800 (PST)
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+Date: Wed, 13 Jan 2010 14:16:41 +0100
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org
+Subject: [PATCH] ir-kbd-i2c: Allow to disable Hauppauge filter through module
+ parameter
+MIME-Version: 1.0
 Content-Transfer-Encoding: 8bit
+From: "Samuel Rakitnican" <samuel.rakitnican@gmail.com>
+Message-ID: <op.u6g253fh6dn9rq@crni.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Some Hauppauge devices have id=0 so such devices won't work.
+For such devices add a module parameter that allow to turns
+off filtering.
 
-Am Montag, den 18.01.2010, 09:13 -0500 schrieb William Tate:
-> Gentlemen,
-> 
-> I may be able to assist here.  Specifically what information/photographs are you looking for?
-> 
-> Regards,
-> 
-> 
-> William Tate
-> RTD Embedded Technologies, Inc.
+Signed-off-by: Samuel Rakitničan <semiRocket@gmail.com>
+---
+diff -r 82bbb3bd0f0a linux/drivers/media/video/ir-kbd-i2c.c
+--- a/linux/drivers/media/video/ir-kbd-i2c.c    Mon Jan 11 11:47:33 2010  
+-0200
++++ b/linux/drivers/media/video/ir-kbd-i2c.c    Wed Jan 13 13:46:53 2010  
++0100
+@@ -61,6 +61,10 @@
+  module_param(hauppauge, int, 0644);    /* Choose Hauppauge remote */
+  MODULE_PARM_DESC(hauppauge, "Specify Hauppauge remote: 0=black, 1=grey  
+(defaults to 0)");
 
-Gordon, please explain, why you would like to have access to some of the
-saa713x gpios on that device from userspace.
++static int haup_filter = 1;
++module_param(haup_filter, int, 0644);
++MODULE_PARM_DESC(haup_filter, "Hauppauge filter for other remotes,  
+default is 1 (On)");
++
 
-Unknown to me previously, it seems RTD already provides software for
-their customers to use the digital I/Os, but restricted to owners of
-such devices.
+  #define DEVNAME "ir-kbd-i2c"
+  #define dprintk(level, fmt, arg...)    if (debug >= level) \
+@@ -96,24 +100,27 @@
+         if (!start)
+                 /* no key pressed */
+                 return 0;
+-       /*
+-        * Hauppauge remotes (black/silver) always use
+-        * specific device ids. If we do not filter the
+-        * device ids then messages destined for devices
+-        * such as TVs (id=0) will get through causing
+-        * mis-fired events.
+-        *
+-        * We also filter out invalid key presses which
+-        * produce annoying debug log entries.
+-        */
+-       ircode= (start << 12) | (toggle << 11) | (dev << 6) | code;
+-       if ((ircode & 0x1fff)==0x1fff)
+-               /* invalid key press */
+-               return 0;
 
-"For an example of how to use VFG73xx digital I/O, please see the
-Software Product SWP-700010065 “Linux
-Software (VFG73xx)” available from the RTD web site"
+-       if (dev!=0x1e && dev!=0x1f)
+-               /* not a hauppauge remote */
+-               return 0;
++       if (haup_filter != 0) {
++               /*
++                * Hauppauge remotes (black/silver) always use
++                * specific device ids. If we do not filter the
++                * device ids then messages destined for devices
++                * such as TVs (id=0) will get through causing
++                * mis-fired events.
++                *
++                * We also filter out invalid key presses which
++                * produce annoying debug log entries.
++                */
++               ircode = (start << 12) | (toggle << 11) | (dev << 6) |  
+code;
++               if ((ircode & 0x1fff) == 0x1fff)
++                       /* invalid key press */
++                       return 0;
++
++               if (dev != 0x1e && dev != 0x1f)
++                       /* not a hauppauge remote */
++                       return 0;
++       }
 
-William, is there a desire to have such gpio access from userspace on
-your side? Trent kindly outlined some details. Please give us some brief
-explanations in that case.
-
-Thanks for offering your help.
-
-Hermann
-
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-owner@vger.kernel.org] On Behalf Of hermann pitton
-> Sent: Sunday, January 17, 2010 6:02 PM
-> To: Trent Piepho
-> Cc: Gordon Smith; linux-media@vger.kernel.org
-> Subject: Re: How to use saa7134 gpio via gpio-sysfs?
-> 
-> [snip]
-> > 
-> > Damned, seems the opto-isolated I/Os might be in question.
-> > 
-> > For the RTD stuff we don't have any high resolution photographs or
-> > anything else ...
-> 
-> Gordon,
-> 
-> we should wait for, if RTD and Philips/NXP do have a agreement on such.
-> 
-> I doubt it, given how it came in.
-> 
-> Else, you can of course still do what you ever want on that driver.
-> 
-> Cheers,
-> Hermann
-> 
-> 
-
-
+         if (!range)
+                 code += 64;
