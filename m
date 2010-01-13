@@ -1,95 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225]:64072 "EHLO
-	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756502Ab0ANJPJ convert rfc822-to-8bit (ORCPT
+Received: from mail-qy0-f182.google.com ([209.85.221.182]:55810 "EHLO
+	mail-qy0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756477Ab0AMWKZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jan 2010 04:15:09 -0500
-Received: by fxm25 with SMTP id 25so262051fxm.21
-        for <linux-media@vger.kernel.org>; Thu, 14 Jan 2010 01:15:07 -0800 (PST)
+	Wed, 13 Jan 2010 17:10:25 -0500
+Received: by qyk12 with SMTP id 12so5402332qyk.21
+        for <linux-media@vger.kernel.org>; Wed, 13 Jan 2010 14:10:25 -0800 (PST)
+Message-ID: <4B4E4365.5020307@gmail.com>
+Date: Wed, 13 Jan 2010 17:04:21 -0500
+From: TJ <one.timothy.jones@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <f74f98341001132335p562b189duda4478cb62a7549a@mail.gmail.com>
-References: <f74f98341001132335p562b189duda4478cb62a7549a@mail.gmail.com>
-Date: Thu, 14 Jan 2010 13:15:06 +0400
-Message-ID: <1a297b361001140115l3dc56802r985b0fd9f8f83c16@mail.gmail.com>
-Subject: Re: About driver architecture
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Michael Qiu <fallwind@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Jarod Wilson <jarod@wilsonet.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: go7007 driver -- which program you use for capture
+References: <4B47828B.9050000@gmail.com> <be3a4a1001081217s1bec67c8odb26bb793700242b@mail.gmail.com> <4B47B0EB.6000102@gmail.com> <4B4E34D2.8090202@redhat.com>
+In-Reply-To: <4B4E34D2.8090202@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Mauro Carvalho Chehab wrote:
+> TJ wrote:
+>> jelle, that you?
+>>
+>> Here's the patch against go7007 driver in 2.6.32 kernel (run with -p1).
+>>
+>> The main purpose of the patch is to include support for ADS Tech DVD Xpress DX2
+>> usb capture card and make it usable with v4l2-ctl utility.
+>>
+>> I also did a general clean-up in a few areas and *temporarily* added back in
+>> proprietary go7007 ioctls, so current mythtv users can take advantage of it and
+>> to make the gorecord program from wis-go7007 package now work again.
+>>
+>> Also attached is a stripped down version of gorecord from which I removed all
+>> parameter-setting stuff. This version is meant to be used in conjunction with
+>> v4l2-ctl or other means of configuring capture parameters.
+>>
+>> I will try to do mythtv patches next so that it starts using standard v4l2 ioctl
+>> calls and we can drop all proprietary stuff in the driver.
+>>
+>> Please try it and lemme know if it works for you. I've run into a few Ubuntuers
+>> as well who were trying to get their boards working as well.
+> 
+> The patch doesn't apply on the latest -hg version:
+> patching file drivers/staging/go7007/Kconfig
+> patching file drivers/staging/go7007/go7007-driver.c
+> Hunk #2 succeeded at 225 (offset 1 line).
+> Hunk #3 succeeded at 285 (offset 1 line).
+> patching file drivers/staging/go7007/go7007-usb.c
+> patching file drivers/staging/go7007/go7007-v4l2.c
+> Hunk #1 FAILED at 43.
+> Hunk #2 succeeded at 425 with fuzz 2 (offset 8 lines).
+> Hunk #4 succeeded at 578 (offset 8 lines).
+> Hunk #6 FAILED at 993.
+> Hunk #7 succeeded at 1078 with fuzz 1 (offset -8 lines).
+> Hunk #8 FAILED at 1538.
+> Hunk #9 succeeded at 1672 (offset -18 lines).
+> Hunk #10 succeeded at 1764 (offset -8 lines).
+> 3 out of 10 hunks FAILED -- saving rejects to file drivers/staging/go7007/go7007-v4l2.c.rej
+> patching file drivers/staging/go7007/s2250-board.c
+> Hunk #1 FAILED at 357.
+> 1 out of 1 hunk FAILED -- saving rejects to file drivers/staging/go7007/s2250-board.c.rej
+> patching file drivers/staging/go7007/wis-i2c.h
+> patching file drivers/staging/go7007/wis-saa7113.c
+> patching file drivers/staging/go7007/wis-saa7115.c
+> patching file drivers/staging/go7007/wis-tw2804.c
+> patching file drivers/staging/go7007/wis-tw9903.c
+> Hunk #1 FAILED at 152.
+> 1 out of 1 hunk FAILED -- saving rejects to file drivers/staging/go7007/wis-tw9903.c.rej
+> patching file drivers/staging/go7007/wis-tw9906.c
+> Patch doesn't apply
 
+Mauro, brother, this patch is for in-kernel go7007 driver. It has to be run
+against kernel source 2.6.32. (IIRC it will also run against 2.6.31)
 
-On Thu, Jan 14, 2010 at 11:35 AM, Michael Qiu <fallwind@gmail.com> wrote:
-> Hi guys,
->  I'm going to write drivers for a new soc which designed for dvb-s set top box.
-> It will support these features:
-> 1. Multi-layer display with alpha blending feature, including
-> video(YUV), OSDs(2 same RGB layers), background(with fixed YUV color)
-> and still picture(YUV color for still image)
-> 2. DVB-S tuner and demod
-> 3. HW MPEG2/4 decoder
-> 4. HW accelerated JPEG decoder engine.
->
-> My targets are:
-> 1. Fit all the drivers in proper framework so they can be easily used
-> by applications in open source community.
-> 2. As flexible as I can to add new software features in the future.
->
-> My questions are:
-> How many drivers should I implement, and how should I divide all the features?
-> As far as I know:
-> A) a frame buffer driver for 2 OSDs, maybe also the control point for
-> whole display module?
-> B) video output device for video layer, which will output video program.
-> C) drivers for tuner and demo (or just a driver which will export 2
-> devices files for each?)
-> D) driver for jpeg accelerate interface, or should it be a part of
-> MPEG2/4 decoder driver?
-> E) driver for MPEG2/4 decoder which will control the behave of H/W decoder.
->
-> Actually I think all the display functions are relative, some
-> functions i listed upper are operating one HW module, for instance:
-> OSD and video layer are implemented by display module in H/W level.
-> What's the right way to implement these functions in driver level,
-> united or separated?
-> And, I've read some documents for V4L2, but I still cannot figure out
-> where should I implement my driver in the framework.
->
-> In a word, I'm totally confused. Can you guys show me the right way or
-> just kick me to a existing example with similar features?
->
+It won't run against current v4l-dvb tree, as Pete has done quite a few changes
+since then. When I get a chance, I will start working against current version.
 
-Currently, there are 2 drivers which have exactly the functionality
-that you have mentioned. The first one is an AV7110 based device and
-the other one is a STi7109 SOC based device.
+> 
+> Also, you shouldn't re-add the proprietary API but, instead, to port it to use the
+> API support for compressed stuff.
 
-With regards to the AV7110 based hardware, you can have a look at
-linux/drivers/media/dvb/ttpci/ *
+I did add support for standard vidioc_s/g_ext_ctrls API stuff and that's what I
+am actually using currently. I merely kept the proprietary ioctls so that mythtv
+users can start using the driver as well until somebody (me?) patches mythtv to
+use the standard APIs. -TJ
 
-And with regards to the STi7109 SOC based, you can have a look at
-http://jusst.de/hg/saa716x/
-linux/drivers/media/common/saa716x/ *
-specifically you will need to look at saa716x_ff.c/h for the STi7109
-related stuff
+> Cheers,
+> Mauro.
+> 
 
-
-Both the AV7110 and STi7109 SOC feature a OSD interface, in addition
-to the audio and video layers. which you can see from the drivers,
-themselves. Additionally the STi7109 SOC features HDMI outputs. The
-AV7110 based cards, they incorporate DVB-S/C/T frontends for different
-products. The STi7109 product that we have currently features only a
-DVB-S/S2 system only, though that doesn't make any difference at all.
-
-The only application that does handle the complete use of the decoder,
-is VDR and some other command line applications in the dvb-apps tree,
-that I am aware of. But there could be other applications as well.
-
-I guess, you've been confused, since you have been looking in the
-wrong place, ie in V4L, rather than with DVB.
-
-Regards,
-Manu
