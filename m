@@ -1,49 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from alona.agustinaradleylinux.net ([216.246.1.26]:38328 "EHLO
-	server.ebuppies.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1753978Ab0ADWVj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jan 2010 17:21:39 -0500
-Received: from localhost ([127.0.0.1]:44765 helo=mail.ebuppies.com)
-	by server.ebuppies.com with esmtpa (Exim 4.69)
-	(envelope-from <bounces@ebuppies.com>)
-	id 1NRvIt-0007IM-2J
-	for linux-media@vger.kernel.org; Mon, 04 Jan 2010 17:21:35 -0500
-Date: Mon, 4 Jan 2010 17:21:35 -0500
-To: linux-media@vger.kernel.org
-From: Webmaster <noreply@ebuppies.com>
-Subject: Request for confirmation
-Message-ID: <16452fcaa9685a641b5bb577e7c52f2e@mail.ebuppies.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="UTF-8"
+Received: from gateway01.websitewelcome.com ([69.56.170.19]:50336 "HELO
+	gateway01.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750895Ab0AMXQF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jan 2010 18:16:05 -0500
+Received: from [66.15.212.169] (port=13613 helo=[10.140.5.12])
+	by gator886.hostgator.com with esmtpsa (SSLv3:AES256-SHA:256)
+	(Exim 4.69)
+	(envelope-from <pete@sensoray.com>)
+	id 1NVBVM-0002J6-K5
+	for linux-media@vger.kernel.org; Wed, 13 Jan 2010 16:15:56 -0600
+Subject: [PATCH] s2250: Fix write_reg i2c address
+From: Pete Eberlein <pete@sensoray.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain
+Date: Wed, 13 Jan 2010 14:15:48 -0800
+Message-Id: <1263420948.4697.313.camel@pete-desktop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sorry to bother you: we are cleaning up our database and it appears that
-you have previously signed up to eBuppies.com mailinglists and not
-confirmed your subscription.We would like to give you the opportunity to
-re-confirm your subscription. The instructions on how to confirm are below.
+The kernel i2c model uses right-aligned 7-bit i2c addresses, but the
+2250 firmware uses an 8-bit address in the usb vendor request.  A
+previous patch by Jean Delvare shifted the i2c addresses 1 bit to the
+right, and this patch fixes the write_reg function to shift it back
+before sending the vendor request.
+
+Priority: normal
+
+Signed-off-by: Pete Eberlein <pete@sensoray.com>
+
+diff -r 3a4be7d7dabd -r 134a95c0d98b linux/drivers/staging/go7007/s2250-board.c
+--- a/linux/drivers/staging/go7007/s2250-board.c	Sun Jan 03 17:04:42 2010 +0000
++++ b/linux/drivers/staging/go7007/s2250-board.c	Wed Jan 13 14:11:48 2010 -0800
+@@ -159,7 +159,7 @@
+ 	struct go7007 *go = i2c_get_adapdata(client->adapter);
+ 	struct go7007_usb *usb;
+ 	int rc;
+-	int dev_addr = client->addr;
++	int dev_addr = client->addr << 1;  /* firmware wants 8-bit address */
+ 	u8 *buf;
  
-
-  Almost welcome to our newsletter(s) ...
-
-  Someone, hopefully you, has subscribed your email address to the
-following newsletters:
-  
-  
-
-  If this is correct, please click the following link to confirm your
-subscription.
-  Without this confirmation, you will not receive any newsletters.
-  
- 
-http://ebuppies.com/emailserv/?p=confirm&uid=a147fb9820af0ed588b116f6749759f7
-  
-  If this is not correct, you do not need to do anything, simply delete
-this message.
-
-  Thank you
-  
-    
+ 	if (go == NULL)
 
 
