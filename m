@@ -1,31 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:46659 "EHLO lo.gmane.org"
+Received: from cantor.suse.de ([195.135.220.2]:38490 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755953Ab0ARTEb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2010 14:04:31 -0500
-Received: from list by lo.gmane.org with local (Exim 4.50)
-	id 1NWwtQ-0001Zt-5E
-	for linux-media@vger.kernel.org; Mon, 18 Jan 2010 20:04:04 +0100
-Received: from 188.4.24.242.dsl.dyn.forthnet.gr ([188.4.24.242])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 18 Jan 2010 20:04:04 +0100
-Received: from rvf16 by 188.4.24.242.dsl.dyn.forthnet.gr with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 18 Jan 2010 20:04:04 +0100
-To: linux-media@vger.kernel.org
-From: rvf16 <rvf16@yahoo.gr>
-Subject: Re: Terratec Cinergy HT Express analog tv, fm and digital radio
-Date: Mon, 18 Jan 2010 19:03:30 +0000 (UTC)
-Message-ID: <loom.20100118T200145-4@post.gmane.org>
-References: <loom.20100117T113702-67@post.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+	id S1755411Ab0AMUou (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jan 2010 15:44:50 -0500
+Date: Wed, 13 Jan 2010 21:44:49 +0100 (CET)
+From: Jiri Kosina <jkosina@suse.cz>
+To: Jiri Slaby <jirislaby@gmail.com>
+Cc: linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, Pekka Sarnila <sarnila@adit.fi>
+Subject: Re: [PATCH 1/1] HID: ignore afatech 9016
+In-Reply-To: <4B4E2E48.1000509@gmail.com>
+Message-ID: <alpine.LNX.2.00.1001132143550.30977@pobox.suse.cz>
+References: <1263412773-23220-1-git-send-email-jslaby@suse.cz> <alpine.LNX.2.00.1001132111570.30977@pobox.suse.cz> <4B4E2E48.1000509@gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Anyone any info on support state for this card?
+On Wed, 13 Jan 2010, Jiri Slaby wrote:
 
-Thanks.
+> >> --- a/drivers/hid/usbhid/hid-quirks.c
+> >> +++ b/drivers/hid/usbhid/hid-quirks.c
+> >> @@ -41,7 +41,7 @@ static const struct hid_blacklist {
+> >>  	{ USB_VENDOR_ID_SAITEK, USB_DEVICE_ID_SAITEK_RUMBLEPAD, HID_QUIRK_BADPAD },
+> >>  	{ USB_VENDOR_ID_TOPMAX, USB_DEVICE_ID_TOPMAX_COBRAPAD, HID_QUIRK_BADPAD },
+> >>  
+> >> -	{ USB_VENDOR_ID_AFATECH, USB_DEVICE_ID_AFATECH_AF9016, HID_QUIRK_FULLSPEED_INTERVAL },
+> >> +	{ USB_VENDOR_ID_AFATECH, USB_DEVICE_ID_AFATECH_AF9016, HID_QUIRK_IGNORE },
+> > 
+> > Hmm, why do we keep HID_QUIRK_IGNORE anyway, when we already have generic 
+> > hid_ignore_list[]?
+> 
+> You returned it back because of dynamic quirks...
 
+Right you are.
+
+> > We don't set it for any device in the current codebase any more.
+> 
+> Oh yeah, it's hard for people who don't remember code they wrote :).
+
+Oh, right ... happened to me as well, see a few lines above :)
+
+> Will respin. Thanks for the reminder.
+
+Thanks,
+
+-- 
+Jiri Kosina
+SUSE Labs, Novell Inc.
