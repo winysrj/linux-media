@@ -1,24 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx10.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.14])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o0CAgBVb002176
-	for <video4linux-list@redhat.com>; Tue, 12 Jan 2010 05:42:11 -0500
-Received: from qw-out-2122.google.com (qw-out-2122.google.com [74.125.92.26])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o0CAftlt018270
-	for <video4linux-list@redhat.com>; Tue, 12 Jan 2010 05:41:55 -0500
-Received: by qw-out-2122.google.com with SMTP id 8so2542147qwh.39
-	for <video4linux-list@redhat.com>; Tue, 12 Jan 2010 02:41:55 -0800 (PST)
-Message-ID: <4B4C51ED.8050708@gmail.com>
-Date: Tue, 12 Jan 2010 11:41:49 +0100
-From: Ryan Raasch <ryan.raasch@gmail.com>
+Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.11])
+	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o0DKv5of006878
+	for <video4linux-list@redhat.com>; Wed, 13 Jan 2010 15:57:06 -0500
+Received: from mail-fx0-f224.google.com (mail-fx0-f224.google.com
+	[209.85.220.224])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o0DKuqM5001297
+	for <video4linux-list@redhat.com>; Wed, 13 Jan 2010 15:56:53 -0500
+Received: by fxm24 with SMTP id 24so18737824fxm.11
+	for <video4linux-list@redhat.com>; Wed, 13 Jan 2010 12:56:52 -0800 (PST)
 MIME-Version: 1.0
-To: Carlos Lavin <carlos.lavin@vista-silicon.com>
-Subject: Re: problem with the register of driver that works with
-	soc_camera_subsystem
-References: <fe6fd5f61001120153v5604e61qd2900909b808be99@mail.gmail.com>
-In-Reply-To: <fe6fd5f61001120153v5604e61qd2900909b808be99@mail.gmail.com>
-Cc: video4linux-list <video4linux-list@redhat.com>
+In-Reply-To: <EA03EC49745B4E36B0CB88F844CAC335@HYDRA>
+References: <EA03EC49745B4E36B0CB88F844CAC335@HYDRA>
+Date: Wed, 13 Jan 2010 15:56:51 -0500
+Message-ID: <829197381001131256k70ab59f5mb291253065ad6a2e@mail.gmail.com>
+Subject: Re: [recommendation] USB TV Tuner card with support for HD resolution
+	(720p at least) under Linux?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Julio Meca Hansen <jmecahansen@gmail.com>
+Cc: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,63 +27,35 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Wed, Jan 13, 2010 at 3:28 PM, Julio Meca Hansen
+<jmecahansen@gmail.com> wrote:
+> 1. Does this kind of hardware actually exists? I don't pretend pulling a full 1080i signal, just 720p would be nice, as my laptop has
+> a 15.6" screen at 1366x768, so 1280x720 would make sense.
 
+No, it does not exist.  The only product out there supported under
+Linux which can capture analog at HD resolutions is the Hauppauge
+HD-PVR, which then converts the video to H.264.  As a result, it tends
+to have latency way too high for playing video games (you cannot play
+a video game when the screen shows you a picture that is two seconds
+behind).
 
-Carlos Lavin wrote:
-> I am trying build a system on video with mx27 and ov7670 sensor but when I
-> want register my driver that works with soc_camera subsystem in the 2.6.30
-> version(I have works in this version because my boss wants it that way ), I
-> executed the function "soc_camera_host_register(&mx27_soc_camera_host);" In
-> the probe function of host-camera, this funcion is in the soc_camera.c and
-> this function call to "scan_add_host" and this funcion is:
-> 1- static void scan_add_host(struct soc_camera_host *ici)
-> 2- {
-> 3-    struct soc_camera_device *icd;
-> 4-    mutex_lock(&list_lock);
-> 5-    list_for_each_entry(icd, &devices, list) {
-> 6-        if (icd->iface == ici->nr) {
-> 7-            icd->dev.parent = &ici->dev;
-> 8-            device_register_link(icd);
-> 9-        }
-> 10-    }
-> 11-   mutex_unlock(&list_lock);
-> 12-}
-> 
-> Well, in the probe function of camera-host I put ici->nr=0 (ici is
-> soc_camera_host); but icd-> iface I don't know where is declared, in my chip
-> camera I declare a soc_camera_device where I put the iface=0, but in this
+> 2. In case it exists, do I need to connect it with any exotic method? I guess the yellow component cable just delivers standard resolution,
 
-In the device specific startup file, there needs to be a structure
+The "yellow component cable" is actually called "composite video" and
+is not to be confused with "component video".  Composite video is
+standard resolution and does not support HD.
 
-static struct soc_camera_link iclink
+Devin
 
-I use the mach-pxa. Look in the arch/arm/mach-pxa/pcm990-baseboard.c for 
-an example of how to integrate a soc camera.
-
-Cheers,
-Ryan
-
-
-> function, "scan_add_host" in the if of line 6, the icd-iface is different of
-> 0, and the function device_register_link isn't executed.
-> 
-> In the chip_camera this function,"device_register_link"(is called for your
-> appropriate function,scan_add_device) yes is executed, anybody know anything
-> about this problem? is a problem or this function only is necessary to
-> execute one once for both(chip-camera and host-camera), I think that is
-> necessary that this function is executed for both but I am rookie in this
-> topics. anybody help me?
-> Thanks for your time.
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
 
 --
 video4linux-list mailing list
