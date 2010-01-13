@@ -1,67 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225]:34806 "EHLO
-	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751603Ab0ANPqL convert rfc822-to-8bit (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:58094 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755890Ab0AMLGQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jan 2010 10:46:11 -0500
-Received: by fxm25 with SMTP id 25so177781fxm.21
-        for <linux-media@vger.kernel.org>; Thu, 14 Jan 2010 07:46:09 -0800 (PST)
+	Wed, 13 Jan 2010 06:06:16 -0500
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
+	<u.kleine-koenig@pengutronix.de>
+To: linux-kernel@vger.kernel.org
+Cc: David Vrabel <dvrabel@arcom.com>,
+	Greg Kroah-Hartman <gregkh@suse.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Magnus Damm <damm@igel.co.jp>,
+	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
+	Paul Mundt <lethal@linux-sh.org>, linux-media@vger.kernel.org
+Subject: [RESEND PATCH 3/5] V4L/DVB sh_mobile_ceu: don't check platform_get_irq's return value against zero
+Date: Wed, 13 Jan 2010 12:05:44 +0100
+Message-Id: <1263380746-27803-3-git-send-email-u.kleine-koenig@pengutronix.de>
+In-Reply-To: <1260979809-24811-1-git-send-email-u.kleine-koenig@pengutronix.de>
+References: <1260979809-24811-1-git-send-email-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
-In-Reply-To: <4B4F39BB.2060605@motama.com>
-References: <4B4F39BB.2060605@motama.com>
-Date: Thu, 14 Jan 2010 10:46:09 -0500
-Message-ID: <829197381001140746g56c5ccf7mc7f6a631cb16e15d@mail.gmail.com>
-Subject: Re: Order of dvb devices
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Andreas Besse <besse@motama.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 14, 2010 at 10:35 AM, Andreas Besse <besse@motama.com> wrote:
-> if a system contains multiple DVB cards of the same type, how is the
-> order of devices determined by the driver/kernel?
->
-> I use 2 Technotrend S2-3200 cards in a system and observerd that if I
-> load the driver driver budget_ci manually as follows:
->
-> modprobe budget_ci adapter_nr=0,1
->
-> the device with the lower pci ID 0000:08:00.0 is assigned to adapter0 and the device with the higher pci ID 0000:08:01.0
-> is assigned to adapter1:
->
->
-> udevinfo -a -p $(udevinfo -q path -n /dev/dvb/adapter0/frontend0)
-> [...]
->  looking at parent device '/devices/pci0000:00/0000:00:1e.0/0000:08:00.0':
->    KERNELS=="0000:08:00.0"
->    SUBSYSTEMS=="pci"
->
->
-> udevinfo -a -p $(udevinfo -q path -n /dev/dvb/adapter1/frontend0)
-> [...]
->  looking at parent device '/devices/pci0000:00/0000:00:1e.0/0000:08:01.0':
->    KERNELS=="0000:08:01.0"
->    SUBSYSTEMS=="pci"
->
->
-> Is it true for all DVB drives that the device with the lower PCI id gets the lower adapter name?
+platform_get_irq returns -ENXIO on failure, so !irq was probably
+always true.  Better use (int)irq <= 0.  Note that a return value of
+zero is still handled as error even though this could mean irq0.
 
-No, you cannot really make this assumption.  In fact, there are users
-who see behavior where uses have two of the same card and the cards
-get flipped around randomly just by rebooting.  The ordering is based
-on the timing of the device driver loading, so it is not
-deterministic.
+This is a followup to 305b3228f9ff4d59f49e6d34a7034d44ee8ce2f0 that
+changed the return value of platform_get_irq from 0 to -ENXIO on error.
 
-I believe you can use udev rules though to force a particular driver
-to get a specific adapter number (although admittedly I do not know
-the specifics of how it is done, and am not confident it *can* be done
-if both cards are the same vendor/model).
+Signed-off-by: Uwe Kleine-KÃ¶nig <u.kleine-koenig@pengutronix.de>
+Cc: David Vrabel <dvrabel@arcom.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Magnus Damm <damm@igel.co.jp>
+Cc: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: linux-media@vger.kernel.org
+---
+ drivers/media/video/sh_mobile_ceu_camera.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Devin
-
+diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+index d69363f..f09c714 100644
+--- a/drivers/media/video/sh_mobile_ceu_camera.c
++++ b/drivers/media/video/sh_mobile_ceu_camera.c
+@@ -1827,7 +1827,7 @@ static int __devinit sh_mobile_ceu_probe(struct platform_device *pdev)
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	irq = platform_get_irq(pdev, 0);
+-	if (!res || !irq) {
++	if (!res || (int)irq <= 0) {
+ 		dev_err(&pdev->dev, "Not enough CEU platform resources.\n");
+ 		err = -ENODEV;
+ 		goto exit;
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.6.6
+
