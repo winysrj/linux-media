@@ -1,48 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f211.google.com ([209.85.217.211]:34747 "EHLO
-	mail-gx0-f211.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752055Ab0ADMNA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jan 2010 07:13:00 -0500
-Received: by gxk3 with SMTP id 3so2676059gxk.1
-        for <linux-media@vger.kernel.org>; Mon, 04 Jan 2010 04:13:00 -0800 (PST)
+Received: from mail.gmx.net ([213.165.64.20]:55919 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752646Ab0AML5P (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jan 2010 06:57:15 -0500
+Date: Wed, 13 Jan 2010 12:57:19 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
+	<u.kleine-koenig@pengutronix.de>
+cc: linux-kernel@vger.kernel.org, David Vrabel <dvrabel@arcom.com>,
+	Greg Kroah-Hartman <gregkh@suse.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Magnus Damm <damm@igel.co.jp>,
+	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
+	Paul Mundt <lethal@linux-sh.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Antonio Ospite <ospite@studenti.unina.it>,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
+Subject: Re: platform_get_irq() v4l fixes
+In-Reply-To: <1263380746-27803-2-git-send-email-u.kleine-koenig@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.1001131255290.4844@axis700.grange>
+References: <1260979809-24811-1-git-send-email-u.kleine-koenig@pengutronix.de>
+ <1263380746-27803-2-git-send-email-u.kleine-koenig@pengutronix.de>
 MIME-Version: 1.0
-In-Reply-To: <eedb5541001032340n66205fb8s57e09d2ba413b322@mail.gmail.com>
-References: <1260885686-8478-1-git-send-email-acassis@gmail.com>
-	 <37367b3a0912150607v713edc32y3578fa2a0c8c61db@mail.gmail.com>
-	 <eedb5541001032340n66205fb8s57e09d2ba413b322@mail.gmail.com>
-Date: Mon, 4 Jan 2010 10:12:59 -0200
-Message-ID: <37367b3a1001040412k280f3366p4868e36f5a7f71e4@mail.gmail.com>
-Subject: Re: [PATCH] RFC: mx27: Add soc_camera support
-From: Alan Carvalho de Assis <acassis@gmail.com>
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org, s.hauer@pengutronix.de,
-	mchehab@infradead.org, linux-arm-kernel@lists.infradead.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+Hi Uwe
 
-On 1/4/10, javier Martin <javier.martin@vista-silicon.com> wrote:
-> Alan,
-> please, could you point me against which kernel version did you exactly test
-> this patch?
+Your patches have been included in my pull request of 10.01.2010:
 
-It applies on current kernel from git.pengutronix.de/git/imx/linux-2.6.git
+http://www.spinics.net/lists/linux-media/msg14449.html
 
-> Also it would be fine to know which video sensor did you use.
->
-
-I'm planning to use an OV2640 camera.
-
-> We are planning to improve this if it works.
->
-
-Yes, this is the idea :)
-
-> Thank you.
->
-
-You are welcome,
-
-Alan
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
