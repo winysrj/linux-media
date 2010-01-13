@@ -1,100 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:44179 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754306Ab0ASLzM (ORCPT
+Received: from smtp.mujha-vel.cz ([81.30.225.246]:46281 "EHLO
+	smtp.mujha-vel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752476Ab0AMUAJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jan 2010 06:55:12 -0500
-Message-ID: <4B559D9B.1030700@infradead.org>
-Date: Tue, 19 Jan 2010 09:55:07 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Douglas Landgraf <dougsland@gmail.com>
-Subject: Re: [ANNOUNCE] git tree repositories
-References: <4B55445A.10300@infradead.org> <201001190853.11050.hverkuil@xs4all.nl> <201001190910.39479.pboettcher@kernellabs.com>
-In-Reply-To: <201001190910.39479.pboettcher@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Wed, 13 Jan 2010 15:00:09 -0500
+From: Jiri Slaby <jslaby@suse.cz>
+To: mchehab@infradead.org
+Cc: linux-kernel@vger.kernel.org, jirislaby@gmail.com,
+	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: [PATCH 1/1] media: dvb-usb/af9015, add IR support for digivox mini II
+Date: Wed, 13 Jan 2010 21:00:07 +0100
+Message-Id: <1263412807-23350-1-git-send-email-jslaby@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patrick Boettcher wrote:
-> On Tuesday 19 January 2010 08:53:10 Hans Verkuil wrote:
->> On Tuesday 19 January 2010 06:34:18 Mauro Carvalho Chehab wrote:
->>> He already started doing that, fixing some incompatibility troubles
->>> between some drivers and older kernels.
->> Mauro, I just wanted to thank you for doing all the hard work in moving to
->>  git!
->>
->> And a big 'thank you' to Douglas as well for taking over hg maintenance!
-> 
-> A big thank you also from me. 
+MSI digivox mini II works even with remote=2 module parameter. Check
+for manufacturer and if it is Afatech, use af9015_ir_table_msi and
+af9015_rc_keys_msi.
 
-Wou're welcome.
+The device itself is 15a4:9016.
 
-> I'm strongly in need of a build-only-v4l-dvb build system. Because I'm most of 
-> the time using distro-kernels in my productive environments and I'm replacing 
-> v4l/dvb drivers with the one from v4l-dvb.
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Antti Palosaari <crope@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org
+---
+ drivers/media/dvb/dvb-usb/af9015.c |   12 +++++++++---
+ 1 files changed, 9 insertions(+), 3 deletions(-)
 
-We all need to have some ways to run the new drivers on distro kernels. If not
-as a developer, at least as an user. So, I keep believing that the out-of-tree
-compilation is fundamental to the success of the subsystem.
-> 
-> One step into the direction of a solution might be:
-> Why not including the v4l-dvb/v4l/Makefile and the related files into that 
-> separate repository Hans is describing here and then telling 'make' to make 
-> links to ../../v4l-dvb/ instead of ../linux as of today.
-
-This is about what "make kernel-links" do, but in the opposite direction.
-It shouldn't be hard do do that, but we need to fix the backports.
-In the case of -alsa, they opted to use this strategy for their backported
-tree, patching the kernel when building it.
-
-> But I don't know how to solve the ifdef KERNEL_VERSION for having backward 
-> compatibility in the source files. Maybe with a patch for each kernel version?
-
-It can be a patch for each kernel version, but this will remove support for some
-distro-kernels where the KABI has changed. Another solution is to have a pile
-of patches that will be applied as the compilation breaks. This can work, but we
-need to find a way to produce those patches.
-
-Maybe the simplest solution is to keep maintaining the -hg and having an auto-generated
-tree that will have just the building system and a diff between -git and -hg. If
-both are synchronized, the only difference will be the backports.
-
-> BTW: I just made a clone of the git-tree - 365MB *ouff*.
-
-Yes, this is one problem with -git: as it contains the entire kernel struct, and an
-history since 2.6.11, it is about 9 times bigger than the -hg tree, where only
-the media files are stored.
-
-Yet, git clone has a way to allow removing the history of the kernel, producing a 
-small result --depth:
-
-	$ git clone --depth 1 --bare v4l-dvb tmp
-
-This gives about 128M (about 3x -hg). Yet, trees generated with --depth have some
-disadvantages.
-
-
- Maybe it's worth to 
-> mention right now, that one big difference to HG in the way we have used it, is 
-> that one developer now can do all the work only with one clone of v4l-dvb and 
-> using branches for each development.
-
-Yes. The cost for a new branch is zero. Also, the cost of a new clone is less than
-1M, if you use the --shared.
-
-On my daily usage, I use a lot to clone with --shared, and doing my work on independent
-directories. The advantage is that you avoid messing your temporary work. You may
-even pull or push just one branch into another tree. So, working with git offers
-lots of new possibilities to the developers.
-
-Cheers,
-Mauro.
-
-> 
-> best regards,
+diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
+index 8b60a60..f0d5731 100644
+--- a/drivers/media/dvb/dvb-usb/af9015.c
++++ b/drivers/media/dvb/dvb-usb/af9015.c
+@@ -835,9 +835,15 @@ static int af9015_read_config(struct usb_device *udev)
+ 					  af9015_ir_table_mygictv;
+ 					af9015_config.ir_table_size =
+ 					  ARRAY_SIZE(af9015_ir_table_mygictv);
+-				} else if (!strcmp("MSI", manufacturer)) {
+-					/* iManufacturer 1 MSI
+-					   iProduct      2 MSI K-VOX */
++				} else if (!strcmp("MSI", manufacturer) ||
++					   !strcmp("Afatech", manufacturer)) {
++					/*
++					   iManufacturer 1 MSI
++					   iProduct      2 MSI K-VOX
++					   iManufacturer 1 Afatech
++					   iProduct      2 DVB-T 2
++					 */
++
+ 					af9015_properties[i].rc_key_map =
+ 					  af9015_rc_keys_msi;
+ 					af9015_properties[i].rc_key_map_size =
+-- 
+1.6.5.7
 
