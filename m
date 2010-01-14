@@ -1,49 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iw0-f194.google.com ([209.85.223.194]:40491 "EHLO
-	mail-iw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753619Ab0AHPK3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jan 2010 10:10:29 -0500
-Received: by iwn32 with SMTP id 32so3149609iwn.33
-        for <linux-media@vger.kernel.org>; Fri, 08 Jan 2010 07:10:28 -0800 (PST)
-To: "Hiremath\, Vaibhav" <hvaibhav@ti.com>
-Cc: "Karicheri\, Muralidharan" <m-karicheri2@ti.com>,
-	"davinci-linux-open-source\@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"linux-media\@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH - v3 4/4] DaVinci - vpfe-capture-converting ccdc drivers to platform driver
-References: <1260895054-13232-1-git-send-email-m-karicheri2@ti.com>
-	<871vi4rv25.fsf@deeprootsystems.com>
-	<A69FA2915331DC488A831521EAE36FE40162C23952@dlee06.ent.ti.com>
-	<87k4vvkyo7.fsf@deeprootsystems.com>
-	<A69FA2915331DC488A831521EAE36FE40162C23A3E@dlee06.ent.ti.com>
-	<878wcbkx60.fsf@deeprootsystems.com>
-	<A69FA2915331DC488A831521EAE36FE40162D43099@dlee06.ent.ti.com>
-	<87r5q1ya2w.fsf@deeprootsystems.com>
-	<A69FA2915331DC488A831521EAE36FE40162D43287@dlee06.ent.ti.com>
-	<87my0pwpnk.fsf@deeprootsystems.com>
-	<A69FA2915331DC488A831521EAE36FE40162D43371@dlee06.ent.ti.com>
-	<19F8576C6E063C45BE387C64729E7394044A398045@dbde02.ent.ti.com>
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Date: Fri, 08 Jan 2010 07:10:26 -0800
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044A398045@dbde02.ent.ti.com> (Vaibhav Hiremath's message of "Fri\, 8 Jan 2010 14\:36\:09 +0530")
-Message-ID: <87zl4oskd9.fsf@deeprootsystems.com>
+Received: from www49.your-server.de ([213.133.104.49]:46492 "EHLO
+	www49.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756882Ab0ANPfk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jan 2010 10:35:40 -0500
+Received: from [188.97.242.148] (helo=[192.168.1.22])
+	by www49.your-server.de with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.69)
+	(envelope-from <besse@motama.com>)
+	id 1NVRjX-0004Wi-8u
+	for linux-media@vger.kernel.org; Thu, 14 Jan 2010 16:35:39 +0100
+Message-ID: <4B4F39BB.2060605@motama.com>
+Date: Thu, 14 Jan 2010 16:35:23 +0100
+From: Andreas Besse <besse@motama.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: linux-media@vger.kernel.org
+Subject: Order of dvb devices
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-"Hiremath, Vaibhav" <hvaibhav@ti.com> writes:
+if a system contains multiple DVB cards of the same type, how is the
+order of devices determined by the driver/kernel?
 
->> 
-> [Hiremath, Vaibhav] Hi Kevin and Murali,
->
-> Sorry for jumping into this discussion so late, 
->
-> Can we use clk_add_alias() function exported by clkdev.c file here?
-> With this board specific file can define aliases for all required
-> platform_data keeping CLK() entry generic.
+I use 2 Technotrend S2-3200 cards in a system and observerd that if I
+load the driver driver budget_ci manually as follows:
 
-Yes, this would be a good use case clk_add_alias()
+modprobe budget_ci adapter_nr=0,1
 
-Kevin
+the device with the lower pci ID 0000:08:00.0 is assigned to adapter0 and the device with the higher pci ID 0000:08:01.0
+is assigned to adapter1:
+
+
+udevinfo -a -p $(udevinfo -q path -n /dev/dvb/adapter0/frontend0)
+[...]
+  looking at parent device '/devices/pci0000:00/0000:00:1e.0/0000:08:00.0':
+    KERNELS=="0000:08:00.0"
+    SUBSYSTEMS=="pci"
+
+
+udevinfo -a -p $(udevinfo -q path -n /dev/dvb/adapter1/frontend0)
+[...]
+  looking at parent device '/devices/pci0000:00/0000:00:1e.0/0000:08:01.0':
+    KERNELS=="0000:08:01.0"
+    SUBSYSTEMS=="pci"
+
+
+Is it true for all DVB drives that the device with the lower PCI id gets the lower adapter name?
+
+
+
+
+
+
+
 
