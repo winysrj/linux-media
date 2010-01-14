@@ -1,50 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bamako.nerim.net ([62.4.17.28]:60313 "EHLO bamako.nerim.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932234Ab0AFOjO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Jan 2010 09:39:14 -0500
-Date: Wed, 6 Jan 2010 15:39:09 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Daro <ghost-rider@aster.pl>
-Cc: LMML <linux-media@vger.kernel.org>
-Subject: Re: IR device at I2C address 0x7a
-Message-ID: <20100106153909.6bce3183@hyperion.delvare>
-In-Reply-To: <4B324EF0.7090606@aster.pl>
-References: <4B324EF0.7090606@aster.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-qy0-f194.google.com ([209.85.221.194]:64022 "EHLO
+	mail-qy0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757483Ab0ANUDV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jan 2010 15:03:21 -0500
+Received: by qyk32 with SMTP id 32so4293978qyk.4
+        for <linux-media@vger.kernel.org>; Thu, 14 Jan 2010 12:03:20 -0800 (PST)
+Message-ID: <4B4F78A4.8000103@gmail.com>
+Date: Thu, 14 Jan 2010 15:03:48 -0500
+From: TJ <one.timothy.jones@gmail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Pete Eberlein <pete@sensoray.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: go7007 driver -- which program you use for capture
+References: <4B47828B.9050000@gmail.com> <be3a4a1001081217s1bec67c8odb26bb793700242b@mail.gmail.com> <4B47B0EB.6000102@gmail.com> <4B4E34D2.8090202@redhat.com> <4B4E4365.5020307@gmail.com> <4B4E4550.7030907@redhat.com>
+In-Reply-To: <4B4E4550.7030907@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Darek,
 
-Adding LMML to Cc.
-
-On Wed, 23 Dec 2009 18:10:08 +0100, Daro wrote:
-> I have the problem you described at the mailing list with Asus 
-> MyCinema-P7131/P/FM/AV/RC Analog TV Card:
-> IR remote control is not detected and "i2c-adapter i2c-3: Invalid 7-bit 
-> address 0x7a" error occurs.
-> lspci gives the following output:
-> 04:00.0 Multimedia controller: Philips Semiconductors 
-> SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d1)
-> dmesg output I enclose in the attachment.
-> I use:
-> Linux DOMOWY 2.6.31-16-generic #53-Ubuntu SMP Tue Dec 8 04:02:15 UTC 
-> 2009 x86_64 GNU/Linux
+Mauro Carvalho Chehab wrote:
+> It should be against -hg or linux-next tree, otherwise, I can't send it upstream.
+> If you just want to send a patch for people to test, please mark it as RFC, otherwise
+> I'll assume that you're sending a patch for upstream.
 > 
-> I would be gratefull for the help on that.
-> (...)
-> subsystem: 1043:4845, board: ASUS TV-FM 7135 [card=53,autodetected]
-> (...)
-> i2c-adapter i2c-3: Invalid 7-bit address 0x7a
-> saa7133[0]: P7131 analog only, using entry of ASUSTeK P7131 Analog
+> Since there are more people working on this driver, the better is to add what you
+> have there, to avoid people to do a similar work.
 
-This error message will show on virtually every SAA713x-based board
-with no known IR setup. It doesn't imply your board has any I2C device
-at address 0x7a. So chances are that the message is harmless and you
-can simply ignore it.
+OK my brother. I got a hold of the -hg tree and started working off of it.
 
--- 
-Jean Delvare
+Pete, Question: I was looking through the code and noticed that you turned s2250
+driver into v4l2_subdev and go7007 driver initializes it as such and passes it
+calls via call_all (v4l2_device_call_until_err). How does that affect other
+drivers? Does that mean they all need to re-written as v4l2_subdev?
+
+-TJ
+
