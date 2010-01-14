@@ -1,53 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp6-g21.free.fr ([212.27.42.6]:39738 "EHLO smtp6-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750986Ab0AXIIL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jan 2010 03:08:11 -0500
-Received: from smtp6-g21.free.fr (localhost [127.0.0.1])
-	by smtp6-g21.free.fr (Postfix) with ESMTP id AB8C1E080DC
-	for <linux-media@vger.kernel.org>; Sun, 24 Jan 2010 09:08:05 +0100 (CET)
-Received: from [192.168.1.2] (lns-bzn-50f-62-147-234-34.adsl.proxad.net [62.147.234.34])
-	by smtp6-g21.free.fr (Postfix) with ESMTP id 7750CE08094
-	for <linux-media@vger.kernel.org>; Sun, 24 Jan 2010 09:08:02 +0100 (CET)
-Message-ID: <4B5BFFE3.30003@free.fr>
-Date: Sun, 24 Jan 2010 09:08:03 +0100
-From: Chris Moore <moore@free.fr>
+Received: from ms01.sssup.it ([193.205.80.99]:39883 "EHLO sssup.it"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1757167Ab0ANRZV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jan 2010 12:25:21 -0500
+Message-ID: <4B4F537B.7000708@panicking.kicks-ass.org>
+Date: Thu, 14 Jan 2010 18:25:15 +0100
+From: Michael Trimarchi <michael@panicking.kicks-ass.org>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [linux-dvb] Looking for original source of an old DVB tree
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: omap34xxcam question?
+References: <4B4F0762.4040007@panicking.kicks-ass.org> <A24693684029E5489D1D202277BE894451538FFB@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE894451538FFB@dlee02.ent.ti.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi,
 
-Short version:
-I am looking for the original source code of a Linux DVB tree containing 
-in particular
-     drivers/media/dvb/dibusb/microtune_mt2060.c
-and the directory
-     drivers/media/dvb/dibusb/mt2060_api
+Aguirre, Sergio wrote:
+> 
+>> -----Original Message-----
+>> From: Michael Trimarchi [mailto:michael@panicking.kicks-ass.org]
+>> Sent: Thursday, January 14, 2010 6:01 AM
+>> To: linux-media@vger.kernel.org
+>> Cc: Aguirre, Sergio
+>> Subject: omap34xxcam question?
+>>
+>> Hi
+>>
+>> Is ok that it try only the first format and size? why does it not continue
+>> and find a matching?
+> 
+> Actually, that was the intention, but I guess it was badly implemented.
+> 
+> Thanks for the catch, and the contribution!
+> 
+> Regards,
+> Sergio
+>> @@ -470,7 +471,7 @@ static int try_pix_parm(struct omap34xxcam_videodev
+>> *vdev,
+>>                         pix_tmp_out = *wanted_pix_out;
+>>                         rval = isp_try_fmt_cap(isp, &pix_tmp_in,
+>> &pix_tmp_out);
+>>                         if (rval)
+>> -                               return rval;
+>> +                               continue;
+>>
 
-Googling for microtune_mt2060.c and mt2060_api is no help.
-Could anyone kindly point me in the right direction, please?
+Is the patch good? or you are going to provide a better fix
 
-Longer version:
-I am trying to get my USB DVB-T stick running on my Xtreamer.
-Xtreamer uses an old 2.6.12.6 kernel heavily modified by Realtek and 
-possibly also modified by MIPS.
-I have the source code but it would be a tremendous effort to change to 
-a recent kernel.
-The DVB subtree seems to have been dirtily hacked by Realtek to support 
-their frontends.
-In the process they seem to have lost support for other frontends.
-I have been trying to find the source code for the original version.
-I have found nothing resembling it in kernel.org, linux-mips.org and 
-linuxtv.org.
+Michael
 
-TIA.
-
-Cheers,
-Chris
-
+>> Michael
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
