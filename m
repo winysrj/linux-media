@@ -1,82 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:30229 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756069Ab0AMSdX (ORCPT
+Received: from mail-fx0-f225.google.com ([209.85.220.225]:60089 "EHLO
+	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752411Ab0ANWJQ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jan 2010 13:33:23 -0500
-Received: by qw-out-2122.google.com with SMTP id 9so90662qwb.37
-        for <linux-media@vger.kernel.org>; Wed, 13 Jan 2010 10:33:22 -0800 (PST)
+	Thu, 14 Jan 2010 17:09:16 -0500
+Received: by fxm25 with SMTP id 25so27869fxm.21
+        for <linux-media@vger.kernel.org>; Thu, 14 Jan 2010 14:09:15 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <eedb5541001040431j3f14ec55g66ed4dd44a2a840e@mail.gmail.com>
-References: <1260885686-8478-1-git-send-email-acassis@gmail.com>
-	 <37367b3a0912150607v713edc32y3578fa2a0c8c61db@mail.gmail.com>
-	 <eedb5541001032340n66205fb8s57e09d2ba413b322@mail.gmail.com>
-	 <37367b3a1001040412k280f3366p4868e36f5a7f71e4@mail.gmail.com>
-	 <eedb5541001040425h2a3c07dcn534c71a0918b322b@mail.gmail.com>
-	 <eedb5541001040431j3f14ec55g66ed4dd44a2a840e@mail.gmail.com>
-Date: Wed, 13 Jan 2010 16:33:21 -0200
-Message-ID: <37367b3a1001131033u74c30ad6q8da1dbc35982e008@mail.gmail.com>
-Subject: Re: [PATCH] RFC: mx27: Add soc_camera support
-From: Alan Carvalho de Assis <acassis@gmail.com>
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org, s.hauer@pengutronix.de,
-	mchehab@infradead.org, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <4B4F9408.2060901@rogers.com>
+References: <753580.52410.qm@web32707.mail.mud.yahoo.com>
+	 <4B4F9408.2060901@rogers.com>
+Date: Thu, 14 Jan 2010 17:09:14 -0500
+Message-ID: <829197381001141409i6b666e78t175aadf31fd93b68@mail.gmail.com>
+Subject: Re: Kworld 315U and SAA7113?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: CityK <cityk@rogers.com>
+Cc: Franklin Meng <fmeng2002@yahoo.com>, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
-
-On 1/4/10, javier Martin <javier.martin@vista-silicon.com> wrote:
-> 2010/1/4 javier Martin <javier.martin@vista-silicon.com>
->
->>
->>
->> 2010/1/4 Alan Carvalho de Assis <acassis@gmail.com>
->>
->> Hi Javier,
->>>
->>> On 1/4/10, javier Martin <javier.martin@vista-silicon.com> wrote:
->>> > Alan,
->>> > please, could you point me against which kernel version did you exactly
->>> test
->>> > this patch?
->>>
->>> It applies on current kernel from
->>> git.pengutronix.de/git/imx/linux-2.6.git
->>>
->>> Thank you for your feedback Alan.
->>
->>> > Also it would be fine to know which video sensor did you use.
->>> >
->>>
->>> I'm planning to use an OV2640 camera.
->>>
->> Does this mean that this patch you are sending has been only
->> compile-tested?
+On Thu, Jan 14, 2010 at 5:00 PM, CityK <cityk@rogers.com> wrote:
+> Franklin Meng wrote:
+>> As far as I can tell, the Kworld 315U is the only board that uses this combination of parts..  Thomson tuner, LG demod, and SAA7113.  I don't think any other device has used the SAA7113 together with a digital demod.  Most products seem to only have the SAA711X on an analog only board.  Since I don't have any other USB adapters with the SAA chip I was unable to do any further testing on the SAA code changes.
 >>
 >
-> Argh, sorry, you pointed this in your previous mail.
->
-> Too bad we don't have any sensor available currently in mainline to do a
-> fast test.
->
+> IIRC, a couple of the Sasem/OnAir devices use a saa7113 together with a
+> digital demod. I seem to also recall something else, though maybe I'm
+> mistaken.
 
-Unfortunately my camera is not responding to I2C commands, I already
-slow it down to 10kbps with no success. I can see on oscilloscope
-i.MX27 send I2C commands, but the camera doesn't respond to it.
+I'm actually not really concerned about it's interaction with a demod.
+ I'm more worried about other products that have saa711[345] that use
+a bridge other than em28xx.  The introduction of power management
+could always expose bugs in those bridges (I had this problem in
+several different cases where I had to fix problems in other drivers
+because of the introduction of power management).
 
-Then I tested using the MT9T31 driver and change the it to my I2C
-commands, as I2C is failing I force the probe to return 0. But the
-soc_camera still failing:
+Devin
 
-Linux video capture interface: v2.00
-write: -5
-MT9T31 Read register 0xFF = -5
-Forcing mt9t031_video_probe to return OK!
-mx27-camera mx27-camera.0: initialising
-mx27-camera: probe of mx27-camera.0 failed with error -2
-
-Best Regards,
-
-Alan
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
