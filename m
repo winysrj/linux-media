@@ -1,65 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:47321 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752632Ab0AZNIr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jan 2010 08:08:47 -0500
-Date: Tue, 26 Jan 2010 14:08:45 +0100 (CET)
-From: Jiri Kosina <jkosina@suse.cz>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Jiri Slaby <jirislaby@gmail.com>, mchehab@infradead.org,
-	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, Pekka Sarnila <sarnila@adit.fi>
-Subject: Re: [PATCH 1/1] media: dvb-usb/af9015, fix disconnection crashes
-In-Reply-To: <4B5DDDFB.5020907@iki.fi>
-Message-ID: <alpine.LRH.2.00.1001261406010.15694@twin.jikos.cz>
-References: <1264007972-6261-1-git-send-email-jslaby@suse.cz> <4B5CDB53.6030009@iki.fi> <4B5D6098.7010700@gmail.com> <4B5DDDFB.5020907@iki.fi>
+Received: from smtp21.services.sfr.fr ([93.17.128.1]:13042 "EHLO
+	smtp21.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756800Ab0AOAA5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jan 2010 19:00:57 -0500
+Received: from smtp21.services.sfr.fr (msfrf2108 [10.18.25.22])
+	by msfrf2105.sfr.fr (SMTP Server) with ESMTP id 9E2267003A3E
+	for <linux-media@vger.kernel.org>; Fri, 15 Jan 2010 00:53:28 +0100 (CET)
+Received: from filter.sfr.fr (localhost [127.0.0.1])
+	by msfrf2108.sfr.fr (SMTP Server) with ESMTP id 73AF0700008C
+	for <linux-media@vger.kernel.org>; Fri, 15 Jan 2010 00:50:26 +0100 (CET)
+Received: from linux-542s.localnet (unknown [87.100.60.13])
+	by msfrf2108.sfr.fr (SMTP Server) with ESMTP id 534A17000087
+	for <linux-media@vger.kernel.org>; Fri, 15 Jan 2010 00:50:26 +0100 (CET)
+From: "ftape-jlc" <ftape-jlc@club-internet.fr>
+Reply-To: ftape-jlc@club-internet.fr
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: FM radio problem with HVR1120
+Date: Fri, 15 Jan 2010 00:50:04 +0100
+References: <201001112239.07084.ftape-jlc@club-internet.fr>
+In-Reply-To: <201001112239.07084.ftape-jlc@club-internet.fr>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201001150050.04652.ftape-jlc@club-internet.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 25 Jan 2010, Antti Palosaari wrote:
+Hello,
+I didn't received any answer.
+Did anyone used Hauppauge card with v4l2 in recent kernel to listen FM radio ?
 
-> > What happens if you disable the HID layer? Or at least if you add an
-> > ignore quirk for the device in usbhid?
+I am not current user of the mailing list. Please confirm if it is right place 
+for this problem.
+
+Regards,
+
+ftape-jlc
+
+
+Le lundi 11 janvier 2010, ftape-jlc a écrit :
+> Hello,
 > 
-> Looks like Fedora doesn't have usbhid compiled as module. I looked
-> hid-quirks.c file and there was only one af9015 device blacklisted 15a4:9016.
-> I have 15a4:9015, 15a4:9016 and 13d3:3237 devices and no difference.
+> I am user of Huappuage HVR1120, and I have problem with radio FM use in
+>  linux mode.
 > 
-> How can I disable HID layer?
-
-In case usbhid is compiled in, you should still be able to force the 
-ignore quirk by passing
-
-	usbhid.quirks=0x15a4:0x9015:0x04
-
-to kernel boot commandline.
-
-> > I forbid usbhid to attach to the device, as the remote kills X with HID
-> > driver. With dvb-usb-remote it works just fine (with remote=2 for af9015
-> > or the 4 patches I've sent).
+> Distribution OpenSuse11.2
+> Kernel 2.6.31.8-0.1-desktop
+> Firmware dvb-fe-tda10048-1.0.fw loaded
 > 
-> In my understanding the cause of the remote problem is chipset bug which sets
-> USB2.0 polling interval to 4096ms. Therefore HID remote does not work at all
-> or starts repeating. It is possible to implement remote as polling from the
-> driver which works very well. But HID problem still remains. I have some hacks
-> in my mind to test to kill HID. One is to configure HID wrongly to see if it
-> stops outputting characters. Other way is try to read remote codes directly
-> from the chip memory.
+> Analog and Digital Television are OK in both Windows and Linux.
+> Windows is using Hauppauge WinTV7 v7.027313
+> 
+> Linux is using Kaffeine v1.0-pre2 for Digital Television
+> Linux is using mplayer for analog TV like:
+> mplayer tv:// -tv driver=v4l2:freq=495.750:norm=SECAM-
+> L:input=0:audiorate=32000:immediatemode=0:alsa:forceaudio:adevice=hw.1,0:wi
+> dth=720:height=576:amode=1
+> 
+> The problem is to listen radio.
+> One radio station is OK at 91.5MHz stereo using WintTV7 in Windows.
+> With Linux, the command used is
+> /usr/bin/radio -c /dev/radio0
+> in association with
+> sox -t ossdsp -r 32000 -c 2 /dev/dsp1 -t ossdsp /dev/dsp
+> to listen the sound.
+> 
+> The result is an unstable frecuency. The station is not tuned. Stereo is
+> permanently switching to mono.
+> The 91.5MHz station is mixed permanently with other stations.
+> 
+> How can I check v4l2 ?
+> Do you need dmesg output ?
+> Is this mailing list the right place to solve this problem ?
+> 
+> Thank you for your help.
+> 
+> Regards,
+> 
+> ftape-jlc
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Yes, Pekka Sarnila has added this workaround to the HID driver, as the 
-device is apparently broken.
-
-I want to better understand why others are not hitting this with the 
-DVB remote driver before removing the quirk from HID code completely.
-
-> But all in all, your patch does not break anything, it is safe to add. It
-> could be still nice to know if there is better alternatives. And there is
-> surely few other devices having HID remote - are those also affected.
-
--- 
-Jiri Kosina
-SUSE Labs, Novell Inc.
 
