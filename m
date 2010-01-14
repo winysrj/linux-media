@@ -1,87 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rouge.crans.org ([138.231.136.3]:49268 "EHLO rouge.crans.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753596Ab0AVLRs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jan 2010 06:17:48 -0500
-Message-ID: <4B598A0D.1000702@crans.org>
-Date: Fri, 22 Jan 2010 12:20:45 +0100
-From: Brice Dubost <dubost@crans.org>
+Received: from mail-fx0-f225.google.com ([209.85.220.225]:50210 "EHLO
+	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755439Ab0ANKr1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jan 2010 05:47:27 -0500
+Received: by fxm25 with SMTP id 25so332417fxm.21
+        for <linux-media@vger.kernel.org>; Thu, 14 Jan 2010 02:47:26 -0800 (PST)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org, dvbfreaky007@gmail.com
-Subject: Re: [linux-dvb] Initial Scan Data for DVB channel scan,	How to get
- Initial DVB Scan 	data
-References: <fd9871421001220222w7d6e8f6evd5f30efb52c2c150@mail.gmail.com>
-In-Reply-To: <fd9871421001220222w7d6e8f6evd5f30efb52c2c150@mail.gmail.com>
+In-Reply-To: <846899811001140244w54b209c6s484918d26a01cdfe@mail.gmail.com>
+References: <f74f98341001132335p562b189duda4478cb62a7549a@mail.gmail.com>
+	 <1a297b361001140115l3dc56802r985b0fd9f8f83c16@mail.gmail.com>
+	 <3a11f97d6e44a5cd64c4378c51706ff4.squirrel@webmail.xs4all.nl>
+	 <1a297b361001140144s3518ed59o14b0784de9fd828@mail.gmail.com>
+	 <b9869b35004c5f383c2e76791b91a20d.squirrel@webmail.xs4all.nl>
+	 <1a297b361001140238m2019861fh9e0a6d0f972ed48e@mail.gmail.com>
+	 <846899811001140244w54b209c6s484918d26a01cdfe@mail.gmail.com>
+Date: Thu, 14 Jan 2010 14:47:24 +0400
+Message-ID: <1a297b361001140247q4a7b3614i12cccc6109b2e760@mail.gmail.com>
+Subject: Re: About driver architecture
+From: Manu Abraham <abraham.manu@gmail.com>
+To: HoP <jpetrous@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-dvbfreaky 007 wrote:
-> Hi ,
-> Can anyone share the information, regarding "How initial scan data will
-> generate"
-> 
-> from "dvb-apps->utils->scan",
-> to scan for channels, i executed following command
-> "./scan dvb-s/InSat4B-80.5E"
-> 
-> content of InSat4B-80.5E,
-> 1 # Insat 4B-80.5E
-> 2 # freq pol sr fec
-> 3 S 1000 V 27500000 AUTO
-> 4 S 10234234 V 27500000 AUTO
-> 5 S 11232300 V 27500000 AUTO
-> 6 S 11213343 V 27500000 AUTO
-> 7 S 10990000 V 27500000 AUTO
-> ~
-> 
-> My question is,
-> who will populate this information and from where they will populate
-> this info.
-> Is there any standard transponders frequency list.
-> 
-> like
-> http://www.lyngsat.com/in4b.html
-> 
-> we must follow this , for tuning?
-> 
-> 
-> 
-> Is there any tool, which doesnt required any initial data for scanning
-> dvb channels?
-> 
-> 
-> please let me know,
-> 
+On Thu, Jan 14, 2010 at 2:44 PM, HoP <jpetrous@gmail.com> wrote:
+>> The STi7109 also has a frame buffer approach, currently the
+>> framebuffer is not implemented in this specific case.
+>> http://osdir.com/ml/linux.fbdev.user/2008-07/msg00004.html
+>>
+>
+> When you use stb7109 as main cpu for system (like is done
+> for many linux or os21-based set-top-boxes already), then
+> you can use FB driver from stlinux, what is STM's port
+> of linux for theirs STB7xxx SOCs. See more on www.stlinux.com.
 
-Hello
+Yes, I am aware of it.
 
-Scan tunes on the transponders given in the initial scanning file, then
-get the informations from the DVB descriptors.
-
-The initial tuning information is get on websites like lyngsat and
-kingofsat. This information can also found on the channel providers
-websites, on the satellite manufacturer website etc ...
-
-In the case of the DVB apps, you will see from time to time people which
-proposes patches on the mailing list to update this information
-(especially for terrestrial)
-
-For your information scan doesn't need to know about all the
-transponders since (normally) in each transponder there is packets to
-announce the other transponders of the same satellite
-
-For scanning without initial tuning files this is possible in
-terrestrial with w_scan (which basically tries all the possible frequencies)
-
-I don't know any software which do the same for satellite, I think it's
-mainly because the number of possible frequencies is too big
+> Even more, there is already flying around full source code
+> for such SOCs, which allows you to make full-featured box.
+>
+> I have a dream that sometimes those drivers come to mainline
+> similar like TI chips are comming these days.
 
 
-I hope this will help you
+Yes indeed, it will sometime soon. Have been expecting things to move
+for around > 18 months now.
 
-Best regards
-
--- 
-Brice
+Regards,
+Manu
