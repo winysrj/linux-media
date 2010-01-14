@@ -1,50 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:36021 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751941Ab0ADJSa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jan 2010 04:18:30 -0500
-Date: Mon, 4 Jan 2010 10:19:27 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Bill Whiting <textux@bellsouth.net>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Lenovo compact webcam 17ef:4802
-Message-ID: <20100104101927.087aa290@tele>
-In-Reply-To: <4B413B99.3020604@bellsouth.net>
-References: <4B413B99.3020604@bellsouth.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1281 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750757Ab0ANTK3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jan 2010 14:10:29 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id o0EJARf7029441
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 14 Jan 2010 20:10:27 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 14 Jan 2010 20:10:27 +0100 (CET)
+Message-Id: <201001141910.o0EJARf7029441@smtp-vbr14.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 03 Jan 2010 19:51:37 -0500
-Bill Whiting <textux@bellsouth.net> wrote:
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-> I have not been able to get an image from a Lenovo webcam under
-> Fedora 11. It reports to the kernel with USB id 17ef:4802 as below:
-> 
->   kernel: usb 1-3: new high speed USB device using ehci_hcd and
-> address 9 kernel: usb 1-3: New USB device found, idVendor=17ef,
-> idProduct=4802 kernel: usb 1-3: New USB device strings: Mfr=1,
-> Product=2, SerialNumber=0 kernel: usb 1-3: Product: Lenovo USB Webcam
->   kernel: usb 1-3: Manufacturer: Primax
->   kernel: usb 1-3: configuration #1 chosen from 1 choice
->   kernel: gspca: probing 17ef:4802
->   kernel: vc032x: check sensor header 20
->   kernel: vc032x: Sensor ID 143a (3)
->   kernel: vc032x: Find Sensor MI1310_SOC
->   kernel: gspca: probe ok
-	[snip]
+Results of the daily build of v4l-dvb:
 
-Hello Bill,
+date:        Thu Jan 14 19:00:05 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13972:725c07a70453
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-I don't know which version of gspca is included in your kernel.
-First, do you use the v4l library when running cheese or skype?
-Then, may you get the last video stuff from LinuxTv.org and check if it
-works?
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-armv5: OK
+linux-2.6.33-rc2-armv5: OK
+linux-2.6.32-armv5-davinci: OK
+linux-2.6.33-rc2-armv5-davinci: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-armv5-ixp: OK
+linux-2.6.32-armv5-ixp: OK
+linux-2.6.33-rc2-armv5-ixp: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: OK
+linux-2.6.32-armv5-omap2: OK
+linux-2.6.33-rc2-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: ERRORS
+linux-2.6.27-i686: ERRORS
+linux-2.6.28-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30-i686: ERRORS
+linux-2.6.31-i686: ERRORS
+linux-2.6.32-i686: ERRORS
+linux-2.6.33-rc2-i686: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-m32r: OK
+linux-2.6.33-rc2-m32r: OK
+linux-2.6.30-mips: OK
+linux-2.6.31-mips: OK
+linux-2.6.32-mips: OK
+linux-2.6.33-rc2-mips: OK
+linux-2.6.30-powerpc64: ERRORS
+linux-2.6.31-powerpc64: ERRORS
+linux-2.6.32-powerpc64: ERRORS
+linux-2.6.33-rc2-powerpc64: OK
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: ERRORS
+linux-2.6.27-x86_64: ERRORS
+linux-2.6.28-x86_64: ERRORS
+linux-2.6.29.1-x86_64: ERRORS
+linux-2.6.30-x86_64: ERRORS
+linux-2.6.31-x86_64: ERRORS
+linux-2.6.32-x86_64: ERRORS
+linux-2.6.33-rc2-x86_64: OK
+spec: OK
+sparse (linux-2.6.32): ERRORS
+sparse (linux-2.6.33-rc2): ERRORS
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
-Regards.
+Detailed results are available here:
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
