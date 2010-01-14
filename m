@@ -1,48 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:33003 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752384Ab0AYQYX (ORCPT
+Received: from mail-ew0-f209.google.com ([209.85.219.209]:42157 "EHLO
+	mail-ew0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932166Ab0ANPYc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jan 2010 11:24:23 -0500
-Date: Mon, 25 Jan 2010 10:45:53 -0600 (CST)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-cc: devin Heitmueller <dheitmueller@kernellabs.com>,
-	Andy Walls <awalls@radix.net>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Problems with cx18
-In-Reply-To: <4B5DB387.70707@redhat.com>
-Message-ID: <alpine.LNX.2.00.1001251041510.14128@banach.math.auburn.edu>
-References: <4B5DB387.70707@redhat.com>
+	Thu, 14 Jan 2010 10:24:32 -0500
+Received: by ewy1 with SMTP id 1so6924ewy.28
+        for <linux-media@vger.kernel.org>; Thu, 14 Jan 2010 07:24:28 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Date: Thu, 14 Jan 2010 10:24:24 -0500
+Message-ID: <9006a0b61001140724v565d71fbtf9e40228102669e4@mail.gmail.com>
+Subject: [PATCH] saa7134-empress: remove unlock_kernel() without lock_kernel()
+From: Will Tate <willytate@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Call to unlock_kernel() made without previous call to lock_kernel() in
+ts_open() function of saa7134-empress.c.
 
+Signed-off-by: William J. Tate <willytate@gmail.com>
 
-On Mon, 25 Jan 2010, Mauro Carvalho Chehab wrote:
-
-> Hi Devin/Andy/Jean,
-
-<snip>
-
-> The sq905c has a warning.
-
-<snip>
-
-> drivers/media/video/gspca/sq905c.c: In function ?sd_config?:
-> drivers/media/video/gspca/sq905c.c:207: warning: unused variable ?i?
-
-<snip>
-
-> Please fix.
->
-> Cheers,
-> Mauro.
-
-This one has been fixed, already. A more recent version of sq905c.c is in 
-the pipeline somewhere.
-
-Theodore Kilgore
+--- a//drivers/media/video/saa7134/saa7134-empress.c	2010-01-14
+10:18:51.000000000 -0500
++++ b//drivers/media/video/saa7134/saa7134-empress.c	2010-01-14
+10:19:36.000000000 -0500
+@@ -108,7 +108,6 @@
+ done_up:
+ 	mutex_unlock(&dev->empress_tsq.vb_lock);
+ done:
+-	unlock_kernel();
+ 	return err;
+ }
