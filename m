@@ -1,49 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bar.sig21.net ([80.81.252.164]:32968 "EHLO bar.sig21.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755906Ab0ASLUc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jan 2010 06:20:32 -0500
-Date: Tue, 19 Jan 2010 12:20:57 +0100
-From: Johannes Stezenbach <js@linuxtv.org>
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Douglas Landgraf <dougsland@gmail.com>
-Subject: Re: [ANNOUNCE] git tree repositories
-Message-ID: <20100119112057.GC9187@linuxtv.org>
-References: <4B55445A.10300@infradead.org>
- <201001190853.11050.hverkuil@xs4all.nl>
- <201001190910.39479.pboettcher@kernellabs.com>
+Received: from www49.your-server.de ([213.133.104.49]:44685 "EHLO
+	www49.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752784Ab0ANQBb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jan 2010 11:01:31 -0500
+Received: from [188.97.242.148] (helo=[192.168.1.22])
+	by www49.your-server.de with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.69)
+	(envelope-from <besse@motama.com>)
+	id 1NVS8Y-00081d-6n
+	for linux-media@vger.kernel.org; Thu, 14 Jan 2010 17:01:30 +0100
+Message-ID: <4B4F3FD5.5000603@motama.com>
+Date: Thu, 14 Jan 2010 17:01:25 +0100
+From: Andreas Besse <besse@motama.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201001190910.39479.pboettcher@kernellabs.com>
+To: linux-media@vger.kernel.org
+Subject: Re: Order of dvb devices
+References: <4B4F39BB.2060605@motama.com> <829197381001140746g56c5ccf7mc7f6a631cb16e15d@mail.gmail.com>
+In-Reply-To: <829197381001140746g56c5ccf7mc7f6a631cb16e15d@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 19, 2010 at 09:10:39AM +0100, Patrick Boettcher wrote:
-> 
-> BTW: I just made a clone of the git-tree - 365MB *ouff*. Maybe it's worth to 
-> mention right now, that one big difference to HG in the way we have used it, is 
-> that one developer now can do all the work only with one clone of v4l-dvb and 
-> using branches for each development.
+Devin Heitmueller wrote:
+> On Thu, Jan 14, 2010 at 10:35 AM, Andreas Besse <besse@motama.com> wrote:
+>   
+>> if a system contains multiple DVB cards of the same type, how is the
+>> order of devices determined by the driver/kernel?
+>>
+>> I use 2 Technotrend S2-3200 cards in a system and observerd that if I
+>> load the driver driver budget_ci manually as follows:
+>>
+>> modprobe budget_ci adapter_nr=0,1
+>>
+>> the device with the lower pci ID 0000:08:00.0 is assigned to adapter0 and the device with the higher pci ID 0000:08:01.0
+>> is assigned to adapter1:
+>>
+>>
+>> udevinfo -a -p $(udevinfo -q path -n /dev/dvb/adapter0/frontend0)
+>> [...]
+>>  looking at parent device '/devices/pci0000:00/0000:00:1e.0/0000:08:00.0':
+>>    KERNELS=="0000:08:00.0"
+>>    SUBSYSTEMS=="pci"
+>>
+>>
+>> udevinfo -a -p $(udevinfo -q path -n /dev/dvb/adapter1/frontend0)
+>> [...]
+>>  looking at parent device '/devices/pci0000:00/0000:00:1e.0/0000:08:01.0':
+>>    KERNELS=="0000:08:01.0"
+>>    SUBSYSTEMS=="pci"
+>>
+>>
+>> Is it true for all DVB drives that the device with the lower PCI id gets the lower adapter name?
+>>     
+>
+> No, you cannot really make this assumption.  In fact, there are users
+> who see behavior where uses have two of the same card and the cards
+> get flipped around randomly just by rebooting.  The ordering is based
+> on the timing of the device driver loading, so it is not
+> deterministic.
+>   
+yes if there are different drivers I already observed the behaviour that
+the ordering gets flipped after reboot.
 
-Please note that you SHOULD NOT clone from linuxtv.org.
-Please follow the description on the top of
-http://linuxtv.org/git/
-
-Most linux developers will have a clone of Linus' tree already,
-and you can add as many "remotes" to that tree as you like.
-It's much faster and more flexible that way.  If you once pulled
-a clone of Linus' tree there is simply no need to ever clone
-any other Linux tree ever again.
-
-Oh, and if you manage to get your git tree in a state where
-you don't know how to fix the mess, don't throw it away.
-Go to the git mailing list and ask for advice. They love
-customer feeedback. Helps them to improve their product
-and make it more user friendly ;-)
-
-
-Johannes
+But if I assume, that there is only *one* driver that is loaded (e.g.
+budget_av) for all dvb cards in the system, how is the ordering of these
+devices determined? How does the driver "search" for available dvb cards?
