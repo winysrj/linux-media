@@ -1,141 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.24]:56619 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752775Ab0AHJda (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jan 2010 04:33:30 -0500
-Received: by ey-out-2122.google.com with SMTP id 22so1168457eye.19
-        for <linux-media@vger.kernel.org>; Fri, 08 Jan 2010 01:33:29 -0800 (PST)
-Date: Fri, 8 Jan 2010 18:38:28 +0900
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: linux-media@vger.kernel.org, video4linux-list@redhat.com
-Subject: [PATCH] DVB-T regression fix for saa7134 cards
-Message-ID: <20100108183828.4f86cd3c@glory.loctelecom.ru>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/T/svqZceicZedN5qzOvHyRI"
+Received: from mail-yx0-f187.google.com ([209.85.210.187]:39619 "EHLO
+	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755051Ab0ANHf3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jan 2010 02:35:29 -0500
+Received: by yxe17 with SMTP id 17so23198715yxe.33
+        for <linux-media@vger.kernel.org>; Wed, 13 Jan 2010 23:35:27 -0800 (PST)
+MIME-Version: 1.0
+Date: Thu, 14 Jan 2010 15:35:27 +0800
+Message-ID: <f74f98341001132335p562b189duda4478cb62a7549a@mail.gmail.com>
+Subject: About driver architecture
+From: Michael Qiu <fallwind@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---MP_/T/svqZceicZedN5qzOvHyRI
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi guys,
+  I'm going to write drivers for a new soc which designed for dvb-s set top box.
+It will support these features:
+1. Multi-layer display with alpha blending feature, including
+video(YUV), OSDs(2 same RGB layers), background(with fixed YUV color)
+and still picture(YUV color for still image)
+2. DVB-S tuner and demod
+3. HW MPEG2/4 decoder
+4. HW accelerated JPEG decoder engine.
 
-Hi 
+My targets are:
+1. Fit all the drivers in proper framework so they can be easily used
+by applications in open source community.
+2. As flexible as I can to add new software features in the future.
 
-Some customers has problem with quality of DVB-T
-https://bugs.launchpad.net/ubuntu/+source/linux/+bug/446575
+My questions are:
+How many drivers should I implement, and how should I divide all the features?
+As far as I know:
+A) a frame buffer driver for 2 OSDs, maybe also the control point for
+whole display module?
+B) video output device for video layer, which will output video program.
+C) drivers for tuner and demo (or just a driver which will export 2
+devices files for each?)
+D) driver for jpeg accelerate interface, or should it be a part of
+MPEG2/4 decoder driver?
+E) driver for MPEG2/4 decoder which will control the behave of H/W decoder.
 
-After this patch http://patchwork.kernel.org/patch/23345/
+Actually I think all the display functions are relative, some
+functions i listed upper are operating one HW module, for instance:
+OSD and video layer are implemented by display module in H/W level.
+What's the right way to implement these functions in driver level,
+united or separated?
+And, I've read some documents for V4L2, but I still cannot figure out
+where should I implement my driver in the framework.
 
-This is patch for fix regression with DVB-T. Tested with many people.
-
-diff -u ./saa7134.orig/saa7134-core.c ./saa7134/saa7134-core.c
---- ./saa7134.orig/saa7134-core.c	2009-09-10 05:13:59.000000000 +0700
-+++ ./saa7134/saa7134-core.c	2010-01-07 13:01:11.000000000 +0600
-@@ -420,19 +420,6 @@
- 		ctrl |= SAA7134_MAIN_CTRL_TE5;
- 		irq  |= SAA7134_IRQ1_INTE_RA2_1 |
- 			SAA7134_IRQ1_INTE_RA2_0;
--
--		/* dma: setup channel 5 (= TS) */
--
--		saa_writeb(SAA7134_TS_DMA0, (dev->ts.nr_packets - 1) & 0xff);
--		saa_writeb(SAA7134_TS_DMA1,
--			((dev->ts.nr_packets - 1) >> 8) & 0xff);
--		/* TSNOPIT=0, TSCOLAP=0 */
--		saa_writeb(SAA7134_TS_DMA2,
--			(((dev->ts.nr_packets - 1) >> 16) & 0x3f) | 0x00);
--		saa_writel(SAA7134_RS_PITCH(5), TS_PACKET_SIZE);
--		saa_writel(SAA7134_RS_CONTROL(5), SAA7134_RS_CONTROL_BURST_16 |
--						  SAA7134_RS_CONTROL_ME |
--						  (dev->ts.pt_ts.dma >> 12));
- 	}
- 
- 	/* set task conditions + field handling */
-diff -u ./saa7134.orig/saa7134-ts.c ./saa7134/saa7134-ts.c
---- ./saa7134.orig/saa7134-ts.c	2009-09-10 05:13:59.000000000 +0700
-+++ ./saa7134/saa7134-ts.c	2010-01-07 13:03:29.000000000 +0600
-@@ -249,7 +249,20 @@
- 	dprintk("TS start\n");
- 
- 	BUG_ON(dev->ts_started);
-+
-+	/* dma: setup channel 5 (= TS) */
-+	saa_writeb(SAA7134_TS_DMA0, (dev->ts.nr_packets - 1) & 0xff);
-+	saa_writeb(SAA7134_TS_DMA1,
-+		((dev->ts.nr_packets - 1) >> 8) & 0xff);
-+	/* TSNOPIT=0, TSCOLAP=0 */
-+	saa_writeb(SAA7134_TS_DMA2,
-+		(((dev->ts.nr_packets - 1) >> 16) & 0x3f) | 0x00);
-+	saa_writel(SAA7134_RS_PITCH(5), TS_PACKET_SIZE);
-+	saa_writel(SAA7134_RS_CONTROL(5), SAA7134_RS_CONTROL_BURST_16 |
-+					  SAA7134_RS_CONTROL_ME |
-+					  (dev->ts.pt_ts.dma >> 12));
- 
-+	/* reset hardware TS buffers */
- 	saa_writeb(SAA7134_TS_SERIAL1, 0x00);
- 	saa_writeb(SAA7134_TS_SERIAL1, 0x03);
- 	saa_writeb(SAA7134_TS_SERIAL1, 0x00);
-
-Signed-off-by: Alexey Osipov <lion-simba@pridelands.ru>
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+In a word, I'm totally confused. Can you guys show me the right way or
+just kick me to a existing example with similar features?
 
 
-With my best regards, Dmitry.
---MP_/T/svqZceicZedN5qzOvHyRI
-Content-Type: text/x-patch; name=dma_set_fix.patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=dma_set_fix.patch
-
-diff -u ./saa7134.orig/saa7134-core.c ./saa7134/saa7134-core.c
---- ./saa7134.orig/saa7134-core.c	2009-09-10 05:13:59.000000000 +0700
-+++ ./saa7134/saa7134-core.c	2010-01-07 13:01:11.000000000 +0600
-@@ -420,19 +420,6 @@
- 		ctrl |= SAA7134_MAIN_CTRL_TE5;
- 		irq  |= SAA7134_IRQ1_INTE_RA2_1 |
- 			SAA7134_IRQ1_INTE_RA2_0;
--
--		/* dma: setup channel 5 (= TS) */
--
--		saa_writeb(SAA7134_TS_DMA0, (dev->ts.nr_packets - 1) & 0xff);
--		saa_writeb(SAA7134_TS_DMA1,
--			((dev->ts.nr_packets - 1) >> 8) & 0xff);
--		/* TSNOPIT=0, TSCOLAP=0 */
--		saa_writeb(SAA7134_TS_DMA2,
--			(((dev->ts.nr_packets - 1) >> 16) & 0x3f) | 0x00);
--		saa_writel(SAA7134_RS_PITCH(5), TS_PACKET_SIZE);
--		saa_writel(SAA7134_RS_CONTROL(5), SAA7134_RS_CONTROL_BURST_16 |
--						  SAA7134_RS_CONTROL_ME |
--						  (dev->ts.pt_ts.dma >> 12));
- 	}
- 
- 	/* set task conditions + field handling */
-diff -u ./saa7134.orig/saa7134-ts.c ./saa7134/saa7134-ts.c
---- ./saa7134.orig/saa7134-ts.c	2009-09-10 05:13:59.000000000 +0700
-+++ ./saa7134/saa7134-ts.c	2010-01-07 13:03:29.000000000 +0600
-@@ -249,7 +249,20 @@
- 	dprintk("TS start\n");
- 
- 	BUG_ON(dev->ts_started);
-+
-+	/* dma: setup channel 5 (= TS) */
-+	saa_writeb(SAA7134_TS_DMA0, (dev->ts.nr_packets - 1) & 0xff);
-+	saa_writeb(SAA7134_TS_DMA1,
-+		((dev->ts.nr_packets - 1) >> 8) & 0xff);
-+	/* TSNOPIT=0, TSCOLAP=0 */
-+	saa_writeb(SAA7134_TS_DMA2,
-+		(((dev->ts.nr_packets - 1) >> 16) & 0x3f) | 0x00);
-+	saa_writel(SAA7134_RS_PITCH(5), TS_PACKET_SIZE);
-+	saa_writel(SAA7134_RS_CONTROL(5), SAA7134_RS_CONTROL_BURST_16 |
-+					  SAA7134_RS_CONTROL_ME |
-+					  (dev->ts.pt_ts.dma >> 12));
- 
-+	/* reset hardware TS buffers */
- 	saa_writeb(SAA7134_TS_SERIAL1, 0x00);
- 	saa_writeb(SAA7134_TS_SERIAL1, 0x03);
- 	saa_writeb(SAA7134_TS_SERIAL1, 0x00);
-
-Signed-off-by: Alexey Osipov <lion-simba@pridelands.ru>
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
-
---MP_/T/svqZceicZedN5qzOvHyRI--
+Best regards
+Michael Qiu
