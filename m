@@ -1,284 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59755 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753239Ab0AKXj7 convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2041 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754559Ab0ANKWl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2010 18:39:59 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Kevin Hilman <khilman@deeprootsystems.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"mchehab@infradead.org" <mchehab@infradead.org>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>
-Date: Mon, 11 Jan 2010 17:39:52 -0600
-Subject: RE: [PATCH - v4 4/4]
- DaVinci-vpfe-capture-converting-ccdc-drivers-to-platform-drivers
-Message-ID: <A69FA2915331DC488A831521EAE36FE40162DF9D73@dlee06.ent.ti.com>
-References: <1263237778-22361-1-git-send-email-m-karicheri2@ti.com>
- <87d41gnx33.fsf@deeprootsystems.com>
-In-Reply-To: <87d41gnx33.fsf@deeprootsystems.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Thu, 14 Jan 2010 05:22:41 -0500
+Message-ID: <b11bebe2f631ace8824558c4bd9278f6.squirrel@webmail.xs4all.nl>
+In-Reply-To: <f74f98341001140147u7f5f1e91ga6ae3a06e23360@mail.gmail.com>
+References: <f74f98341001132335p562b189duda4478cb62a7549a@mail.gmail.com>
+    <bc1576c0e8d05b415e03292a4640021e.squirrel@webmail.xs4all.nl>
+    <f74f98341001140147u7f5f1e91ga6ae3a06e23360@mail.gmail.com>
+Date: Thu, 14 Jan 2010 11:22:39 +0100
+Subject: Re: About driver architecture
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Michael Qiu" <fallwind@gmail.com>
+Cc: "linux-media" <linux-media@vger.kernel.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Kevin,
 
-Reworked the patches and sent it again.
+> Thanks for you reply.
+>
+> The SOC is still under development stage, it's not a product yet. And
+> a small mistake I've made, the tuner will not integrated into the SOC.
+> The demod might be.
+>
+> Some more questions:
+> As far as I know, relationship between demod and decoder is the buffer
+> used as demod output(also the input for a/v decoder), and maybe a
+> shared interrupt used to catch some misc event from tuner/demo/av
+> decoder(a interrupt status register will be used to determine who
+> cause it). Do you think this will be a problem if I write individual
+> drivers?
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-phone: 301-407-9583
-email: m-karicheri2@ti.com
+I would probably start by writing it as one driver, and check later how
+much work it is to split it up. Writing it as one driver will certainly
+work, splitting it up may or may not be a problem.
 
->-----Original Message-----
->From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
->Sent: Monday, January 11, 2010 4:36 PM
->To: Karicheri, Muralidharan
->Cc: linux-media@vger.kernel.org; mchehab@infradead.org; hverkuil@xs4all.nl;
->davinci-linux-open-source@linux.davincidsp.com
->Subject: Re: [PATCH - v4 4/4] DaVinci-vpfe-capture-converting-ccdc-drivers-
->to-platform-drivers
+> And would you please tell me that is the "memory-to-memory decoding" for?
+
+That's when you give the hardware a JPEG image (for example) and you get
+the decoded raw image back from the hardware. As opposed to sending a JPEG
+image to the hardware which is then sent on to e.g. HDMI out.
+
+Regards,
+
+          Hans
+
 >
->m-karicheri2@ti.com writes:
+> Best regards
+> Michael Qiu
 >
->> From: Muralidharan Karicheri <m-karicheri2@ti.com>
+> 2010/1/14 Hans Verkuil <hverkuil@xs4all.nl>:
+>> Hi Michael,
 >>
->> Re-sending the patches based on Kevin's comments.
->> Following are the changes from v3 :-
+>>> Hi guys,
+>>>   I'm going to write drivers for a new soc which designed for dvb-s set
+>>> top box.
+>>> It will support these features:
+>>> 1. Multi-layer display with alpha blending feature, including
+>>> video(YUV), OSDs(2 same RGB layers), background(with fixed YUV color)
+>>> and still picture(YUV color for still image)
+>>> 2. DVB-S tuner and demod
+>>> 3. HW MPEG2/4 decoder
+>>> 4. HW accelerated JPEG decoder engine.
 >>
->>  - replaced CLK entries with clk_add_alias() calls
->>  - removed unused vpss_master and vpss_slave entries
+>> Interesting device. Which SoC is this?
 >>
->> This combines the two patches sent earlier to change the clock
->configuration
->> and converting ccdc drivers to platform drivers. This has updated
->comments
->> against v2 of these patches. Two new clocks "master" and "slave" are
->defined for ccdc driver
->> as per comments from Kevin Hilman.
+>>>
+>>> My targets are:
+>>> 1. Fit all the drivers in proper framework so they can be easily used
+>>> by applications in open source community.
+>>> 2. As flexible as I can to add new software features in the future.
+>>>
+>>> My questions are:
+>>> How many drivers should I implement, and how should I divide all the
+>>> features?
+>>> As far as I know:
+>>> A) a frame buffer driver for 2 OSDs, maybe also the control point for
+>>> whole display module?
+>>> B) video output device for video layer, which will output video
+>>> program.
+>>> C) drivers for tuner and demo (or just a driver which will export 2
+>>> devices files for each?)
+>>> D) driver for jpeg accelerate interface, or should it be a part of
+>>> MPEG2/4 decoder driver?
+>>> E) driver for MPEG2/4 decoder which will control the behave of H/W
+>>> decoder.
+>>>
+>>> Actually I think all the display functions are relative, some
+>>> functions i listed upper are operating one HW module, for instance:
+>>> OSD and video layer are implemented by display module in H/W level.
+>>> What's the right way to implement these functions in driver level,
+>>> united or separated?
+>>> And, I've read some documents for V4L2, but I still cannot figure out
+>>> where should I implement my driver in the framework.
+>>>
+>>> In a word, I'm totally confused. Can you guys show me the right way or
+>>> just kick me to a existing example with similar features?
 >>
->> This adds platform code for ccdc driver on DM355 and DM6446.
+>> The driver that comes closest to this in terms of functionality is the
+>> ivtv driver. That driver supports MPEG2 encoding and decoding, an OSD
+>> and
+>> raw YUV input and output.
 >>
->> Reviewed-by: Vaibhav Hiremath <hvaibhav@ti.com>
->> Reviewed-by: Kevin Hilman <khilman@deeprootsystems.com>
->> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+>> There are several ways you can design devices like this, but the way
+>> ivtv
+>> is designed is that there is one master driver (ivtv) that handles all
+>> the
+>> encoding and decoding, and the framebuffer driver that you need for the
+>> OSD is just an 'add-on' module that provides the FB API but internally
+>> talks to the master driver.
 >>
->> Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
->> ---
->> Applies to Linus tree
->>  arch/arm/mach-davinci/dm355.c  |   58 ++++++++++++++++++++--------------
->-----
->>  arch/arm/mach-davinci/dm644x.c |   36 ++++++++++++++-----------
->>  2 files changed, 50 insertions(+), 44 deletions(-)
+>> The tuner/demod part is usually integrated in the master driver. See the
+>> cx18 driver for example. But it is probably also possible to implement
+>> it
+>> as a separate driver in a similar manner as a framebuffer driver.
 >>
->> diff --git a/arch/arm/mach-davinci/dm355.c b/arch/arm/mach-
->davinci/dm355.c
->> index dedf4d4..b4d0396 100644
->> --- a/arch/arm/mach-davinci/dm355.c
->> +++ b/arch/arm/mach-davinci/dm355.c
->> @@ -112,20 +112,6 @@ static struct clk vpss_dac_clk = {
->>  	.lpsc = DM355_LPSC_VPSS_DAC,
->>  };
+>> Generally the key criteria on how to design drivers like this is the
+>> hardware design: for example, if the tuner/demod part is completely
+>> independent from the decoder part, then it is possible to write
+>> completely
+>> independent drivers as well, but if they share hardware components (e.g.
+>> the interrupt handling hardware), then you usually have to combine
+>> functions in one driver.
 >>
->> -static struct clk vpss_master_clk = {
->> -	.name = "vpss_master",
->> -	.parent = &pll1_sysclk4,
->> -	.lpsc = DAVINCI_LPSC_VPSSMSTR,
->> -	.flags = CLK_PSC,
->> -};
->> -
->> -static struct clk vpss_slave_clk = {
->> -	.name = "vpss_slave",
->> -	.parent = &pll1_sysclk4,
->> -	.lpsc = DAVINCI_LPSC_VPSSSLV,
->> -};
->
->I suggested removing the duplicate, not removing them both.
->
->These nodes should stay, and the clock aliases should be created as
->aliaes of these nodes (which can be enabled/disabled) and not the PLL
->outputs directly.
->
->>  static struct clk clkout1_clk = {
->>  	.name = "clkout1",
->>  	.parent = &pll1_aux_clk,
->> @@ -345,8 +331,6 @@ static struct davinci_clk dm355_clks[] = {
->>  	CLK(NULL, "pll1_aux", &pll1_aux_clk),
->>  	CLK(NULL, "pll1_sysclkbp", &pll1_sysclkbp),
->>  	CLK(NULL, "vpss_dac", &vpss_dac_clk),
->> -	CLK(NULL, "vpss_master", &vpss_master_clk),
->> -	CLK(NULL, "vpss_slave", &vpss_slave_clk),
->>  	CLK(NULL, "clkout1", &clkout1_clk),
->>  	CLK(NULL, "clkout2", &clkout2_clk),
->>  	CLK(NULL, "pll2", &pll2_clk),
->> @@ -665,6 +649,17 @@ static struct platform_device dm355_asp1_device = {
->>  	.resource	= dm355_asp1_resources,
->>  };
+>> Note that some features that you probably need (such as memory-to-memory
+>> decoding) are not yet implemented in V4L2 (although work is in progress
+>> on
+>> this).
 >>
->> +static void dm355_ccdc_setup_pinmux(void)
->> +{
->> +	davinci_cfg_reg(DM355_VIN_PCLK);
->> +	davinci_cfg_reg(DM355_VIN_CAM_WEN);
->> +	davinci_cfg_reg(DM355_VIN_CAM_VD);
->> +	davinci_cfg_reg(DM355_VIN_CAM_HD);
->> +	davinci_cfg_reg(DM355_VIN_YIN_EN);
->> +	davinci_cfg_reg(DM355_VIN_CINL_EN);
->> +	davinci_cfg_reg(DM355_VIN_CINH_EN);
->> +}
->> +
->>  static struct resource dm355_vpss_resources[] = {
->>  	{
->>  		/* VPSS BL Base address */
->> @@ -701,6 +696,10 @@ static struct resource vpfe_resources[] = {
->>  		.end            = IRQ_VDINT1,
->>  		.flags          = IORESOURCE_IRQ,
->>  	},
->> +};
->> +
->> +static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
->> +static struct resource dm355_ccdc_resource[] = {
->>  	/* CCDC Base address */
->>  	{
->>  		.flags          = IORESOURCE_MEM,
->> @@ -708,8 +707,18 @@ static struct resource vpfe_resources[] = {
->>  		.end            = 0x01c70600 + 0x1ff,
->>  	},
->>  };
->> +static struct platform_device dm355_ccdc_dev = {
->> +	.name           = "dm355_ccdc",
->> +	.id             = -1,
->> +	.num_resources  = ARRAY_SIZE(dm355_ccdc_resource),
->> +	.resource       = dm355_ccdc_resource,
->> +	.dev = {
->> +		.dma_mask               = &vpfe_capture_dma_mask,
->> +		.coherent_dma_mask      = DMA_BIT_MASK(32),
->> +		.platform_data		= dm355_ccdc_setup_pinmux,
->> +	},
->> +};
+>> Regards,
 >>
->> -static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
->>  static struct platform_device vpfe_capture_dev = {
->>  	.name		= CAPTURE_DRV_NAME,
->>  	.id		= -1,
->> @@ -857,20 +866,13 @@ static int __init dm355_init_devices(void)
->>  	if (!cpu_is_davinci_dm355())
->>  		return 0;
+>>        Hans
 >>
->> +	/* Add ccdc clock aliases */
->> +	clk_add_alias("master", dm355_ccdc_dev.name, "pll1_sysclk4", NULL);
->> +	clk_add_alias("slave", dm355_ccdc_dev.name, "pll1_sysclk4", NULL);
->
->Not quite, see above...
->
->The aliases should be of the vpss nodes, not the PLL outputs which
->cannot be enabled/disabled.
->
->Same problem with dm644x below.
->
->Kevin
->
->>  	davinci_cfg_reg(DM355_INT_EDMA_CC);
->>  	platform_device_register(&dm355_edma_device);
->>  	platform_device_register(&dm355_vpss_device);
->> -	/*
->> -	 * setup Mux configuration for vpfe input and register
->> -	 * vpfe capture platform device
->> -	 */
->> -	davinci_cfg_reg(DM355_VIN_PCLK);
->> -	davinci_cfg_reg(DM355_VIN_CAM_WEN);
->> -	davinci_cfg_reg(DM355_VIN_CAM_VD);
->> -	davinci_cfg_reg(DM355_VIN_CAM_HD);
->> -	davinci_cfg_reg(DM355_VIN_YIN_EN);
->> -	davinci_cfg_reg(DM355_VIN_CINL_EN);
->> -	davinci_cfg_reg(DM355_VIN_CINH_EN);
->> +	platform_device_register(&dm355_ccdc_dev);
->>  	platform_device_register(&vpfe_capture_dev);
+>>>
+>>>
+>>> Best regards
+>>> Michael Qiu
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>>> in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
 >>
->>  	return 0;
->> diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-
->davinci/dm644x.c
->> index 2cd0081..569c541 100644
->> --- a/arch/arm/mach-davinci/dm644x.c
->> +++ b/arch/arm/mach-davinci/dm644x.c
->> @@ -149,19 +149,6 @@ static struct clk vicp_clk = {
->>  	.usecount = 1,			/* REVISIT how to disable? */
->>  };
 >>
->> -static struct clk vpss_master_clk = {
->> -	.name = "vpss_master",
->> -	.parent = &pll1_sysclk3,
->> -	.lpsc = DAVINCI_LPSC_VPSSMSTR,
->> -	.flags = CLK_PSC,
->> -};
->> -
->> -static struct clk vpss_slave_clk = {
->> -	.name = "vpss_slave",
->> -	.parent = &pll1_sysclk3,
->> -	.lpsc = DAVINCI_LPSC_VPSSSLV,
->> -};
->> -
->>  static struct clk uart0_clk = {
->>  	.name = "uart0",
->>  	.parent = &pll1_aux_clk,
->> @@ -293,8 +280,6 @@ struct davinci_clk dm644x_clks[] = {
->>  	CLK(NULL, "dsp", &dsp_clk),
->>  	CLK(NULL, "arm", &arm_clk),
->>  	CLK(NULL, "vicp", &vicp_clk),
->> -	CLK(NULL, "vpss_master", &vpss_master_clk),
->> -	CLK(NULL, "vpss_slave", &vpss_slave_clk),
->>  	CLK(NULL, "arm", &arm_clk),
->>  	CLK(NULL, "uart0", &uart0_clk),
->>  	CLK(NULL, "uart1", &uart1_clk),
->> @@ -612,6 +597,11 @@ static struct resource vpfe_resources[] = {
->>  		.end            = IRQ_VDINT1,
->>  		.flags          = IORESOURCE_IRQ,
->>  	},
->> +};
->> +
->> +static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
->> +static struct resource dm644x_ccdc_resource[] = {
->> +	/* CCDC Base address */
->>  	{
->>  		.start          = 0x01c70400,
->>  		.end            = 0x01c70400 + 0xff,
->> @@ -619,7 +609,17 @@ static struct resource vpfe_resources[] = {
->>  	},
->>  };
->>
->> -static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
->> +static struct platform_device dm644x_ccdc_dev = {
->> +	.name           = "dm644x_ccdc",
->> +	.id             = -1,
->> +	.num_resources  = ARRAY_SIZE(dm644x_ccdc_resource),
->> +	.resource       = dm644x_ccdc_resource,
->> +	.dev = {
->> +		.dma_mask               = &vpfe_capture_dma_mask,
->> +		.coherent_dma_mask      = DMA_BIT_MASK(32),
->> +	},
->> +};
->> +
->>  static struct platform_device vpfe_capture_dev = {
->>  	.name		= CAPTURE_DRV_NAME,
->>  	.id		= -1,
->> @@ -769,9 +769,13 @@ static int __init dm644x_init_devices(void)
->>  	if (!cpu_is_davinci_dm644x())
->>  		return 0;
->>
->> +	/* Add ccdc clock aliases */
->> +	clk_add_alias("master", dm644x_ccdc_dev.name, "pll1_sysclk3", NULL);
->> +	clk_add_alias("slave", dm644x_ccdc_dev.name, "pll1_sysclk3", NULL);
->>  	platform_device_register(&dm644x_edma_device);
->>  	platform_device_register(&dm644x_emac_device);
->>  	platform_device_register(&dm644x_vpss_device);
->> +	platform_device_register(&dm644x_ccdc_dev);
->>  	platform_device_register(&vpfe_capture_dev);
->>
->>  	return 0;
 >> --
->> 1.6.0.4
+>> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+>>
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+
