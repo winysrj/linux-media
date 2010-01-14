@@ -1,108 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2051 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751206Ab0ABTuY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Jan 2010 14:50:24 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id o02JoMUh052449
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 2 Jan 2010 20:50:23 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 2 Jan 2010 20:50:22 +0100 (CET)
-Message-Id: <201001021950.o02JoMUh052449@smtp-vbr6.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: OK
+Received: from comal.ext.ti.com ([198.47.26.152]:50185 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757339Ab0ANRHY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jan 2010 12:07:24 -0500
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: Michael Trimarchi <michael@panicking.kicks-ass.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Thu, 14 Jan 2010 11:09:46 -0600
+Subject: RE: omap34xxcam question?
+Message-ID: <A24693684029E5489D1D202277BE894451538FFB@dlee02.ent.ti.com>
+References: <4B4F0762.4040007@panicking.kicks-ass.org>
+In-Reply-To: <4B4F0762.4040007@panicking.kicks-ass.org>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
 
-Results of the daily build of v4l-dvb:
 
-date:        Sat Jan  2 19:00:02 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13879:b6b82258cf5e
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+> -----Original Message-----
+> From: Michael Trimarchi [mailto:michael@panicking.kicks-ass.org]
+> Sent: Thursday, January 14, 2010 6:01 AM
+> To: linux-media@vger.kernel.org
+> Cc: Aguirre, Sergio
+> Subject: omap34xxcam question?
+> 
+> Hi
+> 
+> Is ok that it try only the first format and size? why does it not continue
+> and find a matching?
 
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-armv5: OK
-linux-2.6.33-rc2-armv5: ERRORS
-linux-2.6.32-armv5-davinci: OK
-linux-2.6.33-rc2-armv5-davinci: ERRORS
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-armv5-ixp: OK
-linux-2.6.32-armv5-ixp: OK
-linux-2.6.33-rc2-armv5-ixp: ERRORS
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: OK
-linux-2.6.32-armv5-omap2: OK
-linux-2.6.33-rc2-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: OK
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-i686: WARNINGS
-linux-2.6.33-rc2-i686: ERRORS
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-m32r: OK
-linux-2.6.33-rc2-m32r: ERRORS
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: OK
-linux-2.6.32-mips: OK
-linux-2.6.33-rc2-mips: ERRORS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-powerpc64: OK
-linux-2.6.32-powerpc64: WARNINGS
-linux-2.6.33-rc2-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: OK
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-x86_64: WARNINGS
-linux-2.6.33-rc2-x86_64: ERRORS
-spec: OK
-sparse (linux-2.6.32): ERRORS
-sparse (linux-2.6.33-rc2): ERRORS
-linux-2.6.16.61-i686: OK
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: OK
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: OK
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+Actually, that was the intention, but I guess it was badly implemented.
 
-Detailed results are available here:
+Thanks for the catch, and the contribution!
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Regards,
+Sergio
+> 
+> @@ -470,7 +471,7 @@ static int try_pix_parm(struct omap34xxcam_videodev
+> *vdev,
+>                         pix_tmp_out = *wanted_pix_out;
+>                         rval = isp_try_fmt_cap(isp, &pix_tmp_in,
+> &pix_tmp_out);
+>                         if (rval)
+> -                               return rval;
+> +                               continue;
+> 
+> Michael
