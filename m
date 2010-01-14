@@ -1,70 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:65052 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753057Ab0A3PM4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Jan 2010 10:12:56 -0500
-Subject: Re: [PATCH] cx25840: Fix composite detection.
-From: Andy Walls <awalls@radix.net>
-To: Kusanagi Kouichi <slash@ac.auone-net.jp>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-In-Reply-To: <20100110003117.30E3C15C033@msa104.auone-net.jp>
-References: <20100110003117.30E3C15C033@msa104.auone-net.jp>
-Content-Type: text/plain
-Date: Sat, 30 Jan 2010 10:12:28 -0500
-Message-Id: <1264864348.4748.16.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-fx0-f225.google.com ([209.85.220.225]:57085 "EHLO
+	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756213Ab0ANTNg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jan 2010 14:13:36 -0500
+Received: by fxm25 with SMTP id 25so398124fxm.21
+        for <linux-media@vger.kernel.org>; Thu, 14 Jan 2010 11:13:35 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <753580.52410.qm@web32707.mail.mud.yahoo.com>
+References: <829197381001131404x48a8596arf16186e476d1744c@mail.gmail.com>
+	 <753580.52410.qm@web32707.mail.mud.yahoo.com>
+Date: Thu, 14 Jan 2010 14:13:35 -0500
+Message-ID: <829197381001141113v695b2958q389ee152b8342ddf@mail.gmail.com>
+Subject: Re: Kworld 315U and SAA7113?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Franklin Meng <fmeng2002@yahoo.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2010-01-10 at 09:31 +0900, Kusanagi Kouichi wrote:
-> If CX25840_VIN1_CH1 and the like is used, input is not detected as composite.
-> 
-> Signed-off-by: Kusanagi Kouichi <slash@ac.auone-net.jp>
+On Thu, Jan 14, 2010 at 1:54 PM, Franklin Meng <fmeng2002@yahoo.com> wrote:
+> Unfortunately, I do not know the difference.  I thought it might be to do something to the tuner but I am not quite sure.  If I remember correctly, the traces that I obtained also showed a difference between the analog modes.  I do know that if I leave the bit on it does not cause any adverse affects (other than maybe more power is being drawn)..
 
-This patch is fine for fixing the identified problem.  Thanks.
+If there is no difference, it might make sense to just pick one.  If
+you could measure the power draw though, you might gain some insight
+regarding the difference.
 
-Reviewed-by: Andy Walls <awalls@radix.net>
-Acked-by: Andy Walls <awalls@radix.net>
+> I might try leaving the GPIO pin high..  I had lots of issues switching between analog and digital modes so changing this bit may cause one or the other to not work.  For example if I leave both pins for the SAA/EM202 and the demod high, the analog doesn't seem to work correctly.  I'm guessing that there probably isn't enough power to keep both devices operational.  I'll try it out some more to see what happens.
 
-Note: I have not reviewed the correctness of the previous patch that
-added component video input.  Not to say that it is right or wrong, just
-that I have not reviewed it.
+You would obviously need to retest.  The cases where having the
+digital GPIO do an actual reset were exposed when performing multiple
+tuning attempts without closing the DVB device in between attempts.
 
+> As far as I can tell, the Kworld 315U is the only board that uses this combination of parts..  Thomson tuner, LG demod, and SAA7113.  I don't think any other device has used the SAA7113 together with a digital demod.  Most products seem to only have the SAA711X on an analog only board.  Since I don't have any other USB adapters with the SAA chip I was unable to do any further testing on the SAA code changes.
 
-I really need to streamline this set_input() function in cx25840-core.c
-module to be more like this version of set_input() the cx18-av-core.c
-file:
+I'm more worried about it interfering with other devices that use some
+other bridge, regardless of whether that device has a demodulator.
+Implementing power management on any chip is likely to expose bugs in
+neighboring components like the bridge.
 
-http://linuxtv.org/hg/~awalls/cx18-pvr2100-component/file/9d3394f49a90/linux/drivers/media/video/cx18/cx18-av-core.c#l570
+>>
+>> Did you actually do any power analysis to confirm that the
+>> suspend
+>> functionality is working properly?
+>
+> Humm.. I did not actually do this.  Though, maybe I can figure this out by seeing how much power draw is on the USB bus.  I don't recall if there is a way to figure this out or not from within Linux.  I do remember Windows having such a feature..  I probably need to do a comparison between both OS's to make sure I get things are correct..  Is there a way to get information on how much power draw is happening on the USB bus in Linux?
 
-because the logic in the former is really getting convoluted, making
-bugs hard to spot.
+I don't trust the operating system when it comes to that sort of
+thing.  I cut up an old USB cable and put an ammeter in-line.  Has
+helped alot in finding all sorts of power management bugs both in
+drivers and in the v4l-dvb core.
 
-Regards,
-Andy
+Devin
 
-
-> ---
->  drivers/media/video/cx25840/cx25840-core.c |    6 ++----
->  1 files changed, 2 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/video/cx25840/cx25840-core.c b/drivers/media/video/cx25840/cx25840-core.c
-> index 385ecd5..764c811 100644
-> --- a/drivers/media/video/cx25840/cx25840-core.c
-> +++ b/drivers/media/video/cx25840/cx25840-core.c
-> @@ -734,10 +734,8 @@ static int set_input(struct i2c_client *client, enum cx25840_video_input vid_inp
->  		v4l_dbg(1, cx25840_debug, client, "vid_input 0x%x\n",
->  			vid_input);
->  		reg = vid_input & 0xff;
-> -		if ((vid_input & CX25840_SVIDEO_ON) == CX25840_SVIDEO_ON)
-> -			is_composite = 0;
-> -		else if ((vid_input & CX25840_COMPONENT_ON) == 0)
-> -			is_composite = 1;
-> +		is_composite = !is_component &&
-> +			((vid_input & CX25840_SVIDEO_ON) != CX25840_SVIDEO_ON);
->  
->  		v4l_dbg(1, cx25840_debug, client, "mux cfg 0x%x comp=%d\n",
->  			reg, is_composite);
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
