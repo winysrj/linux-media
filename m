@@ -1,121 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:1339 "EHLO
-	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932156Ab0ANJZl (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:48511 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757731Ab0ANXzY convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jan 2010 04:25:41 -0500
-Message-ID: <3a11f97d6e44a5cd64c4378c51706ff4.squirrel@webmail.xs4all.nl>
-In-Reply-To: <1a297b361001140115l3dc56802r985b0fd9f8f83c16@mail.gmail.com>
-References: <f74f98341001132335p562b189duda4478cb62a7549a@mail.gmail.com>
-    <1a297b361001140115l3dc56802r985b0fd9f8f83c16@mail.gmail.com>
-Date: Thu, 14 Jan 2010 10:25:39 +0100
-Subject: Re: About driver architecture
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Manu Abraham" <abraham.manu@gmail.com>
-Cc: "Michael Qiu" <fallwind@gmail.com>,
-	"linux-media" <linux-media@vger.kernel.org>
+	Thu, 14 Jan 2010 18:55:24 -0500
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: Michael Trimarchi <michael@panicking.kicks-ass.org>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Thu, 14 Jan 2010 17:57:53 -0600
+Subject: RE: omap34xxcam question?
+Message-ID: <A24693684029E5489D1D202277BE894451539623@dlee02.ent.ti.com>
+References: <4B4F0762.4040007@panicking.kicks-ass.org>
+ <A24693684029E5489D1D202277BE894451538FFB@dlee02.ent.ti.com>
+ <4B4F537B.7000708@panicking.kicks-ass.org>
+ <A24693684029E5489D1D202277BE894451539065@dlee02.ent.ti.com>
+ <4B4F56C8.7060108@panicking.kicks-ass.org>
+In-Reply-To: <4B4F56C8.7060108@panicking.kicks-ass.org>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-> Hi,
->
->
-> On Thu, Jan 14, 2010 at 11:35 AM, Michael Qiu <fallwind@gmail.com> wrote:
->> Hi guys,
->>  I'm going to write drivers for a new soc which designed for dvb-s set
->> top box.
->> It will support these features:
->> 1. Multi-layer display with alpha blending feature, including
->> video(YUV), OSDs(2 same RGB layers), background(with fixed YUV color)
->> and still picture(YUV color for still image)
->> 2. DVB-S tuner and demod
->> 3. HW MPEG2/4 decoder
->> 4. HW accelerated JPEG decoder engine.
->>
->> My targets are:
->> 1. Fit all the drivers in proper framework so they can be easily used
->> by applications in open source community.
->> 2. As flexible as I can to add new software features in the future.
->>
->> My questions are:
->> How many drivers should I implement, and how should I divide all the
->> features?
->> As far as I know:
->> A) a frame buffer driver for 2 OSDs, maybe also the control point for
->> whole display module?
->> B) video output device for video layer, which will output video program.
->> C) drivers for tuner and demo (or just a driver which will export 2
->> devices files for each?)
->> D) driver for jpeg accelerate interface, or should it be a part of
->> MPEG2/4 decoder driver?
->> E) driver for MPEG2/4 decoder which will control the behave of H/W
->> decoder.
->>
->> Actually I think all the display functions are relative, some
->> functions i listed upper are operating one HW module, for instance:
->> OSD and video layer are implemented by display module in H/W level.
->> What's the right way to implement these functions in driver level,
->> united or separated?
->> And, I've read some documents for V4L2, but I still cannot figure out
->> where should I implement my driver in the framework.
->>
->> In a word, I'm totally confused. Can you guys show me the right way or
->> just kick me to a existing example with similar features?
->>
->
-> Currently, there are 2 drivers which have exactly the functionality
-> that you have mentioned. The first one is an AV7110 based device and
-> the other one is a STi7109 SOC based device.
->
-> With regards to the AV7110 based hardware, you can have a look at
-> linux/drivers/media/dvb/ttpci/ *
->
-> And with regards to the STi7109 SOC based, you can have a look at
-> http://jusst.de/hg/saa716x/
-> linux/drivers/media/common/saa716x/ *
-> specifically you will need to look at saa716x_ff.c/h for the STi7109
-> related stuff
->
->
-> Both the AV7110 and STi7109 SOC feature a OSD interface, in addition
-> to the audio and video layers. which you can see from the drivers,
-> themselves. Additionally the STi7109 SOC features HDMI outputs. The
-> AV7110 based cards, they incorporate DVB-S/C/T frontends for different
-> products. The STi7109 product that we have currently features only a
-> DVB-S/S2 system only, though that doesn't make any difference at all.
 
-The AV7110 OSD is not framebuffer based AFAIK. So probably not a good
-place to look.
+> -----Original Message-----
+> From: Michael Trimarchi [mailto:michael@panicking.kicks-ass.org]
+> Sent: Thursday, January 14, 2010 11:39 AM
+> To: Aguirre, Sergio
+> Cc: linux-media@vger.kernel.org
+> Subject: Re: omap34xxcam question?
+> 
+> Aguirre, Sergio wrote:
+> >
+> >> -----Original Message-----
+> >> From: Michael Trimarchi [mailto:michael@panicking.kicks-ass.org]
+> >> Sent: Thursday, January 14, 2010 11:25 AM
+> >> To: Aguirre, Sergio
+> >> Cc: linux-media@vger.kernel.org
+> >> Subject: Re: omap34xxcam question?
+> >>
+> >> Hi,
+> >>
+> >> Aguirre, Sergio wrote:
+> >>>> -----Original Message-----
+> >>>> From: Michael Trimarchi [mailto:michael@panicking.kicks-ass.org]
+> >>>> Sent: Thursday, January 14, 2010 6:01 AM
+> >>>> To: linux-media@vger.kernel.org
+> >>>> Cc: Aguirre, Sergio
+> >>>> Subject: omap34xxcam question?
+> >>>>
+> >>>> Hi
+> >>>>
+> >>>> Is ok that it try only the first format and size? why does it not
+> >> continue
+> >>>> and find a matching?
+> >>> Actually, that was the intention, but I guess it was badly
+> implemented.
+> >>>
+> >>> Thanks for the catch, and the contribution!
+> >>>
+> >>> Regards,
+> >>> Sergio
+> >>>> @@ -470,7 +471,7 @@ static int try_pix_parm(struct
+> omap34xxcam_videodev
+> >>>> *vdev,
+> >>>>                         pix_tmp_out = *wanted_pix_out;
+> >>>>                         rval = isp_try_fmt_cap(isp, &pix_tmp_in,
+> >>>> &pix_tmp_out);
+> >>>>                         if (rval)
+> >>>> -                               return rval;
+> >>>> +                               continue;
+> >>>>
+> >> Is the patch good? or you are going to provide a better fix
+> >
+> > Yes. Sorry if I wasn't clear enough.
+> >
+> > Looks good to me, and I don't have a better fix on top of my head for
+> the moment...
+> >
+> > I'm assuming you tested it in your environment, right?
+> 
+> Ok, my enviroment is not pretty stable but for sure this is required.
+> There is one problem:
+> 
+> Suppose that the camera support this format:
+> 
+> YUV and RAW10
+> 
+> The video4linux enumeration is done in this order.
+> We know that if you want to use resizer and previewer we can't use the YUV
+> (go straight to memory)
+> but it is selected because is the first. So maybe the best thing is to
+> find the one that is suggest in the csi
+> configuration first. Hope that is clear.
 
-The saa716x driver doesn't have a framebuffer either. Manu, is this driver
-just passing the captured video to the OSD? Or does it use some custom OSD
-commands? Just curious.
+Hmm.. I see.
+
+So, if I got you right, you're saying that, there should be priorities for sensor baseformats, depending on the preference specified somewhere in the boardfile?
 
 Regards,
-
-        Hans
-
->
-> The only application that does handle the complete use of the decoder,
-> is VDR and some other command line applications in the dvb-apps tree,
-> that I am aware of. But there could be other applications as well.
->
-> I guess, you've been confused, since you have been looking in the
-> wrong place, ie in V4L, rather than with DVB.
->
-> Regards,
-> Manu
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Sergio
+> 
+> Michael
+> 
+> >
+> > If yes, then I'll take the patch in my queue for submission to Sakari's
+> tree.
+> >
+> > Thanks for your time.
+> >
+> > Regards,
+> > Sergio
+> >
+> >> Michael
+> >>
+> >>>> Michael
+> >>> --
+> >>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> >> in
+> >>> the body of a message to majordomo@vger.kernel.org
+> >>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>>
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media"
+> in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
 
