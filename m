@@ -1,54 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01d.mail.t-online.hu ([84.2.42.6]:65489 "EHLO
-	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751626Ab0AXVbf (ORCPT
+Received: from mail-fx0-f225.google.com ([209.85.220.225]:60232 "EHLO
+	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758362Ab0AOXIs convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jan 2010 16:31:35 -0500
-Message-ID: <4B5CBC31.5090701@freemail.hu>
-Date: Sun, 24 Jan 2010 22:31:29 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+	Fri, 15 Jan 2010 18:08:48 -0500
+Received: by fxm25 with SMTP id 25so675673fxm.21
+        for <linux-media@vger.kernel.org>; Fri, 15 Jan 2010 15:08:47 -0800 (PST)
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-CC: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: git problem with uvcvideo
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <201001160000.31965@orion.escape-edv.de>
+References: <4B4F39BB.2060605@motama.com> <4B4F3FD5.5000603@motama.com>
+	 <829197381001140809p1b1af4a4v2678abbc4c41b9ec@mail.gmail.com>
+	 <201001160000.31965@orion.escape-edv.de>
+Date: Sat, 16 Jan 2010 03:08:47 +0400
+Message-ID: <1a297b361001151508h42d3a4c9wdbc09b6199319c2a@mail.gmail.com>
+Subject: Re: Order of dvb devices
+From: Manu Abraham <abraham.manu@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Andreas Besse <besse@motama.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Sat, Jan 16, 2010 at 3:00 AM, Oliver Endriss <o.endriss@gmx.de> wrote:
+> Devin Heitmueller wrote:
+>> On Thu, Jan 14, 2010 at 11:01 AM, Andreas Besse <besse@motama.com> wrote:
+>> > yes if there are different drivers I already observed the behaviour that
+>> > the ordering gets flipped after reboot.
+>> >
+>> > But if I assume, that there is only *one* driver that is loaded (e.g.
+>> > budget_av) for all dvb cards in the system, how is the ordering of these
+>> > devices determined? How does the driver "search" for available dvb cards?
+>
+> The driver does not 'search' for a card. The driver registers the ids of
+> all supported cards with the pci subsystem of the kernel.
+>
+> When the pci subsystem detects a new card, it calls the 'probe' routine
+> of the driver (for example saa7146_init_one for saa7146-based cards).
+> So the ordering is determined by the pci subsystem.
+>
+>> I believe your assumption is incorrect.  I believe the enumeration
+>> order is not deterministic even for multiple instances of the same
+>> driver.  It is not uncommon to hear mythtv users complain that "I have
+>> two PVR-150 cards installed in my PC and the order sometimes get
+>> reversed on reboot".
+>
+> Afaik the indeterministic behaviour is caused by udev, not by the
+> kernel. We never had these problems before udev was introduced.
 
-I'm trying to fetch the uvcvideo from http://linuxtv.org/git/?p=pinchartl/uvcvideo.git;a=summary .
-I tryied to follow the instructions but at the third step I get fatal error messages:
 
-> $ git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git v4l-dvb
-> Initialized empty Git repository in /usr/src/linuxtv.org/pinchartl/uvcvideo/v4l-dvb/.git/
-> remote: Counting objects: 1455151, done.
-> remote: Compressing objects: 100% (233826/233826), done.
-> remote: Total 1455151 (delta 1210384), reused 1455044 (delta 1210312)
-> Receiving objects: 100% (1455151/1455151), 317.25 MiB | 224 KiB/s, done.
-> Resolving deltas: 100% (1210384/1210384), done.
-> Checking out files: 100% (31566/31566), done.
-> $ cd v4l-dvb/
-> v4l-dvb$ git remote add uvcvideo http://linuxtv.org/git//pinchartl/uvcvideo.git
-> v4l-dvb$ git remote update
-> Updating origin
-> Updating uvcvideo
-> fatal: http://linuxtv.org/git//pinchartl/uvcvideo.git/info/refs not found: did you run git update-server-info on the server?
-> error: Could not fetch uvcvideo
+True, the ordering is not exactly the same everytime. One will need to
+provide PCI Bus related info also to a practical udev configuration to
+get things sorted out in a sane way, rather than anything else.
 
-I also tried with the git:// link:
 
-> v4l-dvb$ git remote rm uvcvideo
-> v4l-dvb$ git remote add uvcvideo git://linuxtv.org//pinchartl/uvcvideo.git
-> v4l-dvb$ git remote update
-> Updating origin
-> Updating uvcvideo
-> fatal: The remote end hung up unexpectedly
-> error: Could not fetch uvcvideo
-
-Am I doing something wrong?
 
 Regards,
-
-	MÃ¡rton NÃ©meth
+Manu
