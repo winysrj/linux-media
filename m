@@ -1,350 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:59388 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753971Ab0AKTdN convert rfc822-to-8bit (ORCPT
+Received: from faui40.informatik.uni-erlangen.de ([131.188.34.40]:59433 "EHLO
+	faui40.informatik.uni-erlangen.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757429Ab0AOMPc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2010 14:33:13 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "khilman@deeprootsystems.com" <khilman@deeprootsystems.com>,
-	"mchehab@infradead.org" <mchehab@infradead.org>
-CC: "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Mon, 11 Jan 2010 13:33:03 -0600
-Subject: RE: [PATCH - v4 1/4] V4L-vpfe_capture-remove-clock and platform code
-Message-ID: <A69FA2915331DC488A831521EAE36FE40162DF9BB8@dlee06.ent.ti.com>
-References: <1263237778-22361-1-git-send-email-m-karicheri2@ti.com>
- <1263237778-22361-2-git-send-email-m-karicheri2@ti.com>
- <1263237778-22361-3-git-send-email-m-karicheri2@ti.com>
- <1263237778-22361-4-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1263237778-22361-4-git-send-email-m-karicheri2@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Fri, 15 Jan 2010 07:15:32 -0500
+Date: Fri, 15 Jan 2010 13:08:57 +0100
+From: Christoph Egger <siccegge@stud.informatik.uni-erlangen.de>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Cc: siccegge@stud.informatik.uni-erlangen.de,
+	Reinhard.Tartler@informatik.uni-erlangen.de
+Subject: [PATCH] obsolete config in kernel source (DVB_DIBCOM_DEBUG)
+Message-ID: <20100115120857.GA3321@faui49.informatik.uni-erlangen.de>
 MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="M9NhX3UHpAaciwkO"
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro & Kevin,
 
-I am re-sending these patches to do following:-
+--M9NhX3UHpAaciwkO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-1) arch patches are re-created based on Linus tree
-2) V4l patches are rebased to latest linux-next tree
+Hi all!
 
-These patches will override the pull request from Hans.
-I am trying to setup mercurial to send the pull request, but
-will take few more days to be fully functional. Meanwhile
-please merge the attached patches.
+	As part of the VAMOS[0] research project at the University of
+Erlangen we're checking referential integrity between kernel KConfig
+options and in-code Conditional blocks.
 
-The kernel upstream tree is at 2.6.33.rc3. We have a bunch of 
-patches planned for 2.6.34. So please start merging these patches
-to the linux-next so that they can make to 2.6.34. You might
-have seen a bunch of patches from Vaibhav as well that is being
-reviewed on the list.
+	By this we discovered the config Option DVB_DIBCOM_DEBUG,
+which was dropped while removing the dibusb driver in favor of dvb-usb
+in 2005. However it remaind existant at some places of the kernel
+config.
 
-Regarding the merge of arch patches, I would let Kevin to
-comment on how to handle the merge. I have re-created the arch
-patches against the Linus tree as per Kevin's suggestion.
+	Probably one should be a bit more agressive here as the dprintk
+macro now expands to a do{}while(0) unconditionally so all blocks
+using them can also be dropped to remove in-tree cruft but the patch
+does a first cleanup.
 
-Thanks.
+	Please keep me informed of this patch getting confirmed /
+merged so we can keep track of it.
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-phone: 301-407-9583
-email: m-karicheri2@ti.com
+Regards
 
->-----Original Message-----
->From: Karicheri, Muralidharan
->Sent: Monday, January 11, 2010 2:23 PM
->To: linux-media@vger.kernel.org; khilman@deeprootsystems.com;
->mchehab@infradead.org
->Cc: hverkuil@xs4all.nl; davinci-linux-open-source@linux.davincidsp.com;
->Karicheri, Muralidharan
->Subject: [PATCH - v4 1/4] V4L-vpfe_capture-remove-clock and platform code
->
->From: Muralidharan Karicheri <m-karicheri2@ti.com>
->
->Rebased to latest linux-next tree
->
->This combines the two patches sent earlier to change the clock
->configuration
->and converting ccdc drivers to platform drivers. This has updated comments
->against v1 of these patches.
->
->In this patch, the clock configuration is moved to ccdc driver since clocks
->are configured for ccdc. Also adding proper error codes for ccdc register
->function and removing the ccdc memory resource handling.
->
->Reviewed-by: Vaibhav Hiremath <hvaibhav@ti.com>
->Reviewed-by: Kevin Hilman <khilman@deeprootsystems.com>
->Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
->
->Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
->Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
->---
->Applies to linux-next tree of v4l-dvb
-> drivers/media/video/davinci/vpfe_capture.c |  131 +++---------------------
->----
-> 1 files changed, 13 insertions(+), 118 deletions(-)
->
->diff --git a/drivers/media/video/davinci/vpfe_capture.c
->b/drivers/media/video/davinci/vpfe_capture.c
->index de22bc9..885cd54 100644
->--- a/drivers/media/video/davinci/vpfe_capture.c
->+++ b/drivers/media/video/davinci/vpfe_capture.c
->@@ -107,9 +107,6 @@ struct ccdc_config {
-> 	int vpfe_probed;
-> 	/* name of ccdc device */
-> 	char name[32];
->-	/* for storing mem maps for CCDC */
->-	int ccdc_addr_size;
->-	void *__iomem ccdc_addr;
-> };
->
-> /* data structures */
->@@ -229,7 +226,6 @@ int vpfe_register_ccdc_device(struct ccdc_hw_device
->*dev)
-> 	BUG_ON(!dev->hw_ops.set_image_window);
-> 	BUG_ON(!dev->hw_ops.get_image_window);
-> 	BUG_ON(!dev->hw_ops.get_line_length);
->-	BUG_ON(!dev->hw_ops.setfbaddr);
-> 	BUG_ON(!dev->hw_ops.getfid);
->
-> 	mutex_lock(&ccdc_lock);
->@@ -240,25 +236,23 @@ int vpfe_register_ccdc_device(struct ccdc_hw_device
->*dev)
-> 		 * walk through it during vpfe probe
-> 		 */
-> 		printk(KERN_ERR "vpfe capture not initialized\n");
->-		ret = -1;
->+		ret = -EFAULT;
-> 		goto unlock;
-> 	}
->
-> 	if (strcmp(dev->name, ccdc_cfg->name)) {
-> 		/* ignore this ccdc */
->-		ret = -1;
->+		ret = -EINVAL;
-> 		goto unlock;
-> 	}
->
-> 	if (ccdc_dev) {
-> 		printk(KERN_ERR "ccdc already registered\n");
->-		ret = -1;
->+		ret = -EINVAL;
-> 		goto unlock;
-> 	}
->
-> 	ccdc_dev = dev;
->-	dev->hw_ops.set_ccdc_base(ccdc_cfg->ccdc_addr,
->-				  ccdc_cfg->ccdc_addr_size);
-> unlock:
-> 	mutex_unlock(&ccdc_lock);
-> 	return ret;
->@@ -1786,61 +1780,6 @@ static struct vpfe_device *vpfe_initialize(void)
-> 	return vpfe_dev;
-> }
->
->-static void vpfe_disable_clock(struct vpfe_device *vpfe_dev)
->-{
->-	struct vpfe_config *vpfe_cfg = vpfe_dev->cfg;
->-
->-	clk_disable(vpfe_cfg->vpssclk);
->-	clk_put(vpfe_cfg->vpssclk);
->-	clk_disable(vpfe_cfg->slaveclk);
->-	clk_put(vpfe_cfg->slaveclk);
->-	v4l2_info(vpfe_dev->pdev->driver,
->-		 "vpfe vpss master & slave clocks disabled\n");
->-}
->-
->-static int vpfe_enable_clock(struct vpfe_device *vpfe_dev)
->-{
->-	struct vpfe_config *vpfe_cfg = vpfe_dev->cfg;
->-	int ret = -ENOENT;
->-
->-	vpfe_cfg->vpssclk = clk_get(vpfe_dev->pdev, "vpss_master");
->-	if (NULL == vpfe_cfg->vpssclk) {
->-		v4l2_err(vpfe_dev->pdev->driver, "No clock defined for"
->-			 "vpss_master\n");
->-		return ret;
->-	}
->-
->-	if (clk_enable(vpfe_cfg->vpssclk)) {
->-		v4l2_err(vpfe_dev->pdev->driver,
->-			"vpfe vpss master clock not enabled\n");
->-		goto out;
->-	}
->-	v4l2_info(vpfe_dev->pdev->driver,
->-		 "vpfe vpss master clock enabled\n");
->-
->-	vpfe_cfg->slaveclk = clk_get(vpfe_dev->pdev, "vpss_slave");
->-	if (NULL == vpfe_cfg->slaveclk) {
->-		v4l2_err(vpfe_dev->pdev->driver,
->-			"No clock defined for vpss slave\n");
->-		goto out;
->-	}
->-
->-	if (clk_enable(vpfe_cfg->slaveclk)) {
->-		v4l2_err(vpfe_dev->pdev->driver,
->-			 "vpfe vpss slave clock not enabled\n");
->-		goto out;
->-	}
->-	v4l2_info(vpfe_dev->pdev->driver, "vpfe vpss slave clock enabled\n");
->-	return 0;
->-out:
->-	if (vpfe_cfg->vpssclk)
->-		clk_put(vpfe_cfg->vpssclk);
->-	if (vpfe_cfg->slaveclk)
->-		clk_put(vpfe_cfg->slaveclk);
->-
->-	return -1;
->-}
->-
-> /*
->  * vpfe_probe : This function creates device entries by register
->  * itself to the V4L2 driver and initializes fields of each
->@@ -1870,7 +1809,7 @@ static __init int vpfe_probe(struct platform_device
->*pdev)
->
-> 	if (NULL == pdev->dev.platform_data) {
-> 		v4l2_err(pdev->dev.driver, "Unable to get vpfe config\n");
->-		ret = -ENOENT;
->+		ret = -ENODEV;
-> 		goto probe_free_dev_mem;
-> 	}
->
->@@ -1884,18 +1823,13 @@ static __init int vpfe_probe(struct platform_device
->*pdev)
-> 		goto probe_free_dev_mem;
-> 	}
->
->-	/* enable vpss clocks */
->-	ret = vpfe_enable_clock(vpfe_dev);
->-	if (ret)
->-		goto probe_free_dev_mem;
->-
-> 	mutex_lock(&ccdc_lock);
-> 	/* Allocate memory for ccdc configuration */
-> 	ccdc_cfg = kmalloc(sizeof(struct ccdc_config), GFP_KERNEL);
-> 	if (NULL == ccdc_cfg) {
-> 		v4l2_err(pdev->dev.driver,
-> 			 "Memory allocation failed for ccdc_cfg\n");
->-		goto probe_disable_clock;
->+		goto probe_free_dev_mem;
-> 	}
->
-> 	strncpy(ccdc_cfg->name, vpfe_cfg->ccdc, 32);
->@@ -1904,61 +1838,34 @@ static __init int vpfe_probe(struct platform_device
->*pdev)
-> 	if (!res1) {
-> 		v4l2_err(pdev->dev.driver,
-> 			 "Unable to get interrupt for VINT0\n");
->-		ret = -ENOENT;
->-		goto probe_disable_clock;
->+		ret = -ENODEV;
->+		goto probe_free_ccdc_cfg_mem;
-> 	}
-> 	vpfe_dev->ccdc_irq0 = res1->start;
->
-> 	/* Get VINT1 irq resource */
->-	res1 = platform_get_resource(pdev,
->-				IORESOURCE_IRQ, 1);
->+	res1 = platform_get_resource(pdev, IORESOURCE_IRQ, 1);
-> 	if (!res1) {
-> 		v4l2_err(pdev->dev.driver,
-> 			 "Unable to get interrupt for VINT1\n");
->-		ret = -ENOENT;
->-		goto probe_disable_clock;
->+		ret = -ENODEV;
->+		goto probe_free_ccdc_cfg_mem;
-> 	}
-> 	vpfe_dev->ccdc_irq1 = res1->start;
->
->-	/* Get address base of CCDC */
->-	res1 = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->-	if (!res1) {
->-		v4l2_err(pdev->dev.driver,
->-			"Unable to get register address map\n");
->-		ret = -ENOENT;
->-		goto probe_disable_clock;
->-	}
->-
->-	ccdc_cfg->ccdc_addr_size = res1->end - res1->start + 1;
->-	if (!request_mem_region(res1->start, ccdc_cfg->ccdc_addr_size,
->-				pdev->dev.driver->name)) {
->-		v4l2_err(pdev->dev.driver,
->-			"Failed request_mem_region for ccdc base\n");
->-		ret = -ENXIO;
->-		goto probe_disable_clock;
->-	}
->-	ccdc_cfg->ccdc_addr = ioremap_nocache(res1->start,
->-					     ccdc_cfg->ccdc_addr_size);
->-	if (!ccdc_cfg->ccdc_addr) {
->-		v4l2_err(pdev->dev.driver, "Unable to ioremap ccdc addr\n");
->-		ret = -ENXIO;
->-		goto probe_out_release_mem1;
->-	}
->-
-> 	ret = request_irq(vpfe_dev->ccdc_irq0, vpfe_isr, IRQF_DISABLED,
-> 			  "vpfe_capture0", vpfe_dev);
->
-> 	if (0 != ret) {
-> 		v4l2_err(pdev->dev.driver, "Unable to request interrupt\n");
->-		goto probe_out_unmap1;
->+		goto probe_free_ccdc_cfg_mem;
-> 	}
->
-> 	/* Allocate memory for video device */
-> 	vfd = video_device_alloc();
-> 	if (NULL == vfd) {
-> 		ret = -ENOMEM;
->-		v4l2_err(pdev->dev.driver,
->-			"Unable to alloc video device\n");
->+		v4l2_err(pdev->dev.driver, "Unable to alloc video device\n");
-> 		goto probe_out_release_irq;
-> 	}
->
->@@ -2073,12 +1980,7 @@ probe_out_video_release:
-> 		video_device_release(vpfe_dev->video_dev);
-> probe_out_release_irq:
-> 	free_irq(vpfe_dev->ccdc_irq0, vpfe_dev);
->-probe_out_unmap1:
->-	iounmap(ccdc_cfg->ccdc_addr);
->-probe_out_release_mem1:
->-	release_mem_region(res1->start, res1->end - res1->start + 1);
->-probe_disable_clock:
->-	vpfe_disable_clock(vpfe_dev);
->+probe_free_ccdc_cfg_mem:
-> 	mutex_unlock(&ccdc_lock);
-> 	kfree(ccdc_cfg);
-> probe_free_dev_mem:
->@@ -2092,7 +1994,6 @@ probe_free_dev_mem:
-> static int __devexit vpfe_remove(struct platform_device *pdev)
-> {
-> 	struct vpfe_device *vpfe_dev = platform_get_drvdata(pdev);
->-	struct resource *res;
->
-> 	v4l2_info(pdev->dev.driver, "vpfe_remove\n");
->
->@@ -2100,12 +2001,6 @@ static int __devexit vpfe_remove(struct
->platform_device *pdev)
-> 	kfree(vpfe_dev->sd);
-> 	v4l2_device_unregister(&vpfe_dev->v4l2_dev);
-> 	video_unregister_device(vpfe_dev->video_dev);
->-	mutex_lock(&ccdc_lock);
->-	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->-	release_mem_region(res->start, res->end - res->start + 1);
->-	iounmap(ccdc_cfg->ccdc_addr);
->-	mutex_unlock(&ccdc_lock);
->-	vpfe_disable_clock(vpfe_dev);
-> 	kfree(vpfe_dev);
-> 	kfree(ccdc_cfg);
-> 	return 0;
->--
->1.6.0.4
+	Christoph Egger
 
+[0] http://vamos1.informatik.uni-erlangen.de/
+
+--M9NhX3UHpAaciwkO
+Content-Type: text/x-diff; charset=us-ascii
+Content-Disposition: attachment; filename="0004-remove-obsolete-conditionalizing-on-DVB_DIBCOM_DEBUG.patch"
+
+>From 34bc227926b5554a881799fe69ce5323e2042352 Mon Sep 17 00:00:00 2001
+From: Christoph Egger <siccegge@stud.informatik.uni-erlangen.de>
+Date: Fri, 15 Jan 2010 12:49:41 +0100
+Subject: [PATCH 4/4] remove obsolete conditionalizing on DVB_DIBCOM_DEBUG
+
+The dibusb driver was dropped in 2005 in favour of the generic dvb-usb
+system. However the DEBUG option wasn't removed from all parts of the
+code which is fixed by this patch
+
+Signed-off-by: Christoph Egger <siccegge@stud.informatik.uni-erlangen.de>
+---
+ drivers/media/dvb/frontends/dib3000mb.c      |   11 -----------
+ drivers/media/dvb/frontends/dib3000mb_priv.h |    5 -----
+ 2 files changed, 0 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/media/dvb/frontends/dib3000mb.c b/drivers/media/dvb/frontends/dib3000mb.c
+index ad4c8cf..5fdb6de 100644
+--- a/drivers/media/dvb/frontends/dib3000mb.c
++++ b/drivers/media/dvb/frontends/dib3000mb.c
+@@ -38,11 +38,6 @@
+ #define DRIVER_DESC "DiBcom 3000M-B DVB-T demodulator"
+ #define DRIVER_AUTHOR "Patrick Boettcher, patrick.boettcher@desy.de"
+ 
+-#ifdef CONFIG_DVB_DIBCOM_DEBUG
+-static int debug;
+-module_param(debug, int, 0644);
+-MODULE_PARM_DESC(debug, "set debugging level (1=info,2=xfer,4=setfe,8=getfe (|-able)).");
+-#endif
+ #define deb_info(args...) dprintk(0x01,args)
+ #define deb_i2c(args...)  dprintk(0x02,args)
+ #define deb_srch(args...) dprintk(0x04,args)
+@@ -51,12 +46,6 @@ MODULE_PARM_DESC(debug, "set debugging level (1=info,2=xfer,4=setfe,8=getfe (|-a
+ #define deb_setf(args...) dprintk(0x04,args)
+ #define deb_getf(args...) dprintk(0x08,args)
+ 
+-#ifdef CONFIG_DVB_DIBCOM_DEBUG
+-static int debug;
+-module_param(debug, int, 0644);
+-MODULE_PARM_DESC(debug, "set debugging level (1=info,2=i2c,4=srch (|-able)).");
+-#endif
+-
+ static int dib3000_read_reg(struct dib3000_state *state, u16 reg)
+ {
+ 	u8 wb[] = { ((reg >> 8) | 0x80) & 0xff, reg & 0xff };
+diff --git a/drivers/media/dvb/frontends/dib3000mb_priv.h b/drivers/media/dvb/frontends/dib3000mb_priv.h
+index 1a12747..806f5b0 100644
+--- a/drivers/media/dvb/frontends/dib3000mb_priv.h
++++ b/drivers/media/dvb/frontends/dib3000mb_priv.h
+@@ -37,12 +37,7 @@
+ 
+ /* debug */
+ 
+-#ifdef CONFIG_DVB_DIBCOM_DEBUG
+-#define dprintk(level,args...) \
+-    do { if ((debug & level)) { printk(args); } } while (0)
+-#else
+ #define dprintk(args...) do { } while (0)
+-#endif
+ 
+ /* mask for enabling a specific pid for the pid_filter */
+ #define DIB3000_ACTIVATE_PID_FILTERING	(0x2000)
+-- 
+1.6.3.3
+
+
+--M9NhX3UHpAaciwkO--
