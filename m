@@ -1,36 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:32915 "EHLO znsun1.ifh.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752122Ab0ADOT7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jan 2010 09:19:59 -0500
-Date: Mon, 4 Jan 2010 15:19:55 +0100 (CET)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Martin Berndaner <martin.berndaner@nexgo.de>
-cc: linux-media@vger.kernel.org
-Subject: Re: Technisat SkyStar HD S2 USB
-In-Reply-To: <4B3F919C.2060106@nexgo.de>
-Message-ID: <alpine.LRH.2.00.1001041514570.23467@pub3.ifh.de>
-References: <4B3F919C.2060106@nexgo.de>
+Received: from anchor-post-3.mail.demon.net ([195.173.77.134]:47185 "EHLO
+	anchor-post-3.mail.demon.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751737Ab0AOQGO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jan 2010 11:06:14 -0500
+From: Ian Armstrong <mail01@iarmst.co.uk>
+To: Roel Kluin <roel.kluin@gmail.com>
+Subject: Re: V4L/DVB ivtv-yuv.c: args->dst.left assigned to both nf->tru_x and nf->dst_x in ivtv_yuv_setup_frame()
+Date: Fri, 15 Jan 2010 16:06:12 +0000
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, ivtv-devel@ivtvdriver.org,
+	linux-media@vger.kernel.org
+References: <4B507EAA.40607@gmail.com>
+In-Reply-To: <4B507EAA.40607@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201001151606.12421.mail01@iarmst.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Martin,
+On Friday 15 January 2010, Roel Kluin wrote:
+> vi drivers/media/video/ivtv/ivtv-yuv.c +971
+> 
+> and note that `args->dst.left' is assigned both to
+> nf->tru_x and nf->dst_x, is that ok?
 
-On Sat, 2 Jan 2010, Martin Berndaner wrote:
+It's fine. dst_x is used to set a hardware register and may be changed in 
+ivtv_yuv_window_setup()
 
-> Dear all,
->
-> i want to use the Technisat SkyStar HD S2 USB for building a PVR.
-> Does anyone know, if this Box is supported in the near future?
-> (USB VID 0x14f7, PID 0x0002)
-> Actually i couldn`t find a valid driver.
+tru_x is never altered & is used in a special condition where the original 
+unaltered value is required.
 
-That's normal, because there isn't. But there will be at some point in 
-time. I can't give you an exact date right now, but there is a chance that 
-it might happen during the first quarter of 2010.
-
-best regards,
-Patrick.
-
+-- 
+Ian
