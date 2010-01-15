@@ -1,44 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f215.google.com ([209.85.220.215]:47960 "EHLO
-	mail-fx0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751660Ab0AWXuR (ORCPT
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:35778 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758404Ab0AOXzI convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jan 2010 18:50:17 -0500
-Received: by fxm7 with SMTP id 7so681523fxm.28
-        for <linux-media@vger.kernel.org>; Sat, 23 Jan 2010 15:50:15 -0800 (PST)
+	Fri, 15 Jan 2010 18:55:08 -0500
+Received: by bwz27 with SMTP id 27so1027225bwz.21
+        for <linux-media@vger.kernel.org>; Fri, 15 Jan 2010 15:55:06 -0800 (PST)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: paul10@planar.id.au, "linux-media" <linux-media@vger.kernel.org>
+Subject: Re: DM1105: could not attach frontend 195d:1105
+Date: Sat, 16 Jan 2010 01:54:52 +0200
+References: <ce9ceb6396947b48531256e715f00390@mail.velocitynet.com.au>
+In-Reply-To: <ce9ceb6396947b48531256e715f00390@mail.velocitynet.com.au>
 MIME-Version: 1.0
-Date: Sat, 23 Jan 2010 18:50:14 -0500
-Message-ID: <68cac7521001231550i40f4b28fy3d073c043e4027e2@mail.gmail.com>
-Subject: [PATCH] sq905c: remove unused variable
-From: Douglas Schilling Landgraf <dougsland@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jean-Francois Moine <moinejf@free.fr>
-Content-Type: multipart/mixed; boundary=001485f4503efff6cb047ddd9826
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <201001160154.52635.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---001485f4503efff6cb047ddd9826
-Content-Type: text/plain; charset=ISO-8859-1
+On 16 января 2010 01:14:49 paul10@planar.id.au wrote:
+> On 15 января 2010 11:15:26 paul10@planar.id.au wrote:
+> > I bought a DVB-S card to attach to my mythtv setup.  I knew it was
+>
+> perhaps
+>
+> > not going to work, and I only spent $15 on it.  However, based on the
+>
+> info
+>
+> > the guy on eBay provided, it had a pci address of 195d:1105, which I
+>
+> could
+>
+> > see some people had cards that were working.
+> >
+> > The card itself is a no-name jobby.  I can see the DM1105 chip on it, I
+> > can't see any other chips with any significant pin count (lots with 3 -
+>
+> 8
+>
+> > pins, but nothing with enough to be important).  There is a metal case
+> > around the connectors that might be hiding a frontend chip of some sort,
+> > but it doesn't seem to have enough connectors in and out to be doing
+>
+> much
+>
+> > that is important beyond just providing connectivity to the LNB.
+>
+> Igor wrote:
+> > Hi Paul,
+> >
+> > Frontend/tuner must lay under cover.
+> > Subsystem: Device 195d:1105 indicates that there is no EEPROM in card.
+> > If you send some links/pictures/photos then it would helped a lot.
+> > Is there a disk with drivers for Windows?
+> > Also I know about dm1105 based cards with tda10086 demod, those are not
+>
+> supported in the driver
+> yet.
+>
+> > BR
+> > Igor
+>
+> Igor,
+>
+> Photos:
+> 1.  Front of card.  You can see the DM1105 in the foreground.  There are
+> no other significant looking chips on the card.
+> http://planar.id.au/Photos/img_1964.jpg
+>
+> 2.  Back of card - as you can see, there aren't a lot of places where a
+> lot of pins are connecting - mainly the DM1105 itself
+> http://planar.id.au/Photos/img_1965.jpg
+>
+> 3.  With the top metal plate removed, and with the other end of the card
+> in better focus.
+> http://planar.id.au/Photos/img_1966.jpg
+>
+> Is it likely that there is a tuner under the card labelled "ERIT"?  To
+> take it off I have to unsolder some stuff - I can do that, but I reckon
+> it's only 50% chance the card will work again when I put it back together -
+> my soldering isn't so good.
+No need to unsolder. I see a Serit can tuner. There is a sticked paper with a label on right side 
+of the tuner. It must contain something like "sp2636lhb" or "sp2633chb". Please provide me text of 
+label.
 
-Removed unused variable.
 
-Signed-off-by: Douglas Schilling Landgraf <dougsland@redhat.com>
+>
+> Thanks heaps for the assistance.
+>
+> Paul
 
-Thanks,
-Douglas
-
---001485f4503efff6cb047ddd9826
-Content-Type: application/octet-stream; name="patch-sq905c.diff"
-Content-Disposition: attachment; filename="patch-sq905c.diff"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_g4t836ck0
-
-ZGlmZiAtciAyYTUwYTBhMWM5NTEgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9nc3BjYS9zcTkw
-NWMuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2dzcGNhL3NxOTA1Yy5jCVNhdCBK
-YW4gMjMgMDA6MTQ6MzIgMjAxMCAtMDIwMAorKysgYi9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVv
-L2dzcGNhL3NxOTA1Yy5jCVNhdCBKYW4gMjMgMjE6NDA6NDIgMjAxMCAtMDIwMApAQCAtMjA0LDcg
-KzIwNCw3IEBACiB7CiAJc3RydWN0IGNhbSAqY2FtID0gJmdzcGNhX2Rldi0+Y2FtOwogCXN0cnVj
-dCBzZCAqZGV2ID0gKHN0cnVjdCBzZCAqKSBnc3BjYV9kZXY7Ci0JaW50IGksIHJldDsKKwlpbnQg
-cmV0OwogCiAJUERFQlVHKERfUFJPQkUsCiAJCSJTUTkwNTAgY2FtZXJhIGRldGVjdGVkIgo=
---001485f4503efff6cb047ddd9826--
+-- 
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
