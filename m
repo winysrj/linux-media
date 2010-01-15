@@ -1,37 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:59790 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752870Ab0AXIQm convert rfc822-to-8bit (ORCPT
+Received: from webmail.velocitynet.com.au ([203.17.154.21]:47290 "EHLO
+	webmail2.velocitynet.com.au" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755410Ab0AOXOu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jan 2010 03:16:42 -0500
-Date: Sun, 24 Jan 2010 09:18:15 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-Cc: Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH] sq905c: remove unused variable
-Message-ID: <20100124091815.185cb889@tele>
-In-Reply-To: <alpine.LNX.2.00.1001231909070.12296@banach.math.auburn.edu>
-References: <68cac7521001231550i40f4b28fy3d073c043e4027e2@mail.gmail.com>
-	<alpine.LNX.2.00.1001231909070.12296@banach.math.auburn.edu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Fri, 15 Jan 2010 18:14:50 -0500
+MIME-Version: 1.0
+Date: Fri, 15 Jan 2010 23:14:49 +0000
+From: <paul10@planar.id.au>
+To: "linux-media" <linux-media@vger.kernel.org>,
+	"Igor M. Liplianin" <liplianin@me.by>
+Subject: Re: DM1105: could not attach frontend 195d:1105
+Message-ID: <ce9ceb6396947b48531256e715f00390@mail.velocitynet.com.au>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 23 Jan 2010 19:44:06 -0600 (CST)
-Theodore Kilgore <kilgota@banach.math.auburn.edu> wrote:
+On 15 января 2010 11:15:26 paul10@planar.id.au wrote:
+> I bought a DVB-S card to attach to my mythtv setup.  I knew it was
+perhaps
+> not going to work, and I only spent $15 on it.  However, based on the
+info
+> the guy on eBay provided, it had a pci address of 195d:1105, which I
+could
+> see some people had cards that were working.
 
-> If everyone else is agreeable, I would propose that the recent
-> changes to sq905c.c should simply be pulled, and that is the best
-> solution to the problem.
+> The card itself is a no-name jobby.  I can see the DM1105 chip on it, I
+> can't see any other chips with any significant pin count (lots with 3 -
+8
+> pins, but nothing with enough to be important).  There is a metal case
+> around the connectors that might be hiding a frontend chip of some sort,
+> but it doesn't seem to have enough connectors in and out to be doing
+much
+> that is important beyond just providing connectivity to the LNB.
+>
 
-A pull request for this change has been sent last sunday.
+Igor wrote:
+> Hi Paul,
 
-Cheers.
+> Frontend/tuner must lay under cover.
+> Subsystem: Device 195d:1105 indicates that there is no EEPROM in card.
+> If you send some links/pictures/photos then it would helped a lot.
+> Is there a disk with drivers for Windows?
+> Also I know about dm1105 based cards with tda10086 demod, those are not
+supported in the driver 
+yet.
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+> BR
+> Igor
+
+Igor,
+
+Photos:
+1.  Front of card.  You can see the DM1105 in the foreground.  There are
+no other significant looking chips on the card.
+http://planar.id.au/Photos/img_1964.jpg
+
+2.  Back of card - as you can see, there aren't a lot of places where a
+lot of pins are connecting - mainly the DM1105 itself
+http://planar.id.au/Photos/img_1965.jpg
+
+3.  With the top metal plate removed, and with the other end of the card
+in better focus.
+http://planar.id.au/Photos/img_1966.jpg
+
+Is it likely that there is a tuner under the card labelled "ERIT"?  To
+take it off I have to unsolder some stuff - I can do that, but I reckon
+it's only 50% chance the card will work again when I put it back together -
+my soldering isn't so good.
+
+Thanks heaps for the assistance.
+
+Paul
+
