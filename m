@@ -1,178 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54883 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752018Ab0AKO4z convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2209 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752192Ab0AOTKE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2010 09:56:55 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>
-Date: Mon, 11 Jan 2010 08:56:52 -0600
-Subject: RE: [PATCH 0/9] Feature enhancement of VPFE/CCDC Capture driver
-Message-ID: <A69FA2915331DC488A831521EAE36FE40162D439FF@dlee06.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1262613782-20463-1-git-send-email-hvaibhav@ti.com>
- <19F8576C6E063C45BE387C64729E7394044A3982C1@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044A3982C1@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Fri, 15 Jan 2010 14:10:04 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o0FJA15P091158
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 15 Jan 2010 20:10:02 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 15 Jan 2010 20:10:01 +0100 (CET)
+Message-Id: <201001151910.o0FJA15P091158@smtp-vbr7.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Vaibhav,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Hans already merged my dm365 patches. So you have rebase this to that before
-merging.
+Results of the daily build of v4l-dvb:
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-phone: 301-407-9583
-email: m-karicheri2@ti.com
+date:        Fri Jan 15 19:00:03 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   13972:725c07a70453
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
->-----Original Message-----
->From: Hiremath, Vaibhav
->Sent: Monday, January 11, 2010 1:29 AM
->To: Hiremath, Vaibhav; linux-media@vger.kernel.org
->Cc: linux-omap@vger.kernel.org; hverkuil@xs4all.nl; davinci-linux-open-
->source@linux.davincidsp.com; Karicheri, Muralidharan
->Subject: RE: [PATCH 0/9] Feature enhancement of VPFE/CCDC Capture driver
->
->
->> -----Original Message-----
->> From: Hiremath, Vaibhav
->> Sent: Monday, January 04, 2010 7:33 PM
->> To: linux-media@vger.kernel.org
->> Cc: linux-omap@vger.kernel.org; hverkuil@xs4all.nl; davinci-linux-
->> open-source@linux.davincidsp.com; Karicheri, Muralidharan; Hiremath,
->> Vaibhav
->> Subject: [PATCH 0/9] Feature enhancement of VPFE/CCDC Capture driver
->>
->> From: Vaibhav Hiremath <hvaibhav@ti.com>
->>
->> While adding support for AM3517/05 devices I have implemented/came-
->> across
->> these features/enhancement/bug-fixes for VPFE-Capture driver.
->>
->> Also the important change added is, to introduced "ti-media"
->> directory for all TI devices.
->>
->> Vaibhav Hiremath (9):
->>   Makfile:Removed duplicate entry of davinci
->>   TVP514x:Switch to automode for querystd
->>   tvp514x: add YUYV format support
->>   Introducing ti-media directory
->>   DMx:Update board files for ti-media directory change
->>   Davinci VPFE Capture:Return 0 from suspend/resume
->>   DM644x CCDC : Add Suspend/Resume Support
->>   VPFE Capture: Add call back function for interrupt clear to
->> vpfe_cfg
->>   DM644x CCDC: Add 10bit BT support
->>
->>  arch/arm/mach-davinci/include/mach/dm355.h      |    2 +-
->>  arch/arm/mach-davinci/include/mach/dm644x.h     |    2 +-
->>  drivers/media/video/Kconfig                     |   84 +-
->>  drivers/media/video/Makefile                    |    4 +-
->>  drivers/media/video/davinci/Makefile            |   17 -
->>  drivers/media/video/davinci/ccdc_hw_device.h    |  110 --
->>  drivers/media/video/davinci/dm355_ccdc.c        | 1081 -----------
->>  drivers/media/video/davinci/dm355_ccdc_regs.h   |  310 ----
->>  drivers/media/video/davinci/dm644x_ccdc.c       |  966 ----------
->>  drivers/media/video/davinci/dm644x_ccdc_regs.h  |  145 --
->>  drivers/media/video/davinci/vpfe_capture.c      | 2055 ------------
->> ---------
->>  drivers/media/video/davinci/vpif.c              |  296 ---
->>  drivers/media/video/davinci/vpif.h              |  642 -------
->>  drivers/media/video/davinci/vpif_capture.c      | 2168 ------------
->> -----------
->>  drivers/media/video/davinci/vpif_capture.h      |  165 --
->>  drivers/media/video/davinci/vpif_display.c      | 1654 ------------
->> -----
->>  drivers/media/video/davinci/vpif_display.h      |  175 --
->>  drivers/media/video/davinci/vpss.c              |  301 ----
->>  drivers/media/video/ti-media/Kconfig            |   88 +
->>  drivers/media/video/ti-media/Makefile           |   17 +
->>  drivers/media/video/ti-media/ccdc_hw_device.h   |  110 ++
->>  drivers/media/video/ti-media/dm355_ccdc.c       | 1081 +++++++++++
->>  drivers/media/video/ti-media/dm355_ccdc_regs.h  |  310 ++++
->>  drivers/media/video/ti-media/dm644x_ccdc.c      | 1090 ++++++++++++
->>  drivers/media/video/ti-media/dm644x_ccdc_regs.h |  153 ++
->>  drivers/media/video/ti-media/vpfe_capture.c     | 2067
->> +++++++++++++++++++++
->>  drivers/media/video/ti-media/vpif.c             |  296 +++
->>  drivers/media/video/ti-media/vpif.h             |  642 +++++++
->>  drivers/media/video/ti-media/vpif_capture.c     | 2168
->> +++++++++++++++++++++++
->>  drivers/media/video/ti-media/vpif_capture.h     |  165 ++
->>  drivers/media/video/ti-media/vpif_display.c     | 1654
->> +++++++++++++++++
->>  drivers/media/video/ti-media/vpif_display.h     |  175 ++
->>  drivers/media/video/ti-media/vpss.c             |  301 ++++
->>  drivers/media/video/tvp514x.c                   |   15 +
->>  include/media/davinci/ccdc_types.h              |   43 -
->>  include/media/davinci/dm355_ccdc.h              |  321 ----
->>  include/media/davinci/dm644x_ccdc.h             |  184 --
->>  include/media/davinci/vpfe_capture.h            |  200 ---
->>  include/media/davinci/vpfe_types.h              |   51 -
->>  include/media/davinci/vpss.h                    |   69 -
->>  include/media/ti-media/ccdc_types.h             |   43 +
->>  include/media/ti-media/dm355_ccdc.h             |  321 ++++
->>  include/media/ti-media/dm644x_ccdc.h            |  184 ++
->>  include/media/ti-media/vpfe_capture.h           |  202 +++
->>  include/media/ti-media/vpfe_types.h             |   51 +
->>  include/media/ti-media/vpss.h                   |   69 +
->>  46 files changed, 11207 insertions(+), 11040 deletions(-)
->>  delete mode 100644 drivers/media/video/davinci/Makefile
->>  delete mode 100644 drivers/media/video/davinci/ccdc_hw_device.h
->>  delete mode 100644 drivers/media/video/davinci/dm355_ccdc.c
->>  delete mode 100644 drivers/media/video/davinci/dm355_ccdc_regs.h
->>  delete mode 100644 drivers/media/video/davinci/dm644x_ccdc.c
->>  delete mode 100644 drivers/media/video/davinci/dm644x_ccdc_regs.h
->>  delete mode 100644 drivers/media/video/davinci/vpfe_capture.c
->>  delete mode 100644 drivers/media/video/davinci/vpif.c
->>  delete mode 100644 drivers/media/video/davinci/vpif.h
->>  delete mode 100644 drivers/media/video/davinci/vpif_capture.c
->>  delete mode 100644 drivers/media/video/davinci/vpif_capture.h
->>  delete mode 100644 drivers/media/video/davinci/vpif_display.c
->>  delete mode 100644 drivers/media/video/davinci/vpif_display.h
->>  delete mode 100644 drivers/media/video/davinci/vpss.c
->>  create mode 100644 drivers/media/video/ti-media/Kconfig
->>  create mode 100644 drivers/media/video/ti-media/Makefile
->>  create mode 100644 drivers/media/video/ti-media/ccdc_hw_device.h
->>  create mode 100644 drivers/media/video/ti-media/dm355_ccdc.c
->>  create mode 100644 drivers/media/video/ti-media/dm355_ccdc_regs.h
->>  create mode 100644 drivers/media/video/ti-media/dm644x_ccdc.c
->>  create mode 100644 drivers/media/video/ti-media/dm644x_ccdc_regs.h
->>  create mode 100644 drivers/media/video/ti-media/vpfe_capture.c
->>  create mode 100644 drivers/media/video/ti-media/vpif.c
->>  create mode 100644 drivers/media/video/ti-media/vpif.h
->>  create mode 100644 drivers/media/video/ti-media/vpif_capture.c
->>  create mode 100644 drivers/media/video/ti-media/vpif_capture.h
->>  create mode 100644 drivers/media/video/ti-media/vpif_display.c
->>  create mode 100644 drivers/media/video/ti-media/vpif_display.h
->>  create mode 100644 drivers/media/video/ti-media/vpss.c
->>  delete mode 100644 include/media/davinci/ccdc_types.h
->>  delete mode 100644 include/media/davinci/dm355_ccdc.h
->>  delete mode 100644 include/media/davinci/dm644x_ccdc.h
->>  delete mode 100644 include/media/davinci/vpfe_capture.h
->>  delete mode 100644 include/media/davinci/vpfe_types.h
->>  delete mode 100644 include/media/davinci/vpss.h
->>  create mode 100644 include/media/ti-media/ccdc_types.h
->>  create mode 100644 include/media/ti-media/dm355_ccdc.h
->>  create mode 100644 include/media/ti-media/dm644x_ccdc.h
->>  create mode 100644 include/media/ti-media/vpfe_capture.h
->>  create mode 100644 include/media/ti-media/vpfe_types.h
->>  create mode 100644 include/media/ti-media/vpss.h
->[Hiremath, Vaibhav] Hans,
->
->Since we do not have any comments on this, can we merge these patches?
->
->Thanks,
->Vaibhav
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-armv5: OK
+linux-2.6.33-rc2-armv5: OK
+linux-2.6.32-armv5-davinci: OK
+linux-2.6.33-rc2-armv5-davinci: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-armv5-ixp: OK
+linux-2.6.32-armv5-ixp: OK
+linux-2.6.33-rc2-armv5-ixp: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-armv5-omap2: OK
+linux-2.6.32-armv5-omap2: OK
+linux-2.6.33-rc2-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: ERRORS
+linux-2.6.27-i686: ERRORS
+linux-2.6.28-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30-i686: ERRORS
+linux-2.6.31-i686: ERRORS
+linux-2.6.32-i686: ERRORS
+linux-2.6.33-rc2-i686: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-m32r: OK
+linux-2.6.33-rc2-m32r: OK
+linux-2.6.30-mips: OK
+linux-2.6.31-mips: OK
+linux-2.6.32-mips: OK
+linux-2.6.33-rc2-mips: OK
+linux-2.6.30-powerpc64: ERRORS
+linux-2.6.31-powerpc64: ERRORS
+linux-2.6.32-powerpc64: ERRORS
+linux-2.6.33-rc2-powerpc64: OK
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: ERRORS
+linux-2.6.27-x86_64: ERRORS
+linux-2.6.28-x86_64: ERRORS
+linux-2.6.29.1-x86_64: ERRORS
+linux-2.6.30-x86_64: ERRORS
+linux-2.6.31-x86_64: ERRORS
+linux-2.6.32-x86_64: ERRORS
+linux-2.6.33-rc2-x86_64: OK
+spec: OK
+sparse (linux-2.6.32): ERRORS
+sparse (linux-2.6.33-rc2): ERRORS
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
