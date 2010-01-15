@@ -1,79 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.153]:11673 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754396Ab0AQS1H (ORCPT
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:33156 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753739Ab0AOPVQ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jan 2010 13:27:07 -0500
-Received: by fg-out-1718.google.com with SMTP id 22so409909fge.1
-        for <linux-media@vger.kernel.org>; Sun, 17 Jan 2010 10:27:03 -0800 (PST)
-Content-Type: multipart/mixed; boundary=----------LxuQk1UBlEnfcv9HWxFZFn
-To: "Mauro Carvalho Chehab" <mchehab@redhat.com>
-Date: Sun, 17 Jan 2010 19:26:56 +0100
-Subject: [RESEND PATCH] ir-kbd-i2c: Allow to disable Hauppauge filter through
- module parameter
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+	Fri, 15 Jan 2010 10:21:16 -0500
+Received: by bwz27 with SMTP id 27so653493bwz.21
+        for <linux-media@vger.kernel.org>; Fri, 15 Jan 2010 07:21:14 -0800 (PST)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: paul10@planar.id.au, "linux-media" <linux-media@vger.kernel.org>
+Subject: Re: DM1105: could not attach frontend 195d:1105
+Date: Fri, 15 Jan 2010 17:21:02 +0200
+References: <ea6e586942d83e4c727f335a200815a0@mail.velocitynet.com.au>
+In-Reply-To: <ea6e586942d83e4c727f335a200815a0@mail.velocitynet.com.au>
 MIME-Version: 1.0
-From: "Samuel Rakitnican" <samuel.rakitnican@gmail.com>
-Message-ID: <op.u6ov64og6dn9rq@denis-laptop.lan>
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <201001151721.02778.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-------------LxuQk1UBlEnfcv9HWxFZFn
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-Content-Transfer-Encoding: 8bit
+On 15 января 2010 11:15:26 paul10@planar.id.au wrote:
+> I bought a DVB-S card to attach to my mythtv setup.  I knew it was perhaps
+> not going to work, and I only spent $15 on it.  However, based on the info
+> the guy on eBay provided, it had a pci address of 195d:1105, which I could
+> see some people had cards that were working.
+>
+> The card itself is a no-name jobby.  I can see the DM1105 chip on it, I
+> can't see any other chips with any significant pin count (lots with 3 - 8
+> pins, but nothing with enough to be important).  There is a metal case
+> around the connectors that might be hiding a frontend chip of some sort,
+> but it doesn't seem to have enough connectors in and out to be doing much
+> that is important beyond just providing connectivity to the LNB.
+>
+> I've got the latest kernel (2.6.33-rc4) and I've checked the code and it
+> looks like the latest DM1105 code.  When booting I get:
+>
+> [    9.766188] dm1105 0000:06:00.0: PCI INT A -> GSI 20 (level, low) ->
+> IRQ 20
+> [   10.047331] dm1105 0000:06:00.0: MAC 00:00:00:00:00:00
+> [   12.464628] dm1105 0000:06:00.0: could not attach frontend
+> [   12.479830] dm1105 0000:06:00.0: PCI INT A disabled
+>
+> With lspci -vv I get:
+> 06:00.0 Ethernet controller: Device 195d:1105 (rev 10)
+>         Subsystem: Device 195d:1105
+>         Control: I/O+ Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop-
+> ParErr- Stepping- SERR- FastB2B- DisINTx-
+>         Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort-
+> <TAbort- <MAbort- >SERR- <PERR- INTx-
+>         Interrupt: pin A routed to IRQ 20
+>         Region 0: I/O ports at b000 [size=256]
+>
+> No DVB devices are created.
+>
+> I see from other people using a card with this chipset that there probably
+> would be a tuner/frontend as well as the DM1105. I've also tried card=5 in
+> the insmod parameters.
+>
+> It seems to me that the card probably has a tuner/frontend on id different
+> from the Axess board, but I'm not sure how I'd work out what that is.  Is
+> it possible that it doesn't have any chips on it other than the DM1105?
+> Should I take the board apart a bit to find out?
+>
+> Thanks,
+>
+> Paul
+>
+Hi Paul,
 
-Some Hauppauge devices have id=0 so such devices won't work.
-For such devices add a module parameter that allow to turn
-off filtering.
+Frontend/tuner must lay under cover.
+Subsystem: Device 195d:1105 indicates that there is no EEPROM in card.
+If you send some links/pictures/photos then it would helped a lot.
+Is there a disk with drivers for Windows?
+Also I know about dm1105 based cards with tda10086 demod, those are not supported in the driver 
+yet.
 
-Signed-off-by: Samuel Rakitničan <semiRocket@gmail.com>
+BR
+Igor
 -- 
-Lorem ipsum
-------------LxuQk1UBlEnfcv9HWxFZFn
-Content-Disposition: attachment; filename=wintv-radio-ir.diff
-Content-Type: application/octet-stream; name=wintv-radio-ir.diff
-Content-Transfer-Encoding: Base64
-
-ZGlmZiAtciA4MmJiYjNiZDBmMGEgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9p
-ci1rYmQtaTJjLmMKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9pci1r
-YmQtaTJjLmMJTW9uIEphbiAxMSAxMTo0NzozMyAyMDEwIC0wMjAwCisrKyBiL2xp
-bnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vaXIta2JkLWkyYy5jCVNhdCBKYW4gMTYg
-MTY6Mzk6MTQgMjAxMCArMDEwMApAQCAtNjEsNiArNjEsMTAgQEAKIG1vZHVsZV9w
-YXJhbShoYXVwcGF1Z2UsIGludCwgMDY0NCk7ICAgIC8qIENob29zZSBIYXVwcGF1
-Z2UgcmVtb3RlICovCiBNT0RVTEVfUEFSTV9ERVNDKGhhdXBwYXVnZSwgIlNwZWNp
-ZnkgSGF1cHBhdWdlIHJlbW90ZTogMD1ibGFjaywgMT1ncmV5IChkZWZhdWx0cyB0
-byAwKSIpOwogCitzdGF0aWMgaW50IGhhdXBfZmlsdGVyID0gMTsKK21vZHVsZV9w
-YXJhbShoYXVwX2ZpbHRlciwgaW50LCAwNjQ0KTsKK01PRFVMRV9QQVJNX0RFU0Mo
-aGF1cF9maWx0ZXIsICJIYXVwcGF1Z2UgZmlsdGVyIGZvciBvdGhlciByZW1vdGVz
-LCBkZWZhdWx0IGlzIDEgKE9uKSIpOworCiAKICNkZWZpbmUgREVWTkFNRSAiaXIt
-a2JkLWkyYyIKICNkZWZpbmUgZHByaW50ayhsZXZlbCwgZm10LCBhcmcuLi4pCWlm
-IChkZWJ1ZyA+PSBsZXZlbCkgXApAQCAtOTYsMjQgKzEwMCwyNyBAQAogCWlmICgh
-c3RhcnQpCiAJCS8qIG5vIGtleSBwcmVzc2VkICovCiAJCXJldHVybiAwOwotCS8q
-Ci0JICogSGF1cHBhdWdlIHJlbW90ZXMgKGJsYWNrL3NpbHZlcikgYWx3YXlzIHVz
-ZQotCSAqIHNwZWNpZmljIGRldmljZSBpZHMuIElmIHdlIGRvIG5vdCBmaWx0ZXIg
-dGhlCi0JICogZGV2aWNlIGlkcyB0aGVuIG1lc3NhZ2VzIGRlc3RpbmVkIGZvciBk
-ZXZpY2VzCi0JICogc3VjaCBhcyBUVnMgKGlkPTApIHdpbGwgZ2V0IHRocm91Z2gg
-Y2F1c2luZwotCSAqIG1pcy1maXJlZCBldmVudHMuCi0JICoKLQkgKiBXZSBhbHNv
-IGZpbHRlciBvdXQgaW52YWxpZCBrZXkgcHJlc3NlcyB3aGljaAotCSAqIHByb2R1
-Y2UgYW5ub3lpbmcgZGVidWcgbG9nIGVudHJpZXMuCi0JICovCi0JaXJjb2RlPSAo
-c3RhcnQgPDwgMTIpIHwgKHRvZ2dsZSA8PCAxMSkgfCAoZGV2IDw8IDYpIHwgY29k
-ZTsKLQlpZiAoKGlyY29kZSAmIDB4MWZmZik9PTB4MWZmZikKLQkJLyogaW52YWxp
-ZCBrZXkgcHJlc3MgKi8KLQkJcmV0dXJuIDA7CiAKLQlpZiAoZGV2IT0weDFlICYm
-IGRldiE9MHgxZikKLQkJLyogbm90IGEgaGF1cHBhdWdlIHJlbW90ZSAqLwotCQly
-ZXR1cm4gMDsKKwlpZiAoaGF1cF9maWx0ZXIgIT0gMCkgeworCQkvKgorCQkgKiBI
-YXVwcGF1Z2UgcmVtb3RlcyAoYmxhY2svc2lsdmVyKSBhbHdheXMgdXNlCisJCSAq
-IHNwZWNpZmljIGRldmljZSBpZHMuIElmIHdlIGRvIG5vdCBmaWx0ZXIgdGhlCisJ
-CSAqIGRldmljZSBpZHMgdGhlbiBtZXNzYWdlcyBkZXN0aW5lZCBmb3IgZGV2aWNl
-cworCQkgKiBzdWNoIGFzIFRWcyAoaWQ9MCkgd2lsbCBnZXQgdGhyb3VnaCBjYXVz
-aW5nCisJCSAqIG1pcy1maXJlZCBldmVudHMuCisJCSAqCisJCSAqIFdlIGFsc28g
-ZmlsdGVyIG91dCBpbnZhbGlkIGtleSBwcmVzc2VzIHdoaWNoCisJCSAqIHByb2R1
-Y2UgYW5ub3lpbmcgZGVidWcgbG9nIGVudHJpZXMuCisJCSAqLworCQlpcmNvZGUg
-PSAoc3RhcnQgPDwgMTIpIHwgKHRvZ2dsZSA8PCAxMSkgfCAoZGV2IDw8IDYpIHwg
-Y29kZTsKKwkJaWYgKChpcmNvZGUgJiAweDFmZmYpID09IDB4MWZmZikKKwkJCS8q
-IGludmFsaWQga2V5IHByZXNzICovCisJCQlyZXR1cm4gMDsKKworCQlpZiAoZGV2
-ICE9IDB4MWUgJiYgZGV2ICE9IDB4MWYpCisJCQkvKiBub3QgYSBoYXVwcGF1Z2Ug
-cmVtb3RlICovCisJCQlyZXR1cm4gMDsKKwl9CiAKIAlpZiAoIXJhbmdlKQogCQlj
-b2RlICs9IDY0Owo=
-
-------------LxuQk1UBlEnfcv9HWxFZFn--
-
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
