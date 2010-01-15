@@ -1,43 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:11883 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751239Ab0A2RGz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jan 2010 12:06:55 -0500
-Message-ID: <4B63159D.9090708@redhat.com>
-Date: Fri, 29 Jan 2010 15:06:37 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from ms01.sssup.it ([193.205.80.99]:47877 "EHLO sssup.it"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752283Ab0AOIid (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jan 2010 03:38:33 -0500
+Message-ID: <4B502982.4050508@panicking.kicks-ass.org>
+Date: Fri, 15 Jan 2010 09:38:26 +0100
+From: Michael Trimarchi <michael@panicking.kicks-ass.org>
 MIME-Version: 1.0
-To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] uvcvideo: check minimum border of control
-References: <4B5F60B0.7090709@freemail.hu> <4B63083C.5020909@redhat.com> <4B6314C6.80503@freemail.hu>
-In-Reply-To: <4B6314C6.80503@freemail.hu>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: omap34xxcam question?
+References: <4B4F0762.4040007@panicking.kicks-ass.org> <A24693684029E5489D1D202277BE894451538FFB@dlee02.ent.ti.com> <4B4F537B.7000708@panicking.kicks-ass.org> <A24693684029E5489D1D202277BE894451539065@dlee02.ent.ti.com> <4B4F56C8.7060108@panicking.kicks-ass.org> <A24693684029E5489D1D202277BE894451539623@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE894451539623@dlee02.ent.ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Németh Márton wrote:
-> Mauro Carvalho Chehab wrote:
->> Németh Márton wrote:
->>> Check also the minimum border of a value before setting it
->>> to a control value.
->>>
->>> See also http://bugzilla.kernel.org/show_bug.cgi?id=12824 .
->> Patch didn't apply. Had you generated against our -git tree?
->> 	http://git.linuxtv.org/v4l-dvb.git
+Aguirre, Sergio wrote:
 > 
-> No, this is against http://git.linuxtv.org/pinchartl/uvcvideo.git .
-> The latest patch which tried to fix http://bugzilla.kernel.org/show_bug.cgi?id=12824
-> missed to check the minimum border.
+>> -----Original Message-----
+>> From: Michael Trimarchi [mailto:michael@panicking.kicks-ass.org]
+>> Sent: Thursday, January 14, 2010 11:39 AM
+>> To: Aguirre, Sergio
+>> Cc: linux-media@vger.kernel.org
+>> Subject: Re: omap34xxcam question?
+>>
+>> Aguirre, Sergio wrote:
+>>>> -----Original Message-----
+>>>> From: Michael Trimarchi [mailto:michael@panicking.kicks-ass.org]
+>>>> Sent: Thursday, January 14, 2010 11:25 AM
+>>>> To: Aguirre, Sergio
+>>>> Cc: linux-media@vger.kernel.org
+>>>> Subject: Re: omap34xxcam question?
+>>>>
+>>>> Hi,
+>>>>
+>>>> Aguirre, Sergio wrote:
+>>>>>> -----Original Message-----
+>>>>>> From: Michael Trimarchi [mailto:michael@panicking.kicks-ass.org]
+>>>>>> Sent: Thursday, January 14, 2010 6:01 AM
+>>>>>> To: linux-media@vger.kernel.org
+>>>>>> Cc: Aguirre, Sergio
+>>>>>> Subject: omap34xxcam question?
+>>>>>>
+>>>>>> Hi
+>>>>>>
+>>>>>> Is ok that it try only the first format and size? why does it not
+>>>> continue
+>>>>>> and find a matching?
+>>>>> Actually, that was the intention, but I guess it was badly
+>> implemented.
+>>>>> Thanks for the catch, and the contribution!
+>>>>>
+>>>>> Regards,
+>>>>> Sergio
+>>>>>> @@ -470,7 +471,7 @@ static int try_pix_parm(struct
+>> omap34xxcam_videodev
+>>>>>> *vdev,
+>>>>>>                         pix_tmp_out = *wanted_pix_out;
+>>>>>>                         rval = isp_try_fmt_cap(isp, &pix_tmp_in,
+>>>>>> &pix_tmp_out);
+>>>>>>                         if (rval)
+>>>>>> -                               return rval;
+>>>>>> +                               continue;
+>>>>>>
+>>>> Is the patch good? or you are going to provide a better fix
+>>> Yes. Sorry if I wasn't clear enough.
+>>>
+>>> Looks good to me, and I don't have a better fix on top of my head for
+>> the moment...
+>>> I'm assuming you tested it in your environment, right?
+>> Ok, my enviroment is not pretty stable but for sure this is required.
+>> There is one problem:
+>>
+>> Suppose that the camera support this format:
+>>
+>> YUV and RAW10
+>>
+>> The video4linux enumeration is done in this order.
+>> We know that if you want to use resizer and previewer we can't use the YUV
+>> (go straight to memory)
+>> but it is selected because is the first. So maybe the best thing is to
+>> find the one that is suggest in the csi
+>> configuration first. Hope that is clear.
+> 
+> Hmm.. I see.
+> 
+> So, if I got you right, you're saying that, there should be priorities for sensor baseformats, depending on the preference specified somewhere in the boardfile?
 
-Ah, ok. Please specify on the subject when you're writing patches against
-a different tree. This helps me to tag accordingly at Patchwork, 
-saving me some time.
+Yes, that is the idea. Try to provide a better patch later, I'm working hard on the sensor part :)
+
+Michael
+
 > 
 > Regards,
+> Sergio
+>> Michael
+>>
+>>> If yes, then I'll take the patch in my queue for submission to Sakari's
+>> tree.
+>>> Thanks for your time.
+>>>
+>>> Regards,
+>>> Sergio
+>>>
+>>>> Michael
+>>>>
+>>>>>> Michael
+>>>>> --
+>>>>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>>>> in
+>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>> in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
 > 
-> 	Márton Németh
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
->>> Signed-off-by: Márton Németh <nm127@freemail.hu>
+
