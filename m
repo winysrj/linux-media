@@ -1,60 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:54032 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753525Ab0APSuN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jan 2010 13:50:13 -0500
-Subject: Re: [PATCH] disable building cx23885 before 2.6.33
-From: Andy Walls <awalls@radix.net>
-To: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <4B51E313.4060102@freemail.hu>
-References: <201001141910.o0EJARf7029441@smtp-vbr14.xs4all.nl>
-	 <4B4F7D14.7080806@freemail.hu>
-	 <201001150236.25297.laurent.pinchart@ideasonboard.com>
-	 <4B51E313.4060102@freemail.hu>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 16 Jan 2010 13:49:24 -0500
-Message-Id: <1263667764.1704.2.camel@localhost>
-Mime-Version: 1.0
+Received: from webmail.velocitynet.com.au ([203.17.154.21]:52327 "EHLO
+	webmail2.velocitynet.com.au" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756788Ab0AOJZh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jan 2010 04:25:37 -0500
+Received: from webmail.velocity.net.au (localhost [127.0.0.1])
+	by webmail2.velocitynet.com.au (Postfix) with ESMTP id E6848366C6
+	for <linux-media@vger.kernel.org>; Fri, 15 Jan 2010 09:15:26 +0000 (UTC)
+MIME-Version: 1.0
+Date: Fri, 15 Jan 2010 09:15:26 +0000
+From: <paul10@planar.id.au>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: DM1105: could not attach frontend 195d:1105
+Message-ID: <ea6e586942d83e4c727f335a200815a0@mail.velocitynet.com.au>
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2010-01-16 at 17:02 +0100, Németh Márton wrote:
-> From: Márton Németh <nm127@freemail.hu>
-> 
-> The cx23885 driver does not compile before Linux kernel 2.6.33 because of
-> incompatible fifo API changes. Disable this driver being built before
-> 2.6.33.
-> 
-> Signed-off-by: Márton Németh <nm127@freemail.hu>
+I bought a DVB-S card to attach to my mythtv setup.  I knew it was perhaps
+not going to work, and I only spent $15 on it.  However, based on the info
+the guy on eBay provided, it had a pci address of 195d:1105, which I could
+see some people had cards that were working.
 
-Nak.
+The card itself is a no-name jobby.  I can see the DM1105 chip on it, I
+can't see any other chips with any significant pin count (lots with 3 - 8
+pins, but nothing with enough to be important).  There is a metal case
+around the connectors that might be hiding a frontend chip of some sort,
+but it doesn't seem to have enough connectors in and out to be doing much
+that is important beyond just providing connectivity to the LNB.
 
-1. You forgot meye - it's broken as well in the same way.
-2. Douglas has issuesd a PULL request for a back port fix that will
-resolve the issue.
+I've got the latest kernel (2.6.33-rc4) and I've checked the code and it
+looks like the latest DM1105 code.  When booting I get:
 
-Regards,
-Andy
+[    9.766188] dm1105 0000:06:00.0: PCI INT A -> GSI 20 (level, low) ->
+IRQ 20
+[   10.047331] dm1105 0000:06:00.0: MAC 00:00:00:00:00:00
+[   12.464628] dm1105 0000:06:00.0: could not attach frontend
+[   12.479830] dm1105 0000:06:00.0: PCI INT A disabled
 
-> ---
-> diff -r 5bcdcc072b6d v4l/versions.txt
-> --- a/v4l/versions.txt	Sat Jan 16 07:25:43 2010 +0100
-> +++ b/v4l/versions.txt	Sat Jan 16 16:56:28 2010 +0100
-> @@ -1,6 +1,10 @@
->  # Use this for stuff for drivers that don't compile
->  [2.6.99]
-> 
-> +[2.6.33]
-> +# Incompatible fifo API changes, see <linux/kfifo.h>
-> +VIDEO_CX23885
-> +
->  [2.6.32]
->  # These rely on arch support that wasn't available until 2.6.32
->  VIDEO_SH_MOBILE_CEU
-> 
+With lspci -vv I get:
+06:00.0 Ethernet controller: Device 195d:1105 (rev 10)
+        Subsystem: Device 195d:1105
+        Control: I/O+ Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop-
+ParErr- Stepping- SERR- FastB2B- DisINTx-
+        Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort-
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+        Interrupt: pin A routed to IRQ 20
+        Region 0: I/O ports at b000 [size=256]
 
+No DVB devices are created.
+
+I see from other people using a card with this chipset that there probably
+would be a tuner/frontend as well as the DM1105. I've also tried card=5 in
+the insmod parameters.
+
+It seems to me that the card probably has a tuner/frontend on id different
+from the Axess board, but I'm not sure how I'd work out what that is.  Is
+it possible that it doesn't have any chips on it other than the DM1105? 
+Should I take the board apart a bit to find out?
+
+Thanks,
+
+Paul
 
