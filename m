@@ -1,50 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail02a.mail.t-online.hu ([84.2.40.7]:64934 "EHLO
-	mail02a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751350Ab0AJQ7I (ORCPT
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:62133 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754917Ab0APP7V convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jan 2010 11:59:08 -0500
-Message-ID: <4B4A0752.6030306@freemail.hu>
-Date: Sun, 10 Jan 2010 17:58:58 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+	Sat, 16 Jan 2010 10:59:21 -0500
+Received: by bwz27 with SMTP id 27so1246352bwz.21
+        for <linux-media@vger.kernel.org>; Sat, 16 Jan 2010 07:59:20 -0800 (PST)
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: gspca_pac7302: sporatdic problem when plugging the device
+In-Reply-To: <1262869311.16785.5.camel@benoit-desktop>
+References: <1262869311.16785.5.camel@benoit-desktop>
+Date: Sat, 16 Jan 2010 16:59:20 +0100
+Message-ID: <19a3b7a81001160759y682389f2v21f2742678e4f3cc@mail.gmail.com>
+Subject: Re: New init DVB-T file for fr-Saint-Jorioz-1 (Saint-Germain /
+	Talloire)]
+From: Christoph Pfister <christophpfister@gmail.com>
+To: =?UTF-8?Q?Beno=C3=AEt_Pourre?= <benoit.pourre@gmail.com>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi,
 
-I have sporadic problem with Labtec Webcam 2200 (0x093a:0x2626). I'm using
-gspca_pac7302 driver from http://linuxtv.org/hg/~jfrancois/gspca/
-rev 13915 on top of Linux kernel 2.6.32.
+2010/1/7 Benoît Pourre <benoit.pourre@gmail.com>:
+> Hello,
+>
+> Here is my complete init dvb file for the new location fr-Saint-Jorioz-1
+> (Saint-Germain / Talloire).
+>
+> Best regards.
+>
+> Benoît
 
-I executed the following command in an xterm window:
-$ while true; do ./svv; done
+> T       -10 8MHz AUTO NONE    QAM64   8k 1/32 NONE
 
-Then I plugged and unplugged the device 16 times. When I last plugged the
-device I get the following error in the dmesg:
+^ this is nonsense (not your fault)
 
-[32393.421313] gspca: probing 093a:2626
-[32393.426193] gspca: video0 created
-[32393.426958] gspca: probing 093a:2626
-[32393.426968] gspca: Interface class 1 not handled here
-[32394.005917] pac7302: reg_w_page(): Failed to write register to index 0x49, value 0x0, error -71
-[32394.067799] gspca: set alt 8 err -71
-[32394.090792] gspca: set alt 8 err -71
-[32394.118159] gspca: set alt 8 err -71
+> T 490000000 8MHz AUTO AUTO     AUTO AUTO AUTO AUTO	# F
+> T 514000000 8MHz AUTO AUTO     AUTO AUTO AUTO AUTO	# F
+> T 538000000 8MHz AUTO AUTO     AUTO AUTO AUTO AUTO	# F
+> T 714000000 8MHz AUTO AUTO     AUTO AUTO AUTO AUTO	# F
+> T 738000000 8MHz AUTO AUTO     AUTO AUTO AUTO AUTO
 
-The 17th plug was working correctly again. I executed this test on an EeePC 901.
+^ transponders with all values set to AUTO are not very useful, sorry
+(people using this file might as well use auto scan)
 
-This driver version contains the msleep(4) in the reg_w_buf(). However, here
-the reg_w_page() fails, which does not have msleep() inside. I don't know what
-is the real problem, but I am afraid that slowing down reg_w_page() would make
-the time longer when the device can be used starting from the event when it is
-plugged.
-
-Regards,
-
-	Márton Németh
+Christoph
