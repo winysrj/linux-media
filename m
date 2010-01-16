@@ -1,67 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail02a.mail.t-online.hu ([84.2.40.7]:65292 "EHLO
-	mail02a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756693Ab0ANUWt (ORCPT
+Received: from mail02d.mail.t-online.hu ([84.2.42.7]:57549 "EHLO
+	mail02d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752124Ab0APQlr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jan 2010 15:22:49 -0500
-Message-ID: <4B4F7D14.7080806@freemail.hu>
-Date: Thu, 14 Jan 2010 21:22:44 +0100
+	Sat, 16 Jan 2010 11:41:47 -0500
+Message-ID: <4B51EC47.8090702@freemail.hu>
+Date: Sat, 16 Jan 2010 17:41:43 +0100
 From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21:
- ERRORS
-References: <201001141910.o0EJARf7029441@smtp-vbr14.xs4all.nl>
-In-Reply-To: <201001141910.o0EJARf7029441@smtp-vbr14.xs4all.nl>
+To: "Igor M. Liplianin" <liplianin@netup.ru>
+CC: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] stv0900: make more local functions static
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
-> Detailed results are available here:
-> 
-> http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+From: Márton Németh <nm127@freemail.hu>
 
-> linux-2.6.32-i686: ERRORS
->
-> /marune/build/v4l-dvb-master/v4l/cx23888-ir.c: In function 'cx23888_ir_irq_handler':  CC [M]  /marune/build/v4l-dvb-master/v4l/cx23885-f300.o
->
-> /marune/build/v4l-dvb-master/v4l/cx23888-ir.c:621: error: implicit declaration of function 'kfifo_in_locked'
-> /marune/build/v4l-dvb-master/v4l/cx23888-ir.c: In function 'cx23888_ir_rx_read':
-> /marune/build/v4l-dvb-master/v4l/cx23888-ir.c:688: error: implicit declaration of function 'kfifo_out_locked'
-> /marune/build/v4l-dvb-master/v4l/cx23888-ir.c: In function 'cx23888_ir_probe':
-> /marune/build/v4l-dvb-master/v4l/cx23888-ir.c:1243: warning: passing argument 1 of 'kfifo_alloc' makes integer from pointer without a cast
-> include/linux/kfifo.h:37: note: expected 'unsigned int' but argument is of type 'struct kfifo *'
-> /marune/build/v4l-dvb-master/v4l/cx23888-ir.c:1243: warning: passing argument 3 of 'kfifo_alloc' makes pointer from integer without a cast
-> include/linux/kfifo.h:37: note: expected 'struct spinlock_t *' but argument is of type 'unsigned int'
-> make[3]: *** [/marune/build/v4l-dvb-master/v4l/cx23888-ir.o] Error 1
-> make[3]: *** Waiting for unfinished jobs....
-> make[2]: *** [_module_/marune/build/v4l-dvb-master/v4l] Error 2
-> make[2]: Leaving directory `/marune/build/trees/i686/linux-2.6.32'
-> make[1]: *** [default] Error 2
-> make[1]: Leaving directory `/marune/build/v4l-dvb-master/v4l'
-> make: *** [all] Error 2
+Some functions are only used locally so mark them static.
 
-As I can see in the include/linux/kfifo.h ( http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=history;f=include/linux/kfifo.h )
-there is renaming of
- - kfifo_put into kfifo_in_locked
- - kfifo_get into kfifo_out_locked
+This will remove the following sparse warnings (see "make C=1"):
+ * symbol 'extract_mask_pos' was not declared. Should it be static?
+ * symbol 'stv0900_initialize' was not declared. Should it be static?
+ * symbol 'stv0900_get_mclk_freq' was not declared. Should it be static?
+ * symbol 'stv0900_set_mclk' was not declared. Should it be static?
+ * symbol 'stv0900_get_err_count' was not declared. Should it be static?
 
-Possible solutions would be:
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+diff -r 5bcdcc072b6d linux/drivers/media/dvb/frontends/stv0900_core.c
+--- a/linux/drivers/media/dvb/frontends/stv0900_core.c	Sat Jan 16 07:25:43 2010 +0100
++++ b/linux/drivers/media/dvb/frontends/stv0900_core.c	Sat Jan 16 17:37:59 2010 +0100
+@@ -177,7 +177,7 @@
+ 	return buf;
+ }
 
- a) disable the compiling of cx23888-ir.c before 2.6.33
+-void extract_mask_pos(u32 label, u8 *mask, u8 *pos)
++static void extract_mask_pos(u32 label, u8 *mask, u8 *pos)
+ {
+ 	u8 position = 0, i = 0;
 
- b) adding something like this to v4l/compat.h:
+@@ -218,7 +218,7 @@
+ 	return val;
+ }
 
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 33)
-#define kfifo_in_locked kfifo_put
-#define kfifo_out_locked kfifo_get
-#endif
+-enum fe_stv0900_error stv0900_initialize(struct stv0900_internal *intp)
++static enum fe_stv0900_error stv0900_initialize(struct stv0900_internal *intp)
+ {
+ 	s32 i;
 
-What do you think the best way would be?
+@@ -282,7 +282,7 @@
+ 	return STV0900_NO_ERROR;
+ }
 
-Regards,
+-u32 stv0900_get_mclk_freq(struct stv0900_internal *intp, u32 ext_clk)
++static u32 stv0900_get_mclk_freq(struct stv0900_internal *intp, u32 ext_clk)
+ {
+ 	u32 mclk = 90000000, div = 0, ad_div = 0;
 
-	Márton Németh
+@@ -296,7 +296,7 @@
+ 	return mclk;
+ }
+
+-enum fe_stv0900_error stv0900_set_mclk(struct stv0900_internal *intp, u32 mclk)
++static enum fe_stv0900_error stv0900_set_mclk(struct stv0900_internal *intp, u32 mclk)
+ {
+ 	u32 m_div, clk_sel;
+
+@@ -334,7 +334,7 @@
+ 	return STV0900_NO_ERROR;
+ }
+
+-u32 stv0900_get_err_count(struct stv0900_internal *intp, int cntr,
++static u32 stv0900_get_err_count(struct stv0900_internal *intp, int cntr,
+ 					enum fe_stv0900_demod_num demod)
+ {
+ 	u32 lsb, msb, hsb, err_val;
