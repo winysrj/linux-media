@@ -1,52 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:61771 "EHLO znsun1.ifh.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754036Ab0ASLxF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jan 2010 06:53:05 -0500
-Date: Tue, 19 Jan 2010 12:52:49 +0100 (CET)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Douglas Landgraf <dougsland@gmail.com>
-Subject: Re: [ANNOUNCE] git tree repositories
-In-Reply-To: <829197381001190204l3df81904gf8586f36187f212d@mail.gmail.com>
-Message-ID: <alpine.LRH.2.00.1001191249420.15376@pub3.ifh.de>
-References: <4B55445A.10300@infradead.org> <829197381001190204l3df81904gf8586f36187f212d@mail.gmail.com>
+Received: from mail01d.mail.t-online.hu ([84.2.42.6]:62691 "EHLO
+	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755537Ab0APQCf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Jan 2010 11:02:35 -0500
+Message-ID: <4B51E313.4060102@freemail.hu>
+Date: Sat, 16 Jan 2010 17:02:27 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>, Andy Walls <awalls@radix.net>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] disable building cx23885 before 2.6.33
+References: <201001141910.o0EJARf7029441@smtp-vbr14.xs4all.nl> <4B4F7D14.7080806@freemail.hu> <201001150236.25297.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201001150236.25297.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Devin,
+From: Márton Németh <nm127@freemail.hu>
 
-On Tue, 19 Jan 2010, Devin Heitmueller wrote:
-> [..]
->
-> I want to focus my development on v4l-dvb.  That said, I want a stable
-> codebase on which I can write v4l-dvb drivers, without having to worry
-> about whether or not my wireless driver is screwed up this week, or
-> whether the ALSA guys broke my audio support for the fifth time in two
-> years.  I don't want to wonder whether the crash I just experienced is
-> because they've replaced the scheduler yet again and they're still
-> shaking the bugs out.  I don't want to be at the mercy of whatever ABI
-> changes they're doing this week which break my Nvidia card (and while
-> I recognize as open source developers we care very little about
-> "closed source drivers", we shouldn't really find it surprising that
-> many developers who are rendering HD video might be using Nvidia
-> cards).
+The cx23885 driver does not compile before Linux kernel 2.6.33 because of
+incompatible fifo API changes. Disable this driver being built before
+2.6.33.
 
-I agree with Devin. We can't lose and off-tree build system like we have 
-it today in v4l-dvb.
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+diff -r 5bcdcc072b6d v4l/versions.txt
+--- a/v4l/versions.txt	Sat Jan 16 07:25:43 2010 +0100
++++ b/v4l/versions.txt	Sat Jan 16 16:56:28 2010 +0100
+@@ -1,6 +1,10 @@
+ # Use this for stuff for drivers that don't compile
+ [2.6.99]
 
-What I suggested in my first Email was to put the build system outside the 
-v4l-dvb into another repo (e.g. 'v4l-dvb-build') and then telling it to 
-make links from the linux-v4l-dvb/ clone.
++[2.6.33]
++# Incompatible fifo API changes, see <linux/kfifo.h>
++VIDEO_CX23885
++
+ [2.6.32]
+ # These rely on arch support that wasn't available until 2.6.32
+ VIDEO_SH_MOBILE_CEU
 
-I'm not sure what needs to be done for the backward-compat with #if
-KERNEL_VERSION ... But I'm sure we can find a solution for that.
-
---
-
-Patrick Boettcher - Kernel Labs
-http://www.kernellabs.com/
