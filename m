@@ -1,48 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from jordan.toaster.net ([69.36.241.228]:3197 "EHLO
-	jordan.toaster.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755445Ab0AEUIL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jan 2010 15:08:11 -0500
-Message-ID: <4B439BA6.3010609@toaster.net>
-Date: Tue, 05 Jan 2010 12:05:58 -0800
-From: Sean <knife@toaster.net>
+Received: from mis07.de ([93.186.196.80]:50539 "EHLO mis07.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753356Ab0APUEd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Jan 2010 15:04:33 -0500
+Message-ID: <6FC529251E9949CC9F6C4D99D6B55F46@pcvirus>
+From: "rath" <mailings@hardware-datenbank.de>
+To: "Jean-Francois Moine" <moinejf@free.fr>
+Cc: <linux-media@vger.kernel.org>
+References: <3A9AF82CE14046A794C61D83B70F62BB@pcvirus> <20100116191401.5296db70@tele>
+Subject: Re: camera with high framerate
+Date: Sat, 16 Jan 2010 21:03:24 +0100
 MIME-Version: 1.0
-To: Alan Stern <stern@rowland.harvard.edu>
-CC: Andrew Morton <akpm@linux-foundation.org>,
-	bugzilla-daemon@bugzilla.kernel.org, linux-media@vger.kernel.org,
-	USB list <linux-usb@vger.kernel.org>,
-	Ingo Molnar <mingo@elte.hu>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	"H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [Bugme-new] [Bug 14564] New: capture-example sleeping function
- called from invalid context at arch/x86/mm/fault.c
-References: <Pine.LNX.4.44L0.1001051003080.3002-100000@iolanthe.rowland.org>
-In-Reply-To: <Pine.LNX.4.44L0.1001051003080.3002-100000@iolanthe.rowland.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	format=flowed;
+	charset="UTF-8";
+	reply-type=original
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Alan Stern wrote:
-> On Mon, 4 Jan 2010, Sean wrote:
->
->   
->> Alan Stern wrote:
->>     
->>> Um, when you say it does the job, what do you mean?
->>>       
->> It traps the error and prevents the kernel from crashing.
->>     
->
-> As did some of the earlier patches, right?
->
->   
-Yes, but this one is good because it works without a debug kernel.
-> Still, at this point I'm not sure it's worthwhile to pursue this any
-> farther.  I'm convinced it's a hardware problem.  Do you want to 
-> continue, or are you happy to switch computers and forget about it?
->   
-Thanks so much for your help Alan. I also think this is definitely a bug 
-in the hardware. Let's leave it at that, I'm happy.
+Okay, are there some other cameras avaiable with 160x120 pixels or output in 
+rgb? I only have an ARM Cortex-A8 with 500MHz to process the image data and 
+converting between different pixelformats take a long time. So it would be 
+fine if a resolution of 160x120 pixels is supported or the output is in rgb.
 
-Sean
+----- Original Message ----- 
+From: "Jean-Francois Moine" <moinejf@free.fr>
+To: "rath" <mailings@hardware-datenbank.de>
+Cc: <linux-media@vger.kernel.org>
+Sent: Saturday, January 16, 2010 7:14 PM
+Subject: Re: camera with high framerate
+
+
+On Sat, 16 Jan 2010 18:33:54 +0100
+"rath" <mailings@hardware-datenbank.de> wrote:
+
+> I'm searching a v4l supported webcam with a framerate higher than
+> 30fps. I found the Playstation Eye and it seems to have a framerate
+> of up to 120fps @320x240 pixels.
+> Does this camera support a resolution of 160x120 pixels? How are the
+> images transfered over usb (jpeg, rgb, yuv)?
+
+Hi Joern,
+
+The resolutions are only 640x480 and 320x240. The images are transfered
+in YUYV (16 bits YUV 4:2:2).
+
+Regards.
+
+-- 
+Ken ar c'hentañ |       ** Breizh ha Linux atav! **
+Jef | http://moinejf.free.fr/
+
