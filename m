@@ -1,40 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225]:44388 "EHLO
-	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753593Ab0AJRUz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jan 2010 12:20:55 -0500
-Received: by fxm25 with SMTP id 25so157238fxm.21
-        for <linux-media@vger.kernel.org>; Sun, 10 Jan 2010 09:20:52 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1263109783.15453.42.camel@localhost>
-References: <829197381001091752v239d3514l32969da7e559cf97@mail.gmail.com>
-	 <1263109783.15453.42.camel@localhost>
-Date: Sun, 10 Jan 2010 12:20:52 -0500
-Message-ID: <829197381001100920h74c40432qd67a31aa60de2663@mail.gmail.com>
-Subject: Re: Regression - OOPS when connecting devices with IR support
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Francesco Lavra <francescolavra@interfree.it>
-Cc: Linux media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail1.radix.net ([207.192.128.31]:54032 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753525Ab0APSuN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Jan 2010 13:50:13 -0500
+Subject: Re: [PATCH] disable building cx23885 before 2.6.33
+From: Andy Walls <awalls@radix.net>
+To: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <4B51E313.4060102@freemail.hu>
+References: <201001141910.o0EJARf7029441@smtp-vbr14.xs4all.nl>
+	 <4B4F7D14.7080806@freemail.hu>
+	 <201001150236.25297.laurent.pinchart@ideasonboard.com>
+	 <4B51E313.4060102@freemail.hu>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 16 Jan 2010 13:49:24 -0500
+Message-Id: <1263667764.1704.2.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jan 10, 2010 at 2:49 AM, Francesco Lavra
-<francescolavra@interfree.it> wrote:
-> Yes, the IR core is broken, a patch has been submitted by myself some
-> time ago (http://patchwork.kernel.org/patch/70126/), but hasn't made it
-> to v4l-dvb yet.
+On Sat, 2010-01-16 at 17:02 +0100, Németh Márton wrote:
+> From: Márton Németh <nm127@freemail.hu>
+> 
+> The cx23885 driver does not compile before Linux kernel 2.6.33 because of
+> incompatible fifo API changes. Disable this driver being built before
+> 2.6.33.
+> 
+> Signed-off-by: Márton Németh <nm127@freemail.hu>
 
-Thanks for the heads up.  I actually didn't see that patch, so I
-appreciate you pointing it out (since it will allow me to continue my
-development).
+Nak.
 
-Cheers,
+1. You forgot meye - it's broken as well in the same way.
+2. Douglas has issuesd a PULL request for a back port fix that will
+resolve the issue.
 
-Devin
+Regards,
+Andy
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+> ---
+> diff -r 5bcdcc072b6d v4l/versions.txt
+> --- a/v4l/versions.txt	Sat Jan 16 07:25:43 2010 +0100
+> +++ b/v4l/versions.txt	Sat Jan 16 16:56:28 2010 +0100
+> @@ -1,6 +1,10 @@
+>  # Use this for stuff for drivers that don't compile
+>  [2.6.99]
+> 
+> +[2.6.33]
+> +# Incompatible fifo API changes, see <linux/kfifo.h>
+> +VIDEO_CX23885
+> +
+>  [2.6.32]
+>  # These rely on arch support that wasn't available until 2.6.32
+>  VIDEO_SH_MOBILE_CEU
+> 
+
+
