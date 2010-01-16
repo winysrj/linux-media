@@ -1,284 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:43831 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755319Ab0A2O1Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jan 2010 09:27:25 -0500
-Received: by bwz27 with SMTP id 27so1449570bwz.21
-        for <linux-media@vger.kernel.org>; Fri, 29 Jan 2010 06:27:23 -0800 (PST)
-Message-ID: <4B62F048.1010506@googlemail.com>
-Date: Fri, 29 Jan 2010 14:27:20 +0000
-From: David Henig <dhhenig@googlemail.com>
-MIME-Version: 1.0
-To: leandro Costantino <lcostantino@gmail.com>
-CC: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>,
-	linux-media@vger.kernel.org
-Subject: Re: Make failed - standard ubuntu 9.10
-References: <4B62113E.40905@googlemail.com> <4B627EAE.7020303@freemail.hu>	 <4B62A967.3010400@googlemail.com> <c2fe070d1001290430v472c8040r2a61c7904ef7234d@mail.gmail.com>
-In-Reply-To: <c2fe070d1001290430v472c8040r2a61c7904ef7234d@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mail1.radix.net ([207.192.128.31]:55196 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750922Ab0APUAE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Jan 2010 15:00:04 -0500
+Subject: Re: Need testers: cx23885 IR Rx for TeVii S470 and HVR-1250
+From: Andy Walls <awalls@radix.net>
+To: "Igor M. Liplianin" <liplianin@me.by>
+Cc: linux-media@vger.kernel.org,
+	Andreas Tschirpke <andreas.tschirpke@gmail.com>,
+	Matthias Fechner <idefix@fechner.net>, stoth@kernellabs.com
+In-Reply-To: <201001161600.37915.liplianin@me.by>
+References: <1263614561.6084.15.camel@palomino.walls.org>
+	 <201001161600.37915.liplianin@me.by>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 16 Jan 2010 14:55:52 -0500
+Message-Id: <1263671752.3062.19.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks, eventually tip 1 fixed this. For some reason I had 
-2.6.31-17-generic without a .config, as I seem to be using 
-2.6.31-17-generic-pae. Creating a symlink to that fixed this error.
+On Sat, 2010-01-16 at 16:00 +0200, Igor M. Liplianin wrote:
+> On 16 ÑÐ½Ð²Ð°Ñ€Ñ 2010 06:02:41 Andy Walls wrote:
+> > Hi,
+> >
+> > I've got reworked changes for the IR for the TeVii S470 and the HVR-1250
+> > at
+> >
+> > 	http://linuxtv.org/hg/~awalls/cx23885-ir2
+> >
+> > Thanks to loaner HVR-1250 hardware from Devin Heitmueller,
+> > I've solved the infinite interrupt problem with the CX23885 AV core and
+> > have reworked the change set against the latest v4l-dvb.
+> >
+> > Please test.
+> >
+> > Note
+> >
+> > 1. the parameters for the IR controller setup in
+> > linux/drivers/video/cx23885-input.c may need to be tweaked to set the
+> > proper "params.modulation" and "params.invert_level" before you get
+> > keypresses decoded.
+> 
+> It works properly with settings
+> 
+> 	params.modulation = false;
+> 	params.invert_level = true;
 
-Unfortunately still can't finish build, I get an error in firedtv-1394, 
-as shown below. Do I need to reinstall, as I also get the following message?
-
-***WARNING:*** You do not have the full kernel sources installed.
-This does not prevent you from building the v4l-dvb tree if you have the
-kernel headers, but the full kernel source may be required in order to use
-make menuconfig / xconfig / qconfig.
-
-If you are experiencing problems building the v4l-dvb tree, please try
-building against a vanilla kernel before reporting a bug.
-
-Thanks again for any help, I'm sorry I'm only a couple of months into 
-linux, I'm just trying to do this against what I thought was a fairly 
-standard build...
-
-David
-
-[error section]
-
-/home/david/v4l-dvb/v4l/firedtv-1394.c:21:17: error: dma.h: No such file 
-or directory
-/home/david/v4l-dvb/v4l/firedtv-1394.c:22:21: error: csr1212.h: No such 
-file or directory
-/home/david/v4l-dvb/v4l/firedtv-1394.c:23:23: error: highlevel.h: No 
-such file or directory
-/home/david/v4l-dvb/v4l/firedtv-1394.c:24:19: error: hosts.h: No such 
-file or directory
-/home/david/v4l-dvb/v4l/firedtv-1394.c:25:22: error: ieee1394.h: No such 
-file or directory
-/home/david/v4l-dvb/v4l/firedtv-1394.c:26:17: error: iso.h: No such file 
-or directory
-/home/david/v4l-dvb/v4l/firedtv-1394.c:27:21: error: nodemgr.h: No such 
-file or directory
-/home/david/v4l-dvb/v4l/firedtv-1394.c:40: warning: 'struct hpsb_iso' 
-declared inside parameter list
-/home/david/v4l-dvb/v4l/firedtv-1394.c:40: warning: its scope is only 
-this definition or declaration, which is probably not what you want
-/home/david/v4l-dvb/v4l/firedtv-1394.c: In function 'rawiso_activity_cb':
-/home/david/v4l-dvb/v4l/firedtv-1394.c:56: error: dereferencing pointer 
-to incomplete type
-/home/david/v4l-dvb/v4l/firedtv-1394.c:57: error: implicit declaration 
-of function 'hpsb_iso_n_ready'
-/home/david/v4l-dvb/v4l/firedtv-1394.c:64: error: dereferencing pointer 
-to incomplete type
-/home/david/v4l-dvb/v4l/firedtv-1394.c:65: error: implicit declaration 
-of function 'dma_region_i'
-/home/david/v4l-dvb/v4l/firedtv-1394.c:65: error: dereferencing pointer 
-to incomplete type
-/home/david/v4l-dvb/v4l/firedtv-1394.c:65: error: expected expression 
-before 'unsigned'
-/home/david/v4l-dvb/v4l/firedtv-1394.c:66: warning: assignment makes 
-pointer from integer without a cast
-/home/david/v4l-dvb/v4l/firedtv-1394.c:67: error: dereferencing pointer 
-to incomplete type
-/home/david/v4l-dvb/v4l/firedtv-1394.c:71: error: dereferencing pointer 
-to incomplete type
-/home/david/v4l-dvb/v4l/firedtv-1394.c:85: error: implicit declaration 
-of function 'hpsb_iso_recv_release_packets'
-/home/david/v4l-dvb/v4l/firedtv-1394.c: In function 'node_of':
-/home/david/v4l-dvb/v4l/firedtv-1394.c:90: error: dereferencing pointer 
-to incomplete type
-/home/david/v4l-dvb/v4l/firedtv-1394.c:90: warning: type defaults to 
-'int' in declaration of '__mptr'
-/home/david/v4l-dvb/v4l/firedtv-1394.c:90: warning: initialization from 
-incompatible pointer type
-/home/david/v4l-dvb/v4l/firedtv-1394.c:90: error: invalid use of 
-undefined type 'struct unit_directory'
-/home/david/v4l-dvb/v4l/firedtv-1394.c: In function 'node_lock':
-/home/david/v4l-dvb/v4l/firedtv-1394.c:97: error: implicit declaration 
-of function 'hpsb_node_lock'
-/home/david/v4l-dvb/v4l/firedtv-1394.c:97: error: 'EXTCODE_COMPARE_SWAP' 
-undeclared (first use in this function)
-/home/david/v4l-dvb/v4l/firedtv-1394.c:97: error: (Each undeclared 
-identifier is reported only once
-/home/david/v4l-dvb/v4l/firedtv-1394.c:97: error: for each function it 
-appears in.)
-/home/david/v4l-dvb/v4l/firedtv-1394.c:98: error: 'quadlet_t' undeclared 
-(first use in this function)
-/home/david/v4l-dvb/v4l/firedtv-1394.c:98: error: expected expression 
-before ')' token
-/home/david/v4l-dvb/v4l/firedtv-1394.c: In function 'node_read':
-/home/david/v4l-dvb/v4l/firedtv-1394.c:106: error: implicit declaration 
-of function 'hpsb_node_read'
-/home/david/v4l-dvb/v4l/firedtv-1394.c: In function 'node_write':
-/home/david/v4l-dvb/v4l/firedtv-1394.c:111: error: implicit declaration 
-of function 'hpsb_node_write'
-/home/david/v4l-dvb/v4l/firedtv-1394.c: In function 'start_iso':
-/home/david/v4l-dvb/v4l/firedtv-1394.c:122: error: implicit declaration 
-of function 'hpsb_iso_recv_init'
-/home/david/v4l-dvb/v4l/firedtv-1394.c:122: error: dereferencing pointer 
-to incomplete type
-/home/david/v4l-dvb/v4l/firedtv-1394.c:124: error: 
-'HPSB_ISO_DMA_DEFAULT' undeclared (first use in this function)
-/home/david/v4l-dvb/v4l/firedtv-1394.c:126: warning: assignment makes 
-pointer from integer without a cast
-/home/david/v4l-dvb/v4l/firedtv-1394.c:133: error: implicit declaration 
-of function 'hpsb_iso_recv_start'
-/home/david/v4l-dvb/v4l/firedtv-1394.c:136: error: implicit declaration 
-of function 'hpsb_iso_shutdown'
-/home/david/v4l-dvb/v4l/firedtv-1394.c: In function 'stop_iso':
-/home/david/v4l-dvb/v4l/firedtv-1394.c:147: error: implicit declaration 
-of function 'hpsb_iso_stop'
-/home/david/v4l-dvb/v4l/firedtv-1394.c: At top level:
-/home/david/v4l-dvb/v4l/firedtv-1394.c:162: warning: 'struct hpsb_host' 
-declared inside parameter list
-/home/david/v4l-dvb/v4l/firedtv-1394.c: In function 'fcp_request':
-/home/david/v4l-dvb/v4l/firedtv-1394.c:175: error: dereferencing pointer 
-to incomplete type
-/home/david/v4l-dvb/v4l/firedtv-1394.c:176: error: dereferencing pointer 
-to incomplete type
-/home/david/v4l-dvb/v4l/firedtv-1394.c: In function 'node_probe':
-/home/david/v4l-dvb/v4l/firedtv-1394.c:190: error: dereferencing pointer 
-to incomplete type
-/home/david/v4l-dvb/v4l/firedtv-1394.c:190: warning: type defaults to 
-'int' in declaration of '__mptr'
-/home/david/v4l-dvb/v4l/firedtv-1394.c:190: warning: initialization from 
-incompatible pointer type
-/home/david/v4l-dvb/v4l/firedtv-1394.c:190: error: invalid use of 
-undefined type 'struct unit_directory'
-/home/david/v4l-dvb/v4l/firedtv-1394.c:195: error: dereferencing pointer 
-to incomplete type
-/home/david/v4l-dvb/v4l/firedtv-1394.c:196: error: dereferencing pointer 
-to incomplete type
-/home/david/v4l-dvb/v4l/firedtv-1394.c:197: error: implicit declaration 
-of function 'CSR1212_TEXTUAL_DESCRIPTOR_LEAF_DATA'
-/home/david/v4l-dvb/v4l/firedtv-1394.c:197: error: dereferencing pointer 
-to incomplete type
-/home/david/v4l-dvb/v4l/firedtv-1394.c:197: warning: assignment makes 
-pointer from integer without a cast
-/home/david/v4l-dvb/v4l/firedtv-1394.c: At top level:
-/home/david/v4l-dvb/v4l/firedtv-1394.c:256: warning: 'struct 
-unit_directory' declared inside parameter list
-/home/david/v4l-dvb/v4l/firedtv-1394.c: In function 'node_update':
-/home/david/v4l-dvb/v4l/firedtv-1394.c:258: error: dereferencing pointer 
-to incomplete type
-/home/david/v4l-dvb/v4l/firedtv-1394.c: At top level:
-/home/david/v4l-dvb/v4l/firedtv-1394.c:266: error: variable 
-'fdtv_driver' has initializer but incomplete type
-/home/david/v4l-dvb/v4l/firedtv-1394.c:267: error: unknown field 'name' 
-specified in initializer
-/home/david/v4l-dvb/v4l/firedtv-1394.c:267: warning: excess elements in 
-struct initializer
-/home/david/v4l-dvb/v4l/firedtv-1394.c:267: warning: (near 
-initialization for 'fdtv_driver')
-/home/david/v4l-dvb/v4l/firedtv-1394.c:268: error: unknown field 
-'id_table' specified in initializer
-/home/david/v4l-dvb/v4l/firedtv-1394.c:268: warning: excess elements in 
-struct initializer
-/home/david/v4l-dvb/v4l/firedtv-1394.c:268: warning: (near 
-initialization for 'fdtv_driver')
-/home/david/v4l-dvb/v4l/firedtv-1394.c:269: error: unknown field 
-'update' specified in initializer
-/home/david/v4l-dvb/v4l/firedtv-1394.c:269: warning: excess elements in 
-struct initializer
-/home/david/v4l-dvb/v4l/firedtv-1394.c:269: warning: (near 
-initialization for 'fdtv_driver')
-/home/david/v4l-dvb/v4l/firedtv-1394.c:270: error: unknown field 
-'driver' specified in initializer
-/home/david/v4l-dvb/v4l/firedtv-1394.c:270: error: extra brace group at 
-end of initializer
-/home/david/v4l-dvb/v4l/firedtv-1394.c:270: error: (near initialization 
-for 'fdtv_driver')
-/home/david/v4l-dvb/v4l/firedtv-1394.c:273: warning: excess elements in 
-struct initializer
-/home/david/v4l-dvb/v4l/firedtv-1394.c:273: warning: (near 
-initialization for 'fdtv_driver')
-/home/david/v4l-dvb/v4l/firedtv-1394.c:276: error: variable 
-'fdtv_highlevel' has initializer but incomplete type
-/home/david/v4l-dvb/v4l/firedtv-1394.c:277: error: unknown field 'name' 
-specified in initializer
-/home/david/v4l-dvb/v4l/firedtv-1394.c:277: warning: excess elements in 
-struct initializer
-/home/david/v4l-dvb/v4l/firedtv-1394.c:277: warning: (near 
-initialization for 'fdtv_highlevel')
-/home/david/v4l-dvb/v4l/firedtv-1394.c:278: error: unknown field 
-'fcp_request' specified in initializer
-/home/david/v4l-dvb/v4l/firedtv-1394.c:278: warning: excess elements in 
-struct initializer
-/home/david/v4l-dvb/v4l/firedtv-1394.c:278: warning: (near 
-initialization for 'fdtv_highlevel')
-/home/david/v4l-dvb/v4l/firedtv-1394.c: In function 'fdtv_1394_init':
-/home/david/v4l-dvb/v4l/firedtv-1394.c:285: error: implicit declaration 
-of function 'hpsb_register_highlevel'
-/home/david/v4l-dvb/v4l/firedtv-1394.c:286: error: implicit declaration 
-of function 'hpsb_register_protocol'
-/home/david/v4l-dvb/v4l/firedtv-1394.c:289: error: implicit declaration 
-of function 'hpsb_unregister_highlevel'
-/home/david/v4l-dvb/v4l/firedtv-1394.c: In function 'fdtv_1394_exit':
-/home/david/v4l-dvb/v4l/firedtv-1394.c:296: error: implicit declaration 
-of function 'hpsb_unregister_protocol'
-make[3]: *** [/home/david/v4l-dvb/v4l/firedtv-1394.o] Error 1
-make[2]: *** [_module_/home/david/v4l-dvb/v4l] Error 2
-make[2]: Leaving directory `/usr/src/linux-headers-2.6.31-17-generic-pae'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/home/david/v4l-dvb/v4l'
-make: *** [all] Error 2
+Thanks.  I have checked in a change the code for this.
 
 
-leandro Costantino wrote:
-> Its looking for .config file inside the kernel source.
->
-> /lib/modules/2.6.31-17-generic/build/.config
->   1) check that /build is a symlink to /usr/src/kernel-path-source
->   2) IF there is something like /proc/config  , copy it to
-> /usr/src/kernel-path-source/.config
->       IF NOT, then you could try doing a make oldconfig ....
->
-> I really dont know that the ubuntu packages includes inside, so, those
-> are my 2 cents...
->
-> 2010/1/29 David Henig <dhhenig@googlemail.com>:
->   
->> Thanks, I've been trying to follow the wiki, but getting this error. The
->> main kernel packages seem to all be installed, but perhaps something less
->> obvious is missing - hard to tell without a definitive list of dependencies.
->> Help would be much appreciated!
->>
->> David
->>
->> Németh Márton wrote:
->>     
->>> David Henig wrote:
->>>
->>>       
->>>> Please can someone assist, not sure what the cause of the below is? This
->>>> is my second attempt to get linux tv to work, I suspect it's a basic level
->>>> error - sorry I'm fairly new to Linux... output below, I'm running a fairly
->>>> standard ubuntu 9.10 setup.
->>>>
->>>> make[1]: Entering directory `/home/david/v4l-dvb/v4l'
->>>> Updating/Creating .config
->>>> Preparing to compile for kernel version 2.6.31
->>>> File not found: /lib/modules/2.6.31-17-generic/build/.config at
->>>> ./scripts/make_kconfig.pl line 32, <IN> line 4.
->>>> make[1]: *** No rule to make target `.myconfig', needed by
->>>> `config-compat.h'. Stop.
->>>> make[1]: Leaving directory `/home/david/v4l-dvb/v4l'
->>>> make: *** [all] Error 2
->>>>
->>>>         
->>> I think you don't have the kernel development files installed.
->>>
->>> The recommended reading would be:
->>>
->>> http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
->>>
->>> Regards,
->>>
->>>        Márton Németh
->>>
->>>       
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>     
+> But after couple seconds :(
+> 
+> cx25840 3-0044: IRQ Status:  tsr rsr rto            
+> cx25840 3-0044: IRQ Enables:     rse rte roe
+> cx25840 3-0044: rx read:    9046778 ns  mark
+> cx25840 3-0044: rx read:    2206333 ns  space
+> cx25840 3-0044: rx read:     606926 ns  mark
+> cx25840 3-0044: rx read: end of rx
+> cx25840 3-0044: IRQ Status:  tsr rsr rto            
+> cx25840 3-0044: IRQ Enables:     rse rte roe
+> cx25840 3-0044: rx read:    9055815 ns  mark
+> cx25840 3-0044: rx read:    2203519 ns  space
+> cx25840 3-0044: rx read:     582481 ns  mark
+> cx25840 3-0044: rx read: end of rx
+
+This is still good. :)
+
+Those are NEC repeat sequences, but you probably know that already.
+
+
+> irq 16: nobody cared (try booting with the "irqpoll" option)
+> Pid: 2971, comm: X Not tainted 2.6.33-rc4 #3
+> Call Trace:
+>  [<c1054700>] ? __report_bad_irq+0x24/0x69
+[...]
+>  [<c1425105>] ? syscall_call+0x7/0xb
+> handlers:
+> [<c1332132>] (usb_hcd_irq+0x0/0x59)
+> [<f8aafd88>] (cx23885_irq+0x0/0x4e0 [cx23885])
+
+
+I have checked in more changes to 
+
+	http://linuxtv.org/hg/~awalls/cx23885-ir2
+
+Please test again using these module parameters:
+
+	modprobe cx25840 ir_debug=2 debug=2
+	modprobe cx23885 ir_input_debug=2 irq_debug=7 debug=7
+
+
+I am looking for logging of the interrupt statuses and enables.  They
+should look something like this:
+
+
+ kernel: cx23885[0]/0: pci_status: 0x08000000  pci_mask: 0x08000001
+ [...]
+ kernel: cx23885[0]/0:  (PCI_MSK_AV_CORE   0x08000000)
+ kernel: cx25840 6-0044: AV Core IRQ status (entry): ir        
+ kernel: cx25840 6-0044: AV Core ir IRQ status: 0x31 disables: 0x20
+ kernel: cx25840 6-0044: IR IRQ Status:  tsr rsr rto            
+ kernel: cx25840 6-0044: IR IRQ Enables:     rse rte roe
+ kernel: cx25840 6-0044: AV Core audio IRQ status: 0x80 disables: 0xff
+ kernel: cx25840 6-0044: AV Core audio MC IRQ status: 0x2000 enables: 0x0000
+ kernel: cx25840 6-0044: AV Core video IRQ status: 0x01a7 disables: 0xffff
+ kernel: cx25840 6-0044: AV Core IRQ status (exit):           
+
+
+But I was able to reproduce something like this when changing enable the
+TSR interrupt enables using v4l2-dbg to change the register manually:
+
+ kernel: cx23885[0]/0: pci_status: 0x08300000  pci_mask: 0x08000001
+ [...]
+ kernel: cx23885[0]/0:  (PCI_MSK_AV_CORE   0x08000000)
+ kernel: cx25840 6-0044: AV Core IRQ status (entry):                           <---- no irq flags (all 0's)
+ kernel: cx25840 6-0044: AV Core ir IRQ status: 0x00 disables: 0x00            <---- all 0's
+ kernel: cx25840 6-0044: AV Core audio IRQ status: 0x00 disables: 0x00         <---- all 0's
+ kernel: cx25840 6-0044: AV Core audio MC IRQ status: 0x0000 enables: 0x0000   <---- all 0's
+ kernel: cx25840 6-0044: AV Core video IRQ status: 0x0000 disables: 0x0000     <---- all 0's
+ kernel: cx25840 6-0044: AV Core IRQ status (exit):           
+
+So there are some conditions where the AV Core can signal an interrupt,
+but not be ready to be read over the I2C bus.
+
+I have added code to count when these happen and handle them as spurious
+interrupts.  However, if the code gets too many (20) consecutive
+spurious interrupts without at least one real one, it disables the AV
+Core interrupt.
+
+
+Regards,
+Andy
+
+
