@@ -1,97 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2843 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751042Ab0A1Trp (ORCPT
+Received: from smtp-out01.alice.it ([85.33.2.12]:3610 "EHLO
+	smtp-out01.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753391Ab0APOZA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2010 14:47:45 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id o0SJlhVt018961
-	for <linux-media@vger.kernel.org>; Thu, 28 Jan 2010 20:47:44 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 28 Jan 2010 20:47:43 +0100 (CET)
-Message-Id: <201001281947.o0SJlhVt018961@smtp-vbr11.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Sat, 16 Jan 2010 09:25:00 -0500
+Date: Sat, 16 Jan 2010 15:23:53 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Cc: Antonio Ospite <ospite@studenti.unina.it>,
+	Jean-Francois Moine <moinejf@free.fr>
+Subject: Re: [PATCH] ov534: allow enumerating supported framerates
+Message-Id: <20100116152353.f200b4be.ospite@studenti.unina.it>
+In-Reply-To: <1262997691-20651-1-git-send-email-ospite@studenti.unina.it>
+References: <1262997691-20651-1-git-send-email-ospite@studenti.unina.it>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Sat__16_Jan_2010_15_23_53_+0100_KwQfFx/CzA_VQhB+"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+--Signature=_Sat__16_Jan_2010_15_23_53_+0100_KwQfFx/CzA_VQhB+
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Results of the daily build of v4l-dvb:
+On Sat,  9 Jan 2010 01:41:31 +0100
+Antonio Ospite <ospite@studenti.unina.it> wrote:
 
-date:        Thu Jan 28 19:00:03 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14064:31eaa9423f98
-gcc version: i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:     2.6.32.5
+> Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+>=20
+> ---
+>=20
+> Historical note:
+>=20
+> This has been re-tested on a reliable machine and it works from guvcview =
+for
+> all the framerates; on my old PC I am still having problems with 640x480@=
+60fps
+> _regardless_ of this change, so it must be a USB problem.
+>=20
+> Thanks,
+>    Antonio
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-rc5-armv5: OK
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-rc5-armv5-davinci: WARNINGS
-linux-2.6.32.6-armv5-dm365: ERRORS
-linux-2.6.33-rc5-armv5-dm365: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-rc5-armv5-ixp: WARNINGS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-rc5-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.17-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-rc5-i686: WARNINGS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-rc5-m32r: OK
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-rc5-mips: WARNINGS
-linux-2.6.32.6-powerpc64: ERRORS
-linux-2.6.33-rc5-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.17-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-rc5-x86_64: WARNINGS
-spec: OK
-sparse (linux-2.6.32.6): ERRORS
-sparse (linux-2.6.33-rc5): ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: OK
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+Ping? Jean-Francois.
 
-Detailed results are available here:
+--=20
+Antonio Ospite
+http://ao2.it
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+PGP public key ID: 0x4553B001
 
-Full logs are available here:
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing in e-mail?
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+--Signature=_Sat__16_Jan_2010_15_23_53_+0100_KwQfFx/CzA_VQhB+
+Content-Type: application/pgp-signature
 
-The V4L-DVB specification from this daily build is here:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+iEYEARECAAYFAktRy/kACgkQ5xr2akVTsAHzswCdE41DzJanzi1JmC7Ps3w9VPpA
+dEIAn3D834b/h1fA23Ti6a0GBLaJnT+f
+=4hxQ
+-----END PGP SIGNATURE-----
+
+--Signature=_Sat__16_Jan_2010_15_23_53_+0100_KwQfFx/CzA_VQhB+--
