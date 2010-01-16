@@ -1,62 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225]:51973 "EHLO
-	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751424Ab0AJCLL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jan 2010 21:11:11 -0500
-Received: by fxm25 with SMTP id 25so13637035fxm.21
-        for <linux-media@vger.kernel.org>; Sat, 09 Jan 2010 18:11:10 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <846899811001021455u28fccb5cr66fd4258d3dddd4d@mail.gmail.com>
-References: <3f3a053b1001021407k6ce936b8gd7d3e575a25e734d@mail.gmail.com>
-	 <3f3a053b1001021411i2e9484d7rd2d13f1a355939fe@mail.gmail.com>
-	 <846899811001021455u28fccb5cr66fd4258d3dddd4d@mail.gmail.com>
-Date: Sun, 10 Jan 2010 03:11:10 +0100
-Message-ID: <d9def9db1001091811s6dbed557vfca9ce410e41d3d3@mail.gmail.com>
-Subject: Re: CI USB
-From: Markus Rechberger <mrechberger@gmail.com>
-To: HoP <jpetrous@gmail.com>
-Cc: Jonas <oj@koekenbier.net>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-out112.alice.it ([85.37.17.112]:3304 "EHLO
+	smtp-out112.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752880Ab0APOe6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Jan 2010 09:34:58 -0500
+Date: Sat, 16 Jan 2010 15:33:45 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Cc: Antonio Ospite <ospite@studenti.unina.it>,
+	Jean-Francois Moine <moinejf@free.fr>
+Subject: Re: [PATCH] ov534: allow enumerating supported framerates
+Message-Id: <20100116153345.c54db7aa.ospite@studenti.unina.it>
+In-Reply-To: <1262997691-20651-1-git-send-email-ospite@studenti.unina.it>
+References: <1262997691-20651-1-git-send-email-ospite@studenti.unina.it>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Sat__16_Jan_2010_15_33_45_+0100_B7PaxtSX6v=aA3iH"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jan 2, 2010 at 11:55 PM, HoP <jpetrous@gmail.com> wrote:
-> Hi Jonas
->
->> Does anyone know if there's any progress on USB CI adapter support?
->> Last posts I can find are from 2008 (Terratec Cinergy CI USB &
->> Hauppauge WinTV-CI).
->>
->> That attempt seems to have stranded with Luc Brosens (who gave it a
->> shot back then) asking for help.
->>
->> The chip manufacturer introduced a usb stick as well;
->> http://www.smardtv.com/index.php?page=products_listing&rubrique=pctv&section=usbcam
->> but besides the scary Vista logo on that page, it looks like they
->> target broadcast companies only and not end users.
->>
->
-> You are right. Seems DVB CI stick is not targeted to end consumers.
->
-> Anyway, it looks interesting, even it requires additional DVB tuner
-> "somewhere in the pc" what means duplicated traffic (to the CI stick
-> for descrambling and back for mpeg a/v decoding).
->
-> It would be nice to see such stuff working in linux, but because of
-> market targeting i don' t expect that.
->
-> BTW, Hauppauge's WinTV-CI looked much more promissing.
-> At least when I started reading whole thread about it here:
-> http://www.mail-archive.com/linux-dvb@linuxtv.org/msg28113.html
->
-> Unfortunatelly, last Steve's note about not getting anything
-> (even any answer) has disappointed me fully. And because
-> google is quiet about any progress on it I pressume
-> no any docu nor driver was released later on.
->
+--Signature=_Sat__16_Jan_2010_15_33_45_+0100_B7PaxtSX6v=aA3iH
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The question is more or less how many people are interested in USB CI
-support for Linux.
-We basically have everything to provide a USB CI solution for linux now.
+On Sat,  9 Jan 2010 01:41:31 +0100
+Antonio Ospite <ospite@studenti.unina.it> wrote:
 
-Markus
+
+
+> Index: gspca/linux/drivers/media/video/gspca/ov534.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- gspca.orig/linux/drivers/media/video/gspca/ov534.c
+> +++ gspca/linux/drivers/media/video/gspca/ov534.c
+> @@ -282,6 +282,21 @@
+>  	 .priv =3D 0},
+>  };
+> =20
+> +static const int qvga_rates[] =3D {125, 100, 75, 60, 50, 40, 30};
+> +static const int vga_rates[] =3D {60, 50, 40, 30, 15};
+> +
+
+Hmm, after double checking compilation messages, having these as 'const'
+produces two:
+  warning: initialization discards qualifiers from pointer target type
+in the assignments below.
+
+If I remove the 'const' qualifiers here, the messages go away, so I'd
+say we can do also without them. If that's ok I'll send a v2 soon,
+sorry.
+
+Thanks,
+   Antonio
+
+> +static const struct framerates ov772x_framerates[] =3D {
+> +	{ /* 320x240 */
+> +		.rates =3D qvga_rates,
+> +		.nrates =3D ARRAY_SIZE(qvga_rates),
+> +	},
+> +	{ /* 640x480 */
+> +		.rates =3D vga_rates,
+> +		.nrates =3D ARRAY_SIZE(vga_rates),
+> +	},
+> +};
+> +
+> +
+>  static const u8 bridge_init[][2] =3D {
+>  	{ 0xc2, 0x0c },
+>  	{ 0x88, 0xf8 },
+> @@ -799,6 +814,7 @@
+> =20
+>  	cam->cam_mode =3D ov772x_mode;
+>  	cam->nmodes =3D ARRAY_SIZE(ov772x_mode);
+> +	cam->mode_framerates =3D ov772x_framerates;
+> =20
+>  	cam->bulk =3D 1;
+>  	cam->bulk_size =3D 16384;
+
+
+--=20
+Antonio Ospite
+http://ao2.it
+
+PGP public key ID: 0x4553B001
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing in e-mail?
+
+--Signature=_Sat__16_Jan_2010_15_33_45_+0100_B7PaxtSX6v=aA3iH
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAktRzkkACgkQ5xr2akVTsAHDOQCgmmXYGvDU2XA14VUbkXHB+6ks
+7rIAn3IryQ71iVkcQfxATBIJVaqzI3XU
+=FreX
+-----END PGP SIGNATURE-----
+
+--Signature=_Sat__16_Jan_2010_15_33_45_+0100_B7PaxtSX6v=aA3iH--
