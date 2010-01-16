@@ -1,75 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from webmail.velocitynet.com.au ([203.17.154.21]:47290 "EHLO
-	webmail2.velocitynet.com.au" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755410Ab0AOXOu (ORCPT
+Received: from mail02a.mail.t-online.hu ([84.2.40.7]:58849 "EHLO
+	mail02a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751967Ab0APIMg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jan 2010 18:14:50 -0500
+	Sat, 16 Jan 2010 03:12:36 -0500
+Message-ID: <4B51749B.30902@freemail.hu>
+Date: Sat, 16 Jan 2010 09:11:07 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-Date: Fri, 15 Jan 2010 23:14:49 +0000
-From: <paul10@planar.id.au>
-To: "linux-media" <linux-media@vger.kernel.org>,
-	"Igor M. Liplianin" <liplianin@me.by>
-Subject: Re: DM1105: could not attach frontend 195d:1105
-Message-ID: <ce9ceb6396947b48531256e715f00390@mail.velocitynet.com.au>
+To: mjpeg-users@lists.sourceforge.net,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] zoran: cleanup pointer condition
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15 января 2010 11:15:26 paul10@planar.id.au wrote:
-> I bought a DVB-S card to attach to my mythtv setup.  I knew it was
-perhaps
-> not going to work, and I only spent $15 on it.  However, based on the
-info
-> the guy on eBay provided, it had a pci address of 195d:1105, which I
-could
-> see some people had cards that were working.
+From: Márton Németh <nm127@freemail.hu>
 
-> The card itself is a no-name jobby.  I can see the DM1105 chip on it, I
-> can't see any other chips with any significant pin count (lots with 3 -
-8
-> pins, but nothing with enough to be important).  There is a metal case
-> around the connectors that might be hiding a frontend chip of some sort,
-> but it doesn't seem to have enough connectors in and out to be doing
-much
-> that is important beyond just providing connectivity to the LNB.
->
+Remove the following sparse warning (see "make C=1"):
+ * warning: Using plain integer as NULL pointer
 
-Igor wrote:
-> Hi Paul,
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+diff -r 5bcdcc072b6d linux/drivers/media/video/zoran/zoran_driver.c
+--- a/linux/drivers/media/video/zoran/zoran_driver.c	Sat Jan 16 07:25:43 2010 +0100
++++ b/linux/drivers/media/video/zoran/zoran_driver.c	Sat Jan 16 09:03:31 2010 +0100
+@@ -325,7 +325,7 @@
+ 		/* Allocate fragment table for this buffer */
 
-> Frontend/tuner must lay under cover.
-> Subsystem: Device 195d:1105 indicates that there is no EEPROM in card.
-> If you send some links/pictures/photos then it would helped a lot.
-> Is there a disk with drivers for Windows?
-> Also I know about dm1105 based cards with tda10086 demod, those are not
-supported in the driver 
-yet.
-
-> BR
-> Igor
-
-Igor,
-
-Photos:
-1.  Front of card.  You can see the DM1105 in the foreground.  There are
-no other significant looking chips on the card.
-http://planar.id.au/Photos/img_1964.jpg
-
-2.  Back of card - as you can see, there aren't a lot of places where a
-lot of pins are connecting - mainly the DM1105 itself
-http://planar.id.au/Photos/img_1965.jpg
-
-3.  With the top metal plate removed, and with the other end of the card
-in better focus.
-http://planar.id.au/Photos/img_1966.jpg
-
-Is it likely that there is a tuner under the card labelled "ERIT"?  To
-take it off I have to unsolder some stuff - I can do that, but I reckon
-it's only 50% chance the card will work again when I put it back together -
-my soldering isn't so good.
-
-Thanks heaps for the assistance.
-
-Paul
-
+ 		mem = (void *)get_zeroed_page(GFP_KERNEL);
+-		if (mem == 0) {
++		if (!mem) {
+ 			dprintk(1,
+ 				KERN_ERR
+ 				"%s: %s - get_zeroed_page (frag_tab) failed for buffer %d\n",
