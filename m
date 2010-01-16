@@ -1,130 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from amber.schedom-europe.net ([193.109.184.92]:48368 "EHLO
-	amber.schedom-europe.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751912Ab0AJSzE (ORCPT
+Received: from mail-in-12.arcor-online.net ([151.189.21.52]:42217 "EHLO
+	mail-in-12.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751423Ab0APAkC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jan 2010 13:55:04 -0500
-Message-ID: <4B4A226C.4000806@dommel.be>
-Date: Sun, 10 Jan 2010 19:54:36 +0100
-From: Johan <johan.vanderkolk@dommel.be>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: CI USB]
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+	Fri, 15 Jan 2010 19:40:02 -0500
+Subject: Re: How to use saa7134 gpio via gpio-sysfs?
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Gordon Smith <spider.karma+linux-media@gmail.com>,
+	Trent Piepho <xyzzy@speakeasy.org>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <1263266020.3198.37.camel@pc07.localdom.local>
+References: <2df568dc1001111012u627f07b8p9ec0c2577f14b5d9@mail.gmail.com>
+	 <2df568dc1001111059p54de8635k6c207fb3f4d96a14@mail.gmail.com>
+	 <1263266020.3198.37.camel@pc07.localdom.local>
+Content-Type: text/plain
+Date: Sat, 16 Jan 2010 01:35:37 +0100
+Message-Id: <1263602137.3184.23.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Manu Abraham wrote:
-> On Sun, Jan 10, 2010 at 5:09 PM, Emmanuel <eallaud@gmail.com> wrote:
->  
->> Markus Rechberger a écrit :
->>    
->>> On Sat, Jan 2, 2010 at 11:55 PM, HoP <jpetrous@gmail.com> wrote:
->>>
->>>      
->>>> Hi Jonas
->>>>
->>>>
->>>>        
->>>>> Does anyone know if there's any progress on USB CI adapter support?
->>>>> Last posts I can find are from 2008 (Terratec Cinergy CI USB &
->>>>> Hauppauge WinTV-CI).
->>>>>
->>>>> That attempt seems to have stranded with Luc Brosens (who gave it a
->>>>> shot back then) asking for help.
->>>>>
->>>>> The chip manufacturer introduced a usb stick as well;
->>>>>
->>>>> http://www.smardtv.com/index.php?page=products_listing&rubrique=pctv&section=usbcam 
->>>>>
->>>>> but besides the scary Vista logo on that page, it looks like they
->>>>> target broadcast companies only and not end users.
->>>>>
->>>>>
->>>>>           
->>>> You are right. Seems DVB CI stick is not targeted to end consumers.
->>>>
->>>> Anyway, it looks interesting, even it requires additional DVB tuner
->>>> "somewhere in the pc" what means duplicated traffic (to the CI stick
->>>> for descrambling and back for mpeg a/v decoding).
->>>>
->>>> It would be nice to see such stuff working in linux, but because of
->>>> market targeting i don' t expect that.
->>>>
->>>> BTW, Hauppauge's WinTV-CI looked much more promissing.
->>>> At least when I started reading whole thread about it here:
->>>> http://www.mail-archive.com/linux-dvb@linuxtv.org/msg28113.html
->>>>
->>>> Unfortunatelly, last Steve's note about not getting anything
->>>> (even any answer) has disappointed me fully. And because
->>>> google is quiet about any progress on it I pressume
->>>> no any docu nor driver was released later on.
->>>>
->>>>
->>>>         
->>> The question is more or less how many people are interested in USB CI
->>> support for Linux.
->>> We basically have everything to provide a USB CI solution for linux 
->>> now.
->>>
->>> Markus
->>> -- 
->>> To unsubscribe from this list: send the line "unsubscribe 
->>> linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>>       
->> Well I dont know for others but it really looks interesting as you 
->> can have
->> multiple cards with only one CI, meaning only one CAM and only one
->> subscription card which is economically interesting.
->>     
->
->
-> I don't know the details into the USB device, but each of those CAM's
-> have bandwidth limits on them and they vary from one CAM to the other.
-> Also, there is a limit on the number of simultaneous PID's that which
-> you can decrypt.
->
-> Some allow only 1 PID, some allow 3. Those are the basic CAM's for
-> home usage.The most expensive CAM's allow a maximum of 24 PID's. But
-> then you would be better of buying multiple CAM's for a home use
-> purpose.
->
->
->
->  
->> Also some card (at least for DVB-S) are really good but targeted towards
->> free channels, and in France for example, alot of good channels are not.
->> If the price is right (tm) I am sure a lot of people would be 
->> interested.
->> Bye
->> Manu
->>     
->
->
-> Regards,
-> Mmanu
->   
-Here in Belgium and the Netherlands all channels are encrypted and 
-besides the economics, I have very little possibility to view those 
-channels.
-(not since my nexus-S with dual CI is not keeping up with the latest 
-developments anymore).
 
-I now own a HVR4000, but Hauppauge are only supporting the USB CI for 
-all new cards and apparently dropped the flatcable direct connection to 
-a CI interface.
-There is software available to use a USB cardreader, which I am using 
-now. This software however permits illegal distribution of keys as well.
+Am Dienstag, den 12.01.2010, 04:13 +0100 schrieb hermann pitton:
+> Hi!
+> 
+> Am Montag, den 11.01.2010, 11:59 -0700 schrieb Gordon Smith: 
+> > I need to bit twiddle saa7134 gpio pins from userspace.
+> > To use gpio-sysfs, I need a "GPIO number" to export each pin, but I
+> > do not know how to find such a number.
+> > 
+> > Card is RTD Embedded Technologies VFG7350 [card=72,autodetected].
+> > GPIO uses pcf8574 chip.
+> > Kernel is 2.6.30.
+> > 
+> > gpio-sysfs creates
+> >     /sys/class/gpio/export
+> >     /sys/class/gpio/import
+> > but no gpio<n> entries so far.
+> > 
+> > >From dmesg ("gpiotracking=1")
+> >     saa7133[0]: board init: gpio is 10000
+> >     saa7133[0]: gpio: mode=0x0000000 in=0x4011000 out=0x0000000 [pre-init]
+> >     saa7133[1]: board init: gpio is 10000
+> >     saa7133[1]: gpio: mode=0x0000000 in=0x4010f00 out=0x0000000 [pre-init]
+> > 
+> > How may I find each "GPIO number" for this board?
+> > 
+> > Thanks in advance for any help.
+> 
+> There are 28 (0-27) gpio pins on each saa713x chip.
+> 
+> Documentation about possible use cases is publicly available via
+> nxp.com.
+> 
+> You can do what ever you want with them, but to export them to userland
+> seems to be a very bad idea to me.
+> 
+> Likely soon some "advanced hackers" will damage ;) all kind of hardware
+> around and others will claim it as being a GNU/Linux problem within the
+> same time such stuff appears, and of course it will.
+> 
+> In fact these days, only one to three users are involved hacking on a
+> board. It is much cheaper for all involved to give the serial number of
+> those than to imagine every day, what all could happen.
+> 
+> For all others not yet active, avoiding any worst case through
+> contributing is the way to go.
+> 
+> For the rest, we likely should have some fund, for worst cases, payed by
+> themselves.
+> 
+> Cheers,
+> Hermann
 
-Interesting though is that this software doesn't use the official CI, 
-nor a CAM, but a generic USB smartcard reader.
-If a solution could be developed, which is manufacturer independent, 
-does not use a CAM and does not permit illegal use that would be great...
+Hi Trent,
 
-regards,
+thought there would be straight PROs too, but no reply so far.
 
-Johan
+If you ever want, could you elaborate a little, what for userspace gpios
+can be useful at all and why people eventually also can run into
+problems with such pins, since they are "somehow" also under control of
+manufacturers. Means they do use them all different within _some_ rules.
+
+Given all the different use cases of gpio pins, for example on the
+saa7134 driver, which ones should we eventually export to gpio-sysfs to
+try to understand that approach better?
+
+Do we have such pins at all?
+
+Cheers,
+Hermann
+
+
+
+
+
+
