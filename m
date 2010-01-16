@@ -1,55 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay.bearnet.nu ([80.252.223.222]:2795 "EHLO relay.bearnet.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754389Ab0A0QWX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jan 2010 11:22:23 -0500
-Message-ID: <4B606832.7080006@pelagicore.com>
-Date: Wed, 27 Jan 2010 17:22:10 +0100
-From: =?ISO-8859-1?Q?Richard_R=F6jfors?= <richard.rojfors@pelagicore.com>
+Received: from webmail.velocitynet.com.au ([203.17.154.21]:36917 "EHLO
+	webmail2.velocitynet.com.au" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755375Ab0APCt5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jan 2010 21:49:57 -0500
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Andrew Morton <akpm@linux-foundation.org>
-Subject: [PATCH v2 2/2] radio: Add radio-timb to the Kconfig and Makefile
-Content-Type: text/plain; charset=ISO-8859-1
+Date: Sat, 16 Jan 2010 02:49:52 +0000
+From: <paul10@planar.id.au>
+To: "Igor M. Liplianin" <liplianin@me.by>,
+	"linux-media" <linux-media@vger.kernel.org>
+Subject: Re: DM1105: could not attach frontend 195d:1105
+Message-ID: <3bf14d196e3bc8717d910d09a623f98e@mail.velocitynet.com.au>
 Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds radio-timb to the Makefile and Kconfig.
+Paul wrote:
+> Is it likely that there is a tuner under the card labelled "ERIT"?  To
+> take it off I have to unsolder some stuff - I can do that, but I reckon
+> it's only 50% chance the card will work again when I put it back
+together -
+> my soldering isn't so good.
 
-Signed-off-by: Richard Röjfors <richard.rojfors@pelagicore.com>
----
-diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-index 3f40f37..46fd8c4 100644
---- a/drivers/media/radio/Kconfig
-+++ b/drivers/media/radio/Kconfig
-@@ -429,4 +429,14 @@ config RADIO_TEF6862
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called TEF6862.
+Igor wrote:
+> No need to unsolder. I see a Serit can tuner. There is a sticked paper
+with a label on right side 
+> of the tuner. It must contain something like "sp2636lhb" or "sp2633chb".
+Please provide me text of 
+> label.
 
-+config RADIO_TIMBERDALE
-+	tristate "Enable the Timberdale radio driver"
-+	depends on MFD_TIMBERDALE && VIDEO_V4L2 && HAS_IOMEM
-+	select RADIO_TEF6862
-+	select RADIO_SAA7706H
-+	---help---
-+	  This is a kind of umbrella driver for the Radio Tuner and DSP
-+	  found behind the Timberdale FPGA on the Russellville board.
-+	  Enable this driver will automatically select the DSP and tuner.
-+
- endif # RADIO_ADAPTERS
-diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
-index 01922ad..8973850 100644
---- a/drivers/media/radio/Makefile
-+++ b/drivers/media/radio/Makefile
-@@ -24,5 +24,6 @@ obj-$(CONFIG_RADIO_SI470X) += si470x/
- obj-$(CONFIG_USB_MR800) += radio-mr800.o
- obj-$(CONFIG_RADIO_TEA5764) += radio-tea5764.o
- obj-$(CONFIG_RADIO_TEF6862) += tef6862.o
-+obj-$(CONFIG_RADIO_TIMBERDALE) += radio-timb.o
+Ah, I see.   The whole thing is a tuner, and the label that I thought said
+"ERIT" actually says "SERIT".  Yes, it does have a label on it, I should
+have given you that up front.  I had searched for it on the internet and
+decided that it didn't mean anything.  Thanks so much for your help.
 
- EXTRA_CFLAGS += -Isound
+The label reads SP1514LHb  D0943B
+
+If I follow your decipher instructions that means:
+
+1: DVB-S
+5: 16cc
+1: Unsure, but it has an LNB in and an LNB out, so I guess it does have
+loop through?
+4: Si2109
+L: Si labs
+H: Horizontal
+b: Lead free
+
+So I'm looking for some code to enable an Si2109 tuner?
+
+Thanks again,
+
+Paul
 
