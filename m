@@ -1,20 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <valent.turkovic@gmail.com>) id 1NTjbE-0008UE-71
-	for linux-dvb@linuxtv.org; Sat, 09 Jan 2010 23:16:02 +0100
-Received: from mail-bw0-f227.google.com ([209.85.218.227])
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-d) with esmtp
+	(envelope-from <harald.albrecht@gmx.net>) id 1NWQvL-00074x-76
+	for linux-dvb@linuxtv.org; Sun, 17 Jan 2010 09:55:56 +0100
+Received: from mail.gmx.net ([213.165.64.20])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-c) with smtp
 	for <linux-dvb@linuxtv.org>
-	id 1NTjbD-0003vf-Ke; Sat, 09 Jan 2010 23:15:59 +0100
-Received: by bwz27 with SMTP id 27so12484875bwz.1
-	for <linux-dvb@linuxtv.org>; Sat, 09 Jan 2010 14:15:59 -0800 (PST)
+	id 1NWQvK-0004Wd-ON; Sun, 17 Jan 2010 09:55:54 +0100
+Message-ID: <4B52D098.7090108@gmx.net>
+Date: Sun, 17 Jan 2010 09:55:52 +0100
+From: Harald Albrecht <harald.albrecht@gmx.net>
 MIME-Version: 1.0
-Date: Sat, 9 Jan 2010 23:15:58 +0100
-Message-ID: <64b14b301001091415l1ce004a4s2770166d8678e623@mail.gmail.com>
-From: Valent Turkovic <valent.turkovic@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Genius TVGo DVB-T02Q MCE firmware and module issues
+Subject: [linux-dvb] PCTV (ex Pinnacle) 74e pico USB stick DVB-T: no
+	frontend registered
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -23,71 +22,58 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
-I have Genius DVB-T02Q MCE USB DVB-T tuner. I tried using it on Ubuntu
-and Fedora without success.
+Hello,
 
-Here is the info that I get via dmesg and lsusb:
+I've run into a roadblock problem with my PCTV 74e pico USB stick for 
+receiving DVB-T. My setup is as follows: the system is a Kubuntu Kaotic 
+Koala 9.10 stock distribution, kept current. The Linux kernel is thus a 
+2.6.31-18-generic one as distributed by Ubuntu. It contains the stock 
+kernel video4linux and I also installed the non-free firmware package in 
+order to have the dvb-usb-dib0700-1.20.fw firmware at hand.
 
-# dmesg
-usb 1-6: new high speed USB device using ehci_hcd and address 8
-usb 1-6: New USB device found, idVendor=0458, idProduct=400f
-usb 1-6: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-usb 1-6: Product: DVB-T02Q MCE
-usb 1-6: Manufacturer: Genius
-usb 1-6: configuration #1 chosen from 1 choice
-input: Genius DVB-T02Q MCE as
-/devices/pci0000:00/0000:00:1d.7/usb1/1-6/1-6:1.0/input/input14
-generic-usb 0003:0458:400F.0007: input,hidraw3: USB HID v1.11 Keyboard
-[Genius DVB-T02Q MCE] on usb-0000:00:1d.7-6/input0
+With this setup, the pico was not even properly recognized (USB VID:DID 
+= 2013:0246). Yesterday I pulled the most recent set of v4l-dvb files of 
+the mercury repository using "hg clone http://linuxtv.org/hg/v4l-dvb". 
+For reasons I yet don't understand, this file set does not include the 
+complete patch from 
+http://linuxtv.org/hg/v4l-dvb/rev/87039167057078a29ca91c1bcd3369977d6ca463
 
-Is the correct driver for this device dvb-usb-m920x ?
+While dvb-usb-ids.h does already contain the PCTV vendor ID as well as 
+USB_PID_PINNACLE_PCTV74E device ID, file dib0700_devices.c does not 
+contain the registration. The patch from the patchset mentioned above 
+does register the 74e together with 73e. The problem now is that after 
+compiling everything (by switching off build of most modules in order to 
+avoid kfifo problems) and installing the new modules I hit the roadblock.
 
-On Fedora 12 with 2.6.31.9-174.fc12.i686 kernel I don't see that this
-module is getting loaded, why?
+Inserting the pico and doing "dmesg | grep -i dvb" yields:
+[10650.021155] dvb-usb: found a 'Pinnacle PCTV 74e' in cold state, will 
+try to load a firmware
+[10650.021170] usb 1-4: firmware: requesting dvb-usb-dib0700-1.20.fw
+[10650.041879] dvb-usb: downloading firmware from file 
+'dvb-usb-dib0700-1.20.fw'
+[10650.840668] dvb-usb: found a 'Pinnacle PCTV 74e' in warm state.
+[10650.840870] dvb-usb: will pass the complete MPEG2 transport stream to 
+the software demuxer.
+[10650.841284] DVB: registering new adapter (Pinnacle PCTV 74e)
+[10650.908062] dvb-usb: no frontend was attached by 'Pinnacle PCTV 74e'
+[10650.908292] input: IR-receiver inside an USB DVB receiver as 
+/devices/pci0000:00/0000:00:1d.7/usb1/1-4/input/input21
+[10650.908429] dvb-usb: schedule remote query interval to 50 msecs.
+[10650.908441] dvb-usb: Pinnacle PCTV 74e successfully initialized and 
+connected.
 
-I manually loaded dvb-usb-m920x module:
-# modprobe dvb-usb-m920x
-# dmesg
-usbcore: registered new interface driver dvb_usb_m920x
+It seems that the frontend registration did (silently) fail, at least 
+from the perspective of dib0700_devices.c. Has anyone information 
+whether the 74e shares the same frontend with the 73e?
 
-I don't see /dev/dvb or /dev/video0 devices present, so I guess that
-something still is not ok, maybe firmware?
-
-Which is the correct firmware for this device? I downloaded all
-firmware from: http://linuxtv.org/downloads/firmware/ and copied them
-to /lib/firmware and tried reloading the module, still nothing :(
-
-Then I saw post on this mailing list saying that correct firware is
-dvb-usb-megasky-02.fw so I downloaded it also, but still nothing.
-
-Do you have any idea why this device is not working?
-
-Can I give you some more info in order to fix this issue?
-
-Cheers!
-
-
--- 
-pratite me na twitteru - www.twitter.com/valentt
-http://kernelreloaded.blog385.com/
-linux, blog, anime, spirituality, windsurf, wireless
-registered as user #367004 with the Linux Counter, http://counter.li.org.
-ICQ: 2125241, Skype: valent.turkovic
-
-
--- 
-pratite me na twitteru - www.twitter.com/valentt
-http://kernelreloaded.blog385.com/
-linux, blog, anime, spirituality, windsurf, wireless
-registered as user #367004 with the Linux Counter, http://counter.li.org.
-ICQ: 2125241, Skype: valent.turkovic, msn: valent.turkovic@hotmail.com
+With best regards,
+-- Harald
 
 _______________________________________________
 linux-dvb users mailing list
