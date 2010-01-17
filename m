@@ -1,38 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.juropnet.hu ([212.24.188.131]:45728 "EHLO mail.juropnet.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753290Ab0ADQp7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jan 2010 11:45:59 -0500
-Received: from kabelnet-194-222.juropnet.hu ([91.147.194.222])
-	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.69)
-	(envelope-from <istvan_v@mailbox.hu>)
-	id 1NRq1i-0004E4-TE
-	for linux-media@vger.kernel.org; Mon, 04 Jan 2010 17:43:33 +0100
-Message-ID: <4B421BCB.6050909@mailbox.hu>
-Date: Mon, 04 Jan 2010 17:48:11 +0100
-From: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: DTV2000 H Plus issues
-References: <4B3F6FE0.4040307@internode.on.net> <4B3F7B0D.4030601@mailbox.hu> <4B405381.9090407@internode.on.net>
-In-Reply-To: <4B405381.9090407@internode.on.net>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from relay4.vodamail.co.za ([196.11.146.166]:34179 "EHLO
+	vodamail.co.za" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750783Ab0AQM55 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Jan 2010 07:57:57 -0500
+Subject: [PATCH] Compro S350 GPIO change
+From: JD Louw <jd.louw@mweb.co.za>
+To: liplianin@me.by
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 17 Jan 2010 14:57:46 +0200
+Message-ID: <1263733066.2031.15.camel@Core2Duo>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/03/2010 09:21 AM, Raena Lea-Shannon wrote:
+Hi,
 
-> That seems odd. This patch on the LinuxTv site
-> http://www.linuxtv.org/pipermail/linux-dvb/2008-June/026379.html
-> seems to be using the cx88 drivers?
+This patch enables LNB power on newer revision d1 Compro S350 and S300
+DVB-S cards. While I don't have these cards to test with I'm confident
+that this works. See
+http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/7471 and http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/14296
+and new windows driver as reference.
 
-Unfortunately, this patch is for the older DTV 2000H (not Plus)
-card, which uses a Philips FMD1216 tuner. The main change on the
-"Plus" card is the replacement of the tuner with the XC4000, and
-that is why it is not supported yet. However, an XC4000 driver
-is already under development, and - compiling V4L from source -
-you could get the card working in the near future. In fact, code
-that implements support for this card already exists, but it is
-only for development/testing at the moment.
+Signed-off-by: JD Louw <jd.louw@mweb.co.za>
+
+diff -r 59e746a1c5d1 linux/drivers/media/video/saa7134/saa7134-cards.c
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Wed Dec 30
+09:10:33 2009 -0200
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Sun Jan 17
+14:51:07 2010 +0200
+@@ -7037,8 +7037,8 @@ int saa7134_board_init1(struct saa7134_d
+ 		break;
+ 	case SAA7134_BOARD_VIDEOMATE_S350:
+ 		dev->has_remote = SAA7134_REMOTE_GPIO;
+-		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x00008000, 0x00008000);
+-		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x00008000, 0x00008000);
++		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x0000C000, 0x0000C000);
++		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x0000C000, 0x0000C000);
+ 		break;
+ 	}
+ 	return 0;
+
+
