@@ -1,54 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35285 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751207Ab0AGXYQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jan 2010 18:24:16 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Thu, 7 Jan 2010 17:24:07 -0600
-Subject: building v4l-dvb - compilation error
-Message-ID: <A69FA2915331DC488A831521EAE36FE40162D43370@dlee06.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mail01d.mail.t-online.hu ([84.2.42.6]:65361 "EHLO
+	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752020Ab0AQNI3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Jan 2010 08:08:29 -0500
+Message-ID: <4B530BC6.90903@freemail.hu>
+Date: Sun, 17 Jan 2010 14:08:22 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
+To: Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>
+CC: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/2, RFC] gspca pac7302: add support for camera button
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Márton Németh <nm127@freemail.hu>
 
-I have installed mercurial and cloned the v4l-dvb tree. I tried doing a build as per instructions and I get the following error. Since I am in the process of validating my build environment, I am not sure if the following is a genuine build error or due to my environment...
+Add support for snapshot button found on Labtec Webcam 2200.
 
-Other questions I have are:-
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+diff -r 875c200a19dc linux/drivers/media/video/gspca/pac7302.c
+--- a/linux/drivers/media/video/gspca/pac7302.c	Sun Jan 17 07:58:51 2010 +0100
++++ b/linux/drivers/media/video/gspca/pac7302.c	Sun Jan 17 13:47:50 2010 +0100
+@@ -5,6 +5,8 @@
+  * V4L2 by Jean-Francois Moine <http://moinejf.free.fr>
+  *
+  * Separated from Pixart PAC7311 library by M�rton N�meth <nm127@freemail.hu>
++ * Camera button input handling by Márton Németh <nm127@freemail.hu>
++ * Copyright (C) 2009-2010 Márton Németh <nm127@freemail.hu>
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+@@ -68,6 +70,7 @@
 
-1) I am just doing make. So does this build all v4l2 drivers?
-2) Which target this build for?
-3) What output this build create?
- 
-CC [M]  /local/mkaricheri/mercury/v4l-dvb/v4l/tuner-simple.o
-In file included from /local/mkaricheri/mercury/v4l-dvb/v4l/tuner-simple.c:9:
-/local/mkaricheri/mercury/v4l-dvb/v4l/compat.h:463: warning: "struct snd_card" d
-eclared inside parameter list
-/local/mkaricheri/mercury/v4l-dvb/v4l/compat.h:463: warning: its scope is only t
-his definition or declaration, which is probably not what you want
-/local/mkaricheri/mercury/v4l-dvb/v4l/tuner-simple.c:32: error: invalid lvalue i
-n unary `&'
-/local/mkaricheri/mercury/v4l-dvb/v4l/tuner-simple.c:32: error: initializer elem
-ent is not constant
-/local/mkaricheri/mercury/v4l-dvb/v4l/tuner-simple.c:32: error: (near initializa
-tion for `__param_arr_atv_input.num')
-/local/mkaricheri/mercury/v4l-dvb/v4l/tuner-simple.c:33: error: invalid lvalue i
-n unary `&'
-/local/mkaricheri/mercury/v4l-dvb/v4l/tuner-simple.c:33: error: initializer elem
-ent is not constant
-/local/mkaricheri/mercury/v4l-dvb/v4l/tuner-simple.c:33: error: (near initializa
-tion for `__param_arr_dtv_input.num')
-make[3]: *** [/local/mkaricheri/mercury/v4l-dvb/v4l/tuner-simple.o] Error 1
-make[2]: *** [_module_/local/mkaricheri/mercury/v4l-dvb/v4l] Error 2
-make[2]: Leaving directory `/usr/src/kernels/2.6.9-55.0.12.EL-smp-i686'
-make[1]: *** [default] Error 2
+ #define MODULE_NAME "pac7302"
 
++#include <linux/input.h>
+ #include <media/v4l2-chip-ident.h>
+ #include "gspca.h"
 
-Murali Karicheri
+@@ -1164,6 +1167,37 @@
+ }
+ #endif
 
++#ifdef CONFIG_INPUT
++static int sd_int_pkt_scan(struct gspca_dev *gspca_dev,
++			u8 *data,		/* interrupt packet data */
++			int len)		/* interrput packet length */
++{
++	int ret = -EINVAL;
++	u8 data0, data1;
++
++	if (len == 2) {
++		data0 = data[0];
++		data1 = data[1];
++		if ((data0 == 0x00 && data1 == 0x11) ||
++		    (data0 == 0x22 && data1 == 0x33) ||
++		    (data0 == 0x44 && data1 == 0x55) ||
++		    (data0 == 0x66 && data1 == 0x77) ||
++		    (data0 == 0x88 && data1 == 0x99) ||
++		    (data0 == 0xaa && data1 == 0xbb) ||
++		    (data0 == 0xcc && data1 == 0xdd) ||
++		    (data0 == 0xee && data1 == 0xff)) {
++			input_report_key(gspca_dev->input_dev, KEY_CAMERA, 1);
++			input_sync(gspca_dev->input_dev);
++			input_report_key(gspca_dev->input_dev, KEY_CAMERA, 0);
++			input_sync(gspca_dev->input_dev);
++			ret = 0;
++		}
++	}
++
++	return ret;
++}
++#endif
++
+ /* sub-driver description for pac7302 */
+ static const struct sd_desc sd_desc = {
+ 	.name = MODULE_NAME,
+@@ -1180,6 +1214,9 @@
+ 	.set_register = sd_dbg_s_register,
+ 	.get_chip_ident = sd_chip_ident,
+ #endif
++#ifdef CONFIG_INPUT
++	.int_pkt_scan = sd_int_pkt_scan,
++#endif
+ };
+
+ /* -- module initialisation -- */
