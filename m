@@ -1,34 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:50277 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755570Ab0A2CIP (ORCPT
+Received: from mail-in-11.arcor-online.net ([151.189.21.51]:53799 "EHLO
+	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753308Ab0AQXxk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2010 21:08:15 -0500
-Message-ID: <4B624309.9040700@infradead.org>
-Date: Fri, 29 Jan 2010 00:08:09 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Andy Walls <awalls@radix.net>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: cx18 fix patches
-References: <4B60F901.20301@redhat.com> <1264681562.3081.3.camel@palomino.walls.org>
-In-Reply-To: <1264681562.3081.3.camel@palomino.walls.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+	Sun, 17 Jan 2010 18:53:40 -0500
+Subject: Re: [PATCH] http://mercurial.intuxication.org/hg/v4l-dvb-commits
+From: hermann pitton <hermann-pitton@arcor.de>
+To: "Igor M. Liplianin" <liplianin@me.by>
+Cc: linux-media@vger.kernel.org, Mauro Chehab <mchehab@infradead.org>,
+	JD Louw <jd.louw@mweb.co.za>
+In-Reply-To: <201001180106.30373.liplianin@me.by>
+References: <201001180106.30373.liplianin@me.by>
+Content-Type: text/plain
+Date: Mon, 18 Jan 2010 00:52:47 +0100
+Message-Id: <1263772367.3182.34.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andy Walls wrote:
-> Now I'll just review and test tonight (some time between 6:00 - 10:30
-> p.m. EST)
 
-One more error (on x86_64):
+Am Montag, den 18.01.2010, 01:06 +0200 schrieb Igor M. Liplianin:
+> Mauro,
+> 
+> Please pull from http://mercurial.intuxication.org/hg/v4l-dvb-commits
+> 
+> for the following 5 changesets:
+> 
+> 01/05: Add Support for DVBWorld DVB-S2 PCI 2004D card
+> http://mercurial.intuxication.org/hg/v4l-dvb-commits?cmd=changeset;node=199213295c11
+> 
+> 02/05: Compro S350 GPIO change
+> http://mercurial.intuxication.org/hg/v4l-dvb-commits?cmd=changeset;node=84347195a02c
+> 
+> 03/05: dm1105: connect splitted else-if statements
+> http://mercurial.intuxication.org/hg/v4l-dvb-commits?cmd=changeset;node=cd9e72ee99c4
+> 
+> 04/05: dm1105: use dm1105_dev & dev instead of dm1105dvb
+> http://mercurial.intuxication.org/hg/v4l-dvb-commits?cmd=changeset;node=5cb9c8978917
+> 
+> 05/05: dm1105: use macro for read/write registers
+> http://mercurial.intuxication.org/hg/v4l-dvb-commits?cmd=changeset;node=6ed71bd9d32b
+> 
+> 
+>  dvb/dm1105/Kconfig            |    1 
+>  dvb/dm1105/dm1105.c           |  539 +++++++++++++++++++++---------------------
+>  video/saa7134/saa7134-cards.c |    4 
+>  3 files changed, 285 insertions(+), 259 deletions(-)
+> 
+> Thanks,
+> Igor
+> 
 
-drivers/media/video/cx18/cx18-alsa-pcm.c: In function ‘cx18_alsa_announce_pcm_data’:
-drivers/media/video/cx18/cx18-alsa-pcm.c:82: warning: format ‘%d’ expects type ‘int’, but argument 5 has type ‘size_t’
+Igor,
 
-You should use %zu for size_t.
+What does that one pin more high on your 02/05 exactly?
+
+Given that we still have boards, pulling all pins high "for fun" and
+then work somehow.
+
+It is very wrong to proceed in such a way further.
+
+I would disable such stuff next day and did say so previously.
+
+The last we need are more undocumented gpio pins.
 
 Cheers,
-Mauro
+Hermann
+
+
+
+
+
+
