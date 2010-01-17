@@ -1,61 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailrelay008.isp.belgacom.be ([195.238.6.174]:25770 "EHLO
-	mailrelay008.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755093Ab0AMIcw (ORCPT
+Received: from mail-fx0-f225.google.com ([209.85.220.225]:52941 "EHLO
+	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754264Ab0AQSwI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jan 2010 03:32:52 -0500
-Message-ID: <4B4D852F.4030506@skynet.be>
-Date: Wed, 13 Jan 2010 09:32:47 +0100
-From: xof <xof@skynet.be>
+	Sun, 17 Jan 2010 13:52:08 -0500
+Received: by fxm25 with SMTP id 25so488687fxm.21
+        for <linux-media@vger.kernel.org>; Sun, 17 Jan 2010 10:52:07 -0800 (PST)
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <op.u6ov64og6dn9rq@denis-laptop.lan>
+Subject: [RESEND PATCH] ir-kbd-i2c: Allow to disable Hauppauge filter through
+ module parameter
+To: "Mauro Carvalho Chehab" <mchehab@redhat.com>
+Date: Sun, 17 Jan 2010 19:51:06 +0100
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: VL4-DVB compilation issue not covered by Daily Automated
-References: <4B4CE912.1000906@von-eitzen.de> <829197381001121344l3ad94bdajdd4eb0345b895f2b@mail.gmail.com>
-In-Reply-To: <829197381001121344l3ad94bdajdd4eb0345b895f2b@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8bit
+From: "Samuel Rakitnican" <samuel.rakitnican@gmail.com>
+Message-ID: <op.u6oxbgql6dn9rq@denis-laptop.lan>
+In-Reply-To: <op.u6ov64og6dn9rq@denis-laptop.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller a Ècrit :
-> On Tue, Jan 12, 2010 at 4:26 PM, Hagen von Eitzen <hagen@von-eitzen.de> wrote:
->   
->> Dear all,
->> as suggested by http://www.linuxtv.org/wiki/index.php/Bug_Report I report several warnings and errors not yet covered in latest http://www.xs4all.nl/~hverkuil/logs/Monday.log I get when compiling.
->> (The purpose of my experiments was trying to find out something about "0ccd:00a5 TerraTec Electronic GmbH")
->>
->> Regards
->> Hagen
->>     
->
-> This is an Ubuntu-specific issue (they improperly packaged their
-> kernel headers), which will not be covered by the daily build system
-> (which exercises various kernels but not across different Linux
-> distribution versions).
->
-> Devin
->   
-Are you sure? (it is an Ubuntu-only issue)
+Some Hauppauge devices have id=0 so such devices won't work.
+For such devices add a module parameter that allow to turn
+off filtering.
 
-I can see several
-> #include <asm/asm.h>
-in the v4l tree that compile fine on Ubuntu
-but only linux/drivers/media/dvb/firewire/firedtv-1394.c contains
-> #include <asm.h>
-and doesn't compile.
+Signed-off-by: Samuel Rakitniƒçan <semiRocket@gmail.com>
+---
+diff -r 82bbb3bd0f0a linux/drivers/media/video/ir-kbd-i2c.c
+--- a/linux/drivers/media/video/ir-kbd-i2c.c	Mon Jan 11 11:47:33 2010 -0200
++++ b/linux/drivers/media/video/ir-kbd-i2c.c	Sat Jan 16 16:39:14 2010 +0100
+@@ -61,6 +61,10 @@
+   module_param(hauppauge, int, 0644);    /* Choose Hauppauge remote */
+   MODULE_PARM_DESC(hauppauge, "Specify Hauppauge remote: 0=black, 1=grey (defaults to 0)");
 
-Unfortunately the asm.h asm/asm.h is not the only issue with
-firedtv-1394.c (on Ubuntu/Karmic Koala?).
-The /drivers/ieee1394/*.h seem to be in the linux-sources tree and not
-in the linux-headers one (?)
++static int haup_filter = 1;
++module_param(haup_filter, int, 0644);
++MODULE_PARM_DESC(haup_filter, "Hauppauge filter for other remotes, default is 1 (On)");
++
 
-Everywhere I look, I read "don't bother, just disable firedtv-1394.c"
-until they fix it.
+   #define DEVNAME "ir-kbd-i2c"
+   #define dprintk(level, fmt, arg...)	if (debug >= level) \
+@@ -96,24 +100,27 @@
+   	if (!start)
+   		/* no key pressed */
+   		return 0;
+-	/*
+-	 * Hauppauge remotes (black/silver) always use
+-	 * specific device ids. If we do not filter the
+-	 * device ids then messages destined for devices
+-	 * such as TVs (id=0) will get through causing
+-	 * mis-fired events.
+-	 *
+-	 * We also filter out invalid key presses which
+-	 * produce annoying debug log entries.
+-	 */
+-	ircode= (start << 12) | (toggle << 11) | (dev << 6) | code;
+-	if ((ircode & 0x1fff)==0x1fff)
+-		/* invalid key press */
+-		return 0;
 
-xof
----------------------
-But my problem is 'I have no audio on an Hercules Smart TV 2 Stereo'
-(bttv0: subsystem: 1540:952b; Card-100, Tuner-38).
-It works on a Dapper LiveCD (with a good /etc/modprobe.d/bttv, a
-~/.xawtv and xawtv installed).
-The problem seems to exist since 2008...
+-	if (dev!=0x1e && dev!=0x1f)
+-		/* not a hauppauge remote */
+-		return 0;
++	if (haup_filter != 0) {
++		/*
++		 * Hauppauge remotes (black/silver) always use
++		 * specific device ids. If we do not filter the
++		 * device ids then messages destined for devices
++		 * such as TVs (id=0) will get through causing
++		 * mis-fired events.
++		 *
++		 * We also filter out invalid key presses which
++		 * produce annoying debug log entries.
++		 */
++		ircode = (start << 12) | (toggle << 11) | (dev << 6) | code;
++		if ((ircode & 0x1fff) == 0x1fff)
++			/* invalid key press */
++			return 0;
++
++		if (dev != 0x1e && dev != 0x1f)
++			/* not a hauppauge remote */
++			return 0;
++	}
+
+   	if (!range)
+   		code += 64;
+
+-- 
+Lorem ipsum
