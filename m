@@ -1,54 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:55513 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751101Ab0ATJyf (ORCPT
+Received: from smtpq1.gn.mail.iss.as9143.net ([212.54.34.164]:33172 "EHLO
+	smtpq1.gn.mail.iss.as9143.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754083Ab0AQPFf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jan 2010 04:54:35 -0500
-Received: by bwz19 with SMTP id 19so3655255bwz.28
-        for <linux-media@vger.kernel.org>; Wed, 20 Jan 2010 01:54:34 -0800 (PST)
+	Sun, 17 Jan 2010 10:05:35 -0500
+Received: from [212.54.34.138] (helo=smtp7.gn.mail.iss.as9143.net)
+	by smtpq1.gn.mail.iss.as9143.net with esmtp (Exim 4.69)
+	(envelope-from <joep@groovytunes.nl>)
+	id 1NWWKi-00055A-Vu
+	for linux-media@vger.kernel.org; Sun, 17 Jan 2010 15:42:29 +0100
+Received: from 84-105-5-223.cable.quicknet.nl ([84.105.5.223] helo=werkstation.localnet)
+	by smtp7.gn.mail.iss.as9143.net with esmtp (Exim 4.69)
+	(envelope-from <joep@groovytunes.nl>)
+	id 1NWWKi-0008Qn-FN
+	for linux-media@vger.kernel.org; Sun, 17 Jan 2010 15:42:28 +0100
+From: joep admiraal <joep@groovytunes.nl>
+To: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: prof 7300
+Date: Sun, 17 Jan 2010 15:42:27 +0100
 MIME-Version: 1.0
-In-Reply-To: <4B56C078.8000502@redhat.com>
-References: <4B55445A.10300@infradead.org>
-	 <201001190853.11050.hverkuil@xs4all.nl>
-	 <4B5592BF.8040201@infradead.org> <4B56C078.8000502@redhat.com>
-Date: Wed, 20 Jan 2010 09:54:34 +0000
-Message-ID: <59cf47a81001200154n57280719sce946e9553e8e06b@mail.gmail.com>
-Subject: Re: [ANNOUNCE] git tree repositories & libv4l
-From: Paulo Assis <pj.assis@gmail.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Douglas Landgraf <dougsland@gmail.com>,
-	Brandon Philips <brandon@ifup.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_THyULJdUfSvXAEV"
+Message-Id: <201001171542.27314.joep@groovytunes.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+--Boundary-00=_THyULJdUfSvXAEV
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-> The uvcdynctrl utility is part of the libwebcam project:
-> http://www.quickcamteam.net/software/libwebcam
->
-> But given that libwebcam is unmaintained and not used by anything AFAIK, I'm
-> patching
-> uvcdynctrl to no longer need it. The plan is to add uvcdynctrl to libv4l
-> soon, as that
-> is needed to be able to control the focus on some uvc autofocus cameras.
+I had some troubles with a prof 7300 dvb s-2 card.
+I am running OpenSuse 11.2 with a recent hg copy of the v4l-dvb repository.
+It was detected as a Hauppauge WinTV instead of a prof 7300.
+After some runs with info_printk statements I found a problem in 
+linux/drivers/media/video/cx88.c
+As far as I can understand the code I would say card[core->nr] will always be 
+smaller than ARRAY_SIZE(cx88_boards).
+Therefore core->boardnr is never looked up from the cx88_subids array.
+After I removed the check with ARRAY_SIZE the correct card is detected and I 
+can watch tv with both my prof 7300 cards.
+Can someone confirm if the patch I made is correct or explain what the purpose 
+is of the ARRAY_SIZE check?
 
-Actually libwebcam is still maintained in svn:
 
-http://www.quickcamteam.net/documentation/how-to/how-to-install-the-webcam-tools
-
-but you are right just a few applications use it, and since it's not
-yet included in any distribution most end users will miss some advance
-features on their webcams.
-I'm just a bit worried that having two different packages providing
-the same set of tools may cause some compatibility problems in the
-future. Binary packages of libwebcam are being prepared and will be
-available soon, so I guess some compat tests may be in order, maybe
-splitting uvcdynctrl from libwebcam into a different package and
-making it incompatible with libv4l would be a good idea.
+For search references:
+I was getting this error in dmesg:
+cx88[1]/2: dvb_register failed (err = -22)
+cx88[1]/2: cx8802 probe failed, err = -22 
 
 Regards,
-Paulo
+Joep Admiraal
+
+--Boundary-00=_THyULJdUfSvXAEV
+Content-Type: text/x-patch;
+  charset="UTF-8";
+  name="prof7300.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="prof7300.diff"
+
+diff -r b76072d765c4 linux/drivers/media/video/cx88/cx88-cards.c
+--- a/linux/drivers/media/video/cx88/cx88-cards.c	Tue Dec 29 18:48:04 2009 +0000
++++ b/linux/drivers/media/video/cx88/cx88-cards.c	Sat Jan 16 16:44:36 2010 +0100
+@@ -3436,8 +3436,8 @@
+ 
+ 	/* board config */
+ 	core->boardnr = UNSET;
+-	if (card[core->nr] < ARRAY_SIZE(cx88_boards))
+-		core->boardnr = card[core->nr];
++	//if (card[core->nr] < ARRAY_SIZE(cx88_boards))
++	//	core->boardnr = card[core->nr];
+ 	for (i = 0; UNSET == core->boardnr && i < ARRAY_SIZE(cx88_subids); i++)
+ 		if (pci->subsystem_vendor == cx88_subids[i].subvendor &&
+ 		    pci->subsystem_device == cx88_subids[i].subdevice)
+
+--Boundary-00=_THyULJdUfSvXAEV--
