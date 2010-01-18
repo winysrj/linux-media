@@ -1,62 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:59535 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753084Ab0AKJyN convert rfc822-to-8bit (ORCPT
+Received: from mail-qy0-f194.google.com ([209.85.221.194]:33036 "EHLO
+	mail-qy0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751862Ab0ARNid (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2010 04:54:13 -0500
-Date: Mon, 11 Jan 2010 10:55:24 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Jose Alberto Reguero <jareguero@telefonica.net>,
-	linux-media@vger.kernel.org
-Subject: Re: Problem with gspca and zc3xx
-Message-ID: <20100111105524.157ebdbe@tele>
-In-Reply-To: <4B4AE349.4000707@redhat.com>
-References: <201001090015.31357.jareguero@telefonica.net>
-	<20100110093730.14be3d7c@tele>
-	<4B4AE349.4000707@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Mon, 18 Jan 2010 08:38:33 -0500
+Received: by qyk32 with SMTP id 32so118868qyk.4
+        for <linux-media@vger.kernel.org>; Mon, 18 Jan 2010 05:38:32 -0800 (PST)
+Message-ID: <4B5464BC.20001@gmail.com>
+Date: Mon, 18 Jan 2010 09:40:12 -0400
+From: Emmanuel <eallaud@gmail.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: CI USB
+References: <3f3a053b1001021407k6ce936b8gd7d3e575a25e734d@mail.gmail.com>	 <3f3a053b1001021411i2e9484d7rd2d13f1a355939fe@mail.gmail.com>	 <846899811001021455u28fccb5cr66fd4258d3dddd4d@mail.gmail.com>	 <d9def9db1001091811s6dbed557vfca9ce410e41d3d3@mail.gmail.com>	 <4B49D1A4.4040702@gmail.com>	 <1a297b361001100535u1875de01jfe2b724c6643dfc0@mail.gmail.com> <846899811001100728x27eaf4faqd83373dd16ef58d3@mail.gmail.com>
+In-Reply-To: <846899811001100728x27eaf4faqd83373dd16ef58d3@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 11 Jan 2010 09:37:29 +0100
-Hans de Goede <hdegoede@redhat.com> wrote:
-
-> This is the infamous zc3xx bottom of the image is missing in 320x240
-> problem, with several sensors the register settings we took from the
-> windows driver will only give you 320x232 (iirc), we tried changing
-> them to get 320x240, but then the camera would not stream. Most
-> likely some timing issue between bridge and sensor.
-> 
-> I once had a patch fixing this by actually reporting the broken modes
-> as 320x232, but that never got applied as it breaks app which are
-> hardcoded to ask for 320x240. libv4l has had the ability to extend
-> the 320x232 image to 320x240 for a while now (by adding a few black
-> lines at the top + bottom), fixing the hardcoded apps problem.
-> 
-> So I think such a patch can and should be applied now. This will get
-> rid of the jpeg decompression errors reported by libv4l and in case
-> if yuv mode the ugly green bar with some random noise in it at the
-> bottom.
-> 
-> I'm afraid my patch is most likely lost, but I can create a new one
-> if you want, I have access to quite a few zc3xx camera's, and more
-> over what resolution they are actually streaming at can be deducted
-> from the register settings in the driver.
-
-Hi Hans,
-
-As you may see in Jose Alberto's message, the problem occurs with
-640x480 and, yes, the image bottom is lacking, but also the right side.
-
-I did not lose your patch, but I did not apply it because most of the
-time, the webcams work in the best resolution (VGA) and the associated
-problem has not found yet a good resolution...
-
-Regards.
-
--- 
-Ken ar c'hentaÃ±	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+HoP a écrit :
+>> I don't know the details into the USB device, but each of those CAM's
+>> have bandwidth limits on them and they vary from one CAM to the other.
+>> Also, there is a limit on the number of simultaneous PID's that which
+>> you can decrypt.
+>>
+>> Some allow only 1 PID, some allow 3. Those are the basic CAM's for
+>> home usage.The most expensive CAM's allow a maximum of 24 PID's. But
+>>     
+>
+> You, of course, ment number of descramblers not PIDS because it is evident
+> that getting TV service descrambled, you need as minimum 2 PIDS for A/V.
+>
+> Anyway, it is very good note. Users, in general, don't know about it.
+>
+> /Honza
+>   
+Just a quick note here: you might want to post to the mythtv ML and the 
+VDR one also (probably others but I dont know them off hand) and see how 
+people feel about this. My guess is that quite a few potential users are 
+on these ML, and the CI threads are recurrent there because of good 
+dvb-s cards but without CI support.
+A usb-CI or equivalent HW + good drivers would allow people to pick the 
+dvb-s(2) cards without worrying about CI support.
+HTH
+Bye
+Manu
