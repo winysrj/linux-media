@@ -1,51 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225]:57581 "EHLO
-	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755467Ab0ANKyM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jan 2010 05:54:12 -0500
-Received: by fxm25 with SMTP id 25so337626fxm.21
-        for <linux-media@vger.kernel.org>; Thu, 14 Jan 2010 02:54:10 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <f74f98341001140219x2636eeai4f3986a5fb04ce27@mail.gmail.com>
-References: <f74f98341001132335p562b189duda4478cb62a7549a@mail.gmail.com>
-	 <1a297b361001140115l3dc56802r985b0fd9f8f83c16@mail.gmail.com>
-	 <f74f98341001140219x2636eeai4f3986a5fb04ce27@mail.gmail.com>
-Date: Thu, 14 Jan 2010 14:54:10 +0400
-Message-ID: <1a297b361001140254r5578607dn45838d35df4f1358@mail.gmail.com>
-Subject: Re: About driver architecture
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Michael Qiu <fallwind@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail1.radix.net ([207.192.128.31]:52367 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750714Ab0ARFUU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jan 2010 00:20:20 -0500
+Subject: Do any drivers access the cx25840 module in an atomic context?
+From: Andy Walls <awalls@radix.net>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Mike Isely <isely@isely.net>, stoth@kernellabs.com,
+	hverkuil@xs4all.nl
+Content-Type: text/plain
+Date: Mon, 18 Jan 2010 00:19:28 -0500
+Message-Id: <1263791968.5220.87.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 14, 2010 at 2:19 PM, Michael Qiu <fallwind@gmail.com> wrote:
-> Thanks a lot for you advise.
->
-> Before I read the source code you mentioned, I guess I should write a
-> driver modules which provide /dev/dvb/adapter/audio, video, frontend,
-> ca....,  and also provide a /dev/fbx for OSD layer. But in source
-> level, all display HW relative functions would probably in a same
-> module, because they are operation on same block of H/W.
-> But I still don't know where to put my global display control
-> interface, for instance, the function to control which layer open and
-> close, the alpha values used for each layer...
->
-> And I investigated DirectFB, it seems if I provide a /dev/fb0 device
-> the DirectFB can play around it and it will the base for upper GUI
-> system.
-> I also found DirectFB support V4L as it's surface source. So it will
-> need some kernel module to control layer blending. It seems the thing
-> I am looking for which implement the global display control.
+Hi,
 
-With regards to the 7109 framebuffer. There is a DirectFB driver for
-it in the STLinux distribution. (If you use the SOC as a STB) DirectFB
-acts as a whole application/framework on the STB.
+I am going to add locking to the cx25840 module register reads and
+writes because I now have a case where a workqueue, a userpace, and/or
+the cx25840 firmware loading workqueue could contend for access to the
+CX2584x or equivalent device.
 
-http://www.stlinux.com/download/updates.php?r=2.3;u=stlinux23-target-directfb14-multi-1.4.3.STM2009.12.11-2.src.rpm
+I have identiifed the following drivers that actually use this module:
+
+	cx231xx, pvrusb2, ivtv, cx23885
+
+Now here's where I need help, since I don't understand the USB stuff too
+well and there's a lot of code to audit:
+
+Do any of these modules call the cx25840 routines with either:
+
+a. call the cx25840 module subdev functions with a spinlock held ? or
+b. call the cx25840 module subdev functions from an interrupt context:
+i.e. a hard irq or tasklet ? or
+c. bypass the normal cx25840_read/write calls with direct I2C access to
+the client address of 0x44 (0x88 >> 1) ?
+
+Any definitive confirmation anyone can give on any of these drivers
+would be helpful and would save me some time.
+
+
+
+For the cx23885 driver I think these are the answers:
+
+	a. probably not
+	b. probably not
+	c. yes 
+
+but I have to double check.
+
+I can probably audit the ivtv driver on my own.  I understand it's
+structure, but it's a big driver and will take time to check, if no one
+knows off hand.
+
+The pvrusb2 and cx231xx will be a little harder for me.  They aren't
+terribly large, but I don't understand USB device "interrupt" contexts.
+
+TIA.
 
 Regards,
-Manu
+Andy
+
