@@ -1,260 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ms01.sssup.it ([193.205.80.99]:55040 "EHLO sssup.it"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751535Ab0ALV20 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jan 2010 16:28:26 -0500
-Message-ID: <4B4CE976.5050503@panicking.kicks-ass.org>
-Date: Tue, 12 Jan 2010 22:28:22 +0100
-From: Michael Trimarchi <michael@panicking.kicks-ass.org>
-MIME-Version: 1.0
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-CC: Nishanth Menon <menon.nishanth@gmail.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: ISP OMAP3 camera support ov7690
-References: <4AC7DAAD.2020203@panicking.kicks-ass.org> <4AC8B764.2030101@gmail.com> <4AC93DC9.2080809@panicking.kicks-ass.org> <A24693684029E5489D1D202277BE89444CB3A2CB@dlee02.ent.ti.com> <4B4C75F0.3060108@panicking.kicks-ass.org> <A24693684029E5489D1D202277BE8944514AC214@dlee02.ent.ti.com> <4B4CB241.6050603@panicking.kicks-ass.org>
-In-Reply-To: <4B4CB241.6050603@panicking.kicks-ass.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mail1.radix.net ([207.192.128.31]:64568 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752647Ab0ARQyd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jan 2010 11:54:33 -0500
+Subject: Re: Do any drivers access the cx25840 module in an atomic context?
+From: Andy Walls <awalls@radix.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Mike Isely <isely@isely.net>, stoth@kernellabs.com
+In-Reply-To: <201001181116.59377.hverkuil@xs4all.nl>
+References: <1263791968.5220.87.camel@palomino.walls.org>
+	 <201001181116.59377.hverkuil@xs4all.nl>
+Content-Type: text/plain
+Date: Mon, 18 Jan 2010 11:52:43 -0500
+Message-Id: <1263833563.3112.100.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-Michael Trimarchi wrote:
-> Hi all,
+On Mon, 2010-01-18 at 11:16 +0100, Hans Verkuil wrote:
+> On Monday 18 January 2010 06:19:28 Andy Walls wrote:
+> > Hi,
+> > 
+> > I am going to add locking to the cx25840 module register reads and
+> > writes because I now have a case where a workqueue, a userpace, and/or
+> > the cx25840 firmware loading workqueue could contend for access to the
+> > CX2584x or equivalent device.
+> > 
+> > I have identiifed the following drivers that actually use this module:
+> > 
+> > 	cx231xx, pvrusb2, ivtv, cx23885
+> > 
+> > Now here's where I need help, since I don't understand the USB stuff too
+> > well and there's a lot of code to audit:
+> > 
+> > Do any of these modules call the cx25840 routines with either:
+> > 
+> > a. call the cx25840 module subdev functions with a spinlock held ? or
+> > b. call the cx25840 module subdev functions from an interrupt context:
+> > i.e. a hard irq or tasklet ? or
+> > c. bypass the normal cx25840_read/write calls with direct I2C access to
+> > the client address of 0x44 (0x88 >> 1) ?
+> > 
+> > Any definitive confirmation anyone can give on any of these drivers
+> > would be helpful and would save me some time.
 > 
-> Aguirre, Sergio wrote:
->>
->>> -----Original Message-----
->>> From: Michael Trimarchi [mailto:michael@panicking.kicks-ass.org]
->>> Sent: Tuesday, January 12, 2010 7:15 AM
->>> To: Aguirre, Sergio
->>> Cc: Nishanth Menon; linux-omap@vger.kernel.org; linux-
->>> media@vger.kernel.org
->>> Subject: Re: ISP OMAP3 camera support ov7690
->>>
->>> Hi all,
->>>
->>> Now I have a good camera pcb and I can test again the driver. My 
->>> board is
->>> an overo gumstix board.
->>
->> Excellent!
->>
->> Please let me know if you're having issues with it.
->>
->> Thanks for your interest!
->>
->> Regards,
->> Sergio
->>
+> For ivtv:
 > 
-> maybe I have done some mistake during writing the email, but I have 
-> asked few things inside the email.
-> The camera part is ok because I have written a driver using the ov538 
-> bridge but I have some problem
-> in configuring the isp omap3 device. It opens correctly the camera, and 
-> set xclk frequency. Then
-> seems that vsync and hsync are not routed to the engine because I don't 
-> receive any interrupt.
+> a. no
+> b. no
+> c. no
 
---- a/drivers/media/video/isp/isp.c
-+++ b/drivers/media/video/isp/isp.c
-@@ -299,6 +299,7 @@ static void isp_enable_interrupts(struct device *dev)
-                | IRQ0ENABLE_CSIA_IRQ
-                | IRQ0ENABLE_CSIB_IRQ | IRQ0ENABLE_HIST_DONE_IRQ
-                | IRQ0ENABLE_H3A_AWB_DONE_IRQ | IRQ0ENABLE_H3A_AF_DONE_IRQ
-+               | IRQ0ENABLE_HS_VS_IRQ
-                | isp->interrupts;
- 
-        if (CCDC_PREV_CAPTURE(isp))
-@@ -328,6 +329,7 @@ static void isp_disable_interrupts(struct device *dev)
-                | IRQ0ENABLE_CSIA_IRQ
-                | IRQ0ENABLE_CSIB_IRQ | IRQ0ENABLE_HIST_DONE_IRQ
-                | IRQ0ENABLE_H3A_AWB_DONE_IRQ | IRQ0ENABLE_H3A_AF_DONE_IRQ
-+               | IRQ0ENABLE_HS_VS_IRQ
-                | isp->interrupts);
+Thanks.  I thought so, but wasn't sure.
 
-Adding this in the irq mask give me interrupt from the camera, but I don't undestarstand
-why they are disabled. Are they disabled in the latest git code?
+> BTW: b should never happen. i2c reads/writes are very slow and so it is a
+> very bad idea to do that in interrupt context.
 
-how can I get the vrise?
-
-.hsvs_syncdetect        = ISPCTRL_SYNC_DETECT_VSFALL,
+Yeah.  I just found that out. :P
 
 
-Michael
+>  Since there is some low-level
+> locking in the i2c stack as well I think it will probably not even work
+> correctly if called from interrupt context.
 
->>> Aguirre Rodriguez, Sergio Alberto wrote:
->>>> Hi Michael,
->>>>
->>>>> -----Original Message-----
->>>>> From: linux-omap-owner@vger.kernel.org
->>>>> [mailto:linux-omap-owner@vger.kernel.org] On Behalf Of michael
->>>>> Sent: Sunday, October 04, 2009 7:29 PM
->>>>> To: Nishanth Menon
->>>>> Cc: linux-omap@vger.kernel.org; linux-media@vger.kernel.org
->>>>> Subject: Re: ISP OMAP3 camera support ov7690
->>>>>
->>>>> Hi,
->>>>>
->>>>> cc: linux-media
->>>>>
->>>>> Nishanth Menon wrote:
->>>>>> michael said the following on 10/03/2009 06:13 PM:
->>>>>>> I'm writing a driver to support the ov7690 camera and I have some
->>>>>>> question about the meaning of:
->>>>>>>
->>>>>>> - datalane configuration
->>>>>> CSI2 Data lanes - each CSI2 lane is a differential pair.
->>>>> And, at least 1
->>>>>> clock and data lane is used in devices.
->>>>> Sorry can you explain a little bit more. I have the camera
->>>>> connected to the
->>>>> cam_hs and cam_vs and the data is 8Bit. I use the the isp init
->>>>> structure. The sccb bus works great and I can send
->>>>> configuration to it,
->>>>> but I don't receive any interrupt from the ics, seems that it
->>>>> doen't see
->>>>> the transaction:
->>>>>
->>>>> The ISPCCDC: ###CCDC SYN_MODE=0x31704 seems ok.
->>>>>
->>>>>
->>>>> static struct isp_interface_config ov7690_if_config = {
->>>>>         .ccdc_par_ser           = ISP_CSIA,
->>>>>         .dataline_shift         = 0x0,
->>>>>         .hsvs_syncdetect        = ISPCTRL_SYNC_DETECT_VSFALL,
->>>> Can you try with ISPCTRL_SYNC_DETECT_VSRISE ?
->>>>
->>>>>         .strobe                 = 0x0,
->>>>>         .prestrobe              = 0x0,
->>>>>         .shutter                = 0x0,
->>>>>         .wenlog                 = ISPCCDC_CFG_WENLOG_AND,
->>>>>         .wait_hs_vs             = 0x4,
->>>>>         .raw_fmt_in             = ISPCCDC_INPUT_FMT_GR_BG,
->>>>>         .u.csi.crc              = 0x0,
->>>>>         .u.csi.mode             = 0x0,
->>>>>         .u.csi.edge             = 0x0,
->>>>>         .u.csi.signalling       = 0x0,
->>>>>         .u.csi.strobe_clock_inv = 0x0,
->>>>>         .u.csi.vs_edge          = 0x0,
->>>>>         .u.csi.channel          = 0x0,
->>>>>         .u.csi.vpclk            = 0x1,
->>>>>         .u.csi.data_start       = 0x0,
->>>>>         .u.csi.data_size        = 0x0,
->>>>>         .u.csi.format           = V4L2_PIX_FMT_YUYV,
->>>>> };
->>>>>
->>>>> and I don't know the meaning of
->>>>>
->>>>> lanecfg.clk.pol = OV7690_CSI2_CLOCK_POLARITY;
->>>>> lanecfg.clk.pos = OV7690_CSI2_CLOCK_LANE;
->>>>> lanecfg.data[0].pol = OV7690_CSI2_DATA0_POLARITY;
->>>>> lanecfg.data[0].pos = OV7690_CSI2_DATA0_LANE;
->>>>> lanecfg.data[1].pol = OV7690_CSI2_DATA1_POLARITY;
->>>>> lanecfg.data[1].pos = OV7690_CSI2_DATA1_LANE;
->>>>> lanecfg.data[2].pol = 0;
->>>>> lanecfg.data[2].pos = 0;
->>>>> lanecfg.data[3].pol = 0;
->>>>> lanecfg.data[3].pos = 0;
->>>>>
->>>> This is the physical connection details:
->>>>
->>>> - The .pol field stands for the differntial pair polarity.
->>>>   (i.e. the order in which the negative and positive connections
->>>>   are pugged in to the CSI2 ComplexIO module)
->>> What exact the meaning of the pol, sorry? I have a signal that is
->>> connected
->>> to a pin. If the pos is avalaible can I use it?
->>> It's not important how to route the signal but don't route on the same
->>> lane.
->>> Is it right?
->>>
->>> This is the timing of the camera so I can check signal, but I don't
->>> receive interrupt
->>> of isp engine
->>>
->>> The camera is direct connected to the
->>> camera omap camera signal and using the oscilloscope I can see the hs/vs
->>> signal
->>> The hs is low and go up, like the vs signal. I have only one camera
->>> with that use D0 to D7 data bit.
->>>
->>> http://www.gumstix.net/Hardware/view/I/O-connectors-cabling/Gumstix-Overo- 
->>>
->>> 27-pin-connector-J5-to-manage-camera-controls/112.html
->>>
->>> static struct isp_interface_config ov7690_if_config = {
->>>         .ccdc_par_ser           = ISP_CSIA,
->>>         .dataline_shift         = 0x0,
->>>         .hsvs_syncdetect        = ISPCTRL_SYNC_DETECT_VSRISE,
->>>         .strobe                 = 0x0,
->>>         .prestrobe              = 0x0,
->>>         .shutter                = 0x0,
->>>         .wenlog                 = ISPCCDC_CFG_WENLOG_AND,
->>>         .wait_hs_vs             = 0x4,
->>>         .raw_fmt_in             = ISPCCDC_INPUT_FMT_GR_BG,
->>>         .u.csi.crc              = 0x0,
->>>         .u.csi.mode             = 0x0,
->>>         .u.csi.edge             = 0x0,
->>>         .u.csi.signalling       = 0x0,
->>>         .u.csi.strobe_clock_inv = 0x0,
->>>         .u.csi.vs_edge          = 0x0,
->>>         .u.csi.channel          = 0x0,
->>>         .u.csi.vpclk            = 0x1,
->>>         .u.csi.data_start       = 0x0,
->>>         .u.csi.data_size        = 0x0,
->>>         .u.csi.format           = V4L2_PIX_FMT_YUYV,
->>> };
->>>
->>> This is my initial configuration
->>> #define OV7690_CSI2_CLOCK_POLARITY      0       /* +/- pin order */
->>> #define OV7690_CSI2_DATA0_POLARITY      0       /* +/- pin order */
->>> #define OV7690_CSI2_DATA1_POLARITY      0       /* +/- pin order */
->>> #define OV7690_CSI2_CLOCK_LANE          1        /* Clock lane 
->>> position: 1
->>> */
->>> #define OV7690_CSI2_DATA0_LANE          2        /* Data0 lane 
->>> position: 2
->>> */
->>> #define OV7690_CSI2_DATA1_LANE          3        /* Data1 lane 
->>> position: 3
->>> */
->>> tim#define OV7690_CSI2_PHY_THS_TERM        2
->>> #define OV7690_CSI2_PHY_THS_SETTLE      23
->>> #define OV7690_CSI2_PHY_TCLK_TERM       0
->>> #define OV7690_CSI2_PHY_TCLK_MISS       1
->>> #define OV7690_CSI2_PHY_TCLK_SETTLE     14
->>>
->>> With this clock polarity
->>>
->>> lanecfg.clk.pol = OV7690_CSI2_CLOCK_POLARITY;
->>> lanecfg.clk.pos = OV7690_CSI2_CLOCK_LANE;
->>> lanecfg.data[0].pol = OV7690_CSI2_DATA0_POLARITY;
->>> lanecfg.data[0].pos = OV7690_CSI2_DATA0_LANE;
->>> lanecfg.data[1].pol = OV7690_CSI2_DATA1_POLARITY;
->>> lanecfg.data[1].pos = OV7690_CSI2_DATA1_LANE;
->>> lanecfg.data[2].pol = 0;
->>> lanecfg.data[2].pos = 0;
->>> lanecfg.data[3].pol = 0;
->>> lanecfg.data[3].pos = 0;
->>> isp_csi2_complexio_lanes_config(&isp->isp_csi2, &lanecfg);
->>>
->>> Michael
->> -- 
+Well it can work, but I don't think what the i2c stack does in such
+cases is reliable.  The i2c subsystem will call in_atomic() and
+in_interrupt() to find out if it can sleep or not (it turns out this is
+unreliable with PREEMPT disabled) and then calls mutex_trylock().
+Obtaining a mutex with mutex_trylock() in an interrupt context isn't
+allowed AFAICT as it at breaks lockdep's ownership tracking of mutexes.
+If the i2c stack doesn't get the *adapter* mutex lock in the perceived
+atomic context, the i2c transfer fails with -EAGAIN.
+
+
+I'm hoping nothing accesses the cx25840 routines from an atomic context,
+but hope is usually not a good basis for a plan. ;)
+
+
+> Note that AFAIK the i2c stack will already serialize i2c commands for you.
+> So are you sure you need to serialize access on the higher levels as well?
+
+The i2c stack serializes the adapter accesses.  The problem is that if
+there is contention for a particular client, and an i2c read transaction
+is broken up into 2 distinct transfers, like it is in the cx25840 module
+(i2c_master_send() of register address followed by a separate
+i2c_master_recv()), then the individiual i2c transfers  in these
+transactions can get interleaved.
+
+I don't know why the cx25840 module did things this way, but the ability
+to do a cx25840 device register read in a single i2c_trasnfer()
+transaction with a repeated start is contingent on the underlying master
+implementation. 
+
+I'll have to audit the underlying drivers to check if their master
+implementations support that.  If they can, then I can combine the
+i2c_master_send() and i2c_master_recv() into a single i2c_transfer().
+Otherwise a lock is actually needed in the cx25840_read() routines, even
+without the question of atomic context.
+
+
+> Firmware load should be already serialized in the bridge driver. That leaves
+> a possible call to cx25840_reset() which can trigger a fw load at any time,
+> but I believe that can be removed as well since it is only used by the IR
+> reset code which is obsolete.
+
+Yes, you're right.  So, with the CX2388[578] devices, the only real
+contention I then need to deal with would be between a file operation
+(e.g. ioctl) indcued I2C transaction in a process context, contending
+with an IR interrupt induced I2C transaction running in a workqueue
+context. 
+
+
+I really just don't want to break any existing drivers, while ensuring
+reliable operation of the device handled by the cx25840 module, and
+allowing maximum concurrency to the device.  Right now the cx25840
+module cannot ensure reliability.  Ensuring no register manipulation
+requests are coming in from an atomic context makes solving that
+reliability problem easier, hence my question.
+
+
+I can always just reduce the problem scope by doing locking in the
+cx25840 module for only CX2388[578] devices.  Then I would only need to
+audit the cx23885 driver.
+
+
 > 
-> Regards Michael
+> At least in ivtv I have never seen any issues with cx25840 and atomic contexts.
+
+Well, if one ever does call the cx25840_read() in an atomic context, if
+there is no contention for the I2C adapter at that time, the I2C
+transfers should succeed.  If there is contention in this atomic
+context, the transaction silently fails, returning 0 as the value read
+from the register.  I have learned this from recent experience. :P
+
+ivtv serializes all ioctl calls, and open/read/write/close calls from
+user space are unlikely to be concurrent with ioctls.  I didn't check if
+ivtv manipulates the cx25840 from a workqueue context; I suspect it
+doesn't.  Also if ivtv never manipulates the cx25840 device from an
+interrupt context or with a spinlock held, then the likelyhood of a
+failed i2c transaction is essentially 0.
+
+Thanks again.
+
+Regards,
+Andy
+
+> Regards,
 > 
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
+> 	Hans
 > 
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> > 
+> > 
+> > 
+> > For the cx23885 driver I think these are the answers:
+> > 
+> > 	a. probably not
+> > 	b. probably not
+> > 	c. yes 
+> > 
+> > but I have to double check.
+> > 
+> > I can probably audit the ivtv driver on my own.  I understand it's
+> > structure, but it's a big driver and will take time to check, if no one
+> > knows off hand.
+> > 
+> > The pvrusb2 and cx231xx will be a little harder for me.  They aren't
+> > terribly large, but I don't understand USB device "interrupt" contexts.
+> > 
+> > TIA.
+> > 
+> > Regards,
+> > Andy
+
 
