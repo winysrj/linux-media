@@ -1,64 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37038 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753138Ab0AYOfp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jan 2010 09:35:45 -0500
-Message-ID: <4B5DAC3A.6000408@redhat.com>
-Date: Mon, 25 Jan 2010 12:35:38 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from fg-out-1718.google.com ([72.14.220.154]:27658 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754459Ab0ARQ3F convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jan 2010 11:29:05 -0500
+Received: by fg-out-1718.google.com with SMTP id 22so775461fge.1
+        for <linux-media@vger.kernel.org>; Mon, 18 Jan 2010 08:29:04 -0800 (PST)
 MIME-Version: 1.0
-To: Stefan Ringel <stefan.ringel@arcor.de>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Terratec Cinergy Hybrid XE (TM6010 Mediachip)
-References: <4B547EBF.6080105@arcor.de>
-In-Reply-To: <4B547EBF.6080105@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <829197381001180817r561bb1cdj9edda6ab3affbba0@mail.gmail.com>
+References: <ad6681df0912220711p2666f0f5m84317a7bf0ffc137@mail.gmail.com>
+	 <829197380912220750j116894baw8343010b123f929@mail.gmail.com>
+	 <ad6681df0912220841n2f77f2c3v7aad0604575b5564@mail.gmail.com>
+	 <ad6681df1001180701s26584cdfua9e413d9bb843a35@mail.gmail.com>
+	 <829197381001180716v59b84ee2ia8ca2d9be4be5b22@mail.gmail.com>
+	 <4B54864E.1050801@yahoo.it>
+	 <829197381001180817r561bb1cdj9edda6ab3affbba0@mail.gmail.com>
+Date: Mon, 18 Jan 2010 17:29:03 +0100
+Message-ID: <d9def9db1001180829n733471c6g375295f29fc349ea@mail.gmail.com>
+Subject: Re: Info
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Adriano Gigante <adrigiga@yahoo.it>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stefan Ringel wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
->  
-> Hi Davin,
-> I have a question. How are loaded the base firmware into xc3028, in
-> once or in a split ? It's importent for TM6010, the USB-Analyzer said
-> that it load it in once and then send a quitting reqeuest.
+On Mon, Jan 18, 2010 at 5:17 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> On Mon, Jan 18, 2010 at 11:03 AM, Adriano Gigante <adrigiga@yahoo.it> wrote:
+>> Hi Devin,
+>>>
+>>> The 0ccd:0043 is on my todo list of devices to work on (they sent me a
+>>> sample board), although it's not the highest priority on my list given
+>>> how old it is.
+>>>
+>>
+>> Did they sent you also a 0ccd:0072 card (Terratec Cinergy Hybrid T USB XS
+>> FM)?
+>> Adri
+>
+> Terratec sent me two boards:  0ccd:0072 and 0ccd:0043.  I've actually
+> been working with a user on the #linuxtv irc channel who is in the
+> process of getting the 0ccd:0072 board to work (username Prahal).
+> He's making great progress, but if he gets stuck I will find some
+> cycles to work through whatever problem he finds.
+>
 
-The way the original driver for tm6000/tm6010 does varies from firmware
-version to firmware version. That part of the driver works fine for
-both tm6000 and tm6010, with the devices I used here, with firmwares 1.e 
-and 2.7. However, on tm6000, it sends the firmware on packages with
-up to 12 or 13 bytes, and it requires a delay before sending the next
-packet, otherwise the tm6000 hangs.
+Just fyi there's a hardware bug with the 0072/terratec hybrid xs fm
+(cx25843 - xc5000):
 
-Another problem is that the firmware load may fail (due to the bad
-implementation of the i2c on tm6000/tm6010). So, the code should ideally
-check if the firmware were loaded, by reading the firmware version at the
-end. However, reading from i2c is very problematic, since it sometimes
-read from the wrong place. On the tests I did here, the original drivers
-weren't reading back the firmware version, probably due to this bug.
+http://img91.imageshack.us/i/00000004qf8.png/
+http://img104.imageshack.us/i/00000009cp4.png/
 
-Cheers,
-Mauro.
+nothing that can be fixed with the driver.
 
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v2.0.12 (MingW32)
-> Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
->  
-> iQEcBAEBAgAGBQJLVH6/AAoJEDX/lZlmjdJlA/0H/jkn4I3kELEWPeDDYJvv/+Z0
-> LsSLzmDJmQ0WgASjtJQ2QZvsDeuCsbzV9mTHGvI0dOGtOLqcBuMX58ZFTerZodrG
-> b/KdwZa2OV0MWXc+5hf2+3wEC1icfMATKiwsT3gLdvP9En4MtUP8ImaXFWwW7ekL
-> aH5TD666nGewj4+Ef5eVY0G+FypqzNcs4F04uY5ydBaVDh5XTONhXPaLz/R5JF0K
-> ivKT4WL7n8A7bq8iAn6SoMJRV/RbEpGF40m4aApVDd+JdizFIH7xrTGQ4waQO6IN
-> mplAcxIhq6bEHhwZRfbbnTNMTWUVPShqqqxC5Z0TxCiUR0RH6JdXagQtw/1/UX0=
-> =Qqmr
-> -----END PGP SIGNATURE-----
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Markus
