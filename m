@@ -1,37 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01a.mail.t-online.hu ([84.2.40.6]:54985 "EHLO
-	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752954Ab0A3KEh (ORCPT
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:54115 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751565Ab0ARUIO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Jan 2010 05:04:37 -0500
-Message-ID: <4B640420.3040607@freemail.hu>
-Date: Sat, 30 Jan 2010 11:04:16 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+	Mon, 18 Jan 2010 15:08:14 -0500
+Received: by bwz19 with SMTP id 19so2083433bwz.28
+        for <linux-media@vger.kernel.org>; Mon, 18 Jan 2010 12:08:11 -0800 (PST)
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: pac7302 sporadic plug-in problem fix for 2.6.33?
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <4B54BEF9.6060501@arcor.de>
+References: <4B547EBF.6080105@arcor.de>
+	 <829197381001180743k789f336er2bb368f4c689a41@mail.gmail.com>
+	 <4B54BEF9.6060501@arcor.de>
+Date: Mon, 18 Jan 2010 15:08:10 -0500
+Message-ID: <829197381001181208k29be4253l3644a63ace312988@mail.gmail.com>
+Subject: Re: Terratec Cinergy Hybrid XE (TM6010 Mediachip)
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Stefan Ringel <stefan.ringel@arcor.de>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Jean-Francois and Mauro,
+On Mon, Jan 18, 2010 at 3:05 PM, Stefan Ringel <stefan.ringel@arcor.de> wrote:
+> I see. I have set for test "max_len" to 3500 . So can send after main
+> firmware wrote (3411 byte) a quitting request send (base firmware is
+> 9144 byte).
 
-I just compiled the vanilla 2.6.33-rc6 kernel and tested together
-with Labtec Webcam 2200.
+It is highly unlikely that the tm6010 can do 3500 at a time.  Try
+someting more reasonable like "32" or "64".
 
-I realized that this version still has the plug-in problem which was
-fixed at
+> Is it true that the tuner output frequency and the demodulator input frequency equal is?
 
-  http://linuxtv.org/hg/~jfrancois/gspca/rev/ea88b3abee04
+Yes, typically the IF out of the tuner should match the IF on the demodulator.
 
-What do you think, is it possible that this simple but important
-patch will be pulled to final 2.6.33? If I understand correctly
-this kind of bugfixes are normally accepted in the current development
-phase.
+Devin
 
-Regards,
-
-	Márton Németh
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
