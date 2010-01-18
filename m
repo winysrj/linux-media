@@ -1,56 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:34273 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1758566Ab0AOXBK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jan 2010 18:01:10 -0500
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: linux-media@vger.kernel.org
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: Order of dvb devices
-Date: Sat, 16 Jan 2010 00:00:29 +0100
-Cc: Andreas Besse <besse@motama.com>, linux-media@vger.kernel.org
-References: <4B4F39BB.2060605@motama.com> <4B4F3FD5.5000603@motama.com> <829197381001140809p1b1af4a4v2678abbc4c41b9ec@mail.gmail.com>
-In-Reply-To: <829197381001140809p1b1af4a4v2678abbc4c41b9ec@mail.gmail.com>
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:50819 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753348Ab0ARQRW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jan 2010 11:17:22 -0500
+Received: by bwz19 with SMTP id 19so1818664bwz.28
+        for <linux-media@vger.kernel.org>; Mon, 18 Jan 2010 08:17:20 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201001160000.31965@orion.escape-edv.de>
+In-Reply-To: <4B54864E.1050801@yahoo.it>
+References: <ad6681df0912220711p2666f0f5m84317a7bf0ffc137@mail.gmail.com>
+	 <829197380912220750j116894baw8343010b123f929@mail.gmail.com>
+	 <ad6681df0912220841n2f77f2c3v7aad0604575b5564@mail.gmail.com>
+	 <ad6681df1001180701s26584cdfua9e413d9bb843a35@mail.gmail.com>
+	 <829197381001180716v59b84ee2ia8ca2d9be4be5b22@mail.gmail.com>
+	 <4B54864E.1050801@yahoo.it>
+Date: Mon, 18 Jan 2010 11:17:19 -0500
+Message-ID: <829197381001180817r561bb1cdj9edda6ab3affbba0@mail.gmail.com>
+Subject: Re: Info
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Adriano Gigante <adrigiga@yahoo.it>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller wrote:
-> On Thu, Jan 14, 2010 at 11:01 AM, Andreas Besse <besse@motama.com> wrote:
-> > yes if there are different drivers I already observed the behaviour that
-> > the ordering gets flipped after reboot.
-> >
-> > But if I assume, that there is only *one* driver that is loaded (e.g.
-> > budget_av) for all dvb cards in the system, how is the ordering of these
-> > devices determined? How does the driver "search" for available dvb cards?
+On Mon, Jan 18, 2010 at 11:03 AM, Adriano Gigante <adrigiga@yahoo.it> wrote:
+> Hi Devin,
+>>
+>> The 0ccd:0043 is on my todo list of devices to work on (they sent me a
+>> sample board), although it's not the highest priority on my list given
+>> how old it is.
+>>
+>
+> Did they sent you also a 0ccd:0072 card (Terratec Cinergy Hybrid T USB XS
+> FM)?
+> Adri
 
-The driver does not 'search' for a card. The driver registers the ids of
-all supported cards with the pci subsystem of the kernel.
+Terratec sent me two boards:  0ccd:0072 and 0ccd:0043.  I've actually
+been working with a user on the #linuxtv irc channel who is in the
+process of getting the 0ccd:0072 board to work (username Prahal).
+He's making great progress, but if he gets stuck I will find some
+cycles to work through whatever problem he finds.
 
-When the pci subsystem detects a new card, it calls the 'probe' routine
-of the driver (for example saa7146_init_one for saa7146-based cards).
-So the ordering is determined by the pci subsystem.
+Cheers,
 
-> I believe your assumption is incorrect.  I believe the enumeration
-> order is not deterministic even for multiple instances of the same
-> driver.  It is not uncommon to hear mythtv users complain that "I have
-> two PVR-150 cards installed in my PC and the order sometimes get
-> reversed on reboot".
-
-Afaik the indeterministic behaviour is caused by udev, not by the
-kernel. We never had these problems before udev was introduced.
-
-CU
-Oliver
+Devin
 
 -- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
