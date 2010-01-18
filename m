@@ -1,20 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx03.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.7])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o0M3H6Ii018725
-	for <video4linux-list@redhat.com>; Thu, 21 Jan 2010 22:17:06 -0500
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.156])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o0M3GoGb008594
-	for <video4linux-list@redhat.com>; Thu, 21 Jan 2010 22:16:51 -0500
-Received: by fg-out-1718.google.com with SMTP id e12so283933fga.9
-	for <video4linux-list@redhat.com>; Thu, 21 Jan 2010 19:16:50 -0800 (PST)
+Received: from mx1.redhat.com (ext-mx04.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.8])
+	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o0I8GM0q011081
+	for <video4linux-list@redhat.com>; Mon, 18 Jan 2010 03:16:22 -0500
+Received: from mail-qy0-f172.google.com (mail-qy0-f172.google.com
+	[209.85.221.172])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o0I8GDg9013308
+	for <video4linux-list@redhat.com>; Mon, 18 Jan 2010 03:16:13 -0500
+Received: by qyk2 with SMTP id 2so1494209qyk.6
+	for <video4linux-list@redhat.com>; Mon, 18 Jan 2010 00:16:12 -0800 (PST)
 MIME-Version: 1.0
-Date: Thu, 21 Jan 2010 19:16:49 -0800
-Message-ID: <13c9a3ca1001211916n558736e9ic8dc17f4dfe99d37@mail.gmail.com>
-Subject: streamer
-From: Cristiana Tenti <cristenti@gmail.com>
-To: video4linux-list@redhat.com
+In-Reply-To: <25f5fcff1001161249w60b6c19k6b67d358f13316b5@mail.gmail.com>
+References: <25f5fcff1001161249w60b6c19k6b67d358f13316b5@mail.gmail.com>
+Date: Mon, 18 Jan 2010 16:16:12 +0800
+Message-ID: <804dabb01001180016p576321evcbabaa1e2181e61e@mail.gmail.com>
+Subject: Re: multimedia framework tutorial
+From: Peter Teoh <htmldeveloper@gmail.com>
+To: Niamathullah sharief <newbiesha@gmail.com>
+Cc: kernelnewbies@nl.linux.org, video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -22,35 +26,48 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
-I'm a new user :)
+perhaps the following pages may help:
 
-I'm working on a simple project and for that I only need to a software for
-uclinux to acquire a raw image from my usb webcam.
-On Ubuntu I'm using STREAMER but I cannot find the source code to install it
-on my uclinux platform.
+http://maemo.org/development/documentation/manuals/3-x/multimedia_architect=
+ure/
 
-Anyway I found xawtv and I saw that this usefull software has as tool
-STREAMER.
+http://lwn.net/Articles/40831/
 
-Do you know if it is possible compile only streamer and not all package of
-xawtv?
+Kernel Source Documentation: Documentation/video4linux
 
-Please, if you can help me answer me!!!
+http://blog.csdn.net/lesky/archive/2008/03/27/2224102.aspx
 
-Thank you in advance,
+http://blogs.gnome.org/uraeus/2005/12/03/drm-and-gstreamer/
 
-Best Regards
+etc....etc......this is overwhelming....
 
--- 
--Cristiana
+On Sun, Jan 17, 2010 at 4:49 AM, Niamathullah sharief
+<newbiesha@gmail.com> wrote:
+> Hello,
+> =A0i just want to know about the multimedia framework in video. i googled=
+ for
+> that but i didn't get what i need. i want to know how this multimedia is
+> supported in kernel. what are the drivers and file need for this?i want to
+> know the complete architecture. if it uses gstreamer for multimedia,hoe it
+> handles it?i want o know all the details. so for that i have to learn all
+> the complete concepts. so please can anyone tell me which book will be be=
+st
+> for this and is there any e-book available? please help me.
+
+
+
+-- =
+
+Regards,
+Peter Teoh
+
 --
 video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
