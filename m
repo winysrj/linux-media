@@ -1,103 +1,283 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web37607.mail.mud.yahoo.com ([209.191.87.90]:31026 "HELO
-	web37607.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753226Ab0AZRZk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jan 2010 12:25:40 -0500
-Message-ID: <834871.34078.qm@web37607.mail.mud.yahoo.com>
-Date: Tue, 26 Jan 2010 09:18:58 -0800 (PST)
-From: Emil Meier <emil276me@yahoo.com>
-Subject: Kernel oops after vbi access on a dvb-t device
-To: linux-media@vger.kernel.org
+Received: from mx1.redhat.com ([209.132.183.28]:21764 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932104Ab0ARMlf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jan 2010 07:41:35 -0500
+Message-ID: <4B53D671.80206@redhat.com>
+Date: Mon, 18 Jan 2010 04:33:05 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+CC: Jean-Francois Moine <moinejf@free.fr>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/2, RFC] gspca: add input support for interrupt endpoints
+References: <4B530BBA.7080400@freemail.hu>
+In-Reply-To: <4B530BBA.7080400@freemail.hu>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi,
-after updating the kernel from 2.6.31.6 to 2.6.32.4 I get oops when I use alevtv on a dvb-demux device.
-I get the same result on 3 different systems with 3 different TV-cards. 
-With v4l-dvb-59e746a1c5d1 snapshoot I get the same result on a 64bit machine with a hvr-1400 card.
-Here is the oputput of a hvr-1900 card:
 
-Command causing the oop and the resulting output::
--------------------------------------------
-$ alevt -dev /dev/dvb/adapter0/demux0 
-alevt: SDT: service_id 0x4082 not in PAT
+Thanks for your continued work on this. I'm afraid I found
+one thing which needs fixing (can be fixed with
+a separate patch after merging, but that is up to
+Jean-Francois).
 
-Service ID 0x0xxx Type 0x01 Provider Name "XXXXXXXX" Name "XXX"
-  PMT PID 0x0xxx TXT: PID 0x0xxx lang xxx type 0x01 magazine 1 page   0
-Service ID 0x0xxx Type 0x01 Provider Name "XXXXXX" Name "XXX"
-  PMT PID 0x0xxx TXT: PID 0x0xxx lang xxx type 0x01 magazine 1 page   0
-Service ID 0x0xxx Type 0x01 Provider Name "XXX" Name "XXX"
-  PMT PID 0x0xxx TXT: PID 0x0xxx lang xxx type 0x01 magazine 1 page   0
-Service ID 0x0xxx Type 0x01 Provider Name "XXX" Name "XXX"
-  PMT PID 0x0xxx TXT: PID 0x0xxx lang xxx type 0x01 magazine 1 page   0
-Using: Service ID 0x0202 Type 0x01 Provider Name "XXX" Name "XXX"
-  PMT PID 0x0xxx TXT: PID 0x0xxx lang xxx type 0x01 magazine 1 page   0
-alevt: ioctl: DMX_SET_PES_FILTER Invalid argument (22)
-Killed
----------------------------------------------
-dmesg output:
-pvrusb2: registered device video1 [mpeg]
-DVB: registering new adapter (pvrusb2-dvb)
-cx25840 6-0044: firmware: requesting v4l-cx25840.fw
-cx25840 6-0044: loaded v4l-cx25840.fw firmware (16382 bytes)
-tda829x 6-0042: setting tuner address to 60
-tda18271 6-0060: creating new instance
-TDA18271HD/C1 detected @ 6-0060
-tda829x 6-0042: type set to tda8295+18271
-usb 1-2: firmware: requesting v4l-cx2341x-enc.fw
-cx25840 6-0044: 0x0000 is not a valid video input!
-DVB: registering adapter 0 frontend 0 (NXP TDA10048HN DVB-T)...
-tda829x 6-0042: type set to tda8295
-tda18271 6-0060: attaching existing instance
-tda10048_firmware_upload: waiting for firmware upload (dvb-fe-tda10048-1.0.fw)...
-usb 1-2: firmware: requesting dvb-fe-tda10048-1.0.fw
-tda10048_firmware_upload: firmware read 24878 bytes.
-tda10048_firmware_upload: firmware uploading
-tda10048_firmware_upload: firmware uploaded
-BUG: unable to handle kernel NULL pointer dereference at (null)
-IP: [<ffffffffa0cf856f>] dvb_demux_release+0x62/0x1c4 [dvb_core]
-PGD 20514a067 PUD 1cbd17067 PMD 0 
-Oops: 0000 [#1] SMP 
-last sysfs file: /sys/devices/pci0000:00/0000:00:18.3/temp3_input
-CPU 1 
-Modules linked in: tda10048 tda18271 tda8290 cx25840 pvrusb2 dvb_core cx2341x bridge w83627ehf hwmon_vid stp llc bnep rfcomm l2cap crc16 snd_pcm_oss snd_mixer_oss snd_seq snd_seq_device md5 des_generic cbc rpcsec_gss_krb5 nfs lockd nfs_acl auth_rpcgss sunrpc af_packet cpufreq_conservative cpufreq_userspace cpufreq_powersave powernow_k8 fuse dm_crypt vfat fat loop dm_mod snd_hda_codec_realtek tuner_simple tuner_types tuner tvaudio tda7432 msp3400 bttv v4l2_common videodev v4l1_compat snd_hda_intel v4l2_compat_ioctl32 ir_common i2c_algo_bit snd_hda_codec snd_pcm videobuf_dma_sg ppdev snd_timer videobuf_core btusb btcx_risc parport_pc tveeprom nvidia(P) i2c_nforce2 snd usb_storage r8169 bluetooth soundcore parport i2c_core rtc_cmos button k8temp mii snd_page_alloc sr_mod rfkill cdrom floppy sg ohci_hcd ehci_hcd sd_mod usbcore edd ext3 mbcache jbd fan ide_pci_generic amd74xx ide_core ahci pata_amd libata scsi_mod thermal processor thermal_sys hwmon
-Pid: 12181, comm: alevt Tainted: P           2.6.32.4 #1 MS-xxxxx
-RIP: 0010:[<ffffffffa0cf856f>]  [<ffffffffa0cf856f>] dvb_demux_release+0x62/0x1c4 [dvb_core]
-RSP: 0018:ffff8801ce517ec8  EFLAGS: 00010246
-RAX: 0000000000000000 RBX: 0000000000000008 RCX: 0000000000000003
-RDX: 0000000000000000 RSI: ffff88022eeb9ec0 RDI: fffffffffffffff0
-RBP: ffffc90011d4a420 R08: 0000000000000000 R09: 0000000000000000
-R10: ffffffffffffffff R11: 0000000000000001 R12: ffffc90011d4a428
-R13: ffff8802220ff8b8 R14: ffff8802220ff938 R15: ffff88022eeb9ec0
-FS:  00007f4386d9f6f0(0000) GS:ffff880028300000(0000) knlGS:00000000f693c8d0
-CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-CR2: 0000000000000000 CR3: 00000001ce797000 CR4: 00000000000006e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Process alevt (pid: 12181, threadinfo ffff8801ce516000, task ffff880211093340)
-Stack:
- ffffc90011d4a4d0 0000000000000008 ffff88022eeb9ec0 ffff8801f10fee40
-<0> ffff88022b639d78 ffff88022b639d78 ffff880230054580 ffffffff810d3cde
-<0> ffff8801f10fee40 ffff88022eeb9ec0 0000000000000000 ffff880230321780
-Call Trace:
- [<ffffffff810d3cde>] ? __fput+0x100/0x1cb
- [<ffffffff810d121c>] ? filp_close+0x5b/0x62
- [<ffffffff810d12b6>] ? sys_close+0x93/0xcb
- [<ffffffff8100b9ab>] ? system_call_fastpath+0x16/0x1b
-Code: 04 24 e8 d5 6d 59 e0 48 89 ef e8 fa fe ff ff 83 7d 58 01 0f 86 87 00 00 00 83 7d 54 02 75 58 48 8b 45 08 4c 8d 65 08 48 8d 78 f0 <48> 8b 47 10 48 8d 58 f0 eb 2f 48 8b 47 10 48 8b 57 18 48 89 50 
-RIP  [<ffffffffa0cf856f>] dvb_demux_release+0x62/0x1c4 [dvb_core]
- RSP <ffff8801ce517ec8>
-CR2: 0000000000000000
----[ end trace 6384db606bfe8853 ]---
+See my comments inline.
 
-Perhaps some one can have a look on this issue?
+On 01/17/2010 02:08 PM, Németh Márton wrote:
+> From: Márton Németh<nm127@freemail.hu>
+>
+> Add support functions for interrupt endpoint based input handling.
+>
+> Signed-off-by: Márton Németh<nm127@freemail.hu>
+> ---
+> diff -r 875c200a19dc linux/drivers/media/video/gspca/gspca.c
+> --- a/linux/drivers/media/video/gspca/gspca.c	Sun Jan 17 07:58:51 2010 +0100
+> +++ b/linux/drivers/media/video/gspca/gspca.c	Sun Jan 17 13:47:44 2010 +0100
+> @@ -3,6 +3,9 @@
+>    *
+>    * Copyright (C) 2008-2009 Jean-Francois Moine (http://moinejf.free.fr)
+>    *
+> + * Camera button input handling by Márton Németh
+> + * Copyright (C) 2009-2010 Márton Németh<nm127@freemail.hu>
+> + *
+>    * This program is free software; you can redistribute it and/or modify it
+>    * under the terms of the GNU General Public License as published by the
+>    * Free Software Foundation; either version 2 of the License, or (at your
+> @@ -41,6 +44,9 @@
+>
+>   #include "gspca.h"
+>
+> +#include<linux/input.h>
+> +#include<linux/usb/input.h>
+> +
+>   /* global values */
+>   #define DEF_NURBS 3		/* default number of URBs */
+>   #if DEF_NURBS>  MAX_NURBS
+> @@ -112,6 +118,167 @@
+>   	.close		= gspca_vm_close,
+>   };
+>
+> +/*
+> + * Input and interrupt endpoint handling functions
+> + */
+> +#ifdef CONFIG_INPUT
+> +#if LINUX_VERSION_CODE<  KERNEL_VERSION(2, 6, 19)
+> +static void int_irq(struct urb *urb, struct pt_regs *regs)
+> +#else
+> +static void int_irq(struct urb *urb)
+> +#endif
+> +{
+> +	struct gspca_dev *gspca_dev = (struct gspca_dev *) urb->context;
+> +	int ret;
+> +
+> +	if (urb->status == 0) {
+> +		if (gspca_dev->sd_desc->int_pkt_scan(gspca_dev,
+> +		    urb->transfer_buffer, urb->actual_length)<  0) {
+> +			PDEBUG(D_ERR, "Unknown packet received");
+> +		}
+> +
+> +		ret = usb_submit_urb(urb, GFP_ATOMIC);
+> +		if (ret<  0)
+> +			PDEBUG(D_ERR, "Resubmit URB failed with error %i", ret);
+> +	}
+> +}
+> +
 
-Thanks
-Emil
+If the status is not 0 you should print an error message, and
+reset the status and still resubmit the urb, if you don't resubmit
+on error, after one single usb glitch, the button will stop working.
+
+> +static int gspca_input_connect(struct gspca_dev *dev)
+> +{
+> +	struct input_dev *input_dev;
+> +	int err = 0;
+> +
+> +	dev->input_dev = NULL;
+> +	if (dev->sd_desc->int_pkt_scan)  {
+> +		input_dev = input_allocate_device();
+> +		if (!input_dev)
+> +			return -ENOMEM;
+> +
+> +		usb_make_path(dev->dev, dev->phys, sizeof(dev->phys));
+> +		strlcat(dev->phys, "/input0", sizeof(dev->phys));
+> +
+> +		input_dev->name = dev->sd_desc->name;
+> +		input_dev->phys = dev->phys;
+> +
+> +		usb_to_input_id(dev->dev,&input_dev->id);
+> +
+> +		input_dev->evbit[0] = BIT_MASK(EV_KEY);
+> +		input_dev->keybit[BIT_WORD(KEY_CAMERA)] = BIT_MASK(KEY_CAMERA);
+> +		input_dev->dev.parent =&dev->dev->dev;
+> +
+> +		err = input_register_device(input_dev);
+> +		if (err) {
+> +			PDEBUG(D_ERR, "Input device registration failed "
+> +				"with error %i", err);
+> +			input_dev->dev.parent = NULL;
+> +			input_free_device(input_dev);
+> +		} else {
+> +			dev->input_dev = input_dev;
+> +		}
+> +	} else
+> +		err = -EINVAL;
+> +
+> +	return err;
+> +}
+> +
+> +static int alloc_and_submit_int_urb(struct gspca_dev *gspca_dev,
+> +			  struct usb_endpoint_descriptor *ep)
+> +{
+> +	unsigned int buffer_len;
+> +	int interval;
+> +	struct urb *urb;
+> +	struct usb_device *dev;
+> +	void *buffer = NULL;
+> +	int ret = -EINVAL;
+> +
+> +	buffer_len = ep->wMaxPacketSize;
+> +	interval = ep->bInterval;
+> +	PDEBUG(D_PROBE, "found int in endpoint: 0x%x, "
+> +		"buffer_len=%u, interval=%u",
+> +		ep->bEndpointAddress, buffer_len, interval);
+> +
+> +	dev = gspca_dev->dev;
+> +
+> +	urb = usb_alloc_urb(0, GFP_KERNEL);
+> +	if (!urb) {
+> +		ret = -ENOMEM;
+> +		goto error;
+> +	}
+> +
+> +	buffer = usb_buffer_alloc(dev, ep->wMaxPacketSize,
+> +				GFP_KERNEL,&urb->transfer_dma);
+> +	if (!buffer) {
+> +		ret = -ENOMEM;
+> +		goto error_buffer;
+> +	}
+> +	usb_fill_int_urb(urb, dev,
+> +		usb_rcvintpipe(dev, ep->bEndpointAddress),
+> +		buffer, buffer_len,
+> +		int_irq, (void *)gspca_dev, interval);
+> +	gspca_dev->int_urb = urb;
+> +	ret = usb_submit_urb(urb, GFP_KERNEL);
+> +	if (ret<  0) {
+> +		PDEBUG(D_ERR, "submit URB failed with error %i", ret);
+> +		goto error_submit;
+> +	}
+> +	return ret;
+> +
+> +error_submit:
+> +	usb_buffer_free(dev,
+> +			urb->transfer_buffer_length,
+> +			urb->transfer_buffer,
+> +			urb->transfer_dma);
+> +error_buffer:
+> +	usb_free_urb(urb);
+> +error:
+> +	return ret;
+> +}
+> +
+> +static int gspca_input_create_urb(struct gspca_dev *gspca_dev)
+> +{
+> +	int ret = -EINVAL;
+> +	struct usb_interface *intf;
+> +	struct usb_host_interface *intf_desc;
+> +	struct usb_endpoint_descriptor *ep;
+> +	int i;
+> +
+> +	if (gspca_dev->sd_desc->int_pkt_scan)  {
+> +		intf = usb_ifnum_to_if(gspca_dev->dev, gspca_dev->iface);
+> +		intf_desc = intf->cur_altsetting;
+> +		for (i = 0; i<  intf_desc->desc.bNumEndpoints; i++) {
+> +			ep =&intf_desc->endpoint[i].desc;
+> +			if (usb_endpoint_dir_in(ep)&&
+> +			    usb_endpoint_xfer_int(ep)) {
+> +
+> +				ret = alloc_and_submit_int_urb(gspca_dev, ep);
+> +				break;
+> +			}
+> +		}
+> +	}
+> +	return ret;
+> +}
+> +
+> +static void gspca_input_destroy_urb(struct gspca_dev *gspca_dev)
+> +{
+> +	struct urb *urb;
+> +
+> +	urb = gspca_dev->int_urb;
+> +	if (urb) {
+> +		gspca_dev->int_urb = NULL;
+> +		usb_kill_urb(urb);
+> +		usb_buffer_free(gspca_dev->dev,
+> +				urb->transfer_buffer_length,
+> +				urb->transfer_buffer,
+> +				urb->transfer_dma);
+> +		usb_free_urb(urb);
+> +	}
+> +}
+> +#else
+> +#define gspca_input_connect(gspca_dev)		0
+> +#define gspca_input_create_urb(gspca_dev)	0
+> +#define gspca_input_destroy_urb(gspca_dev)
+> +#endif
+> +
+>   /* get the current input frame buffer */
+>   struct gspca_frame *gspca_get_i_frame(struct gspca_dev *gspca_dev)
+>   {
+> @@ -499,11 +666,13 @@
+>   			i, ep->desc.bEndpointAddress);
+>   	gspca_dev->alt = i;		/* memorize the current alt setting */
+>   	if (gspca_dev->nbalt>  1) {
+> +		gspca_input_destroy_urb(gspca_dev);
+>   		ret = usb_set_interface(gspca_dev->dev, gspca_dev->iface, i);
+>   		if (ret<  0) {
+>   			err("set alt %d err %d", i, ret);
+> -			return NULL;
+> +			ep = NULL;
+>   		}
+> +		gspca_input_create_urb(gspca_dev);
+>   	}
+>   	return ep;
+>   }
+> @@ -714,7 +883,9 @@
+>   		if (gspca_dev->sd_desc->stopN)
+>   			gspca_dev->sd_desc->stopN(gspca_dev);
+>   		destroy_urbs(gspca_dev);
+> +		gspca_input_destroy_urb(gspca_dev);
+>   		gspca_set_alt0(gspca_dev);
+> +		gspca_input_create_urb(gspca_dev);
+>   	}
+>
+>   	/* always call stop0 to free the subdriver's resources */
+> @@ -2137,6 +2308,11 @@
+>
+>   	usb_set_intfdata(intf, gspca_dev);
+>   	PDEBUG(D_PROBE, "%s created", video_device_node_name(&gspca_dev->vdev));
+> +
+> +	ret = gspca_input_connect(gspca_dev);
+> +	if (0<= ret)
+> +		ret = gspca_input_create_urb(gspca_dev);
+> +
+
+I don't like this reverse psychology if. Why not just write:
+if (ret == 0) ?
 
 
 
-      
+>   	return 0;
+>   out:
+>   	kfree(gspca_dev->usb_buf);
+
+
+
+Otherwise it looks good.
+
+Regards,
+
+Hans
