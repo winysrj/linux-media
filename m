@@ -1,77 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from exprod6og116.obsmtp.com ([64.18.1.37]:42693 "HELO
-	exprod6og116.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752456Ab0A2QoY (ORCPT
+Received: from outbound.rtd.com ([64.9.30.196]:35255 "EHLO OUTBOUND.RTD.COM"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752003Ab0AROPM convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jan 2010 11:44:24 -0500
-Content-class: urn:content-classes:message
+	Mon, 18 Jan 2010 09:15:12 -0500
+From: William Tate <wtate@RTD.com>
+To: 'hermann pitton' <hermann-pitton@arcor.de>,
+	Trent Piepho <xyzzy@speakeasy.org>
+CC: Gordon Smith <spider.karma+linux-media@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"'willytate@gmail.com'" <willytate@gmail.com>
+Date: Mon, 18 Jan 2010 09:13:50 -0500
+Subject: RE: How to use saa7134 gpio via gpio-sysfs?
+Message-ID: <EAF55B080F530E428574542A7925428705EA7F1C66@INTMBX1.RTD.com>
+References: <2df568dc1001111012u627f07b8p9ec0c2577f14b5d9@mail.gmail.com>
+	 <2df568dc1001111059p54de8635k6c207fb3f4d96a14@mail.gmail.com>
+	 <1263266020.3198.37.camel@pc07.localdom.local>
+	 <1263602137.3184.23.camel@pc07.localdom.local>
+	 <Pine.LNX.4.58.1001151650410.4729@shell2.speakeasy.net>
+	 <1263622815.3178.31.camel@pc07.localdom.local>
+	 <Pine.LNX.4.58.1001160400230.4729@shell2.speakeasy.net>
+	 <1263686928.3394.4.camel@pc07.localdom.local>
+	 <1263689544.8899.3.camel@pc07.localdom.local>
+ <1263769323.3182.8.camel@pc07.localdom.local>
+In-Reply-To: <1263769323.3182.8.camel@pc07.localdom.local>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-Subject: RE: [PATCH] drivers/media/common: remove unnecessary casts of void *
-Date: Fri, 29 Jan 2010 11:44:15 -0500
-Message-ID: <BD79186B4FD85F4B8E60E381CAEE1909020E96EC@mi8nycmail19.Mi8.com>
-In-Reply-To: <4B626B19.5000609@infradead.org>
-References: <201001081551.42264.hartleys@visionengravers.com> <4B626B19.5000609@infradead.org>
-From: "H Hartley Sweeten" <hartleys@visionengravers.com>
-To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "Linux Kernel" <linux-kernel@vger.kernel.org>,
-	<linux-media@vger.kernel.org>, <michael@mihu.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-T24gVGh1cnNkYXksIEphbnVhcnkgMjgsIDIwMTAgOTo1OSBQTSwgTWF1cm8gQ2FydmFsaG8gQ2hl
-aGFiIHdyb3RlOg0KPiBIIEhhcnRsZXkgU3dlZXRlbiB3cm90ZToNCj4+IGRyaXZlcnMvbWVkaWEv
-Y29tbW9uOiBSZW1vdmUgdW5uZWNlc3NhcnkgY2FzdHMgb2Ygdm9pZCAqDQo+PiANCj4+IHZvaWQg
-cG9pbnRlcnMgZG8gbm90IG5lZWQgdG8gYmUgY2FzdCB0byBvdGhlciBwb2ludGVyIHR5cGVzLg0K
-Pj4gDQoNCj4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL2NvbW1vbi9zYWE3MTQ2X3ZiaS5j
-IGIvZHJpdmVycy9tZWRpYS9jb21tb24vc2FhNzE0Nl92YmkuYw0KPj4gaW5kZXggNzRlMmI1Ni4u
-MzAxYTc5NSAxMDA2NDQNCj4+IC0tLSBhL2RyaXZlcnMvbWVkaWEvY29tbW9uL3NhYTcxNDZfdmJp
-LmMNCj4+ICsrKyBiL2RyaXZlcnMvbWVkaWEvY29tbW9uL3NhYTcxNDZfdmJpLmMNCj4+IEBAIC0z
-LDcgKzMsNyBAQA0KPj4gIHN0YXRpYyBpbnQgdmJpX3BpeGVsX3RvX2NhcHR1cmUgPSA3MjAgKiAy
-Ow0KPj4gIA0KPj4gIHN0YXRpYyBpbnQgdmJpX3dvcmthcm91bmQoc3RydWN0IHNhYTcxNDZfZGV2
-ICpkZXYpDQo+PiAtew0KPj4gK3sucmVtb3ZlX2Nhc3RzLmhoc34NCj4NCj4gV2hhdCdzIHRoaXM/
-IEl0IHNlZW1zIHRoYXQgeW91ciBwYXRjaCBnb3QgY29ycnVwdGVkIHNvbWVob3cuDQoNCk9vcHMu
-Li4gTm90IHN1cmUgaG93IHRoYXQgaGFwcGVuZWQuLi4gRm9sbG93aW5nIGlzIHRoZSBjb3JyZWN0
-ZWQgcGF0Y2guDQoNCg0KDQoNCmRyaXZlcnMvbWVkaWEvY29tbW9uOiBSZW1vdmUgdW5uZWNlc3Nh
-cnkgY2FzdHMgb2Ygdm9pZCAqDQoNCnZvaWQgcG9pbnRlcnMgZG8gbm90IG5lZWQgdG8gYmUgY2Fz
-dCB0byBvdGhlciBwb2ludGVyIHR5cGVzLg0KDQpTaWduZWQtb2ZmLWJ5OiBIIEhhcnRsZXkgU3dl
-ZXRlbiA8aHN3ZWV0ZW5AdmlzaW9uZW5ncmF2ZXJzLmNvbT4NCkNjOiBNaWNoYWVsIEh1bm9sZCA8
-bWljaGFlbEBtaWh1LmRlPg0KQ2M6IE1hdXJvIENhcnZhbGhvIENoZWhhYiA8bWNoZWhhYkBpbmZy
-YWRlYWQub3JnPg0KDQotLS0NCg0KIGRyaXZlcnMvbWVkaWEvY29tbW9uL3NhYTcxNDZfdmJpLmMg
-ICB8ICAgIDQgKystLQ0KIGRyaXZlcnMvbWVkaWEvY29tbW9uL3NhYTcxNDZfdmlkZW8uYyB8ICAg
-IDQgKystLQ0KIDIgZmlsZXMgY2hhbmdlZCwgNCBpbnNlcnRpb25zKCspLCA0IGRlbGV0aW9ucygt
-KQ0KDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9jb21tb24vc2FhNzE0Nl92YmkuYyBiL2Ry
-aXZlcnMvbWVkaWEvY29tbW9uL3NhYTcxNDZfdmJpLmMNCmluZGV4IDc0ZTJiNTYuLjgyMjRjMzAg
-MTAwNjQ0DQotLS0gYS9kcml2ZXJzL21lZGlhL2NvbW1vbi9zYWE3MTQ2X3ZiaS5jDQorKysgYi9k
-cml2ZXJzL21lZGlhL2NvbW1vbi9zYWE3MTQ2X3ZiaS5jDQpAQCAtMzc1LDcgKzM3NSw3IEBAIHN0
-YXRpYyB2b2lkIHZiaV9pbml0KHN0cnVjdCBzYWE3MTQ2X2RldiAqZGV2LCBzdHJ1Y3Qgc2FhNzE0
-Nl92diAqdnYpDQogDQogc3RhdGljIGludCB2Ymlfb3BlbihzdHJ1Y3Qgc2FhNzE0Nl9kZXYgKmRl
-diwgc3RydWN0IGZpbGUgKmZpbGUpDQogew0KLQlzdHJ1Y3Qgc2FhNzE0Nl9maCAqZmggPSAoc3Ry
-dWN0IHNhYTcxNDZfZmggKilmaWxlLT5wcml2YXRlX2RhdGE7DQorCXN0cnVjdCBzYWE3MTQ2X2Zo
-ICpmaCA9IGZpbGUtPnByaXZhdGVfZGF0YTsNCiANCiAJdTMyIGFyYnRyX2N0cmwJPSBzYWE3MTQ2
-X3JlYWQoZGV2LCBQQ0lfQlRfVjEpOw0KIAlpbnQgcmV0ID0gMDsNCkBAIC00MzcsNyArNDM3LDcg
-QEAgc3RhdGljIGludCB2Ymlfb3BlbihzdHJ1Y3Qgc2FhNzE0Nl9kZXYgKmRldiwgc3RydWN0IGZp
-bGUgKmZpbGUpDQogDQogc3RhdGljIHZvaWQgdmJpX2Nsb3NlKHN0cnVjdCBzYWE3MTQ2X2RldiAq
-ZGV2LCBzdHJ1Y3QgZmlsZSAqZmlsZSkNCiB7DQotCXN0cnVjdCBzYWE3MTQ2X2ZoICpmaCA9IChz
-dHJ1Y3Qgc2FhNzE0Nl9maCAqKWZpbGUtPnByaXZhdGVfZGF0YTsNCisJc3RydWN0IHNhYTcxNDZf
-ZmggKmZoID0gZmlsZS0+cHJpdmF0ZV9kYXRhOw0KIAlzdHJ1Y3Qgc2FhNzE0Nl92diAqdnYgPSBk
-ZXYtPnZ2X2RhdGE7DQogCURFQl9WQkkoKCJkZXY6JXAsIGZoOiVwXG4iLGRldixmaCkpOw0KIA0K
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvY29tbW9uL3NhYTcxNDZfdmlkZW8uYyBiL2RyaXZl
-cnMvbWVkaWEvY29tbW9uL3NhYTcxNDZfdmlkZW8uYw0KaW5kZXggYmVjYmFhZC4uY2ZjODYzNCAx
-MDA2NDQNCi0tLSBhL2RyaXZlcnMvbWVkaWEvY29tbW9uL3NhYTcxNDZfdmlkZW8uYw0KKysrIGIv
-ZHJpdmVycy9tZWRpYS9jb21tb24vc2FhNzE0Nl92aWRlby5jDQpAQCAtMTM2OCw3ICsxMzY4LDcg
-QEAgc3RhdGljIHZvaWQgdmlkZW9faW5pdChzdHJ1Y3Qgc2FhNzE0Nl9kZXYgKmRldiwgc3RydWN0
-IHNhYTcxNDZfdnYgKnZ2KQ0KIA0KIHN0YXRpYyBpbnQgdmlkZW9fb3BlbihzdHJ1Y3Qgc2FhNzE0
-Nl9kZXYgKmRldiwgc3RydWN0IGZpbGUgKmZpbGUpDQogew0KLQlzdHJ1Y3Qgc2FhNzE0Nl9maCAq
-ZmggPSAoc3RydWN0IHNhYTcxNDZfZmggKilmaWxlLT5wcml2YXRlX2RhdGE7DQorCXN0cnVjdCBz
-YWE3MTQ2X2ZoICpmaCA9IGZpbGUtPnByaXZhdGVfZGF0YTsNCiAJc3RydWN0IHNhYTcxNDZfZm9y
-bWF0ICpzZm10Ow0KIA0KIAlmaC0+dmlkZW9fZm10LndpZHRoID0gMzg0Ow0KQEAgLTEzOTIsNyAr
-MTM5Miw3IEBAIHN0YXRpYyBpbnQgdmlkZW9fb3BlbihzdHJ1Y3Qgc2FhNzE0Nl9kZXYgKmRldiwg
-c3RydWN0IGZpbGUgKmZpbGUpDQogDQogc3RhdGljIHZvaWQgdmlkZW9fY2xvc2Uoc3RydWN0IHNh
-YTcxNDZfZGV2ICpkZXYsIHN0cnVjdCBmaWxlICpmaWxlKQ0KIHsNCi0Jc3RydWN0IHNhYTcxNDZf
-ZmggKmZoID0gKHN0cnVjdCBzYWE3MTQ2X2ZoICopZmlsZS0+cHJpdmF0ZV9kYXRhOw0KKwlzdHJ1
-Y3Qgc2FhNzE0Nl9maCAqZmggPSBmaWxlLT5wcml2YXRlX2RhdGE7DQogCXN0cnVjdCBzYWE3MTQ2
-X3Z2ICp2diA9IGRldi0+dnZfZGF0YTsNCiAJc3RydWN0IHZpZGVvYnVmX3F1ZXVlICpxID0gJmZo
-LT52aWRlb19xOw0KIAlpbnQgZXJyOw0K
+Gentlemen,
+
+I may be able to assist here.  Specifically what information/photographs are you looking for?
+
+Regards,
+
+
+William Tate
+RTD Embedded Technologies, Inc.
+
+-----Original Message-----
+From: linux-media-owner@vger.kernel.org [mailto:linux-media-owner@vger.kernel.org] On Behalf Of hermann pitton
+Sent: Sunday, January 17, 2010 6:02 PM
+To: Trent Piepho
+Cc: Gordon Smith; linux-media@vger.kernel.org
+Subject: Re: How to use saa7134 gpio via gpio-sysfs?
+
+[snip]
+> 
+> Damned, seems the opto-isolated I/Os might be in question.
+> 
+> For the RTD stuff we don't have any high resolution photographs or
+> anything else ...
+
+Gordon,
+
+we should wait for, if RTD and Philips/NXP do have a agreement on such.
+
+I doubt it, given how it came in.
+
+Else, you can of course still do what you ever want on that driver.
+
+Cheers,
+Hermann
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
