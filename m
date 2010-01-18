@@ -1,65 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:59357 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752508Ab0ABJu4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Jan 2010 04:50:56 -0500
-Date: Sat, 2 Jan 2010 10:50:52 +0100
-From: Thierry Merle <thierry.merle@free.fr>
-To: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Cc: DUBOST Brice <dubost@crans.ens-cachan.fr>
-Subject: Re: [linux-dvb] SheevaBox as a media Server and a Fit-PC as a
- streaming client?
-Message-ID: <20100102105052.39a4d13f@gorbag.houroukhai.org>
-In-Reply-To: <4B3E062E.3060709@crans.ens-cachan.fr>
-References: <938B2714-17EB-476A-8EB0-5C42894E60DC@lollisoft.de>
-	<d9def9db1001010622g7a3a6cafh759e4d1d9e17589a@mail.gmail.com>
-	<4B3E062E.3060709@crans.ens-cachan.fr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3088 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753949Ab0ARNHl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jan 2010 08:07:41 -0500
+Date: Mon, 18 Jan 2010 14:07:33 +0100 (CET)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Ivan T. Ivanov" <iivanov@mm-sol.com>,
+	Guru Raj <gururaj.nagendra@intel.com>
+Subject: Re: [RFC v2 0/7] V4L2 file handles and event interface
+In-Reply-To: <4B30F713.8070004@maxwell.research.nokia.com>
+Message-ID: <alpine.LNX.2.01.1001181359590.31857@alastor>
+References: <4B30F713.8070004@maxwell.research.nokia.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le Fri, 01 Jan 2010 15:26:54 +0100,
-DUBOST Brice <dubost@crans.ens-cachan.fr> a écrit :
+Hi Sakari,
 
-> Markus Rechberger a écrit :
-> > Hi,
-> > 
-> > On Wed, Dec 16, 2009 at 4:12 PM, Lothar Behrens
-> > <lothar.behrens@lollisoft.de> wrote:
-> >> Hi,
-> >>
-> >> I am new here and start with a setup question.
-> >>
-> >> The media or NAS server I think about: http://plugcomputer.org/
-> >>
-> >> It has a high speed USB 2.0 port and a gigabit Lan.
-> >>
-> > 
-> > http://support.sundtek.com/index.php/topic,179.0.html (english)
-> > http://support.sundtek.com/index.php/topic,178.0.html (german)
-> > 
-> > This might be interesting for you.
-> > 
-> > Markus
-> > 
-> 
-> hello
-> 
-> MuMuDVB is reported to work fine on a sheevaplug
-> 
+Some notes on this as well (and that concludes my review):
 
-I use my sheevaplug without any problem with a CinergyT2, and I know
-someone who runs with an empia-based hybrid tuner (Terratec Cinergy
-hybrid XS)
-The main bottleneck of the sheevaplug and all ARMv5TE compliant
-processors is the lack of FPU, if you have to do transcoding stuff
-(mpeg4->mpeg2 for example) before streaming. To my mind the 'TE'
-extension should be used for such transcoding but this is off topic.
+On Tue, 22 Dec 2009, Sakari Ailus wrote:
 
-Otherwise, it is perfect to host a streaming server like vlc or
-MuMuDVB, to stream untouched video frames coming from DVB tuners.
+> Hi,
+>
+> Here's the second version of the V4L2 file handle and event interface 
+> patchset. Still RFC since I'd like to get more feedback on it.
+>
+> The first patch adds the V4L2 file handle support and the rest are for V4L2 
+> events.
+>
+> The patchset works with the OMAP 3 ISP driver. Patches for OMAP 3 ISP are not 
+> part of this patchset but are available in Gitorious (branch is called 
+> events):
+>
+> 	git://gitorious.org/omap3camera/mainline.git event
+>
+> The major change since the last one v4l2_fh structure is now part of driver's 
+> own file handle. It's used as file->private_data as well. I did this based on 
+> Hans Verkuil's suggestion. Sequence numbers and event queue length limitation 
+> is there as well. There are countless of smaller changes, too.
+>
+> A few notes on the patches:
+>
+> - I don't like the locking too much. Perhaps the file handle specific lock 
+> (events->lock) could be dropped in favour of the lock for v4l2_file_handle in 
+> video_device?
+>
+> - Poll. The V4L2 specifiction says:
+>
+> 	"When the application did not call VIDIOC_QBUF or
+> 	VIDIOC_STREAMON yet the poll() function succeeds, but sets the
+> 	POLLERR flag in the revents field."
+>
+>  The current events for OMAP 3 ISP are related to streaming but not all 
+> might be in future. For example there might be some radio or DVB related 
+> events.
 
-Cheers,
-Thierry
+I know for sure that we will have to be able to handle events when not
+streaming. E.g. events that tell when a HDMI connector was plugged in
+or when the EDID was read will need to arrive whether streaming is on
+or off.
+
+> - Sequence numbers are local to file handles.
+
+That is how it should be.
+
+> - Subscribing V4L2_EVENT_ALL causes any other events to be unsubscribed.
+>
+> - If V4L2_EVENT_ALL has been subscribed, unsubscribing any one of the events 
+> leads to V4L2_EVENT_ALL to be unsubscribed. This problem would be difficult 
+> to work around since this would require the event system to be aware of the 
+> driver private events as well.
+
+Good point. Perhaps attempting to unsubscribe a single event when EVENT_ALL
+has been subscribed should result in an error? I.e., you can only unsubscribe
+ALL when you subscribed to ALL in the first place.
+
+Regards,
+
+ 	Hans
+
+> - If events are missed, the sequence number is incremented in any case. This 
+> way the user space knows events have been missed.
+>
+> Comments would be very, very welcome.
+>
+> Cheers,
+>
+> -- 
+> Sakari Ailus
+> sakari.ailus@maxwell.research.nokia.com
+>
