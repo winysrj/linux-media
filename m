@@ -1,40 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:28369 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751605Ab0AAOW2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jan 2010 09:22:28 -0500
-Received: by fg-out-1718.google.com with SMTP id 19so5658350fgg.1
-        for <linux-media@vger.kernel.org>; Fri, 01 Jan 2010 06:22:26 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <938B2714-17EB-476A-8EB0-5C42894E60DC@lollisoft.de>
-References: <938B2714-17EB-476A-8EB0-5C42894E60DC@lollisoft.de>
-Date: Fri, 1 Jan 2010 15:22:26 +0100
-Message-ID: <d9def9db1001010622g7a3a6cafh759e4d1d9e17589a@mail.gmail.com>
-Subject: Re: [linux-dvb] SheevaBox as a media Server and a Fit-PC as a
-	streaming client?
-From: Markus Rechberger <mrechberger@gmail.com>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1283 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753300Ab0ARUIi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jan 2010 15:08:38 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o0IK8XTB097878
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 18 Jan 2010 21:08:37 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 18 Jan 2010 21:08:33 +0100 (CET)
+Message-Id: <201001182008.o0IK8XTB097878@smtp-vbr7.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-On Wed, Dec 16, 2009 at 4:12 PM, Lothar Behrens
-<lothar.behrens@lollisoft.de> wrote:
-> Hi,
->
-> I am new here and start with a setup question.
->
-> The media or NAS server I think about: http://plugcomputer.org/
->
-> It has a high speed USB 2.0 port and a gigabit Lan.
->
+Results of the daily build of v4l-dvb:
 
-http://support.sundtek.com/index.php/topic,179.0.html (english)
-http://support.sundtek.com/index.php/topic,178.0.html (german)
+date:        Mon Jan 18 19:00:05 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14010:cdcf089168df
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-This might be interesting for you.
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-armv5: OK
+linux-2.6.33-rc2-armv5: OK
+linux-2.6.32-armv5-davinci: WARNINGS
+linux-2.6.33-rc2-armv5-davinci: WARNINGS
+linux-2.6.30-armv5-ixp: WARNINGS
+linux-2.6.31-armv5-ixp: WARNINGS
+linux-2.6.32-armv5-ixp: WARNINGS
+linux-2.6.33-rc2-armv5-ixp: WARNINGS
+linux-2.6.30-armv5-omap2: WARNINGS
+linux-2.6.31-armv5-omap2: WARNINGS
+linux-2.6.32-armv5-omap2: WARNINGS
+linux-2.6.33-rc2-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-i686: WARNINGS
+linux-2.6.33-rc2-i686: WARNINGS
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-m32r: OK
+linux-2.6.33-rc2-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: WARNINGS
+linux-2.6.32-mips: WARNINGS
+linux-2.6.33-rc2-mips: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-powerpc64: WARNINGS
+linux-2.6.32-powerpc64: WARNINGS
+linux-2.6.33-rc2-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-x86_64: WARNINGS
+linux-2.6.33-rc2-x86_64: WARNINGS
+spec: OK
+sparse (linux-2.6.32): ERRORS
+sparse (linux-2.6.33-rc2): ERRORS
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
-Markus
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
