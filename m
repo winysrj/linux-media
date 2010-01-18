@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <tlenz@vorgon.com>) id 1NWkco-0003Go-1j
-	for linux-dvb@linuxtv.org; Mon, 18 Jan 2010 06:58:06 +0100
-Received: from mout.perfora.net ([74.208.4.195])
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-b) with esmtp
+	(envelope-from <ismokuh@gmail.com>) id 1NWuCc-0007E9-4L
+	for linux-dvb@linuxtv.org; Mon, 18 Jan 2010 17:11:42 +0100
+Received: from mail-fx0-f225.google.com ([209.85.220.225])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-d) with esmtp
 	for <linux-dvb@linuxtv.org>
-	id 1NWkcn-0005Lc-By; Mon, 18 Jan 2010 06:58:05 +0100
-Message-ID: <4B53F864.3030608@vorgon.com>
-Date: Sun, 17 Jan 2010 22:57:56 -0700
-From: "Timothy D. Lenz" <tlenz@vorgon.com>
+	id 1NWuCb-0000cB-OF; Mon, 18 Jan 2010 17:11:41 +0100
+Received: by fxm25 with SMTP id 25so599597fxm.1
+	for <linux-dvb@linuxtv.org>; Mon, 18 Jan 2010 08:11:40 -0800 (PST)
 MIME-Version: 1.0
+Date: Mon, 18 Jan 2010 18:11:40 +0200
+Message-ID: <6dcfbe31001180811h21a38381jec0ebb1a991f859d@mail.gmail.com>
+From: Ismo Kuhmonen <ismokuh@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Problem loading cx23885
+Subject: [linux-dvb] Asking
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -21,72 +23,51 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: multipart/mixed; boundary="===============0959359883=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Trying to update a vdr system from kernel 2.6.26.8 and v4l drivers which 
-I seem to have gotten 5/19/2009
-9655c8cfeed8db5400551b7aeb916f05744f02fa 1275
-9655c8cfeed8db5400551b7aeb916f05744f02fa default
+--===============0959359883==
+Content-Type: multipart/alternative; boundary=001485f44e58d0d6d7047d729bd4
 
-I just tried building v4l using what I got on 12/29/2009. 
-.hg/branch.cache says
-799e3b75489ea4e3470e13399c264da799c76ed7 1320
-799e3b75489ea4e3470e13399c264da799c76ed7 default
+--001485f44e58d0d6d7047d729bd4
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-This version was before the posted patch that disables cx23885 for 
-released kernel versions.
+Hi
+Why my Pinnacle  DVB-T 73=80 USB not working?
 
-Tried building with kernel 2.6.32.2 and when I tried to load the drivers 
-I got:
+--=20
+Ismo Kuhmonen
+Kontiopuisto  7 B 18
+76120 Pieks=E4m=E4ki
+p 046 6336111 &  044 9627227
+ismokuh@gmail.com
 
-WARNING: Error inserting cx23885 
-(/lib/modules/2.6.32.2.20100117.1/kernel/drivers/media/video/c 
-      x23885/cx23885.ko): Unknown symbol in module, or unknown parameter 
-(see dmesg)
-WARNING: Error inserting ir_kbd_i2c 
-(/lib/modules/2.6.32.2.20100117.1/kernel/drivers/media/vide 
-o/ir-kbd-i2c.ko): Unknown symbol in module, or unknown parameter (see dmesg)
+--001485f44e58d0d6d7047d729bd4
+Content-Type: text/html; charset=windows-1252
+Content-Transfer-Encoding: quoted-printable
 
-Nothing in dmesg, but /var/logs/messages had at the end:
+Hi<br>Why my Pinnacle=A0 DVB-T 73=80 USB not working?<br clear=3D"all"><br>=
+-- <br>Ismo Kuhmonen<br>Kontiopuisto =A07 B 18<br>76120 Pieks=E4m=E4ki<br>p=
+ 046 6336111 &amp; =A0044 9627227<br> <a href=3D"mailto:ismokuh@gmail.com">=
+ismokuh@gmail.com</a><br>
 
-Jan 17 14:43:08 LLLx64-32 kernel: Linux video capture interface: v2.00
-Jan 17 14:43:08 LLLx64-32 kernel: cx23885: Unknown symbol 
-ir_codes_hauppauge_new_table
-Jan 17 14:43:08 LLLx64-32 kernel: cx23885: Unknown symbol ir_rc5_timer_keyup
-Jan 17 14:43:08 LLLx64-32 kernel: cx23885: Unknown symbol ir_input_init
-Jan 17 14:43:08 LLLx64-32 kernel: cx23885: Unknown symbol ir_input_nokey
-Jan 17 14:43:08 LLLx64-32 kernel: cx23885: Unknown symbol ir_rc5_decode
-Jan 17 14:43:08 LLLx64-32 kernel: cx23885: Unknown symbol 
-ir_input_unregister
-Jan 17 14:43:08 LLLx64-32 kernel: cx23885: Unknown symbol ir_input_keydown
-Jan 17 14:43:08 LLLx64-32 kernel: cx23885: Unknown symbol ir_input_register
-Jan 17 14:43:08 LLLx64-32 kernel: ir_kbd_i2c: Unknown symbol 
-ir_codes_empty_table
-Jan 17 14:43:08 LLLx64-32 kernel: ir_kbd_i2c: Unknown symbol 
-ir_codes_pv951_table
-Jan 17 14:43:08 LLLx64-32 kernel: ir_kbd_i2c: Unknown symbol 
-ir_codes_fusionhdtv_mce_table
-Jan 17 14:43:08 LLLx64-32 kernel: ir_kbd_i2c: Unknown symbol 
-ir_codes_hauppauge_new_table
-Jan 17 14:43:08 LLLx64-32 kernel: ir_kbd_i2c: Unknown symbol ir_input_init
-Jan 17 14:43:08 LLLx64-32 kernel: ir_kbd_i2c: Unknown symbol ir_input_nokey
-Jan 17 14:43:08 LLLx64-32 kernel: ir_kbd_i2c: Unknown symbol 
-ir_input_unregister
-Jan 17 14:43:08 LLLx64-32 kernel: ir_kbd_i2c: Unknown symbol 
-ir_codes_rc5_tv_table
-Jan 17 14:43:08 LLLx64-32 kernel: ir_kbd_i2c: Unknown symbol 
-ir_input_keydown
-Jan 17 14:43:08 LLLx64-32 kernel: ir_kbd_i2c: Unknown symbol 
-ir_input_register
-Jan 17 14:43:08 LLLx64-32 kernel: ir_kbd_i2c: Unknown symbol 
-ir_codes_avermedia_cardbus_table
+
+--001485f44e58d0d6d7047d729bd4--
+
+
+--===============0959359883==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0959359883==--
