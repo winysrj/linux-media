@@ -1,97 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4967 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754259Ab0ASJDy (ORCPT
+Received: from mail-in-02.arcor-online.net ([151.189.21.42]:45574 "EHLO
+	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751282Ab0ARUFc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jan 2010 04:03:54 -0500
-Message-ID: <cb5326b5d01b4a8e1f4a71bc81803b64.squirrel@webmail.xs4all.nl>
-In-Reply-To: <201001190911.51636.laurent.pinchart@ideasonboard.com>
-References: <4B30F713.8070004@maxwell.research.nokia.com>
-    <1261500191-9441-5-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-    <alpine.LNX.2.01.1001181348540.31857@alastor>
-    <201001190911.51636.laurent.pinchart@ideasonboard.com>
-Date: Tue, 19 Jan 2010 10:03:48 +0100
-Subject: Re: [RFC v2 5/7] V4L: Events: Limit event queue length
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
-Cc: "Sakari Ailus" <sakari.ailus@maxwell.research.nokia.com>,
-	linux-media@vger.kernel.org, iivanov@mm-sol.com,
-	gururaj.nagendra@intel.com
+	Mon, 18 Jan 2010 15:05:32 -0500
+Message-ID: <4B54BEF9.6060501@arcor.de>
+Date: Mon, 18 Jan 2010 21:05:13 +0100
+From: Stefan Ringel <stefan.ringel@arcor.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Terratec Cinergy Hybrid XE (TM6010 Mediachip)
+References: <4B547EBF.6080105@arcor.de> <829197381001180743k789f336er2bb368f4c689a41@mail.gmail.com>
+In-Reply-To: <829197381001180743k789f336er2bb368f4c689a41@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Am 18.01.2010 16:43, schrieb Devin Heitmueller:
+> On Mon, Jan 18, 2010 at 10:31 AM, Stefan Ringel <stefan.ringel@arcor.de> wrote:
+>   
+>> I have a question. How are loaded the base firmware into xc3028, in
+>> once or in a split ? It's importent for TM6010, the USB-Analyzer said
+>> that it load it in once and then send a quitting reqeuest.
+>>     
+> In most drivers, the xc3028 firmware gets broken down and sent in 64
+> byte chunks.  The size of the chunks is controlled by the "max_len"
+> field in the xc2028_ctrl structure.
+>
+> Devin
+>
+>   
+Hi Darvin,
 
-> Hi Hans,
->
-> On Monday 18 January 2010 13:58:09 Hans Verkuil wrote:
->> On Tue, 22 Dec 2009, Sakari Ailus wrote:
->> > Limit event queue length to V4L2_MAX_EVENTS. If the queue is full any
->> > further events will be dropped.
->> >
->> > This patch also updates the count field properly, setting it to
->> exactly
->> > to number of further available events.
->> >
->> > Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
->> > ---
->> > drivers/media/video/v4l2-event.c |   10 +++++++++-
->> > include/media/v4l2-event.h       |    5 +++++
->> > 2 files changed, 14 insertions(+), 1 deletions(-)
->
-> [snip]
->
->> > diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
->> > index b11de92..69305c6 100644
->> > --- a/include/media/v4l2-event.h
->> > +++ b/include/media/v4l2-event.h
->> > @@ -28,6 +28,10 @@
->> > #include <linux/types.h>
->> > #include <linux/videodev2.h>
->> >
->> > +#include <asm/atomic.h>
->> > +
->> > +#define V4L2_MAX_EVENTS		1024 /* Ought to be enough for everyone. */
->>
->> I think this should be programmable by the driver. Most drivers do not
->> use
->> events at all, so by default it should be 0 or perhaps it can check
->> whether
->> the ioctl callback structure contains the event ioctls and set it to 0
->> or
->> some initial default value.
->>
->> And you want this to be controlled on a per-filehandle basis even. If I
->>  look at ivtv, then most of the device nodes will not have events, only
->> a
->>  few will support events. And for one device node type I know that there
->>  will only be a single event when stopping the streaming, while another
->>  device node type will get an event each frame.
->
-> Don't you mean per video node instead of per file handle ? In that case we
-> could add a new field to video_device structure that must be initialized
-> by
-> drivers before registering the device.
+I see. I have set for test "max_len" to 3500 . So can send after main
+firmware wrote (3411 byte) a quitting request send (base firmware is
+9144 byte). Is it true that the tuner output frequency and the
+demodulator input frequency equal is?
 
-Yes, that's what I meant (although you state it much more clearly :-) ).
+Thanks
 
-Regards,
-
-      Hans
-
->> So being able to adjust the event queue dynamically will give more
->> control
->> and prevent unnecessary waste of memory resources.
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
-
+Stefan Ringel
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Stefan Ringel <stefan.ringel@arcor.de>
 
