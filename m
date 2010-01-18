@@ -1,134 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59357 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751449Ab0AHJHG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jan 2010 04:07:06 -0500
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	Kevin Hilman <khilman@deeprootsystems.com>
-CC: "davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Fri, 8 Jan 2010 14:36:09 +0530
-Subject: RE: [PATCH - v3 4/4] DaVinci - vpfe-capture-converting ccdc drivers
-	to platform driver
-Message-ID: <19F8576C6E063C45BE387C64729E7394044A398045@dbde02.ent.ti.com>
-References: <1260895054-13232-1-git-send-email-m-karicheri2@ti.com>
-	<871vi4rv25.fsf@deeprootsystems.com>
-	<A69FA2915331DC488A831521EAE36FE40162C23952@dlee06.ent.ti.com>
-	<87k4vvkyo7.fsf@deeprootsystems.com>
-	<A69FA2915331DC488A831521EAE36FE40162C23A3E@dlee06.ent.ti.com>
-	<878wcbkx60.fsf@deeprootsystems.com>
-	<A69FA2915331DC488A831521EAE36FE40162D43099@dlee06.ent.ti.com>
-	<87r5q1ya2w.fsf@deeprootsystems.com>
-	<A69FA2915331DC488A831521EAE36FE40162D43287@dlee06.ent.ti.com>
-	<87my0pwpnk.fsf@deeprootsystems.com>
- <A69FA2915331DC488A831521EAE36FE40162D43371@dlee06.ent.ti.com>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE40162D43371@dlee06.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:45759 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754471Ab0ARHwO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jan 2010 02:52:14 -0500
+Received: by ewy19 with SMTP id 19so227509ewy.21
+        for <linux-media@vger.kernel.org>; Sun, 17 Jan 2010 23:52:13 -0800 (PST)
 MIME-Version: 1.0
+Date: Mon, 18 Jan 2010 08:52:12 +0100
+Message-ID: <885896af1001172352v2a92b2ffl8839f821f8f397f4@mail.gmail.com>
+Subject: DVB support Pinnacle PCTV HD Stick Pro 330e
+From: Giacomo <delleceste@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi!
 
-> -----Original Message-----
-> From: davinci-linux-open-source-bounces@linux.davincidsp.com
-> [mailto:davinci-linux-open-source-bounces@linux.davincidsp.com] On
-> Behalf Of Karicheri, Muralidharan
-> Sent: Friday, January 08, 2010 4:55 AM
-> To: Kevin Hilman
-> Cc: davinci-linux-open-source@linux.davincidsp.com; linux-
-> media@vger.kernel.org
-> Subject: RE: [PATCH - v3 4/4] DaVinci - vpfe-capture-converting ccdc
-> drivers to platform driver
-> 
-> Arch patches are not usually merged in Hans tree.
-> 
-[Hiremath, Vaibhav] Hi Kevin and Murali,
+Is Pinnacle PCTV HD Stick Pro (330e) DVB supported by v4l-dvb?
 
-Sorry for jumping into this discussion so late, 
+I am unable to scan any DVB channel.
 
-Can we use clk_add_alias() function exported by clkdev.c file here? With this board specific file can define aliases for all required platform_data keeping CLK() entry generic.
+/dev/dvb/adapter devices are not created, just /dev/vbi0.
 
-Thanks,
-Vaibhav
+But this is not enough to scan for channels
+(dvbscan says there is no adapter, kaffeine cannot scan).
 
-> Murali Karicheri
-> Software Design Engineer
-> Texas Instruments Inc.
-> Germantown, MD 20874
-> phone: 301-407-9583
-> email: m-karicheri2@ti.com
-> 
-> >-----Original Message-----
-> >From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> >Sent: Thursday, January 07, 2010 4:50 PM
-> >To: Karicheri, Muralidharan
-> >Cc: linux-media@vger.kernel.org; hverkuil@xs4all.nl; davinci-linux-
-> open-
-> >source@linux.davincidsp.com
-> >Subject: Re: [PATCH - v3 4/4] DaVinci - vpfe-capture-converting
-> ccdc
-> >drivers to platform driver
-> >
-> >"Karicheri, Muralidharan" <m-karicheri2@ti.com> writes:
-> >
-> >> Can I remove it through a separate patch? This patch is already
-> merged in
-> >Hans tree.
-> >
-> >Hmm, arch patches should not be merged yet as I have not ack'd
-> them.
-> >
-> >Kevin
-> >
-> >
-> >>>-----Original Message-----
-> >>>From: Kevin Hilman [mailto:khilman@deeprootsystems.com]
-> >>>Sent: Thursday, January 07, 2010 2:44 PM
-> >>>To: Karicheri, Muralidharan
-> >>>Cc: linux-media@vger.kernel.org; hverkuil@xs4all.nl; davinci-
-> linux-open-
-> >>>source@linux.davincidsp.com
-> >>>Subject: Re: [PATCH - v3 4/4] DaVinci - vpfe-capture-converting
-> ccdc
-> >>>drivers to platform driver
-> >>>
-> >>>"Karicheri, Muralidharan" <m-karicheri2@ti.com> writes:
-> >>>
-> >>>> Kevin,
-> >>>>
-> >>>>>
-> >>>>>OK, I'm not extremely familar with the whole video architecture
-> here,
-> >>>>>but are all of these drivers expected to be doing clk_get() and
-> >>>>>clk_enable()?
-> >>>>>
-> >>>>
-> >>>> [MK]Many IPs on DaVinci VPFE would require vpss master clock.
-> So
-> >>>> it is better to do the way I have done in my patch. So it is
-> expected
-> >>>> that clk_get, clk_enable etc are called from other drivers as
-> well.
-> >>>
-> >>>OK, then you are expecting to add clkdev nodes for the other
-> devices
-> >>>as well.  That's ok.
-> >>>
-> >>>However, you still haven't answered my original question.
-> AFAICT,
-> >>>there are no users of the clkdev nodes "vpss_master" and
-> "vpss_slave".
-> >>>Why not remove those and replace them with your new nodes instead
-> of
-> >>>leaving them and adding new ones?
-> >>>
-> >>>Kevin
-> _______________________________________________
-> Davinci-linux-open-source mailing list
-> Davinci-linux-open-source@linux.davincidsp.com
-> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-
-> source
+Analog tv works.
+
+Thanks Giacomo
+
+-- 
+Giacomo S.
+http://www.giacomos.it
+
+- - - - - - - - - - - - - - - - - - - - - -
+
+* Aprile 2008: iqfire-wall, un progetto
+  open source che implementa un
+  filtro di pacchetti di rete per Linux,
+  e` disponibile per il download qui:
+  http://sourceforge.net/projects/ipfire-wall
+
+* Informazioni e pagina web ufficiale:
+  http://www.giacomos.it/iqfire/index.html
+
+- - - - - - - - - - - - - - - - - - - - - -
+
+ . ''  `.
+:   :'    :
+ `.  ` '
+    `- Debian GNU/Linux -- The power of freedom
+        http://www.debian.org
