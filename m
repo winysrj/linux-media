@@ -1,41 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225]:36931 "EHLO
-	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751614Ab0ARL0N (ORCPT
+Received: from mail-in-07.arcor-online.net ([151.189.21.47]:58673 "EHLO
+	mail-in-07.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752895Ab0ARPb3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2010 06:26:13 -0500
-Received: by fxm25 with SMTP id 25so329724fxm.21
-        for <linux-media@vger.kernel.org>; Mon, 18 Jan 2010 03:26:12 -0800 (PST)
+	Mon, 18 Jan 2010 10:31:29 -0500
+Message-ID: <4B547EBF.6080105@arcor.de>
+Date: Mon, 18 Jan 2010 16:31:11 +0100
+From: Stefan Ringel <stefan.ringel@arcor.de>
 MIME-Version: 1.0
-In-Reply-To: <20100118103331.GA13882@seneca.muc.de>
-References: <20100118103331.GA13882@seneca.muc.de>
-Date: Mon, 18 Jan 2010 15:20:12 +0400
-Message-ID: <1a297b361001180320i705ee3c3ice36805c392e2502@mail.gmail.com>
-Subject: Re: [linux-dvb] s2-liplianin & Technotrend TT-Connect S-2400
-From: Manu Abraham <abraham.manu@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Terratec Cinergy Hybrid XE (TM6010 Mediachip)
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 18, 2010 at 2:33 PM, Harald Milz <hm@seneca.muc.de> wrote:
-> Hi,
->
-> I am trying to use a S-2400 for Hotbird in addition to 2 S2-3650's pointing at
-> Astra. For the 3650's I need to use s2-liplianin because the box is not yet
-> supported by my stock OpenSUSE 11.1 (update) kernel. The 3650's work fine so
-> far. I have no luck with the 2400, though. Attached is the syslog excerpt -
-> maybe someone can see what is wrong here. The driver code is s2-liplianin-head
-> from last Saturday.
->
-> Shortcut question: Do I want to get another 3650 / 3600? I had no luck with a
-> quad monoblock LNB either...
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+ 
+Hi Davin,
+I have a question. How are loaded the base firmware into xc3028, in
+once or in a split ? It's importent for TM6010, the USB-Analyzer said
+that it load it in once and then send a quitting reqeuest.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.12 (MingW32)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+ 
+iQEcBAEBAgAGBQJLVH6/AAoJEDX/lZlmjdJlA/0H/jkn4I3kELEWPeDDYJvv/+Z0
+LsSLzmDJmQ0WgASjtJQ2QZvsDeuCsbzV9mTHGvI0dOGtOLqcBuMX58ZFTerZodrG
+b/KdwZa2OV0MWXc+5hf2+3wEC1icfMATKiwsT3gLdvP9En4MtUP8ImaXFWwW7ekL
+aH5TD666nGewj4+Ef5eVY0G+FypqzNcs4F04uY5ydBaVDh5XTONhXPaLz/R5JF0K
+ivKT4WL7n8A7bq8iAn6SoMJRV/RbEpGF40m4aApVDd+JdizFIH7xrTGQ4waQO6IN
+mplAcxIhq6bEHhwZRfbbnTNMTWUVPShqqqxC5Z0TxCiUR0RH6JdXagQtw/1/UX0=
+=Qqmr
+-----END PGP SIGNATURE-----
 
-
-I think the ttusb2 driver from http://linuxtv.org/hg/v4l-dvb  would
-work with regards to the S-2400.
-
-
-Regards,
-Manu
