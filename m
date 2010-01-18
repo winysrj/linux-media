@@ -1,45 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:54821 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752995Ab0AXRv4 (ORCPT
+Received: from mail-fx0-f225.google.com ([209.85.220.225]:43372 "EHLO
+	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754071Ab0ARPnp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jan 2010 12:51:56 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: Re: gitorious.org/omap3camera: Falied attempt to migrate sensor driver to Zoom2/3 platform
-Date: Sun, 24 Jan 2010 18:52:23 +0100
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <A24693684029E5489D1D202277BE8944517F0987@dlee02.ent.ti.com> <201001221246.24330.laurent.pinchart@ideasonboard.com> <A24693684029E5489D1D202277BE8944517F0E40@dlee02.ent.ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE8944517F0E40@dlee02.ent.ti.com>
+	Mon, 18 Jan 2010 10:43:45 -0500
+Received: by fxm25 with SMTP id 25so580198fxm.21
+        for <linux-media@vger.kernel.org>; Mon, 18 Jan 2010 07:43:44 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201001241852.23334.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <4B547EBF.6080105@arcor.de>
+References: <4B547EBF.6080105@arcor.de>
+Date: Mon, 18 Jan 2010 10:43:43 -0500
+Message-ID: <829197381001180743k789f336er2bb368f4c689a41@mail.gmail.com>
+Subject: Re: Terratec Cinergy Hybrid XE (TM6010 Mediachip)
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Stefan Ringel <stefan.ringel@arcor.de>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergio,
+On Mon, Jan 18, 2010 at 10:31 AM, Stefan Ringel <stefan.ringel@arcor.de> wrote:
+> I have a question. How are loaded the base firmware into xc3028, in
+> once or in a split ? It's importent for TM6010, the USB-Analyzer said
+> that it load it in once and then send a quitting reqeuest.
 
-On Friday 22 January 2010 19:36:06 Aguirre, Sergio wrote:
+In most drivers, the xc3028 firmware gets broken down and sent in 64
+byte chunks.  The size of the chunks is controlled by the "max_len"
+field in the xc2028_ctrl structure.
 
-[snip]
-
-> Ok, I was able to "work around" the kernel panic with the attached patch.
-> 
-> I have the feeling that all your development is dependant on loading all
->  camera/sensors as modules in the filesystem. Have you done validation with
->  built-in option in kernel's menuconfig?
-
-You're right. I haven't done any validation, and I've been to reproduce the 
-crash when compiling everything directly into the kernel image.
-
-I'm on holidays this week so I won't be able to look into the problem before 
-February the 1st. If nobody beats me to it, I'll see how we can fix it 
-properly then.
+Devin
 
 -- 
-Regards,
-
-Laurent Pinchart
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
