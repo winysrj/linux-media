@@ -1,123 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from colmail.vol.cz ([195.250.128.80]:56394 "EHLO colmail.vol.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751539Ab0AVIFX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jan 2010 03:05:23 -0500
-Received: from [127.0.0.1] (nat-nop-noc.b1.lan.prg.vol.cz [195.122.204.158])
-	by colmail.vol.cz (8.14.3/8.14.3) with ESMTP id o0M85KM9070956
-	for <linux-media@vger.kernel.org>; Fri, 22 Jan 2010 09:05:21 +0100 (CET)
-	(envelope-from lim@brdo.cz)
-Message-ID: <4B595C40.2070001@brdo.cz>
-Date: Fri, 22 Jan 2010 09:05:20 +0100
-From: LiM <lim@brdo.cz>
+Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.122]:46769 "EHLO
+	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753256Ab0ASVVj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jan 2010 16:21:39 -0500
+Message-ID: <4B562260.8030707@acm.org>
+Date: Tue, 19 Jan 2010 13:21:36 -0800
+From: Bob Cunningham <rcunning@acm.org>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: bt878 card: no sound and only xvideo support in 2.6.31 bttv 0.9.18
-References: <4B580AB2.6030005@brdo.cz> <20100121094943.GA2332@localhost.lan>
-In-Reply-To: <20100121094943.GA2332@localhost.lan>
-Content-Type: text/plain; charset=ISO-8859-2
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [ANNOUNCE] git tree repositories
+References: <4B55445A.10300@infradead.org> <829197381001190204l3df81904gf8586f36187f212d@mail.gmail.com> <4B55A2AC.4020009@infradead.org>
+In-Reply-To: <4B55A2AC.4020009@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Leopold Gouverneur napsal(a):
-> On Thu, Jan 21, 2010 at 09:05:06AM +0100, LiM wrote:
->   
->> Hello,
+On 01/19/2010 04:16 AM, Mauro Carvalho Chehab wrote:
+> Devin Heitmueller wrote:
+>> Hello Mauro,
 >>
->> i have the same problem as http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/11441 also with Hercules Smart TV Stereo ..
->> works OK audio+video on ..2.6.29-gentoo-r5 + bttv 0.9.17
->> but NO AUDIO on linux-2.6.31-gentoo-r6 + bttv 0.9.18
->>
->> cat /etc/modprobe.d/bttv.conf
->> options tvaudio tda9874a=1 tda9874a_STD=0
->> options bttv radio=0 card=100 tuner=29 gbuffers=14 i2c_udelay=128 pll=1
->> autoload=1
->>
->> 2.6.29-gentoo-r5 + bttv 0.9.17
->> bttv: driver version 0.9.17 loaded
->> bttv: using 14 buffers with 2080k (520 pages) each for capture
->> bttv: Bt8xx card found (0).
->> bttv 0000:04:01.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
->> bttv0: Bt878 (rev 17) at 0000:04:01.0, irq: 16, latency: 64, mmio:
->> 0xf8ffe000
->> bttv0: using: Hercules Smart TV Stereo [card=100,insmod option]
->> IRQ 16/bttv0: IRQF_DISABLED is not guaranteed on shared IRQs
->> bttv0: gpio: en=00000000, out=00000000 in=00ffffff [init]
->> tvaudio' 6-0058: found tda9874a.
->> tvaudio' 6-0058: tda9874h/a found @ 0xb0 (bt878 #0 [sw])
->> tvaudio' 6-004b: pic16c54 (PV951) found @ 0x96 (bt878 #0 [sw])
->> bttv0: tuner type=29
->> bttv0: i2c: checking for TDA9875 @ 0xb0... found
->> bttv0: i2c: checking for TDA7432 @ 0x8a... not found
->> All bytes are equal. It is not a TEA5767
->> tuner' 6-0060: chip found @ 0xc0 (bt878 #0 [sw])
->> tuner-simple 6-0060: creating new instance
->> tuner-simple 6-0060: type set to 29 (LG PAL_BG (TPI8PSB11D))
->> bttv0: registered device video1
->> bttv0: registered device vbi0
->> bttv0: PLL: 28636363 => 35468950 .. ok
->>
->> linux-2.6.31-gentoo-r6 + bttv 0.9.18
->> bttv: driver version 0.9.18 loaded
->> bttv: using 14 buffers with 2080k (520 pages) each for capture
->> bttv: Bt8xx card found (0).
->> bttv0: Bt878 (rev 17) at 0000:04:01.0, irq: 16, latency: 64, mmio:
->> 0xf8ffe000
->> bttv0: using: Hercules Smart TV Stereo [card=100,insmod option]
->> IRQ 16/bttv0: IRQF_DISABLED is not guaranteed on shared IRQs
->> bttv0: gpio: en=00000000, out=00000000 in=00ffffff [init]
->> bttv0: tuner type=29
->> tvaudio 0-0058: found tda9874a.
->> tvaudio 0-0058: tda9874h/a found @ 0xb0 (bt878 #0 [sw])
->> All bytes are equal. It is not a TEA5767
->> tuner 0-0060: chip found @ 0xc0 (bt878 #0 [sw])
->> tuner-simple 0-0060: creating new instance
->> tuner-simple 0-0060: type set to 29 (LG PAL_BG (TPI8PSB11D))
->> bttv0: registered device video0
->> bttv0: registered device vbi0
->> bttv0: PLL: 28636363 => 35468950 .
->> bttv0: PLL: 28636363 => 35468950 .
->> bttv0: PLL: 28636363 => 35468950 . ok
->>
->>
->> I think problem is in new bttv driver, in modules is new options
->> audiodev and tvaudio is loading with bttv? and this line:
->> "tvaudio' 6-004b: pic16c54 (PV951) found @ 0x96 (bt878 #0 [sw])"
->> is only with older bttv.
->>
->> modinfo -k 2.6.31-gentoo-r6 bttv
->> ---cut--
->> parm:           autoload:obsolete option, please do not use anymore (int)
->> parm:           audiodev:specify audio device:
->>         -1 = no audio
->>          0 = autodetect (default)
->>          1 = msp3400
->>          2 = tda7432
->>          3 = tvaudio (array of int)
->> ---cut--
->>
->> How can i load module with new bttv to get sound working?
->>
->> rdgs
->>
->> Michal Vesely
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>     
-> For my Hercules Smart TV card sound also disappeared after 2.6.29
-> with the message:"bttv0: audio absent, no audio device found!"
-> I have bisected the problem to commit 859f0277a6c3ba59b0a5a1eb183f8f6ce661a95d:
->  "bttv: convert to v4l2_subdev since i2c autoprobing will disappear"
-> If I revert this everything works again
->  
->   
+>> I find it somewhat unfortunate that this is labeled "ANNOUNCE" instead
+>> of "RFC".  It shows how little you care about soliciting the opinions
+>> of the other developers.  Rather than making a proposal for how the
+>> process can be improved and soliciting feedback, you have chosen to
+>> decide for all of us what the best approach is and how all of us will
+>> develop in the future.
+>
+> The announcement by purpose doesn't contain any changes on the process,
+> since it requires some discussions before we go there. It is just the
+> first step, where -git tree support were created. It also announces
+> that I personally won't keep maintaining -hg, delegating its task
+> to Douglas.
+>
+>> The point I'm trying to make is that we need to be having a discussion
+>> about what we are optimizing for, and what are the costs to other
+>> developers.  This is why I'm perhaps a bit pissed to see an
+>> "announcement" declaring how development will be done in the future as
+>> opposed to a discussion of what we could be doing and what are the
+>> trade-offs.
+>
+> I fully understand that supporting the development and tests with an
+> out of tree building is important to everybody. So, the plans are
+> to keep the out-of-tree building system maintained, and even
+> improving it. I'd like to thank to Douglas for his help on making
+> this happen.
+>
+> Cheers,
+> Mauro.
 
-Hi,
+I'm primarily a lurker on this list, generally content to wait for v4l driver updates until they appear in the Fedora 12 and Ubuntu 9.10 updates.
 
-and is any chance it will be working with new version?
+However, I also keep a v4l source tree around that I update and build whenever any significant changes occur that affect my HVR-950Q, so I can provide rapid feedback to the developers.  My process is to update my local tree, build the drivers. build the package, install the package, test it, then either revert immediately if there are problems (after posting to the list), or update again when the changes appear in the Fedora repositories.
 
-Michal
+Am I correct to believe my process will not be affected by the shift to git?  That is, will existing kernels will still have access to the current v4l code via hg?
+
+I also hope to one day start working on an unsupported USB tuner I have laying around (should be simple, but after nearly a year I still haven't gotten to it).  Will I be permitted to do my development, and contribute changes, using hg and the current Fedora kernel?
+
+Lurker testers and wannabe developers need to know!
+
+-BobC
