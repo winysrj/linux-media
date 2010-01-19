@@ -1,44 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01d.mail.t-online.hu ([84.2.42.6]:60366 "EHLO
-	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751406Ab0A2GWm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jan 2010 01:22:42 -0500
-Message-ID: <4B627EAE.7020303@freemail.hu>
-Date: Fri, 29 Jan 2010 07:22:38 +0100
-From: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+Received: from bar.sig21.net ([80.81.252.164]:32968 "EHLO bar.sig21.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755906Ab0ASLUc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jan 2010 06:20:32 -0500
+Date: Tue, 19 Jan 2010 12:20:57 +0100
+From: Johannes Stezenbach <js@linuxtv.org>
+To: Patrick Boettcher <pboettcher@kernellabs.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Douglas Landgraf <dougsland@gmail.com>
+Subject: Re: [ANNOUNCE] git tree repositories
+Message-ID: <20100119112057.GC9187@linuxtv.org>
+References: <4B55445A.10300@infradead.org>
+ <201001190853.11050.hverkuil@xs4all.nl>
+ <201001190910.39479.pboettcher@kernellabs.com>
 MIME-Version: 1.0
-To: David Henig <dhhenig@googlemail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Make failed - standard ubuntu 9.10
-References: <4B62113E.40905@googlemail.com>
-In-Reply-To: <4B62113E.40905@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201001190910.39479.pboettcher@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-David Henig wrote:
-> Please can someone assist, not sure what the cause of the below is? This 
-> is my second attempt to get linux tv to work, I suspect it's a basic 
-> level error - sorry I'm fairly new to Linux... output below, I'm running 
-> a fairly standard ubuntu 9.10 setup.
+On Tue, Jan 19, 2010 at 09:10:39AM +0100, Patrick Boettcher wrote:
 > 
-> make[1]: Entering directory `/home/david/v4l-dvb/v4l'
-> Updating/Creating .config
-> Preparing to compile for kernel version 2.6.31
-> File not found: /lib/modules/2.6.31-17-generic/build/.config at 
-> ./scripts/make_kconfig.pl line 32, <IN> line 4.
-> make[1]: *** No rule to make target `.myconfig', needed by 
-> `config-compat.h'. Stop.
-> make[1]: Leaving directory `/home/david/v4l-dvb/v4l'
-> make: *** [all] Error 2
+> BTW: I just made a clone of the git-tree - 365MB *ouff*. Maybe it's worth to 
+> mention right now, that one big difference to HG in the way we have used it, is 
+> that one developer now can do all the work only with one clone of v4l-dvb and 
+> using branches for each development.
 
-I think you don't have the kernel development files installed.
+Please note that you SHOULD NOT clone from linuxtv.org.
+Please follow the description on the top of
+http://linuxtv.org/git/
 
-The recommended reading would be:
-http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+Most linux developers will have a clone of Linus' tree already,
+and you can add as many "remotes" to that tree as you like.
+It's much faster and more flexible that way.  If you once pulled
+a clone of Linus' tree there is simply no need to ever clone
+any other Linux tree ever again.
 
-Regards,
+Oh, and if you manage to get your git tree in a state where
+you don't know how to fix the mess, don't throw it away.
+Go to the git mailing list and ask for advice. They love
+customer feeedback. Helps them to improve their product
+and make it more user friendly ;-)
 
-	Márton Németh
+
+Johannes
