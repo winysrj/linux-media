@@ -1,73 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f179.google.com ([209.85.211.179]:41429 "EHLO
-	mail-yw0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753333Ab0AaRnl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Jan 2010 12:43:41 -0500
-Received: by ywh9 with SMTP id 9so3724438ywh.19
-        for <linux-media@vger.kernel.org>; Sun, 31 Jan 2010 09:43:41 -0800 (PST)
+Received: from dudelab.org ([212.12.33.202]:23517 "EHLO mail.dudelab.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754149Ab0ASKjR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jan 2010 05:39:17 -0500
+Received: from abrasax.taupan.ath.cx (p5DE8A8F0.dip.t-dialin.net [93.232.168.240])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(Client CN "Friedrich Delgado Friedrichs", Issuer "User CA" (verified OK))
+	by mail.dudelab.org (Postfix) with ESMTP id EDBCC228148
+	for <linux-media@vger.kernel.org>; Tue, 19 Jan 2010 11:40:25 +0100 (CET)
+Date: Tue, 19 Jan 2010 11:39:12 +0100
+From: Friedrich Delgado Friedrichs <friedel@nomaden.org>
+To: linux-media@vger.kernel.org
+Subject: Re: Hauppauge Win TV HVR-1300: streaming and grabbing fail after a
+ while, changing resolution renders card inoperable
+Message-ID: <20100119103911.GA27938@taupan.ath.cx>
+Reply-To: friedel@nomaden.org
+References: <20100117133300.GA3668@taupan.ath.cx>
 MIME-Version: 1.0
-In-Reply-To: <1264955483.28401.32.camel@alkaloid.netup.ru>
-References: <b36f333c1001310412r40cb425cp7a5a0d282c6a716a@mail.gmail.com>
-	 <1264941827.28401.3.camel@alkaloid.netup.ru>
-	 <b36f333c1001310707w3397a5a6i758031262d8591a7@mail.gmail.com>
-	 <b36f333c1001310723p561d7a69x955b2d4a6d9b4e1@mail.gmail.com>
-	 <1264951975.28401.8.camel@alkaloid.netup.ru>
-	 <b36f333c1001310825n6ae6e5dbg45a0cf135d2e89e@mail.gmail.com>
-	 <1264955483.28401.32.camel@alkaloid.netup.ru>
-Date: Sun, 31 Jan 2010 18:43:40 +0100
-Message-ID: <b36f333c1001310943t3f655b03w2fe75a63b3e952a7@mail.gmail.com>
-Subject: Re: CAM appears to introduce packet loss
-From: Marc Schmitt <marc.schmitt@gmail.com>
-To: Abylai Ospan <aospan@netup.ru>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="PNTmBPCT7hxwcZjr"
+Content-Disposition: inline
+In-Reply-To: <20100117133300.GA3668@taupan.ath.cx>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jan 31, 2010 at 5:31 PM, Abylai Ospan <aospan@netup.ru> wrote:
-> On Sun, 2010-01-31 at 17:25 +0100, Marc Schmitt wrote:
->> Compiling from source made me stumble across
->> http://www.mail-archive.com/ubuntu-devel-discuss@lists.ubuntu.com/msg09422.html
->> I just left out the firedtv driver as recommended.
->>
->> I'm getting the following kernel output after enabling dvb_demux_speedcheck:
->> [  330.366115] TS speed 40350 Kbits/sec
->> [  332.197693] TS speed 40085 Kbits/sec
->> [  334.011856] TS speed 40528 Kbits/sec
->> [  335.843466] TS speed 40107 Kbits/sec
->> [  337.665411] TS speed 40261 Kbits/sec
->> [  339.496959] TS speed 40107 Kbits/sec
->> [  341.318289] TS speed 40350 Kbits/sec
->>
->> Do you think the CI/CAM can not handle that?
-> 40 Mbit/sec is high bitrate for some CAM's.
->
-> You can:
-> 1. Try to contact with CAM vendor and check maximum bitrate which can be
-> passed throught this CAM
 
-I tried that CAM in a TV with DVB-C support. The image was perfect so
-I suspect that the CAM itself can handle it unless the TV did HW PID
-filtering before sending the stream to the CAM, as you point out
-below... Is that to be expected?
+--PNTmBPCT7hxwcZjr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> 2. Try to find reception card with hardware PID filtering and pass only
-> interesting PID's throught CAM. Bitrate should be equal to bitrate of
-> one channel - aprox. 4-5 mbit/sec ( not 40 mbit/sec).
+I'm sorry, two of the problems described in my mail have nothing to do
+with the driver. There's a daemon running that accesses the tuner and
+vbi (nxtvepg), which causes problems 1 and 2.
 
-Do you have a recommendation for such a card?
-Would it be possible to do the filtering in software somehow?
+I've failed to notice this because nxtvepg can (normally) detect
+tvtime and xawtv and doesn't interfere with them, so I assumed it
+might have a general mechanism for detecting if the tv driver is in
+use by a different app.
 
-> 3.may be some fixes can be made on TS output from demod. Demod's usually
-> has tunable TS output timings/forms. You should check TS clock by
-> oscilloscope and then try to change TS timings/forms in demod.
+The third problem remains:
 
-Unfortunately, I don't have the necessary equipment/knowledge to do this. :(
-I'd assume the DVB provider could give me the TS clock? But then I'm
-at bit at a loss with "change TS timings/forms in demod". What exactly
-are you referring to by "demod".
+Friedel wrote:
+> 3) changing resolutions causes mpeg encoder stream to become
+> completely inoperable
 
-Thanks,
-    Marc
+> When I switch resolutions in mythtv recording profile, but also via
+> e.g.
+>=20
+> v4l2-ctl -d /dev/video1 --set-fmt-video=3Dwidth=3D720,height=3D568
+>=20
+> I seem to totally break the encoder. There's no stream any more,
+>=20
+> ~> cat /dev/video1
+> cat: /dev/video1: Input/output error
+>=20
+> And switching the resolution back doesn't help. Unloading the modules
+> doesn't help either, I have to reboot the box.
+>=20
+> dmesg output pastebinned at http://pastebin.com/f4e27757a
+>=20
+> Tests were done with a 2.6.32 kernel from ubuntu.
+
+Which I assume is a vanilla kernel. I might be wrong about this, too.
+
+I could test with newer drivers or a newer kernel of course, if you
+suspect that the problem might not be fixed yet.
+
+> Please ask if there's any information you can't easily infer from this
+> mail or the attached logs.
+
+
+--=20
+        Friedrich Delgado Friedrichs <friedel@nomaden.org>
+                             TauPan on Ircnet and Freenode ;)
+
+--PNTmBPCT7hxwcZjr
+Content-Type: application/pgp-signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAktVi8UACgkQCTmCEtF2zEBNmwCcD1OTCArFuultbyVqYhRQTvsz
++ngAoISG/olxFNGhD6Ju5FThh/DI4hjN
+=B58J
+-----END PGP SIGNATURE-----
+
+--PNTmBPCT7hxwcZjr--
