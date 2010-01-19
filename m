@@ -1,56 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail02a.mail.t-online.hu ([84.2.40.7]:52008 "EHLO
-	mail02a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751760Ab0AWG60 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jan 2010 01:58:26 -0500
-Message-ID: <4B5A9E0C.8090907@freemail.hu>
-Date: Sat, 23 Jan 2010 07:58:20 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+Received: from znsun1.ifh.de ([141.34.1.16]:61771 "EHLO znsun1.ifh.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754036Ab0ASLxF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jan 2010 06:53:05 -0500
+Date: Tue, 19 Jan 2010 12:52:49 +0100 (CET)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Douglas Landgraf <dougsland@gmail.com>
+Subject: Re: [ANNOUNCE] git tree repositories
+In-Reply-To: <829197381001190204l3df81904gf8586f36187f212d@mail.gmail.com>
+Message-ID: <alpine.LRH.2.00.1001191249420.15376@pub3.ifh.de>
+References: <4B55445A.10300@infradead.org> <829197381001190204l3df81904gf8586f36187f212d@mail.gmail.com>
 MIME-Version: 1.0
-To: V4L Mailing List <linux-media@vger.kernel.org>,
-	mjpeg-users@lists.sourceforge.net
-Subject: [PATCH] zoran: match parameter signedness of g_input_status
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+Hi Devin,
 
-The second parameter of g_input_status operation in <media/v4l2-subdev.h>
-is unsigned so also call it with unsigned paramter.
+On Tue, 19 Jan 2010, Devin Heitmueller wrote:
+> [..]
+>
+> I want to focus my development on v4l-dvb.  That said, I want a stable
+> codebase on which I can write v4l-dvb drivers, without having to worry
+> about whether or not my wireless driver is screwed up this week, or
+> whether the ALSA guys broke my audio support for the fifth time in two
+> years.  I don't want to wonder whether the crash I just experienced is
+> because they've replaced the scheduler yet again and they're still
+> shaking the bugs out.  I don't want to be at the mercy of whatever ABI
+> changes they're doing this week which break my Nvidia card (and while
+> I recognize as open source developers we care very little about
+> "closed source drivers", we shouldn't really find it surprising that
+> many developers who are rendering HD video might be using Nvidia
+> cards).
 
-This will remove the following sparse warning (see "make C=1"):
- * incorrect type in argument 2 (different signedness)
-       expected unsigned int [usertype] *status
-       got int *<noident>
+I agree with Devin. We can't lose and off-tree build system like we have 
+it today in v4l-dvb.
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
----
-diff -r 2a50a0a1c951 linux/drivers/media/video/zoran/zoran_device.c
---- a/linux/drivers/media/video/zoran/zoran_device.c	Sat Jan 23 00:14:32 2010 -0200
-+++ b/linux/drivers/media/video/zoran/zoran_device.c	Sat Jan 23 07:57:09 2010 +0100
-@@ -1197,7 +1197,8 @@
- static void zoran_restart(struct zoran *zr)
- {
- 	/* Now the stat_comm buffer is ready for restart */
--	int status = 0, mode;
-+	unsigned int status = 0;
-+	int mode;
+What I suggested in my first Email was to put the build system outside the 
+v4l-dvb into another repo (e.g. 'v4l-dvb-build') and then telling it to 
+make links from the linux-v4l-dvb/ clone.
 
- 	if (zr->codec_mode == BUZ_MODE_MOTION_COMPRESS) {
- 		decoder_call(zr, video, g_input_status, &status);
-diff -r 2a50a0a1c951 linux/drivers/media/video/zoran/zoran_driver.c
---- a/linux/drivers/media/video/zoran/zoran_driver.c	Sat Jan 23 00:14:32 2010 -0200
-+++ b/linux/drivers/media/video/zoran/zoran_driver.c	Sat Jan 23 07:57:09 2010 +0100
-@@ -1452,7 +1452,7 @@
- 	}
+I'm not sure what needs to be done for the backward-compat with #if
+KERNEL_VERSION ... But I'm sure we can find a solution for that.
 
- 	if (norm == V4L2_STD_ALL) {
--		int status = 0;
-+		unsigned int status = 0;
- 		v4l2_std_id std = 0;
+--
 
- 		decoder_call(zr, video, querystd, &std);
-
+Patrick Boettcher - Kernel Labs
+http://www.kernellabs.com/
