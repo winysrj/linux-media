@@ -1,79 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:47909 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751746Ab0AEJdM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Jan 2010 04:33:12 -0500
-Date: Tue, 5 Jan 2010 10:33:16 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-cc: Linux-V4L2 <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] soc-camera: ov772x: Add buswidth selection flags for
- platform
-In-Reply-To: <u637ggasq.wl%morimoto.kuninori@renesas.com>
-Message-ID: <Pine.LNX.4.64.1001051031410.5259@axis700.grange>
-References: <u8wcdf9r8.wl%morimoto.kuninori@renesas.com>
- <Pine.LNX.4.64.1001050848140.5259@axis700.grange> <u637ggasq.wl%morimoto.kuninori@renesas.com>
+Received: from ms01.sssup.it ([193.205.80.99]:38104 "EHLO sssup.it"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753327Ab0ASRah (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jan 2010 12:30:37 -0500
+Message-ID: <4B55EC3A.3060308@panicking.kicks-ass.org>
+Date: Tue, 19 Jan 2010 18:30:34 +0100
+From: Michael Trimarchi <michael@panicking.kicks-ass.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: omap34xxcam question?
+References: <4B4F0762.4040007@panicking.kicks-ass.org> <A24693684029E5489D1D202277BE894451538FFB@dlee02.ent.ti.com> <4B4F537B.7000708@panicking.kicks-ass.org> <A24693684029E5489D1D202277BE894451539065@dlee02.ent.ti.com> <4B4F56C8.7060108@panicking.kicks-ass.org> <A24693684029E5489D1D202277BE894451539623@dlee02.ent.ti.com> <4B502982.4050508@panicking.kicks-ass.org>
+In-Reply-To: <4B502982.4050508@panicking.kicks-ass.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 5 Jan 2010, Kuninori Morimoto wrote:
+Michael Trimarchi wrote:
+> Aguirre, Sergio wrote:
+>>
+>>> -----Original Message-----
+>>> From: Michael Trimarchi [mailto:michael@panicking.kicks-ass.org]
+>>> Sent: Thursday, January 14, 2010 11:39 AM
+>>> To: Aguirre, Sergio
+>>> Cc: linux-media@vger.kernel.org
+>>> Subject: Re: omap34xxcam question?
+>>>
+>>> Aguirre, Sergio wrote:
+>>>>> -----Original Message-----
+>>>>> From: Michael Trimarchi [mailto:michael@panicking.kicks-ass.org]
+>>>>> Sent: Thursday, January 14, 2010 11:25 AM
+>>>>> To: Aguirre, Sergio
+>>>>> Cc: linux-media@vger.kernel.org
+>>>>> Subject: Re: omap34xxcam question?
+>>>>>
+>>>>> Hi,
+>>>>>
+>>>>> Aguirre, Sergio wrote:
+>>>>>>> -----Original Message-----
+>>>>>>> From: Michael Trimarchi [mailto:michael@panicking.kicks-ass.org]
+>>>>>>> Sent: Thursday, January 14, 2010 6:01 AM
+>>>>>>> To: linux-media@vger.kernel.org
+>>>>>>> Cc: Aguirre, Sergio
+>>>>>>> Subject: omap34xxcam question?
+>>>>>>>
+>>>>>>> Hi
+>>>>>>>
+>>>>>>> Is ok that it try only the first format and size? why does it not
+>>>>> continue
+>>>>>>> and find a matching?
+>>>>>> Actually, that was the intention, but I guess it was badly
+>>> implemented.
+>>>>>> Thanks for the catch, and the contribution!
+>>>>>>
+>>>>>> Regards,
+>>>>>> Sergio
+>>>>>>> @@ -470,7 +471,7 @@ static int try_pix_parm(struct
+>>> omap34xxcam_videodev
+>>>>>>> *vdev,
+>>>>>>>                         pix_tmp_out = *wanted_pix_out;
+>>>>>>>                         rval = isp_try_fmt_cap(isp, &pix_tmp_in,
+>>>>>>> &pix_tmp_out);
+>>>>>>>                         if (rval)
+>>>>>>> -                               return rval;
+>>>>>>> +                               continue;
+>>>>>>>
+>>>>> Is the patch good? or you are going to provide a better fix
+>>>> Yes. Sorry if I wasn't clear enough.
+>>>>
+>>>> Looks good to me, and I don't have a better fix on top of my head for
+>>> the moment...
+>>>> I'm assuming you tested it in your environment, right?
+>>> Ok, my enviroment is not pretty stable but for sure this is required.
+>>> There is one problem:
+>>>
+>>> Suppose that the camera support this format:
+>>>
+>>> YUV and RAW10
+>>>
+>>> The video4linux enumeration is done in this order.
+>>> We know that if you want to use resizer and previewer we can't use 
+>>> the YUV
+>>> (go straight to memory)
+>>> but it is selected because is the first. So maybe the best thing is to
+>>> find the one that is suggest in the csi
+>>> configuration first. Hope that is clear.
+>>
+>> Hmm.. I see.
+>>
+>> So, if I got you right, you're saying that, there should be priorities 
+>> for sensor baseformats, depending on the preference specified 
+>> somewhere in the boardfile?
+> 
+> Yes, that is the idea. Try to provide a better patch later, I'm working 
+> hard on the sensor part :)
+> 
 
-> 
-> Dear Guennadi
-> 
-> Thank you for checking patch
-> 
-> > Can you explain a bit why this patch is needed? Apart from a slight 
-> > stylistic improvement and a saving of 4 bytes of platform data per camera 
-> > instance? Is it going to be needed for some future changes?
-> 
-> This patch is not so important/necessary at once.
->  -> for saving of 4 bytes.
-> 
-> > 	if (!is_power_of_2(priv->info->flags & (OV772X_FLAG_8BIT | OV772X_FLAG_10BIT)))
-> > 		return 0;
-> > 
-> > make sense here? Or even just modify your tests above to
-> (snip)
-> > Adding a "default:" case just above the "case OV772X_FLAG_10BIT:" line 
-> > would seem like a good idea to me too.
-> 
-> I understand.
-> 
-> > > +#define OV772X_FLAG_8BIT	(1 << 2) /*  8bit buswidth */
-> > > +#define OV772X_FLAG_10BIT	(1 << 3) /* 10bit buswidth */
-> 
-> May I suggest here ?
-> What do you think if it have only 10BIT flag,
-> and check/operation like this ?
-> 
-> 	if (priv->info->flags & OV772X_FLAG_10BIT) {
->  		flags |= SOCAM_DATAWIDTH_10;
->  	else
->  		flags |= SOCAM_DATAWIDTH_8;
-> 
-> This case, below check became not needed,
-> Does this operation make sense for you ?
+diff --git a/drivers/media/video/omap34xxcam.c b/drivers/media/video/omap34xxcam
+index 53b587e..75bd858 100644
+--- a/drivers/media/video/omap34xxcam.c
++++ b/drivers/media/video/omap34xxcam.c
+@@ -448,6 +448,10 @@ static int try_pix_parm(struct omap34xxcam_videodev *vdev,
+                        break;
+                dev_dbg(&vdev->vfd->dev, "trying fmt %8.8x (%d)\n",
+                        fmtd.pixelformat, fmtd_index);
++
++               if (fmtd.pixelformat != best_pix_in->pixelformat)
++                       continue;
++
+                /*
+                 * Get supported resolutions.
+                 */
+@@ -470,7 +474,7 @@ static int try_pix_parm(struct omap34xxcam_videodev *vdev,
+                        pix_tmp_out = *wanted_pix_out;
+                        rval = isp_try_fmt_cap(isp, &pix_tmp_in, &pix_tmp_out);
+                        if (rval)
+-                               return rval;
++                               continue;
+ 
+                        dev_dbg(&vdev->vfd->dev, "this w %d\th %d\tfmt %8.8x\t"
 
-Do you really want to make 8 bits default? Even though this is, probably, 
-how most implementations will connect the sensor, it is actually a 10-bit 
-device.
+Somenthing like that.
 
+michael
+> Michael
 > 
-> > >  	/*
-> > > -	 * ov772x only use 8 or 10 bit bus width
-> > > -	 */
-> > > -	if (SOCAM_DATAWIDTH_10 != priv->info->buswidth &&
-> > > -	    SOCAM_DATAWIDTH_8  != priv->info->buswidth) {
-> > > -		dev_err(&client->dev, "bus width error\n");
-> > > -		return -ENODEV;
-> > > -	}
+>>
+>> Regards,
+>> Sergio
+>>> Michael
+>>>
+>>>> If yes, then I'll take the patch in my queue for submission to Sakari's
+>>> tree.
+>>>> Thanks for your time.
+>>>>
+>>>> Regards,
+>>>> Sergio
+>>>>
+>>>>> Michael
+>>>>>
+>>>>>>> Michael
+>>>>>> -- 
+>>>>>> To unsubscribe from this list: send the line "unsubscribe 
+>>>>>> linux-media"
+>>>>> in
+>>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>>>
+>>>> -- 
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>>> in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>
+>>
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+> 
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
