@@ -1,41 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:56023 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753068Ab0AJPMm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jan 2010 10:12:42 -0500
-Message-ID: <4B49EE5E.9040904@s5r6.in-berlin.de>
-Date: Sun, 10 Jan 2010 16:12:30 +0100
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: linux1394-devel@lists.sourceforge.net, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4l/dvb] firedtv: add forgotten __exit annotation
-References: <tkrat.c98a9e80d83e315a@s5r6.in-berlin.de>
-In-Reply-To: <tkrat.c98a9e80d83e315a@s5r6.in-berlin.de>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail1.radix.net ([207.192.128.31]:63176 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751391Ab0ASXkT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jan 2010 18:40:19 -0500
+Subject: Re: [ANNOUNCE] git tree repositories
+From: Andy Walls <awalls@radix.net>
+To: Patrick Boettcher <pboettcher@kernellabs.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Douglas Landgraf <dougsland@gmail.com>
+In-Reply-To: <201001190910.39479.pboettcher@kernellabs.com>
+References: <4B55445A.10300@infradead.org>
+	 <201001190853.11050.hverkuil@xs4all.nl>
+	 <201001190910.39479.pboettcher@kernellabs.com>
+Content-Type: text/plain
+Date: Tue, 19 Jan 2010 18:38:15 -0500
+Message-Id: <1263944295.5229.16.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stefan Richter wrote on 2009-12-26:
-> fdtv_fw_exit() is part of the firedtv driver's .exit.text section.
-...
-> --- linux-2.6.33-rc2.orig/drivers/media/dvb/firewire/firedtv-fw.c
-> +++ linux-2.6.33-rc2/drivers/media/dvb/firewire/firedtv-fw.c
-> @@ -332,7 +332,7 @@ int __init fdtv_fw_init(void)
->  	return driver_register(&fdtv_driver.driver);
->  }
->  
-> -void fdtv_fw_exit(void)
-> +void __exit fdtv_fw_exit(void)
->  {
->  	driver_unregister(&fdtv_driver.driver);
->  	fw_core_remove_address_handler(&fcp_handler);
-> 
+On Tue, 2010-01-19 at 09:10 +0100, Patrick Boettcher wrote:
 
-This patch is bogus.  fdtv_fw_exit() is also called from firedtv's init.
--- 
-Stefan Richter
--=====-==-=- ---= -=-=-
-http://arcgraph.de/sr/
+> BTW: I just made a clone of the git-tree - 365MB *ouff*.
+
+Assuming 53.333 kbps download speed, 0% overhead, no compression:
+
+365 MiB * 2^20 bytes/MiB * 8 bits/byte / 53333 bits/sec / 3600 sec/hr =
+15.95 hours
+
+:(
+
+Can git resume aborted clones?  It could be many weeks before I have a
+20 hour window where I don't have to use my land line phone for voice...
+
+Regards,
+Andy
+
