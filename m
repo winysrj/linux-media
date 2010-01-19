@@ -1,52 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from jordan.toaster.net ([69.36.241.228]:2154 "EHLO
-	jordan.toaster.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753365Ab0AECcT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jan 2010 21:32:19 -0500
-Message-ID: <4B42A498.10801@toaster.net>
-Date: Mon, 04 Jan 2010 18:31:52 -0800
-From: Sean <knife@toaster.net>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2443 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755611Ab0ASJHJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jan 2010 04:07:09 -0500
+Message-ID: <37f2dde7fefe0fa990a74355042c670a.squirrel@webmail.xs4all.nl>
+In-Reply-To: <201001190923.06430.laurent.pinchart@ideasonboard.com>
+References: <4B30F713.8070004@maxwell.research.nokia.com>
+    <alpine.LNX.2.01.1001181359590.31857@alastor>
+    <201001190923.06430.laurent.pinchart@ideasonboard.com>
+Date: Tue, 19 Jan 2010 10:06:58 +0100
+Subject: Re: [RFC v2 0/7] V4L2 file handles and event interface
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
+Cc: "Sakari Ailus" <sakari.ailus@maxwell.research.nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Ivan T. Ivanov" <iivanov@mm-sol.com>,
+	"Guru Raj" <gururaj.nagendra@intel.com>
 MIME-Version: 1.0
-To: bugzilla-daemon@bugzilla.kernel.org
-CC: moinejf@free.fr, Alan Stern <stern@rowland.harvard.edu>,
-	linux-media@vger.kernel.org, USB list <linux-usb@vger.kernel.org>
-Subject: Re: [Bug 14564] capture-example sleeping function called from invalid
- context at arch/x86/mm/fault.c
-References: <bug-14564-16732@http.bugzilla.kernel.org/> <201001030702.o0372phV004707@demeter.kernel.org>
-In-Reply-To: <201001030702.o0372phV004707@demeter.kernel.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-bugzilla-daemon@bugzilla.kernel.org wrote:
-> http://bugzilla.kernel.org/show_bug.cgi?id=14564
->
->
-> Jean-Francois Moine <moinejf@free.fr> changed:
->
->            What    |Removed                     |Added
-> ----------------------------------------------------------------------------
->                  CC|                            |moinejf@free.fr
->
->
->
->
-> --- Comment #22 from Jean-Francois Moine <moinejf@free.fr>  2010-01-03 07:02:45 ---
-> Hello Sean,
->
-> Sorry to be a bit late. Looking at the dmesg, I found that the gspca version
-> was 2.7.0. May you upgrade your linux media stuff from LinuxTv.org and check if
-> this problem still occurs?
->
-> Jef
->   
-Jef,
 
-I upgraded to the latest v4l-dvb from http://linuxtv.org/hg/v4l-dvb, 
-made the kernel modules, made the v4l libraries, and recompiled 
-capture-example.c. Gspca now shows 2.8.0. The error still persists. Alan 
-Stern's latest patch to ohci-q.c traps the error. I think it is an issue 
-with the cpu or usb controller on the Vortex86SX SoC.
+> Hi Hans,
+>
+> On Monday 18 January 2010 14:07:33 Hans Verkuil wrote:
+>> On Tue, 22 Dec 2009, Sakari Ailus wrote:
+>> > Hi,
+>> >
+>> > Here's the second version of the V4L2 file handle and event interface
+>> > patchset. Still RFC since I'd like to get more feedback on it.
+>> >
+>> > The first patch adds the V4L2 file handle support and the rest are for
+>> > V4L2 events.
+>> >
+>> > The patchset works with the OMAP 3 ISP driver. Patches for OMAP 3 ISP
+>> are
+>> > not part of this patchset but are available in Gitorious (branch is
+>> > called events):
+>> >
+>> > 	git://gitorious.org/omap3camera/mainline.git event
+>> >
+>> > The major change since the last one v4l2_fh structure is now part of
+>> > driver's own file handle. It's used as file->private_data as well. I
+>> did
+>> > this based on Hans Verkuil's suggestion. Sequence numbers and event
+>> queue
+>> > length limitation is there as well. There are countless of smaller
+>> > changes, too.
+>> >
+>> > A few notes on the patches:
+>> >
+>> > - I don't like the locking too much. Perhaps the file handle specific
+>> > lock (events->lock) could be dropped in favour of the lock for
+>> > v4l2_file_handle in video_device?
+>> >
+>> > - Poll. The V4L2 specifiction says:
+>> >
+>> > 	"When the application did not call VIDIOC_QBUF or
+>> > 	VIDIOC_STREAMON yet the poll() function succeeds, but sets the
+>> > 	POLLERR flag in the revents field."
+>> >
+>> >  The current events for OMAP 3 ISP are related to streaming but not
+>> all
+>> > might be in future. For example there might be some radio or DVB
+>> related
+>> > events.
+>>
+>> I know for sure that we will have to be able to handle events when not
+>> streaming. E.g. events that tell when a HDMI connector was plugged in
+>> or when the EDID was read will need to arrive whether streaming is on
+>> or off.
+>
+> I agree with you. The V4L2 specification will then need to be changed,
+> otherwise we won't be able to poll() for events. poll() wouldn't return
+> immediately anymore if no buffer is queued or if the device isn't
+> streaming.
+> That might break existing applications (although we could argue that some
+> of
+> those applications are somehow broken already if they rely on such a weird
+> feature).
+>
+> If we want to avoid disturbing existing applications we could still return
+> POLLERR immediately when not streaming if no event has been subscribed to.
 
-Sean
+I think this is a very reasonable approach.
+
+Regards,
+
+         Hans
+
+>
+>> > - Sequence numbers are local to file handles.
+>>
+>> That is how it should be.
+>>
+>> > - Subscribing V4L2_EVENT_ALL causes any other events to be
+>> unsubscribed.
+>> >
+>> > - If V4L2_EVENT_ALL has been subscribed, unsubscribing any one of the
+>> > events leads to V4L2_EVENT_ALL to be unsubscribed. This problem would
+>> be
+>> > difficult to work around since this would require the event system to
+>> be
+>> > aware of the driver private events as well.
+>>
+>> Good point. Perhaps attempting to unsubscribe a single event when
+>> EVENT_ALL
+>> has been subscribed should result in an error? I.e., you can only
+>> unsubscribe ALL when you subscribed to ALL in the first place.
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+
