@@ -1,42 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.mujha-vel.cz ([81.30.225.246]:46786 "EHLO
-	smtp.mujha-vel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755820Ab0AFRRe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jan 2010 12:17:34 -0500
-From: Jiri Slaby <jslaby@suse.cz>
-To: mchehab@infradead.org
-Cc: linux-kernel@vger.kernel.org, jirislaby@gmail.com,
-	linux-media@vger.kernel.org
-Subject: [PATCH 2/2] media: video/tuner-core, fix memory leak
-Date: Wed,  6 Jan 2010 17:45:28 +0100
-Message-Id: <1262796328-17176-2-git-send-email-jslaby@suse.cz>
-In-Reply-To: <1262796328-17176-1-git-send-email-jslaby@suse.cz>
-References: <1262796328-17176-1-git-send-email-jslaby@suse.cz>
+Received: from perceval.irobotique.be ([92.243.18.41]:48216 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750955Ab0ASIER (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jan 2010 03:04:17 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [ANNOUNCE] git tree repositories
+Date: Tue, 19 Jan 2010 09:04:29 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Douglas Landgraf <dougsland@gmail.com>
+References: <4B55445A.10300@infradead.org>
+In-Reply-To: <4B55445A.10300@infradead.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201001190904.29159.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stanse found a memory leak in tuner_probe. t is not
-freed/assigned on all paths. Fix that.
+Hi Mauro,
 
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org
----
- drivers/media/video/tuner-core.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+I would like to personally thank you for spending time on git support at 
+linuxtv.org. Git support was a long-awaited feature for many developers (and I 
+certainly was one of them).
 
-diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
-index 5b3eaa1..c4dab6c 100644
---- a/drivers/media/video/tuner-core.c
-+++ b/drivers/media/video/tuner-core.c
-@@ -1078,6 +1078,7 @@ static int tuner_probe(struct i2c_client *client,
- 
- 				goto register_client;
- 			}
-+			kfree(t);
- 			return -ENODEV;
- 		case 0x42:
- 		case 0x43:
+All the work done behind the scene on linuxtv.org isn't seen by end-users and 
+can thus be less rewarding than working on the code. However, it's of critical 
+importance to make the development process as smooth as possible. For that 
+reason, thank you again.
+
+Thanks to Douglas too for agreeing to manage backports. Getting the latest 
+version of our drivers working on older kernels make the test base much 
+larger, leading to better quality code (or at least to more bug reports :-)).
+
 -- 
-1.6.5.7
+Regards,
 
+Laurent Pinchart
