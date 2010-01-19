@@ -1,61 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225]:44378 "EHLO
-	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751521Ab0AIKqx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jan 2010 05:46:53 -0500
-Received: by fxm25 with SMTP id 25so13294869fxm.21
-        for <linux-media@vger.kernel.org>; Sat, 09 Jan 2010 02:46:51 -0800 (PST)
-MIME-Version: 1.0
-Date: Sat, 9 Jan 2010 11:46:51 +0100
-Message-ID: <7b41dd971001090246k5a4aed9dtf7c9b2b9c05d339a@mail.gmail.com>
-Subject: [PATCH] drivers/media/dvb/bt8xx/dst.c:fixes for DVB-C Twinhan VP2031
-	in Linux-2.6.32
-From: klaas de waal <klaas.de.waal@gmail.com>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2147 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752438Ab0ASUJG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jan 2010 15:09:06 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id o0JK94Gq070062
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 19 Jan 2010 21:09:04 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 19 Jan 2010 21:09:04 +0100 (CET)
+Message-Id: <201001192009.o0JK94Gq070062@smtp-vbr10.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove check  "state->dst_type == DST_DTYPE_IS_CABLE"  in function
-dst_get_tuna (around line 1352) to select the correct checksum
-computation
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Fill in the .caps field in struct dst_dvbc_ops (around line 1824) with
-all the supported QAM modulation methods to match the capabilities of
-the card as implemented in function dst_set_modulation (around line
-502). Note that beginning with linux kernel version 2.6.32 the
-modulation method is checked (by function
-dvb_frontend_check_parameters in file
-drivers/media/dvb/dvb-core/dvb_frontend.c) and thus tuning fails if
-you use a modulation method that is not present in the .caps field.
+Results of the daily build of v4l-dvb:
 
-This patch has been tested on a Twinhan VP2031A DVB-C card with the
-2.6.32.2 kernel.
+date:        Tue Jan 19 19:00:04 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14011:c3cc688bde82
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-armv5: OK
+linux-2.6.33-rc2-armv5: OK
+linux-2.6.32-armv5-davinci: WARNINGS
+linux-2.6.33-rc2-armv5-davinci: WARNINGS
+linux-2.6.30-armv5-ixp: WARNINGS
+linux-2.6.31-armv5-ixp: WARNINGS
+linux-2.6.32-armv5-ixp: WARNINGS
+linux-2.6.33-rc2-armv5-ixp: WARNINGS
+linux-2.6.30-armv5-omap2: WARNINGS
+linux-2.6.31-armv5-omap2: WARNINGS
+linux-2.6.32-armv5-omap2: WARNINGS
+linux-2.6.33-rc2-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-i686: WARNINGS
+linux-2.6.33-rc2-i686: WARNINGS
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-m32r: OK
+linux-2.6.33-rc2-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: WARNINGS
+linux-2.6.32-mips: WARNINGS
+linux-2.6.33-rc2-mips: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-powerpc64: WARNINGS
+linux-2.6.32-powerpc64: WARNINGS
+linux-2.6.33-rc2-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-x86_64: WARNINGS
+linux-2.6.33-rc2-x86_64: WARNINGS
+spec: OK
+sparse (linux-2.6.32): ERRORS
+sparse (linux-2.6.33-rc2): ERRORS
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
-Signed-off-by: Klaas de Waal <klaas.de.waal@gmail.com>
+Detailed results are available here:
 
-------------------------------------------
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-diff -r b6b82258cf5e linux/drivers/media/dvb/bt8xx/dst.c
---- a/linux/drivers/media/dvb/bt8xx/dst.c	Thu Dec 31 19:14:54 2009 -0200
-+++ b/linux/drivers/media/dvb/bt8xx/dst.c	Sat Jan 09 11:41:52 2010 +0100
-@@ -1352,7 +1352,7 @@
- 		return retval;
- 	}
- 	if ((state->type_flags & DST_TYPE_HAS_VLF) &&
--		!(state->dst_type == DST_TYPE_IS_CABLE) &&
-+		/* !(state->dst_type == DST_TYPE_IS_CABLE) && */
- 		!(state->dst_type == DST_TYPE_IS_ATSC)) {
+Full logs are available here:
 
- 		if (state->rx_tuna[9] != dst_check_sum(&state->rx_tuna[0], 9)) {
-@@ -1821,7 +1821,7 @@
- 		.symbol_rate_min = 1000000,
- 		.symbol_rate_max = 45000000,
- 	/*     . symbol_rate_tolerance	=	???,*/
--		.caps = FE_CAN_FEC_AUTO | FE_CAN_QAM_AUTO
-+		.caps = FE_CAN_FEC_AUTO | FE_CAN_QAM_16 | FE_CAN_QAM_32 |
-FE_CAN_QAM_64 | FE_CAN_QAM_128 | FE_CAN_QAM_256
- 	},
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
- 	.release = dst_release,
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
