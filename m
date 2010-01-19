@@ -1,375 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail02a.mail.t-online.hu ([84.2.40.7]:60046 "EHLO
-	mail02a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753910Ab0A0GeU (ORCPT
+Received: from mail-fx0-f225.google.com ([209.85.220.225]:59112 "EHLO
+	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755714Ab0ASJtJ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jan 2010 01:34:20 -0500
-Message-ID: <4B5FDE66.60200@freemail.hu>
-Date: Wed, 27 Jan 2010 07:34:14 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+	Tue, 19 Jan 2010 04:49:09 -0500
+Received: by fxm25 with SMTP id 25so349317fxm.21
+        for <linux-media@vger.kernel.org>; Tue, 19 Jan 2010 01:49:07 -0800 (PST)
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: Hans de Goede <hdegoede@redhat.com>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/2, RFC] gspca: add input support for interrupt endpoints
-References: <4B530BBA.7080400@freemail.hu> <4B53D671.80206@redhat.com> <4B54BDA3.2020403@freemail.hu> <4B54BE29.3080503@freemail.hu> <4B56453B.2050404@redhat.com>
-In-Reply-To: <4B56453B.2050404@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <829197381001180716v59b84ee2ia8ca2d9be4be5b22@mail.gmail.com>
+References: <ad6681df0912220711p2666f0f5m84317a7bf0ffc137@mail.gmail.com>
+	<829197380912220750j116894baw8343010b123f929@mail.gmail.com>
+	<ad6681df0912220841n2f77f2c3v7aad0604575b5564@mail.gmail.com>
+	<ad6681df1001180701s26584cdfua9e413d9bb843a35@mail.gmail.com>
+	<829197381001180716v59b84ee2ia8ca2d9be4be5b22@mail.gmail.com>
+From: Valerio Bontempi <valerio.bontempi@gmail.com>
+Date: Tue, 19 Jan 2010 10:48:47 +0100
+Message-ID: <ad6681df1001190148v3f8add9csa726c2e275947234@mail.gmail.com>
+Subject: Re: em28xx driver - xc3028 tuner - readreg error
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Jean-Francois,
+2010/1/18 Devin Heitmueller <dheitmueller@kernellabs.com>:
+> On Mon, Jan 18, 2010 at 10:01 AM, Valerio Bontempi
+> <valerio.bontempi@gmail.com> wrote:
+>> Hi all,
+>>
+>> I am still having problem using v4l-dvb drivers with Terratec Cinergy T USB XS.
+>> As reported in first mail, I am using the last version of v4l-dvb
+>> drivers with few lines adjustment in order to make this driver to
+>> enable dvb for my dvb only device (this because official v4l-dvb
+>> driver actually doesn't support my device at all)
+>> I have cleaned my distro (openSuse 11.2 x86-64) about all the v4l
+>> modules provided by distro's repositories, and I compiled modified
+>> v4l-dvb source.
+>> So acutally I am using a cleaned version of v4l-dvb.
+>>
+>> But the
+>> [ 1483.314420] zl10353_read_register: readreg error (reg=127, ret==-19)
+>> [ 1483.315166] mt352_read_register: readreg error (reg=127, ret==-19)
+>> error isn't solved yet.
+>> Could it be related to the firmware I am using?
+>
+> No, this has nothing to do with firmware. �It is probably an issue
+> where the gpio configuration is wrong and the demod is being held in
+> reset (hence it won't respond to i2c commands).
+>
+> The 0ccd:0043 is on my todo list of devices to work on (they sent me a
+> sample board), although it's not the highest priority on my list given
+> how old it is.
+>
+> Cheers,
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
+>
 
-do you have any comments or suggestions about this patch?
+Hi Devin,
 
-Regards,
+maybe it could be useful: today, without any change from yesterday,
+the device has been fully initialized at boot time.
+>From dmesg
 
-	Márton Németh
+  10.252753] xc2028 2-0061: Loading 80 firmware images from
+xc3028-v27.fw, type: xc2028 firmware, ver 2.7
+[   10.286264] xc2028 2-0061: Loading firmware for type=BASE (1), id
+0000000000000000.
+[   11.674270] xc2028 2-0061: Loading firmware for type=(0), id
+000000000000b700.
+[   11.701412] SCODE (20000000), id 000000000000b700:
+[   11.701419] xc2028 2-0061: Loading SCODE for type=MONO SCODE
+HAS_IF_4320 (60008000), id 0000000000008000.
+[   11.824268] em28xx #0: v4l2 driver version 0.1.2
+[   11.829157] em28xx #0: V4L2 video device registered as video1
+[   11.830312] usbcore: registered new interface driver em28xx
+[   11.830316] em28xx driver loaded
+[   11.997659] xc2028 2-0061: attaching existing instance
+[   11.997665] xc2028 2-0061: type set to XCeive xc2028/xc3028 tuner
+[   11.997667] em28xx #0: em28xx #0/2: xc3028 attached
+[   11.997671] DVB: registering new adapter (em28xx #0)
+[   11.997675] DVB: registering adapter 0 frontend 0 (Zarlink ZL10353 DVB-T)...
+[   11.998086] em28xx #0: Successfully loaded em28xx-dvb
+[   11.998090] Em28xx: Initialized (Em28xx dvb Extension) extension
 
-Hans de Goede wrote:
-> Hi,
-> 
-> Looks good to me now.
-> 
-> Regards,
-> 
-> Hans
-> 
-> On 01/18/2010 09:01 PM, Németh Márton wrote:
->> From: Márton Németh<nm127@freemail.hu>
->>
->> Add support functions for interrupt endpoint based input handling.
->>
->> Signed-off-by: Márton Németh<nm127@freemail.hu>
->> ---
->> diff -r 875c200a19dc linux/drivers/media/video/gspca/gspca.c
->> --- a/linux/drivers/media/video/gspca/gspca.c	Sun Jan 17 07:58:51 2010 +0100
->> +++ b/linux/drivers/media/video/gspca/gspca.c	Mon Jan 18 20:43:55 2010 +0100
->> @@ -3,6 +3,9 @@
->>    *
->>    * Copyright (C) 2008-2009 Jean-Francois Moine (http://moinejf.free.fr)
->>    *
->> + * Camera button input handling by Márton Németh
->> + * Copyright (C) 2009-2010 Márton Németh<nm127@freemail.hu>
->> + *
->>    * This program is free software; you can redistribute it and/or modify it
->>    * under the terms of the GNU General Public License as published by the
->>    * Free Software Foundation; either version 2 of the License, or (at your
->> @@ -41,6 +44,9 @@
->>
->>   #include "gspca.h"
->>
->> +#include<linux/input.h>
->> +#include<linux/usb/input.h>
->> +
->>   /* global values */
->>   #define DEF_NURBS 3		/* default number of URBs */
->>   #if DEF_NURBS>  MAX_NURBS
->> @@ -112,6 +118,186 @@
->>   	.close		= gspca_vm_close,
->>   };
->>
->> +/*
->> + * Input and interrupt endpoint handling functions
->> + */
->> +#ifdef CONFIG_INPUT
->> +#if LINUX_VERSION_CODE<  KERNEL_VERSION(2, 6, 19)
->> +static void int_irq(struct urb *urb, struct pt_regs *regs)
->> +#else
->> +static void int_irq(struct urb *urb)
->> +#endif
->> +{
->> +	struct gspca_dev *gspca_dev = (struct gspca_dev *) urb->context;
->> +	int ret;
->> +
->> +	ret = urb->status;
->> +	switch (ret) {
->> +	case 0:
->> +		if (gspca_dev->sd_desc->int_pkt_scan(gspca_dev,
->> +		    urb->transfer_buffer, urb->actual_length)<  0) {
->> +			PDEBUG(D_ERR, "Unknown packet received");
->> +		}
->> +		break;
->> +
->> +	case -ENOENT:
->> +	case -ECONNRESET:
->> +	case -ENODEV:
->> +	case -ESHUTDOWN:
->> +		/* Stop is requested either by software or hardware is gone,
->> +		 * keep the ret value non-zero and don't resubmit later.
->> +		 */
->> +		break;
->> +
->> +	default:
->> +		PDEBUG(D_ERR, "URB error %i, resubmitting", urb->status);
->> +		urb->status = 0;
->> +		ret = 0;
->> +	}
->> +
->> +	if (ret == 0) {
->> +		ret = usb_submit_urb(urb, GFP_ATOMIC);
->> +		if (ret<  0)
->> +			PDEBUG(D_ERR, "Resubmit URB failed with error %i", ret);
->> +	}
->> +}
->> +
->> +static int gspca_input_connect(struct gspca_dev *dev)
->> +{
->> +	struct input_dev *input_dev;
->> +	int err = 0;
->> +
->> +	dev->input_dev = NULL;
->> +	if (dev->sd_desc->int_pkt_scan)  {
->> +		input_dev = input_allocate_device();
->> +		if (!input_dev)
->> +			return -ENOMEM;
->> +
->> +		usb_make_path(dev->dev, dev->phys, sizeof(dev->phys));
->> +		strlcat(dev->phys, "/input0", sizeof(dev->phys));
->> +
->> +		input_dev->name = dev->sd_desc->name;
->> +		input_dev->phys = dev->phys;
->> +
->> +		usb_to_input_id(dev->dev,&input_dev->id);
->> +
->> +		input_dev->evbit[0] = BIT_MASK(EV_KEY);
->> +		input_dev->keybit[BIT_WORD(KEY_CAMERA)] = BIT_MASK(KEY_CAMERA);
->> +		input_dev->dev.parent =&dev->dev->dev;
->> +
->> +		err = input_register_device(input_dev);
->> +		if (err) {
->> +			PDEBUG(D_ERR, "Input device registration failed "
->> +				"with error %i", err);
->> +			input_dev->dev.parent = NULL;
->> +			input_free_device(input_dev);
->> +		} else {
->> +			dev->input_dev = input_dev;
->> +		}
->> +	} else
->> +		err = -EINVAL;
->> +
->> +	return err;
->> +}
->> +
->> +static int alloc_and_submit_int_urb(struct gspca_dev *gspca_dev,
->> +			  struct usb_endpoint_descriptor *ep)
->> +{
->> +	unsigned int buffer_len;
->> +	int interval;
->> +	struct urb *urb;
->> +	struct usb_device *dev;
->> +	void *buffer = NULL;
->> +	int ret = -EINVAL;
->> +
->> +	buffer_len = ep->wMaxPacketSize;
->> +	interval = ep->bInterval;
->> +	PDEBUG(D_PROBE, "found int in endpoint: 0x%x, "
->> +		"buffer_len=%u, interval=%u",
->> +		ep->bEndpointAddress, buffer_len, interval);
->> +
->> +	dev = gspca_dev->dev;
->> +
->> +	urb = usb_alloc_urb(0, GFP_KERNEL);
->> +	if (!urb) {
->> +		ret = -ENOMEM;
->> +		goto error;
->> +	}
->> +
->> +	buffer = usb_buffer_alloc(dev, ep->wMaxPacketSize,
->> +				GFP_KERNEL,&urb->transfer_dma);
->> +	if (!buffer) {
->> +		ret = -ENOMEM;
->> +		goto error_buffer;
->> +	}
->> +	usb_fill_int_urb(urb, dev,
->> +		usb_rcvintpipe(dev, ep->bEndpointAddress),
->> +		buffer, buffer_len,
->> +		int_irq, (void *)gspca_dev, interval);
->> +	gspca_dev->int_urb = urb;
->> +	ret = usb_submit_urb(urb, GFP_KERNEL);
->> +	if (ret<  0) {
->> +		PDEBUG(D_ERR, "submit URB failed with error %i", ret);
->> +		goto error_submit;
->> +	}
->> +	return ret;
->> +
->> +error_submit:
->> +	usb_buffer_free(dev,
->> +			urb->transfer_buffer_length,
->> +			urb->transfer_buffer,
->> +			urb->transfer_dma);
->> +error_buffer:
->> +	usb_free_urb(urb);
->> +error:
->> +	return ret;
->> +}
->> +
->> +static int gspca_input_create_urb(struct gspca_dev *gspca_dev)
->> +{
->> +	int ret = -EINVAL;
->> +	struct usb_interface *intf;
->> +	struct usb_host_interface *intf_desc;
->> +	struct usb_endpoint_descriptor *ep;
->> +	int i;
->> +
->> +	if (gspca_dev->sd_desc->int_pkt_scan)  {
->> +		intf = usb_ifnum_to_if(gspca_dev->dev, gspca_dev->iface);
->> +		intf_desc = intf->cur_altsetting;
->> +		for (i = 0; i<  intf_desc->desc.bNumEndpoints; i++) {
->> +			ep =&intf_desc->endpoint[i].desc;
->> +			if (usb_endpoint_dir_in(ep)&&
->> +			    usb_endpoint_xfer_int(ep)) {
->> +
->> +				ret = alloc_and_submit_int_urb(gspca_dev, ep);
->> +				break;
->> +			}
->> +		}
->> +	}
->> +	return ret;
->> +}
->> +
->> +static void gspca_input_destroy_urb(struct gspca_dev *gspca_dev)
->> +{
->> +	struct urb *urb;
->> +
->> +	urb = gspca_dev->int_urb;
->> +	if (urb) {
->> +		gspca_dev->int_urb = NULL;
->> +		usb_kill_urb(urb);
->> +		usb_buffer_free(gspca_dev->dev,
->> +				urb->transfer_buffer_length,
->> +				urb->transfer_buffer,
->> +				urb->transfer_dma);
->> +		usb_free_urb(urb);
->> +	}
->> +}
->> +#else
->> +#define gspca_input_connect(gspca_dev)		0
->> +#define gspca_input_create_urb(gspca_dev)	0
->> +#define gspca_input_destroy_urb(gspca_dev)
->> +#endif
->> +
->>   /* get the current input frame buffer */
->>   struct gspca_frame *gspca_get_i_frame(struct gspca_dev *gspca_dev)
->>   {
->> @@ -499,11 +685,13 @@
->>   			i, ep->desc.bEndpointAddress);
->>   	gspca_dev->alt = i;		/* memorize the current alt setting */
->>   	if (gspca_dev->nbalt>  1) {
->> +		gspca_input_destroy_urb(gspca_dev);
->>   		ret = usb_set_interface(gspca_dev->dev, gspca_dev->iface, i);
->>   		if (ret<  0) {
->>   			err("set alt %d err %d", i, ret);
->> -			return NULL;
->> +			ep = NULL;
->>   		}
->> +		gspca_input_create_urb(gspca_dev);
->>   	}
->>   	return ep;
->>   }
->> @@ -714,7 +902,9 @@
->>   		if (gspca_dev->sd_desc->stopN)
->>   			gspca_dev->sd_desc->stopN(gspca_dev);
->>   		destroy_urbs(gspca_dev);
->> +		gspca_input_destroy_urb(gspca_dev);
->>   		gspca_set_alt0(gspca_dev);
->> +		gspca_input_create_urb(gspca_dev);
->>   	}
->>
->>   	/* always call stop0 to free the subdriver's resources */
->> @@ -2137,6 +2327,11 @@
->>
->>   	usb_set_intfdata(intf, gspca_dev);
->>   	PDEBUG(D_PROBE, "%s created", video_device_node_name(&gspca_dev->vdev));
->> +
->> +	ret = gspca_input_connect(gspca_dev);
->> +	if (ret == 0)
->> +		ret = gspca_input_create_urb(gspca_dev);
->> +
->>   	return 0;
->>   out:
->>   	kfree(gspca_dev->usb_buf);
->> @@ -2154,6 +2349,7 @@
->>   void gspca_disconnect(struct usb_interface *intf)
->>   {
->>   	struct gspca_dev *gspca_dev = usb_get_intfdata(intf);
->> +	struct input_dev *input_dev;
->>
->>   	PDEBUG(D_PROBE, "%s disconnect",
->>   		video_device_node_name(&gspca_dev->vdev));
->> @@ -2165,6 +2361,13 @@
->>   		wake_up_interruptible(&gspca_dev->wq);
->>   	}
->>
->> +	gspca_input_destroy_urb(gspca_dev);
->> +	input_dev = gspca_dev->input_dev;
->> +	if (input_dev) {
->> +		gspca_dev->input_dev = NULL;
->> +		input_unregister_device(input_dev);
->> +	}
->> +
->>   	/* the device is freed at exit of this function */
->>   	gspca_dev->dev = NULL;
->>   	mutex_unlock(&gspca_dev->usb_lock);
->> @@ -2190,6 +2393,7 @@
->>   	if (gspca_dev->sd_desc->stopN)
->>   		gspca_dev->sd_desc->stopN(gspca_dev);
->>   	destroy_urbs(gspca_dev);
->> +	gspca_input_destroy_urb(gspca_dev);
->>   	gspca_set_alt0(gspca_dev);
->>   	if (gspca_dev->sd_desc->stop0)
->>   		gspca_dev->sd_desc->stop0(gspca_dev);
->> @@ -2203,6 +2407,7 @@
->>
->>   	gspca_dev->frozen = 0;
->>   	gspca_dev->sd_desc->init(gspca_dev);
->> +	gspca_input_create_urb(gspca_dev);
->>   	if (gspca_dev->streaming)
->>   		return gspca_init_transfer(gspca_dev);
->>   	return 0;
->> diff -r 875c200a19dc linux/drivers/media/video/gspca/gspca.h
->> --- a/linux/drivers/media/video/gspca/gspca.h	Sun Jan 17 07:58:51 2010 +0100
->> +++ b/linux/drivers/media/video/gspca/gspca.h	Mon Jan 18 20:43:55 2010 +0100
->> @@ -92,6 +92,9 @@
->>   typedef void (*cam_pkt_op) (struct gspca_dev *gspca_dev,
->>   				u8 *data,
->>   				int len);
->> +typedef int (*cam_int_pkt_op) (struct gspca_dev *gspca_dev,
->> +				u8 *data,
->> +				int len);
->>
->>   struct ctrl {
->>   	struct v4l2_queryctrl qctrl;
->> @@ -127,6 +130,9 @@
->>   	cam_reg_op get_register;
->>   #endif
->>   	cam_ident_op get_chip_ident;
->> +#ifdef CONFIG_INPUT
->> +	cam_int_pkt_op int_pkt_scan;
->> +#endif
->>   };
->>
->>   /* packet types when moving from iso buf to frame buf */
->> @@ -149,6 +155,10 @@
->>   	struct module *module;		/* subdriver handling the device */
->>   	struct usb_device *dev;
->>   	struct file *capt_file;		/* file doing video capture */
->> +#ifdef CONFIG_INPUT
->> +	struct input_dev *input_dev;
->> +	char phys[64];			/* physical device path */
->> +#endif
->>
->>   	struct cam cam;				/* device information */
->>   	const struct sd_desc *sd_desc;		/* subdriver description */
->> @@ -158,6 +168,9 @@
->>   #define USB_BUF_SZ 64
->>   	__u8 *usb_buf;				/* buffer for USB exchanges */
->>   	struct urb *urb[MAX_NURBS];
->> +#ifdef CONFIG_INPUT
->> +	struct urb *int_urb;
->> +#endif
->>
->>   	__u8 *frbuf;				/* buffer for nframes */
->>   	struct gspca_frame frame[GSPCA_MAX_FRAMES];
->>
+instead of (from /var/log/messages)
+
+Jan 18 16:53:04 gandalf kernel: [ 4894.539028] xc2028 2-0061: Loading
+80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
+Jan 18 16:53:04 gandalf kernel: [ 4894.575016] xc2028 2-0061: Loading
+firmware for type=BASE (1), id 0000000000000000.
+Jan 18 16:53:05 gandalf kernel: [ 4895.972018] xc2028 2-0061: Loading
+firmware for type=(0), id 000000000000b700.
+Jan 18 16:53:05 gandalf kernel: [ 4895.998010] SCODE (20000000), id
+000000000000b700:
+Jan 18 16:53:05 gandalf kernel: [ 4895.998022] xc2028 2-0061: Loading
+SCODE for type=MONO SCODE HAS_IF_4320 (60008000), id 0000000000008000.
+Jan 18 16:53:05 gandalf kernel: [ 4896.122024] em28xx #0: v4l2 driver
+version 0.1.2
+Jan 18 16:53:05 gandalf kernel: [ 4896.127126] em28xx #0: V4L2 video
+device registered as video1
+Jan 18 16:53:05 gandalf kernel: [ 4896.129142] usbcore: registered new
+interface driver em28xx
+Jan 18 16:53:05 gandalf kernel: [ 4896.129157] em28xx driver loaded
+Jan 18 16:53:05 gandalf kernel: [ 4896.155171] zl10353_read_register:
+readreg error (reg=127, ret==-19)
+Jan 18 16:53:05 gandalf kernel: [ 4896.155914] mt352_read_register:
+readreg error (reg=127, ret==-19)
+Jan 18 16:53:05 gandalf kernel: [ 4896.156419] em28xx #0: /2: dvb
+frontend not attached. Can't attach xc3028
+Jan 18 16:53:05 gandalf kernel: [ 4896.156434] Em28xx: Initialized
+(Em28xx dvb Extension) extension
+
+Is there a reason of this behaviour?
+
+Valerio
