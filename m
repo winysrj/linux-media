@@ -1,47 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.152]:21221 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754806Ab0AESOY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jan 2010 13:14:24 -0500
-Received: by fg-out-1718.google.com with SMTP id 22so6546087fge.1
-        for <linux-media@vger.kernel.org>; Tue, 05 Jan 2010 10:14:22 -0800 (PST)
+Received: from bombadil.infradead.org ([18.85.46.34]:38088 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752578Ab0ASMQs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jan 2010 07:16:48 -0500
+Message-ID: <4B55A2AC.4020009@infradead.org>
+Date: Tue, 19 Jan 2010 10:16:44 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-In-Reply-To: <4B437BFE.7040003@chello.at>
-References: <4B437BFE.7040003@chello.at>
-Date: Tue, 5 Jan 2010 13:14:21 -0500
-Message-ID: <829197381001051014s42766227i6496437d2c557607@mail.gmail.com>
-Subject: Re: PROBLEM: DVB-T scan not working after ioctl
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: =?ISO-8859-1?B?RnJhbnogRvxyYmHf?= <franz.fuerbass@chello.at>
-Cc: linux-media@vger.kernel.org
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Douglas Landgraf <dougsland@gmail.com>
+Subject: Re: [ANNOUNCE] git tree repositories
+References: <4B55445A.10300@infradead.org> <829197381001190204l3df81904gf8586f36187f212d@mail.gmail.com>
+In-Reply-To: <829197381001190204l3df81904gf8586f36187f212d@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 5, 2010 at 12:50 PM, Franz Fürbaß <franz.fuerbass@chello.at> wrote:
-> Hello,
->
-> [1] . Can't scan for DVB-T channels with Hauppauge HVR 4000 HD.
->
-> [2] Got a scan problem with the Hauppauge HVR 4000 HD card.
-> If I try to scan for channels with the DVB-T frontend
-> (/dev/dvb/adapter0/frontend1)
-> no lock is generated after this sequence:
->
-> -open()
-> -ioctl( fd, FE_GET_INFO, &fe_info )
-> -close()
-> -open()
-> -ioctl( fd, FE_GET_INFO, &fe_info )
+Devin Heitmueller wrote:
+> Hello Mauro,
+> 
+> I find it somewhat unfortunate that this is labeled "ANNOUNCE" instead
+> of "RFC".  It shows how little you care about soliciting the opinions
+> of the other developers.  Rather than making a proposal for how the
+> process can be improved and soliciting feedback, you have chosen to
+> decide for all of us what the best approach is and how all of us will
+> develop in the future.
 
-Could be some sort of timing bug where the frontend kernel thread is
-suspending the device.  Just as a test, try putting an "msleep(5000);"
-between the first close and the second open(), and see if the problem
-still occurs.
+The announcement by purpose doesn't contain any changes on the process,
+since it requires some discussions before we go there. It is just the
+first step, where -git tree support were created. It also announces
+that I personally won't keep maintaining -hg, delegating its task
+to Douglas.
 
-Devin
+> The point I'm trying to make is that we need to be having a discussion
+> about what we are optimizing for, and what are the costs to other
+> developers.  This is why I'm perhaps a bit pissed to see an
+> "announcement" declaring how development will be done in the future as
+> opposed to a discussion of what we could be doing and what are the
+> trade-offs.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+I fully understand that supporting the development and tests with an
+out of tree building is important to everybody. So, the plans are
+to keep the out-of-tree building system maintained, and even
+improving it. I'd like to thank to Douglas for his help on making 
+this happen.
+
+Cheers,
+Mauro.
