@@ -1,112 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from postbode02.versateladsl.be ([212.53.5.92]:46189 "EHLO
-	postbode02.versateladsl.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751566Ab0AUJ40 (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:58070 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752130Ab0ASLun (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jan 2010 04:56:26 -0500
-From: "Leopold Gouverneur" <lgouv@base.be>
-Date: Thu, 21 Jan 2010 10:49:43 +0100
-To: linux-media@vger.kernel.org
-Subject: Re: bt878 card: no sound and only xvideo support in 2.6.31 bttv
- 0.9.18
-Message-ID: <20100121094943.GA2332@localhost.lan>
-References: <4B580AB2.6030005@brdo.cz>
+	Tue, 19 Jan 2010 06:50:43 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [ANNOUNCE] git tree repositories
+Date: Tue, 19 Jan 2010 12:50:51 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Douglas Landgraf <dougsland@gmail.com>
+References: <4B55445A.10300@infradead.org> <201001190904.29159.laurent.pinchart@ideasonboard.com> <4B5593BA.9080008@infradead.org>
+In-Reply-To: <4B5593BA.9080008@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4B580AB2.6030005@brdo.cz>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201001191250.51324.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 21, 2010 at 09:05:06AM +0100, LiM wrote:
-> Hello,
+Hi Mauro,
+
+On Tuesday 19 January 2010 12:12:58 Mauro Carvalho Chehab wrote:
+> Laurent Pinchart wrote:
+> > Hi Mauro,
+> >
+> > I would like to personally thank you for spending time on git support at
+> > linuxtv.org. Git support was a long-awaited feature for many developers
+> > (and I certainly was one of them).
+> >
+> > All the work done behind the scene on linuxtv.org isn't seen by end-users
+> > and can thus be less rewarding than working on the code. However, it's of
+> > critical importance to make the development process as smooth as
+> > possible. For that reason, thank you again.
 > 
-> i have the same problem as http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/11441 also with Hercules Smart TV Stereo ..
-> works OK audio+video on ..2.6.29-gentoo-r5 + bttv 0.9.17
-> but NO AUDIO on linux-2.6.31-gentoo-r6 + bttv 0.9.18
+> You're welcome!
 > 
-> cat /etc/modprobe.d/bttv.conf
-> options tvaudio tda9874a=1 tda9874a_STD=0
-> options bttv radio=0 card=100 tuner=29 gbuffers=14 i2c_udelay=128 pll=1
-> autoload=1
+> Working at the infrastructure spends lots of time and, as you said, people
+> generally only note when there's something broken.
 > 
-> 2.6.29-gentoo-r5 + bttv 0.9.17
-> bttv: driver version 0.9.17 loaded
-> bttv: using 14 buffers with 2080k (520 pages) each for capture
-> bttv: Bt8xx card found (0).
-> bttv 0000:04:01.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
-> bttv0: Bt878 (rev 17) at 0000:04:01.0, irq: 16, latency: 64, mmio:
-> 0xf8ffe000
-> bttv0: using: Hercules Smart TV Stereo [card=100,insmod option]
-> IRQ 16/bttv0: IRQF_DISABLED is not guaranteed on shared IRQs
-> bttv0: gpio: en=00000000, out=00000000 in=00ffffff [init]
-> tvaudio' 6-0058: found tda9874a.
-> tvaudio' 6-0058: tda9874h/a found @ 0xb0 (bt878 #0 [sw])
-> tvaudio' 6-004b: pic16c54 (PV951) found @ 0x96 (bt878 #0 [sw])
-> bttv0: tuner type=29
-> bttv0: i2c: checking for TDA9875 @ 0xb0... found
-> bttv0: i2c: checking for TDA7432 @ 0x8a... not found
-> All bytes are equal. It is not a TEA5767
-> tuner' 6-0060: chip found @ 0xc0 (bt878 #0 [sw])
-> tuner-simple 6-0060: creating new instance
-> tuner-simple 6-0060: type set to 29 (LG PAL_BG (TPI8PSB11D))
-> bttv0: registered device video1
-> bttv0: registered device vbi0
-> bttv0: PLL: 28636363 => 35468950 .. ok
-> 
-> linux-2.6.31-gentoo-r6 + bttv 0.9.18
-> bttv: driver version 0.9.18 loaded
-> bttv: using 14 buffers with 2080k (520 pages) each for capture
-> bttv: Bt8xx card found (0).
-> bttv0: Bt878 (rev 17) at 0000:04:01.0, irq: 16, latency: 64, mmio:
-> 0xf8ffe000
-> bttv0: using: Hercules Smart TV Stereo [card=100,insmod option]
-> IRQ 16/bttv0: IRQF_DISABLED is not guaranteed on shared IRQs
-> bttv0: gpio: en=00000000, out=00000000 in=00ffffff [init]
-> bttv0: tuner type=29
-> tvaudio 0-0058: found tda9874a.
-> tvaudio 0-0058: tda9874h/a found @ 0xb0 (bt878 #0 [sw])
-> All bytes are equal. It is not a TEA5767
-> tuner 0-0060: chip found @ 0xc0 (bt878 #0 [sw])
-> tuner-simple 0-0060: creating new instance
-> tuner-simple 0-0060: type set to 29 (LG PAL_BG (TPI8PSB11D))
-> bttv0: registered device video0
-> bttv0: registered device vbi0
-> bttv0: PLL: 28636363 => 35468950 .
-> bttv0: PLL: 28636363 => 35468950 .
-> bttv0: PLL: 28636363 => 35468950 . ok
-> 
-> 
-> I think problem is in new bttv driver, in modules is new options
-> audiodev and tvaudio is loading with bttv? and this line:
-> "tvaudio' 6-004b: pic16c54 (PV951) found @ 0x96 (bt878 #0 [sw])"
-> is only with older bttv.
-> 
-> modinfo -k 2.6.31-gentoo-r6 bttv
-> ---cut--
-> parm:           autoload:obsolete option, please do not use anymore (int)
-> parm:           audiodev:specify audio device:
->         -1 = no audio
->          0 = autodetect (default)
->          1 = msp3400
->          2 = tda7432
->          3 = tvaudio (array of int)
-> ---cut--
-> 
-> How can i load module with new bttv to get sound working?
-> 
-> rdgs
-> 
-> Michal Vesely
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-For my Hercules Smart TV card sound also disappeared after 2.6.29
-with the message:"bttv0: audio absent, no audio device found!"
-I have bisected the problem to commit 859f0277a6c3ba59b0a5a1eb183f8f6ce661a95d:
- "bttv: convert to v4l2_subdev since i2c autoprobing will disappear"
-If I revert this everything works again
- 
- 
+> I'm quite confident that supporting -git is the proper path to make life
+> easier for contributors and developers and opening a new road to the
+> future of the subsystem.
+
+So am I. I hope the future will prove us right :-)
+
+How do your new git scripts process commits ? In particular, does the 
+"Priority:" line still applies ?
+
+-- 
+Regards,
+
+Laurent Pinchart
