@@ -1,40 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f228.google.com ([209.85.219.228]:57467 "EHLO
-	mail-ew0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750755Ab0A3Pnc (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:49141 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755173Ab0ASLNC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Jan 2010 10:43:32 -0500
-Received: by ewy28 with SMTP id 28so542965ewy.28
-        for <linux-media@vger.kernel.org>; Sat, 30 Jan 2010 07:43:30 -0800 (PST)
-Message-ID: <4B645397.4030404@gmail.com>
-Date: Sat, 30 Jan 2010 16:43:19 +0100
-From: Martin Fuzzey <mfuzzey@gmail.com>
-Reply-To: mfuzzey@gmail.com
+	Tue, 19 Jan 2010 06:13:02 -0500
+Message-ID: <4B5593BA.9080008@infradead.org>
+Date: Tue, 19 Jan 2010 09:12:58 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: Greg KH <greg@kroah.com>
-CC: Jef Treece <treecej@comcast.net>, linux-media@vger.kernel.org
-Subject: Re: fix regression in pwc_set_shutter_speed???
-References: <20100129011734.GA10096@kroah.com> <1351307599.538561264809789383.JavaMail.root@sz0171a.emeryville.ca.mail.comcast.net> <20100130052312.GA22196@kroah.com>
-In-Reply-To: <20100130052312.GA22196@kroah.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Douglas Landgraf <dougsland@gmail.com>
+Subject: Re: [ANNOUNCE] git tree repositories
+References: <4B55445A.10300@infradead.org> <201001190904.29159.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201001190904.29159.laurent.pinchart@ideasonboard.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Greg KH wrote:
-> Video developers, any comments?
->
-> Jef, were you able to narrow it down to the actual patch that caused the
-> problem.
->
->   
-Indeed it was my commit 6b35ca0d3d586b8ecb8396821af21186e20afaf0
+Laurent Pinchart wrote:
+> Hi Mauro,
+> 
+> I would like to personally thank you for spending time on git support at 
+> linuxtv.org. Git support was a long-awaited feature for many developers (and I 
+> certainly was one of them).
+> 
+> All the work done behind the scene on linuxtv.org isn't seen by end-users and 
+> can thus be less rewarding than working on the code. However, it's of critical 
+> importance to make the development process as smooth as possible. For that 
+> reason, thank you again.
 
-I somehow missed the email from Laurent back in August about this.
+You're welcome!
 
-Am checking the rest of that commit now and will send a fix patch soon.
+Working at the infrastructure spends lots of time and, as you said, people
+generally only note when there's something broken.
 
-Sorry about that.
+I'm quite confident that supporting -git is the proper path to make life easier
+for contributors and developers and opening a new road to the future of the
+subsystem.
 
-Martin
-
+Cheers,
+Mauro
