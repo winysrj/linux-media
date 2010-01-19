@@ -1,90 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:59921 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753587Ab0ADUsy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jan 2010 15:48:54 -0500
-Date: Mon, 4 Jan 2010 15:48:47 -0500 (EST)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Sean <knife@toaster.net>
-cc: Andrew Morton <akpm@linux-foundation.org>,
-	<bugzilla-daemon@bugzilla.kernel.org>,
-	<linux-media@vger.kernel.org>,
-	USB list <linux-usb@vger.kernel.org>,
-	Ingo Molnar <mingo@elte.hu>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	"H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [Bugme-new] [Bug 14564] New: capture-example sleeping function
- called from invalid context at arch/x86/mm/fault.c
-In-Reply-To: <4B424963.5080902@toaster.net>
-Message-ID: <Pine.LNX.4.44L0.1001041538140.3180-100000@iolanthe.rowland.org>
+Received: from bombadil.infradead.org ([18.85.46.34]:46056 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753712Ab0ASMg3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jan 2010 07:36:29 -0500
+Message-ID: <4B55A749.9040407@infradead.org>
+Date: Tue, 19 Jan 2010 10:36:25 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Douglas Landgraf <dougsland@gmail.com>
+Subject: Re: [ANNOUNCE] git tree repositories
+References: <4B55445A.10300@infradead.org> <201001190904.29159.laurent.pinchart@ideasonboard.com> <4B5593BA.9080008@infradead.org> <201001191250.51324.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201001191250.51324.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 4 Jan 2010, Sean wrote:
+> So am I. I hope the future will prove us right :-)
 
-> Alan Stern wrote:
-> > Try inserting a line saying:
-> >
-> > 	td_check(ohci, hash, "#2c");
-> >
-> > two lines above the #2b line, i.e., just after the wmb().  That'll help 
-> > narrow down the search for the bug.
-> Alan,
-> 
-> I put the extra line in and ran capture-example twice. This is what I got:
->  
-> ohci_hcd 0000:00:0b.0: Circular pointer #2c: 32 c6782800 c66a4800 c6782800
-> ohci_hcd 0000:00:0b.0: Circular pointer #2c: 1 c6782040 c66a4040 c6782040
-...
+:)
 
-All right.  Let's try this patch in place of all the others, then.
+> How do your new git scripts process commits ? In particular, does the 
+> "Priority:" line still applies ?
 
-Alan Stern
+For patches imported from -hg, the script will handle Priority. For patches
+generated against -git, maybe the better is to have separate branches or 
+trees: one for fixes and another for new stuff, and an indication, at the
+pull request, to what tree the patch will be applied.
 
+We still need some discussions about the process. One of the issues is how
+do we'll handle SOB's. My SOB should be added on all patches. Also, sometimes,
+patches may need to receive other SOB-like tags, like acked-by. I'm not
+sure yet how should we handle it, since a change at the patch description
+will change the hash code. -git merge is generally smart enough to not
+generate a conflict between two patches with identical diffs, but we need
+to do some tests in order to check what would be the better procedure.
 
-Index: usb-2.6/drivers/usb/host/ohci-q.c
-===================================================================
---- usb-2.6.orig/drivers/usb/host/ohci-q.c
-+++ usb-2.6/drivers/usb/host/ohci-q.c
-@@ -505,6 +505,7 @@ td_fill (struct ohci_hcd *ohci, u32 info
- 	struct urb_priv		*urb_priv = urb->hcpriv;
- 	int			is_iso = info & TD_ISO;
- 	int			hash;
-+	volatile struct td	* volatile td1, * volatile td2;
- 
- 	// ASSERT (index < urb_priv->length);
- 
-@@ -558,11 +559,30 @@ td_fill (struct ohci_hcd *ohci, u32 info
- 
- 	/* hash it for later reverse mapping */
- 	hash = TD_HASH_FUNC (td->td_dma);
-+
-+	td1 = ohci->td_hash[hash];
-+	td2 = NULL;
-+	if (td1) {
-+		td2 = td1->td_hash;
-+		if (td2 == td1 || td2 == td) {
-+			ohci_err(ohci, "Circular hash: %d %p %p %p\n",
-+					hash, td1, td2, td);
-+			td2 = td1->td_hash = NULL;
-+		}
-+	}
-+
- 	td->td_hash = ohci->td_hash [hash];
- 	ohci->td_hash [hash] = td;
- 
- 	/* HC might read the TD (or cachelines) right away ... */
- 	wmb ();
-+
-+	if (td1 && td1->td_hash != td2) {
-+		ohci_err(ohci, "Hash value changed: %d %p %p %p\n",
-+					hash, td1, td2, td);
-+		td1->td_hash = (struct td *) td2;
-+	}
-+
- 	td->ed->hwTailP = td->hwNextTD;
- }
- 
+Cheers,
+Mauro.
+
 
