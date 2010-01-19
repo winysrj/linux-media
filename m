@@ -1,40 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225]:36738 "EHLO
-	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750951Ab0AJP2P (ORCPT
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:45005 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753178Ab0ASRY4 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jan 2010 10:28:15 -0500
-Received: by fxm25 with SMTP id 25so105568fxm.21
-        for <linux-media@vger.kernel.org>; Sun, 10 Jan 2010 07:28:14 -0800 (PST)
+	Tue, 19 Jan 2010 12:24:56 -0500
+Received: by bwz19 with SMTP id 19so2967290bwz.28
+        for <linux-media@vger.kernel.org>; Tue, 19 Jan 2010 09:24:54 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <1a297b361001100535u1875de01jfe2b724c6643dfc0@mail.gmail.com>
-References: <3f3a053b1001021407k6ce936b8gd7d3e575a25e734d@mail.gmail.com>
-	 <3f3a053b1001021411i2e9484d7rd2d13f1a355939fe@mail.gmail.com>
-	 <846899811001021455u28fccb5cr66fd4258d3dddd4d@mail.gmail.com>
-	 <d9def9db1001091811s6dbed557vfca9ce410e41d3d3@mail.gmail.com>
-	 <4B49D1A4.4040702@gmail.com>
-	 <1a297b361001100535u1875de01jfe2b724c6643dfc0@mail.gmail.com>
-Date: Sun, 10 Jan 2010 16:28:14 +0100
-Message-ID: <846899811001100728x27eaf4faqd83373dd16ef58d3@mail.gmail.com>
-Subject: Re: CI USB
-From: HoP <jpetrous@gmail.com>
-To: Manu Abraham <abraham.manu@gmail.com>
-Cc: Emmanuel <eallaud@gmail.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <1263859318.6804.31.camel@pc07.localdom.local>
+References: <2df568dc1001111012u627f07b8p9ec0c2577f14b5d9@mail.gmail.com>
+	 <1263622815.3178.31.camel@pc07.localdom.local>
+	 <Pine.LNX.4.58.1001160400230.4729@shell2.speakeasy.net>
+	 <1263686928.3394.4.camel@pc07.localdom.local>
+	 <1263689544.8899.3.camel@pc07.localdom.local>
+	 <1263769323.3182.8.camel@pc07.localdom.local>
+	 <EAF55B080F530E428574542A7925428705EA7F1C66@INTMBX1.RTD.com>
+	 <1263854400.6804.15.camel@pc07.localdom.local>
+	 <9006a0b61001181511w66712d2fkb2c2f5ca60825489@mail.gmail.com>
+	 <1263859318.6804.31.camel@pc07.localdom.local>
+Date: Tue, 19 Jan 2010 10:24:54 -0700
+Message-ID: <2df568dc1001190924y7b55b3e4h5b553cd25cfb33bf@mail.gmail.com>
+Subject: Re: RE: How to use saa7134 gpio via gpio-sysfs?
+From: Gordon Smith <spider.karma+linux-media@gmail.com>
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: Will Tate <willytate@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	William Tate <wtate@rtd.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Trent Piepho <xyzzy@speakeasy.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> I don't know the details into the USB device, but each of those CAM's
-> have bandwidth limits on them and they vary from one CAM to the other.
-> Also, there is a limit on the number of simultaneous PID's that which
-> you can decrypt.
+On Mon, Jan 18, 2010 at 5:01 PM, hermann pitton <hermann-pitton@arcor.de> wrote:
+> Hello,
 >
-> Some allow only 1 PID, some allow 3. Those are the basic CAM's for
-> home usage.The most expensive CAM's allow a maximum of 24 PID's. But
+> Am Montag, den 18.01.2010, 18:11 -0500 schrieb Will Tate:
+>> I'm not sure why access in userspace would be required.  I checked the
+>> schematic today and all the GPIO pins are used to communicate with the
+>> SAA6752HS on board for compression.  We do not bring the GPIO off the
+>> board anywhere.
+>
+> thank you very much. I was still expecting that and did not get Gordon's
+> point, but must admit to have been totally unaware about the DI/O
+> features. RTD did all the hardware implementations themselves.
+>
+> Very nice job that time.
+>
+>> Gordon and I have spoken previously about the RTD software for digital
+>> I/O breaking with the migration of pcf8574 driver to the pcf857x.  So,
+>> perhaps he intended to use GPIO until I can fix the digital I/O
+>> software.
+>
+> Ah, good to know. BTW, we had the mpeg encoder broken unnoticed for some
+> kernels, but due to fixes by Dmitri Belimov and extensions by Hans
+> Verkuil, we are much better on it these days. Enjoy.
+>
+> Always let us know, if we can do anything or at least make it public for
+> those interested to work on it.
+>
+> Thanks,
+> Hermann
+>
 
-You, of course, ment number of descramblers not PIDS because it is evident
-that getting TV service descrambled, you need as minimum 2 PIDS for A/V.
+Hello Hermann, good to hear from you again.
 
-Anyway, it is very good note. Users, in general, don't know about it.
+It looks like I was off track regarding GPIO. In 2.6.30 the pcf8574
+module that was used for digital I/O earlier was no longer available
+and something I read lead me to believe I should use gpio-sysfs
+instead. I'm sorry for the noise.
 
-/Honza
+- Gordon
