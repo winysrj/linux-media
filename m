@@ -1,96 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from faui40.informatik.uni-erlangen.de ([131.188.34.40]:60006 "EHLO
-	faui40.informatik.uni-erlangen.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756884Ab0AOM1g (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:42717 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932067Ab0ASMoO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jan 2010 07:27:36 -0500
-Date: Fri, 15 Jan 2010 13:27:56 +0100
-From: Christoph Egger <siccegge@stud.informatik.uni-erlangen.de>
-To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Cc: siccegge@stud.informatik.uni-erlangen.de,
-	Reinhard.Tartler@informatik.uni-erlangen.de
-Subject: [PATCH] obsolete config in kernel source (FB_SOFT_CURSOR)
-Message-ID: <20100115122755.GC3321@faui49.informatik.uni-erlangen.de>
+	Tue, 19 Jan 2010 07:44:14 -0500
+Message-ID: <4B55A915.1000207@infradead.org>
+Date: Tue, 19 Jan 2010 10:44:05 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="adJ1OR3c6QgCpb/j"
-Content-Disposition: inline
+To: Johannes Stezenbach <js@linuxtv.org>
+CC: Patrick Boettcher <pboettcher@kernellabs.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Douglas Landgraf <dougsland@gmail.com>
+Subject: Re: [ANNOUNCE] git tree repositories
+References: <4B55445A.10300@infradead.org> <201001190853.11050.hverkuil@xs4all.nl> <201001190910.39479.pboettcher@kernellabs.com> <20100119112057.GC9187@linuxtv.org>
+In-Reply-To: <20100119112057.GC9187@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Johannes Stezenbach wrote:
+> On Tue, Jan 19, 2010 at 09:10:39AM +0100, Patrick Boettcher wrote:
+>> BTW: I just made a clone of the git-tree - 365MB *ouff*. Maybe it's worth to 
+>> mention right now, that one big difference to HG in the way we have used it, is 
+>> that one developer now can do all the work only with one clone of v4l-dvb and 
+>> using branches for each development.
+> 
+> Please note that you SHOULD NOT clone from linuxtv.org.
+> Please follow the description on the top of
+> http://linuxtv.org/git/
+> 
+> Most linux developers will have a clone of Linus' tree already,
+> and you can add as many "remotes" to that tree as you like.
 
---adJ1OR3c6QgCpb/j
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Yes. I have here one "stable" tree that have one "remote" for every stable
+tree since 2.6.16.
 
-Hi all!
+> It's much faster and more flexible that way.  If you once pulled
+> a clone of Linus' tree there is simply no need to ever clone
+> any other Linux tree ever again.
 
-	As part of the VAMOS[0] research project at the University of
-Erlangen we're checking referential integrity between kernel KConfig
-options and in-code Conditional blocks.
+Yes. I personally prefer to have a bare clone (bare trees have just
+the -git objects, and not a workig tree), and several working copies.
+I do the work at the working copies, and, after they are fine, I push
+into the bare and send the branches from bare to upstream.
 
-	While probably not strictly a integrity violation (as
-FB_SOFT_CURSOR can still be set as it is once mentioned in a KConfig
-select statement this looks like a left-over of
-c465e05a03209651078b95686158648fd7ed84c5
+> Oh, and if you manage to get your git tree in a state where
+> you don't know how to fix the mess, don't throw it away.
+> Go to the git mailing list and ask for advice. They love
+> customer feeedback. Helps them to improve their product
+> and make it more user friendly ;-)
 
-	Please keep me informed of this patch getting confirmed /
-merged so we can keep track of it.
+Yes. One good thing to do is to take a look at "git reflog". It tracks
+all the changes you do, and you can always ask git to move to a different
+object at the tree, undoing the bad thing you did ;)
+> 
+> 
+> Johannes
 
-Regards
-
-	Christoph Egger
-
-[0] http://vamos1.informatik.uni-erlangen.de/
-
---adJ1OR3c6QgCpb/j
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="0001-Clean-missed-bit-of-FB_SOFT_CURSOR.patch"
-
->From 5461c8d1ebc54e9f5c86233aa831cefc7c06a140 Mon Sep 17 00:00:00 2001
-From: Christoph Egger <siccegge@stud.informatik.uni-erlangen.de>
-Date: Fri, 15 Jan 2010 11:03:50 +0100
-Subject: [PATCH 1/4] Clean missed bit of FB_SOFT_CURSOR
-
-While the config Option FB_SOFT_BUFFER was removed in
-c465e05a03209651078b95686158648fd7ed84c5 while moving to fbcon this
-single driver has it left as a select in KConfig / #ifdef in
-source. This last occurence is removed here so the option is really
-gone
-
-Signed-off-by: Christoph Egger <siccegge@stud.informatik.uni-erlangen.de>
----
- drivers/video/Kconfig        |    1 -
- drivers/video/sis/sis_main.c |    3 ---
- 2 files changed, 0 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
-index 5a5c303..7fe1839 100644
---- a/drivers/video/Kconfig
-+++ b/drivers/video/Kconfig
-@@ -1494,7 +1494,6 @@ config FB_VIA
-        select FB_CFB_FILLRECT
-        select FB_CFB_COPYAREA
-        select FB_CFB_IMAGEBLIT
--       select FB_SOFT_CURSOR
-        select I2C_ALGOBIT
-        select I2C
-        help
-diff --git a/drivers/video/sis/sis_main.c b/drivers/video/sis/sis_main.c
-index 9d2b6bc..a531a0f 100644
---- a/drivers/video/sis/sis_main.c
-+++ b/drivers/video/sis/sis_main.c
-@@ -1891,9 +1891,6 @@ static struct fb_ops sisfb_ops = {
- 	.fb_fillrect	= fbcon_sis_fillrect,
- 	.fb_copyarea	= fbcon_sis_copyarea,
- 	.fb_imageblit	= cfb_imageblit,
--#ifdef CONFIG_FB_SOFT_CURSOR
--	.fb_cursor	= soft_cursor,
--#endif
- 	.fb_sync	= fbcon_sis_sync,
- #ifdef SIS_NEW_CONFIG_COMPAT
- 	.fb_compat_ioctl= sisfb_ioctl,
--- 
-1.6.3.3
-
-
---adJ1OR3c6QgCpb/j--
