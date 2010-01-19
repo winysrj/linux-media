@@ -1,105 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:33570 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754329Ab0ATDaU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jan 2010 22:30:20 -0500
-Subject: Re: [ANNOUNCE] git tree repositories
-From: Andy Walls <awalls@radix.net>
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: Patrick Boettcher <pboettcher@kernellabs.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Douglas Landgraf <dougsland@gmail.com>
-In-Reply-To: <1263949858.5384.126.camel@pc07.localdom.local>
-References: <4B55445A.10300@infradead.org>
-	 <201001190853.11050.hverkuil@xs4all.nl>
-	 <201001190910.39479.pboettcher@kernellabs.com>
-	 <1263944295.5229.16.camel@palomino.walls.org>
-	 <1263949858.5384.126.camel@pc07.localdom.local>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 19 Jan 2010 22:29:42 -0500
-Message-Id: <1263958182.5229.97.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:26577 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752106Ab0ASP27 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jan 2010 10:28:59 -0500
+Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0KWI00F3B309HK@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 19 Jan 2010 15:28:57 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0KWI00DVX3080U@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 19 Jan 2010 15:28:57 +0000 (GMT)
+Date: Tue, 19 Jan 2010 16:28:48 +0100
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: [PATCH/RFC v1 0/1] Buffer sync for non cache-coherent architectures
+To: linux-media@vger.kernel.org
+Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com
+Message-id: <1263914929-28211-1-git-send-email-p.osciak@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2010-01-20 at 02:10 +0100, hermann pitton wrote:
-> Am Dienstag, den 19.01.2010, 18:38 -0500 schrieb Andy Walls: 
-> > On Tue, 2010-01-19 at 09:10 +0100, Patrick Boettcher wrote:
-> > 
-> > > BTW: I just made a clone of the git-tree - 365MB *ouff*.
-> > 
-> > Assuming 53.333 kbps download speed, 0% overhead, no compression:
-> > 
-> > 365 MiB * 2^20 bytes/MiB * 8 bits/byte / 53333 bits/sec / 3600 sec/hr =
-> > 15.95 hours
-> > 
-> > :(
-> > 
-> > Can git resume aborted clones?  It could be many weeks before I have a
-> > 20 hour window where I don't have to use my land line phone for voice...
-> > 
-> > Regards,
-> > Andy
-> > 
-> 
-> 
-> Hi Andy,
-> 
-> :) please take it only as that.
+
+Hello,
+
+this is the initial patch for buffer data synchronization for architectures
+with non-coherent cache.
 
 
-:)
+=====================
+Rationale
+=====================
 
-> What about assuming a 1800 kbps low level flat rate and all phone calls
-> for free, except for some "exotic" ;) mobile net providers, for the
-> whole family, including a mobile flat, 4 different phone numbers, video
-> on demand, and much more you don't need, for 30€ per months?
-> 
-> It is always said, we are so much in delay with such here, but seeing
-> the above calculation, it is ten years back paying for nothing the
-> triple money and wait for a day. And preferably the phone of course is
-> blocked during that.
+Architectures with non-coherent CPU cache (e.g. ARM) require a sync both before
+and after a hardware operation. Until now, videobuf could work properly for
+cache-coherent memory areas only, which for ARM actually means no cache at all.
+This is not only reduces functionality, but hinders performance.
 
-Yes, I realize I am in the dark ages.
-
-I haven't been able to build a cost case for my normal home
-communications needs to pay for Cable or Satellite internet service.  I
-really dislike monthly recurring household costs for services that bill
-me whether I use them or not, like communications.  I try to pay only
-for plans that meet my common usage needs and no more.
-
-My oldest child is to the point where she will need to start using the
-internet for research for school next year.  I'll have to open my wallet
-soon, as my household communications needs are growing.
+We would like to add support for video buffers present in CPU-cached areas as
+well, which is especially important for OUTPUT buffers, but valid for CAPTURE
+buffers as well (see DMA_FROM_DEVICE below).
 
 
-> You are living in the USA? Seems sending CDs per express air mail is
-> much cheaper ..., even using Brazil as a relay ;)
+We have isolated 4 different types of sync operations. Three of them are the
+ones defined in pci.h and dma-mapping.h (enum dma_data_direction):
 
-You beat me to that joke.  Although I was going to say New Zealand...
+- DMA_FROM_DEVICE - the buffer is to be used as a destination buffer, the
+  data contained within before the operation is unimportant.
+
+  Although the data in memory is not important, we have to prevent a possible
+  future writeback to it resulting in an accidental overwrite of contents
+  produced by hardware after an operation. This requires cache invalidation
+  before the operation.
+
+- DMA_TO_DEVICE - the data in buffer has been touched by (prepared using)
+   the CPU and will be used as valid source for an operation. This data
+   may still be in cache but not yet in memory. This requires a writeback.
+
+- DMA_BIDIRECTIONAL - the buffer will be used as both source and destination.
+  This requires both writeback and cache invalidation.
+
+There is one more operation we are considering, although not really
+cache-related:
+
+- FINISH - the operation is finished and the data in buffer (put there by
+  hardware) will be used further.
+
+  Operations required here may include:
+  * Making the memory pages involved in the operation dirty.
+  * Copying data back from a bounce buffer.
+  They are not strictly cache-related, but valid from the point of view
+  of our proposed approach.
 
 
-> Are you sure, you did not miss to update your provider ten years back
-> the first time?
 
-I live in a very rural area:  No fiber optic, no DSL, EV-DO requires
-directional antenna and amplifier.
+>From the point of view of the videobuf framework, the following scenarios can be
+isolated, depending on when the sync has been called and current buffer type:
 
-Cable TV & internet is available, but is unreliable and expensive.
-Satellite internet is available, of course.
+- before hardware operation
+   - OUTPUT: DMA_TO_DEVICE
+   - CAPTURE: DMA_FROM_DEVICE
 
+- after hardware operation
+   - OUTPUT: nothing
+   - CAPTURE: FINISH
 
-Regards,
-Andy
-
-> Taking the smileys out now, in fact distributions have Gigas of updates
-> within a few weeks these days. Andy for sure has an argument.
-> 
-> 
-> Cheers,
-> Hermann
+DMA_BIDIRECTIONAL would take place for OUTPUT+CAPTURE buffers, which are not
+(yet?) used in videobuf.
 
 
+=====================
+sync() in videobuf
+=====================
+
+videobuf includes a sync operation, declared in struct videobuf_qtype_ops,
+which can be implemented by each memory type-specific module. It is used for
+different purposes than cache management though, namely for operations like
+copying data back from bounce buffers after an operation.
+Only videobuf-dma-sg does anything in its sync currently.
+
+Operations required to be done before hardware operation is started are
+currently performed in iolock(), but it is not usable for cache coherency
+management. The reason for this is that iolock() is intended to be run once
+per buffer, not once per each hardware operation. Cache coherency operations
+have to be performed before every operation though, also on previously
+iolock()ed buffers.
+
+We believe that the existing videobuf sync() operation can be extended for cache
+management. This requires adding sync() calls before each hardware operation
+as well. It is left to the callee to determine the kind of sync requested,
+taking into account the guidelines below.
+
+No new flags/states/etc. have to be added to videobuf for it to support all
+kinds of syncs mentioned above. Current sync type can be determined in
+memory-specific code in two steps:
+
+1. CAPTURE or OUTPUT - based on buffer type in struct videobuf_queue.
+2. before or after operation - based on buffer state in struct videobuf_buffer:
+    VIDEOBUF_DONE or VIDEOBUF_ERROR -> after, otherwise -> before.
+
+
+Example (pseudo)code for a sync() operation:
+
+#define is_sync_after(vb) \
+        (vb->state == VIDEOBUF_DONE || vb->state == VIDEOBUF_ERROR)
+
+int videobuf_foo_sync(struct videobuf_queue *q, struct videobuf_buffer *vb)
+{
+    /* ... */
+
+    if (is_sync_after(vb) {
+        /* Sync after operation */
+        if (q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+            do_sync_finish();
+        } else if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+            /* nothing, unless we are missing something */
+        }
+    } else {
+        /* Sync before operation */
+        if (q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+            do_sync_from_device();
+        } else if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+            do_sync_to_device();
+        }
+    }
+
+    /* ... */
+}
+
+
+
+=====================
+About this patch
+=====================
+
+This is a very small patch, just a starting point for future, memory-specific
+development. No existing functionality is changed. These are the only changes
+that - in our opinion - are required in the core framework. Each memory-specific
+videobuf submodule will have to implement (or ignore) additional sync
+functionality depending on its memory type.
+
+A small patch for dma-sg, which is the only type that has its own sync is
+included. The only thing it does is recognizing whether the sync is a
+"post-operation" one and in that case the same code as previously is called, so
+the functionality remains unchanged.
+
+We will be posting cache coherency patches for dma-contig in the near future.
+
+
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
