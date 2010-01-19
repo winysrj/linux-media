@@ -1,109 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f219.google.com ([209.85.219.219]:51245 "EHLO
-	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755077Ab0A0TDh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jan 2010 14:03:37 -0500
-Received: by ewy19 with SMTP id 19so791778ewy.21
-        for <linux-media@vger.kernel.org>; Wed, 27 Jan 2010 11:03:35 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20100127193728.0a75ba1e@tele>
-References: <20100126170053.GA5995@pathfinder.pcs.usp.br>
-	 <20100126193726.00bcbc00@tele>
-	 <20100127163709.GA10435@pathfinder.pcs.usp.br>
-	 <20100127171753.GA10865@pathfinder.pcs.usp.br>
-	 <20100127193728.0a75ba1e@tele>
-Date: Wed, 27 Jan 2010 16:03:35 -0300
-Message-ID: <c2fe070d1001271103g27c44093u48be6a60ae28323f@mail.gmail.com>
-Subject: Re: Setting up white balance on a t613 camera
-From: leandro Costantino <lcostantino@gmail.com>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail1.radix.net ([207.192.128.31]:40807 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752422Ab0ASCMR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jan 2010 21:12:17 -0500
+Subject: Re: Need testers: cx23885 IR Rx for TeVii S470 and HVR-1250
+From: Andy Walls <awalls@radix.net>
+To: "Igor M. Liplianin" <liplianin@me.by>
+Cc: linux-media@vger.kernel.org,
+	Andreas Tschirpke <andreas.tschirpke@gmail.com>,
+	Matthias Fechner <idefix@fechner.net>, stoth@kernellabs.com
+In-Reply-To: <201001190025.20539.liplianin@me.by>
+References: <1263614561.6084.15.camel@palomino.walls.org>
+	 <1263691595.3062.124.camel@palomino.walls.org>
+	 <1263793012.5220.103.camel@palomino.walls.org>
+	 <201001190025.20539.liplianin@me.by>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 18 Jan 2010 21:10:42 -0500
+Message-Id: <1263867042.3710.23.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Yes, as wrote in the code, it tied to whitebalance.
-Also note that , as Jean wrote, there's are many different values
-wrote on some registers, that we don't really know what they are used
-for, so,
-i would like to go for the most non intrusive option, since, some of
-this whitebalance regs, have been adjusted time to time to meet other
-t613 users requirment's, and maybe implementing the r/b balance would
-be the way to go.
+On Tue, 2010-01-19 at 00:25 +0200, Igor M. Liplianin wrote:
+> On 18 ÑÐ½Ð²Ð°Ñ€Ñ 2010 07:36:52 Andy Walls wrote:
+> > On Sat, 2010-01-16 at 20:26 -0500, Andy Walls wrote:
+> > > On Sat, 2010-01-16 at 23:56 +0200, Igor M. Liplianin wrote:
+> > > > On 16 ÑÐ½Ð²Ð°Ñ€Ñ 2010 21:55:52 Andy Walls wrote:
+> > > > > I have checked in more changes to
+> > > > >
+> > > > > 	http://linuxtv.org/hg/~awalls/cx23885-ir2
+> > > > >
+> > > > > Please test again using these module parameters:
+> > > > >
+> > > > > 	modprobe cx25840 ir_debug=2 debug=2
+> > > > > 	modprobe cx23885 ir_input_debug=2 irq_debug=7 debug=7
+> >
+> > I have removed the spurious interrupt handling code - it was bogus.  The
+> > real problems are:
+> >
+> > 1. performing AV Core i2c transactions from an IRQ context is bad
+> >
+> > 2. the cx25840 module needs locking to prevent i2c transaction
+> > contention during the AV Core register reads and writes.
+> >
+> >
+> > I have implemented and checked in a change for #1.  Now the AV_CORE
+> > interrupt gets disabled and a work handler is scheduled to deal with the
+> > IR controller on the AV core.  When the work handler is done, it will
+> > re-enable the AV_CORE interrupt.
+> >
+> > I have not implmented a change for #2 yet.  I have not added locking to
+> > protect cx25840_read() and cx25840_write() functions.  This will take
+> > time to get right.
 
-If you want, i can write it so you can test it, or if you prefeer you
-can take a look at
-http://linuxtv.org/hg/~jfrancois/gspca/file/21f2eeb240db/linux/drivers/media/video/gspca/sonixj.c
-at how its done  as an example.
+I have now fixed the cx25840 module.
 
-Since i only had this webcam for 1 week, i always relay on the some
-group of users that are willing to test each change always.
+I also added a log function for "v4l2-ctl -d /dev/video0 --log-status"
+to log the status of the IR controller.
 
-Best Regadrs.
-Costantino Leandro
 
-On Wed, Jan 27, 2010 at 3:37 PM, Jean-Francois Moine <moinejf@free.fr> wrote:
-> On Wed, 27 Jan 2010 15:17:53 -0200
-> Nicolau Werneck <nwerneck@gmail.com> wrote:
->
->> Answering my own question, and also a question in the t613 source
->> code...
->>
->> Yes, the need for the "reg_w(gspca_dev, 0x2087);", 0x2088 and 0x2089
->> commands are definitely tied to the white balance. These three set up
->> the default values I found out. And (X << 8 + 87) sets up the red
->> channel parameter in general, and 88 is for green and 89 for blue.
->>
->> That means I can already just play with them and see what happens. My
->> personal problem is that I bought this new lens, and the image is way
->> too bright, and changing that seems to help. But I would like to offer
->> these as parameters the user can set using v4l2 programs. I can try
->> making that big change myself, but help from a more experienced
->> developer would be certainly much appreciated!...
->
-> Hello Nicolau,
->
-> The white balance is set in setwhitebalance(). Four registers are
-> changed: 87, 88, 89 and 80.
->
-> Looking at the traces I have, these 4 registers are loaded together only
-> one time in an exchange at startup time. Then, the white balance
-> control adjusts only blue and red values while reloading the same value
-> for the green register (that's what is done for other webcams), and the
-> register 80 is not touched. In the different traces, the register 80
-> may be initialized to various values as 3c, ac or 38 and it is not
-> touched later. I do not know what it is used for.
->
-> I may also notice that the green value in the white balance exchanges
-> may have an other value than the default 20. I do not know which is the
-> associated control in the ms-win driver. If it is exposure, you are
-> done. So, one trivial patch is:
->
-> - add the exposure control with min: 0x10, max: 0x40, def: 0x20.
->
-> - modify the whitebalance control with min: -16, max +16, def:0.
->
-> - there is no function setexposure() because the exposure is the value
->  of green register. Both controls exposure and white balance call the
->  function setwhitebalance().
->
-> - in the function setwhitebalance(), set the green value to the
->  exposure, the red value to (exposure + whitebalance) and blue value
->  to (exposure - whitebalance) and load only the registers 87, 88 and
->  89.
->
-> An other way could be to implement the blue and red balances in the
-> same scheme, and to remove the whitebalance.
->
-> Cheers.
->
-> --
-> Ken ar c'hentañ |             ** Breizh ha Linux atav! **
-> Jef             |               http://moinejf.free.fr/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> > You may test these latest changes if you want, but I won't be surprised
+> > if things don't work on occasion.
+> It is very same behaviour here. A lot of interrupts without purpose.
+
+:(
+
+
+> > I have tested IR loopback with my HVR-1250 and things are fine for me,
+> > but I have no video interrupts coming in either.
+> I wonder what is the difference.
+
+a. I set up the IR transmit pin for the HVR-1250 but not the S470 in
+cx23885-cards.c:cx23885_ir_init()
+
+b. I set the transmitter invert_level for the Tx pin (a no-op for the
+cx23885 IR controller) at the bottom of
+cx23885-input.c:cx23885_input_ir_start() for the HVR-1250, but not the
+S470.
+
+c. For testing, I add an analog device video node to the HVR1250 for a
+debug and test:
+
+diff -r 9128ef95c5a7 -r 1ce2344226c1 linux/drivers/media/video/cx23885/cx23885-cards.c
+--- a/linux/drivers/media/video/cx23885/cx23885-cards.c	Sat Jan 09 13:58:18 2010 -0500
++++ b/linux/drivers/media/video/cx23885/cx23885-cards.c	Sat Jan 09 14:31:30 2010 -0500
+@@ -104,6 +104,8 @@
+ 	},
+ 	[CX23885_BOARD_HAUPPAUGE_HVR1250] = {
+ 		.name		= "Hauppauge WinTV-HVR1250",
++		.tuner_type	= TUNER_ABSENT,
++		.porta		= CX23885_ANALOG_VIDEO,
+ 		.portc		= CX23885_MPEG_DVB,
+ 		.input          = {{
+ 			.type   = CX23885_VMUX_TELEVISION,
+
+
+
+d.  The script of commands I use for testing the HVR-1250 IR Rx with the
+IR Tx in hardware loopback is:
+
+#make unload; make unload
+#make install
+
+#modprobe cx25840 ir_debug=2 debug=2
+#modprobe cx23885 ir_input_debug=2 irq_debug=7 debug=7
+
+#v4l2-ctl -d /dev/video0 --log-status
+
+# Get pin ctrl setting
+v4l2-dbg -d /dev/video0 -c 0x44 -g 0x123
+
+# disable tx fifo
+v4l2-dbg -d /dev/video0 -c 0x44 -s 0x200 0x4c
+
+# disable tx fifo svc req
+v4l2-dbg -d /dev/video0 -c 0x44 -s 0x214 0x20
+
+# disable tx, enable loopback
+v4l2-dbg -d /dev/video0 -c 0x44 -s 0x201 0x21
+
+#v4l2-ctl -d /dev/video0 --log-status
+
+# set tx clk div
+v4l2-dbg -d /dev/video0 -c 0x44 -s 0x204 1 0
+
+#enable tx fifo
+v4l2-dbg -d /dev/video0 -c 0x44 -s 0x200 0xcc
+
+# store test pulse data
+v4l2-dbg -d /dev/video0 -c 0x44 -s 0x23c 0xff 0x7f 0x1 0x0
+v4l2-dbg -d /dev/video0 -c 0x44 -s 0x23c 0xff 0x5f 0x0 0x0
+v4l2-dbg -d /dev/video0 -c 0x44 -s 0x23c 0xff 0x7f 0x1 0x0
+v4l2-dbg -d /dev/video0 -c 0x44 -s 0x23c 0xff 0x5f 0x0 0x0
+v4l2-dbg -d /dev/video0 -c 0x44 -s 0x23c 0xff 0x7f 0x1 0x0
+v4l2-dbg -d /dev/video0 -c 0x44 -s 0x23c 0xff 0x5f 0x0 0x0
+v4l2-dbg -d /dev/video0 -c 0x44 -s 0x23c 0xff 0x7f 0x1 0x0
+v4l2-dbg -d /dev/video0 -c 0x44 -s 0x23c 0xff 0x5f 0x0 0x0
+
+#v4l2-ctl -d /dev/video0 --log-status
+
+#enable tx
+v4l2-dbg -d /dev/video0 -c 0x44 -s 0x201 0x23
+
+#v4l2-ctl -d /dev/video0 --log-status
+
+
+
+e. My HVR-1250 doesn't have actual external IR Rx hardware, so I can
+only test with loopback.
+
+
+
+If my latest changes don't work, I'll probably have to order a CX23885
+card with the hardware for actual IR Rx.  Maybe I'll get a TeVii S470
+and buy a satellite dish. ;)
+
+
+Thanks again for all your test efforts.
+
+Regards,
+Andy
+
