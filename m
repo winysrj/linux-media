@@ -1,52 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from n23.bullet.mail.ukl.yahoo.com ([87.248.110.140]:34822 "HELO
-	n23.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S932092Ab0AWM1N convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jan 2010 07:27:13 -0500
-Message-ID: <64386.84610.qm@web24702.mail.ird.yahoo.com>
-References: <4B580AB2.6030005@brdo.cz> <20100121094943.GA2332@localhost.lan> <4B595C40.2070001@brdo.cz> <4B5ABE5F.50704@skynet.be>
-Date: Sat, 23 Jan 2010 12:27:10 +0000 (GMT)
-From: Alistair Thomas <astavale@yahoo.co.uk>
-Subject: Re: bt878 card: no sound and only xvideo support in 2.6.31 bttv 0.9.18
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:34174 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752324Ab0ASP3F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jan 2010 10:29:05 -0500
+Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0KWI0030Q30DCQ@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 19 Jan 2010 15:29:01 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0KWI00DW730D0U@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 19 Jan 2010 15:29:01 +0000 (GMT)
+Date: Tue, 19 Jan 2010 16:28:49 +0100
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: [PATCH v1 1/1] V4L: Add sync before a hardware operation to videobuf.
+In-reply-to: <1263914929-28211-1-git-send-email-p.osciak@samsung.com>
 To: linux-media@vger.kernel.org
-In-Reply-To: <4B5ABE5F.50704@skynet.be>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com
+Message-id: <1263914929-28211-2-git-send-email-p.osciak@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1263914929-28211-1-git-send-email-p.osciak@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Architectures with non-coherent CPU cache (e.g. ARM) may require a cache
+flush or invalidation before starting a hardware operation if the data in
+a video buffer being queued has been touched by the CPU.
 
+This patch adds calls to sync before a hardware operation that are expected
+to be interpreted and handled by each memory type-specific module.
 
+Whether it is a sync before or after the operation can be determined from
+the current buffer state: VIDEOBUF_DONE and VIDEOBUF_ERROR indicate a sync
+called after an operation.
 
+Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+Reviewed-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Reviewed-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/videobuf-core.c   |    9 +++++++++
+ drivers/media/video/videobuf-dma-sg.c |    6 ++++++
+ 2 files changed, 15 insertions(+), 0 deletions(-)
 
-Xof wrote:
-> I had the same problem in 2008 when somebody changed tvaudio and I did
-> not realize I had to specify new options in my /etc/modprobe.d/bttv.conf
-> file.  I wonder why 'bttv card=100' is not enough to specify the
-> hardware and what to do with it.  There is an entry 'Hercules Smart TV
-> Stereo' in bttv-cards.c.  I am not sure what can be done with
-> autodetecting chips on an unknown board.  I agree, this is probably
-> complex matter but this mix of specification and autodetection is suspect.
-
-I agree, auto detection for sound seems not to work too well for BT878 cards.
-
-To get sound I have to set modprobe options:
-
-options tda9887 qss=0
-options tuner pal=i
-
-although the card is auto detected:
-
-bttv0: detected: Pinnacle PCTV [card=39], PCI subsystem ID is 11bd:0012
-bttv0: using: Pinnacle PCTV Studio/Rave [card=39,autodetected]
-
-Would be great if there was a method to fix this.
-
-Al
-
-
-
-      
+diff --git a/drivers/media/video/videobuf-core.c b/drivers/media/video/videobuf-core.c
+index bb0a1c8..e56c67a 100644
+--- a/drivers/media/video/videobuf-core.c
++++ b/drivers/media/video/videobuf-core.c
+@@ -561,6 +561,8 @@ int videobuf_qbuf(struct videobuf_queue *q,
+ 		goto done;
+ 	}
+ 
++	CALL(q, sync, q, buf);
++
+ 	list_add_tail(&buf->stream, &q->stream);
+ 	if (q->streaming) {
+ 		spin_lock_irqsave(q->irqlock, flags);
+@@ -761,6 +763,8 @@ static ssize_t videobuf_read_zerocopy(struct videobuf_queue *q,
+ 	if (0 != retval)
+ 		goto done;
+ 
++	CALL(q, sync, q, q->read_buf);
++
+ 	/* start capture & wait */
+ 	spin_lock_irqsave(q->irqlock, flags);
+ 	q->ops->buf_queue(q, q->read_buf);
+@@ -826,6 +830,8 @@ ssize_t videobuf_read_one(struct videobuf_queue *q,
+ 			goto done;
+ 		}
+ 
++		CALL(q, sync, q, q->read_buf);
++
+ 		spin_lock_irqsave(q->irqlock, flags);
+ 		q->ops->buf_queue(q, q->read_buf);
+ 		spin_unlock_irqrestore(q->irqlock, flags);
+@@ -893,6 +899,9 @@ static int __videobuf_read_start(struct videobuf_queue *q)
+ 		err = q->ops->buf_prepare(q, q->bufs[i], field);
+ 		if (err)
+ 			return err;
++
++		CALL(q, sync, q, q->read_buf);
++
+ 		list_add_tail(&q->bufs[i]->stream, &q->stream);
+ 	}
+ 	spin_lock_irqsave(q->irqlock, flags);
+diff --git a/drivers/media/video/videobuf-dma-sg.c b/drivers/media/video/videobuf-dma-sg.c
+index fa78555..2b153f8 100644
+--- a/drivers/media/video/videobuf-dma-sg.c
++++ b/drivers/media/video/videobuf-dma-sg.c
+@@ -50,6 +50,9 @@ MODULE_LICENSE("GPL");
+ #define dprintk(level, fmt, arg...)	if (debug >= level) \
+ 	printk(KERN_DEBUG "vbuf-sg: " fmt , ## arg)
+ 
++#define is_sync_after(vb) \
++	(vb->state == VIDEOBUF_DONE || vb->state == VIDEOBUF_ERROR)
++
+ /* --------------------------------------------------------------------- */
+ 
+ struct scatterlist*
+@@ -516,6 +519,9 @@ static int __videobuf_sync(struct videobuf_queue *q,
+ 	BUG_ON(!mem);
+ 	MAGIC_CHECK(mem->magic,MAGIC_SG_MEM);
+ 
++	if (!is_sync_after(buf))
++		return 0;
++
+ 	return	videobuf_dma_sync(q,&mem->dma);
+ }
+ 
+-- 
+1.6.4.2.253.g0b1fac
 
