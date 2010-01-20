@@ -1,63 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:46753 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752419Ab0AKIJR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2010 03:09:17 -0500
-Date: Mon, 11 Jan 2010 09:10:30 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>,
-	=?UTF-8?B?U3Q=?= =?UTF-8?B?w6lwaGFuZQ==?= Marguet
-	<smarguet@gmail.com>
-Cc: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: gspca_pac7302: sporatdic problem when plugging the device
-Message-ID: <20100111091030.298cedd7@tele>
-In-Reply-To: <4B4A386D.3080106@freemail.hu>
-References: <4B4A0752.6030306@freemail.hu>
- <20100110204844.770f8fd7@tele>
- <4B4A386D.3080106@freemail.hu>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/BXIeQsYfFZOUYv3kCHgOY8N"
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:37497 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756296Ab0ATCPj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jan 2010 21:15:39 -0500
+Message-ID: <4B56685E.9060909@gmail.com>
+Date: Wed, 20 Jan 2010 03:20:14 +0100
+From: Roel Kluin <roel.kluin@gmail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: [PATCH] mxl5005s: bad checks of state->Mode
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---MP_/BXIeQsYfFZOUYv3kCHgOY8N
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Regardless of the state->Mode in both cases the same value was
+written.
+If state->Mode wasn't set, it is always 0.
 
-Sorry, I forgot to attach the patch.
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+---
+ drivers/media/common/tuners/mxl5005s.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
-> In some usbsnoop files I have, the index 0x48 is not loaded. May you
-> try the attached patch (skip the index 0x48 and remove the delay).
->=20
-> (St=C3=A9phane, est-ce que tu peux voir aussi ce que =C3=A7a donne chez t=
-oi?)
+Or were the ones and zeroes in these MXL_ControlWrite in the wrong place?
 
-Regards.
-
---=20
-Ken ar c'henta=C3=B1	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
-
---MP_/BXIeQsYfFZOUYv3kCHgOY8N
-Content-Type: application/octet-stream; name=pac7302.pat
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename=pac7302.pat
-
-ZGlmZiAtciA4YzExYmU0ZWRmMzMgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9nc3BjYS9wYWM3
-MzAyLmMKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9nc3BjYS9wYWM3MzAyLmMJU3Vu
-IEphbiAxMCAyMDozNjo1MyAyMDEwICswMTAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlk
-ZW8vZ3NwY2EvcGFjNzMwMi5jCU1vbiBKYW4gMTEgMDk6MDE6MjQgMjAxMCArMDEwMApAQCAtMzg4
-LDcgKzM4OCw3IEBACiAJMHhhNCwgMHhiOCwgMHhlMCwgMHgyYSwgMHhmNiwgMHgwMCwgMHgwMCwg
-MHgwMCwKIAkweDAwLCAweDFlLCAweDAwLCAweDAwLCAweDAwLCAweDAwLCAweDAwLCAweDAwLAog
-CTB4MDAsIDB4ZmMsIDB4MDAsIDB4ZjIsIDB4MWYsIDB4MDQsIDB4MDAsIDB4MDAsCi0JMHgwMCwg
-MHgwMCwgMHgwMCwgMHhjMCwgMHhjMCwgMHgxMCwgMHgwMCwgMHgwMCwKKwlTS0lQLCAweDAwLCAw
-eDAwLCAweGMwLCAweGMwLCAweDEwLCAweDAwLCAweDAwLAogCTB4MDAsIDB4NDAsIDB4MDAsIDB4
-MDAsIDB4MDAsIDB4MDAsIDB4MDAsIDB4MDAsCiAJMHgwMCwgMHg0MCwgMHhmZiwgMHgwMywgMHgx
-OSwgMHgwMCwgMHgwMCwgMHgwMCwKIAkweDAwLCAweDAwLCAweDAwLCAweDAwLCAweDAwLCAweDAw
-LCAweDAwLCAweDAwLApAQCAtNDE5LDcgKzQxOSw2IEBACiAJCVBERUJVRyhEX0VSUiwgInJlZ193
-X2J1ZigpOiAiCiAJCSJGYWlsZWQgdG8gd3JpdGUgcmVnaXN0ZXJzIHRvIGluZGV4IDB4JXgsIGVy
-cm9yICVpIiwKIAkJaW5kZXgsIHJldCk7Ci0JbXNsZWVwKDQpOwkJLyogZG9uJ3QgZ28gdG9vIHF1
-aWNrbHkgKi8KIAlyZXR1cm4gcmV0OwogfQogCg==
-
---MP_/BXIeQsYfFZOUYv3kCHgOY8N--
+diff --git a/drivers/media/common/tuners/mxl5005s.c b/drivers/media/common/tuners/mxl5005s.c
+index 605e28b..3967412 100644
+--- a/drivers/media/common/tuners/mxl5005s.c
++++ b/drivers/media/common/tuners/mxl5005s.c
+@@ -1815,9 +1815,8 @@ static u16 MXL_BlockInit(struct dvb_frontend *fe)
+ 
+ 	/* Charge Pump Control Dig  Ana */
+ 	status += MXL_ControlWrite(fe, RFSYN_CHP_GAIN, state->Mode ? 5 : 8);
+-	status += MXL_ControlWrite(fe,
+-		RFSYN_EN_CHP_HIGAIN, state->Mode ? 1 : 1);
+-	status += MXL_ControlWrite(fe, EN_CHP_LIN_B, state->Mode ? 0 : 0);
++	status += MXL_ControlWrite(fe, RFSYN_EN_CHP_HIGAIN, 1);
++	status += MXL_ControlWrite(fe, EN_CHP_LIN_B, 0);
+ 
+ 	/* AGC TOP Control */
+ 	if (state->AGC_Mode == 0) /* Dual AGC */ {
+@@ -2161,7 +2160,7 @@ static u16 MXL_IFSynthInit(struct dvb_frontend *fe)
+ 		}
+ 	}
+ 
+-	if (state->Mode || (state->Mode == 0 && state->IF_Mode == 0)) {
++	if (state->Mode || state->IF_Mode == 0) {
+ 		if (state->IF_LO == 57000000UL) {
+ 			status += MXL_ControlWrite(fe, IF_DIVVAL,   0x10);
+ 			status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
