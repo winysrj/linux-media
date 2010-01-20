@@ -1,79 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.mujha-vel.cz ([81.30.225.246]:45363 "EHLO
-	smtp.mujha-vel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754911Ab0AVPK7 (ORCPT
+Received: from fmmailgate01.web.de ([217.72.192.221]:53169 "EHLO
+	fmmailgate01.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932128Ab0ATID6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jan 2010 10:10:59 -0500
-From: Jiri Slaby <jslaby@suse.cz>
-To: crope@iki.fi
-Cc: linux-kernel@vger.kernel.org, jirislaby@gmail.com,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 4/4] media: dvb/af9015, add hashes support
-Date: Fri, 22 Jan 2010 16:10:55 +0100
-Message-Id: <1264173055-14787-4-git-send-email-jslaby@suse.cz>
-In-Reply-To: <4B4F6BE5.2040102@iki.fi>
-References: <4B4F6BE5.2040102@iki.fi>
+	Wed, 20 Jan 2010 03:03:58 -0500
+From: Markus Heidelberg <markus.heidelberg@web.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [ANNOUNCE] git tree repositories
+Date: Wed, 20 Jan 2010 09:04:44 +0100
+Cc: Johannes Stezenbach <js@linuxtv.org>,
+	Patrick Boettcher <pboettcher@kernellabs.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Douglas Landgraf <dougsland@gmail.com>
+References: <4B55445A.10300@infradead.org> <20100119112057.GC9187@linuxtv.org> <4B55A915.1000207@infradead.org>
+In-Reply-To: <4B55A915.1000207@infradead.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201001200904.44258.markus.heidelberg@web.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-So as a final patch, add support for hash and one hash entry
-for MSI digi vox mini II:
-iManufacturer 1 Afatech
-iProduct      2 DVB-T 2
-iSerial       3 010101010600001
+Mauro Carvalho Chehab, 2010-01-19:
+> Yes. I personally prefer to have a bare clone (bare trees have just
+> the -git objects, and not a workig tree), and several working copies.
+> I do the work at the working copies, and, after they are fine, I push
+> into the bare and send the branches from bare to upstream.
 
-It is now handled with proper IR and key map tables.
+Do you know git-new-workdir? It's included in the contrib area of the
+git installation.
+Instead of cloning your own local repository to get a new working
+directory, with this script you really only get a new working directory
+and can work in it as if it was the original clone. Then you don't have
+to deal with pushes between local repositories.
 
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Antti Palosaari <crope@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
----
- drivers/media/dvb/dvb-usb/af9015.c |   14 ++++++++++++--
- 1 files changed, 12 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
-index 796f9d5..650c913 100644
---- a/drivers/media/dvb/dvb-usb/af9015.c
-+++ b/drivers/media/dvb/dvb-usb/af9015.c
-@@ -788,6 +788,13 @@ static const struct af9015_setup af9015_setup_usbids[] = {
- 	{ }
- };
- 
-+static const struct af9015_setup af9015_setup_hashes[] = {
-+	{ 0xb8feb708,
-+		af9015_rc_keys_msi, ARRAY_SIZE(af9015_rc_keys_msi),
-+		af9015_ir_table_msi, ARRAY_SIZE(af9015_ir_table_msi) },
-+	{ }
-+};
-+
- static void af9015_set_remote_config(struct usb_device *udev,
- 		struct dvb_usb_device_properties *props)
- {
-@@ -800,7 +807,10 @@ static void af9015_set_remote_config(struct usb_device *udev,
- 	} else {
- 		u16 vendor = le16_to_cpu(udev->descriptor.idVendor);
- 
--		if (vendor == USB_VID_AFATECH) {
-+		table = af9015_setup_match(af9015_config.eeprom_sum,
-+				af9015_setup_hashes);
-+
-+		if (!table && vendor == USB_VID_AFATECH) {
- 			/* Check USB manufacturer and product strings and try
- 			   to determine correct remote in case of chip vendor
- 			   reference IDs are used.
-@@ -831,7 +841,7 @@ static void af9015_set_remote_config(struct usb_device *udev,
- 					ARRAY_SIZE(af9015_ir_table_trekstor)
- 				};
- 			}
--		} else
-+		} else if (!table)
- 			table = af9015_setup_match(vendor, af9015_setup_usbids);
- 	}
- 
--- 
-1.6.5.7
-
+Markus
