@@ -1,76 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:58911 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754677Ab0A2UO6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jan 2010 15:14:58 -0500
-Received: by bwz27 with SMTP id 27so1769323bwz.21
-        for <linux-media@vger.kernel.org>; Fri, 29 Jan 2010 12:14:55 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:51539 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751418Ab0ATX0o (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Jan 2010 18:26:44 -0500
+Message-ID: <4B57912A.9000908@redhat.com>
+Date: Wed, 20 Jan 2010 21:26:34 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <4B633E1D.2050609@redhat.com>
-References: <4B60F901.20301@redhat.com>
-	 <1264731845.3095.16.camel@palomino.walls.org>
-	 <829197381001290922p69a68ce5k3f5192f427f4658a@mail.gmail.com>
-	 <4B632BB8.3000904@redhat.com>
-	 <829197381001291057o5b94d1d7k4d5f7f6d7251101f@mail.gmail.com>
-	 <4B633E1D.2050609@redhat.com>
-Date: Fri, 29 Jan 2010 15:14:55 -0500
-Message-ID: <829197381001291214m40d8aae2gac445975ce59e107@mail.gmail.com>
-Subject: Re: cx18 fix patches
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Andy Walls <awalls@radix.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
+To: HoP <jpetrous@gmail.com>
+CC: ajurik@quick.cz, linux-media@vger.kernel.org
+Subject: Re: [PATCH v3] isl6421.c - added tone control and temporary diseqc
+ 	overcurrent
+References: <846899810912150749q38d8a1ffy96b135cf355fe8eb@mail.gmail.com>	 <4B27CF77.1050008@redhat.com>	 <846899810912151620m35a96025hf9ffb924d77eafa8@mail.gmail.com>	 <846899811001200558g78693d1cy2f399840c6572af0@mail.gmail.com>	 <4B574BEB.9040509@redhat.com> <846899811001201443g60bd03edg9bd6fb5a4d3888a8@mail.gmail.com>
+In-Reply-To: <846899811001201443g60bd03edg9bd6fb5a4d3888a8@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 29, 2010 at 2:59 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> The asynchronous load were added not to improve the boot load time, but to
-> avoid some troubles that happens when the load is synchronous.
-> I don't remember what were the exact trouble, but I suspect that it was
-> something related to i2c. The result was that, sometimes, the driver
-> used to enter into a deadlock state (something like driver A waits for driver B
-> to load, but, as driver B needs functions provided by driver A, both are put
-> into sleep).
+HoP wrote:
+> Hi Mauro,
+> 
+> 2010/1/20 Mauro Carvalho Chehab <mchehab@redhat.com>:
+>> HoP wrote:
+>>> Hi Mauro,
+>>>
+>>> Not to hassle you, I'm sure you're very busy.
+>>>
+>>> But I'm not yet received a response from you on mail with corrected patch.
+>>>
+>>> Your attention would be appreciated
+>> Hi Honza,
+>>
+>> The patch looks correct to me, but, as I previously mentioned, our policy is
+>> to add new features at the kernel driver only together with a driver that
+>> actually requires it. This helps to avoid increasing the kernel without need.
+>>
+>> So, please re-submit it when you have your driver requiring the isl6421
+>> changes ready for submission, on the same patch series.
+>>
+> 
+> Are you sure about such policy?
+> 
+> I did small google research and found out the following:
+> 
+> My feeling is different otherwise I don't understand why did you
+> accept WITHOUT any word Oliver Endriss' PULL request
+> from December 12th:
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg13302.html
+> 
+> I'm pointing on Oliver's pull request only because he did very similar
+> thing for lnbp21 like I did for isl6421.
+> 
+> You very quickly added his patch to 2.6.33 on December 16th:
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg13429.html
+> 
+> So again. If I'm not blind you have accepted same work from him
+> but not from me. Please show me what I have overlooked
+> and this is not true.
+> 
+> Another possible explanation is that I'm totally unknow.
+> 
+> I hope you have some other explanation otherwise it feels to
+> me like elitism.
 
-It would be good if you could locate some specifics in terms of what
-prompted this.
+As far as I understood, those changes are needed by the mantis driver, that
+got committed on the next day, as shown at the commit logs:
 
-> Also, reducing the driver load time is a good thing. The asynchronous load
-> is very interesting for devices where the firmware load takes a very long time.
+http://linuxtv.org/hg/v4l-dvb/rev/07c36cb88bce
+http://linuxtv.org/hg/v4l-dvb/rev/d644727cd528
 
-I do not believe that loading the module synchronously will have any
-impact on the actual load time, since other modules can be loading in
-parallel to the initialization of the em28xx device (regardless of
-whether it is a single module, or three modules loading synchronously
-or asynchronously).
+So, on that time I had already a pull request for the mantis driver. 
 
-Also, for xc3028 in particular, we could defer firmware loading until
-first use like we do with xc5000 - doing the firmware load at driver
-init isn't very useful anyway since we load the firmware and then
-immediately and put the device to sleep.
+It is fine if I receive two separate pull requests, one depending of the other.
 
-> Maybe one alternative would be to register the interfaces asynchronously
-> also, as a deferred task that is started only after the driver enters into
-> a sane state.
+That's said, Oliver is the maintainer of isl6421 driver, so he is the one that better 
+know what bugs are there and what fixes are needed. Due to that, when I receive a 
+patch from a driver maintainer, I'm inclined to ack with the changes, in the belief
+that he is doing the better for the driver. Even so, I review the driver looking
+for troubles on his approach taking more care with new exported symbols added and with
+new userspace API's that the patch might have.
 
-Potentially.  I feel this should really only be done though in
-response to an actual problem/bug.  Otherwise it adds additional
-complexity with no real benefit.
-
-> As the problem is common, the better is to provide a global way to avoid
-> device open while the initialization is not complete, at the v4l core.
-
-I would be in favor of this, although I am not sure how practical it
-is given the diversity in the way different bridges are implemented.
-Also, we would need to take into account how this would work with DVB,
-since many of the races we run into are applications attempting to use
-both the v4l and dvb interfaces of a hybrid device.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Cheers,
+Mauro.
