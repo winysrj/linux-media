@@ -1,57 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ppp-93-104-149-215.dynamic.mnet-online.de ([93.104.149.215]:58215
-	"EHLO gauss.x.fun" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752768Ab0AILzz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jan 2010 06:55:55 -0500
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org
-Subject: Re: Fwd: Compro S300 - ZL10313
-Date: Sat, 9 Jan 2010 12:47:39 +0100
-Cc: Theunis Potgieter <theunis.potgieter@gmail.com>,
-	JD Louw <jd.louw@mweb.co.za>
-References: <23582ca0912291306v11d0631fia6ad442918961b48@mail.gmail.com> <1262428404.1944.22.camel@Core2Duo> <23582ca1001061217v6a67d6a3k8ac61fee5bd861da@mail.gmail.com>
-In-Reply-To: <23582ca1001061217v6a67d6a3k8ac61fee5bd861da@mail.gmail.com>
+Received: from fg-out-1718.google.com ([72.14.220.154]:26305 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752638Ab0ATWPA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Jan 2010 17:15:00 -0500
+Received: by fg-out-1718.google.com with SMTP id 16so1126742fgg.1
+        for <linux-media@vger.kernel.org>; Wed, 20 Jan 2010 14:14:58 -0800 (PST)
+Message-ID: <4B578073.4030103@googlemail.com>
+Date: Wed, 20 Jan 2010 23:15:15 +0100
+From: Hans-Peter Wolf <hapewolf@googlemail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: linux-media@vger.kernel.org
+Subject: Remote for Terratec Cinergy C PCI HD (DVB-C)
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201001091247.40027.zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday, 6. January 2010, Theunis Potgieter wrote:
-> 2010/1/2 JD Louw <jd.louw@mweb.co.za>:
-> > On Sat, 2010-01-02 at 09:39 +0200, Theunis Potgieter wrote:
-> >
-> > Hi,
-> >
-> > Just to clarify, can you now watch channels?
-> >
-> > At the moment the signal strength measurement is a bit whacked, so don't
-> > worry too much about it. I also get the 75%/17% figures you mentioned
-> > when tuning to strong signals. The figure is simply reported wrongly:
-> > even weaker signals should tune fine. If you want you can have a look in
-> > ~/v4l-dvb/linux/drivers/media/dvb/frontends/mt312.c at
-> > mt312_read_signal_strength().
-> >
-> > Also, if you have a multimeter handy, can you confirm that the
-> > 0x0000c000 GPIO fix enables LNB voltage? I'd like to issue a patch for
-> > this. I've already tested this on my older card with no ill effect.
-> 
-Does this gpio value changes voltage?
-If yes it is possible to hook into set_voltage and use this to disable LNB 
-voltage for power saving.
+Hi,
 
-> This is what happened when I started vdr.
-> 
-> Vertical gave a Volt reading between 13.9 and 14.1, Horizontal Gave
-> 19.4 ~ 19.5. When I stopped vdr, the Voltage went back to 14V. I
-> thought that it would read 0V. What is suppose to happen?
-> 
-Sounds good so far.
+I installed the mantis driver from the v4l-dvb mercurial repository and 
+got my tv-card Terratec Cinergy C PCI HD running successfully.
 
-The voltage after stopping vdr is no surprise with zl10313, look into the
-code at mt312.c line 425, The value it writes for no voltage is the same as 
-for vertical voltage.
+However, I cannot find any information if the included remote, which 
+also directly connected to the PCI card, is also working. The dmesg 
+output gives me these lines at the startup (not comparable to the lines 
+listed on linuxtv.org):
 
-Matthias
+[    7.402278] Mantis 0000:01:06.0: PCI INT A -> Link[LNKA] -> GSI 16 
+(level, low) -> IRQ 16
+[    7.403356] DVB: registering new adapter (Mantis DVB adapter)
+[    8.322027] DVB: registering adapter 0 frontend 0 (Philips TDA10023 
+DVB-C)...
+
+(I also had to add the module 'mantis' to /etc/modules to run it 
+automatically at startup. Is this normal?)
+
+I also tried cat /proc/bus/input/devices but couldn't find a plausible 
+device (output attached below).
+
+Can anyone tell me how to find out if the device is properly installed? 
+Or better: How to install the remote device? Is there any special module 
+required?
+
+Thank you very much in advance!
+Hans-Peter
+
+cat /proc/bus/input/devices
+I: Bus=0019 Vendor=0000 Product=0001 Version=0000
+N: Name="Power Button"
+P: Phys=LNXPWRBN/button/input0
+S: Sysfs=/devices/LNXSYSTM:00/LNXPWRBN:00/input/input0
+U: Uniq=
+H: Handlers=kbd event0
+B: EV=3
+B: KEY=10000000000000 0
+
+I: Bus=0019 Vendor=0000 Product=0001 Version=0000
+N: Name="Power Button"
+P: Phys=PNP0C0C/button/input0
+S: Sysfs=/devices/LNXSYSTM:00/device:00/PNP0C0C:00/input/input1
+U: Uniq=
+H: Handlers=kbd event1
+B: EV=3
+B: KEY=10000000000000 0
+
+I: Bus=0017 Vendor=0001 Product=0001 Version=0100
+N: Name="Macintosh mouse button emulation"
+P: Phys=
+S: Sysfs=/devices/virtual/input/input2
+U: Uniq=
+H: Handlers=mouse0 event2
+B: EV=7
+B: KEY=70000 0 0 0 0
+B: REL=3
+
+I: Bus=0019 Vendor=0000 Product=0006 Version=0000
+N: Name="Video Bus"
+P: Phys=/video/input0
+S: 
+Sysfs=/devices/LNXSYSTM:00/device:00/PNP0A03:00/device:12/device:13/input/input3
+U: Uniq=
+H: Handlers=kbd event3
+B: EV=3
+B: KEY=3f000b00000000 0 0 0
+
+I: Bus=0003 Vendor=046d Product=c01f Version=0110
+N: Name="Logitech USB-PS/2 Optical Mouse"
+P: Phys=usb-0000:00:02.0-6/input0
+S: Sysfs=/devices/pci0000:00/0000:00:02.0/usb3/3-6/3-6:1.0/input/input4
+U: Uniq=
+H: Handlers=mouse1 event4
+B: EV=17
+B: KEY=f0000 0 0 0 0
+B: REL=103
+B: MSC=10
+
+I: Bus=0003 Vendor=046a Product=0011 Version=0110
+N: Name="HID 046a:0011"
+P: Phys=usb-0000:00:04.0-6/input0
+S: Sysfs=/devices/pci0000:00/0000:00:04.0/usb4/4-6/4-6:1.0/input/input5
+U: Uniq=
+H: Handlers=kbd event5
+B: EV=120013
+B: KEY=1000000000007 ff800000000007ff febeffdff3cfffff fffffffffffffffe
+B: MSC=10
+B: LED=7
+
+I: Bus=0001 Vendor=10ec Product=0888 Version=0001
+N: Name="HDA Digital PCBeep"
+P: Phys=card0/codec#0/beep0
+S: Sysfs=/devices/pci0000:00/0000:00:07.0/input/input6
+U: Uniq=
+H: Handlers=kbd event6
+B: EV=40001
+B: SND=6
