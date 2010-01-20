@@ -1,252 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48]:52033 "EHLO
-	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751953Ab0AJTFH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jan 2010 14:05:07 -0500
-Received: from mail-in-04-z2.arcor-online.net (mail-in-04-z2.arcor-online.net [151.189.8.16])
-	by mx.arcor.de (Postfix) with ESMTP id 24F172AEEB4
-	for <linux-media@vger.kernel.org>; Sun, 10 Jan 2010 20:05:06 +0100 (CET)
-Received: from mail-in-05.arcor-online.net (mail-in-05.arcor-online.net [151.189.21.45])
-	by mail-in-04-z2.arcor-online.net (Postfix) with ESMTP id 189E0AC456
-	for <linux-media@vger.kernel.org>; Sun, 10 Jan 2010 20:05:06 +0100 (CET)
-Received: from [192.168.2.102] (dslb-094-222-026-034.pools.arcor-ip.net [94.222.26.34])
-	(Authenticated sender: stefan.ringel@arcor.de)
-	by mail-in-05.arcor-online.net (Postfix) with ESMTPA id D465E332BE5
-	for <linux-media@vger.kernel.org>; Sun, 10 Jan 2010 20:05:05 +0100 (CET)
-Message-ID: <4B4A24D2.4010203@arcor.de>
-Date: Sun, 10 Jan 2010 20:04:50 +0100
-From: Stefan Ringel <stefan.ringel@arcor.de>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Terratec Cinergy Hybrid XE (TM6010 Mediachip)
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Received: from smtp0.epfl.ch ([128.178.224.219]:53300 "HELO smtp0.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752565Ab0ATTBn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Jan 2010 14:01:43 -0500
+From: Valentin Longchamp <valentin.longchamp@epfl.ch>
+To: g.liakhovetski@gmx.de
+Cc: linux-media@vger.kernel.org,
+	Valentin Longchamp <valentin.longchamp@epfl.ch>
+Subject: [PATCH] MT9T031: write xskip and yskip at each set_params call
+Date: Wed, 20 Jan 2010 19:54:56 +0100
+Message-Id: <1264013696-11315-1-git-send-email-valentin.longchamp@epfl.ch>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hello linuxtv.org developers,
+This prevents the registers to be different to the computed values
+the second time you open the same camera with the sames parameters.
 
-I have the TerraTec Cinergy Hybrid XE. (idVendor=0x0ccd, idProduct=0x0086).
+The images were different between the first device open and the
+second one with the same parameters.
 
-lsusb:
+Signed-off-by: Valentin Longchamp <valentin.longchamp@epfl.ch>
+---
+ drivers/media/video/mt9t031.c |   17 ++++++++---------
+ 1 files changed, 8 insertions(+), 9 deletions(-)
 
-Bus 001 Device 004: ID 0ccd:0086 TerraTec Electronic GmbH 
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0 
-  bDeviceProtocol         0 
-  bMaxPacketSize0        64
-  idVendor           0x0ccd TerraTec Electronic GmbH
-  idProduct          0x0086 
-  bcdDevice            0.01
-  iManufacturer          16 
-  iProduct               32 
-  iSerial                64 0008CA123456
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength          129
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration         48 2.0
-    bmAttributes         0xa0
-      (Bus Powered)
-      Remote Wakeup
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           3
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol    255 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       1
-      bNumEndpoints           3
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol    255 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x1400  3x 1024 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0004  1x 4 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       2
-      bNumEndpoints           3
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol    255 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0004  1x 4 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       3
-      bNumEndpoints           3
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol    255 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x1400  3x 1024 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0 
-  bDeviceProtocol         0 
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0002
-  (Bus Powered)
-  Remote Wakeup Enabled
-
-
-I added this to testing in tm6000 kernmodul. If I
-build it without DVB, it's o.k., but I build it with DVB, it crashed (no
-demodulator found). I tested this stick under windows xp in vmware, host
-Linux client windows, with usb analyzer enable
-(www.stefanringel.de/pub/windows1.log.bz2).
-
-technical data:
-
-tm6010
-xc3028
-zl10353
-
-Windows driver UDXTTM6010.sys and Cinergy_Hybrid-Stick_hid.sys
-Stefan Ringel
-
+diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
+index a9061bf..e4a9095 100644
+--- a/drivers/media/video/mt9t031.c
++++ b/drivers/media/video/mt9t031.c
+@@ -17,6 +17,7 @@
+ #include <media/v4l2-chip-ident.h>
+ #include <media/soc_camera.h>
+ 
++
+ /*
+  * mt9t031 i2c address 0x5d
+  * The platform has to define i2c_board_info and link to it from
+@@ -337,15 +338,13 @@ static int mt9t031_set_params(struct i2c_client *client,
+ 	if (ret >= 0)
+ 		ret = reg_write(client, MT9T031_VERTICAL_BLANKING, vblank);
+ 
+-	if (yskip != mt9t031->yskip || xskip != mt9t031->xskip) {
+-		/* Binning, skipping */
+-		if (ret >= 0)
+-			ret = reg_write(client, MT9T031_COLUMN_ADDRESS_MODE,
+-					((xbin - 1) << 4) | (xskip - 1));
+-		if (ret >= 0)
+-			ret = reg_write(client, MT9T031_ROW_ADDRESS_MODE,
+-					((ybin - 1) << 4) | (yskip - 1));
+-	}
++	/* Binning, skipping */
++	if (ret >= 0)
++		ret = reg_write(client, MT9T031_COLUMN_ADDRESS_MODE,
++				((xbin - 1) << 4) | (xskip - 1));
++	if (ret >= 0)
++		ret = reg_write(client, MT9T031_ROW_ADDRESS_MODE,
++				((ybin - 1) << 4) | (yskip - 1));
+ 	dev_dbg(&client->dev, "new physical left %u, top %u\n",
+ 		rect->left, rect->top);
+ 
 -- 
-Stefan Ringel <stefan.ringel@arcor.de>
+1.6.3.3
 
