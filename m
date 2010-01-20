@@ -1,70 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:38532 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932159Ab0ASLIy (ORCPT
+Received: from mail-fx0-f225.google.com ([209.85.220.225]:46249 "EHLO
+	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751059Ab0ATDXh convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jan 2010 06:08:54 -0500
-Message-ID: <4B5592BF.8040201@infradead.org>
-Date: Tue, 19 Jan 2010 09:08:47 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Tue, 19 Jan 2010 22:23:37 -0500
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Douglas Landgraf <dougsland@gmail.com>
-Subject: Re: [ANNOUNCE] git tree repositories
-References: <4B55445A.10300@infradead.org> <201001190853.11050.hverkuil@xs4all.nl>
-In-Reply-To: <201001190853.11050.hverkuil@xs4all.nl>
+In-Reply-To: <4B56685E.9060909@gmail.com>
+References: <4B56685E.9060909@gmail.com>
+Date: Tue, 19 Jan 2010 22:23:36 -0500
+Message-ID: <829197381001191923i5d4e74belabaf6a7d9cbf7988@mail.gmail.com>
+Subject: Re: [PATCH] mxl5005s: bad checks of state->Mode
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Roel Kluin <roel.kluin@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	LKML <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
-> On Tuesday 19 January 2010 06:34:18 Mauro Carvalho Chehab wrote:
->> Hi,
+On Tue, Jan 19, 2010 at 9:20 PM, Roel Kluin <roel.kluin@gmail.com> wrote:
+> Regardless of the state->Mode in both cases the same value was
+> written.
+> If state->Mode wasn't set, it is always 0.
+>
+> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+> ---
+>  drivers/media/common/tuners/mxl5005s.c |    7 +++----
+>  1 files changed, 3 insertions(+), 4 deletions(-)
+>
+> Or were the ones and zeroes in these MXL_ControlWrite in the wrong place?
+>
+> diff --git a/drivers/media/common/tuners/mxl5005s.c b/drivers/media/common/tuners/mxl5005s.c
+> index 605e28b..3967412 100644
+> --- a/drivers/media/common/tuners/mxl5005s.c
+> +++ b/drivers/media/common/tuners/mxl5005s.c
+> @@ -1815,9 +1815,8 @@ static u16 MXL_BlockInit(struct dvb_frontend *fe)
+>
+>        /* Charge Pump Control Dig  Ana */
+>        status += MXL_ControlWrite(fe, RFSYN_CHP_GAIN, state->Mode ? 5 : 8);
+> -       status += MXL_ControlWrite(fe,
+> -               RFSYN_EN_CHP_HIGAIN, state->Mode ? 1 : 1);
+> -       status += MXL_ControlWrite(fe, EN_CHP_LIN_B, state->Mode ? 0 : 0);
+> +       status += MXL_ControlWrite(fe, RFSYN_EN_CHP_HIGAIN, 1);
+> +       status += MXL_ControlWrite(fe, EN_CHP_LIN_B, 0);
+>
+>        /* AGC TOP Control */
+>        if (state->AGC_Mode == 0) /* Dual AGC */ {
+> @@ -2161,7 +2160,7 @@ static u16 MXL_IFSynthInit(struct dvb_frontend *fe)
+>                }
+>        }
+>
+> -       if (state->Mode || (state->Mode == 0 && state->IF_Mode == 0)) {
+> +       if (state->Mode || state->IF_Mode == 0) {
+>                if (state->IF_LO == 57000000UL) {
+>                        status += MXL_ControlWrite(fe, IF_DIVVAL,   0x10);
+>                        status += MXL_ControlWrite(fe, IF_VCO_BIAS, 0x08);
 
->> Due to that, I'm delegating the task of keeping -hg in sync with upstream and backporting
->> patches to run on older kernels to another person: Douglas has offered his help to keep 
->> the tree synchronized with the -git tree, and to add backport support. 
->>
->> He already started doing that, fixing some incompatibility troubles between some drivers
->> and older kernels.
-> 
-> Mauro, I just wanted to thank you for doing all the hard work in moving to git!
+Roel,
 
-Anytime!
+Thanks for pointing this out.
 
-> I do have one proposal: parts of our hg tree are independent of git: v4l2-apps,
-> possibly some firmware build code (not 100% sure of that), v4l_experimental,
-> perhaps some documentation stuff. My proposal is that we make a separate hg
-> or git tree for those. It will make it easier to package by distros and it makes it
-> easier to maintain v4l2-apps et al as well. It might even simplify Douglas's work
-> by moving non-essential code out of the compat hg tree.
+This patch should not be applied.
 
-It may make sense, but I have some comments about it:
-	1) v4l_experimental - I think we may just drop it. It was meant to be a staging
-area in the old days, but never worked. The 3 drivers there never suffered any maintanership.
-Even the firewire driver that used to be there were developed independently. So, IMO, we can
-just remove it and, if anyone needs those drivers, they can just look inside the -hg history.
+While I agree with Roel's assessment that the logic is incorrect,
+removing the conditional logic and forcing the register writes to the
+given value is almost certainly the incorrect fix.  I will have to
+look at the datasheet and see what the logic is actually supposed to
+be.
 
-	2) firmware - the code there is just what we have in kernel. While this can be broken,
-I can't see much sense, as I don't foresee any changes there: new firmwares are going to
-linux-firmware tree and have an upstream maintainership in separate;
+Devin
 
-	3) media docs - the docs are part of upstream tree. So, it doesn't make sense to have
-a separate tree for it. IMO, the proper direction is to merge upstream the capability of 
-automatic generation of some xml scripts (like videobuf2.h.xml). Yet, there are a few files
-present on v4l2-apps that are also converted to xml, as they are usage examples at the API.
-I'm not sure what to do with them.
-
-	4) v4l2-apps - I agree that splitting it could be a good idea, provided that we find
-a way to handle the few cases where we have "example" applications at the media docs.
-> 
-> I'll be updating my daily build scripts to start using git soon (I'll keep using
-> hg for the older kernels of course).
-
-That's good! I always check if the -git compiles with x86_64, but I generally don't check
-all architectures on my checks.
-
-Cheers,
-Mauro.
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
