@@ -1,50 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2e.orange.fr ([80.12.242.112]:10084 "EHLO smtp2e.orange.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752645Ab0AUNUq convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2807 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754456Ab0ATULH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jan 2010 08:20:46 -0500
-From: Christophe Thommeret <hftom@free.fr>
-To: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Dump Complete DVB Stream, How to Dump Complete DVB Stream
-Date: Thu, 21 Jan 2010 14:20:08 +0100
-References: <fd9871421001210357i2f515829m2aad024173967b6a@mail.gmail.com>
-In-Reply-To: <fd9871421001210357i2f515829m2aad024173967b6a@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201001211420.08757.hftom@free.fr>
+	Wed, 20 Jan 2010 15:11:07 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id o0KKB28r060077
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 20 Jan 2010 21:11:02 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 20 Jan 2010 21:11:02 +0100 (CET)
+Message-Id: <201001202011.o0KKB28r060077@smtp-vbr11.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le jeudi 21 janvier 2010 12:57:00, dvbfreaky 007 a écrit :
-> Hi ,
-> Can any one suggest me on linux, How to capture/dump/Save complete DVB
-> Stream( Not elementary Streams).
-> 
-> To capture elementary stream, I know these
-> 1. dvbstream -f xxxxxx -o pid > /home/user/111/ts
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
--o 8192
+Results of the daily build of v4l-dvb:
 
-> 2. Through VLC also can able to store ( But i am not succeeding all times)
-> 3. Dumpstream option in mplayer
-> 
-> 
-> 
-> Is there any application to stream out (via RTP) complete DVB TS throughout
-> LAN??
-> Note: Not elementary Stream Out ( VLC does only Elementary Stream Out)
-> Can Any one help in this regard?
-> 
-> please throw your pointers.
-> 
-> Thanks in Advance,
-> Santhosh Kumar B
-> 
+date:        Wed Jan 20 19:00:05 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14014:e4429a1b736c
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
--- 
-Christophe Thommeret
+linux-2.6.30-armv5: OK
+linux-2.6.31-armv5: OK
+linux-2.6.32-armv5: OK
+linux-2.6.33-rc2-armv5: OK
+linux-2.6.32-armv5-davinci: WARNINGS
+linux-2.6.33-rc2-armv5-davinci: WARNINGS
+linux-2.6.30-armv5-ixp: WARNINGS
+linux-2.6.31-armv5-ixp: WARNINGS
+linux-2.6.32-armv5-ixp: WARNINGS
+linux-2.6.33-rc2-armv5-ixp: WARNINGS
+linux-2.6.30-armv5-omap2: WARNINGS
+linux-2.6.31-armv5-omap2: WARNINGS
+linux-2.6.32-armv5-omap2: WARNINGS
+linux-2.6.33-rc2-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-i686: WARNINGS
+linux-2.6.32-i686: WARNINGS
+linux-2.6.33-rc2-i686: WARNINGS
+linux-2.6.30-m32r: OK
+linux-2.6.31-m32r: OK
+linux-2.6.32-m32r: OK
+linux-2.6.33-rc2-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-mips: WARNINGS
+linux-2.6.32-mips: WARNINGS
+linux-2.6.33-rc2-mips: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-powerpc64: WARNINGS
+linux-2.6.32-powerpc64: WARNINGS
+linux-2.6.33-rc2-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-x86_64: WARNINGS
+linux-2.6.32-x86_64: WARNINGS
+linux-2.6.33-rc2-x86_64: WARNINGS
+spec: OK
+sparse (linux-2.6.32): ERRORS
+sparse (linux-2.6.33-rc2): ERRORS
+linux-2.6.16.61-i686: OK
+linux-2.6.17.14-i686: OK
+linux-2.6.18.8-i686: OK
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: OK
+linux-2.6.17.14-x86_64: OK
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
