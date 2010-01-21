@@ -1,48 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.wa.amnet.net.au ([203.161.124.51]:53761 "EHLO
-	smtp2.wa.amnet.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932131Ab0AWXRp (ORCPT
+Received: from csldevices.co.uk ([77.75.105.137]:47621 "EHLO
+	mhall.vps.goscomb.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755307Ab0AULcX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jan 2010 18:17:45 -0500
-Message-ID: <4B5B837A.6020001@barber-family.id.au>
-Date: Sun, 24 Jan 2010 07:17:14 +0800
-From: Francis Barber <fedora@barber-family.id.au>
+	Thu, 21 Jan 2010 06:32:23 -0500
+Received: from [212.49.228.51] (helo=[192.168.17.1])
+	by mhall.vps.goscomb.net with esmtp (Exim 4.63)
+	(envelope-from <phil@csldevices.co.uk>)
+	id 1NXuoQ-000206-Sp
+	for linux-media@vger.kernel.org; Thu, 21 Jan 2010 11:02:54 +0000
+Message-ID: <4B583459.3030909@csldevices.co.uk>
+Date: Thu, 21 Jan 2010 11:02:49 +0000
+From: Philip Downer <phil@csldevices.co.uk>
 MIME-Version: 1.0
-To: Steven Toth <stoth@kernellabs.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: New Hauppauge HVR-2200 Revision?
-References: <4B5B0E12.3090706@barber-family.id.au> <83bcf6341001230700h7db6600i89b9092051049612@mail.gmail.com>
-In-Reply-To: <83bcf6341001230700h7db6600i89b9092051049612@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: linux-media@vger.kernel.org
+Subject: Re: Conexant Systems, Inc. Hauppauge Inc. HDPVR-1250 model 1196 (rev
+ 04) [How to make it work?]
+References: <1264012191.4038.60.camel@urkkimylly>
+In-Reply-To: <1264012191.4038.60.camel@urkkimylly>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23/01/2010 11:00 PM, Steven Toth wrote:
->> I'm a confused by 8940 because this isn't listed in the hcw89.inf file on
->> the CD that shipped with the product (driver version 7.6.1.27118).  They
->> list 8900, 8901, 8980, 8991, 8993, 89A0, and 89A1.  I downloaded the latest
->> drivers from the website (7.6.27.27223) and this adds 8951 and 8953, but
->> still not 8940.
->>
->> The firmware shipped with 7.6.1.27118 is the same as is available on your
->> website, although they have updated it for 7.6.27.27223.
->>      
->    
->> If there is any other information that would be helpful please let me know.
->>      
-> Does this actually work under windows? It sounds like the driver
-> doesn't support it?
+Ukko Happonen wrote:
+> How do I make the TV tuner work?
 >
-> Regards,
->
->    
+> lspci -d 14f1:8880 -v says
+>         Kernel driver in use: cx23885
+>         Kernel modules: cx23885
+>   
 
-As expected, the card didn't work in Windows with either of those driver 
-versions.  However, hauppauge.com has different drivers to 
-hauppauge.co.uk!  The latest HVR2250 drivers from hauppauge.com, version 
-7.6.27.27323, include 8940 in the inf file.  This version installs fine 
-on Windows.
+Looks to me like it's already working.
 
-Regards,
-Frank.
+Do you have a /dev/dvb/adapter0 dir with anything in it? if so see 
+http://www.linuxtv.org/wiki/index.php/Testing_your_DVB_device
+
+Phil
