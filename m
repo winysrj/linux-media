@@ -1,62 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:52193 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750771Ab0AIEYc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Jan 2010 23:24:32 -0500
-Subject: Re: Leadtek WinFast PVR2100 linux support
-From: Andy Walls <awalls@radix.net>
-To: User discussion about IVTV <ivtv-users@ivtvdriver.org>
-Cc: dennisharrison@gmail.com, ivtv-devel@ivtvdriver.org,
-	linux-media@vger.kernel.org
-In-Reply-To: <1262958952.3054.17.camel@palomino.walls.org>
-References: <6e8b29e1001061428k39e3b2a6w825c8b8336f30b3e@mail.gmail.com>
-	 <1262826612.3065.30.camel@palomino.walls.org>
-	 <829197381001070753s3152f52ai788f675e0a0a3280@mail.gmail.com>
-	 <1262958952.3054.17.camel@palomino.walls.org>
-Content-Type: text/plain
-Date: Fri, 08 Jan 2010 23:24:02 -0500
-Message-Id: <1263011042.25440.6.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from postbode02.versateladsl.be ([212.53.5.92]:46189 "EHLO
+	postbode02.versateladsl.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751566Ab0AUJ40 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Jan 2010 04:56:26 -0500
+From: "Leopold Gouverneur" <lgouv@base.be>
+Date: Thu, 21 Jan 2010 10:49:43 +0100
+To: linux-media@vger.kernel.org
+Subject: Re: bt878 card: no sound and only xvideo support in 2.6.31 bttv
+ 0.9.18
+Message-ID: <20100121094943.GA2332@localhost.lan>
+References: <4B580AB2.6030005@brdo.cz>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4B580AB2.6030005@brdo.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2010-01-08 at 08:55 -0500, Andy Walls wrote:
-> On Thu, 2010-01-07 at 10:53 -0500, Devin Heitmueller wrote:
-> > On Wed, Jan 6, 2010 at 8:10 PM, Andy Walls <awalls@radix.net> wrote:
-> > >>   I am
-> > >> looking to setup a mythtv box in the house - and I am stuck on
-> > >> satellite.  The only way I can see to get hd content out of the
-> > >> receivers are hdmi and component.  My understanding is that no hdmi
-> > >> capture cards work properly under linux (hours of google - is all I
-> > >> have to go on for this though).  So that leaves component capture, and
-> > >> the leadtek pvr2100 would be the best bang for the buck (I think?).
-> > 
-> > It is probably worth noting that component capture does not
-> > necessarily mean HD component capture.  I suspect this card may very
-> > well only capture 480i/480p.
-> > 
-> > Do you know definitively that it can capture in HD?
+On Thu, Jan 21, 2010 at 09:05:06AM +0100, LiM wrote:
+> Hello,
 > 
-> Good point.  I'm pretty sure a CX23418 will only ever be able to capture
-> standard resolution using component video in.  Even if I could coax the
-> analog front end into an HD resolution configuration (doubtful), the
-> MPEG encoding engine is still expecting 720x576 as the max resolution
-> (PAL & SECAM).
+> i have the same problem as http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/11441 also with Hercules Smart TV Stereo ..
+> works OK audio+video on ..2.6.29-gentoo-r5 + bttv 0.9.17
+> but NO AUDIO on linux-2.6.31-gentoo-r6 + bttv 0.9.18
 > 
-> But component video for cx18 might still be a project I undertake
-> sometime.
-
-And here's my first stab at cx18 component video:
-
-	http://linuxtv.org/hg/~awalls/cx18-pvr2100-component
-
-for both the Leadtek PVR2100 and DVR3100 H.  It was a little easier than
-I had thought.
-
-Anyone with one of those boards with the component video hookup, please
-give it a test.
-
-Regards,
-Andy
-
+> cat /etc/modprobe.d/bttv.conf
+> options tvaudio tda9874a=1 tda9874a_STD=0
+> options bttv radio=0 card=100 tuner=29 gbuffers=14 i2c_udelay=128 pll=1
+> autoload=1
+> 
+> 2.6.29-gentoo-r5 + bttv 0.9.17
+> bttv: driver version 0.9.17 loaded
+> bttv: using 14 buffers with 2080k (520 pages) each for capture
+> bttv: Bt8xx card found (0).
+> bttv 0000:04:01.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
+> bttv0: Bt878 (rev 17) at 0000:04:01.0, irq: 16, latency: 64, mmio:
+> 0xf8ffe000
+> bttv0: using: Hercules Smart TV Stereo [card=100,insmod option]
+> IRQ 16/bttv0: IRQF_DISABLED is not guaranteed on shared IRQs
+> bttv0: gpio: en=00000000, out=00000000 in=00ffffff [init]
+> tvaudio' 6-0058: found tda9874a.
+> tvaudio' 6-0058: tda9874h/a found @ 0xb0 (bt878 #0 [sw])
+> tvaudio' 6-004b: pic16c54 (PV951) found @ 0x96 (bt878 #0 [sw])
+> bttv0: tuner type=29
+> bttv0: i2c: checking for TDA9875 @ 0xb0... found
+> bttv0: i2c: checking for TDA7432 @ 0x8a... not found
+> All bytes are equal. It is not a TEA5767
+> tuner' 6-0060: chip found @ 0xc0 (bt878 #0 [sw])
+> tuner-simple 6-0060: creating new instance
+> tuner-simple 6-0060: type set to 29 (LG PAL_BG (TPI8PSB11D))
+> bttv0: registered device video1
+> bttv0: registered device vbi0
+> bttv0: PLL: 28636363 => 35468950 .. ok
+> 
+> linux-2.6.31-gentoo-r6 + bttv 0.9.18
+> bttv: driver version 0.9.18 loaded
+> bttv: using 14 buffers with 2080k (520 pages) each for capture
+> bttv: Bt8xx card found (0).
+> bttv0: Bt878 (rev 17) at 0000:04:01.0, irq: 16, latency: 64, mmio:
+> 0xf8ffe000
+> bttv0: using: Hercules Smart TV Stereo [card=100,insmod option]
+> IRQ 16/bttv0: IRQF_DISABLED is not guaranteed on shared IRQs
+> bttv0: gpio: en=00000000, out=00000000 in=00ffffff [init]
+> bttv0: tuner type=29
+> tvaudio 0-0058: found tda9874a.
+> tvaudio 0-0058: tda9874h/a found @ 0xb0 (bt878 #0 [sw])
+> All bytes are equal. It is not a TEA5767
+> tuner 0-0060: chip found @ 0xc0 (bt878 #0 [sw])
+> tuner-simple 0-0060: creating new instance
+> tuner-simple 0-0060: type set to 29 (LG PAL_BG (TPI8PSB11D))
+> bttv0: registered device video0
+> bttv0: registered device vbi0
+> bttv0: PLL: 28636363 => 35468950 .
+> bttv0: PLL: 28636363 => 35468950 .
+> bttv0: PLL: 28636363 => 35468950 . ok
+> 
+> 
+> I think problem is in new bttv driver, in modules is new options
+> audiodev and tvaudio is loading with bttv? and this line:
+> "tvaudio' 6-004b: pic16c54 (PV951) found @ 0x96 (bt878 #0 [sw])"
+> is only with older bttv.
+> 
+> modinfo -k 2.6.31-gentoo-r6 bttv
+> ---cut--
+> parm:           autoload:obsolete option, please do not use anymore (int)
+> parm:           audiodev:specify audio device:
+>         -1 = no audio
+>          0 = autodetect (default)
+>          1 = msp3400
+>          2 = tda7432
+>          3 = tvaudio (array of int)
+> ---cut--
+> 
+> How can i load module with new bttv to get sound working?
+> 
+> rdgs
+> 
+> Michal Vesely
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+For my Hercules Smart TV card sound also disappeared after 2.6.29
+with the message:"bttv0: audio absent, no audio device found!"
+I have bisected the problem to commit 859f0277a6c3ba59b0a5a1eb183f8f6ce661a95d:
+ "bttv: convert to v4l2_subdev since i2c autoprobing will disappear"
+If I revert this everything works again
+ 
+ 
