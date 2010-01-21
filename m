@@ -1,64 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acorn.exetel.com.au ([220.233.0.21]:34322 "EHLO
-	acorn.exetel.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751941Ab0ADE1x (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jan 2010 23:27:53 -0500
-Message-ID: <2088.115.70.135.213.1262579258.squirrel@webmail.exetel.com.au>
-In-Reply-To: <1328.64.213.30.2.1260920972.squirrel@webmail.exetel.com.au>
-References: <33305.64.213.30.2.1259216241.squirrel@webmail.exetel.com.au>
-    <50104.115.70.135.213.1259224041.squirrel@webmail.exetel.com.au>
-    <702870ef0911260137r35f1784exc27498d0db3769c2@mail.gmail.com>
-    <56069.115.70.135.213.1259234530.squirrel@webmail.exetel.com.au>
-    <46566.64.213.30.2.1259278557.squirrel@webmail.exetel.com.au>
-    <702870ef0912010118r1e5e3been840726e6364d991a@mail.gmail.com>
-    <829197380912020657v52e42690k46172f047ebd24b0@mail.gmail.com>
-    <36364.64.213.30.2.1260252173.squirrel@webmail.exetel.com.au>
-    <1328.64.213.30.2.1260920972.squirrel@webmail.exetel.com.au>
-Date: Mon, 4 Jan 2010 15:27:38 +1100 (EST)
-Subject: Re: [RESEND] Re: DViCO FusionHDTV DVB-T Dual Digital 4 (rev 1)     
-      tuning      regression
-From: "Robert Lowery" <rglowery@exemail.com.au>
-To: mchehab@redhat.com
-Cc: "Devin Heitmueller" <dheitmueller@kernellabs.com>,
-	"Vincent McIntyre" <vincent.mcintyre@gmail.com>,
-	terrywu2009@gmail.com, awalls@radix.net,
-	linux-media@vger.kernel.org
+Received: from mail-px0-f182.google.com ([209.85.216.182]:58647 "EHLO
+	mail-px0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751702Ab0AUCqf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Jan 2010 21:46:35 -0500
+Received: by pxi12 with SMTP id 12so6186081pxi.33
+        for <linux-media@vger.kernel.org>; Wed, 20 Jan 2010 18:46:34 -0800 (PST)
+Date: Wed, 20 Jan 2010 18:46:05 -0800
+From: Brandon Philips <brandon@ifup.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Douglas Landgraf <dougsland@gmail.com>
+Subject: Re: [ANNOUNCE] git tree repositories & libv4l
+Message-ID: <20100121024605.GK4015@jenkins.home.ifup.org>
+References: <4B55445A.10300@infradead.org>
+ <201001190853.11050.hverkuil@xs4all.nl>
+ <4B5592BF.8040201@infradead.org>
+ <4B56C078.8000502@redhat.com>
+ <12e7fb96118720cc47555e3a12a5fd53.squirrel@webmail.xs4all.nl>
+ <4B57241E.2060107@infradead.org>
+ <4B575068.8050105@redhat.com>
+ <20100120210740.GJ4015@jenkins.home.ifup.org>
+ <4B57B6E4.2070500@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4B57B6E4.2070500@infradead.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Mauro,
->
-> I've split the revert2.diff that I sent you previously to fix the tuning
-> regression on my DViCO Dual Digital 4 (rev 1) into three separate patches
-> that will hopefully allow you to review more easily.
->
-> The first two patches revert their respective changesets and nothing else,
-> fixing the issue for me.
-> 12167:966ce12c444d tuner-xc2028: Fix 7 MHz DVB-T
-> 11918:e6a8672631a0 tuner-xc2028: Fix offset frequencies for DVB @ 6MHz
->
-> The third patch does what I believe is the obvious equivalent fix to
-> e6a8672631a0 but without the cleanup that breaks tuning on my card.
->
-> Please review and merge
->
-> Signed-off-by: Robert Lowery <rglowery@exemail.com.au>
+On 00:07 Thu 21 Jan 2010, Mauro Carvalho Chehab wrote:
+> Brandon Philips wrote:
+> > On 19:50 Wed 20 Jan 2010, Hans de Goede wrote:
+> >> On 01/20/2010 04:41 PM, Mauro Carvalho Chehab wrote:
+> >>> As we're discussing about having a separate tree for v4l2-apps,
+> >>> maybe the better is to port it to -git (in a way that we can
+> >>> preserve the log history).
+> > 
+> > I have a small script I used to convert the history of libv4l to
+> > git. Let me know when we are ready to drop them from the hg tree
+> > and I can do the conversion and post the result for review.
+> > 
+> > This is the result from the script for just libv4l:
+> >  http://ifup.org/git/?p=libv4l.git;a=summary
+> 
+> Seems fine, but we need to import the entire v4l2-apps.
 
-Mauro,
+Yes, I know. I will run the script over v4l2-apps to generate a git
+repo once v4l2-apps is ready to be dropped from v4l-dvb mercurial and
+we figure out the directory layout.
 
-I'm yet to receive a response from you on this clear regression introduced
-in the 2.6.31 kernel.  You attention would be appreciated
+Doing it before is just a waste of time since they will get out of
+sync.
 
-Thanks
+> > Also, I suggest we call the repo v4lutils? In the spirit of
+> > usbutils, pciutils, etc.
+> 
+> Hmm... as dvb package is called as dvb-utils, it seems more logical to call it
+> v4l2-utils, but v4l2utils would equally work.
 
--Rob
->
-> Thanks
->
-> -Rob
->
+Yes, that is fine.
 
+> IMO, the better is to use v4l2 instead of just v4l, to avoid causing
+> any mess with the old v4l applications provided with xawtv.
 
+The problem I saw was that libv4l1 will be in v4l2-utils. I don't care
+either way though.
+
+So here is how I see v4l-utils.git being laid out based on what others
+have said:
+
+ libv4l1/
+ libv4l2/
+ libv4lconvert/
+ test/
+ v4l2-dbg/
+ contrib/
+  qv4l2-qt3/
+  qv4l2-qt4/
+  cx25821/
+  etc... everything else
+
+Are there things in v4l2-apps that should be imported? Other suggestions?
+
+Cheers,
+
+	Brandon
