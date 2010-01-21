@@ -1,42 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225]:46770 "EHLO
-	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751917Ab0ANJ5G (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:35397 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751551Ab0AUDJo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jan 2010 04:57:06 -0500
-Received: by fxm25 with SMTP id 25so293424fxm.21
-        for <linux-media@vger.kernel.org>; Thu, 14 Jan 2010 01:57:03 -0800 (PST)
+	Wed, 20 Jan 2010 22:09:44 -0500
+Message-ID: <4B57C572.4070407@infradead.org>
+Date: Thu, 21 Jan 2010 01:09:38 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-In-Reply-To: <f74f98341001140147u7f5f1e91ga6ae3a06e23360@mail.gmail.com>
-References: <f74f98341001132335p562b189duda4478cb62a7549a@mail.gmail.com>
-	 <bc1576c0e8d05b415e03292a4640021e.squirrel@webmail.xs4all.nl>
-	 <f74f98341001140147u7f5f1e91ga6ae3a06e23360@mail.gmail.com>
-Date: Thu, 14 Jan 2010 13:57:02 +0400
-Message-ID: <1a297b361001140157g49f7738agfefe47b7c84c5a0b@mail.gmail.com>
-Subject: Re: About driver architecture
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Michael Qiu <fallwind@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>
+To: Trent Piepho <xyzzy@speakeasy.org>
+CC: Johannes Stezenbach <js@linuxtv.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Douglas Landgraf <dougsland@gmail.com>
+Subject: Re: [ANNOUNCE] git tree repositories
+References: <4B55445A.10300@infradead.org> <20100119215938.GA10958@linuxtv.org> <4B57B9A1.5080506@infradead.org> <Pine.LNX.4.58.1001201847530.4729@shell2.speakeasy.net>
+In-Reply-To: <Pine.LNX.4.58.1001201847530.4729@shell2.speakeasy.net>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 14, 2010 at 1:47 PM, Michael Qiu <fallwind@gmail.com> wrote:
-> Thanks for you reply.
->
-> The SOC is still under development stage, it's not a product yet. And
-> a small mistake I've made, the tuner will not integrated into the SOC.
-> The demod might be.
+Trent Piepho wrote:
+> On Thu, 21 Jan 2010, Mauro Carvalho Chehab wrote:
+>>> OTOH, since with git it is common to have multiple branches
+>>> within one repository, I'm not sure how it works. It would
+>>> be cool if git would support per-branch descriptions,
+>>> and git web could display them.
+>> I don't think git supports it. In kernel.org, people prefer to
+>> use more than one repository when they have more than one
+>> need.
+> 
+> stgit lets me set descriptions for each branch.  The descriptions are there
+> under the branch in the config file.  I don't think git-branch shows any
+> kind of description for the branch.
+stgit is a very interesting git porcelain. I used it a lot when I started with git.
+It were very useful at the time git weren't implementing tools like rebase. 
 
+However, stgit produces objects that aren't referenced, generating errors when 
+you run "git fsck". So, I don't recomend using stgit anymore.
 
-You mean a similar scheme as in the STi7111.
-http://www.st.com/stonline/products/literature/bd/14287.pdf
-
-It is a standard approach used in DVB STB's. Recently the decoders are
-being builtin with the DVB demodulators to have more control as well
-as to reduce the complexity of the hardware and software and
-eventually the cost.
-
-Regards,
-Manu
+Cheers,
+Mauro
