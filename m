@@ -1,119 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:64249 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750908Ab0APNGz convert rfc822-to-8bit (ORCPT
+Received: from mail-fx0-f220.google.com ([209.85.220.220]:54123 "EHLO
+	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752129Ab0AUPQN convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jan 2010 08:06:55 -0500
-Received: by bwz27 with SMTP id 27so1194862bwz.21
-        for <linux-media@vger.kernel.org>; Sat, 16 Jan 2010 05:06:53 -0800 (PST)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Andy Walls <awalls@radix.net>
-Subject: Re: Need testers: cx23885 IR Rx for TeVii S470 and HVR-1250
-Date: Sat, 16 Jan 2010 15:06:35 +0200
-Cc: linux-media@vger.kernel.org,
-	Andreas Tschirpke <andreas.tschirpke@gmail.com>,
-	Matthias Fechner <idefix@fechner.net>, stoth@kernellabs.com
-References: <1263614561.6084.15.camel@palomino.walls.org>
-In-Reply-To: <1263614561.6084.15.camel@palomino.walls.org>
+	Thu, 21 Jan 2010 10:16:13 -0500
+Received: by fxm20 with SMTP id 20so86981fxm.1
+        for <linux-media@vger.kernel.org>; Thu, 21 Jan 2010 07:16:11 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="koi8-r"
+In-Reply-To: <4B583459.3030909@csldevices.co.uk>
+References: <1264012191.4038.60.camel@urkkimylly>
+	 <4B583459.3030909@csldevices.co.uk>
+Date: Thu, 21 Jan 2010 10:16:10 -0500
+Message-ID: <829197381001210716u654f5d8boa1e13932cdd1eba6@mail.gmail.com>
+Subject: Re: Conexant Systems, Inc. Hauppauge Inc. HDPVR-1250 model 1196 (rev
+	04) [How to make it work?]
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Philip Downer <phil@csldevices.co.uk>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <201001161506.35580.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 16 ÑÎ×ÁÒÑ 2010 06:02:41 Andy Walls wrote:
-> Hi,
+On Thu, Jan 21, 2010 at 6:02 AM, Philip Downer <phil@csldevices.co.uk> wrote:
+> Ukko Happonen wrote:
+>>
+>> How do I make the TV tuner work?
+>>
+>> lspci -d 14f1:8880 -v says
+>>        Kernel driver in use: cx23885
+>>        Kernel modules: cx23885
+>>
 >
-> I've got reworked changes for the IR for the TeVii S470 and the HVR-1250
-> at
+> Looks to me like it's already working.
 >
-> 	http://linuxtv.org/hg/~awalls/cx23885-ir2
->
-> Thanks to loaner HVR-1250 hardware from Devin Heitmueller,
-> I've solved the infinite interrupt problem with the CX23885 AV core and
-> have reworked the change set against the latest v4l-dvb.
->
-> Please test.
->
-> Note
->
-> 1. the parameters for the IR controller setup in
-> linux/drivers/video/cx23885-input.c may need to be tweaked to set the
-> proper "params.modulation" and "params.invert_level" before you get
-> keypresses decoded.
->
-> 2. I guessed at a reasonable set of remote keycodes for the TeVii S470,
-> so don't be surprised if the button mapping isn't quite right.
->
-> 3.  These module settings may be helpful for debug and test:
->
->        # modprobe cx25840 debug=2 ir_debug=2
->        # modprobe cx23885 debug=7
->
-> Also directing "kern.*" messages to /var/log/messages
-> in /etc/rsyslogd.conf and giving rsyslod a SIGHUP may be helpful for
-> capturing the messages.
->
-> 4.  In case I didn't fix the infinite interrupts problem for the TeVii
-> S470: Before testing, blacklist the cx23885 module
-> in /etc/modprobe.d/blacklist, so that when you reboot, the module
-> doesn't automatically load.  If your system seems to be very busy with
-> inifinite interrupts upon cx23885 module load, stop testing (and let me
-> know).
->
-> Regards,
-> Andy
-However, modprobe cx23885 card=3
-and RC5 remote gives some events.
+> Do you have a /dev/dvb/adapter0 dir with anything in it? if so see
+> http://www.linuxtv.org/wiki/index.php/Testing_your_DVB_device
 
-cx25840 3-0044: IRQ Status:  tsr rsr     ror     rby
-cx25840 3-0044: IRQ Enables:     rse rte roe
-cx25840 3-0044: IR receiver hardware FIFO overrun
-cx25840 3-0044: AV Core IRQ status (exit):           
-cx25840 3-0044: AV Core IRQ status (entry): ir        
-cx25840 3-0044: IRQ Status:  tsr rsr     ror     rby
-cx25840 3-0044: IRQ Enables:     rse rte roe
-cx25840 3-0044: IR receiver hardware FIFO overrun
-cx25840 3-0044: AV Core IRQ status (exit):           
-cx25840 3-0044: AV Core IRQ status (entry): ir        
-cx25840 3-0044: IRQ Status:  tsr rsr             rby
-cx25840 3-0044: IRQ Enables:     rse rte roe
-cx25840 3-0044: AV Core IRQ status (exit):           
-cx25840 3-0044: AV Core IRQ status (entry): ir        
-cx25840 3-0044: IRQ Status:  tsr rsr     ror     rby
-cx25840 3-0044: IRQ Enables:     rse rte roe
-cx25840 3-0044: IR receiver hardware FIFO overrun
-cx25840 3-0044: AV Core IRQ status (exit):           
-cx25840 3-0044: AV Core IRQ status (entry): ir        
-cx25840 3-0044: IRQ Status:  tsr rsr rto            
-cx25840 3-0044: IRQ Enables:     rse rte roe
-cx25840 3-0044: AV Core IRQ status (exit):           
-cx25840 3-0044: rx read:    1605444 ns  space
-cx25840 3-0044: rx read:    1748852 ns  mark
-cx25840 3-0044: rx read:    1618778 ns  space
-cx25840 3-0044: rx read:    1713000 ns  mark
-cx25840 3-0044: rx read: end of rx
-cx25840 3-0044: AV Core IRQ status (entry): ir        
-cx25840 3-0044: IRQ Status:  tsr rsr rto ror        
-cx25840 3-0044: IRQ Enables:     rse rte roe
-cx25840 3-0044: IR receiver hardware FIFO overrun
-cx25840 3-0044: AV Core IRQ status (exit):           
-cx25840 3-0044: rx read:     779667 ns  space
-cx25840 3-0044: rx read:    1737741 ns  mark
-cx25840 3-0044: rx read:    1618630 ns  space
-cx25840 3-0044: rx read:    1737593 ns  mark
-cx25840 3-0044: rx read:    1618630 ns  space
-cx25840 3-0044: rx read:    1738481 ns  mark
-cx25840 3-0044: rx read:    1617889 ns  space
-cx25840 3-0044: rx read:    1738926 ns  mark
-cx25840 3-0044: AV Core IRQ status (entry): ir        
-cx25840 3-0044: IRQ Status:  tsr rsr rto ror        
-cx25840 3-0044: IRQ Enables:     rse rte roe
-cx25840 3-0044: IR receiver hardware FIFO overrun
+Hey Phil,
+
+I worked to him a bit on IRC yesterday.  The only reason that the
+cx23885 was loaded was because he forced a modprobe with a card number
+(with an arbitrary card, btw).
+
+This looks like an Avermedia OEM version of the HVR-1200, but I would
+not be able to say for certain without taking a good look at the card.
+
+In order to get this working, a developer would probably have to work
+through the driver to build a card profile.
+
+Cheers,
+
+Devin
 
 -- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
