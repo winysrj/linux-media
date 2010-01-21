@@ -1,53 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51214 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751275Ab0AXXwt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jan 2010 18:52:49 -0500
-Message-ID: <4B5CDD4A.5060800@iki.fi>
-Date: Mon, 25 Jan 2010 01:52:42 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from fg-out-1718.google.com ([72.14.220.152]:37037 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751795Ab0AUMH6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Jan 2010 07:07:58 -0500
+Received: by fg-out-1718.google.com with SMTP id 16so1350991fgg.1
+        for <linux-media@vger.kernel.org>; Thu, 21 Jan 2010 04:07:56 -0800 (PST)
 MIME-Version: 1.0
-To: Jiri Slaby <jirislaby@gmail.com>
-CC: Jiri Slaby <jslaby@suse.cz>, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/4] media: dvb/af9015, implement eeprom hashing
-References: <4B4F6BE5.2040102@iki.fi> <1264173055-14787-1-git-send-email-jslaby@suse.cz> <4B5C7258.1010605@iki.fi> <4B5C76B8.4090700@gmail.com>
-In-Reply-To: <4B5C76B8.4090700@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <135ab3ff1001210155qad2c794rf6781c4ac28159c7@mail.gmail.com>
+References: <135ab3ff1001200926j9917d69x51eede94512fa664@mail.gmail.com>
+	 <829197381001201000x58aadea5wab0948691d9a4c4f@mail.gmail.com>
+	 <135ab3ff1001210155qad2c794rf6781c4ac28159c7@mail.gmail.com>
+Date: Thu, 21 Jan 2010 13:07:56 +0100
+Message-ID: <d9def9db1001210407s6f14d637x1e32d34f7193a188@mail.gmail.com>
+Subject: Re: Drivers for Eyetv hybrid
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Morten Friesgaard <friesgaard@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/24/2010 06:35 PM, Jiri Slaby wrote:
-> On 01/24/2010 05:16 PM, Antti Palosaari wrote:
->>> +    af9015_config.eeprom_sum = 0;
->>> +    for (reg = 0; reg<   eeprom_size / sizeof(u32); reg++) {
->>> +        af9015_config.eeprom_sum *= GOLDEN_RATIO_PRIME_32;
->>> +        af9015_config.eeprom_sum += le32_to_cpu(((u32 *)eeprom)[reg]);
->>> +    }
->>> +
->>> +    deb_info("%s: eeprom sum=%.8x\n", __func__,
->>> af9015_config.eeprom_sum);
->>
->> Does this sum contain all 256 bytes from EEPROM? 256/4 is 64.
+On Thu, Jan 21, 2010 at 10:55 AM, Morten Friesgaard
+<friesgaard@gmail.com> wrote:
+> To bad. I bought this tuner because of the cross platform compability :-/
 >
-> Yes it does. It is computed as a hashed sum of 32-bit numbers (4 bytes)
-> -- speed (does not matter) and larger space of hashes. Hence the
-> division by 4. The cast does the trick: ((u32 *)eeprom)[reg] -- reg
-> index is on a 4-byte basis.
+> Well, it looks awfully alot like the TerraTec H5, would there be a
+> driver this one?
+> http://www.terratec.net/en/products/TerraTec_H5_83188.html
+>
 
+just fyi. this Terratec device is not supported. We've been working on
+a device with equivalent features
+(DVB-T/C/AnalogTV/VBI/Composite/S-Video/FM-Radio/RDS/Remote Control)
+http://support.sundtek.com/index.php/topic,4.0.html
+We are also integrating additional flexible USB CI support for it.
 
-OK, true. Anyhow, I don't know if this hashing formula is good enough - 
-changing it later could be really pain. I compared it to the one used 
-for em28xx driver and it was different. Could someone with better 
-knowledge check that?
-
-Generally it is good and ready for submission.
-
-Acked-by: Antti Palosaari <crope@iki.fi>
-
-regards
-Antti
--- 
-http://palosaari.fi/
+Best Regards,
+Markus Rechberger
