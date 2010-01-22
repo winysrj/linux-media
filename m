@@ -1,105 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpjizak.jmnet.cz ([78.108.106.244]:42794 "EHLO
-	smtpjizak.jmnet.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752045Ab0ADXyK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jan 2010 18:54:10 -0500
-Received: from localhost (wolf01 [127.0.0.1])
-	by smtpjizak.jmnet.cz (Postfix) with ESMTP id 3AD96C0A002
-	for <linux-media@vger.kernel.org>; Tue,  5 Jan 2010 00:54:06 +0100 (CET)
-Received: from smtpjizak.jmnet.cz ([78.108.106.244])
-	by localhost (mail.jiznak.czf [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id 0WQ-z5VSDisy for <linux-media@vger.kernel.org>;
-	Tue,  5 Jan 2010 00:54:04 +0100 (CET)
-Received: from [10.38.38.138] (pixla.hellnet.jiznak.czf [10.38.38.138])
-	by smtpjizak.jmnet.cz (Postfix) with ESMTP id 128A6C0A053
-	for <linux-media@vger.kernel.org>; Tue,  5 Jan 2010 00:54:04 +0100 (CET)
-Subject: Re: DVBWorld DVB-S2 2005 PCI-Express Card
-From: Jakub =?UTF-8?Q?L=C3=A1zni=C4=8Dka?= <jakub@jiznak.cz>
-To: linux-media@vger.kernel.org
-In-Reply-To: <8cd7f1781001040337q71c3cafcl9a2a4c6e77502ce6@mail.gmail.com>
-References: <1262390254.8927.15.camel@sirius>
-	 <8cd7f1781001040337q71c3cafcl9a2a4c6e77502ce6@mail.gmail.com>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-LC9YuAdI0V1Q1/uFAH7+"
-Date: Tue, 05 Jan 2010 00:54:03 +0100
-Message-Id: <1262649243.15593.9.camel@sirius>
-Mime-Version: 1.0
+Received: from mail-fx0-f220.google.com ([209.85.220.220]:63141 "EHLO
+	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755123Ab0AVXbK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jan 2010 18:31:10 -0500
+Received: by fxm20 with SMTP id 20so1900797fxm.21
+        for <linux-media@vger.kernel.org>; Fri, 22 Jan 2010 15:31:08 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4B4A0C95.5000804@sgtwilko.f9.co.uk>
+References: <3f3a053b1001021407k6ce936b8gd7d3e575a25e734d@mail.gmail.com>
+	 <3f3a053b1001021411i2e9484d7rd2d13f1a355939fe@mail.gmail.com>
+	 <846899811001021455u28fccb5cr66fd4258d3dddd4d@mail.gmail.com>
+	 <d9def9db1001091811s6dbed557vfca9ce410e41d3d3@mail.gmail.com>
+	 <4B49D1A4.4040702@gmail.com>
+	 <1a297b361001100535u1875de01jfe2b724c6643dfc0@mail.gmail.com>
+	 <846899811001100728x27eaf4faqd83373dd16ef58d3@mail.gmail.com>
+	 <4B4A0C95.5000804@sgtwilko.f9.co.uk>
+Date: Sat, 23 Jan 2010 03:31:06 +0400
+Message-ID: <1a297b361001221531q4a2726ecm5952379c6ef08182@mail.gmail.com>
+Subject: Re: CI USB
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Ian Wilkinson <null@sgtwilko.f9.co.uk>
+Cc: HoP <jpetrous@gmail.com>, Emmanuel <eallaud@gmail.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Sun, Jan 10, 2010 at 9:21 PM, Ian Wilkinson <null@sgtwilko.f9.co.uk> wrote:
+> HoP wrote:
+>
+> I don't know the details into the USB device, but each of those CAM's
+> have bandwidth limits on them and they vary from one CAM to the other.
+> Also, there is a limit on the number of simultaneous PID's that which
+> you can decrypt.
+>
+> Some allow only 1 PID, some allow 3. Those are the basic CAM's for
+> home usage.The most expensive CAM's allow a maximum of 24 PID's. But
+>
+>
+> You, of course, ment number of descramblers not PIDS because it is evident
+> that getting TV service descrambled, you need as minimum 2 PIDS for A/V.
+>
+> Anyway, it is very good note. Users, in general, don't know about it.
+>
 
---=-LC9YuAdI0V1Q1/uFAH7+
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+If it is using a CI+ plus chip (I heard from someone that it is a CI+
+chip inside) :
+http://www.smardtv.com/index.php?page=ciplus
 
-I think that`s not the same problem, maybe similar as you wrote. All 4
-cards are same type. But only last one (if i write to shell #modprobe
-cx23885) works and show in /dev/dvb .=20
-Maybe it`s driver problem (doesn`t like more cards?).=20
+After reading the CI+ specifications, I doubt that it can be supported
+under Linux with open source support, without a paired decoder
+hardware or software decoder. A paired open source software decoder
+seems highly unlikely, as the output of the CI+ module is eventually
+an encrypted stream which can be descrambled with the relevant keys.
+The TS is not supposed to be stored on disk, or that's what the whole
+concept is for CI+
 
-Jakub.
+http://www.ci-plus.com/data/ci-plus_overview_v2009-07-06.pdf
 
+See pages 7, 8 , 12, 15
 
-Leszek Koltunski p=C3=AD=C5=A1e v Po 04. 01. 2010 v 19:37 +0800:
-> I have a very similar problem with DVBWorld 2006 DVB-S2 card.
-> The v4l-dvb ( freshly pulled ) compiles and loads, firmware is loaded,
-> but when I actually try to use it ( dvbstream commands ) the following
-> appears in /var/log/messages:
->=20
-> Jan  4 18:30:24 november kernel: i2c_sendbytes: i2c error NAK or timeout =
-occur
-> Jan  4 18:30:24 november kernel: ds3000_readreg: reg=3D0xd1(error=3D-1)
-> Jan  4 18:30:25 november kernel: i2c_sendbytes: i2c error NAK or timeout =
-occur
-> Jan  4 18:30:25 november kernel: ds3000_readreg: reg=3D0xd1(error=3D-1)
-> Jan  4 18:30:25 november kernel: i2c_sendbytes: i2c error NAK or timeout =
-occur
-> Jan  4 18:30:25 november kernel: ds3000_writereg: writereg error(err
-> =3D=3D -1, reg =3D=3D 0xf9, value =3D=3D 0x04)
-> Jan  4 18:30:25 november kernel: i2c_sendbytes: i2c error NAK or timeout =
-occur
-> Jan  4 18:30:25 november kernel: ds3000_readreg: reg=3D0xf8(error=3D-1)
-> Jan  4 18:30:25 november kernel: i2c_sendbytes: i2c error NAK or timeout =
-occur
-> Jan  4 18:30:25 november kernel: ds3000_writereg: writereg error(err
-> =3D=3D -1, reg =3D=3D 0x03, value =3D=3D 0x12)
-> Jan  4 18:30:25 november kernel: i2c_sendbytes: i2c error NAK or timeout =
-occur
-> Jan  4 18:30:25 november kernel: ds3000_tuner_readreg: reg=3D0x3d(error=
-=3D-1)
-> Jan  4 18:30:25 november kernel: i2c_sendbytes: i2c error NAK or timeout =
-occur
-> Jan  4 18:30:25 november kernel: ds3000_writereg: writereg error(err
-> =3D=3D -1, reg =3D=3D 0x03, value =3D=3D 0x12)
-> Jan  4 18:30:25 november kernel: i2c_sendbytes: i2c error NAK or timeout =
-occur
-> Jan  4 18:30:25 november kernel: ds3000_tuner_readreg: reg=3D0x21(error=
-=3D-1)
->=20
-> ... and many more of this.
->=20
-> Actually I have to say I already tried DVBWorld 2006, NetUP dual
-> DVB-S2 and TwinHan VP-1041 ( like the Technisat card ) but no success
-> at all. DVBWorld is giving me errors like above, NetUP's driver loads
-> but doesn't want to tune to anything, Twinhan can tune to one
-> transponder and scan the channels but for reasons far beyond me fails
-> to tune to anything else.
->=20
-> DVB-T ( Leadtek WinFast ) is working for me perfectly, but DVB-S is an
-> exercise in frustration...
+It could be possible to pair a software decoder with a key and hence
+under Windows, but under Linux I would really doubt it, if it happens
+to be a CI+ chip
 
---=-LC9YuAdI0V1Q1/uFAH7+
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Toto je =?UTF-8?Q?digit=C3=A1ln=C4=9B?=
- =?ISO-8859-1?Q?_podepsan=E1?= =?UTF-8?Q?_=C4=8D=C3=A1st?=
- =?ISO-8859-1?Q?_zpr=E1vy?=
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEABECAAYFAktCf5kACgkQXR2LPE1XFYtFNwCfTRZhsfAXuvsQGoNbLfFniJMg
-/+EAn2eY0kRPHzBLAsx4Ss+w2KtwteU7
-=wiGU
------END PGP SIGNATURE-----
-
---=-LC9YuAdI0V1Q1/uFAH7+--
-
+Regards,
+Manu
