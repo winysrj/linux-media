@@ -1,21 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx04.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.8])
+Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.5])
 	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o094F4rS004335
-	for <video4linux-list@redhat.com>; Fri, 8 Jan 2010 23:15:05 -0500
-Received: from mail-in-01.arcor-online.net (mail-in-01.arcor-online.net
-	[151.189.21.41])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o094EoaJ020727
-	for <video4linux-list@redhat.com>; Fri, 8 Jan 2010 23:14:51 -0500
-Subject: Re: Compiling xawtv - libzvbi.h error
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Stuart McKim <mckim@lifetime.oregonstate.edu>
-In-Reply-To: <20100108235715.GC4535@gazelle.rmt.insightsnow.com>
-References: <20100108235715.GC4535@gazelle.rmt.insightsnow.com>
-Date: Sat, 09 Jan 2010 05:03:09 +0100
-Message-Id: <1263009789.3087.1.camel@pc07.localdom.local>
-Mime-Version: 1.0
+	id o0MI2loi015890
+	for <video4linux-list@redhat.com>; Fri, 22 Jan 2010 13:02:47 -0500
+Received: from gateway09.websitewelcome.com (gateway09.websitewelcome.com
+	[64.5.52.12])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o0MI2Xo2015421
+	for <video4linux-list@redhat.com>; Fri, 22 Jan 2010 13:02:34 -0500
+From: "Charlie X. Liu" <charlie@sensoray.com>
+To: "'mahmut'" <m.gundes@gmail.com>, "'Cristiana Tenti'" <cristenti@gmail.com>
+References: <13c9a3ca1001211916n558736e9ic8dc17f4dfe99d37@mail.gmail.com>
+	<4B595835.1030801@gmail.com>
+In-Reply-To: <4B595835.1030801@gmail.com>
+Subject: RE: streamer
+Date: Fri, 22 Jan 2010 10:02:31 -0800
+Message-ID: <000001ca9b8d$12a3d020$37eb7060$@com>
+MIME-Version: 1.0
+Content-Language: en-us
 Cc: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
@@ -30,63 +32,59 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+There is no link to mjpg-streamer from
+http://www.quickcamteam.net/software/linux/v4l2-software/mjpg-streamer. But,
+the source code could be downloaded from
+http://sourceforge.net/projects/mjpg-streamer/
 
-Am Freitag, den 08.01.2010, 15:57 -0800 schrieb Stuart McKim:
-> I am trying to compile xawtv-3.95, but I have run into an error I can't
-> seem to figure out the source of. I'm not sure if it's a mistake in my
-> installation of zvbi or xawtv.
-> 
-> In order, I installed:
-> tv-fonts-1.1 (successful)
-> zvbi-0.2.33  (successful)
-> xawtv-3.95   (failed)
-> 
-> My procedure for building xawtv is:
-> ./configure
-> make
-> 
-> The output from make is:
-> mckim@eckleburg ~/builds/xawtv-3.95 $ make
->   CC      console/dump-mixers.o
->   LD      console/dump-mixers
->   CC      console/record.o
->   LD      console/record
->   CC      console/showriff.o
->   LD      console/showriff
->   CC      console/showqt.o
->   LD      console/showqt
->   CC      console/streamer.o
-> In file included from ./common/commands.h:1,
->                  from console/streamer.c:32:
-> ./common/vbi-data.h:5:21: error: libzvbi.h: No such file or directory
-> In file included from ./common/commands.h:1,
->                  from console/streamer.c:32:
-> ./common/vbi-data.h:10: error: expected specifier-qualifier-list before 'vbi_decoder'
-> ./common/vbi-data.h:36: warning: 'struct vbi_event' declared inside parameter list
-> ./common/vbi-data.h:36: warning: its scope is only this definition or declaration, which is probably not what you want
-> ./common/vbi-data.h:37: warning: 'struct vbi_char' declared inside parameter list
-> ./common/vbi-data.h:39: warning: 'struct vbi_decoder' declared inside parameter list
-> ./common/vbi-data.h:42: warning: 'struct vbi_page' declared inside parameter list
-> ./common/vbi-data.h:43: warning: 'struct vbi_page' declared inside parameter list
-> In file included from console/streamer.c:32:
-> ./common/commands.h:28: warning: 'struct vbi_page' declared inside parameter list
-> make: *** [console/streamer.o] Error 1
-> 
-> 
-> When I tried to locate libzvbi.h, the only copy I found is in the build
-> directory for zvbi-0.2.33.
-> 
-> Can somebody please help me get pointed in the right direction? I am
-> running Slackware64-13.0 on a 2.6.29.6 kernel.
-> 
-> Thanks,
-> Stuart
 
-what about, as always, installing zvbi-devel in such case?
 
-Hermann
+-----Original Message-----
+From: video4linux-list-bounces@redhat.com
+[mailto:video4linux-list-bounces@redhat.com] On Behalf Of mahmut
+Sent: Thursday, January 21, 2010 11:48 PM
+To: Cristiana Tenti
+Cc: video4linux-list@redhat.com
+Subject: Re: streamer
 
+
+     You can also check mjpeg-streamer project. I have been used it for 
+jpeg frame streaming, in addition it can give raw images.
+
+http://www.quickcamteam.net/software/linux/v4l2-software/mjpg-streamer
+
+Regards,
+
+Mahmut
+
+Cristiana Tenti wrote:
+> Hello,
+> I'm a new user :)
+>
+> I'm working on a simple project and for that I only need to a software for
+> uclinux to acquire a raw image from my usb webcam.
+> On Ubuntu I'm using STREAMER but I cannot find the source code to install
+it
+> on my uclinux platform.
+>
+> Anyway I found xawtv and I saw that this usefull software has as tool
+> STREAMER.
+>
+> Do you know if it is possible compile only streamer and not all package of
+> xawtv?
+>
+> Please, if you can help me answer me!!!
+>
+> Thank you in advance,
+>
+> Best Regards
+>
+>   
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
 
 --
 video4linux-list mailing list
