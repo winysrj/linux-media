@@ -1,23 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx10.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.14])
-	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o0I87JRH002945
-	for <video4linux-list@redhat.com>; Mon, 18 Jan 2010 03:07:19 -0500
-Received: from moutng.kundenserver.de (moutng.kundenserver.de [212.227.17.10])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o0I875O1031573
-	for <video4linux-list@redhat.com>; Mon, 18 Jan 2010 03:07:06 -0500
-Message-ID: <4B5416A7.6070702@2net.co.uk>
-Date: Mon, 18 Jan 2010 08:07:03 +0000
-From: Chris Simmonds <chris@2net.co.uk>
+Received: from mx1.redhat.com (ext-mx05.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.9])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o0M7o6P8010958
+	for <video4linux-list@redhat.com>; Fri, 22 Jan 2010 02:50:06 -0500
+Received: from mail-ew0-f216.google.com (mail-ew0-f216.google.com
+	[209.85.219.216])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o0M7nrU0014191
+	for <video4linux-list@redhat.com>; Fri, 22 Jan 2010 02:49:53 -0500
+Received: by ewy8 with SMTP id 8so960418ewy.29
+	for <video4linux-list@redhat.com>; Thu, 21 Jan 2010 23:49:52 -0800 (PST)
+Message-ID: <4B595835.1030801@gmail.com>
+Date: Fri, 22 Jan 2010 09:48:05 +0200
+From: mahmut <m.gundes@gmail.com>
 MIME-Version: 1.0
-To: Niamathullah sharief <newbiesha@gmail.com>
-Subject: Re: imx51
-References: <4B504126.9050607@2net.co.uk>
-	<25f5fcff1001161243k39c9e24ds1346f5a70cfc83c2@mail.gmail.com>
-In-Reply-To: <25f5fcff1001161243k39c9e24ds1346f5a70cfc83c2@mail.gmail.com>
+To: Cristiana Tenti <cristenti@gmail.com>
+Subject: Re: streamer
+References: <13c9a3ca1001211916n558736e9ic8dc17f4dfe99d37@mail.gmail.com>
+In-Reply-To: <13c9a3ca1001211916n558736e9ic8dc17f4dfe99d37@mail.gmail.com>
 Cc: video4linux-list@redhat.com
-Reply-To: chris@2net.co.uk
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,49 +32,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Niamathullah,
 
-I need to capture still images at full resolution and video at 640x480, 
-30 fps.
+     You can also check mjpeg-streamer project. I have been used it for 
+jpeg frame streaming, in addition it can give raw images.
 
-Chris.
+http://www.quickcamteam.net/software/linux/v4l2-software/mjpg-streamer
 
-Niamathullah sharief wrote:
-> yes. what drivers you need exactly?i kow about inx51 video drivers. but 
-> not familiar with camera drivers. what exactly you need?let me try it
-> 
-> On Fri, Jan 15, 2010 at 3:49 PM, Chris Simmonds <chris@2net.co.uk 
-> <mailto:chris@2net.co.uk>> wrote:
-> 
->     Hi,
-> 
->     Does anyone on this list have any experience with the imx51 camera
->     interface using the IPU/CSI hardware blocks. I see that there are
->     drivers for imx25, 27 and 35 in the main line kernel, and a similar,
->     but different, set of drivers in the Freescale August SDK, but
->     nothing for the imx51. I have a feeling that there are people out
->     there using this interface... Any hints (or code) would be welcome.
-> 
->     Bye for now,
->     Chris
-> 
->     -- 
->     Chris Simmonds                   2net Limited
->     chris@2net.co.uk <mailto:chris@2net.co.uk>                
->     http://www.2net.co.uk/
-> 
->     --
->     video4linux-list mailing list
->     Unsubscribe mailto:video4linux-list-request@redhat.com
->     <mailto:video4linux-list-request@redhat.com>?subject=unsubscribe
->     https://www.redhat.com/mailman/listinfo/video4linux-list
-> 
-> 
+Regards,
 
+Mahmut
 
--- 
-Chris Simmonds                   2net Limited
-chris@2net.co.uk                 http://www.2net.co.uk/
+Cristiana Tenti wrote:
+> Hello,
+> I'm a new user :)
+>
+> I'm working on a simple project and for that I only need to a software for
+> uclinux to acquire a raw image from my usb webcam.
+> On Ubuntu I'm using STREAMER but I cannot find the source code to install it
+> on my uclinux platform.
+>
+> Anyway I found xawtv and I saw that this usefull software has as tool
+> STREAMER.
+>
+> Do you know if it is possible compile only streamer and not all package of
+> xawtv?
+>
+> Please, if you can help me answer me!!!
+>
+> Thank you in advance,
+>
+> Best Regards
+>
+>   
 
 --
 video4linux-list mailing list
