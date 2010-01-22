@@ -1,50 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:60891 "EHLO smtp3-g21.free.fr"
+Received: from mail1.radix.net ([207.192.128.31]:50230 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932153Ab0AVQXJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jan 2010 11:23:09 -0500
-Date: Fri, 22 Jan 2010 17:24:39 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: =?UTF-8?B?0JrQvtGB0YLRjyDQpNGR0LTQvtGA0L7Qsg==?=
-	<ajaks2009@mail.ru>
-Cc: linux-media@vger.kernel.org
-Subject: Re: libv24l ubuntu 9.10
-Message-ID: <20100122172439.25e67b1c@tele>
-In-Reply-To: <E1NY4os-0007Ki-00.ajaks2009-mail-ru@f278.mail.ru>
-References: <E1NY4os-0007Ki-00.ajaks2009-mail-ru@f278.mail.ru>
+	id S1755816Ab0AVDBW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Jan 2010 22:01:22 -0500
+Subject: Re: About MPEG decoder interface
+From: Andy Walls <awalls@radix.net>
+To: Michael Qiu <fallwind@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>, hverkuil@xs4all.nl
+In-Reply-To: <f74f98341001211842y6dabbe97s1d7c362bac2d87b8@mail.gmail.com>
+References: <f74f98341001211842y6dabbe97s1d7c362bac2d87b8@mail.gmail.com>
+Content-Type: text/plain
+Date: Thu, 21 Jan 2010 22:00:53 -0500
+Message-Id: <1264129253.3094.5.camel@palomino.walls.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 22 Jan 2010 00:44:02 +0300
-Костя Фёдоров  <ajaks2009@mail.ru> wrote:
-
-> Ubuntu 9.10 operating system, web camera SAMSUNG PLEOMAX-PWC-3800
+On Fri, 2010-01-22 at 10:42 +0800, Michael Qiu wrote:
+> Hi all,
 > 
-> : ~ $ lsusb
-> Bus 002 Device 002: ID 0ac8:0302 Z-Star Microelectronics Corp. ZC0302
-> Webcam
-> 
-> I start Skype 2.1.0.81 LD_PRELOAD =/usr/lib/libv4l/v4l1compat.so skype
-> command
-> 
-> Video black-and-white also is turned.
-> 
-> Thanks for support.
+>   How can I export my MPEG decoder control interface to user space?
+>   Or in other words, which device file(/dev/xxx) should a proper
+> driver for mpeg decoder provide?
 
-Hi,
+The MPEG decoder on a PVR-350 PCI card provides a /dev/video interface
+(normally /dev/video16).
 
-There was a sensor detection problem in some kernels with zc3xx
-webcams. May you get the last video stuff from LinuxTv.org and try it?
+The interface specification to userspace is the V4L2 API:
 
-If it does not work, please, send me a mail with more information about
-the sensor (last kernel messages after webcam connection).
+http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/spec-single/v4l2.html
 
-Best regards.
+>   And, in linux dvb documents, all the frontend interface looks like
+> /dev/dvb/adapter/xxx, it looks just for PCI based tv card.
+>   If it's not a TV card, but a frontend for a embedded system without
+> PCI, which interface should I use?
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+The V4L2 specification should be OK for basic functionality.  Hans
+might be able to talk about more advanced interfaces that are in work
+for embedded platforms, if the V4L2 API is not good enough for you as
+is.
+
+Regards,
+Andy
+
+> Best regards
+> Michael Qiu
+
+
