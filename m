@@ -1,56 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59101 "EHLO mail.kapsi.fi"
+Received: from smtp3-g21.free.fr ([212.27.42.3]:60891 "EHLO smtp3-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753696Ab0AXMTS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jan 2010 07:19:18 -0500
-Message-ID: <4B5C3ABF.4000807@iki.fi>
-Date: Sun, 24 Jan 2010 14:19:11 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Chris Moore <moore@free.fr>
-CC: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Looking for original source of an old DVB tree
-References: <4B5BFFE3.30003@free.fr>
-In-Reply-To: <4B5BFFE3.30003@free.fr>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S932153Ab0AVQXJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jan 2010 11:23:09 -0500
+Date: Fri, 22 Jan 2010 17:24:39 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: =?UTF-8?B?0JrQvtGB0YLRjyDQpNGR0LTQvtGA0L7Qsg==?=
+	<ajaks2009@mail.ru>
+Cc: linux-media@vger.kernel.org
+Subject: Re: libv24l ubuntu 9.10
+Message-ID: <20100122172439.25e67b1c@tele>
+In-Reply-To: <E1NY4os-0007Ki-00.ajaks2009-mail-ru@f278.mail.ru>
+References: <E1NY4os-0007Ki-00.ajaks2009-mail-ru@f278.mail.ru>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/24/2010 10:08 AM, Chris Moore wrote:
-> Hello,
->
-> Short version:
-> I am looking for the original source code of a Linux DVB tree containing
-> in particular
-> drivers/media/dvb/dibusb/microtune_mt2060.c
-> and the directory
-> drivers/media/dvb/dibusb/mt2060_api
->
-> Googling for microtune_mt2060.c and mt2060_api is no help.
-> Could anyone kindly point me in the right direction, please?
+On Fri, 22 Jan 2010 00:44:02 +0300
+Костя Фёдоров  <ajaks2009@mail.ru> wrote:
 
-It is mt2060.c, mt2060_priv.h (IIRC) and mt2060.h.
+> Ubuntu 9.10 operating system, web camera SAMSUNG PLEOMAX-PWC-3800
+> 
+> : ~ $ lsusb
+> Bus 002 Device 002: ID 0ac8:0302 Z-Star Microelectronics Corp. ZC0302
+> Webcam
+> 
+> I start Skype 2.1.0.81 LD_PRELOAD =/usr/lib/libv4l/v4l1compat.so skype
+> command
+> 
+> Video black-and-white also is turned.
+> 
+> Thanks for support.
 
-> Longer version:
-> I am trying to get my USB DVB-T stick running on my Xtreamer.
-> Xtreamer uses an old 2.6.12.6 kernel heavily modified by Realtek and
-> possibly also modified by MIPS.
-> I have the source code but it would be a tremendous effort to change to
-> a recent kernel.
-> The DVB subtree seems to have been dirtily hacked by Realtek to support
-> their frontends.
-> In the process they seem to have lost support for other frontends.
-> I have been trying to find the source code for the original version.
-> I have found nothing resembling it in kernel.org, linux-mips.org and
-> linuxtv.org.
+Hi,
 
-I am not sure what kind of device Xtreamer is, but try this:
-http://linuxtv.org/hg/~anttip/rtl2831u/
+There was a sensor detection problem in some kernels with zc3xx
+webcams. May you get the last video stuff from LinuxTv.org and try it?
 
-It is for Realtek RTL2831U + MT2060 based USB sticks.
+If it does not work, please, send me a mail with more information about
+the sensor (last kernel messages after webcam connection).
 
-regards
-Antti
+Best regards.
+
 -- 
-http://palosaari.fi/
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
