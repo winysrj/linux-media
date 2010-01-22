@@ -1,92 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from utm.netup.ru ([193.203.36.250]:35574 "EHLO utm.netup.ru"
+Received: from relay.bearnet.nu ([80.252.223.222]:2068 "EHLO relay.bearnet.nu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752485Ab0AaMpZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Jan 2010 07:45:25 -0500
-Subject: Re: CAM appears to introduce packet loss
-From: Abylai Ospan <aospan@netup.ru>
-To: Marc Schmitt <marc.schmitt@gmail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <b36f333c1001310412r40cb425cp7a5a0d282c6a716a@mail.gmail.com>
-References: <b36f333c1001310412r40cb425cp7a5a0d282c6a716a@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 31 Jan 2010 15:43:47 +0300
-Message-ID: <1264941827.28401.3.camel@alkaloid.netup.ru>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	id S1752517Ab0AVJJM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jan 2010 04:09:12 -0500
+Message-ID: <4B596B2F.80207@pelagicore.com>
+Date: Fri, 22 Jan 2010 10:09:03 +0100
+From: =?ISO-8859-1?Q?Richard_R=F6jfors?= <richard.rojfors@pelagicore.com>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Andrew Morton <akpm@linux-foundation.org>
+Subject: [PATCH v2 3/3] radio: Add SAA7706H to Kconfig and Makefile
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+This patch adds the SAA7706H to Kconfig and Makefile, it points out
+the source code added in the previous patch.
 
-Try to check raw speed coming from demod:
+Signed-off-by: Richard Röjfors <richard.rojfors@pelagicore.com>
+---
+diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+index 3f40f37..1716e52 100644
+--- a/drivers/media/radio/Kconfig
++++ b/drivers/media/radio/Kconfig
+@@ -417,6 +417,18 @@ config RADIO_TEA5764_XTAL
+ 	  Say Y here if TEA5764 have a 32768 Hz crystal in circuit, say N
+ 	  here if TEA5764 reference frequency is connected in FREQIN.
 
-echo 1 > /sys/module/dvb_core/parameters/dvb_demux_speedcheck
++config RADIO_SAA7706H
++	tristate "SAA7706H Car Radio DSP"
++	depends on I2C && VIDEO_V4L2
++	---help---
++	  Say Y here if you want to use the SAA7706H Car radio Digital
++	  Signal Processor, found for instance on the Russellville development
++	  board. On the russellville the device is connected to internal
++	  timberdale I2C bus.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called SAA7706H.
++
+ config RADIO_TEF6862
+ 	tristate "TEF6862 Car Radio Enhanced Selectivity Tuner"
+ 	depends on I2C && VIDEO_V4L2
+diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
+index 01922ad..f681dbf 100644
+--- a/drivers/media/radio/Makefile
++++ b/drivers/media/radio/Makefile
+@@ -23,6 +23,7 @@ obj-$(CONFIG_USB_DSBR) += dsbr100.o
+ obj-$(CONFIG_RADIO_SI470X) += si470x/
+ obj-$(CONFIG_USB_MR800) += radio-mr800.o
+ obj-$(CONFIG_RADIO_TEA5764) += radio-tea5764.o
++obj-$(CONFIG_RADIO_SAA7706H) += saa7706h.o
+ obj-$(CONFIG_RADIO_TEF6862) += tef6862.o
 
-and then:
-
-tail -f /var/log/messages  |  grep -i speed
-
-or 
-
-dmesg  | grep -i speed
-
-what values do you see ?
-this TS going through CAM. CAM has a bitrate limitation which they can
-pass (this depends on CAM model).
-
-On Sun, 2010-01-31 at 13:12 +0100, Marc Schmitt wrote:
-> Hi all,
-> 
-> For quite some time now, I'm fighting with my DVB-C setup and I think
-> I've eliminated any hardware issues that could be the origin of the
-> issue I'm seeing. Here is my setup:
-> 
-> Hardware:
-> * KNC1 TV-Station DVB-C with KNC1 CineView CI (I also tried the
-> SATELCO EasyWatch PCI (DVB-C) with SATELCO EasyWatch CI which is
-> exactly the same hardware, just different brand)
-> * Conax 4.00e CAM (tested in a DVB-C capable TV, works fine)
-> * Smartcard from the DVB provider (http://www.sasag.ch, tested and
-> properly accessible through `gnutv -cammenu`)
-> * Dell PE700, P4 2.80GHz, 4GB RAM
-> 
-> Software:
-> * Mythbuntu 9.10 (karmic)
-> * kernel 2.6.31-17-generic #54-Ubuntu SMP Thu Dec 10 16:20:31 UTC 2009
-> i686 GNU/Linux
-> 
-> My DVB provider uses the free-to-view system for all channels except
-> the local TV channel which is transmitted unencrypted. When the CAM is
-> not inserted in the CI, I'm getting a perfect video stream ([PS/PES:
-> ITU-T Rec. H.262 | ISO/IEC 13818-2 or ISO/IEC 11172-2 video stream])
-> for that unencrypted channel. dvbsnoop tells me that the stream is
-> coming in at a fairly constant bandwidth of 4852 kbit/s. The moment I
-> insert the CAM into the CI, the bandwidth drops to an average of 4070
-> kbit/s. I did analyze both streams with Peter Daniel's MPEG-2
-> Transport Stream packet analyser. As expected, the former stream has
-> no continuity issues whereas the latter does. I see the continuity
-> counter jump from 12 to 15 for example. The resulting video stream is
-> visually distorted, I've uploaded an example at
-> https://sites.google.com/site/msslinux/linuxmce/SFInfo.mpeg?attredirects=0&d=1
-> to give you an idea. I get exactly the same result for any
-> free-to-view channel which makes me suspect that the CAM/Smartcard
-> does properly decrypt the stream. However, something appears not to be
-> able to keep up. My DVB provider used QAM_256 which makes the
-> bandwidth susceptible to the signal to noise ratio. The S/N ratio is
-> at f5f5 without the CAM inserted and drops to f4f4 with the CAM
-> inserted. I don't think that's the issue. I saw a few postings on the
-> net about performance issues of budget cards with QAM_256 when using
-> CI/CAM. Is that really the problem? How can I find out, i.e. further
-> narrow down the problem?
-> 
-> Any pointers will be appreciated.
-> 
-> Thanks,
->     Marc
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+ EXTRA_CFLAGS += -Isound
 
