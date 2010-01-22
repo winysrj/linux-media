@@ -1,207 +1,396 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:41954 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752146Ab0APV4e convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jan 2010 16:56:34 -0500
-Received: by bwz27 with SMTP id 27so1357514bwz.21
-        for <linux-media@vger.kernel.org>; Sat, 16 Jan 2010 13:56:32 -0800 (PST)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Andy Walls <awalls@radix.net>
-Subject: Re: Need testers: cx23885 IR Rx for TeVii S470 and HVR-1250
-Date: Sat, 16 Jan 2010 23:56:07 +0200
-Cc: linux-media@vger.kernel.org,
-	Andreas Tschirpke <andreas.tschirpke@gmail.com>,
-	Matthias Fechner <idefix@fechner.net>, stoth@kernellabs.com
-References: <1263614561.6084.15.camel@palomino.walls.org> <201001161600.37915.liplianin@me.by> <1263671752.3062.19.camel@palomino.walls.org>
-In-Reply-To: <1263671752.3062.19.camel@palomino.walls.org>
+Received: from mx1.redhat.com ([209.132.183.28]:60929 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754337Ab0AVVsU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jan 2010 16:48:20 -0500
+Message-ID: <4B5A1D1E.2000701@redhat.com>
+Date: Fri, 22 Jan 2010 19:48:14 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201001162356.07798.liplianin@me.by>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Douglas Landgraf <dougsland@gmail.com>
+Subject: First -git merges
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 16 января 2010 21:55:52 Andy Walls wrote:
-> > cx25840 3-0044: IRQ Status:  tsr rsr rto
-> > cx25840 3-0044: IRQ Enables:     rse rte roe
-> > cx25840 3-0044: rx read:    9046778 ns  mark
-> > cx25840 3-0044: rx read:    2206333 ns  space
-> > cx25840 3-0044: rx read:     606926 ns  mark
-> > cx25840 3-0044: rx read: end of rx
-> > cx25840 3-0044: IRQ Status:  tsr rsr rto
-> > cx25840 3-0044: IRQ Enables:     rse rte roe
-> > cx25840 3-0044: rx read:    9055815 ns  mark
-> > cx25840 3-0044: rx read:    2203519 ns  space
-> > cx25840 3-0044: rx read:     582481 ns  mark
-> > cx25840 3-0044: rx read: end of rx
->
-> This is still good. :)
->
-> Those are NEC repeat sequences, but you probably know that already.
-Remote works until that point
+As already announced, the patches are now being committed first on
+-git tree and then backported to -hg.
 
->
-> > irq 16: nobody cared (try booting with the "irqpoll" option)
-> > Pid: 2971, comm: X Not tainted 2.6.33-rc4 #3
-> > Call Trace:
-> >  [<c1054700>] ? __report_bad_irq+0x24/0x69
->
-> [...]
->
-> >  [<c1425105>] ? syscall_call+0x7/0xb
-> > handlers:
-> > [<c1332132>] (usb_hcd_irq+0x0/0x59)
-> > [<f8aafd88>] (cx23885_irq+0x0/0x4e0 [cx23885])
->
-> I have checked in more changes to
->
-> 	http://linuxtv.org/hg/~awalls/cx23885-ir2
->
-> Please test again using these module parameters:
->
-> 	modprobe cx25840 ir_debug=2 debug=2
-> 	modprobe cx23885 ir_input_debug=2 irq_debug=7 debug=7
->
->
-> I am looking for logging of the interrupt statuses and enables.  They
-> should look something like this:
->
->
->  kernel: cx23885[0]/0: pci_status: 0x08000000  pci_mask: 0x08000001
->  [...]
->  kernel: cx23885[0]/0:  (PCI_MSK_AV_CORE   0x08000000)
->  kernel: cx25840 6-0044: AV Core IRQ status (entry): ir
->  kernel: cx25840 6-0044: AV Core ir IRQ status: 0x31 disables: 0x20
->  kernel: cx25840 6-0044: IR IRQ Status:  tsr rsr rto
->  kernel: cx25840 6-0044: IR IRQ Enables:     rse rte roe
->  kernel: cx25840 6-0044: AV Core audio IRQ status: 0x80 disables: 0xff
->  kernel: cx25840 6-0044: AV Core audio MC IRQ status: 0x2000 enables:
-> 0x0000 kernel: cx25840 6-0044: AV Core video IRQ status: 0x01a7 disables:
-> 0xffff kernel: cx25840 6-0044: AV Core IRQ status (exit):
->
->
-> But I was able to reproduce something like this when changing enable the
-> TSR interrupt enables using v4l2-dbg to change the register manually:
->
->  kernel: cx23885[0]/0: pci_status: 0x08300000  pci_mask: 0x08000001
->  [...]
->  kernel: cx23885[0]/0:  (PCI_MSK_AV_CORE   0x08000000)
->  kernel: cx25840 6-0044: AV Core IRQ status (entry):                       
->    <---- no irq flags (all 0's) kernel: cx25840 6-0044: AV Core ir IRQ
-> status: 0x00 disables: 0x00            <---- all 0's kernel: cx25840
-> 6-0044: AV Core audio IRQ status: 0x00 disables: 0x00         <---- all 0's
-> kernel: cx25840 6-0044: AV Core audio MC IRQ status: 0x0000 enables: 0x0000
->   <---- all 0's kernel: cx25840 6-0044: AV Core video IRQ status: 0x0000
-> disables: 0x0000     <---- all 0's kernel: cx25840 6-0044: AV Core IRQ
-> status (exit):
->
-> So there are some conditions where the AV Core can signal an interrupt,
-> but not be ready to be read over the I2C bus.
->
-> I have added code to count when these happen and handle them as spurious
-> interrupts.  However, if the code gets too many (20) consecutive
-> spurious interrupts without at least one real one, it disables the AV
-> Core interrupt.
->
->
-> Regards,
-> Andy
-Spurious interrupts counter reaches #20 almost immediately after modprobe.
-There is no time to press a key.
+In order to allow people to follow the patches that are being added
+at -git, I added a git hook that will send announcement emails when
+a patch is committed at:
+	http://linuxtv.org/git/v4l-dvb.git
 
-DVB: registering adapter 0 frontend 0 (Montage Technology DS3000/TS2020)...
-cx23885_dev_checkrevision() Hardware revision = 0xb0
-cx23885[0]/0: found at 0000:01:00.0, rev: 2, irq: 16, latency: 0, mmio: 0xfe800000
-cx23885 0000:01:00.0: setting latency timer to 64
-IRQ 16/cx23885[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-cx23885[0]/0: pci_status: 0x083f4000  pci_mask: 0x08000000
-cx23885[0]/0: vida_status: 0x00000000 vida_mask: 0x00000000 count: 0x0
-cx23885[0]/0: ts1_status: 0x00000000  ts1_mask: 0x00000000 count: 0x0
-cx23885[0]/0: ts2_status: 0x00000000  ts2_mask: 0x00000000 count: 0xc7381f2a
-cx23885[0]/0:  (PCI_MSK_AV_CORE   0x08000000)
-cx25840 3-0044: AV Core IRQ status (entry):           
-cx25840 3-0044: AV Core ir IRQ status: 0x00 disables: 0x00
-cx25840 3-0044: AV Core audio IRQ status: 0x00 disables: 0x00
-cx25840 3-0044: AV Core audio MC IRQ status: 0x0000 enables: 0x0000
-cx25840 3-0044: AV Core video IRQ status: 0x0000 disables: 0x0000
-cx25840 3-0044: AV Core IRQ status (exit):           
-cx23885[0]/0:  consecutive spurious AV Core interrupt #1
-[...]
-cx23885[0]/0: pci_status: 0x08004000  pci_mask: 0x08000000
-cx23885[0]/0: vida_status: 0x00000000 vida_mask: 0x00000000 count: 0x0
-cx23885[0]/0: ts1_status: 0x00000000  ts1_mask: 0x00000000 count: 0x0
-cx23885[0]/0: ts2_status: 0x00000000  ts2_mask: 0x00000000 count: 0xc7381f2a
-cx23885[0]/0:  (PCI_MSK_AV_CORE   0x08000000)
-cx25840 3-0044: AV Core IRQ status (entry):           
-cx25840 3-0044: AV Core ir IRQ status: 0x00 disables: 0x00
-cx25840 3-0044: AV Core audio IRQ status: 0x00 disables: 0x00
-cx25840 3-0044: AV Core audio MC IRQ status: 0x0000 enables: 0x0000
-cx25840 3-0044: AV Core video IRQ status: 0x0000 disables: 0x0000
-cx25840 3-0044: AV Core IRQ status (exit):           
-cx23885[0]/0:  consecutive spurious AV Core interrupt #20
-cx23885[0]: disabling AV Core/IR interrupt: too many spurious interrupts
-input: cx23885 IR (TeVii S470) as /class/input/input24
-Creating IR device irrcv0
+Unfortunately, the first 3 or 4 git commits got lost while the hooks
+were being adjusted. Yet, as the first commits were small, it is easy
+to see the commit history at the gitweb interface.
 
-I commented out interrupt disabling line in order to get some debug to you. 
-But it occupied gigabytes on hard disk quickly.
+The backport to -hg will be done by Douglas.
 
-[...]
-cx23885[0]/0:  consecutive spurious AV Core interrupt #95
-cx23885[0]: disabling AV Core/IR interrupt: too many spurious interrupts
-cx23885[0]/0: pci_status: 0x08304000  pci_mask: 0x08000000
-cx23885[0]/0: vida_status: 0x00000000 vida_mask: 0x00000000 count: 0x0
-cx23885[0]/0: ts1_status: 0x00000000  ts1_mask: 0x00000000 count: 0x0
-cx23885[0]/0: ts2_status: 0x00000000  ts2_mask: 0x00000000 count: 0xc7381f2a
-cx23885[0]/0:  (PCI_MSK_AV_CORE   0x08000000)
-cx25840 3-0044: AV Core IRQ status (entry): ir        
-cx25840 3-0044: AV Core ir IRQ status: 0x31 disables: 0x20
-cx25840 3-0044: IR IRQ Status:  tsr rsr rto            
-cx25840 3-0044: IR IRQ Enables:     rse rte roe
-cx25840 3-0044: AV Core audio IRQ status: 0x80 disables: 0xff
-cx25840 3-0044: AV Core audio MC IRQ status: 0x2000 enables: 0x0000
-cx25840 3-0044: AV Core video IRQ status: 0x01a7 disables: 0xffff
-cx25840 3-0044: AV Core IRQ status (exit):           
-cx23885[0]/0: pci_status: 0x08004000  pci_mask: 0x08000000
-cx23885[0]/0: vida_status: 0x00000000 vida_mask: 0x00000000 count: 0x0
-cx23885[0]/0: ts1_status: 0x00000000  ts1_mask: 0x00000000 count: 0x0
-cx23885[0]/0: ts2_status: 0x00000000  ts2_mask: 0x00000000 count: 0xc7381f2a
-cx23885[0]/0:  (PCI_MSK_AV_CORE   0x08000000)
-cx25840 3-0044: AV Core IRQ status (entry):           
-cx25840 3-0044: AV Core ir IRQ status: 0x20 disables: 0x20
-cx25840 3-0044: AV Core audio IRQ status: 0x80 disables: 0xff
-cx25840 3-0044: AV Core audio MC IRQ status: 0x2000 enables: 0x0000
-cx25840 3-0044: AV Core video IRQ status: 0x01a7 disables: 0xffff
-cx25840 3-0044: AV Core IRQ status (exit):           
-cx23885[0]/0:  consecutive spurious AV Core interrupt #1
-cx25840 3-0044: rx read:    9061000 ns  mark
-cx25840 3-0044: rx read:    2207667 ns  space
-cx25840 3-0044: rx read:     586333 ns  mark
-cx25840 3-0044: rx read: end of rx
-cx23885 0000:01:00.0: NEC IR auto repeat detected
-cx23885[0]/0: pci_status: 0x08304000  pci_mask: 0x08000000
-cx23885[0]/0: vida_status: 0x00000000 vida_mask: 0x00000000 count: 0x0
-cx23885[0]/0: ts1_status: 0x00000000  ts1_mask: 0x00000000 count: 0x0
-cx23885[0]/0: ts2_status: 0x00000000  ts2_mask: 0x00000000 count: 0xc7381f2a
-cx23885[0]/0:  (PCI_MSK_AV_CORE   0x08000000)
-cx25840 3-0044: AV Core IRQ status (entry):           
-cx25840 3-0044: AV Core ir IRQ status: 0x20 disables: 0x20
-cx25840 3-0044: AV Core audio IRQ status: 0x80 disables: 0xff
-cx25840 3-0044: AV Core audio MC IRQ status: 0x2000 enables: 0x0000
-cx25840 3-0044: AV Core video IRQ status: 0x01a7 disables: 0xffff
-cx25840 3-0044: AV Core IRQ status (exit):           
-cx23885[0]/0:  consecutive spurious AV Core interrupt #2
-cx23885[0]/0: pci_status: 0x08004000  pci_mask: 0x08000000
-cx23885[0]/0: vida_status: 0x00000000 vida_mask: 0x00000000 count: 0x0
-cx23885[0]/0: ts1_status: 0x00000000  ts1_mask: 0x00000000 count: 0x0
-cx23885[0]/0: ts2_status: 0x00000000  ts2_mask: 0x00000000 count: 0xc7381f2a
-cx23885[0]/0:  (PCI_MSK_AV_CORE   0x08000000)
-[...]
+Cheers,
+Mauro.
 
+-------- Mensagem original --------
+Assunto: [linuxtv-commits] [git:v4l-dvb] The merge of all V4L/DVB trees	ready to upstream and linux-next branch, master,	updated. v2.6.33-rc4-647-ga533f16
+Data: Fri, 22 Jan 2010 22:32:26 +0100
+De: Mauro Carvalho Chehab <linuxtv-commits-bounces@linuxtv.org>
+Para: linuxtv-commits@linuxtv.org
+
+This is an automated email from the git hooks/post-receive script. It was
+generated because a ref change was pushed to the repository containing
+the project "The merge of all V4L/DVB trees ready to upstream and linux-next".
+
+The branch, master has been updated
+       via  a533f16b29f8840adf344e4616195b10186986f7 (commit)
+       via  6ba638cc4d68eb848d0d7db8b6eb1d2b85e2bff4 (commit)
+       via  de199078f3fffc412a571586f384b5b1094d97b7 (commit)
+       via  9ab78b16a50a10f7eae68c3b6e2a6337bbfe4dff (commit)
+       via  5a53a97db877a3181f34aa5b1637a644374364ff (commit)
+       via  0b8b15a2576c40f7bfddd1f7c9b6cca5cdee4294 (commit)
+       via  124e063aaaf9d35402d7205fbcaa855ae246197b (commit)
+       via  a8f0518d0306e2eb41bf5d3506c38265f340e555 (commit)
+       via  759a3f07b8fd037738f17e535a60dcf2a0b4a1d4 (commit)
+       via  cca769eb33d71ce46cc77da62586da9e4a242af3 (commit)
+       via  606455919a764cfb8cde747e8300b046789708b4 (commit)
+       via  f381973e65618734428d768e3409ce6ecb56cfb2 (commit)
+       via  d08e8f2e17aa0c1c2936a3d6f079249a5bc77e8c (commit)
+       via  95ce682cd886f283eb312dabeb117eabc3d8719a (commit)
+       via  da54f5e853c00ac385d90fa2f120c3cd2b9f2ed1 (commit)
+       via  5e9a302853301e0a2bb6671036daac3366fd85f4 (commit)
+       via  c93a9c83cb7a1c84ae0e149a3005ec2c2b89c9c8 (commit)
+       via  9b8efa3240c67e6421cded1645c38a58ffdef4d4 (commit)
+       via  ea104b521648bccd0ab88a08e2e442e90f69a15e (commit)
+       via  6ee6681ae870808ff694447194130d30806f2c4d (commit)
+       via  0eac680b42f212a6ef8f60803669c89ac6f85d03 (commit)
+      from  4aaf6746249827a699ec35a27ab1ce738b482afe (commit)
+
+Those revisions listed above that are new to this repository have
+not appeared on any other notification email; so we list those
+revisions in full, below.
+
+- Log -----------------------------------------------------------------
+commit a533f16b29f8840adf344e4616195b10186986f7
+Author: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date:   Thu Jan 7 00:56:14 2010 -0300
+
+    V4L/DVB: cx18-alsa: Fix the rates definition and move some buffer freeing code.
+    
+    Clarify the rates available for the device, and move the freeing of the buffer
+    to the free routine instead of the close (per Takashi's suggestion).
+    
+    Thanks to Takashi Iwai for reviewing and providing feedback.
+    
+    This work was sponsored by ONELAN Limited.
+    
+    Cc: Takashi Iwai <tiwai@suse.de>
+    Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+commit 6ba638cc4d68eb848d0d7db8b6eb1d2b85e2bff4
+Author: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date:   Thu Jan 7 00:52:39 2010 -0300
+
+    V4L/DVB: cx18: address possible passing of NULL to snd_card_free
+    
+    Eliminate the possibility of passing NULL to snd_card_free().
+    
+    Thanks to Takashi Iwai for reviewing and pointing this out.
+    
+    This work was sponsored by ONELAN Limited.
+    
+    Cc: Takashi Iwai <tiwai@suse.de>
+    Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+commit de199078f3fffc412a571586f384b5b1094d97b7
+Author: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date:   Sun Dec 20 23:53:46 2009 -0300
+
+    V4L/DVB: cx18-alsa: codingstyle cleanup
+    
+    Move the cx18_alsa_announce_pcm_data() function further up in the file, since
+    apparently "make checkpatch" has never heard of a forward declaration.  Note
+    that despite the hg diff showing everything else as having been deleted/added,
+    in reality it was only that one function that got moved (and the forward
+    declaration was removed from the top of the file).
+    
+    This work was sponsored by ONELAN Limited.
+    
+    Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+commit 9ab78b16a50a10f7eae68c3b6e2a6337bbfe4dff
+Author: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date:   Sun Dec 20 23:50:02 2009 -0300
+
+    V4L/DVB: cx18-alsa: codingstyle cleanup
+    
+    Remove some dead code and make a PCM specific module debug parameter to avoid
+    an extern reference.
+    
+    Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+commit 5a53a97db877a3181f34aa5b1637a644374364ff
+Author: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date:   Sun Dec 20 23:29:02 2009 -0300
+
+    V4L/DVB: cx18: codingstyle fixes
+    
+    Codingstyle fixes, some introduced as a result of the ALSA work, some
+    pre-existing.  This patch is a whitespace change only.
+    
+    This work was sponsored by ONELAN Limited.
+    
+    Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+commit 0b8b15a2576c40f7bfddd1f7c9b6cca5cdee4294
+Author: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date:   Sun Dec 20 23:15:58 2009 -0300
+
+    V4L/DVB: cx18-alsa: codingstyle fixes
+    
+    Fix codingstyle issues, and make the minimum version for cx18-alsa required
+    to be 2.6.17, so that we don't need all the #ifdefs related to the changes
+    to ALSA structures.
+    
+    This work was sponsored by ONELAN Limited.
+    
+    Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+commit 124e063aaaf9d35402d7205fbcaa855ae246197b
+Author: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date:   Sun Dec 20 23:01:46 2009 -0300
+
+    V4L/DVB: cx18-alsa: fix codingstyle issue
+    
+    Address coding style issue with cx18-alsa-main.c
+    
+    This work was sponsored by ONELAN Limited.
+    
+    Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+commit a8f0518d0306e2eb41bf5d3506c38265f340e555
+Author: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date:   Sat Dec 12 17:38:53 2009 -0300
+
+    V4L/DVB: cx18-alsa: fix memory leak in error condition
+    
+    If the stream is already in use, make sure we free up the memory allocated
+    earlier.
+    
+    Thanks to Andy Wall for reviewing and pointing this out.
+    
+    This work was sponsored by ONELAN Limited.
+    
+    Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+commit 759a3f07b8fd037738f17e535a60dcf2a0b4a1d4
+Author: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date:   Sun Nov 22 23:42:33 2009 -0300
+
+    V4L/DVB: cx18-alsa: remove a couple of warnings
+    
+    Remove a couple of warnings from dead code during driver development.
+    
+    Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+commit cca769eb33d71ce46cc77da62586da9e4a242af3
+Author: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date:   Fri Nov 20 02:15:20 2009 -0300
+
+    V4L/DVB: cx18-alsa: name alsa device after the actual card
+    
+    Use the cx18 board name in the ALSA description, to make it easier for users
+    who run "arecord -l" to see which device they should be looking for.
+    
+    Also, use strlcpy() instead of strcpy().
+    
+    Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+commit 606455919a764cfb8cde747e8300b046789708b4
+Author: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date:   Fri Nov 20 01:24:57 2009 -0300
+
+    V4L/DVB: cx18: cleanup cx18-alsa debug logging
+    
+    Fix the debug macro so that it is dependent on the modprobe parameter.
+    
+    This work was sponsored by ONELAN Limited.
+    
+    Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+commit f381973e65618734428d768e3409ce6ecb56cfb2
+Author: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date:   Fri Nov 20 01:15:54 2009 -0300
+
+    V4L/DVB: cx18: rework cx18-alsa module loading to support automatic loading
+    
+    Restructure the way the module gets loaded so that it gets loaded automatically
+    when cx18 is loaded, and make it work properly if there are multiple cards
+    present (since the old code would only take one opportunity to connect to cx18
+    instances when the module first loaded).
+    
+    This work was sponsored by ONELAN Limited.
+    
+    Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+commit d08e8f2e17aa0c1c2936a3d6f079249a5bc77e8c
+Author: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date:   Thu Nov 19 23:35:36 2009 -0300
+
+    V4L/DVB: cx18-alsa: remove unneeded debug line
+    
+    Remove an unneeded debug line, which was preventing the cx18-alsa module from
+    loading.
+    
+    This work was sponsored by ONELAN Limited.
+    
+    Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+commit 95ce682cd886f283eb312dabeb117eabc3d8719a
+Author: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date:   Thu Nov 19 23:23:57 2009 -0300
+
+    V4L/DVB: cx18: export more symbols required by cx18-alsa
+    
+    Export a couple of more symbols required by the cx18-alsa module.
+    
+    This work was sponsored by ONELAN Limited.
+    
+    Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+commit da54f5e853c00ac385d90fa2f120c3cd2b9f2ed1
+Author: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date:   Thu Nov 19 23:17:40 2009 -0300
+
+    V4L/DVB: cx18: add cx18-alsa module to Makefile
+    
+    Add cx18-alsa to the Makefile and Kconfig
+    
+    This work was sponsored by ONELAN Limited.
+    
+    Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+commit 5e9a302853301e0a2bb6671036daac3366fd85f4
+Author: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date:   Mon Jan 18 21:29:51 2010 -0300
+
+    V4L/DVB: cx18: overhaul ALSA PCM device handling so it works
+    
+    Add code so that the PCM ALSA device actually works, and update the
+    cx18-streams mechanism so that it passes the data off to the cx18-alsa module.
+    
+    This work was sponsored by ONELAN Limited.
+    
+    Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+commit c93a9c83cb7a1c84ae0e149a3005ec2c2b89c9c8
+Author: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date:   Thu Nov 19 22:52:30 2009 -0300
+
+    V4L/DVB: cx18: export a couple of symbols so they can be shared with cx18-alsa
+    
+    Expose a couple of symbols in the cx18 module so that locking of the PCM
+    stream can be shared with the cx18-alsa module.
+    
+    This work was sponsored by ONELAN Limited.
+    
+    Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+commit 9b8efa3240c67e6421cded1645c38a58ffdef4d4
+Author: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date:   Thu Nov 19 22:46:10 2009 -0300
+
+    V4L/DVB: cx18: make it so cx18-alsa-main.c compiles
+    
+    Fix some basic compilation issues with Andy's original code.  In particular,
+    temporarily #ifdef out the mixer code, add some additional exception handling,
+    fix a couple of typos, and add a copyright line.
+    
+    This work was sponsored by ONELAN Limited.
+    
+    Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+commit ea104b521648bccd0ab88a08e2e442e90f69a15e
+Author: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date:   Thu Nov 19 22:40:41 2009 -0300
+
+    V4L/DVB: cx18: rename cx18-alsa.c
+    
+    Rename cx18-alsa.c to cx18-alsa-main.c so that we can call the final .ko file
+    cx18-alsa.ko
+    
+    Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+commit 6ee6681ae870808ff694447194130d30806f2c4d
+Author: Andy Walls <awalls@radix.net>
+Date:   Wed Jun 24 07:26:45 2009 -0300
+
+    V4L/DVB: cx18-alsa: Add non-working cx18-alsa-pcm.[ch] files to avoid data loss
+    
+    Signed-off-by: Andy Walls <awalls@radix.net>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+commit 0eac680b42f212a6ef8f60803669c89ac6f85d03
+Author: Andy Walls <awalls@radix.net>
+Date:   Mon May 25 21:40:25 2009 -0300
+
+    V4L/DVB: cx18-alsa: Initial non-working cx18-alsa files
+    
+    Initial cx18-alsa module files check-in to avoid losing work.
+    
+    Signed-off-by: Andy Walls <awalls@radix.net>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+-----------------------------------------------------------------------
+
+Summary of changes:
+ drivers/media/video/cx18/Kconfig           |   11 +
+ drivers/media/video/cx18/Makefile          |    2 +
+ drivers/media/video/cx18/cx18-alsa-main.c  |  293 +++++++++++++++++++++++
+ drivers/media/video/cx18/cx18-alsa-mixer.c |  191 +++++++++++++++
+ drivers/media/video/cx18/cx18-alsa-mixer.h |   23 ++
+ drivers/media/video/cx18/cx18-alsa-pcm.c   |  353 ++++++++++++++++++++++++++++
+ drivers/media/video/cx18/cx18-alsa-pcm.h   |   27 ++
+ drivers/media/video/cx18/cx18-alsa.h       |   59 +++++
+ drivers/media/video/cx18/cx18-driver.c     |   40 +++-
+ drivers/media/video/cx18/cx18-driver.h     |   10 +
+ drivers/media/video/cx18/cx18-fileops.c    |    6 +-
+ drivers/media/video/cx18/cx18-fileops.h    |    3 +
+ drivers/media/video/cx18/cx18-mailbox.c    |   46 ++++-
+ drivers/media/video/cx18/cx18-streams.c    |    2 +
+ 14 files changed, 1057 insertions(+), 9 deletions(-)
+ create mode 100644 drivers/media/video/cx18/cx18-alsa-main.c
+ create mode 100644 drivers/media/video/cx18/cx18-alsa-mixer.c
+ create mode 100644 drivers/media/video/cx18/cx18-alsa-mixer.h
+ create mode 100644 drivers/media/video/cx18/cx18-alsa-pcm.c
+ create mode 100644 drivers/media/video/cx18/cx18-alsa-pcm.h
+ create mode 100644 drivers/media/video/cx18/cx18-alsa.h
+
+
+hooks/post-receive
 -- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+The merge of all V4L/DVB trees ready to upstream and linux-next
 
+_______________________________________________
+linuxtv-commits mailing list
+linuxtv-commits@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linuxtv-commits
