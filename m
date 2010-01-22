@@ -1,47 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:54225 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750734Ab0A2C1t (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2010 21:27:49 -0500
-Subject: Re: cx18 fix patches
-From: Andy Walls <awalls@radix.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <4B624309.9040700@infradead.org>
-References: <4B60F901.20301@redhat.com>
-	 <1264681562.3081.3.camel@palomino.walls.org>
-	 <4B624309.9040700@infradead.org>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 28 Jan 2010 21:27:01 -0500
-Message-Id: <1264732021.3095.18.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from smtp.mujha-vel.cz ([81.30.225.246]:45363 "EHLO
+	smtp.mujha-vel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754911Ab0AVPK7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jan 2010 10:10:59 -0500
+From: Jiri Slaby <jslaby@suse.cz>
+To: crope@iki.fi
+Cc: linux-kernel@vger.kernel.org, jirislaby@gmail.com,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 4/4] media: dvb/af9015, add hashes support
+Date: Fri, 22 Jan 2010 16:10:55 +0100
+Message-Id: <1264173055-14787-4-git-send-email-jslaby@suse.cz>
+In-Reply-To: <4B4F6BE5.2040102@iki.fi>
+References: <4B4F6BE5.2040102@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2010-01-29 at 00:08 -0200, Mauro Carvalho Chehab wrote:
-> Andy Walls wrote:
-> > Now I'll just review and test tonight (some time between 6:00 - 10:30
-> > p.m. EST)
-> 
-> One more error (on x86_64):
-> 
-> drivers/media/video/cx18/cx18-alsa-pcm.c: In function ‘cx18_alsa_announce_pcm_data’:
-> drivers/media/video/cx18/cx18-alsa-pcm.c:82: warning: format ‘%d’ expects type ‘int’, but argument 5 has type ‘size_t’
-> 
-> You should use %zu for size_t.
+So as a final patch, add support for hash and one hash entry
+for MSI digi vox mini II:
+iManufacturer 1 Afatech
+iProduct      2 DVB-T 2
+iSerial       3 010101010600001
 
-Yes, I saw it.
+It is now handled with proper IR and key map tables.
 
-I'll handle it this weekend with some other cx18 fixes.  I'll have to
-give you changes via -hg or as patches posted to the list, as I don't
-have a -git clone yet.
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Antti Palosaari <crope@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
 
-Regards,
-Andy
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+---
+ drivers/media/dvb/dvb-usb/af9015.c |   14 ++++++++++++--
+ 1 files changed, 12 insertions(+), 2 deletions(-)
 
-> Cheers,
-> Mauro
-> 
+diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
+index 796f9d5..650c913 100644
+--- a/drivers/media/dvb/dvb-usb/af9015.c
++++ b/drivers/media/dvb/dvb-usb/af9015.c
+@@ -788,6 +788,13 @@ static const struct af9015_setup af9015_setup_usbids[] = {
+ 	{ }
+ };
+ 
++static const struct af9015_setup af9015_setup_hashes[] = {
++	{ 0xb8feb708,
++		af9015_rc_keys_msi, ARRAY_SIZE(af9015_rc_keys_msi),
++		af9015_ir_table_msi, ARRAY_SIZE(af9015_ir_table_msi) },
++	{ }
++};
++
+ static void af9015_set_remote_config(struct usb_device *udev,
+ 		struct dvb_usb_device_properties *props)
+ {
+@@ -800,7 +807,10 @@ static void af9015_set_remote_config(struct usb_device *udev,
+ 	} else {
+ 		u16 vendor = le16_to_cpu(udev->descriptor.idVendor);
+ 
+-		if (vendor == USB_VID_AFATECH) {
++		table = af9015_setup_match(af9015_config.eeprom_sum,
++				af9015_setup_hashes);
++
++		if (!table && vendor == USB_VID_AFATECH) {
+ 			/* Check USB manufacturer and product strings and try
+ 			   to determine correct remote in case of chip vendor
+ 			   reference IDs are used.
+@@ -831,7 +841,7 @@ static void af9015_set_remote_config(struct usb_device *udev,
+ 					ARRAY_SIZE(af9015_ir_table_trekstor)
+ 				};
+ 			}
+-		} else
++		} else if (!table)
+ 			table = af9015_setup_match(vendor, af9015_setup_usbids);
+ 	}
+ 
+-- 
+1.6.5.7
 
