@@ -1,21 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx08.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.12])
-	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o0GKo2en002593
-	for <video4linux-list@redhat.com>; Sat, 16 Jan 2010 15:50:02 -0500
-Received: from mail-pw0-f82.google.com (mail-pw0-f82.google.com
-	[209.85.160.82])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o0GKnk25017253
-	for <video4linux-list@redhat.com>; Sat, 16 Jan 2010 15:49:46 -0500
-Received: by pwi19 with SMTP id 19so421029pwi.11
-	for <video4linux-list@redhat.com>; Sat, 16 Jan 2010 12:49:46 -0800 (PST)
+Received: from mx1.redhat.com (ext-mx05.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.9])
+	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o0MIfUp4015298
+	for <video4linux-list@redhat.com>; Fri, 22 Jan 2010 13:41:30 -0500
+Received: from gateway07.websitewelcome.com (gateway07.websitewelcome.com
+	[69.56.170.18])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o0MIfI85027963
+	for <video4linux-list@redhat.com>; Fri, 22 Jan 2010 13:41:19 -0500
+Message-ID: <14502.66.15.212.169.1264185677.squirrel@sensoray.com>
+In-Reply-To: <000001ca9b8d$12a3d020$37eb7060$@com>
+References: <13c9a3ca1001211916n558736e9ic8dc17f4dfe99d37@mail.gmail.com>
+	<4B595835.1030801@gmail.com> <000001ca9b8d$12a3d020$37eb7060$@com>
+Date: Fri, 22 Jan 2010 12:41:17 -0600 (CST)
+Subject: RE: streamer
+From: charlie@sensoray.com
+To: "Charlie X. Liu" <charlie@sensoray.com>
 MIME-Version: 1.0
-Date: Sun, 17 Jan 2010 02:19:45 +0530
-Message-ID: <25f5fcff1001161249w60b6c19k6b67d358f13316b5@mail.gmail.com>
-Subject: multimedia framework tutorial
-From: Niamathullah sharief <newbiesha@gmail.com>
-To: kernelnewbies@nl.linux.org, video4linux-list@redhat.com
+Cc: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,14 +31,75 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
- i just want to know about the multimedia framework in video. i googled for
-that but i didn't get what i need. i want to know how this multimedia is
-supported in kernel. what are the drivers and file need for this?i want to
-know the complete architecture. if it uses gstreamer for multimedia,hoe it
-handles it?i want o know all the details. so for that i have to learn all
-the complete concepts. so please can anyone tell me which book will be best
-for this and is there any e-book available? please help me.
+Or, from:
+http://linux.softpedia.com/progDownload/MJPG-streamer-Download-34273.html
+http://sourceforge.net/projects/mjpg-streamer/files/
+
+
+> There is no link to mjpg-streamer from
+> http://www.quickcamteam.net/software/linux/v4l2-software/mjpg-streamer.
+> But,
+> the source code could be downloaded from
+> http://sourceforge.net/projects/mjpg-streamer/
+>
+>
+>
+> -----Original Message-----
+> From: video4linux-list-bounces@redhat.com
+> [mailto:video4linux-list-bounces@redhat.com] On Behalf Of mahmut
+> Sent: Thursday, January 21, 2010 11:48 PM
+> To: Cristiana Tenti
+> Cc: video4linux-list@redhat.com
+> Subject: Re: streamer
+>
+>
+>      You can also check mjpeg-streamer project. I have been used it for
+> jpeg frame streaming, in addition it can give raw images.
+>
+> http://www.quickcamteam.net/software/linux/v4l2-software/mjpg-streamer
+>
+> Regards,
+>
+> Mahmut
+>
+> Cristiana Tenti wrote:
+>> Hello,
+>> I'm a new user :)
+>>
+>> I'm working on a simple project and for that I only need to a software
+>> for
+>> uclinux to acquire a raw image from my usb webcam.
+>> On Ubuntu I'm using STREAMER but I cannot find the source code to
+>> install
+> it
+>> on my uclinux platform.
+>>
+>> Anyway I found xawtv and I saw that this usefull software has as tool
+>> STREAMER.
+>>
+>> Do you know if it is possible compile only streamer and not all package
+>> of
+>> xawtv?
+>>
+>> Please, if you can help me answer me!!!
+>>
+>> Thank you in advance,
+>>
+>> Best Regards
+>>
+>>
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
