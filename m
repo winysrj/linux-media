@@ -1,24 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx08.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.12])
-	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o0M7l8ZA022224
-	for <video4linux-list@redhat.com>; Fri, 22 Jan 2010 02:47:08 -0500
-Received: from gateway05.websitewelcome.com (gateway05.websitewelcome.com
-	[67.18.22.93])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o0M7kqPt026367
-	for <video4linux-list@redhat.com>; Fri, 22 Jan 2010 02:46:53 -0500
-Message-ID: <50390.71.237.141.102.1264146411.squirrel@sensoray.com>
-In-Reply-To: <13c9a3ca1001212245j7a271fd2wa4f8a75e903606d8@mail.gmail.com>
-References: <13c9a3ca1001211916n558736e9ic8dc17f4dfe99d37@mail.gmail.com>
-	<49418.71.237.141.102.1264142487.squirrel@sensoray.com>
-	<13c9a3ca1001212245j7a271fd2wa4f8a75e903606d8@mail.gmail.com>
-Date: Fri, 22 Jan 2010 01:46:51 -0600 (CST)
-Subject: Re: streamer
-From: charlie@sensoray.com
-To: "Cristiana Tenti" <cristenti@gmail.com>
+Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.5])
+	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o0MNUK24021796
+	for <video4linux-list@redhat.com>; Fri, 22 Jan 2010 18:30:20 -0500
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.152])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o0MNTuQD014484
+	for <video4linux-list@redhat.com>; Fri, 22 Jan 2010 18:29:56 -0500
+Received: by fg-out-1718.google.com with SMTP id 22so124174fge.9
+	for <video4linux-list@redhat.com>; Fri, 22 Jan 2010 15:29:55 -0800 (PST)
 MIME-Version: 1.0
-Cc: video4linux-list@redhat.com
+In-Reply-To: <14502.66.15.212.169.1264185677.squirrel@sensoray.com>
+References: <13c9a3ca1001211916n558736e9ic8dc17f4dfe99d37@mail.gmail.com>
+	<4B595835.1030801@gmail.com> <000001ca9b8d$12a3d020$37eb7060$@com>
+	<14502.66.15.212.169.1264185677.squirrel@sensoray.com>
+Date: Fri, 22 Jan 2010 15:29:54 -0800
+Message-ID: <13c9a3ca1001221529k43f24c00u4dd2e268fa648ba0@mail.gmail.com>
+Subject: Re: streamer
+From: Cristiana Tenti <cristenti@gmail.com>
+To: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,69 +32,18 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Yes, stand alone executable, plus necessary libraries.
+Thank you guys!!!!
 
-> Hi,
-> first of all thank you for your answer!!
->
-> So, I can compile every in my Ubuntu-pc and then what have I to
-> crosscompile
-> for uclinux?
->
-> Can I only copy and move streamer?
-> And what is it? an executable file stand alone?
->
-> Thank you so much!!
->
-> 2010/1/21 <charlie@sensoray.com>
->
->> You may compile whole xawtv against the same kernel that you will use
->> for
->> uclinux, with a development PC. Then, copy and move the streamer to your
->> target uclinux platform. Sure, the streamer is a really good capture
->> tool/utility. I like it too.
->>
->> > Hello,
->> > I'm a new user :)
->> >
->> > I'm working on a simple project and for that I only need to a software
->> for
->> > uclinux to acquire a raw image from my usb webcam.
->> > On Ubuntu I'm using STREAMER but I cannot find the source code to
->> install
->> > it
->> > on my uclinux platform.
->> >
->> > Anyway I found xawtv and I saw that this usefull software has as tool
->> > STREAMER.
->> >
->> > Do you know if it is possible compile only streamer and not all
->> package
->> of
->> > xawtv?
->> >
->> > Please, if you can help me answer me!!!
->> >
->> > Thank you in advance,
->> >
->> > Best Regards
->> >
->> > --
->> > -Cristiana
->> > --
->> > video4linux-list mailing list
->> > Unsubscribe mailto:video4linux-list-request@redhat.com
->> ?subject=unsubscribe
->> > https://www.redhat.com/mailman/listinfo/video4linux-list
->> >
->>
->>
->
->
-> --
-> -Cristiana
->
 
+Now I`m trying all solutions you have suggested me... I'll keep you bring up
+to date :)))
+
+Have a nice weekend!
+
+Cheers
+
+-- 
+-Cristiana
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
