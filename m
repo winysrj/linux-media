@@ -1,64 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.122]:46769 "EHLO
-	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753256Ab0ASVVj (ORCPT
+Received: from msa103.auone-net.jp ([61.117.18.163]:36271 "EHLO
+	msa103.auone-net.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752073Ab0AVHyt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jan 2010 16:21:39 -0500
-Message-ID: <4B562260.8030707@acm.org>
-Date: Tue, 19 Jan 2010 13:21:36 -0800
-From: Bob Cunningham <rcunning@acm.org>
+	Fri, 22 Jan 2010 02:54:49 -0500
+Date: Fri, 22 Jan 2010 16:54:46 +0900
+From: Kusanagi Kouichi <slash@ac.auone-net.jp>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] cx25840: Fix composite detection.
 MIME-Version: 1.0
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [ANNOUNCE] git tree repositories
-References: <4B55445A.10300@infradead.org> <829197381001190204l3df81904gf8586f36187f212d@mail.gmail.com> <4B55A2AC.4020009@infradead.org>
-In-Reply-To: <4B55A2AC.4020009@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Message-Id: <20100122075447.B553714C03D@msa103.auone-net.jp>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/19/2010 04:16 AM, Mauro Carvalho Chehab wrote:
-> Devin Heitmueller wrote:
->> Hello Mauro,
->>
->> I find it somewhat unfortunate that this is labeled "ANNOUNCE" instead
->> of "RFC".  It shows how little you care about soliciting the opinions
->> of the other developers.  Rather than making a proposal for how the
->> process can be improved and soliciting feedback, you have chosen to
->> decide for all of us what the best approach is and how all of us will
->> develop in the future.
->
-> The announcement by purpose doesn't contain any changes on the process,
-> since it requires some discussions before we go there. It is just the
-> first step, where -git tree support were created. It also announces
-> that I personally won't keep maintaining -hg, delegating its task
-> to Douglas.
->
->> The point I'm trying to make is that we need to be having a discussion
->> about what we are optimizing for, and what are the costs to other
->> developers.  This is why I'm perhaps a bit pissed to see an
->> "announcement" declaring how development will be done in the future as
->> opposed to a discussion of what we could be doing and what are the
->> trade-offs.
->
-> I fully understand that supporting the development and tests with an
-> out of tree building is important to everybody. So, the plans are
-> to keep the out-of-tree building system maintained, and even
-> improving it. I'd like to thank to Douglas for his help on making
-> this happen.
->
-> Cheers,
-> Mauro.
+If CX25840_VIN1_CH1 and the like is used, input is not detected as composite.
+Their value is 0x800000XX and CX25840_COMPONENT_ON is 0x80000200. So
 
-I'm primarily a lurker on this list, generally content to wait for v4l driver updates until they appear in the Fedora 12 and Ubuntu 9.10 updates.
+   739			else if ((vid_input & CX25840_COMPONENT_ON) == 0)
 
-However, I also keep a v4l source tree around that I update and build whenever any significant changes occur that affect my HVR-950Q, so I can provide rapid feedback to the developers.  My process is to update my local tree, build the drivers. build the package, install the package, test it, then either revert immediately if there are problems (after posting to the list), or update again when the changes appear in the Fedora repositories.
+this condition never be true.
 
-Am I correct to believe my process will not be affected by the shift to git?  That is, will existing kernels will still have access to the current v4l code via hg?
+Signed-off-by: Kusanagi Kouichi <slash@ac.auone-net.jp>
+---
+ drivers/media/video/cx25840/cx25840-core.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
-I also hope to one day start working on an unsupported USB tuner I have laying around (should be simple, but after nearly a year I still haven't gotten to it).  Will I be permitted to do my development, and contribute changes, using hg and the current Fedora kernel?
+diff --git a/drivers/media/video/cx25840/cx25840-core.c b/drivers/media/video/cx25840/cx25840-core.c
+index 385ecd5..764c811 100644
+--- a/drivers/media/video/cx25840/cx25840-core.c
++++ b/drivers/media/video/cx25840/cx25840-core.c
+@@ -734,10 +734,8 @@ static int set_input(struct i2c_client *client, enum cx25840_video_input vid_inp
+ 		v4l_dbg(1, cx25840_debug, client, "vid_input 0x%x\n",
+ 			vid_input);
+ 		reg = vid_input & 0xff;
+-		if ((vid_input & CX25840_SVIDEO_ON) == CX25840_SVIDEO_ON)
+-			is_composite = 0;
+-		else if ((vid_input & CX25840_COMPONENT_ON) == 0)
+-			is_composite = 1;
++		is_composite = !is_component &&
++			((vid_input & CX25840_SVIDEO_ON) != CX25840_SVIDEO_ON);
+ 
+ 		v4l_dbg(1, cx25840_debug, client, "mux cfg 0x%x comp=%d\n",
+ 			reg, is_composite);
+-- 
+1.6.6
 
-Lurker testers and wannabe developers need to know!
-
--BobC
