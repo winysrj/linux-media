@@ -1,20 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx02.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.6])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o0BBBS9x000976
-	for <video4linux-list@redhat.com>; Mon, 11 Jan 2010 06:11:28 -0500
-Received: from mail-px0-f185.google.com (mail-px0-f185.google.com
-	[209.85.216.185])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o0BBBCIe013599
-	for <video4linux-list@redhat.com>; Mon, 11 Jan 2010 06:11:12 -0500
-Received: by pxi15 with SMTP id 15so15900982pxi.23
-	for <video4linux-list@redhat.com>; Mon, 11 Jan 2010 03:11:11 -0800 (PST)
+Received: from mx1.redhat.com (ext-mx03.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.7])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o0M3H6Ii018725
+	for <video4linux-list@redhat.com>; Thu, 21 Jan 2010 22:17:06 -0500
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.156])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o0M3GoGb008594
+	for <video4linux-list@redhat.com>; Thu, 21 Jan 2010 22:16:51 -0500
+Received: by fg-out-1718.google.com with SMTP id e12so283933fga.9
+	for <video4linux-list@redhat.com>; Thu, 21 Jan 2010 19:16:50 -0800 (PST)
 MIME-Version: 1.0
-Date: Mon, 11 Jan 2010 12:11:11 +0100
-Message-ID: <fe6fd5f61001110311o132e8370jc6811a9fdd9559a0@mail.gmail.com>
-Subject: Unable to open /dev/vid
-From: Carlos Lavin <carlos.lavin@vista-silicon.com>
+Date: Thu, 21 Jan 2010 19:16:49 -0800
+Message-ID: <13c9a3ca1001211916n558736e9ic8dc17f4dfe99d37@mail.gmail.com>
+Subject: streamer
+From: Cristiana Tenti <cristenti@gmail.com>
 To: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
@@ -29,17 +28,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi!,
-I am working in a driver for video with soc-camera, but  I have a problem
-when I open /dev/video0 in the aplication. I think that the register of
-driver is good, but when I run the aplication in my system I have a problem
-to open the driver, the aplication is correct but the function
-soc_camera_open don't run. I don't know where look at, and I am lost, can
-anybody help me? where can I look at for solver this problem? in the
-directory /dev is "video0".
+Hello,
+I'm a new user :)
 
+I'm working on a simple project and for that I only need to a software for
+uclinux to acquire a raw image from my usb webcam.
+On Ubuntu I'm using STREAMER but I cannot find the source code to install it
+on my uclinux platform.
 
-thanks.
+Anyway I found xawtv and I saw that this usefull software has as tool
+STREAMER.
+
+Do you know if it is possible compile only streamer and not all package of
+xawtv?
+
+Please, if you can help me answer me!!!
+
+Thank you in advance,
+
+Best Regards
+
+-- 
+-Cristiana
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
