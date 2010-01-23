@@ -1,31 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from snt0-omc2-s37.snt0.hotmail.com ([65.55.90.112]:38235 "EHLO
-	snt0-omc2-s37.snt0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752064Ab0AYLoP convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jan 2010 06:44:15 -0500
-Message-ID: <SNT130-w530BA3C80D244EB3C39701F45F0@phx.gbl>
-From: Gavin Ramm <gavin_ramm@hotmail.com>
-To: <linux-media@vger.kernel.org>
-Subject: help: Leadtek DTV2000 DS
-Date: Mon, 25 Jan 2010 22:44:14 +1100
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mail01d.mail.t-online.hu ([84.2.42.6]:49594 "EHLO
+	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932068Ab0AWNoR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Jan 2010 08:44:17 -0500
+Message-ID: <4B5AFD2E.4080202@freemail.hu>
+Date: Sat, 23 Jan 2010 14:44:14 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
+To: V4L Mailing List <linux-media@vger.kernel.org>,
+	mjpeg-users@lists.sourceforge.net
+Subject: [PATCH] zoran: remove variable shadowing
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Márton Németh <nm127@freemail.hu>
 
+The loop counter j is declared twice in function error_handler().
+Remove the redundant declaration.
 
-Tried the current build of v4l-dvb (as of 25/01/2010) for a Leadtek DTV2000 DS.
-product site : http://www.leadtek.com/eng/tv_tuner/overview.asp?lineid=6&pronameid=530&check=f
- 
-The chipset are AF9015 + AF9013 and the tuner is TDA18211..
-Im running it on mythdora 10.21 *fedora 10* i've had no luck with this.
+This will remove the following sparse warning (see "make C=1"):
+ * symbol 'j' shadows an earlier one
 
-Any help would be great.. im willing to test..
- 
-gav 		 	   		  
-_________________________________________________________________
-View photos of singles in your area! Browse profiles for FREE
-http://clk.atdmt.com/NMN/go/150855801/direct/01/
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+diff -r 2a50a0a1c951 linux/drivers/media/video/zoran/zoran_device.c
+--- a/linux/drivers/media/video/zoran/zoran_device.c	Sat Jan 23 00:14:32 2010 -0200
++++ b/linux/drivers/media/video/zoran/zoran_device.c	Sat Jan 23 10:47:27 2010 +0100
+@@ -1229,7 +1230,7 @@
+ 	       u32           astat,
+ 	       u32           stat)
+ {
+-	int i, j;
++	int i;
+
+ 	/* This is JPEG error handling part */
+ 	if (zr->codec_mode != BUZ_MODE_MOTION_COMPRESS &&
+@@ -1280,6 +1281,7 @@
+ 	/* Report error */
+ 	if (zr36067_debug > 1 && zr->num_errors <= 8) {
+ 		long frame;
++		int j;
+
+ 		frame = zr->jpg_pend[zr->jpg_dma_tail & BUZ_MASK_FRAME];
+ 		printk(KERN_ERR
+
