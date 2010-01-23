@@ -1,59 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f217.google.com ([209.85.217.217]:57214 "EHLO
-	mail-gx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755926Ab0ASWnx (ORCPT
+Received: from smtp2.wa.amnet.net.au ([203.161.124.51]:53761 "EHLO
+	smtp2.wa.amnet.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932131Ab0AWXRp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jan 2010 17:43:53 -0500
-Received: by gxk9 with SMTP id 9so5577230gxk.8
-        for <linux-media@vger.kernel.org>; Tue, 19 Jan 2010 14:43:53 -0800 (PST)
-From: Huang Weiyi <weiyi.huang@gmail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org, Huang Weiyi <weiyi.huang@gmail.com>
-Subject: [PATCH] V4L/DVB: [Mantis] remove duplicated #include
-Date: Wed, 20 Jan 2010 06:43:44 +0800
-Message-Id: <1263941024-880-1-git-send-email-weiyi.huang@gmail.com>
+	Sat, 23 Jan 2010 18:17:45 -0500
+Message-ID: <4B5B837A.6020001@barber-family.id.au>
+Date: Sun, 24 Jan 2010 07:17:14 +0800
+From: Francis Barber <fedora@barber-family.id.au>
+MIME-Version: 1.0
+To: Steven Toth <stoth@kernellabs.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: New Hauppauge HVR-2200 Revision?
+References: <4B5B0E12.3090706@barber-family.id.au> <83bcf6341001230700h7db6600i89b9092051049612@mail.gmail.com>
+In-Reply-To: <83bcf6341001230700h7db6600i89b9092051049612@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove duplicated #include('s) in
-  drivers/media/dvb/mantis/mantis_hif.c
-  drivers/media/dvb/mantis/mantis_pci.c
+On 23/01/2010 11:00 PM, Steven Toth wrote:
+>> I'm a confused by 8940 because this isn't listed in the hcw89.inf file on
+>> the CD that shipped with the product (driver version 7.6.1.27118).  They
+>> list 8900, 8901, 8980, 8991, 8993, 89A0, and 89A1.  I downloaded the latest
+>> drivers from the website (7.6.27.27223) and this adds 8951 and 8953, but
+>> still not 8940.
+>>
+>> The firmware shipped with 7.6.1.27118 is the same as is available on your
+>> website, although they have updated it for 7.6.27.27223.
+>>      
+>    
+>> If there is any other information that would be helpful please let me know.
+>>      
+> Does this actually work under windows? It sounds like the driver
+> doesn't support it?
+>
+> Regards,
+>
+>    
 
-Signed-off-by: Huang Weiyi <weiyi.huang@gmail.com>
----
- drivers/media/dvb/mantis/mantis_hif.c |    2 --
- drivers/media/dvb/mantis/mantis_pci.c |    5 -----
- 2 files changed, 0 insertions(+), 7 deletions(-)
+As expected, the card didn't work in Windows with either of those driver 
+versions.  However, hauppauge.com has different drivers to 
+hauppauge.co.uk!  The latest HVR2250 drivers from hauppauge.com, version 
+7.6.27.27323, include 8940 in the inf file.  This version installs fine 
+on Windows.
 
-diff --git a/drivers/media/dvb/mantis/mantis_hif.c b/drivers/media/dvb/mantis/mantis_hif.c
-index 7477dac..5772ebb 100644
---- a/drivers/media/dvb/mantis/mantis_hif.c
-+++ b/drivers/media/dvb/mantis/mantis_hif.c
-@@ -22,8 +22,6 @@
- #include <linux/signal.h>
- #include <linux/sched.h>
- 
--#include <linux/signal.h>
--#include <linux/sched.h>
- #include <linux/interrupt.h>
- 
- #include "dmxdev.h"
-diff --git a/drivers/media/dvb/mantis/mantis_pci.c b/drivers/media/dvb/mantis/mantis_pci.c
-index 6c7534a..59feeb8 100644
---- a/drivers/media/dvb/mantis/mantis_pci.c
-+++ b/drivers/media/dvb/mantis/mantis_pci.c
-@@ -41,11 +41,6 @@
- #include "dvb_frontend.h"
- #include "dvb_net.h"
- 
--#include <asm/irq.h>
--#include <linux/signal.h>
--#include <linux/sched.h>
--#include <linux/interrupt.h>
--
- #include "mantis_common.h"
- #include "mantis_reg.h"
- #include "mantis_pci.h"
--- 
-1.6.1.3
-
+Regards,
+Frank.
