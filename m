@@ -1,39 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1626 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751961Ab0AVQ5A (ORCPT
+Received: from mail02d.mail.t-online.hu ([84.2.42.7]:59813 "EHLO
+	mail02d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755028Ab0AWNoi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jan 2010 11:57:00 -0500
-Received: from durdane.lan (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id o0MGupVJ093098
-	for <linux-media@vger.kernel.org>; Fri, 22 Jan 2010 17:56:59 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [NOTICE] daily build server maintenance
-Date: Fri, 22 Jan 2010 17:56:51 +0100
+	Sat, 23 Jan 2010 08:44:38 -0500
+Message-ID: <4B5AFD42.6080001@freemail.hu>
+Date: Sat, 23 Jan 2010 14:44:34 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201001221756.51216.hverkuil@xs4all.nl>
+To: Janne Grunau <j@jannau.net>
+CC: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] hdpvr-video: cleanup signedness
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+From: Márton Németh <nm127@freemail.hu>
 
-This weekend I will be replacing harddisks and installing a new linux distro
-on the daily build server (and actually a bunch of other PCs as well).
+The fifth parameter of usb_bulk_msg() is a pointer to signed
+(see <linux/usb.h>) so also call this function with pointer to signed.
 
-It should be up again on Monday if all goes well.
+This will remove the following sparse warning (see "make C=1"):
+ * warning: incorrect type in argument 5 (different signedness)
+       expected int *actual_length
+       got unsigned int *<noident>
 
-Some time next week I also hope to implement the git build, but I first want
-to get this upgrade done before I start on that.
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+diff -r 2a50a0a1c951 linux/drivers/media/video/hdpvr/hdpvr-video.c
+--- a/linux/drivers/media/video/hdpvr/hdpvr-video.c	Sat Jan 23 00:14:32 2010 -0200
++++ b/linux/drivers/media/video/hdpvr/hdpvr-video.c	Sat Jan 23 11:43:17 2010 +0100
+@@ -302,7 +302,8 @@
+ /* function expects dev->io_mutex to be hold by caller */
+ static int hdpvr_stop_streaming(struct hdpvr_device *dev)
+ {
+-	uint actual_length, c = 0;
++	int actual_length;
++	uint c = 0;
+ 	u8 *buf;
 
-Regards,
+ 	if (dev->status == STATUS_IDLE)
 
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
