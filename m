@@ -1,89 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:61606 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752506Ab0A1MJW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jan 2010 07:09:22 -0500
-Message-ID: <4B617E96.2020903@redhat.com>
-Date: Thu, 28 Jan 2010 13:09:58 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-fx0-f220.google.com ([209.85.220.220]:46566 "EHLO
+	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755264Ab0AWCSK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jan 2010 21:18:10 -0500
+Received: by fxm20 with SMTP id 20so1978009fxm.21
+        for <linux-media@vger.kernel.org>; Fri, 22 Jan 2010 18:18:09 -0800 (PST)
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Setting up white balance on a t613 camera
-References: <20100126170053.GA5995@pathfinder.pcs.usp.br>	<20100126193726.00bcbc00@tele>	<20100127163709.GA10435@pathfinder.pcs.usp.br>	<20100127171753.GA10865@pathfinder.pcs.usp.br> <20100127193728.0a75ba1e@tele>
-In-Reply-To: <20100127193728.0a75ba1e@tele>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4B5A0B92.1020404@infradead.org>
+References: <201001180106.30373.liplianin@me.by>
+	 <4B5A0B92.1020404@infradead.org>
+Date: Sat, 23 Jan 2010 00:18:08 -0200
+Message-ID: <68cac7521001221818g7a0cd947r5390192e7842c5d1@mail.gmail.com>
+Subject: Re: [PATCH] http://mercurial.intuxication.org/hg/v4l-dvb-commits
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: "Igor M. Liplianin" <liplianin@me.by>, linux-media@vger.kernel.org,
+	JD Louw <jd.louw@mweb.co.za>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hello,
 
-On 01/27/2010 07:37 PM, Jean-Francois Moine wrote:
-> On Wed, 27 Jan 2010 15:17:53 -0200
-> Nicolau Werneck<nwerneck@gmail.com>  wrote:
->
->> Answering my own question, and also a question in the t613 source
->> code...
+On Fri, Jan 22, 2010 at 6:33 PM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+> Igor M. Liplianin wrote:
+>> Mauro,
 >>
->> Yes, the need for the "reg_w(gspca_dev, 0x2087);", 0x2088 and 0x2089
->> commands are definitely tied to the white balance. These three set up
->> the default values I found out. And (X<<  8 + 87) sets up the red
->> channel parameter in general, and 88 is for green and 89 for blue.
+>> Please pull from http://mercurial.intuxication.org/hg/v4l-dvb-commits
 >>
->> That means I can already just play with them and see what happens. My
->> personal problem is that I bought this new lens, and the image is way
->> too bright, and changing that seems to help. But I would like to offer
->> these as parameters the user can set using v4l2 programs. I can try
->> making that big change myself, but help from a more experienced
->> developer would be certainly much appreciated!...
+>> for the following 5 changesets:
+>>
+>> 01/05: Add Support for DVBWorld DVB-S2 PCI 2004D card
+>> http://mercurial.intuxication.org/hg/v4l-dvb-commits?cmd=changeset;node=199213295c11
+>>
+>> 02/05: Compro S350 GPIO change
+>> http://mercurial.intuxication.org/hg/v4l-dvb-commits?cmd=changeset;node=84347195a02c
+>>
+>> 03/05: dm1105: connect splitted else-if statements
+>> http://mercurial.intuxication.org/hg/v4l-dvb-commits?cmd=changeset;node=cd9e72ee99c4
+>>
+>> 04/05: dm1105: use dm1105_dev & dev instead of dm1105dvb
+>> http://mercurial.intuxication.org/hg/v4l-dvb-commits?cmd=changeset;node=5cb9c8978917
+>>
+>> 05/05: dm1105: use macro for read/write registers
+>> http://mercurial.intuxication.org/hg/v4l-dvb-commits?cmd=changeset;node=6ed71bd9d32b
+>>
+>>
+>>  dvb/dm1105/Kconfig            |    1
+>>  dvb/dm1105/dm1105.c           |  539 +++++++++++++++++++++---------------------
+>>  video/saa7134/saa7134-cards.c |    4
+>>  3 files changed, 285 insertions(+), 259 deletions(-)
+>>
 >
-> Hello Nicolau,
->
-> The white balance is set in setwhitebalance(). Four registers are
-> changed: 87, 88, 89 and 80.
+> applied on -git, thanks.
 >
 
-Hi,
+Applied on -hg tree, thanks!
 
-About whitebalancing, currently libv4l does whitebalancing completely
-in software for camera's which cannot do it automatically in hardware.
-
-That is libv4l calculates and applies 3 software gains to get
-the average green red and blue values the same.
-
-In the future it might be an idea to start supporting hardware per
-color gains for this, but there are a number of issues with that:
-
-1) The controls used for this then need to be standardized.
-2) As we don't know the exact dB scale of the hardware gains we
-need some sort of approximation algorithm, like with autogain /
-exposure. Leading to potential overshoot, oscilating etc.
-
-Esp 2. makes me wonder if we want to use the hardware color gains
-(when the hardware cannot autoadjust them) at all. Calculating
-a software gain so that the averages become equal is trivial, and
-does not need any settling time etc.
-
-Note that in case of whitebalance the color correction gain can
-easily be done in software (as it is in the range of circa 0.7 - 1.3)
-unlike things like exposure and the main gain which we really
-must set correctly at the hardware level for a usable picture.
-
-To give libv4l's software whitebalance a try do:
-
-export LIBV4LCONTROL_FLAGS=8
-
-And then run a webcam viewing app from the same commandline
-
-You can also run a control panel like v4l2ucp like this:
-export LIBV4LCONTROL_FLAGS=8
-LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so v4l2ucp
-
-To get a whitebalance control with which you can toggle
-the whitebalance on/off while streaming so that you can
-see the effect it has on the picture.
-
-Regards,
-
-Hans
+Cheers,
+Douglas
