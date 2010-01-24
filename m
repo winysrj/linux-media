@@ -1,55 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from utm.netup.ru ([193.203.36.250]:49287 "EHLO utm.netup.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752648Ab0AaQc7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Jan 2010 11:32:59 -0500
-Subject: Re: CAM appears to introduce packet loss
-From: Abylai Ospan <aospan@netup.ru>
-To: Marc Schmitt <marc.schmitt@gmail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <b36f333c1001310825n6ae6e5dbg45a0cf135d2e89e@mail.gmail.com>
-References: <b36f333c1001310412r40cb425cp7a5a0d282c6a716a@mail.gmail.com>
-	 <1264941827.28401.3.camel@alkaloid.netup.ru>
-	 <b36f333c1001310707w3397a5a6i758031262d8591a7@mail.gmail.com>
-	 <b36f333c1001310723p561d7a69x955b2d4a6d9b4e1@mail.gmail.com>
-	 <1264951975.28401.8.camel@alkaloid.netup.ru>
-	 <b36f333c1001310825n6ae6e5dbg45a0cf135d2e89e@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 31 Jan 2010 19:31:23 +0300
-Message-ID: <1264955483.28401.32.camel@alkaloid.netup.ru>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail01d.mail.t-online.hu ([84.2.42.6]:65489 "EHLO
+	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751626Ab0AXVbf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Jan 2010 16:31:35 -0500
+Message-ID: <4B5CBC31.5090701@freemail.hu>
+Date: Sun, 24 Jan 2010 22:31:29 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@skynet.be>
+CC: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: git problem with uvcvideo
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2010-01-31 at 17:25 +0100, Marc Schmitt wrote:
-> Compiling from source made me stumble across
-> http://www.mail-archive.com/ubuntu-devel-discuss@lists.ubuntu.com/msg09422.html
-> I just left out the firedtv driver as recommended.
-> 
-> I'm getting the following kernel output after enabling dvb_demux_speedcheck:
-> [  330.366115] TS speed 40350 Kbits/sec
-> [  332.197693] TS speed 40085 Kbits/sec
-> [  334.011856] TS speed 40528 Kbits/sec
-> [  335.843466] TS speed 40107 Kbits/sec
-> [  337.665411] TS speed 40261 Kbits/sec
-> [  339.496959] TS speed 40107 Kbits/sec
-> [  341.318289] TS speed 40350 Kbits/sec
-> 
-> Do you think the CI/CAM can not handle that?
-40 Mbit/sec is high bitrate for some CAM's. 
+Hi,
 
-You can:
-1. Try to contact with CAM vendor and check maximum bitrate which can be
-passed throught this CAM
-2. Try to find reception card with hardware PID filtering and pass only
-interesting PID's throught CAM. Bitrate should be equal to bitrate of
-one channel - aprox. 4-5 mbit/sec ( not 40 mbit/sec).
-3.may be some fixes can be made on TS output from demod. Demod's usually
-has tunable TS output timings/forms. You should check TS clock by
-oscilloscope and then try to change TS timings/forms in demod.
+I'm trying to fetch the uvcvideo from http://linuxtv.org/git/?p=pinchartl/uvcvideo.git;a=summary .
+I tryied to follow the instructions but at the third step I get fatal error messages:
 
--- 
-Abylai Ospan <aospan@netup.ru>
-NetUP Inc.
+> $ git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git v4l-dvb
+> Initialized empty Git repository in /usr/src/linuxtv.org/pinchartl/uvcvideo/v4l-dvb/.git/
+> remote: Counting objects: 1455151, done.
+> remote: Compressing objects: 100% (233826/233826), done.
+> remote: Total 1455151 (delta 1210384), reused 1455044 (delta 1210312)
+> Receiving objects: 100% (1455151/1455151), 317.25 MiB | 224 KiB/s, done.
+> Resolving deltas: 100% (1210384/1210384), done.
+> Checking out files: 100% (31566/31566), done.
+> $ cd v4l-dvb/
+> v4l-dvb$ git remote add uvcvideo http://linuxtv.org/git//pinchartl/uvcvideo.git
+> v4l-dvb$ git remote update
+> Updating origin
+> Updating uvcvideo
+> fatal: http://linuxtv.org/git//pinchartl/uvcvideo.git/info/refs not found: did you run git update-server-info on the server?
+> error: Could not fetch uvcvideo
 
+I also tried with the git:// link:
+
+> v4l-dvb$ git remote rm uvcvideo
+> v4l-dvb$ git remote add uvcvideo git://linuxtv.org//pinchartl/uvcvideo.git
+> v4l-dvb$ git remote update
+> Updating origin
+> Updating uvcvideo
+> fatal: The remote end hung up unexpectedly
+> error: Could not fetch uvcvideo
+
+Am I doing something wrong?
+
+Regards,
+
+	Márton Németh
