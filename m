@@ -1,76 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:58984 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752167Ab0AXB3O (ORCPT
+Received: from lo.gmane.org ([80.91.229.12]:54195 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751053Ab0AXN4X convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jan 2010 20:29:14 -0500
-Date: Sat, 23 Jan 2010 19:44:06 -0600 (CST)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Douglas Schilling Landgraf <dougsland@gmail.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH] sq905c: remove unused variable
-In-Reply-To: <68cac7521001231550i40f4b28fy3d073c043e4027e2@mail.gmail.com>
-Message-ID: <alpine.LNX.2.00.1001231909070.12296@banach.math.auburn.edu>
-References: <68cac7521001231550i40f4b28fy3d073c043e4027e2@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+	Sun, 24 Jan 2010 08:56:23 -0500
+Received: from list by lo.gmane.org with local (Exim 4.50)
+	id 1NZ2wt-0001bB-Ed
+	for linux-media@vger.kernel.org; Sun, 24 Jan 2010 14:56:19 +0100
+Received: from upc.si.94.140.72.111.dc.cable.static.telemach.net ([94.140.72.111])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sun, 24 Jan 2010 14:56:19 +0100
+Received: from prusnik by upc.si.94.140.72.111.dc.cable.static.telemach.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sun, 24 Jan 2010 14:56:19 +0100
+To: linux-media@vger.kernel.org
+From: =?UTF-8?Q?Alja=C5=BE?= Prusnik <prusnik@gmail.com>
+Subject: Re: technisat cablestar hd2, 2.6.33-rc5, no remote (VP2040)
+Date: Sun, 24 Jan 2010 14:55:56 +0100
+Message-ID: <1264341355.21574.105.camel@slash.doma>
+References: <1264193852.21574.84.camel@slash.doma>
+	 <1264275944.21574.103.camel@slash.doma>
+	 <1a297b361001240113j1572ceb1m63bce9696fa21eb9@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+In-Reply-To: <1a297b361001240113j1572ceb1m63bce9696fa21eb9@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On ned, 2010-01-24 at 13:13 +0400, Manu Abraham wrote:
+> > I'm sorry to bother you with this one, but I'd really like to know if
+> > there's something I'm doing wrong or is there something more I can
+> > provide on this one. Below are some results from the newest kernel RC,
+> > while sometime back I also posted some more debug info.
+> > I just noticed that someone else also reported the same problem:
+> > http://www.spinics.net/lists/linux-media/msg14332.html
+> There's nothing wrong with what you are doing in there.
+> While the driver was pushed in the IR interface related stuff itself
+> was very much in flux and caused some issues and hence support for the
+> same was not added in at that time.
+> I will push out the support as I get free time into the mantis-v4l-dvb tree.
+
+Thank you for the answer.
+
+Regards,
+Aljaz
 
 
-On Sat, 23 Jan 2010, Douglas Schilling Landgraf wrote:
-
-> Removed unused variable.
->
-> Signed-off-by: Douglas Schilling Landgraf <dougsland@redhat.com>
->
-> Thanks,
-> Douglas
->
-
-Douglas,
-
-Thanks for your sharp eyes.
-
-However, I _think_ that this particular problem may have already been 
-fixed, recently if not some time before. In particular, recent changes 
-have been done in the version of sq905c.c which lives in the gspca tree of 
-Hans de Goede. I am working off his tree these days because we have been 
-doing a number of things together, and thus the changes there to sq905c.c 
-have been done by a patch from here.
-
-These changes were done in order to add a couple of new cameras and to 
-change the way to decide whether the camera is a VGA or a CIF camera. The 
-determination of this by USB Product number does not always work, and one 
-needs to read an ID string from the camera in order to learn it better. 
-Who bought the camera which has the "wrong" resolution setting associated 
-with its USB Product number? Hans de Goede.
-
-It appears to me that this patch is not relevant to that most recent 
-version of sq905c.c. At least, it does not fit here, which is where it 
-appears it is supposed to fit:
-
-/* This function is called at probe time just before sd_init */
-static int sd_config(struct gspca_dev *gspca_dev,
- 		const struct usb_device_id *id)
-{
- 	struct cam *cam = &gspca_dev->cam;
- 	struct sd *dev = (struct sd *) gspca_dev;
- 	int ret;
-
- 	PDEBUG(D_PROBE,
- 		"SQ9050 camera detected"
 
 
-If everyone else is agreeable, I would propose that the recent changes to 
-sq905c.c should simply be pulled, and that is the best solution to the 
-problem.
-
-Hans, can you confirm all of this?
-
-
-Theodore Kilgore
