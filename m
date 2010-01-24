@@ -1,84 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:34873 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751788Ab0A2RWZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jan 2010 12:22:25 -0500
-Received: by bwz27 with SMTP id 27so1641632bwz.21
-        for <linux-media@vger.kernel.org>; Fri, 29 Jan 2010 09:22:23 -0800 (PST)
+Received: from mail.kapsi.fi ([217.30.184.167]:51214 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751275Ab0AXXwt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Jan 2010 18:52:49 -0500
+Message-ID: <4B5CDD4A.5060800@iki.fi>
+Date: Mon, 25 Jan 2010 01:52:42 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <1264731845.3095.16.camel@palomino.walls.org>
-References: <4B60F901.20301@redhat.com>
-	 <1264731845.3095.16.camel@palomino.walls.org>
-Date: Fri, 29 Jan 2010 12:22:23 -0500
-Message-ID: <829197381001290922p69a68ce5k3f5192f427f4658a@mail.gmail.com>
-Subject: Re: cx18 fix patches
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Andy Walls <awalls@radix.net>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Jiri Slaby <jirislaby@gmail.com>
+CC: Jiri Slaby <jslaby@suse.cz>, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/4] media: dvb/af9015, implement eeprom hashing
+References: <4B4F6BE5.2040102@iki.fi> <1264173055-14787-1-git-send-email-jslaby@suse.cz> <4B5C7258.1010605@iki.fi> <4B5C76B8.4090700@gmail.com>
+In-Reply-To: <4B5C76B8.4090700@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andy,
-
-On Thu, Jan 28, 2010 at 9:24 PM, Andy Walls <awalls@radix.net> wrote:
-> Devin,
+On 01/24/2010 06:35 PM, Jiri Slaby wrote:
+> On 01/24/2010 05:16 PM, Antti Palosaari wrote:
+>>> +    af9015_config.eeprom_sum = 0;
+>>> +    for (reg = 0; reg<   eeprom_size / sizeof(u32); reg++) {
+>>> +        af9015_config.eeprom_sum *= GOLDEN_RATIO_PRIME_32;
+>>> +        af9015_config.eeprom_sum += le32_to_cpu(((u32 *)eeprom)[reg]);
+>>> +    }
+>>> +
+>>> +    deb_info("%s: eeprom sum=%.8x\n", __func__,
+>>> af9015_config.eeprom_sum);
+>>
+>> Does this sum contain all 256 bytes from EEPROM? 256/4 is 64.
 >
-> I found interesting system interactions.  On my dual core x86_64 Fedora
-> 12 machine loading an HVR-1600 cold (no firmware has been loaded yet),
-> the pulseaudio daemon opens up a CX23418 ALSA node almost immediately
-> after it appears and has these effects:
->
-> 1. Pulseaudio tries to perform some sort of op that starts a capture on
-> the PCM stream before the APU and CPU firmware has finished loading.
-> This results in error messages in the log and probably an undesirable
-> driver state, if there was never any firmware loaded prior - such as at
-> power up.
+> Yes it does. It is computed as a hashed sum of 32-bit numbers (4 bytes)
+> -- speed (does not matter) and larger space of hashes. Hence the
+> division by 4. The cast does the trick: ((u32 *)eeprom)[reg] -- reg
+> index is on a 4-byte basis.
 
-I'm a little surprised by that, since the cx18-alsa module is only
-initialized after the rest of the cx18 driver is loaded.
 
-> 2. Pulseaudio grabs the ALSA control node for the CX23418 and won't let
-> go.  If I kill the Pulseaudio process that has the node open, it just
-> respawns and grabs the control node again.  This prevents unloading the
-> cx18-alsa and cx18 module.
+OK, true. Anyhow, I don't know if this hashing formula is good enough - 
+changing it later could be really pain. I compared it to the one used 
+for em28xx driver and it was different. Could someone with better 
+knowledge check that?
 
-As far as I know, this is one of those dumb Pulseaudio things.
-Doesn't it do this with all PCI cards that provide ALSA?
+Generally it is good and ready for submission.
 
-> 3. If Pulseaudio also keeps the PCM analog stream going, then TV image
-> settings are fixed to the values at the time Pulseaudio started the
-> stream.  I don't think it does, but I'm not sure yet.
+Acked-by: Antti Palosaari <crope@iki.fi>
 
-I know that Pulseaudio binds to the device, but as far as I know it
-does not actually open the PCM device for streaming.
-
-> My off the cuff ideas for fixes are:
->
-> 1. Integrate cx18-alsa functions into the driver and no longer have it
-> as a module, to better coordinate firmware loading with the ALSA nodes.
-> (The modular architecture appears to have been a bad choice on my part.)
-
-I'm not against merging the two into a single module, although it's
-not clear to me that it will help with the issues you are seeing.
-
-> 2. Add a module option to disable setting up the cx18-alsa device nodes.
-
-I can see some value in such an option in general for debugging
-purposes, although I don't think it provides a whole lot of value for
-regular users who would not normally have it enabled.
-
->
-> I'll try to work on these this Friday and Saturday.
-
-I will be out of town this weekend, but if you send me email I will
-try to respond as promptly as possible.
-
-Devin
-
+regards
+Antti
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+http://palosaari.fi/
