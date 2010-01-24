@@ -1,124 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35449 "EHLO comal.ext.ti.com"
+Received: from mout.perfora.net ([74.208.4.195]:58879 "EHLO mout.perfora.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753424Ab0ADODQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jan 2010 09:03:16 -0500
-From: hvaibhav@ti.com
+	id S1753446Ab0AXUHo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Jan 2010 15:07:44 -0500
+Message-ID: <4B5CA887.3060606@vorgon.com>
+Date: Sun, 24 Jan 2010 13:07:35 -0700
+From: "Timothy D. Lenz" <tlenz@vorgon.com>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, hverkuil@xs4all.nl,
-	davinci-linux-open-source@linux.davincidsp.com,
-	m-karicheri2@ti.com, Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH 8/9] VPFE Capture: Add call back function for interrupt clear to vpfe_cfg
-Date: Mon,  4 Jan 2010 19:33:01 +0530
-Message-Id: <1262613782-20463-9-git-send-email-hvaibhav@ti.com>
-In-Reply-To: <hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
+Subject: Lost remote after kernel/v4l update cx23885 chipset
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+After updating from kernel 2.6.26.8 to 2.6.32.2 and from v4l of 
+05/19/2009 to 01/18/2010 I lost remote function with Dvico FusionHDTV7 
+Dual Express. The driver is loading, but not creating an IR device. Went 
+over it with awalls on IRC. The log is at: http://pastebin.com/m4b02ff0c
 
-For the devices like AM3517, it is expected that driver clears the
-interrupt in ISR. Since this is device spcific, callback function
-added to the platform_data.
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- drivers/media/video/ti-media/vpfe_capture.c |   24 ++++++++++++++++++++----
- include/media/ti-media/vpfe_capture.h       |    2 ++
- 2 files changed, 22 insertions(+), 4 deletions(-)
+I noticed that in the kern.log there where 2 different ways ir-kbd-i2c 
+showed up. ir-kbd-i2c no longer shows up when loading drivers.
 
-diff --git a/drivers/media/video/ti-media/vpfe_capture.c b/drivers/media/video/ti-media/vpfe_capture.c
-index 7187eaa..95538b2 100644
---- a/drivers/media/video/ti-media/vpfe_capture.c
-+++ b/drivers/media/video/ti-media/vpfe_capture.c
-@@ -475,6 +475,11 @@ static int vpfe_initialize_device(struct vpfe_device *vpfe_dev)
- 	ret = ccdc_dev->hw_ops.open(vpfe_dev->pdev);
- 	if (!ret)
- 		vpfe_dev->initialized = 1;
-+
-+	/* Clear all VPFE/CCDC interrupts */
-+	if (vpfe_dev->cfg->clr_intr)
-+		vpfe_dev->cfg->clr_intr(-1);
-+
- unlock:
- 	mutex_unlock(&ccdc_lock);
- 	return ret;
-@@ -562,7 +567,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
- 
- 	/* if streaming not started, don't do anything */
- 	if (!vpfe_dev->started)
--		return IRQ_HANDLED;
-+		goto clear_intr;
- 
- 	/* only for 6446 this will be applicable */
- 	if (NULL != ccdc_dev->hw_ops.reset)
-@@ -574,7 +579,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
- 			"frame format is progressive...\n");
- 		if (vpfe_dev->cur_frm != vpfe_dev->next_frm)
- 			vpfe_process_buffer_complete(vpfe_dev);
--		return IRQ_HANDLED;
-+		goto clear_intr;
- 	}
- 
- 	/* interlaced or TB capture check which field we are in hardware */
-@@ -604,7 +609,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
- 				addr += vpfe_dev->field_off;
- 				ccdc_dev->hw_ops.setfbaddr(addr);
- 			}
--			return IRQ_HANDLED;
-+			goto clear_intr;
- 		}
- 		/*
- 		 * if one field is just being captured configure
-@@ -624,6 +629,10 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
- 		 */
- 		vpfe_dev->field_id = fid;
- 	}
-+clear_intr:
-+	if (vpfe_dev->cfg->clr_intr)
-+		vpfe_dev->cfg->clr_intr(irq);
-+
- 	return IRQ_HANDLED;
- }
- 
-@@ -635,8 +644,11 @@ static irqreturn_t vdint1_isr(int irq, void *dev_id)
- 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "\nInside vdint1_isr...\n");
- 
- 	/* if streaming not started, don't do anything */
--	if (!vpfe_dev->started)
-+	if (!vpfe_dev->started) {
-+		if (vpfe_dev->cfg->clr_intr)
-+			vpfe_dev->cfg->clr_intr(irq);
- 		return IRQ_HANDLED;
-+	}
- 
- 	spin_lock(&vpfe_dev->dma_queue_lock);
- 	if ((vpfe_dev->fmt.fmt.pix.field == V4L2_FIELD_NONE) &&
-@@ -644,6 +656,10 @@ static irqreturn_t vdint1_isr(int irq, void *dev_id)
- 	    vpfe_dev->cur_frm == vpfe_dev->next_frm)
- 		vpfe_schedule_next_buffer(vpfe_dev);
- 	spin_unlock(&vpfe_dev->dma_queue_lock);
-+
-+	if (vpfe_dev->cfg->clr_intr)
-+		vpfe_dev->cfg->clr_intr(irq);
-+
- 	return IRQ_HANDLED;
- }
- 
-diff --git a/include/media/ti-media/vpfe_capture.h b/include/media/ti-media/vpfe_capture.h
-index 5287368..f0a7b7a 100644
---- a/include/media/ti-media/vpfe_capture.h
-+++ b/include/media/ti-media/vpfe_capture.h
-@@ -94,6 +94,8 @@ struct vpfe_config {
- 	/* vpfe clock */
- 	struct clk *vpssclk;
- 	struct clk *slaveclk;
-+	/* Function for Clearing the interrupt */
-+	void (*clr_intr)(int vdint);
- };
- 
- struct vpfe_device {
--- 
-1.6.2.4
+Jan 17 14:59:32 LLLx64-32 kernel: input: i2c IR (FusionHDTV) as 
+/devices/virtual/input/input5
+Jan 17 14:59:32 LLLx64-32 kernel: ir-kbd-i2c: i2c IR (FusionHDTV) 
+detected at i2c-2/2-006b/ir0 [cx23885[0]]
+------------------
+Jan 18 17:23:27 LLLx64-32 kernel: input: i2c IR (FusionHDTV) as 
+/devices/virtual/input/input5
+Jan 18 17:23:27 LLLx64-32 kernel: Creating IR device irrcv0
+Jan 18 17:23:27 LLLx64-32 kernel: ir-kbd-i2c: i2c IR (FusionHDTV) 
+detected at i2c-1/1-006b/ir0 [cx23885[0]]
 
+Jan 18 18:28:50 LLLx64-32 kernel: input: i2c IR (FusionHDTV) as 
+/devices/virtual/input/input5
+Jan 18 18:28:50 LLLx64-32 kernel: ir-kbd-i2c: i2c IR (FusionHDTV) 
+detected at i2c-2/2-006b/ir0 [cx23885[0]]
+
+------------------
+A driver load that worked:
+
+Jan 17 11:22:35 LLLx64-32 kernel: Linux video capture interface: v2.00
+Jan 17 11:22:35 LLLx64-32 kernel: cx23885 driver version 0.0.2 loaded
+Jan 17 11:22:35 LLLx64-32 kernel: ACPI: PCI Interrupt 0000:02:00.0[A] -> 
+Link [APC7] -> GSI 16 (level, low) -> IRQ 16
+Jan 17 11:22:35 LLLx64-32 kernel: CORE cx23885[0]: subsystem: 18ac:d618, 
+board: DViCO FusionHDTV7 Dual Express [card=10,autodetected]
+Jan 17 11:22:35 LLLx64-32 kernel: cx23885_dvb_register() allocating 1 
+frontend(s)
+Jan 17 11:22:35 LLLx64-32 kernel: cx23885[0]: cx23885 based dvb card
+Jan 17 11:22:35 LLLx64-32 kernel: xc5000 2-0064: creating new instance
+Jan 17 11:22:35 LLLx64-32 kernel: xc5000: Successfully identified at 
+address 0x64
+Jan 17 11:22:35 LLLx64-32 kernel: xc5000: Firmware has not been loaded 
+previously
+Jan 17 11:22:35 LLLx64-32 kernel: DVB: registering new adapter (cx23885[0])
+Jan 17 11:22:35 LLLx64-32 kernel: DVB: registering adapter 0 frontend 0 
+(Samsung S5H1411 QAM/8VSB Frontend)...
+Jan 17 11:22:35 LLLx64-32 kernel: cx23885_dvb_register() allocating 1 
+frontend(s)
+Jan 17 11:22:35 LLLx64-32 kernel: cx23885[0]: cx23885 based dvb card
+Jan 17 11:22:35 LLLx64-32 kernel: xc5000 3-0064: creating new instance
+Jan 17 11:22:35 LLLx64-32 kernel: xc5000: Successfully identified at 
+address 0x64
+Jan 17 11:22:35 LLLx64-32 kernel: xc5000: Firmware has not been loaded 
+previously
+Jan 17 11:22:35 LLLx64-32 kernel: DVB: registering new adapter (cx23885[0])
+Jan 17 11:22:35 LLLx64-32 kernel: DVB: registering adapter 1 frontend 0 
+(Samsung S5H1411 QAM/8VSB Frontend)...
+Jan 17 11:22:35 LLLx64-32 kernel: cx23885_dev_checkrevision() Hardware 
+revision = 0xb0
+Jan 17 11:22:35 LLLx64-32 kernel: cx23885[0]/0: found at 0000:02:00.0, 
+rev: 2, irq: 16, latency: 0, mmio: 0xfdc00000
+Jan 17 11:22:35 LLLx64-32 kernel: PCI: Setting latency timer of device 
+0000:02:00.0 to 64
+Jan 17 11:22:35 LLLx64-32 kernel: input: i2c IR (FusionHDTV) as 
+/devices/virtual/input/input8
+Jan 17 11:22:35 LLLx64-32 kernel: ir-kbd-i2c: i2c IR (FusionHDTV) 
+detected at i2c-2/2-006b/ir0 [cx23885[0]]
+Jan 17 11:22:36 LLLx64-32 kernel: xc5000: waiting for firmware upload 
+(dvb-fe-xc5000-1.6.114.fw)...
+Jan 17 11:22:36 LLLx64-32 kernel: firmware: requesting 
+dvb-fe-xc5000-1.6.114.fw
+Jan 17 11:22:36 LLLx64-32 kernel: xc5000: firmware read 12401 bytes.
+Jan 17 11:22:36 LLLx64-32 kernel: xc5000: firmware uploading...
+Jan 17 11:22:37 LLLx64-32 kernel: xc5000: firmware upload complete...
+Jan 17 11:22:37 LLLx64-32 kernel: xc5000: waiting for firmware upload 
+(dvb-fe-xc5000-1.6.114.fw)...
+Jan 17 11:22:37 LLLx64-32 kernel: firmware: requesting 
+dvb-fe-xc5000-1.6.114.fw
+Jan 17 11:22:37 LLLx64-32 kernel: xc5000: firmware read 12401 bytes.
+Jan 17 11:22:37 LLLx64-32 kernel: xc5000: firmware uploading...
+Jan 17 11:22:39 LLLx64-32 kernel: xc5000: firmware upload complete...
+------------------
+
+And what it does now:
+Jan 23 17:10:47 LLLx64-32 kernel: Linux video capture interface: v2.00
+Jan 23 17:10:47 LLLx64-32 kernel: cx23885 driver version 0.0.2 loaded
+Jan 23 17:10:47 LLLx64-32 kernel: cx23885 0000:02:00.0: PCI INT A -> 
+Link[APC7] -> GSI 16 (level, low) -> IRQ 16
+Jan 23 17:10:47 LLLx64-32 kernel: CORE cx23885[0]: subsystem: 18ac:d618, 
+board: DViCO FusionHDTV7 Dual Express [card=10,autodetected]
+Jan 23 17:10:47 LLLx64-32 kernel: cx23885_dvb_register() allocating 1 
+frontend(s)
+Jan 23 17:10:47 LLLx64-32 kernel: cx23885[0]: cx23885 based dvb card
+Jan 23 17:10:47 LLLx64-32 kernel: xc5000 1-0064: creating new instance
+Jan 23 17:10:47 LLLx64-32 kernel: xc5000: Successfully identified at 
+address 0x64
+Jan 23 17:10:47 LLLx64-32 kernel: xc5000: Firmware has not been loaded 
+previously
+Jan 23 17:10:47 LLLx64-32 kernel: DVB: registering new adapter (cx23885[0])
+Jan 23 17:10:47 LLLx64-32 kernel: DVB: registering adapter 0 frontend 0 
+(Samsung S5H1411 QAM/8VSB Frontend)...
+Jan 23 17:10:47 LLLx64-32 kernel: cx23885_dvb_register() allocating 1 
+frontend(s)
+Jan 23 17:10:47 LLLx64-32 kernel: cx23885[0]: cx23885 based dvb card
+Jan 23 17:10:47 LLLx64-32 kernel: xc5000 2-0064: creating new instance
+Jan 23 17:10:47 LLLx64-32 kernel: xc5000: Successfully identified at 
+address 0x64
+Jan 23 17:10:47 LLLx64-32 kernel: xc5000: Firmware has not been loaded 
+previously
+Jan 23 17:10:47 LLLx64-32 kernel: DVB: registering new adapter (cx23885[0])
+Jan 23 17:10:47 LLLx64-32 kernel: DVB: registering adapter 1 frontend 0 
+(Samsung S5H1411 QAM/8VSB Frontend)...
+Jan 23 17:10:47 LLLx64-32 kernel: cx23885_dev_checkrevision() Hardware 
+revision = 0xb0
+Jan 23 17:10:47 LLLx64-32 kernel: cx23885[0]/0: found at 0000:02:00.0, 
+rev: 2, irq: 16, latency: 0, mmio: 0xfdc00000
+Jan 23 17:10:47 LLLx64-32 kernel: cx23885 0000:02:00.0: setting latency 
+timer to 64
+Jan 23 17:10:47 LLLx64-32 kernel: IRQ 16/cx23885[0]: IRQF_DISABLED is 
+not guaranteed on shared IRQs
+
+I put a zip of some logs at: http://24.255.17.209:2400/vdr-logs/logs.zip
