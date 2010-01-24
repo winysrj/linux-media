@@ -1,41 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f194.google.com ([209.85.221.194]:64022 "EHLO
-	mail-qy0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757483Ab0ANUDV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jan 2010 15:03:21 -0500
-Received: by qyk32 with SMTP id 32so4293978qyk.4
-        for <linux-media@vger.kernel.org>; Thu, 14 Jan 2010 12:03:20 -0800 (PST)
-Message-ID: <4B4F78A4.8000103@gmail.com>
-Date: Thu, 14 Jan 2010 15:03:48 -0500
-From: TJ <one.timothy.jones@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:51991 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753388Ab0AXXzn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Jan 2010 18:55:43 -0500
+Message-ID: <4B5CDDF9.5000003@iki.fi>
+Date: Mon, 25 Jan 2010 01:55:37 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Pete Eberlein <pete@sensoray.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: go7007 driver -- which program you use for capture
-References: <4B47828B.9050000@gmail.com> <be3a4a1001081217s1bec67c8odb26bb793700242b@mail.gmail.com> <4B47B0EB.6000102@gmail.com> <4B4E34D2.8090202@redhat.com> <4B4E4365.5020307@gmail.com> <4B4E4550.7030907@redhat.com>
-In-Reply-To: <4B4E4550.7030907@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Jiri Slaby <jslaby@suse.cz>
+CC: linux-kernel@vger.kernel.org, jirislaby@gmail.com,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 4/4] media: dvb/af9015, add hashes support
+References: <4B4F6BE5.2040102@iki.fi> <1264173055-14787-4-git-send-email-jslaby@suse.cz>
+In-Reply-To: <1264173055-14787-4-git-send-email-jslaby@suse.cz>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 01/22/2010 05:10 PM, Jiri Slaby wrote:
+> So as a final patch, add support for hash and one hash entry
+> for MSI digi vox mini II:
+> iManufacturer 1 Afatech
+> iProduct      2 DVB-T 2
+> iSerial       3 010101010600001
+>
+> It is now handled with proper IR and key map tables.
+>
+> Signed-off-by: Jiri Slaby<jslaby@suse.cz>
+> Cc: Antti Palosaari<crope@iki.fi>
+> Cc: Mauro Carvalho Chehab<mchehab@redhat.com>
+> Cc: linux-media@vger.kernel.org
+>
+> Signed-off-by: Jiri Slaby<jslaby@suse.cz>
+> ---
+>   drivers/media/dvb/dvb-usb/af9015.c |   14 ++++++++++++--
+>   1 files changed, 12 insertions(+), 2 deletions(-)
 
-Mauro Carvalho Chehab wrote:
-> It should be against -hg or linux-next tree, otherwise, I can't send it upstream.
-> If you just want to send a patch for people to test, please mark it as RFC, otherwise
-> I'll assume that you're sending a patch for upstream.
-> 
-> Since there are more people working on this driver, the better is to add what you
-> have there, to avoid people to do a similar work.
-
-OK my brother. I got a hold of the -hg tree and started working off of it.
-
-Pete, Question: I was looking through the code and noticed that you turned s2250
-driver into v4l2_subdev and go7007 driver initializes it as such and passes it
-calls via call_all (v4l2_device_call_until_err). How does that affect other
-drivers? Does that mean they all need to re-written as v4l2_subdev?
-
--TJ
-
+Acked-by: Antti Palosaari <crope@iki.fi>
+-- 
+http://palosaari.fi/
