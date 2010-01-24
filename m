@@ -1,119 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:40666 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753728Ab0AXNJp (ORCPT
+Received: from mail-ew0-f226.google.com ([209.85.219.226]:38169 "EHLO
+	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752085Ab0AXASV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jan 2010 08:09:45 -0500
-Message-ID: <4B5C45F3.6060203@maxwell.research.nokia.com>
-Date: Sun, 24 Jan 2010 15:06:59 +0200
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+	Sat, 23 Jan 2010 19:18:21 -0500
+Received: by ewy26 with SMTP id 26so776984ewy.28
+        for <linux-media@vger.kernel.org>; Sat, 23 Jan 2010 16:18:20 -0800 (PST)
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	iivanov@mm-sol.com, gururaj.nagendra@intel.com
-Subject: Re: [RFC v2 5/7] V4L: Events: Limit event queue length
-References: <4B30F713.8070004@maxwell.research.nokia.com> <1261500191-9441-1-git-send-email-sakari.ailus@maxwell.research.nokia.com> <1261500191-9441-2-git-send-email-sakari.ailus@maxwell.research.nokia.com> <1261500191-9441-3-git-send-email-sakari.ailus@maxwell.research.nokia.com> <1261500191-9441-4-git-send-email-sakari.ailus@maxwell.research.nokia.com> <1261500191-9441-5-git-send-email-sakari.ailus@maxwell.research.nokia.com> <alpine.LNX.2.01.1001181348540.31857@alastor>
-In-Reply-To: <alpine.LNX.2.01.1001181348540.31857@alastor>
+In-Reply-To: <4B5B8E5B.4020600@barber-family.id.au>
+References: <4B5B0E12.3090706@barber-family.id.au>
+	 <83bcf6341001230700h7db6600i89b9092051049612@mail.gmail.com>
+	 <4B5B837A.6020001@barber-family.id.au>
+	 <83bcf6341001231529o54f3afb9p29fa955bc93a660e@mail.gmail.com>
+	 <4B5B8E5B.4020600@barber-family.id.au>
+Date: Sat, 23 Jan 2010 19:18:20 -0500
+Message-ID: <83bcf6341001231618r59f03dc9t1eb746c39e67b5fc@mail.gmail.com>
+Subject: Re: New Hauppauge HVR-2200 Revision?
+From: Steven Toth <stoth@kernellabs.com>
+To: Francis Barber <fedora@barber-family.id.au>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
-> Hi Sakari,
+http://www.kernellabs.com/blog/?page_id=17
 
-Hi Hans,
+Firmware links from here.
 
-And thanks for the comments!
+- Steve
 
-...
->> @@ -103,7 +105,8 @@ int v4l2_event_dequeue(struct v4l2_fh *fh, struct
->> v4l2_event *event)
->>     ev = list_first_entry(&events->available, struct _v4l2_event, list);
->>     list_del(&ev->list);
+On Sat, Jan 23, 2010 at 7:03 PM, Francis Barber
+<fedora@barber-family.id.au> wrote:
+> On 24/01/2010 7:29 AM, Steven Toth wrote:
 >>
->> -    ev->event.count = !list_empty(&events->available);
->> +    atomic_dec(&events->navailable);
->> +    ev->event.count = atomic_read(&events->navailable);
-> 
-> Combine these two lines to atomic_dec_return().
-
-Will fix this.
-
+>> I put some new patches into the saa7164-stable earlier today. These
+>> will probably help.
 >>
->>     spin_unlock_irqrestore(&events->lock, flags);
+>> www.kernellabs.com/hg/saa7164-stable
 >>
->> @@ -159,6 +162,9 @@ void v4l2_event_queue(struct video_device *vdev,
->> struct v4l2_event *ev)
->>         if (!v4l2_event_subscribed(fh, ev->type))
->>             continue;
+>> Let me know.
 >>
->> +        if (atomic_read(&fh->events.navailable) >= V4L2_MAX_EVENTS)
->> +            continue;
->> +
->>         _ev = kmem_cache_alloc(event_kmem, GFP_ATOMIC);
->>         if (!_ev)
->>             continue;
->> @@ -169,6 +175,8 @@ void v4l2_event_queue(struct video_device *vdev,
->> struct v4l2_event *ev)
->>         list_add_tail(&_ev->list, &fh->events.available);
->>         spin_unlock(&fh->events.lock);
+>> Regards,
 >>
->> +        atomic_inc(&fh->events.navailable);
->> +
->>         wake_up_all(&fh->events.wait);
->>     }
+>> - Steve
 >>
->> diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
->> index b11de92..69305c6 100644
->> --- a/include/media/v4l2-event.h
->> +++ b/include/media/v4l2-event.h
->> @@ -28,6 +28,10 @@
->> #include <linux/types.h>
->> #include <linux/videodev2.h>
 >>
->> +#include <asm/atomic.h>
->> +
->> +#define V4L2_MAX_EVENTS        1024 /* Ought to be enough for
->> everyone. */
-> 
-> I think this should be programmable by the driver. Most drivers do not use
-> events at all, so by default it should be 0 or perhaps it can check whether
-> the ioctl callback structure contains the event ioctls and set it to 0 or
-> some initial default value.
+>
+> Thanks, I will give this a try later today.
+>
+> Presumably I should use the firmware from version 7.6.27.27323 (although
+> there doesn't seem to be any firmware corresponding to dvb-fe-tda10048 with
+> this download)?
+>
+> Regards,
+> Frank.
+>
 
-Right. I'll make the event queue size to be defined by the driver.
 
-I'm now planning to make a queue for free events common to file handles
-in video device. A statically allocated queue for each file handle is
-probably too much overkill. But a device global queue also means that a
-process that doesn't dequeue its events will starve the others.
-
-> And you want this to be controlled on a per-filehandle basis even. If I
-> look
-> at ivtv, then most of the device nodes will not have events, only a few
-> will
-> support events. And for one device node type I know that there will only be
-> a single event when stopping the streaming, while another device node type
-> will get an event each frame.
-
-Instead of initialising the events by the V4L2, the driver could do this
-and specify the queue size at the same time. The overhead for the
-drivers not using events would be the event information in the
-video_device structure. That could be made a pointer as well.
-
-> So being able to adjust the event queue dynamically will give more control
-> and prevent unnecessary waste of memory resources.
-
-This sounds to me like trying to re-invent the kmem_cache now. :-)
-
-If the event queue is allocated in some other means than kmem_cache I
-think the size should be fixed. The driver probably knows the best
-what's the reasonable maximum event queue size and that could be
-allocated statically. If that overflows then so be it.
-
-Regards,
 
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
