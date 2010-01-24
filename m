@@ -1,46 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:55665 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753969Ab0A2RQ7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jan 2010 12:16:59 -0500
-Received: by bwz27 with SMTP id 27so1635742bwz.21
-        for <linux-media@vger.kernel.org>; Fri, 29 Jan 2010 09:16:57 -0800 (PST)
+Received: from mail.kapsi.fi ([217.30.184.167]:41267 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750967Ab0AXXyG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Jan 2010 18:54:06 -0500
+Message-ID: <4B5CDD97.9080505@iki.fi>
+Date: Mon, 25 Jan 2010 01:53:59 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <4B6306AA.8000103@googlemail.com>
-References: <4B62113E.40905@googlemail.com> <4B627EAE.7020303@freemail.hu>
-	 <4B62A967.3010400@googlemail.com>
-	 <c2fe070d1001290430v472c8040r2a61c7904ef7234d@mail.gmail.com>
-	 <4B62F048.1010506@googlemail.com>
-	 <4B62F620.6020105@barber-family.id.au>
-	 <4B6306AA.8000103@googlemail.com>
-Date: Fri, 29 Jan 2010 12:16:57 -0500
-Message-ID: <829197381001290916m4eeb9271x1c858d6a6d0b9b3b@mail.gmail.com>
-Subject: Re: Make failed - standard ubuntu 9.10
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: David Henig <dhhenig@googlemail.com>
-Cc: Francis Barber <fedora@barber-family.id.au>,
-	leandro Costantino <lcostantino@gmail.com>,
-	=?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>,
+To: Jiri Slaby <jslaby@suse.cz>
+CC: linux-kernel@vger.kernel.org, jirislaby@gmail.com,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
 	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: Re: [PATCH 2/4] media: dvb/af9015, factor out remote setting
+References: <4B4F6BE5.2040102@iki.fi> <1264173055-14787-2-git-send-email-jslaby@suse.cz>
+In-Reply-To: <1264173055-14787-2-git-send-email-jslaby@suse.cz>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 29, 2010 at 11:02 AM, David Henig <dhhenig@googlemail.com> wrote:
-> Thanks, I appear to have the headers and no longer have to do the symlink,
-> but still getting the same error - any help gratefully received, or do I
-> need to get a vanilla kernel?
+On 01/22/2010 05:10 PM, Jiri Slaby wrote:
+> This is just a code shuffle without functional changes. For easier
+> review of later changes, i.e. preparation.
+>
+> Signed-off-by: Jiri Slaby<jslaby@suse.cz>
+> Cc: Antti Palosaari<crope@iki.fi>
+> Cc: Mauro Carvalho Chehab<mchehab@redhat.com>
+> Cc: linux-media@vger.kernel.org
 
-Open up the file v4l/.config and change the line for firedtv from "=m"
-to "=n".  Then run "make".
-
-This is a known packaging bug in Ubuntu's kernel headers.
-
-Cheers,
-
-Devin
+Acked-by: Antti Palosaari <crope@iki.fi>
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+http://palosaari.fi/
