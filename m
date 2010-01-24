@@ -1,54 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225]:35262 "EHLO
-	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751710Ab0ARQg3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2010 11:36:29 -0500
-Received: by fxm25 with SMTP id 25so636762fxm.21
-        for <linux-media@vger.kernel.org>; Mon, 18 Jan 2010 08:36:28 -0800 (PST)
+Received: from mail.kapsi.fi ([217.30.184.167]:53883 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753887Ab0AXQQd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Jan 2010 11:16:33 -0500
+Message-ID: <4B5C7258.1010605@iki.fi>
+Date: Sun, 24 Jan 2010 18:16:24 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <d9def9db1001180829n733471c6g375295f29fc349ea@mail.gmail.com>
-References: <ad6681df0912220711p2666f0f5m84317a7bf0ffc137@mail.gmail.com>
-	 <829197380912220750j116894baw8343010b123f929@mail.gmail.com>
-	 <ad6681df0912220841n2f77f2c3v7aad0604575b5564@mail.gmail.com>
-	 <ad6681df1001180701s26584cdfua9e413d9bb843a35@mail.gmail.com>
-	 <829197381001180716v59b84ee2ia8ca2d9be4be5b22@mail.gmail.com>
-	 <4B54864E.1050801@yahoo.it>
-	 <829197381001180817r561bb1cdj9edda6ab3affbba0@mail.gmail.com>
-	 <d9def9db1001180829n733471c6g375295f29fc349ea@mail.gmail.com>
-Date: Mon, 18 Jan 2010 11:36:28 -0500
-Message-ID: <829197381001180836ybc4a4c6l6cf1c2bbabdf96b8@mail.gmail.com>
-Subject: Re: Info
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Markus Rechberger <mrechberger@gmail.com>
-Cc: Adriano Gigante <adrigiga@yahoo.it>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Jiri Slaby <jslaby@suse.cz>
+CC: linux-kernel@vger.kernel.org, jirislaby@gmail.com,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/4] media: dvb/af9015, implement eeprom hashing
+References: <4B4F6BE5.2040102@iki.fi> <1264173055-14787-1-git-send-email-jslaby@suse.cz>
+In-Reply-To: <1264173055-14787-1-git-send-email-jslaby@suse.cz>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Markus,
+Hei,
+Comments below.
 
-On Mon, Jan 18, 2010 at 11:29 AM, Markus Rechberger
-<mrechberger@gmail.com> wrote:
-> Just fyi there's a hardware bug with the 0072/terratec hybrid xs fm
-> (cx25843 - xc5000):
+On 01/22/2010 05:10 PM, Jiri Slaby wrote:
+> We read the eeprom anyway for dumping. Switch the dumping to
+> print_hex_dump_bytes and compute hash above that by
+> hash = 0;
+> for (u32 VAL) in (eeprom):
+>    hash *= GOLDEN_RATIO_PRIME_32
+>    hash += VAL; // while preserving endinaness
 >
-> http://img91.imageshack.us/i/00000004qf8.png/
-> http://img104.imageshack.us/i/00000009cp4.png/
+> The computation is moved earlier to the flow, namely from
+> af9015_af9013_frontend_attach to af9015_read_config, so that
+> we can access the sum in af9015_read_config already.
 >
-> nothing that can be fixed with the driver.
+> Signed-off-by: Jiri Slaby<jslaby@suse.cz>
+> Cc: Antti Palosaari<crope@iki.fi>
+> Cc: Mauro Carvalho Chehab<mchehab@redhat.com>
+> Cc: linux-media@vger.kernel.org
+> ---
+>   drivers/media/dvb/dvb-usb/af9015.c |   65 +++++++++++++++++++++++------------
+>   drivers/media/dvb/dvb-usb/af9015.h |    1 +
+>   2 files changed, 44 insertions(+), 22 deletions(-)
+>
+> diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
+> index a365c05..616b3ba 100644
+> --- a/drivers/media/dvb/dvb-usb/af9015.c
+> +++ b/drivers/media/dvb/dvb-usb/af9015.c
+> @@ -21,6 +21,8 @@
+>    *
+>    */
+>
+> +#include<linux/hash.h>
+> +
+>   #include "af9015.h"
+>   #include "af9013.h"
+>   #include "mt2060.h"
+> @@ -553,26 +555,45 @@ exit:
+>   	return ret;
+>   }
+>
+> -/* dump eeprom */
+> -static int af9015_eeprom_dump(struct dvb_usb_device *d)
+> +/* hash (and dump) eeprom */
+> +static int af9015_eeprom_hash(struct usb_device *udev)
+>   {
+> -	u8 reg, val;
+> +	static const unsigned int eeprom_size = 256;
+> +	unsigned int reg;
+> +	int ret;
+> +	u8 val, *eeprom;
+> +	struct req_t req = {READ_I2C, AF9015_I2C_EEPROM, 0, 0, 1, 1,&val};
+>
+> -	for (reg = 0; ; reg++) {
+> -		if (reg % 16 == 0) {
+> -			if (reg)
+> -				deb_info(KERN_CONT "\n");
+> -			deb_info(KERN_DEBUG "%02x:", reg);
+> -		}
+> -		if (af9015_read_reg_i2c(d, AF9015_I2C_EEPROM, reg,&val) == 0)
+> -			deb_info(KERN_CONT " %02x", val);
+> -		else
+> -			deb_info(KERN_CONT " --");
+> -		if (reg == 0xff)
+> -			break;
+> +	eeprom = kmalloc(eeprom_size, GFP_KERNEL);
+> +	if (eeprom == NULL)
+> +		return -ENOMEM;
+> +
+> +	for (reg = 0; reg<  eeprom_size; reg++) {
+> +		req.addr = reg;
+> +		ret = af9015_rw_udev(udev,&req);
+> +		if (ret)
+> +			goto free;
+> +		eeprom[reg] = val;
+>   	}
+> -	deb_info(KERN_CONT "\n");
+> -	return 0;
+> +
+> +	if (dvb_usb_af9015_debug&  0x01)
+> +		print_hex_dump_bytes("", DUMP_PREFIX_OFFSET, eeprom,
+> +				eeprom_size);
+> +
+> +	BUG_ON(eeprom_size % 4);
+> +
+> +	af9015_config.eeprom_sum = 0;
+> +	for (reg = 0; reg<  eeprom_size / sizeof(u32); reg++) {
+> +		af9015_config.eeprom_sum *= GOLDEN_RATIO_PRIME_32;
+> +		af9015_config.eeprom_sum += le32_to_cpu(((u32 *)eeprom)[reg]);
+> +	}
+> +
+> +	deb_info("%s: eeprom sum=%.8x\n", __func__, af9015_config.eeprom_sum);
 
-Interesting.  If it cannot be fixed with the driver, how does the
-Windows driver work then?  Is this some sort of premature hardware
-failure that occurs (after which point it is irreversible)?
+Does this sum contain all 256 bytes from EEPROM? 256/4 is 64.
 
-Thanks for taking the time to point this out though, since I could
-totally imagine banging my head against the wall for quite a while
-once I saw this.
-
-Devin
-
+regards
+Antti
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+http://palosaari.fi/
