@@ -1,43 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-15.arcor-online.net ([151.189.21.55]:55267 "EHLO
-	mail-in-15.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751040Ab0AIXCE (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:54821 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752995Ab0AXRv4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Jan 2010 18:02:04 -0500
-Subject: Re: Leadtek Winfast TV2100
-From: hermann pitton <hermann-pitton@arcor.de>
-To: dz-tor <dz-tor@wp.pl>
-Cc: Pavle Predic <pavle.predic@yahoo.co.uk>,
-	video4linux-list@redhat.com, LMML <linux-media@vger.kernel.org>,
-	Terry Wu <terrywu2009@gmail.com>
-In-Reply-To: <1263057295.3870.27.camel@pc07.localdom.local>
-References: <4B40B9CC.1040108@wp.pl>
-	 <1262979242.3246.10.camel@pc07.localdom.local> <4B47B836.3000108@wp.pl>
-	 <279441.7775.qm@web28406.mail.ukl.yahoo.com>  <4B48AD64.1000505@wp.pl>
-	 <1263057295.3870.27.camel@pc07.localdom.local>
-Content-Type: text/plain
-Date: Sat, 09 Jan 2010 23:48:34 +0100
-Message-Id: <1263077314.3870.41.camel@pc07.localdom.local>
-Mime-Version: 1.0
+	Sun, 24 Jan 2010 12:51:56 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: Re: gitorious.org/omap3camera: Falied attempt to migrate sensor driver to Zoom2/3 platform
+Date: Sun, 24 Jan 2010 18:52:23 +0100
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <A24693684029E5489D1D202277BE8944517F0987@dlee02.ent.ti.com> <201001221246.24330.laurent.pinchart@ideasonboard.com> <A24693684029E5489D1D202277BE8944517F0E40@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE8944517F0E40@dlee02.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201001241852.23334.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Sergio,
 
-sorry, there is a typo in the gpio mask on previously attached patch you
-might use against current v4l-dvb with your further findings.
+On Friday 22 January 2010 19:36:06 Aguirre, Sergio wrote:
 
-Mask 0x0d is sufficient and we don't need any 0xe0d :(
+[snip]
 
-You might also consider to start with vmux = 3 for Composite1 and vmux =
-0 for Composite2, that is expected to be over the S-Video connector and
-should work too.
+> Ok, I was able to "work around" the kernel panic with the attached patch.
+> 
+> I have the feeling that all your development is dependant on loading all
+>  camera/sensors as modules in the filesystem. Have you done validation with
+>  built-in option in kernel's menuconfig?
 
-Does save some plugging around with two composite input devices, if
-S-Video is not in use.
+You're right. I haven't done any validation, and I've been to reproduce the 
+crash when compiling everything directly into the kernel image.
 
-good night,
-Hermann
+I'm on holidays this week so I won't be able to look into the problem before 
+February the 1st. If nobody beats me to it, I'll see how we can fix it 
+properly then.
 
+-- 
+Regards,
 
+Laurent Pinchart
