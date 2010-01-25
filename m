@@ -1,96 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-02.arcor-online.net ([151.189.21.42]:52466 "EHLO
-	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755299Ab0ASWnU (ORCPT
+Received: from mail01a.mail.t-online.hu ([84.2.40.6]:63855 "EHLO
+	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752044Ab0AYTx7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jan 2010 17:43:20 -0500
-Subject: Re: [ANNOUNCE] git tree repositories
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Bob Cunningham <rcunning@acm.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <4B562260.8030707@acm.org>
-References: <4B55445A.10300@infradead.org>
-	 <829197381001190204l3df81904gf8586f36187f212d@mail.gmail.com>
-	 <4B55A2AC.4020009@infradead.org>  <4B562260.8030707@acm.org>
-Content-Type: text/plain
-Date: Tue, 19 Jan 2010 23:37:49 +0100
-Message-Id: <1263940669.5384.76.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Mon, 25 Jan 2010 14:53:59 -0500
+Message-ID: <4B5DF6C3.3010108@freemail.hu>
+Date: Mon, 25 Jan 2010 20:53:39 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: git problem with uvcvideo
+References: <4B5CBC31.5090701@freemail.hu> <201001251907.18266.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201001251907.18266.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bob,
-
-Am Dienstag, den 19.01.2010, 13:21 -0800 schrieb Bob Cunningham:
-> On 01/19/2010 04:16 AM, Mauro Carvalho Chehab wrote:
-> > Devin Heitmueller wrote:
-> >> Hello Mauro,
-> >>
-> >> I find it somewhat unfortunate that this is labeled "ANNOUNCE" instead
-> >> of "RFC".  It shows how little you care about soliciting the opinions
-> >> of the other developers.  Rather than making a proposal for how the
-> >> process can be improved and soliciting feedback, you have chosen to
-> >> decide for all of us what the best approach is and how all of us will
-> >> develop in the future.
-> >
-> > The announcement by purpose doesn't contain any changes on the process,
-> > since it requires some discussions before we go there. It is just the
-> > first step, where -git tree support were created. It also announces
-> > that I personally won't keep maintaining -hg, delegating its task
-> > to Douglas.
-> >
-> >> The point I'm trying to make is that we need to be having a discussion
-> >> about what we are optimizing for, and what are the costs to other
-> >> developers.  This is why I'm perhaps a bit pissed to see an
-> >> "announcement" declaring how development will be done in the future as
-> >> opposed to a discussion of what we could be doing and what are the
-> >> trade-offs.
-> >
-> > I fully understand that supporting the development and tests with an
-> > out of tree building is important to everybody. So, the plans are
-> > to keep the out-of-tree building system maintained, and even
-> > improving it. I'd like to thank to Douglas for his help on making
-> > this happen.
-> >
-> > Cheers,
-> > Mauro.
+Laurent Pinchart wrote:
+> Hi Márton,
 > 
-> I'm primarily a lurker on this list, generally content to wait for v4l driver updates until they appear in the Fedora 12 and Ubuntu 9.10 updates.
+> On Sunday 24 January 2010 22:31:29 Németh Márton wrote:
+>> Hi,
+>>
+>> I'm trying to fetch the uvcvideo from
+>>  http://linuxtv.org/git/?p=pinchartl/uvcvideo.git;a=summary .
+>>
+>> I tryied to follow the instructions but at the third step I get fatal error
+>> messages:
 > 
-> However, I also keep a v4l source tree around that I update and build whenever any significant changes occur that affect my HVR-950Q, so I can provide rapid feedback to the developers.  My process is to update my local tree, build the drivers. build the package, install the package, test it, then either revert immediately if there are problems (after posting to the list), or update again when the changes appear in the Fedora repositories.
+> [snip]
 > 
-> Am I correct to believe my process will not be affected by the shift to git?  That is, will existing kernels will still have access to the current v4l code via hg?
+> The http:// URL seems not to be available at the moment. I don't know if it's 
+> a transient error or a deliberate decision not to provide git access through 
+> http://
 > 
-> I also hope to one day start working on an unsupported USB tuner I have laying around (should be simple, but after nearly a year I still haven't gotten to it).  Will I be permitted to do my development, and contribute changes, using hg and the current Fedora kernel?
+>> I also tried with the git:// link:
+>>> v4l-dvb$ git remote rm uvcvideo
+>>> v4l-dvb$ git remote add uvcvideo git://linuxtv.org//pinchartl/uvcvideo.git
+>>> v4l-dvb$ git remote update
+>>> Updating origin
+>>> Updating uvcvideo
+>>> fatal: The remote end hung up unexpectedly
+>>> error: Could not fetch uvcvideo
+>> Am I doing something wrong?
 > 
-> Lurker testers and wannabe developers need to know!
-> 
-> -BobC
+> Please try git://linuxtv.org/pinchartl/uvcvideo.git. The URL on the webpage 
+> has two / instead of one for some reason. Mauro, could that be fixed ?
 
-if you look at the history of v4l, you can be sure that we always tried
-to have as much testers as possible.
+It seems removing the extra '/' helps:
 
-During the 2.5.x development cycle, in fact all testing and development
-was done on 2.4.x. We did not even have any SCM that time, but on 2.5.x
-problems Devin is pointing to were enormous.
+v4l-dvb$ git remote rm uvcvideo
+v4l-dvb$ git remote add uvcvideo git://linuxtv.org/pinchartl/uvcvideo.git
+v4l-dvb$ git remote update
+Updating origin
+Updating uvcvideo
+remote: Counting objects: 1944, done.
+remote: Compressing objects: 100% (427/427), done.
+remote: Total 1733 (delta 1486), reused 1551 (delta 1306)
+Receiving objects: 100% (1733/1733), 312.47 KiB | 164 KiB/s, done.
+Resolving deltas: 100% (1486/1486), completed with 169 local objects.
+>From git://linuxtv.org/pinchartl/uvcvideo
+ * [new branch]      master     -> uvcvideo/master
+ * [new branch]      uvcvideo   -> uvcvideo/uvcvideo
+v4l-dvb$ git branch -r
+  origin/HEAD -> origin/master
+  origin/master
+  uvcvideo/master
+  uvcvideo/uvcvideo
+v4l-dvb$ git checkout -b test uvcvideo/uvcvideo
+Branch test set up to track remote branch uvcvideo from uvcvideo.
+Switched to a new branch 'test'
 
-Mike Krufky and Mauro were always strong in defending backward compat,
-also after taking over Gerd's cvs he later had.
 
-Mauro, in the beginning, even always tried to keep usability back to
-2.4.x kernels with v4l2 revision 1 and I did warn him, that this task is
-quite impossible to satisfy, but we had developers on totally outdated
-semi proprietary stuff, years in delay, asking exactly for that.
+Now I can start to build and test this branch.
 
-On latest discussions, how far we should keep backward compat after i2c
-improvements, you saw Mauro again voting for as far as ever possible.
+Regards,
 
-Be sure, we don't want to lose you guys!
-
-Cheers,
-Hermann
-
-
+	Márton Németh
 
 
