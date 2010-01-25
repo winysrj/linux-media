@@ -1,53 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f220.google.com ([209.85.220.220]:54123 "EHLO
+Received: from mail-fx0-f220.google.com ([209.85.220.220]:41069 "EHLO
 	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752129Ab0AUPQN convert rfc822-to-8bit (ORCPT
+	with ESMTP id S1752064Ab0AYXQ2 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jan 2010 10:16:13 -0500
-Received: by fxm20 with SMTP id 20so86981fxm.1
-        for <linux-media@vger.kernel.org>; Thu, 21 Jan 2010 07:16:11 -0800 (PST)
+	Mon, 25 Jan 2010 18:16:28 -0500
+Received: by fxm20 with SMTP id 20so4168681fxm.21
+        for <linux-media@vger.kernel.org>; Mon, 25 Jan 2010 15:16:27 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <4B583459.3030909@csldevices.co.uk>
-References: <1264012191.4038.60.camel@urkkimylly>
-	 <4B583459.3030909@csldevices.co.uk>
-Date: Thu, 21 Jan 2010 10:16:10 -0500
-Message-ID: <829197381001210716u654f5d8boa1e13932cdd1eba6@mail.gmail.com>
-Subject: Re: Conexant Systems, Inc. Hauppauge Inc. HDPVR-1250 model 1196 (rev
-	04) [How to make it work?]
+In-Reply-To: <20100125231307.GA3924@i.jbohm.dk>
+References: <20100125021118.GA8756@i.jbohm.dk>
+	 <d9def9db1001242358v36abe530v8ef33efc8da4a5c4@mail.gmail.com>
+	 <20100125231307.GA3924@i.jbohm.dk>
+Date: Mon, 25 Jan 2010 18:16:27 -0500
+Message-ID: <829197381001251516m711852cep9acbae6c0ac2bdb6@mail.gmail.com>
+Subject: Re: More details on Hauppauge 930C
 From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Philip Downer <phil@csldevices.co.uk>
-Cc: linux-media@vger.kernel.org
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 21, 2010 at 6:02 AM, Philip Downer <phil@csldevices.co.uk> wrote:
-> Ukko Happonen wrote:
->>
->> How do I make the TV tuner work?
->>
->> lspci -d 14f1:8880 -v says
->>        Kernel driver in use: cx23885
->>        Kernel modules: cx23885
->>
->
-> Looks to me like it's already working.
->
-> Do you have a /dev/dvb/adapter0 dir with anything in it? if so see
-> http://www.linuxtv.org/wiki/index.php/Testing_your_DVB_device
+On Mon, Jan 25, 2010 at 6:13 PM, Jakob Bohm <saotowjokkoujuxlot@jbohm.dk> wrote:
+> Thanks for posting this info on list.  Could someone with access please
+> update the relevant pages at wiki.linuxtv.org?
 
-Hey Phil,
+Jakob,
 
-I worked to him a bit on IRC yesterday.  The only reason that the
-cx23885 was loaded was because he forced a modprobe with a card number
-(with an arbitrary card, btw).
-
-This looks like an Avermedia OEM version of the HVR-1200, but I would
-not be able to say for certain without taking a good look at the card.
-
-In order to get this working, a developer would probably have to work
-through the driver to build a card profile.
+Since you took all the time to do the research, I would suggest that
+*you* update the wiki.  All you need to do is create yourself an
+account.
 
 Cheers,
 
