@@ -1,91 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from psmtp09.wxs.nl ([195.121.247.23]:46332 "EHLO psmtp09.wxs.nl"
+Received: from mx1.redhat.com ([209.132.183.28]:2881 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750748Ab0AHH25 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Jan 2010 02:28:57 -0500
-Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
- by psmtp09.wxs.nl
- (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
- with ESMTP id <0KVX008Y53G3B5@psmtp09.wxs.nl> for linux-media@vger.kernel.org;
- Fri, 08 Jan 2010 08:28:51 +0100 (MET)
-Date: Fri, 08 Jan 2010 08:28:49 +0100
-From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-Subject: Re: Compro VideoMate U80 DVB-T USB 2.0 High Definition Digital TV Stick
-In-reply-to: <4B46AC9E.1050408@iinet.net.au>
-To: drappa <drappa@iinet.net.au>
-Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Message-id: <4B46DEB1.1020301@hoogenraad.net>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <4B3ABD9D.6040207@iinet.net.au> <4B4661ED.3070606@hoogenraad.net>
- <4B46AC9E.1050408@iinet.net.au>
+	id S1750845Ab0AYPGz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jan 2010 10:06:55 -0500
+Message-ID: <4B5DB387.70707@redhat.com>
+Date: Mon, 25 Jan 2010 13:06:47 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: devin Heitmueller <dheitmueller@kernellabs.com>,
+	Andy Walls <awalls@radix.net>,
+	Jean-Francois Moine <moinejf@free.fr>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Problems with cx18
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-So: it is a Realtek 2831 device.
+Hi Devin/Andy/Jean,
 
-Please first check /lib/udev/rules.d/50-udev-default.rules.
-There seems to be a generic problem with Karmac there.
-Look at http://ubuntuforums.org/showthread.php?t=1327337 which gives 
-solution for the problem by installing a new rule:-
-/etc/udev/rules.d/50-udev.rules
+The cx88-alsa and cx18-drivers are broken: the driver depend of request_modules that doesn't exist
+when !CONFIG_MODULES, and has some wrong __init annotations.
 
-Under Ubuntu Karmac, I have heard that the anttip/rtl2831u driver works 
-  (alas without IR support) with this workaround. Of the 
-jhoogenraad/rtl2831-2 I have no confirmation yet.
+The sq905c has a warning.
 
-http://ubuntuforums.org/showthread.php?t=960113
+I'm compiling it with:
+	make ARCH=i386 allmodconfig drivers/media/|grep -v "^  CC" |grep -v "^  LD"
 
-Which one have you downloaded ?
+Those are the errors found:
 
+drivers/media/video/cx18/cx18-driver.c:252: warning: ‘request_modules’ used but never defined
+WARNING: drivers/media/video/cx18/cx18-alsa.o(.text+0x4de): Section mismatch in reference from the function cx18_alsa_load() to the function .init.text:snd_cx18_init()
+The function cx18_alsa_load() references
+the function __init snd_cx18_init().
+This is often because cx18_alsa_load lacks a __init 
+annotation or the annotation of snd_cx18_init is wrong.
 
-drappa wrote:
-> Jan Hoogenraad wrote:
->> Can you give us the USB ID
->> (type on the command line: lsusb, and report the output)
->>
->> The U90 has a RTL2831 in it. More info on the driver on:
->> http://www.linuxtv.org/wiki/index.php/Rtl2831_devices
-> Hi Jan
-> 
-> USB ID is :  185b-0150  Compro
-> 
-> I built the driver as per the link but the device does not initialise.
-> 
-> Tested using an Ubuntu Studio Karmic installation with two afatech 9015 
-> USB devices connected ok
-> 
-> Thanks
-> drappa
-> 
-> 
->>
->> drappa wrote:
->>> Hi All
->>>
->>> http://www.comprousa.com/en/product/u80/u80.html
->>>
->>> I'd be grateful if anyone can tell me if this device is supported 
->>> yet, and if so, any pointers to getting it working.
->>>
->>> Thanks
->>> Drappa
->>>
->>>
->>> -- 
->>> To unsubscribe from this list: send the line "unsubscribe 
->>> linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>
->>
-> 
+WARNING: drivers/media/video/cx18/built-in.o(.text+0x1c022): Section mismatch in reference from the function cx18_alsa_load() to the function .init.text:snd_cx18_init()
+The function cx18_alsa_load() references
+the function __init snd_cx18_init().
+This is often because cx18_alsa_load lacks a __init 
+annotation or the annotation of snd_cx18_init is wrong.
 
+drivers/media/video/gspca/sq905c.c: In function ‘sd_config’:
+drivers/media/video/gspca/sq905c.c:207: warning: unused variable ‘i’
+WARNING: drivers/media/video/built-in.o(.text+0x28d24e): Section mismatch in reference from the function cx18_alsa_load() to the function .init.text:snd_cx18_init()
+The function cx18_alsa_load() references
+the function __init snd_cx18_init().
+This is often because cx18_alsa_load lacks a __init 
+annotation or the annotation of snd_cx18_init is wrong.
 
--- 
-Jan Hoogenraad
-Hoogenraad Interface Services
-Postbus 2717
-3500 GS Utrecht
+WARNING: drivers/media/built-in.o(.text+0x2d2a2a): Section mismatch in reference from the function cx18_alsa_load() to the function .init.text:snd_cx18_init()
+The function cx18_alsa_load() references
+the function __init snd_cx18_init().
+This is often because cx18_alsa_load lacks a __init 
+annotation or the annotation of snd_cx18_init is wrong.
+
+Please fix.
+
+Cheers,
+Mauro.
