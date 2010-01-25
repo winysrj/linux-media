@@ -1,108 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4916 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753376Ab0AHTuU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jan 2010 14:50:20 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id o08JoHdd006638
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 8 Jan 2010 20:50:18 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 8 Jan 2010 20:50:17 +0100 (CET)
-Message-Id: <201001081950.o08JoHdd006638@smtp-vbr13.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: OK
+Received: from smtp21.services.sfr.fr ([93.17.128.1]:10658 "EHLO
+	smtp21.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752332Ab0AYT3A convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jan 2010 14:29:00 -0500
+Received: from filter.sfr.fr (localhost [127.0.0.1])
+	by msfrf2104.sfr.fr (SMTP Server) with ESMTP id CE9F2700008B
+	for <linux-media@vger.kernel.org>; Mon, 25 Jan 2010 20:28:55 +0100 (CET)
+Received: from linux-542s.localnet (unknown [77.84.220.206])
+	by msfrf2104.sfr.fr (SMTP Server) with ESMTP id AA8827000094
+	for <linux-media@vger.kernel.org>; Mon, 25 Jan 2010 20:28:55 +0100 (CET)
+From: "ftape-jlc" <ftape-jlc@club-internet.fr>
+Reply-To: ftape-jlc@club-internet.fr
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Fwd: Re: FM radio problem with HVR1120
+Date: Mon, 25 Jan 2010 20:29:11 +0100
+MIME-Version: 1.0
+Message-Id: <201001252029.12009.ftape-jlc@club-internet.fr>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hello,
 
-Results of the daily build of v4l-dvb:
+I didn't received any message about radio on HVR1120.
+I just want to know if the use /dev/radio0 is deprecated in v4l2 today.
+In the mails, I only read messages about video or TV.
 
-date:        Fri Jan  8 19:00:02 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   13879:b6b82258cf5e
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Did one user of the mailing list have tested actual v4l2 on /dev/radio0 ?
 
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-armv5: OK
-linux-2.6.33-rc2-armv5: ERRORS
-linux-2.6.32-armv5-davinci: OK
-linux-2.6.33-rc2-armv5-davinci: ERRORS
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-armv5-ixp: OK
-linux-2.6.32-armv5-ixp: OK
-linux-2.6.33-rc2-armv5-ixp: ERRORS
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-armv5-omap2: OK
-linux-2.6.32-armv5-omap2: OK
-linux-2.6.33-rc2-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: OK
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-i686: WARNINGS
-linux-2.6.33-rc2-i686: ERRORS
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-m32r: OK
-linux-2.6.33-rc2-m32r: ERRORS
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: OK
-linux-2.6.32-mips: OK
-linux-2.6.33-rc2-mips: ERRORS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-powerpc64: OK
-linux-2.6.32-powerpc64: WARNINGS
-linux-2.6.33-rc2-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: OK
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-x86_64: WARNINGS
-linux-2.6.33-rc2-x86_64: ERRORS
-spec: OK
-sparse (linux-2.6.32): ERRORS
-sparse (linux-2.6.33-rc2): ERRORS
-linux-2.6.16.61-i686: OK
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: OK
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: OK
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+Thank you for your help,
 
-Detailed results are available here:
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+ftape-jlc
 
-Full logs are available here:
+Le lundi 11 janvier 2010, ftape-jlc a écrit :
+> Hello,
+> 
+> I am user of Huappuage HVR1120, and I have problem with radio FM use in
+>  linux mode.
+> 
+> Distribution OpenSuse11.2
+> Kernel 2.6.31.8-0.1-desktop
+> Firmware dvb-fe-tda10048-1.0.fw loaded
+> 
+> Analog and Digital Television are OK in both Windows and Linux.
+> Windows is using Hauppauge WinTV7 v7.027313
+> 
+> Linux is using Kaffeine v1.0-pre2 for Digital Television
+> Linux is using mplayer for analog TV like:
+> mplayer tv:// -tv driver=v4l2:freq=495.750:norm=SECAM-
+> L:input=0:audiorate=32000:immediatemode=0:alsa:forceaudio:adevice=hw.1,0:wi
+> dth=720:height=576:amode=1
+> 
+> The problem is to listen radio.
+> One radio station is OK at 91.5MHz stereo using WintTV7 in Windows.
+> With Linux, the command used is
+> /usr/bin/radio -c /dev/radio0
+> in association with
+> sox -t ossdsp -r 32000 -c 2 /dev/dsp1 -t ossdsp /dev/dsp
+> to listen the sound.
+> 
+> The result is an unstable frecuency. The station is not tuned. Stereo is
+> permanently switching to mono.
+> The 91.5MHz station is mixed permanently with other stations.
+> 
+> How can I check v4l2 ?
+> Do you need dmesg output ?
+> Is this mailing list the right place to solve this problem ?
+> 
+> Thank you for your help.
+> 
+> Regards,
+> 
+> ftape-jlc
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-The V4L-DVB specification from this daily build is here:
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+
+-------------------------------------------------------
+
