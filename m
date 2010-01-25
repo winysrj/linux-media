@@ -1,41 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ms01.sssup.it ([193.205.80.99]:45695 "EHLO sssup.it"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754867Ab0AMKSW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jan 2010 05:18:22 -0500
-Message-ID: <4B4D9DEB.1030306@panicking.kicks-ass.org>
-Date: Wed, 13 Jan 2010 11:18:19 +0100
-From: Michael Trimarchi <michael@panicking.kicks-ass.org>
-MIME-Version: 1.0
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-CC: Nishanth Menon <menon.nishanth@gmail.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: ISP OMAP3 camera support ov7690
-References: <4AC7DAAD.2020203@panicking.kicks-ass.org> <4AC8B764.2030101@gmail.com> <4AC93DC9.2080809@panicking.kicks-ass.org> <A24693684029E5489D1D202277BE89444CB3A2CB@dlee02.ent.ti.com> <4B4C75F0.3060108@panicking.kicks-ass.org> <A24693684029E5489D1D202277BE8944514AC214@dlee02.ent.ti.com> <4B4CB241.6050603@panicking.kicks-ass.org> <4B4CE976.5050503@panicking.kicks-ass.org> <A24693684029E5489D1D202277BE8944514AC7F3@dlee02.ent.ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE8944514AC7F3@dlee02.ent.ti.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from lo.gmane.org ([80.91.229.12]:47844 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752974Ab0AYJzX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jan 2010 04:55:23 -0500
+Received: from list by lo.gmane.org with local (Exim 4.50)
+	id 1NZLfB-0007VK-Gx
+	for linux-media@vger.kernel.org; Mon, 25 Jan 2010 10:55:17 +0100
+Received: from 92.103.125.220 ([92.103.125.220])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 25 Jan 2010 10:55:17 +0100
+Received: from ticapix by 92.103.125.220 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 25 Jan 2010 10:55:17 +0100
+To: linux-media@vger.kernel.org
+From: "pierre.gronlier" <ticapix@gmail.com>
+Subject: Re: problem with libdvben50221 and powercam pro V4 [almost solved]
+Date: Mon, 25 Jan 2010 10:54:51 +0100
+Message-ID: <4B5D6A6B.9030900@gmail.com>
+References: <4B5CA8F8.3000301@crans.ens-cachan.fr> <1a297b361001241322q2b077683v8ac55b35afb4fe97@mail.gmail.com> <4B5CBF14.1000005@crans.ens-cachan.fr> <loom.20100124T225424-639@post.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <loom.20100124T225424-639@post.gmane.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+pierre gronlier wrote, On 01/24/2010 11:03 PM:
+> DUBOST Brice <dubost <at> crans.ens-cachan.fr> writes:
+>> Manu Abraham a écrit :
+>>> Hi Brice,
+>>>
+>>> On Mon, Jan 25, 2010 at 12:09 AM, DUBOST Brice
+>>> <dubost <at> crans.ens-cachan.fr> wrote:
+>>>> Hello
+>>>>
+>>>> Powercam just made a new version of their cam, the version 4
+>>>>
+>>>> Unfortunately this CAM doesn't work with gnutv and applications based on
+>>>> libdvben50221
+>>>>
+>>>> This cam return TIMEOUT errors (en50221_stdcam_llci_poll: Error reported
+>>>> by stack:-3) after showing the supported ressource id.
+>>>>
+>>>> The problem is that this camreturns two times the list of supported ids
+>>>> (as shown in the log) this behavior make the llci_lookup_callback
+>>>> (en50221_stdcam_llci.c line 338)  failing to give the good ressource_id
+>>>> at the second call because there is already a session number (in the
+>>>> test app the session number is not tested)
+>>>>
+>>>> I solved the problem commenting out the test for the session number as
+>>>> showed in the joined patch (against the latest dvb-apps, cloned today)
+> 
+> I will run some tests with a TT3200 card too and a Netup card tomorrow.
+> 
+> Regarding the cam returning two times the list of valid cam ids, wouldn't be
+> better if the manufacturer corrects it in the cam firmware ?
+> What says the en50221 norm about it ?
+> 
 
-I have done a step ahead maybe:
+Indeed, with the patch applied, the command gnutv -adapter 0 -cammenu is
+working fine with a netup card too.
 
-The camera has this output format:
+I will try to update to the last revision of pcam firmware (v4.2) and
+report this behaviour to the manufacturer.
 
-YUYV     ---> the first use the CCDC_OTHERS_MEM, so seems that it needs the WEN signal to syncronize (I don't have this one)
-RGB565   ---> is not supported
-RAW8     ---> is supported by the ISP but seems that is not implemented as a isp formats
+-- 
+Pierre
 
-So I can't use the first one but I can use the last one because the pipeline support RAW format,
-the data path is the same of RAW10 expet for the autofocus module. If all is correct what are the steps?
 
-- add the isp_format
-- add in the if confidition this data format and use the same path of RAW10
-...
-
-Regards
-
-Michael
