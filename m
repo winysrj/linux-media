@@ -1,115 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web32706.mail.mud.yahoo.com ([68.142.207.250]:45925 "HELO
-	web32706.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751780Ab0ARHH2 (ORCPT
+Received: from mail-ew0-f219.google.com ([209.85.219.219]:63372 "EHLO
+	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751616Ab0AYUFY convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2010 02:07:28 -0500
-Message-ID: <15799.81854.qm@web32706.mail.mud.yahoo.com>
-Date: Sun, 17 Jan 2010 23:07:26 -0800 (PST)
-From: Franklin Meng <fmeng2002@yahoo.com>
-Subject: [Patch 2/3] Kworld 315U
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-In-Reply-To: <647298.8638.qm@web32701.mail.mud.yahoo.com>
+	Mon, 25 Jan 2010 15:05:24 -0500
+Received: by ewy19 with SMTP id 19so142983ewy.21
+        for <linux-media@vger.kernel.org>; Mon, 25 Jan 2010 12:05:23 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+In-Reply-To: <829197381001220827x243ae52cx44a8fa7b627c7184@mail.gmail.com>
+References: <135ab3ff1001200926j9917d69x51eede94512fa664@mail.gmail.com>
+	 <829197381001201000x58aadea5wab0948691d9a4c4f@mail.gmail.com>
+	 <135ab3ff1001210155qad2c794rf6781c4ac28159c7@mail.gmail.com>
+	 <d9def9db1001210407s6f14d637x1e32d34f7193a188@mail.gmail.com>
+	 <4B587B91.9070300@koala.ie>
+	 <135ab3ff1001220818r3e10650fl80e873c441bffde4@mail.gmail.com>
+	 <829197381001220827x243ae52cx44a8fa7b627c7184@mail.gmail.com>
+Date: Mon, 25 Jan 2010 21:05:06 +0100
+Message-ID: <135ab3ff1001251205g3c699130r25c93ec1cadfc820@mail.gmail.com>
+Subject: Re: Drivers for Eyetv hybrid
+From: Morten Friesgaard <friesgaard@gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Simon Kenyon <simon@koala.ie>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patch with updated GPIOs and enable analog inputs for the Kworld 315U
+Sound like a lot of work, and it would be easier just to buy a
+functional tuner :)
 
-Signed-off-by: Franklin Meng<fmeng2002@yahoo.com>
+Guess I'm busy enough. However, I did manage to find some more info,
+for someone to use someday :)
+/Morten
 
-diff -r b6b82258cf5e linux/drivers/media/video/em28xx/em28xx-cards.c
---- a/linux/drivers/media/video/em28xx/em28xx-cards.c   Thu Dec 31 19:14:54 2009 -0200
-+++ b/linux/drivers/media/video/em28xx/em28xx-cards.c   Sun Jan 17 22:54:21 2010 -0800
-@@ -122,13 +122,31 @@                                                                 
- };                                                                                   
- #endif                                                                               
-                                                                                      
-+/* Kworld 315U                                                                       
-+   GPIO0 - Enable digital power (lgdt3303) - low to enable                           
-+   GPIO1 - Enable analog power (saa7113/emp202) - low to enable                      
-+   GPIO7 - enables something ?                                                       
-+   GOP2  - ?? some sort of reset ?                                                   
-+   GOP3  - lgdt3303 reset                                                            
-+ */                                                                                  
- /* Board - EM2882 Kworld 315U digital */                                             
- static struct em28xx_reg_seq em2882_kworld_315u_digital[] = {                        
--       {EM28XX_R08_GPIO,       0xff,   0xff,           10},                          
--       {EM28XX_R08_GPIO,       0xfe,   0xff,           10},                          
-+       {EM28XX_R08_GPIO,       0x7e,   0xff,           10},                          
-        {EM2880_R04_GPO,        0x04,   0xff,           10},                          
-        {EM2880_R04_GPO,        0x0c,   0xff,           10},                          
--       {EM28XX_R08_GPIO,       0x7e,   0xff,           10},                          
-+       {  -1,                  -1,     -1,             -1},                          
-+};                                                                                   
-+                                                                                     
-+/* Board - EM2882 Kworld 315U analog1 analog tv */                                   
-+static struct em28xx_reg_seq em2882_kworld_315u_analog1[] = {                        
-+       {EM28XX_R08_GPIO,       0xfd,   0xff,           10},                          
-+       {EM28XX_R08_GPIO,       0x7d,   0xff,           10},                          
-+       {  -1,                  -1,     -1,             -1},                          
-+};                                                                                   
-+                                                                                     
-+/* Board - EM2882 Kworld 315U analog2 component/svideo */                            
-+static struct em28xx_reg_seq em2882_kworld_315u_analog2[] = {                        
-+       {EM28XX_R08_GPIO,       0xfd,   0xff,           10},                          
-        {  -1,                  -1,     -1,             -1},                          
- };                                                                                   
-                                                                                      
-@@ -140,6 +158,14 @@                                                                  
-        {  -1,                  -1,     -1,             -1},                          
- };                                                                                   
-                                                                                      
-+/* Board - EM2882 Kworld 315U suspend */                                             
-+static struct em28xx_reg_seq em2882_kworld_315u_suspend[] = {                        
-+       {EM28XX_R08_GPIO,       0xff,   0xff,           10},                          
-+       {EM2880_R04_GPO,        0x08,   0xff,           10},                          
-+       {EM2880_R04_GPO,        0x0c,   0xff,           10},                          
-+       {  -1,                  -1,     -1,             -1},                          
-+};                                                                                   
-+                                                                                     
- static struct em28xx_reg_seq kworld_330u_analog[] = {                                
-        {EM28XX_R08_GPIO,       0x6d,   ~EM_GPIO_4,     10},                          
-        {EM2880_R04_GPO,        0x00,   0xff,           10},                          
-@@ -1314,28 +1340,28 @@                                                               
-                .decoder        = EM28XX_SAA711X,                                     
-                .has_dvb        = 1,                                                  
-                .dvb_gpio       = em2882_kworld_315u_digital,                         
-+               .suspend_gpio   = em2882_kworld_315u_suspend,                         
-                .xclk           = EM28XX_XCLK_FREQUENCY_12MHZ,                        
-                .i2c_speed      = EM28XX_I2C_CLK_WAIT_ENABLE,                         
--               /* Analog mode - still not ready */                                   
--               /*.input        = { {                                                 
-+               .input        = { {                                                   
-                        .type = EM28XX_VMUX_TELEVISION,                               
-                        .vmux = SAA7115_COMPOSITE2,                                   
-                        .amux = EM28XX_AMUX_VIDEO,                                    
--                       .gpio = em2882_kworld_315u_analog,                            
-+                       .gpio = em2882_kworld_315u_analog1,                           
-                        .aout = EM28XX_AOUT_PCM_IN | EM28XX_AOUT_PCM_STEREO,          
-                }, {                                                                  
-                        .type = EM28XX_VMUX_COMPOSITE1,                               
-                        .vmux = SAA7115_COMPOSITE0,                                   
-                        .amux = EM28XX_AMUX_LINE_IN,                                  
--                       .gpio = em2882_kworld_315u_analog1,                           
-+                       .gpio = em2882_kworld_315u_analog2,                           
-                        .aout = EM28XX_AOUT_PCM_IN | EM28XX_AOUT_PCM_STEREO,          
-                }, {                                                                  
-                        .type = EM28XX_VMUX_SVIDEO,                                   
-                        .vmux = SAA7115_SVIDEO3,                                      
-                        .amux = EM28XX_AMUX_LINE_IN,                                  
--                       .gpio = em2882_kworld_315u_analog1,                           
-+                       .gpio = em2882_kworld_315u_analog2,                           
-                        .aout = EM28XX_AOUT_PCM_IN | EM28XX_AOUT_PCM_STEREO,          
--               } }, */                                                               
-+               } },                                                                  
-        },                                                                            
-        [EM2880_BOARD_EMPIRE_DUAL_TV] = {                                             
-                .name = "Empire dual TV",                                       
+Model: EU 2008
+USB Contoller: Empia EM2884
+Stereo A/V Decoder: Micronas AVF 49x08
+Hybrid Channel Decoder: Micronas DRX-K DRX3926K:A1 0.9.0
 
-
-      
+On Fri, Jan 22, 2010 at 5:27 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> On Fri, Jan 22, 2010 at 11:18 AM, Morten Friesgaard
+> <friesgaard@gmail.com> wrote:
+>> Actually I don't understand why this em28xx driver is the only one
+>> being patched, guess that reduces backward compability!? :-P
+>
+> There are many drivers actively being developed.  What I'm trying to
+> say is that the new version of the EyeTV Hybrid is not an em28xx based
+> hardware design.
+>
+>> Well, I haven't given up, but no one has given me any pointers but /dev/null
+>> If this em28xx module would be startable with the usb id "0fd9:0018",
+>> I could tryout the old driver.
+>> If you say the hardware design is completely different, I guess it
+>> should still be possible to mount the usb device and fetch anything
+>> from the device (e.g. tvtime -d /dev/usbdev). The driver would be a
+>> matter of controlling the device to tune to the correct channel etc.
+>
+> No, that is not how USB drivers work.  You have to know how to program
+> the various chips on the device (the bridge, demodulator, decoder,
+> tuner), as well as knowing how to decode the packets coming back from
+> the device.  If you want to get an understanding as to how complex the
+> drivers are then feel free to look at some of them in the v4l-dvb
+> source code.  You can get a better understanding as to how these
+> devices are designed here:
+>
+> KernelLabs Blog:  How Tuners Work...
+> http://www.kernellabs.com/blog/?p=1045
+>
+>> When new hardware is introduced, how do you guys break down the task
+>> and implement a driver? (how much can be borrow from the mac os x
+>> drivers?)
+>
+> It largely depends on the device.  Usually you start by cracking it
+> open and seeing what chips it contains, and from there you can see
+> which components currently have a driver and which do not.  Whether
+> the various components are already supported usually drives whether a
+> whole new driver is required or just a board profile in an existing
+> driver.  And whether datasheets are available publicly dictates how
+> easy/hard it is to write a driver (the datasheets are usually *not*
+> available for modern devices, or only available under NDA).
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
+>
