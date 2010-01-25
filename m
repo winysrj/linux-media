@@ -1,37 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-02.arcor-online.net ([151.189.21.42]:58628 "EHLO
-	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752245Ab0AQSGQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jan 2010 13:06:16 -0500
-Message-ID: <4B535187.90100@arcor.de>
-Date: Sun, 17 Jan 2010 19:05:59 +0100
-From: Stefan Ringel <stefan.ringel@arcor.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:45975 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750853Ab0AYNCX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jan 2010 08:02:23 -0500
+Message-ID: <4B5D9657.5080201@iki.fi>
+Date: Mon, 25 Jan 2010 15:02:15 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Gavin Ramm <gavin_ramm@hotmail.com>
 CC: linux-media@vger.kernel.org
-Subject: Re: Terratec Cinergy Hybrid XE (TM6010 Mediachip)
-Content-Type: text/plain; charset=ISO-8859-15
+Subject: Re: help: Leadtek DTV2000 DS
+References: <SNT130-w530BA3C80D244EB3C39701F45F0@phx.gbl>
+In-Reply-To: <SNT130-w530BA3C80D244EB3C39701F45F0@phx.gbl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
- 
-Hi Mauro,
+On 01/25/2010 01:44 PM, Gavin Ramm wrote:
+> Tried the current build of v4l-dvb (as of 25/01/2010) for a Leadtek DTV2000 DS.
+> product site : http://www.leadtek.com/eng/tv_tuner/overview.asp?lineid=6&pronameid=530&check=f
+>
+> The chipset are AF9015 + AF9013 and the tuner is TDA18211..
+> Im running it on mythdora 10.21 *fedora 10* i've had no luck with this.
+>
+> Any help would be great.. im willing to test..
 
-have you read my thread?
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.12 (MingW32)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
- 
-iQEcBAEBAgAGBQJLU1GGAAoJEDX/lZlmjdJl8E0H/R3uhrjOuGT+6HcRWwE7p6aY
-fL9luyYWG79Vx4/VfBWubt7fAqE9TZ/M8+CRCri5rEPr3x4HtOqW3hrN+pmIfabH
-5llg7NcZUzekjFZMRb7zhKOX8ErP4p2H5FxbFTxd8EU7AwlHvYuMXnGbaCncj7mT
-OOdel4QgkMVFnvaegiQALXT4+hmobjYkMZ6KyPUVsLM5gMVFM0BCQDTXCFN1HSUi
-cwkflFfaUKanNriGuzc1fsuN8VtMUiH19Nl44rS9+y6eim72ORKn24UECq4unedb
-LslFASNYe5ATe/o2YA1MdoQWhR7xA6J6rO2EmOtU5y8w6XlytKHvQWm31iSvqqQ=
-=TWl6
------END PGP SIGNATURE-----
+Device USB ID is missing. Please send your lsusb output and I will add 
+new IDs.
 
+Antti
+-- 
+http://palosaari.fi/
