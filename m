@@ -1,65 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f209.google.com ([209.85.219.209]:53938 "EHLO
-	mail-ew0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751853Ab0ATSaA (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.152]:41999 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750828Ab0AYJNA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jan 2010 13:30:00 -0500
-Received: by ewy1 with SMTP id 1so3297456ewy.28
-        for <linux-media@vger.kernel.org>; Wed, 20 Jan 2010 10:29:58 -0800 (PST)
-Subject: Conexant Systems, Inc. Hauppauge Inc. HDPVR-1250 model 1196 (rev
- 04) [How to make it work?]
-From: Ukko Happonen <uhappo@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 20 Jan 2010 20:29:51 +0200
-Message-ID: <1264012191.4038.60.camel@urkkimylly>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	Mon, 25 Jan 2010 04:13:00 -0500
+Message-ID: <4B5D6098.7010700@gmail.com>
+Date: Mon, 25 Jan 2010 10:12:56 +0100
+From: Jiri Slaby <jirislaby@gmail.com>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: mchehab@infradead.org, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] media: dvb-usb/af9015, fix disconnection crashes
+References: <1264007972-6261-1-git-send-email-jslaby@suse.cz> <4B5CDB53.6030009@iki.fi>
+In-Reply-To: <4B5CDB53.6030009@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 01/25/2010 12:44 AM, Antti Palosaari wrote:
+> When I now test this patch with debugs enabled I don't see
+> .probe and .disconnect be called for this HID interface (interface 1) at
+> all and thus checks not needed.
 
-I bought a desktop from Pixmania, it's this
-http://h10010.www1.hp.com/wwpc/uk/en/ho/WF06b/12454-12454-3329740-64546-64546-4011395-4038054.html
+What happens if you disable the HID layer? Or at least if you add an
+ignore quirk for the device in usbhid?
 
-How do I make the TV tuner work?
-
-lspci -d 14f1:8880 -v says
-[05:00.0 Multimedia video controller: Conexant Systems, Inc. Hauppauge
-Inc. HDPVR-1250 model 1196 (rev 04)
-        Subsystem: Avermedia Technologies Inc Device e139
-        Flags: bus master, fast devsel, latency 0, IRQ 19
-        Memory at fbe00000 (64-bit, non-prefetchable) [size=2M]
-        Capabilities: <access denied>
-        Kernel driver in use: cx23885
-        Kernel modules: cx23885
-
-and sudo lshw says
-*-multimedia
-                description: Multimedia video controller
-                product: Hauppauge Inc. HDPVR-1250 model 1196
-                vendor: Conexant Systems, Inc.
-                physical id: 0
-                bus info: pci@0000:05:00.0
-                version: 04
-                width: 64 bits
-                clock: 33MHz
-                capabilities: pciexpress pm vpd msi bus_master cap_list
-                configuration: driver=cx23885 latency=0
-                resources: irq:19 memory:fbe00000-fbffffff
-
-Any idea what is this and how to make it work?
-
-Thanks!
+I forbid usbhid to attach to the device, as the remote kills X with HID
+driver. With dvb-usb-remote it works just fine (with remote=2 for af9015
+or the 4 patches I've sent).
 
 -- 
-Ukko Happonen
-Tikaskatu 2 A 10
-70820 Kuopio
-044-5770227
-www.ukkohapponen.fi
-uhappo@gmail.com
-www.rakkaudenammattilaiset.net
---- Öhömpis ---
-
+js
