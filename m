@@ -1,97 +1,55 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2414 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756073Ab0A0Vs0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jan 2010 16:48:26 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id o0RLmOIv068753
-	for <linux-media@vger.kernel.org>; Wed, 27 Jan 2010 22:48:25 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 27 Jan 2010 22:48:24 +0100 (CET)
-Message-Id: <201001272148.o0RLmOIv068753@smtp-vbr8.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
-Sender: linux-media-owner@vger.kernel.org
-List-ID: <linux-media.vger.kernel.org>
+Return-path: <video4linux-list-bounces@redhat.com>
+Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.11])
+	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o0PFuPIQ000858
+	for <video4linux-list@redhat.com>; Mon, 25 Jan 2010 10:56:25 -0500
+Received: from snt0-omc3-s6.snt0.hotmail.com (snt0-omc3-s6.snt0.hotmail.com
+	[65.55.90.145])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o0PFuEXi012985
+	for <video4linux-list@redhat.com>; Mon, 25 Jan 2010 10:56:15 -0500
+Message-ID: <SNT127-W42D9864EE7833E0033D1D5DF5F0@phx.gbl>
+From: L E O N <mjardeli@hotmail.com>
+To: <video4linux-list@redhat.com>
+Subject: Hey, friend!
+Date: Mon, 25 Jan 2010 15:43:07 +0000
+MIME-Version: 1.0
+List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
+List-ID: <video4linux-list@redhat.com>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
 
-Results of the daily build of v4l-dvb:
+Hey, Dear;
 
-date:        Wed Jan 27 21:00:05 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14064:31eaa9423f98
-gcc version: i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:     2.6.32.5
+How are you doing these days.
+I would Like to introduce you a shop.
+There, you can find thousands of goods.Visit it, you will can find a great =
+thing for.
+You can spend some time to visit it and.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-rc5-armv5: OK
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-rc5-armv5-davinci: WARNINGS
-linux-2.6.32.6-armv5-dm365: ERRORS
-linux-2.6.33-rc5-armv5-dm365: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-rc5-armv5-ixp: WARNINGS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-rc5-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.17-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-rc5-i686: WARNINGS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-rc5-m32r: OK
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-rc5-mips: WARNINGS
-linux-2.6.32.6-powerpc64: ERRORS
-linux-2.6.33-rc5-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.17-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-rc5-x86_64: WARNINGS
-spec: OK
-sparse (linux-2.6.32.6): ERRORS
-sparse (linux-2.6.33-rc5): ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: OK
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+http://www.oiall.com/
+---------------------------------------------------------
+Believe in them.
+To view Lincoln's profile or write on his Wall, follow this link:  >> =
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+http://www.oiall.com/ 		 	   		  =
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+_________________________________________________________________
+Agora =E9 f=E1cil compartilhar fotos no Messenger: solte todas na janelinha=
+. Veja como!
+http://www.windowslive.com.br/public/tip.aspx/view/77?product=3D2&ocid=3DCR=
+M-WindowsLive:dicaCompartilhamentoFotos:Tagline:WLCRM:On:WL:pt-BR:Messenger
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
