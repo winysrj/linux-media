@@ -1,79 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f214.google.com ([209.85.219.214]:62417 "EHLO
-	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751743Ab0AILB3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jan 2010 06:01:29 -0500
-Received: by ewy6 with SMTP id 6so19808953ewy.29
-        for <linux-media@vger.kernel.org>; Sat, 09 Jan 2010 03:01:28 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:59405 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754035Ab0AYQEA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jan 2010 11:04:00 -0500
+Message-ID: <4B5DC0CA.3070005@redhat.com>
+Date: Mon, 25 Jan 2010 17:03:22 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <494322846-1263027888-cardhu_decombobulator_blackberry.rim.net-290047907-@bda006.bisx.prod.on.blackberry>
-References: <494322846-1263027888-cardhu_decombobulator_blackberry.rim.net-290047907-@bda006.bisx.prod.on.blackberry>
-Date: Sat, 9 Jan 2010 12:01:27 +0100
-Message-ID: <c2fe070d1001090301h37777c77me803ae910b35e7c8@mail.gmail.com>
-Subject: Re: problem webcam gspca 2.6.32
-From: leandro Costantino <lcostantino@gmail.com>
-To: knife@toaster.net
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Brandon Philips <brandon@ifup.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Douglas Landgraf <dougsland@gmail.com>
+Subject: Re: [ANNOUNCE] git tree repositories & libv4l
+References: <4B55445A.10300@infradead.org> <20100120210740.GJ4015@jenkins.home.ifup.org> <4B57B6E4.2070500@infradead.org> <201001210823.04739.hverkuil@xs4all.nl> <4B5B31A3.9060903@redhat.com> <4B5B976B.1080309@infradead.org>
+In-Reply-To: <4B5B976B.1080309@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Also, if you can, try the lastest from linuxtv.org
+Hi,
 
-On Sat, Jan 9, 2010 at 10:05 AM, Sean <knife@toaster.net> wrote:
-> What kind of errors or problems are you getting?
+On 01/24/2010 01:42 AM, Mauro Carvalho Chehab wrote:
+> Hans de Goede wrote:
+>> Hi,
+>>
+>> On 01/21/2010 08:23 AM, Hans Verkuil wrote:
+>>>>
+>>
+>> <snip>
+>>
+>>>> Yes, but, as we have also non-c code, some rules there don't apply.
+>>>> For example the rationale for not using // comments don't apply to c++,
+>>>> since it is there since the first definition.
+>>>
+>>> Most apps are already in 'kernel' style. The main exception being libv4l.
 >
-> Can you turn on debugging and give us some output?
+> Well... they are "close" to kernel style, but if you run checkpatch over
+> all files there, I'm sure you'll see lots of violations.
 >
-> Sean
-> ------Original Message------
-> From: sacarde
-> Sender: linux-media-owner@vger.kernel.org
-> To: linux-media@vger.kernel.org
-> Subject: problem webcam gspca 2.6.32
-> Sent: Jan 9, 2010 12:32 AM
+>>
+>> Ack,
+>>
+>> which in hind sight may not have been the best choice (I have no personal
+>> coding style, I'm used to adjusting my style to what ever the project
+>> I'm working on uses).
+>>
+>> Still I would like to keep libv4l as an exception,
 >
-> hi,
->  on my archlinux-64 I have a webcam: 0471:0322 Philips DMVC1300K PC Camera
+> If we're adopting one CodingStyle, this should be done for everything, otherwise
+> it makes no sense to standardize.
 >
->  until one mounth ago this works OK with driver: gspca_sunplus
->
->  now with kernel 2.6.32 not works....
->  I start cheese and I view: http://sacarde.interfree.it/errore-cheese.png
->  and this messages:
->  Cheese 2.28.1
->  Probing devices with HAL...
->  Found device 0471:0322, getting capabilities...
->  Detected v4l2 device: USB Camera (0471:0322)
->  Driver: sunplus, version: 132864
->  Capabilities: 0x05000001
->  Probing supported video formats...
->
->
->  from dmesg:
->  ...
->  gspca: probing 0471:0322
->  gspca: probe ok
->  ...
->  /dev/video0 is created
->
->
->  I try to downgrade previus kernel kernel26 2.6.31.6-1 and dependencies
->
->  and it works:
->
->  when it works 2.6.31: Driver: sunplus, version: 132608
->
->
->  thankyou
->
->
->
-> sacarde@tiscali.it
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
+
+Ok that makes sense. But as said this need to be done in one big bang commit then.
+
+Regards,
+
+Hans
