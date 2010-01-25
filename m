@@ -1,89 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f215.google.com ([209.85.220.215]:43969 "EHLO
-	mail-fx0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753606Ab0AWXn4 (ORCPT
+Received: from fallback.powerhosting.dk ([81.19.252.22]:2579 "EHLO
+	fallback.powerhosting.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752399Ab0AYCpc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jan 2010 18:43:56 -0500
-Received: by fxm7 with SMTP id 7so678578fxm.28
-        for <linux-media@vger.kernel.org>; Sat, 23 Jan 2010 15:43:54 -0800 (PST)
+	Sun, 24 Jan 2010 21:45:32 -0500
+Received: from mailscanner.powerhosting.dk (mailscanner6.powerhosting.dk [81.7.189.38])
+	by fallback.powerhosting.dk (Postfix) with ESMTP id 622ED71C94
+	for <linux-media@vger.kernel.org>; Mon, 25 Jan 2010 03:12:04 +0100 (CET)
+Received: from localhost (localhost [127.0.0.1])
+	by mailscanner.powerhosting.dk (Postfix) with ESMTP id 2041DDE720
+	for <linux-media@vger.kernel.org>; Mon, 25 Jan 2010 02:11:23 +0000 (UTC)
+Received: from mailscanner.powerhosting.dk ([127.0.0.1])
+	by localhost (mailscanner6.powerhosting.dk [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id Epm1uzqDNTAd for <linux-media@vger.kernel.org>;
+	Mon, 25 Jan 2010 02:11:20 +0000 (UTC)
+Received: from jbj2.i.jbohm.dk (0x4dd72e11.adsl.cybercity.dk [77.215.46.17])
+	(using TLSv1 with cipher AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: saotowjokkoujuxlot@jbohm.dk)
+	by mailscanner.powerhosting.dk (Postfix) with ESMTPSA id 5E369DE71D
+	for <linux-media@vger.kernel.org>; Mon, 25 Jan 2010 02:11:20 +0000 (UTC)
+Received: from linuxtv by jbj2.i.jbohm.dk with local (Exim 4.69)
+	(envelope-from <saotowjokkoujuxlot@jbohm.dk>)
+	id 1NZEQA-0002He-NO
+	for linux-media@vger.kernel.org; Mon, 25 Jan 2010 03:11:18 +0100
+Date: Mon, 25 Jan 2010 03:11:18 +0100
+From: Jakob Bohm <saotowjokkoujuxlot@jbohm.dk>
+To: linux-media@vger.kernel.org
+Subject: More details on Hauppauge 930C
+Message-ID: <20100125021118.GA8756@i.jbohm.dk>
 MIME-Version: 1.0
-In-Reply-To: <8103ad501001231345l24316554j12c7a45de58f7f3b@mail.gmail.com>
-References: <3f3a053b1001021407k6ce936b8gd7d3e575a25e734d@mail.gmail.com>
-	 <3f3a053b1001021411i2e9484d7rd2d13f1a355939fe@mail.gmail.com>
-	 <846899811001021455u28fccb5cr66fd4258d3dddd4d@mail.gmail.com>
-	 <d9def9db1001091811s6dbed557vfca9ce410e41d3d3@mail.gmail.com>
-	 <4B49D1A4.4040702@gmail.com>
-	 <1a297b361001100535u1875de01jfe2b724c6643dfc0@mail.gmail.com>
-	 <846899811001100728x27eaf4faqd83373dd16ef58d3@mail.gmail.com>
-	 <4B4A0C95.5000804@sgtwilko.f9.co.uk>
-	 <1a297b361001221531q4a2726ecm5952379c6ef08182@mail.gmail.com>
-	 <8103ad501001231345l24316554j12c7a45de58f7f3b@mail.gmail.com>
-Date: Sun, 24 Jan 2010 03:43:53 +0400
-Message-ID: <1a297b361001231543g7bde6ac8qc6e8048173f07492@mail.gmail.com>
-Subject: Re: CI USB
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
-Cc: Ian Wilkinson <null@sgtwilko.f9.co.uk>, HoP <jpetrous@gmail.com>,
-	Emmanuel <eallaud@gmail.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jan 24, 2010 at 1:45 AM, Konstantin Dimitrov
-<kosio.dimitrov@gmail.com> wrote:
-> On Sat, Jan 23, 2010 at 1:31 AM, Manu Abraham <abraham.manu@gmail.com> wrote:
->> On Sun, Jan 10, 2010 at 9:21 PM, Ian Wilkinson <null@sgtwilko.f9.co.uk> wrote:
->>> HoP wrote:
->>>
->>> I don't know the details into the USB device, but each of those CAM's
->>> have bandwidth limits on them and they vary from one CAM to the other.
->>> Also, there is a limit on the number of simultaneous PID's that which
->>> you can decrypt.
->>>
->>> Some allow only 1 PID, some allow 3. Those are the basic CAM's for
->>> home usage.The most expensive CAM's allow a maximum of 24 PID's. But
->>>
->>>
->>> You, of course, ment number of descramblers not PIDS because it is evident
->>> that getting TV service descrambled, you need as minimum 2 PIDS for A/V.
->>>
->>> Anyway, it is very good note. Users, in general, don't know about it.
->>>
->>
->> If it is using a CI+ plus chip (I heard from someone that it is a CI+
->> chip inside) :
->> http://www.smardtv.com/index.php?page=ciplus
->>
->> After reading the CI+ specifications, I doubt that it can be supported
->> under Linux with open source support, without a paired decoder
->> hardware or software decoder. A paired open source software decoder
->> seems highly unlikely, as the output of the CI+ module is eventually
->> an encrypted stream which can be descrambled with the relevant keys.
->> The TS is not supposed to be stored on disk, or that's what the whole
->> concept is for CI+
->>
->> http://www.ci-plus.com/data/ci-plus_overview_v2009-07-06.pdf
->>
->> See pages 7, 8 , 12, 15
->>
->> It could be possible to pair a software decoder with a key and hence
->> under Windows, but under Linux I would really doubt it, if it happens
->> to be a CI+ chip
->
-> at least in Windows Hauppage WinTV-CI USB (which is OEM version of
-> SmartDTV USB CI) allows you to capture the decrypted stream to your
-> hard drive (i've just tested it).
+So far all the posts I have been able to find about this device on
+wiki.linuxtv.org and in the archives of the linux-tv, linux-dvb
+and linux-media mailing lists have been unconfirmed guesswork of
+the form "I think", "Isn't that" etc.  I actually have this device
+(it was the first DVB-C device to hit the market in Denmark after
+our biggest cable TV provider offered unencrypted access to their
+basic packages in DVB-C format for anyone with a paid physical
+connection to their network).
+
+Ok, first the bad news:
+
+When looking inside the device I see two Micronas chips,
+thus *apparantly* confirming the rumors about this device being
+based on the Micronas chips for which Micronas lawyers blocked
+release of an already written FOSS driver back in 2008.
+But to be sure these are the "banned" chips, someone in the know
+should look closely at the photos I have taken of the actual chips
+in the 930C.
+
+Second bad news: When asking Hauppauge all the response I got was
+"You need to post on the www.linuxtv.org site, that's where the
+devlopers are" (and thats all the e-mail said, including the
+spelling mistake in "devlopers").
+
+Now the observable facts:
+
+1. Product name is Hauppauge 930C, model 16009 LF Rev B1F0, USB ID
+2040:1605 .  Retail package includes device, a short video cable
+adapter for the minisocket on the device, an IR remote, a small
+table-top retractable antenna and a CD with MS-Windows software
+and drivers.
+
+2. Device is a combined DVB-C/DVB-T receiver with additional
+inputs for raw analog video as S-VHS or composite (either with
+separate analog stereo sound).  I do not recall if the device has
+support for analog TV reception too.
+
+3. Device is not yet listed in the device tables at linuxtv.org
+with any status (not even "doesn't work").
+
+4. Device is a large (= wide body) USB stick, with a standard size
+coaxial antenna input at the back, two indicator LEDs and an IR
+receiver on the right and a proprietary mini-socket for analog
+video/audio input on the left.  The underside has a sticker with
+bar code, model number and MAC address.
+
+4. I have taken close up photos of the device with and without the
+covers off.  The inside of the device holds two circuit boards
+with some components hidden between them, I have taken photos
+or the outward facing sides of the two boards.
+
+I have posted the photos at these URLs:
+
+<http://www.jbohm.org/930C/frontAndCable.jpg>
+<http://www.jbohm.org/930C/back.jpg>
+<http://www.jbohm.org/930C/boardFront.jpg>
+<http://www.jbohm.org/930C/boardBack.jpg>
+
+(Please copy the photos to your own archives, these are temporary
+URLs).
+
+And finally something worth investigating:
+
+Some time has passed since Micronas Lawyers blocked the release of
+the FOSS driver for their chipset, maybe they have cooled down now
+and someone from the linuxtv project could approach Hauppauge or
+Pinacle (who seem FOSS-friendly) to put business pressure on their
+chipset supplier Micronas to reverse their decision and permit the
+release of the FOSS driver that was previously developped in
+cooperation between Pinacle, Micronas techs and Devin Heitmueller
+(one of the linuxtv developers).
 
 
-Maybe it is not CI+ itself in the first place
+Sincerely, and hoping this helps things move forward in at least
+some direction
 
+Jakob Bohm
 
-> so, i can't see a reason why even if it has CI+ chip inside same
-> functionally as in Windows can't be provided in Linux if someone
-> developed a driver.
-
-
-It would be interesting to know what chips the hardware has  ...
-
-Regards,
-Manu
+-- 
+This message is hastily written, please ignore any unpleasant wordings,
+do not consider it a binding commitment, even if its phrasing may
+indicate so. Its contents may be deliberately or accidentally untrue.
+Trademarks and other things belong to their owners, if any.
