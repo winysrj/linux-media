@@ -1,56 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:57786 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751974Ab0AUCVs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jan 2010 21:21:48 -0500
-Subject: Re: SSH key parser
-From: Andy Walls <awalls@radix.net>
-To: Manu Abraham <abraham.manu@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <1a297b361001200424i24f9c1d2v2535aa18c80b3874@mail.gmail.com>
-References: <1a297b361001200424i24f9c1d2v2535aa18c80b3874@mail.gmail.com>
-Content-Type: text/plain
-Date: Wed, 20 Jan 2010 21:21:29 -0500
-Message-Id: <1264040489.3098.54.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-fx0-f215.google.com ([209.85.220.215]:41593 "EHLO
+	mail-fx0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750768Ab0AYPrI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jan 2010 10:47:08 -0500
+Received: by fxm7 with SMTP id 7so155301fxm.28
+        for <linux-media@vger.kernel.org>; Mon, 25 Jan 2010 07:47:06 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4B5DB387.70707@redhat.com>
+References: <4B5DB387.70707@redhat.com>
+Date: Mon, 25 Jan 2010 10:47:06 -0500
+Message-ID: <829197381001250747h7bc977c7hc27b4d45be5820cd@mail.gmail.com>
+Subject: Re: Problems with cx18
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Andy Walls <awalls@radix.net>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2010-01-20 at 16:24 +0400, Manu Abraham wrote:
-> Hi all,
-> 
-> I have been working with some T&M applications. Does anybody know of a
-> good SSH key parser that I need to use, for remote authentication in
-> such applications. Or does SSH sound like using a hammer against a fly
-> in such a circumstance ?
-
-Well, computer and communications security is more than just a good key
-parser.  It also involves protocols, procedures, audits, proper clocks,
-etc.  But I digress....
-
-
-I don't know what you mean by T&M, but maybe you might find dropbear SSH
-useful:
-
-http://matt.ucc.asn.au/dropbear/dropbear.html
-
-I make no claims as to the secuirty "goodness" of Dropbear SSH; I only
-know that it exists.
-
-Be aware that getting enough entropy in the entropy pool to generate
-good host keys on an embedded platform with no mouse or keyboard can be
-a problem.  But you only have to do that once really, if you never
-rotate keys.
-
-And watch out for those Australian drop-bears, I hear they are deadly.
-
-Regards,
-Andy
-
-> Feedback much appreciated.
+On Mon, Jan 25, 2010 at 10:06 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Hi Devin/Andy/Jean,
 >
-> Thanks,
-> Manu
+> The cx88-alsa and cx18-drivers are broken: the driver depend of request_modules that doesn't exist
+> when !CONFIG_MODULES, and has some wrong __init annotations.
+>
+> The sq905c has a warning.
+>
+> I'm compiling it with:
+>        make ARCH=i386 allmodconfig drivers/media/|grep -v "^  CC" |grep -v "^  LD"
+>
+> Those are the errors found:
+>
+> drivers/media/video/cx18/cx18-driver.c:252: warning: ‘request_modules’ used but never defined
+> WARNING: drivers/media/video/cx18/cx18-alsa.o(.text+0x4de): Section mismatch in reference from the function cx18_alsa_load() to the function .init.text:snd_cx18_init()
+> The function cx18_alsa_load() references
+> the function __init snd_cx18_init().
+> This is often because cx18_alsa_load lacks a __init
+> annotation or the annotation of snd_cx18_init is wrong.
+>
+> WARNING: drivers/media/video/cx18/built-in.o(.text+0x1c022): Section mismatch in reference from the function cx18_alsa_load() to the function .init.text:snd_cx18_init()
+> The function cx18_alsa_load() references
+> the function __init snd_cx18_init().
+> This is often because cx18_alsa_load lacks a __init
+> annotation or the annotation of snd_cx18_init is wrong.
+>
+> drivers/media/video/gspca/sq905c.c: In function ‘sd_config’:
+> drivers/media/video/gspca/sq905c.c:207: warning: unused variable ‘i’
+> WARNING: drivers/media/video/built-in.o(.text+0x28d24e): Section mismatch in reference from the function cx18_alsa_load() to the function .init.text:snd_cx18_init()
+> The function cx18_alsa_load() references
+> the function __init snd_cx18_init().
+> This is often because cx18_alsa_load lacks a __init
+> annotation or the annotation of snd_cx18_init is wrong.
+>
+> WARNING: drivers/media/built-in.o(.text+0x2d2a2a): Section mismatch in reference from the function cx18_alsa_load() to the function .init.text:snd_cx18_init()
+> The function cx18_alsa_load() references
+> the function __init snd_cx18_init().
+> This is often because cx18_alsa_load lacks a __init
+> annotation or the annotation of snd_cx18_init is wrong.
 
+This looks like breakage I probably introduced with the cx18 alsa
+support.  I will dig into this tonight.
 
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
