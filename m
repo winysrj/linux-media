@@ -1,106 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4198 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751432Ab0AVRdo convert rfc822-to-8bit (ORCPT
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:49108 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752416Ab0AYULO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jan 2010 12:33:44 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Manu Abraham <abraham.manu@gmail.com>
-Subject: Re: About MPEG decoder interface
-Date: Fri, 22 Jan 2010 18:33:39 +0100
-Cc: Andy Walls <awalls@radix.net>, Michael Qiu <fallwind@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-References: <f74f98341001211842y6dabbe97s1d7c362bac2d87b8@mail.gmail.com> <201001221742.33679.hverkuil@xs4all.nl> <1a297b361001220911g5ae11ebfo36195d75f2e9f0e1@mail.gmail.com>
-In-Reply-To: <1a297b361001220911g5ae11ebfo36195d75f2e9f0e1@mail.gmail.com>
+	Mon, 25 Jan 2010 15:11:14 -0500
+Received: by bwz27 with SMTP id 27so3029933bwz.21
+        for <linux-media@vger.kernel.org>; Mon, 25 Jan 2010 12:11:12 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <201001221833.39670.hverkuil@xs4all.nl>
+In-Reply-To: <135ab3ff1001251205g3c699130r25c93ec1cadfc820@mail.gmail.com>
+References: <135ab3ff1001200926j9917d69x51eede94512fa664@mail.gmail.com>
+	 <829197381001201000x58aadea5wab0948691d9a4c4f@mail.gmail.com>
+	 <135ab3ff1001210155qad2c794rf6781c4ac28159c7@mail.gmail.com>
+	 <d9def9db1001210407s6f14d637x1e32d34f7193a188@mail.gmail.com>
+	 <4B587B91.9070300@koala.ie>
+	 <135ab3ff1001220818r3e10650fl80e873c441bffde4@mail.gmail.com>
+	 <829197381001220827x243ae52cx44a8fa7b627c7184@mail.gmail.com>
+	 <135ab3ff1001251205g3c699130r25c93ec1cadfc820@mail.gmail.com>
+Date: Mon, 25 Jan 2010 15:11:05 -0500
+Message-ID: <829197381001251211y334bc55ajada9ef42ae55a44a@mail.gmail.com>
+Subject: Re: Drivers for Eyetv hybrid
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Morten Friesgaard <friesgaard@gmail.com>
+Cc: Simon Kenyon <simon@koala.ie>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 22 January 2010 18:11:48 Manu Abraham wrote:
-> On Fri, Jan 22, 2010 at 8:42 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > On Friday 22 January 2010 04:00:53 Andy Walls wrote:
-> >> On Fri, 2010-01-22 at 10:42 +0800, Michael Qiu wrote:
-> >> > Hi all,
-> >> >
-> >> >   How can I export my MPEG decoder control interface to user space?
-> >> >   Or in other words, which device file(/dev/xxx) should a proper
-> >> > driver for mpeg decoder provide?
-> >>
-> >> The MPEG decoder on a PVR-350 PCI card provides a /dev/video interface
-> >> (normally /dev/video16).
-> >>
-> >> The interface specification to userspace is the V4L2 API:
-> >>
-> >> http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/spec-single/v4l2.html
-> >
-> > Not really. The v4l2 API specifies the MPEG encoder part, but not the decode
-> > part.
-> >
-> > The decoder part is (unfortunately) part of the DVB API.
-> >
-> > Some ioctls are documented here:
-> >
-> > http://www.linuxtv.org/downloads/v4l-dvb-apis/ch11s02.html
-> >
-> > However, that documentation is very out of date and you are better off looking
-> > in the include/linux/dvb/video.h header.
-> >
-> > In particular the new struct video_command and associated ioctls provides
-> > you with more control than the older VIDEO_CMD_ ioctls.
-> >
-> > Note that the V4L2 API will get a new event API soon that should supercede the
-> > event implementation in this video.h. The video.h implementation is pretty
-> > crappy (most of what is in there is crappy: poorly designed without much thought
-> > for extendability).
-> >
-> >> >   And, in linux dvb documents, all the frontend interface looks like
-> >> > /dev/dvb/adapter/xxx, it looks just for PCI based tv card.
-> >> >   If it's not a TV card, but a frontend for a embedded system without
-> >> > PCI, which interface should I use?
-> >
-> > V4L2, but with the ioctls defined in dvb/video.h. See for example the ivtv
-> > driver (ivtv-ioctl.c).
-> 
-> 
-> For a DVB STB, you don't need to use V4L2 in anyway.. It doesn't make
-> sense either... 
+On Mon, Jan 25, 2010 at 3:05 PM, Morten Friesgaard <friesgaard@gmail.com> wrote:
+> Sound like a lot of work, and it would be easier just to buy a
+> functional tuner :)
+>
+> Guess I'm busy enough. However, I did manage to find some more info,
+> for someone to use someday :)
+> /Morten
+>
+> Model: EU 2008
+> USB Contoller: Empia EM2884
+> Stereo A/V Decoder: Micronas AVF 49x08
+> Hybrid Channel Decoder: Micronas DRX-K DRX3926K:A1 0.9.0
 
-Depends on the hardware. If there are no V4L2 features that need to be supported,
-then you are correct. But if the hardware functions more as a video output device
-which can also do MPEG decoding, then the MPEG decoder ioctls should be implemented
-by the V4L2 device.
+Correct, this is an em2884/drx-k/xc5000 design.  The em2884 work is
+pretty straightforward, and the xc5000 driver should work "as-is".
+The big issue is the drx-k driver, for which there is no currently
+driver at all.
 
-To be honest, MPEG decoding should have been a V4L2 feature from the beginning. It
-really has nothing to do with DVB as such.
-
-> The presentation/scaler used with V4L2 is pretty much 
-> legacy code.
-
-Huh? Not sure what you mean here.
-
-> For STB's generally DirectFB is used to give full 
-> control.
-
-There are usually two parts: one is a framebuffer device for the OSD, and one is
-a (possibly V4L2) device node to do the MPEG decoding that support the video.h
-API.
-
-Regards,
-
-	Hans
-
-> 
-> Regards,
-> Manu
-> 
-> 
-
-
+Devin
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
