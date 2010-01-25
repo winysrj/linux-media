@@ -1,72 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2.sea5.speakeasy.net ([69.17.117.4]:44567 "EHLO
-	mail2.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752099Ab0APMPE (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:41637 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751932Ab0AYTs0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jan 2010 07:15:04 -0500
-Date: Sat, 16 Jan 2010 04:15:00 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: hermann pitton <hermann-pitton@arcor.de>
-cc: Gordon Smith <spider.karma+linux-media@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: How to use saa7134 gpio via gpio-sysfs?
-In-Reply-To: <1263622815.3178.31.camel@pc07.localdom.local>
-Message-ID: <Pine.LNX.4.58.1001160400230.4729@shell2.speakeasy.net>
-References: <2df568dc1001111012u627f07b8p9ec0c2577f14b5d9@mail.gmail.com>
- <2df568dc1001111059p54de8635k6c207fb3f4d96a14@mail.gmail.com>
- <1263266020.3198.37.camel@pc07.localdom.local>  <1263602137.3184.23.camel@pc07.localdom.local>
-  <Pine.LNX.4.58.1001151650410.4729@shell2.speakeasy.net>
- <1263622815.3178.31.camel@pc07.localdom.local>
+	Mon, 25 Jan 2010 14:48:26 -0500
+Message-ID: <4B5DF582.1080602@infradead.org>
+Date: Mon, 25 Jan 2010 17:48:18 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: git problem with uvcvideo
+References: <4B5CBC31.5090701@freemail.hu> <201001251907.18266.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201001251907.18266.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 16 Jan 2010, hermann pitton wrote:
-> Am Freitag, den 15.01.2010, 17:27 -0800 schrieb Trent Piepho:
-> > On Sat, 16 Jan 2010, hermann pitton wrote:
-> > > Am Dienstag, den 12.01.2010, 04:13 +0100 schrieb hermann pitton:
-> > > > > gpio-sysfs creates
-> > > > >     /sys/class/gpio/export
-> > > > >     /sys/class/gpio/import
-> > > > > but no gpio<n> entries so far.
-> >
-> > The saa713x driver predates the generic gpio layer by years and years, so
-> > it doesn't use it.  It also doesn't need to use it.  Since the gpios are
-> > managed by the saa713x driver, and they also used by the saa713x driver,
-> > there is no need to interface two different drivers together.  There are
-> > tons of drivers for devices that have gpios like this, but they don't use
-> > the gpio layer.
-> >
-> > But with gpio access via sysfs for generic gpios, there is something useful
-> > about having the saa713x driver support generic gpios.  IIRC, somehow wrote
-> > a gpio only bt848 driver that didn't do anything but export gpios.
-> >
-> > In order to do this, you'll have to write code for the saa7134 driver to
-> > have it register with the gpio layer.  I think you could still have the
-> > saa7134 driver itself use its gpio directly.  That would avoid a
-> > performance penalty in the driver.
->
-> Thanks for more details, but I'm still wondering what pins ever could be
-> interesting in userland, given that they are all treated such different
-> per device, and we count up to 200 different boards these days.
+Laurent Pinchart wrote:
+> Hi Márton,
+> 
+> On Sunday 24 January 2010 22:31:29 Németh Márton wrote:
+>> Hi,
+>>
+>> I'm trying to fetch the uvcvideo from
+>>  http://linuxtv.org/git/?p=pinchartl/uvcvideo.git;a=summary .
+>>
+>> I tryied to follow the instructions but at the third step I get fatal error
+>> messages:
+> 
+> [snip]
+> 
+> The http:// URL seems not to be available at the moment. I don't know if it's 
+> a transient error or a deliberate decision not to provide git access through 
+> http://
 
-There are some cards for intended for survilence or embedded applications
-that have headers on them to connect things to the GPIOs.  Like alarms or
-camera controllers and stuff like that.
+No, it is not a decision. However, using http for -git has some issues.
 
-The GPIO only bttv driver was created by someone who just soldered a bunch
-of wires on a cheap bt848 card, you can get them for just a few dollars, as
-it was a cheap and easy way to get a bunch of gpios in a pc.  See his page
-here http://www.bu3sch.de/joomla/index.php/bt8xx-based-gpio-card
+>> I also tried with the git:// link:
+>>> v4l-dvb$ git remote rm uvcvideo
+>>> v4l-dvb$ git remote add uvcvideo git://linuxtv.org//pinchartl/uvcvideo.git
+>>> v4l-dvb$ git remote update
+>>> Updating origin
+>>> Updating uvcvideo
+>>> fatal: The remote end hung up unexpectedly
+>>> error: Could not fetch uvcvideo
+>> Am I doing something wrong?
+> 
+> Please try git://linuxtv.org/pinchartl/uvcvideo.git. The URL on the webpage 
+> has two / instead of one for some reason. Mauro, could that be fixed ?
 
-There are cards you can get that just have GPIOs, but they end up being
-rather expensive.  Here's one:
-http://www.acromag.com/parts.cfm?Model_ID=317&Product_Function_ID=4&Category_ID=18&Group_ID=1
-Way fancier than a tv card, but it's $600.
+The double bars were causing troubles with the git: url. 
+I've fixed it at gitweb.
 
-I think if I was doing the coding, I'd add a field in the card description
-for what GPIOs should be exported.  I.e., which ones have an external
-header.  Maybe in addition to, or instead of, I'd have a module option that
-would cause GPIOs to be exported.  A bitmask of which to export would be
-enough.
+The git URL is working fine:
+
+$ git clone -l --bare /git/linux-2.6.git/ uvcvideo && cd uvcvideo && git remote add uvcvideo git://linuxtv.org/pinchartl/uvcvideo.git && git remote update
+Initialized empty Git repository in /home/mchehab/tst/uvcvideo/
+Updating uvcvideo
+remote: Counting objects: 1944, done.
+remote: Compressing objects: 100% (427/427), done.
+remote: Total 1733 (delta 1486), reused 1551 (delta 1306)
+Receiving objects: 100% (1733/1733), 312.46 KiB, done.
+Resolving deltas: 100% (1486/1486), completed with 169 local objects.
+>From git://linuxtv.org/pinchartl/uvcvideo
+ * [new branch]      master     -> uvcvideo/master
+ * [new branch]      uvcvideo   -> uvcvideo/uvcvideo
+
+However, the html URL is currently broken:
+
+$ rm -rf uvcvideo/ && git clone -l --bare /git/linux-2.6.git/ uvcvideo && cd uvcvideo && git remote add uvcvideo http://linuxtv.org/git/pinchartl/uvcvideo.git && git remote update 
+Initialized empty Git repository in /home/mchehab/tst/uvcvideo/uvcvideo/
+Updating uvcvideo
+
+Probably, the rewrite rules at the server for http are incomplete. I'll see if I can fix it.
+
+cheers,
+Mauro.
