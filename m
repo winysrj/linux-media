@@ -1,113 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:54263 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754858Ab0AFVZK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Jan 2010 16:25:10 -0500
-Received: from list by lo.gmane.org with local (Exim 4.50)
-	id 1NSdNK-0006El-P4
-	for linux-media@vger.kernel.org; Wed, 06 Jan 2010 22:25:06 +0100
-Received: from port-92-201-72-88.dynamic.qsc.de ([92.201.72.88])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 06 Jan 2010 22:25:06 +0100
-Received: from andreas.tschirpke by port-92-201-72-88.dynamic.qsc.de with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 06 Jan 2010 22:25:06 +0100
+Received: from web37607.mail.mud.yahoo.com ([209.191.87.90]:31026 "HELO
+	web37607.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753226Ab0AZRZk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jan 2010 12:25:40 -0500
+Message-ID: <834871.34078.qm@web37607.mail.mud.yahoo.com>
+Date: Tue, 26 Jan 2010 09:18:58 -0800 (PST)
+From: Emil Meier <emil276me@yahoo.com>
+Subject: Kernel oops after vbi access on a dvb-t device
 To: linux-media@vger.kernel.org
-From: Andreas Tschirpke <andreas.tschirpke@gmail.com>
-Subject: Re: IR Receiver on an Tevii S470
-Date: Wed, 6 Jan 2010 21:21:55 +0000 (UTC)
-Message-ID: <loom.20100106T222113-720@post.gmane.org>
-References: <200912120230.36902.liplianin@me.by> <1260579637.1826.4.camel@localhost>
-Mime-Version: 1.0
+MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andy Walls <awalls <at> radix.net> writes:
+Hi,
+after updating the kernel from 2.6.31.6 to 2.6.32.4 I get oops when I use alevtv on a dvb-demux device.
+I get the same result on 3 different systems with 3 different TV-cards. 
+With v4l-dvb-59e746a1c5d1 snapshoot I get the same result on a 64bit machine with a hvr-1400 card.
+Here is the oputput of a hvr-1900 card:
 
-> > > please try again when you have time.
-> > >
-> > > 	# modprobe cx25840 debug=2 ir_debug=2
-> > > 	# modprobe cx23885 debug=7
-I tried to activate my remote using the driver in
-http://linuxtv.org/hg/~awalls/cx23885-ir.
-According to the following dmesg output everything is loaded correctly and the
-ir interface is registered as /dev/input/event5:
+Command causing the oop and the resulting output::
+-------------------------------------------
+$ alevt -dev /dev/dvb/adapter0/demux0 
+alevt: SDT: service_id 0x4082 not in PAT
 
-[    9.220413] Linux video capture interface: v2.00
-[    9.432581] cx23885 driver version 0.0.2 loaded
-[    9.433560] ACPI: PCI Interrupt Link [LN0A] enabled at IRQ 19
-[    9.433572]   alloc irq_desc for 19 on node -1
-[    9.433577]   alloc kstat_irqs on node -1
-[    9.433594] cx23885 0000:02:00.0: PCI INT A -> Link[LN0A] -> GSI 19 (level,
-low) -> IRQ 19
-[    9.433746] CORE cx23885[0]: subsystem: d470:9022, board: TeVii S470
-[card=15,autodetected]
-[    9.720071] cx25840 3-0044: cx23885 A/V decoder found @ 0x88 (cx23885[0])
-[    9.728397] cx25840 3-0044: firmware: requesting v4l-cx23885-avcore-01.fw
-[    9.994115] HDA Intel 0000:00:08.0: power state changed by ACPI to D0
-[    9.995038] ACPI: PCI Interrupt Link [LAZA] enabled at IRQ 22
-[    9.995055] HDA Intel 0000:00:08.0: PCI INT A -> Link[LAZA] -> GSI 22 (level,
-low) -> IRQ 22
-[    9.995139] HDA Intel 0000:00:08.0: setting latency timer to 64
-[   10.579145] cx25840 3-0044: loaded v4l-cx23885-avcore-01.fw firmware (16382
-bytes)
-[   10.586817] cx23885_dvb_register() allocating 1 frontend(s)
-[   10.586830] cx23885[0]: cx23885 based dvb card
-[   10.593034] hda_codec: Unknown model for ALC662 rev1, trying auto-probe from
-BIOS...
-[   10.790592] DS3000 chip version: 0.192 attached.
-[   10.790604] DVB: registering new adapter (cx23885[0])
-[   10.790613] DVB: registering adapter 0 frontend 0 (Montage Technology
-DS3000/TS2020)...
-[   10.791219] cx23885_dev_checkrevision() Hardware revision = 0xb0
-[   10.791236] cx23885[0]/0: found at 0000:02:00.0, rev: 2, irq: 19, latency: 0,
-mmio: 0xfac00000
-[   10.791249] cx23885 0000:02:00.0: setting latency timer to 64
-[   10.791258] IRQ 19/cx23885[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-[   10.795358] input: cx23885 IR (TeVii S470) as
-/devices/pci0000:00/0000:00:0c.0/0000:02:00.0/input/input5
+Service ID 0x0xxx Type 0x01 Provider Name "XXXXXXXX" Name "XXX"
+  PMT PID 0x0xxx TXT: PID 0x0xxx lang xxx type 0x01 magazine 1 page   0
+Service ID 0x0xxx Type 0x01 Provider Name "XXXXXX" Name "XXX"
+  PMT PID 0x0xxx TXT: PID 0x0xxx lang xxx type 0x01 magazine 1 page   0
+Service ID 0x0xxx Type 0x01 Provider Name "XXX" Name "XXX"
+  PMT PID 0x0xxx TXT: PID 0x0xxx lang xxx type 0x01 magazine 1 page   0
+Service ID 0x0xxx Type 0x01 Provider Name "XXX" Name "XXX"
+  PMT PID 0x0xxx TXT: PID 0x0xxx lang xxx type 0x01 magazine 1 page   0
+Using: Service ID 0x0202 Type 0x01 Provider Name "XXX" Name "XXX"
+  PMT PID 0x0xxx TXT: PID 0x0xxx lang xxx type 0x01 magazine 1 page   0
+alevt: ioctl: DMX_SET_PES_FILTER Invalid argument (22)
+Killed
+---------------------------------------------
+dmesg output:
+pvrusb2: registered device video1 [mpeg]
+DVB: registering new adapter (pvrusb2-dvb)
+cx25840 6-0044: firmware: requesting v4l-cx25840.fw
+cx25840 6-0044: loaded v4l-cx25840.fw firmware (16382 bytes)
+tda829x 6-0042: setting tuner address to 60
+tda18271 6-0060: creating new instance
+TDA18271HD/C1 detected @ 6-0060
+tda829x 6-0042: type set to tda8295+18271
+usb 1-2: firmware: requesting v4l-cx2341x-enc.fw
+cx25840 6-0044: 0x0000 is not a valid video input!
+DVB: registering adapter 0 frontend 0 (NXP TDA10048HN DVB-T)...
+tda829x 6-0042: type set to tda8295
+tda18271 6-0060: attaching existing instance
+tda10048_firmware_upload: waiting for firmware upload (dvb-fe-tda10048-1.0.fw)...
+usb 1-2: firmware: requesting dvb-fe-tda10048-1.0.fw
+tda10048_firmware_upload: firmware read 24878 bytes.
+tda10048_firmware_upload: firmware uploading
+tda10048_firmware_upload: firmware uploaded
+BUG: unable to handle kernel NULL pointer dereference at (null)
+IP: [<ffffffffa0cf856f>] dvb_demux_release+0x62/0x1c4 [dvb_core]
+PGD 20514a067 PUD 1cbd17067 PMD 0 
+Oops: 0000 [#1] SMP 
+last sysfs file: /sys/devices/pci0000:00/0000:00:18.3/temp3_input
+CPU 1 
+Modules linked in: tda10048 tda18271 tda8290 cx25840 pvrusb2 dvb_core cx2341x bridge w83627ehf hwmon_vid stp llc bnep rfcomm l2cap crc16 snd_pcm_oss snd_mixer_oss snd_seq snd_seq_device md5 des_generic cbc rpcsec_gss_krb5 nfs lockd nfs_acl auth_rpcgss sunrpc af_packet cpufreq_conservative cpufreq_userspace cpufreq_powersave powernow_k8 fuse dm_crypt vfat fat loop dm_mod snd_hda_codec_realtek tuner_simple tuner_types tuner tvaudio tda7432 msp3400 bttv v4l2_common videodev v4l1_compat snd_hda_intel v4l2_compat_ioctl32 ir_common i2c_algo_bit snd_hda_codec snd_pcm videobuf_dma_sg ppdev snd_timer videobuf_core btusb btcx_risc parport_pc tveeprom nvidia(P) i2c_nforce2 snd usb_storage r8169 bluetooth soundcore parport i2c_core rtc_cmos button k8temp mii snd_page_alloc sr_mod rfkill cdrom floppy sg ohci_hcd ehci_hcd sd_mod usbcore edd ext3 mbcache jbd fan ide_pci_generic amd74xx ide_core ahci pata_amd libata scsi_mod thermal processor thermal_sys hwmon
+Pid: 12181, comm: alevt Tainted: P           2.6.32.4 #1 MS-xxxxx
+RIP: 0010:[<ffffffffa0cf856f>]  [<ffffffffa0cf856f>] dvb_demux_release+0x62/0x1c4 [dvb_core]
+RSP: 0018:ffff8801ce517ec8  EFLAGS: 00010246
+RAX: 0000000000000000 RBX: 0000000000000008 RCX: 0000000000000003
+RDX: 0000000000000000 RSI: ffff88022eeb9ec0 RDI: fffffffffffffff0
+RBP: ffffc90011d4a420 R08: 0000000000000000 R09: 0000000000000000
+R10: ffffffffffffffff R11: 0000000000000001 R12: ffffc90011d4a428
+R13: ffff8802220ff8b8 R14: ffff8802220ff938 R15: ffff88022eeb9ec0
+FS:  00007f4386d9f6f0(0000) GS:ffff880028300000(0000) knlGS:00000000f693c8d0
+CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+CR2: 0000000000000000 CR3: 00000001ce797000 CR4: 00000000000006e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process alevt (pid: 12181, threadinfo ffff8801ce516000, task ffff880211093340)
+Stack:
+ ffffc90011d4a4d0 0000000000000008 ffff88022eeb9ec0 ffff8801f10fee40
+<0> ffff88022b639d78 ffff88022b639d78 ffff880230054580 ffffffff810d3cde
+<0> ffff8801f10fee40 ffff88022eeb9ec0 0000000000000000 ffff880230321780
+Call Trace:
+ [<ffffffff810d3cde>] ? __fput+0x100/0x1cb
+ [<ffffffff810d121c>] ? filp_close+0x5b/0x62
+ [<ffffffff810d12b6>] ? sys_close+0x93/0xcb
+ [<ffffffff8100b9ab>] ? system_call_fastpath+0x16/0x1b
+Code: 04 24 e8 d5 6d 59 e0 48 89 ef e8 fa fe ff ff 83 7d 58 01 0f 86 87 00 00 00 83 7d 54 02 75 58 48 8b 45 08 4c 8d 65 08 48 8d 78 f0 <48> 8b 47 10 48 8d 58 f0 eb 2f 48 8b 47 10 48 8b 57 18 48 89 50 
+RIP  [<ffffffffa0cf856f>] dvb_demux_release+0x62/0x1c4 [dvb_core]
+ RSP <ffff8801ce517ec8>
+CR2: 0000000000000000
+---[ end trace 6384db606bfe8853 ]---
 
-But there is no signal comming from input/event5, regardless of the tools trying
-to access it (lircd, irw, mode2, inputlircd, plain cat, etc.). What else is
-needed to activate the remote with this driver? If I enable debug messages by 
-> modprobe cx25840 debug=2 ir_debug=2
-> modprobe cx23885 debug=7
+Perhaps some one can have a look on this issue?
 
-the dmesg/syslog is flooded with:
-[   75.932848] cx23885[0]/0: [f47e4840/9] wakeup reg=9514 buf=9514
-[   75.937811] cx23885[0]/0: pci_status: 0x00008002  pci_mask: 0x08001f02
-[   75.937839] cx23885[0]/0: vida_status: 0x00000000 vida_mask: 0x00000000
-count: 0x0
-[   75.937847] cx23885[0]/0: ts1_status: 0x00000001  ts1_mask: 0x00001111 count:
-0x252b
-[   75.937856] cx23885[0]/0: ts2_status: 0x00000000  ts2_mask: 0x00000000 count:
-0x2ca4d364
-[   75.937881] cx23885[0]/0:  (PCI_MSK_VID_B     0x00000002)
-[   75.937902] cx23885[0]/0:  (RISCI1            0x00000001)
-[   75.937918] cx23885[0]/0: [f47e4000/10] wakeup reg=9515 buf=9515
-[   75.937942] cx23885[0]/0: queue is not empty - append to active
-[   75.937964] cx23885[0]/0: [f47e4840/9] cx23885_buf_queue - append to active
-[   75.938064] cx23885[0]/0: queue is not empty - append to active
-[   75.938087] cx23885[0]/0: [f47e4000/10] cx23885_buf_queue - append to active
-[   75.942878] cx23885[0]/0: pci_status: 0x00008002  pci_mask: 0x08001f02
-[   75.942901] cx23885[0]/0: vida_status: 0x00000000 vida_mask: 0x00000000
-count: 0x0
-[   75.942908] cx23885[0]/0: ts1_status: 0x00000001  ts1_mask: 0x00001111 count:
-0x252c
-[   75.942917] cx23885[0]/0: ts2_status: 0x00000000  ts2_mask: 0x00000000 count:
-0x2ca4d364
-[   75.942943] cx23885[0]/0:  (PCI_MSK_VID_B     0x00000002)
-[   75.942949] cx23885[0]/0:  (RISCI1            0x00000001)
-[   75.942961] cx23885[0]/0: [f47e4480/11] wakeup reg=9516 buf=9516
-[   75.943101] cx23885[0]/0: queue is not empty - append to active
-[   75.943112] cx23885[0]/0: [f47e4480/11] cx23885_buf_queue - append to active
-...
+Thanks
+Emil
 
-Any advice where to go from here, what to try?
-Thank you.
 
-Andreas
 
+      
