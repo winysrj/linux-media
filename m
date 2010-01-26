@@ -1,52 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:54195 "EHLO lo.gmane.org"
+Received: from mx1.redhat.com ([209.132.183.28]:60580 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751053Ab0AXN4X convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jan 2010 08:56:23 -0500
-Received: from list by lo.gmane.org with local (Exim 4.50)
-	id 1NZ2wt-0001bB-Ed
-	for linux-media@vger.kernel.org; Sun, 24 Jan 2010 14:56:19 +0100
-Received: from upc.si.94.140.72.111.dc.cable.static.telemach.net ([94.140.72.111])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sun, 24 Jan 2010 14:56:19 +0100
-Received: from prusnik by upc.si.94.140.72.111.dc.cable.static.telemach.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sun, 24 Jan 2010 14:56:19 +0100
-To: linux-media@vger.kernel.org
-From: =?UTF-8?Q?Alja=C5=BE?= Prusnik <prusnik@gmail.com>
-Subject: Re: technisat cablestar hd2, 2.6.33-rc5, no remote (VP2040)
-Date: Sun, 24 Jan 2010 14:55:56 +0100
-Message-ID: <1264341355.21574.105.camel@slash.doma>
-References: <1264193852.21574.84.camel@slash.doma>
-	 <1264275944.21574.103.camel@slash.doma>
-	 <1a297b361001240113j1572ceb1m63bce9696fa21eb9@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-In-Reply-To: <1a297b361001240113j1572ceb1m63bce9696fa21eb9@mail.gmail.com>
+	id S1752121Ab0AZM3G (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jan 2010 07:29:06 -0500
+Message-ID: <4B5EE01F.2080702@redhat.com>
+Date: Tue, 26 Jan 2010 13:29:19 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+CC: Jean-Francois Moine <moinejf@free.fr>,
+	Thomas Kaiser <thomas@kaiser-linux.li>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC, PATCH] gspca pac7302: propagate footer to userspace
+References: <4B5C8172.1090306@freemail.hu>
+In-Reply-To: <4B5C8172.1090306@freemail.hu>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On ned, 2010-01-24 at 13:13 +0400, Manu Abraham wrote:
-> > I'm sorry to bother you with this one, but I'd really like to know if
-> > there's something I'm doing wrong or is there something more I can
-> > provide on this one. Below are some results from the newest kernel RC,
-> > while sometime back I also posted some more debug info.
-> > I just noticed that someone else also reported the same problem:
-> > http://www.spinics.net/lists/linux-media/msg14332.html
-> There's nothing wrong with what you are doing in there.
-> While the driver was pushed in the IR interface related stuff itself
-> was very much in flux and caused some issues and hence support for the
-> same was not added in at that time.
-> I will push out the support as I get free time into the mantis-v4l-dvb tree.
+Hi Németh,
 
-Thank you for the answer.
+On 01/24/2010 06:20 PM, Németh Márton wrote:
+> Hi,
+>
+> I'm dealing with Labtec Webcam 2200 and I found that the pac7302 driver does not
+> forward the image footer information to userspace. This footer contains some information
+> which might be interesting to the userspace. What exactly this footer means is
+> not clear as of this writing, but it is easier to analyze the data in
+> userspace than in kernel space.
+>
+> I modified the sd_pkt_scan() in order the footer is transfered to the userspace together
+> with the image. This, however, breaks the image decoding in libv4lconvert. This is
+> can be easily solved by passing the image buffer to v4lconvert_convert() truncated by
+> 0x4f bytes.
+>
+> What do you think the right way would be to transfer image footer to userspace?
+
+I agree that in retrospect sending the footer to userspace is a good
+idea, but see below.
+
+> Is it necessary to add a new V4L2_PIX_FMT_* format in order not to brake userspace
+> programs?
+>
+
+Yes that is the only sensible way I see to do this, which IMHO is a too high price
+to pay for just getting this info out of the kernel while we are not doing anything
+with it. Now if we actually find a good use for this in userspace, then I think
+we can do this, but until then I think you need to do this with a local
+patch.
 
 Regards,
-Aljaz
 
-
-
-
+Hans
