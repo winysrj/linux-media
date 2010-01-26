@@ -1,49 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:43162 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752538Ab0AUUEs (ORCPT
+Received: from mail-fx0-f220.google.com ([209.85.220.220]:60687 "EHLO
+	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751823Ab0AZWFZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jan 2010 15:04:48 -0500
-Message-ID: <4B58B357.2040309@infradead.org>
-Date: Thu, 21 Jan 2010 18:04:39 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Tue, 26 Jan 2010 17:05:25 -0500
+Received: by fxm20 with SMTP id 20so918801fxm.21
+        for <linux-media@vger.kernel.org>; Tue, 26 Jan 2010 14:05:22 -0800 (PST)
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Brandon Philips <brandon@ifup.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Douglas Landgraf <dougsland@gmail.com>
-Subject: Re: [ANNOUNCE] git tree repositories & libv4l
-References: <4B55445A.10300@infradead.org> <20100120210740.GJ4015@jenkins.home.ifup.org> <4B57B6E4.2070500@infradead.org> <201001210823.04739.hverkuil@xs4all.nl>
-In-Reply-To: <201001210823.04739.hverkuil@xs4all.nl>
+In-Reply-To: <201001262303.21164.dirk_vornheder@yahoo.de>
+References: <201001262303.21164.dirk_vornheder@yahoo.de>
+Date: Tue, 26 Jan 2010 17:05:22 -0500
+Message-ID: <829197381001261405w17b20959g322034d4382000bf@mail.gmail.com>
+Subject: Re: [linux-dvb] Support for HVR930C
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
-> On Thursday 21 January 2010 03:07:32 Mauro Carvalho Chehab wrote:
->> Brandon Philips wrote:
+On Tue, Jan 26, 2010 at 5:03 PM, Dirk Vornheder <dirk_vornheder@yahoo.de> wrote:
+> Hi !
+>
+> Is my new device HVR930C supported ?
 
->>>> I've different experience in the projects with git I've used, as
->>>> long as there are some governance rules (like never ever push -f,
->>>> always do a rebase fix your stuff and then push, and if something
->>>> else got in in the window in between rebase again, etc.).
->>> If the group of people with commit access is small (3-4) it generally
->>> works well.
->> Yes. The more people touching at the same tree, the more troubles may happen.
->>
->> I don't object to allow a limited group of people accessing it, although
->> I suspect that, if we open to more than one, we will have more than 4 people
->> interested on it.
-> 
-> In practice the only people who regularly touch v4l2-apps are Hans de Goede
-> (libv4l), you and myself (v4l2-ctl, v4l2-dbg, qv4l2). I can't remember anyone
-> else contributing regularly to v4l2-apps.
+No, it is not.  Please refer to the linux-media mailing list archives,
+since this was discussed in the last week.
 
-It seems that you forgot me ;) After running the import proccess and have the
-contributions isolated, it would be easy to double check if nobody else is missed.
+Devin
 
-Cheers,
-Mauro
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
