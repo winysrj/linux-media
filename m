@@ -1,291 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.mujha-vel.cz ([81.30.225.246]:45361 "EHLO
-	smtp.mujha-vel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754848Ab0AVPLA (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39215 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750967Ab0AZAAx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jan 2010 10:11:00 -0500
-From: Jiri Slaby <jslaby@suse.cz>
-To: crope@iki.fi
-Cc: linux-kernel@vger.kernel.org, jirislaby@gmail.com,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 3/4] media: dvb/af9015, refactor remote setting
-Date: Fri, 22 Jan 2010 16:10:54 +0100
-Message-Id: <1264173055-14787-3-git-send-email-jslaby@suse.cz>
-In-Reply-To: <4B4F6BE5.2040102@iki.fi>
-References: <4B4F6BE5.2040102@iki.fi>
+	Mon, 25 Jan 2010 19:00:53 -0500
+Date: Mon, 25 Jan 2010 16:00:42 -0800
+From: Andrew Morton <akpm@linux-foundation.org>
+To: linux-media@vger.kernel.org
+Cc: bugzilla-daemon@bugzilla.kernel.org,
+	bugme-daemon@bugzilla.kernel.org,
+	Devin Heitmueller <devin.heitmueller@gmail.com>,
+	Patrick Boettcher <pb@linuxtv.org>, fuffi.il.fuffo@gmail.com
+Subject: Re: [Bugme-new] [Bug 15087] New: hauppauge nova-t 500 remote
+ controller cause usb halt with Via usb controller
+Message-Id: <20100125160042.1007c4d8.akpm@linux-foundation.org>
+In-Reply-To: <bug-15087-10286@http.bugzilla.kernel.org/>
+References: <bug-15087-10286@http.bugzilla.kernel.org/>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add af9015_setup structure to hold (right now only remote) setup
-of distinct receivers.
 
-Add af9015_setup_match for matching ids against tables.
+(switched to email.  Please respond via emailed reply-to-all, not via the
+bugzilla web interface).
 
-This is for easier matching different kind of ids against tables
-to obtain setups. Currently module parameters and usb vendor ids
-are switched into and matched against tables. Hashes will follow.
+On Mon, 18 Jan 2010 21:06:57 GMT
+bugzilla-daemon@bugzilla.kernel.org wrote:
 
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Antti Palosaari <crope@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
----
- drivers/media/dvb/dvb-usb/af9015.c |  222 ++++++++++++++---------------------
- 1 files changed, 89 insertions(+), 133 deletions(-)
+> http://bugzilla.kernel.org/show_bug.cgi?id=15087
+> 
+>            Summary: hauppauge nova-t 500 remote controller cause usb halt
+>                     with Via usb controller
+>            Product: Drivers
+>            Version: 2.5
+>     Kernel Version: 2.6.32
+>           Platform: All
+>         OS/Version: Linux
+>               Tree: Mainline
+>             Status: NEW
+>           Severity: blocking
+>           Priority: P1
+>          Component: USB
+>         AssignedTo: greg@kroah.com
+>         ReportedBy: fuffi.il.fuffo@gmail.com
+>         Regression: Yes
+> 
+> 
+> This is a know problem with this dvb-t card.
+> If the ir receiver is disabled via modprobe option (adding this parameter in
+> modprobe.conf: "#options dvb_usb disable_rc_polling=1") I cannot use it but the
+> card works perfectly, but if I try to activate it (removing that option) and i
+> launch the lircd daemon, I obtain a "usb halt" as described below in this old
+> message in the linux-media ml.
+> 
+> klogd: ehci_hcd 0000:04:00.2: force halt; handhake f8018014 00004000
+> 00000000 -> -110
+> 
+> Here, the writer find the commit that cause this regression:
+> http://osdir.com/ml/linux-media/2009-08/msg00185.html
+> Here is explained when it was introduced:
+> http://osdir.com/ml/linux-media/2009-08/msg00182.html
+> 
+> It seems that this problem is present only with a via usb controller,
+> unfortunately i have this one:
+> 
+>  lspci | grep -i via
+> 01:08.0 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1
+> Controller (rev 62)
+> 01:08.1 USB Controller: VIA Technologies, Inc. VT82xxxxx UHCI USB 1.1
+> Controller (rev 62)
+> 01:08.2 USB Controller: VIA Technologies, Inc. USB 2.0 (rev 65)
+> 
+> Tell me if you need additional info.
+> I'm using a 2.6.32 kernel on arch linux.
+> Other relevant modprobe options:
+> options dib3000mc buggy_sfn_workaround=1
+> options dib7000p buggy_sfn_workaround=1
+> alias net-pf-10 off
+> 
 
-diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
-index adba90d..796f9d5 100644
---- a/drivers/media/dvb/dvb-usb/af9015.c
-+++ b/drivers/media/dvb/dvb-usb/af9015.c
-@@ -732,98 +732,80 @@ error:
- 	return ret;
- }
- 
-+struct af9015_setup {
-+	unsigned int id;
-+	struct dvb_usb_rc_key *rc_key_map;
-+	unsigned int rc_key_map_size;
-+	u8 *ir_table;
-+	unsigned int ir_table_size;
-+};
-+
-+static const struct af9015_setup *af9015_setup_match(unsigned int id,
-+		const struct af9015_setup *table)
-+{
-+	for (; table->rc_key_map; table++)
-+		if (table->id == id)
-+			return table;
-+	return NULL;
-+}
-+
-+static const struct af9015_setup af9015_setup_modparam[] = {
-+	{ AF9015_REMOTE_A_LINK_DTU_M,
-+		af9015_rc_keys_a_link, ARRAY_SIZE(af9015_rc_keys_a_link),
-+		af9015_ir_table_a_link, ARRAY_SIZE(af9015_ir_table_a_link) },
-+	{ AF9015_REMOTE_MSI_DIGIVOX_MINI_II_V3,
-+		af9015_rc_keys_msi, ARRAY_SIZE(af9015_rc_keys_msi),
-+		af9015_ir_table_msi, ARRAY_SIZE(af9015_ir_table_msi) },
-+	{ AF9015_REMOTE_MYGICTV_U718,
-+		af9015_rc_keys_mygictv, ARRAY_SIZE(af9015_rc_keys_mygictv),
-+		af9015_ir_table_mygictv, ARRAY_SIZE(af9015_ir_table_mygictv) },
-+	{ AF9015_REMOTE_DIGITTRADE_DVB_T,
-+		af9015_rc_keys_digittrade, ARRAY_SIZE(af9015_rc_keys_digittrade),
-+		af9015_ir_table_digittrade, ARRAY_SIZE(af9015_ir_table_digittrade) },
-+	{ AF9015_REMOTE_AVERMEDIA_KS,
-+		af9015_rc_keys_avermedia, ARRAY_SIZE(af9015_rc_keys_avermedia),
-+		af9015_ir_table_avermedia_ks, ARRAY_SIZE(af9015_ir_table_avermedia_ks) },
-+	{ }
-+};
-+
-+/* don't add new entries here anymore, use hashes instead */
-+static const struct af9015_setup af9015_setup_usbids[] = {
-+	{ USB_VID_LEADTEK,
-+		af9015_rc_keys_leadtek, ARRAY_SIZE(af9015_rc_keys_leadtek),
-+		af9015_ir_table_leadtek, ARRAY_SIZE(af9015_ir_table_leadtek) },
-+	{ USB_VID_VISIONPLUS,
-+		af9015_rc_keys_twinhan, ARRAY_SIZE(af9015_rc_keys_twinhan),
-+		af9015_ir_table_twinhan, ARRAY_SIZE(af9015_ir_table_twinhan) },
-+	{ USB_VID_KWORLD_2, /* TODO: use correct rc keys */
-+		af9015_rc_keys_twinhan, ARRAY_SIZE(af9015_rc_keys_twinhan),
-+		af9015_ir_table_kworld, ARRAY_SIZE(af9015_ir_table_kworld) },
-+	{ USB_VID_AVERMEDIA,
-+		af9015_rc_keys_avermedia, ARRAY_SIZE(af9015_rc_keys_avermedia),
-+		af9015_ir_table_avermedia, ARRAY_SIZE(af9015_ir_table_avermedia) },
-+	{ USB_VID_MSI_2,
-+		af9015_rc_keys_msi_digivox_iii, ARRAY_SIZE(af9015_rc_keys_msi_digivox_iii),
-+		af9015_ir_table_msi_digivox_iii, ARRAY_SIZE(af9015_ir_table_msi_digivox_iii) },
-+	{ }
-+};
-+
- static void af9015_set_remote_config(struct usb_device *udev,
- 		struct dvb_usb_device_properties *props)
- {
-+	const struct af9015_setup *table = NULL;
-+
- 	if (dvb_usb_af9015_remote) {
- 		/* load remote defined as module param */
--		switch (dvb_usb_af9015_remote) {
--		case AF9015_REMOTE_A_LINK_DTU_M:
--			props->rc_key_map =
--			  af9015_rc_keys_a_link;
--			props->rc_key_map_size =
--			  ARRAY_SIZE(af9015_rc_keys_a_link);
--			af9015_config.ir_table = af9015_ir_table_a_link;
--			af9015_config.ir_table_size =
--			  ARRAY_SIZE(af9015_ir_table_a_link);
--			break;
--		case AF9015_REMOTE_MSI_DIGIVOX_MINI_II_V3:
--			props->rc_key_map =
--			  af9015_rc_keys_msi;
--			props->rc_key_map_size =
--			  ARRAY_SIZE(af9015_rc_keys_msi);
--			af9015_config.ir_table = af9015_ir_table_msi;
--			af9015_config.ir_table_size =
--			  ARRAY_SIZE(af9015_ir_table_msi);
--			break;
--		case AF9015_REMOTE_MYGICTV_U718:
--			props->rc_key_map =
--			  af9015_rc_keys_mygictv;
--			props->rc_key_map_size =
--			  ARRAY_SIZE(af9015_rc_keys_mygictv);
--			af9015_config.ir_table =
--			  af9015_ir_table_mygictv;
--			af9015_config.ir_table_size =
--			  ARRAY_SIZE(af9015_ir_table_mygictv);
--			break;
--		case AF9015_REMOTE_DIGITTRADE_DVB_T:
--			props->rc_key_map =
--			  af9015_rc_keys_digittrade;
--			props->rc_key_map_size =
--			  ARRAY_SIZE(af9015_rc_keys_digittrade);
--			af9015_config.ir_table =
--			  af9015_ir_table_digittrade;
--			af9015_config.ir_table_size =
--			  ARRAY_SIZE(af9015_ir_table_digittrade);
--			break;
--		case AF9015_REMOTE_AVERMEDIA_KS:
--			props->rc_key_map =
--			  af9015_rc_keys_avermedia;
--			props->rc_key_map_size =
--			  ARRAY_SIZE(af9015_rc_keys_avermedia);
--			af9015_config.ir_table =
--			  af9015_ir_table_avermedia_ks;
--			af9015_config.ir_table_size =
--			  ARRAY_SIZE(af9015_ir_table_avermedia_ks);
--			break;
--		}
-+		table = af9015_setup_match(dvb_usb_af9015_remote,
-+				af9015_setup_modparam);
- 	} else {
--		switch (le16_to_cpu(udev->descriptor.idVendor)) {
--		case USB_VID_LEADTEK:
--			props->rc_key_map =
--			  af9015_rc_keys_leadtek;
--			props->rc_key_map_size =
--			  ARRAY_SIZE(af9015_rc_keys_leadtek);
--			af9015_config.ir_table =
--			  af9015_ir_table_leadtek;
--			af9015_config.ir_table_size =
--			  ARRAY_SIZE(af9015_ir_table_leadtek);
--			break;
--		case USB_VID_VISIONPLUS:
--			props->rc_key_map =
--			  af9015_rc_keys_twinhan;
--			props->rc_key_map_size =
--			  ARRAY_SIZE(af9015_rc_keys_twinhan);
--			af9015_config.ir_table =
--			  af9015_ir_table_twinhan;
--			af9015_config.ir_table_size =
--			  ARRAY_SIZE(af9015_ir_table_twinhan);
--			break;
--		case USB_VID_KWORLD_2:
--			/* TODO: use correct rc keys */
--			props->rc_key_map =
--			  af9015_rc_keys_twinhan;
--			props->rc_key_map_size =
--			  ARRAY_SIZE(af9015_rc_keys_twinhan);
--			af9015_config.ir_table = af9015_ir_table_kworld;
--			af9015_config.ir_table_size =
--			  ARRAY_SIZE(af9015_ir_table_kworld);
--			break;
--		/* Check USB manufacturer and product strings and try
--		   to determine correct remote in case of chip vendor
--		   reference IDs are used. */
--		case USB_VID_AFATECH:
--		{
-+		u16 vendor = le16_to_cpu(udev->descriptor.idVendor);
-+
-+		if (vendor == USB_VID_AFATECH) {
-+			/* Check USB manufacturer and product strings and try
-+			   to determine correct remote in case of chip vendor
-+			   reference IDs are used.
-+			   DO NOT ADD ANYTHING NEW HERE. Use hashes instead.
-+			 */
- 			char manufacturer[10];
- 			memset(manufacturer, 0, sizeof(manufacturer));
- 			usb_string(udev, udev->descriptor.iManufacturer,
-@@ -831,59 +813,33 @@ static void af9015_set_remote_config(struct usb_device *udev,
- 			if (!strcmp("Geniatech", manufacturer)) {
- 				/* iManufacturer 1 Geniatech
- 				   iProduct      2 AF9015 */
--				props->rc_key_map =
--				  af9015_rc_keys_mygictv;
--				props->rc_key_map_size =
--				  ARRAY_SIZE(af9015_rc_keys_mygictv);
--				af9015_config.ir_table =
--				  af9015_ir_table_mygictv;
--				af9015_config.ir_table_size =
--				  ARRAY_SIZE(af9015_ir_table_mygictv);
-+				table = af9015_setup_match(
-+					AF9015_REMOTE_MYGICTV_U718,
-+					af9015_setup_modparam);
- 			} else if (!strcmp("MSI", manufacturer)) {
- 				/* iManufacturer 1 MSI
- 				   iProduct      2 MSI K-VOX */
--				props->rc_key_map =
--				  af9015_rc_keys_msi;
--				props->rc_key_map_size =
--				  ARRAY_SIZE(af9015_rc_keys_msi);
--				af9015_config.ir_table =
--				  af9015_ir_table_msi;
--				af9015_config.ir_table_size =
--				  ARRAY_SIZE(af9015_ir_table_msi);
-+				table = af9015_setup_match(
-+					AF9015_REMOTE_MSI_DIGIVOX_MINI_II_V3,
-+					af9015_setup_modparam);
- 			} else if (udev->descriptor.idProduct ==
- 				cpu_to_le16(USB_PID_TREKSTOR_DVBT)) {
--				props->rc_key_map =
--				  af9015_rc_keys_trekstor;
--				props->rc_key_map_size =
--				  ARRAY_SIZE(af9015_rc_keys_trekstor);
--				af9015_config.ir_table =
--				  af9015_ir_table_trekstor;
--				af9015_config.ir_table_size =
--				  ARRAY_SIZE(af9015_ir_table_trekstor);
-+				table = &(const struct af9015_setup){ 0,
-+					af9015_rc_keys_trekstor,
-+					ARRAY_SIZE(af9015_rc_keys_trekstor),
-+					af9015_ir_table_trekstor,
-+					ARRAY_SIZE(af9015_ir_table_trekstor)
-+				};
- 			}
--			break;
--		}
--		case USB_VID_AVERMEDIA:
--			props->rc_key_map =
--			  af9015_rc_keys_avermedia;
--			props->rc_key_map_size =
--			  ARRAY_SIZE(af9015_rc_keys_avermedia);
--			af9015_config.ir_table =
--			  af9015_ir_table_avermedia;
--			af9015_config.ir_table_size =
--			  ARRAY_SIZE(af9015_ir_table_avermedia);
--			break;
--		case USB_VID_MSI_2:
--			props->rc_key_map =
--			  af9015_rc_keys_msi_digivox_iii;
--			props->rc_key_map_size =
--			  ARRAY_SIZE(af9015_rc_keys_msi_digivox_iii);
--			af9015_config.ir_table =
--			  af9015_ir_table_msi_digivox_iii;
--			af9015_config.ir_table_size =
--			  ARRAY_SIZE(af9015_ir_table_msi_digivox_iii);
--			break;
--		}
-+		} else
-+			table = af9015_setup_match(vendor, af9015_setup_usbids);
-+	}
-+
-+	if (table) {
-+		props->rc_key_map = table->rc_key_map;
-+		props->rc_key_map_size = table->rc_key_map_size;
-+		af9015_config.ir_table = table->ir_table;
-+		af9015_config.ir_table_size = table->ir_table_size;
- 	}
- }
- 
--- 
-1.6.5.7
-
+This is a regression.  You have to chase links a bit, but it was
+bisected down to a particular commit in
+http://linuxtv.org/hg/v4l-dvb/rev/561b447ade77.
