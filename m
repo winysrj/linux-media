@@ -1,283 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:21764 "EHLO mx1.redhat.com"
+Received: from psa.adit.fi ([217.112.250.17]:43392 "EHLO psa.adit.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932104Ab0ARMlf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2010 07:41:35 -0500
-Message-ID: <4B53D671.80206@redhat.com>
-Date: Mon, 18 Jan 2010 04:33:05 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1751272Ab0AZLNj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jan 2010 06:13:39 -0500
+Message-ID: <4B5ECCC3.9050106@adit.fi>
+Date: Tue, 26 Jan 2010 13:06:43 +0200
+From: Pekka Sarnila <sarnila@adit.fi>
 MIME-Version: 1.0
-To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-CC: Jean-Francois Moine <moinejf@free.fr>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/2, RFC] gspca: add input support for interrupt endpoints
-References: <4B530BBA.7080400@freemail.hu>
-In-Reply-To: <4B530BBA.7080400@freemail.hu>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+To: Jiri Kosina <jkosina@suse.cz>
+CC: Jiri Slaby <jslaby@suse.cz>, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	jirislaby@gmail.com
+Subject: Re: [PATCH v2 1/1] HID: ignore afatech 9016
+References: <alpine.LNX.2.00.1001132111570.30977@pobox.suse.cz> <1263415146-26321-1-git-send-email-jslaby@suse.cz> <alpine.LNX.2.00.1001260156010.30977@pobox.suse.cz>
+In-Reply-To: <alpine.LNX.2.00.1001260156010.30977@pobox.suse.cz>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Well, as I said I use now different TV-stick. But I have the old one 
+somewhere. I'll try to find it and check it.
 
-Thanks for your continued work on this. I'm afraid I found
-one thing which needs fixing (can be fixed with
-a separate patch after merging, but that is up to
-Jean-Francois).
+Pekka
 
-See my comments inline.
-
-On 01/17/2010 02:08 PM, Németh Márton wrote:
-> From: Márton Németh<nm127@freemail.hu>
->
-> Add support functions for interrupt endpoint based input handling.
->
-> Signed-off-by: Márton Németh<nm127@freemail.hu>
-> ---
-> diff -r 875c200a19dc linux/drivers/media/video/gspca/gspca.c
-> --- a/linux/drivers/media/video/gspca/gspca.c	Sun Jan 17 07:58:51 2010 +0100
-> +++ b/linux/drivers/media/video/gspca/gspca.c	Sun Jan 17 13:47:44 2010 +0100
-> @@ -3,6 +3,9 @@
->    *
->    * Copyright (C) 2008-2009 Jean-Francois Moine (http://moinejf.free.fr)
->    *
-> + * Camera button input handling by Márton Németh
-> + * Copyright (C) 2009-2010 Márton Németh<nm127@freemail.hu>
-> + *
->    * This program is free software; you can redistribute it and/or modify it
->    * under the terms of the GNU General Public License as published by the
->    * Free Software Foundation; either version 2 of the License, or (at your
-> @@ -41,6 +44,9 @@
->
->   #include "gspca.h"
->
-> +#include<linux/input.h>
-> +#include<linux/usb/input.h>
-> +
->   /* global values */
->   #define DEF_NURBS 3		/* default number of URBs */
->   #if DEF_NURBS>  MAX_NURBS
-> @@ -112,6 +118,167 @@
->   	.close		= gspca_vm_close,
->   };
->
-> +/*
-> + * Input and interrupt endpoint handling functions
-> + */
-> +#ifdef CONFIG_INPUT
-> +#if LINUX_VERSION_CODE<  KERNEL_VERSION(2, 6, 19)
-> +static void int_irq(struct urb *urb, struct pt_regs *regs)
-> +#else
-> +static void int_irq(struct urb *urb)
-> +#endif
-> +{
-> +	struct gspca_dev *gspca_dev = (struct gspca_dev *) urb->context;
-> +	int ret;
-> +
-> +	if (urb->status == 0) {
-> +		if (gspca_dev->sd_desc->int_pkt_scan(gspca_dev,
-> +		    urb->transfer_buffer, urb->actual_length)<  0) {
-> +			PDEBUG(D_ERR, "Unknown packet received");
-> +		}
-> +
-> +		ret = usb_submit_urb(urb, GFP_ATOMIC);
-> +		if (ret<  0)
-> +			PDEBUG(D_ERR, "Resubmit URB failed with error %i", ret);
-> +	}
-> +}
-> +
-
-If the status is not 0 you should print an error message, and
-reset the status and still resubmit the urb, if you don't resubmit
-on error, after one single usb glitch, the button will stop working.
-
-> +static int gspca_input_connect(struct gspca_dev *dev)
-> +{
-> +	struct input_dev *input_dev;
-> +	int err = 0;
-> +
-> +	dev->input_dev = NULL;
-> +	if (dev->sd_desc->int_pkt_scan)  {
-> +		input_dev = input_allocate_device();
-> +		if (!input_dev)
-> +			return -ENOMEM;
-> +
-> +		usb_make_path(dev->dev, dev->phys, sizeof(dev->phys));
-> +		strlcat(dev->phys, "/input0", sizeof(dev->phys));
-> +
-> +		input_dev->name = dev->sd_desc->name;
-> +		input_dev->phys = dev->phys;
-> +
-> +		usb_to_input_id(dev->dev,&input_dev->id);
-> +
-> +		input_dev->evbit[0] = BIT_MASK(EV_KEY);
-> +		input_dev->keybit[BIT_WORD(KEY_CAMERA)] = BIT_MASK(KEY_CAMERA);
-> +		input_dev->dev.parent =&dev->dev->dev;
-> +
-> +		err = input_register_device(input_dev);
-> +		if (err) {
-> +			PDEBUG(D_ERR, "Input device registration failed "
-> +				"with error %i", err);
-> +			input_dev->dev.parent = NULL;
-> +			input_free_device(input_dev);
-> +		} else {
-> +			dev->input_dev = input_dev;
-> +		}
-> +	} else
-> +		err = -EINVAL;
-> +
-> +	return err;
-> +}
-> +
-> +static int alloc_and_submit_int_urb(struct gspca_dev *gspca_dev,
-> +			  struct usb_endpoint_descriptor *ep)
-> +{
-> +	unsigned int buffer_len;
-> +	int interval;
-> +	struct urb *urb;
-> +	struct usb_device *dev;
-> +	void *buffer = NULL;
-> +	int ret = -EINVAL;
-> +
-> +	buffer_len = ep->wMaxPacketSize;
-> +	interval = ep->bInterval;
-> +	PDEBUG(D_PROBE, "found int in endpoint: 0x%x, "
-> +		"buffer_len=%u, interval=%u",
-> +		ep->bEndpointAddress, buffer_len, interval);
-> +
-> +	dev = gspca_dev->dev;
-> +
-> +	urb = usb_alloc_urb(0, GFP_KERNEL);
-> +	if (!urb) {
-> +		ret = -ENOMEM;
-> +		goto error;
-> +	}
-> +
-> +	buffer = usb_buffer_alloc(dev, ep->wMaxPacketSize,
-> +				GFP_KERNEL,&urb->transfer_dma);
-> +	if (!buffer) {
-> +		ret = -ENOMEM;
-> +		goto error_buffer;
-> +	}
-> +	usb_fill_int_urb(urb, dev,
-> +		usb_rcvintpipe(dev, ep->bEndpointAddress),
-> +		buffer, buffer_len,
-> +		int_irq, (void *)gspca_dev, interval);
-> +	gspca_dev->int_urb = urb;
-> +	ret = usb_submit_urb(urb, GFP_KERNEL);
-> +	if (ret<  0) {
-> +		PDEBUG(D_ERR, "submit URB failed with error %i", ret);
-> +		goto error_submit;
-> +	}
-> +	return ret;
-> +
-> +error_submit:
-> +	usb_buffer_free(dev,
-> +			urb->transfer_buffer_length,
-> +			urb->transfer_buffer,
-> +			urb->transfer_dma);
-> +error_buffer:
-> +	usb_free_urb(urb);
-> +error:
-> +	return ret;
-> +}
-> +
-> +static int gspca_input_create_urb(struct gspca_dev *gspca_dev)
-> +{
-> +	int ret = -EINVAL;
-> +	struct usb_interface *intf;
-> +	struct usb_host_interface *intf_desc;
-> +	struct usb_endpoint_descriptor *ep;
-> +	int i;
-> +
-> +	if (gspca_dev->sd_desc->int_pkt_scan)  {
-> +		intf = usb_ifnum_to_if(gspca_dev->dev, gspca_dev->iface);
-> +		intf_desc = intf->cur_altsetting;
-> +		for (i = 0; i<  intf_desc->desc.bNumEndpoints; i++) {
-> +			ep =&intf_desc->endpoint[i].desc;
-> +			if (usb_endpoint_dir_in(ep)&&
-> +			    usb_endpoint_xfer_int(ep)) {
-> +
-> +				ret = alloc_and_submit_int_urb(gspca_dev, ep);
-> +				break;
-> +			}
-> +		}
-> +	}
-> +	return ret;
-> +}
-> +
-> +static void gspca_input_destroy_urb(struct gspca_dev *gspca_dev)
-> +{
-> +	struct urb *urb;
-> +
-> +	urb = gspca_dev->int_urb;
-> +	if (urb) {
-> +		gspca_dev->int_urb = NULL;
-> +		usb_kill_urb(urb);
-> +		usb_buffer_free(gspca_dev->dev,
-> +				urb->transfer_buffer_length,
-> +				urb->transfer_buffer,
-> +				urb->transfer_dma);
-> +		usb_free_urb(urb);
-> +	}
-> +}
-> +#else
-> +#define gspca_input_connect(gspca_dev)		0
-> +#define gspca_input_create_urb(gspca_dev)	0
-> +#define gspca_input_destroy_urb(gspca_dev)
-> +#endif
-> +
->   /* get the current input frame buffer */
->   struct gspca_frame *gspca_get_i_frame(struct gspca_dev *gspca_dev)
->   {
-> @@ -499,11 +666,13 @@
->   			i, ep->desc.bEndpointAddress);
->   	gspca_dev->alt = i;		/* memorize the current alt setting */
->   	if (gspca_dev->nbalt>  1) {
-> +		gspca_input_destroy_urb(gspca_dev);
->   		ret = usb_set_interface(gspca_dev->dev, gspca_dev->iface, i);
->   		if (ret<  0) {
->   			err("set alt %d err %d", i, ret);
-> -			return NULL;
-> +			ep = NULL;
->   		}
-> +		gspca_input_create_urb(gspca_dev);
->   	}
->   	return ep;
->   }
-> @@ -714,7 +883,9 @@
->   		if (gspca_dev->sd_desc->stopN)
->   			gspca_dev->sd_desc->stopN(gspca_dev);
->   		destroy_urbs(gspca_dev);
-> +		gspca_input_destroy_urb(gspca_dev);
->   		gspca_set_alt0(gspca_dev);
-> +		gspca_input_create_urb(gspca_dev);
->   	}
->
->   	/* always call stop0 to free the subdriver's resources */
-> @@ -2137,6 +2308,11 @@
->
->   	usb_set_intfdata(intf, gspca_dev);
->   	PDEBUG(D_PROBE, "%s created", video_device_node_name(&gspca_dev->vdev));
-> +
-> +	ret = gspca_input_connect(gspca_dev);
-> +	if (0<= ret)
-> +		ret = gspca_input_create_urb(gspca_dev);
-> +
-
-I don't like this reverse psychology if. Why not just write:
-if (ret == 0) ?
-
-
-
->   	return 0;
->   out:
->   	kfree(gspca_dev->usb_buf);
-
-
-
-Otherwise it looks good.
-
-Regards,
-
-Hans
+Jiri Kosina wrote:
+> On Wed, 13 Jan 2010, Jiri Slaby wrote:
+> 
+> 
+>>Let's ignore the device altogether by the HID layer. It's handled
+>>by dvb-usb-remote driver already.
+>>
+>>By now, FULLSPEED_INTERVAL quirk was used. It probably made things
+>>better, but the remote controller was still a perfect X killer.
+>>This was the last user of the particular quirk. So remove the quirk
+>>as well.
+>>
+>>With input going through dvb-usb-remote, the remote works
+>>perfectly.
+>>
+>>The device is 15a4:9016.
+> 
+> 
+> Pekka, did you have chance to verify whether it works fine also with your 
+> version of the remote, or you still need the FULLSPEED_INTERVAL quirk on 
+> your side?
+> 
+> Thanks.
+> 
+> 
+>>Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+>>Cc: Jiri Kosina <jkosina@suse.cz>
+>>Cc: Pekka Sarnila <sarnila@adit.fi>
+>>---
+>> drivers/hid/hid-core.c          |    1 +
+>> drivers/hid/usbhid/hid-core.c   |    8 --------
+>> drivers/hid/usbhid/hid-quirks.c |    2 --
+>> include/linux/hid.h             |    1 -
+>> 4 files changed, 1 insertions(+), 11 deletions(-)
+>>
+>>diff --git a/drivers/hid/hid-core.c b/drivers/hid/hid-core.c
+>>index 08f8f23..0ae0bfd 100644
+>>--- a/drivers/hid/hid-core.c
+>>+++ b/drivers/hid/hid-core.c
+>>@@ -1534,6 +1534,7 @@ static const struct hid_device_id hid_ignore_list[] = {
+>> 	{ HID_USB_DEVICE(USB_VENDOR_ID_ACECAD, USB_DEVICE_ID_ACECAD_FLAIR) },
+>> 	{ HID_USB_DEVICE(USB_VENDOR_ID_ACECAD, USB_DEVICE_ID_ACECAD_302) },
+>> 	{ HID_USB_DEVICE(USB_VENDOR_ID_ADS_TECH, USB_DEVICE_ID_ADS_TECH_RADIO_SI470X) },
+>>+	{ HID_USB_DEVICE(USB_VENDOR_ID_AFATECH, USB_DEVICE_ID_AFATECH_AF9016) },
+>> 	{ HID_USB_DEVICE(USB_VENDOR_ID_AIPTEK, USB_DEVICE_ID_AIPTEK_01) },
+>> 	{ HID_USB_DEVICE(USB_VENDOR_ID_AIPTEK, USB_DEVICE_ID_AIPTEK_10) },
+>> 	{ HID_USB_DEVICE(USB_VENDOR_ID_AIPTEK, USB_DEVICE_ID_AIPTEK_20) },
+>>diff --git a/drivers/hid/usbhid/hid-core.c b/drivers/hid/usbhid/hid-core.c
+>>index e2997a8..36a1561 100644
+>>--- a/drivers/hid/usbhid/hid-core.c
+>>+++ b/drivers/hid/usbhid/hid-core.c
+>>@@ -938,14 +938,6 @@ static int usbhid_start(struct hid_device *hid)
+>> 
+>> 		interval = endpoint->bInterval;
+>> 
+>>-		/* Some vendors give fullspeed interval on highspeed devides */
+>>-		if (hid->quirks & HID_QUIRK_FULLSPEED_INTERVAL &&
+>>-		    dev->speed == USB_SPEED_HIGH) {
+>>-			interval = fls(endpoint->bInterval*8);
+>>-			printk(KERN_INFO "%s: Fixing fullspeed to highspeed interval: %d -> %d\n",
+>>-			       hid->name, endpoint->bInterval, interval);
+>>-		}
+>>-
+>> 		/* Change the polling interval of mice. */
+>> 		if (hid->collection->usage == HID_GD_MOUSE && hid_mousepoll_interval > 0)
+>> 			interval = hid_mousepoll_interval;
+>>diff --git a/drivers/hid/usbhid/hid-quirks.c b/drivers/hid/usbhid/hid-quirks.c
+>>index 38773dc..f2ae8a7 100644
+>>--- a/drivers/hid/usbhid/hid-quirks.c
+>>+++ b/drivers/hid/usbhid/hid-quirks.c
+>>@@ -41,8 +41,6 @@ static const struct hid_blacklist {
+>> 	{ USB_VENDOR_ID_SAITEK, USB_DEVICE_ID_SAITEK_RUMBLEPAD, HID_QUIRK_BADPAD },
+>> 	{ USB_VENDOR_ID_TOPMAX, USB_DEVICE_ID_TOPMAX_COBRAPAD, HID_QUIRK_BADPAD },
+>> 
+>>-	{ USB_VENDOR_ID_AFATECH, USB_DEVICE_ID_AFATECH_AF9016, HID_QUIRK_FULLSPEED_INTERVAL },
+>>-
+>> 	{ USB_VENDOR_ID_PANTHERLORD, USB_DEVICE_ID_PANTHERLORD_TWIN_USB_JOYSTICK, HID_QUIRK_MULTI_INPUT | HID_QUIRK_SKIP_OUTPUT_REPORTS },
+>> 	{ USB_VENDOR_ID_PLAYDOTCOM, USB_DEVICE_ID_PLAYDOTCOM_EMS_USBII, HID_QUIRK_MULTI_INPUT },
+>> 
+>>diff --git a/include/linux/hid.h b/include/linux/hid.h
+>>index 8709365..4a33e16 100644
+>>--- a/include/linux/hid.h
+>>+++ b/include/linux/hid.h
+>>@@ -311,7 +311,6 @@ struct hid_item {
+>> #define HID_QUIRK_BADPAD			0x00000020
+>> #define HID_QUIRK_MULTI_INPUT			0x00000040
+>> #define HID_QUIRK_SKIP_OUTPUT_REPORTS		0x00010000
+>>-#define HID_QUIRK_FULLSPEED_INTERVAL		0x10000000
+>> #define HID_QUIRK_NO_INIT_REPORTS		0x20000000
+>> 
+>> /*
+>>-- 
+>>1.6.5.7
+>>
+> 
+> 
