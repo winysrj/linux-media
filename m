@@ -1,102 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.155]:28380 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753218Ab0ARTGB convert rfc822-to-8bit (ORCPT
+Received: from mx1.moondrake.net ([212.85.150.166]:60571 "EHLO
+	mx1.mandriva.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752550Ab0AZKKY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2010 14:06:01 -0500
-Received: by fg-out-1718.google.com with SMTP id 22so844949fge.1
-        for <linux-media@vger.kernel.org>; Mon, 18 Jan 2010 11:05:59 -0800 (PST)
+	Tue, 26 Jan 2010 05:10:24 -0500
+From: Arnaud Patard <apatard@mandriva.com>
+To: Stefan Kost <ensonic@hora-obscura.de>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Fix VIDIOC_QBUF compat ioctl32
+References: <m3bpgi448o.fsf@anduin.mandriva.com>
+	<4B5E9FFD.2020708@hora-obscura.de>
+Date: Tue, 26 Jan 2010 11:11:01 +0100
+In-Reply-To: <4B5E9FFD.2020708@hora-obscura.de> (Stefan Kost's message of "Tue, 26 Jan 2010 09:55:41 +0200")
+Message-ID: <m37hr541my.fsf@anduin.mandriva.com>
 MIME-Version: 1.0
-In-Reply-To: <4B54AD5B.7040305@gmail.com>
-References: <ad6681df0912220711p2666f0f5m84317a7bf0ffc137@mail.gmail.com>
-	 <ad6681df0912220841n2f77f2c3v7aad0604575b5564@mail.gmail.com>
-	 <ad6681df1001180701s26584cdfua9e413d9bb843a35@mail.gmail.com>
-	 <829197381001180716v59b84ee2ia8ca2d9be4be5b22@mail.gmail.com>
-	 <4B54864E.1050801@yahoo.it>
-	 <829197381001180817r561bb1cdj9edda6ab3affbba0@mail.gmail.com>
-	 <d9def9db1001180829n733471c6g375295f29fc349ea@mail.gmail.com>
-	 <829197381001180836ybc4a4c6l6cf1c2bbabdf96b8@mail.gmail.com>
-	 <d9def9db1001180933x3fc31353g87cd06312a57cbf1@mail.gmail.com>
-	 <4B54AD5B.7040305@gmail.com>
-Date: Mon, 18 Jan 2010 20:05:59 +0100
-Message-ID: <d9def9db1001181105i7eac4a0ct3b8845b0f2904e38@mail.gmail.com>
-Subject: Re: Info
-From: Markus Rechberger <mrechberger@gmail.com>
-To: fogna <fogna80@gmail.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Adriano Gigante <adrigiga@yahoo.it>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 18, 2010 at 7:50 PM, fogna <fogna80@gmail.com> wrote:
-> Il 01/18/2010 06:33 PM, Markus Rechberger ha scritto:
->> On Mon, Jan 18, 2010 at 5:36 PM, Devin Heitmueller
->> <dheitmueller@kernellabs.com> wrote:
+Stefan Kost <ensonic@hora-obscura.de> writes:
+
+Hi,
+
+> Arnaud Patard wrote:
+>> When using VIDIOC_QBUF with memory type set to V4L2_MEMORY_MMAP, the
+>> v4l2_buffer buffer gets unmodified on drivers like uvc (well, only
+>> bytesused field is modified). Then some apps like gstreamer are reusing
+>> the same buffer later to call munmap (eg passing the buffer "length"
+>> field as 2nd parameter of munmap).
 >>
->>> Hello Markus,
->>>
->>> On Mon, Jan 18, 2010 at 11:29 AM, Markus Rechberger
->>> <mrechberger@gmail.com> wrote:
->>>
->>>> Just fyi there's a hardware bug with the 0072/terratec hybrid xs fm
->>>> (cx25843 - xc5000):
->>>>
->>>> http://img91.imageshack.us/i/00000004qf8.png/
->>>> http://img104.imageshack.us/i/00000009cp4.png/
->>>>
->>>> nothing that can be fixed with the driver.
->>>>
->>> Interesting.  If it cannot be fixed with the driver, how does the
->>> Windows driver work then?  Is this some sort of premature hardware
->>> failure that occurs (after which point it is irreversible)?
->>>
->>>
->> conexant cx25843 - xceive xc5000 failure (as what I've heard conexant
->> laid off people in that area years ago while xceive (see their driver
->> changelog if you have access to it) tried to fix it with their
->> firmware but didn't succeed), it also happens with windows. Those
->> screenshots are taken from a videoclip
->> it was of course a big problem for business customers (almost all of
->> them happily switched away from it)
->> This is the same retail hardware as everyone else uses out there. XS
->> FM is not being sold anymore.
->> I only know one company in Ireland still sticking with it, also in
->> terms of videoquality I'd avoid that combination.
+>> It's working fine on full 32bits but on 32bits systems with 64bit
+>> kernel, the get_v4l2_buffer32() doesn't copy length/m.offset values and
+>> then copy garbage to userspace in put_v4l2_buffer32().
 >>
->> Markus
+>> This has for consequence things like that in the libv4l2 logs:
+>>
+>> libv4l2: v4l2 unknown munmap 0x2e2b0000, -2145144908
+>> libv4l2: v4l2 unknown munmap 0x2e530000, -2145144908
+>>
+>> The buffer are not unmap'ed and then if the application close and open
+>> again the device, it won't work and logs will show something like:
+>>
+>> libv4l2: error setting pixformat: Device or resource busy
+>>
+>> The easy solution is to read length and m.offset in get_v4l2_buffer32().
 >>
 >>
->>> Thanks for taking the time to point this out though, since I could
->>> totally imagine banging my head against the wall for quite a while
->>> once I saw this.
->>>
->>> Devin
->>>
->>> --
->>> Devin J. Heitmueller - Kernel Labs
->>> http://www.kernellabs.com
->>>
->>>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
-> Hi Markus, thanks for the info, i didn't know of this hardware problem,
-> i have this usb stick and at the moment all works normally, now i know
-> when it will be time to replace it :)
+>> Signed-off-by: Arnaud Patard <apatard@mandriva.com>
+>> ---
+>>   
+> I am not sure it even works fine on 32bit. Just yesterday I discovered
+> https://bugzilla.gnome.org/show_bug.cgi?id=608042
+
+My test app (cheese) is working on the 2 differents 32bits systems I
+tried and with this patch it's working on my system, so it's possible
+that your problem is different. Do you get this bug with cheese too ?
+
 >
+> I get this when using gstreamer with my UVC based camera
+>
+> request == VIDIOC_STREAMOFF
+> result == 0
+> libv4l2: v4l2 unknown munmap 0xb6d45000, 38400
+> libv4l2: v4l2 unknown munmap 0xb6d3b000, 38400
+>
+> I verified that buffer address and size is correct. The libv4l code for 
+> v4l2_munmap could be a bit more verbose in the case of an error ...
 
-it happens sporadically sometimes 1 time/5 minutes sometimes 1 time/10 minutes.
-I think in windows it sometimes drops frames it also happens there and
-can be seen with VLC
-maybe some codecs also compensate it a little bit. There's no generic
-rule about this the xc5000
-overdrives the videodecoder (it's not empia related issue actually
-moreover conexant/xceive)
+iirc, libv4l2 is telling you "unknown munmap" is a result of getting a
+mmap call handled by the driver and not by libv4l2 (the size of your
+buffer is 38400 and libv4l2 wants/expects the size to be 16777216 to
+handle it). fwiw, I'm getting "unknown munmap" but that doesn't prevent
+me to change the resolution in cheese.
 
-Markus
+Arnaud
