@@ -1,68 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225]:63919 "EHLO
-	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753472Ab0AEDNI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jan 2010 22:13:08 -0500
-Received: by fxm25 with SMTP id 25so9366204fxm.21
-        for <linux-media@vger.kernel.org>; Mon, 04 Jan 2010 19:13:04 -0800 (PST)
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1340 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752588Ab0A0VxN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jan 2010 16:53:13 -0500
+Received: from durdane.localnet (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id o0RLrBlS095694
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 27 Jan 2010 22:53:12 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Date: Wed, 27 Jan 2010 22:53:10 +0100
+References: <201001272148.o0RLmOIv068753@smtp-vbr8.xs4all.nl>
+In-Reply-To: <201001272148.o0RLmOIv068753@smtp-vbr8.xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <1262658469.3054.48.camel@palomino.walls.org>
-References: <33305.64.213.30.2.1259216241.squirrel@webmail.exetel.com.au>
-	 <702870ef0911260137r35f1784exc27498d0db3769c2@mail.gmail.com>
-	 <56069.115.70.135.213.1259234530.squirrel@webmail.exetel.com.au>
-	 <46566.64.213.30.2.1259278557.squirrel@webmail.exetel.com.au>
-	 <702870ef0912010118r1e5e3been840726e6364d991a@mail.gmail.com>
-	 <829197380912020657v52e42690k46172f047ebd24b0@mail.gmail.com>
-	 <36364.64.213.30.2.1260252173.squirrel@webmail.exetel.com.au>
-	 <1328.64.213.30.2.1260920972.squirrel@webmail.exetel.com.au>
-	 <2088.115.70.135.213.1262579258.squirrel@webmail.exetel.com.au>
-	 <1262658469.3054.48.camel@palomino.walls.org>
-Date: Mon, 4 Jan 2010 22:13:04 -0500
-Message-ID: <829197381001041913k1e2b2d18la03999762e1d69e1@mail.gmail.com>
-Subject: Re: [RESEND] Re: DViCO FusionHDTV DVB-T Dual Digital 4 (rev 1) tuning
-	regression
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Andy Walls <awalls@radix.net>
-Cc: Robert Lowery <rglowery@exemail.com.au>, mchehab@redhat.com,
-	Vincent McIntyre <vincent.mcintyre@gmail.com>,
-	terrywu2009@gmail.com, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201001272253.10864.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey Andy,
+On Wednesday 27 January 2010 22:48:24 Hans Verkuil wrote:
+> This message is generated daily by a cron job that builds v4l-dvb for
+> the kernels and architectures in the list below.
 
-On Mon, Jan 4, 2010 at 9:27 PM, Andy Walls <awalls@radix.net> wrote:
-> The changes in question (mostly authored by me) are based on
-> documentation on what offsets are to be used with the firmware for
-> various DVB bandwidths and demodulators.  The change was tested by Terry
-> on a Leadtek DVR 3100 H Analog/DVB-T card (CX23418, ZL10353, XC3028) and
-> some other cards I can't remember, using a DVB-T pattern generator for 7
-> and 8 MHz in VHF and UHF, and live DVB-T broadcasts in UHF for 6 MHz.
->
-> (Devin,
->  Maybe you can double check on the offsets in tuner-xc2028.c with any
->  documentation you have available to you?)
+It's up and running again. Note that I upgraded to the latest gcc 4.4.3.
+I also updated all the kernels to their latest dot release.
 
-At this point the extent to which I've looked in to the issue was
-validating that, for a given frequency, the change resulted in a
-crappy SNR with lots of BER/UNC errors, and after reverting the change
-the signal looked really good with zero BER/UNC.  I haven't dug into
-*why* it is an issue, but I examined the traces and looked at the
-testing methodology and can confirm that there was definitely a
-regression and Robert narrowed it down to the patch in question.
+I'm only building the i686 and x86_64 on all kernels from 2.6.16 onwards.
+All other architectures are only built for 2.6.32 and 2.6.33. If someone wants
+to build one of those for older kernels also, then just let me know.
 
-I was kind of hoping that one of the people that helped introduce the
-regression would take on some of responsibility to help with the
-debugging.  ;-)
+Regards,
 
-I think I have one of the boards that will demonstrate the issue (a
-Terratec board with xc3028/zl10353), and will try to find some time
-with the generator once I wrap up the xc4000 work for the PCTV 340e.
+	Hans
 
-Devin
+> 
+> Results of the daily build of v4l-dvb:
+> 
+> date:        Wed Jan 27 21:00:05 CET 2010
+> path:        http://www.linuxtv.org/hg/v4l-dvb
+> changeset:   14064:31eaa9423f98
+> gcc version: i686-linux-gcc (GCC) 4.4.3
+> host hardware:    x86_64
+> host os:     2.6.32.5
+> 
+> linux-2.6.32.6-armv5: OK
+> linux-2.6.33-rc5-armv5: OK
+> linux-2.6.32.6-armv5-davinci: WARNINGS
+> linux-2.6.33-rc5-armv5-davinci: WARNINGS
+> linux-2.6.32.6-armv5-dm365: ERRORS
+> linux-2.6.33-rc5-armv5-dm365: ERRORS
+> linux-2.6.32.6-armv5-ixp: WARNINGS
+> linux-2.6.33-rc5-armv5-ixp: WARNINGS
+> linux-2.6.32.6-armv5-omap2: WARNINGS
+> linux-2.6.33-rc5-armv5-omap2: WARNINGS
+> linux-2.6.22.19-i686: WARNINGS
+> linux-2.6.23.17-i686: WARNINGS
+> linux-2.6.24.7-i686: WARNINGS
+> linux-2.6.25.20-i686: WARNINGS
+> linux-2.6.26.8-i686: WARNINGS
+> linux-2.6.27.44-i686: WARNINGS
+> linux-2.6.28.10-i686: WARNINGS
+> linux-2.6.29.1-i686: WARNINGS
+> linux-2.6.30.10-i686: WARNINGS
+> linux-2.6.31.12-i686: WARNINGS
+> linux-2.6.32.6-i686: WARNINGS
+> linux-2.6.33-rc5-i686: WARNINGS
+> linux-2.6.32.6-m32r: OK
+> linux-2.6.33-rc5-m32r: OK
+> linux-2.6.32.6-mips: WARNINGS
+> linux-2.6.33-rc5-mips: WARNINGS
+> linux-2.6.32.6-powerpc64: ERRORS
+> linux-2.6.33-rc5-powerpc64: ERRORS
+> linux-2.6.22.19-x86_64: WARNINGS
+> linux-2.6.23.17-x86_64: WARNINGS
+> linux-2.6.24.7-x86_64: WARNINGS
+> linux-2.6.25.20-x86_64: WARNINGS
+> linux-2.6.26.8-x86_64: WARNINGS
+> linux-2.6.27.44-x86_64: WARNINGS
+> linux-2.6.28.10-x86_64: WARNINGS
+> linux-2.6.29.1-x86_64: WARNINGS
+> linux-2.6.30.10-x86_64: WARNINGS
+> linux-2.6.31.12-x86_64: WARNINGS
+> linux-2.6.32.6-x86_64: WARNINGS
+> linux-2.6.33-rc5-x86_64: WARNINGS
+> spec: OK
+> sparse (linux-2.6.32.6): ERRORS
+> sparse (linux-2.6.33-rc5): ERRORS
+> linux-2.6.16.62-i686: ERRORS
+> linux-2.6.17.14-i686: ERRORS
+> linux-2.6.18.8-i686: ERRORS
+> linux-2.6.19.7-i686: OK
+> linux-2.6.20.21-i686: WARNINGS
+> linux-2.6.21.7-i686: WARNINGS
+> linux-2.6.16.62-x86_64: ERRORS
+> linux-2.6.17.14-x86_64: ERRORS
+> linux-2.6.18.8-x86_64: ERRORS
+> linux-2.6.19.7-x86_64: WARNINGS
+> linux-2.6.20.21-x86_64: WARNINGS
+> linux-2.6.21.7-x86_64: WARNINGS
+> 
+> Detailed results are available here:
+> 
+> http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+> 
+> Full logs are available here:
+> 
+> http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+> 
+> The V4L-DVB specification from this daily build is here:
+> 
+> http://www.xs4all.nl/~hverkuil/spec/media.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
