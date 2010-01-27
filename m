@@ -1,93 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01d.mail.t-online.hu ([84.2.42.6]:65361 "EHLO
-	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752020Ab0AQNI3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jan 2010 08:08:29 -0500
-Message-ID: <4B530BC6.90903@freemail.hu>
-Date: Sun, 17 Jan 2010 14:08:22 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+Received: from snt0-omc2-s24.snt0.hotmail.com ([65.55.90.99]:2728 "EHLO
+	snt0-omc2-s24.snt0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753052Ab0A0Kyy convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jan 2010 05:54:54 -0500
+Message-ID: <SNT130-w649D6B6E5B4CD0233A2F73F45D0@phx.gbl>
+From: Gavin Ramm <gavin_ramm@hotmail.com>
+To: <linux-media@vger.kernel.org>
+Subject: RE: help: Leadtek DTV2000 DS
+Date: Wed, 27 Jan 2010 21:54:54 +1100
+In-Reply-To: <SNT130-w4584A0C48F74BB401E4C73F45D0@phx.gbl>
+References: <SNT130-w530BA3C80D244EB3C39701F45F0@phx.gbl>,<4B5F870C.4040807@iki.fi>,<SNT130-w45A99AE87EEBD10A3DCD60F45D0@phx.gbl>,<SNT130-w65FFEB98498ECA954DE96F45D0@phx.gbl>,<SNT130-w4584A0C48F74BB401E4C73F45D0@phx.gbl>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>,
-	Hans de Goede <hdegoede@redhat.com>
-CC: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/2, RFC] gspca pac7302: add support for camera button
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
 
-Add support for snapshot button found on Labtec Webcam 2200.
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
----
-diff -r 875c200a19dc linux/drivers/media/video/gspca/pac7302.c
---- a/linux/drivers/media/video/gspca/pac7302.c	Sun Jan 17 07:58:51 2010 +0100
-+++ b/linux/drivers/media/video/gspca/pac7302.c	Sun Jan 17 13:47:50 2010 +0100
-@@ -5,6 +5,8 @@
-  * V4L2 by Jean-Francois Moine <http://moinejf.free.fr>
-  *
-  * Separated from Pixart PAC7311 library by M�rton N�meth <nm127@freemail.hu>
-+ * Camera button input handling by Márton Németh <nm127@freemail.hu>
-+ * Copyright (C) 2009-2010 Márton Németh <nm127@freemail.hu>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-@@ -68,6 +70,7 @@
+>>>
+>>>
+>>> ----------------------------------------
+>>>> Date: Wed, 27 Jan 2010 02:21:32 +0200
+>>>> From: crope@iki.fi
+>>>> To: gavin_ramm@hotmail.com
+>>>> CC: linux-media@vger.kernel.org
+>>>> Subject: Re: help: Leadtek DTV2000 DS
+>>>>
+>>>> Terve Gavin,
+>>>>
+>>>> On 01/25/2010 01:44 PM, Gavin Ramm wrote:
+>>>>> Tried the current build of v4l-dvb (as of 25/01/2010) for a Leadtek DTV2000 DS.
+>>>>> product site : http://www.leadtek.com/eng/tv_tuner/overview.asp?lineid=6&pronameid=530&check=f
+>>>>>
+>>>>> The chipset are AF9015 + AF9013 and the tuner is TDA18211..
+>>>>> Im running it on mythdora 10.21 *fedora 10* i've had no luck with this.
+>>>>>
+>>>>> Any help would be great.. im willing to test..
+>>>>
+>>>> I added support for that device, could you test now?
+>>>> http://linuxtv.org/hg/~anttip/af9015/
+>>>>
+>
+>
+> I created a channels.conf via the output tried in xine and it worked.. tried in mythtv and it picked a few up only by importing the channels.conf. The auto scan in mythtv didn't work (which is out of scope i'd say)
+> _________________________________________________________________
 
- #define MODULE_NAME "pac7302"
 
-+#include <linux/input.h>
- #include <media/v4l2-chip-ident.h>
- #include "gspca.h"
-
-@@ -1164,6 +1167,37 @@
- }
- #endif
-
-+#ifdef CONFIG_INPUT
-+static int sd_int_pkt_scan(struct gspca_dev *gspca_dev,
-+			u8 *data,		/* interrupt packet data */
-+			int len)		/* interrput packet length */
-+{
-+	int ret = -EINVAL;
-+	u8 data0, data1;
-+
-+	if (len == 2) {
-+		data0 = data[0];
-+		data1 = data[1];
-+		if ((data0 == 0x00 && data1 == 0x11) ||
-+		    (data0 == 0x22 && data1 == 0x33) ||
-+		    (data0 == 0x44 && data1 == 0x55) ||
-+		    (data0 == 0x66 && data1 == 0x77) ||
-+		    (data0 == 0x88 && data1 == 0x99) ||
-+		    (data0 == 0xaa && data1 == 0xbb) ||
-+		    (data0 == 0xcc && data1 == 0xdd) ||
-+		    (data0 == 0xee && data1 == 0xff)) {
-+			input_report_key(gspca_dev->input_dev, KEY_CAMERA, 1);
-+			input_sync(gspca_dev->input_dev);
-+			input_report_key(gspca_dev->input_dev, KEY_CAMERA, 0);
-+			input_sync(gspca_dev->input_dev);
-+			ret = 0;
-+		}
-+	}
-+
-+	return ret;
-+}
-+#endif
-+
- /* sub-driver description for pac7302 */
- static const struct sd_desc sd_desc = {
- 	.name = MODULE_NAME,
-@@ -1180,6 +1214,9 @@
- 	.set_register = sd_dbg_s_register,
- 	.get_chip_ident = sd_chip_ident,
- #endif
-+#ifdef CONFIG_INPUT
-+	.int_pkt_scan = sd_int_pkt_scan,
-+#endif
- };
-
- /* -- module initialisation -- */
+The card is up and running within mythtv also, forgot i rebuilt the box and didn't change it back to Australian freq... 
+ 
+thanks alot for the help!! 
+ 
+gav 		 	   		  
+_________________________________________________________________
+Time for a new car? Sell your old one fast!
+http://clk.atdmt.com/NMN/go/157637060/direct/01/
