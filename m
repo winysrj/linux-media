@@ -1,291 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from snt0-omc2-s20.snt0.hotmail.com ([65.55.90.95]:54036 "EHLO
-	snt0-omc2-s20.snt0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753679Ab0A0GW2 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jan 2010 01:22:28 -0500
-Message-ID: <SNT130-w65FFEB98498ECA954DE96F45D0@phx.gbl>
-From: Gavin Ramm <gavin_ramm@hotmail.com>
-To: <linux-media@vger.kernel.org>
-Subject: RE: help: Leadtek DTV2000 DS
-Date: Wed, 27 Jan 2010 17:22:27 +1100
-In-Reply-To: <SNT130-w45A99AE87EEBD10A3DCD60F45D0@phx.gbl>
-References: <SNT130-w530BA3C80D244EB3C39701F45F0@phx.gbl>,<4B5F870C.4040807@iki.fi>,<SNT130-w45A99AE87EEBD10A3DCD60F45D0@phx.gbl>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from poutre.nerim.net ([62.4.16.124]:53026 "EHLO poutre.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750972Ab0A0LCQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jan 2010 06:02:16 -0500
+Date: Wed, 27 Jan 2010 12:02:11 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Daro <ghost-rider@aster.pl>, Roman Kellner <muzungu@gmx.net>
+Subject: [PATCH] saa7134: Fix IR support of some ASUS TV-FM 7135 variants
+Message-ID: <20100127120211.2d022375@hyperion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Jean Delvare <khali@linux-fr.org>
+Subject: saa7134: Fix IR support of some ASUS TV-FM 7135 variants
+
+Some variants of the ASUS TV-FM 7135 are handled as the ASUSTeK P7131
+Analog (card=146). However, by the time we find out, some
+card-specific initialization is missed. In particular, the fact that
+the IR is GPIO-based. Set it when we change the card type.
+
+We also have to move the initialization of IR until after the card
+number has been changed. I hope that this won't cause any problem.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Daro <ghost-rider@aster.pl>
+Cc: Roman Kellner <muzungu@gmx.net>
+---
+This needs testing, both from ASUS TV-FM 7135 users, and from other
+users of the saa7134 driver. I don't have any supported device so I
+couldn't test this change.
+
+ linux/drivers/media/video/saa7134/saa7134-cards.c |    1 +
+ linux/drivers/media/video/saa7134/saa7134-core.c  |    2 +-
+ linux/drivers/media/video/saa7134/saa7134-input.c |    2 +-
+ linux/drivers/media/video/saa7134/saa7134.h       |    2 +-
+ 4 files changed, 4 insertions(+), 3 deletions(-)
+
+--- v4l-dvb.orig/linux/drivers/media/video/saa7134/saa7134-cards.c	2010-01-25 21:25:58.000000000 +0100
++++ v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c	2010-01-27 10:22:35.000000000 +0100
+@@ -7299,6 +7299,7 @@ int saa7134_board_init2(struct saa7134_d
+ 		       printk(KERN_INFO "%s: P7131 analog only, using "
+ 						       "entry of %s\n",
+ 		       dev->name, saa7134_boards[dev->board].name);
++			dev->has_remote = SAA7134_REMOTE_GPIO;
+ 	       }
+ 	       break;
+ 	case SAA7134_BOARD_HAUPPAUGE_HVR1150:
+--- v4l-dvb.orig/linux/drivers/media/video/saa7134/saa7134-core.c	2010-01-25 21:25:50.000000000 +0100
++++ v4l-dvb/linux/drivers/media/video/saa7134/saa7134-core.c	2010-01-27 10:39:55.000000000 +0100
+@@ -735,7 +735,6 @@ static int saa7134_hwinit1(struct saa713
+ 	saa7134_vbi_init1(dev);
+ 	if (card_has_mpeg(dev))
+ 		saa7134_ts_init1(dev);
+-	saa7134_input_init1(dev);
+ 
+ 	saa7134_hw_enable1(dev);
+ 
+@@ -781,6 +780,7 @@ static int saa7134_hwinit2(struct saa713
+ 
+ 	dprintk("hwinit2\n");
+ 
++	saa7134_input_init2(dev);
+ 	saa7134_video_init2(dev);
+ 	saa7134_tvaudio_init2(dev);
+ 
+--- v4l-dvb.orig/linux/drivers/media/video/saa7134/saa7134-input.c	2010-01-25 21:25:50.000000000 +0100
++++ v4l-dvb/linux/drivers/media/video/saa7134/saa7134-input.c	2010-01-27 10:33:23.000000000 +0100
+@@ -506,7 +506,7 @@ void saa7134_ir_stop(struct saa7134_dev
+ 		del_timer_sync(&dev->remote->timer);
+ }
+ 
+-int saa7134_input_init1(struct saa7134_dev *dev)
++int saa7134_input_init2(struct saa7134_dev *dev)
+ {
+ 	struct card_ir *ir;
+ 	struct input_dev *input_dev;
+--- v4l-dvb.orig/linux/drivers/media/video/saa7134/saa7134.h	2010-01-25 21:25:50.000000000 +0100
++++ v4l-dvb/linux/drivers/media/video/saa7134/saa7134.h	2010-01-27 10:34:57.000000000 +0100
+@@ -812,7 +812,7 @@ void saa7134_irq_oss_done(struct saa7134
+ /* ----------------------------------------------------------- */
+ /* saa7134-input.c                                             */
+ 
+-int  saa7134_input_init1(struct saa7134_dev *dev);
++int  saa7134_input_init2(struct saa7134_dev *dev);
+ void saa7134_input_fini(struct saa7134_dev *dev);
+ void saa7134_input_irq(struct saa7134_dev *dev);
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 30)
 
 
-
-----------------------------------------
-> From: gavin_ramm@hotmail.com
-> To: linux-media@vger.kernel.org
-> Subject: RE: help: Leadtek DTV2000 DS
-> Date: Wed, 27 Jan 2010 13:07:49 +1100
->
->
->
->
-> ----------------------------------------
->> Date: Wed, 27 Jan 2010 02:21:32 +0200
->> From: crope@iki.fi
->> To: gavin_ramm@hotmail.com
->> CC: linux-media@vger.kernel.org
->> Subject: Re: help: Leadtek DTV2000 DS
->>
->> Terve Gavin,
->>
->> On 01/25/2010 01:44 PM, Gavin Ramm wrote:
->>> Tried the current build of v4l-dvb (as of 25/01/2010) for a Leadtek DTV2000 DS.
->>> product site : http://www.leadtek.com/eng/tv_tuner/overview.asp?lineid=6&pronameid=530&check=f
->>>
->>> The chipset are AF9015 + AF9013 and the tuner is TDA18211..
->>> Im running it on mythdora 10.21 *fedora 10* i've had no luck with this.
->>>
->>> Any help would be great.. im willing to test..
->>
->> I added support for that device, could you test now?
->> http://linuxtv.org/hg/~anttip/af9015/
->>
->> regards
->> Antti
->> --
->> http://palosaari.fi/
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at http://vger.kernel.org/majordomo-info.html
->
-> It now finds the card and creates frontends.. When I tried to tune within mythtv it couldn't find any channels.
->
-> It could be the my arial though, I'll have to check after work (i did a quick test in my lunch break)
->
-> gav
-> _________________________________________________________________
-> Shopping Trolley Mechanic If It Exists, You'll Find it on SEEK
-> http://clk.atdmt.com/NMN/go/157639755/direct/01/--
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at http://vger.kernel.org/majordomo-info.html
-
-I did a mythtv scan again with a booster in and didn't get any channel lock..
-
-used the scan util and got the following output.
-
------output start-----
-@localhost mythtv]# scan /usr/share/dvb/dvb-t/au-Bendigo 
-scanning /usr/share/dvb/dvb-t/au-Bendigo
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 669500000 1 3 9 3 1 1 0
-initial transponder 620500000 1 3 9 3 1 1 0
-initial transponder 572500000 1 3 9 3 1 1 0
-initial transponder 690500000 1 3 9 3 1 1 0
-initial transponder 655500000 1 3 9 3 1 1 0
-initial transponder 555250000 1 3 9 3 1 1 0
-initial transponder 576250000 1 3 9 3 1 1 0
-initial transponder 592500000 1 3 9 3 1 1 0
-initial transponder 618250000 1 3 9 3 1 1 0
-initial transponder 529500000 1 2 9 3 1 2 0
-initial transponder 634500000 1 2 9 3 1 2 0
-initial transponder 534250000 1 2 9 3 1 2 0
-initial transponder 676500000 1 3 9 3 1 1 0
-initial transponder 571500000 1 3 9 3 1 1 0
-initial transponder 536625000 1 3 9 3 1 1 0
-initial transponder 585625000 1 3 9 3 1 1 0
-initial transponder 564500000 1 3 9 3 1 1 0
-initial transponder 543500000 1 3 9 3 1 1 0
-initial transponder 536500000 1 3 9 3 1 1 0
-initial transponder 529500000 1 3 9 3 1 1 0
-initial transponder 205500000 1 3 9 3 1 1 0
-initial transponder 564500000 1 3 9 3 1 1 0
-initial transponder 536625000 1 3 9 3 1 1 0
-initial transponder 690500000 1 3 9 3 1 1 0
-initial transponder 711500000 1 3 9 3 1 1 0
-initial transponder 550500000 1 3 9 3 1 1 0
->>> tune to: 669500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-Network Name 'ABC Victoria'
-0x0000 0x02b0: pmt_pid 0x0102 ABC -- ABC HDTV (running)
-0x0000 0x02b1: pmt_pid 0x0100 ABC -- ABC1 (running)
-0x0000 0x02b2: pmt_pid 0x0101 ABC -- ABC2 (running)
-0x0000 0x02b3: pmt_pid 0x0103 ABC -- ABC1 (running)
-0x0000 0x02b4: pmt_pid 0x0106 ABC -- ABC3 (running)
-0x0000 0x02b6: pmt_pid 0x0104 ABC -- ABC Dig Music (running)
-0x0000 0x02b7: pmt_pid 0x0105 ABC -- ABC Jazz (running)
->>> tune to: 620500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-WARNING:>>> tuning failed!!!
->>> tune to: 620500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-WARNING:>>> tuning failed!!!
->>> tune to: 572500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-WARNING:>>> tuning failed!!!
->>> tune to: 572500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-WARNING:>>> tuning failed!!!
->>> tune to: 690500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-0x0000 0x0803: pmt_pid 0x0120 Southern Cross Television -- SC10 Bendigo (running)
-0x0000 0x0823: pmt_pid 0x051e Southern Cross Television -- One HD Bendigo (running)
-0x0000 0x0843: pmt_pid 0x0528 Southern Cross Television -- SC Ten (running)
-Network Name 'Southern Cross Television'
->>> tune to: 655500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-WARNING:>>> tuning failed!!!
->>> tune to: 655500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-WARNING:>>> tuning failed!!!
->>> tune to: 555250000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-WARNING:>>> tuning failed!!!
->>> tune to: 555250000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-WARNING:>>> tuning failed!!!
->>> tune to: 576250000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-WARNING:>>> tuning failed!!!
->>> tune to: 576250000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-WARNING:>>> tuning failed!!!
->>> tune to: 592500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-WARNING:>>> tuning failed!!!
->>> tune to: 592500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-WARNING:>>> tuning failed!!!
->>> tune to: 618250000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-WARNING:>>> tuning failed!!!
->>> tune to: 618250000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-WARNING:>>> tuning failed!!!
->>> tune to: 529500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE
-0x0000 0x0371: pmt_pid 0x0401 SBS -- SBS ONE (running)
-0x0000 0x0375: pmt_pid 0x0400 SBS -- SBS HD (running)
-0x0000 0x0372: pmt_pid 0x0402 SBS -- SBS TWO (running)
-0x0000 0x0373: pmt_pid 0x0408 SBS -- SBS 3 (running)
-0x0000 0x0374: pmt_pid 0x0409 SBS -- SBS 4 (running)
-0x0000 0x037e: pmt_pid 0x0403 SBS -- SBS Radio 1 (running)
-0x0000 0x037f: pmt_pid 0x0404 SBS -- SBS Radio 2 (running)
-Network Name 'SBS VIC'
->>> tune to: 634500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE
-WARNING:>>> tuning failed!!!
->>> tune to: 634500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE (tuning failed)
-WARNING:>>> tuning failed!!!
->>> tune to: 534250000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE
-WARNING:>>> tuning failed!!!
->>> tune to: 534250000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE (tuning failed)
-WARNING:>>> tuning failed!!!
->>> tune to: 676500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-WARNING:>>> tuning failed!!!
->>> tune to: 676500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-WARNING:>>> tuning failed!!!
->>> tune to: 571500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-WARNING:>>> tuning failed!!!
->>> tune to: 571500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-WARNING:>>> tuning failed!!!
->>> tune to: 536625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-WARNING:>>> tuning failed!!!
->>> tune to: 536625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-WARNING:>>> tuning failed!!!
->>> tune to: 585625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-WARNING:>>> tuning failed!!!
->>> tune to: 585625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-WARNING:>>> tuning failed!!!
->>> tune to: 564500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-WARNING:>>> tuning failed!!!
->>> tune to: 564500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-WARNING:>>> tuning failed!!!
->>> tune to: 543500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-WARNING:>>> tuning failed!!!
->>> tune to: 543500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-WARNING:>>> tuning failed!!!
->>> tune to: 536500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-WARNING:>>> tuning failed!!!
->>> tune to: 536500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-WARNING:>>> tuning failed!!!
->>> tune to: 529500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-0x0000 0x0371: pmt_pid 0x0401 SBS -- SBS ONE (running)
-0x0000 0x0375: pmt_pid 0x0400 SBS -- SBS HD (running)
-0x0000 0x0372: pmt_pid 0x0402 SBS -- SBS TWO (running)
-0x0000 0x0373: pmt_pid 0x0408 SBS -- SBS 3 (running)
-0x0000 0x0374: pmt_pid 0x0409 SBS -- SBS 4 (running)
-0x0000 0x037e: pmt_pid 0x0403 SBS -- SBS Radio 1 (running)
-0x0000 0x037f: pmt_pid 0x0404 SBS -- SBS Radio 2 (running)
-Network Name 'SBS VIC'
->>> tune to: 205500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-WARNING:>>> tuning failed!!!
->>> tune to: 205500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-WARNING:>>> tuning failed!!!
->>> tune to: 564500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-WARNING:>>> tuning failed!!!
->>> tune to: 564500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-WARNING:>>> tuning failed!!!
->>> tune to: 536625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-WARNING:>>> tuning failed!!!
->>> tune to: 536625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-WARNING:>>> tuning failed!!!
->>> tune to: 690500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-0x0000 0x0803: pmt_pid 0x0120 Southern Cross Television -- SC10 Bendigo (running)
-0x0000 0x0823: pmt_pid 0x051e Southern Cross Television -- One HD Bendigo (running)
-0x0000 0x0843: pmt_pid 0x0528 Southern Cross Television -- SC Ten (running)
-Network Name 'Southern Cross Television'
->>> tune to: 711500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-0x0000 0x0001: pmt_pid 0x00fb WIN Television -- WIN Bendigo (running)
-0x0000 0x0002: pmt_pid 0x010f WIN Television -- GO Bendigo (running)
-0x0000 0x000a: pmt_pid 0x0123 WIN Television -- WIN Bendigo HD (running)
-Network Name 'WIN Digital     '
->>> tune to: 550500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-0x0000 0x0950: pmt_pid 0x011c PRIME -- PRIME Bendigo (running)
-0x0000 0x0974: pmt_pid 0x01cc PRIME -- PRIME HD (running)
-0x0000 0x0975: pmt_pid 0x01cd PRIME -- PRIME View 1 (running)
-0x0000 0x0976: pmt_pid 0x01ce PRIME -- 7TWO on PRIME (running)
-0x0000 0x0977: pmt_pid 0x01cf PRIME -- PRIME View 3 (not running)
-Network Name 'PRIME'
->>> tune to: 226500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_3_4:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-WARNING:>>> tuning failed!!!
->>> tune to: 226500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_3_4:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-WARNING:>>> tuning failed!!!
->>> tune to: 184500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE
-WARNING:>>> tuning failed!!!
->>> tune to: 184500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE (tuning failed)
-WARNING:>>> tuning failed!!!
-retrying with f=634625000
->>> tune to: 634625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE (tuning failed)
-WARNING:>>> tuning failed!!!
->>> tune to: 634625000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE (tuning failed)
-WARNING:>>> tuning failed!!!
->>> tune to: 585500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-WARNING:>>> tuning failed!!!
->>> tune to: 585500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE (tuning failed)
-WARNING:>>> tuning failed!!!
-dumping lists (35 services)
-ABC HDTV:669500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:516:0:688
-ABC1:669500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:650:689
-ABC2:669500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:513:651:690
-ABC1:669500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:650:691
-ABC3:669500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:514:652:692
-ABC Dig Music:669500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:0:690:694
-ABC Jazz:669500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:0:700:695
-SC10 Bendigo:690500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:289:290:2051
-One HD Bendigo:690500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:1311:0:2083
-SC Ten:690500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:289:290:2115
-SBS ONE:529500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:161:81:881
-SBS TWO:529500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:162:83:882
-SBS 3:529500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:161:81:883
-SBS 4:529500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:161:81:884
-SBS HD:529500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:102:103:885
-SBS Radio 1:529500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:0:201:894
-SBS Radio 2:529500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:0:202:895
-SBS ONE:529500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:161:81:881
-SBS TWO:529500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:162:83:882
-SBS 3:529500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:161:81:883
-SBS 4:529500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:161:81:884
-SBS HD:529500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:102:103:885
-SBS Radio 1:529500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:0:201:894
-SBS Radio 2:529500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:0:202:895
-SC10 Bendigo:690500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:289:290:2051
-One HD Bendigo:690500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:1311:0:2083
-SC Ten:690500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:289:290:2115
-WIN Bendigo:711500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:501:651:1
-GO Bendigo:711500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:521:671:2
-WIN Bendigo HD:711500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:541:0:10
-PRIME Bendigo:550500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_3_4:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:2840:2841:2384
-PRIME HD:550500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_3_4:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:4600:0:2420
-PRIME View 1:550500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_3_4:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:2840:2841:2421
-7TWO on PRIME:550500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_3_4:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:4620:4621:2422
-PRIME View 3:550500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_3_4:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:2840:2841:2423
-Done.
------end----
- 		 	   		  
-_________________________________________________________________
-Shopping Trolley Mechanic If It Exists, You'll Find it on SEEK
-http://clk.atdmt.com/NMN/go/157639755/direct/01/
+-- 
+Jean Delvare
