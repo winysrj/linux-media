@@ -1,48 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-17.arcor-online.net ([151.189.21.57]:43980 "EHLO
-	mail-in-17.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754794Ab0AQXDA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jan 2010 18:03:00 -0500
-Subject: Re: How to use saa7134 gpio via gpio-sysfs?
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Trent Piepho <xyzzy@speakeasy.org>
-Cc: Gordon Smith <spider.karma+linux-media@gmail.com>,
-	linux-media@vger.kernel.org
-In-Reply-To: <1263689544.8899.3.camel@pc07.localdom.local>
-References: <2df568dc1001111012u627f07b8p9ec0c2577f14b5d9@mail.gmail.com>
-	 <2df568dc1001111059p54de8635k6c207fb3f4d96a14@mail.gmail.com>
-	 <1263266020.3198.37.camel@pc07.localdom.local>
-	 <1263602137.3184.23.camel@pc07.localdom.local>
-	 <Pine.LNX.4.58.1001151650410.4729@shell2.speakeasy.net>
-	 <1263622815.3178.31.camel@pc07.localdom.local>
-	 <Pine.LNX.4.58.1001160400230.4729@shell2.speakeasy.net>
-	 <1263686928.3394.4.camel@pc07.localdom.local>
-	 <1263689544.8899.3.camel@pc07.localdom.local>
-Content-Type: text/plain
-Date: Mon, 18 Jan 2010 00:02:03 +0100
-Message-Id: <1263769323.3182.8.camel@pc07.localdom.local>
-Mime-Version: 1.0
+Received: from mail.kapsi.fi ([217.30.184.167]:40113 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753888Ab0A0AVm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jan 2010 19:21:42 -0500
+Message-ID: <4B5F870C.4040807@iki.fi>
+Date: Wed, 27 Jan 2010 02:21:32 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Gavin Ramm <gavin_ramm@hotmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: help: Leadtek DTV2000 DS
+References: <SNT130-w530BA3C80D244EB3C39701F45F0@phx.gbl>
+In-Reply-To: <SNT130-w530BA3C80D244EB3C39701F45F0@phx.gbl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[snip]
-> 
-> Damned, seems the opto-isolated I/Os might be in question.
-> 
-> For the RTD stuff we don't have any high resolution photographs or
-> anything else ...
+Terve Gavin,
 
-Gordon,
+On 01/25/2010 01:44 PM, Gavin Ramm wrote:
+> Tried the current build of v4l-dvb (as of 25/01/2010) for a Leadtek DTV2000 DS.
+> product site : http://www.leadtek.com/eng/tv_tuner/overview.asp?lineid=6&pronameid=530&check=f
+>
+> The chipset are AF9015 + AF9013 and the tuner is TDA18211..
+> Im running it on mythdora 10.21 *fedora 10* i've had no luck with this.
+>
+> Any help would be great.. im willing to test..
 
-we should wait for, if RTD and Philips/NXP do have a agreement on such.
+I added support for that device, could you test now?
+http://linuxtv.org/hg/~anttip/af9015/
 
-I doubt it, given how it came in.
-
-Else, you can of course still do what you ever want on that driver.
-
-Cheers,
-Hermann
-
-
+regards
+Antti
+-- 
+http://palosaari.fi/
