@@ -1,93 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48]:56448 "EHLO
-	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750721Ab0APGZJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jan 2010 01:25:09 -0500
-Subject: Re: How to use saa7134 gpio via gpio-sysfs?
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Trent Piepho <xyzzy@speakeasy.org>
-Cc: Gordon Smith <spider.karma+linux-media@gmail.com>,
-	linux-media@vger.kernel.org
-In-Reply-To: <Pine.LNX.4.58.1001151650410.4729@shell2.speakeasy.net>
-References: <2df568dc1001111012u627f07b8p9ec0c2577f14b5d9@mail.gmail.com>
-	 <2df568dc1001111059p54de8635k6c207fb3f4d96a14@mail.gmail.com>
-	 <1263266020.3198.37.camel@pc07.localdom.local>
-	 <1263602137.3184.23.camel@pc07.localdom.local>
-	 <Pine.LNX.4.58.1001151650410.4729@shell2.speakeasy.net>
-Content-Type: text/plain
-Date: Sat, 16 Jan 2010 07:20:15 +0100
-Message-Id: <1263622815.3178.31.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from relay.bearnet.nu ([80.252.223.222]:2795 "EHLO relay.bearnet.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754389Ab0A0QWX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jan 2010 11:22:23 -0500
+Message-ID: <4B606832.7080006@pelagicore.com>
+Date: Wed, 27 Jan 2010 17:22:10 +0100
+From: =?ISO-8859-1?Q?Richard_R=F6jfors?= <richard.rojfors@pelagicore.com>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Andrew Morton <akpm@linux-foundation.org>
+Subject: [PATCH v2 2/2] radio: Add radio-timb to the Kconfig and Makefile
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch adds radio-timb to the Makefile and Kconfig.
 
-Am Freitag, den 15.01.2010, 17:27 -0800 schrieb Trent Piepho:
-> On Sat, 16 Jan 2010, hermann pitton wrote:
-> > Am Dienstag, den 12.01.2010, 04:13 +0100 schrieb hermann pitton:
-> > > > gpio-sysfs creates
-> > > >     /sys/class/gpio/export
-> > > >     /sys/class/gpio/import
-> > > > but no gpio<n> entries so far.
-> 
-> You have to explictly export the GPIO lines to get them to appear.  Either
-> in the kernel with gpio_export() or from sysfs.  You also can't export
-> GPIOs that something in the kernel is using.  My original design didn't
-> have this restriction.  I felt there were valid debug and development
-> reasons for doing so, having used them myself for debug and development of
-> embedded systems, but David Brownell felt otherwise.  I didn't even have
-> the concept of export originally, all the gpios would show up.  After all,
-> all your PCI and USB devices, I2C chips or busses, etc.  show up in sysfs.
-> Nothing else does this "must be exported to show up" business.  You can
-> memory map the saa7133 PCI address space and modify the gpios, and anything
-> else, with direct register access from userspace, and that's just fine.
-> But being able to observe and modify the gpios with a gpio-only interface
-> is just way too dangerous.  Doesn't make sense.  But I'm digressing.
-> 
-> This sysfs interface only works with the gpio using the generic gpio layer.
-> This was designed for generic gpios on SoCs that would be providing by some
-> kind of platform driver or I2C gpio extenders.  The gpios get and used by
-> various other drivers.  Like say write protects on memory cards, or system
-> LEDs.  I wrote a JTAG driver that used it.  The point of the gpio layer is
-> to interface drivers the provide gpios with other, different, drivers that
-> use the gpio.  It was introduced in the mid 2.6.20s IIRC.
-> 
-> The saa713x driver predates the generic gpio layer by years and years, so
-> it doesn't use it.  It also doesn't need to use it.  Since the gpios are
-> managed by the saa713x driver, and they also used by the saa713x driver,
-> there is no need to interface two different drivers together.  There are
-> tons of drivers for devices that have gpios like this, but they don't use
-> the gpio layer.
-> 
-> But with gpio access via sysfs for generic gpios, there is something useful
-> about having the saa713x driver support generic gpios.  IIRC, somehow wrote
-> a gpio only bt848 driver that didn't do anything but export gpios.
-> 
-> In order to do this, you'll have to write code for the saa7134 driver to
-> have it register with the gpio layer.  I think you could still have the
-> saa7134 driver itself use its gpio directly.  That would avoid a
-> performance penalty in the driver.
+Signed-off-by: Richard Röjfors <richard.rojfors@pelagicore.com>
+---
+diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+index 3f40f37..46fd8c4 100644
+--- a/drivers/media/radio/Kconfig
++++ b/drivers/media/radio/Kconfig
+@@ -429,4 +429,14 @@ config RADIO_TEF6862
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called TEF6862.
 
-Thanks for more details, but I'm still wondering what pins ever could be
-interesting in userland, given that they are all treated such different
-per device, and we count up to 200 different boards these days.
++config RADIO_TIMBERDALE
++	tristate "Enable the Timberdale radio driver"
++	depends on MFD_TIMBERDALE && VIDEO_V4L2 && HAS_IOMEM
++	select RADIO_TEF6862
++	select RADIO_SAA7706H
++	---help---
++	  This is a kind of umbrella driver for the Radio Tuner and DSP
++	  found behind the Timberdale FPGA on the Russellville board.
++	  Enable this driver will automatically select the DSP and tuner.
++
+ endif # RADIO_ADAPTERS
+diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
+index 01922ad..8973850 100644
+--- a/drivers/media/radio/Makefile
++++ b/drivers/media/radio/Makefile
+@@ -24,5 +24,6 @@ obj-$(CONFIG_RADIO_SI470X) += si470x/
+ obj-$(CONFIG_USB_MR800) += radio-mr800.o
+ obj-$(CONFIG_RADIO_TEA5764) += radio-tea5764.o
+ obj-$(CONFIG_RADIO_TEF6862) += tef6862.o
++obj-$(CONFIG_RADIO_TIMBERDALE) += radio-timb.o
 
-For now, we should only allow user control over such pins above any
-count from 0 to 27, what the m$ driver does rounding up nothing ;)
-
-Or is there one single pin, potentially useful in userland?
-
-They can all be ambiguous, multi purpose per device, for what I can see.
-
-Cheers,
-Hermann
-
-
-
-
-
-
-
+ EXTRA_CFLAGS += -Isound
 
