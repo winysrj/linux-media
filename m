@@ -1,84 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:44612 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752235Ab0ADQHA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jan 2010 11:07:00 -0500
-Date: Mon, 4 Jan 2010 11:06:59 -0500 (EST)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Sean <knife@toaster.net>
-cc: Andrew Morton <akpm@linux-foundation.org>,
-	<bugzilla-daemon@bugzilla.kernel.org>,
-	<linux-media@vger.kernel.org>,
-	USB list <linux-usb@vger.kernel.org>,
-	Ingo Molnar <mingo@elte.hu>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	"H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [Bugme-new] [Bug 14564] New: capture-example sleeping function
- called from invalid context at arch/x86/mm/fault.c
-In-Reply-To: <4B412CA5.8020507@toaster.net>
-Message-ID: <Pine.LNX.4.44L0.1001041035500.3180-100000@iolanthe.rowland.org>
+Received: from mx1.redhat.com ([209.132.183.28]:26054 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752103Ab0A0U6p (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jan 2010 15:58:45 -0500
+Message-ID: <4B60A8F3.9010807@redhat.com>
+Date: Wed, 27 Jan 2010 18:58:27 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: TJ <one.timothy.jones@gmail.com>
+CC: mythtv-dev@mythtv.org,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Pete Eberlein <pete@sensoray.com>, jelle-mythtv-dev@foks.us
+Subject: Re: [mythtv] go7007 based devices
+References: <4B48C1B5.5000207@gmail.com> <4B552F15.4000305@foks.us> <4B580B53.1060500@gmail.com> <201001271308.06650.hverkuil@xs4all.nl> <4B609C0F.9080503@gmail.com>
+In-Reply-To: <4B609C0F.9080503@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 3 Jan 2010, Sean wrote:
-
-> Alan,
+TJ wrote:
 > 
-> I applied the patches and ran capture-example twice. On the second run 
-> of capture-example a circular pointer popped up. I did not need to 
-> remove the camera. Attached are the serial console capture as well as 
-> the dmesg log in debug4.tar.gz. Did you want me to try to reproduce the 
-> poison message?
+> Hans Verkuil wrote:
+>> On Thursday 21 January 2010 09:07:47 TJ wrote:
+>>> Jelle Foks wrote:
+>>>> TJ wrote:
+>>>>> I am curious how many people are successfully using go7007 based
+>>>>> capture devices
+>>>>> with mythtv. I've done some patch work on go7007 driver to make it v4l2
+>>>>> compliant and was thinking of updating mythtv to stop using
+>>>>> proprietary go7007
+>>>>> ioctls, but wanted to feel the ground first.
+>>>>> -TJ
+>>>>>
+>>>>> PS: jelle you on this list?
+>>>>>   
+>>>> Yep, I'm on it, but I guess I don't check on it very often ;-)...
+>>> You sure don't :)
+>>>
+>>>> Myself, I'm using a bunch of plextors (with the go7007 chip), both
+>>>> M402's without tuner and TV402's with tuner on my mythbackend in the
+>>>> closet, using Ubuntu with a 2.6.31-11-generic-pae kernel and drivers
+>>>> that I made by combining the driver from the kernel staging tree and an
+>>>> older version that still worked, as I posted (with more details) on my
+>>>> blog at http://go70007.imploder.org . Somebody replied on the blog that
+>>>> it also works on 2.6.32.2, on ARM even... I actually don't know who
+>>>> maintains the go7007 driver in the staging tree, but I don't think it
+>>>> was the v4l guys.
+>> Actually, it is. So the linux-media list is the appropriate place to post patches on.
+>> It is currently maintained by Pete Eberlein from Sensoray.
+>>
+>>> Try this patch. It runs against kernel source. I tried it on 2.6.32, 2.6.32-r1
+>>> and -r2. I basically did some general cleanup on the go7007 driver in the kernel
+>>> tree, added few standard v4l2 commands and *temporarily* put back in proprietary
+>>> go7007 ioctls from your package for continued mythtv support. I also added
+>>> support for ADS Tech DVD Xpress DX2 board (which was the main reason I got into
+>>> it). It runs well on my DX2 boxes. I've got about 100 of them and am currently
+>>> testing it on 5.
+>> Please post this as well to the linux-media list. It would be great if someone would be
+>> willing to do more work on this driver and get it out of staging into the mainline. It's
+>> getting close, but it's not there yet.
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+> 
+> Hans, My brother, pardon my ignorance, but would you please be so kind and shed
+> some light for me on which way I should go.
+> 
+> I was in touch with Pete on linux-media list and he's done quite a bit of work
+> on updating the driver in the current linux-media hg tree.
+> 
+> My patch runs against official linux kernel 2.6.32.x but won't run against hg tree.
+> 
+> So, my thoughts were to go 2 ways:
+> 
+> 1. Update my patch against current linux development kernel (2.6.33-rc5? or
+> -next?) and submit it to be included with the next kernel release. It would
+> still be in the staging category, but at least people will be able to
+> immediately take advantage of the following things:
+> 
+>  - ADS Tech DX2 support (which I added, actually ported from some earlier release)
+>  - Mythtv support (as I included original ioctls)
+>  - Mythtv will now be able to be patched to use standard ioctls (I also kept and
+> expanded all standard ioctls)
+>  - I found and fixt a few minor bugs
+> 
+> 2. Keep working against current linux-media hg tree and tell people to hang
+> tight. This might take a while though, cuz between now and Sept-Oct this year I
+> won't be able to put a lot of time into it (worken on a big project).
+> 
+> The things I dunno about and would appreciate anyone shedding some light on are:
+> 
+> a. Is the current linux-media hg tree going to be included in 2.6.33 kernel? If
+> so, then option 1 above is out of the question and I will keep working with Pete
+> on the current hg driver.
+> 
+> b. If the things didn't change much in the kernel tree since 2.6.32, I can
+> probably quickly update my patch and submit it for inclusion into 2.6.33.
+> 
+> If that's the case, which kernel should I make the patch against? Should I just
+> git 2.6.33-rc5?
+> 
+> Who do I submit my patch to?
+> 
+> Again sorry for my ignorance, I don't do much collaborative work, but I am
+> willing to help out the community. :)
 
-No.  Among the things that patch did was to fix up the errors that 
-caused the invalid pointers.  Hence there should not have been any 
-"poisoned hash" messages -- and indeed there weren't.
+Let me answer to your questions:
 
-The interesting part of the log is the error messages:
+The better is to generate your patch against the development -git tree:
+	http://git.linuxtv.org/v4l-dvb.git
 
-ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
-ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
-ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
-ohci_hcd 0000:00:0b.0: Circular pointer #2b: 1 c6774040 c6542040 c6774040
-ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
-ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
-ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
-ohci_hcd 0000:00:0b.0: Circular pointer #2b: 1 c6774040 c6542040 c6774040
-ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
-ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
-ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
-ohci_hcd 0000:00:0b.0: Circular pointer #2b: 1 c6774040 c6542040 c6774040
-ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
-ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
-ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
-ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
-ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
-ohci_hcd 0000:00:0b.0: Circular pointer #2b: 32 c6774800 c6542800 c6774800
+This tree is merged upstream, at the upstream linux-next tree, and have all the patches that
+will go to 2.6.34 (patches against -rc trees are only for bug fixes).
 
-There are two different hash chains here (32 and 1), but in each case
-see the message is #2b, never #2a.  This means the problem occurs
-between the places where the #2a and #2b messages were inserted, i.e.,
-in td_fill().  The hash chain contained a single TD and was fine to
-begin with; then another TD was added at the start of the chain and the
-pointer in the earlier TD (now at the second position in the chain) got
-messed up.
+As the -hg tree has the same code as -git (it is manually updated when a change happens
+on -git), it is safe to generate your patch against -hg.
 
-For example, the error message in the first line above implies that
-originally the 32nd hash chain contained only the TD at c6542800 with
-its td_hash member set to NULL.  But then c6774800 was added to the
-start of the chain, after which c6542800's td_hash pointed to c6774800.
+The patch is handled by me, but you should send it to linux-media@vger.kernel.org only. If the
+patch doesn't have any whitespace trobules, it will be catched by http://patchwork.kernel.org,
+and I'll be able to see it at the web interface.
 
-Try inserting a line saying:
+You can read more about how to submit a patch at:
+	http://linuxtv.org/wiki/index.php/Maintaining_Git_trees
+	http://linuxtv.org/hg/v4l-dvb/raw-file/tip/README.patches
 
-	td_check(ohci, hash, "#2c");
-
-two lines above the #2b line, i.e., just after the wmb().  That'll help 
-narrow down the search for the bug.
-
-And by the way, you don't need to post your entire dmesg log.  Just the 
-portion containing the new debugging messages will be enough.
-
-Alan Stern
+and at the kernel development section of our wiki:
+	http://linuxtv.org/wiki/
+> 
+> -TJ
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
