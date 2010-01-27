@@ -1,175 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:36340 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752688Ab0ATRMI convert rfc822-to-8bit (ORCPT
+Received: from mail.gmx.net ([213.165.64.20]:43008 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753020Ab0A0QFK convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jan 2010 12:12:08 -0500
-Received: by bwz27 with SMTP id 27so1557526bwz.1
-        for <linux-media@vger.kernel.org>; Wed, 20 Jan 2010 09:12:06 -0800 (PST)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Andy Walls <awalls@radix.net>
-Subject: Re: Need testers: cx23885 IR Rx for TeVii S470 and HVR-1250
-Date: Wed, 20 Jan 2010 19:11:32 +0200
-Cc: linux-media@vger.kernel.org,
-	Andreas Tschirpke <andreas.tschirpke@gmail.com>,
-	Matthias Fechner <idefix@fechner.net>, stoth@kernellabs.com
-References: <1263614561.6084.15.camel@palomino.walls.org> <201001190025.20539.liplianin@me.by> <1263867042.3710.23.camel@palomino.walls.org>
-In-Reply-To: <1263867042.3710.23.camel@palomino.walls.org>
+	Wed, 27 Jan 2010 11:05:10 -0500
+Date: Wed, 27 Jan 2010 17:05:18 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+cc: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] soc_camera: match signedness of soc_camera_limit_side()
+In-Reply-To: <4B5AFD11.6000907@freemail.hu>
+Message-ID: <Pine.LNX.4.64.1001271645440.5073@axis700.grange>
+References: <4B5AFD11.6000907@freemail.hu>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: TEXT/PLAIN; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <201001201911.33236.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 19 января 2010 04:10:42 Andy Walls wrote:
-> On Tue, 2010-01-19 at 00:25 +0200, Igor M. Liplianin wrote:
-> > On 18 января 2010 07:36:52 Andy Walls wrote:
-> > > On Sat, 2010-01-16 at 20:26 -0500, Andy Walls wrote:
-> > > > On Sat, 2010-01-16 at 23:56 +0200, Igor M. Liplianin wrote:
-> > > > > On 16 января 2010 21:55:52 Andy Walls wrote:
-> > > > > > I have checked in more changes to
-> > > > > >
-> > > > > > 	http://linuxtv.org/hg/~awalls/cx23885-ir2
-> > > > > >
-> > > > > > Please test again using these module parameters:
-> > > > > >
-> > > > > > 	modprobe cx25840 ir_debug=2 debug=2
-> > > > > > 	modprobe cx23885 ir_input_debug=2 irq_debug=7 debug=7
-> > >
-> > > I have removed the spurious interrupt handling code - it was bogus. 
-> > > The real problems are:
-> > >
-> > > 1. performing AV Core i2c transactions from an IRQ context is bad
-> > >
-> > > 2. the cx25840 module needs locking to prevent i2c transaction
-> > > contention during the AV Core register reads and writes.
-> > >
-> > >
-> > > I have implemented and checked in a change for #1.  Now the AV_CORE
-> > > interrupt gets disabled and a work handler is scheduled to deal with
-> > > the IR controller on the AV core.  When the work handler is done, it
-> > > will re-enable the AV_CORE interrupt.
-> > >
-> > > I have not implmented a change for #2 yet.  I have not added locking to
-> > > protect cx25840_read() and cx25840_write() functions.  This will take
-> > > time to get right.
->
-> I have now fixed the cx25840 module.
->
-> I also added a log function for "v4l2-ctl -d /dev/video0 --log-status"
-> to log the status of the IR controller.
->
-Now I can not remove modules.
-Unloading cx25840 module raises exception in cx23885_av_workhandler, unloading cx23885 - in 
-i2c_transfer.
+On Sat, 23 Jan 2010, Németh Márton wrote:
 
-> > > You may test these latest changes if you want, but I won't be surprised
-> > > if things don't work on occasion.
-> >
-> > It is very same behaviour here. A lot of interrupts without purpose.
-> >
-> :(
-> :
-> > > I have tested IR loopback with my HVR-1250 and things are fine for me,
-> > > but I have no video interrupts coming in either.
-> >
-> > I wonder what is the difference.
->
-> a. I set up the IR transmit pin for the HVR-1250 but not the S470 in
-> cx23885-cards.c:cx23885_ir_init()
->
-> b. I set the transmitter invert_level for the Tx pin (a no-op for the
-> cx23885 IR controller) at the bottom of
-> cx23885-input.c:cx23885_input_ir_start() for the HVR-1250, but not the
-> S470.
->
-> c. For testing, I add an analog device video node to the HVR1250 for a
-> debug and test:
->
-> diff -r 9128ef95c5a7 -r 1ce2344226c1
-> linux/drivers/media/video/cx23885/cx23885-cards.c ---
-> a/linux/drivers/media/video/cx23885/cx23885-cards.c	Sat Jan 09 13:58:18
-> 2010 -0500 +++ b/linux/drivers/media/video/cx23885/cx23885-cards.c	Sat Jan
-> 09 14:31:30 2010 -0500 @@ -104,6 +104,8 @@
->  	},
->  	[CX23885_BOARD_HAUPPAUGE_HVR1250] = {
->  		.name		= "Hauppauge WinTV-HVR1250",
-> +		.tuner_type	= TUNER_ABSENT,
-> +		.porta		= CX23885_ANALOG_VIDEO,
->  		.portc		= CX23885_MPEG_DVB,
->  		.input          = {{
->  			.type   = CX23885_VMUX_TELEVISION,
->
->
->
-> d.  The script of commands I use for testing the HVR-1250 IR Rx with the
-> IR Tx in hardware loopback is:
->
-> #make unload; make unload
-> #make install
->
-> #modprobe cx25840 ir_debug=2 debug=2
-> #modprobe cx23885 ir_input_debug=2 irq_debug=7 debug=7
->
-> #v4l2-ctl -d /dev/video0 --log-status
->
-> # Get pin ctrl setting
-> v4l2-dbg -d /dev/video0 -c 0x44 -g 0x123
->
-> # disable tx fifo
-> v4l2-dbg -d /dev/video0 -c 0x44 -s 0x200 0x4c
->
-> # disable tx fifo svc req
-> v4l2-dbg -d /dev/video0 -c 0x44 -s 0x214 0x20
->
-> # disable tx, enable loopback
-> v4l2-dbg -d /dev/video0 -c 0x44 -s 0x201 0x21
->
-> #v4l2-ctl -d /dev/video0 --log-status
->
-> # set tx clk div
-> v4l2-dbg -d /dev/video0 -c 0x44 -s 0x204 1 0
->
-> #enable tx fifo
-> v4l2-dbg -d /dev/video0 -c 0x44 -s 0x200 0xcc
->
-> # store test pulse data
-> v4l2-dbg -d /dev/video0 -c 0x44 -s 0x23c 0xff 0x7f 0x1 0x0
-> v4l2-dbg -d /dev/video0 -c 0x44 -s 0x23c 0xff 0x5f 0x0 0x0
-> v4l2-dbg -d /dev/video0 -c 0x44 -s 0x23c 0xff 0x7f 0x1 0x0
-> v4l2-dbg -d /dev/video0 -c 0x44 -s 0x23c 0xff 0x5f 0x0 0x0
-> v4l2-dbg -d /dev/video0 -c 0x44 -s 0x23c 0xff 0x7f 0x1 0x0
-> v4l2-dbg -d /dev/video0 -c 0x44 -s 0x23c 0xff 0x5f 0x0 0x0
-> v4l2-dbg -d /dev/video0 -c 0x44 -s 0x23c 0xff 0x7f 0x1 0x0
-> v4l2-dbg -d /dev/video0 -c 0x44 -s 0x23c 0xff 0x5f 0x0 0x0
->
-> #v4l2-ctl -d /dev/video0 --log-status
->
-> #enable tx
-> v4l2-dbg -d /dev/video0 -c 0x44 -s 0x201 0x23
->
-> #v4l2-ctl -d /dev/video0 --log-status
->
->
->
-> e. My HVR-1250 doesn't have actual external IR Rx hardware, so I can
-> only test with loopback.
->
->
->
-> If my latest changes don't work, I'll probably have to order a CX23885
-> card with the hardware for actual IR Rx.  Maybe I'll get a TeVii S470
-> and buy a satellite dish. ;)
->
->
-> Thanks again for all your test efforts.
->
-> Regards,
-> Andy
+> From: Márton Németh <nm127@freemail.hu>
+> 
+> The parameters of soc_camera_limit_side() are either a pointer to
+> a structure element from v4l2_rect, or constants. The structure elements
+> of the v4l2_rect are signed (see <linux/videodev2.h>) so do the computations
+> also with signed values.
+> 
+> This will remove the following sparse warning (see "make C=1"):
+>  * incorrect type in argument 1 (different signedness)
+>        expected unsigned int *start
+>        got signed int *<noident>
 
--- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+Well, it is interesting, but insufficient. And, unfortunately, I don't 
+have a good (and easy) recipe for how to fix this properly.
+
+The problem is, that in soc_camera_limit_side all tests and arithmetics 
+are performed with unsigned in mind, now, if you change them to signed, 
+think what happens, if some of them are negative. No, I don't know when 
+negative members of struct v4l2_rect make sense, having them signed 
+doesn't seem a very good idea to me. But they cannot be changed - that's a 
+part of the user-space API...
+
+Casting all parameters inside that inline to unsigned would be way too 
+ugly. Maybe we could at least keep start_min, length_min, and length_max 
+unsigned, and only change start and length to signed, and only cast those 
+two inside the function. Then, if you grep through all the drivers, 
+there's only one location, where soc_camera_limit_side() is called with 
+the latter 3 parameters not constant - two calls in 
+sh_mobile_ceu_camera.c. So, to keep sparse happy, you'd have to cast 
+there. Ideally, you would also add checks there for negative values...
+
+> 
+> Signed-off-by: Márton Németh <nm127@freemail.hu>
+> ---
+> diff -r 2a50a0a1c951 linux/include/media/soc_camera.h
+> --- a/linux/include/media/soc_camera.h	Sat Jan 23 00:14:32 2010 -0200
+> +++ b/linux/include/media/soc_camera.h	Sat Jan 23 10:09:41 2010 +0100
+> @@ -264,9 +264,8 @@
+>  		common_flags;
+>  }
+> 
+> -static inline void soc_camera_limit_side(unsigned int *start,
+> -		unsigned int *length, unsigned int start_min,
+> -		unsigned int length_min, unsigned int length_max)
+> +static inline void soc_camera_limit_side(int *start, int *length,
+> +		int start_min, int length_min, int length_max)
+>  {
+>  	if (*length < length_min)
+>  		*length = length_min;
+> diff -r 2a50a0a1c951 linux/drivers/media/video/rj54n1cb0c.c
+> --- a/linux/drivers/media/video/rj54n1cb0c.c	Sat Jan 23 00:14:32 2010 -0200
+> +++ b/linux/drivers/media/video/rj54n1cb0c.c	Sat Jan 23 10:09:41 2010 +0100
+> @@ -555,15 +555,15 @@
+>  	return ret;
+>  }
+> 
+> -static int rj54n1_sensor_scale(struct v4l2_subdev *sd, u32 *in_w, u32 *in_h,
+> -			       u32 *out_w, u32 *out_h);
+> +static int rj54n1_sensor_scale(struct v4l2_subdev *sd, s32 *in_w, s32 *in_h,
+> +			       s32 *out_w, s32 *out_h);
+> 
+>  static int rj54n1_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+>  {
+>  	struct i2c_client *client = sd->priv;
+>  	struct rj54n1 *rj54n1 = to_rj54n1(client);
+>  	struct v4l2_rect *rect = &a->c;
+> -	unsigned int dummy = 0, output_w, output_h,
+> +	int dummy = 0, output_w, output_h,
+>  		input_w = rect->width, input_h = rect->height;
+>  	int ret;
+
+And these:
+
+	if (output_w > max(512U, input_w / 2)) {
+	if (output_h > max(384U, input_h / 2)) {
+
+would now produce compiler warnings... Have you actually tried to compile 
+your patch? You'll also have to change formats in dev_dbg() calls here...
+
+> 
+> @@ -638,8 +638,8 @@
+>   * the output one, updates the window sizes and returns an error or the resize
+>   * coefficient on success. Note: we only use the "Fixed Scaling" on this camera.
+>   */
+> -static int rj54n1_sensor_scale(struct v4l2_subdev *sd, u32 *in_w, u32 *in_h,
+> -			       u32 *out_w, u32 *out_h)
+> +static int rj54n1_sensor_scale(struct v4l2_subdev *sd, s32 *in_w, s32 *in_h,
+> +			       s32 *out_w, s32 *out_h)
+>  {
+>  	struct i2c_client *client = sd->priv;
+>  	struct rj54n1 *rj54n1 = to_rj54n1(client);
+> @@ -1017,7 +1017,7 @@
+>  	struct i2c_client *client = sd->priv;
+>  	struct rj54n1 *rj54n1 = to_rj54n1(client);
+>  	const struct rj54n1_datafmt *fmt;
+> -	unsigned int output_w, output_h, max_w, max_h,
+> +	int output_w, output_h, max_w, max_h,
+>  		input_w = rj54n1->rect.width, input_h = rj54n1->rect.height;
+>  	int ret;
+
+and here.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
