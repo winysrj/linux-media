@@ -1,42 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cp-out8.libero.it ([212.52.84.108]:36228 "EHLO
-	cp-out8.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752006Ab0AJHsw (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2414 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756073Ab0A0Vs0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jan 2010 02:48:52 -0500
-Subject: Re: Regression - OOPS when connecting devices with IR support
-From: Francesco Lavra <francescolavra@interfree.it>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Linux media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <829197381001091752v239d3514l32969da7e559cf97@mail.gmail.com>
-References: <829197381001091752v239d3514l32969da7e559cf97@mail.gmail.com>
-Content-Type: text/plain
-Date: Sun, 10 Jan 2010 08:49:43 +0100
-Message-Id: <1263109783.15453.42.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Wed, 27 Jan 2010 16:48:26 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id o0RLmOIv068753
+	for <linux-media@vger.kernel.org>; Wed, 27 Jan 2010 22:48:25 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 27 Jan 2010 22:48:24 +0100 (CET)
+Message-Id: <201001272148.o0RLmOIv068753@smtp-vbr8.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2010-01-09 at 20:52 -0500, Devin Heitmueller wrote:
-> Hey all,
-> 
-> This is going to sound like a bit of a silly question.  Has anyone
-> tried the current v4l-dvb tip with a device that has IR support?
-> 
-> I had been working on separate branches for the last few weeks, and
-> finally updated to the tip.  I'm seeing the exact same OOPS condition
-> for both my em28xx and cx88 based device.
-> 
-> Did someone break the IR core?  This occurs 100% of the time in my
-> environment when loading either cx88 or em28xx based devices that have
-> IR support (a stock Ubuntu 9.10 build (2.6.31-17-generic) with the
-> current v4l-dvb tip as of tonight.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Yes, the IR core is broken, a patch has been submitted by myself some
-time ago (http://patchwork.kernel.org/patch/70126/), but hasn't made it
-to v4l-dvb yet.
-Regards,
-Francesco
+Results of the daily build of v4l-dvb:
 
+date:        Wed Jan 27 21:00:05 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14064:31eaa9423f98
+gcc version: i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:     2.6.32.5
+
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-rc5-armv5: OK
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-rc5-armv5-davinci: WARNINGS
+linux-2.6.32.6-armv5-dm365: ERRORS
+linux-2.6.33-rc5-armv5-dm365: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-rc5-armv5-ixp: WARNINGS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-rc5-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.17-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-rc5-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-rc5-m32r: OK
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-rc5-mips: WARNINGS
+linux-2.6.32.6-powerpc64: ERRORS
+linux-2.6.33-rc5-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.17-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-rc5-x86_64: WARNINGS
+spec: OK
+sparse (linux-2.6.32.6): ERRORS
+sparse (linux-2.6.33-rc5): ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: OK
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
