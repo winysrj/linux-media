@@ -1,89 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f215.google.com ([209.85.220.215]:51943 "EHLO
-	mail-fx0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753403Ab0AYKiv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jan 2010 05:38:51 -0500
-Received: by fxm7 with SMTP id 7so1864566fxm.28
-        for <linux-media@vger.kernel.org>; Mon, 25 Jan 2010 02:38:49 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:26382 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755674Ab0A0UrS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jan 2010 15:47:18 -0500
+Message-ID: <4B60A64E.3090106@redhat.com>
+Date: Wed, 27 Jan 2010 18:47:10 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <loom.20100124T225424-639@post.gmane.org>
-References: <4B5CA8F8.3000301@crans.ens-cachan.fr>
-	 <1a297b361001241322q2b077683v8ac55b35afb4fe97@mail.gmail.com>
-	 <4B5CBF14.1000005@crans.ens-cachan.fr>
-	 <loom.20100124T225424-639@post.gmane.org>
-Date: Mon, 25 Jan 2010 14:38:49 +0400
-Message-ID: <1a297b361001250238j6273e47fh796df0cf5ae5b4b5@mail.gmail.com>
-Subject: Re: problem with libdvben50221 and powercam pro V4 [almost solved]
-From: Manu Abraham <abraham.manu@gmail.com>
-To: pierre gronlier <ticapix@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Stefan Ringel <stefan.ringel@arcor.de>
+CC: linux-media@vger.kernel.org,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: Terratec Cinergy Hybrid XE (TM6010 Mediachip)
+References: <4B547EBF.6080105@arcor.de> <4B5DAC3A.6000408@redhat.com> <4B5DC2EA.3090706@arcor.de> <4B5DF134.7080603@redhat.com> <4B5DF360.40808@arcor.de> <4B5DF73F.9030807@redhat.com> <4B5E06EA.40204@arcor.de> <4B6093E4.40706@arcor.de> <4B6094DE.4000204@arcor.de>
+In-Reply-To: <4B6094DE.4000204@arcor.de>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Pierre,
+Stefan Ringel wrote:
+> Hi,
+> 
+> I have a problem with usb bulk transfer. After a while, as I scan digital channel (it found a few channel), it wrote this in the log:
+> 
+> Jan 26 21:58:35 linux-v5dy kernel: [  548.756585] tm6000: status != 0
+> 
+> I updated the tm6000_urb_received function so that I can read the Error code and it logged:
+> 
+> Jan 27 17:41:28 linux-v5dy kernel: [ 3121.892793] tm6000: status = 0xffffffb5
 
+Probablt it is this error:
+#define EOVERFLOW       75      /* Value too large for defined data type */
 
-On Mon, Jan 25, 2010 at 2:03 AM, pierre gronlier <ticapix@gmail.com> wrote:
-> DUBOST Brice <dubost <at> crans.ens-cachan.fr> writes:
->>
->> Manu Abraham a écrit :
->> > Hi Brice,
->> >
->> > On Mon, Jan 25, 2010 at 12:09 AM, DUBOST Brice
->> > <dubost <at> crans.ens-cachan.fr> wrote:
->> >> Hello
->> >>
->> >> Powercam just made a new version of their cam, the version 4
->> >>
->> >> Unfortunately this CAM doesn't work with gnutv and applications based on
->> >> libdvben50221
->> >>
->> >> This cam return TIMEOUT errors (en50221_stdcam_llci_poll: Error reported
->> >> by stack:-3) after showing the supported ressource id.
->> >>
->> >> The problem is that this camreturns two times the list of supported ids
->> >> (as shown in the log) this behavior make the llci_lookup_callback
->> >> (en50221_stdcam_llci.c line 338)  failing to give the good ressource_id
->> >> at the second call because there is already a session number (in the
->> >> test app the session number is not tested)
->> >>
->> >> I solved the problem commenting out the test for the session number as
->> >> showed in the joined patch (against the latest dvb-apps, cloned today)
->> >
->> > Very strange that, it responds twice on the same session.
->> > Btw, What DVB driver are you using ? budget_ci or budget_av ?
->>
->> Hello
->>
->> The card is a "DVB: registering new adapter (TT-Budget S2-3200 PCI)" and
->> the driver used is budget_ci
->>
->> Do you want me to run some more tests ?
->>
->
-> Hello Manu, Hello Brice,
->
-> I will run some tests with a TT3200 card too and a Netup card tomorrow.
->
-> Regarding the cam returning two times the list of valid cam ids, wouldn't be
-> better if the manufacturer corrects it in the cam firmware ?
-> What says the en50221 norm about it ?
+It would be good to make it display the error as a signed int.
 
+the tm6000-video error handler has some common causes for those status.
+In this particular case:
 
-EN50221 says:
+        case -EOVERFLOW:
+                errmsg = "Babble (bad cable?)";
+                break;
 
-The host sends a CA Info Enquiry object to the application, which
-responds by returning an CA Info object with the
-appropriate information. The session is then kept open for periodic
-operation of the protocol associated with
-the CA PMT and CA PMT Reply objects
+This looks the same kind of errors I was receiving during the development of the driver:
+a large amount of frames are got broken, even if the device is programmed with the exact
+values used on the original driver. On my tests, changing the URB size were changing
+the position where such errors were occurring.
 
-The specification is not very clear either way, I will try to get some
-more understanding in there ..
+> 
+> Can you help me? Who I can calculate urb size?
 
+Take a look on tm6000-video:
 
-Regards,
-Manu
+        size = usb_maxpacket(dev->udev, pipe, usb_pipeout(pipe));
+
+        if (size > dev->max_isoc_in)
+                size = dev->max_isoc_in;
+
+It depends on the alternate interface used. The driver should select an alternate
+interface that is capable of receiving the entire size of a message. Maybe the tm6000
+driver is missing the code that selects this size. Take a look on em28xx-core, at
+em28xx_set_alternate() code for an example on how this should work.
+
+The calculated size there assumes that each pixel has 16 bits, and has some magic that
+were experimentally tested on that device.
+
+Cheers,
+Mauro.
+
