@@ -1,43 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.153]:6841 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753825Ab0AKS7m convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jan 2010 13:59:42 -0500
-Received: by fg-out-1718.google.com with SMTP id 22so859463fge.1
-        for <linux-media@vger.kernel.org>; Mon, 11 Jan 2010 10:59:41 -0800 (PST)
+Received: from snt0-omc2-s13.snt0.hotmail.com ([65.55.90.88]:7731 "EHLO
+	snt0-omc2-s13.snt0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751012Ab0A0GdT convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jan 2010 01:33:19 -0500
+Message-ID: <SNT130-w4584A0C48F74BB401E4C73F45D0@phx.gbl>
+From: Gavin Ramm <gavin_ramm@hotmail.com>
+To: <linux-media@vger.kernel.org>
+Subject: RE: help: Leadtek DTV2000 DS
+Date: Wed, 27 Jan 2010 17:33:18 +1100
+In-Reply-To: <SNT130-w65FFEB98498ECA954DE96F45D0@phx.gbl>
+References: <SNT130-w530BA3C80D244EB3C39701F45F0@phx.gbl>,<4B5F870C.4040807@iki.fi>,<SNT130-w45A99AE87EEBD10A3DCD60F45D0@phx.gbl>,<SNT130-w65FFEB98498ECA954DE96F45D0@phx.gbl>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-In-Reply-To: <2df568dc1001111012u627f07b8p9ec0c2577f14b5d9@mail.gmail.com>
-References: <2df568dc1001111012u627f07b8p9ec0c2577f14b5d9@mail.gmail.com>
-Date: Mon, 11 Jan 2010 11:59:40 -0700
-Message-ID: <2df568dc1001111059p54de8635k6c207fb3f4d96a14@mail.gmail.com>
-Subject: How to use saa7134 gpio via gpio-sysfs?
-From: Gordon Smith <spider.karma+linux-media@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I need to bit twiddle saa7134 gpio pins from userspace.
-To use gpio-sysfs, I need a "GPIO number" to export each pin, but I
-do not know how to find such a number.
 
-Card is RTD Embedded Technologies VFG7350 [card=72,autodetected].
-GPIO uses pcf8574 chip.
-Kernel is 2.6.30.
 
-gpio-sysfs creates
-    /sys/class/gpio/export
-    /sys/class/gpio/import
-but no gpio<n> entries so far.
 
->From dmesg ("gpiotracking=1")
-    saa7133[0]: board init: gpio is 10000
-    saa7133[0]: gpio: mode=0x0000000 in=0x4011000 out=0x0000000 [pre-init]
-    saa7133[1]: board init: gpio is 10000
-    saa7133[1]: gpio: mode=0x0000000 in=0x4010f00 out=0x0000000 [pre-init]
+----------------------------------------
+> From: gavin_ramm@hotmail.com
+> To: linux-media@vger.kernel.org
+> Subject: RE: help: Leadtek DTV2000 DS
+> Date: Wed, 27 Jan 2010 17:22:27 +1100
+>
+>
+>
+>
+> ----------------------------------------
+>> From: gavin_ramm@hotmail.com
+>> To: linux-media@vger.kernel.org
+>> Subject: RE: help: Leadtek DTV2000 DS
+>> Date: Wed, 27 Jan 2010 13:07:49 +1100
+>>
+>>
+>>
+>>
+>> ----------------------------------------
+>>> Date: Wed, 27 Jan 2010 02:21:32 +0200
+>>> From: crope@iki.fi
+>>> To: gavin_ramm@hotmail.com
+>>> CC: linux-media@vger.kernel.org
+>>> Subject: Re: help: Leadtek DTV2000 DS
+>>>
+>>> Terve Gavin,
+>>>
+>>> On 01/25/2010 01:44 PM, Gavin Ramm wrote:
+>>>> Tried the current build of v4l-dvb (as of 25/01/2010) for a Leadtek DTV2000 DS.
+>>>> product site : http://www.leadtek.com/eng/tv_tuner/overview.asp?lineid=6&pronameid=530&check=f
+>>>>
+>>>> The chipset are AF9015 + AF9013 and the tuner is TDA18211..
+>>>> Im running it on mythdora 10.21 *fedora 10* i've had no luck with this.
+>>>>
+>>>> Any help would be great.. im willing to test..
+>>>
+>>> I added support for that device, could you test now?
+>>> http://linuxtv.org/hg/~anttip/af9015/
+>>>
 
-How may I find each "GPIO number" for this board?
 
-Thanks in advance for any help.
+I created a channels.conf via the output tried in xine and it worked.. tried in mythtv and it picked a few up only by importing the channels.conf. The auto scan in mythtv didn't work (which is out of scope i'd say) 		 	   		  
+_________________________________________________________________
+Time for a new car? Sell your old one fast!
+http://clk.atdmt.com/NMN/go/157637060/direct/01/
