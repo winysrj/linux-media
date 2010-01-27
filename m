@@ -1,49 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f228.google.com ([209.85.219.228]:51586 "EHLO
-	mail-ew0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752161Ab0A2S3h (ORCPT
+Received: from smtp3-g21.free.fr ([212.27.42.3]:52194 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753838Ab0A0Sfs convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jan 2010 13:29:37 -0500
-Received: by ewy28 with SMTP id 28so118082ewy.28
-        for <linux-media@vger.kernel.org>; Fri, 29 Jan 2010 10:29:35 -0800 (PST)
-Message-ID: <4B63290D.20104@googlemail.com>
-Date: Fri, 29 Jan 2010 18:29:33 +0000
-From: David Henig <dhhenig@googlemail.com>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Francis Barber <fedora@barber-family.id.au>,
-	leandro Costantino <lcostantino@gmail.com>,
-	=?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>,
-	linux-media@vger.kernel.org
-Subject: Re: Make failed - standard ubuntu 9.10
-References: <4B62113E.40905@googlemail.com> <4B627EAE.7020303@freemail.hu>	 <4B62A967.3010400@googlemail.com>	 <c2fe070d1001290430v472c8040r2a61c7904ef7234d@mail.gmail.com>	 <4B62F048.1010506@googlemail.com>	 <4B62F620.6020105@barber-family.id.au>	 <4B6306AA.8000103@googlemail.com> <829197381001290916m4eeb9271x1c858d6a6d0b9b3b@mail.gmail.com>
-In-Reply-To: <829197381001290916m4eeb9271x1c858d6a6d0b9b3b@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Wed, 27 Jan 2010 13:35:48 -0500
+Received: from smtp3-g21.free.fr (localhost [127.0.0.1])
+	by smtp3-g21.free.fr (Postfix) with ESMTP id C265E8181E6
+	for <linux-media@vger.kernel.org>; Wed, 27 Jan 2010 19:35:43 +0100 (CET)
+Received: from tele (qrm29-1-82-245-201-222.fbx.proxad.net [82.245.201.222])
+	by smtp3-g21.free.fr (Postfix) with ESMTP id 9916381815F
+	for <linux-media@vger.kernel.org>; Wed, 27 Jan 2010 19:35:40 +0100 (CET)
+Date: Wed, 27 Jan 2010 19:37:28 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Setting up white balance on a t613 camera
+Message-ID: <20100127193728.0a75ba1e@tele>
+In-Reply-To: <20100127171753.GA10865@pathfinder.pcs.usp.br>
+References: <20100126170053.GA5995@pathfinder.pcs.usp.br>
+	<20100126193726.00bcbc00@tele>
+	<20100127163709.GA10435@pathfinder.pcs.usp.br>
+	<20100127171753.GA10865@pathfinder.pcs.usp.br>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks, this is sounding promising, only thing is I'm not seeing a 
-.config in the v4l directory although it shows up with the locate 
-command, am I missing something very obvious.
+On Wed, 27 Jan 2010 15:17:53 -0200
+Nicolau Werneck <nwerneck@gmail.com> wrote:
 
-David
+> Answering my own question, and also a question in the t613 source
+> code...
+> 
+> Yes, the need for the "reg_w(gspca_dev, 0x2087);", 0x2088 and 0x2089
+> commands are definitely tied to the white balance. These three set up
+> the default values I found out. And (X << 8 + 87) sets up the red
+> channel parameter in general, and 88 is for green and 89 for blue.
+> 
+> That means I can already just play with them and see what happens. My
+> personal problem is that I bought this new lens, and the image is way
+> too bright, and changing that seems to help. But I would like to offer
+> these as parameters the user can set using v4l2 programs. I can try
+> making that big change myself, but help from a more experienced
+> developer would be certainly much appreciated!...
 
-Devin Heitmueller wrote:
-> On Fri, Jan 29, 2010 at 11:02 AM, David Henig <dhhenig@googlemail.com> wrote:
->   
->> Thanks, I appear to have the headers and no longer have to do the symlink,
->> but still getting the same error - any help gratefully received, or do I
->> need to get a vanilla kernel?
->>     
->
-> Open up the file v4l/.config and change the line for firedtv from "=m"
-> to "=n".  Then run "make".
->
-> This is a known packaging bug in Ubuntu's kernel headers.
->
-> Cheers,
->
-> Devin
->
->   
+Hello Nicolau,
+
+The white balance is set in setwhitebalance(). Four registers are
+changed: 87, 88, 89 and 80.
+
+Looking at the traces I have, these 4 registers are loaded together only
+one time in an exchange at startup time. Then, the white balance
+control adjusts only blue and red values while reloading the same value
+for the green register (that's what is done for other webcams), and the
+register 80 is not touched. In the different traces, the register 80
+may be initialized to various values as 3c, ac or 38 and it is not
+touched later. I do not know what it is used for.
+
+I may also notice that the green value in the white balance exchanges
+may have an other value than the default 20. I do not know which is the
+associated control in the ms-win driver. If it is exposure, you are
+done. So, one trivial patch is:
+
+- add the exposure control with min: 0x10, max: 0x40, def: 0x20.
+
+- modify the whitebalance control with min: -16, max +16, def:0.
+
+- there is no function setexposure() because the exposure is the value
+  of green register. Both controls exposure and white balance call the
+  function setwhitebalance().
+
+- in the function setwhitebalance(), set the green value to the
+  exposure, the red value to (exposure + whitebalance) and blue value
+  to (exposure - whitebalance) and load only the registers 87, 88 and
+  89.
+
+An other way could be to implement the blue and red balances in the
+same scheme, and to remove the whitebalance.
+
+Cheers.
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
