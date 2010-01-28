@@ -1,48 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f220.google.com ([209.85.220.220]:54485 "EHLO
-	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932116Ab0ATSbP (ORCPT
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:58273 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755771Ab0A1JTF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jan 2010 13:31:15 -0500
-Received: by fxm20 with SMTP id 20so402015fxm.1
-        for <linux-media@vger.kernel.org>; Wed, 20 Jan 2010 10:31:11 -0800 (PST)
+	Thu, 28 Jan 2010 04:19:05 -0500
 MIME-Version: 1.0
-In-Reply-To: <135ab3ff1001200926j9917d69x51eede94512fa664@mail.gmail.com>
-References: <135ab3ff1001200926j9917d69x51eede94512fa664@mail.gmail.com>
-Date: Wed, 20 Jan 2010 13:00:44 -0500
-Message-ID: <829197381001201000x58aadea5wab0948691d9a4c4f@mail.gmail.com>
-Subject: Re: Drivers for Eyetv hybrid
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Morten Friesgaard <friesgaard@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <4B60CB5A.7000109@epfl.ch>
+References: <4B60CB5A.7000109@epfl.ch>
+From: Kay Sievers <kay.sievers@vrfy.org>
+Date: Thu, 28 Jan 2010 10:18:46 +0100
+Message-ID: <ac3eb2511001280118s4e00dca3l905a8ed7d532bde2@mail.gmail.com>
+Subject: Re: [Q] udev and soc-camera
+To: Valentin Longchamp <valentin.longchamp@epfl.ch>
+Cc: linux-media@vger.kernel.org, linux-hotplug@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jan 20, 2010 at 12:26 PM, Morten Friesgaard
-<friesgaard@gmail.com> wrote:
-> Hello.
-> I installed mythbuntu 9.10 this week on some old hardware, I had a
-> Hauppauge 500MCE PVR in and made it work fairly easy. I'm used to
-> gentoo
+On Thu, Jan 28, 2010 at 00:25, Valentin Longchamp
+<valentin.longchamp@epfl.ch> wrote:
+> I have a system that is built with OpenEmbedded where I use a mt9t031 camera
+> with the soc-camera framework. The mt9t031 works ok with the current kernel
+> and system.
 >
-> However, I want to record HD signal, so I plugged in a Eyetv hybrid
-> and followed this guide
-> http://ubuntuforums.org/showthread.php?t=1015387
+> However, udev does not create the /dev/video0 device node. I have to create
+> it manually with mknod and then it works well. If I unbind the device on the
+> soc-camera bus (and then eventually rebind it), udev then creates the node
+> correctly. This looks like a "timing" issue at "coldstart".
 >
-> I extracted the driver, put it in into /lib/firmware, modprobed
-> em28xx, rebooted. When I plug in the device, it is not recognised. I
-> tried both usb ports. The ID is "0fd9:0018", which is somewhat
-> different from similar hardware e.g. Hauppauge wintv-hvr-950 (ID
-> 2040:6513 http://www.linuxtv.org/wiki/index.ph..._WinTV-HVR-950 )
+> OpenEmbedded currently builds udev 141 and I am using kernel 2.6.33-rc5 (but
+> this was already like that with earlier kernels).
+>
+> Is this problem something known or has at least someone already experienced
+> that problem ?
 
-It's a totally different hardware design, nothing like the older
-version of the EyeTV Hybrid (which was just a clone of the HVR-950).
+You need to run "udevadm trigger" as the bootstrap/coldplug step,
+after you stared udev. All the devices which are already there at that
+time, will not get created by udev, only new ones which udev will see
+events for. The trigger will tell the kernel to send all events again.
 
-It is unsupported currently (and nobody is working on it to my knowledge).
+Or just use the kernel's devtmpfs, and all this should work, even
+without udev, if you do not have any other needs than plain device
+nodes.
 
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Kay
