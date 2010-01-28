@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.5])
-	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o0MNUK24021796
-	for <video4linux-list@redhat.com>; Fri, 22 Jan 2010 18:30:20 -0500
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.152])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o0MNTuQD014484
-	for <video4linux-list@redhat.com>; Fri, 22 Jan 2010 18:29:56 -0500
-Received: by fg-out-1718.google.com with SMTP id 22so124174fge.9
-	for <video4linux-list@redhat.com>; Fri, 22 Jan 2010 15:29:55 -0800 (PST)
+Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.11])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o0S9ljTS023342
+	for <video4linux-list@redhat.com>; Thu, 28 Jan 2010 04:47:45 -0500
+Received: from mail-pw0-f52.google.com (mail-pw0-f52.google.com
+	[209.85.160.52])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o0S9lTEI022516
+	for <video4linux-list@redhat.com>; Thu, 28 Jan 2010 04:47:30 -0500
+Received: by pwi8 with SMTP id 8so396573pwi.11
+	for <video4linux-list@redhat.com>; Thu, 28 Jan 2010 01:47:29 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <14502.66.15.212.169.1264185677.squirrel@sensoray.com>
-References: <13c9a3ca1001211916n558736e9ic8dc17f4dfe99d37@mail.gmail.com>
-	<4B595835.1030801@gmail.com> <000001ca9b8d$12a3d020$37eb7060$@com>
-	<14502.66.15.212.169.1264185677.squirrel@sensoray.com>
-Date: Fri, 22 Jan 2010 15:29:54 -0800
-Message-ID: <13c9a3ca1001221529k43f24c00u4dd2e268fa648ba0@mail.gmail.com>
-Subject: Re: streamer
-From: Cristiana Tenti <cristenti@gmail.com>
-To: video4linux-list@redhat.com
+Date: Thu, 28 Jan 2010 10:47:29 +0100
+Message-ID: <fe6fd5f61001280147gd26f70cl8f8dcb8a80b20071@mail.gmail.com>
+Subject: do soc_camera has "VIDIOC_S_FMT"?
+From: Carlos Lavin <carlos.lavin@vista-silicon.com>
+To: video4linux-list <video4linux-list@redhat.com>
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,25 +23,19 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Thank you guys!!!!
-
-
-Now I`m trying all solutions you have suggested me... I'll keep you bring up
-to date :)))
-
-Have a nice weekend!
-
-Cheers
-
--- 
--Cristiana
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+SGVsbG8sSSBhbSB3b3JraW5nIHdpdGggYW4gYXBwbGljYXRpb24gb2YgdmlkZW8gd2l0aCBhIGRy
+aXZlciB0aGF0IHdvcmtzCndpdGggc29jLWNhbWVyYSBzdWJzeXRlbSBpbiB2ZXJzaW9uIDIuNi4z
+MCwgSSBuZWVkIHdvcmsgaW4gdGhpcyB2ZXJzaW9uLCBzbwppbiB0aGUgbmVnb3RhdGlvbiBvZiBm
+b3JtYXQgb2YgZGF0YSBhbmQgcGFyYW1zLCBJIGhhdmUgYW4gZXJyb3Igd2l0aCB0aGUKaW9jdGwg
+IlZJRElPQ19TX0ZNVCIuIEkgaGF2ZSBsb29raW5nIGF0IGluIHRoZSBmaWxlIHNvYy1jYW1lcmEg
+YnV0IEkgaGF2ZW4ndApmb3VuZCBlcXVpdmFsZW5jZSB3aXRoIHRoaXMgaW9jdGwsIG1pIHF1ZXN0
+aW9uIGlzOiBob3cgY2FuIEkgaW1wbGVtZW50ZWQKdGhpcyBJb2N0bD8K4pmrCi0tCnZpZGVvNGxp
+bnV4LWxpc3QgbWFpbGluZyBsaXN0ClVuc3Vic2NyaWJlIG1haWx0bzp2aWRlbzRsaW51eC1saXN0
+LXJlcXVlc3RAcmVkaGF0LmNvbT9zdWJqZWN0PXVuc3Vic2NyaWJlCmh0dHBzOi8vd3d3LnJlZGhh
+dC5jb20vbWFpbG1hbi9saXN0aW5mby92aWRlbzRsaW51eC1saXN0
