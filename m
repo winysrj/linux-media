@@ -1,109 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2144 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753653Ab0AVUNl (ORCPT
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:41264 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751854Ab0A1OT7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jan 2010 15:13:41 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id o0MKDdwS067611
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 22 Jan 2010 21:13:40 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 22 Jan 2010 21:13:39 +0100 (CET)
-Message-Id: <201001222013.o0MKDdwS067611@smtp-vbr14.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: WARNINGS
+	Thu, 28 Jan 2010 09:19:59 -0500
+Received: by bwz27 with SMTP id 27so501333bwz.21
+        for <linux-media@vger.kernel.org>; Thu, 28 Jan 2010 06:19:58 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4B61990E.5010604@epfl.ch>
+References: <4B60CB5A.7000109@epfl.ch> <ac3eb2511001280118s4e00dca3l905a8ed7d532bde2@mail.gmail.com>
+	<4B61990E.5010604@epfl.ch>
+From: Kay Sievers <kay.sievers@vrfy.org>
+Date: Thu, 28 Jan 2010 15:13:50 +0100
+Message-ID: <ac3eb2511001280613p698ad22fmb436650122f3a2eb@mail.gmail.com>
+Subject: Re: [Q] udev and soc-camera
+To: Valentin Longchamp <valentin.longchamp@epfl.ch>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-hotplug@vger.kernel.org" <linux-hotplug@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Thu, Jan 28, 2010 at 15:02, Valentin Longchamp
+<valentin.longchamp@epfl.ch> wrote:
+> Kay Sievers wrote:
+> Thanks a lot Kay, you pointed me exactly where I needed to watch.
+> OpenEmbedded adds udevadm trigger a big list of --susbsystem-nomatch options
+> as soon as you are not doing your first boot anymore and video4linux is
+> among them.
+>
+> I either have to remove this option in the script or understand why my other
+> /dev nodes are kept (ttys are doing fine with the same treatment for
+> instance) and not video4linux ones (it looks like they are using DEVCACHE or
+> something like this). But I would prefer the first alternative since cameras
+> may be unplugged on some robots.
 
-Results of the daily build of v4l-dvb:
+Really, that logic sounds awfully wrong. Any /dev-caching and games
+with skipping selected subsystems at coldplug can never reliably work
+as you have found out. :) You should definitely go for devtmpfs
+instead of such needless and misguided hacks, if a plain "udevadm
+trigger" does not work for some reason.
 
-date:        Fri Jan 22 19:00:07 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14014:e4429a1b736c
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
-
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-armv5: OK
-linux-2.6.33-rc2-armv5: OK
-linux-2.6.32-armv5-davinci: WARNINGS
-linux-2.6.33-rc2-armv5-davinci: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.31-armv5-ixp: WARNINGS
-linux-2.6.32-armv5-ixp: WARNINGS
-linux-2.6.33-rc2-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.31-armv5-omap2: WARNINGS
-linux-2.6.32-armv5-omap2: WARNINGS
-linux-2.6.33-rc2-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-i686: WARNINGS
-linux-2.6.33-rc2-i686: WARNINGS
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-m32r: OK
-linux-2.6.33-rc2-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: WARNINGS
-linux-2.6.32-mips: WARNINGS
-linux-2.6.33-rc2-mips: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-powerpc64: WARNINGS
-linux-2.6.32-powerpc64: WARNINGS
-linux-2.6.33-rc2-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-x86_64: WARNINGS
-linux-2.6.33-rc2-x86_64: WARNINGS
-spec: OK
-sparse (linux-2.6.32): ERRORS
-sparse (linux-2.6.33-rc2): ERRORS
-linux-2.6.16.61-i686: OK
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: OK
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: OK
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Good luck.
+Kay
