@@ -1,37 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.juropnet.hu ([212.24.188.131]:41838 "EHLO mail.juropnet.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750938Ab0ABRjL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 2 Jan 2010 12:39:11 -0500
-Received: from kabelnet-196-226.juropnet.hu ([91.147.196.226])
-	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.69)
-	(envelope-from <istvan_v@mailbox.hu>)
-	id 1NR7E2-0005Qh-0a
-	for linux-media@vger.kernel.org; Sat, 02 Jan 2010 17:53:16 +0100
-Message-ID: <4B3F7B0D.4030601@mailbox.hu>
-Date: Sat, 02 Jan 2010 17:57:49 +0100
-From: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
-MIME-Version: 1.0
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2843 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751042Ab0A1Trp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2010 14:47:45 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id o0SJlhVt018961
+	for <linux-media@vger.kernel.org>; Thu, 28 Jan 2010 20:47:44 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 28 Jan 2010 20:47:43 +0100 (CET)
+Message-Id: <201001281947.o0SJlhVt018961@smtp-vbr11.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: Re: DTV2000 H Plus issues
-References: <4B3F6FE0.4040307@internode.on.net>
-In-Reply-To: <4B3F6FE0.4040307@internode.on.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/02/2010 05:10 PM, Raena Lea-Shannon wrote:
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-> I have 2 TV Cards. The DTV2000 H Plus and a Technisat. The Technisat
-> works very well. I am trying to get the DVT working for other video
-> input devices such as VCR to make copies of old Videos and an inteface
-> for my N95 video out.
-> 
-> I do not seem to be able to get it to find a tuner. Seems to be problem
-> finding the card. Any suggestions wold be greatly appreciated.
+Results of the daily build of v4l-dvb:
 
-This card uses an Xceive XC4000 tuner, which is not supported yet.
-However, a driver for the tuner chip is being developed at
-kernellabs.com, so the card may become supported in the future.
+date:        Thu Jan 28 19:00:03 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14064:31eaa9423f98
+gcc version: i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:     2.6.32.5
+
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-rc5-armv5: OK
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-rc5-armv5-davinci: WARNINGS
+linux-2.6.32.6-armv5-dm365: ERRORS
+linux-2.6.33-rc5-armv5-dm365: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-rc5-armv5-ixp: WARNINGS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-rc5-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.17-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-rc5-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-rc5-m32r: OK
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-rc5-mips: WARNINGS
+linux-2.6.32.6-powerpc64: ERRORS
+linux-2.6.33-rc5-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.17-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-rc5-x86_64: WARNINGS
+spec: OK
+sparse (linux-2.6.32.6): ERRORS
+sparse (linux-2.6.33-rc5): ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: OK
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
