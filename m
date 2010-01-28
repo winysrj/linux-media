@@ -1,132 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:17576 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753455Ab0AaNAf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 Jan 2010 08:00:35 -0500
-Message-ID: <4B6575AC.7060100@redhat.com>
-Date: Sun, 31 Jan 2010 13:21:00 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from smtp0.epfl.ch ([128.178.224.219]:43088 "HELO smtp0.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750703Ab0A1OC6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2010 09:02:58 -0500
+Message-ID: <4B61990E.5010604@epfl.ch>
+Date: Thu, 28 Jan 2010 15:02:54 +0100
+From: Valentin Longchamp <valentin.longchamp@epfl.ch>
 MIME-Version: 1.0
-To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-CC: Jean-Francois Moine <moinejf@free.fr>,
-	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	Thomas Kaiser <thomas@kaiser-linux.li>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH, RFC] gspca pac7302: add USB PID range based on heuristics
-References: <4B655949.50102@freemail.hu>
-In-Reply-To: <4B655949.50102@freemail.hu>
+To: Kay Sievers <kay.sievers@vrfy.org>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-hotplug@vger.kernel.org" <linux-hotplug@vger.kernel.org>
+Subject: Re: [Q] udev and soc-camera
+References: <4B60CB5A.7000109@epfl.ch> <ac3eb2511001280118s4e00dca3l905a8ed7d532bde2@mail.gmail.com>
+In-Reply-To: <ac3eb2511001280118s4e00dca3l905a8ed7d532bde2@mail.gmail.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Kay Sievers wrote:
+> On Thu, Jan 28, 2010 at 00:25, Valentin Longchamp
+> <valentin.longchamp@epfl.ch> wrote:
+>> I have a system that is built with OpenEmbedded where I use a mt9t031 camera
+>> with the soc-camera framework. The mt9t031 works ok with the current kernel
+>> and system.
+>>
+>> However, udev does not create the /dev/video0 device node. I have to create
+>> it manually with mknod and then it works well. If I unbind the device on the
+>> soc-camera bus (and then eventually rebind it), udev then creates the node
+>> correctly. This looks like a "timing" issue at "coldstart".
+>>
+>> OpenEmbedded currently builds udev 141 and I am using kernel 2.6.33-rc5 (but
+>> this was already like that with earlier kernels).
+>>
+>> Is this problem something known or has at least someone already experienced
+>> that problem ?
+> 
+> You need to run "udevadm trigger" as the bootstrap/coldplug step,
+> after you stared udev. All the devices which are already there at that
+> time, will not get created by udev, only new ones which udev will see
+> events for. The trigger will tell the kernel to send all events again.
+> 
+> Or just use the kernel's devtmpfs, and all this should work, even
+> without udev, if you do not have any other needs than plain device
+> nodes.
+> 
 
-On 01/31/2010 11:19 AM, Németh Márton wrote:
-> Hi,
->
-> as I was reading the PixArt PAC7301/PAC7302 datasheet
-> ( http://www.pixart.com.tw/upload/PAC7301_7302%20%20Spec%20V1_20091228174030.pdf )
-> I recognised a little description on the schematics. This is about how to
-> set up the USB Product ID from range 0x2620..0x262f via hardware wires.
->
-> I had the idea that the list of supported devices could be extended with the full
-> range because the System on a Chip internals will not change just because it is
-> configured to a different USB Product ID.
->
-> I don't know much about the maintenance implications that's why I'm very
-> much listening to the comments of this idea.
->
-> So, what do you think?
->
+Thanks a lot Kay, you pointed me exactly where I needed to watch. 
+OpenEmbedded adds udevadm trigger a big list of --susbsystem-nomatch 
+options as soon as you are not doing your first boot anymore and 
+video4linux is among them.
 
-Seems like a good idea to me.
+I either have to remove this option in the script or understand why my 
+other /dev nodes are kept (ttys are doing fine with the same treatment 
+for instance) and not video4linux ones (it looks like they are using 
+DEVCACHE or something like this). But I would prefer the first 
+alternative since cameras may be unplugged on some robots.
 
-Regards,
+Val
 
-Hans
-
-> Regards,
->
-> 	Márton Németh
->
-> ---
-> From: Márton Németh<nm127@freemail.hu>
->
-> On the schematics in PixArt PAC7301/PAC7302 datasheet
-> (http://www.pixart.com.tw/upload/PAC7301_7302%20%20Spec%20V1_20091228174030.pdf)
-> pages 19, 20, 21 and 22 there is a note titled "PID IO_TRAP" which describes
-> the possible product ID range 0x2620..0x262f. In this range there are some
-> known webcams, however, there are some PIDs with unknown or future devices.
-> Because PixArt PAC7301/PAC7302 is a System on a Chip (SoC) device is is
-> probable that this driver will work correctly independent of the used PID.
->
-> Signed-off-by: Márton Németh<nm127@freemail.hu>
-> ---
-> diff -r dfa82cf98a85 linux/drivers/media/video/gspca/pac7302.c
-> --- a/linux/drivers/media/video/gspca/pac7302.c	Sat Jan 30 20:03:02 2010 +0100
-> +++ b/linux/drivers/media/video/gspca/pac7302.c	Sun Jan 31 11:08:21 2010 +0100
-> @@ -96,6 +96,7 @@
->   	u8 flags;
->   #define FL_HFLIP 0x01		/* mirrored by default */
->   #define FL_VFLIP 0x02		/* vertical flipped by default */
-> +#define FL_EXPERIMENTAL 0x80	/* USB IDs based on heuristic without any known product */
->
->   	u8 sof_read;
->   	u8 autogain_ignore_frames;
-> @@ -1220,17 +1221,33 @@
->   };
->
->   /* -- module initialisation -- */
-> +/* Note on FL_EXPERIMENTAL:
-> + * On the schematics in PixArt PAC7301/PAC7302 datasheet
-> + * (http://www.pixart.com.tw/upload/PAC7301_7302%20%20Spec%20V1_20091228174030.pdf)
-> + * pages 19, 20, 21 and 22 there is a note titled "PID IO_TRAP" which describes
-> + * the possible product ID range 0x2620..0x262f. In this range there are some
-> + * known webcams, however, there are some PIDs with unknown or future devices.
-> + * Because PixArt PAC7301/PAC7302 is a System on a Chip (SoC) device is is
-> + * probable that this driver will work correctly independent of the used PID.
-> + */
->   static const struct usb_device_id device_table[] __devinitconst = {
->   	{USB_DEVICE(0x06f8, 0x3009)},
->   	{USB_DEVICE(0x093a, 0x2620)},
->   	{USB_DEVICE(0x093a, 0x2621)},
->   	{USB_DEVICE(0x093a, 0x2622), .driver_info = FL_VFLIP},
-> +	{USB_DEVICE(0x093a, 0x2623), .driver_info = FL_EXPERIMENTAL },
->   	{USB_DEVICE(0x093a, 0x2624), .driver_info = FL_VFLIP},
-> +	{USB_DEVICE(0x093a, 0x2625), .driver_info = FL_EXPERIMENTAL },
->   	{USB_DEVICE(0x093a, 0x2626)},
-> +	{USB_DEVICE(0x093a, 0x2627), .driver_info = FL_EXPERIMENTAL },
->   	{USB_DEVICE(0x093a, 0x2628)},
->   	{USB_DEVICE(0x093a, 0x2629), .driver_info = FL_VFLIP},
->   	{USB_DEVICE(0x093a, 0x262a)},
-> +	{USB_DEVICE(0x093a, 0x262b), .driver_info = FL_EXPERIMENTAL },
->   	{USB_DEVICE(0x093a, 0x262c)},
-> +	{USB_DEVICE(0x093a, 0x262d), .driver_info = FL_EXPERIMENTAL },
-> +	{USB_DEVICE(0x093a, 0x262e), .driver_info = FL_EXPERIMENTAL },
-> +	{USB_DEVICE(0x093a, 0x262f), .driver_info = FL_EXPERIMENTAL },
->   	{}
->   };
->   MODULE_DEVICE_TABLE(usb, device_table);
-> @@ -1239,6 +1256,17 @@
->   static int __devinit sd_probe(struct usb_interface *intf,
->   			const struct usb_device_id *id)
->   {
-> +	if ((u8)id->driver_info&  FL_EXPERIMENTAL) {
-> +		PDEBUG(D_ERR | D_PROBE, "WARNING: USB device ID %04x:%04x is "
-> +			"not known, but based on some heuristics this driver "
-> +			"tries to handle it.",
-> +			id->idVendor, id->idProduct);
-> +		PDEBUG(D_ERR | D_PROBE, "WARNING: Plase send an email to "
-> +			"linux-media@vger.kernel.org with 'lsusb -v' output, "
-> +			"the vendor and name of the product and whether the "
-> +			"device is working or not.");
-> +	}
-> +
->   	return gspca_dev_probe(intf, id,&sd_desc, sizeof(struct sd),
->   				THIS_MODULE);
->   }
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Valentin Longchamp, PhD Student, EPFL-STI-LSRO1
+valentin.longchamp@epfl.ch, Phone: +41216937827
+http://people.epfl.ch/valentin.longchamp
+MEB3494, Station 9, CH-1015 Lausanne
