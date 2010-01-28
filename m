@@ -1,61 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from psmtp30.wxs.nl ([195.121.247.32]:39933 "EHLO psmtp30.wxs.nl"
+Received: from mail1.radix.net ([207.192.128.31]:63684 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754099Ab0AQUe7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jan 2010 15:34:59 -0500
-Received: from verminac.speed.planet.nl
- (ip503cf398.speed.planet.nl [80.60.243.152])
- by psmtp30.wxs.nl (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14
- 2006)) with ESMTP id <0KWE0043BRUAJK@psmtp30.wxs.nl> for
- linux-media@vger.kernel.org; Sun, 17 Jan 2010 21:34:58 +0100 (MET)
-Received: from mail.vermin.nl (unknown [192.168.1.5])
-	by verminac.speed.planet.nl (Postfix) with ESMTP id F24092909FF	for
- <linux-media@vger.kernel.org>; Sun, 17 Jan 2010 21:34:57 +0100 (CET)
-Date: Sun, 17 Jan 2010 21:34:57 +0100 (CET)
-From: Sander Vermin <sander@vermin.nl>
-Subject: Status of TT C1501
-To: linux-media@vger.kernel.org
-Reply-to: sander@vermin.nl
-Message-id: <44303.83.86.78.248.1263760497.squirrel@mail.vermin.nl>
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Content-transfer-encoding: 7BIT
+	id S1754155Ab0A1M0b (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2010 07:26:31 -0500
+Subject: Re: cx18 fix patches
+From: Andy Walls <awalls@radix.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <4B60F901.20301@redhat.com>
+References: <4B60F901.20301@redhat.com>
+Content-Type: text/plain
+Date: Thu, 28 Jan 2010 07:26:02 -0500
+Message-Id: <1264681562.3081.3.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On Thu, 2010-01-28 at 00:40 -0200, Mauro Carvalho Chehab wrote:
+> Hi Andy,
+> 
+> I've made two fix patches to solve the issues with cx18 compilation.
+> My original intention were to send you an email for your ack.
+> 
+> Unfortunately, those got added at the wrong branch and went upstream.
+> 
+> That proofs that my scripts aren't reliable yet, and that I need
+> an independent tree for such patches... I hope I have enough disk for all
+> those trees...
 
-I bought a TechnoTrend C-1501 witch has:
-Philips tda827x
-Philips tda10023 Demodulator
-Philips saa7146ah PCI-Bridge
+I understand.
 
-I have got the channel scan working, but I cant get it to tune to a channel.
 
-When I tune to a channel this happens:
-czap -c ~/.czap/czap-final.txt "Nederland 1"
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
- 84 Nederland 1:388000000:INVERSION_AUTO:6875000:FEC_NONE:QAM_64:88:89:8004
-ERROR: cannot parse service data
+> As we can't rebase the -git tree without breaking the replicas,
+> I'd like you to review the patches:
+> 
+> http://git.linuxtv.org/v4l-dvb.git?a=commit;h=701ca4249401fe9705a66ad806e933f15cb42489
+> http://git.linuxtv.org/v4l-dvb.git?a=commit;h=dd01705f6a6f732ca95d20959a90dd46482530df
+> 
+> If a committed patch is bad, the remaining solution is to write a patch reverting
+> it, and generating some dirty at the git logs.
+> 
+> So, I hope both patches are ok...
+> 
+> Please test.
 
-When I try to scan channels in a mux I get:
-scandvb -c
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-WARNING: filter timeout pid 0x0011
-WARNING: filter timeout pid 0x0000
-dumping lists (0 services)
-Done.
+I had coordinated with Devin on IRC and was going to work up fixes
+tonight. 
 
-According to linuxtv wiki it should just work fine:
-http://linuxtv.org/wiki/index.php/DVB-C_PCI_Cards
+Now I'll just review and test tonight (some time between 6:00 - 10:30
+p.m. EST)
 
-This all is at a fedora 12 x86_64 machine, I have already tried the latest
-v4l-dvb drivers. (my cable company is Ziggo here in the Netherlands
-(former Casema region))
 
-I hope someone can help me out.
+> Sorry for the mess.
 
-Best regards,
+No problem.
 
-Sander Vermin
+Regards,
+Andy
+
+> Cheers,
+> Mauro.
+
 
