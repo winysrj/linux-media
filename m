@@ -1,55 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225]:54649 "EHLO
-	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751374Ab0ABWzD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Jan 2010 17:55:03 -0500
-Received: by fxm25 with SMTP id 25so7851795fxm.21
-        for <linux-media@vger.kernel.org>; Sat, 02 Jan 2010 14:55:02 -0800 (PST)
+Received: from mail02d.mail.t-online.hu ([84.2.42.7]:51317 "EHLO
+	mail02d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754884Ab0A2UbE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jan 2010 15:31:04 -0500
+Message-ID: <4B63457D.5010702@freemail.hu>
+Date: Fri, 29 Jan 2010 21:30:53 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-In-Reply-To: <3f3a053b1001021411i2e9484d7rd2d13f1a355939fe@mail.gmail.com>
-References: <3f3a053b1001021407k6ce936b8gd7d3e575a25e734d@mail.gmail.com>
-	 <3f3a053b1001021411i2e9484d7rd2d13f1a355939fe@mail.gmail.com>
-Date: Sat, 2 Jan 2010 23:55:00 +0100
-Message-ID: <846899811001021455u28fccb5cr66fd4258d3dddd4d@mail.gmail.com>
-Subject: Re: CI USB
-From: HoP <jpetrous@gmail.com>
-To: Jonas <oj@koekenbier.net>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Janne Grunau <j@jannau.net>
+CC: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] hdpvr-core: make module parameters local
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jonas
+From: Márton Németh <nm127@freemail.hu>
 
-> Does anyone know if there's any progress on USB CI adapter support?
-> Last posts I can find are from 2008 (Terratec Cinergy CI USB &
-> Hauppauge WinTV-CI).
->
-> That attempt seems to have stranded with Luc Brosens (who gave it a
-> shot back then) asking for help.
->
-> The chip manufacturer introduced a usb stick as well;
-> http://www.smardtv.com/index.php?page=products_listing&rubrique=pctv&section=usbcam
-> but besides the scary Vista logo on that page, it looks like they
-> target broadcast companies only and not end users.
->
+The default_video_input and default_audio_input module parameters are
+only used inside the hdpvr-core.c file so make them static.
 
-You are right. Seems DVB CI stick is not targeted to end consumers.
+This will remove the following sparse warnings (see "make C=1"):
+ * warning: symbol 'default_video_input' was not declared. Should it be static?
+ * warning: symbol 'default_audio_input' was not declared. Should it be static?
 
-Anyway, it looks interesting, even it requires additional DVB tuner
-"somewhere in the pc" what means duplicated traffic (to the CI stick
-for descrambling and back for mpeg a/v decoding).
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+diff -r 8b9a62386b64 linux/drivers/media/video/hdpvr/hdpvr-core.c
+--- a/linux/drivers/media/video/hdpvr/hdpvr-core.c	Fri Jan 29 01:23:57 2010 -0200
++++ b/linux/drivers/media/video/hdpvr/hdpvr-core.c	Fri Jan 29 21:25:45 2010 +0100
+@@ -39,12 +39,12 @@
+ module_param(hdpvr_debug, int, S_IRUGO|S_IWUSR);
+ MODULE_PARM_DESC(hdpvr_debug, "enable debugging output");
 
-It would be nice to see such stuff working in linux, but because of
-market targeting i don' t expect that.
+-uint default_video_input = HDPVR_VIDEO_INPUTS;
++static uint default_video_input = HDPVR_VIDEO_INPUTS;
+ module_param(default_video_input, uint, S_IRUGO|S_IWUSR);
+ MODULE_PARM_DESC(default_video_input, "default video input: 0=Component / "
+ 		 "1=S-Video / 2=Composite");
 
-BTW, Hauppauge's WinTV-CI looked much more promissing.
-At least when I started reading whole thread about it here:
-http://www.mail-archive.com/linux-dvb@linuxtv.org/msg28113.html
+-uint default_audio_input = HDPVR_AUDIO_INPUTS;
++static uint default_audio_input = HDPVR_AUDIO_INPUTS;
+ module_param(default_audio_input, uint, S_IRUGO|S_IWUSR);
+ MODULE_PARM_DESC(default_audio_input, "default audio input: 0=RCA back / "
+ 		 "1=RCA front / 2=S/PDIF");
 
-Unfortunatelly, last Steve's note about not getting anything
-(even any answer) has disappointed me fully. And because
-google is quiet about any progress on it I pressume
-no any docu nor driver was released later on.
 
-/Honza
