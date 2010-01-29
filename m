@@ -1,41 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:61506 "EHLO znsun1.ifh.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754306Ab0ASLt4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jan 2010 06:49:56 -0500
-Date: Tue, 19 Jan 2010 12:49:36 +0100 (CET)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Johannes Stezenbach <js@linuxtv.org>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Douglas Landgraf <dougsland@gmail.com>
-Subject: Re: [ANNOUNCE] git tree repositories
-In-Reply-To: <20100119112057.GC9187@linuxtv.org>
-Message-ID: <alpine.LRH.2.00.1001191248540.15376@pub3.ifh.de>
-References: <4B55445A.10300@infradead.org> <201001190853.11050.hverkuil@xs4all.nl> <201001190910.39479.pboettcher@kernellabs.com> <20100119112057.GC9187@linuxtv.org>
+Received: from mail01d.mail.t-online.hu ([84.2.42.6]:51808 "EHLO
+	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753694Ab0A2UHv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jan 2010 15:07:51 -0500
+Message-ID: <4B63400E.3000502@freemail.hu>
+Date: Fri, 29 Jan 2010 21:07:42 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Jean-Francois Moine <moinejf@free.fr>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH gspca_jf tree] gspca zc3xx: signal when unknown packet received
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 19 Jan 2010, Johannes Stezenbach wrote:
 
-> On Tue, Jan 19, 2010 at 09:10:39AM +0100, Patrick Boettcher wrote:
->>
->> BTW: I just made a clone of the git-tree - 365MB *ouff*. Maybe it's worth to
->> mention right now, that one big difference to HG in the way we have used it, is
->> that one developer now can do all the work only with one clone of v4l-dvb and
->> using branches for each development.
->
-> Please note that you SHOULD NOT clone from linuxtv.org.
-> Please follow the description on the top of
-> http://linuxtv.org/git/
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+diff -r 95d3956ea3e5 linux/drivers/media/video/gspca/zc3xx.c
+--- a/linux/drivers/media/video/gspca/zc3xx.c	Fri Jan 29 15:05:25 2010 +0100
++++ b/linux/drivers/media/video/gspca/zc3xx.c	Fri Jan 29 21:01:52 2010 +0100
+@@ -7213,14 +7213,17 @@
+ 			u8 *data,		/* interrupt packet data */
+ 			int len)		/* interrput packet length */
+ {
++	int ret = -EINVAL;
++
+ 	if (len == 8 && data[4] == 1) {
+ 		input_report_key(gspca_dev->input_dev, KEY_CAMERA, 1);
+ 		input_sync(gspca_dev->input_dev);
+ 		input_report_key(gspca_dev->input_dev, KEY_CAMERA, 0);
+ 		input_sync(gspca_dev->input_dev);
++		ret = 0;
+ 	}
 
-Of course I cloned from git.kernel.org and not from linuxtv.org. Still it 
-was my first clone of linux ever.
+-	return 0;
++	return ret;
+ }
+ #endif
 
---
-
-Patrick Boettcher - Kernel Labs
-http://www.kernellabs.com/
