@@ -1,69 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from snt0-omc2-s10.snt0.hotmail.com ([65.55.90.85]:31133 "EHLO
-	snt0-omc2-s10.snt0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753679Ab0A0LI5 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jan 2010 06:08:57 -0500
-Message-ID: <SNT130-w310DB522F4C5458EB94E4EF45D0@phx.gbl>
-From: Gavin Ramm <gavin_ramm@hotmail.com>
-To: <linux-media@vger.kernel.org>
-Subject: RE: help: Leadtek DTV2000 DS
-Date: Wed, 27 Jan 2010 22:08:57 +1100
-In-Reply-To: <SNT130-w649D6B6E5B4CD0233A2F73F45D0@phx.gbl>
-References: <SNT130-w530BA3C80D244EB3C39701F45F0@phx.gbl>,<4B5F870C.4040807@iki.fi>,<SNT130-w45A99AE87EEBD10A3DCD60F45D0@phx.gbl>,<SNT130-w65FFEB98498ECA954DE96F45D0@phx.gbl>,<SNT130-w4584A0C48F74BB401E4C73F45D0@phx.gbl>,<SNT130-w649D6B6E5B4CD0233A2F73F45D0@phx.gbl>
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mail-ew0-f228.google.com ([209.85.219.228]:51586 "EHLO
+	mail-ew0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752161Ab0A2S3h (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jan 2010 13:29:37 -0500
+Received: by ewy28 with SMTP id 28so118082ewy.28
+        for <linux-media@vger.kernel.org>; Fri, 29 Jan 2010 10:29:35 -0800 (PST)
+Message-ID: <4B63290D.20104@googlemail.com>
+Date: Fri, 29 Jan 2010 18:29:33 +0000
+From: David Henig <dhhenig@googlemail.com>
 MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Francis Barber <fedora@barber-family.id.au>,
+	leandro Costantino <lcostantino@gmail.com>,
+	=?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>,
+	linux-media@vger.kernel.org
+Subject: Re: Make failed - standard ubuntu 9.10
+References: <4B62113E.40905@googlemail.com> <4B627EAE.7020303@freemail.hu>	 <4B62A967.3010400@googlemail.com>	 <c2fe070d1001290430v472c8040r2a61c7904ef7234d@mail.gmail.com>	 <4B62F048.1010506@googlemail.com>	 <4B62F620.6020105@barber-family.id.au>	 <4B6306AA.8000103@googlemail.com> <829197381001290916m4eeb9271x1c858d6a6d0b9b3b@mail.gmail.com>
+In-Reply-To: <829197381001290916m4eeb9271x1c858d6a6d0b9b3b@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Thanks, this is sounding promising, only thing is I'm not seeing a 
+.config in the v4l directory although it shows up with the locate 
+command, am I missing something very obvious.
 
+David
 
->>>> ----------------------------------------
->>>>> Date: Wed, 27 Jan 2010 02:21:32 +0200
->>>>> From: crope@iki.fi
->>>>> To: gavin_ramm@hotmail.com
->>>>> CC: linux-media@vger.kernel.org
->>>>> Subject: Re: help: Leadtek DTV2000 DS
->>>>>
->>>>> Terve Gavin,
->>>>>
->>>>> On 01/25/2010 01:44 PM, Gavin Ramm wrote:
->>>>>> Tried the current build of v4l-dvb (as of 25/01/2010) for a Leadtek DTV2000 DS.
->>>>>> product site : http://www.leadtek.com/eng/tv_tuner/overview.asp?lineid=6&pronameid=530&check=f
->>>>>>
->>>>>> The chipset are AF9015 + AF9013 and the tuner is TDA18211..
->>>>>> Im running it on mythdora 10.21 *fedora 10* i've had no luck with this.
->>>>>>
->>>>>> Any help would be great.. im willing to test..
->>>>>
->>>>> I added support for that device, could you test now?
->>>>> http://linuxtv.org/hg/~anttip/af9015/
->>>>>
->>
->>
->> I created a channels.conf via the output tried in xine and it worked.. tried in mythtv and it picked a few up only by importing the channels.conf. The auto scan in mythtv didn't work (which is out of scope i'd say)
->> _________________________________________________________________
+Devin Heitmueller wrote:
+> On Fri, Jan 29, 2010 at 11:02 AM, David Henig <dhhenig@googlemail.com> wrote:
+>   
+>> Thanks, I appear to have the headers and no longer have to do the symlink,
+>> but still getting the same error - any help gratefully received, or do I
+>> need to get a vanilla kernel?
+>>     
 >
+> Open up the file v4l/.config and change the line for firedtv from "=m"
+> to "=n".  Then run "make".
 >
-> The card is up and running within mythtv also, forgot i rebuilt the box and didn't change it back to Australian freq...
+> This is a known packaging bug in Ubuntu's kernel headers.
 >
-> thanks alot for the help!!
+> Cheers,
 >
-> gav
-> _________________________________________________________________
-
-celebrated too soon!
- 
-the adpater0 works but all the other adapters1/2/3 do not find anything.
- 
-I've ran the identical "scan -a 1 /usr/share/dvb/dvb-t/au-Bendigo" on them all and only the first one works..
- 
-I've changed the physical arial cables also, this didn't help.. 
- 
-I have 2x of the cards installed.
- 
--gav 		 	   		  
-_________________________________________________________________
-Time for a new car? Sell your old one fast!
-http://clk.atdmt.com/NMN/go/157637060/direct/01/
+> Devin
+>
+>   
