@@ -1,77 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f220.google.com ([209.85.220.220]:41031 "EHLO
-	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755097Ab0AVRLu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jan 2010 12:11:50 -0500
-Received: by fxm20 with SMTP id 20so1531196fxm.21
-        for <linux-media@vger.kernel.org>; Fri, 22 Jan 2010 09:11:48 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <201001221742.33679.hverkuil@xs4all.nl>
-References: <f74f98341001211842y6dabbe97s1d7c362bac2d87b8@mail.gmail.com>
-	 <1264129253.3094.5.camel@palomino.walls.org>
-	 <201001221742.33679.hverkuil@xs4all.nl>
-Date: Fri, 22 Jan 2010 21:11:48 +0400
-Message-ID: <1a297b361001220911g5ae11ebfo36195d75f2e9f0e1@mail.gmail.com>
-Subject: Re: About MPEG decoder interface
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Andy Walls <awalls@radix.net>, Michael Qiu <fallwind@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail1.radix.net ([207.192.128.31]:54202 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752777Ab0A2CZh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jan 2010 21:25:37 -0500
+Subject: Re: cx18 fix patches
+From: Andy Walls <awalls@radix.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <4B60F901.20301@redhat.com>
+References: <4B60F901.20301@redhat.com>
+Content-Type: text/plain
+Date: Thu, 28 Jan 2010 21:24:05 -0500
+Message-Id: <1264731845.3095.16.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 22, 2010 at 8:42 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On Friday 22 January 2010 04:00:53 Andy Walls wrote:
->> On Fri, 2010-01-22 at 10:42 +0800, Michael Qiu wrote:
->> > Hi all,
->> >
->> >   How can I export my MPEG decoder control interface to user space?
->> >   Or in other words, which device file(/dev/xxx) should a proper
->> > driver for mpeg decoder provide?
->>
->> The MPEG decoder on a PVR-350 PCI card provides a /dev/video interface
->> (normally /dev/video16).
->>
->> The interface specification to userspace is the V4L2 API:
->>
->> http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/spec-single/v4l2.html
->
-> Not really. The v4l2 API specifies the MPEG encoder part, but not the decode
-> part.
->
-> The decoder part is (unfortunately) part of the DVB API.
->
-> Some ioctls are documented here:
->
-> http://www.linuxtv.org/downloads/v4l-dvb-apis/ch11s02.html
->
-> However, that documentation is very out of date and you are better off looking
-> in the include/linux/dvb/video.h header.
->
-> In particular the new struct video_command and associated ioctls provides
-> you with more control than the older VIDEO_CMD_ ioctls.
->
-> Note that the V4L2 API will get a new event API soon that should supercede the
-> event implementation in this video.h. The video.h implementation is pretty
-> crappy (most of what is in there is crappy: poorly designed without much thought
-> for extendability).
->
->> >   And, in linux dvb documents, all the frontend interface looks like
->> > /dev/dvb/adapter/xxx, it looks just for PCI based tv card.
->> >   If it's not a TV card, but a frontend for a embedded system without
->> > PCI, which interface should I use?
->
-> V4L2, but with the ioctls defined in dvb/video.h. See for example the ivtv
-> driver (ivtv-ioctl.c).
+On Thu, 2010-01-28 at 00:40 -0200, Mauro Carvalho Chehab wrote:
+> Hi Andy,
+> 
+> I've made two fix patches to solve the issues with cx18 compilation.
+> My original intention were to send you an email for your ack.
+> 
+> Unfortunately, those got added at the wrong branch and went upstream.
+> 
+> That proofs that my scripts aren't reliable yet, and that I need
+> an independent tree for such patches... I hope I have enough disk for all
+> those trees...
+> 
+> As we can't rebase the -git tree without breaking the replicas,
+> I'd like you to review the patches:
+> 
+> http://git.linuxtv.org/v4l-dvb.git?a=commit;h=701ca4249401fe9705a66ad806e933f15cb42489
+> http://git.linuxtv.org/v4l-dvb.git?a=commit;h=dd01705f6a6f732ca95d20959a90dd46482530df
+> 
+> If a committed patch is bad, the remaining solution is to write a patch reverting
+> it, and generating some dirty at the git logs.
+> 
+> So, I hope both patches are ok...
+
+Mauro,
+
+By visual inspection, compilation test, and module loading test on a
+kernel configured to be modular the patches are OK.
+
+I did not test with them statically recompiled in the kernel, but by
+inspection, they should be OK.
 
 
-For a DVB STB, you don't need to use V4L2 in anyway.. It doesn't make
-sense either... The presentation/scaler used with V4L2 is pretty much
-legacy code. For STB's generally DirectFB is used to give full
-control.
+Devin,
+
+I found interesting system interactions.  On my dual core x86_64 Fedora
+12 machine loading an HVR-1600 cold (no firmware has been loaded yet),
+the pulseaudio daemon opens up a CX23418 ALSA node almost immediately
+after it appears and has these effects:
+
+1. Pulseaudio tries to perform some sort of op that starts a capture on
+the PCM stream before the APU and CPU firmware has finished loading.
+This results in error messages in the log and probably an undesirable
+driver state, if there was never any firmware loaded prior - such as at
+power up.
+
+2. Pulseaudio grabs the ALSA control node for the CX23418 and won't let
+go.  If I kill the Pulseaudio process that has the node open, it just
+respawns and grabs the control node again.  This prevents unloading the
+cx18-alsa and cx18 module.
+
+3. If Pulseaudio also keeps the PCM analog stream going, then TV image
+settings are fixed to the values at the time Pulseaudio started the
+stream.  I don't think it does, but I'm not sure yet.
+
+
+My off the cuff ideas for fixes are:
+
+1. Integrate cx18-alsa functions into the driver and no longer have it
+as a module, to better coordinate firmware loading with the ALSA nodes.
+(The modular architecture appears to have been a bad choice on my part.)
+
+2. Add a module option to disable setting up the cx18-alsa device nodes.
+
+
+I'll try to work on these this Friday and Saturday.
 
 Regards,
-Manu
+Andy
+
