@@ -1,53 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:58380 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752513Ab0A2Sc5 (ORCPT
+Received: from exprod6og116.obsmtp.com ([64.18.1.37]:42693 "HELO
+	exprod6og116.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752456Ab0A2QoY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jan 2010 13:32:57 -0500
-Message-ID: <4B6329CA.2030005@infradead.org>
-Date: Fri, 29 Jan 2010 16:32:42 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Fri, 29 Jan 2010 11:44:24 -0500
+Content-class: urn:content-classes:message
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: David Henig <dhhenig@googlemail.com>,
-	Francis Barber <fedora@barber-family.id.au>,
-	leandro Costantino <lcostantino@gmail.com>,
-	=?ISO-8859-1?Q?N=E9meth_M=E1?= =?ISO-8859-1?Q?rton?=
-	<nm127@freemail.hu>, linux-media@vger.kernel.org,
-	Douglas Landgraf <dougsland@gmail.com>
-Subject: Re: Make failed - standard ubuntu 9.10
-References: <4B62113E.40905@googlemail.com> <4B627EAE.7020303@freemail.hu>	 <4B62A967.3010400@googlemail.com>	 <c2fe070d1001290430v472c8040r2a61c7904ef7234d@mail.gmail.com>	 <4B62F048.1010506@googlemail.com>	 <4B62F620.6020105@barber-family.id.au>	 <4B6306AA.8000103@googlemail.com> <829197381001290916m4eeb9271x1c858d6a6d0b9b3b@mail.gmail.com>
-In-Reply-To: <829197381001290916m4eeb9271x1c858d6a6d0b9b3b@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
+Subject: RE: [PATCH] drivers/media/common: remove unnecessary casts of void *
+Date: Fri, 29 Jan 2010 11:44:15 -0500
+Message-ID: <BD79186B4FD85F4B8E60E381CAEE1909020E96EC@mi8nycmail19.Mi8.com>
+In-Reply-To: <4B626B19.5000609@infradead.org>
+References: <201001081551.42264.hartleys@visionengravers.com> <4B626B19.5000609@infradead.org>
+From: "H Hartley Sweeten" <hartleys@visionengravers.com>
+To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "Linux Kernel" <linux-kernel@vger.kernel.org>,
+	<linux-media@vger.kernel.org>, <michael@mihu.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller wrote:
-> On Fri, Jan 29, 2010 at 11:02 AM, David Henig <dhhenig@googlemail.com> wrote:
->> Thanks, I appear to have the headers and no longer have to do the symlink,
->> but still getting the same error - any help gratefully received, or do I
->> need to get a vanilla kernel?
-> 
-> Open up the file v4l/.config and change the line for firedtv from "=m"
-> to "=n".  Then run "make".
-> 
-> This is a known packaging bug in Ubuntu's kernel headers.
-
-This issue is specific to Ubuntu. With Fedora and with upstream kernels, everything compiles fine.
-
-Maybe the better is if one of you that use Ubuntu to write a patch checking for
-the affected Ubuntu versions, and automatically disabling the compilation
-of this module, or doing some changes on compat.h to properly compile it.
-
-All it is needed is to patch one of some of those files:
-	v4l/scripts/make_kconfig.pl 		(for the logic to disable it on Ubuntu)
-	/v4l/compat.h				(if is there some compat stuff that can be added)
-	/v4l/scripts/make_config_compat.pl 	(for a most sophisticated logic based on some script)
-
-
-After having the patch done, just submit it to Douglas.
-
-Cheers,
-Mauro
-
+T24gVGh1cnNkYXksIEphbnVhcnkgMjgsIDIwMTAgOTo1OSBQTSwgTWF1cm8gQ2FydmFsaG8gQ2hl
+aGFiIHdyb3RlOg0KPiBIIEhhcnRsZXkgU3dlZXRlbiB3cm90ZToNCj4+IGRyaXZlcnMvbWVkaWEv
+Y29tbW9uOiBSZW1vdmUgdW5uZWNlc3NhcnkgY2FzdHMgb2Ygdm9pZCAqDQo+PiANCj4+IHZvaWQg
+cG9pbnRlcnMgZG8gbm90IG5lZWQgdG8gYmUgY2FzdCB0byBvdGhlciBwb2ludGVyIHR5cGVzLg0K
+Pj4gDQoNCj4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL2NvbW1vbi9zYWE3MTQ2X3ZiaS5j
+IGIvZHJpdmVycy9tZWRpYS9jb21tb24vc2FhNzE0Nl92YmkuYw0KPj4gaW5kZXggNzRlMmI1Ni4u
+MzAxYTc5NSAxMDA2NDQNCj4+IC0tLSBhL2RyaXZlcnMvbWVkaWEvY29tbW9uL3NhYTcxNDZfdmJp
+LmMNCj4+ICsrKyBiL2RyaXZlcnMvbWVkaWEvY29tbW9uL3NhYTcxNDZfdmJpLmMNCj4+IEBAIC0z
+LDcgKzMsNyBAQA0KPj4gIHN0YXRpYyBpbnQgdmJpX3BpeGVsX3RvX2NhcHR1cmUgPSA3MjAgKiAy
+Ow0KPj4gIA0KPj4gIHN0YXRpYyBpbnQgdmJpX3dvcmthcm91bmQoc3RydWN0IHNhYTcxNDZfZGV2
+ICpkZXYpDQo+PiAtew0KPj4gK3sucmVtb3ZlX2Nhc3RzLmhoc34NCj4NCj4gV2hhdCdzIHRoaXM/
+IEl0IHNlZW1zIHRoYXQgeW91ciBwYXRjaCBnb3QgY29ycnVwdGVkIHNvbWVob3cuDQoNCk9vcHMu
+Li4gTm90IHN1cmUgaG93IHRoYXQgaGFwcGVuZWQuLi4gRm9sbG93aW5nIGlzIHRoZSBjb3JyZWN0
+ZWQgcGF0Y2guDQoNCg0KDQoNCmRyaXZlcnMvbWVkaWEvY29tbW9uOiBSZW1vdmUgdW5uZWNlc3Nh
+cnkgY2FzdHMgb2Ygdm9pZCAqDQoNCnZvaWQgcG9pbnRlcnMgZG8gbm90IG5lZWQgdG8gYmUgY2Fz
+dCB0byBvdGhlciBwb2ludGVyIHR5cGVzLg0KDQpTaWduZWQtb2ZmLWJ5OiBIIEhhcnRsZXkgU3dl
+ZXRlbiA8aHN3ZWV0ZW5AdmlzaW9uZW5ncmF2ZXJzLmNvbT4NCkNjOiBNaWNoYWVsIEh1bm9sZCA8
+bWljaGFlbEBtaWh1LmRlPg0KQ2M6IE1hdXJvIENhcnZhbGhvIENoZWhhYiA8bWNoZWhhYkBpbmZy
+YWRlYWQub3JnPg0KDQotLS0NCg0KIGRyaXZlcnMvbWVkaWEvY29tbW9uL3NhYTcxNDZfdmJpLmMg
+ICB8ICAgIDQgKystLQ0KIGRyaXZlcnMvbWVkaWEvY29tbW9uL3NhYTcxNDZfdmlkZW8uYyB8ICAg
+IDQgKystLQ0KIDIgZmlsZXMgY2hhbmdlZCwgNCBpbnNlcnRpb25zKCspLCA0IGRlbGV0aW9ucygt
+KQ0KDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9jb21tb24vc2FhNzE0Nl92YmkuYyBiL2Ry
+aXZlcnMvbWVkaWEvY29tbW9uL3NhYTcxNDZfdmJpLmMNCmluZGV4IDc0ZTJiNTYuLjgyMjRjMzAg
+MTAwNjQ0DQotLS0gYS9kcml2ZXJzL21lZGlhL2NvbW1vbi9zYWE3MTQ2X3ZiaS5jDQorKysgYi9k
+cml2ZXJzL21lZGlhL2NvbW1vbi9zYWE3MTQ2X3ZiaS5jDQpAQCAtMzc1LDcgKzM3NSw3IEBAIHN0
+YXRpYyB2b2lkIHZiaV9pbml0KHN0cnVjdCBzYWE3MTQ2X2RldiAqZGV2LCBzdHJ1Y3Qgc2FhNzE0
+Nl92diAqdnYpDQogDQogc3RhdGljIGludCB2Ymlfb3BlbihzdHJ1Y3Qgc2FhNzE0Nl9kZXYgKmRl
+diwgc3RydWN0IGZpbGUgKmZpbGUpDQogew0KLQlzdHJ1Y3Qgc2FhNzE0Nl9maCAqZmggPSAoc3Ry
+dWN0IHNhYTcxNDZfZmggKilmaWxlLT5wcml2YXRlX2RhdGE7DQorCXN0cnVjdCBzYWE3MTQ2X2Zo
+ICpmaCA9IGZpbGUtPnByaXZhdGVfZGF0YTsNCiANCiAJdTMyIGFyYnRyX2N0cmwJPSBzYWE3MTQ2
+X3JlYWQoZGV2LCBQQ0lfQlRfVjEpOw0KIAlpbnQgcmV0ID0gMDsNCkBAIC00MzcsNyArNDM3LDcg
+QEAgc3RhdGljIGludCB2Ymlfb3BlbihzdHJ1Y3Qgc2FhNzE0Nl9kZXYgKmRldiwgc3RydWN0IGZp
+bGUgKmZpbGUpDQogDQogc3RhdGljIHZvaWQgdmJpX2Nsb3NlKHN0cnVjdCBzYWE3MTQ2X2RldiAq
+ZGV2LCBzdHJ1Y3QgZmlsZSAqZmlsZSkNCiB7DQotCXN0cnVjdCBzYWE3MTQ2X2ZoICpmaCA9IChz
+dHJ1Y3Qgc2FhNzE0Nl9maCAqKWZpbGUtPnByaXZhdGVfZGF0YTsNCisJc3RydWN0IHNhYTcxNDZf
+ZmggKmZoID0gZmlsZS0+cHJpdmF0ZV9kYXRhOw0KIAlzdHJ1Y3Qgc2FhNzE0Nl92diAqdnYgPSBk
+ZXYtPnZ2X2RhdGE7DQogCURFQl9WQkkoKCJkZXY6JXAsIGZoOiVwXG4iLGRldixmaCkpOw0KIA0K
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvY29tbW9uL3NhYTcxNDZfdmlkZW8uYyBiL2RyaXZl
+cnMvbWVkaWEvY29tbW9uL3NhYTcxNDZfdmlkZW8uYw0KaW5kZXggYmVjYmFhZC4uY2ZjODYzNCAx
+MDA2NDQNCi0tLSBhL2RyaXZlcnMvbWVkaWEvY29tbW9uL3NhYTcxNDZfdmlkZW8uYw0KKysrIGIv
+ZHJpdmVycy9tZWRpYS9jb21tb24vc2FhNzE0Nl92aWRlby5jDQpAQCAtMTM2OCw3ICsxMzY4LDcg
+QEAgc3RhdGljIHZvaWQgdmlkZW9faW5pdChzdHJ1Y3Qgc2FhNzE0Nl9kZXYgKmRldiwgc3RydWN0
+IHNhYTcxNDZfdnYgKnZ2KQ0KIA0KIHN0YXRpYyBpbnQgdmlkZW9fb3BlbihzdHJ1Y3Qgc2FhNzE0
+Nl9kZXYgKmRldiwgc3RydWN0IGZpbGUgKmZpbGUpDQogew0KLQlzdHJ1Y3Qgc2FhNzE0Nl9maCAq
+ZmggPSAoc3RydWN0IHNhYTcxNDZfZmggKilmaWxlLT5wcml2YXRlX2RhdGE7DQorCXN0cnVjdCBz
+YWE3MTQ2X2ZoICpmaCA9IGZpbGUtPnByaXZhdGVfZGF0YTsNCiAJc3RydWN0IHNhYTcxNDZfZm9y
+bWF0ICpzZm10Ow0KIA0KIAlmaC0+dmlkZW9fZm10LndpZHRoID0gMzg0Ow0KQEAgLTEzOTIsNyAr
+MTM5Miw3IEBAIHN0YXRpYyBpbnQgdmlkZW9fb3BlbihzdHJ1Y3Qgc2FhNzE0Nl9kZXYgKmRldiwg
+c3RydWN0IGZpbGUgKmZpbGUpDQogDQogc3RhdGljIHZvaWQgdmlkZW9fY2xvc2Uoc3RydWN0IHNh
+YTcxNDZfZGV2ICpkZXYsIHN0cnVjdCBmaWxlICpmaWxlKQ0KIHsNCi0Jc3RydWN0IHNhYTcxNDZf
+ZmggKmZoID0gKHN0cnVjdCBzYWE3MTQ2X2ZoICopZmlsZS0+cHJpdmF0ZV9kYXRhOw0KKwlzdHJ1
+Y3Qgc2FhNzE0Nl9maCAqZmggPSBmaWxlLT5wcml2YXRlX2RhdGE7DQogCXN0cnVjdCBzYWE3MTQ2
+X3Z2ICp2diA9IGRldi0+dnZfZGF0YTsNCiAJc3RydWN0IHZpZGVvYnVmX3F1ZXVlICpxID0gJmZo
+LT52aWRlb19xOw0KIAlpbnQgZXJyOw0K
