@@ -1,84 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:52553 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750714Ab0ARFiT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2010 00:38:19 -0500
-Subject: Re: Need testers: cx23885 IR Rx for TeVii S470 and HVR-1250
-From: Andy Walls <awalls@radix.net>
-To: "Igor M. Liplianin" <liplianin@me.by>
-Cc: linux-media@vger.kernel.org,
-	Andreas Tschirpke <andreas.tschirpke@gmail.com>,
-	Matthias Fechner <idefix@fechner.net>, stoth@kernellabs.com
-In-Reply-To: <1263691595.3062.124.camel@palomino.walls.org>
-References: <1263614561.6084.15.camel@palomino.walls.org>
-	 <201001161600.37915.liplianin@me.by>
-	 <1263671752.3062.19.camel@palomino.walls.org>
-	 <201001162356.07798.liplianin@me.by>
-	 <1263691595.3062.124.camel@palomino.walls.org>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 18 Jan 2010 00:36:52 -0500
-Message-Id: <1263793012.5220.103.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from smtp1.wa.amnet.net.au ([203.161.124.50]:55148 "EHLO
+	smtp1.wa.amnet.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755556Ab0A2Owe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Jan 2010 09:52:34 -0500
+Message-ID: <4B62F620.6020105@barber-family.id.au>
+Date: Fri, 29 Jan 2010 22:52:16 +0800
+From: Francis Barber <fedora@barber-family.id.au>
+MIME-Version: 1.0
+To: David Henig <dhhenig@googlemail.com>
+CC: leandro Costantino <lcostantino@gmail.com>,
+	=?ISO-8859-1?Q?N=E9meth_?= =?ISO-8859-1?Q?M=E1rton?=
+	<nm127@freemail.hu>, linux-media@vger.kernel.org
+Subject: Re: Make failed - standard ubuntu 9.10
+References: <4B62113E.40905@googlemail.com> <4B627EAE.7020303@freemail.hu>	 <4B62A967.3010400@googlemail.com> <c2fe070d1001290430v472c8040r2a61c7904ef7234d@mail.gmail.com> <4B62F048.1010506@googlemail.com>
+In-Reply-To: <4B62F048.1010506@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2010-01-16 at 20:26 -0500, Andy Walls wrote:
-> On Sat, 2010-01-16 at 23:56 +0200, Igor M. Liplianin wrote:
-> > On 16 января 2010 21:55:52 Andy Walls wrote:
+On 29/01/2010 10:27 PM, David Henig wrote:
+> Thanks, eventually tip 1 fixed this. For some reason I had 
+> 2.6.31-17-generic without a .config, as I seem to be using 
+> 2.6.31-17-generic-pae. Creating a symlink to that fixed this error.
+>
+> Unfortunately still can't finish build, I get an error in 
+> firedtv-1394, as shown below. Do I need to reinstall, as I also get 
+> the following message?
+>
+> ***WARNING:*** You do not have the full kernel sources installed.
+> This does not prevent you from building the v4l-dvb tree if you have the
+> kernel headers, but the full kernel source may be required in order to 
+> use
+> make menuconfig / xconfig / qconfig.
+>
+> If you are experiencing problems building the v4l-dvb tree, please try
+> building against a vanilla kernel before reporting a bug.
+>
+> Thanks again for any help, I'm sorry I'm only a couple of months into 
+> linux, I'm just trying to do this against what I thought was a fairly 
+> standard build...
+>
+> David
+>
+Hi David,
 
-> > > I have checked in more changes to
-> > >
-> > > 	http://linuxtv.org/hg/~awalls/cx23885-ir2
-> > >
-> > > Please test again using these module parameters:
-> > >
-> > > 	modprobe cx25840 ir_debug=2 debug=2
-> > > 	modprobe cx23885 ir_input_debug=2 irq_debug=7 debug=7
-> > >
-> > >
+It looks like you don't have the kernel headers package installed.  In 
+Ubuntu this package is called linux-headers-generic for the generic 
+kernel, and linux-headers-server for the server kernel, etc and so forth.
 
-I have removed the spurious interrupt handling code - it was bogus.  The
-real problems are:
-
-1. performing AV Core i2c transactions from an IRQ context is bad
-
-2. the cx25840 module needs locking to prevent i2c transaction
-contention during the AV Core register reads and writes.
-
-
-I have implemented and checked in a change for #1.  Now the AV_CORE
-interrupt gets disabled and a work handler is scheduled to deal with the
-IR controller on the AV core.  When the work handler is done, it will
-re-enable the AV_CORE interrupt.
-
-I have not implmented a change for #2 yet.  I have not added locking to
-protect cx25840_read() and cx25840_write() functions.  This will take
-time to get right.
-
-
-You may test these latest changes if you want, but I won't be surprised
-if things don't work on occasion.
-
-I have tested IR loopback with my HVR-1250 and things are fine for me,
-but I have no video interrupts coming in either.
+If you have this package you shouldn't need to any symlinking with the 
+.config, either.  I didn't have to.
 
 Regards,
-Andy
-
-> OK.  I think I finally have guessed what is going on:
-> 
-> 1. The cx23885_irq_handler is called for the AV_CORE when something else
-> in the cx23885 or cx25840 module is accessing that I2C bus.
-> 
-> 2. The I2C bus adapter mutex in the i2c_subsystem stays locked so the
-> cx23885_irq_handler() and cx25840_irq_handler() cannot read the AV core
-> registers since the I2C subsystem returns -EINVAL and 0 for the data.
-> 
-> 3. The interrupt handler keeps getting called because it never clears
-> the interrupt condition in the AV Core.
-> 
-> I think I have to do some work in the cx25840 module and the cx23885
-> module to handle locking of the AV Core I2C client and I2C bus 3.
-
-
+Frank.
