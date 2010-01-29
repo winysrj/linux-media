@@ -1,63 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:58094 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755890Ab0AMLGQ (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:50277 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755570Ab0A2CIP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jan 2010 06:06:16 -0500
-From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
-	<u.kleine-koenig@pengutronix.de>
-To: linux-kernel@vger.kernel.org
-Cc: David Vrabel <dvrabel@arcom.com>,
-	Greg Kroah-Hartman <gregkh@suse.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Magnus Damm <damm@igel.co.jp>,
-	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
-	Paul Mundt <lethal@linux-sh.org>, linux-media@vger.kernel.org
-Subject: [RESEND PATCH 3/5] V4L/DVB sh_mobile_ceu: don't check platform_get_irq's return value against zero
-Date: Wed, 13 Jan 2010 12:05:44 +0100
-Message-Id: <1263380746-27803-3-git-send-email-u.kleine-koenig@pengutronix.de>
-In-Reply-To: <1260979809-24811-1-git-send-email-u.kleine-koenig@pengutronix.de>
-References: <1260979809-24811-1-git-send-email-u.kleine-koenig@pengutronix.de>
+	Thu, 28 Jan 2010 21:08:15 -0500
+Message-ID: <4B624309.9040700@infradead.org>
+Date: Fri, 29 Jan 2010 00:08:09 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+To: Andy Walls <awalls@radix.net>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: cx18 fix patches
+References: <4B60F901.20301@redhat.com> <1264681562.3081.3.camel@palomino.walls.org>
+In-Reply-To: <1264681562.3081.3.camel@palomino.walls.org>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-platform_get_irq returns -ENXIO on failure, so !irq was probably
-always true.  Better use (int)irq <= 0.  Note that a return value of
-zero is still handled as error even though this could mean irq0.
+Andy Walls wrote:
+> Now I'll just review and test tonight (some time between 6:00 - 10:30
+> p.m. EST)
 
-This is a followup to 305b3228f9ff4d59f49e6d34a7034d44ee8ce2f0 that
-changed the return value of platform_get_irq from 0 to -ENXIO on error.
+One more error (on x86_64):
 
-Signed-off-by: Uwe Kleine-KÃ¶nig <u.kleine-koenig@pengutronix.de>
-Cc: David Vrabel <dvrabel@arcom.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Magnus Damm <damm@igel.co.jp>
-Cc: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: linux-media@vger.kernel.org
----
- drivers/media/video/sh_mobile_ceu_camera.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+drivers/media/video/cx18/cx18-alsa-pcm.c: In function ‘cx18_alsa_announce_pcm_data’:
+drivers/media/video/cx18/cx18-alsa-pcm.c:82: warning: format ‘%d’ expects type ‘int’, but argument 5 has type ‘size_t’
 
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index d69363f..f09c714 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -1827,7 +1827,7 @@ static int __devinit sh_mobile_ceu_probe(struct platform_device *pdev)
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	irq = platform_get_irq(pdev, 0);
--	if (!res || !irq) {
-+	if (!res || (int)irq <= 0) {
- 		dev_err(&pdev->dev, "Not enough CEU platform resources.\n");
- 		err = -ENODEV;
- 		goto exit;
--- 
-1.6.6
+You should use %zu for size_t.
 
+Cheers,
+Mauro
