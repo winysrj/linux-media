@@ -1,98 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:40787 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750943Ab0ATJnX (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:58380 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752513Ab0A2Sc5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jan 2010 04:43:23 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [ANNOUNCE] git tree repositories & libv4l
-Date: Wed, 20 Jan 2010 10:43:32 +0100
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Douglas Landgraf <dougsland@gmail.com>,
-	Brandon Philips <brandon@ifup.org>
-References: <4B55445A.10300@infradead.org> <4B5592BF.8040201@infradead.org> <4B56C078.8000502@redhat.com>
-In-Reply-To: <4B56C078.8000502@redhat.com>
+	Fri, 29 Jan 2010 13:32:57 -0500
+Message-ID: <4B6329CA.2030005@infradead.org>
+Date: Fri, 29 Jan 2010 16:32:42 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: David Henig <dhhenig@googlemail.com>,
+	Francis Barber <fedora@barber-family.id.au>,
+	leandro Costantino <lcostantino@gmail.com>,
+	=?ISO-8859-1?Q?N=E9meth_M=E1?= =?ISO-8859-1?Q?rton?=
+	<nm127@freemail.hu>, linux-media@vger.kernel.org,
+	Douglas Landgraf <dougsland@gmail.com>
+Subject: Re: Make failed - standard ubuntu 9.10
+References: <4B62113E.40905@googlemail.com> <4B627EAE.7020303@freemail.hu>	 <4B62A967.3010400@googlemail.com>	 <c2fe070d1001290430v472c8040r2a61c7904ef7234d@mail.gmail.com>	 <4B62F048.1010506@googlemail.com>	 <4B62F620.6020105@barber-family.id.au>	 <4B6306AA.8000103@googlemail.com> <829197381001290916m4eeb9271x1c858d6a6d0b9b3b@mail.gmail.com>
+In-Reply-To: <829197381001290916m4eeb9271x1c858d6a6d0b9b3b@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201001201043.33217.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Devin Heitmueller wrote:
+> On Fri, Jan 29, 2010 at 11:02 AM, David Henig <dhhenig@googlemail.com> wrote:
+>> Thanks, I appear to have the headers and no longer have to do the symlink,
+>> but still getting the same error - any help gratefully received, or do I
+>> need to get a vanilla kernel?
+> 
+> Open up the file v4l/.config and change the line for firedtv from "=m"
+> to "=n".  Then run "make".
+> 
+> This is a known packaging bug in Ubuntu's kernel headers.
 
-On Wednesday 20 January 2010 09:36:08 Hans de Goede wrote:
-> Hi,
-> 
-> On 01/19/2010 12:08 PM, Mauro Carvalho Chehab wrote:
-> > Hans Verkuil wrote:
-> >> On Tuesday 19 January 2010 06:34:18 Mauro Carvalho Chehab wrote:
-> 
-> <snip>
-> 
-> >> I do have one proposal: parts of our hg tree are independent of git:
-> >> v4l2-apps, possibly some firmware build code (not 100% sure of that),
-> >> v4l_experimental, perhaps some documentation stuff. My proposal is that
-> >> we make a separate hg or git tree for those. It will make it easier to
-> >> package by distros and it makes it easier to maintain v4l2-apps et al as
-> >> well. It might even simplify Douglas's work by moving non-essential code
-> >> out of the compat hg tree.
-> >
-> > It may make sense, but I have some comments about it:
-> 
-> <snip>
-> 
-> > 	4) v4l2-apps - I agree that splitting it could be a good idea, provided
-> > that we find a way to handle the few cases where we have "example"
-> > applications at the media docs.
-> 
-> Note that v4l2-apps also contains libv4l, it so happens that I've been
->  discussing moving libv4l to its own git tree with Brandon Philips.
->  Preferably to a place which also offers some form of bug tracking. The
->  advantages of having libv4l in its own tree are:
-> 
-> -it is maintained independent of the hg tree anyways
-> -it has regular versioned tarbal releases, it would be good to be able to
->  tag these inside the used scm, which is hard to do when the scm is shared
->  with other unrelated code which does not end up in said tarballs
-> -this means having a much smaller tree making it easier to clone
-> -no longer having an often old (stale) libv4l in the master hg repository
->   (this is partially my fault as I should send pull requests for libv4l moe
->  often, but why all this synchronization overhead when its independent
->  anyways)
-> 
-> As said when discussing this with Brandon we were thinking about using
->  something like github, as that offers bug tracking too. But I can
->  understand if you would prefer to keep libv4l at linuxtv.org .
-> 
-> The last few fays I've been working on making a stand alone version of the
->  uvcdynctrl tool, which is meant to send a userspace database of vendor
->  specific controls to the uvcvideo driver, after which they will show up as
->  regular v4l2 controls.
+This issue is specific to Ubuntu. With Fedora and with upstream kernels, everything compiles fine.
 
-Thanks for that, it's much appreciated. If you have any concern with the 
-uvcvideo driver userspace API I'd be happy to discuss them.
+Maybe the better is if one of you that use Ubuntu to write a patch checking for
+the affected Ubuntu versions, and automatically disabling the compilation
+of this module, or doing some changes on compat.h to properly compile it.
 
-> The uvcdynctrl utility is part of the libwebcam project:
-> http://www.quickcamteam.net/software/libwebcam
-> 
-> But given that libwebcam is unmaintained and not used by anything AFAIK,
->  I'm patching uvcdynctrl to no longer need it. The plan is to add
->  uvcdynctrl to libv4l soon, as that is needed to be able to control the
->  focus on some uvc autofocus cameras.
-> 
-> This means that libv4l will be growing a set of utilities, currently just
->  uvcdynctrl (and its database and udev scripts), but given this precedent
->  we could add more utilities to libv4l. I wouldn't mind moving v4l2-ctl and
->  v4l2-dbg to libv4l, this would also have the advantage that since most
->  distro's ship libv4l these utilities would actually become available to
->  end users (which AFAIK currently they are not in most distros).
+All it is needed is to patch one of some of those files:
+	v4l/scripts/make_kconfig.pl 		(for the logic to disable it on Ubuntu)
+	/v4l/compat.h				(if is there some compat stuff that can be added)
+	/v4l/scripts/make_config_compat.pl 	(for a most sophisticated logic based on some script)
 
--- 
+
+After having the patch done, just submit it to Douglas.
+
 Cheers,
+Mauro
 
-Laurent Pinchart
