@@ -1,34 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01a.mail.t-online.hu ([84.2.40.6]:54942 "EHLO
-	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753027Ab0A0UCe (ORCPT
+Received: from mail-fx0-f220.google.com ([209.85.220.220]:53066 "EHLO
+	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753759Ab0AaXmn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jan 2010 15:02:34 -0500
-Message-ID: <4B609BD6.6030503@freemail.hu>
-Date: Wed, 27 Jan 2010 21:02:30 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+	Sun, 31 Jan 2010 18:42:43 -0500
+Received: by fxm20 with SMTP id 20so3714351fxm.21
+        for <linux-media@vger.kernel.org>; Sun, 31 Jan 2010 15:42:41 -0800 (PST)
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21:
- WARNINGS
-References: <201001231959.o0NJx1BI095948@smtp-vbr8.xs4all.nl>
-In-Reply-To: <201001231959.o0NJx1BI095948@smtp-vbr8.xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <f509f3091001311233s4991ac2bn9c0a527f57501dae@mail.gmail.com>
+References: <f509f3091001311233s4991ac2bn9c0a527f57501dae@mail.gmail.com>
+Date: Mon, 1 Feb 2010 02:49:57 +0400
+Message-ID: <1a297b361001311449i15222c8bmca41e74c28999c08@mail.gmail.com>
+Subject: Re: Twinhan dtv 3030 mantis dvb-t
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Niklas Claesson <nicke.claesson@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans,
+Hi,
 
-Hans Verkuil wrote:
-> This message is generated daily by a cron job that builds v4l-dvb for
-> the kernels and architectures in the list below.
+On Mon, Feb 1, 2010 at 12:33 AM, Niklas Claesson
+<nicke.claesson@gmail.com> wrote:
+> Hi,
+> I'm trying to use this tv-card with ubuntu 9.10. I've installed Manu's
+> drivers from http://jusst.de/hg/mantis-v4l-dvb/ and did "modprobe
+> mantis" which resulted in the following in /var/log/messages
 
-The last cron message I saw was on 23rd January, 2010. All warnings and errors
-were fixed since then ;-) or is there some problem with the cron job?
 
-Regarsd,
+The mantis driver has been merged. So you can as well try out the
+latest changes from http://linuxtv.org/hg/v4l-dvb as well.
 
-	Márton Németh
-
+Regards,
+Manu
