@@ -1,154 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from msa103.auone-net.jp ([61.117.18.163]:36487 "EHLO
-	msa103.auone-net.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752193Ab0AVHz3 (ORCPT
+Received: from mail-in-16.arcor-online.net ([151.189.21.56]:60816 "EHLO
+	mail-in-16.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752907Ab0AaN2u (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jan 2010 02:55:29 -0500
-Date: Fri, 22 Jan 2010 16:55:28 +0900
-From: Kusanagi Kouichi <slash@ac.auone-net.jp>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] cx23885: Add support for LEADTEK WinFast PxTV1200.
+	Sun, 31 Jan 2010 08:28:50 -0500
+Message-ID: <4B658576.5000904@arcor.de>
+Date: Sun, 31 Jan 2010 14:28:22 +0100
+From: Stefan Ringel <stefan.ringel@arcor.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Message-Id: <20100122075528.A44A514C03A@msa103.auone-net.jp>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: Terratec Cinergy Hybrid XE (TM6010 Mediachip)
+References: <4B547EBF.6080105@arcor.de> <4B5DAC3A.6000408@redhat.com> <4B5DC2EA.3090706@arcor.de> <4B5DF134.7080603@redhat.com> <4B5DF360.40808@arcor.de> <4B5DF73F.9030807@redhat.com> <4B5E06EA.40204@arcor.de> <4B6093E4.40706@arcor.de> <4B6094DE.4000204@arcor.de> <4B60A64E.3090106@redhat.com>
+In-Reply-To: <4B60A64E.3090106@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I tested only tv and composite. Video works fine but no audio.
+Am 27.01.2010 21:47, schrieb Mauro Carvalho Chehab:
+> Stefan Ringel wrote:
+>   
+>> Hi,
+>>
+>> I have a problem with usb bulk transfer. After a while, as I scan digital channel (it found a few channel), it wrote this in the log:
+>>
+>> Jan 26 21:58:35 linux-v5dy kernel: [  548.756585] tm6000: status != 0
+>>
+>> I updated the tm6000_urb_received function so that I can read the Error code and it logged:
+>>
+>> Jan 27 17:41:28 linux-v5dy kernel: [ 3121.892793] tm6000: status = 0xffffffb5
+>>     
+> Probablt it is this error:
+> #define EOVERFLOW       75      /* Value too large for defined data type */
+>
+> It would be good to make it display the error as a signed int.
+>
+> the tm6000-video error handler has some common causes for those status.
+> In this particular case:
+>
+>         case -EOVERFLOW:
+>                 errmsg = "Babble (bad cable?)";
+>                 break;
+>
+> This looks the same kind of errors I was receiving during the development of the driver:
+> a large amount of frames are got broken, even if the device is programmed with the exact
+> values used on the original driver. On my tests, changing the URB size were changing
+> the position where such errors were occurring.
+>
+>   
+>> Can you help me? Who I can calculate urb size?
+>>     
+> Take a look on tm6000-video:
+>
+>         size = usb_maxpacket(dev->udev, pipe, usb_pipeout(pipe));
+>
+>         if (size > dev->max_isoc_in)
+>                 size = dev->max_isoc_in;
+>
+> It depends on the alternate interface used. The driver should select an alternate
+> interface that is capable of receiving the entire size of a message. Maybe the tm6000
+> driver is missing the code that selects this size. Take a look on em28xx-core, at
+> em28xx_set_alternate() code for an example on how this should work.
+>
+> The calculated size there assumes that each pixel has 16 bits, and has some magic that
+> were experimentally tested on that device.
+>
+> Cheers,
+> Mauro.
+>
+>   
+I know why it's going to overflow. It's not usb pipe calculating, it's
+numbers of feeds that it's used. But then I cannot use more than one
+filter! It's bad!!
 
-Signed-off-by: Kusanagi Kouichi <slash@ac.auone-net.jp>
----
- Documentation/video4linux/CARDLIST.cx23885  |    1 +
- drivers/media/video/cx23885/cx23885-cards.c |   32 +++++++++++++++++++++++++++
- drivers/media/video/cx23885/cx23885-video.c |   13 +++++++++++
- drivers/media/video/cx23885/cx23885.h       |    1 +
- 4 files changed, 47 insertions(+), 0 deletions(-)
+Cheers
 
-diff --git a/Documentation/video4linux/CARDLIST.cx23885 b/Documentation/video4linux/CARDLIST.cx23885
-index 7539e8f..16ca030 100644
---- a/Documentation/video4linux/CARDLIST.cx23885
-+++ b/Documentation/video4linux/CARDLIST.cx23885
-@@ -26,3 +26,4 @@
-  25 -> Compro VideoMate E800                               [1858:e800]
-  26 -> Hauppauge WinTV-HVR1290                             [0070:8551]
-  27 -> Mygica X8558 PRO DMB-TH                             [14f1:8578]
-+ 28 -> LEADTEK WinFast PxTV1200                            [107d:6f22]
-diff --git a/drivers/media/video/cx23885/cx23885-cards.c b/drivers/media/video/cx23885/cx23885-cards.c
-index 1ec4816..d639186 100644
---- a/drivers/media/video/cx23885/cx23885-cards.c
-+++ b/drivers/media/video/cx23885/cx23885-cards.c
-@@ -274,6 +274,31 @@ struct cx23885_board cx23885_boards[] = {
- 		.portb		= CX23885_MPEG_DVB,
- 		.portc		= CX23885_MPEG_DVB,
- 	},
-+	[CX23885_BOARD_LEADTEK_WINFAST_PXTV1200] = {
-+		.name           = "LEADTEK WinFast PxTV1200",
-+		.porta          = CX23885_ANALOG_VIDEO,
-+		.tuner_type     = TUNER_XC2028,
-+		.tuner_addr     = 0x61,
-+		.input          = {{
-+			.type   = CX23885_VMUX_TELEVISION,
-+			.vmux   = CX25840_VIN2_CH1 |
-+				  CX25840_VIN5_CH2 |
-+				  CX25840_NONE0_CH3,
-+		}, {
-+			.type   = CX23885_VMUX_COMPOSITE1,
-+			.vmux   = CX25840_COMPOSITE1,
-+		}, {
-+			.type   = CX23885_VMUX_SVIDEO,
-+			.vmux   = CX25840_SVIDEO_LUMA3 |
-+				  CX25840_SVIDEO_CHROMA4,
-+		}, {
-+			.type   = CX23885_VMUX_COMPONENT,
-+			.vmux   = CX25840_VIN7_CH1 |
-+				  CX25840_VIN6_CH2 |
-+				  CX25840_VIN8_CH3 |
-+				  CX25840_COMPONENT_ON,
-+		} },
-+	},
- };
- const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
- 
-@@ -417,6 +442,10 @@ struct cx23885_subid cx23885_subids[] = {
- 		.subvendor = 0x14f1,
- 		.subdevice = 0x8578,
- 		.card      = CX23885_BOARD_MYGICA_X8558PRO,
-+	}, {
-+		.subvendor = 0x107d,
-+		.subdevice = 0x6f22,
-+		.card      = CX23885_BOARD_LEADTEK_WINFAST_PXTV1200,
- 	},
- };
- const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
-@@ -617,6 +646,7 @@ int cx23885_tuner_callback(void *priv, int component, int command, int arg)
- 	case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
- 	case CX23885_BOARD_COMPRO_VIDEOMATE_E650F:
- 	case CX23885_BOARD_COMPRO_VIDEOMATE_E800:
-+	case CX23885_BOARD_LEADTEK_WINFAST_PXTV1200:
- 		/* Tuner Reset Command */
- 		bitmask = 0x04;
- 		break;
-@@ -769,6 +799,7 @@ void cx23885_gpio_setup(struct cx23885_dev *dev)
- 	case CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H:
- 	case CX23885_BOARD_COMPRO_VIDEOMATE_E650F:
- 	case CX23885_BOARD_COMPRO_VIDEOMATE_E800:
-+	case CX23885_BOARD_LEADTEK_WINFAST_PXTV1200:
- 		/* GPIO-2  xc3028 tuner reset */
- 
- 		/* The following GPIO's are on the internal AVCore (cx25840) */
-@@ -1076,6 +1107,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
- 	case CX23885_BOARD_MYGICA_X8506:
- 	case CX23885_BOARD_MAGICPRO_PROHDTVE2:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1290:
-+	case CX23885_BOARD_LEADTEK_WINFAST_PXTV1200:
- 		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
- 				&dev->i2c_bus[2].i2c_adap,
- 				"cx25840", "cx25840", 0x88 >> 1, NULL);
-diff --git a/drivers/media/video/cx23885/cx23885-video.c b/drivers/media/video/cx23885/cx23885-video.c
-index 8934d61..2d3ac8b 100644
---- a/drivers/media/video/cx23885/cx23885-video.c
-+++ b/drivers/media/video/cx23885/cx23885-video.c
-@@ -36,6 +36,7 @@
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
- #include "cx23885-ioctl.h"
-+#include "tuner-xc2028.h"
- 
- MODULE_DESCRIPTION("v4l2 driver module for cx23885 based TV cards");
- MODULE_AUTHOR("Steven Toth <stoth@linuxtv.org>");
-@@ -1505,6 +1506,18 @@ int cx23885_video_register(struct cx23885_dev *dev)
- 			tun_setup.tuner_callback = cx23885_tuner_callback;
- 
- 			v4l2_subdev_call(sd, tuner, s_type_addr, &tun_setup);
-+
-+			if (dev->board == CX23885_BOARD_LEADTEK_WINFAST_PXTV1200) {
-+				struct xc2028_ctrl ctrl = {
-+					.fname = XC2028_DEFAULT_FIRMWARE,
-+					.max_len = 64
-+				};
-+				struct v4l2_priv_tun_config cfg = {
-+					.tuner = dev->tuner_type,
-+					.priv = &ctrl
-+				};
-+				v4l2_subdev_call(sd, tuner, s_config, &cfg);
-+			}
- 		}
- 	}
- 
-diff --git a/drivers/media/video/cx23885/cx23885.h b/drivers/media/video/cx23885/cx23885.h
-index 08b3f6b..0e3a98d 100644
---- a/drivers/media/video/cx23885/cx23885.h
-+++ b/drivers/media/video/cx23885/cx23885.h
-@@ -81,6 +81,7 @@
- #define CX23885_BOARD_COMPRO_VIDEOMATE_E800    25
- #define CX23885_BOARD_HAUPPAUGE_HVR1290        26
- #define CX23885_BOARD_MYGICA_X8558PRO          27
-+#define CX23885_BOARD_LEADTEK_WINFAST_PXTV1200 28
- 
- #define GPIO_0 0x00000001
- #define GPIO_1 0x00000002
+Stefan Ringel
+
 -- 
-1.6.6
+Stefan Ringel <stefan.ringel@arcor.de>
 
