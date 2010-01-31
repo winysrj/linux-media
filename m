@@ -1,109 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1283 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753300Ab0ARUIi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jan 2010 15:08:38 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o0IK8XTB097878
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 18 Jan 2010 21:08:37 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 18 Jan 2010 21:08:33 +0100 (CET)
-Message-Id: <201001182008.o0IK8XTB097878@smtp-vbr7.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
+Received: from mx1.redhat.com ([209.132.183.28]:17576 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753455Ab0AaNAf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 Jan 2010 08:00:35 -0500
+Message-ID: <4B6575AC.7060100@redhat.com>
+Date: Sun, 31 Jan 2010 13:21:00 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+CC: Jean-Francois Moine <moinejf@free.fr>,
+	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Thomas Kaiser <thomas@kaiser-linux.li>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH, RFC] gspca pac7302: add USB PID range based on heuristics
+References: <4B655949.50102@freemail.hu>
+In-Reply-To: <4B655949.50102@freemail.hu>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of v4l-dvb:
+On 01/31/2010 11:19 AM, Németh Márton wrote:
+> Hi,
+>
+> as I was reading the PixArt PAC7301/PAC7302 datasheet
+> ( http://www.pixart.com.tw/upload/PAC7301_7302%20%20Spec%20V1_20091228174030.pdf )
+> I recognised a little description on the schematics. This is about how to
+> set up the USB Product ID from range 0x2620..0x262f via hardware wires.
+>
+> I had the idea that the list of supported devices could be extended with the full
+> range because the System on a Chip internals will not change just because it is
+> configured to a different USB Product ID.
+>
+> I don't know much about the maintenance implications that's why I'm very
+> much listening to the comments of this idea.
+>
+> So, what do you think?
+>
 
-date:        Mon Jan 18 19:00:05 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14010:cdcf089168df
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Seems like a good idea to me.
 
-linux-2.6.30-armv5: OK
-linux-2.6.31-armv5: OK
-linux-2.6.32-armv5: OK
-linux-2.6.33-rc2-armv5: OK
-linux-2.6.32-armv5-davinci: WARNINGS
-linux-2.6.33-rc2-armv5-davinci: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.31-armv5-ixp: WARNINGS
-linux-2.6.32-armv5-ixp: WARNINGS
-linux-2.6.33-rc2-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.31-armv5-omap2: WARNINGS
-linux-2.6.32-armv5-omap2: WARNINGS
-linux-2.6.33-rc2-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-i686: WARNINGS
-linux-2.6.32-i686: WARNINGS
-linux-2.6.33-rc2-i686: WARNINGS
-linux-2.6.30-m32r: OK
-linux-2.6.31-m32r: OK
-linux-2.6.32-m32r: OK
-linux-2.6.33-rc2-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-mips: WARNINGS
-linux-2.6.32-mips: WARNINGS
-linux-2.6.33-rc2-mips: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-powerpc64: WARNINGS
-linux-2.6.32-powerpc64: WARNINGS
-linux-2.6.33-rc2-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-x86_64: WARNINGS
-linux-2.6.32-x86_64: WARNINGS
-linux-2.6.33-rc2-x86_64: WARNINGS
-spec: OK
-sparse (linux-2.6.32): ERRORS
-sparse (linux-2.6.33-rc2): ERRORS
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+Regards,
 
-Detailed results are available here:
+Hans
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> Regards,
+>
+> 	Márton Németh
+>
+> ---
+> From: Márton Németh<nm127@freemail.hu>
+>
+> On the schematics in PixArt PAC7301/PAC7302 datasheet
+> (http://www.pixart.com.tw/upload/PAC7301_7302%20%20Spec%20V1_20091228174030.pdf)
+> pages 19, 20, 21 and 22 there is a note titled "PID IO_TRAP" which describes
+> the possible product ID range 0x2620..0x262f. In this range there are some
+> known webcams, however, there are some PIDs with unknown or future devices.
+> Because PixArt PAC7301/PAC7302 is a System on a Chip (SoC) device is is
+> probable that this driver will work correctly independent of the used PID.
+>
+> Signed-off-by: Márton Németh<nm127@freemail.hu>
+> ---
+> diff -r dfa82cf98a85 linux/drivers/media/video/gspca/pac7302.c
+> --- a/linux/drivers/media/video/gspca/pac7302.c	Sat Jan 30 20:03:02 2010 +0100
+> +++ b/linux/drivers/media/video/gspca/pac7302.c	Sun Jan 31 11:08:21 2010 +0100
+> @@ -96,6 +96,7 @@
+>   	u8 flags;
+>   #define FL_HFLIP 0x01		/* mirrored by default */
+>   #define FL_VFLIP 0x02		/* vertical flipped by default */
+> +#define FL_EXPERIMENTAL 0x80	/* USB IDs based on heuristic without any known product */
+>
+>   	u8 sof_read;
+>   	u8 autogain_ignore_frames;
+> @@ -1220,17 +1221,33 @@
+>   };
+>
+>   /* -- module initialisation -- */
+> +/* Note on FL_EXPERIMENTAL:
+> + * On the schematics in PixArt PAC7301/PAC7302 datasheet
+> + * (http://www.pixart.com.tw/upload/PAC7301_7302%20%20Spec%20V1_20091228174030.pdf)
+> + * pages 19, 20, 21 and 22 there is a note titled "PID IO_TRAP" which describes
+> + * the possible product ID range 0x2620..0x262f. In this range there are some
+> + * known webcams, however, there are some PIDs with unknown or future devices.
+> + * Because PixArt PAC7301/PAC7302 is a System on a Chip (SoC) device is is
+> + * probable that this driver will work correctly independent of the used PID.
+> + */
+>   static const struct usb_device_id device_table[] __devinitconst = {
+>   	{USB_DEVICE(0x06f8, 0x3009)},
+>   	{USB_DEVICE(0x093a, 0x2620)},
+>   	{USB_DEVICE(0x093a, 0x2621)},
+>   	{USB_DEVICE(0x093a, 0x2622), .driver_info = FL_VFLIP},
+> +	{USB_DEVICE(0x093a, 0x2623), .driver_info = FL_EXPERIMENTAL },
+>   	{USB_DEVICE(0x093a, 0x2624), .driver_info = FL_VFLIP},
+> +	{USB_DEVICE(0x093a, 0x2625), .driver_info = FL_EXPERIMENTAL },
+>   	{USB_DEVICE(0x093a, 0x2626)},
+> +	{USB_DEVICE(0x093a, 0x2627), .driver_info = FL_EXPERIMENTAL },
+>   	{USB_DEVICE(0x093a, 0x2628)},
+>   	{USB_DEVICE(0x093a, 0x2629), .driver_info = FL_VFLIP},
+>   	{USB_DEVICE(0x093a, 0x262a)},
+> +	{USB_DEVICE(0x093a, 0x262b), .driver_info = FL_EXPERIMENTAL },
+>   	{USB_DEVICE(0x093a, 0x262c)},
+> +	{USB_DEVICE(0x093a, 0x262d), .driver_info = FL_EXPERIMENTAL },
+> +	{USB_DEVICE(0x093a, 0x262e), .driver_info = FL_EXPERIMENTAL },
+> +	{USB_DEVICE(0x093a, 0x262f), .driver_info = FL_EXPERIMENTAL },
+>   	{}
+>   };
+>   MODULE_DEVICE_TABLE(usb, device_table);
+> @@ -1239,6 +1256,17 @@
+>   static int __devinit sd_probe(struct usb_interface *intf,
+>   			const struct usb_device_id *id)
+>   {
+> +	if ((u8)id->driver_info&  FL_EXPERIMENTAL) {
+> +		PDEBUG(D_ERR | D_PROBE, "WARNING: USB device ID %04x:%04x is "
+> +			"not known, but based on some heuristics this driver "
+> +			"tries to handle it.",
+> +			id->idVendor, id->idProduct);
+> +		PDEBUG(D_ERR | D_PROBE, "WARNING: Plase send an email to "
+> +			"linux-media@vger.kernel.org with 'lsusb -v' output, "
+> +			"the vendor and name of the product and whether the "
+> +			"device is working or not.");
+> +	}
+> +
+>   	return gspca_dev_probe(intf, id,&sd_desc, sizeof(struct sd),
+>   				THIS_MODULE);
+>   }
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
