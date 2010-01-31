@@ -1,56 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay.bearnet.nu ([80.252.223.222]:2734 "EHLO relay.bearnet.nu"
+Received: from utm.netup.ru ([193.203.36.250]:47139 "EHLO utm.netup.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754459Ab0A0QFB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jan 2010 11:05:01 -0500
-Message-ID: <4B606421.1060905@pelagicore.com>
-Date: Wed, 27 Jan 2010 17:04:49 +0100
-From: =?ISO-8859-1?Q?Richard_R=F6jfors?= <richard.rojfors@pelagicore.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH 1/2] radio: Add radio-timb
-References: <4B599C44.4030801@pelagicore.com> <201001221726.16522.hverkuil@xs4all.nl> <4B59FE40.3020004@pelagicore.com> <201001271241.46912.hverkuil@xs4all.nl>
-In-Reply-To: <201001271241.46912.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+	id S1752788Ab0AaPeb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 Jan 2010 10:34:31 -0500
+Subject: Re: CAM appears to introduce packet loss
+From: Abylai Ospan <aospan@netup.ru>
+To: Marc Schmitt <marc.schmitt@gmail.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <b36f333c1001310723p561d7a69x955b2d4a6d9b4e1@mail.gmail.com>
+References: <b36f333c1001310412r40cb425cp7a5a0d282c6a716a@mail.gmail.com>
+	 <1264941827.28401.3.camel@alkaloid.netup.ru>
+	 <b36f333c1001310707w3397a5a6i758031262d8591a7@mail.gmail.com>
+	 <b36f333c1001310723p561d7a69x955b2d4a6d9b4e1@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 31 Jan 2010 18:32:55 +0300
+Message-ID: <1264951975.28401.8.camel@alkaloid.netup.ru>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
->> The first time we run we could definitely do a 4l2_i2c_new_subdev*, but what if I rmmod the driver
->> and insmod it again? When we do the do an open, then v4l2_i2c_new_subdev* would fail because the
->> device is only on the bus and probed. So I would have to look for it anyway. Or am I wrong? I found
->> this like the only generic way(?)
-> 
-> Not sure I understand you. When you call v4l2_device_unregister any registered
-> i2c devices will be automatically unloaded from the i2c bus. So when you do a
-> new modprobe, then it is as if you did it for the first time.
-> 
-> This should work. If not, then let me know and we can look at it.
+On Sun, 2010-01-31 at 16:23 +0100, Marc Schmitt wrote:
+> Looks like I need to build the DVB subsystem from the latest sources
+> to get this option as it was recently added only
+> (http://udev.netup.ru/cgi-bin/hgwebdir.cgi/v4l-dvb-aospan/rev/1d956b581b02).
+> On it.
+yes.
 
-Thanks for the explanation! It should work, I will update accordingly.
+this option should show "raw" bitrate coming from demod and which passed
+to CI. In user level you may be measuring bitrate after software PID
+filtering ( may be not ).
 
-> 
->>> Is there a reason why you want to load them only on first use? It is customary
->>> to load them when this driver is loaded. Exceptions to that may be if the i2c
->>> device needs to load a firmware: this can be slow over i2c and so should be
->>> postponed until the i2c driver is needed for the first time.
->> The main reason is actually that this is a platform device which might come available before the I2C
->> bus in the system. So we postpone the use of the bus until needed, because we know for sure it's
->> available at that point.
-> 
-> The i2c busses are always initialized first. That's a change that went in a few
-> kernel releases ago.
-
-Ok, in this case the I2C bus sits on top of a MFD device which might be installed late to reduce
-bootup time.
-
-Bootup time is actually also a reason to keep this code in open rather than in probe.
-
-
---Richard
+-- 
+Abylai Ospan <aospan@netup.ru>
+NetUP Inc.
 
