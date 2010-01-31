@@ -1,113 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:33276 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751241Ab0AIUA1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jan 2010 15:00:27 -0500
-Message-ID: <4B48E054.7000103@infradead.org>
-Date: Sat, 09 Jan 2010 18:00:20 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from mail-yw0-f179.google.com ([209.85.211.179]:55619 "EHLO
+	mail-yw0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753227Ab0AaQZe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 Jan 2010 11:25:34 -0500
+Received: by ywh9 with SMTP id 9so3688258ywh.19
+        for <linux-media@vger.kernel.org>; Sun, 31 Jan 2010 08:25:33 -0800 (PST)
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: =?ISO-8859-1?Q?Michael_R=FCttgers?= <ich@michael-ruettgers.de>,
-	linux-media@vger.kernel.org, devin.heitmueller@gmail.com
-Subject: Re: em28xx: New device request and tvp5150 distortion issues when
- 	capturing from vcr
-References: <1262680804.26250.10.camel@wi-289.weiss.local> <829197381001060756q59916baakc178d60f7116181d@mail.gmail.com>
-In-Reply-To: <829197381001060756q59916baakc178d60f7116181d@mail.gmail.com>
+In-Reply-To: <1264951975.28401.8.camel@alkaloid.netup.ru>
+References: <b36f333c1001310412r40cb425cp7a5a0d282c6a716a@mail.gmail.com>
+	 <1264941827.28401.3.camel@alkaloid.netup.ru>
+	 <b36f333c1001310707w3397a5a6i758031262d8591a7@mail.gmail.com>
+	 <b36f333c1001310723p561d7a69x955b2d4a6d9b4e1@mail.gmail.com>
+	 <1264951975.28401.8.camel@alkaloid.netup.ru>
+Date: Sun, 31 Jan 2010 17:25:32 +0100
+Message-ID: <b36f333c1001310825n6ae6e5dbg45a0cf135d2e89e@mail.gmail.com>
+Subject: Re: CAM appears to introduce packet loss
+From: Marc Schmitt <marc.schmitt@gmail.com>
+To: Abylai Ospan <aospan@netup.ru>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller wrote:
-> On Tue, Jan 5, 2010 at 3:40 AM, Michael Rüttgers
-> <ich@michael-ruettgers.de> wrote:
->> Hello,
->>
->> a year ago I bought a device named "Hama Video Editor", which was not
->> (and is not yet) supported by the em28xx driver.
->> So I played around with the card parameter and got the device basically
->> working with card=38.
->> Basically working means, that I had a distortion when capturing old
->> VHS-Tapes from my old vcr.
->>
->> The problem can be seen here:
->> http://www.michael-ruettgers.de/em28xx/test.avi
->>
->> A few weeks ago I started tracking down the reason for this issue with
->> the help of Devin.
->> Wondering, that the device works perfectly in Windows, I compared the
->> i2c commands, that programmed the register of the tvp5150 in Windows.
->>
->> Finally I got the device working properly, setting the "TV/VCR" option
->> in the register "Operation Mode Controls Register" at address 02h
->> manually to "Automatic mode determined by the internal detection
->> circuit. (default)":
->>
->> 000109:  OUT: 000000 ms 107025 ms 40 02 00 00 b8 00 02 00 >>>  02 00
->>
->> After programming this register, the distortion issue disappeared.
->>
->> So my conclusion was, that the TV/VCR detection mode is forced to
->> TV-mode in the em28xx, which could have been verified by a look into the
->> debug output using the parameter reg_debug=1:
->>
->> OUT: 40 02 00 00 b8 00 02 00 >>> 02 30
->>
->> Bit 4, 5 are used for setting the TV/VCR mode:
->>
->> Description in the Spec:
->>> TV/VCR mode
->>>   00 = Automatic mode determined by the internal detection circuit.
->> (default)
->>>   01 = Reserved
->>>   10 = VCR (nonstandard video) mode
->>>   11 = TV (standard video) mode
->>> With automatic detection enabled, unstable or nonstandard syncs on the
->> input video forces the detector into the VCR
->>> mode. This turns off the comb filters and turns on the chroma trap
->> filter.
->>
->> Thus far the tvp5150 distortion issues when capturing from vcr.
-> 
-> Mauro,
-> 
-> I have been working with Michael on this issue and I did some research
-> into the history of this issue, and it seems like you introduced code
-> in rev 2900 which turns off the auto mode and forces the tvp5150 into
-> "TV mode" if using a composite input:
-> 
-> http://linuxtv.org/hg/v4l-dvb/rev/e6c585a76c77
-> 
-> Could you provide any information on the rationale for this decision?
-> I would think that having it in auto mode would be the appropriate
-> default (which is what the Windows driver does), and then you would
-> force it to either TV or VCR mode only if absolutely necessary.
-> 
-> The comb filter only gets disabled if the auto mode actually concludes
-> the device should be in VCR mode.  Hence, there shouldn't be any
-> downside to having it in auto mode unless you have some reason to
-> believe the detection code is faulty or error-prone.
-> 
+Compiling from source made me stumble across
+http://www.mail-archive.com/ubuntu-devel-discuss@lists.ubuntu.com/msg09422.html
+I just left out the firedtv driver as recommended.
 
-This is a very old patch, and I forgot the reasons why. On that time, only
-TV were working. I suspect the change were needed in order to get signal
-working at Svideo/composite entry on WinTV USB2. Probably, I tested 
-Svideo/composite with an old VCR I used for tests on that time.
+I'm getting the following kernel output after enabling dvb_demux_speedcheck:
+[  330.366115] TS speed 40350 Kbits/sec
+[  332.197693] TS speed 40085 Kbits/sec
+[  334.011856] TS speed 40528 Kbits/sec
+[  335.843466] TS speed 40107 Kbits/sec
+[  337.665411] TS speed 40261 Kbits/sec
+[  339.496959] TS speed 40107 Kbits/sec
+[  341.318289] TS speed 40350 Kbits/sec
 
-> We can add a modprobe option to allow the user to force it into one
-> mode or the other, if someone finds a case where the detection logic
-> has issues.  But forcing it into one particular mode by default
-> doesn't seem like the right approach.
+Do you think the CI/CAM can not handle that?
 
-A modprobe option would be very bad, IMHO. If the problem is with some
-old VCR's, maybe the better is to add a control for it. For example, bttv
-driver has one such control:
-
-	V4L2_CID_PRIVATE_VCR_HACK
-
-I agree that it makes sense to keep the autodetect mode on by default, but
-tests are needed to validade if this won't break support with other devices.
-
-Cheers,
-Mauro.
+On Sun, Jan 31, 2010 at 4:32 PM, Abylai Ospan <aospan@netup.ru> wrote:
+> On Sun, 2010-01-31 at 16:23 +0100, Marc Schmitt wrote:
+>> Looks like I need to build the DVB subsystem from the latest sources
+>> to get this option as it was recently added only
+>> (http://udev.netup.ru/cgi-bin/hgwebdir.cgi/v4l-dvb-aospan/rev/1d956b581b02).
+>> On it.
+> yes.
+>
+> this option should show "raw" bitrate coming from demod and which passed
+> to CI. In user level you may be measuring bitrate after software PID
+> filtering ( may be not ).
+>
+> --
+> Abylai Ospan <aospan@netup.ru>
+> NetUP Inc.
+>
+>
