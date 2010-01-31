@@ -1,29 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ms01.sssup.it ([193.205.80.99]:50826 "EHLO sssup.it"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751382Ab0ANMAj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jan 2010 07:00:39 -0500
-Message-ID: <4B4F0762.4040007@panicking.kicks-ass.org>
-Date: Thu, 14 Jan 2010 13:00:34 +0100
-From: Michael Trimarchi <michael@panicking.kicks-ass.org>
+Received: from mail-yx0-f181.google.com ([209.85.210.181]:59309 "EHLO
+	mail-yx0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753333Ab0AaPHD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 Jan 2010 10:07:03 -0500
+Received: by yxe11 with SMTP id 11so3342593yxe.15
+        for <linux-media@vger.kernel.org>; Sun, 31 Jan 2010 07:07:01 -0800 (PST)
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: omap34xxcam question?
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1264941827.28401.3.camel@alkaloid.netup.ru>
+References: <b36f333c1001310412r40cb425cp7a5a0d282c6a716a@mail.gmail.com>
+	 <1264941827.28401.3.camel@alkaloid.netup.ru>
+Date: Sun, 31 Jan 2010 16:07:01 +0100
+Message-ID: <b36f333c1001310707w3397a5a6i758031262d8591a7@mail.gmail.com>
+Subject: Re: CAM appears to introduce packet loss
+From: Marc Schmitt <marc.schmitt@gmail.com>
+To: Abylai Ospan <aospan@netup.ru>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+Hi there,
 
-Is ok that it try only the first format and size? why does it not continue and find a matching?
+On Sun, Jan 31, 2010 at 1:43 PM, Abylai Ospan <aospan@netup.ru> wrote:
+> Hello,
+>
+> Try to check raw speed coming from demod:
+>
+> echo 1 > /sys/module/dvb_core/parameters/dvb_demux_speedcheck
 
-@@ -470,7 +471,7 @@ static int try_pix_parm(struct omap34xxcam_videodev *vdev,
-                        pix_tmp_out = *wanted_pix_out;
-                        rval = isp_try_fmt_cap(isp, &pix_tmp_in, &pix_tmp_out);
-                        if (rval)
--                               return rval;
-+                               continue;
+What do I need to do to make dvb_demux_speedcheck appear in
+/sys/module/dvb_core/parameters?
 
-Michael
+Cheers,
+   Marc
