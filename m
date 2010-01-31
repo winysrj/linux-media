@@ -1,14 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from ipmail03.adl6.internode.on.net ([203.16.214.141])
+Received: from mail.tu-berlin.de ([130.149.7.33])
 	by mail.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <raen@internode.on.net>) id 1NRM0A-0004ON-10
-	for linux-dvb@linuxtv.org; Sun, 03 Jan 2010 09:39:56 +0100
-Message-ID: <4B4057D0.5030808@internode.on.net>
-Date: Sun, 03 Jan 2010 19:39:44 +1100
-From: Raena Lea-Shannon <raen@internode.on.net>
+	(envelope-from <nicke.claesson@gmail.com>) id 1NbgKM-0005fy-Vu
+	for linux-dvb@linuxtv.org; Sun, 31 Jan 2010 21:23:28 +0100
+Received: from mail-bw0-f227.google.com ([209.85.218.227])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-d) with esmtp
+	for <linux-dvb@linuxtv.org>
+	id 1NbgKM-0003Ix-7P; Sun, 31 Jan 2010 21:23:26 +0100
+Received: by bwz27 with SMTP id 27so2573593bwz.1
+	for <linux-dvb@linuxtv.org>; Sun, 31 Jan 2010 12:23:25 -0800 (PST)
 MIME-Version: 1.0
+Date: Sun, 31 Jan 2010 21:23:25 +0100
+Message-ID: <f509f3091001311223q19a9854fwb546e6fcadc08021@mail.gmail.com>
+From: Niklas Claesson <nicke.claesson@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] DTV2000 H Plus
+Subject: [linux-dvb] Twinhan dtv 3030 mantis
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -17,252 +23,323 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: multipart/mixed; boundary="===============0062327128=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I do not seem to be able to get my DTV2000 to find a tuner. Seems to be 
-problem finding the card. Any suggestions would be greatly appreciated. 
-I am running Kubuntu Karmic 2.6.31-16-generic on AMD64 quadcore.
+--===============0062327128==
+Content-Type: multipart/alternative; boundary=00151750e3180f6c7e047e7ba4af
 
-I came across this Patch which seesm to be on the point
-http://www.linuxtv.org/pipermail/linux-dvb/2008-June/026379.html
+--00151750e3180f6c7e047e7ba4af
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-but I do not have a cx88-cards.c file? I have compiled latest mercurial 
-v4l. Do I need to make an empty file cx88-cards.c? Excuse my ignorance I 
-am not a developer.
+Hi,
+I'm trying to use this tv-card with ubuntu 9.10. I've installed Manu's
+drivers from http://jusst.de/hg/mantis-v4l-dvb/ and did "modprobe mantis"
+which resulted in the following in /var/log/messages
 
-I have tried to run modprobe cx88xx card=51 to no avail.
+Jan 31 20:57:40 niklas-desktop kernel: [  179.000227] Mantis 0000:05:02.0:
+PCI INT A -> GSI 23 (level, low) -> IRQ 23
+Jan 31 20:57:40 niklas-desktop kernel: [  179.001234] DVB: registering new
+adapter (Mantis DVB adapter)
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672664] *pde =3D bac3e067
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672676] Modules linked in:
+mantis(+) mantis_core ir_common ir_core tda665x lnbp21 mb86a16 stb6100
+tda10021 tda10023 zl10353 stb0899 stv0299 dvb_core joydev hidp binfmt_misc
+ppdev bridge stp bnep arc4 ecb snd_hda_codec_analog rtl8187 mac80211
+led_class eeprom_93cx6 snd_hda_intel snd_hda_codec snd_hwdep snd_pcm_oss
+snd_mixer_oss snd_pcm usblp snd_seq_dummy iptable_filter ip_tables x_tables
+btusb cfg80211 asus_atk0110 lirc_imon lirc_dev lp parport snd_seq_oss
+snd_seq_midi snd_rawmidi snd_seq_midi_event snd_seq snd_timer snd_seq_devic=
+e
+snd soundcore snd_page_alloc nvidia(P) usbhid skge ohci1394 ieee1394 sky2
+intel_agp agpgart
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672743]
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672748] Pid: 2768, comm:
+modprobe Tainted: P           (2.6.31-17-generic #54-Ubuntu) System Product
+Name
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672752] EIP: 0060:[<f8517480>=
+]
+EFLAGS: 00010292 CPU: 1
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672761] EIP is at
+dvb_unregister_frontend+0x10/0xe0 [dvb_core]
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672764] EAX: 00000000 EBX:
+f398f800 ECX: f6a51cc0 EDX: 00000000
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672767] ESI: 00000000 EDI:
+f398f9fc EBP: f4983dec ESP: f4983dc8
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672771]  DS: 007b ES: 007b FS=
+:
+00d8 GS: 00e0 SS: 0068
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672779]  f4983dec f851c07e
+f398f800 00000000 f398f9fc f4983dec f398f800 f398f800
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672797] <0> ffffffff f4983e2c
+f85955d5 f70fc858 f8599b50 f398f800 00000000 f398fc70
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672804] <0> f398f848 f398fc64
+f398fc58 f85a9500 f398fbfc f398f9ac f398f800 00000000
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672820]  [<f851c07e>] ?
+dvb_net_release+0x1e/0xb0 [dvb_core]
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672827]  [<f85955d5>] ?
+mantis_dvb_init+0x398/0x3de [mantis_core]
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672833]  [<f85a6606>] ?
+mantis_pci_probe+0x1d7/0x2f8 [mantis]
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672839]  [<c03285ae>] ?
+local_pci_probe+0xe/0x10
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672843]  [<c0329330>] ?
+pci_device_probe+0x60/0x80
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672848]  [<c03a2e30>] ?
+really_probe+0x50/0x140
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672852]  [<c0570cea>] ?
+_spin_lock_irqsave+0x2a/0x40
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672855]  [<c03a2f39>] ?
+driver_probe_device+0x19/0x20
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672859]  [<c03a2fb9>] ?
+__driver_attach+0x79/0x80
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672862]  [<c03a2488>] ?
+bus_for_each_dev+0x48/0x70
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672866]  [<c03a2cf9>] ?
+driver_attach+0x19/0x20
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672869]  [<c03a2f40>] ?
+__driver_attach+0x0/0x80
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672872]  [<c03a26df>] ?
+bus_add_driver+0xbf/0x2a0
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672876]  [<c0329270>] ?
+pci_device_remove+0x0/0x40
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672879]  [<c03a3245>] ?
+driver_register+0x65/0x120
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672883]  [<c0329550>] ?
+__pci_register_driver+0x40/0xb0
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672887]  [<f85a642d>] ?
+mantis_init+0x17/0x19 [mantis]
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672890]  [<c010112c>] ?
+do_one_initcall+0x2c/0x190
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672894]  [<f85a6416>] ?
+mantis_init+0x0/0x19 [mantis]
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672899]  [<c0173711>] ?
+sys_init_module+0xb1/0x1f0
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672903]  [<c01e83ed>] ?
+sys_write+0x3d/0x70
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672906]  [<c010336c>] ?
+syscall_call+0x7/0xb
+Jan 31 20:57:41 niklas-desktop kernel: [  179.672961] ---[ end trace
+035b3cc151b9cf1a ]---
 
-Here is part of an mplayer, lspci and dmesg follow.
+I can't even get the drivers from http://jusst.de/hg/mantis/ to compile:
+
+Kernel build directory is /lib/modules/2.6.31-17-generic/build
+make -C /lib/modules/2.6.31-17-generic/build
+SUBDIRS=3D/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l  modules
+make[2]: Entering directory `/usr/src/linux-headers-2.6.31-17-generic'
+  CC [M]  /home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l/tuner-xc2028=
+.o
+In file included from
+/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l/tuner-xc2028.h:10,
+                 from
+/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l/tuner-xc2028.c:21:
+/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l/dvb_frontend.h:52: err=
+or:
+field 'fe_params' has incomplete type
+/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l/dvb_frontend.h:297: wa=
+rning:
+'struct dvbfe_info' declared inside parameter list
+/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l/dvb_frontend.h:297: wa=
+rning:
+its scope is only this definition or declaration, which is probably not wha=
+t
+you want
+/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l/dvb_frontend.h:298: wa=
+rning:
+'enum dvbfe_delsys' declared inside parameter list
+/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l/dvb_frontend.h:299: wa=
+rning:
+'enum dvbfe_delsys' declared inside parameter list
+/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l/dvb_frontend.h:316: er=
+ror:
+field 'fe_events' has incomplete type
+/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l/dvb_frontend.h:317: er=
+ror:
+field 'fe_params' has incomplete type
+/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l/dvb_frontend.h:354: wa=
+rning:
+'enum dvbfe_fec' declared inside parameter list
+/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l/dvb_frontend.h:354: wa=
+rning:
+'enum dvbfe_modulation' declared inside parameter list
+/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l/dvb_frontend.h:359: wa=
+rning:
+'enum dvbfe_delsys' declared inside parameter list
+/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l/tuner-xc2028.c:49: err=
+or:
+'FIRMWARE_NAME_MAX' undeclared here (not in a function)
+make[3]: ***
+[/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l/tuner-xc2028.o] Error=
+ 1
+make[2]: *** [_module_/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l]=
+ Error
+2
+make[2]: Leaving directory `/usr/src/linux-headers-2.6.31-17-generic'
+make[1]: *** [default] Fel 2
+make[1]: L=C3=A4mnar katalogen "/home/niklas/H=C3=A4mtningar/mantis-5292a47=
+772ad/v4l"
+make: *** [all] Fel 2
+
+Is there anything I can do?
+
+Niklas Claesson
+
+--00151750e3180f6c7e047e7ba4af
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+Hi,<div>I&#39;m trying to use this tv-card with ubuntu 9.10. I&#39;ve insta=
+lled Manu&#39;s drivers from=C2=A0<a href=3D"http://jusst.de/hg/mantis-v4l-=
+dvb/">http://jusst.de/hg/mantis-v4l-dvb/</a> and did &quot;modprobe mantis&=
+quot; which resulted in the following in /var/log/messages</div>
+<div><br></div><div><div>Jan 31 20:57:40 niklas-desktop kernel: [ =C2=A0179=
+.000227] Mantis 0000:05:02.0: PCI INT A -&gt; GSI 23 (level, low) -&gt; IRQ=
+ 23</div><div>Jan 31 20:57:40 niklas-desktop kernel: [ =C2=A0179.001234] DV=
+B: registering new adapter (Mantis DVB adapter)</div>
+<div>Jan 31 20:57:41 niklas-desktop kernel: [ =C2=A0179.672664] *pde =3D ba=
+c3e067=C2=A0</div><div>Jan 31 20:57:41 niklas-desktop kernel: [ =C2=A0179.6=
+72676] Modules linked in: mantis(+) mantis_core ir_common ir_core tda665x l=
+nbp21 mb86a16 stb6100 tda10021 tda10023 zl10353 stb0899 stv0299 dvb_core jo=
+ydev hidp binfmt_misc ppdev bridge stp bnep arc4 ecb snd_hda_codec_analog r=
+tl8187 mac80211 led_class eeprom_93cx6 snd_hda_intel snd_hda_codec snd_hwde=
+p snd_pcm_oss snd_mixer_oss snd_pcm usblp snd_seq_dummy iptable_filter ip_t=
+ables x_tables btusb cfg80211 asus_atk0110 lirc_imon lirc_dev lp parport sn=
+d_seq_oss snd_seq_midi snd_rawmidi snd_seq_midi_event snd_seq snd_timer snd=
+_seq_device snd soundcore snd_page_alloc nvidia(P) usbhid skge ohci1394 iee=
+e1394 sky2 intel_agp agpgart</div>
+<div>Jan 31 20:57:41 niklas-desktop kernel: [ =C2=A0179.672743]=C2=A0</div>=
+<div>Jan 31 20:57:41 niklas-desktop kernel: [ =C2=A0179.672748] Pid: 2768, =
+comm: modprobe Tainted: P =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 (2.6.31-17-gen=
+eric #54-Ubuntu) System Product Name</div>
+<div>Jan 31 20:57:41 niklas-desktop kernel: [ =C2=A0179.672752] EIP: 0060:[=
+&lt;f8517480&gt;] EFLAGS: 00010292 CPU: 1</div><div>Jan 31 20:57:41 niklas-=
+desktop kernel: [ =C2=A0179.672761] EIP is at dvb_unregister_frontend+0x10/=
+0xe0 [dvb_core]</div>
+<div>Jan 31 20:57:41 niklas-desktop kernel: [ =C2=A0179.672764] EAX: 000000=
+00 EBX: f398f800 ECX: f6a51cc0 EDX: 00000000</div><div>Jan 31 20:57:41 nikl=
+as-desktop kernel: [ =C2=A0179.672767] ESI: 00000000 EDI: f398f9fc EBP: f49=
+83dec ESP: f4983dc8</div>
+<div>Jan 31 20:57:41 niklas-desktop kernel: [ =C2=A0179.672771] =C2=A0DS: 0=
+07b ES: 007b FS: 00d8 GS: 00e0 SS: 0068</div><div>Jan 31 20:57:41 niklas-de=
+sktop kernel: [ =C2=A0179.672779] =C2=A0f4983dec f851c07e f398f800 00000000=
+ f398f9fc f4983dec f398f800 f398f800</div>
+<div>Jan 31 20:57:41 niklas-desktop kernel: [ =C2=A0179.672797] &lt;0&gt; f=
+fffffff f4983e2c f85955d5 f70fc858 f8599b50 f398f800 00000000 f398fc70</div=
+><div>Jan 31 20:57:41 niklas-desktop kernel: [ =C2=A0179.672804] &lt;0&gt; =
+f398f848 f398fc64 f398fc58 f85a9500 f398fbfc f398f9ac f398f800 00000000</di=
+v>
+<div>Jan 31 20:57:41 niklas-desktop kernel: [ =C2=A0179.672820] =C2=A0[&lt;=
+f851c07e&gt;] ? dvb_net_release+0x1e/0xb0 [dvb_core]</div><div>Jan 31 20:57=
+:41 niklas-desktop kernel: [ =C2=A0179.672827] =C2=A0[&lt;f85955d5&gt;] ? m=
+antis_dvb_init+0x398/0x3de [mantis_core]</div>
+<div>Jan 31 20:57:41 niklas-desktop kernel: [ =C2=A0179.672833] =C2=A0[&lt;=
+f85a6606&gt;] ? mantis_pci_probe+0x1d7/0x2f8 [mantis]</div><div>Jan 31 20:5=
+7:41 niklas-desktop kernel: [ =C2=A0179.672839] =C2=A0[&lt;c03285ae&gt;] ? =
+local_pci_probe+0xe/0x10</div>
+<div>Jan 31 20:57:41 niklas-desktop kernel: [ =C2=A0179.672843] =C2=A0[&lt;=
+c0329330&gt;] ? pci_device_probe+0x60/0x80</div><div>Jan 31 20:57:41 niklas=
+-desktop kernel: [ =C2=A0179.672848] =C2=A0[&lt;c03a2e30&gt;] ? really_prob=
+e+0x50/0x140</div>
+<div>Jan 31 20:57:41 niklas-desktop kernel: [ =C2=A0179.672852] =C2=A0[&lt;=
+c0570cea&gt;] ? _spin_lock_irqsave+0x2a/0x40</div><div>Jan 31 20:57:41 nikl=
+as-desktop kernel: [ =C2=A0179.672855] =C2=A0[&lt;c03a2f39&gt;] ? driver_pr=
+obe_device+0x19/0x20</div>
+<div>Jan 31 20:57:41 niklas-desktop kernel: [ =C2=A0179.672859] =C2=A0[&lt;=
+c03a2fb9&gt;] ? __driver_attach+0x79/0x80</div><div>Jan 31 20:57:41 niklas-=
+desktop kernel: [ =C2=A0179.672862] =C2=A0[&lt;c03a2488&gt;] ? bus_for_each=
+_dev+0x48/0x70</div>
+<div>Jan 31 20:57:41 niklas-desktop kernel: [ =C2=A0179.672866] =C2=A0[&lt;=
+c03a2cf9&gt;] ? driver_attach+0x19/0x20</div><div>Jan 31 20:57:41 niklas-de=
+sktop kernel: [ =C2=A0179.672869] =C2=A0[&lt;c03a2f40&gt;] ? __driver_attac=
+h+0x0/0x80</div>
+<div>Jan 31 20:57:41 niklas-desktop kernel: [ =C2=A0179.672872] =C2=A0[&lt;=
+c03a26df&gt;] ? bus_add_driver+0xbf/0x2a0</div><div>Jan 31 20:57:41 niklas-=
+desktop kernel: [ =C2=A0179.672876] =C2=A0[&lt;c0329270&gt;] ? pci_device_r=
+emove+0x0/0x40</div>
+<div>Jan 31 20:57:41 niklas-desktop kernel: [ =C2=A0179.672879] =C2=A0[&lt;=
+c03a3245&gt;] ? driver_register+0x65/0x120</div><div>Jan 31 20:57:41 niklas=
+-desktop kernel: [ =C2=A0179.672883] =C2=A0[&lt;c0329550&gt;] ? __pci_regis=
+ter_driver+0x40/0xb0</div>
+<div>Jan 31 20:57:41 niklas-desktop kernel: [ =C2=A0179.672887] =C2=A0[&lt;=
+f85a642d&gt;] ? mantis_init+0x17/0x19 [mantis]</div><div>Jan 31 20:57:41 ni=
+klas-desktop kernel: [ =C2=A0179.672890] =C2=A0[&lt;c010112c&gt;] ? do_one_=
+initcall+0x2c/0x190</div>
+<div>Jan 31 20:57:41 niklas-desktop kernel: [ =C2=A0179.672894] =C2=A0[&lt;=
+f85a6416&gt;] ? mantis_init+0x0/0x19 [mantis]</div><div>Jan 31 20:57:41 nik=
+las-desktop kernel: [ =C2=A0179.672899] =C2=A0[&lt;c0173711&gt;] ? sys_init=
+_module+0xb1/0x1f0</div>
+<div>Jan 31 20:57:41 niklas-desktop kernel: [ =C2=A0179.672903] =C2=A0[&lt;=
+c01e83ed&gt;] ? sys_write+0x3d/0x70</div><div>Jan 31 20:57:41 niklas-deskto=
+p kernel: [ =C2=A0179.672906] =C2=A0[&lt;c010336c&gt;] ? syscall_call+0x7/0=
+xb</div><div>Jan 31 20:57:41 niklas-desktop kernel: [ =C2=A0179.672961] ---=
+[ end trace 035b3cc151b9cf1a ]---</div>
+<div><br></div></div><div>I can&#39;t even get the drivers from <a href=3D"=
+http://jusst.de/hg/mantis/">http://jusst.de/hg/mantis/</a> to compile:</div=
+><div><br></div><div><div>Kernel build directory is /lib/modules/2.6.31-17-=
+generic/build</div>
+<div>make -C /lib/modules/2.6.31-17-generic/build SUBDIRS=3D/home/niklas/H=
+=C3=A4mtningar/mantis-5292a47772ad/v4l =C2=A0modules</div><div>make[2]: Ent=
+ering directory `/usr/src/linux-headers-2.6.31-17-generic&#39;</div><div>=
+=C2=A0=C2=A0CC [M] =C2=A0/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v=
+4l/tuner-xc2028.o</div>
+<div>In file included from /home/niklas/H=C3=A4mtningar/mantis-5292a47772ad=
+/v4l/tuner-xc2028.h:10,</div><div>=C2=A0=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 =C2=A0 =C2=A0 from /home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/=
+v4l/tuner-xc2028.c:21:</div><div>/home/niklas/H=C3=A4mtningar/mantis-5292a4=
+7772ad/v4l/dvb_frontend.h:52: error: field &#39;fe_params&#39; has incomple=
+te type</div>
+<div>/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l/dvb_frontend.h:29=
+7: warning: &#39;struct dvbfe_info&#39; declared inside parameter list</div=
+><div>/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l/dvb_frontend.h:2=
+97: warning: its scope is only this definition or declaration, which is pro=
+bably not what you want</div>
+<div>/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l/dvb_frontend.h:29=
+8: warning: &#39;enum dvbfe_delsys&#39; declared inside parameter list</div=
+><div>/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l/dvb_frontend.h:2=
+99: warning: &#39;enum dvbfe_delsys&#39; declared inside parameter list</di=
+v>
+<div>/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l/dvb_frontend.h:31=
+6: error: field &#39;fe_events&#39; has incomplete type</div><div>/home/nik=
+las/H=C3=A4mtningar/mantis-5292a47772ad/v4l/dvb_frontend.h:317: error: fiel=
+d &#39;fe_params&#39; has incomplete type</div>
+<div>/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l/dvb_frontend.h:35=
+4: warning: &#39;enum dvbfe_fec&#39; declared inside parameter list</div><d=
+iv>/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l/dvb_frontend.h:354:=
+ warning: &#39;enum dvbfe_modulation&#39; declared inside parameter list</d=
+iv>
+<div>/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l/dvb_frontend.h:35=
+9: warning: &#39;enum dvbfe_delsys&#39; declared inside parameter list</div=
+><div>/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l/tuner-xc2028.c:4=
+9: error: &#39;FIRMWARE_NAME_MAX&#39; undeclared here (not in a function)</=
+div>
+<div>make[3]: *** [/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l/tun=
+er-xc2028.o] Error 1</div><div>make[2]: *** [_module_/home/niklas/H=C3=A4mt=
+ningar/mantis-5292a47772ad/v4l] Error 2</div><div>make[2]: Leaving director=
+y `/usr/src/linux-headers-2.6.31-17-generic&#39;</div>
+<div>make[1]: *** [default] Fel 2</div><div>make[1]: L=C3=A4mnar katalogen =
+&quot;/home/niklas/H=C3=A4mtningar/mantis-5292a47772ad/v4l&quot;</div><div>=
+make: *** [all] Fel 2</div><div><br></div><div>Is there anything I can do?<=
+/div><div>
+<br></div>Niklas Claesson<br>
+</div>
+
+--00151750e3180f6c7e047e7ba4af--
 
 
-Selected driver: v4l2
-  name: Video 4 Linux 2 input
-  author: Martin Olschewski <olschewski@zpr.uni-koeln.de>
-  comment: first try, more to come ;-)
-Selected device: UNKNOWN/GENERIC
-  Capabilites:  video capture  VBI capture device  read/write  streaming
-  supported norms: 0 = NTSC-M; 1 = NTSC-M-JP; 2 = NTSC-443; 3 = PAL-BG; 
-4 = PAL-I; 5 = PAL-DK; 6 = PAL-M; 7 = PAL-N; 8 = PAL-Nc; 9 = PAL-60; 10 
-= SECAM-B; 11 = SECAM-G; 12 = SECAM-H; 13 = SECAM-DK; 14 = SECAM-L;
-  inputs: 0 = Composite1; 1 = Composite2; 2 = Composite3; 3 = Composite4;
-
-I am running Kubuntu Karmic 2.6.31-16-generic on AMD64 quadcore. I have 
-latest mercurial of v4l installed.
-
-Here is the Lspci info and dmesg etc
-
-5:05.0 Network controller [0280]: Techsan Electronics Co Ltd B2C2 
-FlexCopII DVB chip / Technisat SkyStar2 DVB card [13d0:2103] (rev 02)
-
-         Subsystem: Techsan Electronics Co Ltd B2C2 FlexCopII DVB chip / 
-Technisat SkyStar2 DVB card [13d0:2103]
-         Flags: bus master, slow devsel, latency 64, IRQ 20
-         Memory at fbff0000 (32-bit, non-prefetchable) [size=64K]
-         I/O ports at ec00 [size=32]
-         Kernel driver in use: b2c2_flexcop_pci
-         Kernel modules: b2c2-flexcop-pci
-
-05:06.0 Multimedia video controller [0400]: Conexant Systems, Inc. 
-CX23880/1/2/3 PCI Video and Audio Decoder [14f1:8800] (rev 05)
-         Subsystem: LeadTek Research Inc. Device [107d:6f42]
-         Flags: bus master, medium devsel, latency 64, IRQ 21
-         Memory at f8000000 (32-bit, non-prefetchable) [size=16M]
-         Capabilities: <access denied>
-         Kernel driver in use: cx8800
-         Kernel modules: cx8800
-
-05:06.1 Multimedia controller [0480]: Conexant Systems, Inc. 
-CX23880/1/2/3 PCI Video and Audio Decoder [Audio Port] [14f1:8801] (rev 05)
-         Subsystem: LeadTek Research Inc. Device [107d:6f42]
-         Flags: bus master, medium devsel, latency 64, IRQ 21
-         Memory at f9000000 (32-bit, non-prefetchable) [size=16M]
-         Capabilities: <access denied>
-         Kernel driver in use: cx88_audio
-         Kernel modules: cx88-alsa
-
-05:06.2 Multimedia controller [0480]: Conexant Systems, Inc. 
-CX23880/1/2/3 PCI Video and Audio Decoder [MPEG Port] [14f1:8802] (rev 05)
-         Subsystem: LeadTek Research Inc. Device [107d:6f42]
-         Flags: bus master, medium devsel, latency 64, IRQ 10
-         Memory at fa000000 (32-bit, non-prefetchable) [size=16M]
-         Capabilities: <access denied>
-         Kernel modules: cx8802
-
-dmesg in part here:
-[snip]
-
-[   20.387650] b2c2-flexcop: B2C2 FlexcopII/II(b)/III digital TV 
-receiver chip loaded successfully
-[   20.390596] EDAC MC: Ver: 2.1.0 Dec  8 2009
-[   20.392347] flexcop-pci: will use the HW PID filter.
-[   20.392351] flexcop-pci: card revision 2
-[   20.392359]   alloc irq_desc for 20 on node 0
-[   20.392361]   alloc kstat_irqs on node 0
-[   20.392366] b2c2_flexcop_pci 0000:05:05.0: PCI INT A -> GSI 20 
-(level, low) -> IRQ 20
-[   20.403400] EDAC amd64_edac:  Ver: 3.2.0 Dec  8 2009
-[   20.404070] EDAC amd64: This node reports that Memory ECC is 
-currently disabled.
-[   20.404073] EDAC amd64: bit 0x400000 in register F3x44 of the 
-MISC_CONTROL device (0000:00:18.3) should be enabled
-[   20.404076] EDAC amd64: WARNING: ECC is NOT currently enabled by the 
-BIOS. Module will NOT be loaded.
-[   20.404077]     Either Enable ECC in the BIOS, or use the 
-'ecc_enable_override' parameter.
-[   20.404078]     Might be a BIOS bug, if BIOS says ECC is enabled
-[   20.404078]     Use of the override can cause unknown side effects.
-[   20.404541] amd64_edac: probe of 0000:00:18.2 failed with error -22
-[   20.425278] HDA Intel 0000:00:14.2: PCI INT A -> GSI 16 (level, low) 
--> IRQ 16
-[   20.430203] DVB: registering new adapter (FlexCop Digital TV device)
-[   20.431702] b2c2-flexcop: MAC address = 00:d0:d7:16:5d:8f
-[   20.432308] CX24123: cx24123_i2c_readreg: reg=0x0 (error=-121)
-[   20.432311] CX24123: wrong demod revision: 87
-[   20.547542] Linux video capture interface: v2.00
-[   20.555291] HDA Intel 0000:01:00.1: PCI INT B -> GSI 19 (level, low) 
--> IRQ 19
-[   20.555310] HDA Intel 0000:01:00.1: setting latency timer to 64
-[   20.608776] EXT3 FS on sda1, internal journal
-[   20.857754] cx88/0: cx2388x v4l2 driver version 0.0.7 loaded
-[   20.859425] cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.7 loaded
-[   20.859959] b2c2-flexcop: found 'Zarlink MT352 DVB-T' .
-[   20.859963] DVB: registering adapter 0 frontend 0 (Zarlink MT352 
-DVB-T)...
-[   20.860017] b2c2-flexcop: initialization of 'Air2PC/AirStar 2 DVB-T' 
-at the 'PCI' bus controlled by a 'FlexCopIIb' complete
-[   20.861717] cx2388x alsa driver version 0.0.7 loaded
-[   20.862371]   alloc irq_desc for 21 on node 0
-[   20.862373]   alloc kstat_irqs on node 0
-[   20.862379] cx8800 0000:05:06.0: PCI INT A -> GSI 21 (level, low) -> 
-IRQ 21
-[   20.862549] cx88[0]: Your board isn't known (yet) to the driver.  You can
-[   20.862550] cx88[0]: try to pick one of the existing card configs via
-[   20.862551] cx88[0]: card=<n> insmod option.  Updating to the latest
-[   20.862552] cx88[0]: version might help as well.
-[   20.862554] cx88[0]: Here is a list of valid choices for the card=<n> 
-insmod option:
-[   20.862556] cx88[0]:    card=0 -> UNKNOWN/GENERIC
-[   20.862558] cx88[0]:    card=1 -> Hauppauge WinTV 34xxx models
-[   20.862559] cx88[0]:    card=2 -> GDI Black Gold
-[   20.862561] cx88[0]:    card=3 -> PixelView
-[   20.862562] cx88[0]:    card=4 -> ATI TV Wonder Pro
-[   20.862563] cx88[0]:    card=5 -> Leadtek Winfast 2000XP Expert
-[   20.862565] cx88[0]:    card=6 -> AverTV Studio 303 (M126)
-[   20.862566] cx88[0]:    card=7 -> MSI TV-@nywhere Master
-[   20.862568] cx88[0]:    card=8 -> Leadtek Winfast DV2000
-[   20.862569] cx88[0]:    card=9 -> Leadtek PVR 2000
-[   20.862571] cx88[0]:    card=10 -> IODATA GV-VCP3/PCI
-[   20.862572] cx88[0]:    card=11 -> Prolink PlayTV PVR
-[   20.862574] cx88[0]:    card=12 -> ASUS PVR-416
-[   20.862575] cx88[0]:    card=13 -> MSI TV-@nywhere
-[   20.862577] cx88[0]:    card=14 -> KWorld/VStream XPert DVB-T
-[   20.862578] cx88[0]:    card=15 -> DViCO FusionHDTV DVB-T1
-[   20.862580] cx88[0]:    card=16 -> KWorld LTV883RF
-[   20.862581] cx88[0]:    card=17 -> DViCO FusionHDTV 3 Gold-Q
-[   20.862583] cx88[0]:    card=18 -> Hauppauge Nova-T DVB-T
-[   20.862584] cx88[0]:    card=19 -> Conexant DVB-T reference design
-[   20.862586] cx88[0]:    card=20 -> Provideo PV259
-[   20.862587] cx88[0]:    card=21 -> DViCO FusionHDTV DVB-T Plus
-[   20.862589] cx88[0]:    card=22 -> pcHDTV HD3000 HDTV
-[   20.862590] cx88[0]:    card=23 -> digitalnow DNTV Live! DVB-T
-[   20.862592] cx88[0]:    card=24 -> Hauppauge WinTV 28xxx (Roslyn) models
-[   20.862593] cx88[0]:    card=25 -> Digital-Logic MICROSPACE 
-Entertainment Center (MEC)
-[   20.862595] cx88[0]:    card=26 -> IODATA GV/BCTV7E
-[   20.862597] cx88[0]:    card=27 -> PixelView PlayTV Ultra Pro (Stereo)
-[   20.862598] cx88[0]:    card=28 -> DViCO FusionHDTV 3 Gold-T
-[   20.862600] cx88[0]:    card=29 -> ADS Tech Instant TV DVB-T PCI
-[   20.862601] cx88[0]:    card=30 -> TerraTec Cinergy 1400 DVB-T
-[   20.862603] cx88[0]:    card=31 -> DViCO FusionHDTV 5 Gold
-[   20.862604] cx88[0]:    card=32 -> AverMedia UltraTV Media Center PCI 550
-[   20.862606] cx88[0]:    card=33 -> Kworld V-Stream Xpert DVD
-[   20.862607] cx88[0]:    card=34 -> ATI HDTV Wonder
-[   20.862609] cx88[0]:    card=35 -> WinFast DTV1000-T
-[   20.862610] cx88[0]:    card=36 -> AVerTV 303 (M126)
-[   20.862611] cx88[0]:    card=37 -> Hauppauge Nova-S-Plus DVB-S
-[   20.862613] cx88[0]:    card=38 -> Hauppauge Nova-SE2 DVB-S
-[   20.862614] cx88[0]:    card=39 -> KWorld DVB-S 100
-[   20.862616] cx88[0]:    card=40 -> Hauppauge WinTV-HVR1100 DVB-T/Hybrid
-[   20.862618] cx88[0]:    card=41 -> Hauppauge WinTV-HVR1100 
-DVB-T/Hybrid (Low Profile)
-[   20.862619] cx88[0]:    card=42 -> digitalnow DNTV Live! DVB-T Pro
-[   20.862621] cx88[0]:    card=43 -> KWorld/VStream XPert DVB-T with 
-cx22702
-[   20.862623] cx88[0]:    card=44 -> DViCO FusionHDTV DVB-T Dual Digital
-[   20.862624] cx88[0]:    card=45 -> KWorld HardwareMpegTV XPert
-[   20.862626] cx88[0]:    card=46 -> DViCO FusionHDTV DVB-T Hybrid
-[   20.862627] cx88[0]:    card=47 -> pcHDTV HD5500 HDTV
-[   20.862628] cx88[0]:    card=48 -> Kworld MCE 200 Deluxe
-[   20.862630] cx88[0]:    card=49 -> PixelView PlayTV P7000
-[   20.862631] cx88[0]:    card=50 -> NPG Tech Real TV FM Top 10
-[   20.862633] cx88[0]:    card=51 -> WinFast DTV2000 H
-[   20.862634] cx88[0]:    card=52 -> Geniatech DVB-S
-[   20.862636] cx88[0]:    card=53 -> Hauppauge WinTV-HVR3000 TriMode 
-Analog/DVB-S/DVB-T
-[   20.862637] cx88[0]:    card=54 -> Norwood Micro TV Tuner
-[   20.862639] cx88[0]:    card=55 -> Shenzhen Tungsten Ages Tech 
-TE-DTV-250 / Swann OEM
-[   20.862641] cx88[0]:    card=56 -> Hauppauge WinTV-HVR1300 
-DVB-T/Hybrid MPEG Encoder
-[   20.862643] cx88[0]:    card=57 -> ADS Tech Instant Video PCI
-[   20.862644] cx88[0]:    card=58 -> Pinnacle PCTV HD 800i
-[   20.862645] cx88[0]:    card=59 -> DViCO FusionHDTV 5 PCI nano
-[   20.862647] cx88[0]:    card=60 -> Pinnacle Hybrid PCTV
-[   20.862648] cx88[0]:    card=61 -> Leadtek TV2000 XP Global
-[   20.862650] cx88[0]:    card=62 -> PowerColor RA330
-[   20.862651] cx88[0]:    card=63 -> Geniatech X8000-MT DVBT
-[   20.862653] cx88[0]:    card=64 -> DViCO FusionHDTV DVB-T PRO
-[   20.862654] cx88[0]:    card=65 -> DViCO FusionHDTV 7 Gold
-[   20.862656] cx88[0]:    card=66 -> Prolink Pixelview MPEG 8000GT
-[   20.862657] cx88[0]:    card=67 -> Kworld PlusTV HD PCI 120 (ATSC 120)
-[   20.862659] cx88[0]:    card=68 -> Hauppauge WinTV-HVR4000 
-DVB-S/S2/T/Hybrid
-[   20.862661] cx88[0]:    card=69 -> Hauppauge WinTV-HVR4000(Lite) DVB-S/S2
-[   20.862662] cx88[0]:    card=70 -> TeVii S460 DVB-S/S2
-[   20.862664] cx88[0]:    card=71 -> Omicom SS4 DVB-S/S2 PCI
-[   20.862665] cx88[0]:    card=72 -> TBS 8920 DVB-S/S2
-[   20.862666] cx88[0]:    card=73 -> TeVii S420 DVB-S
-[   20.862668] cx88[0]:    card=74 -> Prolink Pixelview Global Extreme
-[   20.862669] cx88[0]:    card=75 -> PROF 7300 DVB-S/S2
-[   20.862671] cx88[0]:    card=76 -> SATTRADE ST4200 DVB-S/S2
-[   20.862672] cx88[0]:    card=77 -> TBS 8910 DVB-S
-[   20.862674] cx88[0]:    card=78 -> Prof 6200 DVB-S
-[   20.862675] cx88[0]:    card=79 -> Terratec Cinergy HT PCI MKII
-[   20.862677] cx88[0]:    card=80 -> Hauppauge WinTV-IR Only
-[   20.862678] cx88[0]:    card=81 -> Leadtek WinFast DTV1800 Hybrid
-[   20.862680] cx88[0]:    card=82 -> WinFast DTV2000 H rev. J
-[   20.862681] cx88[0]:    card=83 -> Prof 7301 DVB-S/S2
-[   20.862683] cx88[0]: subsystem: 107d:6f42, board: UNKNOWN/GENERIC 
-[card=0,autodetected], frontend(s): 0
-[   20.862685] cx88[0]: TV tuner type -1, Radio tuner type -1
-[   21.020478] tuner 3-0061: chip found @ 0xc2 (cx88[0])
-[   21.065392] cx88[0]/0: found at 0000:05:06.0, rev: 5, irq: 21, 
-latency: 64, mmio: 0xf8000000
-[   21.065403] IRQ 21/cx88[0]: IRQF_DISABLED is not guaranteed on shared 
-IRQs
-[   21.065461] cx88[0]/0: registered device video0 [v4l2]
-[   21.065480] cx88[0]/0: registered device vbi0
-[   21.065489] tuner 3-0061: tuner type not set
-[   21.074373] cx88[0]/2: cx2388x 8802 Driver Manager
-[   21.074759] cx88_audio 0000:05:06.1: PCI INT A -> GSI 21 (level, low) 
--> IRQ 21
-[   21.074767] IRQ 21/cx88[0]: IRQF_DISABLED is not guaranteed on shared 
-IRQs
-[   21.074786] cx88[0]/1: CX88x/0: ALSA support for cx2388x boards
-
-23.773910] tun: Universal TUN/TAP device driver, 1.6
-[   23.773912] tun: (C) 1999-2004 Max Krasnyansky <maxk@qualcomm.com>
-[   23.774358] tun0: Disabled Privacy Extensions
-
-[snip]
-  162.841498] tuner 3-0061: tuner type not set
+--===============0062327128==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0062327128==--
