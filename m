@@ -1,68 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3610 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754861Ab0BVXYz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 18:24:55 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Brandon Philips <brandon@ifup.org>
-Subject: Re: [ANNOUNCE] git tree repositories & libv4l
-Date: Tue, 23 Feb 2010 00:26:59 +0100
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Douglas Landgraf <dougsland@gmail.com>
-References: <4B55445A.10300@infradead.org> <4B5B30E4.7030909@redhat.com> <20100222225426.GC4013@jenkins.home.ifup.org>
-In-Reply-To: <20100222225426.GC4013@jenkins.home.ifup.org>
+Received: from mail-bw0-f223.google.com ([209.85.218.223]:60434 "EHLO
+	mail-bw0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756048Ab0BAUSX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Feb 2010 15:18:23 -0500
+Received: by bwz23 with SMTP id 23so21455bwz.21
+        for <linux-media@vger.kernel.org>; Mon, 01 Feb 2010 12:18:21 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201002230026.59712.hverkuil@xs4all.nl>
+In-Reply-To: <21ce51251002011149u1139c57em1fd8ca2427a188f2@mail.gmail.com>
+References: <4B60A983.7040405@gmail.com>
+	 <21ce51251002011145g1def10b4w8e6d17557d958180@mail.gmail.com>
+	 <21ce51251002011148h53629ad8vf161cdcf918a3fe8@mail.gmail.com>
+	 <21ce51251002011149u1139c57em1fd8ca2427a188f2@mail.gmail.com>
+Date: Mon, 1 Feb 2010 15:18:21 -0500
+Message-ID: <829197381002011218p70e8d216qc25a5e8b81d291c3@mail.gmail.com>
+Subject: Re: dmesg output with Pinnacle PCTV USB Stick
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Arnaud Boy <psykauze@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 22 February 2010 23:54:26 Brandon Philips wrote:
-> On 18:24 Sat 23 Jan 2010, Hans de Goede wrote:
-> > >lib/
-> > >	libv4l1/
-> > >	libv4l2/
-> > >	libv4lconvert/
-> > >utils/
-> > >	v4l2-dbg
-> > >	v4l2-ctl
-> > >	cx18-ctl
-> > >	ivtv-ctl
-> > >contrib/
-> > >	test/
-> > >	everything else
-> > >
-> 
->   git clone git://ifup.org/philips/create-v4l-utils.git
->   cd create-v4l-utils/
->   ./convert.sh 
-> 
-> You should now have v4l-utils.git which should have this directory
-> struture. If we need to move other things around let me know and I can
-> tweak name-filter.sh
-> 
-> Thoughts? Let me know how we should proceed with dropping v4l2-apps
-> from v4l-dvb.
-> 
-> Re: code style cleanup. I think we should do that once we drop
-> v4l2-apps/ from v4l-dvb and make the new v4l-utils.git upstream.
+On Mon, Feb 1, 2010 at 2:49 PM, Arnaud Boy <psykauze@gmail.com> wrote:
+> Hi!
+>
+> I've a card "PINNACLE PCTV HYBRID PRO (2)" with the PCI ID
+> "0x2304:0x0226". This is work on analog mode but the "em28xx" module
+> don't register dvb interface.
+>
+> I think the card could work if we uncomment the commented part in the
+> section [EM2882_BOARD_PINNACLE_HYBRID_PRO] from the
+> "/linux/drivers/media/video/em28xx/em28xx-cards.c" file and we add his
+> reference card at the "/linux/drivers/media/video/em28xx/em28xx-dvb.c"
+>
+> You can(must?) explain me why we couldn't have this card work with your driver.
 
-Question: shouldn't we merge dvb-apps and v4l-utils? The alevtv tool was
-merged into dvb-apps, but while that tool supports dvb, it also supports
-v4l2. Just like we merged dvb and v4l in a single repository, so I think we
-should also merge the tools to a media-utils repository.
+The 2304:0226 is the PCTV 330e.  The DVB side is not currently
+supported do to issues with the drx-d driver.  Search the linux-media
+archives for "330e" for the history of this issue.
 
-It remains a fact of life that dvb and v4l are connected and trying to
-artificially keep them apart does not make much sense to me.
-
-Regards,
-
-	Hans
+Devin
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
