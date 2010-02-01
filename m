@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx08.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.12])
+Received: from mx1.redhat.com (ext-mx05.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.9])
 	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o1F6O2bo015816
-	for <video4linux-list@redhat.com>; Mon, 15 Feb 2010 01:24:02 -0500
-Received: from mail-qy0-f184.google.com (mail-qy0-f184.google.com
-	[209.85.221.184])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o1F6NkLk000530
-	for <video4linux-list@redhat.com>; Mon, 15 Feb 2010 01:23:47 -0500
-Received: by qyk14 with SMTP id 14so598856qyk.9
-	for <video4linux-list@redhat.com>; Sun, 14 Feb 2010 22:23:46 -0800 (PST)
+	id o11B47uD032642
+	for <video4linux-list@redhat.com>; Mon, 1 Feb 2010 06:04:07 -0500
+Received: from mail-px0-f185.google.com (mail-px0-f185.google.com
+	[209.85.216.185])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o11B3pKG032190
+	for <video4linux-list@redhat.com>; Mon, 1 Feb 2010 06:03:52 -0500
+Received: by pxi15 with SMTP id 15so4065928pxi.23
+	for <video4linux-list@redhat.com>; Mon, 01 Feb 2010 03:03:51 -0800 (PST)
 MIME-Version: 1.0
-Date: Mon, 15 Feb 2010 14:23:46 +0800
-Message-ID: <7881f5a01002142223y5eaef760m3f4a90ecabe690b2@mail.gmail.com>
-Subject: To add a new saa713X card, 10Moon TVbaby to the kernel code
-From: shao robin <swjbook@gmail.com>
-To: video4linux-list@redhat.com
+Date: Mon, 1 Feb 2010 12:03:51 +0100
+Message-ID: <fe6fd5f61002010303y48f5d51m3f4c0e5f21698825@mail.gmail.com>
+Subject: Problem of memory
+From: Carlos Lavin <carlos.lavin@vista-silicon.com>
+To: video4linux-list <video4linux-list@redhat.com>
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,14 +29,18 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all:
-I want to add some new code to make the kernel support my card.
-I have make it work with an old version kernel.
-Also I can try to make a patch for new version.
-If I do this, which code base should I use than ?
-
-Best regards.
-Robin.
+hello, I have a problem, I am developing a video driver for imx27 in version
+2.6.30, I need to work in this version, I work with the soc-camera subsytem.
+the problem is that I need to reserve memory for my buffers, but the
+function DMA_ALLOC_COHERENT says error: ENOMEN. This problem is in that I
+haven't enough memory to my buffers, then I am thinking that I can reserve
+memory for this buffers in the __init of driver... but, how can I do it?
+In my aplication, I call to mmap(), this function reserve memory for the
+buffers and also calls soc_camera_mmap for to call at dma_alloc_coherent.
+How can I do for that the driver reserve memory and the aplication knows
+where is this memory? how can I resolver this problem?, also I have thought
+that I could reserve memory without call to soc-camera subsytem in the mmap,
+only in this function, is it possible? can someone help me? thanks.
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
