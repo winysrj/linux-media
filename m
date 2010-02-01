@@ -1,218 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1956 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753510Ab0BVTzY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 14:55:24 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [PATCH 1/6] V4L: File handles
-Date: Mon, 22 Feb 2010 20:57:53 +0100
-Cc: linux-media@vger.kernel.org, laurent.pinchart@nokia.com,
-	david.cohen@nokia.com
-References: <4B82A7FB.50505@maxwell.research.nokia.com> <1266853897-25749-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <1266853897-25749-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+Received: from mail-bw0-f223.google.com ([209.85.218.223]:57290 "EHLO
+	mail-bw0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755245Ab0BAVl0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Feb 2010 16:41:26 -0500
+Received: by bwz23 with SMTP id 23so87874bwz.21
+        for <linux-media@vger.kernel.org>; Mon, 01 Feb 2010 13:41:24 -0800 (PST)
+Message-ID: <4B674A7F.60108@suse.cz>
+Date: Mon, 01 Feb 2010 22:41:19 +0100
+From: Jiri Slaby <jslaby@suse.cz>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
+To: Antti Palosaari <crope@iki.fi>
+CC: Jiri Kosina <jkosina@suse.cz>,
+	Pekka Sarnila <pekka.sarnila@qvantel.com>,
+	Pekka Sarnila <sarnila@adit.fi>, linux-media@vger.kernel.org,
+	pb@linuxtv.org, js@linuxtv.org
+Subject: Re: dvb-usb-remote woes [was: HID: ignore afatech 9016]
+References: <alpine.LNX.2.00.1001132111570.30977@pobox.suse.cz> <1263415146-26321-1-git-send-email-jslaby@suse.cz> <alpine.LNX.2.00.1001260156010.30977@pobox.suse.cz> <4B5EFD69.4080802@adit.fi> <alpine.LNX.2.00.1001262344200.30977@pobox.suse.cz> <4B671C31.3040902@qvantel.com> <alpine.LNX.2.00.1002011928220.15395@pobox.suse.cz> <4B672EB8.3010609@suse.cz> <4B674637.8020403@iki.fi>
+In-Reply-To: <4B674637.8020403@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201002222057.53918.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Looks good.
+On 02/01/2010 10:23 PM, Antti Palosaari wrote:
+> On 02/01/2010 09:42 PM, Jiri Slaby wrote:
+>> On 02/01/2010 07:28 PM, Jiri Kosina wrote:
+>>> On Mon, 1 Feb 2010, Pekka Sarnila wrote:
+>>>>    <3>af9015: command failed:255
+>>>>    <3>dvb-usb: error while querying for an remote control event.
+>>
+>> Yes, I saw this quite recently too. For me it appears when it is booted
+>> up with the stick in. It's still to be fixed.
+> 
+> I suspect you are using old firmware, 4.65.0.0 probably, that does not
+> support remote polling and thus this 255 errors seen.
 
-Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+For me:
+af9013: firmware version:4.95.0
 
-On Monday 22 February 2010 16:51:32 Sakari Ailus wrote:
-> This patch adds a list of v4l2_fh structures to every video_device.
-> It allows using file handle related information in V4L2. The event interface
-> is one example of such use.
-> 
-> Video device drivers should use the v4l2_fh pointer as their
-> file->private_data.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> ---
->  drivers/media/video/Makefile   |    2 +-
->  drivers/media/video/v4l2-dev.c |    4 ++
->  drivers/media/video/v4l2-fh.c  |   64 ++++++++++++++++++++++++++++++++++++++++
->  include/media/v4l2-dev.h       |    5 +++
->  include/media/v4l2-fh.h        |   42 ++++++++++++++++++++++++++
->  5 files changed, 116 insertions(+), 1 deletions(-)
->  create mode 100644 drivers/media/video/v4l2-fh.c
->  create mode 100644 include/media/v4l2-fh.h
-> 
-> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-> index 5163289..14bf69a 100644
-> --- a/drivers/media/video/Makefile
-> +++ b/drivers/media/video/Makefile
-> @@ -10,7 +10,7 @@ stkwebcam-objs	:=	stk-webcam.o stk-sensor.o
->  
->  omap2cam-objs	:=	omap24xxcam.o omap24xxcam-dma.o
->  
-> -videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o
-> +videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o
->  
->  # V4L2 core modules
->  
-> diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-> index 7090699..65a7b30 100644
-> --- a/drivers/media/video/v4l2-dev.c
-> +++ b/drivers/media/video/v4l2-dev.c
-> @@ -421,6 +421,10 @@ static int __video_register_device(struct video_device *vdev, int type, int nr,
->  	if (!vdev->release)
->  		return -EINVAL;
->  
-> +	/* v4l2_fh support */
-> +	spin_lock_init(&vdev->fh_lock);
-> +	INIT_LIST_HEAD(&vdev->fh_list);
-> +
->  	/* Part 1: check device type */
->  	switch (type) {
->  	case VFL_TYPE_GRABBER:
-> diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
-> new file mode 100644
-> index 0000000..c707930
-> --- /dev/null
-> +++ b/drivers/media/video/v4l2-fh.c
-> @@ -0,0 +1,64 @@
-> +/*
-> + * drivers/media/video/v4l2-fh.c
-> + *
-> + * V4L2 file handles.
-> + *
-> + * Copyright (C) 2009 Nokia Corporation.
-> + *
-> + * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
-> + */
-> +
-> +#include <linux/bitops.h>
-> +#include <media/v4l2-dev.h>
-> +#include <media/v4l2-fh.h>
-> +
-> +void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
-> +{
-> +	fh->vdev = vdev;
-> +	INIT_LIST_HEAD(&fh->list);
-> +	set_bit(V4L2_FL_USES_V4L2_FH, &fh->vdev->flags);
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_fh_init);
-> +
-> +void v4l2_fh_add(struct v4l2_fh *fh)
-> +{
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
-> +	list_add(&fh->list, &fh->vdev->fh_list);
-> +	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_fh_add);
-> +
-> +void v4l2_fh_del(struct v4l2_fh *fh)
-> +{
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
-> +	list_del_init(&fh->list);
-> +	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_fh_del);
-> +
-> +void v4l2_fh_exit(struct v4l2_fh *fh)
-> +{
-> +	if (fh->vdev == NULL)
-> +		return;
-> +
-> +	fh->vdev = NULL;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_fh_exit);
-> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-> index 2dee938..bebe44b 100644
-> --- a/include/media/v4l2-dev.h
-> +++ b/include/media/v4l2-dev.h
-> @@ -32,6 +32,7 @@ struct v4l2_device;
->     Drivers can clear this flag if they want to block all future
->     device access. It is cleared by video_unregister_device. */
->  #define V4L2_FL_REGISTERED	(0)
-> +#define V4L2_FL_USES_V4L2_FH	(1)
->  
->  struct v4l2_file_operations {
->  	struct module *owner;
-> @@ -77,6 +78,10 @@ struct video_device
->  	/* attribute to differentiate multiple indices on one physical device */
->  	int index;
->  
-> +	/* V4L2 file handles */
-> +	spinlock_t		fh_lock; /* Lock for all v4l2_fhs */
-> +	struct list_head	fh_list; /* List of struct v4l2_fh */
-> +
->  	int debug;			/* Activates debug level*/
->  
->  	/* Video standard vars */
-> diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
-> new file mode 100644
-> index 0000000..6b486aa
-> --- /dev/null
-> +++ b/include/media/v4l2-fh.h
-> @@ -0,0 +1,42 @@
-> +/*
-> + * include/media/v4l2-fh.h
-> + *
-> + * V4L2 file handle.
-> + *
-> + * Copyright (C) 2009 Nokia Corporation.
-> + *
-> + * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
-> + */
-> +
-> +#ifndef V4L2_FH_H
-> +#define V4L2_FH_H
-> +
-> +#include <linux/list.h>
-> +
-> +struct video_device;
-> +
-> +struct v4l2_fh {
-> +	struct list_head	list;
-> +	struct video_device	*vdev;
-> +};
-> +
-> +void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev);
-> +void v4l2_fh_add(struct v4l2_fh *fh);
-> +void v4l2_fh_del(struct v4l2_fh *fh);
-> +void v4l2_fh_exit(struct v4l2_fh *fh);
-> +
-> +#endif /* V4L2_EVENT_H */
-> 
+As I wrote, for me it happens iff it is plugged-in while booting. I'll
+investigate it further later -- that it a reason why I haven't reported
+it yet.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+js
+suse labs
