@@ -1,98 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:59543 "EHLO lo.gmane.org"
+Received: from mx1.redhat.com ([209.132.183.28]:26450 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752762Ab0BPJvv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Feb 2010 04:51:51 -0500
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1NhK5r-0002Wz-5t
-	for linux-media@vger.kernel.org; Tue, 16 Feb 2010 10:51:47 +0100
-Received: from 80-218-69-65.dclient.hispeed.ch ([80.218.69.65])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 16 Feb 2010 10:51:47 +0100
-Received: from auslands-kv by 80-218-69-65.dclient.hispeed.ch with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 16 Feb 2010 10:51:47 +0100
-To: linux-media@vger.kernel.org
-From: Michael <auslands-kv@gmx.de>
-Subject: tw68: Congratulations :-) and possible vsync problem :-(
-Date: Tue, 16 Feb 2010 10:51:23 +0100
-Message-ID: <hldpqq$nfn$1@ger.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7Bit
+	id S1752659Ab0BAOuv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Feb 2010 09:50:51 -0500
+Message-ID: <4B66EA42.9060108@redhat.com>
+Date: Mon, 01 Feb 2010 12:50:42 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Abylay Ospan <aospan@netup.ru>
+Subject: [PATCH] dvb_demux: Don't use vmalloc at dvb_dmx_swfilter_packet
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
+As dvb_dmx_swfilter_packet() is protected by a spinlock, it shouldn't sleep.
+However, vmalloc() may call sleep. So, move the initialization of
+dvb_demux::cnt_storage field to a better place.
 
-I have tested a TW6805 based mini-pci card with the new tw68-v2 driver from 
-git (22 January 2010).
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/dvb-core/dvb_demux.c |   19 ++++++++-----------
+ 1 files changed, 8 insertions(+), 11 deletions(-)
 
-First of all: Congratulations! It is really working great.
-
-However, I noticed some frame errors here and then. It is not easy to 
-identify what the reason is. It looks a bit like a buffer problem as it 
-happens more often, if there is some load on the system.
-
-Here is a simple way how I can reproduce the frame errors:
-
-mplayer -framedrop -fs -vo x11 tv:// -tv 
-device=/dev/video0:width=640:height=480:normid=3
-
-With this command, cpu load goes to 100% on my low powered geode system. The 
-frame errors are very obvious. It looks like a vsync problem as the wrong 
-frames always start somewhere in the middle. There is no horizontal shift 
-visible.
-
-Reducing the image size:
-
-mplayer -framedrop -fs -vo x11 tv:// -tv 
-device=/dev/video0:width=320:height=240:normid=3
-
-gives a drop in CPU load to 13%. No more frame errors.
-
-Also using hardware accelerated video playback (xv) reduces CPU load to some 
-20% and removes the frame errors:
-
-mplayer -framedrop -fs -vo xv tv:// -tv 
-device=/dev/video0:width=640:height=480:normid=3
-
-Still, even here, occasionally there are some frame errors, depending on 
-what happens on the system. These can be induced as follows. Using this 
-program: 
-
-mkfifo /tmp/mp
-mplayer -framedrop -fs -vf screenshot -vo xv tv:// -tv 
-device=/dev/video0:normid=3 -slave -input file=/tmp/mp </dev/null >/dev/null
-
-When this test prog runs, you can issue commands to mplayer, e.g.
-
-echo pause > /tmp/mp
-
-This pauses mplayer. A second
-
-echo pause > /tmp/mp
-
-starts mplayer again. Here the first frame shows the error.
-
-The same happens if you issue:
-
-echo screenshot 0 > /tmp/mp
-
-This captures a screenshot and saves it into the current pwd. Again, when 
-mplayer takes the shot, there comes one error frame (probably also wrong 
-vsync).
-
-
-Btw. using instead a bttv based card all these tests run without frame 
-errors.
-
-Does this information help to identify and remove the bug?
-
-Best regards
-
-Michael
-
+diff --git a/drivers/media/dvb/dvb-core/dvb_demux.c b/drivers/media/dvb/dvb-core/dvb_demux.c
+index a78408e..67f189b 100644
+--- a/drivers/media/dvb/dvb-core/dvb_demux.c
++++ b/drivers/media/dvb/dvb-core/dvb_demux.c
+@@ -426,16 +426,7 @@ static void dvb_dmx_swfilter_packet(struct dvb_demux *demux, const u8 *buf)
+ 		};
+ 	};
+ 
+-	if (dvb_demux_tscheck) {
+-		if (!demux->cnt_storage)
+-			demux->cnt_storage = vmalloc(MAX_PID + 1);
+-
+-		if (!demux->cnt_storage) {
+-			printk(KERN_WARNING "Couldn't allocate memory for TS/TEI check. Disabling it\n");
+-			dvb_demux_tscheck = 0;
+-			goto no_dvb_demux_tscheck;
+-		}
+-
++	if (demux->cnt_storage) {
+ 		/* check pkt counter */
+ 		if (pid < MAX_PID) {
+ 			if (buf[1] & 0x80)
+@@ -454,7 +445,6 @@ static void dvb_dmx_swfilter_packet(struct dvb_demux *demux, const u8 *buf)
+ 		};
+ 		/* end check */
+ 	};
+-no_dvb_demux_tscheck:
+ 
+ 	list_for_each_entry(feed, &demux->feed_list, list_head) {
+ 		if ((feed->pid != pid) && (feed->pid != 0x2000))
+@@ -1258,6 +1248,13 @@ int dvb_dmx_init(struct dvb_demux *dvbdemux)
+ 		dvbdemux->feed[i].index = i;
+ 	}
+ 
++	if (dvb_demux_tscheck) {
++		dvbdemux->cnt_storage = vmalloc(MAX_PID + 1);
++
++		if (!dvbdemux->cnt_storage)
++			printk(KERN_WARNING "Couldn't allocate memory for TS/TEI check. Disabling it\n");
++	}
++
+ 	INIT_LIST_HEAD(&dvbdemux->frontend_list);
+ 
+ 	for (i = 0; i < DMX_TS_PES_OTHER; i++) {
+-- 
+1.6.6.1
 
