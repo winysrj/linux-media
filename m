@@ -1,65 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:58947 "EHLO lo.gmane.org"
+Received: from mx1.redhat.com ([209.132.183.28]:58434 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756494Ab0BOU3f (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2010 15:29:35 -0500
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1Nh7ZV-00008u-7m
-	for linux-media@vger.kernel.org; Mon, 15 Feb 2010 21:29:33 +0100
-Received: from 80-218-69-65.dclient.hispeed.ch ([80.218.69.65])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 15 Feb 2010 21:29:33 +0100
-Received: from auslands-kv by 80-218-69-65.dclient.hispeed.ch with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 15 Feb 2010 21:29:33 +0100
-To: linux-media@vger.kernel.org
-From: Michael <auslands-kv@gmx.de>
-Subject: Re: cx23885
-Date: Mon, 15 Feb 2010 21:29:10 +0100
-Message-ID: <hlcaqk$q8$1@ger.gmane.org>
-References: <hlbe6t$kc4$1@ger.gmane.org> <1266238446.3075.13.camel@palomino.walls.org> <hlbhck$uh9$1@ger.gmane.org> <4B795D1A.9040502@kernellabs.com> <hlbopr$v7s$1@ger.gmane.org> <829197381002150927p5061d383k1267240bcafc0927@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7Bit
+	id S1752023Ab0BANf1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Feb 2010 08:35:27 -0500
+Received: from int-mx03.intmail.prod.int.phx2.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o11DZRrb025220
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 1 Feb 2010 08:35:27 -0500
+Received: from [10.11.9.119] (vpn-9-119.rdu.redhat.com [10.11.9.119])
+	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o11DZNLF010818
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 1 Feb 2010 08:35:26 -0500
+Message-ID: <4B66D89A.2030207@redhat.com>
+Date: Mon, 01 Feb 2010 11:35:22 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] Fix the risk of an oops at dvb_dmx_release
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller wrote:
+dvb_dmx_init tries to allocate virtual memory for 2 pointers: filter and feed.
 
-> I would probably advise against using a cx23885 based design for
-> analog under Linux right now.  There is *some* analog support in the
-> driver, but it is not very mature and has a host of issues/bugs.
-> Also, there is currently no analog audio support in the driver, so if
-> you do not have an encoder then it will not work.
->
+If the second vmalloc fails, filter is freed, but the pointer keeps pointing
+to the old place. Later, when dvb_dmx_release() is called, it will try to
+free an already freed memory, causing an OOPS.
 
-Well, I don't need audio, just video. A raw stream is everything I need, as 
-it is displayed by mplayer directly.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/dvb-core/dvb_demux.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-But you mean that this most probably wouldn't work as the analog support is 
-not good enough for the time being?
-
-> In other words, even if all you did need was to add another PCI ID,
-> you would still be very likely to run into problems.
-> 
-> We (KernelLabs) have a handful of patches that can eventually get into
-> the upstream driver, although right now progress is slow on that front
-> and you certainly shouldn't buy hardware based on the expectation that
-> the patches are forthcoming.
-> 
-Well, would these patches help me to get the card working for my purpose 
-(raw video stream)? I don't mind patching the driver. I am no developer, but 
-applying a patch and compiling the driver I should manage.
-
-Otherwise do you know another mini-pci-express video capture card that is 
-supported by the linux kernel?
-
-Thanks for your help
-
-Michael
-> Devin
-> 
+diff --git a/drivers/media/dvb/dvb-core/dvb_demux.c b/drivers/media/dvb/dvb-core/dvb_demux.c
+index b78cfb7..a78408e 100644
+--- a/drivers/media/dvb/dvb-core/dvb_demux.c
++++ b/drivers/media/dvb/dvb-core/dvb_demux.c
+@@ -1246,6 +1246,7 @@ int dvb_dmx_init(struct dvb_demux *dvbdemux)
+ 	dvbdemux->feed = vmalloc(dvbdemux->feednum * sizeof(struct dvb_demux_feed));
+ 	if (!dvbdemux->feed) {
+ 		vfree(dvbdemux->filter);
++		dvbdemux->filter = NULL;
+ 		return -ENOMEM;
+ 	}
+ 	for (i = 0; i < dvbdemux->filternum; i++) {
+-- 
+1.6.6.1
 
 
