@@ -1,106 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ppsw-7.csi.cam.ac.uk ([131.111.8.137]:49146 "EHLO
-	ppsw-7.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751143Ab0BVQvf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 11:51:35 -0500
-Message-ID: <4B82B687.2080703@cam.ac.uk>
-Date: Mon, 22 Feb 2010 16:53:27 +0000
-From: Jonathan Cameron <jic23@cam.ac.uk>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Rodolfo Giometti <giometti@enneenne.com>,
-	=?ISO-8859-1?Q?Richard_R=F6?= =?ISO-8859-1?Q?jfors?=
-	<richard.rojfors.ext@mocean-labs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: adv7180 as SoC camera device
-References: <20100219174451.GH21778@enneenne.com> <Pine.LNX.4.64.1002192018170.5860@axis700.grange> <20100222160139.GL21778@enneenne.com> <Pine.LNX.4.64.1002221706480.4120@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1002221706480.4120@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail.gmx.net ([213.165.64.20]:50750 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751382Ab0BAVh7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Feb 2010 16:37:59 -0500
+Subject: Re: Kernel Oops, dvb_dmxdev_filter_reset, bisected
+From: Chicken Shack <chicken.shack@gmx.de>
+To: Thomas Voegtle <tv@lio96.de>
+Cc: obi@linuxtv.org, mchehab@redhat.com, linux-media@vger.kernel.org
+In-Reply-To: <alpine.LNX.2.00.1002012148310.9330@er-systems.de>
+References: <alpine.LNX.2.00.1002011855590.30919@er-systems.de>
+	 <1265052321.19005.8.camel@brian.bconsult.de>
+	 <alpine.LNX.2.00.1002012148310.9330@er-systems.de>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 01 Feb 2010 22:35:50 +0100
+Message-ID: <1265060150.2653.14.camel@brian.bconsult.de>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/22/10 16:16, Guennadi Liakhovetski wrote:
-> On Mon, 22 Feb 2010, Rodolfo Giometti wrote:
+Am Montag, den 01.02.2010, 21:50 +0100 schrieb Thomas Voegtle:
+> On Mon, 1 Feb 2010, Chicken Shack wrote:
 > 
->> On Fri, Feb 19, 2010 at 08:36:38PM +0100, Guennadi Liakhovetski wrote:
->>> On Fri, 19 Feb 2010, Rodolfo Giometti wrote:
->>>
->>>> Hello,
->>>>
->>>> on my pxa27x based board I have a adv7180 connected with the CIF
->>>> interface. Due this fact I'm going to use the pxa_camera.c driver
->>>> which in turn registers a soc_camera_host.
->>>>
->>>> In the latest kernel I found your driver for the ADV7180, but it
->>>> registers the chip as a v4l sub device.
->>>>
->>>> I suppose these two interfaces are not compatible, aren't they?
->>>
->>> Congratulations! Thereby you're in a position to develop the first 
->>> v4l2-subdev / soc-camera universal driver;) The answer to this your 
->>> question is - they are... kinda. This means - yes, soc-camera is also 
->>> using the v4l2-subdev API, but - with a couple of additions. Basically, 
->>> there are two things you have to change in the adv7180 driver to make it 
->>> compatible with soc-camera - (1) add bus-configuration methods, even if 
->>> they don't do much (see .query_bus_param() and .set_bus_param() methods 
->>> from struct soc_camera_ops), and (2) migrate the driver to the mediabus 
->>> API. The latter one requires some care - in principle, mediabus should be 
->>> the future API to negotiate parameters on the video bus between bridges 
->>> (in your case PXA CIF) and clients, but for you this means you also have 
->>> to migrate any other bridge drivers in the mainline to that API, and, if 
->>> they also interface to some other subdevices - those too, and if those can 
->>> also work with other bridges - those too...;) But, I think, that chain 
->>> will terminate quite soon, in fact, I cannot find any users of that driver 
->>> currently in the mainline, Richard?
->>>
->>>> In this situation, should I write a new driver for the
->>>> soc_camera_device? Which is The-Right-Thing(TM) to do? :)
->>>
->>> Please, have a look and try to convert the driver as described above. All 
->>> the APIs and a few examples are in the mainline, so, you should have 
->>> enough copy-paste sources;) Ask on the list (with me on cc) if anything is 
->>> still unclear.
->>
->> Thanks for your quick answer! :)
->>
->> What I still don't understand is if should I move the driver form
->> v4l2-subdev to a soc_camera device or trying to support both API...
+> > Hi Thomas,
+> >
+> > thanks for reproducing that kernel oops.
+> >
+> > Question:
+> >
+> > Can you also confirm / reproduce that alevt does not follow the new TV
+> > or radio channel if the new channel, tuned by dvbstream / mplayer for
+> > example, is part of another transponder?
+> >
+> > Normal, i. e. expected behaviour can be desribed in the following
+> > example:
+> >
+> > a. You start mplayer://ZDF, then you start alevt, and ZDF teletext
+> > should be visible.
+> >
+> > b. You change the channel to mplayer://Das Erste.
+> > Now alevt should follow the new tuning and tune one channel of the
+> > transponder containing the ARD bouquet.
+> >
+> > But instead of that alevt hangs and cannot be finished by an ordinary
+> > quit. You need _violence_ a la "killall -9 alevt" or, on the command
+> > line: STRG-C as shortcut.
+> >
+> > Can you reproduce / confirm that, Thomas?
 > 
-> Both. It is just one (v4l2-subdev) API, but soc-camera is using some 
-> extensions to it.
 > 
->> It seems to me that the driver is not used by any machines into
->> mainline
-> 
-> That makes your task even easier - you do not have to convert any bridge 
-> drivers to mediabus API.
-Indeed.  Having time to do that is what is delaying the ov7670 conversion.
-(that and having time in general!)  For info I did post some untested
-patches for the ov7670 a while back that show the minimal changes I think
-are needed under these circumstances.
+> Yes, I can confirm that. And yes, it is annoying.
 
+
+Thank you, Thomas.
+
+I think that the tasks to work on are clear now. All my hopes rest on
+Andy Walls now......
+To be honest I would be much happier if more people would volunteer and
+perform a task splitting due to lack of time......
+
+
+The thing is:
+Looking at the code in vbi.c (using grep -e .....) I in fact saw a vbi
+reset function call.
+But this vbi reset function call does not touch the DVB demux device
+(which would mean f. ex. to set the teletext pid to zero and stuff like
+that.....).
+
+Proof (which you can easily find out if you have an analogue bttv card).
+
+The hangup does not happen if you use alevt-dvb in analogue mode.
+It only happens because the DVB implementation needs a little bit of
+care by a highly experienced and competent person.
+
+The vbi reset function or even some similar system call needs to be
+extended or added to fulfil DVB needs.
+
+The DVB implementation is reduced to demux filter release (start) and
+demux filter stop. Reset does not seem to exist, and that's why the
+proggy does not follow the new channel as part of a different
+transponder if a new channel is being tuned by some external application
+like kaffeine or mplayer.....
+
+
+> thanks,
 > 
->> so if soc-camera is also using the v4l2-subdev API but with a
->> couple of additions I suppose I can move it to soc_camera API...
-> 
-> Not move, extend. But preserve an ability to function without soc-camera 
-> additions too. I.e., the use of soc-camera extensions should be optional 
-> in your driver. Look here 
-> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/11486/focus=11493 
-> for an example.
-> 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> --
+> Thoams
+
+
+My turn so say Thank you
+
+CS
+
+
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+
 
