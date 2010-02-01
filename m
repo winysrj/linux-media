@@ -1,240 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out108.alice.it ([85.37.17.108]:3632 "EHLO
-	smtp-out108.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030798Ab0B0UbK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Feb 2010 15:31:10 -0500
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: linux-media@vger.kernel.org
-Cc: Antonio Ospite <ospite@studenti.unina.it>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Max Thrun <bear24rw@gmail.com>
-Subject: [PATCH 09/11] ov534: Cosmetics: fix indentation and hex digits
-Date: Sat, 27 Feb 2010 21:20:26 +0100
-Message-Id: <1267302028-7941-10-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
-References: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
+Received: from mail-bw0-f223.google.com ([209.85.218.223]:59298 "EHLO
+	mail-bw0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752937Ab0BAUwY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Feb 2010 15:52:24 -0500
+Received: by bwz23 with SMTP id 23so50696bwz.21
+        for <linux-media@vger.kernel.org>; Mon, 01 Feb 2010 12:52:23 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4B673B2D.6040507@arcor.de>
+References: <4B673790.3030706@arcor.de> <4B673B2D.6040507@arcor.de>
+Date: Mon, 1 Feb 2010 15:52:23 -0500
+Message-ID: <829197381002011252w93b0f17g4c4f6d35ffae45f3@mail.gmail.com>
+Subject: Re: [PATCH] - tm6000 DVB support
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Stefan Ringel <stefan.ringel@arcor.de>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, Feb 1, 2010 at 3:35 PM, Stefan Ringel <stefan.ringel@arcor.de> wrote:
+> add Terratec Cinergy Hybrid XE
+> bugfix i2c transfer
+> add frontend callback
+> add init for tm6010
+> add digital-init for tm6010
+> add callback for analog/digital switch
+> bugfix usb transfer in DVB-mode
+>
+> signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
 
-  * Indent with tabs, not with spaces.
-  * Less indentation for controls index comments.
-  * Use lowercase hex digits.
+Hi Stefan,
 
-Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
----
- linux/drivers/media/video/gspca/ov534.c |  128 ++++++++++++++++----------------
- 1 file changed, 64 insertions(+), 64 deletions(-)
+It's good to see you're making progress.  However, this is going to
+need *alot* of work before it will be able to be accepted upstream.
 
-Index: gspca/linux/drivers/media/video/gspca/ov534.c
-===================================================================
---- gspca.orig/linux/drivers/media/video/gspca/ov534.c
-+++ gspca/linux/drivers/media/video/gspca/ov534.c
-@@ -92,7 +92,7 @@
- static int sd_getcontrast(struct gspca_dev *gspca_dev, __s32 *val);
- 
- static const struct ctrl sd_ctrls[] = {
--    {							/* 0 */
-+{	/* 0 */
- 	{
- 		.id      = V4L2_CID_BRIGHTNESS,
- 		.type    = V4L2_CTRL_TYPE_INTEGER,
-@@ -105,8 +105,8 @@
- 	},
- 	.set = sd_setbrightness,
- 	.get = sd_getbrightness,
--    },
--    {							/* 1 */
-+},
-+{	/* 1 */
- 	{
- 		.id      = V4L2_CID_CONTRAST,
- 		.type    = V4L2_CTRL_TYPE_INTEGER,
-@@ -119,51 +119,51 @@
- 	},
- 	.set = sd_setcontrast,
- 	.get = sd_getcontrast,
--    },
--    {							/* 2 */
-+},
-+{	/* 2 */
- 	{
--	    .id      = V4L2_CID_GAIN,
--	    .type    = V4L2_CTRL_TYPE_INTEGER,
--	    .name    = "Main Gain",
--	    .minimum = 0,
--	    .maximum = 63,
--	    .step    = 1,
-+		.id      = V4L2_CID_GAIN,
-+		.type    = V4L2_CTRL_TYPE_INTEGER,
-+		.name    = "Main Gain",
-+		.minimum = 0,
-+		.maximum = 63,
-+		.step    = 1,
- #define GAIN_DEF 20
--	    .default_value = GAIN_DEF,
-+		.default_value = GAIN_DEF,
- 	},
- 	.set = sd_setgain,
- 	.get = sd_getgain,
--    },
--    {							/* 3 */
-+},
-+{	/* 3 */
- 	{
--	    .id      = V4L2_CID_EXPOSURE,
--	    .type    = V4L2_CTRL_TYPE_INTEGER,
--	    .name    = "Exposure",
--	    .minimum = 0,
--	    .maximum = 506,
--	    .step    = 1,
-+		.id      = V4L2_CID_EXPOSURE,
-+		.type    = V4L2_CTRL_TYPE_INTEGER,
-+		.name    = "Exposure",
-+		.minimum = 0,
-+		.maximum = 506,
-+		.step    = 1,
- #define EXPO_DEF 120
--	    .default_value = EXPO_DEF,
-+		.default_value = EXPO_DEF,
- 	},
- 	.set = sd_setexposure,
- 	.get = sd_getexposure,
--    },
--    {							/* 4 */
-+},
-+{	/* 4 */
- 	{
--	    .id      = V4L2_CID_AUTOGAIN,
--	    .type    = V4L2_CTRL_TYPE_BOOLEAN,
--	    .name    = "Auto Gain",
--	    .minimum = 0,
--	    .maximum = 1,
--	    .step    = 1,
-+		.id      = V4L2_CID_AUTOGAIN,
-+		.type    = V4L2_CTRL_TYPE_BOOLEAN,
-+		.name    = "Auto Gain",
-+		.minimum = 0,
-+		.maximum = 1,
-+		.step    = 1,
- #define AGC_DEF 1
--	    .default_value = AGC_DEF,
-+		.default_value = AGC_DEF,
- 	},
- 	.set = sd_setagc,
- 	.get = sd_getagc,
--    },
-+},
- #define AWB_IDX 5
--    {							/* 5 */
-+{	/* 5 */
- 	{
- 		.id      = V4L2_CID_AUTO_WHITE_BALANCE,
- 		.type    = V4L2_CTRL_TYPE_BOOLEAN,
-@@ -176,8 +176,8 @@
- 	},
- 	.set = sd_setawb,
- 	.get = sd_getawb,
--    },
--    {							/* 6 */
-+},
-+{	/* 6 */
- 	{
- 		.id      = V4L2_CID_EXPOSURE_AUTO,
- 		.type    = V4L2_CTRL_TYPE_BOOLEAN,
-@@ -190,49 +190,49 @@
- 	},
- 	.set = sd_setaec,
- 	.get = sd_getaec,
--    },
--    {							/* 7 */
-+},
-+{	/* 7 */
- 	{
--	    .id      = V4L2_CID_SHARPNESS,
--	    .type    = V4L2_CTRL_TYPE_INTEGER,
--	    .name    = "Sharpness",
--	    .minimum = 0,
--	    .maximum = 63,
--	    .step    = 1,
-+		.id      = V4L2_CID_SHARPNESS,
-+		.type    = V4L2_CTRL_TYPE_INTEGER,
-+		.name    = "Sharpness",
-+		.minimum = 0,
-+		.maximum = 63,
-+		.step    = 1,
- #define SHARPNESS_DEF 0
--	    .default_value = SHARPNESS_DEF,
-+		.default_value = SHARPNESS_DEF,
- 	},
- 	.set = sd_setsharpness,
- 	.get = sd_getsharpness,
--    },
--    {							/* 8 */
-+},
-+{	/* 8 */
- 	{
--	    .id      = V4L2_CID_HFLIP,
--	    .type    = V4L2_CTRL_TYPE_BOOLEAN,
--	    .name    = "HFlip",
--	    .minimum = 0,
--	    .maximum = 1,
--	    .step    = 1,
-+		.id      = V4L2_CID_HFLIP,
-+		.type    = V4L2_CTRL_TYPE_BOOLEAN,
-+		.name    = "HFlip",
-+		.minimum = 0,
-+		.maximum = 1,
-+		.step    = 1,
- #define HFLIP_DEF 0
--	    .default_value = HFLIP_DEF,
-+		.default_value = HFLIP_DEF,
- 	},
- 	.set = sd_sethflip,
- 	.get = sd_gethflip,
--    },
--    {							/* 9 */
-+},
-+{	/* 9 */
- 	{
--	    .id      = V4L2_CID_VFLIP,
--	    .type    = V4L2_CTRL_TYPE_BOOLEAN,
--	    .name    = "VFlip",
--	    .minimum = 0,
--	    .maximum = 1,
--	    .step    = 1,
-+		.id      = V4L2_CID_VFLIP,
-+		.type    = V4L2_CTRL_TYPE_BOOLEAN,
-+		.name    = "VFlip",
-+		.minimum = 0,
-+		.maximum = 1,
-+		.step    = 1,
- #define VFLIP_DEF 0
--	    .default_value = VFLIP_DEF,
-+		.default_value = VFLIP_DEF,
- 	},
- 	.set = sd_setvflip,
- 	.get = sd_getvflip,
--    },
-+},
- };
- 
- static const struct v4l2_pix_format ov772x_mode[] = {
-@@ -641,14 +641,14 @@
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
- 
--	sccb_reg_write(gspca_dev, 0x9B, sd->brightness);
-+	sccb_reg_write(gspca_dev, 0x9b, sd->brightness);
- }
- 
- static void setcontrast(struct gspca_dev *gspca_dev)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
- 
--	sccb_reg_write(gspca_dev, 0x9C, sd->contrast);
-+	sccb_reg_write(gspca_dev, 0x9c, sd->contrast);
- }
- 
- static void setgain(struct gspca_dev *gspca_dev)
+You should start by breaking it down into a patch series, so that the
+incremental changes can be reviewed.  That will allow you to explain
+in the patch descriptions why all the individual changes you have made
+are required.
+
+However, I will try to put some of my thoughts down based on the quick
+glance I took at the patch.
+
+Why did you define a new callback for changing the tuner mode?  We
+have successfully provided infrastructure on other bridges to toggle
+GPIOs when changing modes.  For example, the em28xx has fields in the
+board profile that allow you to toggle GPIOs when going back and forth
+between digital and analog mode.
+
+You've got a bunch of changes in the xc3028 tuner that will
+*definitely* need close inspection and would need to be validated on a
+variety of products using the xc3028 before they could be accepted
+upstream.  While you have done what you felt was necessary to make it
+work for your board, this cannot be at the cost of possible
+regressions to other products that are already supported.
+
+You really should look into fixing whatever is screwed up in the
+tm6000 i2c implementation so that the read support works, rather than
+relying on nothing ever having to perform a read operation.
+
+What function does the "tm6000" member in the zl10353 config do?  It
+doesn't seem to be used anywhere.
+
+There are a bunch of codingstyle issues which will need to be fixed.
+
+My foremost concerns are obviously the things that touch other
+drivers, since your work could cause regressions/breakage for other
+boards, which is actually much worse than your board not being
+supported.
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
