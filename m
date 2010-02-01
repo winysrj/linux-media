@@ -1,107 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:38907 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754091Ab0BVPvq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 10:51:46 -0500
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@nokia.com, hverkuil@xs4all.nl,
-	david.cohen@nokia.com
-Subject: [PATCH 3/6] V4L: Events: Add new ioctls for events
-Date: Mon, 22 Feb 2010 17:51:34 +0200
-Message-Id: <1266853897-25749-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <1266853897-25749-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-References: <4B82A7FB.50505@maxwell.research.nokia.com>
- <1266853897-25749-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
- <1266853897-25749-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+Received: from mx1.redhat.com ([209.132.183.28]:8513 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753852Ab0BATLw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Feb 2010 14:11:52 -0500
+Message-ID: <4B67276D.1020909@redhat.com>
+Date: Mon, 01 Feb 2010 17:11:41 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Stefan Richter <stefanr@s5r6.in-berlin.de>
+CC: Douglas Schilling Landgraf <dougsland@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [hg:v4l-dvb] firedtv: do not DMA-map stack addresses
+References: <E1NbzwQ-00009q-Tx@mail.linuxtv.org> <4B672345.6070203@s5r6.in-berlin.de>
+In-Reply-To: <4B672345.6070203@s5r6.in-berlin.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a set of new ioctls to the V4L2 API. The ioctls conform to
-V4L2 Events RFC version 2.3:
+Hi Stefan,
 
-<URL:http://www.spinics.net/lists/linux-media/msg12033.html>
+Stefan Richter wrote:
+>> The patch number 14077 was added via Douglas Schilling Landgraf <dougsland@redhat.com>
+>> to http://linuxtv.org/hg/v4l-dvb master development tree.
+> [...]
+>> [dougsland@redhat.com: patch backported to hg tree]
+> 
+> I don't know how you prefer to organize your trees, but:
+> In this particular case it could have been simpler if you had first
+> inserted an hg:v4l-dvb only patch which simply reverts the divergence of
+> firedtv in hg from mainline git.
+> 
+> This divergence was introduced by some kind of hg->git export mistake.
+> That's not a big issue but it may cause another mistake when the next
+> hg->git export happens.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- drivers/media/video/v4l2-compat-ioctl32.c |    3 +++
- drivers/media/video/v4l2-ioctl.c          |    3 +++
- include/linux/videodev2.h                 |   26 ++++++++++++++++++++++++++
- 3 files changed, 32 insertions(+), 0 deletions(-)
+We've replaced our procedures on our trees recently. Until last year,
+I was applying the patches at -hg and then converting to -git.
 
-diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-index f77f84b..9004a5f 100644
---- a/drivers/media/video/v4l2-compat-ioctl32.c
-+++ b/drivers/media/video/v4l2-compat-ioctl32.c
-@@ -1086,6 +1086,9 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
- 	case VIDIOC_QUERY_DV_PRESET:
- 	case VIDIOC_S_DV_TIMINGS:
- 	case VIDIOC_G_DV_TIMINGS:
-+	case VIDIOC_DQEVENT:
-+	case VIDIOC_SUBSCRIBE_EVENT:
-+	case VIDIOC_UNSUBSCRIBE_EVENT:
- 		ret = do_video_ioctl(file, cmd, arg);
- 		break;
- 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 4b11257..34c7d6e 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -290,6 +290,9 @@ static const char *v4l2_ioctls[] = {
- 	[_IOC_NR(VIDIOC_QUERY_DV_PRESET)]  = "VIDIOC_QUERY_DV_PRESET",
- 	[_IOC_NR(VIDIOC_S_DV_TIMINGS)]     = "VIDIOC_S_DV_TIMINGS",
- 	[_IOC_NR(VIDIOC_G_DV_TIMINGS)]     = "VIDIOC_G_DV_TIMINGS",
-+	[_IOC_NR(VIDIOC_DQEVENT)]	   = "VIDIOC_DQEVENT",
-+	[_IOC_NR(VIDIOC_SUBSCRIBE_EVENT)]  = "VIDIOC_SUBSCRIBE_EVENT",
-+	[_IOC_NR(VIDIOC_UNSUBSCRIBE_EVENT)] = "VIDIOC_UNSUBSCRIBE_EVENT",
- };
- #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
- 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 3c26560..f7237fc 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1622,6 +1622,29 @@ struct v4l2_streamparm {
- };
- 
- /*
-+ *	E V E N T S
-+ */
-+
-+struct v4l2_event {
-+	__u32				type;
-+	union {
-+		__u8			data[64];
-+	} u;
-+	__u32				pending;
-+	__u32				sequence;
-+	struct timespec			timestamp;
-+	__u32				reserved[9];
-+};
-+
-+struct v4l2_event_subscription {
-+	__u32				type;
-+	__u32				reserved[7];
-+};
-+
-+#define V4L2_EVENT_ALL				0
-+#define V4L2_EVENT_PRIVATE_START		0x08000000
-+
-+/*
-  *	A D V A N C E D   D E B U G G I N G
-  *
-  *	NOTE: EXPERIMENTAL API, NEVER RELY ON THIS IN APPLICATIONS!
-@@ -1743,6 +1766,9 @@ struct v4l2_dbg_chip_ident {
- #define	VIDIOC_QUERY_DV_PRESET	_IOR('V',  86, struct v4l2_dv_preset)
- #define	VIDIOC_S_DV_TIMINGS	_IOWR('V', 87, struct v4l2_dv_timings)
- #define	VIDIOC_G_DV_TIMINGS	_IOWR('V', 88, struct v4l2_dv_timings)
-+#define	VIDIOC_DQEVENT		 _IOR('V', 83, struct v4l2_event)
-+#define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 84, struct v4l2_event_subscription)
-+#define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 85, struct v4l2_event_subscription)
- 
- /* Reminder: when adding new ioctls please add support for them to
-    drivers/media/video/v4l2-compat-ioctl32.c as well! */
+This year, we're just doing the reverse: the patches got added at -git:
+	http://git.linuxtv.org/v4l-dvb.git
+
+And then backported to -hg.  The backport is double-checked by an script
+that detects code differences between those two trees, after removing any
+backported patches.
+
+I had 3 patches from you pending to apply, probably due to some import
+troubles at -hg. Those patches got added this week at -git. That's why
+you're now seeing those backport emails.
+
+Unfortunately, I hadn't any time yet to replace the git hook to some 
+hook that sends a message to the patch author/sob's. 
+
+Cheers,
+Mauro
+
 -- 
-1.5.6.5
 
+Cheers,
+Mauro
