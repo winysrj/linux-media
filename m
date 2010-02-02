@@ -1,88 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:43130 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754424Ab0BJO6s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Feb 2010 09:58:48 -0500
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
-	david.cohen@nokia.com
-Subject: [PATCH v4 7/7] V4L: Events: Support all events
-Date: Wed, 10 Feb 2010 16:58:09 +0200
-Message-Id: <1265813889-17847-7-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <1265813889-17847-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-References: <4B72C965.7040204@maxwell.research.nokia.com>
- <1265813889-17847-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
- <1265813889-17847-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
- <1265813889-17847-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
- <1265813889-17847-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
- <1265813889-17847-5-git-send-email-sakari.ailus@maxwell.research.nokia.com>
- <1265813889-17847-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+Received: from mx1.redhat.com ([209.132.183.28]:26131 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756130Ab0BBUwp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Feb 2010 15:52:45 -0500
+Message-ID: <4B689094.2070204@redhat.com>
+Date: Tue, 02 Feb 2010 18:52:36 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Stefan Ringel <stefan.ringel@arcor.de>
+CC: linux-media@vger.kernel.org,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [PATCH] -  tm6000 DVB support
+References: <4B673790.3030706@arcor.de> <4B673B2D.6040507@arcor.de> <4B675B19.3080705@redhat.com> <4B685FB9.1010805@arcor.de> <4B688507.606@redhat.com> <4B688E41.2050806@arcor.de>
+In-Reply-To: <4B688E41.2050806@arcor.de>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for subscribing all events with a special id V4L2_EVENT_ALL. If
-V4L2_EVENT_ALL is subscribed, no other events may be subscribed. Otherwise
-V4L2_EVENT_ALL is considered just as any other event.
+Stefan Ringel wrote:
+> Am 02.02.2010 21:03, schrieb Mauro Carvalho Chehab:
+>>>>> @@ -404,6 +432,7 @@ int tm6000_init (struct tm6000_core *dev)
+>>>>>  {
+>>>>>      int board, rc=0, i, size;
+>>>>>      struct reg_init *tab;
+>>>>> +    u8 buf[40];
+>>>>>     
+>>>>>         
+>>>> Why "40" ? Please avoid using magic numbers here, especially if you're
+>>>> not checking at the logic if you're writing outside the buffer.
+>>>>
+>>>>   
+>>>>       
+>>> It important for tm6010 init sequence to enable the demodulator, because
+>>> the demodulator haven't found after init tuner.
+>>>     
+>> Probably, there is some i2c gate to enable/disable the i2c access to the
+>> demodulator. The better way is to add a call to the tm6000-dvb and let it
+>> init the demodulator.
+>>
+>> Also, since there's a gate for the demodulator, the proper way is to add
+>> a callback to control it. Please take a look at saa7134 and seek for i2c_gate_ctrl
+>> to see how such logic works.
+>>
+>>   
+> It has followed structure schema without the GPIOs:
+> 1. tm6010 init
+> 2. enable zl10353
+> 3. tm6010 re-init
+> 
+> If it board specific then it's better when board number definition 
+> switch from tm6000-card.c to tm6000.h . We can use in all tm6000*.c
+> files the board definition .
 
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- drivers/media/video/v4l2-event.c |   13 ++++++++++++-
- include/linux/videodev2.h        |    1 +
- 2 files changed, 13 insertions(+), 1 deletions(-)
+What's board specific: all stuff that has GPIO, and the demod/frontend enable code.
+In order to have a better structure, the demod/frontend enable code should be at the tm6000-dvb,
+just like the other drivers. There, you'll have a switch for those devices that have DVB
+(Among others, I have here one 10moons device that is analog-only, with a tm5600 - a stripped
+down version of tm6000, without the DVB part).
 
-diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
-index 0af0de5..68b3cf4 100644
---- a/drivers/media/video/v4l2-event.c
-+++ b/drivers/media/video/v4l2-event.c
-@@ -139,6 +139,14 @@ static struct v4l2_subscribed_event *__v4l2_event_subscribed(
- 	struct v4l2_events *events = fh->events;
- 	struct v4l2_subscribed_event *sev;
- 
-+	if (list_empty(&events->subscribed))
-+		return NULL;
-+
-+	sev = list_entry(events->subscribed.next,
-+			 struct v4l2_subscribed_event, list);
-+	if (sev->type == V4L2_EVENT_ALL)
-+		return sev;
-+
- 	list_for_each_entry(sev, &events->subscribed, list) {
- 		if (sev->type == type)
- 			return sev;
-@@ -222,6 +230,8 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
- 	/* Allow subscribing to valid events only. */
- 	if (sub->type < V4L2_EVENT_PRIVATE_START)
- 		switch (sub->type) {
-+		case V4L2_EVENT_ALL:
-+			break;
- 		default:
- 			return -EINVAL;
- 		}
-@@ -262,7 +272,8 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
- 
- 	sev = __v4l2_event_subscribed(fh, sub->type);
- 
--	if (sev == NULL) {
-+	if (sev == NULL ||
-+	    (sub->type != V4L2_EVENT_ALL && sev->type == V4L2_EVENT_ALL)) {
- 		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
- 		return -EINVAL;
- 	}
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index a19ae89..9ae9a1c 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1553,6 +1553,7 @@ struct v4l2_event_subscription {
- 	__u32		reserved[7];
- };
- 
-+#define V4L2_EVENT_ALL				0
- #define V4L2_EVENT_PRIVATE_START		0x08000000
- 
- /*
 -- 
-1.5.6.5
 
+Cheers,
+Mauro
