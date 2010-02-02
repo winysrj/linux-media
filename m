@@ -1,112 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web32702.mail.mud.yahoo.com ([68.142.207.246]:43573 "HELO
-	web32702.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750764Ab0BGTxQ (ORCPT
+Received: from mail-in-13.arcor-online.net ([151.189.21.53]:40714 "EHLO
+	mail-in-13.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756547Ab0BBVL6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Feb 2010 14:53:16 -0500
-Message-ID: <19431.32442.qm@web32702.mail.mud.yahoo.com>
-Date: Sun, 7 Feb 2010 11:53:15 -0800 (PST)
-From: Franklin Meng <fmeng2002@yahoo.com>
-Subject: [Patch] Kworld 315U remote support
-To: Douglas Schilling <dougsland@gmail.com>,
-	maillist <linux-media@vger.kernel.org>
+	Tue, 2 Feb 2010 16:11:58 -0500
+Message-ID: <4B6894FE.6010202@arcor.de>
+Date: Tue, 02 Feb 2010 22:11:26 +0100
+From: Stefan Ringel <stefan.ringel@arcor.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [PATCH] -  tm6000 DVB support
+References: <4B673790.3030706@arcor.de> <4B673B2D.6040507@arcor.de> <4B675B19.3080705@redhat.com> <4B685FB9.1010805@arcor.de> <4B688507.606@redhat.com> <4B688E41.2050806@arcor.de> <4B689094.2070204@redhat.com>
+In-Reply-To: <4B689094.2070204@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds remote support for the Kworld 315U device
+Am 02.02.2010 21:52, schrieb Mauro Carvalho Chehab:
+> Stefan Ringel wrote:
+>   
+>> Am 02.02.2010 21:03, schrieb Mauro Carvalho Chehab:
+>>     
+>>>>>> @@ -404,6 +432,7 @@ int tm6000_init (struct tm6000_core *dev)
+>>>>>>  {
+>>>>>>      int board, rc=0, i, size;
+>>>>>>      struct reg_init *tab;
+>>>>>> +    u8 buf[40];
+>>>>>>     
+>>>>>>         
+>>>>>>             
+>>>>> Why "40" ? Please avoid using magic numbers here, especially if you're
+>>>>> not checking at the logic if you're writing outside the buffer.
+>>>>>
+>>>>>   
+>>>>>       
+>>>>>           
+>>>> It important for tm6010 init sequence to enable the demodulator, because
+>>>> the demodulator haven't found after init tuner.
+>>>>     
+>>>>         
+>>> Probably, there is some i2c gate to enable/disable the i2c access to the
+>>> demodulator. The better way is to add a call to the tm6000-dvb and let it
+>>> init the demodulator.
+>>>
+>>> Also, since there's a gate for the demodulator, the proper way is to add
+>>> a callback to control it. Please take a look at saa7134 and seek for i2c_gate_ctrl
+>>> to see how such logic works.
+>>>
+>>>   
+>>>       
+>> It has followed structure schema without the GPIOs:
+>> 1. tm6010 init
+>> 2. enable zl10353
+>> 3. tm6010 re-init
+>>
+>> If it board specific then it's better when board number definition 
+>> switch from tm6000-card.c to tm6000.h . We can use in all tm6000*.c
+>> files the board definition .
+>>     
+> What's board specific: all stuff that has GPIO, and the demod/frontend enable code.
+> In order to have a better structure, the demod/frontend enable code should be at the tm6000-dvb,
+> just like the other drivers. There, you'll have a switch for those devices that have DVB
+> (Among others, I have here one 10moons device that is analog-only, with a tm5600 - a stripped
+> down version of tm6000, without the DVB part).
+>
+>   
+I have additional information to enable demodulator, it must enable
+before firmware load after that it cannot find zl10353, I think. Should
+I test it!
 
-Note: I believe I got most of the mappings correct.  Though the
-source and shutdown button probably could be mapped to something
-better.  
+-- 
+Stefan Ringel <stefan.ringel@arcor.de>
 
-To be done: Still need to get the Kworld analog patch resubmitted.
-There are still some stuff I want to test with the analog patch before
-I resubmit it.  Hopefully this patch will work ok.
-
-Please let me know if there are any issues applying the patch
-
-Signed-off-by: Franklin Meng <fmeng2002@yahoo.com>
-
-diff -r 28f5eca12bb0 linux/drivers/media/IR/ir-keymaps.c
---- a/linux/drivers/media/IR/ir-keymaps.c	Sat Feb 06 23:49:31 2010 -0200
-+++ b/linux/drivers/media/IR/ir-keymaps.c	Sun Feb 07 11:35:39 2010 -0800
-@@ -3501,3 +3501,52 @@
- 	.size = ARRAY_SIZE(ir_codes_winfast_usbii_deluxe),
- };
- EXPORT_SYMBOL_GPL(ir_codes_winfast_usbii_deluxe_table);
-+
-+/* Kworld 315U
-+*/
-+static struct ir_scancode ir_codes_kworld_315u[] = {
-+	{ 0x43, KEY_POWER },
-+	{ 0x01, KEY_TUNER },	/* source */
-+	{ 0x0b, KEY_ZOOM },
-+	{ 0x03, KEY_POWER2 },	/* shutdown */
-+
-+	{ 0x04, KEY_1 },
-+	{ 0x08, KEY_2 },
-+	{ 0x02, KEY_3 },
-+	{ 0x09, KEY_CHANNELUP },
-+
-+	{ 0x0f, KEY_4 },
-+	{ 0x05, KEY_5 },
-+	{ 0x06, KEY_6 },
-+	{ 0x07, KEY_CHANNELDOWN },
-+
-+	{ 0x0c, KEY_7 },
-+	{ 0x0d, KEY_8 },
-+	{ 0x0a, KEY_9 },
-+	{ 0x0e, KEY_VOLUMEUP },
-+
-+	{ 0x10, KEY_LAST },
-+	{ 0x11, KEY_0 },
-+	{ 0x12, KEY_ENTER },
-+	{ 0x13, KEY_VOLUMEDOWN },
-+
-+	{ 0x14, KEY_RECORD },
-+	{ 0x15, KEY_STOP },
-+	{ 0x16, KEY_PLAY },
-+	{ 0x17, KEY_MUTE },
-+
-+	{ 0x18, KEY_UP },
-+	{ 0x19, KEY_DOWN },
-+	{ 0x1a, KEY_LEFT },
-+	{ 0x1b, KEY_RIGHT },
-+
-+	{ 0x1c, KEY_RED },
-+	{ 0x1d, KEY_GREEN },
-+	{ 0x1e, KEY_YELLOW },
-+	{ 0x1f, KEY_BLUE },
-+};
-+struct ir_scancode_table ir_codes_kworld_315u_table = {
-+	.scan = ir_codes_kworld_315u,
-+	.size = ARRAY_SIZE(ir_codes_kworld_315u),
-+};
-+EXPORT_SYMBOL_GPL(ir_codes_kworld_315u_table);
-diff -r 28f5eca12bb0 linux/drivers/media/video/em28xx/em28xx-cards.c
---- a/linux/drivers/media/video/em28xx/em28xx-cards.c	Sat Feb 06 23:49:31 2010 -0200
-+++ b/linux/drivers/media/video/em28xx/em28xx-cards.c	Sun Feb 07 11:35:39 2010 -0800
-@@ -1322,6 +1322,7 @@
- 		.tda9887_conf	= TDA9887_PRESENT,
- 		.decoder	= EM28XX_SAA711X,
- 		.has_dvb	= 1,
-+		.ir_codes	= &ir_codes_kworld_315u_table,
- 		.dvb_gpio	= em2882_kworld_315u_digital,
- 		.xclk		= EM28XX_XCLK_FREQUENCY_12MHZ,
- 		.i2c_speed	= EM28XX_I2C_CLK_WAIT_ENABLE,
-diff -r 28f5eca12bb0 linux/include/media/ir-common.h
---- a/linux/include/media/ir-common.h	Sat Feb 06 23:49:31 2010 -0200
-+++ b/linux/include/media/ir-common.h	Sun Feb 07 11:35:39 2010 -0800
-@@ -163,4 +163,5 @@
- extern struct ir_scancode_table ir_codes_gadmei_rm008z_table;
- extern struct ir_scancode_table ir_codes_nec_terratec_cinergy_xs_table;
- extern struct ir_scancode_table ir_codes_winfast_usbii_deluxe_table;
-+extern struct ir_scancode_table ir_codes_kworld_315u_table;
- #endif
-
-
-
-
-      
