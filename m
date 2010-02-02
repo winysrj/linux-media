@@ -1,146 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:55848 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754556Ab0BOKFY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2010 05:05:24 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v4 4/7] V4L: Events: Support event handling in do_ioctl
-Date: Mon, 15 Feb 2010 11:05:39 +0100
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	linux-media@vger.kernel.org, iivanov@mm-sol.com,
-	gururaj.nagendra@intel.com, david.cohen@nokia.com
-References: <4B72C965.7040204@maxwell.research.nokia.com> <1265813889-17847-4-git-send-email-sakari.ailus@maxwell.research.nokia.com> <201002131449.31949.hverkuil@xs4all.nl>
-In-Reply-To: <201002131449.31949.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
+Received: from mail1.radix.net ([207.192.128.31]:37628 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751046Ab0BBMX5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Feb 2010 07:23:57 -0500
+Subject: Re: Lost remote after kernel/v4l update cx23885 chipset
+From: Andy Walls <awalls@radix.net>
+To: "Timothy D. Lenz" <tlenz@vorgon.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <4B672587.6040406@vorgon.com>
+References: <4B5CA887.3060606@vorgon.com>  <4B672587.6040406@vorgon.com>
+Content-Type: text/plain
+Date: Tue, 02 Feb 2010 07:23:28 -0500
+Message-Id: <1265113408.3104.1.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201002151105.43721.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 13 February 2010 14:49:31 Hans Verkuil wrote:
-> On Wednesday 10 February 2010 15:58:06 Sakari Ailus wrote:
-> > Add support for event handling to do_ioctl.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> > ---
-> > 
-> >  drivers/media/video/Makefile     |    2 +-
-> >  drivers/media/video/v4l2-ioctl.c |   49
-> >  ++++++++++++++++++++++++++++++++++++++ include/media/v4l2-ioctl.h      
-> >  |    5 ++++
-> >  3 files changed, 55 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-> > index b888ad1..68253d6 100644
-> > --- a/drivers/media/video/Makefile
-> > +++ b/drivers/media/video/Makefile
-> > @@ -11,7 +11,7 @@ stkwebcam-objs	:=	stk-webcam.o stk-sensor.o
-> > 
-> >  omap2cam-objs	:=	omap24xxcam.o omap24xxcam-dma.o
-> >  
-> >  videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-subdev.o \
-> > 
-> > -			v4l2-fh.o
-> > +			v4l2-fh.o v4l2-event.o
-> > 
-> >  # V4L2 core modules
-> > 
-> > diff --git a/drivers/media/video/v4l2-ioctl.c
-> > b/drivers/media/video/v4l2-ioctl.c index bfc4696..e0b9401 100644
-> > --- a/drivers/media/video/v4l2-ioctl.c
-> > +++ b/drivers/media/video/v4l2-ioctl.c
-> > @@ -25,6 +25,7 @@
-> > 
-> >  #endif
-> >  #include <media/v4l2-common.h>
-> >  #include <media/v4l2-ioctl.h>
-> > 
-> > +#include <media/v4l2-event.h>
-> > 
-> >  #include <media/v4l2-chip-ident.h>
-> >  
-> >  #define dbgarg(cmd, fmt, arg...) \
-> > 
-> > @@ -1797,7 +1798,55 @@ static long __video_do_ioctl(struct file *file,
-> > 
-> >  		}
-> >  		break;
-> >  	
-> >  	}
-> > 
-> > +	case VIDIOC_DQEVENT:
-> > +	{
-> > +		struct v4l2_event *ev = arg;
-> > +
-> > +		if (!ops->vidioc_subscribe_event)
-> > +			break;
-> > +
-> > +		ret = v4l2_event_dequeue(fh, ev);
-> > +		if (ret < 0) {
-> > +			dbgarg(cmd, "no pending events?");
-> > +			break;
-> > +		}
-> > +		dbgarg(cmd,
-> > +		       "count=%d, type=0x%8.8x, sequence=%d, "
-> > +		       "timestamp=%lu.%9.9lu ",
-> > +		       ev->count, ev->type, ev->sequence,
-> > +		       ev->timestamp.tv_sec, ev->timestamp.tv_nsec);
-> > +		break;
-> > +	}
-> > +	case VIDIOC_SUBSCRIBE_EVENT:
-> > +	{
-> > +		struct v4l2_event_subscription *sub = arg;
-> > 
-> > +		if (!ops->vidioc_subscribe_event)
-> > +			break;
+On Mon, 2010-02-01 at 12:03 -0700, Timothy D. Lenz wrote:
 > 
-> I know I said that we could use this test to determine if fh is of type
-> v4l2_fh, but that only works in this specific case, but not in the general
-> case. For example, I want to add support for the prio ioctls to v4l2_fh,
-> and then I probably have no vidioc_subscribe_event set since few drivers
-> will need that.
+> On 1/24/2010 1:07 PM, Timothy D. Lenz wrote:
+> > After updating from kernel 2.6.26.8 to 2.6.32.2 and from v4l of
+> > 05/19/2009 to 01/18/2010 I lost remote function with Dvico FusionHDTV7
+> > Dual Express. The driver is loading, but not creating an IR device. Went
+> > over it with awalls on IRC. The log is at: http://pastebin.com/m4b02ff0c
+> >
+> >
+> > I noticed that in the kern.log there where 2 different ways ir-kbd-i2c
+> > showed up. ir-kbd-i2c no longer shows up when loading drivers.
+> >
+> > Jan 17 14:59:32 LLLx64-32 kernel: input: i2c IR (FusionHDTV) as
+> > /devices/virtual/input/input5
+> > Jan 17 14:59:32 LLLx64-32 kernel: ir-kbd-i2c: i2c IR (FusionHDTV)
+> > detected at i2c-2/2-006b/ir0 [cx23885[0]]
+> > ------------------
+> > Jan 18 17:23:27 LLLx64-32 kernel: input: i2c IR (FusionHDTV) as
+> > /devices/virtual/input/input5
+> > Jan 18 17:23:27 LLLx64-32 kernel: Creating IR device irrcv0
+> > Jan 18 17:23:27 LLLx64-32 kernel: ir-kbd-i2c: i2c IR (FusionHDTV)
+> > detected at i2c-1/1-006b/ir0 [cx23885[0]]
+> >
+> > Jan 18 18:28:50 LLLx64-32 kernel: input: i2c IR (FusionHDTV) as
+> > /devices/virtual/input/input5
+> > Jan 18 18:28:50 LLLx64-32 kernel: ir-kbd-i2c: i2c IR (FusionHDTV)
+> > detected at i2c-2/2-006b/ir0 [cx23885[0]]
+> >
+> > ------------------
+> > A driver load that worked:
+> >
+> > Jan 17 11:22:35 LLLx64-32 kernel: Linux video capture interface: v2.00
+> > Jan 17 11:22:35 LLLx64-32 kernel: cx23885 driver version 0.0.2 loaded
+> > Jan 17 11:22:35 LLLx64-32 kernel: ACPI: PCI Interrupt 0000:02:00.0[A] ->
+> > Link [APC7] -> GSI 16 (level, low) -> IRQ 16
+> > Jan 17 11:22:35 LLLx64-32 kernel: CORE cx23885[0]: subsystem: 18ac:d618,
+> > board: DViCO FusionHDTV7 Dual Express [card=10,autodetected]
+> > Jan 17 11:22:35 LLLx64-32 kernel: cx23885_dvb_register() allocating 1
+> > frontend(s)
+> > Jan 17 11:22:35 LLLx64-32 kernel: cx23885[0]: cx23885 based dvb card
+> > Jan 17 11:22:35 LLLx64-32 kernel: xc5000 2-0064: creating new instance
+> > Jan 17 11:22:35 LLLx64-32 kernel: xc5000: Successfully identified at
+> > address 0x64
+> > Jan 17 11:22:35 LLLx64-32 kernel: xc5000: Firmware has not been loaded
+> > previously
+> > Jan 17 11:22:35 LLLx64-32 kernel: DVB: registering new adapter (cx23885[0])
+> > Jan 17 11:22:35 LLLx64-32 kernel: DVB: registering adapter 0 frontend 0
+> > (Samsung S5H1411 QAM/8VSB Frontend)...
+> > Jan 17 11:22:35 LLLx64-32 kernel: cx23885_dvb_register() allocating 1
+> > frontend(s)
+> > Jan 17 11:22:35 LLLx64-32 kernel: cx23885[0]: cx23885 based dvb card
+> > Jan 17 11:22:35 LLLx64-32 kernel: xc5000 3-0064: creating new instance
+> > Jan 17 11:22:35 LLLx64-32 kernel: xc5000: Successfully identified at
+> > address 0x64
+> > Jan 17 11:22:35 LLLx64-32 kernel: xc5000: Firmware has not been loaded
+> > previously
+> > Jan 17 11:22:35 LLLx64-32 kernel: DVB: registering new adapter (cx23885[0])
+> > Jan 17 11:22:35 LLLx64-32 kernel: DVB: registering adapter 1 frontend 0
+> > (Samsung S5H1411 QAM/8VSB Frontend)...
+> > Jan 17 11:22:35 LLLx64-32 kernel: cx23885_dev_checkrevision() Hardware
+> > revision = 0xb0
+> > Jan 17 11:22:35 LLLx64-32 kernel: cx23885[0]/0: found at 0000:02:00.0,
+> > rev: 2, irq: 16, latency: 0, mmio: 0xfdc00000
+> > Jan 17 11:22:35 LLLx64-32 kernel: PCI: Setting latency timer of device
+> > 0000:02:00.0 to 64
+> > Jan 17 11:22:35 LLLx64-32 kernel: input: i2c IR (FusionHDTV) as
+> > /devices/virtual/input/input8
+> > Jan 17 11:22:35 LLLx64-32 kernel: ir-kbd-i2c: i2c IR (FusionHDTV)
+> > detected at i2c-2/2-006b/ir0 [cx23885[0]]
+> > Jan 17 11:22:36 LLLx64-32 kernel: xc5000: waiting for firmware upload
+> > (dvb-fe-xc5000-1.6.114.fw)...
+> > Jan 17 11:22:36 LLLx64-32 kernel: firmware: requesting
+> > dvb-fe-xc5000-1.6.114.fw
+> > Jan 17 11:22:36 LLLx64-32 kernel: xc5000: firmware read 12401 bytes.
+> > Jan 17 11:22:36 LLLx64-32 kernel: xc5000: firmware uploading...
+> > Jan 17 11:22:37 LLLx64-32 kernel: xc5000: firmware upload complete...
+> > Jan 17 11:22:37 LLLx64-32 kernel: xc5000: waiting for firmware upload
+> > (dvb-fe-xc5000-1.6.114.fw)...
+> > Jan 17 11:22:37 LLLx64-32 kernel: firmware: requesting
+> > dvb-fe-xc5000-1.6.114.fw
+> > Jan 17 11:22:37 LLLx64-32 kernel: xc5000: firmware read 12401 bytes.
+> > Jan 17 11:22:37 LLLx64-32 kernel: xc5000: firmware uploading...
+> > Jan 17 11:22:39 LLLx64-32 kernel: xc5000: firmware upload complete...
+> > ------------------
+> >
+> > And what it does now:
+> > Jan 23 17:10:47 LLLx64-32 kernel: Linux video capture interface: v2.00
+> > Jan 23 17:10:47 LLLx64-32 kernel: cx23885 driver version 0.0.2 loaded
+> > Jan 23 17:10:47 LLLx64-32 kernel: cx23885 0000:02:00.0: PCI INT A ->
+> > Link[APC7] -> GSI 16 (level, low) -> IRQ 16
+> > Jan 23 17:10:47 LLLx64-32 kernel: CORE cx23885[0]: subsystem: 18ac:d618,
+> > board: DViCO FusionHDTV7 Dual Express [card=10,autodetected]
+> > Jan 23 17:10:47 LLLx64-32 kernel: cx23885_dvb_register() allocating 1
+> > frontend(s)
+> > Jan 23 17:10:47 LLLx64-32 kernel: cx23885[0]: cx23885 based dvb card
+> > Jan 23 17:10:47 LLLx64-32 kernel: xc5000 1-0064: creating new instance
+> > Jan 23 17:10:47 LLLx64-32 kernel: xc5000: Successfully identified at
+> > address 0x64
+> > Jan 23 17:10:47 LLLx64-32 kernel: xc5000: Firmware has not been loaded
+> > previously
+> > Jan 23 17:10:47 LLLx64-32 kernel: DVB: registering new adapter (cx23885[0])
+> > Jan 23 17:10:47 LLLx64-32 kernel: DVB: registering adapter 0 frontend 0
+> > (Samsung S5H1411 QAM/8VSB Frontend)...
+> > Jan 23 17:10:47 LLLx64-32 kernel: cx23885_dvb_register() allocating 1
+> > frontend(s)
+> > Jan 23 17:10:47 LLLx64-32 kernel: cx23885[0]: cx23885 based dvb card
+> > Jan 23 17:10:47 LLLx64-32 kernel: xc5000 2-0064: creating new instance
+> > Jan 23 17:10:47 LLLx64-32 kernel: xc5000: Successfully identified at
+> > address 0x64
+> > Jan 23 17:10:47 LLLx64-32 kernel: xc5000: Firmware has not been loaded
+> > previously
+> > Jan 23 17:10:47 LLLx64-32 kernel: DVB: registering new adapter (cx23885[0])
+> > Jan 23 17:10:47 LLLx64-32 kernel: DVB: registering adapter 1 frontend 0
+> > (Samsung S5H1411 QAM/8VSB Frontend)...
+> > Jan 23 17:10:47 LLLx64-32 kernel: cx23885_dev_checkrevision() Hardware
+> > revision = 0xb0
+> > Jan 23 17:10:47 LLLx64-32 kernel: cx23885[0]/0: found at 0000:02:00.0,
+> > rev: 2, irq: 16, latency: 0, mmio: 0xfdc00000
+> > Jan 23 17:10:47 LLLx64-32 kernel: cx23885 0000:02:00.0: setting latency
+> > timer to 64
+> > Jan 23 17:10:47 LLLx64-32 kernel: IRQ 16/cx23885[0]: IRQF_DISABLED is
+> > not guaranteed on shared IRQs
+> >
+> > I put a zip of some logs at: http://24.255.17.209:2400/vdr-logs/logs.zip
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at http://vger.kernel.org/majordomo-info.html
+> >
 > 
-> Instead I suggest that we add a new flag to v4l2-dev.h:
-> 
-> V4L2_FL_USES_V4L2_FH (1)
-> 
-> The v4l2_fh_add() function can then set this flag.
-> 
-> > +
-> > +		ret = ops->vidioc_subscribe_event(fh, sub);
-> > +		if (ret < 0) {
-> > +			dbgarg(cmd, "failed, ret=%ld", ret);
-> > +			break;
-> > +		}
-> > +		dbgarg(cmd, "type=0x%8.8x", sub->type);
-> > +		break;
-> > +	}
-> > +	case VIDIOC_UNSUBSCRIBE_EVENT:
-> > +	{
-> > +		struct v4l2_event_subscription *sub = arg;
-> > +
-> > +		if (!ops->vidioc_subscribe_event)
-> > +			break;
-> > +
-> > +		ret = v4l2_event_unsubscribe(fh, sub);
-> 
-> We should add an unsubscribe op as well. One reason is to add EVENT_ALL
-> support (see my comments in patch 7/7), the other is that in some cases
-> drivers might need to take some special action in response to subscribing
-> an event. And a driver needs a way to undo that when unsubscribing.
+> Any progress on this one?
 
-Agreed. Should we allow drivers not to define the unsubscribe operation when 
-they don't need it ? In that case v4l2_event_unsubscribe should be called in 
-VIDIOC_UNSUBSCRIBE_EVENT, outside of the operation handler.
+Nope.  Maybe around Friday I'll provide a patch with some printk()'s for
+debugging as I don't have the hardware.  (Unless of course I'm shoveling
+snow again...)
 
-Similarly, shouldn't v4l2_event_subscribe be called in VIDIOC_SUBSCRIBE_EVENT, 
-outside of the operation handler ?
-
--- 
 Regards,
+Andy
 
-Laurent Pinchart
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
