@@ -1,56 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:10178 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753422Ab0BOQ3L (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2010 11:29:11 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Received: from eu_spt2 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0KXW00GWL5SKCH70@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 15 Feb 2010 16:29:08 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0KXW00ESF5SKDZ@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 15 Feb 2010 16:29:08 +0000 (GMT)
-Date: Mon, 15 Feb 2010 17:27:46 +0100
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: Fourcc for multiplanar formats
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	'Kamil Debski' <k.debski@samsung.com>
-Message-id: <E4D3F24EA6C9E54F817833EAE0D912AC09C5635702@bssrvexch01.BS.local>
-Content-language: en-US
+Received: from psa.adit.fi ([217.112.250.17]:50964 "EHLO psa.adit.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756158Ab0BBQOA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Feb 2010 11:14:00 -0500
+Message-ID: <4B684C99.4030808@qvantel.com>
+Date: Tue, 02 Feb 2010 18:02:33 +0200
+From: Pekka Sarnila <pekka.sarnila@qvantel.com>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: Jiri Slaby <jslaby@suse.cz>, Jiri Kosina <jkosina@suse.cz>,
+	Pekka Sarnila <sarnila@adit.fi>, linux-media@vger.kernel.org,
+	pb@linuxtv.org, js@linuxtv.org
+Subject: Re: dvb-usb-remote woes [was: HID: ignore afatech 9016]
+References: <alpine.LNX.2.00.1001132111570.30977@pobox.suse.cz> <1263415146-26321-1-git-send-email-jslaby@suse.cz> <alpine.LNX.2.00.1001260156010.30977@pobox.suse.cz> <4B5EFD69.4080802@adit.fi> <alpine.LNX.2.00.1001262344200.30977@pobox.suse.cz> <4B671C31.3040902@qvantel.com> <alpine.LNX.2.00.1002011928220.15395@pobox.suse.cz> <4B672EB8.3010609@suse.cz> <4B674637.8020403@iki.fi>
+In-Reply-To: <4B674637.8020403@iki.fi>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Please, no mail to this address, use only sarnila@adit.fi.
 
-we would like to ask for suggestions for new fourcc formats for multiplanar buffers.
+Pekka
 
-There are planar formats in V4L2 API, but for all of them, each plane X "immediately
-follows Y plane in memory". We are in the process of testing formats and V4L2 extensions
-that relax those requirements and allow each plane to reside in a separate area of
-memory.
-
-I am not sure how we should name those formats though. In our example, we are focusing
-on the following formats at the moment:
-- YCbCr 422 2-planar (multiplanar version of V4L2_PIX_FMT_NV16)
-- YCbCr 422 3-planar (multiplanar version of V4L2_PIX_FMT_YUV422P)
-- YCbCr 420 2-planar (multiplanar version of V4L2_PIX_FMT_NV12)
-- YCbCr 420 3-planar (multiplanar version of V4L2_PIX_FMT_YUV420)
-
-
-Could anyone give any suggestions how we should name such formats and what to pass to
-the v4l2_fourcc() macro?
-
-
-Best regards
---
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
-
-
+Antti Palosaari wrote:
+> On 02/01/2010 09:42 PM, Jiri Slaby wrote:
+> 
+>> On 02/01/2010 07:28 PM, Jiri Kosina wrote:
+>>
+>>> On Mon, 1 Feb 2010, Pekka Sarnila wrote:
+>>>
+>>>> I pulled few days ago latest
+>>>>
+>>>>     
+>>>> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+>>>>
+>>>> and compiled it. Everything works fine including the tv-stick and the
+>>>> remote. However I get:
+>>>>
+>>>>    <3>af9015: command failed:255
+>>>>    <3>dvb-usb: error while querying for an remote control event.
+>>
+>>
+>> Yes, I saw this quite recently too. For me it appears when it is booted
+>> up with the stick in. It's still to be fixed.
+> 
+> 
+> I suspect you are using old firmware, 4.65.0.0 probably, that does not 
+> support remote polling and thus this 255 errors seen.
+> 
+> regards
+> Antti
