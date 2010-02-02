@@ -1,48 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54968 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752498Ab0BVR1T convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 12:27:19 -0500
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"iivanov@mm-sol.com" <iivanov@mm-sol.com>,
-	"gururaj.nagendra@intel.com" <gururaj.nagendra@intel.com>,
-	"david.cohen@nokia.com" <david.cohen@nokia.com>
-Date: Mon, 22 Feb 2010 11:27:01 -0600
-Subject: RE: [PATCH v5 1/6] V4L: File handles
-Message-ID: <A24693684029E5489D1D202277BE894453798D3A@dlee02.ent.ti.com>
-References: <4B7EE4A4.3080202@maxwell.research.nokia.com>
- <1266607320-9974-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
- <A24693684029E5489D1D202277BE894453691587@dlee02.ent.ti.com>
- <4B819606.6040602@maxwell.research.nokia.com>
-In-Reply-To: <4B819606.6040602@maxwell.research.nokia.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from smtp0.lie-comtel.li ([217.173.238.80]:54998 "EHLO
+	smtp0.lie-comtel.li" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751622Ab0BBKzH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Feb 2010 05:55:07 -0500
+Message-ID: <4B68028D.8000405@kaiser-linux.li>
+Date: Tue, 02 Feb 2010 11:46:37 +0100
+From: Thomas Kaiser <v4l@kaiser-linux.li>
 MIME-Version: 1.0
+To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+CC: Hans de Goede <hdegoede@redhat.com>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: libv4l: possible problem found in PAC7302 JPEG decoding
+References: <4B67466F.1030301@freemail.hu>
+In-Reply-To: <4B67466F.1030301@freemail.hu>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-From: Sakari Ailus [mailto:sakari.ailus@maxwell.research.nokia.com]
-
-...
-
-> Will fix.
-
-Seems that you missed to fix this patch comments on your v6 version...
-
-:-/
-
-Regards,
-Sergio
+On 02/01/2010 10:23 PM, Németh Márton wrote:
+> Hello Hans,
 > 
-> --
-> Sakari Ailus
-> sakari.ailus@maxwell.research.nokia.com
+> while I was dealing with Labtec Webcam 2200 and with gspca_pac7302 driver I recognised the
+> following behaviour. The stream received from the webcam is splitted by the gspca_pac7302
+> subdriver when the byte sequence 0xff, 0xff, 0x00, 0xff, 0x96 is found (pac_find_sof()).
+> Before transmitting the data to the userspace a JPEG header is added (pac_start_frame())
+> and the footer after the bytes 0xff, 0xd9 are removed.
+> 
+> The data buffer which arrives to userspace looks like as follows (maybe not every detail is exact):
+> 
+>  1. JPEG header
+> 
+>  2. Some bytes of image data (near to 1024 bytes)
+> 
+>  3. The byte sequence 0xff, 0xff, 0xff, 0x01 followed by 1024 bytes of data.
+>     This marker sequence and data repeats a couple of time. Exactly how much
+>     depends on the image content.
+> 
+>  4. The byte sequence 0xff, 0xff, 0xff, 0x02 followed by 512 bytes of data.
+>     This marker sequence and data also repeats a couple of time.
+> 
+>  5. The byte sequence 0xff, 0xff, 0xff, 0x00 followed by a variable amount of
+>     image data bytes.
+> 
+>  6. The End of Image (EOI) marker 0xff, 0xd9.
+> 
+> Now what can be wrong with the libv4l? In libv4lconvert/tinyjpeg.c, line 315 there is a
+> huge macro which tries to remove the 0xff, 0xff, 0xff, xx byte sequence from the received
+> image. This fails, however, if the image contains 0xff bytes just before the 0xff, 0xff,
+> 0xff, xx sequence because one byte from the image data (the first 0xff) is removed, then
+> the three 0xff bytes from the marker is also removed. The xx (which really belongs to the
+> marker) is left in the image data instead of the original 0xff byte.
+> 
+> Based on my experiments this problem sometimes causes corrupted image decoding or that the
+> JPEG image cannot be decoded at all.
+> 
+
+Hello Németh
+
+I remember the problem as I was working on the PAC7311.
+http://www.kaiser-linux.li/index.php?title=PAC7311
+
+
+This is the code I used in the JPEG decoder to remove the 0xff 0xff 0xff 
+  0xnn markers.
+
+See http://www.kaiser-linux.li/files/PAC7311/gspcav1-PAC7311-20070425.tar.gz
+decoder/gspcadecoder.c pac7311_decode()
+
+Thomas
+
