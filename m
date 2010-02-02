@@ -1,440 +1,1452 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.27]:61003 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758199Ab0BXVm7 (ORCPT
+Received: from mail-in-02.arcor-online.net ([151.189.21.42]:37923 "EHLO
+	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756680Ab0BBRYn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Feb 2010 16:42:59 -0500
-Received: by ey-out-2122.google.com with SMTP id 25so44143eya.19
-        for <linux-media@vger.kernel.org>; Wed, 24 Feb 2010 13:42:57 -0800 (PST)
+	Tue, 2 Feb 2010 12:24:43 -0500
+Message-ID: <4B685FB9.1010805@arcor.de>
+Date: Tue, 02 Feb 2010 18:24:09 +0100
+From: Stefan Ringel <stefan.ringel@arcor.de>
 MIME-Version: 1.0
-From: Bert Massop <bert.massop@gmail.com>
-Date: Wed, 24 Feb 2010 22:42:37 +0100
-Message-ID: <41ef408f1002241342v423d728cwf9bc4957f35dabed@mail.gmail.com>
-Subject: Re: af9015: tuner id:179 not supported, please report!
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=001636025f84abc30404805f8c5d
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [PATCH] -  tm6000 DVB support
+References: <4B673790.3030706@arcor.de> <4B673B2D.6040507@arcor.de> <4B675B19.3080705@redhat.com>
+In-Reply-To: <4B675B19.3080705@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---001636025f84abc30404805f8c5d
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-This is a forward of the original email from Nikola Pajkovsky. Just
-for the records, so it is on the list.
-
-This solves the problem of the tuner id:179 not supported error, when
-loading the AF9015 driver.
-
-Thank you, Nikola!
-
-Regards,
-Bert Massop
-
----------- Forwarded message ----------
-From: Nikola Pajkovsky <npajkovs@redhat.com>
-Date: Wed, Feb 24, 2010 at 11:54
-Subject: Re: af901x: NXP TDA18218
-To: Antti Palosaari <crope@iki.fi>
-Cc: jan.sundman@aland.net, bert.massop@gmail.com,
-mkrufky@kernellabs.com, dheitmueller@kernellabs.com
-
-
-Hello,
-
-=A0 =A0here is my solution, I can watch Vancouver right now :). I don't
-look at the patch if there is some mistake(no time watch Vancouver),
-but I will when I will have some free time.
-Attached patch apply against this souce (hg clone
-http://linuxtv.org/hg/~anttip/af9015/).
-
-Firmware:
-wget http://jusst.de/manu/fw/AFA/dvb-usb-af9015.fw_a-link
-sudo mv dvb-usb-af9015.fw_a-link /lib/firmware/dvb-usb-af9015.fw
-
-Have a nice day ;)
-
-On 23.2.2010 14:02, Antti Palosaari wrote:
->
-> Hello,
-> I just got info from one user about this driver, looks like Terratec have=
- driver.
-> http://forum.ubuntuusers.de/topic/probleme-beim-installieren-terratec-cin=
-ergy-t/3/?highlight=3Dterratec+cinergy+t+stick
->
-> Antti
->
-> Nikola Pajkovsky wrote:
+Am 01.02.2010 23:52, schrieb Mauro Carvalho Chehab:
+> Stefan Ringel wrote:
+>   
+>> add Terratec Cinergy Hybrid XE
+>> bugfix i2c transfer
+>> add frontend callback
+>> add init for tm6010
+>> add digital-init for tm6010
+>> add callback for analog/digital switch
+>> bugfix usb transfer in DVB-mode
 >>
->> Hello,
->>
->> =A0 =A0is any chance that will be support for TDA182118?
->>
->> Regards,
->>
+>> signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+>>     
+> Devin is right with respect to the changes: you should break into small
+> patches for us to better understand what you're doing. 
 >
+> In particular, some parts of the changes (like tuner-xc2028) are known 
+> to be working fine with other drivers, so any change there should be done 
+> with the enough care to not break other drivers.
+>
+>   
+>> diff --git a/drivers/media/common/tuners/tuner-xc2028.c
+>> b/drivers/media/common/tuners/tuner-xc2028.c
+>> index ed50168..2297c00 100644
+>> --- a/drivers/media/common/tuners/tuner-xc2028.c
+>> +++ b/drivers/media/common/tuners/tuner-xc2028.c
+>> @@ -15,6 +15,7 @@
+>>  #include <linux/delay.h>
+>>  #include <media/tuner.h>
+>>  #include <linux/mutex.h>
+>> +#include "compat.h"
+>>  #include <asm/unaligned.h>
+>>  #include "tuner-i2c.h"
+>>  #include "tuner-xc2028.h"
+>> @@ -994,6 +995,13 @@ static int generic_set_freq(struct dvb_frontend
+>> *fe, u32 freq /* in HZ */,
+>>             buf[0], buf[1], buf[2], buf[3],
+>>             freq / 1000000, (freq % 1000000) / 1000);
+>>  
+>> +    if (priv->ctrl.switch_mode) {
+>> +        if (new_mode == T_ANALOG_TV)
+>> +            do_tuner_callback(fe, SWITCH_TV_MODE, 0);
+>> +        if (new_mode == T_DIGITAL_TV)
+>> +            do_tuner_callback(fe, SWITCH_TV_MODE, 1);
+>> +    }
+>> +   
+>>      rc = 0;
+>>     
+> The decision taken at the driver were the opposite: the bridge driver should
+> have the logic to reset the tuner. This works perfectly on em28xx and other
+> drivers that use xc3028.
+>
+> I don't see a good reason to revert the logic here. Also, such change should
+> be done on all drivers that use xc3028 and xc5000.
+>
+>   
+>>  
+>>  ret:
+>> @@ -1114,7 +1122,11 @@ static int xc2028_set_params(struct dvb_frontend *fe,
+>>  
+>>      /* All S-code tables need a 200kHz shift */
+>>      if (priv->ctrl.demod) {
+>> -        demod = priv->ctrl.demod + 200;
+>> +        if (priv->ctrl.fname == "xc3028L-v36.fw") {
+>> +            demod = priv->ctrl.demod;
+>> +        } else {
+>> +            demod = priv->ctrl.demod + 200;
+>> +        }
+>>     
+> Instead, you should be using the firmware version. 
+>
+> As the firmware version is written at the firmware file, it is easy to do the tests 
+> based on the firmware version, even on devices like tm6000 where the version read
+> method may fail.
+>   
+Not with the i2c patch, see down.
+>  
+> Yet, I suspect that the currently available v36 firmwares already take this into 
+> consideration (or the drivers that use those firmwares do the offset internally).
+>
+> So, this change needs to be checked against the existing drivers.
+>
+>   
+>>          /*
+>>           * The DTV7 S-code table needs a 700 kHz shift.
+>>           * Thanks to Terry Wu <terrywu2009@gmail.com> for reporting this
+>> @@ -1123,8 +1135,8 @@ static int xc2028_set_params(struct dvb_frontend *fe,
+>>           * use this firmware after initialization, but a tune to a UHF
+>>           * channel should then cause DTV78 to be used.
+>>           */
+>> -        if (type & DTV7)
+>> -            demod += 500;
+>> +        if (type  & DTV7)
+>> +        demod += 500;
+>>     
+> This hunk is wrong.
+>
+>   
+Why that generated the git diff, I cannot say. It must be the older once.
+>>      }
+>>  
+>>      return generic_set_freq(fe, p->frequency,
+>> @@ -1240,6 +1252,10 @@ static const struct dvb_tuner_ops
+>> xc2028_dvb_tuner_ops = {
+>>      .get_rf_strength   = xc2028_signal,
+>>      .set_params        = xc2028_set_params,
+>>      .sleep             = xc2028_sleep,
+>> +#if 0
+>> +    int (*get_bandwidth)(struct dvb_frontend *fe, u32 *bandwidth);
+>> +    int (*get_status)(struct dvb_frontend *fe, u32 *status);
+>> +#endif
+>>  };
+>>  
+>>  struct dvb_frontend *xc2028_attach(struct dvb_frontend *fe,
+>> diff --git a/drivers/media/common/tuners/tuner-xc2028.h
+>> b/drivers/media/common/tuners/tuner-xc2028.h
+>> index 9778c96..c9a4fb4 100644
+>> --- a/drivers/media/common/tuners/tuner-xc2028.h
+>> +++ b/drivers/media/common/tuners/tuner-xc2028.h
+>> @@ -42,6 +42,7 @@ struct xc2028_ctrl {
+>>      unsigned int        disable_power_mgmt:1;
+>>      unsigned int            read_not_reliable:1;
+>>      unsigned int        demod;
+>> +    unsigned int        switch_mode:1;
+>>     
+> This struct is meant to pass static parameters to the driver. the analog/digital
+> mode is dynamic, so, this is not the right place for doing it.
+>
+>   
+Can you tell me how that work? Where would call it? Switch it after read
+demodulator status or before? This switch switches the  tuner output to
+the demodulator or adc input and if it read status before it switch
+thoughts the apps  "no digital found".
+>>      enum firmware_type    type:2;
+>>  };
+>>  
+>> @@ -54,6 +55,7 @@ struct xc2028_config {
+>>  /* xc2028 commands for callback */
+>>  #define XC2028_TUNER_RESET    0
+>>  #define XC2028_RESET_CLK    1
+>> +#define SWITCH_TV_MODE        2
+>>  
+>>  #if defined(CONFIG_MEDIA_TUNER_XC2028) ||
+>> (defined(CONFIG_MEDIA_TUNER_XC2028_MODULE) && defined(MODULE))
+>>  extern struct dvb_frontend *xc2028_attach(struct dvb_frontend *fe,
+>> diff --git a/drivers/media/dvb/frontends/zl10353.h
+>> b/drivers/media/dvb/frontends/zl10353.h
+>> index 6e3ca9e..015bc36 100644
+>> --- a/drivers/media/dvb/frontends/zl10353.h
+>> +++ b/drivers/media/dvb/frontends/zl10353.h
+>> @@ -45,6 +45,8 @@ struct zl10353_config
+>>      /* clock control registers (0x51-0x54) */
+>>      u8 clock_ctl_1;  /* default: 0x46 */
+>>      u8 pll_0;        /* default: 0x15 */
+>> +   
+>> +    int tm6000:1;
+>>     
+> This doesn't make sense. The zl10353 doesn't need to know if the device is
+> a tm6000 or not. If the tm6000 driver needs something special, then we need
+> to discover what he is doing and name the zl10353 feature accordingly.
+>
+>
+>   
+that is for todo in next week, when I switch from hack.c to zl10353
+kernel module, but it can remove if it don't use.
+>>  };
+>>  
+>>  #if defined(CONFIG_DVB_ZL10353) || (defined(CONFIG_DVB_ZL10353_MODULE)
+>> && defined(MODULE))
+>> diff --git a/drivers/staging/tm6000/hack.c b/drivers/staging/tm6000/hack.c
+>> index f181fce..c1e1880 100644
+>> --- a/drivers/staging/tm6000/hack.c
+>> +++ b/drivers/staging/tm6000/hack.c
+>> @@ -37,7 +37,6 @@ static inline int tm6000_snd_control_msg(struct
+>> tm6000_core *dev, __u8 request,
+>>     
+> This "hack" file is a good candidate to be removed ;) It is, in fact a zl10353
+> code with the tm6000 initialization, made by cloning the zl10353 parameters
+> that the original driver does.
+>
+>   
+>>  
+>>  static int pseudo_zl10353_pll(struct tm6000_core *tm6000_dev, struct
+>> dvb_frontend_parameters *p)
+>>  {
+>> -    int ret;
+>>      u8 *data = kzalloc(50*sizeof(u8), GFP_KERNEL);
+>>  
+>>  printk(KERN_ALERT "should set frequency %u\n", p->frequency);
+>> @@ -51,7 +50,7 @@ printk(KERN_ALERT "and bandwith %u\n",
+>> p->u.ofdm.bandwidth);
+>>      }
+>>  
+>>      // init ZL10353
+>> -    data[0] = 0x0b;
+>> +/*    data[0] = 0x0b;
+>>      ret = tm6000_snd_control_msg(tm6000_dev, 0x10, 0x501e, 0x00, data,
+>> 0x1);
+>>      msleep(15);
+>>      data[0] = 0x80;
+>> @@ -159,7 +158,7 @@ printk(KERN_ALERT "and bandwith %u\n",
+>> p->u.ofdm.bandwidth);
+>>              msleep(15);
+>>              data[0] = 0x5a;
+>>              ret = tm6000_snd_control_msg(tm6000_dev, 0x10, 0x651e,
+>> 0x00, data, 0x1);
+>> -            msleep(15);
+>> +            msleep(15)
+>>              data[0] = 0xe9;
+>>              ret = tm6000_snd_control_msg(tm6000_dev, 0x10, 0x661e,
+>> 0x00, data, 0x1);
+>>              msleep(15);
+>> @@ -189,7 +188,162 @@ printk(KERN_ALERT "and bandwith %u\n",
+>> p->u.ofdm.bandwidth);
+>>              msleep(15);
+>>          break;
+>>      }
+>> -
+>> +*/
+>>     
+> Please use #if 0 to temporarily remove a code that it is not needed. Yet, maybe
+> removing this code will break tm6000 devices. tm6010 has some differences
+> when compared with tm6000. So, if your device is tm6010, the better is to
+> run the above code if is not a tm6010.
+>
+>   
+o. k.
+>> +    switch(p->u.ofdm.bandwidth) {
+>> +        case BANDWIDTH_8_MHZ:
+>> +            data[0] = 0x03;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x501e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x44;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x511e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x40;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x551e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x46;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x521e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x15;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x531e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x0f;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x541e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x80;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x551e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x01;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0xea1e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x00;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0xea1e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x8b;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x631e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x75;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0xcc1e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0xe6; //0x19;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x6c1e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x09; //0xf7;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x6d1e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x67;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x651e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0xe5;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x661e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x75;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x5c1e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x17;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x5f1e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x40;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x5e1e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x01;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x701e,0,data,1);
+>> +            msleep(40);
+>> +            break;
+>> +        case BANDWIDTH_7_MHZ:
+>> +            data[0] = 0x03;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x501e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x44;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x511e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x40;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x551e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x46;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x521e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x15;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x531e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x0f;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x541e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x80;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x551e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x01;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0xea1e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x00;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0xea1e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x83;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x631e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0xa3;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0xcc1e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0xe6; //0x19;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x6c1e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x09; //0xf7;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x6d1e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x5a;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x651e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0xe9;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x661e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x86;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x5c1e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x17;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x5f1e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x40;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x5e1e,0,data,1);
+>> +            msleep(40);
+>> +            data[0] = 0x01;
+>> +            tm6000_read_write_usb(tm6000_dev,0x40,0x10,0x701e,0,data,1);
+>> +            msleep(40);
+>> +            break;
+>> +        default:
+>> +            printk(KERN_ALERT "tm6000: bandwidth not supported\n");
+>> +    }
+>> +   
+>> +    tm6000_read_write_usb(tm6000_dev,0xc0,0x10,0x051f,0,data,2);
+>> +    printk(KERN_INFO "buf %#x %#x \n", data[0], data[1]);
+>> +    msleep(40);
+>> +   
+>> +    tm6000_read_write_usb(tm6000_dev,0xc0,0x10,0x051f,0,data,2);
+>> +    printk(KERN_INFO "buf %#x %#x \n", data[0], data[1]);
+>> +    msleep(40);
+>> +   
+>> +    tm6000_read_write_usb(tm6000_dev,0xc0,0x10,0x051f,0,data,2);
+>> +    printk(KERN_INFO "buf %#x %#x \n", data[0], data[1]);
+>> +    msleep(40);
+>> +   
+>> +    tm6000_read_write_usb(tm6000_dev,0xc0,0x10,0x051f,0,data,2);
+>> +    printk(KERN_INFO "buf %#x %#x \n", data[0], data[1]);
+>> +    msleep(40);
+>> +   
+>> +    tm6000_read_write_usb(tm6000_dev,0xc0,0x10,0x051f,0,data,2);
+>> +    printk(KERN_INFO "buf %#x %#x \n", data[0], data[1]);
+>> +    msleep(40);
+>> +   
+>> +    tm6000_read_write_usb(tm6000_dev,0xc0,0x10,0x0f1f,0,data,2);
+>> +    printk(KERN_INFO "buf %#x %#x \n", data[0], data[1]);
+>> +    msleep(40);
+>> +   
+>> +    tm6000_read_write_usb(tm6000_dev,0xc0,0x10,0x091f,0,data,2);
+>> +    printk(KERN_INFO "buf %#x %#x \n", data[0], data[1]);
+>> +    msleep(40);
+>> +   
+>> +    tm6000_read_write_usb(tm6000_dev,0xc0,0x10,0x0b1f,0,data,2);
+>> +    printk(KERN_INFO "buf %#x %#x \n", data[0], data[1]);
+>> +    msleep(40);
+>>     
+> The same comment here: maybe the above code only applies to tm6010.
+>
+>   
+It little different to the other hack code. The lastest lines are
+reading demod status.
+>> +   
+>>      kfree(data);
+>>  
+>>      return 0;
+>> diff --git a/drivers/staging/tm6000/tm6000-cards.c
+>> b/drivers/staging/tm6000/tm6000-cards.c
+>> index 59fb505..652a54a 100644
+>> --- a/drivers/staging/tm6000/tm6000-cards.c
+>> +++ b/drivers/staging/tm6000/tm6000-cards.c
+>> @@ -32,7 +32,7 @@
+>>  #include "tm6000.h"
+>>  #include "tm6000-regs.h"
+>>  #include "tuner-xc2028.h"
+>> -#include "tuner-xc5000.h"
+>> +#include "xc5000.h"
+>>     
+> Please send this hunk on a separate patch. Since it fixes compilation, I'll
+> need to apply it before the Kconfig changes, when tm6000 upstream.
+>
+>   
+o.k. but I cannot know how. I have no idea with diff or something.
+>>  
+>>  #define TM6000_BOARD_UNKNOWN            0
+>>  #define TM5600_BOARD_GENERIC            1
+>> @@ -44,6 +44,10 @@
+>>  #define TM6000_BOARD_FREECOM_AND_SIMILAR    7
+>>  #define TM6000_BOARD_ADSTECH_MINI_DUAL_TV    8
+>>  #define TM6010_BOARD_HAUPPAUGE_900H        9
+>> +#define TM6010_BOARD_BEHOLD_WANDER        10
+>> +#define TM6010_BOARD_BEHOLD_VOYAGER        11
+>> +#define TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE    12
+>> +
+>>  
+>>  #define TM6000_MAXBOARDS        16
+>>  static unsigned int card[]     = {[0 ... (TM6000_MAXBOARDS - 1)] = UNSET };
+>> @@ -208,7 +212,21 @@ struct tm6000_board tm6000_boards[] = {
+>>          },
+>>          .gpio_addr_tun_reset = TM6000_GPIO_2,
+>>      },
+>> -
+>> +    [TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE] = {
+>> +        .name         = "Terratec Cinergy Hybrid XE",
+>> +        .tuner_type   = TUNER_XC2028, /* has a XC3028 */
+>> +        .tuner_addr   = 0xc2 >> 1,
+>> +        .demod_addr   = 0x1e >> 1,
+>> +        .type         = TM6010,
+>> +        .caps = {
+>> +            .has_tuner    = 1,
+>> +            .has_dvb      = 1,
+>> +            .has_zl10353  = 1,
+>> +            .has_eeprom   = 1,
+>> +            .has_remote   = 1,
+>> +        },
+>> +        .gpio_addr_tun_reset = TM6010_GPIO_2,
+>> +    }
+>>  };
+>>  
+>>  /* table of devices that work with this driver */
+>> @@ -221,12 +239,13 @@ struct usb_device_id tm6000_id_table [] = {
+>>      { USB_DEVICE(0x2040, 0x6600), .driver_info =
+>> TM6010_BOARD_HAUPPAUGE_900H },
+>>      { USB_DEVICE(0x6000, 0xdec0), .driver_info =
+>> TM6010_BOARD_BEHOLD_WANDER },
+>>      { USB_DEVICE(0x6000, 0xdec1), .driver_info =
+>> TM6010_BOARD_BEHOLD_VOYAGER },
+>> +    { USB_DEVICE(0x0ccd, 0x0086), .driver_info =
+>> TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE },
+>>      { },
+>>  };
+>>     
+> New board definition: please send this as a separate patch.
+>
+>   
+>>  
+>>  /* Tuner callback to provide the proper gpio changes needed for xc2028 */
+>>  
+>> -static int tm6000_tuner_callback(void *ptr, int component, int command,
+>> int arg)
+>> +int tm6000_tuner_callback(void *ptr, int component, int command, int arg)
+>>  {
+>>      int rc=0;
+>>      struct tm6000_core *dev = ptr;
+>> @@ -252,11 +271,14 @@ static int tm6000_tuner_callback(void *ptr, int
+>> component, int command, int arg)
+>>          switch (arg) {
+>>          case 0:
+>>              tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
+>> +                    dev->tuner_reset_gpio, 0x01);
+>> +            msleep(60);
+>> +            tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
+>>                      dev->tuner_reset_gpio, 0x00);
+>> -            msleep(130);
+>> +            msleep(75);
+>>              tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
+>>                      dev->tuner_reset_gpio, 0x01);
+>> -            msleep(130);
+>> +            msleep(60);
+>>              break;
+>>          case 1:
+>>              tm6000_set_reg (dev, REQ_04_EN_DISABLE_MCU_INT,
+>> @@ -269,13 +291,33 @@ static int tm6000_tuner_callback(void *ptr, int
+>> component, int command, int arg)
+>>                          TM6000_GPIO_CLK, 0);
+>>              if (rc<0)
+>>                  return rc;
+>> -            msleep(100);
+>> +            msleep(10);
+>>              rc=tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
+>>                          TM6000_GPIO_CLK, 1);
+>> -            msleep(100);
+>> +            msleep(10);
+>> +            break;
+>> +        }
+>> +        break;
+>> +       
+>> +    case SWITCH_TV_MODE:
+>> +        /* switch between analog and  digital */
+>> +        switch (arg) {
+>> +        case 0:
+>> +            printk(KERN_INFO "switch to analog");
+>> +            tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
+>> +                    TM6010_GPIO_5, 1);
+>> +            printk(KERN_INFO "analog");
+>> +            break;
+>> +        case 1:
+>> +            printk(KERN_INFO "switch to digital");
+>> +            tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
+>> +                    TM6010_GPIO_5, 0);
+>> +            printk(KERN_INFO "digital");
+>>              break;
+>>          }
+>> +    break;
+>>      }
+>>     
+> Those tuner callback initializations are board-specific. So, it is better to test
+> for your board model, if you need something different than what's currently done.
+>
+>   
+This tuner reset works with my stick, but I think that can test with
+other tm6000 based sticks and if it not works then I can say this as a
+board-specific.
+>> +   
+>>      return (rc);
+>>  }
+>>  
+>> @@ -290,7 +332,7 @@ static void tm6000_config_tuner (struct tm6000_core
+>> *dev)
+>>      memset(&tun_setup, 0, sizeof(tun_setup));
+>>      tun_setup.type   = dev->tuner_type;
+>>      tun_setup.addr   = dev->tuner_addr;
+>> -    tun_setup.mode_mask = T_ANALOG_TV | T_RADIO;
+>> +    tun_setup.mode_mask = T_ANALOG_TV | T_RADIO | T_DIGITAL_TV;
+>>      tun_setup.tuner_callback = tm6000_tuner_callback;
+>>  
+>>      v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_type_addr,
+>> &tun_setup);
+>> @@ -302,15 +344,19 @@ static void tm6000_config_tuner (struct
+>> tm6000_core *dev)
+>>          memset(&xc2028_cfg, 0, sizeof(xc2028_cfg));
+>>          memset (&ctl,0,sizeof(ctl));
+>>  
+>> -        ctl.mts   = 1;
+>> -        ctl.read_not_reliable = 1;
+>> +        ctl.input1 = 1;
+>> +        ctl.read_not_reliable = 0;
+>>          ctl.msleep = 10;
+>> -
+>> +        ctl.demod = XC3028_FE_ZARLINK456;
+>> +        ctl.vhfbw7 = 1;
+>> +        ctl.uhfbw8 = 1;
+>> +        ctl.switch_mode = 1;
+>>          xc2028_cfg.tuner = TUNER_XC2028;
+>>          xc2028_cfg.priv  = &ctl;
+>>  
+>>          switch(dev->model) {
+>>          case TM6010_BOARD_HAUPPAUGE_900H:
+>> +        case TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE:
+>>              ctl.fname = "xc3028L-v36.fw";
+>>              break;
+>>          default:
+>>     
+>   
+>> @@ -402,6 +448,7 @@ static int tm6000_init_dev(struct tm6000_core *dev)
+>>          }
+>>  #endif
+>>      }
+>> +    return 0;
+>>  
+>>  err2:
+>>      v4l2_device_unregister(&dev->v4l2_dev);
+>>     
+> This hunk also looks a bug fix. If so, please submit as a separate patch.
+>
+>   
+o. k.
+>> @@ -459,13 +506,13 @@ static int tm6000_usb_probe(struct usb_interface
+>> *interface,
+>>      /* Check to see next free device and mark as used */
+>>      nr=find_first_zero_bit(&tm6000_devused,TM6000_MAXBOARDS);
+>>      if (nr >= TM6000_MAXBOARDS) {
+>> -        printk ("tm6000: Supports only %i em28xx
+>> boards.\n",TM6000_MAXBOARDS);
+>> +        printk ("tm6000: Supports only %i tm60xx
+>> boards.\n",TM6000_MAXBOARDS);
+>>          usb_put_dev(usbdev);
+>>          return -ENOMEM;
+>>      }
+>>     
+> Also a typo bug fix. I don't really mind if you fold this with another patch,
+> but the better would be to have a separate patch for it.
+>
+>   
+o.k.
+>>  
+>>      /* Create and initialize dev struct */
+>> -    dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+>> +    dev = kzalloc(sizeof(*(dev)), GFP_KERNEL);
+>>     
+> The extra parenthesis is uneeded here.
+>
+>   
+o.k. I switch it to older once.
+>>      if (dev == NULL) {
+>>          printk ("tm6000" ": out of memory!\n");
+>>          usb_put_dev(usbdev);
+>> diff --git a/drivers/staging/tm6000/tm6000-core.c
+>> b/drivers/staging/tm6000/tm6000-core.c
+>> index d41af1d..33bbbd3 100644
+>> --- a/drivers/staging/tm6000/tm6000-core.c
+>> +++ b/drivers/staging/tm6000/tm6000-core.c
+>> @@ -219,33 +219,53 @@ int tm6000_init_analog_mode (struct tm6000_core *dev)
+>>  
+>>  int tm6000_init_digital_mode (struct tm6000_core *dev)
+>>  {
+>> -    tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00ff, 0x08);
+>> -    tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00ff, 0x00);
+>> -    tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x003f, 0x01);
+>> -    tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00df, 0x08);
+>> -    tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00e2, 0x0c);
+>> -    tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00e8, 0xff);
+>> -    tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00eb, 0xd8);
+>> -    tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00c0, 0x40);
+>> -    tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00c1, 0xd0);
+>> -    tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00c3, 0x09);
+>> -    tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00da, 0x37);
+>> -    tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00d1, 0xd8);
+>> -    tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00d2, 0xc0);
+>> -    tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00d6, 0x60);
+>> -
+>> -    tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00e2, 0x0c);
+>> -    tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00e8, 0xff);
+>> -    tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00eb, 0x08);
+>> -    msleep(50);
+>> -
+>> -    tm6000_set_reg (dev, REQ_04_EN_DISABLE_MCU_INT, 0x0020, 0x00);
+>> -    msleep(50);
+>> -    tm6000_set_reg (dev, REQ_04_EN_DISABLE_MCU_INT, 0x0020, 0x01);
+>> -    msleep(50);
+>> -    tm6000_set_reg (dev, REQ_04_EN_DISABLE_MCU_INT, 0x0020, 0x00);
+>> -    msleep(100);
+>> -
+>> +    if (dev->dev_type == TM6010) {
+>> +        int val;
+>> +        u8 buf[2];
+>> +       
+>> +        /* digital init */
+>> +        val = tm6000_get_reg(dev, REQ_07_SET_GET_AVREG, 0xcc, 0);
+>> +        val &= ~0x60;
+>> +        tm6000_set_reg(dev, REQ_07_SET_GET_AVREG, 0xcc, val);
+>> +        val = tm6000_get_reg(dev, REQ_07_SET_GET_AVREG, 0xc0, 0);
+>> +        val |= 0x40;
+>> +        tm6000_set_reg(dev, REQ_07_SET_GET_AVREG, 0xc0, val);
+>> +        tm6000_set_reg(dev, REQ_07_SET_GET_AVREG, 0xfe, 0x28);
+>> +        tm6000_set_reg(dev, REQ_08_SET_GET_AVREG_BIT, 0xe2, 0xfc);
+>> +        tm6000_set_reg(dev, REQ_08_SET_GET_AVREG_BIT, 0xe6, 0xff);
+>> +        tm6000_set_reg(dev, REQ_08_SET_GET_AVREG_BIT, 0xf1, 0xfe);
+>> +        tm6000_read_write_usb (dev, 0xc0, 0x0e, 0x00c2, 0x0008, buf, 2);
+>> +        printk (KERN_INFO "buf %#x %#x \n", buf[0], buf[1]);
+>> +       
+>> +
+>> +    } else  {
+>> +        tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00ff, 0x08);
+>> +        tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00ff, 0x00);
+>> +        tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x003f, 0x01);
+>> +        tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00df, 0x08);
+>> +        tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00e2, 0x0c);
+>> +        tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00e8, 0xff);
+>> +        tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00eb, 0xd8);
+>> +        tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00c0, 0x40);
+>> +        tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00c1, 0xd0);
+>> +        tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00c3, 0x09);
+>> +        tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00da, 0x37);
+>> +        tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00d1, 0xd8);
+>> +        tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00d2, 0xc0);
+>> +        tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00d6, 0x60);
+>> +
+>> +        tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00e2, 0x0c);
+>> +        tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00e8, 0xff);
+>> +        tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00eb, 0x08);
+>> +        msleep(50);
+>> +
+>> +        tm6000_set_reg (dev, REQ_04_EN_DISABLE_MCU_INT, 0x0020, 0x00);
+>> +        msleep(50);
+>> +        tm6000_set_reg (dev, REQ_04_EN_DISABLE_MCU_INT, 0x0020, 0x01);
+>> +        msleep(50);
+>> +        tm6000_set_reg (dev, REQ_04_EN_DISABLE_MCU_INT, 0x0020, 0x00);
+>> +        msleep(100);
+>> +    }
+>>      return 0;
+>>  }
+>>  
+>> @@ -394,7 +414,15 @@ struct reg_init tm6010_init_tab[] = {
+>>      { REQ_07_SET_GET_AVREG, 0x3f, 0x00 },
+>>  
+>>      { REQ_05_SET_GET_USBREG, 0x18, 0x00 },
+>> -
+>> +   
+>> +    /* additional from Terratec Cinergy Hybrid XE */
+>> +    { REQ_07_SET_GET_AVREG, 0xdc, 0xaa },
+>> +    { REQ_07_SET_GET_AVREG, 0xdd, 0x30 },
+>> +    { REQ_07_SET_GET_AVREG, 0xde, 0x20 },
+>> +    { REQ_07_SET_GET_AVREG, 0xdf, 0xd0 },
+>> +    { REQ_04_EN_DISABLE_MCU_INT, 0x02, 0x00 },
+>> +    { REQ_07_SET_GET_AVREG, 0xd8, 0x2f },
+>> +   
+>>      /* set remote wakeup key:any key wakeup */
+>>      { REQ_07_SET_GET_AVREG,  0xe5,  0xfe },
+>>      { REQ_07_SET_GET_AVREG,  0xda,  0xff },
+>> @@ -404,6 +432,7 @@ int tm6000_init (struct tm6000_core *dev)
+>>  {
+>>      int board, rc=0, i, size;
+>>      struct reg_init *tab;
+>> +    u8 buf[40];
+>>     
+> Why "40" ? Please avoid using magic numbers here, especially if you're
+> not checking at the logic if you're writing outside the buffer.
+>
+>   
+It important for tm6010 init sequence to enable the demodulator, because
+the demodulator haven't found after init tuner.
+>>      if (dev->dev_type == TM6010) {
+>>          tab = tm6010_init_tab;
+>> @@ -424,61 +453,129 @@ int tm6000_init (struct tm6000_core *dev)
+>>          }
+>>      }
+>>  
+>> -    msleep(5); /* Just to be conservative */
+>> -
+>> -    /* Check board version - maybe 10Moons specific */
+>> -    board=tm6000_get_reg16 (dev, 0x40, 0, 0);
+>> -    if (board >=0) {
+>> -        printk (KERN_INFO "Board version = 0x%04x\n",board);
+>> -    } else {
+>> -        printk (KERN_ERR "Error %i while retrieving board
+>> version\n",board);
+>> -    }
+>> -
+>> +    /* hack */
+>>      if (dev->dev_type == TM6010) {
+>> -        /* Turn xceive 3028 on */
+>> -        tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, TM6010_GPIO_3, 0x01);
+>> -        msleep(11);
+>> -    }
+>> -
+>> -    /* Reset GPIO1 and GPIO4. */
+>> -    for (i=0; i< 2; i++) {
+>> -        rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+>> -                    dev->tuner_reset_gpio, 0x00);
+>> -        if (rc<0) {
+>> -            printk (KERN_ERR "Error %i doing GPIO1 reset\n",rc);
+>> -            return rc;
+>> -        }
+>> -
+>> -        msleep(10); /* Just to be conservative */
+>> -        rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+>> -                    dev->tuner_reset_gpio, 0x01);
+>> -        if (rc<0) {
+>> -            printk (KERN_ERR "Error %i doing GPIO1 reset\n",rc);
+>> -            return rc;
+>> -        }
+>> -
+>> -        msleep(10);
+>> -        rc=tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN, TM6000_GPIO_4, 0);
+>> -        if (rc<0) {
+>> -            printk (KERN_ERR "Error %i doing GPIO4 reset\n",rc);
+>> -            return rc;
+>> -        }
+>> -
+>> -        msleep(10);
+>> -        rc=tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN, TM6000_GPIO_4, 1);
+>> -        if (rc<0) {
+>> -            printk (KERN_ERR "Error %i doing GPIO4 reset\n",rc);
+>> -            return rc;
+>> -        }
+>> -
+>> -        if (!i) {
+>> -            rc=tm6000_get_reg16(dev, 0x40,0,0);
+>> -            if (rc>=0) {
+>> -                printk ("board=%d\n", rc);
+>> +       
+>> +        msleep(15);
+>> +        tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+>> +                TM6010_GPIO_4, 0);
+>> +        msleep(15);
+>> +               
+>> +        tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+>> +                TM6010_GPIO_1, 0);
+>> +   
+>> +        msleep(50);
+>> +        tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+>> +                TM6010_GPIO_1, 1);
+>> +       
+>> +        msleep(15);
+>>     
+>
+> The reset code are device dependent. Please don't remove the previous code, or you'll
+> break the init for the other devices. Instead, add a switch above, checking for your
+> specific model. The better is to have all those device-specific initializations inside
+> tm6000-cards. Please take a look on how this is solved on em28xx driver.
+>
+>   
+GPIO 1 is the demodulator reset and gpio 4 is lo when tm6010 initialize.
+>> +        tm6000_read_write_usb (dev, 0xc0, 0x0e, 0x0010, 0x4400, buf, 2);
+>> +       
+>> +        msleep(15);
+>> +        tm6000_read_write_usb (dev, 0xc0, 0x10, 0xf432, 0x0000, buf, 2);
+>> +   
+>> +        msleep(15);
+>> +        buf[0] = 0x12;
+>> +        buf[1] = 0x34;
+>> +        tm6000_read_write_usb (dev, 0x40, 0x10, 0xf432, 0x0000, buf, 2);
+>> +   
+>> +        msleep(15);
+>> +        tm6000_read_write_usb (dev, 0xc0, 0x10, 0xf432, 0x0000, buf, 2);
+>> +   
+>> +        msleep(15);
+>> +        tm6000_read_write_usb (dev, 0xc0, 0x10, 0x0032, 0x0000, buf, 2);
+>> +
+>> +        msleep(15);
+>> +        buf[0] = 0x00;
+>> +        buf[1] = 0x01;
+>> +        tm6000_read_write_usb (dev, 0x40, 0x10, 0xf332, 0x0000, buf, 2);
+>> +   
+>> +        msleep(15);
+>> +        tm6000_read_write_usb (dev, 0xc0, 0x10, 0x00c0, 0x0000, buf, 39);
+>> +   
+>> +        msleep(15);
+>> +        buf[0] = 0x00;
+>> +        buf[1] = 0x00;
+>> +        tm6000_read_write_usb (dev, 0x40, 0x10, 0xf332, 0x0000, buf, 2);
+>> +   
+>> +        msleep(15);
+>> +        tm6000_read_write_usb (dev, 0xc0, 0x10, 0x7f1f, 0x0000, buf, 2);
+>> +//        printk(KERN_INFO "buf %#x %#x \n", buf[0], buf [1]);
+>> +        msleep(15);
+>>     
+>
+> Insead, use tm6000_get_reg() or tm6000_set_reg(). Passing the USB direction as
+> 0x40/0xc0 is very ugly, and makes the code harder to understand.
+>
+>   
+I cannot use it, because it is a i2c transfer! The reading or writing
+data is in buf. (reading can it)
+> Also,
+> 	req=0x0e corresponds to REQ_14_SET_GET_I2C_WR2_RDN
+> 	req=0x10 corresponds to REQ_16_SET_GET_I2C_WR1_RDN
+>
+> So, the above code is just reading/writing some data via I2C. It should be replaced
+> by some changes at the corresponding i2c driver for the devices that the above
+> code is controlling.
+>
+> As a temporary hack, you might do some initialization by calling i2c_master_send/
+> i2c_master_recv. For example, em28xx driver has this hack:
+>
+> /* FIXME: Should be replaced by a proper mt9m001 driver */
+> static int em28xx_initialize_mt9m001(struct em28xx *dev)
+> {
+>         int i;
+>         unsigned char regs[][3] = {
+>                 { 0x0d, 0x00, 0x01, },
+>                 { 0x0d, 0x00, 0x00, },
+>                 { 0x04, 0x05, 0x00, },  /* hres = 1280 */
+>                 { 0x03, 0x04, 0x00, },  /* vres = 1024 */
+>                 { 0x20, 0x11, 0x00, },
+>                 { 0x06, 0x00, 0x10, },
+>                 { 0x2b, 0x00, 0x24, },
+>                 { 0x2e, 0x00, 0x24, },
+>                 { 0x35, 0x00, 0x24, },
+>                 { 0x2d, 0x00, 0x20, },
+>                 { 0x2c, 0x00, 0x20, },
+>                 { 0x09, 0x0a, 0xd4, },
+>                 { 0x35, 0x00, 0x57, },
+>         };
+>
+>         for (i = 0; i < ARRAY_SIZE(regs); i++)
+>                 i2c_master_send(&dev->i2c_client, &regs[i][0], 3);
+>
+>         return 0;
+> }
+>
+>
+>   
+>> +        tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+>> +                TM6010_GPIO_4, 1);
+>> +        msleep(15);
+>> +        tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+>> +                    TM6010_GPIO_0, 1);
+>> +        msleep(15);
+>> +        tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+>> +                TM6010_GPIO_7, 0);
+>> +        msleep(15);
+>> +        tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+>> +                TM6010_GPIO_5, 1);
+>> +   
+>> +        msleep(15);
+>>     
+> Also, this is device-specific.
+>   
+after tm6000 initialize gpio 4 go to high (GPIO 4 is lo if it
+initialze). I think when it device-specific is then for all tm6010!!
+GPIO 0 and 7 ?? GPIO 5 a/d switch (from tuner to demodulator or adc).
+>   
+>> +   
+>> +        for (i=0; i< size; i++) {
+>> +            rc= tm6000_set_reg (dev, tab[i].req, tab[i].reg, tab[i].val);
+>> +            if (rc<0) {
+>> +                printk (KERN_ERR "Error %i while setting req %d, "
+>> +                         "reg %d to value %d\n", rc,
+>> +                         tab[i].req,tab[i].reg, tab[i].val);
+>> +                return rc;
+>>              }
+>>          }
+>> +           
+>> +        msleep(15);
+>>     
+>
+>   
+>> +   
+>> +        tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+>> +                TM6010_GPIO_4, 0);
+>> +        msleep(15);
+>> +
+>> +        tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+>> +                TM6010_GPIO_1, 0);
+>> +   
+>> +        msleep(50);
+>> +        tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+>> +                TM6010_GPIO_1, 1);
+>> +       
+>> +        msleep(15);
+>> +        tm6000_read_write_usb (dev, 0xc0, 0x0e, 0x00c2, 0x0008, buf, 2);
+>> +//        printk(KERN_INFO "buf %#x %#x \n", buf[0], buf[1]);
+>> +        msleep(15);
+>> +        tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+>> +                TM6010_GPIO_2, 1);
+>> +        msleep(15);
+>> +        tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+>> +                TM6010_GPIO_2, 0);
+>> +        msleep(15);
+>> +        tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+>> +                TM6010_GPIO_2, 1);
+>> +        msleep(15);
+>> +        tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+>> +                TM6010_GPIO_2, 1);
+>> +        msleep(15);
+>> +        tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+>> +                TM6010_GPIO_2, 0);
+>> +        msleep(15);
+>> +        tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+>> +                TM6010_GPIO_2, 1);
+>> +        msleep(15);
+>>      }
+>> +    /* hack end */
+>>     
+> Idem. All GPIO's are  device-specific.
+>
+>   
+GPIO 2 is tuner reset and can remove, I think.
+>> +   
+>> +    msleep(5); /* Just to be conservative */
+>>  
+>> +    /* Check board version - maybe 10Moons specific */
+>> +    if (dev->dev_type == TM5600) {
+>> +         board=tm6000_get_reg16 (dev, 0x40, 0, 0);
+>> +        if (board >=0) {
+>> +            printk (KERN_INFO "Board version = 0x%04x\n",board);
+>> +        } else {
+>> +            printk (KERN_ERR "Error %i while retrieving board
+>> version\n",board);
+>> +        }
+>> +    }
+>> +   
+>>      msleep(50);
+>>  
+>>      return 0;
+>> diff --git a/drivers/staging/tm6000/tm6000-dvb.c
+>> b/drivers/staging/tm6000/tm6000-dvb.c
+>> index e900d6d..31458d3 100644
+>> --- a/drivers/staging/tm6000/tm6000-dvb.c
+>> +++ b/drivers/staging/tm6000/tm6000-dvb.c
+>> @@ -17,7 +17,9 @@
+>>     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+>>   */
+>>  
+>> +#include <linux/kernel.h>
+>>  #include <linux/usb.h>
+>> +#include <compat.h>
+>>  
+>>  #include "tm6000.h"
+>>  #include "tm6000-regs.h"
+>> @@ -30,17 +32,61 @@
+>>  
+>>  #include "tuner-xc2028.h"
+>>  
+>> +static void inline print_err_status (struct tm6000_core *dev,
+>> +                     int packet, int status)
+>> +{
+>> +    char *errmsg = "Unknown";
+>> +
+>> +    switch(status) {
+>> +    case -ENOENT:
+>> +        errmsg = "unlinked synchronuously";
+>> +        break;
+>> +    case -ECONNRESET:
+>> +        errmsg = "unlinked asynchronuously";
+>> +        break;
+>> +    case -ENOSR:
+>> +        errmsg = "Buffer error (overrun)";
+>> +        break;
+>> +    case -EPIPE:
+>> +        errmsg = "Stalled (device not responding)";
+>> +        break;
+>> +    case -EOVERFLOW:
+>> +        errmsg = "Babble (bad cable?)";
+>> +        break;
+>> +    case -EPROTO:
+>> +        errmsg = "Bit-stuff error (bad cable?)";
+>> +        break;
+>> +    case -EILSEQ:
+>> +        errmsg = "CRC/Timeout (could be anything)";
+>> +        break;
+>> +    case -ETIME:
+>> +        errmsg = "Device does not respond";
+>> +        break;
+>> +    }
+>> +    if (packet<0) {
+>> +        dprintk(dev, 1, "URB status %d [%s].\n",
+>> +            status, errmsg);
+>> +    } else {
+>> +        dprintk(dev, 1, "URB packet %d, status %d [%s].\n",
+>> +            packet, status, errmsg);
+>> +    }
+>> +}
+>> +
+>> +
+>> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,19)
+>> +static void tm6000_urb_received(struct urb *urb, struct pt_regs *ptregs)
+>> +#else
+>>  static void tm6000_urb_received(struct urb *urb)
+>> +#endif
+>>  {
+>>      int ret;
+>>      struct tm6000_core* dev = urb->context;
+>>  
+>> -    if(urb->status != 0){
+>> -        printk(KERN_ERR "tm6000: status != 0\n");
+>> +    if(urb->status != 0) {
+>> +        print_err_status (dev,0,urb->status);
+>>      }
+>>      else if(urb->actual_length>0){
+>> -        dvb_dmx_swfilter(&dev->dvb->demux, urb->transfer_buffer,
+>> -                           urb->actual_length);
+>> +        dvb_dmx_swfilter(&dev->dvb->demux, urb->transfer_buffer,
+>> urb->actual_length);
+>>      }
+>>  
+>>      if(dev->dvb->streams > 0) {
+>> @@ -56,49 +102,37 @@ static void tm6000_urb_received(struct urb *urb)
+>>  int tm6000_start_stream(struct tm6000_core *dev)
+>>  {
+>>      int ret;
+>> -    unsigned int pipe, maxPaketSize;
+>> +    unsigned int pipe, size;
+>>      struct tm6000_dvb *dvb = dev->dvb;
+>>  
+>>      printk(KERN_INFO "tm6000: got start stream request %s\n",__FUNCTION__);
+>>  
+>>      tm6000_init_digital_mode(dev);
+>>  
+>> -/*
+>> -    ret = tm6000_set_led_status(tm6000_dev, 0x1);
+>> -    if(ret < 0) {
+>> -        return -1;
+>> -    }
+>> -*/
+>> -
+>>      dvb->bulk_urb = usb_alloc_urb(0, GFP_KERNEL);
+>>      if(dvb->bulk_urb == NULL) {
+>>          printk(KERN_ERR "tm6000: couldn't allocate urb\n");
+>>          return -ENOMEM;
+>>      }
+>>  
+>> -    maxPaketSize = dev->bulk_in->desc.wMaxPacketSize;
+>> +    pipe = usb_rcvbulkpipe(dev->udev, dev->bulk_in->desc.bEndpointAddress
+>> +                              & USB_ENDPOINT_NUMBER_MASK);
+>> +                             
+>> +    size = usb_maxpacket(dev->udev, pipe, usb_pipeout(pipe));
+>> +    size = size * 15; // 512 x 8 or 12 or 15
+>>  
+>> -    dvb->bulk_urb->transfer_buffer = kzalloc(maxPaketSize, GFP_KERNEL);
+>> +    dvb->bulk_urb->transfer_buffer = kzalloc(size, GFP_KERNEL);
+>>      if(dvb->bulk_urb->transfer_buffer == NULL) {
+>>          usb_free_urb(dvb->bulk_urb);
+>>          printk(KERN_ERR "tm6000: couldn't allocate transfer buffer!\n");
+>>          return -ENOMEM;
+>>      }
+>> -
+>> -    pipe = usb_rcvbulkpipe(dev->udev, dev->bulk_in->desc.bEndpointAddress
+>> -                              & USB_ENDPOINT_NUMBER_MASK);
+>> -
+>> +   
+>>      usb_fill_bulk_urb(dvb->bulk_urb, dev->udev, pipe,
+>>                           dvb->bulk_urb->transfer_buffer,
+>> -                         maxPaketSize,
+>> +                         size,
+>>                           tm6000_urb_received, dev);
+>>  
+>> -    ret = usb_set_interface(dev->udev, 0, 1);
+>> -    if(ret < 0) {
+>> -        printk(KERN_ERR "tm6000: error %i in %s during set
+>> interface\n", ret, __FUNCTION__);
+>> -        return ret;
+>> -    }
+>> -
+>>      ret = usb_clear_halt(dev->udev, pipe);
+>>      if(ret < 0) {
+>>          printk(KERN_ERR "tm6000: error %i in %s during pipe
+>> reset\n",ret,__FUNCTION__);
+>> @@ -107,15 +141,14 @@ int tm6000_start_stream(struct tm6000_core *dev)
+>>      else {
+>>          printk(KERN_ERR "tm6000: pipe resetted\n");
+>>      }
+>> -
+>> -//     mutex_lock(&tm6000_driver.open_close_mutex);
+>> +   
+>> +//    mutex_lock(&tm6000_driver.open_close_mutex);
+>>      ret = usb_submit_urb(dvb->bulk_urb, GFP_KERNEL);
+>>  
+>> -
+>> -//     mutex_unlock(&tm6000_driver.open_close_mutex);
+>> +//    mutex_unlock(&tm6000_driver.open_close_mutex);
+>>      if (ret) {
+>>          printk(KERN_ERR "tm6000: submit of urb failed (error=%i)\n",ret);
+>> -
+>> +       
+>>          kfree(dvb->bulk_urb->transfer_buffer);
+>>          usb_free_urb(dvb->bulk_urb);
+>>          return ret;
+>> @@ -126,18 +159,12 @@ int tm6000_start_stream(struct tm6000_core *dev)
+>>  
+>>  void tm6000_stop_stream(struct tm6000_core *dev)
+>>  {
+>> -    int ret;
+>>      struct tm6000_dvb *dvb = dev->dvb;
+>>  
+>> -//     tm6000_set_led_status(tm6000_dev, 0x0);
+>> -
+>> -    ret = usb_set_interface(dev->udev, 0, 0);
+>> -    if(ret < 0) {
+>> -        printk(KERN_ERR "tm6000: error %i in %s during set
+>> interface\n",ret,__FUNCTION__);
+>> -    }
+>> -
+>>      if(dvb->bulk_urb) {
+>> +        printk (KERN_INFO "urb killing\n");
+>>          usb_kill_urb(dvb->bulk_urb);
+>> +        printk (KERN_INFO "urb buffer free\n");
+>>          kfree(dvb->bulk_urb->transfer_buffer);
+>>          usb_free_urb(dvb->bulk_urb);
+>>          dvb->bulk_urb = NULL;
+>> @@ -154,7 +181,7 @@ int tm6000_start_feed(struct dvb_demux_feed *feed)
+>>      mutex_lock(&dvb->mutex);
+>>      if(dvb->streams == 0) {
+>>          dvb->streams = 1;
+>> -//         mutex_init(&tm6000_dev->streaming_mutex);
+>> +//        mutex_init(&tm6000_dev->streming_mutex);
+>>          tm6000_start_stream(dev);
+>>      }
+>>      else {
+>> @@ -173,14 +200,17 @@ int tm6000_stop_feed(struct dvb_demux_feed *feed) {
+>>      printk(KERN_INFO "tm6000: got stop feed request %s\n",__FUNCTION__);
+>>  
+>>      mutex_lock(&dvb->mutex);
+>> -    --dvb->streams;
+>>  
+>> -    if(0 == dvb->streams) {
+>> +    printk (KERN_INFO "stream %#x\n", dvb->streams);
+>> +    --(dvb->streams);
+>> +    if(dvb->streams == 0) {
+>> +        printk (KERN_INFO "stop stream\n");
+>>          tm6000_stop_stream(dev);
+>> -//         mutex_destroy(&tm6000_dev->streaming_mutex);
+>> +//        mutex_destroy(&tm6000_dev->streaming_mutex);
+>>      }
+>> +   
+>>      mutex_unlock(&dvb->mutex);
+>> -//     mutex_destroy(&tm6000_dev->streaming_mutex);
+>> +//    mutex_destroy(&tm6000_dev->streaming_mutex);
+>>  
+>>      return 0;
+>>  }
+>> @@ -191,13 +221,16 @@ int tm6000_dvb_attach_frontend(struct tm6000_core
+>> *dev)
+>>  
+>>      if(dev->caps.has_zl10353) {
+>>          struct zl10353_config config =
+>> -                    {.demod_address = dev->demod_addr >> 1,
+>> +                    {.demod_address = dev->demod_addr,
+>>                       .no_tuner = 1,
+>> -//                      .input_frequency = 0x19e9,
+>> -//                      .r56_agc_targets =  0x1c,
+>> +                     .parallel_ts = 1,
+>> +                     .if2 = 45700,
+>> +                     .disable_i2c_gate_ctrl = 1,
+>> +                     .tm6000 = 1,
+>>                      };
+>>  
+>>          dvb->frontend = pseudo_zl10353_attach(dev, &config,
+>> +//        dvb->frontend = dvb_attach (zl10353_attach, &config,
+>>     
+> Don't use C99 comments. Always comment with /* */
+>
+>   
 
+all comments except frontend attach is don't from me, but I can convert it.
 
---
-Nikola
+>   
+>>                                 &dev->i2c_adap);
+>>      }
+>>      else {
+>> @@ -235,7 +268,8 @@ int tm6000_dvb_register(struct tm6000_core *dev)
+>>              .i2c_adap = &dev->i2c_adap,
+>>              .i2c_addr = dev->tuner_addr,
+>>          };
+>> -
+>> +       
+>> +        dvb->frontend->callback = tm6000_tuner_callback;
+>>          ret = dvb_register_frontend(&dvb->adapter, dvb->frontend);
+>>          if (ret < 0) {
+>>              printk(KERN_ERR
+>> @@ -258,8 +292,8 @@ int tm6000_dvb_register(struct tm6000_core *dev)
+>>      dvb->demux.dmx.capabilities = DMX_TS_FILTERING | DMX_SECTION_FILTERING
+>>                                  | DMX_MEMORY_BASED_FILTERING;
+>>      dvb->demux.priv = dev;
+>> -    dvb->demux.filternum = 256;
+>> -    dvb->demux.feednum = 256;
+>> +    dvb->demux.filternum = 5; //256;
+>> +    dvb->demux.feednum = 5; //256;
+>>     
+> Don't use C99 comments. Always comment with /* */
+>
+>   
 
---001636025f84abc30404805f8c5d
-Content-Type: text/x-patch; charset=US-ASCII; name="af9013_tuner_tda18218.patch"
-Content-Disposition: attachment; filename="af9013_tuner_tda18218.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: 0.1
+all comments except frontend attach is don't from me, but I can convert it.
 
-ZGlmZiAtciAwZjQxZmQ3ZGY4NWQgbGludXgvZHJpdmVycy9tZWRpYS9jb21tb24vdHVuZXJzL0tj
-b25maWcKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS9jb21tb24vdHVuZXJzL0tjb25maWcJVGh1
-IEZlYiAxMSAwMjozMzoxMiAyMDEwICswMjAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvY29t
-bW9uL3R1bmVycy9LY29uZmlnCVdlZCBGZWIgMjQgMTE6NDc6MTQgMjAxMCArMDEwMApAQCAtMTc5
-LDQgKzE3OSwxMSBAQAogCWhlbHAKIAkgIEEgZHJpdmVyIGZvciB0aGUgc2lsaWNvbiB0dW5lciBN
-QVgyMTY1IGZyb20gTWF4aW0uCiAKK2NvbmZpZyBNRURJQV9UVU5FUl9UREExODIxOAorCXRyaXN0
-YXRlICJOWFAgVERBMTgyMTggc2lsaWNvbiB0dW5lciIKKwlkZXBlbmRzIG9uIFZJREVPX01FRElB
-ICYmIEkyQworCWRlZmF1bHQgbSBpZiBNRURJQV9UVU5FUl9DVVNUT01JU0UKKwloZWxwCisJICBB
-IGRyaXZlciBmb3IgdGhlIHNpbGljb24gdHVuZXIgVERBMTgyMTggZnJvbSBOWFAuCisKIGVuZGlm
-ICMgTUVESUFfVFVORVJfQ1VTVE9NSVNFCmRpZmYgLXIgMGY0MWZkN2RmODVkIGxpbnV4L2RyaXZl
-cnMvbWVkaWEvY29tbW9uL3R1bmVycy9NYWtlZmlsZQotLS0gYS9saW51eC9kcml2ZXJzL21lZGlh
-L2NvbW1vbi90dW5lcnMvTWFrZWZpbGUJVGh1IEZlYiAxMSAwMjozMzoxMiAyMDEwICswMjAwCisr
-KyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvY29tbW9uL3R1bmVycy9NYWtlZmlsZQlXZWQgRmViIDI0
-IDExOjQ3OjE0IDIwMTAgKzAxMDAKQEAgLTI0LDYgKzI0LDcgQEAKIG9iai0kKENPTkZJR19NRURJ
-QV9UVU5FUl9NWEw1MDA3VCkgKz0gbXhsNTAwN3Qubwogb2JqLSQoQ09ORklHX01FRElBX1RVTkVS
-X01DNDRTODAzKSArPSBtYzQ0czgwMy5vCiBvYmotJChDT05GSUdfTUVESUFfVFVORVJfTUFYMjE2
-NSkgKz0gbWF4MjE2NS5vCitvYmotJChDT05GSUdfTUVESUFfVFVORVJfVERBMTgyMTgpICs9IHRk
-YTE4MjE4Lm8KIAogRVhUUkFfQ0ZMQUdTICs9IC1JZHJpdmVycy9tZWRpYS9kdmIvZHZiLWNvcmUK
-IEVYVFJBX0NGTEFHUyArPSAtSWRyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcwpkaWZmIC1yIDBm
-NDFmZDdkZjg1ZCBsaW51eC9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2FmOTAxNS5jCi0tLSBh
-L2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvYWY5MDE1LmMJVGh1IEZlYiAxMSAwMjoz
-MzoxMiAyMDEwICswMjAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvYWY5
-MDE1LmMJV2VkIEZlYiAyNCAxMTo0NzoxNCAyMDEwICswMTAwCkBAIC0yMCwxMSArMjAsNyBAQAog
-ICogICAgRm91bmRhdGlvbiwgSW5jLiwgNjc1IE1hc3MgQXZlLCBDYW1icmlkZ2UsIE1BIDAyMTM5
-LCBVU0EuCiAgKgogICovCi0jaWYgTElOVVhfVkVSU0lPTl9DT0RFID49IEtFUk5FTF9WRVJTSU9O
-KDIsIDYsIDI1KQogCi0jaW5jbHVkZSA8bGludXgvaGFzaC5oPgotCi0jZW5kaWYKICNpbmNsdWRl
-ICJhZjkwMTUuaCIKICNpbmNsdWRlICJhZjkwMTMuaCIKICNpbmNsdWRlICJtdDIwNjAuaCIKQEAg
-LTMyLDYgKzI4LDcgQEAKICNpbmNsdWRlICJ0ZGExODI3MS5oIgogI2luY2x1ZGUgIm14bDUwMDVz
-LmgiCiAjaW5jbHVkZSAibWM0NHM4MDMuaCIKKyNpbmNsdWRlICJ0ZGExODIxOC5oIgogCiBzdGF0
-aWMgaW50IGR2Yl91c2JfYWY5MDE1X2RlYnVnOwogbW9kdWxlX3BhcmFtX25hbWVkKGRlYnVnLCBk
-dmJfdXNiX2FmOTAxNV9kZWJ1ZywgaW50LCAwNjQ0KTsKQEAgLTI3Myw3ICsyNzAsOCBAQAogCiAJ
-d2hpbGUgKGkgPCBudW0pIHsKIAkJaWYgKG1zZ1tpXS5hZGRyID09IGFmOTAxNV9hZjkwMTNfY29u
-ZmlnWzBdLmRlbW9kX2FkZHJlc3MgfHwKLQkJICAgIG1zZ1tpXS5hZGRyID09IGFmOTAxNV9hZjkw
-MTNfY29uZmlnWzFdLmRlbW9kX2FkZHJlc3MpIHsKKwkJICAgIG1zZ1tpXS5hZGRyID09IGFmOTAx
-NV9hZjkwMTNfY29uZmlnWzFdLmRlbW9kX2FkZHJlc3MgIHx8CisJCSAgICBtc2dbaV0uYWRkciA9
-PSAweDNhKSB7CiAJCQlhZGRyID0gbXNnW2ldLmJ1ZlswXSA8PCA4OwogCQkJYWRkciArPSBtc2db
-aV0uYnVmWzFdOwogCQkJbWJveCA9IG1zZ1tpXS5idWZbMl07CkBAIC0yODYsNyArMjg0LDggQEAK
-IAogCQlpZiAobnVtID4gaSArIDEgJiYgKG1zZ1tpKzFdLmZsYWdzICYgSTJDX01fUkQpKSB7CiAJ
-CQlpZiAobXNnW2ldLmFkZHIgPT0KLQkJCQlhZjkwMTVfYWY5MDEzX2NvbmZpZ1swXS5kZW1vZF9h
-ZGRyZXNzKQorCQkJCWFmOTAxNV9hZjkwMTNfY29uZmlnWzBdLmRlbW9kX2FkZHJlc3MgfHwKKwkJ
-CSAgICBtc2dbaV0uYWRkciA9PSAweDNhKQogCQkJCXJlcS5jbWQgPSBSRUFEX01FTU9SWTsKIAkJ
-CWVsc2UKIAkJCQlyZXEuY21kID0gUkVBRF9JMkM7CkBAIC0zMDEsNyArMzAwLDggQEAKIAkJfSBl
-bHNlIGlmIChtc2dbaV0uZmxhZ3MgJiBJMkNfTV9SRCkgewogCQkJcmV0ID0gLUVJTlZBTDsKIAkJ
-CWlmIChtc2dbaV0uYWRkciA9PQotCQkJCWFmOTAxNV9hZjkwMTNfY29uZmlnWzBdLmRlbW9kX2Fk
-ZHJlc3MpCisJCQkJYWY5MDE1X2FmOTAxM19jb25maWdbMF0uZGVtb2RfYWRkcmVzcyB8fAorCQkJ
-ICAgIG1zZ1tpXS5hZGRyID09IDB4M2EpCiAJCQkJZ290byBlcnJvcjsKIAkJCWVsc2UKIAkJCQly
-ZXEuY21kID0gUkVBRF9JMkM7CkBAIC0zMTUsNyArMzE1LDggQEAKIAkJCWkgKz0gMTsKIAkJfSBl
-bHNlIHsKIAkJCWlmIChtc2dbaV0uYWRkciA9PQotCQkJCWFmOTAxNV9hZjkwMTNfY29uZmlnWzBd
-LmRlbW9kX2FkZHJlc3MpCisJCQkJYWY5MDE1X2FmOTAxM19jb25maWdbMF0uZGVtb2RfYWRkcmVz
-cyB8fAorCQkJICAgIG1zZ1tpXS5hZGRyID09IDB4M2EpCiAJCQkJcmVxLmNtZCA9IFdSSVRFX01F
-TU9SWTsKIAkJCWVsc2UKIAkJCQlyZXEuY21kID0gV1JJVEVfSTJDOwpAQCAtNTYwLDI0ICs1NjEs
-MTEgQEAKIAlyZXR1cm4gcmV0OwogfQogCi0jaWYgTElOVVhfVkVSU0lPTl9DT0RFIDwgS0VSTkVM
-X1ZFUlNJT04oMiwgNiwgMjUpCisvKiBkdW1wIGVlcHJvbSAqLwogc3RhdGljIGludCBhZjkwMTVf
-ZWVwcm9tX2R1bXAoc3RydWN0IGR2Yl91c2JfZGV2aWNlICpkKQotI2Vsc2UKLS8qIGhhc2ggKGFu
-ZCBkdW1wKSBlZXByb20gKi8KLXN0YXRpYyBpbnQgYWY5MDE1X2VlcHJvbV9oYXNoKHN0cnVjdCB1
-c2JfZGV2aWNlICp1ZGV2KQotI2VuZGlmCiB7Ci0jaWYgTElOVVhfVkVSU0lPTl9DT0RFIDwgS0VS
-TkVMX1ZFUlNJT04oMiwgNiwgMjUpCiAJdTggcmVnLCB2YWw7Ci0jZWxzZQotCXN0YXRpYyBjb25z
-dCB1bnNpZ25lZCBpbnQgZWVwcm9tX3NpemUgPSAyNTY7Ci0JdW5zaWduZWQgaW50IHJlZzsKLQlp
-bnQgcmV0OwotCXU4IHZhbCwgKmVlcHJvbTsKLQlzdHJ1Y3QgcmVxX3QgcmVxID0ge1JFQURfSTJD
-LCBBRjkwMTVfSTJDX0VFUFJPTSwgMCwgMCwgMSwgMSwgJnZhbH07Ci0jZW5kaWYKIAotI2lmIExJ
-TlVYX1ZFUlNJT05fQ09ERSA8IEtFUk5FTF9WRVJTSU9OKDIsIDYsIDI1KQogCWZvciAocmVnID0g
-MDsgOyByZWcrKykgewogCQlpZiAocmVnICUgMTYgPT0gMCkgewogCQkJaWYgKHJlZykKQEAgLTU5
-MCw0MyArNTc4LDkgQEAKIAkJCWRlYl9pbmZvKEtFUk5fQ09OVCAiIC0tIik7CiAJCWlmIChyZWcg
-PT0gMHhmZikKIAkJCWJyZWFrOwotI2Vsc2UKLQllZXByb20gPSBrbWFsbG9jKGVlcHJvbV9zaXpl
-LCBHRlBfS0VSTkVMKTsKLQlpZiAoZWVwcm9tID09IE5VTEwpCi0JCXJldHVybiAtRU5PTUVNOwot
-Ci0JZm9yIChyZWcgPSAwOyByZWcgPCBlZXByb21fc2l6ZTsgcmVnKyspIHsKLQkJcmVxLmFkZHIg
-PSByZWc7Ci0JCXJldCA9IGFmOTAxNV9yd191ZGV2KHVkZXYsICZyZXEpOwotCQlpZiAocmV0KQot
-CQkJZ290byBmcmVlOwotCQllZXByb21bcmVnXSA9IHZhbDsKLSNlbmRpZgogCX0KLQotI2lmIExJ
-TlVYX1ZFUlNJT05fQ09ERSA8IEtFUk5FTF9WRVJTSU9OKDIsIDYsIDI1KQogCWRlYl9pbmZvKEtF
-Uk5fQ09OVCAiXG4iKTsKIAlyZXR1cm4gMDsKLSNlbHNlCi0JaWYgKGR2Yl91c2JfYWY5MDE1X2Rl
-YnVnICYgMHgwMSkKLQkJcHJpbnRfaGV4X2R1bXBfYnl0ZXMoIiIsIERVTVBfUFJFRklYX09GRlNF
-VCwgZWVwcm9tLAotCQkJCWVlcHJvbV9zaXplKTsKLQotCUJVR19PTihlZXByb21fc2l6ZSAlIDQp
-OwotCi0JYWY5MDE1X2NvbmZpZy5lZXByb21fc3VtID0gMDsKLQlmb3IgKHJlZyA9IDA7IHJlZyA8
-IGVlcHJvbV9zaXplIC8gc2l6ZW9mKHUzMik7IHJlZysrKSB7Ci0JCWFmOTAxNV9jb25maWcuZWVw
-cm9tX3N1bSAqPSBHT0xERU5fUkFUSU9fUFJJTUVfMzI7Ci0JCWFmOTAxNV9jb25maWcuZWVwcm9t
-X3N1bSArPSBsZTMyX3RvX2NwdSgoKHUzMiAqKWVlcHJvbSlbcmVnXSk7Ci0JfQotCi0JZGViX2lu
-Zm8oIiVzOiBlZXByb20gc3VtPSUuOHhcbiIsIF9fZnVuY19fLCBhZjkwMTVfY29uZmlnLmVlcHJv
-bV9zdW0pOwotCi0JcmV0ID0gMDsKLWZyZWU6Ci0Ja2ZyZWUoZWVwcm9tKTsKLQlyZXR1cm4gcmV0
-OwotI2VuZGlmCiB9CiAKIHN0YXRpYyBpbnQgYWY5MDE1X2Rvd25sb2FkX2lyX3RhYmxlKHN0cnVj
-dCBkdmJfdXNiX2RldmljZSAqZCkKQEAgLTc2NSwxMzIgKzcxOSwxMiBAQAogCXJldHVybiByZXQ7
-CiB9CiAKLXN0cnVjdCBhZjkwMTVfc2V0dXAgewotCXVuc2lnbmVkIGludCBpZDsKLQlzdHJ1Y3Qg
-ZHZiX3VzYl9yY19rZXkgKnJjX2tleV9tYXA7Ci0JdW5zaWduZWQgaW50IHJjX2tleV9tYXBfc2l6
-ZTsKLQl1OCAqaXJfdGFibGU7Ci0JdW5zaWduZWQgaW50IGlyX3RhYmxlX3NpemU7Ci19OwotCi1z
-dGF0aWMgY29uc3Qgc3RydWN0IGFmOTAxNV9zZXR1cCAqYWY5MDE1X3NldHVwX21hdGNoKHVuc2ln
-bmVkIGludCBpZCwKLQkJY29uc3Qgc3RydWN0IGFmOTAxNV9zZXR1cCAqdGFibGUpCi17Ci0JZm9y
-ICg7IHRhYmxlLT5yY19rZXlfbWFwOyB0YWJsZSsrKQotCQlpZiAodGFibGUtPmlkID09IGlkKQot
-CQkJcmV0dXJuIHRhYmxlOwotCXJldHVybiBOVUxMOwotfQotCi1zdGF0aWMgY29uc3Qgc3RydWN0
-IGFmOTAxNV9zZXR1cCBhZjkwMTVfc2V0dXBfbW9kcGFyYW1bXSA9IHsKLQl7IEFGOTAxNV9SRU1P
-VEVfQV9MSU5LX0RUVV9NLAotCQlhZjkwMTVfcmNfa2V5c19hX2xpbmssIEFSUkFZX1NJWkUoYWY5
-MDE1X3JjX2tleXNfYV9saW5rKSwKLQkJYWY5MDE1X2lyX3RhYmxlX2FfbGluaywgQVJSQVlfU0la
-RShhZjkwMTVfaXJfdGFibGVfYV9saW5rKSB9LAotCXsgQUY5MDE1X1JFTU9URV9NU0lfRElHSVZP
-WF9NSU5JX0lJX1YzLAotCQlhZjkwMTVfcmNfa2V5c19tc2ksIEFSUkFZX1NJWkUoYWY5MDE1X3Jj
-X2tleXNfbXNpKSwKLQkJYWY5MDE1X2lyX3RhYmxlX21zaSwgQVJSQVlfU0laRShhZjkwMTVfaXJf
-dGFibGVfbXNpKSB9LAotCXsgQUY5MDE1X1JFTU9URV9NWUdJQ1RWX1U3MTgsCi0JCWFmOTAxNV9y
-Y19rZXlzX215Z2ljdHYsIEFSUkFZX1NJWkUoYWY5MDE1X3JjX2tleXNfbXlnaWN0diksCi0JCWFm
-OTAxNV9pcl90YWJsZV9teWdpY3R2LCBBUlJBWV9TSVpFKGFmOTAxNV9pcl90YWJsZV9teWdpY3R2
-KSB9LAotCXsgQUY5MDE1X1JFTU9URV9ESUdJVFRSQURFX0RWQl9ULAotCQlhZjkwMTVfcmNfa2V5
-c19kaWdpdHRyYWRlLCBBUlJBWV9TSVpFKGFmOTAxNV9yY19rZXlzX2RpZ2l0dHJhZGUpLAotCQlh
-ZjkwMTVfaXJfdGFibGVfZGlnaXR0cmFkZSwgQVJSQVlfU0laRShhZjkwMTVfaXJfdGFibGVfZGln
-aXR0cmFkZSkgfSwKLQl7IEFGOTAxNV9SRU1PVEVfQVZFUk1FRElBX0tTLAotCQlhZjkwMTVfcmNf
-a2V5c19hdmVybWVkaWEsIEFSUkFZX1NJWkUoYWY5MDE1X3JjX2tleXNfYXZlcm1lZGlhKSwKLQkJ
-YWY5MDE1X2lyX3RhYmxlX2F2ZXJtZWRpYV9rcywgQVJSQVlfU0laRShhZjkwMTVfaXJfdGFibGVf
-YXZlcm1lZGlhX2tzKSB9LAotCXsgfQotfTsKLQotLyogZG9uJ3QgYWRkIG5ldyBlbnRyaWVzIGhl
-cmUgYW55bW9yZSwgdXNlIGhhc2hlcyBpbnN0ZWFkICovCi1zdGF0aWMgY29uc3Qgc3RydWN0IGFm
-OTAxNV9zZXR1cCBhZjkwMTVfc2V0dXBfdXNiaWRzW10gPSB7Ci0JeyBVU0JfVklEX0xFQURURUss
-Ci0JCWFmOTAxNV9yY19rZXlzX2xlYWR0ZWssIEFSUkFZX1NJWkUoYWY5MDE1X3JjX2tleXNfbGVh
-ZHRlayksCi0JCWFmOTAxNV9pcl90YWJsZV9sZWFkdGVrLCBBUlJBWV9TSVpFKGFmOTAxNV9pcl90
-YWJsZV9sZWFkdGVrKSB9LAotCXsgVVNCX1ZJRF9WSVNJT05QTFVTLAotCQlhZjkwMTVfcmNfa2V5
-c190d2luaGFuLCBBUlJBWV9TSVpFKGFmOTAxNV9yY19rZXlzX3R3aW5oYW4pLAotCQlhZjkwMTVf
-aXJfdGFibGVfdHdpbmhhbiwgQVJSQVlfU0laRShhZjkwMTVfaXJfdGFibGVfdHdpbmhhbikgfSwK
-LQl7IFVTQl9WSURfS1dPUkxEXzIsIC8qIFRPRE86IHVzZSBjb3JyZWN0IHJjIGtleXMgKi8KLQkJ
-YWY5MDE1X3JjX2tleXNfdHdpbmhhbiwgQVJSQVlfU0laRShhZjkwMTVfcmNfa2V5c190d2luaGFu
-KSwKLQkJYWY5MDE1X2lyX3RhYmxlX2t3b3JsZCwgQVJSQVlfU0laRShhZjkwMTVfaXJfdGFibGVf
-a3dvcmxkKSB9LAotCXsgVVNCX1ZJRF9BVkVSTUVESUEsCi0JCWFmOTAxNV9yY19rZXlzX2F2ZXJt
-ZWRpYSwgQVJSQVlfU0laRShhZjkwMTVfcmNfa2V5c19hdmVybWVkaWEpLAotCQlhZjkwMTVfaXJf
-dGFibGVfYXZlcm1lZGlhLCBBUlJBWV9TSVpFKGFmOTAxNV9pcl90YWJsZV9hdmVybWVkaWEpIH0s
-Ci0JeyBVU0JfVklEX01TSV8yLAotCQlhZjkwMTVfcmNfa2V5c19tc2lfZGlnaXZveF9paWksIEFS
-UkFZX1NJWkUoYWY5MDE1X3JjX2tleXNfbXNpX2RpZ2l2b3hfaWlpKSwKLQkJYWY5MDE1X2lyX3Rh
-YmxlX21zaV9kaWdpdm94X2lpaSwgQVJSQVlfU0laRShhZjkwMTVfaXJfdGFibGVfbXNpX2RpZ2l2
-b3hfaWlpKSB9LAotCXsgfQotfTsKLQotc3RhdGljIGNvbnN0IHN0cnVjdCBhZjkwMTVfc2V0dXAg
-YWY5MDE1X3NldHVwX2hhc2hlc1tdID0gewotCXsgMHhiOGZlYjcwOCwKLQkJYWY5MDE1X3JjX2tl
-eXNfbXNpLCBBUlJBWV9TSVpFKGFmOTAxNV9yY19rZXlzX21zaSksCi0JCWFmOTAxNV9pcl90YWJs
-ZV9tc2ksIEFSUkFZX1NJWkUoYWY5MDE1X2lyX3RhYmxlX21zaSkgfSwKLQl7IDB4YTM3MDNkMDAs
-Ci0JCWFmOTAxNV9yY19rZXlzX2FfbGluaywgQVJSQVlfU0laRShhZjkwMTVfcmNfa2V5c19hX2xp
-bmspLAotCQlhZjkwMTVfaXJfdGFibGVfYV9saW5rLCBBUlJBWV9TSVpFKGFmOTAxNV9pcl90YWJs
-ZV9hX2xpbmspIH0sCi0JeyAweDliN2RjNjRlLAotCQlhZjkwMTVfcmNfa2V5c19teWdpY3R2LCBB
-UlJBWV9TSVpFKGFmOTAxNV9yY19rZXlzX215Z2ljdHYpLAotCQlhZjkwMTVfaXJfdGFibGVfbXln
-aWN0diwgQVJSQVlfU0laRShhZjkwMTVfaXJfdGFibGVfbXlnaWN0dikgfSwKLQl7IH0KLX07Ci0K
-LXN0YXRpYyB2b2lkIGFmOTAxNV9zZXRfcmVtb3RlX2NvbmZpZyhzdHJ1Y3QgdXNiX2RldmljZSAq
-dWRldiwKLQkJc3RydWN0IGR2Yl91c2JfZGV2aWNlX3Byb3BlcnRpZXMgKnByb3BzKQotewotCWNv
-bnN0IHN0cnVjdCBhZjkwMTVfc2V0dXAgKnRhYmxlID0gTlVMTDsKLQotCWlmIChkdmJfdXNiX2Fm
-OTAxNV9yZW1vdGUpIHsKLQkJLyogbG9hZCByZW1vdGUgZGVmaW5lZCBhcyBtb2R1bGUgcGFyYW0g
-Ki8KLQkJdGFibGUgPSBhZjkwMTVfc2V0dXBfbWF0Y2goZHZiX3VzYl9hZjkwMTVfcmVtb3RlLAot
-CQkJCWFmOTAxNV9zZXR1cF9tb2RwYXJhbSk7Ci0JfSBlbHNlIHsKLQkJdTE2IHZlbmRvciA9IGxl
-MTZfdG9fY3B1KHVkZXYtPmRlc2NyaXB0b3IuaWRWZW5kb3IpOwotCi0JCXRhYmxlID0gYWY5MDE1
-X3NldHVwX21hdGNoKGFmOTAxNV9jb25maWcuZWVwcm9tX3N1bSwKLQkJCQlhZjkwMTVfc2V0dXBf
-aGFzaGVzKTsKLQotCQlpZiAoIXRhYmxlICYmIHZlbmRvciA9PSBVU0JfVklEX0FGQVRFQ0gpIHsK
-LQkJCS8qIENoZWNrIFVTQiBtYW51ZmFjdHVyZXIgYW5kIHByb2R1Y3Qgc3RyaW5ncyBhbmQgdHJ5
-Ci0JCQkgICB0byBkZXRlcm1pbmUgY29ycmVjdCByZW1vdGUgaW4gY2FzZSBvZiBjaGlwIHZlbmRv
-cgotCQkJICAgcmVmZXJlbmNlIElEcyBhcmUgdXNlZC4KLQkJCSAgIERPIE5PVCBBREQgQU5ZVEhJ
-TkcgTkVXIEhFUkUuIFVzZSBoYXNoZXMgaW5zdGVhZC4KLQkJCSAqLwotCQkJY2hhciBtYW51ZmFj
-dHVyZXJbMTBdOwotCQkJbWVtc2V0KG1hbnVmYWN0dXJlciwgMCwgc2l6ZW9mKG1hbnVmYWN0dXJl
-cikpOwotCQkJdXNiX3N0cmluZyh1ZGV2LCB1ZGV2LT5kZXNjcmlwdG9yLmlNYW51ZmFjdHVyZXIs
-Ci0JCQkJbWFudWZhY3R1cmVyLCBzaXplb2YobWFudWZhY3R1cmVyKSk7Ci0JCQlpZiAoIXN0cmNt
-cCgiTVNJIiwgbWFudWZhY3R1cmVyKSkgewotCQkJCS8qIGlNYW51ZmFjdHVyZXIgMSBNU0kKLQkJ
-CQkgICBpUHJvZHVjdCAgICAgIDIgTVNJIEstVk9YICovCi0JCQkJdGFibGUgPSBhZjkwMTVfc2V0
-dXBfbWF0Y2goCi0JCQkJCUFGOTAxNV9SRU1PVEVfTVNJX0RJR0lWT1hfTUlOSV9JSV9WMywKLQkJ
-CQkJYWY5MDE1X3NldHVwX21vZHBhcmFtKTsKLQkJCX0gZWxzZSBpZiAodWRldi0+ZGVzY3JpcHRv
-ci5pZFByb2R1Y3QgPT0KLQkJCQljcHVfdG9fbGUxNihVU0JfUElEX1RSRUtTVE9SX0RWQlQpKSB7
-Ci0JCQkJdGFibGUgPSAmKGNvbnN0IHN0cnVjdCBhZjkwMTVfc2V0dXApeyAwLAotCQkJCQlhZjkw
-MTVfcmNfa2V5c190cmVrc3RvciwKLQkJCQkJQVJSQVlfU0laRShhZjkwMTVfcmNfa2V5c190cmVr
-c3RvciksCi0JCQkJCWFmOTAxNV9pcl90YWJsZV90cmVrc3RvciwKLQkJCQkJQVJSQVlfU0laRShh
-ZjkwMTVfaXJfdGFibGVfdHJla3N0b3IpCi0JCQkJfTsKLQkJCX0KLQkJfSBlbHNlIGlmICghdGFi
-bGUpCi0JCQl0YWJsZSA9IGFmOTAxNV9zZXR1cF9tYXRjaCh2ZW5kb3IsIGFmOTAxNV9zZXR1cF91
-c2JpZHMpOwotCX0KLQotCWlmICh0YWJsZSkgewotCQlwcm9wcy0+cmNfa2V5X21hcCA9IHRhYmxl
-LT5yY19rZXlfbWFwOwotCQlwcm9wcy0+cmNfa2V5X21hcF9zaXplID0gdGFibGUtPnJjX2tleV9t
-YXBfc2l6ZTsKLQkJYWY5MDE1X2NvbmZpZy5pcl90YWJsZSA9IHRhYmxlLT5pcl90YWJsZTsKLQkJ
-YWY5MDE1X2NvbmZpZy5pcl90YWJsZV9zaXplID0gdGFibGUtPmlyX3RhYmxlX3NpemU7Ci0JfQot
-fQotCiBzdGF0aWMgaW50IGFmOTAxNV9yZWFkX2NvbmZpZyhzdHJ1Y3QgdXNiX2RldmljZSAqdWRl
-dikKIHsKIAlpbnQgcmV0OwogCXU4IHZhbCwgaSwgb2Zmc2V0ID0gMDsKIAlzdHJ1Y3QgcmVxX3Qg
-cmVxID0ge1JFQURfSTJDLCBBRjkwMTVfSTJDX0VFUFJPTSwgMCwgMCwgMSwgMSwgJnZhbH07CisJ
-Y2hhciBtYW51ZmFjdHVyZXJbMTBdOwogCiAJLyogSVIgcmVtb3RlIGNvbnRyb2xsZXIgKi8KIAly
-ZXEuYWRkciA9IEFGOTAxNV9FRVBST01fSVJfTU9ERTsKQEAgLTkwMiwyMCArNzM2LDE1OCBAQAog
-CX0KIAlpZiAocmV0KQogCQlnb3RvIGVycm9yOwotCi0jaWYgTElOVVhfVkVSU0lPTl9DT0RFID49
-IEtFUk5FTF9WRVJTSU9OKDIsIDYsIDI1KQotCXJldCA9IGFmOTAxNV9lZXByb21faGFzaCh1ZGV2
-KTsKLQlpZiAocmV0KQotCQlnb3RvIGVycm9yOwotCi0jZW5kaWYKIAlkZWJfaW5mbygiJXM6IElS
-IG1vZGU6JWRcbiIsIF9fZnVuY19fLCB2YWwpOwogCWZvciAoaSA9IDA7IGkgPCBhZjkwMTVfcHJv
-cGVydGllc19jb3VudDsgaSsrKSB7CiAJCWlmICh2YWwgPT0gQUY5MDE1X0lSX01PREVfRElTQUJM
-RUQpIHsKIAkJCWFmOTAxNV9wcm9wZXJ0aWVzW2ldLnJjX2tleV9tYXAgPSBOVUxMOwogCQkJYWY5
-MDE1X3Byb3BlcnRpZXNbaV0ucmNfa2V5X21hcF9zaXplICA9IDA7Ci0JCX0gZWxzZQotCQkJYWY5
-MDE1X3NldF9yZW1vdGVfY29uZmlnKHVkZXYsICZhZjkwMTVfcHJvcGVydGllc1tpXSk7CisJCX0g
-ZWxzZSBpZiAoZHZiX3VzYl9hZjkwMTVfcmVtb3RlKSB7CisJCQkvKiBsb2FkIHJlbW90ZSBkZWZp
-bmVkIGFzIG1vZHVsZSBwYXJhbSAqLworCQkJc3dpdGNoIChkdmJfdXNiX2FmOTAxNV9yZW1vdGUp
-IHsKKwkJCWNhc2UgQUY5MDE1X1JFTU9URV9BX0xJTktfRFRVX006CisJCQkJYWY5MDE1X3Byb3Bl
-cnRpZXNbaV0ucmNfa2V5X21hcCA9CisJCQkJICBhZjkwMTVfcmNfa2V5c19hX2xpbms7CisJCQkJ
-YWY5MDE1X3Byb3BlcnRpZXNbaV0ucmNfa2V5X21hcF9zaXplID0KKwkJCQkgIEFSUkFZX1NJWkUo
-YWY5MDE1X3JjX2tleXNfYV9saW5rKTsKKwkJCQlhZjkwMTVfY29uZmlnLmlyX3RhYmxlID0gYWY5
-MDE1X2lyX3RhYmxlX2FfbGluazsKKwkJCQlhZjkwMTVfY29uZmlnLmlyX3RhYmxlX3NpemUgPQor
-CQkJCSAgQVJSQVlfU0laRShhZjkwMTVfaXJfdGFibGVfYV9saW5rKTsKKwkJCQlicmVhazsKKwkJ
-CWNhc2UgQUY5MDE1X1JFTU9URV9NU0lfRElHSVZPWF9NSU5JX0lJX1YzOgorCQkJCWFmOTAxNV9w
-cm9wZXJ0aWVzW2ldLnJjX2tleV9tYXAgPQorCQkJCSAgYWY5MDE1X3JjX2tleXNfbXNpOworCQkJ
-CWFmOTAxNV9wcm9wZXJ0aWVzW2ldLnJjX2tleV9tYXBfc2l6ZSA9CisJCQkJICBBUlJBWV9TSVpF
-KGFmOTAxNV9yY19rZXlzX21zaSk7CisJCQkJYWY5MDE1X2NvbmZpZy5pcl90YWJsZSA9IGFmOTAx
-NV9pcl90YWJsZV9tc2k7CisJCQkJYWY5MDE1X2NvbmZpZy5pcl90YWJsZV9zaXplID0KKwkJCQkg
-IEFSUkFZX1NJWkUoYWY5MDE1X2lyX3RhYmxlX21zaSk7CisJCQkJYnJlYWs7CisJCQljYXNlIEFG
-OTAxNV9SRU1PVEVfTVlHSUNUVl9VNzE4OgorCQkJCWFmOTAxNV9wcm9wZXJ0aWVzW2ldLnJjX2tl
-eV9tYXAgPQorCQkJCSAgYWY5MDE1X3JjX2tleXNfbXlnaWN0djsKKwkJCQlhZjkwMTVfcHJvcGVy
-dGllc1tpXS5yY19rZXlfbWFwX3NpemUgPQorCQkJCSAgQVJSQVlfU0laRShhZjkwMTVfcmNfa2V5
-c19teWdpY3R2KTsKKwkJCQlhZjkwMTVfY29uZmlnLmlyX3RhYmxlID0KKwkJCQkgIGFmOTAxNV9p
-cl90YWJsZV9teWdpY3R2OworCQkJCWFmOTAxNV9jb25maWcuaXJfdGFibGVfc2l6ZSA9CisJCQkJ
-ICBBUlJBWV9TSVpFKGFmOTAxNV9pcl90YWJsZV9teWdpY3R2KTsKKwkJCQlicmVhazsKKwkJCWNh
-c2UgQUY5MDE1X1JFTU9URV9ESUdJVFRSQURFX0RWQl9UOgorCQkJCWFmOTAxNV9wcm9wZXJ0aWVz
-W2ldLnJjX2tleV9tYXAgPQorCQkJCSAgYWY5MDE1X3JjX2tleXNfZGlnaXR0cmFkZTsKKwkJCQlh
-ZjkwMTVfcHJvcGVydGllc1tpXS5yY19rZXlfbWFwX3NpemUgPQorCQkJCSAgQVJSQVlfU0laRShh
-ZjkwMTVfcmNfa2V5c19kaWdpdHRyYWRlKTsKKwkJCQlhZjkwMTVfY29uZmlnLmlyX3RhYmxlID0K
-KwkJCQkgIGFmOTAxNV9pcl90YWJsZV9kaWdpdHRyYWRlOworCQkJCWFmOTAxNV9jb25maWcuaXJf
-dGFibGVfc2l6ZSA9CisJCQkJICBBUlJBWV9TSVpFKGFmOTAxNV9pcl90YWJsZV9kaWdpdHRyYWRl
-KTsKKwkJCQlicmVhazsKKwkJCWNhc2UgQUY5MDE1X1JFTU9URV9BVkVSTUVESUFfS1M6CisJCQkJ
-YWY5MDE1X3Byb3BlcnRpZXNbaV0ucmNfa2V5X21hcCA9CisJCQkJICBhZjkwMTVfcmNfa2V5c19h
-dmVybWVkaWE7CisJCQkJYWY5MDE1X3Byb3BlcnRpZXNbaV0ucmNfa2V5X21hcF9zaXplID0KKwkJ
-CQkgIEFSUkFZX1NJWkUoYWY5MDE1X3JjX2tleXNfYXZlcm1lZGlhKTsKKwkJCQlhZjkwMTVfY29u
-ZmlnLmlyX3RhYmxlID0KKwkJCQkgIGFmOTAxNV9pcl90YWJsZV9hdmVybWVkaWFfa3M7CisJCQkJ
-YWY5MDE1X2NvbmZpZy5pcl90YWJsZV9zaXplID0KKwkJCQkgIEFSUkFZX1NJWkUoYWY5MDE1X2ly
-X3RhYmxlX2F2ZXJtZWRpYV9rcyk7CisJCQkJYnJlYWs7CisJCQl9CisJCX0gZWxzZSB7CisJCQlz
-d2l0Y2ggKGxlMTZfdG9fY3B1KHVkZXYtPmRlc2NyaXB0b3IuaWRWZW5kb3IpKSB7CisJCQljYXNl
-IFVTQl9WSURfTEVBRFRFSzoKKwkJCQlhZjkwMTVfcHJvcGVydGllc1tpXS5yY19rZXlfbWFwID0K
-KwkJCQkgIGFmOTAxNV9yY19rZXlzX2xlYWR0ZWs7CisJCQkJYWY5MDE1X3Byb3BlcnRpZXNbaV0u
-cmNfa2V5X21hcF9zaXplID0KKwkJCQkgIEFSUkFZX1NJWkUoYWY5MDE1X3JjX2tleXNfbGVhZHRl
-ayk7CisJCQkJYWY5MDE1X2NvbmZpZy5pcl90YWJsZSA9CisJCQkJICBhZjkwMTVfaXJfdGFibGVf
-bGVhZHRlazsKKwkJCQlhZjkwMTVfY29uZmlnLmlyX3RhYmxlX3NpemUgPQorCQkJCSAgQVJSQVlf
-U0laRShhZjkwMTVfaXJfdGFibGVfbGVhZHRlayk7CisJCQkJYnJlYWs7CisJCQljYXNlIFVTQl9W
-SURfVklTSU9OUExVUzoKKwkJCQlhZjkwMTVfcHJvcGVydGllc1tpXS5yY19rZXlfbWFwID0KKwkJ
-CQkgIGFmOTAxNV9yY19rZXlzX3R3aW5oYW47CisJCQkJYWY5MDE1X3Byb3BlcnRpZXNbaV0ucmNf
-a2V5X21hcF9zaXplID0KKwkJCQkgIEFSUkFZX1NJWkUoYWY5MDE1X3JjX2tleXNfdHdpbmhhbik7
-CisJCQkJYWY5MDE1X2NvbmZpZy5pcl90YWJsZSA9CisJCQkJICBhZjkwMTVfaXJfdGFibGVfdHdp
-bmhhbjsKKwkJCQlhZjkwMTVfY29uZmlnLmlyX3RhYmxlX3NpemUgPQorCQkJCSAgQVJSQVlfU0la
-RShhZjkwMTVfaXJfdGFibGVfdHdpbmhhbik7CisJCQkJYnJlYWs7CisJCQljYXNlIFVTQl9WSURf
-S1dPUkxEXzI6CisJCQkJLyogVE9ETzogdXNlIGNvcnJlY3QgcmMga2V5cyAqLworCQkJCWFmOTAx
-NV9wcm9wZXJ0aWVzW2ldLnJjX2tleV9tYXAgPQorCQkJCSAgYWY5MDE1X3JjX2tleXNfdHdpbmhh
-bjsKKwkJCQlhZjkwMTVfcHJvcGVydGllc1tpXS5yY19rZXlfbWFwX3NpemUgPQorCQkJCSAgQVJS
-QVlfU0laRShhZjkwMTVfcmNfa2V5c190d2luaGFuKTsKKwkJCQlhZjkwMTVfY29uZmlnLmlyX3Rh
-YmxlID0gYWY5MDE1X2lyX3RhYmxlX2t3b3JsZDsKKwkJCQlhZjkwMTVfY29uZmlnLmlyX3RhYmxl
-X3NpemUgPQorCQkJCSAgQVJSQVlfU0laRShhZjkwMTVfaXJfdGFibGVfa3dvcmxkKTsKKwkJCQli
-cmVhazsKKwkJCS8qIENoZWNrIFVTQiBtYW51ZmFjdHVyZXIgYW5kIHByb2R1Y3Qgc3RyaW5ncyBh
-bmQgdHJ5CisJCQkgICB0byBkZXRlcm1pbmUgY29ycmVjdCByZW1vdGUgaW4gY2FzZSBvZiBjaGlw
-IHZlbmRvcgorCQkJICAgcmVmZXJlbmNlIElEcyBhcmUgdXNlZC4gKi8KKwkJCWNhc2UgVVNCX1ZJ
-RF9BRkFURUNIOgorCQkJCW1lbXNldChtYW51ZmFjdHVyZXIsIDAsIHNpemVvZihtYW51ZmFjdHVy
-ZXIpKTsKKwkJCQl1c2Jfc3RyaW5nKHVkZXYsIHVkZXYtPmRlc2NyaXB0b3IuaU1hbnVmYWN0dXJl
-ciwKKwkJCQkJbWFudWZhY3R1cmVyLCBzaXplb2YobWFudWZhY3R1cmVyKSk7CisJCQkJaWYgKCFz
-dHJjbXAoIkdlbmlhdGVjaCIsIG1hbnVmYWN0dXJlcikpIHsKKwkJCQkJLyogaU1hbnVmYWN0dXJl
-ciAxIEdlbmlhdGVjaAorCQkJCQkgICBpUHJvZHVjdCAgICAgIDIgQUY5MDE1ICovCisJCQkJCWFm
-OTAxNV9wcm9wZXJ0aWVzW2ldLnJjX2tleV9tYXAgPQorCQkJCQkgIGFmOTAxNV9yY19rZXlzX215
-Z2ljdHY7CisJCQkJCWFmOTAxNV9wcm9wZXJ0aWVzW2ldLnJjX2tleV9tYXBfc2l6ZSA9CisJCQkJ
-CSAgQVJSQVlfU0laRShhZjkwMTVfcmNfa2V5c19teWdpY3R2KTsKKwkJCQkJYWY5MDE1X2NvbmZp
-Zy5pcl90YWJsZSA9CisJCQkJCSAgYWY5MDE1X2lyX3RhYmxlX215Z2ljdHY7CisJCQkJCWFmOTAx
-NV9jb25maWcuaXJfdGFibGVfc2l6ZSA9CisJCQkJCSAgQVJSQVlfU0laRShhZjkwMTVfaXJfdGFi
-bGVfbXlnaWN0dik7CisJCQkJfSBlbHNlIGlmICghc3RyY21wKCJNU0kiLCBtYW51ZmFjdHVyZXIp
-KSB7CisJCQkJCS8qIGlNYW51ZmFjdHVyZXIgMSBNU0kKKwkJCQkJICAgaVByb2R1Y3QgICAgICAy
-IE1TSSBLLVZPWCAqLworCQkJCQlhZjkwMTVfcHJvcGVydGllc1tpXS5yY19rZXlfbWFwID0KKwkJ
-CQkJICBhZjkwMTVfcmNfa2V5c19tc2k7CisJCQkJCWFmOTAxNV9wcm9wZXJ0aWVzW2ldLnJjX2tl
-eV9tYXBfc2l6ZSA9CisJCQkJCSAgQVJSQVlfU0laRShhZjkwMTVfcmNfa2V5c19tc2kpOworCQkJ
-CQlhZjkwMTVfY29uZmlnLmlyX3RhYmxlID0KKwkJCQkJICBhZjkwMTVfaXJfdGFibGVfbXNpOwor
-CQkJCQlhZjkwMTVfY29uZmlnLmlyX3RhYmxlX3NpemUgPQorCQkJCQkgIEFSUkFZX1NJWkUoYWY5
-MDE1X2lyX3RhYmxlX21zaSk7CisJCQkJfSBlbHNlIGlmICh1ZGV2LT5kZXNjcmlwdG9yLmlkUHJv
-ZHVjdCA9PQorCQkJCQljcHVfdG9fbGUxNihVU0JfUElEX1RSRUtTVE9SX0RWQlQpKSB7CisJCQkJ
-CWFmOTAxNV9wcm9wZXJ0aWVzW2ldLnJjX2tleV9tYXAgPQorCQkJCQkgIGFmOTAxNV9yY19rZXlz
-X3RyZWtzdG9yOworCQkJCQlhZjkwMTVfcHJvcGVydGllc1tpXS5yY19rZXlfbWFwX3NpemUgPQor
-CQkJCQkgIEFSUkFZX1NJWkUoYWY5MDE1X3JjX2tleXNfdHJla3N0b3IpOworCQkJCQlhZjkwMTVf
-Y29uZmlnLmlyX3RhYmxlID0KKwkJCQkJICBhZjkwMTVfaXJfdGFibGVfdHJla3N0b3I7CisJCQkJ
-CWFmOTAxNV9jb25maWcuaXJfdGFibGVfc2l6ZSA9CisJCQkJCSAgQVJSQVlfU0laRShhZjkwMTVf
-aXJfdGFibGVfdHJla3N0b3IpOworCQkJCX0KKwkJCQlicmVhazsKKwkJCWNhc2UgVVNCX1ZJRF9B
-VkVSTUVESUE6CisJCQkJYWY5MDE1X3Byb3BlcnRpZXNbaV0ucmNfa2V5X21hcCA9CisJCQkJICBh
-ZjkwMTVfcmNfa2V5c19hdmVybWVkaWE7CisJCQkJYWY5MDE1X3Byb3BlcnRpZXNbaV0ucmNfa2V5
-X21hcF9zaXplID0KKwkJCQkgIEFSUkFZX1NJWkUoYWY5MDE1X3JjX2tleXNfYXZlcm1lZGlhKTsK
-KwkJCQlhZjkwMTVfY29uZmlnLmlyX3RhYmxlID0KKwkJCQkgIGFmOTAxNV9pcl90YWJsZV9hdmVy
-bWVkaWE7CisJCQkJYWY5MDE1X2NvbmZpZy5pcl90YWJsZV9zaXplID0KKwkJCQkgIEFSUkFZX1NJ
-WkUoYWY5MDE1X2lyX3RhYmxlX2F2ZXJtZWRpYSk7CisJCQkJYnJlYWs7CisJCQljYXNlIFVTQl9W
-SURfTVNJXzI6CisJCQkJYWY5MDE1X3Byb3BlcnRpZXNbaV0ucmNfa2V5X21hcCA9CisJCQkJICBh
-ZjkwMTVfcmNfa2V5c19tc2lfZGlnaXZveF9paWk7CisJCQkJYWY5MDE1X3Byb3BlcnRpZXNbaV0u
-cmNfa2V5X21hcF9zaXplID0KKwkJCQkgIEFSUkFZX1NJWkUoYWY5MDE1X3JjX2tleXNfbXNpX2Rp
-Z2l2b3hfaWlpKTsKKwkJCQlhZjkwMTVfY29uZmlnLmlyX3RhYmxlID0KKwkJCQkgIGFmOTAxNV9p
-cl90YWJsZV9tc2lfZGlnaXZveF9paWk7CisJCQkJYWY5MDE1X2NvbmZpZy5pcl90YWJsZV9zaXpl
-ID0KKwkJCQkgIEFSUkFZX1NJWkUoYWY5MDE1X2lyX3RhYmxlX21zaV9kaWdpdm94X2lpaSk7CisJ
-CQkJYnJlYWs7CisJCQl9CisJCX0KIAl9CiAKIAkvKiBUUyBtb2RlIC0gb25lIG9yIHR3byByZWNl
-aXZlcnMgKi8KQEAgLTEwMjYsNiArOTk4LDcgQEAKIAkJY2FzZSBBRjkwMTNfVFVORVJfTVQyMDYw
-XzI6CiAJCWNhc2UgQUY5MDEzX1RVTkVSX1REQTE4MjcxOgogCQljYXNlIEFGOTAxM19UVU5FUl9R
-VDEwMTBBOgorCQljYXNlIEFGOTAxM19UVU5FUl9UREExODIxODoKIAkJCWFmOTAxNV9hZjkwMTNf
-Y29uZmlnW2ldLnJmX3NwZWNfaW52ID0gMTsKIAkJCWJyZWFrOwogCQljYXNlIEFGOTAxM19UVU5F
-Ul9NWEw1MDAzRDoKQEAgLTEwMzcsOSArMTAxMCw2IEBACiAJCQlhZjkwMTVfYWY5MDEzX2NvbmZp
-Z1tpXS5ncGlvWzFdID0gQUY5MDEzX0dQSU9fTE87CiAJCQlhZjkwMTVfYWY5MDEzX2NvbmZpZ1tp
-XS5yZl9zcGVjX2ludiA9IDE7CiAJCQlicmVhazsKLQkJY2FzZSBBRjkwMTNfVFVORVJfVERBMTgy
-MTg6Ci0JCQl3YXJuKCJ0dW5lciBOWFAgVERBMTgyMTggbm90IHN1cHBvcnRlZCB5ZXQiKTsKLQkJ
-CXJldHVybiAtRU5PREVWOwogCQlkZWZhdWx0OgogCQkJd2FybigidHVuZXIgaWQ6JWQgbm90IHN1
-cHBvcnRlZCwgcGxlYXNlIHJlcG9ydCEiLCB2YWwpOwogCQkJcmV0dXJuIC1FTk9ERVY7CkBAIC0x
-MTY0LDExICsxMTM0LDExIEBACiAKIAkJZGViX2luZm8oIiVzOiBpbml0IEkyQ1xuIiwgX19mdW5j
-X18pOwogCQlyZXQgPSBhZjkwMTVfaTJjX2luaXQoYWRhcC0+ZGV2KTsKLSNpZiBMSU5VWF9WRVJT
-SU9OX0NPREUgPCBLRVJORUxfVkVSU0lPTigyLCA2LCAyNSkKKworCQkvKiBkdW1wIGVlcHJvbSAo
-ZGVidWcpICovCiAJCXJldCA9IGFmOTAxNV9lZXByb21fZHVtcChhZGFwLT5kZXYpOwogCQlpZiAo
-cmV0KQogCQkJcmV0dXJuIHJldDsKLSNlbmRpZgogCX0gZWxzZSB7CiAJCS8qIHNlbGVjdCBJMkMg
-YWRhcHRlciAqLwogCQlpMmNfYWRhcCA9ICZzdGF0ZS0+aTJjX2FkYXA7CkBAIC0xMjQ3LDYgKzEy
-MTcsMTAgQEAKIAkuZGlnX291dCA9IDEsCiB9OwogCitzdGF0aWMgc3RydWN0IHRkYTE4MjE4X2Nv
-bmZpZyBhZjkwMTVfdGRhMTgyMThfY29uZmlnID0geworCS5pMmNfYWRkcmVzcyA9IDB4YzAsCit9
-OworCiBzdGF0aWMgaW50IGFmOTAxNV90dW5lcl9hdHRhY2goc3RydWN0IGR2Yl91c2JfYWRhcHRl
-ciAqYWRhcCkKIHsKIAlzdHJ1Y3QgYWY5MDE1X3N0YXRlICpzdGF0ZSA9IGFkYXAtPmRldi0+cHJp
-djsKQEAgLTEyOTQsNiArMTI2OCwxMCBAQAogCQlyZXQgPSBkdmJfYXR0YWNoKG1jNDRzODAzX2F0
-dGFjaCwgYWRhcC0+ZmUsIGkyY19hZGFwLAogCQkJJmFmOTAxNV9tYzQ0czgwM19jb25maWcpID09
-IE5VTEwgPyAtRU5PREVWIDogMDsKIAkJYnJlYWs7CisJY2FzZSBBRjkwMTNfVFVORVJfVERBMTgy
-MTg6CisJCXJldCA9IGR2Yl9hdHRhY2godGRhMTgyMThfYXR0YWNoLCBhZGFwLT5mZSwgaTJjX2Fk
-YXAsCisJCQkmYWY5MDE1X3RkYTE4MjE4X2NvbmZpZykgPT0gTlVMTCA/IC1FTk9ERVYgOiAwOwor
-CQlicmVhazsKIAljYXNlIEFGOTAxM19UVU5FUl9VTktOT1dOOgogCWRlZmF1bHQ6CiAJCXJldCA9
-IC1FTk9ERVY7CkBAIC0xMzM0LDggKzEzMTIsNyBAQAogLyogMjUgKi97VVNCX0RFVklDRShVU0Jf
-VklEX0tXT1JMRF8yLCAgVVNCX1BJRF9LV09STERfMzk5VV8yKX0sCiAJe1VTQl9ERVZJQ0UoVVNC
-X1ZJRF9LV09STERfMiwgIFVTQl9QSURfS1dPUkxEX1BDMTYwX1QpfSwKIAl7VVNCX0RFVklDRShV
-U0JfVklEX0tXT1JMRF8yLCAgVVNCX1BJRF9TVkVPTl9TVFYyMCl9LAotCXtVU0JfREVWSUNFKFVT
-Ql9WSURfS1dPUkxEXzIsICBVU0JfUElEX1RJTllUV0lOXzIpfSwKLQl7VVNCX0RFVklDRShVU0Jf
-VklEX0xFQURURUssICAgVVNCX1BJRF9XSU5GQVNUX0RUVjIwMDBEUyl9LAorCXtVU0JfREVWSUNF
-KFVTQl9WSURfVEVSUkFURUMsIFVTQl9QSURfVEVSUkFURUNfQ0lORVJHWV9UX1NUSUNLX1JDKX0s
-CiAJezB9LAogfTsKIE1PRFVMRV9ERVZJQ0VfVEFCTEUodXNiLCBhZjkwMTVfdXNiX3RhYmxlKTsK
-QEAgLTE0MjIsOCArMTM5OSw3IEBACiAJCQl9LAogCQkJewogCQkJCS5uYW1lID0gIkRpZ2l0YWxO
-b3cgVGlueVR3aW4gRFZCLVQgUmVjZWl2ZXIiLAotCQkJCS5jb2xkX2lkcyA9IHsmYWY5MDE1X3Vz
-Yl90YWJsZVs1XSwKLQkJCQkJICAgICAmYWY5MDE1X3VzYl90YWJsZVsyOF0sIE5VTEx9LAorCQkJ
-CS5jb2xkX2lkcyA9IHsmYWY5MDE1X3VzYl90YWJsZVs1XSwgTlVMTH0sCiAJCQkJLndhcm1faWRz
-ID0ge05VTEx9LAogCQkJfSwKIAkJCXsKQEAgLTE2NDMsOCArMTYxOSw4IEBACiAJCQkJLndhcm1f
-aWRzID0ge05VTEx9LAogCQkJfSwKIAkJCXsKLQkJCQkubmFtZSA9ICJMZWFkdGVrIFdpbkZhc3Qg
-RFRWMjAwMERTIiwKLQkJCQkuY29sZF9pZHMgPSB7JmFmOTAxNV91c2JfdGFibGVbMjldLCBOVUxM
-fSwKKwkJCQkubmFtZSA9ICJUZXJyYVRlYyBDaW5lcmd5IFQgU3RpY2sgUkMiLAorCQkJCS5jb2xk
-X2lkcyA9IHsmYWY5MDE1X3VzYl90YWJsZVsyOF0sIE5VTEx9LAogCQkJCS53YXJtX2lkcyA9IHtO
-VUxMfSwKIAkJCX0sCiAJCX0KZGlmZiAtciAwZjQxZmQ3ZGY4NWQgbGludXgvZHJpdmVycy9tZWRp
-YS9kdmIvZHZiLXVzYi9kdmItdXNiLWlkcy5oCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZi
-L2R2Yi11c2IvZHZiLXVzYi1pZHMuaAlUaHUgRmViIDExIDAyOjMzOjEyIDIwMTAgKzAyMDAKKysr
-IGIvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kdmItdXNiLWlkcy5oCVdlZCBGZWIg
-MjQgMTE6NDc6MTQgMjAxMCArMDEwMApAQCAtMTI5LDYgKzEyOSw3IEBACiAjZGVmaW5lIFVTQl9Q
-SURfS1dPUkxEX1ZTVFJFQU1fV0FSTQkJCTB4MTdkZgogI2RlZmluZSBVU0JfUElEX1RFUlJBVEVD
-X0NJTkVSR1lfVF9VU0JfWEUJCTB4MDA1NQogI2RlZmluZSBVU0JfUElEX1RFUlJBVEVDX0NJTkVS
-R1lfVF9VU0JfWEVfUkVWMgkJMHgwMDY5CisjZGVmaW5lIFVTQl9QSURfVEVSUkFURUNfQ0lORVJH
-WV9UX1NUSUNLX1JDICAgICAgICAweDAwOTcKICNkZWZpbmUgVVNCX1BJRF9UV0lOSEFOX1ZQNzA0
-MV9DT0xECQkJMHgzMjAxCiAjZGVmaW5lIFVTQl9QSURfVFdJTkhBTl9WUDcwNDFfV0FSTQkJCTB4
-MzIwMgogI2RlZmluZSBVU0JfUElEX1RXSU5IQU5fVlA3MDIwX0NPTEQJCQkweDMyMDMKZGlmZiAt
-ciAwZjQxZmQ3ZGY4NWQgbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZnJvbnRlbmRzL2FmOTAxMy5j
-Ci0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy9hZjkwMTMuYwlUaHUgRmVi
-IDExIDAyOjMzOjEyIDIwMTAgKzAyMDAKKysrIGIvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZnJv
-bnRlbmRzL2FmOTAxMy5jCVdlZCBGZWIgMjQgMTE6NDc6MTQgMjAxMCArMDEwMApAQCAtNDg4LDYg
-KzQ4OCwyMCBAQAogCQkJCWJyZWFrOwogCQkJfQogCQl9CisJCWVsc2UgaWYoc3RhdGUtPmNvbmZp
-Zy50dW5lciA9PSBBRjkwMTNfVFVORVJfVERBMTgyMTgpIHsKKwkJCXN3aXRjaCAoYncpIHsKKwkJ
-CWNhc2UgQkFORFdJRFRIXzZfTUhaOgorCQkJCWlmX3NhbXBsZV9mcmVxID0gMzAwMDAwMDsgLyog
-MyBNSHogKi8KKwkJCQlicmVhazsKKwkJCWNhc2UgQkFORFdJRFRIXzdfTUhaOgorCQkJCWlmX3Nh
-bXBsZV9mcmVxID0gMzUwMDAwMDsgLyogMy41IE1IeiAqLworCQkJCWJyZWFrOworCQkJY2FzZSBC
-QU5EV0lEVEhfOF9NSFo6CisJCQlkZWZhdWx0OgorCQkJCWlmX3NhbXBsZV9mcmVxID0gNDAwMDAw
-MDsgLyogNCBNSHogKi8KKwkJCQlicmVhazsKKwkJCX0KKwkJfQogCiAJCXdoaWxlIChpZl9zYW1w
-bGVfZnJlcSA+IChhZGNfZnJlcSAvIDIpKQogCQkJaWZfc2FtcGxlX2ZyZXEgPSBpZl9zYW1wbGVf
-ZnJlcSAtIGFkY19mcmVxOwpAQCAtMTM5MCw2ICsxNDA0LDcgQEAKIAkJaW5pdCA9IHR1bmVyX2lu
-aXRfbXQyMDYwXzI7CiAJCWJyZWFrOwogCWNhc2UgQUY5MDEzX1RVTkVSX1REQTE4MjcxOgorCWNh
-c2UgQUY5MDEzX1RVTkVSX1REQTE4MjE4OgogCQlsZW4gPSBBUlJBWV9TSVpFKHR1bmVyX2luaXRf
-dGRhMTgyNzEpOwogCQlpbml0ID0gdHVuZXJfaW5pdF90ZGExODI3MTsKIAkJYnJlYWs7CmRpZmYg
-LXIgMGY0MWZkN2RmODVkIGxpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy9hZjkwMTMu
-aAotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvYWY5MDEzLmgJVGh1IEZl
-YiAxMSAwMjozMzoxMiAyMDEwICswMjAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2Zy
-b250ZW5kcy9hZjkwMTMuaAlXZWQgRmViIDI0IDExOjQ3OjE0IDIwMTAgKzAxMDAKQEAgLTQ0LDcg
-KzQ0LDcgQEAKIAlBRjkwMTNfVFVORVJfTVQyMDYwXzIgICA9IDE0NywgLyogTWljcm90dW5lICov
-CiAJQUY5MDEzX1RVTkVSX1REQTE4MjcxICAgPSAxNTYsIC8qIE5YUCAqLwogCUFGOTAxM19UVU5F
-Ul9RVDEwMTBBICAgID0gMTYyLCAvKiBRdWFudGVrICovCi0JQUY5MDEzX1RVTkVSX1REQTE4MjE4
-ICAgPSAxNzksIC8qIE5YUCAqLworCUFGOTAxM19UVU5FUl9UREExODIxOCAgICA9IDE3OSwgLyog
-TlhQICovCiB9OwogCiAvKiBBRjkwMTMvNSBHUElPcyAobW9zdGx5IGd1ZXNzZWQpCmRpZmYgLXIg
-MGY0MWZkN2RmODVkIGxpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy9hZjkwMTNfcHJp
-di5oCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy9hZjkwMTNfcHJpdi5o
-CVRodSBGZWIgMTEgMDI6MzM6MTIgMjAxMCArMDIwMAorKysgYi9saW51eC9kcml2ZXJzL21lZGlh
-L2R2Yi9mcm9udGVuZHMvYWY5MDEzX3ByaXYuaAlXZWQgRmViIDI0IDExOjQ3OjE0IDIwMTAgKzAx
-MDAKQEAgLTc4OSw4ICs3ODksOSBAQAogCXsgMHg5YmQ5LCAwLCA4LCAweDA4IH0sCiB9OwogCi0v
-KiBOWFAgVERBMTgyNzEgdHVuZXIgaW5pdAotICAgQUY5MDEzX1RVTkVSX1REQTE4MjcxICAgPSAx
-NTYgKi8KKy8qIE5YUCBUREExODI3MSAmIFREQTE4MjE4IHR1bmVyIGluaXQKKyAgIEFGOTAxM19U
-VU5FUl9UREExODI3MSAgID0gMTU2CisgICBBRjkwMTNfVFVORVJfVERBMTgyMTggICA9IDE3OSAq
-Lwogc3RhdGljIHN0cnVjdCByZWdkZXNjIHR1bmVyX2luaXRfdGRhMTgyNzFbXSA9IHsKIAl7IDB4
-OWJkNSwgMCwgOCwgMHgwMSB9LAogCXsgMHg5YmQ2LCAwLCA4LCAweDA0IH0sCg==
---001636025f84abc30404805f8c5d--
+>>      dvb->demux.start_feed = tm6000_start_feed;
+>>      dvb->demux.stop_feed = tm6000_stop_feed;
+>>      dvb->demux.write_to_decoder = NULL;
+>> @@ -307,7 +341,7 @@ void tm6000_dvb_unregister(struct tm6000_core *dev)
+>>          usb_free_urb(bulk_urb);
+>>      }
+>>  
+>> -//     mutex_lock(&tm6000_driver.open_close_mutex);
+>> +//    mutex_lock(&tm6000_driver.open_close_mutex);
+>>      if(dvb->frontend) {
+>>          dvb_frontend_detach(dvb->frontend);
+>>          dvb_unregister_frontend(dvb->frontend);
+>> @@ -317,6 +351,6 @@ void tm6000_dvb_unregister(struct tm6000_core *dev)
+>>      dvb_dmx_release(&dvb->demux);
+>>      dvb_unregister_adapter(&dvb->adapter);
+>>      mutex_destroy(&dvb->mutex);
+>> -//     mutex_unlock(&tm6000_driver.open_close_mutex);
+>> +//    mutex_unlock(&tm6000_driver.open_close_mutex);
+>>  
+>>  }
+>>     
+> Please send a separate patch for the dvb fixes.
+>
+>   
+o.k.
+>> diff --git a/drivers/staging/tm6000/tm6000-i2c.c
+>> b/drivers/staging/tm6000/tm6000-i2c.c
+>> index 4da10f5..3e43ad7 100644
+>> --- a/drivers/staging/tm6000/tm6000-i2c.c
+>> +++ b/drivers/staging/tm6000/tm6000-i2c.c
+>> @@ -86,6 +86,11 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
+>>                  msgs[i].len == 1 ? 0 : msgs[i].buf[1],
+>>                  msgs[i + 1].buf, msgs[i + 1].len);
+>>              i++;
+>> +           
+>> +            if ((dev->dev_type == TM6010) && (addr == 0xc2)) {
+>> +                tm6000_set_reg(dev, 0x32, 0,0);
+>> +                tm6000_set_reg(dev, 0x33, 0,0);
+>> +            }
+>>              if (i2c_debug >= 2)
+>>                  for (byte = 0; byte < msgs[i].len; byte++)
+>>                      printk(" %02x", msgs[i].buf[byte]);
+>> @@ -99,6 +104,12 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
+>>                  REQ_16_SET_GET_I2C_WR1_RDN,
+>>                  addr | msgs[i].buf[0] << 8, 0,
+>>                  msgs[i].buf + 1, msgs[i].len - 1);
+>> +               
+>> +           
+>> +            if ((dev->dev_type == TM6010) && (addr == 0xc2)) {
+>> +                tm6000_set_reg(dev, 0x32, 0,0);
+>> +                tm6000_set_reg(dev, 0x33, 0,0);
+>> +            }
+>>          }
+>>     
+> Please send a separate patch for the i2c fixes.
+>
+> On both logic, don't check for 0xc2, but for the i2c address of the tuner. I
+> have here one device with a tm6000. After having this patch applied, 
+> I'll test with it, and see if setting those two register values to 0 also fixes
+> for tm6000.
+>
+>   
+o.k.
+can I use for the tuner address "dev->tuner_addr"? So it cannot use 0xc2.
+>>          if (i2c_debug >= 2)
+>>              printk("\n");
+>> @@ -198,7 +209,7 @@ static struct i2c_algorithm tm6000_algo = {
+>>  
+>>  static struct i2c_adapter tm6000_adap_template = {
+>>      .owner = THIS_MODULE,
+>> -    .class = I2C_CLASS_TV_ANALOG,
+>> +    .class = I2C_CLASS_TV_ANALOG | I2C_CLASS_TV_DIGITAL,
+>>      .name = "tm6000",
+>>      .id = I2C_HW_B_TM6000,
+>>      .algo = &tm6000_algo,
+>> diff --git a/drivers/staging/tm6000/tm6000.h
+>> b/drivers/staging/tm6000/tm6000.h
+>> index 877cbf6..e403ca0 100644
+>> --- a/drivers/staging/tm6000/tm6000.h
+>> +++ b/drivers/staging/tm6000/tm6000.h
+>> @@ -23,12 +23,15 @@
+>>  // Use the tm6000-hack, instead of the proper initialization code
+>>  //#define HACK 1
+>>  
+>> +#include "compat.h"
+>>  #include <linux/videodev2.h>
+>>  #include <media/v4l2-common.h>
+>>  #include <media/videobuf-vmalloc.h>
+>>  #include "tm6000-usb-isoc.h"
+>>  #include <linux/i2c.h>
+>> +#if LINUX_VERSION_CODE > KERNEL_VERSION(2,6,15)
+>>  #include <linux/mutex.h>
+>> +#endif
+>>  #include <media/v4l2-device.h>
+>>  
+>>  
+>> @@ -78,6 +81,10 @@ struct tm6000_dmaqueue {
+>>      /* thread for generating video stream*/
+>>      struct task_struct         *kthread;
+>>      wait_queue_head_t          wq;
+>> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
+>> +    struct semaphore           *notify;
+>> +    int                        rmmod:1;
+>> +#endif
+>>     
+> You may just drop the code for kernels < 2.6 (on a separate patch). The current
+> backport starts with 2.6.16.
+>
+>   
+What you mean. Should I send a patch?
+>>      /* Counters to control fps rate */
+>>      int                        frame;
+>>      int                        ini_jiffies;
+>> @@ -90,12 +97,14 @@ enum tm6000_core_state {
+>>      DEV_MISCONFIGURED = 0x04,
+>>  };
+>>  
+>> +#if 1
+>>  /* io methods */
+>>  enum tm6000_io_method {
+>>      IO_NONE,
+>>      IO_READ,
+>>      IO_MMAP,
+>>  };
+>> +#endif
+>>  
+>>  enum tm6000_mode {
+>>      TM6000_MODE_UNKNOWN=0,
+>> @@ -202,6 +211,9 @@ struct tm6000_fh {
+>>              V4L2_STD_PAL_M|V4L2_STD_PAL_60|V4L2_STD_NTSC_M| \
+>>              V4L2_STD_NTSC_M_JP|V4L2_STD_SECAM
+>>  
+>> +/* In tm6000-cards.c */
+>> +
+>> +int tm6000_tuner_callback (void *ptr, int component, int command, int arg);
+>>  /* In tm6000-core.c */
+>>  
+>>  int tm6000_read_write_usb (struct tm6000_core *dev, u8 reqtype, u8 req,
+>> @@ -209,7 +221,6 @@ int tm6000_read_write_usb (struct tm6000_core *dev,
+>> u8 reqtype, u8 req,
+>>  int tm6000_get_reg (struct tm6000_core *dev, u8 req, u16 value, u16 index);
+>>  int tm6000_set_reg (struct tm6000_core *dev, u8 req, u16 value, u16 index);
+>>  int tm6000_init (struct tm6000_core *dev);
+>> -int tm6000_init_after_firmware (struct tm6000_core *dev);
+>>  
+>>  int tm6000_init_analog_mode (struct tm6000_core *dev);
+>>  int tm6000_init_digital_mode (struct tm6000_core *dev);
+>> @@ -231,7 +242,12 @@ int tm6000_set_standard (struct tm6000_core *dev,
+>> v4l2_std_id *norm);
+>>  int tm6000_i2c_register(struct tm6000_core *dev);
+>>  int tm6000_i2c_unregister(struct tm6000_core *dev);
+>>  
+>> +#if 1
+>>  /* In tm6000-queue.c */
+>> +#if 0
+>> +int tm6000_init_isoc(struct tm6000_core *dev, int max_packets);
+>> +void tm6000_uninit_isoc(struct tm6000_core *dev);
+>> +#endif
+>>  
+>>  int tm6000_v4l2_mmap(struct file *filp, struct vm_area_struct *vma);
+>>  
+>> @@ -276,3 +292,4 @@ extern int tm6000_debug;
+>>          __FUNCTION__ , ##arg); } while (0)
+>>  
+>>  
+>> +#endif
+>>
+>>     
+>
+>   
+Can you tell me how I generate a patch set (detailed once).
+
+Cheers
+
+Stefan Ringel
+
+-- 
+Stefan Ringel <stefan.ringel@arcor.de>
+
