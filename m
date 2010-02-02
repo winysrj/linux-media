@@ -1,114 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:60360 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751998Ab0BWMWK (ORCPT
+Received: from mail-in-11.arcor-online.net ([151.189.21.51]:36895 "EHLO
+	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756347Ab0BBQPH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2010 07:22:10 -0500
-Message-ID: <4B83C860.6000108@infradead.org>
-Date: Tue, 23 Feb 2010 09:21:52 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Tue, 2 Feb 2010 11:15:07 -0500
+Message-ID: <4B684F6A.6010902@arcor.de>
+Date: Tue, 02 Feb 2010 17:14:34 +0100
+From: Stefan Ringel <stefan.ringel@arcor.de>
 MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Brandon Philips <brandon@ifup.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Douglas Landgraf <dougsland@gmail.com>
-Subject: Re: [ANNOUNCE] git tree repositories & libv4l
-References: <4B55445A.10300@infradead.org> <4B57B6E4.2070500@infradead.org>	 <20100121024605.GK4015@jenkins.home.ifup.org>	 <201001210834.28112.hverkuil@xs4all.nl> <4B5B30E4.7030909@redhat.com>	 <20100222225426.GC4013@jenkins.home.ifup.org>	 <4B839687.4090205@redhat.com>	 <e69623b3a970d166a31af8258040a471.squirrel@webmail.xs4all.nl>	 <4B839E80.8050607@redhat.com> <1a297b361002230138k20c38a03m2f149b18ea44ed96@mail.gmail.com>
-In-Reply-To: <1a297b361002230138k20c38a03m2f149b18ea44ed96@mail.gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] - tm6000 DVB support
+References: <4B673790.3030706@arcor.de> <4B673B2D.6040507@arcor.de>	 <829197381002011252w93b0f17g4c4f6d35ffae45f3@mail.gmail.com>	 <4B67464B.3020801@arcor.de> <829197381002011344g1c640c4fufa057071b8527d55@mail.gmail.com> <4B674EF9.3020800@arcor.de> <4B675E52.5040306@redhat.com>
+In-Reply-To: <4B675E52.5040306@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Manu Abraham wrote:
-> On Tue, Feb 23, 2010 at 1:23 PM, Hans de Goede <hdegoede@redhat.com> wrote:
->> Hi,
->>
->> On 02/23/2010 10:01 AM, Hans Verkuil wrote:
->>>> Hi,
->>>>
->>>> On 02/22/2010 11:54 PM, Brandon Philips wrote:
->>>>> On 18:24 Sat 23 Jan 2010, Hans de Goede wrote:
->>>>>>> lib/
->>>>>>>        libv4l1/
->>>>>>>        libv4l2/
->>>>>>>        libv4lconvert/
->>>>>>> utils/
->>>>>>>        v4l2-dbg
->>>>>>>        v4l2-ctl
->>>>>>>        cx18-ctl
->>>>>>>        ivtv-ctl
->>>>>>> contrib/
->>>>>>>        test/
->>>>>>>        everything else
->>>>>>>
->>>>>    git clone git://ifup.org/philips/create-v4l-utils.git
->>>>>    cd create-v4l-utils/
->>>>>    ./convert.sh
+Am 02.02.2010 00:05, schrieb Mauro Carvalho Chehab:
+> Stefan Ringel wrote:
+>   
+>> Am 01.02.2010 22:44, schrieb Devin Heitmueller:
+>>     
+>>> On Mon, Feb 1, 2010 at 4:23 PM, Stefan Ringel <stefan.ringel@arcor.de> wrote:
+>>>   
+>>>       
+>>>>> You should start by breaking it down into a patch series, so that the
+>>>>> incremental changes can be reviewed.  That will allow you to explain
+>>>>> in the patch descriptions why all the individual changes you have made
+>>>>> are required.
 >>>>>
->>>>> You should now have v4l-utils.git which should have this directory
->>>>> struture. If we need to move other things around let me know and I can
->>>>> tweak name-filter.sh
 >>>>>
->>>> Ok, so this will give me a local tree, how do I get this onto linuxtv.org
->>>> ?
->>>>
->>>> Also I need someone to pull:
->>>> http://linuxtv.org/hg/~hgoede/libv4l
->>>>
->>>> (this only contains libv4l commits)
->>>>
->>>> Into the:
->>>> http://linuxtv.org/hg/v4l-dvb
->>>>
->>>> Repository, I guess I can ask this directly to Douglas?
->>>>
->>>>> Thoughts?
->>>> I've one question, I think we want to do tarbal releases
->>>> from this new repo (just like I've been doing with libv4l for a while
->>>> already), and then want distro's to pick up these releases, right ?
->>>>
->>>> Are we going to do separate tarbals for the lib and utils directories,
->>>> or one combined tarbal. I personally vote for one combined tarbal.
->>>>
->>>> But this means we will be inflicting some pains on distro's because their
->>>> libv4l packages will go away and be replaced by a new v4l-utils package.
->>> I would call it media-utils. A nice name and it reflects that it contains
->>> both dvb and v4l utilities.
+>>>>>       
+>>>>>           
+>>>> how can I generate it?
+>>>>     
+>>>>         
+>>> You can use quilt to break it up into a patch series, or create a
+>>> local hg clone of v4l-dvb.
 >>>
->> Well, the judge is still out on also adding the dvb utils to this git repo.
->> I'm neutral on that issue, but I will need a co-maintainer for those bits
->> if they end up in the new v4l-utils repo too.
+>>>   
+>>>       
+>>>>> Why did you define a new callback for changing the tuner mode?  We
+>>>>> have successfully provided infrastructure on other bridges to toggle
+>>>>> GPIOs when changing modes.  For example, the em28xx has fields in the
+>>>>> board profile that allow you to toggle GPIOs when going back and forth
+>>>>> between digital and analog mode.
+>>>>>
+>>>>>
+>>>>>       
+>>>>>           
+>>>> I don't know, how you mean it. I'm amateur programmer.
+>>>>     
+>>>>         
+>>> Look at how the ".dvb_gpio" and ".gpio" fields are used in the board
+>>> profiles in em28xx-cards.c.  We toggle the GPIOs when switching the
+>>> from analog to digital mode, without the tuner having to do any sort
+>>> of callback.
+>>>
+>>>   
+>>>       
+>> It's a bad example. em28xx use a reg-set, but tm6000 not !! It use a
+>> gpio usb request.
 >>
->> About the name, if the dvb utils get added and we want to reflect that, lets
->> call it v4l-dvb-utils. media-utils is not a very descriptive name for
->> v4l-dvb
->> project outsiders.
-> 
-> 
-> What's the advantage in merging the dvb and v4l2 utils, other than to
-> make the download/clone bigger ?
+>> tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN, TM6010_GPIO_5, 1);
+>>
+>>
+>> I don't know, that it with the ".gpio" fields works. And when it switch
+>> from analog to digital, I don't see the way.
+>>     
+> All devices with Xceive tuners need to reset the chip via GPIO, in order to load
+> the firmware. On em28xx, I wrote a patch that moved all specific init code to
+> a struct (basically used by gpio's), and a generic code to do the reset. It basically
+> contains what GPIO pins are used, and how many time it should wait.
+>
+> For example:
+>
+> /* Board Hauppauge WinTV HVR 900 digital */
+> static struct em28xx_reg_seq hauppauge_wintv_hvr_900_digital[] = {
+>         {EM28XX_R08_GPIO,       0x2e,   ~EM_GPIO_4,     10},
+>         {EM2880_R04_GPO,        0x04,   0x0f,           10},
+>         {EM2880_R04_GPO,        0x0c,   0x0f,           10},
+>         { -1,                   -1,     -1,             -1},
+> };
+>
+> The first line of the above code will execute this logic:
+> 	a = read(EM28XXR08_GPIO) & ~0x2e;
+> 	write (a & ~EM_GPIO_4);
+> 	msleep(10);
+>
+>
+> So, it will basically preserve bits 8,7,6,4 and 1 of register 8,
+> and will clear bit 4 (EM_GPIO_4 is 1 << 4 - e. g. bit 4).
+> After that, it will sleep for 10 miliseconds, and will then do a
+> reset on bit 3 of Register 4 (writing 0, then 1 to the bit).
+>   
 
-There aren't any big advantages on merging, nor there are big advantages on keeping
-them alone.
+reset example :
 
-Advantages to merge:
-	- One single release control. Currently, only Hans de Goede is doing a
-good job with release names, on libv4l. By having everything into one place, all other
-v4l2-apps and dvb-apps will have a release name, making easier even for us when helping
-people with troubles (as we'll know for sure if they're using the latest version or
-a very old version;
-	- One single tree for the user to download, for IR, DVB and V4L apps;
-	- Distro packagers will have one single tarball to maintain.
+static struct tm6010_seq terratec[] = {
+            {TM6010_GPIO_2,    1,    60},  /* GPIO 2 going to high */
+            {TM6010_GPIO_2,    0,    75},  /* GPIO 2 going to lo */
+            {TM6010_GPIO_2,    1,    60},  /* GPIO 2 going to high */
+            { -1         ,    -1,    -1},
+}
 
-Disadvantages:
-	- More people will need access to the same git master tree;
-	- The tree will be bigger.
+Is that correct?
 
+
+>>     
+>>>>> What function does the "tm6000" member in the zl10353 config do?  It
+>>>>> doesn't seem to be used anywhere.
+>>>>>
+>>>>>
+>>>>>       
+>>>>>           
+>>>> I'll switch it next week to demodulator module.
+>>>>     
+>>>>         
+>>> Are you saying the zl10353 isn't working right now in your patch?  I'm
+>>> a bit confused.  If it doesn't work, then your patch title is a bit
+>>> misleading since it suggests that your patch provides DVB support for
+>>> the tm6000.  If it does work, then the tm6000 member shouldn't be
+>>> needed at all in the zl10353 config.
+>>>
+>>>   
+>>>       
+>> I'm emulating it in hack.c and the zl10353 module doesn't work, if I
+>> switch to it.
+>>     
+> the hack.c needs to be validated against the zl10353, in order to identify
+> what are the exact needs for tm6000. Some devices require serial mode, while
+> others require parallel mode.
+>
+> I bet that playing with zl10353_config, we'll find the proper init values 
+> required by tm6000.
+>
+>   
+
+I have separately write in the hack.c the value from terratec hybrid
+stick. The older value I haven't clean.
 
 -- 
+Stefan Ringel <stefan.ringel@arcor.de>
 
-Cheers,
-Mauro
