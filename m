@@ -1,172 +1,228 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from joe.mail.tiscali.it ([213.205.33.54]:34500 "EHLO
-	joe.mail.tiscali.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751791Ab0BIUyv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 15:54:51 -0500
-Message-ID: <4B71CB52.4080109@gmail.com>
-Date: Tue, 09 Feb 2010 21:53:38 +0100
-From: "Andrea.Amorosi76@gmail.com" <Andrea.Amorosi76@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:36967 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756357Ab0BBSy3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Feb 2010 13:54:29 -0500
+Message-ID: <4B6874DD.30506@redhat.com>
+Date: Tue, 02 Feb 2010 16:54:21 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] em28xx: add Dikom DK300 hybrid USB tuner
-References: <4AFE92ED.2060208@gmail.com> <4AFEAB15.9010509@gmail.com> <829197380911140634j49c05cd0s90aed57b9ae61436@mail.gmail.com> <4B71ACC8.600@gmail.com> <4B71B5BD.8090006@infradead.org>
-In-Reply-To: <4B71B5BD.8090006@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Sergey Ivanov <123kash@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Add support for Twinhan 1027 DVB-S card
+References: <d7fc510e1001290151q3520d106g88aceca5db22778b@mail.gmail.com> <d7fc510e1001300004t7a75f553ya74a6d38a8e5cd43@mail.gmail.com>
+In-Reply-To: <d7fc510e1001300004t7a75f553ya74a6d38a8e5cd43@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab ha scritto:
-> Andrea.Amorosi76@gmail.com wrote:
->> This patch add the Dikom DK300 hybrid usb card.
->>
->> The patch adds digital and analogue tv support.
->>
->> Not working: remote controller
+Sergey Ivanov wrote:
+> This patch is the modified version of sfstudio (Denis Romanenko)
+> patch, adapted for current mercurial revision.
+
+the patch didn't apply:
+
+$ test_patch 
+patching file drivers/media/video/cx88/cx88-cards.c
+Hunk #1 FAILED at 2120.
+Hunk #2 FAILED at 2596.
+Hunk #3 FAILED at 3091.
+3 out of 3 hunks FAILED -- saving rejects to file drivers/media/video/cx88/cx88-cards.c.rej
+patching file drivers/media/video/cx88/cx88-dvb.c
+Hunk #1 succeeded at 56 (offset -1 lines).
+patch: **** malformed patch at line 91: (defined(CONFIG_VIDEO_CX88_VP3054_MODULE) && defined(MODULE))
+
+Patch may be line wrapped
+patching file drivers/media/video/cx88/cx88-cards.c
+Hunk #1 FAILED at 2120.
+Hunk #2 FAILED at 2596.
+Hunk #3 FAILED at 3091.
+3 out of 3 hunks FAILED -- saving rejects to file drivers/media/video/cx88/cx88-cards.c.rej
+patching file drivers/media/video/cx88/cx88-dvb.c
+Hunk #1 succeeded at 56 (offset -1 lines).
+Hunk #2 succeeded at 252 with fuzz 1.
+Hunk #3 FAILED at 435.
+Hunk #4 FAILED at 1241.
+2 out of 4 hunks FAILED -- saving rejects to file drivers/media/video/cx88/cx88-dvb.c.rej
+patching file drivers/media/video/cx88/cx88.h
+Hunk #1 succeeded at 239 with fuzz 1 (offset -1 lines).
+Patch doesn't apply
+
+
+My scripts detected that the patch got line-wrapped by your emailer and ran a logic to unwrap. Even so,
+they keep failing.
+
+So, please correct it and re-submit.
+
+
 > 
->> diff -r d6520e486ee6 linux/drivers/media/video/em28xx/em28xx-cards.c
->> --- a/linux/drivers/media/video/em28xx/em28xx-cards.c    Sat Jan 30
->> 01:27:34 2010 -0200
->> +++ b/linux/drivers/media/video/em28xx/em28xx-cards.c    Sat Jan 30
->> 18:04:13 2010 +0100
+> diff -r d6520e486ee6 linux/drivers/media/video/cx88/cx88-cards.c
+> --- a/linux/drivers/media/video/cx88/cx88-cards.c       Sat Jan 30
+> 01:27:34 2010 -0200
+> +++ b/linux/drivers/media/video/cx88/cx88-cards.c       Sat Jan 30
+> 11:02:24 2010 +0300
+> @@ -2120,6 +2120,18 @@
+>                 } },
+>                 .mpeg           = CX88_MPEG_DVB,
+>         },
+> +       [CX88_BOARD_TWINHAN_VP1027_DVBS] = {
+> +               .name           = "Twinhan VP-1027 DVB-S",
+> +               .tuner_type     = TUNER_ABSENT,
+> +               .radio_type     = UNSET,
+> +               .tuner_addr     = ADDR_UNSET,
+> +               .radio_addr     = ADDR_UNSET,
+> +               .input          = {{
+> +                      .type   = CX88_VMUX_DVB,
+> +                      .vmux   = 0,
+> +               } },
+> +               .mpeg           = CX88_MPEG_DVB,
+> +       },
+>  };
 > 
-> Your patch got mangled by Thunderbird. You should or use Asalted Patches
-> plugin:
->         https://hg.mozilla.org/users/clarkbw_gnome.org/asalted-patches/
+>  /* ------------------------------------------------------------------ */
+> @@ -2584,6 +2596,10 @@
+>                 .subvendor = 0xb034,
+>                 .subdevice = 0x3034,
+>                 .card      = CX88_BOARD_PROF_7301,
+> +       }, {
+> +               .subvendor = 0x1822,
+> +               .subdevice = 0x0023,
+> +               .card      = CX88_BOARD_TWINHAN_VP1027_DVBS,
+>         },
+>  };
 > 
-> or use another emailer. Without the above plugin, long lines are broken,
-> damaging your patch.
+> @@ -3075,6 +3091,13 @@
+>                 cx_set(MO_GP1_IO, 0x10);
+>                 mdelay(50);
+>                 break;
+> +
+> +       case CX88_BOARD_TWINHAN_VP1027_DVBS:
+> +               cx_write(MO_GP0_IO, 0x00003230);
+> +               cx_write(MO_GP0_IO, 0x00003210);
+> +               msleep(1);
+> +               cx_write(MO_GP0_IO, 0x00001230);
+> +               break;
+>         }
+>  }
 > 
-> Cheers,
-> Mauro
+> diff -r d6520e486ee6 linux/drivers/media/video/cx88/cx88-dvb.c
+> --- a/linux/drivers/media/video/cx88/cx88-dvb.c Sat Jan 30 01:27:34 2010 -0200
+> +++ b/linux/drivers/media/video/cx88/cx88-dvb.c Sat Jan 30 11:02:24 2010 +0300
+> @@ -57,6 +57,7 @@
+>  #include "stv0900.h"
+>  #include "stb6100.h"
+>  #include "stb6100_proc.h"
+> +#include "mb86a16.h"
 > 
-Is it ok now?
-Andrea
+>  MODULE_DESCRIPTION("driver for cx2388x based DVB cards");
+>  MODULE_AUTHOR("Chris Pascoe <c.pascoe@itee.uq.edu.au>");
+> @@ -251,6 +252,10 @@
+>         .if2           = 45600,
+>  };
+> 
+> +static struct mb86a16_config twinhan_vp1027 = {
+> +       .demod_address  = 0x08,
+> +};
+> +
+>  #if defined(CONFIG_VIDEO_CX88_VP3054) ||
+> (defined(CONFIG_VIDEO_CX88_VP3054_MODULE) && defined(MODULE))
+>  static int dntv_live_dvbt_pro_demod_init(struct dvb_frontend* fe)
+>  {
+> @@ -430,15 +435,41 @@
+> 
+>         cx_set(MO_GP0_IO, 0x6040);
+>         switch (voltage) {
+> -               case SEC_VOLTAGE_13:
+> -                       cx_clear(MO_GP0_IO, 0x20);
+> -                       break;
+> -               case SEC_VOLTAGE_18:
+> -                       cx_set(MO_GP0_IO, 0x20);
+> -                       break;
+> -               case SEC_VOLTAGE_OFF:
+> -                       cx_clear(MO_GP0_IO, 0x20);
+> -                       break;
+> +       case SEC_VOLTAGE_13:
+> +               cx_clear(MO_GP0_IO, 0x20);
+> +               break;
+> +       case SEC_VOLTAGE_18:
+> +               cx_set(MO_GP0_IO, 0x20);
+> +               break;
+> +       case SEC_VOLTAGE_OFF:
+> +               cx_clear(MO_GP0_IO, 0x20);
+> +               break;
+> +       }
+> +
+> +       if (core->prev_set_voltage)
+> +               return core->prev_set_voltage(fe, voltage);
+> +       return 0;
+> +}
+> +
+> +static int vp1027_set_voltage(struct dvb_frontend *fe,
+> +                                   fe_sec_voltage_t voltage)
+> +{
+> +       struct cx8802_dev *dev = fe->dvb->priv;
+> +       struct cx88_core *core = dev->core;
+> +
+> +       switch (voltage) {
+> +       case SEC_VOLTAGE_13:
+> +               dprintk(1, "LNB SEC Voltage=13\n");
+> +               cx_write(MO_GP0_IO, 0x00001220);
+> +               break;
+> +       case SEC_VOLTAGE_18:
+> +               dprintk(1, "LNB SEC Voltage=18\n");
+> +               cx_write(MO_GP0_IO, 0x00001222);
+> +               break;
+> +       case SEC_VOLTAGE_OFF:
+> +               dprintk(1, "LNB Voltage OFF\n");
+> +               cx_write(MO_GP0_IO, 0x00001230);
+> +               break;
+>         }
+> 
+>         if (core->prev_set_voltage)
+> @@ -1210,6 +1241,19 @@
+>                 }
+>                 break;
+>                 }
+> +       case CX88_BOARD_TWINHAN_VP1027_DVBS:
+> +               dev->ts_gen_cntrl = 0x00;
+> +               fe0->dvb.frontend = dvb_attach(mb86a16_attach,
+> +                                               &twinhan_vp1027,
+> +                                               &core->i2c_adap);
+> +               if (fe0->dvb.frontend) {
+> +                       core->prev_set_voltage =
+> +                                       fe0->dvb.frontend->ops.set_voltage;
+> +                       fe0->dvb.frontend->ops.set_voltage =
+> +                                       vp1027_set_voltage;
+> +               }
+> +               break;
+> +
+>         default:
+>                 printk(KERN_ERR "%s/2: The frontend of your DVB/ATSC
+> card isn't supported yet\n",
+>                        core->name);
+> diff -r d6520e486ee6 linux/drivers/media/video/cx88/cx88.h
+> --- a/linux/drivers/media/video/cx88/cx88.h     Sat Jan 30 01:27:34 2010 -0200
+> +++ b/linux/drivers/media/video/cx88/cx88.h     Sat Jan 30 11:02:24 2010 +0300
+> @@ -240,6 +240,7 @@
+>  #define CX88_BOARD_WINFAST_DTV1800H        81
+>  #define CX88_BOARD_WINFAST_DTV2000H_J      82
+>  #define CX88_BOARD_PROF_7301               83
+> +#define CX88_BOARD_TWINHAN_VP1027_DVBS     84
+> 
+>  enum cx88_itype {
+>         CX88_VMUX_COMPOSITE1 = 1,
+> 
+> 
+> --------------------------------------------------------------
+> WBR Sergey Kash Ivanov
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-This patch add the Dikom DK300 hybrid usb card.
 
-The patch adds digital and analogue tv support.
+-- 
 
-Not working: remote controller
-
-To be done: it seems that with the proposed patch the digital
-demodulator remains activated if the tuner is switched from digital to
-analogue mode.
-Workaorund is to unplug and replug the device when switching from
-digital to analogue.
-If someone can explain how to verify the gpio settings using the
-usbsnoop, the above issue perhaps can be resolved.
-
-Signed-off-by: Andrea Amorosi <Andrea.Amorosi76@gmail.com>
-
-diff -r d6520e486ee6 linux/drivers/media/video/em28xx/em28xx-cards.c
---- a/linux/drivers/media/video/em28xx/em28xx-cards.c	Sat Jan 30 01:27:34 2010 -0200
-+++ b/linux/drivers/media/video/em28xx/em28xx-cards.c	Sat Jan 30 18:04:13 2010 +0100
-@@ -245,6 +245,12 @@
-  	{	-1,		-1,	-1,		-1},
-  };
-
-+static struct em28xx_reg_seq dikom_dk300_digital[] = {
-+	{EM28XX_R08_GPIO,	0x6e,	~EM_GPIO_4,	10},
-+	{EM2880_R04_GPO,	0x08,	0xff,		10},
-+	{ -1,			-1,	-1,		-1},
-+};
-+
-
-  /*
-   *  Board definitions
-@@ -1673,6 +1679,22 @@
-  		.tuner_gpio    = reddo_dvb_c_usb_box,
-  		.has_dvb       = 1,
-  	},
-+	[EM2882_BOARD_DIKOM_DK300] = {
-+		.name         = "Dikom DK300",
-+		.valid        = EM28XX_BOARD_NOT_VALIDATED,
-+		.tuner_type   = TUNER_XC2028,
-+		.tuner_gpio   = default_tuner_gpio,
-+		.decoder      = EM28XX_TVP5150,
-+		.mts_firmware = 1,
-+		.has_dvb      = 1,
-+		.dvb_gpio     = dikom_dk300_digital,
-+		.input        = { {
-+			.type     = EM28XX_VMUX_TELEVISION,
-+			.vmux     = TVP5150_COMPOSITE0,
-+			.amux     = EM28XX_AMUX_VIDEO,
-+			.gpio     = default_analog,
-+		} },
-+	},
-  };
-  const unsigned int em28xx_bcount = ARRAY_SIZE(em28xx_boards);
-
-@@ -1812,6 +1834,7 @@
-  	{0xcee44a99, EM2882_BOARD_EVGA_INDTUBE, TUNER_XC2028},
-  	{0xb8846b20, EM2881_BOARD_PINNACLE_HYBRID_PRO, TUNER_XC2028},
-  	{0x63f653bd, EM2870_BOARD_REDDO_DVB_C_USB_BOX, TUNER_ABSENT},
-+	{0x4e913442, EM2882_BOARD_DIKOM_DK300, TUNER_XC2028},
-  };
-
-  /* I2C devicelist hash table for devices with generic USB IDs */
-@@ -2168,6 +2191,7 @@
-  		ctl->demod = XC3028_FE_DEFAULT;
-  		break;
-  	case EM2883_BOARD_KWORLD_HYBRID_330U:
-+	case EM2882_BOARD_DIKOM_DK300:
-  		ctl->demod = XC3028_FE_CHINA;
-  		ctl->fname = XC2028_DEFAULT_FIRMWARE;
-  		break;
-@@ -2480,6 +2504,31 @@
-  		em28xx_gpio_set(dev, dev->board.tuner_gpio);
-  		em28xx_set_mode(dev, EM28XX_ANALOG_MODE);
-  		break;
-+
-+/*
-+		 * The Dikom DK300 is detected as an Kworld VS-DVB-T 323UR.
-+		 *
-+		 * This occurs because they share identical USB vendor and
-+		 * product IDs.
-+		 *
-+		 * What we do here is look up the EEPROM hash of the Dikom
-+		 * and if it is found then we decide that we do not have
-+		 * a Kworld and reset the device to the Dikom instead.
-+		 *
-+		 * This solution is only valid if they do not share eeprom
-+		 * hash identities which has not been determined as yet.
-+		 */
-+	case EM2882_BOARD_KWORLD_VS_DVBT:
-+		if (!em28xx_hint_board(dev))
-+			em28xx_set_model(dev);
-+
-+		/* In cases where we had to use a board hint, the call to
-+		   em28xx_set_mode() in em28xx_pre_card_setup() was a no-op,
-+		   so make the call now so the analog GPIOs are set properly
-+		   before probing the i2c bus. */
-+		em28xx_gpio_set(dev, dev->board.tuner_gpio);
-+		em28xx_set_mode(dev, EM28XX_ANALOG_MODE);
-+		break;
-  	}
-
-  #if defined(CONFIG_MODULES) && defined(MODULE)
-diff -r d6520e486ee6 linux/drivers/media/video/em28xx/em28xx-dvb.c
---- a/linux/drivers/media/video/em28xx/em28xx-dvb.c	Sat Jan 30 01:27:34 2010 -0200
-+++ b/linux/drivers/media/video/em28xx/em28xx-dvb.c	Sat Jan 30 18:04:13 2010 +0100
-@@ -504,6 +504,7 @@
-  		break;
-  	case EM2880_BOARD_TERRATEC_HYBRID_XS:
-  	case EM2881_BOARD_PINNACLE_HYBRID_PRO:
-+	case EM2882_BOARD_DIKOM_DK300:
-  		dvb->frontend = dvb_attach(zl10353_attach,
-  					   &em28xx_zl10353_xc3028_no_i2c_gate,
-  					   &dev->i2c_adap);
-diff -r d6520e486ee6 linux/drivers/media/video/em28xx/em28xx.h
---- a/linux/drivers/media/video/em28xx/em28xx.h	Sat Jan 30 01:27:34 2010 -0200
-+++ b/linux/drivers/media/video/em28xx/em28xx.h	Sat Jan 30 18:04:13 2010 +0100
-@@ -112,6 +112,7 @@
-  #define EM2861_BOARD_GADMEI_UTV330PLUS           72
-  #define EM2870_BOARD_REDDO_DVB_C_USB_BOX          73
-  #define EM2800_BOARD_VC211A			  74
-+#define EM2882_BOARD_DIKOM_DK300		75
-
-  /* Limits minimum and default number of buffers */
-  #define EM28XX_MIN_BUF 4
-
+Cheers,
+Mauro
