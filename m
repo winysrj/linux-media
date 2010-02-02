@@ -1,30 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f215.google.com ([209.85.220.215]:50940 "EHLO
-	mail-fx0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933021Ab0BPTQ5 (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49641 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757052Ab0BBWlU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Feb 2010 14:16:57 -0500
-Received: by fxm7 with SMTP id 7so7599605fxm.28
-        for <linux-media@vger.kernel.org>; Tue, 16 Feb 2010 11:16:54 -0800 (PST)
+	Tue, 2 Feb 2010 17:41:20 -0500
+Message-Id: <201002022240.o12MepBf018922@imap1.linux-foundation.org>
+Subject: [patch 7/7] drivers/media/dvb/frontends/stv090x.c: fix use-uninitlalised
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
+	manu@linuxtv.org, mchehab@redhat.com
+From: akpm@linux-foundation.org
+Date: Tue, 02 Feb 2010 14:40:51 -0800
 MIME-Version: 1.0
-Date: Tue, 16 Feb 2010 20:16:54 +0100
-Message-ID: <db09c9681002161116k52278916ob68884ddc989044@mail.gmail.com>
-Subject: Remote control at Zolid Hybrid TV Tuner
-From: Sander Pientka <cumulus0007@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Andrew Morton <akpm@linux-foundation.org>
 
-my Zolid Hybrid TV Tuner has been working like a charm for over two
-months now. The remote control is not working though, which is a
-showstopper. I don't have experience with remote controls in any kind,
-I've heard of LIRC but I would rather choose a more elegant solution,
-for instance evdev in X11.
+Mad guess.
 
-It's wiki page: http://www.linuxtv.org/wiki/index.php/Zolid_Hybrid_TV_Tuner
+Cc: Manu Abraham <manu@linuxtv.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
+ drivers/media/dvb/frontends/stv090x.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thanks in advance!
+diff -puN drivers/media/dvb/frontends/stv090x.c~drivers-media-dvb-frontends-stv090xc-fix-use-uninitlalised drivers/media/dvb/frontends/stv090x.c
+--- a/drivers/media/dvb/frontends/stv090x.c~drivers-media-dvb-frontends-stv090xc-fix-use-uninitlalised
++++ a/drivers/media/dvb/frontends/stv090x.c
+@@ -2047,7 +2047,7 @@ static int stv090x_chk_tmg(struct stv090
+ 	u32 reg;
+ 	s32 tmg_cpt = 0, i;
+ 	u8 freq, tmg_thh, tmg_thl;
+-	int tmg_lock;
++	int tmg_lock = 0;
+ 
+ 	freq = STV090x_READ_DEMOD(state, CARFREQ);
+ 	tmg_thh = STV090x_READ_DEMOD(state, TMGTHRISE);
+_
