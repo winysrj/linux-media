@@ -1,67 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:22580 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:17044 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751744Ab0BHNeo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Feb 2010 08:34:44 -0500
-Message-ID: <4B7012D1.40605@redhat.com>
-Date: Mon, 08 Feb 2010 11:34:09 -0200
+	id S1756502Ab0BBPlB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Feb 2010 10:41:01 -0500
+Message-ID: <4B684782.9090703@redhat.com>
+Date: Tue, 02 Feb 2010 13:40:50 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: linux-pm@lists.linux-foundation.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH/RESEND] soc-camera: add runtime pm support for subdevices
-References: <Pine.LNX.4.64.1002081044150.4936@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1002081044150.4936@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Ben Hutchings <ben@decadent.org.uk>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] V4L/DVB: lgs8gxx: remove firmware for lgs8g75
+References: <1257041675.3136.310.camel@localhost> <4B0AB325.8020605@infradead.org>
+In-Reply-To: <4B0AB325.8020605@infradead.org>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski wrote:
-> To save power soc-camera powers subdevices down, when they are not in use, 
-> if this is supported by the platform. However, the V4L standard dictates, 
-> that video nodes shall preserve configuration between uses. This requires 
-> runtime power management, which is implemented by this patch. It allows 
-> subdevice drivers to specify their runtime power-management methods, by 
-> assigning a type to the video device.
+Mauro Carvalho Chehab wrote:
+> Ben Hutchings wrote:
+>> The recently added support for lgs8g75 included some 8051 machine code
+>> without accompanying source code.  Replace this with use of the
+>> firmware loader.
+>>
+>> Compile-tested only.
+>>
+>> Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+>> ---
+>> This firmware can be added to linux-firmware.git instead, and I will be
+>> requesting that very shortly.
+> 
+> Had you submitted a patch for it already? Could you please test the patch before we commit it at the tree?
 
-It seems a great idea to me. For sure we need some sort of power management
-control.
+Ping.
 
 > 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
+>> Ben.
+>>
+>>  drivers/media/dvb/frontends/Kconfig   |    1 +
+>>  drivers/media/dvb/frontends/lgs8gxx.c |   50 ++++++--------------------------
+>>  2 files changed, 11 insertions(+), 40 deletions(-)
+>>
+>> diff --git a/drivers/media/dvb/frontends/Kconfig b/drivers/media/dvb/frontends/Kconfig
+>> index d7c4837..26b00ab 100644
+>> --- a/drivers/media/dvb/frontends/Kconfig
+>> +++ b/drivers/media/dvb/frontends/Kconfig
+>> @@ -553,6 +553,7 @@ config DVB_LGS8GL5
+>>  config DVB_LGS8GXX
+>>  	tristate "Legend Silicon LGS8913/LGS8GL5/LGS8GXX DMB-TH demodulator"
+>>  	depends on DVB_CORE && I2C
+>> +	select FW_LOADER
+>>  	default m if DVB_FE_CUSTOMISE
+>>  	help
+>>  	  A DMB-TH tuner module. Say Y when you want to support this frontend.
+>> diff --git a/drivers/media/dvb/frontends/lgs8gxx.c b/drivers/media/dvb/frontends/lgs8gxx.c
+>> index eabcadc..1bfcf85 100644
+>> --- a/drivers/media/dvb/frontends/lgs8gxx.c
+>> +++ b/drivers/media/dvb/frontends/lgs8gxx.c
+>> @@ -24,6 +24,7 @@
+>>   */
+>>  
+>>  #include <asm/div64.h>
+>> +#include <linux/firmware.h>
+>>  
+>>  #include "dvb_frontend.h"
+>>  
+>> @@ -46,42 +47,6 @@ module_param(fake_signal_str, int, 0644);
+>>  MODULE_PARM_DESC(fake_signal_str, "fake signal strength for LGS8913."
+>>  "Signal strength calculation is slow.(default:on).");
+>>  
+>> -static const u8 lgs8g75_initdat[] = {
+>> -	0x01, 0x30, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+>> -	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+>> -	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+>> -	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+>> -	0x00, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+>> -	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+>> -	0xE4, 0xF5, 0xA8, 0xF5, 0xB8, 0xF5, 0x88, 0xF5,
+>> -	0x89, 0xF5, 0x87, 0x75, 0xD0, 0x00, 0x11, 0x50,
+>> -	0x11, 0x50, 0xF4, 0xF5, 0x80, 0xF5, 0x90, 0xF5,
+>> -	0xA0, 0xF5, 0xB0, 0x75, 0x81, 0x30, 0x80, 0x01,
+>> -	0x32, 0x90, 0x80, 0x12, 0x74, 0xFF, 0xF0, 0x90,
+>> -	0x80, 0x13, 0x74, 0x1F, 0xF0, 0x90, 0x80, 0x23,
+>> -	0x74, 0x01, 0xF0, 0x90, 0x80, 0x22, 0xF0, 0x90,
+>> -	0x00, 0x48, 0x74, 0x00, 0xF0, 0x90, 0x80, 0x4D,
+>> -	0x74, 0x05, 0xF0, 0x90, 0x80, 0x09, 0xE0, 0x60,
+>> -	0x21, 0x12, 0x00, 0xDD, 0x14, 0x60, 0x1B, 0x12,
+>> -	0x00, 0xDD, 0x14, 0x60, 0x15, 0x12, 0x00, 0xDD,
+>> -	0x14, 0x60, 0x0F, 0x12, 0x00, 0xDD, 0x14, 0x60,
+>> -	0x09, 0x12, 0x00, 0xDD, 0x14, 0x60, 0x03, 0x12,
+>> -	0x00, 0xDD, 0x90, 0x80, 0x42, 0xE0, 0x60, 0x0B,
+>> -	0x14, 0x60, 0x0C, 0x14, 0x60, 0x0D, 0x14, 0x60,
+>> -	0x0E, 0x01, 0xB3, 0x74, 0x04, 0x01, 0xB9, 0x74,
+>> -	0x05, 0x01, 0xB9, 0x74, 0x07, 0x01, 0xB9, 0x74,
+>> -	0x0A, 0xC0, 0xE0, 0x74, 0xC8, 0x12, 0x00, 0xE2,
+>> -	0xD0, 0xE0, 0x14, 0x70, 0xF4, 0x90, 0x80, 0x09,
+>> -	0xE0, 0x70, 0xAE, 0x12, 0x00, 0xF6, 0x12, 0x00,
+>> -	0xFE, 0x90, 0x00, 0x48, 0xE0, 0x04, 0xF0, 0x90,
+>> -	0x80, 0x4E, 0xF0, 0x01, 0x73, 0x90, 0x80, 0x08,
+>> -	0xF0, 0x22, 0xF8, 0x7A, 0x0C, 0x79, 0xFD, 0x00,
+>> -	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xD9,
+>> -	0xF6, 0xDA, 0xF2, 0xD8, 0xEE, 0x22, 0x90, 0x80,
+>> -	0x65, 0xE0, 0x54, 0xFD, 0xF0, 0x22, 0x90, 0x80,
+>> -	0x65, 0xE0, 0x44, 0xC2, 0xF0, 0x22
+>> -};
+>> -
+>>  /* LGS8GXX internal helper functions */
+>>  
+>>  static int lgs8gxx_write_reg(struct lgs8gxx_state *priv, u8 reg, u8 data)
+>> @@ -627,9 +592,14 @@ static int lgs8913_init(struct lgs8gxx_state *priv)
+>>  
+>>  static int lgs8g75_init_data(struct lgs8gxx_state *priv)
+>>  {
+>> -	const u8 *p = lgs8g75_initdat;
+>> +	const struct firmware *fw;
+>> +	int rc;
+>>  	int i;
+>>  
+>> +	rc = request_firmware(&fw, "lgs8g75.fw", &priv->i2c->dev);
+>> +	if (rc)
+>> +		return rc;
+>> +
+>>  	lgs8gxx_write_reg(priv, 0xC6, 0x40);
+>>  
+>>  	lgs8gxx_write_reg(priv, 0x3D, 0x04);
+>> @@ -640,16 +610,16 @@ static int lgs8g75_init_data(struct lgs8gxx_state *priv)
+>>  	lgs8gxx_write_reg(priv, 0x3B, 0x00);
+>>  	lgs8gxx_write_reg(priv, 0x38, 0x00);
+>>  
+>> -	for (i = 0; i < sizeof(lgs8g75_initdat); i++) {
+>> +	for (i = 0; i < fw->size; i++) {
+>>  		lgs8gxx_write_reg(priv, 0x38, 0x00);
+>>  		lgs8gxx_write_reg(priv, 0x3A, (u8)(i&0xff));
+>>  		lgs8gxx_write_reg(priv, 0x3B, (u8)(i>>8));
+>> -		lgs8gxx_write_reg(priv, 0x3C, *p);
+>> -		p++;
+>> +		lgs8gxx_write_reg(priv, 0x3C, fw->data[i]);
+>>  	}
+>>  
+>>  	lgs8gxx_write_reg(priv, 0x38, 0x00);
+>>  
+>> +	release_firmware(fw);
+>>  	return 0;
+>>  }
+>>  
 > 
-> I've posted this patch to linux-media earlier, but I'd also like to get 
-> comments on linux-pm, sorry to linux-media falks for a duplicate. To 
-> explain a bit - soc_camera.c is a management module, that binds video 
-> interfaces on SoCs and sensor drivers. The calls, that I am adding to 
-> soc_camera.c shall save and restore sensor registers before they are 
-> powered down and after they are powered up.
-> 
-> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-> index 6b3fbcc..53201f3 100644
-> --- a/drivers/media/video/soc_camera.c
-> +++ b/drivers/media/video/soc_camera.c
-> @@ -24,6 +24,7 @@
->  #include <linux/mutex.h>
->  #include <linux/module.h>
->  #include <linux/platform_device.h>
-> +#include <linux/pm_runtime.h>
->  #include <linux/vmalloc.h>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-
-Hmm... wouldn't it be better to enable it at the subsystem level? We may for 
-example call ?
-The subsystem can call vidioc_streamoff() at suspend and vidioc_streamon() at
-resume, if the device were streaming during suspend. We may add another ops to
-the struct for the drivers/subdrivers that needs additional care.
-
-That's said, it shouldn't be hard to implement some routine that will save/restore
-all registers if the device goes to power down mode. Unfortunately, very few
-devices successfully recovers from hibernation if streaming. One good example
-is saa7134, that even disables/re-enables IR IRQ's during suspend/resume.
 
 -- 
 
