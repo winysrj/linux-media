@@ -1,115 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2335 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752716Ab0BQSbY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Feb 2010 13:31:24 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: Re: Proposal for a V4L2 Media Controller mini-summit
-Date: Wed, 17 Feb 2010 19:33:33 +0100
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Laurent Pinchart <laurent.pinchart@skynet.be>,
-	Vaibhav Hiremath <hvaibhav@ti.com>,
-	"Gole, Anant" <anantgole@ti.com>,
-	Muralidharan Karicheri <m-karicheri2@ti.com>,
-	Sergio Rodriguez <saaguirre@ti.com>, molnar@ti.com,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Guru Raj <gururaj.nagendra@intel.com>,
-	"Zhang, Xiaolin" <xiaolin.zhang@intel.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	"Jin-Sung Yang" <jsgood.yang@samsung.com>,
-	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
-	Kyungmin Park <kmpark@infradead.org>, mcharleb@qualcomm.com,
-	hrao@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>
-References: <201002121550.08706.hverkuil@xs4all.nl>
-In-Reply-To: <201002121550.08706.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:58499 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932321Ab0BBTJ0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Feb 2010 14:09:26 -0500
+Message-ID: <4B687851.3050706@redhat.com>
+Date: Tue, 02 Feb 2010 17:09:05 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Jean Delvare <khali@linux-fr.org>
+CC: hermann pitton <hermann-pitton@arcor.de>,
+	LMML <linux-media@vger.kernel.org>, Daro <ghost-rider@aster.pl>,
+	Roman Kellner <muzungu@gmx.net>
+Subject: Re: [PATCH] saa7134: Fix IR support of some ASUS TV-FM 7135  variants
+References: <20100127120211.2d022375@hyperion.delvare> <4B630179.3080006@redhat.com> <1264812461.16350.90.camel@localhost> <20100130115632.03da7e1b@hyperion.delvare>
+In-Reply-To: <20100130115632.03da7e1b@hyperion.delvare>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201002171933.33921.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 12 February 2010 15:50:08 Hans Verkuil wrote:
-> Hi all,
-> 
-> During the Linux Plumbers Conference in September 2009 I organized a V4L-DVB
-> mini-summit. The focus of that summit was on discussing a framework through
-> which we could support all the functionality that the video hardware of modern
-> embedded devices provides.
-> 
-> It was a very successful summit and a lot of work has been done since that
-> time. See this posting for to get an idea of what was discussed for those
-> who were not present:
-> 
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg10136.html
-> 
-> Since that time we have added a new API to support HDTV formats, a new
-> event API is almost ready, a lot of work is being done on the media
-> controller API with omap3 as guinea pig and Samsung has done work on the
-> memory handling of V4L2.
-> 
-> From April 12th to 14th the CELF Embedded Linux Conference is held in
-> San Francisco, and it is co-located with the Linux Foundation Collaboration
-> Summit (April 14th-16th). Links to these conferences are here:
-> 
-> http://www.embeddedlinuxconference.com/elc_2010/index.html
-> http://events.linuxfoundation.org/events/collaboration-summit
-> 
-> I will be doing a presentation on the new framework during the ELC.
-> 
-> Since this conference is about 6 months after the mini-summit I consider this
-> a good time to organize a new V4L2 Media Controller mini-summit to discuss
-> progress and future work in this area. I think that particular attention
-> should be given to how we are going to do memory handling. The proposals
-> from Samsung have received very little attention and we should discuss those
-> in more detail.
-> 
-> I do not know on which dates exactly such a summit can take place. There
-> are three possibilities:
-> 
-> April 10-11/12
-> April 12-14 
-> April 14/15-16
-> 
-> I think that registering for the ELC gives to free access to the Collaboration
-> Summit, but I'm waiting for a confirmation on that.
-> 
-> I'm not keen on the center option (12-14 April) since that often means that
-> you don't see a lot of the conference itself. And the ELC is generally quite
-> interesting.
-> 
-> There is another alternative and that is that I organize a mini-summit in May
-> in Lysaker (near Oslo, Norway) at the Tandberg offices. But frankly I think
-> that it is more fun to do this during/before/after a conference. If only
-> because there are a lot of linux kernel experts on hand during such a
-> conference that you can ask for help if needed.
-> 
-> Please let me know asap if you are interested in attending such a mini-summit
-> and what dates are possible for you:
-> 
-> a: April 10-11 (or 12)
-> b: April 12-14 
-> c: April 14 (or 15)-16
-> d: Somewhere in May (suggestions for dates are welcome)
+Hi Jean,
 
-I would appreciate it if people/companies who are interested in attending would
-let me know as soon as possible. Options A and B are a no go, so it is either
-April 14-16, or it will be in May. It doesn't have to be definitive, but I
-would like to have an idea of what to expect.
+> From: Jean Delvare <khali@linux-fr.org>
+> Subject: saa7134: Fix IR support of some ASUS TV-FM 7135 variants
+> 
+> Some variants of the ASUS TV-FM 7135 are handled as the ASUSTeK P7131
+> Analog (card=146). However, by the time we find out, some
+> card-specific initialization is missed. In particular, the fact that
+> the IR is GPIO-based. Set it when we change the card type, and run
+> saa7134_input_init1().
+> 
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> Cc: Daro <ghost-rider@aster.pl>
+> Cc: Roman Kellner <muzungu@gmx.net>
+> ---
+>  linux/drivers/media/video/saa7134/saa7134-cards.c |    5 +++++
+>  1 file changed, 5 insertions(+)
+> 
+> --- v4l-dvb.orig/linux/drivers/media/video/saa7134/saa7134-cards.c	2010-01-30 10:56:50.000000000 +0100
+> +++ v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c	2010-01-30 11:52:18.000000000 +0100
+> @@ -7299,6 +7299,11 @@ int saa7134_board_init2(struct saa7134_d
+>  		       printk(KERN_INFO "%s: P7131 analog only, using "
+>  						       "entry of %s\n",
+>  		       dev->name, saa7134_boards[dev->board].name);
+> +
+> +			/* IR init has already happened for other cards, so
+> +			 * we have to catch up. */
+> +			dev->has_remote = SAA7134_REMOTE_GPIO;
+> +			saa7134_input_init1(dev);
+>  	       }
+>  	       break;
+>  	case SAA7134_BOARD_HAUPPAUGE_HVR1150:
 
-The V4L2 API work that is in progress is crucially important for embedded hardware,
-so getting involved now will ensure that your devices will work fine on linux in
-the future. And we get to see more of the complex use cases that we must cater to
-in the API.
+This version of your patch makes sense to me. 
 
-Regards,
+This logic will only apply for board SAA7134_BOARD_ASUSTeK_P7131_ANALOG, 
+so, provided that someone with this board test it, I'm OK with it.
 
-	Hans
+Had Roman or Daro already test it?
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
+Cheers,
+Mauro
