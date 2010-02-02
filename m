@@ -1,219 +1,374 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:40708 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750963Ab0BLJch convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Feb 2010 04:32:37 -0500
-Date: Fri, 12 Feb 2010 10:32:35 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: =?ISO-8859-15?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-cc: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] soc_camera: match signedness of soc_camera_limit_side()
-In-Reply-To: <Pine.LNX.4.64.1002052114490.4506@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1002121030420.4605@axis700.grange>
-References: <4B5AFD11.6000907@freemail.hu> <Pine.LNX.4.64.1001271645440.5073@axis700.grange>
- <4B6081D4.5070501@freemail.hu> <Pine.LNX.4.64.1001271915400.5073@axis700.grange>
- <4B609AD4.605@freemail.hu> <Pine.LNX.4.64.1001272109470.5073@axis700.grange>
- <4B60B32A.5090806@freemail.hu> <Pine.LNX.4.64.1001282105200.8946@axis700.grange>
- <4B6201FD.2030708@freemail.hu> <Pine.LNX.4.64.1002052114490.4506@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: 8BIT
+Received: from mail-pz0-f190.google.com ([209.85.222.190]:64474 "EHLO
+	mail-pz0-f190.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751920Ab0BBHOp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Feb 2010 02:14:45 -0500
+Received: by pzk28 with SMTP id 28so5090082pzk.4
+        for <linux-media@vger.kernel.org>; Mon, 01 Feb 2010 23:14:45 -0800 (PST)
+From: Huang Shijie <shijie8@gmail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org, zyziii@telegent.com, tiwai@suse.de,
+	Huang Shijie <shijie8@gmail.com>
+Subject: [PATCH v2 06/10] add audio support for tlg2300
+Date: Tue,  2 Feb 2010 15:07:52 +0800
+Message-Id: <1265094475-13059-7-git-send-email-shijie8@gmail.com>
+In-Reply-To: <1265094475-13059-6-git-send-email-shijie8@gmail.com>
+References: <1265094475-13059-1-git-send-email-shijie8@gmail.com>
+ <1265094475-13059-2-git-send-email-shijie8@gmail.com>
+ <1265094475-13059-3-git-send-email-shijie8@gmail.com>
+ <1265094475-13059-4-git-send-email-shijie8@gmail.com>
+ <1265094475-13059-5-git-send-email-shijie8@gmail.com>
+ <1265094475-13059-6-git-send-email-shijie8@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Németh
+The file contains the code for audio which uses the ALSA.
+The audio will register a new card for tlg2300.
 
-On Tue, 9 Feb 2010, Guennadi Liakhovetski wrote:
-
-> Ok, I modified your patch a bit, how about the below version? If you 
-> agree, I'll commit it in that form (after converting to utf-8):
-> 
-> From: Márton Németh <nm127@freemail.hu>
-> 
-> The first two parameters of soc_camera_limit_side() are usually pointers 
-> to struct v4l2_rect elements. They are signed, so adjust the prototype 
-> accordingly.
-> 
-> This will remove the following sparse warning (see "make C=1"):
-> 
->  * incorrect type in argument 1 (different signedness)
->        expected unsigned int *start
->        got signed int *<noident>
-> 
-> as well as a couple more signedness mismatches.
-> 
-> Signed-off-by: Márton Németh <nm127@freemail.hu>
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-
-please confirm, if you agree with my version of your patch, or I'll have 
-to leave it out from my pull request.
-
-Thanks
-Guennadi
-
-> ---
-> diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
-> index 1a34d29..e5bae4c 100644
-> --- a/drivers/media/video/mt9v022.c
-> +++ b/drivers/media/video/mt9v022.c
-> @@ -325,7 +325,7 @@ static int mt9v022_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
->  	if (ret < 0)
->  		return ret;
->  
-> -	dev_dbg(&client->dev, "Frame %ux%u pixel\n", rect.width, rect.height);
-> +	dev_dbg(&client->dev, "Frame %dx%d pixel\n", rect.width, rect.height);
->  
->  	mt9v022->rect = rect;
->  
-> diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
-> index bd297f5..d477e30 100644
-> --- a/drivers/media/video/mx3_camera.c
-> +++ b/drivers/media/video/mx3_camera.c
-> @@ -796,7 +796,7 @@ static int acquire_dma_channel(struct mx3_camera_dev *mx3_cam)
->   * FIXME: learn to use stride != width, then we can keep stride properly aligned
->   * and support arbitrary (even) widths.
->   */
-> -static inline void stride_align(__s32 *width)
-> +static inline void stride_align(__u32 *width)
->  {
->  	if (((*width + 7) &  ~7) < 4096)
->  		*width = (*width + 7) &  ~7;
-> @@ -844,7 +844,7 @@ static int mx3_camera_set_crop(struct soc_camera_device *icd,
->  		 * So far only direct camera-to-memory is supported
->  		 */
->  		if (channel_change_requested(icd, rect)) {
-> -			int ret = acquire_dma_channel(mx3_cam);
-> +			ret = acquire_dma_channel(mx3_cam);
->  			if (ret < 0)
->  				return ret;
->  		}
-> diff --git a/drivers/media/video/rj54n1cb0c.c b/drivers/media/video/rj54n1cb0c.c
-> index 9277194..bbd9c11 100644
-> --- a/drivers/media/video/rj54n1cb0c.c
-> +++ b/drivers/media/video/rj54n1cb0c.c
-> @@ -555,15 +555,15 @@ static int rj54n1_commit(struct i2c_client *client)
->  	return ret;
->  }
->  
-> -static int rj54n1_sensor_scale(struct v4l2_subdev *sd, u32 *in_w, u32 *in_h,
-> -			       u32 *out_w, u32 *out_h);
-> +static int rj54n1_sensor_scale(struct v4l2_subdev *sd, s32 *in_w, s32 *in_h,
-> +			       s32 *out_w, s32 *out_h);
->  
->  static int rj54n1_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
->  {
->  	struct i2c_client *client = sd->priv;
->  	struct rj54n1 *rj54n1 = to_rj54n1(client);
->  	struct v4l2_rect *rect = &a->c;
-> -	unsigned int dummy = 0, output_w, output_h,
-> +	int dummy = 0, output_w, output_h,
->  		input_w = rect->width, input_h = rect->height;
->  	int ret;
->  
-> @@ -577,7 +577,7 @@ static int rj54n1_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
->  	output_w = (input_w * 1024 + rj54n1->resize / 2) / rj54n1->resize;
->  	output_h = (input_h * 1024 + rj54n1->resize / 2) / rj54n1->resize;
->  
-> -	dev_dbg(&client->dev, "Scaling for %ux%u : %u = %ux%u\n",
-> +	dev_dbg(&client->dev, "Scaling for %dx%d : %u = %dx%d\n",
->  		input_w, input_h, rj54n1->resize, output_w, output_h);
->  
->  	ret = rj54n1_sensor_scale(sd, &input_w, &input_h, &output_w, &output_h);
-> @@ -638,8 +638,8 @@ static int rj54n1_g_fmt(struct v4l2_subdev *sd,
->   * the output one, updates the window sizes and returns an error or the resize
->   * coefficient on success. Note: we only use the "Fixed Scaling" on this camera.
->   */
-> -static int rj54n1_sensor_scale(struct v4l2_subdev *sd, u32 *in_w, u32 *in_h,
-> -			       u32 *out_w, u32 *out_h)
-> +static int rj54n1_sensor_scale(struct v4l2_subdev *sd, s32 *in_w, s32 *in_h,
-> +			       s32 *out_w, s32 *out_h)
->  {
->  	struct i2c_client *client = sd->priv;
->  	struct rj54n1 *rj54n1 = to_rj54n1(client);
-> @@ -749,7 +749,7 @@ static int rj54n1_sensor_scale(struct v4l2_subdev *sd, u32 *in_w, u32 *in_h,
->  	 * improve the image quality or stability for larger frames (see comment
->  	 * above), but I didn't check the framerate.
->  	 */
-> -	skip = min(resize / 1024, (unsigned)15);
-> +	skip = min(resize / 1024, 15U);
->  
->  	inc_sel = 1 << skip;
->  
-> @@ -819,7 +819,7 @@ static int rj54n1_sensor_scale(struct v4l2_subdev *sd, u32 *in_w, u32 *in_h,
->  	*out_w = output_w;
->  	*out_h = output_h;
->  
-> -	dev_dbg(&client->dev, "Scaled for %ux%u : %u = %ux%u, skip %u\n",
-> +	dev_dbg(&client->dev, "Scaled for %dx%d : %u = %ux%u, skip %u\n",
->  		*in_w, *in_h, resize, output_w, output_h, skip);
->  
->  	return resize;
-> @@ -1017,7 +1017,7 @@ static int rj54n1_s_fmt(struct v4l2_subdev *sd,
->  	struct i2c_client *client = sd->priv;
->  	struct rj54n1 *rj54n1 = to_rj54n1(client);
->  	const struct rj54n1_datafmt *fmt;
-> -	unsigned int output_w, output_h, max_w, max_h,
-> +	int output_w, output_h, max_w, max_h,
->  		input_w = rj54n1->rect.width, input_h = rj54n1->rect.height;
->  	int ret;
->  
-> diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-> index f09c714..af506bc 100644
-> --- a/drivers/media/video/sh_mobile_ceu_camera.c
-> +++ b/drivers/media/video/sh_mobile_ceu_camera.c
-> @@ -1040,13 +1040,13 @@ static int client_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *crop,
->  	 */
->  	if (!memcmp(rect, cam_rect, sizeof(*rect))) {
->  		/* Even if camera S_CROP failed, but camera rectangle matches */
-> -		dev_dbg(dev, "Camera S_CROP successful for %ux%u@%u:%u\n",
-> +		dev_dbg(dev, "Camera S_CROP successful for %dx%d@%d:%d\n",
->  			rect->width, rect->height, rect->left, rect->top);
->  		return 0;
->  	}
->  
->  	/* Try to fix cropping, that camera hasn't managed to set */
-> -	dev_geo(dev, "Fix camera S_CROP for %ux%u@%u:%u to %ux%u@%u:%u\n",
-> +	dev_geo(dev, "Fix camera S_CROP for %dx%d@%d:%d to %dx%d@%d:%d\n",
->  		cam_rect->width, cam_rect->height,
->  		cam_rect->left, cam_rect->top,
->  		rect->width, rect->height, rect->left, rect->top);
-> @@ -1102,7 +1102,7 @@ static int client_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *crop,
->  
->  		v4l2_subdev_call(sd, video, s_crop, cam_crop);
->  		ret = client_g_rect(sd, cam_rect);
-> -		dev_geo(dev, "Camera S_CROP %d for %ux%u@%u:%u\n", ret,
-> +		dev_geo(dev, "Camera S_CROP %d for %dx%d@%d:%d\n", ret,
->  			cam_rect->width, cam_rect->height,
->  			cam_rect->left, cam_rect->top);
->  	}
-> @@ -1116,7 +1116,7 @@ static int client_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *crop,
->  		*cam_rect = cap.bounds;
->  		v4l2_subdev_call(sd, video, s_crop, cam_crop);
->  		ret = client_g_rect(sd, cam_rect);
-> -		dev_geo(dev, "Camera S_CROP %d for max %ux%u@%u:%u\n", ret,
-> +		dev_geo(dev, "Camera S_CROP %d for max %dx%d@%d:%d\n", ret,
->  			cam_rect->width, cam_rect->height,
->  			cam_rect->left, cam_rect->top);
->  	}
-> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-> index dcc5b86..5a17365 100644
-> --- a/include/media/soc_camera.h
-> +++ b/include/media/soc_camera.h
-> @@ -264,8 +266,8 @@ static inline unsigned long soc_camera_bus_param_compatible(
->  		common_flags;
->  }
->  
-> -static inline void soc_camera_limit_side(unsigned int *start,
-> -		unsigned int *length, unsigned int start_min,
-> +static inline void soc_camera_limit_side(int *start, int *length,
-> +		unsigned int start_min,
->  		unsigned int length_min, unsigned int length_max)
->  {
->  	if (*length < length_min)
-> 
-
+Signed-off-by: Huang Shijie <shijie8@gmail.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/tlg2300/pd-alsa.c |  332 +++++++++++++++++++++++++++++++++
+ 1 files changed, 332 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/tlg2300/pd-alsa.c
+
+diff --git a/drivers/media/video/tlg2300/pd-alsa.c b/drivers/media/video/tlg2300/pd-alsa.c
+new file mode 100644
+index 0000000..6f42621
+--- /dev/null
++++ b/drivers/media/video/tlg2300/pd-alsa.c
+@@ -0,0 +1,332 @@
++#include <linux/kernel.h>
++#include <linux/usb.h>
++#include <linux/init.h>
++#include <linux/sound.h>
++#include <linux/spinlock.h>
++#include <linux/soundcard.h>
++#include <linux/slab.h>
++#include <linux/vmalloc.h>
++#include <linux/proc_fs.h>
++#include <linux/module.h>
++#include <sound/core.h>
++#include <sound/pcm.h>
++#include <sound/pcm_params.h>
++#include <sound/info.h>
++#include <sound/initval.h>
++#include <sound/control.h>
++#include <media/v4l2-common.h>
++#include "pd-common.h"
++#include "vendorcmds.h"
++
++static void complete_handler_audio(struct urb *urb);
++#define AUDIO_EP	(0x83)
++#define AUDIO_BUF_SIZE	(512)
++#define PERIOD_SIZE	(1024 * 8)
++#define PERIOD_MIN	(4)
++#define PERIOD_MAX 	PERIOD_MIN
++
++static struct snd_pcm_hardware snd_pd_hw_capture = {
++	.info = SNDRV_PCM_INFO_BLOCK_TRANSFER |
++		SNDRV_PCM_INFO_MMAP           |
++		SNDRV_PCM_INFO_INTERLEAVED |
++		SNDRV_PCM_INFO_MMAP_VALID,
++
++	.formats = SNDRV_PCM_FMTBIT_S16_LE,
++	.rates = SNDRV_PCM_RATE_48000,
++
++	.rate_min = 48000,
++	.rate_max = 48000,
++	.channels_min = 2,
++	.channels_max = 2,
++	.buffer_bytes_max = PERIOD_SIZE * PERIOD_MIN,
++	.period_bytes_min = PERIOD_SIZE,
++	.period_bytes_max = PERIOD_SIZE,
++	.periods_min = PERIOD_MIN,
++	.periods_max = PERIOD_MAX,
++	/*
++	.buffer_bytes_max = 62720 * 8,
++	.period_bytes_min = 64,
++	.period_bytes_max = 12544,
++	.periods_min = 2,
++	.periods_max = 98
++	*/
++};
++
++static int snd_pd_capture_open(struct snd_pcm_substream *substream)
++{
++	struct poseidon *p = snd_pcm_substream_chip(substream);
++	struct poseidon_audio *pa = &p->audio;
++	struct snd_pcm_runtime *runtime = substream->runtime;
++
++	if (!p)
++		return -ENODEV;
++	pa->users++;
++	pa->card_close 		= 0;
++	pa->capture_pcm_substream	= substream;
++	runtime->private_data		= p;
++
++	runtime->hw = snd_pd_hw_capture;
++	snd_pcm_hw_constraint_integer(runtime, SNDRV_PCM_HW_PARAM_PERIODS);
++	usb_autopm_get_interface(p->interface);
++	kref_get(&p->kref);
++	return 0;
++}
++
++static int snd_pd_pcm_close(struct snd_pcm_substream *substream)
++{
++	struct poseidon *p = snd_pcm_substream_chip(substream);
++	struct poseidon_audio *pa = &p->audio;
++
++	pa->users--;
++	pa->card_close 		= 1;
++	usb_autopm_put_interface(p->interface);
++	kref_put(&p->kref, poseidon_delete);
++	return 0;
++}
++
++static int snd_pd_hw_capture_params(struct snd_pcm_substream *substream,
++					struct snd_pcm_hw_params *hw_params)
++{
++	struct snd_pcm_runtime *runtime = substream->runtime;
++	unsigned int size;
++
++	size = params_buffer_bytes(hw_params);
++	if (runtime->dma_area) {
++		if (runtime->dma_bytes > size)
++			return 0;
++		vfree(runtime->dma_area);
++	}
++	runtime->dma_area = vmalloc(size);
++	if (!runtime->dma_area)
++		return -ENOMEM;
++	else
++		runtime->dma_bytes = size;
++	return 0;
++}
++
++static int audio_buf_free(struct poseidon *p)
++{
++	struct poseidon_audio *pa = &p->audio;
++	int i;
++
++	for (i = 0; i < AUDIO_BUFS; i++)
++		if (pa->urb_array[i])
++			usb_kill_urb(pa->urb_array[i]);
++	free_all_urb_generic(pa->urb_array, AUDIO_BUFS);
++	logpm();
++	return 0;
++}
++
++static int snd_pd_hw_capture_free(struct snd_pcm_substream *substream)
++{
++	struct poseidon *p = snd_pcm_substream_chip(substream);
++
++	logpm();
++	audio_buf_free(p);
++	return 0;
++}
++
++static int snd_pd_prepare(struct snd_pcm_substream *substream)
++{
++	return 0;
++}
++
++#define AUDIO_TRAILER_SIZE	(16)
++static inline void handle_audio_data(struct urb *urb, int *period_elapsed)
++{
++	struct poseidon_audio *pa = urb->context;
++	struct snd_pcm_runtime *runtime = pa->capture_pcm_substream->runtime;
++
++	int stride	= runtime->frame_bits >> 3;
++	int len		= urb->actual_length / stride;
++	unsigned char *cp	= urb->transfer_buffer;
++	unsigned int oldptr	= pa->rcv_position;
++
++	if (urb->actual_length == AUDIO_BUF_SIZE - 4)
++		len -= (AUDIO_TRAILER_SIZE / stride);
++
++	/* do the copy */
++	if (oldptr + len >= runtime->buffer_size) {
++		unsigned int cnt = runtime->buffer_size - oldptr;
++
++		memcpy(runtime->dma_area + oldptr * stride, cp, cnt * stride);
++		memcpy(runtime->dma_area, (cp + cnt * stride),
++					(len * stride - cnt * stride));
++	} else
++		memcpy(runtime->dma_area + oldptr * stride, cp, len * stride);
++
++	/* update the statas */
++	snd_pcm_stream_lock(pa->capture_pcm_substream);
++	pa->rcv_position	+= len;
++	if (pa->rcv_position >= runtime->buffer_size)
++		pa->rcv_position -= runtime->buffer_size;
++
++	pa->copied_position += (len);
++	if (pa->copied_position >= runtime->period_size) {
++		pa->copied_position -= runtime->period_size;
++		*period_elapsed = 1;
++	}
++	snd_pcm_stream_unlock(pa->capture_pcm_substream);
++}
++
++static void complete_handler_audio(struct urb *urb)
++{
++	struct poseidon_audio *pa = urb->context;
++	struct snd_pcm_substream *substream = pa->capture_pcm_substream;
++	int    period_elapsed = 0;
++	int    ret;
++
++	if (1 == pa->card_close || pa->capture_stream != STREAM_ON)
++		return;
++
++	if (urb->status != 0) {
++		/*if (urb->status == -ESHUTDOWN)*/
++			return;
++	}
++
++	if (substream) {
++		if (urb->actual_length) {
++			handle_audio_data(urb, &period_elapsed);
++			if (period_elapsed)
++				snd_pcm_period_elapsed(substream);
++		}
++	}
++
++	ret = usb_submit_urb(urb, GFP_ATOMIC);
++	if (ret < 0)
++		log("audio urb failed (errcod = %i)", ret);
++	return;
++}
++
++static int fire_audio_urb(struct poseidon *p)
++{
++	int i, ret = 0;
++	struct poseidon_audio *pa = &p->audio;
++
++	alloc_bulk_urbs_generic(pa->urb_array, AUDIO_BUFS,
++			p->udev, AUDIO_EP,
++			AUDIO_BUF_SIZE, GFP_ATOMIC,
++			complete_handler_audio, pa);
++
++	for (i = 0; i < AUDIO_BUFS; i++) {
++		ret = usb_submit_urb(pa->urb_array[i], GFP_KERNEL);
++		if (ret)
++			log("urb err : %d", ret);
++	}
++	log();
++	return ret;
++}
++
++static int snd_pd_capture_trigger(struct snd_pcm_substream *substream, int cmd)
++{
++	struct poseidon *p = snd_pcm_substream_chip(substream);
++	struct poseidon_audio *pa = &p->audio;
++
++	if (debug_mode)
++		log("cmd %d, audio stat : %d\n", cmd, pa->capture_stream);
++
++	switch (cmd) {
++	case SNDRV_PCM_TRIGGER_RESUME:
++	case SNDRV_PCM_TRIGGER_START:
++		if (pa->capture_stream == STREAM_ON)
++			return 0;
++
++		pa->rcv_position = pa->copied_position = 0;
++		pa->capture_stream = STREAM_ON;
++
++		if (in_hibernation(p))
++			return 0;
++		fire_audio_urb(p);
++		return 0;
++
++	case SNDRV_PCM_TRIGGER_SUSPEND:
++		pa->capture_stream = STREAM_SUSPEND;
++		return 0;
++	case SNDRV_PCM_TRIGGER_STOP:
++		pa->capture_stream = STREAM_OFF;
++		return 0;
++	default:
++		return -EINVAL;
++	}
++}
++
++static snd_pcm_uframes_t
++snd_pd_capture_pointer(struct snd_pcm_substream *substream)
++{
++	struct poseidon *p = snd_pcm_substream_chip(substream);
++	struct poseidon_audio *pa = &p->audio;
++	return pa->rcv_position;
++}
++
++static struct page *snd_pcm_pd_get_page(struct snd_pcm_substream *subs,
++					     unsigned long offset)
++{
++	void *pageptr = subs->runtime->dma_area + offset;
++	return vmalloc_to_page(pageptr);
++}
++
++static struct snd_pcm_ops pcm_capture_ops = {
++	.open      = snd_pd_capture_open,
++	.close     = snd_pd_pcm_close,
++	.ioctl     = snd_pcm_lib_ioctl,
++	.hw_params = snd_pd_hw_capture_params,
++	.hw_free   = snd_pd_hw_capture_free,
++	.prepare   = snd_pd_prepare,
++	.trigger   = snd_pd_capture_trigger,
++	.pointer   = snd_pd_capture_pointer,
++	.page      = snd_pcm_pd_get_page,
++};
++
++#ifdef CONFIG_PM
++int pm_alsa_suspend(struct poseidon *p)
++{
++	logpm(p);
++	audio_buf_free(p);
++	return 0;
++}
++
++int pm_alsa_resume(struct poseidon *p)
++{
++	logpm(p);
++	fire_audio_urb(p);
++	return 0;
++}
++#endif
++
++int poseidon_audio_init(struct poseidon *p)
++{
++	struct poseidon_audio *pa = &p->audio;
++	struct snd_card *card;
++	struct snd_pcm *pcm;
++	int ret;
++
++	ret = snd_card_create(-1, "Telegent", THIS_MODULE, 0, &card);
++	if (ret != 0)
++		return ret;
++
++	ret = snd_pcm_new(card, "poseidon audio", 0, 0, 1, &pcm);
++	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_CAPTURE, &pcm_capture_ops);
++	pcm->info_flags   = 0;
++	pcm->private_data = p;
++	strcpy(pcm->name, "poseidon audio capture");
++
++	strcpy(card->driver, "ALSA driver");
++	strcpy(card->shortname, "poseidon Audio");
++	strcpy(card->longname, "poseidon ALSA Audio");
++
++	if (snd_card_register(card)) {
++		snd_card_free(card);
++		return -ENOMEM;
++	}
++	pa->card = card;
++	return 0;
++}
++
++int poseidon_audio_free(struct poseidon *p)
++{
++	struct poseidon_audio *pa = &p->audio;
++
++	if (pa->card)
++		snd_card_free(pa->card);
++	return 0;
++}
+-- 
+1.6.5.2
+
