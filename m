@@ -1,343 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01d.mail.t-online.hu ([84.2.42.6]:56547 "EHLO
-	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753323Ab0BDIWI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2010 03:22:08 -0500
-Message-ID: <4B6A83A9.4070500@freemail.hu>
-Date: Thu, 04 Feb 2010 09:22:01 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Luc Saillard <luc@saillard.org>,
-	Thomas Kaiser <v4l@kaiser-linux.li>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH libv4l tree, RFC] libv4l: skip false Pixart markers with
- buffer copy
-References: <4B67466F.1030301@freemail.hu> <4B6751F3.3040407@freemail.hu> <4B67FEAF.8050603@redhat.com>
-In-Reply-To: <4B67FEAF.8050603@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-px0-f182.google.com ([209.85.216.182]:34143 "EHLO
+	mail-px0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755143Ab0BBHII (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Feb 2010 02:08:08 -0500
+Received: by pxi12 with SMTP id 12so5432630pxi.33
+        for <linux-media@vger.kernel.org>; Mon, 01 Feb 2010 23:08:07 -0800 (PST)
+From: Huang Shijie <shijie8@gmail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org, zyziii@telegent.com, tiwai@suse.de,
+	Huang Shijie <shijie8@gmail.com>
+Subject: [PATCH v2 00/10] add linux driver for chip TLG2300
+Date: Tue,  2 Feb 2010 15:07:46 +0800
+Message-Id: <1265094475-13059-1-git-send-email-shijie8@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The TLG2300 is a chip of Telegent System.
+It support analog tv,DVB-T and radio in a single chip.
+The chip has been used in several dongles, such as aeromax DH-9000:
+	http://www.b2bdvb.com/dh-9000.htm
 
-This is a proof-of-concept patch to try to decode the JPEG with PixArt markers.
+You can get more info from:
+	[1] http://www.telegent.com/
+	[2] http://www.telegent.com/press/2009Sept14_CSI.html
 
-Please check whether it is working at your side. My experience is that the
-number of frames with glitch are reduced.
+The driver is based Mauro's subtree(2.6.33-rc4).	
+	
+about country code:
+	The country code is needed for firmware, so I can not remove it.
+	If I remove it, the audio will not work properly.
 
-Regards,
+about hibernate:
+	My test environment:
+	PC: dell vostro 200, 2G RAM, dual core 2G
+	OS: Fedora 12 (kernel is compiled with Mauro's subtree, 2.6.33-rc4)
+	my test shell script:
+		------- file begin -------------
+		" echo shutdown > /sys/power/disk"
+		" echo disk > /sys/power/state"
+		------- file end -------------
+	
+	the test result:
+	[1] ANALOG TV : video runs well after hibernate,but alsa system did not resume the
+		snd_pcm_substream.
+	[2] DVB-T : runs profectly.
+	[3] FM:	Mplayer will be terminated for the long delay of hibernate makes it
+		close the audio. This is not a problem, just re-open it.
 
-	Márton Németh
+v1 --> v2 :
+	[1] use the videobuf-vmalloc,remove old queue code.
+	[2] change the V4L2 implementation, use the videobuf-core's code.
+	[3] optimize the power management code.
+	[4] misc bugs.
 
----
-From: Márton Németh <nm127@freemail.hu>
 
-Before trying to decode the image data filter the PixArt markers out.
+Huang Shijie (10):
+  add header files for tlg2300
+  add the generic file
+  add video/vbi file for tlg2300
+  add DVB-T support for tlg2300
+  add FM support for tlg2300
+  add audio support for tlg2300
+  add document file for tlg2300
+  add Kconfig and Makefile for tlg2300
+  modify the Kconfig and Makefile for tlg2300
+  add maintainers for tlg2300
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
----
-diff -r 966f60c672e9 v4l2-apps/libv4l/libv4lconvert/tinyjpeg-internal.h
---- a/v4l2-apps/libv4l/libv4lconvert/tinyjpeg-internal.h	Tue Feb 02 11:34:06 2010 +0100
-+++ b/v4l2-apps/libv4l/libv4lconvert/tinyjpeg-internal.h	Thu Feb 04 09:13:24 2010 +0100
-@@ -91,8 +91,11 @@
-   /* Private variables */
-   const unsigned char *stream_begin, *stream_end;
-   unsigned int stream_length;
-+  unsigned char *stream_begin_filtered, *stream_end_filtered;
-+  unsigned int stream_length_filtered;
+ Documentation/video4linux/README.tlg2300 |  231 +++++
+ MAINTAINERS                              |    8 +
+ drivers/media/video/Kconfig              |    2 +
+ drivers/media/video/Makefile             |    1 +
+ drivers/media/video/tlg2300/Kconfig      |   16 +
+ drivers/media/video/tlg2300/Makefile     |    9 +
+ drivers/media/video/tlg2300/pd-alsa.c    |  332 ++++++
+ drivers/media/video/tlg2300/pd-common.h  |  280 +++++
+ drivers/media/video/tlg2300/pd-dvb.c     |  593 +++++++++++
+ drivers/media/video/tlg2300/pd-main.c    |  566 ++++++++++
+ drivers/media/video/tlg2300/pd-radio.c   |  351 +++++++
+ drivers/media/video/tlg2300/pd-video.c   | 1648 ++++++++++++++++++++++++++++++
+ drivers/media/video/tlg2300/vendorcmds.h |  243 +++++
+ 13 files changed, 4280 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/video4linux/README.tlg2300
+ create mode 100644 drivers/media/video/tlg2300/Kconfig
+ create mode 100644 drivers/media/video/tlg2300/Makefile
+ create mode 100644 drivers/media/video/tlg2300/pd-alsa.c
+ create mode 100644 drivers/media/video/tlg2300/pd-common.h
+ create mode 100644 drivers/media/video/tlg2300/pd-dvb.c
+ create mode 100644 drivers/media/video/tlg2300/pd-main.c
+ create mode 100644 drivers/media/video/tlg2300/pd-radio.c
+ create mode 100644 drivers/media/video/tlg2300/pd-video.c
+ create mode 100644 drivers/media/video/tlg2300/vendorcmds.h
 
-   const unsigned char *stream;	/* Pointer to the current stream */
-+  unsigned char *stream_filtered;
-   unsigned int reservoir, nbits_in_reservoir;
-
-   struct component component_infos[COMPONENTS];
-diff -r 966f60c672e9 v4l2-apps/libv4l/libv4lconvert/tinyjpeg.c
---- a/v4l2-apps/libv4l/libv4lconvert/tinyjpeg.c	Tue Feb 02 11:34:06 2010 +0100
-+++ b/v4l2-apps/libv4l/libv4lconvert/tinyjpeg.c	Thu Feb 04 09:13:24 2010 +0100
-@@ -312,19 +312,18 @@
-
- /* Special Pixart versions of the *_nbits functions, these remove the special
-    ff ff ff xx sequences pixart cams insert from the bitstream */
--#define pixart_fill_nbits(reservoir,nbits_in_reservoir,stream,nbits_wanted) \
-+#define pixart_fill_nbits(reservoir,nbits_in_reservoir,stream,stream_end,nbits_wanted) \
- do { \
-    while (nbits_in_reservoir<nbits_wanted) \
-     { \
-       unsigned char c; \
--      if (stream >= priv->stream_end) { \
-+      if (stream >= stream_end) { \
- 	snprintf(priv->error_string, sizeof(priv->error_string), \
- 	  "fill_nbits error: need %u more bits\n", \
- 	  nbits_wanted - nbits_in_reservoir); \
- 	longjmp(priv->jump_state, -EIO); \
-       } \
-       c = *stream++; \
--      reservoir <<= 8; \
-       if (c == 0xff) { \
- 	switch (stream[0]) { \
- 	  case 0x00: \
-@@ -332,7 +331,7 @@
- 	    break; \
- 	  case 0xd9: /* EOF marker */ \
- 	    stream++; \
--	    if (stream != priv->stream_end) { \
-+	    if (stream != stream_end) { \
- 	      snprintf(priv->error_string, sizeof(priv->error_string), \
- 		"Pixart JPEG error: premature EOF\n"); \
- 	      longjmp(priv->jump_state, -EIO); \
-@@ -340,14 +339,22 @@
- 	    break; \
- 	  case 0xff: \
- 	    if (stream[1] == 0xff) { \
--		if (stream[2] < 7) { \
-+		if (stream[2] == 0) { \
-+		    stream += 3; \
-+		    c = *stream++; \
-+		    break; \
-+		} else if (stream[2] == 1) { \
-+		    stream += 3; \
-+		    c = *stream++; \
-+		    break; \
-+		} else if (stream[2] == 2) { \
- 		    stream += 3; \
- 		    c = *stream++; \
- 		    break; \
- 		} else if (stream[2] == 0xff) { \
--		    /* four 0xff in a row: the first belongs to the image data */ \
-+		    /* four 0xff in a row: the first belongs to the image */ \
- 		    break; \
--		}\
-+		} \
- 	    } \
- 	    /* Error fall through */ \
- 	  default: \
-@@ -358,15 +365,16 @@
- 	    longjmp(priv->jump_state, -EIO); \
- 	} \
-       } \
-+      reservoir <<= 8; \
-       reservoir |= c; \
-       nbits_in_reservoir+=8; \
-     } \
- }  while(0);
-
- /* Signed version !!!! */
--#define pixart_get_nbits(reservoir,nbits_in_reservoir,stream,nbits_wanted,result) \
-+#define pixart_get_nbits(reservoir,nbits_in_reservoir,stream,stream_end,nbits_wanted,result) \
- do { \
--   pixart_fill_nbits(reservoir,nbits_in_reservoir,stream,(nbits_wanted)); \
-+   pixart_fill_nbits(reservoir,nbits_in_reservoir,stream,stream_end,(nbits_wanted)); \
-    result = ((reservoir)>>(nbits_in_reservoir-(nbits_wanted))); \
-    nbits_in_reservoir -= (nbits_wanted);  \
-    reservoir &= ((1U<<nbits_in_reservoir)-1); \
-@@ -374,9 +382,9 @@
-        result += (0xFFFFFFFFUL<<(nbits_wanted))+1; \
- }  while(0);
-
--#define pixart_look_nbits(reservoir,nbits_in_reservoir,stream,nbits_wanted,result) \
-+#define pixart_look_nbits(reservoir,nbits_in_reservoir,stream,stream_end,nbits_wanted,result) \
- do { \
--   pixart_fill_nbits(reservoir,nbits_in_reservoir,stream,(nbits_wanted)); \
-+   pixart_fill_nbits(reservoir,nbits_in_reservoir,stream,stream_end,(nbits_wanted)); \
-    result = ((reservoir)>>(nbits_in_reservoir-(nbits_wanted))); \
- }  while(0);
-
-@@ -443,7 +451,8 @@
-   unsigned int extra_nbits, nbits;
-   uint16_t *slowtable;
-
--  pixart_look_nbits(priv->reservoir, priv->nbits_in_reservoir, priv->stream, HUFFMAN_HASH_NBITS, hcode);
-+  pixart_look_nbits(priv->reservoir, priv->nbits_in_reservoir, priv->stream_filtered,
-+		    priv->stream_end_filtered, HUFFMAN_HASH_NBITS, hcode);
-   value = huffman_table->lookup[hcode];
-   if (value >= 0)
-   {
-@@ -457,7 +466,8 @@
-    {
-      nbits = HUFFMAN_HASH_NBITS + 1 + extra_nbits;
-
--     pixart_look_nbits(priv->reservoir, priv->nbits_in_reservoir, priv->stream, nbits, hcode);
-+     pixart_look_nbits(priv->reservoir, priv->nbits_in_reservoir, priv->stream_filtered,
-+			priv->stream_end_filtered, nbits, hcode);
-      slowtable = huffman_table->slowtable[extra_nbits];
-      /* Search if the code is in this array */
-      while (slowtable[0]) {
-@@ -557,7 +567,8 @@
-   /* DC coefficient decoding */
-   huff_code = pixart_get_next_huffman_code(priv, c->DC_table);
-   if (huff_code) {
--     pixart_get_nbits(priv->reservoir, priv->nbits_in_reservoir, priv->stream, huff_code, DCT[0]);
-+     pixart_get_nbits(priv->reservoir, priv->nbits_in_reservoir, priv->stream_filtered,
-+		priv->stream_end_filtered, huff_code, DCT[0]);
-      DCT[0] += c->previous_DC;
-      c->previous_DC = DCT[0];
-   } else {
-@@ -585,7 +596,8 @@
-       {
- 	j += count_0;	/* skip count_0 zeroes */
- 	if (j < 64 ) {
--	  pixart_get_nbits(priv->reservoir, priv->nbits_in_reservoir, priv->stream, size_val, DCT[j]);
-+	  pixart_get_nbits(priv->reservoir, priv->nbits_in_reservoir, priv->stream_filtered,
-+			priv->stream_end_filtered, size_val, DCT[j]);
- 	  j++;
- 	}
-       }
-@@ -1611,8 +1623,8 @@
- {
-   unsigned char marker;
-
--  pixart_look_nbits(priv->reservoir, priv->nbits_in_reservoir, priv->stream,
--		    8, marker);
-+  pixart_look_nbits(priv->reservoir, priv->nbits_in_reservoir, priv->stream_filtered,
-+		    priv->stream_end_filtered, 8, marker);
-   /* I think the marker indicates which quantization table to use, iow
-      a Pixart JPEG may have a different quantization table per MCU, most
-      MCU's have 0x44 as marker for which our special Pixart quantization
-@@ -2342,6 +2354,97 @@
-
- int tinyjpeg_decode_planar(struct jdec_private *priv, int pixfmt);
-
-+static int memcpy_filter(unsigned char *dest, const unsigned char *src, int n)
-+{
-+	int i = 0;
-+	int j = 0;
-+	int state = 0;
-+	int last_i = 0;
-+
-+	i = 0;
-+	j = 0;
-+
-+	/* 5 bytes are already dropped in kernel: 0xff 0xff 0x00 0xff 0x96 */
-+	/* Copy the rest of 1024 bytes */
-+	memcpy(&(dest[j]), &(src[i]), 1024-5);
-+	i += 1024-5;
-+	j += 1024-5;
-+
-+	while (i < n) {
-+		switch (state) {
-+			case 0:
-+				if (src[i] == 0xff)
-+					state = 1;
-+				else {
-+					state = 0;
-+					dest[j++] = src[i];
-+				}
-+				break;
-+			case 1:
-+				if (src[i] == 0xff)
-+					state = 2;
-+				else {
-+					state = 0;
-+					dest[j++] = src[i-1];
-+					dest[j++] = src[i];
-+				}
-+				break;
-+			case 2:
-+				switch (src[i]) {
-+					case 0xff:
-+						state = 3;
-+						break;
-+					default:
-+						state = 0;
-+						dest[j++] = src[i-2];
-+						dest[j++] = src[i-1];
-+						dest[j++] = src[i];
-+				}
-+				break;
-+			case 3:
-+				switch (src[i]) {
-+					case 0:
-+						/* found 0xff 0xff 0xff 0x00 */
-+						state = 0;
-+						break;
-+					case 1:
-+						/* found 0xff 0xff 0xff 0x01 */
-+						last_i = i+1;
-+						memcpy(&(dest[j]), &(src[i+1]), 1024);
-+						i += 1024;
-+						j += 1024;
-+						state = 0;
-+						break;
-+					case 2:
-+						/* found 0xff 0xff 0xff 0x02 */
-+						last_i = i+1;
-+						memcpy(&(dest[j]), &(src[i+1]), 512);
-+						i += 512;
-+						j += 512;
-+						state = 0;
-+						break;
-+					case 0xff:
-+						printf(" ! ");
-+						dest[j++] = src[i-3];
-+						state = 3;
-+						break;
-+
-+					default:
-+						state = 0;
-+						dest[j++] = src[i-3];
-+						dest[j++] = src[i-2];
-+						dest[j++] = src[i-1];
-+						dest[j++] = src[i];
-+				
-+				}
-+		}
-+		i++;
-+	}
-+
-+	return j;
-+}
-+
-+
- /**
-  * Decode and convert the jpeg image into @pixfmt@ image
-  *
-@@ -2356,8 +2459,10 @@
-   const convert_colorspace_fct *colorspace_array_conv;
-   convert_colorspace_fct convert_to_pixfmt;
-
--  if (setjmp(priv->jump_state))
-+  if (setjmp(priv->jump_state)) {
-+    printf("ERROR: %s\n", priv->error_string);
-     return -1;
-+  }
-
-   if (priv->flags & TINYJPEG_FLAGS_PLANAR_JPEG)
-     return tinyjpeg_decode_planar(priv, pixfmt);
-@@ -2369,8 +2474,20 @@
-   bytes_per_blocklines[2] = 0;
-
-   decode_mcu_table = decode_mcu_3comp_table;
--  if (priv->flags & TINYJPEG_FLAGS_PIXART_JPEG)
-+  if (priv->flags & TINYJPEG_FLAGS_PIXART_JPEG) {
-+    int len_filtered = 0;
-+
-+    priv->stream_begin_filtered = malloc(priv->stream_end - priv->stream);
-+    if (priv->stream_begin_filtered) {
-+	memset(priv->stream_begin_filtered, 0, priv->stream_end - priv->stream);
-+	priv->stream_filtered = priv->stream_begin_filtered;
-+	len_filtered = memcpy_filter(priv->stream_filtered,
-+			priv->stream, priv->stream_end - priv->stream);
-+    }
-+    priv->stream_end_filtered = priv->stream_filtered + len_filtered;
-+
-     decode_mcu_table = pixart_decode_mcu_3comp_table;
-+  }
-
-   switch (pixfmt) {
-      case TINYJPEG_FMT_YUV420P:
-@@ -2487,8 +2604,12 @@
-
-   if (priv->flags & TINYJPEG_FLAGS_PIXART_JPEG) {
-     /* Additional sanity check for funky Pixart format */
--    if ((priv->stream_end - priv->stream) > 5)
-+    if ((priv->stream_end_filtered - priv->stream_filtered) > 5)
-       error("Pixart JPEG error, stream does not end with EOF marker\n");
-+
-+    free(priv->stream_begin_filtered);
-+    priv->stream_filtered = NULL;
-+    priv->stream_end_filtered = NULL;
-   }
-
-   return 0;
