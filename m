@@ -1,21 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-14.siol.net ([193.189.160.142]:46892 "EHLO mta-14.siol.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755904Ab0BATjm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Feb 2010 14:39:42 -0500
-Message-ID: <2118432.1265041787187.JavaMail.root@fep-11>
-Date: Mon, 1 Feb 2010 17:29:47 +0100
-From: British Telecom Promo <15396972@users.siol.net>
-Reply-To: telecom0007@9.cn
-Subject: Notification Letter
+Received: from bombadil.infradead.org ([18.85.46.34]:59935 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755839Ab0BBPTY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Feb 2010 10:19:24 -0500
+Message-ID: <4B684273.6040500@infradead.org>
+Date: Tue, 02 Feb 2010 13:19:15 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+To: Janne Grunau <j@jannau.net>
+CC: Julia Lawall <julia@diku.dk>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH 3/8] drivers/media/video/hdpvr: introduce missing kfree
+References: <Pine.LNX.4.64.0909111821180.10552@pc-004.diku.dk> <20090916111325.GA14900@aniel.lan>
+In-Reply-To: <20090916111325.GA14900@aniel.lan>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Your email ID has been awarded 1,000,000,00 GBP. in our British telecom Promo. Do send your:
-Name:
-Occupation:
-Country:
+Hi Janne,
+
+Janne Grunau wrote:
+> On Fri, Sep 11, 2009 at 06:21:35PM +0200, Julia Lawall wrote:
+>> Error handling code following a kzalloc should free the allocated data.
+> 
+> Thanks for the report. I'll commit a different patch which adds the buffer
+> to the buffer list as soon it is allocated. The hdpvr_free_buffers() in the
+> error handling code will clean it up then. See below:
+
+Any news about this subject? The current upstream code still misses the change bellow
+
+> 
+> diff --git a/linux/drivers/media/video/hdpvr/hdpvr-video.c b/linux/drivers/media/video/hdpvr/hdpvr-video.c
+> --- a/linux/drivers/media/video/hdpvr/hdpvr-video.c
+> +++ b/linux/drivers/media/video/hdpvr/hdpvr-video.c
+> @@ -134,6 +134,8 @@
+>                         v4l2_err(&dev->v4l2_dev, "cannot allocate buffer\n");
+>                         goto exit;
+>                 }
+> +               list_add_tail(&buf->buff_list, &dev->free_buff_list);
+> +
+>                 buf->dev = dev;
+> 
+>                 urb = usb_alloc_urb(0, GFP_KERNEL);
+> @@ -158,7 +160,6 @@
+>                                   hdpvr_read_bulk_callback, buf);
+> 
+>                 buf->status = BUFSTAT_AVAILABLE;
+> -               list_add_tail(&buf->buff_list, &dev->free_buff_list);
+>         }
+>         return 0;
+>  exit:
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+-- 
+
+Cheers,
+Mauro
