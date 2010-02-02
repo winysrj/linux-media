@@ -1,57 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:43936 "EHLO mx1.suse.de"
+Received: from bamako.nerim.net ([62.4.17.28]:59745 "EHLO bamako.nerim.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752558Ab0BHPwP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Feb 2010 10:52:15 -0500
-Date: Mon, 8 Feb 2010 16:52:13 +0100 (CET)
-From: Jiri Kosina <jkosina@suse.cz>
-To: Pekka Sarnila <sarnila@adit.fi>
-Cc: Jiri Slaby <jslaby@suse.cz>,
-	Pekka Sarnila <pekka.sarnila@qvantel.com>, crope@iki.fi,
-	linux-media@vger.kernel.org, pb@linuxtv.org, js@linuxtv.org
-Subject: Re: dvb-usb-remote woes [was: HID: ignore afatech 9016]
-In-Reply-To: <4B6C3D79.5080203@adit.fi>
-Message-ID: <alpine.LNX.2.00.1002081650260.30967@pobox.suse.cz>
-References: <alpine.LNX.2.00.1001132111570.30977@pobox.suse.cz> <1263415146-26321-1-git-send-email-jslaby@suse.cz> <alpine.LNX.2.00.1001260156010.30977@pobox.suse.cz> <4B5EFD69.4080802@adit.fi> <alpine.LNX.2.00.1001262344200.30977@pobox.suse.cz>
- <4B671C31.3040902@qvantel.com> <alpine.LNX.2.00.1002011928220.15395@pobox.suse.cz> <4B672EB8.3010609@suse.cz> <4B6C3D79.5080203@adit.fi>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	id S1755923Ab0BBHyT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Feb 2010 02:54:19 -0500
+Date: Tue, 2 Feb 2010 08:54:15 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>, Daro <ghost-rider@aster.pl>,
+	Roman Kellner <muzungu@gmx.net>
+Subject: Re: [PATCH] saa7134: Fix IR support of some ASUS TV-FM 7135   
+ variants
+Message-ID: <20100202085415.38a1e362@hyperion.delvare>
+In-Reply-To: <1265075273.2588.51.camel@localhost>
+References: <20100127120211.2d022375@hyperion.delvare>
+	<4B630179.3080006@redhat.com>
+	<1264812461.16350.90.camel@localhost>
+	<20100130115632.03da7e1b@hyperion.delvare>
+	<1264986995.21486.20.camel@pc07.localdom.local>
+	<20100201105628.77057856@hyperion.delvare>
+	<1265075273.2588.51.camel@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 5 Feb 2010, Pekka Sarnila wrote:
+Hi Hermann,
 
-> > Can't be HID bus with a specific driver used instead now?
+On Tue, 02 Feb 2010 02:47:53 +0100, hermann pitton wrote:
+> Hi Jean,
 > 
-> Well it could, but this way it is much less work and more generic. I use many
-> different joysticks, yokes and pedals. And with some generic modifications and
-> improvements into generic HID layer and generic input layer all worked well.
-> Only joystick layer got to be completely rewritten.
+> Am Montag, den 01.02.2010, 10:56 +0100 schrieb Jean Delvare:
+> > Hi Hermann,
+> > 
+> > On Mon, 01 Feb 2010 02:16:35 +0100, hermann pitton wrote:
+> > > For now, I only faked a P7131 Dual with a broken IR receiver on a 2.6.29
+> > > with recent, you can see that gpio 0x40000 doesn't go high, but your
+> > > patch should enable the remote on that P7131 analog only.
+> > 
+> > I'm not sure why you had to fake anything? What I'd like to know is
+> > simply if my first patch had any negative effect on other cards.
 > 
-> I did never put this upstream because by the time I got my own patches
-> integrated to the (new) kernel, the hid/input layer had developed so much that
-> the patches could no more be used in the latest kernel. So I hand applied them
-> again, and again kernel had moved on, and so on. Also to argue for patches
-> that cover several areas and several maintainers is difficult, and changing a
-> lot at once is always risky. So I gave up.
+> because I simply don't have that Asus My Cinema analog only in question.
 > 
-> If anyone is interested, I could take a look again and see if the changes
-> could be argued and applied incrementally instead of one big bunch.
+> To recap, you previously announced a patch, tested by Daro, claiming to
+> get the remote up under auto detection for that device and I told you
+> having some doubts on it.
 
-Hi Pekka,
+My first patch was not actually tested by Daro. What he tested was
+loading the driver with card=146. At first I thought it was equivalent,
+but since then I have realized it wasn't. That's the reason why the
+"Tested-by:" was turned into a mere "Cc:" on my second and third
+patches.
 
-yes, we are definitely interested (or at least I am).
+> Mauro prefers to have a fix for that single card in need for now.
+> 
+> Since nobody else cares, "For now", see above, I can confirm that your
+> last patch for that single device should work to get IR up with auto
+> detection in delay after we change the card such late with eeprom
+> detection.
+> 
+> The meaning of that byte in use here is unknown to me, we should avoid
+> such as much we can! It can turn out to be only some pseudo service.
+> 
+> If your call for testers on your previous attempt, really reaches some
+> for some reason, I'm with you, but for now I have to keep the car
+> operable within all such snow.
 
-The major rewrite of the HID core to be full-fledged bus was done exactly 
-so that it's easier to add support for new devices, while keeping the main 
-code clean.
-
-Even if you have problems porting the drivers to new infrastructure, you 
-can always post wha you have -- I believe that we will be able to sort it 
-out quickly.
+That I understand. What I don't understand is: if you have a
+SAA7134-based card, why don't you test my second patch (the one moving
+the call to saa7134_input_init1 to saa7134_hwinit2) on it, without
+faking anything? This would be a first, useful data point.
 
 Thanks,
-
 -- 
-Jiri Kosina
-SUSE Labs, Novell Inc.
+Jean Delvare
