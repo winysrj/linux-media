@@ -1,132 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:60317 "EHLO ogre.sisk.pl"
+Received: from psa.adit.fi ([217.112.250.17]:51658 "EHLO psa.adit.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751106Ab0BHWJ2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Feb 2010 17:09:28 -0500
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-To: linux-pm@lists.linux-foundation.org
-Subject: Re: [linux-pm] [PATCH/RESEND] soc-camera: add runtime pm support for subdevices
-Date: Mon, 8 Feb 2010 23:10:08 +0100
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-References: <Pine.LNX.4.64.1002081044150.4936@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1002081044150.4936@axis700.grange>
+	id S1751295Ab0BBPwG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Feb 2010 10:52:06 -0500
+Message-ID: <4B684AA5.8040107@adit.fi>
+Date: Tue, 02 Feb 2010 17:54:13 +0200
+From: Pekka Sarnila <sarnila@adit.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Antti Palosaari <crope@iki.fi>
+CC: Jiri Slaby <jslaby@suse.cz>, Jiri Kosina <jkosina@suse.cz>,
+	Pekka Sarnila <pekka.sarnila@qvantel.com>,
+	linux-media@vger.kernel.org, pb@linuxtv.org, js@linuxtv.org
+Subject: Re: dvb-usb-remote woes [was: HID: ignore afatech 9016]
+References: <alpine.LNX.2.00.1001132111570.30977@pobox.suse.cz> <1263415146-26321-1-git-send-email-jslaby@suse.cz> <alpine.LNX.2.00.1001260156010.30977@pobox.suse.cz> <4B5EFD69.4080802@adit.fi> <alpine.LNX.2.00.1001262344200.30977@pobox.suse.cz> <4B671C31.3040902@qvantel.com> <alpine.LNX.2.00.1002011928220.15395@pobox.suse.cz> <4B672EB8.3010609@suse.cz> <4B674637.8020403@iki.fi>
+In-Reply-To: <4B674637.8020403@iki.fi>
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201002082310.08079.rjw@sisk.pl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 08 February 2010, Guennadi Liakhovetski wrote:
-> To save power soc-camera powers subdevices down, when they are not in use, 
-> if this is supported by the platform. However, the V4L standard dictates, 
-> that video nodes shall preserve configuration between uses. This requires 
-> runtime power management, which is implemented by this patch. It allows 
-> subdevice drivers to specify their runtime power-management methods, by 
-> assigning a type to the video device.
+Ok, that was it, I had the old firmware. Now it works with the patch. I 
+can now see that the afateck driver does not use the HID 
+interface/endpoint (1/83) at all, but vendor specific bulk endpoint (0/81).
 
-You need a support for that at the bus type/device type/device class level,
-because the core doesn't execute the driver callbacks directly.
+The fact that manufacturers have started to more more use the usb vendor 
+class instead of the HID class is probably partly a consequence of HID 
+specification being poorly designed. Oh, well. More work for driver writers.
 
-Rafael
+Anyway, I'm still of the opinion that the ir-to-code translate should be 
+per remote controller not per tv-stick (ideally loaded by kernel from 
+the userspace table, and easily modifiable by userspace program).
 
+All in all the remote controller stack is IMHO a real mess: different 
+level translates (in kernel and in user space), different user program 
+interfaces (keyboard with or without the special keys (many programs 
+recognize only the standard keyboard keys), lircd direct, lircd/dcop). 
+Really easiest is to modify kernel to get what you want. For average 
+user the task of getting remote to do what they want is close to mission 
+impossible. Hope someone would do something about this.
+
+
+Pekka
+
+
+Antti Palosaari wrote:
+> On 02/01/2010 09:42 PM, Jiri Slaby wrote:
 > 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
+>> On 02/01/2010 07:28 PM, Jiri Kosina wrote:
+>>
+>>> On Mon, 1 Feb 2010, Pekka Sarnila wrote:
+>>>
+>>>> I pulled few days ago latest
+>>>>
+>>>>     
+>>>> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+>>>>
+>>>> and compiled it. Everything works fine including the tv-stick and the
+>>>> remote. However I get:
+>>>>
+>>>>    <3>af9015: command failed:255
+>>>>    <3>dvb-usb: error while querying for an remote control event.
+>>
+>>
+>> Yes, I saw this quite recently too. For me it appears when it is booted
+>> up with the stick in. It's still to be fixed.
 > 
-> I've posted this patch to linux-media earlier, but I'd also like to get 
-> comments on linux-pm, sorry to linux-media falks for a duplicate. To 
-> explain a bit - soc_camera.c is a management module, that binds video 
-> interfaces on SoCs and sensor drivers. The calls, that I am adding to 
-> soc_camera.c shall save and restore sensor registers before they are 
-> powered down and after they are powered up.
 > 
-> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-> index 6b3fbcc..53201f3 100644
-> --- a/drivers/media/video/soc_camera.c
-> +++ b/drivers/media/video/soc_camera.c
-> @@ -24,6 +24,7 @@
->  #include <linux/mutex.h>
->  #include <linux/module.h>
->  #include <linux/platform_device.h>
-> +#include <linux/pm_runtime.h>
->  #include <linux/vmalloc.h>
->  
->  #include <media/soc_camera.h>
-> @@ -387,6 +388,11 @@ static int soc_camera_open(struct file *file)
->  			goto eiciadd;
->  		}
->  
-> +		pm_runtime_enable(&icd->vdev->dev);
-> +		ret = pm_runtime_resume(&icd->vdev->dev);
-> +		if (ret < 0 && ret != -ENOSYS)
-> +			goto eresume;
-> +
->  		/*
->  		 * Try to configure with default parameters. Notice: this is the
->  		 * very first open, so, we cannot race against other calls,
-> @@ -408,10 +414,12 @@ static int soc_camera_open(struct file *file)
->  	return 0;
->  
->  	/*
-> -	 * First five errors are entered with the .video_lock held
-> +	 * First four errors are entered with the .video_lock held
->  	 * and use_count == 1
->  	 */
->  esfmt:
-> +	pm_runtime_disable(&icd->vdev->dev);
-> +eresume:
->  	ici->ops->remove(icd);
->  eiciadd:
->  	if (icl->power)
-> @@ -436,7 +444,11 @@ static int soc_camera_close(struct file *file)
->  	if (!icd->use_count) {
->  		struct soc_camera_link *icl = to_soc_camera_link(icd);
->  
-> +		pm_runtime_suspend(&icd->vdev->dev);
-> +		pm_runtime_disable(&icd->vdev->dev);
-> +
->  		ici->ops->remove(icd);
-> +
->  		if (icl->power)
->  			icl->power(icd->pdev, 0);
->  	}
-> @@ -1294,6 +1306,7 @@ static int video_dev_create(struct soc_camera_device *icd)
->   */
->  static int soc_camera_video_start(struct soc_camera_device *icd)
->  {
-> +	struct device_type *type = icd->vdev->dev.type;
->  	int ret;
->  
->  	if (!icd->dev.parent)
-> @@ -1310,6 +1323,9 @@ static int soc_camera_video_start(struct soc_camera_device *icd)
->  		return ret;
->  	}
->  
-> +	/* Restore device type, possibly set by the subdevice driver */
-> +	icd->vdev->dev.type = type;
-> +
->  	return 0;
->  }
->  
-> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-> index dcc5b86..58b39a9 100644
-> --- a/include/media/soc_camera.h
-> +++ b/include/media/soc_camera.h
-> @@ -282,4 +282,12 @@ static inline void soc_camera_limit_side(unsigned int *start,
->  extern unsigned long soc_camera_apply_sensor_flags(struct soc_camera_link *icl,
->  						   unsigned long flags);
->  
-> +/* This is only temporary here - until v4l2-subdev begins to link to video_device */
-> +#include <linux/i2c.h>
-> +static inline struct video_device *soc_camera_i2c_to_vdev(struct i2c_client *client)
-> +{
-> +	struct soc_camera_device *icd = client->dev.platform_data;
-> +	return icd->vdev;
-> +}
-> +
->  #endif
-> _______________________________________________
+> I suspect you are using old firmware, 4.65.0.0 probably, that does not 
+> support remote polling and thus this 255 errors seen.
+> 
+> regards
+> Antti
