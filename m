@@ -1,51 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48]:36081 "EHLO
-	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752547Ab0BVRf4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 12:35:56 -0500
-From: stefan.ringel@arcor.de
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3745 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756004Ab0BBTrV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Feb 2010 14:47:21 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id o12JlGvF076836
+	for <linux-media@vger.kernel.org>; Tue, 2 Feb 2010 20:47:20 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 2 Feb 2010 20:47:16 +0100 (CET)
+Message-Id: <201002021947.o12JlGvF076836@smtp-vbr5.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
-	Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH 3/3] tm6000: bugfix i2c addr
-Date: Mon, 22 Feb 2010 18:35:07 +0100
-Message-Id: <1266860107-9065-3-git-send-email-stefan.ringel@arcor.de>
-In-Reply-To: <1266860107-9065-2-git-send-email-stefan.ringel@arcor.de>
-References: <1266860107-9065-1-git-send-email-stefan.ringel@arcor.de>
- <1266860107-9065-2-git-send-email-stefan.ringel@arcor.de>
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <stefan.ringel@arcor.de>
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
----
- drivers/staging/tm6000/tm6000-i2c.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Results of the daily build of v4l-dvb:
 
-diff --git a/drivers/staging/tm6000/tm6000-i2c.c b/drivers/staging/tm6000/tm6000-i2c.c
-index 0da40ec..8ae988d 100644
---- a/drivers/staging/tm6000/tm6000-i2c.c
-+++ b/drivers/staging/tm6000/tm6000-i2c.c
-@@ -126,7 +126,7 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
- 
- 			i++;
- 
--			if (addr == dev->tuner_addr) {
-+			if (addr == dev->tuner_addr << 1) {
- 				tm6000_set_reg(dev, 0x32, 0,0);
- 				tm6000_set_reg(dev, 0x33, 0,0);
- 			}
-@@ -141,7 +141,7 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
- 			rc = tm6000_i2c_send_regs(dev, addr, msgs[i].buf[0],
- 				msgs[i].buf + 1, msgs[i].len - 1);
- 
--			if (addr == dev->tuner_addr) {
-+			if (addr == dev->tuner_addr  << 1) {
- 				tm6000_set_reg(dev, 0x32, 0,0);
- 				tm6000_set_reg(dev, 0x33, 0,0);
- 			}
--- 
-1.6.6.1
+date:        Tue Feb  2 19:00:06 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14096:860d29bfa3a7
+gcc version: i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:     2.6.32.5
 
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-rc5-armv5: OK
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-rc5-armv5-davinci: OK
+linux-2.6.32.6-armv5-dm365: ERRORS
+linux-2.6.33-rc5-armv5-dm365: ERRORS
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-rc5-armv5-ixp: OK
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-rc5-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.17-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.20-i686: OK
+linux-2.6.26.8-i686: OK
+linux-2.6.27.44-i686: OK
+linux-2.6.28.10-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: OK
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-rc5-i686: OK
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-rc5-m32r: OK
+linux-2.6.32.6-mips: OK
+linux-2.6.33-rc5-mips: OK
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-rc5-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.17-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-rc5-x86_64: WARNINGS
+spec: OK
+sparse (linux-2.6.32.6): ERRORS
+sparse (linux-2.6.33-rc5): ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
