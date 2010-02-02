@@ -1,107 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:48834 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755337Ab0BBPaG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Feb 2010 10:30:06 -0500
-Received: by vws20 with SMTP id 20so54632vws.19
-        for <linux-media@vger.kernel.org>; Tue, 02 Feb 2010 07:30:05 -0800 (PST)
-Message-ID: <4B6844F6.2090404@gmail.com>
-Date: Tue, 02 Feb 2010 13:29:58 -0200
-From: Mauro Carvalho Chehab <maurochehab@gmail.com>
+Received: from mail00d.mail.t-online.hu ([84.2.42.5]:62108 "EHLO
+	mail00d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756360Ab0BBSzG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Feb 2010 13:55:06 -0500
+Message-ID: <4B6874DC.3050009@freemail.hu>
+Date: Tue, 02 Feb 2010 19:54:20 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-To: Andy Walls <awalls@radix.net>
-CC: "Aleksandr V. Piskunov" <aleksandr.v.piskunov@gmail.com>,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] AVerTV MCE 116 Plus radio
-References: <20091006080406.GA22207@moon> <20091006081159.GB22207@moon>	 <20091011010039.GA4726@moon> <1258774767.9080.1.camel@palomino.walls.org>
-In-Reply-To: <1258774767.9080.1.camel@palomino.walls.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Luc Saillard <luc@saillard.org>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH ] libv4l: skip false Pixart markers
+References: <4B67466F.1030301@freemail.hu> <4B6751F3.3040407@freemail.hu> <4B67FEAF.8050603@redhat.com>
+In-Reply-To: <4B67FEAF.8050603@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andy,
-
-This patch has never been applied or nacked. From your last comment, it
-seems that you're waiting for Aleksandr Signed-of-by:.
-
-If this is still the case, I suggest you to wait for a couple days. If he doesn't
-send it, it is safe to add it without his SOB, since it is really a trivial change.
-
-Cheers,
-Mauro.
-
-Andy Walls wrote:
-> On Sun, 2009-10-11 at 04:01 +0300, Aleksandr V. Piskunov wrote:
->> On Tue, Oct 06, 2009 at 11:11:59AM +0300, Aleksandr V. Piskunov wrote:
->>> On Tue, Oct 06, 2009 at 11:04:06AM +0300, Aleksandr V. Piskunov wrote:
->>>> Added FM radio support to Avermedia AVerTV MCE 116 Plus card
->>>>
->>> What leaves me puzzled, radio only works ok with ivtv newi2c=1
->>>
->>> With default newi2c audio is tinny, metallic, with some strange static.
->>> Similar problem with pvr-150 was reported years ago, guess issue is still
->>> unresolved, perhaps something with cx25840..
->> This particular "tinny" audio problem is definitely I2C speed related, to be
->> more precise, audio only goes bad if i2c-algo-bit is being run with udelay
->> less than 15, i.e. i2c bus frequency is higher than 30 KHz.
->>
->> So with default udelay=10 or udelay=5 (optimal for IR reciever on that board)
->> radio goes bad. Running with newi2c=1 is ok, but again it isn't optimal for IR
->> reciever on AVerTV M116.
->>
->> I2C reads/writes to cx25840 themself are ok, verified using register readback
->> after each write/write4. Problem seems to be that with cx25840 register writes
->> coming too fast on higher i2c bus speed, switching register 0x808 _from_ 
->> TV standard autodetection mode (0xff) _to_ FM radio mode (0xf9) leaves chip 
->> audio detection routine in inconsistent state.
->>
->> The only solution I found is to do standard routine (assert_reset + write +
->> deassert_reset) followed by 50ms delay and another reset.
->>
->> Following patch works_for_me, can be improved to only delay/doublereset when
->> really needed, etc. Andy, could you comment/review?
+Hans de Goede wrote:
+> Hi,
 > 
-> Aleksandr,
-> 
-> Could you provide your Signed-off-by for this patch?  I'm going to
-> commit it as is.
-> 
-> Thanks,
-> Andy
-> 
->> diff --git a/linux/drivers/media/video/cx25840/cx25840-core.c b/linux/drivers/media/video/cx25840/cx25840-core.c
->> --- a/linux/drivers/media/video/cx25840/cx25840-core.c
->> +++ b/linux/drivers/media/video/cx25840/cx25840-core.c
->> @@ -626,7 +642,13 @@
->>  	if (state->radio) {
->>  		cx25840_write(client, 0x808, 0xf9);
->>  		cx25840_write(client, 0x80b, 0x00);
->> -	}
->> +		/* Double reset cx2384x after setting FM radio mode, helps to
->> +		   avoid "tinny" audio when ivtv I2C bus is being run on
->> +		   frequency higher than 30 KHz */
->> +		cx25840_and_or(client, 0x810, ~0x01, 0);
->> +		msleep(50);
->> +		cx25840_and_or(client, 0x810, ~0x01, 1);
->> +	}	
->>  	else if (std & V4L2_STD_525_60) {
->>  		/* Certain Hauppauge PVR150 models have a hardware bug
->>  		   that causes audio to drop out. For these models the
+> On 02/01/2010 11:13 PM, Németh Márton wrote:
+>> From: Márton Németh<nm127@freemail.hu>
 >>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> The byte sequence 0xff, 0xff, 0xff 0xff is not a real marker to skip, instead
+>> it is one byte from the image and the following three 0xff bytes might belong
+>> to a real marker. Modify pixart_fill_nbits() macro to pass the first 0xff byte
+>> as an image data.
 >>
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Oh, good catch. I'm still seeing the occasional bad frame though :(
 
+The same at my side, this patch alone does not solve the whole problem complete.
+I have the feeling that at least same of the corrupted frames will not come with
+this patch, through I haven't verified this with measurement.
 
--- 
+On the other hand, in my previous email used a little bit different code: I jumped
+over the 1024 and 512 bytes without parsing it. That would be maybe necessary
+to add.
 
-Cheers,
-Mauro
+By the way, is there any reason why pixart_fill_nbits() is a macro?
+
+> While on the subject of the pac7302. I've been playing around a bit, and I have the
+> feeling that if we were to go for a lower auto gain target (set autogain off and
+> lower exposure, you can do this ie with v4l2ucp), combined with a gamma correction of
+> 1500 (again use ie v4l2ucp), the images is much better (less over exposed, more
+> contrast).
+> 
+> Do you agree ?
+
+Well, my Labtec Webcam 2200 works only with acceptable indoors, when I try to
+capture something outdoors under direct sunshine conditions I get overexposed
+frames. I found, however, an interesting pointer in two cameras' user's manual,
+see the Note column:
+
+  http://linuxtv.org/wiki/index.php/PixArt_PAC7301/PAC7302#Identification
+
+There is a setting indoor/outdoor which is currently not available in gspca_pac7302
+driver. Maybe this would be an interesting point to figure out which register
+is related to this setting.
+
+Regards,
+
+	Márton Németh
+
+>> Signed-off-by: Márton Németh<nm127@freemail.hu>
+>> ---
+>> diff -r f23c5a878fb1 v4l2-apps/libv4l/libv4lconvert/tinyjpeg.c
+>> --- a/v4l2-apps/libv4l/libv4lconvert/tinyjpeg.c	Mon Feb 01 13:32:46 2010 +0100
+>> +++ b/v4l2-apps/libv4l/libv4lconvert/tinyjpeg.c	Mon Feb 01 23:05:39 2010 +0100
+>> @@ -339,10 +339,15 @@
+>>   	    } \
+>>   	    break; \
+>>   	  case 0xff: \
+>> -	    if (stream[1] == 0xff&&  (stream[2]<  7 || stream[2] == 0xff)) { \
+>> -	      stream += 3; \
+>> -	      c = *stream++; \
+>> -	      break; \
+>> +	    if (stream[1] == 0xff) { \
+>> +		if (stream[2]<  7) { \
+>> +		    stream += 3; \
+>> +		    c = *stream++; \
+>> +		    break; \
+>> +		} else if (stream[2] == 0xff) { \
+>> +		    /* four 0xff in a row: the first belongs to the image data */ \
+>> +		    break; \
+>> +		}\
+>>   	    } \
+>>   	    /* Error fall through */ \
+>>   	  default: \
+> 
+> 
+
