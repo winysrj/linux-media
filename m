@@ -1,146 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tichy.grunau.be ([85.131.189.73]:49938 "EHLO tichy.grunau.be"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756322Ab0BJSfv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Feb 2010 13:35:51 -0500
-Received: from localhost (p5DDC401F.dip0.t-ipconnect.de [93.220.64.31])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by tichy.grunau.be (Postfix) with ESMTPSA id C528190076
-	for <linux-media@vger.kernel.org>; Wed, 10 Feb 2010 19:35:51 +0100 (CET)
-Date: Wed, 10 Feb 2010 19:37:26 +0100
-From: Janne Grunau <j@jannau.net>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 7 of 7] azap: implement record program and service
- information with -p
-Message-ID: <20100210183726.GR8026@aniel.lan>
-References: <patchbomb.1265826616@aniel.lan>
+Received: from mail-in-13.arcor-online.net ([151.189.21.53]:38151 "EHLO
+	mail-in-13.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932439Ab0BCUcb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Feb 2010 15:32:31 -0500
+Message-ID: <4B69DD3F.2000103@arcor.de>
+Date: Wed, 03 Feb 2010 21:31:59 +0100
+From: Stefan Ringel <stefan.ringel@arcor.de>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="hcut4fGOf7Kh6EdG"
-Content-Disposition: inline
-In-Reply-To: <patchbomb.1265826616@aniel.lan>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: [PATCH 12/15] -  tm6000 bugfix tuner reset time and tuner param
+References: <4B673790.3030706@arcor.de> <4B673B2D.6040507@arcor.de> <4B675B19.3080705@redhat.com> <4B685FB9.1010805@arcor.de> <4B688507.606@redhat.com> <4B688E41.2050806@arcor.de> <4B689094.2070204@redhat.com> <4B6894FE.6010202@arcor.de> <4B69D83D.5050809@arcor.de> <4B69D8CC.2030008@arcor.de>
+In-Reply-To: <4B69D8CC.2030008@arcor.de>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
 
---hcut4fGOf7Kh6EdG
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
- util/szap/azap.c |  45 ++++++++++++++++++++++++++++++++++++++-------
- 1 files changed, 38 insertions(+), 7 deletions(-)
-
-
-
---hcut4fGOf7Kh6EdG
-Content-Type: text/x-patch; charset=us-ascii
-Content-Disposition: inline; filename="dvb-apps-7.patch"
-
-# HG changeset patch
-# User Janne Grunau <j@jannau.net>
-# Date 1265824500 -3600
-# Node ID eb8e295536aa230a2b5f1fbab777786ab4b99527
-# Parent  c38dce87f96ab87a59c3565da978d3564ff438c3
-azap: implement record program and service information with -p
-
-diff -r c38dce87f96a -r eb8e295536aa util/szap/azap.c
---- a/util/szap/azap.c	Wed Feb 10 18:54:38 2010 +0100
-+++ b/util/szap/azap.c	Wed Feb 10 18:55:00 2010 +0100
-@@ -171,7 +171,8 @@
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -221,12 +239,13 @@ struct usb_device_id tm6000_id_table [] = {
+     { USB_DEVICE(0x2040, 0x6600), .driver_info =
+TM6010_BOARD_HAUPPAUGE_900H },
+     { USB_DEVICE(0x6000, 0xdec0), .driver_info =
+TM6010_BOARD_BEHOLD_WANDER },
+     { USB_DEVICE(0x6000, 0xdec1), .driver_info =
+TM6010_BOARD_BEHOLD_VOYAGER },
+     { USB_DEVICE(0x0ccd, 0x0086), .driver_info =
+TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE },
+     { },
+ };
  
+ /* Tuner callback to provide the proper gpio changes needed for xc2028 */
  
- int parse(const char *fname, const char *channel,
--	  struct dvb_frontend_parameters *frontend, int *vpid, int *apid)
-+	  struct dvb_frontend_parameters *frontend, int *vpid, int *apid,
-+	  int *pno)
+-static int tm6000_tuner_callback(void *ptr, int component, int command,
+int arg)
++int tm6000_tuner_callback(void *ptr, int component, int command, int arg)
  {
- 	int fd;
- 	int err;
-@@ -202,7 +203,10 @@
- 		return -5;
+     int rc=0;
+     struct tm6000_core *dev = ptr;
+@@ -252,11 +271,14 @@ static int tm6000_tuner_callback(void *ptr, int
+component, int command, int arg)
+         switch (arg) {
+         case 0:
+             tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
++                    dev->tuner_reset_gpio, 0x01);
++            msleep(60);
++            tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
+                     dev->tuner_reset_gpio, 0x00);
+-            msleep(130);
++            msleep(75);
+             tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
+                     dev->tuner_reset_gpio, 0x01);
+-            msleep(130);
++            msleep(60);
+             break;
+         case 1:
+             tm6000_set_reg (dev, REQ_04_EN_DISABLE_MCU_INT,
+@@ -290,7 +332,7 @@ static void tm6000_config_tuner (struct tm6000_core
+*dev)
+     memset(&tun_setup, 0, sizeof(tun_setup));
+     tun_setup.type   = dev->tuner_type;
+     tun_setup.addr   = dev->tuner_addr;
+-    tun_setup.mode_mask = T_ANALOG_TV | T_RADIO;
++    tun_setup.mode_mask = T_ANALOG_TV | T_RADIO | T_DIGITAL_TV;
+     tun_setup.tuner_callback = tm6000_tuner_callback;
  
- 	if ((err = try_parse_int(fd, apid, "Audio PID")))
--		return -6;
-+	    return -6;
-+
-+	if ((err = try_parse_int(fd, pno, "MPEG Program Number")))
-+	    return -7;
+     v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_type_addr,
+&tun_setup);
+@@ -302,15 +344,19 @@ static void tm6000_config_tuner (struct
+tm6000_core *dev)
+         memset(&xc2028_cfg, 0, sizeof(xc2028_cfg));
+         memset (&ctl,0,sizeof(ctl));
  
- 	close(fd);
+-        ctl.mts   = 1;
+-        ctl.read_not_reliable = 1;
++        ctl.input1 = 1;
++        ctl.read_not_reliable = 0;
+         ctl.msleep = 10;
+-
++        ctl.demod = XC3028_FE_ZARLINK456;
++        ctl.vhfbw7 = 1;
++        ctl.uhfbw8 = 1;
++        ctl.switch_mode = 1;
+         xc2028_cfg.tuner = TUNER_XC2028;
+         xc2028_cfg.priv  = &ctl;
  
-@@ -275,12 +279,12 @@
- 	char *homedir = getenv ("HOME");
- 	char *confname = NULL;
- 	char *channel = NULL;
--	int adapter = 0, frontend = 0, demux = 0, dvr = 0;
--	int vpid, apid;
--	int frontend_fd, audio_fd, video_fd;
-+	int adapter = 0, frontend = 0, demux = 0, dvr = 0, rec_psi = 0;
-+	int vpid, apid, pno, pmtpid = 0;
-+	int frontend_fd, audio_fd, video_fd, pat_fd, pmt_fd;
- 	int opt;
- 
--	while ((opt = getopt(argc, argv, "hrn:a:f:d:c:")) != -1) {
-+	while ((opt = getopt(argc, argv, "hrpn:a:f:d:c:")) != -1) {
- 		switch (opt) {
- 		case 'a':
- 			adapter = strtoul(optarg, NULL, 0);
-@@ -294,6 +298,9 @@
- 		case 'r':
- 			dvr = 1;
- 			break;
-+		case 'p':
-+			rec_psi = 1;
-+			break;
- 		case 'c':
- 			confname = optarg;
- 			break;
-@@ -333,7 +340,7 @@
- 
- 	memset(&frontend_param, 0, sizeof(struct dvb_frontend_parameters));
- 
--	if (parse (confname, channel, &frontend_param, &vpid, &apid))
-+	if (parse (confname, channel, &frontend_param, &vpid, &apid, &pno))
- 		return -1;
- 
- 	if ((frontend_fd = open(FRONTEND_DEV, O_RDWR)) < 0) {
-@@ -344,6 +351,28 @@
- 	if (setup_frontend (frontend_fd, &frontend_param) < 0)
- 		return -1;
- 
-+	if (rec_psi) {
-+	    pmtpid = get_pmt_pid(DEMUX_DEV, pno);
-+	    if (pmtpid <= 0) {
-+		fprintf(stderr,"couldn't find pmt-pid for program number %04x\n", pno);
-+		return -1;
-+	    }
-+
-+	    if ((pat_fd = open(DEMUX_DEV, O_RDWR)) < 0) {
-+		perror("opening pat demux failed");
-+		return -1;
-+	    }
-+	    if (set_pesfilter(pat_fd, 0, DMX_PES_OTHER, dvr) < 0)
-+		return -1;
-+
-+	    if ((pmt_fd = open(DEMUX_DEV, O_RDWR)) < 0) {
-+		perror("opening pmt demux failed");
-+		return -1;
-+	    }
-+	    if (set_pesfilter(pmt_fd, pmtpid, DMX_PES_OTHER, dvr) < 0)
-+		return -1;
-+	}
-+
-         if ((video_fd = open(DEMUX_DEV, O_RDWR)) < 0) {
-                 PERROR("failed opening '%s'", DEMUX_DEV);
-                 return -1;
-@@ -363,6 +392,8 @@
- 
- 	check_frontend (frontend_fd);
- 
-+	close (pat_fd);
-+	close (pmt_fd);
- 	close (audio_fd);
- 	close (video_fd);
- 	close (frontend_fd);
-
---hcut4fGOf7Kh6EdG--
+         switch(dev->model) {
+         case TM6010_BOARD_HAUPPAUGE_900H:
++        case TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE:
+             ctl.fname = "xc3028L-v36.fw";
+             break;
+         default:
