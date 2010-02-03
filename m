@@ -1,446 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway15.websitewelcome.com ([69.93.154.23]:33580 "HELO
-	gateway15.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1757683Ab0BLAkU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Feb 2010 19:40:20 -0500
-Received: from [66.15.212.169] (port=10328 helo=[10.140.5.12])
-	by gator886.hostgator.com with esmtpsa (SSLv3:AES256-SHA:256)
-	(Exim 4.69)
-	(envelope-from <pete@sensoray.com>)
-	id 1NfjTV-0005pD-Ju
-	for linux-media@vger.kernel.org; Thu, 11 Feb 2010 18:33:37 -0600
-Subject: [PATCH 4/5]
-From: Pete Eberlein <pete@sensoray.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain
-Date: Thu, 11 Feb 2010 16:33:20 -0800
-Message-Id: <1265934800.4626.253.camel@pete-desktop>
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:18516 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932814Ab0BCUkH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Feb 2010 15:40:07 -0500
+Message-ID: <4B69DF20.50205@redhat.com>
+Date: Wed, 03 Feb 2010 18:40:00 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Stefan Ringel <stefan.ringel@arcor.de>
+CC: linux-media@vger.kernel.org,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [PATCH 9/15] -  tm6000 analog digital switch
+References: <4B673790.3030706@arcor.de> <4B673B2D.6040507@arcor.de> <4B675B19.3080705@redhat.com> <4B685FB9.1010805@arcor.de> <4B688507.606@redhat.com> <4B688E41.2050806@arcor.de> <4B689094.2070204@redhat.com> <4B6894FE.6010202@arcor.de> <4B69D83D.5050809@arcor.de> <4B69D8CC.2030008@arcor.de> <4B69DBCC.50108@arcor.de>
+In-Reply-To: <4B69DBCC.50108@arcor.de>
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pete Eberlein <pete@sensoray.com>
+Stefan Ringel wrote:
 
-This is a subdev conversion of wis-tw9903 video decoder from the
-staging go7007 directory.  This obsoletes the wis-tw9903 driver.
+> @@ -994,6 +995,13 @@ static int generic_set_freq(struct dvb_frontend
+> *fe, u32 freq /* in HZ */,
 
-Priority: normal
+Your emailer is damaging the patches. The above should be in the same line,
+otherwise the patch won't apply.
 
-Signed-off-by: Pete Eberlein <pete@sensoray.com>
+It seems that you're using Thunderbird, right?
 
-diff -r 024987c00f06 -r 378d3bc9a3d6 linux/drivers/media/video/Kconfig
---- a/linux/drivers/media/video/Kconfig	Thu Feb 11 14:34:39 2010 -0800
-+++ b/linux/drivers/media/video/Kconfig	Thu Feb 11 14:48:26 2010 -0800
-@@ -374,6 +374,12 @@
- 	---help---
- 	  Support for the Techwell 2804 video decoder.
- 
-+config VIDEO_TW9903
-+	tristate "Techwell 9903 video decoder"
-+	depends on VIDEO_V4L2 && I2C
-+	---help---
-+	  Support for the Techwell 9903 video decoder.
-+
- config VIDEO_TVP514X
- 	tristate "Texas Instruments TVP514x video decoder"
- 	depends on VIDEO_V4L2 && I2C
-diff -r 024987c00f06 -r 378d3bc9a3d6 linux/drivers/media/video/Makefile
---- a/linux/drivers/media/video/Makefile	Thu Feb 11 14:34:39 2010 -0800
-+++ b/linux/drivers/media/video/Makefile	Thu Feb 11 14:48:26 2010 -0800
-@@ -72,6 +72,7 @@
- obj-$(CONFIG_VIDEO_TVEEPROM) += tveeprom.o
- obj-$(CONFIG_VIDEO_MT9V011) += mt9v011.o
- obj-$(CONFIG_VIDEO_TW2804) += tw2804.o
-+obj-$(CONFIG_VIDEO_TW9903) += tw9903.o
- 
- obj-$(CONFIG_SOC_CAMERA_MT9M001)	+= mt9m001.o
- obj-$(CONFIG_SOC_CAMERA_MT9M111)	+= mt9m111.o
-diff -r 024987c00f06 -r 378d3bc9a3d6 linux/drivers/media/video/tw9903.c
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/linux/drivers/media/video/tw9903.c	Thu Feb 11 14:48:26 2010 -0800
-@@ -0,0 +1,370 @@
-+/*
-+ * Copyright (C) 2005-2006 Micronas USA Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License (Version 2) as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software Foundation,
-+ * Inc., 59 Temple Place - Suite 330, Boston MA 02111-1307, USA.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/i2c.h>
-+#include <linux/videodev2.h>
-+#include <linux/ioctl.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-i2c-drv.h>
-+
-+MODULE_DESCRIPTION("TW9903 I2C subdev driver");
-+MODULE_LICENSE("GPL v2");
-+
-+struct tw9903 {
-+	struct v4l2_subdev sd;
-+	v4l2_std_id norm;
-+	int brightness;
-+	int contrast;
-+#if 0 /* keep */
-+	int saturation;
-+#endif
-+	int hue;
-+};
-+
-+static inline struct tw9903 *to_state(struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct tw9903, sd);
-+}
-+
-+static u8 initial_registers[] =
-+{
-+	0x02, 0x44, /* input 1, composite */
-+	0x03, 0x92, /* correct digital format */
-+	0x04, 0x00,
-+	0x05, 0x80, /* or 0x00 for PAL */
-+	0x06, 0x40, /* second internal current reference */
-+	0x07, 0x02, /* window */
-+	0x08, 0x14, /* window */
-+	0x09, 0xf0, /* window */
-+	0x0a, 0x81, /* window */
-+	0x0b, 0xd0, /* window */
-+	0x0c, 0x8c,
-+	0x0d, 0x00, /* scaling */
-+	0x0e, 0x11, /* scaling */
-+	0x0f, 0x00, /* scaling */
-+	0x10, 0x00, /* brightness */
-+	0x11, 0x60, /* contrast */
-+	0x12, 0x01, /* sharpness */
-+	0x13, 0x7f, /* U gain */
-+	0x14, 0x5a, /* V gain */
-+	0x15, 0x00, /* hue */
-+	0x16, 0xc3, /* sharpness */
-+	0x18, 0x00,
-+	0x19, 0x58, /* vbi */
-+	0x1a, 0x80,
-+	0x1c, 0x0f, /* video norm */
-+	0x1d, 0x7f, /* video norm */
-+	0x20, 0xa0, /* clamping gain (working 0x50) */
-+	0x21, 0x22,
-+	0x22, 0xf0,
-+	0x23, 0xfe,
-+	0x24, 0x3c,
-+	0x25, 0x38,
-+	0x26, 0x44,
-+	0x27, 0x20,
-+	0x28, 0x00,
-+	0x29, 0x15,
-+	0x2a, 0xa0,
-+	0x2b, 0x44,
-+	0x2c, 0x37,
-+	0x2d, 0x00,
-+	0x2e, 0xa5, /* burst PLL control (working: a9) */
-+	0x2f, 0xe0, /* 0xea is blue test frame -- 0xe0 for normal */
-+	0x31, 0x00,
-+	0x33, 0x22,
-+	0x34, 0x11,
-+	0x35, 0x35,
-+	0x3b, 0x05,
-+	0x06, 0xc0, /* reset device */
-+	0x00, 0x00, /* Terminator (reg 0x00 is read-only) */
-+};
-+
-+static int write_reg(struct v4l2_subdev *sd, u8 reg, u8 value)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+
-+	return i2c_smbus_write_byte_data(client, reg, value);
-+}
-+
-+static int write_regs(struct v4l2_subdev *sd, u8 *regs)
-+{
-+	int i;
-+
-+	for (i = 0; regs[i] != 0x00; i += 2)
-+		if (write_reg(sd, regs[i], regs[i + 1]) < 0)
-+			return -1;
-+	return 0;
-+}
-+
-+static int tw9903_s_video_routing(struct v4l2_subdev *sd, u32 input,
-+				      u32 output, u32 config)
-+{
-+	write_reg(sd, 0x02, 0x40 | (input << 1));
-+	return 0;
-+}
-+
-+#if 0 /* keep */
-+   /* The scaler on this thing seems to be horribly broken */
-+	case DECODER_SET_RESOLUTION:
-+	{
-+		struct video_decoder_resolution *res = arg;
-+		/*int hscale = 256 * 720 / res->width;*/
-+		int hscale = 256 * 720 / (res->width - (res->width > 704 ? 0 : 8));
-+		int vscale = 256 * (dec->norm & V4L2_STD_NTSC ?  240 : 288)
-+				/ res->height;
-+		u8 regs[] = {
-+			0x0d, vscale & 0xff,
-+			0x0f, hscale & 0xff,
-+			0x0e, ((vscale & 0xf00) >> 4) | ((hscale & 0xf00) >> 8),
-+			0x06, 0xc0, /* reset device */
-+			0,	0,
-+		};
-+		printk(KERN_DEBUG "vscale is %04x, hscale is %04x\n",
-+				vscale, hscale);
-+		/*write_regs(client, regs);*/
-+		break;
-+	}
-+#endif
-+
-+static int tw9903_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
-+{
-+	struct tw9903 *dec = to_state(sd);
-+	u8 regs[] = {
-+		0x05, norm & V4L2_STD_NTSC ? 0x80 : 0x00,
-+		0x07, norm & V4L2_STD_NTSC ? 0x02 : 0x12,
-+		0x08, norm & V4L2_STD_NTSC ? 0x14 : 0x18,
-+		0x09, norm & V4L2_STD_NTSC ? 0xf0 : 0x20,
-+		0,	0,
-+	};
-+	write_regs(sd, regs);
-+	dec->norm = norm;
-+	return 0;
-+}
-+
-+static int tw9903_queryctrl(struct v4l2_subdev *sd,
-+				 struct v4l2_queryctrl *query)
-+{
-+	static const u32 user_ctrls[] = {
-+		V4L2_CID_BRIGHTNESS,
-+		V4L2_CID_CONTRAST,
-+		V4L2_CID_SATURATION,
-+		V4L2_CID_HUE,
-+		0
-+	};
-+	static const u32 *ctrl_classes[] = {
-+		user_ctrls,
-+		NULL
-+	};
-+
-+	query->id = v4l2_ctrl_next(ctrl_classes, query->id);
-+	switch (query->id) {
-+	case V4L2_CID_BRIGHTNESS:
-+		return v4l2_ctrl_query_fill(query, -128, 127, 1, 0);
-+	case V4L2_CID_CONTRAST:
-+		return v4l2_ctrl_query_fill(query, 0, 255, 1, 0x60);
-+#if 0 /* keep */
-+	/* I don't understand how the Chroma Gain registers work... */
-+	case V4L2_CID_SATURATION:
-+		return v4l2_ctrl_query_fill(query, 0, 127, 1, 64);
-+#endif
-+	case V4L2_CID_HUE:
-+		return v4l2_ctrl_query_fill(query, -128, 127, 1, 0);
-+	default:
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+
-+static int tw9903_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-+{
-+	struct tw9903 *dec = to_state(sd);
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_BRIGHTNESS:
-+		if (ctrl->value > 127)
-+			dec->brightness = 127;
-+		else if (ctrl->value < -128)
-+			dec->brightness = -128;
-+		else
-+			dec->brightness = ctrl->value;
-+		write_reg(sd, 0x10, dec->brightness);
-+		break;
-+	case V4L2_CID_CONTRAST:
-+		if (ctrl->value > 255)
-+			dec->contrast = 255;
-+		else if (ctrl->value < 0)
-+			dec->contrast = 0;
-+		else
-+			dec->contrast = ctrl->value;
-+		write_reg(sd, 0x11, dec->contrast);
-+		break;
-+#if 0 /* keep */
-+	case V4L2_CID_SATURATION:
-+		if (ctrl->value > 127)
-+			dec->saturation = 127;
-+		else if (ctrl->value < 0)
-+			dec->saturation = 0;
-+		else
-+			dec->saturation = ctrl->value;
-+		/*write_reg(sd, 0x0c, dec->saturation);*/
-+		break;
-+#endif
-+	case V4L2_CID_HUE:
-+		if (ctrl->value > 127)
-+			dec->hue = 127;
-+		else if (ctrl->value < -128)
-+			dec->hue = -128;
-+		else
-+			dec->hue = ctrl->value;
-+		write_reg(sd, 0x15, dec->hue);
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+static int tw9903_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-+{
-+	struct tw9903 *dec = to_state(sd);
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_BRIGHTNESS:
-+		ctrl->value = dec->brightness;
-+		break;
-+	case V4L2_CID_CONTRAST:
-+		ctrl->value = dec->contrast;
-+		break;
-+#if 0 /* keep */
-+	case V4L2_CID_SATURATION:
-+		ctrl->value = dec->saturation;
-+		break;
-+#endif
-+	case V4L2_CID_HUE:
-+		ctrl->value = dec->hue;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+static int tw9903_log_status(struct v4l2_subdev *sd)
-+{
-+	struct tw9903 *dec = to_state(sd);
-+
-+	v4l2_info(sd, "Standard: %s\n", dec->norm == V4L2_STD_NTSC ? "NTSC" :
-+					dec->norm == V4L2_STD_PAL ? "PAL" :
-+					dec->norm == V4L2_STD_SECAM ? "SECAM" :
-+					"unknown");
-+	v4l2_info(sd, "Brightness: %d\n", dec->brightness);
-+	v4l2_info(sd, "Contrast: %d\n", dec->contrast);
-+#if 0 /* keep */
-+	v4l2_info(sd, "Saturation: %d\n", dec->saturation);
-+#endif
-+	v4l2_info(sd, "Hue: %d\n", dec->hue);
-+	return 0;
-+}
-+
-+/* --------------------------------------------------------------------------*/
-+
-+static const struct v4l2_subdev_core_ops tw9903_core_ops = {
-+	.log_status = tw9903_log_status,
-+	.g_ctrl = tw9903_g_ctrl,
-+	.s_ctrl = tw9903_s_ctrl,
-+	.queryctrl = tw9903_queryctrl,
-+	.s_std = tw9903_s_std,
-+};
-+
-+static const struct v4l2_subdev_video_ops tw9903_video_ops = {
-+	.s_routing = tw9903_s_video_routing,
-+};
-+
-+static const struct v4l2_subdev_ops tw9903_ops = {
-+	.core = &tw9903_core_ops,
-+	.video = &tw9903_video_ops,
-+};
-+
-+/* --------------------------------------------------------------------------*/
-+
-+static int tw9903_probe(struct i2c_client *client,
-+			     const struct i2c_device_id *id)
-+{
-+	struct tw9903 *dec;
-+	struct v4l2_subdev *sd;
-+
-+	/* Check if the adapter supports the needed features */
-+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-+		return -EIO;
-+
-+	v4l2_info(client, "initializing TW9903 at address 0x%x on %s\n",
-+		client->addr, client->adapter->name);
-+
-+	dec = kmalloc(sizeof(struct tw9903), GFP_KERNEL);
-+	if (dec == NULL)
-+		return -ENOMEM;
-+	sd = &dec->sd;
-+	v4l2_i2c_subdev_init(sd, client, &tw9903_ops);
-+
-+	/* Initialize tw9903 */
-+	dec->norm = V4L2_STD_NTSC;
-+	dec->brightness = 0;
-+	dec->contrast = 0x60;
-+#if 0 /* keep */
-+	dec->saturation = 64;
-+#endif
-+	dec->hue = 0;
-+
-+	if (write_regs(sd, initial_registers) < 0) {
-+		v4l2_err(client, "error initializing TW9903\n");
-+		kfree(dec);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int tw9903_remove(struct i2c_client *client)
-+{
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+
-+	v4l2_device_unregister_subdev(sd);
-+	kfree(to_state(sd));
-+	return 0;
-+}
-+
-+/* ----------------------------------------------------------------------- */
-+
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
-+static const struct i2c_device_id tw9903_id[] = {
-+	{ "tw9903", 0 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, tw9903_id);
-+#endif
-+
-+static struct v4l2_i2c_driver_data v4l2_i2c_data = {
-+	.name = "tw9903",
-+	.probe = tw9903_probe,
-+	.remove = tw9903_remove,
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
-+	.id_table = tw9903_id,
-+#endif
-+};
-diff -r 024987c00f06 -r 378d3bc9a3d6 linux/drivers/staging/go7007/go7007-usb.c
---- a/linux/drivers/staging/go7007/go7007-usb.c	Thu Feb 11 14:34:39 2010 -0800
-+++ b/linux/drivers/staging/go7007/go7007-usb.c	Thu Feb 11 14:48:26 2010 -0800
-@@ -297,7 +297,7 @@
- 		.num_i2c_devs	 = 1,
- 		.i2c_devs	 = {
- 			{
--				.type	= "wis_tw9903",
-+				.type	= "tw9903",
- 				.addr	= 0x44,
- 			},
- 		},
+User-Agent: Mozilla/5.0 (X11; U; Linux x86_64; de; rv:1.9.1.5) Gecko/20091130 SUSE/3.0.0-1.1.1 Thunderbird/3.0
 
+You should really read the README.patches (http://linuxtv.org/hg/v4l-dvb/raw-file/tip/README.patches)
+before submitting your work. In particular, at the end of Part II, there are the procedures for
+submissions via email. It ends with:
+
+" BE CAREFUL: several emailers including Thunderdird breaks long lines, causing
+  patch corruption.
+  In the specific case of Thunderbird, an extension is needed to send the
+  patches, called Asalted Patches:
+	https://hg.mozilla.org/users/clarkbw_gnome.org/asalted-patches/"
+
+So, please get the asalted-patches extension, apply it on your Thunderbird, review your patch
+series based on the contents of README.patches and re-submit.
+
+-- 
+
+Cheers,
+Mauro
