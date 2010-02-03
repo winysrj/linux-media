@@ -1,96 +1,351 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f189.google.com ([209.85.210.189]:39933 "EHLO
-	mail-yx0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751710Ab0BWIEt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2010 03:04:49 -0500
-Received: by yxe27 with SMTP id 27so191317yxe.21
-        for <linux-media@vger.kernel.org>; Tue, 23 Feb 2010 00:04:47 -0800 (PST)
-Date: Tue, 23 Feb 2010 00:04:37 -0800
-From: Brandon Philips <brandon@ifup.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Douglas Landgraf <dougsland@gmail.com>,
-	christophpfister@gmail.com
-Subject: Re: [ANNOUNCE] git tree repositories & libv4l
-Message-ID: <20100223080437.GE4013@jenkins.home.ifup.org>
-References: <4B55445A.10300@infradead.org>
- <4B5B30E4.7030909@redhat.com>
- <20100222225426.GC4013@jenkins.home.ifup.org>
- <201002230026.59712.hverkuil@xs4all.nl>
- <20100222233808.GD4013@jenkins.home.ifup.org>
- <4B83242E.40703@infradead.org>
- <4B832B61.30909@redhat.com>
+Received: from relay.bearnet.nu ([80.252.223.222]:1496 "EHLO relay.bearnet.nu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756050Ab0BCP7u (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Feb 2010 10:59:50 -0500
+Message-ID: <4B699D6B.6030309@pelagicore.com>
+Date: Wed, 03 Feb 2010 16:59:39 +0100
+From: =?ISO-8859-1?Q?Richard_R=F6jfors?= <richard.rojfors@pelagicore.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4B832B61.30909@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v4] radio: Add radio-timb
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 22:12 Mon 22 Feb 2010, Mauro Carvalho Chehab wrote:
-> Mauro Carvalho Chehab wrote:
-> >> According to the wiki[1] these tools are without a maintainer. So, if
-> >> no one cares about them enough to make releases why merge them and
-> >> clutter up the git tree with dead code?
-> >>
-> >> [1] http://www.linuxtv.org/wiki/index.php/LinuxTV_dvb-apps
-> > 
-> > That's weird. I've recently added support for ISDB-T on it:
-> > 	http://linuxtv.org/hg/~mchehab/dvb-apps-isdbt2/
-> > 
-> > and we've got some comments at the mailing list. Btw, the patches
-> > I added there also adds DVB-S2 support to szap/scan, but tests
-> > are needed, since I don't have any satellite dish nowadays.
-> > 
-> 
-> That's said, if all the issues are the ones listed above, I can try
-> to address them on the next months, to put it into a better
-> shape. That's said, I don't think we should have a single maintainer
-> for it: there are too many DTV standards already, and probably
-> nobody with enough time has access to all of those (DVB-T, DVB-T2,
-> DVB-S, DVB-S2, ISDB-T, ISDB-S, ATSC, DSS, ...).  So, I think we need
-> a team of volunteers that will try to help with the standards they
-> have access.
+This patch add supports for the radio system on the Intel Russellville board.
 
-I was not suggesting a single maintainer but I wanted to make sure
-there was actual interest in maintaing and fixing these dvb things. I
-don't interact much at all with DVB so all I had to go on was the wiki
-page.
+It's a In-Vehicle Infotainment board with a radio tuner and DSP.
 
-> That's said, I'm starting to agree with Hans: maybe the better seems
-> to merge it with v4l2-apps, to get synergy in terms, at least in
-> terms of packet management.
-> 
-> Comments?
+This umbrella driver has the DSP and tuner as V4L2 subdevs and calls them
+when needed.
 
-Seems reasonable to me. I would be willing to be the merge point for
-all of the various maintainers of dvb and v4l things and release
-manager for making the actual tar.gz releases.
+Signed-off-by: Richard Röjfors <richard.rojfors@pelagicore.com>
+---
+diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+index 3f40f37..c242939 100644
+--- a/drivers/media/radio/Kconfig
++++ b/drivers/media/radio/Kconfig
+@@ -429,4 +429,14 @@ config RADIO_TEF6862
+  	  To compile this driver as a module, choose M here: the
+  	  module will be called TEF6862.
 
-I wrote up the conversion for dvb-apps too. The merge of the two trees
-conflict pretty trivially so it should be easy to clean up if we go
-this route:
++config RADIO_TIMBERDALE
++	tristate "Enable the Timberdale radio driver"
++	depends on MFD_TIMBERDALE && VIDEO_V4L2
++	select RADIO_TEF6862
++	select RADIO_SAA7706H
++	---help---
++	  This is a kind of umbrella driver for the Radio Tuner and DSP
++	  found behind the Timberdale FPGA on the Russellville board.
++	  Enabling this driver will automatically select the DSP and tuner.
++
+  endif # RADIO_ADAPTERS
+diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
+index 01922ad..8973850 100644
+--- a/drivers/media/radio/Makefile
++++ b/drivers/media/radio/Makefile
+@@ -24,5 +24,6 @@ obj-$(CONFIG_RADIO_SI470X) += si470x/
+  obj-$(CONFIG_USB_MR800) += radio-mr800.o
+  obj-$(CONFIG_RADIO_TEA5764) += radio-tea5764.o
+  obj-$(CONFIG_RADIO_TEF6862) += tef6862.o
++obj-$(CONFIG_RADIO_TIMBERDALE) += radio-timb.o
 
-#	unmerged:   COPYING
-#	unmerged:   INSTALL
-#	unmerged:   Make.rules
-#	unmerged:   Makefile
-#	unmerged:   README
-#	unmerged:   lib/Makefile
-#	unmerged:   utils/Makefile
+  EXTRA_CFLAGS += -Isound
+diff --git a/drivers/media/radio/radio-timb.c b/drivers/media/radio/radio-timb.c
+new file mode 100644
+index 0000000..0de457f
+--- /dev/null
++++ b/drivers/media/radio/radio-timb.c
+@@ -0,0 +1,244 @@
++/*
++ * radio-timb.c Timberdale FPGA Radio driver
++ * Copyright (c) 2009 Intel Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/version.h>
++#include <linux/io.h>
++#include <media/v4l2-ioctl.h>
++#include <media/v4l2-device.h>
++#include <linux/platform_device.h>
++#include <linux/interrupt.h>
++#include <linux/i2c.h>
++#include <media/timb_radio.h>
++
++#define DRIVER_NAME "timb-radio"
++
++struct timbradio {
++	struct timb_radio_platform_data	pdata;
++	struct v4l2_subdev	*sd_tuner;
++	struct v4l2_subdev	*sd_dsp;
++	struct video_device	video_dev;
++	struct v4l2_device	v4l2_dev;
++};
++
++
++static int timbradio_vidioc_querycap(struct file *file, void  *priv,
++	struct v4l2_capability *v)
++{
++	strlcpy(v->driver, DRIVER_NAME, sizeof(v->driver));
++	strlcpy(v->card, "Timberdale Radio", sizeof(v->card));
++	snprintf(v->bus_info, sizeof(v->bus_info), "platform:"DRIVER_NAME);
++	v->version = KERNEL_VERSION(0, 0, 1);
++	v->capabilities = V4L2_CAP_TUNER | V4L2_CAP_RADIO;
++	return 0;
++}
++
++static int timbradio_vidioc_g_tuner(struct file *file, void *priv,
++	struct v4l2_tuner *v)
++{
++	struct timbradio *tr = video_drvdata(file);
++	return v4l2_subdev_call(tr->sd_tuner, tuner, g_tuner, v);
++}
++
++static int timbradio_vidioc_s_tuner(struct file *file, void *priv,
++	struct v4l2_tuner *v)
++{
++	struct timbradio *tr = video_drvdata(file);
++	return v4l2_subdev_call(tr->sd_tuner, tuner, s_tuner, v);
++}
++
++static int timbradio_vidioc_g_input(struct file *filp, void *priv,
++	unsigned int *i)
++{
++	*i = 0;
++	return 0;
++}
++
++static int timbradio_vidioc_s_input(struct file *filp, void *priv,
++	unsigned int i)
++{
++	return i ? -EINVAL : 0;
++}
++
++static int timbradio_vidioc_g_audio(struct file *file, void *priv,
++	struct v4l2_audio *a)
++{
++	a->index = 0;
++	strlcpy(a->name, "Radio", sizeof(a->name));
++	a->capability = V4L2_AUDCAP_STEREO;
++	return 0;
++}
++
++static int timbradio_vidioc_s_audio(struct file *file, void *priv,
++	struct v4l2_audio *a)
++{
++	return a->index ? -EINVAL : 0;
++}
++
++static int timbradio_vidioc_s_frequency(struct file *file, void *priv,
++	struct v4l2_frequency *f)
++{
++	struct timbradio *tr = video_drvdata(file);
++	return v4l2_subdev_call(tr->sd_tuner, tuner, s_frequency, f);
++}
++
++static int timbradio_vidioc_g_frequency(struct file *file, void *priv,
++	struct v4l2_frequency *f)
++{
++	struct timbradio *tr = video_drvdata(file);
++	return v4l2_subdev_call(tr->sd_tuner, tuner, g_frequency, f);
++}
++
++static int timbradio_vidioc_queryctrl(struct file *file, void *priv,
++	struct v4l2_queryctrl *qc)
++{
++	struct timbradio *tr = video_drvdata(file);
++	return v4l2_subdev_call(tr->sd_dsp, core, queryctrl, qc);
++}
++
++static int timbradio_vidioc_g_ctrl(struct file *file, void *priv,
++	struct v4l2_control *ctrl)
++{
++	struct timbradio *tr = video_drvdata(file);
++	return v4l2_subdev_call(tr->sd_dsp, core, g_ctrl, ctrl);
++}
++
++static int timbradio_vidioc_s_ctrl(struct file *file, void *priv,
++	struct v4l2_control *ctrl)
++{
++	struct timbradio *tr = video_drvdata(file);
++	return v4l2_subdev_call(tr->sd_dsp, core, s_ctrl, ctrl);
++}
++
++static const struct v4l2_ioctl_ops timbradio_ioctl_ops = {
++	.vidioc_querycap	= timbradio_vidioc_querycap,
++	.vidioc_g_tuner		= timbradio_vidioc_g_tuner,
++	.vidioc_s_tuner		= timbradio_vidioc_s_tuner,
++	.vidioc_g_frequency	= timbradio_vidioc_g_frequency,
++	.vidioc_s_frequency	= timbradio_vidioc_s_frequency,
++	.vidioc_g_input		= timbradio_vidioc_g_input,
++	.vidioc_s_input		= timbradio_vidioc_s_input,
++	.vidioc_g_audio		= timbradio_vidioc_g_audio,
++	.vidioc_s_audio		= timbradio_vidioc_s_audio,
++	.vidioc_queryctrl	= timbradio_vidioc_queryctrl,
++	.vidioc_g_ctrl		= timbradio_vidioc_g_ctrl,
++	.vidioc_s_ctrl		= timbradio_vidioc_s_ctrl
++};
++
++static const struct v4l2_file_operations timbradio_fops = {
++	.owner		= THIS_MODULE,
++	.ioctl		= video_ioctl2,
++};
++
++static int __devinit timbradio_probe(struct platform_device *pdev)
++{
++	struct timb_radio_platform_data *pdata = pdev->dev.platform_data;
++	struct timbradio *tr;
++	int err;
++
++	if (!pdata) {
++		dev_err(&pdev->dev, "Platform data missing\n");
++		err = -EINVAL;
++		goto err;
++	}
++
++	tr = kzalloc(sizeof(*tr), GFP_KERNEL);
++	if (!tr) {
++		err = -ENOMEM;
++		goto err;
++	}
++
++	tr->pdata = *pdata;
++
++	strlcpy(tr->video_dev.name, "Timberdale Radio",
++		sizeof(tr->video_dev.name));
++	tr->video_dev.fops = &timbradio_fops;
++	tr->video_dev.ioctl_ops = &timbradio_ioctl_ops;
++	tr->video_dev.release = video_device_release_empty;
++	tr->video_dev.minor = -1;
++
++	strlcpy(tr->v4l2_dev.name, DRIVER_NAME, sizeof(tr->v4l2_dev.name));
++	err = v4l2_device_register(NULL, &tr->v4l2_dev);
++	if (err)
++		goto err_v4l2_dev;
++
++	tr->video_dev.v4l2_dev = &tr->v4l2_dev;
++
++	err = video_register_device(&tr->video_dev, VFL_TYPE_RADIO, -1);
++	if (err) {
++		dev_err(&pdev->dev, "Error reg video\n");
++		goto err_video_req;
++	}
++
++	video_set_drvdata(&tr->video_dev, tr);
++
++	platform_set_drvdata(pdev, tr);
++	return 0;
++
++err_video_req:
++	video_device_release_empty(&tr->video_dev);
++	v4l2_device_unregister(&tr->v4l2_dev);
++err_v4l2_dev:
++	kfree(tr);
++err:
++	dev_err(&pdev->dev, "Failed to register: %d\n", err);
++
++	return err;
++}
++
++static int __devexit timbradio_remove(struct platform_device *pdev)
++{
++	struct timbradio *tr = platform_get_drvdata(pdev);
++
++	video_unregister_device(&tr->video_dev);
++	video_device_release_empty(&tr->video_dev);
++
++	v4l2_device_unregister(&tr->v4l2_dev);
++
++	kfree(tr);
++
++	return 0;
++}
++
++static struct platform_driver timbradio_platform_driver = {
++	.driver = {
++		.name	= DRIVER_NAME,
++		.owner	= THIS_MODULE,
++	},
++	.probe		= timbradio_probe,
++	.remove		= timbradio_remove,
++};
++
++/*--------------------------------------------------------------------------*/
++
++static int __init timbradio_init(void)
++{
++	return platform_driver_register(&timbradio_platform_driver);
++}
++
++static void __exit timbradio_exit(void)
++{
++	platform_driver_unregister(&timbradio_platform_driver);
++}
++
++module_init(timbradio_init);
++module_exit(timbradio_exit);
++
++MODULE_DESCRIPTION("Timberdale Radio driver");
++MODULE_AUTHOR("Mocean Laboratories <info@mocean-labs.com>");
++MODULE_LICENSE("GPL v2");
++MODULE_ALIAS("platform:"DRIVER_NAME);
+diff --git a/include/media/timb_radio.h b/include/media/timb_radio.h
+new file mode 100644
+index 0000000..fcd32a3
+--- /dev/null
++++ b/include/media/timb_radio.h
+@@ -0,0 +1,36 @@
++/*
++ * timb_radio.h Platform struct for the Timberdale radio driver
++ * Copyright (c) 2009 Intel Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#ifndef _TIMB_RADIO_
++#define _TIMB_RADIO_ 1
++
++#include <linux/i2c.h>
++
++struct timb_radio_platform_data {
++	int i2c_adapter; /* I2C adapter where the tuner and dsp are attached */
++	struct {
++		const char *module_name;
++		struct i2c_board_info *info;
++	} tuner;
++	struct {
++		const char *module_name;
++		struct i2c_board_info *info;
++	} dsp;
++};
++
++#endif
 
-If you want to give it a whirl.
-
-  git clone git://ifup.org/philips/create-v4l-utils.git
-  cd create-v4l-utils/
-  git checkout -b dvb-apps-too origin/dvb-apps-too
-  ./convert.sh 
-
-The result will be in step3 with the merge conflicts.
-
-Cheers,
-
-	Brandon
