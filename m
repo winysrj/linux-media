@@ -1,88 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:47224 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751126Ab0BEEen convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2010 23:34:43 -0500
-Received: by bwz19 with SMTP id 19so1104697bwz.28
-        for <linux-media@vger.kernel.org>; Thu, 04 Feb 2010 20:34:42 -0800 (PST)
+Received: from mga14.intel.com ([143.182.124.37]:27867 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750798Ab0BCMex (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Feb 2010 07:34:53 -0500
+Date: Wed, 3 Feb 2010 13:36:18 +0100
+From: Samuel Ortiz <samuel.ortiz@intel.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Richard =?iso-8859-1?Q?R=F6jfors?=
+	<richard.rojfors@pelagicore.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] mfd: Add support for the timberdale FPGA.
+Message-ID: <20100203123617.GF3460@sortiz.org>
+References: <4B66C36A.4000005@pelagicore.com>
+ <4B693ED7.4060401@redhat.com>
+ <20100203100326.GA3460@sortiz.org>
+ <4B694D69.1090201@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <1265343315.7784.28.camel@palomino.walls.org>
-References: <829197381002021451g5aaa8013kd5ae2124534ba5ba@mail.gmail.com>
-	 <1265248280.3122.74.camel@palomino.walls.org>
-	 <829197381002040724u6a8d3b40m6e9f3751640685f4@mail.gmail.com>
-	 <1265343315.7784.28.camel@palomino.walls.org>
-Date: Thu, 4 Feb 2010 23:34:41 -0500
-Message-ID: <829197381002042034g486b6162rf065388a225a60be@mail.gmail.com>
-Subject: Re: Any saa711x users out there?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Andy Walls <awalls@radix.net>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+In-Reply-To: <4B694D69.1090201@redhat.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey Andy,
+On Wed, Feb 03, 2010 at 10:18:17AM +0000, Mauro Carvalho Chehab wrote:
+> Samuel Ortiz wrote:
+> > I'm going to review this patch right now. Typically, mfd core drivers and
+> > their subdevices are submitted as a patchset via my tree, because the
+> > subdevices drivers have dependencies with the core. The mfd core driver is
+> > submitted without any dependencies, and then when the subdevices drivers are
+> > submitted, we add relevant code to the mfd driver. This way we prevent any
+> > build breakage or bisection mess.
+> 
+> The drivers at media are generally very complex with dependencies on several other
+> subsystems. In general, almost all depends on i2c, alsa and input, and an increasing
+> number of drivers has also dependencies with platform_data added at arch-dependent
+> includes/drivers. Yet, this specific driver is simple.
+> 
+> I generally tend to add those drivers via my tree, since it is generally simpler to
+> prevent breakage/bisection troubles, 
+I see that we have similar issues :)
 
-On Thu, Feb 4, 2010 at 11:15 PM, Andy Walls <awalls@radix.net> wrote:
-> Hmmm.  The AGC (or static gain level?) of the amplifier in the SAA7113
-> before the anti-alias filter may be set too high causing the clipping
-> (intermods) there.  It may be worth looking at the gain setting for that
-> amp.
 
-It's possible.  One thing I did as a test though was I did a capture
-of the i2c traffic under Windows (using the same reference video
-source), and then compared the register programming (via some scripts
-I whipped up).  There were some other registers that were different,
-but the only one that made *any* visible difference in the output was
-the AA flag.
 
-> The visible effects of the anti-alais filter could possibly be:
->
-> 1. Less range of color, if high freqs of the color get attenuated.
-> (Most people likely will not perceive this as most people are not that
-> sensitive to small color variations.)
->
-> 2. Loss of rapid variations in Luma - softer edges between light and
-> dark areas on a scan line - if higher freqs of the Luma get attenuated.
->
-> but given that the anti-alais filter is essentially flat out to about
-> 5.6 MHz and has a slow rolloff (only 3 dB down at about 6.9 MHz), I
-> doubt anyone would ever notice it is on with NTSC.
+> but it is also ok for me if you want to add
+> them via your tree, after I get my ack.
+Great, let's to that then.
 
-To give you a better idea of what I'm talking about, look at this image:
 
-http://imagebin.org/83458
+> > The timberdale chip right now doesnt depend on anything, but will soon depend
+> > on the radio driver that's on your tree, but also on a sound and on a network
+> > driver. You'd have to take all those if Richard wants to push them right now.
+> 
+> There were one or two minor changes requested on radio-timb patchset. After that
+> changes, we're ready to merge it.
+All right, I'd appreciate if you could cc me on the relevant thread.
 
-The above image was taken with the generator via the s-video input
-(ruling out the possibility that it's any sort of product of
-intermodulation).
 
-For the sake of comparison, here's the exact same signal source
-against an a similar em28xx design but with the tvp5150.
 
-http://imagebin.org/83459
+> > So, what I propose is to take the timberdale mfd core driver and the radio
+> > one, with your SOB. Then when Richard wants to submit additional subdevices
+> > drivers I'll be able to take them and we'll avoid polluting your tree with non
+> > media related drivers. Does that make sense to you ?
+> 
+> Yes, it does. I don't think Richard is urging with those patches, so my idea is
+> to keep them for linux-next. It would equally work for me if you add the patches
+> on your tree after my ack. The only merge conflicts we may expect from V4L side
+> are related to Kconfig/Makefile, and those will be easy to fix during the merge
+> period.
+Ok, thanks again for your understanding. This is definitely material for the
+next merge window, so I'll merge it into my for-next branch.
 
-> Since you have a signal generator, you should run experiments with PAL-D
-> and SECAM-D with a grid containing vertical lines since those both have
-> a 6.0 MHz video bandwidth.  SECAM also has FM color, so you might see
-> the greatest affect of an antialias filter on color on the Cyan color
-> bar in SECAM-D.
-
-Believe it or not, I'm actually having trouble with the generator
-right now with anything but NTSC.  I'm going back and forth with
-Promax on repair options.  So I cannot do any PAL or SECAM testing
-right now.
-
-On a separate note, I really should look at extending the v4l2
-capture-example to a version that let's me do a direct capture of the
-YUYV frame and convert the output into a zero-loss RGB format.  It's
-too easy to be mislead by things the applications are doing like
-deinterlacing, rescaling, blending, and compression of the screenshot
-when saving to a file.
-
-Devin
+Cheers,
+Samuel.
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Intel Open Source Technology Centre
+http://oss.intel.com/
+---------------------------------------------------------------------
+Intel Corporation SAS (French simplified joint stock company)
+Registered headquarters: "Les Montalets"- 2, rue de Paris, 
+92196 Meudon Cedex, France
+Registration Number:  302 456 199 R.C.S. NANTERRE
+Capital: 4,572,000 Euros
+
+This e-mail and any attachments may contain confidential material for
+the sole use of the intended recipient(s). Any review or distribution
+by others is strictly prohibited. If you are not the intended
+recipient, please contact the sender and delete all copies.
+
