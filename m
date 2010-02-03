@@ -1,57 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:46664 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753335Ab0BRTuv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Feb 2010 14:50:51 -0500
-From: Tobias Lorenz <tobias.lorenz@gmx.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] radio-si470x-common: -EINVAL overwritten in si470x_vidioc_s_tuner()
-Date: Thu, 18 Feb 2010 20:50:41 +0100
-Cc: Roel Kluin <roel.kluin@gmail.com>, linux-media@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	LKML <linux-kernel@vger.kernel.org>
-References: <4B69D2F5.2050100@gmail.com> <201002032252.36514.tobias.lorenz@gmx.net> <4B6A242C.8060104@infradead.org>
-In-Reply-To: <4B6A242C.8060104@infradead.org>
+Received: from mx1.redhat.com ([209.132.183.28]:6440 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754969Ab0BCI7N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Feb 2010 03:59:13 -0500
+Message-ID: <4B693AD6.3030005@redhat.com>
+Date: Wed, 03 Feb 2010 06:59:02 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Huang Shijie <shijie8@gmail.com>
+CC: linux-media@vger.kernel.org, zyziii@telegent.com, tiwai@suse.de
+Subject: Re: [PATCH v2 00/10] add linux driver for chip TLG2300
+References: <1265094475-13059-1-git-send-email-shijie8@gmail.com> <4B6817E6.4070709@redhat.com> <4B69159D.2040606@gmail.com> <4B6925EB.7000601@redhat.com> <4B693681.2030402@gmail.com>
+In-Reply-To: <4B693681.2030402@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201002182050.41968.tobias.lorenz@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro,
-
-> > no, the default value of retval makes no difference to the function.
-> > 
-> > Retval is set by si470x_disconnect_check and si470x_set_register.
-> > After each call, retval is checked.
-> > There is no need to reset it passed.
-
-> You may just do then:
+Huang Shijie wrote:
 > 
-> 	int retval = si470x_disconnect_check(radio);
+>>>> Instead of a country code, the driver should use the V4L2_STD_
+>>>> macros to
+>>>>
+>>>>        
+>>> If we are in the radio mode, I do not have any video standard, how can I
+>>> choose
+>>> the right audio setting in this situation?
+>>>      
+>> In the case of radio, the frequency ranges are controlled via the tuner
+>>    
+> 
+> Do you mean that the frequency range can be used to set the pre-emphasis?
+> I am not sure about this.
 
-In all other set/get functions of v4l2_ioctl_ops in the driver, I just set the default value of retval to 0.
-To be identical in si470x_vidioc_s_tuner, I modified the patch to the one below.
-I already pushed this and another cosmetic patch into mercurial:
+No, I don't meant that. 
 
-http://linuxtv.org/hg/~tlorenz/v4l-dvb/rev/72a2f38d5956
-http://linuxtv.org/hg/~tlorenz/v4l-dvb/rev/3efd5d32a618
+The differences of FM radio standards are basically the preemphasis and the
+frequency ranges.
 
-Mauro, can you pull them?
+For frequency ranges, V4L2_TUNER_RADIO allows specifying the maximum/minimum values.
 
-Bye,
-Tobias
+For preemphasis, you should implement V4L2_CID_TUNE_PREEMPHASIS ctrl. This
+CTRL has 3 states:
 
---- a/linux/drivers/media/radio/si470x/radio-si470x-common.c	Thu Feb 11 23:11:30 2010 -0200
-+++ b/linux/drivers/media/radio/si470x/radio-si470x-common.c	Thu Feb 18 20:31:33 2010 +0100
-@@ -748,7 +748,7 @@
- 		struct v4l2_tuner *tuner)
- {
- 	struct si470x_device *radio = video_drvdata(file);
--	int retval = -EINVAL;
-+	int retval = 0;
- 
- 	/* safety checks */
- 	retval = si470x_disconnect_check(radio);
+        static const char *tune_preemphasis[] = {
+                "No preemphasis",
+                "50 useconds",
+                "75 useconds",
+                NULL,
+        };
+
+At v4l2-common.c, there are some functions that helps to implement it
+at the driver, like:
+	v4l2_ctrl_get_menu, v4l2_ctrl_get_name and v4l2_ctrl_query_fill.
+
+Take a look at si4713-i2c.c for an example on how to use it.
+
+Ah, please submit those changes as another series of patches. This helps me
+to not needing to review the entire changeset again.
+
+Cheers,
+Mauro
