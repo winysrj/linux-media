@@ -1,115 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:58519 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756147Ab0BOWsW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2010 17:48:22 -0500
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1Nh9jm-0008K9-7c
-	for linux-media@vger.kernel.org; Mon, 15 Feb 2010 23:48:18 +0100
-Received: from 80-218-69-65.dclient.hispeed.ch ([80.218.69.65])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 15 Feb 2010 23:48:18 +0100
-Received: from auslands-kv by 80-218-69-65.dclient.hispeed.ch with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 15 Feb 2010 23:48:18 +0100
-To: linux-media@vger.kernel.org
-From: Michael <auslands-kv@gmx.de>
-Subject: Re: cx23885
-Date: Mon, 15 Feb 2010 23:47:56 +0100
-Message-ID: <hlciur$tb0$1@ger.gmane.org>
-References: <hlbe6t$kc4$1@ger.gmane.org> <1266238446.3075.13.camel@palomino.walls.org> <hlbhck$uh9$1@ger.gmane.org> <4B795D1A.9040502@kernellabs.com> <hlbopr$v7s$1@ger.gmane.org> <4B79803B.4070302@kernellabs.com> <hlcbhu$4s3$1@ger.gmane.org> <4B79B437.5000004@kernellabs.com> <hlch5h$ogp$1@ger.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7Bit
+Received: from mail-yw0-f198.google.com ([209.85.211.198]:58216 "EHLO
+	mail-yw0-f198.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753102Ab0BCIkk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2010 03:40:40 -0500
+Received: by ywh36 with SMTP id 36so1044898ywh.15
+        for <linux-media@vger.kernel.org>; Wed, 03 Feb 2010 00:40:39 -0800 (PST)
+Message-ID: <4B693681.2030402@gmail.com>
+Date: Wed, 03 Feb 2010 16:40:33 +0800
+From: Huang Shijie <shijie8@gmail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org, zyziii@telegent.com, tiwai@suse.de
+Subject: Re: [PATCH v2 00/10] add linux driver for chip TLG2300
+References: <1265094475-13059-1-git-send-email-shijie8@gmail.com> <4B6817E6.4070709@redhat.com> <4B69159D.2040606@gmail.com> <4B6925EB.7000601@redhat.com>
+In-Reply-To: <4B6925EB.7000601@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I've done a diff against 2.6.31, but there are too many differences, so I 
-can't easily tell what they have added and what was changed in the 
-development between 2.6.21 and 2.6.31.
 
-One thing is clear: They added several "case" instructions with code for the 
-MPX-885. So I guess, they really got it working. 
+>>> Instead of a country code, the driver should use the V4L2_STD_ macros to
+>>>
+>>>        
+>> If we are in the radio mode, I do not have any video standard, how can I
+>> choose
+>> the right audio setting in this situation?
+>>      
+> In the case of radio, the frequency ranges are controlled via the tuner
+>    
 
-I'm downloading kernel 2.6.21 now and make a diff with these drivers.
+Do you mean that the frequency range can be used to set the pre-emphasis?
+I am not sure about this.
 
-Michael
+> ioctls. There's no standard way to control the preemphasis, but I recommend
+> adding a ctrl to select between 50us/75us and no preemphasis.
+>
+>
+>    
 
-Michael wrote:
-
-> Now comes the best part:
-> 
-> I found a linux driver on the producers web page. And it is written by ...
-> Steven Toth :-)
-> 
-> http://www.commell.com.tw/Product/Surveillance/MPX-885/mpx-885.rar
-> 
-> I am looking at the files to see what they have changed (if anything at
-> all).
-> 
-> One thing I found pretty fast is that they added in cx23885-card.c:
-> 
-> [CX23885_BOARD_MPX885] = {
-> .name       = "MPX-885",
->         .porta      = CX23885_ANALOG_VIDEO,
->         .portb      = CX23885_MPEG_ENCODER,
->         .portc      = CX23885_MPEG_DVB,
->         .input          = {{
->             .type   = CX23885_VMUX_COMPOSITE1,
->             .vmux   = CX25840_VIN1_CH1,
->             .gpio0  = 0,
->         }, {
->             .type   = CX23885_VMUX_COMPOSITE2,
->             .vmux   = CX25840_VIN2_CH1,
->             .gpio0  = 0,
->         }, {
->             .type   = CX23885_VMUX_COMPOSITE3,
->             .vmux   = CX25840_VIN3_CH1,
->             .gpio0  = 0,
->         }, {
->             .type   = CX23885_VMUX_COMPOSITE4,
->             .vmux   = CX25840_VIN4_CH1,
->             .gpio0  = 0,
->         } }
-> 
-> Now, concerning the rest of the code, I'm afraid my knowledge is far below
-> what is needed to understand just a little bit of it. I can try to compile
-> the code, but they state it is for kernel 2.6.21, so I don't know whether
-> it compiles for 2.6.31 (or newer).
-> 
-> I can try to make a diff, but I guess there will be lots of changes
-> between this rather old code and an actual cx23885 version.
-> 
-> But maybe it is a start. What do you think?
-> 
-> Michael
-> 
-> Steven Toth wrote:
-> 
->> 
->>> Well if tvtime runs then mplayer will most probably, too. The question
->>> is, what means "with some work" :-)
->> 
->> If you haven't worked on the cx23885 driver in the past, and you're not
->> accustomed to developing tv/video drivers then you're going to struggle,
->> massively.
->> 
->> Not that I'm trying to discourage, on the contrary, the more driver
->> developers the better. In reality this isn't something you can fix with
->> an evenings work.
->> 
->> However, if you would like to take a shot then look at the existing
->> support for the HVR1800 board in the cx23885 tree. Specifically look at
->> the raw video support in the cx23885-video.c file and you'll also want to
->> investigate the cx25840 driver for configuring the A/V subsystem.
->> 
->> Feel free to submit patches.
->> 
->> Regards,
->> 
->> - Steve
->>
+Best Regards
+Huang Shijie
 
 
