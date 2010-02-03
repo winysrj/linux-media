@@ -1,112 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4691 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757101Ab0BXNkz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Feb 2010 08:40:55 -0500
-Message-ID: <522c0252e78787e5ca099dabbcdeaaf3.squirrel@webmail.xs4all.nl>
-In-Reply-To: <4B8521CF.7090500@redhat.com>
-References: <4B55445A.10300@infradead.org> <4B57B6E4.2070500@infradead.org>
-    <20100121024605.GK4015@jenkins.home.ifup.org>
-    <201001210834.28112.hverkuil@xs4all.nl> <4B5B30E4.7030909@redhat.com>
-    <20100222225426.GC4013@jenkins.home.ifup.org>
-    <4B839687.4090205@redhat.com> <4B83F635.9030501@infradead.org>
-    <4B83F97A.60103@redhat.com> <4B84799E.4000202@infradead.org>
-    <4B8521CF.7090500@redhat.com>
-Date: Wed, 24 Feb 2010 14:40:26 +0100
-Subject: Re: [ANNOUNCE] git tree repositories & libv4l
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Hans de Goede" <hdegoede@redhat.com>
-Cc: "Mauro Carvalho Chehab" <mchehab@infradead.org>,
-	"Brandon Philips" <brandon@ifup.org>,
-	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
-	"Douglas Landgraf" <dougsland@gmail.com>
+Received: from ey-out-2122.google.com ([74.125.78.26]:57168 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753806Ab0BCTlt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2010 14:41:49 -0500
+Message-ID: <4B69D2F5.2050100@gmail.com>
+Date: Wed, 03 Feb 2010 20:48:05 +0100
+From: Roel Kluin <roel.kluin@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	tobias.lorenz@gmx.net, linux-media@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: [PATCH] radio-si470x-common: -EINVAL overwritten in si470x_vidioc_s_tuner()
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The -EINVAL was overwritten by the si470x_disconnect_check().
 
-> Hi,
->
-> On 02/24/2010 01:58 AM, Mauro Carvalho Chehab wrote:
->> Hans de Goede wrote:
->>> Hi,
->>>
->>> On 02/23/2010 04:37 PM, Mauro Carvalho Chehab wrote:
->>>> Hans de Goede wrote:
->>>>
->>>>> Ok, so this will give me a local tree, how do I get this onto
->>>>> linuxtv.org ?
->>>>
->>>> I added it. In thesis, it is open for commit to you, me, hverkuil and
->>>> dougsland.
->>>>
->>>
->>> I see good, thanks! Can someone (Douglas ?) with better hg / git powers
->>> then me please
->>> somehow import all the libv4l changes from:
->>> http://linuxtv.org/hg/~hgoede/libv4l
->>
->> Ok, I added there. The procedure were simple: I ran Brandon script
->> again,
->> but after pulling from your tree. Then, I used git format-patch to
->> generate
->> a quilt series, and used git quiltimport on the correct -git tree.
->>
->
-> Thanks!
->
->
->>> Once that is done I'll retire my own tree, and move all my userspace
->>> work to
->>> the git tree.
->>>
->>> For starters I plan to create / modify Makefiles so that everything
->>> will
->>> build
->>> out of the box, and has proper make install targets which can be used
->>> by
->>> distro's
->>>
->>> So:
->>> -proper honoring of CFLAGS
->>> -work with standard (and possibly somewhat older kernel headers)
->>> -honor DESTDIR, PREFIX and LIBDIR when doing make install
->>
->> The better here is to have the latest kernel headers copied on the tree.
->> This way, it is possible to compile libv4l2 with an older kernel version
->> and
->> later upgrade the kernel, if needed, or to use a fast machine to compile
->> it, and then use it on another machine.
->>
->
-> If possible I would like to avoid this, afaik no other userspace utility
-> packages
-> are doing this.
->
-> Where necessary libv4l currently has code snippets like:
->
-> #ifndef V4L2_PIX_FMT_SPCA501
-> #define V4L2_PIX_FMT_SPCA501 v4l2_fourcc('S','5','0','1') /* YUYV per line
-> */
-> #endif
->
-> So libv4l (in its current state) will already compile fine with older
-> kernel
-> headers. I expect that the other utilities will not need a lot of
-> recent kernel ABI. So for now I would like to try and extend the above
-> approach
-> to the other utilities.
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+---
+Is this needed?
 
-Note that the v4l2-ctl and v4l2-dbg utilities often *do* track the latest
-kernel. In particular v4l2-ctl is often used to control/test new features.
-
-Regards,
-
-         Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
-
+diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
+index 4da0f15..65b4a92 100644
+--- a/drivers/media/radio/si470x/radio-si470x-common.c
++++ b/drivers/media/radio/si470x/radio-si470x-common.c
+@@ -748,12 +748,13 @@ static int si470x_vidioc_s_tuner(struct file *file, void *priv,
+ 		struct v4l2_tuner *tuner)
+ {
+ 	struct si470x_device *radio = video_drvdata(file);
+-	int retval = -EINVAL;
++	int retval;
+ 
+ 	/* safety checks */
+ 	retval = si470x_disconnect_check(radio);
+ 	if (retval)
+ 		goto done;
++	retval = -EINVAL;
+ 
+ 	if (tuner->index != 0)
+ 		goto done;
