@@ -1,37 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-05.arcor-online.net ([151.189.21.45]:37615 "EHLO
-	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757842Ab0BCUPo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Feb 2010 15:15:44 -0500
-Message-ID: <4B69D950.2090504@arcor.de>
-Date: Wed, 03 Feb 2010 21:15:12 +0100
-From: Stefan Ringel <stefan.ringel@arcor.de>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH 3/15] -  tm6000 bugfix hunk in init_dev
-References: <4B673790.3030706@arcor.de> <4B673B2D.6040507@arcor.de> <4B675B19.3080705@redhat.com> <4B685FB9.1010805@arcor.de> <4B688507.606@redhat.com> <4B688E41.2050806@arcor.de> <4B689094.2070204@redhat.com> <4B6894FE.6010202@arcor.de> <4B69D83D.5050809@arcor.de> <4B69D8CC.2030008@arcor.de>
-In-Reply-To: <4B69D8CC.2030008@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Received: from lo.gmane.org ([80.91.229.12]:46748 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753634Ab0BVA7L (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Feb 2010 19:59:11 -0500
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1NjLiW-000847-BY
+	for linux-media@vger.kernel.org; Mon, 22 Feb 2010 01:00:04 +0100
+Received: from 80-218-69-65.dclient.hispeed.ch ([80.218.69.65])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 22 Feb 2010 01:00:04 +0100
+Received: from auslands-kv by 80-218-69-65.dclient.hispeed.ch with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 22 Feb 2010 01:00:04 +0100
+To: linux-media@vger.kernel.org
+From: Michael <auslands-kv@gmx.de>
+Subject: Possible memory corruption in bttv driver ?
+Date: Wed, 03 Feb 2010 18:10:59 +0100
+Message-ID: <hkcan2$72f$1@ger.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7Bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+Hello
 
---- a/drivers/staging/tm6000/tm6000-cards.c
-+++ b/drivers/staging/tm6000/tm6000-cards.c
-@@ -402,6 +448,7 @@ static int tm6000_init_dev(struct tm6000_core *dev)
-         }
- #endif
-     }
-+    return 0;
- 
- err2:
-     v4l2_device_unregister(&dev->v4l2_dev);
+We use embedded devices running debian lenny (kernel 2.6.31.4 with bttv 
+driver 0.9.18) to monitor an incoming video signal digitized via a video 
+grabber. The /dev/video0 device is opened and closed several hundred times a 
+day.
 
--- 
-Stefan Ringel <stefan.ringel@arcor.de>
+We used to use an em28xx USB based grabber but now switched to an Mini-PCI 
+bttv card (Commel MP-878) due to USB issues.
+
+With the bttv card we experience different crashes, usually after a couple 
+of days, while the systems using the em28xx show none even after an extended 
+time frame.
+
+The crashes differ strongly. We saw system freezes and also a very 
+interesting problem, where libasound.so.2 couldn't find some symbol. We 
+debugged the latter case, finding that all applications using libasound.so.2 
+no longer worked, giving the same error of a symbol not found. The problem 
+could be remedied by flushing the kernel cashes (echo 1 > 
+/proc/sys/vm/drop_caches).
+
+So it might be possible that the systems using the bttv Mini-PCI card 
+corrupt memory after a couple of days, resulting into different failures.
+
+To examine the crashes I wrote a small test program, which simply opens and 
+closes the bttv video device repeatedly:
+
+#!/bin/bash
+
+count=0
+while [ 1 == 1 ]
+do
+        ((count++))
+        date; echo "COUNT = " $count
+        mplayer -frames 10 -fs -vo xv tv:// -tv norm=pal:input=1 > /dev/null
+        sleep 0.1
+done
+
+With this program I experienced full hard crashes after 85 counts, 760 
+counts and 3870 counts today, comprising between a couple of minutes and 
+hours. In all cases the hardware watchdog timer resetted the system.
+
+The exact same system using an USB ex28xx based grabber instead of the bttv 
+does not crash.
+
+1.) Is there a way to diagnose memory corruption in order to ensure that it 
+is really a corruption problem and to locate the possible bug?
+
+2.) Do newer kernel versions have improved bttv drivers (maybe even with
+patched memory corruption issues)?
+
+3.) As a last resort: Do you know of other Mini-PCI video grabber cards that
+are based on other chipsets that are supported by the kernel?
+
+Thanks a lot for any help
+
+Michael
 
