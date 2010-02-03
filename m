@@ -1,135 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:44632 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750907Ab0BMBTO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Feb 2010 20:19:14 -0500
-Subject: Re: Driver crash on kernel 2.6.32.7. Interaction between cx8800
- (DVB-S) and USB HVR Hauppauge 950q
-From: Andy Walls <awalls@radix.net>
-To: Greg KH <gregkh@suse.de>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Kay Sievers <kay.sievers@vrfy.org>,
-	Richard Lemieux <rlemieu@cooptel.qc.ca>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-In-Reply-To: <20100212041131.GA29697@suse.de>
-References: <4B70E7DB.7060101@cooptel.qc.ca>
-	 <1265768091.3064.109.camel@palomino.walls.org>
-	 <4B722266.4070805@cooptel.qc.ca>
-	 <829197381002091912h5391129dpbf075485ab011936@mail.gmail.com>
-	 <1265816096.4019.65.camel@palomino.walls.org>
-	 <20100212041131.GA29697@suse.de>
-Content-Type: text/plain
-Date: Fri, 12 Feb 2010 20:18:57 -0500
-Message-Id: <1266023937.3062.17.camel@palomino.walls.org>
-Mime-Version: 1.0
+Received: from mail-in-10.arcor-online.net ([151.189.21.50]:34230 "EHLO
+	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757920Ab0BCUYY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Feb 2010 15:24:24 -0500
+Message-ID: <4B69DB51.8030900@arcor.de>
+Date: Wed, 03 Feb 2010 21:23:45 +0100
+From: Stefan Ringel <stefan.ringel@arcor.de>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [PATCH 2/15] -  tm6000 bugfix
+References: <4B673790.3030706@arcor.de> <4B673B2D.6040507@arcor.de> <4B675B19.3080705@redhat.com> <4B685FB9.1010805@arcor.de> <4B688507.606@redhat.com> <4B688E41.2050806@arcor.de> <4B689094.2070204@redhat.com> <4B6894FE.6010202@arcor.de> <4B69D83D.5050809@arcor.de> <4B69D8CC.2030008@arcor.de>
+In-Reply-To: <4B69D8CC.2030008@arcor.de>
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2010-02-11 at 20:11 -0800, Greg KH wrote:
-> On Wed, Feb 10, 2010 at 10:34:56AM -0500, Andy Walls wrote:
-> > On Tue, 2010-02-09 at 22:12 -0500, Devin Heitmueller wrote:
-> > > On Tue, Feb 9, 2010 at 10:05 PM, Richard Lemieux <rlemieu@cooptel.qc.ca> wrote:
-> > > > Andy,
-> > > >
-> > > > This is a great answer!  Thanks very much.  When I get into this situation
-> > > > again
-> > > > I will know what to look for.
-> > > >
-> > > > A possible reason why I got into this problem in the first place is that I
-> > > > tried
-> > > > many combinations of parameters with mplayer and azap in order to learn how
-> > > > to use the USB tuner in both the ATSC and the NTSC mode.  I will look back
-> > > > in the terminal history to see if I can find anything.
-> > > 
-> > > I think the key to figuring out the bug at this point is you finding a
-> > > sequence where you can reliably reproduce the oops.  If we have that,
-> > > then I can start giving you some code to try which we can see if it
-> > > addresses the problem.
-> > > 
-> > > For example, I would start by giving you a fix which results in us not
-> > > calling the firmware release if the request_firmware() call failed,
-> > > but it wouldn't be much help if you could not definitively tell me if
-> > > the problem is fixed.
-> > 
-> > 
-> > For the oops analysis here:
-> > 
-> > http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/15954
-> > 
-> > 
-> > I will also note that the file scope "fw_lock" mutex is rather
-> > inconsistently used in
-> > linux/drivers/base/fw_class.c:firmware_loading_store().  (I guess for
-> > not wanting to consume the timeout interval with sleeping?)
-> > 
-> > The mutex protects "case 1:", but all other cases appear to be only
-> > protected by atomic status bit checks that can fall through to
-> > fw_load_abort() which complete()'s the fw_priv->completion.
-> > 
-> > Also not that in the _request_firmware() this sequence is the only place
-> > a once good "fw_priv->fw" pointer is set to NULL:
-> > 
-> >         mutex_lock(&fw_lock);
-> >         if (!fw_priv->fw->size || test_bit(FW_STATUS_ABORT, &fw_priv->status)) {
-> >                 retval = -ENOENT;
-> >                 release_firmware(fw_priv->fw);
-> >                 *firmware_p = NULL;
-> >         }
-> >         fw_priv->fw = NULL;     <--------------- The only place it is set to NULL
-> >         mutex_unlock(&fw_lock);
-> > 
-> > 
-> > So if the timeout timer fires at nearly the same time as udev coming in
-> > and say "I'm done loading" without holding the mutex, one can run into
-> > the Ooops.  Not only that, I think the above code can leak memory under
-> > some circumstances when the "if" clause is not satisfied.
-> > 
-> > I think this really is a firmware_class.c issue.  I think the "just
-> > right" firmware loading timeouts and the particular computer system
-> > responsiveness, make this Ooops possible.  However, I'm amazed that a
-> > single person has tripped it more than once.
-> > 
-> > Revising the locking in linux/drivers/base/firmware_class.c should fix
-> > the problem.
-> > 
-> > I don't believe this comment in the code now:
-> > 
-> > /* fw_lock could be moved to 'struct firmware_priv' but since it is just
-> >  * guarding for corner cases a global lock should be OK */
-> > static DEFINE_MUTEX(fw_lock);
-> > 
-> > struct firmware_priv {
-> >         char *fw_id;
-> > 	...
-> > 
-> > And since "f_priv" is dynamically created and destroyed by
-> > request_firmware() I see no harm in 
-> > 
-> > 1. moving the mutex into struct firmware_priv
-> > 2. just always just grabbing an almost never contended mutex
-> > 3. getting rid of the file scope fw_lock.
-> > 
-> > except grabbing a mutex() while the timeout timer is running during
-> > loading, means one *could* sleep for a while consuming the timeout
-> > interval.
-> 
-> That sounds reasonable to me, care to make up a patch for this?
+signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
 
-Yes.  But it will take me a while.  I don't have a git tree, because I
-don't have high bandwidth internet yet.  (The cable company's been
-delayed in laying cable to my home due to repeated snowstorms.)
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -459,13 +506,13 @@ static int tm6000_usb_probe(struct usb_interface
+*interface,
+     /* Check to see next free device and mark as used */
+     nr=find_first_zero_bit(&tm6000_devused,TM6000_MAXBOARDS);
+     if (nr >= TM6000_MAXBOARDS) {
+-        printk ("tm6000: Supports only %i em28xx
+boards.\n",TM6000_MAXBOARDS);
++        printk ("tm6000: Supports only %i tm60xx
+boards.\n",TM6000_MAXBOARDS);
+         usb_put_dev(usbdev);
+         return -ENOMEM;
+     }
 
-I just didn't want the problem to fall through the cracks.  I'll submit
-something to bugzilla for now.  If a user complains of this rare Ooops
-when loading firmware, the current workaround is to lengthen the timeout
-via sysfs.
-
-Regards,
-Andy
-
-> thanks,
-> 
-> greg k-h
-
+-- 
+Stefan Ringel <stefan.ringel@arcor.de>
 
