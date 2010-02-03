@@ -1,41 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f220.google.com ([209.85.220.220]:53968 "EHLO
-	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757960Ab0BRAMB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Feb 2010 19:12:01 -0500
-Received: by fxm20 with SMTP id 20so8314869fxm.21
-        for <linux-media@vger.kernel.org>; Wed, 17 Feb 2010 16:11:59 -0800 (PST)
+Received: from bombadil.infradead.org ([18.85.46.34]:34952 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754856Ab0BCIWn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2010 03:22:43 -0500
+Message-ID: <4B69324F.4040903@infradead.org>
+Date: Wed, 03 Feb 2010 06:22:39 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-In-Reply-To: <4B7C84F3.4080708@redhat.com>
-References: <4B3F6FE0.4040307@internode.on.net> <4B421BCB.6050909@mailbox.hu>
-	 <4B4294FE.8000309@internode.on.net> <4B463AC6.2000901@mailbox.hu>
-	 <4B719CD0.6060804@mailbox.hu> <4B745781.2020408@mailbox.hu>
-	 <4B7C303B.2040807@mailbox.hu> <4B7C80F5.5060405@redhat.com>
-	 <829197381002171559k10b692dcu99a3adc2f613437f@mail.gmail.com>
-	 <4B7C84F3.4080708@redhat.com>
-Date: Wed, 17 Feb 2010 19:11:59 -0500
-Message-ID: <829197381002171611u7fcc8caeuea98e047164ae55@mail.gmail.com>
-Subject: Re: [PATCH] DTV2000 H Plus issues
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: akpm@linux-foundation.org
+CC: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Subject: Re: [patch 2/7] drivers/media/video/pms.c needs version.h
+References: <201002022240.o12Melb9018905@imap1.linux-foundation.org>
+In-Reply-To: <201002022240.o12Melb9018905@imap1.linux-foundation.org>
+Content-Type: text/plain; charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 17, 2010 at 7:08 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> OK. Then, I need your SOB for the 95% of the code, and his SOB for the
-> remaining ;)
+akpm@linux-foundation.org wrote:
+> From: Andrew Morton <akpm@linux-foundation.org>
+> 
+> i386 allmodconfig:
+> 
+> drivers/media/video/pms.c: In function 'pms_querycap':
+> drivers/media/video/pms.c:682: error: implicit declaration of function 'KERNEL_VERSION'
 
-Yeah, my plan at this point was to submit a PULL request once I felt
-the driver is stable (and I had already offered to apply his
-incremental patches onto my tree before said pull request).
+> @@ -24,6 +24,7 @@
+>  #include <linux/delay.h>
+>  #include <linux/errno.h>
+>  #include <linux/fs.h>
+> +#include <linux/version.h>
+>  #include <linux/kernel.h>
+>  #include <linux/slab.h>
+>  #include <linux/mm.h>
 
-Devin
+Hmm... changeset feba2f81 already added linux/version.h:
+@@ -27,20 +29,21 @@
+ #include <linux/mm.h>
+ #include <linux/ioport.h>
+ #include <linux/init.h>
++#include <linux/version.h>
++#include <linux/mutex.h>
++#include <asm/uaccess.h>
+ #include <asm/io.h>
+...
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+So I think this patch got obsoleted.
+
+Cheers,
+Mauro
