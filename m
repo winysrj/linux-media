@@ -1,65 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:21270 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755826Ab0BJW24 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Feb 2010 17:28:56 -0500
-Message-ID: <4B733321.40803@redhat.com>
-Date: Wed, 10 Feb 2010 20:28:49 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:38761 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932791Ab0BCUtP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2010 15:49:15 -0500
+Received: by bwz19 with SMTP id 19so517641bwz.28
+        for <linux-media@vger.kernel.org>; Wed, 03 Feb 2010 12:49:10 -0800 (PST)
 MIME-Version: 1.0
-To: ftape-jlc@club-internet.fr
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Fwd: Re: FM radio problem with HVR1120
-References: <201001252029.12009.ftape-jlc@club-internet.fr>
-In-Reply-To: <201001252029.12009.ftape-jlc@club-internet.fr>
+In-Reply-To: <4B69DEDA.3020200@arcor.de>
+References: <4B673790.3030706@arcor.de> <4B675B19.3080705@redhat.com>
+	 <4B685FB9.1010805@arcor.de> <4B688507.606@redhat.com>
+	 <4B688E41.2050806@arcor.de> <4B689094.2070204@redhat.com>
+	 <4B6894FE.6010202@arcor.de> <4B69D83D.5050809@arcor.de>
+	 <4B69D8CC.2030008@arcor.de> <4B69DEDA.3020200@arcor.de>
+Date: Wed, 3 Feb 2010 15:49:06 -0500
+Message-ID: <829197381002031249w5542bccfpccfa8554e7c6b280@mail.gmail.com>
+Subject: Re: [PATCH 14/15] - zl10353
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Stefan Ringel <stefan.ringel@arcor.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Wed, Feb 3, 2010 at 3:38 PM, Stefan Ringel <stefan.ringel@arcor.de> wrote:
+> signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+>
+> --- a/drivers/media/dvb/frontends/zl10353.h
+> +++ b/drivers/media/dvb/frontends/zl10353.h
+> @@ -45,6 +45,8 @@ struct zl10353_config
+>        /* clock control registers (0x51-0x54) */
+>        u8 clock_ctl_1;  /* default: 0x46 */
+>        u8 pll_0;        /* default: 0x15 */
+> +
+> +       int tm6000:1;
+>  };
 
-ftape-jlc wrote:
-> Hello,
-> 
-> I didn't received any message about radio on HVR1120.
-> I just want to know if the use /dev/radio0 is deprecated in v4l2 today.
-> In the mails, I only read messages about video or TV.
+Why is this being submitted as its own patch?  It is code that is not
+used by *anything*.  If you really did require a new field in the
+zl10353 config, that field should be added in the same patch as
+whatever requires it.
 
-No, it is not deprecated.
+Devin
 
-> Did one user of the mailing list have tested actual v4l2 on /dev/radio0 ?
-
-Yes. It works with several devices. Maybe there's a bug at the radio entry
-for your board.
-
->> The problem is to listen radio.
->> With Linux, the command used is
->> /usr/bin/radio -c /dev/radio0
->> in association with
->> sox -t ossdsp -r 32000 -c 2 /dev/dsp1 -t ossdsp /dev/dsp
->> to listen the sound.
->>
->> The result is an unstable frecuency. The station is not tuned. Stereo is
->> permanently switching to mono.
->> The 91.5MHz station is mixed permanently with other stations.
-
-This probably means that the GPIO setup for your board is wrong for radio.
-Only someone with a HVR1120 could fix it, since the GPIO's are board-specific.
-
-The better is if you could try to do it. It is not hard. Please take a look at:
- 
-http://linuxtv.org/wiki/index.php/GPIO_pins
-
-You'll need to run the regspy.exe utility (part of Dscaler package), and check
-how the original driver sets the GPIO registers. Then edit them on your board
-entry, at saa78134-cards.c, recompile the driver and test.
-
-The better is to use the out-of-tree mercuiral tree:
-	http://linuxtv.org/hg/v4l-dvb
-
-since it allows you to recompile and test without needing to replace your kernel.
-
-
-Cheers,
-Mauro
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
