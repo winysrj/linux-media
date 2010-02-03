@@ -1,57 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1907 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755305Ab0BTN6J (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Feb 2010 08:58:09 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: More videobuf and streaming I/O questions
-Date: Sat, 20 Feb 2010 15:00:21 +0100
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from mx1.redhat.com ([209.132.183.28]:44967 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932195Ab0BCJzb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Feb 2010 04:55:31 -0500
+Message-ID: <4B69471C.6040105@redhat.com>
+Date: Wed, 03 Feb 2010 07:51:24 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201002201500.21118.hverkuil@xs4all.nl>
+To: =?ISO-8859-1?Q?Richard_R=F6jfors?= <richard.rojfors@pelagicore.com>
+CC: "Ortiz, Samuel" <samuel.ortiz@intel.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] mfd: Add support for the timberdale FPGA.
+References: <4B66C36A.4000005@pelagicore.com> <4B693ED7.4060401@redhat.com> <4B694545.2090302@pelagicore.com>
+In-Reply-To: <4B694545.2090302@pelagicore.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have a few more questions regarding the streaming I/O API:
+Richard Röjfors wrote:
+> On 02/03/2010 10:16 AM, Mauro Carvalho Chehab wrote:
+>> Hi Richard,
+>>
+>> Richard Röjfors wrote:
+>>> The timberdale FPGA is found on the Intel in-Vehicle Infotainment
+>>> reference board
+>>> russelville.
+>>>
+>>> The driver is a PCI driver which chunks up the I/O memory and
+>>> distributes interrupts
+>>> to a number of platform devices for each IP inside the FPGA.
+>>>
+>>> Signed-off-by: Richard Röjfors<richard.rojfors@pelagicore.com>
+>>
+>> I'm not sure how to deal with this patch. It doesn't contain anything
+>> related
+>> to V4L2 inside it, nor it applies to drivers/media,
+> 
+> Sorry my address book tricked me. I was suppose to send it to LKML not the
+> Media mailing list.
+> 
+> I will resend the patch with the correct addresses in it.
+> 
+>> but it depends on the radio-timb driver that you submitted us.
+> 
+> Actually this MFD has more devices than in the current patch. These will
+> be incrementally added when the corresponding drivers goes into the kernel.
 
-1) The spec mentions that the memory field should be set for VIDIOC_DQBUF.
-But videobuf doesn't need it and it makes no sense to me either unless it
-is for symmetry with VIDIOC_QBUF. Strictly speaking QBUF doesn't need it
-either, but it is a good sanity check.
+Ah, ok.
 
-Can I remove the statement in the spec that memory should be set for DQBUF?
-The alternative is to add a check against the memory field in videobuf, but
-that's rather scary.
+> Sorry for the inconvenience.
 
-2) What to do with REQBUFS when called with a count of 0? Thinking it over I
-agree that it shouldn't do an implicit STREAMOFF. But I do think that it is
-useful to allow as a simple check whether the I/O method is supported.
-
-So a count of 0 will either return an error if streaming is still in progress
-or if the proposed I/O method is not supported, otherwise it will return 0
-while leaving count to 0.
-
-This allows one to use REQBUFS to test which I/O methods are supported by
-the driver without having the driver allocating any buffers.
-
-This will become more important with embedded systems where almost certainly
-additional I/O methods will be introduced (in particular non-contiguous plane
-support).
-
-Currently a count of 0 will result in an error in videobuf.
-
-Note that drivers do not generally check for valid values of the memory field
-at the moment. So that is another thing we need to improve. But before I start
-working on that, I first want to know exactly how REQBUFS should work.
-
-Regards,
-
-	Hans
+No problem.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
+Cheers,
+Mauro
