@@ -1,96 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3630 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750764Ab0BGTp5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Feb 2010 14:45:57 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id o17Jju8v081562
-	for <linux-media@vger.kernel.org>; Sun, 7 Feb 2010 20:45:56 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 7 Feb 2010 20:45:56 +0100 (CET)
-Message-Id: <201002071945.o17Jju8v081562@smtp-vbr4.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from bombadil.infradead.org ([18.85.46.34]:42765 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751838Ab0BCO2Z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2010 09:28:25 -0500
+Message-ID: <4B698803.7010805@infradead.org>
+Date: Wed, 03 Feb 2010 12:28:19 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Janne Grunau <j@jannau.net>
+CC: Julia Lawall <julia@diku.dk>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH 3/8] drivers/media/video/hdpvr: introduce missing kfree
+References: <Pine.LNX.4.64.0909111821180.10552@pc-004.diku.dk> <20090916111325.GA14900@aniel.lan> <4B684273.6040500@infradead.org> <20100203141210.GD7946@aniel.lan>
+In-Reply-To: <20100203141210.GD7946@aniel.lan>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Janne Grunau wrote:
+> Hej, 
+> 
+> On Tue, Feb 02, 2010 at 01:19:15PM -0200, Mauro Carvalho Chehab wrote:
+>> Janne Grunau wrote:
+>>> On Fri, Sep 11, 2009 at 06:21:35PM +0200, Julia Lawall wrote:
+>>>> Error handling code following a kzalloc should free the allocated data.
+>>> Thanks for the report. I'll commit a different patch which adds the buffer
+>>> to the buffer list as soon it is allocated. The hdpvr_free_buffers() in the
+>>> error handling code will clean it up then. See below:
+>> Any news about this subject? The current upstream code still misses the change bellow
+> 
+> it was fixed differently in cd0e280f
 
-Results of the daily build of v4l-dvb:
+Thanks! I'm removing it from my queue :)
 
-date:        Sun Feb  7 19:00:07 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14163:d2dc404d1617
-gcc version: i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:     2.6.32.5
+Now, the only hdpvr patch is this one:
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-rc5-armv5: OK
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-rc5-armv5-davinci: OK
-linux-2.6.32.6-armv5-dm365: ERRORS
-linux-2.6.33-rc5-armv5-dm365: ERRORS
-linux-2.6.32.6-armv5-ixp: OK
-linux-2.6.33-rc5-armv5-ixp: OK
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-rc5-armv5-omap2: OK
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.20-i686: OK
-linux-2.6.26.8-i686: OK
-linux-2.6.27.44-i686: OK
-linux-2.6.28.10-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: OK
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-rc5-i686: OK
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-rc5-m32r: OK
-linux-2.6.32.6-mips: OK
-linux-2.6.33-rc5-mips: OK
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-rc5-powerpc64: OK
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.20-x86_64: OK
-linux-2.6.26.8-x86_64: OK
-linux-2.6.27.44-x86_64: OK
-linux-2.6.28.10-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: OK
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-rc5-x86_64: OK
-spec: OK
-sparse (linux-2.6.32.6): ERRORS
-sparse (linux-2.6.33-rc5): ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: OK
-linux-2.6.19.7-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.7-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+hdpvr-video: cleanup signedness                                         http://patchwork.kernel.org/patch/74902
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Cheers,
+Mauro
