@@ -1,51 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proxy3.bredband.net ([195.54.101.73]:49033 "EHLO
-	proxy3.bredband.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753344Ab0BIWDt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 17:03:49 -0500
-Received: from ipb2.telenor.se (195.54.127.165) by proxy3.bredband.net (7.3.140.3)
-        id 4AD3E1BA03180E05 for linux-media@vger.kernel.org; Tue, 9 Feb 2010 22:43:39 +0100
-Message-ID: <4B71D70A.6030806@pelagicore.com>
-Date: Tue, 09 Feb 2010 22:43:38 +0100
-From: =?ISO-8859-1?Q?Richard_R=F6jfors?= <richard.rojfors@pelagicore.com>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2581 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753325Ab0BCKlA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2010 05:41:00 -0500
+Message-ID: <dd5e898cb64e7f76edfc36d263ba12aa.squirrel@webmail.xs4all.nl>
+In-Reply-To: <4B6946A3.9080803@redhat.com>
+References: <4B1E1974.6000207@jusst.de> <4B1E532C.9040903@redhat.com>
+    <4B6946A3.9080803@redhat.com>
+Date: Wed, 3 Feb 2010 11:40:42 +0100
+Subject: Re: New DVB-Statistics API - please vote
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Mauro Carvalho Chehab" <mchehab@redhat.com>
+Cc: "Julian Scheel" <julian@jusst.de>, linux-media@vger.kernel.org
 MIME-Version: 1.0
-To: Samuel Ortiz <samuel.ortiz@intel.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] mfd: Add support for the timberdale FPGA.
-References: <4B66C36A.4000005@pelagicore.com> <4B693ED7.4060401@redhat.com> <20100203100326.GA3460@sortiz.org> <4B694D69.1090201@redhat.com> <20100203123617.GF3460@sortiz.org> <4B69B12D.6030105@redhat.com> <20100204092846.GA3336@sortiz.org>
-In-Reply-To: <20100204092846.GA3336@sortiz.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2/4/10 10:28 AM, Samuel Ortiz wrote:
-> On Wed, Feb 03, 2010 at 05:23:57PM +0000, Mauro Carvalho Chehab wrote:
->>> Ok, thanks again for your understanding. This is definitely material for the
->>> next merge window, so I'll merge it into my for-next branch.
->>
->> The last version of the driver is OK for merging. However, I noticed one issue:
->> it depends on two drivers that were already merged on my tree:
->>
->> +config RADIO_TIMBERDALE
->> +       tristate "Enable the Timberdale radio driver"
->> +       depends on MFD_TIMBERDALE && VIDEO_V4L2
->> +       select RADIO_TEF6862
->> +       select RADIO_SAA7706H
->>
->> Currently, the dependency seems to happen only at Kconfig level.
->>
->> Maybe the better is to return to the previous plan: apply it via my tree, as the better
->> is to have it added after those two radio i2c drivers.
-> I'm fine with that. Richard sent me a 2nd version of his patch that I was
-> about to merge.
-> Richard, could you please post this patch here, or to lkml with Mauro cc'ed ?
-> I'll add my SOB to it and then it will go through Mauro's tree.
 
-Now when the radio driver made it into the media tree, can I post an
-updated MFD which defines these drivers too?
-Is a complete MFD patch preferred, or just an incremental against the
-last one?
+> Mauro Carvalho Chehab wrote:
+>
+>>> after the last thread which asked about signal statistics details
+>>> degenerated into a discussion about the technical possibilites for
+>>> implementing an entirely new API, which lead to nothing so far, I
+>>> wanted
+>>> to open a new thread to bring this forward. Maybe some more people can
+>>> give their votes for the different options
+>
+> Only me and Manu manifested with opinions on this thread. Not sure why
+> nobody else gave their comments. Maybe all interested people just decided
+> to take a long vacation and are not listening to their emails ;)
+>
+> Seriously, from what I understand, this is an API improvement and we need
+> to take a decision on it. So, your opinions are important.
+>
+> ---
+>
+> Let me draw a summary of this subject, trying to be impartial.
+>
+> The original proposal were made by Manu. My proposal is derived from
+> Manu's
+> original one, both will equally provide the same features.
+>
+> The main difference is that Manu's proposal use a struct to get the
+> statistics while my proposal uses DVBS2API.
+>
+> With both API proposals, all values are get at the same time by the
+> driver.
+> the DVBS2API adds a small delay to fill the fields, but the extra delay is
+> insignificant, when compared with the I/O delays needed to retrieve the
+> values from the hardware.
+>
+> Due to the usage of DVBS2API, it is possible to retrieve a subset of
+> statistics.
+> When obtaining a subset, the DVBS2API latency is considerable faster, as
+> less
+> data needed to be transfered from the hardware.
+>
+> The DVBS2API also offers the possibility of expanding the statistics
+> group, since
+> it is not rigid as an struct.
+>
+> One criteria that should be reminded is that, according with Linux Kernel
+> rules,
+> any userspace API is stable. This means that applications compiled against
+> an
+> older API version should keep running with the latest kernel. So, whatever
+> decided,
+> the statistics API should always maintain backward compatibility.
+>
+> ---
+>
+> During the end of the year, I did some work with an ISDB-T driver for
+> Siano, and
+> I realized that the usage of the proposed struct won't fit well for
+> ISDB-T. The
+> reason is that, on ISDB-T, the transmission uses up to 3 hierarchical
+> layers.
+> Each layer may have different OFDM parameters, so the devices (at least,
+> this is the
+> case for Siano) has a group of statistics per layer.
+>
+> I'm afraid that newer standards may also bring different ways to present
+> statistics, and
+> the current proposal won't fit well.
+>
+> So, in my opinion, if it is chosen any struct-based approach, we'll have a
+> bad time to
+> maintain it, as it won't fit into all cases, and we'll need to add some
+> tricks to extend
+> the struct.
+>
+> So, my vote is for the DVBS2API approach, where a new group of statistics
+> can easily be added,
+> on an elegant way, without needing of re-discussing the better API or to
+> find a way to extend
+> the size of an struct without breaking backward compatibility.
 
---Richard
+>From a purely technical standpoint the DVBS2API is by definition more
+flexible and future-proof. The V4L API has taken the same approach with
+controls (basically exactly the same mechanism). Should it be necessary in
+the future to set multiple properties atomically, then the same technique
+as V4L can be used (see VIDIOC_S_EXT_CTRLS).
+
+The alternative is to make structs with lots of reserved fields. It
+depends on how predictable the API is expected to be. Sometimes you can be
+reasonably certain that there won't be too many additions in the future
+and then using reserved fields is perfectly OK.
+
+Just my 5 cents based on my V4L experience.
+
+Regards,
+
+          Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+
