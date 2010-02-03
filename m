@@ -1,180 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bbrack.org ([66.126.51.1]:34975 "EHLO bbrack.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751941Ab0BQQom (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Feb 2010 11:44:42 -0500
-Received: from delightful.com.hk (localhost.localdomain [127.0.0.1])
-	by bbrack.org (8.14.3/8.14.2) with ESMTP id o1HGbY1T015386
-	for <linux-media@vger.kernel.org>; Wed, 17 Feb 2010 08:37:35 -0800
-Message-ID: <1e11a4aae8eb2fdee838fe0991bb8d7c.squirrel@delightful.com.hk>
-In-Reply-To: <hldtno$41u$1@ger.gmane.org>
-References: <hldpqq$nfn$1@ger.gmane.org> <hldrkq$t7v$1@ger.gmane.org>
-    <hldtno$41u$1@ger.gmane.org>
-Date: Wed, 17 Feb 2010 08:37:35 -0800
-Subject: Re: tw68: Congratulations :-) and possible vsync problem :-(
-From: "William M. Brack" <wbrack@mmm.com.hk>
-To: linux-media@vger.kernel.org
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:51749 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932791Ab0BCUwp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2010 15:52:45 -0500
+Received: by bwz19 with SMTP id 19so522084bwz.28
+        for <linux-media@vger.kernel.org>; Wed, 03 Feb 2010 12:52:43 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+In-Reply-To: <4B69DD3F.2000103@arcor.de>
+References: <4B673790.3030706@arcor.de> <4B675B19.3080705@redhat.com>
+	 <4B685FB9.1010805@arcor.de> <4B688507.606@redhat.com>
+	 <4B688E41.2050806@arcor.de> <4B689094.2070204@redhat.com>
+	 <4B6894FE.6010202@arcor.de> <4B69D83D.5050809@arcor.de>
+	 <4B69D8CC.2030008@arcor.de> <4B69DD3F.2000103@arcor.de>
+Date: Wed, 3 Feb 2010 15:52:43 -0500
+Message-ID: <829197381002031252l3800aeb3hbe60307324e96278@mail.gmail.com>
+Subject: Re: [PATCH 12/15] - tm6000 bugfix tuner reset time and tuner param
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Stefan Ringel <stefan.ringel@arcor.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver has not yet been submitted for review by members of the
-linux-media list (although it most certainly will be in the future). I
-greatly appreciate this report (and would also welcome any others),
-but I don't want to spend much time here responding to it. Reports
-sent to me by direct email are also welcome.
+On Wed, Feb 3, 2010 at 3:31 PM, Stefan Ringel <stefan.ringel@arcor.de> wrote:
+> signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+>
+> --- a/drivers/staging/tm6000/tm6000-cards.c
+> +++ b/drivers/staging/tm6000/tm6000-cards.c
+> @@ -221,12 +239,13 @@ struct usb_device_id tm6000_id_table [] = {
+>     { USB_DEVICE(0x2040, 0x6600), .driver_info =
+> TM6010_BOARD_HAUPPAUGE_900H },
+>     { USB_DEVICE(0x6000, 0xdec0), .driver_info =
+> TM6010_BOARD_BEHOLD_WANDER },
+>     { USB_DEVICE(0x6000, 0xdec1), .driver_info =
+> TM6010_BOARD_BEHOLD_VOYAGER },
+>     { USB_DEVICE(0x0ccd, 0x0086), .driver_info =
+> TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE },
+>     { },
+>  };
+>
+>  /* Tuner callback to provide the proper gpio changes needed for xc2028 */
+>
+> -static int tm6000_tuner_callback(void *ptr, int component, int command,
+> int arg)
+> +int tm6000_tuner_callback(void *ptr, int component, int command, int arg)
+>  {
 
-The problem is basically caused by an overload of your CPU - it
-doesn't have enough power to handle the processing of the video stream
-the application has asked for. I'm able to run all of your examples on
-my development machine (an Intel i7a with 4gb) with no problems at
-all. That said, it is also true that the driver should do a better job
-of assuring the buffer stream being sent to the application is correct
-and consistent. I can reproduce the problem on relatively slow systems
-(an AMD Duron and a Pentium4, each with 256mb), and will try to
-improve the driver's behaviour.
+Why was the static removed from this declaration?  What could possibly
+be calling this from outside the module?  And if there were something
+that needed it, the declaration would have to be moved to a header
+file so it could be included elsewhere (which should be in this same
+patch).
 
-Thanks for the report!
+Just to be clear, the fact that I am going through these patches
+should not be taken personally - I'm just trying to give you some
+advice on what you need to do to ensure the patches can be accepted
+upstream and be reviewed with minimal cost to the other developers.
 
-Bill
-TW68 developer
+Devin
 
-Michael wrote:
-> Sorry for spamming this :-)
->
-> The problem is not solved. Now that I tested all possible normid
-> settings,
-> it became clear that it only occurs if I have the correct cropping.
->
-> With the PAL and SECAM settings, I get correct cropping, but the vsync
-> problem in case of high cpu load. With NTSC settings I get wrong
-> cropping
-> (missing bottom lines), but no vsync problems.
->
-> If I switch my video cam from PAL to NTSC output, I also get vsync
-> problems
-> with NTSC normids.
->
-> It seems that the driver misses the vsync somehow if it went down
-> correctly
-> till the last horizontal line and if there is high CPU load.
->
-> Michael
->
-> Michael wrote:
->
->> Wow things are really moving fast here.
->>
->> This morning there was a commit in git, which actually eliminates
->> the
->> below mentioned problem.
->>
->> It, however, introduced another small problem. The pictures is
->> wrongly
->> cropped. There is the lower part missing (roughly 150-200 lines).
->>
->> With the last version, I had the same problem, but was able to get
->> the
->> full picture with the option "normid=3". This is no longer working.
->>
->> Otherwise, great work!
->>
->> Michael
->>
->>
->> Michael wrote:
->>
->>> Hello
->>>
->>> I have tested a TW6805 based mini-pci card with the new tw68-v2
->>> driver
->>> from git (22 January 2010).
->>>
->>> First of all: Congratulations! It is really working great.
->>>
->>> However, I noticed some frame errors here and then. It is not easy
->>> to
->>> identify what the reason is. It looks a bit like a buffer problem
->>> as it
->>> happens more often, if there is some load on the system.
->>>
->>> Here is a simple way how I can reproduce the frame errors:
->>>
->>> mplayer -framedrop -fs -vo x11 tv:// -tv
->>> device=/dev/video0:width=640:height=480:normid=3
->>>
->>> With this command, cpu load goes to 100% on my low powered geode
->>> system.
->>> The frame errors are very obvious. It looks like a vsync problem as
->>> the
->>> wrong frames always start somewhere in the middle. There is no
->>> horizontal
->>> shift visible.
->>>
->>> Reducing the image size:
->>>
->>> mplayer -framedrop -fs -vo x11 tv:// -tv
->>> device=/dev/video0:width=320:height=240:normid=3
->>>
->>> gives a drop in CPU load to 13%. No more frame errors.
->>>
->>> Also using hardware accelerated video playback (xv) reduces CPU
->>> load to
->>> some 20% and removes the frame errors:
->>>
->>> mplayer -framedrop -fs -vo xv tv:// -tv
->>> device=/dev/video0:width=640:height=480:normid=3
->>>
->>> Still, even here, occasionally there are some frame errors,
->>> depending on
->>> what happens on the system. These can be induced as follows. Using
->>> this
->>> program:
->>>
->>> mkfifo /tmp/mp
->>> mplayer -framedrop -fs -vf screenshot -vo xv tv:// -tv
->>> device=/dev/video0:normid=3 -slave -input file=/tmp/mp </dev/null
->>> >/dev/null
->>>
->>> When this test prog runs, you can issue commands to mplayer, e.g.
->>>
->>> echo pause > /tmp/mp
->>>
->>> This pauses mplayer. A second
->>>
->>> echo pause > /tmp/mp
->>>
->>> starts mplayer again. Here the first frame shows the error.
->>>
->>> The same happens if you issue:
->>>
->>> echo screenshot 0 > /tmp/mp
->>>
->>> This captures a screenshot and saves it into the current pwd.
->>> Again, when
->>> mplayer takes the shot, there comes one error frame (probably also
->>> wrong
->>> vsync).
->>>
->>>
->>> Btw. using instead a bttv based card all these tests run without
->>> frame
->>> errors.
->>>
->>> Does this information help to identify and remove the bug?
->>>
->>> Best regards
->>>
->>> Michael
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
