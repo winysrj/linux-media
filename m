@@ -1,81 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:52382 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932710Ab0BGSju (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Feb 2010 13:39:50 -0500
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
-	david.cohen@nokia.com,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: [PATCH v2 6/7] V4L: Events: Sequence numbers
-Date: Sun,  7 Feb 2010 20:40:46 +0200
-Message-Id: <1265568047-31073-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <4B6F0922.9070206@maxwell.research.nokia.com>
-References: <4B6F0922.9070206@maxwell.research.nokia.com>
+Received: from mail-in-10.arcor-online.net ([151.189.21.50]:36552 "EHLO
+	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932791Ab0BCUu7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Feb 2010 15:50:59 -0500
+Message-ID: <4B69E193.6040206@arcor.de>
+Date: Wed, 03 Feb 2010 21:50:27 +0100
+From: Stefan Ringel <stefan.ringel@arcor.de>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [PATCH 4/15] -  tm6000.h
+References: <4B673790.3030706@arcor.de> <4B673B2D.6040507@arcor.de> <4B675B19.3080705@redhat.com> <4B685FB9.1010805@arcor.de> <4B688507.606@redhat.com> <4B688E41.2050806@arcor.de> <4B689094.2070204@redhat.com> <4B6894FE.6010202@arcor.de> <4B69D83D.5050809@arcor.de> <4B69D8CC.2030008@arcor.de> <4B69D9AF.4020309@arcor.de> <4B69DB9D.90609@redhat.com>
+In-Reply-To: <4B69DB9D.90609@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add sequence numbers to events.
+Am 03.02.2010 21:25, schrieb Mauro Carvalho Chehab:
+> This one is a very obscure patch. What are you doing this patch and why?
+>
+> Stefan Ringel wrote:
+>   
+>> signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+>>
+>> --- a/drivers/staging/tm6000/tm6000.h
+>> +++ b/drivers/staging/tm6000/tm6000.h
+>> @@ -90,12 +97,14 @@ enum tm6000_core_state {
+>>      DEV_MISCONFIGURED = 0x04,
+>>  };
+>>  
+>> +#if 1
+>>  /* io methods */
+>>  enum tm6000_io_method {
+>>      IO_NONE,
+>>      IO_READ,
+>>      IO_MMAP,
+>>  };
+>> +#endif
+>>  
+>>     
+? different between git and hg ? not mine
+>>  enum tm6000_mode {
+>>      TM6000_MODE_UNKNOWN=0,
+>> @@ -202,6 +211,9 @@ struct tm6000_fh {
+>>              V4L2_STD_PAL_M|V4L2_STD_PAL_60|V4L2_STD_NTSC_M| \
+>>              V4L2_STD_NTSC_M_JP|V4L2_STD_SECAM
+>>  
+>> +/* In tm6000-cards.c */
+>> +
+>> +int tm6000_tuner_callback (void *ptr, int component, int command, int arg);
+>>  /* In tm6000-core.c */
+>>  
+>>     
+I use that for tuner callback in tm6000-dvb --> frontend structure
+>>  int tm6000_read_write_usb (struct tm6000_core *dev, u8 reqtype, u8 req,
+>> @@ -209,7 +221,6 @@ int tm6000_read_write_usb (struct tm6000_core *dev,
+>> u8 reqtype, u8 req,
+>>  int tm6000_get_reg (struct tm6000_core *dev, u8 req, u16 value, u16 index);
+>>  int tm6000_set_reg (struct tm6000_core *dev, u8 req, u16 value, u16 index);
+>>  int tm6000_init (struct tm6000_core *dev);
+>> -int tm6000_init_after_firmware (struct tm6000_core *dev);
+>>  
+>>  int tm6000_init_analog_mode (struct tm6000_core *dev);
+>>  int tm6000_init_digital_mode (struct tm6000_core *dev);
+>> @@ -231,7 +242,12 @@ int tm6000_set_standard (struct tm6000_core *dev,
+>> v4l2_std_id *norm);
+>>  int tm6000_i2c_register(struct tm6000_core *dev);
+>>  int tm6000_i2c_unregister(struct tm6000_core *dev);
+>>  
+>> +#if 1
+>>  /* In tm6000-queue.c */
+>> +#if 0
+>> +int tm6000_init_isoc(struct tm6000_core *dev, int max_packets);
+>> +void tm6000_uninit_isoc(struct tm6000_core *dev);
+>> +#endif
+>>  
+>>     
+? different between git and hg ? not mine
+>>  int tm6000_v4l2_mmap(struct file *filp, struct vm_area_struct *vma);
+>>  
+>> @@ -276,3 +292,4 @@ extern int tm6000_debug;
+>>          __FUNCTION__ , ##arg); } while (0)
+>>  
+>>  
+>> +#endif
+>>
+>>     
+>
+>   
 
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- drivers/media/video/v4l2-event.c |   15 ++++++++++++---
- include/media/v4l2-event.h       |    1 +
- 2 files changed, 13 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
-index a95cde0..cd744d0 100644
---- a/drivers/media/video/v4l2-event.c
-+++ b/drivers/media/video/v4l2-event.c
-@@ -89,6 +89,7 @@ int v4l2_event_init(struct v4l2_fh *fh, unsigned int n)
- 	INIT_LIST_HEAD(&fh->events->subscribed);
- 
- 	atomic_set(&fh->events->navailable, 0);
-+	atomic_set(&fh->events->sequence, -1);
- 
- 	ret = v4l2_event_alloc(fh, n);
- 	if (ret < 0)
-@@ -166,15 +167,23 @@ void v4l2_event_queue(struct video_device *vdev, struct v4l2_event *ev)
- 	list_for_each_entry(fh, &vdev->fhs.list, list) {
- 		struct v4l2_events *events = fh->events;
- 		struct v4l2_kevent *kev;
-+		u32 sequence;
- 
--		/* Do we have any free events and are we subscribed? */
--		if (list_empty(&events->free) ||
--		    !__v4l2_event_subscribed(fh, ev->type))
-+		/* Are we subscribed? */
-+		if (!__v4l2_event_subscribed(fh, ev->type))
-+			continue;
-+
-+		/* Increase event sequence number on fh. */
-+		sequence = atomic_inc_return(&events->sequence);
-+
-+		/* Do we have any free events? */
-+		if (list_empty(&events->free))
- 			continue;
- 
- 		/* Take one and fill it. */
- 		kev = list_first_entry(&events->free, struct v4l2_kevent, list);
- 		kev->event = *ev;
-+		kev->event.sequence = sequence;
- 		list_move_tail(&kev->list, &events->available);
- 
- 		atomic_inc(&events->navailable);
-diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
-index 282d215..3db0c3b 100644
---- a/include/media/v4l2-event.h
-+++ b/include/media/v4l2-event.h
-@@ -49,6 +49,7 @@ struct v4l2_events {
- 	struct list_head	available; /* Dequeueable event */
- 	atomic_t                navailable;
- 	struct list_head	free; /* Events ready for use */
-+	atomic_t                sequence;
- };
- 
- int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n);
 -- 
-1.5.6.5
+Stefan Ringel <stefan.ringel@arcor.de>
 
