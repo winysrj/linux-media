@@ -1,22 +1,29 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (ext-mx04.extmail.prod.ext.phx2.redhat.com
 	[10.5.110.8])
-	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o13I6KgB022825
-	for <video4linux-list@redhat.com>; Wed, 3 Feb 2010 13:06:20 -0500
-Received: from snt0-omc3-s34.snt0.hotmail.com (snt0-omc3-s34.snt0.hotmail.com
-	[65.55.90.173])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o13I69mY012383
-	for <video4linux-list@redhat.com>; Wed, 3 Feb 2010 13:06:09 -0500
-Message-ID: <SNT123-W631AD70788CCBA562F2E20EE560@phx.gbl>
-From: "Owen O' Hehir" <oo_hehir@hotmail.com>
-To: <video4linux-list@redhat.com>
-Subject: RE: Saving YUVY image from V4L2 buffer to file
-Date: Wed, 3 Feb 2010 18:06:08 +0000
-In-Reply-To: <829197381002030954j6ebc845fl269e2f72bffbcba@mail.gmail.com>
-References: <SNT123-W319B38F63C77A4CFB0FD99EE560@phx.gbl>,
-	<829197381002030954j6ebc845fl269e2f72bffbcba@mail.gmail.com>
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o13KCmsC011002
+	for <video4linux-list@redhat.com>; Wed, 3 Feb 2010 15:12:48 -0500
+Received: from mail-bw0-f217.google.com (mail-bw0-f217.google.com
+	[209.85.218.217])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o13KCZZ3002294
+	for <video4linux-list@redhat.com>; Wed, 3 Feb 2010 15:12:35 -0500
+Received: by bwz9 with SMTP id 9so68856bwz.30
+	for <video4linux-list@redhat.com>; Wed, 03 Feb 2010 12:12:34 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <006001caa50b$b00fa8c0$102efa40$@com>
+References: <SNT123-W319B38F63C77A4CFB0FD99EE560@phx.gbl>
+	<829197381002030954j6ebc845fl269e2f72bffbcba@mail.gmail.com>
+	<SNT123-W631AD70788CCBA562F2E20EE560@phx.gbl>
+	<005801caa502$ad686ca0$083945e0$@com>
+	<829197381002031118h483cb570ld7177c502ce78298@mail.gmail.com>
+	<006001caa50b$b00fa8c0$102efa40$@com>
+Date: Wed, 3 Feb 2010 15:12:33 -0500
+Message-ID: <829197381002031212w317346b3of4754f2be12f5fbd@mail.gmail.com>
+Subject: Re: Saving YUVY image from V4L2 buffer to file
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: "Charlie X. Liu" <charlie@sensoray.com>
+Cc: "Owen O' Hehir" <oo_hehir@hotmail.com>, video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,53 +37,31 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Wed, Feb 3, 2010 at 3:01 PM, Charlie X. Liu <charlie@sensoray.com> wrote:
+> Do most of Webcams have no RGB support? I'm not experienced on that. Does
+> anybody know the percentage of RGB support by Webcams?
 
-Devin,
+Well, the V4L interface doesn't make the distinction between webcams
+and other analog capture devices.  That said, webcams do tend to
+provide some variant of RGB (and in a number of cases it uses
+proprietary formats that include compression that must be handled in
+userland).  So there are different formats that would all be
+considered some form of RGB.
 
-Many thanks for the quick reply.
+Other capture devices, such as tuners and home movie converters tend to use YUV.
 
-Yes I'm getting some sort of an image. When I was experimenting I managed to get an image but in grayscale & showing multiple copies of the same image covering the top half of the image. I imagine it was distorted because I was not converting to RGB correctly.
+So, if you're looking to write a simple app for internal use to work
+with a particular webcam, you can disregard the above.  But if you are
+trying to write a generic capture application that is expected to work
+with many products, then you need to take into consideration all the
+different formats that can be used.
 
-All the best,
+Devin
 
- 
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
 
-Owen
-
-
-
-
-> Date: Wed, 3 Feb 2010 12:54:02 -0500
-> Subject: Re: Saving YUVY image from V4L2 buffer to file
-> From: dheitmueller@kernellabs.com
-> To: oo_hehir@hotmail.com
-> CC: video4linux-list@redhat.com
-> 
-> On Wed, Feb 3, 2010 at 12:40 PM, Owen O' Hehir <oo_hehir@hotmail.com> wrote:
-> >
-> > Hello All,
-> >
-> > I'm trying to save a captured image from a USB camera to a file. The capture is based on V4L2 video capture example from the V4L2 API spec. http://v4l2spec.bytesex.org/spec/a16706.htm
-> >
-> > The V4L2 set pointers (via mmap) to to the USB image (in YUV 4:2:2 (YUYV)) and as far as I can see the simplest way to save the image in a recognised format is in RGB format, specifically in PPM (Netpbm color image format).
-> >
-> > As such I've expanded the process_image function:
-> 
-> Independent of the conversion function, are you sure you are getting a
-> valid YUV frame at all?  A completely green frame is what you will get
-> back if you had a buffer which was memset(0).  Hence it's possible
-> that the data you are passing *into* your conversion function is
-> completely blank.
-> 
-> Devin
-> 
-> -- 
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
- 		 	   		  
-_________________________________________________________________
-Hotmail: Powerful Free email with security by Microsoft.
-https://signup.live.com/signup.aspx?id=60969
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
