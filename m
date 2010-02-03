@@ -1,116 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1122 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933375Ab0BYUef (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Feb 2010 15:34:35 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: linux-next: Tree for February 22 (media/video/tvp7002)
-Date: Thu, 25 Feb 2010 21:34:09 +0100
-Cc: linux-next@vger.kernel.org,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"Santiago Nunez-Corrales" <santiago.nunez@ridgerun.com>
-References: <20100222172218.4fd82a45.sfr@canb.auug.org.au> <4B82AF18.3030107@oracle.com> <20100225085205.9cf68ce9.randy.dunlap@oracle.com>
-In-Reply-To: <20100225085205.9cf68ce9.randy.dunlap@oracle.com>
+Received: from mx1.redhat.com ([209.132.183.28]:19247 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754723Ab0BCLFh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Feb 2010 06:05:37 -0500
+Message-ID: <4B695879.5060500@redhat.com>
+Date: Wed, 03 Feb 2010 09:05:29 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201002252134.10071.hverkuil@xs4all.nl>
+To: Samuel Rakitnican <samuel.rakitnican@gmail.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [RESEND PATCH] ir-kbd-i2c: Allow to disable Hauppauge filter
+ through module parameter
+References: <op.u6ov64og6dn9rq@denis-laptop.lan> <op.u6oxbgql6dn9rq@denis-laptop.lan>
+In-Reply-To: <op.u6oxbgql6dn9rq@denis-laptop.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 25 February 2010 17:52:05 Randy Dunlap wrote:
-> On Mon, 22 Feb 2010 08:21:44 -0800 Randy Dunlap wrote:
+Hi Samuel,
+
+Samuel Rakitnican wrote:
+> Some Hauppauge devices have id=0 so such devices won't work.
+> For such devices add a module parameter that allow to turn
+> off filtering.
 > 
-> > On 02/21/10 22:22, Stephen Rothwell wrote:
-> > > Hi all,
-> > > 
-> > > Changes since 20100219:
-> > 
-> > 
-> > drivers/media/video/tvp7002.c:896: error: 'struct tvp7002' has no member named 'registers'
-> 
-> same problem in linux-next-20100225.
-> 
-> so where are these registers??
+> Signed-off-by: Samuel Rakitničan <semiRocket@gmail.com>
 
-Hmm, that code is a remnant from older revisions of this driver. Unfortunately,
-when I compiled this driver before creating my pull request I forgot to turn on
-the CONFIG_VIDEO_ADV_DEBUG option and so I never saw it.
+Instead of a modprobe parameter, the proper fix is to make the usage of the
+complete RC5 code received from this IR. This way, the handling of the
+IR will depend only at the IR table used by the device.
 
-Anyway, below is a patch that fixes this. Please apply.
+Please take a look at the code at em28xx (seek for ir->full_code) to see
+how to implement it.
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+Cheers,
+Mauro.
 
-Santiago, I've also fixed the g_register function: it never returned a register
-value in the original code.
-
-Regards,
-
-	Hans
-
-diff --git a/drivers/media/video/tvp7002.c b/drivers/media/video/tvp7002.c
-index 0f0270b..5a878bc 100644
---- a/drivers/media/video/tvp7002.c
-+++ b/drivers/media/video/tvp7002.c
-@@ -859,13 +859,17 @@ static int tvp7002_g_register(struct v4l2_subdev *sd,
- 						struct v4l2_dbg_register *reg)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	u8 val;
-+	int ret;
- 
- 	if (!v4l2_chip_match_i2c_client(client, &reg->match))
- 		return -EINVAL;
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
- 
--	return reg->val < 0 ? -EINVAL : 0;
-+	ret = tvp7002_read(sd, reg->reg & 0xff, &val);
-+	reg->val = val;
-+	return ret;
- }
- 
- /*
-@@ -881,21 +885,13 @@ static int tvp7002_s_register(struct v4l2_subdev *sd,
- 						struct v4l2_dbg_register *reg)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct tvp7002 *device = to_tvp7002(sd);
--	int wres;
- 
- 	if (!v4l2_chip_match_i2c_client(client, &reg->match))
- 		return -EINVAL;
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
- 
--	wres = tvp7002_write(sd, reg->reg & 0xff, reg->val & 0xff);
--
--	/* Update the register value in device's table */
--	if (!wres)
--		device->registers[reg->reg].value = reg->val;
--
--	return wres < 0 ? -EINVAL : 0;
-+	return tvp7002_write(sd, reg->reg & 0xff, reg->val & 0xff);
- }
- #endif
- 
-
-
-> 
-> thanks,
 > ---
-> ~Randy
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff -r 82bbb3bd0f0a linux/drivers/media/video/ir-kbd-i2c.c
+> --- a/linux/drivers/media/video/ir-kbd-i2c.c    Mon Jan 11 11:47:33 2010
+> -0200
+> +++ b/linux/drivers/media/video/ir-kbd-i2c.c    Sat Jan 16 16:39:14 2010
+> +0100
+> @@ -61,6 +61,10 @@
+>   module_param(hauppauge, int, 0644);    /* Choose Hauppauge remote */
+>   MODULE_PARM_DESC(hauppauge, "Specify Hauppauge remote: 0=black, 1=grey
+> (defaults to 0)");
 > 
+> +static int haup_filter = 1;
+> +module_param(haup_filter, int, 0644);
+> +MODULE_PARM_DESC(haup_filter, "Hauppauge filter for other remotes,
+> default is 1 (On)");
+> +
 > 
+>   #define DEVNAME "ir-kbd-i2c"
+>   #define dprintk(level, fmt, arg...)    if (debug >= level) \
+> @@ -96,24 +100,27 @@
+>       if (!start)
+>           /* no key pressed */
+>           return 0;
+> -    /*
+> -     * Hauppauge remotes (black/silver) always use
+> -     * specific device ids. If we do not filter the
+> -     * device ids then messages destined for devices
+> -     * such as TVs (id=0) will get through causing
+> -     * mis-fired events.
+> -     *
+> -     * We also filter out invalid key presses which
+> -     * produce annoying debug log entries.
+> -     */
+> -    ircode= (start << 12) | (toggle << 11) | (dev << 6) | code;
+> -    if ((ircode & 0x1fff)==0x1fff)
+> -        /* invalid key press */
+> -        return 0;
+> 
+> -    if (dev!=0x1e && dev!=0x1f)
+> -        /* not a hauppauge remote */
+> -        return 0;
+> +    if (haup_filter != 0) {
+> +        /*
+> +         * Hauppauge remotes (black/silver) always use
+> +         * specific device ids. If we do not filter the
+> +         * device ids then messages destined for devices
+> +         * such as TVs (id=0) will get through causing
+> +         * mis-fired events.
+> +         *
+> +         * We also filter out invalid key presses which
+> +         * produce annoying debug log entries.
+> +         */
+> +        ircode = (start << 12) | (toggle << 11) | (dev << 6) | code;
+> +        if ((ircode & 0x1fff) == 0x1fff)
+> +            /* invalid key press */
+> +            return 0;
+> +
+> +        if (dev != 0x1e && dev != 0x1f)
+> +            /* not a hauppauge remote */
+> +            return 0;
+> +    }
+> 
+>       if (!range)
+>           code += 64;
+> 
+
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
+Cheers,
+Mauro
