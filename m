@@ -1,210 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:39976 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758491Ab0BXWqT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Feb 2010 17:46:19 -0500
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	david.cohen@nokia.com
-Subject: [PATCH v8 1/6] V4L: File handles
-Date: Thu, 25 Feb 2010 00:46:03 +0200
-Message-Id: <1267051568-5757-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <4B85AC1E.8060302@maxwell.research.nokia.com>
-References: <4B85AC1E.8060302@maxwell.research.nokia.com>
+Received: from bombadil.infradead.org ([18.85.46.34]:40547 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755098Ab0BCIas (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2010 03:30:48 -0500
+Message-ID: <4B693432.4040101@infradead.org>
+Date: Wed, 03 Feb 2010 06:30:42 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: julia@diku.dk, "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+CC: akpm@linux-foundation.org, linux-media@vger.kernel.org
+Subject: Re: [patch 1/7] drivers/media/video: move dereference after NULL
+ test
+References: <201002022240.o12Mekvr018902@imap1.linux-foundation.org>
+In-Reply-To: <201002022240.o12Mekvr018902@imap1.linux-foundation.org>
+Content-Type: text/plain; charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a list of v4l2_fh structures to every video_device.
-It allows using file handle related information in V4L2. The event interface
-is one example of such use.
+Hi Julia,
 
-Video device drivers should use the v4l2_fh pointer as their
-file->private_data.
+> From: Julia Lawall <julia@diku.dk>
+ 
 
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- drivers/media/video/Makefile   |    2 +-
- drivers/media/video/v4l2-dev.c |    4 ++
- drivers/media/video/v4l2-fh.c  |   66 ++++++++++++++++++++++++++++++++++++++++
- include/media/v4l2-dev.h       |    5 +++
- include/media/v4l2-fh.h        |   42 +++++++++++++++++++++++++
- 5 files changed, 118 insertions(+), 1 deletions(-)
- create mode 100644 drivers/media/video/v4l2-fh.c
- create mode 100644 include/media/v4l2-fh.h
+> diff -puN drivers/media/video/davinci/vpif_display.c~drivers-media-video-move-dereference-after-null-test drivers/media/video/davinci/vpif_display.c
+> --- a/drivers/media/video/davinci/vpif_display.c~drivers-media-video-move-dereference-after-null-test
+> +++ a/drivers/media/video/davinci/vpif_display.c
+> @@ -383,8 +383,6 @@ static int vpif_get_std_info(struct chan
+>  	int index;
+>  
+>  	std_info->stdid = vid_ch->stdid;
+> -	if (!std_info)
+> -		return -1;
+>  
+>  	for (index = 0; index < ARRAY_SIZE(ch_params); index++) {
+>  		config = &ch_params[index];
 
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index 5163289..14bf69a 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -10,7 +10,7 @@ stkwebcam-objs	:=	stk-webcam.o stk-sensor.o
- 
- omap2cam-objs	:=	omap24xxcam.o omap24xxcam-dma.o
- 
--videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o
-+videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o
- 
- # V4L2 core modules
- 
-diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-index 7090699..65a7b30 100644
---- a/drivers/media/video/v4l2-dev.c
-+++ b/drivers/media/video/v4l2-dev.c
-@@ -421,6 +421,10 @@ static int __video_register_device(struct video_device *vdev, int type, int nr,
- 	if (!vdev->release)
- 		return -EINVAL;
- 
-+	/* v4l2_fh support */
-+	spin_lock_init(&vdev->fh_lock);
-+	INIT_LIST_HEAD(&vdev->fh_list);
-+
- 	/* Part 1: check device type */
- 	switch (type) {
- 	case VFL_TYPE_GRABBER:
-diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
-new file mode 100644
-index 0000000..93ea0af
---- /dev/null
-+++ b/drivers/media/video/v4l2-fh.c
-@@ -0,0 +1,66 @@
-+/*
-+ * v4l2-fh.c
-+ *
-+ * V4L2 file handles.
-+ *
-+ * Copyright (C) 2009--2010 Nokia Corporation.
-+ *
-+ * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ */
-+
-+#include <linux/bitops.h>
-+#include <media/v4l2-dev.h>
-+#include <media/v4l2-fh.h>
-+
-+int v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
-+{
-+	fh->vdev = vdev;
-+	INIT_LIST_HEAD(&fh->list);
-+	set_bit(V4L2_FL_USES_V4L2_FH, &fh->vdev->flags);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_fh_init);
-+
-+void v4l2_fh_add(struct v4l2_fh *fh)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
-+	list_add(&fh->list, &fh->vdev->fh_list);
-+	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_fh_add);
-+
-+void v4l2_fh_del(struct v4l2_fh *fh)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
-+	list_del_init(&fh->list);
-+	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_fh_del);
-+
-+void v4l2_fh_exit(struct v4l2_fh *fh)
-+{
-+	if (fh->vdev == NULL)
-+		return;
-+
-+	fh->vdev = NULL;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_fh_exit);
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index 2dee938..bebe44b 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -32,6 +32,7 @@ struct v4l2_device;
-    Drivers can clear this flag if they want to block all future
-    device access. It is cleared by video_unregister_device. */
- #define V4L2_FL_REGISTERED	(0)
-+#define V4L2_FL_USES_V4L2_FH	(1)
- 
- struct v4l2_file_operations {
- 	struct module *owner;
-@@ -77,6 +78,10 @@ struct video_device
- 	/* attribute to differentiate multiple indices on one physical device */
- 	int index;
- 
-+	/* V4L2 file handles */
-+	spinlock_t		fh_lock; /* Lock for all v4l2_fhs */
-+	struct list_head	fh_list; /* List of struct v4l2_fh */
-+
- 	int debug;			/* Activates debug level*/
- 
- 	/* Video standard vars */
-diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
-new file mode 100644
-index 0000000..410e86c
---- /dev/null
-+++ b/include/media/v4l2-fh.h
-@@ -0,0 +1,42 @@
-+/*
-+ * v4l2-fh.h
-+ *
-+ * V4L2 file handle.
-+ *
-+ * Copyright (C) 2009--2010 Nokia Corporation.
-+ *
-+ * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ */
-+
-+#ifndef V4L2_FH_H
-+#define V4L2_FH_H
-+
-+#include <linux/list.h>
-+
-+struct video_device;
-+
-+struct v4l2_fh {
-+	struct list_head	list;
-+	struct video_device	*vdev;
-+};
-+
-+int v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev);
-+void v4l2_fh_add(struct v4l2_fh *fh);
-+void v4l2_fh_del(struct v4l2_fh *fh);
-+void v4l2_fh_exit(struct v4l2_fh *fh);
-+
-+#endif /* V4L2_EVENT_H */
--- 
-1.5.6.5
+IMO, the better would be to move the if to happen before the usage of std_info, and make it return 
+a proper error code, instead of -1.
 
+Murali,
+Any comments?
+
+> diff -puN drivers/media/video/saa7134/saa7134-alsa.c~drivers-media-video-move-dereference-after-null-test drivers/media/video/saa7134/saa7134-alsa.c
+> --- a/drivers/media/video/saa7134/saa7134-alsa.c~drivers-media-video-move-dereference-after-null-test
+> +++ a/drivers/media/video/saa7134/saa7134-alsa.c
+> @@ -1011,8 +1011,6 @@ static int snd_card_saa7134_new_mixer(sn
+>  	unsigned int idx;
+>  	int err, addr;
+>  
+> -	if (snd_BUG_ON(!chip))
+> -		return -EINVAL;
+>  	strcpy(card->mixername, "SAA7134 Mixer");
+
+The better here is to keep the BUG_ON and moving this initialization:
+        struct snd_card *card = chip->card;
+
+to happen after the test.
+
+>  
+>  	for (idx = 0; idx < ARRAY_SIZE(snd_saa7134_volume_controls); idx++) {
+> diff -puN drivers/media/video/usbvideo/quickcam_messenger.c~drivers-media-video-move-dereference-after-null-test drivers/media/video/usbvideo/quickcam_messenger.c
+> --- a/drivers/media/video/usbvideo/quickcam_messenger.c~drivers-media-video-move-dereference-after-null-test
+> +++ a/drivers/media/video/usbvideo/quickcam_messenger.c
+> @@ -692,12 +692,13 @@ static int qcm_start_data(struct uvd *uv
+>  
+>  static void qcm_stop_data(struct uvd *uvd)
+>  {
+> -	struct qcm *cam = (struct qcm *) uvd->user_data;
+> +	struct qcm *cam;
+>  	int i, j;
+>  	int ret;
+>  
+>  	if ((uvd == NULL) || (!uvd->streaming) || (uvd->dev == NULL))
+>  		return;
+> +	cam = (struct qcm *) uvd->user_data;
+>  
+>  	ret = qcm_camera_off(uvd);
+>  	if (ret)
+
+OK.
+
+Cheers,
+Mauro
