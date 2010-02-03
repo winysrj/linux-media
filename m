@@ -1,109 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-01.arcor-online.net ([151.189.21.41]:33884 "EHLO
-	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753802Ab0BVQWX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 11:22:23 -0500
-From: stefan.ringel@arcor.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
-	Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH 1/3] tm6000: add send and recv function
-Date: Mon, 22 Feb 2010 17:21:31 +0100
-Message-Id: <1266855693-5554-1-git-send-email-stefan.ringel@arcor.de>
+Received: from perceval.irobotique.be ([92.243.18.41]:55041 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755972Ab0BCA0a (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Feb 2010 19:26:30 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Martin Fuzzey <mfuzzey@gmail.com>
+Subject: Re: [PATCH] Video : pwc : Fix regression in pwc_set_shutter_speed caused by bad constant => sizeof conversion.
+Date: Wed, 3 Feb 2010 01:27:40 +0100
+Cc: linux-media@vger.kernel.org, Greg KH <greg@kroah.com>,
+	treecej@comcast.net
+References: <20100130162650.18132.97369.stgit@srv002.fuzzey.net>
+In-Reply-To: <20100130162650.18132.97369.stgit@srv002.fuzzey.net>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201002030127.40268.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <stefan.ringel@arcor.de>
+On Saturday 30 January 2010 17:26:51 Martin Fuzzey wrote:
+> Regression was caused by my commit 6b35ca0d3d586b8ecb8396821af21186e20afaf0
+> which determined message size using sizeof rather than hardcoded constants.
+> 
+> Unfortunately pwc_set_shutter_speed reuses a 2 byte buffer for a one byte
+> message too so the sizeof was bogus in this case.
+> 
+> All other uses of sizeof checked and are ok.
+> 
+> Signed-off-by: Martin Fuzzey <mfuzzey@gmail.com>
 
-add separately send and receive function
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
----
- drivers/staging/tm6000/tm6000-i2c.c |   48 +++++++++++++++++++++++++---------
- 1 files changed, 35 insertions(+), 13 deletions(-)
+> 
+> ---
+> 
+>  drivers/media/video/pwc/pwc-ctrl.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/pwc/pwc-ctrl.c
+>  b/drivers/media/video/pwc/pwc-ctrl.c index 50b415e..f7f7e04 100644
+> --- a/drivers/media/video/pwc/pwc-ctrl.c
+> +++ b/drivers/media/video/pwc/pwc-ctrl.c
+> @@ -753,7 +753,7 @@ int pwc_set_shutter_speed(struct pwc_device *pdev, int
+>  mode, int value) buf[0] = 0xff; /* fixed */
+> 
+>  	ret = send_control_msg(pdev,
+> -		SET_LUM_CTL, SHUTTER_MODE_FORMATTER, &buf, sizeof(buf));
+> +		SET_LUM_CTL, SHUTTER_MODE_FORMATTER, &buf, 1);
+> 
+>  	if (!mode && ret >= 0) {
+>  		if (value < 0)
+> 
 
-diff --git a/drivers/staging/tm6000/tm6000-i2c.c b/drivers/staging/tm6000/tm6000-i2c.c
-index 656cd19..2222b39 100644
---- a/drivers/staging/tm6000/tm6000-i2c.c
-+++ b/drivers/staging/tm6000/tm6000-i2c.c
-@@ -44,6 +44,32 @@ MODULE_PARM_DESC(i2c_debug, "enable debug messages [i2c]");
- 			printk(KERN_DEBUG "%s at %s: " fmt, \
- 			dev->name, __FUNCTION__ , ##args); } while (0)
- 
-+int tm6000_i2c_send_regs(struct tm6000_core *dev, unsigned char addr, __u8 reg, char *buf, int len)
-+{
-+	return tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-+		REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0, buf, len);
-+}
-+
-+/* read from a 8bit register */
-+int tm6000_i2c_recv_regs(struct tm6000_core *dev, unsigned char addr, __u8 reg, char *buf, int len)
-+{
-+	int rc;
-+
-+		rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-+			REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0, buf, len);
-+
-+	return rc;
-+}
-+
-+/* read from a 16bit register
-+ * for example xc2028, xc3028 or xc3028L 
-+ */
-+int tm6000_i2c_recv_regs16(struct tm6000_core *dev, unsigned char addr, __u16 reg, char *buf, int len)
-+{
-+	return tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-+		REQ_14_SET_GET_I2C_WR2_RDN, addr, reg, buf, len);
-+} 
-+
- static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
- 			   struct i2c_msg msgs[], int num)
- {
-@@ -78,13 +104,14 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
- 			i2c_dprintk(2, "; joined to read %s len=%d:",
- 				    i == num - 2 ? "stop" : "nonstop",
- 				    msgs[i + 1].len);
--			rc = tm6000_read_write_usb (dev,
--				USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
--				msgs[i].len == 1 ? REQ_16_SET_GET_I2C_WR1_RDN
--						 : REQ_14_SET_GET_I2C_WR2_RDN,
--				addr | msgs[i].buf[0] << 8,
--				msgs[i].len == 1 ? 0 : msgs[i].buf[1],
-+			if (msgs{i].len == 1) {
-+				rc = tm6000_i2c_recv_regs(dev, addr, msgs[i].buf[0],
- 				msgs[i + 1].buf, msgs[i + 1].len);
-+			} else {
-+				rc = tm6000_i2c_recv_regs(dev, addr, msgs[i].buf[0] << 8 | msgs[i].buf[1],
-+				msgs[i + 1].buf, msgs[i + 1].len);
-+			}
-+
- 			i++;
- 
- 			if (addr == dev->tuner_addr) {
-@@ -99,10 +126,7 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
- 			if (i2c_debug >= 2)
- 				for (byte = 0; byte < msgs[i].len; byte++)
- 					printk(" %02x", msgs[i].buf[byte]);
--			rc = tm6000_read_write_usb(dev,
--				USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
--				REQ_16_SET_GET_I2C_WR1_RDN,
--				addr | msgs[i].buf[0] << 8, 0,
-+			rc = tm6000_i2c_send_regs(dev, addr, msgs[i].buf[0],
- 				msgs[i].buf + 1, msgs[i].len - 1);
- 
- 			if (addr == dev->tuner_addr) {
-@@ -134,9 +158,7 @@ static int tm6000_i2c_eeprom(struct tm6000_core *dev,
- 	bytes[16] = '\0';
- 	for (i = 0; i < len; ) {
- 	*p = i;
--	rc = tm6000_read_write_usb (dev,
--		USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
--		REQ_16_SET_GET_I2C_WR1_RDN, 0xa0 | i<<8, 0, p, 1);
-+	rc = tm6000_i2c_revc_regs(dev, 0xa0, i, p, 1);
- 		if (rc < 1) {
- 			if (p == eedata)
- 				goto noeeprom;
 -- 
-1.6.6.1
+Regards,
 
+Laurent Pinchart
