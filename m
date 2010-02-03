@@ -1,160 +1,229 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f46.google.com ([74.125.82.46]:58363 "EHLO
-	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754026Ab0BAMXv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Feb 2010 07:23:51 -0500
-Received: by wwi18 with SMTP id 18so333875wwi.19
-        for <linux-media@vger.kernel.org>; Mon, 01 Feb 2010 04:23:50 -0800 (PST)
-Message-ID: <4B66C649.7010500@gmail.com>
-Date: Mon, 01 Feb 2010 12:17:13 +0000
-From: Nameer Kazzaz <nameer.kazzaz@gmail.com>
-MIME-Version: 1.0
-To: "Igor M. Liplianin" <liplianin@me.by>
-CC: paul10@planar.id.au, linux-media <linux-media@vger.kernel.org>,
-	=?ISO-8859-1?Q?Christian_H=FCppe?= <christian.hueppe@web.de>
-Subject: Re: DM1105: could not attach frontend 195d:1105
-References: <3bf14d196e3bc8717d910d09a623f98e@mail.velocitynet.com.au> <8f772b00c9ad2033899eeb1913ee42e0@mail.velocitynet.com.au> <52aaba8d0f6ba9e6928ea68d96565bf4@mail.velocitynet.com.au> <201001311545.09620.liplianin@me.by>
-In-Reply-To: <201001311545.09620.liplianin@me.by>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-in-08.arcor-online.net ([151.189.21.48]:51854 "EHLO
+	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752294Ab0BCBC5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Feb 2010 20:02:57 -0500
+Subject: Re: Videotext application crashes the kernel due to DVB-demux patch
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Andy Walls <awalls@radix.net>
+Cc: Chicken Shack <chicken.shack@gmx.de>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	torvalds@linux-foundation.org, akpm@linux-foundation.org
+In-Reply-To: <1265115172.3104.17.camel@palomino.walls.org>
+References: <1265018173.2449.19.camel@brian.bconsult.de>
+	 <1265028110.3098.3.camel@palomino.walls.org>
+	 <1265076008.3120.96.camel@palomino.walls.org>
+	 <1265101869.1721.28.camel@brian.bconsult.de>
+	 <1265115172.3104.17.camel@palomino.walls.org>
+Content-Type: text/plain; charset=UTF-8
+Date: Wed, 03 Feb 2010 02:01:01 +0100
+Message-Id: <1265158862.3194.22.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi there,
-dmesg output with patched dm1105.c against current v4l-dvb 'modprob 
-dm1105 card=4'
 
-dm1105 0000:05:0f.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
-DVB: registering new adapter (dm1105)
-dm1105 0000:05:0f.0: MAC dd49b0dc
-dm1105 0000:05:0f.0: could not attach frontend
-dm1105 0000:05:0f.0: PCI INT A disabled
+Am Dienstag, den 02.02.2010, 07:52 -0500 schrieb Andy Walls:
+> On Tue, 2010-02-02 at 10:11 +0100, Chicken Shack wrote:
+> > Am Montag, den 01.02.2010, 21:00 -0500 schrieb Andy Walls:
+> > > On Mon, 2010-02-01 at 07:41 -0500, Andy Walls wrote:
+> > > > On Mon, 2010-02-01 at 10:56 +0100, Chicken Shack wrote:
+> > > > > Hi,
+> > > > > 
+> > > > > here is a link to a patch which breaks backwards compatibility for a
+> > > > > teletext software called alevt-dvb.
+> > > > > 
+> > > > > http://www.mail-archive.com/linuxtv-commits@linuxtv.org/msg04638.html
+> > > > > 
+> > > > > The kernel patch was introduced with kernel 2.6.32-rc1.
+> > > > > It was Signed-off-by Brandon Philips, Mauro Carvalho Chehab and its
+> > > > > author, Andreas Oberritter.
+> > > > > 
+> > > 
+> > > > > Regards
+> > > > > 
+> > > > > CS
+> > > > > 
+> > > > > P. S.: This is how the kernel crash looks like:
+> > > > 
+> > > > The information below can get me started.  Could you please provide
+> > > > whole Ooops from the output dmesg or from your /var/log/messages file?
+> > > > 
+> > > > I'll try to look at this tonight.
+> > > > 
+> > > > Regards,
+> > > > Andy
+> > > > 
+> > > > > brian:~# alevt
+> > > > > alevt: SDT: service_id 0xcf24 not in PAT
+> 
+> > > > > alevt: ioctl: DMX_SET_PES_FILTER Invalid argument (22)
+> > > > > Getötet
+> > > > > brian:~# 
+> > > > > Message from syslogd@brian at Jan 31 19:52:33 ...
+> > > > >  kernel:[  116.563487] Oops: 0000 [#1] PREEMPT SMP 
+> > > > > 
+> > > > > Message from syslogd@brian at Jan 31 19:52:33 ...
+> > > > >  kernel:[  116.563492] last sysfs
+> > > > > file: /sys/devices/pci0000:00/0000:00:1d.7/usb1/1-0:1.0/uevent
+> > > > > 
+> > > > > Message from syslogd@brian at Jan 31 19:52:33 ...
+> > > > >  kernel:[  116.563589] Process alevt (pid: 1780, ti=e7934000
+> > > > > task=e7915be0 task.ti=e7934000)
+> > > > > 
+> > > > > Message from syslogd@brian at Jan 31 19:52:33 ...
+> > > > >  kernel:[  116.563592] Stack:
+> > > > > 
+> > > > > Message from syslogd@brian at Jan 31 19:52:33 ...
+> > > > >  kernel:[  116.563622] Call Trace:
+> > > > > 
+> > > > > Message from syslogd@brian at Jan 31 19:52:33 ...
+> > > > >  kernel:[  116.563650] Code: f2 da 4c c8 8d 56 78 89 54 24 04 89 d0 e8
+> > > > > e4 da 4c c8 89 f0 e8 31 ff ff ff 83 7e 4c 01 76 73 83 7e 48 02 75 49 8b
+> > > > > 46 04 8d 48 f8 <8b> 41 08 8d 58 f8 8d 7e 04 eb 28 8b 41 08 8b 51 0c 89
+> > > > > 50 04 89 
+> > > 
+> > > > > Message from syslogd@brian at Jan 31 19:52:33 ...
+> > > > >  kernel:[  116.563697] EIP: [<f8cec1b2>] dvb_demux_release+0x43/0x183
+> > > > > [dvb_core] SS:ESP 0068:e7935f58
+> > > > > 
+> > > > > Message from syslogd@brian at Jan 31 19:52:33 ...
+> > > > >  kernel:[  116.563706] CR2: 0000000000000000
+> > > 
+> > > I don't have a 32 bti machine set up to compile the module and compare
+> > > the disassembly directly.  However, the kernel code above disassembles
+> > > to this, and is supposedly in dvb_demux_release() but things have been
+> > > inlined by the compiler:
+> > > 
+> > >   1c:	8d 56 78             	lea    0x78(%esi),%edx
+> > >   1f:	89 54 24 04          	mov    %edx,0x4(%esp)
+> > >   23:	89 d0                	mov    %edx,%eax
+> > >   25:	e8 e4 da 4c c8       	call   0xc84cdb0e
+> > >   2a:	89 f0                	mov    %esi,%eax
+> > >   2c:	e8 31 ff ff ff       	call   0xffffff62
+> > > 					(dmxdev.c:dvb_dmxdev_filter_reset() appears to be inlined starting here
+> > > 					 %esi holds dmxdevfilter)
+> > >   31:	83 7e 4c 01          	cmpl   $0x1,0x4c(%esi)    if (dmxdevfilter->state < DMXDEV_STATE_SET)
+> > >   35:	76 73                	jbe    0xaa               	return 0;
+> > >   37:	83 7e 48 02          	cmpl   $0x2,0x48(%esi)    if (dmxdevfilter->type == DMXDEV_TYPE_PES)
+> > >   3b:	75 49                	jne    0x86
+> > > 					(dvb_dmxdev_delete_pids() appears to be inlined starting here
+> > > 					 %esi still holds dmxdevfilter)
+> > >   3d:	8b 46 04             	mov    0x4(%esi),%eax     %eax gets loaded with &dmxdevfilter->feed.ts  for list_for_each_entry_safe(feed, tmp, &dmxdevfilter->feed.ts, ...
+> > >   40:	8d 48 f8             	lea    -0x8(%eax),%ecx    %ecx is "feed" and gets loaded with the next struct dmxdev_feed pointed to by the &dmxdevfilter->feed.ts list
+> > >   43:	8b 41 08             	mov    0x8(%ecx),%eax     Oops appears to happen here: %ecx and hence "feed" was (craftily?) set to 0xfffffff8 based on CR2 above
+> > >   46:	8d 58 f8             	lea    -0x8(%eax),%ebx
+> > >   49:	8d 7e 04             	lea    0x4(%esi),%edi
+> > >   4c:	eb 28                	jmp    0x76
+> > >   4e:	8b 41 08             	mov    0x8(%ecx),%eax
+> > >   51:	8b 51 0c             	mov    0xc(%ecx),%edx
+> > >   54:	89 50 04             	mov    %edx,0x4(%eax)
+> > > 
+> > > 
+> > > So there is something wrong with the list manipulations or, if needed,
+> > > locking around the the list manipulations of the list that was
+> > > introduced in the patch you identified as the problem.  That is what is
+> > > causing the Ooops on close().  It will take a some more scrutiny to see
+> > > what exactly is wrong.
+> 
+> With further thought, a very likely of a list's "next" pointer being
+> NULL would be either:
+> 
+> 1. Failing to init the "struct list_head" dmxdevfilter->feed.ts after
+> dmxdevfilter is first kzalloc()'ed.
+> 
+> 2. The other member of the dmxdevfilter->feed union being set to NULL
+> unexpectedly.  (less likely)
+> 
+> I'll look at these possibilities on Wednesday evening.
+> 
+> 
+> > > There also may be another different problem.  I note that alevt outputs
+> > > this perror() message:
+> > > 
+> > > 	alevt: ioctl: DMX_SET_PES_FILTER Invalid argument (22)
+> > 
+> > > There may possibly have been an unintended change in ioctl() semantics
+> > > with the patch.  I have not investigated this at all yet.
+> > 
+> > 
+> > Voila!
+> > 
+> > This is the context of the perror message:
+> > 
+> > a. this is the title of the function:
+> > 
+> > static int vbi_dvb_open(struct vbi *vbi, const char *vbi_name,
+> > 	const char *channel, char *outfile, u_int16_t sid, int ttpid)
+> > 
+> > b. and this is the immediate context of the perror message:
+> > 
+> > 	memset(&filterpar, 0, sizeof(filterpar));
+> > 	filterpar.pid = vbi->ttpid;
+> >         filterpar.input = DMX_IN_FRONTEND;
+> >         filterpar.output = DMX_OUT_TAP;
+> >         filterpar.pes_type = DMX_PES_OTHER;
+> >         filterpar.flags = DMX_IMMEDIATE_START;
+> >         if (ioctl(vbi->fd, DMX_SET_PES_FILTER, &filterpar) < 0) {
+> >         error("ioctl: DMX_SET_PES_FILTER %s (%u)", strerror(errno),
+> > errno);
+> >         goto outerr;
+> >         }
+> > 	return 0;
+> > 
+> >  outerr:
+> > 	close(vbi->fd);
+> > 	vbi->fd = -1;
+> > 	return -1;
+> > }
+> > 
+> > If you compare that to other teletext applications you will easily find
+> > out that there is absolutely nothing irregular about it: all standard
+> > calls, free from bugs or syntax errors.
+> 
+> 
+> OK.  Thank you for hunting down the application call into the driver.
+> That should reduce the time to find the cause
+> 
+> 
+> > a. What is the "Invalid argument"?
+> > b. And what does "22" mean?
+> 
+> 22 is the errno value for EINVAL which means loosely mean "Invalid
+> Argument", but can often be used when something internally is just
+> "Invalid".
+> 
+> /usr/include/asm-generic/errno-base.h:#define	EINVAL		22	/* Invalid argument */
+> 
+> Given the ioctl() call you've documented above, it should be easy enough
+> to find where in the DVB subsystem the EINVAL is coming from.  And it is
+> likely that it is coming from code added by the patch, but I won't know
+> until I can examine further.
+> 
+> 
+> > Thanks for your engagement, Andy!
+> 
+> You're welcome.
+> 
+> 
+> > It's a golden donation to have people like you around!
+> 
+> Thank you.
+> 
+> Regards,
+> Andy
 
-Thanks
-Nameer Kazzaz
+Hi Andy,
 
-Igor M. Liplianin wrote:
-> On 20 ?????? 2010 23:20:20 paul10@planar.id.au wrote:
->   
->> Igor wrote:
->>     
->>> Oh, that is wrong. It is registers addresses, Never touch this.
->>>
->>> Let's look on that part of code:
->>>
->>> /* GPIO's for LNB power control */
->>> #define DM1105_LNB_MASK                         0x00000000 // later in
->>>       
->> code write it to
->>
->>     
->>> DM1105_GPIOCTR, all GPIO's as OUT
->>> #define DM1105_LNB_OFF                          0x00020000 // later in
->>>       
->> code write it to
->>
->>     
->>> DM1105_GPIOVAL, set GPIO17 to HIGH
->>>
->>> But you have not to change this.
->>> Right way is to write another entry in cards structure and so on.
->>> Better leave it to me.
->>>
->>> Regards
->>> Igor
->>>       
->> Thanks for all your help, I understand better now.  I have moved to code
->> like that at the bottom.  It still doesn't work, but feels a lot closer.
->>
->> Before I keep playing with values, I want to check I'm on the right track.
->> Does it look right?  Specific questions:
->> 1. I see there is a hw_init function.  Should I be using that?  I put the
->> logic into fe_attach because there was already card-specific logic in
->> there.  But this feels like hw initialisation.
->>
->> 2. Should I set the control to input or output?  I'm assuming input = 1.
->>
->> 3. Would pin 15 be numbered from the left or right - is it 0x4, or 0x2000?
->>
->> Thanks,
->>
->> Paul
->>
->> *** dm1105.c.old        2010-01-13 16:15:00.000000000 +1100
->> --- dm1105.c    2010-01-21 08:13:14.000000000 +1100
->> ***************
->> *** 51,56 ****
->> --- 51,57 ----
->>   #define DM1105_BOARD_DVBWORLD_2002    1
->>   #define DM1105_BOARD_DVBWORLD_2004    2
->>   #define DM1105_BOARD_AXESS_DM05               3
->> + #define DM1105_BOARD_UNBRANDED                4
->>
->>   /* ----------------------------------------------- */
->>   /*
->> ***************
->> *** 171,176 ****
->> --- 172,181 ----
->>   #define DM05_LNB_13V                          0x00020000
->>   #define DM05_LNB_18V                          0x00030000
->>
->> + /* GPIO's for demod reset for unbranded 195d:1105 */
->> + #define UNBRANDED_DEMOD_MASK                  0x00008000
->> + #define UNBRANDED_DEMOD_RESET                 0x00008000
->> +
->>   static unsigned int card[]  = {[0 ... 3] = UNSET };
->>   module_param_array(card,  int, NULL, 0444);
->>   MODULE_PARM_DESC(card, "card type");
->> ***************
->> *** 206,211 ****
->> --- 211,219 ----
->>         [DM1105_BOARD_AXESS_DM05] = {
->>                 .name           = "Axess/EasyTv DM05",
->>         },
->> +       [DM1105_BOARD_UNBRANDED] = {
->> +               .name           = "Unbranded 195d:1105",
->> +         },
->>   };
->>
->>   static const struct dm1105_subid dm1105_subids[] = {
->> ***************
->> *** 229,234 ****
->> --- 237,246 ----
->>                 .subvendor = 0x195d,
->>                 .subdevice = 0x1105,
->>                 .card      = DM1105_BOARD_AXESS_DM05,
->> +       }, {
->> +               .subvendor = 0x195d,
->> +               .subdevice = 0x1105,
->> +               .card      = DM1105_BOARD_UNBRANDED,
->>         },
->>   };
->>
->> ***************
->> *** 698,703 ****
->> --- 710,727 ----
->>                         dm1105dvb->fe->ops.set_voltage =
->> dm1105dvb_set_voltage;
->>
->>                 break;
->> +       case DM1105_BOARD_UNBRANDED:
->> +                 printk(KERN_ERR "Attaching as board_unbranded\n");
->> +               outl(UNBRANDED_DEMOD_MASK, dm_io_mem(DM1105_GPIOCTR));
->> +               outl(UNBRANDED_DEMOD_RESET , dm_io_mem(DM1105_GPIOVAL));
->> +               dm1105dvb->fe = dvb_attach(
->> +                       si21xx_attach, &serit_config,
->> +                       &dm1105dvb->i2c_adap);
->> +                       if (dm1105dvb->fe)
->> +                               dm1105dvb->fe->ops.set_voltage =
->> +                                       dm1105dvb_set_voltage;
->> +
->> +               break;
->>         case DM1105_BOARD_DVBWORLD_2002:
->>         case DM1105_BOARD_AXESS_DM05:
->>         default:
->>     
-> Some things are missed, like keep GPIO15 high in set_voltage function.
-> Try attached patch against current v4l-dvb tree with modprobe option card=4
-> 	modprobe dm1105 card=4
->   
+take care, such golden donations can turn into golden showers very soon.
+
+Prefer to stay with the original author.
+
+I think he is still alive ;)
+
+Cheers,
+Hermann
+
 
