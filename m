@@ -1,77 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41520 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759058Ab0BYKvd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Feb 2010 05:51:33 -0500
-Message-ID: <4B865662.5000500@redhat.com>
-Date: Thu, 25 Feb 2010 11:52:18 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Brandon Philips <brandon@ifup.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Douglas Landgraf <dougsland@gmail.com>
-Subject: Re: [ANNOUNCE] git tree repositories & libv4l
-References: <4B57B6E4.2070500@infradead.org> <20100121024605.GK4015@jenkins.home.ifup.org> <201001210834.28112.hverkuil@xs4all.nl> <4B5B30E4.7030909@redhat.com> <20100222225426.GC4013@jenkins.home.ifup.org> <4B839687.4090205@redhat.com> <4B83F635.9030501@infradead.org> <4B83F97A.60103@redhat.com> <4B84799E.4000202@infradead.org> <4B8521CF.7090500@redhat.com> <20100224143202.GE20308@jenkins.stayonline.net>
-In-Reply-To: <20100224143202.GE20308@jenkins.stayonline.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3380 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757144Ab0BCTR6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2010 14:17:58 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o13JHqlu024768
+	for <linux-media@vger.kernel.org>; Wed, 3 Feb 2010 20:17:57 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 3 Feb 2010 20:17:52 +0100 (CET)
+Message-Id: <201002031917.o13JHqlu024768@smtp-vbr7.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-On 02/24/2010 03:32 PM, Brandon Philips wrote:
-> On 13:55 Wed 24 Feb 2010, Hans de Goede wrote:
+Results of the daily build of v4l-dvb:
 
-<snip>
->> Where necessary libv4l currently has code snippets like:
->>
->> #ifndef V4L2_PIX_FMT_SPCA501
->> #define V4L2_PIX_FMT_SPCA501 v4l2_fourcc('S','5','0','1') /* YUYV per line */
->> #endif
->
-> I don't think this is less work than copying the header file from the
-> Kernel. Test building under all versions of the Kernel headers that
-> exist to make sure something isn't missed isn't possible. It really is
-> easier just to sync the header file up.
->
->> The reason for this is that I want to avoid carrying a copy of a dir
->> from some other tree, with all getting stale and needing sync all
->> the time issues that come with that, not to mention chicken and egg
->> problems in the case of new formats which simultaneously need to be
->> added to both libv4l and the kernel.
->
-> Worst case is that if it is stale then it won't build since it depends
-> on fancy new feature XYZ. But, at least it won't build on all systems
-> instead of randomly breaking based on installed kernel headers
-> version.
->
->> For example often I add support for V4L2_PIX_FMT_NEW_FOO to libv4l, before it
->> hits any official v4l-dvb kernel tree, with the:
->
-> Please don't add features to releases before they are merged with
-> Linus. It would suck to ship a copy of libv4l that has a different
-> idea of structs or constants then the upstream Kernel.
->
+date:        Wed Feb  3 19:00:04 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14108:556072389bd6
+gcc version: i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:     2.6.32.5
 
-Note the only thing added is a V4L2_PIX_FMT_xxx define, IOW this makes libv4l
-recognize (and convert from) a new video format, which is to be generated
-by a going upstream soon driver. With older kernels this won't make any
-difference as those don't generate that format.
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-rc5-armv5: OK
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-rc5-armv5-davinci: OK
+linux-2.6.32.6-armv5-dm365: ERRORS
+linux-2.6.33-rc5-armv5-dm365: ERRORS
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-rc5-armv5-ixp: OK
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-rc5-armv5-omap2: OK
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.20-i686: ERRORS
+linux-2.6.26.8-i686: ERRORS
+linux-2.6.27.44-i686: ERRORS
+linux-2.6.28.10-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30.10-i686: OK
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-rc5-i686: OK
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-rc5-m32r: OK
+linux-2.6.32.6-mips: OK
+linux-2.6.33-rc5-mips: OK
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-rc5-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.20-x86_64: ERRORS
+linux-2.6.26.8-x86_64: ERRORS
+linux-2.6.27.44-x86_64: ERRORS
+linux-2.6.28.10-x86_64: ERRORS
+linux-2.6.29.1-x86_64: ERRORS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-rc5-x86_64: WARNINGS
+spec: OK
+sparse (linux-2.6.32.6): ERRORS
+sparse (linux-2.6.33-rc5): ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
->> Approach this works fine, if I were to carry an include tree copy, that would
->> now need to become a patched include tree copy, and with the next sync I then
->> need to ensure that any needed patches are either already in the sync source,
->> or applied again.
->
-> Or just fix it upstream with #ifdef __KERNEL__ tags once and for all,
-> right?
+Detailed results are available here:
 
-I wasn't even talking about #ifdef __KERNEL__ issues, although yes those
-exist too.
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-Regards,
+Full logs are available here:
 
-Hans
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
