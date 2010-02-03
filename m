@@ -1,34 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:41419 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753910Ab0BVUir (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 15:38:47 -0500
-Date: Mon, 22 Feb 2010 13:38:45 -0700
-From: Jonathan Corbet <corbet@lwn.net>
-To: Randy Dunlap <rdunlap@xenotime.net>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] Updated videobuf documentation
-Message-ID: <20100222133845.2cb82820@bike.lwn.net>
-In-Reply-To: <4B7DC652.9080601@xenotime.net>
-References: <20100218101219.665c5403@bike.lwn.net>
-	<4B7DC652.9080601@xenotime.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from perceval.irobotique.be ([92.243.18.41]:50033 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755781Ab0BCAQW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Feb 2010 19:16:22 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: =?utf-8?q?N=C3=A9meth_M=C3=A1rton?= <nm127@freemail.hu>
+Subject: Re: [PATCH] uvcvideo: check minimum border of control
+Date: Wed, 3 Feb 2010 01:17:28 +0100
+Cc: V4L Mailing List <linux-media@vger.kernel.org>
+References: <4B5F60B0.7090709@freemail.hu>
+In-Reply-To: <4B5F60B0.7090709@freemail.hu>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201002030117.28362.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 18 Feb 2010 14:59:30 -0800
-Randy Dunlap <rdunlap@xenotime.net> wrote:
+Hi Márton,
 
-> > +A buffer's state should be set to <tt>VIDEOBUF_ACTIVE</tt> before being  
+
+On Tuesday 26 January 2010 22:37:52 Németh Márton wrote:
+> Check also the minimum border of a value before setting it
+> to a control value.
 > 
-> What does the <tt> do in a plain text file?
+> See also http://bugzilla.kernel.org/show_bug.cgi?id=12824 .
+> 
+> Signed-off-by: Márton Németh <nm127@freemail.hu>
 
-It verifies that somebody was paying attention :)
+I've updated the previous patch in the uvcvideo git repository, could you 
+please test it ? 
 
-Obviously, that's a bit of markup which slipped through.  I'll post
-another version shortly with your comments addressed, thanks.
+-- 
+Regards,
 
-jon
+Laurent Pinchart
