@@ -1,21 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.11])
+Received: from mx1.redhat.com (ext-mx04.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.8])
 	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o1BHE3nB024259
-	for <video4linux-list@redhat.com>; Thu, 11 Feb 2010 12:14:03 -0500
-Received: from mail-qy0-f185.google.com (mail-qy0-f185.google.com
-	[209.85.221.185])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o1BHDEC7004359
-	for <video4linux-list@redhat.com>; Thu, 11 Feb 2010 12:13:48 -0500
-Received: by mail-qy0-f185.google.com with SMTP id 15so1036418qyk.7
-	for <video4linux-list@redhat.com>; Thu, 11 Feb 2010 09:13:48 -0800 (PST)
+	id o13HsE3C008867
+	for <video4linux-list@redhat.com>; Wed, 3 Feb 2010 12:54:14 -0500
+Received: from mail-bw0-f217.google.com (mail-bw0-f217.google.com
+	[209.85.218.217])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o13Hs3io009705
+	for <video4linux-list@redhat.com>; Wed, 3 Feb 2010 12:54:04 -0500
+Received: by bwz9 with SMTP id 9so222965bwz.30
+	for <video4linux-list@redhat.com>; Wed, 03 Feb 2010 09:54:03 -0800 (PST)
 MIME-Version: 1.0
-Date: Thu, 11 Feb 2010 17:13:47 +0000
-Message-ID: <3cf2debb1002110913l5493e8c0h114fe59e732b9763@mail.gmail.com>
-Subject: control frame rate
-From: Nuno Cardoso <linun77@gmail.com>
-To: video4linux-list@redhat.com
+In-Reply-To: <SNT123-W319B38F63C77A4CFB0FD99EE560@phx.gbl>
+References: <SNT123-W319B38F63C77A4CFB0FD99EE560@phx.gbl>
+Date: Wed, 3 Feb 2010 12:54:02 -0500
+Message-ID: <829197381002030954j6ebc845fl269e2f72bffbcba@mail.gmail.com>
+Subject: Re: Saving YUVY image from V4L2 buffer to file
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: "Owen O' Hehir" <oo_hehir@hotmail.com>
+Cc: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,15 +32,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi list,
+On Wed, Feb 3, 2010 at 12:40 PM, Owen O' Hehir <oo_hehir@hotmail.com> wrote:
+>
+> Hello All,
+>
+> I'm trying to save a captured image from a USB camera to a file. The capture is based on V4L2 video capture example from the V4L2 API spec. http://v4l2spec.bytesex.org/spec/a16706.htm
+>
+> The V4L2 set pointers (via mmap) to to the USB image (in YUV 4:2:2 (YUYV)) and as far as I can see the simplest way to save the image in a recognised format is in RGB format, specifically in PPM (Netpbm color image format).
+>
+> As such I've expanded the process_image function:
 
-How can I control the frame rate in v4l2? ffmpeg use v4l2 driver, and when
-you configure the input camera to capture n frames, the driver capture all
-the frames and drop the frames to process only n frames. Is this a good
-solution? Or there are a better solution?
+Independent of the conversion function, are you sure you are getting a
+valid YUV frame at all?  A completely green frame is what you will get
+back if you had a buffer which was memset(0).  Hence it's possible
+that the data you are passing *into* your conversion function is
+completely blank.
 
-Thanks,
-Nuno Cardoso.
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
