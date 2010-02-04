@@ -1,71 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39905 "EHLO mx1.redhat.com"
+Received: from mga02.intel.com ([134.134.136.20]:5234 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752777Ab0BUTpM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Feb 2010 14:45:12 -0500
-Message-ID: <4B818D72.5040302@redhat.com>
-Date: Sun, 21 Feb 2010 20:45:54 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1754525Ab0BDJ1V (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Feb 2010 04:27:21 -0500
+Date: Thu, 4 Feb 2010 10:28:47 +0100
+From: Samuel Ortiz <samuel.ortiz@intel.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Richard =?iso-8859-1?Q?R=F6jfors?=
+	<richard.rojfors@pelagicore.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] mfd: Add support for the timberdale FPGA.
+Message-ID: <20100204092846.GA3336@sortiz.org>
+References: <4B66C36A.4000005@pelagicore.com>
+ <4B693ED7.4060401@redhat.com>
+ <20100203100326.GA3460@sortiz.org>
+ <4B694D69.1090201@redhat.com>
+ <20100203123617.GF3460@sortiz.org>
+ <4B69B12D.6030105@redhat.com>
 MIME-Version: 1.0
-To: Richard Hirst <richard@sleepie.demon.co.uk>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] v4lconvert_rotate90() leaves bytesperline wrong
-References: <4B80757B.5070804@sleepie.demon.co.uk>
-In-Reply-To: <4B80757B.5070804@sleepie.demon.co.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Disposition: inline
+In-Reply-To: <4B69B12D.6030105@redhat.com>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Wed, Feb 03, 2010 at 05:23:57PM +0000, Mauro Carvalho Chehab wrote:
+> > Ok, thanks again for your understanding. This is definitely material for the
+> > next merge window, so I'll merge it into my for-next branch.
+> 
+> The last version of the driver is OK for merging. However, I noticed one issue:
+> it depends on two drivers that were already merged on my tree:
+> 
+> +config RADIO_TIMBERDALE
+> +       tristate "Enable the Timberdale radio driver"
+> +       depends on MFD_TIMBERDALE && VIDEO_V4L2
+> +       select RADIO_TEF6862
+> +       select RADIO_SAA7706H
+> 
+> Currently, the dependency seems to happen only at Kconfig level.
+> 
+> Maybe the better is to return to the previous plan: apply it via my tree, as the better
+> is to have it added after those two radio i2c drivers.
+I'm fine with that. Richard sent me a 2nd version of his patch that I was
+about to merge.
+Richard, could you please post this patch here, or to lkml with Mauro cc'ed ?
+I'll add my SOB to it and then it will go through Mauro's tree.
 
-Thanks for the patch, but this has been long fixed
-(in pretty much the same way, the v4lconvert_fixup_fmt() call
-  was put inside the v4lconvert_rotate90 function).
+Cheers,
+Samuel.
 
-Regards,
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
+---------------------------------------------------------------------
+Intel Corporation SAS (French simplified joint stock company)
+Registered headquarters: "Les Montalets"- 2, rue de Paris, 
+92196 Meudon Cedex, France
+Registration Number:  302 456 199 R.C.S. NANTERRE
+Capital: 4,572,000 Euros
 
-Hans
+This e-mail and any attachments may contain confidential material for
+the sole use of the intended recipient(s). Any review or distribution
+by others is strictly prohibited. If you are not the intended
+recipient, please contact the sender and delete all copies.
 
-
-On 02/21/2010 12:51 AM, Richard Hirst wrote:
-> I have a cheap webcam (ID 093a:262a Pixart Imaging, Inc.), and Ubuntu
-> 9.10 64 bit, Skype 2.1.0.81, and lib32v4l-0 version 0.6.0-1. I start
-> skype with LD_PRELOAD=/usr/lib32/libv4l/v4l1compat.so, and the video
-> image is garbled. I believe the problem is that the webcam image starts
-> off at 480x640 and skype asks for YU12 at 320x240 for a test image. This
-> results in v4lconvert_rotate90() being called to rotate the image, and
-> then v4lconvert_reduceandcrop_yuv420() being called to down-size the
-> image from 640x480 to 320x240. Unfortunately
-> v4lconvert_reduceandcrop_yuv420() relies on
-> src_fmt->fmt.pix.bytesperline for the source image, and that is still
-> 480 (should be 640, since the image has been rotated).
->
-> This fixes it for me:
->
-> --- ori/libv4lconvert/libv4lconvert.c 2010-02-20 22:44:28.000000000 +0000
-> +++ libv4l-0.6.0/libv4lconvert/libv4lconvert.c 2010-02-20
-> 23:01:12.000000000 +0000
-> @@ -1088,8 +1088,10 @@
-> v4lprocessing_processing(data->processing, convert2_dest, &my_src_fmt);
-> }
->
-> - if (rotate90)
-> + if (rotate90) {
-> v4lconvert_rotate90(rotate90_src, rotate90_dest, &my_src_fmt);
-> + v4lconvert_fixup_fmt(&my_src_fmt);
-> + }
->
-> if (hflip || vflip)
-> v4lconvert_flip(flip_src, flip_dest, &my_src_fmt, hflip, vflip);
->
->
->
-> I didn't look closely at the latest source, so it is possible this
-> already fixed some other way.
->
-> Richard
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at http://vger.kernel.org/majordomo-info.html
