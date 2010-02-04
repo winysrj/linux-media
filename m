@@ -1,22 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (ext-mx09.extmail.prod.ext.phx2.redhat.com
 	[10.5.110.13])
-	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o14FwL0K014379
-	for <video4linux-list@redhat.com>; Thu, 4 Feb 2010 10:58:22 -0500
-Received: from mail.redembedded.co.uk (mail.redembedded.co.uk [83.100.215.137])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o14Fw9O2012297
-	for <video4linux-list@redhat.com>; Thu, 4 Feb 2010 10:58:09 -0500
-Message-ID: <4B6AEE8D.4070507@redembedded.com>
-Date: Thu, 04 Feb 2010 15:58:05 +0000
-From: Darren Longhorn <darren.longhorn@redembedded.com>
-MIME-Version: 1.0
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o14MMwcP023014
+	for <video4linux-list@redhat.com>; Thu, 4 Feb 2010 17:22:58 -0500
+Received: from smtp5-g21.free.fr (smtp5-g21.free.fr [212.27.42.5])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o14MMb2O014382
+	for <video4linux-list@redhat.com>; Thu, 4 Feb 2010 17:22:41 -0500
+Received: from smtp5-g21.free.fr (localhost [127.0.0.1])
+	by smtp5-g21.free.fr (Postfix) with ESMTP id 05C7CD48031
+	for <video4linux-list@redhat.com>; Thu,  4 Feb 2010 23:22:35 +0100 (CET)
+Received: from UNKNOWN (imp1-g19.priv.proxad.net [172.20.243.131])
+	by smtp5-g21.free.fr (Postfix) with ESMTP id 30FA7D4815D
+	for <video4linux-list@redhat.com>; Thu,  4 Feb 2010 23:22:33 +0100 (CET)
+Message-ID: <1265322153.4b6b48a9137c7@imp.free.fr>
+Date: Thu, 04 Feb 2010 23:22:33 +0100
+From: yann.lepetitcorps@free.fr
 To: video4linux-list@redhat.com
-Subject: Re: Saving YUVY image from V4L2 buffer to file
-References: <SNT123-W319B38F63C77A4CFB0FD99EE560@phx.gbl>	
-	<4B69C29B.4010405@redembedded.com>
-	<1265250209.3122.86.camel@palomino.walls.org>
-In-Reply-To: <1265250209.3122.86.camel@palomino.walls.org>
+Subject: Re: video4linux-list Digest, Vol 72, Issue 3
+References: <mailman.14.1265302803.11313.video4linux-list@redhat.com>
+In-Reply-To: <mailman.14.1265302803.11313.video4linux-list@redhat.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,50 +34,18 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Andy Walls wrote:
-> On Wed, 2010-02-03 at 18:38 +0000, Darren Longhorn wrote:
->> Owen O' Hehir wrote:
->>> Hello All,
->>>
->>> I'm trying to save a captured image from a USB camera to a file. The capture is based on V4L2 video capture example from the V4L2 API spec. http://v4l2spec.bytesex.org/spec/a16706.htm
->>>
->>> The V4L2 set pointers (via mmap) to to the USB image (in YUV 4:2:2 (YUYV)) and as far as I can see the simplest way to save the image in a recognised format is in RGB format, specifically in PPM (Netpbm color image format).
->>>
->>> As such I've expanded the process_image function:
->>>
->>>
->>> static void
->>> process_image                   (const void *           p)
->>> {
->>>     static int count = 0;
->>>
->>>     static int r,g,b;
->>>     static int y1,y2,cb,cr;
->>>
->>>     int pixel=0;
->>>
->>>         FILE* fp = fopen("datadump", "w" );
->>>         // Write PNM header
->>>         fprintf( fp, "P6\n" );
->>>         fprintf( fp, "# YUV422 frame -> RGB \n" );
->>>         fprintf( fp, "%d %d\n", userfmt.fmt.pix.width, userfmt.fmt.pix.height );
->>>
->>>         fprintf( fp, "255\n" );
->>>
->>>         while(pixel < (userfmt.fmt.pix.width * userfmt.fmt.pix.height)){
->>>
->>>         y1 = *(p+pixel);
->> Are you sure that's your real code? I don't think you should dereference
->> a void pointer like that.
-> 
-> Old-ish C-compilers treated that as a char * in that case.  The behavior
-> is unreliable of course.  This certainly could be a cause of problems.
+This is a formula that I use and that work very well in a vertex shader for a
+YCbCr to RGB conversion :
 
-Ah, yes. Well remembered!
+	y =  1.1643 * (y - 0.0625);
 
-Cheers
+	r = y + 1.5958 * v;
+	g = y - 0.39173 * u - 0.8129 * v;
+	b = y + 2.017 * u;
 
-Darren
+@+
+Yannoo
+
 
 --
 video4linux-list mailing list
