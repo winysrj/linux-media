@@ -1,252 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41276 "EHLO comal.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:8265 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752279Ab0BXFhk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Feb 2010 00:37:40 -0500
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Muralidharan Karicheri <mkaricheri@gmail.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Date: Wed, 24 Feb 2010 11:07:35 +0530
-Subject: RE: [PATCH-V1 09/10] VPFE Capture: Add support for USERPTR mode of
- 	operation
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DA99712@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
-	 <1266914073-30135-10-git-send-email-hvaibhav@ti.com>
- <55a3e0ce1002231522q6a3fb7cak530e8b970dcbdee5@mail.gmail.com>
-In-Reply-To: <55a3e0ce1002231522q6a3fb7cak530e8b970dcbdee5@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+	id S1757910Ab0BDMTp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Feb 2010 07:19:45 -0500
+Message-ID: <4B6ABB54.80001@redhat.com>
+Date: Thu, 04 Feb 2010 10:19:32 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
+To: Huang Shijie <shijie8@gmail.com>
+CC: linux-media@vger.kernel.org, zyziii@telegent.com, tiwai@suse.de
+Subject: Re: [PATCH v2 00/10] add linux driver for chip TLG2300
+References: <1265094475-13059-1-git-send-email-shijie8@gmail.com> <4B6817E6.4070709@redhat.com> <4B69159D.2040606@gmail.com> <4B6925EB.7000601@redhat.com> <4B693681.2030402@gmail.com> <4B693AD6.3030005@redhat.com> <4B6A8E02.3090905@gmail.com>
+In-Reply-To: <4B6A8E02.3090905@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Huang Shijie wrote:
+> 
+>> No, I don't meant that.
+>>
+>> The differences of FM radio standards are basically the preemphasis
+>> and the
+>> frequency ranges.
+>>
+>> For frequency ranges, V4L2_TUNER_RADIO allows specifying the
+>> maximum/minimum values.
+>>
+>> For preemphasis, you should implement V4L2_CID_TUNE_PREEMPHASIS ctrl.
+>> This
+>> CTRL has 3 states:
+>>
+>>          static const char *tune_preemphasis[] = {
+>>                  "No preemphasis",
+>>                  "50 useconds",
+>>                  "75 useconds",
+>>                  NULL,
+>>          };
+>>
+>> At v4l2-common.c, there are some functions that helps to implement it
+>> at the driver, like:
+>>     v4l2_ctrl_get_menu, v4l2_ctrl_get_name and v4l2_ctrl_query_fill.
+>>    
+> I meet a problem now. :(
+> 
+> Even I add the ctrl to the tlg2300 driver, there is no application to
+> test it :
+> 
+> [1] The Mplayer do not check the ctrl except the "vulume " or "mute".
 
-> -----Original Message-----
-> From: Muralidharan Karicheri [mailto:mkaricheri@gmail.com]
-> Sent: Wednesday, February 24, 2010 4:53 AM
-> To: Hiremath, Vaibhav
-> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org;
-> hverkuil@xs4all.nl; Karicheri, Muralidharan
-> Subject: Re: [PATCH-V1 09/10] VPFE Capture: Add support for USERPTR mode of
-> operation
-> 
-> Vaibhav,
-> 
-> There are changes to vpfe capture on Arago tree on top of this. For
-> example, vpfe_uservirt_to_phys() is removed and is replaced with
-> videobuf_iolock(). So please get the latest changes to upstream.
-> 
-[Hiremath, Vaibhav] No, the Arago version doesn't support USERPTR mode at all,
 
+Unfortunately, userspace applications take some time to follow kernel changes.
 
-1386		if (V4L2_MEMORY_USERPTR == req_buf->memory) {
-1386                 /* we don't support user ptr IO */
-1387                 v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_reqbufs:"
-1388                          " USERPTR IO not supported\n");
-1389                 return  -EINVAL;
-1390         }
+Yet, there are a few generic applications for it, both hosted together with
+the v4l-dvb mercurial tree: v4l2-ctl and qv4l2. On both applications, the
+controls are retrieved dynamically. In particular, v4l2-ctl is a command-line
+application. So, you may call it when the device is detected (for example, by
+udev) or before starting the application.
 
-And also, I have received important comment from Mauro, which expects some code tobe moved to generic VideoBuf layer. I will be submitting patch for the same separately.
+This is very useful with dumb applications that doesn't give full control over
+the device.
 
-Thanks,
-Vaibhav
+For example, I use it on my environment to pre-adjust my webcam to give a clearer
+image, when using on skype, with this script:
 
-> Murali
-> 
-> On Tue, Feb 23, 2010 at 3:34 AM,  <hvaibhav@ti.com> wrote:
-> > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> >
-> >
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-> > ---
-> >  drivers/media/video/ti-media/vpfe_capture.c |   94
-> ++++++++++++++++++++++----
-> >  1 files changed, 79 insertions(+), 15 deletions(-)
-> >
-> > diff --git a/drivers/media/video/ti-media/vpfe_capture.c
-> b/drivers/media/video/ti-media/vpfe_capture.c
-> > index cece265..7d4ab44 100644
-> > --- a/drivers/media/video/ti-media/vpfe_capture.c
-> > +++ b/drivers/media/video/ti-media/vpfe_capture.c
-> > @@ -538,7 +538,24 @@ static void vpfe_schedule_next_buffer(struct
-> vpfe_device *vpfe_dev)
-> >                                        struct videobuf_buffer, queue);
-> >        list_del(&vpfe_dev->next_frm->queue);
-> >        vpfe_dev->next_frm->state = VIDEOBUF_ACTIVE;
-> > -       addr = videobuf_to_dma_contig(vpfe_dev->next_frm);
-> > +       if (V4L2_MEMORY_USERPTR == vpfe_dev->memory)
-> > +               addr = vpfe_dev->cur_frm->boff;
-> > +       else
-> > +               addr = videobuf_to_dma_contig(vpfe_dev->next_frm);
-> > +
-> > +       ccdc_dev->hw_ops.setfbaddr(addr);
-> > +}
-> > +
-> > +static void vpfe_schedule_bottom_field(struct vpfe_device *vpfe_dev)
-> > +{
-> > +       unsigned long addr;
-> > +
-> > +       if (V4L2_MEMORY_USERPTR == vpfe_dev->memory)
-> > +               addr = vpfe_dev->cur_frm->boff;
-> > +       else
-> > +               addr = videobuf_to_dma_contig(vpfe_dev->cur_frm);
-> > +
-> > +       addr += vpfe_dev->field_off;
-> >        ccdc_dev->hw_ops.setfbaddr(addr);
-> >  }
-> >
-> > @@ -559,7 +576,6 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
-> >  {
-> >        struct vpfe_device *vpfe_dev = dev_id;
-> >        enum v4l2_field field;
-> > -       unsigned long addr;
-> >        int fid;
-> >
-> >        v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "\nStarting
-> vpfe_isr...\n");
-> > @@ -604,10 +620,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
-> >                         * the CCDC memory address
-> >                         */
-> >                        if (field == V4L2_FIELD_SEQ_TB) {
-> > -                               addr =
-> > -                                 videobuf_to_dma_contig(vpfe_dev-
-> >cur_frm);
-> > -                               addr += vpfe_dev->field_off;
-> > -                               ccdc_dev->hw_ops.setfbaddr(addr);
-> > +                               vpfe_schedule_bottom_field(vpfe_dev);
-> >                        }
-> >                        goto clear_intr;
-> >                }
-> > @@ -1234,7 +1247,10 @@ static int vpfe_videobuf_setup(struct
-> videobuf_queue *vq,
-> >        struct vpfe_device *vpfe_dev = fh->vpfe_dev;
-> >
-> >        v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_buffer_setup\n");
-> > -       *size = config_params.device_bufsize;
-> > +       *size = vpfe_dev->fmt.fmt.pix.sizeimage;
-> > +       if (vpfe_dev->memory == V4L2_MEMORY_MMAP &&
-> > +               vpfe_dev->fmt.fmt.pix.sizeimage >
-> config_params.device_bufsize)
-> > +               *size = config_params.device_bufsize;
-> >
-> >        if (*count < config_params.min_numbuffers)
-> >                *count = config_params.min_numbuffers;
-> > @@ -1243,6 +1259,46 @@ static int vpfe_videobuf_setup(struct
-> videobuf_queue *vq,
-> >        return 0;
-> >  }
-> >
-> > +/*
-> > + * vpfe_uservirt_to_phys: This function is used to convert user
-> > + * space virtual address to physical address.
-> > + */
-> > +static u32 vpfe_uservirt_to_phys(struct vpfe_device *vpfe_dev, u32 virtp)
-> > +{
-> > +       struct mm_struct *mm = current->mm;
-> > +       unsigned long physp = 0;
-> > +       struct vm_area_struct *vma;
-> > +
-> > +       vma = find_vma(mm, virtp);
-> > +
-> > +       /* For kernel direct-mapped memory, take the easy way */
-> > +       if (virtp >= PAGE_OFFSET)
-> > +               physp = virt_to_phys((void *)virtp);
-> > +       else if (vma && (vma->vm_flags & VM_IO) && (vma->vm_pgoff))
-> > +               /* this will catch, kernel-allocated, mmaped-to-usermode
-> addr */
-> > +               physp = (vma->vm_pgoff << PAGE_SHIFT) + (virtp - vma-
-> >vm_start);
-> > +       else {
-> > +               /* otherwise, use get_user_pages() for general userland
-> pages */
-> > +               int res, nr_pages = 1;
-> > +               struct page *pages;
-> > +               down_read(&current->mm->mmap_sem);
-> > +
-> > +               res = get_user_pages(current, current->mm,
-> > +                                    virtp, nr_pages, 1, 0, &pages, NULL);
-> > +               up_read(&current->mm->mmap_sem);
-> > +
-> > +               if (res == nr_pages)
-> > +                       physp = __pa(page_address(&pages[0]) +
-> > +                                    (virtp & ~PAGE_MASK));
-> > +               else {
-> > +                       v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
-> > +                               "get_user_pages failed\n");
-> > +                       return 0;
-> > +               }
-> > +       }
-> > +       return physp;
-> > +}
-> > +
-> >  static int vpfe_videobuf_prepare(struct videobuf_queue *vq,
-> >                                struct videobuf_buffer *vb,
-> >                                enum v4l2_field field)
-> > @@ -1259,6 +1315,18 @@ static int vpfe_videobuf_prepare(struct
-> videobuf_queue *vq,
-> >                vb->size = vpfe_dev->fmt.fmt.pix.sizeimage;
-> >                vb->field = field;
-> >        }
-> > +
-> > +       if (V4L2_MEMORY_USERPTR == vpfe_dev->memory) {
-> > +               if (!vb->baddr) {
-> > +                       v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
-> > +                               "buffer address is 0\n");
-> > +                       return -EINVAL;
-> > +               }
-> > +               vb->boff = vpfe_uservirt_to_phys(vpfe_dev, vb->baddr);
-> > +               /* Make sure user addresses are aligned to 32 bytes */
-> > +               if (!ALIGN(vb->boff, 32))
-> > +                       return -EINVAL;
-> > +       }
-> >        vb->state = VIDEOBUF_PREPARED;
-> >        return 0;
-> >  }
-> > @@ -1327,13 +1395,6 @@ static int vpfe_reqbufs(struct file *file, void
-> *priv,
-> >                return -EINVAL;
-> >        }
-> >
-> > -       if (V4L2_MEMORY_USERPTR == req_buf->memory) {
-> > -               /* we don't support user ptr IO */
-> > -               v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_reqbufs:"
-> > -                        " USERPTR IO not supported\n");
-> > -               return  -EINVAL;
-> > -       }
-> > -
-> >        ret = mutex_lock_interruptible(&vpfe_dev->lock);
-> >        if (ret)
-> >                return ret;
-> > @@ -1541,7 +1602,10 @@ static int vpfe_streamon(struct file *file, void
-> *priv,
-> >        vpfe_dev->cur_frm->state = VIDEOBUF_ACTIVE;
-> >        /* Initialize field_id and started member */
-> >        vpfe_dev->field_id = 0;
-> > -       addr = videobuf_to_dma_contig(vpfe_dev->cur_frm);
-> > +       if (V4L2_MEMORY_USERPTR == vpfe_dev->memory)
-> > +               addr = vpfe_dev->cur_frm->boff;
-> > +       else
-> > +               addr = videobuf_to_dma_contig(vpfe_dev->cur_frm);
-> >
-> >        /* Calculate field offset */
-> >        vpfe_calculate_offsets(vpfe_dev);
-> > --
-> > 1.6.2.4
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> 
-> 
-> 
-> --
-> Murali Karicheri
-> mkaricheri@gmail.com
+	export LD_PRELOAD=/usr/lib64/libv4l/v4l1compat.so
+	v4l2-ctl -cexposure=1000
+	v4l2-ctl -cwhite_balance=47
+	export LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so
+	/usr/bin/skype.real $_
+
+> [2] I do  not know how to use the VLC to listen the radio with ALSA, I
+> tried many times, but failed. Does someone know this ?
+
+I've no idea. Never tried vlc for radio here.
+
+> Btw: I will be on my vacation for the following two weeks, I will come
+> back to
+> work at 20th of this month. I afraid I can not finish the patches to
+> remove  the
+> country code in the two days(today and tomorrow).
+
+-rc7 is about to be released. So, it is late for 2.6.33 cycle.
+
+I think we'll have -rc8 again, as there were several changes at drm/nouveau/x86 arch. 
+I may be wrong though. Assuming that I did a good guess, we'll have +2 weeks for the 
+next merge window. Also, as this is a new driver, if we miss the merge window, we may
+try to submit it for -rc1 or -rc2.
+
+So, providing that, on your return, you focus on it, I think it would be possible to
+have it added for 2.6.34.
+
+-- 
+
+Cheers,
+Mauro
