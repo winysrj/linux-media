@@ -1,96 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:55115 "EHLO mail1.radix.net"
+Received: from psa.adit.fi ([217.112.250.17]:48922 "EHLO psa.adit.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752855Ab0BGOpf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Feb 2010 09:45:35 -0500
-Subject: Re: "However, if you don't want to lose your freedom, you had
- better not follow him." (Re: Videotext application crashes the kernel due
- to DVB-demux patch)
-From: Andy Walls <awalls@radix.net>
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: Chicken Shack <chicken.shack@gmx.de>,
+	id S932328Ab0BDOFu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Feb 2010 09:05:50 -0500
+Message-ID: <4B6AD4A8.9080101@adit.fi>
+Date: Thu, 04 Feb 2010 16:07:36 +0200
+From: Pekka Sarnila <sarnila@adit.fi>
+MIME-Version: 1.0
+To: Jiri Kosina <jkosina@suse.cz>
+CC: Jiri Slaby <jirislaby@gmail.com>, Antti Palosaari <crope@iki.fi>,
+	mchehab@infradead.org, linux-kernel@vger.kernel.org,
 	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andreas Oberritter <obi@linuxtv.org>,
-	linux-media@vger.kernel.org, akpm@linux-foundation.org,
-	torvalds@linux-foundation.org
-In-Reply-To: <1265515083.2666.139.camel@localhost>
-References: <1265018173.2449.19.camel@brian.bconsult.de>
-	 <1265028110.3098.3.camel@palomino.walls.org>
-	 <1265076008.3120.96.camel@palomino.walls.org>
-	 <1265101869.1721.28.camel@brian.bconsult.de>
-	 <1265115172.3104.17.camel@palomino.walls.org>
-	 <1265158862.3194.22.camel@pc07.localdom.local>
-	 <1265288042.3928.9.camel@palomino.walls.org>
-	 <1265292421.3258.53.camel@brian.bconsult.de>
-	 <1265336477.3071.29.camel@palomino.walls.org>
-	 <4B6C1AF7.2090503@linuxtv.org>
-	 <1265397736.6310.98.camel@palomino.walls.org>
-	 <4B6C7F1B.7080100@linuxtv.org>  <4B6C88AD.4010708@redhat.com>
-	 <1265409155.2692.61.camel@brian.bconsult.de>
-	 <1265411523.4064.23.camel@localhost>
-	 <1265413149.2063.20.camel@brian.bconsult.de>
-	 <1265415910.2558.17.camel@localhost>
-	 <1265446554.1733.36.camel@brian.bconsult.de>
-	 <1265515083.2666.139.camel@localhost>
-Content-Type: text/plain
-Date: Sun, 07 Feb 2010 09:43:32 -0500
-Message-Id: <1265553812.3063.22.camel@palomino.walls.org>
-Mime-Version: 1.0
+	linux-media@vger.kernel.org, linux-input@vger.kernel.org
+Subject: Re: [PATCH 1/1] media: dvb-usb/af9015, fix disconnection crashes
+References: <1264007972-6261-1-git-send-email-jslaby@suse.cz> <4B5CDB53.6030009@iki.fi> <4B5D6098.7010700@gmail.com> <4B5DDDFB.5020907@iki.fi> <alpine.LRH.2.00.1001261406010.15694@twin.jikos.cz> <4B6AA211.1060707@gmail.com> <4B6ACA4B.2030906@adit.fi> <alpine.LNX.2.00.1002041425050.15395@pobox.suse.cz>
+In-Reply-To: <alpine.LNX.2.00.1002041425050.15395@pobox.suse.cz>
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2010-02-07 at 04:58 +0100, hermann pitton wrote:
-> Am Samstag, den 06.02.2010, 09:55 +0100 schrieb Chicken Shack:
-> > Am Samstag, den 06.02.2010, 01:25 +0100 schrieb hermann pitton:
+Yes, my comment maybe criticizes more the basic architectural structure 
+of usb putting it's own work up to higher layer. The only practical 
+thing is that, if there is a non-HID device suffering from that 
+FULLSPEED problem, the quirk won't help it. Anyway in current kernel 
+structure usb layer doesn't handle endpoint setup at all, thus it simply 
+can not do the job.
 
-> 3.
-> Also confirmed, your 1.7.0 version did work on a latest unpatched F11
-> 2.6.30 without setting the teletext pid explicitly, providing the
-> information what else is around there, and next should allow switching
-> through all teletext stuff with the UI I guess.
+Pekka
+
+Jiri Kosina wrote:
 > 
-> Taking the oopses now, you are likely right, that we have a backward
-> compat regression here and should try to fix it.
-
-
-I'm looking at this still, just not quickly.
-
-The over-abundance of the use of the words "demux", "dmx", "dvb",
-"feed", "ts", and "sec" in the dvb-core make code analysis difficult.
-I'm putting the dvb-core data structures into a UML tool, so I can get
-some decent class and collaboration diagrams to have a good picture of
-the relationships.
-
-I can say that the easiest fix will most likely be that in dmxdev.h:
-
-struct dmxdev_filter {
-	...
-        union {
-                /* list of TS and PES feeds (struct dmxdev_feed) */
-                struct list_head ts;
-                struct dmx_section_feed *sec;
-        } feed;
-	....
-
-"feed" should no longer be a union, or that "feed.sec" should be
-converted to a list as well.
-
-It appears under certain circumstances "feed.sec" is being set to NULL,
-which corrupts the "feed.ts" list head.   The "feed.ts" list head is
-being properly intiialized in dvb_demux_open(), so that's not the
-problem.
-
-
-Regards,
-Andy
-
-
-
-> I'm at least still available for reproducing oopses ;)
+> Yes, I still think what I have stated before, that this should be properly 
+> handled in the USB stack.
 > 
-> And, an app, which ever, should not to be able to get all down.
+> On the other hand, in usbhid driver we do a lot of USB-specific 
+> lower-level things anyway, so it's technically more-or-less OK to apply 
+> the quirk there as well (and that's why I have accepted it back then).
 > 
-> Cheers,
-> Hermann
-
