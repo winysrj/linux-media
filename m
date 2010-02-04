@@ -1,103 +1,246 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:55743 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750858Ab0BIS1F (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 13:27:05 -0500
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
-	david.cohen@nokia.com
-Subject: [PATCH v3 2/7] V4L: Events: Add new ioctls for events
-Date: Tue,  9 Feb 2010 20:26:45 +0200
-Message-Id: <1265740010-24144-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <1265740010-24144-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-References: <4B71A8DF.8070907@maxwell.research.nokia.com>
- <1265740010-24144-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+Received: from fg-out-1718.google.com ([72.14.220.157]:64727 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751882Ab0BDKbv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2010 05:31:51 -0500
+Message-ID: <4B6AA211.1060707@gmail.com>
+Date: Thu, 04 Feb 2010 11:31:45 +0100
+From: Jiri Slaby <jirislaby@gmail.com>
+MIME-Version: 1.0
+To: Jiri Kosina <jkosina@suse.cz>
+CC: Antti Palosaari <crope@iki.fi>, mchehab@infradead.org,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, Pekka Sarnila <sarnila@adit.fi>,
+	linux-input@vger.kernel.org
+Subject: Re: [PATCH 1/1] media: dvb-usb/af9015, fix disconnection crashes
+References: <1264007972-6261-1-git-send-email-jslaby@suse.cz> <4B5CDB53.6030009@iki.fi> <4B5D6098.7010700@gmail.com> <4B5DDDFB.5020907@iki.fi> <alpine.LRH.2.00.1001261406010.15694@twin.jikos.cz>
+In-Reply-To: <alpine.LRH.2.00.1001261406010.15694@twin.jikos.cz>
+Content-Type: multipart/mixed;
+ boundary="------------030908050500050306070000"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a set of new ioctls to the V4L2 API. The ioctls conform to
-V4L2 Events RFC version 2.3:
+This is a multi-part message in MIME format.
+--------------030908050500050306070000
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-<URL:http://www.spinics.net/lists/linux-media/msg12033.html>
+On 01/26/2010 02:08 PM, Jiri Kosina wrote:
+>> In my understanding the cause of the remote problem is chipset bug which sets
+>> USB2.0 polling interval to 4096ms. Therefore HID remote does not work at all
+>> or starts repeating. It is possible to implement remote as polling from the
+>> driver which works very well. But HID problem still remains. I have some hacks
+>> in my mind to test to kill HID. One is to configure HID wrongly to see if it
+>> stops outputting characters. Other way is try to read remote codes directly
+>> from the chip memory.
+> 
+> Yes, Pekka Sarnila has added this workaround to the HID driver, as the 
+> device is apparently broken.
+> 
+> I want to better understand why others are not hitting this with the 
+> DVB remote driver before removing the quirk from HID code completely.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- drivers/media/video/v4l2-compat-ioctl32.c |    3 +++
- drivers/media/video/v4l2-ioctl.c          |    3 +++
- include/linux/videodev2.h                 |   23 +++++++++++++++++++++++
- 3 files changed, 29 insertions(+), 0 deletions(-)
+I think, we should go for a better way. Thanks Pekka for hints, I ended
+up with the patch in the attachment. Could you try it whether it works
+for you?
 
-diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-index 997975d..cba704c 100644
---- a/drivers/media/video/v4l2-compat-ioctl32.c
-+++ b/drivers/media/video/v4l2-compat-ioctl32.c
-@@ -1077,6 +1077,9 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
- 	case VIDIOC_DBG_G_REGISTER:
- 	case VIDIOC_DBG_G_CHIP_IDENT:
- 	case VIDIOC_S_HW_FREQ_SEEK:
-+	case VIDIOC_DQEVENT:
-+	case VIDIOC_SUBSCRIBE_EVENT:
-+	case VIDIOC_UNSUBSCRIBE_EVENT:
- 		ret = do_video_ioctl(file, cmd, arg);
- 		break;
+I have 2 dvb-t receivers and both of them need fullspeed quirk. Further
+disable_rc_polling (a dvb_usb module parameter) must be set to not get
+doubled characters now. And then, it works like a charm.
+
+Note that, it's just some kind of proof of concept. A migration of
+af9015 devices from dvb-usb-remote needs to be done first.
+
+Ideas, comments?
+
+regards,
+-- 
+js
+
+--------------030908050500050306070000
+Content-Type: text/x-patch;
+ name="dvb-remote-fix.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="dvb-remote-fix.patch"
+
+diff --git a/drivers/hid/Kconfig b/drivers/hid/Kconfig
+index 139668d..0daf90a 100644
+--- a/drivers/hid/Kconfig
++++ b/drivers/hid/Kconfig
+@@ -122,6 +122,13 @@ config DRAGONRISE_FF
+ 	Say Y here if you want to enable force feedback support for DragonRise Inc.
+ 	game controllers.
  
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 30cc334..bfc4696 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -283,6 +283,9 @@ static const char *v4l2_ioctls[] = {
- 
- 	[_IOC_NR(VIDIOC_DBG_G_CHIP_IDENT)] = "VIDIOC_DBG_G_CHIP_IDENT",
- 	[_IOC_NR(VIDIOC_S_HW_FREQ_SEEK)]   = "VIDIOC_S_HW_FREQ_SEEK",
-+	[_IOC_NR(VIDIOC_DQEVENT)]	   = "VIDIOC_DQEVENT",
-+	[_IOC_NR(VIDIOC_SUBSCRIBE_EVENT)]  = "VIDIOC_SUBSCRIBE_EVENT",
-+	[_IOC_NR(VIDIOC_UNSUBSCRIBE_EVENT)] = "VIDIOC_UNSUBSCRIBE_EVENT",
- #endif
- };
- #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 54af357..a19ae89 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1536,6 +1536,26 @@ struct v4l2_streamparm {
- };
- 
- /*
-+ *	E V E N T S
++config HID_DVB
++	tristate "DVB remotes support" if EMBEDDED
++	depends on USB_HID
++	default !EMBEDDED
++	---help---
++	Say Y here if you have DVB remote controllers.
++
+ config HID_EZKEY
+ 	tristate "Ezkey" if EMBEDDED
+ 	depends on USB_HID
+diff --git a/drivers/hid/Makefile b/drivers/hid/Makefile
+index b62d4b3..a336b2a 100644
+--- a/drivers/hid/Makefile
++++ b/drivers/hid/Makefile
+@@ -30,6 +30,7 @@ obj-$(CONFIG_HID_CHERRY)	+= hid-cherry.o
+ obj-$(CONFIG_HID_CHICONY)	+= hid-chicony.o
+ obj-$(CONFIG_HID_CYPRESS)	+= hid-cypress.o
+ obj-$(CONFIG_HID_DRAGONRISE)	+= hid-drff.o
++obj-$(CONFIG_HID_DVB)		+= hid-dvb.o
+ obj-$(CONFIG_HID_EZKEY)		+= hid-ezkey.o
+ obj-$(CONFIG_HID_GYRATION)	+= hid-gyration.o
+ obj-$(CONFIG_HID_KENSINGTON)	+= hid-kensington.o
+diff --git a/drivers/hid/hid-core.c b/drivers/hid/hid-core.c
+index 2dd9b28..678c553 100644
+--- a/drivers/hid/hid-core.c
++++ b/drivers/hid/hid-core.c
+@@ -1252,6 +1252,7 @@ static const struct hid_device_id hid_blacklist[] = {
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_3M, USB_DEVICE_ID_3M1968) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_A4TECH, USB_DEVICE_ID_A4TECH_WCP32PU) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_A4TECH, USB_DEVICE_ID_A4TECH_X5_005D) },
++	{ HID_USB_DEVICE(USB_VENDOR_ID_AFATECH, USB_DEVICE_ID_AFATECH_AF9016) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_ATV_IRCONTROL) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_IRCONTROL4) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_MIGHTYMOUSE) },
+@@ -1310,6 +1311,7 @@ static const struct hid_device_id hid_blacklist[] = {
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_KENSINGTON, USB_DEVICE_ID_KS_SLIMBLADE) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_KYE, USB_DEVICE_ID_KYE_ERGO_525V) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_LABTEC, USB_DEVICE_ID_LABTEC_WIRELESS_KEYBOARD) },
++	{ HID_USB_DEVICE(USB_VENDOR_ID_LEADTEK, USB_DEVICE_ID_DTV_GOLD) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_LOGITECH, USB_DEVICE_ID_MX3000_RECEIVER) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_LOGITECH, USB_DEVICE_ID_S510_RECEIVER) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_LOGITECH, USB_DEVICE_ID_S510_RECEIVER_2) },
+diff --git a/drivers/hid/hid-dvb.c b/drivers/hid/hid-dvb.c
+new file mode 100644
+index 0000000..ee94c07
+--- /dev/null
++++ b/drivers/hid/hid-dvb.c
+@@ -0,0 +1,78 @@
++/*
++ *  HID driver for dvb devices
++ *
++ *  Copyright (c) 2010 Jiri Slaby
++ *
++ *  Licensed under the GPLv2.
 + */
 +
-+struct v4l2_event {
-+	__u32		count;
-+	__u32		type;
-+	__u32		sequence;
-+	struct timespec	timestamp;
-+	__u32		reserved[9];
-+	__u8		data[64];
++#include <linux/device.h>
++#include <linux/hid.h>
++#include <linux/module.h>
++
++#include "hid-ids.h"
++
++#define FULLSPEED_INTERVAL	0x1
++
++static int dvb_event(struct hid_device *hdev, struct hid_field *field,
++		struct hid_usage *usage, __s32 value)
++{
++	/* we won't get a "key up" event */
++	if (value) {
++		input_event(field->hidinput->input, usage->type, usage->code, 1);
++		input_event(field->hidinput->input, usage->type, usage->code, 0);
++	}
++	return 1;
++}
++
++static int dvb_probe(struct hid_device *hdev, const struct hid_device_id *id)
++{
++	unsigned long quirks = id->driver_data;
++	int ret;
++
++	if (quirks & FULLSPEED_INTERVAL)
++		hdev->quirks |= HID_QUIRK_FULLSPEED_INTERVAL;
++
++	ret = hid_parse(hdev);
++	if (ret) {
++		dev_err(&hdev->dev, "parse failed\n");
++		goto end;
++	}
++
++	ret = hid_hw_start(hdev, HID_CONNECT_DEFAULT);
++	if (ret)
++		dev_err(&hdev->dev, "hw start failed\n");
++end:
++	return ret;
++}
++
++static const struct hid_device_id dvb_devices[] = {
++	{ HID_USB_DEVICE(USB_VENDOR_ID_AFATECH, USB_DEVICE_ID_AFATECH_AF9016),
++		.driver_data = FULLSPEED_INTERVAL },
++	{ HID_USB_DEVICE(USB_VENDOR_ID_LEADTEK, USB_DEVICE_ID_DTV_GOLD),
++		.driver_data = FULLSPEED_INTERVAL },
++	{ }
 +};
 +
-+struct v4l2_event_subscription {
-+	__u32		type;
-+	__u32		reserved[7];
++MODULE_DEVICE_TABLE(hid, dvb_devices);
++
++static struct hid_driver dvb_driver = {
++	.name = "dvb",
++	.id_table = dvb_devices,
++	.probe = dvb_probe,
++	.event = dvb_event,
 +};
 +
-+#define V4L2_EVENT_PRIVATE_START		0x08000000
++static int __init dvb_init(void)
++{
++	return hid_register_driver(&dvb_driver);
++}
 +
-+/*
-  *	A D V A N C E D   D E B U G G I N G
-  *
-  *	NOTE: EXPERIMENTAL API, NEVER RELY ON THIS IN APPLICATIONS!
-@@ -1651,6 +1671,9 @@ struct v4l2_dbg_chip_ident {
- #endif
++static void __exit dvb_exit(void)
++{
++	hid_unregister_driver(&dvb_driver);
++}
++
++module_init(dvb_init);
++module_exit(dvb_exit);
++MODULE_LICENSE("GPL v2");
+diff --git a/drivers/hid/hid-ids.h b/drivers/hid/hid-ids.h
+index 39ff98a..7a6495f 100644
+--- a/drivers/hid/hid-ids.h
++++ b/drivers/hid/hid-ids.h
+@@ -18,6 +18,9 @@
+ #ifndef HID_IDS_H_FILE
+ #define HID_IDS_H_FILE
  
- #define VIDIOC_S_HW_FREQ_SEEK	 _IOW('V', 82, struct v4l2_hw_freq_seek)
-+#define VIDIOC_DQEVENT		 _IOR('V', 83, struct v4l2_event)
-+#define VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 84, struct v4l2_event_subscription)
-+#define VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 85, struct v4l2_event_subscription)
- /* Reminder: when adding new ioctls please add support for them to
-    drivers/media/video/v4l2-compat-ioctl32.c as well! */
++#define USB_VENDOR_ID_LEADTEK		0x0413
++#define USB_DEVICE_ID_DTV_GOLD		0x6029
++
+ #define USB_VENDOR_ID_3M		0x0596
+ #define USB_DEVICE_ID_3M1968		0x0500
  
--- 
-1.5.6.5
+diff --git a/drivers/hid/usbhid/hid-quirks.c b/drivers/hid/usbhid/hid-quirks.c
+index 88a1c69..74aac20 100644
+--- a/drivers/hid/usbhid/hid-quirks.c
++++ b/drivers/hid/usbhid/hid-quirks.c
+@@ -41,8 +41,6 @@ static const struct hid_blacklist {
+ 	{ USB_VENDOR_ID_SAITEK, USB_DEVICE_ID_SAITEK_RUMBLEPAD, HID_QUIRK_BADPAD },
+ 	{ USB_VENDOR_ID_TOPMAX, USB_DEVICE_ID_TOPMAX_COBRAPAD, HID_QUIRK_BADPAD },
+ 
+-	{ USB_VENDOR_ID_AFATECH, USB_DEVICE_ID_AFATECH_AF9016, HID_QUIRK_FULLSPEED_INTERVAL },
+-
+ 	{ USB_VENDOR_ID_ETURBOTOUCH, USB_DEVICE_ID_ETURBOTOUCH, HID_QUIRK_MULTI_INPUT },
+ 	{ USB_VENDOR_ID_PANTHERLORD, USB_DEVICE_ID_PANTHERLORD_TWIN_USB_JOYSTICK, HID_QUIRK_MULTI_INPUT | HID_QUIRK_SKIP_OUTPUT_REPORTS },
+ 	{ USB_VENDOR_ID_PLAYDOTCOM, USB_DEVICE_ID_PLAYDOTCOM_EMS_USBII, HID_QUIRK_MULTI_INPUT },
+diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
+index 650c913..239c2d0 100644
+--- a/drivers/media/dvb/dvb-usb/af9015.c
++++ b/drivers/media/dvb/dvb-usb/af9015.c
+@@ -1613,7 +1613,10 @@ static int af9015_usb_probe(struct usb_interface *intf,
+ 
+ 	/* interface 0 is used by DVB-T receiver and
+ 	   interface 1 is for remote controller (HID) */
+-	if (intf->cur_altsetting->desc.bInterfaceNumber == 0) {
++	if (intf->cur_altsetting->desc.bInterfaceNumber != 0)
++		return -ENODEV;
++
++	{
+ 		ret = af9015_read_config(udev);
+ 		if (ret)
+ 			return ret;
 
+--------------030908050500050306070000--
