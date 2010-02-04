@@ -1,210 +1,343 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:41563 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S933355Ab0BEXmI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Feb 2010 18:42:08 -0500
-Subject: Re: Need to discuss method for multiple, multiple-PID TS's from
- same demux (Re: Videotext application crashes the kernel due to DVB-demux
- patch)
-From: Chicken Shack <chicken.shack@gmx.de>
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andreas Oberritter <obi@linuxtv.org>,
-	Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org,
-	akpm@linux-foundation.org, torvalds@linux-foundation.org
-In-Reply-To: <1265411523.4064.23.camel@localhost>
-References: <1265018173.2449.19.camel@brian.bconsult.de>
-	 <1265028110.3098.3.camel@palomino.walls.org>
-	 <1265076008.3120.96.camel@palomino.walls.org>
-	 <1265101869.1721.28.camel@brian.bconsult.de>
-	 <1265115172.3104.17.camel@palomino.walls.org>
-	 <1265158862.3194.22.camel@pc07.localdom.local>
-	 <1265288042.3928.9.camel@palomino.walls.org>
-	 <1265292421.3258.53.camel@brian.bconsult.de>
-	 <1265336477.3071.29.camel@palomino.walls.org>
-	 <4B6C1AF7.2090503@linuxtv.org>
-	 <1265397736.6310.98.camel@palomino.walls.org>
-	 <4B6C7F1B.7080100@linuxtv.org>  <4B6C88AD.4010708@redhat.com>
-	 <1265409155.2692.61.camel@brian.bconsult.de>
-	 <1265411523.4064.23.camel@localhost>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 06 Feb 2010 00:39:09 +0100
-Message-ID: <1265413149.2063.20.camel@brian.bconsult.de>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail01d.mail.t-online.hu ([84.2.42.6]:56547 "EHLO
+	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753323Ab0BDIWI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2010 03:22:08 -0500
+Message-ID: <4B6A83A9.4070500@freemail.hu>
+Date: Thu, 04 Feb 2010 09:22:01 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+MIME-Version: 1.0
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Luc Saillard <luc@saillard.org>,
+	Thomas Kaiser <v4l@kaiser-linux.li>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH libv4l tree, RFC] libv4l: skip false Pixart markers with
+ buffer copy
+References: <4B67466F.1030301@freemail.hu> <4B6751F3.3040407@freemail.hu> <4B67FEAF.8050603@redhat.com>
+In-Reply-To: <4B67FEAF.8050603@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Samstag, den 06.02.2010, 00:12 +0100 schrieb hermann pitton:
-> Am Freitag, den 05.02.2010, 23:32 +0100 schrieb Chicken Shack:
-> > Am Freitag, den 05.02.2010, 19:07 -0200 schrieb Mauro Carvalho Chehab:
-> > > Andreas Oberritter wrote:
-> > > > Andy Walls wrote:
-> > > 
-> > > >>> As Honza noted, these ioctls are used by enigma2 and, in general, by
-> > > >>> software running on Dream Multimedia set top boxes.
-> > > >> Right, so reverting the patch is not an option.
-> > > >>
-> > > >> It also makes implementing multiple dvr0.n nodes for a demux0 device
-> > > >> node probably a waste of time at this point.
-> > > > 
-> > > > I think so, too. But I guess it's always worth discussing alternatives.
-> > > 
-> > > If this discussion happened before 2.6.32 release, and provided that a different
-> > > implementation were agreed, things would be easier, as a different solution like
-> > > your proposal could be decided and used.
-> > 
-> > 
-> > You cannot expect people reacting immediately if something is wrong.
-> > There are and do exist enormous delays between publishing a new kernel
-> > and the decision to use it after appropriate system or distro update.
-> > So your expectation level is simply wrong.
-> > 
-> > 
-> > > Now, we have already a regression on a stable kernel, and solving it by
-> > > creating another regression is not something smart to do.
-> > 
-> > 
-> > Yes. Trivial!
-> > 
-> > 
-> > > >From what I understood, the regression appeared on an old, orphan
-> > > application with a non-official patch applied on it. Other applications with
-> > > similar features weren't affected. On the other hand, if the patch got reverted, 
-> > > we'll break a maintained application that is used on a great number of devices,
-> > > and whose features depend on the new ioctls.
-> > 
-> > 
-> > It's truly amazing how the filter system of your perception works, isn't
-> > it? :)
-> > 
-> > It's not just "an old, orphaned application with a non-official patch on
-> > it." That's nonsense!
-> > 
-> > a. As I stated already, there do exist several patched versions of
-> > alevt-dvb. For instance the one that Herman Pitton tested here in public
-> > causes a closed demux device error on my machine. That means that it
-> > does not run because xine-ui is already using the demux device.
-> > And this phenomenon has got nothing to do with the kernel headers!
-> > I've tried all possibilities (old kernel headers and actual ones) so I
-> > know better than Hermann Pitton does!
-> > 
-> > And my version (and obviously the ones of Thomas Voegtle and Emil Meier
-> > whom I helped with my tip to revert that patch) cause a kernel crash
-> > with the actual kernel.
-> > 
-> > b. As I also stated already the other teletext application called mtt
-> > does officially not exist except for Novell / OpenSuSe distros (at least
-> > as far as I have seen and found out). And this one
-> > is, as I also stated, not affected by the kernel patch. It's part of a
-> > discontinued program suite called xawtv-4.0 pre with a very complex
-> > infrastructure behind.
-> > 
-> > Please do not ask me why this one runs without noise - I do not know.
-> > 
-> > So AFAICS alevt-dvb is the ONLY teletext application for Linux which is
-> > available in almost all Gnu/Linux distros.
-> > 
-> > "Other applications with similar features weren't affected."
-> > 
-> > >From where do you know that the features are "similar"?
-> > 
-> > This is a 100 % phantasy product of your mind that has got nothing to do
-> > with existing reality, man!
-> > 
-> > Just one example: alevt-dvb has got an excellent html export filter
-> > which makes it possible to export teletext pages as graphical html
-> > files.
-> > I do not know any other teletext application offering that.
-> > 
-> > 
-> > > We are too late in -rc cycle, so probably there's not enough time for
-> > > writing, test, validate any new API in time for 2.6.33 and write some compat
-> > > layer to emulate those two ioctls with a different implementation.
-> > 
-> > Who says that a new API or an overworked API must be ready for 2.6.33?
-> > When do you think the correct starting point must be set?
-> > When the merge window for 2.6.34 opens or when?
-> > Absurd argument! Not valid at all!
-> > 
-> > 
-> > > So, removing those two ioctls is not an option anymore.
-> > 
-> > Yes. Conclusion??? None!
-> > 
-> > So if everybody wants to close down this discussion with that output
-> > then you must admit (if you want it or not) that you de facto bury
-> > teletext usage in the mud for the majority of Gnu/Linux DVB users.
-> > 
-> > So the output is more than badly disappointing.
-> > Bye bye Teletext. Nothing for future kernels, huh?
-> 
-> Yes, you say it. It definitely will go away and we do have not any
-> influence on that! Did you not notice the very slow update rate these
-> days?
+Hi,
 
-a. NOTHING "will go away". This is empty rant, nothing else it is!
-In US teletext is dead, yes. In Europe analogue television is close to
-dead. Yes.
-But I have found no information source that teletext will disappear in
-general. At least not in Europe or Germany.
-So if you keep that up then prove the assertion please.
+This is a proof-of-concept patch to try to decode the JPEG with PixArt markers.
 
-What slow update rate please?
-What the hell are you talking about, man?
+Please check whether it is working at your side. My experience is that the
+number of frames with glitch are reduced.
 
+Regards,
 
-> > Regards
-> > 
-> > CS
-> > 
-> > P. S.: If you continue like that you make people run away.
-> > Instead you better should try to win people, shouldn't you?
-> > 
-> > Just see how many volunteers are here to help and then reflect
-> > why that manpower is missing, Mauro!
-> > Your gesture being expressed above does a lot, but it is definitely NOT
-> > motivating to change that precarious situation.
-> 
-> Then maybe better tell what you tried already, instead leaving others
-> behind doing the same in vain again?
+	Márton Németh
 
-Goddamn! I've investigated a lot, and I have written down everything I
-did.
-See, even if you are too lazy to read all that go blame yourself for
-that lazyness, but not me, OK?
+---
+From: Márton Németh <nm127@freemail.hu>
 
+Before trying to decode the image data filter the PixArt markers out.
 
-> Mauro always did try to keep backward compat as much as possible and
-> others had to tell him better not to waste his time on it.
-> 
-> You hit the wrong guy again and he can't even test anything.
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+diff -r 966f60c672e9 v4l2-apps/libv4l/libv4lconvert/tinyjpeg-internal.h
+--- a/v4l2-apps/libv4l/libv4lconvert/tinyjpeg-internal.h	Tue Feb 02 11:34:06 2010 +0100
++++ b/v4l2-apps/libv4l/libv4lconvert/tinyjpeg-internal.h	Thu Feb 04 09:13:24 2010 +0100
+@@ -91,8 +91,11 @@
+   /* Private variables */
+   const unsigned char *stream_begin, *stream_end;
+   unsigned int stream_length;
++  unsigned char *stream_begin_filtered, *stream_end_filtered;
++  unsigned int stream_length_filtered;
 
+   const unsigned char *stream;	/* Pointer to the current stream */
++  unsigned char *stream_filtered;
+   unsigned int reservoir, nbits_in_reservoir;
 
-All I want him is to immediately and forever stop spreading nonsense and
-demotivate people and offer us all that propagandist style that I and
-others do not appreciate at all.
+   struct component component_infos[COMPONENTS];
+diff -r 966f60c672e9 v4l2-apps/libv4l/libv4lconvert/tinyjpeg.c
+--- a/v4l2-apps/libv4l/libv4lconvert/tinyjpeg.c	Tue Feb 02 11:34:06 2010 +0100
++++ b/v4l2-apps/libv4l/libv4lconvert/tinyjpeg.c	Thu Feb 04 09:13:24 2010 +0100
+@@ -312,19 +312,18 @@
 
-Unfortunately I am missing the American English equivalent for
-"Differenziertheit". Is it "straightforwardness"?
+ /* Special Pixart versions of the *_nbits functions, these remove the special
+    ff ff ff xx sequences pixart cams insert from the bitstream */
+-#define pixart_fill_nbits(reservoir,nbits_in_reservoir,stream,nbits_wanted) \
++#define pixart_fill_nbits(reservoir,nbits_in_reservoir,stream,stream_end,nbits_wanted) \
+ do { \
+    while (nbits_in_reservoir<nbits_wanted) \
+     { \
+       unsigned char c; \
+-      if (stream >= priv->stream_end) { \
++      if (stream >= stream_end) { \
+ 	snprintf(priv->error_string, sizeof(priv->error_string), \
+ 	  "fill_nbits error: need %u more bits\n", \
+ 	  nbits_wanted - nbits_in_reservoir); \
+ 	longjmp(priv->jump_state, -EIO); \
+       } \
+       c = *stream++; \
+-      reservoir <<= 8; \
+       if (c == 0xff) { \
+ 	switch (stream[0]) { \
+ 	  case 0x00: \
+@@ -332,7 +331,7 @@
+ 	    break; \
+ 	  case 0xd9: /* EOF marker */ \
+ 	    stream++; \
+-	    if (stream != priv->stream_end) { \
++	    if (stream != stream_end) { \
+ 	      snprintf(priv->error_string, sizeof(priv->error_string), \
+ 		"Pixart JPEG error: premature EOF\n"); \
+ 	      longjmp(priv->jump_state, -EIO); \
+@@ -340,14 +339,22 @@
+ 	    break; \
+ 	  case 0xff: \
+ 	    if (stream[1] == 0xff) { \
+-		if (stream[2] < 7) { \
++		if (stream[2] == 0) { \
++		    stream += 3; \
++		    c = *stream++; \
++		    break; \
++		} else if (stream[2] == 1) { \
++		    stream += 3; \
++		    c = *stream++; \
++		    break; \
++		} else if (stream[2] == 2) { \
+ 		    stream += 3; \
+ 		    c = *stream++; \
+ 		    break; \
+ 		} else if (stream[2] == 0xff) { \
+-		    /* four 0xff in a row: the first belongs to the image data */ \
++		    /* four 0xff in a row: the first belongs to the image */ \
+ 		    break; \
+-		}\
++		} \
+ 	    } \
+ 	    /* Error fall through */ \
+ 	  default: \
+@@ -358,15 +365,16 @@
+ 	    longjmp(priv->jump_state, -EIO); \
+ 	} \
+       } \
++      reservoir <<= 8; \
+       reservoir |= c; \
+       nbits_in_reservoir+=8; \
+     } \
+ }  while(0);
 
-This is what I am missing when you start to express yourself.
+ /* Signed version !!!! */
+-#define pixart_get_nbits(reservoir,nbits_in_reservoir,stream,nbits_wanted,result) \
++#define pixart_get_nbits(reservoir,nbits_in_reservoir,stream,stream_end,nbits_wanted,result) \
+ do { \
+-   pixart_fill_nbits(reservoir,nbits_in_reservoir,stream,(nbits_wanted)); \
++   pixart_fill_nbits(reservoir,nbits_in_reservoir,stream,stream_end,(nbits_wanted)); \
+    result = ((reservoir)>>(nbits_in_reservoir-(nbits_wanted))); \
+    nbits_in_reservoir -= (nbits_wanted);  \
+    reservoir &= ((1U<<nbits_in_reservoir)-1); \
+@@ -374,9 +382,9 @@
+        result += (0xFFFFFFFFUL<<(nbits_wanted))+1; \
+ }  while(0);
 
-Your "test" of alevt-dvb-t may serve as an example:
+-#define pixart_look_nbits(reservoir,nbits_in_reservoir,stream,nbits_wanted,result) \
++#define pixart_look_nbits(reservoir,nbits_in_reservoir,stream,stream_end,nbits_wanted,result) \
+ do { \
+-   pixart_fill_nbits(reservoir,nbits_in_reservoir,stream,(nbits_wanted)); \
++   pixart_fill_nbits(reservoir,nbits_in_reservoir,stream,stream_end,(nbits_wanted)); \
+    result = ((reservoir)>>(nbits_in_reservoir-(nbits_wanted))); \
+ }  while(0);
 
-Noone knows your card type, noone knows your reception area,
-transponder, channel. All we know from you is a pid.
+@@ -443,7 +451,8 @@
+   unsigned int extra_nbits, nbits;
+   uint16_t *slowtable;
 
-And that there are versions of alevt-dvb who are incapable for parallel
-tasking due to a wrong DVB patch you simply missed as a matter of fact.
-So what the hell did you get at all, man?
+-  pixart_look_nbits(priv->reservoir, priv->nbits_in_reservoir, priv->stream, HUFFMAN_HASH_NBITS, hcode);
++  pixart_look_nbits(priv->reservoir, priv->nbits_in_reservoir, priv->stream_filtered,
++		    priv->stream_end_filtered, HUFFMAN_HASH_NBITS, hcode);
+   value = huffman_table->lookup[hcode];
+   if (value >= 0)
+   {
+@@ -457,7 +466,8 @@
+    {
+      nbits = HUFFMAN_HASH_NBITS + 1 + extra_nbits;
 
-Very low discussion level, isn't it?
+-     pixart_look_nbits(priv->reservoir, priv->nbits_in_reservoir, priv->stream, nbits, hcode);
++     pixart_look_nbits(priv->reservoir, priv->nbits_in_reservoir, priv->stream_filtered,
++			priv->stream_end_filtered, nbits, hcode);
+      slowtable = huffman_table->slowtable[extra_nbits];
+      /* Search if the code is in this array */
+      while (slowtable[0]) {
+@@ -557,7 +567,8 @@
+   /* DC coefficient decoding */
+   huff_code = pixart_get_next_huffman_code(priv, c->DC_table);
+   if (huff_code) {
+-     pixart_get_nbits(priv->reservoir, priv->nbits_in_reservoir, priv->stream, huff_code, DCT[0]);
++     pixart_get_nbits(priv->reservoir, priv->nbits_in_reservoir, priv->stream_filtered,
++		priv->stream_end_filtered, huff_code, DCT[0]);
+      DCT[0] += c->previous_DC;
+      c->previous_DC = DCT[0];
+   } else {
+@@ -585,7 +596,8 @@
+       {
+ 	j += count_0;	/* skip count_0 zeroes */
+ 	if (j < 64 ) {
+-	  pixart_get_nbits(priv->reservoir, priv->nbits_in_reservoir, priv->stream, size_val, DCT[j]);
++	  pixart_get_nbits(priv->reservoir, priv->nbits_in_reservoir, priv->stream_filtered,
++			priv->stream_end_filtered, size_val, DCT[j]);
+ 	  j++;
+ 	}
+       }
+@@ -1611,8 +1623,8 @@
+ {
+   unsigned char marker;
 
-I'll leave it up to that - don't want no dumb flamings at all.
+-  pixart_look_nbits(priv->reservoir, priv->nbits_in_reservoir, priv->stream,
+-		    8, marker);
++  pixart_look_nbits(priv->reservoir, priv->nbits_in_reservoir, priv->stream_filtered,
++		    priv->stream_end_filtered, 8, marker);
+   /* I think the marker indicates which quantization table to use, iow
+      a Pixart JPEG may have a different quantization table per MCU, most
+      MCU's have 0x44 as marker for which our special Pixart quantization
+@@ -2342,6 +2354,97 @@
 
-Cheers
+ int tinyjpeg_decode_planar(struct jdec_private *priv, int pixfmt);
 
-CS
++static int memcpy_filter(unsigned char *dest, const unsigned char *src, int n)
++{
++	int i = 0;
++	int j = 0;
++	int state = 0;
++	int last_i = 0;
++
++	i = 0;
++	j = 0;
++
++	/* 5 bytes are already dropped in kernel: 0xff 0xff 0x00 0xff 0x96 */
++	/* Copy the rest of 1024 bytes */
++	memcpy(&(dest[j]), &(src[i]), 1024-5);
++	i += 1024-5;
++	j += 1024-5;
++
++	while (i < n) {
++		switch (state) {
++			case 0:
++				if (src[i] == 0xff)
++					state = 1;
++				else {
++					state = 0;
++					dest[j++] = src[i];
++				}
++				break;
++			case 1:
++				if (src[i] == 0xff)
++					state = 2;
++				else {
++					state = 0;
++					dest[j++] = src[i-1];
++					dest[j++] = src[i];
++				}
++				break;
++			case 2:
++				switch (src[i]) {
++					case 0xff:
++						state = 3;
++						break;
++					default:
++						state = 0;
++						dest[j++] = src[i-2];
++						dest[j++] = src[i-1];
++						dest[j++] = src[i];
++				}
++				break;
++			case 3:
++				switch (src[i]) {
++					case 0:
++						/* found 0xff 0xff 0xff 0x00 */
++						state = 0;
++						break;
++					case 1:
++						/* found 0xff 0xff 0xff 0x01 */
++						last_i = i+1;
++						memcpy(&(dest[j]), &(src[i+1]), 1024);
++						i += 1024;
++						j += 1024;
++						state = 0;
++						break;
++					case 2:
++						/* found 0xff 0xff 0xff 0x02 */
++						last_i = i+1;
++						memcpy(&(dest[j]), &(src[i+1]), 512);
++						i += 512;
++						j += 512;
++						state = 0;
++						break;
++					case 0xff:
++						printf(" ! ");
++						dest[j++] = src[i-3];
++						state = 3;
++						break;
++
++					default:
++						state = 0;
++						dest[j++] = src[i-3];
++						dest[j++] = src[i-2];
++						dest[j++] = src[i-1];
++						dest[j++] = src[i];
++				
++				}
++		}
++		i++;
++	}
++
++	return j;
++}
++
++
+ /**
+  * Decode and convert the jpeg image into @pixfmt@ image
+  *
+@@ -2356,8 +2459,10 @@
+   const convert_colorspace_fct *colorspace_array_conv;
+   convert_colorspace_fct convert_to_pixfmt;
 
+-  if (setjmp(priv->jump_state))
++  if (setjmp(priv->jump_state)) {
++    printf("ERROR: %s\n", priv->error_string);
+     return -1;
++  }
 
+   if (priv->flags & TINYJPEG_FLAGS_PLANAR_JPEG)
+     return tinyjpeg_decode_planar(priv, pixfmt);
+@@ -2369,8 +2474,20 @@
+   bytes_per_blocklines[2] = 0;
+
+   decode_mcu_table = decode_mcu_3comp_table;
+-  if (priv->flags & TINYJPEG_FLAGS_PIXART_JPEG)
++  if (priv->flags & TINYJPEG_FLAGS_PIXART_JPEG) {
++    int len_filtered = 0;
++
++    priv->stream_begin_filtered = malloc(priv->stream_end - priv->stream);
++    if (priv->stream_begin_filtered) {
++	memset(priv->stream_begin_filtered, 0, priv->stream_end - priv->stream);
++	priv->stream_filtered = priv->stream_begin_filtered;
++	len_filtered = memcpy_filter(priv->stream_filtered,
++			priv->stream, priv->stream_end - priv->stream);
++    }
++    priv->stream_end_filtered = priv->stream_filtered + len_filtered;
++
+     decode_mcu_table = pixart_decode_mcu_3comp_table;
++  }
+
+   switch (pixfmt) {
+      case TINYJPEG_FMT_YUV420P:
+@@ -2487,8 +2604,12 @@
+
+   if (priv->flags & TINYJPEG_FLAGS_PIXART_JPEG) {
+     /* Additional sanity check for funky Pixart format */
+-    if ((priv->stream_end - priv->stream) > 5)
++    if ((priv->stream_end_filtered - priv->stream_filtered) > 5)
+       error("Pixart JPEG error, stream does not end with EOF marker\n");
++
++    free(priv->stream_begin_filtered);
++    priv->stream_filtered = NULL;
++    priv->stream_end_filtered = NULL;
+   }
+
+   return 0;
