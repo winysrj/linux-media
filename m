@@ -1,115 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-07.arcor-online.net ([151.189.21.47]:50234 "EHLO
-	mail-in-07.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752220Ab0BXCiR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2010 21:38:17 -0500
-Subject: Re: [ANNOUNCE] git tree repositories & libv4l
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Manu Abraham <abraham.manu@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Brandon Philips <brandon@ifup.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Douglas Landgraf <dougsland@gmail.com>
-In-Reply-To: <1a297b361002230145t325ec009h877defe104dfccb3@mail.gmail.com>
-References: <4B55445A.10300@infradead.org> <4B5B30E4.7030909@redhat.com>
-	 <20100222225426.GC4013@jenkins.home.ifup.org>
-	 <201002230026.59712.hverkuil@xs4all.nl>
-	 <20100222233808.GD4013@jenkins.home.ifup.org>
-	 <4B83242E.40703@infradead.org>
-	 <1a297b361002230145t325ec009h877defe104dfccb3@mail.gmail.com>
-Content-Type: text/plain
-Date: Wed, 24 Feb 2010 03:32:23 +0100
-Message-Id: <1266978743.3178.4.camel@pc07.localdom.local>
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:32065 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758122Ab0BDNmY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Feb 2010 08:42:24 -0500
+Message-ID: <4B6ACEA3.3080900@redhat.com>
+Date: Thu, 04 Feb 2010 11:41:55 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Jiri Slaby <jirislaby@gmail.com>
+CC: Jiri Kosina <jkosina@suse.cz>, Antti Palosaari <crope@iki.fi>,
+	mchehab@infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, Pekka Sarnila <sarnila@adit.fi>,
+	linux-input@vger.kernel.org
+Subject: Re: [PATCH 1/1] media: dvb-usb/af9015, fix disconnection crashes
+References: <1264007972-6261-1-git-send-email-jslaby@suse.cz> <4B5CDB53.6030009@iki.fi> <4B5D6098.7010700@gmail.com> <4B5DDDFB.5020907@iki.fi> <alpine.LRH.2.00.1001261406010.15694@twin.jikos.cz> <4B6AA211.1060707@gmail.com> <4B6AB7E9.40607@redhat.com> <4B6AC333.6030308@gmail.com>
+In-Reply-To: <4B6AC333.6030308@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-Am Dienstag, den 23.02.2010, 13:45 +0400 schrieb Manu Abraham:
-> On Tue, Feb 23, 2010 at 4:41 AM, Mauro Carvalho Chehab
-> <mchehab@infradead.org> wrote:
-> > Brandon Philips wrote:
-> >> On 00:26 Tue 23 Feb 2010, Hans Verkuil wrote:
-> >>> On Monday 22 February 2010 23:54:26 Brandon Philips wrote:
-> >>>> On 18:24 Sat 23 Jan 2010, Hans de Goede wrote:
-> >>>>>> lib/
-> >>>>>>   libv4l1/
-> >>>>>>   libv4l2/
-> >>>>>>   libv4lconvert/
-> >>>>>> utils/
-> >>>>>>   v4l2-dbg
-> >>>>>>   v4l2-ctl
-> >>>>>>   cx18-ctl
-> >>>>>>   ivtv-ctl
-> >>>>>> contrib/
-> >>>>>>   test/
-> >>>>>>   everything else
-> >>>>>>
-> >>>>   git clone git://ifup.org/philips/create-v4l-utils.git
-> >>>>   cd create-v4l-utils/
-> >>>>   ./convert.sh
-> >>>>
-> >>>> You should now have v4l-utils.git which should have this directory
-> >>>> struture. If we need to move other things around let me know and I can
-> >>>> tweak name-filter.sh
-> >>>>
-> >>>> Thoughts? Let me know how we should proceed with dropping v4l2-apps
-> >>>> from v4l-dvb.
-> >>>>
-> >>>> Re: code style cleanup. I think we should do that once we drop
-> >>>> v4l2-apps/ from v4l-dvb and make the new v4l-utils.git upstream.
-> >>> Question: shouldn't we merge dvb-apps and v4l-utils? The alevtv tool was
-> >>> merged into dvb-apps, but while that tool supports dvb, it also supports
-> >>> v4l2. Just like we merged dvb and v4l in a single repository, so I think we
-> >>> should also merge the tools to a media-utils repository.
-> >>>
-> >>> It remains a fact of life that dvb and v4l are connected and trying to
-> >>> artificially keep them apart does not make much sense to me.
-> >>
-> >> Easy to do but who should be the maintainer of the dvb things?
-> >>
-> >> According to the wiki[1] these tools are without a maintainer. So, if
-> >> no one cares about them enough to make releases why merge them and
-> >> clutter up the git tree with dead code?
-> >>
-> >> Cheers,
-> >>
-> >>       Brandon
-> >>
-> >> [1] http://www.linuxtv.org/wiki/index.php/LinuxTV_dvb-apps
-> >
-> > That's weird. I've recently added support for ISDB-T on it:
-> >        http://linuxtv.org/hg/~mchehab/dvb-apps-isdbt2/
+Jiri Slaby wrote:
+> On 02/04/2010 01:04 PM, Mauro Carvalho Chehab wrote:
+>>> I have 2 dvb-t receivers and both of them need fullspeed quirk. Further
+>>> disable_rc_polling (a dvb_usb module parameter) must be set to not get
+>>> doubled characters now. And then, it works like a charm.
+>> Module parameters always bothers me. They should be used as last resort alternatives
+>> when there's no other possible way to make it work properly.
+>>
+>> If we know for sure that the RC polling should be disabled by an specific device, 
+>> just add this logic at the driver.
 > 
+> Yes, this is planned and written below:
+
+Ok.
 > 
-> That's probably Michael Krufky (user: Jon2856) from what i guess, he
-> has been the one who has been making ground for propaganda's on the
-> wiki.
+>>> Note that, it's just some kind of proof of concept. A migration of
+>>> af9015 devices from dvb-usb-remote needs to be done first.
+>>>
+>>> Ideas, comments?
+>> Please next time, send the patch inlined. As you're using Thunderbird, you'll likely need
+>> Asalted-patches[1] to avoid thunderbird to destroy your patches.
+> 
+> I must disagree for two reasons: (a) it was not patch intended for merge
+> and (b) it was a plain-text attachment which is fine even for
+> submission. However I don't like patches as attachments so if I decide
+> to submit it for a merge later, you will not see it as an attachment
+> then :).
 
-Manu, you are actively calling the trolls back again with such
-accusations!
+Attachments aren't good for reply, as they appear as a file. So, people need to
+open the attachment on a separate application to see and to cut-and-paste
+if they want to comment, like what I did.
 
-It is the other way round, you own him at least one clear excuse.
+>> +config HID_DVB
+>> +	tristate "DVB remotes support" if EMBEDDED
+>> +	depends on USB_HID
+>> +	default !EMBEDDED
+>> +	---help---
+>> +	Say Y here if you have DVB remote controllers.
+>> +
+>>
+>> I think the better would be to use a more generic name, like HID_RC (for Remote Controller).
+>> I suspect we may need in the future other hacks for other similar devices.
+> 
+> Seconded. I would only go for some other abbreviation other than RC or
+> not abbreviate that at all.
+
+we're using irrcv at the IR remote class. So, this can be another name for it.
+
+>> +static int dvb_event(struct hid_device *hdev, struct hid_field *field,
+>> +		struct hid_usage *usage, __s32 value)
+>> +{
+>> +	/* we won't get a "key up" event */
+>> +	if (value) {
+>> +		input_event(field->hidinput->input, usage->type, usage->code, 1);
+>> +		input_event(field->hidinput->input, usage->type, usage->code, 0);
+>> +	}
+>> +	return 1;
+>> +}
+>>
+>> Several V4L/DVB IR's have keyup/keydown events. So I think the name here is also wrong:
+>> it is better to name the function as dvb_nokeyup_event() and eventually add an specific
+>> quirk to indicate devices that only have key up events.
+> 
+> If such appear later, it can be rewritten. I don't plan to add such
+> functionality now until somebody comes with device IDs which should be
+> handled that way and tests it, because I guess I will definitely do it
+> wrong otherwise. 
+> Do you know/have such a device?
+
+I have several devices here with different ways to generate keyup/keydown or
+keydown/repeat, but they don't export a standard usb HID interface (in a matter
+of fact, I have just one PCI device that came with a separate USB HID interface,
+but this device always worked fine - also - as it has physically a separate device -
+it doesn't generate any conflict with the DVB hardware).
+
+The point is that it is better to name the function right since the beginning.
+ 
+> There are many of quirks needed for various devices. I already wrote
+> about af9005 which sends key repeat aside from key down etc. But the
+> same as above, I can't test it (and don't want to introduce
+> regressions). So again, if somebody can test it, I'll be happy to code it.
+> 
+> thanks for the input,
+
+
+-- 
 
 Cheers,
-Hermann
-
-> > and we've got some comments at the mailing list. Btw, the patches
-> > I added there also adds DVB-S2 support to szap/scan, but tests
-> > are needed, since I don't have any satellite dish nowadays.
-> 
-> 
-> Btw, I did spend time to review your code before it is pulled in. You
-> did not even provide a reply on my last mail on the subject, or did I
-> miss that reply of yours ?
-> 
-> 
-> Regards,
-> Manu
-
-
-
+Mauro
