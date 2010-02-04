@@ -1,38 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:61977 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750804Ab0BHLhQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Feb 2010 06:37:16 -0500
-Message-ID: <4B6FF763.1090203@redhat.com>
-Date: Mon, 08 Feb 2010 09:37:07 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from joe.mail.tiscali.it ([213.205.33.54]:55469 "EHLO
+	joe.mail.tiscali.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758111Ab0BDTQt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2010 14:16:49 -0500
+Message-ID: <4B6B1CDD.9010204@gmail.com>
+Date: Thu, 04 Feb 2010 20:15:41 +0100
+From: "Andrea.Amorosi76@gmail.com" <Andrea.Amorosi76@gmail.com>
 MIME-Version: 1.0
-To: stefan.ringel@arcor.de
-CC: linux-media@vger.kernel.org, dheitmueller@kernellabs.com
-Subject: Re: [PATCH 5/12] tm6000: update init table and sequence for tm6010
-References: <1265410096-11788-1-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-2-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-3-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-4-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-5-git-send-email-stefan.ringel@arcor.de> <4B6FF3C9.2010804@redhat.com>
-In-Reply-To: <4B6FF3C9.2010804@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: How can I add IR remote to this new device (DIKOM DK300)?
+References: <4B51132A.1000606@gmail.com> <4B5D912F.6000609@redhat.com> <4B5F6914.4080502@gmail.com> <4B5F6BB9.4000203@redhat.com> <4B61E759.5000707@gmail.com> <4B63169C.70700@redhat.com>
+In-Reply-To: <4B63169C.70700@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
->> +		tm6000_read_write_usb (dev, 0xc0, 0x10, 0x7f1f, 0x0000, buf, 2);
-
-> Most of the calls there are read (0xc0). I don't know any device that requires
-> a read for it to work. I suspect that the above code is just probing to check
-> what i2c devices are found at the board.
-
-Btw, by looking at drivers/media/dvb/frontends/zl10353_priv.h, we have an idea
-on what the above does:
-
-The register 0x7f is:
-
-        CHIP_ID            = 0x7F,
-
-So, basically, the above code is reading the ID of the chip, likely to be sure that it
-is a Zarlink 10353.
-
-Cheers,
-Mauro
+Mauro Carvalho Chehab ha scritto:
+> Andrea.Amorosi76@gmail.com wrote:
+>   
+>> Mauro Carvalho Chehab ha scritto:
+>>     
+>>> Andrea.Amorosi76@gmail.com wrote:
+>>>  
+>>>   
+>>>       
+>>>> So since it is necessary to create a new entry, is there any rules to
+>>>> follow to choose it?
+>>>>     
+>>>>         
+>>> Just use the existing entry as an example. You'll need to put your
+>>> card name at the entry, and add a new #define at em28xx.h.
+>>>
+>>> Cheers,
+>>> Mauro
+>>>
+>>>   
+>>>       
+>> Ok!
+>> As far as the auto detection issue is concerned, can I add the EEPROM ID
+>> and hash so that to use such data to detect the DIKOM device?
+>> I've seen that the same numbers are not present for other devices, so I
+>> think adding them should not create problems with other devices, but I'm
+>> not sure regard that.
+>>     
+>
+> Yes, but the code will need to be changed a little bit, since the eeprom id
+> detection happens only for some specific usb id's.
+>
+> Cheers,
+> Mauro
+>
+>   
+Hi Mauro,
+since I was not able to have my remote controller working (maybe it does 
+not work at all), I've send a new version of the patch which should 
+solve all the issue you pointed by creating a new entry and using the 
+eeprom id to detect the card.
+That patch still does not appear in patchwork.
+Can you have a look at it, please?
+I've send it yesterday with this object "[PATCH] em28xx: add Dikom DK300 
+hybrid USB tuner" which is clearer than this mail one.
+Thank you,
+Andrea
