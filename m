@@ -1,487 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4089 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754018Ab0BVTyz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 14:54:55 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [PATCH 6/6] V4L: Events: Add documentation
-Date: Mon, 22 Feb 2010 20:57:24 +0100
-Cc: linux-media@vger.kernel.org, laurent.pinchart@nokia.com,
-	david.cohen@nokia.com
-References: <4B82A7FB.50505@maxwell.research.nokia.com> <1266853897-25749-5-git-send-email-sakari.ailus@maxwell.research.nokia.com> <1266853897-25749-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <1266853897-25749-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
+Received: from mail1.radix.net ([207.192.128.31]:57916 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753273Ab0BDBvd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Feb 2010 20:51:33 -0500
+Subject: Re: Any saa711x users out there?
+From: Andy Walls <awalls@radix.net>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <829197381002021451g5aaa8013kd5ae2124534ba5ba@mail.gmail.com>
+References: <829197381002021451g5aaa8013kd5ae2124534ba5ba@mail.gmail.com>
+Content-Type: text/plain
+Date: Wed, 03 Feb 2010 20:51:20 -0500
+Message-Id: <1265248280.3122.74.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201002222057.24236.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some small corrections:
-
-On Monday 22 February 2010 16:51:37 Sakari Ailus wrote:
-> Add documentation on how to use V4L2 events, both for V4L2 drivers and for
-> V4L2 applications.
+On Tue, 2010-02-02 at 17:51 -0500, Devin Heitmueller wrote:
+> Hello all,
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> ---
->  Documentation/DocBook/media-entities.tmpl          |    9 ++
->  Documentation/DocBook/v4l/dev-event.xml            |   34 ++++++
->  Documentation/DocBook/v4l/v4l2.xml                 |    3 +
->  Documentation/DocBook/v4l/vidioc-dqevent.xml       |  124 ++++++++++++++++++++
->  .../DocBook/v4l/vidioc-subscribe-event.xml         |  103 ++++++++++++++++
->  Documentation/video4linux/v4l2-framework.txt       |   58 +++++++++
->  6 files changed, 331 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/DocBook/v4l/dev-event.xml
->  create mode 100644 Documentation/DocBook/v4l/vidioc-dqevent.xml
->  create mode 100644 Documentation/DocBook/v4l/vidioc-subscribe-event.xml
+> I am doing some quality improvements for a couple of the
+> em28xx/saa7113 designs, and I found a pretty serious problem which
+> appears to have been there for some time.
 > 
-> diff --git a/Documentation/DocBook/media-entities.tmpl b/Documentation/DocBook/media-entities.tmpl
-> index c725cb8..770be3c 100644
-> --- a/Documentation/DocBook/media-entities.tmpl
-> +++ b/Documentation/DocBook/media-entities.tmpl
-> @@ -17,6 +17,7 @@
->  <!ENTITY VIDIOC-DBG-G-REGISTER "<link linkend='vidioc-dbg-g-register'><constant>VIDIOC_DBG_G_REGISTER</constant></link>">
->  <!ENTITY VIDIOC-DBG-S-REGISTER "<link linkend='vidioc-dbg-g-register'><constant>VIDIOC_DBG_S_REGISTER</constant></link>">
->  <!ENTITY VIDIOC-DQBUF "<link linkend='vidioc-qbuf'><constant>VIDIOC_DQBUF</constant></link>">
-> +<!ENTITY VIDIOC-DQEVENT "<link linkend='vidioc-dqevent'><constant>VIDIOC_DQEVENT</constant></link>">
->  <!ENTITY VIDIOC-ENCODER-CMD "<link linkend='vidioc-encoder-cmd'><constant>VIDIOC_ENCODER_CMD</constant></link>">
->  <!ENTITY VIDIOC-ENUMAUDIO "<link linkend='vidioc-enumaudio'><constant>VIDIOC_ENUMAUDIO</constant></link>">
->  <!ENTITY VIDIOC-ENUMAUDOUT "<link linkend='vidioc-enumaudioout'><constant>VIDIOC_ENUMAUDOUT</constant></link>">
-> @@ -60,6 +61,7 @@
->  <!ENTITY VIDIOC-REQBUFS "<link linkend='vidioc-reqbufs'><constant>VIDIOC_REQBUFS</constant></link>">
->  <!ENTITY VIDIOC-STREAMOFF "<link linkend='vidioc-streamon'><constant>VIDIOC_STREAMOFF</constant></link>">
->  <!ENTITY VIDIOC-STREAMON "<link linkend='vidioc-streamon'><constant>VIDIOC_STREAMON</constant></link>">
-> +<!ENTITY VIDIOC-SUBSCRIBE-EVENT "<link linkend='vidioc-subscribe-event'><constant>VIDIOC_SUBSCRIBE_EVENT</constant></link>">
->  <!ENTITY VIDIOC-S-AUDIO "<link linkend='vidioc-g-audio'><constant>VIDIOC_S_AUDIO</constant></link>">
->  <!ENTITY VIDIOC-S-AUDOUT "<link linkend='vidioc-g-audioout'><constant>VIDIOC_S_AUDOUT</constant></link>">
->  <!ENTITY VIDIOC-S-CROP "<link linkend='vidioc-g-crop'><constant>VIDIOC_S_CROP</constant></link>">
-> @@ -141,6 +143,8 @@
->  <!ENTITY v4l2-enc-idx "struct&nbsp;<link linkend='v4l2-enc-idx'>v4l2_enc_idx</link>">
->  <!ENTITY v4l2-enc-idx-entry "struct&nbsp;<link linkend='v4l2-enc-idx-entry'>v4l2_enc_idx_entry</link>">
->  <!ENTITY v4l2-encoder-cmd "struct&nbsp;<link linkend='v4l2-encoder-cmd'>v4l2_encoder_cmd</link>">
-> +<!ENTITY v4l2-event "struct&nbsp;<link linkend='v4l2-event'>v4l2_event</link>">
-> +<!ENTITY v4l2-event-subscription "struct&nbsp;<link linkend='v4l2-event-subscription'>v4l2_event_subscription</link>">
->  <!ENTITY v4l2-ext-control "struct&nbsp;<link linkend='v4l2-ext-control'>v4l2_ext_control</link>">
->  <!ENTITY v4l2-ext-controls "struct&nbsp;<link linkend='v4l2-ext-controls'>v4l2_ext_controls</link>">
->  <!ENTITY v4l2-fmtdesc "struct&nbsp;<link linkend='v4l2-fmtdesc'>v4l2_fmtdesc</link>">
-> @@ -200,6 +204,7 @@
->  <!ENTITY sub-controls SYSTEM "v4l/controls.xml">
->  <!ENTITY sub-dev-capture SYSTEM "v4l/dev-capture.xml">
->  <!ENTITY sub-dev-codec SYSTEM "v4l/dev-codec.xml">
-> +<!ENTITY sub-dev-event SYSTEM "v4l/dev-event.xml">
->  <!ENTITY sub-dev-effect SYSTEM "v4l/dev-effect.xml">
->  <!ENTITY sub-dev-osd SYSTEM "v4l/dev-osd.xml">
->  <!ENTITY sub-dev-output SYSTEM "v4l/dev-output.xml">
-> @@ -292,6 +297,8 @@
->  <!ENTITY sub-v4l2grab-c SYSTEM "v4l/v4l2grab.c.xml">
->  <!ENTITY sub-videodev2-h SYSTEM "v4l/videodev2.h.xml">
->  <!ENTITY sub-v4l2 SYSTEM "v4l/v4l2.xml">
-> +<!ENTITY sub-dqevent SYSTEM "v4l/vidioc-dqevent.xml">
-> +<!ENTITY sub-subscribe-event SYSTEM "v4l/vidioc-subscribe-event.xml">
->  <!ENTITY sub-intro SYSTEM "dvb/intro.xml">
->  <!ENTITY sub-frontend SYSTEM "dvb/frontend.xml">
->  <!ENTITY sub-dvbproperty SYSTEM "dvb/dvbproperty.xml">
-> @@ -381,3 +388,5 @@
->  <!ENTITY reqbufs SYSTEM "v4l/vidioc-reqbufs.xml">
->  <!ENTITY s-hw-freq-seek SYSTEM "v4l/vidioc-s-hw-freq-seek.xml">
->  <!ENTITY streamon SYSTEM "v4l/vidioc-streamon.xml">
-> +<!ENTITY dqevent SYSTEM "v4l/vidioc-dqevent.xml">
-> +<!ENTITY subscribe_event SYSTEM "v4l/vidioc-subscribe-event.xml">
-> diff --git a/Documentation/DocBook/v4l/dev-event.xml b/Documentation/DocBook/v4l/dev-event.xml
-> new file mode 100644
-> index 0000000..70a9895
-> --- /dev/null
-> +++ b/Documentation/DocBook/v4l/dev-event.xml
-> @@ -0,0 +1,34 @@
-> +  <title>Event Interface</title>
-> +
-> +  <para>The V4L2 event interface provides means for user to get
-> +  immediately notified on certain conditions taking place on a device.
-> +  This might include start of frame or loss of signal events, for
-> +  example.
-> +  </para>
-> +
-> +  <para>To receive events, the events the user is interested first
-> +  must be subscribed using the &VIDIOC-SUBSCRIBE-EVENT; ioctl. Once an
-> +  event is subscribed, the events of subscribed types are dequeueable
-> +  using the &VIDIOC-DQEVENT; ioctl. Events may be unsubscribed using
-> +  VIDIOC_UNSUBSCRIBE_EVENT ioctl. The special event type
-> +  V4L2_EVENT_ALL may be used to subscribe or unsubscribe all the
+> In fact, the regression was introduced when the saa7115 support was
+> added in 2005 (hg revision 2750).  This change resulted in the
+> anti-alias filtering being disabled by default for the saa7113 (the
+> saa7115_init_misc block clears bit 7 of register 0x02).  Without this
+> change, vertical lines appear in the chroma on a fixed interval.
+> 
+> The big issue is that the driver is shared with other saa7113
+> products, as well as products that have the saa7111, saa7114, and
+> saa7115.  So I have to figure out whether to just force on the AA
+> filter for the saa7113, or whether it should be enabled for the
+> others, or whether I can even turn it on for saa7113 in general or
+> need to hack something in there to only do it for the two or three
+> products I am testing with.
+> 
+> So here's where I could use some help:  If you have a product that
+> uses one of the above chips, please speak up.  I will be setting up a
+> test tree where people can try out the change and see if it makes
+> their situation better, worse, or no change.
 
-ALL may be used only with unsubscribe.
+I have a PVR-350 with an SAA7115 IIRC.  Other ivtv boards have SAA7114
+chips.  I don't see any in ivtv-cards.c that have an SAA7113 explcitily
+listed.
 
-> +  events the driver supports.</para>
-> +
-> +  <para>The event subscriptions and event queues are specific to file
-> +  handles. Subscribing an event on one file handle does not affect
-> +  other file handles.
-> +  </para>
-> +
-> +  <para>The information on dequeueable events are obtained by using
-> +  select or poll system calls on video devices. The V4L2 events use
-> +  POLLPRI events on poll system call and exceptions on select system
-> +  call.
-> +  </para>
-> +
-> +  <!--
-> +Local Variables:
-> +mode: sgml
-> +sgml-parent-document: "v4l2.sgml"
-> +indent-tabs-mode: nil
-> +End:
-> +  -->
-> diff --git a/Documentation/DocBook/v4l/v4l2.xml b/Documentation/DocBook/v4l/v4l2.xml
-> index 060105a..9737243 100644
-> --- a/Documentation/DocBook/v4l/v4l2.xml
-> +++ b/Documentation/DocBook/v4l/v4l2.xml
-> @@ -401,6 +401,7 @@ and discussions on the V4L mailing list.</revremark>
->      <section id="ttx"> &sub-dev-teletext; </section>
->      <section id="radio"> &sub-dev-radio; </section>
->      <section id="rds"> &sub-dev-rds; </section>
-> +    <section id="event"> &sub-dev-event; </section>
->    </chapter>
->  
->    <chapter id="driver">
-> @@ -426,6 +427,7 @@ and discussions on the V4L mailing list.</revremark>
->      &sub-cropcap;
->      &sub-dbg-g-chip-ident;
->      &sub-dbg-g-register;
-> +    &sub-dqevent;
->      &sub-encoder-cmd;
->      &sub-enumaudio;
->      &sub-enumaudioout;
-> @@ -467,6 +469,7 @@ and discussions on the V4L mailing list.</revremark>
->      &sub-reqbufs;
->      &sub-s-hw-freq-seek;
->      &sub-streamon;
-> +    &sub-subscribe-event;
->      <!-- End of ioctls. -->
->      &sub-mmap;
->      &sub-munmap;
-> diff --git a/Documentation/DocBook/v4l/vidioc-dqevent.xml b/Documentation/DocBook/v4l/vidioc-dqevent.xml
-> new file mode 100644
-> index 0000000..eb45c16
-> --- /dev/null
-> +++ b/Documentation/DocBook/v4l/vidioc-dqevent.xml
-> @@ -0,0 +1,124 @@
-> +<refentry id="vidioc-dqevent">
-> +  <refmeta>
-> +    <refentrytitle>ioctl VIDIOC_DQEVENT</refentrytitle>
-> +    &manvol;
-> +  </refmeta>
-> +
-> +  <refnamediv>
-> +    <refname>VIDIOC_DQEVENT</refname>
-> +    <refpurpose>Dequeue event</refpurpose>
-> +  </refnamediv>
-> +
-> +  <refsynopsisdiv>
-> +    <funcsynopsis>
-> +      <funcprototype>
-> +	<funcdef>int <function>ioctl</function></funcdef>
-> +	<paramdef>int <parameter>fd</parameter></paramdef>
-> +	<paramdef>int <parameter>request</parameter></paramdef>
-> +	<paramdef>struct v4l2_event
-> +*<parameter>argp</parameter></paramdef>
-> +      </funcprototype>
-> +    </funcsynopsis>
-> +  </refsynopsisdiv>
-> +
-> +  <refsect1>
-> +    <title>Arguments</title>
-> +
-> +    <variablelist>
-> +      <varlistentry>
-> +	<term><parameter>fd</parameter></term>
-> +	<listitem>
-> +	  <para>&fd;</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><parameter>request</parameter></term>
-> +	<listitem>
-> +	  <para>VIDIOC_DQEVENT</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><parameter>argp</parameter></term>
-> +	<listitem>
-> +	  <para></para>
-> +	</listitem>
-> +      </varlistentry>
-> +    </variablelist>
-> +  </refsect1>
-> +
-> +  <refsect1>
-> +    <title>Description</title>
-> +
-> +    <para>Dequeue an event from a video device. No input is required
-> +    for this ioctl. All the fields of the &v4l2-event; structure are
-> +    filled by the driver. The file handle will also receive exceptions
-> +    which the application may get by e.g. using the select system
-> +    call.</para>
-> +
-> +    <table frame="none" pgwide="1" id="v4l2-event">
-> +      <title>struct <structname>v4l2_event</structname></title>
-> +      <tgroup cols="4">
-> +	&cs-str;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>type</structfield></entry>
-> +            <entry></entry>
-> +	    <entry>Type of the event.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>union</entry>
-> +	    <entry><structfield>u</structfield></entry>
-> +            <entry></entry>
-> +	    <entry></entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry></entry>
-> +	    <entry>__u8</entry>
-> +            <entry><structfield>data</structfield>[64]</entry>
-> +	    <entry>Event data. Defined by the event type. The union
-> +            should be used to define easily accessible type for
-> +            events.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>pending</structfield></entry>
-> +            <entry></entry>
-> +	    <entry>Number of pending events excluding this one.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>sequence</structfield></entry>
-> +            <entry></entry>
-> +	    <entry>Event sequence number. The sequence number is
-> +	    incremented for every subscribed event that takes place.
-> +	    If sequence numbers are not contiguous it means that
-> +	    events have been lost.
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>struct timeval</entry>
-> +	    <entry><structfield>timestamp</structfield></entry>
-> +            <entry></entry>
-> +	    <entry>Event timestamp.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>reserved</structfield>[9]</entry>
-> +            <entry></entry>
-> +	    <entry>Reserved for future extensions. Drivers must set
-> +	    the array to zero.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +  </refsect1>
-> +</refentry>
-> +<!--
-> +Local Variables:
-> +mode: sgml
-> +sgml-parent-document: "v4l2.sgml"
-> +indent-tabs-mode: nil
-> +End:
-> +-->
-> diff --git a/Documentation/DocBook/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/v4l/vidioc-subscribe-event.xml
-> new file mode 100644
-> index 0000000..4ee70bf
-> --- /dev/null
-> +++ b/Documentation/DocBook/v4l/vidioc-subscribe-event.xml
-> @@ -0,0 +1,103 @@
-> +<refentry id="vidioc-subscribe-event">
-> +  <refmeta>
-> +    <refentrytitle>ioctl VIDIOC_SUBSCRIBE_EVENT, VIDIOC_UNSUBSCRIBE_EVENT</refentrytitle>
-> +    &manvol;
-> +  </refmeta>
-> +
-> +  <refnamediv>
-> +    <refname>VIDIOC_SUBSCRIBE_EVENT, VIDIOC_UNSUBSCRIBE_EVENT</refname>
-> +    <refpurpose>Subscribe or unsubscribe event</refpurpose>
-> +  </refnamediv>
-> +
-> +  <refsynopsisdiv>
-> +    <funcsynopsis>
-> +      <funcprototype>
-> +	<funcdef>int <function>ioctl</function></funcdef>
-> +	<paramdef>int <parameter>fd</parameter></paramdef>
-> +	<paramdef>int <parameter>request</parameter></paramdef>
-> +	<paramdef>struct v4l2_event_subscription
-> +*<parameter>argp</parameter></paramdef>
-> +      </funcprototype>
-> +    </funcsynopsis>
-> +  </refsynopsisdiv>
-> +
-> +  <refsect1>
-> +    <title>Arguments</title>
-> +
-> +    <variablelist>
-> +      <varlistentry>
-> +	<term><parameter>fd</parameter></term>
-> +	<listitem>
-> +	  <para>&fd;</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><parameter>request</parameter></term>
-> +	<listitem>
-> +	  <para>VIDIOC_SUBSCRIBE_EVENT, VIDIOC_UNSUBSCRIBE_EVENT</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><parameter>argp</parameter></term>
-> +	<listitem>
-> +	  <para></para>
-> +	</listitem>
-> +      </varlistentry>
-> +    </variablelist>
-> +  </refsect1>
-> +
-> +  <refsect1>
-> +    <title>Description</title>
-> +
-> +    <para>Subscribe or unsubscribe V4L2 event. Subscribed events are
-> +    dequeued by using the &VIDIOC-DQEVENT; ioctl.</para>
-> +
-> +    <table frame="none" pgwide="1" id="v4l2-event-subscription">
-> +      <title>struct <structname>v4l2_event_subscription</structname></title>
-> +      <tgroup cols="3">
-> +	&cs-str;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>type</structfield></entry>
-> +	    <entry>Type of the event.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>reserved</structfield>[7]</entry>
-> +	    <entry>Reserved for future extensions. Drivers must set
+Whether or not an anti-alias filter is needed is a completely knowable
+answer given:
 
-Drivers and applications must zero this array.
+1. The TV norm and hence the Luma and Chroma signal characteristics
+2. The A/D sample rate
+3. The parameters of any decimations or non-integer resampling being
+performed
 
-> +	    the array to zero.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +    <table frame="none" pgwide="1" id="event-type">
-> +      <title>Event Types</title>
-> +      <tgroup cols="3">
-> +	&cs-def;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry><constant>V4L2_EVENT_ALL</constant></entry>
-> +	    <entry>0</entry>
-> +	    <entry>All events. V4L2_EVENT_ALL is valid only for
-> +	    VIDIOC_UNSUBSCRIBE_EVENT for unsubscribing all events at once.
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_EVENT_PRIVATE_START</constant></entry>
-> +	    <entry>0x08000000</entry> <entry></entry>
+If you don't undersample, i.e. Fs/2 > single-sided BW of the signal
+being sampled, then you don't need an anti alias filter before you
+sample, otherwise you do.
 
-This needs a short description. E.g.: 'Base event number for driver-private events.'
+The same sort of thing goes for decimation of digital samples.  If the
+decimation is going to cause aliases to fold down into the spectrum, you
+need a digital LPF before the decimation to band limit the digital
+signal.
 
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +  </refsect1>
-> +</refentry>
-> +<!--
-> +Local Variables:
-> +mode: sgml
-> +sgml-parent-document: "v4l2.sgml"
-> +indent-tabs-mode: nil
-> +End:
-> +-->
-> diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-> index bfaf0c5..221fd5c 100644
-> --- a/Documentation/video4linux/v4l2-framework.txt
-> +++ b/Documentation/video4linux/v4l2-framework.txt
-> @@ -732,3 +732,61 @@ Useful functions:
->  The users of v4l2_fh know whether a driver uses v4l2_fh as its
->  file->private_data pointer by testing the V4L2_FL_USES_V4L2_FH bit in
->  video_device->flags.
-> +
-> +V4L2 events
-> +-----------
-> +
-> +The V4L2 events provide a generic way to pass events to user space.
-> +The driver must use v4l2_fh to be able to support V4L2 events.
-> +
-> +Useful functions:
-> +
-> +- v4l2_event_alloc()
-> +
-> +  To use events, the driver must allocate events for the file handle. By
-> +  calling the function more than once, the driver may assure that at least n
-> +  events in total has been allocated. The function may not be called in
-> +  atomic context.
-> +
-> +- v4l2_event_queue()
-> +
-> +  Queue events to video device. The driver's only responsibility is to fill
-> +  in the type and the data fields. The other fields will be filled in by
-> +  V4L2.
-> +
-> +- v4l2_event_subscribe()
-> +
-> +  The video_device->ioctl_ops->vidioc_subscribe_event must check the driver
-> +  is able to produce events with specified event id. Then it calls
-> +  v4l2_event_subscribe() to subscribe the event.
-> +
-> +- v4l2_event_unsubscribe()
-> +
-> +  vidioc_unsubscribe_event in struct v4l2_ioctl_ops. A driver may use
-> +  v4l2_event_unsubscribe() directly unless it wants to be involved in
-> +  unsubscription process.
-> +
-> +  The special type V4L2_EVENT_ALL may be used to unsubscribe all events. The
-> +  drivers may want to handle this in a special way.
-> +
-> +- v4l2_event_pending()
-> +
-> +  Returns the number of pending events. Useful when implementing poll.
-> +
-> +Drivers do not initialise events directly. The events are initialised
-> +through v4l2_fh_init() if video_device->ioctl_ops->vidioc_subscribe_event is
-> +non-NULL. This *MUST* be performed in the driver's
-> +v4l2_file_operations->open() handler.
-> +
-> +Events are delivered to user space through the poll system call. The driver
-> +can use v4l2_fh->events->wait wait_queue_head_t as the argument for
-> +poll_wait().
-> +
-> +There are standard and private events. New standard events must use the
-> +smallest available event type. The drivers must allocate their events
-> +starting from base (V4L2_EVENT_PRIVATE_START + n * 1024) while individual
-> +events start from base + 1.
 
-What do you mean with 'while individual events start from base + 1'? I still
-don't understand that phrase.
+This should not be a "user control", this should be a configuration
+setting that is knowable by the bridge driver and/or the module driving
+the SAA7113.
+
+
+With all that said, if you have a baseband Luma or Chroma signal with
+strong spurious high frequency components (crappy source, or you're
+overdriving the front end and getting intermods), then keep the
+anti-alias filter turned on as the assumption of a bandlimited input
+signal is violated in this case.
+
+In the SAA7113 the anti-alias filter introduces a delay of 50 ns.  At
+13.5 Mpixels/sec, or 74.1 ns/pixel, that's less than 1 pixel time of
+delay.
+
+Just turn it on in and leave it on in the SAA7113 to handle the
+unexpected input signal case.
 
 Regards,
+Andy
 
-	Hans
 
-> +
-> +An example on how the V4L2 events may be used can be found in the OMAP
-> +3 ISP driver available at <URL:http://gitorious.org/omap3camera> as of
-> +writing this.
-> 
+> Devin
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
