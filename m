@@ -1,108 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54116 "EHLO mx1.redhat.com"
+Received: from tango.tkos.co.il ([62.219.50.35]:39776 "EHLO tango.tkos.co.il"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754779Ab0BBMRw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Feb 2010 07:17:52 -0500
-Message-ID: <4B6817E6.4070709@redhat.com>
-Date: Tue, 02 Feb 2010 10:17:42 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1753996Ab0BDJhX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Feb 2010 04:37:23 -0500
+Date: Thu, 4 Feb 2010 11:36:40 +0200
+From: Baruch Siach <baruch@tkos.co.il>
+To: Alan Carvalho de Assis <acassis@gmail.com>
+Cc: linux-media@vger.kernel.org, s.hauer@pengutronix.de,
+	linux-arm-kernel@lists.infradead.org, mchehab@infradead.org
+Subject: Re: [PATCH] RFC: mx27: Add soc_camera support
+Message-ID: <20100204093640.GA7357@jasper.tkos.co.il>
+References: <1260885686-8478-1-git-send-email-acassis@gmail.com>
+ <37367b3a0912150607v713edc32y3578fa2a0c8c61db@mail.gmail.com>
 MIME-Version: 1.0
-To: Huang Shijie <shijie8@gmail.com>
-CC: linux-media@vger.kernel.org, zyziii@telegent.com, tiwai@suse.de
-Subject: Re: [PATCH v2 00/10] add linux driver for chip TLG2300
-References: <1265094475-13059-1-git-send-email-shijie8@gmail.com>
-In-Reply-To: <1265094475-13059-1-git-send-email-shijie8@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <37367b3a0912150607v713edc32y3578fa2a0c8c61db@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Huang Shijie wrote:
-> The TLG2300 is a chip of Telegent System.
-> It support analog tv,DVB-T and radio in a single chip.
-> The chip has been used in several dongles, such as aeromax DH-9000:
-> 	http://www.b2bdvb.com/dh-9000.htm
+Hi Alan,
+
+On Tue, Dec 15, 2009 at 12:07:43PM -0200, Alan Carvalho de Assis wrote:
+> Please note: I just get it compiling and loaded correctly on the
+> mainline kernel.
 > 
-> You can get more info from:
-> 	[1] http://www.telegent.com/
-> 	[2] http://www.telegent.com/press/2009Sept14_CSI.html
-> 
-> The driver is based Mauro's subtree(2.6.33-rc4).	
-> 	
-> about country code:
-> 	The country code is needed for firmware, so I can not remove it.
-> 	If I remove it, the audio will not work properly.
+> If you have a board powered by i.MX27 and with a camera supported by
+> soc_camera driver, I will be glad case you can do a try.
 
-I'm assuming that you're referring to the analog part, right? 
+I'm now in the process of making this driver work on i.MX25. The CSI hardware 
+of the i.MX25 is very similar to the i.MX27 one. If you have any updates for 
+this driver please let me know.
 
-Instead of a country code, the driver should use the V4L2_STD_ macros to
-determine the audio standard. Please take a look at saa7134-tvaudio code. It has
-an interesting logic to associate the V4L2_STD with the corresponding audio settings:
-
-For example, the audio carrier frequency and the audio standard are at tvaudio array:
-
-static struct saa7134_tvaudio tvaudio[] = {
-        {
-                .name          = "PAL-B/G FM-stereo",
-                .std           = V4L2_STD_PAL_BG,
-                .mode          = TVAUDIO_FM_BG_STEREO,
-                .carr1         = 5500,
-                .carr2         = 5742,
-        },{
-                .name          = "PAL-D/K1 FM-stereo",
-                .std           = V4L2_STD_PAL_DK,
-                .carr1         = 6500,
-                .carr2         = 6258,
-                .mode          = TVAUDIO_FM_BG_STEREO,
-        },{
-                .name          = "PAL-D/K2 FM-stereo",
-                .std           = V4L2_STD_PAL_DK,
-                .carr1         = 6500,
-                .carr2         = 6742,
-                .mode          = TVAUDIO_FM_BG_STEREO,
-        },{
-                .name          = "PAL-D/K3 FM-stereo",
-                .std           = V4L2_STD_PAL_DK,
-                .carr1         = 6500,
-                .carr2         = 5742,
-                .mode          = TVAUDIO_FM_BG_STEREO,
-        },{
-                .name          = "PAL-B/G NICAM",
-                .std           = V4L2_STD_PAL_BG,
-                .carr1         = 5500,
-                .carr2         = 5850,
-                .mode          = TVAUDIO_NICAM_FM,
-        },{
-                .name          = "PAL-I NICAM",
-                .std           = V4L2_STD_PAL_I,
-                .carr1         = 6000,
-                .carr2         = 6552,
-                .mode          = TVAUDIO_NICAM_FM,
-        },{
-                .name          = "PAL-D/K NICAM",
-                .std           = V4L2_STD_PAL_DK,
-                .carr1         = 6500,
-                .carr2         = 5850,
-                .mode          = TVAUDIO_NICAM_FM,
-        },{
-                .name          = "SECAM-L NICAM",
-                .std           = V4L2_STD_SECAM_L,
-                .carr1         = 6500,
-                .carr2         = 5850,
-                .mode          = TVAUDIO_NICAM_AM,
-        },{
-...
-}
-
-Btw, probably the most complicated device, in terms of firmware, is the xc3028. It has one
-different firmware for each different combination of standard. There are 80 different firmwares
-at the version 3.6. Each time a firmware changes, a reset via GPIO should be sent to the device.
-
-The tuner-xc3028 has a logic that re-loads the firmware if the standard changes, and the 
-new standard is not supported by the current firmware. So, it may help if you also take a
-look at tuner-xc2028.
+baruch
 
 -- 
-
-Cheers,
-Mauro
+                                                     ~. .~   Tk Open Systems
+=}------------------------------------------------ooO--U--Ooo------------{=
+   - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
