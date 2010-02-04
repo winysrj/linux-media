@@ -1,54 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-13.arcor-online.net ([151.189.21.53]:51148 "EHLO
-	mail-in-13.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752983Ab0BHQMl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Feb 2010 11:12:41 -0500
-Message-ID: <4B7037D3.5040601@arcor.de>
-Date: Mon, 08 Feb 2010 17:12:03 +0100
-From: Stefan Ringel <stefan.ringel@arcor.de>
+Received: from mxweblb05fl.versatel.de ([89.246.255.248]:48927 "EHLO
+	mxweblb05fl.versatel.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757704Ab0BDSuN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2010 13:50:13 -0500
+Received: from ens28fl.versatel.de (ens28fl.versatel.de [82.140.32.10])
+	by mxweblb05fl.versatel.de (8.13.1/8.13.1) with ESMTP id o14IoApn030547
+	for <linux-media@vger.kernel.org>; Thu, 4 Feb 2010 19:50:10 +0100
+Received: from cinnamon-sage.de (i577A58B9.versanet.de [87.122.88.185])
+	(authenticated bits=0)
+	by ens28fl.versatel.de (8.12.11.20060308/8.12.11) with SMTP id o14IoALL013797
+	for <linux-media@vger.kernel.org>; Thu, 4 Feb 2010 19:50:11 +0100
+Received: from 192.168.23.2:49526 by cinnamon-sage.de for <hverkuil@xs4all.nl>,<awalls@radix.net>,<linux-media@vger.kernel.org> ; 04.02.2010 19:50:03
+Message-ID: <4B6B16DA.5060902@cinnamon-sage.de>
+Date: Thu, 04 Feb 2010 19:50:02 +0100
+From: Lars Hanisch <dvb@cinnamon-sage.de>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org, dheitmueller@kernellabs.com
-Subject: Re: [PATCH 5/12] tm6000: update init table and sequence for tm6010
-References: <1265410096-11788-1-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-2-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-3-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-4-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-5-git-send-email-stefan.ringel@arcor.de> <4B6FF3C9.2010804@redhat.com> <4B6FF763.1090203@redhat.com>
-In-Reply-To: <4B6FF763.1090203@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org
+Subject: Re: ivtv-utils/test/ps-analyzer.cpp: error in extracting SCR?
+References: <4B6A123F.5080500@cinnamon-sage.de> <1265253363.3122.106.camel@palomino.walls.org> <201002040825.32062.hverkuil@xs4all.nl>
+In-Reply-To: <201002040825.32062.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-6; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 08.02.2010 12:37, schrieb Mauro Carvalho Chehab:
-> Mauro Carvalho Chehab wrote:
->   
->>> +		tm6000_read_write_usb (dev, 0xc0, 0x10, 0x7f1f, 0x0000, buf, 2);
->>>       
->   
->> Most of the calls there are read (0xc0). I don't know any device that requires
->> a read for it to work. I suspect that the above code is just probing to check
->> what i2c devices are found at the board.
->>     
-> Btw, by looking at drivers/media/dvb/frontends/zl10353_priv.h, we have an idea
-> on what the above does:
->
-> The register 0x7f is:
->
->         CHIP_ID            = 0x7F,
->
-> So, basically, the above code is reading the ID of the chip, likely to be sure that it
-> is a Zarlink 10353.
->
-> Cheers,
-> Mauro
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->   
+Am 04.02.2010 08:25, schrieb Hans Verkuil:
+> On Thursday 04 February 2010 04:16:03 Andy Walls wrote:
+>> On Thu, 2010-02-04 at 01:18 +0100, Lars Hanisch wrote:
+>>> Hi,
+>>>
+>>>    I'm writing some code repacking the program stream that ivtv delivers
+>>> into a transport stream (BTW: is there existing code for this?).
+>>
+>> Buy a CX23418 based board.  That chip's firmware can produce a TS.
+>>
+>> I think Compro and LeadTek cards are available in Europe and are
+>> supported by the cx18 driver.
 
-yes, but that's for activating Zarlink zl10353 and checking it --> hello
-Zarlink? If doesn't use that sequence, then cannot use Zarlink zl10353.
+  My PVR150 and 350 are still ok and I hope I have DVB-S-access in one 
+or two years... But I will keep that in mind in case I need a new card.
 
--- 
-Stefan Ringel <stefan.ringel@arcor.de>
+>>
+>>>   Since
+>>> many players needs the PCR I would like to use the SCR of the PS and
 
+>>> place it in the adaption field of the TS (if wikipedia [1] and my
+>>> interpretation of it is correct it should be the same).
+>>>
+>>>    I stumbled upon the ps-analyzer.cpp in the test-directory of the
+>>> ivtv-utils (1.4.0). From line 190 to 198 the SCR and SCR extension are
+>>> extracted from the PS-header. But referring to [2] the SCR extension has
+>>> 9 bits, the highest 2 bits in the fifth byte after the sync bytes and
+>>> the lower 7 bits in the sixth byte. The last bit is a marker bit (always 1).
+>>>
+>>>    So instead of
+>>>
+>>> scr_ext = (hdr[4]&  0x1)<<  8;
+>>> scr_ext |= hdr[5];
+>>>
+>>>    I think it should be
+>>>
+>>> scr_ext = (unsigned)(hdr[4]&  0x3)<<  7;
+>>> scr_ext |= (hdr[5]&  0xfe)>>  1;
+>>
+>>
+>> Given the non-authoritative MPEG-2 documents I have, yes, you appear to
+>> be correct on this.
+>>
+>> Please keep in mind that ps-analyzer.cpp is simply a debug tool from an
+>> ivtv developer perspective.  You base prodcution software off of it at
+>> your own risk. :)
+
+  Of course I will. :-) I already had coded my part and was looking for 
+references...
+
+>>
+>>>    And the bitrate is coded in the next 22 bits, so it should be
+>>>
+>>> mux_rate = (unsigned)(hdr[6])<<  14;
+>>> mux_rate |= (unsigned)(hdr[7])<<  6;
+>>> mux_rate |= (unsigned)(hdr[8]&  0xfc)>>  2;
+>>>
+>>>    Am I correct?
+>
+> Yes, you are correct. I miscounted the bits when I wrote this originally.
+> Thanks for reporting this!
+
+  You're welcome!
+
+Regards,
+Lars.
+
+>
+> Regards,
+>
+> 	Hans
+>
+>>
+>> I did not check this one, but I would not be surprised if ps-analyzer
+>> had this wrong too.
+>>
+>> Regards,
+>> Andy
+>>
+>>> Regards,
+>>> Lars.
+>>>
+>>> [1] http://en.wikipedia.org/wiki/Presentation_time_stamp
+>>> [2] http://en.wikipedia.org/wiki/MPEG_program_stream
+>>> --
+>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+>
