@@ -1,63 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay01.digicable.hu ([92.249.128.189]:46088 "EHLO
-	relay01.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967944Ab0B0IW2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Feb 2010 03:22:28 -0500
-Message-ID: <4B88D642.3010907@freemail.hu>
-Date: Sat, 27 Feb 2010 09:22:26 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+Received: from ms01.sssup.it ([193.205.80.99]:32984 "EHLO sssup.it"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1758229Ab0BDPG3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Feb 2010 10:06:29 -0500
+Message-ID: <4B6AE26D.4080701@panicking.kicks-ass.org>
+Date: Thu, 04 Feb 2010 16:06:21 +0100
+From: Michael Trimarchi <michael@panicking.kicks-ass.org>
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Jean-Francois Moine <moinejf@free.fr>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/2] gspca pac7302: allow controlling LED separately
-References: <4B84CC9E.4030600@freemail.hu> <20100224082238.53c8f6f8@tele> <4B886566.8000600@freemail.hu> <4B88CF6C.2070703@redhat.com>
-In-Reply-To: <4B88CF6C.2070703@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+CC: "Aguirre, Sergio" <saaguirre@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: omap34xxcam question?
+References: <4B4F0762.4040007@panicking.kicks-ass.org> <A24693684029E5489D1D202277BE894451538FFB@dlee02.ent.ti.com> <4B4F537B.7000708@panicking.kicks-ass.org> <A24693684029E5489D1D202277BE894451539065@dlee02.ent.ti.com> <4B4F56C8.7060108@panicking.kicks-ass.org> <A24693684029E5489D1D202277BE894451539623@dlee02.ent.ti.com> <4B502982.4050508@panicking.kicks-ass.org> <4B6AD7E3.6020102@maxwell.research.nokia.com>
+In-Reply-To: <4B6AD7E3.6020102@maxwell.research.nokia.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi,
-Hans de Goede wrote:
-> Hi,
+
+Sakari Ailus wrote:
+> Hi Michael,
 > 
-> On 02/27/2010 01:20 AM, Németh Márton wrote:
->> From: Márton Németh<nm127@freemail.hu>
->>
->> On Labtec Webcam 2200 there is a feedback LED which can be controlled
->> independent from the streaming.
+> Michael Trimarchi wrote:
+>> Aguirre, Sergio wrote:
+> ...
+>>> So, if I got you right, you're saying that, there should be priorities
+>>> for sensor baseformats, depending on the preference specified
+>>> somewhere in the boardfile?
+>> Yes, that is the idea. Try to provide a better patch later, I'm working
+>> hard on the sensor part :)
 > 
-> This is true for a lot of cameras, so if we are going to add a way to
-> support control of the LED separate of the streaming state, we
-> should do that at the gspca_main level, and let sub drivers which
-> support this export a set_led callback function.
+> Apologies for my late answer.
 
-If the code is moved to gspca_main level, what shall be the name of the
-LED? According to Documentation/leds-class.txt, chapter "LED Device Naming"
-my proposal for "devicename" would be:
+No problem on that
 
- * /sys/class/leds/video-0::camera
- * /sys/class/leds/video-1::camera
- * /sys/class/leds/video-2::camera
- * ...
-
-or
-
- * /sys/class/leds/video0::camera
- * /sys/class/leds/video1::camera
- * /sys/class/leds/video2::camera
- * ...
-
-Which is the right one?
-
-> I must say I personally don't see much of a use case for this feature,
-> but I believe JF Moine does, so I'll leave further comments and
-> review of this to JF. I do believe it is important that if we go this
-> way we do so add the gspca_main level.
 > 
-> Regards,
+> The frame sizes in our sensor drivers are in width descending order. The
+> selection has been working somehow so far but it's definitely not perfect.
 > 
-> Hans
+
+Ok for the frame size but you need to test all the possible sensor output
+too and continue in case of error.
+
+> We're converting the ISP driver to use the Media controller so this code
+> will be dropped in near future probably. In that case the user space has
+> to select the sensor mode it wants to use as well.
+> 
+
+Good.
+
+Maybe I can test the framework on the FLOW1.5 mobile device using the TCM8240MD
+
+What is your git for the camera framework?
+
+
+Michael
+
+
