@@ -1,87 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:7789 "EHLO mx1.redhat.com"
+Received: from mail1.radix.net ([207.192.128.31]:59216 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757886Ab0BCUZJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Feb 2010 15:25:09 -0500
-Message-ID: <4B69DB9D.90609@redhat.com>
-Date: Wed, 03 Feb 2010 18:25:01 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Stefan Ringel <stefan.ringel@arcor.de>
-CC: linux-media@vger.kernel.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [PATCH 4/15] -  tm6000.h
-References: <4B673790.3030706@arcor.de> <4B673B2D.6040507@arcor.de> <4B675B19.3080705@redhat.com> <4B685FB9.1010805@arcor.de> <4B688507.606@redhat.com> <4B688E41.2050806@arcor.de> <4B689094.2070204@redhat.com> <4B6894FE.6010202@arcor.de> <4B69D83D.5050809@arcor.de> <4B69D8CC.2030008@arcor.de> <4B69D9AF.4020309@arcor.de>
-In-Reply-To: <4B69D9AF.4020309@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-15
+	id S1755521Ab0BDDQX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Feb 2010 22:16:23 -0500
+Subject: Re: ivtv-utils/test/ps-analyzer.cpp: error in extracting SCR?
+From: Andy Walls <awalls@radix.net>
+To: Lars Hanisch <dvb@cinnamon-sage.de>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <4B6A123F.5080500@cinnamon-sage.de>
+References: <4B6A123F.5080500@cinnamon-sage.de>
+Content-Type: text/plain
+Date: Wed, 03 Feb 2010 22:16:03 -0500
+Message-Id: <1265253363.3122.106.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This one is a very obscure patch. What are you doing this patch and why?
-
-Stefan Ringel wrote:
-> signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+On Thu, 2010-02-04 at 01:18 +0100, Lars Hanisch wrote:
+> Hi,
 > 
-> --- a/drivers/staging/tm6000/tm6000.h
-> +++ b/drivers/staging/tm6000/tm6000.h
-> @@ -90,12 +97,14 @@ enum tm6000_core_state {
->      DEV_MISCONFIGURED = 0x04,
->  };
->  
-> +#if 1
->  /* io methods */
->  enum tm6000_io_method {
->      IO_NONE,
->      IO_READ,
->      IO_MMAP,
->  };
-> +#endif
->  
->  enum tm6000_mode {
->      TM6000_MODE_UNKNOWN=0,
-> @@ -202,6 +211,9 @@ struct tm6000_fh {
->              V4L2_STD_PAL_M|V4L2_STD_PAL_60|V4L2_STD_NTSC_M| \
->              V4L2_STD_NTSC_M_JP|V4L2_STD_SECAM
->  
-> +/* In tm6000-cards.c */
-> +
-> +int tm6000_tuner_callback (void *ptr, int component, int command, int arg);
->  /* In tm6000-core.c */
->  
->  int tm6000_read_write_usb (struct tm6000_core *dev, u8 reqtype, u8 req,
-> @@ -209,7 +221,6 @@ int tm6000_read_write_usb (struct tm6000_core *dev,
-> u8 reqtype, u8 req,
->  int tm6000_get_reg (struct tm6000_core *dev, u8 req, u16 value, u16 index);
->  int tm6000_set_reg (struct tm6000_core *dev, u8 req, u16 value, u16 index);
->  int tm6000_init (struct tm6000_core *dev);
-> -int tm6000_init_after_firmware (struct tm6000_core *dev);
->  
->  int tm6000_init_analog_mode (struct tm6000_core *dev);
->  int tm6000_init_digital_mode (struct tm6000_core *dev);
-> @@ -231,7 +242,12 @@ int tm6000_set_standard (struct tm6000_core *dev,
-> v4l2_std_id *norm);
->  int tm6000_i2c_register(struct tm6000_core *dev);
->  int tm6000_i2c_unregister(struct tm6000_core *dev);
->  
-> +#if 1
->  /* In tm6000-queue.c */
-> +#if 0
-> +int tm6000_init_isoc(struct tm6000_core *dev, int max_packets);
-> +void tm6000_uninit_isoc(struct tm6000_core *dev);
-> +#endif
->  
->  int tm6000_v4l2_mmap(struct file *filp, struct vm_area_struct *vma);
->  
-> @@ -276,3 +292,4 @@ extern int tm6000_debug;
->          __FUNCTION__ , ##arg); } while (0)
->  
->  
-> +#endif
+>   I'm writing some code repacking the program stream that ivtv delivers 
+> into a transport stream (BTW: is there existing code for this?).
+
+Buy a CX23418 based board.  That chip's firmware can produce a TS.
+
+I think Compro and LeadTek cards are available in Europe and are
+supported by the cx18 driver.
+
+>  Since 
+> many players needs the PCR I would like to use the SCR of the PS and 
+> place it in the adaption field of the TS (if wikipedia [1] and my 
+> interpretation of it is correct it should be the same).
 > 
+>   I stumbled upon the ps-analyzer.cpp in the test-directory of the 
+> ivtv-utils (1.4.0). From line 190 to 198 the SCR and SCR extension are 
+> extracted from the PS-header. But referring to [2] the SCR extension has 
+> 9 bits, the highest 2 bits in the fifth byte after the sync bytes and 
+> the lower 7 bits in the sixth byte. The last bit is a marker bit (always 1).
+> 
+>   So instead of
+> 
+> scr_ext = (hdr[4] & 0x1) << 8;
+> scr_ext |= hdr[5];
+> 
+>   I think it should be
+> 
+> scr_ext = (unsigned)(hdr[4] & 0x3) << 7;
+> scr_ext |= (hdr[5] & 0xfe) >> 1;
 
 
--- 
+Given the non-authoritative MPEG-2 documents I have, yes, you appear to
+be correct on this.
 
-Cheers,
-Mauro
+Please keep in mind that ps-analyzer.cpp is simply a debug tool from an
+ivtv developer perspective.  You base prodcution software off of it at
+your own risk. :)
+
+>   And the bitrate is coded in the next 22 bits, so it should be
+> 
+> mux_rate = (unsigned)(hdr[6]) << 14;
+> mux_rate |= (unsigned)(hdr[7]) << 6;
+> mux_rate |= (unsigned)(hdr[8] & 0xfc) >> 2;
+> 
+>   Am I correct?
+
+I did not check this one, but I would not be surprised if ps-analyzer
+had this wrong too.
+
+Regards,
+Andy
+
+> Regards,
+> Lars.
+> 
+> [1] http://en.wikipedia.org/wiki/Presentation_time_stamp
+> [2] http://en.wikipedia.org/wiki/MPEG_program_stream
+> --
+
+
