@@ -1,34 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from letter.sics.se ([193.10.64.6]:60965 "EHLO letter.sics.se"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751804Ab0BVLMc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 06:12:32 -0500
-From: "Frej Drejhammar" <frej@sics.se>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Chroma gain configuration
-In-Reply-To: <829197381002212007q342fc01bm1c528a2f15027a1e@mail.gmail.com>
-	(Devin Heitmueller's message of "Sun, 21 Feb 2010 23:07:07 -0500")
-References: <829197381002212007q342fc01bm1c528a2f15027a1e@mail.gmail.com>
-Date: Mon, 22 Feb 2010 12:04:13 +0100
-Message-ID: <tz8iq9pjzv6.fsf@dront.sics.se>
+Received: from mail-fx0-f220.google.com ([209.85.220.220]:35289 "EHLO
+	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756780Ab0BDSOP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2010 13:14:15 -0500
+Date: Thu, 4 Feb 2010 10:14:04 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Jiri Slaby <jirislaby@gmail.com>
+Cc: Jiri Kosina <jkosina@suse.cz>, Antti Palosaari <crope@iki.fi>,
+	mchehab@infradead.org, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, Pekka Sarnila <sarnila@adit.fi>,
+	linux-input@vger.kernel.org
+Subject: Re: [PATCH 1/1] media: dvb-usb/af9015, fix disconnection crashes
+Message-ID: <20100204181404.GC10965@core.coreip.homeip.net>
+References: <1264007972-6261-1-git-send-email-jslaby@suse.cz>
+ <4B5CDB53.6030009@iki.fi>
+ <4B5D6098.7010700@gmail.com>
+ <4B5DDDFB.5020907@iki.fi>
+ <alpine.LRH.2.00.1001261406010.15694@twin.jikos.cz>
+ <4B6AA211.1060707@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4B6AA211.1060707@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> I'm asking because it seems a bit strange that someone would introduce
-> a v4l2 standard control to disable the AGC but not have the ability to
-> manually set the gain once it was disabled.
+On Thu, Feb 04, 2010 at 11:31:45AM +0100, Jiri Slaby wrote:
+ +
+> +static int dvb_event(struct hid_device *hdev, struct hid_field *field,
+> +		struct hid_usage *usage, __s32 value)
+> +{
+> +	/* we won't get a "key up" event */
+> +	if (value) {
+> +		input_event(field->hidinput->input, usage->type, usage->code, 1);
+> +		input_event(field->hidinput->input, usage->type, usage->code, 0);
 
-As the person who introduced V4L2_CID_CHROMA_AGC for cx2388x I can
-explain that part. The AGC was actually introduced when only a manual
-gain setting was available and the AGC was disabled. The addition of the
-V4L2_CID_CHROMA_AGC allowed the AGC to be enabled by default, which is
-probably what most users want, but still have a way to set chroma gain
-manually. The cx88 driver allows you to set the UV-gain using the
-V4L2_CID_SATURATION control when the AGC is disabled.
+Do not ever forget input_sync(), you need 2 of them here.
 
-Regards,
+With the latest changes to evdev, if you are using SIGIO you won't get
+wioken up until EV_SYN/SYN_REPORT.
 
---Frej
+-- 
+Dmitry
