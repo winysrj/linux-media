@@ -1,113 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2157 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753510Ab0BVTz6 (ORCPT
+Received: from mail-in-01.arcor-online.net ([151.189.21.41]:54393 "EHLO
+	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933881Ab0BEW5q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 14:55:58 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [PATCH 3/6] V4L: Events: Add new ioctls for events
-Date: Mon, 22 Feb 2010 20:58:19 +0100
-Cc: linux-media@vger.kernel.org, laurent.pinchart@nokia.com,
-	david.cohen@nokia.com
-References: <4B82A7FB.50505@maxwell.research.nokia.com> <1266853897-25749-2-git-send-email-sakari.ailus@maxwell.research.nokia.com> <1266853897-25749-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <1266853897-25749-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201002222058.20037.hverkuil@xs4all.nl>
+	Fri, 5 Feb 2010 17:57:46 -0500
+From: stefan.ringel@arcor.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 1/12] tm6000: add Terratec Cinergy Hybrid XE
+Date: Fri,  5 Feb 2010 23:57:01 +0100
+Message-Id: <1265410631-11955-1-git-send-email-stefan.ringel@arcor.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
-On Monday 22 February 2010 16:51:34 Sakari Ailus wrote:
-> This patch adds a set of new ioctls to the V4L2 API. The ioctls conform to
-> V4L2 Events RFC version 2.3:
-> 
-> <URL:http://www.spinics.net/lists/linux-media/msg12033.html>
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> ---
->  drivers/media/video/v4l2-compat-ioctl32.c |    3 +++
->  drivers/media/video/v4l2-ioctl.c          |    3 +++
->  include/linux/videodev2.h                 |   26 ++++++++++++++++++++++++++
->  3 files changed, 32 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-> index f77f84b..9004a5f 100644
-> --- a/drivers/media/video/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/video/v4l2-compat-ioctl32.c
-> @@ -1086,6 +1086,9 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
->  	case VIDIOC_QUERY_DV_PRESET:
->  	case VIDIOC_S_DV_TIMINGS:
->  	case VIDIOC_G_DV_TIMINGS:
-> +	case VIDIOC_DQEVENT:
-> +	case VIDIOC_SUBSCRIBE_EVENT:
-> +	case VIDIOC_UNSUBSCRIBE_EVENT:
->  		ret = do_video_ioctl(file, cmd, arg);
->  		break;
->  
-> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-> index 4b11257..34c7d6e 100644
-> --- a/drivers/media/video/v4l2-ioctl.c
-> +++ b/drivers/media/video/v4l2-ioctl.c
-> @@ -290,6 +290,9 @@ static const char *v4l2_ioctls[] = {
->  	[_IOC_NR(VIDIOC_QUERY_DV_PRESET)]  = "VIDIOC_QUERY_DV_PRESET",
->  	[_IOC_NR(VIDIOC_S_DV_TIMINGS)]     = "VIDIOC_S_DV_TIMINGS",
->  	[_IOC_NR(VIDIOC_G_DV_TIMINGS)]     = "VIDIOC_G_DV_TIMINGS",
-> +	[_IOC_NR(VIDIOC_DQEVENT)]	   = "VIDIOC_DQEVENT",
-> +	[_IOC_NR(VIDIOC_SUBSCRIBE_EVENT)]  = "VIDIOC_SUBSCRIBE_EVENT",
-> +	[_IOC_NR(VIDIOC_UNSUBSCRIBE_EVENT)] = "VIDIOC_UNSUBSCRIBE_EVENT",
->  };
->  #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
->  
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 3c26560..f7237fc 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -1622,6 +1622,29 @@ struct v4l2_streamparm {
->  };
->  
->  /*
-> + *	E V E N T S
-> + */
-> +
-> +struct v4l2_event {
-> +	__u32				type;
-> +	union {
-> +		__u8			data[64];
-> +	} u;
-> +	__u32				pending;
-> +	__u32				sequence;
-> +	struct timespec			timestamp;
-> +	__u32				reserved[9];
-> +};
-> +
-> +struct v4l2_event_subscription {
-> +	__u32				type;
-> +	__u32				reserved[7];
-> +};
-> +
-> +#define V4L2_EVENT_ALL				0
-> +#define V4L2_EVENT_PRIVATE_START		0x08000000
-> +
-> +/*
->   *	A D V A N C E D   D E B U G G I N G
->   *
->   *	NOTE: EXPERIMENTAL API, NEVER RELY ON THIS IN APPLICATIONS!
-> @@ -1743,6 +1766,9 @@ struct v4l2_dbg_chip_ident {
->  #define	VIDIOC_QUERY_DV_PRESET	_IOR('V',  86, struct v4l2_dv_preset)
->  #define	VIDIOC_S_DV_TIMINGS	_IOWR('V', 87, struct v4l2_dv_timings)
->  #define	VIDIOC_G_DV_TIMINGS	_IOWR('V', 88, struct v4l2_dv_timings)
-> +#define	VIDIOC_DQEVENT		 _IOR('V', 83, struct v4l2_event)
-> +#define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 84, struct v4l2_event_subscription)
-> +#define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 85, struct v4l2_event_subscription)
->  
->  /* Reminder: when adding new ioctls please add support for them to
->     drivers/media/video/v4l2-compat-ioctl32.c as well! */
-> 
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+---
+ drivers/staging/tm6000/tm6000-cards.c |   22 +++++++++++++++++++++-
+ 1 files changed, 21 insertions(+), 1 deletions(-)
 
+diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+index c4db903..7f594a2 100644
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -44,6 +44,10 @@
+ #define TM6000_BOARD_FREECOM_AND_SIMILAR	7
+ #define TM6000_BOARD_ADSTECH_MINI_DUAL_TV	8
+ #define TM6010_BOARD_HAUPPAUGE_900H		9
++#define TM6010_BOARD_BEHOLD_WANDER		10
++#define TM6010_BOARD_BEHOLD_VOYAGER		11
++#define TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE	12
++
+ 
+ #define TM6000_MAXBOARDS        16
+ static unsigned int card[]     = {[0 ... (TM6000_MAXBOARDS - 1)] = UNSET };
+@@ -208,7 +212,21 @@ struct tm6000_board tm6000_boards[] = {
+ 		},
+ 		.gpio_addr_tun_reset = TM6000_GPIO_2,
+ 	},
+-
++	[TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE] = {
++		.name         = "Terratec Cinergy Hybrid XE",
++		.tuner_type   = TUNER_XC2028, /* has a XC3028 */
++		.tuner_addr   = 0xc2 >> 1,
++		.demod_addr   = 0x1e >> 1,
++		.type         = TM6010,
++		.caps = {
++			.has_tuner    = 1,
++			.has_dvb      = 1,
++			.has_zl10353  = 1,
++			.has_eeprom   = 1,
++			.has_remote   = 1,
++		},
++		.gpio_addr_tun_reset = TM6010_GPIO_2,
++	}
+ };
+ 
+ /* table of devices that work with this driver */
+@@ -221,6 +239,7 @@ struct usb_device_id tm6000_id_table [] = {
+ 	{ USB_DEVICE(0x2040, 0x6600), .driver_info = TM6010_BOARD_HAUPPAUGE_900H },
+ 	{ USB_DEVICE(0x6000, 0xdec0), .driver_info = TM6010_BOARD_BEHOLD_WANDER },
+ 	{ USB_DEVICE(0x6000, 0xdec1), .driver_info = TM6010_BOARD_BEHOLD_VOYAGER },
++	{ USB_DEVICE(0x0ccd, 0x0086), .driver_info = TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE },
+ 	{ },
+ };
+ 
+@@ -311,6 +330,7 @@ static void tm6000_config_tuner (struct tm6000_core *dev)
+ 
+ 		switch(dev->model) {
+ 		case TM6010_BOARD_HAUPPAUGE_900H:
++		case TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE:
+ 			ctl.fname = "xc3028L-v36.fw";
+ 			break;
+ 		default:
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+1.6.4.2
+
