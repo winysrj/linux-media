@@ -1,34 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48521 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757305Ab0BRQPG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Feb 2010 11:15:06 -0500
-Message-ID: <4B7D6783.5000907@redhat.com>
-Date: Thu, 18 Feb 2010 14:14:59 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Stefan Ringel <stefan.ringel@arcor.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: tm6000: patch serie
-References: <4B7D3EA0.2060603@arcor.de>
-In-Reply-To: <4B7D3EA0.2060603@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Received: from mail-in-01.arcor-online.net ([151.189.21.41]:57102 "EHLO
+	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933973Ab0BEWs4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Feb 2010 17:48:56 -0500
+From: stefan.ringel@arcor.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 2/12] tm6000: avoid unregister the driver after success at tm6000_init_dev
+Date: Fri,  5 Feb 2010 23:48:07 +0100
+Message-Id: <1265410096-11788-2-git-send-email-stefan.ringel@arcor.de>
+In-Reply-To: <1265410096-11788-1-git-send-email-stefan.ringel@arcor.de>
+References: <1265410096-11788-1-git-send-email-stefan.ringel@arcor.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stefan Ringel wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
->  
-> Mauro,
-> 
-> have you seen my patch serie from monday?
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
-Yes, I've seen. I'll be handling it likely today.
+---
+ drivers/staging/tm6000/tm6000-cards.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-PS.: Next time, just take a look at patchwork.kernel.org.
-If the patches are there marked as New, they are on my queue ;)
+diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+index 7f594a2..e697ce3 100644
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -422,6 +422,7 @@ static int tm6000_init_dev(struct tm6000_core *dev)
+ 		}
+ #endif
+ 	}
++	return 0;
+ 
+ err2:
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+-- 
+1.6.4.2
 
-Cheers,
-Mauro
