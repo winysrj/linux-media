@@ -1,112 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f219.google.com ([209.85.220.219]:44397 "EHLO
-	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750909Ab0BWJiQ convert rfc822-to-8bit (ORCPT
+Received: from mail-in-05.arcor-online.net ([151.189.21.45]:54889 "EHLO
+	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933861Ab0BEVqe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2010 04:38:16 -0500
-Received: by fxm19 with SMTP id 19so3559612fxm.21
-        for <linux-media@vger.kernel.org>; Tue, 23 Feb 2010 01:38:14 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4B839E80.8050607@redhat.com>
-References: <4B55445A.10300@infradead.org> <4B57B6E4.2070500@infradead.org>
-	 <20100121024605.GK4015@jenkins.home.ifup.org>
-	 <201001210834.28112.hverkuil@xs4all.nl> <4B5B30E4.7030909@redhat.com>
-	 <20100222225426.GC4013@jenkins.home.ifup.org>
-	 <4B839687.4090205@redhat.com>
-	 <e69623b3a970d166a31af8258040a471.squirrel@webmail.xs4all.nl>
-	 <4B839E80.8050607@redhat.com>
-Date: Tue, 23 Feb 2010 13:38:14 +0400
-Message-ID: <1a297b361002230138k20c38a03m2f149b18ea44ed96@mail.gmail.com>
-Subject: Re: [ANNOUNCE] git tree repositories & libv4l
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Brandon Philips <brandon@ifup.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Douglas Landgraf <dougsland@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Fri, 5 Feb 2010 16:46:34 -0500
+Subject: Re: Need to discuss method for multiple, multiple-PID TS's from
+ same demux (Re: Videotext application crashes the kernel due to DVB-demux
+ patch)
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Andreas Oberritter <obi@linuxtv.org>,
+	Andy Walls <awalls@radix.net>,
+	Chicken Shack <chicken.shack@gmx.de>,
+	linux-media@vger.kernel.org, akpm@linux-foundation.org,
+	torvalds@linux-foundation.org
+In-Reply-To: <4B6C88AD.4010708@redhat.com>
+References: <1265018173.2449.19.camel@brian.bconsult.de>
+	 <1265028110.3098.3.camel@palomino.walls.org>
+	 <1265076008.3120.96.camel@palomino.walls.org>
+	 <1265101869.1721.28.camel@brian.bconsult.de>
+	 <1265115172.3104.17.camel@palomino.walls.org>
+	 <1265158862.3194.22.camel@pc07.localdom.local>
+	 <1265288042.3928.9.camel@palomino.walls.org>
+	 <1265292421.3258.53.camel@brian.bconsult.de>
+	 <1265336477.3071.29.camel@palomino.walls.org>
+	 <4B6C1AF7.2090503@linuxtv.org>
+	 <1265397736.6310.98.camel@palomino.walls.org>
+	 <4B6C7F1B.7080100@linuxtv.org>  <4B6C88AD.4010708@redhat.com>
+Content-Type: text/plain
+Date: Fri, 05 Feb 2010 22:46:20 +0100
+Message-Id: <1265406380.4064.9.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 23, 2010 at 1:23 PM, Hans de Goede <hdegoede@redhat.com> wrote:
-> Hi,
->
-> On 02/23/2010 10:01 AM, Hans Verkuil wrote:
->>
->>> Hi,
->>>
->>> On 02/22/2010 11:54 PM, Brandon Philips wrote:
->>>>
->>>> On 18:24 Sat 23 Jan 2010, Hans de Goede wrote:
->>>>>>
->>>>>> lib/
->>>>>>        libv4l1/
->>>>>>        libv4l2/
->>>>>>        libv4lconvert/
->>>>>> utils/
->>>>>>        v4l2-dbg
->>>>>>        v4l2-ctl
->>>>>>        cx18-ctl
->>>>>>        ivtv-ctl
->>>>>> contrib/
->>>>>>        test/
->>>>>>        everything else
->>>>>>
->>>>
->>>>    git clone git://ifup.org/philips/create-v4l-utils.git
->>>>    cd create-v4l-utils/
->>>>    ./convert.sh
->>>>
->>>> You should now have v4l-utils.git which should have this directory
->>>> struture. If we need to move other things around let me know and I can
->>>> tweak name-filter.sh
->>>>
->>>
->>> Ok, so this will give me a local tree, how do I get this onto linuxtv.org
->>> ?
->>>
->>> Also I need someone to pull:
->>> http://linuxtv.org/hg/~hgoede/libv4l
->>>
->>> (this only contains libv4l commits)
->>>
->>> Into the:
->>> http://linuxtv.org/hg/v4l-dvb
->>>
->>> Repository, I guess I can ask this directly to Douglas?
->>>
->>>> Thoughts?
->>>
->>> I've one question, I think we want to do tarbal releases
->>> from this new repo (just like I've been doing with libv4l for a while
->>> already), and then want distro's to pick up these releases, right ?
->>>
->>> Are we going to do separate tarbals for the lib and utils directories,
->>> or one combined tarbal. I personally vote for one combined tarbal.
->>>
->>> But this means we will be inflicting some pains on distro's because their
->>> libv4l packages will go away and be replaced by a new v4l-utils package.
->>
->> I would call it media-utils. A nice name and it reflects that it contains
->> both dvb and v4l utilities.
->>
->
-> Well, the judge is still out on also adding the dvb utils to this git repo.
-> I'm neutral on that issue, but I will need a co-maintainer for those bits
-> if they end up in the new v4l-utils repo too.
->
-> About the name, if the dvb utils get added and we want to reflect that, lets
-> call it v4l-dvb-utils. media-utils is not a very descriptive name for
-> v4l-dvb
-> project outsiders.
+Hi,
 
+Am Freitag, den 05.02.2010, 19:07 -0200 schrieb Mauro Carvalho Chehab:
+> Andreas Oberritter wrote:
+> > Andy Walls wrote:
+> 
+> >>> As Honza noted, these ioctls are used by enigma2 and, in general, by
+> >>> software running on Dream Multimedia set top boxes.
+> >> Right, so reverting the patch is not an option.
+> >>
+> >> It also makes implementing multiple dvr0.n nodes for a demux0 device
+> >> node probably a waste of time at this point.
+> > 
+> > I think so, too. But I guess it's always worth discussing alternatives.
+> 
+> If this discussion happened before 2.6.32 release, and provided that a different
+> implementation were agreed, things would be easier, as a different solution like
+> your proposal could be decided and used.
+> 
+> Now, we have already a regression on a stable kernel, and solving it by
+> creating another regression is not something smart to do.
+> 
+> >From what I understood, the regression appeared on an old, orphan
+> application with a non-official patch applied on it. Other applications with
+> similar features weren't affected. On the other hand, if the patch got reverted, 
+> we'll break a maintained application that is used on a great number of devices,
+> and whose features depend on the new ioctls.
+> 
+> We are too late in -rc cycle, so probably there's not enough time for
+> writing, test, validate any new API in time for 2.6.33 and write some compat
+> layer to emulate those two ioctls with a different implementation.
+> 
+> So, removing those two ioctls is not an option anymore.
+> 
+> 
+> Cheers,
+> Mauro
 
-What's the advantage in merging the dvb and v4l2 utils, other than to
-make the download/clone bigger ?
+during the still ongoing v4l to v4l2 conversion, all major apps did ship
+with their own headers.
+
+Since we keep backward compat, that previously unknown to me
+alevt-dvb-t, agreed it is a nice to have, should compile against the
+older headers instead latest kernel headers, until someone maintains it
+again and takes advantage of later improvements.
+
+Untested, but usually we see just such.
+
+Cheers,
+Hermann
 
 
 
-Regards,
-Manu
+
