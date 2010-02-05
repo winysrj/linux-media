@@ -1,106 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46870 "EHLO comal.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:5773 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753499Ab0BBPup convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Feb 2010 10:50:45 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
-Date: Tue, 2 Feb 2010 09:50:26 -0600
-Subject: RE: [PATCH v3 1/6] V4L - vpfe capture - header files for ISIF driver
-Message-ID: <A69FA2915331DC488A831521EAE36FE401630F3053@dlee06.ent.ti.com>
-References: <1265063238-29072-1-git-send-email-m-karicheri2@ti.com>
- <1265063238-29072-2-git-send-email-m-karicheri2@ti.com>
- <1265063238-29072-3-git-send-email-m-karicheri2@ti.com>
- <4B675FC3.2050505@redhat.com>
-In-Reply-To: <4B675FC3.2050505@redhat.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	id S932406Ab0BDOHz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Feb 2010 09:07:55 -0500
+Message-ID: <4B6C24FF.4050802@redhat.com>
+Date: Fri, 05 Feb 2010 09:02:39 -0500
+From: Jarod Wilson <jarod@redhat.com>
 MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Jiri Slaby <jirislaby@gmail.com>, Jiri Kosina <jkosina@suse.cz>,
+	Antti Palosaari <crope@iki.fi>, mchehab@infradead.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Pekka Sarnila <sarnila@adit.fi>, linux-input@vger.kernel.org
+Subject: Re: [PATCH 1/1] media: dvb-usb/af9015, fix disconnection crashes
+References: <1264007972-6261-1-git-send-email-jslaby@suse.cz> <4B5CDB53.6030009@iki.fi> <4B5D6098.7010700@gmail.com> <4B5DDDFB.5020907@iki.fi> <alpine.LRH.2.00.1001261406010.15694@twin.jikos.cz> <4B6AA211.1060707@gmail.com> <4B6AB7E9.40607@redhat.com> <4B6AC333.6030308@gmail.com> <4B6ACEA3.3080900@redhat.com>
+In-Reply-To: <4B6ACEA3.3080900@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
-
-If you scan the patch, you would see the status of this patch series. 
-
->> ---
->> Applies to linux-next tree of v4l-dvb
->>  - rebasing to latest for merge (v3)
-
-Not sure if there is a better way to include this information. The arch part
-of this series requires sign-off from Kevin who is copied on this. I have
-seen your procedure for submitting patches and would send you an official
-pull request as per your procedure once Kevin sign-off the arch part.
-
-I have following questions though..
-
-Should we always add [RFC PATCH] in the subject? It makes sense for
-patches being reviewed. How to request sign-off? Do I only send patches
-to the person, not to the list?
-
-
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-phone: 301-407-9583
-email: m-karicheri2@ti.com
-
->-----Original Message-----
->From: Mauro Carvalho Chehab [mailto:mchehab@redhat.com]
->Sent: Monday, February 01, 2010 6:12 PM
->To: Karicheri, Muralidharan
->Cc: linux-media@vger.kernel.org
->Subject: Re: [PATCH v3 1/6] V4L - vpfe capture - header files for ISIF
->driver
->
->m-karicheri2@ti.com wrote:
->> From: Murali Karicheri <m-karicheri2@ti.com>
+On 02/04/2010 08:41 AM, Mauro Carvalho Chehab wrote:
+> Jiri Slaby wrote:
+>> On 02/04/2010 01:04 PM, Mauro Carvalho Chehab wrote:
+>>>> I have 2 dvb-t receivers and both of them need fullspeed quirk. Further
+>>>> disable_rc_polling (a dvb_usb module parameter) must be set to not get
+>>>> doubled characters now. And then, it works like a charm.
+>>> Module parameters always bothers me. They should be used as last resort alternatives
+>>> when there's no other possible way to make it work properly.
+>>>
+>>> If we know for sure that the RC polling should be disabled by an specific device,
+>>> just add this logic at the driver.
 >>
->> This is the header file for ISIF driver on DM365.  ISIF driver is
->equivalent
->> to CCDC driver on DM355 and DM644x. This driver is tested for
->> YUV capture from TVP514x driver. This patch contains the header files
->required for
->> this driver. The name of the file is changed to reflect the name of IP.
+>> Yes, this is planned and written below:
+>
+> Ok.
 >>
->> Reviewed-by: Nori, Sekhar <nsekhar@ti.com>
->> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+>>>> Note that, it's just some kind of proof of concept. A migration of
+>>>> af9015 devices from dvb-usb-remote needs to be done first.
+>>>>
+>>>> Ideas, comments?
+>>> Please next time, send the patch inlined. As you're using Thunderbird, you'll likely need
+>>> Asalted-patches[1] to avoid thunderbird to destroy your patches.
 >>
->> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
->> Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
->> ---
->> Applies to linux-next tree of v4l-dvb
->>  - rebasing to latest for merge (v3)
->>  - Updated based on comments against v1 of the patch (v2)
->>  drivers/media/video/davinci/isif_regs.h |  269 ++++++++++++++++
->>  include/media/davinci/isif.h            |  531
->+++++++++++++++++++++++++++++++
->>  2 files changed, 800 insertions(+), 0 deletions(-)
->>  create mode 100644 drivers/media/video/davinci/isif_regs.h
->>  create mode 100644 include/media/davinci/isif.h
+>> I must disagree for two reasons: (a) it was not patch intended for merge
+>> and (b) it was a plain-text attachment which is fine even for
+>> submission. However I don't like patches as attachments so if I decide
+>> to submit it for a merge later, you will not see it as an attachment
+>> then :).
 >
->Hi Murali,
->
->As always, it is almost impossible for me to know if you're submitting yet
->another RFC version
->or a final version to be applied.
->
->So, I kindly ask you to send all those patches that are still under
->discussions with [RFC PATCH]
->at the subject, and, on the final version, send it to me via a git pull
->request.
->
->Unfortunately, I don't have enough time to go inside every RFC patch that
->are under discussion,
->so I prefer to optimize my time focusing on the patch versions that are
->considered ready for
->inclusion, and where there's no c/c to any members-only ML.
->
->--
->
->Cheers,
->Mauro
+> Attachments aren't good for reply, as they appear as a file. So, people need to
+> open the attachment on a separate application to see and to cut-and-paste
+> if they want to comment, like what I did.
+
+Just as an FYI... If you use mutt appropriately configured, it'll DTRT 
+with attached patches and let you reply with them quoted inline, and 
+actually, thunderbird 3 will more or less work with attached patches if 
+you do a select-all, then hit reply (tbird finally has 'quote selected 
+text' support).
+
+Not that I'm advocating patches as attachments.
+
+-- 
+Jarod Wilson
+jarod@redhat.com
