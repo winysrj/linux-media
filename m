@@ -1,58 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:1026 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755558Ab0BEVIZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Feb 2010 16:08:25 -0500
-Message-ID: <4B6C88AD.4010708@redhat.com>
-Date: Fri, 05 Feb 2010 19:07:57 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: Andy Walls <awalls@radix.net>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Chicken Shack <chicken.shack@gmx.de>,
-	linux-media@vger.kernel.org, akpm@linux-foundation.org,
-	torvalds@linux-foundation.org
-Subject: Re: Need to discuss method for multiple, multiple-PID TS's from same
- demux (Re: Videotext application crashes the kernel due to DVB-demux patch)
-References: <1265018173.2449.19.camel@brian.bconsult.de>	 <1265028110.3098.3.camel@palomino.walls.org>	 <1265076008.3120.96.camel@palomino.walls.org>	 <1265101869.1721.28.camel@brian.bconsult.de>	 <1265115172.3104.17.camel@palomino.walls.org>	 <1265158862.3194.22.camel@pc07.localdom.local>	 <1265288042.3928.9.camel@palomino.walls.org>	 <1265292421.3258.53.camel@brian.bconsult.de>	 <1265336477.3071.29.camel@palomino.walls.org>	 <4B6C1AF7.2090503@linuxtv.org> <1265397736.6310.98.camel@palomino.walls.org> <4B6C7F1B.7080100@linuxtv.org>
-In-Reply-To: <4B6C7F1B.7080100@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-in-11.arcor-online.net ([151.189.21.51]:51539 "EHLO
+	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933923Ab0BEW5r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Feb 2010 17:57:47 -0500
+From: stefan.ringel@arcor.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 2/12] tm6000: avoid unregister the driver after success at tm6000_init_dev
+Date: Fri,  5 Feb 2010 23:57:02 +0100
+Message-Id: <1265410631-11955-2-git-send-email-stefan.ringel@arcor.de>
+In-Reply-To: <1265410631-11955-1-git-send-email-stefan.ringel@arcor.de>
+References: <1265410631-11955-1-git-send-email-stefan.ringel@arcor.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andreas Oberritter wrote:
-> Andy Walls wrote:
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
->>> As Honza noted, these ioctls are used by enigma2 and, in general, by
->>> software running on Dream Multimedia set top boxes.
->> Right, so reverting the patch is not an option.
->>
->> It also makes implementing multiple dvr0.n nodes for a demux0 device
->> node probably a waste of time at this point.
-> 
-> I think so, too. But I guess it's always worth discussing alternatives.
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+---
+ drivers/staging/tm6000/tm6000-cards.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-If this discussion happened before 2.6.32 release, and provided that a different
-implementation were agreed, things would be easier, as a different solution like
-your proposal could be decided and used.
+diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+index 7f594a2..e697ce3 100644
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -422,6 +422,7 @@ static int tm6000_init_dev(struct tm6000_core *dev)
+ 		}
+ #endif
+ 	}
++	return 0;
+ 
+ err2:
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+-- 
+1.6.4.2
 
-Now, we have already a regression on a stable kernel, and solving it by
-creating another regression is not something smart to do.
-
->From what I understood, the regression appeared on an old, orphan
-application with a non-official patch applied on it. Other applications with
-similar features weren't affected. On the other hand, if the patch got reverted, 
-we'll break a maintained application that is used on a great number of devices,
-and whose features depend on the new ioctls.
-
-We are too late in -rc cycle, so probably there's not enough time for
-writing, test, validate any new API in time for 2.6.33 and write some compat
-layer to emulate those two ioctls with a different implementation.
-
-So, removing those two ioctls is not an option anymore.
-
-
-Cheers,
-Mauro
