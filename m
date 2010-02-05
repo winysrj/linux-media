@@ -1,64 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:35060 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751312Ab0BSMXY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Feb 2010 07:23:24 -0500
-Message-ID: <4B7E82AC.60500@redhat.com>
-Date: Fri, 19 Feb 2010 10:23:08 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Robert Lowery <rglowery@exemail.com.au>
-CC: Terry Wu <terrywu2009@gmail.com>, Andy Walls <awalls@radix.net>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Vincent McIntyre <vincent.mcintyre@gmail.com>,
-	linux-media@vger.kernel.org,
-	Stefan Ringel <stefan.ringel@arcor.de>,
-	Steven Toth <stoth@kernellabs.com>
-Subject: Re: [RESEND] Re: DViCO FusionHDTV DVB-T Dual Digital 4 (rev 1)  
-              tuning  regression
-References: <33305.64.213.30.2.1259216241.squirrel@webmail.exetel.com.au>    <2088.115.70.135.213.1262579258.squirrel@webmail.exetel.com.au>    <1262658469.3054.48.camel@palomino.walls.org>    <1262661512.3054.67.camel@palomino.walls.org>    <55306.115.70.135.213.1262748017.squirrel@webmail.exetel.com.au>    <1262829099.3065.61.camel@palomino.walls.org>    <1128.115.70.135.213.1262840633.squirrel@webmail.exetel.com.au>    <6ab2c27e1001070548y1a96f390uc7b7fbd18a78a564@mail.gmail.com>    <6ab2c27e1001070604m323ccb02g10a8c302c3edee79@mail.gmail.com>    <6ab2c27e1001070618ud7019b9s69180353010a1c96@mail.gmail.com>    <6ab2c27e1001070642k4d5bd81cud404fe77bc7a6bc5@mail.gmail.com>    <1197.115.70.135.213.1262917283.squirrel@webmail.exetel.com.au>    <4B7E1931.3090007@redhat.com> <52633.115.70.135.213.1266574714.squirrel@webmail.exetel.com.au>
-In-Reply-To: <52633.115.70.135.213.1266574714.squirrel@webmail.exetel.com.au>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-in-02.arcor-online.net ([151.189.21.42]:44443 "EHLO
+	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933971Ab0BEW5u (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Feb 2010 17:57:50 -0500
+From: stefan.ringel@arcor.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 7/12] tm6000: add tuner callback for dvb frontend
+Date: Fri,  5 Feb 2010 23:57:06 +0100
+Message-Id: <1265410631-11955-6-git-send-email-stefan.ringel@arcor.de>
+In-Reply-To: <1265410631-11955-5-git-send-email-stefan.ringel@arcor.de>
+References: <1265410631-11955-1-git-send-email-stefan.ringel@arcor.de>
+ <1265410631-11955-2-git-send-email-stefan.ringel@arcor.de>
+ <1265410631-11955-3-git-send-email-stefan.ringel@arcor.de>
+ <1265410631-11955-4-git-send-email-stefan.ringel@arcor.de>
+ <1265410631-11955-5-git-send-email-stefan.ringel@arcor.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Robert Lowery wrote:
-> Mauro,
-> 
-> I had to make 2 changes to get the patch to work for me
-> 
-> see below
-> 
-> HTH
-> 
-> -Rob
-> 
->> +		if (priv->firm_version >= 0x0302) {
->> +			if (priv->cur_fw.type & DTV7)
->> +				offset -= 300000;
->> +			else if (type != ATSC) /* DVB @6MHz, DTV 8 and DTV 7/8 */
->> +				offset += 200000;
->> +		} else {
->> +			if (priv->cur_fw.type & DTV7)
->> +				offset -= 500000;
-> This should be offset += 500000;
-> 
->>  		/*
->>  		 * The DTV7 S-code table needs a 700 kHz shift.
->>  		 * Thanks to Terry Wu <terrywu2009@gmail.com> for reporting this
-> I had to also delete the
-> if (type & DTV7)
->     demod += 500
-> 
-> I suspect this is no longer required due to the offset += 500000 above
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
-Both lines should be doing the same thing, but IMO, the better is to keep 
-the change at the demod.
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+---
+ drivers/staging/tm6000/tm6000-cards.c |    2 +-
+ drivers/staging/tm6000/tm6000-dvb.c   |    3 ++-
+ drivers/staging/tm6000/tm6000.h       |    3 +++
+ 3 files changed, 6 insertions(+), 2 deletions(-)
 
-Could you please preserve the above and remove the offset +=500000 ?
+diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+index 5cf5d58..4592397 100644
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -245,7 +245,7 @@ struct usb_device_id tm6000_id_table [] = {
+ 
+ /* Tuner callback to provide the proper gpio changes needed for xc2028 */
+ 
+-static int tm6000_tuner_callback(void *ptr, int component, int command, int arg)
++int tm6000_tuner_callback(void *ptr, int component, int command, int arg)
+ {
+ 	int rc=0;
+ 	struct tm6000_core *dev = ptr;
+diff --git a/drivers/staging/tm6000/tm6000-dvb.c b/drivers/staging/tm6000/tm6000-dvb.c
+index e900d6d..fdbee30 100644
+--- a/drivers/staging/tm6000/tm6000-dvb.c
++++ b/drivers/staging/tm6000/tm6000-dvb.c
+@@ -235,7 +235,8 @@ int tm6000_dvb_register(struct tm6000_core *dev)
+ 			.i2c_adap = &dev->i2c_adap,
+ 			.i2c_addr = dev->tuner_addr,
+ 		};
+-
++		
++		dvb->frontend->callback = tm6000_tuner_callback;
+ 		ret = dvb_register_frontend(&dvb->adapter, dvb->frontend);
+ 		if (ret < 0) {
+ 			printk(KERN_ERR
+diff --git a/drivers/staging/tm6000/tm6000.h b/drivers/staging/tm6000/tm6000.h
+index 877cbf6..d713c48 100644
+--- a/drivers/staging/tm6000/tm6000.h
++++ b/drivers/staging/tm6000/tm6000.h
+@@ -202,6 +202,9 @@ struct tm6000_fh {
+ 			V4L2_STD_PAL_M|V4L2_STD_PAL_60|V4L2_STD_NTSC_M| \
+ 			V4L2_STD_NTSC_M_JP|V4L2_STD_SECAM
+ 
++/* In tm6000-cards.c */
++
++int tm6000_tuner_callback (void *ptr, int component, int command, int arg);
+ /* In tm6000-core.c */
+ 
+ int tm6000_read_write_usb (struct tm6000_core *dev, u8 reqtype, u8 req,
+-- 
+1.6.4.2
 
-Note: are you available for irc? if so, please join #linuxtv at freenode.net.
-
-Cheers,
-Mauro
