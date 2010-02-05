@@ -1,54 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kso.tls-tautenburg.de ([194.94.209.8]:27389 "EHLO
-	kso.tls-tautenburg.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757413Ab0BXUdV (ORCPT
+Received: from mail-in-17.arcor-online.net ([151.189.21.57]:36907 "EHLO
+	mail-in-17.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933984Ab0BEWs5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Feb 2010 15:33:21 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by kso.tls-tautenburg.de (Postfix) with ESMTP id DE0545078B
-	for <linux-media@vger.kernel.org>; Wed, 24 Feb 2010 21:23:54 +0100 (CET)
-Received: from kso.tls-tautenburg.de ([127.0.0.1])
-	by localhost (kso.tls-tautenburg.de [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id 0XL35LZJL0OI for <linux-media@vger.kernel.org>;
-	Wed, 24 Feb 2010 21:23:49 +0100 (CET)
-Received: from [192.168.178.51] (unknown [88.130.156.22])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(Client did not present a certificate)
-	by kso.tls-tautenburg.de (Postfix) with ESMTP
-	for <linux-media@vger.kernel.org>; Wed, 24 Feb 2010 21:23:48 +0100 (CET)
-Message-ID: <4B858AD1.5070502@tls-tautenburg.de>
-Date: Wed, 24 Feb 2010 21:23:45 +0100
-From: Bringfried Stecklum <stecklum@tls-tautenburg.de>
-MIME-Version: 1.0
+	Fri, 5 Feb 2010 17:48:57 -0500
+From: stefan.ringel@arcor.de
 To: linux-media@vger.kernel.org
-Subject: Elgato EyeTV DTT deluxe v2 - i2c enumeration failed
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 8/12] tm6000: add tuner parameter
+Date: Fri,  5 Feb 2010 23:48:12 +0100
+Message-Id: <1265410096-11788-7-git-send-email-stefan.ringel@arcor.de>
+In-Reply-To: <1265410096-11788-6-git-send-email-stefan.ringel@arcor.de>
+References: <1265410096-11788-1-git-send-email-stefan.ringel@arcor.de>
+ <1265410096-11788-2-git-send-email-stefan.ringel@arcor.de>
+ <1265410096-11788-3-git-send-email-stefan.ringel@arcor.de>
+ <1265410096-11788-4-git-send-email-stefan.ringel@arcor.de>
+ <1265410096-11788-5-git-send-email-stefan.ringel@arcor.de>
+ <1265410096-11788-6-git-send-email-stefan.ringel@arcor.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, I recently purchased the Elgato EyeTV DTT deluxe v2 stick. I am running
-Ubuntu 8.10 with Linux 2.6.28-15-generic. I installed v4l-dvb from mercurial
-with a slight change of linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h to account
-for the USB ID of the device (#define USB_PID_ELGATO_EYETV_DTT_Dlx 0x002c).
-After insertion the stick is recognized, however no frontend is activated since
-the i2c enumeration failed. This might be related to a missing udev rule. Any
-support is appreciated. This is the corresponding part from dmesg
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
-kernel: [24106.302688] usb 2-1: new high speed USB device using ehci_hcd and address 45
-kernel: [24106.459222] usb 2-1: configuration #1 chosen from 1 choice
-kernel: [24106.459730] dvb-usb: found a 'Elgato EyeTV Dtt Dlx PD378S' in cold state, will try to load a firmware
-kernel: [24106.459738] usb 2-1: firmware: requesting dvb-usb-dib0700-1.20.fw
-kernel: [24106.523808] dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
-kernel: [24106.733953] dib0700: firmware started successfully.
-kernel: [24107.244517] dvb-usb: found a 'Elgato EyeTV Dtt Dlx PD378S' in warm state.
-kernel: [24107.244631] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-kernel: [24107.244862] DVB: registering new adapter (Elgato EyeTV Dtt Dlx PD378S)
-kernel: [24107.327206] dib0700: stk7070p_frontend_attach: dib7000p_i2c_enumeration failed.  Cannot continue
-kernel: [24107.327211]
-kernel: [24107.327216] dvb-usb: no frontend was attached by 'Elgato EyeTV Dtt Dlx PD378S'
-kernel: [24107.327223] dvb-usb: Elgato EyeTV Dtt Dlx PD378S successfully initialized and connected.
-kernel: [24107.327703] dib0700: ir protocol setup failed
-kernel: [24130.411288] dvb-usb: Elgato EyeTV Dtt Dlx PD378S successfully deinitialized and disconnected.
+---
+ drivers/staging/tm6000/tm6000-cards.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+index 4592397..f22f8ad 100644
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -312,7 +312,7 @@ static void tm6000_config_tuner (struct tm6000_core *dev)
+ 	memset(&tun_setup, 0, sizeof(tun_setup));
+ 	tun_setup.type   = dev->tuner_type;
+ 	tun_setup.addr   = dev->tuner_addr;
+-	tun_setup.mode_mask = T_ANALOG_TV | T_RADIO;
++	tun_setup.mode_mask = T_ANALOG_TV | T_RADIO | T_DIGITAL_TV;
+ 	tun_setup.tuner_callback = tm6000_tuner_callback;
+ 
+ 	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_type_addr, &tun_setup);
+@@ -324,10 +324,12 @@ static void tm6000_config_tuner (struct tm6000_core *dev)
+ 		memset(&xc2028_cfg, 0, sizeof(xc2028_cfg));
+ 		memset (&ctl,0,sizeof(ctl));
+ 
+-		ctl.mts   = 1;
+-		ctl.read_not_reliable = 1;
++		ctl.input1 = 1;
++		ctl.read_not_reliable = 0;
+ 		ctl.msleep = 10;
+-
++		ctl.demod = XC3028_FE_ZARLINK456;
++		ctl.vhfbw7 = 1;
++		ctl.uhfbw8 = 1;
+ 		xc2028_cfg.tuner = TUNER_XC2028;
+ 		xc2028_cfg.priv  = &ctl;
+ 
+-- 
+1.6.4.2
 
