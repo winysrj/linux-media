@@ -1,46 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.cooptel.qc.ca ([216.144.115.12]:59857 "EHLO
-	amy.cooptel.qc.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755794Ab0BMNkd (ORCPT
+Received: from mail-in-02.arcor-online.net ([151.189.21.42]:36485 "EHLO
+	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933989Ab0BEWs5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Feb 2010 08:40:33 -0500
-Message-ID: <4B76ABD0.8050002@cooptel.qc.ca>
-Date: Sat, 13 Feb 2010 08:40:32 -0500
-From: Richard Lemieux <rlemieu@cooptel.qc.ca>
-MIME-Version: 1.0
-To: Andy Walls <awalls@radix.net>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Driver crash on kernel 2.6.32.7. Interaction between cx8800 (DVB-S)
- and USB HVR Hauppauge 950q
-References: <4B70E7DB.7060101@cooptel.qc.ca>	 <1265768091.3064.109.camel@palomino.walls.org>	 <4B722266.4070805@cooptel.qc.ca>	 <829197381002091912h5391129dpbf075485ab011936@mail.gmail.com>	 <1265816096.4019.65.camel@palomino.walls.org>	 <20100212041131.GA29697@suse.de> <1266023937.3062.17.camel@palomino.walls.org>
-In-Reply-To: <1266023937.3062.17.camel@palomino.walls.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Fri, 5 Feb 2010 17:48:57 -0500
+From: stefan.ringel@arcor.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 7/12] tm6000: add tuner callback for dvb frontend
+Date: Fri,  5 Feb 2010 23:48:11 +0100
+Message-Id: <1265410096-11788-6-git-send-email-stefan.ringel@arcor.de>
+In-Reply-To: <1265410096-11788-5-git-send-email-stefan.ringel@arcor.de>
+References: <1265410096-11788-1-git-send-email-stefan.ringel@arcor.de>
+ <1265410096-11788-2-git-send-email-stefan.ringel@arcor.de>
+ <1265410096-11788-3-git-send-email-stefan.ringel@arcor.de>
+ <1265410096-11788-4-git-send-email-stefan.ringel@arcor.de>
+ <1265410096-11788-5-git-send-email-stefan.ringel@arcor.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
-I was in the process of setting up my machine so I can run any of
-the tests you might ask for.  First I needed a fully tested backup partition,
-and then I needed to bring udev up to date.  But I see that the problem
-is pretty much resolved right now.  As Devin said earlier I doubt I can ever
-reproduce this event.  Thanks very much for everything you do for the Linux 
-community.
+---
+ drivers/staging/tm6000/tm6000-cards.c |    2 +-
+ drivers/staging/tm6000/tm6000-dvb.c   |    3 ++-
+ drivers/staging/tm6000/tm6000.h       |    3 +++
+ 3 files changed, 6 insertions(+), 2 deletions(-)
 
-Richard
-
-Andy Walls wrote:
-> Yes.  But it will take me a while.  I don't have a git tree, because I
-> don't have high bandwidth internet yet.  (The cable company's been
-> delayed in laying cable to my home due to repeated snowstorms.)
-> 
-> I just didn't want the problem to fall through the cracks.  I'll submit
-> something to bugzilla for now.  If a user complains of this rare Ooops
-> when loading firmware, the current workaround is to lengthen the timeout
-> via sysfs.
-> 
-> Regards,
-> Andy
+diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+index 5cf5d58..4592397 100644
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -245,7 +245,7 @@ struct usb_device_id tm6000_id_table [] = {
+ 
+ /* Tuner callback to provide the proper gpio changes needed for xc2028 */
+ 
+-static int tm6000_tuner_callback(void *ptr, int component, int command, int arg)
++int tm6000_tuner_callback(void *ptr, int component, int command, int arg)
+ {
+ 	int rc=0;
+ 	struct tm6000_core *dev = ptr;
+diff --git a/drivers/staging/tm6000/tm6000-dvb.c b/drivers/staging/tm6000/tm6000-dvb.c
+index e900d6d..fdbee30 100644
+--- a/drivers/staging/tm6000/tm6000-dvb.c
++++ b/drivers/staging/tm6000/tm6000-dvb.c
+@@ -235,7 +235,8 @@ int tm6000_dvb_register(struct tm6000_core *dev)
+ 			.i2c_adap = &dev->i2c_adap,
+ 			.i2c_addr = dev->tuner_addr,
+ 		};
+-
++		
++		dvb->frontend->callback = tm6000_tuner_callback;
+ 		ret = dvb_register_frontend(&dvb->adapter, dvb->frontend);
+ 		if (ret < 0) {
+ 			printk(KERN_ERR
+diff --git a/drivers/staging/tm6000/tm6000.h b/drivers/staging/tm6000/tm6000.h
+index 877cbf6..d713c48 100644
+--- a/drivers/staging/tm6000/tm6000.h
++++ b/drivers/staging/tm6000/tm6000.h
+@@ -202,6 +202,9 @@ struct tm6000_fh {
+ 			V4L2_STD_PAL_M|V4L2_STD_PAL_60|V4L2_STD_NTSC_M| \
+ 			V4L2_STD_NTSC_M_JP|V4L2_STD_SECAM
+ 
++/* In tm6000-cards.c */
++
++int tm6000_tuner_callback (void *ptr, int component, int command, int arg);
+ /* In tm6000-core.c */
+ 
+ int tm6000_read_write_usb (struct tm6000_core *dev, u8 reqtype, u8 req,
+-- 
+1.6.4.2
 
