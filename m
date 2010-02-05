@@ -1,155 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2972 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751465Ab0BOHIz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2010 02:08:55 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andy Walls <awalls@radix.net>
-Subject: Re: [PATCH 2/5 v2] sony-tuner: Subdev conversion from wis-sony-tuner
-Date: Mon, 15 Feb 2010 08:10:47 +0100
-Cc: Pete Eberlein <pete@sensoray.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <1265934787.4626.251.camel@pete-desktop> <201002141618.13113.hverkuil@xs4all.nl> <1266185448.4974.37.camel@palomino.walls.org>
-In-Reply-To: <1266185448.4974.37.camel@palomino.walls.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
+Received: from mail1.radix.net ([207.192.128.31]:58747 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752292Ab0BEEQZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Feb 2010 23:16:25 -0500
+Subject: Re: Any saa711x users out there?
+From: Andy Walls <awalls@radix.net>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <829197381002040724u6a8d3b40m6e9f3751640685f4@mail.gmail.com>
+References: <829197381002021451g5aaa8013kd5ae2124534ba5ba@mail.gmail.com>
+	 <1265248280.3122.74.camel@palomino.walls.org>
+	 <829197381002040724u6a8d3b40m6e9f3751640685f4@mail.gmail.com>
+Content-Type: text/plain
+Date: Thu, 04 Feb 2010 23:15:15 -0500
+Message-Id: <1265343315.7784.28.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201002150810.47694.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 14 February 2010 23:10:48 Andy Walls wrote:
-> On Sun, 2010-02-14 at 16:18 +0100, Hans Verkuil wrote:
-> > On Saturday 13 February 2010 00:17:44 Hans Verkuil wrote:
-> > > On Friday 12 February 2010 23:36:20 Pete Eberlein wrote:
-> > > > On Fri, 2010-02-12 at 22:03 +0100, Hans Verkuil wrote:
-> > > > > > > > +#include <media/v4l2-i2c-drv.h>
-> > > > > > > 
-> > > > > > > The v4l2-i2c-drv.h is to be used only for drivers that also need to be compiled
-> > > > > > > for kernels < 2.6.26. If I am not mistaken that is the case for this driver,
-> > > > > > > right? I remember you mentioning that customers of yours use this on such old
-> > > > > > > kernels. Just making sure.
-> > > > > > 
-> > > > > > My company, Sensoray, doesn't have any products that use this tuner.
-> > > > > > This driver was orignally written by Micronas to support their go7007
-> > > > > > chip in the Plextor TV402U models.  I don't have the datasheet or know
-> > > > > > much about tuners anyway.  I used the v4l2-i2c-drv.h since it seems like
-> > > > > > a good idea at the time.  What should I use instead?
-> > > > > 
-> > > > > We way i2c devices are handled changed massively in kernel 2.6.26. In order to
-> > > > > stay backwards compatible with older kernels the v4l2-i2c-drv.h header was
-> > > > > introduced. However, this is a bit of a hack and any i2c driver that does not
-> > > > > need it shouldn't use it.
-> > > > > 
-> > > > > So only if an i2c driver is *never* used by parent drivers that have to support
-> > > > > kernels < 2.6.26, then can it drop the v4l2-i2c-drv.h. An example of such an
-> > > > > i2c driver is tvp514x.c.
-> > > > > 
-> > > > > Eventually support for such old kernels will be dropped and the v4l2-i2c-drv.h
-> > > > > header will disappear altogether, but that's not going to happen anytime soon.
-> > > > > 
-> > > > > What this means for go7007 is that you have to decide whether you want this
-> > > > > go7007 driver to work only for kernels >= 2.6.26, or whether it should also
-> > > > > work for older kernels. My understanding is that Sensoray wants to be able to
-> > > > > compile go7007 for older kernels. In that case the use of v4l2-i2c-drv.h is
-> > > > > correct. Note that this is not about whether any of *Sensoray's* products use
-> > > > > a particular i2c device, but whether the *go7007* driver uses it.
-> > > > > 
-> > > > > I hope this clarifies this.
-> > > > 
-> > > > Yes it does, thank you.  We do want to allow our customers to use the
-> > > > go7007 driver with our products on older kernels, so I would like to
-> > > > keep the v4l2-i2c-drv.h for now.  I've addressed your other comments in
-> > > > the revised patch:
-> > > 
-> > > I've two small comments. See below.
-> > > 
-> > > I also realized that this is really two drivers in one: one driver for the
-> > > actual tuner device and one for the mpx device which seems similar in
-> > > functionality to the vp27smpx.c driver.
-> > > 
-> > > I will look at it again tomorrow, but I might decide that it is better to
-> > > split it up into two drivers: one for the tuner and one for the mpx.
-> > 
-> > After thinking about this a bit more I decided that this tuner should be split
-> > up into two drivers: one for the mpx device and one for the actual tuner. This
-> > should be fairly easy to do.
-> > 
-> > One other thing that this accomplishes is that it is easier to see whether the
-> > tuner code can actually be merged into tuner-types.c. From what I can see now
-> > I would say that that is possible for the NTSC_M and NTSC_M_JP models. The
-> > PAL/SECAM model is harder since it needs to setup the tuner whenever the
-> > standard changes. But it seems that that is also possible by adding code
-> > to simple_std_setup() in tuner-simple.c.
-> > 
-> > I'm pretty sure that these tuners can just be folded into tuner-types.c
-> > and tuner-simple.c. We probably only need an mpx driver.
-> > 
-> > Andy, can you also take a look?
+On Thu, 2010-02-04 at 10:24 -0500, Devin Heitmueller wrote:
+> On Wed, Feb 3, 2010 at 8:51 PM, Andy Walls <awalls@radix.net> wrote:
+> > With all that said, if you have a baseband Luma or Chroma signal with
+> > strong spurious high frequency components (crappy source, or you're
+> > overdriving the front end and getting intermods), then keep the
+> > anti-alias filter turned on as the assumption of a bandlimited input
+> > signal is violated in this case.
 > 
-> Sure.  It looks like to me you actually have three chips:
-> 
-> - oscillator/mixer (at address 0x60 like a TUA6030)
-> - programmable IF PLL demodulator (at address 0x43 like a TDA9887)
-> - MPX demodulator/dematrix IC.
+> In this case, I'm seeing it with both the analog signal generator
+> (which one might consider a fairly pristine source), as well coming
+> off the s-video output of a DirectTV box (in which case the signal is
+> being generated only a few feet away from the saa7113).
 
-I've been focusing so much on the IF_I2C_ADDR and MPX_I2C_ADDR defines that
-I completely missed the fact that there is also the tuner at 0x60 :-(
+Hmmm.  The AGC (or static gain level?) of the amplifier in the SAA7113
+before the anti-alias filter may be set too high causing the clipping
+(intermods) there.  It may be worth looking at the gain setting for that
+amp.
 
-You are completely correct: it looks very much like a standard simple
-tuner + tda9887.
 
+> > In the SAA7113 the anti-alias filter introduces a delay of 50 ns.  At
+> > 13.5 Mpixels/sec, or 74.1 ns/pixel, that's less than 1 pixel time of
+> > delay.
+> >
+> > Just turn it on in and leave it on in the SAA7113 to handle the
+> > unexpected input signal case.
 > 
+> This would be my vote (assuming we try it with the other parts and
+> confirm no regressions are introduced).  My only concern is the way
+> the code is currently written, the saa7113 initialization block
+> actually does enable it by default, and then some code for the saa7115
+> tramples the register, turning it off (see saa7115_init_misc at
+> saa7115.c:600).  I think the decision we have to make is which of the
+> following paths to take:
 > 
-> The mizer oscillator part programming *really looks like* a TUA6030 or
-> equivalent chip being programmed. The charge pump bit is left in a high
-> current state, BTW,  meaning fast tuning, but probably more phase noise
-> when tuned.
+> 1.  Enable it in the saa7115_init_misc, thereby enabling it for the
+> 7113, 7114, and 7115.
 > 
-> The IF part programming in this driver *really looks like* a TDA9887
-> being programmed.  I have not verified the bits being set against the
-> various TV system audio standards in the switch() statement though.
+> 2.  Exclude the saa7115_init_misc block from being run at all against the 7113
 > 
+> 3.  Let the saa7115_init_misc block get run, and then flip the bit
+> back for the 7113.
 > 
-> The MPX part has the same I2C address as some Sanyo TV Sound MPX
-> demodulators, but the register set is very different.  I can't figure
-> out what part is being used.  (NXP/Philips BTSC/SAP MPX demodulators use
-> address 0x5b I think).
-> 
-> 
-> Given this, I don't see why most of the driver could not be handled by
-> tuner-simple and tda9887.
-> 
-> 
-> The question becomes do you want to extend tuneer-simple to handle the
-> MPX chip in analog tuner assemblies with an included MPX chip - so the
-> bridge driver need not care about it - or not?
+> My thinking at this point is that the AA filter should probably be on
+> by default regardless of the chip, in which case we would just need to
+> make the one line change to enable it in the saa7115_init_misc block.
 
-No. The mxp part can be a separate driver. We have something similar already
-with the vp27smpx.c driver that's associated with a Panasonic tuner. As far
-as I could see it is a pretty much standalone part.
+Probably.
+
+The visible effects of the anti-alais filter could possibly be:
+
+1. Less range of color, if high freqs of the color get attenuated.
+(Most people likely will not perceive this as most people are not that
+sensitive to small color variations.)
+
+2. Loss of rapid variations in Luma - softer edges between light and
+dark areas on a scan line - if higher freqs of the Luma get attenuated.
+
+but given that the anti-alais filter is essentially flat out to about
+5.6 MHz and has a slow rolloff (only 3 dB down at about 6.9 MHz), I
+doubt anyone would ever notice it is on with NTSC.
+
+
+Since you have a signal generator, you should run experiments with PAL-D
+and SECAM-D with a grid containing vertical lines since those both have
+a 6.0 MHz video bandwidth.  SECAM also has FM color, so you might see
+the greatest affect of an antialias filter on color on the Cyan color
+bar in SECAM-D.
 
 Regards,
+Andy
 
-	Hans
+> Devin
 
-> 
-> 
-> Datasheets on these tuners would be nice of course....
-> 
-> Regards,
-> Andy
-> 
-> 
-> > 
-> > Regards,
-> > 
-> > 	Hans
-> 
-> 
-> 
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
