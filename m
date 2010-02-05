@@ -1,174 +1,210 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36770 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750902Ab0BSLw3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Feb 2010 06:52:29 -0500
-Message-ID: <4B7E7B75.3040205@redhat.com>
-Date: Fri, 19 Feb 2010 09:52:21 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Richard_R=F6jfors?= <richard.rojfors@pelagicore.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	sameo@linux.intel.com
-Subject: Re: [PATCH] mfd: Add timb-radio to the timberdale MFD
-References: <4B7845F0.1070800@pelagicore.com>
-In-Reply-To: <4B7845F0.1070800@pelagicore.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from mail.gmx.net ([213.165.64.20]:41563 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S933355Ab0BEXmI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Feb 2010 18:42:08 -0500
+Subject: Re: Need to discuss method for multiple, multiple-PID TS's from
+ same demux (Re: Videotext application crashes the kernel due to DVB-demux
+ patch)
+From: Chicken Shack <chicken.shack@gmx.de>
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Andreas Oberritter <obi@linuxtv.org>,
+	Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org,
+	akpm@linux-foundation.org, torvalds@linux-foundation.org
+In-Reply-To: <1265411523.4064.23.camel@localhost>
+References: <1265018173.2449.19.camel@brian.bconsult.de>
+	 <1265028110.3098.3.camel@palomino.walls.org>
+	 <1265076008.3120.96.camel@palomino.walls.org>
+	 <1265101869.1721.28.camel@brian.bconsult.de>
+	 <1265115172.3104.17.camel@palomino.walls.org>
+	 <1265158862.3194.22.camel@pc07.localdom.local>
+	 <1265288042.3928.9.camel@palomino.walls.org>
+	 <1265292421.3258.53.camel@brian.bconsult.de>
+	 <1265336477.3071.29.camel@palomino.walls.org>
+	 <4B6C1AF7.2090503@linuxtv.org>
+	 <1265397736.6310.98.camel@palomino.walls.org>
+	 <4B6C7F1B.7080100@linuxtv.org>  <4B6C88AD.4010708@redhat.com>
+	 <1265409155.2692.61.camel@brian.bconsult.de>
+	 <1265411523.4064.23.camel@localhost>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 06 Feb 2010 00:39:09 +0100
+Message-ID: <1265413149.2063.20.camel@brian.bconsult.de>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Richard Röjfors wrote:
-> This patch addes timb-radio to all configurations of the timberdale MFD.
+Am Samstag, den 06.02.2010, 00:12 +0100 schrieb hermann pitton:
+> Am Freitag, den 05.02.2010, 23:32 +0100 schrieb Chicken Shack:
+> > Am Freitag, den 05.02.2010, 19:07 -0200 schrieb Mauro Carvalho Chehab:
+> > > Andreas Oberritter wrote:
+> > > > Andy Walls wrote:
+> > > 
+> > > >>> As Honza noted, these ioctls are used by enigma2 and, in general, by
+> > > >>> software running on Dream Multimedia set top boxes.
+> > > >> Right, so reverting the patch is not an option.
+> > > >>
+> > > >> It also makes implementing multiple dvr0.n nodes for a demux0 device
+> > > >> node probably a waste of time at this point.
+> > > > 
+> > > > I think so, too. But I guess it's always worth discussing alternatives.
+> > > 
+> > > If this discussion happened before 2.6.32 release, and provided that a different
+> > > implementation were agreed, things would be easier, as a different solution like
+> > > your proposal could be decided and used.
+> > 
+> > 
+> > You cannot expect people reacting immediately if something is wrong.
+> > There are and do exist enormous delays between publishing a new kernel
+> > and the decision to use it after appropriate system or distro update.
+> > So your expectation level is simply wrong.
+> > 
+> > 
+> > > Now, we have already a regression on a stable kernel, and solving it by
+> > > creating another regression is not something smart to do.
+> > 
+> > 
+> > Yes. Trivial!
+> > 
+> > 
+> > > >From what I understood, the regression appeared on an old, orphan
+> > > application with a non-official patch applied on it. Other applications with
+> > > similar features weren't affected. On the other hand, if the patch got reverted, 
+> > > we'll break a maintained application that is used on a great number of devices,
+> > > and whose features depend on the new ioctls.
+> > 
+> > 
+> > It's truly amazing how the filter system of your perception works, isn't
+> > it? :)
+> > 
+> > It's not just "an old, orphaned application with a non-official patch on
+> > it." That's nonsense!
+> > 
+> > a. As I stated already, there do exist several patched versions of
+> > alevt-dvb. For instance the one that Herman Pitton tested here in public
+> > causes a closed demux device error on my machine. That means that it
+> > does not run because xine-ui is already using the demux device.
+> > And this phenomenon has got nothing to do with the kernel headers!
+> > I've tried all possibilities (old kernel headers and actual ones) so I
+> > know better than Hermann Pitton does!
+> > 
+> > And my version (and obviously the ones of Thomas Voegtle and Emil Meier
+> > whom I helped with my tip to revert that patch) cause a kernel crash
+> > with the actual kernel.
+> > 
+> > b. As I also stated already the other teletext application called mtt
+> > does officially not exist except for Novell / OpenSuSe distros (at least
+> > as far as I have seen and found out). And this one
+> > is, as I also stated, not affected by the kernel patch. It's part of a
+> > discontinued program suite called xawtv-4.0 pre with a very complex
+> > infrastructure behind.
+> > 
+> > Please do not ask me why this one runs without noise - I do not know.
+> > 
+> > So AFAICS alevt-dvb is the ONLY teletext application for Linux which is
+> > available in almost all Gnu/Linux distros.
+> > 
+> > "Other applications with similar features weren't affected."
+> > 
+> > >From where do you know that the features are "similar"?
+> > 
+> > This is a 100 % phantasy product of your mind that has got nothing to do
+> > with existing reality, man!
+> > 
+> > Just one example: alevt-dvb has got an excellent html export filter
+> > which makes it possible to export teletext pages as graphical html
+> > files.
+> > I do not know any other teletext application offering that.
+> > 
+> > 
+> > > We are too late in -rc cycle, so probably there's not enough time for
+> > > writing, test, validate any new API in time for 2.6.33 and write some compat
+> > > layer to emulate those two ioctls with a different implementation.
+> > 
+> > Who says that a new API or an overworked API must be ready for 2.6.33?
+> > When do you think the correct starting point must be set?
+> > When the merge window for 2.6.34 opens or when?
+> > Absurd argument! Not valid at all!
+> > 
+> > 
+> > > So, removing those two ioctls is not an option anymore.
+> > 
+> > Yes. Conclusion??? None!
+> > 
+> > So if everybody wants to close down this discussion with that output
+> > then you must admit (if you want it or not) that you de facto bury
+> > teletext usage in the mud for the majority of Gnu/Linux DVB users.
+> > 
+> > So the output is more than badly disappointing.
+> > Bye bye Teletext. Nothing for future kernels, huh?
 > 
-> Connected to the FPGA is a TEF6862 tuner and a SAA7706H DSP, the I2C
-> board info of these devices is passed via the timb-radio platform data.
+> Yes, you say it. It definitely will go away and we do have not any
+> influence on that! Did you not notice the very slow update rate these
+> days?
 
-Hi Richard,
+a. NOTHING "will go away". This is empty rant, nothing else it is!
+In US teletext is dead, yes. In Europe analogue television is close to
+dead. Yes.
+But I have found no information source that teletext will disappear in
+general. At least not in Europe or Germany.
+So if you keep that up then prove the assertion please.
 
-I'm trying to apply it to my git tree (http://git.linuxtv.org/v4l-dvb.git),
-but it is failing:
+What slow update rate please?
+What the hell are you talking about, man?
 
-patching file drivers/mfd/timberdale.c
-Hunk #1 FAILED at 37.
-Hunk #2 FAILED at 215.
-Hunk #3 FAILED at 276.
-Hunk #4 FAILED at 325.
-Hunk #5 FAILED at 364.
-Hunk #6 FAILED at 405.
-6 out of 6 hunks FAILED -- saving rejects to file drivers/mfd/timberdale.c.rej
-Patch doesn't apply
 
-Could you please verify what's going wrong?	
-
+> > Regards
+> > 
+> > CS
+> > 
+> > P. S.: If you continue like that you make people run away.
+> > Instead you better should try to win people, shouldn't you?
+> > 
+> > Just see how many volunteers are here to help and then reflect
+> > why that manpower is missing, Mauro!
+> > Your gesture being expressed above does a lot, but it is definitely NOT
+> > motivating to change that precarious situation.
 > 
-> Signed-off-by: Richard Röjfors <richard.rojfors@pelagicore.com>
-> ---
-> diff --git a/drivers/mfd/timberdale.c b/drivers/mfd/timberdale.c
-> index 603cf06..1ed44d2 100644
-> --- a/drivers/mfd/timberdale.c
-> +++ b/drivers/mfd/timberdale.c
-> @@ -37,6 +37,8 @@
->  #include <linux/spi/max7301.h>
->  #include <linux/spi/mc33880.h>
-> 
-> +#include <media/timb_radio.h>
-> +
->  #include "timberdale.h"
-> 
->  #define DRIVER_NAME "timberdale"
-> @@ -213,6 +215,40 @@ const static __devinitconst struct resource
-> timberdale_uartlite_resources[] = {
->      },
->  };
-> 
-> +const static __devinitconst struct resource
-> timberdale_radio_resources[] = {
-> +    {
-> +        .start    = RDSOFFSET,
-> +        .end    = RDSEND,
-> +        .flags    = IORESOURCE_MEM,
-> +    },
-> +    {
-> +        .start    = IRQ_TIMBERDALE_RDS,
-> +        .end    = IRQ_TIMBERDALE_RDS,
-> +        .flags    = IORESOURCE_IRQ,
-> +    },
-> +};
-> +
-> +static __devinitdata struct i2c_board_info
-> timberdale_tef6868_i2c_board_info = {
-> +    I2C_BOARD_INFO("tef6862", 0x60)
-> +};
-> +
-> +static __devinitdata struct i2c_board_info
-> timberdale_saa7706_i2c_board_info = {
-> +    I2C_BOARD_INFO("saa7706h", 0x1C)
-> +};
-> +
-> +static __devinitdata struct timb_radio_platform_data
-> +    timberdale_radio_platform_data = {
-> +    .i2c_adapter = 0,
-> +    .tuner = {
-> +        .module_name = "tef6862",
-> +        .info = &timberdale_tef6868_i2c_board_info
-> +    },
-> +    .dsp = {
-> +        .module_name = "saa7706h",
-> +        .info = &timberdale_saa7706_i2c_board_info
-> +    }
-> +};
-> +
->  const static __devinitconst struct resource timberdale_dma_resources[] = {
->      {
->          .start    = DMAOFFSET,
-> @@ -240,6 +276,13 @@ static __devinitdata struct mfd_cell
-> timberdale_cells_bar0_cfg0[] = {
->          .data_size = sizeof(timberdale_gpio_platform_data),
->      },
->      {
-> +        .name = "timb-radio",
-> +        .num_resources = ARRAY_SIZE(timberdale_radio_resources),
-> +        .resources = timberdale_radio_resources,
-> +        .platform_data = &timberdale_radio_platform_data,
-> +        .data_size = sizeof(timberdale_radio_platform_data),
-> +    },
-> +    {
->          .name = "xilinx_spi",
->          .num_resources = ARRAY_SIZE(timberdale_spi_resources),
->          .resources = timberdale_spi_resources,
-> @@ -282,6 +325,13 @@ static __devinitdata struct mfd_cell
-> timberdale_cells_bar0_cfg1[] = {
->          .resources = timberdale_mlogicore_resources,
->      },
->      {
-> +        .name = "timb-radio",
-> +        .num_resources = ARRAY_SIZE(timberdale_radio_resources),
-> +        .resources = timberdale_radio_resources,
-> +        .platform_data = &timberdale_radio_platform_data,
-> +        .data_size = sizeof(timberdale_radio_platform_data),
-> +    },
-> +    {
->          .name = "xilinx_spi",
->          .num_resources = ARRAY_SIZE(timberdale_spi_resources),
->          .resources = timberdale_spi_resources,
-> @@ -314,6 +364,13 @@ static __devinitdata struct mfd_cell
-> timberdale_cells_bar0_cfg2[] = {
->          .data_size = sizeof(timberdale_gpio_platform_data),
->      },
->      {
-> +        .name = "timb-radio",
-> +        .num_resources = ARRAY_SIZE(timberdale_radio_resources),
-> +        .resources = timberdale_radio_resources,
-> +        .platform_data = &timberdale_radio_platform_data,
-> +        .data_size = sizeof(timberdale_radio_platform_data),
-> +    },
-> +    {
->          .name = "xilinx_spi",
->          .num_resources = ARRAY_SIZE(timberdale_spi_resources),
->          .resources = timberdale_spi_resources,
-> @@ -348,6 +405,13 @@ static __devinitdata struct mfd_cell
-> timberdale_cells_bar0_cfg3[] = {
->          .data_size = sizeof(timberdale_gpio_platform_data),
->      },
->      {
-> +        .name = "timb-radio",
-> +        .num_resources = ARRAY_SIZE(timberdale_radio_resources),
-> +        .resources = timberdale_radio_resources,
-> +        .platform_data = &timberdale_radio_platform_data,
-> +        .data_size = sizeof(timberdale_radio_platform_data),
-> +    },
-> +    {
->          .name = "xilinx_spi",
->          .num_resources = ARRAY_SIZE(timberdale_spi_resources),
->          .resources = timberdale_spi_resources,
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Then maybe better tell what you tried already, instead leaving others
+> behind doing the same in vain again?
+
+Goddamn! I've investigated a lot, and I have written down everything I
+did.
+See, even if you are too lazy to read all that go blame yourself for
+that lazyness, but not me, OK?
 
 
--- 
+> Mauro always did try to keep backward compat as much as possible and
+> others had to tell him better not to waste his time on it.
+> 
+> You hit the wrong guy again and he can't even test anything.
 
-Cheers,
-Mauro
+
+All I want him is to immediately and forever stop spreading nonsense and
+demotivate people and offer us all that propagandist style that I and
+others do not appreciate at all.
+
+Unfortunately I am missing the American English equivalent for
+"Differenziertheit". Is it "straightforwardness"?
+
+This is what I am missing when you start to express yourself.
+
+Your "test" of alevt-dvb-t may serve as an example:
+
+Noone knows your card type, noone knows your reception area,
+transponder, channel. All we know from you is a pid.
+
+And that there are versions of alevt-dvb who are incapable for parallel
+tasking due to a wrong DVB patch you simply missed as a matter of fact.
+So what the hell did you get at all, man?
+
+Very low discussion level, isn't it?
+
+I'll leave it up to that - don't want no dumb flamings at all.
+
+Cheers
+
+CS
+
+
