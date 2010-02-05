@@ -1,35 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.perfora.net ([74.208.4.194]:56647 "EHLO mout.perfora.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935537Ab0BZIJj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Feb 2010 03:09:39 -0500
-Message-ID: <4B8781BE.1090601@linuxstation.net>
-Date: Fri, 26 Feb 2010 00:09:34 -0800
-From: Dean <red1@linuxstation.net>
-MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Subject: OnAir USB HDTV Creator
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3663 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755568Ab0BETfj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Feb 2010 14:35:39 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id o15JZWxF031547
+	for <linux-media@vger.kernel.org>; Fri, 5 Feb 2010 20:35:37 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 5 Feb 2010 20:35:32 +0100 (CET)
+Message-Id: <201002051935.o15JZWxF031547@smtp-vbr4.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I am trying to use an 'OnAir USB HDTV Creator' (from autumnwave.com).  According to
-http://www.linuxtv.org/wiki/index.php/OnAir_USB_HDTV_Creator
-This device is supported, however it's not working for me.  Following the instructions at above link, I tried this:
-modprobe pvrusb2 initusbreset=0
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-The result:
-FATAL: Error inserting pvrusb2 (/lib/modules/2.6.31.12-desktop586-1mnb/kernel/drivers/media/video/pvrusb2/pvrusb2.ko.gz): Unknown symbol in module, or unknown parameter (see dmesg)
+Results of the daily build of v4l-dvb:
 
-When connecting the unit, dmesg shows only these six lines.
+date:        Fri Feb  5 19:00:05 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14158:68752268de57
+gcc version: i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:     2.6.32.5
 
-usb 1-3: new high speed USB device using ehci_hcd and address 10
-usb 1-3: New USB device found, idVendor=11ba, idProduct=1101
-usb 1-3: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-usb 1-3: Product: USB HDTV-GT(1.1)
-usb 1-3: Manufacturer: OnAirSolution
-usb 1-3: configuration #1 chosen from 1 choice
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-rc5-armv5: OK
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-rc5-armv5-davinci: OK
+linux-2.6.32.6-armv5-dm365: ERRORS
+linux-2.6.33-rc5-armv5-dm365: ERRORS
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-rc5-armv5-ixp: OK
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-rc5-armv5-omap2: OK
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.20-i686: ERRORS
+linux-2.6.26.8-i686: OK
+linux-2.6.27.44-i686: OK
+linux-2.6.28.10-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: OK
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-rc5-i686: OK
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-rc5-m32r: OK
+linux-2.6.32.6-mips: OK
+linux-2.6.33-rc5-mips: OK
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-rc5-powerpc64: OK
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.20-x86_64: ERRORS
+linux-2.6.26.8-x86_64: OK
+linux-2.6.27.44-x86_64: OK
+linux-2.6.28.10-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: OK
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-rc5-x86_64: OK
+spec: OK
+sparse (linux-2.6.32.6): ERRORS
+sparse (linux-2.6.33-rc5): ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-Anyone know what to do?
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
