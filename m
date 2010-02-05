@@ -1,107 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-17.arcor-online.net ([151.189.21.57]:53858 "EHLO
-	mail-in-17.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751547Ab0BUULr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Feb 2010 15:11:47 -0500
-From: stefan.ringel@arcor.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
-	Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH 1/3] tm6000: add send and recv function
-Date: Sun, 21 Feb 2010 21:10:34 +0100
-Message-Id: <1266783036-6549-1-git-send-email-stefan.ringel@arcor.de>
+Received: from mx1.redhat.com ([209.132.183.28]:1112 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933863Ab0BEVwh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Feb 2010 16:52:37 -0500
+Message-ID: <4B6C931D.9020208@redhat.com>
+Date: Fri, 05 Feb 2010 19:52:29 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Muralidharan Karicheri <mkaricheri@gmail.com>
+CC: linux-media@vger.kernel.org, khilman@deeprootsystems.com,
+	hverkuil@xs4all.nl
+Subject: Re: [GIT PATCHES FOR 2.6.34] Support for vpfe-capture on DM365
+References: <55a3e0ce1002050945k7595d541lb04976344ff91431@mail.gmail.com>
+In-Reply-To: <55a3e0ce1002050945k7595d541lb04976344ff91431@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <stefan.ringel@arcor.de>
+Muralidharan Karicheri wrote:
+> Mauro,
+> 
+> Please pull from the following:-
+> 
+> The following changes since commit 84b74782ace1ae091c1b0e14ae2ee9bb720532ba:
+>   Douglas Schilling Landgraf (1):
+>         V4L/DVB: Fix logic for Leadtek winfast tv usbii deluxe
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/mkaricheri/vpfe-vpbe-video.git for_upstream
+> 
+> Murali Karicheri (6):
+>       DaVinci - Adding platform & board changes for vpfe capture on DM365
+>       V4L - vpfe capture - header files for ISIF driver
+>       V4L - vpfe capture - source for ISIF driver on DM365
 
-Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
----
- drivers/staging/tm6000/tm6000-i2c.c |   48 +++++++++++++++++++++++++---------
- 1 files changed, 35 insertions(+), 13 deletions(-)
+Hmm...
++static int isif_get_params(void __user *params)
++{
++       /* only raw module parameters can be set through the IOCTL */
++       if (isif_cfg.if_type != VPFE_RAW_BAYER)
++               return -EINVAL;
++
++       if (copy_to_user(params,
++                       &isif_cfg.bayer.config_params,
++                       sizeof(isif_cfg.bayer.config_params))) {
 
-diff --git a/drivers/staging/tm6000/tm6000-i2c.c b/drivers/staging/tm6000/tm6000-i2c.c
-index 656cd19..b563129 100644
---- a/drivers/staging/tm6000/tm6000-i2c.c
-+++ b/drivers/staging/tm6000/tm6000-i2c.c
-@@ -44,6 +44,32 @@ MODULE_PARM_DESC(i2c_debug, "enable debug messages [i2c]");
- 			printk(KERN_DEBUG "%s at %s: " fmt, \
- 			dev->name, __FUNCTION__ , ##args); } while (0)
- 
-+int tm6000_i2c_send_regs(struct tm6000_core *dev, unsigned char addr, __u8 reg, char *buf, int len)
++/* Parameter operations */
++static int isif_set_params(void __user *params)
 +{
-+	return tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-+		REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0, buf, len);
-+}
++       struct isif_config_params_raw *isif_raw_params;
++       int ret = -EINVAL;
 +
-+/* read from a 8bit register */
-+int tm6000_i2c_recv_regs(struct tm6000_core *dev, unsigned char addr, __u8 reg, char *buf, int len)
-+{
-+	int rc;
++       /* only raw module parameters can be set through the IOCTL */
++       if (isif_cfg.if_type != VPFE_RAW_BAYER)
++               return ret;
 +
-+		rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_VENDOR_TYPE | USB_RECIP_DEVICE,
-+			REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0, buf, len);
++       isif_raw_params = kzalloc(sizeof(*isif_raw_params), GFP_KERNEL);
++       if (NULL == isif_raw_params)
++               return -ENOMEM;
 +
-+	return rc;
-+}
-+
-+/* read from a 16bit register
-+ * for example xc2028, xc3028 or xc3028L 
-+ */
-+int tm6000_i2c_recv_regs16(struct tm6000_core *dev, unsigned char addr, __u16 reg, char *buf, int len)
-+{
-+	return tm6000_read_write_usb(dev, USB_DIR_IN | USB_VENDOR_TYPE | USB_RECIP_DEVICE,
-+		REQ_14_SET_GET_I2C_WR2_RDN, addr, reg, buf, len);
-+} 
-+
- static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
- 			   struct i2c_msg msgs[], int num)
- {
-@@ -78,13 +104,14 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
- 			i2c_dprintk(2, "; joined to read %s len=%d:",
- 				    i == num - 2 ? "stop" : "nonstop",
- 				    msgs[i + 1].len);
--			rc = tm6000_read_write_usb (dev,
--				USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
--				msgs[i].len == 1 ? REQ_16_SET_GET_I2C_WR1_RDN
--						 : REQ_14_SET_GET_I2C_WR2_RDN,
--				addr | msgs[i].buf[0] << 8,
--				msgs[i].len == 1 ? 0 : msgs[i].buf[1],
-+			if (msgs{i].len == 1) {
-+				rc = tm6000_i2c_recv_regs(dev, addr, msgs[i].buf[0],
- 				msgs[i + 1].buf, msgs[i + 1].len);
-+			} else {
-+				rc = tm6000_i2c_recv_regs(dev, addr, msgs[i].buf[0] << 8 | msgs[i].buf[1],
-+				msgs[i + 1].buf, msgs[i + 1].len);
-+			}
-+
- 			i++;
- 
- 			if (addr == dev->tuner_addr) {
-@@ -99,10 +126,7 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
- 			if (i2c_debug >= 2)
- 				for (byte = 0; byte < msgs[i].len; byte++)
- 					printk(" %02x", msgs[i].buf[byte]);
--			rc = tm6000_read_write_usb(dev,
--				USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
--				REQ_16_SET_GET_I2C_WR1_RDN,
--				addr | msgs[i].buf[0] << 8, 0,
-+			rc = tm6000_i2c_send_regs(dev, addr, msgs[i].buf[0],
- 				msgs[i].buf + 1, msgs[i].len - 1);
- 
- 			if (addr == dev->tuner_addr) {
-@@ -134,9 +158,7 @@ static int tm6000_i2c_eeprom(struct tm6000_core *dev,
- 	bytes[16] = '\0';
- 	for (i = 0; i < len; ) {
- 	*p = i;
--	rc = tm6000_read_write_usb (dev,
--		USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
--		REQ_16_SET_GET_I2C_WR1_RDN, 0xa0 | i<<8, 0, p, 1);
-+	rc = tm6000_i2c_revc_regs(dev, 0xa0, i, p, 1);
- 		if (rc < 1) {
- 			if (p == eedata)
- 				goto noeeprom;
--- 
-1.6.6.1
++       ret = copy_from_user(isif_raw_params,
 
+
+It seems that you're defining some undocumented new userspace API here.
+
+Cheers,
+Mauro
