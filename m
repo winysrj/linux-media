@@ -1,45 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41235 "EHLO mx1.redhat.com"
+Received: from mgw1.diku.dk ([130.225.96.91]:52518 "EHLO mgw1.diku.dk"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751425Ab0BRU3H (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Feb 2010 15:29:07 -0500
-Message-ID: <4B7DA30A.5030100@redhat.com>
-Date: Thu, 18 Feb 2010 18:28:58 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1753941Ab0BFIoA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Feb 2010 03:44:00 -0500
+Date: Sat, 6 Feb 2010 09:43:58 +0100 (CET)
+From: Julia Lawall <julia@diku.dk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [PATCH 7/11] drivers/media: Correct NULL test
+Message-ID: <Pine.LNX.4.64.1002060943420.8092@ask.diku.dk>
 MIME-Version: 1.0
-To: stefan.ringel@arcor.de
-CC: linux-media@vger.kernel.org, dheitmueller@kernellabs.com
-Subject: Re: [PATCH 07/11] tm6000: add i2c send recv functions
-References: <1266255444-7422-1-git-send-email-stefan.ringel@arcor.de> <1266255444-7422-2-git-send-email-stefan.ringel@arcor.de> <1266255444-7422-3-git-send-email-stefan.ringel@arcor.de> <1266255444-7422-4-git-send-email-stefan.ringel@arcor.de> <1266255444-7422-5-git-send-email-stefan.ringel@arcor.de> <1266255444-7422-6-git-send-email-stefan.ringel@arcor.de> <1266255444-7422-7-git-send-email-stefan.ringel@arcor.de>
-In-Reply-To: <1266255444-7422-7-git-send-email-stefan.ringel@arcor.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-stefan.ringel@arcor.de wrote:
-> From: Stefan Ringel <stefan.ringel@arcor.de>
-> 
-> Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+From: Julia Lawall <julia@diku.dk>
 
-Why do you need to split it into two functions? It should be noticed that the naming
-tm6000_i2c_recv_word is wrong, since the size can be bigger than 2.
+In each case, the NULL test has been performed already.
 
-Also, this patch broke compilation on -git:
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
-  CC [M]  drivers/staging/tm6000/tm6000-i2c.o
-drivers/staging/tm6000/tm6000-i2c.c: In function ‘tm6000_i2c_send_byte’:
-drivers/staging/tm6000/tm6000-i2c.c:50: error: ‘REQ_16_SET_GET_I2C_WR1_RND’ undeclared (first use in this function)
-drivers/staging/tm6000/tm6000-i2c.c:50: error: (Each undeclared identifier is reported only once
-drivers/staging/tm6000/tm6000-i2c.c:50: error: for each function it appears in.)
-drivers/staging/tm6000/tm6000-i2c.c: In function ‘tm6000_i2c_recv_byte’:
-drivers/staging/tm6000/tm6000-i2c.c:55: error: expected ‘=’, ‘,’, ‘;’, ‘asm’ or ‘__attribute__’ before ‘:’ token
-drivers/staging/tm6000/tm6000-i2c.c:55: error: expected expression before ‘:’ token
-drivers/staging/tm6000/tm6000-i2c.c:60: error: ‘rc’ undeclared (first use in this function)
-drivers/staging/tm6000/tm6000-i2c.c: In function ‘tm6000_i2c_recv_word’:
-drivers/staging/tm6000/tm6000-i2c.c:68: error: ‘REQ_14_SET_GET_I2C_WR2_RND’ undeclared (first use in this function)
-make[1]: ** [drivers/staging/tm6000/tm6000-i2c.o] Erro 1
+// <smpl>
+@r@
+expression *x;
+expression e;
+identifier l;
+@@
 
+if (x == NULL || ...) {
+    ... when forall
+    return ...; }
+... when != goto l;
+    when != x = e
+    when != &x
+*x == NULL
+// </smpl>
 
-Cheers,
-Mauro
+Signed-off-by: Julia Lawall <julia@diku.dk>
+
+---
+ drivers/media/dvb/frontends/stv0900_core.c |    5 -----
+ drivers/media/video/cpia.c                 |    3 ---
+ 2 files changed, 8 deletions(-)
+
+diff --git a/drivers/media/dvb/frontends/stv0900_core.c b/drivers/media/dvb/frontends/stv0900_core.c
+index 74791d5..9052a9b 100644
+--- a/drivers/media/dvb/frontends/stv0900_core.c
++++ b/drivers/media/dvb/frontends/stv0900_core.c
+@@ -1410,11 +1410,6 @@ static enum fe_stv0900_error stv0900_init_internal(struct dvb_frontend *fe,
+ 		return error;
+ 	}
+ 
+-	if (state->internal == NULL) {
+-		error = STV0900_INVALID_HANDLE;
+-		return error;
+-	}
+-
+ 	intp = state->internal;
+ 
+ 	intp->demod_mode = p_init->demod_mode;
+diff --git a/drivers/media/video/cpia.c b/drivers/media/video/cpia.c
+index 551ddf2..933ae4c 100644
+--- a/drivers/media/video/cpia.c
++++ b/drivers/media/video/cpia.c
+@@ -3737,9 +3737,6 @@ static int cpia_mmap(struct file *file, struct vm_area_struct *vma)
+ 	if (size > FRAME_NUM*CPIA_MAX_FRAME_SIZE)
+ 		return -EINVAL;
+ 
+-	if (!cam || !cam->ops)
+-		return -ENODEV;
+-
+ 	/* make this _really_ smp-safe */
+ 	if (mutex_lock_interruptible(&cam->busy_lock))
+ 		return -EINTR;
