@@ -1,100 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet12.oracle.com ([141.146.126.234]:28664 "EHLO
-	acsinet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751382Ab0BLVCv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Feb 2010 16:02:51 -0500
-Date: Fri, 12 Feb 2010 13:02:29 -0800
-From: Randy Dunlap <randy.dunlap@oracle.com>
-To: Stephen Rothwell <sfr@canb.auug.org.au>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Huang Shijie <shijie8@gmail.com>,
-	Kang Yong <kangyong@telegent.com>,
-	Zhang Xiaobing <xbzhang@telegent.com>
-Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org
-Subject: [PATCH -next] media/video/tlg2300: fix build when CONFIG_PM=n
-Message-Id: <20100212130229.222d3777.randy.dunlap@oracle.com>
-In-Reply-To: <20100212181304.a7bd9a63.sfr@canb.auug.org.au>
-References: <20100212181304.a7bd9a63.sfr@canb.auug.org.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([192.100.122.230]:19303 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755923Ab0BFSCY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Feb 2010 13:02:24 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: hans.verkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	gururaj.nagendra@intel.com, david.cohen@nokia.com,
+	iivanov@mm-sol.com,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: [PATCH 3/8] V4L: Events: Add new ioctls for events
+Date: Sat,  6 Feb 2010 20:02:06 +0200
+Message-Id: <1265479331-20595-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4B6DAE5A.5090508@maxwell.research.nokia.com>
+References: <4B6DAE5A.5090508@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
+This patch adds a set of new ioctls to the V4L2 API. The ioctls conform to
+V4L2 Events RFC version 2.3:
 
-When CONFIG_PM is not enabled, tlg2300 has build errors,
-so handle that case, mostly via stubs.
+<URL:http://www.spinics.net/lists/linux-media/msg12033.html>
 
-drivers/media/video/tlg2300/pd-alsa.c:237: error: 'struct poseidon' has no member named 'msg'
-drivers/media/video/tlg2300/pd-main.c:412: error: implicit declaration of function 'find_old_poseidon'
-drivers/media/video/tlg2300/pd-main.c:418: error: implicit declaration of function 'set_map_flags'
-drivers/media/video/tlg2300/pd-main.c:462: error: implicit declaration of function 'get_pd'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: 	Huang Shijie <shijie8@gmail.com>
-Cc: 	Kang Yong <kangyong@telegent.com>
-Cc: 	Zhang Xiaobing <xbzhang@telegent.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 ---
- drivers/media/video/tlg2300/pd-common.h |    4 ++++
- drivers/media/video/tlg2300/pd-main.c   |   19 ++++++++++++++-----
- 2 files changed, 18 insertions(+), 5 deletions(-)
+ drivers/media/video/v4l2-compat-ioctl32.c |    3 +++
+ drivers/media/video/v4l2-ioctl.c          |    3 +++
+ include/linux/videodev2.h                 |   23 +++++++++++++++++++++++
+ 3 files changed, 29 insertions(+), 0 deletions(-)
 
---- linux-next-20100212.orig/drivers/media/video/tlg2300/pd-common.h
-+++ linux-next-20100212/drivers/media/video/tlg2300/pd-common.h
-@@ -254,7 +254,11 @@ void destroy_video_device(struct video_d
- extern int debug_mode;
- void set_debug_mode(struct video_device *vfd, int debug_mode);
+diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
+index 997975d..cba704c 100644
+--- a/drivers/media/video/v4l2-compat-ioctl32.c
++++ b/drivers/media/video/v4l2-compat-ioctl32.c
+@@ -1077,6 +1077,9 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+ 	case VIDIOC_DBG_G_REGISTER:
+ 	case VIDIOC_DBG_G_CHIP_IDENT:
+ 	case VIDIOC_S_HW_FREQ_SEEK:
++	case VIDIOC_DQEVENT:
++	case VIDIOC_SUBSCRIBE_EVENT:
++	case VIDIOC_UNSUBSCRIBE_EVENT:
+ 		ret = do_video_ioctl(file, cmd, arg);
+ 		break;
  
-+#ifdef CONFIG_PM
- #define in_hibernation(pd) (pd->msg.event == PM_EVENT_FREEZE)
-+#else
-+#define in_hibernation(pd) (0)
-+#endif
- #define get_pm_count(p) (atomic_read(&(p)->interface->pm_usage_cnt))
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 30cc334..bfc4696 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -283,6 +283,9 @@ static const char *v4l2_ioctls[] = {
  
- #define log(a, ...) printk(KERN_DEBUG "\t[ %s : %.3d ] "a"\n", \
---- linux-next-20100212.orig/drivers/media/video/tlg2300/pd-main.c
-+++ linux-next-20100212/drivers/media/video/tlg2300/pd-main.c
-@@ -255,6 +255,11 @@ out:
- 	return ret;
- }
+ 	[_IOC_NR(VIDIOC_DBG_G_CHIP_IDENT)] = "VIDIOC_DBG_G_CHIP_IDENT",
+ 	[_IOC_NR(VIDIOC_S_HW_FREQ_SEEK)]   = "VIDIOC_S_HW_FREQ_SEEK",
++	[_IOC_NR(VIDIOC_DQEVENT)]	   = "VIDIOC_DQEVENT",
++	[_IOC_NR(VIDIOC_SUBSCRIBE_EVENT)]  = "VIDIOC_SUBSCRIBE_EVENT",
++	[_IOC_NR(VIDIOC_UNSUBSCRIBE_EVENT)] = "VIDIOC_UNSUBSCRIBE_EVENT",
+ #endif
+ };
+ #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 54af357..a19ae89 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1536,6 +1536,26 @@ struct v4l2_streamparm {
+ };
  
-+static inline struct poseidon *get_pd(struct usb_interface *intf)
-+{
-+	return usb_get_intfdata(intf);
-+}
+ /*
++ *	E V E N T S
++ */
 +
- #ifdef CONFIG_PM
- /* one-to-one map : poseidon{} <----> usb_device{}'s port */
- static inline void set_map_flags(struct poseidon *pd, struct usb_device *udev)
-@@ -303,11 +308,6 @@ static inline int is_working(struct pose
- 	return get_pm_count(pd) > 0;
- }
- 
--static inline struct poseidon *get_pd(struct usb_interface *intf)
--{
--	return usb_get_intfdata(intf);
--}
--
- static int poseidon_suspend(struct usb_interface *intf, pm_message_t msg)
- {
- 	struct poseidon *pd = get_pd(intf);
-@@ -366,6 +366,15 @@ static void hibernation_resume(struct wo
- 	if (pd->pm_resume)
- 		pd->pm_resume(pd);
- }
-+#else /* CONFIG_PM is not enabled: */
-+static inline struct poseidon *find_old_poseidon(struct usb_device *udev)
-+{
-+	return NULL;
-+}
++struct v4l2_event {
++	__u32		count;
++	__u32		type;
++	__u32		sequence;
++	struct timespec	timestamp;
++	__u32		reserved[9];
++	__u8		data[64];
++};
 +
-+static inline void set_map_flags(struct poseidon *pd, struct usb_device *udev)
-+{
-+}
++struct v4l2_event_subscription {
++	__u32		type;
++	__u32		reserved[7];
++};
++
++#define V4L2_EVENT_PRIVATE_START		0x08000000
++
++/*
+  *	A D V A N C E D   D E B U G G I N G
+  *
+  *	NOTE: EXPERIMENTAL API, NEVER RELY ON THIS IN APPLICATIONS!
+@@ -1651,6 +1671,9 @@ struct v4l2_dbg_chip_ident {
  #endif
  
- static bool check_firmware(struct usb_device *udev, int *down_firmware)
+ #define VIDIOC_S_HW_FREQ_SEEK	 _IOW('V', 82, struct v4l2_hw_freq_seek)
++#define VIDIOC_DQEVENT		 _IOR('V', 83, struct v4l2_event)
++#define VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 84, struct v4l2_event_subscription)
++#define VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 85, struct v4l2_event_subscription)
+ /* Reminder: when adding new ioctls please add support for them to
+    drivers/media/video/v4l2-compat-ioctl32.c as well! */
+ 
+-- 
+1.5.6.5
+
