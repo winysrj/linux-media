@@ -1,72 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f219.google.com ([209.85.220.219]:47776 "EHLO
-	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753169Ab0BWQXU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2010 11:23:20 -0500
-Received: by fxm19 with SMTP id 19so3988275fxm.21
-        for <linux-media@vger.kernel.org>; Tue, 23 Feb 2010 08:23:18 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <62e5edd41002072306k5e3e7711v85d7699d99c8a2d8@mail.gmail.com>
-References: <201002062055.02032.lukas.karas@centrum.cz>
-	 <62e5edd41002072306k5e3e7711v85d7699d99c8a2d8@mail.gmail.com>
-Date: Tue, 23 Feb 2010 17:23:18 +0100
-Message-ID: <62e5edd41002230823g30882356sf969df4e6a062115@mail.gmail.com>
-Subject: Re: New kernel failed suspend ro ram with m5602 camera
-From: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
-To: =?ISO-8859-2?Q?Luk=E1=B9_Karas?= <lukas.karas@centrum.cz>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from smtp.nokia.com ([192.100.122.230]:19294 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755746Ab0BFSCU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Feb 2010 13:02:20 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: hans.verkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	gururaj.nagendra@intel.com, david.cohen@nokia.com,
+	iivanov@mm-sol.com,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: [PATCH 4/8] V4L: Events: Support event handling in do_ioctl
+Date: Sat,  6 Feb 2010 20:02:07 +0200
+Message-Id: <1265479331-20595-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4B6DAE5A.5090508@maxwell.research.nokia.com>
+References: <4B6DAE5A.5090508@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2010/2/8 Erik Andrén <erik.andren@gmail.com>:
-> 2010/2/6 Lukáš Karas <lukas.karas@centrum.cz>:
->> Hi Erik and others.
->>
->> New kernel (2.6.33-rc*) failed suspend to ram with camera m5602 on my machine.
->> At first, I thought that it's a kernel bug (see
->> http://bugzilla.kernel.org/show_bug.cgi?id=15189) - suspend failed after
->> unload gspca_m5602 module too. But it is more probably a hardware bug, that we
->> can evade with simple udev rule
->>
->> ATTR{idVendor}=="0402", ATTR{idProduct}=="5602", ATTR{power/wakeup}="disabled"
->>
->> I sent this rule to linux-hotplug (udev) mailing list, but answer is
->> (http://www.spinics.net/lists/hotplug/msg03353.html) that this quirk should be
->> in camera driver or should be send to udev from v4l developers...
->>
->> What do you thing about it? It is a general m5602 chip problem or only my
->> hardware combination problem?
-> Hi Lukas,
->
-> I haven't experienced it so far, but I haven't tried the latest kernel.
-> I'll see if I can manage to reproduce the problem later this week.
->
->> How we can put rule into udev userspace library?
->> What I know, in v4l repository isn't directory with general v4l rules. This
->> problem can affect many users with this hardware...
->
-> We should definitely try to solve this in the camera driver if possible.
-> Would it be possible for you to bisect the kernel tree to see what
-> commit that caused this regression?
->
-> Best regards,
-> Erik
->
->>
->> Best regards,
->> Lukas
->>
->
+Add support for event handling to do_ioctl.
 
-Hi Lukas,
-I cannot reproduce this issue with the linux tip kernel. AFAICT, this
-issue only exists with the m5602 connected to a s5k83a sensor. I'm not
-sure what the correct solution to this problem is but it would greatly
-help if you could perform a git bisect and try to identify what commit
-caused this issue.
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/Makefile     |    2 +-
+ drivers/media/video/v4l2-ioctl.c |   48 ++++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-ioctl.h       |    9 +++++++
+ 3 files changed, 58 insertions(+), 1 deletions(-)
 
-Best regards,
-Erik
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index b888ad1..68253d6 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -11,7 +11,7 @@ stkwebcam-objs	:=	stk-webcam.o stk-sensor.o
+ omap2cam-objs	:=	omap24xxcam.o omap24xxcam-dma.o
+ 
+ videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-subdev.o \
+-			v4l2-fh.o
++			v4l2-fh.o v4l2-event.o
+ 
+ # V4L2 core modules
+ 
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index bfc4696..6964bcc 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -1797,7 +1797,55 @@ static long __video_do_ioctl(struct file *file,
+ 		}
+ 		break;
+ 	}
++	case VIDIOC_DQEVENT:
++	{
++		struct v4l2_event *ev = arg;
++
++		if (!ops->vidioc_dqevent)
++			break;
++
++		ret = ops->vidioc_dqevent(file->private_data, ev);
++		if (ret < 0) {
++			dbgarg(cmd, "no pending events?");
++			break;
++		}
++		dbgarg(cmd,
++		       "count=%d, type=0x%8.8x, sequence=%d, "
++		       "timestamp=%lu.%9.9lu ",
++		       ev->count, ev->type, ev->sequence,
++		       ev->timestamp.tv_sec, ev->timestamp.tv_nsec);
++		break;
++	}
++	case VIDIOC_SUBSCRIBE_EVENT:
++	{
++		struct v4l2_event_subscription *sub = arg;
+ 
++		if (!ops->vidioc_subscribe_event)
++			break;
++
++		ret = ops->vidioc_subscribe_event(file->private_data, sub);
++		if (ret < 0) {
++			dbgarg(cmd, "failed, ret=%ld", ret);
++			break;
++		}
++		dbgarg(cmd, "type=0x%8.8x", sub->type);
++		break;
++	}
++	case VIDIOC_UNSUBSCRIBE_EVENT:
++	{
++		struct v4l2_event_subscription *sub = arg;
++
++		if (!ops->vidioc_unsubscribe_event)
++			break;
++
++		ret = ops->vidioc_unsubscribe_event(file->private_data, sub);
++		if (ret < 0) {
++			dbgarg(cmd, "failed, ret=%ld", ret);
++			break;
++		}
++		dbgarg(cmd, "type=0x%8.8x", sub->type);
++		break;
++	}
+ 	default:
+ 	{
+ 		if (!ops->vidioc_default)
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index 7a4529d..29dd64b 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -21,6 +21,8 @@
+ #include <linux/videodev2.h>
+ #endif
+ 
++struct v4l2_fh;
++
+ struct v4l2_ioctl_ops {
+ 	/* ioctl callbacks */
+ 
+@@ -239,6 +241,13 @@ struct v4l2_ioctl_ops {
+ 	int (*vidioc_enum_frameintervals) (struct file *file, void *fh,
+ 					   struct v4l2_frmivalenum *fival);
+ 
++	int (*vidioc_dqevent)	       (struct v4l2_fh *fh,
++					struct v4l2_event *ev);
++	int (*vidioc_subscribe_event)  (struct v4l2_fh *fh,
++					struct v4l2_event_subscription *sub);
++	int (*vidioc_unsubscribe_event) (struct v4l2_fh *fh,
++					 struct v4l2_event_subscription *sub);
++
+ 	/* For other private ioctls */
+ 	long (*vidioc_default)	       (struct file *file, void *fh,
+ 					int cmd, void *arg);
+-- 
+1.5.6.5
+
