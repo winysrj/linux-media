@@ -1,64 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54290 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753365Ab0BBUas (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Feb 2010 15:30:48 -0500
-Message-ID: <4B688B6F.2060704@redhat.com>
-Date: Tue, 02 Feb 2010 18:30:39 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Stefan Ringel <stefan.ringel@arcor.de>
-CC: linux-media@vger.kernel.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [PATCH] -  tm6000 DVB support
-References: <4B673790.3030706@arcor.de> <4B673B2D.6040507@arcor.de> <4B675B19.3080705@redhat.com> <4B685FB9.1010805@arcor.de> <4B688507.606@redhat.com> <4B6888C9.40400@arcor.de>
-In-Reply-To: <4B6888C9.40400@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([192.100.122.230]:19297 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755746Ab0BFSCV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Feb 2010 13:02:21 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: hans.verkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	gururaj.nagendra@intel.com, david.cohen@nokia.com,
+	iivanov@mm-sol.com,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: [PATCH 7/8] V4L: Events: Sequence numbers
+Date: Sat,  6 Feb 2010 20:02:10 +0200
+Message-Id: <1265479331-20595-7-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4B6DAE5A.5090508@maxwell.research.nokia.com>
+References: <4B6DAE5A.5090508@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stefan Ringel wrote:
-> Am 02.02.2010 21:03, schrieb Mauro Carvalho Chehab:
->>>> Those tuner callback initializations are board-specific. So, it is better to test
->>>> for your board model, if you need something different than what's currently done.
->>>>
->>>>   
->>>>       
->>> This tuner reset works with my stick, but I think that can test with
->>> other tm6000 based sticks and if it not works then I can say this as a
->>> board-specific.
->>>     
->> It won't work on my boards. The GPIO pin used by each board is different.
->>
->>   
-> Have you the right gpio pin in the card struct. I have the
-> ".gpio_addr_tun_reset" the correct gpio pin
-> 
->    [TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE] = {
-> +        .name         = "Terratec Cinergy Hybrid XE",
-> +        .tuner_type   = TUNER_XC2028, /* has a XC3028 */
-> +        .tuner_addr   = 0xc2 >> 1,
-> +        .demod_addr   = 0x1e >> 1,
-> +        .type         = TM6010,
-> +        .caps = {
-> +            .has_tuner    = 1,
-> +            .has_dvb      = 1,
-> +            .has_zl10353  = 1,
-> +            .has_eeprom   = 1,
-> +            .has_remote   = 1,
-> +        },
-> +        .gpio_addr_tun_reset = TM6010_GPIO_2, /* here */
-> +    }
->  };
->  
+Add sequence numbers to events.
 
-Ok, this works :) All needed pins should be customized there, either individually
-or via an struct similar to the one done at em28xx driver. Both ways have advantages
-and disadvantages.
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/v4l2-event.c |    6 ++++++
+ include/media/v4l2-event.h       |    1 +
+ 2 files changed, 7 insertions(+), 0 deletions(-)
 
-
+diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+index b921229..7446b3d 100644
+--- a/drivers/media/video/v4l2-event.c
++++ b/drivers/media/video/v4l2-event.c
+@@ -108,6 +108,7 @@ int v4l2_event_init(struct v4l2_fh *fh, unsigned int n)
+ 	INIT_LIST_HEAD(&fh->events->subscribed);
+ 
+ 	atomic_set(&fh->events->navailable, 0);
++	atomic_set(&fh->events->sequence, -1);
+ 
+ 	ret = v4l2_event_alloc(fh, n);
+ 	if (ret < 0)
+@@ -190,6 +191,7 @@ void v4l2_event_queue(struct video_device *vdev, struct v4l2_event *ev)
+ 	list_for_each_entry(fh, &vdev->fhs.list, list) {
+ 		struct v4l2_events *events = fh->events;
+ 		struct v4l2_kevent *kev;
++		u32 sequence;
+ 
+ 		/* Is it subscribed? */
+ 		if (!v4l2_event_subscribed(fh, ev->type))
+@@ -209,6 +211,9 @@ void v4l2_event_queue(struct video_device *vdev, struct v4l2_event *ev)
+ 		}
+ 		put_me = fh;
+ 
++		/* Increase event sequence number on fh. */
++		sequence = atomic_inc_return(&events->sequence);
++
+ 		/* Do we have any free events? */
+ 		spin_lock_irqsave(&fh->lock, flags);
+ 		if (list_empty(&events->free)) {
+@@ -223,6 +228,7 @@ void v4l2_event_queue(struct video_device *vdev, struct v4l2_event *ev)
+ 		spin_unlock_irqrestore(&fh->lock, flags);
+ 
+ 		kev->event = *ev;
++		kev->event.sequence = sequence;
+ 
+ 		/* And add to the available list. */
+ 		spin_lock_irqsave(&fh->lock, flags);
+diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+index 282d215..3db0c3b 100644
+--- a/include/media/v4l2-event.h
++++ b/include/media/v4l2-event.h
+@@ -49,6 +49,7 @@ struct v4l2_events {
+ 	struct list_head	available; /* Dequeueable event */
+ 	atomic_t                navailable;
+ 	struct list_head	free; /* Events ready for use */
++	atomic_t                sequence;
+ };
+ 
+ int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n);
 -- 
+1.5.6.5
 
-Cheers,
-Mauro
