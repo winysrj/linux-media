@@ -1,75 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web33506.mail.mud.yahoo.com ([68.142.206.155]:38576 "HELO
-	web33506.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754088Ab0BILmX convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Feb 2010 06:42:23 -0500
-Message-ID: <846727.96589.qm@web33506.mail.mud.yahoo.com>
-Date: Tue, 9 Feb 2010 03:35:43 -0800 (PST)
-From: Patrick Cairns <patrick_cairns@yahoo.com>
-Subject: Leadtek WinFast DVR3100 H zl10353_read_register: readreg error (reg=127, ret==-6)
-To: linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail1.radix.net ([207.192.128.31]:36292 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755361Ab0BFQif (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Feb 2010 11:38:35 -0500
+Subject: Re: Any saa711x users out there?
+From: Andy Walls <awalls@radix.net>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <829197381002042034g486b6162rf065388a225a60be@mail.gmail.com>
+References: <829197381002021451g5aaa8013kd5ae2124534ba5ba@mail.gmail.com>
+	 <1265248280.3122.74.camel@palomino.walls.org>
+	 <829197381002040724u6a8d3b40m6e9f3751640685f4@mail.gmail.com>
+	 <1265343315.7784.28.camel@palomino.walls.org>
+	 <829197381002042034g486b6162rf065388a225a60be@mail.gmail.com>
+Content-Type: text/plain
+Date: Sat, 06 Feb 2010 11:37:26 -0500
+Message-Id: <1265474246.3063.31.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
+On Thu, 2010-02-04 at 23:34 -0500, Devin Heitmueller wrote:
+> Hey Andy,
 
-I'm testing use of multiple Leadtek WinFast DVR3100 H cards for a project.   I've had large numbers of them working well in the same machine as encoders (haven't been using the DVB-T capabilities).
 
-However if I use more than a few of these cards in the same machine then upon startup there are always one or two cards where Zarlink zl10353 reading errors are reported preventing their use:-
+> > The visible effects of the anti-alais filter could possibly be:
+> >
+> > 1. Less range of color, if high freqs of the color get attenuated.
+> > (Most people likely will not perceive this as most people are not that
+> > sensitive to small color variations.)
+> >
+> > 2. Loss of rapid variations in Luma - softer edges between light and
+> > dark areas on a scan line - if higher freqs of the Luma get attenuated.
+> >
+> > but given that the anti-alais filter is essentially flat out to about
+> > 5.6 MHz and has a slow rolloff (only 3 dB down at about 6.9 MHz), I
+> > doubt anyone would ever notice it is on with NTSC.
 
-options: enc_yuv_buffers=0 enc_pcm_buffers=0 enc_vbi_buffers=0 radio=0 enc_idx_buffers=0 enc_mpg_bufsize=64
+Hi Devin,
 
-cx18-10: Initializing card 10
-cx18-10: Autodetected Leadtek WinFast DVR3100 H card
-cx18 0000:05:09.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
-cx18-10: Unreasonably low latency timer, setting to 64 (was 32)
-cx18-10: cx23418 revision 01010000 (B)
-cx18-10: Simultaneous DVB-T and Analog capture supported,
-        except when capturing Analog from the antenna input.
-IRQ 18/cx18-10: IRQF_DISABLED is not guaranteed on shared IRQs
-cx18-10: Disabled encoder YUV device
-cx18-10: Disabled encoder VBI device
-cx18-10: Disabled encoder PCM audio device
-cx18-10: Disabled encoder IDX device
-cx18-10: Registered device video10 for encoder MPEG (32 x 64 kB)
-DVB: registering new adapter (cx18)
-zl10353_read_register: readreg error (reg=127, ret==-6)
-cx18-10: frontend initialization failed
-cx18-10: DVB failed to register
-cx18-10: Registered device radio10 for encoder radio
-cx18-10: Error -1 registering devices
-cx18-10: Error -1 on initialization
-cx18: probe of 0000:05:09.0 failed with error -1
+I think I miscommunicated in the above.  To be more precise, I should
+have said:
 
-Looking/flailing around for more diagnostic information and related posts I tried a few things and found that if I enabled the bit_test in i2c-algo-bit, the second test failed with the offending cards whereas it normally succeeds.   I'm not certain this is relevant but it might indicate an underlying fault in card<->driver communication:-
+"The visible effects of the anti-alias filter, on a signal that does not
+have unexpected high frequency components out of the normal channel
+bandwidth, could possibly be:"
 
-cx18-10: Initializing card 10
-cx18-10: Autodetected Leadtek WinFast DVR3100 H card
-cx18-10: cx23418 revision 01010000 (B)
-cx18-10:  i2c: i2c init
-cx18 i2c driver #10-0: Test OK
-cx18 i2c driver #10-1: bus seems to be busy
-cx18-10: Could not initialize i2c
-cx18-10: Error -19 on initialization
-
-Can anyone advise how to debug this further or know any fixes to try?  I'm not quite sure what's going on under the hood.
-
-More information:-
-
-Tested against Kernel 2.6.32 (our own custom config including increased max dvb adapter count) with or without latest v4l staging development repository overlayed (the above dmesg output is from the default 2.6.32 v4l).
-
-The problem almost always persists across soft reboots affecting the same one or two cards each time.   A full power cycle however often results in different cards being affected.   Reordering cards, varying bus positions/locations (there are 3 buses on my main test system) has no apparent effect on the problem.   So there is apparent randomness.  Problem has occurred with as few as 4 cards (not sure about 2/3 yet).  Sometimes, after a power cycle, no cards are affected, but within a few soft cycles, one or 2 cards become afflicted and the problem remains until power cycled.
-
-I'm now testing a couple of alternative systems to see if the same behaviour occurs there but thought it best at this stage to post for suggestions.
-
-Regards
-
-Patrick Cairns
+In other words "here's what someone might notice as degredation due to
+an AA filter, if they had a proper signal throughout the entire
+amplifier chain."
 
 
 
-      
+
+> To give you a better idea of what I'm talking about, look at this image:
+> 
+> http://imagebin.org/83458
+
+OK.  It look pretty regular which is surprising, but nice for analysis.
+It's approximate frequency after having been being folded down is about:
+
+42 cycles/line / 704 pixels/line * 13.5 Mpixels/sec ~= 805.4 kHz ~= 1 MHz
+
+which means it's likely a pretty high frequency, several MHz above the
+Nyquist rate, before being folded down by the sampling.
+
+
+
+> The above image was taken with the generator via the s-video input
+> (ruling out the possibility that it's any sort of product of
+> intermodulation).
+
+You are correct that intermodulation product is the wrong term in the
+case of basedband S-Video.
+
+However, clipping caused by an overdriven amplifier will introduce high
+frequency components - be the peak of the time domain signal caused by
+mixing of unwanted TV stations or just a very strong or overamplified
+basedband signal.  
+
+
+> For the sake of comparison, here's the exact same signal source
+> against an a similar em28xx design but with the tvp5150.
+> 
+> http://imagebin.org/83459
+
+Much nicer.
+
+
+> > Since you have a signal generator, you should run experiments with PAL-D
+> > and SECAM-D with a grid containing vertical lines since those both have
+> > a 6.0 MHz video bandwidth.  SECAM also has FM color, so you might see
+> > the greatest affect of an antialias filter on color on the Cyan color
+> > bar in SECAM-D.
+> 
+> Believe it or not, I'm actually having trouble with the generator
+> right now with anything but NTSC.  I'm going back and forth with
+> Promax on repair options.  So I cannot do any PAL or SECAM testing
+> right now.
+
+:(
+
+I'll try to perform a quick test with my PVR-350 with NTSC and the YUV
+capture device BTW.
+
+Then I'll go outside and shovel more snow. :P
+
+Regards,
+Andy
+
