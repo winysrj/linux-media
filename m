@@ -1,77 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:34328 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932262Ab0BYEkA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Feb 2010 23:40:00 -0500
-Received: by bwz1 with SMTP id 1so2520647bwz.21
-        for <linux-media@vger.kernel.org>; Wed, 24 Feb 2010 20:39:58 -0800 (PST)
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:43210 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750852Ab0BFF0d convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Feb 2010 00:26:33 -0500
+Received: by bwz19 with SMTP id 19so414948bwz.28
+        for <linux-media@vger.kernel.org>; Fri, 05 Feb 2010 21:26:32 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <201002230853.36928.hverkuil@xs4all.nl>
-References: <829197381002212007q342fc01bm1c528a2f15027a1e@mail.gmail.com>
-	 <201002222254.05573.hverkuil@xs4all.nl>
-	 <829197381002221400i6e4f4b17u42597d5138171e19@mail.gmail.com>
-	 <201002230853.36928.hverkuil@xs4all.nl>
-Date: Wed, 24 Feb 2010 23:39:58 -0500
-Message-ID: <829197381002242039w4483c34dvd20ba7d96d88f569@mail.gmail.com>
-Subject: Re: Chroma gain configuration
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andy Walls <awalls@radix.net>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <4B6C931D.9020208@redhat.com>
+References: <55a3e0ce1002050945k7595d541lb04976344ff91431@mail.gmail.com>
+	 <4B6C931D.9020208@redhat.com>
+Date: Sat, 6 Feb 2010 00:26:31 -0500
+Message-ID: <55a3e0ce1002052126j2f6332bbw490f4d14e2cbbe16@mail.gmail.com>
+Subject: Re: [GIT PATCHES FOR 2.6.34] Support for vpfe-capture on DM365
+From: Muralidharan Karicheri <mkaricheri@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org, khilman@deeprootsystems.com,
+	hverkuil@xs4all.nl
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 23, 2010 at 2:53 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> Control enumeration is actually working fine.  The queryctrl does
->> properly return all of the controls, including my new private control.
+Mauro,
+
+
+On Fri, Feb 5, 2010 at 4:52 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Muralidharan Karicheri wrote:
+>> Mauro,
+>>
+>> Please pull from the following:-
+>>
+>> The following changes since commit 84b74782ace1ae091c1b0e14ae2ee9bb720532ba:
+>>   Douglas Schilling Landgraf (1):
+>>         V4L/DVB: Fix logic for Leadtek winfast tv usbii deluxe
+>>
+>> are available in the git repository at:
+>>
+>>   git://linuxtv.org/mkaricheri/vpfe-vpbe-video.git for_upstream
+>>
+>> Murali Karicheri (6):
+>>       DaVinci - Adding platform & board changes for vpfe capture on DM365
+>>       V4L - vpfe capture - header files for ISIF driver
+>>       V4L - vpfe capture - source for ISIF driver on DM365
 >
-> OK. So the problem is that v4l2-ctl uses G/S_EXT_CTRLS for non-user controls,
-> right? Why not change v4l2-ctl: let it first try the EXT version but if that
-> fails with EINVAL then try the old control API.
+> Hmm...
+> +static int isif_get_params(void __user *params)
+> +{
+> +       /* only raw module parameters can be set through the IOCTL */
+> +       if (isif_cfg.if_type != VPFE_RAW_BAYER)
+> +               return -EINVAL;
+> +
+> +       if (copy_to_user(params,
+> +                       &isif_cfg.bayer.config_params,
+> +                       sizeof(isif_cfg.bayer.config_params))) {
+>
+> +/* Parameter operations */
+> +static int isif_set_params(void __user *params)
+> +{
+> +       struct isif_config_params_raw *isif_raw_params;
+> +       int ret = -EINVAL;
+> +
+> +       /* only raw module parameters can be set through the IOCTL */
+> +       if (isif_cfg.if_type != VPFE_RAW_BAYER)
+> +               return ret;
+> +
+> +       isif_raw_params = kzalloc(sizeof(*isif_raw_params), GFP_KERNEL);
+> +       if (NULL == isif_raw_params)
+> +               return -ENOMEM;
+> +
+> +       ret = copy_from_user(isif_raw_params,
+>
+>
+> It seems that you're defining some undocumented new userspace API here.
+>
+Yes. This supports an experimental, but necessary API that configures
+the ISIF (Image sensor Interface) image tuning parameters from
+User Space. These parameters are used when converting Bayer RGB image
+to UYVY format when capturing from sensors such as MT9T031.
+For SoCs like TI's DMxxx series, the user needs to have full control
+over these parameters to get desired image quality.
+This had been discussed during the initial version of vpfe-capture
+driver discussion and it was decided to keep them as experimental. So
+no
+documentation is provided at this time. The ioctls are defined in the
+vpfe_capture.h header file and the user space structures are under
+ccdc.h and isif.h under include/media/davinci and are marked as
+experimental.  This was also discussed  in this mailing list before
+and the decision taken at that time was to do it properly as part of
+media soc framework. In this framework, isif and other similar SoC
+hardware IPs will have a device node to configure these parameters
+and therefore will have to be re-worked once media soc framework is
+available.  Until then vpfe-capture users need to have a way to
+configure the ISIF or such hardware IPs.
 
-For what it's worth, I actually bisected the v4l2-ctl.cpp, and found
-out the breakage got introduced in rev 12546:
+Regards,
 
-==
-v4l2-ctl: add support for string controls
+Murali
+> Cheers,
+> Mauro
+>
 
-From: Hans Verkuil <hverkuil@xs4all.nl>
 
-Add support for string controls to v4l2-ctl.
-Also refactor the code to generalize the handling of control classes.
-
-Priority: normal
-==
-
-And this change breaks the v4l2-ctl application not just with my
-driver but with *any* of the drivers which have private controls
-implemented in g_ctrl or s_ctrl (including bttv, saa7134, and pwc)
-
-The root of the issue is that private controls are not considered
-"user controls".  Hence when getting or setting the control, the
-v4l2-ctl app will always insist on attempting to use the
-g_ext_ctrls/s_ext_ctrls ioctl calls, even though the underlying driver
-doesn't have them implemented as extended controls.
-
-The enumeration of all of control values (using the "-l" argument)
-does include the private controls properly because the logic is
-written such that it always uses g_ctrl for all cases where the
-control ID >= V4L2_CID_PRIVATE_BASE.
-
-I guess I'll see whether I can rework the logic a bit such that the
-set/get routines work in a comparable manner to the routine to
-enumerate all the controls.  I would prefer to avoid making the
-g_ext_ctrls ioctl() call and then retrying it as g_ctrl if it fails,
-since that will cause errors to be printed to the screen (due to the
-abstraction of doioctl() function) and is generally a bad practice.
-
-Devin
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Murali Karicheri
+mkaricheri@gmail.com
