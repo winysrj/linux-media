@@ -1,35 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lider.pardus.org.tr ([193.140.100.216]:57590 "EHLO
-	lider.pardus.org.tr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750798Ab0BGN0M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Feb 2010 08:26:12 -0500
-Received: from [192.168.1.2] (unknown [88.249.178.198])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	(Authenticated sender: ozan)
-	by lider.pardus.org.tr (Postfix) with ESMTPSA id E90CAA7B021
-	for <linux-media@vger.kernel.org>; Sun,  7 Feb 2010 15:24:56 +0200 (EET)
-Message-ID: <4B6EBF77.90508@pardus.org.tr>
-Date: Sun, 07 Feb 2010 15:26:15 +0200
-From: =?UTF-8?B?T3phbiDDh2HEn2xheWFu?= <ozan@pardus.org.tr>
-MIME-Version: 1.0
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1237 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751369Ab0BFTgs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Feb 2010 14:36:48 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o16JakhD081238
+	for <linux-media@vger.kernel.org>; Sat, 6 Feb 2010 20:36:46 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 6 Feb 2010 20:36:46 +0100 (CET)
+Message-Id: <201002061936.o16JakhD081238@smtp-vbr7.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: Anything like compat-v4l?
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-The v4l-dvb tree moves so fast in terms of new drivers and support for new devices compared to the stable trees.
-Massive changes are nearly only done through .3x merge windows. That is the correct behaviour but leaves distributions
-without support for important drivers like e.g. mantis which has been merged into 2.6.33.
+Results of the daily build of v4l-dvb:
 
-I've backported it to 2.6.31 but seen that the IR code was renamed/moved/rewritten, it took me quite time.
+date:        Sat Feb  6 19:00:05 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14159:7d09c32065a4
+gcc version: i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:     2.6.32.5
 
-So isn't there anything like compat-v4l just like alsa-driver or compat-wireless to build bleeding edge v4l stuff
-externally?
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-rc5-armv5: OK
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-rc5-armv5-davinci: OK
+linux-2.6.32.6-armv5-dm365: ERRORS
+linux-2.6.33-rc5-armv5-dm365: ERRORS
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-rc5-armv5-ixp: OK
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-rc5-armv5-omap2: OK
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.20-i686: OK
+linux-2.6.26.8-i686: OK
+linux-2.6.27.44-i686: OK
+linux-2.6.28.10-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: OK
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-rc5-i686: OK
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-rc5-m32r: OK
+linux-2.6.32.6-mips: OK
+linux-2.6.33-rc5-mips: OK
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-rc5-powerpc64: OK
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.20-x86_64: OK
+linux-2.6.26.8-x86_64: OK
+linux-2.6.27.44-x86_64: OK
+linux-2.6.28.10-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: OK
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-rc5-x86_64: OK
+spec: OK
+sparse (linux-2.6.32.6): ERRORS
+sparse (linux-2.6.33-rc5): ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-Regards,
-Ozan Caglayan
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
