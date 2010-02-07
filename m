@@ -1,98 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-10.arcor-online.net ([151.189.21.50]:36552 "EHLO
-	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932791Ab0BCUu7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Feb 2010 15:50:59 -0500
-Message-ID: <4B69E193.6040206@arcor.de>
-Date: Wed, 03 Feb 2010 21:50:27 +0100
-From: Stefan Ringel <stefan.ringel@arcor.de>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [PATCH 4/15] -  tm6000.h
-References: <4B673790.3030706@arcor.de> <4B673B2D.6040507@arcor.de> <4B675B19.3080705@redhat.com> <4B685FB9.1010805@arcor.de> <4B688507.606@redhat.com> <4B688E41.2050806@arcor.de> <4B689094.2070204@redhat.com> <4B6894FE.6010202@arcor.de> <4B69D83D.5050809@arcor.de> <4B69D8CC.2030008@arcor.de> <4B69D9AF.4020309@arcor.de> <4B69DB9D.90609@redhat.com>
-In-Reply-To: <4B69DB9D.90609@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-15
+Received: from cp-out10.libero.it ([212.52.84.110]:40625 "EHLO
+	cp-out10.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751942Ab0BGMsP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Feb 2010 07:48:15 -0500
+Received: from [151.82.7.88] (151.82.7.88) by cp-out10.libero.it (8.5.107)
+        id 4B5B78F701325A8A for linux-media@vger.kernel.org; Sun, 7 Feb 2010 13:48:14 +0100
+Subject: [PATCH] dvb-core: fix initialization of feeds list in demux filter
+From: Francesco Lavra <francescolavra@interfree.it>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain
+Date: Sun, 07 Feb 2010 13:49:58 +0100
+Message-Id: <1265546998.9356.4.camel@localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 03.02.2010 21:25, schrieb Mauro Carvalho Chehab:
-> This one is a very obscure patch. What are you doing this patch and why?
->
-> Stefan Ringel wrote:
->   
->> signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
->>
->> --- a/drivers/staging/tm6000/tm6000.h
->> +++ b/drivers/staging/tm6000/tm6000.h
->> @@ -90,12 +97,14 @@ enum tm6000_core_state {
->>      DEV_MISCONFIGURED = 0x04,
->>  };
->>  
->> +#if 1
->>  /* io methods */
->>  enum tm6000_io_method {
->>      IO_NONE,
->>      IO_READ,
->>      IO_MMAP,
->>  };
->> +#endif
->>  
->>     
-? different between git and hg ? not mine
->>  enum tm6000_mode {
->>      TM6000_MODE_UNKNOWN=0,
->> @@ -202,6 +211,9 @@ struct tm6000_fh {
->>              V4L2_STD_PAL_M|V4L2_STD_PAL_60|V4L2_STD_NTSC_M| \
->>              V4L2_STD_NTSC_M_JP|V4L2_STD_SECAM
->>  
->> +/* In tm6000-cards.c */
->> +
->> +int tm6000_tuner_callback (void *ptr, int component, int command, int arg);
->>  /* In tm6000-core.c */
->>  
->>     
-I use that for tuner callback in tm6000-dvb --> frontend structure
->>  int tm6000_read_write_usb (struct tm6000_core *dev, u8 reqtype, u8 req,
->> @@ -209,7 +221,6 @@ int tm6000_read_write_usb (struct tm6000_core *dev,
->> u8 reqtype, u8 req,
->>  int tm6000_get_reg (struct tm6000_core *dev, u8 req, u16 value, u16 index);
->>  int tm6000_set_reg (struct tm6000_core *dev, u8 req, u16 value, u16 index);
->>  int tm6000_init (struct tm6000_core *dev);
->> -int tm6000_init_after_firmware (struct tm6000_core *dev);
->>  
->>  int tm6000_init_analog_mode (struct tm6000_core *dev);
->>  int tm6000_init_digital_mode (struct tm6000_core *dev);
->> @@ -231,7 +242,12 @@ int tm6000_set_standard (struct tm6000_core *dev,
->> v4l2_std_id *norm);
->>  int tm6000_i2c_register(struct tm6000_core *dev);
->>  int tm6000_i2c_unregister(struct tm6000_core *dev);
->>  
->> +#if 1
->>  /* In tm6000-queue.c */
->> +#if 0
->> +int tm6000_init_isoc(struct tm6000_core *dev, int max_packets);
->> +void tm6000_uninit_isoc(struct tm6000_core *dev);
->> +#endif
->>  
->>     
-? different between git and hg ? not mine
->>  int tm6000_v4l2_mmap(struct file *filp, struct vm_area_struct *vma);
->>  
->> @@ -276,3 +292,4 @@ extern int tm6000_debug;
->>          __FUNCTION__ , ##arg); } while (0)
->>  
->>  
->> +#endif
->>
->>     
->
->   
+A DVB demultiplexer device can be used to set up either a PES filter or
+a section filter. In the former case, the ts field of the feed union of
+struct dmxdev_filter is used, in the latter case the sec field of the
+same union is used.
+The ts field is a struct list_head, and is currently initialized in the
+open() method of the demux device. When for a given demuxer a section
+filter is set up, the sec field is played with, thus if a PES filter
+needs to be set up after that the ts field will be corrupted, causing a
+kernel oops.
+This fix moves the list head initialization to
+dvb_dmxdev_pes_filter_set(), so that the ts field is properly
+initialized every time a PES filter is set up.
 
+Signed-off-by: Francesco Lavra <francescolavra@interfree.it>
+Cc: stable <stable@kernel.org>
+---
 
--- 
-Stefan Ringel <stefan.ringel@arcor.de>
+--- a/drivers/media/dvb/dvb-core/dmxdev.c	2010-02-07 13:19:18.000000000 +0100
++++ b/drivers/media/dvb/dvb-core/dmxdev.c	2010-02-07 13:23:39.000000000 +0100
+@@ -761,7 +761,6 @@ static int dvb_demux_open(struct inode *
+ 	dvb_ringbuffer_init(&dmxdevfilter->buffer, NULL, 8192);
+ 	dmxdevfilter->type = DMXDEV_TYPE_NONE;
+ 	dvb_dmxdev_filter_state_set(dmxdevfilter, DMXDEV_STATE_ALLOCATED);
+-	INIT_LIST_HEAD(&dmxdevfilter->feed.ts);
+ 	init_timer(&dmxdevfilter->timer);
+ 
+ 	dvbdev->users++;
+@@ -887,6 +886,7 @@ static int dvb_dmxdev_pes_filter_set(str
+ 	dmxdevfilter->type = DMXDEV_TYPE_PES;
+ 	memcpy(&dmxdevfilter->params, params,
+ 	       sizeof(struct dmx_pes_filter_params));
++	INIT_LIST_HEAD(&dmxdevfilter->feed.ts);
+ 
+ 	dvb_dmxdev_filter_state_set(dmxdevfilter, DMXDEV_STATE_SET);
+ 
+
 
