@@ -1,112 +1,212 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:45355 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751308Ab0BPM1f (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Feb 2010 07:27:35 -0500
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1NhMWb-0000ZW-1k
-	for linux-media@vger.kernel.org; Tue, 16 Feb 2010 13:27:33 +0100
-Received: from 80-218-69-65.dclient.hispeed.ch ([80.218.69.65])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 16 Feb 2010 13:27:33 +0100
-Received: from auslands-kv by 80-218-69-65.dclient.hispeed.ch with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 16 Feb 2010 13:27:33 +0100
+Received: from smtp.nokia.com ([192.100.105.134]:64089 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932788Ab0BGSju (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Feb 2010 13:39:50 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 To: linux-media@vger.kernel.org
-From: Michael <auslands-kv@gmx.de>
-Subject: Re: tw68: Congratulations :-) and possible vsync problem :-(
-Date: Tue, 16 Feb 2010 13:27:15 +0100
-Message-ID: <hle2v2$kll$1@ger.gmane.org>
-References: <hldpqq$nfn$1@ger.gmane.org> <hldrkq$t7v$1@ger.gmane.org> <hldtno$41u$1@ger.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7Bit
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
+	david.cohen@nokia.com,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: [PATCH v2 1/7] V4L: File handles
+Date: Sun,  7 Feb 2010 20:40:41 +0200
+Message-Id: <1265568047-31073-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4B6F0922.9070206@maxwell.research.nokia.com>
+References: <4B6F0922.9070206@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Here is some more info:
+This patch adds a list of v4l2_fh structures to every video_device.
+It allows using file handle related information in V4L2. The event interface
+is one example of such use.
 
-I loaded the module with option core_debug=15.
+Video device drivers should use the v4l2_fh pointer as their
+file->private_data.
 
-When I run with low CPU load (vx driver), I get the following log lines:
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/Makefile   |    3 +-
+ drivers/media/video/v4l2-dev.c |    2 +
+ drivers/media/video/v4l2-fh.c  |   58 ++++++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-dev.h       |    5 +++
+ include/media/v4l2-fh.h        |   52 +++++++++++++++++++++++++++++++++++
+ 5 files changed, 119 insertions(+), 1 deletions(-)
+ create mode 100644 drivers/media/video/v4l2-fh.c
+ create mode 100644 include/media/v4l2-fh.h
 
-[10261.346087] tw6804[0]: tw68_buffer_queue: queuing buffer cd7bb3c0
-[10261.346087] tw6804[0]: tw68_buffer_queue: [cd7bb3c0/0] first active
-[10261.346087] tw6804[0]: tw68_buffer_queue: queuing buffer cc91b260
-[10261.346087] tw6804[0]: tw68_buffer_queue: [cc91b260/1] appended to active
-[10261.393852] tw6804[0]: tw68_wakeup: [cd7bb3c0/0] field_count=293
-[10261.397831] tw6804[0]: tw68_buffer_queue: queuing buffer cd7bb3c0
-[10261.397831] tw6804[0]: tw68_buffer_queue: [cd7bb3c0/0] appended to active
-[10261.433849] tw6804[0]: tw68_wakeup: [cc91b260/1] field_count=294
-[10261.437823] tw6804[0]: tw68_buffer_queue: queuing buffer cc91b260
-[10261.437823] tw6804[0]: tw68_buffer_queue: [cc91b260/1] appended to active
-[10261.473839] tw6804[0]: tw68_wakeup: [cd7bb3c0/0] field_count=295
-[10261.477415] tw6804[0]: tw68_buffer_queue: queuing buffer cd7bb3c0
-[10261.477415] tw6804[0]: tw68_buffer_queue: [cd7bb3c0/0] appended to active
-[10261.511590] tw6804[0]: tw68_wakeup: [cc91b260/1] field_count=296
-[10261.518421] tw6804[0]: tw68_buffer_queue: queuing buffer cc91b260
-[10261.518421] tw6804[0]: tw68_buffer_queue: [cc91b260/1] appended to active
-[10261.552610] tw6804[0]: tw68_wakeup: [cd7bb3c0/0] field_count=297
-[10261.577131] tw6804[0]: tw68_buffer_queue: queuing buffer cd7bb3c0
-[10261.577158] tw6804[0]: tw68_buffer_queue: [cd7bb3c0/0] appended to active
-[10261.593610] tw6804[0]: tw68_wakeup: [cc91b260/1] field_count=298
-[10261.599735] tw6804[0]: tw68_buffer_queue: queuing buffer cc91b260
-[10261.599759] tw6804[0]: tw68_buffer_queue: [cc91b260/1] appended to active
-[10261.633812] tw6804[0]: tw68_wakeup: [cd7bb3c0/0] field_count=299
-[10261.637784] tw6804[0]: tw68_buffer_queue: queuing buffer cd7bb3c0
-[10261.637784] tw6804[0]: tw68_buffer_queue: [cd7bb3c0/0] appended to active
-[10261.673804] tw6804[0]: tw68_wakeup: [cc91b260/1] field_count=300
-[10261.677776] tw6804[0]: tw68_buffer_queue: queuing buffer cc91b260
-[10261.677776] tw6804[0]: tw68_buffer_queue: [cc91b260/1] appended to active
-
-Very regular, just one "first active".
-
-With high CPU load (x11 driver) I get:
-
-[10066.494080] tw6804[0]: tw68_buffer_queue: queuing buffer cd7bb3c0
-[10066.494080] tw6804[0]: tw68_buffer_queue: [cd7bb3c0/0] first active
-[10066.548758] tw6804[0]: tw68_buffer_queue: queuing buffer cd7bb600
-[10066.548758] tw6804[0]: tw68_buffer_queue: [cd7bb600/1] appended to active
-[10066.552054] tw6804[0]: tw68_wakeup: [cd7bb3c0/0] field_count=173
-[10066.589772] tw6804[0]: tw68_wakeup: [cd7bb600/1] field_count=174
-[10066.596604] tw6804[0]: tw68_buffer_queue: queuing buffer cd7bb3c0
-[10066.596604] tw6804[0]: tw68_buffer_queue: [cd7bb3c0/0] first active
-[10066.630773] tw6804[0]: tw68_wakeup: [cd7bb3c0/0] field_count=175
-[10066.658108] tw6804[0]: tw68_buffer_queue: queuing buffer cd7bb600
-[10066.658108] tw6804[0]: tw68_buffer_queue: [cd7bb600/1] first active
-[10066.712033] tw6804[0]: tw68_wakeup: [cd7bb600/1] field_count=176
-[10066.726463] tw6804[0]: tw68_buffer_queue: queuing buffer cd7bb3c0
-[10066.726463] tw6804[0]: tw68_buffer_queue: [cd7bb3c0/0] first active
-[10066.752027] tw6804[0]: tw68_wakeup: [cd7bb3c0/0] field_count=177
-[10066.781142] tw6804[0]: tw68_buffer_queue: queuing buffer cd7bb600
-[10066.781142] tw6804[0]: tw68_buffer_queue: [cd7bb600/1] first active
-[10066.832009] tw6804[0]: tw68_wakeup: [cd7bb600/1] field_count=178
-[10066.835821] tw6804[0]: tw68_buffer_queue: queuing buffer cd7bb3c0
-[10066.835821] tw6804[0]: tw68_buffer_queue: [cd7bb3c0/0] first active
-[10066.869996] tw6804[0]: tw68_wakeup: [cd7bb3c0/0] field_count=179
-[10066.890493] tw6804[0]: tw68_buffer_queue: queuing buffer cd7bb600
-[10066.890493] tw6804[0]: tw68_buffer_queue: [cd7bb600/1] first active
-[10066.911006] tw6804[0]: tw68_wakeup: [cd7bb600/1] field_count=180
-[10066.945177] tw6804[0]: tw68_buffer_queue: queuing buffer cd7bb3c0
-[10066.945177] tw6804[0]: tw68_buffer_queue: [cd7bb3c0/0] first active
-[10066.991979] tw6804[0]: tw68_wakeup: [cd7bb3c0/0] field_count=181
-[10066.999859] tw6804[0]: tw68_buffer_queue: queuing buffer cd7bb600
-[10066.999859] tw6804[0]: tw68_buffer_queue: [cd7bb600/1] first active
-[10067.031973] tw6804[0]: tw68_wakeup: [cd7bb600/1] field_count=182
-[10067.061365] tw6804[0]: tw68_buffer_queue: queuing buffer cd7bb3c0
-[10067.061365] tw6804[0]: tw68_buffer_queue: [cd7bb3c0/0] first active
-[10067.109211] tw6804[0]: tw68_buffer_queue: queuing buffer cd7bb600
-[10067.109211] tw6804[0]: tw68_buffer_queue: [cd7bb600/1] appended to active
-[10067.109211] tw6804[0]: tw68_wakeup: [cd7bb3c0/0] field_count=183
-[10067.150229] tw6804[0]: tw68_wakeup: [cd7bb600/1] field_count=184
-[10067.170720] tw6804[0]: tw68_buffer_queue: queuing buffer cd7bb3c0
-
-Strongly irregular, many "first active", sometimes two "field counts" after 
-each other.
-
-Hope this helps.
-
-Michael
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index 6e75647..b888ad1 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -10,7 +10,8 @@ stkwebcam-objs	:=	stk-webcam.o stk-sensor.o
+ 
+ omap2cam-objs	:=	omap24xxcam.o omap24xxcam-dma.o
+ 
+-videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-subdev.o
++videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-subdev.o \
++			v4l2-fh.o
+ 
+ # V4L2 core modules
+ 
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index 13a899d..d8c14a5 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -423,6 +423,8 @@ static int __video_register_device(struct video_device *vdev, int type, int nr,
+ 	if (!vdev->release)
+ 		return -EINVAL;
+ 
++	v4l2_fh_init(vdev);
++
+ 	/* Part 1: check device type */
+ 	switch (type) {
+ 	case VFL_TYPE_GRABBER:
+diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
+new file mode 100644
+index 0000000..c1e8baf
+--- /dev/null
++++ b/drivers/media/video/v4l2-fh.c
+@@ -0,0 +1,58 @@
++/*
++ * drivers/media/video/v4l2-fh.c
++ *
++ * V4L2 file handles.
++ *
++ * Copyright (C) 2009 Nokia Corporation.
++ *
++ * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#include <media/v4l2-dev.h>
++#include <media/v4l2-fh.h>
++
++void v4l2_fh_add(struct video_device *vdev, struct v4l2_fh *fh)
++{
++	unsigned long flags;
++
++	fh->vdev = vdev;
++
++	spin_lock_irqsave(&vdev->fhs.lock, flags);
++	list_add(&fh->list, &vdev->fhs.list);
++	spin_unlock_irqrestore(&vdev->fhs.lock, flags);
++}
++EXPORT_SYMBOL_GPL(v4l2_fh_add);
++
++void v4l2_fh_del(struct v4l2_fh *fh)
++{
++	unsigned long flags;
++
++	BUG_ON(fh->vdev == NULL);
++
++	spin_lock_irqsave(&fh->vdev->fhs.lock, flags);
++	list_del(&fh->list);
++	spin_unlock_irqrestore(&fh->vdev->fhs.lock, flags);
++
++	fh->vdev = NULL;
++}
++EXPORT_SYMBOL_GPL(v4l2_fh_del);
++
++void v4l2_fh_init(struct video_device *vdev)
++{
++	spin_lock_init(&vdev->fhs.lock);
++	INIT_LIST_HEAD(&vdev->fhs.list);
++}
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 26d4e79..65d9dc8 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -18,6 +18,8 @@
+ 
+ #include <media/media-entity.h>
+ 
++#include <media/v4l2-fh.h>
++
+ #define VIDEO_MAJOR	81
+ 
+ #define VFL_TYPE_GRABBER	0
+@@ -82,6 +84,9 @@ struct video_device
+ 	/* attribute to differentiate multiple indices on one physical device */
+ 	int index;
+ 
++	/* V4L2 file handles */
++	struct v4l2_fhs	fhs;
++
+ 	int debug;			/* Activates debug level*/
+ 
+ 	/* Video standard vars */
+diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
+new file mode 100644
+index 0000000..e70200a
+--- /dev/null
++++ b/include/media/v4l2-fh.h
+@@ -0,0 +1,52 @@
++/*
++ * include/media/v4l2-fh.h
++ *
++ * V4L2 file handle.
++ *
++ * Copyright (C) 2009 Nokia Corporation.
++ *
++ * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#ifndef V4L2_FH_H
++#define V4L2_FH_H
++
++#include <linux/types.h>
++#include <linux/list.h>
++
++#include <asm/atomic.h>
++
++struct video_device;
++
++struct v4l2_fh {
++	struct list_head	list;
++	struct video_device	*vdev;
++};
++
++/* File handle related data for video_device. */
++struct v4l2_fhs {
++	/* Lock for file handle list */
++	spinlock_t		lock;
++	/* File handle list */
++	struct list_head	list;
++};
++
++void v4l2_fh_add(struct video_device *vdev, struct v4l2_fh *fh);
++void v4l2_fh_del(struct v4l2_fh *fh);
++void v4l2_fh_init(struct video_device *vdev);
++
++#endif /* V4L2_EVENT_H */
+-- 
+1.5.6.5
 
