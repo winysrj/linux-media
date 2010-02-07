@@ -1,59 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:51719 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751423Ab0BIJZT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Feb 2010 04:25:19 -0500
-Date: Tue, 9 Feb 2010 10:25:54 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-cc: Linux-V4L2 <linux-media@vger.kernel.org>,
-	Magnus Damm <damm@opensource.se>
-Subject: [PATCH 2/2] sh_mobile_ceu_camera: pass .set_parm and .get_parm down
- to subdevices
-In-Reply-To: <Pine.LNX.4.64.1002090856050.4585@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1002091024290.4585@axis700.grange>
-References: <u1vi3wnt2.wl%morimoto.kuninori@renesas.com>
- <Pine.LNX.4.64.1002090856050.4585@axis700.grange>
+Received: from ey-out-2122.google.com ([74.125.78.25]:45340 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754155Ab0BGPxi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Feb 2010 10:53:38 -0500
+Received: by ey-out-2122.google.com with SMTP id d26so1157067eyd.19
+        for <linux-media@vger.kernel.org>; Sun, 07 Feb 2010 07:53:37 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Date: Sun, 7 Feb 2010 17:53:37 +0200
+Message-ID: <4d3a3d781002070753j38b110dje33d63e1948a3e31@mail.gmail.com>
+Subject: New scan file dvb-t/fi-Smedsbole (Aaland Islands, Finland)
+From: =?UTF-8?Q?K=C3=A5re_Hampf?= <k.hampf@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=0015174762f01029dd047f04b0f7
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index f09c714..cb34e74 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -1748,6 +1748,22 @@ static void sh_mobile_ceu_init_videobuf(struct videobuf_queue *q,
- 				       icd);
- }
- 
-+static int sh_mobile_ceu_get_parm(struct soc_camera_device *icd,
-+				  struct v4l2_streamparm *parm)
-+{
-+	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-+
-+	return v4l2_subdev_call(sd, video, g_parm, parm);
-+}
-+
-+static int sh_mobile_ceu_set_parm(struct soc_camera_device *icd,
-+				  struct v4l2_streamparm *parm)
-+{
-+	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-+
-+	return v4l2_subdev_call(sd, video, s_parm, parm);
-+}
-+
- static int sh_mobile_ceu_get_ctrl(struct soc_camera_device *icd,
- 				  struct v4l2_control *ctrl)
- {
-@@ -1808,6 +1824,8 @@ static struct soc_camera_host_ops sh_mobile_ceu_host_ops = {
- 	.try_fmt	= sh_mobile_ceu_try_fmt,
- 	.set_ctrl	= sh_mobile_ceu_set_ctrl,
- 	.get_ctrl	= sh_mobile_ceu_get_ctrl,
-+	.set_parm	= sh_mobile_ceu_set_parm,
-+	.get_parm	= sh_mobile_ceu_get_parm,
- 	.reqbufs	= sh_mobile_ceu_reqbufs,
- 	.poll		= sh_mobile_ceu_poll,
- 	.querycap	= sh_mobile_ceu_querycap,
+--0015174762f01029dd047f04b0f7
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+Now the scanfile should be properly attached ... .*sigh*
+
+Here's a scanfile for fi-Smedsbole (DVB-T broadcasts from Smedsb=C3=B6le on
+=C3=85land Islands in Finland). Other names for it could be fi-Aland or
+ax-Smedsbole (=C3=85land Islands has its own .ax domain) but I thought it
+better to suggest a name derived from the broadcast location).
+
+/K. Hampf <k.hampf@gmail.com>
+
+--0015174762f01029dd047f04b0f7
+Content-Type: application/octet-stream; name=fi-Smedsbole
+Content-Disposition: attachment; filename=fi-Smedsbole
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_g5e0eo1b0
+
+Iy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQojIGZpbGUgYXV0b21hdGljYWxseSBnZW5lcmF0ZWQgYnkg
+d19zY2FuCiMgKGh0dHA6Ly93aXJiZWwuaHRwYy1mb3J1bS5kZS93X3NjYW4vaW5kZXgyLmh0bWwp
+CiMhIDx3X3NjYW4+IDIwMDkwODA4IDIgMCBPRkRNIEZJIDwvd19zY2FuPgojLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tCiMgbG9jYXRpb24gYW5kIHByb3ZpZGVyOiDDhWxhbmQgU21lZHNiw7ZsZS9TdW5k
+CiMgZGF0ZSAoeXl5eS1tbS1kZCkgICAgOiAyMDA5LTEyLTIzCiMgcHJvdmlkZWQgYnkgKG9wdCkg
+ICAgOiBrLmhhbXBmQGdtYWlsLmNvbQojCiMgVFsyXSA8ZnJlcT4gPGJ3PiA8ZmVjX2hpPiA8ZmVj
+X2xvPiA8bW9kPiA8dG0+IDxndWFyZD4gPGhpPiBbIyBjb21tZW50XQojLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tClQgNTA2MDAwMDAwIDhNSHogIDIvMyBOT05FICAgIFFBTTY0ICAgOGsgIDEvOCBOT05F
+CSMgBcVsYW5kIE5ldHdvcmsKVCA1ODYwMDAwMDAgOE1IeiAgMi8zIE5PTkUgICAgUUFNNjQgICA4
+ayAgMS84IE5PTkUJIyAFxWxhbmQgTmV0d29yawo=
+--0015174762f01029dd047f04b0f7--
