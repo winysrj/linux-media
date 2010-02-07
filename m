@@ -1,56 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:58980 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752509Ab0BVQqS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 11:46:18 -0500
-Date: Mon, 22 Feb 2010 17:46:16 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Rodolfo Giometti <giometti@enneenne.com>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Richard =?iso-8859-15?Q?R=C3=B6jfors?=
-	<richard.rojfors.ext@mocean-labs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: adv7180 as SoC camera device
-In-Reply-To: <20100222161507.GN21778@enneenne.com>
-Message-ID: <Pine.LNX.4.64.1002221743090.4120@axis700.grange>
-References: <20100219174451.GH21778@enneenne.com> <Pine.LNX.4.64.1002192018170.5860@axis700.grange>
- <20100222160139.GL21778@enneenne.com> <201002221711.18874.hverkuil@xs4all.nl>
- <20100222161507.GN21778@enneenne.com>
+Received: from mail-ew0-f228.google.com ([209.85.219.228]:50772 "EHLO
+	mail-ew0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754759Ab0BGLfn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Feb 2010 06:35:43 -0500
+Message-ID: <4B6EA71C.90705@gmail.com>
+Date: Sun, 07 Feb 2010 12:42:20 +0100
+From: Roel Kluin <roel.kluin@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: [PATCH] usbvision-video: wrong variable tested in usbvision_register_video()
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 22 Feb 2010, Rodolfo Giometti wrote:
+usbvision->vdev was already tested, we should test usbvision->vbi here.
 
-> On Mon, Feb 22, 2010 at 05:11:18PM +0100, Hans Verkuil wrote:
-> > 
-> > The long-term goal is to remove the last soc-camera API dependencies from
-> > the sensor subdev drivers. Subdevice (usually i2c) drivers should be fully
-> > reusable and a dependency on soc-camera defeats that goal.
-> > 
-> > I think the only missing piece is low-level bus setup (i.e. sync polarities,
-> > rising/falling edge sampling, etc.). Some proposals were made, but basically
-> > nobody has had the time to actually implement this.
-> > 
-> > Right now, if you want to use your sensor with soc-camera, then you need to
-> > support the soc-camera API (or what is left of it) in your subdev driver as
-> > well.
-> 
-> But with the goal to remove the last soc-camera API dependencies I
-> suppose is better I try to change the pxa_camera driver in something
-> compatible with the API of the adv7180 driver...
-
-No. As Hans said, one of important things, that is present in soc-camera, 
-but absent from v4l2-subdev is bus-parameter configuration. So, to remove 
-those dependencies one would have to develop a generic bus-configuration 
-API for V4L2, and then convert soc-camera core and all soc-camera drivers 
-to it. Feel free to submit patches.
-
-Thanks
-Guennadi
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+diff --git a/drivers/media/video/usbvision/usbvision-video.c b/drivers/media/video/usbvision/usbvision-video.c
+index 1054546..7c17ec6 100644
+--- a/drivers/media/video/usbvision/usbvision-video.c
++++ b/drivers/media/video/usbvision/usbvision-video.c
+@@ -1487,7 +1487,7 @@ static int __devinit usbvision_register_video(struct usb_usbvision *usbvision)
+ 		usbvision->vbi = usbvision_vdev_init(usbvision,
+ 						     &usbvision_vbi_template,
+ 						     "USBVision VBI");
+-		if (usbvision->vdev == NULL) {
++		if (usbvision->vbi == NULL) {
+ 			goto err_exit;
+ 		}
+ 		if (video_register_device(usbvision->vbi,
