@@ -1,41 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:53822 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751198Ab0BITVh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 14:21:37 -0500
-Message-ID: <4B71B5BD.8090006@infradead.org>
-Date: Tue, 09 Feb 2010 17:21:33 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:35449 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751664Ab0BGOJS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Feb 2010 09:09:18 -0500
+Received: by bwz19 with SMTP id 19so1139891bwz.28
+        for <linux-media@vger.kernel.org>; Sun, 07 Feb 2010 06:09:16 -0800 (PST)
 MIME-Version: 1.0
-To: "Andrea.Amorosi76@gmail.com" <Andrea.Amorosi76@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] em28xx: add Dikom DK300 hybrid USB tuner
-References: <4AFE92ED.2060208@gmail.com> <4AFEAB15.9010509@gmail.com> <829197380911140634j49c05cd0s90aed57b9ae61436@mail.gmail.com> <4B71ACC8.600@gmail.com>
-In-Reply-To: <4B71ACC8.600@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <19a3b7a81002070503u51df9925pdeda298f6913dc3b@mail.gmail.com>
+References: <4b664274.0837560a.2426.fffff6d9@mx.google.com>
+	 <19a3b7a81002070503u51df9925pdeda298f6913dc3b@mail.gmail.com>
+Date: Sun, 7 Feb 2010 15:09:16 +0100
+Message-ID: <19a3b7a81002070609q62ead70dnea6f75b4796e6ea@mail.gmail.com>
+Subject: Re: DVB-T scan files for Croatia (hr)
+From: Christoph Pfister <christophpfister@gmail.com>
+To: samuel.rakitnican@gmail.com
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andrea.Amorosi76@gmail.com wrote:
-> This patch add the Dikom DK300 hybrid usb card.
-> 
-> The patch adds digital and analogue tv support.
-> 
-> Not working: remote controller
+2010/2/7 Christoph Pfister <christophpfister@gmail.com>:
+> 2010/2/1  <samuel.rakitnican@gmail.com>:
+>> Hi Christoph,
+>>
+>> I'm delivering DVB-T scan files for Croatia. The scan files was tested for
+>> regions D01, D04, D05, D08 and are based on information provided by Croatian
+>> television (HRT) as well as OiV, so untested ones should be correct also.
+<snip>
+>> Thank you and best regards,
+>> Samuel
+>
+> Updated, thanks!
+>
+> Christoph
 
-> diff -r d6520e486ee6 linux/drivers/media/video/em28xx/em28xx-cards.c
-> --- a/linux/drivers/media/video/em28xx/em28xx-cards.c    Sat Jan 30
-> 01:27:34 2010 -0200
-> +++ b/linux/drivers/media/video/em28xx/em28xx-cards.c    Sat Jan 30
-> 18:04:13 2010 +0100
-
-Your patch got mangled by Thunderbird. You should or use Asalted Patches
-plugin:
-        https://hg.mozilla.org/users/clarkbw_gnome.org/asalted-patches/
-
-or use another emailer. Without the above plugin, long lines are broken,
-damaging your patch.
-
-Cheers,
-Mauro
+PS: I've combined those files into a single hr-All file.
