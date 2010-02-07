@@ -1,71 +1,405 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:11353 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934175Ab0BQI5P (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Feb 2010 03:57:15 -0500
-Message-ID: <4B7BAF8C.9070700@redhat.com>
-Date: Wed, 17 Feb 2010 09:57:48 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Adam Baker <linux@baker-net.org.uk>
-CC: Frans Pop <elendil@planet.nl>, linux-media@vger.kernel.org
-Subject: Re: pac207: problem with Trust USB webcam
-References: <201002150038.03060.elendil@planet.nl> <4B7B089A.4060504@redhat.com> <201002170004.51883.linux@baker-net.org.uk>
-In-Reply-To: <201002170004.51883.linux@baker-net.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([192.100.122.233]:52392 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932935Ab0BGSjz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Feb 2010 13:39:55 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
+	david.cohen@nokia.com,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: [PATCH v2 4/7] V4L: Events: Add backend
+Date: Sun,  7 Feb 2010 20:40:44 +0200
+Message-Id: <1265568047-31073-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4B6F0922.9070206@maxwell.research.nokia.com>
+References: <4B6F0922.9070206@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Add event handling backend to V4L2. The backend handles event subscription
+and delivery to file handles. Event subscriptions are based on file handle.
+Events may be delivered to all subscribed file handles on a device
+independent of where they originate from.
 
-On 02/17/2010 01:04 AM, Adam Baker wrote:
-> On Tuesday 16 Feb 2010, Hans de Goede wrote:
->> Hi,
->>
->> You need to use libv4l and have your apps patched
->> to use libv4l or use the LD_PRELOAD wrapper.
->>
->> Here is the latest libv4l:
->> http://people.fedoraproject.org/~jwrdegoede/libv4l-0.6.5-test.tar.gz
->>
->> And here are install instructions:
->> http://hansdegoede.livejournal.com/7622.html
->>
-> Hi,
->
-> libv4l is already packaged by lenny but doing
->
-> LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so xawtv
->
-> results in either a plain green screen or a mostly green screen with some
-> picture visible behind it. IIRC this is due to a bug in older versions of
-> xawtv. I didn't try vlc as it wanted to install too many dependencies but I
-> did try cheese which also wouldn't work.
->
-> I did find I could capture single frames with
->
-> LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so vgrabbj -d /dev/video0>grab.jpg
->
-> or
->
-> LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so fswebcam --save grab2.jpg
->
-> which suggests that the packaged libv4l is fine and it is just the apps that
-> are an issue.
->
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/v4l2-event.c |  259 ++++++++++++++++++++++++++++++++++++++
+ drivers/media/video/v4l2-fh.c    |    3 +
+ include/media/v4l2-event.h       |   64 ++++++++++
+ include/media/v4l2-fh.h          |    1 +
+ 4 files changed, 327 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/v4l2-event.c
+ create mode 100644 include/media/v4l2-event.h
 
-Yes that is very likely I'm the author and maintainer of both libv4l and the
-pac207 kernel driver and I have 5 different pac207 based cams to test with and
-all work well on a variety of computers.
+diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+new file mode 100644
+index 0000000..6d57324
+--- /dev/null
++++ b/drivers/media/video/v4l2-event.c
+@@ -0,0 +1,259 @@
++/*
++ * drivers/media/video/v4l2-event.c
++ *
++ * V4L2 events.
++ *
++ * Copyright (C) 2009 Nokia Corporation.
++ *
++ * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#include <media/v4l2-dev.h>
++#include <media/v4l2-event.h>
++
++#include <linux/sched.h>
++
++/* In error case, return number of events *not* allocated. */
++int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n)
++{
++	struct v4l2_events *events = fh->events;
++	unsigned long flags;
++
++	for (; n > 0; n--) {
++		struct v4l2_kevent *kev;
++
++		kev = kzalloc(sizeof(*kev), GFP_KERNEL);
++		if (kev == NULL)
++			return n;
++
++		spin_lock_irqsave(&fh->vdev->fhs.lock, flags);
++		list_add_tail(&kev->list, &events->free);
++		spin_unlock_irqrestore(&fh->vdev->fhs.lock, flags);
++
++	}
++
++	return n;
++}
++EXPORT_SYMBOL_GPL(v4l2_event_alloc);
++
++#define list_kfree(list, type, member)				\
++	while (!list_empty(list)) {				\
++		type *hi;					\
++		hi = list_first_entry(list, type, member);	\
++		list_del(&hi->member);				\
++		kfree(hi);					\
++	}
++
++void v4l2_event_exit(struct v4l2_fh *fh)
++{
++	struct v4l2_events *events = fh->events;
++
++	if (!events)
++		return;
++
++	list_kfree(&events->free, struct v4l2_kevent, list);
++	list_kfree(&events->available, struct v4l2_kevent, list);
++	list_kfree(&events->subscribed, struct v4l2_subscribed_event, list);
++
++	kfree(events);
++	fh->events = NULL;
++}
++EXPORT_SYMBOL_GPL(v4l2_event_exit);
++
++int v4l2_event_init(struct v4l2_fh *fh, unsigned int n)
++{
++	int ret;
++
++	fh->events = kzalloc(sizeof(*fh->events), GFP_KERNEL);
++	if (fh->events == NULL)
++		return -ENOMEM;
++
++	init_waitqueue_head(&fh->events->wait);
++
++	INIT_LIST_HEAD(&fh->events->free);
++	INIT_LIST_HEAD(&fh->events->available);
++	INIT_LIST_HEAD(&fh->events->subscribed);
++
++	ret = v4l2_event_alloc(fh, n);
++	if (ret < 0)
++		v4l2_event_exit(fh);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(v4l2_event_init);
++
++int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
++{
++	struct v4l2_events *events = fh->events;
++	struct v4l2_kevent *kev;
++	unsigned long flags;
++
++	spin_lock_irqsave(&fh->vdev->fhs.lock, flags);
++
++	if (list_empty(&events->available)) {
++		spin_unlock_irqrestore(&fh->vdev->fhs.lock, flags);
++		return -ENOENT;
++	}
++
++	kev = list_first_entry(&events->available, struct v4l2_kevent, list);
++	list_move(&kev->list, &events->free);
++
++	kev->event.count = !list_empty(&events->available);
++
++	*event = kev->event;
++
++	spin_unlock_irqrestore(&fh->vdev->fhs.lock, flags);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(v4l2_event_dequeue);
++
++static struct v4l2_subscribed_event *__v4l2_event_subscribed(
++	struct v4l2_fh *fh, u32 type)
++{
++	struct v4l2_events *events = fh->events;
++	struct v4l2_subscribed_event *sev;
++
++	list_for_each_entry(sev, &events->subscribed, list) {
++		if (sev->type == type)
++			return sev;
++	}
++
++	return NULL;
++}
++
++struct v4l2_subscribed_event *v4l2_event_subscribed(
++	struct v4l2_fh *fh, u32 type)
++{
++	struct v4l2_subscribed_event *sev;
++	unsigned long flags;
++
++	spin_lock_irqsave(&fh->vdev->fhs.lock, flags);
++
++	sev = __v4l2_event_subscribed(fh, type);
++
++	spin_unlock_irqrestore(&fh->vdev->fhs.lock, flags);
++
++	return sev;
++}
++EXPORT_SYMBOL_GPL(v4l2_event_subscribed);
++
++void v4l2_event_queue(struct video_device *vdev, struct v4l2_event *ev)
++{
++	struct v4l2_fh *fh;
++	unsigned long flags;
++
++	spin_lock_irqsave(&vdev->fhs.lock, flags);
++
++	list_for_each_entry(fh, &vdev->fhs.list, list) {
++		struct v4l2_events *events = fh->events;
++		struct v4l2_kevent *kev;
++
++		/* Do we have any free events and are we subscribed? */
++		if (list_empty(&events->free) ||
++		    !__v4l2_event_subscribed(fh, ev->type))
++			continue;
++
++		/* Take one and fill it. */
++		kev = list_first_entry(&events->free, struct v4l2_kevent, list);
++		kev->event = *ev;
++		list_move_tail(&kev->list, &events->available);
++
++		wake_up_all(&events->wait);
++	}
++
++	spin_unlock_irqrestore(&vdev->fhs.lock, flags);
++}
++EXPORT_SYMBOL_GPL(v4l2_event_queue);
++
++int v4l2_event_pending(struct v4l2_fh *fh)
++{
++	struct v4l2_events *events = fh->events;
++	unsigned long flags;
++	int ret;
++
++	spin_lock_irqsave(&fh->vdev->fhs.lock, flags);
++	ret = !list_empty(&events->available);
++	spin_unlock_irqrestore(&fh->vdev->fhs.lock, flags);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(v4l2_event_pending);
++
++int v4l2_event_subscribe(struct v4l2_fh *fh,
++			 struct v4l2_event_subscription *sub)
++{
++	struct v4l2_events *events = fh->events;
++	struct v4l2_subscribed_event *sev;
++	unsigned long flags;
++	int ret = 0;
++
++	/* Allow subscribing to valid events only. */
++	if (sub->type < V4L2_EVENT_PRIVATE_START)
++		switch (sub->type) {
++		default:
++			return -EINVAL;
++		}
++
++	sev = kmalloc(sizeof(*sev), GFP_KERNEL);
++	if (!sev)
++		return -ENOMEM;
++
++	spin_lock_irqsave(&fh->vdev->fhs.lock, flags);
++
++	if (__v4l2_event_subscribed(fh, sub->type) != NULL) {
++		ret = -EBUSY;
++		goto out;
++	}
++
++	INIT_LIST_HEAD(&sev->list);
++	sev->type = sub->type;
++
++	list_add(&sev->list, &events->subscribed);
++
++out:
++	spin_unlock_irqrestore(&fh->vdev->fhs.lock, flags);
++
++	if (ret)
++		kfree(sev);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(v4l2_event_subscribe);
++
++int v4l2_event_unsubscribe(struct v4l2_fh *fh,
++			   struct v4l2_event_subscription *sub)
++{
++	struct v4l2_subscribed_event *sev;
++	unsigned long flags;
++
++	spin_lock_irqsave(&fh->vdev->fhs.lock, flags);
++
++	sev = __v4l2_event_subscribed(fh, sub->type);
++
++	if (sev == NULL) {
++		spin_unlock_irqrestore(&fh->vdev->fhs.lock, flags);
++		return -EINVAL;
++	}
++
++	list_del(&sev->list);
++
++	spin_unlock_irqrestore(&fh->vdev->fhs.lock, flags);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(v4l2_event_unsubscribe);
+diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
+index c1e8baf..8f80a64 100644
+--- a/drivers/media/video/v4l2-fh.c
++++ b/drivers/media/video/v4l2-fh.c
+@@ -24,6 +24,7 @@
+ 
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-fh.h>
++#include <media/v4l2-event.h>
+ 
+ void v4l2_fh_add(struct video_device *vdev, struct v4l2_fh *fh)
+ {
+@@ -34,6 +35,8 @@ void v4l2_fh_add(struct video_device *vdev, struct v4l2_fh *fh)
+ 	spin_lock_irqsave(&vdev->fhs.lock, flags);
+ 	list_add(&fh->list, &vdev->fhs.list);
+ 	spin_unlock_irqrestore(&vdev->fhs.lock, flags);
++
++	v4l2_event_exit(fh);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_fh_add);
+ 
+diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+new file mode 100644
+index 0000000..580c9d4
+--- /dev/null
++++ b/include/media/v4l2-event.h
+@@ -0,0 +1,64 @@
++/*
++ * include/media/v4l2-event.h
++ *
++ * V4L2 events.
++ *
++ * Copyright (C) 2009 Nokia Corporation.
++ *
++ * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#ifndef V4L2_EVENT_H
++#define V4L2_EVENT_H
++
++#include <linux/types.h>
++#include <linux/videodev2.h>
++
++struct v4l2_fh;
++struct video_device;
++
++struct v4l2_kevent {
++	struct list_head	list;
++	struct v4l2_event	event;
++};
++
++struct v4l2_subscribed_event {
++	struct list_head	list;
++	u32			type;
++};
++
++struct v4l2_events {
++	wait_queue_head_t	wait;
++	struct list_head	subscribed; /* Subscribed events */
++	struct list_head	available; /* Dequeueable event */
++	struct list_head	free; /* Events ready for use */
++};
++
++int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n);
++int v4l2_event_init(struct v4l2_fh *fh, unsigned int n);
++void v4l2_event_exit(struct v4l2_fh *fh);
++int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event);
++struct v4l2_subscribed_event *v4l2_event_subscribed(
++	struct v4l2_fh *fh, u32 type);
++void v4l2_event_queue(struct video_device *vdev, struct v4l2_event *ev);
++int v4l2_event_pending(struct v4l2_fh *fh);
++int v4l2_event_subscribe(struct v4l2_fh *fh,
++			 struct v4l2_event_subscription *sub);
++int v4l2_event_unsubscribe(struct v4l2_fh *fh,
++			   struct v4l2_event_subscription *sub);
++
++#endif /* V4L2_EVENT_H */
+diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
+index e70200a..5fc751f 100644
+--- a/include/media/v4l2-fh.h
++++ b/include/media/v4l2-fh.h
+@@ -35,6 +35,7 @@ struct video_device;
+ struct v4l2_fh {
+ 	struct list_head	list;
+ 	struct video_device	*vdev;
++	struct v4l2_events      *events; /* events, pending and subscribed */
+ };
+ 
+ /* File handle related data for video_device. */
+-- 
+1.5.6.5
 
-xawtv indeed is known to be buggy, and cheese too has had some bad releases.
-
-Anyways I don't know how old the libv4l is in Lenny, but you will want at least
-version 0.6.0, as that has some fixes for the pac207 compression, and prefarably
-0.6.1 as that some desirable bug fixes. The releases past 0.6.2 mainly add
-support for other webcam compressions.
-
-Regards,
-
-Hans
