@@ -1,56 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:37751 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754776Ab0BRJzV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Feb 2010 04:55:21 -0500
-Received: from eu_spt2 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0KY100BHT7K48C@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 18 Feb 2010 09:55:16 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0KY1007SW7K48I@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 18 Feb 2010 09:55:16 +0000 (GMT)
-Date: Thu, 18 Feb 2010 10:53:48 +0100
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: RE: Fourcc for multiplanar formats
-In-reply-to: <A69FA2915331DC488A831521EAE36FE40169C5C59A@dlee06.ent.ti.com>
-To: "'Karicheri, Muralidharan'" <m-karicheri2@ti.com>,
-	'Hans Verkuil' <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	'Kamil Debski' <k.debski@samsung.com>
-Message-id: <000001cab080$44a35de0$cdea19a0$%osciak@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <E4D3F24EA6C9E54F817833EAE0D912AC09C5635702@bssrvexch01.BS.local>
- <201002171921.36567.hverkuil@xs4all.nl>
- <A69FA2915331DC488A831521EAE36FE40169C5C583@dlee06.ent.ti.com>
- <201002171942.01004.hverkuil@xs4all.nl>
- <A69FA2915331DC488A831521EAE36FE40169C5C59A@dlee06.ent.ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:52379 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932674Ab0BGSjt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Feb 2010 13:39:49 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
+	david.cohen@nokia.com,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: [PATCH v2 3/7] V4L: Events: Support event handling in do_ioctl
+Date: Sun,  7 Feb 2010 20:40:43 +0200
+Message-Id: <1265568047-31073-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4B6F0922.9070206@maxwell.research.nokia.com>
+References: <4B6F0922.9070206@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi.
+Add support for event handling to do_ioctl.
 
->Any progress on the RFC for allowing user applications to specify separate user ptr
->for each plane of a multi-planar format?
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/Makefile     |    2 +-
+ drivers/media/video/v4l2-ioctl.c |   48 ++++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-ioctl.h       |    9 +++++++
+ 3 files changed, 58 insertions(+), 1 deletions(-)
 
-I have finished ver. 1 of V4L2 API, videobuf adaptations and tested everything on
-a slightly modified vivi. Patches are ready, I'm in the middle of writing the RFC.
-
-I should be posting everything really soon (still waiting for a green light but
-it's usually a matter of hours, couple of days at most).
-
-
-Best regards
---
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
-
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index b888ad1..68253d6 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -11,7 +11,7 @@ stkwebcam-objs	:=	stk-webcam.o stk-sensor.o
+ omap2cam-objs	:=	omap24xxcam.o omap24xxcam-dma.o
+ 
+ videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-subdev.o \
+-			v4l2-fh.o
++			v4l2-fh.o v4l2-event.o
+ 
+ # V4L2 core modules
+ 
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index bfc4696..a6d6e73 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -1797,7 +1797,55 @@ static long __video_do_ioctl(struct file *file,
+ 		}
+ 		break;
+ 	}
++	case VIDIOC_DQEVENT:
++	{
++		struct v4l2_event *ev = arg;
++
++		if (!ops->vidioc_dqevent)
++			break;
++
++		ret = ops->vidioc_dqevent(fh, ev);
++		if (ret < 0) {
++			dbgarg(cmd, "no pending events?");
++			break;
++		}
++		dbgarg(cmd,
++		       "count=%d, type=0x%8.8x, sequence=%d, "
++		       "timestamp=%lu.%9.9lu ",
++		       ev->count, ev->type, ev->sequence,
++		       ev->timestamp.tv_sec, ev->timestamp.tv_nsec);
++		break;
++	}
++	case VIDIOC_SUBSCRIBE_EVENT:
++	{
++		struct v4l2_event_subscription *sub = arg;
+ 
++		if (!ops->vidioc_subscribe_event)
++			break;
++
++		ret = ops->vidioc_subscribe_event(fh, sub);
++		if (ret < 0) {
++			dbgarg(cmd, "failed, ret=%ld", ret);
++			break;
++		}
++		dbgarg(cmd, "type=0x%8.8x", sub->type);
++		break;
++	}
++	case VIDIOC_UNSUBSCRIBE_EVENT:
++	{
++		struct v4l2_event_subscription *sub = arg;
++
++		if (!ops->vidioc_unsubscribe_event)
++			break;
++
++		ret = ops->vidioc_unsubscribe_event(fh, sub);
++		if (ret < 0) {
++			dbgarg(cmd, "failed, ret=%ld", ret);
++			break;
++		}
++		dbgarg(cmd, "type=0x%8.8x", sub->type);
++		break;
++	}
+ 	default:
+ 	{
+ 		if (!ops->vidioc_default)
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index 7a4529d..6d6a2a3 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -21,6 +21,8 @@
+ #include <linux/videodev2.h>
+ #endif
+ 
++struct v4l2_fh;
++
+ struct v4l2_ioctl_ops {
+ 	/* ioctl callbacks */
+ 
+@@ -239,6 +241,13 @@ struct v4l2_ioctl_ops {
+ 	int (*vidioc_enum_frameintervals) (struct file *file, void *fh,
+ 					   struct v4l2_frmivalenum *fival);
+ 
++	int (*vidioc_dqevent)	       (struct v4l2_fh *fh,
++					struct v4l2_event *ev);
++	int (*vidioc_subscribe_event)  (struct v4l2_fh *fh,
++					struct v4l2_event_subscription *sub);
++	int (*vidioc_unsubscribe_event)(struct v4l2_fh *fh,
++					struct v4l2_event_subscription *sub);
++
+ 	/* For other private ioctls */
+ 	long (*vidioc_default)	       (struct file *file, void *fh,
+ 					int cmd, void *arg);
+-- 
+1.5.6.5
 
