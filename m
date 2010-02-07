@@ -1,88 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:60327 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934206Ab0BYWNJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Feb 2010 17:13:09 -0500
-Date: Thu, 25 Feb 2010 14:14:07 -0800
-From: Tony Lindgren <tony@atomide.com>
-To: hvaibhav@ti.com
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	hverkuil@xs4all.nl
-Subject: Re: [PATCH-V6 2/2] OMAP2/3: Add V4L2 DSS driver support in device.c
-Message-ID: <20100225221407.GM28173@atomide.com>
-References: <hvaibhav@ti.com>
- <1266917239-7094-3-git-send-email-hvaibhav@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1266917239-7094-3-git-send-email-hvaibhav@ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:52395 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932957Ab0BGSj5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Feb 2010 13:39:57 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
+	david.cohen@nokia.com,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: [PATCH v2 7/7] V4L: Events: Support all events
+Date: Sun,  7 Feb 2010 20:40:47 +0200
+Message-Id: <1265568047-31073-7-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4B6F0922.9070206@maxwell.research.nokia.com>
+References: <4B6F0922.9070206@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* hvaibhav@ti.com <hvaibhav@ti.com> [100223 01:25]:
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> 
-> 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> ---
->  arch/arm/plat-omap/devices.c |   29 +++++++++++++++++++++++++++++
->  1 files changed, 29 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-> index 30b5db7..64f2a3a 100644
-> --- a/arch/arm/plat-omap/devices.c
-> +++ b/arch/arm/plat-omap/devices.c
-> @@ -357,6 +357,34 @@ static void omap_init_wdt(void)
->  static inline void omap_init_wdt(void) {}
->  #endif
-> 
-> +/*---------------------------------------------------------------------------*/
-> +
-> +#if defined(CONFIG_VIDEO_OMAP2_VOUT) || \
-> +	defined(CONFIG_VIDEO_OMAP2_VOUT_MODULE)
-> +#if defined (CONFIG_FB_OMAP2) || defined (CONFIG_FB_OMAP2_MODULE)
-> +static struct resource omap_vout_resource[3 - CONFIG_FB_OMAP2_NUM_FBS] = {
-> +};
-> +#else
-> +static struct resource omap_vout_resource[2] = {
-> +};
-> +#endif
-> +
-> +static struct platform_device omap_vout_device = {
-> +	.name		= "omap_vout",
-> +	.num_resources	= ARRAY_SIZE(omap_vout_resource),
-> +	.resource 	= &omap_vout_resource[0],
-> +	.id		= -1,
-> +};
-> +static void omap_init_vout(void)
-> +{
-> +	(void) platform_device_register(&omap_vout_device);
-> +}
+Add support for subscribing all events with a special id V4L2_EVENT_ALL. If
+V4L2_EVENT_ALL is subscribed, no other events may be subscribed. Otherwise
+V4L2_EVENT_ALL is considered just as any other event.
 
-Allocation can still fail here, please handle the results.
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/v4l2-event.c |   13 ++++++++++++-
+ include/linux/videodev2.h        |    1 +
+ 2 files changed, 13 insertions(+), 1 deletions(-)
 
-> +#else
-> +static inline void omap_init_vout(void) {}
-> +#endif
-> +
-> +/*---------------------------------------------------------------------------*/
-> +
->  /*
->   * This gets called after board-specific INIT_MACHINE, and initializes most
->   * on-chip peripherals accessible on this board (except for few like USB):
-> @@ -387,6 +415,7 @@ static int __init omap_init_devices(void)
->  	omap_init_rng();
->  	omap_init_uwire();
->  	omap_init_wdt();
-> +	omap_init_vout();
->  	return 0;
->  }
->  arch_initcall(omap_init_devices);
+diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+index cd744d0..131bab7 100644
+--- a/drivers/media/video/v4l2-event.c
++++ b/drivers/media/video/v4l2-event.c
+@@ -133,6 +133,14 @@ static struct v4l2_subscribed_event *__v4l2_event_subscribed(
+ 	struct v4l2_events *events = fh->events;
+ 	struct v4l2_subscribed_event *sev;
+ 
++	if (list_empty(&events->subscribed))
++		return NULL;
++
++	sev = list_entry(events->subscribed.next,
++			 struct v4l2_subscribed_event, list);
++	if (sev->type == V4L2_EVENT_ALL)
++		return sev;
++
+ 	list_for_each_entry(sev, &events->subscribed, list) {
+ 		if (sev->type == type)
+ 			return sev;
+@@ -212,6 +220,8 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+ 	/* Allow subscribing to valid events only. */
+ 	if (sub->type < V4L2_EVENT_PRIVATE_START)
+ 		switch (sub->type) {
++		case V4L2_EVENT_ALL:
++			break;
+ 		default:
+ 			return -EINVAL;
+ 		}
+@@ -252,7 +262,8 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+ 
+ 	sev = __v4l2_event_subscribed(fh, sub->type);
+ 
+-	if (sev == NULL) {
++	if (sev == NULL ||
++	    (sub->type != V4L2_EVENT_ALL && sev->type == V4L2_EVENT_ALL)) {
+ 		spin_unlock_irqrestore(&fh->vdev->fhs.lock, flags);
+ 		return -EINVAL;
+ 	}
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index a19ae89..9ae9a1c 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1553,6 +1553,7 @@ struct v4l2_event_subscription {
+ 	__u32		reserved[7];
+ };
+ 
++#define V4L2_EVENT_ALL				0
+ #define V4L2_EVENT_PRIVATE_START		0x08000000
+ 
+ /*
+-- 
+1.5.6.5
 
-Looks like this should be in mach-omap2/devices.c instead if it's all
-omap2/3/4 specific.
-
-Regards,
-
-Tony
