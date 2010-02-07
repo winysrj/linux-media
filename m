@@ -1,41 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:61467 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932791Ab0BCUrI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2010 15:47:08 -0500
-Received: by bwz19 with SMTP id 19so515094bwz.28
-        for <linux-media@vger.kernel.org>; Wed, 03 Feb 2010 12:47:07 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4B69DF51.4020704@arcor.de>
-References: <4B673790.3030706@arcor.de> <4B675B19.3080705@redhat.com>
-	 <4B685FB9.1010805@arcor.de> <4B688507.606@redhat.com>
-	 <4B688E41.2050806@arcor.de> <4B689094.2070204@redhat.com>
-	 <4B6894FE.6010202@arcor.de> <4B69D83D.5050809@arcor.de>
-	 <4B69D8CC.2030008@arcor.de> <4B69DF51.4020704@arcor.de>
-Date: Wed, 3 Feb 2010 15:47:06 -0500
-Message-ID: <829197381002031247x70b21fe7vfefabc1ea663be67@mail.gmail.com>
-Subject: Re: [PATCH 15/15] - tm6000 hack with different demodulator parameter
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Stefan Ringel <stefan.ringel@arcor.de>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp.nokia.com ([192.100.122.230]:41855 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932820Ab0BGSjz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Feb 2010 13:39:55 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
+	david.cohen@nokia.com,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: [PATCH v2 5/7] V4L: Events: Count event queue length
+Date: Sun,  7 Feb 2010 20:40:45 +0200
+Message-Id: <1265568047-31073-5-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4B6F0922.9070206@maxwell.research.nokia.com>
+References: <4B6F0922.9070206@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 3, 2010 at 3:40 PM, Stefan Ringel <stefan.ringel@arcor.de> wrote:
-> signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
->
-> --- a/drivers/staging/tm6000/hack.c
-> +++ b/drivers/staging/tm6000/hack.c
-<snip>
+Update the count field properly by setting it to exactly to number of
+further available events.
 
-This patch shouldn't be merged at all.  You should figure out the
-correct zl10353_config that is required, and hold off on submission
-until you have the correct fix.
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/v4l2-event.c |   18 ++++++++----------
+ include/media/v4l2-event.h       |    3 +++
+ 2 files changed, 11 insertions(+), 10 deletions(-)
 
-Devin
-
+diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+index 6d57324..a95cde0 100644
+--- a/drivers/media/video/v4l2-event.c
++++ b/drivers/media/video/v4l2-event.c
+@@ -88,6 +88,8 @@ int v4l2_event_init(struct v4l2_fh *fh, unsigned int n)
+ 	INIT_LIST_HEAD(&fh->events->available);
+ 	INIT_LIST_HEAD(&fh->events->subscribed);
+ 
++	atomic_set(&fh->events->navailable, 0);
++
+ 	ret = v4l2_event_alloc(fh, n);
+ 	if (ret < 0)
+ 		v4l2_event_exit(fh);
+@@ -109,10 +111,12 @@ int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
+ 		return -ENOENT;
+ 	}
+ 
++	BUG_ON(&events->navailable == 0);
++
+ 	kev = list_first_entry(&events->available, struct v4l2_kevent, list);
+ 	list_move(&kev->list, &events->free);
+ 
+-	kev->event.count = !list_empty(&events->available);
++	kev->event.count = atomic_dec_return(&events->navailable);
+ 
+ 	*event = kev->event;
+ 
+@@ -173,6 +177,8 @@ void v4l2_event_queue(struct video_device *vdev, struct v4l2_event *ev)
+ 		kev->event = *ev;
+ 		list_move_tail(&kev->list, &events->available);
+ 
++		atomic_inc(&events->navailable);
++
+ 		wake_up_all(&events->wait);
+ 	}
+ 
+@@ -182,15 +188,7 @@ EXPORT_SYMBOL_GPL(v4l2_event_queue);
+ 
+ int v4l2_event_pending(struct v4l2_fh *fh)
+ {
+-	struct v4l2_events *events = fh->events;
+-	unsigned long flags;
+-	int ret;
+-
+-	spin_lock_irqsave(&fh->vdev->fhs.lock, flags);
+-	ret = !list_empty(&events->available);
+-	spin_unlock_irqrestore(&fh->vdev->fhs.lock, flags);
+-
+-	return ret;
++	return atomic_read(&fh->events->navailable);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_event_pending);
+ 
+diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+index 580c9d4..282d215 100644
+--- a/include/media/v4l2-event.h
++++ b/include/media/v4l2-event.h
+@@ -28,6 +28,8 @@
+ #include <linux/types.h>
+ #include <linux/videodev2.h>
+ 
++#include <asm/atomic.h>
++
+ struct v4l2_fh;
+ struct video_device;
+ 
+@@ -45,6 +47,7 @@ struct v4l2_events {
+ 	wait_queue_head_t	wait;
+ 	struct list_head	subscribed; /* Subscribed events */
+ 	struct list_head	available; /* Dequeueable event */
++	atomic_t                navailable;
+ 	struct list_head	free; /* Events ready for use */
+ };
+ 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.5.6.5
+
