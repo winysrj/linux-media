@@ -1,56 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4-g21.free.fr ([212.27.42.4]:56939 "EHLO smtp4-g21.free.fr"
+Received: from mx1.redhat.com ([209.132.183.28]:51414 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932244Ab0BQJdM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Feb 2010 04:33:12 -0500
-Received: from smtp4-g21.free.fr (localhost [127.0.0.1])
-	by smtp4-g21.free.fr (Postfix) with ESMTP id 813264C80CE
-	for <linux-media@vger.kernel.org>; Wed, 17 Feb 2010 10:33:06 +0100 (CET)
-Received: from [192.168.0.10] (unknown [78.243.40.12])
-	by smtp4-g21.free.fr (Postfix) with ESMTP id 8B7CC4C815C
-	for <linux-media@vger.kernel.org>; Wed, 17 Feb 2010 10:33:04 +0100 (CET)
-Message-ID: <4B7BB7CF.7000208@free.fr>
-Date: Wed, 17 Feb 2010 10:33:03 +0100
-From: moebius <moebius1@free.fr>
+	id S1753574Ab0BHRXJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Feb 2010 12:23:09 -0500
+Message-ID: <4B70485B.2090600@redhat.com>
+Date: Mon, 08 Feb 2010 15:22:35 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: terratec grabby sound problem
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+To: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Chicken Shack <chicken.shack@gmx.de>,
+	Andreas Oberritter <obi@linuxtv.org>,
+	Andy Walls <awalls@radix.net>, HoP <jpetrous@gmail.com>,
+	Francesco Lavra <francescolavra@interfree.it>,
+	linux-media@vger.kernel.org, akpm@linux-foundation.org,
+	rms@gnu.org, hermann-pitton@arcor.de
+Subject: Re: [PATCH] dvb-core: fix initialization of feeds list in demux filter
+ (Was: Videotext application crashes the kernel due to DVB-demux patch)
+References: <1265546998.9356.4.camel@localhost>  <4B6F72E5.3040905@redhat.com>  <4B700287.5080900@linuxtv.org> <1265636585.5399.47.camel@brian.bconsult.de> <alpine.LFD.2.00.1002080746180.3829@localhost.localdomain>
+In-Reply-To: <alpine.LFD.2.00.1002080746180.3829@localhost.localdomain>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Bonjour,
+Linus Torvalds wrote:
 
-I've bought a terratec grabby device but I've experimented some audio 
-problems with it
-I run an ubuntu karmic (9.10) distri and use mplayer/mencoder to see and 
-capture vhs pal stuff.
+>  - if somebody reports a regression, IT MUST BE FIXED. Not "discussed" for 
+>    two weeks. Not talked around. If we have a bisected commit that starts 
+>    oopsing with an existing setup that used to work, there is no 
+>    discussion. That commit absolutely _has_ to be reverted or fixed. No 
+>    ifs, buts, or maybes about it.
+>    Anybody who argues anything else is simply totally wrong. And 
+>    discussing various semantic changes or asking people to use other 
+>    programs instead of the one that causes the problem is totally 
+>    irrelevant until the oops has been fixed.
+> 
+>    An oops is not acceptable in _any_ situation, and saying that the user 
+>    program is doing something wrong is totally ludicrous. So is breaking a 
+>    program that used to work.
+> 
+> The fix, btw, for those that haven't seen it, seems to be here:
+> 
+> 	http://patchwork.kernel.org/patch/77615/
 
-But, If video works with mplayer/mencoder, sound doesn't
-So I run alsamixer -c1 to access grabby capture volume, then when I 
-change volume slider a little bit I get an ugly sound very jerky
-Then I go to sound préférences of pulsaudio and swith the grabby device 
-to off (éteint in french) andb after to analog input and then I get a 
-good sound.
+Yes, this patch actually fixed the OOPS, although it were a report From Chicken
+saying that a previous patch got fixed it (http://patchwork.kernel.org/patch/76071/).
 
-I's very strange because with my old pinnacle dvc100 sound works 
-immediatly (but this device seems to have problem because sound move 
-time to time to an affect like a flanger and then come normal again ; I 
-suspect a hardware problem of the device but I cannot be sure because I 
-have no microsoft computer to test it).
-
-I've bought this low-cost terratec grabby to do the job but, finally, I 
-experiment another problem....I'm trying to grab my vhs since several 
-months and I have still no success !
-
-I cannot try to grab my vhs because,even doing things I've mentionned, 
-I'm never sure that it works because mencoder encodes but don't show any 
-video or sound during it works.
+I submitted you both fixes, plus a third one (http://patchwork.kernel.org/patch/76083/)
+for a potential usage of vmalloc during interrupt time.
 
 
-I've seached but found nothing...so I post here.....if someone has an 
-idea.....
-
-cordialement,
-
+Cheers,
+Mauro
