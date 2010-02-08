@@ -1,69 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:52706 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753100Ab0BNXeG (ORCPT
+Received: from mail-in-11.arcor-online.net ([151.189.21.51]:44298 "EHLO
+	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753713Ab0BHUFF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Feb 2010 18:34:06 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: videobuf and streaming I/O questions
-Date: Mon, 15 Feb 2010 00:34:23 +0100
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-References: <201002141422.48362.hverkuil@xs4all.nl> <4B77FD89.3080209@infradead.org> <201002141526.09339.hverkuil@xs4all.nl>
-In-Reply-To: <201002141526.09339.hverkuil@xs4all.nl>
+	Mon, 8 Feb 2010 15:05:05 -0500
+Message-ID: <4B706E48.9010407@arcor.de>
+Date: Mon, 08 Feb 2010 21:04:24 +0100
+From: Stefan Ringel <stefan.ringel@arcor.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org, dheitmueller@kernellabs.com
+Subject: zl10335 with tm6010 or tm6000
+References: <1265410096-11788-1-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-2-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-3-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-4-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-5-git-send-email-stefan.ringel@arcor.de> <4B6FF3C9.2010804@redhat.com> <4B704A2D.5000100@arcor.de> <4B7054A0.8050001@redhat.com> <4B7060DC.5030006@arcor.de> <4B706347.9020400@redhat.com>
+In-Reply-To: <4B706347.9020400@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201002150034.24891.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+I have switched from hack to zl10353 module, and  I have tested more
+different setups. I have found what wrong is, in function
+tl10353_read_status() and zl10353_read_snr(), not positive value.
 
-On Sunday 14 February 2010 15:26:09 Hans Verkuil wrote:
-> On Sunday 14 February 2010 14:41:29 Mauro Carvalho Chehab wrote:
-> > Hans Verkuil wrote:
-> > > Hi all,
-> > > 
-> > > I've been investigating some problems with my qv4l2 utility and I
-> > > encountered some inconsistencies in the streaming I/O documentation
-> > > and the videobuf implementation.
-> > > 
-> > > I would like to know which is correct.
+zl10353_read_status()
 
-[snip]
+reg                        has digital                            hasn't
+digital
 
-> > > 2) The VIDIOC_REQBUFS documentation states that it should be possible
-> > > to use a count of 0, in which case it should do an implicit STREAMOFF.
-> > > This is currently not implemented. I have included a patch for this
-> > > below and if there are no issues with it, then I'll make a pull
-> > > request for this.
-> > 
-> > This can eventually break some application. I think it is safer to fix
-> > the specs.
-> 
-> I don't really see how this would break an application and I think that
-> some drivers that do not use videobuf already support this. The reason why
-> I think this is a good idea to support it is that this makes it very easy
-> to check which streaming mode is supported without actually allocating
-> anything.
-> 
-> I was actually using this in qv4l2 with uvc until I tried it with the mxb
-> driver and discovered that videobuf didn't support it. I am definitely in
-> favor of fixing the code instead of the spec in this case.
+0x05                    0x40                                    0x00
+0x06                    0x00                                    0x21
+0x07                    0x33                                    0x03
+0x08                    0x00                                    0x00
+more than 0x00
+0x09                    0x58                                    0x00
 
-Using a count of 0 to free buffers definitely needs to be supported, so 
-videobuf must be fixed. However, I don't think VIDIOC_REQBUFS should issue an 
-implicit VIDIOC_STREAMOFF. It should instead return -EBUSY if streaming is in 
-progress, or if buffers are still mapped in the userspace memory space.
+zl10353_read_snr()
 
-Performing implicit actions make drivers more complex and error prone. I don't 
-see any harm in requiring userspace to call VIDIOC_STREAMOFF before freeing 
-buffers.
+reg                        has digital                            hasn't
+digital
+
+0x0f                     0x28   inv ( 0xd8) =^87%    0x2b  inv (0xd5) =^ 84%
+0x10                    0x00                                    0x00
+
+
+the function set_parameters is working. I have added (only for test) a
+full HAS_FE_* status, so that I tested the set_parameter function.
 
 -- 
-Regards,
+Stefan Ringel <stefan.ringel@arcor.de>
 
-Laurent Pinchart
