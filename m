@@ -1,53 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vip1scan.telenor.net ([148.123.15.75]:15131 "EHLO sv02.e.nsc.no"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751564Ab0BWM3A (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2010 07:29:00 -0500
-Message-ID: <4B83C6C0.5020708@online.no>
-Date: Tue, 23 Feb 2010 13:14:56 +0100
-From: Hendrik Skarpeid <skarp@online.no>
+Received: from comal.ext.ti.com ([198.47.26.152]:56106 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752120Ab0BHPJQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2010 10:09:16 -0500
+From: "Maupin, Chase" <chase.maupin@ti.com>
+To: Hans Verkuil <hans.verkuil@tandberg.com>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"sakari.ailus@maxwell.research.nokia.com"
+	<sakari.ailus@maxwell.research.nokia.com>,
+	"mchehab@infradead.org" <mchehab@infradead.org>
+CC: "vpss_driver_design@list.ti.com - This list is to discuss the VPSS
+	driver design (May contain non-TIers)"
+	<vpss_driver_design@list.ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Mon, 8 Feb 2010 09:08:37 -0600
+Subject: Requested feedback on V4L2 driver design
+Message-ID: <131E5DFBE7373E4C8D813795A6AA7F0802C4E0FF3E@dlee06.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Nameer Kazzaz <nameer.kazzaz@gmail.com>
-CC: "Igor M. Liplianin" <liplianin@me.by>, linux-media@vger.kernel.org
-Subject: Re: DM1105: could not attach frontend 195d:1105
-References: <4B7D83B2.4030709@online.no> <201002201949.36612.liplianin@me.by> <4B82EF6D.2000707@gmail.com>
-In-Reply-To: <4B82EF6D.2000707@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No luck here either, still working on it.
-My plan is to solder som wires on strategic points on the board and 
-debug i2c and other activity with an oscilloscope. Will probably start 
-next week.
+All,
 
-Nameer Kazzaz wrote:
-> Hey Igor,
-> I'm getting the same error:
-> dm1105 0000:04:0b.0: could not attach frontend
->
-> Did you get your one to work.
->
-> Thanks
-> Nameer
->
-> Igor M. Liplianin wrote:
->> On 18 февраля 2010, liplianin@me.by wrote:
->>  
->>> I also got the unbranded dm1105 card. I tried the four possible i2c
->>> addresses, just i case. Noen worked of course. Then I traced the i2c
->>> pins on the tuner to pins 100 and 101 on the DM1105.
->>> These are GPIO pins, so bit-banging i2c on these pins seems to be the
->>> solution.
->>>
->>> scl = p101 = gpio14
->>> sda = p100 = gpio13
->>>     
->> Here is the patch to test. Use option card=4.
->>     modprobe dm1105 card=4
->>   
->
->
->
+Texas Instruments (TI) is working on the design for the V4L2 capture and display drivers for our next generation system-on-chip (SoC) processor and would like to solicit your feedback.  Our new SoCs have been improved to allow for higher video resolutions and greater frame rates.  To this end the display hardware has been moved to a separate processing block called the video processing subsystem (VPSS).  The VPSS will be running a firmware image that controls the capture/display hardware and services requests from one or more host processors.
+
+Moving to a remote processor for the processing of video input and output data requires that commands to control the hardware be passed to this processing block using some form of inter-processor communication (IPC).  TI would like to solicit your feedback on proposal for the V4L2 driver design to get a feel for whether or not this design would be accepted into the Linux kernel.  To this end we have put together an overview of the design and usage on our wiki at http://wiki.davincidsp.com/index.php/Video_Processing_Subsystem_Driver_Design.  We would greatly appreciate feedback from community members on the acceptability of our driver design.
+
+If you have additional questions or need more information please feel free to contact us (we have setup a mailing list at vpss_driver_design@list.ti.com) so we can answer them.
+
+Sincerely,
+Chase Maupin
+Software Applications
+Catalog DSP Products
+e-mail: chase.maupin@ti.com
+
+For support:
+Forums - http://community.ti.com/forums/
+Wiki - http://wiki.davincidsp.com/
 
