@@ -1,53 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:60708 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:53258 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756762Ab0BCQTj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Feb 2010 11:19:39 -0500
-Message-ID: <4B69A206.2010304@redhat.com>
-Date: Wed, 03 Feb 2010 14:19:18 -0200
+	id S1750827Ab0BHRvt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Feb 2010 12:51:49 -0500
+Message-ID: <4B704F29.5030201@redhat.com>
+Date: Mon, 08 Feb 2010 15:51:37 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: git problem with uvcvideo
-References: <4B5CBC31.5090701@freemail.hu> <201001251907.18266.laurent.pinchart@ideasonboard.com> <4B5DF582.1080602@infradead.org>
-In-Reply-To: <4B5DF582.1080602@infradead.org>
-Content-Type: text/plain; charset=UTF-8
+To: Stefan Ringel <stefan.ringel@arcor.de>
+CC: linux-media@vger.kernel.org, dheitmueller@kernellabs.com
+Subject: Re: [PATCH 5/12] tm6000: update init table and sequence for tm6010
+References: <1265410096-11788-1-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-2-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-3-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-4-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-5-git-send-email-stefan.ringel@arcor.de> <4B6FF3C9.2010804@redhat.com> <4B6FF763.1090203@redhat.com> <4B7037D3.5040601@arcor.de> <4B7049F3.8080208@redhat.com> <4B704B14.9040609@arcor.de> <4B704BD4.90908@arcor.de>
+In-Reply-To: <4B704BD4.90908@arcor.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
-
-> However, the html URL is currently broken:
+Stefan Ringel wrote:
+> Am 08.02.2010 18:34, schrieb Stefan Ringel:
+>> Am 08.02.2010 18:29, schrieb Mauro Carvalho Chehab:
+>>   
+>>> Stefan Ringel wrote:
+>>>   
+>>>     
+>>>> Am 08.02.2010 12:37, schrieb Mauro Carvalho Chehab:
+>>>>     
+>>>>       
+>>>>> Mauro Carvalho Chehab wrote:
+>>>>>   
+>>>>>       
+>>>>>         
+>>>>>>> +		tm6000_read_write_usb (dev, 0xc0, 0x10, 0x7f1f, 0x0000, buf, 2);
+>>>>>>>       
+>>>>>>>           
+>>>>>>>             
+>>>>>   
+>>>>>       
+>>>>>         
+>>>>>> Most of the calls there are read (0xc0). I don't know any device that requires
+>>>>>> a read for it to work. I suspect that the above code is just probing to check
+>>>>>> what i2c devices are found at the board.
+>>>>>>     
+>>>>>>         
+>>>>>>           
+>>>>> Btw, by looking at drivers/media/dvb/frontends/zl10353_priv.h, we have an idea
+>>>>> on what the above does:
+>>>>>
+>>>>> The register 0x7f is:
+>>>>>
+>>>>>         CHIP_ID            = 0x7F,
+>>>>>
+>>>>> So, basically, the above code is reading the ID of the chip, likely to be sure that it
+>>>>> is a Zarlink 10353.
+>>>>>
+>>>>> Cheers,
+>>>>> Mauro
+>>>>> --
+>>>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>>   
+>>>>>       
+>>>>>         
+>>>> yes, but that's for activating Zarlink zl10353 and checking it --> hello
+>>>> Zarlink? If doesn't use that sequence, then cannot use Zarlink zl10353.
+>>>>
+>>>>     
+>>>>       
+>>> Are you sure about that? Is this a new bug on tm6000?
+>>>
+>>> Anyway, the proper place for such code is inside zl10353 driver, not outside.
+>>>
+>>>   
+>>>     
+>> It cannot activate after load xc3028 firmware.
+>>
+>>   
+> That part is I think it's board specific or tm6010.
 > 
-> $ rm -rf uvcvideo/ && git clone -l --bare /git/linux-2.6.git/ uvcvideo && cd uvcvideo && git remote add uvcvideo http://linuxtv.org/git/pinchartl/uvcvideo.git && git remote update 
-> Initialized empty Git repository in /home/mchehab/tst/uvcvideo/uvcvideo/
-> Updating uvcvideo
-> 
-> Probably, the rewrite rules at the server for http are incomplete. I'll see if I can fix it.
+Probably yet-another-i2c-bug-on-tm6000... Ah, well...
 
-Fixed. 
+then, convert this call into an i2c call. You may get one example of such in em28xx-cards.
+In that specific case, em28xx-based webcams can be shipped with more than one different
+sensor. So, the driver needs to read the sensor from I2C:
 
-Basically, for http: to work, the http server shouldn't call gitweb handler. So, a different URL
-is needed for gitweb and for git pull... Also, I needed to enable an post-update hook to be sure that
-some references are generated after a push.
+        rc = i2c_master_recv(&dev->i2c_client, (char *)&version_be, 2);
+        if (rc != 2)
+                return -EINVAL;
 
-I've updated the gitweb to display the proper URL's.
-
-Basically, the gitweb interface is available via http://git.linuxtv.org. 
-
-So, for uvcvideo, we have:
-	http://git.linuxtv.org/pinchartl/uvcvideo.git	(gitweb interface, for browsing)
-
-For adding a remote to that tree, you should use either:
-	git remote add uvcvideo git://linuxtv.org/pinchartl/uvcvideo.git
-		or
-	git remote add uvcvideo http://linuxtv.org/git/pinchartl/uvcvideo.git
-
-Both is working, but using the git: URL is better. The http: URL should be used only when
-behind a firewall that blocks the git port (tcp port 9418).
+Of course, you need to be sure to register the i2c bus before calling i2c_master_recv.
 
 -- 
 
