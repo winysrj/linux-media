@@ -1,58 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.mujha-vel.cz ([81.30.225.246]:54695 "EHLO
-	smtp.mujha-vel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752301Ab0BNUga (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Feb 2010 15:36:30 -0500
-From: Jiri Slaby <jslaby@suse.cz>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	jirislaby@gmail.com, Dmitry Torokhov <dtor@mail.ru>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] V4L: dvb-usb, add extra sync to down-up input events
-Date: Sun, 14 Feb 2010 21:36:25 +0100
-Message-Id: <1266179785-836-1-git-send-email-jslaby@suse.cz>
+Received: from rotring.dds.nl ([85.17.178.138]:33103 "EHLO rotring.dds.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751700Ab0BHSWI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Feb 2010 13:22:08 -0500
+Subject: Re: [PATCH] dvb-core: fix initialization of feeds list in demux
+ filter (Was: Videotext application crashes the kernel due to DVB-demux
+ patch)
+From: Alain Kalker <miki@dds.nl>
+To: Chicken Shack <chicken.shack@gmx.de>
+Cc: Andreas Oberritter <obi@linuxtv.org>,
+	Andy Walls <awalls@radix.net>, HoP <jpetrous@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Francesco Lavra <francescolavra@interfree.it>,
+	linux-media@vger.kernel.org, torvalds@linux-foundation.org,
+	akpm@linux-foundation.org, rms@gnu.org, hermann-pitton@arcor.de
+In-Reply-To: <1265636585.5399.47.camel@brian.bconsult.de>
+References: <1265546998.9356.4.camel@localhost>
+	 <4B6F72E5.3040905@redhat.com>  <4B700287.5080900@linuxtv.org>
+	 <1265636585.5399.47.camel@brian.bconsult.de>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 08 Feb 2010 19:01:10 +0100
+Message-ID: <1265652070.3299.8.camel@miki-desktop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Userspace is allowed to coalesce events between SYNCs. And since the code
-emits UP right after DOWN for the same key, it may be missed
-(up+down=nothing). Add an extra sync in between UP and DOWN events to disable
-the coalesce.
+Op maandag 08-02-2010 om 14:43 uur [tijdzone +0100], schreef Chicken
+Shack:
+> Now if I were a cynical or ranter or another kind of dumb primitive
+> persona non grata I would just add "Lol" or stuff like that and turn
+> myself away.
+> 
+> But this is no fun here.
+> 
+> It's nothing but a big proof that one Brazilian person in Mr. Torvalds
+> "dream team of untouchables" needs to be URGENTLY replaced by another
+> real capable person.
+> 
+> NO IDEA ABOUT DVB ISSUES, BUT DVB MAINTAINER!
 
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org
----
- drivers/media/dvb/dvb-usb/dib0700_core.c   |    1 +
- drivers/media/dvb/dvb-usb/dvb-usb-remote.c |    1 +
- 2 files changed, 2 insertions(+), 0 deletions(-)
+I would like to SINCERELY urge you to cut the ad hominems. If you feel
+you have arguments furthering your position, please let them stand for
+themselves. No need to involve someones nationality, religion, star-sign
+or whatever to make your point.
 
-diff --git a/drivers/media/dvb/dvb-usb/dib0700_core.c b/drivers/media/dvb/dvb-usb/dib0700_core.c
-index 4450214..4f961d2 100644
---- a/drivers/media/dvb/dvb-usb/dib0700_core.c
-+++ b/drivers/media/dvb/dvb-usb/dib0700_core.c
-@@ -612,6 +612,7 @@ static void dib0700_rc_urb_completion(struct urb *purb)
- 	case REMOTE_KEY_REPEAT:
- 		deb_info("key repeated\n");
- 		input_event(d->rc_input_dev, EV_KEY, event, 1);
-+		input_sync(d->rc_input_dev);
- 		input_event(d->rc_input_dev, EV_KEY, d->last_event, 0);
- 		input_sync(d->rc_input_dev);
- 		break;
-diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-remote.c b/drivers/media/dvb/dvb-usb/dvb-usb-remote.c
-index 6b5ded9..a03ef7e 100644
---- a/drivers/media/dvb/dvb-usb/dvb-usb-remote.c
-+++ b/drivers/media/dvb/dvb-usb/dvb-usb-remote.c
-@@ -107,6 +107,7 @@ static void dvb_usb_read_remote_control(struct work_struct *work)
- 		case REMOTE_KEY_REPEAT:
- 			deb_rc("key repeated\n");
- 			input_event(d->rc_input_dev, EV_KEY, event, 1);
-+			input_sync(d->rc_input_dev);
- 			input_event(d->rc_input_dev, EV_KEY, d->last_event, 0);
- 			input_sync(d->rc_input_dev);
- 			break;
--- 
-1.6.6.1
+I think people on this list have more pressing issues to deal with (like
+bisecting hard-to-find kernel oopses or digging up datasheets on
+undocumented mixer/PLLs and the like) than listening to rants about
+Brazilians not being team players.
+
+Please, just the facts, ma'am. Trolls can feed elsewhere.
+
+Sincerely,
+
+Alain
 
