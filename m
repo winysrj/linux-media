@@ -1,52 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-01.arcor-online.net ([151.189.21.41]:35261 "EHLO
-	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755882Ab0BKQXB (ORCPT
+Received: from mail-in-13.arcor-online.net ([151.189.21.53]:51148 "EHLO
+	mail-in-13.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752983Ab0BHQMl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Feb 2010 11:23:01 -0500
-From: stefan.ringel@arcor.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
-	Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH] tm6000: add i2c bus id for tm6000
-Date: Thu, 11 Feb 2010 17:22:07 +0100
-Message-Id: <1265905327-6172-1-git-send-email-stefan.ringel@arcor.de>
+	Mon, 8 Feb 2010 11:12:41 -0500
+Message-ID: <4B7037D3.5040601@arcor.de>
+Date: Mon, 08 Feb 2010 17:12:03 +0100
+From: Stefan Ringel <stefan.ringel@arcor.de>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org, dheitmueller@kernellabs.com
+Subject: Re: [PATCH 5/12] tm6000: update init table and sequence for tm6010
+References: <1265410096-11788-1-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-2-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-3-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-4-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-5-git-send-email-stefan.ringel@arcor.de> <4B6FF3C9.2010804@redhat.com> <4B6FF763.1090203@redhat.com>
+In-Reply-To: <4B6FF763.1090203@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <stefan.ringel@arcor.de>
+Am 08.02.2010 12:37, schrieb Mauro Carvalho Chehab:
+> Mauro Carvalho Chehab wrote:
+>   
+>>> +		tm6000_read_write_usb (dev, 0xc0, 0x10, 0x7f1f, 0x0000, buf, 2);
+>>>       
+>   
+>> Most of the calls there are read (0xc0). I don't know any device that requires
+>> a read for it to work. I suspect that the above code is just probing to check
+>> what i2c devices are found at the board.
+>>     
+> Btw, by looking at drivers/media/dvb/frontends/zl10353_priv.h, we have an idea
+> on what the above does:
+>
+> The register 0x7f is:
+>
+>         CHIP_ID            = 0x7F,
+>
+> So, basically, the above code is reading the ID of the chip, likely to be sure that it
+> is a Zarlink 10353.
+>
+> Cheers,
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>   
 
-Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
----
- drivers/staging/tm6000/tm6000-i2c.c |    2 --
- include/linux/i2c-id.h              |    1 +
- 2 files changed, 1 insertions(+), 2 deletions(-)
+yes, but that's for activating Zarlink zl10353 and checking it --> hello
+Zarlink? If doesn't use that sequence, then cannot use Zarlink zl10353.
 
-diff --git a/drivers/staging/tm6000/tm6000-i2c.c b/drivers/staging/tm6000/tm6000-i2c.c
-index 05df06b..6b17d0b 100644
---- a/drivers/staging/tm6000/tm6000-i2c.c
-+++ b/drivers/staging/tm6000/tm6000-i2c.c
-@@ -32,8 +32,6 @@
- #include "tuner-xc2028.h"
- 
- 
--/*FIXME: Hack to avoid needing to patch i2c-id.h */
--#define I2C_HW_B_TM6000 I2C_HW_B_EM28XX
- /* ----------------------------------------------------------- */
- 
- static unsigned int i2c_debug = 0;
-diff --git a/include/linux/i2c-id.h b/include/linux/i2c-id.h
-index e844a0b..09e3a4e 100644
---- a/include/linux/i2c-id.h
-+++ b/include/linux/i2c-id.h
-@@ -42,6 +42,7 @@
- #define I2C_HW_B_AU0828		0x010023 /* auvitek au0828 usb bridge */
- #define I2C_HW_B_CX231XX	0x010024 /* Conexant CX231XX USB based cards */
- #define I2C_HW_B_HDPVR		0x010025 /* Hauppauge HD PVR */
-+#define I2C_HW_B_TM6000		0x010026 /* TM5600/TM6000/TM6010 media bridge */
- 
- /* --- SGI adapters							*/
- #define I2C_HW_SGI_VINO		0x160000
 -- 
-1.6.6.1
+Stefan Ringel <stefan.ringel@arcor.de>
 
