@@ -1,91 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:43339 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751700Ab0BHOGU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Feb 2010 09:06:20 -0500
-Date: Mon, 8 Feb 2010 15:06:44 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-cc: linux-pm@lists.linux-foundation.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH/RESEND] soc-camera: add runtime pm support for subdevices
-In-Reply-To: <4B7012D1.40605@redhat.com>
-Message-ID: <Pine.LNX.4.64.1002081447020.4936@axis700.grange>
-References: <Pine.LNX.4.64.1002081044150.4936@axis700.grange>
- <4B7012D1.40605@redhat.com>
+Received: from cantor.suse.de ([195.135.220.2]:43936 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752558Ab0BHPwP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Feb 2010 10:52:15 -0500
+Date: Mon, 8 Feb 2010 16:52:13 +0100 (CET)
+From: Jiri Kosina <jkosina@suse.cz>
+To: Pekka Sarnila <sarnila@adit.fi>
+Cc: Jiri Slaby <jslaby@suse.cz>,
+	Pekka Sarnila <pekka.sarnila@qvantel.com>, crope@iki.fi,
+	linux-media@vger.kernel.org, pb@linuxtv.org, js@linuxtv.org
+Subject: Re: dvb-usb-remote woes [was: HID: ignore afatech 9016]
+In-Reply-To: <4B6C3D79.5080203@adit.fi>
+Message-ID: <alpine.LNX.2.00.1002081650260.30967@pobox.suse.cz>
+References: <alpine.LNX.2.00.1001132111570.30977@pobox.suse.cz> <1263415146-26321-1-git-send-email-jslaby@suse.cz> <alpine.LNX.2.00.1001260156010.30977@pobox.suse.cz> <4B5EFD69.4080802@adit.fi> <alpine.LNX.2.00.1001262344200.30977@pobox.suse.cz>
+ <4B671C31.3040902@qvantel.com> <alpine.LNX.2.00.1002011928220.15395@pobox.suse.cz> <4B672EB8.3010609@suse.cz> <4B6C3D79.5080203@adit.fi>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro
+On Fri, 5 Feb 2010, Pekka Sarnila wrote:
 
-Thanks for your comments.
-
-On Mon, 8 Feb 2010, Mauro Carvalho Chehab wrote:
-
-> Guennadi Liakhovetski wrote:
-> > To save power soc-camera powers subdevices down, when they are not in use, 
-> > if this is supported by the platform. However, the V4L standard dictates, 
-> > that video nodes shall preserve configuration between uses. This requires 
-> > runtime power management, which is implemented by this patch. It allows 
-> > subdevice drivers to specify their runtime power-management methods, by 
-> > assigning a type to the video device.
+> > Can't be HID bus with a specific driver used instead now?
 > 
-> It seems a great idea to me. For sure we need some sort of power management
-> control.
-
-Agree;)
-
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > ---
-> > 
-> > I've posted this patch to linux-media earlier, but I'd also like to get 
-> > comments on linux-pm, sorry to linux-media falks for a duplicate. To 
-> > explain a bit - soc_camera.c is a management module, that binds video 
-> > interfaces on SoCs and sensor drivers. The calls, that I am adding to 
-> > soc_camera.c shall save and restore sensor registers before they are 
-> > powered down and after they are powered up.
-> > 
-> > diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-> > index 6b3fbcc..53201f3 100644
-> > --- a/drivers/media/video/soc_camera.c
-> > +++ b/drivers/media/video/soc_camera.c
-> > @@ -24,6 +24,7 @@
-> >  #include <linux/mutex.h>
-> >  #include <linux/module.h>
-> >  #include <linux/platform_device.h>
-> > +#include <linux/pm_runtime.h>
-> >  #include <linux/vmalloc.h>
+> Well it could, but this way it is much less work and more generic. I use many
+> different joysticks, yokes and pedals. And with some generic modifications and
+> improvements into generic HID layer and generic input layer all worked well.
+> Only joystick layer got to be completely rewritten.
 > 
+> I did never put this upstream because by the time I got my own patches
+> integrated to the (new) kernel, the hid/input layer had developed so much that
+> the patches could no more be used in the latest kernel. So I hand applied them
+> again, and again kernel had moved on, and so on. Also to argue for patches
+> that cover several areas and several maintainers is difficult, and changing a
+> lot at once is always risky. So I gave up.
 > 
-> Hmm... wouldn't it be better to enable it at the subsystem level? We may for 
-> example call ?
-> The subsystem can call vidioc_streamoff() at suspend and vidioc_streamon() at
-> resume, if the device were streaming during suspend. We may add another ops to
-> the struct for the drivers/subdrivers that needs additional care.
-> 
-> That's said, it shouldn't be hard to implement some routine that will save/restore
-> all registers if the device goes to power down mode. Unfortunately, very few
-> devices successfully recovers from hibernation if streaming. One good example
-> is saa7134, that even disables/re-enables IR IRQ's during suspend/resume.
+> If anyone is interested, I could take a look again and see if the changes
+> could be argued and applied incrementally instead of one big bunch.
 
-To clarify a bit - this patch implements not static PM, but dynamic 
-(runtime) power-management. In this case it means, we are trying to save 
-power while the system is running, but we know, that the sensor is not 
-needed. Specifically, as long as no application is holding the video 
-device open. And this information is only available at the bridge driver 
-(soc-camera core) level - there is no subdev operation for open and close 
-calls, so, subdevices do not "know" whether they are in use or not. So, 
-only saving / restoring registers when streaming is not enough. Static PM 
-will also be interesting - as it has been mentioned before, we will have 
-to be careful, because sensors "sit" on two busses - i2c and video. So, 
-you have to resume after both are up and suspend before the first of them 
-goes down... So, that will be a different exciting topic;)
+Hi Pekka,
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+yes, we are definitely interested (or at least I am).
+
+The major rewrite of the HID core to be full-fledged bus was done exactly 
+so that it's easier to add support for new devices, while keeping the main 
+code clean.
+
+Even if you have problems porting the drivers to new infrastructure, you 
+can always post wha you have -- I believe that we will be able to sort it 
+out quickly.
+
+Thanks,
+
+-- 
+Jiri Kosina
+SUSE Labs, Novell Inc.
