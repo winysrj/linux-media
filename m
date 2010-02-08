@@ -1,49 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:18516 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932814Ab0BCUkH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Feb 2010 15:40:07 -0500
-Message-ID: <4B69DF20.50205@redhat.com>
-Date: Wed, 03 Feb 2010 18:40:00 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:42281 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751735Ab0BHNNl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2010 08:13:41 -0500
+Received: by vws20 with SMTP id 20so2117477vws.19
+        for <linux-media@vger.kernel.org>; Mon, 08 Feb 2010 05:13:40 -0800 (PST)
+Message-ID: <4B700DFA.2010902@gmail.com>
+Date: Mon, 08 Feb 2010 11:13:30 -0200
+From: Mauro Carvalho Chehab <maurochehab@gmail.com>
 MIME-Version: 1.0
-To: Stefan Ringel <stefan.ringel@arcor.de>
-CC: linux-media@vger.kernel.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [PATCH 9/15] -  tm6000 analog digital switch
-References: <4B673790.3030706@arcor.de> <4B673B2D.6040507@arcor.de> <4B675B19.3080705@redhat.com> <4B685FB9.1010805@arcor.de> <4B688507.606@redhat.com> <4B688E41.2050806@arcor.de> <4B689094.2070204@redhat.com> <4B6894FE.6010202@arcor.de> <4B69D83D.5050809@arcor.de> <4B69D8CC.2030008@arcor.de> <4B69DBCC.50108@arcor.de>
-In-Reply-To: <4B69DBCC.50108@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-15
+To: Franklin Meng <fmeng2002@yahoo.com>
+CC: Douglas Schilling <dougsland@gmail.com>,
+	maillist <linux-media@vger.kernel.org>
+Subject: Re: [Patch] Kworld 315U remote support
+References: <19431.32442.qm@web32702.mail.mud.yahoo.com>
+In-Reply-To: <19431.32442.qm@web32702.mail.mud.yahoo.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stefan Ringel wrote:
+Franklin Meng wrote:
+> This patch adds remote support for the Kworld 315U device
+> 
+> Note: I believe I got most of the mappings correct.  Though the
+> source and shutdown button probably could be mapped to something
+> better.  
+> 
+> To be done: Still need to get the Kworld analog patch resubmitted.
+> There are still some stuff I want to test with the analog patch before
+> I resubmit it.  Hopefully this patch will work ok.
+> 
+> Please let me know if there are any issues applying the patch
 
-> @@ -994,6 +995,13 @@ static int generic_set_freq(struct dvb_frontend
-> *fe, u32 freq /* in HZ */,
+Hi Franklin,
 
-Your emailer is damaging the patches. The above should be in the same line,
-otherwise the patch won't apply.
+Could you please add a table with the full scan code?
 
-It seems that you're using Thunderbird, right?
+There are currently two examples of such tables:
+	ir_codes_rc5_hauppauge_new_table - for RC5 keycodes
+	ir_codes_nec_terratec_cinergy_xs_table - for NEC keycodes
 
-User-Agent: Mozilla/5.0 (X11; U; Linux x86_64; de; rv:1.9.1.5) Gecko/20091130 SUSE/3.0.0-1.1.1 Thunderbird/3.0
 
-You should really read the README.patches (http://linuxtv.org/hg/v4l-dvb/raw-file/tip/README.patches)
-before submitting your work. In particular, at the end of Part II, there are the procedures for
-submissions via email. It ends with:
+Basically, a full scan code has a 2-byte code instead of 1-byte,
+and you need to specify the protocol at the table, like:
 
-" BE CAREFUL: several emailers including Thunderdird breaks long lines, causing
-  patch corruption.
-  In the specific case of Thunderbird, an extension is needed to send the
-  patches, called Asalted Patches:
-	https://hg.mozilla.org/users/clarkbw_gnome.org/asalted-patches/"
+struct ir_scancode_table ir_codes_nec_terratec_cinergy_xs_table = {
+        .scan = ir_codes_nec_terratec_cinergy_xs,
+        .size = ARRAY_SIZE(ir_codes_nec_terratec_cinergy_xs),
+        .ir_type = IR_TYPE_NEC,
+};
 
-So, please get the asalted-patches extension, apply it on your Thunderbird, review your patch
-series based on the contents of README.patches and re-submit.
+The em28xx is already prepared to properly handle the protocol.
 
--- 
+the advantage of using a full table is that it is easy to replace
+the keytable and even the protocol if someone wants to use a different
+Remote Controller to control the device.
+
+As you've declared this xclk:
+
+                .xclk           = EM28XX_XCLK_FREQUENCY_12MHZ,
+
+I suspect that your keycode is of the type NEC.
+
 
 Cheers,
 Mauro
