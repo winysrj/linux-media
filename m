@@ -1,33 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp01.frii.com ([216.17.135.167]:38444 "EHLO smtp01.frii.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751585Ab0BOOlr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2010 09:41:47 -0500
-Received: from io.frii.com (io.frii.com [216.17.222.1])
-	by smtp01.frii.com (FRII) with ESMTP id B5306EA4CE
-	for <linux-media@vger.kernel.org>; Mon, 15 Feb 2010 07:41:46 -0700 (MST)
-Date: Mon, 15 Feb 2010 07:41:46 -0700
-From: Mark Zimmerman <markzimm@frii.com>
-To: linux-media@vger.kernel.org
-Subject: Any remotes that work with the pcHDTV HD5500?
-Message-ID: <20100215144146.GA29630@io.frii.com>
+Received: from mail-pz0-f172.google.com ([209.85.222.172]:35346 "EHLO
+	mail-pz0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752420Ab0BHOAE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2010 09:00:04 -0500
+Received: by pzk2 with SMTP id 2so241963pzk.21
+        for <linux-media@vger.kernel.org>; Mon, 08 Feb 2010 06:00:03 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Date: Mon, 8 Feb 2010 21:53:21 +0800
+Message-ID: <3a665c761002080553j14ddf9cfu7167a848dc502d9d@mail.gmail.com>
+Subject: where I can get UVC svn repository
+From: loody <miloody@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Greetings:
+Dear all:
+I hear UVC is change its repository to linxutv.
+But I tried several possible repositories like
+svn co http://linuxtv.org/hg/~pinchartl/uvcvideo/tags
+svn co http://linuxtv.org/hg/~pinchartl/uvcvideo/rev/75c97b2d1a2a
 
-The pcHDTV HD5500 ships with an IR receiver but no remote. Support
-seems to be there:
-
-input: cx88 IR (pcHDTV HD5500 HDTV) as /devices/pci0000:00/0000:00:06.0/0000:01:07.1/input/input6
-
-Does anyone know of a remote that actually works with it? I have read
-that it is supposed to be a "Phillips/Magnavox" type, so I tried
-setting several programmable remotes to the codes for Phillips and
-Magnavox TVs, but nothing has worked so far.
-
-Thanks,
--- Mark
+But svn says the repository is incorrect.
+Would anyone tell me where is the correct location?
+appreciate your help,
+miloody
