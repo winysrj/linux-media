@@ -1,48 +1,25 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:45782 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752896Ab0BWQVd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2010 11:21:33 -0500
-Received: by bwz1 with SMTP id 1so1111915bwz.21
-        for <linux-media@vger.kernel.org>; Tue, 23 Feb 2010 08:21:32 -0800 (PST)
-From: Abhijit Bhopatkar <bain@devslashzero.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: Hauppague WinTV USB2-stick (tm6010)
-Date: Tue, 23 Feb 2010 21:51:25 +0530
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Stefan Ringel <stefan.ringel@arcor.de>
-References: <201002232142.07782.bain@devslashzero.com> <829197381002230815k5fe76c9ah727af57f56fd5401@mail.gmail.com>
-In-Reply-To: <829197381002230815k5fe76c9ah727af57f56fd5401@mail.gmail.com>
+Received: from bar.sig21.net ([80.81.252.164]:55180 "EHLO bar.sig21.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751341Ab0BHWtI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Feb 2010 17:49:08 -0500
+Date: Mon, 8 Feb 2010 23:51:14 +0100
+From: Johannes Stezenbach <js@linuxtv.org>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org, vdr@linuxtv.org
+Subject: linuxtv.org server move Wed, 10 Feb 2pm CET
+Message-ID: <20100208225114.GA15711@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201002232151.25852.bain@devslashzero.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 23 Feb 2010 9:45:18 pm Devin Heitmueller wrote:
-> On Tue, Feb 23, 2010 at 11:12 AM, Abhijit Bhopatkar
-> 
-> <bain@devslashzero.com> wrote:
-> > Is it worth for me to test this latest tree and driver against my card by
-> > just adding the device ids?
-> > If the devs need some more testing / help i can certainly volunteer my
-> > time/efforts.
-> > I do have fare familiarity with linux driver development and would be
-> > happy to help in debugging/developing support for this tuner. The only
-> > thing i don't have is knowledge for making this chipset work.
-> 
-> Don't bother.  The driver is known to be broken - badly.  It needs
-> alot of work, although someone has finally started hacking at the
-> tm6000 driver recently (see the mailing list archives for more info).
-> 
+Hi,
 
-Devin, thanks for the input
+the linuxtv.org server is going to be moved to a new location
+on Wednesday, around 2pm CET (UTC+1:00).
+There'll be a bit of downtime.
 
-I see that Stefan is doing some patching/cleanup.
 
-Stefan, is there anything i can do to help?
-
-Abhijit
+Johannes
