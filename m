@@ -1,48 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.cooptel.qc.ca ([216.144.115.12]:59160 "EHLO
-	amy.cooptel.qc.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752273Ab0BJDFM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 22:05:12 -0500
-Message-ID: <4B722266.4070805@cooptel.qc.ca>
-Date: Tue, 09 Feb 2010 22:05:10 -0500
-From: Richard Lemieux <rlemieu@cooptel.qc.ca>
+Received: from mail-in-11.arcor-online.net ([151.189.21.51]:52604 "EHLO
+	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751689Ab0BHRiF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Feb 2010 12:38:05 -0500
+Message-ID: <4B704BD4.90908@arcor.de>
+Date: Mon, 08 Feb 2010 18:37:24 +0100
+From: Stefan Ringel <stefan.ringel@arcor.de>
 MIME-Version: 1.0
-To: Andy Walls <awalls@radix.net>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Driver crash on kernel 2.6.32.7.  Interaction between cx8800
- (DVB-S) and USB HVR Hauppauge 950q
-References: <4B70E7DB.7060101@cooptel.qc.ca> <1265768091.3064.109.camel@palomino.walls.org>
-In-Reply-To: <1265768091.3064.109.camel@palomino.walls.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org, dheitmueller@kernellabs.com
+Subject: Re: [PATCH 5/12] tm6000: update init table and sequence for tm6010
+References: <1265410096-11788-1-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-2-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-3-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-4-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-5-git-send-email-stefan.ringel@arcor.de> <4B6FF3C9.2010804@redhat.com> <4B6FF763.1090203@redhat.com> <4B7037D3.5040601@arcor.de> <4B7049F3.8080208@redhat.com> <4B704B14.9040609@arcor.de>
+In-Reply-To: <4B704B14.9040609@arcor.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andy,
-
-This is a great answer!  Thanks very much.  When I get into this situation again
-I will know what to look for.
-
-A possible reason why I got into this problem in the first place is that I tried
-many combinations of parameters with mplayer and azap in order to learn how
-to use the USB tuner in both the ATSC and the NTSC mode.  I will look back
-in the terminal history to see if I can find anything.
-
-Regards,
-Richard
-
-Andy Walls wrote:
+Am 08.02.2010 18:34, schrieb Stefan Ringel:
+> Am 08.02.2010 18:29, schrieb Mauro Carvalho Chehab:
+>   
+>> Stefan Ringel wrote:
+>>   
+>>     
+>>> Am 08.02.2010 12:37, schrieb Mauro Carvalho Chehab:
+>>>     
+>>>       
+>>>> Mauro Carvalho Chehab wrote:
+>>>>   
+>>>>       
+>>>>         
+>>>>>> +		tm6000_read_write_usb (dev, 0xc0, 0x10, 0x7f1f, 0x0000, buf, 2);
+>>>>>>       
+>>>>>>           
+>>>>>>             
+>>>>   
+>>>>       
+>>>>         
+>>>>> Most of the calls there are read (0xc0). I don't know any device that requires
+>>>>> a read for it to work. I suspect that the above code is just probing to check
+>>>>> what i2c devices are found at the board.
+>>>>>     
+>>>>>         
+>>>>>           
+>>>> Btw, by looking at drivers/media/dvb/frontends/zl10353_priv.h, we have an idea
+>>>> on what the above does:
+>>>>
+>>>> The register 0x7f is:
+>>>>
+>>>>         CHIP_ID            = 0x7F,
+>>>>
+>>>> So, basically, the above code is reading the ID of the chip, likely to be sure that it
+>>>> is a Zarlink 10353.
+>>>>
+>>>> Cheers,
+>>>> Mauro
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>   
+>>>>       
+>>>>         
+>>> yes, but that's for activating Zarlink zl10353 and checking it --> hello
+>>> Zarlink? If doesn't use that sequence, then cannot use Zarlink zl10353.
+>>>
+>>>     
+>>>       
+>> Are you sure about that? Is this a new bug on tm6000?
+>>
+>> Anyway, the proper place for such code is inside zl10353 driver, not outside.
+>>
+>>   
+>>     
+> It cannot activate after load xc3028 firmware.
 >
-...
+>   
+That part is I think it's board specific or tm6010.
 
-> Your ability to reproduce this should be rather limited.  If you know
-> steps that make it more likely to reproduce, please remember what they
-> are.
-> 
-> Regards,
-> Andy
-> 
-> 
-> 
-> 
+-- 
+Stefan Ringel <stefan.ringel@arcor.de>
+
