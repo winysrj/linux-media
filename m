@@ -1,394 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4197 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755177Ab0BCOlZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2010 09:41:25 -0500
-Date: Wed, 3 Feb 2010 15:41:04 +0100 (CET)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: =?ISO-8859-15?Q?Richard_R=F6jfors?=
-	<richard.rojfors@pelagicore.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+Received: from mail.gmx.net ([213.165.64.20]:54644 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751700Ab0BHNqI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Feb 2010 08:46:08 -0500
+Subject: Re: [PATCH] dvb-core: fix initialization of feeds list in demux
+ filter (Was: Videotext application crashes the kernel due to DVB-demux
+ patch)
+From: Chicken Shack <chicken.shack@gmx.de>
+To: Andreas Oberritter <obi@linuxtv.org>
+Cc: Andy Walls <awalls@radix.net>, HoP <jpetrous@gmail.com>,
 	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>
-Subject: Re: [PATCH v3 1/1] radio: Add radio-timb
-In-Reply-To: <4B6983CF.2040406@pelagicore.com>
-Message-ID: <alpine.LNX.2.01.1002031534350.18547@alastor>
-References: <4B6983CF.2040406@pelagicore.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+	Francesco Lavra <francescolavra@interfree.it>,
+	linux-media@vger.kernel.org, torvalds@linux-foundation.org,
+	akpm@linux-foundation.org, rms@gnu.org, hermann-pitton@arcor.de
+In-Reply-To: <4B700287.5080900@linuxtv.org>
+References: <1265546998.9356.4.camel@localhost>
+	 <4B6F72E5.3040905@redhat.com>  <4B700287.5080900@linuxtv.org>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 08 Feb 2010 14:43:05 +0100
+Message-ID: <1265636585.5399.47.camel@brian.bconsult.de>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Richard,
+Am Montag, den 08.02.2010, 13:24 +0100 schrieb Andreas Oberritter:
+> Hello Mauro,
+> 
+> Mauro Carvalho Chehab wrote:
+> > Good catch, but it seems better to initialize both the mutex and the list head
+> > at dvb_dmx_dev_init. Please test if the following patch fixes the issue. If so, please
+> > sign.
+> 
+> please apply Francesco's original patch. Yours won't work, because
+> "feed" is a union. It must be initialized each time DMX_SET_PES_FILTER
+> gets called, because the memory might have been overwritten by a
+> previous call to DMX_SET_FILTER, which uses "feed.sec".
+> 
+> Regards,
+> Andreas
 
-On Wed, 3 Feb 2010, Richard R?jfors wrote:
+Now if I were a cynical or ranter or another kind of dumb primitive
+persona non grata I would just add "Lol" or stuff like that and turn
+myself away.
 
-> This patch add supports for the radio system on the Intel Russellville board.
->
-> It's a In-Vehicle Infotainment board with a radio tuner and DSP.
->
-> This umbrella driver has the DSP and tuner as V4L2 subdevs and calls them
-> when needed.
->
-> Signed-off-by: Richard R?jfors <richard.rojfors@pelagicore.com>
-> ---
-> diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-> index 3f40f37..c242939 100644
-> --- a/drivers/media/radio/Kconfig
-> +++ b/drivers/media/radio/Kconfig
-> @@ -429,4 +429,14 @@ config RADIO_TEF6862
-> 	  To compile this driver as a module, choose M here: the
-> 	  module will be called TEF6862.
->
-> +config RADIO_TIMBERDALE
-> +	tristate "Enable the Timberdale radio driver"
-> +	depends on MFD_TIMBERDALE && VIDEO_V4L2
-> +	select RADIO_TEF6862
-> +	select RADIO_SAA7706H
-> +	---help---
-> +	  This is a kind of umbrella driver for the Radio Tuner and DSP
-> +	  found behind the Timberdale FPGA on the Russellville board.
-> +	  Enabling this driver will automatically select the DSP and tuner.
-> +
-> endif # RADIO_ADAPTERS
-> diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
-> index 01922ad..8973850 100644
-> --- a/drivers/media/radio/Makefile
-> +++ b/drivers/media/radio/Makefile
-> @@ -24,5 +24,6 @@ obj-$(CONFIG_RADIO_SI470X) += si470x/
-> obj-$(CONFIG_USB_MR800) += radio-mr800.o
-> obj-$(CONFIG_RADIO_TEA5764) += radio-tea5764.o
-> obj-$(CONFIG_RADIO_TEF6862) += tef6862.o
-> +obj-$(CONFIG_RADIO_TIMBERDALE) += radio-timb.o
->
-> EXTRA_CFLAGS += -Isound
-> diff --git a/drivers/media/radio/radio-timb.c 
-> b/drivers/media/radio/radio-timb.c
-> new file mode 100644
-> index 0000000..c650865
-> --- /dev/null
-> +++ b/drivers/media/radio/radio-timb.c
-> @@ -0,0 +1,260 @@
-> +/*
-> + * radio-timb.c Timberdale FPGA Radio driver
-> + * Copyright (c) 2009 Intel Corporation
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-> + */
-> +
-> +#include <linux/version.h>
-> +#include <linux/io.h>
-> +#include <media/v4l2-ioctl.h>
-> +#include <media/v4l2-device.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/i2c.h>
-> +#include <media/timb_radio.h>
-> +
-> +#define DRIVER_NAME "timb-radio"
-> +
-> +struct timbradio {
-> +	struct timb_radio_platform_data	pdata;
-> +	struct v4l2_subdev	*sd_tuner;
-> +	struct v4l2_subdev	*sd_dsp;
-> +	struct video_device	*video_dev;
+But this is no fun here.
 
-Recommend removing '*' here. See notes below.
+It's nothing but a big proof that one Brazilian person in Mr. Torvalds
+"dream team of untouchables" needs to be URGENTLY replaced by another
+real capable person.
 
-> +	struct v4l2_device	v4l2_dev;
-> +};
-> +
-> +
-> +static int timbradio_vidioc_querycap(struct file *file, void  *priv,
-> +	struct v4l2_capability *v)
-> +{
-> +	strlcpy(v->driver, DRIVER_NAME, sizeof(v->driver));
-> +	strlcpy(v->card, "Timberdale Radio", sizeof(v->card));
-> +	snprintf(v->bus_info, sizeof(v->bus_info), "platform:"DRIVER_NAME);
-> +	v->version = KERNEL_VERSION(0, 0, 1);
-> +	v->capabilities = V4L2_CAP_TUNER | V4L2_CAP_RADIO;
-> +	return 0;
-> +}
-> +
-> +static int timbradio_vidioc_g_tuner(struct file *file, void *priv,
-> +	struct v4l2_tuner *v)
-> +{
-> +	struct timbradio *tr = video_drvdata(file);
-> +	return v4l2_subdev_call(tr->sd_tuner, tuner, g_tuner, v);
-> +}
-> +
-> +static int timbradio_vidioc_s_tuner(struct file *file, void *priv,
-> +	struct v4l2_tuner *v)
-> +{
-> +	struct timbradio *tr = video_drvdata(file);
-> +	return v4l2_subdev_call(tr->sd_tuner, tuner, s_tuner, v);
-> +}
-> +
-> +static int timbradio_vidioc_g_input(struct file *filp, void *priv,
-> +	unsigned int *i)
-> +{
-> +	*i = 0;
-> +	return 0;
-> +}
-> +
-> +static int timbradio_vidioc_s_input(struct file *filp, void *priv,
-> +	unsigned int i)
-> +{
-> +	return i ? -EINVAL : 0;
-> +}
-> +
-> +static int timbradio_vidioc_g_audio(struct file *file, void *priv,
-> +	struct v4l2_audio *a)
-> +{
-> +	a->index = 0;
-> +	strlcpy(a->name, "Radio", sizeof(a->name));
-> +	a->capability = V4L2_AUDCAP_STEREO;
-> +	return 0;
-> +}
-> +
-> +
-> +static int timbradio_vidioc_s_audio(struct file *file, void *priv,
-> +	struct v4l2_audio *a)
-> +{
-> +	return a->index ? -EINVAL : 0;
-> +}
-> +
-> +static int timbradio_vidioc_s_frequency(struct file *file, void *priv,
-> +	struct v4l2_frequency *f)
-> +{
-> +	struct timbradio *tr = video_drvdata(file);
-> +	return v4l2_subdev_call(tr->sd_tuner, tuner, s_frequency, f);
-> +}
-> +
-> +static int timbradio_vidioc_g_frequency(struct file *file, void *priv,
-> +	struct v4l2_frequency *f)
-> +{
-> +	struct timbradio *tr = video_drvdata(file);
-> +	return v4l2_subdev_call(tr->sd_tuner, tuner, g_frequency, f);
-> +}
-> +
-> +static int timbradio_vidioc_queryctrl(struct file *file, void *priv,
-> +	struct v4l2_queryctrl *qc)
-> +{
-> +	struct timbradio *tr = video_drvdata(file);
-> +	return v4l2_subdev_call(tr->sd_dsp, core, queryctrl, qc);
-> +}
-> +
-> +static int timbradio_vidioc_g_ctrl(struct file *file, void *priv,
-> +	struct v4l2_control *ctrl)
-> +{
-> +	struct timbradio *tr = video_drvdata(file);
-> +	return v4l2_subdev_call(tr->sd_dsp, core, g_ctrl, ctrl);
-> +}
-> +
-> +static int timbradio_vidioc_s_ctrl(struct file *file, void *priv,
-> +	struct v4l2_control *ctrl)
-> +{
-> +	struct timbradio *tr = video_drvdata(file);
-> +	return v4l2_subdev_call(tr->sd_dsp, core, s_ctrl, ctrl);
-> +}
-> +
-> +static const struct v4l2_ioctl_ops timbradio_ioctl_ops = {
-> +	.vidioc_querycap	= timbradio_vidioc_querycap,
-> +	.vidioc_g_tuner		= timbradio_vidioc_g_tuner,
-> +	.vidioc_s_tuner		= timbradio_vidioc_s_tuner,
-> +	.vidioc_g_frequency	= timbradio_vidioc_g_frequency,
-> +	.vidioc_s_frequency	= timbradio_vidioc_s_frequency,
-> +	.vidioc_g_input		= timbradio_vidioc_g_input,
-> +	.vidioc_s_input		= timbradio_vidioc_s_input,
-> +	.vidioc_g_audio		= timbradio_vidioc_g_audio,
-> +	.vidioc_s_audio		= timbradio_vidioc_s_audio,
-> +	.vidioc_queryctrl	= timbradio_vidioc_queryctrl,
-> +	.vidioc_g_ctrl		= timbradio_vidioc_g_ctrl,
-> +	.vidioc_s_ctrl		= timbradio_vidioc_s_ctrl
-> +};
-> +
-> +static const struct v4l2_file_operations timbradio_fops = {
-> +	.owner		= THIS_MODULE,
-> +	.ioctl		= video_ioctl2,
-> +};
-> +
-> +static const struct video_device timbradio_template = {
-> +	.name		= "Timberdale Radio",
-> +	.fops		= &timbradio_fops,
-> +	.ioctl_ops 	= &timbradio_ioctl_ops,
-> +	.release	= video_device_release_empty,
-> +	.minor		= -1
-> +};
-> +
-> +
-> +static int __devinit timbradio_probe(struct platform_device *pdev)
-> +{
-> +	struct timb_radio_platform_data *pdata = pdev->dev.platform_data;
-> +	struct timbradio *tr;
-> +	int err;
-> +
-> +	if (!pdata) {
-> +		dev_err(&pdev->dev, "Platform data missing\n");
-> +		err = -EINVAL;
-> +		goto err;
-> +	}
-> +
-> +	tr = kzalloc(sizeof(*tr), GFP_KERNEL);
-> +	if (!tr) {
-> +		err = -ENOMEM;
-> +		goto err;
-> +	}
-> +
-> +	tr->pdata = *pdata;
-> +
-> +	tr->video_dev = video_device_alloc();
-> +	if (!tr->video_dev) {
-> +		err = -ENOMEM;
-> +		goto err_video_alloc;
-> +	}
-> +	*tr->video_dev = timbradio_template;
+NO IDEA ABOUT DVB ISSUES, BUT DVB MAINTAINER!
 
-This is a mismatch: either embed struct video_device in struct timbradio and
-use video_device_release_empty, or use video_device_alloc and use
-video_device_release. I personally prefer to embed it.
+This is a SCANDAL, not fun! This is SCANDALOUS!
 
-The way it is done now creates a memory leak since tr->video_dev is now never
-freed.
+1. When you start to complain then this moron asks you why you are so
+late.
+2. Instead of organizing or really trying to win people with the
+necessary skills he starts dumbest silliest thinkable flame wars with
+people who are not 100 % conform with him. Thus he does not stop the
+bleeding and runaway processes of real interested persons who are
+urgently needed. On the contrary he accelerates those processes.
+3. When the situation was in balance and no help was in sight I decided
+to organize help from far outside the list.
+I was lucky finding Francesco Lavra. If there hadn't been him, endless
+effectless ranting would still be the way to go, and the kernel
+regression of a stable kernel would persist (!).
+In this situation our Brazilian counterproductive seat farter starts to
+demotivate you by: "It's too late to write compat levels now, we're too
+late in the release circle and blablablablahhhh Blubblubblubblub.....
+Blather blather blather blather.........
 
-Note that I would also recommend filling in the video_dev fields explicitly
-instead of from a template. That way you clearly see how the struct is
-initialized instead of having to hunt for the template definition.
+4. Before the decisive patch was there our completely incapable
+Brazilian spurked out some completely ineffective and silly
+pseudo-patches who for each did not even touch the problem.
+Thus he did de facto nothing than stealing my time, attacking my humble
+nerves. The rule of our Brazilian: Even if I am a moron knowing
+absolutely nothing I must PRETEND some brainless activism. So show is
+everything, while manpower is being chased away.
+Competitive manpower is dangerous for the Brazilian pretender.
 
-Regards,
+5. And when the decisive patch is there he wastes it for a reason that
+only he knows. Thanks to Andreas we all know now.
 
- 	Hans
+That is exactly what he did with Markus Rechbergers contributions:
+He broke them by transforming them in a definitely unqualified manner.
+Until Markus ran away. With the effect that the Empia stuff is being
+hosted elsewhere now.
+Mauro Carvalho Chehab's behaviour and policy is so goddamn dumb,
+ineffective, destructive, .....
+It is a secure way to put a project finally over the edge which has got
+real structural problems ....
 
-> +
-> +	strlcpy(tr->v4l2_dev.name, DRIVER_NAME, sizeof(tr->v4l2_dev.name));
-> +	err = v4l2_device_register(NULL, &tr->v4l2_dev);
-> +	if (err)
-> +		goto err_v4l2_dev;
-> +
-> +	tr->video_dev->v4l2_dev = &tr->v4l2_dev;
-> +
-> +	err = video_register_device(tr->video_dev, VFL_TYPE_RADIO, -1);
-> +	if (err) {
-> +		dev_err(&pdev->dev, "Error reg video\n");
-> +		goto err_video_req;
-> +	}
-> +
-> +	video_set_drvdata(tr->video_dev, tr);
-> +
-> +	platform_set_drvdata(pdev, tr);
-> +	return 0;
-> +
-> +err_video_req:
-> +	v4l2_device_unregister(&tr->v4l2_dev);
-> +err_v4l2_dev:
-> +	if (tr->video_dev->minor != -1)
-> +		video_unregister_device(tr->video_dev);
-> +	else
-> +		video_device_release(tr->video_dev);
-> +err_video_alloc:
-> +	kfree(tr);
-> +err:
-> +	dev_err(&pdev->dev, "Failed to register: %d\n", err);
-> +
-> +	return err;
-> +}
-> +
-> +static int __devexit timbradio_remove(struct platform_device *pdev)
-> +{
-> +	struct timbradio *tr = platform_get_drvdata(pdev);
-> +
-> +	if (tr->video_dev->minor != -1)
-> +		video_unregister_device(tr->video_dev);
-> +	else
-> +		video_device_release(tr->video_dev);
-> +
-> +	v4l2_device_unregister(&tr->v4l2_dev);
-> +
-> +	kfree(tr);
-> +
-> +	return 0;
-> +}
-> +
-> +static struct platform_driver timbradio_platform_driver = {
-> +	.driver = {
-> +		.name	= DRIVER_NAME,
-> +		.owner	= THIS_MODULE,
-> +	},
-> +	.probe		= timbradio_probe,
-> +	.remove		= timbradio_remove,
-> +};
-> +
-> +/*--------------------------------------------------------------------------*/
-> +
-> +static int __init timbradio_init(void)
-> +{
-> +	return platform_driver_register(&timbradio_platform_driver);
-> +}
-> +
-> +static void __exit timbradio_exit(void)
-> +{
-> +	platform_driver_unregister(&timbradio_platform_driver);
-> +}
-> +
-> +module_init(timbradio_init);
-> +module_exit(timbradio_exit);
-> +
-> +MODULE_DESCRIPTION("Timberdale Radio driver");
-> +MODULE_AUTHOR("Mocean Laboratories <info@mocean-labs.com>");
-> +MODULE_LICENSE("GPL v2");
-> +MODULE_ALIAS("platform:"DRIVER_NAME);
-> diff --git a/include/media/timb_radio.h b/include/media/timb_radio.h
-> new file mode 100644
-> index 0000000..fcd32a3
-> --- /dev/null
-> +++ b/include/media/timb_radio.h
-> @@ -0,0 +1,36 @@
-> +/*
-> + * timb_radio.h Platform struct for the Timberdale radio driver
-> + * Copyright (c) 2009 Intel Corporation
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-> + */
-> +
-> +#ifndef _TIMB_RADIO_
-> +#define _TIMB_RADIO_ 1
-> +
-> +#include <linux/i2c.h>
-> +
-> +struct timb_radio_platform_data {
-> +	int i2c_adapter; /* I2C adapter where the tuner and dsp are attached 
-> */
-> +	struct {
-> +		const char *module_name;
-> +		struct i2c_board_info *info;
-> +	} tuner;
-> +	struct {
-> +		const char *module_name;
-> +		struct i2c_board_info *info;
-> +	} dsp;
-> +};
-> +
-> +#endif
->
+I want him to be replaced as soon as possible by a real fair, qualified
+and capable person. Every second that one tolerates Mauro Carvalho
+Chehab as a common V4l / DVB maintainer is a second of pain and
+catastrophe.
+
+I vote for Andy Walls, Devin Heitmueller. There are a couple of capable
+candidates here who can really do that job with a better output for the
+whole Linux community.
+There is ABSOLUTELY NO necessity to continue with Mauro Carvalho Chehab.
+
+I cced all relevant persons. I want Chehab away from here! It's enough
+now. My tolerance is at zero. PERIOD!
+
+CS
+
+P. S.: If the RedHat company can afford people like MCC then there is
+something wrong with the internal structures of RedHat.
+
+
