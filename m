@@ -1,105 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:39966 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758430Ab0BXWqQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Feb 2010 17:46:16 -0500
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	david.cohen@nokia.com
-Subject: [PATCH v8 3/6] V4L: Events: Add new ioctls for events
-Date: Thu, 25 Feb 2010 00:46:05 +0200
-Message-Id: <1267051568-5757-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <4B85AC1E.8060302@maxwell.research.nokia.com>
-References: <4B85AC1E.8060302@maxwell.research.nokia.com>
+Received: from mail-bw0-f223.google.com ([209.85.218.223]:47252 "EHLO
+	mail-bw0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751708Ab0BHHUF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2010 02:20:05 -0500
+Received: by bwz23 with SMTP id 23so851682bwz.1
+        for <linux-media@vger.kernel.org>; Sun, 07 Feb 2010 23:20:03 -0800 (PST)
+Date: Mon, 8 Feb 2010 16:20:14 +0900
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: [SAA7134, REQUEST] slow register writing
+Message-ID: <20100208162014.1c12ec9a@glory.loctelecom.ru>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a set of new ioctls to the V4L2 API. The ioctls conform to
-V4L2 Events RFC version 2.3:
+Hi All.
 
-<URL:http://www.spinics.net/lists/linux-media/msg12033.html>
+I wrote SPI bitbang master over GPIO of saa7134. Speed of writing is much slow then in a Windows systems.
+I make some tests:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- drivers/media/video/v4l2-compat-ioctl32.c |    3 +++
- drivers/media/video/v4l2-ioctl.c          |    3 +++
- include/linux/videodev2.h                 |   26 ++++++++++++++++++++++++++
- 3 files changed, 32 insertions(+), 0 deletions(-)
+Windows, SPI bitbang 97002 bytes x 2 time of writing is around 1.2 seconds
+Linux, SPI bitbang with call saa7134_set_gpio time of writing is 18 seconds
+Linux, SPI bitbang without call saa7134_set_gpio time of writing is 0.25seconds.
 
-diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-index f77f84b..9004a5f 100644
---- a/drivers/media/video/v4l2-compat-ioctl32.c
-+++ b/drivers/media/video/v4l2-compat-ioctl32.c
-@@ -1086,6 +1086,9 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
- 	case VIDIOC_QUERY_DV_PRESET:
- 	case VIDIOC_S_DV_TIMINGS:
- 	case VIDIOC_G_DV_TIMINGS:
-+	case VIDIOC_DQEVENT:
-+	case VIDIOC_SUBSCRIBE_EVENT:
-+	case VIDIOC_UNSUBSCRIBE_EVENT:
- 		ret = do_video_ioctl(file, cmd, arg);
- 		break;
- 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 4b11257..34c7d6e 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -290,6 +290,9 @@ static const char *v4l2_ioctls[] = {
- 	[_IOC_NR(VIDIOC_QUERY_DV_PRESET)]  = "VIDIOC_QUERY_DV_PRESET",
- 	[_IOC_NR(VIDIOC_S_DV_TIMINGS)]     = "VIDIOC_S_DV_TIMINGS",
- 	[_IOC_NR(VIDIOC_G_DV_TIMINGS)]     = "VIDIOC_G_DV_TIMINGS",
-+	[_IOC_NR(VIDIOC_DQEVENT)]	   = "VIDIOC_DQEVENT",
-+	[_IOC_NR(VIDIOC_SUBSCRIBE_EVENT)]  = "VIDIOC_SUBSCRIBE_EVENT",
-+	[_IOC_NR(VIDIOC_UNSUBSCRIBE_EVENT)] = "VIDIOC_UNSUBSCRIBE_EVENT",
- };
- #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
- 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 3c26560..d3b1446 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1622,6 +1622,29 @@ struct v4l2_streamparm {
- };
- 
- /*
-+ *	E V E N T S
-+ */
-+
-+struct v4l2_event {
-+	__u32				type;
-+	union {
-+		__u8			data[64];
-+	} u;
-+	__u32				pending;
-+	__u32				sequence;
-+	struct timespec			timestamp;
-+	__u32				reserved[9];
-+};
-+
-+struct v4l2_event_subscription {
-+	__u32				type;
-+	__u32				reserved[7];
-+};
-+
-+#define V4L2_EVENT_ALL				0
-+#define V4L2_EVENT_PRIVATE_START		0x08000000
-+
-+/*
-  *	A D V A N C E D   D E B U G G I N G
-  *
-  *	NOTE: EXPERIMENTAL API, NEVER RELY ON THIS IN APPLICATIONS!
-@@ -1743,6 +1766,9 @@ struct v4l2_dbg_chip_ident {
- #define	VIDIOC_QUERY_DV_PRESET	_IOR('V',  86, struct v4l2_dv_preset)
- #define	VIDIOC_S_DV_TIMINGS	_IOWR('V', 87, struct v4l2_dv_timings)
- #define	VIDIOC_G_DV_TIMINGS	_IOWR('V', 88, struct v4l2_dv_timings)
-+#define	VIDIOC_DQEVENT		 _IOR('V', 89, struct v4l2_event)
-+#define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct v4l2_event_subscription)
-+#define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91, struct v4l2_event_subscription)
- 
- /* Reminder: when adding new ioctls please add support for them to
-    drivers/media/video/v4l2-compat-ioctl32.c as well! */
--- 
-1.5.6.5
+The overhead of SPI subsystem is 0.25 seconds. Writing speed to registers of the saa7134
+tooooo slooooow.
 
+What you think about it?
+
+With my best regards, Dmitry.
