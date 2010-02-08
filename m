@@ -1,101 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01d.mail.t-online.hu ([84.2.42.6]:54840 "EHLO
-	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751475Ab0BBUky (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Feb 2010 15:40:54 -0500
-Message-ID: <4B688DD0.20105@freemail.hu>
-Date: Tue, 02 Feb 2010 21:40:48 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+Received: from ogre.sisk.pl ([217.79.144.158]:60317 "EHLO ogre.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751106Ab0BHWJ2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Feb 2010 17:09:28 -0500
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+To: linux-pm@lists.linux-foundation.org
+Subject: Re: [linux-pm] [PATCH/RESEND] soc-camera: add runtime pm support for subdevices
+Date: Mon, 8 Feb 2010 23:10:08 +0100
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <Pine.LNX.4.64.1002081044150.4936@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1002081044150.4936@axis700.grange>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Jean-Francois Moine <moinejf@free.fr>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21:
- ERRORS
-References: <201002021947.o12JlGvF076836@smtp-vbr5.xs4all.nl>
-In-Reply-To: <201002021947.o12JlGvF076836@smtp-vbr5.xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201002082310.08079.rjw@sisk.pl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Monday 08 February 2010, Guennadi Liakhovetski wrote:
+> To save power soc-camera powers subdevices down, when they are not in use, 
+> if this is supported by the platform. However, the V4L standard dictates, 
+> that video nodes shall preserve configuration between uses. This requires 
+> runtime power management, which is implemented by this patch. It allows 
+> subdevice drivers to specify their runtime power-management methods, by 
+> assigning a type to the video device.
 
-Hans Verkuil wrote:
-> This message is generated daily by a cron job that builds v4l-dvb for
-> the kernels and architectures in the list below.
+You need a support for that at the bus type/device type/device class level,
+because the core doesn't execute the driver callbacks directly.
+
+Rafael
+
 > 
-> [snip]
-> Detailed results are available here:
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
 > 
-> http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-> linux-2.6.16.62-i686: ERRORS
->
-> /home/hans/work/build/v4l-dvb-master/v4l/gspca.c:48:29: error: linux/usb/input.h: No such file or directory
-> /home/hans/work/build/v4l-dvb-master/v4l/gspca.c: In function 'gspca_input_connect':
-> /home/hans/work/build/v4l-dvb-master/v4l/gspca.c:182: warning: implicit declaration of function 'usb_to_input_id'
-> /home/hans/work/build/v4l-dvb-master/v4l/gspca.c:186: error: request for member 'parent' in something not a structure or union
-> /home/hans/work/build/v4l-dvb-master/v4l/gspca.c:192: error: request for member 'parent' in something not a structure or union
-
-> linux-2.6.17.14-i686: ERRORS
->
-> /home/hans/work/build/v4l-dvb-master/v4l/gspca.c:48:29: error: linux/usb/input.h: No such file or directory
-> /home/hans/work/build/v4l-dvb-master/v4l/gspca.c: In function 'gspca_input_connect':
-> /home/hans/work/build/v4l-dvb-master/v4l/gspca.c:182: warning: implicit declaration of function 'usb_to_input_id'
-> /home/hans/work/build/v4l-dvb-master/v4l/gspca.c:186: error: request for member 'parent' in something not a structure or union
-> /home/hans/work/build/v4l-dvb-master/v4l/gspca.c:192: error: request for member 'parent' in something not a structure or union
-
-> linux-2.6.18.8-i686: ERRORS
->
-> /home/hans/work/build/v4l-dvb-master/v4l/gspca.c: In function 'gspca_input_connect':
-> /home/hans/work/build/v4l-dvb-master/v4l/gspca.c:186: error: request for member 'parent' in something not a structure or union
-> /home/hans/work/build/v4l-dvb-master/v4l/gspca.c:192: error: request for member 'parent' in something not a structure or union
-
-> linux-2.6.19.7-i686: ERRORS
->
-> /home/hans/work/build/v4l-dvb-master/v4l/gspca.c: In function 'gspca_input_connect':
-> /home/hans/work/build/v4l-dvb-master/v4l/gspca.c:186: error: 'struct input_dev' has no member named 'dev'
-> /home/hans/work/build/v4l-dvb-master/v4l/gspca.c:192: error: 'struct input_dev' has no member named 'dev'
-
-> linux-2.6.20.21-i686: ERRORS
->
-> /home/hans/work/build/v4l-dvb-master/v4l/gspca.c: In function 'gspca_input_connect':
-> /home/hans/work/build/v4l-dvb-master/v4l/gspca.c:186: error: 'struct input_dev' has no member named 'dev'
-> /home/hans/work/build/v4l-dvb-master/v4l/gspca.c:192: error: 'struct input_dev' has no member named 'dev'
-
-> linux-2.6.21.7-i686: ERRORS
->
-> /home/hans/work/build/v4l-dvb-master/v4l/gspca.c: In function 'gspca_input_connect':
-> /home/hans/work/build/v4l-dvb-master/v4l/gspca.c:186: error: 'struct input_dev' has no member named 'dev'
-> /home/hans/work/build/v4l-dvb-master/v4l/gspca.c:192: error: 'struct input_dev' has no member named 'dev'
-
-
-It seems that the camera button input support is not compatible with kernel
-version 2.6.21.7 and before because of different reasons.
-
-1. Between 2.6.16.62 and 2.6.17.14: there is no linux/usb/input.h .
-   The linux/usb/input.h was earlier linux/usb_input.h, see
-   http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=history;f=include/linux/usb/input.h;h=0e010b220e85b3f9ea861f2ab009809d17014910;hb=HEAD
-
-2. Between 2.6.16.62 and 2.6.17.14: there is no 'usb_to_input_id'. This was
-   introduced with the commit 16a334c0de5a94b1d10a1ac9a33f4dedac89a075, exactly
-   in the same place: in linux/usb_input.h .
-   http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=16a334c0de5a94b1d10a1ac9a33f4dedac89a075
-
-3. Between 2.6.16.62 and 2.6.18.8: there is no 'parent' field of struct device.
-   The struct device is defined in linux/device.h . I couldn't find what exactly
-   happened here, yet.
-   http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=history;f=include/linux/device.h;h=a62799f2ab0019863d30e4f55f7677c5bd97d124;hb=HEAD
-
-4. Between linux-2.6.19.7 and 2.6.21.7: 'struct input_dev' has no member named 'dev'.
-   The 'dev' member was introduced with commit 9657d75c5f0f7d0a9cb507521d3ad1436aea28c9
-   when a convert was made from class devices to standard devices.
-   http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=9657d75c5f0f7d0a9cb507521d3ad1436aea28c9
-
-The main question is that does gspca need to support kernel version 2.6.21.7
-and before? If yes, then should the input support disabled in 2.6.21.7 and before?
-
-Regards,
-
-	Márton Németh
+> I've posted this patch to linux-media earlier, but I'd also like to get 
+> comments on linux-pm, sorry to linux-media falks for a duplicate. To 
+> explain a bit - soc_camera.c is a management module, that binds video 
+> interfaces on SoCs and sensor drivers. The calls, that I am adding to 
+> soc_camera.c shall save and restore sensor registers before they are 
+> powered down and after they are powered up.
+> 
+> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+> index 6b3fbcc..53201f3 100644
+> --- a/drivers/media/video/soc_camera.c
+> +++ b/drivers/media/video/soc_camera.c
+> @@ -24,6 +24,7 @@
+>  #include <linux/mutex.h>
+>  #include <linux/module.h>
+>  #include <linux/platform_device.h>
+> +#include <linux/pm_runtime.h>
+>  #include <linux/vmalloc.h>
+>  
+>  #include <media/soc_camera.h>
+> @@ -387,6 +388,11 @@ static int soc_camera_open(struct file *file)
+>  			goto eiciadd;
+>  		}
+>  
+> +		pm_runtime_enable(&icd->vdev->dev);
+> +		ret = pm_runtime_resume(&icd->vdev->dev);
+> +		if (ret < 0 && ret != -ENOSYS)
+> +			goto eresume;
+> +
+>  		/*
+>  		 * Try to configure with default parameters. Notice: this is the
+>  		 * very first open, so, we cannot race against other calls,
+> @@ -408,10 +414,12 @@ static int soc_camera_open(struct file *file)
+>  	return 0;
+>  
+>  	/*
+> -	 * First five errors are entered with the .video_lock held
+> +	 * First four errors are entered with the .video_lock held
+>  	 * and use_count == 1
+>  	 */
+>  esfmt:
+> +	pm_runtime_disable(&icd->vdev->dev);
+> +eresume:
+>  	ici->ops->remove(icd);
+>  eiciadd:
+>  	if (icl->power)
+> @@ -436,7 +444,11 @@ static int soc_camera_close(struct file *file)
+>  	if (!icd->use_count) {
+>  		struct soc_camera_link *icl = to_soc_camera_link(icd);
+>  
+> +		pm_runtime_suspend(&icd->vdev->dev);
+> +		pm_runtime_disable(&icd->vdev->dev);
+> +
+>  		ici->ops->remove(icd);
+> +
+>  		if (icl->power)
+>  			icl->power(icd->pdev, 0);
+>  	}
+> @@ -1294,6 +1306,7 @@ static int video_dev_create(struct soc_camera_device *icd)
+>   */
+>  static int soc_camera_video_start(struct soc_camera_device *icd)
+>  {
+> +	struct device_type *type = icd->vdev->dev.type;
+>  	int ret;
+>  
+>  	if (!icd->dev.parent)
+> @@ -1310,6 +1323,9 @@ static int soc_camera_video_start(struct soc_camera_device *icd)
+>  		return ret;
+>  	}
+>  
+> +	/* Restore device type, possibly set by the subdevice driver */
+> +	icd->vdev->dev.type = type;
+> +
+>  	return 0;
+>  }
+>  
+> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+> index dcc5b86..58b39a9 100644
+> --- a/include/media/soc_camera.h
+> +++ b/include/media/soc_camera.h
+> @@ -282,4 +282,12 @@ static inline void soc_camera_limit_side(unsigned int *start,
+>  extern unsigned long soc_camera_apply_sensor_flags(struct soc_camera_link *icl,
+>  						   unsigned long flags);
+>  
+> +/* This is only temporary here - until v4l2-subdev begins to link to video_device */
+> +#include <linux/i2c.h>
+> +static inline struct video_device *soc_camera_i2c_to_vdev(struct i2c_client *client)
+> +{
+> +	struct soc_camera_device *icd = client->dev.platform_data;
+> +	return icd->vdev;
+> +}
+> +
+>  #endif
+> _______________________________________________
