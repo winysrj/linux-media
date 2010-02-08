@@ -1,67 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-07.arcor-online.net ([151.189.21.47]:37882 "EHLO
-	mail-in-07.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933982Ab0BEWs5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Feb 2010 17:48:57 -0500
-From: stefan.ringel@arcor.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
-	Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH 4/12] tm6000: adding special usb request to quiting tuner transfer
-Date: Fri,  5 Feb 2010 23:48:09 +0100
-Message-Id: <1265410096-11788-4-git-send-email-stefan.ringel@arcor.de>
-In-Reply-To: <1265410096-11788-3-git-send-email-stefan.ringel@arcor.de>
-References: <1265410096-11788-1-git-send-email-stefan.ringel@arcor.de>
- <1265410096-11788-2-git-send-email-stefan.ringel@arcor.de>
- <1265410096-11788-3-git-send-email-stefan.ringel@arcor.de>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4533 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751361Ab0BHXaV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2010 18:30:21 -0500
+Message-ID: <4B709E7D.1030504@grumpydevil.homelinux.org>
+Date: Tue, 09 Feb 2010 00:30:05 +0100
+From: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
+MIME-Version: 1.0
+To: Chicken Shack <chicken.shack@gmx.de>
+CC: Linus Torvalds <torvalds@linux-foundation.org>,
+	Andreas Oberritter <obi@linuxtv.org>,
+	Andy Walls <awalls@radix.net>, HoP <jpetrous@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Francesco Lavra <francescolavra@interfree.it>,
+	linux-media@vger.kernel.org, akpm@linux-foundation.org,
+	rms@gnu.org, hermann-pitton@arcor.de
+Subject: Re: [PATCH] dvb-core: fix initialization of feeds list in demux filter
+ (Was: Videotext application crashes the kernel due to DVB-demux patch)
+References: <1265546998.9356.4.camel@localhost>	 <4B6F72E5.3040905@redhat.com>  <4B700287.5080900@linuxtv.org>	 <1265636585.5399.47.camel@brian.bconsult.de>	 <alpine.LFD.2.00.1002080746180.3829@localhost.localdomain>	 <1265653508.12259.89.camel@brian.bconsult.de>	 <alpine.LFD.2.00.1002081108300.3829@localhost.localdomain> <1265656856.13486.1.camel@brian.bconsult.de>
+In-Reply-To: <1265656856.13486.1.camel@brian.bconsult.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <stefan.ringel@arcor.de>
+Chicken Shack wrote:
+ok anonymous chicken
 
----
- drivers/staging/tm6000/tm6000-i2c.c |   13 ++++++++++++-
- 1 files changed, 12 insertions(+), 1 deletions(-)
+you've managed a distinct first: i've installed a block filter on your 
+email address.
 
-diff --git a/drivers/staging/tm6000/tm6000-i2c.c b/drivers/staging/tm6000/tm6000-i2c.c
-index 4da10f5..3e43ad7 100644
---- a/drivers/staging/tm6000/tm6000-i2c.c
-+++ b/drivers/staging/tm6000/tm6000-i2c.c
-@@ -86,6 +86,11 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
- 				msgs[i].len == 1 ? 0 : msgs[i].buf[1],
- 				msgs[i + 1].buf, msgs[i + 1].len);
- 			i++;
-+			
-+			if ((dev->dev_type == TM6010) && (addr == 0xc2)) {
-+				tm6000_set_reg(dev, 0x32, 0,0);
-+				tm6000_set_reg(dev, 0x33, 0,0);
-+			}
- 			if (i2c_debug >= 2)
- 				for (byte = 0; byte < msgs[i].len; byte++)
- 					printk(" %02x", msgs[i].buf[byte]);
-@@ -99,6 +104,12 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
- 				REQ_16_SET_GET_I2C_WR1_RDN,
- 				addr | msgs[i].buf[0] << 8, 0,
- 				msgs[i].buf + 1, msgs[i].len - 1);
-+				
-+			
-+			if ((dev->dev_type == TM6010) && (addr == 0xc2)) {
-+				tm6000_set_reg(dev, 0x32, 0,0);
-+				tm6000_set_reg(dev, 0x33, 0,0);
-+			}
- 		}
- 		if (i2c_debug >= 2)
- 			printk("\n");
-@@ -198,7 +209,7 @@ static struct i2c_algorithm tm6000_algo = {
- 
- static struct i2c_adapter tm6000_adap_template = {
- 	.owner = THIS_MODULE,
--	.class = I2C_CLASS_TV_ANALOG,
-+	.class = I2C_CLASS_TV_ANALOG | I2C_CLASS_TV_DIGITAL,
- 	.name = "tm6000",
- 	.id = I2C_HW_B_TM6000,
- 	.algo = &tm6000_algo,
--- 
-1.6.4.2
-
+Rudy
