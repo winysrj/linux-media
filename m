@@ -1,50 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f219.google.com ([209.85.220.219]:61946 "EHLO
-	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751711Ab0CABCL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Feb 2010 20:02:11 -0500
-Received: by fxm19 with SMTP id 19so268797fxm.21
-        for <linux-media@vger.kernel.org>; Sun, 28 Feb 2010 17:02:09 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:4120 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754229Ab0BHTRi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Feb 2010 14:17:38 -0500
+Message-ID: <4B706347.9020400@redhat.com>
+Date: Mon, 08 Feb 2010 17:17:27 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <1267405086.3109.48.camel@palomino.walls.org>
-References: <4B8AF722.8000105@helmutauer.de>
-	 <1267405086.3109.48.camel@palomino.walls.org>
-Date: Mon, 1 Mar 2010 05:02:09 +0400
-Message-ID: <1a297b361002281702r5959ecfbja6a04183a8016d73@mail.gmail.com>
-Subject: Re: Mantis not in modules.pcimap
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Andy Walls <awalls@radix.net>
-Cc: Helmut Auer <vdr@helmutauer.de>, linux-media@vger.kernel.org
+To: Stefan Ringel <stefan.ringel@arcor.de>
+CC: linux-media@vger.kernel.org, dheitmueller@kernellabs.com
+Subject: Re: [PATCH 5/12] tm6000: update init table and sequence for tm6010
+References: <1265410096-11788-1-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-2-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-3-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-4-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-5-git-send-email-stefan.ringel@arcor.de> <4B6FF3C9.2010804@redhat.com> <4B704A2D.5000100@arcor.de> <4B7054A0.8050001@redhat.com> <4B7060DC.5030006@arcor.de>
+In-Reply-To: <4B7060DC.5030006@arcor.de>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 1, 2010 at 4:58 AM, Andy Walls <awalls@radix.net> wrote:
-> On Mon, 2010-03-01 at 00:07 +0100, Helmut Auer wrote:
->> Hello,
+Stefan Ringel wrote:
+> Am 08.02.2010 19:14, schrieb Mauro Carvalho Chehab:
+>> Stefan Ringel wrote:
+>>   
+    
+>> We'll need some function to change between analog and digital modes, doing the right
+>> GPIO changes. See em28xx_set_mode() for a way of implementing it.
 >>
->> The mantis module is build and working fine with the Skystar2 HD, but it I cannot autodetect it,
->> because modules.pcimap is not filled with the vendor id of the card using this module.
->> What's to do  to get these ID's ?
->> In my case its a:
->>
->> 01:08.0 0480: 1822:4e35 (rev 01)
->>       Subsystem: 1ae4:0003
->>       Flags: bus master, medium devsel, latency 32, IRQ 16
->>       Memory at fddff000 (32-bit, prefetchable) [size=4K]
->
-> Running
->
->  # depmod -a
->
-> as root should have added it.  The mantis driver is likely missing a
-> MODULE_DEVICE_TABLE() macro invocation.
->
-> Cc:-ing Manu.
+>>   
+> I don't mean that. I mean it loads the init table then goes to
+> tm600_cards_setup, then goes to return and loads the init table new and
+> then ... reset the demodulator or can it without the reset demodulator?
+> I can test it next weekend.
 
-Andy, Thanks.  I just replied to the same .. :-)
+Tests are required. Maybe you'll need to call it again. The tm6000 chip has lot of
+weird behaviours. In the case of xc3028 on analog, you need to re-load the firmware
+every time the stream starts. Also, it seems that tm6000 has a timeout: if the image
+is not ok for a few seconds, it cuts the tuner down. So, I ended to make it to re-load
+part of the firmware (the smaller part of the firmware) every time the channel changes,
+when I wrote the first version of the driver. I suspect that this behavior of tuner-xc2028
+were removed on the last driver reviews, to speedup tuning with all other devices that
+use those chips.
 
-Regards,
-Manu
+-- 
+
+Cheers,
+Mauro
