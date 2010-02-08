@@ -1,122 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59531 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:62149 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752152Ab0BVRId (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 12:08:33 -0500
-Message-ID: <4B82BA08.8070102@redhat.com>
-Date: Mon, 22 Feb 2010 14:08:24 -0300
+	id S1751958Ab0BHR4i (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Feb 2010 12:56:38 -0500
+Message-ID: <4B70504F.6060004@redhat.com>
+Date: Mon, 08 Feb 2010 15:56:31 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: stefan.ringel@arcor.de
-CC: linux-media@vger.kernel.org, dheitmueller@kernellabs.com
-Subject: Re: [PATCH 1/3] tm6000: add send and recv function
-References: <1266855693-5554-1-git-send-email-stefan.ringel@arcor.de>
-In-Reply-To: <1266855693-5554-1-git-send-email-stefan.ringel@arcor.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+To: Stefan Ringel <stefan.ringel@arcor.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 11/12] tm6000: bugfix firmware xc3028L-v36.fw used with
+ Zarlink and DTV78 or DTV8 no shift
+References: <1265411214-12231-10-git-send-email-stefan.ringel@arcor.de> <1265411214-12231-11-git-send-email-stefan.ringel@arcor.de> <4B6FF51F.9080507@redhat.com> <4B704593.6040201@arcor.de>
+In-Reply-To: <4B704593.6040201@arcor.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-stefan.ringel@arcor.de wrote:
-> From: Stefan Ringel <stefan.ringel@arcor.de>
+Stefan Ringel wrote:
+> Am 08.02.2010 12:27, schrieb Mauro Carvalho Chehab:
+>> stefan.ringel@arcor.de wrote:
+>>   
+>>> From: Stefan Ringel <stefan.ringel@arcor.de>
+>>>
+>>> Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+>>> ---
+>>>  drivers/media/common/tuners/tuner-xc2028.c |    7 ++++++-
+>>>  1 files changed, 6 insertions(+), 1 deletions(-)
+>>>
+>>> diff --git a/drivers/media/common/tuners/tuner-xc2028.c b/drivers/media/common/tuners/tuner-xc2028.c
+>>> index ed50168..fcf19cc 100644
+>>> --- a/drivers/media/common/tuners/tuner-xc2028.c
+>>> +++ b/drivers/media/common/tuners/tuner-xc2028.c
+>>> @@ -1114,7 +1114,12 @@ static int xc2028_set_params(struct dvb_frontend *fe,
+>>>  
+>>>  	/* All S-code tables need a 200kHz shift */
+>>>  	if (priv->ctrl.demod) {
+>>> -		demod = priv->ctrl.demod + 200;
+>>> +		if ((strcmp (priv->ctrl.fname, "xc3028L-v36.fw") == 0) && 
+>>> +			(priv->ctrl.demod == XC3028_FE_ZARLINK456) &&
+>>> +				((type & DTV78) || (type & DTV8)))
+>>> +			demod = priv->ctrl.demod;
+>>> +		else
+>>> +			demod = priv->ctrl.demod + 200;
+>>>  		/*
+>>>  		 * The DTV7 S-code table needs a 700 kHz shift.
+>>>  		 * Thanks to Terry Wu <terrywu2009@gmail.com> for reporting this
+>>>     
+>> The idea behind this patch is right, but you should be testing it against
+>> priv->firm_version, instead comparing with a file name.
+>>
+>> Also, this will likely cause regressions on other drivers, since the offsets for
+>> v3.6 firmwares were handled on a different way on other drivers. I prefer to postpone
+>> this patch and the discussion behind it after having tm6000 driver ready, since
+>> it makes no sense to cause regressions or request changes on existing drivers due
+>> to a driver that is not ready yet.
+>>
+>> So, please hold your patch on your queue for now.
+>>
+>> My suggestion is that you should use git and have this patch on a separate branch where you
+>> do your tests, having a branch without this patch for upstream submission.
+>>
+>>   
+> In this firmware is for ZARLINK two parts, first for QAM, DTV6 and DTV7
+> with shift 200 kHz, and second for DTV78 and DTV8. I check the firmware
+> 2.7 this use for ZARLINK for all this mode a 200 kHz shift. For the next
+> source part it says that DTV7 have 700 kHz shift.
+> That not for all firmware correct.
 > 
-> add separately send and receive function
-
-Still broken:
-
-drivers/staging/tm6000/tm6000-i2c.c: In function ‘tm6000_i2c_xfer’:
-drivers/staging/tm6000/tm6000-i2c.c:107: error: expected ‘)’ before ‘{’ token
-drivers/staging/tm6000/tm6000-i2c.c: In function ‘tm6000_i2c_eeprom’:
-drivers/staging/tm6000/tm6000-i2c.c:161: error: implicit declaration of function ‘tm6000_i2c_revc_regs’
-
 > 
-> Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
-> ---
->  drivers/staging/tm6000/tm6000-i2c.c |   48 +++++++++++++++++++++++++---------
->  1 files changed, 35 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/staging/tm6000/tm6000-i2c.c b/drivers/staging/tm6000/tm6000-i2c.c
-> index 656cd19..2222b39 100644
-> --- a/drivers/staging/tm6000/tm6000-i2c.c
-> +++ b/drivers/staging/tm6000/tm6000-i2c.c
-> @@ -44,6 +44,32 @@ MODULE_PARM_DESC(i2c_debug, "enable debug messages [i2c]");
->  			printk(KERN_DEBUG "%s at %s: " fmt, \
->  			dev->name, __FUNCTION__ , ##args); } while (0)
->  
-> +int tm6000_i2c_send_regs(struct tm6000_core *dev, unsigned char addr, __u8 reg, char *buf, int len)
-> +{
-> +	return tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-> +		REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0, buf, len);
-> +}
-> +
-> +/* read from a 8bit register */
-> +int tm6000_i2c_recv_regs(struct tm6000_core *dev, unsigned char addr, __u8 reg, char *buf, int len)
-> +{
-> +	int rc;
-> +
-> +		rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-> +			REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0, buf, len);
-> +
-> +	return rc;
-> +}
-> +
-> +/* read from a 16bit register
-> + * for example xc2028, xc3028 or xc3028L 
-> + */
-> +int tm6000_i2c_recv_regs16(struct tm6000_core *dev, unsigned char addr, __u16 reg, char *buf, int len)
-> +{
-> +	return tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-> +		REQ_14_SET_GET_I2C_WR2_RDN, addr, reg, buf, len);
-> +} 
-> +
->  static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
->  			   struct i2c_msg msgs[], int num)
->  {
-> @@ -78,13 +104,14 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
->  			i2c_dprintk(2, "; joined to read %s len=%d:",
->  				    i == num - 2 ? "stop" : "nonstop",
->  				    msgs[i + 1].len);
-> -			rc = tm6000_read_write_usb (dev,
-> -				USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-> -				msgs[i].len == 1 ? REQ_16_SET_GET_I2C_WR1_RDN
-> -						 : REQ_14_SET_GET_I2C_WR2_RDN,
-> -				addr | msgs[i].buf[0] << 8,
-> -				msgs[i].len == 1 ? 0 : msgs[i].buf[1],
-> +			if (msgs{i].len == 1) {
-> +				rc = tm6000_i2c_recv_regs(dev, addr, msgs[i].buf[0],
->  				msgs[i + 1].buf, msgs[i + 1].len);
-> +			} else {
-> +				rc = tm6000_i2c_recv_regs(dev, addr, msgs[i].buf[0] << 8 | msgs[i].buf[1],
-> +				msgs[i + 1].buf, msgs[i + 1].len);
-> +			}
-> +
->  			i++;
->  
->  			if (addr == dev->tuner_addr) {
-> @@ -99,10 +126,7 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
->  			if (i2c_debug >= 2)
->  				for (byte = 0; byte < msgs[i].len; byte++)
->  					printk(" %02x", msgs[i].buf[byte]);
-> -			rc = tm6000_read_write_usb(dev,
-> -				USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-> -				REQ_16_SET_GET_I2C_WR1_RDN,
-> -				addr | msgs[i].buf[0] << 8, 0,
-> +			rc = tm6000_i2c_send_regs(dev, addr, msgs[i].buf[0],
->  				msgs[i].buf + 1, msgs[i].len - 1);
->  
->  			if (addr == dev->tuner_addr) {
-> @@ -134,9 +158,7 @@ static int tm6000_i2c_eeprom(struct tm6000_core *dev,
->  	bytes[16] = '\0';
->  	for (i = 0; i < len; ) {
->  	*p = i;
-> -	rc = tm6000_read_write_usb (dev,
-> -		USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-> -		REQ_16_SET_GET_I2C_WR1_RDN, 0xa0 | i<<8, 0, p, 1);
-> +	rc = tm6000_i2c_revc_regs(dev, 0xa0, i, p, 1);
->  		if (rc < 1) {
->  			if (p == eedata)
->  				goto noeeprom;
+>From what we know, the name "zarlink" for the firmware is bogus: the firmware has nothing
+special to work with zarlink, except for the IF offset. You may or select a firmware with
+-200 KHz IF offset or to do the adjustment by adding 200 KHz for firmwares up to 2.7. 
 
+The problem is that the driver that originally added the v3.6 implemented it on a different
+place. So, we need to fix all the drivers at the patch that we're changing its behavior,
+to avoid breakages.
 
 -- 
 
