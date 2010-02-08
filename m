@@ -1,105 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:41855 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932820Ab0BGSjz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Feb 2010 13:39:55 -0500
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
-	david.cohen@nokia.com,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: [PATCH v2 5/7] V4L: Events: Count event queue length
-Date: Sun,  7 Feb 2010 20:40:45 +0200
-Message-Id: <1265568047-31073-5-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <4B6F0922.9070206@maxwell.research.nokia.com>
-References: <4B6F0922.9070206@maxwell.research.nokia.com>
+Received: from mx1.redhat.com ([209.132.183.28]:4992 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751618Ab0BHSEw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Feb 2010 13:04:52 -0500
+Message-ID: <4B705216.7040907@redhat.com>
+Date: Mon, 08 Feb 2010 16:04:06 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: linux-pm@lists.linux-foundation.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH/RESEND] soc-camera: add runtime pm support for subdevices
+References: <Pine.LNX.4.64.1002081044150.4936@axis700.grange> <4B7012D1.40605@redhat.com> <Pine.LNX.4.64.1002081447020.4936@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1002081447020.4936@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update the count field properly by setting it to exactly to number of
-further available events.
+Guennadi Liakhovetski wrote:
+> Hi Mauro
+> 
+> Thanks for your comments.
+> 
+> On Mon, 8 Feb 2010, Mauro Carvalho Chehab wrote:
+> 
+>> Guennadi Liakhovetski wrote:
+>>> To save power soc-camera powers subdevices down, when they are not in use, 
+>>> if this is supported by the platform. However, the V4L standard dictates, 
+>>> that video nodes shall preserve configuration between uses. This requires 
+>>> runtime power management, which is implemented by this patch. It allows 
+>>> subdevice drivers to specify their runtime power-management methods, by 
+>>> assigning a type to the video device.
+>> It seems a great idea to me. For sure we need some sort of power management
+>> control.
+> 
+> Agree;)
+> 
+>>> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>>> ---
+>>>
+>>> I've posted this patch to linux-media earlier, but I'd also like to get 
+>>> comments on linux-pm, sorry to linux-media falks for a duplicate. To 
+>>> explain a bit - soc_camera.c is a management module, that binds video 
+>>> interfaces on SoCs and sensor drivers. The calls, that I am adding to 
+>>> soc_camera.c shall save and restore sensor registers before they are 
+>>> powered down and after they are powered up.
+>>>
+>>> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+>>> index 6b3fbcc..53201f3 100644
+>>> --- a/drivers/media/video/soc_camera.c
+>>> +++ b/drivers/media/video/soc_camera.c
+>>> @@ -24,6 +24,7 @@
+>>>  #include <linux/mutex.h>
+>>>  #include <linux/module.h>
+>>>  #include <linux/platform_device.h>
+>>> +#include <linux/pm_runtime.h>
+>>>  #include <linux/vmalloc.h>
+>>
+>> Hmm... wouldn't it be better to enable it at the subsystem level? We may for 
+>> example call ?
+>> The subsystem can call vidioc_streamoff() at suspend and vidioc_streamon() at
+>> resume, if the device were streaming during suspend. We may add another ops to
+>> the struct for the drivers/subdrivers that needs additional care.
+>>
+>> That's said, it shouldn't be hard to implement some routine that will save/restore
+>> all registers if the device goes to power down mode. Unfortunately, very few
+>> devices successfully recovers from hibernation if streaming. One good example
+>> is saa7134, that even disables/re-enables IR IRQ's during suspend/resume.
+> 
+> To clarify a bit - this patch implements not static PM, but dynamic 
+> (runtime) power-management. 
 
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- drivers/media/video/v4l2-event.c |   18 ++++++++----------
- include/media/v4l2-event.h       |    3 +++
- 2 files changed, 11 insertions(+), 10 deletions(-)
+Ok.
 
-diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
-index 6d57324..a95cde0 100644
---- a/drivers/media/video/v4l2-event.c
-+++ b/drivers/media/video/v4l2-event.c
-@@ -88,6 +88,8 @@ int v4l2_event_init(struct v4l2_fh *fh, unsigned int n)
- 	INIT_LIST_HEAD(&fh->events->available);
- 	INIT_LIST_HEAD(&fh->events->subscribed);
- 
-+	atomic_set(&fh->events->navailable, 0);
-+
- 	ret = v4l2_event_alloc(fh, n);
- 	if (ret < 0)
- 		v4l2_event_exit(fh);
-@@ -109,10 +111,12 @@ int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
- 		return -ENOENT;
- 	}
- 
-+	BUG_ON(&events->navailable == 0);
-+
- 	kev = list_first_entry(&events->available, struct v4l2_kevent, list);
- 	list_move(&kev->list, &events->free);
- 
--	kev->event.count = !list_empty(&events->available);
-+	kev->event.count = atomic_dec_return(&events->navailable);
- 
- 	*event = kev->event;
- 
-@@ -173,6 +177,8 @@ void v4l2_event_queue(struct video_device *vdev, struct v4l2_event *ev)
- 		kev->event = *ev;
- 		list_move_tail(&kev->list, &events->available);
- 
-+		atomic_inc(&events->navailable);
-+
- 		wake_up_all(&events->wait);
- 	}
- 
-@@ -182,15 +188,7 @@ EXPORT_SYMBOL_GPL(v4l2_event_queue);
- 
- int v4l2_event_pending(struct v4l2_fh *fh)
- {
--	struct v4l2_events *events = fh->events;
--	unsigned long flags;
--	int ret;
--
--	spin_lock_irqsave(&fh->vdev->fhs.lock, flags);
--	ret = !list_empty(&events->available);
--	spin_unlock_irqrestore(&fh->vdev->fhs.lock, flags);
--
--	return ret;
-+	return atomic_read(&fh->events->navailable);
- }
- EXPORT_SYMBOL_GPL(v4l2_event_pending);
- 
-diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
-index 580c9d4..282d215 100644
---- a/include/media/v4l2-event.h
-+++ b/include/media/v4l2-event.h
-@@ -28,6 +28,8 @@
- #include <linux/types.h>
- #include <linux/videodev2.h>
- 
-+#include <asm/atomic.h>
-+
- struct v4l2_fh;
- struct video_device;
- 
-@@ -45,6 +47,7 @@ struct v4l2_events {
- 	wait_queue_head_t	wait;
- 	struct list_head	subscribed; /* Subscribed events */
- 	struct list_head	available; /* Dequeueable event */
-+	atomic_t                navailable;
- 	struct list_head	free; /* Events ready for use */
- };
- 
+> In this case it means, we are trying to save 
+> power while the system is running, but we know, that the sensor is not 
+> needed. Specifically, as long as no application is holding the video 
+> device open. And this information is only available at the bridge driver 
+> (soc-camera core) level - there is no subdev operation for open and close 
+> calls, so, subdevices do not "know" whether they are in use or not. So, 
+> only saving / restoring registers when streaming is not enough. Static PM 
+> will also be interesting - as it has been mentioned before, we will have 
+> to be careful, because sensors "sit" on two busses - i2c and video. So, 
+> you have to resume after both are up and suspend before the first of them 
+> goes down... So, that will be a different exciting topic;)
+
+In fact, on all drivers, there are devices that needs to be turn on only when
+streaming is happening: sensors, analog TV/audio demods, digital demods. Also,
+a few devices (for example: TV tuners) could eventually be on power off when
+no device is opened.
+
+As the V4L core knows when this is happening (due to
+open/close/poll/streamon/reqbuf/qbuf/dqbuf hooks, I think the runtime management 
+can happen at V4L core level.
+
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+
+
 -- 
-1.5.6.5
 
+Cheers,
+Mauro
