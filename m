@@ -1,157 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from xenotime.net ([72.52.64.118]:40576 "HELO xenotime.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1755162Ab0BVXk7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 18:40:59 -0500
-Received: from chimera.site ([71.245.98.113]) by xenotime.net for <linux-media@vger.kernel.org>; Mon, 22 Feb 2010 15:40:55 -0800
-Message-ID: <4B831607.1010902@xenotime.net>
-Date: Mon, 22 Feb 2010 15:40:55 -0800
-From: Randy Dunlap <rdunlap@xenotime.net>
+Received: from cavuit02.kulnet.kuleuven.be ([134.58.240.44]:35018 "EHLO
+	cavuit02.kulnet.kuleuven.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753791Ab0BHRIL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Feb 2010 12:08:11 -0500
+Received: from smtps01.kuleuven.be (smtpshost01.kulnet.kuleuven.be [134.58.240.74])
+	by cavuit02.kulnet.kuleuven.be (Postfix) with ESMTP id 3524F51C00B
+	for <linux-media@vger.kernel.org>; Mon,  8 Feb 2010 18:07:05 +0100 (CET)
+Received: from hydrogen.esat.kuleuven.be (hydrogen.esat.kuleuven.be [134.58.56.153])
+	by smtps01.kuleuven.be (Postfix) with ESMTP id D8CE531E702
+	for <linux-media@vger.kernel.org>; Mon,  8 Feb 2010 18:07:04 +0100 (CET)
+Received: from matar.esat.kuleuven.be (matar.esat.kuleuven.be [10.33.133.74])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by hydrogen.esat.kuleuven.be (Postfix) with ESMTP id D8B3D48002
+	for <linux-media@vger.kernel.org>; Mon,  8 Feb 2010 18:07:04 +0100 (CET)
+From: Markus Moll <markus.moll@esat.kuleuven.be>
+To: linux-media@vger.kernel.org
+Subject: Re: Terratec H5 / Micronas
+Date: Mon, 8 Feb 2010 18:07:03 +0100
+References: <201002081656.41640.markus.moll@esat.kuleuven.be> <d9def9db1002080849u123ae2d2r24f31276d1d46ff@mail.gmail.com>
+In-Reply-To: <d9def9db1002080849u123ae2d2r24f31276d1d46ff@mail.gmail.com>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-CC: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, david.cohen@nokia.com
-Subject: Re: [PATCH v7 6/6] V4L: Events: Add documentation
-References: <4B830CCA.8030909@maxwell.research.nokia.com> <1266879701-9814-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <1266879701-9814-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201002081807.04624.markus.moll@esat.kuleuven.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/22/10 15:01, Sakari Ailus wrote:
-> Add documentation on how to use V4L2 events, both for V4L2 drivers and for
-> V4L2 applications.
+Hi
+
+On Monday 08 February 2010 17:49:29 Markus Rechberger wrote:
+> To write a driver with good quality it takes alot more than just 50
+> hours, it took us
+> around 1 year to have a certain quality now.
+> We now support Linux, FreeBSD and MacOSX with the same driver as well as
+> embedded ARM devices with bugged compilers.
+> Just having it work will result in alot signal problems with some
+> cable providers.
+> The Micronas drivers are probably the most complex drivers this entire
+> project has ever
+> seen.
+
+Thank you for your quick reply. Well, that sounds pretty bad indeed. On the 
+other hand, my goal is not to write a perfect driver, but start writing and 
+see where that leads me. I might very well give up after a few unsuccessful 
+attempts.
+
+> > My question is, did the Micronas legal department intervene because the
+> > linux driver built on top of their reference implementation and they
+> > weren't willing to gpl that, or did they also oppose on using the
+> > data-sheets? If it was only the reference driver, wouldn't it be
+> > whorthwhile trying to again get the data sheets and build a driver based
+> > solely on these? I couldn't find any post that would clarify this.
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> ---
->  Documentation/DocBook/media-entities.tmpl          |    9 ++
->  Documentation/DocBook/v4l/dev-event.xml            |   33 +++++
->  Documentation/DocBook/v4l/v4l2.xml                 |    3 +
->  Documentation/DocBook/v4l/vidioc-dqevent.xml       |  124 ++++++++++++++++++++
->  .../DocBook/v4l/vidioc-subscribe-event.xml         |  104 ++++++++++++++++
->  Documentation/video4linux/v4l2-framework.txt       |   57 +++++++++
->  6 files changed, 330 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/DocBook/v4l/dev-event.xml
->  create mode 100644 Documentation/DocBook/v4l/vidioc-dqevent.xml
->  create mode 100644 Documentation/DocBook/v4l/vidioc-subscribe-event.xml
+> it's an official statement, that they do not want to have their driver
+> opensourced.
+
+Yes, I understood that. The question was, does that also apply to writing a 
+driver based only on the data sheets, without ever even looking at their 
+reference driver code?
+
+> > However, I'm in no way an expert in v4l driver writing, so I
+> > don't know where this will lead to or if I'm going to brick the device on
+> > the very first occasion ;-) (btw: how easy is that, generally?)
 > 
+> it's the most difficult device.
 
-> diff --git a/Documentation/DocBook/v4l/dev-event.xml b/Documentation/DocBook/v4l/dev-event.xml
-> new file mode 100644
-> index 0000000..ecee64d
-> --- /dev/null
-> +++ b/Documentation/DocBook/v4l/dev-event.xml
-> @@ -0,0 +1,33 @@
-> +  <title>Event Interface</title>
-> +
-> +  <para>The V4L2 event interface provides means for user to get
-> +  immediately notified on certain conditions taking place on a device.
-> +  This might include start of frame or loss of signal events, for
-> +  example.
-> +  </para>
-> +
-> +  <para>To receive events, the events the user is interested first must be
+Ah, let me clarify that. I wasn't asking how easy it is to write a driver, but 
+actually quite the opposite: how easy is it to damage the typical dvb-t tuner 
+by (accidentally) writing garbage to some registers?
 
-                                                  is interested in
+> In case you're looking for something that works with Linux better
+> return it asap, or sell it
 
-> +  subscribed using the &VIDIOC-SUBSCRIBE-EVENT; ioctl. Once an event is
-> +  subscribed, the events of subscribed types are dequeueable using the
-> +  &VIDIOC-DQEVENT; ioctl. Events may be unsubscribed using
-> +  VIDIOC_UNSUBSCRIBE_EVENT ioctl. The special event type V4L2_EVENT_ALL may
-> +  be used to unsubscribe all the events the driver supports.</para>
-> +
-> +  <para>The event subscriptions and event queues are specific to file
-> +  handles. Subscribing an event on one file handle does not affect
-> +  other file handles.
-> +  </para>
-> +
-> +  <para>The information on dequeueable events are obtained by using
+Thanks. I did consider that. But I have already accepted that the device isn't 
+working and isn't going to work in the not so remote future. I was wondering 
+if I could at least try to establish some communication with the device. Even 
+if that won't result in a working driver, I might learn something. Best case: 
+other people pick up some work and we get a working driver, maybe in 5 or 10 
+years ;-)
 
-                                                 is obtained
-
-> +  select or poll system calls on video devices. The V4L2 events use
-> +  POLLPRI events on poll system call and exceptions on select system
-> +  call.
-> +  </para>
-> +
-> +  <!--
-> +Local Variables:
-> +mode: sgml
-> +sgml-parent-document: "v4l2.sgml"
-> +indent-tabs-mode: nil
-> +End:
-> +  -->
-
-> diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-> index bfaf0c5..d6deb35 100644
-> --- a/Documentation/video4linux/v4l2-framework.txt
-> +++ b/Documentation/video4linux/v4l2-framework.txt
-> @@ -732,3 +732,60 @@ Useful functions:
->  The users of v4l2_fh know whether a driver uses v4l2_fh as its
->  file->private_data pointer by testing the V4L2_FL_USES_V4L2_FH bit in
->  video_device->flags.
-> +
-> +V4L2 events
-> +-----------
-> +
-> +The V4L2 events provide a generic way to pass events to user space.
-> +The driver must use v4l2_fh to be able to support V4L2 events.
-> +
-> +Useful functions:
-> +
-> +- v4l2_event_alloc()
-> +
-> +  To use events, the driver must allocate events for the file handle. By
-> +  calling the function more than once, the driver may assure that at least n
-> +  events in total has been allocated. The function may not be called in
-
-                     have been
-
-> +  atomic context.
-> +
-> +- v4l2_event_queue()
-> +
-> +  Queue events to video device. The driver's only responsibility is to fill
-> +  in the type and the data fields. The other fields will be filled in by
-> +  V4L2.
-> +
-> +- v4l2_event_subscribe()
-> +
-> +  The video_device->ioctl_ops->vidioc_subscribe_event must check the driver
-> +  is able to produce events with specified event id. Then it calls
-> +  v4l2_event_subscribe() to subscribe the event.
-> +
-> +- v4l2_event_unsubscribe()
-> +
-> +  vidioc_unsubscribe_event in struct v4l2_ioctl_ops. A driver may use
-> +  v4l2_event_unsubscribe() directly unless it wants to be involved in
-> +  unsubscription process.
-> +
-> +  The special type V4L2_EVENT_ALL may be used to unsubscribe all events. The
-> +  drivers may want to handle this in a special way.
-> +
-> +- v4l2_event_pending()
-> +
-> +  Returns the number of pending events. Useful when implementing poll.
-> +
-> +Drivers do not initialise events directly. The events are initialised
-> +through v4l2_fh_init() if video_device->ioctl_ops->vidioc_subscribe_event is
-> +non-NULL. This *MUST* be performed in the driver's
-> +v4l2_file_operations->open() handler.
-> +
-> +Events are delivered to user space through the poll system call. The driver
-> +can use v4l2_fh->events->wait wait_queue_head_t as the argument for
-> +poll_wait().
-> +
-> +There are standard and private events. New standard events must use the
-> +smallest available event type. The drivers must allocate their events
-> +starting from base (V4L2_EVENT_PRIVATE_START + n * 1024) + 1.
-> +
-> +An example on how the V4L2 events may be used can be found in the OMAP
-> +3 ISP driver available at <URL:http://gitorious.org/omap3camera> as of
-> +writing this.
-
-
--- 
-~Randy
+Markus (M)
