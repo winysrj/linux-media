@@ -1,95 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-11.arcor-online.net ([151.189.21.51]:47933 "EHLO
-	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751553Ab0BRVLs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Feb 2010 16:11:48 -0500
-From: stefan.ringel@arcor.de
+Received: from smtp.nokia.com ([192.100.105.134]:55754 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751089Ab0BIS1H (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 13:27:07 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
-	Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH 07/11] tm6000: add i2c send recv functions
-Date: Thu, 18 Feb 2010 22:11:03 +0100
-Message-Id: <1266527463-32477-1-git-send-email-stefan.ringel@arcor.de>
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
+	david.cohen@nokia.com
+Subject: [PATCH v3 6/7] V4L: Events: Sequence numbers
+Date: Tue,  9 Feb 2010 20:26:49 +0200
+Message-Id: <1265740010-24144-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1265740010-24144-5-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+References: <4B71A8DF.8070907@maxwell.research.nokia.com>
+ <1265740010-24144-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+ <1265740010-24144-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+ <1265740010-24144-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+ <1265740010-24144-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+ <1265740010-24144-5-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <stefan.ringel@arcor.de>
+Add sequence numbers to events.
 
-Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/v4l2-event.c |   15 ++++++++++++---
+ include/media/v4l2-event.h       |    1 +
+ 2 files changed, 13 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/staging/tm6000/tm6000-i2c.c b/drivers/staging/tm6000/tm6000-i2c.c
-index 6b17d0b..9d02674 100644
---- a/drivers/staging/tm6000/tm6000-i2c.c
-+++ b/drivers/staging/tm6000/tm6000-i2c.c
-@@ -42,6 +42,32 @@ MODULE_PARM_DESC(i2c_debug, "enable debug messages [i2c]");
- 			printk(KERN_DEBUG "%s at %s: " fmt, \
- 			dev->name, __FUNCTION__ , ##args); } while (0)
+diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+index eeaba4c..3a4065a 100644
+--- a/drivers/media/video/v4l2-event.c
++++ b/drivers/media/video/v4l2-event.c
+@@ -93,6 +93,7 @@ int v4l2_event_init(struct v4l2_fh *fh, unsigned int n, unsigned int max_events)
  
-+int tm6000_i2c_send_byte (struct tm6000_core *dev, unsigned char addr, __u8 reg, char *buf, int len)
-+{
-+	return tm6000_read_write_usb (dev, USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-+		REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0, buf, len);
-+}
-+
-+int tm6000_i2c_recv_byte (struct tm6000_core *dev, unsigned char addr, __u8 reg, char *buf, int len)
-+{
-+	int rc:
-+
-+	rc = tm6000_read_write_usb (dev, USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-+		REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0, buf, len);
-+
-+	return rc;
-+}
-+
-+int tm6000_i2c_recv_word (struct tm6000_core *dev, unsigned char addr, __u16 reg, char *buf , int len)
-+{
-+	int rc;
-+
-+	rc = tm6000_read_write_usb (dev, USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-+		REQ_14_SET_GET_I2C_WR2_RDN, addr, reg, buf, len);
-+
-+	return rc;
-+}
-+
- static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
- 			   struct i2c_msg msgs[], int num)
- {
-@@ -76,13 +102,14 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
- 			i2c_dprintk(2, "; joined to read %s len=%d:",
- 				    i == num - 2 ? "stop" : "nonstop",
- 				    msgs[i + 1].len);
--			rc = tm6000_read_write_usb (dev,
--				USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
--				msgs[i].len == 1 ? REQ_16_SET_GET_I2C_WR1_RDN
--						 : REQ_14_SET_GET_I2C_WR2_RDN,
--				addr | msgs[i].buf[0] << 8,
--				msgs[i].len == 1 ? 0 : msgs[i].buf[1],
--				msgs[i + 1].buf, msgs[i + 1].len);
-+
-+			if (msgs[i].len == 1) {
-+				rc = tm6000_i2c_recv_byte (dev, addr, msgs[i].buf[0],
-+					msgs[i + 1].buf, msgs[i + 1].len);
-+			} else {
-+				rc = tm6000_i2c_recv_word (dev, addr, msgs[i].buf[0] << 8 | msgs[i].buf[1],
-+					msgs[i + 1].buf, msgs[i + 1].len);
-+			}
- 			i++;
+ 	atomic_set(&fh->events->navailable, 0);
+ 	atomic_set(&fh->events->max_events, max_events);
++	atomic_set(&fh->events->sequence, -1);
  
- 			if ((dev->dev_type == TM6010) && (addr == 0xc2)) {
-@@ -97,10 +124,8 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
- 			if (i2c_debug >= 2)
- 				for (byte = 0; byte < msgs[i].len; byte++)
- 					printk(" %02x", msgs[i].buf[byte]);
--			rc = tm6000_read_write_usb(dev,
--				USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
--				REQ_16_SET_GET_I2C_WR1_RDN,
--				addr | msgs[i].buf[0] << 8, 0,
-+
-+			rc = tm6000_i2c_send_byte(dev, addr, msgs[i].buf[0],
- 				msgs[i].buf + 1, msgs[i].len - 1);
+ 	ret = v4l2_event_alloc(fh, n);
+ 	if (ret < 0)
+@@ -170,15 +171,23 @@ void v4l2_event_queue(struct video_device *vdev, struct v4l2_event *ev)
+ 	list_for_each_entry(fh, &vdev->fh_list, list) {
+ 		struct v4l2_events *events = fh->events;
+ 		struct v4l2_kevent *kev;
++		u32 sequence;
  
- 			if ((dev->dev_type == TM6010) && (addr == 0xc2)) {
+-		/* Do we have any free events and are we subscribed? */
+-		if (list_empty(&events->free) ||
+-		    !__v4l2_event_subscribed(fh, ev->type))
++		/* Are we subscribed? */
++		if (!__v4l2_event_subscribed(fh, ev->type))
++			continue;
++
++		/* Increase event sequence number on fh. */
++		sequence = atomic_inc_return(&events->sequence);
++
++		/* Do we have any free events? */
++		if (list_empty(&events->free))
+ 			continue;
+ 
+ 		/* Take one and fill it. */
+ 		kev = list_first_entry(&events->free, struct v4l2_kevent, list);
+ 		kev->event = *ev;
++		kev->event.sequence = sequence;
+ 		list_move_tail(&kev->list, &events->available);
+ 
+ 		atomic_inc(&events->navailable);
+diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+index a9d0333..3b69582 100644
+--- a/include/media/v4l2-event.h
++++ b/include/media/v4l2-event.h
+@@ -50,6 +50,7 @@ struct v4l2_events {
+ 	atomic_t                navailable;
+ 	atomic_t		max_events; /* Never allocate more. */
+ 	struct list_head	free; /* Events ready for use */
++	atomic_t                sequence;
+ };
+ 
+ int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n);
 -- 
-1.6.6.1
+1.5.6.5
 
