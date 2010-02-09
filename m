@@ -1,58 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:34049 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1757183Ab0BXQYq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Feb 2010 11:24:46 -0500
-Subject: Re: [linux-dvb] soft demux device
-From: Roland Mieslinger <rmie@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-In-Reply-To: <829000.26472.qm@web57006.mail.re3.yahoo.com>
-References: <829000.26472.qm@web57006.mail.re3.yahoo.com>
-Content-Type: text/plain
-Date: Wed, 24 Feb 2010 17:24:39 +0100
-Message-Id: <1267028679.4587.46.camel@buero>
-Mime-Version: 1.0
+Received: from bombadil.infradead.org ([18.85.46.34]:60411 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753574Ab0BIVNS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 16:13:18 -0500
+Message-ID: <4B71CFEA.3000701@infradead.org>
+Date: Tue, 09 Feb 2010 19:13:14 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: "Andrea.Amorosi76@gmail.com" <Andrea.Amorosi76@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] em28xx: add Dikom DK300 hybrid USB tuner
+References: <4AFE92ED.2060208@gmail.com> <4AFEAB15.9010509@gmail.com> <829197380911140634j49c05cd0s90aed57b9ae61436@mail.gmail.com> <4B71ACC8.600@gmail.com> <4B71B5BD.8090006@infradead.org> <4B71CB52.4080109@gmail.com>
+In-Reply-To: <4B71CB52.4080109@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Andrea.Amorosi76@gmail.com wrote:
+> Mauro Carvalho Chehab ha scritto:
+>> Andrea.Amorosi76@gmail.com wrote:
+>>> This patch add the Dikom DK300 hybrid usb card.
+>>>
+>>> The patch adds digital and analogue tv support.
+>>>
+>>> Not working: remote controller
+>>
+>>> diff -r d6520e486ee6 linux/drivers/media/video/em28xx/em28xx-cards.c
+>>> --- a/linux/drivers/media/video/em28xx/em28xx-cards.c    Sat Jan 30
+>>> 01:27:34 2010 -0200
+>>> +++ b/linux/drivers/media/video/em28xx/em28xx-cards.c    Sat Jan 30
+>>> 18:04:13 2010 +0100
+>>
+>> Your patch got mangled by Thunderbird. You should or use Asalted Patches
+>> plugin:
+>>         https://hg.mozilla.org/users/clarkbw_gnome.org/asalted-patches/
+>>
+>> or use another emailer. Without the above plugin, long lines are broken,
+>> damaging your patch.
+>>
+>> Cheers,
+>> Mauro
+>>
+> Is it ok now?
 
-> I have just compiled v4l-dvb successfully. My aim is to develop some experimental dvb applications on top of this dvb kernel api. Initially, I do not want to use any hardware and would like to play with the recorded ts files I have. So, is there any software demux device available within this package or somewhere else? If so, how can I load this device and make it work on a given ts file circularly? On the other hand, I have no /dev/dvb node  at the moment, so should I do anything for this or would loading the driver create it automatically?
-> 
-> Thanks in advance.
-> 
-> Cheers,
-> 
-> Ozgur.
+Yes. Patchwork got it properly:
+	http://patchwork.kernel.org/patch/78193/
 
-maybe this is a good starting point for you:
+So, the patch is now on my queue ;)
 
- "I wrote a Linux kernel module which provides one or more 
-  virtual DVB adapters. When loaded, it creates a char device 
-  of the form /dev/dvbloop<num> for every virtual DVB adapter.
-  All Transport Stream packets written to a char device will
-  be delivered on the corresponding virtual DVB adapter.
+-- 
 
-  You can get the sources at
-  http://cpn.dyndns.org/projects/dvbloop.shtml
-
-  Maybe somebody finds it useful.
-
-  Cheers,
-  Christian.
-  -- 
-  Christian Praehauser"
-
-the link seems to be outdated, but the following is still
-working https://svn.baycom.de/repos/dvbloop/.
-
-A S2API patch is out as well:
-http://www.vdrportal.de/board/attachment.php?attachmentid=24024
-
-I've no idea if this is working well or not, I'm not using it myself.
-YMWV
-
-Roland
-
+Cheers,
+Mauro
