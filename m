@@ -1,113 +1,412 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47055 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752422Ab0BQScK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Feb 2010 13:32:10 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Pawel Osciak <p.osciak@samsung.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"'Kamil Debski'" <k.debski@samsung.com>
-Date: Wed, 17 Feb 2010 12:32:06 -0600
-Subject: RE: Fourcc for multiplanar formats
-Message-ID: <A69FA2915331DC488A831521EAE36FE40169C5C583@dlee06.ent.ti.com>
-References: <E4D3F24EA6C9E54F817833EAE0D912AC09C5635702@bssrvexch01.BS.local>
- <201002171921.36567.hverkuil@xs4all.nl>
-In-Reply-To: <201002171921.36567.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-MIME-Version: 1.0
+Received: from smtp.nokia.com ([192.100.122.230]:22918 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750942Ab0BIS1G (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 13:27:06 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
+	david.cohen@nokia.com
+Subject: [PATCH v3 4/7] V4L: Events: Add backend
+Date: Tue,  9 Feb 2010 20:26:47 +0200
+Message-Id: <1265740010-24144-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1265740010-24144-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+References: <4B71A8DF.8070907@maxwell.research.nokia.com>
+ <1265740010-24144-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+ <1265740010-24144-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+ <1265740010-24144-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Add event handling backend to V4L2. The backend handles event subscription
+and delivery to file handles. Event subscriptions are based on file handle.
+Events may be delivered to all subscribed file handles on a device
+independent of where they originate from.
 
-I think all of the planar pix format defined in videodev2.h are contiguous in memory. So I would suggest adding some suffix to indicate this so that it is obvious to application users.
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/v4l2-event.c |  258 ++++++++++++++++++++++++++++++++++++++
+ drivers/media/video/v4l2-fh.c    |    4 +
+ include/media/v4l2-event.h       |   64 ++++++++++
+ include/media/v4l2-fh.h          |    2 +
+ 4 files changed, 328 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/v4l2-event.c
+ create mode 100644 include/media/v4l2-event.h
 
->What about V4L2_PIX_FMT_NV16_2P, V4L2_PIX_FMT_YUV422P_3P, etc.?
+diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+new file mode 100644
+index 0000000..9f5be94
+--- /dev/null
++++ b/drivers/media/video/v4l2-event.c
+@@ -0,0 +1,258 @@
++/*
++ * drivers/media/video/v4l2-event.c
++ *
++ * V4L2 events.
++ *
++ * Copyright (C) 2009 Nokia Corporation.
++ *
++ * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#include <media/v4l2-dev.h>
++#include <media/v4l2-event.h>
++
++#include <linux/sched.h>
++
++/* In error case, return number of events *not* allocated. */
++int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n)
++{
++	struct v4l2_events *events = fh->events;
++	unsigned long flags;
++
++	for (; n > 0; n--) {
++		struct v4l2_kevent *kev;
++
++		kev = kzalloc(sizeof(*kev), GFP_KERNEL);
++		if (kev == NULL)
++			return -ENOMEM;
++
++		spin_lock_irqsave(&fh->vdev->fh_lock, flags);
++		list_add_tail(&kev->list, &events->free);
++		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
++	}
++
++	return n;
++}
++EXPORT_SYMBOL_GPL(v4l2_event_alloc);
++
++#define list_kfree(list, type, member)				\
++	while (!list_empty(list)) {				\
++		type *hi;					\
++		hi = list_first_entry(list, type, member);	\
++		list_del(&hi->member);				\
++		kfree(hi);					\
++	}
++
++void v4l2_event_exit(struct v4l2_fh *fh)
++{
++	struct v4l2_events *events = fh->events;
++
++	if (!events)
++		return;
++
++	list_kfree(&events->free, struct v4l2_kevent, list);
++	list_kfree(&events->available, struct v4l2_kevent, list);
++	list_kfree(&events->subscribed, struct v4l2_subscribed_event, list);
++
++	kfree(events);
++	fh->events = NULL;
++}
++EXPORT_SYMBOL_GPL(v4l2_event_exit);
++
++int v4l2_event_init(struct v4l2_fh *fh, unsigned int n)
++{
++	int ret;
++
++	fh->events = kzalloc(sizeof(*fh->events), GFP_KERNEL);
++	if (fh->events == NULL)
++		return -ENOMEM;
++
++	init_waitqueue_head(&fh->events->wait);
++
++	INIT_LIST_HEAD(&fh->events->free);
++	INIT_LIST_HEAD(&fh->events->available);
++	INIT_LIST_HEAD(&fh->events->subscribed);
++
++	ret = v4l2_event_alloc(fh, n);
++	if (ret < 0)
++		v4l2_event_exit(fh);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(v4l2_event_init);
++
++int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
++{
++	struct v4l2_events *events = fh->events;
++	struct v4l2_kevent *kev;
++	unsigned long flags;
++
++	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
++
++	if (list_empty(&events->available)) {
++		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
++		return -ENOENT;
++	}
++
++	kev = list_first_entry(&events->available, struct v4l2_kevent, list);
++	list_move(&kev->list, &events->free);
++
++	kev->event.count = !list_empty(&events->available);
++
++	*event = kev->event;
++
++	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(v4l2_event_dequeue);
++
++static struct v4l2_subscribed_event *__v4l2_event_subscribed(
++	struct v4l2_fh *fh, u32 type)
++{
++	struct v4l2_events *events = fh->events;
++	struct v4l2_subscribed_event *sev;
++
++	list_for_each_entry(sev, &events->subscribed, list) {
++		if (sev->type == type)
++			return sev;
++	}
++
++	return NULL;
++}
++
++struct v4l2_subscribed_event *v4l2_event_subscribed(
++	struct v4l2_fh *fh, u32 type)
++{
++	struct v4l2_subscribed_event *sev;
++	unsigned long flags;
++
++	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
++
++	sev = __v4l2_event_subscribed(fh, type);
++
++	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
++
++	return sev;
++}
++EXPORT_SYMBOL_GPL(v4l2_event_subscribed);
++
++void v4l2_event_queue(struct video_device *vdev, struct v4l2_event *ev)
++{
++	struct v4l2_fh *fh;
++	unsigned long flags;
++
++	spin_lock_irqsave(&vdev->fh_lock, flags);
++
++	list_for_each_entry(fh, &vdev->fh_list, list) {
++		struct v4l2_events *events = fh->events;
++		struct v4l2_kevent *kev;
++
++		/* Do we have any free events and are we subscribed? */
++		if (list_empty(&events->free) ||
++		    !__v4l2_event_subscribed(fh, ev->type))
++			continue;
++
++		/* Take one and fill it. */
++		kev = list_first_entry(&events->free, struct v4l2_kevent, list);
++		kev->event = *ev;
++		list_move_tail(&kev->list, &events->available);
++
++		wake_up_all(&events->wait);
++	}
++
++	spin_unlock_irqrestore(&vdev->fh_lock, flags);
++}
++EXPORT_SYMBOL_GPL(v4l2_event_queue);
++
++int v4l2_event_pending(struct v4l2_fh *fh)
++{
++	struct v4l2_events *events = fh->events;
++	unsigned long flags;
++	int ret;
++
++	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
++	ret = !list_empty(&events->available);
++	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(v4l2_event_pending);
++
++int v4l2_event_subscribe(struct v4l2_fh *fh,
++			 struct v4l2_event_subscription *sub)
++{
++	struct v4l2_events *events = fh->events;
++	struct v4l2_subscribed_event *sev;
++	unsigned long flags;
++	int ret = 0;
++
++	/* Allow subscribing to valid events only. */
++	if (sub->type < V4L2_EVENT_PRIVATE_START)
++		switch (sub->type) {
++		default:
++			return -EINVAL;
++		}
++
++	sev = kmalloc(sizeof(*sev), GFP_KERNEL);
++	if (!sev)
++		return -ENOMEM;
++
++	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
++
++	if (__v4l2_event_subscribed(fh, sub->type) != NULL) {
++		ret = -EBUSY;
++		goto out;
++	}
++
++	INIT_LIST_HEAD(&sev->list);
++	sev->type = sub->type;
++
++	list_add(&sev->list, &events->subscribed);
++
++out:
++	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
++
++	if (ret)
++		kfree(sev);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(v4l2_event_subscribe);
++
++int v4l2_event_unsubscribe(struct v4l2_fh *fh,
++			   struct v4l2_event_subscription *sub)
++{
++	struct v4l2_subscribed_event *sev;
++	unsigned long flags;
++
++	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
++
++	sev = __v4l2_event_subscribed(fh, sub->type);
++
++	if (sev == NULL) {
++		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
++		return -EINVAL;
++	}
++
++	list_del(&sev->list);
++
++	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(v4l2_event_unsubscribe);
+diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
+index d2b8cef..dac82ff 100644
+--- a/drivers/media/video/v4l2-fh.c
++++ b/drivers/media/video/v4l2-fh.c
+@@ -24,6 +24,7 @@
+ 
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-fh.h>
++#include <media/v4l2-event.h>
+ 
+ void v4l2_fh_init(struct video_device *vdev, struct v4l2_fh *fh)
+ {
+@@ -54,6 +55,9 @@ EXPORT_SYMBOL_GPL(v4l2_fh_del);
+ void v4l2_fh_exit(struct v4l2_fh *fh)
+ {
+ 	BUG_ON(fh->vdev == NULL);
++
++	v4l2_event_exit(fh);
++
+ 	fh->vdev = NULL;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_fh_exit);
+diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+new file mode 100644
+index 0000000..580c9d4
+--- /dev/null
++++ b/include/media/v4l2-event.h
+@@ -0,0 +1,64 @@
++/*
++ * include/media/v4l2-event.h
++ *
++ * V4L2 events.
++ *
++ * Copyright (C) 2009 Nokia Corporation.
++ *
++ * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#ifndef V4L2_EVENT_H
++#define V4L2_EVENT_H
++
++#include <linux/types.h>
++#include <linux/videodev2.h>
++
++struct v4l2_fh;
++struct video_device;
++
++struct v4l2_kevent {
++	struct list_head	list;
++	struct v4l2_event	event;
++};
++
++struct v4l2_subscribed_event {
++	struct list_head	list;
++	u32			type;
++};
++
++struct v4l2_events {
++	wait_queue_head_t	wait;
++	struct list_head	subscribed; /* Subscribed events */
++	struct list_head	available; /* Dequeueable event */
++	struct list_head	free; /* Events ready for use */
++};
++
++int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n);
++int v4l2_event_init(struct v4l2_fh *fh, unsigned int n);
++void v4l2_event_exit(struct v4l2_fh *fh);
++int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event);
++struct v4l2_subscribed_event *v4l2_event_subscribed(
++	struct v4l2_fh *fh, u32 type);
++void v4l2_event_queue(struct video_device *vdev, struct v4l2_event *ev);
++int v4l2_event_pending(struct v4l2_fh *fh);
++int v4l2_event_subscribe(struct v4l2_fh *fh,
++			 struct v4l2_event_subscription *sub);
++int v4l2_event_unsubscribe(struct v4l2_fh *fh,
++			   struct v4l2_event_subscription *sub);
++
++#endif /* V4L2_EVENT_H */
+diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
+index 0960742..2a32ad0 100644
+--- a/include/media/v4l2-fh.h
++++ b/include/media/v4l2-fh.h
+@@ -31,10 +31,12 @@
+ #include <asm/atomic.h>
+ 
+ struct video_device;
++struct v4l2_events;
+ 
+ struct v4l2_fh {
+ 	struct list_head	list;
+ 	struct video_device	*vdev;
++	struct v4l2_events      *events; /* events, pending and subscribed */
+ };
+ 
+ void v4l2_fh_init(struct video_device *vdev, struct v4l2_fh *fh);
+-- 
+1.5.6.5
 
-Not sure what Hans mean by the 2P or 3P extensions since NV16 has 2 planes. Why do we want to re-define NV12 and NV12_2P since it can cause backward compatibility issues. Why don't we keep existing naming convention for
-contiguous formats and add a suffix for indicating the planes are not
-contiguous. 
-
-For example
-
-V4L2_PIX_FMT_NV16 vs V4L2_PIX_FMT_NV16_NC where NC - Non Contiguous
-
-Just my thoughts...
-
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-email: m-karicheri2@ti.com
-
->-----Original Message-----
->From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->owner@vger.kernel.org] On Behalf Of Hans Verkuil
->Sent: Wednesday, February 17, 2010 1:22 PM
->To: Pawel Osciak
->Cc: linux-media@vger.kernel.org; Sylwester Nawrocki; 'Kamil Debski'
->Subject: Re: Fourcc for multiplanar formats
->
->On Monday 15 February 2010 17:27:46 Pawel Osciak wrote:
->> Hello,
->>
->> we would like to ask for suggestions for new fourcc formats for
->multiplanar buffers.
->>
->> There are planar formats in V4L2 API, but for all of them, each plane X
->"immediately
->> follows Y plane in memory". We are in the process of testing formats and
->V4L2 extensions
->> that relax those requirements and allow each plane to reside in a
->separate area of
->> memory.
->>
->> I am not sure how we should name those formats though. In our example, we
->are focusing
->> on the following formats at the moment:
->> - YCbCr 422 2-planar (multiplanar version of V4L2_PIX_FMT_NV16)
->> - YCbCr 422 3-planar (multiplanar version of V4L2_PIX_FMT_YUV422P)
->> - YCbCr 420 2-planar (multiplanar version of V4L2_PIX_FMT_NV12)
->> - YCbCr 420 3-planar (multiplanar version of V4L2_PIX_FMT_YUV420)
->>
->>
->> Could anyone give any suggestions how we should name such formats and
->what to pass to
->> the v4l2_fourcc() macro?
->
->What about V4L2_PIX_FMT_NV16_2P, V4L2_PIX_FMT_YUV422P_3P, etc.?
->
->What we pass to the fourcc macro is not very important IMHO. As long as it
->is unique.
->
->Regards,
->
->	Hans
->
->>
->>
->> Best regards
->> --
->> Pawel Osciak
->> Linux Platform Group
->> Samsung Poland R&D Center
->>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
->
->--
->Hans Verkuil - video4linux developer - sponsored by TANDBERG
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
