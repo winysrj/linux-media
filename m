@@ -1,65 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:48554 "HELO mail.gmx.net"
+Received: from mail.gmx.net ([213.165.64.20]:35498 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1755011Ab0BSTg2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Feb 2010 14:36:28 -0500
-Date: Fri, 19 Feb 2010 20:36:38 +0100 (CET)
+	id S1752234Ab0BIJZK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Feb 2010 04:25:10 -0500
+Date: Tue, 9 Feb 2010 10:25:46 +0100 (CET)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Rodolfo Giometti <giometti@enneenne.com>
-cc: Richard =?iso-8859-15?Q?R=C3=B6jfors?=
-	<richard.rojfors.ext@mocean-labs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: adv7180 as SoC camera device
-In-Reply-To: <20100219174451.GH21778@enneenne.com>
-Message-ID: <Pine.LNX.4.64.1002192018170.5860@axis700.grange>
-References: <20100219174451.GH21778@enneenne.com>
+To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+cc: Linux-V4L2 <linux-media@vger.kernel.org>,
+	Magnus Damm <damm@opensource.se>
+Subject: [PATCH 1/2] soc-camera: add support for VIDIOC_S_PARM and VIDIOC_G_PARM
+ ioctls
+In-Reply-To: <Pine.LNX.4.64.1002090856050.4585@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1002091023590.4585@axis700.grange>
+References: <u1vi3wnt2.wl%morimoto.kuninori@renesas.com>
+ <Pine.LNX.4.64.1002090856050.4585@axis700.grange>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 19 Feb 2010, Rodolfo Giometti wrote:
+Just pass VIDIOC_S_PARM and VIDIOC_G_PARM down to host drivers. So far no 
+special handling in soc-camera core.
 
-> Hello,
-> 
-> on my pxa27x based board I have a adv7180 connected with the CIF
-> interface. Due this fact I'm going to use the pxa_camera.c driver
-> which in turn registers a soc_camera_host.
-> 
-> In the latest kernel I found your driver for the ADV7180, but it
-> registers the chip as a v4l sub device.
-> 
-> I suppose these two interfaces are not compatible, aren't they?
-
-Congratulations! Thereby you're in a position to develop the first 
-v4l2-subdev / soc-camera universal driver;) The answer to this your 
-question is - they are... kinda. This means - yes, soc-camera is also 
-using the v4l2-subdev API, but - with a couple of additions. Basically, 
-there are two things you have to change in the adv7180 driver to make it 
-compatible with soc-camera - (1) add bus-configuration methods, even if 
-they don't do much (see .query_bus_param() and .set_bus_param() methods 
-from struct soc_camera_ops), and (2) migrate the driver to the mediabus 
-API. The latter one requires some care - in principle, mediabus should be 
-the future API to negotiate parameters on the video bus between bridges 
-(in your case PXA CIF) and clients, but for you this means you also have 
-to migrate any other bridge drivers in the mainline to that API, and, if 
-they also interface to some other subdevices - those too, and if those can 
-also work with other bridges - those too...;) But, I think, that chain 
-will terminate quite soon, in fact, I cannot find any users of that driver 
-currently in the mainline, Richard?
-
-> In this situation, should I write a new driver for the
-> soc_camera_device? Which is The-Right-Thing(TM) to do? :)
-
-Please, have a look and try to convert the driver as described above. All 
-the APIs and a few examples are in the mainline, so, you should have 
-enough copy-paste sources;) Ask on the list (with me on cc) if anything is 
-still unclear.
-
-Thanks
-Guennadi
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index 6b3fbcc..abce210 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -781,6 +781,32 @@ static int soc_camera_s_crop(struct file *file, void *fh,
+ 	return ret;
+ }
+ 
++static int soc_camera_g_parm(struct file *file, void *fh,
++			     struct v4l2_streamparm *a)
++{
++	struct soc_camera_file *icf = file->private_data;
++	struct soc_camera_device *icd = icf->icd;
++	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
++
++	if (ici->ops->get_parm)
++		return ici->ops->get_parm(icd, a);
++
++	return -ENOIOCTLCMD;
++}
++
++static int soc_camera_s_parm(struct file *file, void *fh,
++			     struct v4l2_streamparm *a)
++{
++	struct soc_camera_file *icf = file->private_data;
++	struct soc_camera_device *icd = icf->icd;
++	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
++
++	if (ici->ops->set_parm)
++		return ici->ops->set_parm(icd, a);
++
++	return -ENOIOCTLCMD;
++}
++
+ static int soc_camera_g_chip_ident(struct file *file, void *fh,
+ 				   struct v4l2_dbg_chip_ident *id)
+ {
+@@ -1260,6 +1286,8 @@ static const struct v4l2_ioctl_ops soc_camera_ioctl_ops = {
+ 	.vidioc_cropcap		 = soc_camera_cropcap,
+ 	.vidioc_g_crop		 = soc_camera_g_crop,
+ 	.vidioc_s_crop		 = soc_camera_s_crop,
++	.vidioc_g_parm		 = soc_camera_g_parm,
++	.vidioc_s_parm		 = soc_camera_s_parm,
+ 	.vidioc_g_chip_ident     = soc_camera_g_chip_ident,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.vidioc_g_register	 = soc_camera_g_register,
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index dcc5b86..5a17365 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -81,6 +81,8 @@ struct soc_camera_host_ops {
+ 	int (*set_bus_param)(struct soc_camera_device *, __u32);
+ 	int (*get_ctrl)(struct soc_camera_device *, struct v4l2_control *);
+ 	int (*set_ctrl)(struct soc_camera_device *, struct v4l2_control *);
++	int (*get_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
++	int (*set_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
+ 	unsigned int (*poll)(struct file *, poll_table *);
+ 	const struct v4l2_queryctrl *controls;
+ 	int num_controls;
