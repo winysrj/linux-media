@@ -1,49 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f219.google.com ([209.85.219.219]:39537 "EHLO
-	mail-ew0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932718Ab0BPIIS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Feb 2010 03:08:18 -0500
-Received: by ewy19 with SMTP id 19so4018794ewy.21
-        for <linux-media@vger.kernel.org>; Tue, 16 Feb 2010 00:08:17 -0800 (PST)
-Message-ID: <4B7A526D.5090906@gmail.com>
-Date: Tue, 16 Feb 2010 08:08:13 +0000
-From: Richard <tuxbox.guru@gmail.com>
+Received: from mail.gmx.net ([213.165.64.20]:44026 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750831Ab0BIIL6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Feb 2010 03:11:58 -0500
+Date: Tue, 9 Feb 2010 09:12:30 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+cc: linux-pm@lists.linux-foundation.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [linux-pm] [PATCH/RESEND] soc-camera: add runtime pm support
+ for subdevices
+In-Reply-To: <201002082310.08079.rjw@sisk.pl>
+Message-ID: <Pine.LNX.4.64.1002090901550.4585@axis700.grange>
+References: <Pine.LNX.4.64.1002081044150.4936@axis700.grange>
+ <201002082310.08079.rjw@sisk.pl>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: railis@juvepoland.com
-Subject: Re: [linux-dvb] Working USB DVB staff?
-References: <201002152122.26802.railis@juvepoland.com>
-In-Reply-To: <201002152122.26802.railis@juvepoland.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dominik Sito wrote:
-> I'm writing to ask about any DVB staff for notebook. I know many 
-> models haven't any working drivers, due to many reasons. The 
-> question is: Are there any preety good DVB cards which i can use? 
-> Which one do you prefere? I don't expect a new model witch DVB-
-> S2. It may be an older model. It should be only usable on linux.
->
-> I will be very pleased for any anwsers.
->
-> Best Regards.
-> Dominik Sito
->
->   
-Hi Dominic,
+On Mon, 8 Feb 2010, Rafael J. Wysocki wrote:
 
-I have tried 3 different brands and I eventually stayed with the 
-TechnoTrend TT-Connect S-2400.  it is cheap and cheerful.
+> On Monday 08 February 2010, Guennadi Liakhovetski wrote:
+> > To save power soc-camera powers subdevices down, when they are not in use, 
+> > if this is supported by the platform. However, the V4L standard dictates, 
+> > that video nodes shall preserve configuration between uses. This requires 
+> > runtime power management, which is implemented by this patch. It allows 
+> > subdevice drivers to specify their runtime power-management methods, by 
+> > assigning a type to the video device.
+> 
+> You need a support for that at the bus type/device type/device class level,
+> because the core doesn't execute the driver callbacks directly.
 
-Richard
+That's exactly what this patch is doing - adding a device type with pm 
+callbacks. What I wasn't sure about - and why I posted here - is whether 
+that's a proper way to use pm_runtime_resume() and pm_runtime_suspend() 
+calls - from a central module, targeting underlying devices, before 
+powering them down and after powering them up?
 
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->   
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
