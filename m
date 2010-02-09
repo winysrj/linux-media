@@ -1,55 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cp-out10.libero.it ([212.52.84.110]:40625 "EHLO
-	cp-out10.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751942Ab0BGMsP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Feb 2010 07:48:15 -0500
-Received: from [151.82.7.88] (151.82.7.88) by cp-out10.libero.it (8.5.107)
-        id 4B5B78F701325A8A for linux-media@vger.kernel.org; Sun, 7 Feb 2010 13:48:14 +0100
-Subject: [PATCH] dvb-core: fix initialization of feeds list in demux filter
-From: Francesco Lavra <francescolavra@interfree.it>
+Received: from mail-yw0-f189.google.com ([209.85.211.189]:59253 "EHLO
+	mail-yw0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751762Ab0BIIrU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 03:47:20 -0500
+Received: by ywh27 with SMTP id 27so6298337ywh.1
+        for <linux-media@vger.kernel.org>; Tue, 09 Feb 2010 00:47:19 -0800 (PST)
+From: Magnus Damm <magnus.damm@gmail.com>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain
-Date: Sun, 07 Feb 2010 13:49:58 +0100
-Message-Id: <1265546998.9356.4.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Cc: Magnus Damm <magnus.damm@gmail.com>, g.liakhovetski@gmx.de
+Date: Tue, 09 Feb 2010 17:40:40 +0900
+Message-Id: <20100209084040.29907.35986.sendpatchset@rxone.opensource.se>
+Subject: [PATCH] soc-camera: return -ENODEV is sensor is missing
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A DVB demultiplexer device can be used to set up either a PES filter or
-a section filter. In the former case, the ts field of the feed union of
-struct dmxdev_filter is used, in the latter case the sec field of the
-same union is used.
-The ts field is a struct list_head, and is currently initialized in the
-open() method of the demux device. When for a given demuxer a section
-filter is set up, the sec field is played with, thus if a PES filter
-needs to be set up after that the ts field will be corrupted, causing a
-kernel oops.
-This fix moves the list head initialization to
-dvb_dmxdev_pes_filter_set(), so that the ts field is properly
-initialized every time a PES filter is set up.
+From: Magnus Damm <damm@opensource.se>
 
-Signed-off-by: Francesco Lavra <francescolavra@interfree.it>
-Cc: stable <stable@kernel.org>
+Update the soc-camera i2c code to return -ENODEV if
+a camera sensor is missing instead of -ENOMEM.
+
+Signed-off-by: Magnus Damm <damm@opensource.se>
 ---
 
---- a/drivers/media/dvb/dvb-core/dmxdev.c	2010-02-07 13:19:18.000000000 +0100
-+++ b/drivers/media/dvb/dvb-core/dmxdev.c	2010-02-07 13:23:39.000000000 +0100
-@@ -761,7 +761,6 @@ static int dvb_demux_open(struct inode *
- 	dvb_ringbuffer_init(&dmxdevfilter->buffer, NULL, 8192);
- 	dmxdevfilter->type = DMXDEV_TYPE_NONE;
- 	dvb_dmxdev_filter_state_set(dmxdevfilter, DMXDEV_STATE_ALLOCATED);
--	INIT_LIST_HEAD(&dmxdevfilter->feed.ts);
- 	init_timer(&dmxdevfilter->timer);
- 
- 	dvbdev->users++;
-@@ -887,6 +886,7 @@ static int dvb_dmxdev_pes_filter_set(str
- 	dmxdevfilter->type = DMXDEV_TYPE_PES;
- 	memcpy(&dmxdevfilter->params, params,
- 	       sizeof(struct dmx_pes_filter_params));
-+	INIT_LIST_HEAD(&dmxdevfilter->feed.ts);
- 
- 	dvb_dmxdev_filter_state_set(dmxdevfilter, DMXDEV_STATE_SET);
- 
+ drivers/media/video/soc_camera.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-
+--- 0001/drivers/media/video/soc_camera.c
++++ work/drivers/media/video/soc_camera.c	2010-02-09 17:32:58.000000000 +0900
+@@ -846,10 +846,8 @@ static int soc_camera_init_i2c(struct so
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+ 	struct i2c_adapter *adap = i2c_get_adapter(icl->i2c_adapter_id);
+ 	struct v4l2_subdev *subdev;
+-	int ret;
+ 
+ 	if (!adap) {
+-		ret = -ENODEV;
+ 		dev_err(&icd->dev, "Cannot get I2C adapter #%d. No driver?\n",
+ 			icl->i2c_adapter_id);
+ 		goto ei2cga;
+@@ -859,10 +857,8 @@ static int soc_camera_init_i2c(struct so
+ 
+ 	subdev = v4l2_i2c_new_subdev_board(&ici->v4l2_dev, adap,
+ 				icl->module_name, icl->board_info, NULL);
+-	if (!subdev) {
+-		ret = -ENOMEM;
++	if (!subdev)
+ 		goto ei2cnd;
+-	}
+ 
+ 	client = subdev->priv;
+ 
+@@ -873,7 +869,7 @@ static int soc_camera_init_i2c(struct so
+ ei2cnd:
+ 	i2c_put_adapter(adap);
+ ei2cga:
+-	return ret;
++	return -ENODEV;
+ }
+ 
+ static void soc_camera_free_i2c(struct soc_camera_device *icd)
