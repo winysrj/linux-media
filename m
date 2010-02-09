@@ -1,28 +1,19 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:50697 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936066Ab0BZNL7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Feb 2010 08:11:59 -0500
-Received: by bwz1 with SMTP id 1so51273bwz.1
-        for <linux-media@vger.kernel.org>; Fri, 26 Feb 2010 05:11:57 -0800 (PST)
+Received: from toroondcbmts08-srv.bellnexxia.net ([207.236.237.42]:62979 "EHLO
+	toroondcbmts08-srv.bellnexxia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755422Ab0BJEgp convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Feb 2010 23:36:45 -0500
+Message-ID: <20100209123748.DE876.6949.root@toroondcbfep01>
+Date: Tue, 9 Feb 2010 12:37:47 -0500
+From: Irish Online Promo <sawltd@bellnet.ca>
+Reply-To: rsm.claim.offic@9.cn
+Subject: 
 MIME-Version: 1.0
-Date: Fri, 26 Feb 2010 08:11:56 -0500
-Message-ID: <55a3e0ce1002260511s6351a6e6k548f329f1dc7b698@mail.gmail.com>
-Subject: support for device node for sub devices
-From: Muralidharan Karicheri <mkaricheri@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Laurent,
-
-I see that you have added support for sub device device nodes in your
-media controller development tree. This is an important feature for
-SoC devices since this will allow application to configure the sub
-device nodes like that on VPFE/VPBE of a DMxxx device. Shouldn't we
-add this feature right away perhaps in 2.6.35 so that drivers can make
-use of it?
--- 
-Murali Karicheri
+Your email have won £891,934.00 Send:Name,Age, Address, Tel,Country
