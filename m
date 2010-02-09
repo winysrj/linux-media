@@ -1,60 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:54717 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753143Ab0BVNrn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 08:47:43 -0500
-Received: by bwz1 with SMTP id 1so1612848bwz.21
-        for <linux-media@vger.kernel.org>; Mon, 22 Feb 2010 05:47:41 -0800 (PST)
+Received: from mail.cooptel.qc.ca ([216.144.115.12]:60127 "EHLO
+	amy.cooptel.qc.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754448Ab0BINoJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 08:44:09 -0500
+Message-ID: <4B7166A5.8050402@cooptel.qc.ca>
+Date: Tue, 09 Feb 2010 08:44:05 -0500
+From: Richard Lemieux <rlemieu@cooptel.qc.ca>
 MIME-Version: 1.0
-In-Reply-To: <4B828939.4040708@redhat.com>
-References: <829197381002212007q342fc01bm1c528a2f15027a1e@mail.gmail.com>
-	 <1266838852.3095.20.camel@palomino.walls.org>
-	 <4B827548.10005@redhat.com>
-	 <829197381002220510v64f6e948pfb73ebe4fcc180af@mail.gmail.com>
-	 <4B828939.4040708@redhat.com>
-Date: Mon, 22 Feb 2010 08:47:41 -0500
-Message-ID: <829197381002220547n3468019bmdb17f401f7c5b6e1@mail.gmail.com>
-Subject: Re: Chroma gain configuration
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Andy Walls <awalls@radix.net>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	hverkuil@xs4all.nl,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Driver crash on kernel 2.6.32.7. Interaction between cx8800
+ (DVB-S) and USB HVR Hauppauge 950q
+References: <4B70E7DB.7060101@cooptel.qc.ca> <829197381002082118k346437b3y4dc2eb76d017f24f@mail.gmail.com>
+In-Reply-To: <829197381002082118k346437b3y4dc2eb76d017f24f@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 22, 2010 at 8:40 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> I think that the control you want is V4L2_CID_GAIN.
+Hi Devin,
 
-I would have guessed the CID_GAIN control would have been responsible
-for *luma* gain.  I could be wrong about that of course (but that is
-what I believe people typically think of when they think of "gain" in
-general).
+I was previously running kernel vmlinux-2.6.29.5.  I notice there was a major
+reorganization of some of the media structure between 2.6.29 and 2.6.32.
+Can you tell me at wich kernel version the change occured so I can start from there.
 
->> I believe there probably are cases where extended controls are required,
->> but I believe just a general user control based on
->> V4L2_CID_PRIVATE_BASE should probably be able to work even with the
->> generic VIDIOC_S_CTRL
+Richard
+
+Devin Heitmueller wrote:
+> On Mon, Feb 8, 2010 at 11:43 PM, Richard Lemieux <rlemieu@cooptel.qc.ca> wrote:
+>> Hi,
 >>
->> I'm just asking because it would mean in order for v4l2-dbg to work
->> with my solution i would have to add support for extended controls in
->> general to the saa7115 driver, which shouldn't be necessary.
->
-> The end objective is to have everybody implementing extended controls and
-> removing the old controls, letting the V4L2 ioctl2 to convert a call to a
-> simple control into an extended control callback. So, I think it would
-> be worthy to implement extended control on saa7115.
-
-Ok then.  I'll add the 15-20 lines of code which add the extended
-controls mechanism to the 7115, which just operates as a passthrough
-for the older control interface.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+>> I got some driver crashes after upgrading to kernel 2.6.32.7.  It seems that
+>> activating either TBS8920 (DVB-S) and HVR950Q (ATSC) after the other one has
+>> run (and is no longer in use by an application) triggers a driver crash.
+> 
+> Hello Richard,
+> 
+> Have you tried any other kernel version?  For example, do you know
+> that it works properly in 2.6.32.6?
+> 
+> Can you bisect and see when the problem was introduced?
+> 
+> Devin
+> 
