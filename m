@@ -1,53 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:57959 "EHLO
+Received: from bombadil.infradead.org ([18.85.46.34]:53822 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754308Ab0BVVwZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 16:52:25 -0500
-Message-ID: <4B82FC95.9070301@infradead.org>
-Date: Mon, 22 Feb 2010 18:52:21 -0300
+	with ESMTP id S1751198Ab0BITVh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 14:21:37 -0500
+Message-ID: <4B71B5BD.8090006@infradead.org>
+Date: Tue, 09 Feb 2010 17:21:33 -0200
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: Randy Dunlap <rdunlap@xenotime.net>
-CC: Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] Updated videobuf documentation
-References: <20100218101219.665c5403@bike.lwn.net>	<4B7DC652.9080601@xenotime.net>	<4B7E2B0F.6000706@infradead.org> <20100222134746.1ce5cecf@bike.lwn.net> <4B82F542.2030206@xenotime.net>
-In-Reply-To: <4B82F542.2030206@xenotime.net>
+To: "Andrea.Amorosi76@gmail.com" <Andrea.Amorosi76@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] em28xx: add Dikom DK300 hybrid USB tuner
+References: <4AFE92ED.2060208@gmail.com> <4AFEAB15.9010509@gmail.com> <829197380911140634j49c05cd0s90aed57b9ae61436@mail.gmail.com> <4B71ACC8.600@gmail.com>
+In-Reply-To: <4B71ACC8.600@gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Randy Dunlap wrote:
-> On 02/22/10 12:47, Jonathan Corbet wrote:
->> On Fri, 19 Feb 2010 04:09:19 -0200
->> Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
->>
->>> Not anymore: there's a patch that added USERPTR support for videobuf-dma-contig:
->>>
->>> commit 720b17e759a50635c429ccaa2ec3d01edb4f92d6
->>> Author: Magnus Damm <damm@igel.co.jp>
->>> Date:   Tue Jun 16 15:32:36 2009 -0700
->>>
->>>     videobuf-dma-contig: zero copy USERPTR support
->> Now *that* is a special-purpose hack.  But it's worth mentioning, so
->> I've updated the text accordingly.
->>
->>> In terms of memory types, there's a possibility that weren't mentioned: the OVERLAY mode.
->>>
->>> Maybe a small paragraph may be added just for the completeness of the doc.
->> Yeah, I try to ignore overlay whenever I can.  I've added a brief bit.
->>
->> New version of the patch attached; look better?
+Andrea.Amorosi76@gmail.com wrote:
+> This patch add the Dikom DK300 hybrid usb card.
 > 
-> Looks good to me (other than a few straggling lines that end with whitespace).
+> The patch adds digital and analogue tv support.
 > 
-> Reviewed-by: Randy Dunlap <rdunlap@xenotime.net>
+> Not working: remote controller
 
-Seems OK to me also. I'll apply it (running a script to remove trailing whitespaces ;) )
+> diff -r d6520e486ee6 linux/drivers/media/video/em28xx/em28xx-cards.c
+> --- a/linux/drivers/media/video/em28xx/em28xx-cards.c    Sat Jan 30
+> 01:27:34 2010 -0200
+> +++ b/linux/drivers/media/video/em28xx/em28xx-cards.c    Sat Jan 30
+> 18:04:13 2010 +0100
 
+Your patch got mangled by Thunderbird. You should or use Asalted Patches
+plugin:
+        https://hg.mozilla.org/users/clarkbw_gnome.org/asalted-patches/
 
--- 
+or use another emailer. Without the above plugin, long lines are broken,
+damaging your patch.
 
 Cheers,
 Mauro
