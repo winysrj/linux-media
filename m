@@ -1,77 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:37047 "HELO mail.gmx.net"
+Received: from mail.gmx.net ([213.165.64.20]:60982 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754506Ab0BIQfB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 11:35:01 -0500
-Date: Tue, 9 Feb 2010 17:35:36 +0100 (CET)
+	id S1751940Ab0BIXhu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Feb 2010 18:37:50 -0500
+Received: from lyakh (helo=localhost)
+	by axis700.grange with local-esmtp (Exim 4.63)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1NezfE-0002qU-47
+	for linux-media@vger.kernel.org; Wed, 10 Feb 2010 00:38:40 +0100
+Date: Wed, 10 Feb 2010 00:38:40 +0100 (CET)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Magnus Damm <damm@opensource.se>,
-	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
-	Antonio Ospite <ospite@studenti.unina.it>,
-	=?ISO-8859-15?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-Subject: soc-camera: patches for 2.6.34
-Message-ID: <Pine.LNX.4.64.1002091705500.4585@axis700.grange>
+Subject: [PATCH] soc-camera: update mt9v022 to take into account board signal
+ routing
+Message-ID: <Pine.LNX.4.64.1002100037200.4585@axis700.grange>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all
+Use soc_camera_apply_sensor_flags() in mt9v022 to account for any inverters in
+video signal paths.
 
-Nothing exciting for soc-camera this time for a change, just a couple of 
-small improvements. These patches are already in my local tree, waiting to 
-be pushed up:
-
-Antonio Ospite (1):
-      pxa_camera: remove init() callback
-
-Guennadi Liakhovetski (3):
-      soc-camera: update mt9v022 to take into account board signal routing
-      tw9910: use TABs for indentation
-      soc-camera: adjust coding style to match V4L preferences
-
-Kuninori Morimoto (1):
-      soc-camera: ov772x: Modify buswidth control
-
-Magnus Damm (1):
-      soc-camera: return -ENODEV is sensor is missing
-
-Others on the radar:
-
-Kuninori Morimoto:
-	MT9T031: write xskip and yskip at each set_params call
-	* status: being discussed in PM context in:
-
-Guennadi Liakhovetski:
-	soc-camera: add runtime pm support for subdevices
-	* under discussion
-
-Németh Márton:
-	soc_camera: match signedness of soc_camera_limit_side()                 
-	* status: an updated patch has been proposed by me, waiting for 
-	  confirmation
-
-Guennadi Liakhovetski:
-	document new pixel formats
-	* status: I still have to figure out how to combine git / hg for 
-	  this one and actually do it...
-
-Kuninori Morimoto:
-	[1/3] soc-camera: mt9t112: modify exiting conditions from standby mode
-	[2/3] soc-camera: mt9t112: modify delay time after initialize
-	[3/3] soc-camera: mt9t112: The flag which control camera-init is
-	* status: at least patches 2 and 3 are still being discussed, 
-	  waiting for results
-
-
-Any patches, that I've forgotten?
-
-Thanks
-Guennadi
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/mt9v022.c |   17 ++++++++---------
+ 1 files changed, 8 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
+index 91df7ec..1a34d29 100644
+--- a/drivers/media/video/mt9v022.c
++++ b/drivers/media/video/mt9v022.c
+@@ -257,19 +257,18 @@ static int mt9v022_set_bus_param(struct soc_camera_device *icd,
+ static unsigned long mt9v022_query_bus_param(struct soc_camera_device *icd)
+ {
+ 	struct soc_camera_link *icl = to_soc_camera_link(icd);
+-	unsigned int width_flag;
++	unsigned int flags = SOCAM_MASTER | SOCAM_SLAVE |
++		SOCAM_PCLK_SAMPLE_RISING | SOCAM_PCLK_SAMPLE_FALLING |
++		SOCAM_HSYNC_ACTIVE_HIGH | SOCAM_HSYNC_ACTIVE_LOW |
++		SOCAM_VSYNC_ACTIVE_HIGH | SOCAM_VSYNC_ACTIVE_LOW |
++		SOCAM_DATA_ACTIVE_HIGH;
+ 
+ 	if (icl->query_bus_param)
+-		width_flag = icl->query_bus_param(icl) &
+-			SOCAM_DATAWIDTH_MASK;
++		flags |= icl->query_bus_param(icl) & SOCAM_DATAWIDTH_MASK;
+ 	else
+-		width_flag = SOCAM_DATAWIDTH_10;
++		flags |= SOCAM_DATAWIDTH_10;
+ 
+-	return SOCAM_PCLK_SAMPLE_RISING | SOCAM_PCLK_SAMPLE_FALLING |
+-		SOCAM_HSYNC_ACTIVE_HIGH | SOCAM_HSYNC_ACTIVE_LOW |
+-		SOCAM_VSYNC_ACTIVE_HIGH | SOCAM_VSYNC_ACTIVE_LOW |
+-		SOCAM_DATA_ACTIVE_HIGH | SOCAM_MASTER | SOCAM_SLAVE |
+-		width_flag;
++	return soc_camera_apply_sensor_flags(icl, flags);
+ }
+ 
+ static int mt9v022_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+-- 
+1.6.2.4
+
