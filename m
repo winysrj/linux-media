@@ -1,80 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:19297 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755746Ab0BFSCV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Feb 2010 13:02:21 -0500
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-To: linux-media@vger.kernel.org
-Cc: hans.verkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	gururaj.nagendra@intel.com, david.cohen@nokia.com,
-	iivanov@mm-sol.com,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: [PATCH 7/8] V4L: Events: Sequence numbers
-Date: Sat,  6 Feb 2010 20:02:10 +0200
-Message-Id: <1265479331-20595-7-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <4B6DAE5A.5090508@maxwell.research.nokia.com>
-References: <4B6DAE5A.5090508@maxwell.research.nokia.com>
+Received: from mail-in-09.arcor-online.net ([151.189.21.49]:37431 "EHLO
+	mail-in-09.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752923Ab0BIAxe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Feb 2010 19:53:34 -0500
+Subject: Re: [PATCH] dvb-core: fix initialization of feeds list in demux
+ filter (Was: Videotext application crashes the kernel due to DVB-demux
+ patch)
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Chicken Shack <chicken.shack@gmx.de>,
+	Andreas Oberritter <obi@linuxtv.org>,
+	Andy Walls <awalls@radix.net>, HoP <jpetrous@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Francesco Lavra <francescolavra@interfree.it>,
+	linux-media@vger.kernel.org, akpm@linux-foundation.org, rms@gnu.org
+In-Reply-To: <alpine.LFD.2.00.1002080746180.3829@localhost.localdomain>
+References: <1265546998.9356.4.camel@localhost>
+	 <4B6F72E5.3040905@redhat.com>  <4B700287.5080900@linuxtv.org>
+	 <1265636585.5399.47.camel@brian.bconsult.de>
+	 <alpine.LFD.2.00.1002080746180.3829@localhost.localdomain>
+Content-Type: text/plain
+Date: Tue, 09 Feb 2010 01:53:19 +0100
+Message-Id: <1265676799.5234.30.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add sequence numbers to events.
+Am Montag, den 08.02.2010, 08:14 -0800 schrieb Linus Torvalds:
+> 
+> On Mon, 8 Feb 2010, Chicken Shack wrote:
+> > 
+> > This is a SCANDAL, not fun! This is SCANDALOUS!
+> 
+> I agree that this whole thread has been totally inappropriate from 
+> beginning to end. 
 
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- drivers/media/video/v4l2-event.c |    6 ++++++
- include/media/v4l2-event.h       |    1 +
- 2 files changed, 7 insertions(+), 0 deletions(-)
+The initial problem was, how to find such software producing that oops
+at all.
 
-diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
-index b921229..7446b3d 100644
---- a/drivers/media/video/v4l2-event.c
-+++ b/drivers/media/video/v4l2-event.c
-@@ -108,6 +108,7 @@ int v4l2_event_init(struct v4l2_fh *fh, unsigned int n)
- 	INIT_LIST_HEAD(&fh->events->subscribed);
+Uwe/Chicken only later friendly distributed it to us.
+
+Is there some alevt 1.7.0 (dvb-t/dvb-s :) anywhere else already?
+
+Since only then, we have been able to discover, that it is valid bug
+that needs investigation.
+
+Else I do agree with all your findings, you had him blacklisted on LKML
+already too, but v4l and dvb people are also somehow forced to work
+together, because of the hybrid devices everywhere now.
+
+Some don't like it and he is always on top of it again.
+
+We make progress in so far.
+
+Hermann
+
+
+
  
- 	atomic_set(&fh->events->navailable, 0);
-+	atomic_set(&fh->events->sequence, -1);
- 
- 	ret = v4l2_event_alloc(fh, n);
- 	if (ret < 0)
-@@ -190,6 +191,7 @@ void v4l2_event_queue(struct video_device *vdev, struct v4l2_event *ev)
- 	list_for_each_entry(fh, &vdev->fhs.list, list) {
- 		struct v4l2_events *events = fh->events;
- 		struct v4l2_kevent *kev;
-+		u32 sequence;
- 
- 		/* Is it subscribed? */
- 		if (!v4l2_event_subscribed(fh, ev->type))
-@@ -209,6 +211,9 @@ void v4l2_event_queue(struct video_device *vdev, struct v4l2_event *ev)
- 		}
- 		put_me = fh;
- 
-+		/* Increase event sequence number on fh. */
-+		sequence = atomic_inc_return(&events->sequence);
-+
- 		/* Do we have any free events? */
- 		spin_lock_irqsave(&fh->lock, flags);
- 		if (list_empty(&events->free)) {
-@@ -223,6 +228,7 @@ void v4l2_event_queue(struct video_device *vdev, struct v4l2_event *ev)
- 		spin_unlock_irqrestore(&fh->lock, flags);
- 
- 		kev->event = *ev;
-+		kev->event.sequence = sequence;
- 
- 		/* And add to the available list. */
- 		spin_lock_irqsave(&fh->lock, flags);
-diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
-index 282d215..3db0c3b 100644
---- a/include/media/v4l2-event.h
-+++ b/include/media/v4l2-event.h
-@@ -49,6 +49,7 @@ struct v4l2_events {
- 	struct list_head	available; /* Dequeueable event */
- 	atomic_t                navailable;
- 	struct list_head	free; /* Events ready for use */
-+	atomic_t                sequence;
- };
- 
- int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n);
--- 
-1.5.6.5
 
