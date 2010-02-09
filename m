@@ -1,217 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail02d.mail.t-online.hu ([84.2.42.7]:50071 "EHLO
-	mail02d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755087Ab0BAVYG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Feb 2010 16:24:06 -0500
-Message-ID: <4B67466F.1030301@freemail.hu>
-Date: Mon, 01 Feb 2010 22:23:59 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+Received: from mail.gmx.net ([213.165.64.20]:39260 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752627Ab0BIVHV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 16:07:21 -0500
+Date: Tue, 9 Feb 2010 22:07:57 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Valentin Longchamp <valentin.longchamp@epfl.ch>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Magnus Damm <damm@opensource.se>,
+	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
+	Antonio Ospite <ospite@studenti.unina.it>,
+	=?ISO-8859-15?Q?N=E9meth_M=E1?= =?ISO-8859-15?Q?rton?=
+	<nm127@freemail.hu>
+Subject: Re: soc-camera: patches for 2.6.34
+In-Reply-To: <4B71B285.7020208@epfl.ch>
+Message-ID: <Pine.LNX.4.64.1002092206340.4585@axis700.grange>
+References: <Pine.LNX.4.64.1002091705500.4585@axis700.grange> <4B71B285.7020208@epfl.ch>
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: libv4l: possible problem found in PAC7302 JPEG decoding
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans,
+On Tue, 9 Feb 2010, Valentin Longchamp wrote:
 
-while I was dealing with Labtec Webcam 2200 and with gspca_pac7302 driver I recognised the
-following behaviour. The stream received from the webcam is splitted by the gspca_pac7302
-subdriver when the byte sequence 0xff, 0xff, 0x00, 0xff, 0x96 is found (pac_find_sof()).
-Before transmitting the data to the userspace a JPEG header is added (pac_start_frame())
-and the footer after the bytes 0xff, 0xd9 are removed.
+> Guennadi Liakhovetski wrote:
+> > Hi all
+> > 
+> > Nothing exciting for soc-camera this time for a change, just a couple of
+> > small improvements. These patches are already in my local tree, waiting to
+> > be pushed up:
+> > 
+> > Antonio Ospite (1):
+> >       pxa_camera: remove init() callback
+> > 
+> > Guennadi Liakhovetski (3):
+> >       soc-camera: update mt9v022 to take into account board signal routing
+> >       tw9910: use TABs for indentation
+> >       soc-camera: adjust coding style to match V4L preferences
+> > 
+> > Kuninori Morimoto (1):
+> >       soc-camera: ov772x: Modify buswidth control
+> > 
+> > Magnus Damm (1):
+> >       soc-camera: return -ENODEV is sensor is missing
+> > 
+> > Others on the radar:
+> > 
+> > Kuninori Morimoto:
+> > 	MT9T031: write xskip and yskip at each set_params call
+> > 	* status: being discussed in PM context in:
+> 
+> Well, the above one is from me, and I have posted the updated version for pm
+> context this morning:
+> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/15897
+> 
+> (You certainly had noticed, but wanted to make sure).
 
-The data buffer which arrives to userspace looks like as follows (maybe not every detail is exact):
+Oops, yes, sorry. I made this not-yet-committed list by hand and made a 
+mistake, but the patch certainly has your authorship.
 
- 1. JPEG header
+Thanks
+Guennadi
 
- 2. Some bytes of image data (near to 1024 bytes)
-
- 3. The byte sequence 0xff, 0xff, 0xff, 0x01 followed by 1024 bytes of data.
-    This marker sequence and data repeats a couple of time. Exactly how much
-    depends on the image content.
-
- 4. The byte sequence 0xff, 0xff, 0xff, 0x02 followed by 512 bytes of data.
-    This marker sequence and data also repeats a couple of time.
-
- 5. The byte sequence 0xff, 0xff, 0xff, 0x00 followed by a variable amount of
-    image data bytes.
-
- 6. The End of Image (EOI) marker 0xff, 0xd9.
-
-Now what can be wrong with the libv4l? In libv4lconvert/tinyjpeg.c, line 315 there is a
-huge macro which tries to remove the 0xff, 0xff, 0xff, xx byte sequence from the received
-image. This fails, however, if the image contains 0xff bytes just before the 0xff, 0xff,
-0xff, xx sequence because one byte from the image data (the first 0xff) is removed, then
-the three 0xff bytes from the marker is also removed. The xx (which really belongs to the
-marker) is left in the image data instead of the original 0xff byte.
-
-Based on my experiments this problem sometimes causes corrupted image decoding or that the
-JPEG image cannot be decoded at all.
-
-I have done my experiments with a modified gspca_pac7302 kernel space driver (the JPEG header
-is not added and the footer is not removed). In userspace I added the JPEG header and
-then applied the following filter function to the received data. The result is that I do
-not get any corrupted frame anymore. The filter function in userspace is based on a state
-machine like this:
-
-static int memcpy_filter(unsigned char *dest, unsigned char *src, int n)
-{
-	int i = 0;
-	int j = 0;
-	int state = 0;
-	int last_i = 0;
-
-	i = 5;
-	j = 0;
-
-	/* Skip the first 5 bytes: 0xff 0xff 0x00 0xff 0x96 */
-	memcpy(&(dest[j]), &(src[i]), 1024-5);
-	i += 1024-5;
-	j += 1024-5;
-
-	while (i < n) {
-		switch (state) {
-			case 0:
-				if (src[i] == 0xff)
-					state = 1;
-				else {
-					state = 0;
-					dest[j++] = src[i];
-				}
-				break;
-			case 1:
-				if (src[i] == 0xff)
-					state = 2;
-				else {
-					state = 0;
-					dest[j++] = src[i-1];
-					dest[j++] = src[i];
-				}
-				break;
-			case 2:
-				switch (src[i]) {
-					case 0xff:
-						state = 3;
-						break;
-					default:
-						state = 0;
-						dest[j++] = src[i-2];
-						dest[j++] = src[i-1];
-						dest[j++] = src[i];
-				}
-				break;
-			case 3:
-				switch (src[i]) {
-					case 0:
-						/* found 0xff 0xff 0xff 0x00 */
-						state = 0;
-						break;
-					case 1:
-						/* found 0xff 0xff 0xff 0x01 */
-						last_i = i+1;
-						memcpy(&(dest[j]), &(src[i+1]), 1024);
-						i += 1024;
-						j += 1024;
-						state = 0;
-						break;
-					case 2:
-						/* found 0xff 0xff 0xff 0x02 */
-						last_i = i+1;
-						memcpy(&(dest[j]), &(src[i+1]), 512);
-						i += 512;
-						j += 512;
-						state = 0;
-						break;
-					case 0xff:
-						/* found the 4th 0xff in a row, lets copy the first
-						   one and keep the last three for later use */
-						dest[j++] = src[i-3];
-						state = 3;
-						break;
-
-					default:
-						state = 0;
-						dest[j++] = src[i-3];
-						dest[j++] = src[i-2];
-						dest[j++] = src[i-1];
-						dest[j++] = src[i];
-				
-				}
-		}
-		i++;
-	}
-
-	/* return the length of the dest buffer */
-	return j;
-}
-
-The solution is not 100% solution because there are some cases when the decoding fails, but
-the error rate is much lower.
-
-I think it is possible to solve this kind of problem just by modifying the pixart_fill_nbits()
-macro. What do you think?
-
-Best regarsd,
-
-	Márton Németh
-
-PS: here is the patch I used in kernel space, just for easier reference
+> 
+> 
+> > 
+> > Guennadi Liakhovetski:
+> > 	soc-camera: add runtime pm support for subdevices
+> > 	* under discussion
+> > 
+> > N�meth M�rton:
+> > 	soc_camera: match signedness of soc_camera_limit_side()
+> > * status: an updated patch has been proposed by me, waiting for
+> > confirmation
+> > 
+> > Guennadi Liakhovetski:
+> > 	document new pixel formats
+> > 	* status: I still have to figure out how to combine git / hg for
+> > this one and actually do it...
+> > 
+> > Kuninori Morimoto:
+> > 	[1/3] soc-camera: mt9t112: modify exiting conditions from standby mode
+> > 	[2/3] soc-camera: mt9t112: modify delay time after initialize
+> > 	[3/3] soc-camera: mt9t112: The flag which control camera-init is
+> > 	* status: at least patches 2 and 3 are still being discussed,
+> > waiting for results
+> > 
+> > 
+> > Any patches, that I've forgotten?
+> > 
+> 
+> Val
+> 
+> -- 
+> Valentin Longchamp, PhD Student, EPFL-STI-LSRO1
+> valentin.longchamp@epfl.ch, Phone: +41216937827
+> http://people.epfl.ch/valentin.longchamp
+> MEB3494, Station 9, CH-1015 Lausanne
+> 
 
 ---
-Signed-off-by: Márton Németh <nm127@freemail.hu>
----
-diff -r 4f102b2f7ac1 linux/drivers/media/video/gspca/pac7302.c
---- a/linux/drivers/media/video/gspca/pac7302.c	Thu Jan 28 20:35:40 2010 +0100
-+++ b/linux/drivers/media/video/gspca/pac7302.c	Mon Feb 01 22:09:15 2010 +0100
-@@ -835,6 +835,7 @@
- {
- 	unsigned char tmpbuf[4];
-
-+#if 0
- 	gspca_frame_add(gspca_dev, FIRST_PACKET,
- 		pac_jpeg_header1, sizeof(pac_jpeg_header1));
-
-@@ -847,6 +848,11 @@
- 		tmpbuf, sizeof(tmpbuf));
- 	gspca_frame_add(gspca_dev, INTER_PACKET,
- 		pac_jpeg_header2, sizeof(pac_jpeg_header2));
-+#else
-+	gspca_frame_add(gspca_dev, FIRST_PACKET,
-+		NULL, 0);
-+#endif
-+
- }
-
- /* this function is run at interrupt level */
-@@ -873,10 +879,10 @@
- 		   image, the 14th and 15th byte after the EOF seem to
- 		   correspond to the center of the image */
- 		lum_offset = 61 + sizeof pac_sof_marker;
--		footer_length = 74;
-+		footer_length = 74 + sizeof(pac_sof_marker);
-
- 		/* Finish decoding current frame */
--		n = (sof - data) - (footer_length + sizeof pac_sof_marker);
-+		n = sof - data;
- 		if (n < 0) {
- 			frame->data_end += n;
- 			n = 0;
-@@ -884,11 +890,13 @@
- 		gspca_frame_add(gspca_dev, INTER_PACKET,
- 					data, n);
- 		if (gspca_dev->last_packet_type != DISCARD_PACKET &&
--				frame->data_end[-2] == 0xff &&
--				frame->data_end[-1] == 0xd9)
-+				frame->data_end[-footer_length-2] == 0xff &&
-+				frame->data_end[-footer_length-1] == 0xd9)
- 			gspca_frame_add(gspca_dev, LAST_PACKET,
- 						NULL, 0);
-
-+		sof -= 5;
-+
- 		n = sof - data;
- 		len -= n;
- 		data = sof;
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
