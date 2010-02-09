@@ -1,96 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3380 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757144Ab0BCTR6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2010 14:17:58 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o13JHqlu024768
-	for <linux-media@vger.kernel.org>; Wed, 3 Feb 2010 20:17:57 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 3 Feb 2010 20:17:52 +0100 (CET)
-Message-Id: <201002031917.o13JHqlu024768@smtp-vbr7.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mail.gmx.net ([213.165.64.20]:37178 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751911Ab0BIK0p (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Feb 2010 05:26:45 -0500
+Date: Tue, 9 Feb 2010 11:27:20 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+cc: linux-pm@lists.linux-foundation.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Valentin Longchamp <valentin.longchamp@epfl.ch>
+Subject: Re: [PATCH/RESEND] soc-camera: add runtime pm support for subdevices
+In-Reply-To: <4B705216.7040907@redhat.com>
+Message-ID: <Pine.LNX.4.64.1002091053470.4585@axis700.grange>
+References: <Pine.LNX.4.64.1002081044150.4936@axis700.grange>
+ <4B7012D1.40605@redhat.com> <Pine.LNX.4.64.1002081447020.4936@axis700.grange>
+ <4B705216.7040907@redhat.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Mon, 8 Feb 2010, Mauro Carvalho Chehab wrote:
 
-Results of the daily build of v4l-dvb:
+> In fact, on all drivers, there are devices that needs to be turn on only when
+> streaming is happening: sensors, analog TV/audio demods, digital demods. Also,
+> a few devices (for example: TV tuners) could eventually be on power off when
+> no device is opened.
+> 
+> As the V4L core knows when this is happening (due to
+> open/close/poll/streamon/reqbuf/qbuf/dqbuf hooks, I think the runtime management 
+> can happen at V4L core level.
 
-date:        Wed Feb  3 19:00:04 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14108:556072389bd6
-gcc version: i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:     2.6.32.5
+Well, we can move it up to v4l core. Should it get any more complicated 
+than adding
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-rc5-armv5: OK
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-rc5-armv5-davinci: OK
-linux-2.6.32.6-armv5-dm365: ERRORS
-linux-2.6.33-rc5-armv5-dm365: ERRORS
-linux-2.6.32.6-armv5-ixp: OK
-linux-2.6.33-rc5-armv5-ixp: OK
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-rc5-armv5-omap2: OK
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.20-i686: ERRORS
-linux-2.6.26.8-i686: ERRORS
-linux-2.6.27.44-i686: ERRORS
-linux-2.6.28.10-i686: ERRORS
-linux-2.6.29.1-i686: ERRORS
-linux-2.6.30.10-i686: OK
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-rc5-i686: OK
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-rc5-m32r: OK
-linux-2.6.32.6-mips: OK
-linux-2.6.33-rc5-mips: OK
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-rc5-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.20-x86_64: ERRORS
-linux-2.6.26.8-x86_64: ERRORS
-linux-2.6.27.44-x86_64: ERRORS
-linux-2.6.28.10-x86_64: ERRORS
-linux-2.6.29.1-x86_64: ERRORS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-rc5-x86_64: WARNINGS
-spec: OK
-sparse (linux-2.6.32.6): ERRORS
-sparse (linux-2.6.33-rc5): ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+	ret = pm_runtime_resume(&vdev->dev);
+	if (ret < 0 && ret != -ENOSYS)
+		return ret;
 
-Detailed results are available here:
+to v4l2_open() and
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+	pm_runtime_suspend(&vdev->dev);
 
-Full logs are available here:
+to v4l2_release()? And to agree, that video drivers may set a device type 
+to implement runtime PM, and that the v4l core shouldn't touch it? Then, 
+for example, a bridge driver could implement such a device type instance 
+and suspend or resume all related components?
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
