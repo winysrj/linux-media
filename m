@@ -1,162 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out26.alice.it ([85.33.2.26]:1198 "EHLO
-	smtp-out26.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030802Ab0B0UbL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Feb 2010 15:31:11 -0500
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: linux-media@vger.kernel.org
-Cc: Antonio Ospite <ospite@studenti.unina.it>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Max Thrun <bear24rw@gmail.com>
-Subject: [PATCH 02/11] ov534: Remove hue control
-Date: Sat, 27 Feb 2010 21:20:19 +0100
-Message-Id: <1267302028-7941-3-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
-References: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4992 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753513Ab0BIMOY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 07:14:24 -0500
+Message-ID: <2aa8130b9fd7fe9f9fb2cf626ff58831.squirrel@webmail.xs4all.nl>
+In-Reply-To: <Pine.LNX.4.64.1002091252530.4585@axis700.grange>
+References: <Pine.LNX.4.64.1002081044150.4936@axis700.grange>
+    <4B7012D1.40605@redhat.com>
+    <Pine.LNX.4.64.1002081447020.4936@axis700.grange>
+    <4B705216.7040907@redhat.com>
+    <Pine.LNX.4.64.1002091053470.4585@axis700.grange>
+    <26fe28e3dda70da4d133a9dbc3f2bc74.squirrel@webmail.xs4all.nl>
+    <Pine.LNX.4.64.1002091252530.4585@axis700.grange>
+Date: Tue, 9 Feb 2010 13:13:32 +0100
+Subject: Re: [PATCH/RESEND] soc-camera: add runtime pm support for  
+ subdevices
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+Cc: "Mauro Carvalho Chehab" <mchehab@redhat.com>,
+	linux-pm@lists.linux-foundation.org,
+	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
+	"Valentin Longchamp" <valentin.longchamp@epfl.ch>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hue control doesn't work and the sensor datasheet is not clear about how
-to set hue properly.
 
-Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
----
- linux/drivers/media/video/gspca/ov534.c |   54 ++------------------------------
- 1 file changed, 5 insertions(+), 49 deletions(-)
+> On Tue, 9 Feb 2010, Hans Verkuil wrote:
+>
+>>
+>> > On Mon, 8 Feb 2010, Mauro Carvalho Chehab wrote:
+>> >
+>> >> In fact, on all drivers, there are devices that needs to be turn on
+>> only
+>> >> when
+>> >> streaming is happening: sensors, analog TV/audio demods, digital
+>> demods.
+>> >> Also,
+>> >> a few devices (for example: TV tuners) could eventually be on power
+>> off
+>> >> when
+>> >> no device is opened.
+>> >>
+>> >> As the V4L core knows when this is happening (due to
+>> >> open/close/poll/streamon/reqbuf/qbuf/dqbuf hooks, I think the runtime
+>> >> management
+>> >> can happen at V4L core level.
+>> >
+>> > Well, we can move it up to v4l core. Should it get any more
+>> complicated
+>> > than adding
+>> >
+>> > 	ret = pm_runtime_resume(&vdev->dev);
+>> > 	if (ret < 0 && ret != -ENOSYS)
+>> > 		return ret;
+>> >
+>> > to v4l2_open() and
+>> >
+>> > 	pm_runtime_suspend(&vdev->dev);
+>> >
+>> > to v4l2_release()?
+>>
+>> My apologies if I say something stupid as I know little about pm: are
+>> you
+>> assuming here that streaming only happens on one device node? That may
+>> be
+>> true for soc-camera, but other devices can have multiple streaming nodes
+>> (video, vbi, mpeg, etc). So the call to v4l2_release does not
+>> necessarily
+>> mean that streaming has stopped.
+>
+> Of course you're right, and it concerns not only multiple streaming modes,
+> but simple cases of multiple openings of one node. I was too fast to
+> transfer the implementation from soc-camera to v4l2 - in soc-camera I'm
+> counting opens and closes and only calling pm hooks on first open and last
+> close. So, if we want to put it in v4l-core, we'd have to do something
+> similar, I presume.
 
-Index: gspca/linux/drivers/media/video/gspca/ov534.c
-===================================================================
---- gspca.orig/linux/drivers/media/video/gspca/ov534.c
-+++ gspca/linux/drivers/media/video/gspca/ov534.c
-@@ -60,7 +60,6 @@
- 	u8 contrast;
- 	u8 gain;
- 	u8 exposure;
--	u8 hue;
- 	u8 autogain;
- 	u8 awb;
- 	s8 sharpness;
-@@ -82,8 +81,6 @@
- static int sd_gethflip(struct gspca_dev *gspca_dev, __s32 *val);
- static int sd_setvflip(struct gspca_dev *gspca_dev, __s32 val);
- static int sd_getvflip(struct gspca_dev *gspca_dev, __s32 *val);
--static int sd_sethue(struct gspca_dev *gspca_dev, __s32 val);
--static int sd_gethue(struct gspca_dev *gspca_dev, __s32 *val);
- static int sd_setawb(struct gspca_dev *gspca_dev, __s32 val);
- static int sd_getawb(struct gspca_dev *gspca_dev, __s32 *val);
- static int sd_setbrightness(struct gspca_dev *gspca_dev, __s32 val);
-@@ -150,20 +147,6 @@
-     },
-     {							/* 4 */
- 	{
--		.id      = V4L2_CID_HUE,
--		.type    = V4L2_CTRL_TYPE_INTEGER,
--		.name    = "Hue",
--		.minimum = 0,
--		.maximum = 255,
--		.step    = 1,
--#define HUE_DEF 143
--		.default_value = HUE_DEF,
--	},
--	.set = sd_sethue,
--	.get = sd_gethue,
--    },
--    {							/* 5 */
--	{
- 	    .id      = V4L2_CID_AUTOGAIN,
- 	    .type    = V4L2_CTRL_TYPE_BOOLEAN,
- 	    .name    = "Autogain",
-@@ -176,8 +159,8 @@
- 	.set = sd_setautogain,
- 	.get = sd_getautogain,
-     },
--#define AWB_IDX 6
--    {							/* 6 */
-+#define AWB_IDX 5
-+    {							/* 5 */
- 	{
- 		.id      = V4L2_CID_AUTO_WHITE_BALANCE,
- 		.type    = V4L2_CTRL_TYPE_BOOLEAN,
-@@ -191,7 +174,7 @@
- 	.set = sd_setawb,
- 	.get = sd_getawb,
-     },
--    {							/* 7 */
-+    {							/* 6 */
- 	{
- 	    .id      = V4L2_CID_SHARPNESS,
- 	    .type    = V4L2_CTRL_TYPE_INTEGER,
-@@ -205,7 +188,7 @@
- 	.set = sd_setsharpness,
- 	.get = sd_getsharpness,
-     },
--    {							/* 8 */
-+    {							/* 7 */
- 	{
- 	    .id      = V4L2_CID_HFLIP,
- 	    .type    = V4L2_CTRL_TYPE_BOOLEAN,
-@@ -219,7 +202,7 @@
- 	.set = sd_sethflip,
- 	.get = sd_gethflip,
-     },
--    {							/* 9 */
-+    {							/* 8 */
- 	{
- 	    .id      = V4L2_CID_VFLIP,
- 	    .type    = V4L2_CTRL_TYPE_BOOLEAN,
-@@ -688,13 +671,6 @@
- 	sccb_reg_write(gspca_dev, 0x10, val << 1);
- }
- 
--static void sethue(struct gspca_dev *gspca_dev)
--{
--	struct sd *sd = (struct sd *) gspca_dev;
--
--	sccb_reg_write(gspca_dev, 0x01, sd->hue);
--}
--
- static void setautogain(struct gspca_dev *gspca_dev)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
-@@ -777,7 +753,6 @@
- 	sd->contrast = CONTRAST_DEF;
- 	sd->gain = GAIN_DEF;
- 	sd->exposure = EXPO_DEF;
--	sd->hue = HUE_DEF;
- #if AUTOGAIN_DEF != 0
- 	sd->autogain = AUTOGAIN_DEF;
- #else
-@@ -857,7 +832,6 @@
- 	setautogain(gspca_dev);
- 	setawb(gspca_dev);
- 	setgain(gspca_dev);
--	sethue(gspca_dev);
- 	setexposure(gspca_dev);
- 	setbrightness(gspca_dev);
- 	setcontrast(gspca_dev);
-@@ -1040,24 +1014,6 @@
- 	return 0;
- }
- 
--static int sd_sethue(struct gspca_dev *gspca_dev, __s32 val)
--{
--	struct sd *sd = (struct sd *) gspca_dev;
--
--	sd->hue = val;
--	if (gspca_dev->streaming)
--		sethue(gspca_dev);
--	return 0;
--}
--
--static int sd_gethue(struct gspca_dev *gspca_dev, __s32 *val)
--{
--	struct sd *sd = (struct sd *) gspca_dev;
--
--	*val = sd->hue;
--	return 0;
--}
--
- static int sd_setautogain(struct gspca_dev *gspca_dev, __s32 val)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
+I wouldn't mind having such counters. There are more situations where
+knowing whether it is the first open or last close comes in handy.
+
+However, in general I think that pm shouldn't be done in the core. It is
+just too hardware dependent. E.g. there may both capture and display video
+nodes in the driver. And when the last capture stops you can for example
+power down the receiver chips. The same with display and transmitter
+chips. But if both are controlled by the same driver, then a general open
+counter will not work either.
+
+But if you have ideas to improve the core to make it easier to add pm
+support to the drivers that need it, then I am all for it.
+
+Regards,
+
+        Hans
+
+>
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+>
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+
