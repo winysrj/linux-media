@@ -1,118 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3252 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751124Ab0BWJBs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2010 04:01:48 -0500
-Message-ID: <e69623b3a970d166a31af8258040a471.squirrel@webmail.xs4all.nl>
-In-Reply-To: <4B839687.4090205@redhat.com>
-References: <4B55445A.10300@infradead.org> <4B57B6E4.2070500@infradead.org>
-    <20100121024605.GK4015@jenkins.home.ifup.org>
-    <201001210834.28112.hverkuil@xs4all.nl> <4B5B30E4.7030909@redhat.com>
-    <20100222225426.GC4013@jenkins.home.ifup.org>
-    <4B839687.4090205@redhat.com>
-Date: Tue, 23 Feb 2010 10:01:28 +0100
-Subject: Re: [ANNOUNCE] git tree repositories & libv4l
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Hans de Goede" <hdegoede@redhat.com>
-Cc: "Brandon Philips" <brandon@ifup.org>,
-	"Mauro Carvalho Chehab" <mchehab@infradead.org>,
-	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
-	"Douglas Landgraf" <dougsland@gmail.com>
+Received: from joe.mail.tiscali.it ([213.205.33.54]:50398 "EHLO
+	joe.mail.tiscali.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751029Ab0BISoT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 13:44:19 -0500
+Message-ID: <4B71ACC8.600@gmail.com>
+Date: Tue, 09 Feb 2010 19:43:20 +0100
+From: "Andrea.Amorosi76@gmail.com" <Andrea.Amorosi76@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] em28xx: add Dikom DK300 hybrid USB tuner
+References: <4AFE92ED.2060208@gmail.com> <4AFEAB15.9010509@gmail.com> <829197380911140634j49c05cd0s90aed57b9ae61436@mail.gmail.com>
+In-Reply-To: <829197380911140634j49c05cd0s90aed57b9ae61436@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch add the Dikom DK300 hybrid usb card.
 
-> Hi,
->
-> On 02/22/2010 11:54 PM, Brandon Philips wrote:
->> On 18:24 Sat 23 Jan 2010, Hans de Goede wrote:
->>>> lib/
->>>> 	libv4l1/
->>>> 	libv4l2/
->>>> 	libv4lconvert/
->>>> utils/
->>>> 	v4l2-dbg
->>>> 	v4l2-ctl
->>>> 	cx18-ctl
->>>> 	ivtv-ctl
->>>> contrib/
->>>> 	test/
->>>> 	everything else
->>>>
->>
->>    git clone git://ifup.org/philips/create-v4l-utils.git
->>    cd create-v4l-utils/
->>    ./convert.sh
->>
->> You should now have v4l-utils.git which should have this directory
->> struture. If we need to move other things around let me know and I can
->> tweak name-filter.sh
->>
->
-> Ok, so this will give me a local tree, how do I get this onto linuxtv.org
-> ?
->
-> Also I need someone to pull:
-> http://linuxtv.org/hg/~hgoede/libv4l
->
-> (this only contains libv4l commits)
->
-> Into the:
-> http://linuxtv.org/hg/v4l-dvb
->
-> Repository, I guess I can ask this directly to Douglas?
->
->> Thoughts?
->
-> I've one question, I think we want to do tarbal releases
-> from this new repo (just like I've been doing with libv4l for a while
-> already), and then want distro's to pick up these releases, right ?
->
-> Are we going to do separate tarbals for the lib and utils directories,
-> or one combined tarbal. I personally vote for one combined tarbal.
->
-> But this means we will be inflicting some pains on distro's because their
-> libv4l packages will go away and be replaced by a new v4l-utils package.
+The patch adds digital and analogue tv support.
 
-I would call it media-utils. A nice name and it reflects that it contains
-both dvb and v4l utilities.
+Not working: remote controller
 
-> This is something distro's should be able to handle (it happens more
-> often, and I
-> know Fedora has procedures for this).
->
-> An alternative would be to name the repo and the tarbals libv4l, either is
-> fine
-> with me (although I'm one of the distro packagers who is going to feel the
-> pain
-> of a package rename and as such wouldn't mind using libv4l as name for the
-> repo and the new tarbals).
+To be done: it seems that with the proposed patch the digital
+demodulator remains activated if the tuner is switched from digital to
+analogue mode.
+Workaorund is to unplug and replug the device when switching from
+digital to analogue.
+If someone can explain how to verify the gpio settings using the
+usbsnoop, the above issue perhaps can be resolved.
 
-We never had a proper release procedure for all the utilities. It's about
-time that we start with that and do proper packaging. So I'd rather make a
-clean new start now instead of just patching things up.
+Signed-off-by: Andrea Amorosi <Andrea.Amorosi76@gmail.com>
 
-Just my opinions, of course.
+diff -r d6520e486ee6 linux/drivers/media/video/em28xx/em28xx-cards.c
+--- a/linux/drivers/media/video/em28xx/em28xx-cards.c	Sat Jan 30
+01:27:34 2010 -0200
++++ b/linux/drivers/media/video/em28xx/em28xx-cards.c	Sat Jan 30
+18:04:13 2010 +0100
+@@ -245,6 +245,12 @@
+   	{	-1,		-1,	-1,		-1},
+   };
 
-Regards.
++static struct em28xx_reg_seq dikom_dk300_digital[] = {
++	{EM28XX_R08_GPIO,	0x6e,	~EM_GPIO_4,	10},
++	{EM2880_R04_GPO,	0x08,	0xff,		10},
++	{ -1,			-1,	-1,		-1},
++};
++
 
-      Hans
+   /*
+    *  Board definitions
+@@ -1673,6 +1679,22 @@
+   		.tuner_gpio    = reddo_dvb_c_usb_box,
+   		.has_dvb       = 1,
+   	},
++	[EM2882_BOARD_DIKOM_DK300] = {
++		.name         = "Dikom DK300",
++		.valid        = EM28XX_BOARD_NOT_VALIDATED,
++		.tuner_type   = TUNER_XC2028,
++		.tuner_gpio   = default_tuner_gpio,
++		.decoder      = EM28XX_TVP5150,
++		.mts_firmware = 1,
++		.has_dvb      = 1,
++		.dvb_gpio     = dikom_dk300_digital,
++		.input        = { {
++			.type     = EM28XX_VMUX_TELEVISION,
++			.vmux     = TVP5150_COMPOSITE0,
++			.amux     = EM28XX_AMUX_VIDEO,
++			.gpio     = default_analog,
++		} },
++	},
+   };
+   const unsigned int em28xx_bcount = ARRAY_SIZE(em28xx_boards);
 
->
-> Regards,
->
-> Hans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+@@ -1812,6 +1834,7 @@
+   	{0xcee44a99, EM2882_BOARD_EVGA_INDTUBE, TUNER_XC2028},
+   	{0xb8846b20, EM2881_BOARD_PINNACLE_HYBRID_PRO, TUNER_XC2028},
+   	{0x63f653bd, EM2870_BOARD_REDDO_DVB_C_USB_BOX, TUNER_ABSENT},
++	{0x4e913442, EM2882_BOARD_DIKOM_DK300, TUNER_XC2028},
+   };
+
+   /* I2C devicelist hash table for devices with generic USB IDs */
+@@ -2168,6 +2191,7 @@
+   		ctl->demod = XC3028_FE_DEFAULT;
+   		break;
+   	case EM2883_BOARD_KWORLD_HYBRID_330U:
++	case EM2882_BOARD_DIKOM_DK300:
+   		ctl->demod = XC3028_FE_CHINA;
+   		ctl->fname = XC2028_DEFAULT_FIRMWARE;
+   		break;
+@@ -2480,6 +2504,31 @@
+   		em28xx_gpio_set(dev, dev->board.tuner_gpio);
+   		em28xx_set_mode(dev, EM28XX_ANALOG_MODE);
+   		break;
++
++/*
++		 * The Dikom DK300 is detected as an Kworld VS-DVB-T 323UR.
++		 *
++		 * This occurs because they share identical USB vendor and
++		 * product IDs.
++		 *
++		 * What we do here is look up the EEPROM hash of the Dikom
++		 * and if it is found then we decide that we do not have
++		 * a Kworld and reset the device to the Dikom instead.
++		 *
++		 * This solution is only valid if they do not share eeprom
++		 * hash identities which has not been determined as yet.
++		 */
++	case EM2882_BOARD_KWORLD_VS_DVBT:
++		if (!em28xx_hint_board(dev))
++			em28xx_set_model(dev);
++
++		/* In cases where we had to use a board hint, the call to
++		   em28xx_set_mode() in em28xx_pre_card_setup() was a no-op,
++		   so make the call now so the analog GPIOs are set properly
++		   before probing the i2c bus. */
++		em28xx_gpio_set(dev, dev->board.tuner_gpio);
++		em28xx_set_mode(dev, EM28XX_ANALOG_MODE);
++		break;
+   	}
+
+   #if defined(CONFIG_MODULES) && defined(MODULE)
+diff -r d6520e486ee6 linux/drivers/media/video/em28xx/em28xx-dvb.c
+--- a/linux/drivers/media/video/em28xx/em28xx-dvb.c	Sat Jan 30 01:27:34
+2010 -0200
++++ b/linux/drivers/media/video/em28xx/em28xx-dvb.c	Sat Jan 30 18:04:13
+2010 +0100
+@@ -504,6 +504,7 @@
+   		break;
+   	case EM2880_BOARD_TERRATEC_HYBRID_XS:
+   	case EM2881_BOARD_PINNACLE_HYBRID_PRO:
++	case EM2882_BOARD_DIKOM_DK300:
+   		dvb->frontend = dvb_attach(zl10353_attach,
+   					   &em28xx_zl10353_xc3028_no_i2c_gate,
+   					   &dev->i2c_adap);
+diff -r d6520e486ee6 linux/drivers/media/video/em28xx/em28xx.h
+--- a/linux/drivers/media/video/em28xx/em28xx.h	Sat Jan 30 01:27:34 2010
+-0200
++++ b/linux/drivers/media/video/em28xx/em28xx.h	Sat Jan 30 18:04:13 2010
++0100
+@@ -112,6 +112,7 @@
+   #define EM2861_BOARD_GADMEI_UTV330PLUS           72
+   #define EM2870_BOARD_REDDO_DVB_C_USB_BOX          73
+   #define EM2800_BOARD_VC211A			  74
++#define EM2882_BOARD_DIKOM_DK300		75
+
+   /* Limits minimum and default number of buffers */
+   #define EM28XX_MIN_BUF 4
 
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+
+
+
 
