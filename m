@@ -1,165 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4854 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752027Ab0BMNRp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Feb 2010 08:17:45 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [PATCH v4 2/7] V4L: Events: Add new ioctls for events
-Date: Sat, 13 Feb 2010 14:19:55 +0100
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
-	david.cohen@nokia.com
-References: <4B72C965.7040204@maxwell.research.nokia.com> <1265813889-17847-1-git-send-email-sakari.ailus@maxwell.research.nokia.com> <1265813889-17847-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <1265813889-17847-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+Received: from mail.gmx.net ([213.165.64.20]:37047 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754506Ab0BIQfB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 11:35:01 -0500
+Date: Tue, 9 Feb 2010 17:35:36 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Magnus Damm <damm@opensource.se>,
+	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
+	Antonio Ospite <ospite@studenti.unina.it>,
+	=?ISO-8859-15?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+Subject: soc-camera: patches for 2.6.34
+Message-ID: <Pine.LNX.4.64.1002091705500.4585@axis700.grange>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201002131419.55625.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 10 February 2010 15:58:04 Sakari Ailus wrote:
-> This patch adds a set of new ioctls to the V4L2 API. The ioctls conform to
-> V4L2 Events RFC version 2.3:
+Hi all
 
-I've experimented with the events API to try and support it with ivtv and
-I realized that it had some problems.
+Nothing exciting for soc-camera this time for a change, just a couple of 
+small improvements. These patches are already in my local tree, waiting to 
+be pushed up:
 
-See comments below.
+Antonio Ospite (1):
+      pxa_camera: remove init() callback
 
-> 
-> <URL:http://www.spinics.net/lists/linux-media/msg12033.html>
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> ---
->  drivers/media/video/v4l2-compat-ioctl32.c |    3 +++
->  drivers/media/video/v4l2-ioctl.c          |    3 +++
->  include/linux/videodev2.h                 |   23 +++++++++++++++++++++++
->  3 files changed, 29 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-> index 997975d..cba704c 100644
-> --- a/drivers/media/video/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/video/v4l2-compat-ioctl32.c
-> @@ -1077,6 +1077,9 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
->  	case VIDIOC_DBG_G_REGISTER:
->  	case VIDIOC_DBG_G_CHIP_IDENT:
->  	case VIDIOC_S_HW_FREQ_SEEK:
-> +	case VIDIOC_DQEVENT:
-> +	case VIDIOC_SUBSCRIBE_EVENT:
-> +	case VIDIOC_UNSUBSCRIBE_EVENT:
->  		ret = do_video_ioctl(file, cmd, arg);
->  		break;
->  
-> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-> index 30cc334..bfc4696 100644
-> --- a/drivers/media/video/v4l2-ioctl.c
-> +++ b/drivers/media/video/v4l2-ioctl.c
-> @@ -283,6 +283,9 @@ static const char *v4l2_ioctls[] = {
->  
->  	[_IOC_NR(VIDIOC_DBG_G_CHIP_IDENT)] = "VIDIOC_DBG_G_CHIP_IDENT",
->  	[_IOC_NR(VIDIOC_S_HW_FREQ_SEEK)]   = "VIDIOC_S_HW_FREQ_SEEK",
-> +	[_IOC_NR(VIDIOC_DQEVENT)]	   = "VIDIOC_DQEVENT",
-> +	[_IOC_NR(VIDIOC_SUBSCRIBE_EVENT)]  = "VIDIOC_SUBSCRIBE_EVENT",
-> +	[_IOC_NR(VIDIOC_UNSUBSCRIBE_EVENT)] = "VIDIOC_UNSUBSCRIBE_EVENT",
->  #endif
->  };
->  #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 54af357..a19ae89 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -1536,6 +1536,26 @@ struct v4l2_streamparm {
->  };
->  
->  /*
-> + *	E V E N T S
-> + */
-> +
-> +struct v4l2_event {
-> +	__u32		count;
+Guennadi Liakhovetski (3):
+      soc-camera: update mt9v022 to take into account board signal routing
+      tw9910: use TABs for indentation
+      soc-camera: adjust coding style to match V4L preferences
 
-The name 'count' is confusing. Count of what? I think the name 'pending' might
-be more understandable. A comment after the definition would also help.
+Kuninori Morimoto (1):
+      soc-camera: ov772x: Modify buswidth control
 
-> +	__u32		type;
-> +	__u32		sequence;
-> +	struct timespec	timestamp;
-> +	__u32		reserved[9];
-> +	__u8		data[64];
-> +};
+Magnus Damm (1):
+      soc-camera: return -ENODEV is sensor is missing
 
-I also think we should reorder the fields and add a union. For ivtv I would
-need this:
+Others on the radar:
 
-#define V4L2_EVENT_ALL                          0
-#define V4L2_EVENT_VSYNC                        1
-#define V4L2_EVENT_EOS                          2
-#define V4L2_EVENT_PRIVATE_START                0x08000000
+Kuninori Morimoto:
+	MT9T031: write xskip and yskip at each set_params call
+	* status: being discussed in PM context in:
 
-/* Payload for V4L2_EVENT_VSYNC */
-struct v4l2_event_vsync {
-        /* Can be V4L2_FIELD_ANY, _NONE, _TOP or _BOTTOM */
-        u8 field;
-} __attribute__ ((packed));
+Guennadi Liakhovetski:
+	soc-camera: add runtime pm support for subdevices
+	* under discussion
 
-struct v4l2_event {
-        __u32           type;
-        union {
-                struct v4l2_event_vsync vsync;
-                __u8    data[64];
-        } u;
-        __u32           sequence;
-        struct timespec timestamp;
-        __u32           pending;
-        __u32           reserved[9];
-};
+Németh Márton:
+	soc_camera: match signedness of soc_camera_limit_side()                 
+	* status: an updated patch has been proposed by me, waiting for 
+	  confirmation
 
-The reason for rearranging the fields has to do with the fact that the first
-two fields (type and the union) form the actual event data. The others are
-more for administrative purposes. Separating those two makes sense to me.
+Guennadi Liakhovetski:
+	document new pixel formats
+	* status: I still have to figure out how to combine git / hg for 
+	  this one and actually do it...
 
-So when I define an event for queuing it is nice if I can do just this:
+Kuninori Morimoto:
+	[1/3] soc-camera: mt9t112: modify exiting conditions from standby mode
+	[2/3] soc-camera: mt9t112: modify delay time after initialize
+	[3/3] soc-camera: mt9t112: The flag which control camera-init is
+	* status: at least patches 2 and 3 are still being discussed, 
+	  waiting for results
 
-static const struct v4l2_event ev_top = {
-	.type = V4L2_EVENT_VSYNC,
-	.u.vsync.field = V4L2_FIELD_TOP,
-};
 
-I would have preferred to have an anonymous union. Unfortunately gcc has
-problems with initializers for fields inside an anonymous union. Hence the
-need for a named union.
+Any patches, that I've forgotten?
 
-Regards,
-
-	Hans
-
-> +
-> +struct v4l2_event_subscription {
-> +	__u32		type;
-> +	__u32		reserved[7];
-> +};
-> +
-> +#define V4L2_EVENT_PRIVATE_START		0x08000000
-> +
-> +/*
->   *	A D V A N C E D   D E B U G G I N G
->   *
->   *	NOTE: EXPERIMENTAL API, NEVER RELY ON THIS IN APPLICATIONS!
-> @@ -1651,6 +1671,9 @@ struct v4l2_dbg_chip_ident {
->  #endif
->  
->  #define VIDIOC_S_HW_FREQ_SEEK	 _IOW('V', 82, struct v4l2_hw_freq_seek)
-> +#define VIDIOC_DQEVENT		 _IOR('V', 83, struct v4l2_event)
-> +#define VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 84, struct v4l2_event_subscription)
-> +#define VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 85, struct v4l2_event_subscription)
->  /* Reminder: when adding new ioctls please add support for them to
->     drivers/media/video/v4l2-compat-ioctl32.c as well! */
->  
-> 
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
