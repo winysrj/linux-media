@@ -1,130 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay01.digicable.hu ([92.249.128.189]:58529 "EHLO
-	relay01.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031462Ab0B1HzI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Feb 2010 02:55:08 -0500
-Message-ID: <4B8A2158.6020701@freemail.hu>
-Date: Sun, 28 Feb 2010 08:55:04 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+Received: from mx1.redhat.com ([209.132.183.28]:54390 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754448Ab0BINDR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Feb 2010 08:03:17 -0500
+Message-ID: <4B715CEB.1070602@redhat.com>
+Date: Tue, 09 Feb 2010 11:02:35 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>,
-	Jean-Francois Moine <moinejf@free.fr>
-CC: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/3] add feedback LED control
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-pm@lists.linux-foundation.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Valentin Longchamp <valentin.longchamp@epfl.ch>
+Subject: Re: [PATCH/RESEND] soc-camera: add runtime pm support for   subdevices
+References: <Pine.LNX.4.64.1002081044150.4936@axis700.grange>    <4B7012D1.40605@redhat.com>    <Pine.LNX.4.64.1002081447020.4936@axis700.grange>    <4B705216.7040907@redhat.com>    <Pine.LNX.4.64.1002091053470.4585@axis700.grange>    <26fe28e3dda70da4d133a9dbc3f2bc74.squirrel@webmail.xs4all.nl>    <Pine.LNX.4.64.1002091252530.4585@axis700.grange> <2aa8130b9fd7fe9f9fb2cf626ff58831.squirrel@webmail.xs4all.nl>
+In-Reply-To: <2aa8130b9fd7fe9f9fb2cf626ff58831.squirrel@webmail.xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+Hans Verkuil wrote:
+>> On Tue, 9 Feb 2010, Hans Verkuil wrote:
+>>
+>>>> On Mon, 8 Feb 2010, Mauro Carvalho Chehab wrote:
+>>>>
+>>>>> In fact, on all drivers, there are devices that needs to be turn on
+>>> only
+>>>>> when
+>>>>> streaming is happening: sensors, analog TV/audio demods, digital
+>>> demods.
+>>>>> Also,
+>>>>> a few devices (for example: TV tuners) could eventually be on power
+>>> off
+>>>>> when
+>>>>> no device is opened.
+>>>>>
+>>>>> As the V4L core knows when this is happening (due to
+>>>>> open/close/poll/streamon/reqbuf/qbuf/dqbuf hooks, I think the runtime
+>>>>> management
+>>>>> can happen at V4L core level.
+>>>> Well, we can move it up to v4l core. Should it get any more
+>>> complicated
+>>>> than adding
+>>>>
+>>>> 	ret = pm_runtime_resume(&vdev->dev);
+>>>> 	if (ret < 0 && ret != -ENOSYS)
+>>>> 		return ret;
+>>>>
+>>>> to v4l2_open() and
+>>>>
+>>>> 	pm_runtime_suspend(&vdev->dev);
+>>>>
+>>>> to v4l2_release()?
+>>> My apologies if I say something stupid as I know little about pm: are
+>>> you
+>>> assuming here that streaming only happens on one device node? That may
+>>> be
+>>> true for soc-camera, but other devices can have multiple streaming nodes
+>>> (video, vbi, mpeg, etc). So the call to v4l2_release does not
+>>> necessarily
+>>> mean that streaming has stopped.
+>> Of course you're right, and it concerns not only multiple streaming modes,
+>> but simple cases of multiple openings of one node. I was too fast to
+>> transfer the implementation from soc-camera to v4l2 - in soc-camera I'm
+>> counting opens and closes and only calling pm hooks on first open and last
+>> close. So, if we want to put it in v4l-core, we'd have to do something
+>> similar, I presume.
+> 
+> I wouldn't mind having such counters. There are more situations where
+> knowing whether it is the first open or last close comes in handy.
 
-On some webcams a feedback LED can be found. This LED usually shows
-the state of streaming mode: this is the "Auto" mode. The LED can
-be programmed to constantly switched off state (e.g. for power saving
-reasons, preview mode) or on state (e.g. the application shows motion
-detection or "on-air").
+A simple count for an open bind to one device node is not enough, since you
+may have just one open for /dev/radio and just one open for /dev/video, but
+if /dev/radio is closed, it doesn't mean that you can safely power down it,
+as /dev/video is still open.
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
----
-diff -r d8fafa7d88dc linux/Documentation/DocBook/v4l/controls.xml
---- a/linux/Documentation/DocBook/v4l/controls.xml	Thu Feb 18 19:02:51 2010 +0100
-+++ b/linux/Documentation/DocBook/v4l/controls.xml	Sun Feb 28 08:41:17 2010 +0100
-@@ -311,6 +311,17 @@
- Applications depending on particular custom controls should check the
- driver name and version, see <xref linkend="querycap" />.</entry>
- 	  </row>
-+	  <row id="v4l2-led">
-+	    <entry><constant>V4L2_CID_LED</constant></entry>
-+	    <entry>enum</entry>
-+	    <entry>Controls the feedback LED on the camera. In auto mode
-+the LED is on when the streaming is active. The LED is off when not streaming.
-+The LED can be also turned on and off independent from streaming.
-+Possible values for <constant>enum v4l2_led</constant> are:
-+<constant>V4L2_CID_LED_AUTO</constant> (0),
-+<constant>V4L2_CID_LED_ON</constant> (1) and
-+<constant>V4L2_CID_LED_OFF</constant> (2).</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff -r d8fafa7d88dc linux/Documentation/DocBook/v4l/videodev2.h.xml
---- a/linux/Documentation/DocBook/v4l/videodev2.h.xml	Thu Feb 18 19:02:51 2010 +0100
-+++ b/linux/Documentation/DocBook/v4l/videodev2.h.xml	Sun Feb 28 08:41:17 2010 +0100
-@@ -1024,8 +1024,14 @@
+Yet, I think it is doable.
 
- #define V4L2_CID_ROTATE                         (V4L2_CID_BASE+34)
- #define V4L2_CID_BG_COLOR                       (V4L2_CID_BASE+35)
-+#define V4L2_CID_LED                            (V4L2_CID_BASE+36)
-+enum v4l2_led {
-+        V4L2_LED_AUTO           = 0,
-+        V4L2_LED_ON             = 1,
-+        V4L2_LED_OFF            = 2,
-+};
- /* last CID + 1 */
--#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+36)
-+#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+37)
+> However, in general I think that pm shouldn't be done in the core. It is
+> just too hardware dependent. E.g. there may both capture and display video
+> nodes in the driver. And when the last capture stops you can for example
+> power down the receiver chips. The same with display and transmitter
+> chips. But if both are controlled by the same driver, then a general open
+> counter will not work either.
+> 
+> But if you have ideas to improve the core to make it easier to add pm
+> support to the drivers that need it, then I am all for it.
 
- /*  MPEG-class control IDs defined by V4L2 */
- #define V4L2_CID_MPEG_BASE                      (V4L2_CTRL_CLASS_MPEG | 0x900)
-diff -r d8fafa7d88dc linux/drivers/media/video/v4l2-common.c
---- a/linux/drivers/media/video/v4l2-common.c	Thu Feb 18 19:02:51 2010 +0100
-+++ b/linux/drivers/media/video/v4l2-common.c	Sun Feb 28 08:41:17 2010 +0100
-@@ -349,6 +349,12 @@
- 		"75 useconds",
- 		NULL,
- 	};
-+	static const char *led[] = {
-+		"Auto",
-+		"On",
-+		"Off",
-+		NULL,
-+	};
+IMO, the runtime pm should be supported at V4L core, but some callbacks are
+needed. Also, I can see some classes of PM at the core:
 
- 	switch (id) {
- 		case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-@@ -389,6 +395,8 @@
- 			return colorfx;
- 		case V4L2_CID_TUNE_PREEMPHASIS:
- 			return tune_preemphasis;
-+		case V4L2_CID_LED:
-+			return led;
- 		default:
- 			return NULL;
- 	}
-@@ -434,6 +442,7 @@
- 	case V4L2_CID_COLORFX:			return "Color Effects";
- 	case V4L2_CID_ROTATE:			return "Rotate";
- 	case V4L2_CID_BG_COLOR:			return "Background color";
-+	case V4L2_CID_LED:			return "Feedback LED";
+	TV standard demod and sensors only need to be powerup when streaming.
+So, if someone is just opening the device to set some configuration, the config
+may be stored on a shadow register but the real device may keep on powerdown state.
 
- 	/* MPEG controls */
- 	case V4L2_CID_MPEG_CLASS: 		return "MPEG Encoder Controls";
-@@ -575,6 +584,7 @@
- 	case V4L2_CID_EXPOSURE_AUTO:
- 	case V4L2_CID_COLORFX:
- 	case V4L2_CID_TUNE_PREEMPHASIS:
-+	case V4L2_CID_LED:
- 		qctrl->type = V4L2_CTRL_TYPE_MENU;
- 		step = 1;
- 		break;
-diff -r d8fafa7d88dc linux/include/linux/videodev2.h
---- a/linux/include/linux/videodev2.h	Thu Feb 18 19:02:51 2010 +0100
-+++ b/linux/include/linux/videodev2.h	Sun Feb 28 08:41:17 2010 +0100
-@@ -1030,8 +1030,14 @@
+	On the other hand, the TV tuner may be needed if someone is, for example,
+scanning the channels. Depending on the device, the other components like tv and 
+audio demod may be in powerdown state.
 
- #define V4L2_CID_ROTATE				(V4L2_CID_BASE+34)
- #define V4L2_CID_BG_COLOR			(V4L2_CID_BASE+35)
-+#define V4L2_CID_LED				(V4L2_CID_BASE+36)
-+enum v4l2_led {
-+	V4L2_LED_AUTO		= 0,
-+	V4L2_LED_ON		= 1,
-+	V4L2_LED_OFF		= 2,
-+};
- /* last CID + 1 */
--#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+36)
-+#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+37)
+So, I think that we'll need some callbacks to the drivers, in order to do the
+power management on the applicable components. The final action should be at
+the driver level, but supported by the core.
 
- /*  MPEG-class control IDs defined by V4L2 */
- #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
+> 
+> Regards,
+> 
+>         Hans
+> 
+>> Thanks
+>> Guennadi
+>> ---
+>> Guennadi Liakhovetski, Ph.D.
+>> Freelance Open-Source Software Developer
+>> http://www.open-technology.de/
+>>
+> 
+> 
 
+
+-- 
+
+Cheers,
+Mauro
