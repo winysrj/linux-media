@@ -1,133 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:18359 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755541Ab0BSTX4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Feb 2010 14:23:56 -0500
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
-	david.cohen@nokia.com,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: [PATCH v5 5/6] V4L: Events: Support event handling in do_ioctl
-Date: Fri, 19 Feb 2010 21:21:59 +0200
-Message-Id: <1266607320-9974-5-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <4B7EE4A4.3080202@maxwell.research.nokia.com>
-References: <4B7EE4A4.3080202@maxwell.research.nokia.com>
+Received: from mail-iw0-f183.google.com ([209.85.223.183]:47283 "EHLO
+	mail-iw0-f183.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751071Ab0BIWcX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 17:32:23 -0500
+Received: by iwn13 with SMTP id 13so8960660iwn.25
+        for <linux-media@vger.kernel.org>; Tue, 09 Feb 2010 14:32:23 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <215789.18894.qm@web35803.mail.mud.yahoo.com>
+References: <215789.18894.qm@web35803.mail.mud.yahoo.com>
+Date: Tue, 9 Feb 2010 17:32:22 -0500
+Message-ID: <be3a4a1002091432n7427bae1n776cfcc2aaf993c5@mail.gmail.com>
+Subject: Re: Kworld ATSC usb 435Q device and RF tracking filter calibration
+From: Jarod Wilson <jarod@wilsonet.com>
+To: Amy Overmyer <aovermy@yahoo.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for event handling to do_ioctl.
+On Tue, Feb 9, 2010 at 5:16 PM, Amy Overmyer <aovermy@yahoo.com> wrote:
+> I have one of these devices. It works OK in windows, but I'd like to stick it on my myth backend as a 3rd tuner, just in case. I'm using it for 8VSB OTA. I took a patch put forth a while back on this list and was able to put that on the kernel 2.6.31.6. I am able to tune and lock channels with it, but, like the people earlier, I see the RF tracking filter calibration in the syslogs and tuning takes some time.
+>
+> Is there anything I can do to debug this? I'm a programmer by trade (err my systems are usually a bit more special purpose than a linux box as I'm an embedded systems type guy, but it's all bits anyway), so don't be afraid to suggest code changes or point me in a direction.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- drivers/media/video/v4l2-ioctl.c |   58 ++++++++++++++++++++++++++++++++++++++
- include/media/v4l2-ioctl.h       |    7 ++++
- 2 files changed, 65 insertions(+), 0 deletions(-)
+Best as I can recall, the problem is with the gpio reset sequence for
+these devices. Something is getting reset when it shouldn't, and all
+the tda18271 registers wind up zeroed out when they shouldn't be, and
+thus rf tracking filter calibration gets re-run, because the register
+bit that signifies its already been done isn't set any longer... So
+there needs to be some debugging done, probably with the gpio reset
+config. I keep meaning to hook the stick up under windows and sniff
+traffic again to see if I can see what's being done differently, just
+don't ever seem to get around to it.
 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 34c7d6e..f7d6177 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -25,6 +25,8 @@
- #endif
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
-+#include <media/v4l2-fh.h>
-+#include <media/v4l2-event.h>
- #include <media/v4l2-chip-ident.h>
- 
- #define dbgarg(cmd, fmt, arg...) \
-@@ -1944,7 +1946,63 @@ static long __video_do_ioctl(struct file *file,
- 		}
- 		break;
- 	}
-+	case VIDIOC_DQEVENT:
-+	{
-+		struct v4l2_event *ev = arg;
-+		struct v4l2_fh *vfh = fh;
-+
-+		if (!test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags)
-+		    || vfh->events == NULL)
-+			break;
-+
-+		ret = v4l2_event_dequeue(fh, ev);
-+		if (ret < 0) {
-+			dbgarg(cmd, "no pending events?");
-+			break;
-+		}
-+		dbgarg(cmd,
-+		       "pending=%d, type=0x%8.8x, sequence=%d, "
-+		       "timestamp=%lu.%9.9lu ",
-+		       ev->pending, ev->type, ev->sequence,
-+		       ev->timestamp.tv_sec, ev->timestamp.tv_nsec);
-+		break;
-+	}
-+	case VIDIOC_SUBSCRIBE_EVENT:
-+	{
-+		struct v4l2_event_subscription *sub = arg;
-+		struct v4l2_fh *vfh = fh;
- 
-+		if (!test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags)
-+		    || vfh->events == NULL
-+		    || !ops->vidioc_subscribe_event)
-+			break;
-+
-+		ret = ops->vidioc_subscribe_event(fh, sub);
-+		if (ret < 0) {
-+			dbgarg(cmd, "failed, ret=%ld", ret);
-+			break;
-+		}
-+		dbgarg(cmd, "type=0x%8.8x", sub->type);
-+		break;
-+	}
-+	case VIDIOC_UNSUBSCRIBE_EVENT:
-+	{
-+		struct v4l2_event_subscription *sub = arg;
-+		struct v4l2_fh *vfh = fh;
-+
-+		if (!test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags)
-+		    || vfh->events == NULL
-+		    || !ops->vidioc_unsubscribe_event)
-+			break;
-+
-+		ret = ops->vidioc_unsubscribe_event(fh, sub);
-+		if (ret < 0) {
-+			dbgarg(cmd, "failed, ret=%ld", ret);
-+			break;
-+		}
-+		dbgarg(cmd, "type=0x%8.8x", sub->type);
-+		break;
-+	}
- 	default:
- 	{
- 		if (!ops->vidioc_default)
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index e8ba0f2..06daa6e 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -21,6 +21,8 @@
- #include <linux/videodev2.h>
- #endif
- 
-+struct v4l2_fh;
-+
- struct v4l2_ioctl_ops {
- 	/* ioctl callbacks */
- 
-@@ -254,6 +256,11 @@ struct v4l2_ioctl_ops {
- 	int (*vidioc_g_dv_timings) (struct file *file, void *fh,
- 				    struct v4l2_dv_timings *timings);
- 
-+	int (*vidioc_subscribe_event)  (struct v4l2_fh *fh,
-+					struct v4l2_event_subscription *sub);
-+	int (*vidioc_unsubscribe_event)(struct v4l2_fh *fh,
-+					struct v4l2_event_subscription *sub);
-+
- 	/* For other private ioctls */
- 	long (*vidioc_default)	       (struct file *file, void *fh,
- 					int cmd, void *arg);
 -- 
-1.5.6.5
-
+Jarod Wilson
+jarod@wilsonet.com
