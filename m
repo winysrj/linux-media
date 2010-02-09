@@ -1,106 +1,24 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:28000 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932405Ab0BEN3S (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Feb 2010 08:29:18 -0500
-Message-ID: <4B6C1CFC.6090600@redhat.com>
-Date: Fri, 05 Feb 2010 11:28:28 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from web35803.mail.mud.yahoo.com ([66.163.179.172]:28315 "HELO
+	web35803.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751987Ab0BIWXE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Feb 2010 17:23:04 -0500
+Message-ID: <215789.18894.qm@web35803.mail.mud.yahoo.com>
+Date: Tue, 9 Feb 2010 14:16:22 -0800 (PST)
+From: Amy Overmyer <aovermy@yahoo.com>
+Subject: Kworld ATSC usb 435Q device and RF tracking filter calibration
+To: linux-media@vger.kernel.org
 MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: Andy Walls <awalls@radix.net>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Chicken Shack <chicken.shack@gmx.de>,
-	linux-media@vger.kernel.org, akpm@linux-foundation.org,
-	torvalds@linux-foundation.org
-Subject: Re: Need to discuss method for multiple, multiple-PID TS's from same
- demux (Re: Videotext application crashes the kernel due to DVB-demux patch)
-References: <1265018173.2449.19.camel@brian.bconsult.de>	 <1265028110.3098.3.camel@palomino.walls.org>	 <1265076008.3120.96.camel@palomino.walls.org>	 <1265101869.1721.28.camel@brian.bconsult.de>	 <1265115172.3104.17.camel@palomino.walls.org>	 <1265158862.3194.22.camel@pc07.localdom.local>	 <1265288042.3928.9.camel@palomino.walls.org>	 <1265292421.3258.53.camel@brian.bconsult.de> <1265336477.3071.29.camel@palomino.walls.org> <4B6C1AF7.2090503@linuxtv.org>
-In-Reply-To: <4B6C1AF7.2090503@linuxtv.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andreas Oberritter wrote:
-> Hello Andy,
-> 
-> Andy Walls wrote:
->> After investigation, my recommendation for fixing the problem is to
->> revert the patch that is causing the problem.
+I have one of these devices. It works OK in windows, but I'd like to stick it on my myth backend as a 3rd tuner, just in case. I'm using it for 8VSB OTA. I took a patch put forth a while back on this list and was able to put that on the kernel 2.6.31.6. I am able to tune and lock channels with it, but, like the people earlier, I see the RF tracking filter calibration in the syslogs and tuning takes some time. 
 
-Well, the patch were already added on an upstream kernel, so just reverting it
-will cause regressions.
+Is there anything I can do to debug this? I'm a programmer by trade (err my systems are usually a bit more special purpose than a linux box as I'm an embedded systems type guy, but it's all bits anyway), so don't be afraid to suggest code changes or point me in a direction.
 
-If it is just aletv-dvb that broke, it seems better to fix it than to cause 
-even more troubles by reverting two new ioctls.
-
->> The reason for this is not that fixing the patch is impossible.
-
-Why? Where exactly the breakage happened?
-
->> INstead, I'll assert that using the DMX_ADD_PID and DMX_REMOVE_PID in
->> conjunction with output=DMX_OUT_TSDEMUX_TAP is simply converting the
->> demux0 device into multiple dynamically created anonymous dvr0 devices,
->> and that is the wrong thing to do.
-> 
-> why exactly do you think this is wrong?
-> 
->> I understand the need for sending a single PID TS out to an open demux0
->> instance as described in this email:
->>
->> http://www.mail-archive.com/linux-dvb@linuxtv.org/msg29814.html
->>
->> even though it seems like a slight abuse of the demux0 device.
-> 
-> How so? It's all about reading demultiplexed packets, which is exactly
-> what a demux is good for. There is btw. no other way for multiple
-> readers to receive TS packets without implementing a second demux
-> layer in a userspace daemon, which must then be used by all readers.
-> This would needlessly create quite some overhead on high bandwidth
-> services.
->> But sending multiple PIDs out in a TS to the open demux0 device instance
->> is just an awkward way to essentially dynamically create a dvrN device
->> associated with filter(s) set on an open demux0 instance.
-> 
-> Actually it makes dvrN obsolete, but it must of course be kept for
-> backwards compatibility.
-> 
->> It would be better, in my opinion, to figure out a way to properly
->> create and/or associate a dvrN device node with a collection of demuxN
->> filters.
-> 
-> Would this involve running mknod for every recording you start?
-> 
->> Maybe just allow creation of a logical demux1 device and dvr1 device and
->> the use the DVB API calls as is on the new logical devices.
-> 
-> A demux device (and dvr respectively) represents a transport stream
-> input. Hardware with multiple transport stream inputs (read: embedded
-> set top boxes) already has multiple demux and dvr devices.
+Thanks,
 
 
-Andreas arguments makes sense to me.
-
- 
->> I'm not a DVB apps programmer, so I don't know all the userspace needs
->> nor if anything is already using the DMX_ADD_PID and DMX_REMOVE_PID
->> ioctl()s.
-> 
-> The need for such an interface was already pointed out and discussed
-> back in 2006:
-> http://www.linuxtv.org/pipermail/linux-dvb/2006-April/009269.html
-> 
-> As Honza noted, these ioctls are used by enigma2 and, in general, by
-> software running on Dream Multimedia set top boxes. I'm sure, other
-> projects are going to adopt this interface sooner or later. It is
-> still quite new after all.
-
-
-It seems too late for me to revert it. So, we need to figure out a way
-to workaround it or to fix the applications that got broken by this change.
-
--- 
-
-Cheers,
-Mauro
+      
