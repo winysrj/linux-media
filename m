@@ -1,30 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.juropnet.hu ([212.24.188.131]:35070 "EHLO mail.juropnet.hu"
+Received: from smtp2.aster.pl ([212.76.33.47]:46642 "EHLO smtp2.aster.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751829Ab0BLSa1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Feb 2010 13:30:27 -0500
-Received: from kabelnet-194-166.juropnet.hu ([91.147.194.166])
-	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.69)
-	(envelope-from <istvan_v@mailbox.hu>)
-	id 1Ng0Eu-0005at-If
-	for linux-media@vger.kernel.org; Fri, 12 Feb 2010 19:27:45 +0100
-Message-ID: <4B759F1F.4000907@mailbox.hu>
-Date: Fri, 12 Feb 2010 19:34:07 +0100
-From: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
+	id S1753746Ab0BJQiX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Feb 2010 11:38:23 -0500
+Message-ID: <4B72E0FA.5000303@aster.pl>
+Date: Wed, 10 Feb 2010 17:38:18 +0100
+From: Daro <ghost-rider@aster.pl>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: DTV2000 H Plus issues
-References: <4B3F6FE0.4040307@internode.on.net> <4B3F7B0D.4030601@mailbox.hu> <4B405381.9090407@internode.on.net> <4B421BCB.6050909@mailbox.hu> <4B4294FE.8000309@internode.on.net> <4B463AC6.2000901@mailbox.hu> <4B719CD0.6060804@mailbox.hu> <4B745781.2020408@mailbox.hu> <4B759D44.6090100@mailbox.hu>
-In-Reply-To: <4B759D44.6090100@mailbox.hu>
-Content-Type: text/plain; charset=ISO-8859-1
+To: hermann pitton <hermann-pitton@arcor.de>
+CC: Jean Delvare <khali@linux-fr.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Roman Kellner <muzungu@gmx.net>
+Subject: Re: [PATCH] saa7134: Fix IR support of some ASUS TV-FM 7135   	variants
+References: <20100127120211.2d022375@hyperion.delvare>	 <4B630179.3080006@redhat.com> <1264812461.16350.90.camel@localhost>	 <20100130115632.03da7e1b@hyperion.delvare>	 <1264986995.21486.20.camel@pc07.localdom.local>	 <20100201105628.77057856@hyperion.delvare>	 <1265075273.2588.51.camel@localhost>	 <20100202085415.38a1e362@hyperion.delvare> <1265153571.3194.14.camel@pc07.localdom.local>
+In-Reply-To: <1265153571.3194.14.camel@pc07.localdom.local>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A correction to the previous post: this line:
-		if (WaitForLock(priv) == 0)
-should actually be:
-		if (WaitForLock(priv) != 1)
-It does not have an effect on the operation of the driver, though,
-since the value set depending on this line is not used.
+W dniu 03.02.2010 00:32, hermann pitton pisze:
+> Hi Jean, Mauro and all,
+>
+> Am Dienstag, den 02.02.2010, 08:54 +0100 schrieb Jean Delvare:
+>    
+>> Hi Hermann,
+>>
+>> On Tue, 02 Feb 2010 02:47:53 +0100, hermann pitton wrote:
+>>      
+>>> Hi Jean,
+>>>
+>>> Am Montag, den 01.02.2010, 10:56 +0100 schrieb Jean Delvare:
+>>>        
+>>>> Hi Hermann,
+>>>>
+>>>> On Mon, 01 Feb 2010 02:16:35 +0100, hermann pitton wrote:
+>>>>          
+>>>>> For now, I only faked a P7131 Dual with a broken IR receiver on a 2.6.29
+>>>>> with recent, you can see that gpio 0x40000 doesn't go high, but your
+>>>>> patch should enable the remote on that P7131 analog only.
+>>>>>            
+>>>> I'm not sure why you had to fake anything? What I'd like to know is
+>>>> simply if my first patch had any negative effect on other cards.
+>>>>          
+>>> because I simply don't have that Asus My Cinema analog only in question.
+>>>
+>>> To recap, you previously announced a patch, tested by Daro, claiming to
+>>> get the remote up under auto detection for that device and I told you
+>>> having some doubts on it.
+>>>        
+>> My first patch was not actually tested by Daro. What he tested was
+>> loading the driver with card=146. At first I thought it was equivalent,
+>> but since then I have realized it wasn't. That's the reason why the
+>> "Tested-by:" was turned into a mere "Cc:" on my second and third
+>> patches.
+>>
+>>      
+>>> Mauro prefers to have a fix for that single card in need for now.
+>>>
+>>> Since nobody else cares, "For now", see above, I can confirm that your
+>>> last patch for that single device should work to get IR up with auto
+>>> detection in delay after we change the card such late with eeprom
+>>> detection.
+>>>
+>>> The meaning of that byte in use here is unknown to me, we should avoid
+>>> such as much we can! It can turn out to be only some pseudo service.
+>>>
+>>> If your call for testers on your previous attempt, really reaches some
+>>> for some reason, I'm with you, but for now I have to keep the car
+>>> operable within all such snow.
+>>>        
+>> That I understand. What I don't understand is: if you have a
+>> SAA7134-based card, why don't you test my second patch (the one moving
+>> the call to saa7134_input_init1 to saa7134_hwinit2) on it, without
+>> faking anything? This would be a first, useful data point.
+>>
+>>      
+> sorry, the snow fall did not stop and we will need trucks next day to
+> get it out of town. No place left.
+>
+> I did not reread any single line of code until now, but told you that
+> Roman has tested a equivalent patch on his P7131_ANALOG already and I
+> can confirm that it also had no side effects on a FlyVideo3000 card=2.
+>
+> For now, I would at least need some time to see, if input_init can be
+> decoupled from all other hardware init, what you seem to suggest, and
+> looking closer to Mauro's concerns.
+>
+> Thought you are asking for some test with a i2c remote next to confirm
+> your analysis there. No such card in any machine currently, but can be
+> done.
+>
+> Cheers,
+> Hermann
+>
+>
+>
+>
+>    
+Hi All,
+
+If some tests on my machine could be helpfull just let me know.
+
+Best regards
+Darek
