@@ -1,54 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36553 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755908Ab0BBRur convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Feb 2010 12:50:47 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"khilman@deeprootsystems.com" <khilman@deeprootsystems.com>
-Date: Tue, 2 Feb 2010 11:50:23 -0600
-Subject: RE: [PATCH v3 1/6] V4L - vpfe capture - header files for ISIF driver
-Message-ID: <A69FA2915331DC488A831521EAE36FE401630F31AB@dlee06.ent.ti.com>
-References: <1265063238-29072-1-git-send-email-m-karicheri2@ti.com>
- <1265063238-29072-2-git-send-email-m-karicheri2@ti.com>
- <1265063238-29072-3-git-send-email-m-karicheri2@ti.com>
- <4B675FC3.2050505@redhat.com>
- <A69FA2915331DC488A831521EAE36FE401630F3053@dlee06.ent.ti.com>
- <4B685C77.8080805@redhat.com>
-In-Reply-To: <4B685C77.8080805@redhat.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-MIME-Version: 1.0
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2304 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755114Ab0BJTw3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Feb 2010 14:52:29 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id o1AJqOXs017348
+	for <linux-media@vger.kernel.org>; Wed, 10 Feb 2010 20:52:28 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 10 Feb 2010 20:52:24 +0100 (CET)
+Message-Id: <201002101952.o1AJqOXs017348@smtp-vbr4.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
->> How to request sign-off? Do I only send patches
->> to the person, not to the list?
->
+Results of the daily build of v4l-dvb:
 
-I think you have not answered this.
+date:        Wed Feb 10 19:00:11 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14164:690055993011
+gcc version: i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:     2.6.32.5
 
->For the patches exchanged via the ML, I need some scriptable way to mark
->them
->as RFC at the Patchwork.
->
->So, adding [RFC PATCH] or [PATCH RFC] works. It also works if you add
->something
->like [PATCH OMAP] or [PATCH OMAP V4L], and provided that all other
->contributors
->to the patches you'll be sending me a pull request do exactly the same.
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-rc5-armv5: OK
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-rc5-armv5-davinci: OK
+linux-2.6.32.6-armv5-dm365: ERRORS
+linux-2.6.33-rc5-armv5-dm365: ERRORS
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-rc5-armv5-ixp: OK
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-rc5-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.17-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.20-i686: OK
+linux-2.6.26.8-i686: OK
+linux-2.6.27.44-i686: OK
+linux-2.6.28.10-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: OK
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-rc5-i686: OK
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-rc5-m32r: OK
+linux-2.6.32.6-mips: OK
+linux-2.6.33-rc5-mips: OK
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-rc5-powerpc64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.17-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.20-x86_64: OK
+linux-2.6.26.8-x86_64: OK
+linux-2.6.27.44-x86_64: OK
+linux-2.6.28.10-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: OK
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-rc5-x86_64: OK
+spec: OK
+sparse (v4l-dvb-git): ERRORS
+sparse (linux-2.6.33-rc5): ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: OK
+linux-2.6.19.7-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.7-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
+Detailed results are available here:
 
-Not sure what the last part of your statement (beginning with "provided that") means.
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-The patches always go through multiple iterations. In future
-I will add [RFC PATCH] for such patches. But this request was sent to Kevin
-to ack my patches so that I can send a pull request. How do I handle this?
-A direct email to Kevin without copying to linux-media ?
-  
-Murali
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
