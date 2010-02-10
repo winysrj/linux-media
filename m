@@ -1,62 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f213.google.com ([209.85.218.213]:57206 "EHLO
-	mail-bw0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756068Ab0BOSgY convert rfc822-to-8bit (ORCPT
+Received: from smtp.nokia.com ([192.100.122.230]:43081 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754345Ab0BJO6h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2010 13:36:24 -0500
-Received: by bwz5 with SMTP id 5so1309013bwz.1
-        for <linux-media@vger.kernel.org>; Mon, 15 Feb 2010 10:36:22 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1266255444-7422-1-git-send-email-stefan.ringel@arcor.de>
-References: <1266255444-7422-1-git-send-email-stefan.ringel@arcor.de>
-Date: Mon, 15 Feb 2010 13:36:21 -0500
-Message-ID: <829197381002151036w2cbfa8f7t59fc097f9c692631@mail.gmail.com>
-Subject: Re: [PATCH 01/11] xc2028: tm6000: bugfix firmware xc3028L-v36.fw used
-	with Zarlink and DTV78 or DTV8 no shift
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: stefan.ringel@arcor.de
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Wed, 10 Feb 2010 09:58:37 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
+	david.cohen@nokia.com
+Subject: [PATCH v4 2/7] V4L: Events: Add new ioctls for events
+Date: Wed, 10 Feb 2010 16:58:04 +0200
+Message-Id: <1265813889-17847-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1265813889-17847-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+References: <4B72C965.7040204@maxwell.research.nokia.com>
+ <1265813889-17847-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 15, 2010 at 12:37 PM,  <stefan.ringel@arcor.de> wrote:
-> From: Stefan Ringel <stefan.ringel@arcor.de>
->
-> Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
->
-> diff --git a/drivers/media/common/tuners/tuner-xc2028.c b/drivers/media/common/tuners/tuner-xc2028.c
-> index ed50168..e051caa 100644
-> --- a/drivers/media/common/tuners/tuner-xc2028.c
-> +++ b/drivers/media/common/tuners/tuner-xc2028.c
-> @@ -1114,7 +1114,12 @@ static int xc2028_set_params(struct dvb_frontend *fe,
->
->        /* All S-code tables need a 200kHz shift */
->        if (priv->ctrl.demod) {
-> -               demod = priv->ctrl.demod + 200;
-> +               if ((priv->firm_version == 0x0306) &&
-> +                       (priv->ctrl.demod == XC3028_FE_ZARLINK456) &&
-> +                               ((type & DTV78) || (type & DTV8)))
-> +                       demod = priv->ctrl.demod;
-> +               else
-> +                       demod = priv->ctrl.demod + 200;
->                /*
->                 * The DTV7 S-code table needs a 700 kHz shift.
->                 * Thanks to Terry Wu <terrywu2009@gmail.com> for reporting this
+This patch adds a set of new ioctls to the V4L2 API. The ioctls conform to
+V4L2 Events RFC version 2.3:
 
-I would still like to better understand the origin of this change.
-Was the tm6000 board not locking without it?  Was this change based on
-any documented source?  What basis are you using when deciding this
-issue is specific only to the zl10353 and not all boards using the
-xc3028L?
+<URL:http://www.spinics.net/lists/linux-media/msg12033.html>
 
-We've got a number of boards already supported which use the xc3028L,
-so we need to ensure there is no regression introduced in those boards
-just to get yours working.
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/v4l2-compat-ioctl32.c |    3 +++
+ drivers/media/video/v4l2-ioctl.c          |    3 +++
+ include/linux/videodev2.h                 |   23 +++++++++++++++++++++++
+ 3 files changed, 29 insertions(+), 0 deletions(-)
 
-Devin
-
+diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
+index 997975d..cba704c 100644
+--- a/drivers/media/video/v4l2-compat-ioctl32.c
++++ b/drivers/media/video/v4l2-compat-ioctl32.c
+@@ -1077,6 +1077,9 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+ 	case VIDIOC_DBG_G_REGISTER:
+ 	case VIDIOC_DBG_G_CHIP_IDENT:
+ 	case VIDIOC_S_HW_FREQ_SEEK:
++	case VIDIOC_DQEVENT:
++	case VIDIOC_SUBSCRIBE_EVENT:
++	case VIDIOC_UNSUBSCRIBE_EVENT:
+ 		ret = do_video_ioctl(file, cmd, arg);
+ 		break;
+ 
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 30cc334..bfc4696 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -283,6 +283,9 @@ static const char *v4l2_ioctls[] = {
+ 
+ 	[_IOC_NR(VIDIOC_DBG_G_CHIP_IDENT)] = "VIDIOC_DBG_G_CHIP_IDENT",
+ 	[_IOC_NR(VIDIOC_S_HW_FREQ_SEEK)]   = "VIDIOC_S_HW_FREQ_SEEK",
++	[_IOC_NR(VIDIOC_DQEVENT)]	   = "VIDIOC_DQEVENT",
++	[_IOC_NR(VIDIOC_SUBSCRIBE_EVENT)]  = "VIDIOC_SUBSCRIBE_EVENT",
++	[_IOC_NR(VIDIOC_UNSUBSCRIBE_EVENT)] = "VIDIOC_UNSUBSCRIBE_EVENT",
+ #endif
+ };
+ #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 54af357..a19ae89 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1536,6 +1536,26 @@ struct v4l2_streamparm {
+ };
+ 
+ /*
++ *	E V E N T S
++ */
++
++struct v4l2_event {
++	__u32		count;
++	__u32		type;
++	__u32		sequence;
++	struct timespec	timestamp;
++	__u32		reserved[9];
++	__u8		data[64];
++};
++
++struct v4l2_event_subscription {
++	__u32		type;
++	__u32		reserved[7];
++};
++
++#define V4L2_EVENT_PRIVATE_START		0x08000000
++
++/*
+  *	A D V A N C E D   D E B U G G I N G
+  *
+  *	NOTE: EXPERIMENTAL API, NEVER RELY ON THIS IN APPLICATIONS!
+@@ -1651,6 +1671,9 @@ struct v4l2_dbg_chip_ident {
+ #endif
+ 
+ #define VIDIOC_S_HW_FREQ_SEEK	 _IOW('V', 82, struct v4l2_hw_freq_seek)
++#define VIDIOC_DQEVENT		 _IOR('V', 83, struct v4l2_event)
++#define VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 84, struct v4l2_event_subscription)
++#define VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 85, struct v4l2_event_subscription)
+ /* Reminder: when adding new ioctls please add support for them to
+    drivers/media/video/v4l2-compat-ioctl32.c as well! */
+ 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.5.6.5
+
