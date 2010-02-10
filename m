@@ -1,85 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:46748 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753634Ab0BVA7L (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Feb 2010 19:59:11 -0500
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1NjLiW-000847-BY
-	for linux-media@vger.kernel.org; Mon, 22 Feb 2010 01:00:04 +0100
-Received: from 80-218-69-65.dclient.hispeed.ch ([80.218.69.65])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 22 Feb 2010 01:00:04 +0100
-Received: from auslands-kv by 80-218-69-65.dclient.hispeed.ch with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 22 Feb 2010 01:00:04 +0100
-To: linux-media@vger.kernel.org
-From: Michael <auslands-kv@gmx.de>
-Subject: Possible memory corruption in bttv driver ?
-Date: Wed, 03 Feb 2010 18:10:59 +0100
-Message-ID: <hkcan2$72f$1@ger.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7Bit
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:43487 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756280Ab0BJTFT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Feb 2010 14:05:19 -0500
+Received: by vws20 with SMTP id 20so108235vws.19
+        for <linux-media@vger.kernel.org>; Wed, 10 Feb 2010 11:05:18 -0800 (PST)
+Message-ID: <4B730364.8090406@gmail.com>
+Date: Wed, 10 Feb 2010 17:05:08 -0200
+From: Mauro Carvalho Chehab <maurochehab@gmail.com>
+MIME-Version: 1.0
+To: Franklin Meng <fmeng2002@yahoo.com>
+CC: Douglas Schilling <dougsland@gmail.com>,
+	maillist <linux-media@vger.kernel.org>
+Subject: Re: [Patch] Kworld 315U remote support
+References: <311770.77952.qm@web32701.mail.mud.yahoo.com>
+In-Reply-To: <311770.77952.qm@web32701.mail.mud.yahoo.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
+Franklin Meng wrote:
+> Mauro, 
+> 
+> I tried out the ir_type change to the code and when I set it to IR_TYPE_NEC, I see messages in the log indicating that the key was not recognized.  Using IR_TYPE_OTHER seems to work ok.
+> 
+> My guess is that if I modify the keycodes IR_TYPE_NEC will work as well.
 
-We use embedded devices running debian lenny (kernel 2.6.31.4 with bttv 
-driver 0.9.18) to monitor an incoming video signal digitized via a video 
-grabber. The /dev/video0 device is opened and closed several hundred times a 
-day.
+If it is displaying a log, it means that the protocol is NEC.
+All you need is to add the 8 most significant bits to the table. In general,
+this code is common to all keystrokes.
 
-We used to use an em28xx USB based grabber but now switched to an Mini-PCI 
-bttv card (Commel MP-878) due to USB issues.
+For example, this is the legacy keymap table for Hauppauge IR:
 
-With the bttv card we experience different crashes, usually after a couple 
-of days, while the systems using the em28xx show none even after an extended 
-time frame.
+static struct ir_scancode ir_codes_hauppauge_new[] = {
+        /* Keys 0 to 9 */
+        { 0x00, KEY_0 },
+        { 0x01, KEY_1 },
+        { 0x02, KEY_2 },
+        { 0x03, KEY_3 },
+        { 0x04, KEY_4 },
 
-The crashes differ strongly. We saw system freezes and also a very 
-interesting problem, where libasound.so.2 couldn't find some symbol. We 
-debugged the latter case, finding that all applications using libasound.so.2 
-no longer worked, giving the same error of a symbol not found. The problem 
-could be remedied by flushing the kernel cashes (echo 1 > 
-/proc/sys/vm/drop_caches).
+The new table is:
 
-So it might be possible that the systems using the bttv Mini-PCI card 
-corrupt memory after a couple of days, resulting into different failures.
+static struct ir_scancode ir_codes_rc5_hauppauge_new[] = {
+        /* Keys 0 to 9 */
+        { 0x1e00, KEY_0 },
+        { 0x1e01, KEY_1 },
+        { 0x1e02, KEY_2 },
+        { 0x1e03, KEY_3 },
+        { 0x1e04, KEY_4 },
 
-To examine the crashes I wrote a small test program, which simply opens and 
-closes the bttv video device repeatedly:
+You'll notice that the only difference is that the code now has
+"0x1e00" added to all keys, and that the new table has the
+protocol properly indicated.
 
-#!/bin/bash
+> Can I just use IR_TYPE_OTHER?  That seems like the most straight forward approach with the least amount of changes.  
 
-count=0
-while [ 1 == 1 ]
-do
-        ((count++))
-        date; echo "COUNT = " $count
-        mplayer -frames 10 -fs -vo xv tv:// -tv norm=pal:input=1 > /dev/null
-        sleep 0.1
-done
+The usage of IR_TYPE_OTHER disables some new API's that are shown
+to userspace, that allows the replacement of the IR for a better one.
 
-With this program I experienced full hard crashes after 85 counts, 760 
-counts and 3870 counts today, comprising between a couple of minutes and 
-hours. In all cases the hardware watchdog timer resetted the system.
+Due to that, the usage of IR_TYPE_OTHER is deprecated. 
 
-The exact same system using an USB ex28xx based grabber instead of the bttv 
-does not crash.
+We should really get rid of  all those legacy keymaps that don't 
+inform the IR protocol, not allowing that the key sequences and protocols 
+to  be properly seen on userspace and eventually replaced, if the user
+wants to buy a powerful remote and associate other keys to his IR.
 
-1.) Is there a way to diagnose memory corruption in order to ensure that it 
-is really a corruption problem and to locate the possible bug?
+So, please don't use IR_TYPE_OTHER.
 
-2.) Do newer kernel versions have improved bttv drivers (maybe even with
-patched memory corruption issues)?
-
-3.) As a last resort: Do you know of other Mini-PCI video grabber cards that
-are based on other chipsets that are supported by the kernel?
-
-Thanks a lot for any help
-
-Michael
-
+Cheers,
+Mauro
