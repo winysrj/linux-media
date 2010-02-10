@@ -1,169 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:33000 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751412Ab0BCH5q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2010 02:57:46 -0500
-Message-ID: <4B692C75.80907@infradead.org>
-Date: Wed, 03 Feb 2010 05:57:41 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from tichy.grunau.be ([85.131.189.73]:49933 "EHLO tichy.grunau.be"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753069Ab0BJSe7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Feb 2010 13:34:59 -0500
+Received: from localhost (p5DDC401F.dip0.t-ipconnect.de [93.220.64.31])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by tichy.grunau.be (Postfix) with ESMTPSA id 6321690076
+	for <linux-media@vger.kernel.org>; Wed, 10 Feb 2010 19:35:00 +0100 (CET)
+Date: Wed, 10 Feb 2010 19:36:35 +0100
+From: Janne Grunau <j@jannau.net>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 2 of 7] szap: move get_pmt_pid() to utils.c
+Message-ID: <20100210183635.GM8026@aniel.lan>
+References: <patchbomb.1265826616@aniel.lan>
 MIME-Version: 1.0
-To: akpm@linux-foundation.org
-CC: linux-media@vger.kernel.org, mpagano@gentoo.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Subject: Re: [patch 3/7] drivers/media/video/Kconfig: add VIDEO_DEV dependency
- as needed in drivers/media/video/Kconfig
-References: <201002022240.o12MemE3018908@imap1.linux-foundation.org>
-In-Reply-To: <201002022240.o12MemE3018908@imap1.linux-foundation.org>
-Content-Type: text/plain; charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="3uo+9/B/ebqu+fSQ"
+Content-Disposition: inline
+In-Reply-To: <patchbomb.1265826616@aniel.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-akpm@linux-foundation.org wrote:
-> From: Mike Pagano <mpagano@gentoo.org>
-> 
-> Add VIDEO_DEV as dependency of VIDEO_CAPTURE_DRIVERS and all of the
-> devices listed under this setting.
-> 
-> Signed-off-by: Mike Pagano <mpagano@gentoo.org>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  drivers/media/video/Kconfig |   20 ++++++++++----------
->  1 file changed, 10 insertions(+), 10 deletions(-)
-> 
-> diff -puN drivers/media/video/Kconfig~drivers-media-video-kconfig-add-video_dev-dependency-as-needed-in-drivers-media-video-kconfig drivers/media/video/Kconfig
-> --- a/drivers/media/video/Kconfig~drivers-media-video-kconfig-add-video_dev-dependency-as-needed-in-drivers-media-video-kconfig
-> +++ a/drivers/media/video/Kconfig
-> @@ -51,14 +51,14 @@ config VIDEO_TUNER
->  
->  menuconfig VIDEO_CAPTURE_DRIVERS
->  	bool "Video capture adapters"
-> -	depends on VIDEO_V4L2
-> +	depends on VIDEO_V4L2 && VIDEO_DEV
 
-VIDEO_V4L2 is defined as:
+--3uo+9/B/ebqu+fSQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-config VIDEO_V4L2_COMMON
-        tristate
-        depends on (I2C || I2C=n) && VIDEO_DEV
-        default (I2C || I2C=n) && VIDEO_DEV
+ util/szap/szap.c |  60 -------------------------------------------------------
+ util/szap/util.c |  61 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ util/szap/util.h |   2 +
+ 3 files changed, 63 insertions(+), 60 deletions(-)
 
-config VIDEO_V4L2
-        tristate
-        depends on VIDEO_DEV && VIDEO_V4L2_COMMON
-        default VIDEO_DEV && VIDEO_V4L2_COMMON
 
-As VIDEO_V4L2 already depends on VIDEO_DEV, there's no need to add VIDEO_DEV
-for VIDEO_CAPTURE_DRIVERS.
 
->  	default y
->  	---help---
->  	  Say Y here to enable selecting the video adapters for
->  	  webcams, analog TV, and hybrid analog/digital TV.
->  	  Some of those devices also supports FM radio.
->  
-> -if VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2
-> +if VIDEO_DEV && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2
+--3uo+9/B/ebqu+fSQ
+Content-Type: text/x-patch; charset=us-ascii
+Content-Disposition: inline; filename="dvb-apps-2.patch"
 
-Idem.
+# HG changeset patch
+# User Janne Grunau <j@jannau.net>
+# Date 1265820330 -3600
+# Node ID d79f9e2901a05fbee905998294d9cb1ae46a422d
+# Parent  28369a87b6c7db2a5704be5dda8ed60a4cbf3397
+szap: move get_pmt_pid() to utils.c
 
->  config VIDEO_ADV_DEBUG
->  	bool "Enable advanced debug functionality"
-> @@ -500,7 +500,7 @@ endmenu # encoder / decoder chips
->  
->  config DISPLAY_DAVINCI_DM646X_EVM
->  	tristate "DM646x EVM Video Display"
-> -	depends on VIDEO_DEV && MACH_DAVINCI_DM6467_EVM
-> +	depends on MACH_DAVINCI_DM6467_EVM
->  	select VIDEOBUF_DMA_CONTIG
->  	select VIDEO_DAVINCI_VPIF
->  	select VIDEO_ADV7343
-> @@ -513,7 +513,7 @@ config DISPLAY_DAVINCI_DM646X_EVM
->  
->  config CAPTURE_DAVINCI_DM646X_EVM
->  	tristate "DM646x EVM Video Capture"
-> -	depends on VIDEO_DEV && MACH_DAVINCI_DM6467_EVM
-> +	depends on MACH_DAVINCI_DM6467_EVM
->  	select VIDEOBUF_DMA_CONTIG
->  	select VIDEO_DAVINCI_VPIF
->  	help
-> @@ -533,7 +533,7 @@ config VIDEO_DAVINCI_VPIF
->  
->  config VIDEO_VIVI
->  	tristate "Virtual Video Driver"
-> -	depends on VIDEO_DEV && VIDEO_V4L2 && !SPARC32 && !SPARC64
-> +	depends on VIDEO_V4L2 && !SPARC32 && !SPARC64
->  	select VIDEOBUF_VMALLOC
->  	default n
->  	---help---
-> @@ -889,7 +889,7 @@ config MX1_VIDEO
->  
->  config VIDEO_MX1
->  	tristate "i.MX1/i.MXL CMOS Sensor Interface driver"
-> -	depends on VIDEO_DEV && ARCH_MX1 && SOC_CAMERA
-> +	depends on ARCH_MX1 && SOC_CAMERA
->  	select FIQ
->  	select VIDEOBUF_DMA_CONTIG
->  	select MX1_VIDEO
-> @@ -901,7 +901,7 @@ config MX3_VIDEO
->  
->  config VIDEO_MX3
->  	tristate "i.MX3x Camera Sensor Interface driver"
-> -	depends on VIDEO_DEV && MX3_IPU && SOC_CAMERA
-> +	depends on MX3_IPU && SOC_CAMERA
->  	select VIDEOBUF_DMA_CONTIG
->  	select MX3_VIDEO
->  	---help---
-> @@ -909,21 +909,21 @@ config VIDEO_MX3
->  
->  config VIDEO_PXA27x
->  	tristate "PXA27x Quick Capture Interface driver"
-> -	depends on VIDEO_DEV && PXA27x && SOC_CAMERA
-> +	depends on PXA27x && SOC_CAMERA
->  	select VIDEOBUF_DMA_SG
->  	---help---
->  	  This is a v4l2 driver for the PXA27x Quick Capture Interface
->  
->  config VIDEO_SH_MOBILE_CEU
->  	tristate "SuperH Mobile CEU Interface driver"
-> -	depends on VIDEO_DEV && SOC_CAMERA && HAS_DMA && HAVE_CLK
-> +	depends on SOC_CAMERA && HAS_DMA && HAVE_CLK
->  	select VIDEOBUF_DMA_CONTIG
->  	---help---
->  	  This is a v4l2 driver for the SuperH Mobile CEU Interface
->  
->  config VIDEO_OMAP2
->  	tristate "OMAP2 Camera Capture Interface driver"
-> -	depends on VIDEO_DEV && ARCH_OMAP2
-> +	depends on ARCH_OMAP2
->  	select VIDEOBUF_DMA_SG
->  	---help---
->  	  This is a v4l2 driver for the TI OMAP2 camera capture interface
+to be reused by the other zap implemetations
 
-I suspect that it is needed to keep at least some of the above dependencies, since VIDEO_DEV
-is tristate. Otherwise, someone may do things like selecting VIDEO_DEV=m, and select 
-DISPLAY_DAVINCI_DM646X_EVM=y.
+diff -r 28369a87b6c7 -r d79f9e2901a0 util/szap/szap.c
+--- a/util/szap/szap.c	Wed Feb 10 17:40:41 2010 +0100
++++ b/util/szap/szap.c	Wed Feb 10 17:45:30 2010 +0100
+@@ -93,66 +93,6 @@
+     "     -p        : add pat and pmt to TS recording (implies -r)\n"
+     "                 or -n numbers for zapping\n";
+ 
+-int get_pmt_pid(char *dmxdev, int sid)
+-{
+-   int patfd, count;
+-   int pmt_pid = 0;
+-   int patread = 0;
+-   int section_length;
+-   unsigned char buft[4096];
+-   unsigned char *buf = buft;
+-   struct dmx_sct_filter_params f;
+-
+-   memset(&f, 0, sizeof(f));
+-   f.pid = 0;
+-   f.filter.filter[0] = 0x00;
+-   f.filter.mask[0] = 0xff;
+-   f.timeout = 0;
+-   f.flags = DMX_IMMEDIATE_START | DMX_CHECK_CRC;
+-
+-   if ((patfd = open(dmxdev, O_RDWR)) < 0) {
+-      perror("openening pat demux failed");
+-      return -1;
+-   }
+-
+-   if (ioctl(patfd, DMX_SET_FILTER, &f) == -1) {
+-      perror("ioctl DMX_SET_FILTER failed");
+-      close(patfd);
+-      return -1;
+-   }
+-
+-   while (!patread){
+-      if (((count = read(patfd, buf, sizeof(buft))) < 0) && errno == EOVERFLOW)
+-         count = read(patfd, buf, sizeof(buft));
+-      if (count < 0) {
+-         perror("read_sections: read error");
+-         close(patfd);
+-         return -1;
+-      }
+-
+-      section_length = ((buf[1] & 0x0f) << 8) | buf[2];
+-      if (count != section_length + 3)
+-         continue;
+-
+-      buf += 8;
+-      section_length -= 8;
+-
+-      patread = 1; /* assumes one section contains the whole pat */
+-      while (section_length > 0) {
+-         int service_id = (buf[0] << 8) | buf[1];
+-         if (service_id == sid) {
+-            pmt_pid = ((buf[2] & 0x1f) << 8) | buf[3];
+-            section_length = 0;
+-         }
+-         buf += 4;
+-         section_length -= 4;
+-     }
+-   }
+-
+-   close(patfd);
+-   return pmt_pid;
+-}
+-
+ struct diseqc_cmd {
+    struct dvb_diseqc_master_cmd cmd;
+    uint32_t wait;
+diff -r 28369a87b6c7 -r d79f9e2901a0 util/szap/util.c
+--- a/util/szap/util.c	Wed Feb 10 17:40:41 2010 +0100
++++ b/util/szap/util.c	Wed Feb 10 17:45:30 2010 +0100
+@@ -63,3 +63,64 @@
+ 
+     return 0;
+ }
++
++
++int get_pmt_pid(char *dmxdev, int sid)
++{
++    int patfd, count;
++    int pmt_pid = 0;
++    int patread = 0;
++    int section_length;
++    unsigned char buft[4096];
++    unsigned char *buf = buft;
++    struct dmx_sct_filter_params f;
++
++    memset(&f, 0, sizeof(f));
++    f.pid = 0;
++    f.filter.filter[0] = 0x00;
++    f.filter.mask[0] = 0xff;
++    f.timeout = 0;
++    f.flags = DMX_IMMEDIATE_START | DMX_CHECK_CRC;
++
++    if ((patfd = open(dmxdev, O_RDWR)) < 0) {
++	perror("openening pat demux failed");
++	return -1;
++    }
++
++    if (ioctl(patfd, DMX_SET_FILTER, &f) == -1) {
++	perror("ioctl DMX_SET_FILTER failed");
++	close(patfd);
++	return -1;
++    }
++
++    while (!patread){
++	if (((count = read(patfd, buf, sizeof(buft))) < 0) && errno == EOVERFLOW)
++	    count = read(patfd, buf, sizeof(buft));
++	if (count < 0) {
++	    perror("read_sections: read error");
++	    close(patfd);
++	    return -1;
++	}
++	
++	section_length = ((buf[1] & 0x0f) << 8) | buf[2];
++	if (count != section_length + 3)
++	    continue;
++	
++	buf += 8;
++	section_length -= 8;
++	
++	patread = 1; /* assumes one section contains the whole pat */
++	while (section_length > 0) {
++	    int service_id = (buf[0] << 8) | buf[1];
++	    if (service_id == sid) {
++		pmt_pid = ((buf[2] & 0x1f) << 8) | buf[3];
++		section_length = 0;
++	    }
++	    buf += 4;
++	    section_length -= 4;
++	}
++    }
++
++    close(patfd);
++    return pmt_pid;
++}
+diff -r 28369a87b6c7 -r d79f9e2901a0 util/szap/util.h
+--- a/util/szap/util.h	Wed Feb 10 17:40:41 2010 +0100
++++ b/util/szap/util.h	Wed Feb 10 17:45:30 2010 +0100
+@@ -20,3 +20,5 @@
+  */
+ 
+ int set_pesfilter(int dmxfd, int pid, int pes_type, int dvr);
++
++int get_pmt_pid(char *dmxdev, int sid);
+\ No newline at end of file
 
-Yet, your proposed patch ringed the bells.
-
-Extra care should be taken with drivers that depend on VIDEO_DEV instead of VIDEO_V4L2, due
-to the driver I2C dependencies. If I2C=m and VIDEO_DEV=y, and the driver has any call to an
-i2c core code, the driver should not be allowed to be compiled builtin. 
-
-So, if one of the above drivers that depend on VIDEO_DEV has access to i2c, it should
-depend, instead, of VIDEO_V4L2 (where the I2C particular case were already addressed).
-
-I suspect that this is the case for soc_camera. So, the above dependencies should be, instead,
-VIDEO_V4L2. I'm not sure if all those DaVinci/OMAP drivers require i2c.
-
-Guennadi/Murali,
-
-Could you please double-check?
-
--- 
-
-Cheers,
-Mauro
+--3uo+9/B/ebqu+fSQ--
