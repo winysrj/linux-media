@@ -1,98 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay01.digicable.hu ([92.249.128.189]:47143 "EHLO
-	relay01.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755364Ab0BXHJp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Feb 2010 02:09:45 -0500
-Message-ID: <4B84D0B5.8040005@freemail.hu>
-Date: Wed, 24 Feb 2010 08:09:41 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+Received: from mx1.redhat.com ([209.132.183.28]:10806 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752532Ab0BJXdX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Feb 2010 18:33:23 -0500
+Message-ID: <4B73422F.8010707@redhat.com>
+Date: Wed, 10 Feb 2010 21:33:03 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Jean-Francois Moine <moinejf@free.fr>,
-	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	Thomas Kaiser <thomas@kaiser-linux.li>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] gspca pac7302: add USB PID range based on heuristics
-References: <4B655949.50102@freemail.hu> <4B6575AC.7060100@redhat.com>
-In-Reply-To: <4B6575AC.7060100@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Carlos Jenkins <carlos.jenkins.perez@gmail.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Subject: Re: Want to help in MSI TV VOX USB 2.0
+References: <f535cc5a1002100021u37bf47a5y50a0a90873a082e2@mail.gmail.com> 	<f535cc5a1002101058h4d8e4bd1p6fd03abd4f724f52@mail.gmail.com> 	<f535cc5a1002101101k709bbe9bv504cf33fab14dedc@mail.gmail.com> 	<f535cc5a1002101102w146050c5v91ddc6ec86542153@mail.gmail.com> 	<4B731A10.9000108@redhat.com> <829197381002101255x2af2776ftd1c7a7d32584946@mail.gmail.com> 	<f535cc5a1002101310y3faf7688hdbb0db0b1d45e081@mail.gmail.com> 	<829197381002101324i600c0fbdtdae2b5fac4b84f35@mail.gmail.com> <f535cc5a1002101435u10825bedn4dd845cd10a2cd0b@mail.gmail.com>
+In-Reply-To: <f535cc5a1002101435u10825bedn4dd845cd10a2cd0b@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+Carlos Jenkins wrote:
+> Hi :) Thank again for the replies.
+> 
+>> Well, if it actually has a tuner, then it is unlikely that any
+>> existing board profile is going to help (ruling out the ability to
+>> just use a "card=").
+> Profile 5 is for this same card.
+> 
+>> Do you know what tuner it contains?  Can you
+>> provide some hi-res photos of the internals of the device?
+> 
+> Yes, I can :)
+> 
+> http://www.cjenkins.net/files/msivoxusb2.0.png
 
-On the schematics in PixArt PAC7301/PAC7302 datasheet
-(http://www.pixart.com.tw/upload/PAC7301_7302%20%20Spec%20V1_20091228174030.pdf)
-pages 19, 20, 21 and 22 there is a note titled "PID IO_TRAP" which describes
-the possible product ID range 0x2620..0x262f. In this range there are some
-known webcams, however, there are some PIDs with unknown or future devices.
-Because PixArt PAC7301/PAC7302 is a System on a Chip (SoC) device is is
-probable that this driver will work correctly independent of the used PID.
+The tuner is LG/Innotek TALN-H200T.
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
----
-diff -r dfa82cf98a85 linux/drivers/media/video/gspca/pac7302.c
---- a/linux/drivers/media/video/gspca/pac7302.c	Sat Jan 30 20:03:02 2010 +0100
-+++ b/linux/drivers/media/video/gspca/pac7302.c	Sun Jan 31 11:08:21 2010 +0100
-@@ -96,6 +96,7 @@
- 	u8 flags;
- #define FL_HFLIP 0x01		/* mirrored by default */
- #define FL_VFLIP 0x02		/* vertical flipped by default */
-+#define FL_EXPERIMENTAL 0x80	/* USB IDs based on heuristic without any known product */
+>From Documentation/video4linux/CARDLIST.tuner:
 
- 	u8 sof_read;
- 	u8 autogain_ignore_frames;
-@@ -1220,17 +1221,33 @@
- };
+tuner=25 - LG PAL_I+FM (TAPC-I001D)
+tuner=26 - LG PAL_I (TAPC-I701D)
+tuner=27 - LG NTSC+FM (TPI8NSR01F)
+tuner=28 - LG PAL_BG+FM (TPI8PSB01D)
+tuner=29 - LG PAL_BG (TPI8PSB11D)
+tuner=37 - LG PAL (newer TAPC series)
+tuner=39 - LG NTSC (newer TAPC series)
+tuner=47 - LG NTSC (TAPE series)
+tuner=64 - LG TDVS-H06xF
+tuner=66 - LG TALN series
 
- /* -- module initialisation -- */
-+/* Note on FL_EXPERIMENTAL:
-+ * On the schematics in PixArt PAC7301/PAC7302 datasheet
-+ * (http://www.pixart.com.tw/upload/PAC7301_7302%20%20Spec%20V1_20091228174030.pdf)
-+ * pages 19, 20, 21 and 22 there is a note titled "PID IO_TRAP" which describes
-+ * the possible product ID range 0x2620..0x262f. In this range there are some
-+ * known webcams, however, there are some PIDs with unknown or future devices.
-+ * Because PixArt PAC7301/PAC7302 is a System on a Chip (SoC) device is is
-+ * probable that this driver will work correctly independent of the used PID.
-+ */
- static const struct usb_device_id device_table[] __devinitconst = {
- 	{USB_DEVICE(0x06f8, 0x3009)},
- 	{USB_DEVICE(0x093a, 0x2620)},
- 	{USB_DEVICE(0x093a, 0x2621)},
- 	{USB_DEVICE(0x093a, 0x2622), .driver_info = FL_VFLIP},
-+	{USB_DEVICE(0x093a, 0x2623), .driver_info = FL_EXPERIMENTAL },
- 	{USB_DEVICE(0x093a, 0x2624), .driver_info = FL_VFLIP},
-+	{USB_DEVICE(0x093a, 0x2625), .driver_info = FL_EXPERIMENTAL },
- 	{USB_DEVICE(0x093a, 0x2626)},
-+	{USB_DEVICE(0x093a, 0x2627), .driver_info = FL_EXPERIMENTAL },
- 	{USB_DEVICE(0x093a, 0x2628)},
- 	{USB_DEVICE(0x093a, 0x2629), .driver_info = FL_VFLIP},
- 	{USB_DEVICE(0x093a, 0x262a)},
-+	{USB_DEVICE(0x093a, 0x262b), .driver_info = FL_EXPERIMENTAL },
- 	{USB_DEVICE(0x093a, 0x262c)},
-+	{USB_DEVICE(0x093a, 0x262d), .driver_info = FL_EXPERIMENTAL },
-+	{USB_DEVICE(0x093a, 0x262e), .driver_info = FL_EXPERIMENTAL },
-+	{USB_DEVICE(0x093a, 0x262f), .driver_info = FL_EXPERIMENTAL },
- 	{}
- };
- MODULE_DEVICE_TABLE(usb, device_table);
-@@ -1239,6 +1256,17 @@
- static int __devinit sd_probe(struct usb_interface *intf,
- 			const struct usb_device_id *id)
- {
-+	if ((u8)id->driver_info & FL_EXPERIMENTAL) {
-+		PDEBUG(D_ERR | D_PROBE, "WARNING: USB device ID %04x:%04x is "
-+			"not known, but based on some heuristics this driver "
-+			"tries to handle it.",
-+			id->idVendor, id->idProduct);
-+		PDEBUG(D_ERR | D_PROBE, "WARNING: Plase send an email to "
-+			"linux-media@vger.kernel.org with 'lsusb -v' output, "
-+			"the vendor and name of the product and whether the "
-+			"device is working or not.");
-+	}
-+
- 	return gspca_dev_probe(intf, id, &sd_desc, sizeof(struct sd),
- 				THIS_MODULE);
- }
+Probably, tuner=66 will work better.
+
+So, you'll need to probe your card with
+
+	modprobe em28xx card=5 tuner=66
+
+> 
+> Note: Mauro I'll test everything you said later and I'll post the result here.
+
+Ok.
+
+-- 
+
+Cheers,
+Mauro
