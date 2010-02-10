@@ -1,48 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:53578 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932306Ab0BCQDL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2010 11:03:11 -0500
+Received: from mx1.redhat.com ([209.132.183.28]:14504 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753644Ab0BJQIu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Feb 2010 11:08:50 -0500
+Message-ID: <4B72DA0A.8030103@redhat.com>
+Date: Wed, 10 Feb 2010 14:08:42 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <201002021529.36727.oliver@neukum.org>
-References: <4B6836DA.8030907@gmail.com> <201002021529.36727.oliver@neukum.org>
-From: roel kluin <roel.kluin@gmail.com>
-Date: Wed, 3 Feb 2010 17:02:49 +0100
-Message-ID: <25e057c01002030802x5ae68ed9od9004565731ebd6f@mail.gmail.com>
-Subject: Re: [PATCH] dvb: return -ENOMEM if kzalloc failed in
-	dvb_usb_device_init()
-To: Oliver Neukum <oliver@neukum.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Stefan Ringel <stefan.ringel@arcor.de>
+CC: linux-media@vger.kernel.org, dheitmueller@kernellabs.com
+Subject: Re: [PATCH 6/12] tm6000: tuner reset timeing optimation
+References: <1265411060-12125-6-git-send-email-stefan.ringel@arcor.de> <4B6FF418.3000303@redhat.com> <4B72D7D0.9030304@arcor.de>
+In-Reply-To: <4B72D7D0.9030304@arcor.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 2, 2010 at 3:29 PM, Oliver Neukum <oliver@neukum.org> wrote:
-> Am Dienstag, 2. Februar 2010 15:29:46 schrieb Roel Kluin:
->> If in a cold state and the download succeeded ret is zero, but we
->> should return -ENOMEM.
+Stefan Ringel wrote:
+> Am 08.02.2010 12:23, schrieb Mauro Carvalho Chehab:
+>> stefan.ringel@arcor.de wrote:
+>>   
+>>> From: Stefan Ringel <stefan.ringel@arcor.de>
+>>>
+>>> Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+>>> ---
+>>>  drivers/staging/tm6000/tm6000-cards.c |   11 +++++++----
+>>>  1 files changed, 7 insertions(+), 4 deletions(-)
+>>>
+>>> diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+>>> index 1167b01..5cf5d58 100644
+>>> --- a/drivers/staging/tm6000/tm6000-cards.c
+>>> +++ b/drivers/staging/tm6000/tm6000-cards.c
+>>> @@ -271,11 +271,14 @@ static int tm6000_tuner_callback(void *ptr, int component, int command, int arg)
+>>>  		switch (arg) {
+>>>  		case 0:
+>>>  			tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
+>>> +					dev->tuner_reset_gpio, 0x01);
+>>> +			msleep(60);
+>>> +			tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
+>>>  					dev->tuner_reset_gpio, 0x00);
+>>> -			msleep(130);
+>>> +			msleep(75);
+>>>  			tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
+>>>  					dev->tuner_reset_gpio, 0x01);
+>>> -			msleep(130);
+>>> +			msleep(60);
+>>>  			break;
+>>>  		case 1:
+>>>  			tm6000_set_reg (dev, REQ_04_EN_DISABLE_MCU_INT,
+>>> @@ -288,10 +291,10 @@ static int tm6000_tuner_callback(void *ptr, int component, int command, int arg)
+>>>  						TM6000_GPIO_CLK, 0);
+>>>  			if (rc<0)
+>>>  				return rc;
+>>> -			msleep(100);
+>>> +			msleep(10);
+>>>  			rc=tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
+>>>  						TM6000_GPIO_CLK, 1);
+>>> -			msleep(100);
+>>> +			msleep(10);
+>>>  			break;
+>>>  		}
+>>>  	}
+>>>     
+>> This sequence and the timeouts are board-specific. Please add a switch(dev->model) and
+>> test for your specific board, since your sequence will break for example 10moons, where
+>> you really need a longer delay to work.
 >>
->> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
->> ---
->> Or shouldn't we?
->
-> We should and we do if cold==0.
-> The bug is caused by this:
->
->        if (cold) {
->                info("found a '%s' in cold state, will try to load a firmware",desc->name);
->                ret = dvb_usb_download_firmware(udev,props);
->                if (!props->no_reconnect || ret != 0)
->                        return ret;
->        }
->
-> which overwrites ret
+>>   
+> What for tuner modell have you, xc2028, xc3028 or xc3028L ? I have
+> xc3028L, And it can reset faster. I'm adding a switch(dev->modell).
 
-Is that an ack or do you want me to add an int (e.g. rc) that
-handles the dvb_usb_download_firmware() return value?
+I have one device with each of the above, but the one with xc3028 stopped working when
+I tried to replace the tm6000revA by a tm6000revD.
 
-Roel
+The newest one has tm6010/xc3028L. I suspect that it supports a faster reset, but I
+don't remember the exact timings measured based on the m$ driver. the 10moons has
+a xc2028 and a tm5600, and it hangs if commands are sent too fast to the device.
+
+-- 
+
+Cheers,
+Mauro
