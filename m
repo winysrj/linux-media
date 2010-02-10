@@ -1,60 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:54258 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754238Ab0BHTYq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Feb 2010 14:24:46 -0500
-Subject: Re: [PATCH] dvb-core: fix initialization of feeds list in demux
- filter (Was: Videotext application crashes the kernel due to DVB-demux
- patch)
-From: Chicken Shack <chicken.shack@gmx.de>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andreas Oberritter <obi@linuxtv.org>,
-	Andy Walls <awalls@radix.net>, HoP <jpetrous@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Francesco Lavra <francescolavra@interfree.it>,
-	linux-media@vger.kernel.org, akpm@linux-foundation.org,
-	rms@gnu.org, hermann-pitton@arcor.de
-In-Reply-To: <alpine.LFD.2.00.1002081108300.3829@localhost.localdomain>
-References: <1265546998.9356.4.camel@localhost>
-	 <4B6F72E5.3040905@redhat.com>  <4B700287.5080900@linuxtv.org>
-	 <1265636585.5399.47.camel@brian.bconsult.de>
-	 <alpine.LFD.2.00.1002080746180.3829@localhost.localdomain>
-	 <1265653508.12259.89.camel@brian.bconsult.de>
-	 <alpine.LFD.2.00.1002081108300.3829@localhost.localdomain>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 08 Feb 2010 20:20:56 +0100
-Message-ID: <1265656856.13486.1.camel@brian.bconsult.de>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([192.100.122.233]:43888 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750763Ab0BJO6a (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Feb 2010 09:58:30 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
+	david.cohen@nokia.com
+Subject: [PATCH v4 6/7] V4L: Events: Sequence numbers
+Date: Wed, 10 Feb 2010 16:58:08 +0200
+Message-Id: <1265813889-17847-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1265813889-17847-5-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+References: <4B72C965.7040204@maxwell.research.nokia.com>
+ <1265813889-17847-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+ <1265813889-17847-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+ <1265813889-17847-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+ <1265813889-17847-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+ <1265813889-17847-5-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Montag, den 08.02.2010, 11:09 -0800 schrieb Linus Torvalds:
-> 
-> On Mon, 8 Feb 2010, Chicken Shack wrote:
-> > ...
-> 
-> Please stop emailing me. I'm simply not interested in your political 
-> troubles with the DVB people.
-> 
-> I see with my own eyes why people have issues with your way of 
-> communication, and quite frankly, I'm not interested in discussing 
-> name-calling with somebody who is anonymous.
+Add sequence numbers to events.
 
-C R A P ! ! ! !
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/v4l2-event.c |   16 +++++++++++++---
+ include/media/v4l2-event.h       |    1 +
+ 2 files changed, 14 insertions(+), 3 deletions(-)
 
-> 
-> 		Linus
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-I admit I completely overestimated you.
-
-HOW POOR!
-
-SHAME ON YOU!
-
-
+diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+index bbdc149..0af0de5 100644
+--- a/drivers/media/video/v4l2-event.c
++++ b/drivers/media/video/v4l2-event.c
+@@ -95,6 +95,7 @@ int v4l2_event_init(struct v4l2_fh *fh, unsigned int n, unsigned int max_alloc)
+ 
+ 	fh->events->navailable = 0;
+ 	fh->events->max_alloc = max_alloc;
++	fh->events->sequence = -1;
+ 
+ 	ret = v4l2_event_alloc(fh, n);
+ 	if (ret < 0)
+@@ -175,15 +176,24 @@ void v4l2_event_queue(struct video_device *vdev, struct v4l2_event *ev)
+ 	list_for_each_entry(fh, &vdev->fh_list, list) {
+ 		struct v4l2_events *events = fh->events;
+ 		struct v4l2_kevent *kev;
++		u32 sequence;
+ 
+-		/* Do we have any free events and are we subscribed? */
+-		if (list_empty(&events->free) ||
+-		    !__v4l2_event_subscribed(fh, ev->type))
++		/* Are we subscribed? */
++		if (!__v4l2_event_subscribed(fh, ev->type))
++			continue;
++
++		/* Increase event sequence number on fh. */
++		events->sequence++;
++		sequence = events->sequence;
++
++		/* Do we have any free events? */
++		if (list_empty(&events->free))
+ 			continue;
+ 
+ 		/* Take one and fill it. */
+ 		kev = list_first_entry(&events->free, struct v4l2_kevent, list);
+ 		kev->event = *ev;
++		kev->event.sequence = sequence;
+ 		list_move_tail(&kev->list, &events->available);
+ 
+ 		events->navailable++;
+diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+index 671c8f7..5760597 100644
+--- a/include/media/v4l2-event.h
++++ b/include/media/v4l2-event.h
+@@ -50,6 +50,7 @@ struct v4l2_events {
+ 	unsigned int		navailable;
+ 	unsigned int		max_alloc; /* Never allocate more. */
+ 	struct list_head	free; /* Events ready for use */
++	u32			sequence;
+ };
+ 
+ int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n);
+-- 
+1.5.6.5
 
