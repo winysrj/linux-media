@@ -1,62 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:39665 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757319Ab0BDSlq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2010 13:41:46 -0500
-Date: Thu, 4 Feb 2010 10:41:32 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Jiri Slaby <jirislaby@gmail.com>
-Cc: Jiri Kosina <jkosina@suse.cz>, Antti Palosaari <crope@iki.fi>,
-	mchehab@infradead.org, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, Pekka Sarnila <sarnila@adit.fi>,
-	linux-input@vger.kernel.org
-Subject: Re: [PATCH 1/1] media: dvb-usb/af9015, fix disconnection crashes
-Message-ID: <20100204184132.GD10965@core.coreip.homeip.net>
-References: <1264007972-6261-1-git-send-email-jslaby@suse.cz>
- <4B5CDB53.6030009@iki.fi>
- <4B5D6098.7010700@gmail.com>
- <4B5DDDFB.5020907@iki.fi>
- <alpine.LRH.2.00.1001261406010.15694@twin.jikos.cz>
- <4B6AA211.1060707@gmail.com>
- <20100204181404.GC10965@core.coreip.homeip.net>
- <4B6B12F2.2080102@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4B6B12F2.2080102@gmail.com>
+Received: from bamako.nerim.net ([62.4.17.28]:51383 "EHLO bamako.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754109Ab0BJRBm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Feb 2010 12:01:42 -0500
+Date: Wed, 10 Feb 2010 18:01:40 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: hermann pitton <hermann-pitton@arcor.de>,
+	LMML <linux-media@vger.kernel.org>, Daro <ghost-rider@aster.pl>,
+	Roman Kellner <muzungu@gmx.net>
+Subject: Re: [PATCH] saa7134: Fix IR support of some ASUS TV-FM 7135
+ variants
+Message-ID: <20100210180140.2649d4e3@hyperion.delvare>
+In-Reply-To: <4B687851.3050706@redhat.com>
+References: <20100127120211.2d022375@hyperion.delvare>
+	<4B630179.3080006@redhat.com>
+	<1264812461.16350.90.camel@localhost>
+	<20100130115632.03da7e1b@hyperion.delvare>
+	<4B687851.3050706@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 04, 2010 at 07:33:22PM +0100, Jiri Slaby wrote:
-> On 02/04/2010 07:14 PM, Dmitry Torokhov wrote:
-> > On Thu, Feb 04, 2010 at 11:31:45AM +0100, Jiri Slaby wrote:
-> >  +
-> >> +static int dvb_event(struct hid_device *hdev, struct hid_field *field,
-> >> +		struct hid_usage *usage, __s32 value)
-> >> +{
-> >> +	/* we won't get a "key up" event */
-> >> +	if (value) {
-> >> +		input_event(field->hidinput->input, usage->type, usage->code, 1);
-> >> +		input_event(field->hidinput->input, usage->type, usage->code, 0);
+Hi Mauro,
+
+On Tue, 02 Feb 2010 17:09:05 -0200, Mauro Carvalho Chehab wrote:
+> > From: Jean Delvare <khali@linux-fr.org>
+> > Subject: saa7134: Fix IR support of some ASUS TV-FM 7135 variants
 > > 
-> > Do not ever forget input_sync(), you need 2 of them here.
+> > Some variants of the ASUS TV-FM 7135 are handled as the ASUSTeK P7131
+> > Analog (card=146). However, by the time we find out, some
+> > card-specific initialization is missed. In particular, the fact that
+> > the IR is GPIO-based. Set it when we change the card type, and run
+> > saa7134_input_init1().
 > > 
-> > With the latest changes to evdev, if you are using SIGIO you won't get
-> > wioken up until EV_SYN/SYN_REPORT.
+> > Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> > Cc: Daro <ghost-rider@aster.pl>
+> > Cc: Roman Kellner <muzungu@gmx.net>
+> > ---
+> >  linux/drivers/media/video/saa7134/saa7134-cards.c |    5 +++++
+> >  1 file changed, 5 insertions(+)
+> > 
+> > --- v4l-dvb.orig/linux/drivers/media/video/saa7134/saa7134-cards.c	2010-01-30 10:56:50.000000000 +0100
+> > +++ v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c	2010-01-30 11:52:18.000000000 +0100
+> > @@ -7299,6 +7299,11 @@ int saa7134_board_init2(struct saa7134_d
+> >  		       printk(KERN_INFO "%s: P7131 analog only, using "
+> >  						       "entry of %s\n",
+> >  		       dev->name, saa7134_boards[dev->board].name);
+> > +
+> > +			/* IR init has already happened for other cards, so
+> > +			 * we have to catch up. */
+> > +			dev->has_remote = SAA7134_REMOTE_GPIO;
+> > +			saa7134_input_init1(dev);
+> >  	       }
+> >  	       break;
+> >  	case SAA7134_BOARD_HAUPPAUGE_HVR1150:
 > 
-> HID layer syncs on its own. So the second is not needed. Why is needed
-> the first?
+> This version of your patch makes sense to me. 
 > 
+> This logic will only apply for board SAA7134_BOARD_ASUSTeK_P7131_ANALOG, 
+> so, provided that someone with this board test it, I'm OK with it.
+> 
+> Had Roman or Daro already test it?
 
-Userpsace has a right to accumulate events and only act on them when
-receiving EV_SYN. Press + release in the same event block may be treated
-as no change. The same as REL_X +2, REL_X -2 - no need to move pointer at
-all. And so on.
-
-> I.e. should there be one also in dvb_usb_read_remote_control?
-
-Probably, I have not looked.
+Not yet, but Daro just volunteered to do so... let's give him/her some
+time to proceed.
 
 -- 
-Dmitry
+Jean Delvare
