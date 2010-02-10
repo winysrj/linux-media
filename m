@@ -1,79 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-11.arcor-online.net ([151.189.21.51]:52990 "EHLO
-	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933971Ab0BEWs4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Feb 2010 17:48:56 -0500
-From: stefan.ringel@arcor.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
-	Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH 1/12] tm6000: add Terratec Cinergy Hybrid XE
-Date: Fri,  5 Feb 2010 23:48:06 +0100
-Message-Id: <1265410096-11788-1-git-send-email-stefan.ringel@arcor.de>
+Received: from mx1.redhat.com ([209.132.183.28]:21270 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755826Ab0BJW24 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Feb 2010 17:28:56 -0500
+Message-ID: <4B733321.40803@redhat.com>
+Date: Wed, 10 Feb 2010 20:28:49 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: ftape-jlc@club-internet.fr
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Fwd: Re: FM radio problem with HVR1120
+References: <201001252029.12009.ftape-jlc@club-internet.fr>
+In-Reply-To: <201001252029.12009.ftape-jlc@club-internet.fr>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <stefan.ringel@arcor.de>
+Hi,
 
----
- drivers/staging/tm6000/tm6000-cards.c |   22 +++++++++++++++++++++-
- 1 files changed, 21 insertions(+), 1 deletions(-)
+ftape-jlc wrote:
+> Hello,
+> 
+> I didn't received any message about radio on HVR1120.
+> I just want to know if the use /dev/radio0 is deprecated in v4l2 today.
+> In the mails, I only read messages about video or TV.
 
-diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
-index c4db903..7f594a2 100644
---- a/drivers/staging/tm6000/tm6000-cards.c
-+++ b/drivers/staging/tm6000/tm6000-cards.c
-@@ -44,6 +44,10 @@
- #define TM6000_BOARD_FREECOM_AND_SIMILAR	7
- #define TM6000_BOARD_ADSTECH_MINI_DUAL_TV	8
- #define TM6010_BOARD_HAUPPAUGE_900H		9
-+#define TM6010_BOARD_BEHOLD_WANDER		10
-+#define TM6010_BOARD_BEHOLD_VOYAGER		11
-+#define TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE	12
-+
- 
- #define TM6000_MAXBOARDS        16
- static unsigned int card[]     = {[0 ... (TM6000_MAXBOARDS - 1)] = UNSET };
-@@ -208,7 +212,21 @@ struct tm6000_board tm6000_boards[] = {
- 		},
- 		.gpio_addr_tun_reset = TM6000_GPIO_2,
- 	},
--
-+	[TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE] = {
-+		.name         = "Terratec Cinergy Hybrid XE",
-+		.tuner_type   = TUNER_XC2028, /* has a XC3028 */
-+		.tuner_addr   = 0xc2 >> 1,
-+		.demod_addr   = 0x1e >> 1,
-+		.type         = TM6010,
-+		.caps = {
-+			.has_tuner    = 1,
-+			.has_dvb      = 1,
-+			.has_zl10353  = 1,
-+			.has_eeprom   = 1,
-+			.has_remote   = 1,
-+		},
-+		.gpio_addr_tun_reset = TM6010_GPIO_2,
-+	}
- };
- 
- /* table of devices that work with this driver */
-@@ -221,6 +239,7 @@ struct usb_device_id tm6000_id_table [] = {
- 	{ USB_DEVICE(0x2040, 0x6600), .driver_info = TM6010_BOARD_HAUPPAUGE_900H },
- 	{ USB_DEVICE(0x6000, 0xdec0), .driver_info = TM6010_BOARD_BEHOLD_WANDER },
- 	{ USB_DEVICE(0x6000, 0xdec1), .driver_info = TM6010_BOARD_BEHOLD_VOYAGER },
-+	{ USB_DEVICE(0x0ccd, 0x0086), .driver_info = TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE },
- 	{ },
- };
- 
-@@ -311,6 +330,7 @@ static void tm6000_config_tuner (struct tm6000_core *dev)
- 
- 		switch(dev->model) {
- 		case TM6010_BOARD_HAUPPAUGE_900H:
-+		case TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE:
- 			ctl.fname = "xc3028L-v36.fw";
- 			break;
- 		default:
--- 
-1.6.4.2
+No, it is not deprecated.
 
+> Did one user of the mailing list have tested actual v4l2 on /dev/radio0 ?
+
+Yes. It works with several devices. Maybe there's a bug at the radio entry
+for your board.
+
+>> The problem is to listen radio.
+>> With Linux, the command used is
+>> /usr/bin/radio -c /dev/radio0
+>> in association with
+>> sox -t ossdsp -r 32000 -c 2 /dev/dsp1 -t ossdsp /dev/dsp
+>> to listen the sound.
+>>
+>> The result is an unstable frecuency. The station is not tuned. Stereo is
+>> permanently switching to mono.
+>> The 91.5MHz station is mixed permanently with other stations.
+
+This probably means that the GPIO setup for your board is wrong for radio.
+Only someone with a HVR1120 could fix it, since the GPIO's are board-specific.
+
+The better is if you could try to do it. It is not hard. Please take a look at:
+ 
+http://linuxtv.org/wiki/index.php/GPIO_pins
+
+You'll need to run the regspy.exe utility (part of Dscaler package), and check
+how the original driver sets the GPIO registers. Then edit them on your board
+entry, at saa78134-cards.c, recompile the driver and test.
+
+The better is to use the out-of-tree mercuiral tree:
+	http://linuxtv.org/hg/v4l-dvb
+
+since it allows you to recompile and test without needing to replace your kernel.
+
+
+Cheers,
+Mauro
