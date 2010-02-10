@@ -1,67 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-15.arcor-online.net ([151.189.21.55]:33696 "EHLO
-	mail-in-15.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753388Ab0BWQx1 (ORCPT
+Received: from smtp.nokia.com ([192.100.122.230]:43130 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754424Ab0BJO6s (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2010 11:53:27 -0500
-Message-ID: <4B8407F3.3050802@arcor.de>
-Date: Tue, 23 Feb 2010 17:53:07 +0100
-From: Stefan Ringel <stefan.ringel@arcor.de>
-MIME-Version: 1.0
-To: Abhijit Bhopatkar <bain@devslashzero.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Hauppague WinTV USB2-stick (tm6010)
-References: <201002232142.07782.bain@devslashzero.com> <829197381002230815k5fe76c9ah727af57f56fd5401@mail.gmail.com> <201002232151.25852.bain@devslashzero.com>
-In-Reply-To: <201002232151.25852.bain@devslashzero.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Wed, 10 Feb 2010 09:58:48 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
+	david.cohen@nokia.com
+Subject: [PATCH v4 7/7] V4L: Events: Support all events
+Date: Wed, 10 Feb 2010 16:58:09 +0200
+Message-Id: <1265813889-17847-7-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1265813889-17847-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+References: <4B72C965.7040204@maxwell.research.nokia.com>
+ <1265813889-17847-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+ <1265813889-17847-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+ <1265813889-17847-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+ <1265813889-17847-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+ <1265813889-17847-5-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+ <1265813889-17847-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
- 
-Am 23.02.2010 17:21, schrieb Abhijit Bhopatkar:
-> On Tuesday 23 Feb 2010 9:45:18 pm Devin Heitmueller wrote:
->> On Tue, Feb 23, 2010 at 11:12 AM, Abhijit Bhopatkar
->>
->> <bain@devslashzero.com> wrote:
->>> Is it worth for me to test this latest tree and driver against my card by
->>> just adding the device ids?
->>> If the devs need some more testing / help i can certainly volunteer my
->>> time/efforts.
->>> I do have fare familiarity with linux driver development and would be
->>> happy to help in debugging/developing support for this tuner. The only
->>> thing i don't have is knowledge for making this chipset work.
->>
->> Don't bother.  The driver is known to be broken - badly.  It needs
->> alot of work, although someone has finally started hacking at the
->> tm6000 driver recently (see the mailing list archives for more info).
->>
->
-> Devin, thanks for the input
->
-> I see that Stefan is doing some patching/cleanup.
->
-> Stefan, is there anything i can do to help?
->
-> Abhijit
-I think, you can help to analyse the usb data communication -> what
-for tuner, demodulator, gpio's etc.? And you can also ask Mauro
-Carvalho Chehab.
+Add support for subscribing all events with a special id V4L2_EVENT_ALL. If
+V4L2_EVENT_ALL is subscribed, no other events may be subscribed. Otherwise
+V4L2_EVENT_ALL is considered just as any other event.
 
-Stefan
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.12 (MingW32)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/v4l2-event.c |   13 ++++++++++++-
+ include/linux/videodev2.h        |    1 +
+ 2 files changed, 13 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+index 0af0de5..68b3cf4 100644
+--- a/drivers/media/video/v4l2-event.c
++++ b/drivers/media/video/v4l2-event.c
+@@ -139,6 +139,14 @@ static struct v4l2_subscribed_event *__v4l2_event_subscribed(
+ 	struct v4l2_events *events = fh->events;
+ 	struct v4l2_subscribed_event *sev;
  
-iQEcBAEBAgAGBQJLhAfzAAoJEDX/lZlmjdJlUPYH/RnDzHGSWwC78Nc2FgKDPkYw
-RFnDOImVo4G+i/Mr0UtZB9JIx75lkntwPeeJVp+aal3tLBECil0eYLco6jTuxcYt
-V5iBuSZClycyvaWBc+VFi40rJcX3cqG6210GwIzNZMJH41/wPhAj15D4BVauiNsc
-8ZhupI0HhM66w5LiO22fYq80WkgTb7dx5UMBVDzhkKNaS4f5mmcvyxWMJZrVzesN
-Fv36lsp/RnqdmT5GgOR6Bgc/zExyiHIiLmEVclmfKv1ExeuqrwscN8F6eASlqXlK
-iXQgMYmqEb3jTtKJRzLi4R/Yl0s16iOhvK0AA7AAybBj3liQOZKeh/k5HG3Hf6g=
-=g/SL
------END PGP SIGNATURE-----
++	if (list_empty(&events->subscribed))
++		return NULL;
++
++	sev = list_entry(events->subscribed.next,
++			 struct v4l2_subscribed_event, list);
++	if (sev->type == V4L2_EVENT_ALL)
++		return sev;
++
+ 	list_for_each_entry(sev, &events->subscribed, list) {
+ 		if (sev->type == type)
+ 			return sev;
+@@ -222,6 +230,8 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+ 	/* Allow subscribing to valid events only. */
+ 	if (sub->type < V4L2_EVENT_PRIVATE_START)
+ 		switch (sub->type) {
++		case V4L2_EVENT_ALL:
++			break;
+ 		default:
+ 			return -EINVAL;
+ 		}
+@@ -262,7 +272,8 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+ 
+ 	sev = __v4l2_event_subscribed(fh, sub->type);
+ 
+-	if (sev == NULL) {
++	if (sev == NULL ||
++	    (sub->type != V4L2_EVENT_ALL && sev->type == V4L2_EVENT_ALL)) {
+ 		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+ 		return -EINVAL;
+ 	}
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index a19ae89..9ae9a1c 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1553,6 +1553,7 @@ struct v4l2_event_subscription {
+ 	__u32		reserved[7];
+ };
+ 
++#define V4L2_EVENT_ALL				0
+ #define V4L2_EVENT_PRIVATE_START		0x08000000
+ 
+ /*
+-- 
+1.5.6.5
 
