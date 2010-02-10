@@ -1,65 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:46682 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S932966Ab0BCVwu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Feb 2010 16:52:50 -0500
-From: Tobias Lorenz <tobias.lorenz@gmx.net>
-To: Roel Kluin <roel.kluin@gmail.com>
-Subject: Re: [PATCH] radio-si470x-common: -EINVAL overwritten in si470x_vidioc_s_tuner()
-Date: Wed, 3 Feb 2010 22:52:35 +0100
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	LKML <linux-kernel@vger.kernel.org>
-References: <4B69D2F5.2050100@gmail.com>
-In-Reply-To: <4B69D2F5.2050100@gmail.com>
+Received: from mail-bw0-f223.google.com ([209.85.218.223]:35939 "EHLO
+	mail-bw0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752247Ab0BJDJG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 22:09:06 -0500
+Received: by bwz23 with SMTP id 23so869105bwz.1
+        for <linux-media@vger.kernel.org>; Tue, 09 Feb 2010 19:09:01 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201002032252.36514.tobias.lorenz@gmx.net>
+In-Reply-To: <1265768091.3064.109.camel@palomino.walls.org>
+References: <4B70E7DB.7060101@cooptel.qc.ca>
+	 <1265768091.3064.109.camel@palomino.walls.org>
+Date: Tue, 9 Feb 2010 22:09:01 -0500
+Message-ID: <829197381002091909j7f95bfbfl3cd234393a08caeb@mail.gmail.com>
+Subject: Re: Driver crash on kernel 2.6.32.7. Interaction between cx8800
+	(DVB-S) and USB HVR Hauppauge 950q
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Andy Walls <awalls@radix.net>
+Cc: Richard Lemieux <rlemieu@cooptel.qc.ca>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Roel,
+On Tue, Feb 9, 2010 at 9:14 PM, Andy Walls <awalls@radix.net> wrote:
+> Both Ooops below are related to userspace loading of firmware for the
+> HVR-950Q.
 
-no, the default value of retval makes no difference to the function.
+Very strange.  The xc5000 function doesn't appear to really do
+anything unusual.  It calls request_firmware(), pushes the code into
+the chip, and then call release_firmware() [see
+xc5000.c:xc5000_fwupload() ]
 
-Retval is set by si470x_disconnect_check and si470x_set_register.
-After each call, retval is checked.
-There is no need to reset it passed.
+One thing that does jump out at me which could be problematic is the
+function will call release_firmware() even if request_firmware()
+fails.  I doubt that is the correct behavior.  And combined with the
+fact that his dmesg shows the error "run_program:
+'/lib/udev/firmware.sh' abnormal exit" makes me wonder if the
+subsequent to release_firmware() despite the error condition is what
+is causing the problem.
 
-The only reason, there is a default value is my static code checker, saying variables should have default values.
-Setting it to -EINVAL seems more reasonable to me than setting it 0.
-In fact the patch would bring up the warning on setting default values again.
+The other thing that is a bit unusual about the xc5000 in this
+particular case is the time to load the firmware is exceptionally long
+(around 7 seconds) due to a hardware bug in the au0828 which requires
+us to run the i2c bus at a very slow rate.  Hence, it's possible that
+the unusually long time between request_firmware() and
+release_firmware() has exposed some sort of race in the firmware
+loading core.
 
-Bye,
-Toby
+It would be useful if we could get the full dmesg output so we can get
+some more context leading up to the oops.  Also, it would be helpful
+if the user could enable the "debug=1" in the xc5000 modprobe options.
 
-Am Mittwoch 03 Februar 2010 20:48:05 schrieb Roel Kluin:
-> The -EINVAL was overwritten by the si470x_disconnect_check().
-> 
-> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-> ---
-> Is this needed?
-> 
-> diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
-> index 4da0f15..65b4a92 100644
-> --- a/drivers/media/radio/si470x/radio-si470x-common.c
-> +++ b/drivers/media/radio/si470x/radio-si470x-common.c
-> @@ -748,12 +748,13 @@ static int si470x_vidioc_s_tuner(struct file *file, void *priv,
->  		struct v4l2_tuner *tuner)
->  {
->  	struct si470x_device *radio = video_drvdata(file);
-> -	int retval = -EINVAL;
-> +	int retval;
->  
->  	/* safety checks */
->  	retval = si470x_disconnect_check(radio);
->  	if (retval)
->  		goto done;
-> +	retval = -EINVAL;
->  
->  	if (tuner->index != 0)
->  		goto done;
-> 
+One more question: is the user doing any suspend/resume operations?
+For example, is this a laptop in which he is closing the lid and this
+is the first attempt to use the device after resume?
+
+Devin
+
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
