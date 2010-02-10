@@ -1,53 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from psa.adit.fi ([217.112.250.17]:50964 "EHLO psa.adit.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756158Ab0BBQOA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Feb 2010 11:14:00 -0500
-Message-ID: <4B684C99.4030808@qvantel.com>
-Date: Tue, 02 Feb 2010 18:02:33 +0200
-From: Pekka Sarnila <pekka.sarnila@qvantel.com>
+Received: from mail-yx0-f200.google.com ([209.85.210.200]:50208 "EHLO
+	mail-yx0-f200.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756198Ab0BJVLO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Feb 2010 16:11:14 -0500
+Received: by yxe38 with SMTP id 38so465314yxe.4
+        for <linux-media@vger.kernel.org>; Wed, 10 Feb 2010 13:11:14 -0800 (PST)
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Jiri Slaby <jslaby@suse.cz>, Jiri Kosina <jkosina@suse.cz>,
-	Pekka Sarnila <sarnila@adit.fi>, linux-media@vger.kernel.org,
-	pb@linuxtv.org, js@linuxtv.org
-Subject: Re: dvb-usb-remote woes [was: HID: ignore afatech 9016]
-References: <alpine.LNX.2.00.1001132111570.30977@pobox.suse.cz> <1263415146-26321-1-git-send-email-jslaby@suse.cz> <alpine.LNX.2.00.1001260156010.30977@pobox.suse.cz> <4B5EFD69.4080802@adit.fi> <alpine.LNX.2.00.1001262344200.30977@pobox.suse.cz> <4B671C31.3040902@qvantel.com> <alpine.LNX.2.00.1002011928220.15395@pobox.suse.cz> <4B672EB8.3010609@suse.cz> <4B674637.8020403@iki.fi>
-In-Reply-To: <4B674637.8020403@iki.fi>
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4B731A10.9000108@redhat.com>
+References: <f535cc5a1002100021u37bf47a5y50a0a90873a082e2@mail.gmail.com>
+	<f535cc5a1002101058h4d8e4bd1p6fd03abd4f724f52@mail.gmail.com>
+	<f535cc5a1002101101k709bbe9bv504cf33fab14dedc@mail.gmail.com>
+	<f535cc5a1002101102w146050c5v91ddc6ec86542153@mail.gmail.com>
+	<4B731A10.9000108@redhat.com>
+From: Carlos Jenkins <carlos.jenkins.perez@gmail.com>
+Date: Wed, 10 Feb 2010 15:04:41 -0600
+Message-ID: <f535cc5a1002101304j76efd298p7f8040511ff2b2e1@mail.gmail.com>
+Subject: Re: Want to help in MSI TV VOX USB 2.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Please, no mail to this address, use only sarnila@adit.fi.
+> The above messages seem ok, but I never tried to use tvtime with xinerama.
+> This used to be a very good application, but it is not maintained anymore.
+> Not sure if it works fine with newer xorg versions with xinerama. Also,
+> by default, tvtime enables channel signal detection, but several tuners
+> don't provide it. So, you need to disable it, in order for tvtime to work.
 
-Pekka
+Thank for the tip, but makes no difference.
 
-Antti Palosaari wrote:
-> On 02/01/2010 09:42 PM, Jiri Slaby wrote:
-> 
->> On 02/01/2010 07:28 PM, Jiri Kosina wrote:
->>
->>> On Mon, 1 Feb 2010, Pekka Sarnila wrote:
->>>
->>>> I pulled few days ago latest
->>>>
->>>>     
->>>> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
->>>>
->>>> and compiled it. Everything works fine including the tv-stick and the
->>>> remote. However I get:
->>>>
->>>>    <3>af9015: command failed:255
->>>>    <3>dvb-usb: error while querying for an remote control event.
->>
->>
->> Yes, I saw this quite recently too. For me it appears when it is booted
->> up with the stick in. It's still to be fixed.
-> 
-> 
-> I suspect you are using old firmware, 4.65.0.0 probably, that does not 
-> support remote polling and thus this 255 errors seen.
-> 
-> regards
-> Antti
+> I suggest you to try mplayer instead. I'm not sure what video standard is
+> used in Costa Rica, nor what channel frequency list.
+
+As noted on the first mail, NTSC, same as US
+(http://es.wikipedia.org/wiki/Archivo:NTSC-PAL-SECAM.svg)
+
+> So, you may need to adjust the parameters bellow. For NTSC and 6 MHz channels, the command syntax
+> is:
+>
+> mplayer -tv driver=v4l2:device=/dev/video0:norm=PAL-M:chanlist=us-bcast tv://
+
+PAL-M? It should not be NTSC something?  Anyway, I'll try that later.
+
+>> [At this point the application freezes in a black screen, nothing can
+>> be done on the GUI]
+>
+> Maybe due to the lack of signal.
+Maybe, but I don't think so. When the device is detected but has no
+signal TVTime reacts correctly, in this case it freezes, it can't even
+get closed.
+What about the "Wait on channel: videobuf_waiton" thing?
+
+> Cheers,
+> Mauro
+
+Thank for your help.
