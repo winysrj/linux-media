@@ -1,69 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from imr-db02.mx.aol.com ([205.188.91.96]:64180 "EHLO
-	imr-db02.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751773Ab0BVL2m (ORCPT
+Received: from smtp.nokia.com ([192.100.122.230]:43196 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754517Ab0BJO7I (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 06:28:42 -0500
-Received: from mtaout-ma02.r1000.mx.aol.com (mtaout-ma02.r1000.mx.aol.com [172.29.41.2])
-	by imr-db02.mx.aol.com (8.14.1/8.14.1) with ESMTP id o1MBSeXY010220
-	for <linux-media@vger.kernel.org>; Mon, 22 Feb 2010 06:28:40 -0500
-Received: from [192.168.1.4] (cpc2-dals15-2-0-cust338.hari.cable.virginmedia.com [94.170.127.83])
-	by mtaout-ma02.r1000.mx.aol.com (WebSuites/MUA Thirdparty client Interface) with ESMTPA id E8A8BE00008F
-	for <linux-media@vger.kernel.org>; Mon, 22 Feb 2010 06:28:39 -0500 (EST)
-Message-ID: <4B826A66.4000808@netscape.net>
-Date: Mon, 22 Feb 2010 11:28:38 +0000
-From: John Reid <johnbaronreid@netscape.net>
-MIME-Version: 1.0
+	Wed, 10 Feb 2010 09:59:08 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 To: linux-media@vger.kernel.org
-Subject: hauppage 2200 on 2.6.33 kernel : nodename is now devnode
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
+	david.cohen@nokia.com
+Subject: [PATCH v4 5/7] V4L: Events: Count event queue length
+Date: Wed, 10 Feb 2010 16:58:07 +0200
+Message-Id: <1265813889-17847-5-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1265813889-17847-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+References: <4B72C965.7040204@maxwell.research.nokia.com>
+ <1265813889-17847-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+ <1265813889-17847-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+ <1265813889-17847-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+ <1265813889-17847-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Update the count field properly by setting it to exactly to number of
+further available events.
 
-Sorry if this is a duplicate. My previous post didn't seem to appear.
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/v4l2-event.c |   29 +++++++++++++++++------------
+ include/media/v4l2-event.h       |    6 +++++-
+ 2 files changed, 22 insertions(+), 13 deletions(-)
 
-I'm using mythbuntu 9.10.
+diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+index d13c1e9..bbdc149 100644
+--- a/drivers/media/video/v4l2-event.c
++++ b/drivers/media/video/v4l2-event.c
+@@ -41,7 +41,13 @@ int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n)
+ 			return -ENOMEM;
+ 
+ 		spin_lock_irqsave(&fh->vdev->fh_lock, flags);
++		if (events->max_alloc == 0) {
++			spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
++			kfree(kev);
++			return -ENOMEM;
++		}
+ 		list_add_tail(&kev->list, &events->free);
++		events->max_alloc--;
+ 		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+ 	}
+ 
+@@ -73,7 +79,7 @@ void v4l2_event_exit(struct v4l2_fh *fh)
+ }
+ EXPORT_SYMBOL_GPL(v4l2_event_exit);
+ 
+-int v4l2_event_init(struct v4l2_fh *fh, unsigned int n)
++int v4l2_event_init(struct v4l2_fh *fh, unsigned int n, unsigned int max_alloc)
+ {
+ 	int ret;
+ 
+@@ -87,6 +93,9 @@ int v4l2_event_init(struct v4l2_fh *fh, unsigned int n)
+ 	INIT_LIST_HEAD(&fh->events->available);
+ 	INIT_LIST_HEAD(&fh->events->subscribed);
+ 
++	fh->events->navailable = 0;
++	fh->events->max_alloc = max_alloc;
++
+ 	ret = v4l2_event_alloc(fh, n);
+ 	if (ret < 0)
+ 		v4l2_event_exit(fh);
+@@ -108,11 +117,13 @@ int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
+ 		return -ENOENT;
+ 	}
+ 
++	WARN_ON(&events->navailable == 0);
++
+ 	kev = list_first_entry(&events->available, struct v4l2_kevent, list);
+ 	list_move(&kev->list, &events->free);
++	events->navailable--;
+ 
+-	kev->event.count = !list_empty(&events->available);
+-
++	kev->event.count = events->navailable;
+ 	*event = kev->event;
+ 
+ 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+@@ -175,6 +186,8 @@ void v4l2_event_queue(struct video_device *vdev, struct v4l2_event *ev)
+ 		kev->event = *ev;
+ 		list_move_tail(&kev->list, &events->available);
+ 
++		events->navailable++;
++
+ 		wake_up_all(&events->wait);
+ 	}
+ 
+@@ -184,15 +197,7 @@ EXPORT_SYMBOL_GPL(v4l2_event_queue);
+ 
+ int v4l2_event_pending(struct v4l2_fh *fh)
+ {
+-	struct v4l2_events *events = fh->events;
+-	unsigned long flags;
+-	int ret;
+-
+-	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+-	ret = !list_empty(&events->available);
+-	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+-
+-	return ret;
++	return fh->events->navailable;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_event_pending);
+ 
+diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+index 580c9d4..671c8f7 100644
+--- a/include/media/v4l2-event.h
++++ b/include/media/v4l2-event.h
+@@ -28,6 +28,8 @@
+ #include <linux/types.h>
+ #include <linux/videodev2.h>
+ 
++#include <asm/atomic.h>
++
+ struct v4l2_fh;
+ struct video_device;
+ 
+@@ -45,11 +47,13 @@ struct v4l2_events {
+ 	wait_queue_head_t	wait;
+ 	struct list_head	subscribed; /* Subscribed events */
+ 	struct list_head	available; /* Dequeueable event */
++	unsigned int		navailable;
++	unsigned int		max_alloc; /* Never allocate more. */
+ 	struct list_head	free; /* Events ready for use */
+ };
+ 
+ int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n);
+-int v4l2_event_init(struct v4l2_fh *fh, unsigned int n);
++int v4l2_event_init(struct v4l2_fh *fh, unsigned int n, unsigned int max_alloc);
+ void v4l2_event_exit(struct v4l2_fh *fh);
+ int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event);
+ struct v4l2_subscribed_event *v4l2_event_subscribed(
+-- 
+1.5.6.5
 
-I upgraded to kernel v2.6.33-rc8 because I have a DH55TC mobo (following 
-the advice here https://wiki.ubuntu.com/Intel_DH55TC). This fixed a 
-number of startup and slow video issues.
-
-Now I can't rebuild the drivers for my hauppage 2200 as I did for my 
-previous kernel. I've been following the instructions here:
-http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-2200
-I've been using the dev tree but I also get similar errors with the 
-stable tree.
-
-Initially I got a message complaining v4l/config-compat.h could not 
-include autoconf.h. I got around that by changing the include to be:
-#include <linux/version.h>
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 33)
-#include <linux/autoconf.h>
-#endif
-
-Now I get the following error:
-/home/john/local/src/hauppage-2200/saa7164-dev/v4l/dvbdev.c: In function 
-'init_dvbdev':
-/home/john/local/src/hauppage-2200/saa7164-dev/v4l/dvbdev.c:516: error: 
-'struct class' has no member named 'nodename'
-make[3]: *** 
-[/home/john/local/src/hauppage-2200/saa7164-dev/v4l/dvbdev.o] Error 1
-make[2]: *** 
-[_module_/home/john/local/src/hauppage-2200/saa7164-dev/v4l] Error 2
-make[2]: Leaving directory 
-`/usr/src/linux-headers-2.6.33-020633rc8-generic'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory 
-`/home/john/local/src/hauppage-2200/saa7164-dev/v4l'
-make: *** [all] Error 2
-
-As far as I can tell by googling, 'nodename' is now 'devnode' and has a 
-different signature. I don't think I know enough to edit the driver 
-source to reflect this. Has anyone got a solution? If the 2200 driver is 
-not currently supported on 2.6.33 does anyone know when it might be?
-
-Thanks for any help!
-John.
