@@ -1,85 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:40547 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755098Ab0BCIas (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2010 03:30:48 -0500
-Message-ID: <4B693432.4040101@infradead.org>
-Date: Wed, 03 Feb 2010 06:30:42 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from mail.cooptel.qc.ca ([216.144.115.12]:59160 "EHLO
+	amy.cooptel.qc.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752273Ab0BJDFM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 22:05:12 -0500
+Message-ID: <4B722266.4070805@cooptel.qc.ca>
+Date: Tue, 09 Feb 2010 22:05:10 -0500
+From: Richard Lemieux <rlemieu@cooptel.qc.ca>
 MIME-Version: 1.0
-To: julia@diku.dk, "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-CC: akpm@linux-foundation.org, linux-media@vger.kernel.org
-Subject: Re: [patch 1/7] drivers/media/video: move dereference after NULL
- test
-References: <201002022240.o12Mekvr018902@imap1.linux-foundation.org>
-In-Reply-To: <201002022240.o12Mekvr018902@imap1.linux-foundation.org>
-Content-Type: text/plain; charset=ANSI_X3.4-1968
+To: Andy Walls <awalls@radix.net>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Subject: Re: Driver crash on kernel 2.6.32.7.  Interaction between cx8800
+ (DVB-S) and USB HVR Hauppauge 950q
+References: <4B70E7DB.7060101@cooptel.qc.ca> <1265768091.3064.109.camel@palomino.walls.org>
+In-Reply-To: <1265768091.3064.109.camel@palomino.walls.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Julia,
+Andy,
 
-> From: Julia Lawall <julia@diku.dk>
- 
+This is a great answer!  Thanks very much.  When I get into this situation again
+I will know what to look for.
 
-> diff -puN drivers/media/video/davinci/vpif_display.c~drivers-media-video-move-dereference-after-null-test drivers/media/video/davinci/vpif_display.c
-> --- a/drivers/media/video/davinci/vpif_display.c~drivers-media-video-move-dereference-after-null-test
-> +++ a/drivers/media/video/davinci/vpif_display.c
-> @@ -383,8 +383,6 @@ static int vpif_get_std_info(struct chan
->  	int index;
->  
->  	std_info->stdid = vid_ch->stdid;
-> -	if (!std_info)
-> -		return -1;
->  
->  	for (index = 0; index < ARRAY_SIZE(ch_params); index++) {
->  		config = &ch_params[index];
+A possible reason why I got into this problem in the first place is that I tried
+many combinations of parameters with mplayer and azap in order to learn how
+to use the USB tuner in both the ATSC and the NTSC mode.  I will look back
+in the terminal history to see if I can find anything.
 
-IMO, the better would be to move the if to happen before the usage of std_info, and make it return 
-a proper error code, instead of -1.
+Regards,
+Richard
 
-Murali,
-Any comments?
+Andy Walls wrote:
+>
+...
 
-> diff -puN drivers/media/video/saa7134/saa7134-alsa.c~drivers-media-video-move-dereference-after-null-test drivers/media/video/saa7134/saa7134-alsa.c
-> --- a/drivers/media/video/saa7134/saa7134-alsa.c~drivers-media-video-move-dereference-after-null-test
-> +++ a/drivers/media/video/saa7134/saa7134-alsa.c
-> @@ -1011,8 +1011,6 @@ static int snd_card_saa7134_new_mixer(sn
->  	unsigned int idx;
->  	int err, addr;
->  
-> -	if (snd_BUG_ON(!chip))
-> -		return -EINVAL;
->  	strcpy(card->mixername, "SAA7134 Mixer");
-
-The better here is to keep the BUG_ON and moving this initialization:
-        struct snd_card *card = chip->card;
-
-to happen after the test.
-
->  
->  	for (idx = 0; idx < ARRAY_SIZE(snd_saa7134_volume_controls); idx++) {
-> diff -puN drivers/media/video/usbvideo/quickcam_messenger.c~drivers-media-video-move-dereference-after-null-test drivers/media/video/usbvideo/quickcam_messenger.c
-> --- a/drivers/media/video/usbvideo/quickcam_messenger.c~drivers-media-video-move-dereference-after-null-test
-> +++ a/drivers/media/video/usbvideo/quickcam_messenger.c
-> @@ -692,12 +692,13 @@ static int qcm_start_data(struct uvd *uv
->  
->  static void qcm_stop_data(struct uvd *uvd)
->  {
-> -	struct qcm *cam = (struct qcm *) uvd->user_data;
-> +	struct qcm *cam;
->  	int i, j;
->  	int ret;
->  
->  	if ((uvd == NULL) || (!uvd->streaming) || (uvd->dev == NULL))
->  		return;
-> +	cam = (struct qcm *) uvd->user_data;
->  
->  	ret = qcm_camera_off(uvd);
->  	if (ret)
-
-OK.
-
-Cheers,
-Mauro
+> Your ability to reproduce this should be rather limited.  If you know
+> steps that make it more likely to reproduce, please remember what they
+> are.
+> 
+> Regards,
+> Andy
+> 
+> 
+> 
+> 
