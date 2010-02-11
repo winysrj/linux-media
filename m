@@ -1,71 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:31048 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754857Ab0BBKar (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Feb 2010 05:30:47 -0500
-Message-ID: <4B67FEAF.8050603@redhat.com>
-Date: Tue, 02 Feb 2010 11:30:07 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-CC: Luc Saillard <luc@saillard.org>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH ] libv4l: skip false Pixart markers
-References: <4B67466F.1030301@freemail.hu> <4B6751F3.3040407@freemail.hu>
-In-Reply-To: <4B6751F3.3040407@freemail.hu>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mail-in-15.arcor-online.net ([151.189.21.55]:49638 "EHLO
+	mail-in-15.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750701Ab0BKAuv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Feb 2010 19:50:51 -0500
+Subject: Re: [PATCH] dvb-core: fix initialization of feeds list in demux
+ filter (Was: Videotext application crashes the kernel due to DVB-demux
+ patch)
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Chicken Shack <chicken.shack@gmx.de>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <1265704681.1735.26.camel@brian.bconsult.de>
+References: <1265546998.9356.4.camel@localhost>
+	 <4B6F72E5.3040905@redhat.com>  <4B700287.5080900@linuxtv.org>
+	 <1265636585.5399.47.camel@brian.bconsult.de>
+	 <alpine.LFD.2.00.1002080746180.3829@localhost.localdomain>
+	 <1265676799.5234.30.camel@localhost>
+	 <1265704681.1735.26.camel@brian.bconsult.de>
+Content-Type: text/plain
+Date: Thu, 11 Feb 2010 01:50:38 +0100
+Message-Id: <1265849438.4422.10.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Am Dienstag, den 09.02.2010, 09:38 +0100 schrieb Chicken Shack:
+> Am Dienstag, den 09.02.2010, 01:53 +0100 schrieb hermann pitton:
+> > Am Montag, den 08.02.2010, 08:14 -0800 schrieb Linus Torvalds:
+> > > 
+> > > On Mon, 8 Feb 2010, Chicken Shack wrote:
+> > > > 
+> > > > This is a SCANDAL, not fun! This is SCANDALOUS!
+> > > 
+> > > I agree that this whole thread has been totally inappropriate from 
+> > > beginning to end. 
+> > 
+> > The initial problem was, how to find such software producing that oops
+> > at all.
+> 
+> Pure crap! Because, as I stated already, you are too lazy to read the
+> context.
+> 
+> Proofs:
+> 
+> 1. http://www.spinics.net/lists/linux-media/msg15182.html
+> 
+> This guy was compeletely ignored, although he announced a kernel bug /
+> security risk. Neither is he banned somewhere, nor are there other ifs
+> or whatevers to justify just ignoring him.
+> Also the utmost insane Torvalds-scapegoat-theory dowes not work here at
+> all. This guy reported a problem, and noone except me listened: Period!
+> 
+> 2. http://www.spinics.net/lists/linux-media/msg15356.html
+> 
+> This one the bums here could not ignore at all, because the noise around
+> was already so loud that ignoring was no longer possible.
+> 
+> 
+> MOST IMPORTANT: NONE of them had my overworked version.
+> And I do not know to which one they were referring to.
+> There is one at:
+> 
+> 1. http://pluto.blackbone-ev.de/v1/AleVT%20mit%20DVB-T.html
+> 
+> and there is one at:
+> 
+> 
+> 2. http://packages.debian.org/sid/alevt
+> 
+> 
+> BOTH are DVB compatible. So with both YOU CAN identify the kernel
+> security risk / the oops.
+> 
+> So as long as you do not know the facts, better shut up and stay quiet,
+> stupid!
+> 
+> There's no need to comment your spit-licking that follows.
+> Everyone knows who you moron are by evaluating your stupid rant, the sum
+> of self-invented lies.
+> 
+> CS
+> 
 
-On 02/01/2010 11:13 PM, Németh Márton wrote:
-> From: Márton Németh<nm127@freemail.hu>
->
-> The byte sequence 0xff, 0xff, 0xff 0xff is not a real marker to skip, instead
-> it is one byte from the image and the following three 0xff bytes might belong
-> to a real marker. Modify pixart_fill_nbits() macro to pass the first 0xff byte
-> as an image data.
->
+For the record.
 
-Oh, good catch. I'm still seeing the occasional bad frame though :(
+Uwe is right, the bug is already at the above link
 
-While on the subject of the pac7302. I've been playing around a bit, and I have the
-feeling that if we were to go for a lower auto gain target (set autogain off and
-lower exposure, you can do this ie with v4l2ucp), combined with a gamma correction of
-1500 (again use ie v4l2ucp), the images is much better (less over exposed, more
-contrast).
+pluto.blackbone-ev.de
 
-Do you agree ?
+coming with its own headers.
 
-Regards,
+It is for sure not in any Fedora and he asked only for DVB-S testers, IIRC.
 
-Hans
+I'm sorry to have tested anything at all in such a crappy way ...
+
+Cheers,
+Hermann
 
 
-> Signed-off-by: Márton Németh<nm127@freemail.hu>
-> ---
-> diff -r f23c5a878fb1 v4l2-apps/libv4l/libv4lconvert/tinyjpeg.c
-> --- a/v4l2-apps/libv4l/libv4lconvert/tinyjpeg.c	Mon Feb 01 13:32:46 2010 +0100
-> +++ b/v4l2-apps/libv4l/libv4lconvert/tinyjpeg.c	Mon Feb 01 23:05:39 2010 +0100
-> @@ -339,10 +339,15 @@
->   	    } \
->   	    break; \
->   	  case 0xff: \
-> -	    if (stream[1] == 0xff&&  (stream[2]<  7 || stream[2] == 0xff)) { \
-> -	      stream += 3; \
-> -	      c = *stream++; \
-> -	      break; \
-> +	    if (stream[1] == 0xff) { \
-> +		if (stream[2]<  7) { \
-> +		    stream += 3; \
-> +		    c = *stream++; \
-> +		    break; \
-> +		} else if (stream[2] == 0xff) { \
-> +		    /* four 0xff in a row: the first belongs to the image data */ \
-> +		    break; \
-> +		}\
->   	    } \
->   	    /* Error fall through */ \
->   	  default: \
