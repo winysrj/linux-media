@@ -1,80 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from er-systems.de ([85.25.136.202]:40172 "EHLO er-systems.de"
+Received: from mail1.radix.net ([207.192.128.31]:59730 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754885Ab0BASOy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Feb 2010 13:14:54 -0500
-Date: Mon, 1 Feb 2010 19:06:56 +0100 (CET)
-From: Thomas Voegtle <tv@lio96.de>
-To: obi@linuxtv.org, mchehab@redhat.com, linux-media@vger.kernel.org
-Subject: Kernel Oops, dvb_dmxdev_filter_reset, bisected
-Message-ID: <alpine.LNX.2.00.1002011855590.30919@er-systems.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+	id S1752327Ab0BKDcd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Feb 2010 22:32:33 -0500
+Subject: Re: Leadtek WinFast DVR3100 H zl10353_read_register: readreg error
+ (reg=127, ret==-6)
+From: Andy Walls <awalls@radix.net>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Patrick Cairns <patrick_cairns@yahoo.com>,
+	linux-media@vger.kernel.org
+In-Reply-To: <1265833750.4019.96.camel@palomino.walls.org>
+References: <47786.707.qm@web33501.mail.mud.yahoo.com>
+	 <829197381002090725m2ec3c6c3r346c32f965a5a198@mail.gmail.com>
+	 <1265833750.4019.96.camel@palomino.walls.org>
+Content-Type: text/plain
+Date: Wed, 10 Feb 2010 22:31:26 -0500
+Message-Id: <1265859086.8809.3.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Wed, 2010-02-10 at 15:29 -0500, Andy Walls wrote:
+> On Tue, 2010-02-09 at 10:25 -0500, Devin Heitmueller wrote:
 
-Hello,
+> > 
+> > Are we sure the zl10353 is being reset at all?
+> 
+> Devin,
+> 
+> I know for a fact it is not.
+> 
+> 
+> >   I've seen cases before
+> > where the zl10353 can hang the entire i2c bus ( in particular with the
+> > i2c_gate_ctrl issue), and the only path to recovery is strobing the
+> > chip reset.  It's possible that the GPIO for resetting the zl10353 is
+> > just *wrong* because somebody copied it from some other board profile,
+> > and the chip is never being reset.
+> 
+> I have no information of the GPIO line that would be used to reset the
+> ZL10353.  We can narrow the field with some differential analysis.
+> 
+> Patrick,
+> 
+> For every LeadTek 3100 H you have, could you, as root, run
+> 
+> # v4l2-dbg -d /dev/videoN -c host0 -g 0x2c72010
+> ioctl: VIDIOC_DBG_G_REGISTER
+> Register 0x02c72010 = 96ff13h (9895699d  00000000 10010110 11111111 00010011b)
+> 
+> And record the register value and whether or not the card initialized
+> DVB properly or had the error.
 
-yesterday I moved from 2.6.31.y to 2.6.32 and found a reproducable kernel 
-oops.
-Bug is in Linus' tree, too.
+Patrick,
 
-I use a Hauppauge Nova-T Stick with dvb_usb_dib0700
+Bah, what was I thinking?  You can only record the GPIO levels of cards
+that initialize properly with that command.  Of all the working cards,
+all the GPIO "1" bits that line up between all the cards are the likely
+candidates for the ZL10353 reset line.
 
-I start mplayer (no problems so far) and then alevt. Then there comes
-the Oops:
+Regards,
+Andy
 
-Oops: 0000 [#1] SMP
-last sysfs file: /sys/devices/system/cpu/cpu1/cache/index2/shared_cpu_map
-Modules linked in: i915 drm_kms_helper video backlight output microcode 
-loop mt2060 dvb_usb_dib0700 dib7000p dib7000m dib0070 dvb_usb dib8000 
-dvb_core dib3000mc dibx000_common uhci_hcd ehci_hcd usbcore
-
-Pid: 3429, comm: alevt Not tainted 2.6.33-rc6 #17 MS-7267/MS-7267
-EIP: 0060:[<f86bb11b>] EFLAGS: 00210246 CPU: 1
-EIP is at dvb_dmxdev_filter_reset+0x1a/0x80 [dvb_core]
-EAX: 00000000 EBX: f886b204 ECX: fffffff8 EDX: e0cb3000
-ESI: f886b204 EDI: f886b208 EBP: f27ff440 ESP: e0cb3f48
-  DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
-Process alevt (pid: 3429, ti=e0cb3000 task=e9dcdb20 task.ti=e0cb3000)
-Stack:
-  00000008 f886b204 f75bc88c f86bb1b9 f27ff440 f886b27c f75bc8d0 00000008
-<0> f7111744 f6e5fc54 f27ff440 c1074013 f7111744 f741dcc0 f6e5fc54 
-00000000
-<0> f27ff440 f74673c0 e0cb3000 c1071a92 f74673c0 00000003 080674e8 
-c1071af2
-Call Trace:
-  [<f86bb1b9>] ? dvb_demux_release+0x38/0x107 [dvb_core]
-  [<c1074013>] ? __fput+0xd5/0x169
-  [<c1071a92>] ? filp_close+0x45/0x4b
-  [<c1071af2>] ? sys_close+0x5a/0x8d
-  [<c1002710>] ? sysenter_do_call+0x12/0x26
-  [<c12b0000>] ? pci_read_bridge_bases+0x173/0x2fe
-Code: 75 dd 8d 46 54 e8 c2 86 00 00 31 c0 5b 5e 5f 5d c3 57 56 53 89 c3 83 
-78 4c 01 76 6f 83 78 48 02 75 49 8b 40 04 8d 7b 04 8d 48 f8 <8b> 41 08 8d 
-70 f8 eb 28 8b 41 08 8b 51 0c 89 50 04 89 02 c7 41
-EIP: [<f86bb11b>] dvb_dmxdev_filter_reset+0x1a/0x80 [dvb_core] SS:ESP 
-0068:e0cb3f48
-CR2: 0000000000000000
----[ end trace 629e2045091796f7 ]---
-
-
-
-I bisected this down to:
-
-root@scratchy:/data/kernel/linux-2.6# git bisect bad
-1cb662a3144992259edfd3cf9f54a6b25a913a0f is first bad commit
-commit 1cb662a3144992259edfd3cf9f54a6b25a913a0f
-Author: Andreas Oberritter <obi@linuxtv.org>
-Date:   Tue Jul 14 20:28:50 2009 -0300
-
-     V4L/DVB (12275): Add two new ioctls: DMX_ADD_PID and DMX_REMOVE_PID
-...
-
-
-Reverting the patch on top of 2.6.33-rc6, I can start mplayer 
-and alevt with no problems.
-
+> It would be better to log out the contents of this register immediately
+> after the zl10353_attach fails in cx18-dvb.c, but we'll hopefully get
+> close enough without doing that.
+> 
+> Regards,
+> Andy
+> 
 
 
