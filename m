@@ -1,42 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out26.alice.it ([85.33.2.26]:1198 "EHLO
-	smtp-out26.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030793Ab0B0UbJ (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.156]:19850 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751777Ab0BKJCN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Feb 2010 15:31:09 -0500
-From: Antonio Ospite <ospite@studenti.unina.it>
+	Thu, 11 Feb 2010 04:02:13 -0500
+Received: by fg-out-1718.google.com with SMTP id e12so190996fga.1
+        for <linux-media@vger.kernel.org>; Thu, 11 Feb 2010 01:02:11 -0800 (PST)
+Message-ID: <4B73C792.3060907@gmail.com>
+Date: Thu, 11 Feb 2010 10:02:10 +0100
+From: thomas schorpp <thomas.schorpp@googlemail.com>
+Reply-To: thomas.schorpp@gmail.com
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: Max Thrun <bear24rw@gmail.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Antonio Ospite <ospite@studenti.unina.it>
-Subject: [PATCH 11/11] ov534: Update copyright info
-Date: Sat, 27 Feb 2010 21:20:28 +0100
-Message-Id: <1267302028-7941-12-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
-References: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
+CC: royale@zerezo.com
+Subject: zr364xx: Aiptek DV8800 (neo): 08ca:2062: Fails on subsequent zr364xx_open()
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Max Thrun <bear24rw@gmail.com>
+Hi, 
 
-Signed-off-by: Max Thrun <bear24rw@gmail.com>
-Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
----
- linux/drivers/media/video/gspca/ov534.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Linux 2.6.30+32.x
 
-Index: gspca/linux/drivers/media/video/gspca/ov534.c
-===================================================================
---- gspca.orig/linux/drivers/media/video/gspca/ov534.c
-+++ gspca/linux/drivers/media/video/gspca/ov534.c
-@@ -10,8 +10,8 @@
-  * https://jim.sh/svn/jim/devl/playstation/ps3/eye/test/
-  *
-  * PS3 Eye camera enhanced by Richard Kaswy http://kaswy.free.fr
-- * PS3 Eye camera, brightness, contrast, hue, AWB control added
-- *	by Max Thrun <bear24rw@gmail.com>
-+ * PS3 Eye camera - brightness, contrast, awb, agc, aec controls
-+ *                  added by Max Thrun <bear24rw@gmail.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
+Great there's a driver but seems to be untested/stub for this device:
+
+usb 1-2: new high speed USB device using ehci_hcd and address 9
+usb 1-2: New USB device found, idVendor=08ca, idProduct=2062
+usb 1-2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+usb 1-2: Product: DV 8800
+usb 1-2: Manufacturer: AIPTEK
+usb 1-2: configuration #1 chosen from 1 choice
+zr364xx probing...
+zr364xx 1-2:1.0: Zoran 364xx compatible webcam plugged
+zr364xx 1-2:1.0: model 08ca:2062 detected
+usb 1-2: 320x240 mode selected
+zr364xx dev: ffff88001eb62000, udev ffff88001e84c000 interface ffff88001ea35400
+zr364xx num endpoints 3
+zr364xx board init: ffff88001eb62000
+zr364xx valloc ffff88001eb62028, idx 0, pdata ffffc900039d9000
+zr364xx zr364xx_start_readpipe: start pipe IN x81
+zr364xx submitting URB ffff88001eafccc0
+zr364xx : board initialized
+usb 1-2: Zoran 364xx controlling video device 3
+zr364xx zr364xx_open
+zr364xx zr364xx_open: 0
+Zoran 364xx: VIDIOC_QUERYCAP driver=Zoran 364xx, card=DV 8800, bus=1-2, version=0x00000703, capabilities=0x05000001
+zr364xx zr364xx_release
+zr364xx zr364xx_open
+usb 1-2: Failed sending control message, error -110.
+usb 1-2: error during open sequence: 6
+zr364xx zr364xx_open: -110
+usb 1-2: USB disconnect, address 9
+zr364xx read_pipe_completion, err shutdown
+zr364xx 1-2:1.0: Zoran 364xx webcam unplugged
+zr364xx stop read pipe
+zr364xx vfree ffffc900039d9000
+
+Same with mode=2 like the cam is configured (VGA+QVGA available in settings).
+
+I'll sniff out the cmd sequences on an old win xp32 installation, no x64/vista/7 drivers found, 
+or do You see the failure reason already?
+
+Looks like the device does not like to be fed with the (full) init METHOD2 on every open()...
+Since the VIDIOC_QUERYCAP worked it should not be the wrong METHOD.
+
+y
+tom
+
