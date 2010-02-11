@@ -1,40 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from warped.bluecherry.net ([66.138.159.247]:44508 "EHLO
-	warped.bluecherry.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966107Ab0BZUs4 (ORCPT
+Received: from mail-fx0-f215.google.com ([209.85.220.215]:34397 "EHLO
+	mail-fx0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755924Ab0BKOwd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Feb 2010 15:48:56 -0500
-Received: from [192.168.1.126] (office.bluecherry.net [69.27.206.208])
-	(using SSLv3 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(Client did not present a certificate)
-	by warped.bluecherry.net (Postfix) with ESMTPSA id 7217698F380C
-	for <linux-media@vger.kernel.org>; Fri, 26 Feb 2010 14:48:55 -0600 (CST)
-Message-ID: <4B8833B6.7050103@bluecherry.net>
-Date: Fri, 26 Feb 2010 14:48:54 -0600
-From: Curtis Hall <curt@bluecherry.net>
+	Thu, 11 Feb 2010 09:52:33 -0500
+Received: by fxm7 with SMTP id 7so1278241fxm.28
+        for <linux-media@vger.kernel.org>; Thu, 11 Feb 2010 06:52:31 -0800 (PST)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [bttv] Auto detection for Provideo PV- series capture cards
-References: <4B882E3A.8050604@bluecherry.net> <829197381002261243if253f07k81baae7c6a2cafe@mail.gmail.com>
-In-Reply-To: <829197381002261243if253f07k81baae7c6a2cafe@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4B69DF30.8080400@orresta.no-ip.com>
+References: <f509f3091001311223q19a9854fwb546e6fcadc08021@mail.gmail.com>
+	 <4B69DF30.8080400@orresta.no-ip.com>
+Date: Thu, 11 Feb 2010 18:52:31 +0400
+Message-ID: <1a297b361002110652n1659d8edxa8abf89f8582d254@mail.gmail.com>
+Subject: Re: [linux-dvb] Twinhan dtv 3030 mantis
+From: Manu Abraham <abraham.manu@gmail.com>
+To: listor <lists@orresta.no-ip.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin,
+On Thu, Feb 4, 2010 at 12:40 AM, listor <lists@orresta.no-ip.com> wrote:
+> Hi,
+>
+> Starting with 2.6.33 the mantis driver is included in mainline kernel.
+> I have a pre5 installation that works great. I run *buntu 9.10 as well but
+> when I saw that the kernel had mantis support I compiled my own. Just
+> remember to add mantis as a kernel module, it's not on by default.
+>
+> Jakob Sundberg
 
-I saw his email and I've been in private communication between him and 
-Provideo trying to get the information he needs.  However his request 
-was for the PV-947D against the IVTV driver.  These cards are using the 
-bttv driver.  I was hoping a bttv maintainer could look at the 
-information I posted first to make sure this information wasn't duplicated.
+Please try again from http://jusst.de/hg/mantis-v4l-dvb whether the
+issue is sorted out.
 
-Thanks!
-
--- 
---
-Curtis Hall (curt@bluecherry.net)
-Bluecherry - www.bluecherry.net
-(877) 418-3391 x 201 
-
+Regards,
+Manu
