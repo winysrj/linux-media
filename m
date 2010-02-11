@@ -1,34 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:41275 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755694Ab0BATXs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Feb 2010 14:23:48 -0500
-Message-ID: <4B672A32.3060606@s5r6.in-berlin.de>
-Date: Mon, 01 Feb 2010 20:23:30 +0100
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Douglas Schilling Landgraf <dougsland@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [hg:v4l-dvb] firedtv: do not DMA-map stack addresses
-References: <E1NbzwQ-00009q-Tx@mail.linuxtv.org> <4B672345.6070203@s5r6.in-berlin.de> <4B67276D.1020909@redhat.com>
-In-Reply-To: <4B67276D.1020909@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-gx0-f224.google.com ([209.85.217.224]:60174 "EHLO
+	mail-gx0-f224.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753300Ab0BKLIA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Feb 2010 06:08:00 -0500
+Subject: [PATCH] drivers/media/radio/si470x/radio-si470x-usb.c fix use
+ after free
+From: Darren Jenkins <darrenrjenkins@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Tobias Lorenz <tobias.lorenz@gmx.net>,
+	Tobias Lorenz <tobias.lorenz@gmx.net>,
+	Douglas Schilling Landgraf <dougsland@redhat.com>,
+	linux-media@vger.kernel.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Kernel Janitors <kernel-janitors@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 11 Feb 2010 22:07:53 +1100
+Message-ID: <1265886473.27789.6.camel@ICE-BOX>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
-> Hi Stefan,
-[...]
-> We've replaced our procedures on our trees recently. Until last year,
-> I was applying the patches at -hg and then converting to -git.
-> 
-> This year, we're just doing the reverse:
-[...]
+In si470x_usb_driver_disconnect() radio->disconnect_lock is accessed
+after it is freed. This fixes the problem.
 
-Ah, thanks for the heads-up.  This way my worries are unfounded. :-)
+Coverity CID: 2530
+
+Signed-off-by: Darren Jenkins <darrenrjenkins@gmail.com>
+---
+ drivers/media/radio/si470x/radio-si470x-usb.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/radio/si470x/radio-si470x-usb.c b/drivers/media/radio/si470x/radio-si470x-usb.c
+index a96e1b9..1588a9d 100644
+--- a/drivers/media/radio/si470x/radio-si470x-usb.c
++++ b/drivers/media/radio/si470x/radio-si470x-usb.c
+@@ -842,9 +842,11 @@ static void si470x_usb_driver_disconnect(struct usb_interface *intf)
+ 		kfree(radio->int_in_buffer);
+ 		video_unregister_device(radio->videodev);
+ 		kfree(radio->buffer);
++		mutex_unlock(&radio->disconnect_lock);
+ 		kfree(radio);
++	} else {
++		mutex_unlock(&radio->disconnect_lock);
+ 	}
+-	mutex_unlock(&radio->disconnect_lock);
+ }
+ 
+ 
 -- 
-Stefan Richter
--=====-==-=- --=- ----=
-http://arcgraph.de/sr/
+1.6.3.3
+
+
+
