@@ -1,48 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web32708.mail.mud.yahoo.com ([68.142.207.252]:25193 "HELO
-	web32708.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750799Ab0BMFhS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Feb 2010 00:37:18 -0500
-Message-ID: <937956.58819.qm@web32708.mail.mud.yahoo.com>
-Date: Fri, 12 Feb 2010 21:37:15 -0800 (PST)
-From: Franklin Meng <fmeng2002@yahoo.com>
-Subject: [Patch] Kworld 315U remote support part2
-To: Douglas Schilling <dougsland@gmail.com>,
-	maillist <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <maurochehab@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:45111 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755452Ab0BKP3X (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Feb 2010 10:29:23 -0500
+Message-ID: <4B742227.3000400@redhat.com>
+Date: Thu, 11 Feb 2010 13:28:39 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: Samuel Ortiz <samuel.ortiz@intel.com>
+CC: =?ISO-8859-1?Q?Richard_R=F6jfors?= <richard.rojfors@pelagicore.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] mfd: Add support for the timberdale FPGA.
+References: <4B66C36A.4000005@pelagicore.com> <4B693ED7.4060401@redhat.com> <20100203100326.GA3460@sortiz.org> <4B694D69.1090201@redhat.com> <20100203123617.GF3460@sortiz.org> <4B69B12D.6030105@redhat.com> <20100204092846.GA3336@sortiz.org> <4B71D70A.6030806@pelagicore.com> <20100211152620.GA6025@sortiz.org>
+In-Reply-To: <20100211152620.GA6025@sortiz.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Here is the rest of the patch for the Kworld remote support.
+Samuel Ortiz wrote:
 
-Hopefully I got all the formatting correct this time.   
+>> Now when the radio driver made it into the media tree, can I post an
+>> updated MFD which defines these drivers too?
+>> Is a complete MFD patch preferred, or just an incremental against the
+>> last one?
+> Since the mfd driver is currently merged into Mauro's tree, you should make
+> incremental patches against it. At least that's how I'd take it in my tree.
+> Mauro, do you agree ?
 
-Signed-off-by: Franklin Meng <fmeng2002@yahoo.com>
+Yes.
 
-diff -r 14021dfc00f3 linux/drivers/media/video/em28xx/em28xx-cards.c
---- a/linux/drivers/media/video/em28xx/em28xx-cards.c	Thu Feb 11 23:11:30 2010 -0200
-+++ b/linux/drivers/media/video/em28xx/em28xx-cards.c	Fri Feb 12 21:31:41 2010 -0800
-@@ -1329,6 +1329,7 @@
- 		.decoder	= EM28XX_SAA711X,
- 		.has_dvb	= 1,
- 		.dvb_gpio	= em2882_kworld_315u_digital,
-+		.ir_codes	= &ir_codes_kworld_315u_table,
- 		.xclk		= EM28XX_XCLK_FREQUENCY_12MHZ,
- 		.i2c_speed	= EM28XX_I2C_CLK_WAIT_ENABLE,
- 		/* Analog mode - still not ready */
-diff -r 14021dfc00f3 linux/include/media/ir-common.h
---- a/linux/include/media/ir-common.h	Thu Feb 11 23:11:30 2010 -0200
-+++ b/linux/include/media/ir-common.h	Fri Feb 12 21:31:41 2010 -0800
-@@ -163,4 +163,5 @@
- extern struct ir_scancode_table ir_codes_gadmei_rm008z_table;
- extern struct ir_scancode_table ir_codes_nec_terratec_cinergy_xs_table;
- extern struct ir_scancode_table ir_codes_winfast_usbii_deluxe_table;
-+extern struct ir_scancode_table ir_codes_kworld_315u_table;
- #endif
+Richard, just send me an incremental patch against my -git tree.
 
-
-
-      
+Cheers,
+Mauro
