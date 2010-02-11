@@ -1,20 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx03.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.7])
-	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o1OFOaTp000392
-	for <video4linux-list@redhat.com>; Wed, 24 Feb 2010 10:24:37 -0500
-Received: from bay0-omc3-s16.bay0.hotmail.com (bay0-omc3-s16.bay0.hotmail.com
-	[65.54.190.154])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o1OFOOXT027616
-	for <video4linux-list@redhat.com>; Wed, 24 Feb 2010 10:24:24 -0500
-Message-ID: <BAY127-W87977C8CD91D80D916F33BF410@phx.gbl>
-From: =?iso-8859-1?B?Q2FybG9zIExhdu1uIEZ1ZW50ZXM=?=
-	<telecomunicador@hotmail.com>
-To: <video4linux-list@redhat.com>
-Subject: 
-Date: Wed, 24 Feb 2010 15:24:24 +0000
+Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.11])
+	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o1BHE3nB024259
+	for <video4linux-list@redhat.com>; Thu, 11 Feb 2010 12:14:03 -0500
+Received: from mail-qy0-f185.google.com (mail-qy0-f185.google.com
+	[209.85.221.185])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o1BHDEC7004359
+	for <video4linux-list@redhat.com>; Thu, 11 Feb 2010 12:13:48 -0500
+Received: by mail-qy0-f185.google.com with SMTP id 15so1036418qyk.7
+	for <video4linux-list@redhat.com>; Thu, 11 Feb 2010 09:13:48 -0800 (PST)
 MIME-Version: 1.0
+Date: Thu, 11 Feb 2010 17:13:47 +0000
+Message-ID: <3cf2debb1002110913l5493e8c0h114fe59e732b9763@mail.gmail.com>
+Subject: control frame rate
+From: Nuno Cardoso <linun77@gmail.com>
+To: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -22,24 +23,22 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Hi list,
 
-hello! I am writtin g a driver with soc-camera subsystem and I don't unders=
-tand well how I use the structures soc_camera_file and soc_camera_format_xl=
-ate, what are they? the documentation in linux is few for me because I am a=
- novel in this topics but I want to be a good programmer in linux in the fu=
-ture, can somebody help me? 		 	   		  =
+How can I control the frame rate in v4l2? ffmpeg use v4l2 driver, and when
+you configure the input camera to capture n frames, the driver capture all
+the frames and drop the frames to process only n frames. Is this a good
+solution? Or there are a better solution?
 
-_________________________________________________________________
-Ibex 35, comparadores de hipotecas, Euribor, foros de bolsa. =A1Nuevo MSN D=
-inero!
-http://dinero.es.msn.com/
+Thanks,
+Nuno Cardoso.
 --
 video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscribe
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
