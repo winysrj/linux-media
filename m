@@ -1,131 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:52379 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932674Ab0BGSjt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Feb 2010 13:39:49 -0500
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
-	david.cohen@nokia.com,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: [PATCH v2 3/7] V4L: Events: Support event handling in do_ioctl
-Date: Sun,  7 Feb 2010 20:40:43 +0200
-Message-Id: <1265568047-31073-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <4B6F0922.9070206@maxwell.research.nokia.com>
-References: <4B6F0922.9070206@maxwell.research.nokia.com>
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:33894 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756869Ab0BKTVz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Feb 2010 14:21:55 -0500
+Received: by bwz19 with SMTP id 19so791419bwz.28
+        for <linux-media@vger.kernel.org>; Thu, 11 Feb 2010 11:21:54 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4B745781.2020408@mailbox.hu>
+References: <4B3F6FE0.4040307@internode.on.net> <4B3F7B0D.4030601@mailbox.hu>
+	 <4B405381.9090407@internode.on.net> <4B421BCB.6050909@mailbox.hu>
+	 <4B4294FE.8000309@internode.on.net> <4B463AC6.2000901@mailbox.hu>
+	 <4B719CD0.6060804@mailbox.hu> <4B745781.2020408@mailbox.hu>
+Date: Thu, 11 Feb 2010 14:21:54 -0500
+Message-ID: <829197381002111121g5244471bj148d38aa8958800c@mail.gmail.com>
+Subject: Re: DTV2000 H Plus issues
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for event handling to do_ioctl.
+Hi Istanv,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- drivers/media/video/Makefile     |    2 +-
- drivers/media/video/v4l2-ioctl.c |   48 ++++++++++++++++++++++++++++++++++++++
- include/media/v4l2-ioctl.h       |    9 +++++++
- 3 files changed, 58 insertions(+), 1 deletions(-)
+On Thu, Feb 11, 2010 at 2:16 PM, istvan_v@mailbox.hu
+<istvan_v@mailbox.hu> wrote:
+> Update: the following patch, which should be applied after the previous
+> ones, makes a few additional changes to the XC4000 driver:
+>  - adds support for DTV7
+>  - implements power management
+>  - adds a mutex and locking for tuner operations
+>  - some unused or unneeded code has been removed
 
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index b888ad1..68253d6 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -11,7 +11,7 @@ stkwebcam-objs	:=	stk-webcam.o stk-sensor.o
- omap2cam-objs	:=	omap24xxcam.o omap24xxcam-dma.o
- 
- videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-subdev.o \
--			v4l2-fh.o
-+			v4l2-fh.o v4l2-event.o
- 
- # V4L2 core modules
- 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index bfc4696..a6d6e73 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -1797,7 +1797,55 @@ static long __video_do_ioctl(struct file *file,
- 		}
- 		break;
- 	}
-+	case VIDIOC_DQEVENT:
-+	{
-+		struct v4l2_event *ev = arg;
-+
-+		if (!ops->vidioc_dqevent)
-+			break;
-+
-+		ret = ops->vidioc_dqevent(fh, ev);
-+		if (ret < 0) {
-+			dbgarg(cmd, "no pending events?");
-+			break;
-+		}
-+		dbgarg(cmd,
-+		       "count=%d, type=0x%8.8x, sequence=%d, "
-+		       "timestamp=%lu.%9.9lu ",
-+		       ev->count, ev->type, ev->sequence,
-+		       ev->timestamp.tv_sec, ev->timestamp.tv_nsec);
-+		break;
-+	}
-+	case VIDIOC_SUBSCRIBE_EVENT:
-+	{
-+		struct v4l2_event_subscription *sub = arg;
- 
-+		if (!ops->vidioc_subscribe_event)
-+			break;
-+
-+		ret = ops->vidioc_subscribe_event(fh, sub);
-+		if (ret < 0) {
-+			dbgarg(cmd, "failed, ret=%ld", ret);
-+			break;
-+		}
-+		dbgarg(cmd, "type=0x%8.8x", sub->type);
-+		break;
-+	}
-+	case VIDIOC_UNSUBSCRIBE_EVENT:
-+	{
-+		struct v4l2_event_subscription *sub = arg;
-+
-+		if (!ops->vidioc_unsubscribe_event)
-+			break;
-+
-+		ret = ops->vidioc_unsubscribe_event(fh, sub);
-+		if (ret < 0) {
-+			dbgarg(cmd, "failed, ret=%ld", ret);
-+			break;
-+		}
-+		dbgarg(cmd, "type=0x%8.8x", sub->type);
-+		break;
-+	}
- 	default:
- 	{
- 		if (!ops->vidioc_default)
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index 7a4529d..6d6a2a3 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -21,6 +21,8 @@
- #include <linux/videodev2.h>
- #endif
- 
-+struct v4l2_fh;
-+
- struct v4l2_ioctl_ops {
- 	/* ioctl callbacks */
- 
-@@ -239,6 +241,13 @@ struct v4l2_ioctl_ops {
- 	int (*vidioc_enum_frameintervals) (struct file *file, void *fh,
- 					   struct v4l2_frmivalenum *fival);
- 
-+	int (*vidioc_dqevent)	       (struct v4l2_fh *fh,
-+					struct v4l2_event *ev);
-+	int (*vidioc_subscribe_event)  (struct v4l2_fh *fh,
-+					struct v4l2_event_subscription *sub);
-+	int (*vidioc_unsubscribe_event)(struct v4l2_fh *fh,
-+					struct v4l2_event_subscription *sub);
-+
- 	/* For other private ioctls */
- 	long (*vidioc_default)	       (struct file *file, void *fh,
- 					int cmd, void *arg);
+Is the DTV7 support actually tested?  Or are you just blindly adding
+the code in the hope that it works?  I'm just asking because the last
+time I spoke to you, you actually didn't have access to a DVB-T signal
+source.
+
+Also, I'm not sure I'm comfortable with the way the mutex is
+implemented here.  Is this logic copied from some other driver (and if
+so, which one), or did you come up with it yourself?
+
+Devin
+
 -- 
-1.5.6.5
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
