@@ -1,50 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.perches.com ([173.55.12.10]:1190 "EHLO mail.perches.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752360Ab0BWRIV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2010 12:08:21 -0500
-Subject: [PATCH - next] MAINTAINERS: Telegent tlg2300 section fix
-From: Joe Perches <joe@perches.com>
-To: Huang Shijie <shijie8@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 23 Feb 2010 09:08:20 -0800
-Message-ID: <1266944900.9265.28.camel@Joe-Laptop.home>
-Mime-Version: 1.0
+Received: from mail-qy0-f190.google.com ([209.85.221.190]:53252 "EHLO
+	mail-qy0-f190.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753351Ab0BKMix (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Feb 2010 07:38:53 -0500
+Received: by qyk28 with SMTP id 28so692396qyk.25
+        for <linux-media@vger.kernel.org>; Thu, 11 Feb 2010 04:38:52 -0800 (PST)
+Message-ID: <4B73FA56.5010107@gmail.com>
+Date: Thu, 11 Feb 2010 10:38:46 -0200
+From: Mauro Carvalho Chehab <maurochehab@gmail.com>
+MIME-Version: 1.0
+To: Franklin Meng <fmeng2002@yahoo.com>
+CC: Douglas Schilling <dougsland@gmail.com>,
+	maillist <linux-media@vger.kernel.org>
+Subject: Re: [Patch/Resend] Kworld 315U remote support
+References: <251005.1068.qm@web32708.mail.mud.yahoo.com>
+In-Reply-To: <251005.1068.qm@web32708.mail.mud.yahoo.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-linux-next commit 2ff8223957d901999bf76aaf2c6183e33a6ad14e
-exposes an infinite loop defect in scripts/get_maintainer.pl
+> Subject: Re: [Patch/Resend] Kworld 315U remote support
 
-Fix the incorrect format of the MAINTAINERS "M:" entries.
+Well, it is not a resend, since changes were made ;)
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 57305f6..e633460 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -4775,13 +4775,12 @@ F:	drivers/media/video/*7146*
- F:	include/media/*7146*
- 
- TLG2300 VIDEO4LINUX-2 DRIVER
--M 	Huang Shijie	<shijie8@gmail.com>
--M 	Kang Yong	<kangyong@telegent.com>
--M 	Zhang Xiaobing	<xbzhang@telegent.com>
-+M:	Huang Shijie <shijie8@gmail.com>
-+M:	Kang Yong <kangyong@telegent.com>
-+M:	Zhang Xiaobing <xbzhang@telegent.com>
- S:	Supported
- F:	drivers/media/video/tlg2300
- 
--
- SC1200 WDT DRIVER
- M:	Zwane Mwaikambo <zwane@arm.linux.org.uk>
- S:	Maintained
+Franklin Meng wrote:
 
+> +static struct ir_scancode ir_codes_kworld_315u[] = {
+> +    { 0x6143, KEY_POWER },
 
+Please, never indent with spaces. Instead, you should use tabs, and a tab=8 spaces.
+
+I fixed it and applied the patch.
+
+-- 
+
+Cheers,
+Mauro
