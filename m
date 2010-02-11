@@ -1,58 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rotring.dds.nl ([85.17.178.138]:33103 "EHLO rotring.dds.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751700Ab0BHSWI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Feb 2010 13:22:08 -0500
-Subject: Re: [PATCH] dvb-core: fix initialization of feeds list in demux
- filter (Was: Videotext application crashes the kernel due to DVB-demux
- patch)
-From: Alain Kalker <miki@dds.nl>
-To: Chicken Shack <chicken.shack@gmx.de>
-Cc: Andreas Oberritter <obi@linuxtv.org>,
-	Andy Walls <awalls@radix.net>, HoP <jpetrous@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Francesco Lavra <francescolavra@interfree.it>,
-	linux-media@vger.kernel.org, torvalds@linux-foundation.org,
-	akpm@linux-foundation.org, rms@gnu.org, hermann-pitton@arcor.de
-In-Reply-To: <1265636585.5399.47.camel@brian.bconsult.de>
-References: <1265546998.9356.4.camel@localhost>
-	 <4B6F72E5.3040905@redhat.com>  <4B700287.5080900@linuxtv.org>
-	 <1265636585.5399.47.camel@brian.bconsult.de>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 08 Feb 2010 19:01:10 +0100
-Message-ID: <1265652070.3299.8.camel@miki-desktop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:65006 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757058Ab0BKV5m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Feb 2010 16:57:42 -0500
+Received: by bwz19 with SMTP id 19so958992bwz.28
+        for <linux-media@vger.kernel.org>; Thu, 11 Feb 2010 13:57:41 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1a297b361002110651w75dd2e78k9c9a4444d35adf0a@mail.gmail.com>
+References: <f509f3091001311223q19a9854fwb546e6fcadc08021@mail.gmail.com>
+	 <1a297b361002110651w75dd2e78k9c9a4444d35adf0a@mail.gmail.com>
+Date: Thu, 11 Feb 2010 22:57:38 +0100
+Message-ID: <f509f3091002111357m68739fd5t124aef0093d35456@mail.gmail.com>
+Subject: Re: [linux-dvb] Twinhan dtv 3030 mantis
+From: Niklas Claesson <nicke.claesson@gmail.com>
+To: Manu Abraham <abraham.manu@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Op maandag 08-02-2010 om 14:43 uur [tijdzone +0100], schreef Chicken
-Shack:
-> Now if I were a cynical or ranter or another kind of dumb primitive
-> persona non grata I would just add "Lol" or stuff like that and turn
-> myself away.
-> 
-> But this is no fun here.
-> 
-> It's nothing but a big proof that one Brazilian person in Mr. Torvalds
-> "dream team of untouchables" needs to be URGENTLY replaced by another
-> real capable person.
-> 
-> NO IDEA ABOUT DVB ISSUES, BUT DVB MAINTAINER!
+I can't compile, I fetched the latest source with "hg clone
+http://jusst.de/hg/mantis-v4l-dvb" but there seems to be a file
+missing: "mantis_input.h".
 
-I would like to SINCERELY urge you to cut the ad hominems. If you feel
-you have arguments furthering your position, please let them stand for
-themselves. No need to involve someones nationality, religion, star-sign
-or whatever to make your point.
+  CC [M]  /home/niklas/hg/mantis-v4l-dvb/v4l/hopper_vp3028.o
+/home/niklas/hg/mantis-v4l-dvb/v4l/hopper_cards.c:43:26: error:
+mantis_input.h: No such file or directory
 
-I think people on this list have more pressing issues to deal with (like
-bisecting hard-to-find kernel oopses or digging up datasheets on
-undocumented mixer/PLLs and the like) than listening to rants about
-Brazilians not being team players.
+(I don't need the hopper-part I think, so I edited this line in
+.config "CONFIG_DVB_HOPPER=n".)
+And tried to compile again:
 
-Please, just the facts, ma'am. Trolls can feed elsewhere.
+  CC [M]  /home/niklas/hg/mantis-v4l-dvb/v4l/mantis_vp1034.o
+/home/niklas/hg/mantis-v4l-dvb/v4l/mantis_cards.c:51:26: error:
+mantis_input.h: No such file or directory
+/home/niklas/hg/mantis-v4l-dvb/v4l/mantis_cards.c: In function
+'mantis_pci_probe':
+/home/niklas/hg/mantis-v4l-dvb/v4l/mantis_cards.c:227: error: implicit
+declaration of function 'mantis_input_init'
+/home/niklas/hg/mantis-v4l-dvb/v4l/mantis_cards.c: In function
+'mantis_pci_remove':
+/home/niklas/hg/mantis-v4l-dvb/v4l/mantis_cards.c:250: error: implicit
+declaration of function 'mantis_input_exit'
+make[3]: *** [/home/niklas/hg/mantis-v4l-dvb/v4l/mantis_cards.o] Error 1
 
-Sincerely,
+Did I do anything wrong?
 
-Alain
-
+Regards
+Niklas Claesson
