@@ -1,103 +1,279 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f219.google.com ([209.85.220.219]:38062 "EHLO
-	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752110Ab0BWJp3 convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4009 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751943Ab0BLMGb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2010 04:45:29 -0500
-Received: by fxm19 with SMTP id 19so3566365fxm.21
-        for <linux-media@vger.kernel.org>; Tue, 23 Feb 2010 01:45:28 -0800 (PST)
+	Fri, 12 Feb 2010 07:06:31 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Pete Eberlein <pete@sensoray.com>
+Subject: Re: [PATCH 5/5] ov7640: sensor driver subdev conversion
+Date: Fri, 12 Feb 2010 13:08:34 +0100
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <1265934807.4626.254.camel@pete-desktop>
+In-Reply-To: <1265934807.4626.254.camel@pete-desktop>
 MIME-Version: 1.0
-In-Reply-To: <4B83242E.40703@infradead.org>
-References: <4B55445A.10300@infradead.org> <4B5B30E4.7030909@redhat.com>
-	 <20100222225426.GC4013@jenkins.home.ifup.org>
-	 <201002230026.59712.hverkuil@xs4all.nl>
-	 <20100222233808.GD4013@jenkins.home.ifup.org>
-	 <4B83242E.40703@infradead.org>
-Date: Tue, 23 Feb 2010 13:45:27 +0400
-Message-ID: <1a297b361002230145t325ec009h877defe104dfccb3@mail.gmail.com>
-Subject: Re: [ANNOUNCE] git tree repositories & libv4l
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Brandon Philips <brandon@ifup.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Douglas Landgraf <dougsland@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201002121308.34983.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 23, 2010 at 4:41 AM, Mauro Carvalho Chehab
-<mchehab@infradead.org> wrote:
-> Brandon Philips wrote:
->> On 00:26 Tue 23 Feb 2010, Hans Verkuil wrote:
->>> On Monday 22 February 2010 23:54:26 Brandon Philips wrote:
->>>> On 18:24 Sat 23 Jan 2010, Hans de Goede wrote:
->>>>>> lib/
->>>>>>   libv4l1/
->>>>>>   libv4l2/
->>>>>>   libv4lconvert/
->>>>>> utils/
->>>>>>   v4l2-dbg
->>>>>>   v4l2-ctl
->>>>>>   cx18-ctl
->>>>>>   ivtv-ctl
->>>>>> contrib/
->>>>>>   test/
->>>>>>   everything else
->>>>>>
->>>>   git clone git://ifup.org/philips/create-v4l-utils.git
->>>>   cd create-v4l-utils/
->>>>   ./convert.sh
->>>>
->>>> You should now have v4l-utils.git which should have this directory
->>>> struture. If we need to move other things around let me know and I can
->>>> tweak name-filter.sh
->>>>
->>>> Thoughts? Let me know how we should proceed with dropping v4l2-apps
->>>> from v4l-dvb.
->>>>
->>>> Re: code style cleanup. I think we should do that once we drop
->>>> v4l2-apps/ from v4l-dvb and make the new v4l-utils.git upstream.
->>> Question: shouldn't we merge dvb-apps and v4l-utils? The alevtv tool was
->>> merged into dvb-apps, but while that tool supports dvb, it also supports
->>> v4l2. Just like we merged dvb and v4l in a single repository, so I think we
->>> should also merge the tools to a media-utils repository.
->>>
->>> It remains a fact of life that dvb and v4l are connected and trying to
->>> artificially keep them apart does not make much sense to me.
->>
->> Easy to do but who should be the maintainer of the dvb things?
->>
->> According to the wiki[1] these tools are without a maintainer. So, if
->> no one cares about them enough to make releases why merge them and
->> clutter up the git tree with dead code?
->>
->> Cheers,
->>
->>       Brandon
->>
->> [1] http://www.linuxtv.org/wiki/index.php/LinuxTV_dvb-apps
->
-> That's weird. I've recently added support for ISDB-T on it:
->        http://linuxtv.org/hg/~mchehab/dvb-apps-isdbt2/
+On Friday 12 February 2010 01:33:27 Pete Eberlein wrote:
+> From: Pete Eberlein <pete@sensoray.com>
+> 
+> This is a subdev conversion of wis-ov7640 sensor driver from the
+> staging go7007 directory.  This obsoletes the wis-ov7640 driver.
 
+Review below...
 
-That's probably Michael Krufky (user: Jon2856) from what i guess, he
-has been the one who has been making ground for propaganda's on the
-wiki.
+BTW: note that the gspca/ov519.c driver also has support for this sensor.
+Unfortunately, the gspca subdrivers do not use v4l2_subdev. It might be
+useful though as a reference. gspca should really start to use v4l2_subdev
+where possible.
 
+> 
+> Priority: normal
+> 
+> Signed-off-by: Pete Eberlein <pete@sensoray.com>
+> 
+> diff -r 378d3bc9a3d6 -r 6d0a37622c1b linux/drivers/media/video/Kconfig
+> --- a/linux/drivers/media/video/Kconfig	Thu Feb 11 14:48:26 2010 -0800
+> +++ b/linux/drivers/media/video/Kconfig	Thu Feb 11 14:57:40 2010 -0800
+> @@ -309,6 +309,13 @@
+>  	  To compile this driver as a module, choose M here: the
+>  	  module will be called ks0127.
+>  
+> +config VIDEO_OV7640
+> +	tristate "OmniVision OV7640 sensor support"
+> +	depends on I2C && VIDEO_V4L2
+> +	---help---
+> +	  This is a Video4Linux2 sensor-level driver for the OmniVision
 
-> and we've got some comments at the mailing list. Btw, the patches
-> I added there also adds DVB-S2 support to szap/scan, but tests
-> are needed, since I don't have any satellite dish nowadays.
+Replace 'Video4Linux2 sensor-level' with just 'sensor'.
 
+> +	  OV7640 camera.  It currently only works with the GO7007 driver.
 
-Btw, I did spend time to review your code before it is pulled in. You
-did not even provide a reply on my last mail on the subject, or did I
-miss that reply of yours ?
+Why does it only work with go7007? Oh, I see: it's only a hardcoded list of 
+registers.
 
+> +
+>  config VIDEO_OV7670
+>  	tristate "OmniVision OV7670 sensor support"
+>  	depends on I2C && VIDEO_V4L2
+> diff -r 378d3bc9a3d6 -r 6d0a37622c1b linux/drivers/media/video/Makefile
+> --- a/linux/drivers/media/video/Makefile	Thu Feb 11 14:48:26 2010 -0800
+> +++ b/linux/drivers/media/video/Makefile	Thu Feb 11 14:57:40 2010 -0800
+> @@ -67,6 +67,7 @@
+>  obj-$(CONFIG_VIDEO_CX25840) += cx25840/
+>  obj-$(CONFIG_VIDEO_UPD64031A) += upd64031a.o
+>  obj-$(CONFIG_VIDEO_UPD64083) += upd64083.o
+> +obj-$(CONFIG_VIDEO_OV7640) 	+= ov7640.o
+>  obj-$(CONFIG_VIDEO_OV7670) 	+= ov7670.o
+>  obj-$(CONFIG_VIDEO_TCM825X) += tcm825x.o
+>  obj-$(CONFIG_VIDEO_TVEEPROM) += tveeprom.o
+> diff -r 378d3bc9a3d6 -r 6d0a37622c1b linux/drivers/media/video/ov7640.c
+> --- /dev/null	Thu Jan 01 00:00:00 1970 +0000
+> +++ b/linux/drivers/media/video/ov7640.c	Thu Feb 11 14:57:40 2010 -0800
+> @@ -0,0 +1,141 @@
+> +/*
+> + * Copyright (C) 2005-2006 Micronas USA Inc.
+
+You probably want to add a copyright line of your own for the drivers you
+worked on.
+
+You should also clearly state in this driver that it is setup specifically
+for the go7007.
+
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License (Version 2) as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software Foundation,
+> + * Inc., 59 Temple Place - Suite 330, Boston MA 02111-1307, USA.
+> + */
+> +
+> +#include <linux/init.h>
+> +#include <linux/module.h>
+> +#include <linux/i2c.h>
+> +#include <linux/videodev2.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-chip-ident.h>
+> +#include <media/v4l2-i2c-drv.h>
+> +
+> +MODULE_DESCRIPTION("OmniVision ov7640 sensor driver");
+> +MODULE_LICENSE("GPL v2");
+> +
+> +struct ov7640_info {
+> +	struct v4l2_subdev sd;
+> +	int brightness;
+> +	int contrast;
+> +	int saturation;
+> +	int hue;
+> +};
+> +
+> +static inline struct ov7640_info *to_state(struct v4l2_subdev *sd)
+> +{
+> +	return container_of(sd, struct ov7640_info, sd);
+> +}
+> +
+> +
+> +static u8 initial_registers[] =
+
+const
+
+> +{
+> +	0x12, 0x80,
+> +	0x12, 0x54,
+> +	0x14, 0x24,
+> +	0x15, 0x01,
+> +	0x28, 0x20,
+> +	0x75, 0x82,
+> +	0xFF, 0xFF, /* Terminator (reg 0xFF is unused) */
+
+Please document at least how this sensor is set up for the go7007.
+
+> +};
+> +
+> +static int write_regs(struct i2c_client *client, u8 *regs)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; regs[i] != 0xFF; i += 2)
+> +		if (i2c_smbus_write_byte_data(client, regs[i], regs[i + 1]) < 0)
+> +			return -1;
+> +	return 0;
+> +}
+> +
+> +
+> +static int ov7640_g_chip_ident(struct v4l2_subdev *sd,
+> +		struct v4l2_dbg_chip_ident *chip)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +
+> +	return v4l2_chip_ident_i2c_client(client, chip, V4L2_IDENT_OV7640, 0);
+> +}
+
+I recommend added g_chip_ident as well to the tw???? drivers.
+
+> +
+> +/* ----------------------------------------------------------------------- */
+> +
+> +static const struct v4l2_subdev_core_ops ov7640_core_ops = {
+> +	.g_chip_ident = ov7640_g_chip_ident,
+> +};
+> +
+> +static const struct v4l2_subdev_ops ov7640_ops = {
+> +	.core = &ov7640_core_ops,
+> +};
+> +
+> +/* ----------------------------------------------------------------------- */
+> +
+> +static int ov7640_probe(struct i2c_client *client,
+> +			const struct i2c_device_id *id)
+> +{
+> +	struct i2c_adapter *adapter = client->adapter;
+> +	struct v4l2_subdev *sd;
+> +	struct ov7640_info *info;
+> +
+> +	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+> +		return -ENODEV;
+> +
+> +	info = kzalloc(sizeof(struct ov7640_info), GFP_KERNEL);
+> +	if (info == NULL)
+> +		return -ENOMEM;
+> +	sd = &info->sd;
+> +	v4l2_i2c_subdev_init(sd, client, &ov7640_ops);
+> +
+> +	client->flags = 0x10; /* I2C_CLIENT_SCCB from wis-i2c.h */
+> +
+> +	v4l_info(client, "chip found @ 0x%02x (%s)\n",
+> +			client->addr << 1, client->adapter->name);
+> +
+> +	if (write_regs(client, initial_registers) < 0) {
+> +		v4l_err(client, "error initializing OV7640\n");
+> +		kfree(info);
+> +		return -ENODEV;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +
+> +static int ov7640_remove(struct i2c_client *client)
+> +{
+> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> +
+> +	v4l2_device_unregister_subdev(sd);
+> +	kfree(to_state(sd));
+> +	return 0;
+> +}
+> +
+> +#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
+> +static const struct i2c_device_id ov7640_id[] = {
+> +	{ "ov7640", 0 },
+> +	{ }
+> +};
+> +MODULE_DEVICE_TABLE(i2c, ov7640_id);
+> +
+> +#endif
+> +static struct v4l2_i2c_driver_data v4l2_i2c_data = {
+> +	.name = "ov7640",
+> +	.probe = ov7640_probe,
+> +	.remove = ov7640_remove,
+> +#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
+> +	.id_table = ov7640_id,
+> +#endif
+> +};
+> +
+> diff -r 378d3bc9a3d6 -r 6d0a37622c1b linux/drivers/staging/go7007/go7007-usb.c
+> --- a/linux/drivers/staging/go7007/go7007-usb.c	Thu Feb 11 14:48:26 2010 -0800
+> +++ b/linux/drivers/staging/go7007/go7007-usb.c	Thu Feb 11 14:57:40 2010 -0800
+> @@ -265,7 +265,7 @@
+>  		.num_i2c_devs	  = 1,
+>  		.i2c_devs	  = {
+>  			{
+> -				.type	= "wis_ov7640",
+> +				.type	= "ov7640",
+>  				.addr	= 0x21,
+>  			},
+>  		},
+> diff -r 378d3bc9a3d6 -r 6d0a37622c1b linux/include/media/v4l2-chip-ident.h
+> --- a/linux/include/media/v4l2-chip-ident.h	Thu Feb 11 14:48:26 2010 -0800
+> +++ b/linux/include/media/v4l2-chip-ident.h	Thu Feb 11 14:57:40 2010 -0800
+> @@ -65,6 +65,7 @@
+>  	V4L2_IDENT_OV9655 = 255,
+>  	V4L2_IDENT_SOI968 = 256,
+>  	V4L2_IDENT_OV9640 = 257,
+> +	V4L2_IDENT_OV7640 = 258,
+>  
+>  	/* module saa7146: reserved range 300-309 */
+>  	V4L2_IDENT_SAA7146 = 300,
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+
+Frankly I am wondering whether this driver shouldn't remain in staging a bit
+longer. I'm a bit concerned about the fact that it is hardcoded for the go7007.
+
+Are you able to test the go7007 with this sensor? If so, would it be possible
+to use what is in gspca/ov519.c and copy it to this driver to make it more
+general?
 
 Regards,
-Manu
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
