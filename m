@@ -1,34 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from csmtp3.one.com ([91.198.169.23]:51002 "EHLO csmtp3.one.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754830Ab0BRRJa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Feb 2010 12:09:30 -0500
-Received: from [94.196.5.234] (94.196.5.234.threembb.co.uk [94.196.5.234])
-	by csmtp3.one.com (Postfix) with ESMTP id 4EA55240604F
-	for <linux-media@vger.kernel.org>; Thu, 18 Feb 2010 17:00:04 +0000 (UTC)
-Subject: gst-launch and locking of dvb adapter
-From: Mike <mike@redtux.org.uk>
+Received: from mail.gmx.net ([213.165.64.20]:55779 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750963Ab0BLJ2w (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Feb 2010 04:28:52 -0500
+Subject: BUG: latest dvb-apps do not compile due to MA's faulty
+ implementation of the gotox utility
+From: Chicken Shack <chicken.shack@gmx.de>
 To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 18 Feb 2010 17:00:18 +0000
-Message-Id: <1266512418.1791.5.camel@localhost.localdomain>
+Date: Fri, 12 Feb 2010 10:25:56 +0100
+Message-ID: <1265966756.16004.5.camel@brian.bconsult.de>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+Hi,
 
-does anyone know if it is possible to use gst-launch to record two dvb
-streams simultaneously with dvbsrc
+in order to make the latest dvb-apps compile cleanly 2 things need to be
+done:
 
-I am trying a pipeline such as
+1. the already compiled gotox binary needs to be deleted
 
-gst-launch dvbsrc pids=6881:6882 ! filesink location=ds9a.ps
+2. the following patch needs to be applied:
 
-but I keep getting problems with freeing pipeline
+--- a/util/gotox/Makefile
++++ b/util/gotox/Makefile
+@@ -1,5 +1,7 @@
+ # Makefile for linuxtv.org dvb-apps/util/gotox
+ 
++objects  = gotox.o
++
+ binaries = gotox
+ 
+ inst_bin = $(binaries)
+@@ -13,3 +15,7 @@
+ .PHONY: all
+ 
+ all: $(binaries)
++
++$(binaries): $(objects)
++
++include ../../Make.rules
 
-I know dvbstreamer can do it so it should be possible somehow
 
-any hints appreciated
+Cheers
+
+CS
+
 
