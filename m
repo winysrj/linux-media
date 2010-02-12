@@ -1,62 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f223.google.com ([209.85.218.223]:35939 "EHLO
-	mail-bw0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752247Ab0BJDJG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 22:09:06 -0500
-Received: by bwz23 with SMTP id 23so869105bwz.1
-        for <linux-media@vger.kernel.org>; Tue, 09 Feb 2010 19:09:01 -0800 (PST)
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2973 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751003Ab0BLLdg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Feb 2010 06:33:36 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v2 2/2] radio: Add radio-timb to the Kconfig and Makefile
+Date: Fri, 12 Feb 2010 12:35:28 +0100
+Cc: Richard =?iso-8859-1?q?R=F6jfors?=
+	<richard.rojfors@pelagicore.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>,
+	Andrew Morton <akpm@linux-foundation.org>
+References: <4B606832.7080006@pelagicore.com> <201001271742.34027.hverkuil@xs4all.nl> <4B6948B6.3000005@infradead.org>
+In-Reply-To: <4B6948B6.3000005@infradead.org>
 MIME-Version: 1.0
-In-Reply-To: <1265768091.3064.109.camel@palomino.walls.org>
-References: <4B70E7DB.7060101@cooptel.qc.ca>
-	 <1265768091.3064.109.camel@palomino.walls.org>
-Date: Tue, 9 Feb 2010 22:09:01 -0500
-Message-ID: <829197381002091909j7f95bfbfl3cd234393a08caeb@mail.gmail.com>
-Subject: Re: Driver crash on kernel 2.6.32.7. Interaction between cx8800
-	(DVB-S) and USB HVR Hauppauge 950q
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Andy Walls <awalls@radix.net>
-Cc: Richard Lemieux <rlemieu@cooptel.qc.ca>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201002121235.28815.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 9, 2010 at 9:14 PM, Andy Walls <awalls@radix.net> wrote:
-> Both Ooops below are related to userspace loading of firmware for the
-> HVR-950Q.
+On Wednesday 03 February 2010 10:58:14 Mauro Carvalho Chehab wrote:
+> Hans Verkuil wrote:
+> > On Wednesday 27 January 2010 17:22:10 Richard Röjfors wrote:
+> >> This patch adds radio-timb to the Makefile and Kconfig.
+> 
+> >> +config RADIO_TIMBERDALE
+> >> +	tristate "Enable the Timberdale radio driver"
+> >> +	depends on MFD_TIMBERDALE && VIDEO_V4L2 && HAS_IOMEM
+> > 
+> > I think you need a dependency on I2C as well.
+> 
+> 
+> It is not needed. VIDEO_V4L2 already takes care of properly handling it.
 
-Very strange.  The xc5000 function doesn't appear to really do
-anything unusual.  It calls request_firmware(), pushes the code into
-the chip, and then call release_firmware() [see
-xc5000.c:xc5000_fwupload() ]
+Where does that happen? I don't see how VIDEO_V4L2 can know when a driver
+requires I2C. It's not a universal requirement, after all.
 
-One thing that does jump out at me which could be problematic is the
-function will call release_firmware() even if request_firmware()
-fails.  I doubt that is the correct behavior.  And combined with the
-fact that his dmesg shows the error "run_program:
-'/lib/udev/firmware.sh' abnormal exit" makes me wonder if the
-subsequent to release_firmware() despite the error condition is what
-is causing the problem.
+Regards,
 
-The other thing that is a bit unusual about the xc5000 in this
-particular case is the time to load the firmware is exceptionally long
-(around 7 seconds) due to a hardware bug in the au0828 which requires
-us to run the i2c bus at a very slow rate.  Hence, it's possible that
-the unusually long time between request_firmware() and
-release_firmware() has exposed some sort of race in the firmware
-loading core.
+	Hans
 
-It would be useful if we could get the full dmesg output so we can get
-some more context leading up to the oops.  Also, it would be helpful
-if the user could enable the "debug=1" in the xc5000 modprobe options.
-
-One more question: is the user doing any suspend/resume operations?
-For example, is this a laptop in which he is closing the lid and this
-is the first attempt to use the device after resume?
-
-Devin
-
+> 
+> 
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
