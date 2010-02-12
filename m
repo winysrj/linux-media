@@ -1,293 +1,245 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay02.digicable.hu ([92.249.128.188]:59595 "EHLO
-	relay02.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966663Ab0B0AU6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Feb 2010 19:20:58 -0500
-Message-ID: <4B886566.8000600@freemail.hu>
-Date: Sat, 27 Feb 2010 01:20:54 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+Received: from mail.juropnet.hu ([212.24.188.131]:46065 "EHLO mail.juropnet.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756105Ab0BLSWf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Feb 2010 13:22:35 -0500
+Received: from kabelnet-194-166.juropnet.hu ([91.147.194.166])
+	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <istvan_v@mailbox.hu>)
+	id 1Ng07F-0005Bn-KA
+	for linux-media@vger.kernel.org; Fri, 12 Feb 2010 19:19:53 +0100
+Message-ID: <4B759D44.6090100@mailbox.hu>
+Date: Fri, 12 Feb 2010 19:26:12 +0100
+From: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>,
-	Richard Purdie <rpurdie@rpsys.net>
-CC: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/2] gspca pac7302: allow controlling LED separately
-References: <4B84CC9E.4030600@freemail.hu> <20100224082238.53c8f6f8@tele>
-In-Reply-To: <20100224082238.53c8f6f8@tele>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: linux-media@vger.kernel.org
+Subject: Re: DTV2000 H Plus issues
+References: <4B3F6FE0.4040307@internode.on.net> <4B3F7B0D.4030601@mailbox.hu> <4B405381.9090407@internode.on.net> <4B421BCB.6050909@mailbox.hu> <4B4294FE.8000309@internode.on.net> <4B463AC6.2000901@mailbox.hu> <4B719CD0.6060804@mailbox.hu> <4B745781.2020408@mailbox.hu>
+In-Reply-To: <4B745781.2020408@mailbox.hu>
+Content-Type: multipart/mixed;
+ boundary="------------010102070808030704000208"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+This is a multi-part message in MIME format.
+--------------010102070808030704000208
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-On Labtec Webcam 2200 there is a feedback LED which can be controlled
-independent from the streaming. The feedback LED can be used from
-user space application to show for example detected motion or to
-distinguish between the preview and "on-air" state of the video stream.
+Here is another patch, with a few minor changes. It depends on the
+previously posted patches, so those should be applied first.
 
-The default value of the LED trigger keeps the previous behaviour:
-LED is off when the stream is off, LED is on if the stream is on.
+--------------010102070808030704000208
+Content-Type: text/x-patch;
+ name="xc4000-3-28f5eca12bb0.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="xc4000-3-28f5eca12bb0.patch"
 
-The code is working in the following three cases:
- (1) when the LED subsystem ins not configured at all;
- (2) when the LED subsystem is available, but the LED triggers are not available and
- (3) when both the LED subsystem and LED triggers are configured.
-
-Signed-off-by: Márton Németh <nm127@freemail.hu>
----
-diff -r 4f102b2f7ac1 linux/drivers/media/video/gspca/pac7302.c
---- a/linux/drivers/media/video/gspca/pac7302.c	Thu Jan 28 20:35:40 2010 +0100
-+++ b/linux/drivers/media/video/gspca/pac7302.c	Sat Feb 27 00:57:32 2010 +0100
-@@ -6,6 +6,7 @@
-  *
-  * Separated from Pixart PAC7311 library by Márton Németh
-  * Camera button input handling by Márton Németh <nm127@freemail.hu>
-+ * LED control by Márton Németh <nm127@freemail.hu>
-  * Copyright (C) 2009-2010 Márton Németh <nm127@freemail.hu>
-  *
-  * This program is free software; you can redistribute it and/or modify
-@@ -62,6 +63,7 @@
-     0   | 0xc6       | setwhitebalance()
-     0   | 0xc7       | setbluebalance()
-     0   | 0xdc       | setbrightcont(), setcolors()
-+    1   | 0x78       | set_streaming_led()
-     3   | 0x02       | setexposure()
-     3   | 0x10       | setgain()
-     3   | 0x11       | setcolors(), setgain(), setexposure(), sethvflip()
-@@ -72,6 +74,8 @@
-
- #include <linux/input.h>
- #include <media/v4l2-chip-ident.h>
-+#include <linux/leds.h>
-+#include <linux/workqueue.h>
- #include "gspca.h"
-
- MODULE_AUTHOR("Thomas Kaiser thomas@kaiser-linux.li");
-@@ -91,6 +95,7 @@
- 	unsigned char gain;
- 	unsigned char exposure;
- 	unsigned char autogain;
-+	unsigned char led;
- 	__u8 hflip;
- 	__u8 vflip;
- 	u8 flags;
-@@ -101,6 +106,16 @@
- 	u8 autogain_ignore_frames;
-
- 	atomic_t avg_lum;
-+
-+#ifdef CONFIG_LEDS_CLASS
-+	struct led_classdev led_cdev;
-+	struct work_struct led_work;
-+	char name[32];
-+#ifdef CONFIG_LEDS_TRIGGERS
-+	struct led_trigger led_trigger;
-+	char trigger_name[32];
-+#endif
-+#endif
+diff -r -d -N -U4 v4l-dvb-28f5eca12bb0.old/linux/drivers/media/common/tuners/xc4000.c v4l-dvb-28f5eca12bb0/linux/drivers/media/common/tuners/xc4000.c
+--- v4l-dvb-28f5eca12bb0.old/linux/drivers/media/common/tuners/xc4000.c	2010-02-12 19:14:24.000000000 +0100
++++ v4l-dvb-28f5eca12bb0/linux/drivers/media/common/tuners/xc4000.c	2010-02-12 19:20:35.000000000 +0100
+@@ -256,8 +256,9 @@
  };
-
- /* V4L2 controls supported by the driver */
-@@ -572,6 +587,7 @@
- 	sd->gain = GAIN_DEF;
- 	sd->exposure = EXPOSURE_DEF;
- 	sd->autogain = AUTOGAIN_DEF;
-+	sd->led = 0;
- 	sd->hflip = HFLIP_DEF;
- 	sd->vflip = VFLIP_DEF;
- 	sd->flags = id->driver_info;
-@@ -716,6 +732,58 @@
- 	reg_w(gspca_dev, 0x11, 0x01);
+ 
+ static int xc4000_readreg(struct xc4000_priv *priv, u16 reg, u16 *val);
+ static int xc4000_TunerReset(struct dvb_frontend *fe);
++static void xc_debug_dump(struct xc4000_priv *priv);
+ 
+ static int xc_send_i2c_data(struct xc4000_priv *priv, u8 *buf, int len)
+ {
+ 	struct i2c_msg msg = { .addr = priv->i2c_props.addr,
+@@ -332,12 +333,14 @@
+ 		(i2c_sequence[index + 1] != 0xFF)) {
+ 		len = i2c_sequence[index] * 256 + i2c_sequence[index+1];
+ 		if (len == 0x0000) {
+ 			/* RESET command */
+-			result = xc4000_TunerReset(fe);
+ 			index += 2;
++#if 0			/* not needed, as already called by check_firmware() */
++			result = xc4000_TunerReset(fe);
+ 			if (result != XC_RESULT_SUCCESS)
+ 				return result;
++#endif
+ 		} else if (len & 0x8000) {
+ 			/* WAIT command */
+ 			xc_wait(len & 0x7FFF);
+ 			index += 2;
+@@ -472,14 +475,8 @@
+ 
+ 	return 0;
  }
-
-+static void set_streaming_led(struct gspca_dev *gspca_dev, u8 streaming)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+	u8 data = 0;
+ 
+-/* WAS THERE
+-static int xc_get_buildversion(struct xc4000_priv *priv, u16 *buildrev)
+-{
+-	return xc4000_readreg(priv, XREG_BUILD, buildrev);
+-}*/
+-
+ static int xc_get_hsync_freq(struct xc4000_priv *priv, u32 *hsync_freq_hz)
+ {
+ 	u16 regData;
+ 	int result;
+@@ -516,14 +513,12 @@
+ 	}
+ 	return lockState;
+ }
+ 
+-#define XC_TUNE_ANALOG  0
+-#define XC_TUNE_DIGITAL 1
+-static int xc_tune_channel(struct xc4000_priv *priv, u32 freq_hz, int mode)
++static int xc_tune_channel(struct xc4000_priv *priv, u32 freq_hz)
+ {
+-	int found = 0;
+-	int result = 0;
++	int	found = 1;
++	int	result;
+ 
+ 	dprintk(1, "%s(%u)\n", __func__, freq_hz);
+ 
+ 	/* Don't complain when the request fails because of i2c stretching */
+@@ -533,13 +528,23 @@
+ 
+ 	if (result != XC_RESULT_SUCCESS)
+ 		return 0;
+ 
+-	if (mode == XC_TUNE_ANALOG) {
+-		if (WaitForLock(priv) == 1)
+-			found = 1;
++	/* wait for lock only in analog TV mode */
++	if ((priv->cur_fw.type & (FM | DTV6 | DTV7 | DTV78 | DTV8)) == 0) {
++		if (WaitForLock(priv) == 0)
++			found = 0;
+ 	}
+ 
++	/* Wait for stats to stabilize.
++	 * Frame Lines needs two frame times after initial lock
++	 * before it is valid.
++	 */
++	xc_wait(debug ? 100 : 10);
 +
-+	if (sd->led) {
-+		if (streaming)
-+			data = 0x01;
-+		else
-+			data = 0x00;
-+	} else {
-+		if (streaming)
-+			data = 0x41;
-+		else
-+			data = 0x40;
++	if (debug)
++		xc_debug_dump(priv);
++
+ 	return found;
+ }
+ 
+ static int xc4000_readreg(struct xc4000_priv *priv, u16 reg, u16 *val)
+@@ -1108,17 +1113,8 @@
+ 	u16	quality;
+ 	u8	hw_majorversion = 0, hw_minorversion = 0;
+ 	u8	fw_majorversion = 0, fw_minorversion = 0;
+ 
+-	if (!(priv->cur_fw.type & BASE))
+-		return;
+-
+-	/* Wait for stats to stabilize.
+-	 * Frame Lines needs two frame times after initial lock
+-	 * before it is valid.
+-	 */
+-	xc_wait(100);
+-
+ 	xc_get_ADC_Envelope(priv, &adc_envelope);
+ 	dprintk(1, "*** ADC envelope (0-1023) = %d\n", adc_envelope);
+ 
+ 	xc_get_frequency_error(priv, &freq_error_hz);
+@@ -1269,12 +1265,10 @@
+ 			/* goto fail; */
+ 		}
+ 	}
+ 
+-	xc_tune_channel(priv, priv->freq_hz, XC_TUNE_DIGITAL);
++	xc_tune_channel(priv, priv->freq_hz);
+ 
+-	if (debug)
+-		xc_debug_dump(priv);
+ 	ret = 0;
+ 
+ fail:
+ 	mutex_unlock(&priv->lock);
+@@ -1470,12 +1464,10 @@
+ 			goto fail;
+ 		}
+ 	}
+ 
+-	xc_tune_channel(priv, priv->freq_hz, XC_TUNE_ANALOG);
++	xc_tune_channel(priv, priv->freq_hz);
+ 
+-	if (debug)
+-		xc_debug_dump(priv);
+ 	ret = 0;
+ 
+ fail:
+ 	mutex_unlock(&priv->lock);
+@@ -1549,9 +1541,9 @@
+ 
+ 	mutex_lock(&priv->lock);
+ 
+ 	/* Avoid firmware reload on slow devices */
+-	if (!no_poweroff && priv->cur_fw.type != XC_POWERED_DOWN) {
++	if (!no_poweroff && (priv->cur_fw.type & BASE) != 0) {
+ 		/* force reset and firmware reload */
+ 		priv->cur_fw.type = XC_POWERED_DOWN;
+ 
+ 		if (xc_write_reg(priv, XREG_POWER_DOWN, 0)
+@@ -1560,8 +1552,9 @@
+ 			       "xc4000: %s() unable to shutdown tuner\n",
+ 			       __func__);
+ 			ret = -EREMOTEIO;
+ 		}
++		xc_wait(20);
+ 	}
+ 
+ 	mutex_unlock(&priv->lock);
+ 
+@@ -1638,9 +1631,10 @@
+ 
+ 	instance = hybrid_tuner_request_state(struct xc4000_priv, priv,
+ 					      hybrid_tuner_instance_list,
+ 					      i2c, cfg->i2c_address, "xc4000");
+-	priv->card_type = cfg->card_type;
++	if (cfg->card_type != XC4000_CARD_GENERIC)
++		priv->card_type = cfg->card_type;
+ 	switch (instance) {
+ 	case 0:
+ 		goto fail;
+ 		break;
+@@ -1703,12 +1697,21 @@
+ 
+ 	memcpy(&fe->ops.tuner_ops, &xc4000_tuner_ops,
+ 		sizeof(struct dvb_tuner_ops));
+ 
++	if (instance == 1) {
++		int	ret;
++		mutex_lock(&priv->lock);
++		ret = xc4000_fwupload(fe);
++		mutex_unlock(&priv->lock);
++		if (ret != XC_RESULT_SUCCESS)
++			goto fail2;
 +	}
 +
-+	reg_w(gspca_dev, 0xff, 0x01);
-+	reg_w(gspca_dev, 0x78, data);
-+}
-+
-+#ifdef CONFIG_LEDS_CLASS
-+/* Set the LED, may sleep */
-+static void led_work(struct work_struct *work)
-+{
-+	struct sd *sd = container_of(work, struct sd, led_work);
-+	struct gspca_dev *gspca_dev = &sd->gspca_dev;
-+
-+	mutex_lock(&gspca_dev->usb_lock);
-+	set_streaming_led(gspca_dev, gspca_dev->streaming);
-+	mutex_unlock(&gspca_dev->usb_lock);
-+}
-+
-+/* LED state set request, must not sleep */
-+static void led_set(struct led_classdev *led_cdev,
-+		    enum led_brightness value)
-+{
-+	u8 new_value;
-+	struct sd *sd = container_of(led_cdev, struct sd, led_cdev);
-+
-+	if (value == LED_OFF)
-+		new_value = 0;
-+	else
-+		new_value = 1;
-+
-+	if (sd->led != new_value) {
-+		sd->led = new_value;
-+		schedule_work(&sd->led_work);
-+	}
-+}
-+#endif
-+
- /* this function is called at probe and resume time for pac7302 */
- static int sd_init(struct gspca_dev *gspca_dev)
- {
-@@ -747,27 +815,60 @@
- 	atomic_set(&sd->avg_lum, -1);
-
- 	/* start stream */
--	reg_w(gspca_dev, 0xff, 0x01);
--	reg_w(gspca_dev, 0x78, 0x01);
-+
-+#if defined(CONFIG_LEDS_CLASS) && defined(CONFIG_LEDS_TRIGGERS)
-+	led_trigger_event(&sd->led_trigger, LED_FULL);
-+#elif defined(CONFIG_LEDS_CLASS)
-+	sd->led_cdev.brightness = sd->led_cdev.max_brightness;
-+	if (!(sd->led_cdev.flags & LED_SUSPENDED))
-+		sd->led_cdev.brightness_set(&sd->led_cdev,
-+				sd->led_cdev.brightness);
-+#else
-+	sd->led = 1;
-+#endif
-+	set_streaming_led(gspca_dev, 1);
-
- 	return gspca_dev->usb_err;
+ 	return fe;
+ fail:
+ 	mutex_unlock(&xc4000_list_mutex);
+-
++fail2:
+ 	xc4000_release(fe);
+ 	return NULL;
  }
+ EXPORT_SYMBOL(xc4000_attach);
+diff -r -d -N -U4 v4l-dvb-28f5eca12bb0.old/linux/drivers/media/video/tuner-core.c v4l-dvb-28f5eca12bb0/linux/drivers/media/video/tuner-core.c
+--- v4l-dvb-28f5eca12bb0.old/linux/drivers/media/video/tuner-core.c	2010-02-12 19:14:07.000000000 +0100
++++ v4l-dvb-28f5eca12bb0/linux/drivers/media/video/tuner-core.c	2010-02-12 19:15:07.000000000 +0100
+@@ -441,8 +441,9 @@
+ 		break;
+ 	}
+ 	case TUNER_XC4000:
+ 	{
++		xc4000_cfg.card_type	  = XC4000_CARD_GENERIC;
+ 		xc4000_cfg.i2c_address	  = t->i2c->addr;
+ 		/* if_khz will be set when the digital dvb_attach() occurs */
+ 		xc4000_cfg.if_khz	  = 0;
+ 		if (!dvb_attach(xc4000_attach,
 
- static void sd_stopN(struct gspca_dev *gspca_dev)
- {
-+	struct sd *sd = container_of(gspca_dev, struct sd, gspca_dev);
-
-+#ifndef CONFIG_LEDS_CLASS
-+	sd->led = 0;
-+#endif
- 	/* stop stream */
--	reg_w(gspca_dev, 0xff, 0x01);
--	reg_w(gspca_dev, 0x78, 0x00);
-+	set_streaming_led(gspca_dev, 0);
-+#if defined(CONFIG_LEDS_CLASS) && defined(CONFIG_LEDS_TRIGGERS)
-+	led_trigger_event(&sd->led_trigger, LED_OFF);
-+#elif defined(CONFIG_LEDS_CLASS)
-+	sd->led_cdev.brightness = LED_OFF;
-+	if (!(sd->led_cdev.flags & LED_SUSPENDED))
-+		sd->led_cdev.brightness_set(&sd->led_cdev,
-+				sd->led_cdev.brightness);
-+#endif
- }
-
- /* called on streamoff with alt 0 and on disconnect for pac7302 */
- static void sd_stop0(struct gspca_dev *gspca_dev)
- {
-+	struct sd *sd = container_of(gspca_dev, struct sd, gspca_dev);
-+
- 	if (!gspca_dev->present)
- 		return;
--	reg_w(gspca_dev, 0xff, 0x01);
--	reg_w(gspca_dev, 0x78, 0x40);
-+#ifndef CONFIG_LEDS_CLASS
-+	sd->led = 0;
-+#endif
-+	set_streaming_led(gspca_dev, 0);
-+#if defined(CONFIG_LEDS_CLASS) && defined(CONFIG_LEDS_TRIGGERS)
-+	led_trigger_event(&sd->led_trigger, LED_OFF);
-+#elif defined(CONFIG_LEDS_CLASS)
-+	sd->led_cdev.brightness = LED_OFF;
-+	if (!(sd->led_cdev.flags & LED_SUSPENDED))
-+		sd->led_cdev.brightness_set(&sd->led_cdev,
-+				sd->led_cdev.brightness);
-+#endif
- }
-
- /* Include pac common sof detection functions */
-@@ -1239,15 +1340,65 @@
- static int __devinit sd_probe(struct usb_interface *intf,
- 			const struct usb_device_id *id)
- {
--	return gspca_dev_probe(intf, id, &sd_desc, sizeof(struct sd),
-+	int ret;
-+
-+	ret = gspca_dev_probe(intf, id, &sd_desc, sizeof(struct sd),
- 				THIS_MODULE);
-+#ifdef CONFIG_LEDS_CLASS
-+	if (ret == 0) {
-+		struct gspca_dev *gspca_dev = usb_get_intfdata(intf);
-+		struct sd *sd = container_of(gspca_dev, struct sd, gspca_dev);
-+
-+#ifdef CONFIG_LEDS_TRIGGERS
-+		snprintf(sd->trigger_name, sizeof(sd->trigger_name),
-+			"pac7302-%u", gspca_dev->vdev.num);
-+		sd->led_trigger.name = sd->trigger_name;
-+		sd->led_cdev.default_trigger = sd->trigger_name;
-+#endif
-+		snprintf(sd->name, sizeof(sd->name),
-+			"pac7302-%u::camera", gspca_dev->vdev.num);
-+		sd->led_cdev.name = sd->name;
-+		sd->led_cdev.brightness_set = led_set;
-+		sd->led_cdev.blink_set = NULL;
-+		sd->led_cdev.flags = LED_CORE_SUSPENDRESUME;
-+		INIT_WORK(&sd->led_work, led_work);
-+		ret = led_classdev_register(&gspca_dev->dev->dev,
-+					    &sd->led_cdev);
-+		if (ret)
-+			gspca_disconnect(intf);
-+		else {
-+#ifdef CONFIG_LEDS_TRIGGERS
-+			led_trigger_register(&sd->led_trigger);
-+#endif
-+		}
-+	}
-+#endif
-+
-+	return ret;
- }
-
-+#ifdef CONFIG_LEDS_CLASS
-+static void sd_disconnect(struct usb_interface *intf)
-+{
-+	struct gspca_dev *gspca_dev = usb_get_intfdata(intf);
-+	struct sd *sd = container_of(gspca_dev, struct sd, gspca_dev);
-+
-+#ifdef CONFIG_LEDS_TRIGGERS
-+	led_trigger_unregister(&sd->led_trigger);
-+#endif
-+	led_classdev_unregister(&sd->led_cdev);
-+	cancel_work_sync(&sd->led_work);
-+	gspca_disconnect(intf);
-+}
-+#else
-+#define sd_disconnect gspca_disconnect
-+#endif
-+
- static struct usb_driver sd_driver = {
- 	.name = MODULE_NAME,
- 	.id_table = device_table,
- 	.probe = sd_probe,
--	.disconnect = gspca_disconnect,
-+	.disconnect = sd_disconnect,
- #ifdef CONFIG_PM
- 	.suspend = gspca_suspend,
- 	.resume = gspca_resume,
+--------------010102070808030704000208--
