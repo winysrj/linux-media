@@ -1,45 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay01.digicable.hu ([92.249.128.189]:52379 "EHLO
-	relay01.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031496Ab0B1IkX (ORCPT
+Received: from mail-in-05.arcor-online.net ([151.189.21.45]:47098 "EHLO
+	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750772Ab0BLFWg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Feb 2010 03:40:23 -0500
-Message-ID: <4B8A2BF2.40003@freemail.hu>
-Date: Sun, 28 Feb 2010 09:40:18 +0100
-From: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-MIME-Version: 1.0
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-CC: Matthew Garrett <mjg@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jiri Kosina <jkosina@suse.cz>,
-	Linux Input <linux-input@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Platform Driver x86 <platform-driver-x86@vger.kernel.org>
-Subject: Re: [PATCH] Input: scancode in get/set_keycodes should be unsigned
-References: <20100228061310.GA765@core.coreip.homeip.net> <4B8A10D0.2020802@freemail.hu> <20100228070536.GC765@core.coreip.homeip.net>
-In-Reply-To: <20100228070536.GC765@core.coreip.homeip.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+	Fri, 12 Feb 2010 00:22:36 -0500
+Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS,
+ 2.6.16-2.6.21: ERRORS
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <201002111918.o1BJIKH9044660@smtp-vbr13.xs4all.nl>
+References: <201002111918.o1BJIKH9044660@smtp-vbr13.xs4all.nl>
+Content-Type: text/plain
+Date: Fri, 12 Feb 2010 06:22:19 +0100
+Message-Id: <1265952139.2533.2.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dmitry Torokhov wrote:
-> On Sun, Feb 28, 2010 at 07:44:32AM +0100, Németh Márton wrote:
->> Hi,
->> Dmitry Torokhov wrote:
->>> The HID layer has some scan codes of the form 0xffbc0000 for logitech
->>> devices which do not work if scancode is typed as signed int, so we need
->>> to switch to unsigned int instead. While at it keycode being signed does
->>> not make much sense either.
->> Are the scan codes and key codes always 4 bytes long? Then the u32 data
->> type could be used to take 16 bit (or 64 bit) processors also into
->> consideration.
->>
+Am Donnerstag, den 11.02.2010, 20:18 +0100 schrieb Hans Verkuil:
+> This message is generated daily by a cron job that builds v4l-dvb for
+> the kernels and architectures in the list below.
 > 
-> We do not support 16 bit processors and for 64 bit 'unsigned int' is
-> still 32 bits.
+> Results of the daily build of v4l-dvb:
 > 
+> date:        Thu Feb 11 19:01:22 CET 2010
+> path:        http://www.linuxtv.org/hg/v4l-dvb
+> changeset:   14197:095b1aec2354
+> gcc version: i686-linux-gcc (GCC) 4.4.3
+> host hardware:    x86_64
+> host os:     2.6.32.5
+> 
+> linux-2.6.32.6-armv5: OK
+> linux-2.6.33-rc5-armv5: OK
+> linux-2.6.32.6-armv5-davinci: ERRORS
+> linux-2.6.33-rc5-armv5-davinci: ERRORS
+> linux-2.6.32.6-armv5-dm365: ERRORS
+> linux-2.6.33-rc5-armv5-dm365: ERRORS
+> linux-2.6.32.6-armv5-ixp: OK
+> linux-2.6.33-rc5-armv5-ixp: OK
+> linux-2.6.32.6-armv5-omap2: OK
+> linux-2.6.33-rc5-armv5-omap2: OK
+> linux-2.6.22.19-i686: ERRORS
+> linux-2.6.23.17-i686: ERRORS
+> linux-2.6.24.7-i686: ERRORS
+> linux-2.6.25.20-i686: ERRORS
+> linux-2.6.26.8-i686: ERRORS
+> linux-2.6.27.44-i686: ERRORS
+> linux-2.6.28.10-i686: ERRORS
+> linux-2.6.29.1-i686: ERRORS
+> linux-2.6.30.10-i686: ERRORS
+> linux-2.6.31.12-i686: WARNINGS
+> linux-2.6.32.6-i686: OK
+> linux-2.6.33-rc5-i686: OK
+> linux-2.6.32.6-m32r: OK
+> linux-2.6.33-rc5-m32r: OK
+> linux-2.6.32.6-mips: OK
+> linux-2.6.33-rc5-mips: OK
+> linux-2.6.32.6-powerpc64: OK
+> linux-2.6.33-rc5-powerpc64: OK
+> linux-2.6.22.19-x86_64: ERRORS
+> linux-2.6.23.17-x86_64: ERRORS
+> linux-2.6.24.7-x86_64: ERRORS
+> linux-2.6.25.20-x86_64: ERRORS
+> linux-2.6.26.8-x86_64: ERRORS
+> linux-2.6.27.44-x86_64: ERRORS
+> linux-2.6.28.10-x86_64: ERRORS
+> linux-2.6.29.1-x86_64: ERRORS
+> linux-2.6.30.10-x86_64: ERRORS
+> linux-2.6.31.12-x86_64: WARNINGS
+> linux-2.6.32.6-x86_64: OK
+> linux-2.6.33-rc5-x86_64: OK
+> spec: OK
+> sparse (v4l-dvb-git): ERRORS
+> sparse (linux-2.6.33-rc5): ERRORS
+> linux-2.6.16.62-i686: ERRORS
+> linux-2.6.17.14-i686: ERRORS
+> linux-2.6.18.8-i686: ERRORS
+> linux-2.6.19.7-i686: ERRORS
+> linux-2.6.20.21-i686: ERRORS
+> linux-2.6.21.7-i686: ERRORS
+> linux-2.6.16.62-x86_64: ERRORS
+> linux-2.6.17.14-x86_64: ERRORS
+> linux-2.6.18.8-x86_64: ERRORS
+> linux-2.6.19.7-x86_64: ERRORS
+> linux-2.6.20.21-x86_64: ERRORS
+> linux-2.6.21.7-x86_64: ERRORS
+> 
+> Detailed results are available here:
+> 
+> http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+> 
+> Full logs are available here:
+> 
+> http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+> 
+> The V4L-DVB specification from this daily build is here:
+> 
+> http://www.xs4all.nl/~hverkuil/spec/media.html
 
-OK, then:
 
-Acked-by: Márton Németh <nm127@freemail.hu>
+
+Douglas did fix it on current hg.
+
+Cheers,
+Hermann
+
+
