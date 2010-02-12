@@ -1,632 +1,839 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f182.google.com ([209.85.216.182]:34143 "EHLO
-	mail-px0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754927Ab0BBHI1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Feb 2010 02:08:27 -0500
-Received: by mail-px0-f182.google.com with SMTP id 12so5432630pxi.33
-        for <linux-media@vger.kernel.org>; Mon, 01 Feb 2010 23:08:26 -0800 (PST)
-From: Huang Shijie <shijie8@gmail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org, zyziii@telegent.com, tiwai@suse.de,
-	Huang Shijie <shijie8@gmail.com>
-Subject: [PATCH v2 04/10] add DVB-T support for tlg2300
-Date: Tue,  2 Feb 2010 15:07:50 +0800
-Message-Id: <1265094475-13059-5-git-send-email-shijie8@gmail.com>
-In-Reply-To: <1265094475-13059-4-git-send-email-shijie8@gmail.com>
-References: <1265094475-13059-1-git-send-email-shijie8@gmail.com>
- <1265094475-13059-2-git-send-email-shijie8@gmail.com>
- <1265094475-13059-3-git-send-email-shijie8@gmail.com>
- <1265094475-13059-4-git-send-email-shijie8@gmail.com>
+Received: from gateway14.websitewelcome.com ([69.93.82.2]:35356 "HELO
+	gateway14.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751396Ab0BLGAH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Feb 2010 01:00:07 -0500
+Received: from [66.15.212.169] (port=10319 helo=[10.140.5.12])
+	by gator886.hostgator.com with esmtpsa (SSLv3:AES256-SHA:256)
+	(Exim 4.69)
+	(envelope-from <pete@sensoray.com>)
+	id 1NfjTI-0005ky-LX
+	for linux-media@vger.kernel.org; Thu, 11 Feb 2010 18:33:25 -0600
+Subject: [PATCH 2/5] sony-tuner: Subdev conversion from wis-sony-tuner
+From: Pete Eberlein <pete@sensoray.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain
+Date: Thu, 11 Feb 2010 16:33:07 -0800
+Message-Id: <1265934787.4626.251.camel@pete-desktop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This file contains the code for DVB-T.
+From: Pete Eberlein <pete@sensoray.com>
 
-Signed-off-by: Huang Shijie <shijie8@gmail.com>
----
- drivers/media/video/tlg2300/pd-dvb.c |  593 ++++++++++++++++++++++++++++++++++
- 1 files changed, 593 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/tlg2300/pd-dvb.c
+This is a subdev conversion of the go7007 wis-sony-tuner i2c driver,
+and places it with the other tuner drivers.  This obsoletes the
+wis-sony-tuner driver in the go7007 staging directory.
 
-diff --git a/drivers/media/video/tlg2300/pd-dvb.c b/drivers/media/video/tlg2300/pd-dvb.c
-new file mode 100644
-index 0000000..4133aee
---- /dev/null
-+++ b/drivers/media/video/tlg2300/pd-dvb.c
-@@ -0,0 +1,593 @@
-+#include "pd-common.h"
-+#include <linux/kernel.h>
-+#include <linux/usb.h>
-+#include <linux/dvb/dmx.h>
-+#include <linux/delay.h>
+Priority: normal
+
+Signed-off-by: Pete Eberlein <pete@sensoray.com>
+
+diff -r 2d2a250ca33b -r 628119533574 linux/Documentation/video4linux/CARDLIST.tuner
+--- a/linux/Documentation/video4linux/CARDLIST.tuner	Wed Feb 10 11:25:59 2010 -0800
++++ b/linux/Documentation/video4linux/CARDLIST.tuner	Thu Feb 11 15:21:11 2010 -0800
+@@ -81,3 +81,6 @@
+ tuner=81 - Partsnic (Daewoo) PTI-5NF05
+ tuner=82 - Philips CU1216L
+ tuner=83 - NXP TDA18271
++tuner=84 - Sony PAL+SECAM (BTF-PG472Z)
++tuner=85 - Sony NTSC_JP (BTF-PK467Z)
++tuner=86 - Sony NTSC (BTF-PB463Z)
+diff -r 2d2a250ca33b -r 628119533574 linux/drivers/media/common/tuners/Kconfig
+--- a/linux/drivers/media/common/tuners/Kconfig	Wed Feb 10 11:25:59 2010 -0800
++++ b/linux/drivers/media/common/tuners/Kconfig	Thu Feb 11 15:21:11 2010 -0800
+@@ -179,4 +179,12 @@
+ 	help
+ 	  A driver for the silicon tuner MAX2165 from Maxim.
+ 
++config MEDIA_TUNER_SONY
++	tristate "Sony TV tuner"
++	depends on VIDEO_MEDIA && I2C
++	default m if MEDIA_TUNER_CUSTOMISE
++	help
++	  A driver for the Sony tuners BTF-PG472Z, BTF-PK467Z, BTF-PB463Z.
 +
-+#include "vendorcmds.h"
-+#include <linux/sched.h>
-+#include <asm/atomic.h>
 +
-+static void dvb_urb_cleanup(struct pd_dvb_adapter *pd_dvb);
+ endif # MEDIA_TUNER_CUSTOMISE
+diff -r 2d2a250ca33b -r 628119533574 linux/drivers/media/common/tuners/Makefile
+--- a/linux/drivers/media/common/tuners/Makefile	Wed Feb 10 11:25:59 2010 -0800
++++ b/linux/drivers/media/common/tuners/Makefile	Thu Feb 11 15:21:11 2010 -0800
+@@ -24,6 +24,7 @@
+ obj-$(CONFIG_MEDIA_TUNER_MXL5007T) += mxl5007t.o
+ obj-$(CONFIG_MEDIA_TUNER_MC44S803) += mc44s803.o
+ obj-$(CONFIG_MEDIA_TUNER_MAX2165) += max2165.o
++obj-$(CONFIG_MEDIA_TUNER_SONY) += sony-tuner.o
+ 
+ EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
+ EXTRA_CFLAGS += -Idrivers/media/dvb/frontends
+diff -r 2d2a250ca33b -r 628119533574 linux/drivers/media/common/tuners/sony-tuner.c
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/linux/drivers/media/common/tuners/sony-tuner.c	Thu Feb 11 15:21:11 2010 -0800
+@@ -0,0 +1,695 @@
++/*
++ * Copyright (C) 2005-2006 Micronas USA Inc.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License (Version 2) as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software Foundation,
++ * Inc., 59 Temple Place - Suite 330, Boston MA 02111-1307, USA.
++ */
 +
-+static int dvb_bandwidth[][2] = {
-+	{ TLG_BW_8, BANDWIDTH_8_MHZ },
-+	{ TLG_BW_7, BANDWIDTH_7_MHZ },
-+	{ TLG_BW_6, BANDWIDTH_6_MHZ }
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/i2c.h>
++#include <linux/videodev2.h>
++#include <media/tuner.h>
++#include <media/v4l2-common.h>
++#include <media/v4l2-ioctl.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-i2c-drv.h>
++
++MODULE_DESCRIPTION("Sony TV Tuner driver");
++MODULE_LICENSE("GPL v2");
++
++/* #define MPX_DEBUG */
++
++/* AS(IF/MPX) pin:      LOW      HIGH/OPEN
++ * IF/MPX address:   0x42/0x40   0x43/0x44
++ */
++#define IF_I2C_ADDR	0x43
++#define MPX_I2C_ADDR	0x44
++
++static v4l2_std_id force_band;
++static char force_band_str[] = "-";
++module_param_string(force_band, force_band_str, sizeof(force_band_str), 0644);
++static int force_mpx_mode = -1;
++module_param(force_mpx_mode, int, 0644);
++
++/* Store tuner info in the same format as tuner.c, so maybe we can put the
++ * Sony tuner support in there. */
++struct sony_tunertype {
++	char *name;
++	unsigned char Vendor; /* unused here */
++	unsigned char Type; /* unused here */
++
++	unsigned short thresh1; /*  band switch VHF_LO <=> VHF_HI */
++	unsigned short thresh2; /*  band switch VHF_HI <=> UHF */
++	unsigned char VHF_L;
++	unsigned char VHF_H;
++	unsigned char UHF;
++	unsigned char config;
++	unsigned short IFPCoff;
 +};
-+static int dvb_bandwidth_length = ARRAY_SIZE(dvb_bandwidth);
 +
-+static s32 dvb_start_streaming(struct pd_dvb_adapter *pd_dvb);
-+static int poseidon_check_mode_dvbt(struct poseidon *pd)
++/* This array is indexed by (tuner_type - TUNER_SONY_BTF_PG472Z) */
++static struct sony_tunertype sony_tuners[] = {
++	{ "Sony PAL+SECAM (BTF-PG472Z)", 0, 0,
++	  16*144.25, 16*427.25, 0x01, 0x02, 0x04, 0xc6, 623},
++	{ "Sony NTSC_JP (BTF-PK467Z)", 0, 0,
++	  16*220.25, 16*467.25, 0x01, 0x02, 0x04, 0xc6, 940},
++	{ "Sony NTSC (BTF-PB463Z)", 0, 0,
++	  16*130.25, 16*364.25, 0x01, 0x02, 0x04, 0xc6, 732},
++};
++
++struct sony_tuner {
++	struct v4l2_subdev sd;
++	int type;
++	v4l2_std_id std;
++	unsigned int freq;
++	int mpxmode;
++	u32 audmode;
++};
++
++static inline struct sony_tuner *to_state(struct v4l2_subdev *sd)
 +{
-+	s32 ret = 0, cmd_status = 0;
++	return container_of(sd, struct sony_tuner, sd);
++}
 +
-+	set_current_state(TASK_INTERRUPTIBLE);
-+	schedule_timeout(HZ/4);
++/* Basically the same as default_set_tv_freq() in tuner.c */
++static int set_freq(struct i2c_client *client, int freq)
++{
++	struct sony_tuner *t = to_state(i2c_get_clientdata(client));
++	char *band_name;
++	int n;
++	int band_select;
++	struct sony_tunertype *tun;
++	u8 buffer[4];
 +
-+	ret = usb_set_interface(pd->udev, 0, BULK_ALTERNATE_IFACE);
-+	if (ret != 0)
-+		return ret;
++	tun = &sony_tuners[t->type - TUNER_SONY_BTF_PG472Z];
++	if (freq < tun->thresh1) {
++		band_name = "VHF_L";
++		band_select = tun->VHF_L;
++	} else if (freq < tun->thresh2) {
++		band_name = "VHF_H";
++		band_select = tun->VHF_H;
++	} else {
++		band_name = "UHF";
++		band_select = tun->UHF;
++	}
++	v4l2_info(client, "tuning to frequency %d.%04d (%s)\n",
++			freq / 16, (freq % 16) * 625, band_name);
++	n = freq + tun->IFPCoff;
 +
-+	ret = set_tuner_mode(pd, TLG_MODE_CAPS_DVB_T);
-+	if (ret)
-+		return ret;
-+
-+	/* signal source */
-+	ret = send_set_req(pd, SGNL_SRC_SEL, TLG_SIG_SRC_ANTENNA, &cmd_status);
-+	if (ret|cmd_status)
-+		return ret;
++	buffer[0] = n >> 8;
++	buffer[1] = n & 0xff;
++	buffer[2] = tun->config;
++	buffer[3] = band_select;
++	i2c_master_send(client, buffer, 4);
 +
 +	return 0;
 +}
 +
-+/* acquire :
-+ * 	1 == open
-+ * 	0 == release
-+ */
-+static int poseidon_ts_bus_ctrl(struct dvb_frontend *fe, int acquire)
++static int mpx_write(struct i2c_client *client, int dev, int addr, int val)
 +{
-+	struct poseidon *pd = fe->demodulator_priv;
-+	struct pd_dvb_adapter *pd_dvb;
-+	int ret = 0;
++	u8 buffer[5];
++	struct i2c_msg msg;
 +
-+	if (!pd)
-+		return -ENODEV;
-+
-+	pd_dvb = container_of(fe, struct pd_dvb_adapter, dvb_fe);
-+	if (acquire) {
-+		mutex_lock(&pd->lock);
-+		if (pd->state & POSEIDON_STATE_DISCONNECT) {
-+			ret = -ENODEV;
-+			goto open_out;
-+		}
-+
-+		if (pd->state && !(pd->state & POSEIDON_STATE_DVBT)) {
-+			ret = -EBUSY;
-+			goto open_out;
-+		}
-+
-+		usb_autopm_get_interface(pd->interface);
-+		if (0 == pd->state) {
-+			ret = poseidon_check_mode_dvbt(pd);
-+			if (ret < 0) {
-+				usb_autopm_put_interface(pd->interface);
-+				goto open_out;
-+			}
-+			pd->state |= POSEIDON_STATE_DVBT;
-+			pd_dvb->bandwidth = 0;
-+			pd_dvb->prev_freq = 0;
-+		}
-+		atomic_inc(&pd_dvb->users);
-+		kref_get(&pd->kref);
-+open_out:
-+		mutex_unlock(&pd->lock);
-+	} else {
-+		dvb_stop_streaming(pd_dvb);
-+
-+		if (atomic_dec_and_test(&pd_dvb->users)) {
-+			mutex_lock(&pd->lock);
-+			pd->state &= ~POSEIDON_STATE_DVBT;
-+			mutex_unlock(&pd->lock);
-+		}
-+		kref_put(&pd->kref, poseidon_delete);
-+		usb_autopm_put_interface(pd->interface);
-+	}
-+	return ret;
-+}
-+
-+static void poseidon_fe_release(struct dvb_frontend *fe)
-+{
-+	struct poseidon *pd = fe->demodulator_priv;
-+
-+#ifdef CONFIG_PM
-+	pd->pm_suspend = NULL;
-+	pd->pm_resume  = NULL;
-+#endif
-+}
-+
-+static s32 poseidon_fe_sleep(struct dvb_frontend *fe)
-+{
++	buffer[0] = dev;
++	buffer[1] = addr >> 8;
++	buffer[2] = addr & 0xff;
++	buffer[3] = val >> 8;
++	buffer[4] = val & 0xff;
++	msg.addr = MPX_I2C_ADDR;
++	msg.flags = 0;
++	msg.len = 5;
++	msg.buf = buffer;
++	i2c_transfer(client->adapter, &msg, 1);
 +	return 0;
 +}
 +
 +/*
-+ * return true if we can satisfy the conditions, else return false.
++ * MPX register values for the BTF-PG472Z:
++ *
++ *                                 FM_     NICAM_  SCART_
++ *          MODUS  SOURCE    ACB   PRESCAL PRESCAL PRESCAL SYSTEM  VOLUME
++ *         10/0030 12/0008 12/0013 12/000E 12/0010 12/0000 10/0020 12/0000
++ *         ---------------------------------------------------------------
++ * Auto     1003    0020    0100    2603    5000    XXXX    0001    7500
++ *
++ * B/G
++ *  Mono    1003    0020    0100    2603    5000    XXXX    0003    7500
++ *  A2      1003    0020    0100    2601    5000    XXXX    0003    7500
++ *  NICAM   1003    0120    0100    2603    5000    XXXX    0008    7500
++ *
++ * I
++ *  Mono    1003    0020    0100    2603    7900    XXXX    000A    7500
++ *  NICAM   1003    0120    0100    2603    7900    XXXX    000A    7500
++ *
++ * D/K
++ *  Mono    1003    0020    0100    2603    5000    XXXX    0004    7500
++ *  A2-1    1003    0020    0100    2601    5000    XXXX    0004    7500
++ *  A2-2    1003    0020    0100    2601    5000    XXXX    0005    7500
++ *  A2-3    1003    0020    0100    2601    5000    XXXX    0007    7500
++ *  NICAM   1003    0120    0100    2603    5000    XXXX    000B    7500
++ *
++ * L/L'
++ *  Mono    0003    0200    0100    7C03    5000    2200    0009    7500
++ *  NICAM   0003    0120    0100    7C03    5000    XXXX    0009    7500
++ *
++ * M
++ *  Mono    1003    0200    0100    2B03    5000    2B00    0002    7500
++ *
++ * For Asia, replace the 0x26XX in FM_PRESCALE with 0x14XX.
++ *
++ * Bilingual selection in A2/NICAM:
++ *
++ *         High byte of SOURCE     Left chan   Right chan
++ *                 0x01              MAIN         SUB
++ *                 0x03              MAIN         MAIN
++ *                 0x04              SUB          SUB
++ *
++ * Force mono in NICAM by setting the high byte of SOURCE to 0x02 (L/L') or
++ * 0x00 (all other bands).  Force mono in A2 with FMONO_A2:
++ *
++ *                      FMONO_A2
++ *                      10/0022
++ *                      --------
++ *     Forced mono ON     07F0
++ *     Forced mono OFF    0190
 + */
-+static bool check_scan_ok(__u32 freq, int bandwidth,
-+			struct pd_dvb_adapter *adapter)
-+{
-+	if (bandwidth < 0)
-+		return false;
 +
-+	if (adapter->prev_freq == freq
-+		&& adapter->bandwidth == bandwidth) {
-+		long nl = jiffies - adapter->last_jiffies;
-+		unsigned int msec ;
-+
-+		msec = jiffies_to_msecs(abs(nl));
-+		return msec > 15000 ? true : false;
-+	}
-+	return true;
-+}
-+
-+/*
-+ * Check if the firmware delays too long for an invalid frequency.
-+ */
-+static int fw_delay_overflow(struct pd_dvb_adapter *adapter)
-+{
-+	long nl = jiffies - adapter->last_jiffies;
-+	unsigned int msec ;
-+
-+	msec = jiffies_to_msecs(abs(nl));
-+	return msec > 800 ? true : false;
-+}
-+
-+static int poseidon_set_fe(struct dvb_frontend *fe,
-+			struct dvb_frontend_parameters *fep)
-+{
-+	s32 ret = 0, cmd_status = 0;
-+	s32 i, bandwidth = -1;
-+	struct poseidon *pd = fe->demodulator_priv;
-+	struct pd_dvb_adapter *pd_dvb = &pd->dvb_data;
-+
-+	if (in_hibernation(pd))
-+		return -EBUSY;
-+
-+	mutex_lock(&pd->lock);
-+	for (i = 0; i < dvb_bandwidth_length; i++)
-+		if (fep->u.ofdm.bandwidth == dvb_bandwidth[i][1])
-+			bandwidth = dvb_bandwidth[i][0];
-+
-+	if (check_scan_ok(fep->frequency, bandwidth, pd_dvb)) {
-+		ret = send_set_req(pd, TUNE_FREQ_SELECT,
-+					fep->frequency / 1000, &cmd_status);
-+		if (ret | cmd_status) {
-+			log("error line");
-+			goto front_out;
-+		}
-+
-+		ret = send_set_req(pd, DVBT_BANDW_SEL,
-+						bandwidth, &cmd_status);
-+		if (ret | cmd_status) {
-+			log("error line");
-+			goto front_out;
-+		}
-+
-+		ret = send_set_req(pd, TAKE_REQUEST, 0, &cmd_status);
-+		if (ret | cmd_status) {
-+			log("error line");
-+			goto front_out;
-+		}
-+
-+		/* save the context for future */
-+		memcpy(&pd_dvb->fe_param, fep, sizeof(*fep));
-+		pd_dvb->bandwidth = bandwidth;
-+		pd_dvb->prev_freq = fep->frequency;
-+		pd_dvb->last_jiffies = jiffies;
-+	}
-+front_out:
-+	mutex_unlock(&pd->lock);
-+	return ret;
-+}
-+
-+#ifdef CONFIG_PM
-+static int pm_dvb_suspend(struct poseidon *pd)
-+{
-+	struct pd_dvb_adapter *pd_dvb = &pd->dvb_data;
-+	dvb_stop_streaming(pd_dvb);
-+	dvb_urb_cleanup(pd_dvb);
-+	msleep(500);
-+	return 0;
-+}
-+
-+static int pm_dvb_resume(struct poseidon *pd)
-+{
-+	struct pd_dvb_adapter *pd_dvb = &pd->dvb_data;
-+
-+	poseidon_check_mode_dvbt(pd);
-+	msleep(300);
-+	poseidon_set_fe(&pd_dvb->dvb_fe, &pd_dvb->fe_param);
-+
-+	dvb_start_streaming(pd_dvb);
-+	return 0;
-+}
-+#endif
-+
-+static s32 poseidon_fe_init(struct dvb_frontend *fe)
-+{
-+	struct poseidon *pd = fe->demodulator_priv;
-+	struct pd_dvb_adapter *pd_dvb = &pd->dvb_data;
-+
-+#ifdef CONFIG_PM
-+	pd->pm_suspend = pm_dvb_suspend;
-+	pd->pm_resume  = pm_dvb_resume;
-+#endif
-+	memset(&pd_dvb->fe_param, 0,
-+			sizeof(struct dvb_frontend_parameters));
-+	return 0;
-+}
-+
-+static int poseidon_get_fe(struct dvb_frontend *fe,
-+			struct dvb_frontend_parameters *fep)
-+{
-+	struct poseidon *pd = fe->demodulator_priv;
-+	struct pd_dvb_adapter *pd_dvb = &pd->dvb_data;
-+
-+	memcpy(fep, &pd_dvb->fe_param, sizeof(*fep));
-+	return 0;
-+}
-+
-+static int poseidon_fe_get_tune_settings(struct dvb_frontend *fe,
-+				struct dvb_frontend_tune_settings *tune)
-+{
-+	tune->min_delay_ms = 1000;
-+	return 0;
-+}
-+
-+static int poseidon_read_status(struct dvb_frontend *fe, fe_status_t *stat)
-+{
-+	struct poseidon *pd = fe->demodulator_priv;
-+	s32 ret = -1, cmd_status;
-+	struct tuner_dtv_sig_stat_s status = {};
-+
-+	if (in_hibernation(pd))
-+		return -EBUSY;
-+	mutex_lock(&pd->lock);
-+
-+	ret = send_get_req(pd, TUNER_STATUS, TLG_MODE_DVB_T,
-+				&status, &cmd_status, sizeof(status));
-+	if (ret | cmd_status) {
-+		log("get tuner status error");
-+		goto out;
-+	}
-+
-+	if (debug_mode)
-+		log("P : %d, L %d, LB :%d", status.sig_present,
-+			status.sig_locked, status.sig_lock_busy);
-+
-+	if (status.sig_lock_busy) {
-+		goto out;
-+	} else if (status.sig_present || status.sig_locked) {
-+		*stat |= FE_HAS_LOCK | FE_HAS_SIGNAL | FE_HAS_CARRIER
-+				| FE_HAS_SYNC | FE_HAS_VITERBI;
-+	} else {
-+		if (fw_delay_overflow(&pd->dvb_data))
-+			*stat |= FE_TIMEDOUT;
-+	}
-+out:
-+	mutex_unlock(&pd->lock);
-+	return ret;
-+}
-+
-+static int poseidon_read_ber(struct dvb_frontend *fe, u32 *ber)
-+{
-+	struct poseidon *pd = fe->demodulator_priv;
-+	struct tuner_ber_rate_s tlg_ber = {};
-+	s32 ret = -1, cmd_status;
-+
-+	mutex_lock(&pd->lock);
-+	ret = send_get_req(pd, TUNER_BER_RATE, 0,
-+				&tlg_ber, &cmd_status, sizeof(tlg_ber));
-+	if (ret | cmd_status)
-+		goto out;
-+	*ber = tlg_ber.ber_rate;
-+out:
-+	mutex_unlock(&pd->lock);
-+	return ret;
-+}
-+
-+static s32 poseidon_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
-+{
-+	struct poseidon *pd = fe->demodulator_priv;
-+	struct tuner_dtv_sig_stat_s status = {};
-+	s32 ret = 0, cmd_status;
-+
-+	mutex_lock(&pd->lock);
-+	ret = send_get_req(pd, TUNER_STATUS, TLG_MODE_DVB_T,
-+				&status, &cmd_status, sizeof(status));
-+	if (ret | cmd_status)
-+		goto out;
-+	if ((status.sig_present || status.sig_locked) && !status.sig_strength)
-+		*strength = 0xFFFF;
-+	else
-+		*strength = status.sig_strength;
-+out:
-+	mutex_unlock(&pd->lock);
-+	return ret;
-+}
-+
-+static int poseidon_read_snr(struct dvb_frontend *fe, u16 *snr)
-+{
-+	return 0;
-+}
-+
-+static int poseidon_read_unc_blocks(struct dvb_frontend *fe, u32 *unc)
-+{
-+	*unc = 0;
-+	return 0;
-+}
-+
-+static struct dvb_frontend_ops poseidon_frontend_ops = {
-+	.info = {
-+		.name		= "Poseidon DVB-T",
-+		.type		= FE_OFDM,
-+		.frequency_min	= 174000000,
-+		.frequency_max  = 862000000,
-+		.frequency_stepsize	  = 62500,/* FIXME */
-+		.caps = FE_CAN_INVERSION_AUTO |
-+			FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
-+			FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
-+			FE_CAN_QPSK | FE_CAN_QAM_16 | FE_CAN_QAM_64 |
-+			FE_CAN_QAM_AUTO | FE_CAN_TRANSMISSION_MODE_AUTO |
-+			FE_CAN_GUARD_INTERVAL_AUTO |
-+			FE_CAN_RECOVER |
-+			FE_CAN_HIERARCHY_AUTO,
-+	},
-+
-+	.release = poseidon_fe_release,
-+
-+	.init = poseidon_fe_init,
-+	.sleep = poseidon_fe_sleep,
-+
-+	.set_frontend = poseidon_set_fe,
-+	.get_frontend = poseidon_get_fe,
-+	.get_tune_settings = poseidon_fe_get_tune_settings,
-+
-+	.read_status	= poseidon_read_status,
-+	.read_ber	= poseidon_read_ber,
-+	.read_signal_strength = poseidon_read_signal_strength,
-+	.read_snr	= poseidon_read_snr,
-+	.read_ucblocks	= poseidon_read_unc_blocks,
-+
-+	.ts_bus_ctrl = poseidon_ts_bus_ctrl,
++static struct {
++	enum { AUD_MONO, AUD_A2, AUD_NICAM, AUD_NICAM_L } audio_mode;
++	u16 modus;
++	u16 source;
++	u16 acb;
++	u16 fm_prescale;
++	u16 nicam_prescale;
++	u16 scart_prescale;
++	u16 system;
++	u16 volume;
++} mpx_audio_modes[] = {
++	/* Auto */	{ AUD_MONO,	0x1003, 0x0020, 0x0100, 0x2603,
++					0x5000, 0x0000, 0x0001, 0x7500 },
++	/* B/G Mono */	{ AUD_MONO,	0x1003, 0x0020, 0x0100, 0x2603,
++					0x5000, 0x0000, 0x0003, 0x7500 },
++	/* B/G A2 */	{ AUD_A2,	0x1003, 0x0020, 0x0100, 0x2601,
++					0x5000, 0x0000, 0x0003, 0x7500 },
++	/* B/G NICAM */ { AUD_NICAM,	0x1003, 0x0120, 0x0100, 0x2603,
++					0x5000, 0x0000, 0x0008, 0x7500 },
++	/* I Mono */	{ AUD_MONO,	0x1003, 0x0020, 0x0100, 0x2603,
++					0x7900, 0x0000, 0x000A, 0x7500 },
++	/* I NICAM */	{ AUD_NICAM,	0x1003, 0x0120, 0x0100, 0x2603,
++					0x7900, 0x0000, 0x000A, 0x7500 },
++	/* D/K Mono */	{ AUD_MONO,	0x1003, 0x0020, 0x0100, 0x2603,
++					0x5000, 0x0000, 0x0004, 0x7500 },
++	/* D/K A2-1 */	{ AUD_A2,	0x1003, 0x0020, 0x0100, 0x2601,
++					0x5000, 0x0000, 0x0004, 0x7500 },
++	/* D/K A2-2 */	{ AUD_A2,	0x1003, 0x0020, 0x0100, 0x2601,
++					0x5000, 0x0000, 0x0005, 0x7500 },
++	/* D/K A2-3 */	{ AUD_A2,	0x1003, 0x0020, 0x0100, 0x2601,
++					0x5000, 0x0000, 0x0007, 0x7500 },
++	/* D/K NICAM */	{ AUD_NICAM,	0x1003, 0x0120, 0x0100, 0x2603,
++					0x5000, 0x0000, 0x000B, 0x7500 },
++	/* L/L' Mono */	{ AUD_MONO,	0x0003, 0x0200, 0x0100, 0x7C03,
++					0x5000, 0x2200, 0x0009, 0x7500 },
++	/* L/L' NICAM */{ AUD_NICAM_L,	0x0003, 0x0120, 0x0100, 0x7C03,
++					0x5000, 0x0000, 0x0009, 0x7500 },
 +};
 +
-+static void dvb_urb_irq(struct urb *urb)
++#define MPX_NUM_MODES	ARRAY_SIZE(mpx_audio_modes)
++
++static int mpx_setup(struct i2c_client *client)
 +{
-+	struct pd_dvb_adapter *pd_dvb = urb->context;
-+	int len = urb->transfer_buffer_length;
-+	struct dvb_demux *demux = &pd_dvb->demux;
-+	s32 ret;
++	struct sony_tuner *t = i2c_get_clientdata(client);
++	u16 source = 0;
++	u8 buffer[3];
++	struct i2c_msg msg;
 +
-+	if (!pd_dvb->is_streaming || urb->status) {
-+		if (urb->status == -EPROTO)
-+			goto resend;
-+		return;
-+	}
++	/* reset MPX */
++	buffer[0] = 0x00;
++	buffer[1] = 0x80;
++	buffer[2] = 0x00;
++	msg.addr = MPX_I2C_ADDR;
++	msg.flags = 0;
++	msg.len = 3;
++	msg.buf = buffer;
++	i2c_transfer(client->adapter, &msg, 1);
++	buffer[1] = 0x00;
++	i2c_transfer(client->adapter, &msg, 1);
 +
-+	if (urb->actual_length == len)
-+		dvb_dmx_swfilter(demux, urb->transfer_buffer, len);
-+	else if (urb->actual_length == len - 4) {
-+		int offset;
-+		u8 *buf = urb->transfer_buffer;
-+
-+		/*
-+		 * The packet size is 512,
-+		 * last packet contains 456 bytes tsp data
-+		 */
-+		for (offset = 456; offset < len; offset += 512) {
-+			if (!strncmp(buf + offset, "DVHS", 4)) {
-+				dvb_dmx_swfilter(demux, buf, offset);
-+				if (len > offset + 52 + 4) {
-+					/*16 bytes trailer + 36 bytes padding */
-+					buf += offset + 52;
-+					len -= offset + 52 + 4;
-+					dvb_dmx_swfilter(demux, buf, len);
-+				}
++	if (mpx_audio_modes[t->mpxmode].audio_mode != AUD_MONO) {
++		switch (t->audmode) {
++		case V4L2_TUNER_MODE_MONO:
++			switch (mpx_audio_modes[t->mpxmode].audio_mode) {
++			case AUD_A2:
++				source = mpx_audio_modes[t->mpxmode].source;
++				break;
++			case AUD_NICAM:
++				source = 0x0000;
++				break;
++			case AUD_NICAM_L:
++				source = 0x0200;
++				break;
++			default:
 +				break;
 +			}
++			break;
++		case V4L2_TUNER_MODE_STEREO:
++			source = mpx_audio_modes[t->mpxmode].source;
++			break;
++		case V4L2_TUNER_MODE_LANG1:
++			source = 0x0300;
++			break;
++		case V4L2_TUNER_MODE_LANG2:
++			source = 0x0400;
++			break;
 +		}
++		source |= mpx_audio_modes[t->mpxmode].source & 0x00ff;
++	} else
++		source = mpx_audio_modes[t->mpxmode].source;
++
++	mpx_write(client, 0x10, 0x0030, mpx_audio_modes[t->mpxmode].modus);
++	mpx_write(client, 0x12, 0x0008, source);
++	mpx_write(client, 0x12, 0x0013, mpx_audio_modes[t->mpxmode].acb);
++	mpx_write(client, 0x12, 0x000e,
++			mpx_audio_modes[t->mpxmode].fm_prescale);
++	mpx_write(client, 0x12, 0x0010,
++			mpx_audio_modes[t->mpxmode].nicam_prescale);
++	mpx_write(client, 0x12, 0x000d,
++			mpx_audio_modes[t->mpxmode].scart_prescale);
++	mpx_write(client, 0x10, 0x0020, mpx_audio_modes[t->mpxmode].system);
++	mpx_write(client, 0x12, 0x0000, mpx_audio_modes[t->mpxmode].volume);
++	if (mpx_audio_modes[t->mpxmode].audio_mode == AUD_A2)
++		mpx_write(client, 0x10, 0x0022,
++			t->audmode == V4L2_TUNER_MODE_MONO ?  0x07f0 : 0x0190);
++
++#ifdef MPX_DEBUG
++	{
++		u8 buf1[3], buf2[2];
++		struct i2c_msg msgs[2];
++
++		v4l2_info(client, "MPX registers: %04x %04x "
++				"%04x %04x %04x %04x %04x %04x\n",
++				mpx_audio_modes[t->mpxmode].modus,
++				source,
++				mpx_audio_modes[t->mpxmode].acb,
++				mpx_audio_modes[t->mpxmode].fm_prescale,
++				mpx_audio_modes[t->mpxmode].nicam_prescale,
++				mpx_audio_modes[t->mpxmode].scart_prescale,
++				mpx_audio_modes[t->mpxmode].system,
++				mpx_audio_modes[t->mpxmode].volume);
++		buf1[0] = 0x11;
++		buf1[1] = 0x00;
++		buf1[2] = 0x7e;
++		msgs[0].addr = MPX_I2C_ADDR;
++		msgs[0].flags = 0;
++		msgs[0].len = 3;
++		msgs[0].buf = buf1;
++		msgs[1].addr = MPX_I2C_ADDR;
++		msgs[1].flags = I2C_M_RD;
++		msgs[1].len = 2;
++		msgs[1].buf = buf2;
++		i2c_transfer(client->adapter, msgs, 2);
++		v4l2_info(client, "MPX system: %02x%02x\n",
++				buf2[0], buf2[1]);
++		buf1[0] = 0x11;
++		buf1[1] = 0x02;
++		buf1[2] = 0x00;
++		i2c_transfer(client->adapter, msgs, 2);
++		v4l2_info(client, "MPX status: %02x%02x\n",
++				buf2[0], buf2[1]);
 +	}
-+
-+resend:
-+	ret = usb_submit_urb(urb, GFP_ATOMIC);
-+	if (ret)
-+		log(" usb_submit_urb failed: error %d", ret);
-+}
-+
-+static int dvb_urb_init(struct pd_dvb_adapter *pd_dvb)
-+{
-+	if (pd_dvb->urb_array[0])
-+		return 0;
-+
-+	alloc_bulk_urbs_generic(pd_dvb->urb_array, DVB_SBUF_NUM,
-+			pd_dvb->pd_device->udev, pd_dvb->ep_addr,
-+			DVB_URB_BUF_SIZE, GFP_KERNEL,
-+			dvb_urb_irq, pd_dvb);
++#endif
 +	return 0;
 +}
 +
-+static void dvb_urb_cleanup(struct pd_dvb_adapter *pd_dvb)
++/*
++ * IF configuration values for the BTF-PG472Z:
++ *
++ *	B/G: 0x94 0x70 0x49
++ *	I:   0x14 0x70 0x4a
++ *	D/K: 0x14 0x70 0x4b
++ *	L:   0x04 0x70 0x4b
++ *	L':  0x44 0x70 0x53
++ *	M:   0x50 0x30 0x4c
++ */
++
++static int set_if(struct i2c_client *client)
 +{
-+	free_all_urb_generic(pd_dvb->urb_array, DVB_SBUF_NUM);
++	struct sony_tuner *t = i2c_get_clientdata(client);
++	u8 buffer[4];
++	struct i2c_msg msg;
++	int default_mpx_mode = 0;
++
++	/* configure IF */
++	buffer[0] = 0;
++	if (t->std & V4L2_STD_PAL_BG) {
++		buffer[1] = 0x94;
++		buffer[2] = 0x70;
++		buffer[3] = 0x49;
++		default_mpx_mode = 1;
++	} else if (t->std & V4L2_STD_PAL_I) {
++		buffer[1] = 0x14;
++		buffer[2] = 0x70;
++		buffer[3] = 0x4a;
++		default_mpx_mode = 4;
++	} else if (t->std & V4L2_STD_PAL_DK) {
++		buffer[1] = 0x14;
++		buffer[2] = 0x70;
++		buffer[3] = 0x4b;
++		default_mpx_mode = 6;
++	} else if (t->std & V4L2_STD_SECAM_L) {
++		buffer[1] = 0x04;
++		buffer[2] = 0x70;
++		buffer[3] = 0x4b;
++		default_mpx_mode = 11;
++	}
++	msg.addr = IF_I2C_ADDR;
++	msg.flags = 0;
++	msg.len = 4;
++	msg.buf = buffer;
++	i2c_transfer(client->adapter, &msg, 1);
++
++	/* Select MPX mode if not forced by the user */
++	if (force_mpx_mode >= 0 && force_mpx_mode < MPX_NUM_MODES)
++		t->mpxmode = force_mpx_mode;
++	else
++		t->mpxmode = default_mpx_mode;
++	v4l2_info(client, "setting MPX to mode %d\n", t->mpxmode);
++	mpx_setup(client);
++
++	return 0;
 +}
 +
-+static s32 dvb_start_streaming(struct pd_dvb_adapter *pd_dvb)
++static int sony_tuner_s_mode(struct v4l2_subdev *sd,
++				 enum v4l2_tuner_type type)
 +{
-+	struct poseidon *pd = pd_dvb->pd_device;
-+	int ret = 0;
++	struct sony_tuner *t = to_state(sd);
 +
-+	if (pd->state & POSEIDON_STATE_DISCONNECT)
++	if (t->type >= 0) {
++		if (t->type != type)
++			v4l2_err(sd, "type already set to %d, "
++				"ignoring request for %d\n",
++				t->type, type);
++		return 0;
++	}
++	t->type = type;
++	switch (t->type) {
++	case TUNER_SONY_BTF_PG472Z:
++		switch (force_band_str[0]) {
++		case 'b':
++		case 'B':
++		case 'g':
++		case 'G':
++			v4l2_info(sd, "forcing tuner to PAL-B/G bands\n");
++			force_band = V4L2_STD_PAL_BG;
++			break;
++		case 'i':
++		case 'I':
++			v4l2_info(sd, "forcing tuner to PAL-I band\n");
++			force_band = V4L2_STD_PAL_I;
++			break;
++		case 'd':
++		case 'D':
++		case 'k':
++		case 'K':
++			v4l2_info(sd, "forcing tuner to PAL-D/K bands\n");
++			force_band = V4L2_STD_PAL_I;
++			break;
++		case 'l':
++		case 'L':
++			v4l2_info(sd, "forcing tuner to SECAM-L band\n");
++			force_band = V4L2_STD_SECAM_L;
++			break;
++		default:
++			force_band = 0;
++			break;
++		}
++		if (force_band)
++			t->std = force_band;
++		else
++			t->std = V4L2_STD_PAL_BG;
++		set_if(v4l2_get_subdevdata(sd));
++		break;
++	case TUNER_SONY_BTF_PK467Z:
++		t->std = V4L2_STD_NTSC_M_JP;
++		break;
++	case TUNER_SONY_BTF_PB463Z:
++		t->std = V4L2_STD_NTSC_M;
++		break;
++	default:
++		v4l2_err(sd, "tuner type %d is not supported by this module\n",
++			type);
++		return -EINVAL;
++	}
++	if (type >= 0)
++		v4l2_info(sd, "type set to %d (%s)\n",
++			t->type,
++			sony_tuners[t->type - TUNER_SONY_BTF_PG472Z].name);
++	return 0;
++}
++
++static int sony_tuner_s_type_addr(struct v4l2_subdev *sd,
++				      struct tuner_setup *type)
++{
++	return sony_tuner_s_mode(sd, type->type);
++}
++
++static int sony_tuner_g_frequency(struct v4l2_subdev *sd,
++				      struct v4l2_frequency *freq)
++{
++	struct sony_tuner *t = to_state(sd);
++
++	freq->frequency = t->freq;
++	return 0;
++}
++
++static int sony_tuner_s_frequency(struct v4l2_subdev *sd,
++				      struct v4l2_frequency *freq)
++{
++	struct sony_tuner *t = to_state(sd);
++
++	t->freq = freq->frequency;
++	set_freq(v4l2_get_subdevdata(sd), t->freq);
++	return 0;
++}
++
++
++
++static int sony_tuner_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
++{
++	struct sony_tuner *t = to_state(sd);
++	v4l2_std_id old = t->std;
++
++	switch (t->type) {
++	case TUNER_SONY_BTF_PG472Z:
++		if (force_band && (norm & force_band) != norm &&
++				norm != V4L2_STD_PAL &&
++				norm != V4L2_STD_SECAM) {
++			v4l2_info(sd, "ignoring requested TV standard in "
++					"favor of force_band value\n");
++			t->std = force_band;
++		} else if (norm & V4L2_STD_PAL_BG) { /* default */
++			t->std = V4L2_STD_PAL_BG;
++		} else if (norm & V4L2_STD_PAL_I) {
++			t->std = V4L2_STD_PAL_I;
++		} else if (norm & V4L2_STD_PAL_DK) {
++			t->std = V4L2_STD_PAL_DK;
++		} else if (norm & V4L2_STD_SECAM_L) {
++			t->std = V4L2_STD_SECAM_L;
++		} else {
++			v4l2_err(sd, "TV standard not supported\n");
++			return -EINVAL;
++		}
++		if (old != t->std)
++			set_if(v4l2_get_subdevdata(sd));
++		break;
++	case TUNER_SONY_BTF_PK467Z:
++		if (!(norm & V4L2_STD_NTSC_M_JP)) {
++			v4l2_err(sd, "TV standard not supported\n");
++			return -EINVAL;
++		}
++		break;
++	case TUNER_SONY_BTF_PB463Z:
++		if (!(norm & V4L2_STD_NTSC_M)) {
++			v4l2_err(sd, "TV standard not supported\n");
++			return -EINVAL;
++		}
++		break;
++	}
++	return 0;
++}
++
++static int sony_tuner_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
++{
++	struct sony_tuner *t = to_state(sd);
++
++	switch (t->type) {
++	case TUNER_SONY_BTF_PG472Z:
++		if (force_band)
++			*std = force_band;
++		else
++			*std = V4L2_STD_PAL_BG | V4L2_STD_PAL_I |
++				V4L2_STD_PAL_DK | V4L2_STD_SECAM_L;
++		break;
++	case TUNER_SONY_BTF_PK467Z:
++		*std = V4L2_STD_NTSC_M_JP;
++		break;
++	case TUNER_SONY_BTF_PB463Z:
++		*std = V4L2_STD_NTSC_M;
++		break;
++	}
++	return 0;
++}
++
++static int sony_tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
++{
++	struct sony_tuner *t = to_state(sd);
++
++	memset(vt, 0, sizeof(*vt));
++	strcpy(vt->name, "Television");
++	vt->type = V4L2_TUNER_ANALOG_TV;
++	vt->rangelow = 0UL; /* does anything use these? */
++	vt->rangehigh = 0xffffffffUL;
++	switch (t->type) {
++	case TUNER_SONY_BTF_PG472Z:
++		vt->capability = V4L2_TUNER_CAP_NORM |
++			V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_LANG1 |
++			V4L2_TUNER_CAP_LANG2;
++		vt->rxsubchans = V4L2_TUNER_SUB_MONO |
++			V4L2_TUNER_SUB_STEREO | V4L2_TUNER_SUB_LANG1 |
++			V4L2_TUNER_SUB_LANG2;
++		break;
++	case TUNER_SONY_BTF_PK467Z:
++	case TUNER_SONY_BTF_PB463Z:
++		vt->capability = V4L2_TUNER_CAP_STEREO;
++		vt->rxsubchans = V4L2_TUNER_SUB_MONO |
++					V4L2_TUNER_SUB_STEREO;
++		break;
++	}
++	vt->audmode = t->audmode;
++	return 0;
++}
++
++static int sony_tuner_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
++{
++	struct sony_tuner *t = to_state(sd);
++
++	switch (t->type) {
++	case TUNER_SONY_BTF_PG472Z:
++		if (vt->audmode != t->audmode) {
++			t->audmode = vt->audmode;
++			mpx_setup(v4l2_get_subdevdata(sd));
++		}
++		break;
++	case TUNER_SONY_BTF_PK467Z:
++	case TUNER_SONY_BTF_PB463Z:
++		break;
++	}
++	return 0;
++}
++
++static int sony_tuner_log_status(struct v4l2_subdev *sd)
++{
++	struct sony_tuner *t = to_state(sd);
++
++	v4l2_info(sd, "Standard: %s\n", t->std == V4L2_STD_NTSC ? "NTSC" :
++					t->std == V4L2_STD_PAL ? "PAL" :
++					t->std == V4L2_STD_SECAM ? "SECAM" :
++					"unknown");
++	v4l2_info(sd, "Frequency: %ud\n", t->freq);
++	return 0;
++}
++
++/* --------------------------------------------------------------------------*/
++
++static const struct v4l2_subdev_core_ops sony_tuner_core_ops = {
++	.log_status = sony_tuner_log_status,
++	.s_std = sony_tuner_s_std,
++};
++
++static const struct v4l2_subdev_tuner_ops sony_tuner_tuner_ops = {
++	.s_mode = sony_tuner_s_mode,
++	.s_frequency = sony_tuner_s_frequency,
++	.g_frequency = sony_tuner_g_frequency,
++	.s_tuner = sony_tuner_s_tuner,
++	.g_tuner = sony_tuner_g_tuner,
++	.s_type_addr = sony_tuner_s_type_addr,
++};
++
++static const struct v4l2_subdev_video_ops sony_tuner_video_ops = {
++	.querystd = sony_tuner_querystd,
++};
++
++static const struct v4l2_subdev_ops sony_tuner_ops = {
++	.core = &sony_tuner_core_ops,
++	.tuner = &sony_tuner_tuner_ops,
++	.video = &sony_tuner_video_ops,
++};
++
++/* --------------------------------------------------------------------------*/
++
++static int sony_tuner_probe(struct i2c_client *client,
++				const struct i2c_device_id *id)
++{
++	struct sony_tuner *t;
++	struct v4l2_subdev *sd;
++
++	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_I2C_BLOCK))
 +		return -ENODEV;
 +
-+	mutex_lock(&pd->lock);
-+	if (!pd_dvb->is_streaming) {
-+		s32 i, cmd_status = 0;
-+		/*
-+		 * Once upon a time, there was a difficult bug lying here.
-+		 * ret = send_set_req(pd, TAKE_REQUEST, 0, &cmd_status);
-+		 */
++	v4l2_info(client, "initializing Sony TV Tuner at address 0x%x on %s\n",
++		client->addr, client->adapter->name);
 +
-+		ret = send_set_req(pd, PLAY_SERVICE, 1, &cmd_status);
-+		if (ret | cmd_status)
-+			goto out;
++	t = kmalloc(sizeof(struct sony_tuner), GFP_KERNEL);
++	if (t == NULL)
++		return -ENOMEM;
 +
-+		ret = dvb_urb_init(pd_dvb);
-+		if (ret < 0)
-+			goto out;
++	sd = &t->sd;
++	v4l2_i2c_subdev_init(sd, client, &sony_tuner_ops);
 +
-+		pd_dvb->is_streaming = 1;
-+		for (i = 0; i < DVB_SBUF_NUM; i++) {
-+			ret = usb_submit_urb(pd_dvb->urb_array[i],
-+						       GFP_KERNEL);
-+			if (ret) {
-+				log(" submit urb error %d", ret);
-+				goto out;
-+			}
-+		}
-+	}
-+out:
-+	mutex_unlock(&pd->lock);
-+	return ret;
-+}
++	/* Initialize sony_tuner */
++	t->type = -1;
++	t->freq = 0;
++	t->mpxmode = 0;
++	t->audmode = V4L2_TUNER_MODE_STEREO;
 +
-+void dvb_stop_streaming(struct pd_dvb_adapter *pd_dvb)
-+{
-+	struct poseidon *pd = pd_dvb->pd_device;
-+
-+	mutex_lock(&pd->lock);
-+	if (pd_dvb->is_streaming) {
-+		s32 i, ret, cmd_status = 0;
-+
-+		pd_dvb->is_streaming = 0;
-+
-+		for (i = 0; i < DVB_SBUF_NUM; i++)
-+			if (pd_dvb->urb_array[i])
-+				usb_kill_urb(pd_dvb->urb_array[i]);
-+
-+		ret = send_set_req(pd, PLAY_SERVICE, TLG_TUNE_PLAY_SVC_STOP,
-+					&cmd_status);
-+		if (ret | cmd_status)
-+			log("error");
-+	}
-+	mutex_unlock(&pd->lock);
-+}
-+
-+static int pd_start_feed(struct dvb_demux_feed *feed)
-+{
-+	struct pd_dvb_adapter *pd_dvb = feed->demux->priv;
-+	int ret = 0;
-+
-+	if (!pd_dvb)
-+		return -1;
-+	if (atomic_inc_return(&pd_dvb->active_feed) == 1)
-+		ret = dvb_start_streaming(pd_dvb);
-+	return ret;
-+}
-+
-+static int pd_stop_feed(struct dvb_demux_feed *feed)
-+{
-+	struct pd_dvb_adapter *pd_dvb = feed->demux->priv;
-+
-+	if (!pd_dvb)
-+		return -1;
-+	if (atomic_dec_and_test(&pd_dvb->active_feed))
-+		dvb_stop_streaming(pd_dvb);
 +	return 0;
 +}
 +
-+DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
-+int pd_dvb_usb_device_init(struct poseidon *pd)
++static int sony_tuner_remove(struct i2c_client *client)
 +{
-+	struct pd_dvb_adapter *pd_dvb = &pd->dvb_data;
-+	struct dvb_demux *dvbdemux;
-+	int ret = 0;
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
 +
-+	pd_dvb->ep_addr = 0x82;
-+	atomic_set(&pd_dvb->users, 0);
-+	atomic_set(&pd_dvb->active_feed, 0);
-+	pd_dvb->pd_device = pd;
++	v4l2_device_unregister_subdev(sd);
++	kfree(to_state(sd));
 +
-+	ret = dvb_register_adapter(&pd_dvb->dvb_adap,
-+				"Poseidon dvbt adapter",
-+				THIS_MODULE,
-+				NULL /* for hibernation correctly*/,
-+				adapter_nr);
-+	if (ret < 0)
-+		goto error1;
-+
-+	/* register frontend */
-+	pd_dvb->dvb_fe.demodulator_priv = pd;
-+	memcpy(&pd_dvb->dvb_fe.ops, &poseidon_frontend_ops,
-+			sizeof(struct dvb_frontend_ops));
-+	ret = dvb_register_frontend(&pd_dvb->dvb_adap, &pd_dvb->dvb_fe);
-+	if (ret < 0)
-+		goto error2;
-+
-+	/* register demux device */
-+	dvbdemux = &pd_dvb->demux;
-+	dvbdemux->dmx.capabilities = DMX_TS_FILTERING | DMX_SECTION_FILTERING;
-+	dvbdemux->priv = pd_dvb;
-+	dvbdemux->feednum = dvbdemux->filternum = 64;
-+	dvbdemux->start_feed = pd_start_feed;
-+	dvbdemux->stop_feed = pd_stop_feed;
-+	dvbdemux->write_to_decoder = NULL;
-+
-+	ret = dvb_dmx_init(dvbdemux);
-+	if (ret < 0)
-+		goto error3;
-+
-+	pd_dvb->dmxdev.filternum = pd_dvb->demux.filternum;
-+	pd_dvb->dmxdev.demux = &pd_dvb->demux.dmx;
-+	pd_dvb->dmxdev.capabilities = 0;
-+
-+	ret = dvb_dmxdev_init(&pd_dvb->dmxdev, &pd_dvb->dvb_adap);
-+	if (ret < 0)
-+		goto error3;
 +	return 0;
-+
-+error3:
-+	dvb_unregister_frontend(&pd_dvb->dvb_fe);
-+error2:
-+	dvb_unregister_adapter(&pd_dvb->dvb_adap);
-+error1:
-+	return ret;
 +}
 +
-+void pd_dvb_usb_device_exit(struct poseidon *pd)
-+{
-+	struct pd_dvb_adapter *pd_dvb = &pd->dvb_data;
++/* ----------------------------------------------------------------------- */
 +
-+	while (atomic_read(&pd_dvb->users) != 0
-+		|| atomic_read(&pd_dvb->active_feed) != 0) {
-+		set_current_state(TASK_INTERRUPTIBLE);
-+		schedule_timeout(HZ);
-+	}
-+	dvb_dmxdev_release(&pd_dvb->dmxdev);
-+	dvb_unregister_frontend(&pd_dvb->dvb_fe);
-+	dvb_unregister_adapter(&pd_dvb->dvb_adap);
-+	pd_dvb_usb_device_cleanup(pd);
-+}
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
++static const struct i2c_device_id sony_tuner_id[] = {
++	{ "sony_tuner", 0 },
++	{ }
++};
++MODULE_DEVICE_TABLE(i2c, sony_tuner_id);
++#endif
 +
-+void pd_dvb_usb_device_cleanup(struct poseidon *pd)
-+{
-+	struct pd_dvb_adapter *pd_dvb = &pd->dvb_data;
++static struct v4l2_i2c_driver_data v4l2_i2c_data = {
++	.name = "sony_tuner",
++	.probe = sony_tuner_probe,
++	.remove = sony_tuner_remove,
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
++	.id_table = sony_tuner_id,
++#endif
++};
+diff -r 2d2a250ca33b -r 628119533574 linux/drivers/media/common/tuners/tuner-types.c
+--- a/linux/drivers/media/common/tuners/tuner-types.c	Wed Feb 10 11:25:59 2010 -0800
++++ b/linux/drivers/media/common/tuners/tuner-types.c	Thu Feb 11 15:21:11 2010 -0800
+@@ -1806,6 +1806,18 @@
+ 		.name   = "NXP TDA18271",
+ 		/* see tda18271-fe.c for details */
+ 	},
++	[TUNER_SONY_BTF_PG472Z] = {
++		.name   = "Sony PAL+SECAM (BTF-PG472Z)",
++		/* see sony-tuner.c for details */
++	},
++	[TUNER_SONY_BTF_PK467Z] = {
++		.name   = "Sony NTSC_JP (BTF-PK467Z)",
++		/* see sony-tuner.c for details */
++	},
++	[TUNER_SONY_BTF_PB463Z] = {
++		.name   = "Sony NTSC (BTF-PB463Z)",
++		/* see sony-tuner.c for details */
++	},
+ };
+ EXPORT_SYMBOL(tuners);
+ 
+diff -r 2d2a250ca33b -r 628119533574 linux/drivers/staging/go7007/go7007-priv.h
+--- a/linux/drivers/staging/go7007/go7007-priv.h	Wed Feb 10 11:25:59 2010 -0800
++++ b/linux/drivers/staging/go7007/go7007-priv.h	Thu Feb 11 15:21:11 2010 -0800
+@@ -292,9 +292,3 @@
+ /* We re-use the I2C_M_TEN value so the flag passes through the masks in the
+  * core I2C code.  Major kludge, but the I2C layer ain't exactly flexible. */
+ #define	I2C_CLIENT_SCCB			0x10
+-
+-/* Sony tuner types */
+-
+-#define TUNER_SONY_BTF_PG472Z		200
+-#define TUNER_SONY_BTF_PK467Z		201
+-#define TUNER_SONY_BTF_PB463Z		202
+diff -r 2d2a250ca33b -r 628119533574 linux/drivers/staging/go7007/go7007-usb.c
+--- a/linux/drivers/staging/go7007/go7007-usb.c	Wed Feb 10 11:25:59 2010 -0800
++++ b/linux/drivers/staging/go7007/go7007-usb.c	Thu Feb 11 15:21:11 2010 -0800
+@@ -27,6 +27,7 @@
+ #include <linux/i2c.h>
+ #include <asm/byteorder.h>
+ #include <media/tvaudio.h>
++#include <media/tuner.h>
+ 
+ #include "go7007-priv.h"
+ 
+@@ -217,7 +218,7 @@
+ 				.addr	= 0x1a,
+ 			},
+ 			{
+-				.type	= "wis_sony_tuner",
++				.type	= "sony_tuner",
+ 				.addr	= 0x60,
+ 			},
+ 		},
+diff -r 2d2a250ca33b -r 628119533574 linux/include/media/tuner.h
+--- a/linux/include/media/tuner.h	Wed Feb 10 11:25:59 2010 -0800
++++ b/linux/include/media/tuner.h	Thu Feb 11 15:21:11 2010 -0800
+@@ -130,6 +130,10 @@
+ #define TUNER_PHILIPS_CU1216L           82
+ #define TUNER_NXP_TDA18271		83
+ 
++#define TUNER_SONY_BTF_PG472Z		84	/* PAL+SECAM */
++#define TUNER_SONY_BTF_PK467Z		85	/* NTSC_JP */
++#define TUNER_SONY_BTF_PB463Z		86	/* NTSC */
 +
-+	dvb_urb_cleanup(pd_dvb);
-+}
-+
-+int pd_dvb_get_adapter_num(struct pd_dvb_adapter *pd_dvb)
-+{
-+	return pd_dvb->dvb_adap.num;
-+}
--- 
-1.6.5.2
+ /* tv card specific */
+ #define TDA9887_PRESENT 		(1<<0)
+ #define TDA9887_PORT1_INACTIVE 		(1<<1)
 
