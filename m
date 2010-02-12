@@ -1,113 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:43393 "EHLO mail1.radix.net"
+Received: from mail.juropnet.hu ([212.24.188.131]:35070 "EHLO mail.juropnet.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752201Ab0BWPlp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2010 10:41:45 -0500
-Subject: Re: Chroma gain configuration
-From: Andy Walls <awalls@radix.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <1266939223.4589.48.camel@palomino.walls.org>
-References: <829197381002212007q342fc01bm1c528a2f15027a1e@mail.gmail.com>
-	 <201002222254.05573.hverkuil@xs4all.nl>
-	 <829197381002221400i6e4f4b17u42597d5138171e19@mail.gmail.com>
-	 <201002230853.36928.hverkuil@xs4all.nl>
-	 <1266934843.4589.20.camel@palomino.walls.org>
-	 <afc23983d22d02e5832ce68b75f35890.squirrel@webmail.xs4all.nl>
-	 <1266939223.4589.48.camel@palomino.walls.org>
-Content-Type: text/plain
-Date: Tue, 23 Feb 2010 10:41:22 -0500
-Message-Id: <1266939682.4589.51.camel@palomino.walls.org>
-Mime-Version: 1.0
+	id S1751829Ab0BLSa1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Feb 2010 13:30:27 -0500
+Received: from kabelnet-194-166.juropnet.hu ([91.147.194.166])
+	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <istvan_v@mailbox.hu>)
+	id 1Ng0Eu-0005at-If
+	for linux-media@vger.kernel.org; Fri, 12 Feb 2010 19:27:45 +0100
+Message-ID: <4B759F1F.4000907@mailbox.hu>
+Date: Fri, 12 Feb 2010 19:34:07 +0100
+From: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: DTV2000 H Plus issues
+References: <4B3F6FE0.4040307@internode.on.net> <4B3F7B0D.4030601@mailbox.hu> <4B405381.9090407@internode.on.net> <4B421BCB.6050909@mailbox.hu> <4B4294FE.8000309@internode.on.net> <4B463AC6.2000901@mailbox.hu> <4B719CD0.6060804@mailbox.hu> <4B745781.2020408@mailbox.hu> <4B759D44.6090100@mailbox.hu>
+In-Reply-To: <4B759D44.6090100@mailbox.hu>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2010-02-23 at 10:33 -0500, Andy Walls wrote:
-> On Tue, 2010-02-23 at 15:41 +0100, Hans Verkuil wrote:
-> > > On Tue, 2010-02-23 at 08:53 +0100, Hans Verkuil wrote:
-> > >> On Monday 22 February 2010 23:00:32 Devin Heitmueller wrote:
-> > >> > On Mon, Feb 22, 2010 at 4:54 PM, Hans Verkuil <hverkuil@xs4all.nl>
-> > >> wrote:
-> > >
-> > >> > Of course, if you and Mauro wanted to sign off on the creation of a
-> > >> > new non-private user control called V4L2_CID_CHROMA_GAIN, that would
-> > >> > also resolve my problem.  :-)
-> > >>
-> > >> Hmm, Mauro is right: the color controls we have now are a bit of a mess.
-> > >> Perhaps this is a good moment to try and fix them. Suppose we had no
-> > >> color
-> > >> controls at all: how would we design them in that case? When we know
-> > >> what we
-> > >> really need, then we can compare that with what we have and figure out
-> > >> what
-> > >> we need to do to make things right again.
-> 
-> > Let me rephrase my question: how would you design the user color controls?
-> 
-> > E.g., the controls that are exported in GUIs to the average user.
-> 
-> Look at the knobs on an old TV or look at the menu on more modern
-> televisions:
-> 
-> 1. Hue (or Tint) (at least NTSC TVs have this control)
-> 2. Brightness
-> 3. Saturation
-> 
-> These are the three parameters to which the Human Visual System
-> sensitive.
-> 
-> Any other controls are fixing problems that the hardware can't seem to
-> get right on it's own - right?
-
-Bah, I forgot contrast.
-
-Regards,
-Andy
-
-> 
-> >  Most of
-> > the controls you mentioned above are meaningless to most users. When we
-> > have subdev device nodes, then such controls can become accessible to
-> > applications to do fine-tuning, but they do not belong in a GUI in e.g.
-> > tvtime or xawtv.
-> > 
-> > The problem is of course in that grey area between obviously user-level
-> > controls like brightness and obviously (to me at least) expert-level
-> > controls like chroma coring.
-> 
-> Right, so an expert can see colors bleeding to the side in portions of
-> the image and guess that it's a comb filter problem.  What's my recourse
-> at that point, when I see such a clip submitted from user and identify
-> it's a comb filter problem?  "Tough, you're not an expert, so I can't
-> give you manual control over the comb filter so you can fix your
-> problem" ?
-> 
-> Also, just because a user can't guess what to do, doesn't mean they are
-> incapable of "mashing buttons" until they find something that works.  I
-> don't quite see the value in restricting controls from users, when the
-> only consequence of such restriction is them coming back here asking
-> what else they can try to solve a problem.  It's frustrating to have a
-> setting on the chip that could fix a user problem and knowing there is
-> no control coded up for it.  It just makes the debug cycle longer.
-> 
-> 
-> What is the benefit to us or to end users for denying controls to
-> non-expert users?
-> 
-> 
-> OK, I'm done ranting now. :)
-> 
-> Regards,
-> Andy
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+A correction to the previous post: this line:
+		if (WaitForLock(priv) == 0)
+should actually be:
+		if (WaitForLock(priv) != 1)
+It does not have an effect on the operation of the driver, though,
+since the value set depending on this line is not used.
