@@ -1,62 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-07.arcor-online.net ([151.189.21.47]:44831 "EHLO
-	mail-in-07.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933961Ab0BEW5t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Feb 2010 17:57:49 -0500
-From: stefan.ringel@arcor.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
-	Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH 8/12] tm6000: add tuner parameter
-Date: Fri,  5 Feb 2010 23:57:07 +0100
-Message-Id: <1265410631-11955-7-git-send-email-stefan.ringel@arcor.de>
-In-Reply-To: <1265410631-11955-6-git-send-email-stefan.ringel@arcor.de>
-References: <1265410631-11955-1-git-send-email-stefan.ringel@arcor.de>
- <1265410631-11955-2-git-send-email-stefan.ringel@arcor.de>
- <1265410631-11955-3-git-send-email-stefan.ringel@arcor.de>
- <1265410631-11955-4-git-send-email-stefan.ringel@arcor.de>
- <1265410631-11955-5-git-send-email-stefan.ringel@arcor.de>
- <1265410631-11955-6-git-send-email-stefan.ringel@arcor.de>
+Received: from mx1.redhat.com ([209.132.183.28]:11119 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751981Ab0BLGwu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Feb 2010 01:52:50 -0500
+Received: from int-mx03.intmail.prod.int.phx2.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o1C6qnp9018149
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 12 Feb 2010 01:52:50 -0500
+Received: from [10.11.9.28] (vpn-9-28.rdu.redhat.com [10.11.9.28])
+	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o1C6qlPW031982
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 12 Feb 2010 01:52:49 -0500
+Message-ID: <4B74FABE.90703@redhat.com>
+Date: Fri, 12 Feb 2010 04:52:46 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/2] tm6000: fix unlock unbalance
+References: <4B74FA7F.5080507@redhat.com>
+In-Reply-To: <4B74FA7F.5080507@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <stefan.ringel@arcor.de>
 
-Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/staging/tm6000/tm6000-cards.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+ drivers/staging/tm6000/tm6000-cards.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
-index 4592397..f22f8ad 100644
+index 8297801..c0159a1 100644
 --- a/drivers/staging/tm6000/tm6000-cards.c
 +++ b/drivers/staging/tm6000/tm6000-cards.c
-@@ -312,7 +312,7 @@ static void tm6000_config_tuner (struct tm6000_core *dev)
- 	memset(&tun_setup, 0, sizeof(tun_setup));
- 	tun_setup.type   = dev->tuner_type;
- 	tun_setup.addr   = dev->tuner_addr;
--	tun_setup.mode_mask = T_ANALOG_TV | T_RADIO;
-+	tun_setup.mode_mask = T_ANALOG_TV | T_RADIO | T_DIGITAL_TV;
- 	tun_setup.tuner_callback = tm6000_tuner_callback;
+@@ -496,6 +496,7 @@ static int tm6000_init_dev(struct tm6000_core *dev)
+ 		}
+ #endif
+ 	}
++	mutex_unlock(&dev->lock);
+ 	return 0;
  
- 	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_type_addr, &tun_setup);
-@@ -324,10 +324,12 @@ static void tm6000_config_tuner (struct tm6000_core *dev)
- 		memset(&xc2028_cfg, 0, sizeof(xc2028_cfg));
- 		memset (&ctl,0,sizeof(ctl));
- 
--		ctl.mts   = 1;
--		ctl.read_not_reliable = 1;
-+		ctl.input1 = 1;
-+		ctl.read_not_reliable = 0;
- 		ctl.msleep = 10;
--
-+		ctl.demod = XC3028_FE_ZARLINK456;
-+		ctl.vhfbw7 = 1;
-+		ctl.uhfbw8 = 1;
- 		xc2028_cfg.tuner = TUNER_XC2028;
- 		xc2028_cfg.priv  = &ctl;
- 
+ err2:
 -- 
-1.6.4.2
+1.6.6.1
+
 
