@@ -1,233 +1,480 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-02.arcor-online.net ([151.189.21.42]:50596 "EHLO
-	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754307Ab0BFAZX (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4556 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756099Ab0BLLxB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Feb 2010 19:25:23 -0500
-Subject: Re: Need to discuss method for multiple, multiple-PID TS's from
- same demux (Re: Videotext application crashes the kernel due to DVB-demux
- patch)
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Chicken Shack <chicken.shack@gmx.de>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andreas Oberritter <obi@linuxtv.org>,
-	Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org,
-	akpm@linux-foundation.org, torvalds@linux-foundation.org
-In-Reply-To: <1265413149.2063.20.camel@brian.bconsult.de>
-References: <1265018173.2449.19.camel@brian.bconsult.de>
-	 <1265028110.3098.3.camel@palomino.walls.org>
-	 <1265076008.3120.96.camel@palomino.walls.org>
-	 <1265101869.1721.28.camel@brian.bconsult.de>
-	 <1265115172.3104.17.camel@palomino.walls.org>
-	 <1265158862.3194.22.camel@pc07.localdom.local>
-	 <1265288042.3928.9.camel@palomino.walls.org>
-	 <1265292421.3258.53.camel@brian.bconsult.de>
-	 <1265336477.3071.29.camel@palomino.walls.org>
-	 <4B6C1AF7.2090503@linuxtv.org>
-	 <1265397736.6310.98.camel@palomino.walls.org>
-	 <4B6C7F1B.7080100@linuxtv.org>  <4B6C88AD.4010708@redhat.com>
-	 <1265409155.2692.61.camel@brian.bconsult.de>
-	 <1265411523.4064.23.camel@localhost>
-	 <1265413149.2063.20.camel@brian.bconsult.de>
-Content-Type: text/plain
-Date: Sat, 06 Feb 2010 01:25:10 +0100
-Message-Id: <1265415910.2558.17.camel@localhost>
-Mime-Version: 1.0
+	Fri, 12 Feb 2010 06:53:01 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Pete Eberlein <pete@sensoray.com>
+Subject: Re: [PATCH 4/5]
+Date: Fri, 12 Feb 2010 12:55:09 +0100
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <1265934800.4626.253.camel@pete-desktop>
+In-Reply-To: <1265934800.4626.253.camel@pete-desktop>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201002121255.09862.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Samstag, den 06.02.2010, 00:39 +0100 schrieb Chicken Shack:
-> Am Samstag, den 06.02.2010, 00:12 +0100 schrieb hermann pitton:
-> > Am Freitag, den 05.02.2010, 23:32 +0100 schrieb Chicken Shack:
-> > > Am Freitag, den 05.02.2010, 19:07 -0200 schrieb Mauro Carvalho Chehab:
-> > > > Andreas Oberritter wrote:
-> > > > > Andy Walls wrote:
-> > > > 
-> > > > >>> As Honza noted, these ioctls are used by enigma2 and, in general, by
-> > > > >>> software running on Dream Multimedia set top boxes.
-> > > > >> Right, so reverting the patch is not an option.
-> > > > >>
-> > > > >> It also makes implementing multiple dvr0.n nodes for a demux0 device
-> > > > >> node probably a waste of time at this point.
-> > > > > 
-> > > > > I think so, too. But I guess it's always worth discussing alternatives.
-> > > > 
-> > > > If this discussion happened before 2.6.32 release, and provided that a different
-> > > > implementation were agreed, things would be easier, as a different solution like
-> > > > your proposal could be decided and used.
-> > > 
-> > > 
-> > > You cannot expect people reacting immediately if something is wrong.
-> > > There are and do exist enormous delays between publishing a new kernel
-> > > and the decision to use it after appropriate system or distro update.
-> > > So your expectation level is simply wrong.
-> > > 
-> > > 
-> > > > Now, we have already a regression on a stable kernel, and solving it by
-> > > > creating another regression is not something smart to do.
-> > > 
-> > > 
-> > > Yes. Trivial!
-> > > 
-> > > 
-> > > > >From what I understood, the regression appeared on an old, orphan
-> > > > application with a non-official patch applied on it. Other applications with
-> > > > similar features weren't affected. On the other hand, if the patch got reverted, 
-> > > > we'll break a maintained application that is used on a great number of devices,
-> > > > and whose features depend on the new ioctls.
-> > > 
-> > > 
-> > > It's truly amazing how the filter system of your perception works, isn't
-> > > it? :)
-> > > 
-> > > It's not just "an old, orphaned application with a non-official patch on
-> > > it." That's nonsense!
-> > > 
-> > > a. As I stated already, there do exist several patched versions of
-> > > alevt-dvb. For instance the one that Herman Pitton tested here in public
-> > > causes a closed demux device error on my machine. That means that it
-> > > does not run because xine-ui is already using the demux device.
-> > > And this phenomenon has got nothing to do with the kernel headers!
-> > > I've tried all possibilities (old kernel headers and actual ones) so I
-> > > know better than Hermann Pitton does!
-> > > 
-> > > And my version (and obviously the ones of Thomas Voegtle and Emil Meier
-> > > whom I helped with my tip to revert that patch) cause a kernel crash
-> > > with the actual kernel.
-> > > 
-> > > b. As I also stated already the other teletext application called mtt
-> > > does officially not exist except for Novell / OpenSuSe distros (at least
-> > > as far as I have seen and found out). And this one
-> > > is, as I also stated, not affected by the kernel patch. It's part of a
-> > > discontinued program suite called xawtv-4.0 pre with a very complex
-> > > infrastructure behind.
-> > > 
-> > > Please do not ask me why this one runs without noise - I do not know.
-> > > 
-> > > So AFAICS alevt-dvb is the ONLY teletext application for Linux which is
-> > > available in almost all Gnu/Linux distros.
-> > > 
-> > > "Other applications with similar features weren't affected."
-> > > 
-> > > >From where do you know that the features are "similar"?
-> > > 
-> > > This is a 100 % phantasy product of your mind that has got nothing to do
-> > > with existing reality, man!
-> > > 
-> > > Just one example: alevt-dvb has got an excellent html export filter
-> > > which makes it possible to export teletext pages as graphical html
-> > > files.
-> > > I do not know any other teletext application offering that.
-> > > 
-> > > 
-> > > > We are too late in -rc cycle, so probably there's not enough time for
-> > > > writing, test, validate any new API in time for 2.6.33 and write some compat
-> > > > layer to emulate those two ioctls with a different implementation.
-> > > 
-> > > Who says that a new API or an overworked API must be ready for 2.6.33?
-> > > When do you think the correct starting point must be set?
-> > > When the merge window for 2.6.34 opens or when?
-> > > Absurd argument! Not valid at all!
-> > > 
-> > > 
-> > > > So, removing those two ioctls is not an option anymore.
-> > > 
-> > > Yes. Conclusion??? None!
-> > > 
-> > > So if everybody wants to close down this discussion with that output
-> > > then you must admit (if you want it or not) that you de facto bury
-> > > teletext usage in the mud for the majority of Gnu/Linux DVB users.
-> > > 
-> > > So the output is more than badly disappointing.
-> > > Bye bye Teletext. Nothing for future kernels, huh?
-> > 
-> > Yes, you say it. It definitely will go away and we do have not any
-> > influence on that! Did you not notice the very slow update rate these
-> > days?
+On Friday 12 February 2010 01:33:20 Pete Eberlein wrote:
+> From: Pete Eberlein <pete@sensoray.com>
 > 
-> a. NOTHING "will go away". This is empty rant, nothing else it is!
-> In US teletext is dead, yes. In Europe analogue television is close to
-> dead. Yes.
-> But I have found no information source that teletext will disappear in
-> general. At least not in Europe or Germany.
-> So if you keep that up then prove the assertion please.
+> This is a subdev conversion of wis-tw9903 video decoder from the
+> staging go7007 directory.  This obsoletes the wis-tw9903 driver.
 
-In the UK too. And after world war II we always followed BBC.
-Not that bad ...
+Review below...
 
-http://pressetext.com/news/090720037/nutzung-von-teletext-hat-den-zenit-erreicht
-
-> What slow update rate please?
-> What the hell are you talking about, man?
-
-Previously information available there was updated within minutes, now
-in best case every six hours it seems to me.
-
-> > > Regards
-> > > 
-> > > CS
-> > > 
-> > > P. S.: If you continue like that you make people run away.
-> > > Instead you better should try to win people, shouldn't you?
-> > > 
-> > > Just see how many volunteers are here to help and then reflect
-> > > why that manpower is missing, Mauro!
-> > > Your gesture being expressed above does a lot, but it is definitely NOT
-> > > motivating to change that precarious situation.
-> > 
-> > Then maybe better tell what you tried already, instead leaving others
-> > behind doing the same in vain again?
 > 
-> Goddamn! I've investigated a lot, and I have written down everything I
-> did.
-> See, even if you are too lazy to read all that go blame yourself for
-> that lazyness, but not me, OK?
+> Priority: normal
+> 
+> Signed-off-by: Pete Eberlein <pete@sensoray.com>
+> 
+> diff -r 024987c00f06 -r 378d3bc9a3d6 linux/drivers/media/video/Kconfig
+> --- a/linux/drivers/media/video/Kconfig	Thu Feb 11 14:34:39 2010 -0800
+> +++ b/linux/drivers/media/video/Kconfig	Thu Feb 11 14:48:26 2010 -0800
+> @@ -374,6 +374,12 @@
+>  	---help---
+>  	  Support for the Techwell 2804 video decoder.
+>  
+> +config VIDEO_TW9903
+> +	tristate "Techwell 9903 video decoder"
+> +	depends on VIDEO_V4L2 && I2C
+> +	---help---
+> +	  Support for the Techwell 9903 video decoder.
+> +
+>  config VIDEO_TVP514X
+>  	tristate "Texas Instruments TVP514x video decoder"
+>  	depends on VIDEO_V4L2 && I2C
+> diff -r 024987c00f06 -r 378d3bc9a3d6 linux/drivers/media/video/Makefile
+> --- a/linux/drivers/media/video/Makefile	Thu Feb 11 14:34:39 2010 -0800
+> +++ b/linux/drivers/media/video/Makefile	Thu Feb 11 14:48:26 2010 -0800
+> @@ -72,6 +72,7 @@
+>  obj-$(CONFIG_VIDEO_TVEEPROM) += tveeprom.o
+>  obj-$(CONFIG_VIDEO_MT9V011) += mt9v011.o
+>  obj-$(CONFIG_VIDEO_TW2804) += tw2804.o
+> +obj-$(CONFIG_VIDEO_TW9903) += tw9903.o
+>  
+>  obj-$(CONFIG_SOC_CAMERA_MT9M001)	+= mt9m001.o
+>  obj-$(CONFIG_SOC_CAMERA_MT9M111)	+= mt9m111.o
+> diff -r 024987c00f06 -r 378d3bc9a3d6 linux/drivers/media/video/tw9903.c
+> --- /dev/null	Thu Jan 01 00:00:00 1970 +0000
+> +++ b/linux/drivers/media/video/tw9903.c	Thu Feb 11 14:48:26 2010 -0800
+> @@ -0,0 +1,370 @@
+> +/*
+> + * Copyright (C) 2005-2006 Micronas USA Inc.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License (Version 2) as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software Foundation,
+> + * Inc., 59 Temple Place - Suite 330, Boston MA 02111-1307, USA.
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/init.h>
+> +#include <linux/i2c.h>
+> +#include <linux/videodev2.h>
+> +#include <linux/ioctl.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-i2c-drv.h>
+> +
+> +MODULE_DESCRIPTION("TW9903 I2C subdev driver");
+> +MODULE_LICENSE("GPL v2");
+> +
+> +struct tw9903 {
+> +	struct v4l2_subdev sd;
+> +	v4l2_std_id norm;
+> +	int brightness;
+> +	int contrast;
+> +#if 0 /* keep */
+> +	int saturation;
+> +#endif
+> +	int hue;
+> +};
+> +
+> +static inline struct tw9903 *to_state(struct v4l2_subdev *sd)
+> +{
+> +	return container_of(sd, struct tw9903, sd);
+> +}
+> +
+> +static u8 initial_registers[] =
 
-My, I see a difficult to identify something of code around, not in any
-major distribution. One can link to any headers wanted, and scripts seem
-to be wrapped around too as liked ...
+const
 
-> > Mauro always did try to keep backward compat as much as possible and
-> > others had to tell him better not to waste his time on it.
-> > 
-> > You hit the wrong guy again and he can't even test anything.
+> +{
+> +	0x02, 0x44, /* input 1, composite */
+> +	0x03, 0x92, /* correct digital format */
+> +	0x04, 0x00,
+> +	0x05, 0x80, /* or 0x00 for PAL */
+> +	0x06, 0x40, /* second internal current reference */
+> +	0x07, 0x02, /* window */
+> +	0x08, 0x14, /* window */
+> +	0x09, 0xf0, /* window */
+> +	0x0a, 0x81, /* window */
+> +	0x0b, 0xd0, /* window */
+> +	0x0c, 0x8c,
+> +	0x0d, 0x00, /* scaling */
+> +	0x0e, 0x11, /* scaling */
+> +	0x0f, 0x00, /* scaling */
+> +	0x10, 0x00, /* brightness */
+> +	0x11, 0x60, /* contrast */
+> +	0x12, 0x01, /* sharpness */
+> +	0x13, 0x7f, /* U gain */
+> +	0x14, 0x5a, /* V gain */
+> +	0x15, 0x00, /* hue */
+> +	0x16, 0xc3, /* sharpness */
+> +	0x18, 0x00,
+> +	0x19, 0x58, /* vbi */
+> +	0x1a, 0x80,
+> +	0x1c, 0x0f, /* video norm */
+> +	0x1d, 0x7f, /* video norm */
+> +	0x20, 0xa0, /* clamping gain (working 0x50) */
+> +	0x21, 0x22,
+> +	0x22, 0xf0,
+> +	0x23, 0xfe,
+> +	0x24, 0x3c,
+> +	0x25, 0x38,
+> +	0x26, 0x44,
+> +	0x27, 0x20,
+> +	0x28, 0x00,
+> +	0x29, 0x15,
+> +	0x2a, 0xa0,
+> +	0x2b, 0x44,
+> +	0x2c, 0x37,
+> +	0x2d, 0x00,
+> +	0x2e, 0xa5, /* burst PLL control (working: a9) */
+> +	0x2f, 0xe0, /* 0xea is blue test frame -- 0xe0 for normal */
+> +	0x31, 0x00,
+> +	0x33, 0x22,
+> +	0x34, 0x11,
+> +	0x35, 0x35,
+> +	0x3b, 0x05,
+> +	0x06, 0xc0, /* reset device */
+> +	0x00, 0x00, /* Terminator (reg 0x00 is read-only) */
+> +};
+> +
+> +static int write_reg(struct v4l2_subdev *sd, u8 reg, u8 value)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +
+> +	return i2c_smbus_write_byte_data(client, reg, value);
+> +}
+> +
+> +static int write_regs(struct v4l2_subdev *sd, u8 *regs)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; regs[i] != 0x00; i += 2)
+> +		if (write_reg(sd, regs[i], regs[i + 1]) < 0)
+> +			return -1;
+> +	return 0;
+> +}
+> +
+> +static int tw9903_s_video_routing(struct v4l2_subdev *sd, u32 input,
+> +				      u32 output, u32 config)
+> +{
+> +	write_reg(sd, 0x02, 0x40 | (input << 1));
+> +	return 0;
+> +}
+> +
+> +#if 0 /* keep */
+> +   /* The scaler on this thing seems to be horribly broken */
+> +	case DECODER_SET_RESOLUTION:
+> +	{
+> +		struct video_decoder_resolution *res = arg;
+> +		/*int hscale = 256 * 720 / res->width;*/
+> +		int hscale = 256 * 720 / (res->width - (res->width > 704 ? 0 : 8));
+> +		int vscale = 256 * (dec->norm & V4L2_STD_NTSC ?  240 : 288)
+> +				/ res->height;
+> +		u8 regs[] = {
+> +			0x0d, vscale & 0xff,
+> +			0x0f, hscale & 0xff,
+> +			0x0e, ((vscale & 0xf00) >> 4) | ((hscale & 0xf00) >> 8),
+> +			0x06, 0xc0, /* reset device */
+> +			0,	0,
+> +		};
+> +		printk(KERN_DEBUG "vscale is %04x, hscale is %04x\n",
+> +				vscale, hscale);
+> +		/*write_regs(client, regs);*/
+> +		break;
+> +	}
+> +#endif
+> +
+> +static int tw9903_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
+> +{
+> +	struct tw9903 *dec = to_state(sd);
+> +	u8 regs[] = {
+> +		0x05, norm & V4L2_STD_NTSC ? 0x80 : 0x00,
+> +		0x07, norm & V4L2_STD_NTSC ? 0x02 : 0x12,
+> +		0x08, norm & V4L2_STD_NTSC ? 0x14 : 0x18,
+> +		0x09, norm & V4L2_STD_NTSC ? 0xf0 : 0x20,
+> +		0,	0,
+> +	};
+
+Use two const arrays and select the right one in the next line.
+
+> +	write_regs(sd, regs);
+> +	dec->norm = norm;
+> +	return 0;
+> +}
+> +
+> +static int tw9903_queryctrl(struct v4l2_subdev *sd,
+> +				 struct v4l2_queryctrl *query)
+> +{
+> +	static const u32 user_ctrls[] = {
+> +		V4L2_CID_BRIGHTNESS,
+> +		V4L2_CID_CONTRAST,
+> +		V4L2_CID_SATURATION,
+> +		V4L2_CID_HUE,
+> +		0
+> +	};
+> +	static const u32 *ctrl_classes[] = {
+> +		user_ctrls,
+> +		NULL
+> +	};
+> +
+> +	query->id = v4l2_ctrl_next(ctrl_classes, query->id);
+
+v4l2_ctrl_next not needed in i2c drivers.
+
+> +	switch (query->id) {
+> +	case V4L2_CID_BRIGHTNESS:
+> +		return v4l2_ctrl_query_fill(query, -128, 127, 1, 0);
+> +	case V4L2_CID_CONTRAST:
+> +		return v4l2_ctrl_query_fill(query, 0, 255, 1, 0x60);
+> +#if 0 /* keep */
+> +	/* I don't understand how the Chroma Gain registers work... */
+> +	case V4L2_CID_SATURATION:
+> +		return v4l2_ctrl_query_fill(query, 0, 127, 1, 64);
+> +#endif
+> +	case V4L2_CID_HUE:
+> +		return v4l2_ctrl_query_fill(query, -128, 127, 1, 0);
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +	return 0;
+> +}
+> +
+> +
+> +static int tw9903_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+> +{
+> +	struct tw9903 *dec = to_state(sd);
+> +
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_BRIGHTNESS:
+> +		if (ctrl->value > 127)
+> +			dec->brightness = 127;
+> +		else if (ctrl->value < -128)
+> +			dec->brightness = -128;
+> +		else
+> +			dec->brightness = ctrl->value;
+> +		write_reg(sd, 0x10, dec->brightness);
+> +		break;
+> +	case V4L2_CID_CONTRAST:
+> +		if (ctrl->value > 255)
+> +			dec->contrast = 255;
+> +		else if (ctrl->value < 0)
+> +			dec->contrast = 0;
+> +		else
+> +			dec->contrast = ctrl->value;
+> +		write_reg(sd, 0x11, dec->contrast);
+> +		break;
+> +#if 0 /* keep */
+> +	case V4L2_CID_SATURATION:
+> +		if (ctrl->value > 127)
+> +			dec->saturation = 127;
+> +		else if (ctrl->value < 0)
+> +			dec->saturation = 0;
+> +		else
+> +			dec->saturation = ctrl->value;
+> +		/*write_reg(sd, 0x0c, dec->saturation);*/
+> +		break;
+> +#endif
+> +	case V4L2_CID_HUE:
+> +		if (ctrl->value > 127)
+> +			dec->hue = 127;
+> +		else if (ctrl->value < -128)
+> +			dec->hue = -128;
+> +		else
+> +			dec->hue = ctrl->value;
+> +		write_reg(sd, 0x15, dec->hue);
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +	return 0;
+> +}
+> +
+> +static int tw9903_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+> +{
+> +	struct tw9903 *dec = to_state(sd);
+> +
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_BRIGHTNESS:
+> +		ctrl->value = dec->brightness;
+> +		break;
+> +	case V4L2_CID_CONTRAST:
+> +		ctrl->value = dec->contrast;
+> +		break;
+> +#if 0 /* keep */
+> +	case V4L2_CID_SATURATION:
+> +		ctrl->value = dec->saturation;
+> +		break;
+> +#endif
+> +	case V4L2_CID_HUE:
+> +		ctrl->value = dec->hue;
+> +		break;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +	return 0;
+> +}
+> +
+> +static int tw9903_log_status(struct v4l2_subdev *sd)
+> +{
+> +	struct tw9903 *dec = to_state(sd);
+> +
+> +	v4l2_info(sd, "Standard: %s\n", dec->norm == V4L2_STD_NTSC ? "NTSC" :
+> +					dec->norm == V4L2_STD_PAL ? "PAL" :
+> +					dec->norm == V4L2_STD_SECAM ? "SECAM" :
+> +					"unknown");
+> +	v4l2_info(sd, "Brightness: %d\n", dec->brightness);
+> +	v4l2_info(sd, "Contrast: %d\n", dec->contrast);
+> +#if 0 /* keep */
+> +	v4l2_info(sd, "Saturation: %d\n", dec->saturation);
+> +#endif
+> +	v4l2_info(sd, "Hue: %d\n", dec->hue);
+> +	return 0;
+> +}
+> +
+> +/* --------------------------------------------------------------------------*/
+> +
+> +static const struct v4l2_subdev_core_ops tw9903_core_ops = {
+> +	.log_status = tw9903_log_status,
+> +	.g_ctrl = tw9903_g_ctrl,
+> +	.s_ctrl = tw9903_s_ctrl,
+> +	.queryctrl = tw9903_queryctrl,
+> +	.s_std = tw9903_s_std,
+> +};
+> +
+> +static const struct v4l2_subdev_video_ops tw9903_video_ops = {
+> +	.s_routing = tw9903_s_video_routing,
+> +};
+> +
+> +static const struct v4l2_subdev_ops tw9903_ops = {
+> +	.core = &tw9903_core_ops,
+> +	.video = &tw9903_video_ops,
+> +};
+> +
+> +/* --------------------------------------------------------------------------*/
+> +
+> +static int tw9903_probe(struct i2c_client *client,
+> +			     const struct i2c_device_id *id)
+> +{
+> +	struct tw9903 *dec;
+> +	struct v4l2_subdev *sd;
+> +
+> +	/* Check if the adapter supports the needed features */
+> +	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+> +		return -EIO;
+> +
+> +	v4l2_info(client, "initializing TW9903 at address 0x%x on %s\n",
+> +		client->addr, client->adapter->name);
+
+Use this instead:
+
+        v4l_info(client, "chip found @ 0x%x (%s)\n",
+                        client->addr << 1, client->adapter->name);
+
+
+> +
+> +	dec = kmalloc(sizeof(struct tw9903), GFP_KERNEL);
+
+kzalloc
+
+> +	if (dec == NULL)
+> +		return -ENOMEM;
+> +	sd = &dec->sd;
+> +	v4l2_i2c_subdev_init(sd, client, &tw9903_ops);
+> +
+> +	/* Initialize tw9903 */
+> +	dec->norm = V4L2_STD_NTSC;
+> +	dec->brightness = 0;
+> +	dec->contrast = 0x60;
+> +#if 0 /* keep */
+> +	dec->saturation = 64;
+> +#endif
+> +	dec->hue = 0;
+> +
+> +	if (write_regs(sd, initial_registers) < 0) {
+> +		v4l2_err(client, "error initializing TW9903\n");
+> +		kfree(dec);
+> +		return -EINVAL;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int tw9903_remove(struct i2c_client *client)
+> +{
+> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> +
+> +	v4l2_device_unregister_subdev(sd);
+> +	kfree(to_state(sd));
+> +	return 0;
+> +}
+> +
+> +/* ----------------------------------------------------------------------- */
+> +
+> +#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
+> +static const struct i2c_device_id tw9903_id[] = {
+> +	{ "tw9903", 0 },
+> +	{ }
+> +};
+> +MODULE_DEVICE_TABLE(i2c, tw9903_id);
+> +#endif
+> +
+> +static struct v4l2_i2c_driver_data v4l2_i2c_data = {
+> +	.name = "tw9903",
+> +	.probe = tw9903_probe,
+> +	.remove = tw9903_remove,
+> +#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
+> +	.id_table = tw9903_id,
+> +#endif
+> +};
+> diff -r 024987c00f06 -r 378d3bc9a3d6 linux/drivers/staging/go7007/go7007-usb.c
+> --- a/linux/drivers/staging/go7007/go7007-usb.c	Thu Feb 11 14:34:39 2010 -0800
+> +++ b/linux/drivers/staging/go7007/go7007-usb.c	Thu Feb 11 14:48:26 2010 -0800
+> @@ -297,7 +297,7 @@
+>  		.num_i2c_devs	 = 1,
+>  		.i2c_devs	 = {
+>  			{
+> -				.type	= "wis_tw9903",
+> +				.type	= "tw9903",
+>  				.addr	= 0x44,
+>  			},
+>  		},
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
 > 
-> All I want him is to immediately and forever stop spreading nonsense and
-> demotivate people and offer us all that propagandist style that I and
-> others do not appreciate at all.
-> 
-> Unfortunately I am missing the American English equivalent for
-> "Differenziertheit". Is it "straightforwardness"?
-> 
-> This is what I am missing when you start to express yourself.
-> 
-> Your "test" of alevt-dvb-t may serve as an example:
-> 
-> Noone knows your card type, noone knows your reception area,
-> transponder, channel. All we know from you is a pid.
 
-You did report all that? The pid is from ZDF DVB-T from
-Frankfurt/Main/Feldberg on a saa7134 Medion Quadro, should not matter at
-all.
+Regards,
 
-> And that there are versions of alevt-dvb who are incapable for parallel
-> tasking due to a wrong DVB patch you simply missed as a matter of fact.
-> So what the hell did you get at all, man?
+	Hans
 
-They really do exist, or only the sripts around?
-
-> Very low discussion level, isn't it?
-> 
-> I'll leave it up to that - don't want no dumb flamings at all.
-> 
-> Cheers
-> 
-> CS
-
-Peace.
-
-Hermann
-
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
