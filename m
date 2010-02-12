@@ -1,153 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42240 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753335Ab0BIO4w convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 09:56:52 -0500
-From: "Maupin, Chase" <chase.maupin@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
+Received: from acsinet12.oracle.com ([141.146.126.234]:28664 "EHLO
+	acsinet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751382Ab0BLVCv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Feb 2010 16:02:51 -0500
+Date: Fri, 12 Feb 2010 13:02:29 -0800
+From: Randy Dunlap <randy.dunlap@oracle.com>
+To: Stephen Rothwell <sfr@canb.auug.org.au>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>
-CC: "sakari.ailus@maxwell.research.nokia.com"
-	<sakari.ailus@maxwell.research.nokia.com>,
-	"vpss_driver_design@list.ti.com - This list is to discuss the VPSS
-	driver design (May contain non-TIers)"
-	<vpss_driver_design@list.ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 9 Feb 2010 08:56:37 -0600
-Subject: RE: Requested feedback on V4L2 driver design
-Message-ID: <131E5DFBE7373E4C8D813795A6AA7F0802C4EC8AD8@dlee06.ent.ti.com>
-References: <131E5DFBE7373E4C8D813795A6AA7F0802C4E0FF3E@dlee06.ent.ti.com>
- <4B7072A4.7070708@infradead.org> <201002090851.40152.hverkuil@xs4all.nl>
-In-Reply-To: <201002090851.40152.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Huang Shijie <shijie8@gmail.com>,
+	Kang Yong <kangyong@telegent.com>,
+	Zhang Xiaobing <xbzhang@telegent.com>
+Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH -next] media/video/tlg2300: fix build when CONFIG_PM=n
+Message-Id: <20100212130229.222d3777.randy.dunlap@oracle.com>
+In-Reply-To: <20100212181304.a7bd9a63.sfr@canb.auug.org.au>
+References: <20100212181304.a7bd9a63.sfr@canb.auug.org.au>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Tuesday, February 09, 2010 1:52 AM
-> To: Mauro Carvalho Chehab; laurent.pinchart@ideasonboard.com
-> Cc: Maupin, Chase; sakari.ailus@maxwell.research.nokia.com;
-> vpss_driver_design@list.ti.com - This list is to discuss the VPSS driver
-> design (May contain non-TIers); linux-media@vger.kernel.org
-> Subject: Re: Requested feedback on V4L2 driver design
-> 
-> On Monday 08 February 2010 21:23:00 Mauro Carvalho Chehab wrote:
-> > Maupin, Chase wrote:
-> > > All,
-> > >
-> > > Texas Instruments (TI) is working on the design for the V4L2 capture
-> and display drivers for our next generation system-on-chip (SoC) processor
-> and would like to solicit your feedback.  Our new SoCs have been improved
-> to allow for higher video resolutions and greater frame rates.  To this
-> end the display hardware has been moved to a separate processing block
-> called the video processing subsystem (VPSS).  The VPSS will be running a
-> firmware image that controls the capture/display hardware and services
-> requests from one or more host processors.
-> > >
-> > > Moving to a remote processor for the processing of video input and
-> output data requires that commands to control the hardware be passed to
-> this processing block using some form of inter-processor communication
-> (IPC).  TI would like to solicit your feedback on proposal for the V4L2
-> driver design to get a feel for whether or not this design would be
-> accepted into the Linux kernel.  To this end we have put together an
-> overview of the design and usage on our wiki at
-> http://wiki.davincidsp.com/index.php/Video_Processing_Subsystem_Driver_Des
-> ign.  We would greatly appreciate feedback from community members on the
-> acceptability of our driver design.
-> > >
-> > > If you have additional questions or need more information please feel
-> free to contact us (we have setup a mailing list at
-> vpss_driver_design@list.ti.com) so we can answer them.
-> > >
-> >
-> > Hi Chase,
-> >
-> > I'm not sure if I got all the details on your proposal, so let me try to
-> give my
-> > understanding.
-> >
-> > First of all, for normal usage (e.g. capturing a stream or sending an
-> stream
-> > to an output device), the driver should work with only the standard V4L2
-> API.
-> > I'm assuming that the driver will provide this capability.
-> >
-> > I understand that, being a SoC hardware, there are much more that can be
-> done
-> > than just doing the normal stream capture/output, already supported by
-> V4L2 API.
-> >
-> > For such advanced usages, we're open to a proposal to enhance the
-> existing API
-> > to support the needs. There are some important aspects that need to be
-> considered
-> > when designing any Linux userspace API's:
-> 
-> The full functionality of this device can be handled by the proposals made
-> during
-> last year's LPC and that are currently being implemented/prototyped for
-> omap3.
-> That's no coincidence, by the way :-)
+When CONFIG_PM is not enabled, tlg2300 has build errors,
+so handle that case, mostly via stubs.
 
-Our initial goal is to enable the current V4L2 APIs and functionality that exist today and then to continue working to add new features that use new functionality as it becomes available.  Of course we will be working with the V4L2 community on these features.
+drivers/media/video/tlg2300/pd-alsa.c:237: error: 'struct poseidon' has no member named 'msg'
+drivers/media/video/tlg2300/pd-main.c:412: error: implicit declaration of function 'find_old_poseidon'
+drivers/media/video/tlg2300/pd-main.c:418: error: implicit declaration of function 'set_map_flags'
+drivers/media/video/tlg2300/pd-main.c:462: error: implicit declaration of function 'get_pd'
 
-> 
-> >
-> > 	1) kernel-userspace API's are forever. So, they need to be designed
-> in
-> > a way that new technology changes won't break the old API;
-> >
-> > 	2) API's are meant to be generic. So, they needed to be designed in
-> a way
-> > that, if another hardware with similar features require an API, the
-> planned one
-> > should fit;
-> >
-> > 	3) The API's should be, as much as possible, independent of the
-> hardware
-> > architecture. You'll see that even low-level architecture dependent
-> stuff, like
-> > bus drivers are designed in a way that they are not bound to a
-> particular hardware,
-> > but instead provide the same common methods to interact with the
-> hardware to other
-> > device drivers.
-> >
-> > That's said, it would be interesting if you could give us a more deep
-> detail on
-> > what kind of functionalities and how do you think you'll be implementing
-> them.
-> 
-> For me the core issue will be the communication between the main ARM and
-> the ARM
-> controlling the VPSS. Looking at the syslink part of the git tree it all
-> looks
-> way overengineered to me. In particular the multicore_ipc directory. Is
-> all that
-> code involved in setting up the communication path between the main and
-> VPSS ARM?
-> Is there some more detailed document describing how the syslink code
-> works?
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: 	Huang Shijie <shijie8@gmail.com>
+Cc: 	Kang Yong <kangyong@telegent.com>
+Cc: 	Zhang Xiaobing <xbzhang@telegent.com>
+---
+ drivers/media/video/tlg2300/pd-common.h |    4 ++++
+ drivers/media/video/tlg2300/pd-main.c   |   19 ++++++++++++++-----
+ 2 files changed, 18 insertions(+), 5 deletions(-)
 
-Agreed.  The most important aspect that we are hoping to get feedback on is using the syslink notify IPC for communication between the cores.  In this use case much of the functionality of syslink is un-needed.  The focus for this driver will be on using simple IPC where events are registered to send data between the host MCU and the VPSS.  I'll get someone from the syslink team to comment here with more details but the basic idea is that the host MCU and the VPSS will have an event configured for handling requests.  When the host MCU wants to sent a request to the VPSS it will create a command structure and pass a reference to that structure by using the sendEvent API.  The sendEvent API will require that an event number be passed and a pointer to the command structure.
-
-> 
-> What I would expect to see is standard mailbox functionality that is used
-> in other
-> places as well. I gather that at the bottom there actually seems to be a
-> mailbox
-> involved with syslink, but there also seems to be a lot of layers on top
-> of that.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+--- linux-next-20100212.orig/drivers/media/video/tlg2300/pd-common.h
++++ linux-next-20100212/drivers/media/video/tlg2300/pd-common.h
+@@ -254,7 +254,11 @@ void destroy_video_device(struct video_d
+ extern int debug_mode;
+ void set_debug_mode(struct video_device *vfd, int debug_mode);
+ 
++#ifdef CONFIG_PM
+ #define in_hibernation(pd) (pd->msg.event == PM_EVENT_FREEZE)
++#else
++#define in_hibernation(pd) (0)
++#endif
+ #define get_pm_count(p) (atomic_read(&(p)->interface->pm_usage_cnt))
+ 
+ #define log(a, ...) printk(KERN_DEBUG "\t[ %s : %.3d ] "a"\n", \
+--- linux-next-20100212.orig/drivers/media/video/tlg2300/pd-main.c
++++ linux-next-20100212/drivers/media/video/tlg2300/pd-main.c
+@@ -255,6 +255,11 @@ out:
+ 	return ret;
+ }
+ 
++static inline struct poseidon *get_pd(struct usb_interface *intf)
++{
++	return usb_get_intfdata(intf);
++}
++
+ #ifdef CONFIG_PM
+ /* one-to-one map : poseidon{} <----> usb_device{}'s port */
+ static inline void set_map_flags(struct poseidon *pd, struct usb_device *udev)
+@@ -303,11 +308,6 @@ static inline int is_working(struct pose
+ 	return get_pm_count(pd) > 0;
+ }
+ 
+-static inline struct poseidon *get_pd(struct usb_interface *intf)
+-{
+-	return usb_get_intfdata(intf);
+-}
+-
+ static int poseidon_suspend(struct usb_interface *intf, pm_message_t msg)
+ {
+ 	struct poseidon *pd = get_pd(intf);
+@@ -366,6 +366,15 @@ static void hibernation_resume(struct wo
+ 	if (pd->pm_resume)
+ 		pd->pm_resume(pd);
+ }
++#else /* CONFIG_PM is not enabled: */
++static inline struct poseidon *find_old_poseidon(struct usb_device *udev)
++{
++	return NULL;
++}
++
++static inline void set_map_flags(struct poseidon *pd, struct usb_device *udev)
++{
++}
+ #endif
+ 
+ static bool check_firmware(struct usb_device *udev, int *down_firmware)
