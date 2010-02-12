@@ -1,100 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50644 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757094Ab0BBWk7 (ORCPT
+Received: from gateway14.websitewelcome.com ([69.41.245.8]:41964 "HELO
+	gateway14.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753446Ab0BLUSJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Feb 2010 17:40:59 -0500
-Message-Id: <201002022240.o12Mekvr018902@imap1.linux-foundation.org>
-Subject: [patch 1/7] drivers/media/video: move dereference after NULL test
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
-	julia@diku.dk
-From: akpm@linux-foundation.org
-Date: Tue, 02 Feb 2010 14:40:46 -0800
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: 8bit
+	Fri, 12 Feb 2010 15:18:09 -0500
+Subject: Re: [PATCH 2/5] sony-tuner: Subdev conversion from wis-sony-tuner
+From: Pete Eberlein <pete@sensoray.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <201002121229.43924.hverkuil@xs4all.nl>
+References: <1265934787.4626.251.camel@pete-desktop>
+	 <201002121229.43924.hverkuil@xs4all.nl>
+Content-Type: text/plain
+Date: Fri, 12 Feb 2010 12:17:45 -0800
+Message-Id: <1266005865.4626.281.camel@pete-desktop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Julia Lawall <julia@diku.dk>
+On Fri, 2010-02-12 at 12:29 +0100, Hans Verkuil wrote:
+> On Friday 12 February 2010 01:33:07 Pete Eberlein wrote:
+> > From: Pete Eberlein <pete@sensoray.com>
+> > 
+> > This is a subdev conversion of the go7007 wis-sony-tuner i2c driver,
+> > and places it with the other tuner drivers.  This obsoletes the
+> > wis-sony-tuner driver in the go7007 staging directory.
+> 
+> Thanks! Here is a quick review...
 
-In quickcam_messenger.c, if the NULL test on uvd is needed, then the
-dereference should be after the NULL test.
+Thanks, please have a look at my questions below:
 
-In vpif_display.c, std_info is initialized to the address of a structure
-field.  This seems unlikely to be NULL.  If it could somehow be NULL, then
-the assignment should be moved after the NULL test.  Alternatively, perhaps
-the NULL test is intended to test std_info->stdid rather than std_info?
 
-In saa7134-alsa.c, the function is only called from one place, where the
-chip argument has already been dereferenced.  On the other hand, if it
-should be kept, then card should be initialized after it.
+> > +#include <media/v4l2-i2c-drv.h>
+> 
+> The v4l2-i2c-drv.h is to be used only for drivers that also need to be compiled
+> for kernels < 2.6.26. If I am not mistaken that is the case for this driver,
+> right? I remember you mentioning that customers of yours use this on such old
+> kernels. Just making sure.
 
-A simplified version of the semantic match that detects this problem is as
-follows (http://coccinelle.lip6.fr/):
+My company, Sensoray, doesn't have any products that use this tuner.
+This driver was orignally written by Micronas to support their go7007
+chip in the Plextor TV402U models.  I don't have the datasheet or know
+much about tuners anyway.  I used the v4l2-i2c-drv.h since it seems like
+a good idea at the time.  What should I use instead?
 
-// <smpl>
-@match exists@
-expression x, E;
-identifier fld;
-@@
+> > +static int sony_tuner_g_frequency(struct v4l2_subdev *sd,
+> > +				      struct v4l2_frequency *freq)
+> > +{
+> > +	struct sony_tuner *t = to_state(sd);
+> > +
+> > +	freq->frequency = t->freq;
+> 
+> You need to check both the tuner and type field of struct v4l2_frequency here.
 
-* x->fld
-  ... when != \(x = E\|&x\)
-* x == NULL
-// </smpl>
+What should I check v4l2_frequency->tuner against?  The v4l2 docs say
+that it should be the same as the struct v4l2_tuner index field, which
+only the parent device driver knows.
 
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+> > +static int sony_tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+> > +{
+> > +	struct sony_tuner *t = to_state(sd);
+> > +
+> > +	memset(vt, 0, sizeof(*vt));
+> 
+> No need to memset, that's already been done by the v4l core.
 
- drivers/media/video/davinci/vpif_display.c        |    2 --
- drivers/media/video/saa7134/saa7134-alsa.c        |    2 --
- drivers/media/video/usbvideo/quickcam_messenger.c |    3 ++-
- 3 files changed, 2 insertions(+), 5 deletions(-)
+Ok.
 
-diff -puN drivers/media/video/davinci/vpif_display.c~drivers-media-video-move-dereference-after-null-test drivers/media/video/davinci/vpif_display.c
---- a/drivers/media/video/davinci/vpif_display.c~drivers-media-video-move-dereference-after-null-test
-+++ a/drivers/media/video/davinci/vpif_display.c
-@@ -383,8 +383,6 @@ static int vpif_get_std_info(struct chan
- 	int index;
- 
- 	std_info->stdid = vid_ch->stdid;
--	if (!std_info)
--		return -1;
- 
- 	for (index = 0; index < ARRAY_SIZE(ch_params); index++) {
- 		config = &ch_params[index];
-diff -puN drivers/media/video/saa7134/saa7134-alsa.c~drivers-media-video-move-dereference-after-null-test drivers/media/video/saa7134/saa7134-alsa.c
---- a/drivers/media/video/saa7134/saa7134-alsa.c~drivers-media-video-move-dereference-after-null-test
-+++ a/drivers/media/video/saa7134/saa7134-alsa.c
-@@ -1011,8 +1011,6 @@ static int snd_card_saa7134_new_mixer(sn
- 	unsigned int idx;
- 	int err, addr;
- 
--	if (snd_BUG_ON(!chip))
--		return -EINVAL;
- 	strcpy(card->mixername, "SAA7134 Mixer");
- 
- 	for (idx = 0; idx < ARRAY_SIZE(snd_saa7134_volume_controls); idx++) {
-diff -puN drivers/media/video/usbvideo/quickcam_messenger.c~drivers-media-video-move-dereference-after-null-test drivers/media/video/usbvideo/quickcam_messenger.c
---- a/drivers/media/video/usbvideo/quickcam_messenger.c~drivers-media-video-move-dereference-after-null-test
-+++ a/drivers/media/video/usbvideo/quickcam_messenger.c
-@@ -692,12 +692,13 @@ static int qcm_start_data(struct uvd *uv
- 
- static void qcm_stop_data(struct uvd *uvd)
- {
--	struct qcm *cam = (struct qcm *) uvd->user_data;
-+	struct qcm *cam;
- 	int i, j;
- 	int ret;
- 
- 	if ((uvd == NULL) || (!uvd->streaming) || (uvd->dev == NULL))
- 		return;
-+	cam = (struct qcm *) uvd->user_data;
- 
- 	ret = qcm_camera_off(uvd);
- 	if (ret)
-_
+> You should check the vt->index field here.
+
+The parent device driver knows the index and checks it already.  However
+this could be a problem if there are multiple tuner that use this subdev
+driver.  Is there some function to tell a tuner subdev what its index
+should be?
+
+> > +	strcpy(vt->name, "Television");
+> 
+> Please use strlcpy.
+
+Ok.
+
+> > +	vt->type = V4L2_TUNER_ANALOG_TV;
+> > +	vt->rangelow = 0UL; /* does anything use these? */
+> > +	vt->rangehigh = 0xffffffffUL;
+> 
+> If you know the minimum and maximum frequencies then you should set them
+> here. Applications that scan for channel will typically use this.
+
+I don't know the frequencies to use.  There are some numbers in the
+struct sony_tunertype sony_tuners[], but I'm not sure what they mean.
+
+> Regards,
+> 
+> 	Hans
+
+Thanks for your review.
+
+Pete
+
+
