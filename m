@@ -1,54 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40070 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757808Ab0BQXVD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Feb 2010 18:21:03 -0500
-Received: from int-mx04.intmail.prod.int.phx2.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.17])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o1HNL269023203
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 17 Feb 2010 18:21:02 -0500
-Received: from [10.11.10.22] (vpn-10-22.rdu.redhat.com [10.11.10.22])
-	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o1HNKx6O009631
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 17 Feb 2010 18:21:02 -0500
-Message-Id: <201002172321.o1HNKx6O009631@int-mx04.intmail.prod.int.phx2.redhat.com>
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Date: Wed, 17 Feb 2010 21:11:06 -0200
-Subject: [PATCH 1/2] V4L/DVB: az6027: IR RC keys are using the old struct with 3 parameters, instead of 2
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from asmtpout024.mac.com ([17.148.16.99]:64710 "EHLO
+	asmtpout024.mac.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753437Ab0BLOpY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Feb 2010 09:45:24 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=us-ascii
+Received: from macpro.kernelscience.com
+ (ool-18bfe0d5.dyn.optonline.net [24.191.224.213])
+ by asmtp024.mac.com (Sun Java(tm) System Messaging Server 6.3-8.01 (built Dec
+ 16 2008; 32bit)) with ESMTPSA id <0KXQ002DQE6OTH00@asmtp024.mac.com> for
+ linux-media@vger.kernel.org; Fri, 12 Feb 2010 05:44:52 -0800 (PST)
+Subject: Re: New Hauppauge HVR-2200 Revision?
+From: Steven Toth <steven.toth@mac.com>
+In-reply-to: <4B7412CC.6010003@barber-family.id.au>
+Date: Fri, 12 Feb 2010 08:44:48 -0500
+Cc: linux-media@vger.kernel.org
+Message-id: <4B99D44B-A91C-4145-9317-EFA5AF9BD553@mac.com>
+References: <4B5B0E12.3090706@barber-family.id.au>
+ <83bcf6341001230700h7db6600i89b9092051049612@mail.gmail.com>
+ <4B5B837A.6020001@barber-family.id.au>
+ <83bcf6341001231529o54f3afb9p29fa955bc93a660e@mail.gmail.com>
+ <4B5B8E5B.4020600@barber-family.id.au>
+ <83bcf6341001231618r59f03dc9t1eb746c39e67b5fc@mail.gmail.com>
+ <4B5BF61A.4000605@barber-family.id.au> <4B73F6AC.5040803@barber-family.id.au>
+ <4B7412CC.6010003@barber-family.id.au>
+To: Francis Barber <fedora@barber-family.id.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 
-drivers/media/dvb/dvb-usb/az6027.c:390: warning: excess elements in struct initializer
-drivers/media/dvb/dvb-usb/az6027.c:390: warning: (near initialization for ‘az6027_rc_keys[0]’)
-drivers/media/dvb/dvb-usb/az6027.c:391: warning: excess elements in struct initializer
-drivers/media/dvb/dvb-usb/az6027.c:391: warning: (near initialization for ‘az6027_rc_keys[1]’)
+>> Anyway, apart from the problems noted above it is fine.  I'm not sure what the criteria is for merging support for this card into the main repository, but I would view it as worthy of merging even with these problems outstanding.
+>> 
+>> Many thanks,
+>> Frank.
+>> 
+> Interestingly, so far it only seems to affect the second adapter.  The first one is still working.
+> 
 
-CC: Manu Abraham <abraham.manu@gmail.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/dvb-usb/az6027.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/dvb/dvb-usb/az6027.c b/drivers/media/dvb/dvb-usb/az6027.c
-index 30fd046..e8d5d05 100644
---- a/drivers/media/dvb/dvb-usb/az6027.c
-+++ b/drivers/media/dvb/dvb-usb/az6027.c
-@@ -387,8 +387,8 @@ static int az6027_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
- 
- /* keys for the enclosed remote control */
- static struct dvb_usb_rc_key az6027_rc_keys[] = {
--	{ 0x00, 0x01, KEY_1 },
--	{ 0x00, 0x02, KEY_2 },
-+	{ 0x0001, KEY_1 },
-+	{ 0x0002, KEY_2 },
- };
- 
- /* remote control stuff (does not work with my box) */
--- 
-1.6.6.1
+Odd.
+
+Francis,
+
+I find the whole ber/unc values puzzling, essentially they shouldn't happen assuming a good clean DVB-T signal. I'm going to look into this very shortly, along with a broad locking feature I want to change in the demod.
+
+I've had one or two other people comment on the -stable tree and in general they're pretty happy, including myself, which means that I'll be generating a pull request to have these changes merged very shortly (1-2 weeks).
+
+Regards,
+
+- Steve
+
+--
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
 
 
