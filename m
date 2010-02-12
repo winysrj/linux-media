@@ -1,295 +1,306 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway03.websitewelcome.com ([69.93.205.23]:57464 "HELO
-	gateway03.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751477Ab0BLCTu (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:57548 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757121Ab0BLQrT convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Feb 2010 21:19:50 -0500
-Received: from [66.15.212.169] (port=10302 helo=[10.140.5.12])
-	by gator886.hostgator.com with esmtpsa (SSLv3:AES256-SHA:256)
-	(Exim 4.69)
-	(envelope-from <pete@sensoray.com>)
-	id 1NfjT3-0005dZ-DE
-	for linux-media@vger.kernel.org; Thu, 11 Feb 2010 18:33:09 -0600
-Subject: [PATCH 1/5] go7007: driver id cleanup
-From: Pete Eberlein <pete@sensoray.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain
-Date: Thu, 11 Feb 2010 16:32:52 -0800
-Message-Id: <1265934772.4626.250.camel@pete-desktop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 12 Feb 2010 11:47:19 -0500
+From: "Maupin, Chase" <chase.maupin@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Hans Verkuil <hans.verkuil@tandberg.com>,
+	"sakari.ailus@maxwell.research.nokia.com"
+	<sakari.ailus@maxwell.research.nokia.com>,
+	"mchehab@infradead.org" <mchehab@infradead.org>,
+	"vpss_driver_design@list.ti.com - This list is to discuss the VPSS
+	driver design (May contain non-TIers)"
+	<vpss_driver_design@list.ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Kamoolkar, Mugdha" <mugdha@ti.com>
+Date: Fri, 12 Feb 2010 10:46:55 -0600
+Subject: RE: Requested feedback on V4L2 driver design
+Message-ID: <131E5DFBE7373E4C8D813795A6AA7F0802C4EC925C@dlee06.ent.ti.com>
+References: <131E5DFBE7373E4C8D813795A6AA7F0802C4E0FF3E@dlee06.ent.ti.com>
+ <201002120222.38816.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201002120222.38816.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pete Eberlein <pete@sensoray.com>
+Laurent,
 
-Removed the I2C_DRIVERID_WIS usage from the device configurations, since
-the type parameter is all that is needed to probe the chip driver module.
-Eventually wis-i2c.h will be removed.
+First let me thank you for taking time to review this.  I have made comments below to address your concerns.
 
-Priority: normal
+Sincerely,
+Chase Maupin
+Software Applications
+Catalog DSP Products
+e-mail: chase.maupin@ti.com
+phone: (281) 274-3285
 
-Signed-off-by: Pete Eberlein <pete@sensoray.com>
+For support:
+Forums - http://community.ti.com/forums/
+Wiki - http://wiki.davincidsp.com/
 
-diff -r 690055993011 -r 2d2a250ca33b linux/drivers/staging/go7007/go7007-driver.c
---- a/linux/drivers/staging/go7007/go7007-driver.c	Sun Feb 07 22:26:10 2010 -0200
-+++ b/linux/drivers/staging/go7007/go7007-driver.c	Wed Feb 10 11:25:59 2010 -0800
-@@ -35,7 +35,6 @@
- #include <media/v4l2-common.h>
- 
- #include "go7007-priv.h"
--#include "wis-i2c.h"
- 
- /*
-  * Wait for an interrupt to be delivered from the GO7007SB and return
-@@ -191,51 +190,20 @@
-  * Attempt to instantiate an I2C client by ID, probably loading a module.
-  */
- static int init_i2c_module(struct i2c_adapter *adapter, const char *type,
--			   int id, int addr)
-+			   int addr)
- {
- 	struct go7007 *go = i2c_get_adapdata(adapter);
- 	struct v4l2_device *v4l2_dev = &go->v4l2_dev;
--	char *modname;
- 
--	switch (id) {
--	case I2C_DRIVERID_WIS_SAA7115:
--		modname = "wis-saa7115";
--		break;
--	case I2C_DRIVERID_WIS_SAA7113:
--		modname = "wis-saa7113";
--		break;
--	case I2C_DRIVERID_WIS_UDA1342:
--		modname = "wis-uda1342";
--		break;
--	case I2C_DRIVERID_WIS_SONY_TUNER:
--		modname = "wis-sony-tuner";
--		break;
--	case I2C_DRIVERID_WIS_TW9903:
--		modname = "wis-tw9903";
--		break;
--	case I2C_DRIVERID_WIS_TW2804:
--		modname = "wis-tw2804";
--		break;
--	case I2C_DRIVERID_WIS_OV7640:
--		modname = "wis-ov7640";
--		break;
--	case I2C_DRIVERID_S2250:
--		modname = "s2250";
--		break;
--	default:
--		modname = NULL;
--		break;
--	}
--
--	if (v4l2_i2c_new_subdev(v4l2_dev, adapter, modname, type, addr, NULL))
-+	if (v4l2_i2c_new_subdev(v4l2_dev, adapter, type, type, addr, NULL))
- 		return 0;
- 
--	if (modname != NULL)
-+	if (type != NULL)
- 		printk(KERN_INFO
--			"go7007: probing for module %s failed\n", modname);
-+			"go7007: probing for module %s failed\n", type);
- 	else
- 		printk(KERN_INFO
--			"go7007: sensor %u seems to be unsupported!\n", id);
-+			"go7007: sensor seems to be unsupported!\n");
- 	return -1;
- }
- 
-@@ -274,11 +242,16 @@
- 		for (i = 0; i < go->board_info->num_i2c_devs; ++i)
- 			init_i2c_module(&go->i2c_adapter,
- 					go->board_info->i2c_devs[i].type,
--					go->board_info->i2c_devs[i].id,
- 					go->board_info->i2c_devs[i].addr);
--		if (go->board_id == GO7007_BOARDID_ADLINK_MPG24)
--			i2c_clients_command(&go->i2c_adapter,
--				DECODER_SET_CHANNEL, &go->channel_number);
-+		if (go->board_id == GO7007_BOARDID_ADLINK_MPG24) {
-+			int channel = go->channel_number;
-+			struct v4l2_priv_tun_config config = {
-+				.tuner	= go->tuner_type,
-+				.priv	= &channel,
-+			};
-+			v4l2_device_call_all(&go->v4l2_dev, 0, tuner, s_config,
-+				&config);
-+		}
- 	}
- 	if (go->board_info->flags & GO7007_BOARD_HAS_AUDIO) {
- 		go->audio_enabled = 1;
-diff -r 690055993011 -r 2d2a250ca33b linux/drivers/staging/go7007/go7007-priv.h
---- a/linux/drivers/staging/go7007/go7007-priv.h	Sun Feb 07 22:26:10 2010 -0200
-+++ b/linux/drivers/staging/go7007/go7007-priv.h	Wed Feb 10 11:25:59 2010 -0800
-@@ -90,7 +90,6 @@
- 	int num_i2c_devs;
- 	struct {
- 		const char *type;
--		int id;
- 		int addr;
- 	} i2c_devs[4];
- 	int num_inputs;
-@@ -288,3 +287,14 @@
- /* snd-go7007.c */
- int go7007_snd_init(struct go7007 *go);
- int go7007_snd_remove(struct go7007 *go);
-+
-+/* Flag to indicate that the client needs to be accessed with SCCB semantics */
-+/* We re-use the I2C_M_TEN value so the flag passes through the masks in the
-+ * core I2C code.  Major kludge, but the I2C layer ain't exactly flexible. */
-+#define	I2C_CLIENT_SCCB			0x10
-+
-+/* Sony tuner types */
-+
-+#define TUNER_SONY_BTF_PG472Z		200
-+#define TUNER_SONY_BTF_PK467Z		201
-+#define TUNER_SONY_BTF_PB463Z		202
-diff -r 690055993011 -r 2d2a250ca33b linux/drivers/staging/go7007/go7007-usb.c
---- a/linux/drivers/staging/go7007/go7007-usb.c	Sun Feb 07 22:26:10 2010 -0200
-+++ b/linux/drivers/staging/go7007/go7007-usb.c	Wed Feb 10 11:25:59 2010 -0800
-@@ -29,7 +29,6 @@
- #include <media/tvaudio.h>
- 
- #include "go7007-priv.h"
--#include "wis-i2c.h"
- 
- static unsigned int assume_endura;
- module_param(assume_endura, int, 0644);
-@@ -92,8 +91,7 @@
- 		.num_i2c_devs	 = 1,
- 		.i2c_devs	 = {
- 			{
--				.type	= "wis_saa7115",
--				.id	= I2C_DRIVERID_WIS_SAA7115,
-+				.type	= "saa7115",
- 				.addr	= 0x20,
- 			},
- 		},
-@@ -129,8 +127,7 @@
- 		.num_i2c_devs	 = 1,
- 		.i2c_devs	 = {
- 			{
--				.type	= "wis_saa7113",
--				.id	= I2C_DRIVERID_WIS_SAA7113,
-+				.type	= "saa7115",
- 				.addr	= 0x25,
- 			},
- 		},
-@@ -167,8 +164,7 @@
- 		.num_i2c_devs	 = 1,
- 		.i2c_devs	 = {
- 			{
--				.type	= "wis_saa7115",
--				.id	= I2C_DRIVERID_WIS_SAA7115,
-+				.type	= "saa7115",
- 				.addr	= 0x20,
- 			},
- 		},
-@@ -213,18 +209,15 @@
- 		.num_i2c_devs	 = 3,
- 		.i2c_devs	 = {
- 			{
--				.type	= "wis_saa7115",
--				.id	= I2C_DRIVERID_WIS_SAA7115,
-+				.type	= "saa7115",
- 				.addr	= 0x20,
- 			},
- 			{
- 				.type	= "wis_uda1342",
--				.id	= I2C_DRIVERID_WIS_UDA1342,
- 				.addr	= 0x1a,
- 			},
- 			{
- 				.type	= "wis_sony_tuner",
--				.id	= I2C_DRIVERID_WIS_SONY_TUNER,
- 				.addr	= 0x60,
- 			},
- 		},
-@@ -272,7 +265,6 @@
- 		.i2c_devs	  = {
- 			{
- 				.type	= "wis_ov7640",
--				.id	= I2C_DRIVERID_WIS_OV7640,
- 				.addr	= 0x21,
- 			},
- 		},
-@@ -305,7 +297,6 @@
- 		.i2c_devs	 = {
- 			{
- 				.type	= "wis_tw9903",
--				.id	= I2C_DRIVERID_WIS_TW9903,
- 				.addr	= 0x44,
- 			},
- 		},
-@@ -394,8 +385,7 @@
- 		.num_i2c_devs	 = 1,
- 		.i2c_devs	 = {
- 			{
--				.type	= "wis_twTW2804",
--				.id	= I2C_DRIVERID_WIS_TW2804,
-+				.type	= "wis_tw2804",
- 				.addr	= 0x00, /* yes, really */
- 			},
- 		},
-@@ -426,7 +416,6 @@
- 		.i2c_devs	 = {
- 			{
- 				.type	= "s2250",
--				.id	= I2C_DRIVERID_S2250,
- 				.addr	= 0x43,
- 			},
- 		},
-diff -r 690055993011 -r 2d2a250ca33b linux/drivers/staging/go7007/wis-i2c.h
---- a/linux/drivers/staging/go7007/wis-i2c.h	Sun Feb 07 22:26:10 2010 -0200
-+++ b/linux/drivers/staging/go7007/wis-i2c.h	Wed Feb 10 11:25:59 2010 -0800
-@@ -25,11 +25,6 @@
- #define	I2C_DRIVERID_WIS_TW2804		0xf0f6
- #define	I2C_DRIVERID_S2250		0xf0f7
- 
--/* Flag to indicate that the client needs to be accessed with SCCB semantics */
--/* We re-use the I2C_M_TEN value so the flag passes through the masks in the
-- * core I2C code.  Major kludge, but the I2C layer ain't exactly flexible. */
--#define	I2C_CLIENT_SCCB			0x10
--
- /* Definitions for new video decoder commands */
- 
- struct video_decoder_resolution {
-@@ -38,10 +33,4 @@
- };
- 
- #define	DECODER_SET_RESOLUTION	_IOW('d', 200, struct video_decoder_resolution)
--#define	DECODER_SET_CHANNEL	_IOW('d', 201, int)
--
--/* Sony tuner types */
--
--#define TUNER_SONY_BTF_PG472Z		200
--#define TUNER_SONY_BTF_PK467Z		201
--#define TUNER_SONY_BTF_PB463Z		202
-+#define	DECODER_SET_CHANNEL	_IOW('d', 201, int)
-diff -r 690055993011 -r 2d2a250ca33b linux/drivers/staging/go7007/wis-ov7640.c
---- a/linux/drivers/staging/go7007/wis-ov7640.c	Sun Feb 07 22:26:10 2010 -0200
-+++ b/linux/drivers/staging/go7007/wis-ov7640.c	Wed Feb 10 11:25:59 2010 -0800
-@@ -20,7 +20,7 @@
- #include <linux/i2c.h>
- #include <linux/videodev2.h>
- 
--#include "wis-i2c.h"
-+#include "go7007-priv.h"
- 
- struct wis_ov7640 {
- 	int brightness;
-diff -r 690055993011 -r 2d2a250ca33b linux/drivers/staging/go7007/wis-sony-tuner.c
---- a/linux/drivers/staging/go7007/wis-sony-tuner.c	Sun Feb 07 22:26:10 2010 -0200
-+++ b/linux/drivers/staging/go7007/wis-sony-tuner.c	Wed Feb 10 11:25:59 2010 -0800
-@@ -23,7 +23,7 @@
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
- 
--#include "wis-i2c.h"
-+#include "go7007-priv.h"
- 
- /* #define MPX_DEBUG */
- 
+> -----Original Message-----
+> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> Sent: Thursday, February 11, 2010 7:23 PM
+> To: Maupin, Chase
+> Cc: Hans Verkuil; sakari.ailus@maxwell.research.nokia.com;
+> mchehab@infradead.org; vpss_driver_design@list.ti.com - This list is to
+> discuss the VPSS driver design (May contain non-TIers); linux-
+> media@vger.kernel.org
+> Subject: Re: Requested feedback on V4L2 driver design
+> 
+> Hi Chase,
+> 
+> On Monday 08 February 2010 16:08:37 Maupin, Chase wrote:
+> > All,
+> >
+> > Texas Instruments (TI) is working on the design for the V4L2 capture and
+> > display drivers for our next generation system-on-chip (SoC) processor
+> and
+> > would like to solicit your feedback.
+> 
+> Thank you very much for requesting feedback on the system design. I
+> personally
+> appreciate this, and I'm pretty sure that the feeling is shared by most of
+> the
+> Linux kernel developers.
+> 
+> > If you have additional questions or need more information please feel
+> free
+> > to contact us (we have setup a mailing list at
+> > vpss_driver_design@list.ti.com) so we can answer them.
+> 
+> I'll answer here as the instructions provided in the wiki to subscribe to
+> the
+> vpss_driver_design mailing list are incorrect (http://list.ti.com/ isn't
+> accessible, the name has no A record associated to it). I've CC'ed the
+> list in
+> case subscription wouldn't be required to post.
 
+The page for subscribing to the list requires a my.TI login which you can setup at https://myportal.ti.com/portal/dt?provider=TIPassLoginSingleContainer&lt=myti&j5=2&j3=1&goto=https%3A%2F%2Fmy.ti.com%3A443%2Fcgi-bin%2Fhome.pl%3FDCMP%3DTIHeaderTracking%26HQS%3DOther%2BOT%2Bhdr_my_ti.  However, your reply to the list should be fine without subscribing.
+
+> 
+> 1. Multi-core design
+> --------------------
+> 
+> OMAP3 was already a dual-core system, OMAP4 (I assume all this is about
+> the
+> OMAP4 processors family) seems to push the concept one step further.
+> 
+> With its heterogeneous multi-core design (ARM master CPU and slave DSPs),
+> the
+> OMAP architecture delivers high performances at the cost of higher
+> development
+> time and effort as users need to write software for completely different
+> cores, usually using different toolchains. This is in my opinion a good
+> (or at
+> least acceptable) trade-off between CPU power, development time and power
+> consumption (DSPs being more efficient at signal processing at the cost of
+> a
+> higher development complexity).
+> 
+> I'm a bit puzzled, however, by how the VPSS MCU will help improving the
+> situation compared to the OMAP3 design. The VPSS MCU will provide an API
+> that
+> will expose a fixed subset of the hardware capabilities. This is only a
+> guess,
+> but I suppose the firmware will be fairly generic, and that TI will
+> provide
+> customized versions to big customers tailored for their needs and use
+> cases.
+> The "official" kernel drivers will then need to be changed, and those
+> changes
+> will have no chance to be accepted in the mainline kernel. This will lead
+> to
+> forks and fragmentation of the developers base among the big players in
+> the
+> embedded markets. What will be the compensation for that ? How will the
+> VPSS
+> MCU provide higher performances than the OMAP3 model ?
+
+The firmware on the VPSS MCU will be able to configure/control all of the functionality that the VPSS MCU has and will be the same for all customers.  The only part that may change is the proxy driver of the firmware.  The proxy driver is the piece that will be responsible for taking the commands from the driver and telling the firmware to execute the operation.  The initial version of the proxy will support all the standard V4L2 operations.  As new operations (such as on the fly video scaling) are added to the V4L2 API the firmware may require an update to the proxy driver to handle these requests, but the underlying code will remain the same.  
+
+For customers who wish to use features of the VPSS that are not supported by the current V4L2 APIs there are OpenMax components being developed that can also talk to the VPSS and support the full set of features of the VPSS.  These components allow for additional use cases such as transferring data directly from other processing blocks such as the DSP to the VPSS without ever returning to the host processor (tunneling).  However, the OpenMax API does not integrate with most existing software such as applications that use V4L2 drivers for video capture and display.
+
+What this means is that we will not be creating a bunch of one-off drivers for customers who want to use features that are not part of the V4L2 APIs.  Instead those customers will be able to use the OpenMax components.  The Linux V4L2 drivers will focus on enabling customers who are using the standard V4L2 functionalities.  As the V4L2 API is expanded the only changes that would be required would be to the V4L2 driver to implement the new V4L2 APIs and potentially to the proxy driver on the VPSS firmware to handle interpreting the new commands.
+
+> 
+> 2. VPSS firmware and API
+> ------------------------
+> 
+> The wiki doesn't state under which license the VPSS MCU firmware will be
+> released, but I suppose it won't be open sourced. The VPSS API, which
+> seems
+> from the information provided in the wiki to mimic the V4L2 API at least
+> for
+> video capture and output, will thus be controlled by TI and pretty much
+> set
+> into stone. This means future extensions to the V4L2 API that will provide
+> more control over the devices to userspace applications will be stuck with
+> access to a limited subset of the hardware capabilities, and users will
+> not be
+> able to use the full potential of the system.
+
+I'll let one of the engineers from the VPSS firmware team comment on the license here.  As of now my understanding is that the firmware will be binary only.  The VPSS API will define a full set of capabilities, but which APIs will be handled by the proxy driver will be initially limited to the existing V4L2 features.  Thus while you could add new VPSS API calls to the V4L2 driver the proxy on the VPSS MCU may not know how to handle these calls.  As we go forward we will add new calls to the proxy driver.  I'll let the VPSS firmware team comment more here but this is good feedback on the need to at least let people extend the proxy driver on the VPSS to handle future extensions.
+
+> 
+> This goes in the opposite direction of what the Linux media community is
+> trying to do today. For the past 6 months now we have been working on
+> additions to the V4L2 subsystem to create a complete media framework,
+> targeted
+> at both desktop and embedded use cases. The new APIs that we are
+> developing
+> will let userspace applications discover the internal topology of the
+> hardware
+> and control every parameter in the video pipeline(s). This include dynamic
+> reconfiguration of the pipeline(s),  completely under control of userspace.
+> With a VPSS API that mimics today's V4L2 API, the OMAP4 video pipeline
+> will
+> look from a userspace perspective as an old-school V4L2 device, a single
+> black
+> box with a few controls to accommodate common use cases.
+
+Again, like I stated above the VPSS API will be capable of exposing all of the functionality of the VPSS hardware.  The limitation comes with the proxy driver and what commands it interprets.  This will need to be expanded as new features are added to the Linux kernel.  Basically the VPSS API is full featured but the portions of it that are exposed to Linux are initially limited to the current V4L2 APIs with plans to expand going forward.  Your feedback indicates that we need to find a way that Linux developers can expand which APIs are exposed to Linux themselves an not need to rely on TI to do so.
+
+> 
+> Regardless of the firmware license, we need a way to control hardware
+> without
+> any limitation from the ARM processor. This includes explicit
+> configuration of
+> the pipeline, and access to all configuration parameters of all hardware
+> processing blocks.
+> 
+> 3. VPSS API usage from kernel space
+> -----------------------------------
+> 
+> The wiki mentions that Linux kernel drivers will have access to functions
+> that
+> convert "standard kernel data structures" to VPSS data structures as
+> required
+> by the VPSS firmware. I don't think that's a good idea. Please let kernel
+> drivers do the conversion themselves. Linux kernel drivers know about
+> their
+> data structures better than the VPSS library/middleware/layer/whatever
+> will
+> do. Instead of providing such conversion functions, I would like to see
+> the
+> VPSS data structures properly documented so that kernel driver developers
+> will
+> know what information the VPSS MCU expects. Filling the VPSS data
+> structures
+> from "standard kernel data structures" should be left to individual
+> drivers
+> and/or subsystems.
+
+Agreed.  What I was trying to convey here is that we will have functions in the Linux kernel drivers that will convert the kernel data structures to VPSS data structures.  These functions will be part of the drivers.  The intent was that if a V4L2 capture and display driver both take in the same kind of data structure (like a buffer descriptor) that they could share the function that converts that to a VPSS data structure.  In the end it is still up to each driver to process the input it is given and package it appropriately for sending to the VPSS.  The VPSS data structures will be properly documented and will not be hidden from kernel developers.
+
+> 
+> As explained above, I'm really concerned about the following usage
+> example:
+> 
+> "Driver calls VPSS set_format function and passes the VPSS format data
+> structure. The VPSS set_format function will then:
+>  - Create a message structure for sending over the Notify IPC
+>  - Set the command element with the set format command value
+>  - Set the arguements element to the address of the VPSS format data
+> structure
+>  - Call the syslink Notify kernel API and send the address of the message
+> structure to the VPSS"
+> 
+> This means the VPSS MCU will expose a single black box to the host, making
+> it
+> impossible to use the full capabilities of the hardware with future V4L2
+> extensions. Those extensions are developed for a reason. V4L2 simply
+> doesn't
+> scale in the light of future (and even today's) embedded hardware. If the
+> VPSS
+> API mimics V4L2 it will suffer from the same problem.
+
+I think I addressed this above in stating that the VPSS API is fully featured.  During the initial development we will only expose a subset of the VPSS API as needed by the existing V4L2 API.  The list of VPSS APIs that are exposed will grow over time and we need to work out if there is a way to enable kernel developers to do this without relying on TI.
+
+> 
+> One possible solution would be to open-source the VPSS MCU firmware,
+> allowing
+> the Linux community to expose capabilities needed by future V4L2
+> extensions
+> through the VPSS API.
+
+Agreed.
+
+> 
+> 4. VPSS API usage from userspace
+> --------------------------------
+> 
+> I have no specific comment about the userspace API usage, but I would like
+> to
+> know how you plan to arbitrate access to the hardware from both
+> kernelspace
+> (through a V4L2 driver) and userspace. Will there be a way for kernel
+> drivers
+> to take ownership of specific hardware parts and disallow userspace
+> applications from issuing any message to those parts ? The design must be
+> carefully reviewed to spot possible race conditions and even security
+> issues.
+
+The VPSS firmware does the hardware arbitration.  If the kernel driver already has a video plane open then a user space application would not be able to open the same video plane.
+
+> 
+> 5. Syslink
+> ----------
+> 
+> I still need to review the syslink code. As stated by Hans Verkuil, from a
+> quick look at the source tree the syslink module looks over-engineered. To
+> communicate with the VPSS MCU all that seems to be needed is a mailbox-
+> like
+> interface.
+> 
+> Furthermore, the mailbox API should probably not be OMAP4-specific. Isn't
+> there already a mailbox API in Linux ? If not I think one should be
+> developed
+> first, and then syslink should be built on top of it. The best way to see
+> a
+> driver being rejected when submitted to mainline is to write a huge pile
+> of
+> code and then push it in one go.
+
+I'll need to let the syslink team comment on this.  I know they are reworking some of the syslink code such that most of the advanced usage is done from user space and only the basic message passing is done in the kernel.  I'm not sure if they have been working on a generic mailbox interface.  The syslink Notify module being part of the Linux kernel is a requirement for us and they are actively working on getting it into the kernel.
+
+Mugdha, can someone from the syslink team comment here?
+
+> 
+> 
+> 
+> As a conclusion, I believe that the best chance to get drivers into
+> mainline
+> and to get developers excited about the product (both are related in my
+> experience) is to be as open as possible and play by the rules of the
+> Linux
+> kernel community. This means that:
+> 
+> - Big subsystems such as syslink should be broken down to small pieces,
+> and
+> every piece, especially the low-level ones, must be carefully designed
+> with
+> the whole Linux kernel in mind, not only the OMAP4 platform. APIs should
+> be
+> made generic when possible.
+> 
+> - The VPSS MCU firmware should be properly documented, developed in the
+> open
+> and under an open-source license.
+
+Thanks for the guidance on this.  This is the kind of feedback we needed.
+
+> 
+> Those two steps should be performed in tight cooperation with the Linux
+> kernel
+> community.
+> 
+> --
+> Best regards,
+> 
+> Laurent Pinchart
