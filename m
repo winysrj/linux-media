@@ -1,142 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48]:39023 "EHLO
-	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966562Ab0B0ADh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Feb 2010 19:03:37 -0500
-Subject: Re: [BUG] TDA10086 : Creatix CTX929_V.1 : TS continuity errors
-	with good RF signal input
-From: hermann pitton <hermann-pitton@arcor.de>
-To: thomas.schorpp@gmail.com
+Received: from mail1.radix.net ([207.192.128.31]:63849 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752292Ab0BMXaF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Feb 2010 18:30:05 -0500
+Subject: Re: Leadtek WinFast DVR3100 H zl10353_read_register: readreg error
+ (reg=127, ret==-6)
+From: Andy Walls <awalls@radix.net>
+To: Patrick Cairns <patrick_cairns@yahoo.com>
 Cc: linux-media@vger.kernel.org
-In-Reply-To: <4B885AA2.3040402@gmail.com>
-References: <4B87DD22.3000209@gmail.com>  <4B885AA2.3040402@gmail.com>
+In-Reply-To: <47786.707.qm@web33501.mail.mud.yahoo.com>
+References: <47786.707.qm@web33501.mail.mud.yahoo.com>
 Content-Type: text/plain
-Date: Sat, 27 Feb 2010 01:01:38 +0100
-Message-Id: <1267228898.3239.2.camel@pc07.localdom.local>
+Date: Sat, 13 Feb 2010 18:28:59 -0500
+Message-Id: <1266103739.3067.111.camel@palomino.walls.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Thomas,
+On Tue, 2010-02-09 at 07:19 -0800, Patrick Cairns wrote:
+> > On Tue, 2010-02-09 at 03:35 -0800, Patrick Cairns wrote:
 
-Am Samstag, den 27.02.2010, 00:34 +0100 schrieb thomas schorpp:
-> Looks like fixed by linux 2.6.33 just in time, BIG Thank You guys ;-)
-> 
-> Even at higher BER:
-> 
-> Current parameters:
->     Frequency:  1945.320 MHz
->     Inversion:  OFF
->     Symbol rate:  22.000154 MSym/s
->     FEC:  FEC 5/6
-> 
-> cycle: 1  d_time: 0.001 s  Sig: 18504  SNR: 39578  BER: 168  UBLK: 0  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-> cycle: 2  d_time: 0.073 s  Sig: 18247  SNR: 39578  BER: 225  UBLK: 0  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-> cycle: 3  d_time: 0.079 s  Sig: 18504  SNR: 37779  BER: 140  UBLK: 0  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-> cycle: 4  d_time: 0.072 s  Sig: 18504  SNR: 39835  BER: 198  UBLK: 0  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-> cycle: 5  d_time: 0.071 s  Sig: 18504  SNR: 39835  BER: 221  UBLK: 0  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-> cycle: 6  d_time: 0.072 s  Sig: 18247  SNR: 39578  BER: 249  UBLK: 0  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-> cycle: 7  d_time: 0.072 s  Sig: 18504  SNR: 39835  BER: 191  UBLK: 0  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-> cycle: 8  d_time: 0.072 s  Sig: 18504  SNR: 39578  BER: 185  UBLK: 0  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-> cycle: 9  d_time: 0.072 s  Sig: 18761  SNR: 39578  BER: 137  UBLK: 0  Stat: 0x1f [SIG CARR VIT SYNC LOCK ]
-> 
-> I'll report if issue reoccurs and try to finetune crystal based tuner/demod parameters, then.
-> 
-> y
-> tom
+> > > I'm testing use of multiple Leadtek WinFast DVR3100 H cards for a
+> > > project.  I've had large numbers of them working well in the same
+> > > machine as encoders (haven't been using the DVB-T capabilities).
+> > > 
+> > > However if I use more than a few of these cards in the same machine
+> > > then upon startup there are always one or two cards where Zarlink
+> > > zl10353 reading errors are reported preventing their use:-
+> > > 
 
-I just started to try to look it up, but don't have ground yet.
 
-I reported unexpected bad performance under GNU/Linux for that card
-previously.
+> > This was an excellent test to perform.  IIRC, only the ZL10353 and
+> > XC3028 are on the second I2C bus (#10-1 in this case), which likely
+> > means one of those two chips is hung.
+ 
+> > > Can anyone advise how to debug this further or know any fixes to try?
+> > > I'm not quite sure what's going on under the hood.
 
-Can you point me to the fix?
 
-Cheers,
-Hermann
+Patrick,
 
-> thomas schorpp wrote:
-> > Hi,
-> > Issue is already confirmed here:
-> > http://www.vdr-portal.de/board/thread.php?threadid=93268
-> > 
-> > Linux 2.6.32.8, 80cm dish.
-> > 
-> > Do we have any Tuner/Decoder optimization points in the FE code?
-> > 
-> > This is not OK:
-> > 
-> > lspci -s 00:08.0 -v 00:08.0 Multimedia controller: Philips 
-> > Semiconductors SAA7134/SAA7135HL Video Broadcast Decoder (rev 01) 
-> > Subsystem: Creatix Polymedia GmbH Device 0005 Flags: bus master, medium 
-> > devsel, latency 32, IRQ 19 Memory at fbeff400 (32-bit, non-prefetchable) 
-> > [size=1K] Capabilities: [40] Power Management version 1 Kernel driver in 
-> > use: saa7134
-> > 
-> > grep cTS2PES /var/log/syslog
-> > Feb 26 13:46:59 tom1 vdr: [4082] cTS2PES got 7 TS errors, 113 TS 
-> > continuity errors
-> > Feb 26 13:46:59 tom1 vdr: [4082] cTS2PES got 0 TS errors, 29 TS 
-> > continuity errors
-> > Feb 26 13:47:52 tom1 vdr: [4082] cTS2PES got 17 TS errors, 5 TS 
-> > continuity errors
-> > Feb 26 14:03:03 tom1 vdr: [4082] cTS2PES got 2 TS errors, 136 TS 
-> > continuity errors
-> > Feb 26 14:03:03 tom1 vdr: [4082] cTS2PES got 0 TS errors, 32 TS 
-> > continuity errors
-> > Feb 26 14:41:42 tom1 vdr: [4082] cTS2PES got 1 TS errors, 853 TS 
-> > continuity errors
-> > Feb 26 14:41:42 tom1 vdr: [4082] cTS2PES got 0 TS errors, 194 TS 
-> > continuity errors
-> > Feb 26 14:52:58 tom1 vdr: [4082] cTS2PES got 2 TS errors, 196 TS 
-> > continuity errors
-> > Feb 26 14:52:58 tom1 vdr: [4082] cTS2PES got 0 TS errors, 52 TS 
-> > continuity errors
-> > Feb 26 14:59:34 tom1 vdr: [4082] cTS2PES got 0 TS errors, 137 TS 
-> > continuity errors
-> > Feb 26 14:59:34 tom1 vdr: [4082] cTS2PES got 0 TS errors, 43 TS 
-> > continuity errors
-> > Feb 26 14:59:34 tom1 vdr: [4082] cTS2PES got 0 TS errors, 16 TS 
-> > continuity errors
-> > Feb 26 14:59:34 tom1 vdr: [4082] cTS2PES got 0 TS errors, 57 TS 
-> > continuity errors
-> > Feb 26 14:59:54 tom1 vdr: [4082] cTS2PES got 0 TS errors, 3 TS 
-> > continuity errors
-> > Feb 26 14:59:54 tom1 vdr: [4082] cTS2PES got 0 TS errors, 2 TS 
-> > continuity errors
-> > 
-> > dvbsnoop -s feinfo -adapter 2
-> > Current parameters:
-> > Frequency: 1236.253 MHz
-> > Inversion: OFF
-> > Symbol rate: 31.794142 MSym/s
-> > FEC: FEC 3/4
-> > 
-> > dvbsnoop -s signal -adapter 2
-> > cycle: 1 d_time: 0.001 s Sig: 26471 SNR: 49858 BER: 0 UBLK: 0 Stat: 0x1f 
-> > [SIG CARR VIT SYNC LOCK ]
-> > cycle: 2 d_time: 0.072 s Sig: 26471 SNR: 50115 BER: 0 UBLK: 0 Stat: 0x1f 
-> > [SIG CARR VIT SYNC LOCK ]
-> > cycle: 3 d_time: 0.072 s Sig: 26728 SNR: 50115 BER: 0 UBLK: 0 Stat: 0x1f 
-> > [SIG CARR VIT SYNC LOCK ]
-> > cycle: 4 d_time: 0.088 s Sig: 26728 SNR: 50115 BER: 0 UBLK: 0 Stat: 0x1f 
-> > [SIG CARR VIT SYNC LOCK ]
-> > cycle: 5 d_time: 0.072 s Sig: 26471 SNR: 50115 BER: 0 UBLK: 0 Stat: 0x1f 
-> > [SIG CARR VIT SYNC LOCK ]
-> > cycle: 6 d_time: 0.072 s Sig: 26471 SNR: 50115 BER: 0 UBLK: 0 Stat: 0x1f 
-> > [SIG CARR VIT SYNC LOCK ]
-> > cycle: 7 d_time: 0.072 s Sig: 26471 SNR: 50115 BER: 0 UBLK: 0 Stat: 0x1f 
-> > [SIG CARR VIT SYNC LOCK ]
-> > cycle: 8 d_time: 0.072 s Sig: 26471 SNR: 50115 BER: 0 UBLK: 0 Stat: 0x1f 
-> > [SIG CARR VIT SYNC LOCK ]
-> > 
-> > Low signal strength values are AGC-loop misinterpretation as usual?
-> > 
-> > y
-> > tom
-> > 
-> > 
+Can you test the patch below?  It will reset the XC3028 before the I2C
+bus is first used, and it will try to reset the ZL10353 before the I2C
+bus is first used.
+
+You'll need to recompile and test until you find the GPIO line that
+appears to reset the ZL10353.
+
+#define DVR3100_ZL10353_RESET_GPIO	(1 << 8)
+                                              ^
+                                              |
+                                       Change this number
+
+Try GPIO pins 8-15 first, then 3-7, then 16-31, then 0.
+If that doesn't work then try them again, but change more of the patch
+to assume an active high reset for the ZL10353 GPIO line instead of
+active low.
+
+
+There is also an W83601 chip connected to this I2C bus along with the
+XC3028 and ZL10353, but hopefully we won't have to worry about resetting
+that too.
+
+Please let me know if you find a GPIO pin that reliably has all your
+cards working upon modprobe.  You should *not* need to cycle power
+between each test.
+
+Regards,
+Andy
+
+diff -r 14021dfc00f3 linux/drivers/media/video/cx18/cx18-cards.c
+--- a/linux/drivers/media/video/cx18/cx18-cards.c	Thu Feb 11 23:11:30 2010 -0200
++++ b/linux/drivers/media/video/cx18/cx18-cards.c	Sat Feb 13 18:14:32 2010 -0500
+@@ -452,10 +452,34 @@
+ 		.tune_lane = 0,
+ 		.initial_emrs = 0x2,
+ 	},
+-	.gpio_init.initial_value = 0x6,
+-	.gpio_init.direction = 0x7,
+-	.gpio_audio_input = { .mask   = 0x7,
+-			      .tuner  = 0x6, .linein = 0x2, .radio  = 0x2 },
++
++	/*
++	 *  GPIOs
++	 *  0 0x00000001 Audio/FM related???
++	 *  1 0x00000002 XC3028 reset line, active low
++	 *  2 0x00000004 Audio input multiplexer: 1 - Tuner, 0 - Line-in
++	 */
++#define DVR3100_XC3028_RESET_GPIO	(1 << 1)
++
++	/* FIXME - Try GPIO pins 8-15 first, then 3-7, then 16-31, then 0, */
++	/* then try them again using active high for the reset, until found */
++#define DVR3100_ZL10353_RESET_GPIO	(1 << 8)
++
++	.gpio_init.direction = 0x5 |
++			       DVR3100_XC3028_RESET_GPIO |
++			       DVR3100_ZL10353_RESET_GPIO,
++	.gpio_init.initial_value = 0x4 |
++				   DVR3100_XC3028_RESET_GPIO |
++				   DVR3100_ZL10353_RESET_GPIO,
++	.gpio_audio_input = { .mask   = 0x4,
++			      .tuner  = 0x4, .linein = 0x0, .radio  = 0x0 },
++	.gpio_i2c_slave_reset = {
++		.active_hi_mask = 0x0,
++		.active_lo_mask = DVR3100_XC3028_RESET_GPIO |
++				  DVR3100_ZL10353_RESET_GPIO,
++		.msecs_asserted = 50, /* ZL10353 requires 50 ms */
++		.msecs_recovery = 50, /* A guess */
++	},
+ 	.xceive_pin = 1,
+ 	.pci_list = cx18_pci_leadtek_dvr3100h,
+ 	.i2c = &cx18_i2c_std,
+
+
 
 
