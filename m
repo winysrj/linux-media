@@ -1,57 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-13.arcor-online.net ([151.189.21.53]:34072 "EHLO
-	mail-in-13.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751588Ab0BBUTy (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4854 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752027Ab0BMNRp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Feb 2010 15:19:54 -0500
-Message-ID: <4B6888C9.40400@arcor.de>
-Date: Tue, 02 Feb 2010 21:19:21 +0100
-From: Stefan Ringel <stefan.ringel@arcor.de>
+	Sat, 13 Feb 2010 08:17:45 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [PATCH v4 2/7] V4L: Events: Add new ioctls for events
+Date: Sat, 13 Feb 2010 14:19:55 +0100
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
+	david.cohen@nokia.com
+References: <4B72C965.7040204@maxwell.research.nokia.com> <1265813889-17847-1-git-send-email-sakari.ailus@maxwell.research.nokia.com> <1265813889-17847-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1265813889-17847-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [PATCH] -  tm6000 DVB support
-References: <4B673790.3030706@arcor.de> <4B673B2D.6040507@arcor.de> <4B675B19.3080705@redhat.com> <4B685FB9.1010805@arcor.de> <4B688507.606@redhat.com>
-In-Reply-To: <4B688507.606@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201002131419.55625.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 02.02.2010 21:03, schrieb Mauro Carvalho Chehab:
->
->>> Those tuner callback initializations are board-specific. So, it is better to test
->>> for your board model, if you need something different than what's currently done.
->>>
->>>   
->>>       
->> This tuner reset works with my stick, but I think that can test with
->> other tm6000 based sticks and if it not works then I can say this as a
->> board-specific.
->>     
-> It won't work on my boards. The GPIO pin used by each board is different.
->
->   
-Have you the right gpio pin in the card struct. I have the
-".gpio_addr_tun_reset" the correct gpio pin
+On Wednesday 10 February 2010 15:58:04 Sakari Ailus wrote:
+> This patch adds a set of new ioctls to the V4L2 API. The ioctls conform to
+> V4L2 Events RFC version 2.3:
 
-   [TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE] = {
-+        .name         = "Terratec Cinergy Hybrid XE",
-+        .tuner_type   = TUNER_XC2028, /* has a XC3028 */
-+        .tuner_addr   = 0xc2 >> 1,
-+        .demod_addr   = 0x1e >> 1,
-+        .type         = TM6010,
-+        .caps = {
-+            .has_tuner    = 1,
-+            .has_dvb      = 1,
-+            .has_zl10353  = 1,
-+            .has_eeprom   = 1,
-+            .has_remote   = 1,
-+        },
-+        .gpio_addr_tun_reset = TM6010_GPIO_2, /* here */
-+    }
- };
- 
+I've experimented with the events API to try and support it with ivtv and
+I realized that it had some problems.
 
+See comments below.
 
+> 
+> <URL:http://www.spinics.net/lists/linux-media/msg12033.html>
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> ---
+>  drivers/media/video/v4l2-compat-ioctl32.c |    3 +++
+>  drivers/media/video/v4l2-ioctl.c          |    3 +++
+>  include/linux/videodev2.h                 |   23 +++++++++++++++++++++++
+>  3 files changed, 29 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
+> index 997975d..cba704c 100644
+> --- a/drivers/media/video/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/video/v4l2-compat-ioctl32.c
+> @@ -1077,6 +1077,9 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+>  	case VIDIOC_DBG_G_REGISTER:
+>  	case VIDIOC_DBG_G_CHIP_IDENT:
+>  	case VIDIOC_S_HW_FREQ_SEEK:
+> +	case VIDIOC_DQEVENT:
+> +	case VIDIOC_SUBSCRIBE_EVENT:
+> +	case VIDIOC_UNSUBSCRIBE_EVENT:
+>  		ret = do_video_ioctl(file, cmd, arg);
+>  		break;
+>  
+> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+> index 30cc334..bfc4696 100644
+> --- a/drivers/media/video/v4l2-ioctl.c
+> +++ b/drivers/media/video/v4l2-ioctl.c
+> @@ -283,6 +283,9 @@ static const char *v4l2_ioctls[] = {
+>  
+>  	[_IOC_NR(VIDIOC_DBG_G_CHIP_IDENT)] = "VIDIOC_DBG_G_CHIP_IDENT",
+>  	[_IOC_NR(VIDIOC_S_HW_FREQ_SEEK)]   = "VIDIOC_S_HW_FREQ_SEEK",
+> +	[_IOC_NR(VIDIOC_DQEVENT)]	   = "VIDIOC_DQEVENT",
+> +	[_IOC_NR(VIDIOC_SUBSCRIBE_EVENT)]  = "VIDIOC_SUBSCRIBE_EVENT",
+> +	[_IOC_NR(VIDIOC_UNSUBSCRIBE_EVENT)] = "VIDIOC_UNSUBSCRIBE_EVENT",
+>  #endif
+>  };
+>  #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 54af357..a19ae89 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -1536,6 +1536,26 @@ struct v4l2_streamparm {
+>  };
+>  
+>  /*
+> + *	E V E N T S
+> + */
+> +
+> +struct v4l2_event {
+> +	__u32		count;
+
+The name 'count' is confusing. Count of what? I think the name 'pending' might
+be more understandable. A comment after the definition would also help.
+
+> +	__u32		type;
+> +	__u32		sequence;
+> +	struct timespec	timestamp;
+> +	__u32		reserved[9];
+> +	__u8		data[64];
+> +};
+
+I also think we should reorder the fields and add a union. For ivtv I would
+need this:
+
+#define V4L2_EVENT_ALL                          0
+#define V4L2_EVENT_VSYNC                        1
+#define V4L2_EVENT_EOS                          2
+#define V4L2_EVENT_PRIVATE_START                0x08000000
+
+/* Payload for V4L2_EVENT_VSYNC */
+struct v4l2_event_vsync {
+        /* Can be V4L2_FIELD_ANY, _NONE, _TOP or _BOTTOM */
+        u8 field;
+} __attribute__ ((packed));
+
+struct v4l2_event {
+        __u32           type;
+        union {
+                struct v4l2_event_vsync vsync;
+                __u8    data[64];
+        } u;
+        __u32           sequence;
+        struct timespec timestamp;
+        __u32           pending;
+        __u32           reserved[9];
+};
+
+The reason for rearranging the fields has to do with the fact that the first
+two fields (type and the union) form the actual event data. The others are
+more for administrative purposes. Separating those two makes sense to me.
+
+So when I define an event for queuing it is nice if I can do just this:
+
+static const struct v4l2_event ev_top = {
+	.type = V4L2_EVENT_VSYNC,
+	.u.vsync.field = V4L2_FIELD_TOP,
+};
+
+I would have preferred to have an anonymous union. Unfortunately gcc has
+problems with initializers for fields inside an anonymous union. Hence the
+need for a named union.
+
+Regards,
+
+	Hans
+
+> +
+> +struct v4l2_event_subscription {
+> +	__u32		type;
+> +	__u32		reserved[7];
+> +};
+> +
+> +#define V4L2_EVENT_PRIVATE_START		0x08000000
+> +
+> +/*
+>   *	A D V A N C E D   D E B U G G I N G
+>   *
+>   *	NOTE: EXPERIMENTAL API, NEVER RELY ON THIS IN APPLICATIONS!
+> @@ -1651,6 +1671,9 @@ struct v4l2_dbg_chip_ident {
+>  #endif
+>  
+>  #define VIDIOC_S_HW_FREQ_SEEK	 _IOW('V', 82, struct v4l2_hw_freq_seek)
+> +#define VIDIOC_DQEVENT		 _IOR('V', 83, struct v4l2_event)
+> +#define VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 84, struct v4l2_event_subscription)
+> +#define VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 85, struct v4l2_event_subscription)
+>  /* Reminder: when adding new ioctls please add support for them to
+>     drivers/media/video/v4l2-compat-ioctl32.c as well! */
+>  
+> 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
