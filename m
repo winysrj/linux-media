@@ -1,83 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:1381 "EHLO mx1.redhat.com"
+Received: from mail1.radix.net ([207.192.128.31]:44632 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751111Ab0BWIsb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2010 03:48:31 -0500
-Message-ID: <4B839687.4090205@redhat.com>
-Date: Tue, 23 Feb 2010 09:49:11 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Brandon Philips <brandon@ifup.org>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Douglas Landgraf <dougsland@gmail.com>
-Subject: Re: [ANNOUNCE] git tree repositories & libv4l
-References: <4B55445A.10300@infradead.org> <4B57B6E4.2070500@infradead.org> <20100121024605.GK4015@jenkins.home.ifup.org> <201001210834.28112.hverkuil@xs4all.nl> <4B5B30E4.7030909@redhat.com> <20100222225426.GC4013@jenkins.home.ifup.org>
-In-Reply-To: <20100222225426.GC4013@jenkins.home.ifup.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	id S1750907Ab0BMBTO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Feb 2010 20:19:14 -0500
+Subject: Re: Driver crash on kernel 2.6.32.7. Interaction between cx8800
+ (DVB-S) and USB HVR Hauppauge 950q
+From: Andy Walls <awalls@radix.net>
+To: Greg KH <gregkh@suse.de>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Kay Sievers <kay.sievers@vrfy.org>,
+	Richard Lemieux <rlemieu@cooptel.qc.ca>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20100212041131.GA29697@suse.de>
+References: <4B70E7DB.7060101@cooptel.qc.ca>
+	 <1265768091.3064.109.camel@palomino.walls.org>
+	 <4B722266.4070805@cooptel.qc.ca>
+	 <829197381002091912h5391129dpbf075485ab011936@mail.gmail.com>
+	 <1265816096.4019.65.camel@palomino.walls.org>
+	 <20100212041131.GA29697@suse.de>
+Content-Type: text/plain
+Date: Fri, 12 Feb 2010 20:18:57 -0500
+Message-Id: <1266023937.3062.17.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Thu, 2010-02-11 at 20:11 -0800, Greg KH wrote:
+> On Wed, Feb 10, 2010 at 10:34:56AM -0500, Andy Walls wrote:
+> > On Tue, 2010-02-09 at 22:12 -0500, Devin Heitmueller wrote:
+> > > On Tue, Feb 9, 2010 at 10:05 PM, Richard Lemieux <rlemieu@cooptel.qc.ca> wrote:
+> > > > Andy,
+> > > >
+> > > > This is a great answer!  Thanks very much.  When I get into this situation
+> > > > again
+> > > > I will know what to look for.
+> > > >
+> > > > A possible reason why I got into this problem in the first place is that I
+> > > > tried
+> > > > many combinations of parameters with mplayer and azap in order to learn how
+> > > > to use the USB tuner in both the ATSC and the NTSC mode.  I will look back
+> > > > in the terminal history to see if I can find anything.
+> > > 
+> > > I think the key to figuring out the bug at this point is you finding a
+> > > sequence where you can reliably reproduce the oops.  If we have that,
+> > > then I can start giving you some code to try which we can see if it
+> > > addresses the problem.
+> > > 
+> > > For example, I would start by giving you a fix which results in us not
+> > > calling the firmware release if the request_firmware() call failed,
+> > > but it wouldn't be much help if you could not definitively tell me if
+> > > the problem is fixed.
+> > 
+> > 
+> > For the oops analysis here:
+> > 
+> > http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/15954
+> > 
+> > 
+> > I will also note that the file scope "fw_lock" mutex is rather
+> > inconsistently used in
+> > linux/drivers/base/fw_class.c:firmware_loading_store().  (I guess for
+> > not wanting to consume the timeout interval with sleeping?)
+> > 
+> > The mutex protects "case 1:", but all other cases appear to be only
+> > protected by atomic status bit checks that can fall through to
+> > fw_load_abort() which complete()'s the fw_priv->completion.
+> > 
+> > Also not that in the _request_firmware() this sequence is the only place
+> > a once good "fw_priv->fw" pointer is set to NULL:
+> > 
+> >         mutex_lock(&fw_lock);
+> >         if (!fw_priv->fw->size || test_bit(FW_STATUS_ABORT, &fw_priv->status)) {
+> >                 retval = -ENOENT;
+> >                 release_firmware(fw_priv->fw);
+> >                 *firmware_p = NULL;
+> >         }
+> >         fw_priv->fw = NULL;     <--------------- The only place it is set to NULL
+> >         mutex_unlock(&fw_lock);
+> > 
+> > 
+> > So if the timeout timer fires at nearly the same time as udev coming in
+> > and say "I'm done loading" without holding the mutex, one can run into
+> > the Ooops.  Not only that, I think the above code can leak memory under
+> > some circumstances when the "if" clause is not satisfied.
+> > 
+> > I think this really is a firmware_class.c issue.  I think the "just
+> > right" firmware loading timeouts and the particular computer system
+> > responsiveness, make this Ooops possible.  However, I'm amazed that a
+> > single person has tripped it more than once.
+> > 
+> > Revising the locking in linux/drivers/base/firmware_class.c should fix
+> > the problem.
+> > 
+> > I don't believe this comment in the code now:
+> > 
+> > /* fw_lock could be moved to 'struct firmware_priv' but since it is just
+> >  * guarding for corner cases a global lock should be OK */
+> > static DEFINE_MUTEX(fw_lock);
+> > 
+> > struct firmware_priv {
+> >         char *fw_id;
+> > 	...
+> > 
+> > And since "f_priv" is dynamically created and destroyed by
+> > request_firmware() I see no harm in 
+> > 
+> > 1. moving the mutex into struct firmware_priv
+> > 2. just always just grabbing an almost never contended mutex
+> > 3. getting rid of the file scope fw_lock.
+> > 
+> > except grabbing a mutex() while the timeout timer is running during
+> > loading, means one *could* sleep for a while consuming the timeout
+> > interval.
+> 
+> That sounds reasonable to me, care to make up a patch for this?
 
-On 02/22/2010 11:54 PM, Brandon Philips wrote:
-> On 18:24 Sat 23 Jan 2010, Hans de Goede wrote:
->>> lib/
->>> 	libv4l1/
->>> 	libv4l2/
->>> 	libv4lconvert/
->>> utils/
->>> 	v4l2-dbg
->>> 	v4l2-ctl
->>> 	cx18-ctl
->>> 	ivtv-ctl
->>> contrib/
->>> 	test/
->>> 	everything else
->>>
->
->    git clone git://ifup.org/philips/create-v4l-utils.git
->    cd create-v4l-utils/
->    ./convert.sh
->
-> You should now have v4l-utils.git which should have this directory
-> struture. If we need to move other things around let me know and I can
-> tweak name-filter.sh
->
+Yes.  But it will take me a while.  I don't have a git tree, because I
+don't have high bandwidth internet yet.  (The cable company's been
+delayed in laying cable to my home due to repeated snowstorms.)
 
-Ok, so this will give me a local tree, how do I get this onto linuxtv.org ?
-
-Also I need someone to pull:
-http://linuxtv.org/hg/~hgoede/libv4l
-
-(this only contains libv4l commits)
-
-Into the:
-http://linuxtv.org/hg/v4l-dvb
-
-Repository, I guess I can ask this directly to Douglas?
-
-> Thoughts?
-
-I've one question, I think we want to do tarbal releases
-from this new repo (just like I've been doing with libv4l for a while
-already), and then want distro's to pick up these releases, right ?
-
-Are we going to do separate tarbals for the lib and utils directories,
-or one combined tarbal. I personally vote for one combined tarbal.
-
-But this means we will be inflicting some pains on distro's because their
-libv4l packages will go away and be replaced by a new v4l-utils package.
-This is something distro's should be able to handle (it happens more often, and I
-know Fedora has procedures for this).
-
-An alternative would be to name the repo and the tarbals libv4l, either is fine
-with me (although I'm one of the distro packagers who is going to feel the pain
-of a package rename and as such wouldn't mind using libv4l as name for the
-repo and the new tarbals).
+I just didn't want the problem to fall through the cracks.  I'll submit
+something to bugzilla for now.  If a user complains of this rare Ooops
+when loading firmware, the current workaround is to lengthen the timeout
+via sysfs.
 
 Regards,
+Andy
 
-Hans
+> thanks,
+> 
+> greg k-h
+
+
