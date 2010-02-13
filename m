@@ -1,111 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay02.digicable.hu ([92.249.128.188]:37277 "EHLO
-	relay02.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753712Ab0BYGa5 (ORCPT
+Received: from cooker.cnx.rice.edu ([168.7.5.70]:40720 "EHLO
+	cooker.cnx.rice.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750864Ab0BMVdu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Feb 2010 01:30:57 -0500
-Message-ID: <4B86191E.4010706@freemail.hu>
-Date: Thu, 25 Feb 2010 07:30:54 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+	Sat, 13 Feb 2010 16:33:50 -0500
+Date: Sat, 13 Feb 2010 14:52:29 -0600
+From: "Ross J. Reedstrom" <reedstrm@rice.edu>
+To: Francis Barber <fedora@barber-family.id.au>
+Cc: Steven Toth <steven.toth@mac.com>, linux-media@vger.kernel.org
+Subject: Re: New Hauppauge HVR-2200 Revision?
+Message-ID: <20100213205228.GA31345@rice.edu>
+References: <83bcf6341001230700h7db6600i89b9092051049612@mail.gmail.com> <4B5B837A.6020001@barber-family.id.au> <83bcf6341001231529o54f3afb9p29fa955bc93a660e@mail.gmail.com> <4B5B8E5B.4020600@barber-family.id.au> <83bcf6341001231618r59f03dc9t1eb746c39e67b5fc@mail.gmail.com> <4B5BF61A.4000605@barber-family.id.au> <4B73F6AC.5040803@barber-family.id.au> <4B7412CC.6010003@barber-family.id.au> <4B99D44B-A91C-4145-9317-EFA5AF9BD553@mac.com> <4B76B895.9090305@barber-family.id.au>
 MIME-Version: 1.0
-To: V4L Mailing List <linux-media@vger.kernel.org>
-CC: LKML <linux-kernel@vger.kernel.org>
-Subject: Linux testers wanted for Genius iSlim 310
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4B76B895.9090305@barber-family.id.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Sat, Feb 13, 2010 at 10:35:01PM +0800, Francis Barber wrote:
+> On 12/02/2010 9:44 PM, Steven Toth wrote:
+> >>>Anyway, apart from the problems noted above it is fine.  I'm not sure 
+> >>>what the criteria is for merging support for this card into the main 
+> >>>repository, but I would view it as worthy of merging even with these 
+> >>>problems outstanding.
+> >>>
+> >>>Many thanks,
+> >>>Frank.
+> >>>
+> >>>       
+> >>Interestingly, so far it only seems to affect the second adapter.  The 
+> >>first one is still working.
+> >>
+> >>     
+> >
+> >Odd.
+> >
+> >Francis,
+> >
+> >I find the whole ber/unc values puzzling, essentially they shouldn't 
+> >happen assuming a good clean DVB-T signal. I'm going to look into this 
+> >very shortly, along with a broad locking feature I want to change in the 
+> >demod.
+> >
+> >I've had one or two other people comment on the -stable tree and in 
+> >general they're pretty happy, including myself, which means that I'll be 
+> >generating a pull request to have these changes merged very shortly (1-2 
+> >weeks).
+> >
+> >Regards,
+> >
+> >- Steve
+> >
+> >--
+> >Steven Toth - Kernel Labs
+> >http://www.kernellabs.com
+> >
+> >
+> >   
+> Hi Steve,
+> 
+> The unc is clearly wrong because when I watch the picture is fine.
+> 
+> Today I had the i2c error using the other adapter, and nothing seemed to 
+> be working until I reloaded the modules.
+> 
+> Feb 13 19:39:10 ent kernel: [1748208.155364] saa7164_api_i2c_read() 
+> error, ret(2) = 0x13
+> Feb 13 19:39:10 ent kernel: [1748208.155389] tda18271_read_regs: 
+> [1-0060|M] ERROR: i2c_transfer returned: -5
+> 
+> I think the reason I was only seeing it on the slave was because I was 
+> mainly using that adapter1.
+> 
+> Thanks again for your efforts,
+> Francis.
+> --
 
-based on the information from installing the Windows driver the
-Genius iSlim 310 is a potential candidate that the gspca_pac7302 driver under
-Linux may handle, see
-http://linuxtv.org/wiki/index.php/PixArt_PAC7301/PAC7302#Identification .
+Hi Francis, Steve -
+I was one of the other early commenters on stable. I have an HVR-2250,
+which reports itself as so:
 
-If you have access to Genius iSlim 310 and would like to give a try please
-apply the patch in this email, compile and install the patched kernel,
-check "dmesg" for messages and try whether the webcam is working for
-example with cheese.
+[   44.108079] CORE saa7164[0]: subsystem: 0070:8891, board: Hauppauge
+WinTV-HVR2250 [card=7,autodetected]
+[   44.108086] saa7164[0]/0: found at 0000:02:00.0, rev: 129, irq: 17,
+latency: 0, mmio: 0xf9c00000
 
-Regards,
+I updated from http://kernellabs.com/hg/saa7164-stable/ on 2010-02-09
+and rebuilt for kernel 2.6.24.
 
-	Márton Németh
+I too am mostly happy, but see the exact same behavior as Francis -
+after running fine (but lightly used) for several days, I'll start to
+get that same error:
 
----
-From: Márton Németh <nm127@freemail.hu>
+Feb 11 13:35:06 MediaPC kernel: [215813.216541] saa7164_api_i2c_read()
+error, ret(2) = 0x13
+Feb 11 13:35:06 MediaPC kernel: [215813.216549] tda18271_read_regs:
+[2-0060|S] ERROR: i2c_transfer returned: -5
 
-On the schematics in PixArt PAC7301/PAC7302 datasheet
-(http://www.pixart.com.tw/upload/PAC7301_7302%20%20Spec%20V1_20091228174030.pdf)
-pages 19, 20, 21 and 22 there is a note titled "PID IO_TRAP" which describes
-the possible product ID range 0x2620..0x262f. In this range there are some
-known webcams, however, there are some PIDs with unknown or future devices.
-Because PixArt PAC7301/PAC7302 is a System on a Chip (SoC) device is is
-probable that this driver will work correctly independent of the used PID.
+Though the tuner does not yet lock up at that point. Eventually I will
+get a stream of other errors, and both tuners lock up. I'm suspicious
+that it might have something to do with using both tuners at once, but
+have no direct evidence. Anyone have a better method than switching
+inputs in mythtv for loading the tuners? If we could make this
+reproducable, I'm sure it'll be much easier to track down.
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
----
-diff -r dfa82cf98a85 linux/drivers/media/video/gspca/pac7302.c
---- a/linux/drivers/media/video/gspca/pac7302.c	Sat Jan 30 20:03:02 2010 +0100
-+++ b/linux/drivers/media/video/gspca/pac7302.c	Sun Jan 31 11:08:21 2010 +0100
-@@ -96,6 +96,7 @@
- 	u8 flags;
- #define FL_HFLIP 0x01		/* mirrored by default */
- #define FL_VFLIP 0x02		/* vertical flipped by default */
-+#define FL_EXPERIMENTAL 0x80	/* USB IDs based on heuristic without any known product */
-
- 	u8 sof_read;
- 	u8 autogain_ignore_frames;
-@@ -1220,17 +1221,33 @@
- };
-
- /* -- module initialisation -- */
-+/* Note on FL_EXPERIMENTAL:
-+ * On the schematics in PixArt PAC7301/PAC7302 datasheet
-+ * (http://www.pixart.com.tw/upload/PAC7301_7302%20%20Spec%20V1_20091228174030.pdf)
-+ * pages 19, 20, 21 and 22 there is a note titled "PID IO_TRAP" which describes
-+ * the possible product ID range 0x2620..0x262f. In this range there are some
-+ * known webcams, however, there are some PIDs with unknown or future devices.
-+ * Because PixArt PAC7301/PAC7302 is a System on a Chip (SoC) device is is
-+ * probable that this driver will work correctly independent of the used PID.
-+ */
- static const struct usb_device_id device_table[] __devinitconst = {
- 	{USB_DEVICE(0x06f8, 0x3009)},
- 	{USB_DEVICE(0x093a, 0x2620)},
- 	{USB_DEVICE(0x093a, 0x2621)},
- 	{USB_DEVICE(0x093a, 0x2622), .driver_info = FL_VFLIP},
-+	{USB_DEVICE(0x093a, 0x2623), .driver_info = FL_EXPERIMENTAL },
- 	{USB_DEVICE(0x093a, 0x2624), .driver_info = FL_VFLIP},
-+	{USB_DEVICE(0x093a, 0x2625), .driver_info = FL_EXPERIMENTAL },
- 	{USB_DEVICE(0x093a, 0x2626)},
-+	{USB_DEVICE(0x093a, 0x2627), .driver_info = FL_EXPERIMENTAL },
- 	{USB_DEVICE(0x093a, 0x2628)},
- 	{USB_DEVICE(0x093a, 0x2629), .driver_info = FL_VFLIP},
- 	{USB_DEVICE(0x093a, 0x262a)},
-+	{USB_DEVICE(0x093a, 0x262b), .driver_info = FL_EXPERIMENTAL },
- 	{USB_DEVICE(0x093a, 0x262c)},
-+	{USB_DEVICE(0x093a, 0x262d), .driver_info = FL_EXPERIMENTAL },
-+	{USB_DEVICE(0x093a, 0x262e), .driver_info = FL_EXPERIMENTAL },
-+	{USB_DEVICE(0x093a, 0x262f), .driver_info = FL_EXPERIMENTAL },
- 	{}
- };
- MODULE_DEVICE_TABLE(usb, device_table);
-@@ -1239,6 +1256,17 @@
- static int __devinit sd_probe(struct usb_interface *intf,
- 			const struct usb_device_id *id)
- {
-+	if ((u8)id->driver_info & FL_EXPERIMENTAL) {
-+		PDEBUG(D_ERR | D_PROBE, "WARNING: USB device ID %04x:%04x is "
-+			"not known, but based on some heuristics this driver "
-+			"tries to handle it.",
-+			id->idVendor, id->idProduct);
-+		PDEBUG(D_ERR | D_PROBE, "WARNING: Plase send an email to "
-+			"linux-media@vger.kernel.org with 'lsusb -v' output, "
-+			"the vendor and name of the product and whether the "
-+			"device is working or not.");
-+	}
-+
- 	return gspca_dev_probe(intf, id, &sd_desc, sizeof(struct sd),
- 				THIS_MODULE);
- }
-
+Ross
+-- 
+Ross Reedstrom, Ph.D.                                 reedstrm@rice.edu
+Systems Engineer & Admin, Research Scientist        phone: 713-348-6166
+The Connexions Project      http://cnx.org            fax: 713-348-3665
+Rice University MS-375, Houston, TX 77005
+GPG Key fingerprint = F023 82C8 9B0E 2CC6 0D8E  F888 D3AE 810E 88F0 BEDE
