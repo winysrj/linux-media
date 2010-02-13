@@ -1,89 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-14.arcor-online.net ([151.189.21.54]:35365 "EHLO
-	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755128Ab0BAVXx (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2004 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754798Ab0BMNrw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Feb 2010 16:23:53 -0500
-Message-ID: <4B67464B.3020801@arcor.de>
-Date: Mon, 01 Feb 2010 22:23:23 +0100
-From: Stefan Ringel <stefan.ringel@arcor.de>
+	Sat, 13 Feb 2010 08:47:52 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [PATCH v4 4/7] V4L: Events: Support event handling in do_ioctl
+Date: Sat, 13 Feb 2010 14:49:31 +0100
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
+	david.cohen@nokia.com
+References: <4B72C965.7040204@maxwell.research.nokia.com> <1265813889-17847-3-git-send-email-sakari.ailus@maxwell.research.nokia.com> <1265813889-17847-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1265813889-17847-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] - tm6000 DVB support
-References: <4B673790.3030706@arcor.de> <4B673B2D.6040507@arcor.de> <829197381002011252w93b0f17g4c4f6d35ffae45f3@mail.gmail.com>
-In-Reply-To: <829197381002011252w93b0f17g4c4f6d35ffae45f3@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201002131449.31949.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 01.02.2010 21:52, schrieb Devin Heitmueller:
-> On Mon, Feb 1, 2010 at 3:35 PM, Stefan Ringel <stefan.ringel@arcor.de> wrote:
->   
->> add Terratec Cinergy Hybrid XE
->> bugfix i2c transfer
->> add frontend callback
->> add init for tm6010
->> add digital-init for tm6010
->> add callback for analog/digital switch
->> bugfix usb transfer in DVB-mode
->>
->> signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
->>     
-> Hi Stefan,
->
-> It's good to see you're making progress.  However, this is going to
-> need *alot* of work before it will be able to be accepted upstream.
->
-> You should start by breaking it down into a patch series, so that the
-> incremental changes can be reviewed.  That will allow you to explain
-> in the patch descriptions why all the individual changes you have made
-> are required.
->
->   
-how can I generate it?
-> However, I will try to put some of my thoughts down based on the quick
-> glance I took at the patch.
->
-> Why did you define a new callback for changing the tuner mode?  We
-> have successfully provided infrastructure on other bridges to toggle
-> GPIOs when changing modes.  For example, the em28xx has fields in the
-> board profile that allow you to toggle GPIOs when going back and forth
-> between digital and analog mode.
->
->   
-I don't know, how you mean it. I'm amateur programmer.
-> You've got a bunch of changes in the xc3028 tuner that will
-> *definitely* need close inspection and would need to be validated on a
-> variety of products using the xc3028 before they could be accepted
-> upstream.  While you have done what you felt was necessary to make it
-> work for your board, this cannot be at the cost of possible
-> regressions to other products that are already supported.
->
-> You really should look into fixing whatever is screwed up in the
-> tm6000 i2c implementation so that the read support works, rather than
-> relying on nothing ever having to perform a read operation.
->
-> What function does the "tm6000" member in the zl10353 config do?  It
-> doesn't seem to be used anywhere.
->
->   
-I'll switch it next week to demodulator module.
-> There are a bunch of codingstyle issues which will need to be fixed.
->
-> My foremost concerns are obviously the things that touch other
-> drivers, since your work could cause regressions/breakage for other
-> boards, which is actually much worse than your board not being
-> supported.
->
->   
+On Wednesday 10 February 2010 15:58:06 Sakari Ailus wrote:
+> Add support for event handling to do_ioctl.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> ---
+>  drivers/media/video/Makefile     |    2 +-
+>  drivers/media/video/v4l2-ioctl.c |   49 ++++++++++++++++++++++++++++++++++++++
+>  include/media/v4l2-ioctl.h       |    5 ++++
+>  3 files changed, 55 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+> index b888ad1..68253d6 100644
+> --- a/drivers/media/video/Makefile
+> +++ b/drivers/media/video/Makefile
+> @@ -11,7 +11,7 @@ stkwebcam-objs	:=	stk-webcam.o stk-sensor.o
+>  omap2cam-objs	:=	omap24xxcam.o omap24xxcam-dma.o
+>  
+>  videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-subdev.o \
+> -			v4l2-fh.o
+> +			v4l2-fh.o v4l2-event.o
+>  
+>  # V4L2 core modules
+>  
+> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+> index bfc4696..e0b9401 100644
+> --- a/drivers/media/video/v4l2-ioctl.c
+> +++ b/drivers/media/video/v4l2-ioctl.c
+> @@ -25,6 +25,7 @@
+>  #endif
+>  #include <media/v4l2-common.h>
+>  #include <media/v4l2-ioctl.h>
+> +#include <media/v4l2-event.h>
+>  #include <media/v4l2-chip-ident.h>
+>  
+>  #define dbgarg(cmd, fmt, arg...) \
+> @@ -1797,7 +1798,55 @@ static long __video_do_ioctl(struct file *file,
+>  		}
+>  		break;
+>  	}
+> +	case VIDIOC_DQEVENT:
+> +	{
+> +		struct v4l2_event *ev = arg;
+> +
+> +		if (!ops->vidioc_subscribe_event)
+> +			break;
+> +
+> +		ret = v4l2_event_dequeue(fh, ev);
+> +		if (ret < 0) {
+> +			dbgarg(cmd, "no pending events?");
+> +			break;
+> +		}
+> +		dbgarg(cmd,
+> +		       "count=%d, type=0x%8.8x, sequence=%d, "
+> +		       "timestamp=%lu.%9.9lu ",
+> +		       ev->count, ev->type, ev->sequence,
+> +		       ev->timestamp.tv_sec, ev->timestamp.tv_nsec);
+> +		break;
+> +	}
+> +	case VIDIOC_SUBSCRIBE_EVENT:
+> +	{
+> +		struct v4l2_event_subscription *sub = arg;
+>  
+> +		if (!ops->vidioc_subscribe_event)
+> +			break;
 
-Cheers
+I know I said that we could use this test to determine if fh is of type
+v4l2_fh, but that only works in this specific case, but not in the general
+case. For example, I want to add support for the prio ioctls to v4l2_fh, and
+then I probably have no vidioc_subscribe_event set since few drivers will
+need that.
 
-Stefan Ringel
+Instead I suggest that we add a new flag to v4l2-dev.h:
+
+V4L2_FL_USES_V4L2_FH (1)
+
+The v4l2_fh_add() function can then set this flag.
+
+> +
+> +		ret = ops->vidioc_subscribe_event(fh, sub);
+> +		if (ret < 0) {
+> +			dbgarg(cmd, "failed, ret=%ld", ret);
+> +			break;
+> +		}
+> +		dbgarg(cmd, "type=0x%8.8x", sub->type);
+> +		break;
+> +	}
+> +	case VIDIOC_UNSUBSCRIBE_EVENT:
+> +	{
+> +		struct v4l2_event_subscription *sub = arg;
+> +
+> +		if (!ops->vidioc_subscribe_event)
+> +			break;
+> +
+> +		ret = v4l2_event_unsubscribe(fh, sub);
+
+We should add an unsubscribe op as well. One reason is to add EVENT_ALL
+support (see my comments in patch 7/7), the other is that in some cases
+drivers might need to take some special action in response to subscribing
+an event. And a driver needs a way to undo that when unsubscribing.
+
+Regards,
+
+	Hans
+
+> +		if (ret < 0) {
+> +			dbgarg(cmd, "failed, ret=%ld", ret);
+> +			break;
+> +		}
+> +		dbgarg(cmd, "type=0x%8.8x", sub->type);
+> +		break;
+> +	}
+>  	default:
+>  	{
+>  		if (!ops->vidioc_default)
+> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+> index 7a4529d..ed3fff5 100644
+> --- a/include/media/v4l2-ioctl.h
+> +++ b/include/media/v4l2-ioctl.h
+> @@ -21,6 +21,8 @@
+>  #include <linux/videodev2.h>
+>  #endif
+>  
+> +struct v4l2_fh;
+> +
+>  struct v4l2_ioctl_ops {
+>  	/* ioctl callbacks */
+>  
+> @@ -239,6 +241,9 @@ struct v4l2_ioctl_ops {
+>  	int (*vidioc_enum_frameintervals) (struct file *file, void *fh,
+>  					   struct v4l2_frmivalenum *fival);
+>  
+> +	int (*vidioc_subscribe_event)  (struct v4l2_fh *fh,
+> +					struct v4l2_event_subscription *sub);
+> +
+>  	/* For other private ioctls */
+>  	long (*vidioc_default)	       (struct file *file, void *fh,
+>  					int cmd, void *arg);
+> 
 
 -- 
-Stefan Ringel <stefan.ringel@arcor.de>
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
