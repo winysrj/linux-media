@@ -1,130 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1071 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754306Ab0BLPmS convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1236 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753905Ab0BMOkM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Feb 2010 10:42:18 -0500
+	Sat, 13 Feb 2010 09:40:12 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Dmitri Belimov <d.belimov@gmail.com>
-Subject: Re: saa7134 and =?utf-8?q?=C3=83=C2=8E=C3=82=C2=BCPD61151_MPEG2?= coder
-Date: Fri, 12 Feb 2010 16:44:15 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-References: <20091007101142.3b83dbf2@glory.loctelecom.ru> <20100129161202.2ecb510a@glory.loctelecom.ru> <20100209144150.17fafc52@glory.loctelecom.ru>
-In-Reply-To: <20100209144150.17fafc52@glory.loctelecom.ru>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [PATCH v4 7/7] V4L: Events: Support all events
+Date: Sat, 13 Feb 2010 15:42:20 +0100
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
+	david.cohen@nokia.com
+References: <4B72C965.7040204@maxwell.research.nokia.com> <1265813889-17847-6-git-send-email-sakari.ailus@maxwell.research.nokia.com> <1265813889-17847-7-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1265813889-17847-7-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201002121644.15896.hverkuil@xs4all.nl>
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201002131542.20916.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 09 February 2010 06:41:50 Dmitri Belimov wrote:
-> Hi Hans
-> 
-> This is my last state for review.
-> After small time I'll finish process of initialize the encoder.
-> Configure some register, upload two firmware for video and for audio.
-> Configure the frontends.
-> 
-> I have the questions.
-> For configuring audio frontend need know samplerate of audio.
-> saa7134 can only 32kHz
-> saa7131/3/5 on I2S 32кГц from SIF source and 32/44.1/48 from external i.e.
-> RCA stereo audio input. 
-> 
-> Hardcode 32kHz or need a function for determine mode of audio??
+On Wednesday 10 February 2010 15:58:09 Sakari Ailus wrote:
+> Add support for subscribing all events with a special id V4L2_EVENT_ALL. If
+> V4L2_EVENT_ALL is subscribed, no other events may be subscribed. Otherwise
+> V4L2_EVENT_ALL is considered just as any other event.
 
-See struct v4l2_subdev_audio_ops: it has a s_clock_freq op for precisely that
-purpose. The saa7134 should call that whenever it sets a new samplerate.
+We should do this differently. I think that EVENT_ALL should not be used
+internally (i.e. in the actual list of subscribed events), but just as a
+special value for the subscribe and unsubscribe ioctls. So when used with
+unsubscribe you can just unsubscribe all subscribed events and when used
+with subscribe, then you just subscribe all valid events (valid for that
+device node).
 
-> 
-> Other question. For configure VideoFrontend need know 50 or 60Hz
-> Now I use videomode from h structure. I think more correct detect it
-> on saa7134.
+So in v4l2-event.c you will have a v4l2_event_unsubscribe_all() to quickly
+unsubscribe all events.
 
-Whether it is 50 or 60 Hz depends on the video standard that you receive via
-the s_std core op. Just implement that and when you get a new standard you
-can use something like this: is_60hz = (std & V4L2_STD_525_60) ? 1 : 0;
+In order to easily add all events from the driver it would help if the
+v4l2_event_subscribe and v4l2_event_unsubscribe just take the event type
+as argument rather than the whole v4l2_event_subscription struct.
 
-Some more review comments:
+You will then get something like this in the driver:
 
-linux/drivers/media/video/saa7134/saa7134.h:
+	if (sub->type == V4L2_EVENT_ALL) {
+		int ret = v4l2_event_alloc(fh, 60);
 
-@@ -355,6 +377,10 @@
-        unsigned char           empress_addr;
-        unsigned char           rds_addr;
- 
-+       /* SPI info */
-+       struct saa7134_software_spi     spi;
-+       struct spi_board_info   spi_conf;
+		ret = ret ? ret : v4l2_event_subscribe(fh, V4L2_EVENT_EOS);
+		ret = ret ? ret : v4l2_event_subscribe(fh, V4L2_EVENT_VSYNC);
+		return ret;
+	}
 
-Make this a struct spi_board_info *. This struct is too large: it is only used
-in one board but all elements of the board array will suddenly get this whole
-struct increasing the memory footprint substantially. In this case you can just
-make it a pointer, that will work just as well.
+An alternative might be to add a v4l2_event_subscribe_all(fh, const u32 *events)
+where 'events' is a 0 terminated list of events that need to be subscribed.
 
-+
-        unsigned int            tda9887_conf;
-        unsigned int            tuner_config;
+For each event this function would then call:
 
-linux/drivers/media/video/v4l2-common.c, in v4l2_spi_subdev_init():
+fh->vdev->ioctl_ops->vidioc_subscribe_event(fh, sub);
 
-+       /* initialize name */
-+       snprintf(sd->name, sizeof(sd->name), "%s",
-+               spi->dev.driver->name);
+The nice thing about that is that in the driver you have a minimum of fuss.
 
-Use strlcpy here.
+I'm leaning towards this second solution due to the simple driver implementation.
 
-saa7134-spi.c:
-
-
-static inline u32 getmiso(struct spi_device *dev)
-{
-        struct saa7134_spi_gpio *sb = to_sb(dev);
-        unsigned long status;
-
-        status = saa7134_get_gpio(sb->controller_data);
-        if ( status & (1 << sb->controller_data->spi.miso))
-                return 1;
-        else
-                return 0;
-}
-
-Simplify to:
-
-static inline u32 getmiso(struct spi_device *dev)
-{
-        struct saa7134_spi_gpio *sb = to_sb(dev);
-        u32 status;
-
-        status = saa7134_get_gpio(sb->controller_data);
-        return !!(status & (1 << sb->controller_data->spi.miso));
-}
-
-Also note that saa7134_get_gpio should return an u32 since unsigned long is
-64 bits when compiled on a 64-bit kernel, which is probably not what you want.
-
-saa7134_spi_unregister can be a void function as the result code is always 0.
-
-There seems to be some old stuff in upd61151.h. Please remove what is not
-needed.
-
-In upd61151.c I highly recommend that all functions will use struct v4l2_subdev *sd
-as argument. Only at the lowest level should you go from sd to spi. Among
-others this allows you to use the standard v4l2_info/dbg etc. logging functions.
-
-Don't use RESULT_SUCCESS. Just return 0.
-
-Remove upd61151_init. The init op is rarely needed and should in general not
-be used.
-
-Remove those emacs editor comments at the end of the files. That's bad practice.
+Handling EVENT_ALL will simplify things substantially IMHO.
 
 Regards,
 
 	Hans
+
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> ---
+>  drivers/media/video/v4l2-event.c |   13 ++++++++++++-
+>  include/linux/videodev2.h        |    1 +
+>  2 files changed, 13 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+> index 0af0de5..68b3cf4 100644
+> --- a/drivers/media/video/v4l2-event.c
+> +++ b/drivers/media/video/v4l2-event.c
+> @@ -139,6 +139,14 @@ static struct v4l2_subscribed_event *__v4l2_event_subscribed(
+>  	struct v4l2_events *events = fh->events;
+>  	struct v4l2_subscribed_event *sev;
+>  
+> +	if (list_empty(&events->subscribed))
+> +		return NULL;
+> +
+> +	sev = list_entry(events->subscribed.next,
+> +			 struct v4l2_subscribed_event, list);
+> +	if (sev->type == V4L2_EVENT_ALL)
+> +		return sev;
+> +
+>  	list_for_each_entry(sev, &events->subscribed, list) {
+>  		if (sev->type == type)
+>  			return sev;
+> @@ -222,6 +230,8 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+>  	/* Allow subscribing to valid events only. */
+>  	if (sub->type < V4L2_EVENT_PRIVATE_START)
+>  		switch (sub->type) {
+> +		case V4L2_EVENT_ALL:
+> +			break;
+>  		default:
+>  			return -EINVAL;
+>  		}
+> @@ -262,7 +272,8 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+>  
+>  	sev = __v4l2_event_subscribed(fh, sub->type);
+>  
+> -	if (sev == NULL) {
+> +	if (sev == NULL ||
+> +	    (sub->type != V4L2_EVENT_ALL && sev->type == V4L2_EVENT_ALL)) {
+>  		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+>  		return -EINVAL;
+>  	}
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index a19ae89..9ae9a1c 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -1553,6 +1553,7 @@ struct v4l2_event_subscription {
+>  	__u32		reserved[7];
+>  };
+>  
+> +#define V4L2_EVENT_ALL				0
+>  #define V4L2_EVENT_PRIVATE_START		0x08000000
+>  
+>  /*
+> 
 
 -- 
 Hans Verkuil - video4linux developer - sponsored by TANDBERG
