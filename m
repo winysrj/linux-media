@@ -1,39 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay02.digicable.hu ([92.249.128.188]:39072 "EHLO
-	relay02.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031389Ab0B1Goe (ORCPT
+Received: from cp-out9.libero.it ([212.52.84.109]:44246 "EHLO
+	cp-out9.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751971Ab0BMJyv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Feb 2010 01:44:34 -0500
-Message-ID: <4B8A10D0.2020802@freemail.hu>
-Date: Sun, 28 Feb 2010 07:44:32 +0100
-From: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-MIME-Version: 1.0
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-CC: Matthew Garrett <mjg@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jiri Kosina <jkosina@suse.cz>,
-	Linux Input <linux-input@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Platform Driver x86 <platform-driver-x86@vger.kernel.org>
-Subject: Re: [PATCH] Input: scancode in get/set_keycodes should be unsigned
-References: <20100228061310.GA765@core.coreip.homeip.net>
-In-Reply-To: <20100228061310.GA765@core.coreip.homeip.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+	Sat, 13 Feb 2010 04:54:51 -0500
+Subject: Re: alevt-dvb 1.7.0: new version, should be free from bugs now
+From: Francesco Lavra <francescolavra@interfree.it>
+To: Chicken Shack <chicken.shack@gmx.de>
+Cc: Linux media <linux-media@vger.kernel.org>
+In-Reply-To: <1265923576.13189.7.camel@brian.bconsult.de>
+References: <1265923576.13189.7.camel@brian.bconsult.de>
+Content-Type: text/plain
+Date: Sat, 13 Feb 2010 10:56:33 +0100
+Message-Id: <1266054993.3974.10.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-Dmitry Torokhov wrote:
-> The HID layer has some scan codes of the form 0xffbc0000 for logitech
-> devices which do not work if scancode is typed as signed int, so we need
-> to switch to unsigned int instead. While at it keycode being signed does
-> not make much sense either.
+On Thu, 2010-02-11 at 22:26 +0100, Chicken Shack wrote:
+> Hi,
+> 
+> my way to say "Thank you".
+> Just enjoy this tiny little program with the latest kernel.
+> Debian files for producing a Debian binary included.
+> This version needs libzvbi as dependency to run.
+> Thanks to Tom Zoerne for the implemention patch that I found by
+> accident.
+> 
+> 
+> Cheers
+> CS
+> 
+> P. S.: There are two issues in the TODO list.
+> Please drop me a note if you can fix those issues mentioned there.
+> 
+> ENJOY!
 
-Are the scan codes and key codes always 4 bytes long? Then the u32 data
-type could be used to take 16 bit (or 64 bit) processors also into
-consideration.
+What about adding this program to v4l-dvb (under v4l2-apps/util/)?
+AFAIK, alevt currently doesn't have a proper site where development
+could take place.
+I think it would enjoy a better maintenance if it was hosted in vl4-dvb,
+and it could be an additional testing tool useful for drivers
+development.
+And it is GPL-licensed.
 
-Regards,
+Francesco
 
-	Márton Németh
+
