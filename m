@@ -1,96 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3429 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965883Ab0BZTsJ (ORCPT
+Received: from smtp1.wa.amnet.net.au ([203.161.124.50]:51033 "EHLO
+	smtp1.wa.amnet.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752420Ab0BMOfQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Feb 2010 14:48:09 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id o1QJm7rh055236
-	for <linux-media@vger.kernel.org>; Fri, 26 Feb 2010 20:48:08 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 26 Feb 2010 20:48:07 +0100 (CET)
-Message-Id: <201002261948.o1QJm7rh055236@smtp-vbr15.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Sat, 13 Feb 2010 09:35:16 -0500
+Message-ID: <4B76B895.9090305@barber-family.id.au>
+Date: Sat, 13 Feb 2010 22:35:01 +0800
+From: Francis Barber <fedora@barber-family.id.au>
+MIME-Version: 1.0
+To: Steven Toth <steven.toth@mac.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: New Hauppauge HVR-2200 Revision?
+References: <4B5B0E12.3090706@barber-family.id.au> <83bcf6341001230700h7db6600i89b9092051049612@mail.gmail.com> <4B5B837A.6020001@barber-family.id.au> <83bcf6341001231529o54f3afb9p29fa955bc93a660e@mail.gmail.com> <4B5B8E5B.4020600@barber-family.id.au> <83bcf6341001231618r59f03dc9t1eb746c39e67b5fc@mail.gmail.com> <4B5BF61A.4000605@barber-family.id.au> <4B73F6AC.5040803@barber-family.id.au> <4B7412CC.6010003@barber-family.id.au> <4B99D44B-A91C-4145-9317-EFA5AF9BD553@mac.com>
+In-Reply-To: <4B99D44B-A91C-4145-9317-EFA5AF9BD553@mac.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On 12/02/2010 9:44 PM, Steven Toth wrote:
+>>> Anyway, apart from the problems noted above it is fine.  I'm not sure what the criteria is for merging support for this card into the main repository, but I would view it as worthy of merging even with these problems outstanding.
+>>>
+>>> Many thanks,
+>>> Frank.
+>>>
+>>>        
+>> Interestingly, so far it only seems to affect the second adapter.  The first one is still working.
+>>
+>>      
+>
+> Odd.
+>
+> Francis,
+>
+> I find the whole ber/unc values puzzling, essentially they shouldn't happen assuming a good clean DVB-T signal. I'm going to look into this very shortly, along with a broad locking feature I want to change in the demod.
+>
+> I've had one or two other people comment on the -stable tree and in general they're pretty happy, including myself, which means that I'll be generating a pull request to have these changes merged very shortly (1-2 weeks).
+>
+> Regards,
+>
+> - Steve
+>
+> --
+> Steven Toth - Kernel Labs
+> http://www.kernellabs.com
+>
+>
+>    
+Hi Steve,
 
-Results of the daily build of v4l-dvb:
+The unc is clearly wrong because when I watch the picture is fine.
 
-date:        Fri Feb 26 19:00:20 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14319:37581bb7e6f1
-gcc version: i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:     2.6.32.5
+Today I had the i2c error using the other adapter, and nothing seemed to 
+be working until I reloaded the modules.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.32.6-armv5-dm365: ERRORS
-linux-2.6.33-armv5-dm365: ERRORS
-linux-2.6.32.6-armv5-ixp: OK
-linux-2.6.33-armv5-ixp: OK
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.17-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.20-i686: OK
-linux-2.6.26.8-i686: OK
-linux-2.6.27.44-i686: OK
-linux-2.6.28.10-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.17-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.20-x86_64: OK
-linux-2.6.26.8-x86_64: OK
-linux-2.6.27.44-x86_64: OK
-linux-2.6.28.10-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-spec: OK
-sparse (linux-2.6.33): ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: OK
-linux-2.6.19.7-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.7-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+Feb 13 19:39:10 ent kernel: [1748208.155364] saa7164_api_i2c_read() 
+error, ret(2) = 0x13
+Feb 13 19:39:10 ent kernel: [1748208.155389] tda18271_read_regs: 
+[1-0060|M] ERROR: i2c_transfer returned: -5
 
-Detailed results are available here:
+I think the reason I was only seeing it on the slave was because I was 
+mainly using that adapter1.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Thanks again for your efforts,
+Francis.
