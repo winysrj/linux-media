@@ -1,92 +1,474 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4842 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753211Ab0BIHuA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 02:50:00 -0500
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4879 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755502Ab0BMNiy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Feb 2010 08:38:54 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>
-Subject: Re: Requested feedback on V4L2 driver design
-Date: Tue, 9 Feb 2010 08:51:40 +0100
-Cc: "Maupin, Chase" <chase.maupin@ti.com>,
-	"sakari.ailus@maxwell.research.nokia.com"
-	<sakari.ailus@maxwell.research.nokia.com>,
-	"vpss_driver_design@list.ti.com - This list is to discuss the VPSS
-	driver design (May contain non-TIers)"
-	<vpss_driver_design@list.ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <131E5DFBE7373E4C8D813795A6AA7F0802C4E0FF3E@dlee06.ent.ti.com> <4B7072A4.7070708@infradead.org>
-In-Reply-To: <4B7072A4.7070708@infradead.org>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [PATCH v4 3/7] V4L: Events: Add backend
+Date: Sat, 13 Feb 2010 14:41:05 +0100
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
+	david.cohen@nokia.com
+References: <4B72C965.7040204@maxwell.research.nokia.com> <1265813889-17847-2-git-send-email-sakari.ailus@maxwell.research.nokia.com> <1265813889-17847-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1265813889-17847-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201002090851.40152.hverkuil@xs4all.nl>
+Message-Id: <201002131441.05896.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 08 February 2010 21:23:00 Mauro Carvalho Chehab wrote:
-> Maupin, Chase wrote:
-> > All,
-> > 
-> > Texas Instruments (TI) is working on the design for the V4L2 capture and display drivers for our next generation system-on-chip (SoC) processor and would like to solicit your feedback.  Our new SoCs have been improved to allow for higher video resolutions and greater frame rates.  To this end the display hardware has been moved to a separate processing block called the video processing subsystem (VPSS).  The VPSS will be running a firmware image that controls the capture/display hardware and services requests from one or more host processors.
-> > 
-> > Moving to a remote processor for the processing of video input and output data requires that commands to control the hardware be passed to this processing block using some form of inter-processor communication (IPC).  TI would like to solicit your feedback on proposal for the V4L2 driver design to get a feel for whether or not this design would be accepted into the Linux kernel.  To this end we have put together an overview of the design and usage on our wiki at http://wiki.davincidsp.com/index.php/Video_Processing_Subsystem_Driver_Design.  We would greatly appreciate feedback from community members on the acceptability of our driver design.
-> > 
-> > If you have additional questions or need more information please feel free to contact us (we have setup a mailing list at vpss_driver_design@list.ti.com) so we can answer them.
-> > 
-> 
-> Hi Chase,
-> 
-> I'm not sure if I got all the details on your proposal, so let me try to give my
-> understanding.
-> 
-> First of all, for normal usage (e.g. capturing a stream or sending an stream
-> to an output device), the driver should work with only the standard V4L2 API.
-> I'm assuming that the driver will provide this capability.
-> 
-> I understand that, being a SoC hardware, there are much more that can be done
-> than just doing the normal stream capture/output, already supported by V4L2 API.
-> 
-> For such advanced usages, we're open to a proposal to enhance the existing API
-> to support the needs. There are some important aspects that need to be considered
-> when designing any Linux userspace API's:
+On Wednesday 10 February 2010 15:58:05 Sakari Ailus wrote:
+> Add event handling backend to V4L2. The backend handles event subscription
+> and delivery to file handles. Event subscriptions are based on file handle.
+> Events may be delivered to all subscribed file handles on a device
+> independent of where they originate from.
 
-The full functionality of this device can be handled by the proposals made during
-last year's LPC and that are currently being implemented/prototyped for omap3.
-That's no coincidence, by the way :-)
+More comments based on my attempt to implement this in ivtv...
 
 > 
-> 	1) kernel-userspace API's are forever. So, they need to be designed in
-> a way that new technology changes won't break the old API;
+> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> ---
+>  drivers/media/video/v4l2-event.c |  261 ++++++++++++++++++++++++++++++++++++++
+>  drivers/media/video/v4l2-fh.c    |    4 +
+>  include/media/v4l2-event.h       |   64 +++++++++
+>  include/media/v4l2-fh.h          |    2 +
+>  4 files changed, 331 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/video/v4l2-event.c
+>  create mode 100644 include/media/v4l2-event.h
 > 
-> 	2) API's are meant to be generic. So, they needed to be designed in a way
-> that, if another hardware with similar features require an API, the planned one
-> should fit;
+> diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+> new file mode 100644
+> index 0000000..d13c1e9
+> --- /dev/null
+> +++ b/drivers/media/video/v4l2-event.c
+> @@ -0,0 +1,261 @@
+> +/*
+> + * drivers/media/video/v4l2-event.c
+> + *
+> + * V4L2 events.
+> + *
+> + * Copyright (C) 2009 Nokia Corporation.
+> + *
+> + * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + */
+> +
+> +#include <media/v4l2-dev.h>
+> +#include <media/v4l2-event.h>
+> +
+> +#include <linux/sched.h>
+> +
+> +/* In error case, return number of events *not* allocated. */
+> +int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n)
+> +{
+> +	struct v4l2_events *events = fh->events;
+> +	unsigned long flags;
+> +
+> +	for (; n > 0; n--) {
+> +		struct v4l2_kevent *kev;
+> +
+> +		kev = kzalloc(sizeof(*kev), GFP_KERNEL);
+> +		if (kev == NULL)
+> +			return -ENOMEM;
+> +
+> +		spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+> +		list_add_tail(&kev->list, &events->free);
+> +		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+> +	}
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_event_alloc);
+> +
+> +#define list_kfree(list, type, member)				\
+> +	while (!list_empty(list)) {				\
+> +		type *hi;					\
+> +		hi = list_first_entry(list, type, member);	\
+> +		list_del(&hi->member);				\
+> +		kfree(hi);					\
+> +	}
+> +
+> +void v4l2_event_exit(struct v4l2_fh *fh)
+> +{
+> +	struct v4l2_events *events = fh->events;
+> +
+> +	if (!events)
+> +		return;
+> +
+> +	list_kfree(&events->free, struct v4l2_kevent, list);
+> +	list_kfree(&events->available, struct v4l2_kevent, list);
+> +	list_kfree(&events->subscribed, struct v4l2_subscribed_event, list);
+> +
+> +	kfree(events);
+> +	fh->events = NULL;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_event_exit);
+> +
+> +int v4l2_event_init(struct v4l2_fh *fh, unsigned int n)
+> +{
+> +	int ret;
+> +
+> +	fh->events = kzalloc(sizeof(*fh->events), GFP_KERNEL);
+> +	if (fh->events == NULL)
+> +		return -ENOMEM;
+> +
+> +	init_waitqueue_head(&fh->events->wait);
+> +
+> +	INIT_LIST_HEAD(&fh->events->free);
+> +	INIT_LIST_HEAD(&fh->events->available);
+> +	INIT_LIST_HEAD(&fh->events->subscribed);
+> +
+> +	ret = v4l2_event_alloc(fh, n);
+> +	if (ret < 0)
+> +		v4l2_event_exit(fh);
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_event_init);
+> +
+> +int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
+> +{
+> +	struct v4l2_events *events = fh->events;
+> +	struct v4l2_kevent *kev;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+> +
+> +	if (list_empty(&events->available)) {
+> +		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+> +		return -ENOENT;
+> +	}
+> +
+> +	kev = list_first_entry(&events->available, struct v4l2_kevent, list);
+> +	list_move(&kev->list, &events->free);
+> +
+> +	kev->event.count = !list_empty(&events->available);
+> +
+> +	*event = kev->event;
+> +
+> +	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_event_dequeue);
+> +
+> +static struct v4l2_subscribed_event *__v4l2_event_subscribed(
+> +	struct v4l2_fh *fh, u32 type)
+> +{
+> +	struct v4l2_events *events = fh->events;
+> +	struct v4l2_subscribed_event *sev;
+> +
+> +	list_for_each_entry(sev, &events->subscribed, list) {
+> +		if (sev->type == type)
+> +			return sev;
+> +	}
+> +
+> +	return NULL;
+> +}
+> +
+> +struct v4l2_subscribed_event *v4l2_event_subscribed(
+> +	struct v4l2_fh *fh, u32 type)
+> +{
+> +	struct v4l2_subscribed_event *sev;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+> +
+> +	sev = __v4l2_event_subscribed(fh, type);
+> +
+> +	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+> +
+> +	return sev;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_event_subscribed);
+
+The result pointer is unusable since right after the spin_unlock someone
+might unsubscribe this, leaving you with an invalid pointer.
+
+So either this function should return a bool (which might be out of date
+as well), or be removed altogether. Frankly, I do not see a need for this
+and I would remove it.
+
+> +
+> +void v4l2_event_queue(struct video_device *vdev, struct v4l2_event *ev)
+
+Make this a const struct v4l2_event *ev. That allows you to define static const
+event structs.
+
+> +{
+> +	struct v4l2_fh *fh;
+> +	unsigned long flags;
+
+	struct timespec ts;
+
+> +
+> +	if (!ev->timestamp.tv_sec && !ev->timestamp.tv_nsec)
+> +		ktime_get_ts(&ev->timestamp);
+
+This becomes:
+
+	if (ev->timestamp.tv_sec || ev->timestamp.tv_nsec)
+		ts = ev->timestamp;
+	else
+		ktime_get_ts(&ts);
+
+> +
+> +	spin_lock_irqsave(&vdev->fh_lock, flags);
+> +
+> +	list_for_each_entry(fh, &vdev->fh_list, list) {
+> +		struct v4l2_events *events = fh->events;
+> +		struct v4l2_kevent *kev;
+> +
+> +		/* Do we have any free events and are we subscribed? */
+> +		if (list_empty(&events->free) ||
+> +		    !__v4l2_event_subscribed(fh, ev->type))
+> +			continue;
+> +
+> +		/* Take one and fill it. */
+> +		kev = list_first_entry(&events->free, struct v4l2_kevent, list);
+> +		kev->event = *ev;
+
+This becomes:
+
+                kev->event.type = ev->type;
+		kev->event.u = ev->u;
+                kev->event.timestamp = ts;
+
+> +		list_move_tail(&kev->list, &events->available);
+> +
+> +		wake_up_all(&events->wait);
+> +	}
+> +
+> +	spin_unlock_irqrestore(&vdev->fh_lock, flags);
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_event_queue);
+> +
+> +int v4l2_event_pending(struct v4l2_fh *fh)
+> +{
+> +	struct v4l2_events *events = fh->events;
+> +	unsigned long flags;
+> +	int ret;
+> +
+> +	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+> +	ret = !list_empty(&events->available);
+> +	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_event_pending);
+> +
+> +int v4l2_event_subscribe(struct v4l2_fh *fh,
+> +			 struct v4l2_event_subscription *sub)
+> +{
+> +	struct v4l2_events *events = fh->events;
+> +	struct v4l2_subscribed_event *sev;
+> +	unsigned long flags;
+> +	int ret = 0;
+> +
+> +	/* Allow subscribing to valid events only. */
+> +	if (sub->type < V4L2_EVENT_PRIVATE_START)
+> +		switch (sub->type) {
+> +		default:
+> +			return -EINVAL;
+> +		}
+
+This part makes no sense. The driver should check for valid events, we cannot
+do that here.
+
+The only check that is needed here is a check against V4L2_EVENT_ALL since that
+shouldn't be allowed. More about that in the comments for the patch adding
+EVENT_ALL support.
+
+> +
+> +	sev = kmalloc(sizeof(*sev), GFP_KERNEL);
+> +	if (!sev)
+> +		return -ENOMEM;
+> +
+> +	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+> +
+> +	if (__v4l2_event_subscribed(fh, sub->type) != NULL) {
+> +		ret = -EBUSY;
+
+I think we should just return 0 here. I see no reason why subscribing an
+already subscribed event should return an error. The call succeeds after all:
+the event *is* subscribed.
+
+> +		goto out;
+> +	}
+> +
+> +	INIT_LIST_HEAD(&sev->list);
+> +	sev->type = sub->type;
+> +
+> +	list_add(&sev->list, &events->subscribed);
+> +
+> +out:
+> +	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+> +
+> +	if (ret)
+> +		kfree(sev);
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_event_subscribe);
+> +
+> +int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+> +			   struct v4l2_event_subscription *sub)
+> +{
+> +	struct v4l2_subscribed_event *sev;
+> +	unsigned long flags;
+> +
+
+Check for V4L2_EVENT_ALL and return -EINVAL in that case.
+
+> +	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+> +
+> +	sev = __v4l2_event_subscribed(fh, sub->type);
+> +
+> +	if (sev == NULL) {
+> +		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+> +		return -EINVAL;
+
+Same as above: just return 0.
+
+> +	}
+> +
+> +	list_del(&sev->list);
+
+Missing kfree(sev);
+
+> +
+> +	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_event_unsubscribe);
+> diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
+> index 3c1cea2..7c13f5b 100644
+> --- a/drivers/media/video/v4l2-fh.c
+> +++ b/drivers/media/video/v4l2-fh.c
+> @@ -24,6 +24,7 @@
+>  
+>  #include <media/v4l2-dev.h>
+>  #include <media/v4l2-fh.h>
+> +#include <media/v4l2-event.h>
+>  
+>  void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
+>  {
+> @@ -54,6 +55,9 @@ EXPORT_SYMBOL_GPL(v4l2_fh_del);
+>  void v4l2_fh_exit(struct v4l2_fh *fh)
+>  {
+>  	BUG_ON(fh->vdev == NULL);
+> +
+> +	v4l2_event_exit(fh);
+> +
+>  	fh->vdev = NULL;
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_fh_exit);
+> diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+> new file mode 100644
+> index 0000000..580c9d4
+> --- /dev/null
+> +++ b/include/media/v4l2-event.h
+> @@ -0,0 +1,64 @@
+> +/*
+> + * include/media/v4l2-event.h
+> + *
+> + * V4L2 events.
+> + *
+> + * Copyright (C) 2009 Nokia Corporation.
+> + *
+> + * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + */
+> +
+> +#ifndef V4L2_EVENT_H
+> +#define V4L2_EVENT_H
+> +
+> +#include <linux/types.h>
+> +#include <linux/videodev2.h>
+> +
+> +struct v4l2_fh;
+> +struct video_device;
+> +
+> +struct v4l2_kevent {
+> +	struct list_head	list;
+> +	struct v4l2_event	event;
+> +};
+> +
+> +struct v4l2_subscribed_event {
+> +	struct list_head	list;
+> +	u32			type;
+> +};
+> +
+> +struct v4l2_events {
+> +	wait_queue_head_t	wait;
+> +	struct list_head	subscribed; /* Subscribed events */
+> +	struct list_head	available; /* Dequeueable event */
+> +	struct list_head	free; /* Events ready for use */
+> +};
+> +
+> +int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n);
+> +int v4l2_event_init(struct v4l2_fh *fh, unsigned int n);
+> +void v4l2_event_exit(struct v4l2_fh *fh);
+> +int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event);
+> +struct v4l2_subscribed_event *v4l2_event_subscribed(
+> +	struct v4l2_fh *fh, u32 type);
+> +void v4l2_event_queue(struct video_device *vdev, struct v4l2_event *ev);
+> +int v4l2_event_pending(struct v4l2_fh *fh);
+> +int v4l2_event_subscribe(struct v4l2_fh *fh,
+> +			 struct v4l2_event_subscription *sub);
+> +int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+> +			   struct v4l2_event_subscription *sub);
+> +
+> +#endif /* V4L2_EVENT_H */
+> diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
+> index 2e88031..6d03a1e 100644
+> --- a/include/media/v4l2-fh.h
+> +++ b/include/media/v4l2-fh.h
+> @@ -31,10 +31,12 @@
+>  #include <asm/atomic.h>
+>  
+>  struct video_device;
+> +struct v4l2_events;
+>  
+>  struct v4l2_fh {
+>  	struct list_head	list;
+>  	struct video_device	*vdev;
+> +	struct v4l2_events      *events; /* events, pending and subscribed */
+>  };
+>  
+>  void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev);
 > 
-> 	3) The API's should be, as much as possible, independent of the hardware
-> architecture. You'll see that even low-level architecture dependent stuff, like
-> bus drivers are designed in a way that they are not bound to a particular hardware,
-> but instead provide the same common methods to interact with the hardware to other
-> device drivers.
-> 
-> That's said, it would be interesting if you could give us a more deep detail on 
-> what kind of functionalities and how do you think you'll be implementing them.
-
-For me the core issue will be the communication between the main ARM and the ARM
-controlling the VPSS. Looking at the syslink part of the git tree it all looks
-way overengineered to me. In particular the multicore_ipc directory. Is all that
-code involved in setting up the communication path between the main and VPSS ARM?
-Is there some more detailed document describing how the syslink code works?
-
-What I would expect to see is standard mailbox functionality that is used in other
-places as well. I gather that at the bottom there actually seems to be a mailbox
-involved with syslink, but there also seems to be a lot of layers on top of that.
-
-Regards,
-
-	Hans
 
 -- 
 Hans Verkuil - video4linux developer - sponsored by TANDBERG
