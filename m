@@ -1,75 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:55544 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752127Ab0BWPP7 (ORCPT
+Received: from web32708.mail.mud.yahoo.com ([68.142.207.252]:25193 "HELO
+	web32708.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750799Ab0BMFhS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2010 10:15:59 -0500
-Received: by bwz1 with SMTP id 1so1042220bwz.21
-        for <linux-media@vger.kernel.org>; Tue, 23 Feb 2010 07:15:57 -0800 (PST)
+	Sat, 13 Feb 2010 00:37:18 -0500
+Message-ID: <937956.58819.qm@web32708.mail.mud.yahoo.com>
+Date: Fri, 12 Feb 2010 21:37:15 -0800 (PST)
+From: Franklin Meng <fmeng2002@yahoo.com>
+Subject: [Patch] Kworld 315U remote support part2
+To: Douglas Schilling <dougsland@gmail.com>,
+	maillist <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <maurochehab@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <201002230853.36928.hverkuil@xs4all.nl>
-References: <829197381002212007q342fc01bm1c528a2f15027a1e@mail.gmail.com>
-	 <201002222254.05573.hverkuil@xs4all.nl>
-	 <829197381002221400i6e4f4b17u42597d5138171e19@mail.gmail.com>
-	 <201002230853.36928.hverkuil@xs4all.nl>
-Date: Tue, 23 Feb 2010 10:15:57 -0500
-Message-ID: <829197381002230715w25973e7dq370f0651f538516a@mail.gmail.com>
-Subject: Re: Chroma gain configuration
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andy Walls <awalls@radix.net>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 23, 2010 at 2:53 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> OK. So the problem is that v4l2-ctl uses G/S_EXT_CTRLS for non-user controls,
-> right? Why not change v4l2-ctl: let it first try the EXT version but if that
-> fails with EINVAL then try the old control API.
+Here is the rest of the patch for the Kworld remote support.
 
-Well, that's what I'm trying to figure out.  If this is a bug and I
-just need to fix v4l2-ctl, then I can do that.  At this point, I was
-just trying to figure out how everybody else does private controls,
-since this appears to be broken out-of-the-box.
+Hopefully I got all the formatting correct this time.   
 
-> Hmm, Mauro is right: the color controls we have now are a bit of a mess.
-> Perhaps this is a good moment to try and fix them. Suppose we had no color
-> controls at all: how would we design them in that case? When we know what we
-> really need, then we can compare that with what we have and figure out what
-> we need to do to make things right again.
+Signed-off-by: Franklin Meng <fmeng2002@yahoo.com>
 
-Ok, this whole thread started because a client hit a specific quality
-issue, and in order to address that issue I need to expose a single
-slider to userland so that this advanced user can twiddle the knob
-with v4l2-ctl.  I, perhaps naively, assumed this would be a trivial
-change since we already have lots of infrastructure for this and the
-driver in question is quite mature.  So we've gone from what I thought
-was going to be a six line change in g_ctrl/s_ctrl to converting the
-whole driver over to using the extended controls interface, to now the
-suggestion that we redesign the way we do color controls across the
-entire v4l2 subsystem?
+diff -r 14021dfc00f3 linux/drivers/media/video/em28xx/em28xx-cards.c
+--- a/linux/drivers/media/video/em28xx/em28xx-cards.c	Thu Feb 11 23:11:30 2010 -0200
++++ b/linux/drivers/media/video/em28xx/em28xx-cards.c	Fri Feb 12 21:31:41 2010 -0800
+@@ -1329,6 +1329,7 @@
+ 		.decoder	= EM28XX_SAA711X,
+ 		.has_dvb	= 1,
+ 		.dvb_gpio	= em2882_kworld_315u_digital,
++		.ir_codes	= &ir_codes_kworld_315u_table,
+ 		.xclk		= EM28XX_XCLK_FREQUENCY_12MHZ,
+ 		.i2c_speed	= EM28XX_I2C_CLK_WAIT_ENABLE,
+ 		/* Analog mode - still not ready */
+diff -r 14021dfc00f3 linux/include/media/ir-common.h
+--- a/linux/include/media/ir-common.h	Thu Feb 11 23:11:30 2010 -0200
++++ b/linux/include/media/ir-common.h	Fri Feb 12 21:31:41 2010 -0800
+@@ -163,4 +163,5 @@
+ extern struct ir_scancode_table ir_codes_gadmei_rm008z_table;
+ extern struct ir_scancode_table ir_codes_nec_terratec_cinergy_xs_table;
+ extern struct ir_scancode_table ir_codes_winfast_usbii_deluxe_table;
++extern struct ir_scancode_table ir_codes_kworld_315u_table;
+ #endif
 
-I don't dispute that the way things have ended up is not ideal (and
-presumably got that way because of the diversity of different decoders
-we support and the differences in the underlying registers they
-provide).  But at this point, I'm trying to solve what should be a
-rather simple problem, and I haven't been contracted to redesign the
-entire subsystem just to expose one advanced control.
 
-So if people agree this is a bug in v4l2-ctl, then I'll dig into that
-block of code and submit a patch.  If the real problem is that the
-saa7115 driver needs to be converted to the extended control interface
-to expose a single private control, well I can do that instead
-(although I think that would be a pretty dumb limitation).  At this
-point, I'm just trying to find the simplest change required to
-accomplish something that should have taken me half an hour and been
-done two days ago.
 
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+      
