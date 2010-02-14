@@ -1,38 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:33741 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752766Ab0BSQVI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Feb 2010 11:21:08 -0500
-Content-Type: text/plain; charset="iso-8859-1"
-Date: Fri, 19 Feb 2010 17:21:01 +0100
-From: "Philipp Wiesner" <p.wiesner@gmx.net>
-Message-ID: <20100219162101.92410@gmx.net>
-MIME-Version: 1.0
-Subject: soc-camera: pixclk polarity question
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3948 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752813Ab0BNTvS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Feb 2010 14:51:18 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id o1EJpG1H002389
+	for <linux-media@vger.kernel.org>; Sun, 14 Feb 2010 20:51:16 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 14 Feb 2010 20:51:16 +0100 (CET)
+Message-Id: <201002141951.o1EJpG1H002389@smtp-vbr11.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Content-Transfer-Encoding: 8bit
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-I'm working with µCs (i.MX27) and cameras (Aptina) at the moment.
+Results of the daily build of v4l-dvb:
 
-Now I encountered a problem introduced by serializing and deserializing (lvds) camera data on its way to the µC.
+date:        Sun Feb 14 19:00:12 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14198:14021dfc00f3
+gcc version: i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:     2.6.32.5
 
-The serializer expects a specific pixclk polarity which can be configured in hardware. In most cases this is no problem as it is permanently connected to only one sensor chip, but camera sensors with configurable pixclk could negotiate the wrong polarity.
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-rc5-armv5: OK
+linux-2.6.32.6-armv5-davinci: ERRORS
+linux-2.6.33-rc5-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-dm365: ERRORS
+linux-2.6.33-rc5-armv5-dm365: ERRORS
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-rc5-armv5-ixp: OK
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-rc5-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.17-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.20-i686: OK
+linux-2.6.26.8-i686: OK
+linux-2.6.27.44-i686: OK
+linux-2.6.28.10-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: OK
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-rc5-i686: OK
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-rc5-m32r: OK
+linux-2.6.32.6-mips: OK
+linux-2.6.33-rc5-mips: OK
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-rc5-powerpc64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.17-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.20-x86_64: OK
+linux-2.6.26.8-x86_64: OK
+linux-2.6.27.44-x86_64: OK
+linux-2.6.28.10-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: OK
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-rc5-x86_64: OK
+spec: OK
+sparse (v4l-dvb-git): ERRORS
+sparse (linux-2.6.33-rc5): ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: OK
+linux-2.6.19.7-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.7-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
-The deserializer generates pixclk from data, its polarity again can be configured in hardware. This leads to pixclk inversion depending on wheter serdes is happening or not, so its not an attribute of the platform (in opposition to what SOCAM_SENSOR_INVERT_PCLK is meant for)
+Detailed results are available here:
 
-What would be the correct way to address this?
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-Do we need another platform flag, e.g. SOCAM_PCLK_SAMPLE_RISING_FIXED?
-The only solution coming to my mind is checking for the SerDes on boot time and setting flags like SOCAM_PCLK_SAMPLE_RISING_FIXED and SOCAM_SENSOR_INVERT_PCLK if necessary.
+Full logs are available here:
 
-Any other ideas?
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-Thanks,
-Philipp
--- 
-NEU: Mit GMX DSL über 1000,- ¿ sparen!
-http://portal.gmx.net/de/go/dsl02
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
