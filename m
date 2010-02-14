@@ -1,80 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2b.orange.fr ([80.12.242.144]:64829 "EHLO smtp2b.orange.fr"
+Received: from smtp4-g21.free.fr ([212.27.42.4]:47809 "EHLO smtp4-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750999Ab0BRVGQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Feb 2010 16:06:16 -0500
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2b29.orange.fr (SMTP Server) with ESMTP id 9FC8B7000139
-	for <linux-media@vger.kernel.org>; Thu, 18 Feb 2010 22:06:09 +0100 (CET)
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2b29.orange.fr (SMTP Server) with ESMTP id 903D07002366
-	for <linux-media@vger.kernel.org>; Thu, 18 Feb 2010 22:06:09 +0100 (CET)
-Received: from [192.168.0.1] (AVelizy-151-1-71-97.w81-249.abo.wanadoo.fr [81.249.125.97])
-	by mwinf2b29.orange.fr (SMTP Server) with ESMTP id 67F9F7000139
-	for <linux-media@vger.kernel.org>; Thu, 18 Feb 2010 22:06:09 +0100 (CET)
-Message-ID: <4B7DABD8.4000006@orange.fr>
-Date: Thu, 18 Feb 2010 22:06:32 +0100
-From: Catimimi <catimimi@orange.fr>
+	id S1752070Ab0BNWVn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Feb 2010 17:21:43 -0500
+Message-ID: <4B78776D.5050007@zerezo.com>
+Date: Sun, 14 Feb 2010 23:21:33 +0100
+From: Antoine Jacquet <royale@zerezo.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [patch] em28xx : Terratec Cinergy Hybrid T USB XS FR is working.
-Content-Type: multipart/mixed;
- boundary="------------090009080206020603000608"
+To: thomas.schorpp@gmail.com
+CC: linux-media@vger.kernel.org
+Subject: Re: zr364xx: Aiptek DV8800 (neo): 08ca:2062: Fails on subsequent
+ zr364xx_open()
+References: <4B73C792.3060907@gmail.com> <4B741C47.1090905@zerezo.com> <4B7567CB.20609@gmail.com>
+In-Reply-To: <4B7567CB.20609@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------090009080206020603000608
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-
 Hi,
 
-I succed in running Cinergy Hybrid T USB XS FR in both modes.
-I enclose the patch against v4l-dvb-14021dfc00f3
+>> Someone reported similar behavior recently, and was apparently able to 
+>> fix the issue by adding more delay between open/close sequences.
+> 
+> No search tags to find it on the list, can You remember device model?
 
-Regards.
-Michel.
+Yes, this was an off-list discussion, available here:
+	http://royale.zerezo.com/forum/viewtopic.php?t=355
+
+> Didn't work, same -110 errors, sorry, no v4l-dvb git here, vdr 
+> production machine on 2.6.32.7.
+
+Just checked and the differences in the zr364xx driver are minor.
+Would be better if you could work on LinuxTV hg/git tree so we have the 
+same basis for patches.
+
+> 1. Patch with optimized delay below, slow but works, 1st try was 
+> delaying subsequent msg at open sequence i=6, worked until the last 2 
+> open() before capture start.
+>> From the windows snoopy log I sent yesterday I can see only 1-2 URBs 
+>> with relevant delay of ~1s but 
+> cannot see the sequence point.
+
+Ok this is a bit hardcore but nice if it works.
+What do you mean by "until the last 2 open()"?
+Also, you may want to try with simpler tools like "dd" to do only one 
+clean open/close.
+Ekiga/Cheese/Skype tend to do many open/close and this may not be the 
+ideal tools for debugging, but great to trigger the bugs ;-)
+
+> What is error -22, can not find it in errno.h?
+
+I think it's -EINVAL.
+
+> 2. Picture with (640->320) lines alignment error with ekiga+cheese 
+> *attached*, wether cam is configured internally for 640x480 or 320x240, 
+> not affecting.
+> setting the driver to mode=2 fails with libv4l jpeg decoding errors. I 
+> try to correct this.
+
+Do you know if the Windows driver support this mode?
+If so, it would be helpful to have the snoop too.
+
+> 3. Driver oops on modprobe -r or device firmware crash, I need to unplug 
+> first or null pointer fault occours (mutex locks), see below
+
+Ok that's bad, let me know if you find the issue.
+
+Regards,
+
+Antoine
 
 
---------------090009080206020603000608
-Content-Type: text/x-patch;
- name="Cinergy_Hybrid_T_USB_XS_FR.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="Cinergy_Hybrid_T_USB_XS_FR.patch"
-
-diff -ru v4l-dvb-14021dfc00f3-orig/linux/drivers/media/video/em28xx/em28xx-cards.c v4l-dvb-14021dfc00f3-mod/linux/drivers/media/video/em28xx/em28xx-cards.c
---- v4l-dvb-14021dfc00f3-orig/linux/drivers/media/video/em28xx/em28xx-cards.c	2010-02-12 02:11:30.000000000 +0100
-+++ v4l-dvb-14021dfc00f3-mod/linux/drivers/media/video/em28xx/em28xx-cards.c	2010-02-18 21:52:43.000000000 +0100
-@@ -774,15 +774,12 @@
- 
- 	[EM2880_BOARD_TERRATEC_HYBRID_XS_FR] = {
- 		.name         = "Terratec Hybrid XS Secam",
--		.valid        = EM28XX_BOARD_NOT_VALIDATED,
- 		.has_msp34xx  = 1,
- 		.tuner_type   = TUNER_XC2028,
- 		.tuner_gpio   = default_tuner_gpio,
- 		.decoder      = EM28XX_TVP5150,
--#if 0 /* FIXME: add an entry at em28xx-dvb */
- 		.has_dvb      = 1,
- 		.dvb_gpio     = default_digital,
--#endif
- 		.input        = { {
- 			.type     = EM28XX_VMUX_TELEVISION,
- 			.vmux     = TVP5150_COMPOSITE0,
-diff -ru v4l-dvb-14021dfc00f3-orig/linux/drivers/media/video/em28xx/em28xx-dvb.c v4l-dvb-14021dfc00f3-mod/linux/drivers/media/video/em28xx/em28xx-dvb.c
---- v4l-dvb-14021dfc00f3-orig/linux/drivers/media/video/em28xx/em28xx-dvb.c	2010-02-12 02:11:30.000000000 +0100
-+++ v4l-dvb-14021dfc00f3-mod/linux/drivers/media/video/em28xx/em28xx-dvb.c	2010-02-15 21:45:30.000000000 +0100
-@@ -503,6 +503,7 @@
- 		}
- 		break;
- 	case EM2880_BOARD_TERRATEC_HYBRID_XS:
-+	case EM2880_BOARD_TERRATEC_HYBRID_XS_FR:
- 	case EM2881_BOARD_PINNACLE_HYBRID_PRO:
- 	case EM2882_BOARD_DIKOM_DK300:
- 		dvb->frontend = dvb_attach(zl10353_attach,
-
---------------090009080206020603000608--
-
-
+-- 
+Antoine "Royale" Jacquet
+http://royale.zerezo.com
