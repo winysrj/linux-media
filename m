@@ -1,74 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-09.arcor-online.net ([151.189.21.49]:58460 "EHLO
-	mail-in-09.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754754Ab0BSVbj (ORCPT
+Received: from mail-bw0-f216.google.com ([209.85.218.216]:45138 "EHLO
+	mail-bw0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752157Ab0BNRoQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Feb 2010 16:31:39 -0500
-Message-ID: <4B7F030D.8000409@arcor.de>
-Date: Fri, 19 Feb 2010 22:30:53 +0100
-From: Stefan Ringel <stefan.ringel@arcor.de>
+	Sun, 14 Feb 2010 12:44:16 -0500
+Received: by bwz8 with SMTP id 8so2212689bwz.38
+        for <linux-media@vger.kernel.org>; Sun, 14 Feb 2010 09:44:15 -0800 (PST)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [git:v4l-dvb/master] V4L/DVB: tuner-xc2028: fix tuning logic
- to solve a regression in Australia
-References: <E1NiVOP-0004ij-2F@www.linuxtv.org> <4B7EF2DD.7070509@arcor.de> <4B7EF9E6.80000@redhat.com>
-In-Reply-To: <4B7EF9E6.80000@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <664add071002140933h777f6bd2j649dd6a91e0448c7@mail.gmail.com>
+References: <ad6681df0912220711p2666f0f5m84317a7bf0ffc137@mail.gmail.com>
+	 <829197381001180716v59b84ee2ia8ca2d9be4be5b22@mail.gmail.com>
+	 <4B54864E.1050801@yahoo.it>
+	 <829197381001180817r561bb1cdj9edda6ab3affbba0@mail.gmail.com>
+	 <d9def9db1001180829n733471c6g375295f29fc349ea@mail.gmail.com>
+	 <829197381001180836ybc4a4c6l6cf1c2bbabdf96b8@mail.gmail.com>
+	 <d9def9db1001180933x3fc31353g87cd06312a57cbf1@mail.gmail.com>
+	 <4B54AD5B.7040305@gmail.com>
+	 <d9def9db1001181105i7eac4a0ct3b8845b0f2904e38@mail.gmail.com>
+	 <664add071002140933h777f6bd2j649dd6a91e0448c7@mail.gmail.com>
+Date: Sun, 14 Feb 2010 12:44:14 -0500
+Message-ID: <829197381002140944u3d1f94c3g1b7c9983ff1ca915@mail.gmail.com>
+Subject: Re: Info
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Florent NOUVELLON <flonouvellon@gmail.com>
+Cc: fogna <fogna80@gmail.com>,
+	Markus Rechberger <mrechberger@gmail.com>,
+	Adriano Gigante <adrigiga@yahoo.it>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 19.02.2010 21:51, schrieb Mauro Carvalho Chehab:
-> Stefan Ringel wrote:
->   
->> Am 19.02.2010 17:07, schrieb Patch from Mauro Carvalho Chehab:
->>     
->>>  	}
->>>  
->>>  	div = (freq - offset + DIV / 2) / DIV;
->>> @@ -1114,17 +1152,22 @@ static int xc2028_set_params(struct dvb_frontend *fe,
->>>  
->>>  	/* All S-code tables need a 200kHz shift */
->>>  	if (priv->ctrl.demod) {
->>> -		demod = priv->ctrl.demod + 200;
->>> +		/*
->>> +		 * Newer firmwares require a 200 kHz offset only for ATSC
->>> +		 */
->>> +		if (type == ATSC || priv->firm_version < 0x0302)
->>> +			demod = priv->ctrl.demod + 200;
->>>  		/*
->>>  		 * The DTV7 S-code table needs a 700 kHz shift.
->>> -		 * Thanks to Terry Wu <terrywu2009@gmail.com> for reporting this
->>>  		 *
->>>  		 * DTV7 is only used in Australia.  Germany or Italy may also
->>>  		 * use this firmware after initialization, but a tune to a UHF
->>>  		 * channel should then cause DTV78 to be used.
->>> +		 *
->>> +		 * Unfortunately, on real-field tests, the s-code offset
->>> +		 * didn't work as expected, as reported by
->>> +		 * Robert Lowery <rglowery@exemail.com.au>
->>>  		 */
->>> -		if (type & DTV7)
->>> -			demod += 500;
->>>  	}
->>>  
->>>  	return generic_set_freq(fe, p->frequency,
->>>   
->>>       
->> Hi Mauro,
->>
->> your patch doesn't work. Here is not set demod for all others (demod=0).
->>
->>     
-> For DVB to properly work, you need to fill ctrl.demod at tm6000, otherwise,
-> demod will be 0, and it will use some default that won't likely work.
+On Sun, Feb 14, 2010 at 12:33 PM, Florent NOUVELLON
+<flonouvellon@gmail.com> wrote:
+> Hi Devin,
 >
->   
-ctrl.demod is set in tm6000 since last month and doesn't work any more now!
+> Did you with Prahal advanced the 0072/terratec hybrid xs fm support in
+> linux-dvb driver ?
+>
+> If you need any kind of help (testing, or whatever) feel free to ask me.
+>
+> Regards,
+> Florent
 
-Stefan Ringel
+Hi Florent,
+
+Prahal was making good progress, and I was helping him over irc when I
+had time.  But I have not invested any of my own time working on the
+driver at this point (as I've been tied up working on other projects).
+
+Devin
 
 -- 
-Stefan Ringel <stefan.ringel@arcor.de>
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
