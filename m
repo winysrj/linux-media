@@ -1,74 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:29442 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755011Ab0BSTWJ (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:52706 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753100Ab0BNXeG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Feb 2010 14:22:09 -0500
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
-	david.cohen@nokia.com,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: [PATCH v5 2/6] V4L: File handles: Add documentation
-Date: Fri, 19 Feb 2010 21:21:56 +0200
-Message-Id: <1266607320-9974-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <4B7EE4A4.3080202@maxwell.research.nokia.com>
-References: <4B7EE4A4.3080202@maxwell.research.nokia.com>
+	Sun, 14 Feb 2010 18:34:06 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: videobuf and streaming I/O questions
+Date: Mon, 15 Feb 2010 00:34:23 +0100
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+References: <201002141422.48362.hverkuil@xs4all.nl> <4B77FD89.3080209@infradead.org> <201002141526.09339.hverkuil@xs4all.nl>
+In-Reply-To: <201002141526.09339.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201002150034.24891.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add documentation on using V4L2 file handles (v4l2_fh) in V4L2 drivers.
+Hi Hans,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- Documentation/video4linux/v4l2-framework.txt |   36 ++++++++++++++++++++++++++
- 1 files changed, 36 insertions(+), 0 deletions(-)
+On Sunday 14 February 2010 15:26:09 Hans Verkuil wrote:
+> On Sunday 14 February 2010 14:41:29 Mauro Carvalho Chehab wrote:
+> > Hans Verkuil wrote:
+> > > Hi all,
+> > > 
+> > > I've been investigating some problems with my qv4l2 utility and I
+> > > encountered some inconsistencies in the streaming I/O documentation
+> > > and the videobuf implementation.
+> > > 
+> > > I would like to know which is correct.
 
-diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index 74d677c..08f9e59 100644
---- a/Documentation/video4linux/v4l2-framework.txt
-+++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -695,3 +695,39 @@ The better way to understand it is to take a look at vivi driver. One
- of the main reasons for vivi is to be a videobuf usage example. the
- vivi_thread_tick() does the task that the IRQ callback would do on PCI
- drivers (or the irq callback on USB).
-+
-+struct v4l2_fh
-+--------------
-+
-+struct v4l2_fh provides a way to easily keep file handle specific data
-+that is used by the V4L2 framework.
-+
-+struct v4l2_fh is allocated as a part of the driver's own file handle
-+structure and is set to file->private_data in the driver's open
-+function by the driver. Drivers can extract their own file handle
-+structure by using the container_of macro.
-+
-+Useful functions:
-+
-+- v4l2_fh_init()
-+
-+  Initialise the file handle.
-+
-+- v4l2_fh_add()
-+
-+  Add a v4l2_fh to video_device file handle list. May be called after
-+  initialising the file handle.
-+
-+- v4l2_fh_del()
-+
-+  Unassociate the file handle from video_device(). The file handle
-+  exit function may now be called.
-+
-+- v4l2_fh_exit()
-+
-+  Uninitialise the file handle. After uninitialisation the v4l2_fh
-+  memory can be freed.
-+
-+The users of v4l2_fh know whether a driver uses v4l2_fh as its
-+file.private_data pointer by testing the V4L2_FL_USES_V4L2_FH bit in
-+video_device.flags.
+[snip]
+
+> > > 2) The VIDIOC_REQBUFS documentation states that it should be possible
+> > > to use a count of 0, in which case it should do an implicit STREAMOFF.
+> > > This is currently not implemented. I have included a patch for this
+> > > below and if there are no issues with it, then I'll make a pull
+> > > request for this.
+> > 
+> > This can eventually break some application. I think it is safer to fix
+> > the specs.
+> 
+> I don't really see how this would break an application and I think that
+> some drivers that do not use videobuf already support this. The reason why
+> I think this is a good idea to support it is that this makes it very easy
+> to check which streaming mode is supported without actually allocating
+> anything.
+> 
+> I was actually using this in qv4l2 with uvc until I tried it with the mxb
+> driver and discovered that videobuf didn't support it. I am definitely in
+> favor of fixing the code instead of the spec in this case.
+
+Using a count of 0 to free buffers definitely needs to be supported, so 
+videobuf must be fixed. However, I don't think VIDIOC_REQBUFS should issue an 
+implicit VIDIOC_STREAMOFF. It should instead return -EBUSY if streaming is in 
+progress, or if buffers are still mapped in the userspace memory space.
+
+Performing implicit actions make drivers more complex and error prone. I don't 
+see any harm in requiring userspace to call VIDIOC_STREAMOFF before freeing 
+buffers.
+
 -- 
-1.5.6.5
+Regards,
 
+Laurent Pinchart
