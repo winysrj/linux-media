@@ -1,45 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38560 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757094Ab0BBWlB (ORCPT
+Received: from mail-in-16.arcor-online.net ([151.189.21.56]:35686 "EHLO
+	mail-in-16.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755867Ab0BORiT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Feb 2010 17:41:01 -0500
-Message-Id: <201002022240.o12MeoSv018915@imap1.linux-foundation.org>
-Subject: [patch 5/7] drivers/media/video/cx18/cx18-alsa-pcm.c: fix printk warning
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
-	awalls@radix.net
-From: akpm@linux-foundation.org
-Date: Tue, 02 Feb 2010 14:40:49 -0800
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: 8bit
+	Mon, 15 Feb 2010 12:38:19 -0500
+From: stefan.ringel@arcor.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 07/11] tm6000: add i2c send recv functions
+Date: Mon, 15 Feb 2010 18:37:20 +0100
+Message-Id: <1266255444-7422-7-git-send-email-stefan.ringel@arcor.de>
+In-Reply-To: <1266255444-7422-6-git-send-email-stefan.ringel@arcor.de>
+References: <1266255444-7422-1-git-send-email-stefan.ringel@arcor.de>
+ <1266255444-7422-2-git-send-email-stefan.ringel@arcor.de>
+ <1266255444-7422-3-git-send-email-stefan.ringel@arcor.de>
+ <1266255444-7422-4-git-send-email-stefan.ringel@arcor.de>
+ <1266255444-7422-5-git-send-email-stefan.ringel@arcor.de>
+ <1266255444-7422-6-git-send-email-stefan.ringel@arcor.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Andrew Morton <akpm@linux-foundation.org>
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
-drivers/media/video/cx18/cx18-alsa-pcm.c: In function 'cx18_alsa_announce_pcm_data':
-drivers/media/video/cx18/cx18-alsa-pcm.c:82: warning: format '%d' expects type 'int', but argument 5 has type 'size_t'
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
 
-Cc: Andy Walls <awalls@radix.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/media/video/cx18/cx18-alsa-pcm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff -puN drivers/media/video/cx18/cx18-alsa-pcm.c~drivers-media-video-cx18-cx18-alsa-pcmc-fix-printk-warning drivers/media/video/cx18/cx18-alsa-pcm.c
---- a/drivers/media/video/cx18/cx18-alsa-pcm.c~drivers-media-video-cx18-cx18-alsa-pcmc-fix-printk-warning
-+++ a/drivers/media/video/cx18/cx18-alsa-pcm.c
-@@ -79,7 +79,7 @@ void cx18_alsa_announce_pcm_data(struct 
- 	int period_elapsed = 0;
- 	int length;
+diff --git a/drivers/staging/tm6000/tm6000-i2c.c b/drivers/staging/tm6000/tm6000-i2c.c
+index 6b17d0b..9d02674 100644
+--- a/drivers/staging/tm6000/tm6000-i2c.c
++++ b/drivers/staging/tm6000/tm6000-i2c.c
+@@ -42,6 +42,32 @@ MODULE_PARM_DESC(i2c_debug, "enable debug messages [i2c]");
+ 			printk(KERN_DEBUG "%s at %s: " fmt, \
+ 			dev->name, __FUNCTION__ , ##args); } while (0)
  
--	dprintk("cx18 alsa announce ptr=%p data=%p num_bytes=%d\n", cxsc,
-+	dprintk("cx18 alsa announce ptr=%p data=%p num_bytes=%zd\n", cxsc,
- 		pcm_data, num_bytes);
++int tm6000_i2c_send_byte (struct tm6000_core *dev, unsigned char addr, __u8 reg, char *buf, int len)
++{
++	return tm6000_read_write_usb (dev, USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
++		REQ_16_SET_GET_I2C_WR1_RND, addr | reg << 8, 0, buf, len);
++}
++
++int tm6000_i2c_recv_byte (struct tm6000_core *dev, unsigned char addr, __u8 reg, char *buf, int len)
++{
++	int rc:
++
++	rc = tm6000_read_write_usb (dev, USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
++		REQ_16_SET_GET_I2C_WR1_RND, addr | reg << 8, 0, buf, len);
++
++	return rc;
++}
++
++int tm6000_i2c_recv_word (struct tm6000_core *dev, unsigned char addr, __u16 reg, char *buf , int len)
++{
++	int rc;
++
++	rc = tm6000_read_write_usb (dev, USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
++		REQ_14_SET_GET_I2C_WR2_RND, addr, reg, buf, len);
++
++	return rc;
++}
++
+ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 			   struct i2c_msg msgs[], int num)
+ {
+@@ -76,13 +102,14 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 			i2c_dprintk(2, "; joined to read %s len=%d:",
+ 				    i == num - 2 ? "stop" : "nonstop",
+ 				    msgs[i + 1].len);
+-			rc = tm6000_read_write_usb (dev,
+-				USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+-				msgs[i].len == 1 ? REQ_16_SET_GET_I2C_WR1_RDN
+-						 : REQ_14_SET_GET_I2C_WR2_RDN,
+-				addr | msgs[i].buf[0] << 8,
+-				msgs[i].len == 1 ? 0 : msgs[i].buf[1],
+-				msgs[i + 1].buf, msgs[i + 1].len);
++
++			if (msgs[i].len == 1) {
++				rc = tm6000_i2c_recv_byte (dev, addr, msgs[i].buf[0],
++					msgs[i + 1].buf, msgs[i + 1].len);
++			} else {
++				rc = tm6000_i2c_recv_word (dev, addr, msgs[i].buf[0] << 8 | msgs[i].buf[1],
++					msgs[i + 1].buf, msgs[i + 1].len);
++			}
+ 			i++;
  
- 	substream = cxsc->capture_pcm_substream;
-_
+ 			if ((dev->dev_type == TM6010) && (addr == 0xc2)) {
+@@ -97,10 +124,8 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 			if (i2c_debug >= 2)
+ 				for (byte = 0; byte < msgs[i].len; byte++)
+ 					printk(" %02x", msgs[i].buf[byte]);
+-			rc = tm6000_read_write_usb(dev,
+-				USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+-				REQ_16_SET_GET_I2C_WR1_RDN,
+-				addr | msgs[i].buf[0] << 8, 0,
++
++			rc = tm6000_i2c_send_byte(dev, addr, msgs[i].buf[0],
+ 				msgs[i].buf + 1, msgs[i].len - 1);
+ 
+ 			if ((dev->dev_type == TM6010) && (addr == 0xc2)) {
+-- 
+1.6.6.1
+
