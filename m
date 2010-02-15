@@ -1,67 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:37832 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934688Ab0BZAe1 (ORCPT
+Received: from mail-in-04.arcor-online.net ([151.189.21.44]:60178 "EHLO
+	mail-in-04.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755787Ab0BORiS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Feb 2010 19:34:27 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Maupin, Chase" <chase.maupin@ti.com>
-Subject: Re: Requested feedback on V4L2 driver design
-Date: Fri, 26 Feb 2010 01:35:20 +0100
-Cc: Hans Verkuil <hans.verkuil@tandberg.com>,
-	"sakari.ailus@maxwell.research.nokia.com"
-	<sakari.ailus@maxwell.research.nokia.com>,
-	"mchehab@infradead.org" <mchehab@infradead.org>,
-	"vpss_driver_design@list.ti.com - This list is to discuss the VPSS
-	driver design (May contain non-TIers)"
-	<vpss_driver_design@list.ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <131E5DFBE7373E4C8D813795A6AA7F0802C4E0FF3E@dlee06.ent.ti.com> <201002120222.38816.laurent.pinchart@ideasonboard.com> <131E5DFBE7373E4C8D813795A6AA7F0802E7F9CB88@dlee06.ent.ti.com>
-In-Reply-To: <131E5DFBE7373E4C8D813795A6AA7F0802E7F9CB88@dlee06.ent.ti.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201002260135.23333.laurent.pinchart@ideasonboard.com>
+	Mon, 15 Feb 2010 12:38:18 -0500
+From: stefan.ringel@arcor.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 04/11] tm6000: add different tuner reset for terratec
+Date: Mon, 15 Feb 2010 18:37:17 +0100
+Message-Id: <1266255444-7422-4-git-send-email-stefan.ringel@arcor.de>
+In-Reply-To: <1266255444-7422-3-git-send-email-stefan.ringel@arcor.de>
+References: <1266255444-7422-1-git-send-email-stefan.ringel@arcor.de>
+ <1266255444-7422-2-git-send-email-stefan.ringel@arcor.de>
+ <1266255444-7422-3-git-send-email-stefan.ringel@arcor.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Chase,
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
-On Tuesday 16 February 2010 14:00:11 Maupin, Chase wrote:
-> Laurent,
-> 
-> To follow up with some of the comments I made before I got additional
-> clarification about the commands supported by the proxy driver running on
-> the VPSS MCU.  The proxy will support all of the commands used by V4L2 as
-> well as those proposed extensions to V4L2 that Hans has mentioned. 
-> Basically, the list of commands supported at initial release is not only
-> those required today, but a full set for all the features of the VPSS.  In
-> this was as new APIs are added to V4L2 the support for those features will
-> already be supported by the VPSS MCU proxy driver.
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
 
-Thank you for the clarification.
-
-A few things are still uncleared to me, as stated in my previous mail (from a 
-few minutes ago). My main question is, if the VPSS API is full-featured and 
-accessible from the master CPU, why do we need a proxy driver in the firmware 
-at all ?
-
-> As for the license of the firmware this is still being worked.  It is
-> currently under TI proprietary license and will be distributed as binary
-> under Technical Software Publicly Available (TSPA) which means it can be
-> obtained by anyone.  If you feel that source code is required for the
-> firmware at launch to gain acceptance please let us know and we can start
-> working that issue.
-
-I think it would definitely help keeping the Linux driver and the VPSS 
-firmware in sync if the VPSS firmware source was available. The firmware 
-source code could even be distributed along with the Linux driver.
-
-By the way, will the firmware be loaded at runtime by the driver, or will it 
-be stored internally in the chip ?
-
+diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+index ff04bba..5a8d716 100644
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -269,12 +269,28 @@ int tm6000_tuner_callback(void *ptr, int component, int command, int arg)
+ 		/* Reset codes during load firmware */
+ 		switch (arg) {
+ 		case 0:
+-			tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
+-					dev->tuner_reset_gpio, 0x00);
+-			msleep(130);
+-			tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
+-					dev->tuner_reset_gpio, 0x01);
+-			msleep(130);
++			/* newer tuner can faster reset */
++			switch(dev->model) {
++			case TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE:
++				tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
++						dev->tuner_reset_gpio, 0x01);
++				msleep(60);
++				tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
++						dev->tuner_reset_gpio, 0x00);
++				msleep(75);
++				tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
++						dev->tuner_reset_gpio, 0x01);
++				msleep(60);
++				break;
++			default:
++				tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
++						dev->tuner_reset_gpio, 0x00);
++				msleep(130);
++				tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
++						dev->tuner_reset_gpio, 0x01);
++				msleep(130);
++				break;
++			}
+ 			break;
+ 		case 1:
+ 			tm6000_set_reg (dev, REQ_04_EN_DISABLE_MCU_INT,
 -- 
-Regards,
+1.6.6.1
 
-Laurent Pinchart
