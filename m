@@ -1,47 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:35003 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752426Ab0BWNh3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2010 08:37:29 -0500
-Message-ID: <4B83DA0D.1020002@redhat.com>
-Date: Tue, 23 Feb 2010 10:37:17 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Brandon Philips <brandon@ifup.org>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Douglas Landgraf <dougsland@gmail.com>,
-	christophpfister@gmail.com
-Subject: Re: [ANNOUNCE] git tree repositories & libv4l
-References: <4B55445A.10300@infradead.org> <4B5B30E4.7030909@redhat.com> <20100222225426.GC4013@jenkins.home.ifup.org> <201002230026.59712.hverkuil@xs4all.nl> <20100222233808.GD4013@jenkins.home.ifup.org> <4B83242E.40703@infradead.org> <4B832B61.30909@redhat.com> <20100223080437.GE4013@jenkins.home.ifup.org>
-In-Reply-To: <20100223080437.GE4013@jenkins.home.ifup.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198]:49625 "EHLO
+	mta3.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756404Ab0BOXAx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Feb 2010 18:00:53 -0500
+Received: from MacBook-Pro.local
+ (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta3.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KXW00B4LNXG1JH0@mta3.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Mon, 15 Feb 2010 18:00:52 -0500 (EST)
+Date: Mon, 15 Feb 2010 18:00:51 -0500
+From: Steven Toth <stoth@kernellabs.com>
+Subject: Re: cx23885
+In-reply-to: <hlcjfi$unq$1@ger.gmane.org>
+To: Michael <auslands-kv@gmx.de>
+Cc: linux-media@vger.kernel.org
+Message-id: <4B79D223.4010909@kernellabs.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <hlbe6t$kc4$1@ger.gmane.org>
+ <1266238446.3075.13.camel@palomino.walls.org> <hlbhck$uh9$1@ger.gmane.org>
+ <4B795D1A.9040502@kernellabs.com> <hlbopr$v7s$1@ger.gmane.org>
+ <4B79803B.4070302@kernellabs.com> <hlcbhu$4s3$1@ger.gmane.org>
+ <4B79B437.5000004@kernellabs.com> <hlch5h$ogp$1@ger.gmane.org>
+ <hlciur$tb0$1@ger.gmane.org> <hlcjfi$unq$1@ger.gmane.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Brandon Philips wrote:
-> On 22:12 Mon 22 Feb 2010, Mauro Carvalho Chehab wrote:
->> Mauro Carvalho Chehab wrote:
+On 2/15/10 5:56 PM, Michael wrote:
+> Well, this did not work. The cx23885 driver was not included in kernel
+> 2.6.21, so no diff. The diff of the 2.6.21 cx25840 is twice as big as the
+> 2.6.31 diff. :-(
+>
+> If anybody can give me a hint, what to include in a patch and what was old
+> stuff that has jsut changed in 2.6.31, I'd be grateful.
+>
+> Attached is the diff of cx23885, the commell version against kernel
+> 2.6.31.4.
+>
+>>
+>> I'm downloading kernel 2.6.21 now and make a diff with these drivers.
+>>
 
->> That's said, if all the issues are the ones listed above, I can try
->> to address them on the next months, to put it into a better
->> shape. That's said, I don't think we should have a single maintainer
->> for it: there are too many DTV standards already, and probably
->> nobody with enough time has access to all of those (DVB-T, DVB-T2,
->> DVB-S, DVB-S2, ISDB-T, ISDB-S, ATSC, DSS, ...).  So, I think we need
->> a team of volunteers that will try to help with the standards they
->> have access.
-> 
-> I was not suggesting a single maintainer but I wanted to make sure
-> there was actual interest in maintaing and fixing these dvb things. I
-> don't interact much at all with DVB so all I had to go on was the wiki
-> page.
+Start by patching the current cx23885 driver with all of the switch statements 
+related to the new board CX23885_BOARD_MPX885.
 
-The wiki seems wrong to me. I'll update it.
+-cards.c -core.c etc.
+
+I already see some issues in their MPX885 additions, driving wrong gpios and 
+assuming the encoder is attached - but it's a good start.
 
 -- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
++1.646.355.8490
 
-Cheers,
-Mauro
