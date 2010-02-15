@@ -1,51 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f189.google.com ([209.85.222.189]:59613 "EHLO
-	mail-pz0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932444Ab0BENxD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Feb 2010 08:53:03 -0500
-From: Yong Zhang <yong.zhang0@gmail.com>
-To: linux-kernel@vger.kernel.org
-Cc: a.p.zijlstra@chello.nl, mingo@elte.hu,
-	Brian Johnson <brijohn@gmail.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 3/4] V4L/DVB: gspca - sn9c20x: correct onstack wait_queue_head declaration
-Date: Fri,  5 Feb 2010 21:52:39 +0800
-Message-Id: <bc78da996dc04da174f51d2dbe1df4b084a07a3f.1265375697.git.yong.zhang0@gmail.com>
-In-Reply-To: <b47c0527f1471857fec4662da1bfd0bb9e6071a7.1265375697.git.yong.zhang0@gmail.com>
-References: <1265377920-5898-1-git-send-email-yong.zhang0@gmail.com>
- <b1dccd762d3d04ab75d79d1d9b097d593a89f32a.1265375697.git.yong.zhang0@gmail.com>
- <b47c0527f1471857fec4662da1bfd0bb9e6071a7.1265375697.git.yong.zhang0@gmail.com>
-In-Reply-To: <b1dccd762d3d04ab75d79d1d9b097d593a89f32a.1265375697.git.yong.zhang0@gmail.com>
-References: <b1dccd762d3d04ab75d79d1d9b097d593a89f32a.1265375697.git.yong.zhang0@gmail.com>
+Received: from smtp01.frii.com ([216.17.135.167]:38444 "EHLO smtp01.frii.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751585Ab0BOOlr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Feb 2010 09:41:47 -0500
+Received: from io.frii.com (io.frii.com [216.17.222.1])
+	by smtp01.frii.com (FRII) with ESMTP id B5306EA4CE
+	for <linux-media@vger.kernel.org>; Mon, 15 Feb 2010 07:41:46 -0700 (MST)
+Date: Mon, 15 Feb 2010 07:41:46 -0700
+From: Mark Zimmerman <markzimm@frii.com>
+To: linux-media@vger.kernel.org
+Subject: Any remotes that work with the pcHDTV HD5500?
+Message-ID: <20100215144146.GA29630@io.frii.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use DECLARE_WAIT_QUEUE_HEAD_ONSTACK to make lockdep happy
+Greetings:
 
-Signed-off-by: Yong Zhang <yong.zhang0@gmail.com>
-Cc: Brian Johnson <brijohn@gmail.com>
-Cc: Jean-Francois Moine <moinejf@free.fr>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org
----
- drivers/media/video/gspca/sn9c20x.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+The pcHDTV HD5500 ships with an IR receiver but no remote. Support
+seems to be there:
 
-diff --git a/drivers/media/video/gspca/sn9c20x.c b/drivers/media/video/gspca/sn9c20x.c
-index 0ca1c06..8f75fbc 100644
---- a/drivers/media/video/gspca/sn9c20x.c
-+++ b/drivers/media/video/gspca/sn9c20x.c
-@@ -1426,7 +1426,7 @@ static int input_kthread(void *data)
- 	struct gspca_dev *gspca_dev = (struct gspca_dev *)data;
- 	struct sd *sd = (struct sd *) gspca_dev;
- 
--	DECLARE_WAIT_QUEUE_HEAD(wait);
-+	DECLARE_WAIT_QUEUE_HEAD_ONSTACK(wait);
- 	set_freezable();
- 	for (;;) {
- 		if (kthread_should_stop())
--- 
-1.6.3.3
+input: cx88 IR (pcHDTV HD5500 HDTV) as /devices/pci0000:00/0000:00:06.0/0000:01:07.1/input/input6
 
+Does anyone know of a remote that actually works with it? I have read
+that it is supposed to be a "Phillips/Magnavox" type, so I tried
+setting several programmable remotes to the codes for Phillips and
+Magnavox TVs, but nothing has worked so far.
+
+Thanks,
+-- Mark
