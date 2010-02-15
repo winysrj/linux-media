@@ -1,148 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-11.arcor-online.net ([151.189.21.51]:36895 "EHLO
-	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756347Ab0BBQPH (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2279 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753104Ab0BOKg5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Feb 2010 11:15:07 -0500
-Message-ID: <4B684F6A.6010902@arcor.de>
-Date: Tue, 02 Feb 2010 17:14:34 +0100
-From: Stefan Ringel <stefan.ringel@arcor.de>
+	Mon, 15 Feb 2010 05:36:57 -0500
+Message-ID: <732a3c26ed77df5896cb310597d1c79e.squirrel@webmail.xs4all.nl>
+In-Reply-To: <201002151111.09151.laurent.pinchart@ideasonboard.com>
+References: <4B72C965.7040204@maxwell.research.nokia.com>
+    <1265813889-17847-7-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+    <201002131542.20916.hverkuil@xs4all.nl>
+    <201002151111.09151.laurent.pinchart@ideasonboard.com>
+Date: Mon, 15 Feb 2010 11:36:26 +0100
+Subject: Re: [PATCH v4 7/7] V4L: Events: Support all events
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
+Cc: "Sakari Ailus" <sakari.ailus@maxwell.research.nokia.com>,
+	linux-media@vger.kernel.org, iivanov@mm-sol.com,
+	gururaj.nagendra@intel.com, david.cohen@nokia.com
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] - tm6000 DVB support
-References: <4B673790.3030706@arcor.de> <4B673B2D.6040507@arcor.de>	 <829197381002011252w93b0f17g4c4f6d35ffae45f3@mail.gmail.com>	 <4B67464B.3020801@arcor.de> <829197381002011344g1c640c4fufa057071b8527d55@mail.gmail.com> <4B674EF9.3020800@arcor.de> <4B675E52.5040306@redhat.com>
-In-Reply-To: <4B675E52.5040306@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 02.02.2010 00:05, schrieb Mauro Carvalho Chehab:
-> Stefan Ringel wrote:
->   
->> Am 01.02.2010 22:44, schrieb Devin Heitmueller:
->>     
->>> On Mon, Feb 1, 2010 at 4:23 PM, Stefan Ringel <stefan.ringel@arcor.de> wrote:
->>>   
->>>       
->>>>> You should start by breaking it down into a patch series, so that the
->>>>> incremental changes can be reviewed.  That will allow you to explain
->>>>> in the patch descriptions why all the individual changes you have made
->>>>> are required.
->>>>>
->>>>>
->>>>>       
->>>>>           
->>>> how can I generate it?
->>>>     
->>>>         
->>> You can use quilt to break it up into a patch series, or create a
->>> local hg clone of v4l-dvb.
->>>
->>>   
->>>       
->>>>> Why did you define a new callback for changing the tuner mode?  We
->>>>> have successfully provided infrastructure on other bridges to toggle
->>>>> GPIOs when changing modes.  For example, the em28xx has fields in the
->>>>> board profile that allow you to toggle GPIOs when going back and forth
->>>>> between digital and analog mode.
->>>>>
->>>>>
->>>>>       
->>>>>           
->>>> I don't know, how you mean it. I'm amateur programmer.
->>>>     
->>>>         
->>> Look at how the ".dvb_gpio" and ".gpio" fields are used in the board
->>> profiles in em28xx-cards.c.  We toggle the GPIOs when switching the
->>> from analog to digital mode, without the tuner having to do any sort
->>> of callback.
->>>
->>>   
->>>       
->> It's a bad example. em28xx use a reg-set, but tm6000 not !! It use a
->> gpio usb request.
+
+> Hi Hans,
+>
+> On Saturday 13 February 2010 15:42:20 Hans Verkuil wrote:
+>> On Wednesday 10 February 2010 15:58:09 Sakari Ailus wrote:
+>> > Add support for subscribing all events with a special id
+>> V4L2_EVENT_ALL.
+>> > If V4L2_EVENT_ALL is subscribed, no other events may be subscribed.
+>> > Otherwise V4L2_EVENT_ALL is considered just as any other event.
 >>
->> tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN, TM6010_GPIO_5, 1);
+>> We should do this differently. I think that EVENT_ALL should not be used
+>> internally (i.e. in the actual list of subscribed events), but just as a
+>> special value for the subscribe and unsubscribe ioctls. So when used
+>> with
+>> unsubscribe you can just unsubscribe all subscribed events and when used
+>> with subscribe, then you just subscribe all valid events (valid for that
+>> device node).
 >>
+>> So in v4l2-event.c you will have a v4l2_event_unsubscribe_all() to
+>> quickly
+>> unsubscribe all events.
 >>
->> I don't know, that it with the ".gpio" fields works. And when it switch
->> from analog to digital, I don't see the way.
->>     
-> All devices with Xceive tuners need to reset the chip via GPIO, in order to load
-> the firmware. On em28xx, I wrote a patch that moved all specific init code to
-> a struct (basically used by gpio's), and a generic code to do the reset. It basically
-> contains what GPIO pins are used, and how many time it should wait.
+>> In order to easily add all events from the driver it would help if the
+>> v4l2_event_subscribe and v4l2_event_unsubscribe just take the event type
+>> as argument rather than the whole v4l2_event_subscription struct.
+>>
+>> You will then get something like this in the driver:
+>>
+>> 	if (sub->type == V4L2_EVENT_ALL) {
+>> 		int ret = v4l2_event_alloc(fh, 60);
+>>
+>> 		ret = ret ? ret : v4l2_event_subscribe(fh, V4L2_EVENT_EOS);
+>> 		ret = ret ? ret : v4l2_event_subscribe(fh, V4L2_EVENT_VSYNC);
+>> 		return ret;
+>> 	}
+>>
+>> An alternative might be to add a v4l2_event_subscribe_all(fh, const u32
+>> *events) where 'events' is a 0 terminated list of events that need to be
+>> subscribed.
 >
-> For example:
+> Then don't call it v4l2_event_subscribe_all if it only subscribes to a set
+> of
+> event :-)
 >
-> /* Board Hauppauge WinTV HVR 900 digital */
-> static struct em28xx_reg_seq hauppauge_wintv_hvr_900_digital[] = {
->         {EM28XX_R08_GPIO,       0x2e,   ~EM_GPIO_4,     10},
->         {EM2880_R04_GPO,        0x04,   0x0f,           10},
->         {EM2880_R04_GPO,        0x0c,   0x0f,           10},
->         { -1,                   -1,     -1,             -1},
-> };
+>> For each event this function would then call:
+>>
+>> fh->vdev->ioctl_ops->vidioc_subscribe_event(fh, sub);
+>>
+>> The nice thing about that is that in the driver you have a minimum of
+>> fuss.
+>>
+>> I'm leaning towards this second solution due to the simple driver
+>> implementation.
+>>
+>> Handling EVENT_ALL will simplify things substantially IMHO.
 >
-> The first line of the above code will execute this logic:
-> 	a = read(EM28XXR08_GPIO) & ~0x2e;
-> 	write (a & ~EM_GPIO_4);
-> 	msleep(10);
->
->
-> So, it will basically preserve bits 8,7,6,4 and 1 of register 8,
-> and will clear bit 4 (EM_GPIO_4 is 1 << 4 - e. g. bit 4).
-> After that, it will sleep for 10 miliseconds, and will then do a
-> reset on bit 3 of Register 4 (writing 0, then 1 to the bit).
->   
+> I'm wondering if subscribing to all events should be allowed. Do we have
+> use
+> cases for that ? I'm always a bit cautious when adding APIs with no users,
+> as
+> that means the API has often not been properly tested against possible use
+> cases and mistakes will need to be supported forever (or at least for a
+> long
+> time).
 
-reset example :
+I think that is a good point. Supporting V4L2_EVENT_ALL makes sense for
+unsubscribe, but does it makes sense for subscribe as well? I think it
+does not. It just doesn't feel right when I tried to implement it in ivtv.
 
-static struct tm6010_seq terratec[] = {
-            {TM6010_GPIO_2,    1,    60},  /* GPIO 2 going to high */
-            {TM6010_GPIO_2,    0,    75},  /* GPIO 2 going to lo */
-            {TM6010_GPIO_2,    1,    60},  /* GPIO 2 going to high */
-            { -1         ,    -1,    -1},
-}
+I also wonder whether the unsubscribe API shouldn't just receive the event
+type instead of the big subscription struct. Or get its own struct. I
+don't think it makes much sense that they both have the same struct.
 
-Is that correct?
+Regards,
 
+       Hans
 
->>     
->>>>> What function does the "tm6000" member in the zl10353 config do?  It
->>>>> doesn't seem to be used anywhere.
->>>>>
->>>>>
->>>>>       
->>>>>           
->>>> I'll switch it next week to demodulator module.
->>>>     
->>>>         
->>> Are you saying the zl10353 isn't working right now in your patch?  I'm
->>> a bit confused.  If it doesn't work, then your patch title is a bit
->>> misleading since it suggests that your patch provides DVB support for
->>> the tm6000.  If it does work, then the tm6000 member shouldn't be
->>> needed at all in the zl10353 config.
->>>
->>>   
->>>       
->> I'm emulating it in hack.c and the zl10353 module doesn't work, if I
->> switch to it.
->>     
-> the hack.c needs to be validated against the zl10353, in order to identify
-> what are the exact needs for tm6000. Some devices require serial mode, while
-> others require parallel mode.
 >
-> I bet that playing with zl10353_config, we'll find the proper init values 
-> required by tm6000.
+> --
+> Regards,
 >
->   
+> Laurent Pinchart
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-I have separately write in the hack.c the value from terratec hybrid
-stick. The older value I haven't clean.
 
 -- 
-Stefan Ringel <stefan.ringel@arcor.de>
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
