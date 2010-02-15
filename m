@@ -1,27 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:60799 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753844Ab0BXIfx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Feb 2010 03:35:53 -0500
-Date: Wed, 24 Feb 2010 09:35:55 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: failing videobuf_iolock() in multiple drivers - wrong error processing?
-Message-ID: <Pine.LNX.4.64.1002240928430.4741@axis700.grange>
+Received: from perceval.irobotique.be ([92.243.18.41]:55848 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754556Ab0BOKFY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Feb 2010 05:05:24 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v4 4/7] V4L: Events: Support event handling in do_ioctl
+Date: Mon, 15 Feb 2010 11:05:39 +0100
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	linux-media@vger.kernel.org, iivanov@mm-sol.com,
+	gururaj.nagendra@intel.com, david.cohen@nokia.com
+References: <4B72C965.7040204@maxwell.research.nokia.com> <1265813889-17847-4-git-send-email-sakari.ailus@maxwell.research.nokia.com> <201002131449.31949.hverkuil@xs4all.nl>
+In-Reply-To: <201002131449.31949.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201002151105.43721.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Looking at .buf_prepare() videobuf_queue_ops methods I cannot understand, 
-why if videobuf_iolock() fails they all call some internal buffer freeing 
-function, that, among others, also calls some nideobuf-specific free 
-function... Is this really needed, if yes - why?
+On Saturday 13 February 2010 14:49:31 Hans Verkuil wrote:
+> On Wednesday 10 February 2010 15:58:06 Sakari Ailus wrote:
+> > Add support for event handling to do_ioctl.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> > ---
+> > 
+> >  drivers/media/video/Makefile     |    2 +-
+> >  drivers/media/video/v4l2-ioctl.c |   49
+> >  ++++++++++++++++++++++++++++++++++++++ include/media/v4l2-ioctl.h      
+> >  |    5 ++++
+> >  3 files changed, 55 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+> > index b888ad1..68253d6 100644
+> > --- a/drivers/media/video/Makefile
+> > +++ b/drivers/media/video/Makefile
+> > @@ -11,7 +11,7 @@ stkwebcam-objs	:=	stk-webcam.o stk-sensor.o
+> > 
+> >  omap2cam-objs	:=	omap24xxcam.o omap24xxcam-dma.o
+> >  
+> >  videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-subdev.o \
+> > 
+> > -			v4l2-fh.o
+> > +			v4l2-fh.o v4l2-event.o
+> > 
+> >  # V4L2 core modules
+> > 
+> > diff --git a/drivers/media/video/v4l2-ioctl.c
+> > b/drivers/media/video/v4l2-ioctl.c index bfc4696..e0b9401 100644
+> > --- a/drivers/media/video/v4l2-ioctl.c
+> > +++ b/drivers/media/video/v4l2-ioctl.c
+> > @@ -25,6 +25,7 @@
+> > 
+> >  #endif
+> >  #include <media/v4l2-common.h>
+> >  #include <media/v4l2-ioctl.h>
+> > 
+> > +#include <media/v4l2-event.h>
+> > 
+> >  #include <media/v4l2-chip-ident.h>
+> >  
+> >  #define dbgarg(cmd, fmt, arg...) \
+> > 
+> > @@ -1797,7 +1798,55 @@ static long __video_do_ioctl(struct file *file,
+> > 
+> >  		}
+> >  		break;
+> >  	
+> >  	}
+> > 
+> > +	case VIDIOC_DQEVENT:
+> > +	{
+> > +		struct v4l2_event *ev = arg;
+> > +
+> > +		if (!ops->vidioc_subscribe_event)
+> > +			break;
+> > +
+> > +		ret = v4l2_event_dequeue(fh, ev);
+> > +		if (ret < 0) {
+> > +			dbgarg(cmd, "no pending events?");
+> > +			break;
+> > +		}
+> > +		dbgarg(cmd,
+> > +		       "count=%d, type=0x%8.8x, sequence=%d, "
+> > +		       "timestamp=%lu.%9.9lu ",
+> > +		       ev->count, ev->type, ev->sequence,
+> > +		       ev->timestamp.tv_sec, ev->timestamp.tv_nsec);
+> > +		break;
+> > +	}
+> > +	case VIDIOC_SUBSCRIBE_EVENT:
+> > +	{
+> > +		struct v4l2_event_subscription *sub = arg;
+> > 
+> > +		if (!ops->vidioc_subscribe_event)
+> > +			break;
+> 
+> I know I said that we could use this test to determine if fh is of type
+> v4l2_fh, but that only works in this specific case, but not in the general
+> case. For example, I want to add support for the prio ioctls to v4l2_fh,
+> and then I probably have no vidioc_subscribe_event set since few drivers
+> will need that.
+> 
+> Instead I suggest that we add a new flag to v4l2-dev.h:
+> 
+> V4L2_FL_USES_V4L2_FH (1)
+> 
+> The v4l2_fh_add() function can then set this flag.
+> 
+> > +
+> > +		ret = ops->vidioc_subscribe_event(fh, sub);
+> > +		if (ret < 0) {
+> > +			dbgarg(cmd, "failed, ret=%ld", ret);
+> > +			break;
+> > +		}
+> > +		dbgarg(cmd, "type=0x%8.8x", sub->type);
+> > +		break;
+> > +	}
+> > +	case VIDIOC_UNSUBSCRIBE_EVENT:
+> > +	{
+> > +		struct v4l2_event_subscription *sub = arg;
+> > +
+> > +		if (!ops->vidioc_subscribe_event)
+> > +			break;
+> > +
+> > +		ret = v4l2_event_unsubscribe(fh, sub);
+> 
+> We should add an unsubscribe op as well. One reason is to add EVENT_ALL
+> support (see my comments in patch 7/7), the other is that in some cases
+> drivers might need to take some special action in response to subscribing
+> an event. And a driver needs a way to undo that when unsubscribing.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Agreed. Should we allow drivers not to define the unsubscribe operation when 
+they don't need it ? In that case v4l2_event_unsubscribe should be called in 
+VIDIOC_UNSUBSCRIBE_EVENT, outside of the operation handler.
+
+Similarly, shouldn't v4l2_event_subscribe be called in VIDIOC_SUBSCRIBE_EVENT, 
+outside of the operation handler ?
+
+-- 
+Regards,
+
+Laurent Pinchart
