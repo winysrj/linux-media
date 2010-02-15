@@ -1,47 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:46138 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965046Ab0BZPdK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Feb 2010 10:33:10 -0500
-Date: Fri, 26 Feb 2010 09:33:09 -0600 (CST)
-From: Mike Isely <isely@isely.net>
-To: Dean <red1@linuxstation.net>
-cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: OnAir USB HDTV Creator
-In-Reply-To: <4B8781BE.1090601@linuxstation.net>
-Message-ID: <alpine.DEB.1.10.1002260925440.12683@cnc.isely.net>
-References: <4B8781BE.1090601@linuxstation.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197]:48498 "EHLO
+	mta2.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751585Ab0BOOlb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Feb 2010 09:41:31 -0500
+Received: from MacBook-Pro.local
+ (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta2.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KXW0032V0T6N8D0@mta2.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Mon, 15 Feb 2010 09:41:31 -0500 (EST)
+Date: Mon, 15 Feb 2010 09:41:30 -0500
+From: Steven Toth <stoth@kernellabs.com>
+Subject: Re: cx23885
+In-reply-to: <hlbhck$uh9$1@ger.gmane.org>
+To: Michael <auslands-kv@gmx.de>
+Cc: linux-media@vger.kernel.org
+Message-id: <4B795D1A.9040502@kernellabs.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <hlbe6t$kc4$1@ger.gmane.org>
+ <1266238446.3075.13.camel@palomino.walls.org> <hlbhck$uh9$1@ger.gmane.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 26 Feb 2010, Dean wrote:
+On 2/15/10 8:15 AM, Michael wrote:
+> Hi Andy
+>
+>>> Does anybody know whether this card is currently supported
+>>
+>> Likely no.  I have not checked the source to be sure.
+>>
+> Is this because the driver does not have the right capabilities or is it
+> "just" a PCI-id missing in the driver?
 
-> I am trying to use an 'OnAir USB HDTV Creator' (from autumnwave.com).  According to
-> http://www.linuxtv.org/wiki/index.php/OnAir_USB_HDTV_Creator
-> This device is supported, however it's not working for me.  Following the instructions at above link, I tried this:
-> modprobe pvrusb2 initusbreset=0
-> 
-> The result:
-> FATAL: Error inserting pvrusb2 (/lib/modules/2.6.31.12-desktop586-1mnb/kernel/drivers/media/video/pvrusb2/pvrusb2.ko.gz): Unknown symbol in module, or unknown parameter (see dmesg)
+A mixture of both, analog support in the 885 driver is limited. Generally, yes - 
+start by adding the PCI id.
 
-Dean:
+>
+> The latter would be quite easy to add, I guess.
+>>
+>>> and if yes, is it
+>>> by cx88 or by cx23885?
+>>>
+>>> http://www.commell.com.tw/Product/Surveillance/MPX-885.htm
+>>>
+>>> It is based on the Connexant 23885 chip but uses an Mini-PCIe interface.
+>>
+>> cx88 handles PCI bridge chips: CX2388[0123]
+>>
+>> cx23885 handles PCIe bridge chips: CX2388[578]
+>>
+>> > From the picture of the card from the datasheet it has a CX23885 chip.
+>>
+>
+> That means, if a driver might support it, then the cx23885 driver not the
+> cx88, correct?
 
-The initusbreset module option no longer exists.  That's why your 
-modprobe command is failing.  That feature was removed from the driver, 
-due to a change in USB stack behavior that started with the 2.6.27 
-kernel.  (The resolution hinted at in the wiki page was in fact just 
-removal of the feature.)
+Correct.
 
-So you need to not use "initusbreset=0".  The advice in the wiki is over 
-a year out of date.
-
-  -Mike
 
 -- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
++1.646.355.8490
 
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
