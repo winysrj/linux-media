@@ -1,102 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2646 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752420Ab0BMOP7 (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:53805 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754181Ab0BOJzF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Feb 2010 09:15:59 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [PATCH v4 5/7] V4L: Events: Count event queue length
-Date: Sat, 13 Feb 2010 15:18:02 +0100
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
-	david.cohen@nokia.com
-References: <4B72C965.7040204@maxwell.research.nokia.com> <1265813889-17847-4-git-send-email-sakari.ailus@maxwell.research.nokia.com> <1265813889-17847-5-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <1265813889-17847-5-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+	Mon, 15 Feb 2010 04:55:05 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v4 2/7] V4L: Events: Add new ioctls for events
+Date: Mon, 15 Feb 2010 10:55:15 +0100
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	linux-media@vger.kernel.org, iivanov@mm-sol.com,
+	gururaj.nagendra@intel.com, david.cohen@nokia.com
+References: <4B72C965.7040204@maxwell.research.nokia.com> <1265813889-17847-2-git-send-email-sakari.ailus@maxwell.research.nokia.com> <201002131419.55625.hverkuil@xs4all.nl>
+In-Reply-To: <201002131419.55625.hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201002131518.02336.hverkuil@xs4all.nl>
+Message-Id: <201002151055.19102.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 10 February 2010 15:58:07 Sakari Ailus wrote:
-> Update the count field properly by setting it to exactly to number of
-> further available events.
+Hi Hans,
 
-After working with this for a bit I realized that the max_alloc thing is not
-going to work. The idea behind it was that you can increase the event queue
-up to max_alloc if there is no more free room left in the event queue for a
-particular file handle. Nice idea, but the only place you can do that is in
-v4l2_event_queue and doing it there will produce a locking nightmare.
-
-The right place is when you subscribe to an event. Basically you just want
-two functions: v4l2_event_alloc and v4l2_event_free. The latter replaces
-v4l2_event_exit, the first replaces v4l2_event_init and the current
-v4l2_event_alloc.
-
-The new v4l2_event_alloc just specifies the size of the event queue that you
-want. If it is the first time this function is called, then the fh->events
-struct is allocated first. Next it just checks if the total number of allocated
-events is less than the specified amount and if so it allocates events until
-the required number is reached.
-
-So typically you would only call v4l2_event_alloc when the user subscribes
-to a particular event. And based on the event type you can call this function
-with the desired queue size. For example in the case of ivtv the EOS event
-would need just a single event while the VSYNC event might need 60.
-
-So as long as the user does not subscribe to an event there is no memory
-wasted. Once he does you will only allocate as much memory as is needed
-for that particular event.
-
+On Saturday 13 February 2010 14:19:55 Hans Verkuil wrote:
+> On Wednesday 10 February 2010 15:58:04 Sakari Ailus wrote:
+> > This patch adds a set of new ioctls to the V4L2 API. The ioctls conform
+> > to V4L2 Events RFC version 2.3:
+> I've experimented with the events API to try and support it with ivtv and
+> I realized that it had some problems.
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> ---
->  drivers/media/video/v4l2-event.c |   29 +++++++++++++++++------------
->  include/media/v4l2-event.h       |    6 +++++-
->  2 files changed, 22 insertions(+), 13 deletions(-)
+> See comments below.
 > 
-
-<cut>
-
-> diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
-> index 580c9d4..671c8f7 100644
-> --- a/include/media/v4l2-event.h
-> +++ b/include/media/v4l2-event.h
-> @@ -28,6 +28,8 @@
->  #include <linux/types.h>
->  #include <linux/videodev2.h>
->  
-> +#include <asm/atomic.h>
-
-This header is not needed.
-
-Regards,
-
-	Hans
-
-> +
->  struct v4l2_fh;
->  struct video_device;
->  
-> @@ -45,11 +47,13 @@ struct v4l2_events {
->  	wait_queue_head_t	wait;
->  	struct list_head	subscribed; /* Subscribed events */
->  	struct list_head	available; /* Dequeueable event */
-> +	unsigned int		navailable;
-> +	unsigned int		max_alloc; /* Never allocate more. */
->  	struct list_head	free; /* Events ready for use */
->  };
->  
->  int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n);
-> -int v4l2_event_init(struct v4l2_fh *fh, unsigned int n);
-> +int v4l2_event_init(struct v4l2_fh *fh, unsigned int n, unsigned int max_alloc);
->  void v4l2_event_exit(struct v4l2_fh *fh);
->  int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event);
->  struct v4l2_subscribed_event *v4l2_event_subscribed(
+> > <URL:http://www.spinics.net/lists/linux-media/msg12033.html>
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> > ---
+> > 
+> >  drivers/media/video/v4l2-compat-ioctl32.c |    3 +++
+> >  drivers/media/video/v4l2-ioctl.c          |    3 +++
+> >  include/linux/videodev2.h                 |   23 +++++++++++++++++++++++
+> >  3 files changed, 29 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/v4l2-compat-ioctl32.c
+> > b/drivers/media/video/v4l2-compat-ioctl32.c index 997975d..cba704c
+> > 100644
+> > --- a/drivers/media/video/v4l2-compat-ioctl32.c
+> > +++ b/drivers/media/video/v4l2-compat-ioctl32.c
+> > @@ -1077,6 +1077,9 @@ long v4l2_compat_ioctl32(struct file *file,
+> > unsigned int cmd, unsigned long arg)
+> > 
+> >  	case VIDIOC_DBG_G_REGISTER:
+> >  	case VIDIOC_DBG_G_CHIP_IDENT:
+> > 
+> >  	case VIDIOC_S_HW_FREQ_SEEK:
+> > +	case VIDIOC_DQEVENT:
+> > +	case VIDIOC_SUBSCRIBE_EVENT:
+> > 
+> > +	case VIDIOC_UNSUBSCRIBE_EVENT:
+> >  		ret = do_video_ioctl(file, cmd, arg);
+> >  		break;
+> > 
+> > diff --git a/drivers/media/video/v4l2-ioctl.c
+> > b/drivers/media/video/v4l2-ioctl.c index 30cc334..bfc4696 100644
+> > --- a/drivers/media/video/v4l2-ioctl.c
+> > +++ b/drivers/media/video/v4l2-ioctl.c
+> > @@ -283,6 +283,9 @@ static const char *v4l2_ioctls[] = {
+> > 
+> >  	[_IOC_NR(VIDIOC_DBG_G_CHIP_IDENT)] = "VIDIOC_DBG_G_CHIP_IDENT",
+> >  	[_IOC_NR(VIDIOC_S_HW_FREQ_SEEK)]   = "VIDIOC_S_HW_FREQ_SEEK",
+> > 
+> > +	[_IOC_NR(VIDIOC_DQEVENT)]	   = "VIDIOC_DQEVENT",
+> > +	[_IOC_NR(VIDIOC_SUBSCRIBE_EVENT)]  = "VIDIOC_SUBSCRIBE_EVENT",
+> > +	[_IOC_NR(VIDIOC_UNSUBSCRIBE_EVENT)] = "VIDIOC_UNSUBSCRIBE_EVENT",
+> > 
+> >  #endif
+> >  };
+> >  #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+> > 
+> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > index 54af357..a19ae89 100644
+> > --- a/include/linux/videodev2.h
+> > +++ b/include/linux/videodev2.h
+> > @@ -1536,6 +1536,26 @@ struct v4l2_streamparm {
+> > 
+> >  };
+> >  
+> >  /*
+> > 
+> > + *	E V E N T S
+> > + */
+> > +
+> > +struct v4l2_event {
+> > +	__u32		count;
 > 
+> The name 'count' is confusing. Count of what? I think the name 'pending'
+> might be more understandable. A comment after the definition would also
+> help.
+> 
+> > +	__u32		type;
+> > +	__u32		sequence;
+> > +	struct timespec	timestamp;
+> > +	__u32		reserved[9];
+> > +	__u8		data[64];
+> > +};
+> 
+> I also think we should reorder the fields and add a union. For ivtv I would
+> need this:
+> 
+> #define V4L2_EVENT_ALL                          0
+> #define V4L2_EVENT_VSYNC                        1
+> #define V4L2_EVENT_EOS                          2
+> #define V4L2_EVENT_PRIVATE_START                0x08000000
+> 
+> /* Payload for V4L2_EVENT_VSYNC */
+> struct v4l2_event_vsync {
+>         /* Can be V4L2_FIELD_ANY, _NONE, _TOP or _BOTTOM */
+>         u8 field;
+> } __attribute__ ((packed));
+> 
+> struct v4l2_event {
+>         __u32           type;
+>         union {
+>                 struct v4l2_event_vsync vsync;
+>                 __u8    data[64];
+>         } u;
+>         __u32           sequence;
+>         struct timespec timestamp;
+>         __u32           pending;
+>         __u32           reserved[9];
+> };
+> 
+> The reason for rearranging the fields has to do with the fact that the
+> first two fields (type and the union) form the actual event data. The
+> others are more for administrative purposes. Separating those two makes
+> sense to me.
+> 
+> So when I define an event for queuing it is nice if I can do just this:
+> 
+> static const struct v4l2_event ev_top = {
+> 	.type = V4L2_EVENT_VSYNC,
+> 	.u.vsync.field = V4L2_FIELD_TOP,
+> };
+> 
+> I would have preferred to have an anonymous union. Unfortunately gcc has
+> problems with initializers for fields inside an anonymous union. Hence the
+> need for a named union.
+
+Will all drivers add private events to the union ? This would then soon become 
+a mess. Wouldn't it be better for drivers to define their own event structures 
+(standard ones could be shared between drivers in videodev2.h) and cast the 
+pointer to data to a pointer to the appropriate event structure ?
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Regards,
+
+Laurent Pinchart
