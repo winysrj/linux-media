@@ -1,72 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51420 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752048Ab0BVMQJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 07:16:09 -0500
-Message-ID: <4B827548.10005@redhat.com>
-Date: Mon, 22 Feb 2010 09:15:04 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-bw0-f213.google.com ([209.85.218.213]:37748 "EHLO
+	mail-bw0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932129Ab0BOVui (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Feb 2010 16:50:38 -0500
+Received: by bwz5 with SMTP id 5so1447351bwz.1
+        for <linux-media@vger.kernel.org>; Mon, 15 Feb 2010 13:50:35 -0800 (PST)
 MIME-Version: 1.0
-To: Andy Walls <awalls@radix.net>
-CC: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	hverkuil@xs4all.nl,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Chroma gain configuration
-References: <829197381002212007q342fc01bm1c528a2f15027a1e@mail.gmail.com> <1266838852.3095.20.camel@palomino.walls.org>
-In-Reply-To: <1266838852.3095.20.camel@palomino.walls.org>
+In-Reply-To: <310bfb251002151257x7121b20cme3cbe5096decea4b@mail.gmail.com>
+References: <310bfb251002151257x7121b20cme3cbe5096decea4b@mail.gmail.com>
+Date: Mon, 15 Feb 2010 16:50:35 -0500
+Message-ID: <829197381002151350xa46c99dm93d3bb2b11d4fe4a@mail.gmail.com>
+Subject: Re: ATI TV Wonder 650 PCI development
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Samuel Cantrell <samuelcantrell@gmail.com>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andy Walls wrote:
-> On Sun, 2010-02-21 at 23:07 -0500, Devin Heitmueller wrote:
->> I am doing some work on the saa711x driver, and ran into a case where
->> I need to disable the chroma AGC and manually set the chroma gain.
-> 
-> Sakari, Hans, or anyone else,
-> 
-> On a somewhat related note, what is the status of the media controller
-> and of file handles per v4l2_subdev.  Will Sakari's V4L file-handle
-> changes be all we need for the infrastructure or is there more to be
-> done after that?
-> 
-> I'd like to implement specific "technician controls", something an
-> average user wouldn't use, for a few subdevs.
+On Mon, Feb 15, 2010 at 3:57 PM, Samuel Cantrell
+<samuelcantrell@gmail.com> wrote:
+> Hello,
+>
+> I have an ATI TV Wonder 650 PCI card, and have started to work on the
+> wiki page on LinuxTV.org regarding it. I want to *attempt* to write a
+> driver for it (more like, take a look at the code and run), and have
+> printed off some information on the wiki. I need to get pictures up of
+> the card and lspci output, etc.
+>
+> Is there anyone else more experienced at writing drivers that could
+> perhaps help?
+>
+> http: // www.linuxtv.org / pipermail / linux-dvb / 2007-October /
+> 021228.html says that three pieces of documentation are missing. I've
+> emailed Samsung regarding the tuner module on the card, as I could not
+> find it on their website. I checked some of their affiliates as well,
+> but still had no luck. I've emailed AMD/ATI regarding the card and
+> technical documentation.
+>
+> Is it likely that that the tuner module has an XC3028 in it? In the
+> same linux-dvb message thread noted above, someone speculated that
+> there is a XC3028. As the v4l tree has XC3028 support, if this is
+> true, wouldn't that help at least a little bit?
 
-The exposition of a control to the user or not is a decision of the userspace
-software developer. We shouldn't be too concerned about it. Eventually,
-we can group some controls on a "raw hardware level" group. I don't think we
-need a media controller for it. Also, this won't avoid developers to use the media
-controller to expose such controls to userspace.
- 
->> I see there is an existing boolean control called V4L2_CID_CHROMA_AGC,
->> which would be the logical candidate for allowing the user to disable
->> the chroma AGC.  However, once this is done I still need to expose the
->> ability to set the gain manually (bits 6-0 of register 0x0f).
->>
->> Is there some existing control I am just missing?  Or do I need to do
->> this through a private control.
->>
->> I'm asking because it seems a bit strange that someone would introduce
->> a v4l2 standard control to disable the AGC but not have the ability to
->> manually set the gain once it was disabled.
-> 
-> Devin,
-> 
-> Well, I can imagine letting hardware do the initial AGC, and then when
-> it is settled manually disabling it to prevent hardware from getting
-> "fooled".
+The big issue with this board is not the tuner itself, but the PCI
+bridge.  Developing the drivers for a bridge can take months of work,
+and unlike bridges from NXP or Conexant which are used in dozens of
+products, this bridge is only ever used in this one board by this one
+vendor.  And in the cases of NXP and Conexant bridges, usually the
+person writing the driver for the bridge has real documentation.
 
-I did some tests on it with cx23881/cx23883 chips. At least on cx88, as far
-as I remember, the AGC doesn't affect the saturation register, so, this 
-trick won't work. 
+It just isn't worth any developer's effort to spend three months
+reverse engineering a bridge to an older and more obscure product with
+no supporting documentation (and three months as an estimate is what
+it would take an *experienced* LinuxTV developer who has worked on
+other bridges).  There are just *much* better uses for developer
+resources.
 
-The issue with cx88 chips is that, with some video input sources, the 
-AGC over-saturates the color pattern. So, depending on the analog video
-standard and the quality of the source (TV or Composite/Svideo), it gives
-more reallistic colors with different AGC/saturation configuration.
+Also, not only is the bridge not supported, but neither is the
+demodulator (it's an ATI312).  Again, no documentation and it's only
+used in that one hardware design, so it's not like the work would
+really help with other more popular products.
 
-Cheers,
-Mauro
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
