@@ -1,58 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f219.google.com ([209.85.220.219]:41566 "EHLO
-	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935419Ab0BZHpp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Feb 2010 02:45:45 -0500
-Received: by fxm19 with SMTP id 19so7137542fxm.21
-        for <linux-media@vger.kernel.org>; Thu, 25 Feb 2010 23:45:43 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4B87006A.4030303@oracle.com>
-References: <4B87006A.4030303@oracle.com>
-Date: Fri, 26 Feb 2010 11:45:43 +0400
-Message-ID: <1a297b361002252345k713f8ca4n84fcd1a91f7d9a8@mail.gmail.com>
-Subject: Re: [PATCH] media: fix precedence in dvb/frontends/tda665x
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail1.radix.net ([207.192.128.31]:61416 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751660Ab0BOMrM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Feb 2010 07:47:12 -0500
+Subject: Re: [PATCH 2/5 v2] sony-tuner: Subdev conversion from
+ wis-sony-tuner
+From: Andy Walls <awalls@radix.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Pete Eberlein <pete@sensoray.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <201002150810.47694.hverkuil@xs4all.nl>
+References: <1265934787.4626.251.camel@pete-desktop>
+	 <201002141618.13113.hverkuil@xs4all.nl>
+	 <1266185448.4974.37.camel@palomino.walls.org>
+	 <201002150810.47694.hverkuil@xs4all.nl>
+Content-Type: text/plain
+Date: Mon, 15 Feb 2010 07:47:01 -0500
+Message-Id: <1266238021.3075.7.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Randy,
+On Mon, 2010-02-15 at 08:10 +0100, Hans Verkuil wrote:
+> On Sunday 14 February 2010 23:10:48 Andy Walls wrote:
+> > On Sun, 2010-02-14 at 16:18 +0100, Hans Verkuil wrote:
+> > > On Saturday 13 February 2010 00:17:44 Hans Verkuil wrote:
+> > > > On Friday 12 February 2010 23:36:20 Pete Eberlein wrote:
+> > > > > On Fri, 2010-02-12 at 22:03 +0100, Hans Verkuil wrote:
 
-Thanks for catching the bug !
+> > > After thinking about this a bit more I decided that this tuner should be split
+> > > up into two drivers: one for the mpx device and one for the actual tuner. This
+> > > should be fairly easy to do.
+> > > 
+> > > One other thing that this accomplishes is that it is easier to see whether the
+> > > tuner code can actually be merged into tuner-types.c. From what I can see now
+> > > I would say that that is possible for the NTSC_M and NTSC_M_JP models. The
+> > > PAL/SECAM model is harder since it needs to setup the tuner whenever the
+> > > standard changes. But it seems that that is also possible by adding code
+> > > to simple_std_setup() in tuner-simple.c.
+> > > 
+> > > I'm pretty sure that these tuners can just be folded into tuner-types.c
+> > > and tuner-simple.c. We probably only need an mpx driver.
+> > > 
+> > > Andy, can you also take a look?
+> > 
+> > Sure.  It looks like to me you actually have three chips:
+> > 
+> > - oscillator/mixer (at address 0x60 like a TUA6030)
+> > - programmable IF PLL demodulator (at address 0x43 like a TDA9887)
+> > - MPX demodulator/dematrix IC.
+> 
+> I've been focusing so much on the IF_I2C_ADDR and MPX_I2C_ADDR defines that
+> I completely missed the fact that there is also the tuner at 0x60 :-(
+> 
+> You are completely correct: it looks very much like a standard simple
+> tuner + tda9887.
 
-On Fri, Feb 26, 2010 at 2:57 AM, Randy Dunlap <randy.dunlap@oracle.com> wrote:
-> From: Randy Dunlap <randy.dunlap@oracle.com>
->
-> Fix precedence so that data is used correctly.
-> Fixes sparse warning:
-> drivers/media/dvb/frontends/tda665x.c:136:55: warning: right shift by bigger than source value
->
-> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-> Cc: Manu Abraham <abraham.manu@gmail.com>
+I should mention that I noticed
 
-Reviewed-by: Manu Abraham <manu@linuxtv.org>
-Acked-by: Manu Abraham <manu@linuxtv.org>
+1. The IF demodulator seems to programmed with an usual take over point:
++8 dB, IIRC.  A port into the common tuner stuff should lose track of
+setting like these.
 
 
-> ---
->  drivers/media/dvb/frontends/tda665x.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> --- lnx-2633-spr.orig/drivers/media/dvb/frontends/tda665x.c
-> +++ lnx-2633-spr/drivers/media/dvb/frontends/tda665x.c
-> @@ -133,7 +133,7 @@ static int tda665x_set_state(struct dvb_
->                frequency += config->ref_divider >> 1;
->                frequency /= config->ref_divider;
->
-> -               buf[0] = (u8) (frequency & 0x7f00) >> 8;
-> +               buf[0] = (u8) ((frequency & 0x7f00) >> 8);
->                buf[1] = (u8) (frequency & 0x00ff) >> 0;
->                buf[2] = 0x80 | 0x40 | 0x02;
->                buf[3] = 0x00;
->
->
+2. This driver has some funny IF offset "IFPCoff" that is applied when
+calling set freq.  tuner-simple and friends may need slight
+modifications to handle this requirment for these tuner, but it
+shouldn't be hard.
+
+The trend in tuner-simple has been to add a switch() statement when
+these sorts of exceptions are needed, as it is most expedient.  IMHO,
+this is a bad trend.  I think it would be better to modify the tuner
+information structures to handle this "IFPCoff" value.
+Just an opinion...
+
+Regards,
+Andy
+
