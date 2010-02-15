@@ -1,59 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:55285 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754362Ab0BSVCc convert rfc822-to-8bit (ORCPT
+Received: from mail-in-01.arcor-online.net ([151.189.21.41]:43814 "EHLO
+	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755886Ab0BORiU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Feb 2010 16:02:32 -0500
-Date: Fri, 19 Feb 2010 22:02:30 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Philipp Wiesner <p.wiesner@gmx.net>
-cc: linux-media@vger.kernel.org
-Subject: Re: soc-camera: pixclk polarity question
-In-Reply-To: <20100219162101.92410@gmx.net>
-Message-ID: <Pine.LNX.4.64.1002192153550.5860@axis700.grange>
-References: <20100219162101.92410@gmx.net>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+	Mon, 15 Feb 2010 12:38:20 -0500
+From: stefan.ringel@arcor.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 09/11] zl10353: tm6000: bugfix reading problems with tm6000 i2c host
+Date: Mon, 15 Feb 2010 18:37:22 +0100
+Message-Id: <1266255444-7422-9-git-send-email-stefan.ringel@arcor.de>
+In-Reply-To: <1266255444-7422-8-git-send-email-stefan.ringel@arcor.de>
+References: <1266255444-7422-1-git-send-email-stefan.ringel@arcor.de>
+ <1266255444-7422-2-git-send-email-stefan.ringel@arcor.de>
+ <1266255444-7422-3-git-send-email-stefan.ringel@arcor.de>
+ <1266255444-7422-4-git-send-email-stefan.ringel@arcor.de>
+ <1266255444-7422-5-git-send-email-stefan.ringel@arcor.de>
+ <1266255444-7422-6-git-send-email-stefan.ringel@arcor.de>
+ <1266255444-7422-7-git-send-email-stefan.ringel@arcor.de>
+ <1266255444-7422-8-git-send-email-stefan.ringel@arcor.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 19 Feb 2010, Philipp Wiesner wrote:
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
-> Hi,
-> 
-> I'm working with µCs (i.MX27) and cameras (Aptina) at the moment.
-> 
-> Now I encountered a problem introduced by serializing and deserializing 
-> (lvds) camera data on its way to the µC.
-> 
-> The serializer expects a specific pixclk polarity which can be 
-> configured in hardware. In most cases this is no problem as it is 
-> permanently connected to only one sensor chip, but camera sensors with 
-> configurable pixclk could negotiate the wrong polarity.
-> 
-> The deserializer generates pixclk from data, its polarity again can be 
-> configured in hardware. This leads to pixclk inversion depending on 
-> wheter serdes is happening or not, so its not an attribute of the 
-> platform (in opposition to what SOCAM_SENSOR_INVERT_PCLK is meant for)
-> 
-> What would be the correct way to address this?
-> 
-> Do we need another platform flag, e.g. SOCAM_PCLK_SAMPLE_RISING_FIXED?
-> The only solution coming to my mind is checking for the SerDes on boot 
-> time and setting flags like SOCAM_PCLK_SAMPLE_RISING_FIXED and 
-> SOCAM_SENSOR_INVERT_PCLK if necessary.
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
 
-Hm, how is any new flag better than the existing one? If it is just a 
-static flag - it doesn't change anything, right? As far as I understand, 
-on one and the same platform the signal polarity can be different, 
-depending on some switch / jumper / hard-soldered pin, right? I think your 
-boot-time verification is good then - just put it in your platform code 
-and set the flag(s) accordingly.
+diff --git a/drivers/media/dvb/frontends/zl10353.c b/drivers/media/dvb/frontends/zl10353.c
+index 8c61271..9716d7e 100644
+--- a/drivers/media/dvb/frontends/zl10353.c
++++ b/drivers/media/dvb/frontends/zl10353.c
+@@ -74,7 +74,7 @@ static int zl10353_write(struct dvb_frontend *fe, u8 *ibuf, int ilen)
+ 	return 0;
+ }
+ 
+-static int zl10353_read_register(struct zl10353_state *state, u8 reg)
++static int zl10353_read1_register(struct zl10353_state *state, u8 reg)
+ {
+ 	int ret;
+ 	u8 b0[1] = { reg };
+@@ -97,6 +97,41 @@ static int zl10353_read_register(struct zl10353_state *state, u8 reg)
+ 	return b1[0];
+ }
+ 
++static int zl10353_read2_register(struct zl10353_state *state, u8 reg)
++{
++	int ret;
++	u8 b0[1] = { reg - 1 };
++	u8 b1[1] = { 0 };
++	struct i2c_msg msg[2] = { { .addr = state->config.demod_address,
++				    .flags = 0,
++				    .buf = b0, .len = 1 },
++				  { .addr = state->config.demod_address,
++				    .flags = I2C_M_RD,
++				    .buf = b1, .len = 2 } };
++
++	ret = i2c_transfer(state->i2c, msg, 2);
++
++	if (ret != 2) {
++		printk("%s: readreg error (reg=%d, ret==%i)\n",
++		       __func__, reg, ret);
++		return ret;
++	}
++
++	return b1[1];
++}
++
++static int zl10353_read_register(struct zl10353_state *state, u8 reg)
++{
++	int ret;
++
++	if ((state->i2c->id == I2C_HW_B_TM6000) && (reg % 2 == 0))
++		ret = zl10353_read2_register(state, reg);
++	else
++		ret = zl10353_read1_register(state, reg);
++
++	return ret;
++}
++
+ static void zl10353_dump_regs(struct dvb_frontend *fe)
+ {
+ 	struct zl10353_state *state = fe->demodulator_priv;
+-- 
+1.6.6.1
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
