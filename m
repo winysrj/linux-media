@@ -1,57 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:11828 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935431Ab0BZHhy (ORCPT
+Received: from mail-in-12.arcor-online.net ([151.189.21.52]:56585 "EHLO
+	mail-in-12.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755890Ab0BORiU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Feb 2010 02:37:54 -0500
-Received: from eu_spt2 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0KYF009UEUJ355@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 26 Feb 2010 07:37:51 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0KYF0091WUJ32R@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 26 Feb 2010 07:37:51 +0000 (GMT)
-Date: Fri, 26 Feb 2010 08:36:19 +0100
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: RE: More videobuf and streaming I/O questions
-In-reply-to: <201002260046.16878.laurent.pinchart@ideasonboard.com>
-To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
-Cc: 'Hans Verkuil' <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	'Mauro Carvalho Chehab' <mchehab@infradead.org>
-Message-id: <001b01cab6b6$631d05f0$295711d0$%osciak@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <201002201500.21118.hverkuil@xs4all.nl>
- <201002220012.20797.laurent.pinchart@ideasonboard.com>
- <000901cab45b$a8c55a10$fa500e30$%osciak@samsung.com>
- <201002260046.16878.laurent.pinchart@ideasonboard.com>
+	Mon, 15 Feb 2010 12:38:20 -0500
+From: stefan.ringel@arcor.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 08/11] tm6000: special request for all tuner
+Date: Mon, 15 Feb 2010 18:37:21 +0100
+Message-Id: <1266255444-7422-8-git-send-email-stefan.ringel@arcor.de>
+In-Reply-To: <1266255444-7422-7-git-send-email-stefan.ringel@arcor.de>
+References: <1266255444-7422-1-git-send-email-stefan.ringel@arcor.de>
+ <1266255444-7422-2-git-send-email-stefan.ringel@arcor.de>
+ <1266255444-7422-3-git-send-email-stefan.ringel@arcor.de>
+ <1266255444-7422-4-git-send-email-stefan.ringel@arcor.de>
+ <1266255444-7422-5-git-send-email-stefan.ringel@arcor.de>
+ <1266255444-7422-6-git-send-email-stefan.ringel@arcor.de>
+ <1266255444-7422-7-git-send-email-stefan.ringel@arcor.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->On Tuesday 23 February 2010 08:41:49 Pawel Osciak wrote:
->> >On Mon, 22 Feb 2010 00:12:18 +0100
->> >Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
->> As for the REQBUF, I've always thought it'd be nice to be able to ask the
->> driver for the "recommended" number of buffers that should be used by
->> issuing a REQBUF with count=0...
->
->How would the driver come up with the number of recommended buffers ?
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
->From the top of my head: when encoding a video stream, a codec driver could
-decide on the minimum number of input frames required (including reference
-frames, etc.).
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
 
-Or maybe I am missing something, what is your opinion on that?
-
-
-Best regards
---
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
-
+diff --git a/drivers/staging/tm6000/tm6000-i2c.c b/drivers/staging/tm6000/tm6000-i2c.c
+index 9d02674..ef11d48 100644
+--- a/drivers/staging/tm6000/tm6000-i2c.c
++++ b/drivers/staging/tm6000/tm6000-i2c.c
+@@ -112,7 +112,7 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 			}
+ 			i++;
+ 
+-			if ((dev->dev_type == TM6010) && (addr == 0xc2)) {
++			if (addr == dev->tuner_addr) {
+ 				tm6000_set_reg(dev, 0x32, 0,0);
+ 				tm6000_set_reg(dev, 0x33, 0,0);
+ 			}
+@@ -128,7 +128,7 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 			rc = tm6000_i2c_send_byte(dev, addr, msgs[i].buf[0],
+ 				msgs[i].buf + 1, msgs[i].len - 1);
+ 
+-			if ((dev->dev_type == TM6010) && (addr == 0xc2)) {
++			if (addr == dev->tuner_addr) {
+ 				tm6000_set_reg(dev, 0x32, 0,0);
+ 				tm6000_set_reg(dev, 0x33, 0,0);
+ 			}
+-- 
+1.6.6.1
 
