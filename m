@@ -1,66 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-04.arcor-online.net ([151.189.21.44]:60178 "EHLO
-	mail-in-04.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755787Ab0BORiS (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3582 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756199Ab0BOTvK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2010 12:38:18 -0500
-From: stefan.ringel@arcor.de
+	Mon, 15 Feb 2010 14:51:10 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id o1FJp7xl033136
+	for <linux-media@vger.kernel.org>; Mon, 15 Feb 2010 20:51:08 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 15 Feb 2010 20:51:07 +0100 (CET)
+Message-Id: <201002151951.o1FJp7xl033136@smtp-vbr1.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
-	Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH 04/11] tm6000: add different tuner reset for terratec
-Date: Mon, 15 Feb 2010 18:37:17 +0100
-Message-Id: <1266255444-7422-4-git-send-email-stefan.ringel@arcor.de>
-In-Reply-To: <1266255444-7422-3-git-send-email-stefan.ringel@arcor.de>
-References: <1266255444-7422-1-git-send-email-stefan.ringel@arcor.de>
- <1266255444-7422-2-git-send-email-stefan.ringel@arcor.de>
- <1266255444-7422-3-git-send-email-stefan.ringel@arcor.de>
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <stefan.ringel@arcor.de>
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+Results of the daily build of v4l-dvb:
 
-diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
-index ff04bba..5a8d716 100644
---- a/drivers/staging/tm6000/tm6000-cards.c
-+++ b/drivers/staging/tm6000/tm6000-cards.c
-@@ -269,12 +269,28 @@ int tm6000_tuner_callback(void *ptr, int component, int command, int arg)
- 		/* Reset codes during load firmware */
- 		switch (arg) {
- 		case 0:
--			tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
--					dev->tuner_reset_gpio, 0x00);
--			msleep(130);
--			tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
--					dev->tuner_reset_gpio, 0x01);
--			msleep(130);
-+			/* newer tuner can faster reset */
-+			switch(dev->model) {
-+			case TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE:
-+				tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
-+						dev->tuner_reset_gpio, 0x01);
-+				msleep(60);
-+				tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
-+						dev->tuner_reset_gpio, 0x00);
-+				msleep(75);
-+				tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
-+						dev->tuner_reset_gpio, 0x01);
-+				msleep(60);
-+				break;
-+			default:
-+				tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
-+						dev->tuner_reset_gpio, 0x00);
-+				msleep(130);
-+				tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
-+						dev->tuner_reset_gpio, 0x01);
-+				msleep(130);
-+				break;
-+			}
- 			break;
- 		case 1:
- 			tm6000_set_reg (dev, REQ_04_EN_DISABLE_MCU_INT,
--- 
-1.6.6.1
+date:        Mon Feb 15 19:00:07 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14198:14021dfc00f3
+gcc version: i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:     2.6.32.5
 
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-rc5-armv5: OK
+linux-2.6.32.6-armv5-davinci: ERRORS
+linux-2.6.33-rc5-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-dm365: ERRORS
+linux-2.6.33-rc5-armv5-dm365: ERRORS
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-rc5-armv5-ixp: OK
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-rc5-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.17-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.20-i686: OK
+linux-2.6.26.8-i686: OK
+linux-2.6.27.44-i686: OK
+linux-2.6.28.10-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: OK
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-rc5-i686: OK
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-rc5-m32r: OK
+linux-2.6.32.6-mips: OK
+linux-2.6.33-rc5-mips: OK
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-rc5-powerpc64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.17-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.20-x86_64: OK
+linux-2.6.26.8-x86_64: OK
+linux-2.6.27.44-x86_64: OK
+linux-2.6.28.10-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: OK
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-rc5-x86_64: OK
+spec: OK
+sparse (v4l-dvb-git): ERRORS
+sparse (linux-2.6.33-rc5): ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: OK
+linux-2.6.19.7-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.7-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
