@@ -1,69 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:57929 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752603Ab0BIXQr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Feb 2010 18:16:47 -0500
-Date: Tue, 9 Feb 2010 15:16:39 -0800
-From: Greg KH <gregkh@suse.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Matthias Schwarzott <zzam@gentoo.org>,
-	Douglas Schilling Landgraf <dougsland@redhat.com>,
-	Andreas Oberritter <obi@linuxtv.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Andreas Gruenbacher <agruen@suse.de>,
-	Richard Guenther <rguenther@suse.de>
-Subject: [PATCH] dvb: l64781.ko broken with gcc 4.5
-Message-ID: <20100209231639.GA22646@kroah.com>
+Received: from mail-fx0-f215.google.com ([209.85.220.215]:50940 "EHLO
+	mail-fx0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933021Ab0BPTQ5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Feb 2010 14:16:57 -0500
+Received: by fxm7 with SMTP id 7so7599605fxm.28
+        for <linux-media@vger.kernel.org>; Tue, 16 Feb 2010 11:16:54 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Date: Tue, 16 Feb 2010 20:16:54 +0100
+Message-ID: <db09c9681002161116k52278916ob68884ddc989044@mail.gmail.com>
+Subject: Remote control at Zolid Hybrid TV Tuner
+From: Sander Pientka <cumulus0007@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Richard Guenther <rguenther@suse.de>
+Hi,
 
-I'm trying to fix it on the GCC side (PR43007), but the module is
-quite stupid in using ULL constants to operate on u32 values:
+my Zolid Hybrid TV Tuner has been working like a charm for over two
+months now. The remote control is not working though, which is a
+showstopper. I don't have experience with remote controls in any kind,
+I've heard of LIRC but I would rather choose a more elegant solution,
+for instance evdev in X11.
 
-static int apply_frontend_param (struct dvb_frontend* fe, struct
-dvb_frontend_parameters *param)
-{
-...
- static const u32 ppm = 8000;
- u32 spi_bias;
-...
-
- spi_bias *= 1000ULL;
- spi_bias /= 1000ULL + ppm/1000;
+It's wiki page: http://www.linuxtv.org/wiki/index.php/Zolid_Hybrid_TV_Tuner
 
 
-which causes current GCC 4.5 to emit calls to __udivdi3 for i?86 again.
-
-This patch fixes this issue.
-
-Signed-off-by: Richard Guenther <rguenther@suse.de>
-Cc: Andreas Gruenbacher <agruen@suse.de>
-Cc: stable <stable@kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Cc: Douglas Schilling Landgraf <dougsland@redhat.com>
-Cc: Andreas Oberritter <obi@linuxtv.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-
----
- drivers/media/dvb/frontends/l64781.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
---- a/drivers/media/dvb/frontends/l64781.c
-+++ b/drivers/media/dvb/frontends/l64781.c
-@@ -192,8 +192,8 @@ static int apply_frontend_param (struct
- 	spi_bias *= qam_tab[p->constellation];
- 	spi_bias /= p->code_rate_HP + 1;
- 	spi_bias /= (guard_tab[p->guard_interval] + 32);
--	spi_bias *= 1000ULL;
--	spi_bias /= 1000ULL + ppm/1000;
-+	spi_bias *= 1000;
-+	spi_bias /= 1000 + ppm/1000;
- 	spi_bias *= p->code_rate_HP;
- 
- 	val0x04 = (p->transmission_mode << 2) | p->guard_interval;
+Thanks in advance!
