@@ -1,54 +1,25 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from er-systems.de ([85.25.136.202]:57943 "EHLO er-systems.de"
+Received: from vilab.hit.edu.cn ([202.118.250.15]:51384 "EHLO vilab.hit.edu.cn"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752973Ab0BAUup (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Feb 2010 15:50:45 -0500
-Date: Mon, 1 Feb 2010 21:50:42 +0100 (CET)
-From: Thomas Voegtle <tv@lio96.de>
-To: Chicken Shack <chicken.shack@gmx.de>
-cc: obi@linuxtv.org, mchehab@redhat.com, linux-media@vger.kernel.org
-Subject: Re: Kernel Oops, dvb_dmxdev_filter_reset, bisected
-In-Reply-To: <1265052321.19005.8.camel@brian.bconsult.de>
-Message-ID: <alpine.LNX.2.00.1002012148310.9330@er-systems.de>
-References: <alpine.LNX.2.00.1002011855590.30919@er-systems.de> <1265052321.19005.8.camel@brian.bconsult.de>
+	id S1756741Ab0BPW1w (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Feb 2010 17:27:52 -0500
+From: "Global SpringerLink Finance Investments" <mail@loan.co.uk>
+Reply-To: springerlinkloaninvestment@iluoqi.com
+Subject: Proposal
+Date: Tue, 16 Feb 2010 13:19:10 +0800
+Message-Id: <20100216051914.M61372@loan.co.uk>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain;
+	charset=iso-8859-1
+To: undisclosed-recipients:;
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 1 Feb 2010, Chicken Shack wrote:
+Global Springer Link Finance Investments!!!  
+* Arrangements to Borrow up to $50,000,000.00 * Flexible loan terms and 
+conditions. *Interest rates as low as 3%. *Choose between 1 to 35 years 
+repayment period. *Choose between monthly and annual repayment plan  Please 
+apply for Global Springer Link Finance Investments by sending your Mail.
 
-> Hi Thomas,
->
-> thanks for reproducing that kernel oops.
->
-> Question:
->
-> Can you also confirm / reproduce that alevt does not follow the new TV
-> or radio channel if the new channel, tuned by dvbstream / mplayer for
-> example, is part of another transponder?
->
-> Normal, i. e. expected behaviour can be desribed in the following
-> example:
->
-> a. You start mplayer://ZDF, then you start alevt, and ZDF teletext
-> should be visible.
->
-> b. You change the channel to mplayer://Das Erste.
-> Now alevt should follow the new tuning and tune one channel of the
-> transponder containing the ARD bouquet.
->
-> But instead of that alevt hangs and cannot be finished by an ordinary
-> quit. You need _violence_ a la "killall -9 alevt" or, on the command
-> line: STRG-C as shortcut.
->
-> Can you reproduce / confirm that, Thomas?
-
-
-Yes, I can confirm that. And yes, it is annoying.
-
-
-thanks,
-
-Thoams
-
+Regards
+Management
