@@ -1,75 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:64246 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752373Ab0BVNKD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 08:10:03 -0500
-Received: by bwz1 with SMTP id 1so1584408bwz.21
-        for <linux-media@vger.kernel.org>; Mon, 22 Feb 2010 05:10:01 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4B827548.10005@redhat.com>
-References: <829197381002212007q342fc01bm1c528a2f15027a1e@mail.gmail.com>
-	 <1266838852.3095.20.camel@palomino.walls.org>
-	 <4B827548.10005@redhat.com>
-Date: Mon, 22 Feb 2010 08:10:00 -0500
-Message-ID: <829197381002220510v64f6e948pfb73ebe4fcc180af@mail.gmail.com>
-Subject: Re: Chroma gain configuration
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Andy Walls <awalls@radix.net>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	hverkuil@xs4all.nl,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from bamako.nerim.net ([62.4.17.28]:55616 "EHLO bamako.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932161Ab0BPRWj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Feb 2010 12:22:39 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by bamako.nerim.net (Postfix) with ESMTP id EF24039DF9D
+	for <linux-media@vger.kernel.org>; Tue, 16 Feb 2010 18:22:35 +0100 (CET)
+Received: from bamako.nerim.net ([127.0.0.1])
+	by localhost (bamako.nerim.net [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id STivizupJQPH for <linux-media@vger.kernel.org>;
+	Tue, 16 Feb 2010 18:22:35 +0100 (CET)
+Received: from hyperion.delvare (jdelvare.pck.nerim.net [62.212.121.182])
+	by bamako.nerim.net (Postfix) with ESMTP id E783339DF99
+	for <linux-media@vger.kernel.org>; Tue, 16 Feb 2010 18:22:34 +0100 (CET)
+Date: Tue, 16 Feb 2010 18:22:37 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: LMML <linux-media@vger.kernel.org>
+Subject: [PATCH 2/2] bttv: Let the user disable IR support
+Message-ID: <20100216182237.1a06719e@hyperion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks everybody for the feedback.
+Add a new module parameter "disable_ir" to disable IR support. Several
+other drivers do that already, and this can be very handy for
+debugging purposes.
 
-On Mon, Feb 22, 2010 at 7:15 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> The issue with cx88 chips is that, with some video input sources, the
-> AGC over-saturates the color pattern. So, depending on the analog video
-> standard and the quality of the source (TV or Composite/Svideo), it gives
-> more reallistic colors with different AGC/saturation configuration.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ linux/drivers/media/video/bt8xx/bttv-driver.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-I'm actually having the same issue with the saa7113.  I have a
-specific input source where I am getting too much chroma gain via the
-AGC, and need to disable it and manually turn it down a bit.
+--- v4l-dvb.orig/linux/drivers/media/video/bt8xx/bttv-driver.c	2010-02-16 18:13:31.000000000 +0100
++++ v4l-dvb/linux/drivers/media/video/bt8xx/bttv-driver.c	2010-02-16 18:16:47.000000000 +0100
+@@ -81,6 +81,7 @@ static int video_nr[BTTV_MAX] = { [0 ...
+ static int radio_nr[BTTV_MAX] = { [0 ... (BTTV_MAX-1)] = -1 };
+ static int vbi_nr[BTTV_MAX] = { [0 ... (BTTV_MAX-1)] = -1 };
+ static int debug_latency;
++static int disable_ir;
+ 
+ static unsigned int fdsr;
+ 
+@@ -107,6 +108,7 @@ module_param(bttv_gpio,         int, 064
+ module_param(bttv_debug,        int, 0644);
+ module_param(irq_debug,         int, 0644);
+ module_param(debug_latency,     int, 0644);
++module_param(disable_ir,        int, 0444);
+ 
+ module_param(fdsr,              int, 0444);
+ module_param(gbuffers,          int, 0444);
+@@ -139,6 +141,7 @@ MODULE_PARM_DESC(bttv_verbose,"verbose s
+ MODULE_PARM_DESC(bttv_gpio,"log gpio changes, default is 0 (no)");
+ MODULE_PARM_DESC(bttv_debug,"debug messages, default is 0 (no)");
+ MODULE_PARM_DESC(irq_debug,"irq handler debug messages, default is 0 (no)");
++MODULE_PARM_DESC(disable_ir, "disable infrared remote support");
+ MODULE_PARM_DESC(gbuffers,"number of capture buffers. range 2-32, default 8");
+ MODULE_PARM_DESC(gbufsize,"size of the capture buffers, default is 0x208000");
+ MODULE_PARM_DESC(reset_crop,"reset cropping parameters at open(), default "
+@@ -4498,8 +4501,10 @@ static int __devinit bttv_probe(struct p
+ 		request_modules(btv);
+ 	}
+ 
+-	init_bttv_i2c_ir(btv);
+-	bttv_input_init(btv);
++	if (!disable_ir) {
++		init_bttv_i2c_ir(btv);
++		bttv_input_init(btv);
++	}
+ 
+ 	/* everything is fine */
+ 	bttv_num++;
 
-While I can use the V4L2_CID_CHROMA_AGC to disable the AGC, I still
-need to then adjust the value of the gain.  I guess I *could* reuse
-the saturation control, this time controlling the chroma gain register
-instead of the saturation register, it would seem to make more sense
-to have an explicit control, since the controls correspond to
-different registers and in theory could be controlled independently.
-
-I guess at this point, I have three options:
-
-1.   Introduce a new user control
-
-2.  Use a private control
-
-3.  Reuse the saturation control (hacking the driver such that the
-saturation control pokes different registers depending on whether the
-AGC is enabled).
-
-On a related note, has anyone noticed that the v4l2-dbg tool appears
-to always insist on using the "extended controls ioctl" for any
-attempts to set private controls?  This doesn't seem right to me.  I
-believe there probably are cases where extended controls are required,
-but I believe just a general user control based on
-V4L2_CID_PRIVATE_BASE should probably be able to work even with the
-generic VIDIOC_S_CTRL.
-
-I'm just asking because it would mean in order for v4l2-dbg to work
-with my solution i would have to add support for extended controls in
-general to the saa7115 driver, which shouldn't be necessary.
-
-Cheers,
-
-Devin
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Jean Delvare
