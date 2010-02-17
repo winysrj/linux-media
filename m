@@ -1,20 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from mail.tu-berlin.de ([130.149.7.33])
-	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <redtux1@googlemail.com>) id 1Ni5yg-00047O-32
-	for linux-dvb@linuxtv.org; Thu, 18 Feb 2010 13:59:35 +0100
-Received: from mail-fx0-f220.google.com ([209.85.220.220])
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-a) with esmtp
+	by www.linuxtv.org with esmtp (Exim 4.69) (envelope-from <x2@ya.com>)
+	id 1NhpXC-0007rD-7l
+	for linux-dvb@linuxtv.org; Wed, 17 Feb 2010 20:26:07 +0100
+Received: from out07.wanadoo.es ([62.36.20.207])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-c) with esmtp
 	for <linux-dvb@linuxtv.org>
-	id 1Ni5yd-0007Ni-FG; Thu, 18 Feb 2010 13:59:33 +0100
-Received: by fxm20 with SMTP id 20so8628395fxm.1
-	for <linux-dvb@linuxtv.org>; Thu, 18 Feb 2010 04:59:30 -0800 (PST)
+	id 1NhpXB-0001Yy-OQ; Wed, 17 Feb 2010 20:26:05 +0100
+Received: from [84.79.141.255] (helo=kawa.saki.org)
+	by out07.wanadoo.es with esmtpa (Exim 4.43) id 1NhpX7-0002jJ-GP
+	for linux-dvb@linuxtv.org; Wed, 17 Feb 2010 20:26:01 +0100
+From: x2 <x2@ya.com>
+To: linux-dvb@linuxtv.org
+Date: Wed, 17 Feb 2010 20:25:28 +0100
 MIME-Version: 1.0
-Date: Thu, 18 Feb 2010 12:59:30 +0000
-Message-ID: <ecc841d81002180459t59fcfdd3k26da94b7ef0b351c@mail.gmail.com>
-From: Mike Martin <redtux1@googlemail.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-Subject: [linux-dvb] Question about telnet interface of dvbstream
+Content-Disposition: inline
+Message-Id: <201002172025.28569.x2@ya.com>
+Subject: [linux-dvb] Hello the list of frequencies DVB-T for Sevilla Spain
+	has changed:
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -29,17 +32,22 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi
+Hello the list of frequencies for SEVILLE (SPAIN) Project has changed, it adds 
+new frequency for the local television channel 54.
 
-I develop an application using dvbstream and am looking into the
-telnet interface.
 
-My question is whether the telnet interface can attach to a running
-instance of dvbstream (on the same multiplex obviously)
+es-Sevilla
 
-Or does it have the same issues with locking dvb card
 
-thanks
+# DVB-T Sevilla (Andalucia-Spain) by x2 15-Ago-2006 modificado 19-Feb-2010
+# T freq bw fec_hi fec_lo mod transm-mode guard-interval hierarchy
+T 738000000 8MHz 2/3 NONE QAM64 8K 1/4 NONE                  # C54
+T 762000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE                  # C57
+T 794000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE                  # C61
+T 834000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE                  # C66
+T 842000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE                  # C67
+T 850000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE                  # C68
+T 858000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE                  # C69
 
 _______________________________________________
 linux-dvb users mailing list
