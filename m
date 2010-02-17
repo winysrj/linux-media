@@ -1,72 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42405 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752499Ab0BWQMz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2010 11:12:55 -0500
-Message-ID: <4B83FE7D.70104@redhat.com>
-Date: Tue, 23 Feb 2010 13:12:45 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2335 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752716Ab0BQSbY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Feb 2010 13:31:24 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: Re: Proposal for a V4L2 Media Controller mini-summit
+Date: Wed, 17 Feb 2010 19:33:33 +0100
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Laurent Pinchart <laurent.pinchart@skynet.be>,
+	Vaibhav Hiremath <hvaibhav@ti.com>,
+	"Gole, Anant" <anantgole@ti.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>,
+	Sergio Rodriguez <saaguirre@ti.com>, molnar@ti.com,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Guru Raj <gururaj.nagendra@intel.com>,
+	"Zhang, Xiaolin" <xiaolin.zhang@intel.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	"Jin-Sung Yang" <jsgood.yang@samsung.com>,
+	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
+	Kyungmin Park <kmpark@infradead.org>, mcharleb@qualcomm.com,
+	hrao@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Devin Heitmueller <devin.heitmueller@gmail.com>
+References: <201002121550.08706.hverkuil@xs4all.nl>
+In-Reply-To: <201002121550.08706.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Christophe Thommeret <hftom@free.fr>
-CC: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] scan-s2 and dvb-apps
-References: <1a297b361002230336q7065170tc79ef22426ef5a8a@mail.gmail.com> <201002231406.36939.hftom@free.fr> <4B83FD1A.3070508@redhat.com>
-In-Reply-To: <4B83FD1A.3070508@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201002171933.33921.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
-> Christophe Thommeret wrote:
->> Le mardi 23 février 2010 12:36:13, Manu Abraham a écrit :
->>> Hi All,
->>>
->>> Recently, quite some people have been requesting for scan-s2 a simple
->>> scan application which has been hacked on top of the scan application
->>> as available in the dvb-apps tree, to be integrated/pulled in to the
->>> dvb-apps tree, after it's author moved on to other arenas.
->>>
->>> http://www.mail-archive.com/vdr@linuxtv.org/msg11125.html
->>>
->>> The idea initially was to have a cloned copy of scan as scan-s2.
->>> Now, on the other hand scan-s2 is much more like scan and similar
->>> functionality wise too.
->>>
->>> Considering the aspects, do you think, that it is worthwhile to have
->>>
->>> a) the scan-s2 application and the scan application as well integrated
->>> into the repository, such that they both live together
->>>
->>> or
->>>
->>> b) scan-s2 does things almost the same as scan2. scan can be replaced
->>> by scan-s2.
->>>
->>>
->>> What are your ideas/thoughts on this ?
->> I think S2 scanning should simply be added to scan.
+On Friday 12 February 2010 15:50:08 Hans Verkuil wrote:
+> Hi all,
 > 
-> See http://linuxtv.org/hg/~mchehab/dvb-apps-isdbt2/
+> During the Linux Plumbers Conference in September 2009 I organized a V4L-DVB
+> mini-summit. The focus of that summit was on discussing a framework through
+> which we could support all the functionality that the video hardware of modern
+> embedded devices provides.
 > 
-> It adds support to DVB API v5 to the dvb-apps library. Originally, this were
-> done to add ISDB-T support, but the next patches added also DVB-T, DVB-C and
-> DVB-S support via APIv5. It also adds some DVB-S2 bits there. There are very
-> few things lacking there to fully implement DVB-S2. It shouldn't be hard to
-> add there also other standards like DVB-T2, ISDB-S, etc.
+> It was a very successful summit and a lot of work has been done since that
+> time. See this posting for to get an idea of what was discussed for those
+> who were not present:
 > 
-In time: this is a work in progress. Currently, it were tested only with ISDB-T
-(i tested scan/zap and gnutv, all via DVB API v5). The advantage of adding it
-at the library is that any application using it will also be capable of dealing
-with the newly produced channel lists (as more fields will be needed to represent
-the extra attributes of the new standards).
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg10136.html
+> 
+> Since that time we have added a new API to support HDTV formats, a new
+> event API is almost ready, a lot of work is being done on the media
+> controller API with omap3 as guinea pig and Samsung has done work on the
+> memory handling of V4L2.
+> 
+> From April 12th to 14th the CELF Embedded Linux Conference is held in
+> San Francisco, and it is co-located with the Linux Foundation Collaboration
+> Summit (April 14th-16th). Links to these conferences are here:
+> 
+> http://www.embeddedlinuxconference.com/elc_2010/index.html
+> http://events.linuxfoundation.org/events/collaboration-summit
+> 
+> I will be doing a presentation on the new framework during the ELC.
+> 
+> Since this conference is about 6 months after the mini-summit I consider this
+> a good time to organize a new V4L2 Media Controller mini-summit to discuss
+> progress and future work in this area. I think that particular attention
+> should be given to how we are going to do memory handling. The proposals
+> from Samsung have received very little attention and we should discuss those
+> in more detail.
+> 
+> I do not know on which dates exactly such a summit can take place. There
+> are three possibilities:
+> 
+> April 10-11/12
+> April 12-14 
+> April 14/15-16
+> 
+> I think that registering for the ELC gives to free access to the Collaboration
+> Summit, but I'm waiting for a confirmation on that.
+> 
+> I'm not keen on the center option (12-14 April) since that often means that
+> you don't see a lot of the conference itself. And the ELC is generally quite
+> interesting.
+> 
+> There is another alternative and that is that I organize a mini-summit in May
+> in Lysaker (near Oslo, Norway) at the Tandberg offices. But frankly I think
+> that it is more fun to do this during/before/after a conference. If only
+> because there are a lot of linux kernel experts on hand during such a
+> conference that you can ask for help if needed.
+> 
+> Please let me know asap if you are interested in attending such a mini-summit
+> and what dates are possible for you:
+> 
+> a: April 10-11 (or 12)
+> b: April 12-14 
+> c: April 14 (or 15)-16
+> d: Somewhere in May (suggestions for dates are welcome)
 
-I got already some inputs for things to be improved. I'll start handling those 
-after the next kernel merge window. 
+I would appreciate it if people/companies who are interested in attending would
+let me know as soon as possible. Options A and B are a no go, so it is either
+April 14-16, or it will be in May. It doesn't have to be definitive, but I
+would like to have an idea of what to expect.
 
-Tests are appreciated, especially with other standards.
+The V4L2 API work that is in progress is crucially important for embedded hardware,
+so getting involved now will ensure that your devices will work fine on linux in
+the future. And we get to see more of the complex use cases that we must cater to
+in the API.
+
+Regards,
+
+	Hans
 
 -- 
-
-Cheers,
-Mauro
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
