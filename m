@@ -1,51 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:34952 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754856Ab0BCIWn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2010 03:22:43 -0500
-Message-ID: <4B69324F.4040903@infradead.org>
-Date: Wed, 03 Feb 2010 06:22:39 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from mk-outboundfilter-6.mail.uk.tiscali.com ([212.74.114.14]:59767
+	"EHLO mk-outboundfilter-6.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933399Ab0BQAPB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Feb 2010 19:15:01 -0500
+From: Adam Baker <linux@baker-net.org.uk>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: pac207: problem with Trust USB webcam
+Date: Wed, 17 Feb 2010 00:04:51 +0000
+Cc: Frans Pop <elendil@planet.nl>, linux-media@vger.kernel.org
+References: <201002150038.03060.elendil@planet.nl> <4B7B089A.4060504@redhat.com>
+In-Reply-To: <4B7B089A.4060504@redhat.com>
 MIME-Version: 1.0
-To: akpm@linux-foundation.org
-CC: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Subject: Re: [patch 2/7] drivers/media/video/pms.c needs version.h
-References: <201002022240.o12Melb9018905@imap1.linux-foundation.org>
-In-Reply-To: <201002022240.o12Melb9018905@imap1.linux-foundation.org>
-Content-Type: text/plain; charset=ANSI_X3.4-1968
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201002170004.51883.linux@baker-net.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-akpm@linux-foundation.org wrote:
-> From: Andrew Morton <akpm@linux-foundation.org>
+On Tuesday 16 Feb 2010, Hans de Goede wrote:
+> Hi,
 > 
-> i386 allmodconfig:
+> You need to use libv4l and have your apps patched
+> to use libv4l or use the LD_PRELOAD wrapper.
 > 
-> drivers/media/video/pms.c: In function 'pms_querycap':
-> drivers/media/video/pms.c:682: error: implicit declaration of function 'KERNEL_VERSION'
+> Here is the latest libv4l:
+> http://people.fedoraproject.org/~jwrdegoede/libv4l-0.6.5-test.tar.gz
+> 
+> And here are install instructions:
+> http://hansdegoede.livejournal.com/7622.html
+> 
+Hi,
 
-> @@ -24,6 +24,7 @@
->  #include <linux/delay.h>
->  #include <linux/errno.h>
->  #include <linux/fs.h>
-> +#include <linux/version.h>
->  #include <linux/kernel.h>
->  #include <linux/slab.h>
->  #include <linux/mm.h>
+libv4l is already packaged by lenny but doing
 
-Hmm... changeset feba2f81 already added linux/version.h:
-@@ -27,20 +29,21 @@
- #include <linux/mm.h>
- #include <linux/ioport.h>
- #include <linux/init.h>
-+#include <linux/version.h>
-+#include <linux/mutex.h>
-+#include <asm/uaccess.h>
- #include <asm/io.h>
-...
+LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so xawtv
 
-So I think this patch got obsoleted.
+results in either a plain green screen or a mostly green screen with some 
+picture visible behind it. IIRC this is due to a bug in older versions of 
+xawtv. I didn't try vlc as it wanted to install too many dependencies but I 
+did try cheese which also wouldn't work.
 
-Cheers,
-Mauro
+I did find I could capture single frames with
+
+LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so vgrabbj -d /dev/video0 >grab.jpg
+
+or
+
+LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so fswebcam --save grab2.jpg
+
+which suggests that the packaged libv4l is fine and it is just the apps that 
+are an issue.
+
+Adam Baker
