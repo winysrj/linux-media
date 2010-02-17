@@ -1,108 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:6684 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757867Ab0BCUTJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Feb 2010 15:19:09 -0500
-Message-ID: <4B69DA31.3010900@redhat.com>
-Date: Wed, 03 Feb 2010 18:18:57 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:47055 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752422Ab0BQScK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Feb 2010 13:32:10 -0500
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Pawel Osciak <p.osciak@samsung.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"'Kamil Debski'" <k.debski@samsung.com>
+Date: Wed, 17 Feb 2010 12:32:06 -0600
+Subject: RE: Fourcc for multiplanar formats
+Message-ID: <A69FA2915331DC488A831521EAE36FE40169C5C583@dlee06.ent.ti.com>
+References: <E4D3F24EA6C9E54F817833EAE0D912AC09C5635702@bssrvexch01.BS.local>
+ <201002171921.36567.hverkuil@xs4all.nl>
+In-Reply-To: <201002171921.36567.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-To: Stefan Ringel <stefan.ringel@arcor.de>
-CC: linux-media@vger.kernel.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [PATCH 2/15] -  tm6000 add Terratec Cinergy Hybrid XE
-References: <4B673790.3030706@arcor.de> <4B673B2D.6040507@arcor.de> <4B675B19.3080705@redhat.com> <4B685FB9.1010805@arcor.de> <4B688507.606@redhat.com> <4B688E41.2050806@arcor.de> <4B689094.2070204@redhat.com> <4B6894FE.6010202@arcor.de> <4B69D83D.5050809@arcor.de> <4B69D8CC.2030008@arcor.de>
-In-Reply-To: <4B69D8CC.2030008@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stefan Ringel wrote:
-> signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+Hi,
 
-Signed-off-by:
+I think all of the planar pix format defined in videodev2.h are contiguous in memory. So I would suggest adding some suffix to indicate this so that it is obvious to application users.
 
-(first letter is on upper case)
+>What about V4L2_PIX_FMT_NV16_2P, V4L2_PIX_FMT_YUV422P_3P, etc.?
 
-The patch looks ok to my eyes.
-> 
-> --- a/drivers/staging/tm6000/tm6000-cards.c
-> +++ b/drivers/staging/tm6000/tm6000-cards.c
-> @@ -44,6 +44,10 @@
->  #define TM6000_BOARD_FREECOM_AND_SIMILAR    7
->  #define TM6000_BOARD_ADSTECH_MINI_DUAL_TV    8
->  #define TM6010_BOARD_HAUPPAUGE_900H        9
-> +#define TM6010_BOARD_BEHOLD_WANDER        10
-> +#define TM6010_BOARD_BEHOLD_VOYAGER        11
-> +#define TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE    12
-> +
->  
->  #define TM6000_MAXBOARDS        16
->  static unsigned int card[]     = {[0 ... (TM6000_MAXBOARDS - 1)] = UNSET };
-> @@ -208,7 +212,21 @@ struct tm6000_board tm6000_boards[] = {
->          },
->          .gpio_addr_tun_reset = TM6000_GPIO_2,
->      },
-> -
-> +    [TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE] = {
-> +        .name         = "Terratec Cinergy Hybrid XE",
-> +        .tuner_type   = TUNER_XC2028, /* has a XC3028 */
-> +        .tuner_addr   = 0xc2 >> 1,
-> +        .demod_addr   = 0x1e >> 1,
-> +        .type         = TM6010,
-> +        .caps = {
-> +            .has_tuner    = 1,
-> +            .has_dvb      = 1,
-> +            .has_zl10353  = 1,
-> +            .has_eeprom   = 1,
-> +            .has_remote   = 1,
-> +        },
-> +        .gpio_addr_tun_reset = TM6010_GPIO_2,
-> +    }
->  };
->  
->  /* table of devices that work with this driver */
-> @@ -221,12 +239,13 @@ struct usb_device_id tm6000_id_table [] = {
->      { USB_DEVICE(0x2040, 0x6600), .driver_info =
-> TM6010_BOARD_HAUPPAUGE_900H },
->      { USB_DEVICE(0x6000, 0xdec0), .driver_info =
-> TM6010_BOARD_BEHOLD_WANDER },
->      { USB_DEVICE(0x6000, 0xdec1), .driver_info =
-> TM6010_BOARD_BEHOLD_VOYAGER },
-> +    { USB_DEVICE(0x0ccd, 0x0086), .driver_info =
-> TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE },
->      { },
->  };
->  
-> @@ -302,15 +344,19 @@ static void tm6000_config_tuner (struct
-> tm6000_core *dev)
->          memset(&xc2028_cfg, 0, sizeof(xc2028_cfg));
->          memset (&ctl,0,sizeof(ctl));
->  
-> -        ctl.mts   = 1;
-> -        ctl.read_not_reliable = 1;
-> +        ctl.input1 = 1;
-> +        ctl.read_not_reliable = 0;
->          ctl.msleep = 10;
-> -
-> +        ctl.demod = XC3028_FE_ZARLINK456;
-> +        ctl.vhfbw7 = 1;
-> +        ctl.uhfbw8 = 1;
-> +        ctl.switch_mode = 1;
->          xc2028_cfg.tuner = TUNER_XC2028;
->          xc2028_cfg.priv  = &ctl;
->  
->          switch(dev->model) {
->          case TM6010_BOARD_HAUPPAUGE_900H:
-> +        case TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE:
->              ctl.fname = "xc3028L-v36.fw";
->              break;
->          default:
-> 
+Not sure what Hans mean by the 2P or 3P extensions since NV16 has 2 planes. Why do we want to re-define NV12 and NV12_2P since it can cause backward compatibility issues. Why don't we keep existing naming convention for
+contiguous formats and add a suffix for indicating the planes are not
+contiguous. 
 
+For example
 
--- 
+V4L2_PIX_FMT_NV16 vs V4L2_PIX_FMT_NV16_NC where NC - Non Contiguous
 
-Cheers,
-Mauro
+Just my thoughts...
+
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+email: m-karicheri2@ti.com
+
+>-----Original Message-----
+>From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>owner@vger.kernel.org] On Behalf Of Hans Verkuil
+>Sent: Wednesday, February 17, 2010 1:22 PM
+>To: Pawel Osciak
+>Cc: linux-media@vger.kernel.org; Sylwester Nawrocki; 'Kamil Debski'
+>Subject: Re: Fourcc for multiplanar formats
+>
+>On Monday 15 February 2010 17:27:46 Pawel Osciak wrote:
+>> Hello,
+>>
+>> we would like to ask for suggestions for new fourcc formats for
+>multiplanar buffers.
+>>
+>> There are planar formats in V4L2 API, but for all of them, each plane X
+>"immediately
+>> follows Y plane in memory". We are in the process of testing formats and
+>V4L2 extensions
+>> that relax those requirements and allow each plane to reside in a
+>separate area of
+>> memory.
+>>
+>> I am not sure how we should name those formats though. In our example, we
+>are focusing
+>> on the following formats at the moment:
+>> - YCbCr 422 2-planar (multiplanar version of V4L2_PIX_FMT_NV16)
+>> - YCbCr 422 3-planar (multiplanar version of V4L2_PIX_FMT_YUV422P)
+>> - YCbCr 420 2-planar (multiplanar version of V4L2_PIX_FMT_NV12)
+>> - YCbCr 420 3-planar (multiplanar version of V4L2_PIX_FMT_YUV420)
+>>
+>>
+>> Could anyone give any suggestions how we should name such formats and
+>what to pass to
+>> the v4l2_fourcc() macro?
+>
+>What about V4L2_PIX_FMT_NV16_2P, V4L2_PIX_FMT_YUV422P_3P, etc.?
+>
+>What we pass to the fourcc macro is not very important IMHO. As long as it
+>is unique.
+>
+>Regards,
+>
+>	Hans
+>
+>>
+>>
+>> Best regards
+>> --
+>> Pawel Osciak
+>> Linux Platform Group
+>> Samsung Poland R&D Center
+>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+>
+>--
+>Hans Verkuil - video4linux developer - sponsored by TANDBERG
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
