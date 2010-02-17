@@ -1,50 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.25]:45340 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754155Ab0BGPxi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Feb 2010 10:53:38 -0500
-Received: by ey-out-2122.google.com with SMTP id d26so1157067eyd.19
-        for <linux-media@vger.kernel.org>; Sun, 07 Feb 2010 07:53:37 -0800 (PST)
+Received: from mail.gmx.net ([213.165.64.20]:33661 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1756274Ab0BQVA4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Feb 2010 16:00:56 -0500
+Date: Wed, 17 Feb 2010 21:59:22 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+cc: Randy Dunlap <randy.dunlap@oracle.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 4/4] V4L/DVB: v4l: document new Bayer and monochrome
+ pixel formats
+In-Reply-To: <4B7C239D.6010609@redhat.com>
+Message-ID: <Pine.LNX.4.64.1002172153020.4623@axis700.grange>
+References: <4B7C239D.6010609@redhat.com>
 MIME-Version: 1.0
-Date: Sun, 7 Feb 2010 17:53:37 +0200
-Message-ID: <4d3a3d781002070753j38b110dje33d63e1948a3e31@mail.gmail.com>
-Subject: New scan file dvb-t/fi-Smedsbole (Aaland Islands, Finland)
-From: =?UTF-8?Q?K=C3=A5re_Hampf?= <k.hampf@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=0015174762f01029dd047f04b0f7
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0015174762f01029dd047f04b0f7
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+On Wed, 17 Feb 2010, Mauro Carvalho Chehab wrote:
 
-Now the scanfile should be properly attached ... .*sigh*
+> Document all four 10-bit Bayer formats, 10-bit monochrome and a missing
+> 8-bit Bayer formats.
+> 
+> [mchehab@redhat.com: remove duplicated symbol for V4L2-PIX-FMT-SGRBG10]
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> ---
+>  Documentation/DocBook/Makefile               |    3 +
+>  Documentation/DocBook/v4l/pixfmt-srggb10.xml |   90 ++++++++++++++++++++++++++
+>  Documentation/DocBook/v4l/pixfmt-srggb8.xml  |   67 +++++++++++++++++++
+>  Documentation/DocBook/v4l/pixfmt-y10.xml     |   79 ++++++++++++++++++++++
+>  Documentation/DocBook/v4l/pixfmt.xml         |    8 +--
+>  5 files changed, 242 insertions(+), 5 deletions(-)
+>  create mode 100644 Documentation/DocBook/v4l/pixfmt-srggb10.xml
+>  create mode 100644 Documentation/DocBook/v4l/pixfmt-srggb8.xml
+>  create mode 100644 Documentation/DocBook/v4l/pixfmt-y10.xml
+> 
+> diff --git a/Documentation/DocBook/Makefile b/Documentation/DocBook/Makefile
+> index 65deaba..1c796fc 100644
+> --- a/Documentation/DocBook/Makefile
+> +++ b/Documentation/DocBook/Makefile
+> @@ -309,6 +309,9 @@ V4L_SGMLS = \
+>  	v4l/pixfmt-yuv422p.xml \
+>  	v4l/pixfmt-yuyv.xml \
+>  	v4l/pixfmt-yvyu.xml \
+> +	v4l/pixfmt-srggb10.xml \
+> +	v4l/pixfmt-srggb8.xml \
+> +	v4l/pixfmt-y10.xml \
 
-Here's a scanfile for fi-Smedsbole (DVB-T broadcasts from Smedsb=C3=B6le on
-=C3=85land Islands in Finland). Other names for it could be fi-Aland or
-ax-Smedsbole (=C3=85land Islands has its own .ax domain) but I thought it
-better to suggest a name derived from the broadcast location).
+Mauro, why didn't you put them next to similar formats, as in my original 
+patch?
 
-/K. Hampf <k.hampf@gmail.com>
+>  	v4l/pixfmt.xml \
+>  	v4l/vidioc-cropcap.xml \
+>  	v4l/vidioc-dbg-g-register.xml \
 
---0015174762f01029dd047f04b0f7
-Content-Type: application/octet-stream; name=fi-Smedsbole
-Content-Disposition: attachment; filename=fi-Smedsbole
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_g5e0eo1b0
-
-Iy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQojIGZpbGUgYXV0b21hdGljYWxseSBnZW5lcmF0ZWQgYnkg
-d19zY2FuCiMgKGh0dHA6Ly93aXJiZWwuaHRwYy1mb3J1bS5kZS93X3NjYW4vaW5kZXgyLmh0bWwp
-CiMhIDx3X3NjYW4+IDIwMDkwODA4IDIgMCBPRkRNIEZJIDwvd19zY2FuPgojLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tCiMgbG9jYXRpb24gYW5kIHByb3ZpZGVyOiDDhWxhbmQgU21lZHNiw7ZsZS9TdW5k
-CiMgZGF0ZSAoeXl5eS1tbS1kZCkgICAgOiAyMDA5LTEyLTIzCiMgcHJvdmlkZWQgYnkgKG9wdCkg
-ICAgOiBrLmhhbXBmQGdtYWlsLmNvbQojCiMgVFsyXSA8ZnJlcT4gPGJ3PiA8ZmVjX2hpPiA8ZmVj
-X2xvPiA8bW9kPiA8dG0+IDxndWFyZD4gPGhpPiBbIyBjb21tZW50XQojLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tClQgNTA2MDAwMDAwIDhNSHogIDIvMyBOT05FICAgIFFBTTY0ICAgOGsgIDEvOCBOT05F
-CSMgBcVsYW5kIE5ldHdvcmsKVCA1ODYwMDAwMDAgOE1IeiAgMi8zIE5PTkUgICAgUUFNNjQgICA4
-ayAgMS84IE5PTkUJIyAFxWxhbmQgTmV0d29yawo=
---0015174762f01029dd047f04b0f7--
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski
