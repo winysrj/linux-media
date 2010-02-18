@@ -1,47 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:44026 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750831Ab0BIIL6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Feb 2010 03:11:58 -0500
-Date: Tue, 9 Feb 2010 09:12:30 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-cc: linux-pm@lists.linux-foundation.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [linux-pm] [PATCH/RESEND] soc-camera: add runtime pm support
- for subdevices
-In-Reply-To: <201002082310.08079.rjw@sisk.pl>
-Message-ID: <Pine.LNX.4.64.1002090901550.4585@axis700.grange>
-References: <Pine.LNX.4.64.1002081044150.4936@axis700.grange>
- <201002082310.08079.rjw@sisk.pl>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2012 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757182Ab0BRLDt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Feb 2010 06:03:49 -0500
+Message-ID: <c76d3160af32c3c654cad235f9ef5441.squirrel@webmail.xs4all.nl>
+In-Reply-To: <4B7D1B7D.9090800@maxwell.research.nokia.com>
+References: <201002121550.08706.hverkuil@xs4all.nl>
+    <201002171933.33921.hverkuil@xs4all.nl>
+    <201002181058.28073.laurent.pinchart@ideasonboard.com>
+    <4B7D1B7D.9090800@maxwell.research.nokia.com>
+Date: Thu, 18 Feb 2010 12:03:48 +0100
+Subject: Re: Proposal for a V4L2 Media Controller mini-summit
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Sakari Ailus" <sakari.ailus@maxwell.research.nokia.com>
+Cc: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, "Vaibhav Hiremath" <hvaibhav@ti.com>,
+	"Gole, Anant" <anantgole@ti.com>,
+	"Muralidharan Karicheri" <m-karicheri2@ti.com>,
+	"Sergio Rodriguez" <saaguirre@ti.com>, molnar@ti.com,
+	"Magnus Damm" <magnus.damm@gmail.com>,
+	"Guru Raj" <gururaj.nagendra@intel.com>,
+	"Zhang, Xiaolin" <xiaolin.zhang@intel.com>,
+	"Pawel Osciak" <p.osciak@samsung.com>,
+	"Marek Szyprowski" <m.szyprowski@samsung.com>,
+	"Jin-Sung Yang" <jsgood.yang@samsung.com>,
+	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
+	"Kyungmin Park" <kmpark@infradead.org>, mcharleb@qualcomm.com,
+	hrao@ti.com, "Mauro Carvalho Chehab" <mchehab@infradead.org>,
+	"Devin Heitmueller" <devin.heitmueller@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 8 Feb 2010, Rafael J. Wysocki wrote:
 
-> On Monday 08 February 2010, Guennadi Liakhovetski wrote:
-> > To save power soc-camera powers subdevices down, when they are not in use, 
-> > if this is supported by the platform. However, the V4L standard dictates, 
-> > that video nodes shall preserve configuration between uses. This requires 
-> > runtime power management, which is implemented by this patch. It allows 
-> > subdevice drivers to specify their runtime power-management methods, by 
-> > assigning a type to the video device.
-> 
-> You need a support for that at the bus type/device type/device class level,
-> because the core doesn't execute the driver callbacks directly.
+> Laurent Pinchart wrote:
+>> Hi Hans,
+>>
+>> On Wednesday 17 February 2010 19:33:33 Hans Verkuil wrote:
+>>> On Friday 12 February 2010 15:50:08 Hans Verkuil wrote:
+>>>>
+>>>> There is another alternative and that is that I organize a mini-summit
+>>>> in
+>>>> May in Lysaker (near Oslo, Norway) at the Tandberg offices. But
+>>>> frankly
+>>>> I think that it is more fun to do this during/before/after a
+>>>> conference.
+>>>> If only because there are a lot of linux kernel experts on hand during
+>>>> such a conference that you can ask for help if needed.
+>>>>
+>>>> Please let me know asap if you are interested in attending such a
+>>>> mini-summit and what dates are possible for you:
+>>>>
+>>>> a: April 10-11 (or 12)
+>>>> b: April 12-14
+>>>> c: April 14 (or 15)-16
+>>>> d: Somewhere in May (suggestions for dates are welcome)
+>>>
+>>> I would appreciate it if people/companies who are interested in
+>>> attending
+>>> would let me know as soon as possible. Options A and B are a no go, so
+>>> it
+>>> is either April 14-16, or it will be in May. It doesn't have to be
+>>> definitive, but I would like to have an idea of what to expect.
+>>
+>> It's not a definitive no, but April 14-16 will be very difficult for me,
+>> so
+>> there's little chance I can attend.
+>
+> I can confirm now that only the May dates are possible for me. :-\
 
-That's exactly what this patch is doing - adding a device type with pm 
-callbacks. What I wasn't sure about - and why I posted here - is whether 
-that's a proper way to use pm_runtime_resume() and pm_runtime_suspend() 
-calls - from a central module, targeting underlying devices, before 
-powering them down and after powering them up?
+Darn. Having a mini-summit without Laurent and yourself is pointless since
+you are both key developers.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+New proposal: May 5-7 in Lysaker, Norway.
+
+Does that work?
+
+Regards,
+
+        Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+
