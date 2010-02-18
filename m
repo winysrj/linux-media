@@ -1,82 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:57044 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750796Ab0BXFMR (ORCPT
+Received: from rcsinet12.oracle.com ([148.87.113.124]:32729 "EHLO
+	rcsinet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758745Ab0BRWct (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Feb 2010 00:12:17 -0500
-Message-ID: <4B84B52A.1000005@infradead.org>
-Date: Wed, 24 Feb 2010 02:12:10 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Thu, 18 Feb 2010 17:32:49 -0500
+Message-ID: <4B7DBFF8.1050300@oracle.com>
+Date: Thu, 18 Feb 2010 14:32:24 -0800
+From: Randy Dunlap <randy.dunlap@oracle.com>
 MIME-Version: 1.0
-To: Tobias Lorenz <tobias.lorenz@gmx.net>
-CC: Roel Kluin <roel.kluin@gmail.com>, linux-media@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] radio-si470x-common: -EINVAL overwritten in si470x_vidioc_s_tuner()
-References: <4B69D2F5.2050100@gmail.com> <201002032252.36514.tobias.lorenz@gmx.net> <4B6A242C.8060104@infradead.org> <201002182050.41968.tobias.lorenz@gmx.net>
-In-Reply-To: <201002182050.41968.tobias.lorenz@gmx.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	g.liakhovetski@gmx.de
+Subject: Re: [PATCH 0/4] DocBook additions for V4L new formats
+References: <4B7C2203.1000707@redhat.com> <4B7CA679.40906@oracle.com>
+In-Reply-To: <4B7CA679.40906@oracle.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Tobias Lorenz wrote:
-> Hello Mauro,
-> 
->>> no, the default value of retval makes no difference to the function.
->>>
->>> Retval is set by si470x_disconnect_check and si470x_set_register.
->>> After each call, retval is checked.
->>> There is no need to reset it passed.
-> 
->> You may just do then:
+On 02/17/10 18:31, Randy Dunlap wrote:
+> On 02/17/10 09:06, Mauro Carvalho Chehab wrote:
+>> Adds DocBook items for Bayer and two proprietary formats used on gspca.
 >>
->> 	int retval = si470x_disconnect_check(radio);
+>> In the past, a few targets were generated at the Mercurial development
+>> tree. However, at the beginning of this year, we moved to use -git as
+>> the primary resource. So, the Makefile logic to autogenerate those
+>> targets needs to be moved to git as well.
+>>
+>> While here, I noticed that DocBook is too verbose to generate the
+>> htmldocs target. So, make it less verbose, if V=0.
+>>
+>> Guennadi Liakhovetski (1):
+>>   V4L/DVB: v4l: document new Bayer and monochrome pixel formats
+>>
+>> Mauro Carvalho Chehab (3):
+>>   DocBook/Makefile: Make it less verbose
+>>   DocBook: Add rules to auto-generate some media docbooks
+>>   DocBook/v4l/pixfmt.xml: Add missing formats for gspca cpia1 and
+>>     sn9c2028 drivers
 > 
-> In all other set/get functions of v4l2_ioctl_ops in the driver, I just set the default value of retval to 0.
-> To be identical in si470x_vidioc_s_tuner, I modified the patch to the one below.
-> I already pushed this and another cosmetic patch into mercurial:
+> Hi Mauro,
 > 
-> http://linuxtv.org/hg/~tlorenz/v4l-dvb/rev/72a2f38d5956
-See comment bellow.
+> Patches 1 & 3 are OK.
+> 
+> I'm having problems with patch 2/4 when I use O=DOCDIR on the make command
+> (which I always do).  videodev2.h.xml is not being generated, and after
+> that it goes downhill.
+> 
+> I will let you know more when I have more info, or you or Guennadi can send
+> a fixup patch for that.
+> 
+
+I'm not making any progress on this.
+"make O=DOCDIR htmldocs" needs to work, but it does not:
 
 
-> http://linuxtv.org/hg/~tlorenz/v4l-dvb/rev/3efd5d32a618
-Applied.
+Also, $(objtree)/Documentation/DocBook/index.html is no longer being generated
+after these 4 patches are applied.  That needs to be fixed also.
+
+I get lots of these:
+grep: /lnx/src/lnx-2633-rc8-docbook/DOC2/Documentation/DocBook/v4l/vidioc-*.xml: No such file or directory
+grep: /lnx/src/lnx-2633-rc8-docbook/DOC2/Documentation/DocBook/v4l/vidioc-*.xml: No such file or directory
+grep: /lnx/src/lnx-2633-rc8-docbook/DOC2/Documentation/DocBook/v4l/vidioc-*.xml: No such file or directory
+
+followed by:
+  GEN     Documentation/DocBook/media-indices.tmpl
+  GEN     Documentation/DocBook/v4l/videodev2.h.xml
+/bin/bash: line 1: Documentation/DocBook/v4l/videodev2.h.xml: No such file or directory
+make[2]: *** [Documentation/DocBook/v4l/videodev2.h.xml] Error 1
+
+
+The patches do seem to be OK if O=dirname is not used... except that the main index.html
+is still not being generated.
+
 
 > 
-> Mauro, can you pull them?
-
-Tobias, next time or send one patch per email or send me a pull request.
-
 > 
-> Bye,
-> Tobias
+>>  Documentation/DocBook/Makefile               |  493 +++++++-
+>>  Documentation/DocBook/dvb/frontend.h.xml     |  415 ------
+>>  Documentation/DocBook/media-entities.tmpl    |  383 ------
+>>  Documentation/DocBook/media-indices.tmpl     |   89 --
+>>  Documentation/DocBook/v4l/pixfmt-srggb10.xml |   90 ++
+>>  Documentation/DocBook/v4l/pixfmt-srggb8.xml  |   67 +
+>>  Documentation/DocBook/v4l/pixfmt-y10.xml     |   79 ++
+>>  Documentation/DocBook/v4l/pixfmt.xml         |   18 +-
+>>  Documentation/DocBook/v4l/videodev2.h.xml    | 1757 --------------------------
+>>  9 files changed, 738 insertions(+), 2653 deletions(-)
+>>  delete mode 100644 Documentation/DocBook/dvb/frontend.h.xml
+>>  delete mode 100644 Documentation/DocBook/media-entities.tmpl
+>>  delete mode 100644 Documentation/DocBook/media-indices.tmpl
+>>  create mode 100644 Documentation/DocBook/v4l/pixfmt-srggb10.xml
+>>  create mode 100644 Documentation/DocBook/v4l/pixfmt-srggb8.xml
+>>  create mode 100644 Documentation/DocBook/v4l/pixfmt-y10.xml
+>>  delete mode 100644 Documentation/DocBook/v4l/videodev2.h.xml
+>>
 > 
-> --- a/linux/drivers/media/radio/si470x/radio-si470x-common.c	Thu Feb 11 23:11:30 2010 -0200
-> +++ b/linux/drivers/media/radio/si470x/radio-si470x-common.c	Thu Feb 18 20:31:33 2010 +0100
-> @@ -748,7 +748,7 @@
->  		struct v4l2_tuner *tuner)
->  {
->  	struct si470x_device *radio = video_drvdata(file);
-> -	int retval = -EINVAL;
-> +	int retval = 0;
->  
->  	/* safety checks */
->  	retval = si470x_disconnect_check(radio);
-
-This really doesn't make any sense. Just do:
-
-	int retval = i470x_disconnect_check(radio);
-
-or
-	int retval;
-
-	retval = i470x_disconnect_check(radio);
-
+> 
 
 
 -- 
-
-Cheers,
-Mauro
+~Randy
