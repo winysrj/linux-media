@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <ocagdas@yahoo.com>) id 1NjuZD-0008FC-5p
-	for linux-dvb@linuxtv.org; Tue, 23 Feb 2010 14:12:47 +0100
-Received: from web57006.mail.re3.yahoo.com ([66.196.97.110])
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-c) with smtp
+	(envelope-from <redtux1@googlemail.com>) id 1Ni5yg-00047O-32
+	for linux-dvb@linuxtv.org; Thu, 18 Feb 2010 13:59:35 +0100
+Received: from mail-fx0-f220.google.com ([209.85.220.220])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-a) with esmtp
 	for <linux-dvb@linuxtv.org>
-	id 1NjuZC-0001Eq-8y; Tue, 23 Feb 2010 14:12:46 +0100
-Message-ID: <829000.26472.qm@web57006.mail.re3.yahoo.com>
-Date: Tue, 23 Feb 2010 05:12:43 -0800 (PST)
-From: ozgur cagdas <ocagdas@yahoo.com>
-To: linux-dvb@linuxtv.org
+	id 1Ni5yd-0007Ni-FG; Thu, 18 Feb 2010 13:59:33 +0100
+Received: by fxm20 with SMTP id 20so8628395fxm.1
+	for <linux-dvb@linuxtv.org>; Thu, 18 Feb 2010 04:59:30 -0800 (PST)
 MIME-Version: 1.0
-Subject: [linux-dvb] soft demux device
+Date: Thu, 18 Feb 2010 12:59:30 +0000
+Message-ID: <ecc841d81002180459t59fcfdd3k26da94b7ef0b351c@mail.gmail.com>
+From: Mike Martin <redtux1@googlemail.com>
+To: linux-dvb <linux-dvb@linuxtv.org>
+Subject: [linux-dvb] Question about telnet interface of dvbstream
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -27,18 +29,17 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi All,
+Hi
 
-I have just compiled v4l-dvb successfully. My aim is to develop some experimental dvb applications on top of this dvb kernel api. Initially, I do not want to use any hardware and would like to play with the recorded ts files I have. So, is there any software demux device available within this package or somewhere else? If so, how can I load this device and make it work on a given ts file circularly? On the other hand, I have no /dev/dvb node  at the moment, so should I do anything for this or would loading the driver create it automatically?
+I develop an application using dvbstream and am looking into the
+telnet interface.
 
-Thanks in advance.
+My question is whether the telnet interface can attach to a running
+instance of dvbstream (on the same multiplex obviously)
 
-Cheers,
+Or does it have the same issues with locking dvb card
 
-Ozgur.
-
-
-      
+thanks
 
 _______________________________________________
 linux-dvb users mailing list
