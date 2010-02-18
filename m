@@ -1,47 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:60353 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754422Ab0B1Sh4 convert rfc822-to-8bit (ORCPT
+Received: from mail-yx0-f200.google.com ([209.85.210.200]:48893 "EHLO
+	mail-yx0-f200.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753509Ab0BRNmD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Feb 2010 13:37:56 -0500
-Date: Sun, 28 Feb 2010 19:38:14 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Antonio Ospite <ospite@studenti.unina.it>
-Cc: linux-media@vger.kernel.org, Max Thrun <bear24rw@gmail.com>
-Subject: Re: [PATCH 05/11] ov534: Fix setting manual exposure
-Message-ID: <20100228193814.34f6755f@tele>
-In-Reply-To: <1267302028-7941-6-git-send-email-ospite@studenti.unina.it>
-References: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
-	<1267302028-7941-6-git-send-email-ospite@studenti.unina.it>
-Mime-Version: 1.0
+	Thu, 18 Feb 2010 08:42:03 -0500
+Received: by yxe38 with SMTP id 38so6376717yxe.4
+        for <linux-media@vger.kernel.org>; Thu, 18 Feb 2010 05:41:59 -0800 (PST)
+MIME-Version: 1.0
+From: =?UTF-8?B?0JXQstCz0LXQvdC40Lkg0JHQsNGG0LzQsNC9?=
+	<evgenbatsman@gmail.com>
+Date: Thu, 18 Feb 2010 15:41:39 +0200
+Message-ID: <6137756e1002180541o642996aqc46066195ed75631@mail.gmail.com>
+Subject: aver
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 27 Feb 2010 21:20:22 +0100
-Antonio Ospite <ospite@studenti.unina.it> wrote:
+Hi! I learned that you can help with the driver for AverTV Studio 509 UA.
+>From what I know about him: TV part works with the option card = 102
+(AverTV Studio 507) tuner = 38 (PHILIPS_FM1216ME_MK3) but FM radio is
+made on tea5764hn and these options will not work (the driver has been
+written belavenuto@gmail.com).
 
-> Exposure is now a u16 value, both MSB and LSB are set, but values in
-> the v4l2 control are limited to the interval [0,506] as 0x01fa (506)
-> is the maximum observed value with AEC enabled.
-	[snip]
->  	    .type    = V4L2_CTRL_TYPE_INTEGER,
->  	    .name    = "Exposure",
->  	    .minimum = 0,
-> -	    .maximum = 255,
-> +	    .maximum = 506,
->  	    .step    = 1,
->  #define EXPO_DEF 120
->  	    .default_value = EXPO_DEF,
 
-Hi Antonio,
-
-Do we need a so high precision for the exposure? Just setting the
-maximum value to 253 should solve the problem.
-
-Cheers.
-
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Eugene Batsman
