@@ -1,91 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay01.digicable.hu ([92.249.128.189]:56651 "EHLO
-	relay01.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753457Ab0BXGxB (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4031 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751261Ab0BRXCm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Feb 2010 01:53:01 -0500
-Message-ID: <4B84CCCB.1050908@freemail.hu>
-Date: Wed, 24 Feb 2010 07:52:59 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+	Thu, 18 Feb 2010 18:02:42 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: Proposal for a V4L2 Media Controller mini-summit
+Date: Fri, 19 Feb 2010 00:05:00 +0100
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>,
+	"Gole, Anant" <anantgole@ti.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>,
+	Sergio Rodriguez <saaguirre@ti.com>, molnar@ti.com,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Guru Raj <gururaj.nagendra@intel.com>,
+	"Zhang, Xiaolin" <xiaolin.zhang@intel.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	"Jin-Sung Yang" <jsgood.yang@samsung.com>,
+	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
+	Kyungmin Park <kmpark@infradead.org>, mcharleb@qualcomm.com,
+	hrao@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Devin Heitmueller <devin.heitmueller@gmail.com>
+References: <201002121550.08706.hverkuil@xs4all.nl> <4B7D40C7.1060706@maxwell.research.nokia.com> <Pine.LNX.4.64.1002181956570.4373@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1002181956570.4373@axis700.grange>
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/2] gspca pac7302: remove LED blinking when switching stream
- on and off
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201002190005.00498.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+On Thursday 18 February 2010 19:58:07 Guennadi Liakhovetski wrote:
+> On Thu, 18 Feb 2010, Sakari Ailus wrote:
+> 
+> > Hans Verkuil wrote:
+> > > New proposal: May 5-7 in Lysaker, Norway.
+> > > 
+> > > Does that work?
+> > 
+> > Fits very well to my schedule.
+> 
+> May I also attend?
 
-The init sequences for PAC7302 contained register settings affecting
-the LED state which can result blinking of the LED when it is set to
-always on or always off. The blinking happened when the stream was
-switched on or off.
+Certainly! It's an open invitation!
 
-Remove the register changes from the init sequence and handle it with
-the function set_streaming_led().
+Regards,
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
----
---- a/linux/drivers/media/video/gspca/pac7302.c	2010-02-08 20:46:47.000000000 +0100
-+++ b/linux/drivers/media/video/gspca/pac7302.c	2010-02-08 20:48:04.000000000 +0100
-@@ -331,13 +331,6 @@ static const struct v4l2_pix_format vga_
- #define END_OF_SEQUENCE		0
+	Hans
 
- /* pac 7302 */
--static const __u8 init_7302[] = {
--/*	index,value */
--	0xff, 0x01,		/* page 1 */
--	0x78, 0x00,		/* deactivate */
--	0xff, 0x01,
--	0x78, 0x40,		/* led off */
--};
- static const __u8 start_7302[] = {
- /*	index, len, [value]* */
- 	0xff, 1,	0x00,		/* page 0 */
-@@ -373,7 +366,8 @@ static const __u8 start_7302[] = {
- 	0xff, 1,	0x01,		/* page 1 */
- 	0x12, 3,	0x02, 0x00, 0x01,
- 	0x3e, 2,	0x00, 0x00,
--	0x76, 5,	0x01, 0x20, 0x40, 0x00, 0xf2,
-+	0x76, 2,	0x01, 0x20,
-+	0x79, 2,	0x00, 0xf2,
- 	0x7c, 1,	0x00,
- 	0x7f, 10,	0x4b, 0x0f, 0x01, 0x2c, 0x02, 0x58, 0x03, 0x20,
- 			0x02, 0x00,
-@@ -397,8 +391,6 @@ static const __u8 start_7302[] = {
- 	0x2a, 5,	0xc8, 0x00, 0x18, 0x12, 0x22,
- 	0x64, 8,	0x00, 0x00, 0xf0, 0x01, 0x14, 0x44, 0x44, 0x44,
- 	0x6e, 1,	0x08,
--	0xff, 1,	0x01,		/* page 1 */
--	0x78, 1,	0x00,
- 	0, END_OF_SEQUENCE		/* end of sequence */
- };
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> 
 
-@@ -496,15 +488,6 @@ static void reg_w(struct gspca_dev *gspc
- 	}
- }
-
--static void reg_w_seq(struct gspca_dev *gspca_dev,
--		const __u8 *seq, int len)
--{
--	while (--len >= 0) {
--		reg_w(gspca_dev, seq[0], seq[1]);
--		seq += 2;
--	}
--}
--
- /* load the beginning of a page */
- static void reg_w_page(struct gspca_dev *gspca_dev,
- 			const __u8 *page, int len)
-@@ -774,7 +757,7 @@ static void set_streaming_led(struct gsp
- /* this function is called at probe and resume time for pac7302 */
- static int sd_init(struct gspca_dev *gspca_dev)
- {
--	reg_w_seq(gspca_dev, init_7302, sizeof(init_7302)/2);
-+	set_streaming_led(gspca_dev, 0);
- 	return gspca_dev->usb_err;
- }
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
