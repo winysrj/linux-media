@@ -1,38 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-13.arcor-online.net ([151.189.21.53]:55721 "EHLO
-	mail-in-13.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755952Ab0BCVs5 (ORCPT
+Received: from mail-fx0-f220.google.com ([209.85.220.220]:53968 "EHLO
+	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757960Ab0BRAMB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Feb 2010 16:48:57 -0500
-Message-ID: <4B69EF28.7000203@arcor.de>
-Date: Wed, 03 Feb 2010 22:48:24 +0100
-From: Stefan Ringel <stefan.ringel@arcor.de>
+	Wed, 17 Feb 2010 19:12:01 -0500
+Received: by fxm20 with SMTP id 20so8314869fxm.21
+        for <linux-media@vger.kernel.org>; Wed, 17 Feb 2010 16:11:59 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <4B7C84F3.4080708@redhat.com>
+References: <4B3F6FE0.4040307@internode.on.net> <4B421BCB.6050909@mailbox.hu>
+	 <4B4294FE.8000309@internode.on.net> <4B463AC6.2000901@mailbox.hu>
+	 <4B719CD0.6060804@mailbox.hu> <4B745781.2020408@mailbox.hu>
+	 <4B7C303B.2040807@mailbox.hu> <4B7C80F5.5060405@redhat.com>
+	 <829197381002171559k10b692dcu99a3adc2f613437f@mail.gmail.com>
+	 <4B7C84F3.4080708@redhat.com>
+Date: Wed, 17 Feb 2010 19:11:59 -0500
+Message-ID: <829197381002171611u7fcc8caeuea98e047164ae55@mail.gmail.com>
+Subject: Re: [PATCH] DTV2000 H Plus issues
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
 To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [PATCH 1/15] -  tm6000 build hunk
-References: <4B673790.3030706@arcor.de> <4B673B2D.6040507@arcor.de> <4B675B19.3080705@redhat.com> <4B685FB9.1010805@arcor.de> <4B688507.606@redhat.com> <4B688E41.2050806@arcor.de> <4B689094.2070204@redhat.com> <4B6894FE.6010202@arcor.de> <4B69D83D.5050809@arcor.de>
-In-Reply-To: <4B69D83D.5050809@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Cc: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+On Wed, Feb 17, 2010 at 7:08 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> OK. Then, I need your SOB for the 95% of the code, and his SOB for the
+> remaining ;)
 
---- a/drivers/staging/tm6000/tm6000-cards.c
-+++ b/drivers/staging/tm6000/tm6000-cards.c
-@@ -32,7 +32,7 @@
- #include "tm6000.h"
- #include "tm6000-regs.h"
- #include "tuner-xc2028.h"
--#include "tuner-xc5000.h"
-+#include "xc5000.h"
- 
- #define TM6000_BOARD_UNKNOWN            0
- #define TM5600_BOARD_GENERIC            1
+Yeah, my plan at this point was to submit a PULL request once I felt
+the driver is stable (and I had already offered to apply his
+incremental patches onto my tree before said pull request).
+
+Devin
 
 -- 
-Stefan Ringel <stefan.ringel@arcor.de>
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
