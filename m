@@ -1,97 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3948 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752813Ab0BNTvS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Feb 2010 14:51:18 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id o1EJpG1H002389
-	for <linux-media@vger.kernel.org>; Sun, 14 Feb 2010 20:51:16 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 14 Feb 2010 20:51:16 +0100 (CET)
-Message-Id: <201002141951.o1EJpG1H002389@smtp-vbr11.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mail.gmx.net ([213.165.64.20]:41038 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1756799Ab0BRPP5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Feb 2010 10:15:57 -0500
+Subject: Re: alevt-dvb 1.7.0: new version, should be free from bugs now
+From: Chicken Shack <chicken.shack@gmx.de>
+To: Greg KH <greg@kroah.com>
+Cc: Emil Meier <emil276me@yahoo.com>,
+	Linux media <linux-media@vger.kernel.org>,
+	francescolavra@interfree.it, stable@kernel.org
+In-Reply-To: <20100218144021.GA15415@kroah.com>
+References: <592995.76165.qm@web37603.mail.mud.yahoo.com>
+	 <1266483476.1690.50.camel@brian.bconsult.de>
+	 <20100218144021.GA15415@kroah.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 18 Feb 2010 16:15:47 +0100
+Message-ID: <1266506147.4359.22.camel@brian.bconsult.de>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Am Donnerstag, den 18.02.2010, 06:40 -0800 schrieb Greg KH:
+> On Thu, Feb 18, 2010 at 09:57:56AM +0100, Chicken Shack wrote:
+> > For Greg Kroah-Hartman:
+> > 
+> > This one should go into kernel 2.6.32, just to close a gap of kernel
+> > regressions:
+> > 
+> > http://linuxtv.org/hg/v4l-dvb/rev/2dfe2234e7ea
+> 
+> I have no idea what you are asking me to do here.
+> 
+> If you need a patch in the -stable tree, send the git commit id of the
+> patch that is in Linus's tree to the stable@kernel.org email address.
 
-Results of the daily build of v4l-dvb:
+OK. So this is a bit new and confusing, and it is definitely not my job,
+as there are so-called MAINTAINERS for that, but I will try my best:
 
-date:        Sun Feb 14 19:00:12 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14198:14021dfc00f3
-gcc version: i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:     2.6.32.5
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-rc5-armv5: OK
-linux-2.6.32.6-armv5-davinci: ERRORS
-linux-2.6.33-rc5-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-dm365: ERRORS
-linux-2.6.33-rc5-armv5-dm365: ERRORS
-linux-2.6.32.6-armv5-ixp: OK
-linux-2.6.33-rc5-armv5-ixp: OK
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-rc5-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.17-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.20-i686: OK
-linux-2.6.26.8-i686: OK
-linux-2.6.27.44-i686: OK
-linux-2.6.28.10-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: OK
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-rc5-i686: OK
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-rc5-m32r: OK
-linux-2.6.32.6-mips: OK
-linux-2.6.33-rc5-mips: OK
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-rc5-powerpc64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.17-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.20-x86_64: OK
-linux-2.6.26.8-x86_64: OK
-linux-2.6.27.44-x86_64: OK
-linux-2.6.28.10-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: OK
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-rc5-x86_64: OK
-spec: OK
-sparse (v4l-dvb-git): ERRORS
-sparse (linux-2.6.33-rc5): ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: OK
-linux-2.6.19.7-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.7-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+Here is the link:
 
-Detailed results are available here:
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=691c9ae099b9bcb5c27125af00a4a90120977458
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+and this ought to be the commit id:
 
-Full logs are available here:
+commit	691c9ae099b9bcb5c27125af00a4a90120977458
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+SOB etc. please see link.
 
-The V4L-DVB specification from this daily build is here:
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> If it is not in Linus's tree, I can not accept it.
+
+It is there, please see above!
+
+Instead of doing a steady maintainers job, Mauro Carvalho Chehab prefers
+to play kiddish games by substituting functionable kernel patches with
+his own disfunctionable ones, as you can see here:
+
+http://www.spinics.net/lists/linux-media/msg15749.html
+
+and here:
+
+http://www.spinics.net/lists/linux-media/msg15761.html
+
+The maintainers job would have been to send the commit ID to
+stable@kernel.org, but foolish experiments seem to be more important
+than a fix for a stable kernel.
+
+> confused,
+
+> greg k-h
+
+enlightened and delighted,
+
+Chicken Shack :)  :)
+
+stable@kernel.org Cced.....
+
+
