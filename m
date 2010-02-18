@@ -1,51 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from xenotime.net ([72.52.64.118]:36878 "HELO xenotime.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753618Ab0BVVVK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 16:21:10 -0500
-Received: from chimera.site ([71.245.98.113]) by xenotime.net for <linux-media@vger.kernel.org>; Mon, 22 Feb 2010 13:21:07 -0800
-Message-ID: <4B82F542.2030206@xenotime.net>
-Date: Mon, 22 Feb 2010 13:21:06 -0800
-From: Randy Dunlap <rdunlap@xenotime.net>
+Received: from smtp2b.orange.fr ([80.12.242.144]:64829 "EHLO smtp2b.orange.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750999Ab0BRVGQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Feb 2010 16:06:16 -0500
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf2b29.orange.fr (SMTP Server) with ESMTP id 9FC8B7000139
+	for <linux-media@vger.kernel.org>; Thu, 18 Feb 2010 22:06:09 +0100 (CET)
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf2b29.orange.fr (SMTP Server) with ESMTP id 903D07002366
+	for <linux-media@vger.kernel.org>; Thu, 18 Feb 2010 22:06:09 +0100 (CET)
+Received: from [192.168.0.1] (AVelizy-151-1-71-97.w81-249.abo.wanadoo.fr [81.249.125.97])
+	by mwinf2b29.orange.fr (SMTP Server) with ESMTP id 67F9F7000139
+	for <linux-media@vger.kernel.org>; Thu, 18 Feb 2010 22:06:09 +0100 (CET)
+Message-ID: <4B7DABD8.4000006@orange.fr>
+Date: Thu, 18 Feb 2010 22:06:32 +0100
+From: Catimimi <catimimi@orange.fr>
 MIME-Version: 1.0
-To: Jonathan Corbet <corbet@lwn.net>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] Updated videobuf documentation
-References: <20100218101219.665c5403@bike.lwn.net>	<4B7DC652.9080601@xenotime.net>	<4B7E2B0F.6000706@infradead.org> <20100222134746.1ce5cecf@bike.lwn.net>
-In-Reply-To: <20100222134746.1ce5cecf@bike.lwn.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Subject: [patch] em28xx : Terratec Cinergy Hybrid T USB XS FR is working.
+Content-Type: multipart/mixed;
+ boundary="------------090009080206020603000608"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/22/10 12:47, Jonathan Corbet wrote:
-> On Fri, 19 Feb 2010 04:09:19 -0200
-> Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
-> 
->> Not anymore: there's a patch that added USERPTR support for videobuf-dma-contig:
->>
->> commit 720b17e759a50635c429ccaa2ec3d01edb4f92d6
->> Author: Magnus Damm <damm@igel.co.jp>
->> Date:   Tue Jun 16 15:32:36 2009 -0700
->>
->>     videobuf-dma-contig: zero copy USERPTR support
-> 
-> Now *that* is a special-purpose hack.  But it's worth mentioning, so
-> I've updated the text accordingly.
-> 
->> In terms of memory types, there's a possibility that weren't mentioned: the OVERLAY mode.
->>
->> Maybe a small paragraph may be added just for the completeness of the doc.
-> 
-> Yeah, I try to ignore overlay whenever I can.  I've added a brief bit.
-> 
-> New version of the patch attached; look better?
+This is a multi-part message in MIME format.
+--------------090009080206020603000608
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-Looks good to me (other than a few straggling lines that end with whitespace).
+Hi,
 
-Reviewed-by: Randy Dunlap <rdunlap@xenotime.net>
+I succed in running Cinergy Hybrid T USB XS FR in both modes.
+I enclose the patch against v4l-dvb-14021dfc00f3
 
-thanks.
--- 
-~Randy
+Regards.
+Michel.
+
+
+--------------090009080206020603000608
+Content-Type: text/x-patch;
+ name="Cinergy_Hybrid_T_USB_XS_FR.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="Cinergy_Hybrid_T_USB_XS_FR.patch"
+
+diff -ru v4l-dvb-14021dfc00f3-orig/linux/drivers/media/video/em28xx/em28xx-cards.c v4l-dvb-14021dfc00f3-mod/linux/drivers/media/video/em28xx/em28xx-cards.c
+--- v4l-dvb-14021dfc00f3-orig/linux/drivers/media/video/em28xx/em28xx-cards.c	2010-02-12 02:11:30.000000000 +0100
++++ v4l-dvb-14021dfc00f3-mod/linux/drivers/media/video/em28xx/em28xx-cards.c	2010-02-18 21:52:43.000000000 +0100
+@@ -774,15 +774,12 @@
+ 
+ 	[EM2880_BOARD_TERRATEC_HYBRID_XS_FR] = {
+ 		.name         = "Terratec Hybrid XS Secam",
+-		.valid        = EM28XX_BOARD_NOT_VALIDATED,
+ 		.has_msp34xx  = 1,
+ 		.tuner_type   = TUNER_XC2028,
+ 		.tuner_gpio   = default_tuner_gpio,
+ 		.decoder      = EM28XX_TVP5150,
+-#if 0 /* FIXME: add an entry at em28xx-dvb */
+ 		.has_dvb      = 1,
+ 		.dvb_gpio     = default_digital,
+-#endif
+ 		.input        = { {
+ 			.type     = EM28XX_VMUX_TELEVISION,
+ 			.vmux     = TVP5150_COMPOSITE0,
+diff -ru v4l-dvb-14021dfc00f3-orig/linux/drivers/media/video/em28xx/em28xx-dvb.c v4l-dvb-14021dfc00f3-mod/linux/drivers/media/video/em28xx/em28xx-dvb.c
+--- v4l-dvb-14021dfc00f3-orig/linux/drivers/media/video/em28xx/em28xx-dvb.c	2010-02-12 02:11:30.000000000 +0100
++++ v4l-dvb-14021dfc00f3-mod/linux/drivers/media/video/em28xx/em28xx-dvb.c	2010-02-15 21:45:30.000000000 +0100
+@@ -503,6 +503,7 @@
+ 		}
+ 		break;
+ 	case EM2880_BOARD_TERRATEC_HYBRID_XS:
++	case EM2880_BOARD_TERRATEC_HYBRID_XS_FR:
+ 	case EM2881_BOARD_PINNACLE_HYBRID_PRO:
+ 	case EM2882_BOARD_DIKOM_DK300:
+ 		dvb->frontend = dvb_attach(zl10353_attach,
+
+--------------090009080206020603000608--
+
+
