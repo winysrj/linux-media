@@ -1,72 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp0.lie-comtel.li ([217.173.238.80]:54998 "EHLO
-	smtp0.lie-comtel.li" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751622Ab0BBKzH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Feb 2010 05:55:07 -0500
-Message-ID: <4B68028D.8000405@kaiser-linux.li>
-Date: Tue, 02 Feb 2010 11:46:37 +0100
-From: Thomas Kaiser <v4l@kaiser-linux.li>
+Received: from mx1.redhat.com ([209.132.183.28]:63275 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758697Ab0BRUU0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Feb 2010 15:20:26 -0500
+Message-ID: <4B7DA0FB.5010506@redhat.com>
+Date: Thu, 18 Feb 2010 18:20:11 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-CC: Hans de Goede <hdegoede@redhat.com>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: libv4l: possible problem found in PAC7302 JPEG decoding
-References: <4B67466F.1030301@freemail.hu>
-In-Reply-To: <4B67466F.1030301@freemail.hu>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+To: stefan.ringel@arcor.de
+CC: linux-media@vger.kernel.org, dheitmueller@kernellabs.com
+Subject: Re: [PATCH 09/11] zl10353: tm6000: bugfix reading problems with tm6000
+ i2c host
+References: <1266255444-7422-1-git-send-email-stefan.ringel@arcor.de> <1266255444-7422-2-git-send-email-stefan.ringel@arcor.de> <1266255444-7422-3-git-send-email-stefan.ringel@arcor.de> <1266255444-7422-4-git-send-email-stefan.ringel@arcor.de> <1266255444-7422-5-git-send-email-stefan.ringel@arcor.de> <1266255444-7422-6-git-send-email-stefan.ringel@arcor.de> <1266255444-7422-7-git-send-email-stefan.ringel@arcor.de> <1266255444-7422-8-git-send-email-stefan.ringel@arcor.de> <1266255444-7422-9-git-send-email-stefan.ringel@arcor.de>
+In-Reply-To: <1266255444-7422-9-git-send-email-stefan.ringel@arcor.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/01/2010 10:23 PM, Németh Márton wrote:
-> Hello Hans,
+stefan.ringel@arcor.de wrote:
+> From: Stefan Ringel <stefan.ringel@arcor.de>
 > 
-> while I was dealing with Labtec Webcam 2200 and with gspca_pac7302 driver I recognised the
-> following behaviour. The stream received from the webcam is splitted by the gspca_pac7302
-> subdriver when the byte sequence 0xff, 0xff, 0x00, 0xff, 0x96 is found (pac_find_sof()).
-> Before transmitting the data to the userspace a JPEG header is added (pac_start_frame())
-> and the footer after the bytes 0xff, 0xd9 are removed.
+> Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
 > 
-> The data buffer which arrives to userspace looks like as follows (maybe not every detail is exact):
-> 
->  1. JPEG header
-> 
->  2. Some bytes of image data (near to 1024 bytes)
-> 
->  3. The byte sequence 0xff, 0xff, 0xff, 0x01 followed by 1024 bytes of data.
->     This marker sequence and data repeats a couple of time. Exactly how much
->     depends on the image content.
-> 
->  4. The byte sequence 0xff, 0xff, 0xff, 0x02 followed by 512 bytes of data.
->     This marker sequence and data also repeats a couple of time.
-> 
->  5. The byte sequence 0xff, 0xff, 0xff, 0x00 followed by a variable amount of
->     image data bytes.
-> 
->  6. The End of Image (EOI) marker 0xff, 0xd9.
-> 
-> Now what can be wrong with the libv4l? In libv4lconvert/tinyjpeg.c, line 315 there is a
-> huge macro which tries to remove the 0xff, 0xff, 0xff, xx byte sequence from the received
-> image. This fails, however, if the image contains 0xff bytes just before the 0xff, 0xff,
-> 0xff, xx sequence because one byte from the image data (the first 0xff) is removed, then
-> the three 0xff bytes from the marker is also removed. The xx (which really belongs to the
-> marker) is left in the image data instead of the original 0xff byte.
-> 
-> Based on my experiments this problem sometimes causes corrupted image decoding or that the
-> JPEG image cannot be decoded at all.
-> 
+> diff --git a/drivers/media/dvb/frontends/zl10353.c b/drivers/media/dvb/frontends/zl10353.c
+> index 8c61271..9716d7e 100644
+> --- a/drivers/media/dvb/frontends/zl10353.c
+> +++ b/drivers/media/dvb/frontends/zl10353.c
+> @@ -74,7 +74,7 @@ static int zl10353_write(struct dvb_frontend *fe, u8 *ibuf, int ilen)
+>  	return 0;
+>  }
+>  
+> -static int zl10353_read_register(struct zl10353_state *state, u8 reg)
+> +static int zl10353_read1_register(struct zl10353_state *state, u8 reg)
+>  {
+>  	int ret;
+>  	u8 b0[1] = { reg };
+> @@ -97,6 +97,41 @@ static int zl10353_read_register(struct zl10353_state *state, u8 reg)
+>  	return b1[0];
+>  }
+>  
+> +static int zl10353_read2_register(struct zl10353_state *state, u8 reg)
+> +{
+> +	int ret;
+> +	u8 b0[1] = { reg - 1 };
+> +	u8 b1[1] = { 0 };
+> +	struct i2c_msg msg[2] = { { .addr = state->config.demod_address,
+> +				    .flags = 0,
+> +				    .buf = b0, .len = 1 },
+> +				  { .addr = state->config.demod_address,
+> +				    .flags = I2C_M_RD,
+> +				    .buf = b1, .len = 2 } };
+> +
+> +	ret = i2c_transfer(state->i2c, msg, 2);
+> +
+> +	if (ret != 2) {
+> +		printk("%s: readreg error (reg=%d, ret==%i)\n",
+> +		       __func__, reg, ret);
+> +		return ret;
+> +	}
+> +
+> +	return b1[1];
+> +}
 
-Hello Németh
+This patch doesn't look correct to me. The size of the zl10353 read register doesn't 
+change when it is used with tm6000. The solution should be at tm6000-i2c, basically
+using the same REQ for 2 bytes when only 1 byte is being read.
 
-I remember the problem as I was working on the PAC7311.
-http://www.kaiser-linux.li/index.php?title=PAC7311
-
-
-This is the code I used in the JPEG decoder to remove the 0xff 0xff 0xff 
-  0xnn markers.
-
-See http://www.kaiser-linux.li/files/PAC7311/gspcav1-PAC7311-20070425.tar.gz
-decoder/gspcadecoder.c pac7311_decode()
-
-Thomas
-
+Cheers,
+Mauro
