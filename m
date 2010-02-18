@@ -1,51 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-09.arcor-online.net ([151.189.21.49]:37071 "EHLO
-	mail-in-09.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752148Ab0BUULs (ORCPT
+Received: from rcsinet12.oracle.com ([148.87.113.124]:23904 "EHLO
+	rcsinet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757462Ab0BRQg5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Feb 2010 15:11:48 -0500
-From: stefan.ringel@arcor.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
-	Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH 3/3] tm6000: bugfix i2c addr
-Date: Sun, 21 Feb 2010 21:10:36 +0100
-Message-Id: <1266783036-6549-3-git-send-email-stefan.ringel@arcor.de>
-In-Reply-To: <1266783036-6549-2-git-send-email-stefan.ringel@arcor.de>
-References: <1266783036-6549-1-git-send-email-stefan.ringel@arcor.de>
- <1266783036-6549-2-git-send-email-stefan.ringel@arcor.de>
+	Thu, 18 Feb 2010 11:36:57 -0500
+Message-ID: <4B7D6C5C.4010908@oracle.com>
+Date: Thu, 18 Feb 2010 08:35:40 -0800
+From: Randy Dunlap <randy.dunlap@oracle.com>
+MIME-Version: 1.0
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+CC: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: linux-next: Tree for February 18 (media/video/gspca)
+References: <20100218204937.54a613d2.sfr@canb.auug.org.au>
+In-Reply-To: <20100218204937.54a613d2.sfr@canb.auug.org.au>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <stefan.ringel@arcor.de>
+On 02/18/10 01:49, Stephen Rothwell wrote:
+> Hi all,
+> 
+> Changes since 20100217:
 
-Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
----
- drivers/staging/tm6000/tm6000-i2c.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/tm6000/tm6000-i2c.c b/drivers/staging/tm6000/tm6000-i2c.c
-index 6ae02b8..029cf74 100644
---- a/drivers/staging/tm6000/tm6000-i2c.c
-+++ b/drivers/staging/tm6000/tm6000-i2c.c
-@@ -125,7 +125,7 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
- 
- 			i++;
- 
--			if (addr == dev->tuner_addr) {
-+			if (addr == dev->tuner_addr << 1) {
- 				tm6000_set_reg(dev, 0x32, 0,0);
- 				tm6000_set_reg(dev, 0x33, 0,0);
- 			}
-@@ -140,7 +140,7 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
- 			rc = tm6000_i2c_send_regs(dev, addr, msgs[i].buf[0],
- 				msgs[i].buf + 1, msgs[i].len - 1);
- 
--			if (addr == dev->tuner_addr) {
-+			if (addr == dev->tuner_addr  << 1) {
- 				tm6000_set_reg(dev, 0x32, 0,0);
- 				tm6000_set_reg(dev, 0x33, 0,0);
- 			}
+when CONFIG_INPUT is not enabled:
+
+drivers/media/video/gspca/gspca.c:2345: error: 'struct gspca_dev' has no member named 'input_dev'
+drivers/media/video/gspca/gspca.c:2347: error: 'struct gspca_dev' has no member named 'input_dev'
+
+
 -- 
-1.6.6.1
-
+~Randy
