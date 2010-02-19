@@ -1,88 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2012 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757182Ab0BRLDt (ORCPT
+Received: from mail.gmx.net ([213.165.64.20]:55285 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754362Ab0BSVCc convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Feb 2010 06:03:49 -0500
-Message-ID: <c76d3160af32c3c654cad235f9ef5441.squirrel@webmail.xs4all.nl>
-In-Reply-To: <4B7D1B7D.9090800@maxwell.research.nokia.com>
-References: <201002121550.08706.hverkuil@xs4all.nl>
-    <201002171933.33921.hverkuil@xs4all.nl>
-    <201002181058.28073.laurent.pinchart@ideasonboard.com>
-    <4B7D1B7D.9090800@maxwell.research.nokia.com>
-Date: Thu, 18 Feb 2010 12:03:48 +0100
-Subject: Re: Proposal for a V4L2 Media Controller mini-summit
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Sakari Ailus" <sakari.ailus@maxwell.research.nokia.com>
-Cc: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, "Vaibhav Hiremath" <hvaibhav@ti.com>,
-	"Gole, Anant" <anantgole@ti.com>,
-	"Muralidharan Karicheri" <m-karicheri2@ti.com>,
-	"Sergio Rodriguez" <saaguirre@ti.com>, molnar@ti.com,
-	"Magnus Damm" <magnus.damm@gmail.com>,
-	"Guru Raj" <gururaj.nagendra@intel.com>,
-	"Zhang, Xiaolin" <xiaolin.zhang@intel.com>,
-	"Pawel Osciak" <p.osciak@samsung.com>,
-	"Marek Szyprowski" <m.szyprowski@samsung.com>,
-	"Jin-Sung Yang" <jsgood.yang@samsung.com>,
-	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
-	"Kyungmin Park" <kmpark@infradead.org>, mcharleb@qualcomm.com,
-	hrao@ti.com, "Mauro Carvalho Chehab" <mchehab@infradead.org>,
-	"Devin Heitmueller" <devin.heitmueller@gmail.com>
+	Fri, 19 Feb 2010 16:02:32 -0500
+Date: Fri, 19 Feb 2010 22:02:30 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Philipp Wiesner <p.wiesner@gmx.net>
+cc: linux-media@vger.kernel.org
+Subject: Re: soc-camera: pixclk polarity question
+In-Reply-To: <20100219162101.92410@gmx.net>
+Message-ID: <Pine.LNX.4.64.1002192153550.5860@axis700.grange>
+References: <20100219162101.92410@gmx.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Fri, 19 Feb 2010, Philipp Wiesner wrote:
 
-> Laurent Pinchart wrote:
->> Hi Hans,
->>
->> On Wednesday 17 February 2010 19:33:33 Hans Verkuil wrote:
->>> On Friday 12 February 2010 15:50:08 Hans Verkuil wrote:
->>>>
->>>> There is another alternative and that is that I organize a mini-summit
->>>> in
->>>> May in Lysaker (near Oslo, Norway) at the Tandberg offices. But
->>>> frankly
->>>> I think that it is more fun to do this during/before/after a
->>>> conference.
->>>> If only because there are a lot of linux kernel experts on hand during
->>>> such a conference that you can ask for help if needed.
->>>>
->>>> Please let me know asap if you are interested in attending such a
->>>> mini-summit and what dates are possible for you:
->>>>
->>>> a: April 10-11 (or 12)
->>>> b: April 12-14
->>>> c: April 14 (or 15)-16
->>>> d: Somewhere in May (suggestions for dates are welcome)
->>>
->>> I would appreciate it if people/companies who are interested in
->>> attending
->>> would let me know as soon as possible. Options A and B are a no go, so
->>> it
->>> is either April 14-16, or it will be in May. It doesn't have to be
->>> definitive, but I would like to have an idea of what to expect.
->>
->> It's not a definitive no, but April 14-16 will be very difficult for me,
->> so
->> there's little chance I can attend.
->
-> I can confirm now that only the May dates are possible for me. :-\
+> Hi,
+> 
+> I'm working with µCs (i.MX27) and cameras (Aptina) at the moment.
+> 
+> Now I encountered a problem introduced by serializing and deserializing 
+> (lvds) camera data on its way to the µC.
+> 
+> The serializer expects a specific pixclk polarity which can be 
+> configured in hardware. In most cases this is no problem as it is 
+> permanently connected to only one sensor chip, but camera sensors with 
+> configurable pixclk could negotiate the wrong polarity.
+> 
+> The deserializer generates pixclk from data, its polarity again can be 
+> configured in hardware. This leads to pixclk inversion depending on 
+> wheter serdes is happening or not, so its not an attribute of the 
+> platform (in opposition to what SOCAM_SENSOR_INVERT_PCLK is meant for)
+> 
+> What would be the correct way to address this?
+> 
+> Do we need another platform flag, e.g. SOCAM_PCLK_SAMPLE_RISING_FIXED?
+> The only solution coming to my mind is checking for the SerDes on boot 
+> time and setting flags like SOCAM_PCLK_SAMPLE_RISING_FIXED and 
+> SOCAM_SENSOR_INVERT_PCLK if necessary.
 
-Darn. Having a mini-summit without Laurent and yourself is pointless since
-you are both key developers.
+Hm, how is any new flag better than the existing one? If it is just a 
+static flag - it doesn't change anything, right? As far as I understand, 
+on one and the same platform the signal polarity can be different, 
+depending on some switch / jumper / hard-soldered pin, right? I think your 
+boot-time verification is good then - just put it in your platform code 
+and set the flag(s) accordingly.
 
-New proposal: May 5-7 in Lysaker, Norway.
-
-Does that work?
-
-Regards,
-
-        Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
