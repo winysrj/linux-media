@@ -1,76 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:41435 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752546Ab0BWOVB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2010 09:21:01 -0500
-Subject: Re: Chroma gain configuration
-From: Andy Walls <awalls@radix.net>
+Received: from smtp.nokia.com ([192.100.105.134]:17743 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752245Ab0BSTM2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Feb 2010 14:12:28 -0500
+Message-ID: <4B7EE25F.9050402@maxwell.research.nokia.com>
+Date: Fri, 19 Feb 2010 21:11:27 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+MIME-Version: 1.0
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <201002230853.36928.hverkuil@xs4all.nl>
-References: <829197381002212007q342fc01bm1c528a2f15027a1e@mail.gmail.com>
-	 <201002222254.05573.hverkuil@xs4all.nl>
-	 <829197381002221400i6e4f4b17u42597d5138171e19@mail.gmail.com>
-	 <201002230853.36928.hverkuil@xs4all.nl>
-Content-Type: text/plain
-Date: Tue, 23 Feb 2010 09:20:43 -0500
-Message-Id: <1266934843.4589.20.camel@palomino.walls.org>
-Mime-Version: 1.0
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, iivanov@mm-sol.com,
+	gururaj.nagendra@intel.com, david.cohen@nokia.com
+Subject: Re: [PATCH v4 7/7] V4L: Events: Support all events
+References: <4B72C965.7040204@maxwell.research.nokia.com>    <1265813889-17847-7-git-send-email-sakari.ailus@maxwell.research.nokia.com>    <201002131542.20916.hverkuil@xs4all.nl>    <201002151111.09151.laurent.pinchart@ideasonboard.com> <732a3c26ed77df5896cb310597d1c79e.squirrel@webmail.xs4all.nl>
+In-Reply-To: <732a3c26ed77df5896cb310597d1c79e.squirrel@webmail.xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2010-02-23 at 08:53 +0100, Hans Verkuil wrote:
-> On Monday 22 February 2010 23:00:32 Devin Heitmueller wrote:
-> > On Mon, Feb 22, 2010 at 4:54 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-
-> > Of course, if you and Mauro wanted to sign off on the creation of a
-> > new non-private user control called V4L2_CID_CHROMA_GAIN, that would
-> > also resolve my problem.  :-)
+Hans Verkuil wrote:
+>> Then don't call it v4l2_event_subscribe_all if it only subscribes to a set
+>> of
+>> event :-)
+>>
+>>> For each event this function would then call:
+>>>
+>>> fh->vdev->ioctl_ops->vidioc_subscribe_event(fh, sub);
+>>>
+>>> The nice thing about that is that in the driver you have a minimum of
+>>> fuss.
+>>>
+>>> I'm leaning towards this second solution due to the simple driver
+>>> implementation.
+>>>
+>>> Handling EVENT_ALL will simplify things substantially IMHO.
+>>
+>> I'm wondering if subscribing to all events should be allowed. Do we have
+>> use
+>> cases for that ? I'm always a bit cautious when adding APIs with no users,
+>> as
+>> that means the API has often not been properly tested against possible use
+>> cases and mistakes will need to be supported forever (or at least for a
+>> long
+>> time).
 > 
-> Hmm, Mauro is right: the color controls we have now are a bit of a mess.
-> Perhaps this is a good moment to try and fix them. Suppose we had no color
-> controls at all: how would we design them in that case? When we know what we
-> really need, then we can compare that with what we have and figure out what
-> we need to do to make things right again.
+> I think that is a good point. Supporting V4L2_EVENT_ALL makes sense for
+> unsubscribe, but does it makes sense for subscribe as well? I think it
+> does not. It just doesn't feel right when I tried to implement it in ivtv.
 
-Hmmm:
+I don't see any harm in supporting it there. We could also specify that
+drivers may support that. At least for testing purposes that could be
+quite useful. :-) Perhaps not for regular use, though.
 
-1. comb filter enable/disable
-2. chroma AGC enable/disable
-3. chroma kill threshold and enable/disable
-4. UV saturation  (C vector magnitude adjustment as long as you adjust U
-and V in the same way.)
-5. Hue (C vector phase adjustment)
-6. chroma coring
-7. chroma delay/advance in pixels relative to luma pixels
-8. chroma subcarrier locking algorithm: fast, slow, adaptive
-9. chroma notch filer settings (when doing Y/C separation from CVBS)
-10. additional analog signal gain
-11. anti-alias filter enable/disable
+> I also wonder whether the unsubscribe API shouldn't just receive the event
+> type instead of the big subscription struct. Or get its own struct. I
+> don't think it makes much sense that they both have the same struct.
 
-And that's just from a quick scan of the public CX25836/7 datasheet.
+So for unsubscribing the argument would be just event type as __u32?
 
-I left my handbook with all sorts of details about the Human Visual
-System and the CIE and NTSC and PAL colorspaces at work.
+I don't see harm in having the struct there. There might be flags in
+future, perhaps telling that events of that type should be cleaned up
+from the event queue, for example. (I can't think of any other purposes
+now. :))
 
-Regards,
-Andy
+Cheers,
 
-
-
-
-
-> Regards,
-> 
-> 	Hans
-> 
-> > 
-> > Devin
-> > 
-> > 
-> 
-
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
