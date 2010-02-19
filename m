@@ -1,50 +1,210 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:49475 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751804Ab0BJTUQ (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:18256 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755011Ab0BSTWM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Feb 2010 14:20:16 -0500
-Received: by bwz19 with SMTP id 19so437745bwz.28
-        for <linux-media@vger.kernel.org>; Wed, 10 Feb 2010 11:20:14 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <f535cc5a1002101102w146050c5v91ddc6ec86542153@mail.gmail.com>
-References: <f535cc5a1002100021u37bf47a5y50a0a90873a082e2@mail.gmail.com>
-	 <f535cc5a1002101058h4d8e4bd1p6fd03abd4f724f52@mail.gmail.com>
-	 <f535cc5a1002101101k709bbe9bv504cf33fab14dedc@mail.gmail.com>
-	 <f535cc5a1002101102w146050c5v91ddc6ec86542153@mail.gmail.com>
-Date: Wed, 10 Feb 2010 14:20:14 -0500
-Message-ID: <829197381002101120v76e5ad9w28283bbaafc941c4@mail.gmail.com>
-Subject: Re: Want to help in MSI TV VOX USB 2.0
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Carlos Jenkins <carlos.jenkins.perez@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 19 Feb 2010 14:22:12 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
+	david.cohen@nokia.com,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: [PATCH v5 1/6] V4L: File handles
+Date: Fri, 19 Feb 2010 21:21:55 +0200
+Message-Id: <1266607320-9974-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4B7EE4A4.3080202@maxwell.research.nokia.com>
+References: <4B7EE4A4.3080202@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 10, 2010 at 2:02 PM, Carlos Jenkins
-<carlos.jenkins.perez@gmail.com> wrote:
-> Hi everyone.
->
-> First of all, great job :)
->
-> My name is Carlos Jenkins, and I'm here to help getting to work the
-> MSI TV VOX 8609 USB 2.0 device once again. I know it's an old device,
-> but here where I live, in Costa Rica, we still have analog TV only.
->
-> TV Standard: NTSC
->
-> This device is a em2820/SAA7114H device, I'm sure, I opened it and
-> looked at the chips :P
-<snip>
+This patch adds a list of v4l2_fh structures to every video_device.
+It allows using file handle related information in V4L2. The event interface
+is one example of such use.
 
-Try card=9, and make sure you have tvtime configured to the correct
-video standard *before* starting it up (you may need to run the
-tvtime-configure command line tool).
+Video device drivers should use the v4l2_fh pointer as their
+file->private_data.
 
-Devin
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/Makefile   |    2 +-
+ drivers/media/video/v4l2-dev.c |    4 ++
+ drivers/media/video/v4l2-fh.c  |   64 ++++++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-dev.h       |    5 +++
+ include/media/v4l2-fh.h        |   42 ++++++++++++++++++++++++++
+ 5 files changed, 116 insertions(+), 1 deletions(-)
+ create mode 100644 drivers/media/video/v4l2-fh.c
+ create mode 100644 include/media/v4l2-fh.h
 
-
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index 5163289..14bf69a 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -10,7 +10,7 @@ stkwebcam-objs	:=	stk-webcam.o stk-sensor.o
+ 
+ omap2cam-objs	:=	omap24xxcam.o omap24xxcam-dma.o
+ 
+-videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o
++videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o
+ 
+ # V4L2 core modules
+ 
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index 7090699..65a7b30 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -421,6 +421,10 @@ static int __video_register_device(struct video_device *vdev, int type, int nr,
+ 	if (!vdev->release)
+ 		return -EINVAL;
+ 
++	/* v4l2_fh support */
++	spin_lock_init(&vdev->fh_lock);
++	INIT_LIST_HEAD(&vdev->fh_list);
++
+ 	/* Part 1: check device type */
+ 	switch (type) {
+ 	case VFL_TYPE_GRABBER:
+diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
+new file mode 100644
+index 0000000..c707930
+--- /dev/null
++++ b/drivers/media/video/v4l2-fh.c
+@@ -0,0 +1,64 @@
++/*
++ * drivers/media/video/v4l2-fh.c
++ *
++ * V4L2 file handles.
++ *
++ * Copyright (C) 2009 Nokia Corporation.
++ *
++ * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#include <linux/bitops.h>
++#include <media/v4l2-dev.h>
++#include <media/v4l2-fh.h>
++
++void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
++{
++	fh->vdev = vdev;
++	INIT_LIST_HEAD(&fh->list);
++	set_bit(V4L2_FL_USES_V4L2_FH, &fh->vdev->flags);
++}
++EXPORT_SYMBOL_GPL(v4l2_fh_init);
++
++void v4l2_fh_add(struct v4l2_fh *fh)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
++	list_add(&fh->list, &fh->vdev->fh_list);
++	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
++}
++EXPORT_SYMBOL_GPL(v4l2_fh_add);
++
++void v4l2_fh_del(struct v4l2_fh *fh)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
++	list_del_init(&fh->list);
++	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
++}
++EXPORT_SYMBOL_GPL(v4l2_fh_del);
++
++void v4l2_fh_exit(struct v4l2_fh *fh)
++{
++	if (fh->vdev == NULL)
++		return;
++
++	fh->vdev = NULL;
++}
++EXPORT_SYMBOL_GPL(v4l2_fh_exit);
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 2dee938..bebe44b 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -32,6 +32,7 @@ struct v4l2_device;
+    Drivers can clear this flag if they want to block all future
+    device access. It is cleared by video_unregister_device. */
+ #define V4L2_FL_REGISTERED	(0)
++#define V4L2_FL_USES_V4L2_FH	(1)
+ 
+ struct v4l2_file_operations {
+ 	struct module *owner;
+@@ -77,6 +78,10 @@ struct video_device
+ 	/* attribute to differentiate multiple indices on one physical device */
+ 	int index;
+ 
++	/* V4L2 file handles */
++	spinlock_t		fh_lock; /* Lock for all v4l2_fhs */
++	struct list_head	fh_list; /* List of struct v4l2_fh */
++
+ 	int debug;			/* Activates debug level*/
+ 
+ 	/* Video standard vars */
+diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
+new file mode 100644
+index 0000000..6b486aa
+--- /dev/null
++++ b/include/media/v4l2-fh.h
+@@ -0,0 +1,42 @@
++/*
++ * include/media/v4l2-fh.h
++ *
++ * V4L2 file handle.
++ *
++ * Copyright (C) 2009 Nokia Corporation.
++ *
++ * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#ifndef V4L2_FH_H
++#define V4L2_FH_H
++
++#include <linux/list.h>
++
++struct video_device;
++
++struct v4l2_fh {
++	struct list_head	list;
++	struct video_device	*vdev;
++};
++
++void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev);
++void v4l2_fh_add(struct v4l2_fh *fh);
++void v4l2_fh_del(struct v4l2_fh *fh);
++void v4l2_fh_exit(struct v4l2_fh *fh);
++
++#endif /* V4L2_EVENT_H */
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.5.6.5
+
