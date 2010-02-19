@@ -1,48 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mxweblb06fl.versatel.de ([89.246.255.250]:37332 "EHLO
-	mxweblb06fl.versatel.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758417Ab0BNL5m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Feb 2010 06:57:42 -0500
-Received: from ens28fl.versatel.de (ens28fl.versatel.de [82.140.32.10])
-	by mxweblb06fl.versatel.de (8.13.1/8.13.1) with ESMTP id o1EBveKj028696
-	for <linux-media@vger.kernel.org>; Sun, 14 Feb 2010 12:57:40 +0100
-Received: from cinnamon-sage.de (i577A4430.versanet.de [87.122.68.48])
-	(authenticated bits=0)
-	by ens28fl.versatel.de (8.12.11.20060308/8.12.11) with SMTP id o1EBvf8X003322
-	for <linux-media@vger.kernel.org>; Sun, 14 Feb 2010 12:57:41 +0100
-Received: from 192.168.23.2:49413 by cinnamon-sage.de for <linux-media@vger.kernel.org> ; 14.02.2010 12:57:40
-Message-ID: <4B77E533.60301@cinnamon-sage.de>
-Date: Sun, 14 Feb 2010 12:57:39 +0100
-From: Lars Hanisch <dvb@cinnamon-sage.de>
+Received: from mx1.redhat.com ([209.132.183.28]:21472 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751763Ab0BSEyF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Feb 2010 23:54:05 -0500
+Message-ID: <4B7E1931.3090007@redhat.com>
+Date: Fri, 19 Feb 2010 02:53:05 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [PATCH] add missing 'p' at card name 'Hauppauge HD PVR'
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+To: Robert Lowery <rglowery@exemail.com.au>
+CC: Terry Wu <terrywu2009@gmail.com>, Andy Walls <awalls@radix.net>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Vincent McIntyre <vincent.mcintyre@gmail.com>,
+	linux-media@vger.kernel.org,
+	Stefan Ringel <stefan.ringel@arcor.de>,
+	Steven Toth <stoth@kernellabs.com>
+Subject: Re: [RESEND] Re: DViCO FusionHDTV DVB-T Dual Digital 4 (rev 1)  
+         tuning  regression
+References: <33305.64.213.30.2.1259216241.squirrel@webmail.exetel.com.au>    <2088.115.70.135.213.1262579258.squirrel@webmail.exetel.com.au>    <1262658469.3054.48.camel@palomino.walls.org>    <1262661512.3054.67.camel@palomino.walls.org>    <55306.115.70.135.213.1262748017.squirrel@webmail.exetel.com.au>    <1262829099.3065.61.camel@palomino.walls.org>    <1128.115.70.135.213.1262840633.squirrel@webmail.exetel.com.au>    <6ab2c27e1001070548y1a96f390uc7b7fbd18a78a564@mail.gmail.com>    <6ab2c27e1001070604m323ccb02g10a8c302c3edee79@mail.gmail.com>    <6ab2c27e1001070618ud7019b9s69180353010a1c96@mail.gmail.com>    <6ab2c27e1001070642k4d5bd81cud404fe77bc7a6bc5@mail.gmail.com> <1197.115.70.135.213.1262917283.squirrel@webmail.exetel.com.au>
+In-Reply-To: <1197.115.70.135.213.1262917283.squirrel@webmail.exetel.com.au>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I don't know if there are applications which rely on this name,
-but after all it's a spelling mistake.
+Robert Lowery wrote:
+> Mauro's new code does the 500000 offset unconditionally for DTV7 by
+> setting offset = 2250000, not just when the ZARLINK456 or DIBCOM52 tables
+> were explicitly selected.  This change is what appears to cause issues for
+> me.
 
-Signed-off-by: Lars Hanisch <dvb@cinnamon-sage.de>
+I've reviewed all information and troubles we have with xc3028 tuning,
+including the reports related to newer firmwares for XC3028L. I think
+that the right fix is the one provided on this patch.
+
+Could you all please verify if this patch fixes the issues, without causing
+any regression?
+
+Cheers,
+Mauro.
+
 ---
-  drivers/media/video/hdpvr/hdpvr-video.c |    2 +-
-  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/video/hdpvr/hdpvr-video.c b/drivers/media/video/hdpvr/hdpvr-video.c
-index 1c49c07..196f82d 100644
---- a/drivers/media/video/hdpvr/hdpvr-video.c
-+++ b/drivers/media/video/hdpvr/hdpvr-video.c
-@@ -573,7 +573,7 @@ static int vidioc_querycap(struct file *file, void  *priv,
-  	struct hdpvr_device *dev = video_drvdata(file);
+V4L/DVB: tuner-xc2028: fix tuning logic
 
-  	strcpy(cap->driver, "hdpvr");
--	strcpy(cap->card, "Haupauge HD PVR");
-+	strcpy(cap->card, "Hauppauge HD PVR");
-  	usb_make_path(dev->udev, cap->bus_info, sizeof(cap->bus_info));
-  	cap->version = HDPVR_VERSION;
-  	cap->capabilities =     V4L2_CAP_VIDEO_CAPTURE |
+There's one reported regression in Australia (DTV7) and some
+reported troubles with newer firmwares. Rework the logic to improve
+tuner on those cases.
+
+Thanks-to: Robert Lowery <rglowery@exemail.com.au>
+Thanks-to: Stefan Ringel <stefan.ringel@arcor.de>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/tuners/tuner-xc2028.c |   51 ++++++++++++++++++++--------
+ 1 files changed, 37 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/media/common/tuners/tuner-xc2028.c b/drivers/media/common/tuners/tuner-xc2028.c
+index ed50168..eb782a0 100644
+--- a/drivers/media/common/tuners/tuner-xc2028.c
++++ b/drivers/media/common/tuners/tuner-xc2028.c
+@@ -932,30 +932,49 @@ static int generic_set_freq(struct dvb_frontend *fe, u32 freq /* in HZ */,
+ 	 * that xc2028 will be in a safe state.
+ 	 * Maybe this might also be needed for DTV.
+ 	 */
+-	if (new_mode == T_ANALOG_TV)
++	if (new_mode == T_ANALOG_TV) {
+ 		rc = send_seq(priv, {0x00, 0x00});
+ 
+-	/*
+-	 * Digital modes require an offset to adjust to the
+-	 * proper frequency.
+-	 * Analog modes require offset = 0
+-	 */
+-	if (new_mode == T_DIGITAL_TV) {
+-		/* Sets the offset according with firmware */
++		/* Analog modes require offset = 0 */
++	} else {
++		/*
++		 * Digital modes require an offset to adjust to the
++		 * proper frequency. The offset depends on what
++		 * firmware version is used.
++		 */
++
++		/*
++		 * Adjust to the center frequency. This is calculated by the
++		 * formula: offset = 1.25MHz - BW/2
++		 * For DTV 7/8, the firmware uses BW = 8000, so it needs a
++		 * further adjustment to get the frequency center on VHF
++		 */
+ 		if (priv->cur_fw.type & DTV6)
+ 			offset = 1750000;
+ 		else if (priv->cur_fw.type & DTV7)
+ 			offset = 2250000;
+ 		else	/* DTV8 or DTV78 */
+ 			offset = 2750000;
++		if ((priv->cur_fw.type & DTV78) && freq < 470000000)
++			offset -= 500000;
+ 
+ 		/*
+-		 * We must adjust the offset by 500kHz  when
+-		 * tuning a 7MHz VHF channel with DTV78 firmware
+-		 * (used in Australia, Italy and Germany)
++		 * xc3028 additional "magic"
++		 * Depending on the firmware version, it needs some adjustments
++		 * to properly centralize the frequency. This seems to be
++		 * needed to compensate the SCODE table adjustments made by
++		 * newer firmwares
+ 		 */
+-		if ((priv->cur_fw.type & DTV78) && freq < 470000000)
+-			offset -= 500000;
++
++		if (priv->firm_version >= 0x0302) {
++			if (priv->cur_fw.type & DTV7)
++				offset -= 300000;
++			else if (type != ATSC) /* DVB @6MHz, DTV 8 and DTV 7/8 */
++				offset += 200000;
++		} else {
++			if (priv->cur_fw.type & DTV7)
++				offset -= 500000;
++		}
+ 	}
+ 
+ 	div = (freq - offset + DIV / 2) / DIV;
+@@ -1114,7 +1133,11 @@ static int xc2028_set_params(struct dvb_frontend *fe,
+ 
+ 	/* All S-code tables need a 200kHz shift */
+ 	if (priv->ctrl.demod) {
+-		demod = priv->ctrl.demod + 200;
++		/*
++		 * Newer firmwares require a 200 kHz offset only for ATSC
++		 */
++		if (type == ATSC || priv->firm_version < 0x0302)
++			demod = priv->ctrl.demod + 200;
+ 		/*
+ 		 * The DTV7 S-code table needs a 700 kHz shift.
+ 		 * Thanks to Terry Wu <terrywu2009@gmail.com> for reporting this
 -- 
-1.6.3.3
+1.6.6.1
+
