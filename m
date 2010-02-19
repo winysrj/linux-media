@@ -1,99 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from poutre.nerim.net ([62.4.16.124]:50527 "EHLO poutre.nerim.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754461Ab0BYJ7W (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Feb 2010 04:59:22 -0500
-Date: Thu, 25 Feb 2010 10:59:18 +0100
-From: Jean Delvare <khali@linux-fr.org>
+Received: from qw-out-2122.google.com ([74.125.92.27]:47829 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755110Ab0BSWr6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Feb 2010 17:47:58 -0500
+Received: by qw-out-2122.google.com with SMTP id 8so110905qwh.37
+        for <linux-media@vger.kernel.org>; Fri, 19 Feb 2010 14:47:57 -0800 (PST)
+Message-ID: <4B7F13B2.50804@pelagicore.com>
+Date: Fri, 19 Feb 2010 15:41:54 -0700
+From: =?ISO-8859-1?Q?Richard_R=F6jfors?= <richard.rojfors@pelagicore.com>
+MIME-Version: 1.0
 To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Douglas Landgraf <dougsland@gmail.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: Status of the patches under review (29 patches)
-Message-ID: <20100225105918.4b74c9f9@hyperion.delvare>
-In-Reply-To: <4B852538.2050207@redhat.com>
-References: <4B84BBB0.1020408@redhat.com>
-	<20100224101807.60a468c3@hyperion.delvare>
-	<4B852538.2050207@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	sameo@linux.intel.com
+Subject: Re: [PATCH] mfd: Add timb-radio to the timberdale MFD
+References: <4B7845F0.1070800@pelagicore.com> <4B7E7B75.3040205@redhat.com>
+In-Reply-To: <4B7E7B75.3040205@redhat.com>
+Content-Type: multipart/mixed;
+ boundary="------------080008070206040807050900"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 24 Feb 2010 10:10:16 -0300, Mauro Carvalho Chehab wrote:
-> Hi Jean,
-> 
-> Jean Delvare wrote:
->  
-> > I have 3 patches pending which aren't in your list. I can see them in
-> > patchwork:
-> > 
-> > http://patchwork.kernel.org/patch/79755/
-> > http://patchwork.kernel.org/patch/79754/
-> > http://patchwork.kernel.org/patch/77349/
-> > 
-> > The former two are in "Accepted" state, and actually I received an
-> > e-mail telling me they had been accepted, however I can't see them in
-> > the hg repository. So where are they?
-> 
-> They are already on the git tree:
-> 
-> commit 2887117b31b77ebe5fb42f95ea8d77a3716b405b
-> Author: Jean Delvare <khali@linux-fr.org>
-> Date:   Tue Feb 16 14:22:37 2010 -0300
-> 
->     V4L/DVB: bttv: Let the user disable IR support
->     
->     Add a new module parameter "disable_ir" to disable IR support. Several
->     other drivers do that already, and this can be very handy for
->     debugging purposes.
->     
->     Signed-off-by: Jean Delvare <khali@linux-fr.org>
->     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> commit e151340a2a9e7147eb48114af0381122130266b0
-> Author: Jean Delvare <khali@linux-fr.org>
-> Date:   Fri Feb 19 00:18:41 2010 -0300
-> 
->     V4L/DVB: bttv: Move I2C IR initialization
->     
->     Move I2C IR initialization from just after I2C bus setup to right
->     before non-I2C IR initialization. This avoids the case where an I2C IR
->     device is blocking audio support (at least the PV951 suffers from
->     this). It is also more logical to group IR support together,
->     regardless of the connectivity.
->     
->     This fixes bug #15184:
->     http://bugzilla.kernel.org/show_bug.cgi?id=15184
->     
->     Signed-off-by: Jean Delvare <khali@linux-fr.org>
->     CC: stable@kernel.org
->     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> As patches in -hg are manually backported, maybe Douglas
-> haven't backported it yet or he simply missed.
-> 
-> Douglas, could you please check this?
+This is a multi-part message in MIME format.
+--------------080008070206040807050900
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 
-Ah, my bad. I totally missed that you had moved from hg to git for the
-main development tree. I was still pulling from hg and basing my
-patches on it. I will clone the git tree now, sorry for the confusion.
+On 02/19/2010 04:52 AM, Mauro Carvalho Chehab wrote:
+> Richard Röjfors wrote:
+>> This patch addes timb-radio to all configurations of the timberdale MFD.
+>>
+>> Connected to the FPGA is a TEF6862 tuner and a SAA7706H DSP, the I2C
+>> board info of these devices is passed via the timb-radio platform data.
+>
+> Hi Richard,
+>
+> I'm trying to apply it to my git tree (http://git.linuxtv.org/v4l-dvb.git),
+> but it is failing:
 
-> > The latter is in "Not Applicable" state, and I have no idea what it
-> > means. The patch is really simple and I see no formatting issue. Should
-> > I just resend it?
-> 
-> This means that this patch is not applicable on -git. There's no versions.txt
-> upstream. All patches that don't have upstream code are marked as such on
-> patchwork. I generally ping Douglas on such cases, for him to double check on
-> -hg.
-> 
-> Anyway, the better is to c/c to Douglas on all patches that are meant only
-> to the building system.
-> 
-> Douglas, could you please check if you've applied this patch?
+Hi Mauro,
 
-Thanks Douglas.
+Right now my mail client, icedove, confuses me. Just upgraded to ver 3.
+It seem to add in an extra space to lines not starting with a plus in the patch.
 
--- 
-Jean Delvare
+I attached the patch.
+
+Sorry for the inconvenience.
+
+--Richard
+
+--------------080008070206040807050900
+Content-Type: text/x-patch;
+ name="timberdale-add-timb-radio.patch"
+Content-Transfer-Encoding: 8bit
+Content-Disposition: attachment;
+ filename="timberdale-add-timb-radio.patch"
+
+This patch addes timb-radio to all configurations of the timberdale MFD.
+
+Connected to the FPGA is a TEF6862 tuner and a SAA7706H DSP, the I2C
+board info of these devices is passed via the timb-radio platform data.
+
+Signed-off-by: Richard RÃ¶jfors <richard.rojfors@pelagicore.com>
+--- 
+diff --git a/drivers/mfd/timberdale.c b/drivers/mfd/timberdale.c
+index 603cf06..1ed44d2 100644
+--- a/drivers/mfd/timberdale.c
++++ b/drivers/mfd/timberdale.c
+@@ -37,6 +37,8 @@
+ #include <linux/spi/max7301.h>
+ #include <linux/spi/mc33880.h>
+ 
++#include <media/timb_radio.h>
++
+ #include "timberdale.h"
+ 
+ #define DRIVER_NAME "timberdale"
+@@ -213,6 +215,40 @@ const static __devinitconst struct resource timberdale_uartlite_resources[] = {
+ 	},
+ };
+ 
++const static __devinitconst struct resource timberdale_radio_resources[] = {
++	{
++		.start	= RDSOFFSET,
++		.end	= RDSEND,
++		.flags	= IORESOURCE_MEM,
++	},
++	{
++		.start	= IRQ_TIMBERDALE_RDS,
++		.end	= IRQ_TIMBERDALE_RDS,
++		.flags	= IORESOURCE_IRQ,
++	},
++};
++
++static __devinitdata struct i2c_board_info timberdale_tef6868_i2c_board_info = {
++	I2C_BOARD_INFO("tef6862", 0x60)
++};
++
++static __devinitdata struct i2c_board_info timberdale_saa7706_i2c_board_info = {
++	I2C_BOARD_INFO("saa7706h", 0x1C)
++};
++
++static __devinitdata struct timb_radio_platform_data
++	timberdale_radio_platform_data = {
++	.i2c_adapter = 0,
++	.tuner = {
++		.module_name = "tef6862",
++		.info = &timberdale_tef6868_i2c_board_info
++	},
++	.dsp = {
++		.module_name = "saa7706h",
++		.info = &timberdale_saa7706_i2c_board_info
++	}
++};
++
+ const static __devinitconst struct resource timberdale_dma_resources[] = {
+ 	{
+ 		.start	= DMAOFFSET,
+@@ -240,6 +276,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg0[] = {
+ 		.data_size = sizeof(timberdale_gpio_platform_data),
+ 	},
+ 	{
++		.name = "timb-radio",
++		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
++		.resources = timberdale_radio_resources,
++		.platform_data = &timberdale_radio_platform_data,
++		.data_size = sizeof(timberdale_radio_platform_data),
++	},
++	{
+ 		.name = "xilinx_spi",
+ 		.num_resources = ARRAY_SIZE(timberdale_spi_resources),
+ 		.resources = timberdale_spi_resources,
+@@ -282,6 +325,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg1[] = {
+ 		.resources = timberdale_mlogicore_resources,
+ 	},
+ 	{
++		.name = "timb-radio",
++		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
++		.resources = timberdale_radio_resources,
++		.platform_data = &timberdale_radio_platform_data,
++		.data_size = sizeof(timberdale_radio_platform_data),
++	},
++	{
+ 		.name = "xilinx_spi",
+ 		.num_resources = ARRAY_SIZE(timberdale_spi_resources),
+ 		.resources = timberdale_spi_resources,
+@@ -314,6 +364,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg2[] = {
+ 		.data_size = sizeof(timberdale_gpio_platform_data),
+ 	},
+ 	{
++		.name = "timb-radio",
++		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
++		.resources = timberdale_radio_resources,
++		.platform_data = &timberdale_radio_platform_data,
++		.data_size = sizeof(timberdale_radio_platform_data),
++	},
++	{
+ 		.name = "xilinx_spi",
+ 		.num_resources = ARRAY_SIZE(timberdale_spi_resources),
+ 		.resources = timberdale_spi_resources,
+@@ -348,6 +405,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg3[] = {
+ 		.data_size = sizeof(timberdale_gpio_platform_data),
+ 	},
+ 	{
++		.name = "timb-radio",
++		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
++		.resources = timberdale_radio_resources,
++		.platform_data = &timberdale_radio_platform_data,
++		.data_size = sizeof(timberdale_radio_platform_data),
++	},
++	{
+ 		.name = "xilinx_spi",
+ 		.num_resources = ARRAY_SIZE(timberdale_spi_resources),
+ 		.resources = timberdale_spi_resources,
+
+--------------080008070206040807050900--
