@@ -1,35 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from master.debian.org ([70.103.162.29]:45621 "EHLO
-	master.debian.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932084Ab0BYKgk (ORCPT
+Received: from smtp.nokia.com ([192.100.122.233]:29295 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755507Ab0BSTWN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Feb 2010 05:36:40 -0500
-From: Debian Package Tracking System <pts@qa.debian.org>
+	Fri, 19 Feb 2010 14:22:13 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 To: linux-media@vger.kernel.org
-Subject: CONFIRM f156db6194c056981f5711b7ef302743
-Message-Id: <E1NkarL-0004ys-VI@master.debian.org>
-Date: Thu, 25 Feb 2010 10:22:19 +0000
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
+	david.cohen@nokia.com,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: [PATCH v5 3/6] V4L: Events: Add new ioctls for events
+Date: Fri, 19 Feb 2010 21:21:57 +0200
+Message-Id: <1266607320-9974-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4B7EE4A4.3080202@maxwell.research.nokia.com>
+References: <4B7EE4A4.3080202@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+This patch adds a set of new ioctls to the V4L2 API. The ioctls conform to
+V4L2 Events RFC version 2.3:
 
-you asked to be subscribed to the "mailing list"[1] for the Debian
-source package called linuxtv-dvb-apps. To complete this process, you
-have to reply to this mail by including this command :
-CONFIRM f156db6194c056981f5711b7ef302743
+<URL:http://www.spinics.net/lists/linux-media/msg12033.html>
 
-On any modern mailer, you just have to hit reply and send the mail.
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/v4l2-compat-ioctl32.c |    3 +++
+ drivers/media/video/v4l2-ioctl.c          |    3 +++
+ include/linux/videodev2.h                 |   26 ++++++++++++++++++++++++++
+ 3 files changed, 32 insertions(+), 0 deletions(-)
 
-If you don't understand why you got this mail, please ignore it,
-you won't be subscribed to anything unless you confirm it.
+diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
+index f77f84b..9004a5f 100644
+--- a/drivers/media/video/v4l2-compat-ioctl32.c
++++ b/drivers/media/video/v4l2-compat-ioctl32.c
+@@ -1086,6 +1086,9 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+ 	case VIDIOC_QUERY_DV_PRESET:
+ 	case VIDIOC_S_DV_TIMINGS:
+ 	case VIDIOC_G_DV_TIMINGS:
++	case VIDIOC_DQEVENT:
++	case VIDIOC_SUBSCRIBE_EVENT:
++	case VIDIOC_UNSUBSCRIBE_EVENT:
+ 		ret = do_video_ioctl(file, cmd, arg);
+ 		break;
+ 
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 4b11257..34c7d6e 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -290,6 +290,9 @@ static const char *v4l2_ioctls[] = {
+ 	[_IOC_NR(VIDIOC_QUERY_DV_PRESET)]  = "VIDIOC_QUERY_DV_PRESET",
+ 	[_IOC_NR(VIDIOC_S_DV_TIMINGS)]     = "VIDIOC_S_DV_TIMINGS",
+ 	[_IOC_NR(VIDIOC_G_DV_TIMINGS)]     = "VIDIOC_G_DV_TIMINGS",
++	[_IOC_NR(VIDIOC_DQEVENT)]	   = "VIDIOC_DQEVENT",
++	[_IOC_NR(VIDIOC_SUBSCRIBE_EVENT)]  = "VIDIOC_SUBSCRIBE_EVENT",
++	[_IOC_NR(VIDIOC_UNSUBSCRIBE_EVENT)] = "VIDIOC_UNSUBSCRIBE_EVENT",
+ };
+ #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+ 
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 3c26560..f7237fc 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1622,6 +1622,29 @@ struct v4l2_streamparm {
+ };
+ 
+ /*
++ *	E V E N T S
++ */
++
++struct v4l2_event {
++	__u32				type;
++	union {
++		__u8			data[64];
++	} u;
++	__u32				pending;
++	__u32				sequence;
++	struct timespec			timestamp;
++	__u32				reserved[9];
++};
++
++struct v4l2_event_subscription {
++	__u32				type;
++	__u32				reserved[7];
++};
++
++#define V4L2_EVENT_ALL				0
++#define V4L2_EVENT_PRIVATE_START		0x08000000
++
++/*
+  *	A D V A N C E D   D E B U G G I N G
+  *
+  *	NOTE: EXPERIMENTAL API, NEVER RELY ON THIS IN APPLICATIONS!
+@@ -1743,6 +1766,9 @@ struct v4l2_dbg_chip_ident {
+ #define	VIDIOC_QUERY_DV_PRESET	_IOR('V',  86, struct v4l2_dv_preset)
+ #define	VIDIOC_S_DV_TIMINGS	_IOWR('V', 87, struct v4l2_dv_timings)
+ #define	VIDIOC_G_DV_TIMINGS	_IOWR('V', 88, struct v4l2_dv_timings)
++#define	VIDIOC_DQEVENT		 _IOR('V', 83, struct v4l2_event)
++#define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 84, struct v4l2_event_subscription)
++#define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 85, struct v4l2_event_subscription)
+ 
+ /* Reminder: when adding new ioctls please add support for them to
+    drivers/media/video/v4l2-compat-ioctl32.c as well! */
+-- 
+1.5.6.5
 
-If you have any problem with this service, please contact
-owner@packages.qa.debian.org.
-
-Thanks,
-
-[1] This list receives all the bug reports (and the corresponding logs)
-    for the package "linuxtv-dvb-apps" that are sent to the Debian
-    Bug Tracking System.
-    http://packages.qa.debian.org/linuxtv-dvb-apps
