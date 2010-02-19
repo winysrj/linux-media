@@ -1,80 +1,227 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.158]:35018 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753557Ab0BHQtb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2010 11:49:31 -0500
-Received: by fg-out-1718.google.com with SMTP id e21so45569fga.1
-        for <linux-media@vger.kernel.org>; Mon, 08 Feb 2010 08:49:30 -0800 (PST)
+Received: from mail-ew0-f228.google.com ([209.85.219.228]:45577 "EHLO
+	mail-ew0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755699Ab0BST2O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Feb 2010 14:28:14 -0500
+Message-ID: <4B7EE81C.4020701@gmail.com>
+Date: Fri, 19 Feb 2010 20:35:56 +0100
+From: Roel Kluin <roel.kluin@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <201002081656.41640.markus.moll@esat.kuleuven.be>
-References: <201002081656.41640.markus.moll@esat.kuleuven.be>
-Date: Mon, 8 Feb 2010 17:49:29 +0100
-Message-ID: <d9def9db1002080849u123ae2d2r24f31276d1d46ff@mail.gmail.com>
-Subject: Re: Terratec H5 / Micronas
-From: Markus Rechberger <mrechberger@gmail.com>
-To: Markus Moll <markus.moll@esat.kuleuven.be>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] video_device: don't free_irq() an element past array
+ vpif_obj.dev[] and fix test
+References: <4B714E15.4020909@gmail.com> <A69FA2915331DC488A831521EAE36FE40169C5C9B5@dlee06.ent.ti.com> <25e057c01002181202v346f488bk571d099f679fea83@mail.gmail.com> <A69FA2915331DC488A831521EAE36FE40169C5CBD8@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40169C5CBD8@dlee06.ent.ti.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 8, 2010 at 4:56 PM, Markus Moll
-<markus.moll@esat.kuleuven.be> wrote:
-> Hi
->
-> I have just bought one of these terratec usb sticks (without looking at the
-> list of supported devices first, my fault, I know) and I guess I'm unable to
-> return it. Before I give it away for free or sell it at a much lower price, I
-> wanted to ask a few things. Let me recapitulate the story as I understood it.
-> Devin Heitmueller once worked on a driver implementation using official
-> Micronas data-sheets and their reference implementation. The Micronas legal
-> department then denied publication in a very late stage. Meanwhile, Markus
-> Rechberger wrote his own user-space closed-source driver, but has now stopped
-> distributing that and instead founded his own company Sundtek. Furthermore,
-> parts of Micronas have been bought by Trident Microsystems.
->
-> I hope I'm correct up to here. I also saw an estimate of the amount of work
-> required to write a reverse engineered driver, it ranged around 50hrs.
 
-To write a driver with good quality it takes alot more than just 50
-hours, it took us
-around 1 year to have a certain quality now.
-We now support Linux, FreeBSD and MacOSX with the same driver as well as
-embedded ARM devices with bugged compilers.
-Just having it work will result in alot signal problems with some
-cable providers.
-The Micronas drivers are probably the most complex drivers this entire
-project has ever
-seen.
+> Ok. You are right! The ch_params[] is a table for keeping the information
+> about different standards supported. For a given stdid in std_info, the function matches the stdid with that in the table and get the corresponding entry.
 
-> My question is, did the Micronas legal department intervene because the linux
-> driver built on top of their reference implementation and they weren't willing
-> to gpl that, or did they also oppose on using the data-sheets? If it was only
-> the reference driver, wouldn't it be whorthwhile trying to again get the data
-> sheets and build a driver based solely on these? I couldn't find any post that
-> would clarify this.
+>>>> +      if (k == VPIF_DISPLAY_MAX_DEVICES)
+>>>> +              k = VPIF_DISPLAY_MAX_DEVICES - 1;
+>>
+>> actually I think this is still not right. shouldn't it be be
+>>
+>> k = VPIF_DISPLAY_MAX_DEVICES - 1;
+> 
+> What you mean here? What you suggest here is same as in your patch, right?
 
-it's an official statement, that they do not want to have their driver
-opensourced.
+I think there were many more issues:
 
->
-> I would be willing to invest some time, play with the device and see if I can
-> improve the situation, probably even if I really had to reverse engineer.
-> However, I'm in no way an expert in v4l driver writing, so I don't know where
-> this will lead to or if I'm going to brick the device on the very first
-> occasion ;-) (btw: how easy is that, generally?)
->
+The first loop ends when platform_get_resource() returns NULL. Can it occur
+that no platform_get_resource() succeeded? I think we should error return if
+that happens. Could k grow larger than VPIF_DISPLAY_MAX_DEVICES there?
+Should we err out in that case?
 
-it's the most difficult device.
+In the loop `for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++)' if
+video_device_alloc() fails I think we correctly release the devices,
+but we have to do more before we reach label vpif_int_err.
 
-> I know that the general advice is to dump these devices and buy something
-> else, but as I said I'll have this hardware lying around anyway. So I'd like
-> to know if I missed something, if there is any prior work (unaffected by the
-> legal problems), or if I'm bound to fail because the task is just too big.
->
+As mentioned, we left the first loop with a res of NULL, which is
+dereferenced at label vpif_int_err. So we have to get the resource again,
+however, k was incremented at the end of that loop as well. Also i used
+as index in the second loop as well should point to res->end before going
+to label vpif_int_err, to free all requested irqs. All this needs to be
+done for later error labels as well, so a new label should be added.
 
-In case you're looking for something that works with Linux better
-return it asap, or sell it
+Variable k can't be reused, it is needed to get the resource in case a
+error and cleanup is required.
 
-Best Regards,
-Markus
+Also in label probe_out a loop with k as index is used, but k is already
+an index that is required to get the resource later.
+
+If we reach label vpif_int_err, res shouldn't be NULL, since we
+dereference it. Previously we had:
+
+        for (; k >= 0; k--) {
+                for (m = i; m >= res->start; m--)
+                        free_irq(m, (void *)(&vpif_obj.dev[k]->channel_id));
+                res = platform_get_resource(pdev, IORESOURCE_IRQ, k-1);
+                m = res->end;
+        }
+
+In the last iteration k equals 0, so we call platform_get_resource() with
+-1 as a third argument. Since platform_get_resource() uses an unsigned it
+is converted to 0xffffffff. platform_get_resource() fails for every index
+and returns NULL. A test is lacking and we dereference NULL.
+
+This all occurs at the new label alloc_vid_fail.
+
+The error "VPIF IRQ request failed" should only be displayed when 
+request_irq() failed, not in the case of other errors.
+
+Also I changed some indexes, so a few could be removed.
+
+I must admit I did not test this, except with checkpatch.pl, but I think
+the issues are real and should be fixed. Do you have comments?
+
+ drivers/media/video/davinci/vpif_display.c |   61 +++++++++++++++++++---------
+ 1 files changed, 41 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
+index dfddef7..ae8ca94 100644
+--- a/drivers/media/video/davinci/vpif_display.c
++++ b/drivers/media/video/davinci/vpif_display.c
+@@ -383,7 +383,7 @@ static int vpif_get_std_info(struct channel_obj *ch)
+ 	int index;
+ 
+ 	std_info->stdid = vid_ch->stdid;
+-	if (!std_info)
++	if (!std_info->stdid)
+ 		return -1;
+ 
+ 	for (index = 0; index < ARRAY_SIZE(ch_params); index++) {
+@@ -1423,7 +1423,7 @@ static __init int vpif_probe(struct platform_device *pdev)
+ {
+ 	struct vpif_subdev_info *subdevdata;
+ 	struct vpif_display_config *config;
+-	int i, j = 0, k, q, m, err = 0;
++	int i, j, k, err;
+ 	struct i2c_adapter *i2c_adap;
+ 	struct common_obj *common;
+ 	struct channel_obj *ch;
+@@ -1452,12 +1452,18 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 			if (request_irq(i, vpif_channel_isr, IRQF_DISABLED,
+ 					"DM646x_Display",
+ 				(void *)(&vpif_obj.dev[k]->channel_id))) {
++				i--;
+ 				err = -EBUSY;
++				vpif_err("VPIF IRQ request failed\n");
+ 				goto vpif_int_err;
+ 			}
+ 		}
+ 		k++;
++		if (k >= VPIF_DISPLAY_MAX_DEVICES)
++			break;
+ 	}
++	if (k == 0)
++		return -ENODEV;
+ 
+ 	for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++) {
+ 
+@@ -1472,7 +1478,7 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 				video_device_release(ch->video_dev);
+ 			}
+ 			err = -ENOMEM;
+-			goto vpif_int_err;
++			goto alloc_vid_fail;
+ 		}
+ 
+ 		/* Initialize field of video device */
+@@ -1489,13 +1495,13 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 		ch->video_dev = vfd;
+ 	}
+ 
+-	for (j = 0; j < VPIF_DISPLAY_MAX_DEVICES; j++) {
+-		ch = vpif_obj.dev[j];
++	for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++) {
++		ch = vpif_obj.dev[i];
+ 		/* Initialize field of the channel objects */
+ 		atomic_set(&ch->usrs, 0);
+-		for (k = 0; k < VPIF_NUMOBJECTS; k++) {
+-			ch->common[k].numbuffers = 0;
+-			common = &ch->common[k];
++		for (j = 0; j < VPIF_NUMOBJECTS; j++) {
++			ch->common[j].numbuffers = 0;
++			common = &ch->common[j];
+ 			common->io_usrs = 0;
+ 			common->started = 0;
+ 			spin_lock_init(&common->irqlock);
+@@ -1506,12 +1512,12 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 			common->ctop_off = common->cbtm_off = 0;
+ 			common->cur_frm = common->next_frm = NULL;
+ 			memset(&common->fmt, 0, sizeof(common->fmt));
+-			common->numbuffers = config_params.numbuffers[k];
++			common->numbuffers = config_params.numbuffers[j];
+ 
+ 		}
+ 		ch->initialized = 0;
+-		ch->channel_id = j;
+-		if (j < 2)
++		ch->channel_id = i;
++		if (i < 2)
+ 			ch->common[VPIF_VIDEO_INDEX].numbuffers =
+ 			    config_params.numbuffers[ch->channel_id];
+ 		else
+@@ -1529,7 +1535,7 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 				(int)ch, (int)&ch->video_dev);
+ 
+ 		err = video_register_device(ch->video_dev,
+-					  VFL_TYPE_GRABBER, (j ? 3 : 2));
++					  VFL_TYPE_GRABBER, (i ? 3 : 2));
+ 		if (err < 0)
+ 			goto probe_out;
+ 
+@@ -1567,20 +1573,35 @@ static __init int vpif_probe(struct platform_device *pdev)
+ probe_subdev_out:
+ 	kfree(vpif_obj.sd);
+ probe_out:
+-	for (k = 0; k < j; k++) {
+-		ch = vpif_obj.dev[k];
++	for (j = 0; j < i; j++) {
++		ch = vpif_obj.dev[j];
+ 		video_unregister_device(ch->video_dev);
+ 		video_device_release(ch->video_dev);
+ 		ch->video_dev = NULL;
+ 	}
++alloc_vid_fail:
++	while (k--) {
++		res = platform_get_resource(pdev, IORESOURCE_IRQ, k);
++		if (res != NULL)
++			break;
++		vpif_err("Couldn't get resource %d, irqs not freed.\n", k);
++	}
++	if (res == NULL) {
++		vpif_err("Couldn't get any resource.\n");
++		return err;
++	}
++
++	i = res->end;
+ vpif_int_err:
+ 	v4l2_device_unregister(&vpif_obj.v4l2_dev);
+-	vpif_err("VPIF IRQ request failed\n");
+-	for (q = k; k >= 0; k--) {
+-		for (m = i; m >= res->start; m--)
+-			free_irq(m, (void *)(&vpif_obj.dev[k]->channel_id));
+-		res = platform_get_resource(pdev, IORESOURCE_IRQ, k-1);
+-		m = res->end;
++
++	for (j = i; j >= res->start; j--)
++		free_irq(j, (void *)(&vpif_obj.dev[k]->channel_id));
++
++	while (k--) {
++		res = platform_get_resource(pdev, IORESOURCE_IRQ, k);
++		for (j =  res->end; j >= res->start; j--)
++			free_irq(j, (void *)(&vpif_obj.dev[k]->channel_id));
+ 	}
+ 
+ 	return err;
