@@ -1,100 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:50750 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751382Ab0BAVh7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Feb 2010 16:37:59 -0500
-Subject: Re: Kernel Oops, dvb_dmxdev_filter_reset, bisected
-From: Chicken Shack <chicken.shack@gmx.de>
-To: Thomas Voegtle <tv@lio96.de>
-Cc: obi@linuxtv.org, mchehab@redhat.com, linux-media@vger.kernel.org
-In-Reply-To: <alpine.LNX.2.00.1002012148310.9330@er-systems.de>
-References: <alpine.LNX.2.00.1002011855590.30919@er-systems.de>
-	 <1265052321.19005.8.camel@brian.bconsult.de>
-	 <alpine.LNX.2.00.1002012148310.9330@er-systems.de>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 01 Feb 2010 22:35:50 +0100
-Message-ID: <1265060150.2653.14.camel@brian.bconsult.de>
+Received: from mail1.radix.net ([207.192.128.31]:56666 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751237Ab0BSAUX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Feb 2010 19:20:23 -0500
+Subject: Re: Documentation questions
+From: Andy Walls <awalls@radix.net>
+To: Hugo Mills <hugo@carfax.org.uk>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <20100218211224.GA7879@selene>
+References: <20100218211224.GA7879@selene>
+Content-Type: text/plain
+Date: Thu, 18 Feb 2010 19:19:27 -0500
+Message-Id: <1266538767.3248.14.camel@palomino.walls.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Montag, den 01.02.2010, 21:50 +0100 schrieb Thomas Voegtle:
-> On Mon, 1 Feb 2010, Chicken Shack wrote:
+On Thu, 2010-02-18 at 21:12 +0000, Hugo Mills wrote:
+> Hi,
 > 
-> > Hi Thomas,
-> >
-> > thanks for reproducing that kernel oops.
-> >
-> > Question:
-> >
-> > Can you also confirm / reproduce that alevt does not follow the new TV
-> > or radio channel if the new channel, tuned by dvbstream / mplayer for
-> > example, is part of another transponder?
-> >
-> > Normal, i. e. expected behaviour can be desribed in the following
-> > example:
-> >
-> > a. You start mplayer://ZDF, then you start alevt, and ZDF teletext
-> > should be visible.
-> >
-> > b. You change the channel to mplayer://Das Erste.
-> > Now alevt should follow the new tuning and tune one channel of the
-> > transponder containing the ARD bouquet.
-> >
-> > But instead of that alevt hangs and cannot be finished by an ordinary
-> > quit. You need _violence_ a la "killall -9 alevt" or, on the command
-> > line: STRG-C as shortcut.
-> >
-> > Can you reproduce / confirm that, Thomas?
+> (Please cc: me, I'm not subscribed yet)
 > 
+>    After struggling to work out how stuff worked from the existing DVB
+> API docs(+), I'm currently attempting to improve the API
+> documentation, to cover the v5 API, and I've got a few questions:
 > 
-> Yes, I can confirm that. And yes, it is annoying.
+>  * Is anyone else working on docs right now? (i.e. am I wasting my time?)
 
+About a year ago, I stated I was going to add the DVB API v5 additions.
+Well, you see how far that has gotten: nowhere. :P
 
-Thank you, Thomas.
+So please, your are welcome to help.
 
-I think that the tasks to work on are clear now. All my hopes rest on
-Andy Walls now......
-To be honest I would be much happier if more people would volunteer and
-perform a task splitting due to lack of time......
-
-
-The thing is:
-Looking at the code in vbi.c (using grep -e .....) I in fact saw a vbi
-reset function call.
-But this vbi reset function call does not touch the DVB demux device
-(which would mean f. ex. to set the teletext pid to zero and stuff like
-that.....).
-
-Proof (which you can easily find out if you have an analogue bttv card).
-
-The hangup does not happen if you use alevt-dvb in analogue mode.
-It only happens because the DVB implementation needs a little bit of
-care by a highly experienced and competent person.
-
-The vbi reset function or even some similar system call needs to be
-extended or added to fulfil DVB needs.
-
-The DVB implementation is reduced to demux filter release (start) and
-demux filter stop. Reset does not seem to exist, and that's why the
-proggy does not follow the new channel as part of a different
-transponder if a new channel is being tuned by some external application
-like kaffeine or mplayer.....
-
-
-> thanks,
+>  * Looking at the current kernel sources, the properties
+> DTV_DISEQC_MASTER, DTV_DISEQC_SLAVE_REPLY, DTV_FE_CAPABILITY and
+> DTV_FE_CAPABILITY_COUNT don't seem to be implemented. Is this actually
+> the case, or have I missed something?
 > 
-> Thoams
+>  * Most of the information in struct dvb_frontend_info doesn't seem to
+> exist in the v5 API. Is there an expected way of getting this info (or
+> isn't it considered useful any more?) Is FE_GET_INFO still recommended
+> for that purpose in the v5 API?
+>
+>  * DTV_DELIVERY_SYSTEM is writable. What does this do? I would have
+> thought it's a read-only property.
+>
+>  * Is there any way of telling which properties are useful for which
+> delivery system types, or should I be going back to the relevant
+> specifications for each type to get that information?
+
+I have no comment on these at the moment.  I'd need to look into things
+and get back to you.
 
 
-My turn so say Thank you
 
-CS
+>  * Is the "v5 API" for frontends only, or is there a similar key/value
+> system in place/planned for the other DVB components such as demuxers?
 
+As far as I know for the DVB v5 additions, that came from what was
+originally called S2API, yes, they are only for frontends.
 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Some additional ioctl()'s related to the demux have been added as well
+and are unrelated to the S2API additions.
 
+Regards,
+Andy
+
+>    Thanks,
+>    Hugo.
+> 
+> (+) Actually, the docs were pretty helpful, up to a point. Certainly
+> better than some I've tried to read in the past. The biggest problem
+> is the lack of coverage of the v5 API.
+> 
 
