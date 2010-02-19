@@ -1,99 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:54067 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754034Ab0BIQxs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 11:53:48 -0500
-Date: Tue, 9 Feb 2010 17:54:30 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Magnus Damm <damm@opensource.se>,
-	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
-	Antonio Ospite <ospite@studenti.unina.it>,
-	=?ISO-8859-15?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-Subject: Re: soc-camera: patches for 2.6.34
-In-Reply-To: <Pine.LNX.4.64.1002091705500.4585@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1002091749350.4585@axis700.grange>
-References: <Pine.LNX.4.64.1002091705500.4585@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: 8BIT
+Received: from smtp.nokia.com ([192.100.122.230]:29442 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755011Ab0BSTWJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Feb 2010 14:22:09 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
+	david.cohen@nokia.com,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: [PATCH v5 2/6] V4L: File handles: Add documentation
+Date: Fri, 19 Feb 2010 21:21:56 +0200
+Message-Id: <1266607320-9974-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4B7EE4A4.3080202@maxwell.research.nokia.com>
+References: <4B7EE4A4.3080202@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 9 Feb 2010, Guennadi Liakhovetski wrote:
+Add documentation on using V4L2 file handles (v4l2_fh) in V4L2 drivers.
 
-> Hi all
-
-Ok, add two more to these:
-
-Guennadi Liakhovetski (2):
-	soc-camera: add support for VIDIOC_S_PARM and VIDIOC_G_PARM ioctls
-	sh_mobile_ceu_camera: pass .set_parm and .get_parm down to subdevices
-	* status: pending confirmation from Kuninori Morimoto
-
-> 
-> Nothing exciting for soc-camera this time for a change, just a couple of 
-> small improvements. These patches are already in my local tree, waiting to 
-> be pushed up:
-> 
-> Antonio Ospite (1):
->       pxa_camera: remove init() callback
-> 
-> Guennadi Liakhovetski (3):
->       soc-camera: update mt9v022 to take into account board signal routing
->       tw9910: use TABs for indentation
->       soc-camera: adjust coding style to match V4L preferences
-> 
-> Kuninori Morimoto (1):
->       soc-camera: ov772x: Modify buswidth control
-> 
-> Magnus Damm (1):
->       soc-camera: return -ENODEV is sensor is missing
-> 
-> Others on the radar:
-> 
-> Kuninori Morimoto:
-> 	MT9T031: write xskip and yskip at each set_params call
-> 	* status: being discussed in PM context in:
-> 
-> Guennadi Liakhovetski:
-> 	soc-camera: add runtime pm support for subdevices
-> 	* under discussion
-> 
-> Németh Márton:
-> 	soc_camera: match signedness of soc_camera_limit_side()                 
-> 	* status: an updated patch has been proposed by me, waiting for 
-> 	  confirmation
-> 
-> Guennadi Liakhovetski:
-> 	document new pixel formats
-> 	* status: I still have to figure out how to combine git / hg for 
-> 	  this one and actually do it...
-> 
-> Kuninori Morimoto:
-> 	[1/3] soc-camera: mt9t112: modify exiting conditions from standby mode
-> 	[2/3] soc-camera: mt9t112: modify delay time after initialize
-> 	[3/3] soc-camera: mt9t112: The flag which control camera-init is
-> 	* status: at least patches 2 and 3 are still being discussed, 
-> 	  waiting for results
-> 
-> 
-> Any patches, that I've forgotten?
-> 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ Documentation/video4linux/v4l2-framework.txt |   36 ++++++++++++++++++++++++++
+ 1 files changed, 36 insertions(+), 0 deletions(-)
+
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index 74d677c..08f9e59 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -695,3 +695,39 @@ The better way to understand it is to take a look at vivi driver. One
+ of the main reasons for vivi is to be a videobuf usage example. the
+ vivi_thread_tick() does the task that the IRQ callback would do on PCI
+ drivers (or the irq callback on USB).
++
++struct v4l2_fh
++--------------
++
++struct v4l2_fh provides a way to easily keep file handle specific data
++that is used by the V4L2 framework.
++
++struct v4l2_fh is allocated as a part of the driver's own file handle
++structure and is set to file->private_data in the driver's open
++function by the driver. Drivers can extract their own file handle
++structure by using the container_of macro.
++
++Useful functions:
++
++- v4l2_fh_init()
++
++  Initialise the file handle.
++
++- v4l2_fh_add()
++
++  Add a v4l2_fh to video_device file handle list. May be called after
++  initialising the file handle.
++
++- v4l2_fh_del()
++
++  Unassociate the file handle from video_device(). The file handle
++  exit function may now be called.
++
++- v4l2_fh_exit()
++
++  Uninitialise the file handle. After uninitialisation the v4l2_fh
++  memory can be freed.
++
++The users of v4l2_fh know whether a driver uses v4l2_fh as its
++file.private_data pointer by testing the V4L2_FL_USES_V4L2_FH bit in
++video_device.flags.
+-- 
+1.5.6.5
+
