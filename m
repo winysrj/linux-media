@@ -1,103 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:1025 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:36770 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932657Ab0BCVbs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Feb 2010 16:31:48 -0500
-Message-ID: <4B69EB37.8020503@redhat.com>
-Date: Wed, 03 Feb 2010 19:31:35 -0200
+	id S1750902Ab0BSLw3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Feb 2010 06:52:29 -0500
+Message-ID: <4B7E7B75.3040205@redhat.com>
+Date: Fri, 19 Feb 2010 09:52:21 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Stefan Ringel <stefan.ringel@arcor.de>
-CC: linux-media@vger.kernel.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [PATCH 4/15] -  tm6000.h
-References: <4B673790.3030706@arcor.de> <4B673B2D.6040507@arcor.de> <4B675B19.3080705@redhat.com> <4B685FB9.1010805@arcor.de> <4B688507.606@redhat.com> <4B688E41.2050806@arcor.de> <4B689094.2070204@redhat.com> <4B6894FE.6010202@arcor.de> <4B69D83D.5050809@arcor.de> <4B69D8CC.2030008@arcor.de> <4B69D9AF.4020309@arcor.de> <4B69DB9D.90609@redhat.com> <4B69E193.6040206@arcor.de>
-In-Reply-To: <4B69E193.6040206@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+To: =?ISO-8859-1?Q?Richard_R=F6jfors?= <richard.rojfors@pelagicore.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	sameo@linux.intel.com
+Subject: Re: [PATCH] mfd: Add timb-radio to the timberdale MFD
+References: <4B7845F0.1070800@pelagicore.com>
+In-Reply-To: <4B7845F0.1070800@pelagicore.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stefan Ringel wrote:
-> Am 03.02.2010 21:25, schrieb Mauro Carvalho Chehab:
->> This one is a very obscure patch. What are you doing this patch and why?
->>
->> Stefan Ringel wrote:
->>   
->>> signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
->>>
->>> --- a/drivers/staging/tm6000/tm6000.h
->>> +++ b/drivers/staging/tm6000/tm6000.h
->>> @@ -90,12 +97,14 @@ enum tm6000_core_state {
->>>      DEV_MISCONFIGURED = 0x04,
->>>  };
->>>  
->>> +#if 1
->>>  /* io methods */
->>>  enum tm6000_io_method {
->>>      IO_NONE,
->>>      IO_READ,
->>>      IO_MMAP,
->>>  };
->>> +#endif
->>>  
->>>     
-
-> ? different between git and hg ? not mine
-
-On git, all #if 0/#if 1 are stripped (except if an explicit comment /* keep */
-is added). We do this way to avoid polluting upstream kernel code with temporary
-developers only code.
-
->>>  enum tm6000_mode {
->>>      TM6000_MODE_UNKNOWN=0,
->>> @@ -202,6 +211,9 @@ struct tm6000_fh {
->>>              V4L2_STD_PAL_M|V4L2_STD_PAL_60|V4L2_STD_NTSC_M| \
->>>              V4L2_STD_NTSC_M_JP|V4L2_STD_SECAM
->>>  
->>> +/* In tm6000-cards.c */
->>> +
->>> +int tm6000_tuner_callback (void *ptr, int component, int command, int arg);
->>>  /* In tm6000-core.c */
->>>  
->>>     
-> I use that for tuner callback in tm6000-dvb --> frontend structure
->>>  int tm6000_read_write_usb (struct tm6000_core *dev, u8 reqtype, u8 req,
->>> @@ -209,7 +221,6 @@ int tm6000_read_write_usb (struct tm6000_core *dev,
->>> u8 reqtype, u8 req,
->>>  int tm6000_get_reg (struct tm6000_core *dev, u8 req, u16 value, u16 index);
->>>  int tm6000_set_reg (struct tm6000_core *dev, u8 req, u16 value, u16 index);
->>>  int tm6000_init (struct tm6000_core *dev);
->>> -int tm6000_init_after_firmware (struct tm6000_core *dev);
->>>  
->>>  int tm6000_init_analog_mode (struct tm6000_core *dev);
->>>  int tm6000_init_digital_mode (struct tm6000_core *dev);
->>> @@ -231,7 +242,12 @@ int tm6000_set_standard (struct tm6000_core *dev,
->>> v4l2_std_id *norm);
->>>  int tm6000_i2c_register(struct tm6000_core *dev);
->>>  int tm6000_i2c_unregister(struct tm6000_core *dev);
->>>  
->>> +#if 1
->>>  /* In tm6000-queue.c */
->>> +#if 0
->>> +int tm6000_init_isoc(struct tm6000_core *dev, int max_packets);
->>> +void tm6000_uninit_isoc(struct tm6000_core *dev);
->>> +#endif
->>>  
->>>     
-> ? different between git and hg ? not mine
->>>  int tm6000_v4l2_mmap(struct file *filp, struct vm_area_struct *vma);
->>>  
->>> @@ -276,3 +292,4 @@ extern int tm6000_debug;
->>>          __FUNCTION__ , ##arg); } while (0)
->>>  
->>>  
->>> +#endif
->>>
->>>     
->>   
+Richard Röjfors wrote:
+> This patch addes timb-radio to all configurations of the timberdale MFD.
 > 
+> Connected to the FPGA is a TEF6862 tuner and a SAA7706H DSP, the I2C
+> board info of these devices is passed via the timb-radio platform data.
+
+Hi Richard,
+
+I'm trying to apply it to my git tree (http://git.linuxtv.org/v4l-dvb.git),
+but it is failing:
+
+patching file drivers/mfd/timberdale.c
+Hunk #1 FAILED at 37.
+Hunk #2 FAILED at 215.
+Hunk #3 FAILED at 276.
+Hunk #4 FAILED at 325.
+Hunk #5 FAILED at 364.
+Hunk #6 FAILED at 405.
+6 out of 6 hunks FAILED -- saving rejects to file drivers/mfd/timberdale.c.rej
+Patch doesn't apply
+
+Could you please verify what's going wrong?	
+
 > 
+> Signed-off-by: Richard Röjfors <richard.rojfors@pelagicore.com>
+> ---
+> diff --git a/drivers/mfd/timberdale.c b/drivers/mfd/timberdale.c
+> index 603cf06..1ed44d2 100644
+> --- a/drivers/mfd/timberdale.c
+> +++ b/drivers/mfd/timberdale.c
+> @@ -37,6 +37,8 @@
+>  #include <linux/spi/max7301.h>
+>  #include <linux/spi/mc33880.h>
+> 
+> +#include <media/timb_radio.h>
+> +
+>  #include "timberdale.h"
+> 
+>  #define DRIVER_NAME "timberdale"
+> @@ -213,6 +215,40 @@ const static __devinitconst struct resource
+> timberdale_uartlite_resources[] = {
+>      },
+>  };
+> 
+> +const static __devinitconst struct resource
+> timberdale_radio_resources[] = {
+> +    {
+> +        .start    = RDSOFFSET,
+> +        .end    = RDSEND,
+> +        .flags    = IORESOURCE_MEM,
+> +    },
+> +    {
+> +        .start    = IRQ_TIMBERDALE_RDS,
+> +        .end    = IRQ_TIMBERDALE_RDS,
+> +        .flags    = IORESOURCE_IRQ,
+> +    },
+> +};
+> +
+> +static __devinitdata struct i2c_board_info
+> timberdale_tef6868_i2c_board_info = {
+> +    I2C_BOARD_INFO("tef6862", 0x60)
+> +};
+> +
+> +static __devinitdata struct i2c_board_info
+> timberdale_saa7706_i2c_board_info = {
+> +    I2C_BOARD_INFO("saa7706h", 0x1C)
+> +};
+> +
+> +static __devinitdata struct timb_radio_platform_data
+> +    timberdale_radio_platform_data = {
+> +    .i2c_adapter = 0,
+> +    .tuner = {
+> +        .module_name = "tef6862",
+> +        .info = &timberdale_tef6868_i2c_board_info
+> +    },
+> +    .dsp = {
+> +        .module_name = "saa7706h",
+> +        .info = &timberdale_saa7706_i2c_board_info
+> +    }
+> +};
+> +
+>  const static __devinitconst struct resource timberdale_dma_resources[] = {
+>      {
+>          .start    = DMAOFFSET,
+> @@ -240,6 +276,13 @@ static __devinitdata struct mfd_cell
+> timberdale_cells_bar0_cfg0[] = {
+>          .data_size = sizeof(timberdale_gpio_platform_data),
+>      },
+>      {
+> +        .name = "timb-radio",
+> +        .num_resources = ARRAY_SIZE(timberdale_radio_resources),
+> +        .resources = timberdale_radio_resources,
+> +        .platform_data = &timberdale_radio_platform_data,
+> +        .data_size = sizeof(timberdale_radio_platform_data),
+> +    },
+> +    {
+>          .name = "xilinx_spi",
+>          .num_resources = ARRAY_SIZE(timberdale_spi_resources),
+>          .resources = timberdale_spi_resources,
+> @@ -282,6 +325,13 @@ static __devinitdata struct mfd_cell
+> timberdale_cells_bar0_cfg1[] = {
+>          .resources = timberdale_mlogicore_resources,
+>      },
+>      {
+> +        .name = "timb-radio",
+> +        .num_resources = ARRAY_SIZE(timberdale_radio_resources),
+> +        .resources = timberdale_radio_resources,
+> +        .platform_data = &timberdale_radio_platform_data,
+> +        .data_size = sizeof(timberdale_radio_platform_data),
+> +    },
+> +    {
+>          .name = "xilinx_spi",
+>          .num_resources = ARRAY_SIZE(timberdale_spi_resources),
+>          .resources = timberdale_spi_resources,
+> @@ -314,6 +364,13 @@ static __devinitdata struct mfd_cell
+> timberdale_cells_bar0_cfg2[] = {
+>          .data_size = sizeof(timberdale_gpio_platform_data),
+>      },
+>      {
+> +        .name = "timb-radio",
+> +        .num_resources = ARRAY_SIZE(timberdale_radio_resources),
+> +        .resources = timberdale_radio_resources,
+> +        .platform_data = &timberdale_radio_platform_data,
+> +        .data_size = sizeof(timberdale_radio_platform_data),
+> +    },
+> +    {
+>          .name = "xilinx_spi",
+>          .num_resources = ARRAY_SIZE(timberdale_spi_resources),
+>          .resources = timberdale_spi_resources,
+> @@ -348,6 +405,13 @@ static __devinitdata struct mfd_cell
+> timberdale_cells_bar0_cfg3[] = {
+>          .data_size = sizeof(timberdale_gpio_platform_data),
+>      },
+>      {
+> +        .name = "timb-radio",
+> +        .num_resources = ARRAY_SIZE(timberdale_radio_resources),
+> +        .resources = timberdale_radio_resources,
+> +        .platform_data = &timberdale_radio_platform_data,
+> +        .data_size = sizeof(timberdale_radio_platform_data),
+> +    },
+> +    {
+>          .name = "xilinx_spi",
+>          .num_resources = ARRAY_SIZE(timberdale_spi_resources),
+>          .resources = timberdale_spi_resources,
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
 -- 
