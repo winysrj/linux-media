@@ -1,678 +1,459 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f173.google.com ([209.85.211.173]:51555 "EHLO
-	mail-yw0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755787Ab0BJTDS (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:18258 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755536Ab0BSTWN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Feb 2010 14:03:18 -0500
-Received: by ywh3 with SMTP id 3so378817ywh.22
-        for <linux-media@vger.kernel.org>; Wed, 10 Feb 2010 11:03:17 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <f535cc5a1002101101k709bbe9bv504cf33fab14dedc@mail.gmail.com>
-References: <f535cc5a1002100021u37bf47a5y50a0a90873a082e2@mail.gmail.com>
-	<f535cc5a1002101058h4d8e4bd1p6fd03abd4f724f52@mail.gmail.com>
-	<f535cc5a1002101101k709bbe9bv504cf33fab14dedc@mail.gmail.com>
-From: Carlos Jenkins <carlos.jenkins.perez@gmail.com>
-Date: Wed, 10 Feb 2010 13:02:56 -0600
-Message-ID: <f535cc5a1002101102w146050c5v91ddc6ec86542153@mail.gmail.com>
-Subject: Want to help in MSI TV VOX USB 2.0
+	Fri, 19 Feb 2010 14:22:13 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=000e0cd6f1cad13c56047f43af77
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
+	david.cohen@nokia.com,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: [PATCH v5 4/6] V4L: Events: Add backend
+Date: Fri, 19 Feb 2010 21:21:58 +0200
+Message-Id: <1266607320-9974-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4B7EE4A4.3080202@maxwell.research.nokia.com>
+References: <4B7EE4A4.3080202@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---000e0cd6f1cad13c56047f43af77
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Add event handling backend to V4L2. The backend handles event subscription
+and delivery to file handles. Event subscriptions are based on file handle.
+Events may be delivered to all subscribed file handles on a device
+independent of where they originate from.
 
-Hi everyone.
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/Makefile     |    3 +-
+ drivers/media/video/v4l2-event.c |  286 ++++++++++++++++++++++++++++++++++++++
+ drivers/media/video/v4l2-fh.c    |    4 +
+ include/media/v4l2-event.h       |   65 +++++++++
+ include/media/v4l2-fh.h          |    2 +
+ 5 files changed, 359 insertions(+), 1 deletions(-)
+ create mode 100644 drivers/media/video/v4l2-event.c
+ create mode 100644 include/media/v4l2-event.h
 
-First of all, great job :)
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index 14bf69a..b84abfe 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -10,7 +10,8 @@ stkwebcam-objs	:=	stk-webcam.o stk-sensor.o
+ 
+ omap2cam-objs	:=	omap24xxcam.o omap24xxcam-dma.o
+ 
+-videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o
++videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
++			v4l2-event.o
+ 
+ # V4L2 core modules
+ 
+diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+new file mode 100644
+index 0000000..ab31cc6
+--- /dev/null
++++ b/drivers/media/video/v4l2-event.c
+@@ -0,0 +1,286 @@
++/*
++ * drivers/media/video/v4l2-event.c
++ *
++ * V4L2 events.
++ *
++ * Copyright (C) 2009 Nokia Corporation.
++ *
++ * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#include <media/v4l2-dev.h>
++#include <media/v4l2-fh.h>
++#include <media/v4l2-event.h>
++
++#include <linux/sched.h>
++
++static int v4l2_event_init(struct v4l2_fh *fh)
++{
++	fh->events = kzalloc(sizeof(*fh->events), GFP_KERNEL);
++	if (fh->events == NULL)
++		return -ENOMEM;
++
++	init_waitqueue_head(&fh->events->wait);
++
++	INIT_LIST_HEAD(&fh->events->free);
++	INIT_LIST_HEAD(&fh->events->available);
++	INIT_LIST_HEAD(&fh->events->subscribed);
++
++	fh->events->sequence = -1;
++
++	return 0;
++}
++
++int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n)
++{
++	struct v4l2_events *events;
++	unsigned long flags;
++	int ret;
++
++	if (!fh->events) {
++		ret = v4l2_event_init(fh);
++		if (ret)
++			return ret;
++	}
++
++	events = fh->events;
++
++	while (events->nallocated < n) {
++		struct v4l2_kevent *kev;
++
++		kev = kzalloc(sizeof(*kev), GFP_KERNEL);
++		if (kev == NULL)
++			return -ENOMEM;
++
++		spin_lock_irqsave(&fh->vdev->fh_lock, flags);
++		list_add_tail(&kev->list, &events->free);
++		events->nallocated++;
++		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(v4l2_event_alloc);
++
++#define list_kfree(list, type, member)				\
++	while (!list_empty(list)) {				\
++		type *hi;					\
++		hi = list_first_entry(list, type, member);	\
++		list_del(&hi->member);				\
++		kfree(hi);					\
++	}
++
++void v4l2_event_free(struct v4l2_fh *fh)
++{
++	struct v4l2_events *events = fh->events;
++
++	if (!events)
++		return;
++
++	list_kfree(&events->free, struct v4l2_kevent, list);
++	list_kfree(&events->available, struct v4l2_kevent, list);
++	list_kfree(&events->subscribed, struct v4l2_subscribed_event, list);
++
++	kfree(events);
++	fh->events = NULL;
++}
++EXPORT_SYMBOL_GPL(v4l2_event_free);
++
++int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
++{
++	struct v4l2_events *events = fh->events;
++	struct v4l2_kevent *kev;
++	unsigned long flags;
++
++	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
++
++	if (list_empty(&events->available)) {
++		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
++		return -ENOENT;
++	}
++
++	WARN_ON(events->navailable == 0);
++
++	kev = list_first_entry(&events->available, struct v4l2_kevent, list);
++	list_move(&kev->list, &events->free);
++	events->navailable--;
++
++	kev->event.pending = events->navailable;
++	*event = kev->event;
++
++	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(v4l2_event_dequeue);
++
++static struct v4l2_subscribed_event *v4l2_event_subscribed(
++	struct v4l2_fh *fh, u32 type)
++{
++	struct v4l2_events *events = fh->events;
++	struct v4l2_subscribed_event *sev;
++
++	list_for_each_entry(sev, &events->subscribed, list) {
++		if (sev->type == type)
++			return sev;
++	}
++
++	return NULL;
++}
++
++void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev)
++{
++	struct v4l2_fh *fh;
++	unsigned long flags;
++	struct timespec timestamp;
++
++	ktime_get_ts(&timestamp);
++
++	spin_lock_irqsave(&vdev->fh_lock, flags);
++
++	list_for_each_entry(fh, &vdev->fh_list, list) {
++		struct v4l2_events *events = fh->events;
++		struct v4l2_kevent *kev;
++		u32 sequence;
++
++		/* Are we subscribed? */
++		if (!v4l2_event_subscribed(fh, ev->type))
++			continue;
++
++		/* Increase event sequence number on fh. */
++		events->sequence++;
++		sequence = events->sequence;
++
++		/* Do we have any free events? */
++		if (list_empty(&events->free))
++			continue;
++
++		/* Take one and fill it. */
++		kev = list_first_entry(&events->free, struct v4l2_kevent, list);
++		kev->event.type = ev->type;
++		kev->event.u = ev->u;
++		kev->event.timestamp = timestamp;
++		kev->event.sequence = sequence;
++		list_move_tail(&kev->list, &events->available);
++
++		events->navailable++;
++
++		wake_up_all(&events->wait);
++	}
++
++	spin_unlock_irqrestore(&vdev->fh_lock, flags);
++}
++EXPORT_SYMBOL_GPL(v4l2_event_queue);
++
++int v4l2_event_pending(struct v4l2_fh *fh)
++{
++	return fh->events->navailable;
++}
++EXPORT_SYMBOL_GPL(v4l2_event_pending);
++
++int v4l2_event_subscribe(struct v4l2_fh *fh,
++			 struct v4l2_event_subscription *sub)
++{
++	struct v4l2_events *events = fh->events;
++	struct v4l2_subscribed_event *sev;
++	unsigned long flags;
++
++	sev = kmalloc(sizeof(*sev), GFP_KERNEL);
++	if (!sev)
++		return -ENOMEM;
++
++	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
++
++	if (v4l2_event_subscribed(fh, sub->type) == NULL) {
++		INIT_LIST_HEAD(&sev->list);
++		sev->type = sub->type;
++
++		list_add(&sev->list, &events->subscribed);
++	}
++
++	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(v4l2_event_subscribe);
++
++/* subscribe a zero-terminated array of events */
++int v4l2_event_subscribe_many(struct v4l2_fh *fh, const u32 *all)
++{
++	int ret;
++
++	for (; *all; all++) {
++		struct v4l2_event_subscription sub;
++
++		sub.type = *all;
++
++		ret = v4l2_event_subscribe(fh, &sub);
++		if (ret)
++			return ret;
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(v4l2_event_subscribe_many);
++
++static void v4l2_event_unsubscribe_all(struct v4l2_fh *fh)
++{
++	struct v4l2_events *events = fh->events;
++	unsigned long flags;
++
++	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
++
++	while (!list_empty(&events->subscribed)) {
++		struct v4l2_subscribed_event *sev;
++
++		sev = list_first_entry(&events->subscribed,
++				       struct v4l2_subscribed_event, list);
++
++		list_del(&sev->list);
++		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
++		kfree(sev);
++		spin_lock_irqsave(&fh->vdev->fh_lock, flags);
++	}
++
++	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
++}
++
++int v4l2_event_unsubscribe(struct v4l2_fh *fh,
++			   struct v4l2_event_subscription *sub)
++{
++	struct v4l2_subscribed_event *sev;
++	unsigned long flags;
++
++	if (sub->type == V4L2_EVENT_ALL) {
++		v4l2_event_unsubscribe_all(fh);
++		return 0;
++	}
++
++	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
++
++	sev = v4l2_event_subscribed(fh, sub->type);
++	if (sev != NULL)
++		list_del(&sev->list);
++
++	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
++
++	if (sev != NULL)
++		kfree(sev);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(v4l2_event_unsubscribe);
+diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
+index c707930..3a9bc7d 100644
+--- a/drivers/media/video/v4l2-fh.c
++++ b/drivers/media/video/v4l2-fh.c
+@@ -25,11 +25,13 @@
+ #include <linux/bitops.h>
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-fh.h>
++#include <media/v4l2-event.h>
+ 
+ void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
+ {
+ 	fh->vdev = vdev;
+ 	INIT_LIST_HEAD(&fh->list);
++	fh->events = NULL;
+ 	set_bit(V4L2_FL_USES_V4L2_FH, &fh->vdev->flags);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_fh_init);
+@@ -60,5 +62,7 @@ void v4l2_fh_exit(struct v4l2_fh *fh)
+ 		return;
+ 
+ 	fh->vdev = NULL;
++
++	v4l2_event_free(fh);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_fh_exit);
+diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+new file mode 100644
+index 0000000..284d495
+--- /dev/null
++++ b/include/media/v4l2-event.h
+@@ -0,0 +1,65 @@
++/*
++ * include/media/v4l2-event.h
++ *
++ * V4L2 events.
++ *
++ * Copyright (C) 2009 Nokia Corporation.
++ *
++ * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#ifndef V4L2_EVENT_H
++#define V4L2_EVENT_H
++
++#include <linux/types.h>
++#include <linux/videodev2.h>
++
++struct v4l2_fh;
++struct video_device;
++
++struct v4l2_kevent {
++	struct list_head	list;
++	struct v4l2_event	event;
++};
++
++struct v4l2_subscribed_event {
++	struct list_head	list;
++	u32			type;
++};
++
++struct v4l2_events {
++	wait_queue_head_t	wait;
++	struct list_head	subscribed; /* Subscribed events */
++	struct list_head	available; /* Dequeueable event */
++	unsigned int		navailable;
++	struct list_head	free; /* Events ready for use */
++	unsigned int		nallocated; /* Number of allocated events */
++	u32			sequence;
++};
++
++int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n);
++void v4l2_event_free(struct v4l2_fh *fh);
++int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event);
++void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev);
++int v4l2_event_pending(struct v4l2_fh *fh);
++int v4l2_event_subscribe(struct v4l2_fh *fh,
++			 struct v4l2_event_subscription *sub);
++int v4l2_event_subscribe_many(struct v4l2_fh *fh, const u32 *all);
++int v4l2_event_unsubscribe(struct v4l2_fh *fh,
++			   struct v4l2_event_subscription *sub);
++
++#endif /* V4L2_EVENT_H */
+diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
+index 6b486aa..6c9df56 100644
+--- a/include/media/v4l2-fh.h
++++ b/include/media/v4l2-fh.h
+@@ -28,10 +28,12 @@
+ #include <linux/list.h>
+ 
+ struct video_device;
++struct v4l2_events;
+ 
+ struct v4l2_fh {
+ 	struct list_head	list;
+ 	struct video_device	*vdev;
++	struct v4l2_events      *events; /* events, pending and subscribed */
+ };
+ 
+ void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev);
+-- 
+1.5.6.5
 
-My name is Carlos Jenkins, and I'm here to help getting to work the
-MSI TV VOX 8609 USB 2.0 device once again. I know it's an old device,
-but here where I live, in Costa Rica, we still have analog TV only.
-
-TV Standard: NTSC
-
-This device is a em2820/SAA7114H device, I'm sure, I opened it and
-looked at the chips :P
-
-This device is listed here:
-http://www.linuxtv.org/wiki/index.php/Em28xx_devices#Table_of_validated_boa=
-rds
-
-Nevertheless, I'm trying since 2007 to get it work, and never could do
-so with the v4l tree (and I tested it every 4 months or so). Just
-once, with the now gone http://mcentral.de/ fork (I still keep that
-source code), as explained here
-http://javoaxian.blogspot.com/2008/03/instalar-msi-tv-vox-8609-video-usb-20=
-.html
-(in spanish, but commands can be understood).
-
-This fork worked for kernel < 2.6.24 (v4l2 driver version 0.0.1). When
-Hardy Heron 8.04 came, the device stop working with that fork.
-
-I'm still a college student, but I know C, Assembly (AVR, PIC,
-others), and I'm ready to do everything to get this thing working
-again.
-
-I'm running a fresh install of Ubuntu Karmic Koala 9.10 Desktop
-32bits, kernel 2.6.31-19-generic with the headers.
-
-Ok, what I tried so far (I'm putting here the obvious steps for
-documentation purpose):
-
-shell$ sudo apt-get mercurial linux-headers-`uname -r` build-essential
-shell$ hg clone http://linuxtv.org/hg/v4l-dvb
-shell$ nano v4l-dvb/v4l/.config #(and changed line 227 from
-"CONFIG_DVB_FIREDTV=3Dm" to "CONFIG_DVB_FIREDTV=3Dn", to be able to
-compile the tree in Karmic, as explained here
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg06865.html
-)
-shell$ make #everything fine :)
-shell$ sudo make install #everything just fine :)
-
-**********************************************
-
-Test 1:
-
-sudo modprobe em28xx
-
-dmesg:
-
-[=A0=A0 63.715662] Linux video capture interface: v2.00
-[=A0=A0 63.737054] usbcore: registered new interface driver em28xx
-[=A0=A0 63.737060] em28xx driver loaded
-
-Now, I do plug the USB device.
-
-[=A0 109.476033] usb 1-6: new high speed USB device using ehci_hcd and addr=
-ess 5
-[=A0 109.609278] usb 1-6: configuration #1 chosen from 1 choice
-[=A0 109.610221] em28xx: New device @ 480 Mbps (eb1a:2820, interface 0, cla=
-ss 0)
-[=A0 109.610342] em28xx #0: chip ID is em2820 (or em2710)
-[=A0 109.700913] em28xx #0: board has no eeprom
-[=A0 109.713910] em28xx #0: Identified as Unknown EM2750/28xx video
-grabber (card=3D1)
-[=A0 109.726777] em28xx #0: found i2c device @ 0x42 [???]
-[=A0 109.733523] em28xx #0: found i2c device @ 0x66 [???]
-[=A0 109.733892] em28xx #0: found i2c device @ 0x68 [???]
-[=A0 109.750515] em28xx #0: found i2c device @ 0xc0 [tuner (analog)]
-[=A0 109.750883] em28xx #0: found i2c device @ 0xc2 [tuner (analog)]
-[=A0 109.762385] em28xx #0: Your board has no unique USB ID and thus
-need a hint to be detected.
-[=A0 109.762392] em28xx #0: You may try to use card=3D<n> insmod option to
-workaround that.
-[=A0 109.762397] em28xx #0: Please send an email with this log to:
-[=A0 109.762401] em28xx #0: =A0=A0=A0 V4L Mailing List <linux-media@vger.ke=
-rnel.org>
-[=A0 109.762406] em28xx #0: Board eeprom hash is 0x00000000
-[=A0 109.762411] em28xx #0: Board i2c devicelist hash is 0xd01900b3
-[=A0 109.762415] em28xx #0: Here is a list of valid choices for the
-card=3D<n> insmod option:
-[=A0 109.762421] em28xx #0:=A0=A0=A0=A0 card=3D0 -> Unknown EM2800 video gr=
-abber
-[=A0 109.762426] em28xx #0:=A0=A0=A0=A0 card=3D1 -> Unknown EM2750/28xx vid=
-eo grabber
-[=A0 109.762431] em28xx #0:=A0=A0=A0=A0 card=3D2 -> Terratec Cinergy 250 US=
-B
-[=A0 109.762436] em28xx #0:=A0=A0=A0=A0 card=3D3 -> Pinnacle PCTV USB 2
-[=A0 109.762441] em28xx #0:=A0=A0=A0=A0 card=3D4 -> Hauppauge WinTV USB 2
-[=A0 109.762446] em28xx #0:=A0=A0=A0=A0 card=3D5 -> MSI VOX USB 2.0
-[...]
-[=A0 109.762781] em28xx #0:=A0=A0=A0=A0 card=3D74 -> Actionmaster/LinXcel/D=
-igitus VC211A
-[=A0 109.762877] em28xx #0: Config register raw data: 0x00
-[=A0 109.762884] em28xx #0: v4l2 driver version 0.1.2
-[=A0 110.156135] em28xx #0: V4L2 video device registered as video0
-
-Now did test tvtime (I know it's not going to work):
-
-shell$ tvtime -v
-Ejecutando tvtime 1.0.2.
-Leyendo la configuraci=F3n de /etc/tvtime/tvtime.xml
-Leyendo la configuraci=F3n de /home/havok/.tvtime/tvtime.xml
-cpuinfo: CPU AMD Athlon(tm) 64 X2 Dual Core Processor 3800+, family
-15, model 11, stepping 2.
-cpuinfo: CPU measured at 1002.189MHz.
-tvtime: Cannot set priority to -10: Permiso denegado.
-xcommon: Display :0.0, vendor The X.Org Foundation, vendor release 10604000
-xfullscreen: Using XINERAMA for dual-head information.
-xfullscreen: Pixels are square.
-xfullscreen: Number of displays is 1.
-xfullscreen: Head 0 at 0,0 with size 1440x900.
-xcommon: Have XTest, will use it to ping the screensaver.
-xcommon: Pixel aspect ratio 1:1.
-xcommon: Pixel aspect ratio 1:1.
-xcommon: Window manager is compiz and is EWMH compliant.
-xcommon: Using EWMH state fullscreen property.
-xcommon: Using EWMH state above property.
-xcommon: Using EWMH state below property.
-xcommon: Pixel aspect ratio 1:1.
-xcommon: Displaying in a 768x576 window inside 768x576 space.
-xvoutput: Using XVIDEO adaptor 355: NV17 Video Texture.
-speedycode: Using MMXEXT optimized functions.
-station: Reading stationlist from /home/havok/.tvtime/stationlist.xml
-videoinput: Using video4linux2 driver 'em28xx', card 'Unknown
-EM2750/28xx video grabb' (bus usb-0000:00:0b.1-6).
-videoinput: Version is 258, capabilities 5000041.
-videoinput: No inputs available on video4linux2 device '/dev/video0'.
-xcommon: Pixel aspect ratio 1:1.
-xcommon: Displaying in a 768x576 window inside 768x576 space.
-xcommon: Received a map, marking window as visible (57).
-xcommon: Pixel aspect ratio 1:1.
-xcommon: Displaying in a 768x576 window inside 768x576 space.
-
-Program says: no inputs available. Unable to open /dev/video0. But the
-GUI still responsible, as when we run tvtime with anything plugged in.
-
-Nevertheless,
-
-shell$ ls /dev/ | grep video
-video0
-
-So, what I did is reloading the module specifying the device:
-
-shell$ sudo rmmod em28xx
-shell$ sudo modprobe --verbose --first-time em28xx card=3D5
-insmod /lib/modules/2.6.31-19-generic/kernel/drivers/media/video/em28xx/em2=
-8xx.ko
-card=3D5
-
-shell$ dmesg
-[=A0 695.358240] em28xx: New device @ 480 Mbps (eb1a:2820, interface 0, cla=
-ss 0)
-[=A0 695.358989] em28xx #0: chip ID is em2820 (or em2710)
-[=A0 695.461103] em28xx #0: board has no eeprom
-[=A0 695.462226] em28xx #0: Identified as MSI VOX USB 2.0 (card=3D5)
-[=A0 695.830239] saa7115 5-0021: saa7114 found (1f7114d0e000000) @ 0x42
-(em28xx #0)
-[=A0 698.043727] All bytes are equal. It is not a TEA5767
-[=A0 698.043977] tuner 5-0060: chip found @ 0xc0 (em28xx #0)
-[=A0 698.076232] tuner-simple 5-0060: creating new instance
-[=A0 698.076241] tuner-simple 5-0060: type set to 37 (LG PAL (newer TAPC se=
-ries))
-[=A0 698.097987] em28xx #0: Config register raw data: 0x00
-[=A0 698.228070] em28xx #0: v4l2 driver version 0.1.2
-[=A0 698.624160] em28xx #0: V4L2 video device registered as video0
-[=A0 698.624210] usbcore: registered new interface driver em28xx
-[=A0 698.624217] em28xx driver loaded
-
-(So far so good :D )
-
-shell$ tvtime -v
-Ejecutando tvtime 1.0.2.
-Leyendo la configuraci=F3n de /etc/tvtime/tvtime.xml
-Leyendo la configuraci=F3n de /home/havok/.tvtime/tvtime.xml
-cpuinfo: CPU AMD Athlon(tm) 64 X2 Dual Core Processor 3800+, family
-15, model 11, stepping 2.
-cpuinfo: CPU measured at 1002.171MHz.
-tvtime: Cannot set priority to -10: Permiso denegado.
-xcommon: Display :0.0, vendor The X.Org Foundation, vendor release 10604000
-xfullscreen: Using XINERAMA for dual-head information.
-xfullscreen: Pixels are square.
-xfullscreen: Number of displays is 1.
-xfullscreen: Head 0 at 0,0 with size 1440x900.
-xcommon: Have XTest, will use it to ping the screensaver.
-xcommon: Pixel aspect ratio 1:1.
-xcommon: Pixel aspect ratio 1:1.
-xcommon: Window manager is compiz and is EWMH compliant.
-xcommon: Using EWMH state fullscreen property.
-xcommon: Using EWMH state above property.
-xcommon: Using EWMH state below property.
-xcommon: Pixel aspect ratio 1:1.
-xcommon: Displaying in a 768x576 window inside 768x576 space.
-xvoutput: Using XVIDEO adaptor 355: NV17 Video Texture.
-speedycode: Using MMXEXT optimized functions.
-station: Reading stationlist from /home/havok/.tvtime/stationlist.xml
-videoinput: Using video4linux2 driver 'em28xx', card 'MSI VOX USB 2.0'
-(bus usb-0000:00:0b.1-6).
-videoinput: Version is 258, capabilities 5010041.
-videoinput: Width 720 too high, using 640 instead as suggested by the drive=
-r.
-videoinput: Maximum input width: 640 pixels.
-tvtime: Sampling input at 640 pixels per scanline.
-xcommon: Pixel aspect ratio 1:1.
-xcommon: Displaying in a 768x576 window inside 768x576 space.
-[At this point the application freezes in a black screen, nothing can
-be done on the GUI]
-
-Curious thing, in the Gnome System Monitor I can see:
-
-Process: tvtime
-Wait on channel: videobuf_waiton
-
-This behavior is the same since I bought the device near 2007 for the
-v4l tree, so, for me, nothing new.
-Just in case: The device work just fine on a Windows machine, so it's
-not a hardware problem.
-
-I'm attaching the usb device listing just in case.
-
-As you can see, no error is never thrown, neither on TVTime nor dmesg.
-I know that em28xx sources can be found at
-v4l-dvb/linux/drivers/media/video/em28xx on the source tree.
-
-I've been watching those source code files, but I'm not sure where to
-start. Any advice or help is welcome.
-
-Thanks for your time, and sorry for my English. :P
-
---000e0cd6f1cad13c56047f43af77
-Content-Type: text/plain; charset=US-ASCII; name="lsusb.txt"
-Content-Disposition: attachment; filename="lsusb.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_g5hupyyj0
-
-CkJ1cyAwMDIgRGV2aWNlIDAwMTogSUQgMWQ2YjowMDAxIExpbnV4IEZvdW5kYXRpb24gMS4xIHJv
-b3QgaHViCkRldmljZSBEZXNjcmlwdG9yOgogIGJMZW5ndGggICAgICAgICAgICAgICAgMTgKICBi
-RGVzY3JpcHRvclR5cGUgICAgICAgICAxCiAgYmNkVVNCICAgICAgICAgICAgICAgMS4xMAogIGJE
-ZXZpY2VDbGFzcyAgICAgICAgICAgIDkgSHViCiAgYkRldmljZVN1YkNsYXNzICAgICAgICAgMCBV
-bnVzZWQKICBiRGV2aWNlUHJvdG9jb2wgICAgICAgICAwIEZ1bGwgc3BlZWQgKG9yIHJvb3QpIGh1
-YgogIGJNYXhQYWNrZXRTaXplMCAgICAgICAgNjQKICBpZFZlbmRvciAgICAgICAgICAgMHgxZDZi
-IExpbnV4IEZvdW5kYXRpb24KICBpZFByb2R1Y3QgICAgICAgICAgMHgwMDAxIDEuMSByb290IGh1
-YgogIGJjZERldmljZSAgICAgICAgICAgIDIuMDYKICBpTWFudWZhY3R1cmVyICAgICAgICAgICAz
-IExpbnV4IDIuNi4zMS0xOS1nZW5lcmljIG9oY2lfaGNkCiAgaVByb2R1Y3QgICAgICAgICAgICAg
-ICAgMiBPSENJIEhvc3QgQ29udHJvbGxlcgogIGlTZXJpYWwgICAgICAgICAgICAgICAgIDEgMDAw
-MDowMDowYi4wCiAgYk51bUNvbmZpZ3VyYXRpb25zICAgICAgMQogIENvbmZpZ3VyYXRpb24gRGVz
-Y3JpcHRvcjoKICAgIGJMZW5ndGggICAgICAgICAgICAgICAgIDkKICAgIGJEZXNjcmlwdG9yVHlw
-ZSAgICAgICAgIDIKICAgIHdUb3RhbExlbmd0aCAgICAgICAgICAgMjUKICAgIGJOdW1JbnRlcmZh
-Y2VzICAgICAgICAgIDEKICAgIGJDb25maWd1cmF0aW9uVmFsdWUgICAgIDEKICAgIGlDb25maWd1
-cmF0aW9uICAgICAgICAgIDAgCiAgICBibUF0dHJpYnV0ZXMgICAgICAgICAweGUwCiAgICAgIFNl
-bGYgUG93ZXJlZAogICAgICBSZW1vdGUgV2FrZXVwCiAgICBNYXhQb3dlciAgICAgICAgICAgICAg
-ICAwbUEKICAgIEludGVyZmFjZSBEZXNjcmlwdG9yOgogICAgICBiTGVuZ3RoICAgICAgICAgICAg
-ICAgICA5CiAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDQKICAgICAgYkludGVyZmFjZU51
-bWJlciAgICAgICAgMAogICAgICBiQWx0ZXJuYXRlU2V0dGluZyAgICAgICAwCiAgICAgIGJOdW1F
-bmRwb2ludHMgICAgICAgICAgIDEKICAgICAgYkludGVyZmFjZUNsYXNzICAgICAgICAgOSBIdWIK
-ICAgICAgYkludGVyZmFjZVN1YkNsYXNzICAgICAgMCBVbnVzZWQKICAgICAgYkludGVyZmFjZVBy
-b3RvY29sICAgICAgMCBGdWxsIHNwZWVkIChvciByb290KSBodWIKICAgICAgaUludGVyZmFjZSAg
-ICAgICAgICAgICAgMCAKICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoKICAgICAgICBiTGVuZ3Ro
-ICAgICAgICAgICAgICAgICA3CiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNQogICAg
-ICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4ODEgIEVQIDEgSU4KICAgICAgICBibUF0dHJpYnV0
-ZXMgICAgICAgICAgICAzCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAgICAgICAgSW50ZXJy
-dXB0CiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9uZQogICAgICAgICAgVXNh
-Z2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgw
-MDAyICAxeCAyIGJ5dGVzCiAgICAgICAgYkludGVydmFsICAgICAgICAgICAgIDI1NQpIdWIgRGVz
-Y3JpcHRvcjoKICBiTGVuZ3RoICAgICAgICAgICAgICAxMQogIGJEZXNjcmlwdG9yVHlwZSAgICAg
-IDQxCiAgbk5iclBvcnRzICAgICAgICAgICAgIDgKICB3SHViQ2hhcmFjdGVyaXN0aWMgMHgwMDAy
-CiAgICBObyBwb3dlciBzd2l0Y2hpbmcgKHVzYiAxLjApCiAgICBHYW5nZWQgb3ZlcmN1cnJlbnQg
-cHJvdGVjdGlvbgogIGJQd3JPbjJQd3JHb29kICAgICAgICAxICogMiBtaWxsaSBzZWNvbmRzCiAg
-Ykh1YkNvbnRyQ3VycmVudCAgICAgIDAgbWlsbGkgQW1wZXJlCiAgRGV2aWNlUmVtb3ZhYmxlICAg
-IDB4MDAgMHgwMAogIFBvcnRQd3JDdHJsTWFzayAgICAweGZmIDB4ZmYKIEh1YiBQb3J0IFN0YXR1
-czoKICAgUG9ydCAxOiAwMDAwLjAxMDAgcG93ZXIKICAgUG9ydCAyOiAwMDAwLjAxMDAgcG93ZXIK
-ICAgUG9ydCAzOiAwMDAwLjAxMDAgcG93ZXIKICAgUG9ydCA0OiAwMDAwLjAzMDAgbG93c3BlZWQg
-cG93ZXIKICAgUG9ydCA1OiAwMDAwLjAxMDAgcG93ZXIKICAgUG9ydCA2OiAwMDAwLjAxMDAgcG93
-ZXIKICAgUG9ydCA3OiAwMDAwLjAxMDAgcG93ZXIKICAgUG9ydCA4OiAwMDAwLjAxMDAgcG93ZXIK
-RGV2aWNlIFN0YXR1czogICAgIDB4MDAwMwogIFNlbGYgUG93ZXJlZAogIFJlbW90ZSBXYWtldXAg
-RW5hYmxlZAoKQnVzIDAwMSBEZXZpY2UgMDA1OiBJRCBlYjFhOjI4MjAgZU1QSUEgVGVjaG5vbG9n
-eSwgSW5jLiAKRGV2aWNlIERlc2NyaXB0b3I6CiAgYkxlbmd0aCAgICAgICAgICAgICAgICAxOAog
-IGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDEKICBiY2RVU0IgICAgICAgICAgICAgICAyLjAwCiAg
-YkRldmljZUNsYXNzICAgICAgICAgICAgMCAoRGVmaW5lZCBhdCBJbnRlcmZhY2UgbGV2ZWwpCiAg
-YkRldmljZVN1YkNsYXNzICAgICAgICAgMCAKICBiRGV2aWNlUHJvdG9jb2wgICAgICAgICAwIAog
-IGJNYXhQYWNrZXRTaXplMCAgICAgICAgNjQKICBpZFZlbmRvciAgICAgICAgICAgMHhlYjFhIGVN
-UElBIFRlY2hub2xvZ3ksIEluYy4KICBpZFByb2R1Y3QgICAgICAgICAgMHgyODIwIAogIGJjZERl
-dmljZSAgICAgICAgICAgIDEuMDAKICBpTWFudWZhY3R1cmVyICAgICAgICAgICAwIAogIGlQcm9k
-dWN0ICAgICAgICAgICAgICAgIDAgCiAgaVNlcmlhbCAgICAgICAgICAgICAgICAgMCAKICBiTnVt
-Q29uZmlndXJhdGlvbnMgICAgICAxCiAgQ29uZmlndXJhdGlvbiBEZXNjcmlwdG9yOgogICAgYkxl
-bmd0aCAgICAgICAgICAgICAgICAgOQogICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgMgogICAg
-d1RvdGFsTGVuZ3RoICAgICAgICAgIDI0OQogICAgYk51bUludGVyZmFjZXMgICAgICAgICAgMQog
-ICAgYkNvbmZpZ3VyYXRpb25WYWx1ZSAgICAgMQogICAgaUNvbmZpZ3VyYXRpb24gICAgICAgICAg
-MCAKICAgIGJtQXR0cmlidXRlcyAgICAgICAgIDB4ODAKICAgICAgKEJ1cyBQb3dlcmVkKQogICAg
-TWF4UG93ZXIgICAgICAgICAgICAgIDUwMG1BCiAgICBJbnRlcmZhY2UgRGVzY3JpcHRvcjoKICAg
-ICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgOQogICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAg
-ICA0CiAgICAgIGJJbnRlcmZhY2VOdW1iZXIgICAgICAgIDAKICAgICAgYkFsdGVybmF0ZVNldHRp
-bmcgICAgICAgMAogICAgICBiTnVtRW5kcG9pbnRzICAgICAgICAgICAzCiAgICAgIGJJbnRlcmZh
-Y2VDbGFzcyAgICAgICAyNTUgVmVuZG9yIFNwZWNpZmljIENsYXNzCiAgICAgIGJJbnRlcmZhY2VT
-dWJDbGFzcyAgICAgIDAgCiAgICAgIGJJbnRlcmZhY2VQcm90b2NvbCAgICAyNTUgCiAgICAgIGlJ
-bnRlcmZhY2UgICAgICAgICAgICAgIDAgCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAg
-ICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAg
-ICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgxICBFUCAxIElOCiAgICAgICAg
-Ym1BdHRyaWJ1dGVzICAgICAgICAgICAgMwogICAgICAgICAgVHJhbnNmZXIgVHlwZSAgICAgICAg
-ICAgIEludGVycnVwdAogICAgICAgICAgU3luY2ggVHlwZSAgICAgICAgICAgICAgIE5vbmUKICAg
-ICAgICAgIFVzYWdlIFR5cGUgICAgICAgICAgICAgICBEYXRhCiAgICAgICAgd01heFBhY2tldFNp
-emUgICAgIDB4MDAwMSAgMXggMSBieXRlcwogICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAg
-MTEKICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoKICAgICAgICBiTGVuZ3RoICAgICAgICAgICAg
-ICAgICA3CiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNQogICAgICAgIGJFbmRwb2lu
-dEFkZHJlc3MgICAgIDB4ODIgIEVQIDIgSU4KICAgICAgICBibUF0dHJpYnV0ZXMgICAgICAgICAg
-ICAxCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAgICAgICAgSXNvY2hyb25vdXMKICAgICAg
-ICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25lCiAgICAgICAgICBVc2FnZSBUeXBlICAg
-ICAgICAgICAgICAgRGF0YQogICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAweDAwMDAgIDF4IDAg
-Ynl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAgICAxCiAgICAgIEVuZHBvaW50IERl
-c2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNj
-cmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDg0ICBF
-UCA0IElOCiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAgMgogICAgICAgICAgVHJhbnNm
-ZXIgVHlwZSAgICAgICAgICAgIEJ1bGsKICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAg
-ICBOb25lCiAgICAgICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAgRGF0YQogICAgICAgIHdN
-YXhQYWNrZXRTaXplICAgICAweDAyMDAgIDF4IDUxMiBieXRlcwogICAgICAgIGJJbnRlcnZhbCAg
-ICAgICAgICAgICAgIDEKICAgIEludGVyZmFjZSBEZXNjcmlwdG9yOgogICAgICBiTGVuZ3RoICAg
-ICAgICAgICAgICAgICA5CiAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDQKICAgICAgYklu
-dGVyZmFjZU51bWJlciAgICAgICAgMAogICAgICBiQWx0ZXJuYXRlU2V0dGluZyAgICAgICAxCiAg
-ICAgIGJOdW1FbmRwb2ludHMgICAgICAgICAgIDMKICAgICAgYkludGVyZmFjZUNsYXNzICAgICAg
-IDI1NSBWZW5kb3IgU3BlY2lmaWMgQ2xhc3MKICAgICAgYkludGVyZmFjZVN1YkNsYXNzICAgICAg
-MCAKICAgICAgYkludGVyZmFjZVByb3RvY29sICAgIDI1NSAKICAgICAgaUludGVyZmFjZSAgICAg
-ICAgICAgICAgMCAKICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoKICAgICAgICBiTGVuZ3RoICAg
-ICAgICAgICAgICAgICA3CiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNQogICAgICAg
-IGJFbmRwb2ludEFkZHJlc3MgICAgIDB4ODEgIEVQIDEgSU4KICAgICAgICBibUF0dHJpYnV0ZXMg
-ICAgICAgICAgICAzCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAgICAgICAgSW50ZXJydXB0
-CiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9uZQogICAgICAgICAgVXNhZ2Ug
-VHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgwMDAx
-ICAxeCAxIGJ5dGVzCiAgICAgICAgYkludGVydmFsICAgICAgICAgICAgICAxMQogICAgICBFbmRw
-b2ludCBEZXNjcmlwdG9yOgogICAgICAgIGJMZW5ndGggICAgICAgICAgICAgICAgIDcKICAgICAg
-ICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA1CiAgICAgICAgYkVuZHBvaW50QWRkcmVzcyAgICAg
-MHg4MiAgRVAgMiBJTgogICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAgICAgIDEKICAgICAgICAg
-IFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBJc29jaHJvbm91cwogICAgICAgICAgU3luY2ggVHlw
-ZSAgICAgICAgICAgICAgIE5vbmUKICAgICAgICAgIFVzYWdlIFR5cGUgICAgICAgICAgICAgICBE
-YXRhCiAgICAgICAgd01heFBhY2tldFNpemUgICAgIDB4MDQwMCAgMXggMTAyNCBieXRlcwogICAg
-ICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAgIDEKICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoK
-ICAgICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA3CiAgICAgICAgYkRlc2NyaXB0b3JUeXBl
-ICAgICAgICAgNQogICAgICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4ODQgIEVQIDQgSU4KICAg
-ICAgICBibUF0dHJpYnV0ZXMgICAgICAgICAgICAyCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAg
-ICAgICAgICAgQnVsawogICAgICAgICAgU3luY2ggVHlwZSAgICAgICAgICAgICAgIE5vbmUKICAg
-ICAgICAgIFVzYWdlIFR5cGUgICAgICAgICAgICAgICBEYXRhCiAgICAgICAgd01heFBhY2tldFNp
-emUgICAgIDB4MDIwMCAgMXggNTEyIGJ5dGVzCiAgICAgICAgYkludGVydmFsICAgICAgICAgICAg
-ICAgMQogICAgSW50ZXJmYWNlIERlc2NyaXB0b3I6CiAgICAgIGJMZW5ndGggICAgICAgICAgICAg
-ICAgIDkKICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNAogICAgICBiSW50ZXJmYWNlTnVt
-YmVyICAgICAgICAwCiAgICAgIGJBbHRlcm5hdGVTZXR0aW5nICAgICAgIDIKICAgICAgYk51bUVu
-ZHBvaW50cyAgICAgICAgICAgMwogICAgICBiSW50ZXJmYWNlQ2xhc3MgICAgICAgMjU1IFZlbmRv
-ciBTcGVjaWZpYyBDbGFzcwogICAgICBiSW50ZXJmYWNlU3ViQ2xhc3MgICAgICAwIAogICAgICBi
-SW50ZXJmYWNlUHJvdG9jb2wgICAgMjU1IAogICAgICBpSW50ZXJmYWNlICAgICAgICAgICAgICAw
-IAogICAgICBFbmRwb2ludCBEZXNjcmlwdG9yOgogICAgICAgIGJMZW5ndGggICAgICAgICAgICAg
-ICAgIDcKICAgICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA1CiAgICAgICAgYkVuZHBvaW50
-QWRkcmVzcyAgICAgMHg4MSAgRVAgMSBJTgogICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAgICAg
-IDMKICAgICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBJbnRlcnJ1cHQKICAgICAgICAg
-IFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25lCiAgICAgICAgICBVc2FnZSBUeXBlICAgICAg
-ICAgICAgICAgRGF0YQogICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAweDAwMDEgIDF4IDEgYnl0
-ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAgIDExCiAgICAgIEVuZHBvaW50IERlc2Ny
-aXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlw
-dG9yVHlwZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgyICBFUCAy
-IElOCiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAgMQogICAgICAgICAgVHJhbnNmZXIg
-VHlwZSAgICAgICAgICAgIElzb2Nocm9ub3VzCiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAg
-ICAgICAgTm9uZQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAg
-ICB3TWF4UGFja2V0U2l6ZSAgICAgMHgwYWQ0ICAyeCA3MjQgYnl0ZXMKICAgICAgICBiSW50ZXJ2
-YWwgICAgICAgICAgICAgICAxCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAgYkxl
-bmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDUK
-ICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDg0ICBFUCA0IElOCiAgICAgICAgYm1BdHRy
-aWJ1dGVzICAgICAgICAgICAgMgogICAgICAgICAgVHJhbnNmZXIgVHlwZSAgICAgICAgICAgIEJ1
-bGsKICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25lCiAgICAgICAgICBVc2Fn
-ZSBUeXBlICAgICAgICAgICAgICAgRGF0YQogICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAweDAy
-MDAgIDF4IDUxMiBieXRlcwogICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAgIDEKICAgIElu
-dGVyZmFjZSBEZXNjcmlwdG9yOgogICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA5CiAgICAg
-IGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDQKICAgICAgYkludGVyZmFjZU51bWJlciAgICAgICAg
-MAogICAgICBiQWx0ZXJuYXRlU2V0dGluZyAgICAgICAzCiAgICAgIGJOdW1FbmRwb2ludHMgICAg
-ICAgICAgIDMKICAgICAgYkludGVyZmFjZUNsYXNzICAgICAgIDI1NSBWZW5kb3IgU3BlY2lmaWMg
-Q2xhc3MKICAgICAgYkludGVyZmFjZVN1YkNsYXNzICAgICAgMCAKICAgICAgYkludGVyZmFjZVBy
-b3RvY29sICAgIDI1NSAKICAgICAgaUludGVyZmFjZSAgICAgICAgICAgICAgMCAKICAgICAgRW5k
-cG9pbnQgRGVzY3JpcHRvcjoKICAgICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA3CiAgICAg
-ICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNQogICAgICAgIGJFbmRwb2ludEFkZHJlc3MgICAg
-IDB4ODEgIEVQIDEgSU4KICAgICAgICBibUF0dHJpYnV0ZXMgICAgICAgICAgICAzCiAgICAgICAg
-ICBUcmFuc2ZlciBUeXBlICAgICAgICAgICAgSW50ZXJydXB0CiAgICAgICAgICBTeW5jaCBUeXBl
-ICAgICAgICAgICAgICAgTm9uZQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERh
-dGEKICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgwMDAxICAxeCAxIGJ5dGVzCiAgICAgICAg
-YkludGVydmFsICAgICAgICAgICAgICAxMQogICAgICBFbmRwb2ludCBEZXNjcmlwdG9yOgogICAg
-ICAgIGJMZW5ndGggICAgICAgICAgICAgICAgIDcKICAgICAgICBiRGVzY3JpcHRvclR5cGUgICAg
-ICAgICA1CiAgICAgICAgYkVuZHBvaW50QWRkcmVzcyAgICAgMHg4MiAgRVAgMiBJTgogICAgICAg
-IGJtQXR0cmlidXRlcyAgICAgICAgICAgIDEKICAgICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAg
-ICAgICBJc29jaHJvbm91cwogICAgICAgICAgU3luY2ggVHlwZSAgICAgICAgICAgICAgIE5vbmUK
-ICAgICAgICAgIFVzYWdlIFR5cGUgICAgICAgICAgICAgICBEYXRhCiAgICAgICAgd01heFBhY2tl
-dFNpemUgICAgIDB4MGMwMCAgMnggMTAyNCBieXRlcwogICAgICAgIGJJbnRlcnZhbCAgICAgICAg
-ICAgICAgIDEKICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoKICAgICAgICBiTGVuZ3RoICAgICAg
-ICAgICAgICAgICA3CiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNQogICAgICAgIGJF
-bmRwb2ludEFkZHJlc3MgICAgIDB4ODQgIEVQIDQgSU4KICAgICAgICBibUF0dHJpYnV0ZXMgICAg
-ICAgICAgICAyCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAgICAgICAgQnVsawogICAgICAg
-ICAgU3luY2ggVHlwZSAgICAgICAgICAgICAgIE5vbmUKICAgICAgICAgIFVzYWdlIFR5cGUgICAg
-ICAgICAgICAgICBEYXRhCiAgICAgICAgd01heFBhY2tldFNpemUgICAgIDB4MDIwMCAgMXggNTEy
-IGJ5dGVzCiAgICAgICAgYkludGVydmFsICAgICAgICAgICAgICAgMQogICAgSW50ZXJmYWNlIERl
-c2NyaXB0b3I6CiAgICAgIGJMZW5ndGggICAgICAgICAgICAgICAgIDkKICAgICAgYkRlc2NyaXB0
-b3JUeXBlICAgICAgICAgNAogICAgICBiSW50ZXJmYWNlTnVtYmVyICAgICAgICAwCiAgICAgIGJB
-bHRlcm5hdGVTZXR0aW5nICAgICAgIDQKICAgICAgYk51bUVuZHBvaW50cyAgICAgICAgICAgMwog
-ICAgICBiSW50ZXJmYWNlQ2xhc3MgICAgICAgMjU1IFZlbmRvciBTcGVjaWZpYyBDbGFzcwogICAg
-ICBiSW50ZXJmYWNlU3ViQ2xhc3MgICAgICAwIAogICAgICBiSW50ZXJmYWNlUHJvdG9jb2wgICAg
-MjU1IAogICAgICBpSW50ZXJmYWNlICAgICAgICAgICAgICAwIAogICAgICBFbmRwb2ludCBEZXNj
-cmlwdG9yOgogICAgICAgIGJMZW5ndGggICAgICAgICAgICAgICAgIDcKICAgICAgICBiRGVzY3Jp
-cHRvclR5cGUgICAgICAgICA1CiAgICAgICAgYkVuZHBvaW50QWRkcmVzcyAgICAgMHg4MSAgRVAg
-MSBJTgogICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAgICAgIDMKICAgICAgICAgIFRyYW5zZmVy
-IFR5cGUgICAgICAgICAgICBJbnRlcnJ1cHQKICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAg
-ICAgICBOb25lCiAgICAgICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAgRGF0YQogICAgICAg
-IHdNYXhQYWNrZXRTaXplICAgICAweDAwMDEgIDF4IDEgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwg
-ICAgICAgICAgICAgIDExCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAgYkxlbmd0
-aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDUKICAg
-ICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgyICBFUCAyIElOCiAgICAgICAgYm1BdHRyaWJ1
-dGVzICAgICAgICAgICAgMQogICAgICAgICAgVHJhbnNmZXIgVHlwZSAgICAgICAgICAgIElzb2No
-cm9ub3VzCiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9uZQogICAgICAgICAg
-VXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAg
-MHgxMzAwICAzeCA3NjggYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAgICAxCiAg
-ICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAg
-NwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRy
-ZXNzICAgICAweDg0ICBFUCA0IElOCiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAgMgog
-ICAgICAgICAgVHJhbnNmZXIgVHlwZSAgICAgICAgICAgIEJ1bGsKICAgICAgICAgIFN5bmNoIFR5
-cGUgICAgICAgICAgICAgICBOb25lCiAgICAgICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAg
-RGF0YQogICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAweDAyMDAgIDF4IDUxMiBieXRlcwogICAg
-ICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAgIDEKICAgIEludGVyZmFjZSBEZXNjcmlwdG9yOgog
-ICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA5CiAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAg
-ICAgIDQKICAgICAgYkludGVyZmFjZU51bWJlciAgICAgICAgMAogICAgICBiQWx0ZXJuYXRlU2V0
-dGluZyAgICAgICA1CiAgICAgIGJOdW1FbmRwb2ludHMgICAgICAgICAgIDMKICAgICAgYkludGVy
-ZmFjZUNsYXNzICAgICAgIDI1NSBWZW5kb3IgU3BlY2lmaWMgQ2xhc3MKICAgICAgYkludGVyZmFj
-ZVN1YkNsYXNzICAgICAgMCAKICAgICAgYkludGVyZmFjZVByb3RvY29sICAgIDI1NSAKICAgICAg
-aUludGVyZmFjZSAgICAgICAgICAgICAgMCAKICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoKICAg
-ICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA3CiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAg
-ICAgICAgNQogICAgICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4ODEgIEVQIDEgSU4KICAgICAg
-ICBibUF0dHJpYnV0ZXMgICAgICAgICAgICAzCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAg
-ICAgICAgSW50ZXJydXB0CiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9uZQog
-ICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAgICB3TWF4UGFja2V0
-U2l6ZSAgICAgMHgwMDAxICAxeCAxIGJ5dGVzCiAgICAgICAgYkludGVydmFsICAgICAgICAgICAg
-ICAxMQogICAgICBFbmRwb2ludCBEZXNjcmlwdG9yOgogICAgICAgIGJMZW5ndGggICAgICAgICAg
-ICAgICAgIDcKICAgICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA1CiAgICAgICAgYkVuZHBv
-aW50QWRkcmVzcyAgICAgMHg4MiAgRVAgMiBJTgogICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAg
-ICAgIDEKICAgICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBJc29jaHJvbm91cwogICAg
-ICAgICAgU3luY2ggVHlwZSAgICAgICAgICAgICAgIE5vbmUKICAgICAgICAgIFVzYWdlIFR5cGUg
-ICAgICAgICAgICAgICBEYXRhCiAgICAgICAgd01heFBhY2tldFNpemUgICAgIDB4MTM1YyAgM3gg
-ODYwIGJ5dGVzCiAgICAgICAgYkludGVydmFsICAgICAgICAgICAgICAgMQogICAgICBFbmRwb2lu
-dCBEZXNjcmlwdG9yOgogICAgICAgIGJMZW5ndGggICAgICAgICAgICAgICAgIDcKICAgICAgICBi
-RGVzY3JpcHRvclR5cGUgICAgICAgICA1CiAgICAgICAgYkVuZHBvaW50QWRkcmVzcyAgICAgMHg4
-NCAgRVAgNCBJTgogICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAgICAgIDIKICAgICAgICAgIFRy
-YW5zZmVyIFR5cGUgICAgICAgICAgICBCdWxrCiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAg
-ICAgICAgTm9uZQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAg
-ICB3TWF4UGFja2V0U2l6ZSAgICAgMHgwMjAwICAxeCA1MTIgYnl0ZXMKICAgICAgICBiSW50ZXJ2
-YWwgICAgICAgICAgICAgICAxCiAgICBJbnRlcmZhY2UgRGVzY3JpcHRvcjoKICAgICAgYkxlbmd0
-aCAgICAgICAgICAgICAgICAgOQogICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA0CiAgICAg
-IGJJbnRlcmZhY2VOdW1iZXIgICAgICAgIDAKICAgICAgYkFsdGVybmF0ZVNldHRpbmcgICAgICAg
-NgogICAgICBiTnVtRW5kcG9pbnRzICAgICAgICAgICAzCiAgICAgIGJJbnRlcmZhY2VDbGFzcyAg
-ICAgICAyNTUgVmVuZG9yIFNwZWNpZmljIENsYXNzCiAgICAgIGJJbnRlcmZhY2VTdWJDbGFzcyAg
-ICAgIDAgCiAgICAgIGJJbnRlcmZhY2VQcm90b2NvbCAgICAyNTUgCiAgICAgIGlJbnRlcmZhY2Ug
-ICAgICAgICAgICAgIDAgCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAgYkxlbmd0
-aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDUKICAg
-ICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgxICBFUCAxIElOCiAgICAgICAgYm1BdHRyaWJ1
-dGVzICAgICAgICAgICAgMwogICAgICAgICAgVHJhbnNmZXIgVHlwZSAgICAgICAgICAgIEludGVy
-cnVwdAogICAgICAgICAgU3luY2ggVHlwZSAgICAgICAgICAgICAgIE5vbmUKICAgICAgICAgIFVz
-YWdlIFR5cGUgICAgICAgICAgICAgICBEYXRhCiAgICAgICAgd01heFBhY2tldFNpemUgICAgIDB4
-MDAwMSAgMXggMSBieXRlcwogICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAgMTEKICAgICAg
-RW5kcG9pbnQgRGVzY3JpcHRvcjoKICAgICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA3CiAg
-ICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNQogICAgICAgIGJFbmRwb2ludEFkZHJlc3Mg
-ICAgIDB4ODIgIEVQIDIgSU4KICAgICAgICBibUF0dHJpYnV0ZXMgICAgICAgICAgICAxCiAgICAg
-ICAgICBUcmFuc2ZlciBUeXBlICAgICAgICAgICAgSXNvY2hyb25vdXMKICAgICAgICAgIFN5bmNo
-IFR5cGUgICAgICAgICAgICAgICBOb25lCiAgICAgICAgICBVc2FnZSBUeXBlICAgICAgICAgICAg
-ICAgRGF0YQogICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAweDEzYzQgIDN4IDk2NCBieXRlcwog
-ICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAgIDEKICAgICAgRW5kcG9pbnQgRGVzY3JpcHRv
-cjoKICAgICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA3CiAgICAgICAgYkRlc2NyaXB0b3JU
-eXBlICAgICAgICAgNQogICAgICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4ODQgIEVQIDQgSU4K
-ICAgICAgICBibUF0dHJpYnV0ZXMgICAgICAgICAgICAyCiAgICAgICAgICBUcmFuc2ZlciBUeXBl
-ICAgICAgICAgICAgQnVsawogICAgICAgICAgU3luY2ggVHlwZSAgICAgICAgICAgICAgIE5vbmUK
-ICAgICAgICAgIFVzYWdlIFR5cGUgICAgICAgICAgICAgICBEYXRhCiAgICAgICAgd01heFBhY2tl
-dFNpemUgICAgIDB4MDIwMCAgMXggNTEyIGJ5dGVzCiAgICAgICAgYkludGVydmFsICAgICAgICAg
-ICAgICAgMQogICAgSW50ZXJmYWNlIERlc2NyaXB0b3I6CiAgICAgIGJMZW5ndGggICAgICAgICAg
-ICAgICAgIDkKICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNAogICAgICBiSW50ZXJmYWNl
-TnVtYmVyICAgICAgICAwCiAgICAgIGJBbHRlcm5hdGVTZXR0aW5nICAgICAgIDcKICAgICAgYk51
-bUVuZHBvaW50cyAgICAgICAgICAgMwogICAgICBiSW50ZXJmYWNlQ2xhc3MgICAgICAgMjU1IFZl
-bmRvciBTcGVjaWZpYyBDbGFzcwogICAgICBiSW50ZXJmYWNlU3ViQ2xhc3MgICAgICAwIAogICAg
-ICBiSW50ZXJmYWNlUHJvdG9jb2wgICAgMjU1IAogICAgICBpSW50ZXJmYWNlICAgICAgICAgICAg
-ICAwIAogICAgICBFbmRwb2ludCBEZXNjcmlwdG9yOgogICAgICAgIGJMZW5ndGggICAgICAgICAg
-ICAgICAgIDcKICAgICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA1CiAgICAgICAgYkVuZHBv
-aW50QWRkcmVzcyAgICAgMHg4MSAgRVAgMSBJTgogICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAg
-ICAgIDMKICAgICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBJbnRlcnJ1cHQKICAgICAg
-ICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25lCiAgICAgICAgICBVc2FnZSBUeXBlICAg
-ICAgICAgICAgICAgRGF0YQogICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAweDAwMDEgIDF4IDEg
-Ynl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAgIDExCiAgICAgIEVuZHBvaW50IERl
-c2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNj
-cmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgyICBF
-UCAyIElOCiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAgMQogICAgICAgICAgVHJhbnNm
-ZXIgVHlwZSAgICAgICAgICAgIElzb2Nocm9ub3VzCiAgICAgICAgICBTeW5jaCBUeXBlICAgICAg
-ICAgICAgICAgTm9uZQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAg
-ICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgxNDAwICAzeCAxMDI0IGJ5dGVzCiAgICAgICAgYklu
-dGVydmFsICAgICAgICAgICAgICAgMQogICAgICBFbmRwb2ludCBEZXNjcmlwdG9yOgogICAgICAg
-IGJMZW5ndGggICAgICAgICAgICAgICAgIDcKICAgICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAg
-ICA1CiAgICAgICAgYkVuZHBvaW50QWRkcmVzcyAgICAgMHg4NCAgRVAgNCBJTgogICAgICAgIGJt
-QXR0cmlidXRlcyAgICAgICAgICAgIDIKICAgICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAg
-ICBCdWxrCiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9uZQogICAgICAgICAg
-VXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAg
-MHgwMjAwICAxeCA1MTIgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAgICAxCkRl
-dmljZSBRdWFsaWZpZXIgKGZvciBvdGhlciBkZXZpY2Ugc3BlZWQpOgogIGJMZW5ndGggICAgICAg
-ICAgICAgICAgMTAKICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA2CiAgYmNkVVNCICAgICAgICAg
-ICAgICAgMi4wMAogIGJEZXZpY2VDbGFzcyAgICAgICAgICAgIDAgKERlZmluZWQgYXQgSW50ZXJm
-YWNlIGxldmVsKQogIGJEZXZpY2VTdWJDbGFzcyAgICAgICAgIDAgCiAgYkRldmljZVByb3RvY29s
-ICAgICAgICAgMCAKICBiTWF4UGFja2V0U2l6ZTAgICAgICAgIDY0CiAgYk51bUNvbmZpZ3VyYXRp
-b25zICAgICAgMQpEZXZpY2UgU3RhdHVzOiAgICAgMHgwMDAwCiAgKEJ1cyBQb3dlcmVkKQoKQnVz
-IDAwMSBEZXZpY2UgMDAzOiBJRCAwYmRhOjAxMTEgUmVhbHRlayBTZW1pY29uZHVjdG9yIENvcnAu
-IENhcmQgUmVhZGVyCkRldmljZSBEZXNjcmlwdG9yOgogIGJMZW5ndGggICAgICAgICAgICAgICAg
-MTgKICBiRGVzY3JpcHRvclR5cGUgICAgICAgICAxCiAgYmNkVVNCICAgICAgICAgICAgICAgMi4w
-MAogIGJEZXZpY2VDbGFzcyAgICAgICAgICAgIDAgKERlZmluZWQgYXQgSW50ZXJmYWNlIGxldmVs
-KQogIGJEZXZpY2VTdWJDbGFzcyAgICAgICAgIDAgCiAgYkRldmljZVByb3RvY29sICAgICAgICAg
-MCAKICBiTWF4UGFja2V0U2l6ZTAgICAgICAgIDY0CiAgaWRWZW5kb3IgICAgICAgICAgIDB4MGJk
-YSBSZWFsdGVrIFNlbWljb25kdWN0b3IgQ29ycC4KICBpZFByb2R1Y3QgICAgICAgICAgMHgwMTEx
-IENhcmQgUmVhZGVyCiAgYmNkRGV2aWNlICAgICAgICAgICAxMS4yMgogIGlNYW51ZmFjdHVyZXIg
-ICAgICAgICAgIDEgR2VuZXJpYwogIGlQcm9kdWN0ICAgICAgICAgICAgICAgIDIgVVNCMi4wLUNS
-VwogIGlTZXJpYWwgICAgICAgICAgICAgICAgIDMgMjAwMjExMTExNTM3MDU3MDAKICBiTnVtQ29u
-ZmlndXJhdGlvbnMgICAgICAxCiAgQ29uZmlndXJhdGlvbiBEZXNjcmlwdG9yOgogICAgYkxlbmd0
-aCAgICAgICAgICAgICAgICAgOQogICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgMgogICAgd1Rv
-dGFsTGVuZ3RoICAgICAgICAgICAzMgogICAgYk51bUludGVyZmFjZXMgICAgICAgICAgMQogICAg
-YkNvbmZpZ3VyYXRpb25WYWx1ZSAgICAgMQogICAgaUNvbmZpZ3VyYXRpb24gICAgICAgICAgNCBD
-QVJEIFJFQURFUgogICAgYm1BdHRyaWJ1dGVzICAgICAgICAgMHg4MAogICAgICAoQnVzIFBvd2Vy
-ZWQpCiAgICBNYXhQb3dlciAgICAgICAgICAgICAgNTAwbUEKICAgIEludGVyZmFjZSBEZXNjcmlw
-dG9yOgogICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA5CiAgICAgIGJEZXNjcmlwdG9yVHlw
-ZSAgICAgICAgIDQKICAgICAgYkludGVyZmFjZU51bWJlciAgICAgICAgMAogICAgICBiQWx0ZXJu
-YXRlU2V0dGluZyAgICAgICAwCiAgICAgIGJOdW1FbmRwb2ludHMgICAgICAgICAgIDIKICAgICAg
-YkludGVyZmFjZUNsYXNzICAgICAgICAgOCBNYXNzIFN0b3JhZ2UKICAgICAgYkludGVyZmFjZVN1
-YkNsYXNzICAgICAgNiBTQ1NJCiAgICAgIGJJbnRlcmZhY2VQcm90b2NvbCAgICAgODAgQnVsayAo
-WmlwKQogICAgICBpSW50ZXJmYWNlICAgICAgICAgICAgICA1IEJ1bGstSW4sIEJ1bGstT3V0LCBJ
-bnRlcmZhY2UKICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoKICAgICAgICBiTGVuZ3RoICAgICAg
-ICAgICAgICAgICA3CiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNQogICAgICAgIGJF
-bmRwb2ludEFkZHJlc3MgICAgIDB4MDEgIEVQIDEgT1VUCiAgICAgICAgYm1BdHRyaWJ1dGVzICAg
-ICAgICAgICAgMgogICAgICAgICAgVHJhbnNmZXIgVHlwZSAgICAgICAgICAgIEJ1bGsKICAgICAg
-ICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25lCiAgICAgICAgICBVc2FnZSBUeXBlICAg
-ICAgICAgICAgICAgRGF0YQogICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAweDAyMDAgIDF4IDUx
-MiBieXRlcwogICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAgIDAKICAgICAgRW5kcG9pbnQg
-RGVzY3JpcHRvcjoKICAgICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA3CiAgICAgICAgYkRl
-c2NyaXB0b3JUeXBlICAgICAgICAgNQogICAgICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4ODIg
-IEVQIDIgSU4KICAgICAgICBibUF0dHJpYnV0ZXMgICAgICAgICAgICAyCiAgICAgICAgICBUcmFu
-c2ZlciBUeXBlICAgICAgICAgICAgQnVsawogICAgICAgICAgU3luY2ggVHlwZSAgICAgICAgICAg
-ICAgIE5vbmUKICAgICAgICAgIFVzYWdlIFR5cGUgICAgICAgICAgICAgICBEYXRhCiAgICAgICAg
-d01heFBhY2tldFNpemUgICAgIDB4MDIwMCAgMXggNTEyIGJ5dGVzCiAgICAgICAgYkludGVydmFs
-ICAgICAgICAgICAgICAgMApEZXZpY2UgUXVhbGlmaWVyIChmb3Igb3RoZXIgZGV2aWNlIHNwZWVk
-KToKICBiTGVuZ3RoICAgICAgICAgICAgICAgIDEwCiAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAg
-NgogIGJjZFVTQiAgICAgICAgICAgICAgIDIuMDAKICBiRGV2aWNlQ2xhc3MgICAgICAgICAgICAw
-IChEZWZpbmVkIGF0IEludGVyZmFjZSBsZXZlbCkKICBiRGV2aWNlU3ViQ2xhc3MgICAgICAgICAw
-IAogIGJEZXZpY2VQcm90b2NvbCAgICAgICAgIDAgCiAgYk1heFBhY2tldFNpemUwICAgICAgICA2
-NAogIGJOdW1Db25maWd1cmF0aW9ucyAgICAgIDEKRGV2aWNlIFN0YXR1czogICAgIDB4MDAwMAog
-IChCdXMgUG93ZXJlZCkKCkJ1cyAwMDEgRGV2aWNlIDAwNDogSUQgMTVhOTowMDA0ICAKRGV2aWNl
-IERlc2NyaXB0b3I6CiAgYkxlbmd0aCAgICAgICAgICAgICAgICAxOAogIGJEZXNjcmlwdG9yVHlw
-ZSAgICAgICAgIDEKICBiY2RVU0IgICAgICAgICAgICAgICAyLjAwCiAgYkRldmljZUNsYXNzICAg
-ICAgICAgICAgMCAoRGVmaW5lZCBhdCBJbnRlcmZhY2UgbGV2ZWwpCiAgYkRldmljZVN1YkNsYXNz
-ICAgICAgICAgMCAKICBiRGV2aWNlUHJvdG9jb2wgICAgICAgICAwIAogIGJNYXhQYWNrZXRTaXpl
-MCAgICAgICAgNjQKICBpZFZlbmRvciAgICAgICAgICAgMHgxNWE5IAogIGlkUHJvZHVjdCAgICAg
-ICAgICAweDAwMDQgCiAgYmNkRGV2aWNlICAgICAgICAgICAgMC4wMQogIGlNYW51ZmFjdHVyZXIg
-ICAgICAgICAgIDEgUmFsaW5rCiAgaVByb2R1Y3QgICAgICAgICAgICAgICAgMiA4MDIuMTEgYmcg
-V0xBTgogIGlTZXJpYWwgICAgICAgICAgICAgICAgIDAgCiAgYk51bUNvbmZpZ3VyYXRpb25zICAg
-ICAgMQogIENvbmZpZ3VyYXRpb24gRGVzY3JpcHRvcjoKICAgIGJMZW5ndGggICAgICAgICAgICAg
-ICAgIDkKICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDIKICAgIHdUb3RhbExlbmd0aCAgICAg
-ICAgICAgNTMKICAgIGJOdW1JbnRlcmZhY2VzICAgICAgICAgIDEKICAgIGJDb25maWd1cmF0aW9u
-VmFsdWUgICAgIDEKICAgIGlDb25maWd1cmF0aW9uICAgICAgICAgIDAgCiAgICBibUF0dHJpYnV0
-ZXMgICAgICAgICAweDgwCiAgICAgIChCdXMgUG93ZXJlZCkKICAgIE1heFBvd2VyICAgICAgICAg
-ICAgICAzMDBtQQogICAgSW50ZXJmYWNlIERlc2NyaXB0b3I6CiAgICAgIGJMZW5ndGggICAgICAg
-ICAgICAgICAgIDkKICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNAogICAgICBiSW50ZXJm
-YWNlTnVtYmVyICAgICAgICAwCiAgICAgIGJBbHRlcm5hdGVTZXR0aW5nICAgICAgIDAKICAgICAg
-Yk51bUVuZHBvaW50cyAgICAgICAgICAgNQogICAgICBiSW50ZXJmYWNlQ2xhc3MgICAgICAgMjU1
-IFZlbmRvciBTcGVjaWZpYyBDbGFzcwogICAgICBiSW50ZXJmYWNlU3ViQ2xhc3MgICAgMjU1IFZl
-bmRvciBTcGVjaWZpYyBTdWJjbGFzcwogICAgICBiSW50ZXJmYWNlUHJvdG9jb2wgICAgMjU1IFZl
-bmRvciBTcGVjaWZpYyBQcm90b2NvbAogICAgICBpSW50ZXJmYWNlICAgICAgICAgICAgICAwIAog
-ICAgICBFbmRwb2ludCBEZXNjcmlwdG9yOgogICAgICAgIGJMZW5ndGggICAgICAgICAgICAgICAg
-IDcKICAgICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA1CiAgICAgICAgYkVuZHBvaW50QWRk
-cmVzcyAgICAgMHg4MSAgRVAgMSBJTgogICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAgICAgIDIK
-ICAgICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBCdWxrCiAgICAgICAgICBTeW5jaCBU
-eXBlICAgICAgICAgICAgICAgTm9uZQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAg
-IERhdGEKICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgwMjAwICAxeCA1MTIgYnl0ZXMKICAg
-ICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAgICAwCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6
-CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlw
-ZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDAxICBFUCAxIE9VVAog
-ICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAgICAgIDIKICAgICAgICAgIFRyYW5zZmVyIFR5cGUg
-ICAgICAgICAgICBCdWxrCiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9uZQog
-ICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAgICB3TWF4UGFja2V0
-U2l6ZSAgICAgMHgwMjAwICAxeCA1MTIgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAg
-ICAgICAwCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAgICAg
-ICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAgICBiRW5k
-cG9pbnRBZGRyZXNzICAgICAweDAyICBFUCAyIE9VVAogICAgICAgIGJtQXR0cmlidXRlcyAgICAg
-ICAgICAgIDIKICAgICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBCdWxrCiAgICAgICAg
-ICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9uZQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAg
-ICAgICAgICAgIERhdGEKICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgwMjAwICAxeCA1MTIg
-Ynl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAgICAwCiAgICAgIEVuZHBvaW50IERl
-c2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNj
-cmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDAzICBF
-UCAzIE9VVAogICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAgICAgIDIKICAgICAgICAgIFRyYW5z
-ZmVyIFR5cGUgICAgICAgICAgICBCdWxrCiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAg
-ICAgTm9uZQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAgICB3
-TWF4UGFja2V0U2l6ZSAgICAgMHgwMjAwICAxeCA1MTIgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwg
-ICAgICAgICAgICAgICAwCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAgYkxlbmd0
-aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDUKICAg
-ICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDA0ICBFUCA0IE9VVAogICAgICAgIGJtQXR0cmli
-dXRlcyAgICAgICAgICAgIDIKICAgICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBCdWxr
-CiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9uZQogICAgICAgICAgVXNhZ2Ug
-VHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgwMjAw
-ICAxeCA1MTIgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAgICAwCkRldmljZSBR
-dWFsaWZpZXIgKGZvciBvdGhlciBkZXZpY2Ugc3BlZWQpOgogIGJMZW5ndGggICAgICAgICAgICAg
-ICAgMTAKICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA2CiAgYmNkVVNCICAgICAgICAgICAgICAg
-Mi4wMAogIGJEZXZpY2VDbGFzcyAgICAgICAgICAgIDAgKERlZmluZWQgYXQgSW50ZXJmYWNlIGxl
-dmVsKQogIGJEZXZpY2VTdWJDbGFzcyAgICAgICAgIDAgCiAgYkRldmljZVByb3RvY29sICAgICAg
-ICAgMCAKICBiTWF4UGFja2V0U2l6ZTAgICAgICAgIDY0CiAgYk51bUNvbmZpZ3VyYXRpb25zICAg
-ICAgMQpEZXZpY2UgU3RhdHVzOiAgICAgMHgwMDAwCiAgKEJ1cyBQb3dlcmVkKQoKQnVzIDAwMSBE
-ZXZpY2UgMDAxOiBJRCAxZDZiOjAwMDIgTGludXggRm91bmRhdGlvbiAyLjAgcm9vdCBodWIKRGV2
-aWNlIERlc2NyaXB0b3I6CiAgYkxlbmd0aCAgICAgICAgICAgICAgICAxOAogIGJEZXNjcmlwdG9y
-VHlwZSAgICAgICAgIDEKICBiY2RVU0IgICAgICAgICAgICAgICAyLjAwCiAgYkRldmljZUNsYXNz
-ICAgICAgICAgICAgOSBIdWIKICBiRGV2aWNlU3ViQ2xhc3MgICAgICAgICAwIFVudXNlZAogIGJE
-ZXZpY2VQcm90b2NvbCAgICAgICAgIDAgRnVsbCBzcGVlZCAob3Igcm9vdCkgaHViCiAgYk1heFBh
-Y2tldFNpemUwICAgICAgICA2NAogIGlkVmVuZG9yICAgICAgICAgICAweDFkNmIgTGludXggRm91
-bmRhdGlvbgogIGlkUHJvZHVjdCAgICAgICAgICAweDAwMDIgMi4wIHJvb3QgaHViCiAgYmNkRGV2
-aWNlICAgICAgICAgICAgMi4wNgogIGlNYW51ZmFjdHVyZXIgICAgICAgICAgIDMgTGludXggMi42
-LjMxLTE5LWdlbmVyaWMgZWhjaV9oY2QKICBpUHJvZHVjdCAgICAgICAgICAgICAgICAyIEVIQ0kg
-SG9zdCBDb250cm9sbGVyCiAgaVNlcmlhbCAgICAgICAgICAgICAgICAgMSAwMDAwOjAwOjBiLjEK
-ICBiTnVtQ29uZmlndXJhdGlvbnMgICAgICAxCiAgQ29uZmlndXJhdGlvbiBEZXNjcmlwdG9yOgog
-ICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgOQogICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAg
-MgogICAgd1RvdGFsTGVuZ3RoICAgICAgICAgICAyNQogICAgYk51bUludGVyZmFjZXMgICAgICAg
-ICAgMQogICAgYkNvbmZpZ3VyYXRpb25WYWx1ZSAgICAgMQogICAgaUNvbmZpZ3VyYXRpb24gICAg
-ICAgICAgMCAKICAgIGJtQXR0cmlidXRlcyAgICAgICAgIDB4ZTAKICAgICAgU2VsZiBQb3dlcmVk
-CiAgICAgIFJlbW90ZSBXYWtldXAKICAgIE1heFBvd2VyICAgICAgICAgICAgICAgIDBtQQogICAg
-SW50ZXJmYWNlIERlc2NyaXB0b3I6CiAgICAgIGJMZW5ndGggICAgICAgICAgICAgICAgIDkKICAg
-ICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNAogICAgICBiSW50ZXJmYWNlTnVtYmVyICAgICAg
-ICAwCiAgICAgIGJBbHRlcm5hdGVTZXR0aW5nICAgICAgIDAKICAgICAgYk51bUVuZHBvaW50cyAg
-ICAgICAgICAgMQogICAgICBiSW50ZXJmYWNlQ2xhc3MgICAgICAgICA5IEh1YgogICAgICBiSW50
-ZXJmYWNlU3ViQ2xhc3MgICAgICAwIFVudXNlZAogICAgICBiSW50ZXJmYWNlUHJvdG9jb2wgICAg
-ICAwIEZ1bGwgc3BlZWQgKG9yIHJvb3QpIGh1YgogICAgICBpSW50ZXJmYWNlICAgICAgICAgICAg
-ICAwIAogICAgICBFbmRwb2ludCBEZXNjcmlwdG9yOgogICAgICAgIGJMZW5ndGggICAgICAgICAg
-ICAgICAgIDcKICAgICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA1CiAgICAgICAgYkVuZHBv
-aW50QWRkcmVzcyAgICAgMHg4MSAgRVAgMSBJTgogICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAg
-ICAgIDMKICAgICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBJbnRlcnJ1cHQKICAgICAg
-ICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25lCiAgICAgICAgICBVc2FnZSBUeXBlICAg
-ICAgICAgICAgICAgRGF0YQogICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAweDAwMDQgIDF4IDQg
-Ynl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAgIDEyCkh1YiBEZXNjcmlwdG9yOgog
-IGJMZW5ndGggICAgICAgICAgICAgIDExCiAgYkRlc2NyaXB0b3JUeXBlICAgICAgNDEKICBuTmJy
-UG9ydHMgICAgICAgICAgICAgOAogIHdIdWJDaGFyYWN0ZXJpc3RpYyAweDAwMGEKICAgIE5vIHBv
-d2VyIHN3aXRjaGluZyAodXNiIDEuMCkKICAgIFBlci1wb3J0IG92ZXJjdXJyZW50IHByb3RlY3Rp
-b24KICBiUHdyT24yUHdyR29vZCAgICAgICAxMCAqIDIgbWlsbGkgc2Vjb25kcwogIGJIdWJDb250
-ckN1cnJlbnQgICAgICAwIG1pbGxpIEFtcGVyZQogIERldmljZVJlbW92YWJsZSAgICAweDAwIDB4
-MDAKICBQb3J0UHdyQ3RybE1hc2sgICAgMHhmZiAweGZmCiBIdWIgUG9ydCBTdGF0dXM6CiAgIFBv
-cnQgMTogMDAwMC4wMTAwIHBvd2VyCiAgIFBvcnQgMjogMDAwMC4wMTAwIHBvd2VyCiAgIFBvcnQg
-MzogMDAwMC4wMTAwIHBvd2VyCiAgIFBvcnQgNDogMDAwMC4wMTAwIHBvd2VyCiAgIFBvcnQgNTog
-MDAwMC4wNTAzIGhpZ2hzcGVlZCBwb3dlciBlbmFibGUgY29ubmVjdAogICBQb3J0IDY6IDAwMDAu
-MDUwMyBoaWdoc3BlZWQgcG93ZXIgZW5hYmxlIGNvbm5lY3QKICAgUG9ydCA3OiAwMDAwLjA1MDMg
-aGlnaHNwZWVkIHBvd2VyIGVuYWJsZSBjb25uZWN0CiAgIFBvcnQgODogMDAwMC4wMTAwIHBvd2Vy
-CkRldmljZSBTdGF0dXM6ICAgICAweDAwMDMKICBTZWxmIFBvd2VyZWQKICBSZW1vdGUgV2FrZXVw
-IEVuYWJsZWQK
---000e0cd6f1cad13c56047f43af77--
