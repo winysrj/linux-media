@@ -1,68 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-04.arcor-online.net ([151.189.21.44]:44577 "EHLO
-	mail-in-04.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933950Ab0BEW5t (ORCPT
+Received: from mail-in-03.arcor-online.net ([151.189.21.43]:42522 "EHLO
+	mail-in-03.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756008Ab0BSUWd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Feb 2010 17:57:49 -0500
-From: stefan.ringel@arcor.de
+	Fri, 19 Feb 2010 15:22:33 -0500
+Message-ID: <4B7EF2DD.7070509@arcor.de>
+Date: Fri, 19 Feb 2010 21:21:49 +0100
+From: Stefan Ringel <stefan.ringel@arcor.de>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
-	Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH 4/12] tm6000: adding special usb request to quiting tuner transfer
-Date: Fri,  5 Feb 2010 23:57:04 +0100
-Message-Id: <1265410631-11955-4-git-send-email-stefan.ringel@arcor.de>
-In-Reply-To: <1265410631-11955-3-git-send-email-stefan.ringel@arcor.de>
-References: <1265410631-11955-1-git-send-email-stefan.ringel@arcor.de>
- <1265410631-11955-2-git-send-email-stefan.ringel@arcor.de>
- <1265410631-11955-3-git-send-email-stefan.ringel@arcor.de>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [git:v4l-dvb/master] V4L/DVB: tuner-xc2028: fix tuning logic
+ to solve a regression in Australia
+References: <E1NiVOP-0004ij-2F@www.linuxtv.org>
+In-Reply-To: <E1NiVOP-0004ij-2F@www.linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <stefan.ringel@arcor.de>
+Am 19.02.2010 17:07, schrieb Patch from Mauro Carvalho Chehab:
+>  	}
+>  
+>  	div = (freq - offset + DIV / 2) / DIV;
+> @@ -1114,17 +1152,22 @@ static int xc2028_set_params(struct dvb_frontend *fe,
+>  
+>  	/* All S-code tables need a 200kHz shift */
+>  	if (priv->ctrl.demod) {
+> -		demod = priv->ctrl.demod + 200;
+> +		/*
+> +		 * Newer firmwares require a 200 kHz offset only for ATSC
+> +		 */
+> +		if (type == ATSC || priv->firm_version < 0x0302)
+> +			demod = priv->ctrl.demod + 200;
+>  		/*
+>  		 * The DTV7 S-code table needs a 700 kHz shift.
+> -		 * Thanks to Terry Wu <terrywu2009@gmail.com> for reporting this
+>  		 *
+>  		 * DTV7 is only used in Australia.  Germany or Italy may also
+>  		 * use this firmware after initialization, but a tune to a UHF
+>  		 * channel should then cause DTV78 to be used.
+> +		 *
+> +		 * Unfortunately, on real-field tests, the s-code offset
+> +		 * didn't work as expected, as reported by
+> +		 * Robert Lowery <rglowery@exemail.com.au>
+>  		 */
+> -		if (type & DTV7)
+> -			demod += 500;
+>  	}
+>  
+>  	return generic_set_freq(fe, p->frequency,
+>   
+Hi Mauro,
 
-Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
----
- drivers/staging/tm6000/tm6000-i2c.c |   13 ++++++++++++-
- 1 files changed, 12 insertions(+), 1 deletions(-)
+your patch doesn't work. Here is not set demod for all others (demod=0).
 
-diff --git a/drivers/staging/tm6000/tm6000-i2c.c b/drivers/staging/tm6000/tm6000-i2c.c
-index 4da10f5..3e43ad7 100644
---- a/drivers/staging/tm6000/tm6000-i2c.c
-+++ b/drivers/staging/tm6000/tm6000-i2c.c
-@@ -86,6 +86,11 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
- 				msgs[i].len == 1 ? 0 : msgs[i].buf[1],
- 				msgs[i + 1].buf, msgs[i + 1].len);
- 			i++;
-+			
-+			if ((dev->dev_type == TM6010) && (addr == 0xc2)) {
-+				tm6000_set_reg(dev, 0x32, 0,0);
-+				tm6000_set_reg(dev, 0x33, 0,0);
-+			}
- 			if (i2c_debug >= 2)
- 				for (byte = 0; byte < msgs[i].len; byte++)
- 					printk(" %02x", msgs[i].buf[byte]);
-@@ -99,6 +104,12 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
- 				REQ_16_SET_GET_I2C_WR1_RDN,
- 				addr | msgs[i].buf[0] << 8, 0,
- 				msgs[i].buf + 1, msgs[i].len - 1);
-+				
-+			
-+			if ((dev->dev_type == TM6010) && (addr == 0xc2)) {
-+				tm6000_set_reg(dev, 0x32, 0,0);
-+				tm6000_set_reg(dev, 0x33, 0,0);
-+			}
- 		}
- 		if (i2c_debug >= 2)
- 			printk("\n");
-@@ -198,7 +209,7 @@ static struct i2c_algorithm tm6000_algo = {
- 
- static struct i2c_adapter tm6000_adap_template = {
- 	.owner = THIS_MODULE,
--	.class = I2C_CLASS_TV_ANALOG,
-+	.class = I2C_CLASS_TV_ANALOG | I2C_CLASS_TV_DIGITAL,
- 	.name = "tm6000",
- 	.id = I2C_HW_B_TM6000,
- 	.algo = &tm6000_algo,
 -- 
-1.6.4.2
+Stefan Ringel <stefan.ringel@arcor.de>
 
