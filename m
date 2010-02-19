@@ -1,57 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:22909 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750708Ab0BIS1D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 13:27:03 -0500
-Message-ID: <4B71A8DF.8070907@maxwell.research.nokia.com>
-Date: Tue, 09 Feb 2010 20:26:39 +0200
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from mail.gmx.net ([213.165.64.20]:40924 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754634Ab0BSRZz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Feb 2010 12:25:55 -0500
+Date: Fri, 19 Feb 2010 18:26:06 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Baruch Siach <baruch@tkos.co.il>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] v4l: soc_camera: fix bound checking of mbus_fmt[] index
+In-Reply-To: <f9972846401291b8619792d11869510e856ee202.1266472904.git.baruch@tkos.co.il>
+Message-ID: <Pine.LNX.4.64.1002191812490.5860@axis700.grange>
+References: <f9972846401291b8619792d11869510e856ee202.1266472904.git.baruch@tkos.co.il>
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"Ivan T. Ivanov" <iivanov@mm-sol.com>,
-	Guru Raj <gururaj.nagendra@intel.com>,
-	Cohen David Abraham <david.cohen@nokia.com>
-Subject: [PATCH v3 0/7] V4L2 file handles and event interface
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Thu, 18 Feb 2010, Baruch Siach wrote:
 
-Here's the fifth version of the V4L2 file handle and event interface
-patchset.
+Thanks for the patch, but I decided to improve it a bit. In fact, the only 
+case my original version was missing was code == V4L2_MBUS_FMT_FIXED, the 
+correct test would be
 
-The first patch adds the V4L2 file handle support and the rest are for
-V4L2 events.
+(unsigned int)(code - V4L2_MBUS_FMT_FIXED -1) >= ARRAY_SIZE(mbus_fmt)
 
-The patchset has been tested with the OMAP 3 ISP driver. Patches for
-OMAP 3 ISP are not part of this patchset but are available in Gitorious
-(branch is called event):
+but to make it simple we can indeed break this into two tests, the 
+compiler will optimise it for us. So, if you agree, I'll push the version 
+of your patch, attached at the bottom of this mail, for 2.6.33, so, please 
+reply asap...
 
-	git://gitorious.org/omap3camera/mainline.git event
+Thanks
+Guennadi
 
-So, for this patchset I've baked in comments from Hans. What has changed:
+> When code <= V4L2_MBUS_FMT_FIXED soc_mbus_get_fmtdesc returns a pointer to
+> mbus_fmt[x], where x < 0. Fix this.
+> 
+> Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+> ---
+>  drivers/media/video/soc_mediabus.c |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/soc_mediabus.c b/drivers/media/video/soc_mediabus.c
+> index f8d5c87..a2808e2 100644
+> --- a/drivers/media/video/soc_mediabus.c
+> +++ b/drivers/media/video/soc_mediabus.c
+> @@ -136,6 +136,8 @@ const struct soc_mbus_pixelfmt *soc_mbus_get_fmtdesc(
+>  {
+>  	if ((unsigned int)(code - V4L2_MBUS_FMT_FIXED) > ARRAY_SIZE(mbus_fmt))
+>  		return NULL;
+> +	if ((unsigned int)code <= V4L2_MBUS_FMT_FIXED)
+> +		return NULL;
+>  	return mbus_fmt + code - V4L2_MBUS_FMT_FIXED - 1;
+>  }
+>  EXPORT_SYMBOL(soc_mbus_get_fmtdesc);
+> -- 
+> 1.6.6.1
+> 
 
-- v4l2_fh_init -> v4l2_fhs_init
-- v4l2_fh_add has been split to v4l2_fh_init and v4l2_fh_add. Similarly
-for del/exit.
-- Forward declaration for struct v4l2_event in v4l2_fh.h
-- No more struct v4l2_fhs. The fields are directly in struct
-video_device now.
-- v4l2_event_alloc now returns an error code if it fails for some reason.
-- The number of maximum events allocatable by the driver is now limited
-by events->max_events.
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
 
-- Possibly something else I don't happen to remember just now.
 
-Comments are welcome as always.
+>From 00109d655b4b8cf25bc68a215966be810e372e87 Mon Sep 17 00:00:00 2001
+From: Baruch Siach <baruch@tkos.co.il>
+Date: Fri, 19 Feb 2010 18:09:25 +0100
+Subject: [PATCH] v4l: soc_camera: fix bound checking of mbus_fmt[] index
 
-Cheers,
+When code <= V4L2_MBUS_FMT_FIXED soc_mbus_get_fmtdesc returns a pointer to
+mbus_fmt[x], where x < 0. Fix this.
 
+Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/soc_mediabus.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/soc_mediabus.c b/drivers/media/video/soc_mediabus.c
+index f8d5c87..a4c0ef4 100644
+--- a/drivers/media/video/soc_mediabus.c
++++ b/drivers/media/video/soc_mediabus.c
+@@ -134,7 +134,8 @@ EXPORT_SYMBOL(soc_mbus_bytes_per_line);
+ const struct soc_mbus_pixelfmt *soc_mbus_get_fmtdesc(
+ 	enum v4l2_mbus_pixelcode code)
+ {
+-	if ((unsigned int)(code - V4L2_MBUS_FMT_FIXED) > ARRAY_SIZE(mbus_fmt))
++	if (code - V4L2_MBUS_FMT_FIXED > ARRAY_SIZE(mbus_fmt) ||
++	    code <= V4L2_MBUS_FMT_FIXED)
+ 		return NULL;
+ 	return mbus_fmt + code - V4L2_MBUS_FMT_FIXED - 1;
+ }
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+1.6.2.4
 
