@@ -1,367 +1,266 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:23278 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755867Ab0BQUcZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Feb 2010 15:32:25 -0500
-Message-ID: <4B7C524A.6090204@redhat.com>
-Date: Wed, 17 Feb 2010 18:32:10 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:44395 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754976Ab0BSWaG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Feb 2010 17:30:06 -0500
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"iivanov@mm-sol.com" <iivanov@mm-sol.com>,
+	"gururaj.nagendra@intel.com" <gururaj.nagendra@intel.com>,
+	"david.cohen@nokia.com" <david.cohen@nokia.com>
+Date: Fri, 19 Feb 2010 16:29:54 -0600
+Subject: RE: [PATCH v5 1/6] V4L: File handles
+Message-ID: <A24693684029E5489D1D202277BE894453691587@dlee02.ent.ti.com>
+References: <4B7EE4A4.3080202@maxwell.research.nokia.com>
+ <1266607320-9974-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1266607320-9974-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Randy Dunlap <randy.dunlap@oracle.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH 4/4] V4L/DVB: v4l: document new Bayer and monochrome pixel
- formats
-References: <4B7C239D.6010609@redhat.com>
-In-Reply-To: <4B7C239D.6010609@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Randy,
+Heippa!
 
-Mauro Carvalho Chehab wrote:
-> Document all four 10-bit Bayer formats, 10-bit monochrome and a missing
-> 8-bit Bayer formats.
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Sakari Ailus
+> Sent: Friday, February 19, 2010 1:22 PM
+> To: linux-media@vger.kernel.org
+> Cc: hverkuil@xs4all.nl; laurent.pinchart@ideasonboard.com; iivanov@mm-
+> sol.com; gururaj.nagendra@intel.com; david.cohen@nokia.com; Sakari Ailus
+> Subject: [PATCH v5 1/6] V4L: File handles
 > 
-> [mchehab@redhat.com: remove duplicated symbol for V4L2-PIX-FMT-SGRBG10]
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-Although patch 0/4 has the correct authorship:
- 
-Guennadi Liakhovetski (1):
-  V4L/DVB: v4l: document new Bayer and monochrome pixel formats
-
-Unfortunately git format-patch didn't preserve the authorship on this patch
-(or my emailer removed the additional From:)
-
-Please fix it before applying:
-
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-
-If you prefer, I can apply this series on my tree after your ack.
-
-Cheers,
-Mauro.
-
+> This patch adds a list of v4l2_fh structures to every video_device.
+> It allows using file handle related information in V4L2. The event
+> interface
+> is one example of such use.
+> 
+> Video device drivers should use the v4l2_fh pointer as their
+> file->private_data.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 > ---
->  Documentation/DocBook/Makefile               |    3 +
->  Documentation/DocBook/v4l/pixfmt-srggb10.xml |   90 ++++++++++++++++++++++++++
->  Documentation/DocBook/v4l/pixfmt-srggb8.xml  |   67 +++++++++++++++++++
->  Documentation/DocBook/v4l/pixfmt-y10.xml     |   79 ++++++++++++++++++++++
->  Documentation/DocBook/v4l/pixfmt.xml         |    8 +--
->  5 files changed, 242 insertions(+), 5 deletions(-)
->  create mode 100644 Documentation/DocBook/v4l/pixfmt-srggb10.xml
->  create mode 100644 Documentation/DocBook/v4l/pixfmt-srggb8.xml
->  create mode 100644 Documentation/DocBook/v4l/pixfmt-y10.xml
+>  drivers/media/video/Makefile   |    2 +-
+>  drivers/media/video/v4l2-dev.c |    4 ++
+>  drivers/media/video/v4l2-fh.c  |   64
+> ++++++++++++++++++++++++++++++++++++++++
+>  include/media/v4l2-dev.h       |    5 +++
+>  include/media/v4l2-fh.h        |   42 ++++++++++++++++++++++++++
+>  5 files changed, 116 insertions(+), 1 deletions(-)
+>  create mode 100644 drivers/media/video/v4l2-fh.c
+>  create mode 100644 include/media/v4l2-fh.h
 > 
-> diff --git a/Documentation/DocBook/Makefile b/Documentation/DocBook/Makefile
-> index 65deaba..1c796fc 100644
-> --- a/Documentation/DocBook/Makefile
-> +++ b/Documentation/DocBook/Makefile
-> @@ -309,6 +309,9 @@ V4L_SGMLS = \
->  	v4l/pixfmt-yuv422p.xml \
->  	v4l/pixfmt-yuyv.xml \
->  	v4l/pixfmt-yvyu.xml \
-> +	v4l/pixfmt-srggb10.xml \
-> +	v4l/pixfmt-srggb8.xml \
-> +	v4l/pixfmt-y10.xml \
->  	v4l/pixfmt.xml \
->  	v4l/vidioc-cropcap.xml \
->  	v4l/vidioc-dbg-g-register.xml \
-> diff --git a/Documentation/DocBook/v4l/pixfmt-srggb10.xml b/Documentation/DocBook/v4l/pixfmt-srggb10.xml
+> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+> index 5163289..14bf69a 100644
+> --- a/drivers/media/video/Makefile
+> +++ b/drivers/media/video/Makefile
+> @@ -10,7 +10,7 @@ stkwebcam-objs	:=	stk-webcam.o stk-sensor.o
+> 
+>  omap2cam-objs	:=	omap24xxcam.o omap24xxcam-dma.o
+> 
+> -videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o
+> +videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o
+> 
+>  # V4L2 core modules
+> 
+> diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-
+> dev.c
+> index 7090699..65a7b30 100644
+> --- a/drivers/media/video/v4l2-dev.c
+> +++ b/drivers/media/video/v4l2-dev.c
+> @@ -421,6 +421,10 @@ static int __video_register_device(struct
+> video_device *vdev, int type, int nr,
+>  	if (!vdev->release)
+>  		return -EINVAL;
+> 
+> +	/* v4l2_fh support */
+> +	spin_lock_init(&vdev->fh_lock);
+> +	INIT_LIST_HEAD(&vdev->fh_list);
+> +
+>  	/* Part 1: check device type */
+>  	switch (type) {
+>  	case VFL_TYPE_GRABBER:
+> diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
 > new file mode 100644
-> index 0000000..7b27409
+> index 0000000..c707930
 > --- /dev/null
-> +++ b/Documentation/DocBook/v4l/pixfmt-srggb10.xml
-> @@ -0,0 +1,90 @@
-> +    <refentry>
-> +      <refmeta>
-> +	<refentrytitle>V4L2_PIX_FMT_SRGGB10 ('RG10'),
-> +	 V4L2_PIX_FMT_SGRBG10 ('BA10'),
-> +	 V4L2_PIX_FMT_SGBRG10 ('GB10'),
-> +	 V4L2_PIX_FMT_SBGGR10 ('BG10'),
-> +	 </refentrytitle>
-> +	&manvol;
-> +      </refmeta>
-> +      <refnamediv>
-> +	<refname id="V4L2-PIX-FMT-SRGGB10"><constant>V4L2_PIX_FMT_SRGGB10</constant></refname>
-> +	<refname id="V4L2-PIX-FMT-SGRBG10"><constant>V4L2_PIX_FMT_SGRBG10</constant></refname>
-> +	<refname id="V4L2-PIX-FMT-SGBRG10"><constant>V4L2_PIX_FMT_SGBRG10</constant></refname>
-> +	<refname id="V4L2-PIX-FMT-SBGGR10"><constant>V4L2_PIX_FMT_SBGGR10</constant></refname>
-> +	<refpurpose>10-bit Bayer formats expanded to 16 bits</refpurpose>
-> +      </refnamediv>
-> +      <refsect1>
-> +	<title>Description</title>
+> +++ b/drivers/media/video/v4l2-fh.c
+> @@ -0,0 +1,64 @@
+> +/*
+> + * drivers/media/video/v4l2-fh.c
+
+[1] AFAIK, putting file paths is frowned upon.
+
+Makes maintenance harder if in the future, this files get moved somewhere else.
+
+> + *
+> + * V4L2 file handles.
+> + *
+> + * Copyright (C) 2009 Nokia Corporation.
+
+[2] Shouldn't it be "(C) 2010" already? :)
+
+> + *
+> + * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + */
 > +
-> +	<para>The following four pixel formats are raw sRGB / Bayer formats with
-> +10 bits per colour. Each colour component is stored in a 16-bit word, with 6
-> +unused high bits filled with zeros. Each n-pixel row contains n/2 green samples
-> +and n/2 blue or red samples, with alternating red and blue rows. Bytes are
-> +stored in memory in little endian order. They are conventionally described
-> +as GRGR... BGBG..., RGRG... GBGB..., etc. Below is an example of one of these
-> +formats</para>
+> +#include <linux/bitops.h>
+> +#include <media/v4l2-dev.h>
+> +#include <media/v4l2-fh.h>
 > +
-> +    <example>
-> +      <title><constant>V4L2_PIX_FMT_SBGGR10</constant> 4 &times; 4
-> +pixel image</title>
+> +void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
+> +{
+> +	fh->vdev = vdev;
+> +	INIT_LIST_HEAD(&fh->list);
+> +	set_bit(V4L2_FL_USES_V4L2_FH, &fh->vdev->flags);
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_fh_init);
 > +
-> +      <formalpara>
-> +	<title>Byte Order.</title>
-> +	<para>Each cell is one byte, high 6 bits in high bytes are 0.
-> +	  <informaltable frame="none">
-> +	    <tgroup cols="5" align="center">
-> +	      <colspec align="left" colwidth="2*" />
-> +	      <tbody valign="top">
-> +		<row>
-> +		  <entry>start&nbsp;+&nbsp;0:</entry>
-> +		  <entry>B<subscript>00low</subscript></entry>
-> +		  <entry>B<subscript>00high</subscript></entry>
-> +		  <entry>G<subscript>01low</subscript></entry>
-> +		  <entry>G<subscript>01high</subscript></entry>
-> +		  <entry>B<subscript>02low</subscript></entry>
-> +		  <entry>B<subscript>02high</subscript></entry>
-> +		  <entry>G<subscript>03low</subscript></entry>
-> +		  <entry>G<subscript>03high</subscript></entry>
-> +		</row>
-> +		<row>
-> +		  <entry>start&nbsp;+&nbsp;8:</entry>
-> +		  <entry>G<subscript>10low</subscript></entry>
-> +		  <entry>G<subscript>10high</subscript></entry>
-> +		  <entry>R<subscript>11low</subscript></entry>
-> +		  <entry>R<subscript>11high</subscript></entry>
-> +		  <entry>G<subscript>12low</subscript></entry>
-> +		  <entry>G<subscript>12high</subscript></entry>
-> +		  <entry>R<subscript>13low</subscript></entry>
-> +		  <entry>R<subscript>13high</subscript></entry>
-> +		</row>
-> +		<row>
-> +		  <entry>start&nbsp;+&nbsp;16:</entry>
-> +		  <entry>B<subscript>20low</subscript></entry>
-> +		  <entry>B<subscript>20high</subscript></entry>
-> +		  <entry>G<subscript>21low</subscript></entry>
-> +		  <entry>G<subscript>21high</subscript></entry>
-> +		  <entry>B<subscript>22low</subscript></entry>
-> +		  <entry>B<subscript>22high</subscript></entry>
-> +		  <entry>G<subscript>23low</subscript></entry>
-> +		  <entry>G<subscript>23high</subscript></entry>
-> +		</row>
-> +		<row>
-> +		  <entry>start&nbsp;+&nbsp;24:</entry>
-> +		  <entry>G<subscript>30low</subscript></entry>
-> +		  <entry>G<subscript>30high</subscript></entry>
-> +		  <entry>R<subscript>31low</subscript></entry>
-> +		  <entry>R<subscript>31high</subscript></entry>
-> +		  <entry>G<subscript>32low</subscript></entry>
-> +		  <entry>G<subscript>32high</subscript></entry>
-> +		  <entry>R<subscript>33low</subscript></entry>
-> +		  <entry>R<subscript>33high</subscript></entry>
-> +		</row>
-> +	      </tbody>
-> +	    </tgroup>
-> +	  </informaltable>
-> +	</para>
-> +      </formalpara>
-> +    </example>
-> +  </refsect1>
-> +</refentry>
-> diff --git a/Documentation/DocBook/v4l/pixfmt-srggb8.xml b/Documentation/DocBook/v4l/pixfmt-srggb8.xml
+> +void v4l2_fh_add(struct v4l2_fh *fh)
+> +{
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+> +	list_add(&fh->list, &fh->vdev->fh_list);
+> +	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_fh_add);
+> +
+> +void v4l2_fh_del(struct v4l2_fh *fh)
+> +{
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+> +	list_del_init(&fh->list);
+> +	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_fh_del);
+> +
+> +void v4l2_fh_exit(struct v4l2_fh *fh)
+> +{
+> +	if (fh->vdev == NULL)
+> +		return;
+> +
+> +	fh->vdev = NULL;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_fh_exit);
+> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+> index 2dee938..bebe44b 100644
+> --- a/include/media/v4l2-dev.h
+> +++ b/include/media/v4l2-dev.h
+> @@ -32,6 +32,7 @@ struct v4l2_device;
+>     Drivers can clear this flag if they want to block all future
+>     device access. It is cleared by video_unregister_device. */
+>  #define V4L2_FL_REGISTERED	(0)
+> +#define V4L2_FL_USES_V4L2_FH	(1)
+> 
+>  struct v4l2_file_operations {
+>  	struct module *owner;
+> @@ -77,6 +78,10 @@ struct video_device
+>  	/* attribute to differentiate multiple indices on one physical
+> device */
+>  	int index;
+> 
+> +	/* V4L2 file handles */
+> +	spinlock_t		fh_lock; /* Lock for all v4l2_fhs */
+> +	struct list_head	fh_list; /* List of struct v4l2_fh */
+> +
+>  	int debug;			/* Activates debug level*/
+> 
+>  	/* Video standard vars */
+> diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
 > new file mode 100644
-> index 0000000..2570e3b
+> index 0000000..6b486aa
 > --- /dev/null
-> +++ b/Documentation/DocBook/v4l/pixfmt-srggb8.xml
-> @@ -0,0 +1,67 @@
-> +    <refentry id="V4L2-PIX-FMT-SRGGB8">
-> +      <refmeta>
-> +	<refentrytitle>V4L2_PIX_FMT_SRGGB8 ('RGGB')</refentrytitle>
-> +	&manvol;
-> +      </refmeta>
-> +      <refnamediv>
-> +	<refname><constant>V4L2_PIX_FMT_SRGGB8</constant></refname>
-> +	<refpurpose>Bayer RGB format</refpurpose>
-> +      </refnamediv>
-> +      <refsect1>
-> +	<title>Description</title>
-> +
-> +	<para>This is commonly the native format of digital cameras,
-> +reflecting the arrangement of sensors on the CCD device. Only one red,
-> +green or blue value is given for each pixel. Missing components must
-> +be interpolated from neighbouring pixels. From left to right the first
-> +row consists of a red and green value, the second row of a green and
-> +blue value. This scheme repeats to the right and down for every two
-> +columns and rows.</para>
-> +
-> +	<example>
-> +	  <title><constant>V4L2_PIX_FMT_SRGGB8</constant> 4 &times; 4
-> +pixel image</title>
-> +
-> +	  <formalpara>
-> +	    <title>Byte Order.</title>
-> +	    <para>Each cell is one byte.
-> +	      <informaltable frame="none">
-> +		<tgroup cols="5" align="center">
-> +		  <colspec align="left" colwidth="2*" />
-> +		  <tbody valign="top">
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;0:</entry>
-> +		      <entry>R<subscript>00</subscript></entry>
-> +		      <entry>G<subscript>01</subscript></entry>
-> +		      <entry>R<subscript>02</subscript></entry>
-> +		      <entry>G<subscript>03</subscript></entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;4:</entry>
-> +		      <entry>G<subscript>10</subscript></entry>
-> +		      <entry>B<subscript>11</subscript></entry>
-> +		      <entry>G<subscript>12</subscript></entry>
-> +		      <entry>B<subscript>13</subscript></entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;8:</entry>
-> +		      <entry>R<subscript>20</subscript></entry>
-> +		      <entry>G<subscript>21</subscript></entry>
-> +		      <entry>R<subscript>22</subscript></entry>
-> +		      <entry>G<subscript>23</subscript></entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;12:</entry>
-> +		      <entry>G<subscript>30</subscript></entry>
-> +		      <entry>B<subscript>31</subscript></entry>
-> +		      <entry>G<subscript>32</subscript></entry>
-> +		      <entry>B<subscript>33</subscript></entry>
-> +		    </row>
-> +		  </tbody>
-> +		</tgroup>
-> +	      </informaltable>
-> +	    </para>
-> +	  </formalpara>
-> +	</example>
-> +      </refsect1>
-> +    </refentry>
-> diff --git a/Documentation/DocBook/v4l/pixfmt-y10.xml b/Documentation/DocBook/v4l/pixfmt-y10.xml
-> new file mode 100644
-> index 0000000..d065043
-> --- /dev/null
-> +++ b/Documentation/DocBook/v4l/pixfmt-y10.xml
-> @@ -0,0 +1,79 @@
-> +<refentry id="V4L2-PIX-FMT-Y10">
-> +  <refmeta>
-> +    <refentrytitle>V4L2_PIX_FMT_Y10 ('Y10 ')</refentrytitle>
-> +    &manvol;
-> +  </refmeta>
-> +  <refnamediv>
-> +    <refname><constant>V4L2_PIX_FMT_Y10</constant></refname>
-> +    <refpurpose>Grey-scale image</refpurpose>
-> +  </refnamediv>
-> +  <refsect1>
-> +    <title>Description</title>
-> +
-> +    <para>This is a grey-scale image with a depth of 10 bits per pixel. Pixels
-> +are stored in 16-bit words with unused high bits padded with 0. The least
-> +significant byte is stored at lower memory addresses (little-endian).</para>
-> +
-> +    <example>
-> +      <title><constant>V4L2_PIX_FMT_Y10</constant> 4 &times; 4
-> +pixel image</title>
-> +
-> +      <formalpara>
-> +	<title>Byte Order.</title>
-> +	<para>Each cell is one byte.
-> +	  <informaltable frame="none">
-> +	    <tgroup cols="9" align="center">
-> +	      <colspec align="left" colwidth="2*" />
-> +	      <tbody valign="top">
-> +		<row>
-> +		  <entry>start&nbsp;+&nbsp;0:</entry>
-> +		  <entry>Y'<subscript>00low</subscript></entry>
-> +		  <entry>Y'<subscript>00high</subscript></entry>
-> +		  <entry>Y'<subscript>01low</subscript></entry>
-> +		  <entry>Y'<subscript>01high</subscript></entry>
-> +		  <entry>Y'<subscript>02low</subscript></entry>
-> +		  <entry>Y'<subscript>02high</subscript></entry>
-> +		  <entry>Y'<subscript>03low</subscript></entry>
-> +		  <entry>Y'<subscript>03high</subscript></entry>
-> +		</row>
-> +		<row>
-> +		  <entry>start&nbsp;+&nbsp;8:</entry>
-> +		  <entry>Y'<subscript>10low</subscript></entry>
-> +		  <entry>Y'<subscript>10high</subscript></entry>
-> +		  <entry>Y'<subscript>11low</subscript></entry>
-> +		  <entry>Y'<subscript>11high</subscript></entry>
-> +		  <entry>Y'<subscript>12low</subscript></entry>
-> +		  <entry>Y'<subscript>12high</subscript></entry>
-> +		  <entry>Y'<subscript>13low</subscript></entry>
-> +		  <entry>Y'<subscript>13high</subscript></entry>
-> +		</row>
-> +		<row>
-> +		  <entry>start&nbsp;+&nbsp;16:</entry>
-> +		  <entry>Y'<subscript>20low</subscript></entry>
-> +		  <entry>Y'<subscript>20high</subscript></entry>
-> +		  <entry>Y'<subscript>21low</subscript></entry>
-> +		  <entry>Y'<subscript>21high</subscript></entry>
-> +		  <entry>Y'<subscript>22low</subscript></entry>
-> +		  <entry>Y'<subscript>22high</subscript></entry>
-> +		  <entry>Y'<subscript>23low</subscript></entry>
-> +		  <entry>Y'<subscript>23high</subscript></entry>
-> +		</row>
-> +		<row>
-> +		  <entry>start&nbsp;+&nbsp;24:</entry>
-> +		  <entry>Y'<subscript>30low</subscript></entry>
-> +		  <entry>Y'<subscript>30high</subscript></entry>
-> +		  <entry>Y'<subscript>31low</subscript></entry>
-> +		  <entry>Y'<subscript>31high</subscript></entry>
-> +		  <entry>Y'<subscript>32low</subscript></entry>
-> +		  <entry>Y'<subscript>32high</subscript></entry>
-> +		  <entry>Y'<subscript>33low</subscript></entry>
-> +		  <entry>Y'<subscript>33high</subscript></entry>
-> +		</row>
-> +	      </tbody>
-> +	    </tgroup>
-> +	  </informaltable>
-> +	</para>
-> +      </formalpara>
-> +    </example>
-> +  </refsect1>
-> +</refentry>
-> diff --git a/Documentation/DocBook/v4l/pixfmt.xml b/Documentation/DocBook/v4l/pixfmt.xml
-> index 6e38f50..7e2c38e 100644
-> --- a/Documentation/DocBook/v4l/pixfmt.xml
-> +++ b/Documentation/DocBook/v4l/pixfmt.xml
-> @@ -566,7 +566,9 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
->      &sub-sbggr8;
->      &sub-sgbrg8;
->      &sub-sgrbg8;
-> +    &sub-srggb8;
->      &sub-sbggr16;
-> +    &sub-srggb10;
->    </section>
->  
->    <section id="yuv-formats">
-> @@ -589,6 +591,7 @@ information.</para>
->  
->      &sub-packed-yuv;
->      &sub-grey;
-> +    &sub-y10;
->      &sub-y16;
->      &sub-yuyv;
->      &sub-uyvy;
-> @@ -710,11 +713,6 @@ kernel sources in the file <filename>Documentation/video4linux/cx2341x/README.hm
->  	    <entry>'S561'</entry>
->  	    <entry>Compressed GBRG Bayer format used by the gspca driver.</entry>
->  	  </row>
-> -	  <row id="V4L2-PIX-FMT-SGRBG10">
-> -	    <entry><constant>V4L2_PIX_FMT_SGRBG10</constant></entry>
-> -	    <entry>'DA10'</entry>
-> -	    <entry>10 bit raw Bayer, expanded to 16 bits.</entry>
-> -	  </row>
->  	  <row id="V4L2-PIX-FMT-SGRBG10DPCM8">
->  	    <entry><constant>V4L2_PIX_FMT_SGRBG10DPCM8</constant></entry>
->  	    <entry>'DB10'</entry>
+> +++ b/include/media/v4l2-fh.h
+> @@ -0,0 +1,42 @@
+> +/*
+> + * include/media/v4l2-fh.h
 
+Same as [1]
 
--- 
+> + *
+> + * V4L2 file handle.
+> + *
+> + * Copyright (C) 2009 Nokia Corporation.
 
-Cheers,
-Mauro
+Same as [2]
+
+> + *
+> + * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + */
+> +
+> +#ifndef V4L2_FH_H
+> +#define V4L2_FH_H
+> +
+> +#include <linux/list.h>
+
+Shouldn't you add one more header here?:
+
+#include <media/v4l2-dev.h>
+
+(for struct video_device)
+
+> +
+> +struct video_device;
+> +
+> +struct v4l2_fh {
+> +	struct list_head	list;
+> +	struct video_device	*vdev;
+> +};
+> +
+> +void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev);
+> +void v4l2_fh_add(struct v4l2_fh *fh);
+> +void v4l2_fh_del(struct v4l2_fh *fh);
+> +void v4l2_fh_exit(struct v4l2_fh *fh);
+> +
+> +#endif /* V4L2_EVENT_H */
+
+Wrong comment, must have been:
+
+	/* V4L2_FH_H */
+
+Regards,
+Sergio
+> --
+> 1.5.6.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
