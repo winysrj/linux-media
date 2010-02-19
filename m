@@ -1,83 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:60562 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754893Ab0BOKKu (ORCPT
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:39923 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752090Ab0BSQjt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2010 05:10:50 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v4 7/7] V4L: Events: Support all events
-Date: Mon, 15 Feb 2010 11:11:03 +0100
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	linux-media@vger.kernel.org, iivanov@mm-sol.com,
-	gururaj.nagendra@intel.com, david.cohen@nokia.com
-References: <4B72C965.7040204@maxwell.research.nokia.com> <1265813889-17847-7-git-send-email-sakari.ailus@maxwell.research.nokia.com> <201002131542.20916.hverkuil@xs4all.nl>
-In-Reply-To: <201002131542.20916.hverkuil@xs4all.nl>
+	Fri, 19 Feb 2010 11:39:49 -0500
+Received: by pwj8 with SMTP id 8so248739pwj.19
+        for <linux-media@vger.kernel.org>; Fri, 19 Feb 2010 08:39:48 -0800 (PST)
+Message-ID: <4B7EBECA.5020609@pelagicore.com>
+Date: Fri, 19 Feb 2010 09:39:38 -0700
+From: =?ISO-8859-1?Q?Richard_R=F6jfors?= <richard.rojfors@pelagicore.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201002151111.09151.laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	sameo@linux.intel.com
+Subject: Re: [PATCH] mfd: Add timb-radio to the timberdale MFD
+References: <4B7845F0.1070800@pelagicore.com> <4B7E7B75.3040205@redhat.com>
+In-Reply-To: <4B7E7B75.3040205@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On 02/19/2010 04:52 AM, Mauro Carvalho Chehab wrote:
+> Richard Röjfors wrote:
+>> This patch addes timb-radio to all configurations of the timberdale MFD.
+>>
+>> Connected to the FPGA is a TEF6862 tuner and a SAA7706H DSP, the I2C
+>> board info of these devices is passed via the timb-radio platform data.
+>
+> Hi Richard,
+>
+> I'm trying to apply it to my git tree (http://git.linuxtv.org/v4l-dvb.git),
+> but it is failing:
 
-On Saturday 13 February 2010 15:42:20 Hans Verkuil wrote:
-> On Wednesday 10 February 2010 15:58:09 Sakari Ailus wrote:
-> > Add support for subscribing all events with a special id V4L2_EVENT_ALL.
-> > If V4L2_EVENT_ALL is subscribed, no other events may be subscribed.
-> > Otherwise V4L2_EVENT_ALL is considered just as any other event.
-> 
-> We should do this differently. I think that EVENT_ALL should not be used
-> internally (i.e. in the actual list of subscribed events), but just as a
-> special value for the subscribe and unsubscribe ioctls. So when used with
-> unsubscribe you can just unsubscribe all subscribed events and when used
-> with subscribe, then you just subscribe all valid events (valid for that
-> device node).
-> 
-> So in v4l2-event.c you will have a v4l2_event_unsubscribe_all() to quickly
-> unsubscribe all events.
-> 
-> In order to easily add all events from the driver it would help if the
-> v4l2_event_subscribe and v4l2_event_unsubscribe just take the event type
-> as argument rather than the whole v4l2_event_subscription struct.
-> 
-> You will then get something like this in the driver:
-> 
-> 	if (sub->type == V4L2_EVENT_ALL) {
-> 		int ret = v4l2_event_alloc(fh, 60);
-> 
-> 		ret = ret ? ret : v4l2_event_subscribe(fh, V4L2_EVENT_EOS);
-> 		ret = ret ? ret : v4l2_event_subscribe(fh, V4L2_EVENT_VSYNC);
-> 		return ret;
-> 	}
-> 
-> An alternative might be to add a v4l2_event_subscribe_all(fh, const u32
-> *events) where 'events' is a 0 terminated list of events that need to be
-> subscribed.
+Ah, this patch was against your linux-next.git at kernel.org.
 
-Then don't call it v4l2_event_subscribe_all if it only subscribes to a set of 
-event :-)
+I will generate a new patch against the proper git.
 
-> For each event this function would then call:
-> 
-> fh->vdev->ioctl_ops->vidioc_subscribe_event(fh, sub);
-> 
-> The nice thing about that is that in the driver you have a minimum of fuss.
-> 
-> I'm leaning towards this second solution due to the simple driver
-> implementation.
-> 
-> Handling EVENT_ALL will simplify things substantially IMHO.
-
-I'm wondering if subscribing to all events should be allowed. Do we have use 
-cases for that ? I'm always a bit cautious when adding APIs with no users, as 
-that means the API has often not been properly tested against possible use 
-cases and mistakes will need to be supported forever (or at least for a long 
-time).
-
--- 
-Regards,
-
-Laurent Pinchart
+--Richard
