@@ -1,51 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:60156 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753318Ab0BYIOQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Feb 2010 03:14:16 -0500
-Received: by vws16 with SMTP id 16so465426vws.19
-        for <linux-media@vger.kernel.org>; Thu, 25 Feb 2010 00:14:16 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:35060 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751312Ab0BSMXY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Feb 2010 07:23:24 -0500
+Message-ID: <4B7E82AC.60500@redhat.com>
+Date: Fri, 19 Feb 2010 10:23:08 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Date: Thu, 25 Feb 2010 00:14:15 -0800
-Message-ID: <a3ef07921002250014g618908act38d7c3541f33b54d@mail.gmail.com>
-Subject: Problem with v4l tree and kernel 2.6.33
-From: VDR User <user.vdr@gmail.com>
-To: "mailing list: linux-media" <linux-media@vger.kernel.org>
+To: Robert Lowery <rglowery@exemail.com.au>
+CC: Terry Wu <terrywu2009@gmail.com>, Andy Walls <awalls@radix.net>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Vincent McIntyre <vincent.mcintyre@gmail.com>,
+	linux-media@vger.kernel.org,
+	Stefan Ringel <stefan.ringel@arcor.de>,
+	Steven Toth <stoth@kernellabs.com>
+Subject: Re: [RESEND] Re: DViCO FusionHDTV DVB-T Dual Digital 4 (rev 1)  
+              tuning  regression
+References: <33305.64.213.30.2.1259216241.squirrel@webmail.exetel.com.au>    <2088.115.70.135.213.1262579258.squirrel@webmail.exetel.com.au>    <1262658469.3054.48.camel@palomino.walls.org>    <1262661512.3054.67.camel@palomino.walls.org>    <55306.115.70.135.213.1262748017.squirrel@webmail.exetel.com.au>    <1262829099.3065.61.camel@palomino.walls.org>    <1128.115.70.135.213.1262840633.squirrel@webmail.exetel.com.au>    <6ab2c27e1001070548y1a96f390uc7b7fbd18a78a564@mail.gmail.com>    <6ab2c27e1001070604m323ccb02g10a8c302c3edee79@mail.gmail.com>    <6ab2c27e1001070618ud7019b9s69180353010a1c96@mail.gmail.com>    <6ab2c27e1001070642k4d5bd81cud404fe77bc7a6bc5@mail.gmail.com>    <1197.115.70.135.213.1262917283.squirrel@webmail.exetel.com.au>    <4B7E1931.3090007@redhat.com> <52633.115.70.135.213.1266574714.squirrel@webmail.exetel.com.au>
+In-Reply-To: <52633.115.70.135.213.1266574714.squirrel@webmail.exetel.com.au>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Kernel 2.6.33 just went stable.  I compiled, installed, reboot.
-Grabbed a fresh v4l tree, menuconfig'ed, compiled and installed.  Upon
-loading I got "Invalid module format" for each file.  For example:
-WARNING: Error inserting dvb_ttpci
-(/lib/modules/2.6.33.amd64-x2.022410.1/kernel/drivers/media/dvb/ttpci/dvb-ttpci.ko):
-Invalid module format
+Robert Lowery wrote:
+> Mauro,
+> 
+> I had to make 2 changes to get the patch to work for me
+> 
+> see below
+> 
+> HTH
+> 
+> -Rob
+> 
+>> +		if (priv->firm_version >= 0x0302) {
+>> +			if (priv->cur_fw.type & DTV7)
+>> +				offset -= 300000;
+>> +			else if (type != ATSC) /* DVB @6MHz, DTV 8 and DTV 7/8 */
+>> +				offset += 200000;
+>> +		} else {
+>> +			if (priv->cur_fw.type & DTV7)
+>> +				offset -= 500000;
+> This should be offset += 500000;
+> 
+>>  		/*
+>>  		 * The DTV7 S-code table needs a 700 kHz shift.
+>>  		 * Thanks to Terry Wu <terrywu2009@gmail.com> for reporting this
+> I had to also delete the
+> if (type & DTV7)
+>     demod += 500
+> 
+> I suspect this is no longer required due to the offset += 500000 above
 
-I then did a distclean, make, make install:
+Both lines should be doing the same thing, but IMO, the better is to keep 
+the change at the demod.
 
-Updating/Creating .config
-Preparing to compile for kernel version 2.6.33
-VIDEO_TVP7002: Requires at least kernel 2.6.34
-RADIO_SAA7706H: Requires at least kernel 2.6.34
-Created default (all yes) .config file
+Could you please preserve the above and remove the offset +=500000 ?
 
-Again, "Invalid module format".  I then confirmed that .version
-matched my 2.6.33 kernel:
+Note: are you available for irc? if so, please join #linuxtv at freenode.net.
 
-test:/v4l-dvb$ cat v4l/.version
-VERSION=2
-PATCHLEVEL:=6
-SUBLEVEL:=33
-KERNELRELEASE:=2.6.33.amd64-x2.022410.1
-test:/v4l-dvb$ uname -r
-2.6.33.amd64-x2.022410.1
-
-So... I'm at a loss why this is happening.  Any ideas?
-
-kernel 2.6.33
-gcc (Debian 4.4.2-9) 4.4.3 20100108 (prerelease)
-v4l tree 37581bb7e6f1 tip
-
-Thanks in advance.
+Cheers,
+Mauro
