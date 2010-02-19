@@ -1,123 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37796 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751660Ab0BWIel (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2010 03:34:41 -0500
-From: hvaibhav@ti.com
-To: linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, hverkuil@xs4all.nl,
-	Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH-V1 05/10] VPFE Capture: Add call back function for interrupt clear to vpfe_cfg
-Date: Tue, 23 Feb 2010 14:04:28 +0530
-Message-Id: <1266914073-30135-6-git-send-email-hvaibhav@ti.com>
-In-Reply-To: <hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
+Received: from acorn.exetel.com.au ([220.233.0.21]:46002 "EHLO
+	acorn.exetel.com.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752545Ab0BSKSo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Feb 2010 05:18:44 -0500
+Message-ID: <52633.115.70.135.213.1266574714.squirrel@webmail.exetel.com.au>
+In-Reply-To: <4B7E1931.3090007@redhat.com>
+References: <33305.64.213.30.2.1259216241.squirrel@webmail.exetel.com.au>
+    <2088.115.70.135.213.1262579258.squirrel@webmail.exetel.com.au>
+    <1262658469.3054.48.camel@palomino.walls.org>
+    <1262661512.3054.67.camel@palomino.walls.org>
+    <55306.115.70.135.213.1262748017.squirrel@webmail.exetel.com.au>
+    <1262829099.3065.61.camel@palomino.walls.org>
+    <1128.115.70.135.213.1262840633.squirrel@webmail.exetel.com.au>
+    <6ab2c27e1001070548y1a96f390uc7b7fbd18a78a564@mail.gmail.com>
+    <6ab2c27e1001070604m323ccb02g10a8c302c3edee79@mail.gmail.com>
+    <6ab2c27e1001070618ud7019b9s69180353010a1c96@mail.gmail.com>
+    <6ab2c27e1001070642k4d5bd81cud404fe77bc7a6bc5@mail.gmail.com>
+    <1197.115.70.135.213.1262917283.squirrel@webmail.exetel.com.au>
+    <4B7E1931.3090007@redhat.com>
+Date: Fri, 19 Feb 2010 21:18:34 +1100 (EST)
+Subject: Re: [RESEND] Re: DViCO FusionHDTV DVB-T Dual Digital 4 (rev 1)     
+           tuning  regression
+From: "Robert Lowery" <rglowery@exemail.com.au>
+To: "Mauro Carvalho Chehab" <mchehab@redhat.com>
+Cc: "Terry Wu" <terrywu2009@gmail.com>,
+	"Andy Walls" <awalls@radix.net>,
+	"Devin Heitmueller" <dheitmueller@kernellabs.com>,
+	"Vincent McIntyre" <vincent.mcintyre@gmail.com>,
+	linux-media@vger.kernel.org,
+	"Stefan Ringel" <stefan.ringel@arcor.de>,
+	"Steven Toth" <stoth@kernellabs.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+Mauro,
 
-For the devices like AM3517, it is expected that driver clears the
-interrupt in ISR. Since this is device spcific, callback function
-added to the platform_data.
+I had to make 2 changes to get the patch to work for me
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- drivers/media/video/ti-media/vpfe_capture.c |   24 ++++++++++++++++++++----
- include/media/ti-media/vpfe_capture.h       |    2 ++
- 2 files changed, 22 insertions(+), 4 deletions(-)
+see below
 
-diff --git a/drivers/media/video/ti-media/vpfe_capture.c b/drivers/media/video/ti-media/vpfe_capture.c
-index 2f9d3bb..3ffd636 100644
---- a/drivers/media/video/ti-media/vpfe_capture.c
-+++ b/drivers/media/video/ti-media/vpfe_capture.c
-@@ -475,6 +475,11 @@ static int vpfe_initialize_device(struct vpfe_device *vpfe_dev)
- 	ret = ccdc_dev->hw_ops.open(vpfe_dev->pdev);
- 	if (!ret)
- 		vpfe_dev->initialized = 1;
-+
-+	/* Clear all VPFE/CCDC interrupts */
-+	if (vpfe_dev->cfg->clr_intr)
-+		vpfe_dev->cfg->clr_intr(-1);
-+
- unlock:
- 	mutex_unlock(&ccdc_lock);
- 	return ret;
-@@ -562,7 +567,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
+HTH
 
- 	/* if streaming not started, don't do anything */
- 	if (!vpfe_dev->started)
--		return IRQ_HANDLED;
-+		goto clear_intr;
+-Rob
 
- 	/* only for 6446 this will be applicable */
- 	if (NULL != ccdc_dev->hw_ops.reset)
-@@ -574,7 +579,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
- 			"frame format is progressive...\n");
- 		if (vpfe_dev->cur_frm != vpfe_dev->next_frm)
- 			vpfe_process_buffer_complete(vpfe_dev);
--		return IRQ_HANDLED;
-+		goto clear_intr;
- 	}
+> Robert Lowery wrote:
+>> Mauro's new code does the 500000 offset unconditionally for DTV7 by
+>> setting offset = 2250000, not just when the ZARLINK456 or DIBCOM52
+>> tables
+>> were explicitly selected.  This change is what appears to cause issues
+>> for
+>> me.
+>
+> I've reviewed all information and troubles we have with xc3028 tuning,
+> including the reports related to newer firmwares for XC3028L. I think
+> that the right fix is the one provided on this patch.
+>
+> Could you all please verify if this patch fixes the issues, without
+> causing
+> any regression?
+>
+> Cheers,
+> Mauro.
+>
+> ---
+>
+> V4L/DVB: tuner-xc2028: fix tuning logic
+>
+> There's one reported regression in Australia (DTV7) and some
+> reported troubles with newer firmwares. Rework the logic to improve
+> tuner on those cases.
+>
+> Thanks-to: Robert Lowery <rglowery@exemail.com.au>
+> Thanks-to: Stefan Ringel <stefan.ringel@arcor.de>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> ---
+>  drivers/media/common/tuners/tuner-xc2028.c |   51
+> ++++++++++++++++++++--------
+>  1 files changed, 37 insertions(+), 14 deletions(-)
+>
+> diff --git a/drivers/media/common/tuners/tuner-xc2028.c
+> b/drivers/media/common/tuners/tuner-xc2028.c
+> index ed50168..eb782a0 100644
+> --- a/drivers/media/common/tuners/tuner-xc2028.c
+> +++ b/drivers/media/common/tuners/tuner-xc2028.c
+> @@ -932,30 +932,49 @@ static int generic_set_freq(struct dvb_frontend *fe,
+> u32 freq /* in HZ */,
+>  	 * that xc2028 will be in a safe state.
+>  	 * Maybe this might also be needed for DTV.
+>  	 */
+> -	if (new_mode == T_ANALOG_TV)
+> +	if (new_mode == T_ANALOG_TV) {
+>  		rc = send_seq(priv, {0x00, 0x00});
+>
+> -	/*
+> -	 * Digital modes require an offset to adjust to the
+> -	 * proper frequency.
+> -	 * Analog modes require offset = 0
+> -	 */
+> -	if (new_mode == T_DIGITAL_TV) {
+> -		/* Sets the offset according with firmware */
+> +		/* Analog modes require offset = 0 */
+> +	} else {
+> +		/*
+> +		 * Digital modes require an offset to adjust to the
+> +		 * proper frequency. The offset depends on what
+> +		 * firmware version is used.
+> +		 */
+> +
+> +		/*
+> +		 * Adjust to the center frequency. This is calculated by the
+> +		 * formula: offset = 1.25MHz - BW/2
+> +		 * For DTV 7/8, the firmware uses BW = 8000, so it needs a
+> +		 * further adjustment to get the frequency center on VHF
+> +		 */
+>  		if (priv->cur_fw.type & DTV6)
+>  			offset = 1750000;
+>  		else if (priv->cur_fw.type & DTV7)
+>  			offset = 2250000;
+>  		else	/* DTV8 or DTV78 */
+>  			offset = 2750000;
+> +		if ((priv->cur_fw.type & DTV78) && freq < 470000000)
+> +			offset -= 500000;
+>
+>  		/*
+> -		 * We must adjust the offset by 500kHz  when
+> -		 * tuning a 7MHz VHF channel with DTV78 firmware
+> -		 * (used in Australia, Italy and Germany)
+> +		 * xc3028 additional "magic"
+> +		 * Depending on the firmware version, it needs some adjustments
+> +		 * to properly centralize the frequency. This seems to be
+> +		 * needed to compensate the SCODE table adjustments made by
+> +		 * newer firmwares
+>  		 */
+> -		if ((priv->cur_fw.type & DTV78) && freq < 470000000)
+> -			offset -= 500000;
+> +
+> +		if (priv->firm_version >= 0x0302) {
+> +			if (priv->cur_fw.type & DTV7)
+> +				offset -= 300000;
+> +			else if (type != ATSC) /* DVB @6MHz, DTV 8 and DTV 7/8 */
+> +				offset += 200000;
+> +		} else {
+> +			if (priv->cur_fw.type & DTV7)
+> +				offset -= 500000;
+This should be offset += 500000;
 
- 	/* interlaced or TB capture check which field we are in hardware */
-@@ -604,7 +609,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
- 				addr += vpfe_dev->field_off;
- 				ccdc_dev->hw_ops.setfbaddr(addr);
- 			}
--			return IRQ_HANDLED;
-+			goto clear_intr;
- 		}
- 		/*
- 		 * if one field is just being captured configure
-@@ -624,6 +629,10 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
- 		 */
- 		vpfe_dev->field_id = fid;
- 	}
-+clear_intr:
-+	if (vpfe_dev->cfg->clr_intr)
-+		vpfe_dev->cfg->clr_intr(irq);
-+
- 	return IRQ_HANDLED;
- }
+> +		}
+>  	}
+>
+>  	div = (freq - offset + DIV / 2) / DIV;
+> @@ -1114,7 +1133,11 @@ static int xc2028_set_params(struct dvb_frontend
+> *fe,
+>
+>  	/* All S-code tables need a 200kHz shift */
+>  	if (priv->ctrl.demod) {
+> -		demod = priv->ctrl.demod + 200;
+> +		/*
+> +		 * Newer firmwares require a 200 kHz offset only for ATSC
+> +		 */
+> +		if (type == ATSC || priv->firm_version < 0x0302)
+> +			demod = priv->ctrl.demod + 200;
+>  		/*
+>  		 * The DTV7 S-code table needs a 700 kHz shift.
+>  		 * Thanks to Terry Wu <terrywu2009@gmail.com> for reporting this
+I had to also delete the
+if (type & DTV7)
+    demod += 500
 
-@@ -635,8 +644,11 @@ static irqreturn_t vdint1_isr(int irq, void *dev_id)
- 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "\nInside vdint1_isr...\n");
+I suspect this is no longer required due to the offset += 500000 above
+> --
+> 1.6.6.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
- 	/* if streaming not started, don't do anything */
--	if (!vpfe_dev->started)
-+	if (!vpfe_dev->started) {
-+		if (vpfe_dev->cfg->clr_intr)
-+			vpfe_dev->cfg->clr_intr(irq);
- 		return IRQ_HANDLED;
-+	}
-
- 	spin_lock(&vpfe_dev->dma_queue_lock);
- 	if ((vpfe_dev->fmt.fmt.pix.field == V4L2_FIELD_NONE) &&
-@@ -644,6 +656,10 @@ static irqreturn_t vdint1_isr(int irq, void *dev_id)
- 	    vpfe_dev->cur_frm == vpfe_dev->next_frm)
- 		vpfe_schedule_next_buffer(vpfe_dev);
- 	spin_unlock(&vpfe_dev->dma_queue_lock);
-+
-+	if (vpfe_dev->cfg->clr_intr)
-+		vpfe_dev->cfg->clr_intr(irq);
-+
- 	return IRQ_HANDLED;
- }
-
-diff --git a/include/media/ti-media/vpfe_capture.h b/include/media/ti-media/vpfe_capture.h
-index 5287368..f0a7b7a 100644
---- a/include/media/ti-media/vpfe_capture.h
-+++ b/include/media/ti-media/vpfe_capture.h
-@@ -94,6 +94,8 @@ struct vpfe_config {
- 	/* vpfe clock */
- 	struct clk *vpssclk;
- 	struct clk *slaveclk;
-+	/* Function for Clearing the interrupt */
-+	void (*clr_intr)(int vdint);
- };
-
- struct vpfe_device {
---
-1.6.2.4
 
