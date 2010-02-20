@@ -1,143 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4573 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750701Ab0BNOYF (ORCPT
+Received: from mail-in-01.arcor-online.net ([151.189.21.41]:34829 "EHLO
+	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754790Ab0BTDIy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Feb 2010 09:24:05 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: videobuf and streaming I/O questions
-Date: Sun, 14 Feb 2010 15:26:09 +0100
-Cc: linux-media@vger.kernel.org
-References: <201002141422.48362.hverkuil@xs4all.nl> <4B77FD89.3080209@infradead.org>
-In-Reply-To: <4B77FD89.3080209@infradead.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+	Fri, 19 Feb 2010 22:08:54 -0500
+Subject: Re: [PATCH] saa7134: Fix IR support of some ASUS TV-FM 7135
+	variants
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>, Daro <ghost-rider@aster.pl>,
+	Roman Kellner <muzungu@gmx.net>
+In-Reply-To: <1266211906.3177.16.camel@pc07.localdom.local>
+References: <20100127120211.2d022375@hyperion.delvare>
+	 <4B630179.3080006@redhat.com> <1264812461.16350.90.camel@localhost>
+	 <20100130115632.03da7e1b@hyperion.delvare>
+	 <1264986995.21486.20.camel@pc07.localdom.local>
+	 <20100201105628.77057856@hyperion.delvare>
+	 <1265075273.2588.51.camel@localhost>
+	 <20100202085415.38a1e362@hyperion.delvare> <4B681173.1030404@redhat.com>
+	 <20100210190907.5c695e4e@hyperion.delvare> <4B72FD83.1050500@redhat.com>
+	 <20100210203601.31ef3220@hyperion.delvare>
+	 <1265849882.4422.17.camel@localhost>
+	 <1266211906.3177.16.camel@pc07.localdom.local>
+Content-Type: text/plain
+Date: Sat, 20 Feb 2010 04:07:05 +0100
+Message-Id: <1266635225.3407.33.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201002141526.09339.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 14 February 2010 14:41:29 Mauro Carvalho Chehab wrote:
-> Hans Verkuil wrote:
-> > Hi all,
+
+Am Montag, den 15.02.2010, 06:31 +0100 schrieb hermann pitton:
+> Am Donnerstag, den 11.02.2010, 01:58 +0100 schrieb hermann pitton:
+> > Hi,
 > > 
-> > I've been investigating some problems with my qv4l2 utility and I encountered
-> > some inconsistencies in the streaming I/O documentation and the videobuf
-> > implementation.
+> > Am Mittwoch, den 10.02.2010, 20:36 +0100 schrieb Jean Delvare:
+> > > On Wed, 10 Feb 2010 16:40:03 -0200, Mauro Carvalho Chehab wrote:
+> > > > Jean Delvare wrote:
+> > > > > Under the assumption that saa7134_hwinit1() only touches GPIOs
+> > > > > connected to IR receivers (and it certainly looks like this to me) I
+> > > > > fail to see how these pins not being initialized could have any effect
+> > > > > on non-IR code.
+> > > > 
+> > > > Now, i suspect that you're messing things again: are you referring to saa7134_hwinit1() or
+> > > > to saa7134_input_init1()?
+> > > > 
+> > > > I suspect that you're talking about moving saa7134_input_init1(), since saa7134_hwinit1()
+> > > > has the muted and spinlock inits. It also has the setups for video, vbi and mpeg. 
+> > > > So, moving it require more care.
+> > > 
+> > > Err, you're right, I meant saa7134_input_init1() and not
+> > > saa7134_hwinit1(), copy-and-paste error. Sorry for adding more
+> > > confusion where it really wasn't needed...
+> > > 
 > > 
-> > I would like to know which is correct.
+> > both attempts of Jean will work.
 > > 
-> > 1) The VIDIOC_QBUF documentation should specify that the application has
-> > to fill in the v4l2_buffer 'flags' field. The fact that this is not explicitly
-> > stated tripped me up in qv4l2.
-> 
-> I don't think you need to set the flags, but for sure you need to clear the data
-> on all ioctls. The capture-example.c is a reference code for implementation, and it
-> does:
-> 
->                         CLEAR(buf);
->                         buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
->                         buf.memory = V4L2_MEMORY_MMAP;
->                         buf.index = i;
-> 
->                         if (-1 == xioctl(fd, VIDIOC_QBUF, &buf))
->                                 errno_exit("VIDIOC_QBUF");
-> 
-> As far as I've tested, this app works on all drivers that support mmap.
-
-I will fix the spec for this.
-
-> > 2) The VIDIOC_REQBUFS documentation states that it should be possible to use
-> > a count of 0, in which case it should do an implicit STREAMOFF. This is
-> > currently not implemented. I have included a patch for this below and if there
-> > are no issues with it, then I'll make a pull request for this.
-> 
-> This can eventually break some application. I think it is safer to fix the specs.
-
-I don't really see how this would break an application and I think that some
-drivers that do not use videobuf already support this. The reason why I think
-this is a good idea to support it is that this makes it very easy to check
-which streaming mode is supported without actually allocating anything.
-
-I was actually using this in qv4l2 with uvc until I tried it with the mxb driver
-and discovered that videobuf didn't support it. I am definitely in favor of
-fixing the code instead of the spec in this case.
-
-> > 3) The VIDIOC_REQBUFS documentation states that the count field is only used
-> > by MEMORY_MMAP, not by MEMORY_USERPTR. This seems to be a false statement.
-> > videobuf certainly uses the count field.
-> 
-> True. We need to fix the specs.
->  
-> > 4) The same is true for QBUF and DQBUF and the index field of struct v4l2_buffer:
-> > the documentation states that it is only used for MMAP, but as far as I can tell
-> > that is not true and it should be used for USERPTR as well.
-> 
-> True. We need to fix the specs.
+> > If we are only talking about moving input_init, only that Jean did
+> > suggest initially, it should work, since only some GPIOs for enabling
+> > remote chips are affected.
 > > 
-> > 5) Section 3.2 states that one should use VIDIOC_REQBUFS to determine if the
-> > memory mapping flavor is supported by the driver. At least in the case of the
-> > saa7146/mxb driver (which uses videobuf) this does not work. Even though it only
-> > supports mmap, videobuf happily accepts userptr mode as well. Who is supposed
-> > to test this? The driver before it calls videobuf_reqbufs?
-> 
-> videobuf-dma-sg supports all modes. if the driver has restrictions to one of the mode,
-> videobuf have no way to know. So, the driver must limit.
-
-OK.
-
-> 
-> > 6) V4L2_MEMORY_OVERLAY seems to be supported in videobuf, yet there is no driver
-> > that supports it as far as I can tell and the documentation does not explain
-> > what it is supposed to do. What is the status of this?
-> 
-> It is supported by videobuf and it is implemented by a few drivers. The best example
-> is bttv-driver. I think saa7134 also implements the overlay mode.
-
-Can you write a bit of documentation on how the m union of v4l2_buffer has to
-be filled in for this mode? I will integrate that into the spec.
-
-I found one mention here: 
-
-http://archive.linuxcoding.com/video-4-linux/2002/msg03126.html
-
-And one application that uses it here:
-
-http://www.directfb.org/downloads/Core/DirectFB-1.4/DirectFB-1.4.3.tar.gz
-
-Although it would be nice if it could actually be tested by someone whether
-this is actually still working.
-
-Regards,
-
-	Hans
-
-
-> Some motherboard chipsets don't work fine on overlay mode, since, in general, it causes
-> a PCI2PCI data transfers. It is a known bug that, when PCI2PCI DMA transfers are happening,
-> and if a PCI2MEM or MEM2PCI DMA is called (for example, to write a data to disk or to get
-> swapped memory), that the two transfers got messed, causing memory and/or disk corruption.
-> 
-> There are some PCI quirks to disable this feature at the chipsets where this bug is known
-> (some chipsets manufactured by VIA and by SYS).
-> 
-> This is mostly why people don't get enough motivation for use it on other drivers.
+> > I can give the crappy tester, but don't have such a remote, but should
+> > not be a problem to trigger the GPIOs later.
 > > 
-> > When I know the correct answers to this I will fix these issues. The qv4l2 tool
-> > is written based on the documentation instead of copy-and-paste, so this was a
-> > good test case to discover these inconsistencies.
+> > Cheers,
+> > Hermann
+> > 
 > 
-> Yes.
-> > 
-> > Regards,
-> > 
-> > 	Hans
+> Hi Jean,
+> 
+> I did test your patch, only following Roman's initial patch already
+> known, on eight different cards for now, also with three slightly
+> different remotes and it does not have any negative impact.
+> 
+> Please consider, that it is only about that single card for now and a
+> per card solution is enough.
+> 
+> I strongly remind, that we should not rely on unknown eeprom bytes, as
+> told previously and should not expand such into any direction.
+> 
+> If we make progress there, we should change it for all cards, but again,
+> what had happened on the m$ drivers previously is not encouraging to do
+> it without any need.
+> 
+> To do it per card in need for now seems enough "service" to me.
+> 
+> If more such should come, unlikely on that driver, I would at first deny
+> auto detection support, since they are breaking rules.
+> 
+> The problem likely will time out very soon.
 > 
 > Cheers,
-> Mauro
-> 
+> Hermann
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Jean, a slight ping.
+
+Are you still waiting for Daro's report?
+
+As said, I would prefer to see all OEMs _not_ following Philips/NXP
+eeprom rules running into their own trash on GNU/Linux too.
+
+Then we have facts.
+
+That is much better than to provide a golden cloud for them. At least I
+won't help to debug such later ...
+
+If you did not manage to decipher all OEM eeprom content already,
+just let's go with the per card solution for now.
+
+Are you aware, that my intention is _not_ to spread the use of random
+and potentially invalid eeprom content for some sort of such auto
+detection?
+
+The other solution is not lost and in mind, if we should need to come
+back to it and are in details. Preferably the OEMs should take the
+responsibility for such.
+
+We can see, that even those always doing best on it, can't provide the
+missing informations for different LNA stuff after the
+Hauppauge/Pinnacle merge until now.
+
+If you claim to know it better, please share with us.
+
+Cheers,
+Hermann
+
+
