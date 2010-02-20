@@ -1,49 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:41827 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932674Ab0BGSjj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Feb 2010 13:39:39 -0500
-Message-ID: <4B6F0922.9070206@maxwell.research.nokia.com>
-Date: Sun, 07 Feb 2010 20:40:34 +0200
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from fg-out-1718.google.com ([72.14.220.154]:13560 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755998Ab0BTEl1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Feb 2010 23:41:27 -0500
+Received: by fg-out-1718.google.com with SMTP id 19so13895fgg.1
+        for <linux-media@vger.kernel.org>; Fri, 19 Feb 2010 20:41:26 -0800 (PST)
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"Ivan T. Ivanov" <iivanov@mm-sol.com>,
-	Guru Raj <gururaj.nagendra@intel.com>,
-	Cohen David Abraham <david.cohen@nokia.com>
-Subject: [PATCH v2 0/7] V4L2 file handles and event interface
+In-Reply-To: <06A7D5D2F19FA24F93727FCD15DA0DBF4D3F9AF4AF@newman.iconfitness.com>
+References: <06A7D5D2F19FA24F93727FCD15DA0DBF4D3F9AF4AF@newman.iconfitness.com>
+Date: Sat, 20 Feb 2010 05:41:26 +0100
+Message-ID: <d9def9db1002192041m6a10d46fy46b4d617b1d342c3@mail.gmail.com>
+Subject: Re: [linux-dvb] Looking for Linux drivers for AVerMedia tuner or
+	Leadtek tuner
+From: Markus Rechberger <mrechberger@gmail.com>
+To: linux-media@vger.kernel.org,
+	Michael Angeli <mangeli@iconfitness.com>
+Cc: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Sat, Feb 20, 2010 at 1:44 AM, Michael Angeli <mangeli@iconfitness.com> wrote:
+> Hello,
+>
+> Looking for Linux drivers for Avermedia Tuners per the following URLs
+>
+> http://www.avermedia.com/AVerTV/Product/ProductDetail.aspx?Id=378
+>
+> http://www.avermedia.com/AVerTV/Product/ProductDetail.aspx?Id=482&SI=true
+>
+> http://www.avermedia.com/avertv/Product/ProductDetail.aspx?Id=480&SI=true
+>
+>
+>
+> Or a linux driver for the Leadtek Mini PCI TV tuner LR6648 with PCI express
+> Bridge SAA7160ET
+>
+>
 
-Here's the fourth version of the V4L2 file handle and event interface
-patchset.
+Maybe this product might be interesting for you:
 
-The first patch adds the V4L2 file handle support and the rest are for
-V4L2 events.
+http://sundtek.com/shop/Digital-TV-Sticks-oxid/Sundtek-MediaTV-MiniPCIe-DVB-CT-FM-AnalogTV.html
 
-The patchset has been tested with the OMAP 3 ISP driver. Patches for
-OMAP 3 ISP are not part of this patchset but are available in Gitorious
-(branch is called event):
+* DVB-C / DVB-T (ATSC / ClearQAM is also available)
+* Analog TV
+* FM Radio
+* VBI
+* Standby support
+* MiniPCIe
 
-	git://gitorious.org/omap3camera/mainline.git event
+* Driver: ARM, MIPS, PPC, X86-32, X86-64
 
-What's changed since the last set is that Hans' comments have been
-factored in. The locking is more simple; there's just one lock in
-v4l2_fhs. Also the reference counting has been removed. struct v4l2_fh
-has pointer to struct video_device. Freeing up the events has been
-compacted.
-
-Comments are welcome as always.
-
-Cheers,
-
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
-
+Best Regards,
+Markus
