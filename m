@@ -1,17 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from outbound.icp-qv1-irony-out5.iinet.net.au ([203.59.1.105]:19934
-	"EHLO outbound.icp-qv1-irony-out5.iinet.net.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757730Ab0BYLRa (ORCPT
+Received: from smtpgate4.pacific.net.sg ([203.120.68.34]:60136 "HELO
+	smtpgate4.pacific.net.sg" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755347Ab0BTEEL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Feb 2010 06:17:30 -0500
-To: Debian Package Tracking System <pts@qa.debian.org>
-cc: linux-media@vger.kernel.org
-Subject: Re: CONFIRM f156db6194c056981f5711b7ef302743 
-In-reply-to: <E1NkarL-0004ys-VI@master.debian.org> 
-References: <E1NkarL-0004ys-VI@master.debian.org>
-Date: Thu, 25 Feb 2010 22:07:59 +1100
-From: Brian Keck <bwkeck@gmail.com>
-Message-Id: <20100225110759.38F512B03E@narya.x>
+	Fri, 19 Feb 2010 23:04:11 -0500
+Message-ID: <20100220120359.ju9opqjrwgwwkcg8@wm3.web.pacific.net.sg>
+Date: Sat, 20 Feb 2010 12:03:59 +0800
+From: "Mr.Yan" <info@live.cn>
+Reply-to: ynyol@live.cn
+To: undisclosed-recipients:;
+Subject: 
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
+
+Dear Friend,
+
+I have a very important issue to discus with you. I wrote to
+know if this is your valid email. Please, let me know if this email
+is valid.
+
+My valid Email is: ynyol@live.cn
+
+Mr. Yan
+
+
+
 
