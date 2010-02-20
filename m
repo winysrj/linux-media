@@ -1,29 +1,26 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from master.debian.org ([70.103.162.29]:44087 "EHLO
-	master.debian.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753325Ab0BYLIG (ORCPT
+Received: from warped.bluecherry.net ([66.138.159.247]:51364 "EHLO
+	warped.bluecherry.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756078Ab0BTUu6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Feb 2010 06:08:06 -0500
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: 7BIT
+	Sat, 20 Feb 2010 15:50:58 -0500
+Received: from [192.168.0.199] (68-187-13-28.dhcp.fltn.mo.charter.com [68.187.13.28])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(Client did not present a certificate)
+	by warped.bluecherry.net (Postfix) with ESMTPSA id 9523A803D802
+	for <linux-media@vger.kernel.org>; Sat, 20 Feb 2010 14:39:13 -0600 (CST)
 MIME-Version: 1.0
-From: owner@packages.qa.debian.org
-To: bwkeck@gmail.com
-Subject: You are now subscribed to linuxtv-dvb-apps
-References: <E1NkarL-0004ys-VI@master.debian.org>
- <20100225110759.38F512B03E@narya.x>
-In-Reply-To: <20100225110759.38F512B03E@narya.x>
-CC: linux-media@vger.kernel.org
-Message-Id: <E1NkbZd-00032m-PS@master.debian.org>
-Date: Thu, 25 Feb 2010 11:08:05 +0000
+Content-Type: text/plain;
+ charset=utf-8
+Content-Transfer-Encoding: 8bit
+Subject: 
+From: Curtis Hall <curt@bluecherry.net>
+Date: Sat, 20 Feb 2010 14:39:22 -0600
+To: linux-media@vger.kernel.org
+Message-ID: <6a66d4e0-474d-4342-a1c1-a9d203bb3e9d@email.android.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Processing commands for pts@qa.debian.org:
-
-> Subject: Re: CONFIRM f156db6194c056981f5711b7ef302743 
-
-linux-media@vger.kernel.org has been subscribed to linuxtv-dvb-apps@packages.qa.debian.org.
-
-> 
+Subscribe 
+--
+Sent from my Android phone with K-9. Please excuse my brevity.
