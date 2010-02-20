@@ -1,98 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:8265 "EHLO mx1.redhat.com"
+Received: from lo.gmane.org ([80.91.229.12]:45633 "EHLO lo.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757910Ab0BDMTp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Feb 2010 07:19:45 -0500
-Message-ID: <4B6ABB54.80001@redhat.com>
-Date: Thu, 04 Feb 2010 10:19:32 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Huang Shijie <shijie8@gmail.com>
-CC: linux-media@vger.kernel.org, zyziii@telegent.com, tiwai@suse.de
-Subject: Re: [PATCH v2 00/10] add linux driver for chip TLG2300
-References: <1265094475-13059-1-git-send-email-shijie8@gmail.com> <4B6817E6.4070709@redhat.com> <4B69159D.2040606@gmail.com> <4B6925EB.7000601@redhat.com> <4B693681.2030402@gmail.com> <4B693AD6.3030005@redhat.com> <4B6A8E02.3090905@gmail.com>
-In-Reply-To: <4B6A8E02.3090905@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	id S1753986Ab0BTLtx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Feb 2010 06:49:53 -0500
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1NinqJ-0008VZ-CW
+	for linux-media@vger.kernel.org; Sat, 20 Feb 2010 12:49:51 +0100
+Received: from host-78-14-94-53.cust-adsl.tiscali.it ([78.14.94.53])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sat, 20 Feb 2010 12:49:51 +0100
+Received: from avljawrowski by host-78-14-94-53.cust-adsl.tiscali.it with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sat, 20 Feb 2010 12:49:51 +0100
+To: linux-media@vger.kernel.org
+From: Avl Jawrowski <avljawrowski@gmail.com>
+Subject: Re: Problems with Pinnacle 310i (saa7134) and recent kernels
+Date: Sat, 20 Feb 2010 11:49:29 +0000 (UTC)
+Message-ID: <loom.20100220T123935-59@post.gmane.org>
+References: <loom.20090718T135733-267@post.gmane.org>  <1248033581.3667.40.camel@pc07.localdom.local>  <loom.20090720T224156-477@post.gmane.org>  <1248146456.3239.6.camel@pc07.localdom.local>  <loom.20090722T123703-889@post.gmane.org>  <1248338430.3206.34.camel@pc07.localdom.local>  <loom.20090910T234610-403@post.gmane.org>  <1252630820.3321.14.camel@pc07.localdom.local>  <loom.20090912T211959-273@post.gmane.org>  <1252815178.3259.39.camel@pc07.localdom.local>  <loom.20090913T115105-855@post.gmane.org>  <1252881736.4318.48.camel@pc07.localdom.local>  <loom.20090914T150511-456@post.gmane.org>  <1252968793.3250.23.camel@pc07.localdom.local>  <loom.20090915T215753-102@post.gmane.org> <1253138846.3901.19.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Huang Shijie wrote:
+Hi, sorry for the late.
+
+hermann pitton <hermann-pitton <at> arcor.de> writes:
+
+> > But I can't see any video.
+> > With Kaffeine I can see the same channels as well.
 > 
->> No, I don't meant that.
->>
->> The differences of FM radio standards are basically the preemphasis
->> and the
->> frequency ranges.
->>
->> For frequency ranges, V4L2_TUNER_RADIO allows specifying the
->> maximum/minimum values.
->>
->> For preemphasis, you should implement V4L2_CID_TUNE_PREEMPHASIS ctrl.
->> This
->> CTRL has 3 states:
->>
->>          static const char *tune_preemphasis[] = {
->>                  "No preemphasis",
->>                  "50 useconds",
->>                  "75 useconds",
->>                  NULL,
->>          };
->>
->> At v4l2-common.c, there are some functions that helps to implement it
->> at the driver, like:
->>     v4l2_ctrl_get_menu, v4l2_ctrl_get_name and v4l2_ctrl_query_fill.
->>    
-> I meet a problem now. :(
-> 
-> Even I add the ctrl to the tlg2300 driver, there is no application to
-> test it :
-> 
-> [1] The Mplayer do not check the ctrl except the "vulume " or "mute".
+> My guess is, kaffeine has a bit more trust in error correction,
+> but you over all reception quality seems to be on a critical limit.
+
+In Kaffeine I see signal at 72% and SNR at 100% for that channel, so I don't
+think it's so bad.
+
+> So it is still some sort of 310i, but you should mention the new name
+> and that the remote chip on 0x47/0x8e is not detected.
+
+I add a note and some photos:
+
+http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_(310i)
+
+Can I add any other useful information, log or photo?
+
+> Cheers,
+> Hermann
+
+Thank you again,
+
+Avl
 
 
-Unfortunately, userspace applications take some time to follow kernel changes.
 
-Yet, there are a few generic applications for it, both hosted together with
-the v4l-dvb mercurial tree: v4l2-ctl and qv4l2. On both applications, the
-controls are retrieved dynamically. In particular, v4l2-ctl is a command-line
-application. So, you may call it when the device is detected (for example, by
-udev) or before starting the application.
-
-This is very useful with dumb applications that doesn't give full control over
-the device.
-
-For example, I use it on my environment to pre-adjust my webcam to give a clearer
-image, when using on skype, with this script:
-
-	export LD_PRELOAD=/usr/lib64/libv4l/v4l1compat.so
-	v4l2-ctl -cexposure=1000
-	v4l2-ctl -cwhite_balance=47
-	export LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so
-	/usr/bin/skype.real $_
-
-> [2] I do  not know how to use the VLC to listen the radio with ALSA, I
-> tried many times, but failed. Does someone know this ?
-
-I've no idea. Never tried vlc for radio here.
-
-> Btw: I will be on my vacation for the following two weeks, I will come
-> back to
-> work at 20th of this month. I afraid I can not finish the patches to
-> remove  the
-> country code in the two days(today and tomorrow).
-
--rc7 is about to be released. So, it is late for 2.6.33 cycle.
-
-I think we'll have -rc8 again, as there were several changes at drm/nouveau/x86 arch. 
-I may be wrong though. Assuming that I did a good guess, we'll have +2 weeks for the 
-next merge window. Also, as this is a new driver, if we miss the merge window, we may
-try to submit it for -rc1 or -rc2.
-
-So, providing that, on your return, you focus on it, I think it would be possible to
-have it added for 2.6.34.
-
--- 
-
-Cheers,
-Mauro
