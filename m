@@ -1,29 +1,496 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web113208.mail.gq1.yahoo.com ([98.136.164.161]:24436 "HELO
-	web113208.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750993Ab0BNFp6 (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1038 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751353Ab0BTKNV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Feb 2010 00:45:58 -0500
-Message-ID: <47961.48063.qm@web113208.mail.gq1.yahoo.com>
-Date: Sat, 13 Feb 2010 21:45:57 -0800 (PST)
-From: Don Kramer <gedaliah_atl@yahoo.com>
-Subject: would like to get Plextor ConvertX AV100U to work
-To: linux-media@vger.kernel.org
+	Sat, 20 Feb 2010 05:13:21 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [PATCH v5 6/6] V4L: Events: Add documentation
+Date: Sat, 20 Feb 2010 11:15:37 +0100
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
+	david.cohen@nokia.com
+References: <4B7EE4A4.3080202@maxwell.research.nokia.com> <1266607320-9974-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1266607320-9974-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201002201115.37350.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi I'm Don, I'm new here.  I would like to see if it's possible to get the Plextor ConvertX AV100U to work under Linux, I own this device, and currently can use it only under Windows XP.  I believe it is very similar to the Plextor ConvertX PX-TV100U which is listed as a device added to kernel but not tested (Em28xx).  I believe the AV100U and TV100U both lack hardware encoders (I know the AV100U doesn't have it), unlike the TV-402U with does have hardware encoding.   Anyway, I'm able to help out with testing and possibly some additional technical tasks as well (with some guidance) of getting this accomplished (assuming this is technically feasible in the first place).
+On Friday 19 February 2010 20:22:00 Sakari Ailus wrote:
+> Add documentation on how to use V4L2 events, both for V4L2 drivers and for
+> V4L2 applications.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> ---
+>  Documentation/DocBook/media-entities.tmpl          |    9 ++
+>  Documentation/DocBook/v4l/dev-event.xml            |   34 ++++++
+>  Documentation/DocBook/v4l/v4l2.xml                 |    3 +
+>  Documentation/DocBook/v4l/vidioc-dqevent.xml       |  124 ++++++++++++++++++++
+>  .../DocBook/v4l/vidioc-subscribe-event.xml         |  109 +++++++++++++++++
+>  Documentation/video4linux/v4l2-framework.txt       |   43 +++++++
+>  6 files changed, 322 insertions(+), 0 deletions(-)
+>  create mode 100644 Documentation/DocBook/v4l/dev-event.xml
+>  create mode 100644 Documentation/DocBook/v4l/vidioc-dqevent.xml
+>  create mode 100644 Documentation/DocBook/v4l/vidioc-subscribe-event.xml
+> 
+> diff --git a/Documentation/DocBook/media-entities.tmpl b/Documentation/DocBook/media-entities.tmpl
+> index c725cb8..770be3c 100644
+> --- a/Documentation/DocBook/media-entities.tmpl
+> +++ b/Documentation/DocBook/media-entities.tmpl
+> @@ -17,6 +17,7 @@
+>  <!ENTITY VIDIOC-DBG-G-REGISTER "<link linkend='vidioc-dbg-g-register'><constant>VIDIOC_DBG_G_REGISTER</constant></link>">
+>  <!ENTITY VIDIOC-DBG-S-REGISTER "<link linkend='vidioc-dbg-g-register'><constant>VIDIOC_DBG_S_REGISTER</constant></link>">
+>  <!ENTITY VIDIOC-DQBUF "<link linkend='vidioc-qbuf'><constant>VIDIOC_DQBUF</constant></link>">
+> +<!ENTITY VIDIOC-DQEVENT "<link linkend='vidioc-dqevent'><constant>VIDIOC_DQEVENT</constant></link>">
+>  <!ENTITY VIDIOC-ENCODER-CMD "<link linkend='vidioc-encoder-cmd'><constant>VIDIOC_ENCODER_CMD</constant></link>">
+>  <!ENTITY VIDIOC-ENUMAUDIO "<link linkend='vidioc-enumaudio'><constant>VIDIOC_ENUMAUDIO</constant></link>">
+>  <!ENTITY VIDIOC-ENUMAUDOUT "<link linkend='vidioc-enumaudioout'><constant>VIDIOC_ENUMAUDOUT</constant></link>">
+> @@ -60,6 +61,7 @@
+>  <!ENTITY VIDIOC-REQBUFS "<link linkend='vidioc-reqbufs'><constant>VIDIOC_REQBUFS</constant></link>">
+>  <!ENTITY VIDIOC-STREAMOFF "<link linkend='vidioc-streamon'><constant>VIDIOC_STREAMOFF</constant></link>">
+>  <!ENTITY VIDIOC-STREAMON "<link linkend='vidioc-streamon'><constant>VIDIOC_STREAMON</constant></link>">
+> +<!ENTITY VIDIOC-SUBSCRIBE-EVENT "<link linkend='vidioc-subscribe-event'><constant>VIDIOC_SUBSCRIBE_EVENT</constant></link>">
+>  <!ENTITY VIDIOC-S-AUDIO "<link linkend='vidioc-g-audio'><constant>VIDIOC_S_AUDIO</constant></link>">
+>  <!ENTITY VIDIOC-S-AUDOUT "<link linkend='vidioc-g-audioout'><constant>VIDIOC_S_AUDOUT</constant></link>">
+>  <!ENTITY VIDIOC-S-CROP "<link linkend='vidioc-g-crop'><constant>VIDIOC_S_CROP</constant></link>">
+> @@ -141,6 +143,8 @@
+>  <!ENTITY v4l2-enc-idx "struct&nbsp;<link linkend='v4l2-enc-idx'>v4l2_enc_idx</link>">
+>  <!ENTITY v4l2-enc-idx-entry "struct&nbsp;<link linkend='v4l2-enc-idx-entry'>v4l2_enc_idx_entry</link>">
+>  <!ENTITY v4l2-encoder-cmd "struct&nbsp;<link linkend='v4l2-encoder-cmd'>v4l2_encoder_cmd</link>">
+> +<!ENTITY v4l2-event "struct&nbsp;<link linkend='v4l2-event'>v4l2_event</link>">
+> +<!ENTITY v4l2-event-subscription "struct&nbsp;<link linkend='v4l2-event-subscription'>v4l2_event_subscription</link>">
+>  <!ENTITY v4l2-ext-control "struct&nbsp;<link linkend='v4l2-ext-control'>v4l2_ext_control</link>">
+>  <!ENTITY v4l2-ext-controls "struct&nbsp;<link linkend='v4l2-ext-controls'>v4l2_ext_controls</link>">
+>  <!ENTITY v4l2-fmtdesc "struct&nbsp;<link linkend='v4l2-fmtdesc'>v4l2_fmtdesc</link>">
+> @@ -200,6 +204,7 @@
+>  <!ENTITY sub-controls SYSTEM "v4l/controls.xml">
+>  <!ENTITY sub-dev-capture SYSTEM "v4l/dev-capture.xml">
+>  <!ENTITY sub-dev-codec SYSTEM "v4l/dev-codec.xml">
+> +<!ENTITY sub-dev-event SYSTEM "v4l/dev-event.xml">
+>  <!ENTITY sub-dev-effect SYSTEM "v4l/dev-effect.xml">
+>  <!ENTITY sub-dev-osd SYSTEM "v4l/dev-osd.xml">
+>  <!ENTITY sub-dev-output SYSTEM "v4l/dev-output.xml">
+> @@ -292,6 +297,8 @@
+>  <!ENTITY sub-v4l2grab-c SYSTEM "v4l/v4l2grab.c.xml">
+>  <!ENTITY sub-videodev2-h SYSTEM "v4l/videodev2.h.xml">
+>  <!ENTITY sub-v4l2 SYSTEM "v4l/v4l2.xml">
+> +<!ENTITY sub-dqevent SYSTEM "v4l/vidioc-dqevent.xml">
+> +<!ENTITY sub-subscribe-event SYSTEM "v4l/vidioc-subscribe-event.xml">
+>  <!ENTITY sub-intro SYSTEM "dvb/intro.xml">
+>  <!ENTITY sub-frontend SYSTEM "dvb/frontend.xml">
+>  <!ENTITY sub-dvbproperty SYSTEM "dvb/dvbproperty.xml">
+> @@ -381,3 +388,5 @@
+>  <!ENTITY reqbufs SYSTEM "v4l/vidioc-reqbufs.xml">
+>  <!ENTITY s-hw-freq-seek SYSTEM "v4l/vidioc-s-hw-freq-seek.xml">
+>  <!ENTITY streamon SYSTEM "v4l/vidioc-streamon.xml">
+> +<!ENTITY dqevent SYSTEM "v4l/vidioc-dqevent.xml">
+> +<!ENTITY subscribe_event SYSTEM "v4l/vidioc-subscribe-event.xml">
+> diff --git a/Documentation/DocBook/v4l/dev-event.xml b/Documentation/DocBook/v4l/dev-event.xml
+> new file mode 100644
+> index 0000000..70a9895
+> --- /dev/null
+> +++ b/Documentation/DocBook/v4l/dev-event.xml
+> @@ -0,0 +1,34 @@
+> +  <title>Event Interface</title>
+> +
+> +  <para>The V4L2 event interface provides means for user to get
+> +  immediately notified on certain conditions taking place on a device.
+> +  This might include start of frame or loss of signal events, for
+> +  example.
+> +  </para>
+> +
+> +  <para>To receive events, the events the user is interested first
+> +  must be subscribed using the &VIDIOC-SUBSCRIBE-EVENT; ioctl. Once an
+> +  event is subscribed, the events of subscribed types are dequeueable
+> +  using the &VIDIOC-DQEVENT; ioctl. Events may be unsubscribed using
+> +  VIDIOC_UNSUBSCRIBE_EVENT ioctl. The special event type
+> +  V4L2_EVENT_ALL may be used to subscribe or unsubscribe all the
+> +  events the driver supports.</para>
+> +
+> +  <para>The event subscriptions and event queues are specific to file
+> +  handles. Subscribing an event on one file handle does not affect
+> +  other file handles.
+> +  </para>
+> +
+> +  <para>The information on dequeueable events are obtained by using
+> +  select or poll system calls on video devices. The V4L2 events use
+> +  POLLPRI events on poll system call and exceptions on select system
+> +  call.
+> +  </para>
+> +
+> +  <!--
+> +Local Variables:
+> +mode: sgml
+> +sgml-parent-document: "v4l2.sgml"
+> +indent-tabs-mode: nil
+> +End:
+> +  -->
+> diff --git a/Documentation/DocBook/v4l/v4l2.xml b/Documentation/DocBook/v4l/v4l2.xml
+> index 060105a..9737243 100644
+> --- a/Documentation/DocBook/v4l/v4l2.xml
+> +++ b/Documentation/DocBook/v4l/v4l2.xml
+> @@ -401,6 +401,7 @@ and discussions on the V4L mailing list.</revremark>
+>      <section id="ttx"> &sub-dev-teletext; </section>
+>      <section id="radio"> &sub-dev-radio; </section>
+>      <section id="rds"> &sub-dev-rds; </section>
+> +    <section id="event"> &sub-dev-event; </section>
+>    </chapter>
+>  
+>    <chapter id="driver">
+> @@ -426,6 +427,7 @@ and discussions on the V4L mailing list.</revremark>
+>      &sub-cropcap;
+>      &sub-dbg-g-chip-ident;
+>      &sub-dbg-g-register;
+> +    &sub-dqevent;
+>      &sub-encoder-cmd;
+>      &sub-enumaudio;
+>      &sub-enumaudioout;
+> @@ -467,6 +469,7 @@ and discussions on the V4L mailing list.</revremark>
+>      &sub-reqbufs;
+>      &sub-s-hw-freq-seek;
+>      &sub-streamon;
+> +    &sub-subscribe-event;
+>      <!-- End of ioctls. -->
+>      &sub-mmap;
+>      &sub-munmap;
+> diff --git a/Documentation/DocBook/v4l/vidioc-dqevent.xml b/Documentation/DocBook/v4l/vidioc-dqevent.xml
+> new file mode 100644
+> index 0000000..eb45c16
+> --- /dev/null
+> +++ b/Documentation/DocBook/v4l/vidioc-dqevent.xml
+> @@ -0,0 +1,124 @@
+> +<refentry id="vidioc-dqevent">
+> +  <refmeta>
+> +    <refentrytitle>ioctl VIDIOC_DQEVENT</refentrytitle>
+> +    &manvol;
+> +  </refmeta>
+> +
+> +  <refnamediv>
+> +    <refname>VIDIOC_DQEVENT</refname>
+> +    <refpurpose>Dequeue event</refpurpose>
+> +  </refnamediv>
+> +
+> +  <refsynopsisdiv>
+> +    <funcsynopsis>
+> +      <funcprototype>
+> +	<funcdef>int <function>ioctl</function></funcdef>
+> +	<paramdef>int <parameter>fd</parameter></paramdef>
+> +	<paramdef>int <parameter>request</parameter></paramdef>
+> +	<paramdef>struct v4l2_event
+> +*<parameter>argp</parameter></paramdef>
+> +      </funcprototype>
+> +    </funcsynopsis>
+> +  </refsynopsisdiv>
+> +
+> +  <refsect1>
+> +    <title>Arguments</title>
+> +
+> +    <variablelist>
+> +      <varlistentry>
+> +	<term><parameter>fd</parameter></term>
+> +	<listitem>
+> +	  <para>&fd;</para>
+> +	</listitem>
+> +      </varlistentry>
+> +      <varlistentry>
+> +	<term><parameter>request</parameter></term>
+> +	<listitem>
+> +	  <para>VIDIOC_DQEVENT</para>
+> +	</listitem>
+> +      </varlistentry>
+> +      <varlistentry>
+> +	<term><parameter>argp</parameter></term>
+> +	<listitem>
+> +	  <para></para>
+> +	</listitem>
+> +      </varlistentry>
+> +    </variablelist>
+> +  </refsect1>
+> +
+> +  <refsect1>
+> +    <title>Description</title>
+> +
+> +    <para>Dequeue an event from a video device. No input is required
+> +    for this ioctl. All the fields of the &v4l2-event; structure are
+> +    filled by the driver. The file handle will also receive exceptions
+> +    which the application may get by e.g. using the select system
+> +    call.</para>
+> +
+> +    <table frame="none" pgwide="1" id="v4l2-event">
+> +      <title>struct <structname>v4l2_event</structname></title>
+> +      <tgroup cols="4">
+> +	&cs-str;
+> +	<tbody valign="top">
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>type</structfield></entry>
+> +            <entry></entry>
+> +	    <entry>Type of the event.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>union</entry>
+> +	    <entry><structfield>u</structfield></entry>
+> +            <entry></entry>
+> +	    <entry></entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry></entry>
+> +	    <entry>__u8</entry>
+> +            <entry><structfield>data</structfield>[64]</entry>
+> +	    <entry>Event data. Defined by the event type. The union
+> +            should be used to define easily accessible type for
+> +            events.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>pending</structfield></entry>
+> +            <entry></entry>
+> +	    <entry>Number of pending events excluding this one.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>sequence</structfield></entry>
+> +            <entry></entry>
+> +	    <entry>Event sequence number. The sequence number is
+> +	    incremented for every subscribed event that takes place.
+> +	    If sequence numbers are not contiguous it means that
+> +	    events have been lost.
+> +	    </entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>struct timeval</entry>
+> +	    <entry><structfield>timestamp</structfield></entry>
+> +            <entry></entry>
+> +	    <entry>Event timestamp.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>reserved</structfield>[9]</entry>
+> +            <entry></entry>
+> +	    <entry>Reserved for future extensions. Drivers must set
+> +	    the array to zero.</entry>
+> +	  </row>
+> +	</tbody>
+> +      </tgroup>
+> +    </table>
+> +
+> +  </refsect1>
+> +</refentry>
+> +<!--
+> +Local Variables:
+> +mode: sgml
+> +sgml-parent-document: "v4l2.sgml"
+> +indent-tabs-mode: nil
+> +End:
+> +-->
+> diff --git a/Documentation/DocBook/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/v4l/vidioc-subscribe-event.xml
+> new file mode 100644
+> index 0000000..943de5c
+> --- /dev/null
+> +++ b/Documentation/DocBook/v4l/vidioc-subscribe-event.xml
+> @@ -0,0 +1,109 @@
+> +<refentry id="vidioc-subscribe-event">
+> +  <refmeta>
+> +    <refentrytitle>ioctl VIDIOC_SUBSCRIBE_EVENT, VIDIOC_UNSUBSCRIBE_EVENT</refentrytitle>
+> +    &manvol;
+> +  </refmeta>
+> +
+> +  <refnamediv>
+> +    <refname>VIDIOC_SUBSCRIBE_EVENT, VIDIOC_UNSUBSCRIBE_EVENT</refname>
+> +    <refpurpose>Subscribe or unsubscribe event</refpurpose>
+> +  </refnamediv>
+> +
+> +  <refsynopsisdiv>
+> +    <funcsynopsis>
+> +      <funcprototype>
+> +	<funcdef>int <function>ioctl</function></funcdef>
+> +	<paramdef>int <parameter>fd</parameter></paramdef>
+> +	<paramdef>int <parameter>request</parameter></paramdef>
+> +	<paramdef>struct v4l2_event_subscription
+> +*<parameter>argp</parameter></paramdef>
+> +      </funcprototype>
+> +    </funcsynopsis>
+> +  </refsynopsisdiv>
+> +
+> +  <refsect1>
+> +    <title>Arguments</title>
+> +
+> +    <variablelist>
+> +      <varlistentry>
+> +	<term><parameter>fd</parameter></term>
+> +	<listitem>
+> +	  <para>&fd;</para>
+> +	</listitem>
+> +      </varlistentry>
+> +      <varlistentry>
+> +	<term><parameter>request</parameter></term>
+> +	<listitem>
+> +	  <para>VIDIOC_SUBSCRIBE_EVENT, VIDIOC_UNSUBSCRIBE_EVENT</para>
+> +	</listitem>
+> +      </varlistentry>
+> +      <varlistentry>
+> +	<term><parameter>argp</parameter></term>
+> +	<listitem>
+> +	  <para></para>
+> +	</listitem>
+> +      </varlistentry>
+> +    </variablelist>
+> +  </refsect1>
+> +
+> +  <refsect1>
+> +    <title>Description</title>
+> +
+> +    <para>Subscribe or unsubscribe V4L2 event. Subscribed events are
+> +    dequeued by using the &VIDIOC-SUBSCRIBE-EVENT; ioctl.</para>
 
-In a terminal, lsusb shows the device as this:
+You mean VIDIOC-DQUEUE, I assume.
 
-Bus 001 Device 003: ID 093b:a003 Plextor Corp. ConvertX AV100U A/V Capture Audio
+> +
+> +    There are standard and private events. New standard events must
+> +    use the smallest available event type.
 
-Thanks,
+That last sentence belongs in v4l2-framework.txt, not here.
 
-Don
+> +
+> +    <table frame="none" pgwide="1" id="v4l2-event-subscription">
+> +      <title>struct <structname>v4l2_event_subscription</structname></title>
+> +      <tgroup cols="3">
+> +	&cs-str;
+> +	<tbody valign="top">
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>type</structfield></entry>
+> +	    <entry>Type of the event.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry>__u32</entry>
+> +	    <entry><structfield>reserved</structfield>[7]</entry>
+> +	    <entry>Reserved for future extensions. Drivers must set
+> +	    the array to zero.</entry>
+> +	  </row>
+> +	</tbody>
+> +      </tgroup>
+> +    </table>
+> +
+> +    <table frame="none" pgwide="1" id="event-type">
+> +      <title>Event Types</title>
+> +      <tgroup cols="3">
+> +	&cs-def;
+> +	<tbody valign="top">
+> +	  <row>
+> +	    <entry><constant>V4L2_EVENT_ALL</constant></entry>
+> +	    <entry>0</entry>
+> +	    <entry>All events. The user may subscribe
+> +	    for all events supported by the driver by subscribing a
+> +	    special event, V4L2_EVENT_ALL.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_EVENT_PRIVATE_START</constant></entry>
+> +	    <entry>0x08000000</entry> <entry>Private events start from
+> +	    this number. The drivers must allocate their events
+> +	    starting from base (V4L2_EVENT_PRIVATE_START + n * 1024)
+> +	    where individual events start from base + 1.</entry>
 
+Again, that last sentence belongs in v4l2-framework.txt.
 
+> +	  </row>
+> +	</tbody>
+> +      </tgroup>
+> +    </table>
+> +
+> +  </refsect1>
+> +</refentry>
+> +<!--
+> +Local Variables:
+> +mode: sgml
+> +sgml-parent-document: "v4l2.sgml"
+> +indent-tabs-mode: nil
+> +End:
+> +-->
+> diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+> index 08f9e59..7494a64 100644
+> --- a/Documentation/video4linux/v4l2-framework.txt
+> +++ b/Documentation/video4linux/v4l2-framework.txt
+> @@ -731,3 +731,46 @@ Useful functions:
+>  The users of v4l2_fh know whether a driver uses v4l2_fh as its
+>  file.private_data pointer by testing the V4L2_FL_USES_V4L2_FH bit in
+>  video_device.flags.
+> +
+> +V4L2 events
+> +-----------
+> +
+> +The V4L2 events provide a generic way to pass events to user space.
+> +The driver must use v4l2_fh to be able to support V4L2 events. To
+> +support V4L2 events, the driver must
 
-      
+Must what?
+
+> +
+> +- v4l2_event_alloc()
+> +
+> +  To use events, the driver must allocate events for the file handle. By
+> +  calling the function more than once, the driver may assure that at least n
+> +  events in total has been allocated. The function may not be called in
+> +  atomic context. If the driver only wants to initialise events it is fine
+> +  to call v4l2_event_alloc() with 0 allocation. This allows passing the
+> +  ioctls to the driver.
+
+This is unnecessarily complex. And based on my comments on the previous patches
+it is also not needed. Drivers can call v4l2_event_alloc either after calling
+v4l2_fh_init or in the subscribe_event op.
+
+> +
+> +- v4l2_event_queue()
+> +
+> +  Queue events to video device. The driver's only responsibility is to fill
+> +  in the type and the data fields. The other fields will be filled in by
+> +  V4L2.
+> +
+> +- Define vidioc_subscribe_event in struct v4l2_ioctl_ops. The
+> +  vidioc_subscribe_event must chech the driver is able to produce events
+
+typo: check
+
+> +  with specified event id. Then it calls v4l2_event_subscribe() to subscribe
+> +  the event.
+> +
+> +- Define vidioc_unsubscribe_event in struct v4l2_ioctl_ops. A driver may use
+> +  v4l2_event_unsubscribe directly unless it wants to be involved in
+> +  unsubscription process.
+> +
+> +- To support V4L2_EVENTS_ALL, the driver must handle the special id
+> +  V4L2_EVENTS_ALL when subscribing for events. The function
+> +  v4l2_event_subscribe_many() is useful in implementing this. Unsubscription
+> +  of all events is already handled by vidioc_unsubscribe_event().
+
+This should only be supported by unsubscribe.
+
+> +
+> +- Events are delivered to user space through the poll system call. The
+> +  driver should use a separate wait queue for the V4L2 events.
+
+I don't quite get what you mean by this. I am also missing a reference to the
+fh->events->wait queue. That's a rather important piece of information to
+document.
+
+You should also document v4l2_event_pending and mention that dequeuing is
+done internally through the v4l2_event_dequeue call that needs no driver
+support.
+
+Regards,
+
+	Hans
+
+> +
+> +An example on how the V4L2 events may be used can be found in the OMAP
+> +3 ISP driver available at <URL:http://gitorious.org/omap3camera> as of
+> +writing this.
+> 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
