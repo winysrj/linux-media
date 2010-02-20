@@ -1,45 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-09.arcor-online.net ([151.189.21.49]:56160 "EHLO
-	mail-in-09.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933988Ab0BEWs5 (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2237 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752217Ab0BTJ4z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Feb 2010 17:48:57 -0500
-From: stefan.ringel@arcor.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
-	Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH 9/12] tm6000: remove unused function
-Date: Fri,  5 Feb 2010 23:48:13 +0100
-Message-Id: <1265410096-11788-8-git-send-email-stefan.ringel@arcor.de>
-In-Reply-To: <1265410096-11788-7-git-send-email-stefan.ringel@arcor.de>
-References: <1265410096-11788-1-git-send-email-stefan.ringel@arcor.de>
- <1265410096-11788-2-git-send-email-stefan.ringel@arcor.de>
- <1265410096-11788-3-git-send-email-stefan.ringel@arcor.de>
- <1265410096-11788-4-git-send-email-stefan.ringel@arcor.de>
- <1265410096-11788-5-git-send-email-stefan.ringel@arcor.de>
- <1265410096-11788-6-git-send-email-stefan.ringel@arcor.de>
- <1265410096-11788-7-git-send-email-stefan.ringel@arcor.de>
+	Sat, 20 Feb 2010 04:56:55 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [PATCH v5 2/6] V4L: File handles: Add documentation
+Date: Sat, 20 Feb 2010 10:59:00 +0100
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
+	david.cohen@nokia.com
+References: <4B7EE4A4.3080202@maxwell.research.nokia.com> <1266607320-9974-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1266607320-9974-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201002201059.00120.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <stefan.ringel@arcor.de>
+On Friday 19 February 2010 20:21:56 Sakari Ailus wrote:
+> Add documentation on using V4L2 file handles (v4l2_fh) in V4L2 drivers.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> ---
+>  Documentation/video4linux/v4l2-framework.txt |   36 ++++++++++++++++++++++++++
+>  1 files changed, 36 insertions(+), 0 deletions(-)
+> 
+> diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+> index 74d677c..08f9e59 100644
+> --- a/Documentation/video4linux/v4l2-framework.txt
+> +++ b/Documentation/video4linux/v4l2-framework.txt
+> @@ -695,3 +695,39 @@ The better way to understand it is to take a look at vivi driver. One
+>  of the main reasons for vivi is to be a videobuf usage example. the
+>  vivi_thread_tick() does the task that the IRQ callback would do on PCI
+>  drivers (or the irq callback on USB).
+> +
+> +struct v4l2_fh
+> +--------------
+> +
+> +struct v4l2_fh provides a way to easily keep file handle specific data
+> +that is used by the V4L2 framework.
+> +
+> +struct v4l2_fh is allocated as a part of the driver's own file handle
+> +structure and is set to file->private_data in the driver's open
+> +function by the driver. Drivers can extract their own file handle
+> +structure by using the container_of macro.
+> +
+> +Useful functions:
+> +
+> +- v4l2_fh_init()
+> +
+> +  Initialise the file handle.
+> +
+> +- v4l2_fh_add()
+> +
+> +  Add a v4l2_fh to video_device file handle list. May be called after
+> +  initialising the file handle.
+> +
+> +- v4l2_fh_del()
+> +
+> +  Unassociate the file handle from video_device(). The file handle
+> +  exit function may now be called.
+> +
+> +- v4l2_fh_exit()
+> +
+> +  Uninitialise the file handle. After uninitialisation the v4l2_fh
+> +  memory can be freed.
+> +
+> +The users of v4l2_fh know whether a driver uses v4l2_fh as its
+> +file.private_data pointer by testing the V4L2_FL_USES_V4L2_FH bit in
+> +video_device.flags.
 
----
- drivers/staging/tm6000/tm6000.h |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+Replace '.' by '->':
 
-diff --git a/drivers/staging/tm6000/tm6000.h b/drivers/staging/tm6000/tm6000.h
-index d713c48..e88836d 100644
---- a/drivers/staging/tm6000/tm6000.h
-+++ b/drivers/staging/tm6000/tm6000.h
-@@ -212,7 +212,6 @@ int tm6000_read_write_usb (struct tm6000_core *dev, u8 reqtype, u8 req,
- int tm6000_get_reg (struct tm6000_core *dev, u8 req, u16 value, u16 index);
- int tm6000_set_reg (struct tm6000_core *dev, u8 req, u16 value, u16 index);
- int tm6000_init (struct tm6000_core *dev);
--int tm6000_init_after_firmware (struct tm6000_core *dev);
- 
- int tm6000_init_analog_mode (struct tm6000_core *dev);
- int tm6000_init_digital_mode (struct tm6000_core *dev);
+file->private_data
+video_device->flags
+
+> 
+
 -- 
-1.6.4.2
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
