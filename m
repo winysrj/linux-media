@@ -1,40 +1,547 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-14.arcor-online.net ([151.189.21.54]:44086 "EHLO
-	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753770Ab0BHP4R (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3304 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752690Ab0BTJm4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Feb 2010 10:56:17 -0500
-Message-ID: <4B7033FC.7000404@arcor.de>
-Date: Mon, 08 Feb 2010 16:55:40 +0100
-From: Stefan Ringel <stefan.ringel@arcor.de>
+	Sat, 20 Feb 2010 04:42:56 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [PATCH v5 4/6] V4L: Events: Add backend
+Date: Sat, 20 Feb 2010 10:45:03 +0100
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
+	david.cohen@nokia.com
+References: <4B7EE4A4.3080202@maxwell.research.nokia.com> <1266607320-9974-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1266607320-9974-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org, dheitmueller@kernellabs.com
-Subject: Re: [PATCH 8/12] tm6000: add tuner parameter
-References: <1265410631-11955-1-git-send-email-stefan.ringel@arcor.de> <1265410631-11955-2-git-send-email-stefan.ringel@arcor.de> <1265410631-11955-3-git-send-email-stefan.ringel@arcor.de> <1265410631-11955-4-git-send-email-stefan.ringel@arcor.de> <1265410631-11955-5-git-send-email-stefan.ringel@arcor.de> <1265410631-11955-6-git-send-email-stefan.ringel@arcor.de> <1265410631-11955-7-git-send-email-stefan.ringel@arcor.de> <4B6F7D37.50404@redhat.com>
-In-Reply-To: <4B6F7D37.50404@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201002201045.03756.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 08.02.2010 03:55, schrieb Mauro Carvalho Chehab:
-> stefan.ringel@arcor.de wrote:
->
->   
->> +		ctl.vhfbw7 = 1;
->> +		ctl.uhfbw8 = 1;
->>     
-> I don't think you need to set this, as the driver will automatically do the firmware
-> tricks for the firmwares. This will probably just change the default to start
-> wit firmware 7/8.
->
->   
+Hi Sakari,
 
-if it's going to bw 7 it doesn't use DTV 7, it's use DTV 7 not DTV78, I
-have it tested. I think if it's switch between DTV7 and DTV 8 it's not
-always set DTV78. ( it's set DTV 7 DTV 8 or DTV78)
+Here are some more comments.
+
+On Friday 19 February 2010 20:21:58 Sakari Ailus wrote:
+> Add event handling backend to V4L2. The backend handles event subscription
+> and delivery to file handles. Event subscriptions are based on file handle.
+> Events may be delivered to all subscribed file handles on a device
+> independent of where they originate from.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> ---
+>  drivers/media/video/Makefile     |    3 +-
+>  drivers/media/video/v4l2-event.c |  286 ++++++++++++++++++++++++++++++++++++++
+>  drivers/media/video/v4l2-fh.c    |    4 +
+>  include/media/v4l2-event.h       |   65 +++++++++
+>  include/media/v4l2-fh.h          |    2 +
+>  5 files changed, 359 insertions(+), 1 deletions(-)
+>  create mode 100644 drivers/media/video/v4l2-event.c
+>  create mode 100644 include/media/v4l2-event.h
+> 
+> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+> index 14bf69a..b84abfe 100644
+> --- a/drivers/media/video/Makefile
+> +++ b/drivers/media/video/Makefile
+> @@ -10,7 +10,8 @@ stkwebcam-objs	:=	stk-webcam.o stk-sensor.o
+>  
+>  omap2cam-objs	:=	omap24xxcam.o omap24xxcam-dma.o
+>  
+> -videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o
+> +videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
+> +			v4l2-event.o
+>  
+>  # V4L2 core modules
+>  
+> diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+> new file mode 100644
+> index 0000000..ab31cc6
+> --- /dev/null
+> +++ b/drivers/media/video/v4l2-event.c
+> @@ -0,0 +1,286 @@
+> +/*
+> + * drivers/media/video/v4l2-event.c
+> + *
+> + * V4L2 events.
+> + *
+> + * Copyright (C) 2009 Nokia Corporation.
+> + *
+> + * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + */
+> +
+> +#include <media/v4l2-dev.h>
+> +#include <media/v4l2-fh.h>
+> +#include <media/v4l2-event.h>
+> +
+> +#include <linux/sched.h>
+> +
+> +static int v4l2_event_init(struct v4l2_fh *fh)
+> +{
+> +	fh->events = kzalloc(sizeof(*fh->events), GFP_KERNEL);
+> +	if (fh->events == NULL)
+> +		return -ENOMEM;
+> +
+> +	init_waitqueue_head(&fh->events->wait);
+> +
+> +	INIT_LIST_HEAD(&fh->events->free);
+> +	INIT_LIST_HEAD(&fh->events->available);
+> +	INIT_LIST_HEAD(&fh->events->subscribed);
+> +
+> +	fh->events->sequence = -1;
+> +
+> +	return 0;
+> +}
+> +
+> +int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n)
+> +{
+> +	struct v4l2_events *events;
+> +	unsigned long flags;
+> +	int ret;
+> +
+> +	if (!fh->events) {
+> +		ret = v4l2_event_init(fh);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+> +	events = fh->events;
+> +
+> +	while (events->nallocated < n) {
+> +		struct v4l2_kevent *kev;
+> +
+> +		kev = kzalloc(sizeof(*kev), GFP_KERNEL);
+> +		if (kev == NULL)
+> +			return -ENOMEM;
+> +
+> +		spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+> +		list_add_tail(&kev->list, &events->free);
+> +		events->nallocated++;
+> +		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+> +	}
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_event_alloc);
+> +
+> +#define list_kfree(list, type, member)				\
+> +	while (!list_empty(list)) {				\
+> +		type *hi;					\
+> +		hi = list_first_entry(list, type, member);	\
+> +		list_del(&hi->member);				\
+> +		kfree(hi);					\
+> +	}
+> +
+> +void v4l2_event_free(struct v4l2_fh *fh)
+> +{
+> +	struct v4l2_events *events = fh->events;
+> +
+> +	if (!events)
+> +		return;
+> +
+> +	list_kfree(&events->free, struct v4l2_kevent, list);
+> +	list_kfree(&events->available, struct v4l2_kevent, list);
+> +	list_kfree(&events->subscribed, struct v4l2_subscribed_event, list);
+> +
+> +	kfree(events);
+> +	fh->events = NULL;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_event_free);
+> +
+> +int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
+> +{
+> +	struct v4l2_events *events = fh->events;
+> +	struct v4l2_kevent *kev;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+> +
+> +	if (list_empty(&events->available)) {
+> +		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+> +		return -ENOENT;
+> +	}
+> +
+> +	WARN_ON(events->navailable == 0);
+> +
+> +	kev = list_first_entry(&events->available, struct v4l2_kevent, list);
+> +	list_move(&kev->list, &events->free);
+> +	events->navailable--;
+> +
+> +	kev->event.pending = events->navailable;
+> +	*event = kev->event;
+> +
+> +	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_event_dequeue);
+> +
+> +static struct v4l2_subscribed_event *v4l2_event_subscribed(
+> +	struct v4l2_fh *fh, u32 type)
+
+Add a comment before this function that mentions that fh->vdev->fh_lock must
+be held before calling this.
+
+> +{
+> +	struct v4l2_events *events = fh->events;
+> +	struct v4l2_subscribed_event *sev;
+> +
+> +	list_for_each_entry(sev, &events->subscribed, list) {
+> +		if (sev->type == type)
+> +			return sev;
+> +	}
+> +
+> +	return NULL;
+> +}
+> +
+> +void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev)
+> +{
+> +	struct v4l2_fh *fh;
+> +	unsigned long flags;
+> +	struct timespec timestamp;
+> +
+> +	ktime_get_ts(&timestamp);
+> +
+> +	spin_lock_irqsave(&vdev->fh_lock, flags);
+> +
+> +	list_for_each_entry(fh, &vdev->fh_list, list) {
+> +		struct v4l2_events *events = fh->events;
+> +		struct v4l2_kevent *kev;
+> +		u32 sequence;
+> +
+> +		/* Are we subscribed? */
+> +		if (!v4l2_event_subscribed(fh, ev->type))
+> +			continue;
+> +
+> +		/* Increase event sequence number on fh. */
+> +		events->sequence++;
+> +		sequence = events->sequence;
+
+There is no need for a temp sequence variable...
+
+> +
+> +		/* Do we have any free events? */
+> +		if (list_empty(&events->free))
+> +			continue;
+> +
+> +		/* Take one and fill it. */
+> +		kev = list_first_entry(&events->free, struct v4l2_kevent, list);
+> +		kev->event.type = ev->type;
+> +		kev->event.u = ev->u;
+> +		kev->event.timestamp = timestamp;
+> +		kev->event.sequence = sequence;
+
+... you can just use events->sequence directly here.
+
+> +		list_move_tail(&kev->list, &events->available);
+> +
+> +		events->navailable++;
+> +
+> +		wake_up_all(&events->wait);
+> +	}
+> +
+> +	spin_unlock_irqrestore(&vdev->fh_lock, flags);
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_event_queue);
+> +
+> +int v4l2_event_pending(struct v4l2_fh *fh)
+> +{
+> +	return fh->events->navailable;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_event_pending);
+> +
+> +int v4l2_event_subscribe(struct v4l2_fh *fh,
+> +			 struct v4l2_event_subscription *sub)
+> +{
+> +	struct v4l2_events *events = fh->events;
+> +	struct v4l2_subscribed_event *sev;
+> +	unsigned long flags;
+> +
+
+Add this:
+
+	if (events == NULL) {
+		/* If we get here, then the driver forgot to allocate events. */
+		WARN_ON(1);
+		return -ENOMEM;
+	}
+
+If subscribe is called without the event queue being allocated, then the
+driver did something wrong.
+
+See also my review for patch 5/6.
+
+> +	sev = kmalloc(sizeof(*sev), GFP_KERNEL);
+> +	if (!sev)
+> +		return -ENOMEM;
+> +
+> +	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+> +
+> +	if (v4l2_event_subscribed(fh, sub->type) == NULL) {
+> +		INIT_LIST_HEAD(&sev->list);
+> +		sev->type = sub->type;
+> +
+> +		list_add(&sev->list, &events->subscribed);
+> +	}
+> +
+> +	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+
+If the event was already subscribed, then you need to kfree the earlier
+allocated sev here. Otherwise you have a memory leak.
+
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_event_subscribe);
+> +
+> +/* subscribe a zero-terminated array of events */
+> +int v4l2_event_subscribe_many(struct v4l2_fh *fh, const u32 *all)
+> +{
+> +	int ret;
+> +
+> +	for (; *all; all++) {
+> +		struct v4l2_event_subscription sub;
+> +
+> +		sub.type = *all;
+> +
+> +		ret = v4l2_event_subscribe(fh, &sub);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_event_subscribe_many);
+
+Supporting V4L2_EVENT_ALL is a bad idea when subscribing. It sounds nice initially,
+but the longer I think about it the more convinced I am we should not do this.
+The main argument is really that it can lead to unexpected behavior. Suppose a
+userspace application subscribes to all events. And in a later version of the
+driver new events are added. Suddenly those will also arrive in the userspace app.
+
+This might cause it to crash if it was written badly and it didn't check against
+unknown events. Or this new event might be a high-volume event which might flood
+the application unexpectedly.
+
+In other words, it can create uncertain future behavior. So we really should
+support EVENT_ALL only for unsubscribe: there it is very useful as a simple
+way to 'reset' the filehandle's event handling.
+
+> +
+> +static void v4l2_event_unsubscribe_all(struct v4l2_fh *fh)
+> +{
+> +	struct v4l2_events *events = fh->events;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+> +
+> +	while (!list_empty(&events->subscribed)) {
+> +		struct v4l2_subscribed_event *sev;
+> +
+> +		sev = list_first_entry(&events->subscribed,
+> +				       struct v4l2_subscribed_event, list);
+> +
+> +		list_del(&sev->list);
+> +		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+> +		kfree(sev);
+> +		spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+> +	}
+> +
+> +	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+> +}
+
+What about this:
+
+static void v4l2_event_unsubscribe_all(struct v4l2_fh *fh)
+{
+	struct v4l2_events *events = fh->events;
+	struct v4l2_subscribed_event *sev;
+	unsigned long flags;
+
+	do {
+		sev = NULL;
+
+		spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+		if (!list_empty(&events->subscribed)) {
+			sev = list_first_entry(&events->subscribed,
+				       struct v4l2_subscribed_event, list);
+			list_del(&sev->list);
+		}
+		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+		kfree(sev);
+	} while (sev);
+}
+
+This avoids the 'interleaved' locking which I never like.
+
+> +
+> +int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+> +			   struct v4l2_event_subscription *sub)
+> +{
+> +	struct v4l2_subscribed_event *sev;
+> +	unsigned long flags;
+> +
+> +	if (sub->type == V4L2_EVENT_ALL) {
+> +		v4l2_event_unsubscribe_all(fh);
+> +		return 0;
+> +	}
+> +
+> +	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+> +
+> +	sev = v4l2_event_subscribed(fh, sub->type);
+> +	if (sev != NULL)
+> +		list_del(&sev->list);
+> +
+> +	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+> +
+> +	if (sev != NULL)
+> +		kfree(sev);
+
+No need for the NULL check. kfree(NULL) is allowed.
+
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_event_unsubscribe);
+> diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
+> index c707930..3a9bc7d 100644
+> --- a/drivers/media/video/v4l2-fh.c
+> +++ b/drivers/media/video/v4l2-fh.c
+> @@ -25,11 +25,13 @@
+>  #include <linux/bitops.h>
+>  #include <media/v4l2-dev.h>
+>  #include <media/v4l2-fh.h>
+> +#include <media/v4l2-event.h>
+>  
+>  void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
+>  {
+>  	fh->vdev = vdev;
+>  	INIT_LIST_HEAD(&fh->list);
+> +	fh->events = NULL;
+>  	set_bit(V4L2_FL_USES_V4L2_FH, &fh->vdev->flags);
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_fh_init);
+> @@ -60,5 +62,7 @@ void v4l2_fh_exit(struct v4l2_fh *fh)
+>  		return;
+>  
+>  	fh->vdev = NULL;
+> +
+> +	v4l2_event_free(fh);
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_fh_exit);
+> diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+> new file mode 100644
+> index 0000000..284d495
+> --- /dev/null
+> +++ b/include/media/v4l2-event.h
+> @@ -0,0 +1,65 @@
+> +/*
+> + * include/media/v4l2-event.h
+> + *
+> + * V4L2 events.
+> + *
+> + * Copyright (C) 2009 Nokia Corporation.
+> + *
+> + * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License
+> + * version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + */
+> +
+> +#ifndef V4L2_EVENT_H
+> +#define V4L2_EVENT_H
+> +
+> +#include <linux/types.h>
+> +#include <linux/videodev2.h>
+> +
+> +struct v4l2_fh;
+> +struct video_device;
+> +
+> +struct v4l2_kevent {
+> +	struct list_head	list;
+> +	struct v4l2_event	event;
+> +};
+> +
+> +struct v4l2_subscribed_event {
+> +	struct list_head	list;
+> +	u32			type;
+> +};
+> +
+> +struct v4l2_events {
+> +	wait_queue_head_t	wait;
+> +	struct list_head	subscribed; /* Subscribed events */
+> +	struct list_head	available; /* Dequeueable event */
+> +	unsigned int		navailable;
+> +	struct list_head	free; /* Events ready for use */
+
+I would move this between the subscribed and available lists. Purely for
+grouping the lists together.
+
+> +	unsigned int		nallocated; /* Number of allocated events */
+> +	u32			sequence;
+> +};
+> +
+> +int v4l2_event_alloc(struct v4l2_fh *fh, unsigned int n);
+> +void v4l2_event_free(struct v4l2_fh *fh);
+> +int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event);
+> +void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev);
+> +int v4l2_event_pending(struct v4l2_fh *fh);
+> +int v4l2_event_subscribe(struct v4l2_fh *fh,
+> +			 struct v4l2_event_subscription *sub);
+> +int v4l2_event_subscribe_many(struct v4l2_fh *fh, const u32 *all);
+> +int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+> +			   struct v4l2_event_subscription *sub);
+> +
+> +#endif /* V4L2_EVENT_H */
+> diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
+> index 6b486aa..6c9df56 100644
+> --- a/include/media/v4l2-fh.h
+> +++ b/include/media/v4l2-fh.h
+> @@ -28,10 +28,12 @@
+>  #include <linux/list.h>
+>  
+>  struct video_device;
+> +struct v4l2_events;
+>  
+>  struct v4l2_fh {
+>  	struct list_head	list;
+>  	struct video_device	*vdev;
+> +	struct v4l2_events      *events; /* events, pending and subscribed */
+>  };
+>  
+>  void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev);
+> 
+
+Regards,
+
+	Hans
 
 -- 
-Stefan Ringel <stefan.ringel@arcor.de>
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
