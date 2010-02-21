@@ -1,104 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-14.arcor-online.net ([151.189.21.54]:51749 "EHLO
-	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752616Ab0BOFcJ (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:46279 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751929Ab0BUU0E (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2010 00:32:09 -0500
-Subject: Re: [PATCH] saa7134: Fix IR support of some ASUS TV-FM 7135
-	variants
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>, Daro <ghost-rider@aster.pl>,
-	Roman Kellner <muzungu@gmx.net>
-In-Reply-To: <1265849882.4422.17.camel@localhost>
-References: <20100127120211.2d022375@hyperion.delvare>
-	 <4B630179.3080006@redhat.com> <1264812461.16350.90.camel@localhost>
-	 <20100130115632.03da7e1b@hyperion.delvare>
-	 <1264986995.21486.20.camel@pc07.localdom.local>
-	 <20100201105628.77057856@hyperion.delvare>
-	 <1265075273.2588.51.camel@localhost>
-	 <20100202085415.38a1e362@hyperion.delvare> <4B681173.1030404@redhat.com>
-	 <20100210190907.5c695e4e@hyperion.delvare> <4B72FD83.1050500@redhat.com>
-	 <20100210203601.31ef3220@hyperion.delvare>
-	 <1265849882.4422.17.camel@localhost>
-Content-Type: text/plain
-Date: Mon, 15 Feb 2010 06:31:46 +0100
-Message-Id: <1266211906.3177.16.camel@pc07.localdom.local>
-Mime-Version: 1.0
+	Sun, 21 Feb 2010 15:26:04 -0500
+Message-ID: <4B8196C6.80209@maxwell.research.nokia.com>
+Date: Sun, 21 Feb 2010 22:25:42 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+MIME-Version: 1.0
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"iivanov@mm-sol.com" <iivanov@mm-sol.com>,
+	"gururaj.nagendra@intel.com" <gururaj.nagendra@intel.com>,
+	"david.cohen@nokia.com" <david.cohen@nokia.com>
+Subject: Re: [PATCH v5 4/6] V4L: Events: Add backend
+References: <4B7EE4A4.3080202@maxwell.research.nokia.com> <1266607320-9974-4-git-send-email-sakari.ailus@maxwell.research.nokia.com> <A24693684029E5489D1D202277BE8944536915B9@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE8944536915B9@dlee02.ent.ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Aguirre, Sergio wrote:
+> Heippa!
 
-Am Donnerstag, den 11.02.2010, 01:58 +0100 schrieb hermann pitton:
-> Hi,
+Hi, Sergio!
+
+Your lines seem to be over 80 characters long. :I
+
+...
+>> +int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
+>> +{
+>> +	struct v4l2_events *events = fh->events;
+>> +	struct v4l2_kevent *kev;
+>> +	unsigned long flags;
+>> +
+>> +	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+>> +
+>> +	if (list_empty(&events->available)) {
+>> +		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+>> +		return -ENOENT;
+>> +	}
+>> +
+>> +	WARN_ON(events->navailable == 0);
 > 
-> Am Mittwoch, den 10.02.2010, 20:36 +0100 schrieb Jean Delvare:
-> > On Wed, 10 Feb 2010 16:40:03 -0200, Mauro Carvalho Chehab wrote:
-> > > Jean Delvare wrote:
-> > > > Under the assumption that saa7134_hwinit1() only touches GPIOs
-> > > > connected to IR receivers (and it certainly looks like this to me) I
-> > > > fail to see how these pins not being initialized could have any effect
-> > > > on non-IR code.
-> > > 
-> > > Now, i suspect that you're messing things again: are you referring to saa7134_hwinit1() or
-> > > to saa7134_input_init1()?
-> > > 
-> > > I suspect that you're talking about moving saa7134_input_init1(), since saa7134_hwinit1()
-> > > has the muted and spinlock inits. It also has the setups for video, vbi and mpeg. 
-> > > So, moving it require more care.
-> > 
-> > Err, you're right, I meant saa7134_input_init1() and not
-> > saa7134_hwinit1(), copy-and-paste error. Sorry for adding more
-> > confusion where it really wasn't needed...
-> > 
+> I don't think the above warning will ever happen. Looks a bit over protective to me.
+
+If it does it's a bug somewhere.
+
+> Whenever you update your "events->available" list, you're holding the fh_lock spinlock, so there's no chance that the list of events would contan a different number of elents to what the navailable var is holding. Is it?
 > 
-> both attempts of Jean will work.
+> Please correct me if I'm missing something...
+
+At the moment that is true as far as I see it. But if it's changed in
+future chances are something goes wrong. It's a simple check but might
+save some headaches.
+
+> Or if you insist in checking, you could just have done this instead:
 > 
-> If we are only talking about moving input_init, only that Jean did
-> suggest initially, it should work, since only some GPIOs for enabling
-> remote chips are affected.
+> 	if (list_empty(&events->available) || (events->navailable == 0)) {
+> 		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+> 		return -ENOENT;
+> 	}
 > 
-> I can give the crappy tester, but don't have such a remote, but should
-> not be a problem to trigger the GPIOs later.
-> 
-> Cheers,
-> Hermann
-> 
+> As it doesn't make sense to proceed if navailable is zero, I believe...
 
-Hi Jean,
+It'd be a bug in the code so it must be WARN_ON().
 
-I did test your patch, only following Roman's initial patch already
-known, on eight different cards for now, also with three slightly
-different remotes and it does not have any negative impact.
+I think the question is whether the check should be left there or removed.
 
-Please consider, that it is only about that single card for now and a
-per card solution is enough.
-
-I strongly remind, that we should not rely on unknown eeprom bytes, as
-told previously and should not expand such into any direction.
-
-If we make progress there, we should change it for all cards, but again,
-what had happened on the m$ drivers previously is not encouraging to do
-it without any need.
-
-To do it per card in need for now seems enough "service" to me.
-
-If more such should come, unlikely on that driver, I would at first deny
-auto detection support, since they are breaking rules.
-
-The problem likely will time out very soon.
-
-Cheers,
-Hermann
-
-
-
-
- 
-
-
-
-
-
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
