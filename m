@@ -1,44 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cp-out8.libero.it ([212.52.84.108]:49497 "EHLO
-	cp-out8.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752392Ab0BMLA5 (ORCPT
+Received: from mail-in-03.arcor-online.net ([151.189.21.43]:55617 "EHLO
+	mail-in-03.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751977Ab0BUULs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Feb 2010 06:00:57 -0500
-Received: from [151.82.20.20] (151.82.20.20) by cp-out8.libero.it (8.5.107)
-        id 4B5E3F4101722DEE for linux-media@vger.kernel.org; Sat, 13 Feb 2010 12:00:55 +0100
-Subject: [PATCH] em28xx-dvb: fix memleak in dvb_fini()
-From: Francesco Lavra <francescolavra@interfree.it>
+	Sun, 21 Feb 2010 15:11:48 -0500
+From: stefan.ringel@arcor.de
 To: linux-media@vger.kernel.org
-Content-Type: text/plain
-Date: Sat, 13 Feb 2010 12:02:45 +0100
-Message-Id: <1266058965.3974.23.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 2/3] tm6000: bugfix reading problems with demodulator zl10353
+Date: Sun, 21 Feb 2010 21:10:35 +0100
+Message-Id: <1266783036-6549-2-git-send-email-stefan.ringel@arcor.de>
+In-Reply-To: <1266783036-6549-1-git-send-email-stefan.ringel@arcor.de>
+References: <1266783036-6549-1-git-send-email-stefan.ringel@arcor.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fixes a memory leak which occurs when an em28xx card with DVB
-extension is unplugged or its DVB extension driver is unloaded. In
-dvb_fini(), dev->dvb must be freed before being set to NULL, as is done
-in dvb_init() in case of error.
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
-Signed-off-by: Francesco Lavra <francescolavra@interfree.it>
-Cc: stable <stable@kernel.org>
-
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
 ---
+ drivers/staging/tm6000/tm6000-i2c.c |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
 
-NOTE: this patch has already reached linux-next, but has not been
-requested to be pulled for 2.6.33, as it should.
-
---- a/drivers/media/video/em28xx/em28xx-dvb.c	2009-12-31 12:23:53.000000000 +0100
-+++ b/drivers/media/video/em28xx/em28xx-dvb.c	2009-12-31 12:23:56.000000000 +0100
-@@ -606,6 +606,7 @@ static int dvb_fini(struct em28xx *dev)
-
- 	if (dev->dvb) {
- 		unregister_dvb(dev->dvb);
-+		kfree(dev->dvb);
- 		dev->dvb = NULL;
- 	}
+diff --git a/drivers/staging/tm6000/tm6000-i2c.c b/drivers/staging/tm6000/tm6000-i2c.c
+index b563129..6ae02b8 100644
+--- a/drivers/staging/tm6000/tm6000-i2c.c
++++ b/drivers/staging/tm6000/tm6000-i2c.c
+@@ -54,9 +54,20 @@ int tm6000_i2c_send_regs(struct tm6000_core *dev, unsigned char addr, __u8 reg,
+ int tm6000_i2c_recv_regs(struct tm6000_core *dev, unsigned char addr, __u8 reg, char *buf, int len)
+ {
+ 	int rc;
++	u8 b[2];
  
-
++	if ((dev->caps.has_zl10353) && (dev->demod_addr << 1 == addr) && (reg % 2 == 0)) {
++		reg -= 1;
++		len += 1;
++
++		rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_VENDOR_TYPE | USB_RECIP_DEVICE,
++			REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0, b, len);
++
++		*buf = b[1];
++	} else {
+ 		rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_VENDOR_TYPE | USB_RECIP_DEVICE,
+ 			REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0, buf, len);
++	}
+ 
+ 	return rc;
+ }
+-- 
+1.6.6.1
 
