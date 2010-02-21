@@ -1,59 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:49578 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754595Ab0BAPCO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Feb 2010 10:02:14 -0500
-Subject: Re: [PATCH] Fix the risk of an oops at dvb_dmx_release
-From: Chicken Shack <chicken.shack@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <4B66D89A.2030207@redhat.com>
-References: <4B66D89A.2030207@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 01 Feb 2010 16:00:36 +0100
-Message-ID: <1265036436.1727.11.camel@brian.bconsult.de>
-Mime-Version: 1.0
+Received: from perceval.irobotique.be ([92.243.18.41]:39649 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753258Ab0BUXLg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Feb 2010 18:11:36 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: More videobuf and streaming I/O questions
+Date: Mon, 22 Feb 2010 00:12:18 +0100
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <201002201500.21118.hverkuil@xs4all.nl>
+In-Reply-To: <201002201500.21118.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201002220012.20797.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Montag, den 01.02.2010, 11:35 -0200 schrieb Mauro Carvalho Chehab:
-> dvb_dmx_init tries to allocate virtual memory for 2 pointers: filter and feed.
+Hi Hans,
+
+On Saturday 20 February 2010 15:00:21 Hans Verkuil wrote:
+> I have a few more questions regarding the streaming I/O API:
 > 
-> If the second vmalloc fails, filter is freed, but the pointer keeps pointing
-> to the old place. Later, when dvb_dmx_release() is called, it will try to
-> free an already freed memory, causing an OOPS.
+> 1) The spec mentions that the memory field should be set for VIDIOC_DQBUF.
+> But videobuf doesn't need it and it makes no sense to me either unless it
+> is for symmetry with VIDIOC_QBUF. Strictly speaking QBUF doesn't need it
+> either, but it is a good sanity check.
+>
+> Can I remove the statement in the spec that memory should be set for DQBUF?
+> The alternative is to add a check against the memory field in videobuf, but
+> that's rather scary.
+
+In that case I would remove it for QBUF as well, and state that the memory 
+field must be ignored by drivers (but should they fill it when returning from 
+QBUF/DQBUF ?)
+
+> 2) What to do with REQBUFS when called with a count of 0? Thinking it over
+> I agree that it shouldn't do an implicit STREAMOFF. But I do think that it
+> is useful to allow as a simple check whether the I/O method is supported.
+
+REQBUFS(0) should also free allocated buffers (if any).
+
+> So a count of 0 will either return an error if streaming is still in
+> progress or if the proposed I/O method is not supported, otherwise it will
+> return 0 while leaving count to 0.
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> ---
->  drivers/media/dvb/dvb-core/dvb_demux.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
+> This allows one to use REQBUFS to test which I/O methods are supported by
+> the driver without having the driver allocating any buffers.
 > 
-> diff --git a/drivers/media/dvb/dvb-core/dvb_demux.c b/drivers/media/dvb/dvb-core/dvb_demux.c
-> index b78cfb7..a78408e 100644
-> --- a/drivers/media/dvb/dvb-core/dvb_demux.c
-> +++ b/drivers/media/dvb/dvb-core/dvb_demux.c
-> @@ -1246,6 +1246,7 @@ int dvb_dmx_init(struct dvb_demux *dvbdemux)
->  	dvbdemux->feed = vmalloc(dvbdemux->feednum * sizeof(struct dvb_demux_feed));
->  	if (!dvbdemux->feed) {
->  		vfree(dvbdemux->filter);
-> +		dvbdemux->filter = NULL;
->  		return -ENOMEM;
->  	}
->  	for (i = 0; i < dvbdemux->filternum; i++) {
+> This will become more important with embedded systems where almost
+> certainly additional I/O methods will be introduced (in particular
+> non-contiguous plane support).
+> 
+> Currently a count of 0 will result in an error in videobuf.
+> 
+> Note that drivers do not generally check for valid values of the memory
+> field at the moment. So that is another thing we need to improve. But
+> before I start working on that, I first want to know exactly how REQBUFS
+> should work.
 
-Hi Mauro,
+-- 
+Regards,
 
-I tested this one.
-It does not help the problem with alevt-dvb described by me, but the
-horrible crash behaviour where nothing goes without hard reset after the
-second start of alevt-dvb is gone. One step - well done!
-
-Can you explain in some words what specific problems the other patch
-resolves?
-
-Thanks
-
-CS
-
-
+Laurent Pinchart
