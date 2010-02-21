@@ -1,84 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-11.arcor-online.net ([151.189.21.51]:52604 "EHLO
-	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751689Ab0BHRiF (ORCPT
+Received: from mail-in-09.arcor-online.net ([151.189.21.49]:37071 "EHLO
+	mail-in-09.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752148Ab0BUULs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Feb 2010 12:38:05 -0500
-Message-ID: <4B704BD4.90908@arcor.de>
-Date: Mon, 08 Feb 2010 18:37:24 +0100
-From: Stefan Ringel <stefan.ringel@arcor.de>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org, dheitmueller@kernellabs.com
-Subject: Re: [PATCH 5/12] tm6000: update init table and sequence for tm6010
-References: <1265410096-11788-1-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-2-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-3-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-4-git-send-email-stefan.ringel@arcor.de> <1265410096-11788-5-git-send-email-stefan.ringel@arcor.de> <4B6FF3C9.2010804@redhat.com> <4B6FF763.1090203@redhat.com> <4B7037D3.5040601@arcor.de> <4B7049F3.8080208@redhat.com> <4B704B14.9040609@arcor.de>
-In-Reply-To: <4B704B14.9040609@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Sun, 21 Feb 2010 15:11:48 -0500
+From: stefan.ringel@arcor.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 3/3] tm6000: bugfix i2c addr
+Date: Sun, 21 Feb 2010 21:10:36 +0100
+Message-Id: <1266783036-6549-3-git-send-email-stefan.ringel@arcor.de>
+In-Reply-To: <1266783036-6549-2-git-send-email-stefan.ringel@arcor.de>
+References: <1266783036-6549-1-git-send-email-stefan.ringel@arcor.de>
+ <1266783036-6549-2-git-send-email-stefan.ringel@arcor.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 08.02.2010 18:34, schrieb Stefan Ringel:
-> Am 08.02.2010 18:29, schrieb Mauro Carvalho Chehab:
->   
->> Stefan Ringel wrote:
->>   
->>     
->>> Am 08.02.2010 12:37, schrieb Mauro Carvalho Chehab:
->>>     
->>>       
->>>> Mauro Carvalho Chehab wrote:
->>>>   
->>>>       
->>>>         
->>>>>> +		tm6000_read_write_usb (dev, 0xc0, 0x10, 0x7f1f, 0x0000, buf, 2);
->>>>>>       
->>>>>>           
->>>>>>             
->>>>   
->>>>       
->>>>         
->>>>> Most of the calls there are read (0xc0). I don't know any device that requires
->>>>> a read for it to work. I suspect that the above code is just probing to check
->>>>> what i2c devices are found at the board.
->>>>>     
->>>>>         
->>>>>           
->>>> Btw, by looking at drivers/media/dvb/frontends/zl10353_priv.h, we have an idea
->>>> on what the above does:
->>>>
->>>> The register 0x7f is:
->>>>
->>>>         CHIP_ID            = 0x7F,
->>>>
->>>> So, basically, the above code is reading the ID of the chip, likely to be sure that it
->>>> is a Zarlink 10353.
->>>>
->>>> Cheers,
->>>> Mauro
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>   
->>>>       
->>>>         
->>> yes, but that's for activating Zarlink zl10353 and checking it --> hello
->>> Zarlink? If doesn't use that sequence, then cannot use Zarlink zl10353.
->>>
->>>     
->>>       
->> Are you sure about that? Is this a new bug on tm6000?
->>
->> Anyway, the proper place for such code is inside zl10353 driver, not outside.
->>
->>   
->>     
-> It cannot activate after load xc3028 firmware.
->
->   
-That part is I think it's board specific or tm6010.
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+---
+ drivers/staging/tm6000/tm6000-i2c.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/staging/tm6000/tm6000-i2c.c b/drivers/staging/tm6000/tm6000-i2c.c
+index 6ae02b8..029cf74 100644
+--- a/drivers/staging/tm6000/tm6000-i2c.c
++++ b/drivers/staging/tm6000/tm6000-i2c.c
+@@ -125,7 +125,7 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 
+ 			i++;
+ 
+-			if (addr == dev->tuner_addr) {
++			if (addr == dev->tuner_addr << 1) {
+ 				tm6000_set_reg(dev, 0x32, 0,0);
+ 				tm6000_set_reg(dev, 0x33, 0,0);
+ 			}
+@@ -140,7 +140,7 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 			rc = tm6000_i2c_send_regs(dev, addr, msgs[i].buf[0],
+ 				msgs[i].buf + 1, msgs[i].len - 1);
+ 
+-			if (addr == dev->tuner_addr) {
++			if (addr == dev->tuner_addr  << 1) {
+ 				tm6000_set_reg(dev, 0x32, 0,0);
+ 				tm6000_set_reg(dev, 0x33, 0,0);
+ 			}
 -- 
-Stefan Ringel <stefan.ringel@arcor.de>
+1.6.6.1
 
