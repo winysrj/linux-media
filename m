@@ -1,67 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37738 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753209Ab0BBUFt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Feb 2010 15:05:49 -0500
-Message-ID: <4B688594.60308@redhat.com>
-Date: Tue, 02 Feb 2010 18:05:40 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp.nokia.com ([192.100.122.230]:58400 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752384Ab0BUWbt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Feb 2010 17:31:49 -0500
+Message-ID: <4B81B44F.7080201@maxwell.research.nokia.com>
+Date: Mon, 22 Feb 2010 00:31:43 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-To: Stefan Ringel <stefan.ringel@arcor.de>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] - tm6000 DVB support
-References: <4B673790.3030706@arcor.de> <4B673B2D.6040507@arcor.de>	 <829197381002011252w93b0f17g4c4f6d35ffae45f3@mail.gmail.com>	 <4B67464B.3020801@arcor.de> <829197381002011344g1c640c4fufa057071b8527d55@mail.gmail.com> <4B674EF9.3020800@arcor.de> <4B675E52.5040306@redhat.com> <4B684F6A.6010902@arcor.de> <4B685660.3040105@redhat.com> <4B68632F.9090406@arcor.de>
-In-Reply-To: <4B68632F.9090406@arcor.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
+	david.cohen@nokia.com
+Subject: Re: [PATCH v5 5/6] V4L: Events: Support event handling in do_ioctl
+References: <4B7EE4A4.3080202@maxwell.research.nokia.com> <1266607320-9974-5-git-send-email-sakari.ailus@maxwell.research.nokia.com> <201002201056.56952.hverkuil@xs4all.nl>
+In-Reply-To: <201002201056.56952.hverkuil@xs4all.nl>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stefan Ringel wrote:
+Hans Verkuil wrote:
+> More comments...
+> 
+> On Friday 19 February 2010 20:21:59 Sakari Ailus wrote:
+>> Add support for event handling to do_ioctl.
+>>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+>> ---
+>>  drivers/media/video/v4l2-ioctl.c |   58 ++++++++++++++++++++++++++++++++++++++
+>>  include/media/v4l2-ioctl.h       |    7 ++++
+>>  2 files changed, 65 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+>> index 34c7d6e..f7d6177 100644
+>> --- a/drivers/media/video/v4l2-ioctl.c
+>> +++ b/drivers/media/video/v4l2-ioctl.c
+>> @@ -25,6 +25,8 @@
+>>  #endif
+>>  #include <media/v4l2-common.h>
+>>  #include <media/v4l2-ioctl.h>
+>> +#include <media/v4l2-fh.h>
+>> +#include <media/v4l2-event.h>
+>>  #include <media/v4l2-chip-ident.h>
+>>  
+>>  #define dbgarg(cmd, fmt, arg...) \
+>> @@ -1944,7 +1946,63 @@ static long __video_do_ioctl(struct file *file,
+>>  		}
+>>  		break;
+>>  	}
+>> +	case VIDIOC_DQEVENT:
+>> +	{
+>> +		struct v4l2_event *ev = arg;
+>> +		struct v4l2_fh *vfh = fh;
+>> +
+>> +		if (!test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags)
+>> +		    || vfh->events == NULL)
+>> +			break;
+> 
+> Change this to:
+> 
+> 		if (!test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags))
+> 			break;
+> 		if (vfh->events == NULL)
+> 			return -ENOENT;
+> 
+> But see also the next comment.
+> 
+>> +
+>> +		ret = v4l2_event_dequeue(fh, ev);
+> 
+> There is a crucial piece of functionality missing here: if the filehandle is
+> in blocking mode, then it should wait until an event arrives. That also means
+> that if vfh->events == NULL, you should still call v4l2_event_dequeue, and
+> that function should initialize vfh->events and wait for an event if the fh
+> is in blocking mode.
 
->> Ok, but maybe you missed my point: at the long term, we should get rid of hack.c, and
->> be sure that all needed initializations are done by zl10353 driver or by tm6010-dvb.
->>   
-> I think I all are done by zl10353 driver.
-> 
-> I thinbk all config param is usefull and ".tm6000" for tm6000 specific
-> once. For what is ".parallel_ts" ?
+I originally left this out intentionally. Most applications using events
+would use select / poll as well by default. For completeness it should
+be there, I agree.
 
-zl10353 may be connected via a serial or via a parallel interface to the chip.
-So, it basically depends on how the wiring between zl10353 and the bridge is done.
+This btw. suggests that we perhaps should put back the struct file
+argument for the event functions in video_ioctl_ops. The blocking flag
+is indeed part of the file structure. I'm open to better suggestions, too.
 
+>> +		if (ret < 0) {
+>> +			dbgarg(cmd, "no pending events?");
+>> +			break;
+>> +		}
+>> +		dbgarg(cmd,
+>> +		       "pending=%d, type=0x%8.8x, sequence=%d, "
+>> +		       "timestamp=%lu.%9.9lu ",
+>> +		       ev->pending, ev->type, ev->sequence,
+>> +		       ev->timestamp.tv_sec, ev->timestamp.tv_nsec);
+>> +		break;
+>> +	}
+>> +	case VIDIOC_SUBSCRIBE_EVENT:
+>> +	{
+>> +		struct v4l2_event_subscription *sub = arg;
+>> +		struct v4l2_fh *vfh = fh;
+>>  
+>> +		if (!test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags)
 > 
-> int tm6000_dvb_attach_frontend(struct tm6000_core *dev)
-> {
->     struct tm6000_dvb *dvb = dev->dvb;
+> Testing for this bit is unnecessarily. Just test for ops->vidioc_subscribe_event.
 > 
->     if(dev->caps.has_zl10353) {
->         struct zl10353_config config =
->                     {.demod_address = dev->demod_addr,
->                      .no_tuner = 1,
->                      .parallel_ts = 1,
->                      .if2 = 45700,
->                      .disable_i2c_gate_ctrl = 1,
->                      .tm6000 = 1,
->                     };
+>> +		    || vfh->events == NULL
 > 
->         dvb->frontend = pseudo_zl10353_attach(dev, &config,
-> //        dvb->frontend = dvb_attach (zl10353_attach, &config,
->                                &dev->i2c_adap);
->     }
->     else {
->         printk(KERN_ERR "tm6000: no frontend defined for the device!\n");
->         return -1;
->     }
-> 
->     return (!dvb->frontend) ? -1 : 0;
-> }
-> 
-> 
+> Remove this test. If you allocate the event queue only when you first
+> subscribe to an event (as ivtv will do), then you have to be able to
+> call vidioc_subscribe_event even if vfh->events == NULL.
 
+How about calling v4l2_event_alloc() with zero events? That allocates
+and initialises the v4l2_events structure. That's easier to handle in
+drivers as well since they don't need to consider special cases like
+fh->events happens to be NULL even if events are supported by the
+driver. This is how I first thought it'd work.
 
 -- 
-
-Cheers,
-Mauro
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
