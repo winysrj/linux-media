@@ -1,98 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:34700 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1757344Ab0BLT2j (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Feb 2010 14:28:39 -0500
-Date: Fri, 12 Feb 2010 20:28:43 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: linux-media@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Laurent Pinchart <laurent.pinchart@skynet.be>,
-	Vaibhav Hiremath <hvaibhav@ti.com>,
-	"Gole, Anant" <anantgole@ti.com>,
-	Muralidharan Karicheri <m-karicheri2@ti.com>,
-	Sergio Rodriguez <saaguirre@ti.com>, molnar@ti.com,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Guru Raj <gururaj.nagendra@intel.com>,
-	"Zhang, Xiaolin" <xiaolin.zhang@intel.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Jin-Sung Yang <jsgood.yang@samsung.com>,
-	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
-	Kyungmin Park <kmpark@infradead.org>, mcharleb@qualcomm.com,
-	hrao@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>
-Subject: Re: Proposal for a V4L2 Media Controller mini-summit
-In-Reply-To: <201002121550.08706.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1002122014430.4605@axis700.grange>
-References: <201002121550.08706.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:39905 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752777Ab0BUTpM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Feb 2010 14:45:12 -0500
+Message-ID: <4B818D72.5040302@redhat.com>
+Date: Sun, 21 Feb 2010 20:45:54 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Richard Hirst <richard@sleepie.demon.co.uk>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] v4lconvert_rotate90() leaves bytesperline wrong
+References: <4B80757B.5070804@sleepie.demon.co.uk>
+In-Reply-To: <4B80757B.5070804@sleepie.demon.co.uk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 12 Feb 2010, Hans Verkuil wrote:
+Hi,
 
-> Since that time we have added a new API to support HDTV formats, a new
-> event API is almost ready, a lot of work is being done on the media
-> controller API with omap3 as guinea pig and Samsung has done work on the
-> memory handling of V4L2.
-> 
-> >From April 12th to 14th the CELF Embedded Linux Conference is held in
-> San Francisco, and it is co-located with the Linux Foundation Collaboration
-> Summit (April 14th-16th). Links to these conferences are here:
-> 
-> http://www.embeddedlinuxconference.com/elc_2010/index.html
-> http://events.linuxfoundation.org/events/collaboration-summit
-> 
-> I will be doing a presentation on the new framework during the ELC.
-> 
-> Since this conference is about 6 months after the mini-summit I consider this
-> a good time to organize a new V4L2 Media Controller mini-summit to discuss
-> progress and future work in this area. I think that particular attention
-> should be given to how we are going to do memory handling. The proposals
-> from Samsung have received very little attention and we should discuss those
-> in more detail.
-> 
-> I do not know on which dates exactly such a summit can take place. There
-> are three possibilities:
-> 
-> April 10-11/12
-> April 12-14 
-> April 14/15-16
-> 
-> I think that registering for the ELC gives to free access to the Collaboration
-> Summit, but I'm waiting for a confirmation on that.
-> 
-> I'm not keen on the center option (12-14 April) since that often means that
-> you don't see a lot of the conference itself. And the ELC is generally quite
-> interesting.
-> 
-> There is another alternative and that is that I organize a mini-summit in May
-> in Lysaker (near Oslo, Norway) at the Tandberg offices. But frankly I think
-> that it is more fun to do this during/before/after a conference. If only
-> because there are a lot of linux kernel experts on hand during such a
-> conference that you can ask for help if needed.
-> 
-> Please let me know asap if you are interested in attending such a mini-summit
-> and what dates are possible for you:
-> 
-> a: April 10-11 (or 12)
-> b: April 12-14 
-> c: April 14 (or 15)-16
-> d: Somewhere in May (suggestions for dates are welcome)
+Thanks for the patch, but this has been long fixed
+(in pretty much the same way, the v4lconvert_fixup_fmt() call
+  was put inside the v4lconvert_rotate90 function).
 
-I would be interested in principle in taking part in such a mini-summit, 
-but: for me personally Europe is more easily accessible than the US, I 
-could also consider the US, but to increase the chances for me to get 
-there I'd need to know a couple of months in advance, getting a visa takes 
-time, sorting out finances too. Also, 6 months is a good term, but does 
-this mean, that there is going to be one more meeting in another 6 months?
+Regards,
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Hans
+
+
+On 02/21/2010 12:51 AM, Richard Hirst wrote:
+> I have a cheap webcam (ID 093a:262a Pixart Imaging, Inc.), and Ubuntu
+> 9.10 64 bit, Skype 2.1.0.81, and lib32v4l-0 version 0.6.0-1. I start
+> skype with LD_PRELOAD=/usr/lib32/libv4l/v4l1compat.so, and the video
+> image is garbled. I believe the problem is that the webcam image starts
+> off at 480x640 and skype asks for YU12 at 320x240 for a test image. This
+> results in v4lconvert_rotate90() being called to rotate the image, and
+> then v4lconvert_reduceandcrop_yuv420() being called to down-size the
+> image from 640x480 to 320x240. Unfortunately
+> v4lconvert_reduceandcrop_yuv420() relies on
+> src_fmt->fmt.pix.bytesperline for the source image, and that is still
+> 480 (should be 640, since the image has been rotated).
+>
+> This fixes it for me:
+>
+> --- ori/libv4lconvert/libv4lconvert.c 2010-02-20 22:44:28.000000000 +0000
+> +++ libv4l-0.6.0/libv4lconvert/libv4lconvert.c 2010-02-20
+> 23:01:12.000000000 +0000
+> @@ -1088,8 +1088,10 @@
+> v4lprocessing_processing(data->processing, convert2_dest, &my_src_fmt);
+> }
+>
+> - if (rotate90)
+> + if (rotate90) {
+> v4lconvert_rotate90(rotate90_src, rotate90_dest, &my_src_fmt);
+> + v4lconvert_fixup_fmt(&my_src_fmt);
+> + }
+>
+> if (hflip || vflip)
+> v4lconvert_flip(flip_src, flip_dest, &my_src_fmt, hflip, vflip);
+>
+>
+>
+> I didn't look closely at the latest source, so it is possible this
+> already fixed some other way.
+>
+> Richard
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at http://vger.kernel.org/majordomo-info.html
