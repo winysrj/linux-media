@@ -1,62 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:44991 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752281Ab0BVXvL (ORCPT
+Received: from smtp.nokia.com ([192.100.122.233]:18412 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753807Ab0BVPwa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 18:51:11 -0500
-Message-ID: <4B831849.3090701@maxwell.research.nokia.com>
-Date: Tue, 23 Feb 2010 01:50:33 +0200
+	Mon, 22 Feb 2010 10:52:30 -0500
 From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-MIME-Version: 1.0
-To: Andy Walls <awalls@radix.net>
-CC: hverkuil@xs4all.nl,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: Chroma gain configuration
-References: <829197381002212007q342fc01bm1c528a2f15027a1e@mail.gmail.com> <1266838852.3095.20.camel@palomino.walls.org>
-In-Reply-To: <1266838852.3095.20.camel@palomino.walls.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@nokia.com, hverkuil@xs4all.nl,
+	david.cohen@nokia.com
+Subject: [PATCH 2/6] V4L: File handles: Add documentation
+Date: Mon, 22 Feb 2010 17:51:33 +0200
+Message-Id: <1266853897-25749-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1266853897-25749-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+References: <4B82A7FB.50505@maxwell.research.nokia.com>
+ <1266853897-25749-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andy Walls wrote:
-> On Sun, 2010-02-21 at 23:07 -0500, Devin Heitmueller wrote:
->> I am doing some work on the saa711x driver, and ran into a case where
->> I need to disable the chroma AGC and manually set the chroma gain.
-> 
-> Sakari, Hans, or anyone else,
+Add documentation on using V4L2 file handles (v4l2_fh) in V4L2 drivers.
 
-Hi Andy,
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ Documentation/video4linux/v4l2-framework.txt |   37 ++++++++++++++++++++++++++
+ 1 files changed, 37 insertions(+), 0 deletions(-)
 
-> On a somewhat related note, what is the status of the media controller
-> and of file handles per v4l2_subdev.  Will Sakari's V4L file-handle
-> changes be all we need for the infrastructure or is there more to be
-> done after that?
-
-There are three things:
-
-- V4L2 file handles (and events)
-- V4L2 subdev device nodes
-- Media controller
-
-The file handles and events appear to be fairly ready.
-
-> I'd like to implement specific "technician controls", something an
-> average user wouldn't use, for a few subdevs.
-
-For that you'd need at least V4L2 subdev device nodes, preferrably also
-Media controller e.g. for the user space to know the two devices indeed
-are connected to the same higher level device. File handles do not
-matter here; it's just a generic way to store file handle specific data,
-required by events, for example.
-
-Subdev device nodes and Media controller patches live in Laurent's tree
-at linuxtv.org at the moment.
-
-Regards,
-
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index 74d677c..bfaf0c5 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -695,3 +695,40 @@ The better way to understand it is to take a look at vivi driver. One
+ of the main reasons for vivi is to be a videobuf usage example. the
+ vivi_thread_tick() does the task that the IRQ callback would do on PCI
+ drivers (or the irq callback on USB).
++
++struct v4l2_fh
++--------------
++
++struct v4l2_fh provides a way to easily keep file handle specific data
++that is used by the V4L2 framework.
++
++struct v4l2_fh is allocated as a part of the driver's own file handle
++structure and is set to file->private_data in the driver's open
++function by the driver. Drivers can extract their own file handle
++structure by using the container_of macro.
++
++Useful functions:
++
++- v4l2_fh_init()
++
++  Initialise the file handle. This *MUST* be performed in the driver's
++  v4l2_file_operations->open() handler.
++
++- v4l2_fh_add()
++
++  Add a v4l2_fh to video_device file handle list. May be called after
++  initialising the file handle.
++
++- v4l2_fh_del()
++
++  Unassociate the file handle from video_device(). The file handle
++  exit function may now be called.
++
++- v4l2_fh_exit()
++
++  Uninitialise the file handle. After uninitialisation the v4l2_fh
++  memory can be freed.
++
++The users of v4l2_fh know whether a driver uses v4l2_fh as its
++file->private_data pointer by testing the V4L2_FL_USES_V4L2_FH bit in
++video_device->flags.
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+1.5.6.5
+
