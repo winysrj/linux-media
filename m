@@ -1,95 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:58747 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752292Ab0BEEQZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Feb 2010 23:16:25 -0500
-Subject: Re: Any saa711x users out there?
-From: Andy Walls <awalls@radix.net>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <829197381002040724u6a8d3b40m6e9f3751640685f4@mail.gmail.com>
-References: <829197381002021451g5aaa8013kd5ae2124534ba5ba@mail.gmail.com>
-	 <1265248280.3122.74.camel@palomino.walls.org>
-	 <829197381002040724u6a8d3b40m6e9f3751640685f4@mail.gmail.com>
-Content-Type: text/plain
-Date: Thu, 04 Feb 2010 23:15:15 -0500
-Message-Id: <1265343315.7784.28.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-in-01.arcor-online.net ([151.189.21.41]:33884 "EHLO
+	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753802Ab0BVQWX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Feb 2010 11:22:23 -0500
+From: stefan.ringel@arcor.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 1/3] tm6000: add send and recv function
+Date: Mon, 22 Feb 2010 17:21:31 +0100
+Message-Id: <1266855693-5554-1-git-send-email-stefan.ringel@arcor.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2010-02-04 at 10:24 -0500, Devin Heitmueller wrote:
-> On Wed, Feb 3, 2010 at 8:51 PM, Andy Walls <awalls@radix.net> wrote:
-> > With all that said, if you have a baseband Luma or Chroma signal with
-> > strong spurious high frequency components (crappy source, or you're
-> > overdriving the front end and getting intermods), then keep the
-> > anti-alias filter turned on as the assumption of a bandlimited input
-> > signal is violated in this case.
-> 
-> In this case, I'm seeing it with both the analog signal generator
-> (which one might consider a fairly pristine source), as well coming
-> off the s-video output of a DirectTV box (in which case the signal is
-> being generated only a few feet away from the saa7113).
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
-Hmmm.  The AGC (or static gain level?) of the amplifier in the SAA7113
-before the anti-alias filter may be set too high causing the clipping
-(intermods) there.  It may be worth looking at the gain setting for that
-amp.
+add separately send and receive function
 
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+---
+ drivers/staging/tm6000/tm6000-i2c.c |   48 +++++++++++++++++++++++++---------
+ 1 files changed, 35 insertions(+), 13 deletions(-)
 
-> > In the SAA7113 the anti-alias filter introduces a delay of 50 ns.  At
-> > 13.5 Mpixels/sec, or 74.1 ns/pixel, that's less than 1 pixel time of
-> > delay.
-> >
-> > Just turn it on in and leave it on in the SAA7113 to handle the
-> > unexpected input signal case.
-> 
-> This would be my vote (assuming we try it with the other parts and
-> confirm no regressions are introduced).  My only concern is the way
-> the code is currently written, the saa7113 initialization block
-> actually does enable it by default, and then some code for the saa7115
-> tramples the register, turning it off (see saa7115_init_misc at
-> saa7115.c:600).  I think the decision we have to make is which of the
-> following paths to take:
-> 
-> 1.  Enable it in the saa7115_init_misc, thereby enabling it for the
-> 7113, 7114, and 7115.
-> 
-> 2.  Exclude the saa7115_init_misc block from being run at all against the 7113
-> 
-> 3.  Let the saa7115_init_misc block get run, and then flip the bit
-> back for the 7113.
-> 
-> My thinking at this point is that the AA filter should probably be on
-> by default regardless of the chip, in which case we would just need to
-> make the one line change to enable it in the saa7115_init_misc block.
-
-Probably.
-
-The visible effects of the anti-alais filter could possibly be:
-
-1. Less range of color, if high freqs of the color get attenuated.
-(Most people likely will not perceive this as most people are not that
-sensitive to small color variations.)
-
-2. Loss of rapid variations in Luma - softer edges between light and
-dark areas on a scan line - if higher freqs of the Luma get attenuated.
-
-but given that the anti-alais filter is essentially flat out to about
-5.6 MHz and has a slow rolloff (only 3 dB down at about 6.9 MHz), I
-doubt anyone would ever notice it is on with NTSC.
-
-
-Since you have a signal generator, you should run experiments with PAL-D
-and SECAM-D with a grid containing vertical lines since those both have
-a 6.0 MHz video bandwidth.  SECAM also has FM color, so you might see
-the greatest affect of an antialias filter on color on the Cyan color
-bar in SECAM-D.
-
-Regards,
-Andy
-
-> Devin
-
+diff --git a/drivers/staging/tm6000/tm6000-i2c.c b/drivers/staging/tm6000/tm6000-i2c.c
+index 656cd19..2222b39 100644
+--- a/drivers/staging/tm6000/tm6000-i2c.c
++++ b/drivers/staging/tm6000/tm6000-i2c.c
+@@ -44,6 +44,32 @@ MODULE_PARM_DESC(i2c_debug, "enable debug messages [i2c]");
+ 			printk(KERN_DEBUG "%s at %s: " fmt, \
+ 			dev->name, __FUNCTION__ , ##args); } while (0)
+ 
++int tm6000_i2c_send_regs(struct tm6000_core *dev, unsigned char addr, __u8 reg, char *buf, int len)
++{
++	return tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
++		REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0, buf, len);
++}
++
++/* read from a 8bit register */
++int tm6000_i2c_recv_regs(struct tm6000_core *dev, unsigned char addr, __u8 reg, char *buf, int len)
++{
++	int rc;
++
++		rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
++			REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0, buf, len);
++
++	return rc;
++}
++
++/* read from a 16bit register
++ * for example xc2028, xc3028 or xc3028L 
++ */
++int tm6000_i2c_recv_regs16(struct tm6000_core *dev, unsigned char addr, __u16 reg, char *buf, int len)
++{
++	return tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
++		REQ_14_SET_GET_I2C_WR2_RDN, addr, reg, buf, len);
++} 
++
+ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 			   struct i2c_msg msgs[], int num)
+ {
+@@ -78,13 +104,14 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 			i2c_dprintk(2, "; joined to read %s len=%d:",
+ 				    i == num - 2 ? "stop" : "nonstop",
+ 				    msgs[i + 1].len);
+-			rc = tm6000_read_write_usb (dev,
+-				USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+-				msgs[i].len == 1 ? REQ_16_SET_GET_I2C_WR1_RDN
+-						 : REQ_14_SET_GET_I2C_WR2_RDN,
+-				addr | msgs[i].buf[0] << 8,
+-				msgs[i].len == 1 ? 0 : msgs[i].buf[1],
++			if (msgs{i].len == 1) {
++				rc = tm6000_i2c_recv_regs(dev, addr, msgs[i].buf[0],
+ 				msgs[i + 1].buf, msgs[i + 1].len);
++			} else {
++				rc = tm6000_i2c_recv_regs(dev, addr, msgs[i].buf[0] << 8 | msgs[i].buf[1],
++				msgs[i + 1].buf, msgs[i + 1].len);
++			}
++
+ 			i++;
+ 
+ 			if (addr == dev->tuner_addr) {
+@@ -99,10 +126,7 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 			if (i2c_debug >= 2)
+ 				for (byte = 0; byte < msgs[i].len; byte++)
+ 					printk(" %02x", msgs[i].buf[byte]);
+-			rc = tm6000_read_write_usb(dev,
+-				USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+-				REQ_16_SET_GET_I2C_WR1_RDN,
+-				addr | msgs[i].buf[0] << 8, 0,
++			rc = tm6000_i2c_send_regs(dev, addr, msgs[i].buf[0],
+ 				msgs[i].buf + 1, msgs[i].len - 1);
+ 
+ 			if (addr == dev->tuner_addr) {
+@@ -134,9 +158,7 @@ static int tm6000_i2c_eeprom(struct tm6000_core *dev,
+ 	bytes[16] = '\0';
+ 	for (i = 0; i < len; ) {
+ 	*p = i;
+-	rc = tm6000_read_write_usb (dev,
+-		USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+-		REQ_16_SET_GET_I2C_WR1_RDN, 0xa0 | i<<8, 0, p, 1);
++	rc = tm6000_i2c_revc_regs(dev, 0xa0, i, p, 1);
+ 		if (rc < 1) {
+ 			if (p == eedata)
+ 				goto noeeprom;
+-- 
+1.6.6.1
 
