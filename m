@@ -1,367 +1,370 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay.bearnet.nu ([80.252.223.222]:1264 "EHLO relay.bearnet.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932292Ab0BCOKf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Feb 2010 09:10:35 -0500
-Message-ID: <4B6983CF.2040406@pelagicore.com>
-Date: Wed, 03 Feb 2010 15:10:23 +0100
-From: =?ISO-8859-1?Q?Richard_R=F6jfors?= <richard.rojfors@pelagicore.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH v3 1/1] radio: Add radio-timb
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:55423 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754090Ab0BVQKY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Feb 2010 11:10:24 -0500
+Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0KY900COS3L8H9@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 22 Feb 2010 16:10:20 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0KY900LLP3L7FK@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 22 Feb 2010 16:10:20 +0000 (GMT)
+Date: Mon, 22 Feb 2010 17:10:09 +0100
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: [PATCH v1 4/4] v4l: vivi: add 2- and 3-planar YCbCr422
+In-reply-to: <1266855010-2198-1-git-send-email-p.osciak@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl, m-karicheri2@ti.com
+Message-id: <1266855010-2198-5-git-send-email-p.osciak@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1266855010-2198-1-git-send-email-p.osciak@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch add supports for the radio system on the Intel Russellville board.
+Add example 2- and 3- planar YCbCr422 formats for multi-plane
+format testing.
 
-It's a In-Vehicle Infotainment board with a radio tuner and DSP.
-
-This umbrella driver has the DSP and tuner as V4L2 subdevs and calls them
-when needed.
-
-Signed-off-by: Richard Röjfors <richard.rojfors@pelagicore.com>
+Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+Reviewed-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
-diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-index 3f40f37..c242939 100644
---- a/drivers/media/radio/Kconfig
-+++ b/drivers/media/radio/Kconfig
-@@ -429,4 +429,14 @@ config RADIO_TEF6862
-  	  To compile this driver as a module, choose M here: the
-  	  module will be called TEF6862.
+ drivers/media/video/vivi.c |  179 +++++++++++++++++++++++++++++++++++---------
+ include/linux/videodev2.h  |    3 +
+ 2 files changed, 147 insertions(+), 35 deletions(-)
 
-+config RADIO_TIMBERDALE
-+	tristate "Enable the Timberdale radio driver"
-+	depends on MFD_TIMBERDALE && VIDEO_V4L2
-+	select RADIO_TEF6862
-+	select RADIO_SAA7706H
-+	---help---
-+	  This is a kind of umbrella driver for the Radio Tuner and DSP
-+	  found behind the Timberdale FPGA on the Russellville board.
-+	  Enabling this driver will automatically select the DSP and tuner.
-+
-  endif # RADIO_ADAPTERS
-diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
-index 01922ad..8973850 100644
---- a/drivers/media/radio/Makefile
-+++ b/drivers/media/radio/Makefile
-@@ -24,5 +24,6 @@ obj-$(CONFIG_RADIO_SI470X) += si470x/
-  obj-$(CONFIG_USB_MR800) += radio-mr800.o
-  obj-$(CONFIG_RADIO_TEA5764) += radio-tea5764.o
-  obj-$(CONFIG_RADIO_TEF6862) += tef6862.o
-+obj-$(CONFIG_RADIO_TIMBERDALE) += radio-timb.o
-
-  EXTRA_CFLAGS += -Isound
-diff --git a/drivers/media/radio/radio-timb.c b/drivers/media/radio/radio-timb.c
-new file mode 100644
-index 0000000..c650865
---- /dev/null
-+++ b/drivers/media/radio/radio-timb.c
-@@ -0,0 +1,260 @@
-+/*
-+ * radio-timb.c Timberdale FPGA Radio driver
-+ * Copyright (c) 2009 Intel Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include <linux/version.h>
-+#include <linux/io.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/v4l2-device.h>
-+#include <linux/platform_device.h>
-+#include <linux/interrupt.h>
-+#include <linux/i2c.h>
-+#include <media/timb_radio.h>
-+
-+#define DRIVER_NAME "timb-radio"
-+
-+struct timbradio {
-+	struct timb_radio_platform_data	pdata;
-+	struct v4l2_subdev	*sd_tuner;
-+	struct v4l2_subdev	*sd_dsp;
-+	struct video_device	*video_dev;
-+	struct v4l2_device	v4l2_dev;
-+};
-+
-+
-+static int timbradio_vidioc_querycap(struct file *file, void  *priv,
-+	struct v4l2_capability *v)
-+{
-+	strlcpy(v->driver, DRIVER_NAME, sizeof(v->driver));
-+	strlcpy(v->card, "Timberdale Radio", sizeof(v->card));
-+	snprintf(v->bus_info, sizeof(v->bus_info), "platform:"DRIVER_NAME);
-+	v->version = KERNEL_VERSION(0, 0, 1);
-+	v->capabilities = V4L2_CAP_TUNER | V4L2_CAP_RADIO;
-+	return 0;
-+}
-+
-+static int timbradio_vidioc_g_tuner(struct file *file, void *priv,
-+	struct v4l2_tuner *v)
-+{
-+	struct timbradio *tr = video_drvdata(file);
-+	return v4l2_subdev_call(tr->sd_tuner, tuner, g_tuner, v);
-+}
-+
-+static int timbradio_vidioc_s_tuner(struct file *file, void *priv,
-+	struct v4l2_tuner *v)
-+{
-+	struct timbradio *tr = video_drvdata(file);
-+	return v4l2_subdev_call(tr->sd_tuner, tuner, s_tuner, v);
-+}
-+
-+static int timbradio_vidioc_g_input(struct file *filp, void *priv,
-+	unsigned int *i)
-+{
-+	*i = 0;
-+	return 0;
-+}
-+
-+static int timbradio_vidioc_s_input(struct file *filp, void *priv,
-+	unsigned int i)
-+{
-+	return i ? -EINVAL : 0;
-+}
-+
-+static int timbradio_vidioc_g_audio(struct file *file, void *priv,
-+	struct v4l2_audio *a)
-+{
-+	a->index = 0;
-+	strlcpy(a->name, "Radio", sizeof(a->name));
-+	a->capability = V4L2_AUDCAP_STEREO;
-+	return 0;
-+}
-+
-+
-+static int timbradio_vidioc_s_audio(struct file *file, void *priv,
-+	struct v4l2_audio *a)
-+{
-+	return a->index ? -EINVAL : 0;
-+}
-+
-+static int timbradio_vidioc_s_frequency(struct file *file, void *priv,
-+	struct v4l2_frequency *f)
-+{
-+	struct timbradio *tr = video_drvdata(file);
-+	return v4l2_subdev_call(tr->sd_tuner, tuner, s_frequency, f);
-+}
-+
-+static int timbradio_vidioc_g_frequency(struct file *file, void *priv,
-+	struct v4l2_frequency *f)
-+{
-+	struct timbradio *tr = video_drvdata(file);
-+	return v4l2_subdev_call(tr->sd_tuner, tuner, g_frequency, f);
-+}
-+
-+static int timbradio_vidioc_queryctrl(struct file *file, void *priv,
-+	struct v4l2_queryctrl *qc)
-+{
-+	struct timbradio *tr = video_drvdata(file);
-+	return v4l2_subdev_call(tr->sd_dsp, core, queryctrl, qc);
-+}
-+
-+static int timbradio_vidioc_g_ctrl(struct file *file, void *priv,
-+	struct v4l2_control *ctrl)
-+{
-+	struct timbradio *tr = video_drvdata(file);
-+	return v4l2_subdev_call(tr->sd_dsp, core, g_ctrl, ctrl);
-+}
-+
-+static int timbradio_vidioc_s_ctrl(struct file *file, void *priv,
-+	struct v4l2_control *ctrl)
-+{
-+	struct timbradio *tr = video_drvdata(file);
-+	return v4l2_subdev_call(tr->sd_dsp, core, s_ctrl, ctrl);
-+}
-+
-+static const struct v4l2_ioctl_ops timbradio_ioctl_ops = {
-+	.vidioc_querycap	= timbradio_vidioc_querycap,
-+	.vidioc_g_tuner		= timbradio_vidioc_g_tuner,
-+	.vidioc_s_tuner		= timbradio_vidioc_s_tuner,
-+	.vidioc_g_frequency	= timbradio_vidioc_g_frequency,
-+	.vidioc_s_frequency	= timbradio_vidioc_s_frequency,
-+	.vidioc_g_input		= timbradio_vidioc_g_input,
-+	.vidioc_s_input		= timbradio_vidioc_s_input,
-+	.vidioc_g_audio		= timbradio_vidioc_g_audio,
-+	.vidioc_s_audio		= timbradio_vidioc_s_audio,
-+	.vidioc_queryctrl	= timbradio_vidioc_queryctrl,
-+	.vidioc_g_ctrl		= timbradio_vidioc_g_ctrl,
-+	.vidioc_s_ctrl		= timbradio_vidioc_s_ctrl
-+};
-+
-+static const struct v4l2_file_operations timbradio_fops = {
-+	.owner		= THIS_MODULE,
-+	.ioctl		= video_ioctl2,
-+};
-+
-+static const struct video_device timbradio_template = {
-+	.name		= "Timberdale Radio",
-+	.fops		= &timbradio_fops,
-+	.ioctl_ops 	= &timbradio_ioctl_ops,
-+	.release	= video_device_release_empty,
-+	.minor		= -1
-+};
-+
-+
-+static int __devinit timbradio_probe(struct platform_device *pdev)
-+{
-+	struct timb_radio_platform_data *pdata = pdev->dev.platform_data;
-+	struct timbradio *tr;
-+	int err;
-+
-+	if (!pdata) {
-+		dev_err(&pdev->dev, "Platform data missing\n");
-+		err = -EINVAL;
-+		goto err;
-+	}
-+
-+	tr = kzalloc(sizeof(*tr), GFP_KERNEL);
-+	if (!tr) {
-+		err = -ENOMEM;
-+		goto err;
-+	}
-+
-+	tr->pdata = *pdata;
-+
-+	tr->video_dev = video_device_alloc();
-+	if (!tr->video_dev) {
-+		err = -ENOMEM;
-+		goto err_video_alloc;
-+	}
-+	*tr->video_dev = timbradio_template;
-+
-+	strlcpy(tr->v4l2_dev.name, DRIVER_NAME, sizeof(tr->v4l2_dev.name));
-+	err = v4l2_device_register(NULL, &tr->v4l2_dev);
-+	if (err)
-+		goto err_v4l2_dev;
-+
-+	tr->video_dev->v4l2_dev = &tr->v4l2_dev;
-+
-+	err = video_register_device(tr->video_dev, VFL_TYPE_RADIO, -1);
-+	if (err) {
-+		dev_err(&pdev->dev, "Error reg video\n");
-+		goto err_video_req;
-+	}
-+
-+	video_set_drvdata(tr->video_dev, tr);
-+
-+	platform_set_drvdata(pdev, tr);
-+	return 0;
-+
-+err_video_req:
-+	v4l2_device_unregister(&tr->v4l2_dev);
-+err_v4l2_dev:
-+	if (tr->video_dev->minor != -1)
-+		video_unregister_device(tr->video_dev);
-+	else
-+		video_device_release(tr->video_dev);
-+err_video_alloc:
-+	kfree(tr);
-+err:
-+	dev_err(&pdev->dev, "Failed to register: %d\n", err);
-+
-+	return err;
-+}
-+
-+static int __devexit timbradio_remove(struct platform_device *pdev)
-+{
-+	struct timbradio *tr = platform_get_drvdata(pdev);
-+
-+	if (tr->video_dev->minor != -1)
-+		video_unregister_device(tr->video_dev);
-+	else
-+		video_device_release(tr->video_dev);
-+
-+	v4l2_device_unregister(&tr->v4l2_dev);
-+
-+	kfree(tr);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver timbradio_platform_driver = {
-+	.driver = {
-+		.name	= DRIVER_NAME,
-+		.owner	= THIS_MODULE,
+diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
+index 37632a0..bc1ec0d 100644
+--- a/drivers/media/video/vivi.c
++++ b/drivers/media/video/vivi.c
+@@ -132,6 +132,9 @@ struct vivi_fmt {
+ 	char  *name;
+ 	u32   fourcc;          /* v4l2 format id */
+ 	int   depth;
++	unsigned int num_planes;
++	unsigned int plane_w_shr;
++	unsigned int plane_h_shr;
+ };
+ 
+ static struct vivi_fmt formats[] = {
+@@ -139,31 +142,53 @@ static struct vivi_fmt formats[] = {
+ 		.name     = "4:2:2, packed, YUYV",
+ 		.fourcc   = V4L2_PIX_FMT_YUYV,
+ 		.depth    = 16,
++		.num_planes = 1,
+ 	},
+ 	{
+ 		.name     = "4:2:2, packed, UYVY",
+ 		.fourcc   = V4L2_PIX_FMT_UYVY,
+ 		.depth    = 16,
++		.num_planes = 1,
+ 	},
+ 	{
+ 		.name     = "RGB565 (LE)",
+ 		.fourcc   = V4L2_PIX_FMT_RGB565, /* gggbbbbb rrrrrggg */
+ 		.depth    = 16,
++		.num_planes = 1,
+ 	},
+ 	{
+ 		.name     = "RGB565 (BE)",
+ 		.fourcc   = V4L2_PIX_FMT_RGB565X, /* rrrrrggg gggbbbbb */
+ 		.depth    = 16,
++		.num_planes = 1,
+ 	},
+ 	{
+ 		.name     = "RGB555 (LE)",
+ 		.fourcc   = V4L2_PIX_FMT_RGB555, /* gggbbbbb arrrrrgg */
+ 		.depth    = 16,
++		.num_planes = 1,
+ 	},
+ 	{
+ 		.name     = "RGB555 (BE)",
+ 		.fourcc   = V4L2_PIX_FMT_RGB555X, /* arrrrrgg gggbbbbb */
+ 		.depth    = 16,
++		.num_planes = 1,
 +	},
-+	.probe		= timbradio_probe,
-+	.remove		= timbradio_remove,
-+};
++	{
++		.name		= "YUV 4:2:2, 3-planar",
++		.fourcc		= V4L2_PIX_FMT_YUV422PM,
++		.depth		= 16,
++		.num_planes	= 3,
++		.plane_w_shr	= 1,
++		.plane_h_shr	= 0,
++	},
++	{
++		.name		= "YUV 4:2:2, 2-planar",
++		.fourcc		= V4L2_PIX_FMT_NV16M,
++		.depth		= 16,
++		.num_planes	= 2,
++		.plane_w_shr	= 1,
++		.plane_h_shr	= 0,
+ 	},
+ };
+ 
+@@ -361,6 +386,8 @@ static void precalculate_bars(struct vivi_fh *fh)
+ 		switch (fh->fmt->fourcc) {
+ 		case V4L2_PIX_FMT_YUYV:
+ 		case V4L2_PIX_FMT_UYVY:
++		case V4L2_PIX_FMT_YUV422PM:
++		case V4L2_PIX_FMT_NV16M:
+ 			is_yuv = 1;
+ 			break;
+ 		case V4L2_PIX_FMT_RGB565:
+@@ -410,6 +437,8 @@ static void gen_twopix(struct vivi_fh *fh, unsigned char *buf, int colorpos)
+ 
+ 		switch (fh->fmt->fourcc) {
+ 		case V4L2_PIX_FMT_YUYV:
++		case V4L2_PIX_FMT_YUV422PM:
++		case V4L2_PIX_FMT_NV16M:
+ 			switch (color) {
+ 			case 0:
+ 			case 2:
+@@ -558,30 +587,58 @@ end:
+ static void vivi_fillbuff(struct vivi_fh *fh, struct vivi_buffer *buf)
+ {
+ 	struct vivi_dev *dev = fh->dev;
+-	int h , pos = 0;
++	int i, x, h, curr_plane = 0, pos = 0;
+ 	int hmax  = buf->vb.height;
+ 	int wmax  = buf->vb.width;
+ 	struct timeval ts;
+-	char *tmpbuf;
+-	void *vbuf = videobuf_to_vmalloc(&buf->vb);
++	char *tmpbuf, *p_tmpbuf;
++	char *vbuf[VIDEO_MAX_PLANES];
 +
-+/*--------------------------------------------------------------------------*/
++	for (i = 0; i < fh->fmt->num_planes; ++i) {
++		vbuf[i] = videobuf_plane_to_vmalloc(&buf->vb, i);
++		if (!vbuf[i]) {
++			dprintk(dev, 1, "Failed acquiring vaddr for a plane\n");
++			return;
++		}
++	}
+ 
+-	if (!vbuf)
+-		return;
++	if (fh->fmt->num_planes > 1) {
++		tmpbuf = kmalloc(wmax * 2, GFP_ATOMIC);
++		if (!tmpbuf)
++			return;
 +
-+static int __init timbradio_init(void)
-+{
-+	return platform_driver_register(&timbradio_platform_driver);
++		for (h = 0; h < hmax; h++) {
++			gen_line(fh, tmpbuf, 0, wmax, hmax, h, dev->mv_count,
++				 dev->timestr);
++			p_tmpbuf = tmpbuf;
++
++			for (x = 0; x < wmax; ++x) {
++				*(vbuf[0]++) = *p_tmpbuf++;
++				*(vbuf[curr_plane + 1]++) = *p_tmpbuf++;
++				if (V4L2_PIX_FMT_YUV422PM == fh->fmt->fourcc)
++					curr_plane = !curr_plane;
++			}
++		}
+ 
+-	tmpbuf = kmalloc(wmax * 2, GFP_ATOMIC);
+-	if (!tmpbuf)
+-		return;
++		dev->mv_count++;
+ 
+-	for (h = 0; h < hmax; h++) {
+-		gen_line(fh, tmpbuf, 0, wmax, hmax, h, dev->mv_count,
+-			 dev->timestr);
+-		memcpy(vbuf + pos, tmpbuf, wmax * 2);
+-		pos += wmax*2;
+-	}
++		kfree(tmpbuf);
++	} else {
++		tmpbuf = kmalloc(wmax * 2, GFP_ATOMIC);
++		if (!tmpbuf)
++			return;
++
++		for (h = 0; h < hmax; h++) {
++			gen_line(fh, tmpbuf, 0, wmax, hmax, h, dev->mv_count,
++				 dev->timestr);
++			memcpy(vbuf[0] + pos, tmpbuf, wmax * 2);
++			pos += wmax*2;
++		}
+ 
+-	dev->mv_count++;
++		dev->mv_count++;
+ 
+-	kfree(tmpbuf);
++		kfree(tmpbuf);
++	}
+ 
+ 	/* Updates stream time */
+ 
+@@ -708,8 +765,6 @@ static int vivi_start_thread(struct vivi_fh *fh)
+ 	dma_q->frame = 0;
+ 	dma_q->ini_jiffies = jiffies;
+ 
+-	dprintk(dev, 1, "%s\n", __func__);
+-
+ 	dma_q->kthread = kthread_run(vivi_thread, fh, "vivi");
+ 
+ 	if (IS_ERR(dma_q->kthread)) {
+@@ -719,7 +774,6 @@ static int vivi_start_thread(struct vivi_fh *fh)
+ 	/* Wakes thread */
+ 	wake_up_interruptible(&dma_q->wq);
+ 
+-	dprintk(dev, 1, "returning from %s\n", __func__);
+ 	return 0;
+ }
+ 
+@@ -738,22 +792,66 @@ static void vivi_stop_thread(struct vivi_dmaqueue  *dma_q)
+ /* ------------------------------------------------------------------
+ 	Videobuf operations
+    ------------------------------------------------------------------*/
+-static int
+-buffer_setup(struct videobuf_queue *vq, unsigned int *count, unsigned int *size)
++static unsigned long get_plane_size(struct vivi_fh *fh, unsigned int plane)
+ {
+-	struct vivi_fh  *fh = vq->priv_data;
+-	struct vivi_dev *dev  = fh->dev;
++	unsigned long plane_size = 0;
++
++	if (plane >= fh->fmt->num_planes)
++		return 0;
++
++	if (1 == fh->fmt->num_planes) {
++		plane_size = fh->width * fh->height * 2;
++	} else {
++		if (0 == plane) {
++			plane_size = fh->width * fh->height;
++		} else {
++			plane_size = (fh->width >> 1) * fh->height;
++			if (2 == fh->fmt->num_planes)
++				plane_size *= 2;
++		}
++	}
++
++	return plane_size;
 +}
-+
-+static void __exit timbradio_exit(void)
++static int buffer_negotiate(struct videobuf_queue *vq, unsigned int *buf_count,
++			    unsigned int *plane_count)
 +{
-+	platform_driver_unregister(&timbradio_platform_driver);
++	struct vivi_fh *fh	= vq->priv_data;
++	struct vivi_dev *dev	= fh->dev;
++	unsigned int buf_size	= 0;
++	unsigned int i;
++
++	*plane_count = fh->fmt->num_planes;
++
++	if (0 == *buf_count)
++		*buf_count = 32;
++
++	for (i = 0; i < fh->fmt->num_planes; ++i)
++		buf_size += get_plane_size(fh, i);
++
++	while (buf_size * *buf_count > vid_limit * 1024 * 1024)
++		(*buf_count)--;
++
++	dprintk(dev, 1, "%s, buffer count=%d, plane count=%d\n",
++			__func__, *buf_count, *plane_count);
+ 
+-	*size = fh->width*fh->height*2;
++	return 0;
 +}
+ 
+-	if (0 == *count)
+-		*count = 32;
++static int buffer_setup_plane(struct videobuf_queue *vq, unsigned int plane,
++			      unsigned int *plane_size)
++{
++	struct vivi_fh *fh	= vq->priv_data;
++	struct vivi_dev *dev	= fh->dev;
+ 
+-	while (*size * *count > vid_limit * 1024 * 1024)
+-		(*count)--;
++	if (plane >= fh->fmt->num_planes) {
++		dprintk(dev, 1, "%s, invalid plane=%d\n", __func__, plane);
++		return -EINVAL;
++	}
+ 
+-	dprintk(dev, 1, "%s, count=%d, size=%d\n", __func__,
+-		*count, *size);
++	*plane_size = get_plane_size(fh, plane);
++	dprintk(dev, 1, "%s, plane=%d, size=%d\n",
++		__func__, plane, *plane_size);
+ 
+ 	return 0;
+ }
+@@ -783,6 +881,7 @@ buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
+ 	struct vivi_dev    *dev = fh->dev;
+ 	struct vivi_buffer *buf = container_of(vb, struct vivi_buffer, vb);
+ 	int rc;
++	unsigned int i;
+ 
+ 	dprintk(dev, 1, "%s, field=%d\n", __func__, field);
+ 
+@@ -792,9 +891,17 @@ buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
+ 	    fh->height < 32 || fh->height > norm_maxh())
+ 		return -EINVAL;
+ 
+-	buf->vb.size = fh->width*fh->height*2;
+-	if (0 != buf->vb.baddr  &&  buf->vb.bsize < buf->vb.size)
+-		return -EINVAL;
++	for (i = 0; i < fh->fmt->num_planes; ++i) {
++		buf->vb.planes[i].size = get_plane_size(fh, i);
 +
-+module_init(timbradio_init);
-+module_exit(timbradio_exit);
++		if (0 != buf->vb.planes[i].baddr
++		    && buf->vb.planes[i].bsize < buf->vb.planes[i].size) {
++			dprintk(dev, 1, "%s, invalid plane %u size: (%d<%lu)\n",
++				__func__, i, buf->vb.planes[i].bsize,
++				buf->vb.planes[i].size);
++			return -EINVAL;
++		}
++	}
+ 
+ 	/* These properties only change when queue is idle, see s_fmt */
+ 	buf->fmt       = fh->fmt;
+@@ -846,7 +953,8 @@ static void buffer_release(struct videobuf_queue *vq,
+ }
+ 
+ static struct videobuf_queue_ops vivi_video_qops = {
+-	.buf_setup      = buffer_setup,
++	.buf_negotiate  = buffer_negotiate,
++	.buf_setup_plane = buffer_setup_plane,
+ 	.buf_prepare    = buffer_prepare,
+ 	.buf_queue      = buffer_queue,
+ 	.buf_release    = buffer_release,
+@@ -948,8 +1056,9 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+ {
+ 	struct vivi_fh *fh = priv;
+ 	struct videobuf_queue *q = &fh->vb_vidq;
++	int ret;
+ 
+-	int ret = vidioc_try_fmt_vid_cap(file, fh, f);
++	ret = vidioc_try_fmt_vid_cap(file, fh, f);
+ 	if (ret < 0)
+ 		return ret;
+ 
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index bf3f33d..fbce9d7 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -314,6 +314,8 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_UYVY    v4l2_fourcc('U', 'Y', 'V', 'Y') /* 16  YUV 4:2:2     */
+ #define V4L2_PIX_FMT_VYUY    v4l2_fourcc('V', 'Y', 'U', 'Y') /* 16  YUV 4:2:2     */
+ #define V4L2_PIX_FMT_YUV422P v4l2_fourcc('4', '2', '2', 'P') /* 16  YVU422 planar */
++#define V4L2_PIX_FMT_YUV422PM v4l2_fourcc('4', '2', '2', 'M') /* 16 YUV422 multiplane */
 +
-+MODULE_DESCRIPTION("Timberdale Radio driver");
-+MODULE_AUTHOR("Mocean Laboratories <info@mocean-labs.com>");
-+MODULE_LICENSE("GPL v2");
-+MODULE_ALIAS("platform:"DRIVER_NAME);
-diff --git a/include/media/timb_radio.h b/include/media/timb_radio.h
-new file mode 100644
-index 0000000..fcd32a3
---- /dev/null
-+++ b/include/media/timb_radio.h
-@@ -0,0 +1,36 @@
-+/*
-+ * timb_radio.h Platform struct for the Timberdale radio driver
-+ * Copyright (c) 2009 Intel Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#ifndef _TIMB_RADIO_
-+#define _TIMB_RADIO_ 1
-+
-+#include <linux/i2c.h>
-+
-+struct timb_radio_platform_data {
-+	int i2c_adapter; /* I2C adapter where the tuner and dsp are attached */
-+	struct {
-+		const char *module_name;
-+		struct i2c_board_info *info;
-+	} tuner;
-+	struct {
-+		const char *module_name;
-+		struct i2c_board_info *info;
-+	} dsp;
-+};
-+
-+#endif
+ #define V4L2_PIX_FMT_YUV411P v4l2_fourcc('4', '1', '1', 'P') /* 16  YVU411 planar */
+ #define V4L2_PIX_FMT_Y41P    v4l2_fourcc('Y', '4', '1', 'P') /* 12  YUV 4:1:1     */
+ #define V4L2_PIX_FMT_YUV444  v4l2_fourcc('Y', '4', '4', '4') /* 16  xxxxyyyy uuuuvvvv */
+@@ -329,6 +331,7 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_NV12    v4l2_fourcc('N', 'V', '1', '2') /* 12  Y/CbCr 4:2:0  */
+ #define V4L2_PIX_FMT_NV21    v4l2_fourcc('N', 'V', '2', '1') /* 12  Y/CrCb 4:2:0  */
+ #define V4L2_PIX_FMT_NV16    v4l2_fourcc('N', 'V', '1', '6') /* 16  Y/CbCr 4:2:2  */
++#define V4L2_PIX_FMT_NV16M   v4l2_fourcc('N', 'M', '1', '6') /* 16  Y/CbCr multiplane 4:2:2 */
+ #define V4L2_PIX_FMT_NV61    v4l2_fourcc('N', 'V', '6', '1') /* 16  Y/CrCb 4:2:2  */
+ 
+ /* Bayer formats - see http://www.siliconimaging.com/RGB%20Bayer.htm */
+-- 
+1.7.0.31.g1df487
 
