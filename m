@@ -1,61 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:65086 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752575Ab0BHRDb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2010 12:03:31 -0500
-Received: by bwz19 with SMTP id 19so2038935bwz.28
-        for <linux-media@vger.kernel.org>; Mon, 08 Feb 2010 09:03:29 -0800 (PST)
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3610 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754861Ab0BVXYz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Feb 2010 18:24:55 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Brandon Philips <brandon@ifup.org>
+Subject: Re: [ANNOUNCE] git tree repositories & libv4l
+Date: Tue, 23 Feb 2010 00:26:59 +0100
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Douglas Landgraf <dougsland@gmail.com>
+References: <4B55445A.10300@infradead.org> <4B5B30E4.7030909@redhat.com> <20100222225426.GC4013@jenkins.home.ifup.org>
+In-Reply-To: <20100222225426.GC4013@jenkins.home.ifup.org>
 MIME-Version: 1.0
-In-Reply-To: <7e5e0d9a1002060914l11e6d0baje575675dd8b21404@mail.gmail.com>
-References: <7e5e0d9a1002060914l11e6d0baje575675dd8b21404@mail.gmail.com>
-Date: Mon, 8 Feb 2010 12:03:29 -0500
-Message-ID: <829197381002080903q1dfabd80qa53a738068ce5a87@mail.gmail.com>
-Subject: Re: [Bugme-new] [Bug 15087] New: hauppauge nova-t 500 remote
-	controller cause usb halt with Via usb controller
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: edm <fuffi.il.fuffo@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201002230026.59712.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Feb 6, 2010 at 12:14 PM, edm <fuffi.il.fuffo@gmail.com> wrote:
->> (switched to email.  Please respond via emailed reply-to-all, not via the
->> bugzilla web interface).
+On Monday 22 February 2010 23:54:26 Brandon Philips wrote:
+> On 18:24 Sat 23 Jan 2010, Hans de Goede wrote:
+> > >lib/
+> > >	libv4l1/
+> > >	libv4l2/
+> > >	libv4lconvert/
+> > >utils/
+> > >	v4l2-dbg
+> > >	v4l2-ctl
+> > >	cx18-ctl
+> > >	ivtv-ctl
+> > >contrib/
+> > >	test/
+> > >	everything else
+> > >
+> 
+>   git clone git://ifup.org/philips/create-v4l-utils.git
+>   cd create-v4l-utils/
+>   ./convert.sh 
+> 
+> You should now have v4l-utils.git which should have this directory
+> struture. If we need to move other things around let me know and I can
+> tweak name-filter.sh
+> 
+> Thoughts? Let me know how we should proceed with dropping v4l2-apps
+> from v4l-dvb.
+> 
+> Re: code style cleanup. I think we should do that once we drop
+> v4l2-apps/ from v4l-dvb and make the new v4l-utils.git upstream.
 
-<snip>
+Question: shouldn't we merge dvb-apps and v4l-utils? The alevtv tool was
+merged into dvb-apps, but while that tool supports dvb, it also supports
+v4l2. Just like we merged dvb and v4l in a single repository, so I think we
+should also merge the tools to a media-utils repository.
 
-> Hi, using the last version of v4l-dvb driver from hg, solved this
-> issue. I tested the card in the last days and it seems to work well
-> now; the IR receiver works, I tested it using irw, all the keys are
-> recognised.
-> I can't test the IR receiver with a specific program because the
-> .lircrc is ignored but I think it's a gnome-related problem :)
-> Is the option "dvb_usb_dib0700 force_lna_activation=1" still
-> necessary? Why this option is not activated at default?
+It remains a fact of life that dvb and v4l are connected and trying to
+artificially keep them apart does not make much sense to me.
 
-Hello edm,
+Regards,
 
-Sorry for the delayed response on this.
-
-Glad to hear it's now working for you.
-
-With regards to the force_lna_activation option, this was never
-actually related to the dib0700 firmware changes.  That option simply
-may or may not be required depending on what your signal conditions
-are.  Enabling the low noise amplifier is something that you will
-typically do only if your signal conditions are poor, which is why it
-is not enabled by default.
-
-The fix referred to in this bug report was strictly for the dib0700
-problem introduced as a result to changes for IR required to support
-the 1.20 firmware.
-
-Cheers,
-
-Devin
+	Hans
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
