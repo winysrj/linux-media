@@ -1,49 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:48118 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756413Ab0BXP3J (ORCPT
+Received: from mail-qy0-f191.google.com ([209.85.221.191]:63960 "EHLO
+	mail-qy0-f191.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753621Ab0BVTxc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Feb 2010 10:29:09 -0500
-Received: by bwz1 with SMTP id 1so1999930bwz.21
-        for <linux-media@vger.kernel.org>; Wed, 24 Feb 2010 07:29:08 -0800 (PST)
+	Mon, 22 Feb 2010 14:53:32 -0500
+Received: by qyk29 with SMTP id 29so370024qyk.21
+        for <linux-media@vger.kernel.org>; Mon, 22 Feb 2010 11:53:31 -0800 (PST)
+Message-ID: <4B82E0B5.5090508@gmail.com>
+Date: Mon, 22 Feb 2010 16:53:25 -0300
+From: Mauro Carvalho Chehab <maurochehab@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4B8544B3.4060902@ip-minds.de>
-References: <4B8544B3.4060902@ip-minds.de>
-Date: Wed, 24 Feb 2010 10:29:07 -0500
-Message-ID: <829197381002240729g7ae87931w6454accf075c6c59@mail.gmail.com>
-Subject: Re: [linux-dvb] cx23885 / HVR 1200 - A/V Inputs?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org,
+	Douglas Schilling Landgraf <dougsland@gmail.com>
+Subject: Re: [GIT FIXES FOR 2.6.34] uvcvideo updates
+References: <201002182121.51921.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201002182121.51921.laurent.pinchart@ideasonboard.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 24, 2010 at 10:24 AM, Jean-Michel Bruenn
-<jean.bruenn@ip-minds.de> wrote:
-> Hello,
->
-> i wanted to ask whether theres some progress or status on the cx23885
-> driver. DVB-T is working fine,
-> however - i'm currently interested into the A/V Inputs. Maybe there's some
-> alpha/beta thing to test?
->
-> http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-1200
->
-> Talking about this card and would like to use the A/V Inputs.
+Laurent Pinchart wrote:
+> Hi Mauro,
+> 
+> The following changes since commit 8e17df0d68f260e9e722b5f3adfa18f553542f93:
+>   Randy Dunlap (1):
+>         V4L/DVB: dvb: fix sparse warnings
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo
+> 
+> Laurent Pinchart (7):
+>       uvcvideo: Increase the streaming control timeout to 5 seconds
+>       uvcvideo: Use %pUl printk format specifier to print GUIDs
+>       uvcvideo: Return -ERANGE when setting a control to an out-of-range menu index
+>       uvcvideo: Cache control min, max, res and def query results
 
-Hi Jean,
+# ERROR: spaces prohibited around that ':' (ctx:WxW)
+# #213: FILE: drivers/media/video/uvc/uvcvideo.h:248:
+# +          modified : 1,
+#                     ^
+#  
+# ERROR: spaces prohibited around that ':' (ctx:WxW)
+# #214: FILE: drivers/media/video/uvc/uvcvideo.h:249:
+# +          cached : 1;
+#                   ^
+#
+# total: 2 errors, 0 warnings, 190 lines checked
 
-No, there hasn't really been any progress in this area.  I've started
-doing some work on the 23885 tree for the HVR-1800, all of which is
-work applicable for the 1200/1250.  But frankly those cards are a
-relatively low priority on my todo list and I'm only working on it in
-the background.
+As the other bitmask flags are also with spaces, I'll apply.
+Please fix them later.
 
 Cheers,
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Mauro
