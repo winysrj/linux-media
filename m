@@ -1,97 +1,380 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3255 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753070Ab0BWTrT (ORCPT
+Received: from ey-out-2122.google.com ([74.125.78.25]:29103 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752181Ab0BVJcR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2010 14:47:19 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id o1NJlF8u069526
-	for <linux-media@vger.kernel.org>; Tue, 23 Feb 2010 20:47:15 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 23 Feb 2010 20:47:15 +0100 (CET)
-Message-Id: <201002231947.o1NJlF8u069526@smtp-vbr13.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Mon, 22 Feb 2010 04:32:17 -0500
+Received: by ey-out-2122.google.com with SMTP id d26so508326eyd.19
+        for <linux-media@vger.kernel.org>; Mon, 22 Feb 2010 01:32:16 -0800 (PST)
+Date: Mon, 22 Feb 2010 18:32:15 +0900
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] fix some info messages
+Message-ID: <20100222183215.682c9350@glory.loctelecom.ru>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/wJvAOOkz/87=FC6=xWMrcEZ"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+--MP_/wJvAOOkz/87=FC6=xWMrcEZ
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Results of the daily build of v4l-dvb:
+Hi
 
-date:        Tue Feb 23 19:01:07 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14233:2e0444bf93a4
-gcc version: i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:     2.6.32.5
+Fix some messages for add information about TM6010
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-rc5-armv5: OK
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-rc5-armv5-davinci: WARNINGS
-linux-2.6.32.6-armv5-dm365: ERRORS
-linux-2.6.33-rc5-armv5-dm365: ERRORS
-linux-2.6.32.6-armv5-ixp: OK
-linux-2.6.33-rc5-armv5-ixp: OK
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-rc5-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.17-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.20-i686: OK
-linux-2.6.26.8-i686: OK
-linux-2.6.27.44-i686: OK
-linux-2.6.28.10-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-rc5-i686: OK
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-rc5-m32r: OK
-linux-2.6.32.6-mips: OK
-linux-2.6.33-rc5-mips: OK
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-rc5-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.17-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.20-x86_64: OK
-linux-2.6.26.8-x86_64: OK
-linux-2.6.27.44-x86_64: OK
-linux-2.6.28.10-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-rc5-x86_64: OK
-spec: OK
-sparse (v4l-dvb-git): ERRORS
-sparse (linux-2.6.33-rc5): ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: OK
-linux-2.6.19.7-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.7-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+diff -r ac88a0dd8fb7 linux/drivers/staging/tm6000/tm6000-alsa.c
+--- a/linux/drivers/staging/tm6000/tm6000-alsa.c	Sun Feb 21 21:00:16 2010 -0300
++++ b/linux/drivers/staging/tm6000/tm6000-alsa.c	Mon Feb 22 07:36:15 2010 -0500
+@@ -1,6 +1,6 @@
+ /*
+  *
+- *  Support for audio capture for tm5600/6000
++ *  Support for audio capture for tm5600/6000/6010
+  *    (c) 2007-2008 Mauro Carvalho Chehab <mchehab@redhat.com>
+  *
+  *  Based on cx88-alsa.c
+@@ -89,11 +89,12 @@
+ 				Module macros
+  ****************************************************************************/
+ 
+-MODULE_DESCRIPTION("ALSA driver module for tm5600/tm6000 based TV cards");
++MODULE_DESCRIPTION("ALSA driver module for tm5600/tm6000/tm6010 based TV cards");
+ MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@redhat.com>");
+ MODULE_LICENSE("GPL");
+ MODULE_SUPPORTED_DEVICE("{{Trident,tm5600},"
+-			"{{Trident,tm6000}");
++			"{{Trident,tm6000},"
++			"{{Trident,tm6010}");
+ static unsigned int debug;
+ module_param(debug, int, 0644);
+ MODULE_PARM_DESC(debug, "enable debug messages");
+diff -r ac88a0dd8fb7 linux/drivers/staging/tm6000/tm6000-cards.c
+--- a/linux/drivers/staging/tm6000/tm6000-cards.c	Sun Feb 21 21:00:16 2010 -0300
++++ b/linux/drivers/staging/tm6000/tm6000-cards.c	Mon Feb 22 07:36:15 2010 -0500
+@@ -1,5 +1,5 @@
+ /*
+-   tm6000-cards.c - driver for TM5600/TM6000 USB video capture devices
++   tm6000-cards.c - driver for TM5600/TM6000/TM6010 USB video capture devices
+ 
+    Copyright (C) 2006-2007 Mauro Carvalho Chehab <mchehab@infradead.org>
+ 
+@@ -799,6 +799,6 @@
+ module_init(tm6000_module_init);
+ module_exit(tm6000_module_exit);
+ 
+-MODULE_DESCRIPTION("Trident TVMaster TM5600/TM6000 USB2 adapter");
++MODULE_DESCRIPTION("Trident TVMaster TM5600/TM6000/TM6010 USB2 adapter");
+ MODULE_AUTHOR("Mauro Carvalho Chehab");
+ MODULE_LICENSE("GPL");
+diff -r ac88a0dd8fb7 linux/drivers/staging/tm6000/tm6000-core.c
+--- a/linux/drivers/staging/tm6000/tm6000-core.c	Sun Feb 21 21:00:16 2010 -0300
++++ b/linux/drivers/staging/tm6000/tm6000-core.c	Mon Feb 22 07:36:15 2010 -0500
+@@ -1,5 +1,5 @@
+ /*
+-   tm6000-core.c - driver for TM5600/TM6000 USB video capture devices
++   tm6000-core.c - driver for TM5600/TM6000/TM6010 USB video capture devices
+ 
+    Copyright (C) 2006-2007 Mauro Carvalho Chehab <mchehab@infradead.org>
+ 
+diff -r ac88a0dd8fb7 linux/drivers/staging/tm6000/tm6000-dvb.c
+--- a/linux/drivers/staging/tm6000/tm6000-dvb.c	Sun Feb 21 21:00:16 2010 -0300
++++ b/linux/drivers/staging/tm6000/tm6000-dvb.c	Mon Feb 22 07:36:15 2010 -0500
+@@ -1,5 +1,5 @@
+ /*
+-   tm6000-dvb.c - dvb-t support for TM5600/TM6000 USB video capture devices
++   tm6000-dvb.c - dvb-t support for TM5600/TM6000/TM6010 USB video capture devices
+ 
+    Copyright (C) 2007 Michel Ludwig <michel.ludwig@gmail.com>
+ 
+diff -r ac88a0dd8fb7 linux/drivers/staging/tm6000/tm6000-i2c.c
+--- a/linux/drivers/staging/tm6000/tm6000-i2c.c	Sun Feb 21 21:00:16 2010 -0300
++++ b/linux/drivers/staging/tm6000/tm6000-i2c.c	Mon Feb 22 07:36:15 2010 -0500
+@@ -1,5 +1,5 @@
+ /*
+-   tm6000-i2c.c - driver for TM5600/TM6000 USB video capture devices
++   tm6000-i2c.c - driver for TM5600/TM6000/TM6010 USB video capture devices
+ 
+    Copyright (C) 2006-2007 Mauro Carvalho Chehab <mchehab@infradead.org>
+ 
+diff -r ac88a0dd8fb7 linux/drivers/staging/tm6000/tm6000-regs.h
+--- a/linux/drivers/staging/tm6000/tm6000-regs.h	Sun Feb 21 21:00:16 2010 -0300
++++ b/linux/drivers/staging/tm6000/tm6000-regs.h	Mon Feb 22 07:36:15 2010 -0500
+@@ -1,5 +1,5 @@
+ /*
+-   tm6000-regs.h - driver for TM5600/TM6000 USB video capture devices
++   tm6000-regs.h - driver for TM5600/TM6000/TM6010 USB video capture devices
+ 
+    Copyright (C) 2006-2007 Mauro Carvalho Chehab <mchehab@infradead.org>
+ 
+@@ -18,7 +18,7 @@
+  */
+ 
+ /*
+- * Define TV Master TM5600/TM6000 Request codes
++ * Define TV Master TM5600/TM6000/TM6010 Request codes
+  */
+ #define REQ_00_SET_IR_VALUE		0
+ #define REQ_01_SET_WAKEUP_IRCODE	1
+@@ -49,7 +49,7 @@
+ 	/* Read : Slave Addr, register, 2, data */
+ 
+ /*
+- * Define TV Master TM5600/TM6000 GPIO lines
++ * Define TV Master TM5600/TM6000/TM6010 GPIO lines
+  */
+ 
+ #define TM6000_GPIO_CLK		0x101
+@@ -74,7 +74,7 @@
+ #define TM6010_GPIO_7      0x0301
+ #define TM6010_GPIO_9      0x0305
+ /*
+- * Define TV Master TM5600/TM6000 URB message codes and length
++ * Define TV Master TM5600/TM6000/TM6010 URB message codes and length
+  */
+ 
+ enum {
+diff -r ac88a0dd8fb7 linux/drivers/staging/tm6000/tm6000-stds.c
+--- a/linux/drivers/staging/tm6000/tm6000-stds.c	Sun Feb 21 21:00:16 2010 -0300
++++ b/linux/drivers/staging/tm6000/tm6000-stds.c	Mon Feb 22 07:36:15 2010 -0500
+@@ -1,5 +1,5 @@
+ /*
+-   tm6000-stds.c - driver for TM5600/TM6000 USB video capture devices
++   tm6000-stds.c - driver for TM5600/TM6000/TM6010 USB video capture devices
+ 
+    Copyright (C) 2007 Mauro Carvalho Chehab <mchehab@redhat.com>
+ 
+diff -r ac88a0dd8fb7 linux/drivers/staging/tm6000/tm6000-usb-isoc.h
+--- a/linux/drivers/staging/tm6000/tm6000-usb-isoc.h	Sun Feb 21 21:00:16 2010 -0300
++++ b/linux/drivers/staging/tm6000/tm6000-usb-isoc.h	Mon Feb 22 07:36:15 2010 -0500
+@@ -1,5 +1,5 @@
+ /*
+-   tm6000-buf.c - driver for TM5600/TM6000 USB video capture devices
++   tm6000-buf.c - driver for TM5600/TM6000/TM6010 USB video capture devices
+ 
+    Copyright (C) 2006-2007 Mauro Carvalho Chehab <mchehab@infradead.org>
+ 
+diff -r ac88a0dd8fb7 linux/drivers/staging/tm6000/tm6000-video.c
+--- a/linux/drivers/staging/tm6000/tm6000-video.c	Sun Feb 21 21:00:16 2010 -0300
++++ b/linux/drivers/staging/tm6000/tm6000-video.c	Mon Feb 22 07:36:15 2010 -0500
+@@ -1,5 +1,5 @@
+ /*
+-   tm6000-video.c - driver for TM5600/TM6000 USB video capture devices
++   tm6000-video.c - driver for TM5600/TM6000/TM6010 USB video capture devices
+ 
+    Copyright (C) 2006-2007 Mauro Carvalho Chehab <mchehab@infradead.org>
+ 
+@@ -925,7 +925,7 @@
+ 	//	struct tm6000_core *dev = ((struct tm6000_fh *)priv)->dev;
+ 
+ 	strlcpy(cap->driver, "tm6000", sizeof(cap->driver));
+-	strlcpy(cap->card,"Trident TVMaster TM5600/6000", sizeof(cap->card));
++	strlcpy(cap->card,"Trident TVMaster TM5600/6000/6010", sizeof(cap->card));
+ 	//	strlcpy(cap->bus_info, dev->udev->dev.bus_id, sizeof(cap->bus_info));
+ 	cap->version = TM6000_VERSION;
+ 	cap->capabilities =	V4L2_CAP_VIDEO_CAPTURE |
+@@ -1594,7 +1594,7 @@
+ 	video_set_drvdata(vfd, dev);
+ 
+ 	ret = video_register_device(dev->vfd, VFL_TYPE_GRABBER, video_nr);
+-	printk(KERN_INFO "Trident TVMaster TM5600/TM6000 USB2 board (Load status: %d)\n", ret);
++	printk(KERN_INFO "Trident TVMaster TM5600/TM6000/TM6010 USB2 board (Load status: %d)\n", ret);
+ 	return ret;
+ }
+ 
+diff -r ac88a0dd8fb7 linux/drivers/staging/tm6000/tm6000.h
+--- a/linux/drivers/staging/tm6000/tm6000.h	Sun Feb 21 21:00:16 2010 -0300
++++ b/linux/drivers/staging/tm6000/tm6000.h	Mon Feb 22 07:36:15 2010 -0500
+@@ -1,5 +1,5 @@
+ /*
+-   tm6000.h - driver for TM5600/TM6000 USB video capture devices
++   tm6000.h - driver for TM5600/TM6000/TM6010 USB video capture devices
+ 
+    Copyright (C) 2006-2007 Mauro Carvalho Chehab <mchehab@infradead.org>
+ 
 
-Detailed results are available here:
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+With my best regards, Dmitry.
 
-Full logs are available here:
+--MP_/wJvAOOkz/87=FC6=xWMrcEZ
+Content-Type: text/x-patch; name=tm6000_add_tm6010.patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=tm6000_add_tm6010.patch
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+diff -r ac88a0dd8fb7 linux/drivers/staging/tm6000/tm6000-alsa.c
+--- a/linux/drivers/staging/tm6000/tm6000-alsa.c	Sun Feb 21 21:00:16 2010 -0300
++++ b/linux/drivers/staging/tm6000/tm6000-alsa.c	Mon Feb 22 07:36:15 2010 -0500
+@@ -1,6 +1,6 @@
+ /*
+  *
+- *  Support for audio capture for tm5600/6000
++ *  Support for audio capture for tm5600/6000/6010
+  *    (c) 2007-2008 Mauro Carvalho Chehab <mchehab@redhat.com>
+  *
+  *  Based on cx88-alsa.c
+@@ -89,11 +89,12 @@
+ 				Module macros
+  ****************************************************************************/
+ 
+-MODULE_DESCRIPTION("ALSA driver module for tm5600/tm6000 based TV cards");
++MODULE_DESCRIPTION("ALSA driver module for tm5600/tm6000/tm6010 based TV cards");
+ MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@redhat.com>");
+ MODULE_LICENSE("GPL");
+ MODULE_SUPPORTED_DEVICE("{{Trident,tm5600},"
+-			"{{Trident,tm6000}");
++			"{{Trident,tm6000},"
++			"{{Trident,tm6010}");
+ static unsigned int debug;
+ module_param(debug, int, 0644);
+ MODULE_PARM_DESC(debug, "enable debug messages");
+diff -r ac88a0dd8fb7 linux/drivers/staging/tm6000/tm6000-cards.c
+--- a/linux/drivers/staging/tm6000/tm6000-cards.c	Sun Feb 21 21:00:16 2010 -0300
++++ b/linux/drivers/staging/tm6000/tm6000-cards.c	Mon Feb 22 07:36:15 2010 -0500
+@@ -1,5 +1,5 @@
+ /*
+-   tm6000-cards.c - driver for TM5600/TM6000 USB video capture devices
++   tm6000-cards.c - driver for TM5600/TM6000/TM6010 USB video capture devices
+ 
+    Copyright (C) 2006-2007 Mauro Carvalho Chehab <mchehab@infradead.org>
+ 
+@@ -799,6 +799,6 @@
+ module_init(tm6000_module_init);
+ module_exit(tm6000_module_exit);
+ 
+-MODULE_DESCRIPTION("Trident TVMaster TM5600/TM6000 USB2 adapter");
++MODULE_DESCRIPTION("Trident TVMaster TM5600/TM6000/TM6010 USB2 adapter");
+ MODULE_AUTHOR("Mauro Carvalho Chehab");
+ MODULE_LICENSE("GPL");
+diff -r ac88a0dd8fb7 linux/drivers/staging/tm6000/tm6000-core.c
+--- a/linux/drivers/staging/tm6000/tm6000-core.c	Sun Feb 21 21:00:16 2010 -0300
++++ b/linux/drivers/staging/tm6000/tm6000-core.c	Mon Feb 22 07:36:15 2010 -0500
+@@ -1,5 +1,5 @@
+ /*
+-   tm6000-core.c - driver for TM5600/TM6000 USB video capture devices
++   tm6000-core.c - driver for TM5600/TM6000/TM6010 USB video capture devices
+ 
+    Copyright (C) 2006-2007 Mauro Carvalho Chehab <mchehab@infradead.org>
+ 
+diff -r ac88a0dd8fb7 linux/drivers/staging/tm6000/tm6000-dvb.c
+--- a/linux/drivers/staging/tm6000/tm6000-dvb.c	Sun Feb 21 21:00:16 2010 -0300
++++ b/linux/drivers/staging/tm6000/tm6000-dvb.c	Mon Feb 22 07:36:15 2010 -0500
+@@ -1,5 +1,5 @@
+ /*
+-   tm6000-dvb.c - dvb-t support for TM5600/TM6000 USB video capture devices
++   tm6000-dvb.c - dvb-t support for TM5600/TM6000/TM6010 USB video capture devices
+ 
+    Copyright (C) 2007 Michel Ludwig <michel.ludwig@gmail.com>
+ 
+diff -r ac88a0dd8fb7 linux/drivers/staging/tm6000/tm6000-i2c.c
+--- a/linux/drivers/staging/tm6000/tm6000-i2c.c	Sun Feb 21 21:00:16 2010 -0300
++++ b/linux/drivers/staging/tm6000/tm6000-i2c.c	Mon Feb 22 07:36:15 2010 -0500
+@@ -1,5 +1,5 @@
+ /*
+-   tm6000-i2c.c - driver for TM5600/TM6000 USB video capture devices
++   tm6000-i2c.c - driver for TM5600/TM6000/TM6010 USB video capture devices
+ 
+    Copyright (C) 2006-2007 Mauro Carvalho Chehab <mchehab@infradead.org>
+ 
+diff -r ac88a0dd8fb7 linux/drivers/staging/tm6000/tm6000-regs.h
+--- a/linux/drivers/staging/tm6000/tm6000-regs.h	Sun Feb 21 21:00:16 2010 -0300
++++ b/linux/drivers/staging/tm6000/tm6000-regs.h	Mon Feb 22 07:36:15 2010 -0500
+@@ -1,5 +1,5 @@
+ /*
+-   tm6000-regs.h - driver for TM5600/TM6000 USB video capture devices
++   tm6000-regs.h - driver for TM5600/TM6000/TM6010 USB video capture devices
+ 
+    Copyright (C) 2006-2007 Mauro Carvalho Chehab <mchehab@infradead.org>
+ 
+@@ -18,7 +18,7 @@
+  */
+ 
+ /*
+- * Define TV Master TM5600/TM6000 Request codes
++ * Define TV Master TM5600/TM6000/TM6010 Request codes
+  */
+ #define REQ_00_SET_IR_VALUE		0
+ #define REQ_01_SET_WAKEUP_IRCODE	1
+@@ -49,7 +49,7 @@
+ 	/* Read : Slave Addr, register, 2, data */
+ 
+ /*
+- * Define TV Master TM5600/TM6000 GPIO lines
++ * Define TV Master TM5600/TM6000/TM6010 GPIO lines
+  */
+ 
+ #define TM6000_GPIO_CLK		0x101
+@@ -74,7 +74,7 @@
+ #define TM6010_GPIO_7      0x0301
+ #define TM6010_GPIO_9      0x0305
+ /*
+- * Define TV Master TM5600/TM6000 URB message codes and length
++ * Define TV Master TM5600/TM6000/TM6010 URB message codes and length
+  */
+ 
+ enum {
+diff -r ac88a0dd8fb7 linux/drivers/staging/tm6000/tm6000-stds.c
+--- a/linux/drivers/staging/tm6000/tm6000-stds.c	Sun Feb 21 21:00:16 2010 -0300
++++ b/linux/drivers/staging/tm6000/tm6000-stds.c	Mon Feb 22 07:36:15 2010 -0500
+@@ -1,5 +1,5 @@
+ /*
+-   tm6000-stds.c - driver for TM5600/TM6000 USB video capture devices
++   tm6000-stds.c - driver for TM5600/TM6000/TM6010 USB video capture devices
+ 
+    Copyright (C) 2007 Mauro Carvalho Chehab <mchehab@redhat.com>
+ 
+diff -r ac88a0dd8fb7 linux/drivers/staging/tm6000/tm6000-usb-isoc.h
+--- a/linux/drivers/staging/tm6000/tm6000-usb-isoc.h	Sun Feb 21 21:00:16 2010 -0300
++++ b/linux/drivers/staging/tm6000/tm6000-usb-isoc.h	Mon Feb 22 07:36:15 2010 -0500
+@@ -1,5 +1,5 @@
+ /*
+-   tm6000-buf.c - driver for TM5600/TM6000 USB video capture devices
++   tm6000-buf.c - driver for TM5600/TM6000/TM6010 USB video capture devices
+ 
+    Copyright (C) 2006-2007 Mauro Carvalho Chehab <mchehab@infradead.org>
+ 
+diff -r ac88a0dd8fb7 linux/drivers/staging/tm6000/tm6000-video.c
+--- a/linux/drivers/staging/tm6000/tm6000-video.c	Sun Feb 21 21:00:16 2010 -0300
++++ b/linux/drivers/staging/tm6000/tm6000-video.c	Mon Feb 22 07:36:15 2010 -0500
+@@ -1,5 +1,5 @@
+ /*
+-   tm6000-video.c - driver for TM5600/TM6000 USB video capture devices
++   tm6000-video.c - driver for TM5600/TM6000/TM6010 USB video capture devices
+ 
+    Copyright (C) 2006-2007 Mauro Carvalho Chehab <mchehab@infradead.org>
+ 
+@@ -925,7 +925,7 @@
+ 	//	struct tm6000_core *dev = ((struct tm6000_fh *)priv)->dev;
+ 
+ 	strlcpy(cap->driver, "tm6000", sizeof(cap->driver));
+-	strlcpy(cap->card,"Trident TVMaster TM5600/6000", sizeof(cap->card));
++	strlcpy(cap->card,"Trident TVMaster TM5600/6000/6010", sizeof(cap->card));
+ 	//	strlcpy(cap->bus_info, dev->udev->dev.bus_id, sizeof(cap->bus_info));
+ 	cap->version = TM6000_VERSION;
+ 	cap->capabilities =	V4L2_CAP_VIDEO_CAPTURE |
+@@ -1594,7 +1594,7 @@
+ 	video_set_drvdata(vfd, dev);
+ 
+ 	ret = video_register_device(dev->vfd, VFL_TYPE_GRABBER, video_nr);
+-	printk(KERN_INFO "Trident TVMaster TM5600/TM6000 USB2 board (Load status: %d)\n", ret);
++	printk(KERN_INFO "Trident TVMaster TM5600/TM6000/TM6010 USB2 board (Load status: %d)\n", ret);
+ 	return ret;
+ }
+ 
+diff -r ac88a0dd8fb7 linux/drivers/staging/tm6000/tm6000.h
+--- a/linux/drivers/staging/tm6000/tm6000.h	Sun Feb 21 21:00:16 2010 -0300
++++ b/linux/drivers/staging/tm6000/tm6000.h	Mon Feb 22 07:36:15 2010 -0500
+@@ -1,5 +1,5 @@
+ /*
+-   tm6000.h - driver for TM5600/TM6000 USB video capture devices
++   tm6000.h - driver for TM5600/TM6000/TM6010 USB video capture devices
+ 
+    Copyright (C) 2006-2007 Mauro Carvalho Chehab <mchehab@infradead.org>
+ 
 
-The V4L-DVB specification from this daily build is here:
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+--MP_/wJvAOOkz/87=FC6=xWMrcEZ--
