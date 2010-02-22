@@ -1,91 +1,208 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1748 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757975Ab0BLWof (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:17507 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753807Ab0BVPwI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Feb 2010 17:44:35 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 22 Feb 2010 10:52:08 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 To: linux-media@vger.kernel.org
-Subject: Re: Proposal for a V4L2 Media Controller mini-summit
-Date: Fri, 12 Feb 2010 23:46:49 +0100
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Laurent Pinchart <laurent.pinchart@skynet.be>,
-	Vaibhav Hiremath <hvaibhav@ti.com>,
-	"Gole, Anant" <anantgole@ti.com>,
-	Muralidharan Karicheri <m-karicheri2@ti.com>,
-	Sergio Rodriguez <saaguirre@ti.com>, molnar@ti.com,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Guru Raj <gururaj.nagendra@intel.com>,
-	"Zhang, Xiaolin" <xiaolin.zhang@intel.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	"Jin-Sung Yang" <jsgood.yang@samsung.com>,
-	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
-	Kyungmin Park <kmpark@infradead.org>, mcharleb@qualcomm.com,
-	hrao@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>
-References: <201002121550.08706.hverkuil@xs4all.nl>
-In-Reply-To: <201002121550.08706.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201002122346.49071.hverkuil@xs4all.nl>
+Cc: laurent.pinchart@nokia.com, hverkuil@xs4all.nl,
+	david.cohen@nokia.com
+Subject: [PATCH 1/6] V4L: File handles
+Date: Mon, 22 Feb 2010 17:51:32 +0200
+Message-Id: <1266853897-25749-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4B82A7FB.50505@maxwell.research.nokia.com>
+References: <4B82A7FB.50505@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 12 February 2010 15:50:08 Hans Verkuil wrote:
-> I do not know on which dates exactly such a summit can take place. There
-> are three possibilities:
-> 
-> April 10-11/12
-> April 12-14 
-> April 14/15-16
-> 
-> I think that registering for the ELC gives to free access to the Collaboration
-> Summit, but I'm waiting for a confirmation on that.
+This patch adds a list of v4l2_fh structures to every video_device.
+It allows using file handle related information in V4L2. The event interface
+is one example of such use.
 
-This is confirmed. I quote:
+Video device drivers should use the v4l2_fh pointer as their
+file->private_data.
 
-"There is no fee for the Collaboration Summit, but it is invitation only
-to control attendance.  However, if you register for ELC, you are
-automatically accepted for attendance at the Collab Summit.
-So essentially, one registration fee (for ELC) covers both."
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/Makefile   |    2 +-
+ drivers/media/video/v4l2-dev.c |    4 ++
+ drivers/media/video/v4l2-fh.c  |   64 ++++++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-dev.h       |    5 +++
+ include/media/v4l2-fh.h        |   42 ++++++++++++++++++++++++++
+ 5 files changed, 116 insertions(+), 1 deletions(-)
+ create mode 100644 drivers/media/video/v4l2-fh.c
+ create mode 100644 include/media/v4l2-fh.h
 
-I also received confirmation that the Linux Foundation can reserve a room
-for a summit meeting from April 14-16 (so during the Collaboration Summit).
-
-So let's target those dates for a summit meeting. It fits nicely with the
-actual Embedded Linux Conference, I think.
-
-Regards,
-
-	Hans
-
-> 
-> I'm not keen on the center option (12-14 April) since that often means that
-> you don't see a lot of the conference itself. And the ELC is generally quite
-> interesting.
-> 
-> There is another alternative and that is that I organize a mini-summit in May
-> in Lysaker (near Oslo, Norway) at the Tandberg offices. But frankly I think
-> that it is more fun to do this during/before/after a conference. If only
-> because there are a lot of linux kernel experts on hand during such a
-> conference that you can ask for help if needed.
-> 
-> Please let me know asap if you are interested in attending such a mini-summit
-> and what dates are possible for you:
-> 
-> a: April 10-11 (or 12)
-> b: April 12-14 
-> c: April 14 (or 15)-16
-> d: Somewhere in May (suggestions for dates are welcome)
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> 
-
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index 5163289..14bf69a 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -10,7 +10,7 @@ stkwebcam-objs	:=	stk-webcam.o stk-sensor.o
+ 
+ omap2cam-objs	:=	omap24xxcam.o omap24xxcam-dma.o
+ 
+-videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o
++videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o
+ 
+ # V4L2 core modules
+ 
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index 7090699..65a7b30 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -421,6 +421,10 @@ static int __video_register_device(struct video_device *vdev, int type, int nr,
+ 	if (!vdev->release)
+ 		return -EINVAL;
+ 
++	/* v4l2_fh support */
++	spin_lock_init(&vdev->fh_lock);
++	INIT_LIST_HEAD(&vdev->fh_list);
++
+ 	/* Part 1: check device type */
+ 	switch (type) {
+ 	case VFL_TYPE_GRABBER:
+diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
+new file mode 100644
+index 0000000..c707930
+--- /dev/null
++++ b/drivers/media/video/v4l2-fh.c
+@@ -0,0 +1,64 @@
++/*
++ * drivers/media/video/v4l2-fh.c
++ *
++ * V4L2 file handles.
++ *
++ * Copyright (C) 2009 Nokia Corporation.
++ *
++ * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#include <linux/bitops.h>
++#include <media/v4l2-dev.h>
++#include <media/v4l2-fh.h>
++
++void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
++{
++	fh->vdev = vdev;
++	INIT_LIST_HEAD(&fh->list);
++	set_bit(V4L2_FL_USES_V4L2_FH, &fh->vdev->flags);
++}
++EXPORT_SYMBOL_GPL(v4l2_fh_init);
++
++void v4l2_fh_add(struct v4l2_fh *fh)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
++	list_add(&fh->list, &fh->vdev->fh_list);
++	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
++}
++EXPORT_SYMBOL_GPL(v4l2_fh_add);
++
++void v4l2_fh_del(struct v4l2_fh *fh)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
++	list_del_init(&fh->list);
++	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
++}
++EXPORT_SYMBOL_GPL(v4l2_fh_del);
++
++void v4l2_fh_exit(struct v4l2_fh *fh)
++{
++	if (fh->vdev == NULL)
++		return;
++
++	fh->vdev = NULL;
++}
++EXPORT_SYMBOL_GPL(v4l2_fh_exit);
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 2dee938..bebe44b 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -32,6 +32,7 @@ struct v4l2_device;
+    Drivers can clear this flag if they want to block all future
+    device access. It is cleared by video_unregister_device. */
+ #define V4L2_FL_REGISTERED	(0)
++#define V4L2_FL_USES_V4L2_FH	(1)
+ 
+ struct v4l2_file_operations {
+ 	struct module *owner;
+@@ -77,6 +78,10 @@ struct video_device
+ 	/* attribute to differentiate multiple indices on one physical device */
+ 	int index;
+ 
++	/* V4L2 file handles */
++	spinlock_t		fh_lock; /* Lock for all v4l2_fhs */
++	struct list_head	fh_list; /* List of struct v4l2_fh */
++
+ 	int debug;			/* Activates debug level*/
+ 
+ 	/* Video standard vars */
+diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
+new file mode 100644
+index 0000000..6b486aa
+--- /dev/null
++++ b/include/media/v4l2-fh.h
+@@ -0,0 +1,42 @@
++/*
++ * include/media/v4l2-fh.h
++ *
++ * V4L2 file handle.
++ *
++ * Copyright (C) 2009 Nokia Corporation.
++ *
++ * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#ifndef V4L2_FH_H
++#define V4L2_FH_H
++
++#include <linux/list.h>
++
++struct video_device;
++
++struct v4l2_fh {
++	struct list_head	list;
++	struct video_device	*vdev;
++};
++
++void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev);
++void v4l2_fh_add(struct v4l2_fh *fh);
++void v4l2_fh_del(struct v4l2_fh *fh);
++void v4l2_fh_exit(struct v4l2_fh *fh);
++
++#endif /* V4L2_EVENT_H */
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+1.5.6.5
+
