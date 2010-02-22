@@ -1,46 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f223.google.com ([209.85.218.223]:60434 "EHLO
-	mail-bw0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756048Ab0BAUSX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Feb 2010 15:18:23 -0500
-Received: by bwz23 with SMTP id 23so21455bwz.21
-        for <linux-media@vger.kernel.org>; Mon, 01 Feb 2010 12:18:21 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <21ce51251002011149u1139c57em1fd8ca2427a188f2@mail.gmail.com>
-References: <4B60A983.7040405@gmail.com>
-	 <21ce51251002011145g1def10b4w8e6d17557d958180@mail.gmail.com>
-	 <21ce51251002011148h53629ad8vf161cdcf918a3fe8@mail.gmail.com>
-	 <21ce51251002011149u1139c57em1fd8ca2427a188f2@mail.gmail.com>
-Date: Mon, 1 Feb 2010 15:18:21 -0500
-Message-ID: <829197381002011218p70e8d216qc25a5e8b81d291c3@mail.gmail.com>
-Subject: Re: dmesg output with Pinnacle PCTV USB Stick
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Arnaud Boy <psykauze@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp.nokia.com ([192.100.122.233]:40225 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754948Ab0BVXBs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Feb 2010 18:01:48 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	david.cohen@nokia.com
+Subject: [PATCH v7 2/6] V4L: File handles: Add documentation
+Date: Tue, 23 Feb 2010 01:01:37 +0200
+Message-Id: <1266879701-9814-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4B830CCA.8030909@maxwell.research.nokia.com>
+References: <4B830CCA.8030909@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 1, 2010 at 2:49 PM, Arnaud Boy <psykauze@gmail.com> wrote:
-> Hi!
->
-> I've a card "PINNACLE PCTV HYBRID PRO (2)" with the PCI ID
-> "0x2304:0x0226". This is work on analog mode but the "em28xx" module
-> don't register dvb interface.
->
-> I think the card could work if we uncomment the commented part in the
-> section [EM2882_BOARD_PINNACLE_HYBRID_PRO] from the
-> "/linux/drivers/media/video/em28xx/em28xx-cards.c" file and we add his
-> reference card at the "/linux/drivers/media/video/em28xx/em28xx-dvb.c"
->
-> You can(must?) explain me why we couldn't have this card work with your driver.
+Add documentation on using V4L2 file handles (v4l2_fh) in V4L2 drivers.
 
-The 2304:0226 is the PCTV 330e.  The DVB side is not currently
-supported do to issues with the drx-d driver.  Search the linux-media
-archives for "330e" for the history of this issue.
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ Documentation/video4linux/v4l2-framework.txt |   37 ++++++++++++++++++++++++++
+ 1 files changed, 37 insertions(+), 0 deletions(-)
 
-Devin
-
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index 74d677c..bfaf0c5 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -695,3 +695,40 @@ The better way to understand it is to take a look at vivi driver. One
+ of the main reasons for vivi is to be a videobuf usage example. the
+ vivi_thread_tick() does the task that the IRQ callback would do on PCI
+ drivers (or the irq callback on USB).
++
++struct v4l2_fh
++--------------
++
++struct v4l2_fh provides a way to easily keep file handle specific data
++that is used by the V4L2 framework.
++
++struct v4l2_fh is allocated as a part of the driver's own file handle
++structure and is set to file->private_data in the driver's open
++function by the driver. Drivers can extract their own file handle
++structure by using the container_of macro.
++
++Useful functions:
++
++- v4l2_fh_init()
++
++  Initialise the file handle. This *MUST* be performed in the driver's
++  v4l2_file_operations->open() handler.
++
++- v4l2_fh_add()
++
++  Add a v4l2_fh to video_device file handle list. May be called after
++  initialising the file handle.
++
++- v4l2_fh_del()
++
++  Unassociate the file handle from video_device(). The file handle
++  exit function may now be called.
++
++- v4l2_fh_exit()
++
++  Uninitialise the file handle. After uninitialisation the v4l2_fh
++  memory can be freed.
++
++The users of v4l2_fh know whether a driver uses v4l2_fh as its
++file->private_data pointer by testing the V4L2_FL_USES_V4L2_FH bit in
++video_device->flags.
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.5.6.5
+
