@@ -1,107 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tango.tkos.co.il ([62.219.50.35]:36997 "EHLO tango.tkos.co.il"
+Received: from mx1.redhat.com ([209.132.183.28]:63588 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752544Ab0BTTCU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Feb 2010 14:02:20 -0500
-Date: Sat, 20 Feb 2010 21:01:36 +0200
-From: Baruch Siach <baruch@tkos.co.il>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] v4l: soc_camera: fix bound checking of mbus_fmt[] index
-Message-ID: <20100220190136.GA13389@tarshish>
-References: <f9972846401291b8619792d11869510e856ee202.1266472904.git.baruch@tkos.co.il>
- <Pine.LNX.4.64.1002191812490.5860@axis700.grange>
+	id S1753804Ab0BVPQx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Feb 2010 10:16:53 -0500
+Message-ID: <4B829FD6.30209@redhat.com>
+Date: Mon, 22 Feb 2010 12:16:38 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1002191812490.5860@axis700.grange>
+To: stefan.ringel@arcor.de
+CC: linux-media@vger.kernel.org, dheitmueller@kernellabs.com
+Subject: Re: [PATCH 1/3] tm6000: add send and recv function
+References: <1266783036-6549-1-git-send-email-stefan.ringel@arcor.de>
+In-Reply-To: <1266783036-6549-1-git-send-email-stefan.ringel@arcor.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+stefan.ringel@arcor.de wrote:
+> From: Stefan Ringel <stefan.ringel@arcor.de>
 
-On Fri, Feb 19, 2010 at 06:26:06PM +0100, Guennadi Liakhovetski wrote:
-> On Thu, 18 Feb 2010, Baruch Siach wrote:
-> 
-> Thanks for the patch, but I decided to improve it a bit. In fact, the only 
-> case my original version was missing was code == V4L2_MBUS_FMT_FIXED, the 
-> correct test would be
-> 
-> (unsigned int)(code - V4L2_MBUS_FMT_FIXED -1) >= ARRAY_SIZE(mbus_fmt)
-> 
-> but to make it simple we can indeed break this into two tests, the 
-> compiler will optimise it for us. So, if you agree, I'll push the version 
-> of your patch, attached at the bottom of this mail, for 2.6.33, so, please 
-> reply asap...
 
-That's OK by me.
+drivers/staging/tm6000/tm6000-i2c.c: In function ‘tm6000_i2c_recv_regs’:
+drivers/staging/tm6000/tm6000-i2c.c:58: error: ‘USB_VENDOR_TYPE’ undeclared (first use in this function)
+drivers/staging/tm6000/tm6000-i2c.c:58: error: (Each undeclared identifier is reported only once
+drivers/staging/tm6000/tm6000-i2c.c:58: error: for each function it appears in.)
+drivers/staging/tm6000/tm6000-i2c.c: In function ‘tm6000_i2c_recv_regs16’:
+drivers/staging/tm6000/tm6000-i2c.c:69: error: ‘USB_VENDOR_TYPE’ undeclared (first use in this function)
+drivers/staging/tm6000/tm6000-i2c.c: In function ‘tm6000_i2c_xfer’:
+drivers/staging/tm6000/tm6000-i2c.c:107: error: expected ‘)’ before ‘{’ token
+drivers/staging/tm6000/tm6000-i2c.c: In function ‘tm6000_i2c_eeprom’:
+drivers/staging/tm6000/tm6000-i2c.c:161: error: implicit declaration of function ‘tm6000_i2c_revc_regs’
 
-baruch
+Each patch shouldn't break compilation, or it would call git bisect troubles.
 
-> > When code <= V4L2_MBUS_FMT_FIXED soc_mbus_get_fmtdesc returns a pointer to
-> > mbus_fmt[x], where x < 0. Fix this.
-> > 
-> > Signed-off-by: Baruch Siach <baruch@tkos.co.il>
-> > ---
-> >  drivers/media/video/soc_mediabus.c |    2 ++
-> >  1 files changed, 2 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/soc_mediabus.c b/drivers/media/video/soc_mediabus.c
-> > index f8d5c87..a2808e2 100644
-> > --- a/drivers/media/video/soc_mediabus.c
-> > +++ b/drivers/media/video/soc_mediabus.c
-> > @@ -136,6 +136,8 @@ const struct soc_mbus_pixelfmt *soc_mbus_get_fmtdesc(
-> >  {
-> >  	if ((unsigned int)(code - V4L2_MBUS_FMT_FIXED) > ARRAY_SIZE(mbus_fmt))
-> >  		return NULL;
-> > +	if ((unsigned int)code <= V4L2_MBUS_FMT_FIXED)
-> > +		return NULL;
-> >  	return mbus_fmt + code - V4L2_MBUS_FMT_FIXED - 1;
-> >  }
-> >  EXPORT_SYMBOL(soc_mbus_get_fmtdesc);
-> > -- 
-> > 1.6.6.1
-> > 
+
 > 
+> Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
 > ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
+>  drivers/staging/tm6000/tm6000-i2c.c |   48 +++++++++++++++++++++++++---------
+>  1 files changed, 35 insertions(+), 13 deletions(-)
 > 
-> 
-> From 00109d655b4b8cf25bc68a215966be810e372e87 Mon Sep 17 00:00:00 2001
-> From: Baruch Siach <baruch@tkos.co.il>
-> Date: Fri, 19 Feb 2010 18:09:25 +0100
-> Subject: [PATCH] v4l: soc_camera: fix bound checking of mbus_fmt[] index
-> 
-> When code <= V4L2_MBUS_FMT_FIXED soc_mbus_get_fmtdesc returns a pointer to
-> mbus_fmt[x], where x < 0. Fix this.
-> 
-> Signed-off-by: Baruch Siach <baruch@tkos.co.il>
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
->  drivers/media/video/soc_mediabus.c |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/soc_mediabus.c b/drivers/media/video/soc_mediabus.c
-> index f8d5c87..a4c0ef4 100644
-> --- a/drivers/media/video/soc_mediabus.c
-> +++ b/drivers/media/video/soc_mediabus.c
-> @@ -134,7 +134,8 @@ EXPORT_SYMBOL(soc_mbus_bytes_per_line);
->  const struct soc_mbus_pixelfmt *soc_mbus_get_fmtdesc(
->  	enum v4l2_mbus_pixelcode code)
+> diff --git a/drivers/staging/tm6000/tm6000-i2c.c b/drivers/staging/tm6000/tm6000-i2c.c
+> index 656cd19..b563129 100644
+> --- a/drivers/staging/tm6000/tm6000-i2c.c
+> +++ b/drivers/staging/tm6000/tm6000-i2c.c
+> @@ -44,6 +44,32 @@ MODULE_PARM_DESC(i2c_debug, "enable debug messages [i2c]");
+>  			printk(KERN_DEBUG "%s at %s: " fmt, \
+>  			dev->name, __FUNCTION__ , ##args); } while (0)
+>  
+> +int tm6000_i2c_send_regs(struct tm6000_core *dev, unsigned char addr, __u8 reg, char *buf, int len)
+> +{
+> +	return tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+> +		REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0, buf, len);
+> +}
+> +
+> +/* read from a 8bit register */
+> +int tm6000_i2c_recv_regs(struct tm6000_core *dev, unsigned char addr, __u8 reg, char *buf, int len)
+> +{
+> +	int rc;
+> +
+> +		rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_VENDOR_TYPE | USB_RECIP_DEVICE,
+> +			REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0, buf, len);
+> +
+> +	return rc;
+> +}
+> +
+> +/* read from a 16bit register
+> + * for example xc2028, xc3028 or xc3028L 
+> + */
+> +int tm6000_i2c_recv_regs16(struct tm6000_core *dev, unsigned char addr, __u16 reg, char *buf, int len)
+> +{
+> +	return tm6000_read_write_usb(dev, USB_DIR_IN | USB_VENDOR_TYPE | USB_RECIP_DEVICE,
+> +		REQ_14_SET_GET_I2C_WR2_RDN, addr, reg, buf, len);
+> +} 
+> +
+>  static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
+>  			   struct i2c_msg msgs[], int num)
 >  {
-> -	if ((unsigned int)(code - V4L2_MBUS_FMT_FIXED) > ARRAY_SIZE(mbus_fmt))
-> +	if (code - V4L2_MBUS_FMT_FIXED > ARRAY_SIZE(mbus_fmt) ||
-> +	    code <= V4L2_MBUS_FMT_FIXED)
->  		return NULL;
->  	return mbus_fmt + code - V4L2_MBUS_FMT_FIXED - 1;
->  }
-> -- 
-> 1.6.2.4
-> 
+> @@ -78,13 +104,14 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
+>  			i2c_dprintk(2, "; joined to read %s len=%d:",
+>  				    i == num - 2 ? "stop" : "nonstop",
+>  				    msgs[i + 1].len);
+> -			rc = tm6000_read_write_usb (dev,
+> -				USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+> -				msgs[i].len == 1 ? REQ_16_SET_GET_I2C_WR1_RDN
+> -						 : REQ_14_SET_GET_I2C_WR2_RDN,
+> -				addr | msgs[i].buf[0] << 8,
+> -				msgs[i].len == 1 ? 0 : msgs[i].buf[1],
+> +			if (msgs{i].len == 1) {
+> +				rc = tm6000_i2c_recv_regs(dev, addr, msgs[i].buf[0],
+>  				msgs[i + 1].buf, msgs[i + 1].len);
+> +			} else {
+> +				rc = tm6000_i2c_recv_regs(dev, addr, msgs[i].buf[0] << 8 | msgs[i].buf[1],
+> +				msgs[i + 1].buf, msgs[i + 1].len);
+> +			}
+> +
+>  			i++;
+>  
+>  			if (addr == dev->tuner_addr) {
+> @@ -99,10 +126,7 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
+>  			if (i2c_debug >= 2)
+>  				for (byte = 0; byte < msgs[i].len; byte++)
+>  					printk(" %02x", msgs[i].buf[byte]);
+> -			rc = tm6000_read_write_usb(dev,
+> -				USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+> -				REQ_16_SET_GET_I2C_WR1_RDN,
+> -				addr | msgs[i].buf[0] << 8, 0,
+> +			rc = tm6000_i2c_send_regs(dev, addr, msgs[i].buf[0],
+>  				msgs[i].buf + 1, msgs[i].len - 1);
+>  
+>  			if (addr == dev->tuner_addr) {
+> @@ -134,9 +158,7 @@ static int tm6000_i2c_eeprom(struct tm6000_core *dev,
+>  	bytes[16] = '\0';
+>  	for (i = 0; i < len; ) {
+>  	*p = i;
+> -	rc = tm6000_read_write_usb (dev,
+> -		USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+> -		REQ_16_SET_GET_I2C_WR1_RDN, 0xa0 | i<<8, 0, p, 1);
+> +	rc = tm6000_i2c_revc_regs(dev, 0xa0, i, p, 1);
+>  		if (rc < 1) {
+>  			if (p == eedata)
+>  				goto noeeprom;
+
 
 -- 
-                                                     ~. .~   Tk Open Systems
-=}------------------------------------------------ooO--U--Ooo------------{=
-   - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
+
+Cheers,
+Mauro
