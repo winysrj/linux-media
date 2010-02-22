@@ -1,131 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:53364 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S932810Ab0BEOBM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Feb 2010 09:01:12 -0500
-Subject: Re: Need to discuss method for multiple, multiple-PID TS's from
- same demux (Re: Videotext application crashes the kernel due to DVB-demux
- patch)
-From: Chicken Shack <chicken.shack@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Andreas Oberritter <obi@linuxtv.org>,
-	Andy Walls <awalls@radix.net>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	linux-media@vger.kernel.org, akpm@linux-foundation.org,
-	torvalds@linux-foundation.org
-In-Reply-To: <4B6C1CFC.6090600@redhat.com>
-References: <1265018173.2449.19.camel@brian.bconsult.de>
-	 <1265028110.3098.3.camel@palomino.walls.org>
-	 <1265076008.3120.96.camel@palomino.walls.org>
-	 <1265101869.1721.28.camel@brian.bconsult.de>
-	 <1265115172.3104.17.camel@palomino.walls.org>
-	 <1265158862.3194.22.camel@pc07.localdom.local>
-	 <1265288042.3928.9.camel@palomino.walls.org>
-	 <1265292421.3258.53.camel@brian.bconsult.de>
-	 <1265336477.3071.29.camel@palomino.walls.org>
-	 <4B6C1AF7.2090503@linuxtv.org>  <4B6C1CFC.6090600@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 05 Feb 2010 14:58:17 +0100
-Message-ID: <1265378297.4655.13.camel@brian.bconsult.de>
-Mime-Version: 1.0
+Received: from smtp.nokia.com ([192.100.122.233]:34874 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751965Ab0BVJmk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Feb 2010 04:42:40 -0500
+Message-ID: <4B82515E.3030106@maxwell.research.nokia.com>
+Date: Mon, 22 Feb 2010 11:41:50 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, iivanov@mm-sol.com,
+	gururaj.nagendra@intel.com, david.cohen@nokia.com
+Subject: Re: [PATCH v5 5/6] V4L: Events: Support event handling in do_ioctl
+References: <4B7EE4A4.3080202@maxwell.research.nokia.com>    <4B81B44F.7080201@maxwell.research.nokia.com>    <201002220853.53921.hverkuil@xs4all.nl>    <201002221010.21248.laurent.pinchart@ideasonboard.com> <3b2a22bbd1fd71331d3407c3653391b4.squirrel@webmail.xs4all.nl>
+In-Reply-To: <3b2a22bbd1fd71331d3407c3653391b4.squirrel@webmail.xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Freitag, den 05.02.2010, 11:28 -0200 schrieb Mauro Carvalho Chehab:
-> Andreas Oberritter wrote:
-> > Hello Andy,
-> > 
-> > Andy Walls wrote:
-> >> After investigation, my recommendation for fixing the problem is to
-> >> revert the patch that is causing the problem.
-> 
-> Well, the patch were already added on an upstream kernel, so just reverting it
-> will cause regressions.
-> 
-> If it is just aletv-dvb that broke, it seems better to fix it than to cause 
-> even more troubles by reverting two new ioctls.
-> 
-> >> The reason for this is not that fixing the patch is impossible.
-> 
-> Why? Where exactly the breakage happened?
+Hans Verkuil wrote:
+>>>>> There is a crucial piece of functionality missing here: if the
+>>>>> filehandle is in blocking mode, then it should wait until an event
+>>>>> arrives. That also means that if vfh->events == NULL, you should
+>>> still
+>>>>> call v4l2_event_dequeue, and that function should initialize
+>>>>> vfh->events and wait for an event if the fh is in blocking mode.
+>>>>
+>>>> I originally left this out intentionally. Most applications using
+>>> events
+>>>> would use select / poll as well by default. For completeness it should
+>>>> be there, I agree.
+>>>
+>>> It has to be there. This is important functionality. For e.g. ivtv I
+>>> would
+>>> use this to wait until the MPEG decoder flushed all buffers and
+>>> displayed
+>>> the last frame of the stream. That's something you would often do in
+>>> blocking mode.
+>>
+>> Blocking mode can easily be emulated using select().
 
+It's quite simple to implement still so I'll do that in the
+VIDIOC_DQEVENT. Easier for applications anyway in use cases that I
+haven't been thinking about, e.g. ivtv.
 
-Mauro,
-
-alevt-dvb is the only application that is broken by that kernel patch in
-question.
-mtt works, but it is part of a suite of programs, it's not teletext
-only.
-So the architexture behind is much more complicated than alevt-dvb
-itself ever was.
-
-Conclusion: fix the application alevt-dvb is the shortest way to solve
-the problem.
-
-CS
-
-
-> >> INstead, I'll assert that using the DMX_ADD_PID and DMX_REMOVE_PID in
-> >> conjunction with output=DMX_OUT_TSDEMUX_TAP is simply converting the
-> >> demux0 device into multiple dynamically created anonymous dvr0 devices,
-> >> and that is the wrong thing to do.
-> > 
-> > why exactly do you think this is wrong?
-> > 
-> >> I understand the need for sending a single PID TS out to an open demux0
-> >> instance as described in this email:
-> >>
-> >> http://www.mail-archive.com/linux-dvb@linuxtv.org/msg29814.html
-> >>
-> >> even though it seems like a slight abuse of the demux0 device.
-> > 
-> > How so? It's all about reading demultiplexed packets, which is exactly
-> > what a demux is good for. There is btw. no other way for multiple
-> > readers to receive TS packets without implementing a second demux
-> > layer in a userspace daemon, which must then be used by all readers.
-> > This would needlessly create quite some overhead on high bandwidth
-> > services.
-> >> But sending multiple PIDs out in a TS to the open demux0 device instance
-> >> is just an awkward way to essentially dynamically create a dvrN device
-> >> associated with filter(s) set on an open demux0 instance.
-> > 
-> > Actually it makes dvrN obsolete, but it must of course be kept for
-> > backwards compatibility.
-> > 
-> >> It would be better, in my opinion, to figure out a way to properly
-> >> create and/or associate a dvrN device node with a collection of demuxN
-> >> filters.
-> > 
-> > Would this involve running mknod for every recording you start?
-> > 
-> >> Maybe just allow creation of a logical demux1 device and dvr1 device and
-> >> the use the DVB API calls as is on the new logical devices.
-> > 
-> > A demux device (and dvr respectively) represents a transport stream
-> > input. Hardware with multiple transport stream inputs (read: embedded
-> > set top boxes) already has multiple demux and dvr devices.
+>>>> This btw. suggests that we perhaps should put back the struct file
+>>>> argument for the event functions in video_ioctl_ops. The blocking flag
+>>>> is indeed part of the file structure. I'm open to better suggestions,
+>>>> too.
+>>>
+>>> My long term goal is that the file struct is only used inside
+>>> v4l2-ioctl.c
+>>> and not in drivers. Drivers should not need this struct at all. The
+>>> easiest
+>>> way to ensure this is by not passing it to the drivers at all :-)
+>>
+>> Drivers still need a way to access the blocking flag. The interim solution
+>> of
+>> adding a file * member to v4l2_fh would allow that, while still removing
+>> most
+>> usage of file * from drivers.
 > 
-> 
-> Andreas arguments makes sense to me.
-> 
->  
-> >> I'm not a DVB apps programmer, so I don't know all the userspace needs
-> >> nor if anything is already using the DMX_ADD_PID and DMX_REMOVE_PID
-> >> ioctl()s.
-> > 
-> > The need for such an interface was already pointed out and discussed
-> > back in 2006:
-> > http://www.linuxtv.org/pipermail/linux-dvb/2006-April/009269.html
-> > 
-> > As Honza noted, these ioctls are used by enigma2 and, in general, by
-> > software running on Dream Multimedia set top boxes. I'm sure, other
-> > projects are going to adopt this interface sooner or later. It is
-> > still quite new after all.
-> 
-> 
-> It seems too late for me to revert it. So, we need to figure out a way
-> to workaround it or to fix the applications that got broken by this change.
-> 
+> Why not just add a 'blocking' argument to the v4l2_event_dequeue? And let
+> v4l2-ioctl.c fill in that argument? That's how I would do it.
 
+Implemented already before reading your mail... :-) I'll try to repost
+the patches today.
 
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
