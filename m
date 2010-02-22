@@ -1,75 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from poutre.nerim.net ([62.4.16.124]:58862 "EHLO poutre.nerim.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932315Ab0BYNM5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Feb 2010 08:12:57 -0500
-Date: Thu, 25 Feb 2010 14:12:54 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>, Daro <ghost-rider@aster.pl>,
-	Roman Kellner <muzungu@gmx.net>
-Subject: Re: [PATCH] saa7134: Fix IR support of some ASUS TV-FM 7135
- variants
-Message-ID: <20100225141254.3e43f2c6@hyperion.delvare>
-In-Reply-To: <1266635225.3407.33.camel@pc07.localdom.local>
-References: <20100127120211.2d022375@hyperion.delvare>
-	<4B630179.3080006@redhat.com>
-	<1264812461.16350.90.camel@localhost>
-	<20100130115632.03da7e1b@hyperion.delvare>
-	<1264986995.21486.20.camel@pc07.localdom.local>
-	<20100201105628.77057856@hyperion.delvare>
-	<1265075273.2588.51.camel@localhost>
-	<20100202085415.38a1e362@hyperion.delvare>
-	<4B681173.1030404@redhat.com>
-	<20100210190907.5c695e4e@hyperion.delvare>
-	<4B72FD83.1050500@redhat.com>
-	<20100210203601.31ef3220@hyperion.delvare>
-	<1265849882.4422.17.camel@localhost>
-	<1266211906.3177.16.camel@pc07.localdom.local>
-	<1266635225.3407.33.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2250 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753169Ab0BVTrt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Feb 2010 14:47:49 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id o1MJlhjS072388
+	for <linux-media@vger.kernel.org>; Mon, 22 Feb 2010 20:47:48 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 22 Feb 2010 20:47:43 +0100 (CET)
+Message-Id: <201002221947.o1MJlhjS072388@smtp-vbr11.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 20 Feb 2010 04:07:05 +0100, hermann pitton wrote:
-> Are you still waiting for Daro's report?
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Yes, I am still waiting. Unfortunately neither Daro nor Roman reported
-any test result so far. Now, if we go for my second patch, I guess we
-might as well apply it right now. It only affects this one card (Asus
-P7131 analog), and it was broken so far, so I don't think my patch can
-do any bad.
+Results of the daily build of v4l-dvb:
 
-> As said, I would prefer to see all OEMs _not_ following Philips/NXP
-> eeprom rules running into their own trash on GNU/Linux too.
-> 
-> Then we have facts.
-> 
-> That is much better than to provide a golden cloud for them. At least I
-> won't help to debug such later ...
-> 
-> If you did not manage to decipher all OEM eeprom content already,
-> just let's go with the per card solution for now.
-> 
-> Are you aware, that my intention is _not_ to spread the use of random
-> and potentially invalid eeprom content for some sort of such auto
-> detection?
-> 
-> The other solution is not lost and in mind, if we should need to come
-> back to it and are in details. Preferably the OEMs should take the
-> responsibility for such.
-> 
-> We can see, that even those always doing best on it, can't provide the
-> missing informations for different LNA stuff after the
-> Hauppauge/Pinnacle merge until now.
-> 
-> If you claim to know it better, please share with us.
+date:        Mon Feb 22 19:01:07 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14233:2e0444bf93a4
+gcc version: i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:     2.6.32.5
 
-I'm not claiming anything, and to be honest, I have no idea what you're
-talking about.
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-rc5-armv5: OK
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-rc5-armv5-davinci: WARNINGS
+linux-2.6.32.6-armv5-dm365: ERRORS
+linux-2.6.33-rc5-armv5-dm365: ERRORS
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-rc5-armv5-ixp: OK
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-rc5-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.17-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.20-i686: OK
+linux-2.6.26.8-i686: OK
+linux-2.6.27.44-i686: OK
+linux-2.6.28.10-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-rc5-i686: OK
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-rc5-m32r: OK
+linux-2.6.32.6-mips: OK
+linux-2.6.33-rc5-mips: OK
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-rc5-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.17-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.20-x86_64: OK
+linux-2.6.26.8-x86_64: OK
+linux-2.6.27.44-x86_64: OK
+linux-2.6.28.10-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-rc5-x86_64: OK
+spec: OK
+sparse (v4l-dvb-git): ERRORS
+sparse (linux-2.6.33-rc5): ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: OK
+linux-2.6.19.7-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.7-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
--- 
-Jean Delvare
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
