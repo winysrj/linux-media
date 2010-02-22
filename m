@@ -1,61 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mxweblb06fl.versatel.de ([89.246.255.250]:33999 "EHLO
-	mxweblb06fl.versatel.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932991Ab0BDAfR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2010 19:35:17 -0500
-Received: from ens28fl.versatel.de (ens28fl.versatel.de [82.140.32.10])
-	by mxweblb06fl.versatel.de (8.13.1/8.13.1) with ESMTP id o140I7Gi013909
-	for <linux-media@vger.kernel.org>; Thu, 4 Feb 2010 01:18:07 +0100
-Received: from cinnamon-sage.de (i577A5883.versanet.de [87.122.88.131])
-	(authenticated bits=0)
-	by ens28fl.versatel.de (8.12.11.20060308/8.12.11) with SMTP id o140I7Kh030540
-	for <linux-media@vger.kernel.org>; Thu, 4 Feb 2010 01:18:07 +0100
-Received: from 192.168.23.2:51463 by cinnamon-sage.de for <linux-media@vger.kernel.org> ; 04.02.2010 01:18:07
-Message-ID: <4B6A123F.5080500@cinnamon-sage.de>
-Date: Thu, 04 Feb 2010 01:18:07 +0100
-From: Lars Hanisch <dvb@cinnamon-sage.de>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4753 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751171Ab0BVHve (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Feb 2010 02:51:34 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [PATCH v5 5/6] V4L: Events: Support event handling in do_ioctl
+Date: Mon, 22 Feb 2010 08:53:53 +0100
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
+	david.cohen@nokia.com
+References: <4B7EE4A4.3080202@maxwell.research.nokia.com> <201002201056.56952.hverkuil@xs4all.nl> <4B81B44F.7080201@maxwell.research.nokia.com>
+In-Reply-To: <4B81B44F.7080201@maxwell.research.nokia.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: ivtv-utils/test/ps-analyzer.cpp: error in extracting SCR?
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201002220853.53921.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Sunday 21 February 2010 23:31:43 Sakari Ailus wrote:
+> Hans Verkuil wrote:
+> > More comments...
+> > 
+> > On Friday 19 February 2010 20:21:59 Sakari Ailus wrote:
+> >> Add support for event handling to do_ioctl.
+> >>
+> >> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> >> ---
+> >>  drivers/media/video/v4l2-ioctl.c |   58 ++++++++++++++++++++++++++++++++++++++
+> >>  include/media/v4l2-ioctl.h       |    7 ++++
+> >>  2 files changed, 65 insertions(+), 0 deletions(-)
+> >>
+> >> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+> >> index 34c7d6e..f7d6177 100644
+> >> --- a/drivers/media/video/v4l2-ioctl.c
+> >> +++ b/drivers/media/video/v4l2-ioctl.c
+> >> @@ -25,6 +25,8 @@
+> >>  #endif
+> >>  #include <media/v4l2-common.h>
+> >>  #include <media/v4l2-ioctl.h>
+> >> +#include <media/v4l2-fh.h>
+> >> +#include <media/v4l2-event.h>
+> >>  #include <media/v4l2-chip-ident.h>
+> >>  
+> >>  #define dbgarg(cmd, fmt, arg...) \
+> >> @@ -1944,7 +1946,63 @@ static long __video_do_ioctl(struct file *file,
+> >>  		}
+> >>  		break;
+> >>  	}
+> >> +	case VIDIOC_DQEVENT:
+> >> +	{
+> >> +		struct v4l2_event *ev = arg;
+> >> +		struct v4l2_fh *vfh = fh;
+> >> +
+> >> +		if (!test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags)
+> >> +		    || vfh->events == NULL)
+> >> +			break;
+> > 
+> > Change this to:
+> > 
+> > 		if (!test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags))
+> > 			break;
+> > 		if (vfh->events == NULL)
+> > 			return -ENOENT;
+> > 
+> > But see also the next comment.
+> > 
+> >> +
+> >> +		ret = v4l2_event_dequeue(fh, ev);
+> > 
+> > There is a crucial piece of functionality missing here: if the filehandle is
+> > in blocking mode, then it should wait until an event arrives. That also means
+> > that if vfh->events == NULL, you should still call v4l2_event_dequeue, and
+> > that function should initialize vfh->events and wait for an event if the fh
+> > is in blocking mode.
+> 
+> I originally left this out intentionally. Most applications using events
+> would use select / poll as well by default. For completeness it should
+> be there, I agree.
 
-  I'm writing some code repacking the program stream that ivtv delivers 
-into a transport stream (BTW: is there existing code for this?). Since 
-many players needs the PCR I would like to use the SCR of the PS and 
-place it in the adaption field of the TS (if wikipedia [1] and my 
-interpretation of it is correct it should be the same).
+It has to be there. This is important functionality. For e.g. ivtv I would use
+this to wait until the MPEG decoder flushed all buffers and displayed the last
+frame of the stream. That's something you would often do in blocking mode.
 
-  I stumbled upon the ps-analyzer.cpp in the test-directory of the 
-ivtv-utils (1.4.0). From line 190 to 198 the SCR and SCR extension are 
-extracted from the PS-header. But referring to [2] the SCR extension has 
-9 bits, the highest 2 bits in the fifth byte after the sync bytes and 
-the lower 7 bits in the sixth byte. The last bit is a marker bit (always 1).
+> This btw. suggests that we perhaps should put back the struct file
+> argument for the event functions in video_ioctl_ops. The blocking flag
+> is indeed part of the file structure. I'm open to better suggestions, too.
 
-  So instead of
+My long term goal is that the file struct is only used inside v4l2-ioctl.c
+and not in drivers. Drivers should not need this struct at all. The easiest
+way to ensure this is by not passing it to the drivers at all :-)
+ 
+> >> +		if (ret < 0) {
+> >> +			dbgarg(cmd, "no pending events?");
+> >> +			break;
+> >> +		}
+> >> +		dbgarg(cmd,
+> >> +		       "pending=%d, type=0x%8.8x, sequence=%d, "
+> >> +		       "timestamp=%lu.%9.9lu ",
+> >> +		       ev->pending, ev->type, ev->sequence,
+> >> +		       ev->timestamp.tv_sec, ev->timestamp.tv_nsec);
+> >> +		break;
+> >> +	}
+> >> +	case VIDIOC_SUBSCRIBE_EVENT:
+> >> +	{
+> >> +		struct v4l2_event_subscription *sub = arg;
+> >> +		struct v4l2_fh *vfh = fh;
+> >>  
+> >> +		if (!test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags)
+> > 
+> > Testing for this bit is unnecessarily. Just test for ops->vidioc_subscribe_event.
+> > 
+> >> +		    || vfh->events == NULL
+> > 
+> > Remove this test. If you allocate the event queue only when you first
+> > subscribe to an event (as ivtv will do), then you have to be able to
+> > call vidioc_subscribe_event even if vfh->events == NULL.
+> 
+> How about calling v4l2_event_alloc() with zero events? That allocates
+> and initialises the v4l2_events structure. That's easier to handle in
+> drivers as well since they don't need to consider special cases like
+> fh->events happens to be NULL even if events are supported by the
+> driver. This is how I first thought it'd work.
 
-scr_ext = (hdr[4] & 0x1) << 8;
-scr_ext |= hdr[5];
+Proposal: export a v4l2_event_init() call that sets up fh->events. Calling
+v4l2_event_alloc(0) feels like a hack. So drivers that want to be able to
+handle events should call v4l2_event_init after initializing the file handle.
 
-  I think it should be
-
-scr_ext = (unsigned)(hdr[4] & 0x3) << 7;
-scr_ext |= (hdr[5] & 0xfe) >> 1;
-
-  And the bitrate is coded in the next 22 bits, so it should be
-
-mux_rate = (unsigned)(hdr[6]) << 14;
-mux_rate |= (unsigned)(hdr[7]) << 6;
-mux_rate |= (unsigned)(hdr[8] & 0xfc) >> 2;
-
-  Am I correct?
+Or (and that might even be nicer) test in v4l2_fh_init whether there is a
+subscribe op in the ioctl_ops struct and let v4l2_fh_init set up fh->events
+automatically.
 
 Regards,
-Lars.
 
-[1] http://en.wikipedia.org/wiki/Presentation_time_stamp
-[2] http://en.wikipedia.org/wiki/MPEG_program_stream
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
