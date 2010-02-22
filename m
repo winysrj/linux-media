@@ -1,240 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-17.arcor-online.net ([151.189.21.57]:58410 "EHLO
-	mail-in-17.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933881Ab0BEW5s (ORCPT
+Received: from 81-174-11-161.static.ngi.it ([81.174.11.161]:49826 "EHLO
+	mail.enneenne.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753982Ab0BVQBr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Feb 2010 17:57:48 -0500
-From: stefan.ringel@arcor.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
-	Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH 5/12] tm6000: update init table and sequence for tm6010
-Date: Fri,  5 Feb 2010 23:57:05 +0100
-Message-Id: <1265410631-11955-5-git-send-email-stefan.ringel@arcor.de>
-In-Reply-To: <1265410631-11955-4-git-send-email-stefan.ringel@arcor.de>
-References: <1265410631-11955-1-git-send-email-stefan.ringel@arcor.de>
- <1265410631-11955-2-git-send-email-stefan.ringel@arcor.de>
- <1265410631-11955-3-git-send-email-stefan.ringel@arcor.de>
- <1265410631-11955-4-git-send-email-stefan.ringel@arcor.de>
+	Mon, 22 Feb 2010 11:01:47 -0500
+Date: Mon, 22 Feb 2010 17:01:39 +0100
+From: Rodolfo Giometti <giometti@enneenne.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Richard =?iso-8859-15?Q?R=C3=B6jfors?=
+	<richard.rojfors.ext@mocean-labs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Message-ID: <20100222160139.GL21778@enneenne.com>
+References: <20100219174451.GH21778@enneenne.com>
+ <Pine.LNX.4.64.1002192018170.5860@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1002192018170.5860@axis700.grange>
+Subject: Re: adv7180 as SoC camera device
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <stefan.ringel@arcor.de>
+On Fri, Feb 19, 2010 at 08:36:38PM +0100, Guennadi Liakhovetski wrote:
+> On Fri, 19 Feb 2010, Rodolfo Giometti wrote:
+> 
+> > Hello,
+> > 
+> > on my pxa27x based board I have a adv7180 connected with the CIF
+> > interface. Due this fact I'm going to use the pxa_camera.c driver
+> > which in turn registers a soc_camera_host.
+> > 
+> > In the latest kernel I found your driver for the ADV7180, but it
+> > registers the chip as a v4l sub device.
+> > 
+> > I suppose these two interfaces are not compatible, aren't they?
+> 
+> Congratulations! Thereby you're in a position to develop the first 
+> v4l2-subdev / soc-camera universal driver;) The answer to this your 
+> question is - they are... kinda. This means - yes, soc-camera is also 
+> using the v4l2-subdev API, but - with a couple of additions. Basically, 
+> there are two things you have to change in the adv7180 driver to make it 
+> compatible with soc-camera - (1) add bus-configuration methods, even if 
+> they don't do much (see .query_bus_param() and .set_bus_param() methods 
+> from struct soc_camera_ops), and (2) migrate the driver to the mediabus 
+> API. The latter one requires some care - in principle, mediabus should be 
+> the future API to negotiate parameters on the video bus between bridges 
+> (in your case PXA CIF) and clients, but for you this means you also have 
+> to migrate any other bridge drivers in the mainline to that API, and, if 
+> they also interface to some other subdevices - those too, and if those can 
+> also work with other bridges - those too...;) But, I think, that chain 
+> will terminate quite soon, in fact, I cannot find any users of that driver 
+> currently in the mainline, Richard?
+> 
+> > In this situation, should I write a new driver for the
+> > soc_camera_device? Which is The-Right-Thing(TM) to do? :)
+> 
+> Please, have a look and try to convert the driver as described above. All 
+> the APIs and a few examples are in the mainline, so, you should have 
+> enough copy-paste sources;) Ask on the list (with me on cc) if anything is 
+> still unclear.
 
-Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
----
- drivers/staging/tm6000/tm6000-core.c |  179 ++++++++++++++++++++++++----------
- 1 files changed, 128 insertions(+), 51 deletions(-)
+Thanks for your quick answer! :)
 
-diff --git a/drivers/staging/tm6000/tm6000-core.c b/drivers/staging/tm6000/tm6000-core.c
-index 7ec13d5..a2e2af5 100644
---- a/drivers/staging/tm6000/tm6000-core.c
-+++ b/drivers/staging/tm6000/tm6000-core.c
-@@ -414,7 +414,15 @@ struct reg_init tm6010_init_tab[] = {
- 	{ REQ_07_SET_GET_AVREG, 0x3f, 0x00 },
- 
- 	{ REQ_05_SET_GET_USBREG, 0x18, 0x00 },
--
-+	
-+	/* additional from Terratec Cinergy Hybrid XE */
-+	{ REQ_07_SET_GET_AVREG, 0xdc, 0xaa },
-+	{ REQ_07_SET_GET_AVREG, 0xdd, 0x30 },
-+	{ REQ_07_SET_GET_AVREG, 0xde, 0x20 },
-+	{ REQ_07_SET_GET_AVREG, 0xdf, 0xd0 },
-+	{ REQ_04_EN_DISABLE_MCU_INT, 0x02, 0x00 },
-+	{ REQ_07_SET_GET_AVREG, 0xd8, 0x2f },
-+	
- 	/* set remote wakeup key:any key wakeup */
- 	{ REQ_07_SET_GET_AVREG,  0xe5,  0xfe },
- 	{ REQ_07_SET_GET_AVREG,  0xda,  0xff },
-@@ -424,6 +432,7 @@ int tm6000_init (struct tm6000_core *dev)
- {
- 	int board, rc=0, i, size;
- 	struct reg_init *tab;
-+	u8 buf[40];
- 
- 	if (dev->dev_type == TM6010) {
- 		tab = tm6010_init_tab;
-@@ -444,61 +453,129 @@ int tm6000_init (struct tm6000_core *dev)
- 		}
- 	}
- 
--	msleep(5); /* Just to be conservative */
--
--	/* Check board version - maybe 10Moons specific */
--	board=tm6000_get_reg16 (dev, 0x40, 0, 0);
--	if (board >=0) {
--		printk (KERN_INFO "Board version = 0x%04x\n",board);
--	} else {
--		printk (KERN_ERR "Error %i while retrieving board version\n",board);
--	}
--
-+	/* hack */
- 	if (dev->dev_type == TM6010) {
--		/* Turn xceive 3028 on */
--		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, TM6010_GPIO_3, 0x01);
--		msleep(11);
--	}
--
--	/* Reset GPIO1 and GPIO4. */
--	for (i=0; i< 2; i++) {
--		rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
--					dev->tuner_reset_gpio, 0x00);
--		if (rc<0) {
--			printk (KERN_ERR "Error %i doing GPIO1 reset\n",rc);
--			return rc;
--		}
--
--		msleep(10); /* Just to be conservative */
--		rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
--					dev->tuner_reset_gpio, 0x01);
--		if (rc<0) {
--			printk (KERN_ERR "Error %i doing GPIO1 reset\n",rc);
--			return rc;
--		}
--
--		msleep(10);
--		rc=tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN, TM6000_GPIO_4, 0);
--		if (rc<0) {
--			printk (KERN_ERR "Error %i doing GPIO4 reset\n",rc);
--			return rc;
--		}
--
--		msleep(10);
--		rc=tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN, TM6000_GPIO_4, 1);
--		if (rc<0) {
--			printk (KERN_ERR "Error %i doing GPIO4 reset\n",rc);
--			return rc;
--		}
--
--		if (!i) {
--			rc=tm6000_get_reg16(dev, 0x40,0,0);
--			if (rc>=0) {
--				printk ("board=%d\n", rc);
-+		
-+		msleep(15);
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+				TM6010_GPIO_4, 0);
-+		msleep(15);
-+				
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+				TM6010_GPIO_1, 0);
-+	
-+		msleep(50);
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+				TM6010_GPIO_1, 1);
-+		
-+		msleep(15);
-+		tm6000_read_write_usb (dev, 0xc0, 0x0e, 0x0010, 0x4400, buf, 2);
-+		
-+		msleep(15);
-+		tm6000_read_write_usb (dev, 0xc0, 0x10, 0xf432, 0x0000, buf, 2);
-+	
-+		msleep(15);
-+		buf[0] = 0x12;
-+		buf[1] = 0x34;
-+		tm6000_read_write_usb (dev, 0x40, 0x10, 0xf432, 0x0000, buf, 2);
-+	
-+		msleep(15);
-+		tm6000_read_write_usb (dev, 0xc0, 0x10, 0xf432, 0x0000, buf, 2);
-+	
-+		msleep(15);
-+		tm6000_read_write_usb (dev, 0xc0, 0x10, 0x0032, 0x0000, buf, 2);
-+
-+		msleep(15);
-+		buf[0] = 0x00;
-+		buf[1] = 0x01;
-+		tm6000_read_write_usb (dev, 0x40, 0x10, 0xf332, 0x0000, buf, 2);
-+	
-+		msleep(15);
-+		tm6000_read_write_usb (dev, 0xc0, 0x10, 0x00c0, 0x0000, buf, 39);
-+	
-+		msleep(15);
-+		buf[0] = 0x00;
-+		buf[1] = 0x00;
-+		tm6000_read_write_usb (dev, 0x40, 0x10, 0xf332, 0x0000, buf, 2);
-+	
-+		msleep(15);
-+		tm6000_read_write_usb (dev, 0xc0, 0x10, 0x7f1f, 0x0000, buf, 2);
-+//		printk(KERN_INFO "buf %#x %#x \n", buf[0], buf [1]);
-+		msleep(15);
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+				TM6010_GPIO_4, 1);
-+		msleep(15);
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+	    			TM6010_GPIO_0, 1);
-+		msleep(15);
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+				TM6010_GPIO_7, 0);
-+		msleep(15);
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+				TM6010_GPIO_5, 1);
-+	
-+		msleep(15);
-+	
-+		for (i=0; i< size; i++) {
-+			rc= tm6000_set_reg (dev, tab[i].req, tab[i].reg, tab[i].val);
-+			if (rc<0) {
-+				printk (KERN_ERR "Error %i while setting req %d, "
-+						 "reg %d to value %d\n", rc,
-+						 tab[i].req,tab[i].reg, tab[i].val);
-+				return rc;
- 			}
- 		}
-+			
-+		msleep(15);
-+	
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+				TM6010_GPIO_4, 0);
-+		msleep(15);
-+
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+				TM6010_GPIO_1, 0);
-+	
-+		msleep(50);
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+				TM6010_GPIO_1, 1);
-+		
-+		msleep(15);
-+		tm6000_read_write_usb (dev, 0xc0, 0x0e, 0x00c2, 0x0008, buf, 2);
-+//		printk(KERN_INFO "buf %#x %#x \n", buf[0], buf[1]);
-+		msleep(15);
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+				TM6010_GPIO_2, 1);
-+		msleep(15);
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+				TM6010_GPIO_2, 0);
-+		msleep(15);
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+				TM6010_GPIO_2, 1);
-+		msleep(15);
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+				TM6010_GPIO_2, 1);
-+		msleep(15);
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+				TM6010_GPIO_2, 0);
-+		msleep(15);
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+				TM6010_GPIO_2, 1);
-+		msleep(15);
- 	}
-+	/* hack end */
-+	
-+	msleep(5); /* Just to be conservative */
- 
-+	/* Check board version - maybe 10Moons specific */
-+	if (dev->dev_type == TM5600) {
-+		 board=tm6000_get_reg16 (dev, 0x40, 0, 0);
-+		if (board >=0) {
-+			printk (KERN_INFO "Board version = 0x%04x\n",board);
-+		} else {
-+			printk (KERN_ERR "Error %i while retrieving board version\n",board);
-+		}
-+	}
-+	
- 	msleep(50);
- 
- 	return 0;
+What I still don't understand is if should I move the driver form
+v4l2-subdev to a soc_camera device or trying to support both API...
+
+It seems to me that the driver is not used by any machines into
+mainline so if soc-camera is also using the v4l2-subdev API but with a
+couple of additions I suppose I can move it to soc_camera API...
+
+Is that right?
+
+Ciao,
+
+Rodolfo
+
 -- 
-1.6.4.2
 
+GNU/Linux Solutions                  e-mail: giometti@enneenne.com
+Linux Device Driver                          giometti@linux.it
+Embedded Systems                     phone:  +39 349 2432127
+UNIX programming                     skype:  rodolfo.giometti
+Freelance ICT Italia - Consulente ICT Italia - www.consulenti-ict.it
