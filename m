@@ -1,51 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:65050 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753983Ab0BVVoG (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:57959 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754308Ab0BVVwZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 16:44:06 -0500
-Received: by bwz1 with SMTP id 1so473586bwz.21
-        for <linux-media@vger.kernel.org>; Mon, 22 Feb 2010 13:44:05 -0800 (PST)
+	Mon, 22 Feb 2010 16:52:25 -0500
+Message-ID: <4B82FC95.9070301@infradead.org>
+Date: Mon, 22 Feb 2010 18:52:21 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-In-Reply-To: <201002222241.22456.hverkuil@xs4all.nl>
-References: <829197381002212007q342fc01bm1c528a2f15027a1e@mail.gmail.com>
-	 <4B828D9C.50303@redhat.com>
-	 <829197381002221317p42dda715lbd7ea1193c40d45c@mail.gmail.com>
-	 <201002222241.22456.hverkuil@xs4all.nl>
-Date: Mon, 22 Feb 2010 16:43:58 -0500
-Message-ID: <829197381002221343u7001cff2t59bfe3ef735db5fc@mail.gmail.com>
-Subject: Re: Chroma gain configuration
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andy Walls <awalls@radix.net>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
+To: Randy Dunlap <rdunlap@xenotime.net>
+CC: Jonathan Corbet <corbet@lwn.net>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] Updated videobuf documentation
+References: <20100218101219.665c5403@bike.lwn.net>	<4B7DC652.9080601@xenotime.net>	<4B7E2B0F.6000706@infradead.org> <20100222134746.1ce5cecf@bike.lwn.net> <4B82F542.2030206@xenotime.net>
+In-Reply-To: <4B82F542.2030206@xenotime.net>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 22, 2010 at 4:41 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> I am still planning to continue my work for a general control handling
-> framework. I know how to do it and it's just time that I lack.
->
-> Converting all drivers to support the extended control API is quite complicated
-> since the API is fairly complex (esp. with regard to atomicity). In this case
-> my advice would be to support extended controls only where needed and wait for
-> this framework before converting all the other drivers.
+Randy Dunlap wrote:
+> On 02/22/10 12:47, Jonathan Corbet wrote:
+>> On Fri, 19 Feb 2010 04:09:19 -0200
+>> Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+>>
+>>> Not anymore: there's a patch that added USERPTR support for videobuf-dma-contig:
+>>>
+>>> commit 720b17e759a50635c429ccaa2ec3d01edb4f92d6
+>>> Author: Magnus Damm <damm@igel.co.jp>
+>>> Date:   Tue Jun 16 15:32:36 2009 -0700
+>>>
+>>>     videobuf-dma-contig: zero copy USERPTR support
+>> Now *that* is a special-purpose hack.  But it's worth mentioning, so
+>> I've updated the text accordingly.
+>>
+>>> In terms of memory types, there's a possibility that weren't mentioned: the OVERLAY mode.
+>>>
+>>> Maybe a small paragraph may be added just for the completeness of the doc.
+>> Yeah, I try to ignore overlay whenever I can.  I've added a brief bit.
+>>
+>> New version of the patch attached; look better?
+> 
+> Looks good to me (other than a few straggling lines that end with whitespace).
+> 
+> Reviewed-by: Randy Dunlap <rdunlap@xenotime.net>
 
-Hans,
+Seems OK to me also. I'll apply it (running a script to remove trailing whitespaces ;) )
 
-I have no objection to holding off if that's what you recommend.  The
-only reason we got onto this thread was because the v4l2-dbg
-application seems to implicitly assume that *all* private controls
-using V4L2_CID_PRIVATE_BASE can only be accessed via the extended
-control interface, meaning you cannot use the utility in conjunction
-with a driver that has a private control defined in the the
-VIDIOC_G_CTRL function.
-
-Devin
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+
+Cheers,
+Mauro
