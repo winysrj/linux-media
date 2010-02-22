@@ -1,36 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:45718 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752046Ab0BHWef (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Feb 2010 17:34:35 -0500
-Date: Sun, 7 Feb 2010 20:13:22 -0800
-From: Greg KH <greg@kroah.com>
-To: Pekka Sarnila <sarnila@adit.fi>
-Cc: Jiri Kosina <jkosina@suse.cz>, Jiri Slaby <jirislaby@gmail.com>,
-	Antti Palosaari <crope@iki.fi>, mchehab@infradead.org,
-	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-input@vger.kernel.org
-Subject: Re: [PATCH 1/1] media: dvb-usb/af9015, fix disconnection crashes
-Message-ID: <20100208041322.GA2988@kroah.com>
-References: <1264007972-6261-1-git-send-email-jslaby@suse.cz> <4B5CDB53.6030009@iki.fi> <4B5D6098.7010700@gmail.com> <4B5DDDFB.5020907@iki.fi> <alpine.LRH.2.00.1001261406010.15694@twin.jikos.cz> <4B6AA211.1060707@gmail.com> <4B6ACA4B.2030906@adit.fi> <alpine.LNX.2.00.1002041425050.15395@pobox.suse.cz> <4B6AD4A8.9080101@adit.fi>
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:56945 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754502Ab0BVEHJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Feb 2010 23:07:09 -0500
+Received: by bwz1 with SMTP id 1so1347657bwz.21
+        for <linux-media@vger.kernel.org>; Sun, 21 Feb 2010 20:07:08 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4B6AD4A8.9080101@adit.fi>
+Date: Sun, 21 Feb 2010 23:07:07 -0500
+Message-ID: <829197381002212007q342fc01bm1c528a2f15027a1e@mail.gmail.com>
+Subject: Chroma gain configuration
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 04, 2010 at 04:07:36PM +0200, Pekka Sarnila wrote:
-> Yes, my comment maybe criticizes more the basic architectural structure of 
-> usb putting it's own work up to higher layer. The only practical thing is 
-> that, if there is a non-HID device suffering from that FULLSPEED problem, 
-> the quirk won't help it. Anyway in current kernel structure usb layer 
-> doesn't handle endpoint setup at all, thus it simply can not do the job.
+I am doing some work on the saa711x driver, and ran into a case where
+I need to disable the chroma AGC and manually set the chroma gain.
 
-Patches to the USB core to resolve this issue are always gladly
-appreciated :)
+I see there is an existing boolean control called V4L2_CID_CHROMA_AGC,
+which would be the logical candidate for allowing the user to disable
+the chroma AGC.  However, once this is done I still need to expose the
+ability to set the gain manually (bits 6-0 of register 0x0f).
 
-thanks,
+Is there some existing control I am just missing?  Or do I need to do
+this through a private control.
 
-greg k-h
+I'm asking because it seems a bit strange that someone would introduce
+a v4l2 standard control to disable the AGC but not have the ability to
+manually set the gain once it was disabled.
+
+Suggestions welcome.  I obviously would only want to introduce a
+private control if absolutely necessary.
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
