@@ -1,50 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:53054 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752234Ab0BIJZH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Feb 2010 04:25:07 -0500
-Date: Tue, 9 Feb 2010 10:25:40 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-cc: Linux-V4L2 <linux-media@vger.kernel.org>,
-	Magnus Damm <damm@opensource.se>
-Subject: Re: How to change fps on soc-camera ?
-In-Reply-To: <u1vi3wnt2.wl%morimoto.kuninori@renesas.com>
-Message-ID: <Pine.LNX.4.64.1002090856050.4585@axis700.grange>
-References: <u1vi3wnt2.wl%morimoto.kuninori@renesas.com>
+Received: from out2.smtp.messagingengine.com ([66.111.4.26]:48324 "EHLO
+	out2.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751965Ab0BVJpK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Feb 2010 04:45:10 -0500
+Message-ID: <4B825223.7030904@ladisch.de>
+Date: Mon, 22 Feb 2010 10:45:07 +0100
+From: Clemens Ladisch <clemens@ladisch.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] cx88-alsa: prevent out-of-range volume setting
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 6 Jan 2010, Kuninori Morimoto wrote:
+Ensure that volume values are always in the allowed range.  Otherwise,
+it would be possible to set other bits in the AUD_VOL_CTL register or to
+get a wrong sign in the AUD_BAL_CTL register.
 
-> 
-> Hi all
-> 
-> Now I have mt9t112 / ov772x soc-camera.
-> And it can change fps by register setting.
-> So, I would like to add such support to driver.
-> 
-> But I don't know how to order it from user program.
-> Can you please teach me about it ?
-> 
-> # in my easy search, using ioctrl with VIDIOC_S_PARM
-> # seems good, I'm not sure though
+Signed-off-by: Clemens Ladisch <clemens@ladisch.de>
 
-Yes, I think, you're right. It's the .timeperframe member of struct 
-v4l2_captureparm, that you'd be looking at. And yes, you'd have to add 
-support for it to soc-camera, by adding a suitable operation to struct 
-soc_camera_host_ops, and calling it from soc_camera.c - if provided by 
-the host driver. Then you add it to sh_mobile_ceu_camera.c and just call 
-.s_parm from struct v4l2_subdev_video_ops. I'm replying to this email 
-with two patches, please, see if they provide the necessary infrastructure 
-for you and let me know the result - I'll push them upstream if you're 
-fine with them.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+--- linux/drivers/media/video/cx88/cx88-alsa.c
++++ linux/drivers/media/video/cx88/cx88-alsa.c
+@@ -583,16 +583,18 @@ static int snd_cx88_volume_put(struct sn
+ {
+ 	snd_cx88_card_t *chip = snd_kcontrol_chip(kcontrol);
+ 	struct cx88_core *core=chip->core;
+-	int v, b;
++	int left, right, v, b;
+ 	int changed = 0;
+ 	u32 old;
+ 
+-	b = value->value.integer.value[1] - value->value.integer.value[0];
++	left = value->value.integer.value[0] & 0x3f;
++	right = value->value.integer.value[1] & 0x3f;
++	b = right - left;
+ 	if (b < 0) {
+-	    v = 0x3f - value->value.integer.value[0];
++	    v = 0x3f - left;
+ 	    b = (-b) | 0x40;
+ 	} else {
+-	    v = 0x3f - value->value.integer.value[1];
++	    v = 0x3f - right;
+ 	}
+ 	/* Do we really know this will always be called with IRQs on? */
+ 	spin_lock_irq(&chip->reg_lock);
