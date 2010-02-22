@@ -1,213 +1,461 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:38269 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752039Ab0BBMyS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Feb 2010 07:54:18 -0500
-Subject: Re: Videotext application crashes the kernel due to DVB-demux patch
-From: Andy Walls <awalls@radix.net>
-To: Chicken Shack <chicken.shack@gmx.de>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	torvalds@linux-foundation.org, akpm@linux-foundation.org
-In-Reply-To: <1265101869.1721.28.camel@brian.bconsult.de>
-References: <1265018173.2449.19.camel@brian.bconsult.de>
-	 <1265028110.3098.3.camel@palomino.walls.org>
-	 <1265076008.3120.96.camel@palomino.walls.org>
-	 <1265101869.1721.28.camel@brian.bconsult.de>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 02 Feb 2010 07:52:52 -0500
-Message-Id: <1265115172.3104.17.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from smtp.nokia.com ([192.100.122.233]:40237 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754948Ab0BVXBz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Feb 2010 18:01:55 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	david.cohen@nokia.com
+Subject: [PATCH v7 6/6] V4L: Events: Add documentation
+Date: Tue, 23 Feb 2010 01:01:41 +0200
+Message-Id: <1266879701-9814-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4B830CCA.8030909@maxwell.research.nokia.com>
+References: <4B830CCA.8030909@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2010-02-02 at 10:11 +0100, Chicken Shack wrote:
-> Am Montag, den 01.02.2010, 21:00 -0500 schrieb Andy Walls:
-> > On Mon, 2010-02-01 at 07:41 -0500, Andy Walls wrote:
-> > > On Mon, 2010-02-01 at 10:56 +0100, Chicken Shack wrote:
-> > > > Hi,
-> > > > 
-> > > > here is a link to a patch which breaks backwards compatibility for a
-> > > > teletext software called alevt-dvb.
-> > > > 
-> > > > http://www.mail-archive.com/linuxtv-commits@linuxtv.org/msg04638.html
-> > > > 
-> > > > The kernel patch was introduced with kernel 2.6.32-rc1.
-> > > > It was Signed-off-by Brandon Philips, Mauro Carvalho Chehab and its
-> > > > author, Andreas Oberritter.
-> > > > 
-> > 
-> > > > Regards
-> > > > 
-> > > > CS
-> > > > 
-> > > > P. S.: This is how the kernel crash looks like:
-> > > 
-> > > The information below can get me started.  Could you please provide
-> > > whole Ooops from the output dmesg or from your /var/log/messages file?
-> > > 
-> > > I'll try to look at this tonight.
-> > > 
-> > > Regards,
-> > > Andy
-> > > 
-> > > > brian:~# alevt
-> > > > alevt: SDT: service_id 0xcf24 not in PAT
+Add documentation on how to use V4L2 events, both for V4L2 drivers and for
+V4L2 applications.
 
-> > > > alevt: ioctl: DMX_SET_PES_FILTER Invalid argument (22)
-> > > > Getötet
-> > > > brian:~# 
-> > > > Message from syslogd@brian at Jan 31 19:52:33 ...
-> > > >  kernel:[  116.563487] Oops: 0000 [#1] PREEMPT SMP 
-> > > > 
-> > > > Message from syslogd@brian at Jan 31 19:52:33 ...
-> > > >  kernel:[  116.563492] last sysfs
-> > > > file: /sys/devices/pci0000:00/0000:00:1d.7/usb1/1-0:1.0/uevent
-> > > > 
-> > > > Message from syslogd@brian at Jan 31 19:52:33 ...
-> > > >  kernel:[  116.563589] Process alevt (pid: 1780, ti=e7934000
-> > > > task=e7915be0 task.ti=e7934000)
-> > > > 
-> > > > Message from syslogd@brian at Jan 31 19:52:33 ...
-> > > >  kernel:[  116.563592] Stack:
-> > > > 
-> > > > Message from syslogd@brian at Jan 31 19:52:33 ...
-> > > >  kernel:[  116.563622] Call Trace:
-> > > > 
-> > > > Message from syslogd@brian at Jan 31 19:52:33 ...
-> > > >  kernel:[  116.563650] Code: f2 da 4c c8 8d 56 78 89 54 24 04 89 d0 e8
-> > > > e4 da 4c c8 89 f0 e8 31 ff ff ff 83 7e 4c 01 76 73 83 7e 48 02 75 49 8b
-> > > > 46 04 8d 48 f8 <8b> 41 08 8d 58 f8 8d 7e 04 eb 28 8b 41 08 8b 51 0c 89
-> > > > 50 04 89 
-> > 
-> > > > Message from syslogd@brian at Jan 31 19:52:33 ...
-> > > >  kernel:[  116.563697] EIP: [<f8cec1b2>] dvb_demux_release+0x43/0x183
-> > > > [dvb_core] SS:ESP 0068:e7935f58
-> > > > 
-> > > > Message from syslogd@brian at Jan 31 19:52:33 ...
-> > > >  kernel:[  116.563706] CR2: 0000000000000000
-> > 
-> > I don't have a 32 bti machine set up to compile the module and compare
-> > the disassembly directly.  However, the kernel code above disassembles
-> > to this, and is supposedly in dvb_demux_release() but things have been
-> > inlined by the compiler:
-> > 
-> >   1c:	8d 56 78             	lea    0x78(%esi),%edx
-> >   1f:	89 54 24 04          	mov    %edx,0x4(%esp)
-> >   23:	89 d0                	mov    %edx,%eax
-> >   25:	e8 e4 da 4c c8       	call   0xc84cdb0e
-> >   2a:	89 f0                	mov    %esi,%eax
-> >   2c:	e8 31 ff ff ff       	call   0xffffff62
-> > 					(dmxdev.c:dvb_dmxdev_filter_reset() appears to be inlined starting here
-> > 					 %esi holds dmxdevfilter)
-> >   31:	83 7e 4c 01          	cmpl   $0x1,0x4c(%esi)    if (dmxdevfilter->state < DMXDEV_STATE_SET)
-> >   35:	76 73                	jbe    0xaa               	return 0;
-> >   37:	83 7e 48 02          	cmpl   $0x2,0x48(%esi)    if (dmxdevfilter->type == DMXDEV_TYPE_PES)
-> >   3b:	75 49                	jne    0x86
-> > 					(dvb_dmxdev_delete_pids() appears to be inlined starting here
-> > 					 %esi still holds dmxdevfilter)
-> >   3d:	8b 46 04             	mov    0x4(%esi),%eax     %eax gets loaded with &dmxdevfilter->feed.ts  for list_for_each_entry_safe(feed, tmp, &dmxdevfilter->feed.ts, ...
-> >   40:	8d 48 f8             	lea    -0x8(%eax),%ecx    %ecx is "feed" and gets loaded with the next struct dmxdev_feed pointed to by the &dmxdevfilter->feed.ts list
-> >   43:	8b 41 08             	mov    0x8(%ecx),%eax     Oops appears to happen here: %ecx and hence "feed" was (craftily?) set to 0xfffffff8 based on CR2 above
-> >   46:	8d 58 f8             	lea    -0x8(%eax),%ebx
-> >   49:	8d 7e 04             	lea    0x4(%esi),%edi
-> >   4c:	eb 28                	jmp    0x76
-> >   4e:	8b 41 08             	mov    0x8(%ecx),%eax
-> >   51:	8b 51 0c             	mov    0xc(%ecx),%edx
-> >   54:	89 50 04             	mov    %edx,0x4(%eax)
-> > 
-> > 
-> > So there is something wrong with the list manipulations or, if needed,
-> > locking around the the list manipulations of the list that was
-> > introduced in the patch you identified as the problem.  That is what is
-> > causing the Ooops on close().  It will take a some more scrutiny to see
-> > what exactly is wrong.
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ Documentation/DocBook/media-entities.tmpl          |    9 ++
+ Documentation/DocBook/v4l/dev-event.xml            |   33 +++++
+ Documentation/DocBook/v4l/v4l2.xml                 |    3 +
+ Documentation/DocBook/v4l/vidioc-dqevent.xml       |  124 ++++++++++++++++++++
+ .../DocBook/v4l/vidioc-subscribe-event.xml         |  104 ++++++++++++++++
+ Documentation/video4linux/v4l2-framework.txt       |   57 +++++++++
+ 6 files changed, 330 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/DocBook/v4l/dev-event.xml
+ create mode 100644 Documentation/DocBook/v4l/vidioc-dqevent.xml
+ create mode 100644 Documentation/DocBook/v4l/vidioc-subscribe-event.xml
 
-With further thought, a very likely of a list's "next" pointer being
-NULL would be either:
-
-1. Failing to init the "struct list_head" dmxdevfilter->feed.ts after
-dmxdevfilter is first kzalloc()'ed.
-
-2. The other member of the dmxdevfilter->feed union being set to NULL
-unexpectedly.  (less likely)
-
-I'll look at these possibilities on Wednesday evening.
-
-
-> > There also may be another different problem.  I note that alevt outputs
-> > this perror() message:
-> > 
-> > 	alevt: ioctl: DMX_SET_PES_FILTER Invalid argument (22)
-> 
-> > There may possibly have been an unintended change in ioctl() semantics
-> > with the patch.  I have not investigated this at all yet.
-> 
-> 
-> Voila!
-> 
-> This is the context of the perror message:
-> 
-> a. this is the title of the function:
-> 
-> static int vbi_dvb_open(struct vbi *vbi, const char *vbi_name,
-> 	const char *channel, char *outfile, u_int16_t sid, int ttpid)
-> 
-> b. and this is the immediate context of the perror message:
-> 
-> 	memset(&filterpar, 0, sizeof(filterpar));
-> 	filterpar.pid = vbi->ttpid;
->         filterpar.input = DMX_IN_FRONTEND;
->         filterpar.output = DMX_OUT_TAP;
->         filterpar.pes_type = DMX_PES_OTHER;
->         filterpar.flags = DMX_IMMEDIATE_START;
->         if (ioctl(vbi->fd, DMX_SET_PES_FILTER, &filterpar) < 0) {
->         error("ioctl: DMX_SET_PES_FILTER %s (%u)", strerror(errno),
-> errno);
->         goto outerr;
->         }
-> 	return 0;
-> 
->  outerr:
-> 	close(vbi->fd);
-> 	vbi->fd = -1;
-> 	return -1;
-> }
-> 
-> If you compare that to other teletext applications you will easily find
-> out that there is absolutely nothing irregular about it: all standard
-> calls, free from bugs or syntax errors.
-
-
-OK.  Thank you for hunting down the application call into the driver.
-That should reduce the time to find the cause
-
-
-> a. What is the "Invalid argument"?
-> b. And what does "22" mean?
-
-22 is the errno value for EINVAL which means loosely mean "Invalid
-Argument", but can often be used when something internally is just
-"Invalid".
-
-/usr/include/asm-generic/errno-base.h:#define	EINVAL		22	/* Invalid argument */
-
-Given the ioctl() call you've documented above, it should be easy enough
-to find where in the DVB subsystem the EINVAL is coming from.  And it is
-likely that it is coming from code added by the patch, but I won't know
-until I can examine further.
-
-
-> Thanks for your engagement, Andy!
-
-You're welcome.
-
-
-> It's a golden donation to have people like you around!
-
-Thank you.
-
-Regards,
-Andy
+diff --git a/Documentation/DocBook/media-entities.tmpl b/Documentation/DocBook/media-entities.tmpl
+index c725cb8..770be3c 100644
+--- a/Documentation/DocBook/media-entities.tmpl
++++ b/Documentation/DocBook/media-entities.tmpl
+@@ -17,6 +17,7 @@
+ <!ENTITY VIDIOC-DBG-G-REGISTER "<link linkend='vidioc-dbg-g-register'><constant>VIDIOC_DBG_G_REGISTER</constant></link>">
+ <!ENTITY VIDIOC-DBG-S-REGISTER "<link linkend='vidioc-dbg-g-register'><constant>VIDIOC_DBG_S_REGISTER</constant></link>">
+ <!ENTITY VIDIOC-DQBUF "<link linkend='vidioc-qbuf'><constant>VIDIOC_DQBUF</constant></link>">
++<!ENTITY VIDIOC-DQEVENT "<link linkend='vidioc-dqevent'><constant>VIDIOC_DQEVENT</constant></link>">
+ <!ENTITY VIDIOC-ENCODER-CMD "<link linkend='vidioc-encoder-cmd'><constant>VIDIOC_ENCODER_CMD</constant></link>">
+ <!ENTITY VIDIOC-ENUMAUDIO "<link linkend='vidioc-enumaudio'><constant>VIDIOC_ENUMAUDIO</constant></link>">
+ <!ENTITY VIDIOC-ENUMAUDOUT "<link linkend='vidioc-enumaudioout'><constant>VIDIOC_ENUMAUDOUT</constant></link>">
+@@ -60,6 +61,7 @@
+ <!ENTITY VIDIOC-REQBUFS "<link linkend='vidioc-reqbufs'><constant>VIDIOC_REQBUFS</constant></link>">
+ <!ENTITY VIDIOC-STREAMOFF "<link linkend='vidioc-streamon'><constant>VIDIOC_STREAMOFF</constant></link>">
+ <!ENTITY VIDIOC-STREAMON "<link linkend='vidioc-streamon'><constant>VIDIOC_STREAMON</constant></link>">
++<!ENTITY VIDIOC-SUBSCRIBE-EVENT "<link linkend='vidioc-subscribe-event'><constant>VIDIOC_SUBSCRIBE_EVENT</constant></link>">
+ <!ENTITY VIDIOC-S-AUDIO "<link linkend='vidioc-g-audio'><constant>VIDIOC_S_AUDIO</constant></link>">
+ <!ENTITY VIDIOC-S-AUDOUT "<link linkend='vidioc-g-audioout'><constant>VIDIOC_S_AUDOUT</constant></link>">
+ <!ENTITY VIDIOC-S-CROP "<link linkend='vidioc-g-crop'><constant>VIDIOC_S_CROP</constant></link>">
+@@ -141,6 +143,8 @@
+ <!ENTITY v4l2-enc-idx "struct&nbsp;<link linkend='v4l2-enc-idx'>v4l2_enc_idx</link>">
+ <!ENTITY v4l2-enc-idx-entry "struct&nbsp;<link linkend='v4l2-enc-idx-entry'>v4l2_enc_idx_entry</link>">
+ <!ENTITY v4l2-encoder-cmd "struct&nbsp;<link linkend='v4l2-encoder-cmd'>v4l2_encoder_cmd</link>">
++<!ENTITY v4l2-event "struct&nbsp;<link linkend='v4l2-event'>v4l2_event</link>">
++<!ENTITY v4l2-event-subscription "struct&nbsp;<link linkend='v4l2-event-subscription'>v4l2_event_subscription</link>">
+ <!ENTITY v4l2-ext-control "struct&nbsp;<link linkend='v4l2-ext-control'>v4l2_ext_control</link>">
+ <!ENTITY v4l2-ext-controls "struct&nbsp;<link linkend='v4l2-ext-controls'>v4l2_ext_controls</link>">
+ <!ENTITY v4l2-fmtdesc "struct&nbsp;<link linkend='v4l2-fmtdesc'>v4l2_fmtdesc</link>">
+@@ -200,6 +204,7 @@
+ <!ENTITY sub-controls SYSTEM "v4l/controls.xml">
+ <!ENTITY sub-dev-capture SYSTEM "v4l/dev-capture.xml">
+ <!ENTITY sub-dev-codec SYSTEM "v4l/dev-codec.xml">
++<!ENTITY sub-dev-event SYSTEM "v4l/dev-event.xml">
+ <!ENTITY sub-dev-effect SYSTEM "v4l/dev-effect.xml">
+ <!ENTITY sub-dev-osd SYSTEM "v4l/dev-osd.xml">
+ <!ENTITY sub-dev-output SYSTEM "v4l/dev-output.xml">
+@@ -292,6 +297,8 @@
+ <!ENTITY sub-v4l2grab-c SYSTEM "v4l/v4l2grab.c.xml">
+ <!ENTITY sub-videodev2-h SYSTEM "v4l/videodev2.h.xml">
+ <!ENTITY sub-v4l2 SYSTEM "v4l/v4l2.xml">
++<!ENTITY sub-dqevent SYSTEM "v4l/vidioc-dqevent.xml">
++<!ENTITY sub-subscribe-event SYSTEM "v4l/vidioc-subscribe-event.xml">
+ <!ENTITY sub-intro SYSTEM "dvb/intro.xml">
+ <!ENTITY sub-frontend SYSTEM "dvb/frontend.xml">
+ <!ENTITY sub-dvbproperty SYSTEM "dvb/dvbproperty.xml">
+@@ -381,3 +388,5 @@
+ <!ENTITY reqbufs SYSTEM "v4l/vidioc-reqbufs.xml">
+ <!ENTITY s-hw-freq-seek SYSTEM "v4l/vidioc-s-hw-freq-seek.xml">
+ <!ENTITY streamon SYSTEM "v4l/vidioc-streamon.xml">
++<!ENTITY dqevent SYSTEM "v4l/vidioc-dqevent.xml">
++<!ENTITY subscribe_event SYSTEM "v4l/vidioc-subscribe-event.xml">
+diff --git a/Documentation/DocBook/v4l/dev-event.xml b/Documentation/DocBook/v4l/dev-event.xml
+new file mode 100644
+index 0000000..ecee64d
+--- /dev/null
++++ b/Documentation/DocBook/v4l/dev-event.xml
+@@ -0,0 +1,33 @@
++  <title>Event Interface</title>
++
++  <para>The V4L2 event interface provides means for user to get
++  immediately notified on certain conditions taking place on a device.
++  This might include start of frame or loss of signal events, for
++  example.
++  </para>
++
++  <para>To receive events, the events the user is interested first must be
++  subscribed using the &VIDIOC-SUBSCRIBE-EVENT; ioctl. Once an event is
++  subscribed, the events of subscribed types are dequeueable using the
++  &VIDIOC-DQEVENT; ioctl. Events may be unsubscribed using
++  VIDIOC_UNSUBSCRIBE_EVENT ioctl. The special event type V4L2_EVENT_ALL may
++  be used to unsubscribe all the events the driver supports.</para>
++
++  <para>The event subscriptions and event queues are specific to file
++  handles. Subscribing an event on one file handle does not affect
++  other file handles.
++  </para>
++
++  <para>The information on dequeueable events are obtained by using
++  select or poll system calls on video devices. The V4L2 events use
++  POLLPRI events on poll system call and exceptions on select system
++  call.
++  </para>
++
++  <!--
++Local Variables:
++mode: sgml
++sgml-parent-document: "v4l2.sgml"
++indent-tabs-mode: nil
++End:
++  -->
+diff --git a/Documentation/DocBook/v4l/v4l2.xml b/Documentation/DocBook/v4l/v4l2.xml
+index 060105a..9737243 100644
+--- a/Documentation/DocBook/v4l/v4l2.xml
++++ b/Documentation/DocBook/v4l/v4l2.xml
+@@ -401,6 +401,7 @@ and discussions on the V4L mailing list.</revremark>
+     <section id="ttx"> &sub-dev-teletext; </section>
+     <section id="radio"> &sub-dev-radio; </section>
+     <section id="rds"> &sub-dev-rds; </section>
++    <section id="event"> &sub-dev-event; </section>
+   </chapter>
+ 
+   <chapter id="driver">
+@@ -426,6 +427,7 @@ and discussions on the V4L mailing list.</revremark>
+     &sub-cropcap;
+     &sub-dbg-g-chip-ident;
+     &sub-dbg-g-register;
++    &sub-dqevent;
+     &sub-encoder-cmd;
+     &sub-enumaudio;
+     &sub-enumaudioout;
+@@ -467,6 +469,7 @@ and discussions on the V4L mailing list.</revremark>
+     &sub-reqbufs;
+     &sub-s-hw-freq-seek;
+     &sub-streamon;
++    &sub-subscribe-event;
+     <!-- End of ioctls. -->
+     &sub-mmap;
+     &sub-munmap;
+diff --git a/Documentation/DocBook/v4l/vidioc-dqevent.xml b/Documentation/DocBook/v4l/vidioc-dqevent.xml
+new file mode 100644
+index 0000000..eb45c16
+--- /dev/null
++++ b/Documentation/DocBook/v4l/vidioc-dqevent.xml
+@@ -0,0 +1,124 @@
++<refentry id="vidioc-dqevent">
++  <refmeta>
++    <refentrytitle>ioctl VIDIOC_DQEVENT</refentrytitle>
++    &manvol;
++  </refmeta>
++
++  <refnamediv>
++    <refname>VIDIOC_DQEVENT</refname>
++    <refpurpose>Dequeue event</refpurpose>
++  </refnamediv>
++
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>struct v4l2_event
++*<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
++
++  <refsect1>
++    <title>Arguments</title>
++
++    <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>&fd;</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>VIDIOC_DQEVENT</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>argp</parameter></term>
++	<listitem>
++	  <para></para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++  <refsect1>
++    <title>Description</title>
++
++    <para>Dequeue an event from a video device. No input is required
++    for this ioctl. All the fields of the &v4l2-event; structure are
++    filled by the driver. The file handle will also receive exceptions
++    which the application may get by e.g. using the select system
++    call.</para>
++
++    <table frame="none" pgwide="1" id="v4l2-event">
++      <title>struct <structname>v4l2_event</structname></title>
++      <tgroup cols="4">
++	&cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>type</structfield></entry>
++            <entry></entry>
++	    <entry>Type of the event.</entry>
++	  </row>
++	  <row>
++	    <entry>union</entry>
++	    <entry><structfield>u</structfield></entry>
++            <entry></entry>
++	    <entry></entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry>__u8</entry>
++            <entry><structfield>data</structfield>[64]</entry>
++	    <entry>Event data. Defined by the event type. The union
++            should be used to define easily accessible type for
++            events.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>pending</structfield></entry>
++            <entry></entry>
++	    <entry>Number of pending events excluding this one.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>sequence</structfield></entry>
++            <entry></entry>
++	    <entry>Event sequence number. The sequence number is
++	    incremented for every subscribed event that takes place.
++	    If sequence numbers are not contiguous it means that
++	    events have been lost.
++	    </entry>
++	  </row>
++	  <row>
++	    <entry>struct timeval</entry>
++	    <entry><structfield>timestamp</structfield></entry>
++            <entry></entry>
++	    <entry>Event timestamp.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[9]</entry>
++            <entry></entry>
++	    <entry>Reserved for future extensions. Drivers must set
++	    the array to zero.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++  </refsect1>
++</refentry>
++<!--
++Local Variables:
++mode: sgml
++sgml-parent-document: "v4l2.sgml"
++indent-tabs-mode: nil
++End:
++-->
+diff --git a/Documentation/DocBook/v4l/vidioc-subscribe-event.xml b/Documentation/DocBook/v4l/vidioc-subscribe-event.xml
+new file mode 100644
+index 0000000..71ab88c
+--- /dev/null
++++ b/Documentation/DocBook/v4l/vidioc-subscribe-event.xml
+@@ -0,0 +1,104 @@
++<refentry id="vidioc-subscribe-event">
++  <refmeta>
++    <refentrytitle>ioctl VIDIOC_SUBSCRIBE_EVENT, VIDIOC_UNSUBSCRIBE_EVENT</refentrytitle>
++    &manvol;
++  </refmeta>
++
++  <refnamediv>
++    <refname>VIDIOC_SUBSCRIBE_EVENT, VIDIOC_UNSUBSCRIBE_EVENT</refname>
++    <refpurpose>Subscribe or unsubscribe event</refpurpose>
++  </refnamediv>
++
++  <refsynopsisdiv>
++    <funcsynopsis>
++      <funcprototype>
++	<funcdef>int <function>ioctl</function></funcdef>
++	<paramdef>int <parameter>fd</parameter></paramdef>
++	<paramdef>int <parameter>request</parameter></paramdef>
++	<paramdef>struct v4l2_event_subscription
++*<parameter>argp</parameter></paramdef>
++      </funcprototype>
++    </funcsynopsis>
++  </refsynopsisdiv>
++
++  <refsect1>
++    <title>Arguments</title>
++
++    <variablelist>
++      <varlistentry>
++	<term><parameter>fd</parameter></term>
++	<listitem>
++	  <para>&fd;</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>request</parameter></term>
++	<listitem>
++	  <para>VIDIOC_SUBSCRIBE_EVENT, VIDIOC_UNSUBSCRIBE_EVENT</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><parameter>argp</parameter></term>
++	<listitem>
++	  <para></para>
++	</listitem>
++      </varlistentry>
++    </variablelist>
++  </refsect1>
++
++  <refsect1>
++    <title>Description</title>
++
++    <para>Subscribe or unsubscribe V4L2 event. Subscribed events are
++    dequeued by using the &VIDIOC-DQEVENT; ioctl.</para>
++
++    <table frame="none" pgwide="1" id="v4l2-event-subscription">
++      <title>struct <structname>v4l2_event_subscription</structname></title>
++      <tgroup cols="3">
++	&cs-str;
++	<tbody valign="top">
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>type</structfield></entry>
++	    <entry>Type of the event.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[7]</entry>
++	    <entry>Reserved for future extensions. Drivers and applications
++	    must set the array to zero.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++    <table frame="none" pgwide="1" id="event-type">
++      <title>Event Types</title>
++      <tgroup cols="3">
++	&cs-def;
++	<tbody valign="top">
++	  <row>
++	    <entry><constant>V4L2_EVENT_ALL</constant></entry>
++	    <entry>0</entry>
++	    <entry>All events. V4L2_EVENT_ALL is valid only for
++	    VIDIOC_UNSUBSCRIBE_EVENT for unsubscribing all events at once.
++	    </entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_EVENT_PRIVATE_START</constant></entry>
++	    <entry>0x08000000</entry>
++	    <entry>Base event number for driver-private events.</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++  </refsect1>
++</refentry>
++<!--
++Local Variables:
++mode: sgml
++sgml-parent-document: "v4l2.sgml"
++indent-tabs-mode: nil
++End:
++-->
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index bfaf0c5..d6deb35 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -732,3 +732,60 @@ Useful functions:
+ The users of v4l2_fh know whether a driver uses v4l2_fh as its
+ file->private_data pointer by testing the V4L2_FL_USES_V4L2_FH bit in
+ video_device->flags.
++
++V4L2 events
++-----------
++
++The V4L2 events provide a generic way to pass events to user space.
++The driver must use v4l2_fh to be able to support V4L2 events.
++
++Useful functions:
++
++- v4l2_event_alloc()
++
++  To use events, the driver must allocate events for the file handle. By
++  calling the function more than once, the driver may assure that at least n
++  events in total has been allocated. The function may not be called in
++  atomic context.
++
++- v4l2_event_queue()
++
++  Queue events to video device. The driver's only responsibility is to fill
++  in the type and the data fields. The other fields will be filled in by
++  V4L2.
++
++- v4l2_event_subscribe()
++
++  The video_device->ioctl_ops->vidioc_subscribe_event must check the driver
++  is able to produce events with specified event id. Then it calls
++  v4l2_event_subscribe() to subscribe the event.
++
++- v4l2_event_unsubscribe()
++
++  vidioc_unsubscribe_event in struct v4l2_ioctl_ops. A driver may use
++  v4l2_event_unsubscribe() directly unless it wants to be involved in
++  unsubscription process.
++
++  The special type V4L2_EVENT_ALL may be used to unsubscribe all events. The
++  drivers may want to handle this in a special way.
++
++- v4l2_event_pending()
++
++  Returns the number of pending events. Useful when implementing poll.
++
++Drivers do not initialise events directly. The events are initialised
++through v4l2_fh_init() if video_device->ioctl_ops->vidioc_subscribe_event is
++non-NULL. This *MUST* be performed in the driver's
++v4l2_file_operations->open() handler.
++
++Events are delivered to user space through the poll system call. The driver
++can use v4l2_fh->events->wait wait_queue_head_t as the argument for
++poll_wait().
++
++There are standard and private events. New standard events must use the
++smallest available event type. The drivers must allocate their events
++starting from base (V4L2_EVENT_PRIVATE_START + n * 1024) + 1.
++
++An example on how the V4L2 events may be used can be found in the OMAP
++3 ISP driver available at <URL:http://gitorious.org/omap3camera> as of
++writing this.
+-- 
+1.5.6.5
 
