@@ -1,351 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay.bearnet.nu ([80.252.223.222]:1496 "EHLO relay.bearnet.nu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756050Ab0BCP7u (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Feb 2010 10:59:50 -0500
-Message-ID: <4B699D6B.6030309@pelagicore.com>
-Date: Wed, 03 Feb 2010 16:59:39 +0100
-From: =?ISO-8859-1?Q?Richard_R=F6jfors?= <richard.rojfors@pelagicore.com>
+Received: from smtp.nokia.com ([192.100.122.230]:36199 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752344Ab0BVHhO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Feb 2010 02:37:14 -0500
+Message-ID: <4B82341C.2050301@maxwell.research.nokia.com>
+Date: Mon, 22 Feb 2010 09:37:00 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH v4] radio: Add radio-timb
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
+	david.cohen@nokia.com
+Subject: Re: [PATCH v5 5/6] V4L: Events: Support event handling in do_ioctl
+References: <4B7EE4A4.3080202@maxwell.research.nokia.com> <201002201056.56952.hverkuil@xs4all.nl> <4B81B44F.7080201@maxwell.research.nokia.com> <201002212354.51792.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201002212354.51792.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch add supports for the radio system on the Intel Russellville board.
+Laurent Pinchart wrote:
+> Hi Sakari,
 
-It's a In-Vehicle Infotainment board with a radio tuner and DSP.
+Salut Laurent,
 
-This umbrella driver has the DSP and tuner as V4L2 subdevs and calls them
-when needed.
+>>> There is a crucial piece of functionality missing here: if the filehandle
+>>> is in blocking mode, then it should wait until an event arrives. That
+>>> also means that if vfh->events == NULL, you should still call
+>>> v4l2_event_dequeue, and that function should initialize vfh->events and
+>>> wait for an event if the fh is in blocking mode.
+>>
+>> I originally left this out intentionally. Most applications using events
+>> would use select / poll as well by default. For completeness it should
+>> be there, I agree.
+>>
+>> This btw. suggests that we perhaps should put back the struct file
+>> argument for the event functions in video_ioctl_ops. The blocking flag
+>> is indeed part of the file structure. I'm open to better suggestions, too.
+> 
+> If the only information we need from struct file is the flags, they could be 
+> copied to v4l2_fh in the open handler. We could also put a struct file * 
+> member in v4l2_fh.
 
-Signed-off-by: Richard Röjfors <richard.rojfors@pelagicore.com>
----
-diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-index 3f40f37..c242939 100644
---- a/drivers/media/radio/Kconfig
-+++ b/drivers/media/radio/Kconfig
-@@ -429,4 +429,14 @@ config RADIO_TEF6862
-  	  To compile this driver as a module, choose M here: the
-  	  module will be called TEF6862.
+That could be one possibility. Copying the flags in open() isn't enough
+as they can change as a result of fcntl call. As we're not handling that
+call the flags in struct v4l2_fh would have to be updated for every
+ioctl. I'm not a big fan of caching information in general either. :-) I
+could accept this, though.
 
-+config RADIO_TIMBERDALE
-+	tristate "Enable the Timberdale radio driver"
-+	depends on MFD_TIMBERDALE && VIDEO_V4L2
-+	select RADIO_TEF6862
-+	select RADIO_SAA7706H
-+	---help---
-+	  This is a kind of umbrella driver for the Radio Tuner and DSP
-+	  found behind the Timberdale FPGA on the Russellville board.
-+	  Enabling this driver will automatically select the DSP and tuner.
-+
-  endif # RADIO_ADAPTERS
-diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
-index 01922ad..8973850 100644
---- a/drivers/media/radio/Makefile
-+++ b/drivers/media/radio/Makefile
-@@ -24,5 +24,6 @@ obj-$(CONFIG_RADIO_SI470X) += si470x/
-  obj-$(CONFIG_USB_MR800) += radio-mr800.o
-  obj-$(CONFIG_RADIO_TEA5764) += radio-tea5764.o
-  obj-$(CONFIG_RADIO_TEF6862) += tef6862.o
-+obj-$(CONFIG_RADIO_TIMBERDALE) += radio-timb.o
-
-  EXTRA_CFLAGS += -Isound
-diff --git a/drivers/media/radio/radio-timb.c b/drivers/media/radio/radio-timb.c
-new file mode 100644
-index 0000000..0de457f
---- /dev/null
-+++ b/drivers/media/radio/radio-timb.c
-@@ -0,0 +1,244 @@
-+/*
-+ * radio-timb.c Timberdale FPGA Radio driver
-+ * Copyright (c) 2009 Intel Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include <linux/version.h>
-+#include <linux/io.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/v4l2-device.h>
-+#include <linux/platform_device.h>
-+#include <linux/interrupt.h>
-+#include <linux/i2c.h>
-+#include <media/timb_radio.h>
-+
-+#define DRIVER_NAME "timb-radio"
-+
-+struct timbradio {
-+	struct timb_radio_platform_data	pdata;
-+	struct v4l2_subdev	*sd_tuner;
-+	struct v4l2_subdev	*sd_dsp;
-+	struct video_device	video_dev;
-+	struct v4l2_device	v4l2_dev;
-+};
-+
-+
-+static int timbradio_vidioc_querycap(struct file *file, void  *priv,
-+	struct v4l2_capability *v)
-+{
-+	strlcpy(v->driver, DRIVER_NAME, sizeof(v->driver));
-+	strlcpy(v->card, "Timberdale Radio", sizeof(v->card));
-+	snprintf(v->bus_info, sizeof(v->bus_info), "platform:"DRIVER_NAME);
-+	v->version = KERNEL_VERSION(0, 0, 1);
-+	v->capabilities = V4L2_CAP_TUNER | V4L2_CAP_RADIO;
-+	return 0;
-+}
-+
-+static int timbradio_vidioc_g_tuner(struct file *file, void *priv,
-+	struct v4l2_tuner *v)
-+{
-+	struct timbradio *tr = video_drvdata(file);
-+	return v4l2_subdev_call(tr->sd_tuner, tuner, g_tuner, v);
-+}
-+
-+static int timbradio_vidioc_s_tuner(struct file *file, void *priv,
-+	struct v4l2_tuner *v)
-+{
-+	struct timbradio *tr = video_drvdata(file);
-+	return v4l2_subdev_call(tr->sd_tuner, tuner, s_tuner, v);
-+}
-+
-+static int timbradio_vidioc_g_input(struct file *filp, void *priv,
-+	unsigned int *i)
-+{
-+	*i = 0;
-+	return 0;
-+}
-+
-+static int timbradio_vidioc_s_input(struct file *filp, void *priv,
-+	unsigned int i)
-+{
-+	return i ? -EINVAL : 0;
-+}
-+
-+static int timbradio_vidioc_g_audio(struct file *file, void *priv,
-+	struct v4l2_audio *a)
-+{
-+	a->index = 0;
-+	strlcpy(a->name, "Radio", sizeof(a->name));
-+	a->capability = V4L2_AUDCAP_STEREO;
-+	return 0;
-+}
-+
-+static int timbradio_vidioc_s_audio(struct file *file, void *priv,
-+	struct v4l2_audio *a)
-+{
-+	return a->index ? -EINVAL : 0;
-+}
-+
-+static int timbradio_vidioc_s_frequency(struct file *file, void *priv,
-+	struct v4l2_frequency *f)
-+{
-+	struct timbradio *tr = video_drvdata(file);
-+	return v4l2_subdev_call(tr->sd_tuner, tuner, s_frequency, f);
-+}
-+
-+static int timbradio_vidioc_g_frequency(struct file *file, void *priv,
-+	struct v4l2_frequency *f)
-+{
-+	struct timbradio *tr = video_drvdata(file);
-+	return v4l2_subdev_call(tr->sd_tuner, tuner, g_frequency, f);
-+}
-+
-+static int timbradio_vidioc_queryctrl(struct file *file, void *priv,
-+	struct v4l2_queryctrl *qc)
-+{
-+	struct timbradio *tr = video_drvdata(file);
-+	return v4l2_subdev_call(tr->sd_dsp, core, queryctrl, qc);
-+}
-+
-+static int timbradio_vidioc_g_ctrl(struct file *file, void *priv,
-+	struct v4l2_control *ctrl)
-+{
-+	struct timbradio *tr = video_drvdata(file);
-+	return v4l2_subdev_call(tr->sd_dsp, core, g_ctrl, ctrl);
-+}
-+
-+static int timbradio_vidioc_s_ctrl(struct file *file, void *priv,
-+	struct v4l2_control *ctrl)
-+{
-+	struct timbradio *tr = video_drvdata(file);
-+	return v4l2_subdev_call(tr->sd_dsp, core, s_ctrl, ctrl);
-+}
-+
-+static const struct v4l2_ioctl_ops timbradio_ioctl_ops = {
-+	.vidioc_querycap	= timbradio_vidioc_querycap,
-+	.vidioc_g_tuner		= timbradio_vidioc_g_tuner,
-+	.vidioc_s_tuner		= timbradio_vidioc_s_tuner,
-+	.vidioc_g_frequency	= timbradio_vidioc_g_frequency,
-+	.vidioc_s_frequency	= timbradio_vidioc_s_frequency,
-+	.vidioc_g_input		= timbradio_vidioc_g_input,
-+	.vidioc_s_input		= timbradio_vidioc_s_input,
-+	.vidioc_g_audio		= timbradio_vidioc_g_audio,
-+	.vidioc_s_audio		= timbradio_vidioc_s_audio,
-+	.vidioc_queryctrl	= timbradio_vidioc_queryctrl,
-+	.vidioc_g_ctrl		= timbradio_vidioc_g_ctrl,
-+	.vidioc_s_ctrl		= timbradio_vidioc_s_ctrl
-+};
-+
-+static const struct v4l2_file_operations timbradio_fops = {
-+	.owner		= THIS_MODULE,
-+	.ioctl		= video_ioctl2,
-+};
-+
-+static int __devinit timbradio_probe(struct platform_device *pdev)
-+{
-+	struct timb_radio_platform_data *pdata = pdev->dev.platform_data;
-+	struct timbradio *tr;
-+	int err;
-+
-+	if (!pdata) {
-+		dev_err(&pdev->dev, "Platform data missing\n");
-+		err = -EINVAL;
-+		goto err;
-+	}
-+
-+	tr = kzalloc(sizeof(*tr), GFP_KERNEL);
-+	if (!tr) {
-+		err = -ENOMEM;
-+		goto err;
-+	}
-+
-+	tr->pdata = *pdata;
-+
-+	strlcpy(tr->video_dev.name, "Timberdale Radio",
-+		sizeof(tr->video_dev.name));
-+	tr->video_dev.fops = &timbradio_fops;
-+	tr->video_dev.ioctl_ops = &timbradio_ioctl_ops;
-+	tr->video_dev.release = video_device_release_empty;
-+	tr->video_dev.minor = -1;
-+
-+	strlcpy(tr->v4l2_dev.name, DRIVER_NAME, sizeof(tr->v4l2_dev.name));
-+	err = v4l2_device_register(NULL, &tr->v4l2_dev);
-+	if (err)
-+		goto err_v4l2_dev;
-+
-+	tr->video_dev.v4l2_dev = &tr->v4l2_dev;
-+
-+	err = video_register_device(&tr->video_dev, VFL_TYPE_RADIO, -1);
-+	if (err) {
-+		dev_err(&pdev->dev, "Error reg video\n");
-+		goto err_video_req;
-+	}
-+
-+	video_set_drvdata(&tr->video_dev, tr);
-+
-+	platform_set_drvdata(pdev, tr);
-+	return 0;
-+
-+err_video_req:
-+	video_device_release_empty(&tr->video_dev);
-+	v4l2_device_unregister(&tr->v4l2_dev);
-+err_v4l2_dev:
-+	kfree(tr);
-+err:
-+	dev_err(&pdev->dev, "Failed to register: %d\n", err);
-+
-+	return err;
-+}
-+
-+static int __devexit timbradio_remove(struct platform_device *pdev)
-+{
-+	struct timbradio *tr = platform_get_drvdata(pdev);
-+
-+	video_unregister_device(&tr->video_dev);
-+	video_device_release_empty(&tr->video_dev);
-+
-+	v4l2_device_unregister(&tr->v4l2_dev);
-+
-+	kfree(tr);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver timbradio_platform_driver = {
-+	.driver = {
-+		.name	= DRIVER_NAME,
-+		.owner	= THIS_MODULE,
-+	},
-+	.probe		= timbradio_probe,
-+	.remove		= timbradio_remove,
-+};
-+
-+/*--------------------------------------------------------------------------*/
-+
-+static int __init timbradio_init(void)
-+{
-+	return platform_driver_register(&timbradio_platform_driver);
-+}
-+
-+static void __exit timbradio_exit(void)
-+{
-+	platform_driver_unregister(&timbradio_platform_driver);
-+}
-+
-+module_init(timbradio_init);
-+module_exit(timbradio_exit);
-+
-+MODULE_DESCRIPTION("Timberdale Radio driver");
-+MODULE_AUTHOR("Mocean Laboratories <info@mocean-labs.com>");
-+MODULE_LICENSE("GPL v2");
-+MODULE_ALIAS("platform:"DRIVER_NAME);
-diff --git a/include/media/timb_radio.h b/include/media/timb_radio.h
-new file mode 100644
-index 0000000..fcd32a3
---- /dev/null
-+++ b/include/media/timb_radio.h
-@@ -0,0 +1,36 @@
-+/*
-+ * timb_radio.h Platform struct for the Timberdale radio driver
-+ * Copyright (c) 2009 Intel Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#ifndef _TIMB_RADIO_
-+#define _TIMB_RADIO_ 1
-+
-+#include <linux/i2c.h>
-+
-+struct timb_radio_platform_data {
-+	int i2c_adapter; /* I2C adapter where the tuner and dsp are attached */
-+	struct {
-+		const char *module_name;
-+		struct i2c_board_info *info;
-+	} tuner;
-+	struct {
-+		const char *module_name;
-+		struct i2c_board_info *info;
-+	} dsp;
-+};
-+
-+#endif
-
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
