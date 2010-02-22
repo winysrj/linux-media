@@ -1,54 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:50721 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1757825Ab0BRS6J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Feb 2010 13:58:09 -0500
-Date: Thu, 18 Feb 2010 19:58:07 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3797 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753618Ab0BVUA3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Feb 2010 15:00:29 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>,
-	"Gole, Anant" <anantgole@ti.com>,
-	Muralidharan Karicheri <m-karicheri2@ti.com>,
-	Sergio Rodriguez <saaguirre@ti.com>, molnar@ti.com,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Guru Raj <gururaj.nagendra@intel.com>,
-	"Zhang, Xiaolin" <xiaolin.zhang@intel.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Jin-Sung Yang <jsgood.yang@samsung.com>,
-	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
-	Kyungmin Park <kmpark@infradead.org>, mcharleb@qualcomm.com,
-	hrao@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>
-Subject: Re: Proposal for a V4L2 Media Controller mini-summit
-In-Reply-To: <4B7D40C7.1060706@maxwell.research.nokia.com>
-Message-ID: <Pine.LNX.4.64.1002181956570.4373@axis700.grange>
-References: <201002121550.08706.hverkuil@xs4all.nl>    <201002171933.33921.hverkuil@xs4all.nl>
-    <201002181058.28073.laurent.pinchart@ideasonboard.com>   
- <4B7D1B7D.9090800@maxwell.research.nokia.com>
- <c76d3160af32c3c654cad235f9ef5441.squirrel@webmail.xs4all.nl>
- <4B7D40C7.1060706@maxwell.research.nokia.com>
+Subject: Re: [PATCH 5/6] V4L: Events: Support event handling in do_ioctl
+Date: Mon, 22 Feb 2010 21:02:59 +0100
+Cc: linux-media@vger.kernel.org, laurent.pinchart@nokia.com,
+	david.cohen@nokia.com
+References: <4B82A7FB.50505@maxwell.research.nokia.com> <1266853897-25749-4-git-send-email-sakari.ailus@maxwell.research.nokia.com> <1266853897-25749-5-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1266853897-25749-5-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201002222102.59373.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 18 Feb 2010, Sakari Ailus wrote:
+Just one tiny comment:
 
-> Hans Verkuil wrote:
-> > New proposal: May 5-7 in Lysaker, Norway.
-> > 
-> > Does that work?
+On Monday 22 February 2010 16:51:36 Sakari Ailus wrote:
+> Add support for event handling to do_ioctl.
 > 
-> Fits very well to my schedule.
+> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> ---
+>  drivers/media/video/v4l2-fh.c    |    5 +++-
+>  drivers/media/video/v4l2-ioctl.c |   50 ++++++++++++++++++++++++++++++++++++++
+>  include/media/v4l2-ioctl.h       |    7 +++++
+>  3 files changed, 61 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
+> index 713f5a0..2986a2c 100644
+> --- a/drivers/media/video/v4l2-fh.c
+> +++ b/drivers/media/video/v4l2-fh.c
+> @@ -33,7 +33,10 @@ void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
+>  	fh->vdev = vdev;
+>  	INIT_LIST_HEAD(&fh->list);
+>  	set_bit(V4L2_FL_USES_V4L2_FH, &fh->vdev->flags);
+> -	v4l2_event_init(fh);
 
-May I also attend?
+I recommend adding a small comment here along the lines of:
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+/* fh->events only needs to be initialized if the driver supports the
+   VIDIOC_SUBSCRIBE_EVENT ioctl. */
+
+> +	if (vdev->ioctl_ops && vdev->ioctl_ops->vidioc_subscribe_event)
+> +		v4l2_event_init(fh);
+> +	else
+> +		fh->events = NULL;
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_fh_init);
+>  
+
+Other than that:
+
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
