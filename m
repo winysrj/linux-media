@@ -1,48 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200]:35161 "EHLO
-	mta5.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932268Ab0BOWUZ (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:17486 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753807Ab0BVPvn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2010 17:20:25 -0500
-Received: from MacBook-Pro.local
- (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta5.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KXW0009RM1Z0JK0@mta5.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Mon, 15 Feb 2010 17:20:24 -0500 (EST)
-Date: Mon, 15 Feb 2010 17:20:23 -0500
-From: Steven Toth <stoth@kernellabs.com>
-Subject: Re: cx23885
-In-reply-to: <hlch5h$ogp$1@ger.gmane.org>
-To: Michael <auslands-kv@gmx.de>
-Cc: linux-media@vger.kernel.org
-Message-id: <4B79C8A7.2060800@kernellabs.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <hlbe6t$kc4$1@ger.gmane.org>
- <1266238446.3075.13.camel@palomino.walls.org> <hlbhck$uh9$1@ger.gmane.org>
- <4B795D1A.9040502@kernellabs.com> <hlbopr$v7s$1@ger.gmane.org>
- <4B79803B.4070302@kernellabs.com> <hlcbhu$4s3$1@ger.gmane.org>
- <4B79B437.5000004@kernellabs.com> <hlch5h$ogp$1@ger.gmane.org>
+	Mon, 22 Feb 2010 10:51:43 -0500
+Message-ID: <4B82A7FB.50505@maxwell.research.nokia.com>
+Date: Mon, 22 Feb 2010 17:51:23 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+MIME-Version: 1.0
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Cohen David Abraham <david.cohen@nokia.com>
+Subject: [PATCH v6 0/6] V4L2 file handles and event interface
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> One thing I found pretty fast is that they added in cx23885-card.c:
+Hi,
 
-This looks promising.
+Here's the eighth version of the V4L2 file handle and event interface
+patchset.
 
-> But maybe it is a start. What do you think?
+The patchset has been tested with the OMAP 3 ISP driver. Patches for
+OMAP 3 ISP are not part of this patchset but are available in Gitorious
+(branch is called event):
 
-I repeat I my original comment below.
+	git://gitorious.org/omap3camera/mainline.git event
 
->> Feel free to submit patches.
+The patchset I'm posting now is against the v4l-dvb tree instead of
+linux-omap. The omap3camera tree thus has a slightly different
+version of these patches due to different baselines.
 
-^^^ indeed, good luck.
+Some more comments from Hans and Laurent. What has changed:
 
-Regards,
+- Improved documentation.
+- V4L2_EVENT_ALL only valid in unsubscribing.
+- Events are initialised in v4l2_fh_init() if
+video_device->ioctl_ops->vidioc_subscribe_event is defined.
+- Event ioctl handlers are called in __video_do_ioctl() iff
+video_device->ioctl_ops->vidioc_subscribe_event is defined, no other
+constraints.
+- Blocking operation for VIDIOC_DQEVENT.
+- v4l2_event_subscribe_many() is gone.
+- Fixed memory leak in v4l2_event_subscribe()
+
+Comments are welcome as always.
+
+Cheers,
 
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
-+1.646.355.8490
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
 
