@@ -1,57 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:64106 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754865Ab0BVWwV (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2404 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753510Ab0BVTzo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 17:52:21 -0500
-Received: by bwz1 with SMTP id 1so517612bwz.21
-        for <linux-media@vger.kernel.org>; Mon, 22 Feb 2010 14:52:19 -0800 (PST)
+	Mon, 22 Feb 2010 14:55:44 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [PATCH 2/6] V4L: File handles: Add documentation
+Date: Mon, 22 Feb 2010 20:58:10 +0100
+Cc: linux-media@vger.kernel.org, laurent.pinchart@nokia.com,
+	david.cohen@nokia.com
+References: <4B82A7FB.50505@maxwell.research.nokia.com> <1266853897-25749-1-git-send-email-sakari.ailus@maxwell.research.nokia.com> <1266853897-25749-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1266853897-25749-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-In-Reply-To: <4B83076A.3010409@ctecworld.com>
-References: <20091007101142.3b83dbf2@glory.loctelecom.ru>
-	 <200912160849.17005.hverkuil@xs4all.nl>
-	 <20100112172209.464e88cd@glory.loctelecom.ru>
-	 <201001130838.23949.hverkuil@xs4all.nl>
-	 <20100127143637.26465503@glory.loctelecom.ru>
-	 <4B83076A.3010409@ctecworld.com>
-Date: Mon, 22 Feb 2010 17:52:19 -0500
-Message-ID: <829197381002221452k793be9d2l8f7ec3638233ecd0@mail.gmail.com>
-Subject: Re: eb1a:2860 eMPIA em28xx device to usb1 ??? usb hub problem?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: j <jlafontaine@ctecworld.com>
-Cc: Dmitri Belimov <d.belimov@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201002222058.10986.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 22, 2010 at 5:38 PM, j <jlafontaine@ctecworld.com> wrote:
-> Hi I get trouble with my Kworld em28xx device, anyone can help any kernel
-> issue found somewhere about that?
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
 
-Hi J,
-
-Is this device plugged directly into the USB port on the motherboard?
-Or do you have a USB hub that the device is connected to.  Sometimes
-low quality USB hubs will not work properly with high speed isoc
-devices.
-
-Also, I would suggest that you leave the device unplugged when
-powering up the system.  Then once it is up, plug it in and send the
-full dmesg output.  This will make it easier to analyze the dmesg
-output because the driver will not be initializing at the same time as
-all the other USB devices.
-
-Also, please provide the *full* dmesg output, so we have more context
-information about the system (things such as the kernel version, etc).
-
-Cheers,
-
-Devin
+On Monday 22 February 2010 16:51:33 Sakari Ailus wrote:
+> Add documentation on using V4L2 file handles (v4l2_fh) in V4L2 drivers.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> ---
+>  Documentation/video4linux/v4l2-framework.txt |   37 ++++++++++++++++++++++++++
+>  1 files changed, 37 insertions(+), 0 deletions(-)
+> 
+> diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+> index 74d677c..bfaf0c5 100644
+> --- a/Documentation/video4linux/v4l2-framework.txt
+> +++ b/Documentation/video4linux/v4l2-framework.txt
+> @@ -695,3 +695,40 @@ The better way to understand it is to take a look at vivi driver. One
+>  of the main reasons for vivi is to be a videobuf usage example. the
+>  vivi_thread_tick() does the task that the IRQ callback would do on PCI
+>  drivers (or the irq callback on USB).
+> +
+> +struct v4l2_fh
+> +--------------
+> +
+> +struct v4l2_fh provides a way to easily keep file handle specific data
+> +that is used by the V4L2 framework.
+> +
+> +struct v4l2_fh is allocated as a part of the driver's own file handle
+> +structure and is set to file->private_data in the driver's open
+> +function by the driver. Drivers can extract their own file handle
+> +structure by using the container_of macro.
+> +
+> +Useful functions:
+> +
+> +- v4l2_fh_init()
+> +
+> +  Initialise the file handle. This *MUST* be performed in the driver's
+> +  v4l2_file_operations->open() handler.
+> +
+> +- v4l2_fh_add()
+> +
+> +  Add a v4l2_fh to video_device file handle list. May be called after
+> +  initialising the file handle.
+> +
+> +- v4l2_fh_del()
+> +
+> +  Unassociate the file handle from video_device(). The file handle
+> +  exit function may now be called.
+> +
+> +- v4l2_fh_exit()
+> +
+> +  Uninitialise the file handle. After uninitialisation the v4l2_fh
+> +  memory can be freed.
+> +
+> +The users of v4l2_fh know whether a driver uses v4l2_fh as its
+> +file->private_data pointer by testing the V4L2_FL_USES_V4L2_FH bit in
+> +video_device->flags.
+> 
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
