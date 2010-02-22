@@ -1,45 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f220.google.com ([209.85.220.220]:35289 "EHLO
-	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756780Ab0BDSOP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2010 13:14:15 -0500
-Date: Thu, 4 Feb 2010 10:14:04 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Jiri Slaby <jirislaby@gmail.com>
-Cc: Jiri Kosina <jkosina@suse.cz>, Antti Palosaari <crope@iki.fi>,
-	mchehab@infradead.org, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, Pekka Sarnila <sarnila@adit.fi>,
-	linux-input@vger.kernel.org
-Subject: Re: [PATCH 1/1] media: dvb-usb/af9015, fix disconnection crashes
-Message-ID: <20100204181404.GC10965@core.coreip.homeip.net>
-References: <1264007972-6261-1-git-send-email-jslaby@suse.cz>
- <4B5CDB53.6030009@iki.fi>
- <4B5D6098.7010700@gmail.com>
- <4B5DDDFB.5020907@iki.fi>
- <alpine.LRH.2.00.1001261406010.15694@twin.jikos.cz>
- <4B6AA211.1060707@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:61104 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754744Ab0BVXVk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Feb 2010 18:21:40 -0500
+Message-ID: <4B831178.7060303@redhat.com>
+Date: Mon, 22 Feb 2010 20:21:28 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4B6AA211.1060707@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, MXXrton NXXmeth <nm127@freemail.hu>
+Subject: Re: [git:v4l-dvb/master] V4L/DVB: uvcvideo: Clamp control values
+ to the minimum and maximum values
+References: <E1Njfbf-0000g0-7v@www.linuxtv.org> <201002230011.05447.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201002230011.05447.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 04, 2010 at 11:31:45AM +0100, Jiri Slaby wrote:
- +
-> +static int dvb_event(struct hid_device *hdev, struct hid_field *field,
-> +		struct hid_usage *usage, __s32 value)
-> +{
-> +	/* we won't get a "key up" event */
-> +	if (value) {
-> +		input_event(field->hidinput->input, usage->type, usage->code, 1);
-> +		input_event(field->hidinput->input, usage->type, usage->code, 0);
+Laurent Pinchart wrote:
+> Hi Mauro,
+> 
+> On Monday 22 February 2010 22:14:19 Patch from Laurent Pinchart wrote:
+>> From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> MIME-Version: 1.0
+>> Content-Type: text/plain; charset=utf-8
+>> Content-Transfer-Encoding: 8bit
+> 
+> There's a problem somewhere.
 
-Do not ever forget input_sync(), you need 2 of them here.
+It seems to be only at the git post-update script I wrote, since the commit is sane:
 
-With the latest changes to evdev, if you are using SIGIO you won't get
-wioken up until EV_SYN/SYN_REPORT.
+http://git.linuxtv.org/v4l-dvb.git?a=commit;h=a8677cd5589be9e35ef5117f75e4b996724102fb
 
--- 
-Dmitry
+What's weird is that the script doesn't add any mime/utf stuff. It just fills the usual
+from/to/date/subject/cc fields, and calls sendmail.
+
+Maybe sendmail didn't like having a non-7-bits CC.
+
+Cheers,
+Mauro
