@@ -1,87 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3738 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754063Ab0BILW7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 06:22:59 -0500
-Message-ID: <26fe28e3dda70da4d133a9dbc3f2bc74.squirrel@webmail.xs4all.nl>
-In-Reply-To: <Pine.LNX.4.64.1002091053470.4585@axis700.grange>
-References: <Pine.LNX.4.64.1002081044150.4936@axis700.grange>
-    <4B7012D1.40605@redhat.com>
-    <Pine.LNX.4.64.1002081447020.4936@axis700.grange>
-    <4B705216.7040907@redhat.com>
-    <Pine.LNX.4.64.1002091053470.4585@axis700.grange>
-Date: Tue, 9 Feb 2010 12:22:09 +0100
-Subject: Re: [PATCH/RESEND] soc-camera: add runtime pm support for
- subdevices
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-Cc: "Mauro Carvalho Chehab" <mchehab@redhat.com>,
-	linux-pm@lists.linux-foundation.org,
-	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
-	"Valentin Longchamp" <valentin.longchamp@epfl.ch>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:54968 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752498Ab0BVR1T convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Feb 2010 12:27:19 -0500
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"iivanov@mm-sol.com" <iivanov@mm-sol.com>,
+	"gururaj.nagendra@intel.com" <gururaj.nagendra@intel.com>,
+	"david.cohen@nokia.com" <david.cohen@nokia.com>
+Date: Mon, 22 Feb 2010 11:27:01 -0600
+Subject: RE: [PATCH v5 1/6] V4L: File handles
+Message-ID: <A24693684029E5489D1D202277BE894453798D3A@dlee02.ent.ti.com>
+References: <4B7EE4A4.3080202@maxwell.research.nokia.com>
+ <1266607320-9974-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+ <A24693684029E5489D1D202277BE894453691587@dlee02.ent.ti.com>
+ <4B819606.6040602@maxwell.research.nokia.com>
+In-Reply-To: <4B819606.6040602@maxwell.research.nokia.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Sakari,
 
-> On Mon, 8 Feb 2010, Mauro Carvalho Chehab wrote:
->
->> In fact, on all drivers, there are devices that needs to be turn on only
->> when
->> streaming is happening: sensors, analog TV/audio demods, digital demods.
->> Also,
->> a few devices (for example: TV tuners) could eventually be on power off
->> when
->> no device is opened.
->>
->> As the V4L core knows when this is happening (due to
->> open/close/poll/streamon/reqbuf/qbuf/dqbuf hooks, I think the runtime
->> management
->> can happen at V4L core level.
->
-> Well, we can move it up to v4l core. Should it get any more complicated
-> than adding
->
-> 	ret = pm_runtime_resume(&vdev->dev);
-> 	if (ret < 0 && ret != -ENOSYS)
-> 		return ret;
->
-> to v4l2_open() and
->
-> 	pm_runtime_suspend(&vdev->dev);
->
-> to v4l2_release()?
+From: Sakari Ailus [mailto:sakari.ailus@maxwell.research.nokia.com]
 
-My apologies if I say something stupid as I know little about pm: are you
-assuming here that streaming only happens on one device node? That may be
-true for soc-camera, but other devices can have multiple streaming nodes
-(video, vbi, mpeg, etc). So the call to v4l2_release does not necessarily
-mean that streaming has stopped.
+...
+
+> Will fix.
+
+Seems that you missed to fix this patch comments on your v6 version...
+
+:-/
 
 Regards,
-
-      Hans
-
-> And to agree, that video drivers may set a device type
-> to implement runtime PM, and that the v4l core shouldn't touch it? Then,
-> for example, a bridge driver could implement such a device type instance
-> and suspend or resume all related components?
->
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
+Sergio
+> 
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
-
+> Sakari Ailus
+> sakari.ailus@maxwell.research.nokia.com
