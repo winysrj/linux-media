@@ -1,44 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cpc5-sgyl16-0-0-cust107.sgyl.cable.virginmedia.com ([77.99.223.108]:55075
-	"EHLO localhost.localdomain" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756440Ab0BOUIc convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2010 15:08:32 -0500
-Received: from localhost.localdomain (localhost.localdomain [127.0.0.1])
-	by localhost.localdomain (8.14.3/8.14.3) with ESMTP id o1FKqJX8006094
-	for <linux-media@vger.kernel.org>; Mon, 15 Feb 2010 20:52:19 GMT
-Received: (from msar@localhost)
-	by localhost.localdomain (8.14.3/8.14.3/Submit) id o1FKqJfn006092
-	for linux-media@vger.kernel.org; Mon, 15 Feb 2010 20:52:19 GMT
-Subject: USB TV stick with 18271HD-C2 chip
-From: Michael Robb <msar2020@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Date: Mon, 15 Feb 2010 20:52:18 +0000
-Message-ID: <1266267138.5956.1.camel@localhost.localdomain>
-Mime-Version: 1.0
+Received: from acsinet12.oracle.com ([141.146.126.234]:24670 "EHLO
+	acsinet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753802Ab0BVQWg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Feb 2010 11:22:36 -0500
+Message-ID: <4B82AF18.3030107@oracle.com>
+Date: Mon, 22 Feb 2010 08:21:44 -0800
+From: Randy Dunlap <randy.dunlap@oracle.com>
+MIME-Version: 1.0
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+CC: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
+Subject: Re: linux-next: Tree for February 22 (media/video/tvp7002)
+References: <20100222172218.4fd82a45.sfr@canb.auug.org.au>
+In-Reply-To: <20100222172218.4fd82a45.sfr@canb.auug.org.au>
+Content-Type: text/plain; charset=EUC-KR
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-   I am trying to get a USB TV stick to work: with Linux - Inside the
-case, it has a NXP TDA18271HDC2 tuning chip, but no decoder. Shows up as
-a "Cali TV Card" with idVendor 0x438, idProduct 0xac14
+On 02/21/10 22:22, Stephen Rothwell wrote:
+> Hi all,
+> 
+> Changes since 20100219:
 
-Three devices get created under major 189 minor 6 /dev/char/189:6
-DEVPATH=/devices/pci0000:00/0000:00:03.3/usb1/1-1
-DEVPATH=/devices/pci0000:00/0000:00:03.3/usb1/1-1/1-1:1.0
 
-I figure that it requires the 'tda18271' driver to work
-(v4l-dvb/tda18271-common.c ...), but haven't had much such
-success trying to use modprobe and lsmod.
+drivers/media/video/tvp7002.c:896: error: 'struct tvp7002' has no member named 'registers'
 
-The product data sheet for the chip is at:
 
-http://www.nxp.com/documents/data_sheet/TDA18271HD.pdf
-Can anyone help?
-
-Cheers,
-   Michael
-
+-- 
+~Randy
