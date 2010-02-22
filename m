@@ -1,68 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet12.oracle.com ([141.146.126.234]:25579 "EHLO
-	acsinet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753477Ab0BOClJ (ORCPT
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:64106 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754865Ab0BVWwV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Feb 2010 21:41:09 -0500
-Date: Sun, 14 Feb 2010 18:39:32 -0800
-From: Randy Dunlap <randy.dunlap@oracle.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] dvb: fix sparse warnings
-Message-Id: <20100214183932.46d678c9.randy.dunlap@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Mon, 22 Feb 2010 17:52:21 -0500
+Received: by bwz1 with SMTP id 1so517612bwz.21
+        for <linux-media@vger.kernel.org>; Mon, 22 Feb 2010 14:52:19 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4B83076A.3010409@ctecworld.com>
+References: <20091007101142.3b83dbf2@glory.loctelecom.ru>
+	 <200912160849.17005.hverkuil@xs4all.nl>
+	 <20100112172209.464e88cd@glory.loctelecom.ru>
+	 <201001130838.23949.hverkuil@xs4all.nl>
+	 <20100127143637.26465503@glory.loctelecom.ru>
+	 <4B83076A.3010409@ctecworld.com>
+Date: Mon, 22 Feb 2010 17:52:19 -0500
+Message-ID: <829197381002221452k793be9d2l8f7ec3638233ecd0@mail.gmail.com>
+Subject: Re: eb1a:2860 eMPIA em28xx device to usb1 ??? usb hub problem?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: j <jlafontaine@ctecworld.com>
+Cc: Dmitri Belimov <d.belimov@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
+On Mon, Feb 22, 2010 at 5:38 PM, j <jlafontaine@ctecworld.com> wrote:
+> Hi I get trouble with my Kworld em28xx device, anyone can help any kernel
+> issue found somewhere about that?
 
-Fix sparse warnings in media/dvb/frontends:
+Hi J,
 
-drivers/media/dvb/frontends/dibx000_common.c:177:13: warning: non-ANSI function declaration of function 'systime'
-drivers/media/dvb/frontends/dib0090.c:286:13: warning: function 'dib0090_dcc_freq' with external linkage has definition
-drivers/media/dvb/frontends/tda665x.c:136:55: warning: right shift by bigger than source value
+Is this device plugged directly into the USB port on the motherboard?
+Or do you have a USB hub that the device is connected to.  Sometimes
+low quality USB hubs will not work properly with high speed isoc
+devices.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
----
- drivers/media/dvb/frontends/dib0090.c        |    2 +-
- drivers/media/dvb/frontends/dibx000_common.c |    2 +-
- drivers/media/dvb/frontends/tda665x.c        |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+Also, I would suggest that you leave the device unplugged when
+powering up the system.  Then once it is up, plug it in and send the
+full dmesg output.  This will make it easier to analyze the dmesg
+output because the driver will not be initializing at the same time as
+all the other USB devices.
 
---- linux-2.6.33-rc8.orig/drivers/media/dvb/frontends/dib0090.c
-+++ linux-2.6.33-rc8/drivers/media/dvb/frontends/dib0090.c
-@@ -283,7 +283,7 @@ static int dib0090_sleep(struct dvb_fron
- 	return 0;
- }
- 
--extern void dib0090_dcc_freq(struct dvb_frontend *fe, u8 fast)
-+void dib0090_dcc_freq(struct dvb_frontend *fe, u8 fast)
- {
- 	struct dib0090_state *state = fe->tuner_priv;
- 	if (fast)
---- linux-2.6.33-rc8.orig/drivers/media/dvb/frontends/dibx000_common.c
-+++ linux-2.6.33-rc8/drivers/media/dvb/frontends/dibx000_common.c
-@@ -174,7 +174,7 @@ void dibx000_exit_i2c_master(struct dibx
- EXPORT_SYMBOL(dibx000_exit_i2c_master);
- 
- 
--u32 systime()
-+u32 systime(void)
- {
-     struct timespec t;
- 
---- linux-2.6.33-rc8.orig/drivers/media/dvb/frontends/tda665x.c
-+++ linux-2.6.33-rc8/drivers/media/dvb/frontends/tda665x.c
-@@ -133,7 +133,7 @@ static int tda665x_set_state(struct dvb_
- 		frequency += config->ref_divider >> 1;
- 		frequency /= config->ref_divider;
- 
--		buf[0] = (u8) (frequency & 0x7f00) >> 8;
-+		buf[0] = (u8) ((frequency & 0x7f00) >> 8);
- 		buf[1] = (u8) (frequency & 0x00ff) >> 0;
- 		buf[2] = 0x80 | 0x40 | 0x02;
- 		buf[3] = 0x00;
----
-~Randy
+Also, please provide the *full* dmesg output, so we have more context
+information about the system (things such as the kernel version, etc).
+
+Cheers,
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
