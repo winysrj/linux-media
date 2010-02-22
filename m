@@ -1,44 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f220.google.com ([209.85.220.220]:41996 "EHLO
-	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752320Ab0BIXBU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 18:01:20 -0500
-Received: by fxm20 with SMTP id 20so647472fxm.21
-        for <linux-media@vger.kernel.org>; Tue, 09 Feb 2010 15:01:18 -0800 (PST)
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4056 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754543Ab0BVVjM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Feb 2010 16:39:12 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: Chroma gain configuration
+Date: Mon, 22 Feb 2010 22:41:22 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Andy Walls <awalls@radix.net>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <829197381002212007q342fc01bm1c528a2f15027a1e@mail.gmail.com> <4B828D9C.50303@redhat.com> <829197381002221317p42dda715lbd7ea1193c40d45c@mail.gmail.com>
+In-Reply-To: <829197381002221317p42dda715lbd7ea1193c40d45c@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <215789.18894.qm@web35803.mail.mud.yahoo.com>
-References: <215789.18894.qm@web35803.mail.mud.yahoo.com>
-Date: Tue, 9 Feb 2010 18:01:18 -0500
-Message-ID: <15cfa2a51002091501k7024fd1apf77dfa5783671ef2@mail.gmail.com>
-Subject: Re: Kworld ATSC usb 435Q device and RF tracking filter calibration
-From: Robert Cicconetti <grythumn@gmail.com>
-To: Amy Overmyer <aovermy@yahoo.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201002222241.22456.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have this stick running on my Mythtv box with the patch and a quick
-hack to disable the additional calibrations. It works, most of the
-time, but will occasionally stop working until I reboot. The frequency
-of this is reduced if I tell Mythbackend to only grab the tuner when
-it needs it... might be a calibration issue, might be marginal
-hardware overheating.
+On Monday 22 February 2010 22:17:24 Devin Heitmueller wrote:
+> On Mon, Feb 22, 2010 at 8:58 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+> >> Ok then.  I'll add the 15-20 lines of code which add the extended
+> >> controls mechanism to the 7115, which just operates as a passthrough
+> >> for the older control interface.
+> >
+> > The better is to do the opposite: extended being the control interface and
+> > the old calls as a passthrough, since the idea is to remove the old interface
+> > after having all drivers converted.
+> 
+> I gave this a bit of thought, and I'm not sure what you are proposing
+> is actually possible.  Because the extended controls provides a
+> superset of the functionality of the older user controls interface, it
+> is possible to create a extended control callback which just passes
+> through the request (since any user control can be converted into a
+> extended control).  However, you cannot convert the extended control
+> results into the older user control format, since not all the
+> information could be provided.
+> 
+> In fact, I would be in favor of taking the basic logic found in
+> cx18_g_ext_ctrls(), and making that generic to the videodev interface,
+> such that any driver which provides a user control interface but
+> doesn't provide an extended control function will work if the calling
+> application makes an extended control call.  This will allow userland
+> applications to always use the extended controls API, even if the
+> driver didn't explicitly add support for it.
 
--R C
+I am still planning to continue my work for a general control handling
+framework. I know how to do it and it's just time that I lack.
 
-On Tue, Feb 9, 2010 at 5:16 PM, Amy Overmyer <aovermy@yahoo.com> wrote:
-> I have one of these devices. It works OK in windows, but I'd like to stick it on my myth backend as a 3rd tuner, just in case. I'm using it for 8VSB OTA. I took a patch put forth a while back on this list and was able to put that on the kernel 2.6.31.6. I am able to tune and lock channels with it, but, like the people earlier, I see the RF tracking filter calibration in the syslogs and tuning takes some time.
->
-> Is there anything I can do to debug this? I'm a programmer by trade (err my systems are usually a bit more special purpose than a linux box as I'm an embedded systems type guy, but it's all bits anyway), so don't be afraid to suggest code changes or point me in a direction.
->
-> Thanks,
->
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Converting all drivers to support the extended control API is quite complicated
+since the API is fairly complex (esp. with regard to atomicity). In this case
+my advice would be to support extended controls only where needed and wait for
+this framework before converting all the other drivers.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
