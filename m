@@ -1,44 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:44085 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752550Ab0CAA7k (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Feb 2010 19:59:40 -0500
-Subject: Re: Mantis not in modules.pcimap
-From: Andy Walls <awalls@radix.net>
-To: Helmut Auer <vdr@helmutauer.de>
-Cc: Manu Abraham <abraham.manu@gmail.com>, linux-media@vger.kernel.org
-In-Reply-To: <4B8AF722.8000105@helmutauer.de>
-References: <4B8AF722.8000105@helmutauer.de>
-Content-Type: text/plain
-Date: Sun, 28 Feb 2010 19:58:06 -0500
-Message-Id: <1267405086.3109.48.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-fx0-f219.google.com ([209.85.220.219]:49539 "EHLO
+	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751806Ab0BWRXY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Feb 2010 12:23:24 -0500
+Received: by fxm19 with SMTP id 19so4055722fxm.21
+        for <linux-media@vger.kernel.org>; Tue, 23 Feb 2010 09:23:22 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4B83FD1A.3070508@redhat.com>
+References: <1a297b361002230336q7065170tc79ef22426ef5a8a@mail.gmail.com>
+	 <201002231406.36939.hftom@free.fr> <4B83FD1A.3070508@redhat.com>
+Date: Tue, 23 Feb 2010 21:23:22 +0400
+Message-ID: <1a297b361002230923u34137949ya1e1d97cb03abf04@mail.gmail.com>
+Subject: Re: [linux-dvb] scan-s2 and dvb-apps
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Christophe Thommeret <hftom@free.fr>, linux-media@vger.kernel.org,
+	linux-dvb@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2010-03-01 at 00:07 +0100, Helmut Auer wrote:
-> Hello,
-> 
-> The mantis module is build and working fine with the Skystar2 HD, but it I cannot autodetect it,
-> because modules.pcimap is not filled with the vendor id of the card using this module.
-> What's to do  to get these ID's ?
-> In my case its a:
-> 
-> 01:08.0 0480: 1822:4e35 (rev 01)
-> 	Subsystem: 1ae4:0003
-> 	Flags: bus master, medium devsel, latency 32, IRQ 16
-> 	Memory at fddff000 (32-bit, prefetchable) [size=4K]
+Hi Mauro,
 
-Running 
+Please don't hijack threads. It's a basic courtesy. What's being
+discussed in this thread, is completely different from your patch.
 
- # depmod -a
 
-as root should have added it.  The mantis driver is likely missing a
-MODULE_DEVICE_TABLE() macro invocation.
-
-Cc:-ing Manu.
-
-Regards,
-Andy
-
+Best Regards,
+Manu
