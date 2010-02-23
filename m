@@ -1,56 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f224.google.com ([209.85.217.224]:53152 "EHLO
-	mail-gx0-f224.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756263Ab0BJU5c (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:9493 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750909Ab0BWJlc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Feb 2010 15:57:32 -0500
-Received: by gxk24 with SMTP id 24so474470gxk.1
-        for <linux-media@vger.kernel.org>; Wed, 10 Feb 2010 12:57:31 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <829197381002101120v76e5ad9w28283bbaafc941c4@mail.gmail.com>
-References: <f535cc5a1002100021u37bf47a5y50a0a90873a082e2@mail.gmail.com>
-	<f535cc5a1002101058h4d8e4bd1p6fd03abd4f724f52@mail.gmail.com>
-	<f535cc5a1002101101k709bbe9bv504cf33fab14dedc@mail.gmail.com>
-	<f535cc5a1002101102w146050c5v91ddc6ec86542153@mail.gmail.com>
-	<829197381002101120v76e5ad9w28283bbaafc941c4@mail.gmail.com>
-From: Carlos Jenkins <carlos.jenkins.perez@gmail.com>
-Date: Wed, 10 Feb 2010 14:57:11 -0600
-Message-ID: <f535cc5a1002101257h1e1fd500q97e234f05d03212e@mail.gmail.com>
-Subject: Re: Want to help in MSI TV VOX USB 2.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 23 Feb 2010 04:41:32 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=us-ascii
+Received: from eu_spt2 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0KYA00LLEG95I640@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 23 Feb 2010 09:41:29 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0KYA00MVUG940J@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 23 Feb 2010 09:41:28 +0000 (GMT)
+Date: Tue, 23 Feb 2010 10:39:57 +0100
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: RE: [PATCH/RFC v1 0/4] Multi-plane video buffer support for V4L2 API
+ and videobuf
+In-reply-to: <4B82C3A5.7070707@redhat.com>
+To: 'Mauro Carvalho Chehab' <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	kyungmin.park@samsung.com
+Message-id: <000c01cab46c$2925c810$7b715830$%osciak@samsung.com>
+Content-language: pl
+References: <1266855010-2198-1-git-send-email-p.osciak@samsung.com>
+ <4B82C3A5.7070707@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, thanks for the replies.
-> Try card=9,
+Hello,
 
-Ok, done:
+thank you for your comments.
 
-sudo modprobe em28xx card=9
 
-[  385.566364] Linux video capture interface: v2.00
-[  385.593590] usbcore: registered new interface driver em28xx
-[  385.593599] em28xx driver loaded
-[  400.104029] usb 1-6: new high speed USB device using ehci_hcd and address 5
-[  400.237357] usb 1-6: configuration #1 chosen from 1 choice
-[  400.238278] em28xx: New device @ 480 Mbps (eb1a:2820, interface 0, class 0)
-[  400.238429] em28xx #0: chip ID is em2820 (or em2710)
-[  400.329049] em28xx #0: board has no eeprom
-[  400.330173] em28xx #0: Identified as Pinnacle Dazzle DVC
-90/100/101/107 / Kaiser Baas Video to DVD maker / Kworld DVD Maker 2
-(card=9)
-[  400.705185] saa7115 5-0021: saa7114 found (1f7114d0e000000) @ 0x42
-(em28xx #0)
-[  402.852932] em28xx #0: Config register raw data: 0x00
-[  402.984028] em28xx #0: v4l2 driver version 0.1.2
-[  403.380126] em28xx #0: V4L2 video device registered as video0
+>From: Mauro Carvalho Chehab [mailto:mchehab@redhat.com]
+>Pawel Osciak wrote:
+>> Only streaming I/O has been tested, read/write might not work correctly.
+>> vivi has been adapted for testing and demonstration purposes, but other drivers
+>> will not compile. Tests have been made on vivi and on an another driver for an
+>> embedded device (those involved dma-contig and USERPTR as well). I am not
+>> attaching that driver, as I expect nobody would be able to compile/test it
+>> anyway.
+>
+>It would be interesting if you could add userptr support for videobuf-vmalloc, and
+>test all supported modes with vivi. This helps to test the changes against existing
+>userspace applications before needing to touch on all drivers.
 
-Still nothing.
 
-> and make sure you have tvtime configured to the correct
-> video standard *before* starting it up (you may need to run the
-> tvtime-configure command line tool).
+Ok, I will, shouldn't be much of a problem.
 
-Already done before.
+
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
+
+
