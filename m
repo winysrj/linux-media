@@ -1,46 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.mujha-vel.cz ([81.30.225.246]:39565 "EHLO
-	smtp.mujha-vel.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752532Ab0BJXcr (ORCPT
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:56863 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752178Ab0BWQPU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Feb 2010 18:32:47 -0500
-From: Jiri Slaby <jslaby@suse.cz>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	jirislaby@gmail.com, Matthias Benesch <twoof7@freenet.de>,
-	Ralph Metzler <rjkm@metzlerbros.de>,
-	Oliver Endriss <o.endriss@gmx.de>
-Subject: [PATCH 1/1] DVB: ngene, fix memset parameters
-Date: Thu, 11 Feb 2010 00:32:42 +0100
-Message-Id: <1265844762-17730-1-git-send-email-jslaby@suse.cz>
+	Tue, 23 Feb 2010 11:15:20 -0500
+Received: by bwz1 with SMTP id 1so1105095bwz.21
+        for <linux-media@vger.kernel.org>; Tue, 23 Feb 2010 08:15:18 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <201002232142.07782.bain@devslashzero.com>
+References: <201002232142.07782.bain@devslashzero.com>
+Date: Tue, 23 Feb 2010 11:15:18 -0500
+Message-ID: <829197381002230815k5fe76c9ah727af57f56fd5401@mail.gmail.com>
+Subject: Re: Hauppague WinTV USB2-stick (tm6010)
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Abhijit Bhopatkar <bain@devslashzero.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Switch second and third memset parameter to stamp the length buffer bytes
-by 0xff's, not 255 bytes by low 8 bits of Length.
+On Tue, Feb 23, 2010 at 11:12 AM, Abhijit Bhopatkar
+<bain@devslashzero.com> wrote:
+> Is it worth for me to test this latest tree and driver against my card by just
+> adding the device ids?
+> If the devs need some more testing / help i can certainly volunteer my
+> time/efforts.
+> I do have fare familiarity with linux driver development and would be happy to
+> help in debugging/developing support for this tuner. The only thing i don't
+> have is knowledge for making this chipset work.
 
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Matthias Benesch <twoof7@freenet.de>
-Cc: Ralph Metzler <rjkm@metzlerbros.de>
-Cc: Oliver Endriss <o.endriss@gmx.de>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/ngene/ngene-core.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Don't bother.  The driver is known to be broken - badly.  It needs
+alot of work, although someone has finally started hacking at the
+tm6000 driver recently (see the mailing list archives for more info).
 
-diff --git a/drivers/media/dvb/ngene/ngene-core.c b/drivers/media/dvb/ngene/ngene-core.c
-index cb5982e..0150dfe 100644
---- a/drivers/media/dvb/ngene/ngene-core.c
-+++ b/drivers/media/dvb/ngene/ngene-core.c
-@@ -564,7 +564,7 @@ static void FillTSBuffer(void *Buffer, int Length, u32 Flags)
- {
- 	u32 *ptr = Buffer;
- 
--	memset(Buffer, Length, 0xff);
-+	memset(Buffer, 0xff, Length);
- 	while (Length > 0) {
- 		if (Flags & DF_SWAP32)
- 			*ptr = 0x471FFF10;
+Devin
+
 -- 
-1.6.6.1
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
