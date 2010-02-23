@@ -1,45 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lon1-post-1.mail.demon.net ([195.173.77.148]:63430 "EHLO
-	lon1-post-1.mail.demon.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756959Ab0BTXvY (ORCPT
+Received: from mail-pz0-f174.google.com ([209.85.222.174]:47046 "EHLO
+	mail-pz0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751720Ab0BWNWy convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Feb 2010 18:51:24 -0500
-Received: from sleepie.demon.co.uk ([80.176.231.188] helo=[192.168.1.5])
-	by lon1-post-1.mail.demon.net with esmtp (Exim 4.69)
-	id 1Niz6Z-0000th-YC
-	for linux-media@vger.kernel.org; Sat, 20 Feb 2010 23:51:23 +0000
-Message-ID: <4B80757B.5070804@sleepie.demon.co.uk>
-Date: Sat, 20 Feb 2010 23:51:23 +0000
-From: Richard Hirst <richard@sleepie.demon.co.uk>
+	Tue, 23 Feb 2010 08:22:54 -0500
+Received: by pzk4 with SMTP id 4so547642pzk.21
+        for <linux-media@vger.kernel.org>; Tue, 23 Feb 2010 05:22:53 -0800 (PST)
+From: "Ahmad Issa" <issa.leb@gmail.com>
+To: <linux-media@vger.kernel.org>, <linux-dvb@linuxtv.org>
+References: <1a297b361002230336q7065170tc79ef22426ef5a8a@mail.gmail.com> <201002231406.36939.hftom@free.fr>
+In-Reply-To: <201002231406.36939.hftom@free.fr>
+Subject: RE: [linux-dvb] scan-s2 and dvb-apps
+Date: Tue, 23 Feb 2010 16:16:10 +0300
+Message-ID: <4b83d522.9513f30a.1ffc.29f2@mx.google.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [PATCH] v4lconvert_rotate90() leaves bytesperline wrong
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Language: en-us
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have a cheap webcam (ID 093a:262a Pixart Imaging, Inc.), and Ubuntu 9.10 64 bit, Skype 2.1.0.81, and lib32v4l-0 version 0.6.0-1.  I start skype with LD_PRELOAD=/usr/lib32/libv4l/v4l1compat.so, and the video image is garbled.  I believe the problem is that the webcam image starts off at 480x640 and skype asks for YU12 at 320x240 for a test image.  This results in v4lconvert_rotate90() being called to rotate the image, and then v4lconvert_reduceandcrop_yuv420() being called to down-size the image from 640x480 to 320x240.  Unfortunately v4lconvert_reduceandcrop_yuv420() relies on src_fmt->fmt.pix.bytesperline for the source image, and that is still 480 (should be 640, since the image has been rotated).
+I think its better to use one application, so i prefer option (b)
 
-This fixes it for me:
+-----Original Message-----
+From: linux-dvb-bounces@linuxtv.org [mailto:linux-dvb-bounces@linuxtv.org]
+On Behalf Of Christophe Thommeret
+Sent: Tuesday, February 23, 2010 4:07 PM
+To: linux-media@vger.kernel.org; linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] scan-s2 and dvb-apps
 
---- ori/libv4lconvert/libv4lconvert.c	2010-02-20 22:44:28.000000000 +0000
-+++ libv4l-0.6.0/libv4lconvert/libv4lconvert.c	2010-02-20 23:01:12.000000000 +0000
-@@ -1088,8 +1088,10 @@
-       v4lprocessing_processing(data->processing, convert2_dest, &my_src_fmt);
-   }
- 
--  if (rotate90)
-+  if (rotate90) {
-     v4lconvert_rotate90(rotate90_src, rotate90_dest, &my_src_fmt);
-+    v4lconvert_fixup_fmt(&my_src_fmt);
-+  }
- 
-   if (hflip || vflip)
-     v4lconvert_flip(flip_src, flip_dest, &my_src_fmt, hflip, vflip);
+Le mardi 23 février 2010 12:36:13, Manu Abraham a écrit :
+> Hi All,
+> 
+> Recently, quite some people have been requesting for scan-s2 a simple
+> scan application which has been hacked on top of the scan application
+> as available in the dvb-apps tree, to be integrated/pulled in to the
+> dvb-apps tree, after it's author moved on to other arenas.
+> 
+> http://www.mail-archive.com/vdr@linuxtv.org/msg11125.html
+> 
+> The idea initially was to have a cloned copy of scan as scan-s2.
+> Now, on the other hand scan-s2 is much more like scan and similar
+> functionality wise too.
+> 
+> Considering the aspects, do you think, that it is worthwhile to have
+> 
+> a) the scan-s2 application and the scan application as well integrated
+> into the repository, such that they both live together
+> 
+> or
+> 
+> b) scan-s2 does things almost the same as scan2. scan can be replaced
+> by scan-s2.
+> 
+> 
+> What are your ideas/thoughts on this ?
+
+I think S2 scanning should simply be added to scan.
+My 2cents.
+
+-- 
+Christophe Thommeret
 
 
 
-I didn't look closely at the latest source, so it is possible this already fixed some other way.
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
-Richard
