@@ -1,45 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f212.google.com ([209.85.219.212]:34256 "EHLO
-	mail-ew0-f212.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758074Ab0BXVTe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Feb 2010 16:19:34 -0500
-Received: by ewy4 with SMTP id 4so1291247ewy.28
-        for <linux-media@vger.kernel.org>; Wed, 24 Feb 2010 13:19:32 -0800 (PST)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Bringfried Stecklum <stecklum@tls-tautenburg.de>
-Subject: Re: Elgato EyeTV DTT deluxe v2 - i2c enumeration failed
-Date: Wed, 24 Feb 2010 22:19:29 +0100
-Cc: linux-media@vger.kernel.org
-References: <4B858AD1.5070502@tls-tautenburg.de>
-In-Reply-To: <4B858AD1.5070502@tls-tautenburg.de>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201002242219.29385.pboettcher@kernellabs.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37797 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751712Ab0BWIel (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Feb 2010 03:34:41 -0500
+From: hvaibhav@ti.com
+To: linux-media@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, hverkuil@xs4all.nl,
+	Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH-V1 06/10] DM644x CCDC: Add 10bit BT support
+Date: Tue, 23 Feb 2010 14:04:29 +0530
+Message-Id: <1266914073-30135-7-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 24 February 2010 21:23:45 Bringfried Stecklum wrote:
-> Hi, I recently purchased the Elgato EyeTV DTT deluxe v2 stick. I am running
-> Ubuntu 8.10 with Linux 2.6.28-15-generic. I installed v4l-dvb from
->  mercurial with a slight change of
->  linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h to account for the USB ID of
->  the device (#define USB_PID_ELGATO_EYETV_DTT_Dlx 0x002c). After insertion
->  the stick is recognized, however no frontend is activated since the i2c
->  enumeration failed. This might be related to a missing udev rule. 
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Most likely Elgato has changed the USB ID of their product, because it is not 
-the same product. In general (I'd say 50% of the cases) changing the USB ID is 
-not the right solution to get the hardware work.
 
-If you can, open the stick to see on which hardware the device is based on, or 
-search the internet to find out.
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ drivers/media/video/ti-media/dm644x_ccdc.c      |   16 +++++++++++++---
+ drivers/media/video/ti-media/dm644x_ccdc_regs.h |    8 ++++++++
+ 2 files changed, 21 insertions(+), 3 deletions(-)
 
-If you're lucky another minor quirk in this or another driver is sufficient to 
-make it work.
+diff --git a/drivers/media/video/ti-media/dm644x_ccdc.c b/drivers/media/video/ti-media/dm644x_ccdc.c
+index a011d40..506bbf5 100644
+--- a/drivers/media/video/ti-media/dm644x_ccdc.c
++++ b/drivers/media/video/ti-media/dm644x_ccdc.c
+@@ -399,7 +399,11 @@ void ccdc_config_ycbcr(void)
+ 		 * configure the FID, VD, HD pin polarity,
+ 		 * fld,hd pol positive, vd negative, 8-bit data
+ 		 */
+-		syn_mode |= CCDC_SYN_MODE_VD_POL_NEGATIVE | CCDC_SYN_MODE_8BITS;
++		syn_mode |= CCDC_SYN_MODE_VD_POL_NEGATIVE;
++		if (ccdc_cfg.if_type == VPFE_BT656_10BIT)
++			syn_mode |= CCDC_SYN_MODE_10BITS;
++		else
++			syn_mode |= CCDC_SYN_MODE_8BITS;
+ 	} else {
+ 		/* y/c external sync mode */
+ 		syn_mode |= (((params->fid_pol & CCDC_FID_POL_MASK) <<
+@@ -418,8 +422,13 @@ void ccdc_config_ycbcr(void)
+ 	 * configure the order of y cb cr in SDRAM, and disable latch
+ 	 * internal register on vsync
+ 	 */
+-	regw((params->pix_order << CCDC_CCDCFG_Y8POS_SHIFT) |
+-		 CCDC_LATCH_ON_VSYNC_DISABLE, CCDC_CCDCFG);
++	if (ccdc_cfg.if_type == VPFE_BT656_10BIT)
++		regw((params->pix_order << CCDC_CCDCFG_Y8POS_SHIFT) |
++			CCDC_LATCH_ON_VSYNC_DISABLE | CCDC_CCDCFG_BW656_10BIT,
++			CCDC_CCDCFG);
++	else
++		regw((params->pix_order << CCDC_CCDCFG_Y8POS_SHIFT) |
++			CCDC_LATCH_ON_VSYNC_DISABLE, CCDC_CCDCFG);
 
--- 
-Patrick Boettcher - KernelLabs
-http://www.kernellabs.com/
+ 	/*
+ 	 * configure the horizontal line offset. This should be a
+@@ -825,6 +834,7 @@ static int ccdc_set_hw_if_params(struct vpfe_hw_if_param *params)
+ 	case VPFE_BT656:
+ 	case VPFE_YCBCR_SYNC_16:
+ 	case VPFE_YCBCR_SYNC_8:
++	case VPFE_BT656_10BIT:
+ 		ccdc_cfg.ycbcr.vd_pol = params->vdpol;
+ 		ccdc_cfg.ycbcr.hd_pol = params->hdpol;
+ 		break;
+diff --git a/drivers/media/video/ti-media/dm644x_ccdc_regs.h b/drivers/media/video/ti-media/dm644x_ccdc_regs.h
+index 6e5d053..b18d166 100644
+--- a/drivers/media/video/ti-media/dm644x_ccdc_regs.h
++++ b/drivers/media/video/ti-media/dm644x_ccdc_regs.h
+@@ -135,11 +135,19 @@
+ #define CCDC_SYN_MODE_INPMOD_SHIFT		12
+ #define CCDC_SYN_MODE_INPMOD_MASK		3
+ #define CCDC_SYN_MODE_8BITS			(7 << 8)
++#define CCDC_SYN_MODE_10BITS			(6 << 8)
++#define CCDC_SYN_MODE_11BITS			(5 << 8)
++#define CCDC_SYN_MODE_12BITS			(4 << 8)
++#define CCDC_SYN_MODE_13BITS			(3 << 8)
++#define CCDC_SYN_MODE_14BITS			(2 << 8)
++#define CCDC_SYN_MODE_15BITS			(1 << 8)
++#define CCDC_SYN_MODE_16BITS			(0 << 8)
+ #define CCDC_SYN_FLDMODE_MASK			1
+ #define CCDC_SYN_FLDMODE_SHIFT			7
+ #define CCDC_REC656IF_BT656_EN			3
+ #define CCDC_SYN_MODE_VD_POL_NEGATIVE		(1 << 2)
+ #define CCDC_CCDCFG_Y8POS_SHIFT			11
++#define CCDC_CCDCFG_BW656_10BIT 		(1 << 5)
+ #define CCDC_SDOFST_FIELD_INTERLEAVED		0x249
+ #define CCDC_NO_CULLING				0xffff00ff
+ #endif
+--
+1.6.2.4
+
