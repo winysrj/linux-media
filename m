@@ -1,44 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-12.arcor-online.net ([151.189.21.52]:56577 "EHLO
-	mail-in-12.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755838Ab0BORiU (ORCPT
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:63702 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752373Ab0BWQqg convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2010 12:38:20 -0500
-From: stefan.ringel@arcor.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
-	Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH 06/11] tm6000: reset the numbers of feeds to 8
-Date: Mon, 15 Feb 2010 18:37:19 +0100
-Message-Id: <1266255444-7422-6-git-send-email-stefan.ringel@arcor.de>
-In-Reply-To: <1266255444-7422-5-git-send-email-stefan.ringel@arcor.de>
-References: <1266255444-7422-1-git-send-email-stefan.ringel@arcor.de>
- <1266255444-7422-2-git-send-email-stefan.ringel@arcor.de>
- <1266255444-7422-3-git-send-email-stefan.ringel@arcor.de>
- <1266255444-7422-4-git-send-email-stefan.ringel@arcor.de>
- <1266255444-7422-5-git-send-email-stefan.ringel@arcor.de>
+	Tue, 23 Feb 2010 11:46:36 -0500
+Received: by bwz1 with SMTP id 1so1139040bwz.21
+        for <linux-media@vger.kernel.org>; Tue, 23 Feb 2010 08:46:34 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4B837790.6060007@linuxstation.net>
+References: <20091007101142.3b83dbf2@glory.loctelecom.ru>
+	 <200912160849.17005.hverkuil@xs4all.nl>
+	 <20100112172209.464e88cd@glory.loctelecom.ru>
+	 <201001130838.23949.hverkuil@xs4all.nl>
+	 <20100127143637.26465503@glory.loctelecom.ru>
+	 <4B83076A.3010409@ctecworld.com>
+	 <829197381002221452k793be9d2l8f7ec3638233ecd0@mail.gmail.com>
+	 <4B837790.6060007@linuxstation.net>
+Date: Tue, 23 Feb 2010 11:46:33 -0500
+Message-ID: <829197381002230846m4ad70c46o2ec9b9935d9b8bc3@mail.gmail.com>
+Subject: Re: eb1a:2860 eMPIA em28xx device to usb1 ??? usb hub problem?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Dean <red1@linuxstation.net>
+Cc: j <jlafontaine@ctecworld.com>, Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <stefan.ringel@arcor.de>
+On Tue, Feb 23, 2010 at 1:37 AM, Dean <red1@linuxstation.net> wrote:
+> Hi,
+>
+> I have the KWorld DVB-T 305U, an em28xx device.  Only the video works for me under Linux, no audio.  In case anyone wants to see it, I have attached the full dmesg text, solely from this device.
+>
+> Cheers,
+> Dean
 
-Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+Hi Dean,
 
-diff --git a/drivers/staging/tm6000/tm6000-dvb.c b/drivers/staging/tm6000/tm6000-dvb.c
-index e16d55e..12a0758 100644
---- a/drivers/staging/tm6000/tm6000-dvb.c
-+++ b/drivers/staging/tm6000/tm6000-dvb.c
-@@ -285,8 +285,8 @@ int tm6000_dvb_register(struct tm6000_core *dev)
- 	dvb->demux.dmx.capabilities = DMX_TS_FILTERING | DMX_SECTION_FILTERING
- 							    | DMX_MEMORY_BASED_FILTERING;
- 	dvb->demux.priv = dev;
--	dvb->demux.filternum = 5; /* 256; */
--	dvb->demux.feednum = 5; /* 256; */
-+	dvb->demux.filternum = 8;
-+	dvb->demux.feednum = 8;
- 	dvb->demux.start_feed = tm6000_start_feed;
- 	dvb->demux.stop_feed = tm6000_stop_feed;
- 	dvb->demux.write_to_decoder = NULL;
+How are you testing the audio, and under what video standard are you
+trying to use the device (NTSC/PAL/SECAM)?
+
+Devin
+
 -- 
-1.6.6.1
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
