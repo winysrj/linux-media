@@ -1,84 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:56151 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752627Ab0BIVEH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 16:04:07 -0500
-Message-ID: <4B71CDC0.4060108@infradead.org>
-Date: Tue, 09 Feb 2010 19:04:00 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from mail-fx0-f219.google.com ([209.85.220.219]:34775 "EHLO
+	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752230Ab0BWNHY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Feb 2010 08:07:24 -0500
+Received: by fxm19 with SMTP id 19so3770918fxm.21
+        for <linux-media@vger.kernel.org>; Tue, 23 Feb 2010 05:07:22 -0800 (PST)
 MIME-Version: 1.0
-To: "Andrea.Amorosi76@gmail.com" <Andrea.Amorosi76@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] em28xx: add Dikom DK300 hybrid USB tuner
-References: <4AFE92ED.2060208@gmail.com> <4AFEAB15.9010509@gmail.com> <829197380911140634j49c05cd0s90aed57b9ae61436@mail.gmail.com> <4B71ACC8.600@gmail.com> <4B71B5BD.8090006@infradead.org> <4B71C11C.1010704@gmail.com>
-In-Reply-To: <4B71C11C.1010704@gmail.com>
+In-Reply-To: <4B83C860.6000108@infradead.org>
+References: <4B55445A.10300@infradead.org>
+	 <20100121024605.GK4015@jenkins.home.ifup.org>
+	 <201001210834.28112.hverkuil@xs4all.nl> <4B5B30E4.7030909@redhat.com>
+	 <20100222225426.GC4013@jenkins.home.ifup.org>
+	 <4B839687.4090205@redhat.com>
+	 <e69623b3a970d166a31af8258040a471.squirrel@webmail.xs4all.nl>
+	 <4B839E80.8050607@redhat.com>
+	 <1a297b361002230138k20c38a03m2f149b18ea44ed96@mail.gmail.com>
+	 <4B83C860.6000108@infradead.org>
+Date: Tue, 23 Feb 2010 17:07:16 +0400
+Message-ID: <1a297b361002230507v53aa12d8te780b5fd0463b8c5@mail.gmail.com>
+Subject: Re: [ANNOUNCE] git tree repositories & libv4l
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Brandon Philips <brandon@ifup.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Douglas Landgraf <dougsland@gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andrea.Amorosi76@gmail.com wrote:
-> Mauro Carvalho Chehab ha scritto:
->> Andrea.Amorosi76@gmail.com wrote:
->>  
->>> This patch add the Dikom DK300 hybrid usb card.
->>>
->>> The patch adds digital and analogue tv support.
->>>
->>> Not working: remote controller
->>>     
+On Tue, Feb 23, 2010 at 4:21 PM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+> Manu Abraham wrote:
+>> On Tue, Feb 23, 2010 at 1:23 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+
+[snip]
+
 >>
->>  
->>> diff -r d6520e486ee6 linux/drivers/media/video/em28xx/em28xx-cards.c
->>> --- a/linux/drivers/media/video/em28xx/em28xx-cards.c    Sat Jan 30
->>> 01:27:34 2010 -0200
->>> +++ b/linux/drivers/media/video/em28xx/em28xx-cards.c    Sat Jan 30
->>> 18:04:13 2010 +0100
->>>     
 >>
->> Your patch got mangled by Thunderbird. You should or use Asalted Patches
->> plugin:
->>         https://hg.mozilla.org/users/clarkbw_gnome.org/asalted-patches/
->>
->> or use another emailer. Without the above plugin, long lines are broken,
->> damaging your patch.
->>
->> Cheers,
->> Mauro
->>
->>   
-> Hi Mauro,
-> I've tried to install the extension, but it is not compatible with mine
-> tb version (which is the one from kubuntu repositories 2.0.0.23).
-
-I'm using it here with Thunderbird 2.0.0.22. 
-
-There's a patch on that tree that worked to me:
-
-https://hg.mozilla.org/users/clarkbw_gnome.org/asalted-patches/rev/49d587f60371
-
-You may try to play with that file.
-
-> Do you know if there is any tb config that can be manually changed to
-> solve the problem. If not, do you know if seamonkey has the same issue
-> (in case I have to chenge to another mail program this is my first choose)?
-
-Seamonkey likely has the same problem. Evolution and claws-mail work, but you
-need to disable the line wrapping on them. I've used both in the past, but they
-are very slow (Evolution eats too much memory - so you need to close it from time
-to time - and claws-mail is monothread: when it fetches email,  the edit window
-process seems to stop). The text mode emailers (mutt and alpine) also work, if properly
-configured.
-
-> Thank you,
-> Xwang
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> What's the advantage in merging the dvb and v4l2 utils, other than to
+>> make the download/clone bigger ?
+>
+> There aren't any big advantages on merging, nor there are big advantages on keeping
+> them alone.
+>
+> Advantages to merge:
+>        - One single release control. Currently, only Hans de Goede is doing a
+> good job with release names, on libv4l. By having everything into one place, all other
+> v4l2-apps and dvb-apps will have a release name, making easier even for us when helping
+> people with troubles (as we'll know for sure if they're using the latest version or
+> a very old version;
+>        - One single tree for the user to download, for IR, DVB and V4L apps;
+>        - Distro packagers will have one single tarball to maintain.
+>
+> Disadvantages:
+>        - More people will need access to the same git master tree;
+>        - The tree will be bigger.
 
 
--- 
+It is quite noble to think of having to have everything unified in the
+world. But that doesn't seem how things are in practice. It's quite
+understood that the concept of "one-single-ring-to-rule-them-all"
+doesn't work well.
 
-Cheers,
-Mauro
+The mercurial dvb-apps tree has worked quite well for me as well as
+the other few people who have been involved with it and don't have any
+problems in that arena and I am very happy with it on that front.
+
+FWIW, I am not very much interested to move to git.
+
+Are we making a mockery, switching between SCM's every now and then .. ?
+
+Maybe there are others as well, who feel that way. But that's not the
+more important point. For me, it is like simply that a simple update
+is quite fast and easy.
+
+FWIW: dvb-apps is not about any real application development, but acts
+as an aid for other applications to be built. In some cases, it can
+aid as a quick test tools, which can isolate users issues, when carry
+forward issues from other applications.
+
+On the contrary we have had a few libs, which are in use by some
+applications. These came up as Andrew, myself and Julian wanted to
+have some libraries to setup things real quick. Johannes provided some
+directions in which how developments could proceed to make things look
+good. Later on, Andrew ran away from all v4l, dvb related
+developments, because he was irritated quite a lot too much.
+
+
+With regards to distro stuff; This is best left to distro vendors. I
+don't really appreciate this distro-speak that you make every now and
+then. In the light that which you speak, it would be even much nobler
+to think of a pakage or rpm such as
+distro-application-packages.foobar. But such a merging of all the
+applications and utilities do not really mean anything and is useless.
+All it does is: irritate people.
+
+
+With regards to release control, we have had a 1.1.1 release. Looking
+back, we haven't had a proper stable state yet, for another release.
+Thinking of which, it is more of these discussions that hold back real
+development rather than anything else. Moving to git, or have a merged
+tree with v4l2 and dvb utils is not going to make dvb-apps development
+any faster.
+
+On the contrary, I don't think it is going to help dvb-apps in anyway
+on the development front, but rather make it worser.
+
+
+My few cents, being one of the dvb-apps maintainers and author of some
+the bits and pieces in it.
+
+Regards,
+Manu
