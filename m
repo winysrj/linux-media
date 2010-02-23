@@ -1,65 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:47939 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750736Ab0BHL1e (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Feb 2010 06:27:34 -0500
-Message-ID: <4B6FF51F.9080507@redhat.com>
-Date: Mon, 08 Feb 2010 09:27:27 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1057 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753033Ab0BWOmD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Feb 2010 09:42:03 -0500
+Message-ID: <afc23983d22d02e5832ce68b75f35890.squirrel@webmail.xs4all.nl>
+In-Reply-To: <1266934843.4589.20.camel@palomino.walls.org>
+References: <829197381002212007q342fc01bm1c528a2f15027a1e@mail.gmail.com>
+    <201002222254.05573.hverkuil@xs4all.nl>
+    <829197381002221400i6e4f4b17u42597d5138171e19@mail.gmail.com>
+    <201002230853.36928.hverkuil@xs4all.nl>
+    <1266934843.4589.20.camel@palomino.walls.org>
+Date: Tue, 23 Feb 2010 15:41:41 +0100
+Subject: Re: Chroma gain configuration
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Andy Walls" <awalls@radix.net>
+Cc: "Devin Heitmueller" <dheitmueller@kernellabs.com>,
+	"Mauro Carvalho Chehab" <mchehab@redhat.com>,
+	"Sakari Ailus" <sakari.ailus@maxwell.research.nokia.com>,
+	"Linux Media Mailing List" <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-To: stefan.ringel@arcor.de
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 11/12] tm6000: bugfix firmware xc3028L-v36.fw used with
- Zarlink and DTV78 or DTV8 no shift
-References: <1265411214-12231-10-git-send-email-stefan.ringel@arcor.de> <1265411214-12231-11-git-send-email-stefan.ringel@arcor.de>
-In-Reply-To: <1265411214-12231-11-git-send-email-stefan.ringel@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-stefan.ringel@arcor.de wrote:
-> From: Stefan Ringel <stefan.ringel@arcor.de>
-> 
-> Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
-> ---
->  drivers/media/common/tuners/tuner-xc2028.c |    7 ++++++-
->  1 files changed, 6 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/common/tuners/tuner-xc2028.c b/drivers/media/common/tuners/tuner-xc2028.c
-> index ed50168..fcf19cc 100644
-> --- a/drivers/media/common/tuners/tuner-xc2028.c
-> +++ b/drivers/media/common/tuners/tuner-xc2028.c
-> @@ -1114,7 +1114,12 @@ static int xc2028_set_params(struct dvb_frontend *fe,
->  
->  	/* All S-code tables need a 200kHz shift */
->  	if (priv->ctrl.demod) {
-> -		demod = priv->ctrl.demod + 200;
-> +		if ((strcmp (priv->ctrl.fname, "xc3028L-v36.fw") == 0) && 
-> +			(priv->ctrl.demod == XC3028_FE_ZARLINK456) &&
-> +				((type & DTV78) || (type & DTV8)))
-> +			demod = priv->ctrl.demod;
-> +		else
-> +			demod = priv->ctrl.demod + 200;
->  		/*
->  		 * The DTV7 S-code table needs a 700 kHz shift.
->  		 * Thanks to Terry Wu <terrywu2009@gmail.com> for reporting this
 
-The idea behind this patch is right, but you should be testing it against
-priv->firm_version, instead comparing with a file name.
+> On Tue, 2010-02-23 at 08:53 +0100, Hans Verkuil wrote:
+>> On Monday 22 February 2010 23:00:32 Devin Heitmueller wrote:
+>> > On Mon, Feb 22, 2010 at 4:54 PM, Hans Verkuil <hverkuil@xs4all.nl>
+>> wrote:
+>
+>> > Of course, if you and Mauro wanted to sign off on the creation of a
+>> > new non-private user control called V4L2_CID_CHROMA_GAIN, that would
+>> > also resolve my problem.  :-)
+>>
+>> Hmm, Mauro is right: the color controls we have now are a bit of a mess.
+>> Perhaps this is a good moment to try and fix them. Suppose we had no
+>> color
+>> controls at all: how would we design them in that case? When we know
+>> what we
+>> really need, then we can compare that with what we have and figure out
+>> what
+>> we need to do to make things right again.
+>
+> Hmmm:
+>
+> 1. comb filter enable/disable
+> 2. chroma AGC enable/disable
+> 3. chroma kill threshold and enable/disable
+> 4. UV saturation  (C vector magnitude adjustment as long as you adjust U
+> and V in the same way.)
+> 5. Hue (C vector phase adjustment)
+> 6. chroma coring
+> 7. chroma delay/advance in pixels relative to luma pixels
+> 8. chroma subcarrier locking algorithm: fast, slow, adaptive
+> 9. chroma notch filer settings (when doing Y/C separation from CVBS)
+> 10. additional analog signal gain
+> 11. anti-alias filter enable/disable
+>
+> And that's just from a quick scan of the public CX25836/7 datasheet.
+>
+> I left my handbook with all sorts of details about the Human Visual
+> System and the CIE and NTSC and PAL colorspaces at work.
 
-Also, this will likely cause regressions on other drivers, since the offsets for
-v3.6 firmwares were handled on a different way on other drivers. I prefer to postpone
-this patch and the discussion behind it after having tm6000 driver ready, since
-it makes no sense to cause regressions or request changes on existing drivers due
-to a driver that is not ready yet.
+Let me rephrase my question: how would you design the user color controls?
+E.g., the controls that are exported in GUIs to the average user. Most of
+the controls you mentioned above are meaningless to most users. When we
+have subdev device nodes, then such controls can become accessible to
+applications to do fine-tuning, but they do not belong in a GUI in e.g.
+tvtime or xawtv.
 
-So, please hold your patch on your queue for now.
+The problem is of course in that grey area between obviously user-level
+controls like brightness and obviously (to me at least) expert-level
+controls like chroma coring.
 
-My suggestion is that you should use git and have this patch on a separate branch where you
-do your tests, having a branch without this patch for upstream submission.
+Regards,
+
+        Hans
+
+>
+> Regards,
+> Andy
+>
+>
+>
+>
+>
+>> Regards,
+>>
+>> 	Hans
+>>
+>> >
+>> > Devin
+>> >
+>> >
+>>
+>
+>
+
 
 -- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
-Cheers,
-Mauro
