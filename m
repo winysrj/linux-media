@@ -1,42 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f189.google.com ([209.85.210.189]:38633 "EHLO
-	mail-yx0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752880Ab0BCGUW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2010 01:20:22 -0500
-Received: by yxe27 with SMTP id 27so865651yxe.4
-        for <linux-media@vger.kernel.org>; Tue, 02 Feb 2010 22:20:21 -0800 (PST)
-Message-ID: <4B69159D.2040606@gmail.com>
-Date: Wed, 03 Feb 2010 14:20:13 +0800
-From: Huang Shijie <shijie8@gmail.com>
+Received: from smtp21.orange.fr ([80.12.242.47]:55118 "EHLO smtp21.orange.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752478Ab0BWNGR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Feb 2010 08:06:17 -0500
+From: Christophe Thommeret <hftom@free.fr>
+To: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] scan-s2 and dvb-apps
+Date: Tue, 23 Feb 2010 14:06:36 +0100
+References: <1a297b361002230336q7065170tc79ef22426ef5a8a@mail.gmail.com>
+In-Reply-To: <1a297b361002230336q7065170tc79ef22426ef5a8a@mail.gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org, zyziii@telegent.com, tiwai@suse.de
-Subject: Re: [PATCH v2 00/10] add linux driver for chip TLG2300
-References: <1265094475-13059-1-git-send-email-shijie8@gmail.com> <4B6817E6.4070709@redhat.com>
-In-Reply-To: <4B6817E6.4070709@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201002231406.36939.hftom@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Le mardi 23 février 2010 12:36:13, Manu Abraham a écrit :
+> Hi All,
+> 
+> Recently, quite some people have been requesting for scan-s2 a simple
+> scan application which has been hacked on top of the scan application
+> as available in the dvb-apps tree, to be integrated/pulled in to the
+> dvb-apps tree, after it's author moved on to other arenas.
+> 
+> http://www.mail-archive.com/vdr@linuxtv.org/msg11125.html
+> 
+> The idea initially was to have a cloned copy of scan as scan-s2.
+> Now, on the other hand scan-s2 is much more like scan and similar
+> functionality wise too.
+> 
+> Considering the aspects, do you think, that it is worthwhile to have
+> 
+> a) the scan-s2 application and the scan application as well integrated
+> into the repository, such that they both live together
+> 
+> or
+> 
+> b) scan-s2 does things almost the same as scan2. scan can be replaced
+> by scan-s2.
+> 
+> 
+> What are your ideas/thoughts on this ?
 
-> I'm assuming that you're referring to the analog part, right?
->    
-right.
-  The country code only effects the Analog TV and radio, it has no 
-effect on DVB-T.
+I think S2 scanning should simply be added to scan.
+My 2cents.
 
-> Instead of a country code, the driver should use the V4L2_STD_ macros to
->    
-If we are in the radio mode, I do not have any video standard, how can I 
-choose
-the right audio setting in this situation?
+-- 
+Christophe Thommeret
 
-
-> determine the audio standard. Please take a look at saa7134-tvaudio code. It has
-> an interesting logic to associate the V4L2_STD with the corresponding audio settings:
->
-> For example, the audio carrier frequency and the audio standard are at tvaudio array:
->    tatic struct saa7134_tvaudio tvaudio[] = {
->    
 
