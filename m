@@ -1,66 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway10.websitewelcome.com ([67.18.125.9]:45393 "HELO
-	gateway10.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751307Ab0BLDTs (ORCPT
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:58433 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754770Ab0BWXoo convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Feb 2010 22:19:48 -0500
-Received: from [66.15.212.169] (port=10295 helo=[10.140.5.12])
-	by gator886.hostgator.com with esmtpsa (SSLv3:AES256-SHA:256)
-	(Exim 4.69)
-	(envelope-from <pete@sensoray.com>)
-	id 1NfjT1-0005cl-Mn
-	for linux-media@vger.kernel.org; Thu, 11 Feb 2010 18:33:07 -0600
-Subject: [PATCH 0/5] go7007 staging changes
-From: Pete Eberlein <pete@sensoray.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain
-Date: Thu, 11 Feb 2010 16:32:50 -0800
-Message-Id: <1265934770.4626.249.camel@pete-desktop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 23 Feb 2010 18:44:44 -0500
+MIME-Version: 1.0
+In-Reply-To: <1262613782-20463-4-git-send-email-hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
+	 <1262613782-20463-4-git-send-email-hvaibhav@ti.com>
+Date: Tue, 23 Feb 2010 18:44:42 -0500
+Message-ID: <55a3e0ce1002231544o36a63a07if76501bff7967b45@mail.gmail.com>
+Subject: Re: [PATCH 3/9] tvp514x: add YUYV format support
+From: Muralidharan Karicheri <mkaricheri@gmail.com>
+To: hvaibhav@ti.com
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	hverkuil@xs4all.nl, davinci-linux-open-source@linux.davincidsp.com,
+	m-karicheri2@ti.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
-
-This series moves most of the subdevice drivers used by the go7007
-driver out of the staging directory.  The sony-tuner, ov7640, tw2804 and
-tw9903 are converted to use the v4l2_subdev API, and the wis- versions
-are made obsolete.  The wis-saa7113 and wis-saa7115 drivers are
-obsolete, and don't add anything not already in the existing saa7113 and
-saa7115 video decoder drivers.  The audio chip driver wis-uda1342
-doesn't belong in 
-
-If these changes are accepted, it should be determined if the go7007
-driver can be moved out of staging, or what work remains to be done.
-
-Pete Eberlein
-
-[PATCH 1/5] go7007: driver id cleanup
-[PATCH 2/5] sony-tuner: Subdev conversion from wis-sony-tuner
-[PATCH 3/5] tw2804: video decoder subdev conversion
-[PATCH 4/5] tw9903: video decoder subdev conversion
-[PATCH 5/5] ov7640: sensor driver subdev conversion
-
- b/linux/drivers/media/common/tuners/sony-tuner.c |  695 +++++++++++++++++++++++
- b/linux/drivers/media/video/ov7640.c             |  141 ++++
- b/linux/drivers/media/video/tw2804.c             |  398 +++++++++++++
- b/linux/drivers/media/video/tw9903.c             |  370 ++++++++++++
- linux/Documentation/video4linux/CARDLIST.tuner   |    3 
- linux/drivers/media/common/tuners/Kconfig        |    8 
- linux/drivers/media/common/tuners/Makefile       |    1 
- linux/drivers/media/common/tuners/tuner-types.c  |   12 
- linux/drivers/media/video/Kconfig                |   19 
- linux/drivers/media/video/Makefile               |    3 
- linux/drivers/staging/go7007/go7007-driver.c     |   55 -
- linux/drivers/staging/go7007/go7007-priv.h       |   18 
- linux/drivers/staging/go7007/go7007-usb.c        |   30 
- linux/drivers/staging/go7007/wis-i2c.h           |   11 
- linux/drivers/staging/go7007/wis-ov7640.c        |    2 
- linux/drivers/staging/go7007/wis-sony-tuner.c    |    2 
- linux/include/media/tuner.h                      |    4 
- linux/include/media/v4l2-chip-ident.h            |    1 
- 18 files changed, 1692 insertions(+), 81 deletions(-)
+Vaibhav,
 
 
+On Mon, Jan 4, 2010 at 9:02 AM,  <hvaibhav@ti.com> wrote:
+> From: Vaibhav Hiremath <hvaibhav@ti.com>
+>
+>
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> ---
+>  drivers/media/video/tvp514x.c |    7 +++++++
+>  1 files changed, 7 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/media/video/tvp514x.c b/drivers/media/video/tvp514x.c
+> index 4cf3593..b344b58 100644
+> --- a/drivers/media/video/tvp514x.c
+> +++ b/drivers/media/video/tvp514x.c
+> @@ -212,6 +212,13 @@ static const struct v4l2_fmtdesc tvp514x_fmt_list[] = {
+>         .description = "8-bit UYVY 4:2:2 Format",
+>         .pixelformat = V4L2_PIX_FMT_UYVY,
+>        },
+> +       {
+> +        .index = 1,
+> +        .type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
+> +        .flags = 0,
+> +        .description = "8-bit YUYV 4:2:2 Format",
+> +        .pixelformat = V4L2_PIX_FMT_YUYV,
+> +       },
+>  };
 
+As per data sheet I can see only CbYCrY format output from the tvp5146
+which translate to UYVY. How are you configuring tvp to output YUYV? I
+don;t see any change to the code to configure this format.
+
+CCDC can switch the CbCr order and also can swap Y/C order. So if you
+are achieving
+this via ccdc configuration, there is no need to add this format to tvp5146 IMO.
+
+-Murali
+
+>
+>  /**
+> --
+> 1.6.2.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
+
+-- 
+Murali Karicheri
+mkaricheri@gmail.com
