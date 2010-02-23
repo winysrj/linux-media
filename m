@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <samuelcantrell@gmail.com>) id 1Nh7Yr-0007HR-E8
-	for linux-dvb@linuxtv.org; Mon, 15 Feb 2010 21:28:54 +0100
-Received: from mail-ew0-f218.google.com ([209.85.219.218])
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-b) with esmtp
+	(envelope-from <ocagdas@yahoo.com>) id 1NjuZD-0008FC-5p
+	for linux-dvb@linuxtv.org; Tue, 23 Feb 2010 14:12:47 +0100
+Received: from web57006.mail.re3.yahoo.com ([66.196.97.110])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-c) with smtp
 	for <linux-dvb@linuxtv.org>
-	id 1Nh7Yq-0002lB-Nr; Mon, 15 Feb 2010 21:28:52 +0100
-Received: by ewy10 with SMTP id 10so3951416ewy.11
-	for <linux-dvb@linuxtv.org>; Mon, 15 Feb 2010 12:28:51 -0800 (PST)
-MIME-Version: 1.0
-From: Samuel Cantrell <samuelcantrell@gmail.com>
-Date: Mon, 15 Feb 2010 12:28:31 -0800
-Message-ID: <310bfb251002151228r1194f3b5scb1548871487bb24@mail.gmail.com>
+	id 1NjuZC-0001Eq-8y; Tue, 23 Feb 2010 14:12:46 +0100
+Message-ID: <829000.26472.qm@web57006.mail.re3.yahoo.com>
+Date: Tue, 23 Feb 2010 05:12:43 -0800 (PST)
+From: ozgur cagdas <ocagdas@yahoo.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] ATI TV Wonder 650 PCI development
+MIME-Version: 1.0
+Subject: [linux-dvb] soft demux device
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -23,66 +21,27 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0619465514=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0619465514==
-Content-Type: multipart/alternative; boundary=000e0cdf6c6a1898ea047fa977df
+Hi All,
 
---000e0cdf6c6a1898ea047fa977df
-Content-Type: text/plain; charset=ISO-8859-1
+I have just compiled v4l-dvb successfully. My aim is to develop some experimental dvb applications on top of this dvb kernel api. Initially, I do not want to use any hardware and would like to play with the recorded ts files I have. So, is there any software demux device available within this package or somewhere else? If so, how can I load this device and make it work on a given ts file circularly? On the other hand, I have no /dev/dvb node  at the moment, so should I do anything for this or would loading the driver create it automatically?
 
-Hello,
+Thanks in advance.
 
-I have an ATI TV Wonder 650 PCI card, and have started to work on the wiki
-page on LinuxTV.org regarding it. I want to *attempt* to write a driver for
-it (more like, take a look at the code and run), and have printed off some
-information on the wiki. I need to get pictures up of the card and lspci
-output, etc.
+Cheers,
 
-Is there anyone else more experienced at writing drivers that could perhaps
-help?
-
-I've emailed Samsung regarding the tuner module on the card, as I could not
-find it on their website. I checked some of their affiliates as well, but
-still had no luck.
-
-Thanks.
-
-Sam
-
---000e0cdf6c6a1898ea047fa977df
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-Hello,<br><br>I have an ATI TV Wonder 650 PCI card, and have started to wor=
-k on the wiki page on LinuxTV.org regarding it. I want to *attempt* to writ=
-e a driver for it (more like, take a look at the code and run), and have pr=
-inted off some information on the wiki. I need to get pictures up of the ca=
-rd and lspci output, etc.<br>
-
-<br>Is there anyone else more experienced at writing drivers that could per=
-haps help?<br><br>I&#39;ve emailed Samsung regarding the tuner module on th=
-e card, as I could not find it on their website. I checked some of their af=
-filiates as well, but still had no luck.<br>
-
-<br>Thanks.<br><br>Sam<br>
-
---000e0cdf6c6a1898ea047fa977df--
+Ozgur.
 
 
---===============0619465514==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+      
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0619465514==--
