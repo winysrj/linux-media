@@ -1,110 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:19247 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754723Ab0BCLFh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Feb 2010 06:05:37 -0500
-Message-ID: <4B695879.5060500@redhat.com>
-Date: Wed, 03 Feb 2010 09:05:29 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1120 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751657Ab0BWHQ6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Feb 2010 02:16:58 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [PATCH 6/6] V4L: Events: Add documentation
+Date: Tue, 23 Feb 2010 08:19:24 +0100
+Cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	david.cohen@nokia.com
+References: <4B82A7FB.50505@maxwell.research.nokia.com> <201002230020.27454.hverkuil@xs4all.nl> <4B8312E2.4000201@maxwell.research.nokia.com>
+In-Reply-To: <4B8312E2.4000201@maxwell.research.nokia.com>
 MIME-Version: 1.0
-To: Samuel Rakitnican <samuel.rakitnican@gmail.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [RESEND PATCH] ir-kbd-i2c: Allow to disable Hauppauge filter
- through module parameter
-References: <op.u6ov64og6dn9rq@denis-laptop.lan> <op.u6oxbgql6dn9rq@denis-laptop.lan>
-In-Reply-To: <op.u6oxbgql6dn9rq@denis-laptop.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201002230819.24988.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Samuel,
-
-Samuel Rakitnican wrote:
-> Some Hauppauge devices have id=0 so such devices won't work.
-> For such devices add a module parameter that allow to turn
-> off filtering.
+On Tuesday 23 February 2010 00:27:30 Sakari Ailus wrote:
+> Hans Verkuil wrote:
+> > On Monday 22 February 2010 23:47:49 Sakari Ailus wrote:
+> >>>> +Drivers do not initialise events directly. The events are initialised
+> >>>> +through v4l2_fh_init() if video_device->ioctl_ops->vidioc_subscribe_event is
+> >>>> +non-NULL. This *MUST* be performed in the driver's
+> >>>> +v4l2_file_operations->open() handler.
+> >>>> +
+> >>>> +Events are delivered to user space through the poll system call. The driver
+> >>>> +can use v4l2_fh->events->wait wait_queue_head_t as the argument for
+> >>>> +poll_wait().
+> >>>> +
+> >>>> +There are standard and private events. New standard events must use the
+> >>>> +smallest available event type. The drivers must allocate their events
+> >>>> +starting from base (V4L2_EVENT_PRIVATE_START + n * 1024) while individual
+> >>>> +events start from base + 1.
+> >>>
+> >>> What do you mean with 'while individual events start from base + 1'? I still
+> >>> don't understand that phrase.
+> >>
+> >> Will be "There are standard and private events. New standard events must
+> >> use the smallest available event type. The drivers must allocate their
+> >> events starting from base (V4L2_EVENT_PRIVATE_START + n * 1024) + 1." in
+> >> the next one.
+> > 
+> > Ah, OK. But why '+ 1'? I don't really see a reason for that to be honest.
+> > Am I missing something?
 > 
-> Signed-off-by: Samuel Rakitničan <semiRocket@gmail.com>
+> Many V4L2 control classes do that. No other reason really. :-) Can be
+> removed on my behalf.
 
-Instead of a modprobe parameter, the proper fix is to make the usage of the
-complete RC5 code received from this IR. This way, the handling of the
-IR will depend only at the IR table used by the device.
+Then this can be removed. There are reasons for doing that with controls, but
+those reasons do not apply to events (mostly to do with the CTRL_NEXT flag).
 
-Please take a look at the code at em28xx (seek for ir->full_code) to see
-how to implement it.
+Regards,
 
-Cheers,
-Mauro.
-
-> ---
-> diff -r 82bbb3bd0f0a linux/drivers/media/video/ir-kbd-i2c.c
-> --- a/linux/drivers/media/video/ir-kbd-i2c.c    Mon Jan 11 11:47:33 2010
-> -0200
-> +++ b/linux/drivers/media/video/ir-kbd-i2c.c    Sat Jan 16 16:39:14 2010
-> +0100
-> @@ -61,6 +61,10 @@
->   module_param(hauppauge, int, 0644);    /* Choose Hauppauge remote */
->   MODULE_PARM_DESC(hauppauge, "Specify Hauppauge remote: 0=black, 1=grey
-> (defaults to 0)");
-> 
-> +static int haup_filter = 1;
-> +module_param(haup_filter, int, 0644);
-> +MODULE_PARM_DESC(haup_filter, "Hauppauge filter for other remotes,
-> default is 1 (On)");
-> +
-> 
->   #define DEVNAME "ir-kbd-i2c"
->   #define dprintk(level, fmt, arg...)    if (debug >= level) \
-> @@ -96,24 +100,27 @@
->       if (!start)
->           /* no key pressed */
->           return 0;
-> -    /*
-> -     * Hauppauge remotes (black/silver) always use
-> -     * specific device ids. If we do not filter the
-> -     * device ids then messages destined for devices
-> -     * such as TVs (id=0) will get through causing
-> -     * mis-fired events.
-> -     *
-> -     * We also filter out invalid key presses which
-> -     * produce annoying debug log entries.
-> -     */
-> -    ircode= (start << 12) | (toggle << 11) | (dev << 6) | code;
-> -    if ((ircode & 0x1fff)==0x1fff)
-> -        /* invalid key press */
-> -        return 0;
-> 
-> -    if (dev!=0x1e && dev!=0x1f)
-> -        /* not a hauppauge remote */
-> -        return 0;
-> +    if (haup_filter != 0) {
-> +        /*
-> +         * Hauppauge remotes (black/silver) always use
-> +         * specific device ids. If we do not filter the
-> +         * device ids then messages destined for devices
-> +         * such as TVs (id=0) will get through causing
-> +         * mis-fired events.
-> +         *
-> +         * We also filter out invalid key presses which
-> +         * produce annoying debug log entries.
-> +         */
-> +        ircode = (start << 12) | (toggle << 11) | (dev << 6) | code;
-> +        if ((ircode & 0x1fff) == 0x1fff)
-> +            /* invalid key press */
-> +            return 0;
-> +
-> +        if (dev != 0x1e && dev != 0x1f)
-> +            /* not a hauppauge remote */
-> +            return 0;
-> +    }
-> 
->       if (!range)
->           code += 64;
-> 
-
+	Hans
 
 -- 
-
-Cheers,
-Mauro
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
