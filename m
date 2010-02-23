@@ -1,130 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:63588 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753804Ab0BVPQx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 10:16:53 -0500
-Message-ID: <4B829FD6.30209@redhat.com>
-Date: Mon, 22 Feb 2010 12:16:38 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1234 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752077Ab0BWHv5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Feb 2010 02:51:57 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: Chroma gain configuration
+Date: Tue, 23 Feb 2010 08:53:36 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Andy Walls <awalls@radix.net>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <829197381002212007q342fc01bm1c528a2f15027a1e@mail.gmail.com> <201002222254.05573.hverkuil@xs4all.nl> <829197381002221400i6e4f4b17u42597d5138171e19@mail.gmail.com>
+In-Reply-To: <829197381002221400i6e4f4b17u42597d5138171e19@mail.gmail.com>
 MIME-Version: 1.0
-To: stefan.ringel@arcor.de
-CC: linux-media@vger.kernel.org, dheitmueller@kernellabs.com
-Subject: Re: [PATCH 1/3] tm6000: add send and recv function
-References: <1266783036-6549-1-git-send-email-stefan.ringel@arcor.de>
-In-Reply-To: <1266783036-6549-1-git-send-email-stefan.ringel@arcor.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201002230853.36928.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-stefan.ringel@arcor.de wrote:
-> From: Stefan Ringel <stefan.ringel@arcor.de>
+On Monday 22 February 2010 23:00:32 Devin Heitmueller wrote:
+> On Mon, Feb 22, 2010 at 4:54 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > Ah, that's another matter. The original approach for handling private
+> > controls is seriously flawed. Drivers that want to use private controls
+> > are strongly encouraged to use the extended control mechanism for them,
+> > and to document those controls in the spec.
+> 
+> Yeah, it's just annoying that what should have been a change for
+> something like six lines of code in the g_ctrl/s_ctrl functions in
+> saa7115 is actually resulting in me having to extend saa7115 to add
+> support for the extended control interface.  Yeah, I can do that, but
+> it's still annoying that it should be necessary.
+> 
+> > Actually, it is not so much the extended control API that is relevant
+> > here, but the use of V4L2_CTRL_FLAG_NEXT_CTRL in VIDIOC_QUERYCTRL to
+> > enumerate the controls.
+> 
+> Control enumeration is actually working fine.  The queryctrl does
+> properly return all of the controls, including my new private control.
 
-
-drivers/staging/tm6000/tm6000-i2c.c: In function ‘tm6000_i2c_recv_regs’:
-drivers/staging/tm6000/tm6000-i2c.c:58: error: ‘USB_VENDOR_TYPE’ undeclared (first use in this function)
-drivers/staging/tm6000/tm6000-i2c.c:58: error: (Each undeclared identifier is reported only once
-drivers/staging/tm6000/tm6000-i2c.c:58: error: for each function it appears in.)
-drivers/staging/tm6000/tm6000-i2c.c: In function ‘tm6000_i2c_recv_regs16’:
-drivers/staging/tm6000/tm6000-i2c.c:69: error: ‘USB_VENDOR_TYPE’ undeclared (first use in this function)
-drivers/staging/tm6000/tm6000-i2c.c: In function ‘tm6000_i2c_xfer’:
-drivers/staging/tm6000/tm6000-i2c.c:107: error: expected ‘)’ before ‘{’ token
-drivers/staging/tm6000/tm6000-i2c.c: In function ‘tm6000_i2c_eeprom’:
-drivers/staging/tm6000/tm6000-i2c.c:161: error: implicit declaration of function ‘tm6000_i2c_revc_regs’
-
-Each patch shouldn't break compilation, or it would call git bisect troubles.
-
+OK. So the problem is that v4l2-ctl uses G/S_EXT_CTRLS for non-user controls,
+right? Why not change v4l2-ctl: let it first try the EXT version but if that
+fails with EINVAL then try the old control API.
 
 > 
-> Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
-> ---
->  drivers/staging/tm6000/tm6000-i2c.c |   48 +++++++++++++++++++++++++---------
->  1 files changed, 35 insertions(+), 13 deletions(-)
+> > Unfortunately, the current support functions in v4l2-common.c to help
+> > with this are pretty crappy, for which I apologize.
 > 
-> diff --git a/drivers/staging/tm6000/tm6000-i2c.c b/drivers/staging/tm6000/tm6000-i2c.c
-> index 656cd19..b563129 100644
-> --- a/drivers/staging/tm6000/tm6000-i2c.c
-> +++ b/drivers/staging/tm6000/tm6000-i2c.c
-> @@ -44,6 +44,32 @@ MODULE_PARM_DESC(i2c_debug, "enable debug messages [i2c]");
->  			printk(KERN_DEBUG "%s at %s: " fmt, \
->  			dev->name, __FUNCTION__ , ##args); } while (0)
->  
-> +int tm6000_i2c_send_regs(struct tm6000_core *dev, unsigned char addr, __u8 reg, char *buf, int len)
-> +{
-> +	return tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-> +		REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0, buf, len);
-> +}
-> +
-> +/* read from a 8bit register */
-> +int tm6000_i2c_recv_regs(struct tm6000_core *dev, unsigned char addr, __u8 reg, char *buf, int len)
-> +{
-> +	int rc;
-> +
-> +		rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_VENDOR_TYPE | USB_RECIP_DEVICE,
-> +			REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0, buf, len);
-> +
-> +	return rc;
-> +}
-> +
-> +/* read from a 16bit register
-> + * for example xc2028, xc3028 or xc3028L 
-> + */
-> +int tm6000_i2c_recv_regs16(struct tm6000_core *dev, unsigned char addr, __u16 reg, char *buf, int len)
-> +{
-> +	return tm6000_read_write_usb(dev, USB_DIR_IN | USB_VENDOR_TYPE | USB_RECIP_DEVICE,
-> +		REQ_14_SET_GET_I2C_WR2_RDN, addr, reg, buf, len);
-> +} 
-> +
->  static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
->  			   struct i2c_msg msgs[], int num)
->  {
-> @@ -78,13 +104,14 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
->  			i2c_dprintk(2, "; joined to read %s len=%d:",
->  				    i == num - 2 ? "stop" : "nonstop",
->  				    msgs[i + 1].len);
-> -			rc = tm6000_read_write_usb (dev,
-> -				USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-> -				msgs[i].len == 1 ? REQ_16_SET_GET_I2C_WR1_RDN
-> -						 : REQ_14_SET_GET_I2C_WR2_RDN,
-> -				addr | msgs[i].buf[0] << 8,
-> -				msgs[i].len == 1 ? 0 : msgs[i].buf[1],
-> +			if (msgs{i].len == 1) {
-> +				rc = tm6000_i2c_recv_regs(dev, addr, msgs[i].buf[0],
->  				msgs[i + 1].buf, msgs[i + 1].len);
-> +			} else {
-> +				rc = tm6000_i2c_recv_regs(dev, addr, msgs[i].buf[0] << 8 | msgs[i].buf[1],
-> +				msgs[i + 1].buf, msgs[i + 1].len);
-> +			}
-> +
->  			i++;
->  
->  			if (addr == dev->tuner_addr) {
-> @@ -99,10 +126,7 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
->  			if (i2c_debug >= 2)
->  				for (byte = 0; byte < msgs[i].len; byte++)
->  					printk(" %02x", msgs[i].buf[byte]);
-> -			rc = tm6000_read_write_usb(dev,
-> -				USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-> -				REQ_16_SET_GET_I2C_WR1_RDN,
-> -				addr | msgs[i].buf[0] << 8, 0,
-> +			rc = tm6000_i2c_send_regs(dev, addr, msgs[i].buf[0],
->  				msgs[i].buf + 1, msgs[i].len - 1);
->  
->  			if (addr == dev->tuner_addr) {
-> @@ -134,9 +158,7 @@ static int tm6000_i2c_eeprom(struct tm6000_core *dev,
->  	bytes[16] = '\0';
->  	for (i = 0; i < len; ) {
->  	*p = i;
-> -	rc = tm6000_read_write_usb (dev,
-> -		USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-> -		REQ_16_SET_GET_I2C_WR1_RDN, 0xa0 | i<<8, 0, p, 1);
-> +	rc = tm6000_i2c_revc_regs(dev, 0xa0, i, p, 1);
->  		if (rc < 1) {
->  			if (p == eedata)
->  				goto noeeprom;
+> Of course, if you and Mauro wanted to sign off on the creation of a
+> new non-private user control called V4L2_CID_CHROMA_GAIN, that would
+> also resolve my problem.  :-)
 
+Hmm, Mauro is right: the color controls we have now are a bit of a mess.
+Perhaps this is a good moment to try and fix them. Suppose we had no color
+controls at all: how would we design them in that case? When we know what we
+really need, then we can compare that with what we have and figure out what
+we need to do to make things right again.
+
+Regards,
+
+	Hans
+
+> 
+> Devin
+> 
+> 
 
 -- 
-
-Cheers,
-Mauro
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
