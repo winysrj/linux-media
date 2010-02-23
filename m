@@ -1,85 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 81-174-11-161.static.ngi.it ([81.174.11.161]:49826 "EHLO
-	mail.enneenne.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753982Ab0BVQBr (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:37104 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750930Ab0BWAl0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 11:01:47 -0500
-Date: Mon, 22 Feb 2010 17:01:39 +0100
-From: Rodolfo Giometti <giometti@enneenne.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Richard =?iso-8859-15?Q?R=C3=B6jfors?=
-	<richard.rojfors.ext@mocean-labs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Message-ID: <20100222160139.GL21778@enneenne.com>
-References: <20100219174451.GH21778@enneenne.com>
- <Pine.LNX.4.64.1002192018170.5860@axis700.grange>
+	Mon, 22 Feb 2010 19:41:26 -0500
+Message-ID: <4B83242E.40703@infradead.org>
+Date: Mon, 22 Feb 2010 21:41:18 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
+To: Brandon Philips <brandon@ifup.org>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Douglas Landgraf <dougsland@gmail.com>
+Subject: Re: [ANNOUNCE] git tree repositories & libv4l
+References: <4B55445A.10300@infradead.org> <4B5B30E4.7030909@redhat.com> <20100222225426.GC4013@jenkins.home.ifup.org> <201002230026.59712.hverkuil@xs4all.nl> <20100222233808.GD4013@jenkins.home.ifup.org>
+In-Reply-To: <20100222233808.GD4013@jenkins.home.ifup.org>
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1002192018170.5860@axis700.grange>
-Subject: Re: adv7180 as SoC camera device
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 19, 2010 at 08:36:38PM +0100, Guennadi Liakhovetski wrote:
-> On Fri, 19 Feb 2010, Rodolfo Giometti wrote:
+Brandon Philips wrote:
+> On 00:26 Tue 23 Feb 2010, Hans Verkuil wrote:
+>> On Monday 22 February 2010 23:54:26 Brandon Philips wrote:
+>>> On 18:24 Sat 23 Jan 2010, Hans de Goede wrote:
+>>>>> lib/
+>>>>> 	libv4l1/
+>>>>> 	libv4l2/
+>>>>> 	libv4lconvert/
+>>>>> utils/
+>>>>> 	v4l2-dbg
+>>>>> 	v4l2-ctl
+>>>>> 	cx18-ctl
+>>>>> 	ivtv-ctl
+>>>>> contrib/
+>>>>> 	test/
+>>>>> 	everything else
+>>>>>
+>>>   git clone git://ifup.org/philips/create-v4l-utils.git
+>>>   cd create-v4l-utils/
+>>>   ./convert.sh 
+>>>
+>>> You should now have v4l-utils.git which should have this directory
+>>> struture. If we need to move other things around let me know and I can
+>>> tweak name-filter.sh
+>>>
+>>> Thoughts? Let me know how we should proceed with dropping v4l2-apps
+>>> from v4l-dvb.
+>>>
+>>> Re: code style cleanup. I think we should do that once we drop
+>>> v4l2-apps/ from v4l-dvb and make the new v4l-utils.git upstream.
+>> Question: shouldn't we merge dvb-apps and v4l-utils? The alevtv tool was
+>> merged into dvb-apps, but while that tool supports dvb, it also supports
+>> v4l2. Just like we merged dvb and v4l in a single repository, so I think we
+>> should also merge the tools to a media-utils repository.
+>>
+>> It remains a fact of life that dvb and v4l are connected and trying to
+>> artificially keep them apart does not make much sense to me.
 > 
-> > Hello,
-> > 
-> > on my pxa27x based board I have a adv7180 connected with the CIF
-> > interface. Due this fact I'm going to use the pxa_camera.c driver
-> > which in turn registers a soc_camera_host.
-> > 
-> > In the latest kernel I found your driver for the ADV7180, but it
-> > registers the chip as a v4l sub device.
-> > 
-> > I suppose these two interfaces are not compatible, aren't they?
+> Easy to do but who should be the maintainer of the dvb things?
 > 
-> Congratulations! Thereby you're in a position to develop the first 
-> v4l2-subdev / soc-camera universal driver;) The answer to this your 
-> question is - they are... kinda. This means - yes, soc-camera is also 
-> using the v4l2-subdev API, but - with a couple of additions. Basically, 
-> there are two things you have to change in the adv7180 driver to make it 
-> compatible with soc-camera - (1) add bus-configuration methods, even if 
-> they don't do much (see .query_bus_param() and .set_bus_param() methods 
-> from struct soc_camera_ops), and (2) migrate the driver to the mediabus 
-> API. The latter one requires some care - in principle, mediabus should be 
-> the future API to negotiate parameters on the video bus between bridges 
-> (in your case PXA CIF) and clients, but for you this means you also have 
-> to migrate any other bridge drivers in the mainline to that API, and, if 
-> they also interface to some other subdevices - those too, and if those can 
-> also work with other bridges - those too...;) But, I think, that chain 
-> will terminate quite soon, in fact, I cannot find any users of that driver 
-> currently in the mainline, Richard?
+> According to the wiki[1] these tools are without a maintainer. So, if
+> no one cares about them enough to make releases why merge them and
+> clutter up the git tree with dead code?
 > 
-> > In this situation, should I write a new driver for the
-> > soc_camera_device? Which is The-Right-Thing(TM) to do? :)
+> Cheers,
 > 
-> Please, have a look and try to convert the driver as described above. All 
-> the APIs and a few examples are in the mainline, so, you should have 
-> enough copy-paste sources;) Ask on the list (with me on cc) if anything is 
-> still unclear.
+> 	Brandon
+> 
+> [1] http://www.linuxtv.org/wiki/index.php/LinuxTV_dvb-apps
 
-Thanks for your quick answer! :)
+That's weird. I've recently added support for ISDB-T on it:
+	http://linuxtv.org/hg/~mchehab/dvb-apps-isdbt2/
 
-What I still don't understand is if should I move the driver form
-v4l2-subdev to a soc_camera device or trying to support both API...
-
-It seems to me that the driver is not used by any machines into
-mainline so if soc-camera is also using the v4l2-subdev API but with a
-couple of additions I suppose I can move it to soc_camera API...
-
-Is that right?
-
-Ciao,
-
-Rodolfo
+and we've got some comments at the mailing list. Btw, the patches
+I added there also adds DVB-S2 support to szap/scan, but tests
+are needed, since I don't have any satellite dish nowadays.
 
 -- 
 
-GNU/Linux Solutions                  e-mail: giometti@enneenne.com
-Linux Device Driver                          giometti@linux.it
-Embedded Systems                     phone:  +39 349 2432127
-UNIX programming                     skype:  rodolfo.giometti
-Freelance ICT Italia - Consulente ICT Italia - www.consulenti-ict.it
+Cheers,
+Mauro
