@@ -1,41 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-07.arcor-online.net ([151.189.21.47]:37872 "EHLO
-	mail-in-07.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933959Ab0BEWsy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Feb 2010 17:48:54 -0500
-From: stefan.ringel@arcor.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
-	Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH 3/12] tm6000: clean the identifer string
-Date: Fri,  5 Feb 2010 23:48:08 +0100
-Message-Id: <1265410096-11788-3-git-send-email-stefan.ringel@arcor.de>
-In-Reply-To: <1265410096-11788-2-git-send-email-stefan.ringel@arcor.de>
-References: <1265410096-11788-1-git-send-email-stefan.ringel@arcor.de>
- <1265410096-11788-2-git-send-email-stefan.ringel@arcor.de>
+Received: from mx1.redhat.com ([209.132.183.28]:35003 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752426Ab0BWNh3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Feb 2010 08:37:29 -0500
+Message-ID: <4B83DA0D.1020002@redhat.com>
+Date: Tue, 23 Feb 2010 10:37:17 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Brandon Philips <brandon@ifup.org>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Douglas Landgraf <dougsland@gmail.com>,
+	christophpfister@gmail.com
+Subject: Re: [ANNOUNCE] git tree repositories & libv4l
+References: <4B55445A.10300@infradead.org> <4B5B30E4.7030909@redhat.com> <20100222225426.GC4013@jenkins.home.ifup.org> <201002230026.59712.hverkuil@xs4all.nl> <20100222233808.GD4013@jenkins.home.ifup.org> <4B83242E.40703@infradead.org> <4B832B61.30909@redhat.com> <20100223080437.GE4013@jenkins.home.ifup.org>
+In-Reply-To: <20100223080437.GE4013@jenkins.home.ifup.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <stefan.ringel@arcor.de>
+Brandon Philips wrote:
+> On 22:12 Mon 22 Feb 2010, Mauro Carvalho Chehab wrote:
+>> Mauro Carvalho Chehab wrote:
 
----
- drivers/staging/tm6000/tm6000-cards.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+>> That's said, if all the issues are the ones listed above, I can try
+>> to address them on the next months, to put it into a better
+>> shape. That's said, I don't think we should have a single maintainer
+>> for it: there are too many DTV standards already, and probably
+>> nobody with enough time has access to all of those (DVB-T, DVB-T2,
+>> DVB-S, DVB-S2, ISDB-T, ISDB-S, ATSC, DSS, ...).  So, I think we need
+>> a team of volunteers that will try to help with the standards they
+>> have access.
+> 
+> I was not suggesting a single maintainer but I wanted to make sure
+> there was actual interest in maintaing and fixing these dvb things. I
+> don't interact much at all with DVB so all I had to go on was the wiki
+> page.
 
-diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
-index e697ce3..1167b01 100644
---- a/drivers/staging/tm6000/tm6000-cards.c
-+++ b/drivers/staging/tm6000/tm6000-cards.c
-@@ -480,7 +480,7 @@ static int tm6000_usb_probe(struct usb_interface *interface,
- 	/* Check to see next free device and mark as used */
- 	nr=find_first_zero_bit(&tm6000_devused,TM6000_MAXBOARDS);
- 	if (nr >= TM6000_MAXBOARDS) {
--		printk ("tm6000: Supports only %i em28xx boards.\n",TM6000_MAXBOARDS);
-+		printk ("tm6000: Supports only %i tm60xx boards.\n",TM6000_MAXBOARDS);
- 		usb_put_dev(usbdev);
- 		return -ENOMEM;
- 	}
+The wiki seems wrong to me. I'll update it.
+
 -- 
-1.6.4.2
 
+Cheers,
+Mauro
