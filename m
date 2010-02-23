@@ -1,74 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-02.arcor-online.net ([151.189.21.42]:36485 "EHLO
-	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933989Ab0BEWs5 (ORCPT
+Received: from mail-fx0-f219.google.com ([209.85.220.219]:38062 "EHLO
+	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752110Ab0BWJp3 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Feb 2010 17:48:57 -0500
-From: stefan.ringel@arcor.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
-	Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH 7/12] tm6000: add tuner callback for dvb frontend
-Date: Fri,  5 Feb 2010 23:48:11 +0100
-Message-Id: <1265410096-11788-6-git-send-email-stefan.ringel@arcor.de>
-In-Reply-To: <1265410096-11788-5-git-send-email-stefan.ringel@arcor.de>
-References: <1265410096-11788-1-git-send-email-stefan.ringel@arcor.de>
- <1265410096-11788-2-git-send-email-stefan.ringel@arcor.de>
- <1265410096-11788-3-git-send-email-stefan.ringel@arcor.de>
- <1265410096-11788-4-git-send-email-stefan.ringel@arcor.de>
- <1265410096-11788-5-git-send-email-stefan.ringel@arcor.de>
+	Tue, 23 Feb 2010 04:45:29 -0500
+Received: by fxm19 with SMTP id 19so3566365fxm.21
+        for <linux-media@vger.kernel.org>; Tue, 23 Feb 2010 01:45:28 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4B83242E.40703@infradead.org>
+References: <4B55445A.10300@infradead.org> <4B5B30E4.7030909@redhat.com>
+	 <20100222225426.GC4013@jenkins.home.ifup.org>
+	 <201002230026.59712.hverkuil@xs4all.nl>
+	 <20100222233808.GD4013@jenkins.home.ifup.org>
+	 <4B83242E.40703@infradead.org>
+Date: Tue, 23 Feb 2010 13:45:27 +0400
+Message-ID: <1a297b361002230145t325ec009h877defe104dfccb3@mail.gmail.com>
+Subject: Re: [ANNOUNCE] git tree repositories & libv4l
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Brandon Philips <brandon@ifup.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Douglas Landgraf <dougsland@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <stefan.ringel@arcor.de>
+On Tue, Feb 23, 2010 at 4:41 AM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+> Brandon Philips wrote:
+>> On 00:26 Tue 23 Feb 2010, Hans Verkuil wrote:
+>>> On Monday 22 February 2010 23:54:26 Brandon Philips wrote:
+>>>> On 18:24 Sat 23 Jan 2010, Hans de Goede wrote:
+>>>>>> lib/
+>>>>>>   libv4l1/
+>>>>>>   libv4l2/
+>>>>>>   libv4lconvert/
+>>>>>> utils/
+>>>>>>   v4l2-dbg
+>>>>>>   v4l2-ctl
+>>>>>>   cx18-ctl
+>>>>>>   ivtv-ctl
+>>>>>> contrib/
+>>>>>>   test/
+>>>>>>   everything else
+>>>>>>
+>>>>   git clone git://ifup.org/philips/create-v4l-utils.git
+>>>>   cd create-v4l-utils/
+>>>>   ./convert.sh
+>>>>
+>>>> You should now have v4l-utils.git which should have this directory
+>>>> struture. If we need to move other things around let me know and I can
+>>>> tweak name-filter.sh
+>>>>
+>>>> Thoughts? Let me know how we should proceed with dropping v4l2-apps
+>>>> from v4l-dvb.
+>>>>
+>>>> Re: code style cleanup. I think we should do that once we drop
+>>>> v4l2-apps/ from v4l-dvb and make the new v4l-utils.git upstream.
+>>> Question: shouldn't we merge dvb-apps and v4l-utils? The alevtv tool was
+>>> merged into dvb-apps, but while that tool supports dvb, it also supports
+>>> v4l2. Just like we merged dvb and v4l in a single repository, so I think we
+>>> should also merge the tools to a media-utils repository.
+>>>
+>>> It remains a fact of life that dvb and v4l are connected and trying to
+>>> artificially keep them apart does not make much sense to me.
+>>
+>> Easy to do but who should be the maintainer of the dvb things?
+>>
+>> According to the wiki[1] these tools are without a maintainer. So, if
+>> no one cares about them enough to make releases why merge them and
+>> clutter up the git tree with dead code?
+>>
+>> Cheers,
+>>
+>>       Brandon
+>>
+>> [1] http://www.linuxtv.org/wiki/index.php/LinuxTV_dvb-apps
+>
+> That's weird. I've recently added support for ISDB-T on it:
+>        http://linuxtv.org/hg/~mchehab/dvb-apps-isdbt2/
 
----
- drivers/staging/tm6000/tm6000-cards.c |    2 +-
- drivers/staging/tm6000/tm6000-dvb.c   |    3 ++-
- drivers/staging/tm6000/tm6000.h       |    3 +++
- 3 files changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
-index 5cf5d58..4592397 100644
---- a/drivers/staging/tm6000/tm6000-cards.c
-+++ b/drivers/staging/tm6000/tm6000-cards.c
-@@ -245,7 +245,7 @@ struct usb_device_id tm6000_id_table [] = {
- 
- /* Tuner callback to provide the proper gpio changes needed for xc2028 */
- 
--static int tm6000_tuner_callback(void *ptr, int component, int command, int arg)
-+int tm6000_tuner_callback(void *ptr, int component, int command, int arg)
- {
- 	int rc=0;
- 	struct tm6000_core *dev = ptr;
-diff --git a/drivers/staging/tm6000/tm6000-dvb.c b/drivers/staging/tm6000/tm6000-dvb.c
-index e900d6d..fdbee30 100644
---- a/drivers/staging/tm6000/tm6000-dvb.c
-+++ b/drivers/staging/tm6000/tm6000-dvb.c
-@@ -235,7 +235,8 @@ int tm6000_dvb_register(struct tm6000_core *dev)
- 			.i2c_adap = &dev->i2c_adap,
- 			.i2c_addr = dev->tuner_addr,
- 		};
--
-+		
-+		dvb->frontend->callback = tm6000_tuner_callback;
- 		ret = dvb_register_frontend(&dvb->adapter, dvb->frontend);
- 		if (ret < 0) {
- 			printk(KERN_ERR
-diff --git a/drivers/staging/tm6000/tm6000.h b/drivers/staging/tm6000/tm6000.h
-index 877cbf6..d713c48 100644
---- a/drivers/staging/tm6000/tm6000.h
-+++ b/drivers/staging/tm6000/tm6000.h
-@@ -202,6 +202,9 @@ struct tm6000_fh {
- 			V4L2_STD_PAL_M|V4L2_STD_PAL_60|V4L2_STD_NTSC_M| \
- 			V4L2_STD_NTSC_M_JP|V4L2_STD_SECAM
- 
-+/* In tm6000-cards.c */
-+
-+int tm6000_tuner_callback (void *ptr, int component, int command, int arg);
- /* In tm6000-core.c */
- 
- int tm6000_read_write_usb (struct tm6000_core *dev, u8 reqtype, u8 req,
--- 
-1.6.4.2
+That's probably Michael Krufky (user: Jon2856) from what i guess, he
+has been the one who has been making ground for propaganda's on the
+wiki.
 
+
+> and we've got some comments at the mailing list. Btw, the patches
+> I added there also adds DVB-S2 support to szap/scan, but tests
+> are needed, since I don't have any satellite dish nowadays.
+
+
+Btw, I did spend time to review your code before it is pulled in. You
+did not even provide a reply on my last mail on the subject, or did I
+miss that reply of yours ?
+
+
+Regards,
+Manu
