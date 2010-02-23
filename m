@@ -1,127 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:32808 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755692Ab0BHALL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Feb 2010 19:11:11 -0500
-Subject: Re: Any saa711x users out there?
-From: Andy Walls <awalls@radix.net>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 07 Feb 2010 19:10:39 -0500
-Message-Id: <1265587839.4186.16.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3252 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751124Ab0BWJBs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Feb 2010 04:01:48 -0500
+Message-ID: <e69623b3a970d166a31af8258040a471.squirrel@webmail.xs4all.nl>
+In-Reply-To: <4B839687.4090205@redhat.com>
+References: <4B55445A.10300@infradead.org> <4B57B6E4.2070500@infradead.org>
+    <20100121024605.GK4015@jenkins.home.ifup.org>
+    <201001210834.28112.hverkuil@xs4all.nl> <4B5B30E4.7030909@redhat.com>
+    <20100222225426.GC4013@jenkins.home.ifup.org>
+    <4B839687.4090205@redhat.com>
+Date: Tue, 23 Feb 2010 10:01:28 +0100
+Subject: Re: [ANNOUNCE] git tree repositories & libv4l
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Hans de Goede" <hdegoede@redhat.com>
+Cc: "Brandon Philips" <brandon@ifup.org>,
+	"Mauro Carvalho Chehab" <mchehab@infradead.org>,
+	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
+	"Douglas Landgraf" <dougsland@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> I'll try to perform a quick test with my PVR-350 with NTSC and the YUV
-> capture device BTW.
 
-OK.  So my test setup:
+> Hi,
+>
+> On 02/22/2010 11:54 PM, Brandon Philips wrote:
+>> On 18:24 Sat 23 Jan 2010, Hans de Goede wrote:
+>>>> lib/
+>>>> 	libv4l1/
+>>>> 	libv4l2/
+>>>> 	libv4lconvert/
+>>>> utils/
+>>>> 	v4l2-dbg
+>>>> 	v4l2-ctl
+>>>> 	cx18-ctl
+>>>> 	ivtv-ctl
+>>>> contrib/
+>>>> 	test/
+>>>> 	everything else
+>>>>
+>>
+>>    git clone git://ifup.org/philips/create-v4l-utils.git
+>>    cd create-v4l-utils/
+>>    ./convert.sh
+>>
+>> You should now have v4l-utils.git which should have this directory
+>> struture. If we need to move other things around let me know and I can
+>> tweak name-filter.sh
+>>
+>
+> Ok, so this will give me a local tree, how do I get this onto linuxtv.org
+> ?
+>
+> Also I need someone to pull:
+> http://linuxtv.org/hg/~hgoede/libv4l
+>
+> (this only contains libv4l commits)
+>
+> Into the:
+> http://linuxtv.org/hg/v4l-dvb
+>
+> Repository, I guess I can ask this directly to Douglas?
+>
+>> Thoughts?
+>
+> I've one question, I think we want to do tarbal releases
+> from this new repo (just like I've been doing with libv4l for a while
+> already), and then want distro's to pick up these releases, right ?
+>
+> Are we going to do separate tarbals for the lib and utils directories,
+> or one combined tarbal. I personally vote for one combined tarbal.
+>
+> But this means we will be inflicting some pains on distro's because their
+> libv4l packages will go away and be replaced by a new v4l-utils package.
 
-a. DTV STB tuned to the SuperBowl :)
+I would call it media-utils. A nice name and it reflects that it contains
+both dvb and v4l utilities.
 
-b. Composite out from the STB feeding my PVR-350/SAA7115 with an NTSC
-CVBS input.
+> This is something distro's should be able to handle (it happens more
+> often, and I
+> know Fedora has procedures for this).
+>
+> An alternative would be to name the repo and the tarbals libv4l, either is
+> fine
+> with me (although I'm one of the distro packagers who is going to feel the
+> pain
+> of a package rename and as such wouldn't mind using libv4l as name for the
+> repo and the new tarbals).
 
-c. mplayer capturing raw YUV video from the PVR-350's composite input:
-$ mplayer /dev/video32 -demuxer rawvideo -rawvideo w=720:h=480:format=hm12:ntsc
+We never had a proper release procedure for all the utilities. It's about
+time that we start with that and do proper packaging. So I'd rather make a
+clean new start now instead of just patching things up.
 
+Just my opinions, of course.
 
-I did this:
+Regards.
 
-# v4l2-dbg -d /dev/video32 -S
-host0: cx23415    revision 0x00000000
-i2c 0x21: saa7115    revision 0x00000000
-i2c 0x40: msp4448g   revision 0x02173043
-i2c 0x44: saa7129    revision 0x00000000
+      Hans
 
-# v4l2-dbg -d /dev/video32 -c 0x21 --list-registers=min=0x00,max=0xff
-ioctl: VIDIOC_DBG_G_REGISTER
-
-          00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F
-00000000: 10 48 80 20 90 90 eb e0 68 53 80 44 40 00 07 2e 
-00000010: 06 00 9d 80 00 03 11 9c 40 80 77 42 a9 01 81 b1 
-00000020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-00000030: cd 20 03 00 ce fb 30 00 03 10 00 00 00 00 00 00 
-00000040: 20 ff ff ff ff ff ff ff ff dd dd dd dd dd dd dd 
-00000050: dd dd dd dd dd ff ff ff 40 47 06 83 00 bd 35 00 
-00000060: 00 00 00 00 00 00 a9 00 00 00 00 aa 00 00 00 00 
-00000070: 00 00 aa 00 00 00 00 aa 00 00 00 00 00 00 00 00 
-00000080: 30 01 00 00 20 21 c5 01 f0 00 00 00 00 00 00 3b 
-00000090: 80 48 40 84 01 00 d0 02 05 00 0c 00 a0 05 0c 00 
-000000a0: 01 00 00 00 80 40 40 00 00 02 00 00 00 01 00 00 
-000000b0: 00 04 00 04 01 00 00 00 00 00 00 00 00 00 00 00 
-000000c0: 00 08 00 80 02 00 d0 02 12 00 f8 00 d0 02 f8 00 
-000000d0: 01 00 00 00 80 40 40 00 00 04 00 00 00 02 00 00 
-000000e0: 00 04 00 04 01 00 00 00 00 00 00 00 00 00 00 00 
-000000f0: ad 05 50 46 00 ad 01 4b 00 4b 00 4b 00 00 00 88 
-
-# v4l2-dbg -d /dev/video32 -c 0x21 -g 2
-ioctl: VIDIOC_DBG_G_REGISTER
-Register 0x00000002 = 80h (128d  10000000b)
-
-# v4l2-dbg -d /dev/video32 -c 0x21 -s 2 0xc0
-Register 0x00000002 set to 0xc0
-
-# v4l2-dbg -d /dev/video32 -c 0x21 -s 2 0x80
-Register 0x00000002 set to 0x80
-
-# v4l2-dbg -d /dev/video32 -c 0x21 -s 2 0xc0
-Register 0x00000002 set to 0xc0
-
-# v4l2-dbg -d /dev/video32 -c 0x21 -s 2 0x0
-Register 0x00000002 set to 0x0
-
-# v4l2-dbg -d /dev/video32 -c 0x21 -s 2 0x40
-Register 0x00000002 set to 0x40
-
-# v4l2-dbg -d /dev/video32 -c 0x21 -s 2 0x00
-Register 0x00000002 set to 0x0
-
-# v4l2-dbg -d /dev/video32 -c 0x21 -s 2 0x40
-Register 0x00000002 set to 0x40
-
-# v4l2-dbg -d /dev/video32 -c 0x21 -s 2 0x00
-Register 0x00000002 set to 0x0
-
-# v4l2-dbg -d /dev/video32 -c 0x21 -s 2 0x40
-Register 0x00000002 set to 0x40
-
-# v4l2-dbg -d /dev/video32 -c 0x21 -s 2 0x0
-Register 0x00000002 set to 0x0
-
-# v4l2-dbg -d /dev/video32 -c 0x21 -s 2 0x80
-Register 0x00000002 set to 0x80
-
-# v4l2-dbg -d /dev/video32 -c 0x21 -s 2 0x40
-Register 0x00000002 set to 0x40
-
-# v4l2-dbg -d /dev/video32 -c 0x21 -s 2 0x80
-Register 0x00000002 set to 0x80
-
-# v4l2-dbg -d /dev/video32 -c 0x21 -s 2 0xc0
-Register 0x00000002 set to 0xc0
-
-# v4l2-dbg -d /dev/video32 -c 0x21 -s 2 0x40
-Register 0x00000002 set to 0x40
-
-# v4l2-dbg -d /dev/video32 -c 0x21 -s 2 0x80
-Register 0x00000002 set to 0x80
+>
+> Regards,
+>
+> Hans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
 
-My observations:
-
-1. With the amplifier on and anti-alias filter off things looked fine.
-2. With the amplifier on and anti-alias filter on things looked fine.
-3. With the amplifier off and anti-alias filter off things looked fine.
-4. With the amplifier off and anti-alias filter on the screen washed brighter/whiter.
-
-I guess the anti-alias filter peaks the luma a little or attenuates the color a little.
-The amplifier and AGC is probably essential when using the anti-alias filter.
-
-Regards,
-Andy
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
