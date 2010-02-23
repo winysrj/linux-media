@@ -1,66 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-16.arcor-online.net ([151.189.21.56]:45719 "EHLO
-	mail-in-16.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751875Ab0BKA6H (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Feb 2010 19:58:07 -0500
-Subject: Re: [PATCH] saa7134: Fix IR support of some ASUS TV-FM 7135
- variants
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>, Daro <ghost-rider@aster.pl>,
-	Roman Kellner <muzungu@gmx.net>
-In-Reply-To: <20100210203601.31ef3220@hyperion.delvare>
-References: <20100127120211.2d022375@hyperion.delvare>
-	 <4B630179.3080006@redhat.com> <1264812461.16350.90.camel@localhost>
-	 <20100130115632.03da7e1b@hyperion.delvare>
-	 <1264986995.21486.20.camel@pc07.localdom.local>
-	 <20100201105628.77057856@hyperion.delvare>
-	 <1265075273.2588.51.camel@localhost>
-	 <20100202085415.38a1e362@hyperion.delvare> <4B681173.1030404@redhat.com>
-	 <20100210190907.5c695e4e@hyperion.delvare> <4B72FD83.1050500@redhat.com>
-	 <20100210203601.31ef3220@hyperion.delvare>
+Received: from mail1.radix.net ([207.192.128.31]:41435 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752546Ab0BWOVB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Feb 2010 09:21:01 -0500
+Subject: Re: Chroma gain configuration
+From: Andy Walls <awalls@radix.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <201002230853.36928.hverkuil@xs4all.nl>
+References: <829197381002212007q342fc01bm1c528a2f15027a1e@mail.gmail.com>
+	 <201002222254.05573.hverkuil@xs4all.nl>
+	 <829197381002221400i6e4f4b17u42597d5138171e19@mail.gmail.com>
+	 <201002230853.36928.hverkuil@xs4all.nl>
 Content-Type: text/plain
-Date: Thu, 11 Feb 2010 01:58:02 +0100
-Message-Id: <1265849882.4422.17.camel@localhost>
+Date: Tue, 23 Feb 2010 09:20:43 -0500
+Message-Id: <1266934843.4589.20.camel@palomino.walls.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Tue, 2010-02-23 at 08:53 +0100, Hans Verkuil wrote:
+> On Monday 22 February 2010 23:00:32 Devin Heitmueller wrote:
+> > On Mon, Feb 22, 2010 at 4:54 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-Am Mittwoch, den 10.02.2010, 20:36 +0100 schrieb Jean Delvare:
-> On Wed, 10 Feb 2010 16:40:03 -0200, Mauro Carvalho Chehab wrote:
-> > Jean Delvare wrote:
-> > > Under the assumption that saa7134_hwinit1() only touches GPIOs
-> > > connected to IR receivers (and it certainly looks like this to me) I
-> > > fail to see how these pins not being initialized could have any effect
-> > > on non-IR code.
-> > 
-> > Now, i suspect that you're messing things again: are you referring to saa7134_hwinit1() or
-> > to saa7134_input_init1()?
-> > 
-> > I suspect that you're talking about moving saa7134_input_init1(), since saa7134_hwinit1()
-> > has the muted and spinlock inits. It also has the setups for video, vbi and mpeg. 
-> > So, moving it require more care.
+> > Of course, if you and Mauro wanted to sign off on the creation of a
+> > new non-private user control called V4L2_CID_CHROMA_GAIN, that would
+> > also resolve my problem.  :-)
 > 
-> Err, you're right, I meant saa7134_input_init1() and not
-> saa7134_hwinit1(), copy-and-paste error. Sorry for adding more
-> confusion where it really wasn't needed...
+> Hmm, Mauro is right: the color controls we have now are a bit of a mess.
+> Perhaps this is a good moment to try and fix them. Suppose we had no color
+> controls at all: how would we design them in that case? When we know what we
+> really need, then we can compare that with what we have and figure out what
+> we need to do to make things right again.
+
+Hmmm:
+
+1. comb filter enable/disable
+2. chroma AGC enable/disable
+3. chroma kill threshold and enable/disable
+4. UV saturation  (C vector magnitude adjustment as long as you adjust U
+and V in the same way.)
+5. Hue (C vector phase adjustment)
+6. chroma coring
+7. chroma delay/advance in pixels relative to luma pixels
+8. chroma subcarrier locking algorithm: fast, slow, adaptive
+9. chroma notch filer settings (when doing Y/C separation from CVBS)
+10. additional analog signal gain
+11. anti-alias filter enable/disable
+
+And that's just from a quick scan of the public CX25836/7 datasheet.
+
+I left my handbook with all sorts of details about the Human Visual
+System and the CIE and NTSC and PAL colorspaces at work.
+
+Regards,
+Andy
+
+
+
+
+
+> Regards,
 > 
-
-both attempts of Jean will work.
-
-If we are only talking about moving input_init, only that Jean did
-suggest initially, it should work, since only some GPIOs for enabling
-remote chips are affected.
-
-I can give the crappy tester, but don't have such a remote, but should
-not be a problem to trigger the GPIOs later.
-
-Cheers,
-Hermann
-
+> 	Hans
+> 
+> > 
+> > Devin
+> > 
+> > 
+> 
 
