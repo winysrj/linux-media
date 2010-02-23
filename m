@@ -1,59 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-10.arcor-online.net ([151.189.21.50]:43484 "EHLO
-	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753696Ab0BBUnM (ORCPT
+Received: from mail-yx0-f189.google.com ([209.85.210.189]:39933 "EHLO
+	mail-yx0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751710Ab0BWIEt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Feb 2010 15:43:12 -0500
-Message-ID: <4B688E41.2050806@arcor.de>
-Date: Tue, 02 Feb 2010 21:42:41 +0100
-From: Stefan Ringel <stefan.ringel@arcor.de>
-MIME-Version: 1.0
+	Tue, 23 Feb 2010 03:04:49 -0500
+Received: by yxe27 with SMTP id 27so191317yxe.21
+        for <linux-media@vger.kernel.org>; Tue, 23 Feb 2010 00:04:47 -0800 (PST)
+Date: Tue, 23 Feb 2010 00:04:37 -0800
+From: Brandon Philips <brandon@ifup.org>
 To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [PATCH] -  tm6000 DVB support
-References: <4B673790.3030706@arcor.de> <4B673B2D.6040507@arcor.de> <4B675B19.3080705@redhat.com> <4B685FB9.1010805@arcor.de> <4B688507.606@redhat.com>
-In-Reply-To: <4B688507.606@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Douglas Landgraf <dougsland@gmail.com>,
+	christophpfister@gmail.com
+Subject: Re: [ANNOUNCE] git tree repositories & libv4l
+Message-ID: <20100223080437.GE4013@jenkins.home.ifup.org>
+References: <4B55445A.10300@infradead.org>
+ <4B5B30E4.7030909@redhat.com>
+ <20100222225426.GC4013@jenkins.home.ifup.org>
+ <201002230026.59712.hverkuil@xs4all.nl>
+ <20100222233808.GD4013@jenkins.home.ifup.org>
+ <4B83242E.40703@infradead.org>
+ <4B832B61.30909@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4B832B61.30909@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 02.02.2010 21:03, schrieb Mauro Carvalho Chehab:
->
->>>> @@ -404,6 +432,7 @@ int tm6000_init (struct tm6000_core *dev)
->>>>  {
->>>>      int board, rc=0, i, size;
->>>>      struct reg_init *tab;
->>>> +    u8 buf[40];
->>>>     
->>>>         
->>> Why "40" ? Please avoid using magic numbers here, especially if you're
->>> not checking at the logic if you're writing outside the buffer.
->>>
->>>   
->>>       
->> It important for tm6010 init sequence to enable the demodulator, because
->> the demodulator haven't found after init tuner.
->>     
-> Probably, there is some i2c gate to enable/disable the i2c access to the
-> demodulator. The better way is to add a call to the tm6000-dvb and let it
-> init the demodulator.
->
-> Also, since there's a gate for the demodulator, the proper way is to add
-> a callback to control it. Please take a look at saa7134 and seek for i2c_gate_ctrl
-> to see how such logic works.
->
->   
-It has followed structure schema without the GPIOs:
-1. tm6010 init
-2. enable zl10353
-3. tm6010 re-init
+On 22:12 Mon 22 Feb 2010, Mauro Carvalho Chehab wrote:
+> Mauro Carvalho Chehab wrote:
+> >> According to the wiki[1] these tools are without a maintainer. So, if
+> >> no one cares about them enough to make releases why merge them and
+> >> clutter up the git tree with dead code?
+> >>
+> >> [1] http://www.linuxtv.org/wiki/index.php/LinuxTV_dvb-apps
+> > 
+> > That's weird. I've recently added support for ISDB-T on it:
+> > 	http://linuxtv.org/hg/~mchehab/dvb-apps-isdbt2/
+> > 
+> > and we've got some comments at the mailing list. Btw, the patches
+> > I added there also adds DVB-S2 support to szap/scan, but tests
+> > are needed, since I don't have any satellite dish nowadays.
+> > 
+> 
+> That's said, if all the issues are the ones listed above, I can try
+> to address them on the next months, to put it into a better
+> shape. That's said, I don't think we should have a single maintainer
+> for it: there are too many DTV standards already, and probably
+> nobody with enough time has access to all of those (DVB-T, DVB-T2,
+> DVB-S, DVB-S2, ISDB-T, ISDB-S, ATSC, DSS, ...).  So, I think we need
+> a team of volunteers that will try to help with the standards they
+> have access.
 
-If it board specific then it's better when board number definition 
-switch from tm6000-card.c to tm6000.h . We can use in all tm6000*.c
-files the board definition .
+I was not suggesting a single maintainer but I wanted to make sure
+there was actual interest in maintaing and fixing these dvb things. I
+don't interact much at all with DVB so all I had to go on was the wiki
+page.
 
--- 
-Stefan Ringel <stefan.ringel@arcor.de>
+> That's said, I'm starting to agree with Hans: maybe the better seems
+> to merge it with v4l2-apps, to get synergy in terms, at least in
+> terms of packet management.
+> 
+> Comments?
 
+Seems reasonable to me. I would be willing to be the merge point for
+all of the various maintainers of dvb and v4l things and release
+manager for making the actual tar.gz releases.
+
+I wrote up the conversion for dvb-apps too. The merge of the two trees
+conflict pretty trivially so it should be easy to clean up if we go
+this route:
+
+#	unmerged:   COPYING
+#	unmerged:   INSTALL
+#	unmerged:   Make.rules
+#	unmerged:   Makefile
+#	unmerged:   README
+#	unmerged:   lib/Makefile
+#	unmerged:   utils/Makefile
+
+If you want to give it a whirl.
+
+  git clone git://ifup.org/philips/create-v4l-utils.git
+  cd create-v4l-utils/
+  git checkout -b dvb-apps-too origin/dvb-apps-too
+  ./convert.sh 
+
+The result will be in step3 with the merge conflicts.
+
+Cheers,
+
+	Brandon
