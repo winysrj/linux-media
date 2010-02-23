@@ -1,225 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f228.google.com ([209.85.219.228]:56705 "EHLO
-	mail-ew0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755705Ab0BSTm0 (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:59662 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751187Ab0BWMpz convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Feb 2010 14:42:26 -0500
-Message-ID: <4B7EEB6B.5070400@gmail.com>
-Date: Fri, 19 Feb 2010 20:50:03 +0100
-From: Roel Kluin <roel.kluin@gmail.com>
+	Tue, 23 Feb 2010 07:45:55 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Jean-Francois Moine" <moinejf@free.fr>
+Subject: Re: More videobuf and streaming I/O questions
+Date: Tue, 23 Feb 2010 13:45:49 +0100
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <201002201500.21118.hverkuil@xs4all.nl> <201002220012.20797.laurent.pinchart@ideasonboard.com> <20100222104741.2a8113be@tele>
+In-Reply-To: <20100222104741.2a8113be@tele>
 MIME-Version: 1.0
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] video_device: don't free_irq() an element past array
- vpif_obj.dev[] and fix test
-References: <4B714E15.4020909@gmail.com> <A69FA2915331DC488A831521EAE36FE40169C5C9B5@dlee06.ent.ti.com> <25e057c01002181202v346f488bk571d099f679fea83@mail.gmail.com> <A69FA2915331DC488A831521EAE36FE40169C5CBD8@dlee06.ent.ti.com>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE40169C5CBD8@dlee06.ent.ti.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201002231345.51700.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The first loop ends when platform_get_resource() returns NULL. Can it occur
-that no platform_get_resource() succeeded? I think we should error return if
-that happens. Could k grow larger than VPIF_DISPLAY_MAX_DEVICES there?
-Should we err out in that case?
+Hi Jean-François,
 
-In the loop `for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++)' if
-video_device_alloc() fails I think we correctly release the devices,
-but we have to do more before we reach label vpif_int_err.
-
-As mentioned, we left the first loop with a res of NULL, which is
-dereferenced at label vpif_int_err. So we have to get the resource again,
-however, k was incremented at the end of that loop as well. Also i used
-as index in the second loop as well should point to res->end before going
-to label vpif_int_err, to free all requested irqs. All this needs to be
-done for later error labels as well, so a new label is added where this
-occurs, alloc_vid_fail.
-
-Variable k can't be reused in the third for-loop and at label probe_out.
-As mentioned k is needed to get the resource in case a error and clean-up
-is required.
-
-If we reach label vpif_int_err, res shouldn't be NULL, since we
-dereference it. Previously we had:
-
-        for (; k >= 0; k--) {
-                for (m = i; m >= res->start; m--)
-                        free_irq(m, (void *)(&vpif_obj.dev[k]->channel_id));
-                res = platform_get_resource(pdev, IORESOURCE_IRQ, k-1);
-                m = res->end;
-        }
-
-In the last iteration k equals 0, so we call platform_get_resource() with
--1 as a third argument. Since platform_get_resource() uses an unsigned it
-is converted to 0xffffffff. platform_get_resource() fails for every index
-and returns NULL. A test is lacking and we dereference NULL.
-
-The error "VPIF IRQ request failed" should only be displayed when 
-request_irq() failed, not in the case of other errors.
-
-Also I changed some indexes, so a few could be removed.
-
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
----
-There were some errors in the changelog and a signoff was missing.
-
-> Ok. You are right! The ch_params[] is a table for keeping the information
-> about different standards supported. For a given stdid in std_info, the function matches the stdid with that in the table and get the corresponding entry.
-
->>>> +      if (k == VPIF_DISPLAY_MAX_DEVICES)
->>>> +              k = VPIF_DISPLAY_MAX_DEVICES - 1;
->>
->> actually I think this is still not right. shouldn't it be be
->>
->> k = VPIF_DISPLAY_MAX_DEVICES - 1;
+On Monday 22 February 2010 10:47:41 Jean-Francois Moine wrote:
+> Hi Hans and Laurent,
 > 
-> What you mean here? What you suggest here is same as in your patch, right?
+> On Mon, 22 Feb 2010 00:12:18 +0100
+> 
+> Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
+> > On Saturday 20 February 2010 15:00:21 Hans Verkuil wrote:
+> > > 1) The spec mentions that the memory field should be set for
+> > > VIDIOC_DQBUF. But videobuf doesn't need it and it makes no sense to
+> > > me either unless it is for symmetry with VIDIOC_QBUF. Strictly
+> > > speaking QBUF doesn't need it either, but it is a good sanity check.
+> > > 
+> > > Can I remove the statement in the spec that memory should be set
+> > > for DQBUF? The alternative is to add a check against the memory
+> > > field in videobuf, but that's rather scary.
+> > 
+> > In that case I would remove it for QBUF as well, and state that the
+> > memory field must be ignored by drivers (but should they fill it when
+> > returning from QBUF/DQBUF ?)
+> 
+> Agree. It seems that the memory field is not useful at all in the struct
+> v4l2_buffer if a same process does reqbuf, qbuf, dqbuf and querybuf.
+> 
+> 
+> BTW, I had a pending question. The spec says that streamoff 'removes
+> all buffers from the incoming and outgoing queues' and return to 'the
+> same state as after calling VIDIOC_REQBUFS'. For output, there is no
+> problem. For capture, does this mean that the buffers previously queued
+> by qbuf are implicitly unqueued (i.e. that qbuf must be done again for
+> all buffers)?
 
-I must admit I did not test this, except with checkpatch.pl, but I think
-the issues are real and should be fixed. Do you have comments?
+That's correct.
 
- drivers/media/video/davinci/vpif_display.c |   61 +++++++++++++++++++---------
- 1 files changed, 41 insertions(+), 20 deletions(-)
+> In this case, streamoff does not work with two processes. A first
+> process is streaming when a second one does streamoff and then
+> streamon. The first process will stay blocked on polling because no
+> buffer is queued anymore. It cannot know this fact and the second
+> process cannot requeue the buffers...
 
-diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
-index dfddef7..ae8ca94 100644
---- a/drivers/media/video/davinci/vpif_display.c
-+++ b/drivers/media/video/davinci/vpif_display.c
-@@ -383,7 +383,7 @@ static int vpif_get_std_info(struct channel_obj *ch)
- 	int index;
- 
- 	std_info->stdid = vid_ch->stdid;
--	if (!std_info)
-+	if (!std_info->stdid)
- 		return -1;
- 
- 	for (index = 0; index < ARRAY_SIZE(ch_params); index++) {
-@@ -1423,7 +1423,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- {
- 	struct vpif_subdev_info *subdevdata;
- 	struct vpif_display_config *config;
--	int i, j = 0, k, q, m, err = 0;
-+	int i, j, k, err;
- 	struct i2c_adapter *i2c_adap;
- 	struct common_obj *common;
- 	struct channel_obj *ch;
-@@ -1452,12 +1452,18 @@ static __init int vpif_probe(struct platform_device *pdev)
- 			if (request_irq(i, vpif_channel_isr, IRQF_DISABLED,
- 					"DM646x_Display",
- 				(void *)(&vpif_obj.dev[k]->channel_id))) {
-+				i--;
- 				err = -EBUSY;
-+				vpif_err("VPIF IRQ request failed\n");
- 				goto vpif_int_err;
- 			}
- 		}
- 		k++;
-+		if (k >= VPIF_DISPLAY_MAX_DEVICES)
-+			break;
- 	}
-+	if (k == 0)
-+		return -ENODEV;
- 
- 	for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++) {
- 
-@@ -1472,7 +1478,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 				video_device_release(ch->video_dev);
- 			}
- 			err = -ENOMEM;
--			goto vpif_int_err;
-+			goto alloc_vid_fail;
- 		}
- 
- 		/* Initialize field of video device */
-@@ -1489,13 +1495,13 @@ static __init int vpif_probe(struct platform_device *pdev)
- 		ch->video_dev = vfd;
- 	}
- 
--	for (j = 0; j < VPIF_DISPLAY_MAX_DEVICES; j++) {
--		ch = vpif_obj.dev[j];
-+	for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++) {
-+		ch = vpif_obj.dev[i];
- 		/* Initialize field of the channel objects */
- 		atomic_set(&ch->usrs, 0);
--		for (k = 0; k < VPIF_NUMOBJECTS; k++) {
--			ch->common[k].numbuffers = 0;
--			common = &ch->common[k];
-+		for (j = 0; j < VPIF_NUMOBJECTS; j++) {
-+			ch->common[j].numbuffers = 0;
-+			common = &ch->common[j];
- 			common->io_usrs = 0;
- 			common->started = 0;
- 			spin_lock_init(&common->irqlock);
-@@ -1506,12 +1512,12 @@ static __init int vpif_probe(struct platform_device *pdev)
- 			common->ctop_off = common->cbtm_off = 0;
- 			common->cur_frm = common->next_frm = NULL;
- 			memset(&common->fmt, 0, sizeof(common->fmt));
--			common->numbuffers = config_params.numbuffers[k];
-+			common->numbuffers = config_params.numbuffers[j];
- 
- 		}
- 		ch->initialized = 0;
--		ch->channel_id = j;
--		if (j < 2)
-+		ch->channel_id = i;
-+		if (i < 2)
- 			ch->common[VPIF_VIDEO_INDEX].numbuffers =
- 			    config_params.numbuffers[ch->channel_id];
- 		else
-@@ -1529,7 +1535,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 				(int)ch, (int)&ch->video_dev);
- 
- 		err = video_register_device(ch->video_dev,
--					  VFL_TYPE_GRABBER, (j ? 3 : 2));
-+					  VFL_TYPE_GRABBER, (i ? 3 : 2));
- 		if (err < 0)
- 			goto probe_out;
- 
-@@ -1567,20 +1573,35 @@ static __init int vpif_probe(struct platform_device *pdev)
- probe_subdev_out:
- 	kfree(vpif_obj.sd);
- probe_out:
--	for (k = 0; k < j; k++) {
--		ch = vpif_obj.dev[k];
-+	for (j = 0; j < i; j++) {
-+		ch = vpif_obj.dev[j];
- 		video_unregister_device(ch->video_dev);
- 		video_device_release(ch->video_dev);
- 		ch->video_dev = NULL;
- 	}
-+alloc_vid_fail:
-+	while (k--) {
-+		res = platform_get_resource(pdev, IORESOURCE_IRQ, k);
-+		if (res != NULL)
-+			break;
-+		vpif_err("Couldn't get resource %d, irqs not freed.\n", k);
-+	}
-+	if (res == NULL) {
-+		vpif_err("Couldn't get any resource.\n");
-+		return err;
-+	}
-+
-+	i = res->end;
- vpif_int_err:
- 	v4l2_device_unregister(&vpif_obj.v4l2_dev);
--	vpif_err("VPIF IRQ request failed\n");
--	for (q = k; k >= 0; k--) {
--		for (m = i; m >= res->start; m--)
--			free_irq(m, (void *)(&vpif_obj.dev[k]->channel_id));
--		res = platform_get_resource(pdev, IORESOURCE_IRQ, k-1);
--		m = res->end;
-+
-+	for (j = i; j >= res->start; j--)
-+		free_irq(j, (void *)(&vpif_obj.dev[k]->channel_id));
-+
-+	while (k--) {
-+		res = platform_get_resource(pdev, IORESOURCE_IRQ, k);
-+		for (j =  res->end; j >= res->start; j--)
-+			free_irq(j, (void *)(&vpif_obj.dev[k]->channel_id));
- 	}
- 
- 	return err;
+I don't think this multiple process use case is valid. The V4L2 streaming API 
+wasn't designed to be used in a multi-thread or multi-process context in the 
+first place.
+
+> To work correctly, the spec should say that streamoff discards the
+> content of the filled buffers and that it requeues these buffers as
+> empty either in the driver's incoming queue (capture) or outgoing queue
+> (output).
+
+I don't agree. If we did that, buffers couldn't be released after a STREAMOFF. 
+Queued buffers belong to the driver, so to free the buffers applications would 
+have to call VIDIOC_STREAMOFF and then dequeue all buffers. That's not pretty.
+
+-- 
+Regards,
+
+Laurent Pinchart
