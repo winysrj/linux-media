@@ -1,133 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sr101.firestorm.ch ([80.190.193.218]:46638 "EHLO
-	sr101.firestorm.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752043Ab0BVHgW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 02:36:22 -0500
-From: auslands-kv@gmx.de
-To: leandro Costantino <lcostantino@gmail.com>
-Subject: Re: Possible memory corruption in bttv driver ?
-Date: Mon, 22 Feb 2010 08:09:10 +0100
-Cc: linux-media@vger.kernel.org
-References: <hkcan2$72f$1@ger.gmane.org> <c2fe070d1002211757p7aace520h97bd5c8f03f9d024@mail.gmail.com>
-In-Reply-To: <c2fe070d1002211757p7aace520h97bd5c8f03f9d024@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:31202 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750909Ab0BWJWh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Feb 2010 04:22:37 -0500
+Message-ID: <4B839E80.8050607@redhat.com>
+Date: Tue, 23 Feb 2010 10:23:12 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Brandon Philips <brandon@ifup.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Douglas Landgraf <dougsland@gmail.com>
+Subject: Re: [ANNOUNCE] git tree repositories & libv4l
+References: <4B55445A.10300@infradead.org> <4B57B6E4.2070500@infradead.org>    <20100121024605.GK4015@jenkins.home.ifup.org>    <201001210834.28112.hverkuil@xs4all.nl> <4B5B30E4.7030909@redhat.com>    <20100222225426.GC4013@jenkins.home.ifup.org>    <4B839687.4090205@redhat.com> <e69623b3a970d166a31af8258040a471.squirrel@webmail.xs4all.nl>
+In-Reply-To: <e69623b3a970d166a31af8258040a471.squirrel@webmail.xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201002220809.10981.auslands-kv@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Leandro
+Hi,
 
-There are no crash oops available, as this is a memory corruption that occurs. 
-The effects differ strongly each time.
+On 02/23/2010 10:01 AM, Hans Verkuil wrote:
+>
+>> Hi,
+>>
+>> On 02/22/2010 11:54 PM, Brandon Philips wrote:
+>>> On 18:24 Sat 23 Jan 2010, Hans de Goede wrote:
+>>>>> lib/
+>>>>> 	libv4l1/
+>>>>> 	libv4l2/
+>>>>> 	libv4lconvert/
+>>>>> utils/
+>>>>> 	v4l2-dbg
+>>>>> 	v4l2-ctl
+>>>>> 	cx18-ctl
+>>>>> 	ivtv-ctl
+>>>>> contrib/
+>>>>> 	test/
+>>>>> 	everything else
+>>>>>
+>>>
+>>>     git clone git://ifup.org/philips/create-v4l-utils.git
+>>>     cd create-v4l-utils/
+>>>     ./convert.sh
+>>>
+>>> You should now have v4l-utils.git which should have this directory
+>>> struture. If we need to move other things around let me know and I can
+>>> tweak name-filter.sh
+>>>
+>>
+>> Ok, so this will give me a local tree, how do I get this onto linuxtv.org
+>> ?
+>>
+>> Also I need someone to pull:
+>> http://linuxtv.org/hg/~hgoede/libv4l
+>>
+>> (this only contains libv4l commits)
+>>
+>> Into the:
+>> http://linuxtv.org/hg/v4l-dvb
+>>
+>> Repository, I guess I can ask this directly to Douglas?
+>>
+>>> Thoughts?
+>>
+>> I've one question, I think we want to do tarbal releases
+>> from this new repo (just like I've been doing with libv4l for a while
+>> already), and then want distro's to pick up these releases, right ?
+>>
+>> Are we going to do separate tarbals for the lib and utils directories,
+>> or one combined tarbal. I personally vote for one combined tarbal.
+>>
+>> But this means we will be inflicting some pains on distro's because their
+>> libv4l packages will go away and be replaced by a new v4l-utils package.
+>
+> I would call it media-utils. A nice name and it reflects that it contains
+> both dvb and v4l utilities.
+>
 
-In most cases the system just stops (as the cpu has run over some corrupted 
-code). In some rare cases one can see strange program behaviour, e.g. the 
-sound library libasound.so responded with a symbol not found error (in this 
-case clearing the kernel cache reloaded the uncorrupted libasound code into 
-memory).
+Well, the judge is still out on also adding the dvb utils to this git repo.
+I'm neutral on that issue, but I will need a co-maintainer for those bits
+if they end up in the new v4l-utils repo too.
 
-After a couple of weeks of tests, I found that this memory corruption only 
-occurs if:
-- data from the bttv device is directly displayed on the video screen using xv 
-hardware acceleration on an geode lx system
+About the name, if the dvb utils get added and we want to reflect that, lets
+call it v4l-dvb-utils. media-utils is not a very descriptive name for v4l-dvb
+project outsiders.
 
-It does NOT occur if:
-- data from the bttv driver is displayed on the video screen using NO hardware 
-acceleration (x11)
-- data from the bttv driver is transferred first to the hard disk and then (in 
-a second) step displayed on the video screen using xv hardware acceleration
-- data from the bttv driver is directly displayed on the video screen using xv 
-hardware acceleration, but on an intel based system (also faster, more memory)
-- data from a NON bttv based video card (em28xx, tw68) is directly displayed 
-on the video screen using xv hardware acceleration on the geode lx system
 
-So, that seems to be a strange interaction of the bttv driver with the geode 
-lx video driver. I am pretty sure nobody will easily find this one. :-( So, we 
-finally switched to a TW6805 based card using the new tw68 driver from William 
-Brack.
 
-Thanks for your consideration and best regards
 
-Michael
 
-Am Montag, 22. Februar 2010 schrieb leandro Costantino:
-> Hi Michael,
-> 
-> could you attach any of the crash oops? That would be of help for bttv
-> developers here.
-> 
-> Best Regards
-> 
-> On Wed, Feb 3, 2010 at 2:10 PM, Michael <auslands-kv@gmx.de> wrote:
-> > Hello
-> >
-> > We use embedded devices running debian lenny (kernel 2.6.31.4 with bttv
-> > driver 0.9.18) to monitor an incoming video signal digitized via a video
-> > grabber. The /dev/video0 device is opened and closed several hundred
-> > times a
-> > day.
-> >
-> > We used to use an em28xx USB based grabber but now switched to an
-> > Mini-PCI bttv card (Commel MP-878) due to USB issues.
-> >
-> > With the bttv card we experience different crashes, usually after a
-> > couple of days, while the systems using the em28xx show none even after
-> > an extended
-> > time frame.
-> >
-> > The crashes differ strongly. We saw system freezes and also a very
-> > interesting problem, where libasound.so.2 couldn't find some symbol. We
-> > debugged the latter case, finding that all applications using
-> > libasound.so.2
-> > no longer worked, giving the same error of a symbol not found. The
-> > problem could be remedied by flushing the kernel cashes (echo 1 >
-> > /proc/sys/vm/drop_caches).
-> >
-> > So it might be possible that the systems using the bttv Mini-PCI card
-> > corrupt memory after a couple of days, resulting into different failures.
-> >
-> > To examine the crashes I wrote a small test program, which simply opens
-> > and closes the bttv video device repeatedly:
-> >
-> > #!/bin/bash
-> >
-> > count=0
-> > while [ 1 == 1 ]
-> > do
-> >        ((count++))
-> >        date; echo "COUNT = " $count
-> >        mplayer -frames 10 -fs -vo xv tv:// -tv norm=pal:input=1 >
-> > /dev/null sleep 0.1
-> > done
-> >
-> > With this program I experienced full hard crashes after 85 counts, 760
-> > counts and 3870 counts today, comprising between a couple of minutes and
-> > hours. In all cases the hardware watchdog timer resetted the system.
-> >
-> > The exact same system using an USB ex28xx based grabber instead of the
-> > bttv does not crash.
-> >
-> > 1.) Is there a way to diagnose memory corruption in order to ensure that
-> > it is really a corruption problem and to locate the possible bug?
-> >
-> > 2.) Do newer kernel versions have improved bttv drivers (maybe even with
-> > patched memory corruption issues)?
-> >
-> > 3.) As a last resort: Do you know of other Mini-PCI video grabber cards
-> > that
-> > are based on other chipsets that are supported by the kernel?
-> >
-> > Thanks a lot for any help
-> >
-> > Michael
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
 
+>> This is something distro's should be able to handle (it happens more
+>> often, and I
+>> know Fedora has procedures for this).
+>>
+>> An alternative would be to name the repo and the tarbals libv4l, either is
+>> fine
+>> with me (although I'm one of the distro packagers who is going to feel the
+>> pain
+>> of a package rename and as such wouldn't mind using libv4l as name for the
+>> repo and the new tarbals).
+>
+> We never had a proper release procedure for all the utilities. It's about
+> time that we start with that and do proper packaging. So I'd rather make a
+> clean new start now instead of just patching things up.
+>
+
+Well we need to do some patching up anyways as I would like to align the
+versioning of these new tarbals with libv4l versioning, so the first release
+/ tarbal will most likely be something-0.8.0.tar.gz
+
+Regards,
+
+Hans
