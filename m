@@ -1,62 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:9493 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750909Ab0BWJlc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2010 04:41:32 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Received: from eu_spt2 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0KYA00LLEG95I640@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 23 Feb 2010 09:41:29 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0KYA00MVUG940J@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 23 Feb 2010 09:41:28 +0000 (GMT)
-Date: Tue, 23 Feb 2010 10:39:57 +0100
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: RE: [PATCH/RFC v1 0/4] Multi-plane video buffer support for V4L2 API
- and videobuf
-In-reply-to: <4B82C3A5.7070707@redhat.com>
-To: 'Mauro Carvalho Chehab' <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	kyungmin.park@samsung.com
-Message-id: <000c01cab46c$2925c810$7b715830$%osciak@samsung.com>
-Content-language: pl
-References: <1266855010-2198-1-git-send-email-p.osciak@samsung.com>
- <4B82C3A5.7070707@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:17321 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756806Ab0BXMy7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Feb 2010 07:54:59 -0500
+Message-ID: <4B8521CF.7090500@redhat.com>
+Date: Wed, 24 Feb 2010 13:55:43 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: Brandon Philips <brandon@ifup.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Douglas Landgraf <dougsland@gmail.com>
+Subject: Re: [ANNOUNCE] git tree repositories & libv4l
+References: <4B55445A.10300@infradead.org> <4B57B6E4.2070500@infradead.org> <20100121024605.GK4015@jenkins.home.ifup.org> <201001210834.28112.hverkuil@xs4all.nl> <4B5B30E4.7030909@redhat.com> <20100222225426.GC4013@jenkins.home.ifup.org> <4B839687.4090205@redhat.com> <4B83F635.9030501@infradead.org> <4B83F97A.60103@redhat.com> <4B84799E.4000202@infradead.org>
+In-Reply-To: <4B84799E.4000202@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi,
 
-thank you for your comments.
-
-
->From: Mauro Carvalho Chehab [mailto:mchehab@redhat.com]
->Pawel Osciak wrote:
->> Only streaming I/O has been tested, read/write might not work correctly.
->> vivi has been adapted for testing and demonstration purposes, but other drivers
->> will not compile. Tests have been made on vivi and on an another driver for an
->> embedded device (those involved dma-contig and USERPTR as well). I am not
->> attaching that driver, as I expect nobody would be able to compile/test it
->> anyway.
+On 02/24/2010 01:58 AM, Mauro Carvalho Chehab wrote:
+> Hans de Goede wrote:
+>> Hi,
+>>
+>> On 02/23/2010 04:37 PM, Mauro Carvalho Chehab wrote:
+>>> Hans de Goede wrote:
+>>>
+>>>> Ok, so this will give me a local tree, how do I get this onto
+>>>> linuxtv.org ?
+>>>
+>>> I added it. In thesis, it is open for commit to you, me, hverkuil and
+>>> dougsland.
+>>>
+>>
+>> I see good, thanks! Can someone (Douglas ?) with better hg / git powers
+>> then me please
+>> somehow import all the libv4l changes from:
+>> http://linuxtv.org/hg/~hgoede/libv4l
 >
->It would be interesting if you could add userptr support for videobuf-vmalloc, and
->test all supported modes with vivi. This helps to test the changes against existing
->userspace applications before needing to touch on all drivers.
+> Ok, I added there. The procedure were simple: I ran Brandon script again,
+> but after pulling from your tree. Then, I used git format-patch to generate
+> a quilt series, and used git quiltimport on the correct -git tree.
+>
+
+Thanks!
 
 
-Ok, I will, shouldn't be much of a problem.
+>> Once that is done I'll retire my own tree, and move all my userspace
+>> work to
+>> the git tree.
+>>
+>> For starters I plan to create / modify Makefiles so that everything will
+>> build
+>> out of the box, and has proper make install targets which can be used by
+>> distro's
+>>
+>> So:
+>> -proper honoring of CFLAGS
+>> -work with standard (and possibly somewhat older kernel headers)
+>> -honor DESTDIR, PREFIX and LIBDIR when doing make install
+>
+> The better here is to have the latest kernel headers copied on the tree.
+> This way, it is possible to compile libv4l2 with an older kernel version and
+> later upgrade the kernel, if needed, or to use a fast machine to compile
+> it, and then use it on another machine.
+>
 
+If possible I would like to avoid this, afaik no other userspace utility packages
+are doing this.
 
-Best regards
---
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
+Where necessary libv4l currently has code snippets like:
 
+#ifndef V4L2_PIX_FMT_SPCA501
+#define V4L2_PIX_FMT_SPCA501 v4l2_fourcc('S','5','0','1') /* YUYV per line */
+#endif
+
+So libv4l (in its current state) will already compile fine with older kernel
+headers. I expect that the other utilities will not need a lot of
+recent kernel ABI. So for now I would like to try and extend the above approach
+to the other utilities.
+
+The reason for this is that I want to avoid carrying a copy of a dir from some
+other tree, with all getting stale and needing sync all the time issues that
+come with that, not to mention chicken and egg problems in the case of
+new formats which simultaneously  need to be added to both libv4l and the kernel.
+
+For example often I add support for V4L2_PIX_FMT_NEW_FOO to libv4l, before it
+hits any official v4l-dvb kernel tree, with the:
+#ifndef V4L2_PIX_FMT_SPCA501
+#define V4L2_PIX_FMT_SPCA501 v4l2_fourcc('S','5','0','1') /* YUYV per line */
+#endif
+
+Approach this works fine, if I were to carry an include tree copy, that would
+now need to become a patched include tree copy, and with the next sync I then
+need to ensure that any needed patches are either already in the sync source,
+or applied again.
+
+Regards,
+
+Hans
 
