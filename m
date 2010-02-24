@@ -1,90 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.crc.dk ([130.226.184.8]:52950 "EHLO mail.crc.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752602Ab0BILuU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Feb 2010 06:50:20 -0500
-Message-ID: <4B7149E0.80607@lemo.dk>
-Date: Tue, 09 Feb 2010 12:41:20 +0100
-From: Mogens Kjaer <mk@lemo.dk>
-MIME-Version: 1.0
-To: Linux-V4L2 <linux-media@vger.kernel.org>
-Subject: Compiling saa7134 on a CentOS 5 machine
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([192.100.105.134]:39963 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758082Ab0BXWqP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Feb 2010 17:46:15 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	david.cohen@nokia.com
+Subject: [PATCH v8 5/6] V4L: Events: Support event handling in do_ioctl
+Date: Thu, 25 Feb 2010 00:46:07 +0200
+Message-Id: <1267051568-5757-5-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4B85AC1E.8060302@maxwell.research.nokia.com>
+References: <4B85AC1E.8060302@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Add support for event handling to do_ioctl.
 
-I'm trying to compile v4l-dvb for my saa7134 card on my
-CentOS 5 machine, and I'm having some problems.
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/v4l2-fh.c    |   11 +++++++-
+ drivers/media/video/v4l2-ioctl.c |   50 ++++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-ioctl.h       |    7 +++++
+ 3 files changed, 67 insertions(+), 1 deletions(-)
 
-The machine runs the 2.6.18-164.11.1.el5.centos.plus kernel.
-
-It used to work some month ago, now I can't get it to compile.
-
-During make, I get:
-
-   Building modules, stage 2.
-   MODPOST
-WARNING: "ir_unregister_class" [/home/mk/tv/v4l-dvb/v4l/ir-core.ko] 
-undefined!
-
-and when I "make install", reboots (as the wiki suggests), and
-
-modprobe saa7134
-
-I get:
-
-WARNING: Error inserting videobuf_core 
-(/lib/modules/2.6.18-164.11.1.el5.centos.plus/kernel/drivers/media/video/videobuf-core.ko): 
-Unknown symbol in module, or unknown parameter (see dmesg)
-WARNING: Error inserting videobuf_dma_sg 
-(/lib/modules/2.6.18-164.11.1.el5.centos.plus/kernel/drivers/media/video/videobuf-dma-sg.ko): 
-Unknown symbol in module, or unknown parameter (see dmesg)
-WARNING: Error inserting v4l1_compat 
-(/lib/modules/2.6.18-164.11.1.el5.centos.plus/kernel/drivers/media/video/v4l1-compat.ko): 
-Unknown symbol in module, or unknown parameter (see dmesg)
-WARNING: Error inserting videodev 
-(/lib/modules/2.6.18-164.11.1.el5.centos.plus/kernel/drivers/media/video/videodev.ko): 
-Unknown symbol in module, or unknown parameter (see dmesg)
-WARNING: Error inserting v4l2_common 
-(/lib/modules/2.6.18-164.11.1.el5.centos.plus/kernel/drivers/media/video/v4l2-common.ko): 
-Unknown symbol in module, or unknown parameter (see dmesg)
-WARNING: Error inserting ir_common 
-(/lib/modules/2.6.18-164.11.1.el5.centos.plus/kernel/drivers/media/IR/ir-common.ko): 
-Unknown symbol in module, or unknown parameter (see dmesg)
-FATAL: Error inserting saa7134 
-(/lib/modules/2.6.18-164.11.1.el5.centos.plus/kernel/drivers/media/video/saa7134/saa7134.ko): 
-Unknown symbol in module, or unknown parameter (see dmesg)
-
-dmesg says:
-
-ir_core: Unknown symbol ir_unregister_class
-
-The card is a:
-
-# lspci
-05:09.0 Multimedia controller: Philips Semiconductors 
-SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d1)
-
-and I have a
-
-options saa7134 card=96
-
-in modprobe.conf.
-
-v4l-dvb is today's:
-
-hg clone http://linuxtv.org/hg/v4l-dvb
-
-It used to work a couple of month ago...
-
-Googling ir_unregister_class doesn't tell me anything.
-
-What have I done wrong?
-
-Mogens
+diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
+index aab2fb6..1423c44 100644
+--- a/drivers/media/video/v4l2-fh.c
++++ b/drivers/media/video/v4l2-fh.c
+@@ -34,7 +34,16 @@ int v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
+ 	INIT_LIST_HEAD(&fh->list);
+ 	set_bit(V4L2_FL_USES_V4L2_FH, &fh->vdev->flags);
+ 
+-	return v4l2_event_init(fh);
++	/*
++	 * fh->events only needs to be initialized if the driver
++	 * supports the VIDIOC_SUBSCRIBE_EVENT ioctl.
++	 */
++	if (vdev->ioctl_ops && vdev->ioctl_ops->vidioc_subscribe_event)
++		return v4l2_event_init(fh);
++	else
++		fh->events = NULL;
++
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_fh_init);
+ 
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 34c7d6e..4ba22da 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -25,6 +25,8 @@
+ #endif
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-fh.h>
++#include <media/v4l2-event.h>
+ #include <media/v4l2-chip-ident.h>
+ 
+ #define dbgarg(cmd, fmt, arg...) \
+@@ -1944,7 +1946,55 @@ static long __video_do_ioctl(struct file *file,
+ 		}
+ 		break;
+ 	}
++	case VIDIOC_DQEVENT:
++	{
++		struct v4l2_event *ev = arg;
++
++		if (!ops->vidioc_subscribe_event)
++			break;
++
++		ret = v4l2_event_dequeue(fh, ev, file->f_flags & O_NONBLOCK);
++		if (ret < 0) {
++			dbgarg(cmd, "no pending events?");
++			break;
++		}
++		dbgarg(cmd,
++		       "pending=%d, type=0x%8.8x, sequence=%d, "
++		       "timestamp=%lu.%9.9lu ",
++		       ev->pending, ev->type, ev->sequence,
++		       ev->timestamp.tv_sec, ev->timestamp.tv_nsec);
++		break;
++	}
++	case VIDIOC_SUBSCRIBE_EVENT:
++	{
++		struct v4l2_event_subscription *sub = arg;
+ 
++		if (!ops->vidioc_subscribe_event)
++			break;
++
++		ret = ops->vidioc_subscribe_event(fh, sub);
++		if (ret < 0) {
++			dbgarg(cmd, "failed, ret=%ld", ret);
++			break;
++		}
++		dbgarg(cmd, "type=0x%8.8x", sub->type);
++		break;
++	}
++	case VIDIOC_UNSUBSCRIBE_EVENT:
++	{
++		struct v4l2_event_subscription *sub = arg;
++
++		if (!ops->vidioc_unsubscribe_event)
++			break;
++
++		ret = ops->vidioc_unsubscribe_event(fh, sub);
++		if (ret < 0) {
++			dbgarg(cmd, "failed, ret=%ld", ret);
++			break;
++		}
++		dbgarg(cmd, "type=0x%8.8x", sub->type);
++		break;
++	}
+ 	default:
+ 	{
+ 		if (!ops->vidioc_default)
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index e8ba0f2..06daa6e 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -21,6 +21,8 @@
+ #include <linux/videodev2.h>
+ #endif
+ 
++struct v4l2_fh;
++
+ struct v4l2_ioctl_ops {
+ 	/* ioctl callbacks */
+ 
+@@ -254,6 +256,11 @@ struct v4l2_ioctl_ops {
+ 	int (*vidioc_g_dv_timings) (struct file *file, void *fh,
+ 				    struct v4l2_dv_timings *timings);
+ 
++	int (*vidioc_subscribe_event)  (struct v4l2_fh *fh,
++					struct v4l2_event_subscription *sub);
++	int (*vidioc_unsubscribe_event)(struct v4l2_fh *fh,
++					struct v4l2_event_subscription *sub);
++
+ 	/* For other private ioctls */
+ 	long (*vidioc_default)	       (struct file *file, void *fh,
+ 					int cmd, void *arg);
 -- 
-Mogens Kjaer, mk@lemo.dk
-http://www.lemo.dk
+1.5.6.5
+
