@@ -1,130 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-01.arcor-online.net ([151.189.21.41]:34829 "EHLO
-	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754790Ab0BTDIy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Feb 2010 22:08:54 -0500
-Subject: Re: [PATCH] saa7134: Fix IR support of some ASUS TV-FM 7135
-	variants
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>, Daro <ghost-rider@aster.pl>,
-	Roman Kellner <muzungu@gmx.net>
-In-Reply-To: <1266211906.3177.16.camel@pc07.localdom.local>
-References: <20100127120211.2d022375@hyperion.delvare>
-	 <4B630179.3080006@redhat.com> <1264812461.16350.90.camel@localhost>
-	 <20100130115632.03da7e1b@hyperion.delvare>
-	 <1264986995.21486.20.camel@pc07.localdom.local>
-	 <20100201105628.77057856@hyperion.delvare>
-	 <1265075273.2588.51.camel@localhost>
-	 <20100202085415.38a1e362@hyperion.delvare> <4B681173.1030404@redhat.com>
-	 <20100210190907.5c695e4e@hyperion.delvare> <4B72FD83.1050500@redhat.com>
-	 <20100210203601.31ef3220@hyperion.delvare>
-	 <1265849882.4422.17.camel@localhost>
-	 <1266211906.3177.16.camel@pc07.localdom.local>
-Content-Type: text/plain
-Date: Sat, 20 Feb 2010 04:07:05 +0100
-Message-Id: <1266635225.3407.33.camel@pc07.localdom.local>
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:30950 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756781Ab0BXNKx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Feb 2010 08:10:53 -0500
+Message-ID: <4B852538.2050207@redhat.com>
+Date: Wed, 24 Feb 2010 10:10:16 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Jean Delvare <khali@linux-fr.org>,
+	Douglas Landgraf <dougsland@gmail.com>
+CC: LMML <linux-media@vger.kernel.org>
+Subject: Re: Status of the patches under review (29 patches)
+References: <4B84BBB0.1020408@redhat.com> <20100224101807.60a468c3@hyperion.delvare>
+In-Reply-To: <20100224101807.60a468c3@hyperion.delvare>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Jean,
 
-Am Montag, den 15.02.2010, 06:31 +0100 schrieb hermann pitton:
-> Am Donnerstag, den 11.02.2010, 01:58 +0100 schrieb hermann pitton:
-> > Hi,
-> > 
-> > Am Mittwoch, den 10.02.2010, 20:36 +0100 schrieb Jean Delvare:
-> > > On Wed, 10 Feb 2010 16:40:03 -0200, Mauro Carvalho Chehab wrote:
-> > > > Jean Delvare wrote:
-> > > > > Under the assumption that saa7134_hwinit1() only touches GPIOs
-> > > > > connected to IR receivers (and it certainly looks like this to me) I
-> > > > > fail to see how these pins not being initialized could have any effect
-> > > > > on non-IR code.
-> > > > 
-> > > > Now, i suspect that you're messing things again: are you referring to saa7134_hwinit1() or
-> > > > to saa7134_input_init1()?
-> > > > 
-> > > > I suspect that you're talking about moving saa7134_input_init1(), since saa7134_hwinit1()
-> > > > has the muted and spinlock inits. It also has the setups for video, vbi and mpeg. 
-> > > > So, moving it require more care.
-> > > 
-> > > Err, you're right, I meant saa7134_input_init1() and not
-> > > saa7134_hwinit1(), copy-and-paste error. Sorry for adding more
-> > > confusion where it really wasn't needed...
-> > > 
-> > 
-> > both attempts of Jean will work.
-> > 
-> > If we are only talking about moving input_init, only that Jean did
-> > suggest initially, it should work, since only some GPIOs for enabling
-> > remote chips are affected.
-> > 
-> > I can give the crappy tester, but don't have such a remote, but should
-> > not be a problem to trigger the GPIOs later.
-> > 
-> > Cheers,
-> > Hermann
-> > 
+Jean Delvare wrote:
+ 
+> I have 3 patches pending which aren't in your list. I can see them in
+> patchwork:
 > 
-> Hi Jean,
+> http://patchwork.kernel.org/patch/79755/
+> http://patchwork.kernel.org/patch/79754/
+> http://patchwork.kernel.org/patch/77349/
 > 
-> I did test your patch, only following Roman's initial patch already
-> known, on eight different cards for now, also with three slightly
-> different remotes and it does not have any negative impact.
-> 
-> Please consider, that it is only about that single card for now and a
-> per card solution is enough.
-> 
-> I strongly remind, that we should not rely on unknown eeprom bytes, as
-> told previously and should not expand such into any direction.
-> 
-> If we make progress there, we should change it for all cards, but again,
-> what had happened on the m$ drivers previously is not encouraging to do
-> it without any need.
-> 
-> To do it per card in need for now seems enough "service" to me.
-> 
-> If more such should come, unlikely on that driver, I would at first deny
-> auto detection support, since they are breaking rules.
-> 
-> The problem likely will time out very soon.
-> 
-> Cheers,
-> Hermann
+> The former two are in "Accepted" state, and actually I received an
+> e-mail telling me they had been accepted, however I can't see them in
+> the hg repository. So where are they?
 
-Jean, a slight ping.
+They are already on the git tree:
 
-Are you still waiting for Daro's report?
+commit 2887117b31b77ebe5fb42f95ea8d77a3716b405b
+Author: Jean Delvare <khali@linux-fr.org>
+Date:   Tue Feb 16 14:22:37 2010 -0300
 
-As said, I would prefer to see all OEMs _not_ following Philips/NXP
-eeprom rules running into their own trash on GNU/Linux too.
+    V4L/DVB: bttv: Let the user disable IR support
+    
+    Add a new module parameter "disable_ir" to disable IR support. Several
+    other drivers do that already, and this can be very handy for
+    debugging purposes.
+    
+    Signed-off-by: Jean Delvare <khali@linux-fr.org>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Then we have facts.
+commit e151340a2a9e7147eb48114af0381122130266b0
+Author: Jean Delvare <khali@linux-fr.org>
+Date:   Fri Feb 19 00:18:41 2010 -0300
 
-That is much better than to provide a golden cloud for them. At least I
-won't help to debug such later ...
+    V4L/DVB: bttv: Move I2C IR initialization
+    
+    Move I2C IR initialization from just after I2C bus setup to right
+    before non-I2C IR initialization. This avoids the case where an I2C IR
+    device is blocking audio support (at least the PV951 suffers from
+    this). It is also more logical to group IR support together,
+    regardless of the connectivity.
+    
+    This fixes bug #15184:
+    http://bugzilla.kernel.org/show_bug.cgi?id=15184
+    
+    Signed-off-by: Jean Delvare <khali@linux-fr.org>
+    CC: stable@kernel.org
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-If you did not manage to decipher all OEM eeprom content already,
-just let's go with the per card solution for now.
+As patches in -hg are manually backported, maybe Douglas
+haven't backported it yet or he simply missed.
 
-Are you aware, that my intention is _not_ to spread the use of random
-and potentially invalid eeprom content for some sort of such auto
-detection?
+Douglas, could you please check this?
 
-The other solution is not lost and in mind, if we should need to come
-back to it and are in details. Preferably the OEMs should take the
-responsibility for such.
+> The latter is in "Not Applicable" state, and I have no idea what it
+> means. The patch is really simple and I see no formatting issue. Should
+> I just resend it?
 
-We can see, that even those always doing best on it, can't provide the
-missing informations for different LNA stuff after the
-Hauppauge/Pinnacle merge until now.
+This means that this patch is not applicable on -git. There's no versions.txt
+upstream. All patches that don't have upstream code are marked as such on
+patchwork. I generally ping Douglas on such cases, for him to double check on
+-hg.
 
-If you claim to know it better, please share with us.
+Anyway, the better is to c/c to Douglas on all patches that are meant only
+to the building system.
+
+Douglas, could you please check if you've applied this patch?
+
+-- 
 
 Cheers,
-Hermann
-
-
+Mauro
