@@ -1,61 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cpsmtpm-eml104.kpnxchange.com ([195.121.3.8]:64676 "EHLO
-	CPSMTPM-EML104.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757196Ab0BQMdx (ORCPT
+Received: from relay01.digicable.hu ([92.249.128.189]:56651 "EHLO
+	relay01.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753457Ab0BXGxB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Feb 2010 07:33:53 -0500
-From: Frans Pop <elendil@planet.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: pac207: problem with Trust USB webcam
-Date: Wed, 17 Feb 2010 13:33:50 +0100
-Cc: Adam Baker <linux@baker-net.org.uk>, linux-media@vger.kernel.org
-References: <201002150038.03060.elendil@planet.nl> <201002170004.51883.linux@baker-net.org.uk> <4B7BAF8C.9070700@redhat.com>
-In-Reply-To: <4B7BAF8C.9070700@redhat.com>
+	Wed, 24 Feb 2010 01:53:01 -0500
+Message-ID: <4B84CCCB.1050908@freemail.hu>
+Date: Wed, 24 Feb 2010 07:52:59 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201002171333.50579.elendil@planet.nl>
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/2] gspca pac7302: remove LED blinking when switching stream
+ on and off
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 17 February 2010 09:57:48 Hans de Goede wrote:
-> On 02/17/2010 01:04 AM, Adam Baker wrote:
-> > On Tuesday 16 Feb 2010, Hans de Goede wrote:
-> >> You need to use libv4l and have your apps patched
-> >> to use libv4l or use the LD_PRELOAD wrapper.
-> >>
-> >> Here is the latest libv4l:
-> >> http://people.fedoraproject.org/~jwrdegoede/libv4l-0.6.5-test.tar.gz
-> >>
-> >> And here are install instructions:
-> >> http://hansdegoede.livejournal.com/7622.html
-> >
-> > libv4l is already packaged by lenny but doing
-> >
-> > LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so xawtv
-> >
-> > results in either a plain green screen or a mostly green screen with
-> > some picture visible behind it. IIRC this is due to a bug in older
-> > versions of xawtv. I didn't try vlc as it wanted to install too many
-> > dependencies but I did try cheese which also wouldn't work.
+From: Márton Németh <nm127@freemail.hu>
 
-Thanks a lot to you both for the pointers! I've gotten vlc to work using 
-v4l1compat.so. The image is recognizable, but the color etc is way off. 
-Haven't found a way to correct that yet.
+The init sequences for PAC7302 contained register settings affecting
+the LED state which can result blinking of the LED when it is set to
+always on or always off. The blinking happened when the stream was
+switched on or off.
 
-But the main thing for me ATM is that it's working now.
+Remove the register changes from the init sequence and handle it with
+the function set_streaming_led().
 
-> > which suggests that the packaged libv4l is fine and it is just the apps
-> > that are an issue.
->
-> Anyways I don't know how old the libv4l is in Lenny, but you will want at
-> least version 0.6.0, as that has some fixes for the pac207 compression,
-> and prefarably 0.6.1 as that some desirable bug fixes. The releases past
-> 0.6.2 mainly add support for other webcam compressions.
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+--- a/linux/drivers/media/video/gspca/pac7302.c	2010-02-08 20:46:47.000000000 +0100
++++ b/linux/drivers/media/video/gspca/pac7302.c	2010-02-08 20:48:04.000000000 +0100
+@@ -331,13 +331,6 @@ static const struct v4l2_pix_format vga_
+ #define END_OF_SEQUENCE		0
 
-I used the 0.6.3 version from the Lenny Backports repository.
+ /* pac 7302 */
+-static const __u8 init_7302[] = {
+-/*	index,value */
+-	0xff, 0x01,		/* page 1 */
+-	0x78, 0x00,		/* deactivate */
+-	0xff, 0x01,
+-	0x78, 0x40,		/* led off */
+-};
+ static const __u8 start_7302[] = {
+ /*	index, len, [value]* */
+ 	0xff, 1,	0x00,		/* page 0 */
+@@ -373,7 +366,8 @@ static const __u8 start_7302[] = {
+ 	0xff, 1,	0x01,		/* page 1 */
+ 	0x12, 3,	0x02, 0x00, 0x01,
+ 	0x3e, 2,	0x00, 0x00,
+-	0x76, 5,	0x01, 0x20, 0x40, 0x00, 0xf2,
++	0x76, 2,	0x01, 0x20,
++	0x79, 2,	0x00, 0xf2,
+ 	0x7c, 1,	0x00,
+ 	0x7f, 10,	0x4b, 0x0f, 0x01, 0x2c, 0x02, 0x58, 0x03, 0x20,
+ 			0x02, 0x00,
+@@ -397,8 +391,6 @@ static const __u8 start_7302[] = {
+ 	0x2a, 5,	0xc8, 0x00, 0x18, 0x12, 0x22,
+ 	0x64, 8,	0x00, 0x00, 0xf0, 0x01, 0x14, 0x44, 0x44, 0x44,
+ 	0x6e, 1,	0x08,
+-	0xff, 1,	0x01,		/* page 1 */
+-	0x78, 1,	0x00,
+ 	0, END_OF_SEQUENCE		/* end of sequence */
+ };
 
-Thanks again,
-FJP
+@@ -496,15 +488,6 @@ static void reg_w(struct gspca_dev *gspc
+ 	}
+ }
+
+-static void reg_w_seq(struct gspca_dev *gspca_dev,
+-		const __u8 *seq, int len)
+-{
+-	while (--len >= 0) {
+-		reg_w(gspca_dev, seq[0], seq[1]);
+-		seq += 2;
+-	}
+-}
+-
+ /* load the beginning of a page */
+ static void reg_w_page(struct gspca_dev *gspca_dev,
+ 			const __u8 *page, int len)
+@@ -774,7 +757,7 @@ static void set_streaming_led(struct gsp
+ /* this function is called at probe and resume time for pac7302 */
+ static int sd_init(struct gspca_dev *gspca_dev)
+ {
+-	reg_w_seq(gspca_dev, init_7302, sizeof(init_7302)/2);
++	set_streaming_led(gspca_dev, 0);
+ 	return gspca_dev->usb_err;
+ }
+
