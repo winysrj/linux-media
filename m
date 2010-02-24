@@ -1,93 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:45066 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964823Ab0BZOXX (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:59604 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757013Ab0BXN03 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Feb 2010 09:23:23 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: More videobuf and streaming I/O questions
-Date: Fri, 26 Feb 2010 15:24:10 +0100
-Cc: Pawel Osciak <p.osciak@samsung.com>,
-	"'Hans Verkuil'" <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-References: <201002201500.21118.hverkuil@xs4all.nl> <001b01cab6b6$631d05f0$295711d0$%osciak@samsung.com> <4B87B8E6.6040608@infradead.org>
-In-Reply-To: <4B87B8E6.6040608@infradead.org>
+	Wed, 24 Feb 2010 08:26:29 -0500
+Message-ID: <4B8528F5.5010708@infradead.org>
+Date: Wed, 24 Feb 2010 10:26:13 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Brandon Philips <brandon@ifup.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Douglas Landgraf <dougsland@gmail.com>
+Subject: Re: [ANNOUNCE] git tree repositories & libv4l
+References: <4B55445A.10300@infradead.org> <4B57B6E4.2070500@infradead.org> <20100121024605.GK4015@jenkins.home.ifup.org> <201001210834.28112.hverkuil@xs4all.nl> <4B5B30E4.7030909@redhat.com> <20100222225426.GC4013@jenkins.home.ifup.org> <4B839687.4090205@redhat.com> <4B83F635.9030501@infradead.org> <4B83F97A.60103@redhat.com> <20100224060545.GA20308@jenkins.stayonline.net> <4B851F26.4060907@redhat.com>
+In-Reply-To: <4B851F26.4060907@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201002261524.12960.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pawel and Mauro,
-
-On Friday 26 February 2010 13:04:54 Mauro Carvalho Chehab wrote:
-> Pawel Osciak wrote:
-> >> On Tuesday 23 February 2010 08:41:49 Pawel Osciak wrote:
-> >>>> On Mon, 22 Feb 2010 00:12:18 +0100
-> >>> 
-> >>>> Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
-> >>> As for the REQBUF, I've always thought it'd be nice to be able to ask
-> >>> the driver for the "recommended" number of buffers that should be used
-> >>> by issuing a REQBUF with count=0...
-> >> 
-> >> How would the driver come up with the number of recommended buffers ?
-> > 
-> > From the top of my head: when encoding a video stream, a codec driver
-> > could decide on the minimum number of input frames required (including
-> > reference frames, etc.).
-
-Drivers can always raise or lower the number of buffers passed as the 
-VIDIOC_REQBUFS argument, so we already have a way to handle hardware 
-requirements there.
-
-If we really need a way to tell the driver "please decide on the number of 
-buffers for me", we could use a flag/magic value for the buffer count instead 
-of using 0. The V4L2 specification clearly states that a count of 0 frees the 
-buffers, and several applications rely on that feature.
-
-> > Or maybe I am missing something, what is your opinion on that?
+Hans de Goede wrote:
+> Hi,
 > 
-> There are some cases where this feature could be useful. For example, there
-> are some devices used for surveillance that have one decoder connected to
-> several inputs. For example, several bttv boards have one bt848 chip for
-> each 8 inputs. Each input is connected to one camera. The minimum
-> recommended number of buffers is 16 (2 per each input).
-
-Why two per input ? There's a single video stream, buffers are not queued 
-separately for each input.
-
-Beside, even if the number of recommended buffers was 2 per input, I would 
-expect applications to know about that. If an application decides to open a 
-single video node and call VIDIOC_S_INPUT during streaming (or configure the 
-driver to do it automatically at IRQ time, which is conceptually similar), the 
-application should be able to compute the required number of buffers.
-
-> This is poorly documented, on some wikis for some of the boards with such
-> usage.
+> On 02/24/2010 07:05 AM, Brandon Philips wrote:
+>> On 16:51 Tue 23 Feb 2010, Hans de Goede wrote:
+>>> On 02/23/2010 04:37 PM, Mauro Carvalho Chehab wrote:
+>>>> Hans de Goede wrote:
+>>>>
+>>>>> Ok, so this will give me a local tree, how do I get this onto
+>>>>> linuxtv.org ?
+>>>>
+>>>> I added it. In thesis, it is open for commit to you, me, hverkuil
+>>>> and dougsland.
+>>>>
+>>>
+>>> I see good, thanks! Can someone (Douglas ?) with better hg / git
+>>> powers then me please somehow import all the libv4l changes from:
+>>> http://linuxtv.org/hg/~hgoede/libv4l
+>>>
+>>> Once that is done I'll retire my own tree, and move all my userspace
+>>> work to the git tree.
+>>>
+>>> For starters I plan to create / modify Makefiles so that everything
+>>> will build out of the box, and has proper make install targets which
+>>> can be used by distro's
+>>>
+>>> So:
+>>> -proper honoring of CFLAGS
+>>> -work with standard (and possibly somewhat older kernel headers)
+>>> -honor DESTDIR, PREFIX and LIBDIR when doing make install
+>>
+>> Do you still want me to convert to autoconf? I was still planning on
+>> doing that. We discussed it a month ago when this conversation
+>> started.
+>>
+>> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/15009
+>>
+>>
 > 
-> That's said, there's currently a few missing features for surveillance: the
-> user software need to manually switch from one input to another, and the
-> video buffer metadata doesn't indicate the input.
+> I know that was mentioned then, but re-thinking this, as this will all
+> be Linux specific, I don't really see a need for autotools atm, and as
+> I personally find autotools a bit overcomplicated. I would like to try
+> just using plain Makefiles for now. If it turns out this does not work
+> we can always switch to autotools later.
 
-There's actually an input field in v4l2_buffer. As far as I know it's only 
-used by an out-of-tree, closed source driver that nobody is using anymore (I'm 
-the one who requested a reserved field to be turned into the input field back 
-then). Now that I'm a bit more knowledgeable about V4L2 and Linux in general, 
-I don't think that's the best way to pass metadata around. The v4l2_buffer 
-structure won't be able to hold all metadata we need in the future.
+I suspect it won't work fine. There are some library dependencies at 
+utils/contrib, like libsysfs and libqt stuff. The build system should or
+refuse to compile or disable some of those tools if the dependencies are
+missing.
 
-> The better would be to provide a way to let the driver to switch to the
-> next camera just after the reception of a new buffer (generally at the IRQ
-> time), instead of letting the userspace software to do it at the DQBUF.
+Of course you may create a non-autotools configure script that checks for
+those libraries. They aren't many, so this approach works, but it will
+likely require more time than using autotools.
 
-That would be an improvement, but even then it might be too late. The only way 
-to handle analog input switching reliably is to synchronize the input switch 
-to the analog signal, and that must be done by the hardware. That kind of 
-feature is not commonly found in cheap bttv boards.
 
--- 
-Regards,
-
-Laurent Pinchart
+Cheers,
+Mauro
