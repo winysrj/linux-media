@@ -1,279 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4009 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751943Ab0BLMGb (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:47299 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755160Ab0BXOee convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Feb 2010 07:06:31 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Pete Eberlein <pete@sensoray.com>
-Subject: Re: [PATCH 5/5] ov7640: sensor driver subdev conversion
-Date: Fri, 12 Feb 2010 13:08:34 +0100
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <1265934807.4626.254.camel@pete-desktop>
-In-Reply-To: <1265934807.4626.254.camel@pete-desktop>
+	Wed, 24 Feb 2010 09:34:34 -0500
+From: "Maupin, Chase" <chase.maupin@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>
+CC: "sakari.ailus@maxwell.research.nokia.com"
+	<sakari.ailus@maxwell.research.nokia.com>,
+	"vpss_driver_design@list.ti.com - This list is to discuss the VPSS
+	driver design (May contain non-TIers)"
+	<vpss_driver_design@list.ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 24 Feb 2010 08:34:19 -0600
+Subject: RE: Requested feedback on V4L2 driver design
+Message-ID: <131E5DFBE7373E4C8D813795A6AA7F0802E7F9DA4B@dlee06.ent.ti.com>
+References: <131E5DFBE7373E4C8D813795A6AA7F0802C4E0FF3E@dlee06.ent.ti.com>
+ <4B7072A4.7070708@infradead.org> <201002090851.40152.hverkuil@xs4all.nl>
+In-Reply-To: <201002090851.40152.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201002121308.34983.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 12 February 2010 01:33:27 Pete Eberlein wrote:
-> From: Pete Eberlein <pete@sensoray.com>
+Hans,
+
+Some follow-up from the syslink team about the driver code in the git tree.
+
+The only code to be referred on omapzoom that will actually be in the kernel is the Notify module. All the other code in multicore_ipc will actually move to user-side. The Notify module gives additional functionality over the basic mailbox driver to abstract the single physical event into multiple logical events. This enables multiple clients (one of which is the DSS driver) to use the single physical interrupt for multiple different purposes in a fully modular manner.
+
+Sincerely,
+Chase Maupin
+Software Applications
+Catalog DSP Products
+e-mail: chase.maupin@ti.com
+phone: (281) 274-3285
+
+For support:
+Forums - http://community.ti.com/forums/
+Wiki - http://wiki.davincidsp.com/
+
+> -----Original Message-----
+> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> Sent: Tuesday, February 09, 2010 1:52 AM
+> To: Mauro Carvalho Chehab; laurent.pinchart@ideasonboard.com
+> Cc: Maupin, Chase; sakari.ailus@maxwell.research.nokia.com;
+> vpss_driver_design@list.ti.com - This list is to discuss the VPSS driver
+> design (May contain non-TIers); linux-media@vger.kernel.org
+> Subject: Re: Requested feedback on V4L2 driver design
 > 
-> This is a subdev conversion of wis-ov7640 sensor driver from the
-> staging go7007 directory.  This obsoletes the wis-ov7640 driver.
-
-Review below...
-
-BTW: note that the gspca/ov519.c driver also has support for this sensor.
-Unfortunately, the gspca subdrivers do not use v4l2_subdev. It might be
-useful though as a reference. gspca should really start to use v4l2_subdev
-where possible.
-
+> On Monday 08 February 2010 21:23:00 Mauro Carvalho Chehab wrote:
+> > Maupin, Chase wrote:
+> > > All,
+> > >
+> > > Texas Instruments (TI) is working on the design for the V4L2 capture
+> and display drivers for our next generation system-on-chip (SoC) processor
+> and would like to solicit your feedback.  Our new SoCs have been improved
+> to allow for higher video resolutions and greater frame rates.  To this
+> end the display hardware has been moved to a separate processing block
+> called the video processing subsystem (VPSS).  The VPSS will be running a
+> firmware image that controls the capture/display hardware and services
+> requests from one or more host processors.
+> > >
+> > > Moving to a remote processor for the processing of video input and
+> output data requires that commands to control the hardware be passed to
+> this processing block using some form of inter-processor communication
+> (IPC).  TI would like to solicit your feedback on proposal for the V4L2
+> driver design to get a feel for whether or not this design would be
+> accepted into the Linux kernel.  To this end we have put together an
+> overview of the design and usage on our wiki at
+> http://wiki.davincidsp.com/index.php/Video_Processing_Subsystem_Driver_Des
+> ign.  We would greatly appreciate feedback from community members on the
+> acceptability of our driver design.
+> > >
+> > > If you have additional questions or need more information please feel
+> free to contact us (we have setup a mailing list at
+> vpss_driver_design@list.ti.com) so we can answer them.
+> > >
+> >
+> > Hi Chase,
+> >
+> > I'm not sure if I got all the details on your proposal, so let me try to
+> give my
+> > understanding.
+> >
+> > First of all, for normal usage (e.g. capturing a stream or sending an
+> stream
+> > to an output device), the driver should work with only the standard V4L2
+> API.
+> > I'm assuming that the driver will provide this capability.
+> >
+> > I understand that, being a SoC hardware, there are much more that can be
+> done
+> > than just doing the normal stream capture/output, already supported by
+> V4L2 API.
+> >
+> > For such advanced usages, we're open to a proposal to enhance the
+> existing API
+> > to support the needs. There are some important aspects that need to be
+> considered
+> > when designing any Linux userspace API's:
 > 
-> Priority: normal
+> The full functionality of this device can be handled by the proposals made
+> during
+> last year's LPC and that are currently being implemented/prototyped for
+> omap3.
+> That's no coincidence, by the way :-)
 > 
-> Signed-off-by: Pete Eberlein <pete@sensoray.com>
+> >
+> > 	1) kernel-userspace API's are forever. So, they need to be designed
+> in
+> > a way that new technology changes won't break the old API;
+> >
+> > 	2) API's are meant to be generic. So, they needed to be designed in
+> a way
+> > that, if another hardware with similar features require an API, the
+> planned one
+> > should fit;
+> >
+> > 	3) The API's should be, as much as possible, independent of the
+> hardware
+> > architecture. You'll see that even low-level architecture dependent
+> stuff, like
+> > bus drivers are designed in a way that they are not bound to a
+> particular hardware,
+> > but instead provide the same common methods to interact with the
+> hardware to other
+> > device drivers.
+> >
+> > That's said, it would be interesting if you could give us a more deep
+> detail on
+> > what kind of functionalities and how do you think you'll be implementing
+> them.
 > 
-> diff -r 378d3bc9a3d6 -r 6d0a37622c1b linux/drivers/media/video/Kconfig
-> --- a/linux/drivers/media/video/Kconfig	Thu Feb 11 14:48:26 2010 -0800
-> +++ b/linux/drivers/media/video/Kconfig	Thu Feb 11 14:57:40 2010 -0800
-> @@ -309,6 +309,13 @@
->  	  To compile this driver as a module, choose M here: the
->  	  module will be called ks0127.
->  
-> +config VIDEO_OV7640
-> +	tristate "OmniVision OV7640 sensor support"
-> +	depends on I2C && VIDEO_V4L2
-> +	---help---
-> +	  This is a Video4Linux2 sensor-level driver for the OmniVision
-
-Replace 'Video4Linux2 sensor-level' with just 'sensor'.
-
-> +	  OV7640 camera.  It currently only works with the GO7007 driver.
-
-Why does it only work with go7007? Oh, I see: it's only a hardcoded list of 
-registers.
-
-> +
->  config VIDEO_OV7670
->  	tristate "OmniVision OV7670 sensor support"
->  	depends on I2C && VIDEO_V4L2
-> diff -r 378d3bc9a3d6 -r 6d0a37622c1b linux/drivers/media/video/Makefile
-> --- a/linux/drivers/media/video/Makefile	Thu Feb 11 14:48:26 2010 -0800
-> +++ b/linux/drivers/media/video/Makefile	Thu Feb 11 14:57:40 2010 -0800
-> @@ -67,6 +67,7 @@
->  obj-$(CONFIG_VIDEO_CX25840) += cx25840/
->  obj-$(CONFIG_VIDEO_UPD64031A) += upd64031a.o
->  obj-$(CONFIG_VIDEO_UPD64083) += upd64083.o
-> +obj-$(CONFIG_VIDEO_OV7640) 	+= ov7640.o
->  obj-$(CONFIG_VIDEO_OV7670) 	+= ov7670.o
->  obj-$(CONFIG_VIDEO_TCM825X) += tcm825x.o
->  obj-$(CONFIG_VIDEO_TVEEPROM) += tveeprom.o
-> diff -r 378d3bc9a3d6 -r 6d0a37622c1b linux/drivers/media/video/ov7640.c
-> --- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-> +++ b/linux/drivers/media/video/ov7640.c	Thu Feb 11 14:57:40 2010 -0800
-> @@ -0,0 +1,141 @@
-> +/*
-> + * Copyright (C) 2005-2006 Micronas USA Inc.
-
-You probably want to add a copyright line of your own for the drivers you
-worked on.
-
-You should also clearly state in this driver that it is setup specifically
-for the go7007.
-
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License (Version 2) as
-> + * published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software Foundation,
-> + * Inc., 59 Temple Place - Suite 330, Boston MA 02111-1307, USA.
-> + */
-> +
-> +#include <linux/init.h>
-> +#include <linux/module.h>
-> +#include <linux/i2c.h>
-> +#include <linux/videodev2.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-chip-ident.h>
-> +#include <media/v4l2-i2c-drv.h>
-> +
-> +MODULE_DESCRIPTION("OmniVision ov7640 sensor driver");
-> +MODULE_LICENSE("GPL v2");
-> +
-> +struct ov7640_info {
-> +	struct v4l2_subdev sd;
-> +	int brightness;
-> +	int contrast;
-> +	int saturation;
-> +	int hue;
-> +};
-> +
-> +static inline struct ov7640_info *to_state(struct v4l2_subdev *sd)
-> +{
-> +	return container_of(sd, struct ov7640_info, sd);
-> +}
-> +
-> +
-> +static u8 initial_registers[] =
-
-const
-
-> +{
-> +	0x12, 0x80,
-> +	0x12, 0x54,
-> +	0x14, 0x24,
-> +	0x15, 0x01,
-> +	0x28, 0x20,
-> +	0x75, 0x82,
-> +	0xFF, 0xFF, /* Terminator (reg 0xFF is unused) */
-
-Please document at least how this sensor is set up for the go7007.
-
-> +};
-> +
-> +static int write_regs(struct i2c_client *client, u8 *regs)
-> +{
-> +	int i;
-> +
-> +	for (i = 0; regs[i] != 0xFF; i += 2)
-> +		if (i2c_smbus_write_byte_data(client, regs[i], regs[i + 1]) < 0)
-> +			return -1;
-> +	return 0;
-> +}
-> +
-> +
-> +static int ov7640_g_chip_ident(struct v4l2_subdev *sd,
-> +		struct v4l2_dbg_chip_ident *chip)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +
-> +	return v4l2_chip_ident_i2c_client(client, chip, V4L2_IDENT_OV7640, 0);
-> +}
-
-I recommend added g_chip_ident as well to the tw???? drivers.
-
-> +
-> +/* ----------------------------------------------------------------------- */
-> +
-> +static const struct v4l2_subdev_core_ops ov7640_core_ops = {
-> +	.g_chip_ident = ov7640_g_chip_ident,
-> +};
-> +
-> +static const struct v4l2_subdev_ops ov7640_ops = {
-> +	.core = &ov7640_core_ops,
-> +};
-> +
-> +/* ----------------------------------------------------------------------- */
-> +
-> +static int ov7640_probe(struct i2c_client *client,
-> +			const struct i2c_device_id *id)
-> +{
-> +	struct i2c_adapter *adapter = client->adapter;
-> +	struct v4l2_subdev *sd;
-> +	struct ov7640_info *info;
-> +
-> +	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-> +		return -ENODEV;
-> +
-> +	info = kzalloc(sizeof(struct ov7640_info), GFP_KERNEL);
-> +	if (info == NULL)
-> +		return -ENOMEM;
-> +	sd = &info->sd;
-> +	v4l2_i2c_subdev_init(sd, client, &ov7640_ops);
-> +
-> +	client->flags = 0x10; /* I2C_CLIENT_SCCB from wis-i2c.h */
-> +
-> +	v4l_info(client, "chip found @ 0x%02x (%s)\n",
-> +			client->addr << 1, client->adapter->name);
-> +
-> +	if (write_regs(client, initial_registers) < 0) {
-> +		v4l_err(client, "error initializing OV7640\n");
-> +		kfree(info);
-> +		return -ENODEV;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +
-> +static int ov7640_remove(struct i2c_client *client)
-> +{
-> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> +
-> +	v4l2_device_unregister_subdev(sd);
-> +	kfree(to_state(sd));
-> +	return 0;
-> +}
-> +
-> +#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
-> +static const struct i2c_device_id ov7640_id[] = {
-> +	{ "ov7640", 0 },
-> +	{ }
-> +};
-> +MODULE_DEVICE_TABLE(i2c, ov7640_id);
-> +
-> +#endif
-> +static struct v4l2_i2c_driver_data v4l2_i2c_data = {
-> +	.name = "ov7640",
-> +	.probe = ov7640_probe,
-> +	.remove = ov7640_remove,
-> +#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
-> +	.id_table = ov7640_id,
-> +#endif
-> +};
-> +
-> diff -r 378d3bc9a3d6 -r 6d0a37622c1b linux/drivers/staging/go7007/go7007-usb.c
-> --- a/linux/drivers/staging/go7007/go7007-usb.c	Thu Feb 11 14:48:26 2010 -0800
-> +++ b/linux/drivers/staging/go7007/go7007-usb.c	Thu Feb 11 14:57:40 2010 -0800
-> @@ -265,7 +265,7 @@
->  		.num_i2c_devs	  = 1,
->  		.i2c_devs	  = {
->  			{
-> -				.type	= "wis_ov7640",
-> +				.type	= "ov7640",
->  				.addr	= 0x21,
->  			},
->  		},
-> diff -r 378d3bc9a3d6 -r 6d0a37622c1b linux/include/media/v4l2-chip-ident.h
-> --- a/linux/include/media/v4l2-chip-ident.h	Thu Feb 11 14:48:26 2010 -0800
-> +++ b/linux/include/media/v4l2-chip-ident.h	Thu Feb 11 14:57:40 2010 -0800
-> @@ -65,6 +65,7 @@
->  	V4L2_IDENT_OV9655 = 255,
->  	V4L2_IDENT_SOI968 = 256,
->  	V4L2_IDENT_OV9640 = 257,
-> +	V4L2_IDENT_OV7640 = 258,
->  
->  	/* module saa7146: reserved range 300-309 */
->  	V4L2_IDENT_SAA7146 = 300,
+> For me the core issue will be the communication between the main ARM and
+> the ARM
+> controlling the VPSS. Looking at the syslink part of the git tree it all
+> looks
+> way overengineered to me. In particular the multicore_ipc directory. Is
+> all that
+> code involved in setting up the communication path between the main and
+> VPSS ARM?
+> Is there some more detailed document describing how the syslink code
+> works?
+> 
+> What I would expect to see is standard mailbox functionality that is used
+> in other
+> places as well. I gather that at the bottom there actually seems to be a
+> mailbox
+> involved with syslink, but there also seems to be a lot of layers on top
+> of that.
+> 
+> Regards,
+> 
+> 	Hans
 > 
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-
-Frankly I am wondering whether this driver shouldn't remain in staging a bit
-longer. I'm a bit concerned about the fact that it is hardcoded for the go7007.
-
-Are you able to test the go7007 with this sensor? If so, would it be possible
-to use what is in gspca/ov519.c and copy it to this driver to make it more
-general?
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
