@@ -1,39 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:39813 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757063Ab0BROkA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Feb 2010 09:40:00 -0500
-Date: Thu, 18 Feb 2010 06:40:21 -0800
-From: Greg KH <greg@kroah.com>
-To: Chicken Shack <chicken.shack@gmx.de>
-Cc: Emil Meier <emil276me@yahoo.com>,
-	Linux media <linux-media@vger.kernel.org>,
-	francescolavra@interfree.it
-Subject: Re: alevt-dvb 1.7.0: new version, should be free from bugs now
-Message-ID: <20100218144021.GA15415@kroah.com>
-References: <592995.76165.qm@web37603.mail.mud.yahoo.com> <1266483476.1690.50.camel@brian.bconsult.de>
+Received: from web57003.mail.re3.yahoo.com ([66.196.97.107]:29099 "HELO
+	web57003.mail.re3.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752816Ab0BXQ33 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Feb 2010 11:29:29 -0500
+Message-ID: <302486.84780.qm@web57003.mail.re3.yahoo.com>
+Date: Wed, 24 Feb 2010 08:22:49 -0800 (PST)
+From: ozgur cagdas <ocagdas@yahoo.com>
+Subject: Re: [linux-dvb] soft demux device
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1266483476.1690.50.camel@brian.bconsult.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 18, 2010 at 09:57:56AM +0100, Chicken Shack wrote:
-> For Greg Kroah-Hartman:
+Lovely! It worked straight away, at least happily created the nodes :) I'm hoping to give an update after I manage to find sometime to play with it.
+
+On the other hand, as a small note, I've applied your patch ( http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/16540 ) on top of the latest hg clone but linux/drivers/media/dvb/Makefile patch failed. It's a very simple patch to apply manually though.
+
+Cheers,
+
+Ozgur.
+
+
+
+----- Original Message ----
+From: Andy Walls <awalls@radix.net>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+Sent: Wed, February 24, 2010 1:22:32 PM
+Subject: Re: [linux-dvb] soft demux device
+
+On Wed, 2010-02-24 at 03:57 -0800, ozgur cagdas wrote:
+> Hi,
 > 
-> This one should go into kernel 2.6.32, just to close a gap of kernel
-> regressions:
+> Thanks very much for the previous information. To give it a go just as
+> it is, I've loaded dvb_dummy_fe module manually and many other modules
+> including dvb_core as well, but no hope, don't have /dev/dvb folder
+> yet. As I've mentioned earlier, I do not have a hardware at the
+> moment, so I should trigger loading of proper modules manually. In my
+> scenario, which modules should I load? Any simple set of modules
+> that'd create necessary /dev/dvb/ and subsequent would do for me. If
+> it matters, I am using 2.6.31 kernel and ubuntu 9.10 distribution.
+
+See my dvb_dummy_adapter patch I just posted to the list.
+
+Regards,
+Andy
+
+> Cheers,
 > 
-> http://linuxtv.org/hg/v4l-dvb/rev/2dfe2234e7ea
+> Ozgur.
+> 
+> 
+>      
+> 
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> 
 
-I have no idea what you are asking me to do here.
 
-If you need a patch in the -stable tree, send the git commit id of the
-patch that is in Linus's tree to the stable@kernel.org email address.
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
-If it is not in Linus's tree, I can not accept it.
 
-confused,
 
-greg k-h
+      
