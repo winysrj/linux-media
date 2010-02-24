@@ -1,48 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:38078 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755493Ab0BXH2P convert rfc822-to-8bit (ORCPT
+Received: from mail-ew0-f212.google.com ([209.85.219.212]:34256 "EHLO
+	mail-ew0-f212.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758074Ab0BXVTe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Feb 2010 02:28:15 -0500
-Date: Wed, 24 Feb 2010 08:28:22 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	Thomas Kaiser <thomas@kaiser-linux.li>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] gspca pac7302: add USB PID range based on heuristics
-Message-ID: <20100224082822.2191df80@tele>
-In-Reply-To: <4B84D0B5.8040005@freemail.hu>
-References: <4B655949.50102@freemail.hu>
-	<4B6575AC.7060100@redhat.com>
-	<4B84D0B5.8040005@freemail.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Wed, 24 Feb 2010 16:19:34 -0500
+Received: by ewy4 with SMTP id 4so1291247ewy.28
+        for <linux-media@vger.kernel.org>; Wed, 24 Feb 2010 13:19:32 -0800 (PST)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: Bringfried Stecklum <stecklum@tls-tautenburg.de>
+Subject: Re: Elgato EyeTV DTT deluxe v2 - i2c enumeration failed
+Date: Wed, 24 Feb 2010 22:19:29 +0100
+Cc: linux-media@vger.kernel.org
+References: <4B858AD1.5070502@tls-tautenburg.de>
+In-Reply-To: <4B858AD1.5070502@tls-tautenburg.de>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201002242219.29385.pboettcher@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 24 Feb 2010 08:09:41 +0100
-Németh Márton <nm127@freemail.hu> wrote:
+On Wednesday 24 February 2010 21:23:45 Bringfried Stecklum wrote:
+> Hi, I recently purchased the Elgato EyeTV DTT deluxe v2 stick. I am running
+> Ubuntu 8.10 with Linux 2.6.28-15-generic. I installed v4l-dvb from
+>  mercurial with a slight change of
+>  linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h to account for the USB ID of
+>  the device (#define USB_PID_ELGATO_EYETV_DTT_Dlx 0x002c). After insertion
+>  the stick is recognized, however no frontend is activated since the i2c
+>  enumeration failed. This might be related to a missing udev rule. 
 
-> On the schematics in PixArt PAC7301/PAC7302 datasheet
-> (http://www.pixart.com.tw/upload/PAC7301_7302%20%20Spec%20V1_20091228174030.pdf)
-> pages 19, 20, 21 and 22 there is a note titled "PID IO_TRAP" which
-> describes the possible product ID range 0x2620..0x262f. In this range
-> there are some known webcams, however, there are some PIDs with
-> unknown or future devices. Because PixArt PAC7301/PAC7302 is a System
-> on a Chip (SoC) device is is probable that this driver will work
-> correctly independent of the used PID.
+Most likely Elgato has changed the USB ID of their product, because it is not 
+the same product. In general (I'd say 50% of the cases) changing the USB ID is 
+not the right solution to get the hardware work.
 
-Hello,
+If you can, open the stick to see on which hardware the device is based on, or 
+search the internet to find out.
 
-I got such information from ms-win drivers. I appeared that most of the
-unknown/new webcams were never manufactured. Now, I wait for user
-requests before adding such webcams.
-
-Cheers.
+If you're lucky another minor quirk in this or another driver is sufficient to 
+make it work.
 
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Patrick Boettcher - KernelLabs
+http://www.kernellabs.com/
