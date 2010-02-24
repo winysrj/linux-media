@@ -1,111 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:32881 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935340Ab0BZGzE convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3007 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757787Ab0BXTqo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Feb 2010 01:55:04 -0500
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Tony Lindgren <tony@atomide.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
-Date: Fri, 26 Feb 2010 12:24:55 +0530
-Subject: RE: [PATCH-V6 2/2] OMAP2/3: Add V4L2 DSS driver support in device.c
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DA99EF6@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1266917239-7094-3-git-send-email-hvaibhav@ti.com>
- <20100225221407.GM28173@atomide.com>
-In-Reply-To: <20100225221407.GM28173@atomide.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Wed, 24 Feb 2010 14:46:44 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id o1OJkhI2078805
+	for <linux-media@vger.kernel.org>; Wed, 24 Feb 2010 20:46:43 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 24 Feb 2010 20:46:43 +0100 (CET)
+Message-Id: <201002241946.o1OJkhI2078805@smtp-vbr6.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> -----Original Message-----
-> From: Tony Lindgren [mailto:tony@atomide.com]
-> Sent: Friday, February 26, 2010 3:44 AM
-> To: Hiremath, Vaibhav
-> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org;
-> hverkuil@xs4all.nl
-> Subject: Re: [PATCH-V6 2/2] OMAP2/3: Add V4L2 DSS driver support in device.c
-> 
-> * hvaibhav@ti.com <hvaibhav@ti.com> [100223 01:25]:
-> > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> >
-> >
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > ---
-> >  arch/arm/plat-omap/devices.c |   29 +++++++++++++++++++++++++++++
-> >  1 files changed, 29 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-> > index 30b5db7..64f2a3a 100644
-> > --- a/arch/arm/plat-omap/devices.c
-> > +++ b/arch/arm/plat-omap/devices.c
-> > @@ -357,6 +357,34 @@ static void omap_init_wdt(void)
-> >  static inline void omap_init_wdt(void) {}
-> >  #endif
-> >
-> > +/*-----------------------------------------------------------------------
-> ----*/
-> > +
-> > +#if defined(CONFIG_VIDEO_OMAP2_VOUT) || \
-> > +	defined(CONFIG_VIDEO_OMAP2_VOUT_MODULE)
-> > +#if defined (CONFIG_FB_OMAP2) || defined (CONFIG_FB_OMAP2_MODULE)
-> > +static struct resource omap_vout_resource[3 - CONFIG_FB_OMAP2_NUM_FBS] =
-> {
-> > +};
-> > +#else
-> > +static struct resource omap_vout_resource[2] = {
-> > +};
-> > +#endif
-> > +
-> > +static struct platform_device omap_vout_device = {
-> > +	.name		= "omap_vout",
-> > +	.num_resources	= ARRAY_SIZE(omap_vout_resource),
-> > +	.resource 	= &omap_vout_resource[0],
-> > +	.id		= -1,
-> > +};
-> > +static void omap_init_vout(void)
-> > +{
-> > +	(void) platform_device_register(&omap_vout_device);
-> > +}
-> 
-> Allocation can still fail here, please handle the results.
-> 
-[Hiremath, Vaibhav] Ok, will do that.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-> > +#else
-> > +static inline void omap_init_vout(void) {}
-> > +#endif
-> > +
-> > +/*-----------------------------------------------------------------------
-> ----*/
-> > +
-> >  /*
-> >   * This gets called after board-specific INIT_MACHINE, and initializes
-> most
-> >   * on-chip peripherals accessible on this board (except for few like
-> USB):
-> > @@ -387,6 +415,7 @@ static int __init omap_init_devices(void)
-> >  	omap_init_rng();
-> >  	omap_init_uwire();
-> >  	omap_init_wdt();
-> > +	omap_init_vout();
-> >  	return 0;
-> >  }
-> >  arch_initcall(omap_init_devices);
-> 
-> Looks like this should be in mach-omap2/devices.c instead if it's all
-> omap2/3/4 specific.
-> 
-[Hiremath, Vaibhav] For sure it's being used for OMAP2/3 and if I understand correctly OMAP4 also uses it.
+Results of the daily build of v4l-dvb:
 
-Thanks,
-Vaibhav
+date:        Wed Feb 24 19:01:07 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14233:2e0444bf93a4
+gcc version: i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:     2.6.32.5
 
-> Regards,
-> 
-> Tony
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-rc5-armv5: OK
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-rc5-armv5-davinci: WARNINGS
+linux-2.6.32.6-armv5-dm365: ERRORS
+linux-2.6.33-rc5-armv5-dm365: ERRORS
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-rc5-armv5-ixp: OK
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-rc5-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.17-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.20-i686: OK
+linux-2.6.26.8-i686: OK
+linux-2.6.27.44-i686: OK
+linux-2.6.28.10-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-rc5-i686: OK
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-rc5-m32r: OK
+linux-2.6.32.6-mips: OK
+linux-2.6.33-rc5-mips: OK
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-rc5-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.17-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.20-x86_64: OK
+linux-2.6.26.8-x86_64: OK
+linux-2.6.27.44-x86_64: OK
+linux-2.6.28.10-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-rc5-x86_64: OK
+spec: OK
+sparse (v4l-dvb-git): ERRORS
+sparse (linux-2.6.33-rc5): ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: OK
+linux-2.6.19.7-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.7-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
