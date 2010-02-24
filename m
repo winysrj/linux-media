@@ -1,72 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tichy.grunau.be ([85.131.189.73]:49934 "EHLO tichy.grunau.be"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753069Ab0BJSfJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Feb 2010 13:35:09 -0500
-Received: from localhost (p5DDC401F.dip0.t-ipconnect.de [93.220.64.31])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by tichy.grunau.be (Postfix) with ESMTPSA id 773EB90076
-	for <linux-media@vger.kernel.org>; Wed, 10 Feb 2010 19:35:09 +0100 (CET)
-Date: Wed, 10 Feb 2010 19:36:44 +0100
-From: Janne Grunau <j@jannau.net>
+Received: from smtp.nokia.com ([192.100.105.134]:39966 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758430Ab0BXWqQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Feb 2010 17:46:16 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 3 of 7] czap: reformat and extend usage string
-Message-ID: <20100210183644.GN8026@aniel.lan>
-References: <patchbomb.1265826616@aniel.lan>
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="PuGuTyElPB9bOcsM"
-Content-Disposition: inline
-In-Reply-To: <patchbomb.1265826616@aniel.lan>
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	david.cohen@nokia.com
+Subject: [PATCH v8 3/6] V4L: Events: Add new ioctls for events
+Date: Thu, 25 Feb 2010 00:46:05 +0200
+Message-Id: <1267051568-5757-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4B85AC1E.8060302@maxwell.research.nokia.com>
+References: <4B85AC1E.8060302@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch adds a set of new ioctls to the V4L2 API. The ioctls conform to
+V4L2 Events RFC version 2.3:
 
---PuGuTyElPB9bOcsM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+<URL:http://www.spinics.net/lists/linux-media/msg12033.html>
 
- util/szap/czap.c |  16 +++++++++++++---
- 1 files changed, 13 insertions(+), 3 deletions(-)
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/v4l2-compat-ioctl32.c |    3 +++
+ drivers/media/video/v4l2-ioctl.c          |    3 +++
+ include/linux/videodev2.h                 |   26 ++++++++++++++++++++++++++
+ 3 files changed, 32 insertions(+), 0 deletions(-)
 
-
-
---PuGuTyElPB9bOcsM
-Content-Type: text/x-patch; charset=us-ascii
-Content-Disposition: inline; filename="dvb-apps-3.patch"
-
-# HG changeset patch
-# User Janne Grunau <j@jannau.net>
-# Date 1265823779 -3600
-# Node ID c1e4c34da4fd395755d98dbbdd7af2950d723a9d
-# Parent  d79f9e2901a05fbee905998294d9cb1ae46a422d
-czap: reformat and extend usage string
-
-diff -r d79f9e2901a0 -r c1e4c34da4fd util/szap/czap.c
---- a/util/szap/czap.c	Wed Feb 10 17:45:30 2010 +0100
-+++ b/util/szap/czap.c	Wed Feb 10 18:42:59 2010 +0100
-@@ -241,9 +241,19 @@
- }
+diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
+index f77f84b..9004a5f 100644
+--- a/drivers/media/video/v4l2-compat-ioctl32.c
++++ b/drivers/media/video/v4l2-compat-ioctl32.c
+@@ -1086,6 +1086,9 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+ 	case VIDIOC_QUERY_DV_PRESET:
+ 	case VIDIOC_S_DV_TIMINGS:
+ 	case VIDIOC_G_DV_TIMINGS:
++	case VIDIOC_DQEVENT:
++	case VIDIOC_SUBSCRIBE_EVENT:
++	case VIDIOC_UNSUBSCRIBE_EVENT:
+ 		ret = do_video_ioctl(file, cmd, arg);
+ 		break;
  
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 4b11257..34c7d6e 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -290,6 +290,9 @@ static const char *v4l2_ioctls[] = {
+ 	[_IOC_NR(VIDIOC_QUERY_DV_PRESET)]  = "VIDIOC_QUERY_DV_PRESET",
+ 	[_IOC_NR(VIDIOC_S_DV_TIMINGS)]     = "VIDIOC_S_DV_TIMINGS",
+ 	[_IOC_NR(VIDIOC_G_DV_TIMINGS)]     = "VIDIOC_G_DV_TIMINGS",
++	[_IOC_NR(VIDIOC_DQEVENT)]	   = "VIDIOC_DQEVENT",
++	[_IOC_NR(VIDIOC_SUBSCRIBE_EVENT)]  = "VIDIOC_SUBSCRIBE_EVENT",
++	[_IOC_NR(VIDIOC_UNSUBSCRIBE_EVENT)] = "VIDIOC_UNSUBSCRIBE_EVENT",
+ };
+ #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
  
--static const char *usage = "\nusage: %s [-a adapter_num] [-f frontend_id] [-d demux_id] [-c conf_file] [ -H ] {<channel name>| -n channel_num} [-x]\n"
--	"   or: %s [-c conf_file]  -l\n\n";
--
-+static const char *usage =
-+    "\nusage: %s [options]  -l\n"
-+    "         list known channels\n"
-+    "       %s [options] {-n channel-number|channel_name}\n"
-+    "         zap to channel via number or full name (case insensitive)\n"
-+    "     -a number : use given adapter (default 0)\n"
-+    "     -f number : use given frontend (default 0)\n"
-+    "     -d number : use given demux (default 0)\n"
-+    "     -c file   : read channels list from 'file'\n"
-+    "     -x        : exit after tuning\n"
-+    "     -H        : human readable output\n"
-+    "     -r        : set up /dev/dvb/adapterX/dvr0 for TS recording\n"
-+;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 3c26560..d3b1446 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1622,6 +1622,29 @@ struct v4l2_streamparm {
+ };
  
- int main(int argc, char **argv)
- {
+ /*
++ *	E V E N T S
++ */
++
++struct v4l2_event {
++	__u32				type;
++	union {
++		__u8			data[64];
++	} u;
++	__u32				pending;
++	__u32				sequence;
++	struct timespec			timestamp;
++	__u32				reserved[9];
++};
++
++struct v4l2_event_subscription {
++	__u32				type;
++	__u32				reserved[7];
++};
++
++#define V4L2_EVENT_ALL				0
++#define V4L2_EVENT_PRIVATE_START		0x08000000
++
++/*
+  *	A D V A N C E D   D E B U G G I N G
+  *
+  *	NOTE: EXPERIMENTAL API, NEVER RELY ON THIS IN APPLICATIONS!
+@@ -1743,6 +1766,9 @@ struct v4l2_dbg_chip_ident {
+ #define	VIDIOC_QUERY_DV_PRESET	_IOR('V',  86, struct v4l2_dv_preset)
+ #define	VIDIOC_S_DV_TIMINGS	_IOWR('V', 87, struct v4l2_dv_timings)
+ #define	VIDIOC_G_DV_TIMINGS	_IOWR('V', 88, struct v4l2_dv_timings)
++#define	VIDIOC_DQEVENT		 _IOR('V', 89, struct v4l2_event)
++#define	VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 90, struct v4l2_event_subscription)
++#define	VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 91, struct v4l2_event_subscription)
+ 
+ /* Reminder: when adding new ioctls please add support for them to
+    drivers/media/video/v4l2-compat-ioctl32.c as well! */
+-- 
+1.5.6.5
 
---PuGuTyElPB9bOcsM--
