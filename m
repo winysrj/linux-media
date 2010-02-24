@@ -1,118 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:33307 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S932078Ab0BDTUW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Feb 2010 14:20:22 -0500
-Date: Thu, 4 Feb 2010 20:20:06 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] soc-camera: add runtime pm support for subdevices
-Message-ID: <Pine.LNX.4.64.1002042007040.19438@axis700.grange>
+Received: from kso.tls-tautenburg.de ([194.94.209.8]:27389 "EHLO
+	kso.tls-tautenburg.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757413Ab0BXUdV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Feb 2010 15:33:21 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by kso.tls-tautenburg.de (Postfix) with ESMTP id DE0545078B
+	for <linux-media@vger.kernel.org>; Wed, 24 Feb 2010 21:23:54 +0100 (CET)
+Received: from kso.tls-tautenburg.de ([127.0.0.1])
+	by localhost (kso.tls-tautenburg.de [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 0XL35LZJL0OI for <linux-media@vger.kernel.org>;
+	Wed, 24 Feb 2010 21:23:49 +0100 (CET)
+Received: from [192.168.178.51] (unknown [88.130.156.22])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(Client did not present a certificate)
+	by kso.tls-tautenburg.de (Postfix) with ESMTP
+	for <linux-media@vger.kernel.org>; Wed, 24 Feb 2010 21:23:48 +0100 (CET)
+Message-ID: <4B858AD1.5070502@tls-tautenburg.de>
+Date: Wed, 24 Feb 2010 21:23:45 +0100
+From: Bringfried Stecklum <stecklum@tls-tautenburg.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: linux-media@vger.kernel.org
+Subject: Elgato EyeTV DTT deluxe v2 - i2c enumeration failed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To save power soc-camera powers subdevices down, when they are not in use, 
-if this is supported by the platform. However, the V4L standard dictates, 
-that video nodes shall preserve configuration between uses. This requires 
-runtime power management, which is implemented by this patch. It allows 
-subdevice drivers to specify their runtime power-management methods, by 
-assigning a type to the video device.
+Hi, I recently purchased the Elgato EyeTV DTT deluxe v2 stick. I am running
+Ubuntu 8.10 with Linux 2.6.28-15-generic. I installed v4l-dvb from mercurial
+with a slight change of linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h to account
+for the USB ID of the device (#define USB_PID_ELGATO_EYETV_DTT_Dlx 0x002c).
+After insertion the stick is recognized, however no frontend is activated since
+the i2c enumeration failed. This might be related to a missing udev rule. Any
+support is appreciated. This is the corresponding part from dmesg
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+kernel: [24106.302688] usb 2-1: new high speed USB device using ehci_hcd and address 45
+kernel: [24106.459222] usb 2-1: configuration #1 chosen from 1 choice
+kernel: [24106.459730] dvb-usb: found a 'Elgato EyeTV Dtt Dlx PD378S' in cold state, will try to load a firmware
+kernel: [24106.459738] usb 2-1: firmware: requesting dvb-usb-dib0700-1.20.fw
+kernel: [24106.523808] dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
+kernel: [24106.733953] dib0700: firmware started successfully.
+kernel: [24107.244517] dvb-usb: found a 'Elgato EyeTV Dtt Dlx PD378S' in warm state.
+kernel: [24107.244631] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+kernel: [24107.244862] DVB: registering new adapter (Elgato EyeTV Dtt Dlx PD378S)
+kernel: [24107.327206] dib0700: stk7070p_frontend_attach: dib7000p_i2c_enumeration failed.  Cannot continue
+kernel: [24107.327211]
+kernel: [24107.327216] dvb-usb: no frontend was attached by 'Elgato EyeTV Dtt Dlx PD378S'
+kernel: [24107.327223] dvb-usb: Elgato EyeTV Dtt Dlx PD378S successfully initialized and connected.
+kernel: [24107.327703] dib0700: ir protocol setup failed
+kernel: [24130.411288] dvb-usb: Elgato EyeTV Dtt Dlx PD378S successfully deinitialized and disconnected.
 
-Please review, whether this use of the video device doesn't contradict any 
-V4L assumptions. Also notice, that it is planned to later use a reference 
-to the video device in subdevice, when one becomes available. Shortly I'll 
-post a dummy example implementation for the mt9v022 sensor.
 
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index 6b3fbcc..53201f3 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -24,6 +24,7 @@
- #include <linux/mutex.h>
- #include <linux/module.h>
- #include <linux/platform_device.h>
-+#include <linux/pm_runtime.h>
- #include <linux/vmalloc.h>
- 
- #include <media/soc_camera.h>
-@@ -387,6 +388,11 @@ static int soc_camera_open(struct file *file)
- 			goto eiciadd;
- 		}
- 
-+		pm_runtime_enable(&icd->vdev->dev);
-+		ret = pm_runtime_resume(&icd->vdev->dev);
-+		if (ret < 0 && ret != -ENOSYS)
-+			goto eresume;
-+
- 		/*
- 		 * Try to configure with default parameters. Notice: this is the
- 		 * very first open, so, we cannot race against other calls,
-@@ -408,10 +414,12 @@ static int soc_camera_open(struct file *file)
- 	return 0;
- 
- 	/*
--	 * First five errors are entered with the .video_lock held
-+	 * First four errors are entered with the .video_lock held
- 	 * and use_count == 1
- 	 */
- esfmt:
-+	pm_runtime_disable(&icd->vdev->dev);
-+eresume:
- 	ici->ops->remove(icd);
- eiciadd:
- 	if (icl->power)
-@@ -436,7 +444,11 @@ static int soc_camera_close(struct file *file)
- 	if (!icd->use_count) {
- 		struct soc_camera_link *icl = to_soc_camera_link(icd);
- 
-+		pm_runtime_suspend(&icd->vdev->dev);
-+		pm_runtime_disable(&icd->vdev->dev);
-+
- 		ici->ops->remove(icd);
-+
- 		if (icl->power)
- 			icl->power(icd->pdev, 0);
- 	}
-@@ -1294,6 +1306,7 @@ static int video_dev_create(struct soc_camera_device *icd)
-  */
- static int soc_camera_video_start(struct soc_camera_device *icd)
- {
-+	struct device_type *type = icd->vdev->dev.type;
- 	int ret;
- 
- 	if (!icd->dev.parent)
-@@ -1310,6 +1323,9 @@ static int soc_camera_video_start(struct soc_camera_device *icd)
- 		return ret;
- 	}
- 
-+	/* Restore device type, possibly set by the subdevice driver */
-+	icd->vdev->dev.type = type;
-+
- 	return 0;
- }
- 
-diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-index dcc5b86..58b39a9 100644
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -282,4 +282,12 @@ static inline void soc_camera_limit_side(unsigned int *start,
- extern unsigned long soc_camera_apply_sensor_flags(struct soc_camera_link *icl,
- 						   unsigned long flags);
- 
-+/* This is only temporary here - until v4l2-subdev begins to link to video_device */
-+#include <linux/i2c.h>
-+static inline struct video_device *soc_camera_i2c_to_vdev(struct i2c_client *client)
-+{
-+	struct soc_camera_device *icd = client->dev.platform_data;
-+	return icd->vdev;
-+}
-+
- #endif
