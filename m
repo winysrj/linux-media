@@ -1,66 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from joe.mail.tiscali.it ([213.205.33.54]:55469 "EHLO
-	joe.mail.tiscali.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758111Ab0BDTQt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Feb 2010 14:16:49 -0500
-Message-ID: <4B6B1CDD.9010204@gmail.com>
-Date: Thu, 04 Feb 2010 20:15:41 +0100
-From: "Andrea.Amorosi76@gmail.com" <Andrea.Amorosi76@gmail.com>
+Received: from mail.ip-minds.de ([84.200.240.4]:59555 "EHLO mail.ip-minds.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755674Ab0BXPnU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Feb 2010 10:43:20 -0500
+Received: from [192.168.2.101] (pD9522EDB.dip.t-dialin.net [217.82.46.219])
+	by mail.ip-minds.de (Postfix) with ESMTPA id BEF3D7D5F74
+	for <linux-media@vger.kernel.org>; Wed, 24 Feb 2010 16:34:06 +0100 (CET)
+Message-ID: <4B8546ED.2060505@ip-minds.de>
+Date: Wed, 24 Feb 2010 16:34:05 +0100
+From: Jean-Michel Bruenn <jean.bruenn@ip-minds.de>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: How can I add IR remote to this new device (DIKOM DK300)?
-References: <4B51132A.1000606@gmail.com> <4B5D912F.6000609@redhat.com> <4B5F6914.4080502@gmail.com> <4B5F6BB9.4000203@redhat.com> <4B61E759.5000707@gmail.com> <4B63169C.70700@redhat.com>
-In-Reply-To: <4B63169C.70700@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+To: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] cx23885 / HVR 1200 - A/V Inputs?
+References: <4B8544B3.4060902@ip-minds.de> <829197381002240729g7ae87931w6454accf075c6c59@mail.gmail.com>
+In-Reply-To: <829197381002240729g7ae87931w6454accf075c6c59@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab ha scritto:
-> Andrea.Amorosi76@gmail.com wrote:
+Hello Devin,
+
+thanks for your answer. Might i be able to help a bit? Whats missing?
+
+Cheers,
+Jean
+
+Devin Heitmueller wrote:
+> On Wed, Feb 24, 2010 at 10:24 AM, Jean-Michel Bruenn
+> <jean.bruenn@ip-minds.de> wrote:
 >   
->> Mauro Carvalho Chehab ha scritto:
->>     
->>> Andrea.Amorosi76@gmail.com wrote:
->>>  
->>>   
->>>       
->>>> So since it is necessary to create a new entry, is there any rules to
->>>> follow to choose it?
->>>>     
->>>>         
->>> Just use the existing entry as an example. You'll need to put your
->>> card name at the entry, and add a new #define at em28xx.h.
->>>
->>> Cheers,
->>> Mauro
->>>
->>>   
->>>       
->> Ok!
->> As far as the auto detection issue is concerned, can I add the EEPROM ID
->> and hash so that to use such data to detect the DIKOM device?
->> I've seen that the same numbers are not present for other devices, so I
->> think adding them should not create problems with other devices, but I'm
->> not sure regard that.
+>> Hello,
+>>
+>> i wanted to ask whether theres some progress or status on the cx23885
+>> driver. DVB-T is working fine,
+>> however - i'm currently interested into the A/V Inputs. Maybe there's some
+>> alpha/beta thing to test?
+>>
+>> http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-1200
+>>
+>> Talking about this card and would like to use the A/V Inputs.
 >>     
 >
-> Yes, but the code will need to be changed a little bit, since the eeprom id
-> detection happens only for some specific usb id's.
+> Hi Jean,
+>
+> No, there hasn't really been any progress in this area.  I've started
+> doing some work on the 23885 tree for the HVR-1800, all of which is
+> work applicable for the 1200/1250.  But frankly those cards are a
+> relatively low priority on my todo list and I'm only working on it in
+> the background.
 >
 > Cheers,
-> Mauro
+>
+> Devin
 >
 >   
-Hi Mauro,
-since I was not able to have my remote controller working (maybe it does 
-not work at all), I've send a new version of the patch which should 
-solve all the issue you pointed by creating a new entry and using the 
-eeprom id to detect the card.
-That patch still does not appear in patchwork.
-Can you have a look at it, please?
-I've send it yesterday with this object "[PATCH] em28xx: add Dikom DK300 
-hybrid USB tuner" which is clearer than this mail one.
-Thank you,
-Andrea
+
