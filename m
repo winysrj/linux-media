@@ -1,37 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:41145 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753324Ab0BASyO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Feb 2010 13:54:14 -0500
-Message-ID: <4B672345.6070203@s5r6.in-berlin.de>
-Date: Mon, 01 Feb 2010 19:53:57 +0100
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-MIME-Version: 1.0
-To: Douglas Schilling Landgraf <dougsland@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [hg:v4l-dvb] firedtv: do not DMA-map stack addresses
-References: <E1NbzwQ-00009q-Tx@mail.linuxtv.org>
-In-Reply-To: <E1NbzwQ-00009q-Tx@mail.linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp3-g21.free.fr ([212.27.42.3]:38078 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755493Ab0BXH2P convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Feb 2010 02:28:15 -0500
+Date: Wed, 24 Feb 2010 08:28:22 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Thomas Kaiser <thomas@kaiser-linux.li>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] gspca pac7302: add USB PID range based on heuristics
+Message-ID: <20100224082822.2191df80@tele>
+In-Reply-To: <4B84D0B5.8040005@freemail.hu>
+References: <4B655949.50102@freemail.hu>
+	<4B6575AC.7060100@redhat.com>
+	<4B84D0B5.8040005@freemail.hu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> The patch number 14077 was added via Douglas Schilling Landgraf <dougsland@redhat.com>
-> to http://linuxtv.org/hg/v4l-dvb master development tree.
-[...]
-> [dougsland@redhat.com: patch backported to hg tree]
+On Wed, 24 Feb 2010 08:09:41 +0100
+Németh Márton <nm127@freemail.hu> wrote:
 
-I don't know how you prefer to organize your trees, but:
-In this particular case it could have been simpler if you had first
-inserted an hg:v4l-dvb only patch which simply reverts the divergence of
-firedtv in hg from mainline git.
+> On the schematics in PixArt PAC7301/PAC7302 datasheet
+> (http://www.pixart.com.tw/upload/PAC7301_7302%20%20Spec%20V1_20091228174030.pdf)
+> pages 19, 20, 21 and 22 there is a note titled "PID IO_TRAP" which
+> describes the possible product ID range 0x2620..0x262f. In this range
+> there are some known webcams, however, there are some PIDs with
+> unknown or future devices. Because PixArt PAC7301/PAC7302 is a System
+> on a Chip (SoC) device is is probable that this driver will work
+> correctly independent of the used PID.
 
-This divergence was introduced by some kind of hg->git export mistake.
-That's not a big issue but it may cause another mistake when the next
-hg->git export happens.
+Hello,
+
+I got such information from ms-win drivers. I appeared that most of the
+unknown/new webcams were never manufactured. Now, I wait for user
+requests before adding such webcams.
+
+Cheers.
+
 -- 
-Stefan Richter
--=====-==-=- --=- ----=
-http://arcgraph.de/sr/
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
