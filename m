@@ -1,58 +1,210 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:56828 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753146Ab0BVWAe (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:39976 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758491Ab0BXWqT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 17:00:34 -0500
-Received: by bwz1 with SMTP id 1so484973bwz.21
-        for <linux-media@vger.kernel.org>; Mon, 22 Feb 2010 14:00:33 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <201002222254.05573.hverkuil@xs4all.nl>
-References: <829197381002212007q342fc01bm1c528a2f15027a1e@mail.gmail.com>
-	 <201002222241.22456.hverkuil@xs4all.nl>
-	 <829197381002221343u7001cff2t59bfe3ef735db5fc@mail.gmail.com>
-	 <201002222254.05573.hverkuil@xs4all.nl>
-Date: Mon, 22 Feb 2010 17:00:32 -0500
-Message-ID: <829197381002221400i6e4f4b17u42597d5138171e19@mail.gmail.com>
-Subject: Re: Chroma gain configuration
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andy Walls <awalls@radix.net>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Wed, 24 Feb 2010 17:46:19 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	david.cohen@nokia.com
+Subject: [PATCH v8 1/6] V4L: File handles
+Date: Thu, 25 Feb 2010 00:46:03 +0200
+Message-Id: <1267051568-5757-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4B85AC1E.8060302@maxwell.research.nokia.com>
+References: <4B85AC1E.8060302@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 22, 2010 at 4:54 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Ah, that's another matter. The original approach for handling private
-> controls is seriously flawed. Drivers that want to use private controls
-> are strongly encouraged to use the extended control mechanism for them,
-> and to document those controls in the spec.
+This patch adds a list of v4l2_fh structures to every video_device.
+It allows using file handle related information in V4L2. The event interface
+is one example of such use.
 
-Yeah, it's just annoying that what should have been a change for
-something like six lines of code in the g_ctrl/s_ctrl functions in
-saa7115 is actually resulting in me having to extend saa7115 to add
-support for the extended control interface.  Yeah, I can do that, but
-it's still annoying that it should be necessary.
+Video device drivers should use the v4l2_fh pointer as their
+file->private_data.
 
-> Actually, it is not so much the extended control API that is relevant
-> here, but the use of V4L2_CTRL_FLAG_NEXT_CTRL in VIDIOC_QUERYCTRL to
-> enumerate the controls.
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/Makefile   |    2 +-
+ drivers/media/video/v4l2-dev.c |    4 ++
+ drivers/media/video/v4l2-fh.c  |   66 ++++++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-dev.h       |    5 +++
+ include/media/v4l2-fh.h        |   42 +++++++++++++++++++++++++
+ 5 files changed, 118 insertions(+), 1 deletions(-)
+ create mode 100644 drivers/media/video/v4l2-fh.c
+ create mode 100644 include/media/v4l2-fh.h
 
-Control enumeration is actually working fine.  The queryctrl does
-properly return all of the controls, including my new private control.
-
-> Unfortunately, the current support functions in v4l2-common.c to help
-> with this are pretty crappy, for which I apologize.
-
-Of course, if you and Mauro wanted to sign off on the creation of a
-new non-private user control called V4L2_CID_CHROMA_GAIN, that would
-also resolve my problem.  :-)
-
-Devin
-
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index 5163289..14bf69a 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -10,7 +10,7 @@ stkwebcam-objs	:=	stk-webcam.o stk-sensor.o
+ 
+ omap2cam-objs	:=	omap24xxcam.o omap24xxcam-dma.o
+ 
+-videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o
++videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o
+ 
+ # V4L2 core modules
+ 
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index 7090699..65a7b30 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -421,6 +421,10 @@ static int __video_register_device(struct video_device *vdev, int type, int nr,
+ 	if (!vdev->release)
+ 		return -EINVAL;
+ 
++	/* v4l2_fh support */
++	spin_lock_init(&vdev->fh_lock);
++	INIT_LIST_HEAD(&vdev->fh_list);
++
+ 	/* Part 1: check device type */
+ 	switch (type) {
+ 	case VFL_TYPE_GRABBER:
+diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
+new file mode 100644
+index 0000000..93ea0af
+--- /dev/null
++++ b/drivers/media/video/v4l2-fh.c
+@@ -0,0 +1,66 @@
++/*
++ * v4l2-fh.c
++ *
++ * V4L2 file handles.
++ *
++ * Copyright (C) 2009--2010 Nokia Corporation.
++ *
++ * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#include <linux/bitops.h>
++#include <media/v4l2-dev.h>
++#include <media/v4l2-fh.h>
++
++int v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
++{
++	fh->vdev = vdev;
++	INIT_LIST_HEAD(&fh->list);
++	set_bit(V4L2_FL_USES_V4L2_FH, &fh->vdev->flags);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(v4l2_fh_init);
++
++void v4l2_fh_add(struct v4l2_fh *fh)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
++	list_add(&fh->list, &fh->vdev->fh_list);
++	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
++}
++EXPORT_SYMBOL_GPL(v4l2_fh_add);
++
++void v4l2_fh_del(struct v4l2_fh *fh)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
++	list_del_init(&fh->list);
++	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
++}
++EXPORT_SYMBOL_GPL(v4l2_fh_del);
++
++void v4l2_fh_exit(struct v4l2_fh *fh)
++{
++	if (fh->vdev == NULL)
++		return;
++
++	fh->vdev = NULL;
++}
++EXPORT_SYMBOL_GPL(v4l2_fh_exit);
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 2dee938..bebe44b 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -32,6 +32,7 @@ struct v4l2_device;
+    Drivers can clear this flag if they want to block all future
+    device access. It is cleared by video_unregister_device. */
+ #define V4L2_FL_REGISTERED	(0)
++#define V4L2_FL_USES_V4L2_FH	(1)
+ 
+ struct v4l2_file_operations {
+ 	struct module *owner;
+@@ -77,6 +78,10 @@ struct video_device
+ 	/* attribute to differentiate multiple indices on one physical device */
+ 	int index;
+ 
++	/* V4L2 file handles */
++	spinlock_t		fh_lock; /* Lock for all v4l2_fhs */
++	struct list_head	fh_list; /* List of struct v4l2_fh */
++
+ 	int debug;			/* Activates debug level*/
+ 
+ 	/* Video standard vars */
+diff --git a/include/media/v4l2-fh.h b/include/media/v4l2-fh.h
+new file mode 100644
+index 0000000..410e86c
+--- /dev/null
++++ b/include/media/v4l2-fh.h
+@@ -0,0 +1,42 @@
++/*
++ * v4l2-fh.h
++ *
++ * V4L2 file handle.
++ *
++ * Copyright (C) 2009--2010 Nokia Corporation.
++ *
++ * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#ifndef V4L2_FH_H
++#define V4L2_FH_H
++
++#include <linux/list.h>
++
++struct video_device;
++
++struct v4l2_fh {
++	struct list_head	list;
++	struct video_device	*vdev;
++};
++
++int v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev);
++void v4l2_fh_add(struct v4l2_fh *fh);
++void v4l2_fh_del(struct v4l2_fh *fh);
++void v4l2_fh_exit(struct v4l2_fh *fh);
++
++#endif /* V4L2_EVENT_H */
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.5.6.5
+
