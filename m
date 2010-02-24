@@ -1,162 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out04.alice.it ([85.37.17.100]:2370 "EHLO
-	smtp-out04.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030784Ab0B0UZ6 (ORCPT
+Received: from cinke.fazekas.hu ([195.199.244.225]:41516 "EHLO
+	cinke.fazekas.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757274Ab0BXQcv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Feb 2010 15:25:58 -0500
-From: Antonio Ospite <ospite@studenti.unina.it>
+	Wed, 24 Feb 2010 11:32:51 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by cinke.fazekas.hu (Postfix) with ESMTP id 5F6D42C215
+	for <linux-media@vger.kernel.org>; Wed, 24 Feb 2010 17:24:28 +0100 (CET)
+Received: from cinke.fazekas.hu ([127.0.0.1])
+	by localhost (cinke.fazekas.hu [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id HrP7qAuVWAfs for <linux-media@vger.kernel.org>;
+	Wed, 24 Feb 2010 17:24:28 +0100 (CET)
+Received: from roadrunner.athome (cinke.fazekas.hu [195.199.244.225])
+	by cinke.fazekas.hu (Postfix) with ESMTP id 456C32C0B5
+	for <linux-media@vger.kernel.org>; Wed, 24 Feb 2010 17:24:28 +0100 (CET)
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Subject: [PATCH] cx88: increase BUFFER_TIMEOUT to 2 seconds
+Message-Id: <5013801372b14e3d1439.1267028616@roadrunner.athome>
+Date: Wed, 24 Feb 2010 16:23:36 -0000
+From: Marton Balint <cus@fazekas.hu>
 To: linux-media@vger.kernel.org
-Cc: Mosalam Ebrahimi <m.ebrahimi@ieee.org>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Max Thrun <bear24rw@gmail.com>,
-	Antonio Ospite <ospite@studenti.unina.it>
-Subject: [PATCH 10/11] ov534: Add Powerline Frequency control
-Date: Sat, 27 Feb 2010 21:20:27 +0100
-Message-Id: <1267302028-7941-11-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
-References: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mosalam Ebrahimi <m.ebrahimi@ieee.org>
+# HG changeset patch
+# User Marton Balint <cus@fazekas.hu>
+# Date 1267027831 -3600
+# Node ID 5013801372b14e3d143955c04108d450323eb2de
+# Parent  2e0444bf93a4a93e5e9363d43e6f6e9d451fa9bc
+cx88: increase BUFFER_TIMEOUT to 2 seconds
 
-Note that setting this options to 50Hz can reduce the framerate, so the
-default is still 60Hz.
+From: Marton Balint <cus@fazekas.hu>
 
-Signed-off-by: Mosalam Ebrahimi <m.ebrahimi@ieee.org>
-Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
----
- linux/drivers/media/video/gspca/ov534.c |   71 +++++++++++++++++++++++++++++++-
- 1 file changed, 70 insertions(+), 1 deletion(-)
+When temporarily there is no video signal, sometimes it takes more than 0.5
+secs for the cx88 chip to generate a single frame. If a dma timeout occurs
+during recording, it confuses the recording application (at least mencoder) and
+the recording stops. Since there is already an ifdefed-out 2 second buffer
+timeout in the code, re-enabling that seemed the most simple solution.
 
-Index: gspca/linux/drivers/media/video/gspca/ov534.c
-===================================================================
---- gspca.orig/linux/drivers/media/video/gspca/ov534.c
-+++ gspca/linux/drivers/media/video/gspca/ov534.c
-@@ -66,7 +66,7 @@
- 	s8 sharpness;
- 	u8 hflip;
- 	u8 vflip;
--
-+	u8 freqfltr;
- };
+Priority: normal
+
+Signed-off-by: Marton Balint <cus@fazekas.hu>
+
+diff -r 2e0444bf93a4 -r 5013801372b1 linux/drivers/media/video/cx88/cx88.h
+--- a/linux/drivers/media/video/cx88/cx88.h	Mon Feb 22 10:58:43 2010 -0300
++++ b/linux/drivers/media/video/cx88/cx88.h	Wed Feb 24 17:10:31 2010 +0100
+@@ -290,10 +290,7 @@
+ #define RESOURCE_VIDEO         2
+ #define RESOURCE_VBI           4
  
- /* V4L2 controls supported by the driver */
-@@ -90,6 +90,10 @@
- static int sd_getbrightness(struct gspca_dev *gspca_dev, __s32 *val);
- static int sd_setcontrast(struct gspca_dev *gspca_dev, __s32 val);
- static int sd_getcontrast(struct gspca_dev *gspca_dev, __s32 *val);
-+static int sd_setfreqfltr(struct gspca_dev *gspca_dev, __s32 val);
-+static int sd_getfreqfltr(struct gspca_dev *gspca_dev, __s32 *val);
-+static int sd_querymenu(struct gspca_dev *gspca_dev,
-+		struct v4l2_querymenu *menu);
+-#define BUFFER_TIMEOUT     msecs_to_jiffies(500)  /* 0.5 seconds */
+-#if 0
+ #define BUFFER_TIMEOUT     msecs_to_jiffies(2000)
+-#endif
  
- static const struct ctrl sd_ctrls[] = {
- {	/* 0 */
-@@ -233,6 +237,20 @@
- 	.set = sd_setvflip,
- 	.get = sd_getvflip,
- },
-+{	/* 10 */
-+	{
-+		.id      = V4L2_CID_POWER_LINE_FREQUENCY,
-+		.type    = V4L2_CTRL_TYPE_MENU,
-+		.name    = "Light Frequency Filter",
-+		.minimum = 0,
-+		.maximum = 1,
-+		.step    = 1,
-+#define FREQFLTR_DEF 1
-+		.default_value = FREQFLTR_DEF,
-+	},
-+	.set = sd_setfreqfltr,
-+	.get = sd_getfreqfltr,
-+},
- };
- 
- static const struct v4l2_pix_format ov772x_mode[] = {
-@@ -779,6 +797,17 @@
- 				sccb_reg_read(gspca_dev, 0x0c) & ~0x80);
- }
- 
-+static void setfreqfltr(struct gspca_dev *gspca_dev)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+
-+	if (sd->freqfltr == 0)
-+		sccb_reg_write(gspca_dev, 0x2b, 0x9e);
-+	else
-+		sccb_reg_write(gspca_dev, 0x2b, 0x00);
-+}
-+
-+
- /* this function is called at probe time */
- static int sd_config(struct gspca_dev *gspca_dev,
- 		     const struct usb_device_id *id)
-@@ -812,6 +841,7 @@
- 	sd->sharpness = SHARPNESS_DEF;
- 	sd->hflip = HFLIP_DEF;
- 	sd->vflip = VFLIP_DEF;
-+	sd->freqfltr = FREQFLTR_DEF;
- 
- 	return 0;
- }
-@@ -881,6 +911,7 @@
- 	setsharpness(gspca_dev);
- 	setvflip(gspca_dev);
- 	sethflip(gspca_dev);
-+	setfreqfltr(gspca_dev);
- 
- 	ov534_set_led(gspca_dev, 1);
- 	ov534_reg_write(gspca_dev, 0xe0, 0x00);
-@@ -1174,6 +1205,43 @@
- 	return 0;
- }
- 
-+static int sd_setfreqfltr(struct gspca_dev *gspca_dev, __s32 val)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+
-+	sd->freqfltr = val;
-+	if (gspca_dev->streaming)
-+		setfreqfltr(gspca_dev);
-+	return 0;
-+}
-+
-+static int sd_getfreqfltr(struct gspca_dev *gspca_dev, __s32 *val)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+
-+	*val = sd->freqfltr;
-+	return 0;
-+}
-+
-+static int sd_querymenu(struct gspca_dev *gspca_dev,
-+		struct v4l2_querymenu *menu)
-+{
-+	switch (menu->id) {
-+	case V4L2_CID_POWER_LINE_FREQUENCY:
-+		switch (menu->index) {
-+		case 0:         /* V4L2_CID_POWER_LINE_FREQUENCY_50HZ */
-+			strcpy((char *) menu->name, "50 Hz");
-+			return 0;
-+		case 1:         /* V4L2_CID_POWER_LINE_FREQUENCY_60HZ */
-+			strcpy((char *) menu->name, "60 Hz");
-+			return 0;
-+		}
-+		break;
-+	}
-+
-+	return -EINVAL;
-+}
-+
- /* get stream parameters (framerate) */
- static int sd_get_streamparm(struct gspca_dev *gspca_dev,
- 			     struct v4l2_streamparm *parm)
-@@ -1225,6 +1293,7 @@
- 	.start    = sd_start,
- 	.stopN    = sd_stopN,
- 	.pkt_scan = sd_pkt_scan,
-+	.querymenu = sd_querymenu,
- 	.get_streamparm = sd_get_streamparm,
- 	.set_streamparm = sd_set_streamparm,
- };
+ /* buffer for one video frame */
+ struct cx88_buffer {
