@@ -1,60 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:38618 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752363Ab0CAC4T (ORCPT
+Received: from mail-in-03.arcor-online.net ([151.189.21.43]:39805 "EHLO
+	mail-in-03.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933895Ab0BYVvG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Feb 2010 21:56:19 -0500
-Received: by bwz1 with SMTP id 1so87184bwz.21
-        for <linux-media@vger.kernel.org>; Sun, 28 Feb 2010 18:56:18 -0800 (PST)
-MIME-Version: 1.0
-Date: Sun, 28 Feb 2010 21:56:17 -0500
-Message-ID: <829197381002281856o749e3e9al36334b8b42b34562@mail.gmail.com>
-Subject: How do private controls actually work?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 25 Feb 2010 16:51:06 -0500
+Subject: Re: [PATCH] saa7134: Fix IR support of some ASUS TV-FM 7135
+	variants
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>, Daro <ghost-rider@aster.pl>,
+	Roman Kellner <muzungu@gmx.net>
+In-Reply-To: <20100225141254.3e43f2c6@hyperion.delvare>
+References: <20100127120211.2d022375@hyperion.delvare>
+	 <4B630179.3080006@redhat.com> <1264812461.16350.90.camel@localhost>
+	 <20100130115632.03da7e1b@hyperion.delvare>
+	 <1264986995.21486.20.camel@pc07.localdom.local>
+	 <20100201105628.77057856@hyperion.delvare>
+	 <1265075273.2588.51.camel@localhost>
+	 <20100202085415.38a1e362@hyperion.delvare> <4B681173.1030404@redhat.com>
+	 <20100210190907.5c695e4e@hyperion.delvare> <4B72FD83.1050500@redhat.com>
+	 <20100210203601.31ef3220@hyperion.delvare>
+	 <1265849882.4422.17.camel@localhost>
+	 <1266211906.3177.16.camel@pc07.localdom.local>
+	 <1266635225.3407.33.camel@pc07.localdom.local>
+	 <20100225141254.3e43f2c6@hyperion.delvare>
+Content-Type: text/plain
+Date: Thu, 25 Feb 2010 22:50:31 +0100
+Message-Id: <1267134631.3186.23.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This might seem like a bit of a silly question, but I've been banging
-my head on the wall for a while on this.
+Hi Jean,
 
-I need to add a single private control to the saa7115 driver.
-However, it's not clear to me exactly how this is supposed to work.
+Am Donnerstag, den 25.02.2010, 14:12 +0100 schrieb Jean Delvare:
+> On Sat, 20 Feb 2010 04:07:05 +0100, hermann pitton wrote:
+> > Are you still waiting for Daro's report?
+> 
+> Yes, I am still waiting. Unfortunately neither Daro nor Roman reported
+> any test result so far. Now, if we go for my second patch, I guess we
+> might as well apply it right now. It only affects this one card (Asus
+> P7131 analog), and it was broken so far, so I don't think my patch can
+> do any bad.
 
-The v4l2-ctl program will always use the extended controls interface
-for private controls, since the code only uses the g_ctrl ioctl if the
-class is V4L2_CTRL_CLASS_USER (and the control class for private
-controls is V4L2_CID_PRIVATE_BASE).
+yes, we can go for your second patch without any risk.
 
-However, if you look at the actual code in v4l2-ioctl.c, the call for
-g_ext_ctrls calls check_ext_ctrls(), which fails because
-"V4L2_CID_PRIVATE_BASE cannot be used as control class when using
-extended controls."
+It even will work, but I'm wondering if I would have to buy such card,
+to get it through. Thanks for your time to review that.
 
-The above two behaviors would seem to be conflicting.
+> > As said, I would prefer to see all OEMs _not_ following Philips/NXP
+> > eeprom rules running into their own trash on GNU/Linux too.
+> > 
+> > Then we have facts.
+> > 
+> > That is much better than to provide a golden cloud for them. At least I
+> > won't help to debug such later ...
+> > 
+> > If you did not manage to decipher all OEM eeprom content already,
+> > just let's go with the per card solution for now.
+> > 
+> > Are you aware, that my intention is _not_ to spread the use of random
+> > and potentially invalid eeprom content for some sort of such auto
+> > detection?
+> > 
+> > The other solution is not lost and in mind, if we should need to come
+> > back to it and are in details. Preferably the OEMs should take the
+> > responsibility for such.
+> > 
+> > We can see, that even those always doing best on it, can't provide the
+> > missing informations for different LNA stuff after the
+> > Hauppauge/Pinnacle merge until now.
+> > 
+> > If you claim to know it better, please share with us.
+> 
+> I'm not claiming anything, and to be honest, I have no idea what you're
+> talking about.
 
-My original plan was to implement it as a non-extended control, but
-the v4l2-ctl application always sent the get call using the extended
-interface.  So then I went to convert saa7115 to use the extended
-control interface, but then found out that the v4l2 core wouldn't
-allow an extended control to use a private control number.
+Never mind. I'll keep you posted when it comes to further progress on
+such and input_init2 is the needed better solution.
 
-To make matters worse, the G_CTRL function that supposedly passes
-through calls to vidioc_g_ext_ctrl also calls check_ext_ctrl(), so if
-you want to have a private control then you would need to implement
-both the extended controls interface and the older g_ctrl in the
-driver (presumably the idea was that you would be able to only need to
-implement an extended controls interface, but that doesn't work given
-the above).
+We have a whole chain of previously latest different Asus cards
+supported by PCI subsystem identification, only this single one fails on
+it and needs eeprom bogus detection.
 
-I can change v4l2-ctl to use g_ctrl for private controls if we think
-that is the correct approach.  But I didn't want to do that until I
-knew for sure that it is correct that you can never have a private
-extended control.
+On the Pinnacle stuff we have a complete mess, concerning LNAs, likely
+even different LNAs, no LNA at all, different remotes etc., all with the
+same PCI subsystem.
 
-Devin
+You can't even detect the LNA type, if you would know the meaning of the
+complete eeprom content, since some to us unknown check-sums are in use
+for that.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+That I try to tell.
+
+You are welcome,
+
+Hermann
+
+
+
+
+
+
