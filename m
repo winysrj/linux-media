@@ -1,19 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx05.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.9])
-	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o1G9ZEdA020730
-	for <video4linux-list@redhat.com>; Tue, 16 Feb 2010 04:35:14 -0500
-Received: from snt0-omc3-s34.snt0.hotmail.com (snt0-omc3-s34.snt0.hotmail.com
-	[65.55.90.173])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o1G9Z2YK030954
-	for <video4linux-list@redhat.com>; Tue, 16 Feb 2010 04:35:02 -0500
-Message-ID: <SNT123-W319FE48E43DBE7AB84F1C9EE490@phx.gbl>
-From: "Owen O' Hehir" <oo_hehir@hotmail.com>
-To: <video4linux-list@redhat.com>
-Subject: FW: Error in V4L2 API Spec Chapter 2.2 Rev 0.24??
-Date: Tue, 16 Feb 2010 09:35:02 +0000
+Received: from mx1.redhat.com (ext-mx03.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.7])
+	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o1PJ7qHf001367
+	for <video4linux-list@redhat.com>; Thu, 25 Feb 2010 14:07:52 -0500
+Received: from mail-bw0-f220.google.com (mail-bw0-f220.google.com
+	[209.85.218.220])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o1PJ7dhK017817
+	for <video4linux-list@redhat.com>; Thu, 25 Feb 2010 14:07:39 -0500
+Received: by bwz20 with SMTP id 20so3587934bwz.11
+	for <video4linux-list@redhat.com>; Thu, 25 Feb 2010 11:07:38 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <4B86C704.3060709@swartzlander.org>
+References: <4B86C704.3060709@swartzlander.org>
+Date: Thu, 25 Feb 2010 14:07:38 -0500
+Message-ID: <829197381002251107v68f8cd87q90345de5715f6cc@mail.gmail.com>
+Subject: Re: Chronic USB disconnect events for Pinnacle Dazzle DVC 100 video
+	capture device
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Ben Swartzlander <ben@swartzlander.org>
+Cc: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,47 +33,34 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Thu, Feb 25, 2010 at 1:52 PM, Ben Swartzlander <ben@swartzlander.org> wrote:
+> I have a Pinnacle Dazzle DVC 100 USB video capture device hooked up to a
+> security camera capturing video 24/7. A few times a month, my kernel
+> suddenly decides that the USB device was disconnected and reconnected,
+> resulting in the device getting a new number and causing my recording
+> software to stop recording until I restart it with the new device number.
+> Here is an example of the dmesg output when it happens:
 
- Hello All,
+The USB host controller might be going to sleep if the PC's
+suspend/resume kicked in.  Or, is there a USB hub involved which might
+have been power cycled?  It's pretty hard to figure out *why* the
+hardware decided to disconnect the USB device.
 
-I've been using your V4L2 API spec and think I've come across an error you may wish to know about. Its the conversion routine from YCbCr -> RGB (Inverse Transformation) Chapter 2.2. As far as I can make out there's no need for the multiplying by 255 at the end. I've run both functions back to back and the image is only correct when these are removed. (Highlighted below).
+The reason the device gets a new device number is because it is still
+in use when the disconnect occurs.  If the application were not
+running at the time of the disconnect event, you would get the same
+device number.
 
-Regards,
+Also, it's probably worth mentioning that these sorts of devices are
+not really designed for capture 24/7, so it might be overheating or
+some bug in the hardware.
 
-Owen
+Devin
 
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
 
-int Y1, Cb, Cr;         /* gamma pre-corrected input [0;255] */
-int ER, EG, EB;         /* output [0;255] */
-
-double r, g, b;         /* temporaries */
-double y1, pb, pr;
-
-int
-clamp (double x)
-{
-        int r = x;      /* round to nearest */
-
-        if (r < 0)         return 0;
-        else if (r > 255)  return 255;
-        else               return r;
-}
-
-y1 = (255 / 219.0) * (Y1 - 16);
-pb = (255 / 224.0) * (Cb - 128);
-pr = (255 / 224.0) * (Cr - 128);
-
-r = 1.0 * y1 + 0     * pb + 1.402 * pr;
-g = 1.0 * y1 - 0.344 * pb - 0.714 * pr;
-b = 1.0 * y1 + 1.772 * pb + 0     * pr;
-
-ER = clamp (r * 255); /* [ok? one should prob. limit y1,pb,pr] */
-EG = clamp (g * 255);
-EB = clamp (b * 255);
- 		 	   		  
-_________________________________________________________________
-Hotmail: Powerful Free email with security by Microsoft.
-https://signup.live.com/signup.aspx?id=60969
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
