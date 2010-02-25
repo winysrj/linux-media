@@ -1,60 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f215.google.com ([209.85.220.215]:37843 "EHLO
-	mail-fx0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757102Ab0BBWwK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Feb 2010 17:52:10 -0500
-Received: by fxm7 with SMTP id 7so744001fxm.28
-        for <linux-media@vger.kernel.org>; Tue, 02 Feb 2010 14:52:09 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <201002022240.o12MeokZ018918@imap1.linux-foundation.org>
-References: <201002022240.o12MeokZ018918@imap1.linux-foundation.org>
-Date: Wed, 3 Feb 2010 02:52:08 +0400
-Message-ID: <1a297b361002021452h70891746md39e9d5491c3fb20@mail.gmail.com>
-Subject: Re: [patch 6/7] drivers/media/dvb/frontends/stv090x.c: fix
-	use-uninitialised
-From: Manu Abraham <abraham.manu@gmail.com>
-To: akpm@linux-foundation.org
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
-	manu@linuxtv.org, mchehab@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3589 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933494Ab0BYTlw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Feb 2010 14:41:52 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id o1PJfomC099960
+	for <linux-media@vger.kernel.org>; Thu, 25 Feb 2010 20:41:51 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 25 Feb 2010 20:41:51 +0100 (CET)
+Message-Id: <201002251941.o1PJfomC099960@smtp-vbr13.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 3, 2010 at 2:40 AM,  <akpm@linux-foundation.org> wrote:
-> From: Andrew Morton <akpm@linux-foundation.org>
->
-> drivers/media/dvb/frontends/stv090x.c: In function 'stv090x_blind_search':
-> drivers/media/dvb/frontends/stv090x.c:1967: warning: 'coarse_fail' may be used uninitialized in this function
->
-> Cc: Manu Abraham <manu@linuxtv.org>
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
->
->  drivers/media/dvb/frontends/stv090x.c |    3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
->
-> diff -puN drivers/media/dvb/frontends/stv090x.c~drivers-media-dvb-frontends-stv090xc-fix-use-uninitialised drivers/media/dvb/frontends/stv090x.c
-> --- a/drivers/media/dvb/frontends/stv090x.c~drivers-media-dvb-frontends-stv090xc-fix-use-uninitialised
-> +++ a/drivers/media/dvb/frontends/stv090x.c
-> @@ -1964,7 +1964,8 @@ static int stv090x_blind_search(struct s
->        u32 agc2, reg, srate_coarse;
->        s32 cpt_fail, agc2_ovflw, i;
->        u8 k_ref, k_max, k_min;
-> -       int coarse_fail, lock;
-> +       int coarse_fail = 0;
-> +       int lock;
->
->        k_max = 110;
->        k_min = 10;
-> _
->
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Looks good
+Results of the daily build of v4l-dvb:
 
-Reviewed-by: Manu Abraham <manu@linuxtv.org>
-Acked-by: Manu Abraham <manu@linuxtv.org>
+date:        Thu Feb 25 19:00:32 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14319:37581bb7e6f1
+gcc version: i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:     2.6.32.5
 
-Thanks,
-Manu
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.32.6-armv5-dm365: ERRORS
+linux-2.6.33-armv5-dm365: ERRORS
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-armv5-ixp: OK
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.17-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.20-i686: OK
+linux-2.6.26.8-i686: OK
+linux-2.6.27.44-i686: OK
+linux-2.6.28.10-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.17-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.20-x86_64: OK
+linux-2.6.26.8-x86_64: OK
+linux-2.6.27.44-x86_64: OK
+linux-2.6.28.10-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+spec: OK
+sparse (v4l-dvb-git): ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: OK
+linux-2.6.19.7-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.7-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
