@@ -1,71 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1234 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752077Ab0BWHv5 (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1122 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933375Ab0BYUef (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2010 02:51:57 -0500
+	Thu, 25 Feb 2010 15:34:35 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: Chroma gain configuration
-Date: Tue, 23 Feb 2010 08:53:36 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andy Walls <awalls@radix.net>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <829197381002212007q342fc01bm1c528a2f15027a1e@mail.gmail.com> <201002222254.05573.hverkuil@xs4all.nl> <829197381002221400i6e4f4b17u42597d5138171e19@mail.gmail.com>
-In-Reply-To: <829197381002221400i6e4f4b17u42597d5138171e19@mail.gmail.com>
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: linux-next: Tree for February 22 (media/video/tvp7002)
+Date: Thu, 25 Feb 2010 21:34:09 +0100
+Cc: linux-next@vger.kernel.org,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"Santiago Nunez-Corrales" <santiago.nunez@ridgerun.com>
+References: <20100222172218.4fd82a45.sfr@canb.auug.org.au> <4B82AF18.3030107@oracle.com> <20100225085205.9cf68ce9.randy.dunlap@oracle.com>
+In-Reply-To: <20100225085205.9cf68ce9.randy.dunlap@oracle.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201002230853.36928.hverkuil@xs4all.nl>
+Message-Id: <201002252134.10071.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 22 February 2010 23:00:32 Devin Heitmueller wrote:
-> On Mon, Feb 22, 2010 at 4:54 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > Ah, that's another matter. The original approach for handling private
-> > controls is seriously flawed. Drivers that want to use private controls
-> > are strongly encouraged to use the extended control mechanism for them,
-> > and to document those controls in the spec.
+On Thursday 25 February 2010 17:52:05 Randy Dunlap wrote:
+> On Mon, 22 Feb 2010 08:21:44 -0800 Randy Dunlap wrote:
 > 
-> Yeah, it's just annoying that what should have been a change for
-> something like six lines of code in the g_ctrl/s_ctrl functions in
-> saa7115 is actually resulting in me having to extend saa7115 to add
-> support for the extended control interface.  Yeah, I can do that, but
-> it's still annoying that it should be necessary.
+> > On 02/21/10 22:22, Stephen Rothwell wrote:
+> > > Hi all,
+> > > 
+> > > Changes since 20100219:
+> > 
+> > 
+> > drivers/media/video/tvp7002.c:896: error: 'struct tvp7002' has no member named 'registers'
 > 
-> > Actually, it is not so much the extended control API that is relevant
-> > here, but the use of V4L2_CTRL_FLAG_NEXT_CTRL in VIDIOC_QUERYCTRL to
-> > enumerate the controls.
+> same problem in linux-next-20100225.
 > 
-> Control enumeration is actually working fine.  The queryctrl does
-> properly return all of the controls, including my new private control.
+> so where are these registers??
 
-OK. So the problem is that v4l2-ctl uses G/S_EXT_CTRLS for non-user controls,
-right? Why not change v4l2-ctl: let it first try the EXT version but if that
-fails with EINVAL then try the old control API.
+Hmm, that code is a remnant from older revisions of this driver. Unfortunately,
+when I compiled this driver before creating my pull request I forgot to turn on
+the CONFIG_VIDEO_ADV_DEBUG option and so I never saw it.
 
-> 
-> > Unfortunately, the current support functions in v4l2-common.c to help
-> > with this are pretty crappy, for which I apologize.
-> 
-> Of course, if you and Mauro wanted to sign off on the creation of a
-> new non-private user control called V4L2_CID_CHROMA_GAIN, that would
-> also resolve my problem.  :-)
+Anyway, below is a patch that fixes this. Please apply.
 
-Hmm, Mauro is right: the color controls we have now are a bit of a mess.
-Perhaps this is a good moment to try and fix them. Suppose we had no color
-controls at all: how would we design them in that case? When we know what we
-really need, then we can compare that with what we have and figure out what
-we need to do to make things right again.
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+
+Santiago, I've also fixed the g_register function: it never returned a register
+value in the original code.
 
 Regards,
 
 	Hans
 
+diff --git a/drivers/media/video/tvp7002.c b/drivers/media/video/tvp7002.c
+index 0f0270b..5a878bc 100644
+--- a/drivers/media/video/tvp7002.c
++++ b/drivers/media/video/tvp7002.c
+@@ -859,13 +859,17 @@ static int tvp7002_g_register(struct v4l2_subdev *sd,
+ 						struct v4l2_dbg_register *reg)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	u8 val;
++	int ret;
+ 
+ 	if (!v4l2_chip_match_i2c_client(client, &reg->match))
+ 		return -EINVAL;
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+ 
+-	return reg->val < 0 ? -EINVAL : 0;
++	ret = tvp7002_read(sd, reg->reg & 0xff, &val);
++	reg->val = val;
++	return ret;
+ }
+ 
+ /*
+@@ -881,21 +885,13 @@ static int tvp7002_s_register(struct v4l2_subdev *sd,
+ 						struct v4l2_dbg_register *reg)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct tvp7002 *device = to_tvp7002(sd);
+-	int wres;
+ 
+ 	if (!v4l2_chip_match_i2c_client(client, &reg->match))
+ 		return -EINVAL;
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+ 
+-	wres = tvp7002_write(sd, reg->reg & 0xff, reg->val & 0xff);
+-
+-	/* Update the register value in device's table */
+-	if (!wres)
+-		device->registers[reg->reg].value = reg->val;
+-
+-	return wres < 0 ? -EINVAL : 0;
++	return tvp7002_write(sd, reg->reg & 0xff, reg->val & 0xff);
+ }
+ #endif
+ 
+
+
 > 
-> Devin
+> thanks,
+> ---
+> ~Randy
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
 > 
 
