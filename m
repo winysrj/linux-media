@@ -1,44 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.juropnet.hu ([212.24.188.131]:55948 "EHLO mail.juropnet.hu"
+Received: from poutre.nerim.net ([62.4.16.124]:50527 "EHLO poutre.nerim.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756843Ab0BKTcn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Feb 2010 14:32:43 -0500
-Received: from kabelnet-194-138.juropnet.hu ([91.147.194.138])
-	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.69)
-	(envelope-from <istvan_v@mailbox.hu>)
-	id 1Nfej9-0005pp-Qt
-	for linux-media@vger.kernel.org; Thu, 11 Feb 2010 20:30:02 +0100
-Message-ID: <4B745C18.2060908@mailbox.hu>
-Date: Thu, 11 Feb 2010 20:35:52 +0100
-From: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: DTV2000 H Plus issues
-References: <4B3F6FE0.4040307@internode.on.net> <4B3F7B0D.4030601@mailbox.hu>	 <4B405381.9090407@internode.on.net> <4B421BCB.6050909@mailbox.hu>	 <4B4294FE.8000309@internode.on.net> <4B463AC6.2000901@mailbox.hu>	 <4B719CD0.6060804@mailbox.hu> <4B745781.2020408@mailbox.hu> <829197381002111121g5244471bj148d38aa8958800c@mail.gmail.com>
-In-Reply-To: <829197381002111121g5244471bj148d38aa8958800c@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	id S1754461Ab0BYJ7W (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Feb 2010 04:59:22 -0500
+Date: Thu, 25 Feb 2010 10:59:18 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Douglas Landgraf <dougsland@gmail.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: Status of the patches under review (29 patches)
+Message-ID: <20100225105918.4b74c9f9@hyperion.delvare>
+In-Reply-To: <4B852538.2050207@redhat.com>
+References: <4B84BBB0.1020408@redhat.com>
+	<20100224101807.60a468c3@hyperion.delvare>
+	<4B852538.2050207@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/11/2010 08:21 PM, Devin Heitmueller wrote:
+On Wed, 24 Feb 2010 10:10:16 -0300, Mauro Carvalho Chehab wrote:
+> Hi Jean,
+> 
+> Jean Delvare wrote:
+>  
+> > I have 3 patches pending which aren't in your list. I can see them in
+> > patchwork:
+> > 
+> > http://patchwork.kernel.org/patch/79755/
+> > http://patchwork.kernel.org/patch/79754/
+> > http://patchwork.kernel.org/patch/77349/
+> > 
+> > The former two are in "Accepted" state, and actually I received an
+> > e-mail telling me they had been accepted, however I can't see them in
+> > the hg repository. So where are they?
+> 
+> They are already on the git tree:
+> 
+> commit 2887117b31b77ebe5fb42f95ea8d77a3716b405b
+> Author: Jean Delvare <khali@linux-fr.org>
+> Date:   Tue Feb 16 14:22:37 2010 -0300
+> 
+>     V4L/DVB: bttv: Let the user disable IR support
+>     
+>     Add a new module parameter "disable_ir" to disable IR support. Several
+>     other drivers do that already, and this can be very handy for
+>     debugging purposes.
+>     
+>     Signed-off-by: Jean Delvare <khali@linux-fr.org>
+>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+> commit e151340a2a9e7147eb48114af0381122130266b0
+> Author: Jean Delvare <khali@linux-fr.org>
+> Date:   Fri Feb 19 00:18:41 2010 -0300
+> 
+>     V4L/DVB: bttv: Move I2C IR initialization
+>     
+>     Move I2C IR initialization from just after I2C bus setup to right
+>     before non-I2C IR initialization. This avoids the case where an I2C IR
+>     device is blocking audio support (at least the PV951 suffers from
+>     this). It is also more logical to group IR support together,
+>     regardless of the connectivity.
+>     
+>     This fixes bug #15184:
+>     http://bugzilla.kernel.org/show_bug.cgi?id=15184
+>     
+>     Signed-off-by: Jean Delvare <khali@linux-fr.org>
+>     CC: stable@kernel.org
+>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+> As patches in -hg are manually backported, maybe Douglas
+> haven't backported it yet or he simply missed.
+> 
+> Douglas, could you please check this?
 
-> Is the DTV7 support actually tested?  Or are you just blindly adding
-> the code in the hope that it works?  I'm just asking because the last
-> time I spoke to you, you actually didn't have access to a DVB-T signal
-> source.
+Ah, my bad. I totally missed that you had moved from hg to git for the
+main development tree. I was still pulling from hg and basing my
+patches on it. I will clone the git tree now, sorry for the confusion.
 
-Hi! It is indeed not tested yet, and the other DTV modes are not
-either. Is there anything that needs to be done additionally to make
-the DTV7 mode work, other than the already added different frequency
-offset ((-7000000/2)+1250000=-2250000), firmware type (DTV7), and
-video standard (XC4000_DTV7) ?
+> > The latter is in "Not Applicable" state, and I have no idea what it
+> > means. The patch is really simple and I see no formatting issue. Should
+> > I just resend it?
+> 
+> This means that this patch is not applicable on -git. There's no versions.txt
+> upstream. All patches that don't have upstream code are marked as such on
+> patchwork. I generally ping Douglas on such cases, for him to double check on
+> -hg.
+> 
+> Anyway, the better is to c/c to Douglas on all patches that are meant only
+> to the building system.
+> 
+> Douglas, could you please check if you've applied this patch?
 
-> Also, I'm not sure I'm comfortable with the way the mutex is
-> implemented here.  Is this logic copied from some other driver (and if
-> so, which one), or did you come up with it yourself?
+Thanks Douglas.
 
-The mutex idea is from the XC3028 driver. Since the code is organized
-differently there, it is not implemented exactly the same way, but it
-is similar.
+-- 
+Jean Delvare
