@@ -1,313 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:34427 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S932088Ab0BDOLi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Feb 2010 09:11:38 -0500
-Subject: Re: Videotext application crashes the kernel due to DVB-demux patch
-From: Chicken Shack <chicken.shack@gmx.de>
-To: Andy Walls <awalls@radix.net>
-Cc: hermann pitton <hermann-pitton@arcor.de>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>, obi@linuxtv.org,
-	akpm@linux-foundation.org, torvalds@linux-foundation.org
-In-Reply-To: <1265288042.3928.9.camel@palomino.walls.org>
-References: <1265018173.2449.19.camel@brian.bconsult.de>
-	 <1265028110.3098.3.camel@palomino.walls.org>
-	 <1265076008.3120.96.camel@palomino.walls.org>
-	 <1265101869.1721.28.camel@brian.bconsult.de>
-	 <1265115172.3104.17.camel@palomino.walls.org>
-	 <1265158862.3194.22.camel@pc07.localdom.local>
-	 <1265288042.3928.9.camel@palomino.walls.org>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 04 Feb 2010 15:07:01 +0100
-Message-ID: <1265292421.3258.53.camel@brian.bconsult.de>
+Received: from poutre.nerim.net ([62.4.16.124]:58862 "EHLO poutre.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932315Ab0BYNM5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Feb 2010 08:12:57 -0500
+Date: Thu, 25 Feb 2010 14:12:54 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>, Daro <ghost-rider@aster.pl>,
+	Roman Kellner <muzungu@gmx.net>
+Subject: Re: [PATCH] saa7134: Fix IR support of some ASUS TV-FM 7135
+ variants
+Message-ID: <20100225141254.3e43f2c6@hyperion.delvare>
+In-Reply-To: <1266635225.3407.33.camel@pc07.localdom.local>
+References: <20100127120211.2d022375@hyperion.delvare>
+	<4B630179.3080006@redhat.com>
+	<1264812461.16350.90.camel@localhost>
+	<20100130115632.03da7e1b@hyperion.delvare>
+	<1264986995.21486.20.camel@pc07.localdom.local>
+	<20100201105628.77057856@hyperion.delvare>
+	<1265075273.2588.51.camel@localhost>
+	<20100202085415.38a1e362@hyperion.delvare>
+	<4B681173.1030404@redhat.com>
+	<20100210190907.5c695e4e@hyperion.delvare>
+	<4B72FD83.1050500@redhat.com>
+	<20100210203601.31ef3220@hyperion.delvare>
+	<1265849882.4422.17.camel@localhost>
+	<1266211906.3177.16.camel@pc07.localdom.local>
+	<1266635225.3407.33.camel@pc07.localdom.local>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Donnerstag, den 04.02.2010, 07:54 -0500 schrieb Andy Walls:
-> On Wed, 2010-02-03 at 02:01 +0100, hermann pitton wrote:
-> > Am Dienstag, den 02.02.2010, 07:52 -0500 schrieb Andy Walls:
-> > > On Tue, 2010-02-02 at 10:11 +0100, Chicken Shack wrote:
-> > > > Am Montag, den 01.02.2010, 21:00 -0500 schrieb Andy Walls:
-> > > > > On Mon, 2010-02-01 at 07:41 -0500, Andy Walls wrote:
-> > > > > > On Mon, 2010-02-01 at 10:56 +0100, Chicken Shack wrote:
-> > > > > > > Hi,
-> > > > > > > 
-> > > > > > > here is a link to a patch which breaks backwards compatibility for a
-> > > > > > > teletext software called alevt-dvb.
-> > > > > > > 
-> > > > > > > http://www.mail-archive.com/linuxtv-commits@linuxtv.org/msg04638.html
-> > > > > > > 
-> > > > > > > The kernel patch was introduced with kernel 2.6.32-rc1.
-> > > > > > > It was Signed-off-by Brandon Philips, Mauro Carvalho Chehab and its
-> > > > > > > author, Andreas Oberritter.
-> > > > > > > 
-> > > > > 
-> > > > > > > Regards
-> > > > > > > 
-> > > > > > > CS
-> > > > > > > 
-> > > > > > > P. S.: This is how the kernel crash looks like:
-> > > > > > 
-> > > > > > The information below can get me started.  Could you please provide
-> > > > > > whole Ooops from the output dmesg or from your /var/log/messages file?
-> > > > > > 
-> > > > > > I'll try to look at this tonight.
-> > > > > > 
-> > > > > > Regards,
-> > > > > > Andy
-> > > > > > 
-> > > > > > > brian:~# alevt
-> > > > > > > alevt: SDT: service_id 0xcf24 not in PAT
-> > > 
-> > > > > > > alevt: ioctl: DMX_SET_PES_FILTER Invalid argument (22)
-> > > > > > > Getötet
-> > > > > > > brian:~# 
-> > > > > > > Message from syslogd@brian at Jan 31 19:52:33 ...
-> > > > > > >  kernel:[  116.563487] Oops: 0000 [#1] PREEMPT SMP 
-> > > > > > > 
-> > > > > > > Message from syslogd@brian at Jan 31 19:52:33 ...
-> > > > > > >  kernel:[  116.563492] last sysfs
-> > > > > > > file: /sys/devices/pci0000:00/0000:00:1d.7/usb1/1-0:1.0/uevent
-> > > > > > > 
-> > > > > > > Message from syslogd@brian at Jan 31 19:52:33 ...
-> > > > > > >  kernel:[  116.563589] Process alevt (pid: 1780, ti=e7934000
-> > > > > > > task=e7915be0 task.ti=e7934000)
-> > > > > > > 
-> > > > > > > Message from syslogd@brian at Jan 31 19:52:33 ...
-> > > > > > >  kernel:[  116.563592] Stack:
-> > > > > > > 
-> > > > > > > Message from syslogd@brian at Jan 31 19:52:33 ...
-> > > > > > >  kernel:[  116.563622] Call Trace:
-> > > > > > > 
-> > > > > > > Message from syslogd@brian at Jan 31 19:52:33 ...
-> > > > > > >  kernel:[  116.563650] Code: f2 da 4c c8 8d 56 78 89 54 24 04 89 d0 e8
-> > > > > > > e4 da 4c c8 89 f0 e8 31 ff ff ff 83 7e 4c 01 76 73 83 7e 48 02 75 49 8b
-> > > > > > > 46 04 8d 48 f8 <8b> 41 08 8d 58 f8 8d 7e 04 eb 28 8b 41 08 8b 51 0c 89
-> > > > > > > 50 04 89 
-> > > > > 
-> > > > > > > Message from syslogd@brian at Jan 31 19:52:33 ...
-> > > > > > >  kernel:[  116.563697] EIP: [<f8cec1b2>] dvb_demux_release+0x43/0x183
-> > > > > > > [dvb_core] SS:ESP 0068:e7935f58
-> > > > > > > 
-> > > > > > > Message from syslogd@brian at Jan 31 19:52:33 ...
-> > > > > > >  kernel:[  116.563706] CR2: 0000000000000000
-> > > > > 
-> > > > > I don't have a 32 bti machine set up to compile the module and compare
-> > > > > the disassembly directly.  However, the kernel code above disassembles
-> > > > > to this, and is supposedly in dvb_demux_release() but things have been
-> > > > > inlined by the compiler:
-> > > > > 
-> > > > >   1c:	8d 56 78             	lea    0x78(%esi),%edx
-> > > > >   1f:	89 54 24 04          	mov    %edx,0x4(%esp)
-> > > > >   23:	89 d0                	mov    %edx,%eax
-> > > > >   25:	e8 e4 da 4c c8       	call   0xc84cdb0e
-> > > > >   2a:	89 f0                	mov    %esi,%eax
-> > > > >   2c:	e8 31 ff ff ff       	call   0xffffff62
-> > > > > 					(dmxdev.c:dvb_dmxdev_filter_reset() appears to be inlined starting here
-> > > > > 					 %esi holds dmxdevfilter)
-> > > > >   31:	83 7e 4c 01          	cmpl   $0x1,0x4c(%esi)    if (dmxdevfilter->state < DMXDEV_STATE_SET)
-> > > > >   35:	76 73                	jbe    0xaa               	return 0;
-> > > > >   37:	83 7e 48 02          	cmpl   $0x2,0x48(%esi)    if (dmxdevfilter->type == DMXDEV_TYPE_PES)
-> > > > >   3b:	75 49                	jne    0x86
-> > > > > 					(dvb_dmxdev_delete_pids() appears to be inlined starting here
-> > > > > 					 %esi still holds dmxdevfilter)
-> > > > >   3d:	8b 46 04             	mov    0x4(%esi),%eax     %eax gets loaded with &dmxdevfilter->feed.ts  for list_for_each_entry_safe(feed, tmp, &dmxdevfilter->feed.ts, ...
-> > > > >   40:	8d 48 f8             	lea    -0x8(%eax),%ecx    %ecx is "feed" and gets loaded with the next struct dmxdev_feed pointed to by the &dmxdevfilter->feed.ts list
-> > > > >   43:	8b 41 08             	mov    0x8(%ecx),%eax     Oops appears to happen here: %ecx and hence "feed" was (craftily?) set to 0xfffffff8 based on CR2 above
-> > > > >   46:	8d 58 f8             	lea    -0x8(%eax),%ebx
-> > > > >   49:	8d 7e 04             	lea    0x4(%esi),%edi
-> > > > >   4c:	eb 28                	jmp    0x76
-> > > > >   4e:	8b 41 08             	mov    0x8(%ecx),%eax
-> > > > >   51:	8b 51 0c             	mov    0xc(%ecx),%edx
-> > > > >   54:	89 50 04             	mov    %edx,0x4(%eax)
-> > > > > 
-> > > > > 
-> > > > > So there is something wrong with the list manipulations or, if needed,
-> > > > > locking around the the list manipulations of the list that was
-> > > > > introduced in the patch you identified as the problem.  That is what is
-> > > > > causing the Ooops on close().  It will take a some more scrutiny to see
-> > > > > what exactly is wrong.
-> > > 
-> > > With further thought, a very likely of a list's "next" pointer being
-> > > NULL would be either:
-> > > 
-> > > 1. Failing to init the "struct list_head" dmxdevfilter->feed.ts after
-> > > dmxdevfilter is first kzalloc()'ed.
-> > > 
-> > > 2. The other member of the dmxdevfilter->feed union being set to NULL
-> > > unexpectedly.  (less likely)
-> > > 
-> > > I'll look at these possibilities on Wednesday evening.
-> > > 
+On Sat, 20 Feb 2010 04:07:05 +0100, hermann pitton wrote:
+> Are you still waiting for Daro's report?
+
+Yes, I am still waiting. Unfortunately neither Daro nor Roman reported
+any test result so far. Now, if we go for my second patch, I guess we
+might as well apply it right now. It only affects this one card (Asus
+P7131 analog), and it was broken so far, so I don't think my patch can
+do any bad.
+
+> As said, I would prefer to see all OEMs _not_ following Philips/NXP
+> eeprom rules running into their own trash on GNU/Linux too.
 > 
-> Schedule update: I'll be looking at this tonight (Thursday evening).
-> But maybe that was obvious by now....
-
-You're talking in secret words that confuse me a bit......
-
-So what was obvious by now???
-And what are the conclusions? And what are the changesets to be made?
-
-I think it's neither a specific application problem nor is it a specific
-driver problem. It's rather a mixture of both types.
-My intuition tells me furthermore that the core reason for the kernel
-crash and the core reason for the hanging process when the channel is
-changed are one and the same reason.
-But, as I already stated, things ran fine for 9 years.
-
-And the kernel patch itself was not correctly described. It was sold as
-the extension of what you call ioctl() by adding two further commands.
-
-But in fact it is a quite rude and radical change of the DVB demux
-device's structure.
-If it weren't such a radical change then the DVB implementation of alevt
-would not break down just like that, after performing without any
-breakdowns for over 9 years now (!).
-
-And it is de facto highly annoying if the reaction on this faulty
-behaviour is either playing it down (that's typical Chehab politics) or
-diving off wordlessly (Andreas Oberritter).
-
-And - what is the real most annoying aspect about that all:
-At the top of the stairs - on the layer where L. T. decides what becomes
-part of the kernel and what not:
-
-Wouldn't it be more than cynical to talk about quality management if the
-result of that quality management is that you can throw complete
-applications that have performed error-free for 9 years right into the
-next trashcan due to a simple kernel changeset?
-What the hell is going on here?
-
-If I could only resolve this problem on my own then I would not make
-that loud noise - you can be sure about that.
-
-All I can do is wildly guess around - and that's poor enough.
-
-A few lines deeper you mention an "unintended change in ioctl()
-semantics." What do you mean by that? You're talking in secrets again.
-
-Do you mean "STRUCT_LIST_HEAD" or "INIT_LIST_HEAD" or stuff like that?
-I haven't found that in the alevt code.
-What do you mean? And, which is more important: Who can help to resolve
-the issue?
-
-And, last but not least, if you're really short in time (what you always
-claim), then please do ignore Pitton's rant. He only steals time.
-
-Looking forward to your output, Andy
-
-Regards
-
-CS
-
-> > > > > There also may be another different problem.  I note that alevt outputs
-> > > > > this perror() message:
-> > > > > 
-> > > > > 	alevt: ioctl: DMX_SET_PES_FILTER Invalid argument (22)
-> > > > 
-> > > > > There may possibly have been an unintended change in ioctl() semantics
-> > > > > with the patch.  I have not investigated this at all yet.
-> > > > 
-> > > > 
-> > > > Voila!
-> > > > 
-> > > > This is the context of the perror message:
-> > > > 
-> > > > a. this is the title of the function:
-> > > > 
-> > > > static int vbi_dvb_open(struct vbi *vbi, const char *vbi_name,
-> > > > 	const char *channel, char *outfile, u_int16_t sid, int ttpid)
-> > > > 
-> > > > b. and this is the immediate context of the perror message:
-> > > > 
-> > > > 	memset(&filterpar, 0, sizeof(filterpar));
-> > > > 	filterpar.pid = vbi->ttpid;
-> > > >         filterpar.input = DMX_IN_FRONTEND;
-> > > >         filterpar.output = DMX_OUT_TAP;
-> > > >         filterpar.pes_type = DMX_PES_OTHER;
-> > > >         filterpar.flags = DMX_IMMEDIATE_START;
-> > > >         if (ioctl(vbi->fd, DMX_SET_PES_FILTER, &filterpar) < 0) {
-> > > >         error("ioctl: DMX_SET_PES_FILTER %s (%u)", strerror(errno),
-> > > > errno);
-> > > >         goto outerr;
-> > > >         }
-> > > > 	return 0;
-> > > > 
-> > > >  outerr:
-> > > > 	close(vbi->fd);
-> > > > 	vbi->fd = -1;
-> > > > 	return -1;
-> > > > }
-> > > > 
-> > > > If you compare that to other teletext applications you will easily find
-> > > > out that there is absolutely nothing irregular about it: all standard
-> > > > calls, free from bugs or syntax errors.
-> > > 
-> > > 
-> > > OK.  Thank you for hunting down the application call into the driver.
-> > > That should reduce the time to find the cause
-> > > 
-> > > 
-> > > > a. What is the "Invalid argument"?
-> > > > b. And what does "22" mean?
-> > > 
-> > > 22 is the errno value for EINVAL which means loosely mean "Invalid
-> > > Argument", but can often be used when something internally is just
-> > > "Invalid".
-> > > 
-> > > /usr/include/asm-generic/errno-base.h:#define	EINVAL		22	/* Invalid argument */
-> > > 
-> > > Given the ioctl() call you've documented above, it should be easy enough
-> > > to find where in the DVB subsystem the EINVAL is coming from.  And it is
-> > > likely that it is coming from code added by the patch, but I won't know
-> > > until I can examine further.
-> > > 
-> > > 
-> > > > Thanks for your engagement, Andy!
-> > > 
-> > > You're welcome.
-> > > 
-> > > 
-> > > > It's a golden donation to have people like you around!
-> > > 
-> > > Thank you.
-> > > 
-> > > Regards,
-> > > Andy
-> > 
-> > Hi Andy,
-> > 
-> > take care, such golden donations can turn into g**** s***** very soon.
->                                                  
-> Hi Hermann,
+> Then we have facts.
 > 
-> You might want to avoid that two-word slang phrase in polite company,
-> with American English speakers at least.  Unless you are trying to make
-> a really shocking point. ;)
+> That is much better than to provide a golden cloud for them. At least I
+> won't help to debug such later ...
 > 
-> Language and cultural divides can be amusing at times. :)
+> If you did not manage to decipher all OEM eeprom content already,
+> just let's go with the per card solution for now.
 > 
+> Are you aware, that my intention is _not_ to spread the use of random
+> and potentially invalid eeprom content for some sort of such auto
+> detection?
 > 
-> > 
-> > Prefer to stay with the original author.
-> > 
-> > I think he is still alive ;)
+> The other solution is not lost and in mind, if we should need to come
+> back to it and are in details. Preferably the OEMs should take the
+> responsibility for such.
 > 
-> I've added him to the Cc: list.
+> We can see, that even those always doing best on it, can't provide the
+> missing informations for different LNA stuff after the
+> Hauppauge/Pinnacle merge until now.
 > 
-> Regards,
-> Andy
-> 
-> > Cheers,
-> > Hermann
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> If you claim to know it better, please share with us.
 
+I'm not claiming anything, and to be honest, I have no idea what you're
+talking about.
 
+-- 
+Jean Delvare
