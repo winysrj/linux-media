@@ -1,39 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from service1.sh.cvut.cz ([147.32.127.214]:45709 "EHLO
-	service1.sh.cvut.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755400Ab0BFUPy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Feb 2010 15:15:54 -0500
-From: =?utf-8?q?Luk=C3=A1=C5=A1_Karas?= <lukas.karas@centrum.cz>
-To: erik.andren@gmail.com
-Subject: New kernel failed suspend ro ram with m5602 camera
-Date: Sat, 6 Feb 2010 20:54:55 +0100
-Cc: linux-media@vger.kernel.org
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:34745 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966084Ab0BZUnc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Feb 2010 15:43:32 -0500
+Received: by bwz1 with SMTP id 1so431064bwz.21
+        for <linux-media@vger.kernel.org>; Fri, 26 Feb 2010 12:43:30 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201002062055.02032.lukas.karas@centrum.cz>
+In-Reply-To: <4B882E3A.8050604@bluecherry.net>
+References: <4B882E3A.8050604@bluecherry.net>
+Date: Fri, 26 Feb 2010 15:43:30 -0500
+Message-ID: <829197381002261243if253f07k81baae7c6a2cafe@mail.gmail.com>
+Subject: Re: [bttv] Auto detection for Provideo PV- series capture cards
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Curtis Hall <curt@bluecherry.net>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Erik and others. 
+On Fri, Feb 26, 2010 at 3:25 PM, Curtis Hall <curt@bluecherry.net> wrote:
+> I'm writing concerning the Provideo PV-149, PV-155, PV-981-* and PV-183-*.
+> These cards, for the most part, are drop in and 'just work' with the bttv
+> driver.
+>
+> However the PV-149 / PV-981 / PV-155 is auto detected as the Provideo
+> PV-150, which is not a valid Provideo part number.  The PV-183-* is detected
+> as 'Unknown / Generic' and requires setting card=98,98,98,98,98,98,98,98.
 
-New kernel (2.6.33-rc*) failed suspend to ram with camera m5602 on my machine. 
-At first, I thought that it's a kernel bug (see 
-http://bugzilla.kernel.org/show_bug.cgi?id=15189) - suspend failed after 
-unload gspca_m5602 module too. But it is more probably a hardware bug, that we 
-can evade with simple udev rule
+Did you see the reply from Andy Walls over in video4linux?  He
+provided a patch, and asked for a bunch of additional information he
+needs in order to get the boards working properly.
 
-ATTR{idVendor}=="0402", ATTR{idProduct}=="5602", ATTR{power/wakeup}="disabled"
+Devin
 
-I sent this rule to linux-hotplug (udev) mailing list, but answer is 
-(http://www.spinics.net/lists/hotplug/msg03353.html) that this quirk should be 
-in camera driver or should be send to udev from v4l developers...
-
-What do you thing about it? It is a general m5602 chip problem or only my 
-hardware combination problem? How we can put rule into udev userspace library? 
-What I know, in v4l repository isn't directory with general v4l rules. This 
-problem can affect many users with this hardware...
-
-Best regards, 
-Lukas
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
