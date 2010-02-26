@@ -1,36 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45111 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755452Ab0BKP3X (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Feb 2010 10:29:23 -0500
-Message-ID: <4B742227.3000400@redhat.com>
-Date: Thu, 11 Feb 2010 13:28:39 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-fx0-f219.google.com ([209.85.220.219]:41566 "EHLO
+	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935419Ab0BZHpp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Feb 2010 02:45:45 -0500
+Received: by fxm19 with SMTP id 19so7137542fxm.21
+        for <linux-media@vger.kernel.org>; Thu, 25 Feb 2010 23:45:43 -0800 (PST)
 MIME-Version: 1.0
-To: Samuel Ortiz <samuel.ortiz@intel.com>
-CC: =?ISO-8859-1?Q?Richard_R=F6jfors?= <richard.rojfors@pelagicore.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] mfd: Add support for the timberdale FPGA.
-References: <4B66C36A.4000005@pelagicore.com> <4B693ED7.4060401@redhat.com> <20100203100326.GA3460@sortiz.org> <4B694D69.1090201@redhat.com> <20100203123617.GF3460@sortiz.org> <4B69B12D.6030105@redhat.com> <20100204092846.GA3336@sortiz.org> <4B71D70A.6030806@pelagicore.com> <20100211152620.GA6025@sortiz.org>
-In-Reply-To: <20100211152620.GA6025@sortiz.org>
+In-Reply-To: <4B87006A.4030303@oracle.com>
+References: <4B87006A.4030303@oracle.com>
+Date: Fri, 26 Feb 2010 11:45:43 +0400
+Message-ID: <1a297b361002252345k713f8ca4n84fcd1a91f7d9a8@mail.gmail.com>
+Subject: Re: [PATCH] media: fix precedence in dvb/frontends/tda665x
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Samuel Ortiz wrote:
+Hi Randy,
 
->> Now when the radio driver made it into the media tree, can I post an
->> updated MFD which defines these drivers too?
->> Is a complete MFD patch preferred, or just an incremental against the
->> last one?
-> Since the mfd driver is currently merged into Mauro's tree, you should make
-> incremental patches against it. At least that's how I'd take it in my tree.
-> Mauro, do you agree ?
+Thanks for catching the bug !
 
-Yes.
+On Fri, Feb 26, 2010 at 2:57 AM, Randy Dunlap <randy.dunlap@oracle.com> wrote:
+> From: Randy Dunlap <randy.dunlap@oracle.com>
+>
+> Fix precedence so that data is used correctly.
+> Fixes sparse warning:
+> drivers/media/dvb/frontends/tda665x.c:136:55: warning: right shift by bigger than source value
+>
+> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+> Cc: Manu Abraham <abraham.manu@gmail.com>
 
-Richard, just send me an incremental patch against my -git tree.
+Reviewed-by: Manu Abraham <manu@linuxtv.org>
+Acked-by: Manu Abraham <manu@linuxtv.org>
 
-Cheers,
-Mauro
+
+> ---
+>  drivers/media/dvb/frontends/tda665x.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> --- lnx-2633-spr.orig/drivers/media/dvb/frontends/tda665x.c
+> +++ lnx-2633-spr/drivers/media/dvb/frontends/tda665x.c
+> @@ -133,7 +133,7 @@ static int tda665x_set_state(struct dvb_
+>                frequency += config->ref_divider >> 1;
+>                frequency /= config->ref_divider;
+>
+> -               buf[0] = (u8) (frequency & 0x7f00) >> 8;
+> +               buf[0] = (u8) ((frequency & 0x7f00) >> 8);
+>                buf[1] = (u8) (frequency & 0x00ff) >> 0;
+>                buf[2] = 0x80 | 0x40 | 0x02;
+>                buf[3] = 0x00;
+>
+>
