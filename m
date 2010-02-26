@@ -1,107 +1,359 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:64241 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759259Ab0BYLZa (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:40974 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934720Ab0BZAa5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Feb 2010 06:25:30 -0500
-Received: by wya21 with SMTP id 21so1802392wya.19
-        for <linux-media@vger.kernel.org>; Thu, 25 Feb 2010 03:25:29 -0800 (PST)
+	Thu, 25 Feb 2010 19:30:57 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Maupin, Chase" <chase.maupin@ti.com>
+Subject: Re: Requested feedback on V4L2 driver design
+Date: Fri, 26 Feb 2010 01:31:45 +0100
+Cc: Hans Verkuil <hans.verkuil@tandberg.com>,
+	"sakari.ailus@maxwell.research.nokia.com"
+	<sakari.ailus@maxwell.research.nokia.com>,
+	"mchehab@infradead.org" <mchehab@infradead.org>,
+	"vpss_driver_design@list.ti.com - This list is to discuss the VPSS
+	driver design (May contain non-TIers)"
+	<vpss_driver_design@list.ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Kamoolkar, Mugdha" <mugdha@ti.com>
+References: <131E5DFBE7373E4C8D813795A6AA7F0802C4E0FF3E@dlee06.ent.ti.com> <201002120222.38816.laurent.pinchart@ideasonboard.com> <131E5DFBE7373E4C8D813795A6AA7F0802C4EC925C@dlee06.ent.ti.com>
+In-Reply-To: <131E5DFBE7373E4C8D813795A6AA7F0802C4EC925C@dlee06.ent.ti.com>
 MIME-Version: 1.0
-Date: Thu, 25 Feb 2010 12:25:27 +0100
-Message-ID: <67dbe4d71002250325l1938097eo60e8f66999d0d8e0@mail.gmail.com>
-Subject: Em28xx: vidioc_s_fmt_vid_cap queue busy
-From: Denis Barbazza <denis.barbazza@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201002260131.49065.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
-I've compiled em28xx for openwrt, on an ixp4xx cpu (armeb, Linskys NSLU2).
-Kernel is 2.6.32.8, all went ok.
+Hi Chase,
 
-The device is a generic em2860, on my x86 pc it works ok:
-Bus 001 Device 002: ID eb1a:2860 eMPIA Technology, Inc.
+On Friday 12 February 2010 17:46:55 Maupin, Chase wrote:
+> Laurent,
+> 
+> First let me thank you for taking time to review this.
 
+You're welcome.
 
-Modules loaded successfully but when i start a grab (with simple hasciicam)
-I obtain an error:
-error in ioctl VIDIOCSYNC: : Device or resource busy
-(I'll attach the whol output to end of message)
+[snip]
 
-dmesg says:
-em28xx #0: vidioc_s_fmt_vid_cap queue busy
+> > -----Original Message-----
+> > From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> > Sent: Thursday, February 11, 2010 7:23 PM
+> >
+> > On Monday 08 February 2010 16:08:37 Maupin, Chase wrote:
 
+[snip]
 
-then i load videobuf-core, videobuf-vmalloc with debug=1 and em28xx
-with core-debug=1 and dmesg says::
+> > > If you have additional questions or need more information please feel
+> > > free to contact us (we have setup a mailing list at
+> > > vpss_driver_design@list.ti.com) so we can answer them.
+> > 
+> > I'll answer here as the instructions provided in the wiki to subscribe to
+> > the vpss_driver_design mailing list are incorrect (http://list.ti.com/
+> > isn't accessible, the name has no A record associated to it). I've CC'ed
+> > the list in case subscription wouldn't be required to post.
+> 
+> The page for subscribing to the list requires a my.TI login which you can
+> setup at
+> https://myportal.ti.com/portal/dt?provider=TIPassLoginSingleContainer&lt=m
+> yti&j5=2&j3=1&goto=https%3A%2F%2Fmy.ti.com%3A443%2Fcgi-bin%2Fhome.pl%3FDCMP
+> %3DTIHeaderTracking%26HQS%3DOther%2BOT%2Bhdr_my_ti.
+> However, your reply to the list should be fine without subscribing.
 
-vbuf-vmalloc: __videobuf_mmap_free
-vbuf-vmalloc: __videobuf_mmap_free
-vbuf: reqbufs: bufs=8, size=0x9000 [72 pages total]
-vbuf-vmalloc: __videobuf_mmap_free
-vbuf-vmalloc: __videobuf_alloc: allocated at c1ef00e0(100+16) & c1ef0154(12)
-vbuf-vmalloc: __videobuf_alloc: allocated at c1ef0660(100+16) & c1ef06d4(12)
-vbuf-vmalloc: __videobuf_alloc: allocated at c1ef06e0(100+16) & c1ef0754(12)
-vbuf-vmalloc: __videobuf_alloc: allocated at c1ef0560(100+16) & c1ef05d4(12)
-vbuf-vmalloc: __videobuf_alloc: allocated at c1ef03e0(100+16) & c1ef0454(12)
-vbuf-vmalloc: __videobuf_alloc: allocated at c1ef0360(100+16) & c1ef03d4(12)
-vbuf-vmalloc: __videobuf_alloc: allocated at c1ef02e0(100+16) & c1ef0354(12)
-vbuf-vmalloc: __videobuf_alloc: allocated at c1ef0260(100+16) & c1ef02d4(12)
-vbuf: mmap setup: 8 buffers, 36864 bytes each
-em28xx #0 em28xx_accumulator_set :em28xx Scale: (1,1)-(179,255)
-em28xx #0 em28xx_capture_area_set :em28xx Area Set: (180,0)
-vbuf: qbuf: mmap requested but buffer addr is zero!
-vbuf-vmalloc: __videobuf_mmap_mapper
-vbuf-vmalloc: vmalloc is at addr c2bec000 (294912 pages)
-vbuf-vmalloc: mmap c1135a00: q=c1d3620c 400cf000-40117000 (9000) pgoff
-00000000 buf 0
-vbuf: busy: buffer #0 mapped
-em28xx #0: vidioc_s_fmt_vid_cap queue busy
-vbuf-vmalloc: munmap c1135a00 q=c1d3620c
-vbuf-vmalloc: videobuf_vm_close: buf[0] freeing (c2bec000)
-vbuf-vmalloc: __videobuf_mmap_free
-vbuf-vmalloc: __videobuf_mmap_free
+Thanks for the information, but http://list.ti.com/ still can't be accessed. 
+The host list.ti.com has no A record, an HTTP connection can't thus be 
+established.
 
+> > 1. Multi-core design
+> > --------------------
+> > 
+> > OMAP3 was already a dual-core system, OMAP4 (I assume all this is about
+> > the OMAP4 processors family) seems to push the concept one step further.
+> > 
+> > With its heterogeneous multi-core design (ARM master CPU and slave DSPs),
+> > the OMAP architecture delivers high performances at the cost of higher
+> > development time and effort as users need to write software for completely
+> > different cores, usually using different toolchains. This is in my opinion
+> > a good (or at least acceptable) trade-off between CPU power, development
+> > time and power consumption (DSPs being more efficient at signal processing
+> > at the cost of a higher development complexity).
+> > 
+> > I'm a bit puzzled, however, by how the VPSS MCU will help improving the
+> > situation compared to the OMAP3 design. The VPSS MCU will provide an API
+> > that will expose a fixed subset of the hardware capabilities. This is only
+> > a guess, but I suppose the firmware will be fairly generic, and that TI
+> > will provide customized versions to big customers tailored for their needs
+> > and use cases. The "official" kernel drivers will then need to be changed,
+> > and those changes will have no chance to be accepted in the mainline
+> > kernel. This will lead to forks and fragmentation of the developers base
+> > among the big players in the embedded markets. What will be the
+> > compensation for that ? How will the VPSS MCU provide higher performances
+> > than the OMAP3 model ?
+> 
+> The firmware on the VPSS MCU will be able to configure/control all of the
+> functionality that the VPSS MCU has and will be the same for all
+> customers. The only part that may change is the proxy driver of the
+> firmware. The proxy driver is the piece that will be responsible for
+> taking the commands from the driver and telling the firmware to execute
+> the operation.
 
+As the proxy is the "tip of the firmware iceberg", it will be all the Linux 
+driver will care about. Whether the firmware "backend" is able to configure 
+and control all of the functionality that the VPSS MCU offers is then 
+irrelevant, as the Linux driver will have no way to access that backend 
+directly. Is my understanding correct ?
 
-This is output of hasciicam:
-------------------------------------------------------------------------
-root@OpenWrt:/tmp# hasciicam -d /dev/video0 -m text
-HasciiCam 1.0 - (h)ascii 4 the masses! - http://ascii.dyne.org
-(c)2000-2006 Denis Roio < jaromil @ dyne.org >
-watch out for the (h)ASCII ROOTS
+> The initial version of the proxy will support all the standard V4L2
+> operations.  As new operations (such as on the fly video scaling) are added
+> to the V4L2 API the firmware may require an update to the proxy driver to
+> handle these requests, but the underlying code will remain the same.
 
-Device detected is /dev/video0
-EM2860/SAA711X Reference Design
-2 channels detected
-max size w[720] h[576] - min size w[48] h[32]
-Video capabilities:
-VID_TYPE_CAPTURE          can capture to memory
-VID_TYPE_TELETEXT         has teletext capability
-memory map of 8 frames: 294912 bytes
-Offset of frame 0: 0
-Offset of frame 1: 36864
-Offset of frame 2: 73728
-Offset of frame 3: 110592
-Offset of frame 4: 147456
-Offset of frame 5: 184320
-Offset of frame 6: 221184
-Offset of frame 7: 258048
-error in ioctl VIDIOCMCAPTURE: Invalid argumenterror in ioctl
-VIDIOCMCAPTURE: Device or resource busy - (h)ascii size is 80x40
-using TEXT mode dumping to file hasciicam.asc
+Different proxy versions will need different version of the Linux driver. 
+That's where fragmentation of the developers base come into play, and that's 
+the part that worries me.
 
-error in ioctl VIDIOCSYNC: : Device or resource busy
-error in ioctl VIDIOCSYNC: : Device or resource busy
+> For customers who wish to use features of the VPSS that are not supported
+> by the current V4L2 APIs there are OpenMax components being developed that
+> can also talk to the VPSS and support the full set of features of the
+> VPSS.  These components allow for additional use cases such as
+> transferring data directly from other processing blocks such as the DSP to
+> the VPSS without ever returning to the host processor (tunneling). 
+> However, the OpenMax API does not integrate with most existing software
+> such as applications that use V4L2 drivers for video capture and display.
 
-^Cinterrupt caught, exiting.
-cya!
------------------------------------------------------------------------------------------
+So the firmware "backend" will expose all its features through OpenMax, and 
+the proxy will expose a V4L2-like API based on the firmware backend ? In that 
+case why do we need a proxy at all, why can't the Linux driver access the 
+firmware "backend" directly and configure it the way it sees fit ?
 
+My understanding is that both the backend (for OpenMax) and the proxy will be 
+accessed through the notify API. Is that correct ?
 
-Anyone has some idea???
-Thank you for help!
+> What this means is that we will not be creating a bunch of one-off drivers
+> for customers who want to use features that are not part of the V4L2 APIs.
+> Instead those customers will be able to use the OpenMax components.  The
+> Linux V4L2 drivers will focus on enabling customers who are using the
+> standard V4L2 functionalities.  As the V4L2 API is expanded the only
+> changes that would be required would be to the V4L2 driver to implement
+> the new V4L2 APIs and potentially to the proxy driver on the VPSS firmware
+> to handle interpreting the new commands.
+
+If the first VPSS proxy version mimics the V4L2 API, changes will definitely 
+be required to the proxy driver to handle the V4L2 enhancements. This is where 
+an open-source version of the VPSS firmware could really help, allowing 
+modifications to the firmware when needed by the Linux driver.
+ 
+> > 2. VPSS firmware and API
+> > ------------------------
+> > 
+> > The wiki doesn't state under which license the VPSS MCU firmware will be
+> > released, but I suppose it won't be open sourced. The VPSS API, which
+> > seems from the information provided in the wiki to mimic the V4L2 API at
+> > least for video capture and output, will thus be controlled by TI and
+> > pretty much set into stone. This means future extensions to the V4L2 API
+> > that will provide more control over the devices to userspace applications
+> > will be stuck with access to a limited subset of the hardware
+> > capabilities, and users will not be able to use the full potential of the
+> > system.
+> 
+> I'll let one of the engineers from the VPSS firmware team comment on the
+> license here.  As of now my understanding is that the firmware will be
+> binary only.  The VPSS API will define a full set of capabilities, but
+> which APIs will be handled by the proxy driver will be initially limited
+> to the existing V4L2 features.  Thus while you could add new VPSS API
+> calls to the V4L2 driver the proxy on the VPSS MCU may not know how to
+> handle these calls.  As we go forward we will add new calls to the proxy
+> driver.  I'll let the VPSS firmware team comment more here but this is
+> good feedback on the need to at least let people extend the proxy driver
+> on the VPSS to handle future extensions.
+
+I think letting developers modify at least the proxy driver would be a very 
+good move. It would then be much easier to keep the proxy and the Linux driver 
+in sync.
+
+> > This goes in the opposite direction of what the Linux media community is
+> > trying to do today. For the past 6 months now we have been working on
+> > additions to the V4L2 subsystem to create a complete media framework,
+> > targeted at both desktop and embedded use cases. The new APIs that we are
+> > developing will let userspace applications discover the internal topology
+> > of the hardware and control every parameter in the video pipeline(s). This
+> > include dynamic reconfiguration of the pipeline(s),  completely under
+> > control of userspace. With a VPSS API that mimics today's V4L2 API, the
+> > OMAP4 video pipeline will look from a userspace perspective as an old-
+> > school V4L2 device, a single black box with a few controls to accommodate
+> > common use cases.
+> 
+> Again, like I stated above the VPSS API will be capable of exposing all of
+> the functionality of the VPSS hardware.  The limitation comes with the
+> proxy driver and what commands it interprets.  This will need to be
+> expanded as new features are added to the Linux kernel.  Basically the
+> VPSS API is full featured but the portions of it that are exposed to Linux
+> are initially limited to the current V4L2 APIs with plans to expand going
+> forward.  Your feedback indicates that we need to find a way that Linux
+> developers can expand which APIs are exposed to Linux themselves an not
+> need to rely on TI to do so.
+
+There's something I don't get. You mention that the VPSS API will be full-
+featured, but that only portions of it are exposed to Linux. Isn't it 
+contradictory ? An API being an Application Programming Interface, all of an 
+API is exposed by definition. What's not exposed is not part of the API, but 
+is an internal implementation detail.
+
+Can you clarify what you mean by "VPSS API" ? If that's a full-featured API 
+that can be accessed by the master ARM CPU, why do we need a proxy driver and 
+a limited proxy API at all ?
+
+> > Regardless of the firmware license, we need a way to control hardware
+> > without any limitation from the ARM processor. This includes explicit
+> > configuration of the pipeline, and access to all configuration parameters
+> > of all hardware processing blocks.
+> > 
+> > 3. VPSS API usage from kernel space
+> > -----------------------------------
+> > 
+> > The wiki mentions that Linux kernel drivers will have access to functions
+> > that convert "standard kernel data structures" to VPSS data structures as
+> > required by the VPSS firmware. I don't think that's a good idea. Please
+> > let kernel drivers do the conversion themselves. Linux kernel drivers know
+> > about their data structures better than the VPSS
+> > library/middleware/layer/whatever will do. Instead of providing such
+> > conversion functions, I would like to see the VPSS data structures
+> > properly documented so that kernel driver developers will know what
+> > information the VPSS MCU expects. Filling the VPSS data structures
+> > from "standard kernel data structures" should be left to individual
+> > drivers and/or subsystems.
+> 
+> Agreed.  What I was trying to convey here is that we will have functions in
+> the Linux kernel drivers that will convert the kernel data structures to
+> VPSS data structures.  These functions will be part of the drivers.
+
+Ok. There was a slight misunderstanding. Thanks for the clarification.
+
+> The intent was that if a V4L2 capture and display driver both take in the
+> same kind of data structure (like a buffer descriptor) that they could share
+> the function that converts that to a VPSS data structure.  In the end it
+> is still up to each driver to process the input it is given and package it
+> appropriately for sending to the VPSS.  The VPSS data structures will be
+> properly documented and will not be hidden from kernel developers.
+
+Thanks.
+
+> > As explained above, I'm really concerned about the following usage
+> > example:
+> > 
+> > "Driver calls VPSS set_format function and passes the VPSS format data
+> > 
+> > structure. The VPSS set_format function will then:
+> >  - Create a message structure for sending over the Notify IPC
+> >  - Set the command element with the set format command value
+> >  - Set the arguements element to the address of the VPSS format data
+> > structure
+> >  - Call the syslink Notify kernel API and send the address of the message
+> > structure to the VPSS"
+> > 
+> > This means the VPSS MCU will expose a single black box to the host, making
+> > it impossible to use the full capabilities of the hardware with future
+> > V4L2 extensions. Those extensions are developed for a reason. V4L2 simply
+> > doesn't scale in the light of future (and even today's) embedded hardware.
+> > If the VPSS API mimics V4L2 it will suffer from the same problem.
+> 
+> I think I addressed this above in stating that the VPSS API is fully
+> featured.  During the initial development we will only expose a subset of
+> the VPSS API as needed by the existing V4L2 API.  The list of VPSS APIs
+> that are exposed will grow over time and we need to work out if there is a
+> way to enable kernel developers to do this without relying on TI.
+
+What do you mean by "expose a subset of the VPSS API" ? I suppose that the 
+VPSS API is basically a set of messages that can be exchanged between the 
+master CPU and the VPSS, along with memory layout of data structures. Do you 
+mean that only a subset of those messages and structures will be documented at 
+first ? If they're all documented, I don't get what you mean by "expose a 
+subset of the VPSS API".
+
+> > One possible solution would be to open-source the VPSS MCU firmware,
+> > allowing the Linux community to expose capabilities needed by future V4L2
+> > extensions through the VPSS API.
+> 
+> Agreed.
+> 
+> > 4. VPSS API usage from userspace
+> > --------------------------------
+> > 
+> > I have no specific comment about the userspace API usage, but I would
+> > like to know how you plan to arbitrate access to the hardware from both
+> > kernelspace (through a V4L2 driver) and userspace. Will there be a way for
+> > kernel drivers to take ownership of specific hardware parts and disallow
+> > userspace applications from issuing any message to those parts ? The
+> > design must be carefully reviewed to spot possible race conditions and
+> > even security issues.
+> 
+> The VPSS firmware does the hardware arbitration.  If the kernel driver
+> already has a video plane open then a user space application would not be
+> able to open the same video plane.
+
+Ok, so there's some kind of locking. I suppose that loading the Linux VPSS 
+"ISP" driver will be enough to take ownership of the ISP, forbidding userspace 
+applications to use it directly (otherwise the kernel driver will not like the 
+ISP being reconfigured by userspace behind its back, and that could lead to a 
+crash in kernel space).
+
+How will the locking be handled ? I suppose "opening a plane" and "closing a 
+plane" will just be a matter of sending one (or several) messages to the VPSS. 
+In that case what would prevent a userspace application from sending a direct 
+message to close a plane that a driver would have opened ? Will the firmware 
+be able to identify if a close message comes from the same source as a 
+previous open message, without any risk of identify spoofing ?
+
+> > 5. Syslink
+> > ----------
+> > 
+> > I still need to review the syslink code. As stated by Hans Verkuil, from
+> > a quick look at the source tree the syslink module looks over-engineered.
+> > To communicate with the VPSS MCU all that seems to be needed is a mailbox-
+> > like interface.
+> > 
+> > Furthermore, the mailbox API should probably not be OMAP4-specific. Isn't
+> > there already a mailbox API in Linux ? If not I think one should be
+> > developed first, and then syslink should be built on top of it. The best
+> > way to see a driver being rejected when submitted to mainline is to write
+> > a huge pile of code and then push it in one go.
+> 
+> I'll need to let the syslink team comment on this.  I know they are
+> reworking some of the syslink code such that most of the advanced usage is
+> done from user space and only the basic message passing is done in the
+> kernel.
+
+That's very good news.
+
+> I'm not sure if they have been working on a generic mailbox interface. The
+> syslink Notify module being part of the Linux kernel is a requirement for us
+> and they are actively working on getting it into the kernel.
+> 
+> Mugdha, can someone from the syslink team comment here?
+> 
+> > As a conclusion, I believe that the best chance to get drivers into
+> > mainline and to get developers excited about the product (both are related
+> > in my experience) is to be as open as possible and play by the rules of
+> > the Linux kernel community. This means that:
+> > 
+> > - Big subsystems such as syslink should be broken down to small pieces,
+> > and every piece, especially the low-level ones, must be carefully designed
+> > with the whole Linux kernel in mind, not only the OMAP4 platform. APIs
+> > should be made generic when possible.
+> > 
+> > - The VPSS MCU firmware should be properly documented, developed in the
+> > open and under an open-source license.
+> 
+> Thanks for the guidance on this.  This is the kind of feedback we needed.
+
+You're welcome.
+
+> > Those two steps should be performed in tight cooperation with the Linux
+> > kernel community.
 
 -- 
-Denis
+Regards,
+
+Laurent Pinchart
