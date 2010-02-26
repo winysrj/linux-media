@@ -1,39 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:50300 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932195Ab0BCJ6V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Feb 2010 04:58:21 -0500
-Message-ID: <4B6948B6.3000005@infradead.org>
-Date: Wed, 03 Feb 2010 07:58:14 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from outbound.icp-qv1-irony-out3.iinet.net.au ([203.59.1.148]:8979
+	"EHLO outbound.icp-qv1-irony-out3.iinet.net.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S935455Ab0BZIFZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Feb 2010 03:05:25 -0500
+From: Mark Purcell <msp@debian.org>
+To: Raphael Hertzog <hertzog@debian.org>
+Date: Fri, 26 Feb 2010 19:04:58 +1100
+Cc: Brian Keck <bwkeck@gmail.com>, Simon Kenyon <simon@koala.ie>,
+	owner@packages.qa.debian.org, linux-media@vger.kernel.org,
+	pkg-vdr-dvb-devel@lists.alioth.debian.org, tschmidt@debian.org,
+	etobi@debian.org, steph@glondu.net
+References: <E1NkarL-0004ys-VI@master.debian.org> <20100225115441.1F6482B03E@narya.x> <20100226070253.GC29018@rivendell>
+In-Reply-To: <20100226070253.GC29018@rivendell>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: =?ISO-8859-1?Q?Richard_R=F6jfors?= <richard.rojfors@pelagicore.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH v2 2/2] radio: Add radio-timb to the Kconfig and Makefile
-References: <4B606832.7080006@pelagicore.com> <201001271742.34027.hverkuil@xs4all.nl>
-In-Reply-To: <201001271742.34027.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed;
+  boundary="nextPart1346602.pBpUY0SMaq";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Message-Id: <201002261905.08140.msp@debian.org>
+Subject: Re: You are now subscribed to linuxtv-dvb-apps
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
-> On Wednesday 27 January 2010 17:22:10 Richard Röjfors wrote:
->> This patch adds radio-timb to the Makefile and Kconfig.
+--nextPart1346602.pBpUY0SMaq
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 
->> +config RADIO_TIMBERDALE
->> +	tristate "Enable the Timberdale radio driver"
->> +	depends on MFD_TIMBERDALE && VIDEO_V4L2 && HAS_IOMEM
-> 
-> I think you need a dependency on I2C as well.
+On Friday 26 February 2010 18:02:53 Raphael Hertzog wrote:
+> I was expecting somehow that either the Debian maintainer or the upstream
+> maintainer of linuxtv-dvb-apps thought that it was a good idea to receive
+> Debian BTS mails on his mailing list.
 
+Debian Maintainer (me), thinking it is good for upstream to receive user updates of frequencies of their local TV stations which we are receiving in the BTS.
 
-It is not needed. VIDEO_V4L2 already takes care of properly handling it.
+Mark
 
--- 
+--nextPart1346602.pBpUY0SMaq
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-Cheers,
-Mauro
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEABECAAYFAkuHgKsACgkQoCzanz0IthInqACfanmDH6Fkht/3cdMqOPHtSnwa
+O0AAn3ljx3rut1zFzHVUwzL9PfEGcZhN
+=iBKN
+-----END PGP SIGNATURE-----
+
+--nextPart1346602.pBpUY0SMaq--
