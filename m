@@ -1,36 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f228.google.com ([209.85.219.228]:50772 "EHLO
-	mail-ew0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754759Ab0BGLfn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Feb 2010 06:35:43 -0500
-Message-ID: <4B6EA71C.90705@gmail.com>
-Date: Sun, 07 Feb 2010 12:42:20 +0100
-From: Roel Kluin <roel.kluin@gmail.com>
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:50697 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936066Ab0BZNL7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Feb 2010 08:11:59 -0500
+Received: by bwz1 with SMTP id 1so51273bwz.1
+        for <linux-media@vger.kernel.org>; Fri, 26 Feb 2010 05:11:57 -0800 (PST)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: [PATCH] usbvision-video: wrong variable tested in usbvision_register_video()
+Date: Fri, 26 Feb 2010 08:11:56 -0500
+Message-ID: <55a3e0ce1002260511s6351a6e6k548f329f1dc7b698@mail.gmail.com>
+Subject: support for device node for sub devices
+From: Muralidharan Karicheri <mkaricheri@gmail.com>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-usbvision->vdev was already tested, we should test usbvision->vbi here.
+Hello Laurent,
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
----
-diff --git a/drivers/media/video/usbvision/usbvision-video.c b/drivers/media/video/usbvision/usbvision-video.c
-index 1054546..7c17ec6 100644
---- a/drivers/media/video/usbvision/usbvision-video.c
-+++ b/drivers/media/video/usbvision/usbvision-video.c
-@@ -1487,7 +1487,7 @@ static int __devinit usbvision_register_video(struct usb_usbvision *usbvision)
- 		usbvision->vbi = usbvision_vdev_init(usbvision,
- 						     &usbvision_vbi_template,
- 						     "USBVision VBI");
--		if (usbvision->vdev == NULL) {
-+		if (usbvision->vbi == NULL) {
- 			goto err_exit;
- 		}
- 		if (video_register_device(usbvision->vbi,
+I see that you have added support for sub device device nodes in your
+media controller development tree. This is an important feature for
+SoC devices since this will allow application to configure the sub
+device nodes like that on VPFE/VPBE of a DMxxx device. Shouldn't we
+add this feature right away perhaps in 2.6.35 so that drivers can make
+use of it?
+-- 
+Murali Karicheri
