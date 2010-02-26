@@ -1,194 +1,293 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:43527 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753167Ab0BOKo5 (ORCPT
+Received: from warped.bluecherry.net ([66.138.159.247]:56921 "EHLO
+	warped.bluecherry.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965955Ab0BZUZk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Feb 2010 05:44:57 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v4 2/7] V4L: Events: Add new ioctls for events
-Date: Mon, 15 Feb 2010 11:45:11 +0100
-Cc: "Sakari Ailus" <sakari.ailus@maxwell.research.nokia.com>,
-	linux-media@vger.kernel.org, iivanov@mm-sol.com,
-	gururaj.nagendra@intel.com, david.cohen@nokia.com
-References: <4B72C965.7040204@maxwell.research.nokia.com> <201002151055.19102.laurent.pinchart@ideasonboard.com> <8762902c908f13548aad83861a7262fd.squirrel@webmail.xs4all.nl>
-In-Reply-To: <8762902c908f13548aad83861a7262fd.squirrel@webmail.xs4all.nl>
+	Fri, 26 Feb 2010 15:25:40 -0500
+Received: from [192.168.1.126] (office.bluecherry.net [69.27.206.208])
+	(using SSLv3 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(Client did not present a certificate)
+	by warped.bluecherry.net (Postfix) with ESMTPSA id 3108B98F380C
+	for <linux-media@vger.kernel.org>; Fri, 26 Feb 2010 14:25:38 -0600 (CST)
+Message-ID: <4B882E3A.8050604@bluecherry.net>
+Date: Fri, 26 Feb 2010 14:25:30 -0600
+From: Curtis Hall <curt@bluecherry.net>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201002151145.15454.laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [bttv] Auto detection for Provideo PV- series capture cards
+Content-Type: multipart/mixed;
+ boundary="------------050103010400000702050608"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This is a multi-part message in MIME format.
+--------------050103010400000702050608
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Monday 15 February 2010 11:28:52 Hans Verkuil wrote:
-> > Hi Hans,
-> > 
-> > On Saturday 13 February 2010 14:19:55 Hans Verkuil wrote:
-> >> On Wednesday 10 February 2010 15:58:04 Sakari Ailus wrote:
-> >> > This patch adds a set of new ioctls to the V4L2 API. The ioctls
-> >> 
-> >> conform
-> >> 
-> >> > to V4L2 Events RFC version 2.3:
-> >> I've experimented with the events API to try and support it with ivtv
-> >> and
-> >> I realized that it had some problems.
-> >> 
-> >> See comments below.
-> >> 
-> >> > <URL:http://www.spinics.net/lists/linux-media/msg12033.html>
-> >> > 
-> >> > Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> >> > ---
-> >> > 
-> >> >  drivers/media/video/v4l2-compat-ioctl32.c |    3 +++
-> >> >  drivers/media/video/v4l2-ioctl.c          |    3 +++
-> >> >  include/linux/videodev2.h                 |   23
-> >> 
-> >> +++++++++++++++++++++++
-> >> 
-> >> >  3 files changed, 29 insertions(+), 0 deletions(-)
-> >> > 
-> >> > diff --git a/drivers/media/video/v4l2-compat-ioctl32.c
-> >> > b/drivers/media/video/v4l2-compat-ioctl32.c index 997975d..cba704c
-> >> > 100644
-> >> > --- a/drivers/media/video/v4l2-compat-ioctl32.c
-> >> > +++ b/drivers/media/video/v4l2-compat-ioctl32.c
-> >> > @@ -1077,6 +1077,9 @@ long v4l2_compat_ioctl32(struct file *file,
-> >> > unsigned int cmd, unsigned long arg)
-> >> > 
-> >> >  	case VIDIOC_DBG_G_REGISTER:
-> >> >  	case VIDIOC_DBG_G_CHIP_IDENT:
-> >> > 
-> >> >  	case VIDIOC_S_HW_FREQ_SEEK:
-> >> > +	case VIDIOC_DQEVENT:
-> >> > +	case VIDIOC_SUBSCRIBE_EVENT:
-> >> > 
-> >> > +	case VIDIOC_UNSUBSCRIBE_EVENT:
-> >> >  		ret = do_video_ioctl(file, cmd, arg);
-> >> >  		break;
-> >> > 
-> >> > diff --git a/drivers/media/video/v4l2-ioctl.c
-> >> > b/drivers/media/video/v4l2-ioctl.c index 30cc334..bfc4696 100644
-> >> > --- a/drivers/media/video/v4l2-ioctl.c
-> >> > +++ b/drivers/media/video/v4l2-ioctl.c
-> >> > @@ -283,6 +283,9 @@ static const char *v4l2_ioctls[] = {
-> >> > 
-> >> >  	[_IOC_NR(VIDIOC_DBG_G_CHIP_IDENT)] = "VIDIOC_DBG_G_CHIP_IDENT",
-> >> >  	[_IOC_NR(VIDIOC_S_HW_FREQ_SEEK)]   = "VIDIOC_S_HW_FREQ_SEEK",
-> >> > 
-> >> > +	[_IOC_NR(VIDIOC_DQEVENT)]	   = "VIDIOC_DQEVENT",
-> >> > +	[_IOC_NR(VIDIOC_SUBSCRIBE_EVENT)]  = "VIDIOC_SUBSCRIBE_EVENT",
-> >> > +	[_IOC_NR(VIDIOC_UNSUBSCRIBE_EVENT)] = "VIDIOC_UNSUBSCRIBE_EVENT",
-> >> > 
-> >> >  #endif
-> >> >  };
-> >> >  #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
-> >> > 
-> >> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> >> > index 54af357..a19ae89 100644
-> >> > --- a/include/linux/videodev2.h
-> >> > +++ b/include/linux/videodev2.h
-> >> > @@ -1536,6 +1536,26 @@ struct v4l2_streamparm {
-> >> > 
-> >> >  };
-> >> >  
-> >> >  /*
-> >> > 
-> >> > + *	E V E N T S
-> >> > + */
-> >> > +
-> >> > +struct v4l2_event {
-> >> > +	__u32		count;
-> >> 
-> >> The name 'count' is confusing. Count of what? I think the name 'pending'
-> >> might be more understandable. A comment after the definition would also
-> >> help.
-> >> 
-> >> > +	__u32		type;
-> >> > +	__u32		sequence;
-> >> > +	struct timespec	timestamp;
-> >> > +	__u32		reserved[9];
-> >> > +	__u8		data[64];
-> >> > +};
-> >> 
-> >> I also think we should reorder the fields and add a union. For ivtv I
-> >> would
-> >> need this:
-> >> 
-> >> #define V4L2_EVENT_ALL                          0
-> >> #define V4L2_EVENT_VSYNC                        1
-> >> #define V4L2_EVENT_EOS                          2
-> >> #define V4L2_EVENT_PRIVATE_START                0x08000000
-> >> 
-> >> /* Payload for V4L2_EVENT_VSYNC */
-> >> struct v4l2_event_vsync {
-> >> 
-> >>         /* Can be V4L2_FIELD_ANY, _NONE, _TOP or _BOTTOM */
-> >>         u8 field;
-> >> 
-> >> } __attribute__ ((packed));
-> >> 
-> >> struct v4l2_event {
-> >> 
-> >>         __u32           type;
-> >>         union {
-> >>         
-> >>                 struct v4l2_event_vsync vsync;
-> >>                 __u8    data[64];
-> >>         
-> >>         } u;
-> >>         __u32           sequence;
-> >>         struct timespec timestamp;
-> >>         __u32           pending;
-> >>         __u32           reserved[9];
-> >> 
-> >> };
-> >> 
-> >> The reason for rearranging the fields has to do with the fact that the
-> >> first two fields (type and the union) form the actual event data. The
-> >> others are more for administrative purposes. Separating those two makes
-> >> sense to me.
-> >> 
-> >> So when I define an event for queuing it is nice if I can do just this:
-> >> 
-> >> static const struct v4l2_event ev_top = {
-> >> 
-> >> 	.type = V4L2_EVENT_VSYNC,
-> >> 	.u.vsync.field = V4L2_FIELD_TOP,
-> >> 
-> >> };
-> >> 
-> >> I would have preferred to have an anonymous union. Unfortunately gcc has
-> >> problems with initializers for fields inside an anonymous union. Hence
-> >> the need for a named union.
-> > 
-> > Will all drivers add private events to the union ? This would then soon
-> > become a mess. Wouldn't it be better for drivers to define their own event
-> > structures (standard ones could be shared between drivers in videodev2.h)
-> > and cast the pointer to data to a pointer to the appropriate event
-> > structure ?
-> 
-> I would prefer to have the actual event type defines in videodev2.h (just
-> as we do for private control IDs). The actual payload structure can be
-> defined elsewhere as far as I am concerned.
+I'm writing concerning the Provideo PV-149, PV-155, PV-981-* and 
+PV-183-*.   These cards, for the most part, are drop in and 'just work' 
+with the bttv driver.
 
-I'm OK with defining the types in videodev2.h, but using a big union would 
-require every event type to add a field to the union. That's the part that 
-would become messy.
+However the PV-149 / PV-981 / PV-155 is auto detected as the Provideo 
+PV-150, which is not a valid Provideo part number.  The PV-183-* is 
+detected as 'Unknown / Generic' and requires setting 
+card=98,98,98,98,98,98,98,98.
 
-> An alternative in the long run might be to split off the event structs
-> into a separate public header. I have been thinking along those lines as
-> well for the controls. videodev2.h is getting pretty huge and it might be
-> more managable if it is split up in multiple parts with videodev2.h
-> including those parts.
+I believe the text concerning 'detected: Provideo PV150A-1' should be 
+changed to 'detected: Provideo PV149 / PV981 / PV155'
 
-Agreed.
+I've attached outputs from the bttv kernel logs for the PV-149 / PV-981 
+/ PV-183.  If there's something I'm missing please let me know and I'll 
+get it for you.
 
--- 
-Regards,
+Just for reference the PV-149 / PV-981 / PV-183 series cards are:
 
-Laurent Pinchart
+PV-149 - 4 port, 4 BT878a chips - no forced card setting required
+PV-155 - 16 port, 4 BT878a chips - card=77,77,77,77  (Shares the same 
+board and PCI ID / subsystem as the PV-149)
+
+PV-183-8: 8 port, 8 BT878a chips - card=98,98,98,98,98,98,98,98
+PV-183-16: 16 port, 8 BT878a chips - card=98,98,98,98,98,98,98,98 
+(Shares the same board and PCI ID / subsystem as the PV-183-8)
+
+PV-981-4: 4 port, 4 BT878a chips - no modprobe setting required
+PV-981-8: 8 port, 4 BT878a chips  - no modprobe setting required (Shares 
+the same board as the PV-981-4)
+PV-981-16: 16 port, 4 BT878a chips - card=98,98,98,98,98,98,98,98 
+(Shares the same board and PCI ID / subsystem as the PV-981-4)
+
+
+Thanks!
+
+--
+Curtis Hall (curt@bluecherry.net)
+Bluecherry - www.bluecherry.net
+(877) 418-3391 x 201 
+
+
+--------------050103010400000702050608
+Content-Type: text/plain;
+ name="kern.log-pv149.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="kern.log-pv149.txt"
+
+[   10.287287] bttv: driver version 0.9.17 loaded
+[   10.287289] bttv: using 8 buffers with 2080k (520 pages) each for capture
+[   10.287336] bttv: Bt8xx card found (0).
+[   10.287345] bttv 0000:04:08.0: PCI INT A -> GSI 22 (level, low) -> IRQ 22
+[   10.287354] bttv0: Bt878 (rev 17) at 0000:04:08.0, irq: 22, latency: 64, mmio: 0xfdfff000
+[   10.287367] bttv0: detected: Provideo PV150A-1 [card=98], PCI subsystem ID is aa00:1460
+[   10.287369] bttv0: using: ProVideo PV150 [card=98,autodetected]
+[   10.287392] bttv0: gpio: en=00000000, out=00000000 in=00ffffff [init]
+[   10.287810] bttv0: tuner absent
+[   10.287893] bttv0: registered device video0
+[   10.287925] bttv0: registered device vbi0
+[   10.287946] bttv0: PLL: 28636363 => 35468950 ..<6>hda_codec: Unknown model for ALC662, trying auto-probe from BIOS...
+[   10.316095]  ok
+[   10.316109] bttv: Bt8xx card found (1).
+[   10.316125] bttv 0000:04:09.0: PCI INT A -> GSI 23 (level, low) -> IRQ 23
+[   10.316137] bttv1: Bt878 (rev 17) at 0000:04:09.0, irq: 23, latency: 64, mmio: 0xfdffd000
+[   10.316190] bttv1: detected: Provideo PV150A-2 [card=98], PCI subsystem ID is aa01:1461
+[   10.316193] bttv1: using: ProVideo PV150 [card=98,autodetected]
+[   10.316219] bttv1: gpio: en=00000000, out=00000000 in=00ffffff [init]
+[   10.316272] bttv1: tuner absent
+[   10.316320] bttv1: registered device video1
+[   10.316354] bttv1: registered device vbi1
+[   10.316375] bttv1: PLL: 28636363 => 35468950 .. ok
+[   10.348096] bttv: Bt8xx card found (2).
+[   10.348112] bttv 0000:04:0a.0: PCI INT A -> GSI 20 (level, low) -> IRQ 20
+[   10.348123] bttv2: Bt878 (rev 17) at 0000:04:0a.0, irq: 20, latency: 64, mmio: 0xfdffb000
+[   10.348160] bttv2: detected: Provideo PV150A-3 [card=98], PCI subsystem ID is aa02:1462
+[   10.348163] bttv2: using: ProVideo PV150 [card=98,autodetected]
+[   10.348197] bttv2: gpio: en=00000000, out=00000000 in=00ffffff [init]
+[   10.348258] bttv2: tuner absent
+[   10.348302] bttv2: registered device video2
+[   10.348337] bttv2: registered device vbi2
+[   10.348360] bttv2: PLL: 28636363 => 35468950 .. ok
+[   10.380043] bttv: Bt8xx card found (3).
+[   10.380058] bttv 0000:04:0b.0: PCI INT A -> GSI 21 (level, low) -> IRQ 21
+[   10.380069] bttv3: Bt878 (rev 17) at 0000:04:0b.0, irq: 21, latency: 64, mmio: 0xfdff9000
+[   10.380128] bttv3: detected: Provideo PV150A-4 [card=98], PCI subsystem ID is aa03:1463
+[   10.380131] bttv3: using: ProVideo PV150 [card=98,autodetected]
+[   10.380157] bttv3: gpio: en=00000000, out=00000000 in=00ffffff [init]
+[   10.380217] bttv3: tuner absent
+[   10.380267] bttv3: registered device video3
+[   10.380299] bttv3: registered device vbi3
+[   10.380319] bttv3: PLL: 28636363 => 35468950 .. ok
+
+
+--------------050103010400000702050608
+Content-Type: text/plain;
+ name="kern.log-pv183.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="kern.log-pv183.txt"
+
+[   13.438351] bttv 0000:02:04.0: PCI INT A -> Link[APC2] -> GSI 17 (level, low) -> IRQ 17
+[   13.438363] bttv0: Bt878 (rev 17) at 0000:02:04.0, irq: 17, latency: 32, mmio: 0xd5100000
+[   13.438412] bttv0: subsystem: 1830:1540 (UNKNOWN)
+[   13.438414] please mail id, board name and the correct card= insmod option to video4linux-list@redhat.com
+[   13.438416] bttv0: using:  *** UNKNOWN/GENERIC ***  [card=0,autodetected]
+[   13.438453] bttv0: gpio: en=00000000, out=00000000 in=00ffffff [init]
+[   13.474501] bttv0: tuner type unset
+[   13.474503] bttv0: i2c: checking for MSP34xx @ 0x80... not found
+[   13.476477] bttv0: i2c: checking for TDA9875 @ 0xb0... not found
+[   13.477175] bttv0: i2c: checking for TDA7432 @ 0x8a... not found
+[   13.477963] bttv0: registered device video0
+[   13.477980] bttv0: registered device vbi0
+[   13.478024] bttv: Bt8xx card found (1).
+[   13.478041] bttv 0000:02:05.0: PCI INT A -> Link[APC3] -> GSI 18 (level, low) -> IRQ 18
+[   13.478052] bttv1: Bt878 (rev 17) at 0000:02:05.0, irq: 18, latency: 32, mmio: 0xd5102000
+[   13.478084] bttv1: subsystem: 1831:1540 (UNKNOWN)
+[   13.478086] please mail id, board name and the correct card= insmod option to video4linux-list@redhat.com
+[   13.478088] bttv1: using:  *** UNKNOWN/GENERIC ***  [card=0,autodetected]
+[   13.478115] bttv1: gpio: en=00000000, out=00000000 in=00ffffff [init]
+[   13.514141] bttv1: tuner type unset
+[   13.514144] bttv1: i2c: checking for MSP34xx @ 0x80... not found
+[   13.514849] bttv1: i2c: checking for TDA9875 @ 0xb0... not found
+[   13.515544] bttv1: i2c: checking for TDA7432 @ 0x8a... not found
+[   13.516430] bttv1: registered device video1
+[   13.516613] bttv1: registered device vbi1
+[   13.516651] bttv: Bt8xx card found (2).
+[   13.516953] ACPI: PCI Interrupt Link [APC4] enabled at IRQ 19
+[   13.516960] bttv 0000:02:06.0: PCI INT A -> Link[APC4] -> GSI 19 (level, low) -> IRQ 19
+[   13.516972] bttv2: Bt878 (rev 17) at 0000:02:06.0, irq: 19, latency: 32, mmio: 0xd5104000
+[   13.517003] bttv2: subsystem: 1832:1540 (UNKNOWN)
+[   13.517004] please mail id, board name and the correct card= insmod option to video4linux-list@redhat.com
+[   13.517006] bttv2: using:  *** UNKNOWN/GENERIC ***  [card=0,autodetected]
+[   13.517043] bttv2: gpio: en=00000000, out=00000000 in=00ffffff [init]
+[   13.553571] bttv2: tuner type unset
+[   13.553575] bttv2: i2c: checking for MSP34xx @ 0x80... not found
+[   13.554287] bttv2: i2c: checking for TDA9875 @ 0xb0... not found
+[   13.554982] bttv2: i2c: checking for TDA7432 @ 0x8a... not found
+[   13.555724] bttv2: registered device video2
+[   13.555741] bttv2: registered device vbi2
+[   13.555778] bttv: Bt8xx card found (3).
+[   13.556068] ACPI: PCI Interrupt Link [APC1] enabled at IRQ 16
+[   13.556075] bttv 0000:02:07.0: PCI INT A -> Link[APC1] -> GSI 16 (level, low) -> IRQ 16
+[   13.556088] bttv3: Bt878 (rev 17) at 0000:02:07.0, irq: 16, latency: 32, mmio: 0xd5106000
+[   13.556116] bttv3: subsystem: 1833:1540 (UNKNOWN)
+[   13.556118] please mail id, board name and the correct card= insmod option to video4linux-list@redhat.com
+[   13.556120] bttv3: using:  *** UNKNOWN/GENERIC ***  [card=0,autodetected]
+[   13.556157] bttv3: gpio: en=00000000, out=00000000 in=00ffffff [init]
+[   13.592217] bttv3: tuner type unset
+[   13.592221] bttv3: i2c: checking for MSP34xx @ 0x80... not found
+[   13.592930] bttv3: i2c: checking for TDA9875 @ 0xb0... not found
+[   13.593625] bttv3: i2c: checking for TDA7432 @ 0x8a... not found
+[   13.594416] bttv3: registered device video3
+[   13.594455] bttv3: registered device vbi3
+[   13.594492] bttv: Bt8xx card found (4).
+[   13.594512] bttv 0000:02:08.0: PCI INT A -> Link[APC2] -> GSI 17 (level, low) -> IRQ 17
+[   13.594526] bttv4: Bt878 (rev 17) at 0000:02:08.0, irq: 17, latency: 32, mmio: 0xd5108000
+[   13.594557] bttv4: subsystem: 1837:1540 (UNKNOWN)
+[   13.594558] please mail id, board name and the correct card= insmod option to video4linux-list@redhat.com
+[   13.594560] bttv4: using:  *** UNKNOWN/GENERIC ***  [card=0,autodetected]
+[   13.594588] bttv4: gpio: en=00000000, out=00000000 in=00ffffff [init]
+[   13.630641] bttv4: tuner type unset
+[   13.630644] bttv4: i2c: checking for MSP34xx @ 0x80... not found
+[   13.631340] bttv4: i2c: checking for TDA9875 @ 0xb0... not found
+[   13.632037] bttv4: i2c: checking for TDA7432 @ 0x8a... not found
+[   13.632807] bttv4: registered device video4
+[   13.632829] bttv4: registered device vbi4
+[   13.632866] bttv: Bt8xx card found (5).
+[   13.632883] bttv 0000:02:09.0: PCI INT A -> Link[APC3] -> GSI 18 (level, low) -> IRQ 18
+[   13.632894] bttv5: Bt878 (rev 17) at 0000:02:09.0, irq: 18, latency: 32, mmio: 0xd510a000
+[   13.632920] bttv5: subsystem: 1834:1540 (UNKNOWN)
+[   13.632921] please mail id, board name and the correct card= insmod option to video4linux-list@redhat.com
+[   13.632923] bttv5: using:  *** UNKNOWN/GENERIC ***  [card=0,autodetected]
+[   13.632950] bttv5: gpio: en=00000000, out=00000000 in=00ffffff [init]
+[   13.668972] bttv5: tuner type unset
+[   13.668975] bttv5: i2c: checking for MSP34xx @ 0x80... not found
+[   13.669671] bttv5: i2c: checking for TDA9875 @ 0xb0... not found
+[   13.670366] bttv5: i2c: checking for TDA7432 @ 0x8a... not found
+[   13.671112] bttv5: registered device video5
+[   13.671131] bttv5: registered device vbi5
+[   13.671166] bttv: Bt8xx card found (6).
+[   13.671183] bttv 0000:02:0a.0: PCI INT A -> Link[APC4] -> GSI 19 (level, low) -> IRQ 19
+[   13.671196] bttv6: Bt878 (rev 17) at 0000:02:0a.0, irq: 19, latency: 32, mmio: 0xd510c000
+[   13.671232] bttv6: subsystem: 1835:1540 (UNKNOWN)
+[   13.671234] please mail id, board name and the correct card= insmod option to video4linux-list@redhat.com
+[   13.671236] bttv6: using:  *** UNKNOWN/GENERIC ***  [card=0,autodetected]
+[   13.671265] bttv6: gpio: en=00000000, out=00000000 in=00ffffff [init]
+[   13.699171] HDA Intel 0000:00:09.0: power state changed by ACPI to D0
+[   13.699421] ACPI: PCI Interrupt Link [AAZA] enabled at IRQ 22
+[   13.699424] HDA Intel 0000:00:09.0: PCI INT A -> Link[AAZA] -> GSI 22 (level, low) -> IRQ 22
+[   13.699462] HDA Intel 0000:00:09.0: setting latency timer to 64
+[   13.707325] bttv6: tuner type unset
+[   13.707327] bttv6: i2c: checking for MSP34xx @ 0x80... not found
+[   13.708023] bttv6: i2c: checking for TDA9875 @ 0xb0... not found
+[   13.708724] bttv6: i2c: checking for TDA7432 @ 0x8a... not found
+[   13.709473] bttv6: registered device video6
+[   13.709492] bttv6: registered device vbi6
+[   13.709527] bttv: Bt8xx card found (7).
+[   13.709540] bttv 0000:02:0b.0: PCI INT A -> Link[APC1] -> GSI 16 (level, low) -> IRQ 16
+[   13.709550] bttv7: Bt878 (rev 17) at 0000:02:0b.0, irq: 16, latency: 32, mmio: 0xd510e000
+[   13.709566] bttv7: subsystem: 1836:1540 (UNKNOWN)
+[   13.709568] please mail id, board name and the correct card= insmod option to video4linux-list@redhat.com
+[   13.709570] bttv7: using:  *** UNKNOWN/GENERIC ***  [card=0,autodetected]
+[   13.709596] bttv7: gpio: en=00000000, out=00000000 in=00ffffff [init]
+[   13.745609] bttv7: tuner type unset
+[   13.745612] bttv7: i2c: checking for MSP34xx @ 0x80... not found
+[   13.746307] bttv7: i2c: checking for TDA9875 @ 0xb0... not found
+[   13.747002] bttv7: i2c: checking for TDA7432 @ 0x8a... not found
+[   13.747747] bttv7: registered device video7
+[   13.747766] bttv7: registered device vbi7
+
+
+--------------050103010400000702050608
+Content-Type: text/plain;
+ name="kern.log-pv981.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="kern.log-pv981.txt"
+
+[    9.852114] bttv: driver version 0.9.17 loaded
+[    9.852117] bttv: using 8 buffers with 2080k (520 pages) each for capture
+[    9.852171] bttv: Bt8xx card found (0).
+[    9.852185] bttv 0000:02:00.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
+[    9.852195] bttv0: Bt878 (rev 17) at 0000:02:00.0, irq: 16, latency: 64, mmio: 0xfdeff000
+[    9.852239] bttv0: detected: Provideo PV150A-1 [card=98], PCI subsystem ID is aa00:1460
+[    9.852241] bttv0: using: ProVideo PV150 [card=98,autodetected]
+[    9.852262] bttv0: gpio: en=00000000, out=00000000 in=00ffffff [init]
+[    9.852314] bttv0: tuner absent
+[    9.852383] bttv0: registered device video0
+[    9.852415] bttv0: registered device vbi0
+[    9.852438] bttv0: PLL: 28636363 => 35468950 .. ok
+[    9.884047] bttv: Bt8xx card found (1).
+[    9.884063] bttv 0000:02:01.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
+[    9.884075] bttv1: Bt878 (rev 17) at 0000:02:01.0, irq: 17, latency: 64, mmio: 0xfdefd000
+[    9.884132] bttv1: detected: Provideo PV150A-2 [card=98], PCI subsystem ID is aa01:1461
+[    9.884135] bttv1: using: ProVideo PV150 [card=98,autodetected]
+[    9.884159] bttv1: gpio: en=00000000, out=00000000 in=00ffffff [init]
+[    9.884218] bttv1: tuner absent
+[    9.884269] bttv1: registered device video1
+[    9.884302] bttv1: registered device vbi1
+[    9.884324] bttv1: PLL: 28636363 => 35468950 ..<6>HDA Intel 0000:00:1b.0: PCI INT A -> GSI 22 (level, low) -> IRQ 22
+[    9.909559] HDA Intel 0000:00:1b.0: setting latency timer to 64
+[    9.916097]  ok
+[    9.916113] bttv: Bt8xx card found (2).
+[    9.916125] bttv 0000:02:02.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
+[    9.916135] bttv2: Bt878 (rev 17) at 0000:02:02.0, irq: 18, latency: 64, mmio: 0xfdefb000
+[    9.916152] bttv2: detected: Provideo PV150A-3 [card=98], PCI subsystem ID is aa02:1462
+[    9.916155] bttv2: using: ProVideo PV150 [card=98,autodetected]
+[    9.916178] bttv2: gpio: en=00000000, out=00000000 in=00ffffff [init]
+[    9.916248] bttv2: tuner absent
+[    9.916302] bttv2: registered device video2
+[    9.916336] bttv2: registered device vbi2
+[    9.916358] bttv2: PLL: 28636363 => 35468950 ..<6>hda_codec: Unknown model for ALC662, trying auto-probe from BIOS...
+[    9.948094]  ok
+[    9.948109] bttv: Bt8xx card found (3).
+[    9.948123] bttv 0000:02:03.0: PCI INT A -> GSI 19 (level, low) -> IRQ 19
+[    9.948135] bttv3: Bt878 (rev 17) at 0000:02:03.0, irq: 19, latency: 64, mmio: 0xfdef9000
+[    9.948171] bttv3: detected: Provideo PV150A-4 [card=98], PCI subsystem ID is aa03:1463
+[    9.948174] bttv3: using: ProVideo PV150 [card=98,autodetected]
+[    9.948207] bttv3: gpio: en=00000000, out=00000000 in=00ffffff [init]
+[    9.948266] bttv3: tuner absent
+[    9.948316] bttv3: registered device video3
+[    9.948349] bttv3: registered device vbi3
+[    9.948371] bttv3: PLL: 28636363 => 35468950 .. ok
+
+
+--------------050103010400000702050608--
