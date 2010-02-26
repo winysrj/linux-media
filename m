@@ -1,111 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4992 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753513Ab0BIMOY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Feb 2010 07:14:24 -0500
-Message-ID: <2aa8130b9fd7fe9f9fb2cf626ff58831.squirrel@webmail.xs4all.nl>
-In-Reply-To: <Pine.LNX.4.64.1002091252530.4585@axis700.grange>
-References: <Pine.LNX.4.64.1002081044150.4936@axis700.grange>
-    <4B7012D1.40605@redhat.com>
-    <Pine.LNX.4.64.1002081447020.4936@axis700.grange>
-    <4B705216.7040907@redhat.com>
-    <Pine.LNX.4.64.1002091053470.4585@axis700.grange>
-    <26fe28e3dda70da4d133a9dbc3f2bc74.squirrel@webmail.xs4all.nl>
-    <Pine.LNX.4.64.1002091252530.4585@axis700.grange>
-Date: Tue, 9 Feb 2010 13:13:32 +0100
-Subject: Re: [PATCH/RESEND] soc-camera: add runtime pm support for  
- subdevices
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-Cc: "Mauro Carvalho Chehab" <mchehab@redhat.com>,
-	linux-pm@lists.linux-foundation.org,
-	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
-	"Valentin Longchamp" <valentin.longchamp@epfl.ch>
+Received: from bombadil.infradead.org ([18.85.46.34]:45901 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935641Ab0BZMFE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Feb 2010 07:05:04 -0500
+Message-ID: <4B87B8E6.6040608@infradead.org>
+Date: Fri, 26 Feb 2010 09:04:54 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: Pawel Osciak <p.osciak@samsung.com>
+CC: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	'Hans Verkuil' <hverkuil@xs4all.nl>,
+	linux-media@vger.kernel.org
+Subject: Re: More videobuf and streaming I/O questions
+References: <201002201500.21118.hverkuil@xs4all.nl> <201002220012.20797.laurent.pinchart@ideasonboard.com> <000901cab45b$a8c55a10$fa500e30$%osciak@samsung.com> <201002260046.16878.laurent.pinchart@ideasonboard.com> <001b01cab6b6$631d05f0$295711d0$%osciak@samsung.com>
+In-Reply-To: <001b01cab6b6$631d05f0$295711d0$%osciak@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Pawel Osciak wrote:
+>> On Tuesday 23 February 2010 08:41:49 Pawel Osciak wrote:
+>>>> On Mon, 22 Feb 2010 00:12:18 +0100
+>>>> Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
+>>> As for the REQBUF, I've always thought it'd be nice to be able to ask the
+>>> driver for the "recommended" number of buffers that should be used by
+>>> issuing a REQBUF with count=0...
+>> How would the driver come up with the number of recommended buffers ?
+> 
+> From the top of my head: when encoding a video stream, a codec driver could
+> decide on the minimum number of input frames required (including reference
+> frames, etc.).
+> 
+> Or maybe I am missing something, what is your opinion on that?
 
-> On Tue, 9 Feb 2010, Hans Verkuil wrote:
->
->>
->> > On Mon, 8 Feb 2010, Mauro Carvalho Chehab wrote:
->> >
->> >> In fact, on all drivers, there are devices that needs to be turn on
->> only
->> >> when
->> >> streaming is happening: sensors, analog TV/audio demods, digital
->> demods.
->> >> Also,
->> >> a few devices (for example: TV tuners) could eventually be on power
->> off
->> >> when
->> >> no device is opened.
->> >>
->> >> As the V4L core knows when this is happening (due to
->> >> open/close/poll/streamon/reqbuf/qbuf/dqbuf hooks, I think the runtime
->> >> management
->> >> can happen at V4L core level.
->> >
->> > Well, we can move it up to v4l core. Should it get any more
->> complicated
->> > than adding
->> >
->> > 	ret = pm_runtime_resume(&vdev->dev);
->> > 	if (ret < 0 && ret != -ENOSYS)
->> > 		return ret;
->> >
->> > to v4l2_open() and
->> >
->> > 	pm_runtime_suspend(&vdev->dev);
->> >
->> > to v4l2_release()?
->>
->> My apologies if I say something stupid as I know little about pm: are
->> you
->> assuming here that streaming only happens on one device node? That may
->> be
->> true for soc-camera, but other devices can have multiple streaming nodes
->> (video, vbi, mpeg, etc). So the call to v4l2_release does not
->> necessarily
->> mean that streaming has stopped.
->
-> Of course you're right, and it concerns not only multiple streaming modes,
-> but simple cases of multiple openings of one node. I was too fast to
-> transfer the implementation from soc-camera to v4l2 - in soc-camera I'm
-> counting opens and closes and only calling pm hooks on first open and last
-> close. So, if we want to put it in v4l-core, we'd have to do something
-> similar, I presume.
+There are some cases where this feature could be useful. For example, there are
+some devices used for surveillance that have one decoder connected to several
+inputs. For example, several bttv boards have one bt848 chip for each 8 inputs.
+Each input is connected to one camera. The minimum recommended number of buffers
+is 16 (2 per each input). This is poorly documented, on some wikis for some of
+the boards with such usage.
 
-I wouldn't mind having such counters. There are more situations where
-knowing whether it is the first open or last close comes in handy.
+That's said, there's currently a few missing features for surveillance: the user
+software need to manually switch from one input to another, and the video buffer
+metadata doesn't indicate the input. 
 
-However, in general I think that pm shouldn't be done in the core. It is
-just too hardware dependent. E.g. there may both capture and display video
-nodes in the driver. And when the last capture stops you can for example
-power down the receiver chips. The same with display and transmitter
-chips. But if both are controlled by the same driver, then a general open
-counter will not work either.
-
-But if you have ideas to improve the core to make it easier to add pm
-support to the drivers that need it, then I am all for it.
-
-Regards,
-
-        Hans
-
->
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
->
-
+The better would be to provide a way to let the driver to switch to the next camera 
+just after the reception of a new buffer (generally at the IRQ time), instead of 
+letting the userspace software to do it at the DQBUF.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
+Cheers,
+Mauro
