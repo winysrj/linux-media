@@ -1,104 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:43081 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754345Ab0BJO6h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Feb 2010 09:58:37 -0500
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	iivanov@mm-sol.com, gururaj.nagendra@intel.com,
-	david.cohen@nokia.com
-Subject: [PATCH v4 2/7] V4L: Events: Add new ioctls for events
-Date: Wed, 10 Feb 2010 16:58:04 +0200
-Message-Id: <1265813889-17847-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <1265813889-17847-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-References: <4B72C965.7040204@maxwell.research.nokia.com>
- <1265813889-17847-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+Received: from mx1.redhat.com ([209.132.183.28]:31696 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S966239Ab0BZVmT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Feb 2010 16:42:19 -0500
+Message-ID: <4B884034.8080508@redhat.com>
+Date: Fri, 26 Feb 2010 18:42:12 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Curtis Hall <curt@bluecherry.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: [bttv] Auto detection for Provideo PV- series capture cards
+References: <4B882E3A.8050604@bluecherry.net>
+In-Reply-To: <4B882E3A.8050604@bluecherry.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a set of new ioctls to the V4L2 API. The ioctls conform to
-V4L2 Events RFC version 2.3:
+Let's go by parts:
 
-<URL:http://www.spinics.net/lists/linux-media/msg12033.html>
+Curtis Hall wrote:
+> I'm writing concerning the Provideo PV-149, PV-155, PV-981-* and
+> PV-183-*.   These cards, for the most part, are drop in and 'just work'
+> with the bttv driver.
+> 
+> However the PV-149 / PV-981 / PV-155 is auto detected as the Provideo
+> PV-150, which is not a valid Provideo part number. 
 
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- drivers/media/video/v4l2-compat-ioctl32.c |    3 +++
- drivers/media/video/v4l2-ioctl.c          |    3 +++
- include/linux/videodev2.h                 |   23 +++++++++++++++++++++++
- 3 files changed, 29 insertions(+), 0 deletions(-)
+>From your logs, both PV-149 and PV-981 shares the same PCI ID = aa00:1460,
+which is the same ID for PV-150.
 
-diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-index 997975d..cba704c 100644
---- a/drivers/media/video/v4l2-compat-ioctl32.c
-+++ b/drivers/media/video/v4l2-compat-ioctl32.c
-@@ -1077,6 +1077,9 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
- 	case VIDIOC_DBG_G_REGISTER:
- 	case VIDIOC_DBG_G_CHIP_IDENT:
- 	case VIDIOC_S_HW_FREQ_SEEK:
-+	case VIDIOC_DQEVENT:
-+	case VIDIOC_SUBSCRIBE_EVENT:
-+	case VIDIOC_UNSUBSCRIBE_EVENT:
- 		ret = do_video_ioctl(file, cmd, arg);
- 		break;
- 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 30cc334..bfc4696 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -283,6 +283,9 @@ static const char *v4l2_ioctls[] = {
- 
- 	[_IOC_NR(VIDIOC_DBG_G_CHIP_IDENT)] = "VIDIOC_DBG_G_CHIP_IDENT",
- 	[_IOC_NR(VIDIOC_S_HW_FREQ_SEEK)]   = "VIDIOC_S_HW_FREQ_SEEK",
-+	[_IOC_NR(VIDIOC_DQEVENT)]	   = "VIDIOC_DQEVENT",
-+	[_IOC_NR(VIDIOC_SUBSCRIBE_EVENT)]  = "VIDIOC_SUBSCRIBE_EVENT",
-+	[_IOC_NR(VIDIOC_UNSUBSCRIBE_EVENT)] = "VIDIOC_UNSUBSCRIBE_EVENT",
- #endif
- };
- #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 54af357..a19ae89 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1536,6 +1536,26 @@ struct v4l2_streamparm {
- };
- 
- /*
-+ *	E V E N T S
-+ */
-+
-+struct v4l2_event {
-+	__u32		count;
-+	__u32		type;
-+	__u32		sequence;
-+	struct timespec	timestamp;
-+	__u32		reserved[9];
-+	__u8		data[64];
-+};
-+
-+struct v4l2_event_subscription {
-+	__u32		type;
-+	__u32		reserved[7];
-+};
-+
-+#define V4L2_EVENT_PRIVATE_START		0x08000000
-+
-+/*
-  *	A D V A N C E D   D E B U G G I N G
-  *
-  *	NOTE: EXPERIMENTAL API, NEVER RELY ON THIS IN APPLICATIONS!
-@@ -1651,6 +1671,9 @@ struct v4l2_dbg_chip_ident {
- #endif
- 
- #define VIDIOC_S_HW_FREQ_SEEK	 _IOW('V', 82, struct v4l2_hw_freq_seek)
-+#define VIDIOC_DQEVENT		 _IOR('V', 83, struct v4l2_event)
-+#define VIDIOC_SUBSCRIBE_EVENT	 _IOW('V', 84, struct v4l2_event_subscription)
-+#define VIDIOC_UNSUBSCRIBE_EVENT _IOW('V', 85, struct v4l2_event_subscription)
- /* Reminder: when adding new ioctls please add support for them to
-    drivers/media/video/v4l2-compat-ioctl32.c as well! */
- 
+The entry for PV-150 were added at -hg tree by this changeset:
+changeset:   784:3c31d7e0b4bc
+user:        Gerd Knorr
+date:        Sun Feb 22 01:59:34 2004 +0000
+summary:     Initial revision
+
+Probably, this is a discontinued model, but I don't know for sure.
+
+> The PV-183-* is
+> detected as 'Unknown / Generic' and requires setting
+> card=98,98,98,98,98,98,98,98.
+
+This one is easy:
+[   13.438412] bttv0: subsystem: 1830:1540 (UNKNOWN)
+
+As this PCI ID is not known, it is just a matter of associating the PV-183
+ID's with card 98.
+
+> 
+> I believe the text concerning 'detected: Provideo PV150A-1' should be
+> changed to 'detected: Provideo PV149 / PV981 / PV155'
+
+Seems ok to me for PV-981.
+
+> I've attached outputs from the bttv kernel logs for the PV-149 / PV-981
+> / PV-183.  If there's something I'm missing please let me know and I'll
+> get it for you.
+> 
+> Just for reference the PV-149 / PV-981 / PV-183 series cards are:
+> 
+> PV-149 - 4 port, 4 BT878a chips - no forced card setting required
+> PV-155 - 16 port, 4 BT878a chips - card=77,77,77,77  (Shares the same
+> board and PCI ID / subsystem as the PV-149)
+
+Hmm... PV-155 shares the same PCI ID as PV-149, but require a different
+entry, then we shouldn't add it to the PV-150 autodetection code.
+
+The better would be to check with the manufacturer if is there a
+way to detect between those two boards (maybe reading eeprom?).
+
+> 
+> PV-183-8: 8 port, 8 BT878a chips - card=98,98,98,98,98,98,98,98
+> PV-183-16: 16 port, 8 BT878a chips - card=98,98,98,98,98,98,98,98
+> (Shares the same board and PCI ID / subsystem as the PV-183-8)
+> 
+> PV-981-4: 4 port, 4 BT878a chips - no modprobe setting required
+> PV-981-8: 8 port, 4 BT878a chips  - no modprobe setting required (Shares
+> the same board as the PV-981-4)
+> PV-981-16: 16 port, 4 BT878a chips - card=98,98,98,98,98,98,98,98
+> (Shares the same board and PCI ID / subsystem as the PV-981-4)
+
+Why do you need the card=  parameter, if it shares the same subsystem ID
+as the other PV-981 models?
+> 
+> 
+> Thanks!
+> 
+> -- 
+> Curtis Hall (curt@bluecherry.net)
+> Bluecherry - www.bluecherry.net
+> (877) 418-3391 x 201
+> 
+
+
 -- 
-1.5.6.5
 
+Cheers,
+Mauro
