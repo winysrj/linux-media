@@ -1,54 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp21.orange.fr ([80.12.242.47]:55118 "EHLO smtp21.orange.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752478Ab0BWNGR convert rfc822-to-8bit (ORCPT
+Received: from mxweblb06fl.versatel.de ([89.246.255.250]:48365 "EHLO
+	mxweblb06fl.versatel.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965085Ab0BZQX4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2010 08:06:17 -0500
-From: Christophe Thommeret <hftom@free.fr>
-To: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] scan-s2 and dvb-apps
-Date: Tue, 23 Feb 2010 14:06:36 +0100
-References: <1a297b361002230336q7065170tc79ef22426ef5a8a@mail.gmail.com>
-In-Reply-To: <1a297b361002230336q7065170tc79ef22426ef5a8a@mail.gmail.com>
+	Fri, 26 Feb 2010 11:23:56 -0500
+Received: from ens28fl.versatel.de (ens28fl.versatel.de [82.140.32.10])
+	by mxweblb06fl.versatel.de (8.13.1/8.13.1) with ESMTP id o1QGNs1o021933
+	for <linux-media@vger.kernel.org>; Fri, 26 Feb 2010 17:23:54 +0100
+Received: from cinnamon-sage.de (i577A4F45.versanet.de [87.122.79.69])
+	(authenticated bits=0)
+	by ens28fl.versatel.de (8.12.11.20060308/8.12.11) with SMTP id o1QGNsT5023000
+	for <linux-media@vger.kernel.org>; Fri, 26 Feb 2010 17:23:54 +0100
+Received: from 192.168.23.2:49451 by cinnamon-sage.de for <linux-media@vger.kernel.org> ; 26.02.2010 17:23:54
+Message-ID: <4B87F59A.7070006@cinnamon-sage.de>
+Date: Fri, 26 Feb 2010 17:23:54 +0100
+From: Lars Hanisch <dvb@cinnamon-sage.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201002231406.36939.hftom@free.fr>
+To: linux-media@vger.kernel.org
+Subject: cx18: where do the transport stream PIDs come from?
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le mardi 23 février 2010 12:36:13, Manu Abraham a écrit :
-> Hi All,
-> 
-> Recently, quite some people have been requesting for scan-s2 a simple
-> scan application which has been hacked on top of the scan application
-> as available in the dvb-apps tree, to be integrated/pulled in to the
-> dvb-apps tree, after it's author moved on to other arenas.
-> 
-> http://www.mail-archive.com/vdr@linuxtv.org/msg11125.html
-> 
-> The idea initially was to have a cloned copy of scan as scan-s2.
-> Now, on the other hand scan-s2 is much more like scan and similar
-> functionality wise too.
-> 
-> Considering the aspects, do you think, that it is worthwhile to have
-> 
-> a) the scan-s2 application and the scan application as well integrated
-> into the repository, such that they both live together
-> 
-> or
-> 
-> b) scan-s2 does things almost the same as scan2. scan can be replaced
-> by scan-s2.
-> 
-> 
-> What are your ideas/thoughts on this ?
+Hi,
 
-I think S2 scanning should simply be added to scan.
-My 2cents.
+  while working on a small test app which repacks the ivtv-PS into a TS, I received a sample from a cx18-based card. The 
+TS contains the video PID 301, audio PID 300 and PCR pid 101.
 
--- 
-Christophe Thommeret
+  Where do these PIDs come from, are they set by the driver or are they firmware given?
+  Is it possible to change them?
 
-
+Regards,
+Lars.
