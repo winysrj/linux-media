@@ -1,66 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:48723 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751710Ab0BWRkU convert rfc822-to-8bit (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:37832 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934688Ab0BZAe1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2010 12:40:20 -0500
-Received: by bwz1 with SMTP id 1so1196807bwz.21
-        for <linux-media@vger.kernel.org>; Tue, 23 Feb 2010 09:40:18 -0800 (PST)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Nameer Kazzaz <nameer.kazzaz@gmail.com>,
-	Hendrik Skarpeid <skarp@online.no>, linux-media@vger.kernel.org
-Subject: Re: DM1105: could not attach frontend 195d:1105
-Date: Tue, 23 Feb 2010 19:40:12 +0200
-References: <4B7D83B2.4030709@online.no> <4B83C6C0.5020708@online.no> <4B83D425.6060803@gmail.com>
-In-Reply-To: <4B83D425.6060803@gmail.com>
+	Thu, 25 Feb 2010 19:34:27 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Maupin, Chase" <chase.maupin@ti.com>
+Subject: Re: Requested feedback on V4L2 driver design
+Date: Fri, 26 Feb 2010 01:35:20 +0100
+Cc: Hans Verkuil <hans.verkuil@tandberg.com>,
+	"sakari.ailus@maxwell.research.nokia.com"
+	<sakari.ailus@maxwell.research.nokia.com>,
+	"mchehab@infradead.org" <mchehab@infradead.org>,
+	"vpss_driver_design@list.ti.com - This list is to discuss the VPSS
+	driver design (May contain non-TIers)"
+	<vpss_driver_design@list.ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <131E5DFBE7373E4C8D813795A6AA7F0802C4E0FF3E@dlee06.ent.ti.com> <201002120222.38816.laurent.pinchart@ideasonboard.com> <131E5DFBE7373E4C8D813795A6AA7F0802E7F9CB88@dlee06.ent.ti.com>
+In-Reply-To: <131E5DFBE7373E4C8D813795A6AA7F0802E7F9CB88@dlee06.ent.ti.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <201002231940.13385.liplianin@me.by>
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201002260135.23333.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23 февраля 2010 15:12:05 Nameer Kazzaz wrote:
-> Sounds cool, let me know if I can help you with anything.
->
-> Thanks
-> Nameer
->
-> Hendrik Skarpeid wrote:
-> > No luck here either, still working on it.
-> > My plan is to solder som wires on strategic points on the board and
-> > debug i2c and other activity with an oscilloscope. Will probably start
-> > next week.
-> >
-> > Nameer Kazzaz wrote:
-> >> Hey Igor,
-> >> I'm getting the same error:
-> >> dm1105 0000:04:0b.0: could not attach frontend
-> >>
-> >> Did you get your one to work.
-> >>
-> >> Thanks
-> >> Nameer
-> >>
-> >> Igor M. Liplianin wrote:
-> >>> On 18 февраля 2010, liplianin@me.by wrote:
-> >>>> I also got the unbranded dm1105 card. I tried the four possible i2c
-> >>>> addresses, just i case. Noen worked of course. Then I traced the i2c
-> >>>> pins on the tuner to pins 100 and 101 on the DM1105.
-> >>>> These are GPIO pins, so bit-banging i2c on these pins seems to be the
-> >>>> solution.
-> >>>>
-> >>>> scl = p101 = gpio14
-> >>>> sda = p100 = gpio13
-> >>>
-> >>> Here is the patch to test. Use option card=4.
-> >>>     modprobe dm1105 card=4
-I didn't test patch in real hardware.
-But I can connect GPIO14 and GPIO13 to SCL and SDA in any dm1105 card and test whether it works.
-Then I will ask you to test also.
+Hi Chase,
+
+On Tuesday 16 February 2010 14:00:11 Maupin, Chase wrote:
+> Laurent,
+> 
+> To follow up with some of the comments I made before I got additional
+> clarification about the commands supported by the proxy driver running on
+> the VPSS MCU.  The proxy will support all of the commands used by V4L2 as
+> well as those proposed extensions to V4L2 that Hans has mentioned. 
+> Basically, the list of commands supported at initial release is not only
+> those required today, but a full set for all the features of the VPSS.  In
+> this was as new APIs are added to V4L2 the support for those features will
+> already be supported by the VPSS MCU proxy driver.
+
+Thank you for the clarification.
+
+A few things are still uncleared to me, as stated in my previous mail (from a 
+few minutes ago). My main question is, if the VPSS API is full-featured and 
+accessible from the master CPU, why do we need a proxy driver in the firmware 
+at all ?
+
+> As for the license of the firmware this is still being worked.  It is
+> currently under TI proprietary license and will be distributed as binary
+> under Technical Software Publicly Available (TSPA) which means it can be
+> obtained by anyone.  If you feel that source code is required for the
+> firmware at launch to gain acceptance please let us know and we can start
+> working that issue.
+
+I think it would definitely help keeping the Linux driver and the VPSS 
+firmware in sync if the VPSS firmware source was available. The firmware 
+source code could even be distributed along with the Linux driver.
+
+By the way, will the firmware be loaded at runtime by the driver, or will it 
+be stored internally in the chip ?
 
 -- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+Regards,
+
+Laurent Pinchart
