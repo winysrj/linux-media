@@ -1,349 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dd16922.kasserver.com ([85.13.137.202]:34598 "EHLO
-	dd16922.kasserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757119Ab0BKVG0 (ORCPT
+Received: from warped.bluecherry.net ([66.138.159.247]:44508 "EHLO
+	warped.bluecherry.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966107Ab0BZUs4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Feb 2010 16:06:26 -0500
-Received: from [127.0.0.1] (p50816D31.dip.t-dialin.net [80.129.109.49])
-	by dd16922.kasserver.com (Postfix) with ESMTPA id 01B5210FC0A6
-	for <linux-media@vger.kernel.org>; Thu, 11 Feb 2010 22:06:23 +0100 (CET)
-Message-ID: <4B74715A.8010403@helmutauer.de>
-Date: Thu, 11 Feb 2010 22:06:34 +0100
-From: Helmut Auer <vdr@helmutauer.de>
+	Fri, 26 Feb 2010 15:48:56 -0500
+Received: from [192.168.1.126] (office.bluecherry.net [69.27.206.208])
+	(using SSLv3 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(Client did not present a certificate)
+	by warped.bluecherry.net (Postfix) with ESMTPSA id 7217698F380C
+	for <linux-media@vger.kernel.org>; Fri, 26 Feb 2010 14:48:55 -0600 (CST)
+Message-ID: <4B8833B6.7050103@bluecherry.net>
+Date: Fri, 26 Feb 2010 14:48:54 -0600
+From: Curtis Hall <curt@bluecherry.net>
 MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: [PATCH]Add support for SMT7020 to cx88
-Content-Type: multipart/mixed;
- boundary="------------060108060304080102060000"
+Subject: Re: [bttv] Auto detection for Provideo PV- series capture cards
+References: <4B882E3A.8050604@bluecherry.net> <829197381002261243if253f07k81baae7c6a2cafe@mail.gmail.com>
+In-Reply-To: <829197381002261243if253f07k81baae7c6a2cafe@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------060108060304080102060000
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Devin,
 
-From: Helmut Auer <helmut@helmutauer.de>
+I saw his email and I've been in private communication between him and 
+Provideo trying to get the information he needs.  However his request 
+was for the PV-947D against the IVTV driver.  These cards are using the 
+bttv driver.  I was hoping a bttv maintainer could look at the 
+information I posted first to make sure this information wasn't duplicated.
 
-This patch (originally written by Dirk Herrendoerfer) adds support for the built-in dvb device
-of a Samsung SMT7020s (x86 based STB) to the cx88 family.
-(see http://www.linuxtv.org/pipermail/linux-dvb/2007-January/015208.html)
-
-Signed-off-by: Helmut Auer <helmut@helmutauer.de>
+Thanks!
 
 -- 
-Helmut Auer, helmut@helmutauer.de
+--
+Curtis Hall (curt@bluecherry.net)
+Bluecherry - www.bluecherry.net
+(877) 418-3391 x 201 
 
---------------060108060304080102060000
-Content-Type: text/plain;
- name="SMT-dvb.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="SMT-dvb.diff"
-
-diff -r 095b1aec2354 linux/drivers/media/video/cx88/cx88-cards.c
---- a/linux/drivers/media/video/cx88/cx88-cards.c	Thu Feb 11 15:43:41 2010 -0200
-+++ b/linux/drivers/media/video/cx88/cx88-cards.c	Thu Feb 11 22:01:13 2010 +0100
-@@ -1499,6 +1499,18 @@
- 			.audioroute = 8,
- 		},
- 	},
-+	[CX88_BOARD_SAMSUNG_SMT_7020] = {
-+		.name		= "Samsung SMT 7020 DVB-S",
-+		.tuner_type	= TUNER_ABSENT,
-+		.radio_type	= UNSET,
-+		.tuner_addr	= ADDR_UNSET,
-+		.radio_addr	= ADDR_UNSET,
-+		.input		= { {
-+			.type	= CX88_VMUX_DVB,
-+			.vmux	= 0,
-+		} },
-+		.mpeg           = CX88_MPEG_DVB,
-+	},
- 	[CX88_BOARD_ADSTECH_PTV_390] = {
- 		.name           = "ADS Tech Instant Video PCI",
- 		.tuner_type     = TUNER_ABSENT,
-@@ -2388,6 +2400,14 @@
- 		.subvendor = 0x0070,
- 		.subdevice = 0x1404,
- 		.card      = CX88_BOARD_HAUPPAUGE_HVR3000,
-+	}, {
-+		.subvendor = 0x18ac,
-+		.subdevice = 0xdc00,
-+		.card      = CX88_BOARD_SAMSUNG_SMT_7020,
-+	}, {
-+		.subvendor = 0x18ac,
-+		.subdevice = 0xdccd,
-+		.card      = CX88_BOARD_SAMSUNG_SMT_7020,
- 	},{
- 		.subvendor = 0x1461,
- 		.subdevice = 0xc111, /* AverMedia M150-D */
-@@ -2666,6 +2686,9 @@
- 	case 98559: /* WinTV-HVR1100LP (Video no IR, Retail - Low Profile) */
- 		/* known */
- 		break;
-+	case CX88_BOARD_SAMSUNG_SMT_7020:
-+		cx_set(MO_GP0_IO, 0x008989FF);
-+		break;
- 	default:
- 		warn_printk(core, "warning: unknown hauppauge model #%d\n",
- 			    tv.model);
-diff -r 095b1aec2354 linux/drivers/media/video/cx88/cx88-dvb.c
---- a/linux/drivers/media/video/cx88/cx88-dvb.c	Thu Feb 11 15:43:41 2010 -0200
-+++ b/linux/drivers/media/video/cx88/cx88-dvb.c	Thu Feb 11 22:01:13 2010 +0100
-@@ -681,6 +681,194 @@
- 	return 0;
- }
- 
-+
-+
-+static u8 samsung_smt_7020_inittab[] = {
-+	     0x01, 0x15,
-+	     0x02, 0x00,
-+	     0x03, 0x00,
-+	     0x04, 0x7D,
-+	     0x05, 0x0F,
-+	     0x06, 0x02,
-+	     0x07, 0x00,
-+	     0x08, 0x60,
-+
-+	     0x0A, 0xC2,
-+	     0x0B, 0x00,
-+	     0x0C, 0x01,
-+	     0x0D, 0x81,
-+	     0x0E, 0x44,
-+	     0x0F, 0x09,
-+	     0x10, 0x3C,
-+	     0x11, 0x84,
-+	     0x12, 0xDA,
-+	     0x13, 0x99,
-+	     0x14, 0x8D,
-+	     0x15, 0xCE,
-+	     0x16, 0xE8,
-+	     0x17, 0x43,
-+	     0x18, 0x1C,
-+	     0x19, 0x1B,
-+	     0x1A, 0x1D,
-+
-+	     0x1C, 0x12,
-+	     0x1D, 0x00,
-+	     0x1E, 0x00,
-+	     0x1F, 0x00,
-+	     0x20, 0x00,
-+	     0x21, 0x00,
-+	     0x22, 0x00,
-+	     0x23, 0x00,
-+
-+	     0x28, 0x02,
-+	     0x29, 0x28,
-+	     0x2A, 0x14,
-+	     0x2B, 0x0F,
-+	     0x2C, 0x09,
-+	     0x2D, 0x05,
-+
-+	     0x31, 0x1F,
-+	     0x32, 0x19,
-+	     0x33, 0xFC,
-+	     0x34, 0x13,
-+	     0xff, 0xff,
-+};
-+
-+
-+static int samsung_smt_7020_tuner_set_params(struct dvb_frontend *fe,
-+	struct dvb_frontend_parameters *params)
-+{
-+	struct cx8802_dev *dev = fe->dvb->priv;
-+	u8 buf[4];
-+	u32 div;
-+	struct i2c_msg msg = {
-+		.addr = 0x61,
-+		.flags = 0,
-+		.buf = buf,
-+		.len = sizeof(buf) };
-+
-+	div = params->frequency / 125;
-+
-+	buf[0] = (div >> 8) & 0x7f;
-+	buf[1] = div & 0xff;
-+	buf[2] = 0x84;  /* 0xC4 */
-+	buf[3] = 0x00;
-+
-+	if (params->frequency < 1500000)
-+		buf[3] |= 0x10;
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+
-+	if (i2c_transfer(&dev->core->i2c_adap, &msg, 1) != 1)
-+		return -EIO;
-+
-+	return 0;
-+}
-+
-+static int samsung_smt_7020_set_tone(struct dvb_frontend *fe,
-+	fe_sec_tone_mode_t tone)
-+{
-+	struct cx8802_dev *dev = fe->dvb->priv;
-+	struct cx88_core *core = dev->core;
-+
-+	cx_set(MO_GP0_IO, 0x0800);
-+
-+	switch (tone) {
-+	case SEC_TONE_ON:
-+		cx_set(MO_GP0_IO, 0x08);
-+		break;
-+	case SEC_TONE_OFF:
-+		cx_clear(MO_GP0_IO, 0x08);
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int samsung_smt_7020_set_voltage(struct dvb_frontend *fe,
-+	fe_sec_voltage_t voltage)
-+{
-+	struct cx8802_dev *dev = fe->dvb->priv;
-+	struct cx88_core *core = dev->core;
-+
-+	u8 data;
-+	struct i2c_msg msg = {
-+		.addr = 8,
-+		.flags = 0,
-+		.buf = &data,
-+		.len = sizeof(data) };
-+
-+	cx_set(MO_GP0_IO, 0x8000);
-+
-+	switch (voltage) {
-+	case SEC_VOLTAGE_OFF:
-+		break;
-+	case SEC_VOLTAGE_13:
-+		data = ISL6421_EN1 | ISL6421_LLC1;
-+		cx_clear(MO_GP0_IO, 0x80);
-+		break;
-+	case SEC_VOLTAGE_18:
-+		data = ISL6421_EN1 | ISL6421_LLC1 | ISL6421_VSEL1;
-+		cx_clear(MO_GP0_IO, 0x80);
-+		break;
-+	default:
-+		return -EINVAL;
-+	};
-+
-+	return (i2c_transfer(&dev->core->i2c_adap, &msg, 1) == 1) ? 0 : -EIO;
-+}
-+
-+static int samsung_smt_7020_stv0299_set_symbol_rate(struct dvb_frontend *fe,
-+	u32 srate, u32 ratio)
-+{
-+	u8 aclk = 0;
-+	u8 bclk = 0;
-+
-+	if (srate < 1500000) {
-+		aclk = 0xb7;
-+		bclk = 0x47;
-+	} else if (srate < 3000000) {
-+		aclk = 0xb7;
-+		bclk = 0x4b;
-+	} else if (srate < 7000000) {
-+		aclk = 0xb7;
-+		bclk = 0x4f;
-+	} else if (srate < 14000000) {
-+		aclk = 0xb7;
-+		bclk = 0x53;
-+	} else if (srate < 30000000) {
-+		aclk = 0xb6;
-+		bclk = 0x53;
-+	} else if (srate < 45000000) {
-+		aclk = 0xb4;
-+		bclk = 0x51;
-+	}
-+
-+	stv0299_writereg(fe, 0x13, aclk);
-+	stv0299_writereg(fe, 0x14, bclk);
-+	stv0299_writereg(fe, 0x1f, (ratio >> 16) & 0xff);
-+	stv0299_writereg(fe, 0x20, (ratio >>  8) & 0xff);
-+	stv0299_writereg(fe, 0x21, ratio & 0xf0);
-+
-+	return 0;
-+}
-+
-+
-+static struct stv0299_config samsung_stv0299_config = {
-+	.demod_address = 0x68,
-+	.inittab = samsung_smt_7020_inittab,
-+	.mclk = 88000000UL,
-+	.invert = 0,
-+	.skip_reinit = 0,
-+	.lock_output = STV0299_LOCKOUTPUT_LK,
-+	.volt13_op0_op1 = STV0299_VOLT13_OP1,
-+	.min_delay_ms = 100,
-+	.set_symbol_rate = samsung_smt_7020_stv0299_set_symbol_rate,
-+};
-+
- static int dvb_register(struct cx8802_dev *dev)
- {
- 	struct cx88_core *core = dev->core;
-@@ -1210,6 +1398,34 @@
- 		}
- 		break;
- 		}
-+	case CX88_BOARD_SAMSUNG_SMT_7020:
-+		dev->ts_gen_cntrl = 0x08;
-+
-+		struct cx88_core *core = dev->core;
-+
-+		cx_set(MO_GP0_IO, 0x0101);
-+
-+		cx_clear(MO_GP0_IO, 0x01);
-+		mdelay(100);
-+		cx_set(MO_GP0_IO, 0x01);
-+		mdelay(200);
-+
-+		fe0->dvb.frontend = dvb_attach(stv0299_attach,
-+					&samsung_stv0299_config,
-+					&dev->core->i2c_adap);
-+		if (fe0->dvb.frontend) {
-+			fe0->dvb.frontend->ops.tuner_ops.set_params =
-+				samsung_smt_7020_tuner_set_params;
-+			fe0->dvb.frontend->tuner_priv =
-+				&dev->core->i2c_adap;
-+			fe0->dvb.frontend->ops.set_voltage =
-+				samsung_smt_7020_set_voltage;
-+			fe0->dvb.frontend->ops.set_tone =
-+				samsung_smt_7020_set_tone;
-+		}
-+
-+		break;
-+
- 	default:
- 		printk(KERN_ERR "%s/2: The frontend of your DVB/ATSC card isn't supported yet\n",
- 		       core->name);
-diff -r 095b1aec2354 linux/drivers/media/video/cx88/cx88-mpeg.c
---- a/linux/drivers/media/video/cx88/cx88-mpeg.c	Thu Feb 11 15:43:41 2010 -0200
-+++ b/linux/drivers/media/video/cx88/cx88-mpeg.c	Thu Feb 11 22:01:13 2010 +0100
-@@ -123,6 +123,9 @@
- 		case CX88_BOARD_PCHDTV_HD5500:
- 			cx_write(TS_SOP_STAT, 1<<13);
- 			break;
-+		case CX88_BOARD_SAMSUNG_SMT_7020:
-+			cx_write(TS_SOP_STAT, 0x00);
-+			break;
- 		case CX88_BOARD_HAUPPAUGE_NOVASPLUS_S1:
- 		case CX88_BOARD_HAUPPAUGE_NOVASE2_S1:
- 			cx_write(MO_PINMUX_IO, 0x88); /* Enable MPEG parallel IO and video signal pins */
-diff -r 095b1aec2354 linux/drivers/media/video/cx88/cx88.h
---- a/linux/drivers/media/video/cx88/cx88.h	Thu Feb 11 15:43:41 2010 -0200
-+++ b/linux/drivers/media/video/cx88/cx88.h	Thu Feb 11 22:01:13 2010 +0100
-@@ -240,6 +240,7 @@
- #define CX88_BOARD_WINFAST_DTV1800H        81
- #define CX88_BOARD_WINFAST_DTV2000H_J      82
- #define CX88_BOARD_PROF_7301               83
-+#define CX88_BOARD_SAMSUNG_SMT_7020        84
- 
- enum cx88_itype {
- 	CX88_VMUX_COMPOSITE1 = 1,
-
---------------060108060304080102060000--
