@@ -1,92 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:49659 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753857Ab0BVQQb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 11:16:31 -0500
-Date: Mon, 22 Feb 2010 17:16:39 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Rodolfo Giometti <giometti@enneenne.com>
-cc: Richard =?iso-8859-15?Q?R=C3=B6jfors?=
-	<richard.rojfors.ext@mocean-labs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: adv7180 as SoC camera device
-In-Reply-To: <20100222160139.GL21778@enneenne.com>
-Message-ID: <Pine.LNX.4.64.1002221706480.4120@axis700.grange>
-References: <20100219174451.GH21778@enneenne.com> <Pine.LNX.4.64.1002192018170.5860@axis700.grange>
- <20100222160139.GL21778@enneenne.com>
+Received: from mx1.redhat.com ([209.132.183.28]:2019 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S967165Ab0B0CIN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Feb 2010 21:08:13 -0500
+Message-ID: <4B887E86.50302@redhat.com>
+Date: Fri, 26 Feb 2010 23:08:06 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Curtis Hall <curt@bluecherry.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: [bttv] Auto detection for Provideo PV- series capture cards
+References: <4B882E3A.8050604@bluecherry.net> <4B884034.8080508@redhat.com> <4B8845F1.5070608@bluecherry.net>
+In-Reply-To: <4B8845F1.5070608@bluecherry.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 22 Feb 2010, Rodolfo Giometti wrote:
+Curtis Hall wrote:
+> Mauro Carvalho Chehab wrote:
+>> Let's go by parts:
+>>
+>> The entry for PV-150 were added at -hg tree by this changeset:
+>> changeset:   784:3c31d7e0b4bc
+>> user:        Gerd Knorr
+>> date:        Sun Feb 22 01:59:34 2004 +0000
+>> summary:     Initial revision
+>>
+>> Probably, this is a discontinued model, but I don't know for sure.
+>>   
+> We have been Provideo's US distributor since late 2004 and I've not
+> heard of a PV-150 part number, and isn't not a current part number.
 
-> On Fri, Feb 19, 2010 at 08:36:38PM +0100, Guennadi Liakhovetski wrote:
-> > On Fri, 19 Feb 2010, Rodolfo Giometti wrote:
-> > 
-> > > Hello,
-> > > 
-> > > on my pxa27x based board I have a adv7180 connected with the CIF
-> > > interface. Due this fact I'm going to use the pxa_camera.c driver
-> > > which in turn registers a soc_camera_host.
-> > > 
-> > > In the latest kernel I found your driver for the ADV7180, but it
-> > > registers the chip as a v4l sub device.
-> > > 
-> > > I suppose these two interfaces are not compatible, aren't they?
-> > 
-> > Congratulations! Thereby you're in a position to develop the first 
-> > v4l2-subdev / soc-camera universal driver;) The answer to this your 
-> > question is - they are... kinda. This means - yes, soc-camera is also 
-> > using the v4l2-subdev API, but - with a couple of additions. Basically, 
-> > there are two things you have to change in the adv7180 driver to make it 
-> > compatible with soc-camera - (1) add bus-configuration methods, even if 
-> > they don't do much (see .query_bus_param() and .set_bus_param() methods 
-> > from struct soc_camera_ops), and (2) migrate the driver to the mediabus 
-> > API. The latter one requires some care - in principle, mediabus should be 
-> > the future API to negotiate parameters on the video bus between bridges 
-> > (in your case PXA CIF) and clients, but for you this means you also have 
-> > to migrate any other bridge drivers in the mainline to that API, and, if 
-> > they also interface to some other subdevices - those too, and if those can 
-> > also work with other bridges - those too...;) But, I think, that chain 
-> > will terminate quite soon, in fact, I cannot find any users of that driver 
-> > currently in the mainline, Richard?
-> > 
-> > > In this situation, should I write a new driver for the
-> > > soc_camera_device? Which is The-Right-Thing(TM) to do? :)
-> > 
-> > Please, have a look and try to convert the driver as described above. All 
-> > the APIs and a few examples are in the mainline, so, you should have 
-> > enough copy-paste sources;) Ask on the list (with me on cc) if anything is 
-> > still unclear.
+This is the original commit when the old maintainer created his tree. It
+has all drivers there. The kernel addition is for sure older than 2004.
+It is hard to dig into changes that happened before 2004/2005, since in
+the past, both V4L and Kernel used different ways to manage patches.
+
+Also, a quick research at the internet showed this site in Australia:
+
+http://www.allthings.com.au/Digital%20Video%20Recording%20Remote%20Viewing%20Web%20Cams/Video%20Capture%20Card%20SDK%208%20Ch%204%20IC.htm
+
+At BTTV gallery (http://www.bttv-gallery.de/), it describes PV150 as:
+
+#  PV150
+Pci card with 4 bt878's on board and a HINT PCI-PCI bridge for each
+bt878 there is a i2c eeprom (CSI 24WC02P)
+and a microprocessor (PIC ?) EM78P156ELP 
+
+Maybe this model were for non-US market.
+
+>> This one is easy:
+>>   [   13.438412] bttv0: subsystem: 1830:1540 (UNKNOWN)
+>>
+>> As this PCI ID is not known, it is just a matter of associating the
+>> PV-183
+>> ID's with card 98.
+>>   
 > 
-> Thanks for your quick answer! :)
+> I figured, thanks
+
+Could you please send a patch for me to apply upstream?
+
+>> Just for reference the PV-149 / PV-981 / PV-183 series cards are:
+>>
+>> PV-149 - 4 port, 4 BT878a chips - no forced card setting required
+>> PV-155 - 16 port, 4 BT878a chips - card=77,77,77,77  (Shares the same
+>> board and PCI ID / subsystem as the PV-149)
+>>  
+>> Hmm... PV-155 shares the same PCI ID as PV-149, but require a different
+>> entry, then we shouldn't add it to the PV-150 autodetection code.
+>>   
+> Okay.  You can easily access four ports on the PV-155 / PV-981, but to
+> access the sub (/dev/videoX,1-3) channels you need to add the modprobe
+> line.
+
+Then, maybe there are some missing subsystem ID's. In the case of PV-150
+entry, it has 4 subsystem ID's. It PV-155/PV-981 are equivalent, then it
+will likely have different PCI ID's for each /dev/video[0-3]. Could you
+please check it with lspci?
+
+>> The better would be to check with the manufacturer if is there a
+>> way to detect between those two boards (maybe reading eeprom?).
+>>
+>>   
+> I can find out, but getting technical data from Provideo can be more
+> painful then pulling teeth.
+
+I understand, but, without this data, we cannot add auto-detection.
+
+>> Why do you need the card= parameter, if it shares the same subsystem
+>> ID as the other PV-981 models?
 > 
-> What I still don't understand is if should I move the driver form
-> v4l2-subdev to a soc_camera device or trying to support both API...
+> I think I explained that about with the sub channels, if I'm missing
+> something let me know.
+> 
+> Thanks!
+> 
 
-Both. It is just one (v4l2-subdev) API, but soc-camera is using some 
-extensions to it.
 
-> It seems to me that the driver is not used by any machines into
-> mainline
+-- 
 
-That makes your task even easier - you do not have to convert any bridge 
-drivers to mediabus API.
-
-> so if soc-camera is also using the v4l2-subdev API but with a
-> couple of additions I suppose I can move it to soc_camera API...
-
-Not move, extend. But preserve an ability to function without soc-camera 
-additions too. I.e., the use of soc-camera extensions should be optional 
-in your driver. Look here 
-http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/11486/focus=11493 
-for an example.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Cheers,
+Mauro
