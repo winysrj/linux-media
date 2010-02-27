@@ -1,88 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp19.orange.fr ([80.12.242.17]:41775 "EHLO smtp19.orange.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751518Ab0BVI3Y convert rfc822-to-8bit (ORCPT
+Received: from smtp-out30.alice.it ([85.33.2.30]:1625 "EHLO
+	smtp-out30.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030811Ab0B0Ubu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 03:29:24 -0500
-From: Christophe Thommeret <hftom@free.fr>
-To: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] TechnoTrend S1500 DVBs / CI can not read Irdeto Cam
-Date: Mon, 22 Feb 2010 09:29:33 +0100
-References: <33c8ba441002212159x6671ccedjd951dcf1453e1f2@mail.gmail.com>
-In-Reply-To: <33c8ba441002212159x6671ccedjd951dcf1453e1f2@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201002220929.33770.hftom@free.fr>
+	Sat, 27 Feb 2010 15:31:50 -0500
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Cc: Max Thrun <bear24rw@gmail.com>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Antonio Ospite <ospite@studenti.unina.it>
+Subject: [PATCH 04/11] ov534: Add Auto Exposure
+Date: Sat, 27 Feb 2010 21:20:21 +0100
+Message-Id: <1267302028-7941-5-git-send-email-ospite@studenti.unina.it>
+In-Reply-To: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
+References: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le lundi 22 février 2010 06:59:35, Ahmad Issa a écrit :
-> Hi,
-> 
-> 
-> 
-> I am testing TechnoTrend DVBS 1500 with CI. Everything is working fine when
-> i use KeyFly Cam, but when i use Irdeto Cam im getting the below error:
-> 
-> 
-> 
-> error: cannot write to CAM device (Input/output error)
-> 
-> error: en50221_Init: couldn't send TPDU on slot 0
-> 
-> debug: en50221_Poll: resetting slot 0
-> 
-> 
-> 
-> i testing the card using DVBLast and also when i use VLC i get same results
-> 
-> 
-> 
-> i have installed the latest DVB driver from www.linuxtv.org
-> 
-> 
-> 
-> #lspci
-> 
-> 0f:04.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
-> 
-> 
-> 
-> 
-> 
-> # lsmod | grep dvb
-> 
-> dvb_ttpci             125216  0
-> 
-> saa7146_vv             59560  1 dvb_ttpci
-> 
-> saa7146                22800  4 budget_ci,budget_core,dvb_ttpci,saa7146_vv
-> 
-> ttpci_eeprom            2792  2 budget_core,dvb_ttpci
-> 
-> dvb_core              120724  5
-> stv0299,budget_ci,budget_core,dvb_ttpci,b2c2_flexcop
-> 
-> 
-> 
-> Any Help?
-> 
-> 
-> 
-> Thanks Alot
-> 
-> 
-> 
-> 
-> 
-> Ahmad
-> 
+From: Max Thrun <bear24rw@gmail.com>
 
-See http://www.linuxtv.org/wiki/index.php/TechnoTrend_TT-budget_S-1500
+This also makes manual exposure actually work: it never worked before
+because AEC was always enabled.
 
--- 
-Christophe Thommeret
+Signed-off-by: Max Thrun <bear24rw@gmail.com>
+Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+---
+ linux/drivers/media/video/gspca/ov534.c |   55 ++++++++++++++++++++++++++++++--
+ 1 file changed, 53 insertions(+), 2 deletions(-)
 
-
+Index: gspca/linux/drivers/media/video/gspca/ov534.c
+===================================================================
+--- gspca.orig/linux/drivers/media/video/gspca/ov534.c
++++ gspca/linux/drivers/media/video/gspca/ov534.c
+@@ -62,6 +62,7 @@
+ 	u8 exposure;
+ 	u8 agc;
+ 	u8 awb;
++	u8 aec;
+ 	s8 sharpness;
+ 	u8 hflip;
+ 	u8 vflip;
+@@ -83,6 +84,8 @@
+ static int sd_getvflip(struct gspca_dev *gspca_dev, __s32 *val);
+ static int sd_setawb(struct gspca_dev *gspca_dev, __s32 val);
+ static int sd_getawb(struct gspca_dev *gspca_dev, __s32 *val);
++static int sd_setaec(struct gspca_dev *gspca_dev, __s32 val);
++static int sd_getaec(struct gspca_dev *gspca_dev, __s32 *val);
+ static int sd_setbrightness(struct gspca_dev *gspca_dev, __s32 val);
+ static int sd_getbrightness(struct gspca_dev *gspca_dev, __s32 *val);
+ static int sd_setcontrast(struct gspca_dev *gspca_dev, __s32 val);
+@@ -176,6 +179,20 @@
+     },
+     {							/* 6 */
+ 	{
++		.id      = V4L2_CID_EXPOSURE_AUTO,
++		.type    = V4L2_CTRL_TYPE_BOOLEAN,
++		.name    = "Auto Exposure",
++		.minimum = 0,
++		.maximum = 1,
++		.step    = 1,
++#define AEC_DEF 1
++		.default_value = AEC_DEF,
++	},
++	.set = sd_setaec,
++	.get = sd_getaec,
++    },
++    {							/* 7 */
++	{
+ 	    .id      = V4L2_CID_SHARPNESS,
+ 	    .type    = V4L2_CTRL_TYPE_INTEGER,
+ 	    .name    = "Sharpness",
+@@ -188,7 +205,7 @@
+ 	.set = sd_setsharpness,
+ 	.get = sd_getsharpness,
+     },
+-    {							/* 7 */
++    {							/* 8 */
+ 	{
+ 	    .id      = V4L2_CID_HFLIP,
+ 	    .type    = V4L2_CTRL_TYPE_BOOLEAN,
+@@ -202,7 +219,7 @@
+ 	.set = sd_sethflip,
+ 	.get = sd_gethflip,
+     },
+-    {							/* 8 */
++    {							/* 9 */
+ 	{
+ 	    .id      = V4L2_CID_VFLIP,
+ 	    .type    = V4L2_CTRL_TYPE_BOOLEAN,
+@@ -703,6 +720,20 @@
+ 		sccb_reg_write(gspca_dev, 0x63, 0xaa);	/* AWB off */
+ }
+ 
++static void setaec(struct gspca_dev *gspca_dev)
++{
++	struct sd *sd = (struct sd *) gspca_dev;
++
++	if (sd->aec)
++		sccb_reg_write(gspca_dev, 0x13,
++				sccb_reg_read(gspca_dev, 0x13) | 0x01);
++	else {
++		sccb_reg_write(gspca_dev, 0x13,
++				sccb_reg_read(gspca_dev, 0x13) & ~0x01);
++		setexposure(gspca_dev);
++	}
++}
++
+ static void setsharpness(struct gspca_dev *gspca_dev)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+@@ -768,6 +799,7 @@
+ #if AWB_DEF != 0
+ 	sd->awb = AWB_DEF
+ #endif
++	sd->aec = AEC_DEF;
+ #if SHARPNESS_DEF != 0
+ 	sd->sharpness = SHARPNESS_DEF;
+ #endif
+@@ -838,6 +870,7 @@
+ 
+ 	setagc(gspca_dev);
+ 	setawb(gspca_dev);
++	setaec(gspca_dev);
+ 	setgain(gspca_dev);
+ 	setexposure(gspca_dev);
+ 	setbrightness(gspca_dev);
+@@ -1066,6 +1099,24 @@
+ 	return 0;
+ }
+ 
++static int sd_setaec(struct gspca_dev *gspca_dev, __s32 val)
++{
++	struct sd *sd = (struct sd *) gspca_dev;
++
++	sd->aec = val;
++	if (gspca_dev->streaming)
++		setaec(gspca_dev);
++	return 0;
++}
++
++static int sd_getaec(struct gspca_dev *gspca_dev, __s32 *val)
++{
++	struct sd *sd = (struct sd *) gspca_dev;
++
++	*val = sd->aec;
++	return 0;
++}
++
+ static int sd_setsharpness(struct gspca_dev *gspca_dev, __s32 val)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
