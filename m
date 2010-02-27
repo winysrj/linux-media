@@ -1,40 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f190.google.com ([209.85.221.190]:53252 "EHLO
-	mail-qy0-f190.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753351Ab0BKMix (ORCPT
+Received: from relay01.digicable.hu ([92.249.128.189]:46088 "EHLO
+	relay01.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S967944Ab0B0IW2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Feb 2010 07:38:53 -0500
-Received: by qyk28 with SMTP id 28so692396qyk.25
-        for <linux-media@vger.kernel.org>; Thu, 11 Feb 2010 04:38:52 -0800 (PST)
-Message-ID: <4B73FA56.5010107@gmail.com>
-Date: Thu, 11 Feb 2010 10:38:46 -0200
-From: Mauro Carvalho Chehab <maurochehab@gmail.com>
+	Sat, 27 Feb 2010 03:22:28 -0500
+Message-ID: <4B88D642.3010907@freemail.hu>
+Date: Sat, 27 Feb 2010 09:22:26 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-To: Franklin Meng <fmeng2002@yahoo.com>
-CC: Douglas Schilling <dougsland@gmail.com>,
-	maillist <linux-media@vger.kernel.org>
-Subject: Re: [Patch/Resend] Kworld 315U remote support
-References: <251005.1068.qm@web32708.mail.mud.yahoo.com>
-In-Reply-To: <251005.1068.qm@web32708.mail.mud.yahoo.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Jean-Francois Moine <moinejf@free.fr>,
+	Richard Purdie <rpurdie@rpsys.net>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/2] gspca pac7302: allow controlling LED separately
+References: <4B84CC9E.4030600@freemail.hu> <20100224082238.53c8f6f8@tele> <4B886566.8000600@freemail.hu> <4B88CF6C.2070703@redhat.com>
+In-Reply-To: <4B88CF6C.2070703@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Subject: Re: [Patch/Resend] Kworld 315U remote support
+Hi,
+Hans de Goede wrote:
+> Hi,
+> 
+> On 02/27/2010 01:20 AM, Németh Márton wrote:
+>> From: Márton Németh<nm127@freemail.hu>
+>>
+>> On Labtec Webcam 2200 there is a feedback LED which can be controlled
+>> independent from the streaming.
+> 
+> This is true for a lot of cameras, so if we are going to add a way to
+> support control of the LED separate of the streaming state, we
+> should do that at the gspca_main level, and let sub drivers which
+> support this export a set_led callback function.
 
-Well, it is not a resend, since changes were made ;)
+If the code is moved to gspca_main level, what shall be the name of the
+LED? According to Documentation/leds-class.txt, chapter "LED Device Naming"
+my proposal for "devicename" would be:
 
-Franklin Meng wrote:
+ * /sys/class/leds/video-0::camera
+ * /sys/class/leds/video-1::camera
+ * /sys/class/leds/video-2::camera
+ * ...
 
-> +static struct ir_scancode ir_codes_kworld_315u[] = {
-> +    { 0x6143, KEY_POWER },
+or
 
-Please, never indent with spaces. Instead, you should use tabs, and a tab=8 spaces.
+ * /sys/class/leds/video0::camera
+ * /sys/class/leds/video1::camera
+ * /sys/class/leds/video2::camera
+ * ...
 
-I fixed it and applied the patch.
+Which is the right one?
 
--- 
-
-Cheers,
-Mauro
+> I must say I personally don't see much of a use case for this feature,
+> but I believe JF Moine does, so I'll leave further comments and
+> review of this to JF. I do believe it is important that if we go this
+> way we do so add the gspca_main level.
+> 
+> Regards,
+> 
+> Hans
