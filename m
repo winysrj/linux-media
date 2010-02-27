@@ -1,108 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:49450 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756636Ab0BBVxa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Feb 2010 16:53:30 -0500
-Received: by bwz19 with SMTP id 19so523336bwz.28
-        for <linux-media@vger.kernel.org>; Tue, 02 Feb 2010 13:53:28 -0800 (PST)
-MIME-Version: 1.0
-Date: Wed, 3 Feb 2010 00:53:28 +0300
-Message-ID: <d7fc510e1002021353i3f97fd34gb37c777a12c7dc1f@mail.gmail.com>
-Subject: [PATCH] Add support for Twinhan 1027 DVB-S card (once again)
-From: Sergey Ivanov <123kash@gmail.com>
+Received: from smtp-out30.alice.it ([85.33.2.30]:1625 "EHLO
+	smtp-out30.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030814Ab0B0Ubv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Feb 2010 15:31:51 -0500
+From: Antonio Ospite <ospite@studenti.unina.it>
 To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=001517588ca4ca22be047ea521c7
+Cc: Max Thrun <bear24rw@gmail.com>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Antonio Ospite <ospite@studenti.unina.it>
+Subject: [PATCH 08/11] ov534: Fix unsetting hflip and vflip bits
+Date: Sat, 27 Feb 2010 21:20:25 +0100
+Message-Id: <1267302028-7941-9-git-send-email-ospite@studenti.unina.it>
+In-Reply-To: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
+References: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---001517588ca4ca22be047ea521c7
-Content-Type: text/plain; charset=ISO-8859-1
+From: Max Thrun <bear24rw@gmail.com>
 
->This patch is the modified version of sfstudio (Denis Romanenko)
->patch, adapted for current mercurial revision.
+Also set default values unconditionally, for readability.
 
-Previous patch seems to be broken.
-So submit once again.
+Signed-off-by: Max Thrun <bear24rw@gmail.com>
+Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+---
+ linux/drivers/media/video/gspca/ov534.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-
--- 
-WBR Sergey Kash Ivanov.
-
---001517588ca4ca22be047ea521c7
-Content-Type: application/octet-stream; name="vp1027.patch"
-Content-Disposition: attachment; filename="vp1027.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_g5786lqk0
-
-ZGlmZiAtciA4NjBkMjliZmEzYTcgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgt
-Y2FyZHMuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1jYXJkcy5j
-CVR1ZSBGZWIgMDIgMDE6NDA6NDYgMjAxMCAtMDIwMAorKysgYi9saW51eC9kcml2ZXJzL21lZGlh
-L3ZpZGVvL2N4ODgvY3g4OC1jYXJkcy5jCVdlZCBGZWIgMDMgMDA6Mjg6MTcgMjAxMCArMDMwMApA
-QCAtMjEyMCw2ICsyMTIwLDE4IEBACiAJCX0gfSwKIAkJLm1wZWcgICAgICAgICAgID0gQ1g4OF9N
-UEVHX0RWQiwKIAl9LAorCVtDWDg4X0JPQVJEX1RXSU5IQU5fVlAxMDI3X0RWQlNdID0geworCQku
-bmFtZQkJPSAiVHdpbmhhbiBWUC0xMDI3IERWQi1TIiwKKwkJLnR1bmVyX3R5cGUgICAgID0gVFVO
-RVJfQUJTRU5ULAorCQkucmFkaW9fdHlwZSAgICAgPSBVTlNFVCwKKwkJLnR1bmVyX2FkZHIgICAg
-ID0gQUREUl9VTlNFVCwKKwkJLnJhZGlvX2FkZHIgICAgID0gQUREUl9VTlNFVCwKKwkJLmlucHV0
-ICAgICAgICAgID0ge3sKKwkJICAgICAgIC50eXBlICAgPSBDWDg4X1ZNVVhfRFZCLAorCQkgICAg
-ICAgLnZtdXggICA9IDAsCisJCX0gfSwKKwkJLm1wZWcgICAgICAgICAgID0gQ1g4OF9NUEVHX0RW
-QiwKKwl9LAogfTsKIAogLyogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tICovCkBAIC0yNTg0LDYgKzI1OTYsMTAgQEAKIAkJ
-LnN1YnZlbmRvciA9IDB4YjAzNCwKIAkJLnN1YmRldmljZSA9IDB4MzAzNCwKIAkJLmNhcmQgICAg
-ICA9IENYODhfQk9BUkRfUFJPRl83MzAxLAorCX0sIHsKKwkJLnN1YnZlbmRvciA9IDB4MTgyMiwK
-KwkJLnN1YmRldmljZSA9IDB4MDAyMywKKwkJLmNhcmQgICAgICA9IENYODhfQk9BUkRfVFdJTkhB
-Tl9WUDEwMjdfRFZCUywKIAl9LAogfTsKIApAQCAtMzA3NSw2ICszMDkxLDEzIEBACiAJCWN4X3Nl
-dChNT19HUDFfSU8sIDB4MTApOwogCQltZGVsYXkoNTApOwogCQlicmVhazsKKworCWNhc2UgQ1g4
-OF9CT0FSRF9UV0lOSEFOX1ZQMTAyN19EVkJTOgorCQljeF93cml0ZShNT19HUDBfSU8sIDB4MDAw
-MDMyMzApOworCQljeF93cml0ZShNT19HUDBfSU8sIDB4MDAwMDMyMTApOworCQltc2xlZXAoMSk7
-CisJCWN4X3dyaXRlKE1PX0dQMF9JTywgMHgwMDAwMTIzMCk7CisJCWJyZWFrOwogCX0KIH0KIApk
-aWZmIC1yIDg2MGQyOWJmYTNhNyBsaW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1k
-dmIuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1kdmIuYwlUdWUg
-RmViIDAyIDAxOjQwOjQ2IDIwMTAgLTAyMDAKKysrIGIvbGludXgvZHJpdmVycy9tZWRpYS92aWRl
-by9jeDg4L2N4ODgtZHZiLmMJV2VkIEZlYiAwMyAwMDoyODoxNyAyMDEwICswMzAwCkBAIC01Nyw2
-ICs1Nyw3IEBACiAjaW5jbHVkZSAic3R2MDkwMC5oIgogI2luY2x1ZGUgInN0YjYxMDAuaCIKICNp
-bmNsdWRlICJzdGI2MTAwX3Byb2MuaCIKKyNpbmNsdWRlICJtYjg2YTE2LmgiCiAKIE1PRFVMRV9E
-RVNDUklQVElPTigiZHJpdmVyIGZvciBjeDIzODh4IGJhc2VkIERWQiBjYXJkcyIpOwogTU9EVUxF
-X0FVVEhPUigiQ2hyaXMgUGFzY29lIDxjLnBhc2NvZUBpdGVlLnVxLmVkdS5hdT4iKTsKQEAgLTI1
-MSw2ICsyNTIsMTAgQEAKIAkuaWYyICAgICAgICAgICA9IDQ1NjAwLAogfTsKIAorc3RhdGljIHN0
-cnVjdCBtYjg2YTE2X2NvbmZpZyB0d2luaGFuX3ZwMTAyNyA9IHsKKwkuZGVtb2RfYWRkcmVzcyAg
-PSAweDA4LAorfTsKKwogI2lmIGRlZmluZWQoQ09ORklHX1ZJREVPX0NYODhfVlAzMDU0KSB8fCAo
-ZGVmaW5lZChDT05GSUdfVklERU9fQ1g4OF9WUDMwNTRfTU9EVUxFKSAmJiBkZWZpbmVkKE1PRFVM
-RSkpCiBzdGF0aWMgaW50IGRudHZfbGl2ZV9kdmJ0X3Byb19kZW1vZF9pbml0KHN0cnVjdCBkdmJf
-ZnJvbnRlbmQqIGZlKQogewpAQCAtNDMwLDE1ICs0MzUsNDEgQEAKIAogCWN4X3NldChNT19HUDBf
-SU8sIDB4NjA0MCk7CiAJc3dpdGNoICh2b2x0YWdlKSB7Ci0JCWNhc2UgU0VDX1ZPTFRBR0VfMTM6
-Ci0JCQljeF9jbGVhcihNT19HUDBfSU8sIDB4MjApOwotCQkJYnJlYWs7Ci0JCWNhc2UgU0VDX1ZP
-TFRBR0VfMTg6Ci0JCQljeF9zZXQoTU9fR1AwX0lPLCAweDIwKTsKLQkJCWJyZWFrOwotCQljYXNl
-IFNFQ19WT0xUQUdFX09GRjoKLQkJCWN4X2NsZWFyKE1PX0dQMF9JTywgMHgyMCk7Ci0JCQlicmVh
-azsKKwljYXNlIFNFQ19WT0xUQUdFXzEzOgorCQljeF9jbGVhcihNT19HUDBfSU8sIDB4MjApOwor
-CQlicmVhazsKKwljYXNlIFNFQ19WT0xUQUdFXzE4OgorCQljeF9zZXQoTU9fR1AwX0lPLCAweDIw
-KTsKKwkJYnJlYWs7CisJY2FzZSBTRUNfVk9MVEFHRV9PRkY6CisJCWN4X2NsZWFyKE1PX0dQMF9J
-TywgMHgyMCk7CisJCWJyZWFrOworCX0KKworCWlmIChjb3JlLT5wcmV2X3NldF92b2x0YWdlKQor
-CQlyZXR1cm4gY29yZS0+cHJldl9zZXRfdm9sdGFnZShmZSwgdm9sdGFnZSk7CisJcmV0dXJuIDA7
-Cit9CisKK3N0YXRpYyBpbnQgdnAxMDI3X3NldF92b2x0YWdlKHN0cnVjdCBkdmJfZnJvbnRlbmQg
-KmZlLAorCQkJCSAgICBmZV9zZWNfdm9sdGFnZV90IHZvbHRhZ2UpCit7CisJc3RydWN0IGN4ODgw
-Ml9kZXYgKmRldiA9IGZlLT5kdmItPnByaXY7CisJc3RydWN0IGN4ODhfY29yZSAqY29yZSA9IGRl
-di0+Y29yZTsKKworCXN3aXRjaCAodm9sdGFnZSkgeworCWNhc2UgU0VDX1ZPTFRBR0VfMTM6CisJ
-CWRwcmludGsoMSwgIkxOQiBTRUMgVm9sdGFnZT0xM1xuIik7CisJCWN4X3dyaXRlKE1PX0dQMF9J
-TywgMHgwMDAwMTIyMCk7CisJCWJyZWFrOworCWNhc2UgU0VDX1ZPTFRBR0VfMTg6CisJCWRwcmlu
-dGsoMSwgIkxOQiBTRUMgVm9sdGFnZT0xOFxuIik7CisJCWN4X3dyaXRlKE1PX0dQMF9JTywgMHgw
-MDAwMTIyMik7CisJCWJyZWFrOworCWNhc2UgU0VDX1ZPTFRBR0VfT0ZGOgorCQlkcHJpbnRrKDEs
-ICJMTkIgVm9sdGFnZSBPRkZcbiIpOworCQljeF93cml0ZShNT19HUDBfSU8sIDB4MDAwMDEyMzAp
-OworCQlicmVhazsKIAl9CiAKIAlpZiAoY29yZS0+cHJldl9zZXRfdm9sdGFnZSkKQEAgLTEyMTAs
-NiArMTI0MSwxOSBAQAogCQl9CiAJCWJyZWFrOwogCQl9CisJY2FzZSBDWDg4X0JPQVJEX1RXSU5I
-QU5fVlAxMDI3X0RWQlM6CisJCWRldi0+dHNfZ2VuX2NudHJsID0gMHgwMDsKKwkJZmUwLT5kdmIu
-ZnJvbnRlbmQgPSBkdmJfYXR0YWNoKG1iODZhMTZfYXR0YWNoLAorCQkJCQkJJnR3aW5oYW5fdnAx
-MDI3LAorCQkJCQkJJmNvcmUtPmkyY19hZGFwKTsKKwkJaWYgKGZlMC0+ZHZiLmZyb250ZW5kKSB7
-CisJCQljb3JlLT5wcmV2X3NldF92b2x0YWdlID0KKwkJCQkJZmUwLT5kdmIuZnJvbnRlbmQtPm9w
-cy5zZXRfdm9sdGFnZTsKKwkJCWZlMC0+ZHZiLmZyb250ZW5kLT5vcHMuc2V0X3ZvbHRhZ2UgPQor
-CQkJCQl2cDEwMjdfc2V0X3ZvbHRhZ2U7CisJCX0KKwkJYnJlYWs7CisKIAlkZWZhdWx0OgogCQlw
-cmludGsoS0VSTl9FUlIgIiVzLzI6IFRoZSBmcm9udGVuZCBvZiB5b3VyIERWQi9BVFNDIGNhcmQg
-aXNuJ3Qgc3VwcG9ydGVkIHlldFxuIiwKIAkJICAgICAgIGNvcmUtPm5hbWUpOwpkaWZmIC1yIDg2
-MGQyOWJmYTNhNyBsaW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC5oCi0tLSBhL2xp
-bnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LmgJVHVlIEZlYiAwMiAwMTo0MDo0NiAy
-MDEwIC0wMjAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LmgJV2Vk
-IEZlYiAwMyAwMDoyODoxNyAyMDEwICswMzAwCkBAIC0yNDAsNiArMjQwLDcgQEAKICNkZWZpbmUg
-Q1g4OF9CT0FSRF9XSU5GQVNUX0RUVjE4MDBIICAgICAgICA4MQogI2RlZmluZSBDWDg4X0JPQVJE
-X1dJTkZBU1RfRFRWMjAwMEhfSiAgICAgIDgyCiAjZGVmaW5lIENYODhfQk9BUkRfUFJPRl83MzAx
-ICAgICAgICAgICAgICAgODMKKyNkZWZpbmUgQ1g4OF9CT0FSRF9UV0lOSEFOX1ZQMTAyN19EVkJT
-ICAgICA4NAogCiBlbnVtIGN4ODhfaXR5cGUgewogCUNYODhfVk1VWF9DT01QT1NJVEUxID0gMSwK
---001517588ca4ca22be047ea521c7--
+Index: gspca/linux/drivers/media/video/gspca/ov534.c
+===================================================================
+--- gspca.orig/linux/drivers/media/video/gspca/ov534.c
++++ gspca/linux/drivers/media/video/gspca/ov534.c
+@@ -764,7 +764,7 @@
+ 				sccb_reg_read(gspca_dev, 0x0c) | 0x40);
+ 	else
+ 		sccb_reg_write(gspca_dev, 0x0c,
+-				sccb_reg_read(gspca_dev, 0x0c) & 0xbf);
++				sccb_reg_read(gspca_dev, 0x0c) & ~0x40);
+ }
+ 
+ static void setvflip(struct gspca_dev *gspca_dev)
+@@ -776,7 +776,7 @@
+ 				sccb_reg_read(gspca_dev, 0x0c) | 0x80);
+ 	else
+ 		sccb_reg_write(gspca_dev, 0x0c,
+-				sccb_reg_read(gspca_dev, 0x0c) & 0x7f);
++				sccb_reg_read(gspca_dev, 0x0c) & ~0x80);
+ }
+ 
+ /* this function is called at probe time */
+@@ -810,12 +810,8 @@
+ 	sd->awb = AWB_DEF;
+ 	sd->aec = AEC_DEF;
+ 	sd->sharpness = SHARPNESS_DEF;
+-#if HFLIP_DEF != 0
+ 	sd->hflip = HFLIP_DEF;
+-#endif
+-#if VFLIP_DEF != 0
+ 	sd->vflip = VFLIP_DEF;
+-#endif
+ 
+ 	return 0;
+ }
