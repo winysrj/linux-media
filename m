@@ -1,77 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4-g21.free.fr ([212.27.42.4]:47809 "EHLO smtp4-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752070Ab0BNWVn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Feb 2010 17:21:43 -0500
-Message-ID: <4B78776D.5050007@zerezo.com>
-Date: Sun, 14 Feb 2010 23:21:33 +0100
-From: Antoine Jacquet <royale@zerezo.com>
-MIME-Version: 1.0
-To: thomas.schorpp@gmail.com
-CC: linux-media@vger.kernel.org
-Subject: Re: zr364xx: Aiptek DV8800 (neo): 08ca:2062: Fails on subsequent
- zr364xx_open()
-References: <4B73C792.3060907@gmail.com> <4B741C47.1090905@zerezo.com> <4B7567CB.20609@gmail.com>
-In-Reply-To: <4B7567CB.20609@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2846 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030738Ab0B0TsH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Feb 2010 14:48:07 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id o1RJm4qt058419
+	for <linux-media@vger.kernel.org>; Sat, 27 Feb 2010 20:48:04 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 27 Feb 2010 20:48:04 +0100 (CET)
+Message-Id: <201002271948.o1RJm4qt058419@smtp-vbr14.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
->> Someone reported similar behavior recently, and was apparently able to 
->> fix the issue by adding more delay between open/close sequences.
-> 
-> No search tags to find it on the list, can You remember device model?
+Results of the daily build of v4l-dvb:
 
-Yes, this was an off-list discussion, available here:
-	http://royale.zerezo.com/forum/viewtopic.php?t=355
+date:        Sat Feb 27 19:00:23 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14319:37581bb7e6f1
+gcc version: i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:     2.6.32.5
 
-> Didn't work, same -110 errors, sorry, no v4l-dvb git here, vdr 
-> production machine on 2.6.32.7.
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.32.6-armv5-dm365: ERRORS
+linux-2.6.33-armv5-dm365: ERRORS
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-armv5-ixp: OK
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.17-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.20-i686: OK
+linux-2.6.26.8-i686: OK
+linux-2.6.27.44-i686: OK
+linux-2.6.28.10-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.17-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.20-x86_64: OK
+linux-2.6.26.8-x86_64: OK
+linux-2.6.27.44-x86_64: OK
+linux-2.6.28.10-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+spec: OK
+sparse (linux-2.6.33): ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: OK
+linux-2.6.19.7-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.7-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
-Just checked and the differences in the zr364xx driver are minor.
-Would be better if you could work on LinuxTV hg/git tree so we have the 
-same basis for patches.
+Detailed results are available here:
 
-> 1. Patch with optimized delay below, slow but works, 1st try was 
-> delaying subsequent msg at open sequence i=6, worked until the last 2 
-> open() before capture start.
->> From the windows snoopy log I sent yesterday I can see only 1-2 URBs 
->> with relevant delay of ~1s but 
-> cannot see the sequence point.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-Ok this is a bit hardcore but nice if it works.
-What do you mean by "until the last 2 open()"?
-Also, you may want to try with simpler tools like "dd" to do only one 
-clean open/close.
-Ekiga/Cheese/Skype tend to do many open/close and this may not be the 
-ideal tools for debugging, but great to trigger the bugs ;-)
+Full logs are available here:
 
-> What is error -22, can not find it in errno.h?
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-I think it's -EINVAL.
+The V4L-DVB specification from this daily build is here:
 
-> 2. Picture with (640->320) lines alignment error with ekiga+cheese 
-> *attached*, wether cam is configured internally for 640x480 or 320x240, 
-> not affecting.
-> setting the driver to mode=2 fails with libv4l jpeg decoding errors. I 
-> try to correct this.
-
-Do you know if the Windows driver support this mode?
-If so, it would be helpful to have the snoop too.
-
-> 3. Driver oops on modprobe -r or device firmware crash, I need to unplug 
-> first or null pointer fault occours (mutex locks), see below
-
-Ok that's bad, let me know if you find the issue.
-
-Regards,
-
-Antoine
-
-
--- 
-Antoine "Royale" Jacquet
-http://royale.zerezo.com
+http://www.xs4all.nl/~hverkuil/spec/media.html
