@@ -1,71 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out116.alice.it ([85.37.17.116]:4844 "EHLO
-	smtp-out116.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030801Ab0B0UbK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Feb 2010 15:31:10 -0500
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: linux-media@vger.kernel.org
-Cc: Antonio Ospite <ospite@studenti.unina.it>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Max Thrun <bear24rw@gmail.com>
-Subject: [PATCH 05/11] ov534: Fix setting manual exposure
-Date: Sat, 27 Feb 2010 21:20:22 +0100
-Message-Id: <1267302028-7941-6-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
-References: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
+Received: from mx1.redhat.com ([209.132.183.28]:10347 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S967872Ab0B0HqZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Feb 2010 02:46:25 -0500
+Message-ID: <4B88CF6C.2070703@redhat.com>
+Date: Sat, 27 Feb 2010 08:53:16 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+CC: Jean-Francois Moine <moinejf@free.fr>,
+	Richard Purdie <rpurdie@rpsys.net>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/2] gspca pac7302: allow controlling LED separately
+References: <4B84CC9E.4030600@freemail.hu> <20100224082238.53c8f6f8@tele> <4B886566.8000600@freemail.hu>
+In-Reply-To: <4B886566.8000600@freemail.hu>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Exposure is now a u16 value, both MSB and LSB are set, but values in the v4l2
-control are limited to the interval [0,506] as 0x01fa (506) is the maximum
-observed value with AEC enabled.
+Hi,
 
-Skip setting exposure when AEC is enabled.
+On 02/27/2010 01:20 AM, Németh Márton wrote:
+> From: Márton Németh<nm127@freemail.hu>
+>
+> On Labtec Webcam 2200 there is a feedback LED which can be controlled
+> independent from the streaming.
 
-Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
----
- linux/drivers/media/video/gspca/ov534.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+This is true for a lot of cameras, so if we are going to add a way to
+support control of the LED separate of the streaming state, we
+should do that at the gspca_main level, and let sub drivers which
+support this export a set_led callback function.
 
-Index: gspca/linux/drivers/media/video/gspca/ov534.c
-===================================================================
---- gspca.orig/linux/drivers/media/video/gspca/ov534.c
-+++ gspca/linux/drivers/media/video/gspca/ov534.c
-@@ -59,7 +59,7 @@
- 	u8 brightness;
- 	u8 contrast;
- 	u8 gain;
--	u8 exposure;
-+	u16 exposure;
- 	u8 agc;
- 	u8 awb;
- 	u8 aec;
-@@ -140,7 +140,7 @@
- 	    .type    = V4L2_CTRL_TYPE_INTEGER,
- 	    .name    = "Exposure",
- 	    .minimum = 0,
--	    .maximum = 255,
-+	    .maximum = 506,
- 	    .step    = 1,
- #define EXPO_DEF 120
- 	    .default_value = EXPO_DEF,
-@@ -684,11 +684,15 @@
- static void setexposure(struct gspca_dev *gspca_dev)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
--	u8 val;
-+	u16 val;
-+
-+	if (sd->aec)
-+		return;
- 
- 	val = sd->exposure;
--	sccb_reg_write(gspca_dev, 0x08, val >> 7);
--	sccb_reg_write(gspca_dev, 0x10, val << 1);
-+	sccb_reg_write(gspca_dev, 0x08, val >> 8);
-+	sccb_reg_write(gspca_dev, 0x10, val & 0xff);
-+
- }
- 
- static void setagc(struct gspca_dev *gspca_dev)
+I must say I personally don't see much of a use case for this feature,
+but I believe JF Moine does, so I'll leave further comments and
+review of this to JF. I do believe it is important that if we go this
+way we do so add the gspca_main level.
+
+Regards,
+
+Hans
