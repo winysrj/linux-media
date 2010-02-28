@@ -1,68 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:42281 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751735Ab0BHNNl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Feb 2010 08:13:41 -0500
-Received: by vws20 with SMTP id 20so2117477vws.19
-        for <linux-media@vger.kernel.org>; Mon, 08 Feb 2010 05:13:40 -0800 (PST)
-Message-ID: <4B700DFA.2010902@gmail.com>
-Date: Mon, 08 Feb 2010 11:13:30 -0200
-From: Mauro Carvalho Chehab <maurochehab@gmail.com>
-MIME-Version: 1.0
-To: Franklin Meng <fmeng2002@yahoo.com>
-CC: Douglas Schilling <dougsland@gmail.com>,
-	maillist <linux-media@vger.kernel.org>
-Subject: Re: [Patch] Kworld 315U remote support
-References: <19431.32442.qm@web32702.mail.mud.yahoo.com>
-In-Reply-To: <19431.32442.qm@web32702.mail.mud.yahoo.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp3-g21.free.fr ([212.27.42.3]:36597 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1031910Ab0B1TzK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 28 Feb 2010 14:55:10 -0500
+Date: Sun, 28 Feb 2010 20:55:28 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Antonio Ospite <ospite@studenti.unina.it>
+Cc: linux-media@vger.kernel.org,
+	Mosalam Ebrahimi <m.ebrahimi@ieee.org>,
+	Max Thrun <bear24rw@gmail.com>
+Subject: Re: [PATCH 10/11] ov534: Add Powerline Frequency control
+Message-ID: <20100228205528.54d1ba69@tele>
+In-Reply-To: <20100228201850.81f7904a.ospite@studenti.unina.it>
+References: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
+	<1267302028-7941-11-git-send-email-ospite@studenti.unina.it>
+	<20100228194951.1c1e26ce@tele>
+	<20100228201850.81f7904a.ospite@studenti.unina.it>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Franklin Meng wrote:
-> This patch adds remote support for the Kworld 315U device
+On Sun, 28 Feb 2010 20:18:50 +0100
+Antonio Ospite <ospite@studenti.unina.it> wrote:
+
+> Maybe we could just use
+> 	V4L2_CID_POWER_LINE_FREQUENCY_DISABLED	= 0,
+> 	V4L2_CID_POWER_LINE_FREQUENCY_50HZ	= 1,
 > 
-> Note: I believe I got most of the mappings correct.  Though the
-> source and shutdown button probably could be mapped to something
-> better.  
-> 
-> To be done: Still need to get the Kworld analog patch resubmitted.
-> There are still some stuff I want to test with the analog patch before
-> I resubmit it.  Hopefully this patch will work ok.
-> 
-> Please let me know if there are any issues applying the patch
+> It looks like the code matches the DISABLED state (writing 0 to the
+> register). Mosalam?
 
-Hi Franklin,
+I don't know the ov772x sensor. I think it should look like the ov7670
+where there are 3 registers to control the light frequency: one
+register tells if light frequency filter must be used, and which
+frequency 50Hz or 60Hz; the two other ones give the filter values for
+each frequency.
 
-Could you please add a table with the full scan code?
-
-There are currently two examples of such tables:
-	ir_codes_rc5_hauppauge_new_table - for RC5 keycodes
-	ir_codes_nec_terratec_cinergy_xs_table - for NEC keycodes
-
-
-Basically, a full scan code has a 2-byte code instead of 1-byte,
-and you need to specify the protocol at the table, like:
-
-struct ir_scancode_table ir_codes_nec_terratec_cinergy_xs_table = {
-        .scan = ir_codes_nec_terratec_cinergy_xs,
-        .size = ARRAY_SIZE(ir_codes_nec_terratec_cinergy_xs),
-        .ir_type = IR_TYPE_NEC,
-};
-
-The em28xx is already prepared to properly handle the protocol.
-
-the advantage of using a full table is that it is easy to replace
-the keytable and even the protocol if someone wants to use a different
-Remote Controller to control the device.
-
-As you've declared this xclk:
-
-                .xclk           = EM28XX_XCLK_FREQUENCY_12MHZ,
-
-I suspect that your keycode is of the type NEC.
-
-
-Cheers,
-Mauro
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
