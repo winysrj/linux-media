@@ -1,41 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet11.oracle.com ([141.146.126.233]:16772 "EHLO
-	acsinet11.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932939Ab0BYQxk (ORCPT
+Received: from relay01.digicable.hu ([92.249.128.189]:52379 "EHLO
+	relay01.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031496Ab0B1IkX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Feb 2010 11:53:40 -0500
-Date: Thu, 25 Feb 2010 08:52:05 -0800
-From: Randy Dunlap <randy.dunlap@oracle.com>
-To: linux-next@vger.kernel.org
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-	LKML <linux-kernel@vger.kernel.org>,
+	Sun, 28 Feb 2010 03:40:23 -0500
+Message-ID: <4B8A2BF2.40003@freemail.hu>
+Date: Sun, 28 Feb 2010 09:40:18 +0100
+From: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+MIME-Version: 1.0
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+CC: Matthew Garrett <mjg@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jiri Kosina <jkosina@suse.cz>,
+	Linux Input <linux-input@vger.kernel.org>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>
-Subject: Re: linux-next: Tree for February 22 (media/video/tvp7002)
-Message-Id: <20100225085205.9cf68ce9.randy.dunlap@oracle.com>
-In-Reply-To: <4B82AF18.3030107@oracle.com>
-References: <20100222172218.4fd82a45.sfr@canb.auug.org.au>
-	<4B82AF18.3030107@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Platform Driver x86 <platform-driver-x86@vger.kernel.org>
+Subject: Re: [PATCH] Input: scancode in get/set_keycodes should be unsigned
+References: <20100228061310.GA765@core.coreip.homeip.net> <4B8A10D0.2020802@freemail.hu> <20100228070536.GC765@core.coreip.homeip.net>
+In-Reply-To: <20100228070536.GC765@core.coreip.homeip.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 22 Feb 2010 08:21:44 -0800 Randy Dunlap wrote:
-
-> On 02/21/10 22:22, Stephen Rothwell wrote:
-> > Hi all,
-> > 
-> > Changes since 20100219:
+Dmitry Torokhov wrote:
+> On Sun, Feb 28, 2010 at 07:44:32AM +0100, Németh Márton wrote:
+>> Hi,
+>> Dmitry Torokhov wrote:
+>>> The HID layer has some scan codes of the form 0xffbc0000 for logitech
+>>> devices which do not work if scancode is typed as signed int, so we need
+>>> to switch to unsigned int instead. While at it keycode being signed does
+>>> not make much sense either.
+>> Are the scan codes and key codes always 4 bytes long? Then the u32 data
+>> type could be used to take 16 bit (or 64 bit) processors also into
+>> consideration.
+>>
 > 
+> We do not support 16 bit processors and for 64 bit 'unsigned int' is
+> still 32 bits.
 > 
-> drivers/media/video/tvp7002.c:896: error: 'struct tvp7002' has no member named 'registers'
 
-same problem in linux-next-20100225.
+OK, then:
 
-so where are these registers??
-
-thanks,
----
-~Randy
+Acked-by: Márton Németh <nm127@freemail.hu>
