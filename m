@@ -1,67 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1490 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754505Ab0BVVvx (ORCPT
+Received: from relay02.digicable.hu ([92.249.128.188]:55278 "EHLO
+	relay02.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S968291Ab0B1Oeo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Feb 2010 16:51:53 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: Chroma gain configuration
-Date: Mon, 22 Feb 2010 22:54:05 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andy Walls <awalls@radix.net>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <829197381002212007q342fc01bm1c528a2f15027a1e@mail.gmail.com> <201002222241.22456.hverkuil@xs4all.nl> <829197381002221343u7001cff2t59bfe3ef735db5fc@mail.gmail.com>
-In-Reply-To: <829197381002221343u7001cff2t59bfe3ef735db5fc@mail.gmail.com>
+	Sun, 28 Feb 2010 09:34:44 -0500
+Message-ID: <4B8A7EFB.1090403@freemail.hu>
+Date: Sun, 28 Feb 2010 15:34:35 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201002222254.05573.hverkuil@xs4all.nl>
+To: Ralph Metzler <rjkm@metzlerbros.de>
+CC: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] nGene: use NULL when pointer is needed
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 22 February 2010 22:43:58 Devin Heitmueller wrote:
-> On Mon, Feb 22, 2010 at 4:41 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > I am still planning to continue my work for a general control handling
-> > framework. I know how to do it and it's just time that I lack.
-> >
-> > Converting all drivers to support the extended control API is quite complicated
-> > since the API is fairly complex (esp. with regard to atomicity). In this case
-> > my advice would be to support extended controls only where needed and wait for
-> > this framework before converting all the other drivers.
-> 
-> Hans,
-> 
-> I have no objection to holding off if that's what you recommend.  The
-> only reason we got onto this thread was because the v4l2-dbg
-> application seems to implicitly assume that *all* private controls
-> using V4L2_CID_PRIVATE_BASE can only be accessed via the extended
-> control interface, meaning you cannot use the utility in conjunction
-> with a driver that has a private control defined in the the
-> VIDIOC_G_CTRL function.
+From: Márton Németh <nm127@freemail.hu>
 
-Ah, that's another matter. The original approach for handling private
-controls is seriously flawed. Drivers that want to use private controls
-are strongly encouraged to use the extended control mechanism for them,
-and to document those controls in the spec.
+Use NULL when calling a function with pointer parameter, initializing a
+pointer and returning a pointer. This will remove the following sparse
+warning at different locations (see "make C=1"):
+ * warning: Using plain integer as NULL pointer
 
-Actually, it is not so much the extended control API that is relevant
-here, but the use of V4L2_CTRL_FLAG_NEXT_CTRL in VIDIOC_QUERYCTRL to
-enumerate the controls.
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+diff -r 37581bb7e6f1 linux/drivers/media/dvb/ngene/ngene-core.c
+--- a/linux/drivers/media/dvb/ngene/ngene-core.c	Wed Feb 24 22:48:50 2010 -0300
++++ b/linux/drivers/media/dvb/ngene/ngene-core.c	Sun Feb 28 15:28:56 2010 +0100
+@@ -994,7 +994,7 @@
+ 					     msg[0].buf, msg[0].len))
+ 			goto done;
+ 	if (num == 1 && (msg[0].flags & I2C_M_RD))
+-		if (!ngene_command_i2c_read(dev, msg[0].addr, 0, 0,
++		if (!ngene_command_i2c_read(dev, msg[0].addr, NULL, 0,
+ 					    msg[0].buf, msg[0].len, 0))
+ 			goto done;
 
-Unfortunately, the current support functions in v4l2-common.c to help
-with this are pretty crappy, for which I apologize.
+@@ -1793,7 +1793,7 @@
+ 	if (chan->users > 0)
+ #endif
+ 		dvb_dmx_swfilter(&chan->demux, buf, len);
+-	return 0;
++	return NULL;
+ }
 
-Regards,
+ u8 fill_ts[188] = { 0x47, 0x1f, 0xff, 0x10 };
+@@ -1900,7 +1900,7 @@
+ 		       state);
+ 	if (!state) {
+ 		spin_lock_irq(&chan->state_lock);
+-		chan->pBufferExchange = 0;
++		chan->pBufferExchange = NULL;
+ 		dvb_ringbuffer_flush(&dev->tsout_rbuf);
+ 		spin_unlock_irq(&chan->state_lock);
+ 	}
+@@ -2226,7 +2226,7 @@
+ 	dvbdemux->feednum = 256;
+ 	dvbdemux->start_feed = start_feed;
+ 	dvbdemux->stop_feed = stop_feed;
+-	dvbdemux->write_to_decoder = 0;
++	dvbdemux->write_to_decoder = NULL;
+ 	dvbdemux->dmx.capabilities = (DMX_TS_FILTERING |
+ 				      DMX_SECTION_FILTERING |
+ 				      DMX_MEMORY_BASED_FILTERING);
+@@ -2383,8 +2383,8 @@
+ 		return;
+ 	free_ringbuffer(dev, rb);
+ 	for (j = 0; j < tb->NumBuffers; j++, Cur = Cur->Next) {
+-		Cur->Buffer2 = 0;
+-		Cur->scList2 = 0;
++		Cur->Buffer2 = NULL;
++		Cur->scList2 = NULL;
+ 		Cur->ngeneBuffer.Address_of_first_entry_2 = 0;
+ 		Cur->ngeneBuffer.Number_of_entries_2 = 0;
+ 	}
+@@ -2430,7 +2430,7 @@
+ 	u64 PARingBufferNext;
+ 	struct SBufferHeader *Cur, *Next;
 
-	Hans
+-	descr->Head = 0;
++	descr->Head = NULL;
+ 	descr->MemSize = 0;
+ 	descr->PAHead = 0;
+ 	descr->NumBuffers = 0;
+@@ -3619,7 +3619,7 @@
+ 		if (chan->fe) {
+ 			dvb_unregister_frontend(chan->fe);
+ 			dvb_frontend_detach(chan->fe);
+-			chan->fe = 0;
++			chan->fe = NULL;
+ 		}
+ 		dvbdemux->dmx.close(&dvbdemux->dmx);
+ 		dvbdemux->dmx.remove_frontend(&dvbdemux->dmx,
+@@ -3765,7 +3765,7 @@
+ 		release_channel(&dev->channel[i]);
+ 	ngene_stop(dev);
+ 	ngene_release_buffers(dev);
+-	pci_set_drvdata(pdev, 0);
++	pci_set_drvdata(pdev, NULL);
+ 	pci_disable_device(pdev);
+ }
 
-> 
-> Devin
-> 
-> 
+@@ -3840,7 +3840,7 @@
+ 	ngene_release_buffers(dev);
+ fail0:
+ 	pci_disable_device(pci_dev);
+-	pci_set_drvdata(pci_dev, 0);
++	pci_set_drvdata(pci_dev, NULL);
+ 	return stat;
+ }
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
