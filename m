@@ -1,81 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:59216 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755521Ab0BDDQX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Feb 2010 22:16:23 -0500
-Subject: Re: ivtv-utils/test/ps-analyzer.cpp: error in extracting SCR?
-From: Andy Walls <awalls@radix.net>
-To: Lars Hanisch <dvb@cinnamon-sage.de>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <4B6A123F.5080500@cinnamon-sage.de>
-References: <4B6A123F.5080500@cinnamon-sage.de>
-Content-Type: text/plain
-Date: Wed, 03 Feb 2010 22:16:03 -0500
-Message-Id: <1265253363.3122.106.camel@palomino.walls.org>
+Received: from smtp-OUT05A.alice.it ([85.33.3.5]:1126 "EHLO
+	smtp-OUT05A.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936410Ab0B1TLx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 28 Feb 2010 14:11:53 -0500
+Date: Sun, 28 Feb 2010 20:11:33 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: linux-media@vger.kernel.org, Max Thrun <bear24rw@gmail.com>
+Subject: Re: [PATCH 09/11] ov534: Cosmetics: fix indentation and hex digits
+Message-Id: <20100228201133.d4e4b5c6.ospite@studenti.unina.it>
+In-Reply-To: <20100228194636.423a6312@tele>
+References: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
+	<1267302028-7941-10-git-send-email-ospite@studenti.unina.it>
+	<20100228194636.423a6312@tele>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Sun__28_Feb_2010_20_11_33_+0100_9PKE=vhHR1JiY5.A"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2010-02-04 at 01:18 +0100, Lars Hanisch wrote:
-> Hi,
-> 
->   I'm writing some code repacking the program stream that ivtv delivers 
-> into a transport stream (BTW: is there existing code for this?).
+--Signature=_Sun__28_Feb_2010_20_11_33_+0100_9PKE=vhHR1JiY5.A
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Buy a CX23418 based board.  That chip's firmware can produce a TS.
+On Sun, 28 Feb 2010 19:46:36 +0100
+Jean-Francois Moine <moinejf@free.fr> wrote:
 
-I think Compro and LeadTek cards are available in Europe and are
-supported by the cx18 driver.
+> On Sat, 27 Feb 2010 21:20:26 +0100
+> Antonio Ospite <ospite@studenti.unina.it> wrote:
+>=20
+> >   * Indent with tabs, not with spaces.
+> >   * Less indentation for controls index comments.
+> 	[snip]
+> > -    },
+> > +},
+> >  };
+>=20
+> I had preferred one more TAB for all controls.
 
->  Since 
-> many players needs the PCR I would like to use the SCR of the PS and 
-> place it in the adaption field of the TS (if wikipedia [1] and my 
-> interpretation of it is correct it should be the same).
-> 
->   I stumbled upon the ps-analyzer.cpp in the test-directory of the 
-> ivtv-utils (1.4.0). From line 190 to 198 the SCR and SCR extension are 
-> extracted from the PS-header. But referring to [2] the SCR extension has 
-> 9 bits, the highest 2 bits in the fifth byte after the sync bytes and 
-> the lower 7 bits in the sixth byte. The last bit is a marker bit (always 1).
-> 
->   So instead of
-> 
-> scr_ext = (hdr[4] & 0x1) << 8;
-> scr_ext |= hdr[5];
-> 
->   I think it should be
-> 
-> scr_ext = (unsigned)(hdr[4] & 0x3) << 7;
-> scr_ext |= (hdr[5] & 0xfe) >> 1;
+I found it redundant, but I am preparing a v2 patch as per your request
+now.
 
-
-Given the non-authoritative MPEG-2 documents I have, yes, you appear to
-be correct on this.
-
-Please keep in mind that ps-analyzer.cpp is simply a debug tool from an
-ivtv developer perspective.  You base prodcution software off of it at
-your own risk. :)
-
->   And the bitrate is coded in the next 22 bits, so it should be
-> 
-> mux_rate = (unsigned)(hdr[6]) << 14;
-> mux_rate |= (unsigned)(hdr[7]) << 6;
-> mux_rate |= (unsigned)(hdr[8] & 0xfc) >> 2;
-> 
->   Am I correct?
-
-I did not check this one, but I would not be surprised if ps-analyzer
-had this wrong too.
+I'll also need to refresh patch 10, will send a v2 for it too after
+discussing your comments on that one.
 
 Regards,
-Andy
+   Antonio
 
-> Regards,
-> Lars.
-> 
-> [1] http://en.wikipedia.org/wiki/Presentation_time_stamp
-> [2] http://en.wikipedia.org/wiki/MPEG_program_stream
-> --
+--=20
+Antonio Ospite
+http://ao2.it
 
+PGP public key ID: 0x4553B001
 
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing in e-mail?
+
+--Signature=_Sun__28_Feb_2010_20_11_33_+0100_9PKE=vhHR1JiY5.A
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAkuKv+UACgkQ5xr2akVTsAFCkwCfUuSj1iSToARrXSk75mxGnnMv
+7igAn0nmb8VAwvGgJYjIK7jsRt5ih4yO
+=5jft
+-----END PGP SIGNATURE-----
+
+--Signature=_Sun__28_Feb_2010_20_11_33_+0100_9PKE=vhHR1JiY5.A--
