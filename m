@@ -1,97 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2304 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755114Ab0BJTw3 (ORCPT
+Received: from smtp3-g21.free.fr ([212.27.42.3]:35004 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933156Ab0B1Sq2 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Feb 2010 14:52:29 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id o1AJqOXs017348
-	for <linux-media@vger.kernel.org>; Wed, 10 Feb 2010 20:52:28 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 10 Feb 2010 20:52:24 +0100 (CET)
-Message-Id: <201002101952.o1AJqOXs017348@smtp-vbr4.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Sun, 28 Feb 2010 13:46:28 -0500
+Date: Sun, 28 Feb 2010 19:46:36 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Antonio Ospite <ospite@studenti.unina.it>
+Cc: linux-media@vger.kernel.org, Max Thrun <bear24rw@gmail.com>
+Subject: Re: [PATCH 09/11] ov534: Cosmetics: fix indentation and hex digits
+Message-ID: <20100228194636.423a6312@tele>
+In-Reply-To: <1267302028-7941-10-git-send-email-ospite@studenti.unina.it>
+References: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
+	<1267302028-7941-10-git-send-email-ospite@studenti.unina.it>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Sat, 27 Feb 2010 21:20:26 +0100
+Antonio Ospite <ospite@studenti.unina.it> wrote:
 
-Results of the daily build of v4l-dvb:
+>   * Indent with tabs, not with spaces.
+>   * Less indentation for controls index comments.
+	[snip]
+> -    },
+> +},
+>  };
 
-date:        Wed Feb 10 19:00:11 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14164:690055993011
-gcc version: i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:     2.6.32.5
+I had preferred one more TAB for all controls.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-rc5-armv5: OK
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-rc5-armv5-davinci: OK
-linux-2.6.32.6-armv5-dm365: ERRORS
-linux-2.6.33-rc5-armv5-dm365: ERRORS
-linux-2.6.32.6-armv5-ixp: OK
-linux-2.6.33-rc5-armv5-ixp: OK
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-rc5-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.17-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.20-i686: OK
-linux-2.6.26.8-i686: OK
-linux-2.6.27.44-i686: OK
-linux-2.6.28.10-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: OK
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-rc5-i686: OK
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-rc5-m32r: OK
-linux-2.6.32.6-mips: OK
-linux-2.6.33-rc5-mips: OK
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-rc5-powerpc64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.17-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.20-x86_64: OK
-linux-2.6.26.8-x86_64: OK
-linux-2.6.27.44-x86_64: OK
-linux-2.6.28.10-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: OK
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-rc5-x86_64: OK
-spec: OK
-sparse (v4l-dvb-git): ERRORS
-sparse (linux-2.6.33-rc5): ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: OK
-linux-2.6.19.7-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.7-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
