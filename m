@@ -1,72 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bamako.nerim.net ([62.4.17.28]:51383 "EHLO bamako.nerim.net"
+Received: from smtp3-g21.free.fr ([212.27.42.3]:60353 "EHLO smtp3-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754109Ab0BJRBm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Feb 2010 12:01:42 -0500
-Date: Wed, 10 Feb 2010 18:01:40 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: hermann pitton <hermann-pitton@arcor.de>,
-	LMML <linux-media@vger.kernel.org>, Daro <ghost-rider@aster.pl>,
-	Roman Kellner <muzungu@gmx.net>
-Subject: Re: [PATCH] saa7134: Fix IR support of some ASUS TV-FM 7135
- variants
-Message-ID: <20100210180140.2649d4e3@hyperion.delvare>
-In-Reply-To: <4B687851.3050706@redhat.com>
-References: <20100127120211.2d022375@hyperion.delvare>
-	<4B630179.3080006@redhat.com>
-	<1264812461.16350.90.camel@localhost>
-	<20100130115632.03da7e1b@hyperion.delvare>
-	<4B687851.3050706@redhat.com>
+	id S1754422Ab0B1Sh4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 28 Feb 2010 13:37:56 -0500
+Date: Sun, 28 Feb 2010 19:38:14 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Antonio Ospite <ospite@studenti.unina.it>
+Cc: linux-media@vger.kernel.org, Max Thrun <bear24rw@gmail.com>
+Subject: Re: [PATCH 05/11] ov534: Fix setting manual exposure
+Message-ID: <20100228193814.34f6755f@tele>
+In-Reply-To: <1267302028-7941-6-git-send-email-ospite@studenti.unina.it>
+References: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
+	<1267302028-7941-6-git-send-email-ospite@studenti.unina.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Sat, 27 Feb 2010 21:20:22 +0100
+Antonio Ospite <ospite@studenti.unina.it> wrote:
 
-On Tue, 02 Feb 2010 17:09:05 -0200, Mauro Carvalho Chehab wrote:
-> > From: Jean Delvare <khali@linux-fr.org>
-> > Subject: saa7134: Fix IR support of some ASUS TV-FM 7135 variants
-> > 
-> > Some variants of the ASUS TV-FM 7135 are handled as the ASUSTeK P7131
-> > Analog (card=146). However, by the time we find out, some
-> > card-specific initialization is missed. In particular, the fact that
-> > the IR is GPIO-based. Set it when we change the card type, and run
-> > saa7134_input_init1().
-> > 
-> > Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> > Cc: Daro <ghost-rider@aster.pl>
-> > Cc: Roman Kellner <muzungu@gmx.net>
-> > ---
-> >  linux/drivers/media/video/saa7134/saa7134-cards.c |    5 +++++
-> >  1 file changed, 5 insertions(+)
-> > 
-> > --- v4l-dvb.orig/linux/drivers/media/video/saa7134/saa7134-cards.c	2010-01-30 10:56:50.000000000 +0100
-> > +++ v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c	2010-01-30 11:52:18.000000000 +0100
-> > @@ -7299,6 +7299,11 @@ int saa7134_board_init2(struct saa7134_d
-> >  		       printk(KERN_INFO "%s: P7131 analog only, using "
-> >  						       "entry of %s\n",
-> >  		       dev->name, saa7134_boards[dev->board].name);
-> > +
-> > +			/* IR init has already happened for other cards, so
-> > +			 * we have to catch up. */
-> > +			dev->has_remote = SAA7134_REMOTE_GPIO;
-> > +			saa7134_input_init1(dev);
-> >  	       }
-> >  	       break;
-> >  	case SAA7134_BOARD_HAUPPAUGE_HVR1150:
-> 
-> This version of your patch makes sense to me. 
-> 
-> This logic will only apply for board SAA7134_BOARD_ASUSTeK_P7131_ANALOG, 
-> so, provided that someone with this board test it, I'm OK with it.
-> 
-> Had Roman or Daro already test it?
+> Exposure is now a u16 value, both MSB and LSB are set, but values in
+> the v4l2 control are limited to the interval [0,506] as 0x01fa (506)
+> is the maximum observed value with AEC enabled.
+	[snip]
+>  	    .type    = V4L2_CTRL_TYPE_INTEGER,
+>  	    .name    = "Exposure",
+>  	    .minimum = 0,
+> -	    .maximum = 255,
+> +	    .maximum = 506,
+>  	    .step    = 1,
+>  #define EXPO_DEF 120
+>  	    .default_value = EXPO_DEF,
 
-Not yet, but Daro just volunteered to do so... let's give him/her some
-time to proceed.
+Hi Antonio,
+
+Do we need a so high precision for the exposure? Just setting the
+maximum value to 253 should solve the problem.
+
+Cheers.
 
 -- 
-Jean Delvare
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
