@@ -1,75 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39769 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752178Ab0BWJ1Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Feb 2010 04:27:25 -0500
-From: hvaibhav@ti.com
+Received: from dd16922.kasserver.com ([85.13.137.202]:50337 "EHLO
+	dd16922.kasserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750739Ab0B1XHA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 28 Feb 2010 18:07:00 -0500
+Received: from [127.0.0.1] (p50815EF5.dip.t-dialin.net [80.129.94.245])
+	by dd16922.kasserver.com (Postfix) with ESMTPA id A51B610FC0FB
+	for <linux-media@vger.kernel.org>; Mon,  1 Mar 2010 00:06:58 +0100 (CET)
+Message-ID: <4B8AF722.8000105@helmutauer.de>
+Date: Mon, 01 Mar 2010 00:07:14 +0100
+From: Helmut Auer <vdr@helmutauer.de>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, hverkuil@xs4all.nl,
-	Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH-V6 2/2] OMAP2/3: Add V4L2 DSS driver support in device.c
-Date: Tue, 23 Feb 2010 14:57:19 +0530
-Message-Id: <1266917239-7094-3-git-send-email-hvaibhav@ti.com>
-In-Reply-To: <hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
+Subject: Mantis not in modules.pcimap
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+Hello,
 
+The mantis module is build and working fine with the Skystar2 HD, but it I cannot autodetect it,
+because modules.pcimap is not filled with the vendor id of the card using this module.
+What's to do  to get these ID's ?
+In my case its a:
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- arch/arm/plat-omap/devices.c |   29 +++++++++++++++++++++++++++++
- 1 files changed, 29 insertions(+), 0 deletions(-)
+01:08.0 0480: 1822:4e35 (rev 01)
+	Subsystem: 1ae4:0003
+	Flags: bus master, medium devsel, latency 32, IRQ 16
+	Memory at fddff000 (32-bit, prefetchable) [size=4K]
 
-diff --git a/arch/arm/plat-omap/devices.c b/arch/arm/plat-omap/devices.c
-index 30b5db7..64f2a3a 100644
---- a/arch/arm/plat-omap/devices.c
-+++ b/arch/arm/plat-omap/devices.c
-@@ -357,6 +357,34 @@ static void omap_init_wdt(void)
- static inline void omap_init_wdt(void) {}
- #endif
-
-+/*---------------------------------------------------------------------------*/
-+
-+#if defined(CONFIG_VIDEO_OMAP2_VOUT) || \
-+	defined(CONFIG_VIDEO_OMAP2_VOUT_MODULE)
-+#if defined (CONFIG_FB_OMAP2) || defined (CONFIG_FB_OMAP2_MODULE)
-+static struct resource omap_vout_resource[3 - CONFIG_FB_OMAP2_NUM_FBS] = {
-+};
-+#else
-+static struct resource omap_vout_resource[2] = {
-+};
-+#endif
-+
-+static struct platform_device omap_vout_device = {
-+	.name		= "omap_vout",
-+	.num_resources	= ARRAY_SIZE(omap_vout_resource),
-+	.resource 	= &omap_vout_resource[0],
-+	.id		= -1,
-+};
-+static void omap_init_vout(void)
-+{
-+	(void) platform_device_register(&omap_vout_device);
-+}
-+#else
-+static inline void omap_init_vout(void) {}
-+#endif
-+
-+/*---------------------------------------------------------------------------*/
-+
- /*
-  * This gets called after board-specific INIT_MACHINE, and initializes most
-  * on-chip peripherals accessible on this board (except for few like USB):
-@@ -387,6 +415,7 @@ static int __init omap_init_devices(void)
- 	omap_init_rng();
- 	omap_init_uwire();
- 	omap_init_wdt();
-+	omap_init_vout();
- 	return 0;
- }
- arch_initcall(omap_init_devices);
---
-1.6.2.4
-
+-- 
+Helmut Auer, helmut@helmutauer.de
