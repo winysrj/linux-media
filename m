@@ -1,73 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:26450 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752659Ab0BAOuv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Feb 2010 09:50:51 -0500
-Message-ID: <4B66EA42.9060108@redhat.com>
-Date: Mon, 01 Feb 2010 12:50:42 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:49285 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031421Ab0B1HFm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 28 Feb 2010 02:05:42 -0500
+Date: Sat, 27 Feb 2010 23:05:36 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: =?iso-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+Cc: Matthew Garrett <mjg@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jiri Kosina <jkosina@suse.cz>,
+	Linux Input <linux-input@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Platform Driver x86 <platform-driver-x86@vger.kernel.org>
+Subject: Re: [PATCH] Input: scancode in get/set_keycodes should be unsigned
+Message-ID: <20100228070536.GC765@core.coreip.homeip.net>
+References: <20100228061310.GA765@core.coreip.homeip.net>
+ <4B8A10D0.2020802@freemail.hu>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Abylay Ospan <aospan@netup.ru>
-Subject: [PATCH] dvb_demux: Don't use vmalloc at dvb_dmx_swfilter_packet
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <4B8A10D0.2020802@freemail.hu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As dvb_dmx_swfilter_packet() is protected by a spinlock, it shouldn't sleep.
-However, vmalloc() may call sleep. So, move the initialization of
-dvb_demux::cnt_storage field to a better place.
+On Sun, Feb 28, 2010 at 07:44:32AM +0100, Németh Márton wrote:
+> Hi,
+> Dmitry Torokhov wrote:
+> > The HID layer has some scan codes of the form 0xffbc0000 for logitech
+> > devices which do not work if scancode is typed as signed int, so we need
+> > to switch to unsigned int instead. While at it keycode being signed does
+> > not make much sense either.
+> 
+> Are the scan codes and key codes always 4 bytes long? Then the u32 data
+> type could be used to take 16 bit (or 64 bit) processors also into
+> consideration.
+>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/dvb-core/dvb_demux.c |   19 ++++++++-----------
- 1 files changed, 8 insertions(+), 11 deletions(-)
+We do not support 16 bit processors and for 64 bit 'unsigned int' is
+still 32 bits.
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_demux.c b/drivers/media/dvb/dvb-core/dvb_demux.c
-index a78408e..67f189b 100644
---- a/drivers/media/dvb/dvb-core/dvb_demux.c
-+++ b/drivers/media/dvb/dvb-core/dvb_demux.c
-@@ -426,16 +426,7 @@ static void dvb_dmx_swfilter_packet(struct dvb_demux *demux, const u8 *buf)
- 		};
- 	};
- 
--	if (dvb_demux_tscheck) {
--		if (!demux->cnt_storage)
--			demux->cnt_storage = vmalloc(MAX_PID + 1);
--
--		if (!demux->cnt_storage) {
--			printk(KERN_WARNING "Couldn't allocate memory for TS/TEI check. Disabling it\n");
--			dvb_demux_tscheck = 0;
--			goto no_dvb_demux_tscheck;
--		}
--
-+	if (demux->cnt_storage) {
- 		/* check pkt counter */
- 		if (pid < MAX_PID) {
- 			if (buf[1] & 0x80)
-@@ -454,7 +445,6 @@ static void dvb_dmx_swfilter_packet(struct dvb_demux *demux, const u8 *buf)
- 		};
- 		/* end check */
- 	};
--no_dvb_demux_tscheck:
- 
- 	list_for_each_entry(feed, &demux->feed_list, list_head) {
- 		if ((feed->pid != pid) && (feed->pid != 0x2000))
-@@ -1258,6 +1248,13 @@ int dvb_dmx_init(struct dvb_demux *dvbdemux)
- 		dvbdemux->feed[i].index = i;
- 	}
- 
-+	if (dvb_demux_tscheck) {
-+		dvbdemux->cnt_storage = vmalloc(MAX_PID + 1);
-+
-+		if (!dvbdemux->cnt_storage)
-+			printk(KERN_WARNING "Couldn't allocate memory for TS/TEI check. Disabling it\n");
-+	}
-+
- 	INIT_LIST_HEAD(&dvbdemux->frontend_list);
- 
- 	for (i = 0; i < DMX_TS_PES_OTHER; i++) {
 -- 
-1.6.6.1
-
+Dmitry
