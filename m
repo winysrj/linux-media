@@ -1,66 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.wa.amnet.net.au ([203.161.124.50]:51033 "EHLO
-	smtp1.wa.amnet.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752420Ab0BMOfQ (ORCPT
+Received: from smtp-out108.alice.it ([85.37.17.108]:4534 "EHLO
+	smtp-out108.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936423Ab0B1TTA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Feb 2010 09:35:16 -0500
-Message-ID: <4B76B895.9090305@barber-family.id.au>
-Date: Sat, 13 Feb 2010 22:35:01 +0800
-From: Francis Barber <fedora@barber-family.id.au>
-MIME-Version: 1.0
-To: Steven Toth <steven.toth@mac.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: New Hauppauge HVR-2200 Revision?
-References: <4B5B0E12.3090706@barber-family.id.au> <83bcf6341001230700h7db6600i89b9092051049612@mail.gmail.com> <4B5B837A.6020001@barber-family.id.au> <83bcf6341001231529o54f3afb9p29fa955bc93a660e@mail.gmail.com> <4B5B8E5B.4020600@barber-family.id.au> <83bcf6341001231618r59f03dc9t1eb746c39e67b5fc@mail.gmail.com> <4B5BF61A.4000605@barber-family.id.au> <4B73F6AC.5040803@barber-family.id.au> <4B7412CC.6010003@barber-family.id.au> <4B99D44B-A91C-4145-9317-EFA5AF9BD553@mac.com>
-In-Reply-To: <4B99D44B-A91C-4145-9317-EFA5AF9BD553@mac.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sun, 28 Feb 2010 14:19:00 -0500
+Date: Sun, 28 Feb 2010 20:18:50 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: linux-media@vger.kernel.org,
+	Mosalam Ebrahimi <m.ebrahimi@ieee.org>,
+	Max Thrun <bear24rw@gmail.com>
+Subject: Re: [PATCH 10/11] ov534: Add Powerline Frequency control
+Message-Id: <20100228201850.81f7904a.ospite@studenti.unina.it>
+In-Reply-To: <20100228194951.1c1e26ce@tele>
+References: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
+	<1267302028-7941-11-git-send-email-ospite@studenti.unina.it>
+	<20100228194951.1c1e26ce@tele>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Sun__28_Feb_2010_20_18_50_+0100_SENPwp89SYb3ocFD"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/02/2010 9:44 PM, Steven Toth wrote:
->>> Anyway, apart from the problems noted above it is fine.  I'm not sure what the criteria is for merging support for this card into the main repository, but I would view it as worthy of merging even with these problems outstanding.
->>>
->>> Many thanks,
->>> Frank.
->>>
->>>        
->> Interestingly, so far it only seems to affect the second adapter.  The first one is still working.
->>
->>      
->
-> Odd.
->
-> Francis,
->
-> I find the whole ber/unc values puzzling, essentially they shouldn't happen assuming a good clean DVB-T signal. I'm going to look into this very shortly, along with a broad locking feature I want to change in the demod.
->
-> I've had one or two other people comment on the -stable tree and in general they're pretty happy, including myself, which means that I'll be generating a pull request to have these changes merged very shortly (1-2 weeks).
->
-> Regards,
->
-> - Steve
->
-> --
-> Steven Toth - Kernel Labs
-> http://www.kernellabs.com
->
->
->    
-Hi Steve,
+--Signature=_Sun__28_Feb_2010_20_18_50_+0100_SENPwp89SYb3ocFD
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The unc is clearly wrong because when I watch the picture is fine.
+On Sun, 28 Feb 2010 19:49:51 +0100
+Jean-Francois Moine <moinejf@free.fr> wrote:
 
-Today I had the i2c error using the other adapter, and nothing seemed to 
-be working until I reloaded the modules.
+> On Sat, 27 Feb 2010 21:20:27 +0100
+> Antonio Ospite <ospite@studenti.unina.it> wrote:
+>=20
+> > +static int sd_querymenu(struct gspca_dev *gspca_dev,
+> > +		struct v4l2_querymenu *menu)
+> > +{
+> > +	switch (menu->id) {
+> > +	case V4L2_CID_POWER_LINE_FREQUENCY:
+> > +		switch (menu->index) {
+> > +		case 0:         /*
+> > V4L2_CID_POWER_LINE_FREQUENCY_50HZ */
+> > +			strcpy((char *) menu->name, "50 Hz");
+> > +			return 0;
+> > +		case 1:         /*
+> > V4L2_CID_POWER_LINE_FREQUENCY_60HZ */
+> > +			strcpy((char *) menu->name, "60 Hz");
+> > +			return 0;
+> > +		}
+> > +		break;
+> > +	}
+> > +
+> > +	return -EINVAL;
+> > +}
+>=20
+> In videodev2.h, there is:
+>=20
+> V4L2_CID_POWER_LINE_FREQUENCY_50HZ      =3D 1,
+> V4L2_CID_POWER_LINE_FREQUENCY_60HZ      =3D 2,
+>
 
-Feb 13 19:39:10 ent kernel: [1748208.155364] saa7164_api_i2c_read() 
-error, ret(2) = 0x13
-Feb 13 19:39:10 ent kernel: [1748208.155389] tda18271_read_regs: 
-[1-0060|M] ERROR: i2c_transfer returned: -5
+Maybe we could just use
+	V4L2_CID_POWER_LINE_FREQUENCY_DISABLED	=3D 0,
+	V4L2_CID_POWER_LINE_FREQUENCY_50HZ	=3D 1,
 
-I think the reason I was only seeing it on the slave was because I was 
-mainly using that adapter1.
+It looks like the code matches the DISABLED state (writing 0 to the
+register). Mosalam?
 
-Thanks again for your efforts,
-Francis.
+Regards,
+   Antonio
+
+--=20
+Antonio Ospite
+http://ao2.it
+
+PGP public key ID: 0x4553B001
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing in e-mail?
+
+--Signature=_Sun__28_Feb_2010_20_18_50_+0100_SENPwp89SYb3ocFD
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAkuKwZoACgkQ5xr2akVTsAHd4gCgqCjrVCw2mft7s1HgLfATxw+h
+nhUAnRz/CwP9uTZtxK0K6ib7DwI+LX3G
+=Uoan
+-----END PGP SIGNATURE-----
+
+--Signature=_Sun__28_Feb_2010_20_18_50_+0100_SENPwp89SYb3ocFD--
