@@ -1,49 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay01.digicable.hu ([92.249.128.189]:56333 "EHLO
-	relay01.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750790Ab0CAHKP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Mar 2010 02:10:15 -0500
-Message-ID: <4B8B6853.3050801@freemail.hu>
-Date: Mon, 01 Mar 2010 08:10:11 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:37710 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750696Ab0CAJe3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Mar 2010 04:34:29 -0500
+Received: by wya21 with SMTP id 21so1190627wya.19
+        for <linux-media@vger.kernel.org>; Mon, 01 Mar 2010 01:34:27 -0800 (PST)
 MIME-Version: 1.0
-To: Adams Xu <Adams.xu@azwave.com.cn>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: az6027: variables may be used uninitialized in az6027_i2c_xfer()
-References: <201002281949.o1SJnGO7064642@smtp-vbr12.xs4all.nl>
-In-Reply-To: <201002281949.o1SJnGO7064642@smtp-vbr12.xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Date: Mon, 1 Mar 2010 10:34:27 +0100
+Message-ID: <67dbe4d71003010134u778b8491ya2742e52a123930@mail.gmail.com>
+Subject: Usb Video Grabber
+From: Denis Barbazza <denis.barbazza@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Adams,
+Hi,
+do you know some usb video grabber (input rca or s-video, audio is not
+important),
+that are supported by one of these kernel modules:
 
-Hans Verkuil wrote:
-> This message is generated daily by a cron job that builds v4l-dvb for
-> the kernels and architectures in the list below.
-> [...]
->
-> Detailed results are available here:
-> 
-> http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+kmod-video-gspca
+kmod-video-nw8xx
+kmod-video-ov51x-jpeg
+kmod-video-quickcam
+kmod-video-uvc
 
 
-> linux-2.6.29.1-i686: WARNINGS
->
-> /home/hans/work/build/v4l-dvb-master/v4l/az6027.c: In function 'az6027_i2c_xfer':
-> /home/hans/work/build/v4l-dvb-master/v4l/az6027.c:942: warning: 'index' may be used uninitialized in this function
-> /home/hans/work/build/v4l-dvb-master/v4l/az6027.c:943: warning: 'value' may be used uninitialized in this function
-> /home/hans/work/build/v4l-dvb-master/v4l/az6027.c:944: warning: 'length' may be used uninitialized in this function
-> /home/hans/work/build/v4l-dvb-master/v4l/az6027.c:945: warning: 'req' may be used uninitialized in this function
+thank you
 
-I checked what can cause these warning messages and found that in
-line 990 of linux/drivers/media/dvb/dvb-usb/az6027.c the function
-az6027_usb_out_op() is called. Before that call it seems that the
-condition (msg[i].addr == 0xd0) is checked for the second time which
-is redundant.
-
-Regards,
-
-	Márton Németh
+-- 
+Denis Barbazza
