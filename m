@@ -1,47 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197]:46324 "EHLO
-	mta2.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933173Ab0CKQlu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Mar 2010 11:41:50 -0500
-Received: from MacBook-Pro.local
- (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta2.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KZ400I42MDKSIP0@mta2.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Thu, 11 Mar 2010 11:41:44 -0500 (EST)
-Date: Thu, 11 Mar 2010 11:41:44 -0500
-From: Steven Toth <stoth@kernellabs.com>
-Subject: Re: DNTV Dual Hybrid (7164) PCIe
-In-reply-to: <4B9919AA.9030505@gmail.com>
-To: Jed <jedi.theone@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-id: <4B991D48.7000003@kernellabs.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <4B9919AA.9030505@gmail.com>
+Received: from mail-bw0-f212.google.com ([209.85.218.212]:46310 "EHLO
+	mail-bw0-f212.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751534Ab0CAVRS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Mar 2010 16:17:18 -0500
+Received: by bwz4 with SMTP id 4so2199786bwz.28
+        for <linux-media@vger.kernel.org>; Mon, 01 Mar 2010 13:17:16 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20100301075503.5963576f@tele>
+References: <1267388365.1854.30.camel@miniol> <20100301075503.5963576f@tele>
+Date: Mon, 1 Mar 2010 22:17:16 +0100
+Message-ID: <68dded741003011317p6809cc71k1da4609fb5584346@mail.gmail.com>
+Subject: Re: [PATCH 1/2] New driver for MI2020 sensor with GL860 bridge
+From: Olivier Lorin <olorin75@gmail.com>
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: V4L Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 3/11/10 11:26 AM, Jed wrote:
-> Hi Kernellabs,
+Hello,
+
+light source is not related to LEDs, it is for the kind of light
+source (tungsten, etc). The Windows driver had this control beside the
+white balance. I could remove this new control as under Windows the
+white balance is achieved by software and not hardware so the white
+balance control is available with Linux.
+
+About delay, they are required with at least 2 of four sensors managed
+by the driver because there can be communication faults. It also
+depends on the laptop as a same sensor driver is kown to always fails
+with a laptop and not another one. I prefer now to secure the
+communication with all four sensors with a small delay after a data
+has been sent.
+The delay is mostly stringent in the case of the MI2020 because there
+is more than 400 USB messages sent to the webcam at startup and
+initialisation time. Added with other required delay, several seconds
+are needed to initialise the webcam. I know a "msleep(1)" lasts 5ms to
+10ms depending on the scheduler. The msleep slows down too much the
+communication. The OV2640 requires also more than 200 messages.
+I never got any error with 850ms but we could use 900 or 1000ms. I
+chose the less long delay.
+
+Cheers,
+OL
+
+2010/3/1, Jean-Francois Moine <moinejf@free.fr>:
+> On Sun, 28 Feb 2010 21:19:25 +0100
+> Olivier Lorin <olorin75@gmail.com> wrote:
 >
-> I'm thinking of getting this:
-> http://forums.dvbowners.com/index.php?showtopic=11720
-> It seems very similar to the HVR-2200 yet has component-in.
-> Do you reckon your module/s might support it?
+>> - General changes for all drivers because of new MI2020 sensor
+>> driver :
+>>   - add the light source control
+>>   - control value changes only applied after an end of image
+>>   - replace msleep with duration less than 5 ms by a busy loop
+>> - Fix for an irrelevant OV9655 image resolution identifier name
 >
-> Thank-you!
-
-Highly likely the drivers will not support it. Each card has unique firmware 
-identifiers that need to be added manually to the driver.
-
-If you'd like to provide me a card then I'd consider adding support.
-
-- Steve
-
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
-+1.646.355.8490
-
+> Hello Olivier,
+>
+> What is this 'light source'? In the list, we are talking about the
+> webcam LEDs and how to switch them on/off. Is it the same feature?
+>
+> Is it important to have a so precise delay in the webcam exchanges?
+>
+> Cheers.
+>
+> --
+> Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+> Jef		|		http://moinejf.free.fr/
+>
