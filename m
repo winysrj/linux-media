@@ -1,84 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpfb1-g21.free.fr ([212.27.42.9]:43302 "EHLO
-	smtpfb1-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751329Ab0CULXu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Mar 2010 07:23:50 -0400
-Received: from smtp2-g21.free.fr (smtp2-g21.free.fr [212.27.42.2])
-	by smtpfb1-g21.free.fr (Postfix) with ESMTP id 9742F794407
-	for <linux-media@vger.kernel.org>; Sun, 21 Mar 2010 12:15:34 +0100 (CET)
-Message-ID: <4BA5FFA5.7030800@free.fr>
-Date: Sun, 21 Mar 2010 12:14:45 +0100
-From: matthieu castet <castet.matthieu@free.fr>
+Received: from mx1.redhat.com ([209.132.183.28]:12038 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750878Ab0CAJZl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Mar 2010 04:25:41 -0500
+Message-ID: <4B8B8857.4080100@redhat.com>
+Date: Mon, 01 Mar 2010 10:26:47 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] af9015 : more robust eeprom parsing
-Content-Type: multipart/mixed;
- boundary="------------050809010503070309040100"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Announcing v4l-utils-0.7.90 (which includes libv4l-0.7.90)
+References: <4B882457.1050006@hhs.nl> <201003010845.50657.hverkuil@xs4all.nl> <4B8B7BF2.4070201@redhat.com>
+In-Reply-To: <4B8B7BF2.4070201@redhat.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------050809010503070309040100
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi,
 
-the af9015 eeprom parsing accept 0x38 as 2nd demodulator. But this is impossible because the
-first one is already hardcoded to 0x38.
-This remove a special case for AverMedia AVerTV Volar Black HD.
+On 03/01/2010 09:33 AM, Hans de Goede wrote:
+> On 03/01/2010 08:45 AM, Hans Verkuil wrote:
+>> On Friday 26 February 2010 20:43:19 Hans de Goede wrote:
+>>> Hi,
+>>>
+>>> I'm happy to announce the first (test / beta) release of v4l-utils,
+>>> v4l-utils is the combination of various v4l and dvb utilities which
+>>> used to be part of the v4l-dvb mercurial kernel tree and libv4l.
+>>
+>> Is it correct that I only see v4l utilities and no dvb?
+>>
+>
+> I just went with was already put in the repo by Mauro and Douglas. I'm fine
+> with adding dvb utilities, but I don't feel it is my place to decide to
+> do that.
+>
 
-Also in af9015_copy_firmware don't hardcode the 2nd demodulator address to 0x3a.
+Reading some more about dvb-apps, I have to side with the people
+who are voting for keeping dvb-apps separate. I do wonder
+if those people and you and Mauro are talking about the same dvb-apps,
+or if this is just a misunderstanding.
+
+The dvp-apps I'm talking about now, and of which I'm not in favor of
+merging them with v4l-utils are the ones, which can be downloaded
+here:
+http://linuxtv.org/downloads/
+http://linuxtv.org/hg/dvb-apps
+
+Although I must agree with the people who are in favor of
+integrating this into v4l-utils, that this needs much more active
+maintainership wrt to making regular tarbal releases for distro's
+to consume.
+
+Still I believe this should stay as a separate project, because
+so far it clearly was, and I see no huge advantages in integrating it.
+
+Signs that this clearly is a separate stand alone project:
+
+1) It has done several tarbal releases (these are ancient guys,
+    this needs to be fixed).
+
+2) It has its own VCS
+
+3) It is packaged up by various distros:
+
+http://packages.debian.org/sid/video/dvb-apps
+http://packages.ubuntu.com/source/dapper/linuxtv-dvb-apps
+http://cvs.fedoraproject.org/viewvc/rpms/dvb-apps/
+http://rpm.pbone.net/index.php3?stat=3&search=dvb-apps&srodzaj=3
+http://gentoo-portage.com/media-tv/linuxtv-dvb-apps
+http://aur.archlinux.org/packages.php?ID=2034
+http://www.slax.org/modules.php?action=detail&id=3143
+https://dev.openwrt.org/ticket/2804
+
+4) It is referenced as a standalone project by 3th parties:
+http://www.mythtv.org/wiki/Dvb-apps
 
 
-Signed-off-by: Matthieu CASTET <castet.matthieu@free.fr> 
+So given the stand alone nature, and that it is already widely packaged
+as a standalone project by distro's. For now I'm against ingrating this
+into v4l-utils.
 
---------------050809010503070309040100
-Content-Type: text/x-diff;
- name="af9015.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="af9015.diff"
+And the most important argument for me being against this, is that one
+of the 2 active contributors (judging from the hg tree), Manu Abraham,
+is very much against integration. And the people who are in favor
+(Hans Verkuil and Mauro) don't seem to have done any commits to the
+tree in question, for at least the last 2 years.
 
-diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
-index d797538..f93767e 100644
---- a/drivers/media/dvb/dvb-usb/af9015.c
-+++ b/drivers/media/dvb/dvb-usb/af9015.c
-@@ -493,7 +493,7 @@ static int af9015_copy_firmware(struct dvb_usb_device *d)
- 	/* wait 2nd demodulator ready */
- 	msleep(100);
- 
--	ret = af9015_read_reg_i2c(d, 0x3a, 0x98be, &val);
-+	ret = af9015_read_reg_i2c(d, af9015_af9013_config[1].demod_address, 0x98be, &val);
- 	if (ret)
- 		goto error;
- 	else
-@@ -913,8 +913,13 @@ static int af9015_read_config(struct usb_device *udev)
- 		ret = af9015_rw_udev(udev, &req);
- 		if (ret)
- 			goto error;
--		af9015_af9013_config[1].demod_address = val;
-+		if (val != AF9015_I2C_DEMOD)
-+			af9015_af9013_config[1].demod_address = val;
-+		else 
-+			af9015_config.dual_mode = 0;
-+	}
- 
-+	if (af9015_config.dual_mode) {
- 		/* enable 2nd adapter */
- 		for (i = 0; i < af9015_properties_count; i++)
- 			af9015_properties[i].num_adapters = 2;
-@@ -1023,11 +1028,6 @@ error:
- 	if (le16_to_cpu(udev->descriptor.idVendor) == USB_VID_AVERMEDIA &&
- 	    le16_to_cpu(udev->descriptor.idProduct) == USB_PID_AVERMEDIA_A850) {
- 		deb_info("%s: AverMedia A850: overriding config\n", __func__);
--		/* disable dual mode */
--		af9015_config.dual_mode = 0;
--		 /* disable 2nd adapter */
--		for (i = 0; i < af9015_properties_count; i++)
--			af9015_properties[i].num_adapters = 1;
- 
- 		/* set correct IF */
- 		af9015_af9013_config[0].tuner_if = 4570;
+So unless we can get some buy in for integrating this in to
+v4l-utils from active dvb-apps contributors I'm opposed to the integration.
 
---------------050809010503070309040100--
+With this all said, I must say: Manu please do a tarbal release real real
+soon, and make a habit out of doing so regularly!
+
+Regards,
+
+Hans
+
