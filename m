@@ -1,89 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from jim.sh ([75.150.123.25]:57639 "EHLO psychosis.jim.sh"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756268Ab0CDUgr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Mar 2010 15:36:47 -0500
-Date: Thu, 4 Mar 2010 15:36:40 -0500
-From: Jim Paris <jim@jtan.com>
-To: Max Thrun <bear24rw@gmail.com>
-Cc: Antonio Ospite <ospite@studenti.unina.it>,
-	"M.Ebrahimi" <m.ebrahimi@ieee.org>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 10/11] ov534: Add Powerline Frequency control
-Message-ID: <20100304203640.GA22620@psychosis.jim.sh>
-References: <20100228205528.54d1ba69@tele>
- <1d742ad81003020326h5e02189bt6511b840dd17d7e3@mail.gmail.com>
- <20100302163937.70a15c19.ospite@studenti.unina.it>
- <7b67a5ec1003020806x65164673ue699de2067bc4fb8@mail.gmail.com>
- <1d742ad81003021827p181bf0a6mdf87ad7535bc37bd@mail.gmail.com>
- <20100303090008.f94e7789.ospite@studenti.unina.it>
- <20100304045533.GA17821@psychosis.jim.sh>
- <20100304100346.79818884.ospite@studenti.unina.it>
- <20100304201445.GA21194@psychosis.jim.sh>
- <7b67a5ec1003041222g25af69daq50fc62aeb8c85b96@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <7b67a5ec1003041222g25af69daq50fc62aeb8c85b96@mail.gmail.com>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:10065 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750885Ab0CAKLz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Mar 2010 05:11:55 -0500
+Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0KYL00I2BLNST1@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 01 Mar 2010 10:11:53 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0KYL009ACLNSYE@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 01 Mar 2010 10:11:52 +0000 (GMT)
+Date: Mon, 01 Mar 2010 11:10:20 +0100
+From: Tomasz Fujak <t.fujak@samsung.com>
+Subject: RE: Proposal for a V4L2 Media Controller mini-summit
+In-reply-to: <c76d3160af32c3c654cad235f9ef5441.squirrel@webmail.xs4all.nl>
+To: 'Hans Verkuil' <hverkuil@xs4all.nl>
+Cc: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, 'Vaibhav Hiremath' <hvaibhav@ti.com>,
+	"'Gole, Anant'" <anantgole@ti.com>,
+	'Muralidharan Karicheri' <m-karicheri2@ti.com>,
+	'Sergio Rodriguez' <saaguirre@ti.com>, molnar@ti.com,
+	'Magnus Damm' <magnus.damm@gmail.com>,
+	'Guru Raj' <gururaj.nagendra@intel.com>,
+	"'Zhang, Xiaolin'" <xiaolin.zhang@intel.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	'Jin-Sung Yang' <jsgood.yang@samsung.com>,
+	"'Dongsoo, Nathaniel Kim'" <dongsoo.kim@gmail.com>,
+	'Kyungmin Park' <kmpark@infradead.org>, mcharleb@qualcomm.com,
+	hrao@ti.com, 'Mauro Carvalho Chehab' <mchehab@infradead.org>,
+	'Devin Heitmueller' <devin.heitmueller@gmail.com>,
+	'Sakari Ailus' <sakari.ailus@maxwell.research.nokia.com>,
+	Marcin Gajda <m.gajda@samsung.com>
+Message-id: <003d01cab927$66604a10$3320de30$%fujak@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <201002121550.08706.hverkuil@xs4all.nl>
+ <201002171933.33921.hverkuil@xs4all.nl>
+ <201002181058.28073.laurent.pinchart@ideasonboard.com>
+ <4B7D1B7D.9090800@maxwell.research.nokia.com>
+ <c76d3160af32c3c654cad235f9ef5441.squirrel@webmail.xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Max Thrun wrote:
-> On Thu, Mar 4, 2010 at 3:14 PM, Jim Paris <jim@jtan.com> wrote:
+Hi Hans,
+
+(...)
+> Darn. Having a mini-summit without Laurent and yourself is pointless
+> since
+> you are both key developers.
 > 
-> > Antonio Ospite wrote:
-> > > On Wed, 3 Mar 2010 23:55:33 -0500
-> > > Jim Paris <jim@jtan.com> wrote:
-> > >
-> > > > Antonio Ospite wrote:
-> > > [...]
-> > > > >
-> > > > > I see. It would be interesting to see how Powerline Frequency
-> > filtering
-> > > > > is done on PS3. I added Jim Paris on CC.
-> > > >
-> > > > Hi Antonio and Mosalam,
-> > > >
-> > > > I tried, but I can't capture that.  My USB logger only does USB 1.1,
-> > > > which is too slow for the camera to run normally, but good enough to
-> > > > see the initialization sequence.  However, the 50/60Hz option only
-> > > > appears later, once the PS3 is receiving good frame data.
-> > > >
-> > > > I can open up the camera and sniff the I2C bus instead.  It'll take
-> > > > a little longer.
-> > > >
-> > >
-> > > Thanks for your time Jim.
-> >
-> > No problem, glad to help.
-> > Looks like Mosalam's patch is correct:
-> >
-> > --- i2c-60hz.log        2010-03-04 15:09:23.000000000 -0500
-> > +++ i2c-50hz.log        2010-03-04 15:09:27.000000000 -0500
-> > @@ -69,7 +69,7 @@
-> >  ov_write_verify 8C E8
-> >  ov_write_verify 8D 20
-> >  ov_write_verify 0C 90
-> > -ov_write_verify 2B 00
-> > +ov_write_verify 2B 9E
-> >  ov_write_verify 22 7F
-> >  ov_write_verify 23 03
-> >  ov_write_verify 11 01
-> >
-> > I'll attach the full logs.
-> >
-> > -jim
-> >
+> New proposal: May 5-7 in Lysaker, Norway.
 > 
-> Jim, I'm really interested in how you went about sniffing the bus. Can you
-> share some details about what you use to do it?
+> Does that work?
 
-Sure.  I borrowed one of these from a friend:
-  http://www.totalphase.com/products/beagle_ism/
+Most probably. Depending how the Media Controller thing looks by then we
+consider sending a representative there.
+It's in Europe, so maybe the management would swallow the business trip
+costs ;)
 
-and tapped the GND, SCL, and SDA pins off the camera EEPROM.
-I exported a CSV from the Beagle software and used a quick Perl script
-to parse it into a more useful read/write/write_verify format.
+> 
+> Regards,
+> 
+>         Hans
+> 
+> --
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
--jim
+Regards
+-- 
+Tomasz Fujak
+
