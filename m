@@ -1,112 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.rdslink.ro ([81.196.12.70]:41836 "EHLO smtp.rdslink.ro"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751054Ab0CURtX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Mar 2010 13:49:23 -0400
-Subject: 0003-Staging-cx25821-fix-coding-style-issues-in-cx25821-g.patch
-From: Olimpiu Pascariu <olimpiu.pascariu@gmail.com>
-To: gregkh@suse.de, mchehab@redhat.com,
-	palash.bandyopadhyay@conexant.com
-Cc: devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset="ANSI_X3.4-1968"
-Date: Sun, 21 Mar 2010 19:49:09 +0200
-Message-ID: <1269193749.6971.4.camel@tuxtm-linux>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:45158 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751663Ab0CAHyw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Mar 2010 02:54:52 -0500
+Received: by pwj8 with SMTP id 8so1438586pwj.19
+        for <linux-media@vger.kernel.org>; Sun, 28 Feb 2010 23:54:51 -0800 (PST)
+Message-ID: <4B8B72C7.1060806@gmail.com>
+Date: Mon, 01 Mar 2010 15:54:47 +0800
+From: Huang Shijie <shijie8@gmail.com>
+MIME-Version: 1.0
+To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+CC: Kang Yong <kangyong@telegent.com>,
+	Zhang Xiaobing <xbzhang@telegent.com>,
+	Huang Shijie <zyziii@telegent.com>,
+	V4L Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH] tlg2300: cleanups when power management is not configured
+References: <4B8A7B83.8060203@freemail.hu>
+In-Reply-To: <4B8A7B83.8060203@freemail.hu>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->From fae275cf48fd318cbd88e59e90f119c3f75dab72 Mon Sep 17 00:00:00 2001
-From: Olimpiu Pascariu <olimpiu.pascariu@gmail.com>
-Date: Sun, 21 Mar 2010 19:44:01 +0200
-Subject: [PATCH 3/3] Staging: cx25821: fix coding style issues in cx25821-gpio.c
- This is a patch to cx25821-gpio.c file that fixes up warnings and errors found by the checkpatch.pl tool
- Signed-off-by: Olimpiu Pascariu <olimpiu.pascariu@gmail.com>
+The function poseidon_fe_release is redundent in fact, I will remove it 
+in future.
 
----
- drivers/staging/cx25821/cx25821-gpio.c |   25 ++++++++++++-------------
- 1 files changed, 12 insertions(+), 13 deletions(-)
+But now I still acked this patch. thanks a lot.
 
-diff --git a/drivers/staging/cx25821/cx25821-gpio.c b/drivers/staging/cx25821/cx25821-gpio.c
-index e8a37b4..2f154b3 100644
---- a/drivers/staging/cx25821/cx25821-gpio.c
-+++ b/drivers/staging/cx25821/cx25821-gpio.c
-@@ -31,7 +31,7 @@ void cx25821_set_gpiopin_direction(struct cx25821_dev *dev,
- 	u32 gpio_register = 0;
- 	u32 value = 0;
- 
--	// Check for valid pinNumber
-+	/* Check for valid pinNumber */
- 	if (pin_number >= 47)
- 		return;
- 
-@@ -39,14 +39,14 @@ void cx25821_set_gpiopin_direction(struct cx25821_dev *dev,
- 		bit = pin_number - 31;
- 		gpio_oe_reg = GPIO_HI_OE;
- 	}
--	// Here we will make sure that the GPIOs 0 and 1 are output. keep the rest as is
-+	/* Here we will make sure that the GPIOs 0 and 1 are output. keep the
-+	 * rest as is */
- 	gpio_register = cx_read(gpio_oe_reg);
- 
--	if (pin_logic_value == 1) {
-+	if (pin_logic_value == 1)
- 		value = gpio_register | Set_GPIO_Bit(bit);
--	} else {
-+	else
- 		value = gpio_register & Clear_GPIO_Bit(bit);
--	}
- 
- 	cx_write(gpio_oe_reg, value);
- }
-@@ -58,11 +58,12 @@ static void cx25821_set_gpiopin_logicvalue(struct cx25821_dev *dev,
- 	u32 gpio_reg = GPIO_LO;
- 	u32 value = 0;
- 
--	// Check for valid pinNumber
-+	/* Check for valid pinNumber */
- 	if (pin_number >= 47)
- 		return;
- 
--	cx25821_set_gpiopin_direction(dev, pin_number, 0);	// change to output direction
-+	/* change to output direction */
-+	cx25821_set_gpiopin_direction(dev, pin_number, 0);
- 
- 	if (pin_number > 31) {
- 		bit = pin_number - 31;
-@@ -71,25 +72,23 @@ static void cx25821_set_gpiopin_logicvalue(struct cx25821_dev *dev,
- 
- 	value = cx_read(gpio_reg);
- 
--	if (pin_logic_value == 0) {
-+	if (pin_logic_value == 0)
- 		value &= Clear_GPIO_Bit(bit);
--	} else {
-+	else
- 		value |= Set_GPIO_Bit(bit);
--	}
- 
- 	cx_write(gpio_reg, value);
- }
- 
- void cx25821_gpio_init(struct cx25821_dev *dev)
- {
--	if (dev == NULL) {
-+	if (dev == NULL)
- 		return;
--	}
- 
- 	switch (dev->board) {
- 	case CX25821_BOARD_CONEXANT_ATHENA10:
- 	default:
--		//set GPIO 5 to select the path for Medusa/Athena
-+		/* set GPIO 5 to select the path for Medusa/Athena */
- 		cx25821_set_gpiopin_logicvalue(dev, 5, 1);
- 		mdelay(20);
- 		break;
--- 
-1.7.0
-
-
+Acked-by: Huang Shijie <shijie8@gmail.com>
+> From: Márton Németh<nm127@freemail.hu>
+>
+> When power management is not configured (CONFIG_PM) then some code is no longer
+> necessary.
+>
+> This patch will remove the following compiler warnings:
+>   * pd-dvb.c: In function 'poseidon_fe_release':
+>   * pd-dvb.c:101: warning: unused variable 'pd'
+>   * pd-video.c:14: warning: 'pm_video_suspend' declared 'static' but never defined
+>   * pd-video.c:15: warning: 'pm_video_resume' declared 'static' but never defined
+>
+> Signed-off-by: Márton Németh<nm127@freemail.hu>
+> ---
+> diff -r 37581bb7e6f1 linux/drivers/media/video/tlg2300/pd-dvb.c
+> --- a/linux/drivers/media/video/tlg2300/pd-dvb.c	Wed Feb 24 22:48:50 2010 -0300
+> +++ b/linux/drivers/media/video/tlg2300/pd-dvb.c	Sun Feb 28 15:13:05 2010 +0100
+> @@ -96,15 +96,17 @@
+>   	return ret;
+>   }
+>
+> +#ifdef CONFIG_PM
+>   static void poseidon_fe_release(struct dvb_frontend *fe)
+>   {
+>   	struct poseidon *pd = fe->demodulator_priv;
+>
+> -#ifdef CONFIG_PM
+>   	pd->pm_suspend = NULL;
+>   	pd->pm_resume  = NULL;
+> +}
+> +#else
+> +#define poseidon_fe_release NULL
+>   #endif
+> -}
+>
+>   static s32 poseidon_fe_sleep(struct dvb_frontend *fe)
+>   {
+> diff -r 37581bb7e6f1 linux/drivers/media/video/tlg2300/pd-video.c
+> --- a/linux/drivers/media/video/tlg2300/pd-video.c	Wed Feb 24 22:48:50 2010 -0300
+> +++ b/linux/drivers/media/video/tlg2300/pd-video.c	Sun Feb 28 15:13:05 2010 +0100
+> @@ -11,8 +11,10 @@
+>   #include "pd-common.h"
+>   #include "vendorcmds.h"
+>
+> +#ifdef CONFIG_PM
+>   static int pm_video_suspend(struct poseidon *pd);
+>   static int pm_video_resume(struct poseidon *pd);
+> +#endif
+>   static void iso_bubble_handler(struct work_struct *w);
+>
+>   int usb_transfer_mode;
+>
+>    
 
