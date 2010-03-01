@@ -1,33 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f223.google.com ([209.85.220.223]:63460 "EHLO
-	mail-fx0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756129Ab0CXNcQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Mar 2010 09:32:16 -0400
-Received: by fxm23 with SMTP id 23so29685fxm.1
-        for <linux-media@vger.kernel.org>; Wed, 24 Mar 2010 06:32:14 -0700 (PDT)
-MIME-Version: 1.0
-Date: Wed, 24 Mar 2010 10:32:12 -0300
-Message-ID: <499b283a1003240632q4bb710b2lea0a545ae5cb22ff@mail.gmail.com>
-Subject: [PATCH] Little fix on switch identation - cx88-dvb
-From: Ricardo Maraschini <xrmarsx@gmail.com>
+Received: from bld-mail15.adl6.internode.on.net ([150.101.137.100]:36877 "EHLO
+	mail.internode.on.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752225Ab0CAXJi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Mar 2010 18:09:38 -0500
+Received: from [192.168.1.100] (unverified [118.209.146.223])
+	by mail.internode.on.net (SurgeMail 3.8f2) with ESMTP id 3908449-1927428
+	for <linux-media@vger.kernel.org>; Tue, 02 Mar 2010 09:24:31 +1030 (CDT)
+Subject: Re: [linux-dvb] DVB-T USB Devices
+From: Rodd Clarkson <rodd@clarkson.id.au>
 To: linux-media@vger.kernel.org
-Cc: doug <dougsland@gmail.com>, mchehab@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <1267430586.3536.5.camel@localhost.localdomain>
+References: <1267430586.3536.5.camel@localhost.localdomain>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 02 Mar 2010 09:54:31 +1100
+Message-ID: <1267484071.3536.7.camel@localhost.localdomain>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ricardo Maraschini <ricardo.maraschini@gmail.com>
+On Mon, 2010-03-01 at 19:03 +1100, Rodd Clarkson wrote:
+
+> usb 1-4: Manufacturer: Hauppauge Computer Works
+> ...
+> smscore_set_device_mode: firmware download success:
+> sms1xxx-nova-b-dvbt-01.fw
+
+I hate replying to myself, but I should have mentioned that
+
+sms1xxx-nova-b-dvbt-01.fw is a renamed sms1xxx-hcw-55xxx-dvbt-01.fw
+
+I've noticed that sms1xxx-hcw-55xxx-dvbt-02.fw seems to be out, but
+haven't tried this.
 
 
---- a/linux/drivers/media/video/cx88/cx88-dvb.c Tue Mar 23 17:52:23 2010 -0300
-+++ b/linux/drivers/media/video/cx88/cx88-dvb.c Wed Mar 24 10:29:09 2010 -0300
-@@ -1238,7 +1238,7 @@
-                                fe->ops.tuner_ops.set_config(fe, &ctl);
-                }
-                break;
--        case CX88_BOARD_PINNACLE_HYBRID_PCTV:
-+       case CX88_BOARD_PINNACLE_HYBRID_PCTV:
-        case CX88_BOARD_WINFAST_DTV1800H:
-                fe0->dvb.frontend = dvb_attach(zl10353_attach,
-                                               &cx88_pinnacle_hybrid_pctv,
+R.
+
