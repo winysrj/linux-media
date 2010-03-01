@@ -1,59 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4639 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752539Ab0CQO02 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Mar 2010 10:26:28 -0400
-Message-ID: <1b349bbb89725540c70175130caf9ae3.squirrel@webmail.xs4all.nl>
-In-Reply-To: <A24693684029E5489D1D202277BE894454137086@dlee02.ent.ti.com>
-References: <1268831061-307-1-git-send-email-p.osciak@samsung.com>
-    <1268831061-307-2-git-send-email-p.osciak@samsung.com>
-    <A24693684029E5489D1D202277BE894454137086@dlee02.ent.ti.com>
-Date: Wed, 17 Mar 2010 15:26:21 +0100
-Subject: RE: [PATCH v2] v4l: videobuf: code cleanup.
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Cc: "Pawel Osciak" <p.osciak@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"m.szyprowski@samsung.com" <m.szyprowski@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
+Received: from relay01.digicable.hu ([92.249.128.189]:56377 "EHLO
+	relay01.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751139Ab0CAHKz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Mar 2010 02:10:55 -0500
+Message-ID: <4B8B687C.4090306@freemail.hu>
+Date: Mon, 01 Mar 2010 08:10:52 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: Adams Xu <Adams.xu@azwave.com.cn>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] az6027: remove redundant condition check
+References: <201002281949.o1SJnGO7064642@smtp-vbr12.xs4all.nl> <4B8B6853.3050801@freemail.hu>
+In-Reply-To: <4B8B6853.3050801@freemail.hu>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Márton Németh <nm127@freemail.hu>
 
-> Hi,
->
->> -----Original Message-----
->> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->> owner@vger.kernel.org] On Behalf Of Pawel Osciak
->> Sent: Wednesday, March 17, 2010 8:04 AM
->> To: linux-media@vger.kernel.org
->> Cc: p.osciak@samsung.com; m.szyprowski@samsung.com;
->> kyungmin.park@samsung.com
->> Subject: [PATCH v2] v4l: videobuf: code cleanup.
->>
->> Make videobuf pass checkpatch; minor code cleanups.
->
-> I thought this kind patches were frowned upon..
->
-> http://www.mjmwired.net/kernel/Documentation/development-process/4.Coding#41
->
-> But maybe it's acceptable in this case... I'm not an expert on community
-> policies :)
+The condition (msg[i].addr == 0xd0) is checked twice the second one
+is not necessary.
 
-It is true that you shouldn't do this 'just to clean up code'. But in this
-case we want to do a lot of work on the videobuf framework, and it helps a
-lot if it is first brought up to date with the coding standards.
+This will remove the following compiler warning:
+   az6027.c: In function 'az6027_i2c_xfer':
+   az6027.c:942: warning: 'index' may be used uninitialized in this function
+   az6027.c:943: warning: 'value' may be used uninitialized in this function
+   az6027.c:944: warning: 'length' may be used uninitialized in this function
+   az6027.c:945: warning: 'req' may be used uninitialized in this function
 
-It's just step one in a much longer process :-)
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+diff -r 37581bb7e6f1 linux/drivers/media/dvb/dvb-usb/az6027.c
+--- a/linux/drivers/media/dvb/dvb-usb/az6027.c	Wed Feb 24 22:48:50 2010 -0300
++++ b/linux/drivers/media/dvb/dvb-usb/az6027.c	Mon Mar 01 08:09:35 2010 +0100
+@@ -976,17 +976,14 @@
+ 				i++;
+ 			} else {
 
-Regards,
-
-          Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+-				if (msg[i].addr == 0xd0) {
+-					/* demod 16bit addr */
+-					req = 0xBD;
+-					index = (((msg[i].buf[0] << 8) & 0xff00) | (msg[i].buf[1] & 0x00ff));
+-					value = msg[i].addr + (2 << 8);
+-					length = msg[i].len - 2;
+-					len = msg[i].len - 2;
+-					for (j = 0; j < len; j++)
+-						data[j] = msg[i].buf[j + 2];
+-
+-				}
++				/* demod 16bit addr */
++				req = 0xBD;
++				index = (((msg[i].buf[0] << 8) & 0xff00) | (msg[i].buf[1] & 0x00ff));
++				value = msg[i].addr + (2 << 8);
++				length = msg[i].len - 2;
++				len = msg[i].len - 2;
++				for (j = 0; j < len; j++)
++					data[j] = msg[i].buf[j + 2];
+ 				az6027_usb_out_op(d, req, value, index, data, length);
+ 			}
+ 		}
 
