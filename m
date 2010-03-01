@@ -1,106 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:55585 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751325Ab0CCPtw convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Mar 2010 10:49:52 -0500
-Received: by bwz1 with SMTP id 1so3987bwz.21
-        for <linux-media@vger.kernel.org>; Wed, 03 Mar 2010 07:49:51 -0800 (PST)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Hendrik Skarpeid <skarp@online.no>
-Subject: Re: DM1105: could not attach frontend 195d:1105
-Date: Wed, 3 Mar 2010 17:49:23 +0200
-Cc: linux-media@vger.kernel.org,
-	Nameer Kazzaz <nameer.kazzaz@gmail.com>
-References: <4B7D83B2.4030709@online.no> <201003030110.32834.liplianin@me.by> <4B8E1FF1.8050605@online.no>
-In-Reply-To: <4B8E1FF1.8050605@online.no>
+Received: from perceval.irobotique.be ([92.243.18.41]:35305 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750861Ab0CAJCi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Mar 2010 04:02:38 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: =?utf-8?q?N=C3=A9meth_M=C3=A1rton?= <nm127@freemail.hu>
+Subject: Re: [PATCH 1/3] add feedback LED control
+Date: Mon, 1 Mar 2010 10:03:48 +0100
+Cc: "Jean-Francois Moine" <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+References: <4B8A2158.6020701@freemail.hu> <20100228202801.6986cb19@tele> <4B8AC618.80200@freemail.hu>
+In-Reply-To: <4B8AC618.80200@freemail.hu>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="utf-8"
 Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <201003031749.24261.liplianin@me.by>
+Message-Id: <201003011003.50713.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 3 марта 2010 10:38:09 Hendrik Skarpeid wrote:
-> Igor M. Liplianin skrev:
-> > On 2 марта 2010, "Igor M. Liplianin" <liplianin@me.by> wrote:
-> >> Igor M. Liplianin skrev:
-> >>> On 23 февраля 2010 15:12:05 Nameer Kazzaz wrote:
-> >>>> Sounds cool, let me know if I can help you with anything.
-> >>>>
-> >>>> Thanks
-> >>>> Nameer
-> >>>>
-> >>>> Hendrik Skarpeid wrote:
-> >>>>> No luck here either, still working on it.
-> >>>>> My plan is to solder som wires on strategic points on the board and
-> >>>>> debug i2c and other activity with an oscilloscope. Will probably
-> >>>>> start next week.
-> >>>>>
-> >>>>> Nameer Kazzaz wrote:
-> >>>>>> Hey Igor,
-> >>>>>> I'm getting the same error:
-> >>>>>> dm1105 0000:04:0b.0: could not attach frontend
-> >>>>>>
-> >>>>>> Did you get your one to work.
-> >>>>>>
-> >>>>>> Thanks
-> >>>>>> Nameer
-> >>>>>>
-> >>>>>> Igor M. Liplianin wrote:
-> >>>>>>> On 18 февраля 2010, liplianin@me.by wrote:
-> >>>>>>>> I also got the unbranded dm1105 card. I tried the four possible
-> >>>>>>>> i2c addresses, just i case. Noen worked of course. Then I traced
-> >>>>>>>> the i2c pins on the tuner to pins 100 and 101 on the DM1105.
-> >>>>>>>> These are GPIO pins, so bit-banging i2c on these pins seems to be
-> >>>>>>>> the solution.
-> >>>>>>>>
-> >>>>>>>> scl = p101 = gpio14
-> >>>>>>>> sda = p100 = gpio13
-> >>>>>>>
-> >>>>>>> Here is the patch to test. Use option card=4.
-> >>>>>>>     modprobe dm1105 card=4
-> >>>
-> >>> I didn't test patch in real hardware.
-> >>> But I can connect GPIO14 and GPIO13 to SCL and SDA in any dm1105 card
-> >>> and test whether it works. Then I will ask you to test also.
-> >>>
-> >>>
-> >>> -----------------------------------------------------------------------
-> >>>-
-> >>>
-> >>>
-> >>> No virus found in this incoming message.
-> >>> Checked by AVG - www.avg.com
-> >>> Version: 9.0.733 / Virus Database: 271.1.1/2708 - Release Date:
-> >>> 02/24/10 20:34:00
-> >>
-> >> Think I solved it.
-> >> The dm1105_getsda and dm1105_getscl functions need to mask out the other
-> >> GPIO bits.
-> >> I hacked the code to return 1 if corresponding GPIO set, and 0 if not
-> >> set. That did the trick. Now the frontend registers and /dev/dvb is
-> >> populated. :)
-> >> Haven't done any tuning yet.
-> >
-> > Do you cut connections between dm1105 i2c pins and the
-> > gpio pins you make earlier?
->
-> Success!
-Glad to hear.
-Now to find GPIO's for LNB power control and ... watch TV :)
+On Sunday 28 February 2010 20:38:00 Németh Márton wrote:
+> Jean-Francois Moine wrote:
+> > On Sun, 28 Feb 2010 08:55:04 +0100
+> > 
+> > Németh Márton <nm127@freemail.hu> wrote:
+> >> On some webcams a feedback LED can be found. This LED usually shows
+> >> the state of streaming mode: this is the "Auto" mode. The LED can
+> >> be programmed to constantly switched off state (e.g. for power saving
+> >> reasons, preview mode) or on state (e.g. the application shows motion
+> >> detection or "on-air").
+> > 
+> > Hi,
+> > 
+> > There may be many LEDs on the webcams. One LED may be used for
+> > the streaming state, Some other ones may be used to give more light in
+> > dark rooms. One webcam, the microscope 093a:050f, has a top and a bottom
+> > lights/illuminators; an other one, the MSI StarCam 370i 0c45:60c0, has
+> > an infra-red light.
+> > 
+> > That's why I proposed to have bit fields in the control value to switch
+> > on/off each LED.
+> 
+> With a bitfield on and off state can be specified. What about the "auto"
+> mode? Should two bits grouped together to have auto, on and off state? Is
+> there already a similar control?
 
->
-> [ 4354.673688] dm1105 0000:03:01.0: PCI INT A -> GSI 19 (level, low) ->
-> IRQ 19
-> [ 4354.673806] DVB: registering new adapter (dm1105)
-> [ 4354.921866] dm1105 0000:03:01.0: MAC 00:00:00:00:00:00
-> [ 4355.533170] DVB: registering adapter 0 frontend 0 (SL SI21XX DVB-S)...
-> [ 4355.533327] input: DVB on-card IR receiver as
-> /devices/pci0000:00/0000:00:1e.0/0000:03:01.0/input/input7
-> [ 4355.533377] Creating IR device irrcv0
+I don't like the bitfield either. As stated in my previous mail, we can have 
+more than 3 states, so using 2 bits per LED will simply not scale.
+
+> Is the brightness of the background light LEDs adjustable or are they just
+> on/off? If yes, then maybe the feedback LEDs and the background light LEDs
+> should be treated as different kind.
+
+I think there should indeed be a different control for the background LEDs. 
+Still, there could be more than one feedback LED.
 
 -- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+Regards,
+
+Laurent Pinchart
