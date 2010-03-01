@@ -1,83 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:10065 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750885Ab0CAKLz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Mar 2010 05:11:55 -0500
-Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0KYL00I2BLNST1@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 01 Mar 2010 10:11:53 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0KYL009ACLNSYE@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 01 Mar 2010 10:11:52 +0000 (GMT)
-Date: Mon, 01 Mar 2010 11:10:20 +0100
-From: Tomasz Fujak <t.fujak@samsung.com>
-Subject: RE: Proposal for a V4L2 Media Controller mini-summit
-In-reply-to: <c76d3160af32c3c654cad235f9ef5441.squirrel@webmail.xs4all.nl>
-To: 'Hans Verkuil' <hverkuil@xs4all.nl>
-Cc: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, 'Vaibhav Hiremath' <hvaibhav@ti.com>,
-	"'Gole, Anant'" <anantgole@ti.com>,
-	'Muralidharan Karicheri' <m-karicheri2@ti.com>,
-	'Sergio Rodriguez' <saaguirre@ti.com>, molnar@ti.com,
-	'Magnus Damm' <magnus.damm@gmail.com>,
-	'Guru Raj' <gururaj.nagendra@intel.com>,
-	"'Zhang, Xiaolin'" <xiaolin.zhang@intel.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	'Jin-Sung Yang' <jsgood.yang@samsung.com>,
-	"'Dongsoo, Nathaniel Kim'" <dongsoo.kim@gmail.com>,
-	'Kyungmin Park' <kmpark@infradead.org>, mcharleb@qualcomm.com,
-	hrao@ti.com, 'Mauro Carvalho Chehab' <mchehab@infradead.org>,
-	'Devin Heitmueller' <devin.heitmueller@gmail.com>,
-	'Sakari Ailus' <sakari.ailus@maxwell.research.nokia.com>,
-	Marcin Gajda <m.gajda@samsung.com>
-Message-id: <003d01cab927$66604a10$3320de30$%fujak@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <201002121550.08706.hverkuil@xs4all.nl>
- <201002171933.33921.hverkuil@xs4all.nl>
- <201002181058.28073.laurent.pinchart@ideasonboard.com>
- <4B7D1B7D.9090800@maxwell.research.nokia.com>
- <c76d3160af32c3c654cad235f9ef5441.squirrel@webmail.xs4all.nl>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2202 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751580Ab0CATxn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Mar 2010 14:53:43 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id o21Jrg4S006532
+	for <linux-media@vger.kernel.org>; Mon, 1 Mar 2010 20:53:42 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 1 Mar 2010 20:53:42 +0100 (CET)
+Message-Id: <201003011953.o21Jrg4S006532@smtp-vbr12.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-(...)
-> Darn. Having a mini-summit without Laurent and yourself is pointless
-> since
-> you are both key developers.
-> 
-> New proposal: May 5-7 in Lysaker, Norway.
-> 
-> Does that work?
+Results of the daily build of v4l-dvb:
 
-Most probably. Depending how the Media Controller thing looks by then we
-consider sending a representative there.
-It's in Europe, so maybe the management would swallow the business trip
-costs ;)
+date:        Mon Mar  1 19:00:17 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14320:37ff78330942
+gcc version: i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:     2.6.32.5
 
-> 
-> Regards,
-> 
->         Hans
-> 
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.32.6-armv5-dm365: ERRORS
+linux-2.6.33-armv5-dm365: ERRORS
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-armv5-ixp: OK
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.17-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.20-i686: OK
+linux-2.6.26.8-i686: OK
+linux-2.6.27.44-i686: OK
+linux-2.6.28.10-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.17-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.20-x86_64: OK
+linux-2.6.26.8-x86_64: OK
+linux-2.6.27.44-x86_64: OK
+linux-2.6.28.10-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+spec: OK
+sparse (linux-2.6.33): ERRORS
+linux-2.6.16.62-i686: OK
+linux-2.6.17.14-i686: OK
+linux-2.6.18.8-i686: OK
+linux-2.6.19.7-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.62-x86_64: OK
+linux-2.6.17.14-x86_64: OK
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.7-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
-Regards
--- 
-Tomasz Fujak
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
