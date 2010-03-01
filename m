@@ -1,59 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f223.google.com ([209.85.220.223]:52023 "EHLO
-	mail-fx0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754231Ab0CYOlM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Mar 2010 10:41:12 -0400
-Received: by fxm23 with SMTP id 23so1142888fxm.21
-        for <linux-media@vger.kernel.org>; Thu, 25 Mar 2010 07:41:10 -0700 (PDT)
+Received: from relay01.digicable.hu ([92.249.128.189]:52458 "EHLO
+	relay01.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750736Ab0CAGj2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Mar 2010 01:39:28 -0500
+Message-ID: <4B8B611D.20705@freemail.hu>
+Date: Mon, 01 Mar 2010 07:39:25 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-In-Reply-To: <28234983.58244.1269523270750.JavaMail.root@benjamin>
-References: <846899811003250553n3dcb8ea5xc2cee6ac05741520@mail.gmail.com>
-	 <28234983.58244.1269523270750.JavaMail.root@benjamin>
-Date: Thu, 25 Mar 2010 15:41:10 +0100
-Message-ID: <846899811003250741o6fd1ce40if22ab1fe440f4457@mail.gmail.com>
-Subject: Re: [ivtv-devel] Andy Walls' change of email address
-From: HoP <jpetrous@gmail.com>
-To: "Jay R. Ashworth" <jra@baylink.com>
-Cc: linux-media@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Huang Shijie <shijie8@gmail.com>
+CC: Kang Yong <kangyong@telegent.com>,
+	Zhang Xiaobing <xbzhang@telegent.com>,
+	Huang Shijie <zyziii@telegent.com>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] tlg2300: cleanups when power management is not configured
+References: <4B8A7B83.8060203@freemail.hu> <4B8B3EA1.3090806@gmail.com>
+In-Reply-To: <4B8B3EA1.3090806@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2010/3/25 Jay R. Ashworth <jra@baylink.com>:
-> ----- "HoP" <jpetrous@gmail.com> wrote:
->> > As a consequence of moving myself into the 21st century by obtaining
->> > cable internet service, I have a new e-mail address:
->> >
->> > � � � �awalls md.metrocast.net
->> >
->> > My radix.net email address will soon cease working.
+Hi,
+Huang Shijie wrote:
+> hi Marton, thanks a lot.
+> 
+>> From: Márton Németh<nm127@freemail.hu>
 >>
->> of course it is not my job, but I wonder why you not
->> stay on old email. In 21 century there is no problem
->> to move domain to other place or, at least, do
->> some type of forwarding :)
+>> When power management is not configured (CONFIG_PM) then some code is no longer
+>> necessary.
 >>
->> My 2 cents
+>> This patch will remove the following compiler warnings:
+>>   * pd-dvb.c: In function 'poseidon_fe_release':
+>>   * pd-dvb.c:101: warning: unused variable 'pd'
+>>   * pd-video.c:14: warning: 'pm_video_suspend' declared 'static' but never defined
+>>   * pd-video.c:15: warning: 'pm_video_resume' declared 'static' but never defined
 >>
->> /Honza
+>> Signed-off-by: Márton Németh<nm127@freemail.hu>
+>> ---
+>> diff -r 37581bb7e6f1 linux/drivers/media/video/tlg2300/pd-dvb.c
+>> --- a/linux/drivers/media/video/tlg2300/pd-dvb.c	Wed Feb 24 22:48:50 2010 -0300
+>> +++ b/linux/drivers/media/video/tlg2300/pd-dvb.c	Sun Feb 28 15:13:05 2010 +0100
+>> @@ -96,15 +96,17 @@
+>>   	return ret;
+>>   }
 >>
->> PS: The only real reason I can imagine is that radix.com
->> is not your own domain and owner of it doesn't allow
->> mail forwarding.
->
-> Which is, indeed, what one finds by pointing a browser at www.radix.net;
-> that mailbox belongs to his old ISP, and presumably he doesn't want to keep
-> paying them for it.
->
-> It might be worth your while, though, Andy, as active as you are in the
-> development community (and thanks again for it) to ask them if they'd forward
-> that address for a while, for a nominal charge... �I used to do it, when I
-> ran a small dialup ISP...
->
+>> +#ifdef CONFIG_PM
+>>   static void poseidon_fe_release(struct dvb_frontend *fe)
+>>   {
+>>   	struct poseidon *pd = fe->demodulator_priv;
+>>
+>> -#ifdef CONFIG_PM
+>>   	pd->pm_suspend = NULL;
+>>   	pd->pm_resume  = NULL;
+>> +}
+>> +#else
+>> +#define poseidon_fe_release NULL
+>>   #endif
+>> -}
+>>
+>>    
+> I think the change here is a little more complicated.I prefer to change 
+> it like this :
+> 
+> static void poseidon_fe_release(struct dvb_frontend *fe)
+> {
+> #ifdef CONFIG_PM
+>      struct poseidon *pd = fe->demodulator_priv;
+>      pd->pm_suspend = NULL;
+>      pd->pm_resume  = NULL;
+> #endif
+> }
+> 
+> Could you change the patch, and resend it to me ?
+> thanks.
 
-TBH I would imagine radix.net can be proud if so well-know developer
-is using theirs domain. May be they would pay for his advertising :)
+I'm afraid in this case we'll get a warning saying that the parameter fe is unused.
+Here is an example:
 
-/Honza
+	$ gcc -Wall -O2 -Wextra test.c
+	test.c: In function ‘foo’:
+	test.c:2: warning: unused parameter ‘x’
+	$ cat test.c
+	
+	static void foo(int x)
+	{
+	
+	}
+	
+	int main()
+	{
+		foo(0);
+		return 0;
+	}
+
+The second reason I modified the code like this is that the the .release
+opreation is used with the following sequence:
+
+	if (dvb->frontend->ops.release)
+		dvb->frontend->ops.release(dvb->frontend);
+
+If power management is not configured then the symbol poseidon_fe_release will be
+NULL and the condition dvb->frontend->ops.release will be false. So the otherwise
+empty function will not be called at all.
+
+Regards,
+
+	Márton Németh
