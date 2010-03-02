@@ -1,58 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:51178 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750865Ab0CSSNB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Mar 2010 14:13:01 -0400
-Received: by bwz1 with SMTP id 1so278585bwz.21
-        for <linux-media@vger.kernel.org>; Fri, 19 Mar 2010 11:12:59 -0700 (PDT)
+Received: from ey-out-2122.google.com ([74.125.78.26]:33977 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752701Ab0CBApN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Mar 2010 19:45:13 -0500
+Received: by ey-out-2122.google.com with SMTP id 25so319696eya.5
+        for <linux-media@vger.kernel.org>; Mon, 01 Mar 2010 16:45:12 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <30353c3d1003191100q2446edeekb161dba45624489a@mail.gmail.com>
-References: <83e56201383c6a99ea51dafcd2794dfe.squirrel@webmail.xs4all.nl>
-	 <201003190904.53867.laurent.pinchart@ideasonboard.com>
-	 <50cd74a798bbf96501cd40b90d2a2b93.squirrel@webmail.xs4all.nl>
-	 <4BA38088.1020006@redhat.com>
-	 <30353c3d1003190849v35b57dcai9ab11ff1362b4f46@mail.gmail.com>
-	 <4BA3B7A9.2050405@redhat.com>
-	 <30353c3d1003191100q2446edeekb161dba45624489a@mail.gmail.com>
-Date: Fri, 19 Mar 2010 14:12:58 -0400
-Message-ID: <829197381003191112i762baf17ta2658d859a858a76@mail.gmail.com>
-Subject: Re: RFC: Drop V4L1 support in V4L2 drivers
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: David Ellingsworth <david@identd.dyndns.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	v4l-dvb <linux-media@vger.kernel.org>
+Date: Tue, 2 Mar 2010 00:45:04 +0000
+Message-ID: <74fd948d1003011645l3b595442qde58b6263b4ce710@mail.gmail.com>
+Subject: Audio4DJ (snd-usb-caiaq) noise when using DVB usb adapter
+From: Pedro Ribeiro <pedrib@gmail.com>
+To: alsa-devel@alsa-project.org, Daniel Mack <daniel@caiaq.de>,
+	linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 19, 2010 at 2:00 PM, David Ellingsworth
-<david@identd.dyndns.org> wrote:
-> Yes it is an old camera, but that does not mean there aren't people
-> out there who still own cameras which would otherwise be usable if the
-> driver worked. And sure people could just buy another camera.. but why
-> replace hardware that's obviously not broken?
+Hi all,
 
-Because of the cost of keeping a driver in the tree for an old piece
-of hardware that almost nobody has, where there is no developer
-willing to maintain it, at the cost of preventing removal of a bunch
-of old common infrastructure which increases the maintenance cost of
-all the drivers that people do care about.
+I'm encountering a problem with the Audio4DJ audio card with a  DVB
+USB adapter (Win-TV NOVA-T USB2 STICK).
 
-In a perfect world, it would be great to support every piece of
-hardware under the sun until the end of time.  In reality though, with
-limited developer resources, we sometimes have to decided that
-supporting certain archaic hardware that isn't popular "just isn't
-worth it".
+The problem is strange because it only happens after I disconnect and
+reconnect the audio card.
 
-Removing all the old V4L1 cruft will make currently maintained drivers
-cleaner, faster and simpler to understand and implement, and less
-likely to have bugs.
+Procedure 1:
+- boot from fresh
+- plug the DVB adapter
+- plug the Audio4DJ
 
-Devin
+Everything works correctly - meaning I can watch TV and my audio is fine.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Procedure 2:
+- boot from fresh
+- plug the Audio4DJ
+- plug the DVB adapter
+
+The audio starts cracking every few seconds, and constantly if I use jackd.
+
+Procedure 3:
+- boot from fresh
+- plug the DVB adapter
+- plug the Audio4DJ
+(everything is correct, as above in Procedure 1)
+- unplug the Audio4DJ
+- plug it again
+
+Cracking audio. I'm insisting in "boot from fresh" because from now on
+(that is, from the moment that I unplug the Audio4DJ) I always get
+cracking audio.
+
+rmmod'ing the snd-usb-caiaq and the usb-dvb modules produces the same
+result. I have to boot from fresh and do Procedure 1 for it to work
+OK.
+
+
+Can anyone please give a hint on how to debug this?
+
+(Please CC me directly as I'm not in both lists).
+
+
+Regards,
+Pedro
