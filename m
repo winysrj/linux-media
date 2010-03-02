@@ -1,58 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34068 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751992Ab0CBVXg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Mar 2010 16:23:36 -0500
-Message-ID: <4B8D81CE.4070201@redhat.com>
-Date: Tue, 02 Mar 2010 18:23:26 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: How do private controls actually work?
-References: <829197381002281856o749e3e9al36334b8b42b34562@mail.gmail.com>	 <49ae9be6ffaaac102dc02f94f2fd047c.squirrel@webmail.xs4all.nl>	 <829197381003010220w57248cb2l636a75d5bf4b19c1@mail.gmail.com>	 <201003022128.06210.hverkuil@xs4all.nl> <829197381003021242p1ae9d91ek68e2c063024d316@mail.gmail.com>
-In-Reply-To: <829197381003021242p1ae9d91ek68e2c063024d316@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-OUT05A.alice.it ([85.33.3.5]:4530 "EHLO
+	smtp-OUT05A.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751495Ab0CBPju (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Mar 2010 10:39:50 -0500
+Date: Tue, 2 Mar 2010 16:39:37 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: "M.Ebrahimi" <m.ebrahimi@ieee.org>
+Cc: Jean-Francois Moine <moinejf@free.fr>, linux-media@vger.kernel.org,
+	Max Thrun <bear24rw@gmail.com>
+Subject: Re: [PATCH 10/11] ov534: Add Powerline Frequency control
+Message-Id: <20100302163937.70a15c19.ospite@studenti.unina.it>
+In-Reply-To: <1d742ad81003020326h5e02189bt6511b840dd17d7e3@mail.gmail.com>
+References: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
+	<1267302028-7941-11-git-send-email-ospite@studenti.unina.it>
+	<20100228194951.1c1e26ce@tele>
+	<20100228201850.81f7904a.ospite@studenti.unina.it>
+	<20100228205528.54d1ba69@tele>
+	<1d742ad81003020326h5e02189bt6511b840dd17d7e3@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Tue__2_Mar_2010_16_39_37_+0100_=vpuLo+V25xI1.XB"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller wrote:
-> On Tue, Mar 2, 2010 at 3:28 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+--Signature=_Tue__2_Mar_2010_16_39_37_+0100_=vpuLo+V25xI1.XB
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> I had some extended discussion with Mauro on this yesterday on
-> #linuxtv, and he is now in favor of introducing a standard user
-                      ===
-> control for chroma gain, as opposed to doing a private control at all.
+On Tue, 2 Mar 2010 11:26:15 +0000
+"M.Ebrahimi" <m.ebrahimi@ieee.org> wrote:
 
-To be clear: I was never against ;)
+> On 28 February 2010 19:55, Jean-Francois Moine <moinejf@free.fr> wrote:
+> > On Sun, 28 Feb 2010 20:18:50 +0100
+> > Antonio Ospite <ospite@studenti.unina.it> wrote:
+> >
+> >> Maybe we could just use
+> >> =A0 =A0 =A0 V4L2_CID_POWER_LINE_FREQUENCY_DISABLED =A0=3D 0,
+> >> =A0 =A0 =A0 V4L2_CID_POWER_LINE_FREQUENCY_50HZ =A0 =A0 =A0=3D 1,
+> >>
+> >> It looks like the code matches the DISABLED state (writing 0 to the
+> >> register). Mosalam?
+> >
+> > I don't know the ov772x sensor. I think it should look like the ov7670
+> > where there are 3 registers to control the light frequency: one
+> > register tells if light frequency filter must be used, and which
+> > frequency 50Hz or 60Hz; the two other ones give the filter values for
+> > each frequency.
+> >
+>=20
+> I think it's safe to go with disabled/50hz. Perhaps later if needed
+> can patch it to control the filter values. Since it seems there is no
+> flickering in the 60hz regions at available frame rates, and this
+> register almost perfectly removes light flickers in the 50hz regions
+> (by modifying exposure/frame rate).
+>
+> Mosalam
+>
 
-It is worthy to summarize the discussions we have and the rationale to
-create another control for it.
+Mosalam did you spot the register from a PS3 usb dump or by looking at
+the sensor datasheet?
 
-I've checked the datasheets of some chipsets, and the chroma gain is
-different than the saturation control: the gain control (chroma or luma)
-are applied at the analog input (or analog input samples) before the color
-decoding, while the saturation is applied to the U/V output levels (some
-datasheets call it as U/V output gain - causing some mess on the interpretation
-of this value).
+Thanks,
+   Antonio
 
-Also, saa7134 code as already some code to control the chroma gain. The driver
-currently just puts some default value there, enabling AGC for PAL/NTSC and
-disabling it for SECAM - but - as we have already troubles with AGC with cx88
-and saa711x, I don't doubt that we may need to add the control logic there
-to solve the same kind of trouble with composite/svideo inputs and some sources
-that has a very high gain at the U/V level.
+--=20
+Antonio Ospite
+http://ao2.it
 
-So, this control is not private to saa711x chipsets, but this control is also
-present on other devices as well.
+PGP public key ID: 0x4553B001
 
-The API spec patch should clearly state that Saturation is for the U/V output
-level, while gain is for the analog input gain.
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing in e-mail?
 
--- 
+--Signature=_Tue__2_Mar_2010_16_39_37_+0100_=vpuLo+V25xI1.XB
+Content-Type: application/pgp-signature
 
-Cheers,
-Mauro
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAkuNMTkACgkQ5xr2akVTsAE7cQCePP0E6261pO93hvwgH5wjTddQ
+qQQAoJyJ9eFdqETlto/MtEXyEKp52w9o
+=zQFi
+-----END PGP SIGNATURE-----
+
+--Signature=_Tue__2_Mar_2010_16_39_37_+0100_=vpuLo+V25xI1.XB--
