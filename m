@@ -1,25 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx05.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.9])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o2SEvE58008685
-	for <video4linux-list@redhat.com>; Sun, 28 Mar 2010 10:57:14 -0400
-Received: from mail-pv0-f174.google.com (mail-pv0-f174.google.com
-	[74.125.83.174])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2SEv4uM022614
-	for <video4linux-list@redhat.com>; Sun, 28 Mar 2010 10:57:05 -0400
-Received: by pva18 with SMTP id 18so2321122pva.33
-	for <video4linux-list@redhat.com>; Sun, 28 Mar 2010 07:57:03 -0700 (PDT)
+Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.5])
+	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o229fxFr005218
+	for <video4linux-list@redhat.com>; Tue, 2 Mar 2010 04:41:59 -0500
+Received: from mail-fx0-f216.google.com (mail-fx0-f216.google.com
+	[209.85.220.216])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o229fgP3031182
+	for <video4linux-list@redhat.com>; Tue, 2 Mar 2010 04:41:43 -0500
+Received: by fxm8 with SMTP id 8so49864fxm.11
+	for <video4linux-list@redhat.com>; Tue, 02 Mar 2010 01:41:42 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <6eeb4a0a1003270802r3db5fb27v82aa079d28f225b6@mail.gmail.com>
-References: <55fab5731003270620g6d597530k94106150e4722e0a@mail.gmail.com>
-	<6eeb4a0a1003270802r3db5fb27v82aa079d28f225b6@mail.gmail.com>
-From: Yves Glodt <yg@mind.lu>
-Date: Sun, 28 Mar 2010 16:56:48 +0200
-Message-ID: <55fab5731003280756x5fd10da6n33bd1c78eaec514@mail.gmail.com>
-Subject: Re: Problem runnning webcam on a sheevaplug with using pwc
-To: Raul Fajardo <rfajardo@gmail.com>
-Cc: video4linux-list@redhat.com
+Date: Tue, 2 Mar 2010 10:41:42 +0100
+Message-ID: <1098293f1003020141q530a1cadk52810baaf8bca1a4@mail.gmail.com>
+Subject: Webcam. Brightness & Gamma Control
+From: =?ISO-8859-1?Q?=C1lvaro_Canivell?= <oooh.oooh@gmail.com>
+To: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,70 +29,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Raul,
+Hello
 
-I have tried rebooting with the camera plugged, it does not make a
-difference.
+I am using a Ricoh Webcam with the driver r5u870.
 
-Option 2 I have not tried yet, will probably be able to do so later today.
+The problem is that the image quality is poor, it is too dark, thus I
+would like to brighten it.
 
-Yves
+I have tried to do it using v4l-conf, v4lctl, but I get a message like this:
 
+"v4l brightness control not supported"
 
-On 27 March 2010 17:02, Raul Fajardo <rfajardo@gmail.com> wrote:
+I am not sure I am asking in the right place, but I have been
+"interneting" for a while on r5u870 and v4l and found nothing that
+helps me.
 
-> Hi Yves,
->
-> this is a bug related to the hotplug system or something.
-> https://bugs.launchpad.net/ubuntu/+source/linux/+bug/443278
->
-> The driver works in two cases:
-> 1) the camera was connected on power up.
-> 2) you remove the module rmmod pwc, connect the camera and let the hotplug
-> system load the module
->
-> I suppose that's your problem.
->
-> Best regards,
-> Raul
->
-> On Sat, Mar 27, 2010 at 2:20 PM, Yves Glodt <yg@mind.lu> wrote:
->
->>  Hi,
->>
->> I have a problem when I run webcam on my sheevaplug, it seems to hang.
->>
->> I use the 2.6.33-1 kernel from
->> http://sheeva.with-linux.com/sheeva/index.php?dir=2.6.33.1/
->> The pwc module was missing so I cross-compiled it on my laptop and
->> installed
->> it.
->> The modules loads and detects the camera without a problem. /dev/video0 is
->> there as well.
->>
->>
->> This is all what happens:
->>
->> root@sheevaplug:~# webcam
->> reading config file: /root/.webcamrc
->> video4linux webcam v1.5 - (c) 1998-2002 Gerd Knorr
->> grabber config:
->>  size 640x480 [none]
->>  input usb, norm (null), jpeg quality 100
->>  rotate=0, top=0, left=0, bottom=480, right=640
->>
->> and then it hangs forever.
->>
->> When I use the same webcam with the same .webcamrc on my laptop, it works.
->> I attach an strace of the webcam run.
->>
->> Somebody knows what goes wrong here? Or what other debug possibilities I
->> have? :-)
->>
->> best regards,
->> Yves
->>
->>
+How could I determine where the problem is? Where can I check the
+logfile for v4l start up. That would help me check wether the problem
+is from the webcam driver or from v4l.
+
+Cheers
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
