@@ -1,240 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:49954 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750733Ab0CAHOQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Mar 2010 02:14:16 -0500
-Received: by pwj8 with SMTP id 8so1422693pwj.19
-        for <linux-media@vger.kernel.org>; Sun, 28 Feb 2010 23:14:15 -0800 (PST)
-Message-ID: <4B8B674F.3020603@gmail.com>
-Date: Mon, 01 Mar 2010 15:05:51 +0800
-From: Huang Shijie <shijie8@gmail.com>
+Received: from bombadil.infradead.org ([18.85.46.34]:59094 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751486Ab0CBIt3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Mar 2010 03:49:29 -0500
+Message-ID: <4B8CD10D.2010009@infradead.org>
+Date: Tue, 02 Mar 2010 05:49:17 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-CC: Kang Yong <kangyong@telegent.com>,
-	Zhang Xiaobing <xbzhang@telegent.com>,
-	Huang Shijie <zyziii@telegent.com>,
-	V4L Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] tlg2300: make local variables and functions static
-References: <4B8A8587.10306@freemail.hu> <4B8B2EAD.4060102@gmail.com> <4B8B5F26.4030301@freemail.hu>
-In-Reply-To: <4B8B5F26.4030301@freemail.hu>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+To: Dmitri Belimov <dimon@openhardware.ru>
+CC: hermann pitton <hermann-pitton@arcor.de>,
+	Andy Walls <awalls@radix.net>,
+	Jean Delvare <khali@linux-fr.org>, linux-media@vger.kernel.org,
+	"Timothy D. Lenz" <tlenz@vorgon.com>
+Subject: Re: [IR RC, REGRESSION] Didn't work IR RC
+References: <20100301153645.5d529766@glory.loctelecom.ru>	<1267442919.3110.20.camel@palomino.walls.org>	<4B8BC332.6060303@infradead.org>	<1267503595.3269.21.camel@pc07.localdom.local>	<20100302134320.748ac292@glory.loctelecom.ru> <20100302163634.31c934e4@glory.loctelecom.ru>
+In-Reply-To: <20100302163634.31c934e4@glory.loctelecom.ru>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-thanks.
+Dmitri Belimov wrote:
+> Hi
+> 
+> When I add 
+> 
+> diff -r 37ff78330942 linux/drivers/media/video/ir-kbd-i2c.c
+> --- a/linux/drivers/media/video/ir-kbd-i2c.c	Sun Feb 28 16:59:57 2010 -0300
+> +++ b/linux/drivers/media/video/ir-kbd-i2c.c	Tue Mar 02 10:31:31 2010 +0900
+> @@ -465,6 +519,11 @@
+>  		ir_type     = IR_TYPE_OTHER;
+>  		ir_codes    = &ir_codes_avermedia_cardbus_table;
+>  		break;
+> +	case 0x2d:
+> +		/* Handled by saa7134-input */
+> +		name        = "SAA713x remote";
+> +		ir_type     = IR_TYPE_OTHER;
+> +		break;
+>  	}
+>  
+>  #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 30)
+> 
+> The IR subsystem register event device. But for get key code use ir_pool_key function.
+> 
+> For our IR RC need use our special function. How I can do it?
 
-Acked-by: Huang Shijie <shijie8@gmail.com>
+Just add your get_key callback to "ir->get_key". If you want to do this from
+saa7134-input, please take a look at the code at em28xx_register_i2c_ir(). 
+It basically fills the platform_data.
 
-> From: Márton Németh<nm127@freemail.hu>
->
-> Make the local variables and functions static. Some of them are not exported by their
-> symbol name but used trough other means. For example a pointer of the operation
-> structure is passed through a function call.
->
-> This will remove the following sparse warnings (see "make C=1"):
->   * pd-video.c:20:5: warning: symbol 'usb_transfer_mode' was not declared. Should it be static?
->   * pd-video.c:621:5: warning: symbol 'fire_all_urb' was not declared. Should it be static?
->   * pd-video.c:881:5: warning: symbol 'vidioc_s_std' was not declared. Should it be static?
->   * pd-video.c:1024:5: warning: symbol 'vidioc_g_audio' was not declared. Should it be static?
->   * pd-video.c:1033:5: warning: symbol 'vidioc_s_audio' was not declared. Should it be static?
->   * pd-video.c:1193:5: warning: symbol 'usb_transfer_stop' was not declared. Should it be static?
->   * pd-video.c:1522:14: warning: symbol 'pd_video_poll' was not declared. Should it be static?
->   * pd-video.c:1528:9: warning: symbol 'pd_video_read' was not declared. Should it be static?
->   * pd-radio.c:164:5: warning: symbol 'tlg_fm_vidioc_g_tuner' was not declared. Should it be static?
->   * pd-radio.c:206:5: warning: symbol 'fm_get_freq' was not declared. Should it be static?
->   * pd-radio.c:249:5: warning: symbol 'fm_set_freq' was not declared. Should it be static?
->   * pd-radio.c:261:5: warning: symbol 'tlg_fm_vidioc_g_ctrl' was not declared. Should it be static?
->   * pd-radio.c:267:5: warning: symbol 'tlg_fm_vidioc_g_exts_ctrl' was not declared. Should it be static?
->   * pd-radio.c:288:5: warning: symbol 'tlg_fm_vidioc_s_exts_ctrl' was not declared. Should it be static?
->   * pd-radio.c:315:5: warning: symbol 'tlg_fm_vidioc_s_ctrl' was not declared. Should it be static?
->   * pd-radio.c:321:5: warning: symbol 'tlg_fm_vidioc_queryctrl' was not declared. Should it be static?
->   * pd-radio.c:340:5: warning: symbol 'tlg_fm_vidioc_querymenu' was not declared. Should it be static?
->   * pd-main.c:58:12: warning: symbol 'firmware_name' was not declared. Should it be static?
->   * pd-main.c:59:19: warning: symbol 'poseidon_driver' was not declared. Should it be static?
->
-> Signed-off-by: Márton Németh<nm127@freemail.hu>
-> ---
-> diff -upr v4l-dvb.orig/linux/drivers/media/video/tlg2300/pd-main.c v4l-dvb/linux/drivers/media/video/tlg2300/pd-main.c
-> --- v4l-dvb.orig/linux/drivers/media/video/tlg2300/pd-main.c	2010-02-28 14:54:31.000000000 +0100
-> +++ v4l-dvb/linux/drivers/media/video/tlg2300/pd-main.c	2010-02-28 15:49:10.000000000 +0100
-> @@ -55,8 +55,8 @@ int debug_mode;
->   module_param(debug_mode, int, 0644);
->   MODULE_PARM_DESC(debug_mode, "0 = disable, 1 = enable, 2 = verbose");
->
-> -const char *firmware_name = "tlg2300_firmware.bin";
-> -struct usb_driver poseidon_driver;
-> +static const char *firmware_name = "tlg2300_firmware.bin";
-> +static struct usb_driver poseidon_driver;
->   static LIST_HEAD(pd_device_list);
->
->   /*
-> @@ -501,7 +501,7 @@ static void poseidon_disconnect(struct u
->   	kref_put(&pd->kref, poseidon_delete);
->   }
->
-> -struct usb_driver poseidon_driver = {
-> +static struct usb_driver poseidon_driver = {
->   	.name		= "poseidon",
->   	.probe		= poseidon_probe,
->   	.disconnect	= poseidon_disconnect,
-> diff -upr v4l-dvb.orig/linux/drivers/media/video/tlg2300/pd-radio.c v4l-dvb/linux/drivers/media/video/tlg2300/pd-radio.c
-> --- v4l-dvb.orig/linux/drivers/media/video/tlg2300/pd-radio.c	2010-02-28 14:54:31.000000000 +0100
-> +++ v4l-dvb/linux/drivers/media/video/tlg2300/pd-radio.c	2010-03-01 07:26:41.000000000 +0100
-> @@ -161,7 +161,8 @@ static const struct v4l2_file_operations
->   	.ioctl	       = video_ioctl2,
->   };
->
-> -int tlg_fm_vidioc_g_tuner(struct file *file, void *priv, struct v4l2_tuner *vt)
-> +static int tlg_fm_vidioc_g_tuner(struct file *file, void *priv,
-> +				 struct v4l2_tuner *vt)
->   {
->   	struct tuner_fm_sig_stat_s fm_stat = {};
->   	int ret, status, count = 5;
-> @@ -203,7 +204,8 @@ int tlg_fm_vidioc_g_tuner(struct file *f
->   	return 0;
->   }
->
-> -int fm_get_freq(struct file *file, void *priv, struct v4l2_frequency *argp)
-> +static int fm_get_freq(struct file *file, void *priv,
-> +		       struct v4l2_frequency *argp)
->   {
->   	struct poseidon *p = file->private_data;
->
-> @@ -246,7 +248,8 @@ error:
->   	return ret;
->   }
->
-> -int fm_set_freq(struct file *file, void *priv, struct v4l2_frequency *argp)
-> +static int fm_set_freq(struct file *file, void *priv,
-> +		       struct v4l2_frequency *argp)
->   {
->   	struct poseidon *p = file->private_data;
->
-> @@ -258,13 +261,13 @@ int fm_set_freq(struct file *file, void
->   	return set_frequency(p, argp->frequency);
->   }
->
-> -int tlg_fm_vidioc_g_ctrl(struct file *file, void *priv,
-> +static int tlg_fm_vidioc_g_ctrl(struct file *file, void *priv,
->   		struct v4l2_control *arg)
->   {
->   	return 0;
->   }
->
-> -int tlg_fm_vidioc_g_exts_ctrl(struct file *file, void *fh,
-> +static int tlg_fm_vidioc_g_exts_ctrl(struct file *file, void *fh,
->   				struct v4l2_ext_controls *ctrls)
->   {
->   	struct poseidon *p = file->private_data;
-> @@ -285,7 +288,7 @@ int tlg_fm_vidioc_g_exts_ctrl(struct fil
->   	return 0;
->   }
->
-> -int tlg_fm_vidioc_s_exts_ctrl(struct file *file, void *fh,
-> +static int tlg_fm_vidioc_s_exts_ctrl(struct file *file, void *fh,
->   			struct v4l2_ext_controls *ctrls)
->   {
->   	int i;
-> @@ -312,13 +315,13 @@ int tlg_fm_vidioc_s_exts_ctrl(struct fil
->   	return 0;
->   }
->
-> -int tlg_fm_vidioc_s_ctrl(struct file *file, void *priv,
-> +static int tlg_fm_vidioc_s_ctrl(struct file *file, void *priv,
->   		struct v4l2_control *ctrl)
->   {
->   	return 0;
->   }
->
-> -int tlg_fm_vidioc_queryctrl(struct file *file, void *priv,
-> +static int tlg_fm_vidioc_queryctrl(struct file *file, void *priv,
->   		struct v4l2_queryctrl *ctrl)
->   {
->   	if (!(ctrl->id&  V4L2_CTRL_FLAG_NEXT_CTRL))
-> @@ -337,7 +340,7 @@ int tlg_fm_vidioc_queryctrl(struct file
->   	return -EINVAL;
->   }
->
-> -int tlg_fm_vidioc_querymenu(struct file *file, void *fh,
-> +static int tlg_fm_vidioc_querymenu(struct file *file, void *fh,
->   				struct v4l2_querymenu *qmenu)
->   {
->   	return v4l2_ctrl_query_menu(qmenu, NULL, NULL);
-> diff -upr v4l-dvb.orig/linux/drivers/media/video/tlg2300/pd-video.c v4l-dvb/linux/drivers/media/video/tlg2300/pd-video.c
-> --- v4l-dvb.orig/linux/drivers/media/video/tlg2300/pd-video.c	2010-02-28 15:00:55.000000000 +0100
-> +++ v4l-dvb/linux/drivers/media/video/tlg2300/pd-video.c	2010-02-28 15:44:59.000000000 +0100
-> @@ -17,7 +17,7 @@ static int pm_video_resume(struct poseid
->   #endif
->   static void iso_bubble_handler(struct work_struct *w);
->
-> -int usb_transfer_mode;
-> +static int usb_transfer_mode;
->   module_param(usb_transfer_mode, int, 0644);
->   MODULE_PARM_DESC(usb_transfer_mode, "0 = Bulk, 1 = Isochronous");
->
-> @@ -618,7 +618,7 @@ static int pd_buf_prepare(struct videobu
->   	return 0;
->   }
->
-> -int fire_all_urb(struct video_data *video)
-> +static int fire_all_urb(struct video_data *video)
->   {
->   	int i, ret;
->
-> @@ -878,7 +878,7 @@ out:
->   	return ret;
->   }
->
-> -int vidioc_s_std(struct file *file, void *fh, v4l2_std_id *norm)
-> +static int vidioc_s_std(struct file *file, void *fh, v4l2_std_id *norm)
->   {
->   	struct front_face *front = fh;
->   	logs(front);
-> @@ -1021,7 +1021,7 @@ static int vidioc_enumaudio(struct file
->   	return 0;
->   }
->
-> -int vidioc_g_audio(struct file *file, void *fh, struct v4l2_audio *a)
-> +static int vidioc_g_audio(struct file *file, void *fh, struct v4l2_audio *a)
->   {
->   	a->index = 0;
->   	a->capability = V4L2_AUDCAP_STEREO;
-> @@ -1030,7 +1030,7 @@ int vidioc_g_audio(struct file *file, vo
->   	return 0;
->   }
->
-> -int vidioc_s_audio(struct file *file, void *fh, struct v4l2_audio *a)
-> +static int vidioc_s_audio(struct file *file, void *fh, struct v4l2_audio *a)
->   {
->   	return (0 == a->index) ? 0 : -EINVAL;
->   }
-> @@ -1190,7 +1190,7 @@ static int vidioc_dqbuf(struct file *fil
->   }
->
->   /* Just stop the URBs, do not free the URBs */
-> -int usb_transfer_stop(struct video_data *video)
-> +static int usb_transfer_stop(struct video_data *video)
->   {
->   	if (video->is_streaming) {
->   		int i;
-> @@ -1519,13 +1519,13 @@ static int pd_video_mmap(struct file *fi
->   	return  videobuf_mmap_mapper(&front->q, vma);
->   }
->
-> -unsigned int pd_video_poll(struct file *file, poll_table *table)
-> +static unsigned int pd_video_poll(struct file *file, poll_table *table)
->   {
->   	struct front_face *front = file->private_data;
->   	return videobuf_poll_stream(file,&front->q, table);
->   }
->
-> -ssize_t pd_video_read(struct file *file, char __user *buffer,
-> +static ssize_t pd_video_read(struct file *file, char __user *buffer,
->   			size_t count, loff_t *ppos)
->   {
->   	struct front_face *front = file->private_data;
->
->    
+While you're there, I suggest you to change your code to work with the
+full scancode (e. g. address + command), instead of just getting the command.
+Currently, em28xx-input has one I2C IR already changed to this mode (seek
+for full_code for the differences).
 
+You'll basically need to change the IR tables to contain address+command, and
+inform the used protocol (RC5/NEC) on it. The getkey function will need to
+return the full code as well.
+
+> 
+> With my best regards, Dmitry.
+> 
+>> Hi
+>>
+>> Not work I2C IR RC. GPIO RC I think works well.
+>>
+>> This patch remove addr of our RC from switch-case
+>>
+>> http://linuxtv.org/hg/v4l-dvb/rev/f700bce82813
+>>
+>> When I set debug for ir-kbd-i2c I get 
+>>
+>> ir-kbd-i2c: :Unsupported device at address 0x2d
+>>
+>> People with broken IR RC what addr has your I2C IR RC?
+>>
+>> With my best regards, Dmitry.
+>>
+>>> Hi,
+>>>
+>>> Am Montag, den 01.03.2010, 10:37 -0300 schrieb Mauro Carvalho
+>>> Chehab: 
+>>>> Andy Walls wrote:
+>>>>> On Mon, 2010-03-01 at 15:36 +0900, Dmitri Belimov wrote:
+>>>>>> Hi All
+>>>>>>
+>>>>>> After rework of the IR subsystem, IR RC no more work in our TV
+>>>>>> cards. As I see 
+>>>>>> call saa7134_probe_i2c_ir,
+>>>>>>   configure i2c
+>>>>>>   call i2c_new_device
+>>>>>>
+>>>>>> New i2c device not registred.
+>>>>>>
+>>>>>> The module kbd-i2c-ir loaded after i2c_new_device.
+>>>>> Jean,
+>>>>>
+>>>>> There was also a problem reported with the cx23885 driver's I2C
+>>>>> connected IR by Timothy Lenz:
+>>>>>
+>>>>> http://www.spinics.net/lists/linux-media/msg15122.html
+>>>>>
+>>>>> The failure mode sounds similar to Dmitri's, but maybe they are
+>>>>> unrelated.
+>>>>>
+>>>>> I worked a bit with Timothy on IRC and the remote device fails
+>>>>> to be detected whether ir-kbd-i2c is loaded before the cx23885
+>>>>> driver or after the cx23885 driver.  I haven't found time to do
+>>>>> any folow-up and I don't have any of the hardware in question.
+>>>>>
+>>>>> Do you have any thoughts or a suggested troubleshooting
+>>>>> approach?
+>>>> Andy/Dmitri,
+>>>>
+>>>> With the current i2c approach, the bridge driver is responsible
+>>>> for binding an i2c device into the i2c adapter. In other words,
+>>>> the bridge driver should have some logic to know what devices use
+>>>> ir-kbd-i2c, loading it at the right i2c address(es). Manually
+>>>> loading IR shouldn't make any difference.
+>>> yes, we have info.addr at saa7134-input and Dmitri did add the
+>>> Beholder IR address there recently.
+>>>
+>>>> >From Andy's comment, I suspect that such logic is missing at
+>>>>> cx23885 for the board
+>>>> you're referring. Not sure if this is the same case of the boards
+>>>> Dmitri is concerned about.
+>>> On a first look, Andy seems not to provide the IR addr from the
+>>> bridge and without probing it can't work anymore.
+>>>
+>>>> It should be noticed that the i2c redesign happened on 2.6.31 or
+>>>> 2.6.32, so, if this is the case, a patch should be sent also to
+>>>> -stable.
+>>>>
+>>>> In the case of saa7134, Jean worked on a fix for some boards:
+>>>> 	http://patchwork.kernel.org/patch/75883/
+>>>>
+>>>> He is currently waiting for someone with the affected boards to
+>>>> test it and give some return.
+>>> That fix should be unrelated and both variants of the patch are not
+>>> anywhere yet.
+>>>
+>>> We can fake this single board in question on a P7131 Dual, but my
+>>> receiver is broken, else all looked O.K., and it seems not worth yet
+>>> to ask Mauro to lose time on faking it, assuming his IR receiver
+>>> does still work.
+>>>
+>>> Here we can simply wait for Daro coming back from skiing, or can
+>>> even apply already Jean's solution per this card without any risk.
+>>>
+>>> Else, do we not check for kernels < 2.6.30 on hg v4l-dvb not using
+>>> auto probing anymore? I tested only on two machines with some 2.6.30
+>>> and one with 2.6.29 and recent hg v4l-dvb. There at least all was
+>>> fine, also with the patch moving IR init1 to saa7134_input_init2 and
+>>> also for ir-kbd-ic2 for a early Pinnacle 310i under all conditions.
+>>>
+>>> Dmitri, on what kernel and/or SCM version of v4l-dvb you discover
+>>> that flaw? Maybe I can reproduce it then.
+>>>
+>>> Andy has reports, that ir-kbd-i2c is still fine on 2.6.31, but
+>>> breaks on 2.6.32. Do we already run out of sync?
+>>>
+>>> Cheers,
+>>> Hermann
+>>>
+>>>
+
+
+-- 
+
+Cheers,
+Mauro
