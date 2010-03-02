@@ -1,89 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:47000 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754432Ab0CQOpR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Mar 2010 10:45:17 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0KZF00BCQKZF8380@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 17 Mar 2010 14:45:15 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0KZF006HJKZECV@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 17 Mar 2010 14:45:15 +0000 (GMT)
-Date: Wed, 17 Mar 2010 15:43:27 +0100
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: RE: [PATCH v2] v4l: videobuf: code cleanup.
-In-reply-to: <A24693684029E5489D1D202277BE8944541370F8@dlee02.ent.ti.com>
-To: "'Aguirre, Sergio'" <saaguirre@ti.com>,
-	'Hans Verkuil' <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	kyungmin.park@samsung.com
-Message-id: <001701cac5e0$3454cf80$9cfe6e80$%osciak@samsung.com>
-Content-language: pl
-References: <1268831061-307-1-git-send-email-p.osciak@samsung.com>
- <1268831061-307-2-git-send-email-p.osciak@samsung.com>
- <A24693684029E5489D1D202277BE894454137086@dlee02.ent.ti.com>
- <001001cac5dc$4407f690$cc17e3b0$%osciak@samsung.com>
- <03b82834cbbe28326f10899d781d2701.squirrel@webmail.xs4all.nl>
- <A24693684029E5489D1D202277BE8944541370F8@dlee02.ent.ti.com>
+Received: from mail1.radix.net ([207.192.128.31]:48318 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752295Ab0CBMls (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Mar 2010 07:41:48 -0500
+Subject: Re: cx18: Unable to find blank work order form to schedule
+ incoming mailbox ...
+From: Andy Walls <awalls@radix.net>
+To: Mark Lord <kernel@teksavvy.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	ivtv-devel@ivtvdriver.org
+In-Reply-To: <4B8CA8DD.5030605@teksavvy.com>
+References: <4B8BE647.7070709@teksavvy.com>
+	 <1267493641.4035.17.camel@palomino.walls.org>
+	 <4B8CA8DD.5030605@teksavvy.com>
+Content-Type: text/plain
+Date: Tue, 02 Mar 2010 07:40:30 -0500
+Message-Id: <1267533630.3123.17.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Aguirre, Sergio wrote:
->> >> Aguirre, Sergio wrote:
->> >>> Make videobuf pass checkpatch; minor code cleanups.
->> >>
->> >>I thought this kind patches were frowned upon..
->> >>
->> >>http://www.mjmwired.net/kernel/Documentation/development-
->> process/4.Coding#41
->> >>
->> >>But maybe it's acceptable in this case... I'm not an expert on community
->> >> policies :)
->> >
->> > Hm, right...
->> > I'm not an expert either, but it does seem reasonable. It was just a
->> part
->> > of the
->> > roadmap we agreed on in Norway, so I simply went ahead with it. Merging
->> > with other
->> > patches would pollute them so I just posted it separately. I will leave
->> > the
->> > decision up to Mauro then. I have some more "normal" patches lined up,
->> > so please let me know. I'm guessing we are cancelling the clean-up then
->> > though.
->
->It wasn't my intention to cancel your effort :) Please don't give up because of my comment.
->
->>
->> As I said, you give up way too easily. There are good reasons for doing a
->> simple straightforward cleanup patch first before tackling all the more
->> complex issues. Let's get this in first, then the future patches will only
->> do the actual functional changes instead of them having to do codingstyle
->> cleanups at the same time. I want to avoid that.
->
->Sounds reasonable.
->
->I wont say naything more about the topic. I think you guys have cleared it enough for me :)
+On Tue, 2010-03-02 at 00:57 -0500, Mark Lord wrote:
+> On 03/01/10 20:34, Andy Walls wrote:
+> > On Mon, 2010-03-01 at 11:07 -0500, Mark Lord wrote:
+> >> I'm using MythTV-0.21-fixes (from svn) on top of Linux-2.6.33 (from kernel.org),
+> >> with an HVR-1600 tuner card.  This card usually works okay (with workarounds for
+> >> the known analog recording bugs) in both analog and digital modes.
+> >>
+> >> Last night, for the first time ever, MythTV chose to record from both the analog
+> >> and digital sides of the HVR-1600 card at exactly the same times..
+> >>
+> >> The kernel driver failed, and neither recording was successful.
+> >> The only message in /var/log/messages was:
+> >>
+> >> Feb 28 19:59:45 duke kernel: cx18-0: Unable to find blank work order form to schedule incoming mailbox command processing
+> >
+> >
+> > This is really odd.  It means:
+> >
+> > 1. Your machine had a very busy burst of cx18 driver buffer handling
+> > activity.  Stopping a number of different streams, MPEG, VBI, and (DTV)
+> > TS at nearly the same time could do it
+> >
+> > 2. The firmware locked up.
+> >
+> > 3. The work handler kernel thread, cx18-0-in, got killed, if that's
+> > possible, or the processor it was running on got really bogged down.
+> ..
+> 
+> Yeah, it was pretty strange.
+> I wonder.. the system also has a Hauppauge 950Q USB tuner,
+> which is also partially controlled by the cx18 driver (I think).
+
+Nope.  Different driver.  The processing for the 950Q USB may have put
+some extra load on the system, but likely not enough load to stall 70
+MDL handover requests from the firmware.
 
 
-Come on guys, I really do not give up that easily, I just went on with more important
-patches. I am just a very agreeable person, that's all :)
+> I wonder if perhaps that had anything to do with it?
+> 
+> > If you want to make the problem "just go away" then up this parameter in
+> > cx18-driver.h:
+> >
+> > #define CX18_MAX_IN_WORK_ORDERS (CX18_MAX_FW_MDLS_PER_STREAM + 7)
+> > to something like
+> > #define CX18_MAX_IN_WORK_ORDERS (2*CX18_MAX_FW_MDLS_PER_STREAM + 7)
+> ..
+> 
+> Heh.. Yup, that's the first thing I did after looking at the code.  :)
+> Dunno if it'll help or not, but easy enough to do.
+
+If it doesn't, then there's a problem somewhere else. ;)
+
+> And if the cx18 is indeed being used by two cards (HVR-1600 and HVR-950Q),
+> then perhaps that number does need to be bigger or dynamic (?).
+
+Dynamic would be better.
+
+For each CX23418 based card in your system, a pool of these work
+requests is allocated dynamically at card setup, and drawn from when
+needed during operation.
+
+Since the CX23418 can have up to 63 MDL done notifications (and 2 MDL
+Ack notifications, IIRC) for the following 6 types of streams: MPEG,
+VBI, IDX, PCM, YUV and TS.  The most work orders that should ever need
+is 6 * 65.
+
+One would only need that maximum when effectively stopping all 6 streams
+on a card at once, while not processing the work requests in a timely
+manner.  That is so pathological, its not worth considering.  That's why
+the cx18 driver only has 70 in the pool: 63 for one stream stopping and
+5 others for running streams (and 2 for a couple of MDL Acks, IIRC).
 
 
-Best regards
---
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
+Again, maybe dynamically allocating these work order objects from the
+kernel as needed, would be better from a small dynamically allocated
+pool for each card.  I was concerned that the interrupt handler was
+taking to long at the time I implemented the things the way they are
+now.
 
 
 
+> I've since tried to reproduce the failure on purpose, with no luck to date.
+> 
+> Thanks guys!
+
+You're welcome.
+
+Regards,
+Andy
 
 
