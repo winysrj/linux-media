@@ -1,29 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.tu-berlin.de ([130.149.7.33])
+Received: from [130.149.205.37] (helo=mail.tu-berlin.de)
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <koos@kzdoos.xs4all.nl>) id 1NtLL6-0004rC-W5
-	for linux-dvb@linuxtv.org; Sun, 21 Mar 2010 14:37:14 +0100
-Received: from koos.idefix.net ([82.95.196.202] helo=kzdoos.xs4all.nl)
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-b) with esmtps
-	[TLSv1:AES256-SHA:256] for <linux-dvb@linuxtv.org>
-	id 1NtLL6-0004ol-9e; Sun, 21 Mar 2010 14:37:12 +0100
-Received: from kzdoos.xs4all.nl (localhost [127.0.0.1])
-	by kzdoos.xs4all.nl (8.14.2/8.14.2/Debian-2build1) with ESMTP id
-	o2LDb9Xs010797
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
-	for <linux-dvb@linuxtv.org>; Sun, 21 Mar 2010 14:37:09 +0100
-Received: (from koos@localhost)
-	by kzdoos.xs4all.nl (8.14.2/8.14.2/Submit) id o2LDb86B010796
-	for linux-dvb@linuxtv.org; Sun, 21 Mar 2010 14:37:08 +0100
-Date: Sun, 21 Mar 2010 14:37:08 +0100
-From: Koos van den Hout <koos@kzdoos.xs4all.nl>
-To: linux-dvb@linuxtv.org
-Message-ID: <20100321133708.GA9353@kzdoos.xs4all.nl>
-References: <mailman.1.1269169202.10776.linux-dvb@linuxtv.org>
+	(envelope-from <jaceksburghardt@gmail.com>) id 1NmRDj-0004Zi-Bi
+	for linux-dvb@linuxtv.org; Tue, 02 Mar 2010 13:29:03 +0100
+Received: from mail-pz0-f180.google.com ([209.85.222.180])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-d) with esmtp
+	for <linux-dvb@linuxtv.org>
+	id 1NmRDi-0007Z0-IU; Tue, 02 Mar 2010 13:29:02 +0100
+Received: by pzk10 with SMTP id 10so119025pzk.11
+	for <linux-dvb@linuxtv.org>; Tue, 02 Mar 2010 04:28:59 -0800 (PST)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <mailman.1.1269169202.10776.linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Problem with decrypting dvb-s channels
+Date: Tue, 2 Mar 2010 05:28:59 -0700
+Message-ID: <c2674311003020428r4fd3f305ic626db82f62c7942@mail.gmail.com>
+From: jacek burghardt <jaceksburghardt@gmail.com>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] GeniaTech X8350A
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -32,36 +23,45 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1497980882=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+--===============1497980882==
+Content-Type: multipart/alternative; boundary=001636ed68069a93d60480d082ad
 
-> I have tried several players. MythTV, MPlayer, Kaffeine. All of them
-> shows unencrypted channels OK, but will not play any of the encrypted
-> channels.
-> 
-> This was working fine a couple of months back with the same HW.
+--001636ed68069a93d60480d082ad
+Content-Type: text/plain; charset=ISO-8859-1
 
-"A couple of months" triggers me: for as far as I am aware dvb decoder
-cards need regular 'entitlement messages' to continue to work. And
-when the card is not in an active system for a long time it misses those
-messages and gets shut out. You need to ask the card issuer to re-activate
-the card (usually they offer this option on a website) and have the dvb-s
-card, cam and dish all powered up and tuned to a transponder controlled
-by the card-issuer.  Usually they advise you to tune to a certain channel.
+I wonder if there is any support for GeniaTech
+X8350A<./viewtopic.php?f=17&t=52575>.
+i had read that manufacturer offered samples to get the drivers working.
+Could someone point me to step by step guide on how to get it to work.
 
-                                            Koos
+--001636ed68069a93d60480d082ad
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
--- 
-The Virtual Bookcase, the site about books, book   | Koos van den Hout
-news and reviews http://www.virtualbookcase.com/   | http://idefix.net/
-PGP keyid DSS/1024 0xF0D7C263                      |
+I wonder if there is any support for <a class=3D"topictitle" title=3D"Poste=
+d: Mon Mar 01, 2010 7:20 pm" href=3D"./viewtopic.php?f=3D17&amp;t=3D52575">=
+GeniaTech X8350A</a>. i had read that manufacturer offered samples to get t=
+he drivers working. Could someone point me to step by step guide on how to =
+get it to work. <br>
+
+--001636ed68069a93d60480d082ad--
+
+
+--===============1497980882==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1497980882==--
