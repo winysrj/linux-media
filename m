@@ -1,50 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f219.google.com ([209.85.220.219]:42120 "EHLO
-	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751323Ab0CSPto (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Mar 2010 11:49:44 -0400
-Received: by fxm19 with SMTP id 19so731970fxm.21
-        for <linux-media@vger.kernel.org>; Fri, 19 Mar 2010 08:49:42 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4BA38088.1020006@redhat.com>
-References: <83e56201383c6a99ea51dafcd2794dfe.squirrel@webmail.xs4all.nl>
-	 <201003190904.53867.laurent.pinchart@ideasonboard.com>
-	 <50cd74a798bbf96501cd40b90d2a2b93.squirrel@webmail.xs4all.nl>
-	 <4BA38088.1020006@redhat.com>
-Date: Fri, 19 Mar 2010 11:49:42 -0400
-Message-ID: <30353c3d1003190849v35b57dcai9ab11ff1362b4f46@mail.gmail.com>
-Subject: Re: RFC: Drop V4L1 support in V4L2 drivers
-From: David Ellingsworth <david@identd.dyndns.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	v4l-dvb <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4573 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751453Ab0CBTw2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Mar 2010 14:52:28 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id o22JqNau008861
+	for <linux-media@vger.kernel.org>; Tue, 2 Mar 2010 20:52:27 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 2 Mar 2010 20:52:23 +0100 (CET)
+Message-Id: <201003021952.o22JqNau008861@smtp-vbr4.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 19, 2010 at 9:47 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> The V4L1 drivers that lasts are the ones without maintainers and probably without
-> a large users base. So, basically legacy hardware. So, their removals make sense.
->
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-In many ways the above statement is a catch 22. Most, if not all the
-v4l1 drivers are currently broken or unmaintained. However, this does
-not mean there are users who would not be using these drivers if they
-actually worked or had been properly maintained. I know this to be a
-fact of the ibmcam driver. It is both broken and unmaintained. Because
-of this I'm sure no one is currently using it. I happen to have a USB
-camera which is supposedly supported by the ibmcam driver.
-Unfortunately, I have not the time nor expertise needed to
-update/fix/replace this driver, though I have previously tried. If
-someone on this list is willing to collaborate with me to make a
-functional v4l2 driver to replace the existing ibmcam driver, I'd be
-more than willing to expend more time and energy in doing so.
-Hopefully someday I'll actually be able to use the camera that I own,
-considering as is it barely works under Windows.
+Results of the daily build of v4l-dvb:
 
-Regards,
+date:        Tue Mar  2 19:00:13 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14326:e7db4f86f4f5
+gcc version: i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:     2.6.32.5
 
-David Ellingsworth
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.32.6-armv5-dm365: ERRORS
+linux-2.6.33-armv5-dm365: ERRORS
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-armv5-ixp: OK
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.17-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.20-i686: OK
+linux-2.6.26.8-i686: OK
+linux-2.6.27.44-i686: OK
+linux-2.6.28.10-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.17-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.20-x86_64: OK
+linux-2.6.26.8-x86_64: OK
+linux-2.6.27.44-x86_64: OK
+linux-2.6.28.10-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+spec: OK
+sparse (linux-2.6.33): ERRORS
+linux-2.6.16.62-i686: OK
+linux-2.6.17.14-i686: OK
+linux-2.6.18.8-i686: OK
+linux-2.6.19.7-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.62-x86_64: OK
+linux-2.6.17.14-x86_64: OK
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.7-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
