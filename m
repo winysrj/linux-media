@@ -1,22 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (ext-mx06.extmail.prod.ext.phx2.redhat.com
 	[10.5.110.10])
-	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o2A7WZMZ011565
-	for <video4linux-list@redhat.com>; Wed, 10 Mar 2010 02:32:35 -0500
-Received: from gateway.tuioptics.com (gateway.tuioptics.com [213.183.22.85])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2A7WJ7h028911
-	for <video4linux-list@redhat.com>; Wed, 10 Mar 2010 02:32:20 -0500
-Date: Wed, 10 Mar 2010 08:29:53 +0100
-From: Arno Euteneuer <arno.euteneuer@toptica.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Message-ID: <4B974A71.5030506@toptica.com>
-In-Reply-To: <Pine.LNX.4.64.1003092256140.4891@axis700.grange>
-References: <4B960AE2.3090803@toptica.com>
-References: <Pine.LNX.4.64.1003092256140.4891@axis700.grange>
-Subject: Re: soc-camera driver for i.MX25
+	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o22E74Tp012480
+	for <video4linux-list@redhat.com>; Tue, 2 Mar 2010 09:07:04 -0500
+Received: from mail-yx0-f192.google.com (mail-yx0-f192.google.com
+	[209.85.210.192])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o22E6rtm000429
+	for <video4linux-list@redhat.com>; Tue, 2 Mar 2010 09:06:54 -0500
+Received: by yxe30 with SMTP id 30so101876yxe.23
+	for <video4linux-list@redhat.com>; Tue, 02 Mar 2010 06:06:53 -0800 (PST)
 MIME-Version: 1.0
-Cc: video4linux-list@redhat.com
+In-Reply-To: <9c4b1d601003020605t737cad37uf682184d5b264045@mail.gmail.com>
+References: <4B8CDBAC.4030909@andago.com>
+	<9c4b1d601003020605t737cad37uf682184d5b264045@mail.gmail.com>
+Date: Tue, 2 Mar 2010 11:06:53 -0300
+Message-ID: <9c4b1d601003020606v7418c63fnb2f0c2eb0b794a43@mail.gmail.com>
+Subject: Ubuntu and AverMedia DVD EZMaker USB Gold
+From: Adrian Pardini <pardo.bsso@gmail.com>
+To: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,38 +26,44 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Thanks for your interest!
+forgot the list...
 
-> Nice, thanks for the patch! Now, you'd have to formalise the submission -
-> add your Signed-off-by line, provide a suitable patch description.
-Ok. That sounds like the easy part ;)
+---------- Forwarded message ----------
+From: Adrian Pardini <pardo.bsso@gmail.com>
+Date: Tue, 2 Mar 2010 11:05:49 -0300
+Subject: Re: Ubuntu and AverMedia DVD EZMaker USB Gold
+To: Jorge Cabrera <jorge.cabrera@andago.com>
 
- > More
-> importantly, it certainly has to be updated for 2.6.32 and 2.6.33 - the
-> biggest change since 2.6.31 has been the conversion to the v4l2-subdev
-> API, and a smaller one - the addition of the mediabus API.
-I already suspected that I have to update it :D Currently I'm using a 2.6.31 
-kernel that has been patched with a BSP from the board supplier. So, I have to 
-first update these patches in order to be able to run my system with a current 
-kernel,I guess. I will try that ...
-
-> For a single
-> driver these are not very big changes, I could help you with them, but you
-> certainly would have to re-test your setup with the current kernel. Would
-> you be able to do that? And then, of course, we'd also have to pass your
-> driver through the usual review rounds.
+On 02/03/2010, Jorge Cabrera <jorge.cabrera@andago.com> wrote:
+> Hi everyone,
 >
-Thanks for your encouraging answer. I never before submitted a driver and any 
-help is highly appreciated.
+> I'm trying to make an "AverMedia DVD EZMaker USB Gold" work with Ubuntu
+> (tried in a computer with 9.04 and other two with 9.10) with a Sony EVI
+> D70P Camera. I installed the linux drivers from AverMedia and when I
+> connect the device the system shows the following message when i run dmesg:
 
-Thanks
-Arno
+[...]
+
+Hi there, just gessing... Could you try the drivers at linuxtv.org
+instead and see what happens?(unistall the avermedia ones before)
+Either clone a repo or grab this:
+ http://linuxtv.org/hg/v4l-dvb/archive/tip.tar.bz2
+
+By the way, this list is deprecated, the new one is at
+linux-media@vger.kernel.org
+
+cheers
+
+
+-- 
+Adrian.
+http://milongadelplayon.com.ar
 
 --
 video4linux-list mailing list
