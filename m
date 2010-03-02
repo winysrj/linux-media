@@ -1,100 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f219.google.com ([209.85.220.219]:35067 "EHLO
-	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752080Ab0CFHxQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Mar 2010 02:53:16 -0500
-Received: by fxm19 with SMTP id 19so4874177fxm.21
-        for <linux-media@vger.kernel.org>; Fri, 05 Mar 2010 23:53:15 -0800 (PST)
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1095 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752074Ab0CBUzm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Mar 2010 15:55:42 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: How do private controls actually work?
+Date: Tue, 2 Mar 2010 21:56:05 +0100
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <829197381002281856o749e3e9al36334b8b42b34562@mail.gmail.com> <201003022128.06210.hverkuil@xs4all.nl> <829197381003021242p1ae9d91ek68e2c063024d316@mail.gmail.com>
+In-Reply-To: <829197381003021242p1ae9d91ek68e2c063024d316@mail.gmail.com>
 MIME-Version: 1.0
-Date: Sat, 6 Mar 2010 08:53:14 +0100
-Message-ID: <6934ea941003052353n4258600cs78dba8487d203564@mail.gmail.com>
-Subject: Help with RTL2832U DVB-T dongle (LeadTek WinFast DTV Dongle Mini)
-From: Jan Slaninka <jan@slaninka.eu>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201003022156.05519.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Tuesday 02 March 2010 21:42:39 Devin Heitmueller wrote:
+> On Tue, Mar 2, 2010 at 3:28 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> >>
+> >> Between trying to figure out what the expected behavior is supposed to
+> >> be (given the complete lack of documentation on how private controls
+> >> are expected to be implemented in the extended controls API) and
+> >> isolating and fixing the regression, it's hard not to be a little
+> >> irritated at this situation.  This was supposed to be a very small
+> >> change - a single private control to a mature driver.  And now it
+> >> seems like I'm going to have to extend the basic infrastructure in the
+> >> decoder driver, the bridge driver, add a new class of controls, all so
+> >> I can poke one register?
+> >
+> > As you can see it is not that bad. That said, there is one disadvantage:
+> > the em28xx driver does not support the V4L2_CTRL_FLAG_NEXT_CTRL that is needed
+> > to enumerate this private user control. I do not know whether you need it since
+> > you can still get and set the control, even if you can't enumerate it.
+> 
+> It's funny though.  I haven't looked at that part of the code
+> specifically, but the em28xx driver does appear to show private
+> controls in the output of the queryctrl() command (at least it is
+> showing up in the output of "v4l2-ctl -l".  Are there two different
+> APIs for enumerating controls?
 
-I'd like to ask for a support with getting LeadTek WindFast DTV Dongle
-mini running on Linux. So far I was able to fetch latest v4l-dvb from
-HG, and successfully compiled module dvb_usb_rtl2832u found in
-090730_RTL2832U_LINUX_Ver1.1.rar  but with no luck.
-The box says the dongle's TV Tuner is Infineon 396 and Demodulator is
-RTL2832U. Is there any chance with this one? Any hints appreciated.
+That's probably when enumerating the PRIVATE_BASE controls. But that will not
+work for private user class controls (i.e. CLASS_USER | 0x1000).
+ 
+> > Unfortunately implementing this flag is non-trivial. We are missing code that
+> > can administrate all the controls, whether they are from the main host driver
+> > or from subdev drivers. The control framework that I'm working should handle
+> > that, but it's not there yet. There is a support function in v4l2-common.c,
+> > though: v4l2_ctrl_next(). It works, but it requires that bridge drivers know
+> > which controls are handled by both the bridge driver and all subdev drivers.
+> > That's not ideal since bridge drivers shouldn't have to know that from subdev
+> > drivers.
+> >
+> > Looking at the em28xx driver I think that supporting V4L2_CTRL_FLAG_NEXT_CTRL
+> > in em28xx is too much work. So for the time being I think we should support
+> > both a CHROMA_GAIN control using the old PRIVATE_BASE offset, and the proper
+> > SAA7115_CHROMA_GAIN control. Once we have a working framework, then the
+> > PRIVATE_BASE variant can be removed.
+> 
+> I had some extended discussion with Mauro on this yesterday on
+> #linuxtv, and he is now in favor of introducing a standard user
+> control for chroma gain, as opposed to doing a private control at all.
 
-Thanks,
-Jan
+That will also solve the problem :-)
+ 
+> > I find all this just as irritating as you, but unfortunately I cannot conjure
+> > up the time I need to finish it out of thin air :-( This part of the V4L2 API
+> > is actually quite complex to correctly implement in drivers. So there is little
+> > point in modifying individual drivers. Instead we just will have to wait for
+> > the control framework to arrive.
+> 
+> Yeah, I understand.  Thanks for taking the time to help clarify how
+> this stuff is intended to wrok.
 
-lsmod:
-Module                  Size  Used by
-dvb_usb_rtl2832u       94445  0
-dvb_usb                18655  1 dvb_usb_rtl2832u
+No problem.
 
-dmesg output:
-[ 9283.804050] usb 2-1: new high speed USB device using ehci_hcd and address 9
-[ 9283.930504] usb 2-1: New USB device found, idVendor=0413, idProduct=6a03
-[ 9283.930507] usb 2-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-[ 9283.930510] usb 2-1: Product: usbtv
-[ 9283.930512] usb 2-1: Manufacturer: realtek
-[ 9283.930610] usb 2-1: configuration #1 chosen from 1 choice
+	Hans
 
-lsusb:
-Bus 002 Device 009: ID 0413:6a03 Leadtek Research, Inc.
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  idVendor           0x0413 Leadtek Research, Inc.
-  idProduct          0x6a03
-  bcdDevice            1.00
-  iManufacturer           1 realtek
-  iProduct                2 usbtv
-  iSerial                 0
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength           25
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration          4 USB2.0-Bulk&Iso
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface              5 Bulk-In, Interface
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  bNumConfigurations      2
-Device Status:     0x0000
-  (Bus Powered)
+> 
+> Devin
+> 
+> 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
