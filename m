@@ -1,191 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:8566 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751658Ab0C2KDS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Mar 2010 06:03:18 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0L0100DG9FGP1W00@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 29 Mar 2010 10:53:14 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L0100LOQFGPQ8@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 29 Mar 2010 10:53:13 +0100 (BST)
-Date: Mon, 29 Mar 2010 11:53:06 +0200
-From: Kamil Debski <k.debski@samsung.com>
-Subject: [PATCH/RFC 1/1] v4l: Add support for binary controls
-In-reply-to: <1269856386-29557-1-git-send-email-k.debski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: p.osciak@samsung.com, k.debski@samsung.com,
-	kyungmin.park@samsung.com
-Message-id: <1269856386-29557-2-git-send-email-k.debski@samsung.com>
-References: <1269856386-29557-1-git-send-email-k.debski@samsung.com>
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:40337 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757292Ab0CBUml convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Mar 2010 15:42:41 -0500
+Received: by bwz1 with SMTP id 1so104304bwz.21
+        for <linux-media@vger.kernel.org>; Tue, 02 Mar 2010 12:42:39 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <201003022128.06210.hverkuil@xs4all.nl>
+References: <829197381002281856o749e3e9al36334b8b42b34562@mail.gmail.com>
+	 <49ae9be6ffaaac102dc02f94f2fd047c.squirrel@webmail.xs4all.nl>
+	 <829197381003010220w57248cb2l636a75d5bf4b19c1@mail.gmail.com>
+	 <201003022128.06210.hverkuil@xs4all.nl>
+Date: Tue, 2 Mar 2010 15:42:39 -0500
+Message-ID: <829197381003021242p1ae9d91ek68e2c063024d316@mail.gmail.com>
+Subject: Re: How do private controls actually work?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This control provides means to exchange raw
-binary data between the user space and the driver.
+On Tue, Mar 2, 2010 at 3:28 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> I will NAK it only because you use V4L2_CID_PRIVATE_BASE. The rest of the
+> code is fine. It would be sufficient to create a private user control like
+> this:
+>
+> #define V4L2_CID_SAA7115_BASE           (V4L2_CTRL_CLASS_USER | 0x1000)
+> #define V4L2_CID_SAA7115_CHROMA_GAIN    (V4L2_CID_SAA7115_BASE+0)
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Reviewed-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- Documentation/DocBook/v4l/compat.xml             |    9 ++++++++
- Documentation/DocBook/v4l/videodev2.h.xml        |    2 +
- Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml |    6 +++++
- Documentation/DocBook/v4l/vidioc-queryctrl.xml   |   23 ++++++++++++++++-----
- drivers/media/video/v4l2-common.c                |    2 +
- include/linux/videodev2.h                        |    2 +
- 6 files changed, 38 insertions(+), 6 deletions(-)
+Easy enough.
 
-diff --git a/Documentation/DocBook/v4l/compat.xml b/Documentation/DocBook/v4l/compat.xml
-index b9dbdf9..83b8b64 100644
---- a/Documentation/DocBook/v4l/compat.xml
-+++ b/Documentation/DocBook/v4l/compat.xml
-@@ -2333,6 +2333,15 @@ more information.</para>
-       </orderedlist>
-     </section>
-    </section>
-+    <section>
-+      <title>V4L2 in Linux 2.6.35</title>
-+      <orderedlist>
-+	<listitem>
-+	  <para>Added support for binary data controls via new type <constant>V4L2_CTRL_TYPE_BINARY</constant>.</para>
-+	</listitem>
-+      </orderedlist>
-+    </section>
-+   </section>
- 
-    <section id="other">
-      <title>Relation of V4L2 to other Linux multimedia APIs</title>
-diff --git a/Documentation/DocBook/v4l/videodev2.h.xml b/Documentation/DocBook/v4l/videodev2.h.xml
-index 0683259..c552134 100644
---- a/Documentation/DocBook/v4l/videodev2.h.xml
-+++ b/Documentation/DocBook/v4l/videodev2.h.xml
-@@ -169,6 +169,7 @@ enum <link linkend="v4l2-ctrl-type">v4l2_ctrl_type</link> {
-         V4L2_CTRL_TYPE_INTEGER64     = 5,
-         V4L2_CTRL_TYPE_CTRL_CLASS    = 6,
-         V4L2_CTRL_TYPE_STRING        = 7,
-+        V4L2_CTRL_TYPE_BINARY        = 8,
- };
- 
- enum <link linkend="v4l2-tuner-type">v4l2_tuner_type</link> {
-@@ -913,6 +914,7 @@ struct <link linkend="v4l2-ext-control">v4l2_ext_control</link> {
-                 __s32 value;
-                 __s64 value64;
-                 char *string;
-+		unsigned char *blob;
-         };
- } __attribute__ ((packed));
- 
-diff --git a/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
-index 3aa7f8f..ab4f1c9 100644
---- a/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
-+++ b/Documentation/DocBook/v4l/vidioc-g-ext-ctrls.xml
-@@ -170,6 +170,12 @@ applications must set the array to zero.</entry>
- 	    <entry><structfield>string</structfield></entry>
- 	    <entry>A pointer to a string.</entry>
- 	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry>unsigned char *</entry>
-+	    <entry><structfield>blob</structfield></entry>
-+	    <entry>A pointer to a blob.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/Documentation/DocBook/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/v4l/vidioc-queryctrl.xml
-index 4876ff1..d1cd5ee 100644
---- a/Documentation/DocBook/v4l/vidioc-queryctrl.xml
-+++ b/Documentation/DocBook/v4l/vidioc-queryctrl.xml
-@@ -142,9 +142,10 @@ bound for <constant>V4L2_CTRL_TYPE_INTEGER</constant> controls and the
- lowest valid index (always 0) for <constant>V4L2_CTRL_TYPE_MENU</constant> controls.
- For <constant>V4L2_CTRL_TYPE_STRING</constant> controls the minimum value
- gives the minimum length of the string. This length <emphasis>does not include the terminating
--zero</emphasis>. It may not be valid for any other type of control, including
--<constant>V4L2_CTRL_TYPE_INTEGER64</constant> controls. Note that this is a
--signed value.</entry>
-+zero</emphasis>. For <constant>V4L2_CTRL_TYPE_BINARY</constant> controls this value
-+gives the minimum length of the binary data. It may not be valid for any other type of
-+ control, including <constant>V4L2_CTRL_TYPE_INTEGER64</constant> controls. Note that
-+ this is a signed value.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__s32</entry>
-@@ -155,7 +156,8 @@ highest valid index for <constant>V4L2_CTRL_TYPE_MENU</constant>
- controls.
- For <constant>V4L2_CTRL_TYPE_STRING</constant> controls the maximum value
- gives the maximum length of the string. This length <emphasis>does not include the terminating
--zero</emphasis>. It may not be valid for any other type of control, including
-+zero</emphasis>. For <constant>V4L2_CTRL_TYPE_BINARY</constant> controls this value
-+gives the maximum length of the binary data. It may not be valid for any other type of control, including
- <constant>V4L2_CTRL_TYPE_INTEGER64</constant> controls. Note that this is a
- signed value.</entry>
- 	  </row>
-@@ -166,8 +168,8 @@ signed value.</entry>
- <constant>V4L2_CTRL_TYPE_INTEGER</constant> controls. For
- <constant>V4L2_CTRL_TYPE_STRING</constant> controls this field refers to
- the string length that has to be a multiple of this step size.
--It may not be valid for any other type of control, including
--<constant>V4L2_CTRL_TYPE_INTEGER64</constant>
-+For <constant>V4L2_CTRL_TYPE_BINARY</constant> controls the size of the binary data has to be a multiple of this step size. It may not be valid for any other type of
-+control, including <constant>V4L2_CTRL_TYPE_INTEGER64</constant>
- controls.</para><para>Generally drivers should not scale hardware
- control values. It may be necessary for example when the
- <structfield>name</structfield> or <structfield>id</structfield> imply
-@@ -319,6 +321,15 @@ Which character encoding is used will depend on the string control itself and
- should be part of the control documentation.</entry>
- 	  </row>
- 	  <row>
-+	    <entry><constant>V4L2_CTRL_TYPE_BINARY</constant></entry>
-+	    <entry>&ge; 0</entry>
-+	    <entry>&ge; 1</entry>
-+	    <entry>&ge; 0</entry>
-+	    <entry>The minimum and maximum of the binary data length. The step size
-+means that the length must be (minimum + N * step) characters long for
-+N &ge; 0. </entry>
-+	  </row>
-+	  <row>
- 	    <entry><constant>V4L2_CTRL_TYPE_CTRL_CLASS</constant></entry>
- 	    <entry>n/a</entry>
- 	    <entry>n/a</entry>
-diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
-index 36b5cb8..cbd770e 100644
---- a/drivers/media/video/v4l2-common.c
-+++ b/drivers/media/video/v4l2-common.c
-@@ -158,6 +158,8 @@ int v4l2_ctrl_check(struct v4l2_ext_control *ctrl, struct v4l2_queryctrl *qctrl,
- 		return -EBUSY;
- 	if (qctrl->type == V4L2_CTRL_TYPE_STRING)
- 		return 0;
-+	if (qctrl->type == V4L2_CTRL_TYPE_BINARY)
-+		return 0;
- 	if (qctrl->type == V4L2_CTRL_TYPE_BUTTON ||
- 	    qctrl->type == V4L2_CTRL_TYPE_INTEGER64 ||
- 	    qctrl->type == V4L2_CTRL_TYPE_CTRL_CLASS)
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 3793d16..5a62c9a 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -168,6 +168,7 @@ enum v4l2_ctrl_type {
- 	V4L2_CTRL_TYPE_INTEGER64     = 5,
- 	V4L2_CTRL_TYPE_CTRL_CLASS    = 6,
- 	V4L2_CTRL_TYPE_STRING        = 7,
-+	V4L2_CTRL_TYPE_BINARY        = 8,
- };
- 
- enum v4l2_tuner_type {
-@@ -918,6 +919,7 @@ struct v4l2_ext_control {
- 		__s32 value;
- 		__s64 value64;
- 		char *string;
-+		unsigned char *blob;
- 	};
- } __attribute__ ((packed));
- 
+>> And exactly what "class" of extended controls should I use for video
+>> decoders?  It would seem that a video decoder doesn't really fall into
+>> any of the existing categories - "Old-style user controls", "MPEG
+>> compression controls", "Camera controls", or "FM modulator controls".
+>> Are we saying that now I'm also going to be introducing a whole new
+>> class of control too?
+>
+> CHROMA_AGC is a user control. And setting the CHROMA_GAIN should be in that
+> same class. It makes no sense to use two different classes for this.
+
+Ok, I wasn't sure if "user control" was really synonymous with "video
+decoder", nor was I sure if you were suggesting whether the "user
+control" section was exclusively for the legacy controls (and not
+accepting new controls).
+
+>> > The EXT_G/S_CTRLS ioctls do not accept PRIVATE_BASE because I want to
+>> > force driver developers to stop using PRIVATE_BASE. So only G/S_CTRL will
+>> > support controls in that range for backwards compatibility.
+>>
+>> While we're on the topic, do you see any problem with the proposed fix
+>> for the regression you introduced?:
+>>
+>> http://kernellabs.com/hg/~dheitmueller/em28xx-test/rev/142ae5aa9e8e
+>
+> No problems at all. That's the correct fix.
+>
+> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+
+Great, I'll add your Ack to the patch.
+
+>>
+>> Between trying to figure out what the expected behavior is supposed to
+>> be (given the complete lack of documentation on how private controls
+>> are expected to be implemented in the extended controls API) and
+>> isolating and fixing the regression, it's hard not to be a little
+>> irritated at this situation.  This was supposed to be a very small
+>> change - a single private control to a mature driver.  And now it
+>> seems like I'm going to have to extend the basic infrastructure in the
+>> decoder driver, the bridge driver, add a new class of controls, all so
+>> I can poke one register?
+>
+> As you can see it is not that bad. That said, there is one disadvantage:
+> the em28xx driver does not support the V4L2_CTRL_FLAG_NEXT_CTRL that is needed
+> to enumerate this private user control. I do not know whether you need it since
+> you can still get and set the control, even if you can't enumerate it.
+
+It's funny though.  I haven't looked at that part of the code
+specifically, but the em28xx driver does appear to show private
+controls in the output of the queryctrl() command (at least it is
+showing up in the output of "v4l2-ctl -l".  Are there two different
+APIs for enumerating controls?
+
+> Unfortunately implementing this flag is non-trivial. We are missing code that
+> can administrate all the controls, whether they are from the main host driver
+> or from subdev drivers. The control framework that I'm working should handle
+> that, but it's not there yet. There is a support function in v4l2-common.c,
+> though: v4l2_ctrl_next(). It works, but it requires that bridge drivers know
+> which controls are handled by both the bridge driver and all subdev drivers.
+> That's not ideal since bridge drivers shouldn't have to know that from subdev
+> drivers.
+>
+> Looking at the em28xx driver I think that supporting V4L2_CTRL_FLAG_NEXT_CTRL
+> in em28xx is too much work. So for the time being I think we should support
+> both a CHROMA_GAIN control using the old PRIVATE_BASE offset, and the proper
+> SAA7115_CHROMA_GAIN control. Once we have a working framework, then the
+> PRIVATE_BASE variant can be removed.
+
+I had some extended discussion with Mauro on this yesterday on
+#linuxtv, and he is now in favor of introducing a standard user
+control for chroma gain, as opposed to doing a private control at all.
+
+> I find all this just as irritating as you, but unfortunately I cannot conjure
+> up the time I need to finish it out of thin air :-( This part of the V4L2 API
+> is actually quite complex to correctly implement in drivers. So there is little
+> point in modifying individual drivers. Instead we just will have to wait for
+> the control framework to arrive.
+
+Yeah, I understand.  Thanks for taking the time to help clarify how
+this stuff is intended to wrok.
+
+Devin
+
 -- 
-1.6.3.3
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
