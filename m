@@ -1,57 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:36407 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754016Ab0CVONo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Mar 2010 10:13:44 -0400
-Date: Mon, 22 Mar 2010 09:37:23 -0500 (CDT)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Hans de Goede <hdegoede@redhat.com>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	David Ellingsworth <david@identd.dyndns.org>
-Subject: Re: RFC: Phase 1: Proposal to convert V4L1 drivers
-In-Reply-To: <4BA73865.3070107@redhat.com>
-Message-ID: <alpine.LNX.2.00.1003220925140.9050@banach.math.auburn.edu>
-References: <201003200958.49649.hverkuil@xs4all.nl> <201003212345.04736.hverkuil@xs4all.nl> <201003220117.34790.hverkuil@xs4all.nl> <4BA73865.3070107@redhat.com>
+Received: from mail-fx0-f219.google.com ([209.85.220.219]:64664 "EHLO
+	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753153Ab0CCXsF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Mar 2010 18:48:05 -0500
+Received: by fxm19 with SMTP id 19so2188493fxm.21
+        for <linux-media@vger.kernel.org>; Wed, 03 Mar 2010 15:48:02 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <74fd948d1003031535r1785b36dq4cece00f349975af@mail.gmail.com>
+References: <74fd948d1003031535r1785b36dq4cece00f349975af@mail.gmail.com>
+Date: Wed, 3 Mar 2010 18:48:02 -0500
+Message-ID: <829197381003031548n703f0bf9sb44ce3527501c5c0@mail.gmail.com>
+Subject: Re: Excessive rc polling interval in dvb_usb_dib0700 causes
+	interference with USB soundcard
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Pedro Ribeiro <pedrib@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Wed, Mar 3, 2010 at 6:35 PM, Pedro Ribeiro <pedrib@gmail.com> wrote:
+> Hello all,
+>
+> yesterday I sent a message asking for help with a problem I was having
+> with a dib0700 USB adapter and my USB audio soundcard.
+>
+> Basically I discovered that the remote control polling in dvb_usb
+> module was causing it. For reference, my original message is here
+> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/16782
+> and I also file a kernel bug here
+> http://bugzilla.kernel.org/show_bug.cgi?id=15430
+>
+> Looking at dmesg when I plug the DVB adapter it says
+> dvb-usb: schedule remote query interval to 50 msecs.
+>
+> This seemed to me extremely excessive, so I solved the problem by
+> doing a quick dirty hack. In linux/drivers/media/dvb/dvb-usb-remote.c
+> I changed d->props.rc_interval to 10000, instead of the default 50
+> msec.
+>
+> So now when I load the driver, I get
+> dvb-usb: schedule remote query interval to 10000 msecs.
+>
+> And not only the USB audio card is working properly with the DVB
+> adapter but also the remote control is working perfectly, without any
+> delay at all!
+>
+> So my question is: why is this set to an excessive 50 msec? This is
+> waaaaaaay too much for remote control polling, and its proven it
+> causes trouble in the USB bus!
+> Also, I know my hack was dirty, what the is the proper way to change this?
 
+It's already been fixed.  Just update to the latest v4l-dvb code.
 
-On Mon, 22 Mar 2010, Hans de Goede wrote:
+Devin
 
-<snip>
-
-
-> 
-> [...] I've seen the same 
-> problem (not streaming) with the "old" version when used with machines 
-> with UHCI usb controllers (rather then OHCI), such as atom based 
-> laptops.
-> 
-> So maybe this is some timing issues, and your changes have speed up some 
-> path?
-
-Sorry to break into a very interesting discussion which I was otherwise 
-just watching. But how many other cases of this kind of UHCI versus OHCI 
-kind of thing has anyone else witnessed?
-
-Recall, we faced exactly the same situation in developing the current 
-version of the mr97310a driver? That I was doing everything on an OHCI 
-machine and then, at the very last step I tested on a UHCI machine and 
-suddenly some of the cameras would not work? And there was one magic 
-command to the camera which "fixed" the problem and we still don't know 
-why that one magic command fixed the problem, only that the fix is very 
-critical, very necessary, and it does work?
-
-Please, anyone who can report similar mysterious events, let me know. I 
-would still like to get to the bottom of what is going on, if I can.
-
-Sorry for the interruption. Anyone who is interested in pursuing this, 
-start a new thread if you want.
-
-Theodore Kilgore
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
