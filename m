@@ -1,128 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38148 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751153Ab0CSGEW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Mar 2010 02:04:22 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2J64JSm003962
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 19 Mar 2010 01:04:21 -0500
-From: hvaibhav@ti.com
-To: linux-media@vger.kernel.org
-Cc: m-karicheri2@ti.com, Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH-V2 6/7] VPFE Capture: Add support for USERPTR mode of operation
-Date: Fri, 19 Mar 2010 11:34:12 +0530
-Message-Id: <1268978653-32710-7-git-send-email-hvaibhav@ti.com>
-In-Reply-To: <hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
+Received: from smtp.nokia.com ([192.100.122.230]:46556 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752556Ab0CCLMo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Mar 2010 06:12:44 -0500
+Subject: Re: git over http from linuxtv
+From: m7aalton <matti.j.aaltonen@nokia.com>
+Reply-To: matti.j.aaltonen@nokia.com
+To: ext Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <4B8D6231.1020806@redhat.com>
+References: <4B82F7ED.6020502@redhat.com>
+	 <1267550594.27183.22.camel@masi.mnp.nokia.com>
+	 <4B8D6231.1020806@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 03 Mar 2010 13:12:06 +0200
+Message-ID: <1267614726.27183.55.camel@masi.mnp.nokia.com>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+Hello.
+
+On Tue, 2010-03-02 at 20:08 +0100, ext Mauro Carvalho Chehab wrote:
+> m7aalton wrote:
+> > Hi.
+> > 
+> > Is it possible to access the linuxtv.org git repositories using http?
+> > I tried to do this:
+> > 
+> > git remote add linuxtv git://linuxtv.org/v4l-dvb.git
+> 
+> You should be able to use both URL's:
+> 
+> URL	http://git.linuxtv.org/v4l-dvb.git
+> 	git://linuxtv.org/v4l-dvb.git
+> 
+> There were a miss-configuration for the http URL. I just fixed it.
 
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
----
- drivers/media/video/davinci/vpfe_capture.c |   42 ++++++++++++++++++---------
- 1 files changed, 28 insertions(+), 14 deletions(-)
+Now it works better but I still couldn't clone it properly. The update
+from linuxtv didn't seem to do anything....
 
-diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
-index 3946a70..51f6213 100644
---- a/drivers/media/video/davinci/vpfe_capture.c
-+++ b/drivers/media/video/davinci/vpfe_capture.c
-@@ -539,6 +539,16 @@ static void vpfe_schedule_next_buffer(struct vpfe_device *vpfe_dev)
- 	list_del(&vpfe_dev->next_frm->queue);
- 	vpfe_dev->next_frm->state = VIDEOBUF_ACTIVE;
- 	addr = videobuf_to_dma_contig(vpfe_dev->next_frm);
-+
-+	ccdc_dev->hw_ops.setfbaddr(addr);
-+}
-+
-+static void vpfe_schedule_bottom_field(struct vpfe_device *vpfe_dev)
-+{
-+	unsigned long addr;
-+
-+	addr = videobuf_to_dma_contig(vpfe_dev->cur_frm);
-+	addr += vpfe_dev->field_off;
- 	ccdc_dev->hw_ops.setfbaddr(addr);
- }
+Here's what happened:
 
-@@ -559,7 +569,6 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
- {
- 	struct vpfe_device *vpfe_dev = dev_id;
- 	enum v4l2_field field;
--	unsigned long addr;
- 	int fid;
+$ git clone
+http://www.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+v4l-dvb
 
- 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "\nStarting vpfe_isr...\n");
-@@ -604,10 +613,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
- 			 * the CCDC memory address
- 			 */
- 			if (field == V4L2_FIELD_SEQ_TB) {
--				addr =
--				  videobuf_to_dma_contig(vpfe_dev->cur_frm);
--				addr += vpfe_dev->field_off;
--				ccdc_dev->hw_ops.setfbaddr(addr);
-+				vpfe_schedule_bottom_field(vpfe_dev);
- 			}
- 			goto clear_intr;
- 		}
-@@ -1234,7 +1240,10 @@ static int vpfe_videobuf_setup(struct videobuf_queue *vq,
- 	struct vpfe_device *vpfe_dev = fh->vpfe_dev;
+$ cd v4l-dvb
 
- 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_buffer_setup\n");
--	*size = config_params.device_bufsize;
-+	*size = vpfe_dev->fmt.fmt.pix.sizeimage;
-+	if (vpfe_dev->memory == V4L2_MEMORY_MMAP &&
-+		vpfe_dev->fmt.fmt.pix.sizeimage > config_params.device_bufsize)
-+		*size = config_params.device_bufsize;
+$ git remote add linuxtv http://git.linuxtv.org/v4l-dvb.git
 
- 	if (*count < config_params.min_numbuffers)
- 		*count = config_params.min_numbuffers;
-@@ -1249,6 +1258,8 @@ static int vpfe_videobuf_prepare(struct videobuf_queue *vq,
- {
- 	struct vpfe_fh *fh = vq->priv_data;
- 	struct vpfe_device *vpfe_dev = fh->vpfe_dev;
-+	unsigned long addr;
-+	int ret;
+$ git remote update
+Updating origin
+>From http://www.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6
+   13dda80..3a5b27b  master     -> origin/master
+Updating linuxtv
 
- 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_buffer_prepare\n");
+$ git branch -a
+* master
+  origin/HEAD
+  origin/master
 
-@@ -1258,8 +1269,18 @@ static int vpfe_videobuf_prepare(struct videobuf_queue *vq,
- 		vb->height = vpfe_dev->fmt.fmt.pix.height;
- 		vb->size = vpfe_dev->fmt.fmt.pix.sizeimage;
- 		vb->field = field;
-+
-+		ret = videobuf_iolock(vq, vb, NULL);;
-+		if (ret < 0)
-+			return ret;
-+
-+		addr = videobuf_to_dma_contig(vb);
-+		/* Make sure user addresses are aligned to 32 bytes */
-+		if (!ALIGN(addr, 32))
-+			return -EINVAL;
-+
-+		vb->state = VIDEOBUF_PREPARED;
- 	}
--	vb->state = VIDEOBUF_PREPARED;
- 	return 0;
- }
+$ git checkout -b media-master linuxtv/master
+fatal: git checkout: updating paths is incompatible with switching
+branches.
+Did you intend to checkout 'linuxtv/master' which can not be resolved as
+commit?
 
-@@ -1327,13 +1348,6 @@ static int vpfe_reqbufs(struct file *file, void *priv,
- 		return -EINVAL;
- 	}
+Cheers, 
+Matti
 
--	if (V4L2_MEMORY_USERPTR == req_buf->memory) {
--		/* we don't support user ptr IO */
--		v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_reqbufs:"
--			 " USERPTR IO not supported\n");
--		return  -EINVAL;
--	}
--
- 	ret = mutex_lock_interruptible(&vpfe_dev->lock);
- 	if (ret)
- 		return ret;
---
-1.6.2.4
+
+
+
+
+
+
+
+
+
+> 
+> > 
+> > using http, but I couldn't figure out a working address. 
+> > 
+> > Thank you,
+> > Matti Aaltonen
+> > 
+> > 
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+
 
