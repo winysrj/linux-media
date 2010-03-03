@@ -1,73 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:6132 "EHLO mx1.redhat.com"
+Received: from smtp20.orange.fr ([80.12.242.26]:17853 "EHLO smtp20.orange.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750870Ab0CINPr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Mar 2010 08:15:47 -0500
-Message-ID: <4B9649FC.8030002@redhat.com>
-Date: Tue, 09 Mar 2010 10:15:40 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1753867Ab0CCIBT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Mar 2010 03:01:19 -0500
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf2018.orange.fr (SMTP Server) with ESMTP id 02EDE2000746
+	for <linux-media@vger.kernel.org>; Wed,  3 Mar 2010 09:01:18 +0100 (CET)
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf2018.orange.fr (SMTP Server) with ESMTP id E8E282000754
+	for <linux-media@vger.kernel.org>; Wed,  3 Mar 2010 09:01:17 +0100 (CET)
+Received: from [192.168.0.1] (AVelizy-151-1-89-231.w86-205.abo.wanadoo.fr [86.205.127.231])
+	by mwinf2018.orange.fr (SMTP Server) with ESMTP id A0E682000746
+	for <linux-media@vger.kernel.org>; Wed,  3 Mar 2010 09:01:17 +0100 (CET)
+Message-ID: <4B8E1770.4000006@orange.fr>
+Date: Wed, 03 Mar 2010 09:01:52 +0100
+From: Catimimi <catimimi@orange.fr>
 MIME-Version: 1.0
-To: Catimimi <catimimi@orange.fr>
-CC: linux-media@vger.kernel.org
-Subject: Re: [patch] em28xx : Terratec Cinergy Hybrid T USB XS FR is now really
+To: linux-media@vger.kernel.org
+Subject: [patch] em28xx : Terratec Cinergy Hybrid T USB XS FR is now really
  working.
-References: <4B8E1770.4000006@orange.fr>
-In-Reply-To: <4B8E1770.4000006@orange.fr>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------040400070101060609090307"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Michel,
+This is a multi-part message in MIME format.
+--------------040400070101060609090307
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Catimimi wrote:
-> Hi,
-> 
-> As I told you earlier, my previous patch was not working with a 64 bits
-> kernel.
-> So forget it.
-> 
-> 
-> I now succed in running Cinergy Hybrid T USB XS FR with 32 and 64bits
-> kernels.
-> One problem remains, because of msp3400 driver, I don't have sound in
-> analog mode.
-> I'am still working on that problem.
+Hi,
 
-First of all, as your previous patch got applied already at -git, you should
-be sending us a diff patch against it (as the one enclosed), and not a complete
-patch.
+As I told you earlier, my previous patch was not working with a 64 bits kernel.
+So forget it.
 
-Also, please always send us patches with your Signed-off-by line as stated at kernel
-Documentation/SubmittingPatches file.
 
-With respect to msp3400, one of the things you may need to do is to change the i2s
-speed, as msp3400 support two different speeds. If you use it with a wrong speed, you
-won't listen the audio. 
+I now succed in running Cinergy Hybrid T USB XS FR with 32 and 64bits kernels.
+One problem remains, because of msp3400 driver, I don't have sound in analog mode.
+I'am still working on that problem.
 
-There are two valid values: 1024000 and 2048000. The default is 1024000.
+I enclose the patch against v4l-dvb-14021dfc00f3
 
-So, if your board uses 2048000 speed on i2s, you'll need to add this:
+Regards.
+Michel.
 
-        case EM2880_BOARD_TERRATEC_HYBRID_XS_FR:
-		dev->i2s_speed = 2048000;
 
-to em28xx_pre_card_setup().
 
-If the GPIO's for analog are ok, this should be enough to have audio working on it.
+--------------040400070101060609090307
+Content-Type: text/plain;
+ name="terratec_cinergy_hybrid_usb_xs_fr.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="terratec_cinergy_hybrid_usb_xs_fr.patch"
 
--- 
-
-Cheers,
-Mauro
-
----
- drivers/media/video/em28xx/em28xx-cards.c |   21 +++++++++++++++++----
- 1 file changed, 17 insertions(+), 4 deletions(-)
-
---- work.orig/drivers/media/video/em28xx/em28xx-cards.c
-+++ work/drivers/media/video/em28xx/em28xx-cards.c
-@@ -170,6 +170,18 @@ static struct em28xx_reg_seq pinnacle_hy
+diff -ru v4l-dvb-14021dfc00f3-orig/linux/drivers/media/video/em28xx/em28xx-cards.c v4l-dvb-14021dfc00f3-new/linux/drivers/media/video/em28xx/em28xx-cards.c
+--- v4l-dvb-14021dfc00f3-orig/linux/drivers/media/video/em28xx/em28xx-cards.c	2010-02-12 02:11:30.000000000 +0100
++++ v4l-dvb-14021dfc00f3-new/linux/drivers/media/video/em28xx/em28xx-cards.c	2010-02-25 16:52:07.000000000 +0100
+@@ -183,6 +183,18 @@
  	{	-1,		-1,	-1,		-1},
  };
  
@@ -86,11 +75,19 @@ Mauro
  /* eb1a:2868 Reddo DVB-C USB TV Box
     GPIO4 - CU1216L NIM
     Other GPIOs seems to be don't care. */
-@@ -750,22 +762,22 @@ struct em28xx_board em28xx_boards[] = {
+@@ -774,30 +786,27 @@
+ 
+ 	[EM2880_BOARD_TERRATEC_HYBRID_XS_FR] = {
+ 		.name         = "Terratec Hybrid XS Secam",
+-		.valid        = EM28XX_BOARD_NOT_VALIDATED,
+ 		.has_msp34xx  = 1,
+ 		.tuner_type   = TUNER_XC2028,
  		.tuner_gpio   = default_tuner_gpio,
  		.decoder      = EM28XX_TVP5150,
+-#if 0 /* FIXME: add an entry at em28xx-dvb */
  		.has_dvb      = 1,
 -		.dvb_gpio     = default_digital,
+-#endif
 +		.dvb_gpio     = terratec_cinergy_USB_XS_digital,
  		.input        = { {
  			.type     = EM28XX_VMUX_TELEVISION,
@@ -113,7 +110,7 @@ Mauro
  		} },
  	},
  	[EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900] = {
-@@ -2118,6 +2130,7 @@ static void em28xx_setup_xc3028(struct e
+@@ -2181,6 +2190,7 @@
  		ctl->demod = XC3028_FE_ZARLINK456;
  		break;
  	case EM2880_BOARD_TERRATEC_HYBRID_XS:
@@ -121,3 +118,18 @@ Mauro
  	case EM2881_BOARD_PINNACLE_HYBRID_PRO:
  		ctl->demod = XC3028_FE_ZARLINK456;
  		break;
+diff -ru v4l-dvb-14021dfc00f3-orig/linux/drivers/media/video/em28xx/em28xx-dvb.c v4l-dvb-14021dfc00f3-new/linux/drivers/media/video/em28xx/em28xx-dvb.c
+--- v4l-dvb-14021dfc00f3-orig/linux/drivers/media/video/em28xx/em28xx-dvb.c	2010-02-12 02:11:30.000000000 +0100
++++ v4l-dvb-14021dfc00f3-new/linux/drivers/media/video/em28xx/em28xx-dvb.c	2010-02-25 16:46:35.000000000 +0100
+@@ -503,6 +503,7 @@
+ 		}
+ 		break;
+ 	case EM2880_BOARD_TERRATEC_HYBRID_XS:
++	case EM2880_BOARD_TERRATEC_HYBRID_XS_FR:
+ 	case EM2881_BOARD_PINNACLE_HYBRID_PRO:
+ 	case EM2882_BOARD_DIKOM_DK300:
+ 		dvb->frontend = dvb_attach(zl10353_attach,
+
+--------------040400070101060609090307--
+
+
