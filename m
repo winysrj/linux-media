@@ -1,39 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40613 "EHLO mx1.redhat.com"
+Received: from smtp3-g21.free.fr ([212.27.42.3]:34631 "EHLO smtp3-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752567Ab0CNS0z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Mar 2010 14:26:55 -0400
-Message-ID: <4B9D2A67.80101@redhat.com>
-Date: Sun, 14 Mar 2010 15:26:47 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Stefan Ringel <stefan.ringel@arcor.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] tm6000: add new hybrid-stick
-References: <1268243877-29157-1-git-send-email-stefan.ringel@arcor.de> <4B9C8C32.3070706@arcor.de>
-In-Reply-To: <4B9C8C32.3070706@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+	id S1753178Ab0CCIhY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Mar 2010 03:37:24 -0500
+Date: Wed, 3 Mar 2010 09:37:44 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Antonio Ospite <ospite@studenti.unina.it>
+Cc: "M.Ebrahimi" <m.ebrahimi@ieee.org>, Max Thrun <bear24rw@gmail.com>,
+	linux-media@vger.kernel.org, Jim Paris <jim@jtan.com>
+Subject: Re: [PATCH 10/11] ov534: Add Powerline Frequency control
+Message-ID: <20100303093744.5f65fedb@tele>
+In-Reply-To: <20100303090008.f94e7789.ospite@studenti.unina.it>
+References: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
+	<1267302028-7941-11-git-send-email-ospite@studenti.unina.it>
+	<20100228194951.1c1e26ce@tele>
+	<20100228201850.81f7904a.ospite@studenti.unina.it>
+	<20100228205528.54d1ba69@tele>
+	<1d742ad81003020326h5e02189bt6511b840dd17d7e3@mail.gmail.com>
+	<20100302163937.70a15c19.ospite@studenti.unina.it>
+	<7b67a5ec1003020806x65164673ue699de2067bc4fb8@mail.gmail.com>
+	<1d742ad81003021827p181bf0a6mdf87ad7535bc37bd@mail.gmail.com>
+	<20100303090008.f94e7789.ospite@studenti.unina.it>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stefan Ringel wrote:
-> Mauro,
-> 
-> you have accepted my patch, but it's not applied.
+On Wed, 3 Mar 2010 09:00:08 +0100
+Antonio Ospite <ospite@studenti.unina.it> wrote:
 
-This patch were applied on my git tree on Mar, 11:
+> Ok, so Jean-Francois can you apply the patches except 10/11, please?
+> We are keeping this one for another round.
 
-commit 50e3fe3b336fb2936f05bb9af752ef933c8b74aa
-Author:     Stefan Ringel <stefan.ringel@arcor.de>
-AuthorDate: Wed Mar 10 14:57:57 2010 -0300
-Commit:     Mauro Carvalho Chehab <mchehab@redhat.com>
-CommitDate: Thu Mar 11 07:41:43 2010 -0300
+Hello ov534 team,
 
-    V4L/DVB: tm6000: add new hybrid-stick
+Actually, I have problems with the mercurial tree. I will apply your
+changes as soon as everything will be resolved..
 
-That's why it were marked as applied. I have no idea when it were
-backported to -hg, or if it is still on Douglas queue.
+Cheers.
 
-Cheers,
-Mauro
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
