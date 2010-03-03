@@ -1,80 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f219.google.com ([209.85.220.219]:46695 "EHLO
-	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933363Ab0CLR02 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Mar 2010 12:26:28 -0500
-Received: by fxm19 with SMTP id 19so1399160fxm.21
-        for <linux-media@vger.kernel.org>; Fri, 12 Mar 2010 09:26:26 -0800 (PST)
-Message-ID: <4B9A794F.3040204@gmail.com>
-Date: Sat, 13 Mar 2010 03:26:39 +1000
-From: Jed <jedi.theone@gmail.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Hw capabilities of the HVR-2200
-References: <4AAF568D.1070308@gmail.com> <4AB3B43A.2030103@gmail.com> <4AB3B947.1040202@kernellabs.com> <4AB3C17D.1030300@gmail.com> <4AB3C8E5.4010700@kernellabs.com> <4AB3CDC2.20505@gmail.com> <4B968267.3090808@gmail.com> <4B990E76.2010603@kernellabs.com>
-In-Reply-To: <4B990E76.2010603@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-out04.alice.it ([85.37.17.100]:2544 "EHLO
+	smtp-out04.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753353Ab0CCK5b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Mar 2010 05:57:31 -0500
+Date: Wed, 3 Mar 2010 11:57:18 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: "M.Ebrahimi" <m.ebrahimi@ieee.org>, Max Thrun <bear24rw@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 10/11] ov534: Add Powerline Frequency control
+Message-Id: <20100303115718.43e37f1c.ospite@studenti.unina.it>
+In-Reply-To: <20100303093744.5f65fedb@tele>
+References: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
+	<1267302028-7941-11-git-send-email-ospite@studenti.unina.it>
+	<20100228194951.1c1e26ce@tele>
+	<20100228201850.81f7904a.ospite@studenti.unina.it>
+	<20100228205528.54d1ba69@tele>
+	<1d742ad81003020326h5e02189bt6511b840dd17d7e3@mail.gmail.com>
+	<20100302163937.70a15c19.ospite@studenti.unina.it>
+	<7b67a5ec1003020806x65164673ue699de2067bc4fb8@mail.gmail.com>
+	<1d742ad81003021827p181bf0a6mdf87ad7535bc37bd@mail.gmail.com>
+	<20100303090008.f94e7789.ospite@studenti.unina.it>
+	<20100303093744.5f65fedb@tele>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Wed__3_Mar_2010_11_57_18_+0100_+YlwKaG4Q2e17p39"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> 19/09/09 Jed wrote:
->>>>>>>> 2) Component input for the A/V-in
->>>>>>
->>>>>> Yes, this exists on the HVR2250 product only.
->>>>>
->>>>> Ah shite, are you sure?
->>>>> If you look at the specs for the reference card it was there, did they
->>>>> take it out at the last minute?
->>>>
->>>> It's not feature Hauppauge supports on the HVR2200 today. I have a
->>>> suspicion this may change but I'm neither confirming, denying or
->>>> announcing anything. It would make sense to officially support
->>>> component cables on the HVR2200 since the silicon supports it.
->>>> If/when it does I'm sure it will be mentioned in the forums or on the
->>>> HVR2200 product packaging.
->>
->> Hi Steve, when you said this is not a feature Hauppauge supports.
->> Did you mean it's not fully enabled physically in the PCB...
->> Or is it just something they need to add support for in the driver?
->> If the latter do you know if their policy has changed or is about to?
->
-> No idea, I have no answer.
+--Signature=_Wed__3_Mar_2010_11_57_18_+0100_+YlwKaG4Q2e17p39
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Considering that in the specs for the reference card it was highlighted
-as part of the silicon... Wouldn't it be safe to assume that it's
-something that'd be unlocked by drivers?
+On Wed, 3 Mar 2010 09:37:44 +0100
+Jean-Francois Moine <moinejf@free.fr> wrote:
 
-But if that were true, what is their motivation in not wanting to enable
-it? (assuming they still haven't)
+> On Wed, 3 Mar 2010 09:00:08 +0100
+> Antonio Ospite <ospite@studenti.unina.it> wrote:
+>=20
+> > Ok, so Jean-Francois can you apply the patches except 10/11, please?
+> > We are keeping this one for another round.
+>=20
+> Hello ov534 team,
+>=20
+> Actually, I have problems with the mercurial tree. I will apply your
+> changes as soon as everything will be resolved..
+>
 
->>>>>>>> 3) Hw encode bypass for A/V-in
->>>>>>
->>>>>> No idea. Regardless of whether it does or does not I wouldn't plan to
->>>>>> add basic raw TV support to the driver, without going through the
->>>>>> encoder.
->>>>>
->>>>> Why do you rule it out unequivocally, is it just because I've annoyed
->>>>> you? :-(
->>>>
->>>> Raw analog TV isn't a high priority feature on my mental check-list.
->>>> Analog TV via the encoder is much more interesting and applicable to
->>>> many people.
->>
->> Assuming that progress has been made on analogue to
->> h.263/mpeg4/VC-1/DivX/Xvid via the A/V-in encoder.
->> Is this still considered a low priority?
->
-> Raw analog is still very low down any list I have for the HVR22xx driver.
->
->>
->> Has progress been made on hw encode via A/V-in?
->> I'm "finally" putting my entire system together soon, can't wait!
->> Looking forward to seeing how everything has progressed.
->> I'll be sure to do some donations once I'm up & running!
->
-> The current driver supports DTV only. I have no ETA for analog on the
-> HVR22xx driver. If you need analog support then the HVR22xx isn't the
-> right product for you.
+No problem. Just a question, will you switch to git anytime soon?
 
+Regards,
+   Antonio
+
+--=20
+Antonio Ospite
+http://ao2.it
+
+PGP public key ID: 0x4553B001
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing in e-mail?
+
+--Signature=_Wed__3_Mar_2010_11_57_18_+0100_+YlwKaG4Q2e17p39
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAkuOQI4ACgkQ5xr2akVTsAHfNACfdWb07lDH4PcXuxWpZ1p0MVUS
+2jIAn3igeChQe9EmHPehMFHXbcongT3J
+=1Bb3
+-----END PGP SIGNATURE-----
+
+--Signature=_Wed__3_Mar_2010_11_57_18_+0100_+YlwKaG4Q2e17p39--
