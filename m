@@ -1,55 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44947 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751494Ab0CIXV5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Mar 2010 18:21:57 -0500
-Message-ID: <4B96D7E0.8090402@redhat.com>
-Date: Tue, 09 Mar 2010 20:21:04 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ew0-f212.google.com ([209.85.219.212]:45717 "EHLO
+	mail-ew0-f212.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753215Ab0CCXfX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Mar 2010 18:35:23 -0500
+Received: by ewy4 with SMTP id 4so1383184ewy.28
+        for <linux-media@vger.kernel.org>; Wed, 03 Mar 2010 15:35:22 -0800 (PST)
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: LMML <linux-media@vger.kernel.org>, moinejf@free.fr,
-	m-karicheri2@ti.com, pboettcher@dibcom.fr, tobias.lorenz@gmx.net,
-	awalls@radix.net, khali@linux-fr.org, hdegoede@redhat.com,
-	abraham.manu@gmail.com, Hans Verkuil <hverkuil@xs4all.nl>,
-	crope@iki.fi, davidtlwong@gmail.com, henrik@kurelid.se,
-	stoth@kernellabs.com
-Subject: Re: Status of the patches under review (45 patches)
-References: <4B969C08.2030807@redhat.com> <Pine.LNX.4.64.1003092310490.4891@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1003092310490.4891@axis700.grange>
+Date: Wed, 3 Mar 2010 23:35:21 +0000
+Message-ID: <74fd948d1003031535r1785b36dq4cece00f349975af@mail.gmail.com>
+Subject: Excessive rc polling interval in dvb_usb_dib0700 causes interference
+	with USB soundcard
+From: Pedro Ribeiro <pedrib@gmail.com>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski wrote:
-> Hi Mauro
-> 
-> On Tue, 9 Mar 2010, Mauro Carvalho Chehab wrote:
-> 
->> 		== soc_camera patches - Waiting Guennadi <g.liakhovetski@gmx.de> submission/review == 
->>
->> Feb, 9 2010: mt9t031: use runtime pm support to restore ADDRESS_MODE registers      http://patchwork.kernel.org/patch/77997
-> 
-> This one is already in your tree, if I see it right:
-> 
-> http://git.linuxtv.org/v4l-dvb.git?a=commit;h=36e9541f11bfe175781b1ea8e4cb3032e4b23508
+Hello all,
 
-Ok, updated.
+yesterday I sent a message asking for help with a problem I was having
+with a dib0700 USB adapter and my USB audio soundcard.
 
->> Feb, 2 2010: [2/3] soc-camera: mt9t112: modify delay time after initialize          http://patchwork.kernel.org/patch/76213
->> Feb, 2 2010: [3/3] soc-camera: mt9t112: The flag which control camera-init is       http://patchwork.kernel.org/patch/76214
-> 
-> These two we agreed to put on hold, can be that they'll be dropped.
+Basically I discovered that the remote control polling in dvb_usb
+module was causing it. For reference, my original message is here
+http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/16782
+and I also file a kernel bug here
+http://bugzilla.kernel.org/show_bug.cgi?id=15430
 
-I'll keep it as Under Review, until you point me otherwise. So, you may expect them to appear on
-the next week's email, if not acked/rejected until the next report.
+Looking at dmesg when I plug the DVB adapter it says
+dvb-usb: schedule remote query interval to 50 msecs.
 
->> Mar, 5 2010: [v2] V4L/DVB: mx1-camera: compile fix                                  http://patchwork.kernel.org/patch/83742
-> 
-> Yes, I still have to process this one.
+This seemed to me extremely excessive, so I solved the problem by
+doing a quick dirty hack. In linux/drivers/media/dvb/dvb-usb-remote.c
+I changed d->props.rc_interval to 10000, instead of the default 50
+msec.
 
-Ok.
+So now when I load the driver, I get
+dvb-usb: schedule remote query interval to 10000 msecs.
 
-Cheers,
-Mauro
+And not only the USB audio card is working properly with the DVB
+adapter but also the remote control is working perfectly, without any
+delay at all!
+
+So my question is: why is this set to an excessive 50 msec? This is
+waaaaaaay too much for remote control polling, and its proven it
+causes trouble in the USB bus!
+Also, I know my hack was dirty, what the is the proper way to change this?
+
+
+Regards,
+Pedro
