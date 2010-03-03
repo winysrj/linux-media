@@ -1,56 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52968 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751209Ab0CISGQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Mar 2010 13:06:16 -0500
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o29I6F5O000685
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 9 Mar 2010 12:06:15 -0600
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org
-Cc: Murali Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH] V4L: vpfe_capture - free ccdc_lock when memory allocation fails
-Date: Tue,  9 Mar 2010 13:06:13 -0500
-Message-Id: <1268157973-30166-1-git-send-email-m-karicheri2@ti.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:44610 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753293Ab0CCCmM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Mar 2010 21:42:12 -0500
+Received: by wya21 with SMTP id 21so524873wya.19
+        for <linux-media@vger.kernel.org>; Tue, 02 Mar 2010 18:42:11 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <7b67a5ec1003021830g13b2793eo4d681e4838ca2193@mail.gmail.com>
+References: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
+	<1267302028-7941-11-git-send-email-ospite@studenti.unina.it>
+	<20100228194951.1c1e26ce@tele> <20100228201850.81f7904a.ospite@studenti.unina.it>
+	<20100228205528.54d1ba69@tele> <1d742ad81003020326h5e02189bt6511b840dd17d7e3@mail.gmail.com>
+	<20100302163937.70a15c19.ospite@studenti.unina.it> <7b67a5ec1003020806x65164673ue699de2067bc4fb8@mail.gmail.com>
+	<1d742ad81003021827p181bf0a6mdf87ad7535bc37bd@mail.gmail.com>
+	<7b67a5ec1003021830g13b2793eo4d681e4838ca2193@mail.gmail.com>
+From: "M.Ebrahimi" <m.ebrahimi@ieee.org>
+Date: Wed, 3 Mar 2010 02:41:51 +0000
+Message-ID: <1d742ad81003021841i7732a82eh5987027b21ed2fe4@mail.gmail.com>
+Subject: Re: [PATCH 10/11] ov534: Add Powerline Frequency control
+To: Max Thrun <bear24rw@gmail.com>
+Cc: Antonio Ospite <ospite@studenti.unina.it>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Murali Karicheri <m-karicheri2@ti.com>
+On 3 March 2010 02:30, Max Thrun <bear24rw@gmail.com> wrote:
+>
+>
+> On Tue, Mar 2, 2010 at 9:27 PM, M.Ebrahimi <m.ebrahimi@ieee.org> wrote:
+>>
+>> On 2 March 2010 16:06, Max Thrun <bear24rw@gmail.com> wrote:
+>> >
+>> >
+>> > On Tue, Mar 2, 2010 at 10:39 AM, Antonio Ospite
+>> > <ospite@studenti.unina.it>
+>> > wrote:
+>> >>
+>> >> On Tue, 2 Mar 2010 11:26:15 +0000
+>> >> "M.Ebrahimi" <m.ebrahimi@ieee.org> wrote:
+>> >>
+>> >> > On 28 February 2010 19:55, Jean-Francois Moine <moinejf@free.fr>
+>> >> > wrote:
+>> >> > > On Sun, 28 Feb 2010 20:18:50 +0100
+>> >> > > Antonio Ospite <ospite@studenti.unina.it> wrote:
+>> >> > >
+>> >> > >> Maybe we could just use
+>> >> > >>       V4L2_CID_POWER_LINE_FREQUENCY_DISABLED  = 0,
+>> >> > >>       V4L2_CID_POWER_LINE_FREQUENCY_50HZ      = 1,
+>> >> > >>
+>> >> > >> It looks like the code matches the DISABLED state (writing 0 to
+>> >> > >> the
+>> >> > >> register). Mosalam?
+>> >> > >
+>> >> > > I don't know the ov772x sensor. I think it should look like the
+>> >> > > ov7670
+>> >> > > where there are 3 registers to control the light frequency: one
+>> >> > > register tells if light frequency filter must be used, and which
+>> >> > > frequency 50Hz or 60Hz; the two other ones give the filter values
+>> >> > > for
+>> >> > > each frequency.
+>> >> > >
+>> >> >
+>> >> > I think it's safe to go with disabled/50hz. Perhaps later if needed
+>> >> > can patch it to control the filter values. Since it seems there is no
+>> >> > flickering in the 60hz regions at available frame rates, and this
+>> >> > register almost perfectly removes light flickers in the 50hz regions
+>> >> > (by modifying exposure/frame rate).
+>> >> >
+>> >> > Mosalam
+>> >> >
+>> >>
+>> >> Mosalam did you spot the register from a PS3 usb dump or by looking at
+>> >> the sensor datasheet?
+>>
+>> None, I got that register from sniffing a Windows driver for another
+>> camera that turned out to be using ov7620 or something similar, though
+>> I thought it has the same sensor. I double checked, this register is
+>> for frame rate adjustment (decreasing frame rate / increasing
+>> exposure) . And this has been used in some other drivers (e.g.
+>> gspca_sonixb) to remove light flicker as well.
+>>
+>> >>
+>> >> --
+>> >> Antonio Ospite
+>> >> http://ao2.it
+>> >>
+>> >> PGP public key ID: 0x4553B001
+>> >>
+>> >> A: Because it messes up the order in which people normally read text.
+>> >>   See http://en.wikipedia.org/wiki/Posting_style
+>> >> Q: Why is top-posting such a bad thing?
+>> >> A: Top-posting.
+>> >> Q: What is the most annoying thing in e-mail?
+>> >
+>> > I'd also like to know where you got the 2b register from, cause someone
+>> > else
+>> > also said 2b was filtering but the datasheet says it LSB of dummy
+>> > pixel...
+>> >
+>> >- Max Thrun
+>>
+>> Definitely it is adjusting the frame rate (see the ov7620 DS for the
+>> description how the register value is used, for instance). I have no
+>> idea why the ov7720 datasheet says otherwise.
+>>
+>> Since this patch does not use the banding filter registers mentioned
+>> in the datasheet maybe should be discarded. I am working on 75 FPS at
+>> VGA, when I get that working well I can get back to this again.
+>>
+>> Thanks for the comments.
+>> Mosalam
+>
+> Do you have a link by any chance to ov7620 DS? Also 75 FPS at VGA would be
+> awesome (if its possible?). I managed to get QVGA up to 200 the other day..
+>
+> -- Max Thrun
+>
 
-This patch fixes a bug in vpfe_probe() that doesn't call mutex_unlock() if memory
-allocation for ccdc_cfg fails. See also the smatch warning report from Dan
-Carpenter that shows this as an issue.
+http://mxhaard.free.fr/spca50x/Doc/Omnivision/OV7620.pdf
 
-Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
----
- drivers/media/video/davinci/vpfe_capture.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
-index 885cd54..91f665b 100644
---- a/drivers/media/video/davinci/vpfe_capture.c
-+++ b/drivers/media/video/davinci/vpfe_capture.c
-@@ -1829,7 +1829,7 @@ static __init int vpfe_probe(struct platform_device *pdev)
- 	if (NULL == ccdc_cfg) {
- 		v4l2_err(pdev->dev.driver,
- 			 "Memory allocation failed for ccdc_cfg\n");
--		goto probe_free_dev_mem;
-+		goto probe_free_lock;
- 	}
- 
- 	strncpy(ccdc_cfg->name, vpfe_cfg->ccdc, 32);
-@@ -1981,8 +1981,9 @@ probe_out_video_release:
- probe_out_release_irq:
- 	free_irq(vpfe_dev->ccdc_irq0, vpfe_dev);
- probe_free_ccdc_cfg_mem:
--	mutex_unlock(&ccdc_lock);
- 	kfree(ccdc_cfg);
-+probe_free_lock:
-+	mutex_unlock(&ccdc_lock);
- probe_free_dev_mem:
- 	kfree(vpfe_dev);
- 	return ret;
--- 
-1.6.0.4
-
+Mosalam
