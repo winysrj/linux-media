@@ -1,84 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:60847 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752612Ab0CKObd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Mar 2010 09:31:33 -0500
-Received: by bwz1 with SMTP id 1so78623bwz.21
-        for <linux-media@vger.kernel.org>; Thu, 11 Mar 2010 06:31:32 -0800 (PST)
+Received: from mail-ew0-f220.google.com ([209.85.219.220]:37293 "EHLO
+	mail-ew0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755416Ab0CCSn3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Mar 2010 13:43:29 -0500
+Received: by ewy20 with SMTP id 20so1190955ewy.21
+        for <linux-media@vger.kernel.org>; Wed, 03 Mar 2010 10:43:27 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <4B98FABB.1040605@gmail.com>
-References: <201003090848.29301.hverkuil@xs4all.nl>
-	 <1268197457.3199.17.camel@pc07.localdom.local>
-	 <4B98FABB.1040605@gmail.com>
-Date: Thu, 11 Mar 2010 09:31:32 -0500
-Message-ID: <829197381003110631v52410d27m7e13d5438e09cd13@mail.gmail.com>
-Subject: Re: v4l-utils: i2c-id.h and alevt
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Douglas Schilling Landgraf <dougsland@gmail.com>
-Cc: hermann pitton <hermann-pitton@arcor.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	hdegoede@redhat.com
+Date: Wed, 3 Mar 2010 19:43:27 +0100
+Message-ID: <51be034e1003031043g16f21a39hce12f030b2b5eed0@mail.gmail.com>
+Subject: problem with logitech quickcam zoom
+From: Jozef Riha <jose1711@gmail.com>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 11, 2010 at 9:14 AM, Douglas Schilling Landgraf
-<dougsland@gmail.com> wrote:
-> On 03/10/2010 02:04 AM, hermann pitton wrote:
->> Hi Hans, both,
->>
->> Am Dienstag, den 09.03.2010, 08:48 +0100 schrieb Hans Verkuil:
->>> It's nice to see this new tree, that should be make it easier to develop
->>> utilities!
->>>
->>> After a quick check I noticed that the i2c-id.h header was copied from the
->>> kernel. This is not necessary. The only utility that includes this is v4l2-dbg
->>> and that one no longer needs it. Hans, can you remove this?
->>>
->>> The second question is whether anyone would object if alevt is moved from
->>> dvb-apps to v4l-utils? It is much more appropriate to have that tool in
->>> v4l-utils.
->>
->> i wonder that this stays such calm, hopefully a good sign.
->>
->> In fact alevt analog should come with almost every distribution, but the
->> former alevt-dvb, named now only alevt, well, might be ok in some
->> future, is enhanced for doing also dvb-t-s and hence there ATM.
->>
->>> Does anyone know of other unmaintained but useful tools that we might merge
->>> into v4l-utils? E.g. xawtv perhaps?
->>
->> If for xawtv could be some more care, ships also since close to ever
->> with alevtd, that would be fine, but I'm not sure we are talking about
->> tools anymore in such case, since xawtv4x, tvtime and mpeg4ip ;) for
->> example are also there and unmaintained.
->>
->
-> I think would be nice to hear a word from Devin, which have been working in tvtime. Devin?
+hello,
 
-Sorry, I've been sick for the last couple of days and not actively on email.
+the problem i have with my logitech quickcam zoom webcam is that it is
+working randomly. sometimes it works after reboot and stops working
+after some time, sometimes replugging works, sometimes not. if the
+camera is not working i get v4l2: oops: select timeout in xawtv
+output.
 
-I don't think it's a good idea to consolidate applications like xawtv
-and tvtime into the v4l2-utils codebase.  The existing v4l2-utils is
-nice because it's small and what the packages provides what it says it
-does - v4l2 *utilities*.  I wouldn't consider full blown tv viewing
-applications to be "utilities".
+camera works reliably on my old dell d600 laptop. the above issue is
+rendered on a pc with Gigabyte EP45-UD3LR motherboard, usb chipset is
+ICH10. Both uhci and ehci modules are loaded.
 
-The apps in question are currently packaged by multiple distros today
-as standalone packages.  Today distros can decide whether they want
-the "bloat" associated with large GUI applications just to get the
-benefits of a couple of command line utilities.  Bundling them
-together makes that much harder (and would also result in a package
-with lots of external dependencies on third party libraries).
+$ lspci
+00:00.0 Host bridge: Intel Corporation 4 Series Chipset DRAM Controller (rev 03)
+00:01.0 PCI bridge: Intel Corporation 4 Series Chipset PCI Express
+Root Port (rev 03)
+00:1a.0 USB Controller: Intel Corporation 82801JI (ICH10 Family) USB
+UHCI Controller #4
+00:1a.1 USB Controller: Intel Corporation 82801JI (ICH10 Family) USB
+UHCI Controller #5
+00:1a.2 USB Controller: Intel Corporation 82801JI (ICH10 Family) USB
+UHCI Controller #6
+00:1a.7 USB Controller: Intel Corporation 82801JI (ICH10 Family) USB2
+EHCI Controller #2
+00:1b.0 Audio device: Intel Corporation 82801JI (ICH10 Family) HD
+Audio Controller
+00:1c.0 PCI bridge: Intel Corporation 82801JI (ICH10 Family) PCI
+Express Root Port 1
+00:1c.4 PCI bridge: Intel Corporation 82801JI (ICH10 Family) PCI
+Express Root Port 5
+00:1c.5 PCI bridge: Intel Corporation 82801JI (ICH10 Family) PCI
+Express Root Port 6
+00:1d.0 USB Controller: Intel Corporation 82801JI (ICH10 Family) USB
+UHCI Controller #1
+00:1d.1 USB Controller: Intel Corporation 82801JI (ICH10 Family) USB
+UHCI Controller #2
+00:1d.2 USB Controller: Intel Corporation 82801JI (ICH10 Family) USB
+UHCI Controller #3
+00:1d.7 USB Controller: Intel Corporation 82801JI (ICH10 Family) USB2
+EHCI Controller #1
+00:1e.0 PCI bridge: Intel Corporation 82801 PCI Bridge (rev 90)
+00:1f.0 ISA bridge: Intel Corporation 82801JIR (ICH10R) LPC Interface Controller
+00:1f.2 IDE interface: Intel Corporation 82801JI (ICH10 Family) 4 port
+SATA IDE Controller #1
+00:1f.3 SMBus: Intel Corporation 82801JI (ICH10 Family) SMBus Controller
+00:1f.5 IDE interface: Intel Corporation 82801JI (ICH10 Family) 2 port
+SATA IDE Controller #2
+01:00.0 VGA compatible controller: nVidia Corporation G96 [GeForce
+9500 GT] (rev a1)
+03:00.0 IDE interface: JMicron Technology Corp. JMB368 IDE controller
+04:00.0 Ethernet controller: Realtek Semiconductor Co., Ltd.
+RTL8111/8168B PCI Express Gigabit Ethernet controller (rev 02)
 
-Adding them into v4l2-utils doesn't really solve the real problem -
-that there are very few people willing to put in the effort to
-extend/improve these applications (something which, as Douglas pointed
-out, I'm trying to improve in the case of tvtime).
+the behaviour is observed with kernel 2.6.32.9 and libv4l 0.6.4.
 
-Devin
+does anyone have an idea how to fix this?
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+thank you,
+
+joe
