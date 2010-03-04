@@ -1,48 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1287 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752003Ab0CGRZK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Mar 2010 12:25:10 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: Daily build: added git support
-Date: Sun, 7 Mar 2010 18:25:30 +0100
-Cc: linux-media@vger.kernel.org,
-	=?iso-8859-1?q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
-References: <201003071650.02137.hverkuil@xs4all.nl> <4B93D469.6080709@infradead.org>
-In-Reply-To: <4B93D469.6080709@infradead.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201003071825.30891.hverkuil@xs4all.nl>
+Received: from 132.79-246-81.adsl-static.isp.belgacom.be ([81.246.79.132]:51458
+	"EHLO viper.mind.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751096Ab0CDQB3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Mar 2010 11:01:29 -0500
+From: Arnout Vandecappelle <arnout@mind.be>
+To: linux-media@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	mchehab@infradead.org
+Cc: Arnout Vandecappelle <arnout@mind.be>
+Subject: [PATCH 1/2] V4L/DVB: buf-dma-sg.c: don't assume nr_pages == sglen
+Date: Thu,  4 Mar 2010 17:00:50 +0100
+Message-Id: <1267718451-24961-2-git-send-email-arnout@mind.be>
+In-Reply-To: <201003031512.45428.arnout@mind.be>
+References: <201003031512.45428.arnout@mind.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 07 March 2010 17:29:29 Mauro Carvalho Chehab wrote:
-> Hans Verkuil wrote:
-> > Hi all,
-> > 
-> > It took longer than I intended, but I finally added git support to the daily
-> > build process. Note that I am only building the drivers/media subdirectory and
-> > not a full kernel build as that takes too long.
-> > 
-> > Also note that I am building against the media-master branch. I think that is
-> > sufficient, but if not, then let me know.
-> 
-> Maybe you might also add drivers/staging, enabling just the pertinent drivers
-> (tm6000/cx25821/go7007). Anyway, I always compile here before pushing it. So, I
-> expect no surprises, at least with make allyesconfig.
+videobuf_pages_to_sg() and videobuf_vmalloc_to_sg() happen to create
+a scatterlist element for every page.  However, this is not true for
+bus addresses, so other functions shouldn't rely on the length of the
+scatter list being equal to nr_pages.
+---
+ drivers/media/video/videobuf-dma-sg.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-Added these staging drivers for the i686 and x86_64 architectures.
-
-Regards,
-
-	Hans
-
-> 
-> 
-> 
-
+diff --git a/drivers/media/video/videobuf-dma-sg.c b/drivers/media/video/videobuf-dma-sg.c
+index da1790e..3b6f1b8 100644
+--- a/drivers/media/video/videobuf-dma-sg.c
++++ b/drivers/media/video/videobuf-dma-sg.c
+@@ -244,7 +244,7 @@ int videobuf_dma_map(struct videobuf_queue* q, struct videobuf_dmabuf *dma)
+ 	}
+ 	if (!dma->bus_addr) {
+ 		dma->sglen = dma_map_sg(q->dev, dma->sglist,
+-					dma->nr_pages, dma->direction);
++					dma->sglen, dma->direction);
+ 		if (0 == dma->sglen) {
+ 			printk(KERN_WARNING
+ 			       "%s: videobuf_map_sg failed\n",__func__);
+@@ -262,7 +262,7 @@ int videobuf_dma_sync(struct videobuf_queue *q, struct videobuf_dmabuf *dma)
+ 	MAGIC_CHECK(dma->magic, MAGIC_DMABUF);
+ 	BUG_ON(!dma->sglen);
+ 
+-	dma_sync_sg_for_cpu(q->dev, dma->sglist, dma->nr_pages, dma->direction);
++	dma_sync_sg_for_cpu(q->dev, dma->sglist, dma->sglen, dma->direction);
+ 	return 0;
+ }
+ 
+@@ -272,7 +272,7 @@ int videobuf_dma_unmap(struct videobuf_queue* q,struct videobuf_dmabuf *dma)
+ 	if (!dma->sglen)
+ 		return 0;
+ 
+-	dma_unmap_sg(q->dev, dma->sglist, dma->nr_pages, dma->direction);
++	dma_unmap_sg(q->dev, dma->sglist, dma->sglen, dma->direction);
+ 
+ 	kfree(dma->sglist);
+ 	dma->sglist = NULL;
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+1.6.3.3
+
