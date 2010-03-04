@@ -1,61 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3493 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751942Ab0CQO3P (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Mar 2010 10:29:15 -0400
-Message-ID: <03b82834cbbe28326f10899d781d2701.squirrel@webmail.xs4all.nl>
-In-Reply-To: <001001cac5dc$4407f690$cc17e3b0$%osciak@samsung.com>
-References: <1268831061-307-1-git-send-email-p.osciak@samsung.com>
-    <1268831061-307-2-git-send-email-p.osciak@samsung.com>
-    <A24693684029E5489D1D202277BE894454137086@dlee02.ent.ti.com>
-    <001001cac5dc$4407f690$cc17e3b0$%osciak@samsung.com>
-Date: Wed, 17 Mar 2010 15:29:06 +0100
-Subject: RE: [PATCH v2] v4l: videobuf: code cleanup.
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Pawel Osciak" <p.osciak@samsung.com>
-Cc: "'Aguirre, Sergio'" <saaguirre@ti.com>,
-	linux-media@vger.kernel.org,
-	"Marek Szyprowski" <m.szyprowski@samsung.com>,
-	kyungmin.park@samsung.com
+Received: from smtp1.infomaniak.ch ([84.16.68.89]:59103 "EHLO
+	smtp1.infomaniak.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755201Ab0CDSdU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Mar 2010 13:33:20 -0500
+Message-ID: <4B8FFAEC.1060708@deckpoint.ch>
+Date: Thu, 04 Mar 2010 19:24:44 +0100
+From: Thomas Kernen <tkernen@deckpoint.ch>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: Per Lundberg <perlun@gmail.com>
+CC: hermann pitton <hermann-pitton@arcor.de>,
+	linux-media@vger.kernel.org
+Subject: Re: TBS 6980 Dual DVB-S2 PCIe card
+References: <loom.20100304T091408-554@post.gmane.org>	 <1267693537.3190.17.camel@pc07.localdom.local> <8f1895b91003040403q52ed1cf4of72a61977d6cdc36@mail.gmail.com>
+In-Reply-To: <8f1895b91003040403q52ed1cf4of72a61977d6cdc36@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
->> Aguirre, Sergio wrote:
->>> Make videobuf pass checkpatch; minor code cleanups.
->>
->>I thought this kind patches were frowned upon..
->>
->>http://www.mjmwired.net/kernel/Documentation/development-process/4.Coding#41
->>
->>But maybe it's acceptable in this case... I'm not an expert on community
->> policies :)
+On 3/4/10 1:03 PM, Per Lundberg wrote:
+> Hi Hermann,
 >
-> Hm, right...
-> I'm not an expert either, but it does seem reasonable. It was just a part
-> of the
-> roadmap we agreed on in Norway, so I simply went ahead with it. Merging
-> with other
-> patches would pollute them so I just posted it separately. I will leave
-> the
-> decision up to Mauro then. I have some more "normal" patches lined up,
-> so please let me know. I'm guessing we are cancelling the clean-up then
-> though.
+> On Thu, Mar 4, 2010 at 11:05 AM, hermann pitton<hermann-pitton@arcor.de>  wrote:
+>
+>>> Has anyone done any attempt at contacting TBS to see if they can release their
+>>> changes under the GPLv2? Ideally, they would provide a patch themselves, but it
+>>> should be fairly simple to diff the linux/ trees from their provided
+>>> linux-s2api-tbs6980.tar.bz2 file with the stock Linux 2.6.32 code... in fact, it
+>>> could be that their patch is so trivial that we could just include it in the
+>>> stock Linux kernel without asking them for license clarifications... but
+>>> obviously, if we can get a green sign from them, it would be even better.
+>>
+>> It is always the other way round.
+>>
+>> In the end they need a green sign from us.
+>
+> Well... I guess we are both right. :-) They need to assert ownership
+> and license the code under the GPL, and we need to ensure that the
+> quality of the code is high enough (driver is working and does not
+> interfer with other parts of the code base...).
 
-As I said, you give up way too easily. There are good reasons for doing a
-simple straightforward cleanup patch first before tackling all the more
-complex issues. Let's get this in first, then the future patches will only
-do the actual functional changes instead of them having to do codingstyle
-cleanups at the same time. I want to avoid that.
+We I asked TBS' support about this question they told me they would like 
+to get it out under GPL as it has been done with other cards they sell 
+but that right now it was not possible due to legal contraints related 
+to some of the code in use by some of the chips on the board. No further 
+details were provided.
 
-Regards,
+>
+>> BTW, the TBS dual seems to be fine on m$, but there are some mysterious
+>> lockups without any trace, if used in conjunction with some prior
+>> S2/HDTV cards. I can't tell yet, if that it is evenly distributed over
+>> amd/ati and nvidia stuff or whatever on win7 ... , but people do spend
+>> lifetime in vain on it.
+>
+> This is pretty interesting, do you have any references? (forum links
+> or similar)
+> In my particular case, I was thinking about using it as the "only" S2
+> card in the machine, later possibly adding a DVB-C card if/when we get
+> cable... so, it might not be a problem for me, but it still doesn't
+> feel really good. I guess the card is pretty new, so maybe (hopefully)
+> it will get fixed by a new firmware release.
+>
+> Do we have any readers of this list who own the card and use it in
+> Linux (with the drivers from TBS)? Could you please share your
+> experiences: is the picture quality good? Sound? Does the tuner work
+> well? (e.g. can you receive all channels you normally receive...)
 
-        Hans
+Yes I use the card. Have had it for a couple of months now running in a 
+server that acts as a video head-end in my test network. I only tune to 
+specific transponders when I boot the server so I can't really comment 
+on tuning time and related issues. Yes I've used it for S and S2 feeds 
+and so far it fits my requirements.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
-
+HTH,
+Thomas
