@@ -1,51 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:37473 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752250Ab0CDT0a (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Mar 2010 14:26:30 -0500
-Date: Thu, 4 Mar 2010 20:26:23 +0100
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Antonio Ospite <ospite@studenti.unina.it>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] V4L/DVB: mx1-camera: compile fix
-Message-ID: <20100304192623.GA14587@pengutronix.de>
-References: <1267721687-19697-1-git-send-email-u.kleine-koenig@pengutronix.de> <Pine.LNX.4.64.1003041811160.4825@axis700.grange>
+Received: from smtp.domeneshop.no ([194.63.248.54]:38098 "EHLO
+	smtp.domeneshop.no" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755241Ab0CDWQJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Mar 2010 17:16:09 -0500
+Message-ID: <4B903127.208@online.no>
+Date: Thu, 04 Mar 2010 23:16:07 +0100
+From: Hendrik Skarpeid <skarp@online.no>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+To: "Igor M. Liplianin" <liplianin@me.by>
+CC: linux-media@vger.kernel.org,
+	Nameer Kazzaz <nameer.kazzaz@gmail.com>
+Subject: Re: DM1105: could not attach frontend 195d:1105
+References: <4B7D83B2.4030709@online.no> <201003031749.24261.liplianin@me.by> <4B8E9182.2010906@online.no> <201003032105.06263.liplianin@me.by>
+In-Reply-To: <201003032105.06263.liplianin@me.by>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <Pine.LNX.4.64.1003041811160.4825@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Igor M. Liplianin skrev:
+> On 3 марта 2010 18:42:42 Hendrik Skarpeid wrote:
+>   
+>> Igor M. Liplianin wrote:
+>>     
+>>> Now to find GPIO's for LNB power control and ... watch TV :)
+>>>       
+>> Yep. No succesful tuning at the moment. There might also be an issue
+>> with the reset signal and writing to GPIOCTR, as the module at the
+>> moment loads succesfully only once.
+>> As far as I can make out, the LNB power control is probably GPIO 16 and
+>> 17, not sure which is which, and how they work.
+>> GPIO15 is wired to tuner #reset
+>>     
+> New patch to test
+>   
+> ------------------------------------------------------------------------
+>
+>
+> No virus found in this incoming message.
+> Checked by AVG - www.avg.com 
+> Version: 9.0.733 / Virus Database: 271.1.1/2721 - Release Date: 03/03/10 20:34:00
+>
 
-On Thu, Mar 04, 2010 at 06:13:38PM +0100, Guennadi Liakhovetski wrote:
-> > +#undef DMA_BASE 
-> > +#define DMA_BASE MX1_IO_ADDRESS(MX1_DMA_BASE_ADDR)
-> 
-> I don't like this. Why the "undef"? Is DMA_BASE already defined? where and 
-> what is it? If it is - we better use a different name, if not - just 
-> remove the undef, please.
-yes, it's not pretty, but I wanted to make a minimal patch.
+modprobe si21xx debug=1 produces this output when scanning.
 
-arch/arm/plat-mxc/include/mach/dma-mx1-mx2.h has:
+[ 2187.998349] si21xx: si21_read_status : FE_READ_STATUS : VSTATUS: 0x02
+[ 2187.998353] si21xx: si21xx_set_frontend : FE_SET_FRONTEND
+[ 2187.999881] si21xx: si21xx_setacquire
+[ 2187.999884] si21xx: si21xx_set_symbolrate : srate = 27500000
+[ 2188.022645] si21xx: si21_read_status : FE_READ_STATUS : VSTATUS: 0x01
+[ 2188.054350] si21xx: si21_read_status : FE_READ_STATUS : VSTATUS: 0x02
+[ 2188.054355] si21xx: si21xx_set_frontend : FE_SET_FRONTEND
+[ 2188.055875] si21xx: si21xx_setacquire
+[ 2188.055879] si21xx: si21xx_set_symbolrate : srate = 27500000
+[ 2188.110359] si21xx: si21_read_status : FE_READ_STATUS : VSTATUS: 0x02
+[ 2188.110366] si21xx: si21xx_set_frontend : FE_SET_FRONTEND
+[ 2188.111885] si21xx: si21xx_setacquire
+[ 2188.111889] si21xx: si21xx_set_symbolrate : srate = 27500000
+[ 2188.166350] si21xx: si21_read_status : FE_READ_STATUS : VSTATUS: 0x02
+[ 2188.166354] si21xx: si21xx_set_frontend : FE_SET_FRONTEND
 
-	#define DMA_BASE IO_ADDRESS(DMA_BASE_ADDR)
+Since the tuner at hand uses a Si2109 chip, VSTATUS 0x01 and 0x02 would 
+indicate that blind scanning is used. Blind scanning is a 2109/2110 
+specific function, and may not very usable since we always use initial 
+tuning files anyway. 2109/10 also supports the legacy scanning method 
+which is supported by Si2107708.
 
-so that was used before.  I don't really know the driver, just made it
-compile again.  If you have a nice suggestion, I will happily implement
-it.
- 
-Best regards
-Uwe
-
--- 
-Pengutronix e.K.                           | Uwe Kleine-K�nig            |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Is the use of blind scanning intentional?
