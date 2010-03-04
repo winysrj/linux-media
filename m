@@ -1,33 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:47763 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753272Ab0CFOrD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Mar 2010 09:47:03 -0500
-Message-ID: <4B926AE3.6000809@infradead.org>
-Date: Sat, 06 Mar 2010 11:46:59 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
-CC: linux-media@vger.kernel.org, Henrik Kurelid <henrik@kurelid.se>
-Subject: Re: [PATCH] firedtv: add parameter to fake ca_system_ids in CA_INFO
-References: <tkrat.dc97d52c76a2dc07@s5r6.in-berlin.de> <tkrat.a8cdf995cdc06e83@s5r6.in-berlin.de> <4B925E25.2070105@infradead.org> <4B92623C.2060302@s5r6.in-berlin.de> <4B926358.7080400@s5r6.in-berlin.de>
-In-Reply-To: <4B926358.7080400@s5r6.in-berlin.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from 132.79-246-81.adsl-static.isp.belgacom.be ([81.246.79.132]:51466
+	"EHLO viper.mind.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751755Ab0CDQBi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Mar 2010 11:01:38 -0500
+From: Arnout Vandecappelle <arnout@mind.be>
+To: linux-media@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	mchehab@infradead.org
+Cc: Arnout Vandecappelle <arnout@mind.be>
+Subject: [PATCH 2/2] V4L/DVB: buf-dma-sg.c: support non-pageable user-allocated memory
+Date: Thu,  4 Mar 2010 17:00:51 +0100
+Message-Id: <1267718451-24961-3-git-send-email-arnout@mind.be>
+In-Reply-To: <201003031512.45428.arnout@mind.be>
+References: <201003031512.45428.arnout@mind.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stefan Richter wrote:
-> Stefan Richter wrote:
->> I already posted an updated version of the patch which correctly defines
->> num_fake_ca_system_ids as an unsigned long.
-> 
-> err, unsigned int of course, as http://patchwork.kernel.org/patch/82912/.
+videobuf_dma_init_user_locked() uses get_user_pages() to get the
+virtual-to-physical address mapping for user-allocated memory.
+However, the user-allocated memory may be non-pageable because it
+is an I/O range or similar.  get_user_pages() fails with -EFAULT
+in that case.
 
-Ah, ok. This is one of the things that Patchwork doesn't handle nice: it doesn't show
-any hint that a patch might be superseded by a newer one.
+If the user-allocated memory is physically contiguous, the approach
+of V4L2_MEMORY_OVERLAY can be used.  If it is not, -EFAULT is still
+returned.
+---
+ drivers/media/video/videobuf-dma-sg.c |   18 ++++++++++++++++++
+ 1 files changed, 18 insertions(+), 0 deletions(-)
 
+diff --git a/drivers/media/video/videobuf-dma-sg.c b/drivers/media/video/videobuf-dma-sg.c
+index 3b6f1b8..7884207 100644
+--- a/drivers/media/video/videobuf-dma-sg.c
++++ b/drivers/media/video/videobuf-dma-sg.c
+@@ -136,6 +136,7 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
+ {
+ 	unsigned long first,last;
+ 	int err, rw = 0;
++	struct vm_area_struct *vma;
+ 
+ 	dma->direction = direction;
+ 	switch (dma->direction) {
+@@ -153,6 +154,23 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
+ 	last  = ((data+size-1) & PAGE_MASK) >> PAGE_SHIFT;
+ 	dma->offset   = data & ~PAGE_MASK;
+ 	dma->nr_pages = last-first+1;
++
++	/* In case the buffer is user-allocated and is actually an IO buffer for
++	   some other hardware, we cannot map pages for it.  It in fact behaves
++	   the same as an overlay. */
++	vma = find_vma (current->mm, data);
++	if (vma && (vma->vm_flags & VM_IO)) {
++		/* Only a single contiguous buffer is supported. */
++		if (vma->vm_end < data + size) {
++			dprintk(1, "init user: non-contiguous IO buffer.\n");
++			return -EFAULT; /* same error that get_user_pages() would give */
++		}
++		dma->bus_addr = (vma->vm_pgoff << PAGE_SHIFT) +	(data - vma->vm_start);
++		dprintk(1,"init user IO [0x%lx+0x%lx => %d pages at 0x%x]\n",
++			data, size, dma->nr_pages, dma->bus_addr);
++		return 0;
++	}
++
+ 	dma->pages = kmalloc(dma->nr_pages * sizeof(struct page*),
+ 			     GFP_KERNEL);
+ 	if (NULL == dma->pages)
 -- 
+1.6.3.3
 
-Cheers,
-Mauro
