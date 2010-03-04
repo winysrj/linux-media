@@ -1,14 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
+Received: from mx1.redhat.com (ext-mx04.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.8])
+	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o24JgglJ008509
+	for <video4linux-list@redhat.com>; Thu, 4 Mar 2010 14:42:42 -0500
+Received: from mail-fx0-f218.google.com (mail-fx0-f218.google.com
+	[209.85.220.218])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o24JgTPJ021224
+	for <video4linux-list@redhat.com>; Thu, 4 Mar 2010 14:42:30 -0500
+Received: by fxm10 with SMTP id 10so990111fxm.30
+	for <video4linux-list@redhat.com>; Thu, 04 Mar 2010 11:42:29 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <1269718658.3082.20.camel@palomino.walls.org>
-References: <ea3b75ed1003250721w401de6d8u1660613689674a@mail.gmail.com>
-	<1269718658.3082.20.camel@palomino.walls.org>
-Date: Sun, 28 Mar 2010 16:31:13 -0400
-Message-ID: <ea3b75ed1003281331pab510bcga0a458049188211a@mail.gmail.com>
-Subject: Re: Open Source Hardware Video Capture
-From: Brian Phelps <lm317t@gmail.com>
-To: Andy Walls <awalls@radix.net>
-Cc: video4linux-list@redhat.com, linux-media@vger.kernel.org
+In-Reply-To: <1267702141.5175.15.camel@chimpin>
+References: <1267621938.3066.46.camel@chimpin>
+	<829197381003030656q6b5cf73eybcf30b713ba9be37@mail.gmail.com>
+	<1267702141.5175.15.camel@chimpin>
+Date: Thu, 4 Mar 2010 14:42:28 -0500
+Message-ID: <829197381003041142n2af48730q8d73a0c985be22ba@mail.gmail.com>
+Subject: Re: em28xx v4l-info returns gibberish on igepv2
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: John Banks <john.banks@noonanmedia.com>
+Cc: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -20,50 +32,37 @@ Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
-List-ID: <linux-media.vger.kernel.org>
+List-ID: <video4linux-list@redhat.com>
 
-On Sat, Mar 27, 2010 at 3:37 PM, Andy Walls <awalls@radix.net> wrote:
+Hi John,
 
-> On Thu, 2010-03-25 at 10:21 -0400, Brian Phelps wrote:
-> > I am looking for help on the following project.
-> > http://www.opencircuits.com/OpenHDCapture
-> >
-> > All the hardware is open source and all specs and design (what little
-> there
-> > is right now) are available via git:
-> >
-> > git clone git://
-> >
-> openhdcapture.git.sourceforge.net/gitroot/openhdcapture/openhdcapture(read-only)<http://openhdcapture.git.sourceforge.net/gitroot/openhdcapture/openhdcapture%28read-only%29>
-> > If anyone has any suggestions or would like to help please contact me off
-> > list.  I am still working on setting up a mailing list for this project
-> but
-> > you can email me.
+On Thu, Mar 4, 2010 at 6:29 AM, John Banks <john.banks@noonanmedia.com> wrote:
+> As you can see I get the correct output. I think it has to do with the
+> size of variables created in struct-v4l2.c as they don't match the
+> declaration in videodev2.h
 >
-> You may wish to post such announcements to linux-media@vger.kernel.org .
-> The video4linux-list is about dead.
+> Anyway this doesn't help to explain why I get the 0000's seen in the
+> hexdump of the file. I had been hoping that it was incorrectly reading
+> the variables it needed in order for it to create the output correctly.
 >
-> I did not know that, I will post there from now on
+> I was originally using the gstreamer v4l2src module that was in the
+> repositories but I tried compiling the gstreamer provided by TI (it
+> contains extra plugins for use on the dsp) but the same problem
+> occurred.
+>
+> If I want to further track down this problem, where should I look?
 
->
-> > When we have a working prototype I would like to add in the V4l2 API to
-> the
-> > driver.
->
-> Good luck.  Implementing the V4L2 API can be a large undertaking.
-> A not quite out of date copy of the spec can be found on linuxtv.org:
->
->
-> http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/spec-single/v4l2.html
->
->
-> I have read much of it for a little test app I wrote using v4l2, I hope it
-isn't too hard just getting started doing this.  Thanks Andy
+At this point, your best bet would probably to be to build v4l-info
+program from source and add some debugging (for example, dumping out
+the sizes of some of the structs).  If you can reproduce it, then
+nailing down the issue is just a matter of iterative debugging.
 
-> Regards,
-> Andy
->
->
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
