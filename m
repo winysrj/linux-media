@@ -1,101 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.work.de ([212.12.45.188]:53840 "EHLO smtp2.work.de"
+Received: from jim.sh ([75.150.123.25]:57639 "EHLO psychosis.jim.sh"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750949Ab0CALh5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Mar 2010 06:37:57 -0500
-From: Julian Scheel <julian@jusst.de>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: Announcing v4l-utils-0.7.90 (which includes libv4l-0.7.90)
-Date: Mon, 1 Mar 2010 12:19:14 +0100
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <4B882457.1050006@hhs.nl> <4B8B7BF2.4070201@redhat.com> <4B8B8857.4080100@redhat.com>
-In-Reply-To: <4B8B8857.4080100@redhat.com>
+	id S1756268Ab0CDUgr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Mar 2010 15:36:47 -0500
+Date: Thu, 4 Mar 2010 15:36:40 -0500
+From: Jim Paris <jim@jtan.com>
+To: Max Thrun <bear24rw@gmail.com>
+Cc: Antonio Ospite <ospite@studenti.unina.it>,
+	"M.Ebrahimi" <m.ebrahimi@ieee.org>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 10/11] ov534: Add Powerline Frequency control
+Message-ID: <20100304203640.GA22620@psychosis.jim.sh>
+References: <20100228205528.54d1ba69@tele>
+ <1d742ad81003020326h5e02189bt6511b840dd17d7e3@mail.gmail.com>
+ <20100302163937.70a15c19.ospite@studenti.unina.it>
+ <7b67a5ec1003020806x65164673ue699de2067bc4fb8@mail.gmail.com>
+ <1d742ad81003021827p181bf0a6mdf87ad7535bc37bd@mail.gmail.com>
+ <20100303090008.f94e7789.ospite@studenti.unina.it>
+ <20100304045533.GA17821@psychosis.jim.sh>
+ <20100304100346.79818884.ospite@studenti.unina.it>
+ <20100304201445.GA21194@psychosis.jim.sh>
+ <7b67a5ec1003041222g25af69daq50fc62aeb8c85b96@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="windows-1252"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201003011219.14706.julian@jusst.de>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <7b67a5ec1003041222g25af69daq50fc62aeb8c85b96@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Max Thrun wrote:
+> On Thu, Mar 4, 2010 at 3:14 PM, Jim Paris <jim@jtan.com> wrote:
+> 
+> > Antonio Ospite wrote:
+> > > On Wed, 3 Mar 2010 23:55:33 -0500
+> > > Jim Paris <jim@jtan.com> wrote:
+> > >
+> > > > Antonio Ospite wrote:
+> > > [...]
+> > > > >
+> > > > > I see. It would be interesting to see how Powerline Frequency
+> > filtering
+> > > > > is done on PS3. I added Jim Paris on CC.
+> > > >
+> > > > Hi Antonio and Mosalam,
+> > > >
+> > > > I tried, but I can't capture that.  My USB logger only does USB 1.1,
+> > > > which is too slow for the camera to run normally, but good enough to
+> > > > see the initialization sequence.  However, the 50/60Hz option only
+> > > > appears later, once the PS3 is receiving good frame data.
+> > > >
+> > > > I can open up the camera and sniff the I2C bus instead.  It'll take
+> > > > a little longer.
+> > > >
+> > >
+> > > Thanks for your time Jim.
+> >
+> > No problem, glad to help.
+> > Looks like Mosalam's patch is correct:
+> >
+> > --- i2c-60hz.log        2010-03-04 15:09:23.000000000 -0500
+> > +++ i2c-50hz.log        2010-03-04 15:09:27.000000000 -0500
+> > @@ -69,7 +69,7 @@
+> >  ov_write_verify 8C E8
+> >  ov_write_verify 8D 20
+> >  ov_write_verify 0C 90
+> > -ov_write_verify 2B 00
+> > +ov_write_verify 2B 9E
+> >  ov_write_verify 22 7F
+> >  ov_write_verify 23 03
+> >  ov_write_verify 11 01
+> >
+> > I'll attach the full logs.
+> >
+> > -jim
+> >
+> 
+> Jim, I'm really interested in how you went about sniffing the bus. Can you
+> share some details about what you use to do it?
 
-Am Montag, 1. März 2010 10:26:47 schrieb Hans de Goede:
-> >>> I'm happy to announce the first (test / beta) release of v4l-utils,
-> >>> v4l-utils is the combination of various v4l and dvb utilities which
-> >>> used to be part of the v4l-dvb mercurial kernel tree and libv4l.
->
-> Reading some more about dvb-apps, I have to side with the people
-> who are voting for keeping dvb-apps separate. I do wonder
-> if those people and you and Mauro are talking about the same dvb-apps,
-> or if this is just a misunderstanding.
-> 
-> The dvp-apps I'm talking about now, and of which I'm not in favor of
-> merging them with v4l-utils are the ones, which can be downloaded
-> here:
-> http://linuxtv.org/downloads/
-> http://linuxtv.org/hg/dvb-apps
-> 
-> Although I must agree with the people who are in favor of
-> integrating this into v4l-utils, that this needs much more active
-> maintainership wrt to making regular tarbal releases for distro's
-> to consume.
-> 
-> Still I believe this should stay as a separate project, because
-> so far it clearly was, and I see no huge advantages in integrating it.
-> 
-> Signs that this clearly is a separate stand alone project:
-> 
-> 1) It has done several tarbal releases (these are ancient guys,
->     this needs to be fixed).
-> 
-> 2) It has its own VCS
-> 
-> 3) It is packaged up by various distros:
-> 
-> http://packages.debian.org/sid/video/dvb-apps
-> http://packages.ubuntu.com/source/dapper/linuxtv-dvb-apps
-> http://cvs.fedoraproject.org/viewvc/rpms/dvb-apps/
-> http://rpm.pbone.net/index.php3?stat=3&search=dvb-apps&srodzaj=3
-> http://gentoo-portage.com/media-tv/linuxtv-dvb-apps
-> http://aur.archlinux.org/packages.php?ID=2034
-> http://www.slax.org/modules.php?action=detail&id=3143
-> https://dev.openwrt.org/ticket/2804
-> 
-> 4) It is referenced as a standalone project by 3th parties:
-> http://www.mythtv.org/wiki/Dvb-apps
-> 
-> 
-> So given the stand alone nature, and that it is already widely packaged
-> as a standalone project by distro's. For now I'm against ingrating this
-> into v4l-utils.
-> 
-> And the most important argument for me being against this, is that one
-> of the 2 active contributors (judging from the hg tree), Manu Abraham,
-> is very much against integration. And the people who are in favor
-> (Hans Verkuil and Mauro) don't seem to have done any commits to the
-> tree in question, for at least the last 2 years.
-> 
-> So unless we can get some buy in for integrating this in to
-> v4l-utils from active dvb-apps contributors I'm opposed to the integration.
+Sure.  I borrowed one of these from a friend:
+  http://www.totalphase.com/products/beagle_ism/
 
-I agree with you that dvb-apps should stay a seperate project as there are 
-now. I don't see any reason for integrating them into one project with v4l-
-utils. There are no developers actively working on both projects. This would 
-lead to problematic release preparation for sure. Especially when keeping in 
-mind that Mauro and Manu are not exactly happy with working together, so I 
-really think it would be much easier to keep it seperated.
-Also I don't think that all users who use dvb-apps would need to have all the 
-v4l-utils and vice versa.
-So please keep it seperate.
- 
-> With this all said, I must say: Manu please do a tarbal release real real
-> soon, and make a habit out of doing so regularly!
+and tapped the GND, SCL, and SDA pins off the camera EEPROM.
+I exported a CSV from the Beagle software and used a quick Perl script
+to parse it into a more useful read/write/write_verify format.
 
-This is of course right and should be done soon. I think this wasn't done for 
-a long time due to the incompleteness of v5 API support. But afaik Manu is 
-currently working on it, so it shouldn't take too long anymore.
-
-Regards,
-Julian
+-jim
