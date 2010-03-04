@@ -1,40 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:60719 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933244Ab0CLOMv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Mar 2010 09:12:51 -0500
-Received: by bwz1 with SMTP id 1so1060379bwz.21
-        for <linux-media@vger.kernel.org>; Fri, 12 Mar 2010 06:12:49 -0800 (PST)
-From: Huang Weiyi <weiyi.huang@gmail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org, Huang Weiyi <weiyi.huang@gmail.com>
-Subject: [PATCH 1/6] V4L/DVB: tlg2300: remove unused #include <linux/version.h>
-Date: Fri, 12 Mar 2010 22:12:22 +0800
-Message-Id: <1268403142-5868-1-git-send-email-weiyi.huang@gmail.com>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1878 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756230Ab0CDTwl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Mar 2010 14:52:41 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id o24JqTq0090613
+	for <linux-media@vger.kernel.org>; Thu, 4 Mar 2010 20:52:40 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 4 Mar 2010 20:52:29 +0100 (CET)
+Message-Id: <201003041952.o24JqTq0090613@smtp-vbr2.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove unused #include <linux/version.h>('s) in
-  drivers/media/video/tlg2300/pd-main.c
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Signed-off-by: Huang Weiyi <weiyi.huang@gmail.com>
----
- drivers/media/video/tlg2300/pd-main.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+Results of the daily build of v4l-dvb:
 
-diff --git a/drivers/media/video/tlg2300/pd-main.c b/drivers/media/video/tlg2300/pd-main.c
-index 2cf0ebf..b8b6e3f 100644
---- a/drivers/media/video/tlg2300/pd-main.c
-+++ b/drivers/media/video/tlg2300/pd-main.c
-@@ -24,7 +24,6 @@
-  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
- 
--#include <linux/version.h>
- #include <linux/kernel.h>
- #include <linux/errno.h>
- #include <linux/init.h>
--- 
-1.6.1.3
+date:        Thu Mar  4 19:00:19 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14391:41c5482f2dac
+gcc version: i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:     2.6.32.5
 
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.32.6-armv5-dm365: ERRORS
+linux-2.6.33-armv5-dm365: ERRORS
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-armv5-ixp: OK
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.17-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.17-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+spec: OK
+sparse (linux-2.6.33): ERRORS
+linux-2.6.16.62-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.7-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.62-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.7-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
