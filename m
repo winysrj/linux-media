@@ -1,87 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:38240 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754633Ab0C3XZG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Mar 2010 19:25:06 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mohamed Ikbel Boulabiar <boulabiar@gmail.com>
-Subject: Re: webcam problem after suspend/hibernate
-Date: Wed, 31 Mar 2010 01:25:25 +0200
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-References: <45cc95261003301455u10e6ee24pfb66176bfb279d1@mail.gmail.com>
-In-Reply-To: <45cc95261003301455u10e6ee24pfb66176bfb279d1@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201003310125.26266.laurent.pinchart@ideasonboard.com>
+Received: from 132.79-246-81.adsl-static.isp.belgacom.be ([81.246.79.132]:51431
+	"EHLO viper.mind.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752027Ab0CDQBM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Mar 2010 11:01:12 -0500
+From: Arnout Vandecappelle <arnout@mind.be>
+To: linux-media@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	mchehab@infradead.org
+Subject: [PATCHv2] Support for zerocopy to DSP on OMAP3
+Date: Thu,  4 Mar 2010 17:00:49 +0100
+Message-Id: <1267718451-24961-1-git-send-email-arnout@mind.be>
+In-Reply-To: <201003031512.45428.arnout@mind.be>
+References: <201003031512.45428.arnout@mind.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mohamed,
+ Here is an updated patch, properly split up and with commit messages.
 
-On Tuesday 30 March 2010 23:55:38 Mohamed Ikbel Boulabiar wrote:
-> Hi,
-> 
-> After suspend/resume, I have my webcam no more working.
-> The /dev/video0 file still exist, but the webcam won't be used until I do
-> this : rmmod     uvcvideo
-> modprobe uvcvideo
-> (2.6.31.8-0.1)
-> 
-> This is may be caused by a bug somewhere.
-> These are more information about my hardware :
-> 
-> I have Microdia webcam
-> `lsusb`
-> Bus 001 Device 004: ID 0c45:62c0 Microdia Sonix USB 2.0 Camera
-> 
-> on openSUSE 11.2 `uname -a`
-> Linux linux-l365 2.6.31.8-0.1-desktop #1 SMP PREEMPT 2009-12-15
-> 23:55:40 +0100 i686 i686 i386 GNU/Linux
-> 
-> `hwinfo --usb`
-> 
-> : USB 00.0: 0000 Unclassified device
-> 
->   [Created at usb.122]
->   UDI:
-> /org/freedesktop/Hal/devices/usb_device_c45_62c0_1_3_2_1_7_if0_logicaldev_
-> input Unique ID: Uc5H.F0c0EBqBP10
->   Parent ID: k4bc.9T1GDCLyFd9
->   SysFS ID: /devices/pci0000:00/0000:00:1d.7/usb1/1-4/1-4:1.0
->   SysFS BusID: 1-4:1.0
->   Hardware Class: unknown
->   Model: "Microdia LG Webcam"
->   Hotplug: USB
->   Vendor: usb 0x0c45 "Microdia"
->   Device: usb 0x62c0 "LG Webcam"
->   Revision: "32.17"
->   Serial ID: "1.3.2.1.7"
->   Driver: "uvcvideo"
->   Driver Modules: "uvcvideo"
->   Device File: /dev/input/event8
->   Device Files: /dev/input/event8, /dev/char/13:72,
-> /dev/input/by-id/usb-LG_Innotek_LG_Webcam_1.3.2.1.7-event-if00,
-> /dev/input/by-path/pci-0000:00:1d.7-usb-0:4:1.0-event
->   Device Number: char 13:72
->   Speed: 480 Mbps
->   Module Alias: "usb:v0C45p62C0d3217dcEFdsc02dp01ic0Eisc01ip00"
->   Driver Info #0:
->     Driver Status: uvcvideo is active
->     Driver Activation Cmd: "modprobe uvcvideo"
->   Config Status: cfg=no, avail=yes, need=no, active=unknown
->   Attached to: #4 (Hub)
-> 
-> 
-> If there is a scenario you propose me to do to detect from where comes
-> the problem, I can apply it.
+ I've tested it on my OMAP3 board an it works.  I don't have anything else
+to test it with.
 
-Could you please post the messages printed by the uvcvideo driver and USB core 
-to the kernel log when you suspend and resume your system ? Thanks.
+ Regards,
+ Arnout
 
--- 
-Regards,
-
-Laurent Pinchart
+ [PATCH 1/2] V4L/DVB: buf-dma-sg.c: don't assume nr_pages == sglen
+ [PATCH 2/2] V4L/DVB: buf-dma-sg.c: support non-pageable user-allocated memory
