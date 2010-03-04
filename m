@@ -1,20 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.tu-berlin.de ([130.149.7.33])
-	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <olejl77@gmail.com>) id 1Nt26h-00051H-VU
-	for linux-dvb@linuxtv.org; Sat, 20 Mar 2010 18:05:06 +0100
-Received: from mail-fx0-f219.google.com ([209.85.220.219])
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-a) with esmtp
+Received: from [130.149.205.37] (helo=mail.tu-berlin.de)
+	by www.linuxtv.org with esmtp (Exim 4.69) (envelope-from <x2@ya.com>)
+	id 1Nn0Od-0005mt-2i
+	for linux-dvb@linuxtv.org; Thu, 04 Mar 2010 03:02:40 +0100
+Received: from out10.wanadoo.es ([62.36.20.210])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-d) with esmtp
 	for <linux-dvb@linuxtv.org>
-	id 1Nt26h-00060C-8o; Sat, 20 Mar 2010 18:05:03 +0100
-Received: by fxm19 with SMTP id 19so1482797fxm.1
-	for <linux-dvb@linuxtv.org>; Sat, 20 Mar 2010 10:05:02 -0700 (PDT)
-MIME-Version: 1.0
-Date: Sat, 20 Mar 2010 20:05:01 +0300
-Message-ID: <19619f3b1003201005m6493681at20130b37022b9a00@mail.gmail.com>
-From: OJ <olejl77@gmail.com>
+	id 1Nn0Oc-000773-IC; Thu, 04 Mar 2010 03:02:38 +0100
+Received: from [84.79.141.255] (helo=chen.pruebas.org)
+	by out10.wanadoo.es with esmtpa (Exim 4.43) id 1Nn0Oa-0001V1-NK
+	for linux-dvb@linuxtv.org; Thu, 04 Mar 2010 03:02:37 +0100
+Date: Thu, 4 Mar 2010 03:02:37 +0100
+From: x2 <x2@ya.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Problem with decrypting dvb-s channels
+Message-Id: <20100304030237.80f24850.x2@ya.com>
+Mime-Version: 1.0
+Subject: [linux-dvb] Correct error is channels.conf es-Sevilla
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -29,47 +30,29 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I have a Technotrend S-1500 DVB card:
-04:01.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
-	Subsystem: Technotrend Systemtechnik GmbH Device 1017
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-Stepping- SERR- FastB2B- DisINTx-
-	Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-	Latency: 64 (3750ns min, 9500ns max)
-	Interrupt: pin A routed to IRQ 17
-	Region 0: Memory at febffc00 (32-bit, non-prefetchable) [size=512]
-	Kernel driver in use: budget_ci dvb
-	Kernel modules: budget-ci
+Excuse send an error channels.conf 8K defective well capitalized and added two mux that will soon be operational.
 
-$ dmesg | grep dvb
-[   17.596948] saa7146: register extension 'budget_ci dvb'.
-[   17.673434] budget_ci dvb 0000:04:01.0: PCI INT A -> GSI 17 (level,
-low) -> IRQ 17
-[   17.742536] input: Budget-CI dvb ir receiver saa7146 (0) as
-/devices/pci0000:00/0000:00:1e.0/0000:04:01.0/input/input7
-[   17.851584] dvb_ca adapter 0: DVB CAM detected and initialised successfully
-[   26.880221] dvb_ca adapter 0: DVB CAM detected and initialised successfully
-[  769.995583] dvb_ca adapter 0: DVB CAM detected and initialised successfully
-[ 2017.120157] dvb_ca adapter 0: DVB CAM detected and initialised successfully
-[ 2034.781417] dvb_ca adapter 0: DVB CAM detected and initialised successfully
-[265057.101369] dvb_ca adapter 0: DVB CAM detected and initialised successfully
+Error:
+http://www.linuxtv.org/pipermail/linux-dvb/2010-February/032593.html
 
+# DVB-T Sevilla (Spain) by x2 15-Ago-2006  modificado 4 Marzo 2010
+# T freq bw fec_hi fec_lo mod transm-mode guard-interval hierarchy
+T 666000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE                  # C45
+T 738000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE                  # C54
+T 754000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE                  # C56
+T 762000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE                  # C57
+T 794000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE                  # C61
+T 834000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE                  # C66
+T 842000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE                  # C67
+T 850000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE                  # C68
+T 858000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE                  # C69
 
-I have tried several players. MythTV, MPlayer, Kaffeine. All of them
-shows unencrypted channels OK, but will not play any of the encrypted
-channels.
+I am sending this to the wrong list please tell me where to send to be updated.
 
-This was working fine a couple of months back with the same HW. My
-MythTV frontend was broken so I did not use the system. When I tried
-again now it is not working as described above.
+A greeting.
 
-I have tried to boot an older kernel, and the same problem exists. As
-I see it it is probably a HW problem, but what do you think is my
-faulty HW? I would prefer not to buy all new (DVB-S card, CI, and
-CAM).
-
-Is it possible somehow to find out what is the faulty unit?
+-- 
+x2 <x2@ya.com>
 
 _______________________________________________
 linux-dvb users mailing list
