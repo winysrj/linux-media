@@ -1,109 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out108.alice.it ([85.37.17.108]:1925 "EHLO
-	smtp-out108.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752480Ab0CCIAS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Mar 2010 03:00:18 -0500
-Date: Wed, 3 Mar 2010 09:00:08 +0100
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: "M.Ebrahimi" <m.ebrahimi@ieee.org>
-Cc: Max Thrun <bear24rw@gmail.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	linux-media@vger.kernel.org, Jim Paris <jim@jtan.com>
-Subject: Re: [PATCH 10/11] ov534: Add Powerline Frequency control
-Message-Id: <20100303090008.f94e7789.ospite@studenti.unina.it>
-In-Reply-To: <1d742ad81003021827p181bf0a6mdf87ad7535bc37bd@mail.gmail.com>
-References: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
-	<1267302028-7941-11-git-send-email-ospite@studenti.unina.it>
-	<20100228194951.1c1e26ce@tele>
-	<20100228201850.81f7904a.ospite@studenti.unina.it>
-	<20100228205528.54d1ba69@tele>
-	<1d742ad81003020326h5e02189bt6511b840dd17d7e3@mail.gmail.com>
-	<20100302163937.70a15c19.ospite@studenti.unina.it>
-	<7b67a5ec1003020806x65164673ue699de2067bc4fb8@mail.gmail.com>
-	<1d742ad81003021827p181bf0a6mdf87ad7535bc37bd@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Wed__3_Mar_2010_09_00_08_+0100_bSe3=UsS9ueaH_bR"
+Received: from mail-yw0-f197.google.com ([209.85.211.197]:56787 "EHLO
+	mail-yw0-f197.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751771Ab0CDF6i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Mar 2010 00:58:38 -0500
+Received: by ywh35 with SMTP id 35so789391ywh.4
+        for <linux-media@vger.kernel.org>; Wed, 03 Mar 2010 21:58:37 -0800 (PST)
+Message-ID: <4B8F7580.8040506@gmail.com>
+Date: Thu, 04 Mar 2010 03:55:28 -0500
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+MIME-Version: 1.0
+To: dougsland@redhat.com
+CC: Jean-Francois Moine <moinejf@free.fr>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [hg:v4l-dvb] gspca - main: Fix a compile error when CONFIG_INPUT
+ is not set
+References: <E1Nmblu-0007t3-Dm@www.linuxtv.org> <20100303095123.047a4d1e@tele> <4B8E8BF9.7000307@redhat.com>
+In-Reply-To: <4B8E8BF9.7000307@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Signature=_Wed__3_Mar_2010_09_00_08_+0100_bSe3=UsS9ueaH_bR
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hello Jean,
 
-On Wed, 3 Mar 2010 02:27:38 +0000
-"M.Ebrahimi" <m.ebrahimi@ieee.org> wrote:
-
-> On 2 March 2010 16:06, Max Thrun <bear24rw@gmail.com> wrote:
+On 03/03/2010 11:19 AM, Douglas Schilling Landgraf wrote:
+> Hi,
+>
+> Jean-Francois Moine wrote:
+>> On Wed, 03 Mar 2010 00:45:02 +0100
+>> Patch from Jean-Fran?ois Moine <hg-commit@linuxtv.org> wrote:
+>>
+>>> The patch number 14343 was added via Douglas Schilling Landgraf
+>>> <dougsland@redhat.com> to http://linuxtv.org/hg/v4l-dvb master
+>>> development tree.
+>>>
+>>> Kernel patches in this development tree may be modified to be backward
+>>> compatible with older kernels. Compatibility modifications will be
+>>> removed before inclusion into the mainstream Kernel
+>>>
+>>> If anyone has any objections, please let us know by sending a message
+>>> to: Linux Media Mailing List <linux-media@vger.kernel.org>
+>>>
+>>> ------
+>>>
+>>> From: Jean-Fran?ois Moine <moinejf@free.fr>
+>>> gspca - main: Fix a compile error when CONFIG_INPUT is not set
+>>>
+>>>
+>>> Reported-by: Randy Dunlap <randy.dunlap@oracle.com>
+>>>
+>>> Priority: normal
+>>>
+>>> [dougsland@redhat.com: patch backported to hg tree]
+>>> Signed-off-by: Jean-Fran?ois Moine <moinejf@free.fr>
+>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>> Signed-off-by: Douglas Schilling Landgraf <dougsland@redhat.com>
+>>>
+>>>
+>>> ---
+>>>
+>>>  linux/drivers/media/video/gspca/gspca.c |    6 ++++++
+>>>  1 file changed, 6 insertions(+)
+>>>
+>>> diff -r c533329e3c41 -r 6519c63ecf6d
+>>> linux/drivers/media/video/gspca/gspca.c ---
+>>> a/linux/drivers/media/video/gspca/gspca.c    Tue Mar 02 20:16:17
+>>> 2010 -0300 +++ b/linux/drivers/media/video/gspca/gspca.c    Tue
+>>> Mar 02 20:38:01 2010 -0300 @@ -44,10 +44,12 @@  #include "gspca.h"
+>>>
+>>> +#ifdef CONFIG_INPUT
+>>>  #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 19)
+>>>  #include <linux/input.h>
+>>>  #include <linux/usb/input.h>
+>>>  #endif
+>>> +#endif
+>>>
+>>>  /* global values */
+>>>  #define DEF_NURBS 3        /* default number of URBs */
+>>> @@ -2371,9 +2373,11 @@
+>>>  void gspca_disconnect(struct usb_interface *intf)
+>>>  {
+>>>      struct gspca_dev *gspca_dev = usb_get_intfdata(intf);
+>>> +#ifdef CONFIG_INPUT
+>>>  #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 19)
+>>>      struct input_dev *input_dev;
+>>>  #endif
+>>> +#endif
+>>>
+>>>      PDEBUG(D_PROBE, "%s disconnect",
+>>>          video_device_node_name(&gspca_dev->vdev));
+>>> @@ -2385,6 +2389,7 @@
+>>>          wake_up_interruptible(&gspca_dev->wq);
+>>>      }
+>>>
+>>> +#ifdef CONFIG_INPUT
+>>>  #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 19)
+>>>      gspca_input_destroy_urb(gspca_dev);
+>>>      input_dev = gspca_dev->input_dev;
+>>> @@ -2393,6 +2398,7 @@
+>>>          input_unregister_device(input_dev);
+>>>      }
+>>>  #endif
+>>> +#endif
+>>>
+>>>      /* the device is freed at exit of this function */
+>>>      gspca_dev->dev = NULL;
+>>>
+>>>
+>>> ---
+>>>
+>>> Patch is available at:
+>>> http://linuxtv.org/hg/v4l-dvb/rev/6519c63ecf6d4e7e2c1c3d46ac2a161da8d6c6f4 
+>>>
+>>
+>> Hello Douglas,
+>>
+>> I do not understand your patch. Do you mean that the input events
+>> cannot be used with kernel < 2.6.19, while CONFIG_INPUT can be set?
 > >
-> >
-> > On Tue, Mar 2, 2010 at 10:39 AM, Antonio Ospite <ospite@studenti.unina.=
-it>
-> > wrote:
-[...]
-> >> Mosalam did you spot the register from a PS3 usb dump or by looking at
-> >> the sensor datasheet?
->=20
-> None, I got that register from sniffing a Windows driver for another
-> camera that turned out to be using ov7620 or something similar, though
-> I thought it has the same sensor. I double checked, this register is
-> for frame rate adjustment (decreasing frame rate / increasing
-> exposure) . And this has been used in some other drivers (e.g.
-> gspca_sonixb) to remove light flicker as well.
->=20
+>> Anyway, this patch seems complex. It would have been easier to simply
+>> unset CONFIG_INPUT when kernel < 2.6.19.
+>
+> Agreed. Anyway, there are parts which still need CONFIG_INPUT if we 
+> want to remove the kernel check. Going to review this one.
+>
+>> I join the diff of gspca.c between v4l-dvb and my repository. This last
+>> one is closer to the git version and there are still other changes done
+>> in git. How do you think I should merge?
+>
+> If I understand your question correctly, the better way is wait until 
+> I complete the merge between git and hg which I intend to complete 
+> today and then merge the hg trees. I will give you a note.
+>
 
-I see. It would be interesting to see how Powerline Frequency filtering
-is done on PS3. I added Jim Paris on CC.
+git and hg are synced, now I will work about compatible items in the tree.
 
-> >
-> > I'd also like to know where you got the 2b register from, cause someone=
- else
-> > also said 2b was filtering but the datasheet says it LSB of dummy pixel=
-...
-> >
-> >- Max Thrun
->=20
-> Definitely it is adjusting the frame rate (see the ov7620 DS for the
-> description how the register value is used, for instance). I have no
-> idea why the ov7720 datasheet says otherwise.
->=20
-> Since this patch does not use the banding filter registers mentioned
-> in the datasheet maybe should be discarded. I am working on 75 FPS at
-> VGA, when I get that working well I can get back to this again.
->=20
-> Thanks for the comments.
-> Mosalam
->=20
-
-Ok, so Jean-Francois can you apply the patches except 10/11, please?
-We are keeping this one for another round.
-
-Thanks,
-   Antonio
-
---=20
-Antonio Ospite
-http://ao2.it
-
-PGP public key ID: 0x4553B001
-
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
-A: Top-posting.
-Q: What is the most annoying thing in e-mail?
-
---Signature=_Wed__3_Mar_2010_09_00_08_+0100_bSe3=UsS9ueaH_bR
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iEYEARECAAYFAkuOFwgACgkQ5xr2akVTsAFw+QCgjK73zACAAt2I5pVFmZ32LA2P
-UOkAniql8Y9ba2u+4dEBELDfv/V3CPGA
-=wFhf
------END PGP SIGNATURE-----
-
---Signature=_Wed__3_Mar_2010_09_00_08_+0100_bSe3=UsS9ueaH_bR--
+Cheers
+Douglas
