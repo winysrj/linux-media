@@ -1,38 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bld-mail15.adl6.internode.on.net ([150.101.137.100]:36877 "EHLO
-	mail.internode.on.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752225Ab0CAXJi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Mar 2010 18:09:38 -0500
-Received: from [192.168.1.100] (unverified [118.209.146.223])
-	by mail.internode.on.net (SurgeMail 3.8f2) with ESMTP id 3908449-1927428
-	for <linux-media@vger.kernel.org>; Tue, 02 Mar 2010 09:24:31 +1030 (CDT)
-Subject: Re: [linux-dvb] DVB-T USB Devices
-From: Rodd Clarkson <rodd@clarkson.id.au>
-To: linux-media@vger.kernel.org
-In-Reply-To: <1267430586.3536.5.camel@localhost.localdomain>
-References: <1267430586.3536.5.camel@localhost.localdomain>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 02 Mar 2010 09:54:31 +1100
-Message-ID: <1267484071.3536.7.camel@localhost.localdomain>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-ew0-f220.google.com ([209.85.219.220]:33933 "EHLO
+	mail-ew0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755460Ab0CDLOW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Mar 2010 06:14:22 -0500
+Received: by ewy20 with SMTP id 20so1614634ewy.21
+        for <linux-media@vger.kernel.org>; Thu, 04 Mar 2010 03:14:20 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4B8F347E.2010206@gmail.com>
+References: <74fd948d1003031535r1785b36dq4cece00f349975af@mail.gmail.com>
+	 <829197381003031548n703f0bf9sb44ce3527501c5c0@mail.gmail.com>
+	 <74fd948d1003031700h187dbfd0v3f54800e652569b@mail.gmail.com>
+	 <829197381003031706g1011f442hcc4be40ae2e79a47@mail.gmail.com>
+	 <4B8F347E.2010206@gmail.com>
+Date: Thu, 4 Mar 2010 11:14:20 +0000
+Message-ID: <74fd948d1003040314y2fc911f2k97b1d6fb66bdc0b9@mail.gmail.com>
+Subject: Re: Excessive rc polling interval in dvb_usb_dib0700 causes
+	interference with USB soundcard
+From: Pedro Ribeiro <pedrib@gmail.com>
+To: Mauro Carvalho Chehab <maurochehab@gmail.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2010-03-01 at 19:03 +1100, Rodd Clarkson wrote:
+On 4 March 2010 04:18, Mauro Carvalho Chehab <maurochehab@gmail.com> wrote:
+> Devin Heitmueller wrote:
+>> On Wed, Mar 3, 2010 at 8:00 PM, Pedro Ribeiro <pedrib@gmail.com> wrote:
+>>> Its working very well, thanks.
+>>>
+>>> Can you please tell me if its going to be pushed to .33 stable? And
+>>> should I close the kernel bug?
+>>
+>> It's in Mauro's PULL request for 2.6.34-rc1.  It's marked "normal"
+>> priority so it likely won't get pulled into stable.  It was a
+>> non-trivial restructuring of the code, so doing a minimal fix that
+>> would be accepted by stable is unlikely.
+>
+> The kernel bug should be closed, as this patch has already fixed and
+> sent upstream.
+>>
+>> Devin
+>>
+>
+>
+> --
+>
+> Cheers,
+> Mauro
+>
 
-> usb 1-4: Manufacturer: Hauppauge Computer Works
-> ...
-> smscore_set_device_mode: firmware download success:
-> sms1xxx-nova-b-dvbt-01.fw
+Devin, I noticed that your solution does not alter the remote query
+interval from 50 msec. It works, but it is not as effective as my hard
+hack because I still get interference every once in a while when the
+DVB adapter is connected.
 
-I hate replying to myself, but I should have mentioned that
+I can't tell you exactly when and how it happens, because it seems
+rather random - but it is much better than previously though.
 
-sms1xxx-nova-b-dvbt-01.fw is a renamed sms1xxx-hcw-55xxx-dvbt-01.fw
-
-I've noticed that sms1xxx-hcw-55xxx-dvbt-02.fw seems to be out, but
-haven't tried this.
-
-
-R.
-
+Regards,
+Pedro
