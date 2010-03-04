@@ -1,177 +1,268 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ntc-mta1.newtec.eu ([62.58.98.207]:57407 "EHLO
-	ntc-mta1.newtec.eu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751551Ab0CZHuI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Mar 2010 03:50:08 -0400
-Date: Fri, 26 Mar 2010 08:50:01 +0100 (CET)
-From: Luc Boschmans <luc.boschmans@newtec.eu>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org
-Message-ID: <235898576.241711269589801844.JavaMail.root@ntc-mailstore1.newtec.eu>
-In-Reply-To: <829197381003240835s4fd77e5co72880c42e0d6dadf@mail.gmail.com>
-Subject: Re: PCTV 73eSE driver not loaded
+Received: from jim.sh ([75.150.123.25]:41024 "EHLO psychosis.jim.sh"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752466Ab0CDUO4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Mar 2010 15:14:56 -0500
+Date: Thu, 4 Mar 2010 15:14:45 -0500
+From: Jim Paris <jim@jtan.com>
+To: Antonio Ospite <ospite@studenti.unina.it>
+Cc: "M.Ebrahimi" <m.ebrahimi@ieee.org>, Max Thrun <bear24rw@gmail.com>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 10/11] ov534: Add Powerline Frequency control
+Message-ID: <20100304201445.GA21194@psychosis.jim.sh>
+References: <20100228194951.1c1e26ce@tele>
+ <20100228201850.81f7904a.ospite@studenti.unina.it>
+ <20100228205528.54d1ba69@tele>
+ <1d742ad81003020326h5e02189bt6511b840dd17d7e3@mail.gmail.com>
+ <20100302163937.70a15c19.ospite@studenti.unina.it>
+ <7b67a5ec1003020806x65164673ue699de2067bc4fb8@mail.gmail.com>
+ <1d742ad81003021827p181bf0a6mdf87ad7535bc37bd@mail.gmail.com>
+ <20100303090008.f94e7789.ospite@studenti.unina.it>
+ <20100304045533.GA17821@psychosis.jim.sh>
+ <20100304100346.79818884.ospite@studenti.unina.it>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/mixed; boundary="T4sUOijqQbZv57TR"
+Content-Disposition: inline
+In-Reply-To: <20100304100346.79818884.ospite@studenti.unina.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin,
 
-The build process was not complete indeed. Dropping FiredTV made it successful - the rest of the story is positive; everything running smooth.
+--T4sUOijqQbZv57TR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Many thanks!
+Antonio Ospite wrote:
+> On Wed, 3 Mar 2010 23:55:33 -0500
+> Jim Paris <jim@jtan.com> wrote:
+> 
+> > Antonio Ospite wrote:
+> [...]
+> > > 
+> > > I see. It would be interesting to see how Powerline Frequency filtering
+> > > is done on PS3. I added Jim Paris on CC.
+> > 
+> > Hi Antonio and Mosalam,
+> > 
+> > I tried, but I can't capture that.  My USB logger only does USB 1.1,
+> > which is too slow for the camera to run normally, but good enough to
+> > see the initialization sequence.  However, the 50/60Hz option only
+> > appears later, once the PS3 is receiving good frame data.
+> > 
+> > I can open up the camera and sniff the I2C bus instead.  It'll take
+> > a little longer.
+> >
+> 
+> Thanks for your time Jim.
 
-Luc.
+No problem, glad to help.
+Looks like Mosalam's patch is correct:
 
+--- i2c-60hz.log	2010-03-04 15:09:23.000000000 -0500
++++ i2c-50hz.log	2010-03-04 15:09:27.000000000 -0500
+@@ -69,7 +69,7 @@
+ ov_write_verify 8C E8
+ ov_write_verify 8D 20
+ ov_write_verify 0C 90
+-ov_write_verify 2B 00
++ov_write_verify 2B 9E
+ ov_write_verify 22 7F
+ ov_write_verify 23 03
+ ov_write_verify 11 01
 
------ Oorspronkelijk bericht -----
-Van: "Devin Heitmueller" <dheitmueller@kernellabs.com>
-Aan: "luc boschmans" <luc.boschmans@newtec.eu>
-Cc: linux-media@vger.kernel.org
-Verzonden: Woensdag 24 maart 2010 16:35:23 GMT +01:00 Amsterdam / Berlijn / Bern / Rome / Stockholm / Wenen
-Onderwerp: Re: PCTV 73eSE driver not loaded
+I'll attach the full logs.
 
-On Wed, Mar 24, 2010 at 11:10 AM,  <luc.boschmans@newtec.eu> wrote:
->
-> All,
->
-> I am a Linux newbie trying to install a PCTV 73eSE DVB-T receiver, but the driver apparently does not get loaded.
->
-> These are the 'cookbook' steps I followed:
-> -Fresh Ubuntu 9.10 distribution installed.
-> -kernel upgraded to 2.6.31-20-generic (using Ubuntu upgrade tool)
-> -Mercurial installed
-> -V4L-DVB kernel modules downloaded (source)
-> -make (screen output attached)
-> -make install
-> -reboot (with the DVB-T USB dongle attached during boot)
->
-> Outcome:
-> -There is no /dev/dvb directory
-> -/proc/modules does not list any relevant reference to the PCTV 73eSE USB dongle (apparently the correct driver for that should be the DIB0700 driver)
->
-> Looking at the mailing list, there is some history on the PCTV 73eSE device: apparently this was originally owned by Pinnacle; the same device can have 2 different manuf ID's. Posts on the list (nov / dec 2009) point out that corrections have been done to support both manuf ID's.
->
-> The relevant lsusb -v output is:
->
-> Bus 001 Device 003: ID 2013:0245
-> Device Descriptor:
->  bLength                18
->  bDescriptorType         1
->  bcdUSB               2.00
->  bDeviceClass            0 (Defined at Interface level)
->  bDeviceSubClass         0
->  bDeviceProtocol         0
->  bMaxPacketSize0        64
->  idVendor           0x2013
->  idProduct          0x0245
->  bcdDevice            1.00
->  iManufacturer           1 PCTV Systems
->  iProduct                2 PCTV 73e SE
->  iSerial                 3 0000000M99B4P6Q
->  bNumConfigurations      1
->  Configuration Descriptor:
->    bLength                 9
->    bDescriptorType         2
->    wTotalLength           46
->    bNumInterfaces          1
->    bConfigurationValue     1
->    iConfiguration          0
->    bmAttributes         0xa0
->      (Bus Powered)
->      Remote Wakeup
->    MaxPower              500mA
->    Interface Descriptor:
->      bLength                 9
->      bDescriptorType         4
->      bInterfaceNumber        0
->      bAlternateSetting       0
->      bNumEndpoints           4
->      bInterfaceClass       255 Vendor Specific Class
->      bInterfaceSubClass      0
->      bInterfaceProtocol      0
->      iInterface              0
->      Endpoint Descriptor:
->        bLength                 7
->        bDescriptorType         5
->        bEndpointAddress     0x01  EP 1 OUT
->        bmAttributes            2
->          Transfer Type            Bulk
->          Synch Type               None
->          Usage Type               Data
->        wMaxPacketSize     0x0200  1x 512 bytes
->        bInterval               1
->      Endpoint Descriptor:
->        bLength                 7
->        bDescriptorType         5
->        bEndpointAddress     0x81  EP 1 IN
->        bmAttributes            2
->          Transfer Type            Bulk
->          Synch Type               None
->          Usage Type               Data
->        wMaxPacketSize     0x0200  1x 512 bytes
->        bInterval               1
->      Endpoint Descriptor:
->        bLength                 7
->        bDescriptorType         5
->        bEndpointAddress     0x82  EP 2 IN
->        bmAttributes            2
->          Transfer Type            Bulk
->          Synch Type               None
->          Usage Type               Data
->        wMaxPacketSize     0x0200  1x 512 bytes
->        bInterval               1
->      Endpoint Descriptor:
->        bLength                 7
->        bDescriptorType         5
->        bEndpointAddress     0x83  EP 3 IN
->        bmAttributes            2
->          Transfer Type            Bulk
->          Synch Type               None
->          Usage Type               Data
->        wMaxPacketSize     0x0200  1x 512 bytes
->        bInterval               1
-> Device Qualifier (for other device speed):
->  bLength                10
->  bDescriptorType         6
->  bcdUSB               2.00
->  bDeviceClass            0 (Defined at Interface level)
->  bDeviceSubClass         0
->  bDeviceProtocol         0
->  bMaxPacketSize0        64
->  bNumConfigurations      1
-> Device Status:     0x0000
->  (Bus Powered)
->
-> The vendor ID in my case apparently is 0x2013. I am able to find back this ID in the source files (but I am not a programmer), so it looks as if this is not the reason why the driver doens't get loaded. Nevertheless, the 'automagic' part of udev seems to have abandoned me:)
->
-> Any idea's to proceed on this?
->
-> Thanks in advance,
-> Luc Boschmans.
+-jim
 
-A couple of quick things:
+--T4sUOijqQbZv57TR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="i2c-60hz.log"
 
-Your build doesn't look complete.  Did you manually run "make
-menuconfig" and pick whatever modules you believed were relevant?  If
-so, then don't do that - do a fresh checkout, and only unset the
-firedtv module.
+ov_write 12 80
+ov_write_verify 11 01
+ov_write_verify 11 01
+ov_write_verify 11 01
+ov_write_verify 11 01
+ov_write_verify 11 01
+ov_write_verify 11 01
+ov_write_verify 11 01
+ov_write_verify 11 01
+ov_write_verify 11 01
+ov_write_verify 11 01
+ov_write_verify 11 01
+ov_write_verify 3D 03
+ov_write_verify 17 26
+ov_write_verify 18 A0
+ov_write_verify 19 07
+ov_write_verify 1A F0
+ov_write_verify 32 00
+ov_write_verify 29 A0
+ov_write_verify 2C F0
+ov_write_verify 65 20
+ov_write_verify 11 01
+ov_write_verify 42 7F
+ov_write_verify 63 E0
+ov_write_verify 64 FF
+ov_write_verify 66 00
+ov_write_verify 13 F0
+ov_write_verify 0D 41
+ov_write_verify 0F C5
+ov_write_verify 14 11
+ov_write_verify 22 7F
+ov_write_verify 23 03
+ov_write_verify 24 40
+ov_write_verify 25 30
+ov_write_verify 26 A1
+ov_write_verify 2A 00
+ov_write_verify 2B 00
+ov_write_verify 6B AA
+ov_write_verify 13 FF
+ov_write_verify 90 05
+ov_write_verify 91 01
+ov_write_verify 92 03
+ov_write_verify 93 00
+ov_write_verify 94 60
+ov_write_verify 95 3C
+ov_write_verify 96 24
+ov_write_verify 97 1E
+ov_write_verify 98 62
+ov_write_verify 99 80
+ov_write_verify 9A 1E
+ov_write_verify 9B 08
+ov_write_verify 9C 20
+ov_write_verify 9E 81
+ov_write_verify A6 04
+ov_write_verify 7E 0C
+ov_write_verify 7F 16
+ov_write_verify 80 2A
+ov_write_verify 81 4E
+ov_write_verify 82 61
+ov_write_verify 83 6F
+ov_write_verify 84 7B
+ov_write_verify 85 86
+ov_write_verify 86 8E
+ov_write_verify 87 97
+ov_write_verify 88 A4
+ov_write_verify 89 AF
+ov_write_verify 8A C5
+ov_write_verify 8B D7
+ov_write_verify 8C E8
+ov_write_verify 8D 20
+ov_write_verify 0C 90
+ov_write_verify 2B 00
+ov_write_verify 22 7F
+ov_write_verify 23 03
+ov_write_verify 11 01
+ov_read 0C 90
+ov_write_verify 0C 90
+ov_read 64 FF
+ov_write_verify 64 FF
+ov_read 0D 41
+ov_write_verify 0D 41
+ov_read 14 11
+ov_write_verify 14 41
+ov_read 0E 79
+ov_write_verify 0E CD
+ov_read AC FF
+ov_write_verify AC BF
+ov_write_verify 8E 00
+ov_read 0C 90
+ov_write_verify 0C D0
 
-Also, please provide the dmesg output after the bootup, so we can see
-if the driver loaded at all.
+--T4sUOijqQbZv57TR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename="i2c-50hz.log"
 
-Devin
+ov_write 12 80
+ov_write_verify 11 01
+ov_write_verify 11 01
+ov_write_verify 11 01
+ov_write_verify 11 01
+ov_write_verify 11 01
+ov_write_verify 11 01
+ov_write_verify 11 01
+ov_write_verify 11 01
+ov_write_verify 11 01
+ov_write_verify 11 01
+ov_write_verify 11 01
+ov_write_verify 3D 03
+ov_write_verify 17 26
+ov_write_verify 18 A0
+ov_write_verify 19 07
+ov_write_verify 1A F0
+ov_write_verify 32 00
+ov_write_verify 29 A0
+ov_write_verify 2C F0
+ov_write_verify 65 20
+ov_write_verify 11 01
+ov_write_verify 42 7F
+ov_write_verify 63 E0
+ov_write_verify 64 FF
+ov_write_verify 66 00
+ov_write_verify 13 F0
+ov_write_verify 0D 41
+ov_write_verify 0F C5
+ov_write_verify 14 11
+ov_write_verify 22 7F
+ov_write_verify 23 03
+ov_write_verify 24 40
+ov_write_verify 25 30
+ov_write_verify 26 A1
+ov_write_verify 2A 00
+ov_write_verify 2B 00
+ov_write_verify 6B AA
+ov_write_verify 13 FF
+ov_write_verify 90 05
+ov_write_verify 91 01
+ov_write_verify 92 03
+ov_write_verify 93 00
+ov_write_verify 94 60
+ov_write_verify 95 3C
+ov_write_verify 96 24
+ov_write_verify 97 1E
+ov_write_verify 98 62
+ov_write_verify 99 80
+ov_write_verify 9A 1E
+ov_write_verify 9B 08
+ov_write_verify 9C 20
+ov_write_verify 9E 81
+ov_write_verify A6 04
+ov_write_verify 7E 0C
+ov_write_verify 7F 16
+ov_write_verify 80 2A
+ov_write_verify 81 4E
+ov_write_verify 82 61
+ov_write_verify 83 6F
+ov_write_verify 84 7B
+ov_write_verify 85 86
+ov_write_verify 86 8E
+ov_write_verify 87 97
+ov_write_verify 88 A4
+ov_write_verify 89 AF
+ov_write_verify 8A C5
+ov_write_verify 8B D7
+ov_write_verify 8C E8
+ov_write_verify 8D 20
+ov_write_verify 0C 90
+ov_write_verify 2B 9E
+ov_write_verify 22 7F
+ov_write_verify 23 03
+ov_write_verify 11 01
+ov_read 0C 90
+ov_write_verify 0C 90
+ov_read 64 FF
+ov_write_verify 64 FF
+ov_read 0D 41
+ov_write_verify 0D 41
+ov_read 14 11
+ov_write_verify 14 41
+ov_read 0E 79
+ov_write_verify 0E CD
+ov_read AC FF
+ov_write_verify AC BF
+ov_write_verify 8E 00
+ov_read 0C 90
+ov_write_verify 0C D0
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-Newtec’s MENOS system awarded IBC Innovation Award for Content Delivery & the IBC Judges’ Award  Newtec’s FlexACM awarded 2009 Teleport Technology of the Year by WTA  *** e-mail confidentiality footer *** This message and any attachments thereto are confidential. They may also be privileged or otherwise protected by work product immunity or other legal rules. If you have received it by mistake, please let us know by e-mail reply and delete it from your system; you may not copy this message or disclose its contents to anyone. E-mail transmission cannot be guaranteed to be secure or error free as information could be intercepted, corrupted, lost, destroyed, arrive late or incomplete, or contain viruses. The sender therefore is in no way liable for any errors or omissions in the content of this message, which may arise as a result of e-mail transmission. If verification is required, please request a hard copy.
+--T4sUOijqQbZv57TR--
