@@ -1,76 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:48027 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755028Ab0CEKpu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Mar 2010 05:45:50 -0500
-From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
-	<u.kleine-koenig@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Antonio Ospite <ospite@studenti.unina.it>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-kernel@vger.kernel.org
-Subject: [PATCH v2] V4L/DVB: mx1-camera: compile fix
-Date: Fri,  5 Mar 2010 11:45:24 +0100
-Message-Id: <1267785924-16167-1-git-send-email-u.kleine-koenig@pengutronix.de>
-In-Reply-To: <20100304194241.GG19843@pengutronix.de>
-References: <20100304194241.GG19843@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from smtp.nokia.com ([192.100.122.233]:42459 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753178Ab0CDKJF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Mar 2010 05:09:05 -0500
+Subject: Re: git over http from linuxtv
+From: m7aalton <matti.j.aaltonen@nokia.com>
+Reply-To: matti.j.aaltonen@nokia.com
+To: ext Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <4B8E7872.3000602@redhat.com>
+References: <4B82F7ED.6020502@redhat.com>
+	 <1267550594.27183.22.camel@masi.mnp.nokia.com>
+	 <4B8D6231.1020806@redhat.com>
+	 <1267614726.27183.55.camel@masi.mnp.nokia.com>
+	 <4B8E7872.3000602@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 04 Mar 2010 12:08:34 +0200
+Message-ID: <1267697314.27183.69.camel@masi.mnp.nokia.com>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a regression of
+HI.
 
-	7d58289 (mx1: prefix SOC specific defines with MX1_ and deprecate old names)
+On Wed, 2010-03-03 at 15:55 +0100, ext Mauro Carvalho Chehab wrote:
+> m7aalton wrote:
+> > Hello.
+> > 
+> > On Tue, 2010-03-02 at 20:08 +0100, ext Mauro Carvalho Chehab wrote:
+> >> m7aalton wrote:
+> >>> Hi.
+> >>>
+> >>> Is it possible to access the linuxtv.org git repositories using http?
+> >>> I tried to do this:
+> >>>
+> >>> git remote add linuxtv git://linuxtv.org/v4l-dvb.git
+> >> You should be able to use both URL's:
+> >>
+> >> URL	http://git.linuxtv.org/v4l-dvb.git
+> >> 	git://linuxtv.org/v4l-dvb.git
+> >>
+> >> There were a miss-configuration for the http URL. I just fixed it.
+> > 
+> > 
+> > Now it works better but I still couldn't clone it properly. The update
+> > from linuxtv didn't seem to do anything....
+> > 
+> > Here's what happened:
+> > 
+> > $ git clone
+> > http://www.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+> > v4l-dvb
+> > 
+> > $ cd v4l-dvb
+> > 
+> > $ git remote add linuxtv http://git.linuxtv.org/v4l-dvb.git
+> > 
+> > $ git remote update
+> > Updating origin
+> >>From http://www.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6
+> >    13dda80..3a5b27b  master     -> origin/master
+> > Updating linuxtv
+> > 
+> > $ git branch -a
+> > * master
+> >   origin/HEAD
+> >   origin/master
+> > 
+> > $ git checkout -b media-master linuxtv/master
+> > fatal: git checkout: updating paths is incompatible with switching
+> > branches.
+> > Did you intend to checkout 'linuxtv/master' which can not be resolved as
+> > commit?
+> 
+> This happens when you try to use a gitweb URL instead of the proper one. At the above,
+> you've used the wrong URL. The correct one is:
+> 	 http://linuxtv.org/git/v4l-dvb.git
 
-Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
----
- drivers/media/video/mx1_camera.c |   12 +++++++-----
- 1 files changed, 7 insertions(+), 5 deletions(-)
+OK. Thanks. Earlier your said:
 
-diff --git a/drivers/media/video/mx1_camera.c b/drivers/media/video/mx1_camera.c
-index 2ba14fb..29c2833 100644
---- a/drivers/media/video/mx1_camera.c
-+++ b/drivers/media/video/mx1_camera.c
-@@ -45,11 +45,13 @@
- #include <mach/hardware.h>
- #include <mach/mx1_camera.h>
- 
-+#define __DMAREG(offset)	(MX1_IO_ADDRESS(MX1_DMA_BASE_ADDR) + offset)
-+
- /*
-  * CSI registers
-  */
--#define DMA_CCR(x)	(0x8c + ((x) << 6))	/* Control Registers */
--#define DMA_DIMR	0x08			/* Interrupt mask Register */
-+#define DMA_CCR(x)	__DMAREG(0x8c + ((x) << 6))	/* Control Registers */
-+#define DMA_DIMR	__DMAREG(0x08)		/* Interrupt mask Register */
- #define CSICR1		0x00			/* CSI Control Register 1 */
- #define CSISR		0x08			/* CSI Status Register */
- #define CSIRXR		0x10			/* CSI RxFIFO Register */
-@@ -783,7 +785,7 @@ static int __init mx1_camera_probe(struct platform_device *pdev)
- 			       pcdev);
- 
- 	imx_dma_config_channel(pcdev->dma_chan, IMX_DMA_TYPE_FIFO,
--			       IMX_DMA_MEMSIZE_32, DMA_REQ_CSI_R, 0);
-+			       IMX_DMA_MEMSIZE_32, MX1_DMA_REQ_CSI_R, 0);
- 	/* burst length : 16 words = 64 bytes */
- 	imx_dma_config_burstlen(pcdev->dma_chan, 0);
- 
-@@ -797,8 +799,8 @@ static int __init mx1_camera_probe(struct platform_device *pdev)
- 	set_fiq_handler(&mx1_camera_sof_fiq_start, &mx1_camera_sof_fiq_end -
- 						   &mx1_camera_sof_fiq_start);
- 
--	regs.ARM_r8 = DMA_BASE + DMA_DIMR;
--	regs.ARM_r9 = DMA_BASE + DMA_CCR(pcdev->dma_chan);
-+	regs.ARM_r8 = (long)DMA_DIMR;
-+	regs.ARM_r9 = (long)DMA_CCR(pcdev->dma_chan);
- 	regs.ARM_r10 = (long)pcdev->base + CSICR1;
- 	regs.ARM_fp = (long)pcdev->base + CSISR;
- 	regs.ARM_sp = 1 << pcdev->dma_chan;
--- 
-1.7.0
+>> You should be able to use both URL's:
+> >>
+> >> URL	http://git.linuxtv.org/v4l-dvb.git
+> >> 	git://linuxtv.org/v4l-dvb.git
+
+I didn't realize that you were referring to gitweb... Maybe it would
+make sense to have also an example using http on your git repositories
+page.
+
+Cheers,
+Matti
+
+
+
+> 
+> You don't need to re-do the entire procedure. Just edit .git/config and put the
+> correct URL there for the linuxtv remote.
+> 
+
 
