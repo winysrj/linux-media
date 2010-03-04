@@ -1,90 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4432 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753789Ab0C1Ias (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Mar 2010 04:30:48 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
-Subject: Re: [PATCH v2 0/10] V4L2 patches for Intel Moorestown Camera Imaging Drivers
-Date: Sun, 28 Mar 2010 10:31:15 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Zhu, Daniel" <daniel.zhu@intel.com>,
-	"Yu, Jinlu" <jinlu.yu@intel.com>,
-	"Wang, Wen W" <wen.w.wang@intel.com>,
-	"Huang, Kai" <kai.huang@intel.com>,
-	"Hu, Gang A" <gang.a.hu@intel.com>,
-	"Ba, Zheng" <zheng.ba@intel.com>
-References: <33AB447FBD802F4E932063B962385B351D6D534A@shsmsx501.ccr.corp.intel.com>
-In-Reply-To: <33AB447FBD802F4E932063B962385B351D6D534A@shsmsx501.ccr.corp.intel.com>
+Received: from perceval.irobotique.be ([92.243.18.41]:49388 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755719Ab0CDJvT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Mar 2010 04:51:19 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Arnout Vandecappelle <arnout@mind.be>
+Subject: Re: [PATCH RFCv1] Support for zerocopy to DSP on OMAP3
+Date: Thu, 4 Mar 2010 10:52:39 +0100
+Cc: linux-media@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+References: <201003031512.45428.arnout@mind.be> <201003032011.07559.arnout@mind.be>
+In-Reply-To: <201003032011.07559.arnout@mind.be>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201003281031.15064.hverkuil@xs4all.nl>
+Message-Id: <201003041052.41438.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Xiaolin!
+Hi Arnout,
 
-Here are a few comments based on a first read-through.
-
-First of all, patch 2/10 did not seem to make it to the list for some reason.
-Because of that I'm deferring reviewing patches 1/10 and (of course) 2/10.
-
-The other patches for the i2c devices all have the same problems, so I will
-only review one and you can apply the comments made there to all the others.
-
-A general comment I have is that I think there is too much debugging code.
-Creating good debug code is an art. In my experience things like DBG_entering
-and DBG_leaving just clutter the code and are pretty useless once the initial
-implementation phase is finished. The trick is to have just enough debug or
-logging available so that you can deduce the path taken by the driver.
-
-What I found to be very useful as well is to implement VIDIOC_LOG_STATUS to
-get a full status overview of the various (sub)devices at a given moment.
-
-On Sunday 28 March 2010 09:46:35 Zhang, Xiaolin wrote:
-> Hi, 
+On Wednesday 03 March 2010 20:11:06 Arnout Vandecappelle wrote:
+>  Here's a first attempt at allowing IO memory for USERPTR buffers.
 > 
-> Here is the second version of V4L2 camera sensors and ISP driver patch set to support the Intel Moorestown camera imaging subsystem. 
-> 
-> The Camera Imaging interface (CI) in Moorestown is responsible for still image and video capture which can handle demosaicing, color synthesis, filtering, image enhancement, etc functionalities with a integrated JPEG encode. 
-> Intel Moorestown platform can support either a single camera or dual cameras. If a platform with dual camera will have one low resolution camera on the same side as this display for video conference and a high resolution camera on the opposite side the display for high quality still image capture.
-> 
-> The driver framework is updated to the v4l2 sub-dev and video buffer framework, in this set of driver patches, I will submit the 10 patches to enable the camera subsystem with the device drivers for ISP HW and 4 cameras module (two SoCs: 1.3MP - Omnivision 9665, 2MP - Omnivison 2650 and two RAWs: 5MP - Omnivision 5630, 5MP - Samsong s5k4e1).
-> 
-> 1. Intel Moorestown ISP driver - header files.
+>  It also fixes another issue: it was assumed that
+> dma->sglen == dma->nr_pages.  I'll split that up in a separate patch in the
+> final version.
 
-Just a single comment on these files here: I see new PIXFMT defines in a
-Moorestown-specific header: just add these to videodev2.h.
+-EMISSINGPATCH :-)
 
-Regards,
-
-	Hans
-
-> 2. Intel Moorestown ISP driver - V4L2 implementation including hardware component functionality  
-> 3. Intel Moorestown flash sub-dev driver
-> 4. Intel Moorestown 2MP camera (ov2650) sensor subdev driver.
-> 5. Intel Moorestown 1.3MP camera (ov9665) sensor subdev driver.
-> 6. Intel Moorestown 5MP camera (ov5630) sensor subdev driver.
-> 7. Intel Moorestown 5MP camera (ov5630) lens subdev driver.
-> 8. Intel Moorestown 5MP camera (s5k4e1) sensor subdev driver.
-> 9. Intel Moorestown 5MP camera (s5k4e1) lens subdev driver
-> 10. make/kconfig files change to enable camera drivers for intel Moorestown platform.
-> 
-> Please review them and comments are welcome as always. 
-> 
-> Regards,
-> 
-> Xiaolin
-> Xiaolin.zhang@intel.com
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+Please split the patch and CC Sakari Ailus when you submit them.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Regards,
+
+Laurent Pinchart
