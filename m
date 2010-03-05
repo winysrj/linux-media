@@ -1,80 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:47494 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752552Ab0CFOnx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Mar 2010 09:43:53 -0500
-Message-ID: <4B926A25.3020801@infradead.org>
-Date: Sat, 06 Mar 2010 11:43:49 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
-CC: linux-media@vger.kernel.org, Henrik Kurelid <henrik@kurelid.se>
-Subject: Re: [PATCH] firedtv: add parameter to fake ca_system_ids in CA_INFO
-References: <tkrat.dc97d52c76a2dc07@s5r6.in-berlin.de> <tkrat.a8cdf995cdc06e83@s5r6.in-berlin.de> <4B925E25.2070105@infradead.org> <4B92623C.2060302@s5r6.in-berlin.de>
-In-Reply-To: <4B92623C.2060302@s5r6.in-berlin.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3252 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755361Ab0CETwU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Mar 2010 14:52:20 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id o25JqJBo098297
+	for <linux-media@vger.kernel.org>; Fri, 5 Mar 2010 20:52:19 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 5 Mar 2010 20:52:19 +0100 (CET)
+Message-Id: <201003051952.o25JqJBo098297@smtp-vbr11.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stefan Richter wrote:
-> Mauro Carvalho Chehab wrote:
->> Stefan Richter wrote:
->>
->>> The Digital Everywhere firmware have the shortcoming that ca_info_enq and
->>> ca_info are not supported. This means that we can never retrieve the correct
->>> ca_system_id to present in the CI message CA_INFO. Currently the driver uses
->>> the application id retrieved using app_info_req and app_info, but this id
->>> only match the correct ca_system_id as given in ca_info in some cases.
->>> This patch adds a parameter to the driver in order for the user to override
->>> what will be returned in the CA_INFO CI message. Up to four ca_system_ids can
->>> be specified.
->>> This is needed for users with CAMs that have different manufacturer id and
->>> ca_system_id and that uses applications that take this into account, like
->>> MythTV.
->> This seems an ugly workaround. The better seems to patch MythTV to accept a different
->> CAM.
-> 
-> Ugly it is, for sure.  Can't comment on application-level solutions; if
-> thats the proper layer at which to address this, then that would be
-> preferable of course.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
->From the report, this seems to be a requirement at application level. So, the fix should
-be there.
+Results of the daily build of v4l-dvb:
 
-Henrik, is there any reason why not patching MythTV?
+date:        Fri Mar  5 19:00:04 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14391:41c5482f2dac
+gcc version: i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:     2.6.32.5
 
-> 
->>> +static int num_fake_ca_system_ids;
->> ...
->>> +		for (i = 0; i < num_fake_ca_system_ids; i++) {
->>> +			app_info[4 + i * 2] =
->>> +				(fake_ca_system_ids[i] >> 8) & 0xff;
->> ...
->>
->> NAK. If someone put an arbitrary high value for num_fake_ca_system_id's, it will write outside
->> the app_info array space, as the num_fake_ca_system_ids is not validated against the size
->> of app_info.
-> 
-> That's what I thought at first look at the patch too, but then I noticed
-> that inlcude/linux/moduleparam.h and kernel/params.c properly track
-> kparam_arry.max = ARRAY_SIZE(array).
-> http://lxr.linux.no/#linux+v2.6.33/include/linux/moduleparam.h#L62
-> http://lxr.linux.no/#linux+v2.6.33/include/linux/moduleparam.h#L213
-> http://lxr.linux.no/#linux+v2.6.33/kernel/params.c#L351
-> http://lxr.linux.no/#linux+v2.6.33/kernel/params.c#L296
-> 
-> So no danger here.
-> 
->> Also, it makes no sense a negative value for this parameter.
-> 
-> I already posted an updated version of the patch which correctly defines
-> num_fake_ca_system_ids as an unsigned long.
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.32.6-armv5-dm365: ERRORS
+linux-2.6.33-armv5-dm365: ERRORS
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-armv5-ixp: OK
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.17-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.17-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+spec: OK
+sparse (linux-2.6.33): ERRORS
+linux-2.6.16.62-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.7-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.62-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.7-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
-Ok. As app_info is char [256] (from ca_info::msg field), and kernel module avoids
-the size of the array to be bigger than 4 (the sizeof the array), that's should be ok.
+Detailed results are available here:
 
--- 
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-Cheers,
-Mauro
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
