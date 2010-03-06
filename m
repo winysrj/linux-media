@@ -1,79 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mgw2.diku.dk ([130.225.96.92]:41002 "EHLO mgw2.diku.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753612Ab0CUVbI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Mar 2010 17:31:08 -0400
-Date: Sun, 21 Mar 2010 22:31:06 +0100 (CET)
-From: Julia Lawall <julia@diku.dk>
-To: Mark McClelland <mmcclell@bigfoot.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [PATCH] drivers/media/video: avoid NULL dereference
-Message-ID: <Pine.LNX.4.64.1003212230380.12371@ask.diku.dk>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:53451 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751478Ab0CFAv1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Mar 2010 19:51:27 -0500
+Received: by vws9 with SMTP id 9so2052645vws.19
+        for <linux-media@vger.kernel.org>; Fri, 05 Mar 2010 16:51:26 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <alpine.LNX.2.00.1003051829210.21417@banach.math.auburn.edu>
+References: <alpine.LNX.2.00.1003041737290.18039@banach.math.auburn.edu>
+	 <alpine.LNX.2.00.1003051829210.21417@banach.math.auburn.edu>
+Date: Fri, 5 Mar 2010 16:51:26 -0800
+Message-ID: <a3ef07921003051651j12fbae25r5a3d5276b7da43b7@mail.gmail.com>
+Subject: Re: "Invalid module format"
+From: VDR User <user.vdr@gmail.com>
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+Cc: linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Julia Lawall <julia@diku.dk>
+On Fri, Mar 5, 2010 at 4:39 PM, Theodore Kilgore
+<kilgota@banach.math.auburn.edu> wrote:
+> This is to report the good news that none of the above suspicions have
+> panned out. I still do not know the exact cause of the problem, but a local
+> compile and install of the 2.6.33 kernel did solve the problem. Hence, it
+> does seem that the most likely origin of the problem is somewhere in the
+> Slackware-current tree and the solution does not otherwise concern anyone on
+> this list and does not need to be pursued here.
 
-If ov is NULL, it will not be possible to take the lock in the first place,
-so move the test up earlier.
-
-The semantic match that finds the problem is as follows:
-(http://coccinelle.lip6.fr/)
-
-// <smpl>
-@r exists@
-expression E, E1;
-identifier f;
-statement S1,S3;
-iterator iter;
-@@
-
-if ((E == NULL && ...) || ...)
-{
-  ... when != false ((E == NULL && ...) || ...)
-      when != true  ((E != NULL && ...) || ...)
-      when != iter(E,...) S1
-      when != E = E1
-(
-  sizeof(E->f)
-|
-* E->f
-)
-  ... when any
-  return ...;
-}
-else S3
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-
----
- drivers/media/video/ov511.c         |    8 +++-----
- 1 files changed, 3 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/video/ov511.c b/drivers/media/video/ov511.c
-index e0bce8d..2357218 100644
---- a/drivers/media/video/ov511.c
-+++ b/drivers/media/video/ov511.c
-@@ -5913,14 +5913,12 @@ ov51x_disconnect(struct usb_interface *intf)
- 
- 	PDEBUG(3, "");
- 
-+	if (!ov)
-+		return;
-+
- 	mutex_lock(&ov->lock);
- 	usb_set_intfdata (intf, NULL);
- 
--	if (!ov) {
--		mutex_unlock(&ov->lock);
--		return;
--	}
--
- 	/* Free device number */
- 	ov511_devused &= ~(1 << ov->nr);
- 
+I experienced the same problem and posted a new thread about it with
+the subject "Problem with v4l tree and kernel 2.6.33".  I'm a debian
+user as well so apparently whatever is causing this is not specific to
+debian or slackware.  Even though you've got it working now, the
+source of the problem should be investigated.
