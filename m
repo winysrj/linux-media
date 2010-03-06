@@ -1,65 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.netapp.com ([216.240.18.37]:51425 "EHLO mx2.netapp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751164Ab0CFOnD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Mar 2010 09:43:03 -0500
-Subject: Re: [git:v4l-dvb/master] NFS: Fix a bug in
- nfs_fscache_release_page()
-From: Trond Myklebust <Trond.Myklebust@netapp.com>
-To: linux-media@vger.kernel.org
-Cc: linuxtv-commits@linuxtv.org, David Howells <dhowells@redhat.com>
-In-Reply-To: <E1NnuxV-0000pd-GG@www.linuxtv.org>
-References: <E1NnuxV-0000pd-GG@www.linuxtv.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Date: Sat, 06 Mar 2010 09:43:02 -0500
-Message-ID: <1267886582.4688.8.camel@localhost.localdomain>
-Mime-Version: 1.0
+Received: from bombadil.infradead.org ([18.85.46.34]:57903 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751106Ab0CFNwn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Mar 2010 08:52:43 -0500
+Message-ID: <4B925E25.2070105@infradead.org>
+Date: Sat, 06 Mar 2010 10:52:37 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Stefan Richter <stefanr@s5r6.in-berlin.de>
+CC: linux-media@vger.kernel.org, Henrik Kurelid <henrik@kurelid.se>
+Subject: Re: [PATCH] firedtv: add parameter to fake ca_system_ids in CA_INFO
+References: <tkrat.dc97d52c76a2dc07@s5r6.in-berlin.de> <tkrat.a8cdf995cdc06e83@s5r6.in-berlin.de>
+In-Reply-To: <tkrat.a8cdf995cdc06e83@s5r6.in-berlin.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2010-03-06 at 15:26 +0100, Patch from Trond Myklebust wrote: 
-> From: Trond Myklebust <Trond.Myklebust@netapp.com>
-> 
-> Not having an fscache cookie is perfectly valid if the user didn't mount
-> with the fscache option.
-> 
-> This patch fixes http://bugzilla.kernel.org/show_bug.cgi?id=15234
-> 
-> Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
-> Acked-by: David Howells <dhowells@redhat.com>
-> Cc: stable@kernel.org
-> 
->  fs/nfs/fscache.c |    9 ++++-----
->  1 files changed, 4 insertions(+), 5 deletions(-)
-> 
-> ---
-> 
-> http://git.linuxtv.org/v4l-dvb.git?a=commitdiff;h=2c1740098c708b465e87637b237feb2fd98f129a
-> 
-> diff --git a/fs/nfs/fscache.c b/fs/nfs/fscache.c
-> index fa58800..237874f 100644
-> --- a/fs/nfs/fscache.c
-> +++ b/fs/nfs/fscache.c
-> @@ -354,12 +354,11 @@ void nfs_fscache_reset_inode_cookie(struct inode *inode)
->   */
->  int nfs_fscache_release_page(struct page *page, gfp_t gfp)
->  {
-> -	struct nfs_inode *nfsi = NFS_I(page->mapping->host);
-> -	struct fscache_cookie *cookie = nfsi->fscache;
-> -
-> -	BUG_ON(!cookie);
-> -
->  	if (PageFsCache(page)) {
-> +		struct nfs_inode *nfsi = NFS_I(page->mapping->host);
-> +		struct fscache_cookie *cookie = nfsi->fscache;
-> +
-> +		BUG_ON(!cookie);
->  		dfprintk(FSCACHE, "NFS: fscache releasepage (0x%p/0x%p/0x%p)\n",
->  			 cookie, page, nfsi);
->  
+Stefan Richter wrote:
 
-Err.... Why are we receiving this email? This changeset is already
-committed upstream in Linus' tree and has nothing to do with V4L/DVB.
+> The Digital Everywhere firmware have the shortcoming that ca_info_enq and
+> ca_info are not supported. This means that we can never retrieve the correct
+> ca_system_id to present in the CI message CA_INFO. Currently the driver uses
+> the application id retrieved using app_info_req and app_info, but this id
+> only match the correct ca_system_id as given in ca_info in some cases.
+> This patch adds a parameter to the driver in order for the user to override
+> what will be returned in the CA_INFO CI message. Up to four ca_system_ids can
+> be specified.
+> This is needed for users with CAMs that have different manufacturer id and
+> ca_system_id and that uses applications that take this into account, like
+> MythTV.
 
-Trond
+This seems an ugly workaround. The better seems to patch MythTV to accept a different
+CAM.
+
+> +static int num_fake_ca_system_ids;
+...
+> +		for (i = 0; i < num_fake_ca_system_ids; i++) {
+> +			app_info[4 + i * 2] =
+> +				(fake_ca_system_ids[i] >> 8) & 0xff;
+...
+
+NAK. If someone put an arbitrary high value for num_fake_ca_system_id's, it will write outside
+the app_info array space, as the num_fake_ca_system_ids is not validated against the size
+of app_info. Also, it makes no sense a negative value for this parameter.
+
+-- 
+
+Cheers,
+Mauro
