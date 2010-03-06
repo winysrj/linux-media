@@ -1,73 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f212.google.com ([209.85.218.212]:34764 "EHLO
-	mail-bw0-f212.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751229Ab0CRG7R (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Mar 2010 02:59:17 -0400
-Received: by bwz4 with SMTP id 4so1848886bwz.39
-        for <linux-media@vger.kernel.org>; Wed, 17 Mar 2010 23:59:15 -0700 (PDT)
-Date: Thu, 18 Mar 2010 16:00:19 +0900
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] Add CHIP ID of the uPD61151
-Message-ID: <20100318160019.43043c8f@glory.loctelecom.ru>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/sOntcJ/n5..Cj0JyVmWk2BW"
+Received: from cantor.suse.de ([195.135.220.2]:47128 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750821Ab0CFQMa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Mar 2010 11:12:30 -0500
+Date: Sat, 6 Mar 2010 08:12:51 -0800
+From: Greg KH <gregkh@suse.de>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: linux-media@vger.kernel.org, linuxtv-commits-bounces@linuxtv.org,
+	linuxtv-commits@linuxtv.org,
+	"Eric W.Biederman" <ebiederm@xmission.com>
+Subject: Re: [git:v4l-dvb/master] sysfs: sysfs_sd_setattr set iattrs
+	unconditionally
+Message-ID: <20100306161251.GA23287@suse.de>
+References: <E1Nnuwt-0000VK-9b@www.linuxtv.org> <20100306170655.03d97556@hyperion.delvare>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20100306170655.03d97556@hyperion.delvare>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---MP_/sOntcJ/n5..Cj0JyVmWk2BW
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Sat, Mar 06, 2010 at 05:06:55PM +0100, Jean Delvare wrote:
+> Err, what's happening here? I can't see any chmod call in any V4L or DVB
+> driver, so why would this patch matter there? And we will get this fix
+> through Linus' tree anyway, so why bother at all? I'm puzzled.
 
-Hi
+I'm confused too, I got a bunch of these, for patches that seem to be in
+Linus's tree already.  Did a script go haywire?
 
-Add CHIP ID of the NEC MPEG2 encoders uPD61151 and uPD61152.
-
-diff -r b6b82258cf5e linux/include/media/v4l2-chip-ident.h
---- a/linux/include/media/v4l2-chip-ident.h	Thu Dec 31 19:14:54 2009 -0200
-+++ b/linux/include/media/v4l2-chip-ident.h	Wed Mar 17 04:53:52 2010 +0900
-@@ -278,6 +278,11 @@
- 	/* module cs53132a: just ident 53132 */
- 	V4L2_IDENT_CS53l32A = 53132,
- 
-+	/* modules upd61151 MPEG2 encoder: just ident 54000 */
-+	V4L2_IDENT_UPD61161 = 54000,
-+	/* modules upd61152 MPEG2 encoder with AC3: just ident 54001 */
-+	V4L2_IDENT_UPD61162 = 54001,
-+
- 	/* module upd64031a: just ident 64031 */
- 	V4L2_IDENT_UPD64031A = 64031,
- 
-
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
-
-
-With my best regards, Dmitry.
-
---MP_/sOntcJ/n5..Cj0JyVmWk2BW
-Content-Type: text/x-patch; name=v4l2_upd61151.patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=v4l2_upd61151.patch
-
-diff -r b6b82258cf5e linux/include/media/v4l2-chip-ident.h
---- a/linux/include/media/v4l2-chip-ident.h	Thu Dec 31 19:14:54 2009 -0200
-+++ b/linux/include/media/v4l2-chip-ident.h	Wed Mar 17 04:53:52 2010 +0900
-@@ -278,6 +278,11 @@
- 	/* module cs53132a: just ident 53132 */
- 	V4L2_IDENT_CS53l32A = 53132,
- 
-+	/* modules upd61151 MPEG2 encoder: just ident 54000 */
-+	V4L2_IDENT_UPD61161 = 54000,
-+	/* modules upd61152 MPEG2 encoder with AC3: just ident 54001 */
-+	V4L2_IDENT_UPD61162 = 54001,
-+
- 	/* module upd64031a: just ident 64031 */
- 	V4L2_IDENT_UPD64031A = 64031,
- 
-
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
-
---MP_/sOntcJ/n5..Cj0JyVmWk2BW--
+greg k-h
