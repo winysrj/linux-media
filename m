@@ -1,67 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58357 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752874Ab0CVNgG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Mar 2010 09:36:06 -0400
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: Viral Mehta <Viral.Mehta@lntinfotech.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Date: Mon, 22 Mar 2010 08:36:00 -0500
-Subject: RE: omap2 camera
-Message-ID: <A24693684029E5489D1D202277BE89445428BE8E@dlee02.ent.ti.com>
-References: <70376CA23424B34D86F1C7DE6B997343017F5D5BD5@VSHINMSMBX01.vshodc.lntinfotech.com>
-In-Reply-To: <70376CA23424B34D86F1C7DE6B997343017F5D5BD5@VSHINMSMBX01.vshodc.lntinfotech.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from relay02.digicable.hu ([92.249.128.188]:38026 "EHLO
+	relay02.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752376Ab0CFJYx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Mar 2010 04:24:53 -0500
+Message-ID: <4B921F5F.4000905@freemail.hu>
+Date: Sat, 06 Mar 2010 10:24:47 +0100
+From: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
 MIME-Version: 1.0
+To: Jean Delvare <khali@linux-fr.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Douglas Schilling Landgraf <dougsland@redhat.com>
+CC: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/2] bttv: Move I2C IR initialization
+References: <20100216182152.44129e46@hyperion.delvare>
+In-Reply-To: <20100216182152.44129e46@hyperion.delvare>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Viral,
+Hi,
+Jean Delvare wrote:
+> Move I2C IR initialization from just after I2C bus setup to right
+> before non-I2C IR initialization. This avoids the case where an I2C IR
+> device is blocking audio support (at least the PV951 suffers from
+> this). It is also more logical to group IR support together,
+> regardless of the connectivity.
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Viral Mehta
-> Sent: Monday, March 22, 2010 5:20 AM
-> To: linux-media@vger.kernel.org
-> Subject: omap2 camera
-> 
-> Hi list,
-> 
-> I am using OMAP2430 board and I wanted to test camera module on that
-> board.
-> I am using latest 2.6.33 kernel. However, it looks like camera module is
-> not supported with latest kernel.
-> 
-> Anyone is having any idea? Also, do we require to have ex3691 sensor
-> driver in mainline kernel in order to get omap24xxcam working ?
-> 
-> These are the steps I followed,
-> 1. make omap2430_sdp_defconfig
-> 2. Enable omap2 camera option which is under drivers/media/video
-> 3. make uImage
-> 
-> And with this uImage, camera is not working. I would appreciate any help.
+Something could have gone wrong because this patch and the patch
+at http://linuxtv.org/hg/v4l-dvb/rev/659e08177aa3 has the
 
-I'm adding Sakari Ailus to the CC list, which is the owner of the driver.
+  #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 30)
 
-Regards,
-Sergio
+and
 
+  #endif
+
+pair at different places. The current result is the following compiler
+warning:
+
+  bttv-i2c.c: In function 'init_bttv_i2c':
+  bttv-i2c.c:440: warning: control reaches end of non-void function
+
+Regard,
+
+	Márton Németh
+
+>
+> This fixes bug #15184:
+> http://bugzilla.kernel.org/show_bug.cgi?id=15184
 > 
-> Thanks,
-> Viral
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> ---
+> As this fixes a regression, I suggest pushing to Linus quickly. This is
+> a candidate for 2.6.32-stable too.
 > 
-> This Email may contain confidential or privileged information for the
-> intended recipient (s) If you are not the intended recipient, please do
-> not use or disseminate the information, notify the sender and delete it
-> from your system.
+>  linux/drivers/media/video/bt8xx/bttv-driver.c |    1 +
+>  linux/drivers/media/video/bt8xx/bttv-i2c.c    |   10 +++++++---
+>  linux/drivers/media/video/bt8xx/bttvp.h       |    1 +
+>  3 files changed, 9 insertions(+), 3 deletions(-)
 > 
-> ______________________________________________________________________
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --- v4l-dvb.orig/linux/drivers/media/video/bt8xx/bttv-i2c.c	2009-12-11 09:47:47.000000000 +0100
+> +++ v4l-dvb/linux/drivers/media/video/bt8xx/bttv-i2c.c	2010-02-16 18:14:34.000000000 +0100
+> @@ -409,9 +409,14 @@ int __devinit init_bttv_i2c(struct bttv
+>  	}
+>  	if (0 == btv->i2c_rc && i2c_scan)
+>  		do_i2c_scan(btv->c.v4l2_dev.name, &btv->i2c_client);
+> -#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 30)
+>  
+> -	/* Instantiate the IR receiver device, if present */
+> +	return btv->i2c_rc;
+> +}
+> +
+> +/* Instantiate the I2C IR receiver device, if present */
+> +void __devinit init_bttv_i2c_ir(struct bttv *btv)
+> +{
+> +#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 30)
+>  	if (0 == btv->i2c_rc) {
+>  		struct i2c_board_info info;
+>  		/* The external IR receiver is at i2c address 0x34 (0x35 for
+> @@ -432,7 +437,6 @@ int __devinit init_bttv_i2c(struct bttv
+>  		i2c_new_probed_device(&btv->c.i2c_adap, &info, addr_list);
+>  	}
+>  #endif
+> -	return btv->i2c_rc;
+>  }
+>  
+>  int __devexit fini_bttv_i2c(struct bttv *btv)
+> --- v4l-dvb.orig/linux/drivers/media/video/bt8xx/bttvp.h	2009-04-06 10:10:24.000000000 +0200
+> +++ v4l-dvb/linux/drivers/media/video/bt8xx/bttvp.h	2010-02-16 18:13:31.000000000 +0100
+> @@ -281,6 +281,7 @@ extern unsigned int bttv_debug;
+>  extern unsigned int bttv_gpio;
+>  extern void bttv_gpio_tracking(struct bttv *btv, char *comment);
+>  extern int init_bttv_i2c(struct bttv *btv);
+> +extern void init_bttv_i2c_ir(struct bttv *btv);
+>  extern int fini_bttv_i2c(struct bttv *btv);
+>  
+>  #define bttv_printk if (bttv_verbose) printk
+> --- v4l-dvb.orig/linux/drivers/media/video/bt8xx/bttv-driver.c	2009-12-11 09:47:47.000000000 +0100
+> +++ v4l-dvb/linux/drivers/media/video/bt8xx/bttv-driver.c	2010-02-16 18:13:31.000000000 +0100
+> @@ -4498,6 +4498,7 @@ static int __devinit bttv_probe(struct p
+>  		request_modules(btv);
+>  	}
+>  
+> +	init_bttv_i2c_ir(btv);
+>  	bttv_input_init(btv);
+>  
+>  	/* everything is fine */
+> 
+> 
+
