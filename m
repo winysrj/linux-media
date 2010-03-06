@@ -1,66 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1492 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751079Ab0CTSi6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Mar 2010 14:38:58 -0400
-Subject: Re: RFC: Phase 1: Proposal to convert V4L1 drivers
-From: Gerard Klaver <gerard.klaver@xs4all.nl>
-Reply-To: gerard.klaver@xs4all.nl
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	David Ellingsworth <david@identd.dyndns.org>
-In-Reply-To: <201003200958.49649.hverkuil@xs4all.nl>
-References: <201003200958.49649.hverkuil@xs4all.nl>
-Content-Type: text/plain
-Date: Sat, 20 Mar 2010 19:38:39 +0100
-Message-Id: <1269110319.4102.4.camel@gk-sem3.gkall.nl>
+Received: from mx2.netapp.com ([216.240.18.37]:51425 "EHLO mx2.netapp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751164Ab0CFOnD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Mar 2010 09:43:03 -0500
+Subject: Re: [git:v4l-dvb/master] NFS: Fix a bug in
+ nfs_fscache_release_page()
+From: Trond Myklebust <Trond.Myklebust@netapp.com>
+To: linux-media@vger.kernel.org
+Cc: linuxtv-commits@linuxtv.org, David Howells <dhowells@redhat.com>
+In-Reply-To: <E1NnuxV-0000pd-GG@www.linuxtv.org>
+References: <E1NnuxV-0000pd-GG@www.linuxtv.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Date: Sat, 06 Mar 2010 09:43:02 -0500
+Message-ID: <1267886582.4688.8.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2010-03-20 at 09:58 +0100, Hans Verkuil wrote:
-> Hi all,
+On Sat, 2010-03-06 at 15:26 +0100, Patch from Trond Myklebust wrote: 
+> From: Trond Myklebust <Trond.Myklebust@netapp.com>
 > 
-<lines deleted>
+> Not having an fscache cookie is perfectly valid if the user didn't mount
+> with the fscache option.
 > 
-> - ov511
-> - ovcamchip
-> - w9968cf
-> - stv680
+> This patch fixes http://bugzilla.kernel.org/show_bug.cgi?id=15234
 > 
+> Signed-off-by: Trond Myklebust <Trond.Myklebust@netapp.com>
+> Acked-by: David Howells <dhowells@redhat.com>
+> Cc: stable@kernel.org
+> 
+>  fs/nfs/fscache.c |    9 ++++-----
+>  1 files changed, 4 insertions(+), 5 deletions(-)
+> 
+> ---
+> 
+> http://git.linuxtv.org/v4l-dvb.git?a=commitdiff;h=2c1740098c708b465e87637b237feb2fd98f129a
+> 
+> diff --git a/fs/nfs/fscache.c b/fs/nfs/fscache.c
+> index fa58800..237874f 100644
+> --- a/fs/nfs/fscache.c
+> +++ b/fs/nfs/fscache.c
+> @@ -354,12 +354,11 @@ void nfs_fscache_reset_inode_cookie(struct inode *inode)
+>   */
+>  int nfs_fscache_release_page(struct page *page, gfp_t gfp)
+>  {
+> -	struct nfs_inode *nfsi = NFS_I(page->mapping->host);
+> -	struct fscache_cookie *cookie = nfsi->fscache;
+> -
+> -	BUG_ON(!cookie);
+> -
+>  	if (PageFsCache(page)) {
+> +		struct nfs_inode *nfsi = NFS_I(page->mapping->host);
+> +		struct fscache_cookie *cookie = nfsi->fscache;
+> +
+> +		BUG_ON(!cookie);
+>  		dfprintk(FSCACHE, "NFS: fscache releasepage (0x%p/0x%p/0x%p)\n",
+>  			 cookie, page, nfsi);
+>  
 
-> Conclusion:
-> 
-> These drivers have no hardware to test with: bw-qcam, c-qcam, arv, w9966.
-> However, all four should be easy to convert to v4l2, even without hardware.
-> Volunteers?
-> 
+Err.... Why are we receiving this email? This changeset is already
+committed upstream in Linus' tree and has nothing to do with V4L/DVB.
 
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> -- 
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-Hello, 
-
-I have a c-qcam with par. port, so i can do some test, see page below
-for some information webcam:
- 
-http://gkall.hobby.nl/connectix-quickcam.html
-
--- 
---------
-m.vr.gr.
-Gerard Klaver
-
+Trond
