@@ -1,40 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f223.google.com ([209.85.220.223]:61063 "EHLO
-	mail-fx0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752673Ab0C2SlL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Mar 2010 14:41:11 -0400
-Received: by fxm23 with SMTP id 23so1112615fxm.21
-        for <linux-media@vger.kernel.org>; Mon, 29 Mar 2010 11:41:09 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <b8a3b1ca1003290841h68e4b109nd7e095393518ba63@mail.gmail.com>
-References: <b8a3b1ca1003290841h68e4b109nd7e095393518ba63@mail.gmail.com>
-Date: Mon, 29 Mar 2010 20:41:08 +0200
-Message-ID: <b8a3b1ca1003291141t2cbc05c4o6be1574da798a084@mail.gmail.com>
-Subject: Re: Module option adapter_nr
-From: =?UTF-8?B?VG9tw6HFoSBTa2/EjWRvcG9sZQ==?=
-	<tomas.skocdopole@ippolna.cz>
-To: linux-media@vger.kernel.org
+Received: from bamako.nerim.net ([62.4.17.28]:58269 "EHLO bamako.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750813Ab0CFMDi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Mar 2010 07:03:38 -0500
+Date: Sat, 6 Mar 2010 13:03:35 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Douglas Schilling Landgraf <dougsland@redhat.com>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] bttv: fix compiler warning before kernel 2.6.30
+Message-ID: <20100306130335.20f0c723@hyperion.delvare>
+In-Reply-To: <4B921F84.3000803@freemail.hu>
+References: <20100216182152.44129e46@hyperion.delvare>
+	<4B921F5F.4000905@freemail.hu>
+	<4B921F84.3000803@freemail.hu>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Sat, 06 Mar 2010 10:25:24 +0100, Németh Márton wrote:
+> From: Márton Németh <nm127@freemail.hu>
+> 
+> Fix the following compiler warnings when compiling before Linux
+> kernel version 2.6.30:
+>   bttv-i2c.c: In function 'init_bttv_i2c':
+>   bttv-i2c.c:440: warning: control reaches end of non-void function
+> 
+> Signed-off-by: Márton Németh <nm127@freemail.hu>
 
-I am using the Archlinux distribution and i have four Skystar HD2
-cards and one Airstar DVB card in my system.
-I want to specify adapter numbers for this cards. Order of DVB-S2
-cards is not important.
+Good catch.
 
-So I add this lines into /etc/modprobe.d/modprobe.conf
-options b2c2-flexcop adapter_nr=0
-options mantis-core adapter_nr=11,12,13,14
+Acked-by: Jean Delvare <khali@linux-fr.org>
 
-But with no results.
+Douglas, please apply quickly.
 
-If I specify option directly, I got same result: modprobe mantis-core
-adapter_nr=11,12,13,14; modprobe mantis
+> ---
+> diff -r 41c5482f2dac linux/drivers/media/video/bt8xx/bttv-i2c.c
+> --- a/linux/drivers/media/video/bt8xx/bttv-i2c.c	Thu Mar 04 02:49:46 2010 -0300
+> +++ b/linux/drivers/media/video/bt8xx/bttv-i2c.c	Sat Mar 06 10:22:55 2010 +0100
+> @@ -409,7 +409,6 @@
+>  	}
+>  	if (0 == btv->i2c_rc && i2c_scan)
+>  		do_i2c_scan(btv->c.v4l2_dev.name, &btv->i2c_client);
+> -#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 30)
+> 
+>  	return btv->i2c_rc;
+>  }
+> @@ -417,6 +416,7 @@
+>  /* Instantiate the I2C IR receiver device, if present */
+>  void __devinit init_bttv_i2c_ir(struct bttv *btv)
+>  {
+> +#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 30)
+>  	if (0 == btv->i2c_rc) {
+>  		struct i2c_board_info info;
+>  		/* The external IR receiver is at i2c address 0x34 (0x35 for
+> 
 
-Or it is better do this with udev?
 
-Regards, Tomas Skocdopole
+-- 
+Jean Delvare
