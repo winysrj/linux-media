@@ -1,45 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:34631 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753178Ab0CCIhY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Mar 2010 03:37:24 -0500
-Date: Wed, 3 Mar 2010 09:37:44 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Antonio Ospite <ospite@studenti.unina.it>
-Cc: "M.Ebrahimi" <m.ebrahimi@ieee.org>, Max Thrun <bear24rw@gmail.com>,
-	linux-media@vger.kernel.org, Jim Paris <jim@jtan.com>
-Subject: Re: [PATCH 10/11] ov534: Add Powerline Frequency control
-Message-ID: <20100303093744.5f65fedb@tele>
-In-Reply-To: <20100303090008.f94e7789.ospite@studenti.unina.it>
-References: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
-	<1267302028-7941-11-git-send-email-ospite@studenti.unina.it>
-	<20100228194951.1c1e26ce@tele>
-	<20100228201850.81f7904a.ospite@studenti.unina.it>
-	<20100228205528.54d1ba69@tele>
-	<1d742ad81003020326h5e02189bt6511b840dd17d7e3@mail.gmail.com>
-	<20100302163937.70a15c19.ospite@studenti.unina.it>
-	<7b67a5ec1003020806x65164673ue699de2067bc4fb8@mail.gmail.com>
-	<1d742ad81003021827p181bf0a6mdf87ad7535bc37bd@mail.gmail.com>
-	<20100303090008.f94e7789.ospite@studenti.unina.it>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Received: from web23204.mail.ird.yahoo.com ([217.146.189.59]:41786 "HELO
+	web23204.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752529Ab0CFNGc convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Mar 2010 08:06:32 -0500
+Message-ID: <303201.65557.qm@web23204.mail.ird.yahoo.com>
+Date: Sat, 6 Mar 2010 12:59:50 +0000 (GMT)
+From: Newsy Paper <newspaperman_germany@yahoo.com>
+Subject: why can't S2-3200 do APSK32 and APSK16?
+To: linux-media@vger.kernel.org
+In-Reply-To: <602945.89692.qm@web23202.mail.ird.yahoo.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 3 Mar 2010 09:00:08 +0100
-Antonio Ospite <ospite@studenti.unina.it> wrote:
+seems like netup card can do apsk16+ apsk32 http://udev.netup.ru/cgi-bin/hgwebdir.cgi/v4l-dvb-aospan-stv0900aac/rev/247404af8e56
 
-> Ok, so Jean-Francois can you apply the patches except 10/11, please?
-> We are keeping this one for another round.
+what's the reason s2-3200 cannot do that modulation? I think s2-3200's hardware supports those modulations, is there a problem with the driver then?
 
-Hello ov534 team,
+kind regards
 
-Actually, I have problems with the mercurial tree. I will apply your
-changes as soon as everything will be resolved..
 
-Cheers.
+Newspaperman
 
--- 
-Ken ar c'hentaÃ±	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+--- Newsy Paper <newspaperman_germany@yahoo.com> schrieb am So, 19.7.2009:
+
+> Von: Newsy Paper <newspaperman_germany@yahoo.com>
+> Betreff: can S2-3200 do APSK32 and APSK16?
+> An: linux-media@vger.kernel.org
+> Datum: Sonntag, 19. Juli, 2009 13:02 Uhr
+> 
+> On 13e
+> the italians use dvb2 modulation 16APSK.
+> tp. 7 (11,334 GHz, pol. H, SR: 27500, FEC: 2/3)
+> tp. 9 (11,373 GHz, pol. H, SR: 27500, FEC: 2/3)
+> 
+> how to receive those channels with S2-3200? Is there a
+> missing part in the driver for APSK?
+> 
+> 
+>       
+> --
+> To unsubscribe from this list: send the line "unsubscribe
+> linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+__________________________________________________
+Do You Yahoo!?
+Sie sind Spam leid? Yahoo! Mail verfügt über einen herausragenden Schutz gegen Massenmails. 
+http://mail.yahoo.com 
