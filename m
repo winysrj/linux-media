@@ -1,110 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:35478 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1756358Ab0C3OkJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Mar 2010 10:40:09 -0400
-Date: Tue, 30 Mar 2010 16:40:17 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Rodolfo Giometti <giometti@enneenne.com>
-cc: Richard =?iso-8859-15?Q?R=F6jfors?=
-	<richard.rojfors@pelagicore.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: adv7180 as SoC camera device
-In-Reply-To: <20100330140611.GR5937@enneenne.com>
-Message-ID: <Pine.LNX.4.64.1003301638090.6963@axis700.grange>
-References: <20100219174451.GH21778@enneenne.com> <Pine.LNX.4.64.1002192018170.5860@axis700.grange>
- <20100222160139.GL21778@enneenne.com> <4B8310F1.8070005@pelagicore.com>
- <20100330140611.GR5937@enneenne.com>
+Received: from banach.math.auburn.edu ([131.204.45.3]:48941 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751272Ab0CFG0L (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Mar 2010 01:26:11 -0500
+Date: Sat, 6 Mar 2010 00:48:43 -0600 (CST)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+cc: Randy Dunlap <rdunlap@xenotime.net>, VDR User <user.vdr@gmail.com>,
+	linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
+Subject: Re: "Invalid module format"
+In-Reply-To: <4B91CE02.4090200@redhat.com>
+Message-ID: <alpine.LNX.2.00.1003052254200.21642@banach.math.auburn.edu>
+References: <alpine.LNX.2.00.1003041737290.18039@banach.math.auburn.edu>  <alpine.LNX.2.00.1003051829210.21417@banach.math.auburn.edu> <a3ef07921003051651j12fbae25r5a3d5276b7da43b7@mail.gmail.com> <4B91AADD.4030300@xenotime.net>
+ <4B91CE02.4090200@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=iso-8859-15
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 30 Mar 2010, Rodolfo Giometti wrote:
 
-> On Tue, Feb 23, 2010 at 12:19:13AM +0100, Richard Röjfors wrote:
-> > 
-> > We use it as a subdev to a driver not yet committed from us. So I think
-> > you should extend it, not move it.
-> 
-> Finally I got something functional... but I'm puzzled to know how I
-> can add platform data configuration struct by using the I2C's
-> platform_data pointer if it is already used to hold struct
-> soc_camera_device... O_o
 
-As usual, looking at existing examples helps, e.g., in ov772x:
+On Sat, 6 Mar 2010, Mauro Carvalho Chehab wrote:
 
-	priv->info = icl->priv;
-
-i.e., icl->priv is where you pass subdevice-driver specific data with 
-the soc-camera API.
-
-> In fact my probe function looks like:
-> 
-> static __devinit int adv7180_probe(struct i2c_client *client,
->                         const struct i2c_device_id *id)
-> {
->         struct adv7180_state *state;
->         struct soc_camera_device *icd = client->dev.platform_data;
->         struct soc_camera_link *icl;
->         struct v4l2_subdev *sd;
->         int ret;
-> 
->         /* Check if the adapter supports the needed features */
->         if (!i2c_check_functionality(client->adapter,
-> 	I2C_FUNC_SMBUS_BYTE_DATA))
->                 return -EIO;
-> 
->         v4l_info(client, "chip found @ 0x%02x (%s)\n",
->                         client->addr << 1, client->adapter->name);
-> 
->         if (icd) {
->                 icl = to_soc_camera_link(icd);
->                 if (!icl)
->                         return -EINVAL;
-> 
->                 icd->ops = &adv7180_soc_ops;
->                 v4l_info(client, "soc-camera support enabled\n");
->         } else
->                 pdata = client->dev.platform_data;
-
-This is a complicated way to say
-
-		pdata = NULL;
-
-Thanks
-Guennadi
-
-> 
->         state = kzalloc(sizeof(struct adv7180_state), GFP_KERNEL);
->         if (state == NULL) {
->                 ret = -ENOMEM;
->                 goto err;
->         }
-> 
->         state->irq = client->irq;
->         INIT_WORK(&state->work, adv7180_work);
->         mutex_init(&state->mutex);
->         state->autodetect = true;
->         sd = &state->sd;
->         v4l2_i2c_subdev_init(sd, client, &adv7180_ops);
-> 	...
-> 
-> Thanks in advance,
-> 
-> Rodolfo
-> 
+> Randy Dunlap wrote:
+>> On 03/05/10 16:51, VDR User wrote:
+>>> On Fri, Mar 5, 2010 at 4:39 PM, Theodore Kilgore
+>>> <kilgota@banach.math.auburn.edu> wrote:
+>>>> This is to report the good news that none of the above suspicions have
+>>>> panned out. I still do not know the exact cause of the problem, but a local
+>>>> compile and install of the 2.6.33 kernel did solve the problem. Hence, it
+>>>> does seem that the most likely origin of the problem is somewhere in the
+>>>> Slackware-current tree and the solution does not otherwise concern anyone on
+>>>> this list and does not need to be pursued here.
+>>> I experienced the same problem and posted a new thread about it with
+>>> the subject "Problem with v4l tree and kernel 2.6.33".  I'm a debian
+>>> user as well so apparently whatever is causing this is not specific to
+>>> debian or slackware.  Even though you've got it working now, the
+>>> source of the problem should be investigated.
+>>> --
+>>
+>> It's been several years since I last saw this error and I don't recall
+>> what caused it then.
+>>
+>> The message "Invalid module format" comes from either of modprobe and/or
+>> insmod when the kernel returns ENOEXEC to a module (load) syscall.
+>> Sometimes the kernel produces more explanatory messages  & sometimes not.
+>>
+>> If there are no more explanatory messages, then kernel/module.c can be
+>> built with DEBUGP producing more output (and then that new kernel would
+>> have to be loaded).
+>>
+>> Can one of you provide a kernel config file for a kernel/modprobe combination
+>> that produces this message?  Some of the CONFIG_MODULE* config symbols could
+>> have relevance here also.
+>>
+>
+>
+> I suspect that it may be related to this:
+>
+> # Select 32 or 64 bit
+> config 64BIT
+>        bool "64-bit kernel" if ARCH = "x86"
+>        default ARCH = "x86_64"
+>        ---help---
+>          Say yes to build a 64-bit kernel - formerly known as x86_64
+>          Say no to build a 32-bit kernel - formerly known as i386
+>
+> With 2.6.33, it is now possible to compile a 32 bits kernel on a 64 bits
+> machine without needing to pass make ARCH=i386 or to use cross-compilation.
+>
+> Maybe you're running a 32bits kernel, and you've compiled the out-of-tree
+> modules with 64bits or vice-versa.
+>
+> My suggestion is that you should try to force the compilation wit the proper
+> ARCH with something like:
+> 	make distclean
+> 	make ARCH=`uname -i`
+> 	make ARCH=`uname -i` install
+>
 > -- 
-> 
-> GNU/Linux Solutions                  e-mail: giometti@enneenne.com
-> Linux Device Driver                          giometti@linux.it
-> Embedded Systems                     phone:  +39 349 2432127
-> UNIX programming                     skype:  rodolfo.giometti
-> Freelance ICT Italia - Consulente ICT Italia - www.consulenti-ict.it
-> 
+>
+> Cheers,
+> Mauro
 
----
-Guennadi Liakhovetski
+Mauro,
+
+After I did a re-compile of the kernel and modules, all the gspca stuff 
+(at least, what I tested which is two or three cameras) all worked just 
+fine. All I needed to do was make distclean and then make menuconfig again 
+and the gspca setup "saw" my new kernel. I made sure to know this by 
+putting up a slightly different name for it, using CONFIG_LOCALVERSION= 
+option. So I guess to this extent I used force, but I did not need to do 
+more than that.
+
+
+Now, seeing if I can help further in tracking this thing down, here are 
+some more details.
+
+1. As I said, the problem is fixed now, by a local re-compile of the 
+kernel (I did change a few things in the configuration and also cleared 
+out a lot of junk which has nothing to do with my hardware, of course). So 
+there might be some things of interest in the two config files. Naturally, 
+I can send them to anyone who would like to see them. But I think that I 
+cover the important differences below.
+
+
+Additional comment: I probably could have taken the option of running 
+Slackware64 if I wanted to do that, because I suspect that my hardware 
+would support it. But I used regular Slackware. So the kernel, the 
+modules, and everything else are 32-bit, or supposed to be, though the 
+machine could run 64-bit.
+
+2. According to what you are saying, here from my current config 
+file is what might be relevant
+
+# CONFIG_64BIT is not set
+CONFIG_X86_32=y
+# CONFIG_X86_64 is not set
+CONFIG_X86=y
+CONFIG_OUTPUT_FORMAT="elf32-i386"
+CONFIG_ARCH_DEFCONFIG="arch/x86/configs/i386_defconfig"
+
+and also it might possibly be important, too, that the processor type I 
+chose was
+
+CONFIG_MK8=y
+
+for the very good reason that this is what is in the machine. Also I cut 
+the choice for support of parallel CPUs down to 2 CPUs from 8 CPUs, again 
+because that is what is actually present.
+
+And furthermore my kernel config says
+
+CONFIG_LOCALVERSION="-my"
+
+and the original one says
+
+CONFIG_LOCALVERSION="-smp"
+
+so that I have two distinct sets of modules, 2.6.33-my and 2.6.33-smp and 
+I can go back and boot from the Slackware kernel to a functioning machine, 
+too.
+
+The kernel which I used from Slackware-current is one of the standard 
+ones, the one called vmlinuz-huge-smp-2.6.33-smp which comes in the 
+Slackware package called kernel-huge-smp-2.6.33_smp-i686-1.txz. Its config 
+file is in the package, too, so here are the similar parts of it:
+
+# CONFIG_64BIT is not set
+CONFIG_X86_32=y
+# CONFIG_X86_64 is not set
+CONFIG_X86=y
+CONFIG_OUTPUT_FORMAT="elf32-i386"
+CONFIG_ARCH_DEFCONFIG="arch/x86/configs/i386_defconfig"
+
+The above looks the same to me as my choices. But the CPU type was quite 
+different, of course, because it was a distro kernel.
+
+CONFIG_M686=y
+
+And the Slackware kernel also chose
+
+CONFIG_X86_GENERIC=y
+
+but when re-compiling I turned that off.
+
+Also, as mentioned previously, the choice in the Slackware kernel was to 
+support up to 8 parallel CPUs.
+
+If there is anything else of interest in comparing the two config files, 
+someone should let me know. The only thing I can put my finger on is the 
+different choice of CPU and possibly the "GENERIC" option can cause 
+occasional problems?
+
+I seem to recall that I have had trouble with this kind of thing sometimes 
+in the long-ago past, as someone else has mentioned. On a couple of 
+occasions way back when, some of the "stock" distro modules would not 
+initialize properly and the cure was to do a local kernel-and-modules 
+compile. Not that compiling the kernel bothered me terribly back then, or 
+now. But a problem like this one is in a way an accident, and of course 
+accidents are not supposed to happen.
+
+Trying to look backward, It seems to me that one factor in the long-ago 
+problems and also in this one might be the difference between the default 
+CPU choice in a distro kernel and what is actually in the machine. 
+Especially, the difference between having "M686" in the kernel and 
+modules, as opposed to something else (especially something like K8) being 
+in the machine might sometimes cause interference. And then modprobe sees 
+the real hardware and sees an apparent conflict in the choice of M686 in 
+the module. But this is only semi-informed speculation on my part. Someone 
+else may know a lot more.
+
+Hoping that the above helps in tracking down the problem.
+
+Theodore Kilgore
+
