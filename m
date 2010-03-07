@@ -1,36 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f219.google.com ([209.85.220.219]:40445 "EHLO
-	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755397Ab0CJXYx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Mar 2010 18:24:53 -0500
-Received: by fxm19 with SMTP id 19so9248639fxm.21
-        for <linux-media@vger.kernel.org>; Wed, 10 Mar 2010 15:24:52 -0800 (PST)
-Message-ID: <4B982A41.3020009@gmail.com>
-Date: Thu, 11 Mar 2010 00:24:49 +0100
-From: David Kubicek <foceni@gmail.com>
+Received: from banach.math.auburn.edu ([131.204.45.3]:49654 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754627Ab0CGSuB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Mar 2010 13:50:01 -0500
+Date: Sun, 7 Mar 2010 13:12:48 -0600 (CST)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: VDR User <user.vdr@gmail.com>
+cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
+Subject: Re: "Invalid module format"
+In-Reply-To: <a3ef07921003070955q7d7ce7e8j747c07d56a0ad98e@mail.gmail.com>
+Message-ID: <alpine.LNX.2.00.1003071312070.23437@banach.math.auburn.edu>
+References: <alpine.LNX.2.00.1003041737290.18039@banach.math.auburn.edu>  <alpine.LNX.2.00.1003051829210.21417@banach.math.auburn.edu>  <a3ef07921003051651j12fbae25r5a3d5276b7da43b7@mail.gmail.com>  <4B91AADD.4030300@xenotime.net> <4B91CE02.4090200@redhat.com>
+ <a3ef07921003070955q7d7ce7e8j747c07d56a0ad98e@mail.gmail.com>
 MIME-Version: 1.0
-To: Discussion about mythtv <mythtv-users@mythtv.org>,
-	linux-media@vger.kernel.org
-Subject: USB TechnoTrend Connect S2-3650 CI + CAM's
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED; BOUNDARY="-863829203-197963264-1267989168=:23437"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-I was just wondering, as there seem a complete driver available for this 
-tuner and its CI interface, is anybody actually using this HW with 
-MythTV or any other Linux TV solution?
+---863829203-197963264-1267989168=:23437
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8BIT
 
-For now, the best CI option card has been the TT-S2-3200, but if this 
-relatively new USB card works with HW CAM's too, it would be great news. 
-I've been waiting for it for some time, it's a good add-on card for the 
-few extra pay-services requiring non-standard CAM's (like DRE for 
-Penthouse HD :)).
 
-Do share your experience...
 
--- 
-David Kubicek
+On Sun, 7 Mar 2010, VDR User wrote:
+
+> On Fri, Mar 5, 2010 at 7:37 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> I suspect that it may be related to this:
+>>
+>> # Select 32 or 64 bit
+>> config 64BIT
+>>        bool "64-bit kernel" if ARCH = "x86"
+>>        default ARCH = "x86_64"
+>>        ---help---
+>>          Say yes to build a 64-bit kernel - formerly known as x86_64
+>>          Say no to build a 32-bit kernel - formerly known as i386
+>>
+>> With 2.6.33, it is now possible to compile a 32 bits kernel on a 64 bits
+>> machine without needing to pass make ARCH=i386 or to use cross-compilation.
+>>
+>> Maybe you're running a 32bits kernel, and you've compiled the out-of-tree
+>> modules with 64bits or vice-versa.
+>>
+>> My suggestion is that you should try to force the compilation wit the proper
+>> ARCH with something like:
+>>        make distclean
+>>        make ARCH=`uname -i`
+>>        make ARCH=`uname -i` install
+>
+> I had forgot to reply to this but while I do have a 64bit capable cpu,
+> I compile & use only 32bit.
+>
+
+Same here. Let us hope it is the same problem, and it will be possible to 
+track it down once and fix it.
+
+Theodore Kilgore
+---863829203-197963264-1267989168=:23437--
