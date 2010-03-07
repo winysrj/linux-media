@@ -1,59 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:7264 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754245Ab0CVJ2F (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Mar 2010 05:28:05 -0400
-Message-ID: <4BA73865.3070107@redhat.com>
-Date: Mon, 22 Mar 2010 10:29:09 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-fx0-f219.google.com ([209.85.220.219]:34702 "EHLO
+	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751215Ab0CGQl5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Mar 2010 11:41:57 -0500
+Received: by fxm19 with SMTP id 19so5641056fxm.21
+        for <linux-media@vger.kernel.org>; Sun, 07 Mar 2010 08:41:56 -0800 (PST)
+Message-ID: <4B93D751.1020008@gmail.com>
+Date: Sun, 07 Mar 2010 17:41:53 +0100
+From: thomas schorpp <thomas.schorpp@googlemail.com>
+Reply-To: thomas.schorpp@gmail.com
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	David Ellingsworth <david@identd.dyndns.org>
-Subject: Re: RFC: Phase 1: Proposal to convert V4L1 drivers
-References: <201003200958.49649.hverkuil@xs4all.nl> <201003212345.04736.hverkuil@xs4all.nl> <201003220117.34790.hverkuil@xs4all.nl>
-In-Reply-To: <201003220117.34790.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: linux-media@vger.kernel.org
+Subject: Re: Help with RTL2832U DVB-T dongle (LeadTek WinFast DTV Dongle Mini)
+References: <6934ea941003052353n4258600cs78dba8487d203564@mail.gmail.com> <4B93537F.30407@hoogenraad.net>
+In-Reply-To: <4B93537F.30407@hoogenraad.net>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Jan Hoogenraad wrote:
+> Antti has been working on drivers for the RTL283x.
+> 
+> http://linuxtv.org/hg/~anttip/rtl2831u
+> or
+> http://linuxtv.org/hg/~anttip/qt1010/
 
-On 03/22/2010 01:17 AM, Hans Verkuil wrote:
-> On Sunday 21 March 2010 23:45:04 Hans Verkuil wrote:
->> On Saturday 20 March 2010 09:58:49 Hans Verkuil wrote:
->>> These drivers have no hardware to test with: bw-qcam, c-qcam, arv, w9966.
->>> However, all four should be easy to convert to v4l2, even without hardware.
->>> Volunteers?
+~jhoogenraad/rtl2831-r2 	rtl2831-r2 development repository: *known working version* 	Jan Hoogenraad
+
+Should Jan Slaninka try it? 
+
+> 
+> If you have more information on the RTL2832, I'd be happy to add it at:
+> http://www.linuxtv.org/wiki/index.php/Rtl2831_devices
+
+Nothing on the Realtek website yet.
+
+> 
+> 
+> Jan Slaninka wrote:
+>> Hi,
 >>
->> I've converted these four drivers to V4L2.
->
-> I've also removed the V4L1 support from cpia2 and pwc and removed some last
-> V4L1 code remnants from meye and zoran. It's all in the same tree.
->
-> Hans, could you test the pwc driver for me?
->
+>> I'd like to ask for a support with getting LeadTek WindFast DTV Dongle
+>> mini running on Linux. So far I was able to fetch latest v4l-dvb from
+>> HG, and successfully compiled module dvb_usb_rtl2832u found in
 
-Done,
+>> 090730_RTL2832U_LINUX_Ver1.1.rar  
 
-And the news is not good I'm afraid, it does not work. I've one interesting
-observation though. It does work if I first run it once with the "old"
-version of the driver and then load your version (also replacing videodev.ko,
-etc with the ones from your tree). But if I plug it in with your driver in
-place it does not stream (nothing interesting in dmesg). So it seems like
-an initialization problem.
+Can be considered as GPL code then according to
 
-As said the pwc driver needs some love in general, I've seen the same problem
-(not streaming) with the "old" version when used with machines with UHCI usb
-controllers (rather then OHCI), such as atom based laptops.
+http://linuxtv.org/hg/~mchehab/rtl2831/rev/d116540ebaab
 
-So maybe this is some timing issues, and your changes have speed up some path?
+Patch to make RTL2831U DVB-T USB2.0 DEVICE work, based on RealTek version 080314
 
-Note that I've 3 identical pwc cams, I would be more then happy to give you
-one, let me know how to best get it to you.
+~mchehab/rtl2831 	rtl2831 development repository with *RealTek GPL code* for rtl2831 	Mauro Carvalho Chehab 	24 months ago
 
-Regards,
+?
 
-Hans
+y
+tom
