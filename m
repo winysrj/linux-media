@@ -1,45 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:63934 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755212Ab0CDESO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Mar 2010 23:18:14 -0500
-Received: by vws9 with SMTP id 9so885044vws.19
-        for <linux-media@vger.kernel.org>; Wed, 03 Mar 2010 20:18:12 -0800 (PST)
-Message-ID: <4B8F347E.2010206@gmail.com>
-Date: Thu, 04 Mar 2010 01:18:06 -0300
-From: Mauro Carvalho Chehab <maurochehab@gmail.com>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Pedro Ribeiro <pedrib@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: Excessive rc polling interval in dvb_usb_dib0700 causes 	interference
- with USB soundcard
-References: <74fd948d1003031535r1785b36dq4cece00f349975af@mail.gmail.com>	 <829197381003031548n703f0bf9sb44ce3527501c5c0@mail.gmail.com>	 <74fd948d1003031700h187dbfd0v3f54800e652569b@mail.gmail.com> <829197381003031706g1011f442hcc4be40ae2e79a47@mail.gmail.com>
-In-Reply-To: <829197381003031706g1011f442hcc4be40ae2e79a47@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from psmtp30.wxs.nl ([195.121.247.32]:54027 "EHLO psmtp30.wxs.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751248Ab0CGHT3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 7 Mar 2010 02:19:29 -0500
+Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
+ by psmtp30.wxs.nl
+ (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
+ with ESMTP id <0KYW001PSHOF0G@psmtp30.wxs.nl> for linux-media@vger.kernel.org;
+ Sun, 07 Mar 2010 08:19:28 +0100 (MET)
+Date: Sun, 07 Mar 2010 08:19:27 +0100
+From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Subject: Re: Help with RTL2832U DVB-T dongle (LeadTek WinFast DTV Dongle Mini)
+In-reply-to: <6934ea941003052353n4258600cs78dba8487d203564@mail.gmail.com>
+To: Jan Slaninka <jan@slaninka.eu>
+Cc: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
+Message-id: <4B93537F.30407@hoogenraad.net>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7BIT
+References: <6934ea941003052353n4258600cs78dba8487d203564@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller wrote:
-> On Wed, Mar 3, 2010 at 8:00 PM, Pedro Ribeiro <pedrib@gmail.com> wrote:
->> Its working very well, thanks.
->>
->> Can you please tell me if its going to be pushed to .33 stable? And
->> should I close the kernel bug?
-> 
-> It's in Mauro's PULL request for 2.6.34-rc1.  It's marked "normal"
-> priority so it likely won't get pulled into stable.  It was a
-> non-trivial restructuring of the code, so doing a minimal fix that
-> would be accepted by stable is unlikely.
+Antti has been working on drivers for the RTL283x.
 
-The kernel bug should be closed, as this patch has already fixed and
-sent upstream.
+http://linuxtv.org/hg/~anttip/rtl2831u
+or
+http://linuxtv.org/hg/~anttip/qt1010/
+
+If you have more information on the RTL2832, I'd be happy to add it at:
+http://www.linuxtv.org/wiki/index.php/Rtl2831_devices
+
+
+Jan Slaninka wrote:
+> Hi,
 > 
-> Devin
+> I'd like to ask for a support with getting LeadTek WindFast DTV Dongle
+> mini running on Linux. So far I was able to fetch latest v4l-dvb from
+> HG, and successfully compiled module dvb_usb_rtl2832u found in
+> 090730_RTL2832U_LINUX_Ver1.1.rar  but with no luck.
+> The box says the dongle's TV Tuner is Infineon 396 and Demodulator is
+> RTL2832U. Is there any chance with this one? Any hints appreciated.
+> 
+> Thanks,
+> Jan
+> 
+> lsmod:
+> Module                  Size  Used by
+> dvb_usb_rtl2832u       94445  0
+> dvb_usb                18655  1 dvb_usb_rtl2832u
+> 
+> dmesg output:
+> [ 9283.804050] usb 2-1: new high speed USB device using ehci_hcd and address 9
+> [ 9283.930504] usb 2-1: New USB device found, idVendor=0413, idProduct=6a03
+> [ 9283.930507] usb 2-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+> [ 9283.930510] usb 2-1: Product: usbtv
+> [ 9283.930512] usb 2-1: Manufacturer: realtek
+> [ 9283.930610] usb 2-1: configuration #1 chosen from 1 choice
+> 
+> lsusb:
+> Bus 002 Device 009: ID 0413:6a03 Leadtek Research, Inc.
+> Device Descriptor:
+>   bLength                18
+>   bDescriptorType         1
+>   bcdUSB               2.00
+>   bDeviceClass            0 (Defined at Interface level)
+>   bDeviceSubClass         0
+>   bDeviceProtocol         0
+>   bMaxPacketSize0        64
+>   idVendor           0x0413 Leadtek Research, Inc.
+>   idProduct          0x6a03
+>   bcdDevice            1.00
+>   iManufacturer           1 realtek
+>   iProduct                2 usbtv
+>   iSerial                 0
+>   bNumConfigurations      1
+>   Configuration Descriptor:
+>     bLength                 9
+>     bDescriptorType         2
+>     wTotalLength           25
+>     bNumInterfaces          1
+>     bConfigurationValue     1
+>     iConfiguration          4 USB2.0-Bulk&Iso
+>     bmAttributes         0x80
+>       (Bus Powered)
+>     MaxPower              500mA
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        0
+>       bAlternateSetting       0
+>       bNumEndpoints           1
+>       bInterfaceClass       255 Vendor Specific Class
+>       bInterfaceSubClass    255 Vendor Specific Subclass
+>       bInterfaceProtocol    255 Vendor Specific Protocol
+>       iInterface              5 Bulk-In, Interface
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x81  EP 1 IN
+>         bmAttributes            2
+>           Transfer Type            Bulk
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0200  1x 512 bytes
+>         bInterval               0
+> Device Qualifier (for other device speed):
+>   bLength                10
+>   bDescriptorType         6
+>   bcdUSB               2.00
+>   bDeviceClass            0 (Defined at Interface level)
+>   bDeviceSubClass         0
+>   bDeviceProtocol         0
+>   bMaxPacketSize0        64
+>   bNumConfigurations      2
+> Device Status:     0x0000
+>   (Bus Powered)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
 
 
 -- 
-
-Cheers,
-Mauro
+Jan Hoogenraad
+Hoogenraad Interface Services
+Postbus 2717
+3500 GS Utrecht
