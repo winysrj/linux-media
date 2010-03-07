@@ -1,59 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f216.google.com ([209.85.219.216]:60382 "EHLO
-	mail-ew0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751376Ab0CXWph (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Mar 2010 18:45:37 -0400
-Received: by ewy8 with SMTP id 8so138537ewy.28
-        for <linux-media@vger.kernel.org>; Wed, 24 Mar 2010 15:45:36 -0700 (PDT)
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1287 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752003Ab0CGRZK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Mar 2010 12:25:10 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: Daily build: added git support
+Date: Sun, 7 Mar 2010 18:25:30 +0100
+Cc: linux-media@vger.kernel.org,
+	=?iso-8859-1?q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+References: <201003071650.02137.hverkuil@xs4all.nl> <4B93D469.6080709@infradead.org>
+In-Reply-To: <4B93D469.6080709@infradead.org>
 MIME-Version: 1.0
-Date: Wed, 24 Mar 2010 16:45:35 -0600
-Message-ID: <dfbf38831003241545s48e717c6i366599fd705c221c@mail.gmail.com>
-Subject: Which of my 3 video capture devices will work best with my PC?
-From: Serge Pontejos <jeepster.goons@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201003071825.30891.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Greetings all...
+On Sunday 07 March 2010 17:29:29 Mauro Carvalho Chehab wrote:
+> Hans Verkuil wrote:
+> > Hi all,
+> > 
+> > It took longer than I intended, but I finally added git support to the daily
+> > build process. Note that I am only building the drivers/media subdirectory and
+> > not a full kernel build as that takes too long.
+> > 
+> > Also note that I am building against the media-master branch. I think that is
+> > sufficient, but if not, then let me know.
+> 
+> Maybe you might also add drivers/staging, enabling just the pertinent drivers
+> (tm6000/cx25821/go7007). Anyway, I always compile here before pushing it. So, I
+> expect no surprises, at least with make allyesconfig.
 
-I'm interested in doing video transfer from VCR to PC and want to know
-which of the 3 capture devices I have has the best chance of working
-with my setup? I have 3 different symptoms happening with each.
+Added these staging drivers for the i686 and x86_64 architectures.
 
-My PC setup:
-Ubuntu Karmic 9.10/2.6.31-20 generic
-Socket 754 AMD Sempron 3000+ with passive cooling (non AMD64)
-Biostar MB with Nforce3 250Gb chipset
-NV31 GPU (Geforce FX5600 Ultra 128MB) using Nvidia 196 driver
-1GB PC3200 DDR RAM
-34GB SCSI coupled to a Adaptec 19160 card
-Soundblaster Audigy
-dvd+-R floppy etc etc.
+Regards,
 
-The devices in question:
+	Hans
 
-USB: Dazzle Digital Photo Maker, using a USBvision driver recognized
-as a Global Village GV-7000)
+> 
+> 
+> 
 
---This one recognizes and I can display video but if I try to record
-in either xawtv or Kdenlive the program crashes.
-
-PCI: Hauppauge WinTV model 38101
---When installed it shows /dev/video0 when I do an ls, but I don't get
-a signal with either composite or coax input.   I tried following
-steps from this link http://howtoubuntu.org/?p=20 but it didn't change
-a thing...
-
-PCI: Aurora Systems Fuse previously used on a Mac
---This card picks up the ZR36067 driver, but it's saying it can't
-initialize the i2c bus. Thus, no /dev/video* shows
-
-Let me know which I should focus on and then I'll show the query dumps.
-
-Any help on this would be greatly appreciated.
-
-
-
-~Serge
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
