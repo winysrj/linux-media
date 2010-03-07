@@ -1,157 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f222.google.com ([209.85.218.222]:39366 "EHLO
-	mail-bw0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753727Ab0CGKMz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Mar 2010 05:12:55 -0500
-Received: by bwz22 with SMTP id 22so2122188bwz.28
-        for <linux-media@vger.kernel.org>; Sun, 07 Mar 2010 02:12:54 -0800 (PST)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Hendrik Skarpeid <skarp@online.no>
-Subject: Re: DM1105: could not attach frontend 195d:1105
-Date: Sun, 7 Mar 2010 12:12:39 +0200
-Cc: linux-media@vger.kernel.org,
-	Nameer Kazzaz <nameer.kazzaz@gmail.com>
-References: <4B7D83B2.4030709@online.no> <201003061352.06763.liplianin@me.by> <4B92AA84.5010908@online.no>
-In-Reply-To: <4B92AA84.5010908@online.no>
+Received: from relay02.digicable.hu ([92.249.128.188]:59183 "EHLO
+	relay02.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752962Ab0CGMUW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Mar 2010 07:20:22 -0500
+Message-ID: <4B939A00.5090208@freemail.hu>
+Date: Sun, 07 Mar 2010 13:20:16 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <201003071212.40300.liplianin@me.by>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21:
+ OK
+References: <201003061952.o26JqdTY011655@smtp-vbr11.xs4all.nl>
+In-Reply-To: <201003061952.o26JqdTY011655@smtp-vbr11.xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 6 марта 2010 21:18:28 Hendrik Skarpeid wrote:
-> Igor M. Liplianin skrev:
-> > On 5 марта 2010 00:16:07 Hendrik Skarpeid wrote:
-> >> Igor M. Liplianin skrev:
-> >>> On 3 марта 2010 18:42:42 Hendrik Skarpeid wrote:
-> >>>> Igor M. Liplianin wrote:
-> >>>>> Now to find GPIO's for LNB power control and ... watch TV :)
-> >>>>
-> >>>> Yep. No succesful tuning at the moment. There might also be an issue
-> >>>> with the reset signal and writing to GPIOCTR, as the module at the
-> >>>> moment loads succesfully only once.
-> >>>> As far as I can make out, the LNB power control is probably GPIO 16
-> >>>> and 17, not sure which is which, and how they work.
-> >>>> GPIO15 is wired to tuner #reset
-> >>>
-> >>> New patch to test
-> >>>
-> >>> -----------------------------------------------------------------------
-> >>>-
-> >>>
-> >>>
-> >>> No virus found in this incoming message.
-> >>> Checked by AVG - www.avg.com
-> >>> Version: 9.0.733 / Virus Database: 271.1.1/2721 - Release Date:
-> >>> 03/03/10 20:34:00
-> >>
-> >> modprobe si21xx debug=1 produces this output when scanning.
-> >>
-> >> [ 2187.998349] si21xx: si21_read_status : FE_READ_STATUS : VSTATUS: 0x02
-> >> [ 2187.998353] si21xx: si21xx_set_frontend : FE_SET_FRONTEND
-> >> [ 2187.999881] si21xx: si21xx_setacquire
-> >> [ 2187.999884] si21xx: si21xx_set_symbolrate : srate = 27500000
-> >> [ 2188.022645] si21xx: si21_read_status : FE_READ_STATUS : VSTATUS: 0x01
-> >> [ 2188.054350] si21xx: si21_read_status : FE_READ_STATUS : VSTATUS: 0x02
-> >> [ 2188.054355] si21xx: si21xx_set_frontend : FE_SET_FRONTEND
-> >> [ 2188.055875] si21xx: si21xx_setacquire
-> >> [ 2188.055879] si21xx: si21xx_set_symbolrate : srate = 27500000
-> >> [ 2188.110359] si21xx: si21_read_status : FE_READ_STATUS : VSTATUS: 0x02
-> >> [ 2188.110366] si21xx: si21xx_set_frontend : FE_SET_FRONTEND
-> >> [ 2188.111885] si21xx: si21xx_setacquire
-> >> [ 2188.111889] si21xx: si21xx_set_symbolrate : srate = 27500000
-> >> [ 2188.166350] si21xx: si21_read_status : FE_READ_STATUS : VSTATUS: 0x02
-> >> [ 2188.166354] si21xx: si21xx_set_frontend : FE_SET_FRONTEND
-> >>
-> >> Since the tuner at hand uses a Si2109 chip, VSTATUS 0x01 and 0x02 would
-> >> indicate that blind scanning is used. Blind scanning is a 2109/2110
-> >> specific function, and may not very usable since we always use initial
-> >> tuning files anyway. 2109/10 also supports the legacy scanning method
-> >> which is supported by Si2107708.
-> >>
-> >> Is the use of blind scanning intentional?
-> >
-> > Yes, of course, it's intentional. Why not?
-> > User has freedom to make little errors in channels.conf file. Also the
-> > chip didn't support DVB-S2. And last, has who si2107/08 ? My chip is
-> > si2109.
->
-> I agree, it's best to use the hardware features. I was worried that I
-> may be getting bad i2c data.
-It is likely. In that case try different delays like that
-	dev->i2c_bit.udelay = 16;
-	dev->i2c_bit.timeout = 200;
+Hello Hans,
 
+Hans Verkuil wrote:
+> This message is generated daily by a cron job that builds v4l-dvb for
+> the kernels and architectures in the list below.
 
-> If I understand you correctly, you have a working Si2109 frontend driver?
-The driver is working. It's for shure. I tested PCI and USB cards with this chip.
+Would you mind adding a new test case for your test environment? This would
+be a test case with the newest stable kernel without Power Management support
+(CONFIG_PM not defined in .config). It seems some problem could be caught with
+this test case.
 
-> Here's what I'm getting:
-> Added a few printouts to si21xx.c
->
->         u8 signal = si21_readreg(state, ANALOG_AGC_POWER_LEVEL_REG);
->         dprintk("%s : FE_READ_STATUS : AGC_POWER: 0x%02x\n", __func__,
-> signal);
->
->         si21_readregs(state, LOCK_STATUS_REG_1, regs_read, 0x02);
->
->         reg_read = 0;
->
->         for (i = 0; i < 7; ++i)
->                 reg_read |= ((regs_read[0] >> i) & 0x01) << (6 - i);
->
->         lock = ((reg_read & 0x7f) | (regs_read[1] & 0x80));
->
->         dprintk("%s : FE_READ_STATUS : VSTATUS: 0x%02x\n", __func__, lock);
->         dprintk("%s : FE_READ_REGS : REGS[0]: 0x%02x\n", __func__,
-> regs_read[0]);
->         dprintk("%s : FE_READ_REGS : REGS[1]: 0x%02x\n", __func__,
-> regs_read[1]);
->
-> hendrik@iptv:~$ scan -a 1 Sirius-5.0E
->
-> [72933.818871] si21xx: si21xx_set_symbolrate : srate = 27500000
-> [72933.900276] si21xx: si21_read_status : FE_READ_STATUS : AGC_POWER: 0x20
-> [72933.908807] si21xx: si21_read_status : FE_READ_STATUS : VSTATUS: 0x02
-> [72933.908812] si21xx: si21_read_status : FE_READ_REGS : REGS[0]: 0x20
-> [72933.908815] si21xx: si21_read_status : FE_READ_REGS : REGS[1]: 0x00
-> [72933.908827] si21xx: si21xx_set_frontend : FE_SET_FRONTEND
-> [72933.914962] si21xx: si21xx_setacquire
-> [72933.914967] si21xx: si21xx_set_symbolrate : srate = 27500000
-> [72933.949370] si21xx: si21_read_status : FE_READ_STATUS : AGC_POWER: 0x21
-> [72933.957877] si21xx: si21_read_status : FE_READ_STATUS : VSTATUS: 0x01
-> [72933.957882] si21xx: si21_read_status : FE_READ_REGS : REGS[0]: 0xc0
-> [72933.957885] si21xx: si21_read_status : FE_READ_REGS : REGS[1]: 0x60
-> [72933.996316] si21xx: si21_read_status : FE_READ_STATUS : AGC_POWER: 0x20
-> [72934.004959] si21xx: si21_read_status : FE_READ_STATUS : VSTATUS: 0x02
-> [72934.004964] si21xx: si21_read_status : FE_READ_REGS : REGS[0]: 0x20
-> [72934.004968] si21xx: si21_read_status : FE_READ_REGS : REGS[1]: 0x00
->
-> So, we have signal and sometimes we are getting carrier also.
-> What worries me most is the FE_READ_REGS : REGS[1]: 0x60
-> According to the datasheet this register 0x10 Lock status 2,  is RCVL 0
-> 0 0 0 0 BSDA BSDO so 0x60 would seem meaningless.
->
-> Same results using szap.
-> hendrik@iptv:~$ szap -a 1 -r -n 170
-> reading channels from file '/home/hendrik/.szap/channels.conf'
-> zapping to 170 'NRK1;NRK':
-> sat 0, frequency = 12015 MHz V, symbolrate 27500000, vpid = 0x0200, apid
-> = 0x0280 sid = 0x0240
-> using '/dev/dvb/adapter1/frontend0' and '/dev/dvb/adapter1/demux0'
-> status 01 | signal c600 | snr 0000 | ber 000000b1 | unc 00000000 |
-> status 01 | signal c600 | snr 0000 | ber 0000000f | unc 00000000 |
-> status 01 | signal c000 | snr 0000 | ber 0000980f | unc 00000000 |
-> status 03 | signal c600 | snr 0000 | ber 000098a3 | unc 00000000 |
-> status 03 | signal c000 | snr 0000 | ber 000098c7 | unc 00000000 |
->
-> Signal but no lock.
-> Any ideas?
-For me it's like no signal or wrong LNB configuration, but ...
+Regards,
 
--- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+	Márton Németh
