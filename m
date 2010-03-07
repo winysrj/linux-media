@@ -1,98 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-15.arcor-online.net ([151.189.21.55]:50536 "EHLO
-	mail-in-15.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759340Ab0CNEk5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Mar 2010 23:40:57 -0500
-Subject: Re: v4l-utils, dvb-utils, xawtv and alevt
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Chicken Shack <chicken.shack@gmx.de>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-In-Reply-To: <1268487819.2763.27.camel@brian.bconsult.de>
-References: <201003090848.29301.hverkuil@xs4all.nl>
-	 <1268197457.3199.17.camel@pc07.localdom.local> <4B98FABB.1040605@gmail.com>
-	 <829197381003110631v52410d27m7e13d5438e09cd13@mail.gmail.com>
-	 <4B9A6089.4060300@redhat.com>
-	 <1a297b361003120820h768bc388n81077a4b6cfe71e6@mail.gmail.com>
-	 <1268421039.1971.46.camel@brian.bconsult.de> <4B9B35E4.7070702@redhat.com>
-	 <1268475324.1752.59.camel@brian.bconsult.de>  <4B9B8665.9080706@redhat.com>
-	 <1268487819.2763.27.camel@brian.bconsult.de>
-Content-Type: text/plain
-Date: Sun, 14 Mar 2010 06:39:43 +0100
-Message-Id: <1268545183.3228.55.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3793 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754796Ab0CGUFd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Mar 2010 15:05:33 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id o27K5WG1009603
+	for <linux-media@vger.kernel.org>; Sun, 7 Mar 2010 21:05:32 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 7 Mar 2010 21:05:32 +0100 (CET)
+Message-Id: <201003072005.o27K5WG1009603@smtp-vbr12.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Am Samstag, den 13.03.2010, 14:43 +0100 schrieb Chicken Shack:
-> Am Samstag, den 13.03.2010, 13:34 +0100 schrieb Hans de Goede:
-> > Hi,
-> > 
-> > On 03/13/2010 11:15 AM, Chicken Shack wrote:
-> > > Am Samstag, den 13.03.2010, 07:51 +0100 schrieb Hans de Goede:
-> > >> Hi,
-> > >>
-> > >> On 03/12/2010 08:10 PM, Chicken Shack wrote:
-> > >>> 1. Alevt 1.7.0 is not just another tool, but it is instead a
-> > >>> self-contained videotext application consisting of three parts:
-> > >>> a. alevt, b. alevt-date c. alevt-cap
-> > >>>
-> > >>> While the packed size of alevt is 78770 the complete size of the
-> > >>> dvb-apps as a whole ranges around 350000.
-> > >>>
-> > >>> I am not against hosting this program at linuxtv.org, but if this
-> > >>> decision is made the decision should be an intelligent one: alevt is a
-> > >>> separate tree, and any other choice is simply a dumb one.
-> > >>> Alevt-1.7.0 needs a lot of external dependencies, while the dvb-apps
-> > >>> only need the libc6.
+Results of the daily build of v4l-dvb:
 
-More clever would have been never to rename it from alevt-dvb to alevt.
-On the prior you don't have any rights and I seriously doubt you have
-any on the later.
+date:        Sun Mar  7 19:00:15 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14408:e50bb36f881c
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 8c69c6ed6c74c94fa7ad6fa24eda452e4b212d81
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-> > > Good morning Hans,
-> > >
-> > 
-> > Good afternoon :)
-> > 
-> > > Definitely not.
-> > > 3.95 is analogue only and thus is discontinued as version.
-> > > 4.0 pre is the alpha-state tarball that you can get here:
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-armv5-ixp: OK
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.17-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30.10-i686: ERRORS
+linux-2.6.31.12-i686: ERRORS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.17-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: ERRORS
+linux-2.6.29.1-x86_64: ERRORS
+linux-2.6.30.10-x86_64: ERRORS
+linux-2.6.31.12-x86_64: ERRORS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: WARNINGS
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: OK
+linux-2.6.17.14-i686: OK
+linux-2.6.18.8-i686: OK
+linux-2.6.19.7-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.62-x86_64: OK
+linux-2.6.17.14-x86_64: OK
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.7-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
-No, 3.95 is "official" and right for patching and 4x was never released.
+Detailed results are available here:
 
-I pointed to mpeg4ip only as a joke.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-> > Ah, ok. Well I must honestly say I've no interest in that I'm doing
-> > package maintenance for the 3.95 release in Fedora and I know it
-> > needs a lot of patching, AFAIK other distros are doing the same,
-> > so it would be good to have / become a new upstream for xawtv 3.95,
-> > to have a place to gather all the distro patches mostly and release
-> > that, and where new patches if needed can accumulate and new
-> > releases can be done from.
-> > 
-> > 
-> > > http://dl.bytesex.org/cvs-snapshots/xawtv-20081014-100645.tar.gz
-> > >
-> > > Inofficial end of development somewhere in 2005 or 2006, last external
-> > > contribution from October 2008.
+Full logs are available here:
 
-It was on March 08 2005. You even don't know that?
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-http://linux.bytesex.org/v4l2/maintainer.txt
+The V4L-DVB specification from this daily build is here:
 
-Maybe improve your Pinnacle stuff first, I can point you to a lot on the
-TODO list.
-
-Hermann
-
-
-
-
-
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
