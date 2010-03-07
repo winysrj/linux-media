@@ -1,48 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:37277 "EHLO smtp3-g21.free.fr"
+Received: from as-10.de ([212.112.241.2]:41306 "EHLO mail.as-10.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756568Ab0CLIlk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Mar 2010 03:41:40 -0500
-Date: Fri, 12 Mar 2010 09:42:20 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: LMML <linux-media@vger.kernel.org>
-Subject: Re: Status of the patches under review (45 patches)
-Message-ID: <20100312094220.13702b79@tele>
-In-Reply-To: <4B969C08.2030807@redhat.com>
-References: <4B969C08.2030807@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	id S1752504Ab0CGLjM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 7 Mar 2010 06:39:12 -0500
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by mail.as-10.de (Postfix) with ESMTP id D772D5E5B72
+	for <linux-media@vger.kernel.org>; Sun,  7 Mar 2010 12:39:11 +0100 (CET)
+Received: from mail.as-10.de ([127.0.0.1])
+	by localhost (as-10.de [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id SxqrVqXlsW40 for <linux-media@vger.kernel.org>;
+	Sun,  7 Mar 2010 12:39:11 +0100 (CET)
+Received: from gentoo.local (pD9E0FB3F.dip.t-dialin.net [217.224.251.63])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: web11p28)
+	by mail.as-10.de (Postfix) with ESMTPSA id AAE4C5E5B70
+	for <linux-media@vger.kernel.org>; Sun,  7 Mar 2010 12:39:11 +0100 (CET)
+Date: Sun, 7 Mar 2010 12:38:08 +0100
+From: Halim Sahin <halim.sahin@t-online.de>
+To: linux-media@vger.kernel.org
+Subject: v4l-dvb build problem with soc_camera
+Message-ID: <20100307113808.GA12517@gentoo.local>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi,
+Same environment like in my previous mail:
 
-On Tue, 09 Mar 2010 16:05:44 -0300
-Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+/root/work/v4l-dvb/v4l/soc_camera.c:27:30: error: linux/pm_runtime.h: No such file or directory
+/root/work/v4l-dvb/v4l/soc_camera.c: In function 'soc_camera_open':
+/root/work/v4l-dvb/v4l/soc_camera.c:392: error: implicit declaration of function 'pm_runtime_enable'
+/root/work/v4l-dvb/v4l/soc_camera.c:393: error: implicit declaration of function 'pm_runtime_resume'
+/root/work/v4l-dvb/v4l/soc_camera.c:422: error: implicit declaration of function 'pm_runtime_disable'
+/root/work/v4l-dvb/v4l/soc_camera.c: In function 'soc_camera_close':
+/root/work/v4l-dvb/v4l/soc_camera.c:448: error: implicit declaration of function 'pm_runtime_suspend'
+make[3]: *** [/root/work/v4l-dvb/v4l/soc_camera.o] Error 1
+make[2]: *** [_module_/root/work/v4l-dvb/v4l] Error 2
+make[1]: *** [default] Fehler 2
+make: *** [all] Fehler 2
+BR.
+Halim
 
-> 		== Gspca patches - Waiting Jean-Francois Moine
-> <moinejf@free.fr> submission/review == 
-> 
-> Jan,14 2010: Problem with gspca and zc3xx
-> http://patchwork.kernel.org/patch/72895
-
-This is not the right way to fix the problem.
-
-	[snip]
-> Feb,28 2010: [1/3] add feedback LED control
-> http://patchwork.kernel.org/patch/82773
-> Feb,28 2010: [2/3] gspca pac7302: add LED control
-> http://patchwork.kernel.org/patch/82774
-> Feb,28 2010: [3/3] gspca pac7302: remove LED blinking when switching
-> stream on and http://patchwork.kernel.org/patch/82775
-
-It is not sure yet that using the LED system is the right way...
-
-Regards.
-
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
