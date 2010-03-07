@@ -1,112 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:61388 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754975Ab0C3SCv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Mar 2010 14:02:51 -0400
-Received: by vws20 with SMTP id 20so910588vws.19
-        for <linux-media@vger.kernel.org>; Tue, 30 Mar 2010 11:02:50 -0700 (PDT)
-Message-ID: <4BB23CB0.1080501@gmail.com>
-Date: Tue, 30 Mar 2010 15:02:24 -0300
-From: Ricardo Maraschini <xrmarsx@gmail.com>
+Received: from banach.math.auburn.edu ([131.204.45.3]:60371 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754678Ab0CGVkQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Mar 2010 16:40:16 -0500
+Date: Sun, 7 Mar 2010 16:03:03 -0600 (CST)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: VDR User <user.vdr@gmail.com>
+cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
+Subject: Re: "Invalid module format"
+In-Reply-To: <a3ef07921003070955q7d7ce7e8j747c07d56a0ad98e@mail.gmail.com>
+Message-ID: <alpine.LNX.2.00.1003071557020.23682@banach.math.auburn.edu>
+References: <alpine.LNX.2.00.1003041737290.18039@banach.math.auburn.edu>  <alpine.LNX.2.00.1003051829210.21417@banach.math.auburn.edu>  <a3ef07921003051651j12fbae25r5a3d5276b7da43b7@mail.gmail.com>  <4B91AADD.4030300@xenotime.net> <4B91CE02.4090200@redhat.com>
+ <a3ef07921003070955q7d7ce7e8j747c07d56a0ad98e@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: dougsland@gmail.com, mchehab@infradead.org
-Subject: [PATCH] dib7000p.c: Fix for warning: the frame size of 1236 bytes
- is larger than 1024 bytes
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED; BOUNDARY="-863829203-743591034-1267999393=:23682"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When compiling the last version of v4l-dvb tree I got the following message:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-/data/Projects/kernel/v4l-dvb/v4l/dib7000p.c: In function 'dib7000p_i2c_enumeration':
-/data/Projects/kernel/v4l-dvb/v4l/dib7000p.c:1393: warning: the frame size of 1236 bytes is larger than 1024 bytes
-
-I believe that this problem is related to stack size, because we are allocating memory for a big structure.
-I changed the approach to dinamic allocated memory and the warning disappears.
-The same problem appears on dib3000 as well, and I can fix that too if this patch get in.
-
-Any comment on that?
-I'll appreciate to read any comment from more experienced code makers.
+---863829203-743591034-1267999393=:23682
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8BIT
 
 
-Signed-off-by: Ricardo Maraschini <xrmarsx@gmail.com>
 
+On Sun, 7 Mar 2010, VDR User wrote:
 
---- a/linux/drivers/media/dvb/frontends/dib7000p.c	Sat Mar 27 23:09:47 2010 -0300
-+++ b/linux/drivers/media/dvb/frontends/dib7000p.c	Tue Mar 30 13:03:59 2010 -0300
-@@ -1349,46 +1349,57 @@
- 
- int dib7000p_i2c_enumeration(struct i2c_adapter *i2c, int no_of_demods, u8 default_addr, struct dib7000p_config cfg[])
- {
--	struct dib7000p_state st = { .i2c_adap = i2c };
-+	struct dib7000p_state *st = NULL;
- 	int k = 0;
- 	u8 new_addr = 0;
- 
-+	st = kmalloc(sizeof(struct dib7000p_state), GFP_KERNEL);
-+	if (!st) {
-+		dprintk("DiB7000P: Unable to allocate memory\n");
-+		return -ENOMEM;
-+	}
-+
-+	st->i2c_adap = i2c;
-+
-+
- 	for (k = no_of_demods-1; k >= 0; k--) {
--		st.cfg = cfg[k];
-+		st->cfg = cfg[k];
- 
- 		/* designated i2c address */
- 		new_addr          = (0x40 + k) << 1;
--		st.i2c_addr = new_addr;
--		dib7000p_write_word(&st, 1287, 0x0003); /* sram lead in, rdy */
--		if (dib7000p_identify(&st) != 0) {
--			st.i2c_addr = default_addr;
--			dib7000p_write_word(&st, 1287, 0x0003); /* sram lead in, rdy */
--			if (dib7000p_identify(&st) != 0) {
-+		st->i2c_addr = new_addr;
-+		dib7000p_write_word(st, 1287, 0x0003); /* sram lead in, rdy */
-+		if (dib7000p_identify(st) != 0) {
-+			st->i2c_addr = default_addr;
-+			dib7000p_write_word(st, 1287, 0x0003); /* sram lead in, rdy */
-+			if (dib7000p_identify(st) != 0) {
- 				dprintk("DiB7000P #%d: not identified\n", k);
-+				kfree(st);
- 				return -EIO;
- 			}
- 		}
- 
- 		/* start diversity to pull_down div_str - just for i2c-enumeration */
--		dib7000p_set_output_mode(&st, OUTMODE_DIVERSITY);
-+		dib7000p_set_output_mode(st, OUTMODE_DIVERSITY);
- 
- 		/* set new i2c address and force divstart */
--		dib7000p_write_word(&st, 1285, (new_addr << 2) | 0x2);
-+		dib7000p_write_word(st, 1285, (new_addr << 2) | 0x2);
- 
- 		dprintk("IC %d initialized (to i2c_address 0x%x)", k, new_addr);
- 	}
- 
- 	for (k = 0; k < no_of_demods; k++) {
--		st.cfg = cfg[k];
--		st.i2c_addr = (0x40 + k) << 1;
-+		st->cfg = cfg[k];
-+		st->i2c_addr = (0x40 + k) << 1;
- 
- 		// unforce divstr
--		dib7000p_write_word(&st, 1285, st.i2c_addr << 2);
-+		dib7000p_write_word(st, 1285, st->i2c_addr << 2);
- 
- 		/* deactivate div - it was just for i2c-enumeration */
--		dib7000p_set_output_mode(&st, OUTMODE_HIGH_Z);
-+		dib7000p_set_output_mode(st, OUTMODE_HIGH_Z);
- 	}
- 
-+	kfree(st);
- 	return 0;
- }
- EXPORT_SYMBOL(dib7000p_i2c_enumeration);
+> On Fri, Mar 5, 2010 at 7:37 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> I suspect that it may be related to this:
+>>
+>> # Select 32 or 64 bit
+>> config 64BIT
+>>        bool "64-bit kernel" if ARCH = "x86"
+>>        default ARCH = "x86_64"
+>>        ---help---
+>>          Say yes to build a 64-bit kernel - formerly known as x86_64
+>>          Say no to build a 32-bit kernel - formerly known as i386
+>>
+>> With 2.6.33, it is now possible to compile a 32 bits kernel on a 64 bits
+>> machine without needing to pass make ARCH=i386 or to use cross-compilation.
+>>
+>> Maybe you're running a 32bits kernel, and you've compiled the out-of-tree
+>> modules with 64bits or vice-versa.
+>>
+>> My suggestion is that you should try to force the compilation wit the proper
+>> ARCH with something like:
+>>        make distclean
+>>        make ARCH=`uname -i`
+>>        make ARCH=`uname -i` install
+>
+> I had forgot to reply to this but while I do have a 64bit capable cpu,
+> I compile & use only 32bit.
+>
 
+Hi,
+
+It seems that the problem is solved by a local re-compile of the kernel 
+plus its modules, using the original distro .config settings in order to 
+do this. What I suspect has happened is that there was a simultaneous 
+minor upgrade of gcc at the same time, and it is possible that this 
+interfered. I would further speculate that a similar problem happened with 
+you, in your Debian installation.
+
+Hoping that we have finally tracked this down.
+
+Theodore Kilgore
+---863829203-743591034-1267999393=:23682--
