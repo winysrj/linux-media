@@ -1,115 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4497 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753960Ab0C0Uik (ORCPT
+Received: from smtpout5.poczta.onet.pl ([213.180.147.165]:46298 "EHLO
+	smtpout5.poczta.onet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753069Ab0CGNq1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Mar 2010 08:46:27 -0500
+Received: from dynamic-78-8-130-150.ssp.dialog.net.pl ([78.8.130.150]:40943
+	"EHLO [78.8.130.150]" rhost-flags-OK-OK-OK-FAIL) by ps1.m5r2.onet
+	with ESMTPA id S134224436Ab0CGNqZLsQ-i (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Mar 2010 16:38:40 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id o2RKcYAZ075005
-	for <linux-media@vger.kernel.org>; Sat, 27 Mar 2010 21:38:39 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 27 Mar 2010 21:38:34 +0100 (CET)
-Message-Id: <201003272038.o2RKcYAZ075005@smtp-vbr12.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Sun, 7 Mar 2010 14:46:25 +0100
+Subject: PATCH driver for TwinhanDTV StarBox DVB-S model no:7021
+From: Tomek <tomekbu@op.pl>
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
+Content-Type: text/plain
+Date: Sun, 07 Mar 2010 14:46:27 +0100
+Message-Id: <1267969587.11136.7.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+bug fix for Twinhan DTV StarBox USB2.0 DVB-S model no:7021
+enabled remote control
+#kernel>=2.6.32.8 highly recommended
+Signed-off-by: Tomasz G. Burak <tomekbu@op.pl>
+---
+linux-2.6.32.8/drivers/media/dvb/dvb-usb/vp702x.c.orig      2010-02-09
+13:57:19.000000000 +0100
++++ linux-2.6.32.8/drivers/media/dvb/dvb-usb/vp702x.c   2010-02-19
+01:14:10.000000000 +0100
+@@ -173,40 +173,86 @@ static int vp702x_streaming_ctrl(struct 
+        return 0;
+ }
+ 
+-/* keys for the enclosed remote control */
++/* keys for the enclosed remote control (define your events) (code,
+event) */
+ static struct dvb_usb_rc_key vp702x_rc_keys[] = {
+-       { 0x0001, KEY_1 },
+-       { 0x0002, KEY_2 },
++       { 0x004d, KEY_SCREEN }, /* Full screen */
++       { 0x0016, KEY_POWER }, /* Power */
++       { 0x0003, KEY_1 }, /* 1 */
++       { 0x0001, KEY_2 }, /* 2 */
++       { 0x0006, KEY_3 }, /* 3 */
++       { 0x0009, KEY_4 }, /* 4 */
++       { 0x001d, KEY_5 }, /* 5 */
++       { 0x001f, KEY_6 }, /* 6 */
++       { 0x000d, KEY_7 }, /* 6 */
++       { 0x0019, KEY_8 }, /* 7 */
++       { 0x001b, KEY_9 }, /* 8 */
++       { 0x0011, KEY_RECORD }, /* REC */
++       { 0x0015, KEY_0 }, /* 9 */
++       { 0x0017, KEY_FAVORITES }, /* Heart symbol - Favorite */
++       { 0x0040, KEY_REWIND }, /* Rewind */
++       { 0x0005, KEY_CHANNELUP }, /* CH+ */
++       { 0x0012, KEY_FASTFORWARD }, /* Forward */
++       { 0x000a, KEY_VOLUMEDOWN }, /* VOL- */
++       { 0x0014, KEY_PLAY }, /* Play */
++       { 0x001e, KEY_VOLUMEUP }, /* VOL+ */
++       { 0x000e, KEY_PREVIOUS }, /* Recall */
++       { 0x0002, KEY_CHANNELDOWN }, /* CH- */
++       { 0x001a, KEY_STOP }, /* Stop */
++       { 0x004c, KEY_PAUSE }, /* Time Shift - Pause */
++       { 0x0010, KEY_MUTE }, /* Mute */
++       { 0x000c, KEY_CANCEL }, /* Cancel */
++       { 0x0054, KEY_PRINT }, /* Capture */
++       { 0x0048, KEY_INFO }, /* Preview */
++       { 0x001c, KEY_EPG }, /* EPG */
++       { 0x0004, KEY_LIST }, /* RecordList */
++       { 0x0000, KEY_TAB }, /* Tab */
++       { 0x000f, KEY_TEXT }, /* Teletext */
++       { 0x0041, KEY_PREVIOUSSONG },
++       { 0x0042, KEY_NEXTSONG },
++       { 0x004b, KEY_UP },
++       { 0x0051, KEY_DOWN },
++       { 0x004e, KEY_LEFT },
++       { 0x0052, KEY_RIGHT },
++       { 0x004f, KEY_ENTER },
++       { 0x0054, KEY_AUDIO }, /* MTS - Switch to secondary audio. */
++       { 0x0013, KEY_CANCEL },
++       { 0x004a, KEY_CLEAR },
++       { 0x0043, KEY_SUBTITLE }, /* Subtitle/CC */
++       { 0x0008, KEY_VIDEO }, /* A/V */
++       { 0x0007, KEY_SLEEP }, /* Hibernate */
++       { 0x0045, KEY_ZOOM }, /* Zoom+ */
++       { 0x0018, KEY_RED},
++       { 0x0053, KEY_GREEN},
++       { 0x005e, KEY_YELLOW},
++       { 0x005f, KEY_BLUE}
+ };
+ 
+-/* remote control stuff (does not work with my box) */
++/* remote control stuff */
+ static int vp702x_rc_query(struct dvb_usb_device *d, u32 *event, int
+*state)
+ {
+        u8 key[10];
+        int i;
+ 
+-/* remove the following return to enabled remote querying */
+-       return 0;
+-
+        vp702x_usb_in_op(d,READ_REMOTE_REQ,0,0,key,10);
+ 
+-       deb_rc("remote query key: %x %d\n",key[1],key[1]);
++       deb_rc("remote query key: %x %d\n", key[3], key[3]);
+ 
+        if (key[1] == 0x44) {
+                *state = REMOTE_NO_KEY_PRESSED;
+                return 0;
+        }
+ 
+-       for (i = 0; i < ARRAY_SIZE(vp702x_rc_keys); i++)
+-               if (rc5_custom(&vp702x_rc_keys[i]) == key[1]) {
+-                       *state = REMOTE_KEY_PRESSED;
+-                       *event = vp702x_rc_keys[i].event;
+-                       break;
++       if (key[2] == key[3] + key[4]) {
++               for (i = 0; i < ARRAY_SIZE(vp702x_rc_keys); i++)
++                       if (rc5_data(&vp702x_rc_keys[i]) == key[3]) {
++                               *state = REMOTE_KEY_PRESSED;
++                               *event = vp702x_rc_keys[i].event;
++                               break;
++                       }
+                }
+        return 0;
+ }
+ 
+-
+ static int vp702x_read_mac_addr(struct dvb_usb_device *d,u8 mac[6])
+ {
+        u8 i;
 
-Results of the daily build of v4l-dvb:
-
-date:        Sat Mar 27 19:00:27 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14527:1ef0265456c8
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 8c69c6ed6c74c94fa7ad6fa24eda452e4b212d81
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
-
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc1-armv5: OK
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-rc1-armv5-davinci: WARNINGS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-rc1-armv5-ixp: WARNINGS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-rc1-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.17-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-rc1-i686: WARNINGS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc1-m32r: OK
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-rc1-mips: WARNINGS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-rc1-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.17-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-rc1-x86_64: WARNINGS
-linux-git-armv5: OK
-linux-git-armv5-davinci: OK
-linux-git-armv5-ixp: OK
-linux-git-armv5-omap2: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.7-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.62-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.7-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
