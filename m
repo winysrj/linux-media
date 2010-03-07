@@ -1,44 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47808 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751153Ab0CSGEV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Mar 2010 02:04:21 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2J64ISX010387
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 19 Mar 2010 01:04:20 -0500
-From: hvaibhav@ti.com
-To: linux-media@vger.kernel.org
-Cc: m-karicheri2@ti.com, Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH-V2 1/7] AM3517 CCDC: Debug register read prints removed
-Date: Fri, 19 Mar 2010 11:34:07 +0530
-Message-Id: <1268978653-32710-2-git-send-email-hvaibhav@ti.com>
-In-Reply-To: <hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
+Received: from rouge.crans.org ([138.231.136.3]:34352 "EHLO rouge.crans.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752722Ab0CGPyg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 7 Mar 2010 10:54:36 -0500
+Message-ID: <4B93CA68.9060502@crans.ens-cachan.fr>
+Date: Sun, 07 Mar 2010 16:46:48 +0100
+From: DUBOST Brice <dubost@crans.ens-cachan.fr>
+MIME-Version: 1.0
+To: Aslam Mullapilly <aslam@hcscomm.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
+Subject: Re: Mumudvb Transcoding error
+References: <38f022bc1003070017t11140027kfb98f71427f74bfe@mail.gmail.com> <425356A9213FA046A466287AF4E18B19568EB17646@ALH-MAIL.alhgroup.net>
+In-Reply-To: <425356A9213FA046A466287AF4E18B19568EB17646@ALH-MAIL.alhgroup.net>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+Aslam Mullapilly a écrit :
+> Hi,
+> 
+> I'm trying to run mumudvb with transcoding. Please see my error.
+> 
+> Input #0, mpegts, from 'stream':
+>   Duration: N/A, start: 28021.001044, bitrate: 15128 kb/s
+>   Program 2801 Alarabiya
+>   Program 2802 MBC1
+>   Program 2803 MBC4
+>   Program 2804 MBC2
+>   Program 2805 MBC3
+>   Program 2806 CITRUSS TV
+>   Program 2807 HAWAS TV
+>   Program 2810 AD Emarat
+>   Program 2811 ZEE AFLAM
+>   Program 2812 MBC Action
+>   Program 2813 Al Eqtisadia TV
+>   Program 2814 MBC MAX
+> [Transcode] Couldn't find audio encoder.
+> [Transcode] Couldn't find video encoder.
+> [Transcode] Failed to initialize transcoding.
+> 
+> 
+> Hence, I installed libavcodec-dev libavformat-dev libswscale-dev
+> 
+> But still I can't find the stream.
+> 
+> 
+> Regards,
+> 
 
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- drivers/media/video/davinci/dm644x_ccdc.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+Hello
 
-diff --git a/drivers/media/video/davinci/dm644x_ccdc.c b/drivers/media/video/davinci/dm644x_ccdc.c
-index 0c394ca..840eee9 100644
---- a/drivers/media/video/davinci/dm644x_ccdc.c
-+++ b/drivers/media/video/davinci/dm644x_ccdc.c
-@@ -434,7 +434,6 @@ void ccdc_config_ycbcr(void)
+You must give more information, like the configuration file used, and
+the output of
 
- 	ccdc_sbl_reset();
- 	dev_dbg(ccdc_cfg.dev, "\nEnd of ccdc_config_ycbcr...\n");
--	ccdc_readregs();
- }
+ffmpeg -formats
 
- static void ccdc_config_black_clamp(struct ccdc_black_clamp *bclamp)
---
-1.6.2.4
+Regards
 
+-- 
+Brice
+
+A: Yes.
+>Q: Are you sure?
+>>A: Because it reverses the logical flow of conversation.
+>>>Q: Why is top posting annoying in email?
