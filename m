@@ -1,70 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35443 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754134Ab0CWOoj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Mar 2010 10:44:39 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 23 Mar 2010 20:14:33 +0530
-Subject: RE: [Resubmit: PATCH-V2] Introducing ti-media directory
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DE0EBC5@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1268991350-549-1-git-send-email-hvaibhav@ti.com>
- <201003231241.00281.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201003231241.00281.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from mx-mail.opticon.hu ([85.90.160.75]:53067 "EHLO
+	mx-mail.opticon.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755744Ab0CHVmV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Mar 2010 16:42:21 -0500
+Subject: Re: DVB TS to DVD? Part 2
+From: Levente =?ISO-8859-1?Q?Nov=E1k?= <lnovak@dragon.unideb.hu>
+To: Juhana Sadeharju <kouhia@nic.funet.fi>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <S77953Ab0CHSEK7IBAI/20100308180411Z+8462@nic.funet.fi>
+References: <S77953Ab0CHSEK7IBAI/20100308180411Z+8462@nic.funet.fi>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 08 Mar 2010 22:35:37 +0100
+Message-ID: <1268084137.14970.15.camel@szisz.cimpi>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+2010. 03. 8, hétfő keltezéssel 20.04-kor Juhana Sadeharju ezt írta:
+> I have not got any replies. Considering that in Finland the
+> main Digital TV recording format is DVB TS and that DVD uses VOBs,
+> I find it hard to believe that nobody knows how to convert
+> between them.
+> 
+> I kind of expected that GNU/Linux has a DVD burner which has button
+> "burn this video to DVD", but I could not find such a thing.
+> Neither I could not find a video editor which can edit DVB TS files.
+> I use head/tail/split now.
+> 
+> Instead, the geek stuff is pouring from every corner. Here is my
+> best attempt so far:
+> 
+> 1. ffmpeg -i test.ts -vcodec copy -acodec copy test.vob
+> 2. copy a commercial DVD to /tmp/dvd/
+> 3. overwrite test.vob to vts_01_1.vob (byte-to-byte overwrite because
+> test.vob is smaller)
+> 4. growisofs -speed=4 -dvd-compat -Z /dev/dvd -udf -dvd-video /tmp/dvd
+> 
+> Problems:
+> -First try with ffmpeg made a poor quality vob, and much smaller; every
+> option adds to geek-meter!
+> -ffmpeg with "copy" made vob which works poorly in Xine; skip forward/backward
+> does not work
+> -ffmpeg with "copy" made vob which works very poorly in LG DVD player:
+> video skips, has noisy dropouts in audio, and eventually freezes
+> 
+> I don't think the problem is in the way how I made the DVD, because
+> Xine can play the commercial vobs well, but not the vob made by ffmpeg.
+> 
+> I tested movie-to-dvd as well, but it wanted to convert the audio to
+> WAV first. Stopped the test to that point. WAV conversion should not be
+> necessary. I also tested other DVD burners but it looks like they could
+> not make the required UDF disc. Check!
+> 
 
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Tuesday, March 23, 2010 5:11 PM
-> To: davinci-linux-open-source@linux.davincidsp.com
-> Cc: Hiremath, Vaibhav; linux-media@vger.kernel.org
-> Subject: Re: [Resubmit: PATCH-V2] Introducing ti-media directory
-> 
-> On Friday 19 March 2010 10:35:50 hvaibhav@ti.com wrote:
-> > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> >
-> > Looking towards the number of files which are cluttering in media/video/
-> > directory, it is required to introduce seperate working
-> > directory for TI devices.
-> 
-> You should then move the omap24xxcam driver as well.
-[Hiremath, Vaibhav] I wanted to move this file to ti-media directory, but left it only because it is based on V4L2-Int framework (legacy).
+Either try:
 
-> 
-> > Again the IP's are being re-used across the devices which makes it very
-> > difficuilt to re-use the driver code. For example, DM6446 and AM3517 both
-> > uses exactly same VPFE/CCDC IP, but the driver is encapsulated under
-> > DAVINCI which makes it impossible to re-use.
-> 
-> I'm not too sure to like the ti-media name. It will soon get quite crowded,
-> and name collisions might occur (look at the linux-omap-camera tree and the
-> ISP driver in there for instance). Isn't there an internal name to refer to
-> both the DM6446 and AM3517 that could be used ?
-[Hiremath, Vaibhav] Laurent,
+ffmpeg -i test.ts -target pal-dvd -vcodec copy -acodec copy test.vob
 
-ti-media directory is top level directory where we are putting all TI devices drivers. So having said that, we should worrying about what goes inside this directory.
-For me ISP is more generic, if you compare davinci and OMAP. 
+or download dvbcut and load your video into it. You can cut out the
+parts you don't need and export the final version as MPEG-PS (DVD
+compatible). There will be no transcoding, only at the few frames
+inbetween two I-frames where the cut occurs. All the rest (audio as well
+as video) is simply copied and muxed into the resulting VOB file. Dvbcut
+will give out a very simplistic XML file you can use to feed dvdauthor
+with in order to make your DVD directory. From there, use whatever DVD
+burning app (brasero, k3b, etc.) you like to toast the DVD. I recommend
+to use the svn version of dvbcut, not the age-old released version.
 
-Frankly, there are various naming convention we do have from device to device, even if the IP's are being reused. For example, the internal name for OMAP is ISP but Davinci refers it as a VPSS.
+If you need menus, etc., then download e.g. devede or dvdwizard. The
+first is menu-driven, the latter is a command-line tool which is as
+simple to use as:
 
-Thanks,
-Vaibhav
+dvdwizard test.vob
 
-> 
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> 
-> --
-> Regards,
-> 
-> Laurent Pinchart
+(Please read the man page if you need to tweak the layout further.) Here
+also, you will get a DVD directory, which can directly be burnt onto a
+disc.
+
+Levente
+
+
