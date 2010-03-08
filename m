@@ -1,67 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:55326 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751421Ab0CSOZg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Mar 2010 10:25:36 -0400
-Subject: Re: cx23885: Hauppauge WinTV HVR-1400 firmware loading problem
-From: Alina Friedrichsen <x-alina@gmx.net>
-To: linux-media@vger.kernel.org
-In-Reply-To: <1268788483.1536.24.camel@destiny>
-References: <1268788483.1536.24.camel@destiny>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 19 Mar 2010 15:25:33 +0100
-Message-ID: <1269008733.1645.8.camel@destiny>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:47739 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754804Ab0CHUl2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Mar 2010 15:41:28 -0500
+Received: by vws9 with SMTP id 9so2955816vws.19
+        for <linux-media@vger.kernel.org>; Mon, 08 Mar 2010 12:41:27 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <bcb3ef431003081127y43d6d785jdc34e845fa07e746@mail.gmail.com>
+References: <bcb3ef431003081127y43d6d785jdc34e845fa07e746@mail.gmail.com>
+Date: Mon, 8 Mar 2010 12:41:26 -0800
+Message-ID: <a3ef07921003081241t16e1a63ag1d8f93ebe35f15f2@mail.gmail.com>
+Subject: Re: s2-liplianin, mantis: sysfs: cannot create duplicate filename
+	'/devices/virtual/irrcv'
+From: VDR User <user.vdr@gmail.com>
+To: MartinG <gronslet@gmail.com>
+Cc: Linux Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No one has got this card and can say if this is normal (on a stable
-kernel) or my hardware is broken?
+This isn't an answer to your questions but I don't recommend using the
+s2-liplianin tree as it contains timing patches which can cause
+serious damage to your tuner.  This has also been confirmed by the
+manufacturer as well and to my knowledge has unfortunately not been
+reverted in that tree.
 
-Regards
-Alina
+I strongly urge you to use either of these _safe_ trees:
 
-Am Mittwoch, den 17.03.2010, 02:14 +0100 schrieb Alina Friedrichsen:
-> My kernel is 2.6.33.
-> When I want to watch DVB-T with VLC, loading the firmwares stops after
-> the following and don't see any pictures:
-> 
-> cx23885 0000:03:00.0: firmware: requesting xc3028L-v36.fw
-> xc2028 3-0064: Loading 81 firmware images from xc3028L-v36.fw, type:
-> xc2028 firmware, ver 3.6
-> xc2028 3-0064: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 3-0064: Loading firmware for type=D2633 DTV7 (90), id
-> 0000000000000000.
-> 
-> And hangs forever. Any retries has the same effect.
-> 
-> But if I start "scan /usr/share/dvb/dvb-t/de-Berlin" the tuning fails
-> two times, then all firmwares load correctly and scanning works.
-> 
-> xc2028 3-0064: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 3-0064: Loading firmware for type=D2633 DTV7 (90), id
-> 0000000000000000.
-> xc2028 3-0064: Loading firmware for type=BASE F8MHZ (3), id
-> 0000000000000000.
-> xc2028 3-0064: Loading firmware for type=D2633 DTV7 (90), id
-> 0000000000000000.
-> xc2028 3-0064: Loading firmware for type=D2633 DTV78 (110), id
-> 0000000000000000.
-> xc2028 3-0064: Loading SCODE for type=DTV78 DTV8 DIBCOM52 SCODE
-> HAS_IF_5200 (61000300), id 0000000000000000.
-> 
-> After that all other firmware loadings works fine and I can watch TV.
-> 
-> Any idea whats goes wrong? Is this a problem of the driver, or is my
-> express card broken? I unfortunately has no other card to test.
-> 
-> Thanks!
-> Alina
-> 
-> 
-> 
-
-
+http://jusst.de/hg/mantis-v4l-dvb (for development drivers, which may
+still be stable)
+http://linuxtv.org/hg/v4l-dvb (for more stable drivers)
