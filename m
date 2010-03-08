@@ -1,69 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.domeneshop.no ([194.63.248.54]:38098 "EHLO
-	smtp.domeneshop.no" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755241Ab0CDWQJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Mar 2010 17:16:09 -0500
-Message-ID: <4B903127.208@online.no>
-Date: Thu, 04 Mar 2010 23:16:07 +0100
-From: Hendrik Skarpeid <skarp@online.no>
+Received: from mail-ww0-f46.google.com ([74.125.82.46]:41714 "EHLO
+	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750880Ab0CHRA1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Mar 2010 12:00:27 -0500
+Received: by wwa36 with SMTP id 36so3388371wwa.19
+        for <linux-media@vger.kernel.org>; Mon, 08 Mar 2010 09:00:25 -0800 (PST)
 MIME-Version: 1.0
-To: "Igor M. Liplianin" <liplianin@me.by>
-CC: linux-media@vger.kernel.org,
-	Nameer Kazzaz <nameer.kazzaz@gmail.com>
-Subject: Re: DM1105: could not attach frontend 195d:1105
-References: <4B7D83B2.4030709@online.no> <201003031749.24261.liplianin@me.by> <4B8E9182.2010906@online.no> <201003032105.06263.liplianin@me.by>
-In-Reply-To: <201003032105.06263.liplianin@me.by>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <5b9ce2991003080858na3fc76bj52f3a1bc13a9acf6@mail.gmail.com>
+References: <5b9ce2991003080858na3fc76bj52f3a1bc13a9acf6@mail.gmail.com>
+Date: Mon, 8 Mar 2010 18:00:23 +0100
+Message-ID: <5b9ce2991003080900t6626e07fhddb17549ac4b7aa7@mail.gmail.com>
+Subject: updated frequency list for Denmark (DVB-T)
+From: =?ISO-8859-1?Q?Ren=E9_Kjellerup?= <rk.katana.steel@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=0016e6dab05963f36004814d0067
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Igor M. Liplianin skrev:
-> On 3 марта 2010 18:42:42 Hendrik Skarpeid wrote:
->   
->> Igor M. Liplianin wrote:
->>     
->>> Now to find GPIO's for LNB power control and ... watch TV :)
->>>       
->> Yep. No succesful tuning at the moment. There might also be an issue
->> with the reset signal and writing to GPIOCTR, as the module at the
->> moment loads succesfully only once.
->> As far as I can make out, the LNB power control is probably GPIO 16 and
->> 17, not sure which is which, and how they work.
->> GPIO15 is wired to tuner #reset
->>     
-> New patch to test
->   
-> ------------------------------------------------------------------------
->
->
-> No virus found in this incoming message.
-> Checked by AVG - www.avg.com 
-> Version: 9.0.733 / Virus Database: 271.1.1/2721 - Release Date: 03/03/10 20:34:00
->
+--0016e6dab05963f36004814d0067
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-modprobe si21xx debug=1 produces this output when scanning.
+this is all the used frequencies of the Main MUX 1 & 2 transponders
 
-[ 2187.998349] si21xx: si21_read_status : FE_READ_STATUS : VSTATUS: 0x02
-[ 2187.998353] si21xx: si21xx_set_frontend : FE_SET_FRONTEND
-[ 2187.999881] si21xx: si21xx_setacquire
-[ 2187.999884] si21xx: si21xx_set_symbolrate : srate = 27500000
-[ 2188.022645] si21xx: si21_read_status : FE_READ_STATUS : VSTATUS: 0x01
-[ 2188.054350] si21xx: si21_read_status : FE_READ_STATUS : VSTATUS: 0x02
-[ 2188.054355] si21xx: si21xx_set_frontend : FE_SET_FRONTEND
-[ 2188.055875] si21xx: si21xx_setacquire
-[ 2188.055879] si21xx: si21xx_set_symbolrate : srate = 27500000
-[ 2188.110359] si21xx: si21_read_status : FE_READ_STATUS : VSTATUS: 0x02
-[ 2188.110366] si21xx: si21xx_set_frontend : FE_SET_FRONTEND
-[ 2188.111885] si21xx: si21xx_setacquire
-[ 2188.111889] si21xx: si21xx_set_symbolrate : srate = 27500000
-[ 2188.166350] si21xx: si21_read_status : FE_READ_STATUS : VSTATUS: 0x02
-[ 2188.166354] si21xx: si21xx_set_frontend : FE_SET_FRONTEND
+Ren=E9
+--
+-- as life grows older, I gain experience.
 
-Since the tuner at hand uses a Si2109 chip, VSTATUS 0x01 and 0x02 would 
-indicate that blind scanning is used. Blind scanning is a 2109/2110 
-specific function, and may not very usable since we always use initial 
-tuning files anyway. 2109/10 also supports the legacy scanning method 
-which is supported by Si2107708.
+--0016e6dab05963f36004814d0067
+Content-Type: application/octet-stream; name=dk-All
+Content-Disposition: attachment; filename=dk-All
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_g6jiim1d0
 
-Is the use of blind scanning intentional?
+IyBEZW5tYXJrLCB3aG9sZSBjb3VudHJ5CiMgQ3JlYXRlZCBmcm9tIGh0dHA6Ly93d3cuZGlnaS10
+di5kay9JbmRob2xkX29nX3RpbGJ1ZC9mcmVrdmVuc2VyLmFzcAojIGFuZCBodHRwOi8vd3d3LmRp
+Z2ktdHYuZGsvU2VuZGVuZXR0ZXRzX29wYnlnbmluZy8KIyBUIGZyZXEgYncgZmVjX2hpIGZlY19s
+byBtb2QgdHJhbnNtaXNzaW9uLW1vZGUgZ3VhcmQtaW50ZXJ2YWwgaGllcmFyY2h5ClQgNTA2MDAw
+MDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS80IE5PTkUKVCA1MTQwMDAwMDAgOE1IeiAyLzMg
+Tk9ORSBRQU02NCA4ayAxLzQgTk9ORQpUIDUzODAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhr
+IDEvNCBOT05FClQgNTQ2MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS80IE5PTkUKVCA1
+NTQwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzQgTk9ORQpUIDU3ODAwMDAwMCA4TUh6
+IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FClQgNjAyMDAwMDAwIDhNSHogMi8zIE5PTkUgUUFN
+NjQgOGsgMS80IE5PTkUKVCA2MjYwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzQgTk9O
+RQpUIDY0MjAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FClQgNjU4MDAwMDAw
+IDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS80IE5PTkUKVCA2OTgwMDAwMDAgOE1IeiAyLzMgTk9O
+RSBRQU02NCA4ayAxLzQgTk9ORQpUIDcwNjAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEv
+NCBOT05FClQgNzE0MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS80IE5PTkUKVCA3MzAw
+MDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzQgTk9ORQpUIDczODAwMDAwMCA4TUh6IDIv
+MyBOT05FIFFBTTY0IDhrIDEvNCBOT05FClQgNzU0MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQg
+OGsgMS80IE5PTkUKVCA3NjIwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzQgTk9ORQpU
+IDc3MDAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FClQgNzc4MDAwMDAwIDhN
+SHogMi8zIE5PTkUgUUFNNjQgOGsgMS80IE5PTkUK
+--0016e6dab05963f36004814d0067--
