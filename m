@@ -1,103 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:65458 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753627Ab0CCB6m (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Mar 2010 20:58:42 -0500
-Subject: Re: How do private controls actually work?
-From: Andy Walls <awalls@radix.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <4B8D81CE.4070201@redhat.com>
-References: <829197381002281856o749e3e9al36334b8b42b34562@mail.gmail.com>
-	 <49ae9be6ffaaac102dc02f94f2fd047c.squirrel@webmail.xs4all.nl>
-	 <829197381003010220w57248cb2l636a75d5bf4b19c1@mail.gmail.com>
-	 <201003022128.06210.hverkuil@xs4all.nl>
-	 <829197381003021242p1ae9d91ek68e2c063024d316@mail.gmail.com>
-	 <4B8D81CE.4070201@redhat.com>
-Content-Type: text/plain
-Date: Tue, 02 Mar 2010 20:57:26 -0500
-Message-Id: <1267581446.3070.76.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4597 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755578Ab0CHUFt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Mar 2010 15:05:49 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id o28K5iKa028448
+	for <linux-media@vger.kernel.org>; Mon, 8 Mar 2010 21:05:48 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 8 Mar 2010 21:05:44 +0100 (CET)
+Message-Id: <201003082005.o28K5iKa028448@smtp-vbr6.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2010-03-02 at 18:23 -0300, Mauro Carvalho Chehab wrote:
-> Devin Heitmueller wrote:
-> > On Tue, Mar 2, 2010 at 3:28 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> 
-> > I had some extended discussion with Mauro on this yesterday on
-> > #linuxtv, and he is now in favor of introducing a standard user
->                       ===
-> > control for chroma gain, as opposed to doing a private control at all.
-> 
-> To be clear: I was never against ;)
-> 
-> It is worthy to summarize the discussions we have and the rationale to
-> create another control for it.
-> 
-> I've checked the datasheets of some chipsets, and the chroma gain is
-> different than the saturation control: the gain control (chroma or luma)
-> are applied at the analog input (or analog input samples) before the color
-> decoding, while the saturation is applied to the U/V output levels (some
-> datasheets call it as U/V output gain
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Yes, that is correct.
+Results of the daily build of v4l-dvb:
 
+date:        Mon Mar  8 19:00:25 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14408:e50bb36f881c
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 8c69c6ed6c74c94fa7ad6fa24eda452e4b212d81
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
->  - causing some mess on the interpretation
-> of this value).
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-armv5-ixp: OK
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.17-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30.10-i686: ERRORS
+linux-2.6.31.12-i686: ERRORS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.17-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: ERRORS
+linux-2.6.29.1-x86_64: ERRORS
+linux-2.6.30.10-x86_64: ERRORS
+linux-2.6.31.12-x86_64: ERRORS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-git-armv5: OK
+linux-git-armv5-davinci: OK
+linux-git-armv5-ixp: OK
+linux-git-armv5-omap2: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: WARNINGS
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: OK
+linux-2.6.17.14-i686: OK
+linux-2.6.18.8-i686: OK
+linux-2.6.19.7-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.62-x86_64: OK
+linux-2.6.17.14-x86_64: OK
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.7-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
-AFAICT, the effect of chroma gain is not really different from a
-saturation control that scales both the U & V components by the same
-factor.
+Detailed results are available here:
 
-               _
-A color vector A can be expressed as
-	_    _   _
-	A = YW + C
-       _
-Where YW is a white vector that has a luminance component of magnitude
-Y.
-_
-C is the chrominace vector in a constant luuminance plane.  Its phase is
-the hue, and its magnitude is the saturation.
-                           _
-Adjusting the magnitude of C in the analog domain will change the
-saturation.
-          _                                                      _
-Adjusting C's U & V components will adjust only the magnitude of C, if U
-& V are adjusted by the same scale factor.  (You can tweak both the hue
-and saturation by adjusting U & V by different scale factors.)
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-> The API spec patch should clearly state that Saturation is for the U/V output
-> level, while gain is for the analog input gain.
+The V4L-DVB specification from this daily build is here:
 
-That makes sense.
-
-Since we're thinking about what to name controls, I will note the
-CX25843, doesn't quite fit the current discussion of an analog "chroma
-gain" independent from "luma gain":
-
-1. the CX25843 has at least 3 front end gains well before U/V
-separation:
-   a +12 dB analog boost
-   a analog coarse gain (controlled by an AGC),
-   a digital fine gain (also has an AGC).
-
-The +12 dB analog boost can be applied separately for Y, C, Pb and/or
-Pr, but the other analog and digital gains cannot.  They will be applied
-to all video signal inputs the same.
-
-2. the CX25843 U and V saturation scale factors can be set
-independently, if desired.
-
-
-Regards,
-Andy
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
