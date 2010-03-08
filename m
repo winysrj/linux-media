@@ -1,38 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43862 "EHLO mx1.redhat.com"
+Received: from psmtp04.wxs.nl ([195.121.247.13]:53155 "EHLO psmtp04.wxs.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753249Ab0CMGgM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Mar 2010 01:36:12 -0500
-Received: from int-mx03.intmail.prod.int.phx2.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.16])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2D6aB2e007593
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 13 Mar 2010 01:36:11 -0500
-Message-ID: <4B9B3417.7020008@redhat.com>
-Date: Sat, 13 Mar 2010 07:43:35 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: pushes at v4l-utils tree
-References: <4B99891E.9010406@redhat.com> <4B9A62B6.7090004@redhat.com> <4B9A962A.2020407@redhat.com> <4B9AE956.203@redhat.com>
-In-Reply-To: <4B9AE956.203@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1754774Ab0CHVMT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Mar 2010 16:12:19 -0500
+Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
+ by psmtp04.wxs.nl
+ (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
+ with ESMTP id <0KYZ00DICEWHHA@psmtp04.wxs.nl> for linux-media@vger.kernel.org;
+ Mon, 08 Mar 2010 22:12:18 +0100 (MET)
+Date: Mon, 08 Mar 2010 22:12:16 +0100
+From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Subject: Re: Help with RTL2832U DVB-T dongle (LeadTek WinFast DTV Dongle Mini)
+In-reply-to: <4B93D751.1020008@gmail.com>
+To: thomas.schorpp@gmail.com,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
+Message-id: <4B956830.6070508@hoogenraad.net>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7BIT
+References: <6934ea941003052353n4258600cs78dba8487d203564@mail.gmail.com>
+ <4B93537F.30407@hoogenraad.net> <4B93D751.1020008@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Mauro:
 
-On 03/13/2010 02:24 AM, Mauro Carvalho Chehab wrote:
-> Please, don't upgrade the version yet just due to keytable, as I'm still working on
-> more keytable patches, to handle the new uevent attributes (to match the IR core patches
-> I posted earlier today).
->
+Can you remove the VERY OLD branch:
+http://linuxtv.org/hg/~mchehab/rtl2831/rev/d116540ebaab
+It is giving some confusion here.
 
-Ok,
+Thomas & Jan:
 
-Note the main reason for the 0.7.91 release was a small libv4l fix which I wanted to get out there.
+I've got the RTL2831 code (mind the last digit) vetted off by LeadTek.
+For the rtl2832, I haven't had contact with them.
 
-Regards,
+Certainly, Jan could try any of the three archives.
+I know Antti has thoughts on the rtl2832, I'm sure he knows more.
 
-Hans
+thomas schorpp wrote:
+> Jan Hoogenraad wrote:
+>> Antti has been working on drivers for the RTL283x.
+>>
+>> http://linuxtv.org/hg/~anttip/rtl2831u
+>> or
+>> http://linuxtv.org/hg/~anttip/qt1010/
+> 
+> ~jhoogenraad/rtl2831-r2     rtl2831-r2 development repository: *known 
+> working version*     Jan Hoogenraad
+> 
+> Should Jan Slaninka try it?
+>>
+>> If you have more information on the RTL2832, I'd be happy to add it at:
+>> http://www.linuxtv.org/wiki/index.php/Rtl2831_devices
+> 
+> Nothing on the Realtek website yet.
+> 
+>>
+>>
+>> Jan Slaninka wrote:
+>>> Hi,
+>>>
+>>> I'd like to ask for a support with getting LeadTek WindFast DTV Dongle
+>>> mini running on Linux. So far I was able to fetch latest v4l-dvb from
+>>> HG, and successfully compiled module dvb_usb_rtl2832u found in
+> 
+>>> 090730_RTL2832U_LINUX_Ver1.1.rar  
+> 
+> Can be considered as GPL code then according to
+> 
+> http://linuxtv.org/hg/~mchehab/rtl2831/rev/d116540ebaab
+> 
+> Patch to make RTL2831U DVB-T USB2.0 DEVICE work, based on RealTek 
+> version 080314
+> 
+> ~mchehab/rtl2831     rtl2831 development repository with *RealTek GPL 
+> code* for rtl2831     Mauro Carvalho Chehab     24 months ago
+> 
+> ?
+> 
+> y
+> tom
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
+-- 
+Jan Hoogenraad
+Hoogenraad Interface Services
+Postbus 2717
+3500 GS Utrecht
