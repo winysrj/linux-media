@@ -1,88 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45966 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754143Ab0CVNc1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Mar 2010 09:32:27 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Pawel Osciak <p.osciak@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Mon, 22 Mar 2010 19:02:19 +0530
-Subject: RE: [REPORT] Brainstorm meeting on V4L2 memory handling
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DE0E7BA@dbde02.ent.ti.com>
-References: <201003131456.21510.hverkuil@xs4all.nl>
- <19F8576C6E063C45BE387C64729E7394044DE0E50D@dbde02.ent.ti.com>
- <004801cac9bf$b2e32e90$18a98bb0$%osciak@samsung.com>
-In-Reply-To: <004801cac9bf$b2e32e90$18a98bb0$%osciak@samsung.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1919 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751136Ab0CHSC4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Mar 2010 13:02:56 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: matti.j.aaltonen@nokia.com
+Subject: Re: v4l2 subdevices and fops
+Date: Mon, 8 Mar 2010 19:03:17 +0100
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <1243448117.8697.790.camel@alkaloid.netup.ru> <4B84BA3A.3090809@redhat.com> <1268052265.27183.83.camel@masi.mnp.nokia.com>
+In-Reply-To: <1268052265.27183.83.camel@masi.mnp.nokia.com>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201003081903.17928.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> -----Original Message-----
-> From: Pawel Osciak [mailto:p.osciak@samsung.com]
-> Sent: Monday, March 22, 2010 6:31 PM
-> To: Hiremath, Vaibhav; linux-media@vger.kernel.org
-> Subject: RE: [REPORT] Brainstorm meeting on V4L2 memory handling
+On Monday 08 March 2010 13:44:25 m7aalton wrote:
+> Hello.
 > 
-> Hello!
+> I'm writing a radio driver which uses subdevice file operations to
+> handle RDS reception and transmission. Some IOCTL call-backs to the main
+> device are easy to pass to the subdevice driver. To me it seems that
+> adding the fops pointer to the following struct in v4l2-subdev.h would
+> make passing the file operation call-backs equally convenient.
 > 
-> >Hiremath, Vaibhav wrote:
-> >> 1) Memory-to-memory devices
-> >>
-> >> Original thread with the proposal from Samsung:
-> >>
-> >> http://www.mail-archive.com/linux-samsung-
-> soc@vger.kernel.org/msg00391.html
-> >>
-> >[Hiremath, Vaibhav] Pawel,
-> >
-> >I wanted to start prototyping Resizer and Previewer driver to this
-> framework,
-> > before starting just wanted to make sure that I start with latest and
-> > greatest. Is V2 post still holds latest? Did you do any changes after
-> that?
-> >
+> struct v4l2_subdev_ops {
+> 	const struct v4l2_subdev_core_ops  *core;
+> 	const struct v4l2_subdev_tuner_ops *tuner;
+> 	const struct v4l2_subdev_audio_ops *audio;
+> 	const struct v4l2_subdev_video_ops *video;
+> 	const struct v4l2_subdev_pad_ops   *pad;
+> };
 > 
-> Only some minor tweaks for v3, which is currently underway. This is the
-> expected
-> changelog for it:
-> 
-> - streamon/off will have to be called on both queues instead of just either
-> one
-> - automatic rescheduling for instances if they have more buffers waiting
-> - addressing comments from Andy Walls
-> 
-> All in all, I do not expect any other API changes and only minor tweaks
-> under
-> the hood. It should be ready this week.
-> 
-[Hiremath, Vaibhav] In that case I can start with V2 as of now and will migrate to V3 once you post it to list. 
+> Could I expand the above struct in the way I described? Have I missed
+> something? Do you understand what I'm saying? :-)
 
-Thanks,
-Vaibhav
+Yes, I understand :-)
+
+It is possible to add rds ops. The question is whether it is used often enough
+to warrant the addition of a new rds_ops struct. Until recently rds was a rare
+beast to see inside a driver. If the rds ops are general enough to be used in
+more than one subdev driver, then I think you should make a proposal. If the
+rds ops are unique to your driver, though, then it should be done through
+the core ops ioctl callback.
+
+Regards,
+
+	Hans
 
 > 
-> >Also, have you validated this with actual hardware module? If not then I
-> think
-> >I can now start on this and add resizer driver to it.
+> Cheers,
+> Matti 
 > 
-> Yes, we have actually been using v2 for several real devices, one of which
-> was
-> the previously posted S3C rotator driver:
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg13606.html
-> 
-> And there is always the test device, which was posted along with v2.
-> 
-> If you come across any problems or have more questions, I would be happy to
-> help.
-> 
-> Best regards
 > --
-> Pawel Osciak
-> Linux Platform Group
-> Samsung Poland R&D Center
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 > 
 
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
