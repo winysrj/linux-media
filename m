@@ -1,22 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx2.redhat.com (ext-mx01.rdu.redhat.com [10.11.45.6])
+Received: from mx1.redhat.com (ext-mx04.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.8])
 	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o2DILPgw008299
-	for <video4linux-list@redhat.com>; Sat, 13 Mar 2010 13:21:25 -0500
-Received: from web34408.mail.mud.yahoo.com (web34408.mail.mud.yahoo.com
-	[66.163.178.157])
-	by mx2.redhat.com (8.13.8/8.13.8) with SMTP id o2DILOTT021401
-	for <video4linux-list@redhat.com>; Sat, 13 Mar 2010 13:21:24 -0500
-Message-ID: <701703.28465.qm@web34408.mail.mud.yahoo.com>
-References: <737952.62741.qm@web34405.mail.mud.yahoo.com>
-	<829197381003130931m4b3c0d3doa17cb57cea70b62@mail.gmail.com>
-Date: Sat, 13 Mar 2010 10:14:43 -0800 (PST)
-From: Muppet Man <muppetman4662@yahoo.com>
-Subject: Re: support for hauppauge wintv-hvr 950Q
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-In-Reply-To: <829197381003130931m4b3c0d3doa17cb57cea70b62@mail.gmail.com>
+	id o28GCgR6012604
+	for <video4linux-list@redhat.com>; Mon, 8 Mar 2010 11:12:42 -0500
+Received: from mail.hidayahonline.org (hidayahonline.org [67.19.146.138])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o28GCP8Y006572
+	for <video4linux-list@redhat.com>; Mon, 8 Mar 2010 11:12:26 -0500
+Message-ID: <4B9521E4.9040901@hidayahonline.org>
+Date: Mon, 08 Mar 2010 11:12:20 -0500
+From: Basil Mohamed Gohar <abu_hurayrah@hidayahonline.org>
 MIME-Version: 1.0
-Cc: video4linux-list@redhat.com
+To: video4linux-list@redhat.com
+Subject: image/jpeg format with v4l2 webcam
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,43 +26,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Greetings,
-Yes, I rebooted after installing the code.  I do see the device now, but it was odd because I did not see it before (and I rebooted numerous times).
+Hello, everyone.  I am using gstreamer (through gst-launch) to access my
+v4l2 webcam (I have two - Logitech QuickCam for Notebooks Pro & Logitech
+QuickCam Pro 5000), both of which work perfectly fine when using
+video/x-raw-yuv-type pixel formats.
+
+However, when I want to capture the video using the supported image/jpeg
+pixel formats, which I presume would be higher quality (if I dump
+straight to JPEG/MJPEG files) as no implicit conversion is happening, I
+get framerates much lower than expected.
+
+For example, my webcams claim to support up to 30 frames per second when
+capturing in the image/jpeg format.  But the resulting video is much,
+much slower.  And this scales, somehow, if I change the capture
+framerate.  So, for example, if I specify 25 fps, it's slower than the
+30, and 15 is slower than 25, etc.  But all of these are much slower in
+terms of capture than their yuv-format counterparts.
+
+Could someone guide me as to how I can find the source of this problem
+and/or test different settings that might work?
+
 Thanks!
 
-
-
-________________________________
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Muppet Man <muppetman4662@yahoo.com>
-Cc: video4linux-list@redhat.com
-Sent: Sat, March 13, 2010 11:31:30 AM
-Subject: Re: support for hauppauge wintv-hvr 950Q
-
-On Sat, Mar 13, 2010 at 11:50 AM, Muppet Man <muppetman4662@yahoo.com> wrote:
-> Greetings all,
-> I purchased a hauppauge wintv-hvr 950Q.  I downloaded and installed the lastest drivers from the v4l website.
->
-> When attempting to use with TVtime, the only "video" device I can find is my webcam.
-> When running lsusb, this is what I get:
-
-Hello,
-
-Did you reboot after installing the code?  Did you install the code
-using the instructions at http://linuxtv.org/repo?
-
-After the device is plugged in, you should see a new /dev/video device
-appear.  If not, then the driver did not load.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
-
-
-
-      
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
