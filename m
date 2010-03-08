@@ -1,47 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f213.google.com ([209.85.220.213]:59569 "EHLO
-	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752100Ab0CWLDM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Mar 2010 07:03:12 -0400
-Date: Tue, 23 Mar 2010 14:03:00 +0300
-From: Dan Carpenter <error27@gmail.com>
-To: Olimpiu Pascariu <olimpiu.pascariu@gmail.com>
-Cc: gregkh@suse.de, mchehab@redhat.com,
-	palash.bandyopadhyay@conexant.com, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 5/5] Staging: cx25821: fix coding style issues in
-	cx25821-medusa-video.c
-Message-ID: <20100323110259.GV21571@bicker>
-References: <1269197503.6971.11.camel@tuxtm-linux> <20100322133513.GO21571@bicker> <1269288630.6365.1.camel@tuxtm-linux>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:50917 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750711Ab0CHFJC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Mar 2010 00:09:02 -0500
+Received: by wya21 with SMTP id 21so3069992wya.19
+        for <linux-media@vger.kernel.org>; Sun, 07 Mar 2010 21:08:59 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1269288630.6365.1.camel@tuxtm-linux>
+Date: Mon, 8 Mar 2010 05:08:58 +0000
+Message-ID: <600adaf51003072108u42359bd7o8fd5308395582f39@mail.gmail.com>
+Subject: Some questions
+From: Tiago Maluta <tiago.maluta@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 22, 2010 at 10:10:30PM +0200, Olimpiu Pascariu wrote:
-> >From 32591165a537a03f472c68289798044d6eeea2e0 Mon Sep 17 00:00:00 2001
-> From: Olimpiu Pascariu <olimpiu.pascariu@gmail.com>
-> Date: Mon, 22 Mar 2010 22:07:20 +0200
-> Subject: [PATCH 5/5] Staging: cx25821: fix coding style issues in cx25821-medusa-video.c
->  This is a patch to cx25821-medusa-video.c file that fixes up warnings and errors found by the checkpatch.pl tool
->  Signed-off-by: Olimpiu Pascariu <olimpiu.pascariu@gmail.com>
+Hi,
 
-	[snip]
+One of topic of my final course work that I thought is create a simple way to
+demonstrate the DVB in Linux (software-only approach). Something like:
 
-> +		/*
-> +		 * clear VPRES_VERT_EN bit, fixes the chroma run away problem
-> +		 * when the input switching rate < 16 fields
-> +		*/
-               ^^^
-	Missing a space here.
+FRONTEND -> DEMUX -> AUDIO/VIDEO -> PLAYER
 
-Otherwise looks good.
+Notes:
+- I'm omitting the block referring to SEC and CA.
+- As I'm in Brazil I'm focusing in ISDB-T standard
 
-Acked-by: Dan Carpenter <error27@gmail.com>
+My first step is create a code based in dvb_dummy_fe.c to take a place of a
+'dummy' ISDB-T frontend. After that created a userspace program to 'inject' a
+TS into the frontend. I know that is useless if I already have the Transport
+Stream but I like to at least pass trough 'frontendX' device.
 
-regard,
-dan carpenter
- 
+1) Where is /dev/dvb/adapter/frontendX created? I saw that in dvbdev.c,
+but when I load dvb_dummy_fe.ko frontendX would not have to appear?
+
+2) As dvb_dummy_fe.c doesn't have module_init() and module_exit() definition.
+(and noted that this happens in other files in frontend/ too) is API
+(Frontend Function Calls) used to access,
+i.e: ioctl(fd, FE_GET_FRONTEND, struct ....)
+
+Other information:
+
+- I'm using 2.6.33-git
+- $ grep ^CONFIG_DVB .config
+
+    CONFIG_DVB_CORE=y
+    CONFIG_DVB_MAX_ADAPTERS=8
+    CONFIG_DVB_CAPTURE_DRIVERS=y
+    CONFIG_DVB_FE_CUSTOMISE=y
+    CONFIG_DVB_DUMMY_FE=m
+
+
+Another topic that I would add is my work is regarded to userspace tools [1]
+to processing the sections related do ISDB-T.
+
+[1] http://linuxtv.org/hg/~pb/dvb-apps-isdbt
+
+I would appreciate if developers in this maillist point some directions. Mauro
+and Patrick answered some private emails with questions, but I like to exchange
+discussion.
+
+Maybe what I said it thoroughly out of context and I'm thinking on the
+wrong way,
+but except linuxtv.org and kernel Documentation/ it's difficult to get
+ expertise
+in topics regarded what could be a cool way to do a good final
+course work.
+
+Kind regards,
+
+--tm
