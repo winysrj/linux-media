@@ -1,111 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1593 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753032Ab0C3Vgu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Mar 2010 17:36:50 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: dean <dean@sensoray.com>
-Subject: Re: [PATCH] s2255drv: cleanup of driver disconnect code
-Date: Tue, 30 Mar 2010 23:36:30 +0200
-Cc: David Ellingsworth <david@identd.dyndns.org>,
-	mchehab@infradead.org, laurent.pinchart@ideasonboard.com,
-	isely@pobox.com, andre.goddard@gmail.com,
-	linux-media@vger.kernel.org
-References: <tkrat.7f9b79c0eafb6d4f@sensoray.com> <4BB263C4.4040900@sensoray.com> <201003302309.49188.hverkuil@xs4all.nl>
-In-Reply-To: <201003302309.49188.hverkuil@xs4all.nl>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:34130 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751685Ab0CHAQf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Mar 2010 19:16:35 -0500
+Received: by vws9 with SMTP id 9so2516961vws.19
+        for <linux-media@vger.kernel.org>; Sun, 07 Mar 2010 16:16:34 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201003302336.30959.hverkuil@xs4all.nl>
+In-Reply-To: <alpine.LNX.2.00.1003071557020.23682@banach.math.auburn.edu>
+References: <alpine.LNX.2.00.1003041737290.18039@banach.math.auburn.edu>
+	 <alpine.LNX.2.00.1003051829210.21417@banach.math.auburn.edu>
+	 <a3ef07921003051651j12fbae25r5a3d5276b7da43b7@mail.gmail.com>
+	 <4B91AADD.4030300@xenotime.net> <4B91CE02.4090200@redhat.com>
+	 <a3ef07921003070955q7d7ce7e8j747c07d56a0ad98e@mail.gmail.com>
+	 <alpine.LNX.2.00.1003071557020.23682@banach.math.auburn.edu>
+Date: Sun, 7 Mar 2010 16:16:34 -0800
+Message-ID: <a3ef07921003071616l742095c1mfdc19b2cea88f22@mail.gmail.com>
+Subject: Re: "Invalid module format"
+From: VDR User <user.vdr@gmail.com>
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 30 March 2010 23:09:49 Hans Verkuil wrote:
-> On Tuesday 30 March 2010 22:49:08 dean wrote:
-> > Thanks for this and the other feedback.
-> > 
-> > The concern, without knowing the full history, is if video_device_alloc 
-> > changes to do more than just allocate the whole structure with a single 
-> > call to kzalloc?  Otherwise, why have this extra indirection and 
-> > overhead in most V4L drivers?
-> 
-> It is unlikely that video_device_alloc() will change. I think it is just
-> historical. I have a preference for not allocating it at all, but embedding
-> it in a larger struct. This type of embedding is very common in the kernel.
-> 
-> But if you do allocate it, then use video_device_alloc() rather than kzalloc,
-> if only because that makes it consistent and easier to grep on should we
-> need to replace it in the future.
+On Sun, Mar 7, 2010 at 2:03 PM, Theodore Kilgore
+<kilgota@banach.math.auburn.edu> wrote:
+> It seems that the problem is solved by a local re-compile of the kernel plus
+> its modules, using the original distro .config settings in order to do this.
+> What I suspect has happened is that there was a simultaneous minor upgrade
+> of gcc at the same time, and it is possible that this interfered. I would
+> further speculate that a similar problem happened with you, in your Debian
+> installation.
+>
+> Hoping that we have finally tracked this down.
 
-Just a quick follow-up: if someone is going to do some work on this driver,
-then it would be nice if the BKL (lock_kernel) can be removed as well.
-
-And also add struct v4l2_device. Admittedly, that doesn't do much (yet), but
-it will become more important in the near future. Eventually this struct will
-be required by all drivers.
-
-There are more things that can be simplified as well. Let me know if someone
-is interested in cleaning up/improving this driver.
-
-Regards,
-
-	Hans
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > The majority of V4L drivers are using video_device_alloc.  Very few 
-> > (bw-qcam.h, c-qcam.c, cpia.h, pvrusb2, usbvideo) are using "struct 
-> > video_device" statically similar to solution 1.  Three drivers(zoran, 
-> > radio-gemtek, saa5249) are allocating their own video_device structure 
-> > directly with kzalloc similar to solution #2.
-> > 
-> > The call definitely needs checked, but I'd like some more feedback on this.
-> > 
-> > Thanks and best regards,
-> > 
-> > Dean
-> > 
-> > 
-> > 
-> > 
-> > David Ellingsworth wrote:
-> > > This patch looks good, but there was one other thing that caught my eye.
-> > >
-> > > In s2255_probe_v4l, video_device_alloc is called for each video
-> > > device, which is nothing more than a call to kzalloc, but the result
-> > > of the call is never verified.
-> > >
-> > > Given that this driver has a fixed number of video device nodes, the
-> > > array of video_device structs could be allocated within the s2255_dev
-> > > struct. This would remove the extra calls to video_device_alloc,
-> > > video_device_release, and the additional error checks that should have
-> > > been there. If you'd prefer to keep the array of video_device structs
-> > > independent of the s2255_dev struct, an alternative would be to
-> > > dynamically allocate the entire array at once using kcalloc and store
-> > > only the pointer to the array in the s2255_dev struct. In my opinion,
-> > > either of these methods would be better than calling
-> > > video_device_alloc for each video device that needs to be registered.
-> > >
-> > > Regards,
-> > >
-> > > David Ellingsworth
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> 
-> 
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+It's a good theory.  However, when I did my "update", I had compiled
+the kernel, installed it, rebooted into it and then proceeded to grab
+a fresh v4l tree and go from there.  There wern't any package updates
+or anything else involved between the kernel compile and v4l compile.
+(except for the reboot into 2.6.33 of course.)
