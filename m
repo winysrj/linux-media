@@ -1,42 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx.fr.smartjog.net ([91.197.165.186]:33511 "EHLO
-	mail.dmz-ext.fr.lan" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751884Ab0CVSZ7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Mar 2010 14:25:59 -0400
-From: Nicolas Noirbent <nicolas.noirbent@smartjog.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, "Igor M. Liplianin" <liplianin@me.by>,
-	matthias@tevii.com,
-	Nicolas Noirbent <nicolas.noirbent@smartjog.com>
-Subject: [PATCH] V4L/DVB: ds3000: fix divide-by-zero error in ds3000_read_snr()
-Date: Mon, 22 Mar 2010 18:54:43 +0100
-Message-Id: <1269280483-4586-1-git-send-email-nicolas.noirbent@smartjog.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:23671 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753363Ab0CIOts (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Mar 2010 09:49:48 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0KZ000EGFRUXQV50@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 09 Mar 2010 14:49:45 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0KZ0007Z9RUXJL@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 09 Mar 2010 14:49:45 +0000 (GMT)
+Date: Tue, 09 Mar 2010 15:49:40 +0100
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: [PATCH/RFC v2 0/3] Multi-plane video buffer support for V4L2 API and
+ videobuf
+To: linux-media@vger.kernel.org
+Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl
+Message-id: <1268146183-2018-1-git-send-email-p.osciak@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix a divide-by-zero error in ds3000's ds3000_read_snr(), when getting
-a very low signal reading (dvbs2_signal_reading >= 1). This prevents
-some nasty EIPs when running szap-s2 with a very low signal strength.
+Hello,
 
-Signed-off-by: Nicolas Noirbent <nicolas.noirbent@smartjog.com>
----
- drivers/media/dvb/frontends/ds3000.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+this version differs only slightly from the previous one, it fixes some
+memory allocation/freeing-related problems of the previous patchset.
 
-diff --git a/drivers/media/dvb/frontends/ds3000.c b/drivers/media/dvb/frontends/ds3000.c
-index cff3535..78001e8 100644
---- a/drivers/media/dvb/frontends/ds3000.c
-+++ b/drivers/media/dvb/frontends/ds3000.c
-@@ -719,7 +719,7 @@ static int ds3000_read_snr(struct dvb_frontend *fe, u16 *snr)
- 				(ds3000_readreg(state, 0x8d) << 4);
- 		dvbs2_signal_reading = ds3000_readreg(state, 0x8e);
- 		tmp = dvbs2_signal_reading * dvbs2_signal_reading >> 1;
--		if (dvbs2_signal_reading == 0) {
-+		if (tmp == 0) {
- 			*snr = 0x0000;
- 			return 0;
- 		}
--- 
-1.7.0.2
+As was the case with v1, it is still intended for demonstration/discussion/testing
+purposes only.
 
+
+Changes since v2:
+- simplified videobuf_buffer allocation
+- fixed some videobuf_buffer memory leaks (missing kfrees)
+
+
+The series contains:
+
+[PATCH v2 1/3] v4l: Add support for multi-plane buffers to V4L2 API.
+[PATCH v2 2/3] v4l: videobuf: Add support for multi-plane buffers.
+[PATCH v2 3/3] v4l: vivi: add 2- and 3-planar YCbCr422
+
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
