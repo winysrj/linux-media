@@ -1,50 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f219.google.com ([209.85.220.219]:38993 "EHLO
-	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932121Ab0CDTj3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Mar 2010 14:39:29 -0500
-Received: by fxm19 with SMTP id 19so3244003fxm.21
-        for <linux-media@vger.kernel.org>; Thu, 04 Mar 2010 11:39:27 -0800 (PST)
+Received: from mail-bw0-f211.google.com ([209.85.218.211]:45085 "EHLO
+	mail-bw0-f211.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751121Ab0CIUFY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Mar 2010 15:05:24 -0500
+Received: by bwz3 with SMTP id 3so1270455bwz.29
+        for <linux-media@vger.kernel.org>; Tue, 09 Mar 2010 12:05:22 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <74fd948d1003040314y2fc911f2k97b1d6fb66bdc0b9@mail.gmail.com>
-References: <74fd948d1003031535r1785b36dq4cece00f349975af@mail.gmail.com>
-	 <829197381003031548n703f0bf9sb44ce3527501c5c0@mail.gmail.com>
-	 <74fd948d1003031700h187dbfd0v3f54800e652569b@mail.gmail.com>
-	 <829197381003031706g1011f442hcc4be40ae2e79a47@mail.gmail.com>
-	 <4B8F347E.2010206@gmail.com>
-	 <74fd948d1003040314y2fc911f2k97b1d6fb66bdc0b9@mail.gmail.com>
-Date: Thu, 4 Mar 2010 14:39:27 -0500
-Message-ID: <829197381003041139j7300bc7cg1281aff59e5a60b@mail.gmail.com>
-Subject: Re: Excessive rc polling interval in dvb_usb_dib0700 causes
-	interference with USB soundcard
+In-Reply-To: <a3ef07921003091155q2a11335bo887251ed2c3300d2@mail.gmail.com>
+References: <4B969C08.2030807@redhat.com>
+	 <a3ef07921003091155q2a11335bo887251ed2c3300d2@mail.gmail.com>
+Date: Tue, 9 Mar 2010 15:05:22 -0500
+Message-ID: <829197381003091205vfeb1e81oa09b8320f02cd2c5@mail.gmail.com>
+Subject: Re: Status of the patches under review (45 patches)
 From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Pedro Ribeiro <pedrib@gmail.com>
-Cc: Mauro Carvalho Chehab <maurochehab@gmail.com>,
-	linux-media@vger.kernel.org
+To: VDR User <user.vdr@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>, moinejf@free.fr,
+	m-karicheri2@ti.com, g.liakhovetski@gmx.de, pboettcher@dibcom.fr,
+	tobias.lorenz@gmx.net, awalls@radix.net, khali@linux-fr.org,
+	hdegoede@redhat.com, abraham.manu@gmail.com, hverkuil@xs4all.nl,
+	crope@iki.fi, davidtlwong@gmail.com, henrik@kurelid.se,
+	stoth@kernellabs.com
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 4, 2010 at 6:14 AM, Pedro Ribeiro <pedrib@gmail.com> wrote:
-> Devin, I noticed that your solution does not alter the remote query
-> interval from 50 msec. It works, but it is not as effective as my hard
-> hack because I still get interference every once in a while when the
-> DVB adapter is connected.
->
-> I can't tell you exactly when and how it happens, because it seems
-> rather random - but it is much better than previously though.
+On Tue, Mar 9, 2010 at 2:55 PM, VDR User <user.vdr@gmail.com> wrote:
+> What happened to the statistics patch?
 
-Well, the printk() line is a little misleading, since the code change
-results in *zero* polling.  Basically the driver now registers a bulk
-URB handler, so whenever a message is delivered on the bulk pipe it is
-handled immediately.  Hence, no polling at all.
-
-That said, I should probably find a way to get rid of that line from
-the dmesg output when the device is in that mode (the issue is that
-portion of the code is shared with drivers other than the dib0700).
-
-If you are still seeing issues, then it is unlikely to have anything
-to do with the dib0700 RC support.
+The statistics patch still needs a ton of work before it could be
+accepted upstream.  Mostly these things are related to clarification
+as to how the API should behave and how a variety of edge cases should
+be handled.  I came up with about three paragraphs worth of issues
+with the proposed approach, but haven't had a chance to push it to the
+mailing list for further discussion.
 
 Devin
 
