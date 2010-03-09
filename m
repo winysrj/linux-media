@@ -1,57 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bamako.nerim.net ([62.4.17.28]:57044 "EHLO bamako.nerim.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755675Ab0CJJAX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Mar 2010 04:00:23 -0500
-Date: Wed, 10 Mar 2010 10:00:19 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Dmitri Belimov <dimon@openhardware.ru>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org,
-	"Timothy D. Lenz" <tlenz@vorgon.com>
-Subject: Re: [IR RC, REGRESSION] Didn't work IR RC
-Message-ID: <20100310100019.731c7b19@hyperion.delvare>
-In-Reply-To: <20100310130225.75d2bca4@glory.loctelecom.ru>
-References: <20100301153645.5d529766@glory.loctelecom.ru>
-	<1267442919.3110.20.camel@palomino.walls.org>
-	<4B8BC332.6060303@infradead.org>
-	<1267503595.3269.21.camel@pc07.localdom.local>
-	<20100302134320.748ac292@glory.loctelecom.ru>
-	<20100302163634.31c934e4@glory.loctelecom.ru>
-	<4B8CD10D.2010009@infradead.org>
-	<20100309115748.5ec7fd7a@hyperion.delvare>
-	<20100310130225.75d2bca4@glory.loctelecom.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from qw-out-2122.google.com ([74.125.92.25]:54239 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752611Ab0CIUJt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Mar 2010 15:09:49 -0500
+Received: by qw-out-2122.google.com with SMTP id 8so74659qwh.37
+        for <linux-media@vger.kernel.org>; Tue, 09 Mar 2010 12:09:48 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <201003092133.12235.liplianin@me.by>
+References: <bcb3ef431003081127y43d6d785jdc34e845fa07e746@mail.gmail.com>
+	 <a3ef07921003081241t16e1a63ag1d8f93ebe35f15f2@mail.gmail.com>
+	 <201003092133.12235.liplianin@me.by>
+Date: Tue, 9 Mar 2010 12:09:48 -0800
+Message-ID: <a3ef07921003091209j20d5df65jf61958bac3e4a569@mail.gmail.com>
+Subject: Re: s2-liplianin, mantis: sysfs: cannot create duplicate filename
+	'/devices/virtual/irrcv'
+From: VDR User <user.vdr@gmail.com>
+To: "Igor M. Liplianin" <liplianin@me.by>
+Cc: MartinG <gronslet@gmail.com>,
+	Linux Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=KOI8-R
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 10 Mar 2010 13:02:25 +0900, Dmitri Belimov wrote:
-> > Sorry for the late reply. Is the problem solved by now, or is my help
-> > still needed?
-> 
-> Yes. I found what happens and solve this regression. Patch already comitted.
-> 
-> diff -r 37ff78330942 linux/drivers/media/video/saa7134/saa7134-input.c
-> --- a/linux/drivers/media/video/saa7134/saa7134-input.c	Sun Feb 28 16:59:57 2010 -0300
-> +++ b/linux/drivers/media/video/saa7134/saa7134-input.c	Thu Mar 04 08:35:15 2010 +0900
-> @@ -947,6 +947,7 @@
->  		dev->init_data.name = "BeholdTV";
->  		dev->init_data.get_key = get_key_beholdm6xx;
->  		dev->init_data.ir_codes = &ir_codes_behold_table;
-> +		dev->init_data.type = IR_TYPE_NEC;
->  		info.addr = 0x2d;
->  #endif
->  		break;
-> 
+2010/3/9 Igor M. Liplianin <liplianin@me.by>:
+> On 8 ÍÁÒÔÁ 2010 22:41:26 VDR User wrote:
+>> This isn't an answer to your questions but I don't recommend using the
+>> s2-liplianin tree as it contains timing patches which can cause
+>> serious damage to your tuner. šThis has also been confirmed by the
+>> manufacturer as well and to my knowledge has unfortunately not been
+>> reverted in that tree.
+> Funny enough.
+> VDR User, you are wrong for years. Look here
+> http://mercurial.intuxication.org/hg/s2-liplianin/rev/c15f31375c53
 
-None of my patches removed this statement, and IR_TYPE_NEC itself seems
-to be new in kernel 2.6.33, so I admit I don't quite understand how I
-my i2c changes could be responsible for the regression.
+Sorry, I was unaware you finally removed the dangerous code.  It's too
+bad it was left there as long as it was but at least it's gone now.
+Btw, looking at the changelog, it was only removed one year ago, not
+years.
 
-Anyway, glad that you managed to fix it.
+>> I strongly urge you to use either of these _safe_ trees:
+>>
+>> http://jusst.de/hg/mantis-v4l-dvb (for development drivers, which may
+>> still be stable)
+>> http://linuxtv.org/hg/v4l-dvb (for more stable drivers)
+> MartinG, I'm already planning to replace mantis related part with linuxtv one,
+> so please use http://linuxtv.org/hg/v4l-dvb.
+> But not get wrong, this tree isn't panacea, your reports are welcome.
 
--- 
-Jean Delvare
+I'm glad to hear you're going to rebase the mantis driver with the
+up-to-date code rather then keeping the old outdated stuff that's
+currently in there!  Do you know when you'll be doing this??
