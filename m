@@ -1,59 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f212.google.com ([209.85.218.212]:40680 "EHLO
-	mail-bw0-f212.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751011Ab0CQPnb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Mar 2010 11:43:31 -0400
-Received: by bwz4 with SMTP id 4so1190791bwz.39
-        for <linux-media@vger.kernel.org>; Wed, 17 Mar 2010 08:43:29 -0700 (PDT)
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4364 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751027Ab0CIHs1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Mar 2010 02:48:27 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: v4l-utils: i2c-id.h and alevt
+Date: Tue, 9 Mar 2010 08:48:29 +0100
+Cc: hdegoede@redhat.com
 MIME-Version: 1.0
-In-Reply-To: <20100317145900.GA7875@localhost.localdomain>
-References: <20100317145900.GA7875@localhost.localdomain>
-Date: Wed, 17 Mar 2010 11:43:29 -0400
-Message-ID: <829197381003170843u73743ccand32e7d0d2e6d3ca6@mail.gmail.com>
-Subject: Re: Problem with em28xx card, PAL and teletext
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Eugeniy Meshcheryakov <eugen@debian.org>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201003090848.29301.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 17, 2010 at 10:59 AM, Eugeniy Meshcheryakov
-<eugen@debian.org> wrote:
-> Hello,
->
-> I have a Pinnacle Hybrid Pro Stick (in kernel source "Pinnacle Hybrid
-> Pro (2)", driver em28xx). Several kernel releases ago it started to have
-> problem displaying analog tv correctly. The picture is shifted and
-> there is green line on the bottom (see http://people.debian.org/~eugen/tv.png).
-> Also part of the picture is shifted from the right edge to the left
-> (several columns). TV norm is PAL-BG. I noticed that teletext is also
-> not correct. I can see some full words, but text itself is not readable.
-> Picture is correct if i load em28xx with disable_vbi=1.
->
-> Please CC me in replies.
->
-> Regards,
-> Eugeniy Meshcheryakov
+It's nice to see this new tree, that should be make it easier to develop
+utilities!
 
-The green line is because in order to add the VBI support I had to
-crop a few lines off of the active video area at the top.  I've
-actually made some additional improvements in this area on a
-development tree which I am preparing to submit upstream.  Most
-applications such as tvtime crop the area in question (around 1.5% on
-all edges) to behave comparably to a television, which results in
-users not seeing the top and bottom couple of lines.
+After a quick check I noticed that the i2c-id.h header was copied from the
+kernel. This is not necessary. The only utility that includes this is v4l2-dbg
+and that one no longer needs it. Hans, can you remove this?
 
-The teletext should be working (it was tested against a live source).
-Which application are you using?  It's been my experience that the
-application support for VBI could be described as "crappy at best", so
-it wouldn't surprise me to find that there is an application level
-issue.
+The second question is whether anyone would object if alevt is moved from
+dvb-apps to v4l-utils? It is much more appropriate to have that tool in
+v4l-utils.
 
-Devin
+Does anyone know of other unmaintained but useful tools that we might merge
+into v4l-utils? E.g. xawtv perhaps?
 
+Regards,
+
+	Hans
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
