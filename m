@@ -1,46 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rojo2.usc.es ([193.144.75.10]:38505 "EHLO rojo2.usc.es"
+Received: from bamako.nerim.net ([62.4.17.28]:54132 "EHLO bamako.nerim.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751282Ab0CYI3E (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Mar 2010 04:29:04 -0400
-Message-ID: <20100325010136.5ofxgxt5www0s4ks@correoweb.usc.es>
-Date: Thu, 25 Mar 2010 01:01:36 +0100
-From: UBS International Holdings BV <hbeuker@usc.es>
-Reply-To: hhbeuker@live.nl
-To: undisclosed-recipients:;
-Subject: 
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset=ISO-8859-1;
-	DelSp="Yes";
-	format="flowed"
-Content-Disposition: inline
+	id S1754194Ab0CIK5v (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Mar 2010 05:57:51 -0500
+Date: Tue, 9 Mar 2010 11:57:48 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Dmitri Belimov <dimon@openhardware.ru>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org,
+	"Timothy D. Lenz" <tlenz@vorgon.com>
+Subject: Re: [IR RC, REGRESSION] Didn't work IR RC
+Message-ID: <20100309115748.5ec7fd7a@hyperion.delvare>
+In-Reply-To: <4B8CD10D.2010009@infradead.org>
+References: <20100301153645.5d529766@glory.loctelecom.ru>
+	<1267442919.3110.20.camel@palomino.walls.org>
+	<4B8BC332.6060303@infradead.org>
+	<1267503595.3269.21.camel@pc07.localdom.local>
+	<20100302134320.748ac292@glory.loctelecom.ru>
+	<20100302163634.31c934e4@glory.loctelecom.ru>
+	<4B8CD10D.2010009@infradead.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro, Dmitri,
 
-UBS International Holdings BV
-Herengracht 600
-NL-1017 CJ Amsterdam, Netherlands.
-www.ubs.com/investmentbank
+On Tue, 02 Mar 2010 05:49:17 -0300, Mauro Carvalho Chehab wrote:
+> Dmitri Belimov wrote:
+> > When I add 
+> > 
+> > diff -r 37ff78330942 linux/drivers/media/video/ir-kbd-i2c.c
+> > --- a/linux/drivers/media/video/ir-kbd-i2c.c	Sun Feb 28 16:59:57 2010 -0300
+> > +++ b/linux/drivers/media/video/ir-kbd-i2c.c	Tue Mar 02 10:31:31 2010 +0900
+> > @@ -465,6 +519,11 @@
+> >  		ir_type     = IR_TYPE_OTHER;
+> >  		ir_codes    = &ir_codes_avermedia_cardbus_table;
+> >  		break;
+> > +	case 0x2d:
+> > +		/* Handled by saa7134-input */
+> > +		name        = "SAA713x remote";
+> > +		ir_type     = IR_TYPE_OTHER;
+> > +		break;
+> >  	}
+> >  
+> >  #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 30)
+> > 
+> > The IR subsystem register event device. But for get key code use ir_pool_key function.
+> > 
+> > For our IR RC need use our special function. How I can do it?
+> 
+> Just add your get_key callback to "ir->get_key". If you want to do this from
+> saa7134-input, please take a look at the code at em28xx_register_i2c_ir(). 
+> It basically fills the platform_data.
+> 
+> While you're there, I suggest you to change your code to work with the
+> full scancode (e. g. address + command), instead of just getting the command.
+> Currently, em28xx-input has one I2C IR already changed to this mode (seek
+> for full_code for the differences).
+> 
+> You'll basically need to change the IR tables to contain address+command, and
+> inform the used protocol (RC5/NEC) on it. The getkey function will need to
+> return the full code as well.
 
-Greetings,
+Sorry for the late reply. Is the problem solved by now, or is my help
+still needed?
 
-I am an investment consultant working with UBS International Holdings BV
-in the Netherlands. I will be happy to work a transaction of $8.5million
-out with you if you have a corporate or personal bank Account. If you are
-interested, get back to me via my private email for further informations;
-hhbeuker@live.nl
-
-I look forward to hearing from you as soon as possible and thank you for
-your time and attention.
-
-Warmest Regards,
-Mr. Beuker Hendrik
-Investment Consultant.
-UBS.
-
-
-
-
+-- 
+Jean Delvare
