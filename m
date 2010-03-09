@@ -1,100 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:46556 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752556Ab0CCLMo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Mar 2010 06:12:44 -0500
-Subject: Re: git over http from linuxtv
-From: m7aalton <matti.j.aaltonen@nokia.com>
-Reply-To: matti.j.aaltonen@nokia.com
-To: ext Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <4B8D6231.1020806@redhat.com>
-References: <4B82F7ED.6020502@redhat.com>
-	 <1267550594.27183.22.camel@masi.mnp.nokia.com>
-	 <4B8D6231.1020806@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 03 Mar 2010 13:12:06 +0200
-Message-ID: <1267614726.27183.55.camel@masi.mnp.nokia.com>
-Mime-Version: 1.0
+Received: from fg-out-1718.google.com ([72.14.220.159]:46857 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750999Ab0CIRQP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Mar 2010 12:16:15 -0500
+Received: by fg-out-1718.google.com with SMTP id 16so2989335fgg.1
+        for <linux-media@vger.kernel.org>; Tue, 09 Mar 2010 09:16:14 -0800 (PST)
+Message-ID: <4B968267.3090808@gmail.com>
+Date: Wed, 10 Mar 2010 03:16:23 +1000
+From: Jed <jedi.theone@gmail.com>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Hw capabilities of the HVR-2200
+References: <4AAF568D.1070308@gmail.com> <4AB3B43A.2030103@gmail.com> <4AB3B947.1040202@kernellabs.com> <4AB3C17D.1030300@gmail.com> <4AB3C8E5.4010700@kernellabs.com> <4AB3CDC2.20505@gmail.com>
+In-Reply-To: <4AB3CDC2.20505@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+19/09/09 Jed wrote:
+>>>>>> 2) Component input for the A/V-in
+>>>>
+>>>> Yes, this exists on the HVR2250 product only.
+>>>
+>>> Ah shite, are you sure?
+>>> If you look at the specs for the reference card it was there, did they
+>>> take it out at the last minute?
+>>
+>> It's not feature Hauppauge supports on the HVR2200 today. I have a 
+>> suspicion this may change but I'm neither confirming, denying or 
+>> announcing anything. It would make sense to officially support 
+>> component cables on the HVR2200 since the silicon supports it. If/when 
+>> it does I'm sure it will be mentioned in the forums or on the HVR2200 
+>> product packaging.
 
-On Tue, 2010-03-02 at 20:08 +0100, ext Mauro Carvalho Chehab wrote:
-> m7aalton wrote:
-> > Hi.
-> > 
-> > Is it possible to access the linuxtv.org git repositories using http?
-> > I tried to do this:
-> > 
-> > git remote add linuxtv git://linuxtv.org/v4l-dvb.git
-> 
-> You should be able to use both URL's:
-> 
-> URL	http://git.linuxtv.org/v4l-dvb.git
-> 	git://linuxtv.org/v4l-dvb.git
-> 
-> There were a miss-configuration for the http URL. I just fixed it.
+Hi Steve, when you said this is not a feature Hauppauge supports.
+Did you mean it's not fully enabled physically in the PCB...
+Or is it just something they need to add support for in the driver?
+If the latter do you know if their policy has changed or is about to?
 
+>>>>>> 3) Hw encode bypass for A/V-in
+>>>>
+>>>> No idea. Regardless of whether it does or does not I wouldn't plan to
+>>>> add basic raw TV support to the driver, without going through the
+>>>> encoder.
+>>>
+>>> Why do you rule it out unequivocally, is it just because I've annoyed
+>>> you? :-(
+>>
+>> Raw analog TV isn't a high priority feature on my mental check-list. 
+>> Analog TV via the encoder is much more interesting and applicable to 
+>> many people.
 
-Now it works better but I still couldn't clone it properly. The update
-from linuxtv didn't seem to do anything....
+Assuming that progress has been made on analogue to 
+h.263/mpeg4/VC-1/DivX/Xvid via the A/V-in encoder.
+Is this still considered a low priority?
 
-Here's what happened:
-
-$ git clone
-http://www.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
-v4l-dvb
-
-$ cd v4l-dvb
-
-$ git remote add linuxtv http://git.linuxtv.org/v4l-dvb.git
-
-$ git remote update
-Updating origin
->From http://www.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6
-   13dda80..3a5b27b  master     -> origin/master
-Updating linuxtv
-
-$ git branch -a
-* master
-  origin/HEAD
-  origin/master
-
-$ git checkout -b media-master linuxtv/master
-fatal: git checkout: updating paths is incompatible with switching
-branches.
-Did you intend to checkout 'linuxtv/master' which can not be resolved as
-commit?
-
-Cheers, 
-Matti
-
-
-
-
-
-
-
-
-
-
-> 
-> > 
-> > using http, but I couldn't figure out a working address. 
-> > 
-> > Thank you,
-> > Matti Aaltonen
-> > 
-> > 
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-
+Has progress been made on hw encode via A/V-in?
+I'm "finally" putting my entire system together soon, can't wait!
+Looking forward to seeing how everything has progressed.
+I'll be sure to do some donations once I'm up & running!
 
