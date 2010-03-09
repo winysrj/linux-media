@@ -1,21 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.5])
-	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o2F98VbS019625
-	for <video4linux-list@redhat.com>; Mon, 15 Mar 2010 05:08:31 -0400
-Received: from mail-px0-f197.google.com (mail-px0-f197.google.com
-	[209.85.216.197])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2F98Gek027887
-	for <video4linux-list@redhat.com>; Mon, 15 Mar 2010 05:08:16 -0400
-Received: by pxi35 with SMTP id 35so1079002pxi.19
-	for <video4linux-list@redhat.com>; Mon, 15 Mar 2010 02:08:16 -0700 (PDT)
+Received: from mx1.redhat.com (ext-mx10.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.14])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o29AsLba015978
+	for <video4linux-list@redhat.com>; Tue, 9 Mar 2010 05:54:21 -0500
+Received: from gateway.tuioptics.com (gateway.tuioptics.com [213.183.22.85])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o29As53v020117
+	for <video4linux-list@redhat.com>; Tue, 9 Mar 2010 05:54:06 -0500
+Received: from tomcat.toptica.com (localhost [127.0.0.1])
+	by gateway.tuioptics.com (8.13.6/8.13.6/SuSE Linux 0.8) with ESMTP id
+	o29As6PJ025319
+	for <video4linux-list@redhat.com>; Tue, 9 Mar 2010 11:54:06 +0100
+Date: Tue, 9 Mar 2010 11:51:39 +0100
+From: Arno Euteneuer <arno.euteneuer@toptica.com>
+To: video4linux-list@redhat.com
+Message-ID: <4B96283B.2080800@toptica.com>
+In-Reply-To: <4B960AE2.3090803@toptica.com>
+References: <4B960AE2.3090803@toptica.com>
+Subject: Re: soc-camera driver for i.MX25
 MIME-Version: 1.0
-Date: Mon, 15 Mar 2010 10:08:16 +0100
-Message-ID: <fe6fd5f61003150208i219c1233r274b6114b1b35f18@mail.gmail.com>
-Subject: file format for YUV422
-From: Carlos Lavin <carlos.lavin@vista-silicon.com>
-To: video4linux-list <video4linux-list@redhat.com>
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -23,16 +26,21 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello:
-I need a format file for yuv422, I want to develop an application for save
-the information about image.  somebody know which is the best format for
-YUV422?
+Am 09.03.2010 09:46, schrieb Arno Euteneuer:
+> However, reducing the frame size to e.g. 640 x 480 leads to corrupted
+> pictures sometimes when using multiple buffers.
+
+Ooops, removing my residual printks in some other v4l2 modules seems to resolve 
+that problem ...
+
+Arno
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
