@@ -1,66 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:18918 "EHLO mx1.redhat.com"
+Received: from csmtp1.one.com ([195.47.247.21]:52322 "EHLO csmtp1.one.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932205Ab0CLWwX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Mar 2010 17:52:23 -0500
-Message-ID: <4B9AC590.3020408@redhat.com>
-Date: Fri, 12 Mar 2010 19:52:00 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <j.w.r.degoede@hhs.nl>
-Subject: Re: Remaining drivers that aren't V4L2?
-References: <829197381003121211l469c30bfjba077cea028bf680@mail.gmail.com> <201003122242.06508.hverkuil@xs4all.nl>
-In-Reply-To: <201003122242.06508.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1753905Ab0CILks (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Mar 2010 06:40:48 -0500
+Received: from [94.196.47.140] (94.196.47.140.threembb.co.uk [94.196.47.140])
+	by csmtp1.one.com (Postfix) with ESMTP id 787191BC0282F
+	for <linux-media@vger.kernel.org>; Tue,  9 Mar 2010 11:40:45 +0000 (UTC)
+Subject: Post DSO scan file for Aberdare
+From: Mike <mike@redtux.org.uk>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: multipart/mixed; boundary="=-qFoe7ue4ggj8gl3xGRU1"
+Date: Tue, 09 Mar 2010 11:53:05 +0000
+Message-Id: <1268135585.1825.8.camel@localhost.localdomain>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
-> On Friday 12 March 2010 21:11:49 Devin Heitmueller wrote:
->> Hello,
->>
->> I know some months ago, there was some discussion about a few drivers
->> which were stragglers and had not been converted from V4L to V4L2.
->>
->> Do we have a current list of driver which still haven't been converted?
-> 
-> These drivers are still v4l1:
-> 
-> arv
-> bw-qcam
-> c-qcam
-> cpia_pp
-> cpia_usb
-> ov511
-> se401
-> stradis
-> stv680
-> usbvideo
-> w9966
 
-All the above are webcam drivers. I doubt that those drivers would work
-with tvtime: this software were meant to test the Vector's deinterlacing
-algorithms, so it requires some specific video formats/resolutions found on TV
-and require 25 or 30 fps, as far as I remember. For example, It doesn't support
-QCIF/QVGA cameras.
+--=-qFoe7ue4ggj8gl3xGRU1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 
-If you want to extend tvtime to use webcams, some work is needed. Probably the easiest
-way would be to use libv4l, that also does the V4L1 conversion, if needed. This may
-actually make sense even for a few TV cards like em28xx, where you could use a bayer
-format with a lower color depth and/or lower resolution, in order to allow viewing two 
-simultaneous streams.
+Please see attached scan file for uk-Aberdare if anyone finds it useful
 
-So, I suggest you to just drop V4L1 from tvtime and convert it to use libv4l (the conversion
-is trivial: just replace open/close/ioctl from the V4L2 driver to the libv4l ones). This will
-allow you to drop the old V4L1 driver from it, and, if you decide later to accept other
-resolutions and make it more webcam friendly, you'll just need to allow tvtime to accept
-other video resolutions and disable the de-interlacing setup if a webcam is detected.
 
--- 
+--=-qFoe7ue4ggj8gl3xGRU1
+Content-Disposition: attachment; filename="uk-Aberdare"
+Content-Type: text/plain; name="uk-Aberdare"; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 
-Cheers,
-Mauro
+# UK, Aberdare
+# Auto-generated from http://www.dtg.org.uk/retailer/dtt_channels.html
+# and http://www.ofcom.org.uk/static/reception_advice/index.asp.html
+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+T 489833000 8MHz 2/3 NONE QAM64 2k 1/32 NONE
+T 497833000 8MHz 2/3 NONE QAM64 2k 1/32 NONE
+T 513833000 8MHz 3/4 NONE QAM16 2k 1/32 NONE
+T 538167000 8MHz 3/4 NONE QAM16 2k 1/32 NONE
+T 562167000 8MHz 2/3 NONE QAM64 2k 1/32 NONE
+T 570167000  8MHz 3/4 NONE QAM16 2k 1/32 NONE
+
+
+
+
+
+--=-qFoe7ue4ggj8gl3xGRU1--
+
