@@ -1,106 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:45406 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751647Ab0C1LaG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Mar 2010 07:30:06 -0400
-From: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Zhu, Daniel" <daniel.zhu@intel.com>,
-	"Yu, Jinlu" <jinlu.yu@intel.com>,
-	"Wang, Wen W" <wen.w.wang@intel.com>,
-	"Huang, Kai" <kai.huang@intel.com>,
-	"Hu, Gang A" <gang.a.hu@intel.com>,
-	"Ba, Zheng" <zheng.ba@intel.com>
-Date: Sun, 28 Mar 2010 19:28:25 +0800
-Subject: RE: [PATCH v2 0/10] V4L2 patches for Intel Moorestown Camera
- Imaging Drivers
-Message-ID: <33AB447FBD802F4E932063B962385B351D6D5359@shsmsx501.ccr.corp.intel.com>
-References: <33AB447FBD802F4E932063B962385B351D6D534A@shsmsx501.ccr.corp.intel.com>
- <201003281031.15064.hverkuil@xs4all.nl>
-In-Reply-To: <201003281031.15064.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:41955 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751643Ab0CIShX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Mar 2010 13:37:23 -0500
+Received: by bwz1 with SMTP id 1so4190908bwz.21
+        for <linux-media@vger.kernel.org>; Tue, 09 Mar 2010 10:37:22 -0800 (PST)
+Message-ID: <4B96955F.8010300@gmail.com>
+Date: Tue, 09 Mar 2010 19:37:19 +0100
+From: thomas schorpp <thomas.schorpp@googlemail.com>
+Reply-To: thomas.schorpp@gmail.com
 MIME-Version: 1.0
+To: LiM <lim@brdo.cz>
+CC: linux-media@vger.kernel.org
+Subject: Re: Help with RTL2832U DVB-T dongle (LeadTek WinFast DTV Dongle Mini)
+References: <6934ea941003052353n4258600cs78dba8487d203564@mail.gmail.com> <4B93537F.30407@hoogenraad.net> <4B93D751.1020008@gmail.com> <4B956830.6070508@hoogenraad.net> <4B960276.9030302@brdo.cz>
+In-Reply-To: <4B960276.9030302@brdo.cz>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-Thank you comment. I will try to figure out why patch 2/10 is missing. maybe it is a little bit large. I will split it two more patches and resubmit again.
-
-BRs
-Xiaolin
-
------Original Message-----
-From: Hans Verkuil [mailto:hverkuil@xs4all.nl] 
-Sent: Sunday, March 28, 2010 4:31 PM
-To: Zhang, Xiaolin
-Cc: linux-media@vger.kernel.org; Zhu, Daniel; Yu, Jinlu; Wang, Wen W; Huang, Kai; Hu, Gang A; Ba, Zheng
-Subject: Re: [PATCH v2 0/10] V4L2 patches for Intel Moorestown Camera Imaging Drivers
-
-Hi Xiaolin!
-
-Here are a few comments based on a first read-through.
-
-First of all, patch 2/10 did not seem to make it to the list for some reason.
-Because of that I'm deferring reviewing patches 1/10 and (of course) 2/10.
-
-The other patches for the i2c devices all have the same problems, so I will
-only review one and you can apply the comments made there to all the others.
-
-A general comment I have is that I think there is too much debugging code.
-Creating good debug code is an art. In my experience things like DBG_entering
-and DBG_leaving just clutter the code and are pretty useless once the initial
-implementation phase is finished. The trick is to have just enough debug or
-logging available so that you can deduce the path taken by the driver.
-
-What I found to be very useful as well is to implement VIDIOC_LOG_STATUS to
-get a full status overview of the various (sub)devices at a given moment.
-
-On Sunday 28 March 2010 09:46:35 Zhang, Xiaolin wrote:
-> Hi, 
+LiM wrote:
+> Hi,
 > 
-> Here is the second version of V4L2 camera sensors and ISP driver patch set to support the Intel Moorestown camera imaging subsystem. 
-> 
-> The Camera Imaging interface (CI) in Moorestown is responsible for still image and video capture which can handle demosaicing, color synthesis, filtering, image enhancement, etc functionalities with a integrated JPEG encode. 
-> Intel Moorestown platform can support either a single camera or dual cameras. If a platform with dual camera will have one low resolution camera on the same side as this display for video conference and a high resolution camera on the opposite side the display for high quality still image capture.
-> 
-> The driver framework is updated to the v4l2 sub-dev and video buffer framework, in this set of driver patches, I will submit the 10 patches to enable the camera subsystem with the device drivers for ISP HW and 4 cameras module (two SoCs: 1.3MP - Omnivision 9665, 2MP - Omnivison 2650 and two RAWs: 5MP - Omnivision 5630, 5MP - Samsong s5k4e1).
-> 
-> 1. Intel Moorestown ISP driver - header files.
-
-Just a single comment on these files here: I see new PIXFMT defines in a
-Moorestown-specific header: just add these to videodev2.h.
-
-Regards,
-
-	Hans
-
-> 2. Intel Moorestown ISP driver - V4L2 implementation including hardware component functionality  
-> 3. Intel Moorestown flash sub-dev driver
-> 4. Intel Moorestown 2MP camera (ov2650) sensor subdev driver.
-> 5. Intel Moorestown 1.3MP camera (ov9665) sensor subdev driver.
-> 6. Intel Moorestown 5MP camera (ov5630) sensor subdev driver.
-> 7. Intel Moorestown 5MP camera (ov5630) lens subdev driver.
-> 8. Intel Moorestown 5MP camera (s5k4e1) sensor subdev driver.
-> 9. Intel Moorestown 5MP camera (s5k4e1) lens subdev driver
-> 10. make/kconfig files change to enable camera drivers for intel Moorestown platform.
-> 
-> Please review them and comments are welcome as always. 
-> 
-> Regards,
-> 
-> Xiaolin
-> Xiaolin.zhang@intel.com
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> for information...i have the same dongle (LeadTek WinFast DTV Dongle
+> Mini - Bus 001 Device 003: ID 0413:6a03 Leadtek Research, Inc. )
+> and after compiled RTL2832U + change VID+PID in rtl2832u.h (i changed
+> USB_VID_GTEK + USB_PID_GTEK_WARM to leadtek`s 0413:6a03)
+> is tuner working!  (me-tv + kaffeine)
 > 
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Good. Supported tuner chip. Pls do extensive tests (multiple recording streams, long time use usb-disconnects, 
+other dvb apps...) and report any issues.
+
+But we must support the MSI and others, too, so introduce an USB-ids array and device detection for 
+USB_VID_GTEK + USB_PID_GTEK_WARM, see the other drivers for example code.
+
+I don't have got the devices.
+
+> Installation of Realtek rtl2832u-based DVB-T-USB-Sticks:
+> 
+
+> gedit ./linux/drivers/media/dvb/dvb-usb/Makefile
+
+Not acceptable in linux software development, pls *attach* patch to a mail with [PATCH]... in subject line 
+by using linux diff utility (man diff) 
+Example:
+diff -rNU3 <orig code dir> <changed code dir> > ubuntuusers-de-rtl2832u-01.patch
+With signed-off-by <author mail adress> 
+
+For patching non-driver user space apps, please contact their project devlists.
+
+y
+tom
+
+> Jan Hoogenraad napsal(a):
+>> Mauro:
+>>
+>> Can you remove the VERY OLD branch:
+>> http://linuxtv.org/hg/~mchehab/rtl2831/rev/d116540ebaab
+>> It is giving some confusion here.
+>>
+>> Thomas & Jan:
+>>
+>> I've got the RTL2831 code (mind the last digit) vetted off by LeadTek.
+>> For the rtl2832, I haven't had contact with them.
+>>
+>> Certainly, Jan could try any of the three archives.
+>> I know Antti has thoughts on the rtl2832, I'm sure he knows more.
+>>
+>> thomas schorpp wrote:
+>>> Jan Hoogenraad wrote:
+>>>> Antti has been working on drivers for the RTL283x.
+>>>>
+>>>> http://linuxtv.org/hg/~anttip/rtl2831u
+>>>> or
+>>>> http://linuxtv.org/hg/~anttip/qt1010/
+>>> ~jhoogenraad/rtl2831-r2     rtl2831-r2 development repository: *known
+>>> working version*     Jan Hoogenraad
+>>>
+>>> Should Jan Slaninka try it?
+>>>> If you have more information on the RTL2832, I'd be happy to add it at:
+>>>> http://www.linuxtv.org/wiki/index.php/Rtl2831_devices
+>>> Nothing on the Realtek website yet.
+>>>
+>>>>
+>>>> Jan Slaninka wrote:
+>>>>> Hi,
+>>>>>
+>>>>> I'd like to ask for a support with getting LeadTek WindFast DTV Dongle
+>>>>> mini running on Linux. So far I was able to fetch latest v4l-dvb from
+>>>>> HG, and successfully compiled module dvb_usb_rtl2832u found in
+>>>>> 090730_RTL2832U_LINUX_Ver1.1.rar  
+>>> Can be considered as GPL code then according to
+>>>
+>>> http://linuxtv.org/hg/~mchehab/rtl2831/rev/d116540ebaab
+>>>
+>>> Patch to make RTL2831U DVB-T USB2.0 DEVICE work, based on RealTek
+>>> version 080314
+>>>
+>>> ~mchehab/rtl2831     rtl2831 development repository with *RealTek GPL
+>>> code* for rtl2831     Mauro Carvalho Chehab     24 months ago
+>>>
+>>> ?
+>>>
+>>> y
+>>> tom
