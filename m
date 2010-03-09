@@ -1,86 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:56371 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932488Ab0CPJxA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Mar 2010 05:53:00 -0400
-From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
-	<u.kleine-koenig@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Antonio Ospite <ospite@studenti.unina.it>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-kernel@vger.kernel.org
-Subject: [PATCH] V4L/DVB: mx1-camera: compile fix
-Date: Tue, 16 Mar 2010 10:52:52 +0100
-Message-Id: <1268733172-17059-1-git-send-email-u.kleine-koenig@pengutronix.de>
-In-Reply-To: <Pine.LNX.4.64.1003121057090.4385@axis700.grange>
-References: <Pine.LNX.4.64.1003121057090.4385@axis700.grange>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Received: from 93-97-173-237.zone5.bethere.co.uk ([93.97.173.237]:63061 "EHLO
+	tim.rpsys.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752581Ab0CIQfq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Mar 2010 11:35:46 -0500
+Subject: Re: [RFC, PATCH 1/3] gspca: add LEDs subsystem connection
+From: Richard Purdie <rpurdie@rpsys.net>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <201003091227.54229.laurent.pinchart@ideasonboard.com>
+References: <4B8A2158.6020701@freemail.hu> <20100301101806.7c7986be@tele>
+	 <4B8DA25F.10602@freemail.hu>
+	 <201003091227.54229.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 09 Mar 2010 08:02:18 -0800
+Message-ID: <1268150538.1734.24.camel@rex>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a regression of
+On Tue, 2010-03-09 at 12:27 +0100, Laurent Pinchart wrote:
+> Hi Màrton,
+> 
+> Thanks for the patch.
+> 
+> On Wednesday 03 March 2010 00:42:23 Németh Márton wrote:
+> > From: Márton Németh <nm127@freemail.hu>
+> > 
+> > On some webcams one or more LEDs can be found. One type of these LEDs
+> > are feedback LEDs: they usually shows the state of streaming mode.
+> > The LED can be programmed to constantly switched off state (e.g. for
+> > power saving reasons, preview mode) or on state (e.g. the application
+> > shows motion detection or "on-air").
+> > 
+> > The second type of LEDs are used to create enough light for the sensor
+> > for example visible or in infra-red light.
+> > 
+> > Both type of these LEDs can be handled using the LEDs subsystem. This
+> > patch add support to connect a gspca based driver to the LEDs subsystem.
+> 
+> They can indeed, but I'm not sure if the LEDs subsystem was designed for that 
+> kind of use cases.
 
-	7d58289 (mx1: prefix SOC specific defines with MX1_ and deprecate old names)
+The LED subsystem was designed to support LED lights and the above
+scenarios can certainly fit that. It provides a nice system where
+default use cases should just work (power light on a laptop) but the
+system has the control to override than and do other interesting things
+with it if it so wishes.
 
-Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
----
- arch/arm/plat-mxc/include/mach/dma-mx1-mx2.h |    4 +++-
- drivers/media/video/mx1_camera.c             |    8 +++-----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+> The LED framework was developed to handle LEDs found in embedded systems 
+> (usually connected to GPIOs) that needed to be connected to software triggers 
+> or controlled by drivers and/or specific userspace applications.
 
-diff --git a/arch/arm/plat-mxc/include/mach/dma-mx1-mx2.h b/arch/arm/plat-mxc/include/mach/dma-mx1-mx2.h
-index 07be8ad..d25a65f 100644
---- a/arch/arm/plat-mxc/include/mach/dma-mx1-mx2.h
-+++ b/arch/arm/plat-mxc/include/mach/dma-mx1-mx2.h
-@@ -31,7 +31,9 @@
- #define DMA_MODE_WRITE		1
- #define DMA_MODE_MASK		1
- 
--#define DMA_BASE IO_ADDRESS(DMA_BASE_ADDR)
-+#define MX1_DMA_REG(offset)	MX1_IO_ADDRESS(MX1_DMA_BASE_ADDR + offset)
-+#define MX1_DMA_CCR(x)		MX1_DMA_REG(0x8c + ((x) << 6))
-+#define MX1_DMA_DIMR		MX1_DMA_REG(0x08)
- 
- #define IMX_DMA_MEMSIZE_32	(0 << 4)
- #define IMX_DMA_MEMSIZE_8	(1 << 4)
-diff --git a/drivers/media/video/mx1_camera.c b/drivers/media/video/mx1_camera.c
-index c167cc3..aa81acd 100644
---- a/drivers/media/video/mx1_camera.c
-+++ b/drivers/media/video/mx1_camera.c
-@@ -48,8 +48,6 @@
- /*
-  * CSI registers
-  */
--#define DMA_CCR(x)	(0x8c + ((x) << 6))	/* Control Registers */
--#define DMA_DIMR	0x08			/* Interrupt mask Register */
- #define CSICR1		0x00			/* CSI Control Register 1 */
- #define CSISR		0x08			/* CSI Status Register */
- #define CSIRXR		0x10			/* CSI RxFIFO Register */
-@@ -783,7 +781,7 @@ static int __init mx1_camera_probe(struct platform_device *pdev)
- 			       pcdev);
- 
- 	imx_dma_config_channel(pcdev->dma_chan, IMX_DMA_TYPE_FIFO,
--			       IMX_DMA_MEMSIZE_32, DMA_REQ_CSI_R, 0);
-+			       IMX_DMA_MEMSIZE_32, MX1_DMA_REQ_CSI_R, 0);
- 	/* burst length : 16 words = 64 bytes */
- 	imx_dma_config_burstlen(pcdev->dma_chan, 0);
- 
-@@ -797,8 +795,8 @@ static int __init mx1_camera_probe(struct platform_device *pdev)
- 	set_fiq_handler(&mx1_camera_sof_fiq_start, &mx1_camera_sof_fiq_end -
- 						   &mx1_camera_sof_fiq_start);
- 
--	regs.ARM_r8 = DMA_BASE + DMA_DIMR;
--	regs.ARM_r9 = DMA_BASE + DMA_CCR(pcdev->dma_chan);
-+	regs.ARM_r8 = (long)MX1_DMA_DIMR;
-+	regs.ARM_r9 = (long)MX1_DMA_CCR(pcdev->dma_chan);
- 	regs.ARM_r10 = (long)pcdev->base + CSICR1;
- 	regs.ARM_fp = (long)pcdev->base + CSISR;
- 	regs.ARM_sp = 1 << pcdev->dma_chan;
--- 
-1.7.0
+Its used by many laptops so its not just embedded systems.
+
+>  Webcam LEDs 
+> seem a bit out of scope to me, especially the "light" LED that might be better 
+> handled by a V4L2 set of controls (we're currently missing controls for camera 
+> flashes, be they LEDs or Xenon based).
+> 
+> I'll let Richard speak on this.
+
+I'm not going to push one way or another and its up to individual
+subsystems to way up the benefits and drawbacks and make their decision.
+There is nothing in the design of the system which would stop it working
+or being used in this case though. If the susystsme needs improvements
+to work well, I'm happy to accept patches too.
+
+Cheers,
+
+Richard
+
+
+
+
 
