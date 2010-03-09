@@ -1,80 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2304 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751108Ab0CQUOd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Mar 2010 16:14:33 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Pawel Osciak <p.osciak@samsung.com>
-Subject: Re: [PATCH] v4l: videobuf: make poll() report proper flags for output video devices
-Date: Wed, 17 Mar 2010 21:14:42 +0100
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, m-karicheri2@ti.com, chaithrika@ti.com
-References: <1268834402-31355-1-git-send-email-p.osciak@samsung.com>
-In-Reply-To: <1268834402-31355-1-git-send-email-p.osciak@samsung.com>
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:47833 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750972Ab0CITdp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Mar 2010 14:33:45 -0500
+Received: by bwz1 with SMTP id 1so4249395bwz.21
+        for <linux-media@vger.kernel.org>; Tue, 09 Mar 2010 11:33:44 -0800 (PST)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: VDR User <user.vdr@gmail.com>
+Subject: Re: s2-liplianin, mantis: sysfs: cannot create duplicate filename '/devices/virtual/irrcv'
+Date: Tue, 9 Mar 2010 21:33:11 +0200
+Cc: MartinG <gronslet@gmail.com>,
+	Linux Media <linux-media@vger.kernel.org>
+References: <bcb3ef431003081127y43d6d785jdc34e845fa07e746@mail.gmail.com> <a3ef07921003081241t16e1a63ag1d8f93ebe35f15f2@mail.gmail.com>
+In-Reply-To: <a3ef07921003081241t16e1a63ag1d8f93ebe35f15f2@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201003172114.42210.hverkuil@xs4all.nl>
+  charset="koi8-r"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <201003092133.12235.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 17 March 2010 15:00:02 Pawel Osciak wrote:
-> According to the V4L2 specification, poll() should set POLLOUT | POLLWRNORM
-> flags for output devices after the frame has been displayed.
-> 
-> Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-> Reviewed-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  drivers/media/video/videobuf-core.c |   10 ++++++++--
->  1 files changed, 8 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/video/videobuf-core.c b/drivers/media/video/videobuf-core.c
-> index 37afb4e..e93672a 100644
-> --- a/drivers/media/video/videobuf-core.c
-> +++ b/drivers/media/video/videobuf-core.c
-> @@ -1075,8 +1075,14 @@ unsigned int videobuf_poll_stream(struct file *file,
->  	if (0 == rc) {
->  		poll_wait(file, &buf->done, wait);
->  		if (buf->state == VIDEOBUF_DONE ||
-> -		    buf->state == VIDEOBUF_ERROR)
-> -			rc = POLLIN|POLLRDNORM;
-> +		    buf->state == VIDEOBUF_ERROR) {
-> +			if (q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +				rc = POLLIN | POLLRDNORM;
-> +			else if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-> +				rc = POLLOUT | POLLWRNORM;
-> +			else
-> +				BUG();
-> +		}
+On 8 марта 2010 22:41:26 VDR User wrote:
+> This isn't an answer to your questions but I don't recommend using the
+> s2-liplianin tree as it contains timing patches which can cause
+> serious damage to your tuner.  This has also been confirmed by the
+> manufacturer as well and to my knowledge has unfortunately not been
+> reverted in that tree.
+Funny enough.
+VDR User, you are wrong for years. Look here
+http://mercurial.intuxication.org/hg/s2-liplianin/rev/c15f31375c53
 
-This is not right. First of all you shouldn't call BUG here. It is better to
-default to POLLIN|POLLRDNORM. Secondly, there are more types than just these
-two.
+>
+> I strongly urge you to use either of these _safe_ trees:
+>
+> http://jusst.de/hg/mantis-v4l-dvb (for development drivers, which may
+> still be stable)
+> http://linuxtv.org/hg/v4l-dvb (for more stable drivers)
+MartinG, I'm already planning to replace mantis related part with linuxtv one,
+so please use http://linuxtv.org/hg/v4l-dvb.
+But not get wrong, this tree isn't panacea, your reports are welcome.
 
-This is better:
-
-	switch (q->type) {
-		case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-		case V4L2_BUF_TYPE_VBI_OUTPUT:
-		case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
-			rc = POLLOUT | POLLWRNORM;
-			break;
-		default:
-			rc = POLLIN | POLLRDNORM;
-			break;
-	}
-
-Regards,
-
-	Hans
-
-
->  	}
->  	mutex_unlock(&q->vb_lock);
->  	return rc;
-> 
-
+Linuxoid greetings for all.
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
