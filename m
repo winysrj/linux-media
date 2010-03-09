@@ -1,225 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from xenotime.net ([72.52.64.118]:40861 "HELO xenotime.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754014Ab0CGQo2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Mar 2010 11:44:28 -0500
-Received: from chimera.site ([71.245.98.113]) by xenotime.net for <linux-media@vger.kernel.org>; Sun, 7 Mar 2010 08:44:27 -0800
-Message-ID: <4B93D7EB.4080405@xenotime.net>
-Date: Sun, 07 Mar 2010 08:44:27 -0800
-From: Randy Dunlap <rdunlap@xenotime.net>
+Received: from mx1.redhat.com ([209.132.183.28]:6132 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750870Ab0CINPr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Mar 2010 08:15:47 -0500
+Message-ID: <4B9649FC.8030002@redhat.com>
+Date: Tue, 09 Mar 2010 10:15:40 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	VDR User <user.vdr@gmail.com>, linux-media@vger.kernel.org,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: Re: "Invalid module format"
-References: <alpine.LNX.2.00.1003041737290.18039@banach.math.auburn.edu>  <alpine.LNX.2.00.1003051829210.21417@banach.math.auburn.edu> <a3ef07921003051651j12fbae25r5a3d5276b7da43b7@mail.gmail.com> <4B91AADD.4030300@xenotime.net> <4B91CE02.4090200@redhat.com> <alpine.LNX.2.00.1003052254200.21642@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.2.00.1003052254200.21642@banach.math.auburn.edu>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Catimimi <catimimi@orange.fr>
+CC: linux-media@vger.kernel.org
+Subject: Re: [patch] em28xx : Terratec Cinergy Hybrid T USB XS FR is now really
+ working.
+References: <4B8E1770.4000006@orange.fr>
+In-Reply-To: <4B8E1770.4000006@orange.fr>
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/05/10 22:48, Theodore Kilgore wrote:
-> 
-> 
-> On Sat, 6 Mar 2010, Mauro Carvalho Chehab wrote:
-> 
->> Randy Dunlap wrote:
->>> On 03/05/10 16:51, VDR User wrote:
->>>> On Fri, Mar 5, 2010 at 4:39 PM, Theodore Kilgore
->>>> <kilgota@banach.math.auburn.edu> wrote:
->>>>> This is to report the good news that none of the above suspicions have
->>>>> panned out. I still do not know the exact cause of the problem, but
->>>>> a local
->>>>> compile and install of the 2.6.33 kernel did solve the problem.
->>>>> Hence, it
->>>>> does seem that the most likely origin of the problem is somewhere
->>>>> in the
->>>>> Slackware-current tree and the solution does not otherwise concern
->>>>> anyone on
->>>>> this list and does not need to be pursued here.
->>>> I experienced the same problem and posted a new thread about it with
->>>> the subject "Problem with v4l tree and kernel 2.6.33".  I'm a debian
->>>> user as well so apparently whatever is causing this is not specific to
->>>> debian or slackware.  Even though you've got it working now, the
->>>> source of the problem should be investigated.
->>>> -- 
->>>
->>> It's been several years since I last saw this error and I don't recall
->>> what caused it then.
->>>
->>> The message "Invalid module format" comes from either of modprobe and/or
->>> insmod when the kernel returns ENOEXEC to a module (load) syscall.
->>> Sometimes the kernel produces more explanatory messages  & sometimes
->>> not.
->>>
->>> If there are no more explanatory messages, then kernel/module.c can be
->>> built with DEBUGP producing more output (and then that new kernel would
->>> have to be loaded).
->>>
->>> Can one of you provide a kernel config file for a kernel/modprobe
->>> combination
->>> that produces this message?  Some of the CONFIG_MODULE* config
->>> symbols could
->>> have relevance here also.
->>>
->>
->>
->> I suspect that it may be related to this:
->>
->> # Select 32 or 64 bit
->> config 64BIT
->>        bool "64-bit kernel" if ARCH = "x86"
->>        default ARCH = "x86_64"
->>        ---help---
->>          Say yes to build a 64-bit kernel - formerly known as x86_64
->>          Say no to build a 32-bit kernel - formerly known as i386
->>
->> With 2.6.33, it is now possible to compile a 32 bits kernel on a 64 bits
->> machine without needing to pass make ARCH=i386 or to use
->> cross-compilation.
->>
->> Maybe you're running a 32bits kernel, and you've compiled the out-of-tree
->> modules with 64bits or vice-versa.
->>
->> My suggestion is that you should try to force the compilation wit the
->> proper
->> ARCH with something like:
->>     make distclean
->>     make ARCH=`uname -i`
->>     make ARCH=`uname -i` install
->>
->> -- 
->>
->> Cheers,
->> Mauro
-> 
-> Mauro,
-> 
-> After I did a re-compile of the kernel and modules, all the gspca stuff
-> (at least, what I tested which is two or three cameras) all worked just
-> fine. All I needed to do was make distclean and then make menuconfig
-> again and the gspca setup "saw" my new kernel. I made sure to know this
-> by putting up a slightly different name for it, using
-> CONFIG_LOCALVERSION= option. So I guess to this extent I used force, but
-> I did not need to do more than that.
-> 
-> 
-> Now, seeing if I can help further in tracking this thing down, here are
-> some more details.
-> 
-> 1. As I said, the problem is fixed now, by a local re-compile of the
-> kernel (I did change a few things in the configuration and also cleared
-> out a lot of junk which has nothing to do with my hardware, of course).
-> So there might be some things of interest in the two config files.
-> Naturally, I can send them to anyone who would like to see them. But I
-> think that I cover the important differences below.
-> 
-> 
-> Additional comment: I probably could have taken the option of running
-> Slackware64 if I wanted to do that, because I suspect that my hardware
-> would support it. But I used regular Slackware. So the kernel, the
-> modules, and everything else are 32-bit, or supposed to be, though the
-> machine could run 64-bit.
-> 
-> 2. According to what you are saying, here from my current config file is
-> what might be relevant
-> 
-> # CONFIG_64BIT is not set
-> CONFIG_X86_32=y
-> # CONFIG_X86_64 is not set
-> CONFIG_X86=y
-> CONFIG_OUTPUT_FORMAT="elf32-i386"
-> CONFIG_ARCH_DEFCONFIG="arch/x86/configs/i386_defconfig"
-> 
-> and also it might possibly be important, too, that the processor type I
-> chose was
-> 
-> CONFIG_MK8=y
-> 
-> for the very good reason that this is what is in the machine. Also I cut
-> the choice for support of parallel CPUs down to 2 CPUs from 8 CPUs,
-> again because that is what is actually present.
-> 
-> And furthermore my kernel config says
-> 
-> CONFIG_LOCALVERSION="-my"
-> 
-> and the original one says
-> 
-> CONFIG_LOCALVERSION="-smp"
-> 
-> so that I have two distinct sets of modules, 2.6.33-my and 2.6.33-smp
-> and I can go back and boot from the Slackware kernel to a functioning
-> machine, too.
-> 
-> The kernel which I used from Slackware-current is one of the standard
-> ones, the one called vmlinuz-huge-smp-2.6.33-smp which comes in the
-> Slackware package called kernel-huge-smp-2.6.33_smp-i686-1.txz. Its
-> config file is in the package, too, so here are the similar parts of it:
-> 
-> # CONFIG_64BIT is not set
-> CONFIG_X86_32=y
-> # CONFIG_X86_64 is not set
-> CONFIG_X86=y
-> CONFIG_OUTPUT_FORMAT="elf32-i386"
-> CONFIG_ARCH_DEFCONFIG="arch/x86/configs/i386_defconfig"
-> 
-> The above looks the same to me as my choices. But the CPU type was quite
-> different, of course, because it was a distro kernel.
-> 
-> CONFIG_M686=y
-> 
-> And the Slackware kernel also chose
-> 
-> CONFIG_X86_GENERIC=y
-> 
-> but when re-compiling I turned that off.
+Hi Michel,
 
-Hey,
-How are these kconfig symbols set?
+Catimimi wrote:
+> Hi,
+> 
+> As I told you earlier, my previous patch was not working with a 64 bits
+> kernel.
+> So forget it.
+> 
+> 
+> I now succed in running Cinergy Hybrid T USB XS FR with 32 and 64bits
+> kernels.
+> One problem remains, because of msp3400 driver, I don't have sound in
+> analog mode.
+> I'am still working on that problem.
 
-CONFIG_MODULES
-CONFIG_MODULE_FORCE_LOAD
-CONFIG_MODULE_UNLOAD
-CONFIG_MODULE_FORCE_UNLOAD
-CONFIG_MODVERSIONS
-CONFIG_MODULE_SRCVERSION_ALL
+First of all, as your previous patch got applied already at -git, you should
+be sending us a diff patch against it (as the one enclosed), and not a complete
+patch.
 
-in both a working (distro?) kernel and in the failing kernel, please.
+Also, please always send us patches with your Signed-off-by line as stated at kernel
+Documentation/SubmittingPatches file.
 
-> Also, as mentioned previously, the choice in the Slackware kernel was to
-> support up to 8 parallel CPUs.
-> 
-> If there is anything else of interest in comparing the two config files,
-> someone should let me know. The only thing I can put my finger on is the
-> different choice of CPU and possibly the "GENERIC" option can cause
-> occasional problems?
-> 
-> I seem to recall that I have had trouble with this kind of thing
-> sometimes in the long-ago past, as someone else has mentioned. On a
-> couple of occasions way back when, some of the "stock" distro modules
-> would not initialize properly and the cure was to do a local
-> kernel-and-modules compile. Not that compiling the kernel bothered me
-> terribly back then, or now. But a problem like this one is in a way an
-> accident, and of course accidents are not supposed to happen.
-> 
-> Trying to look backward, It seems to me that one factor in the long-ago
-> problems and also in this one might be the difference between the
-> default CPU choice in a distro kernel and what is actually in the
-> machine. Especially, the difference between having "M686" in the kernel
-> and modules, as opposed to something else (especially something like K8)
-> being in the machine might sometimes cause interference. And then
-> modprobe sees the real hardware and sees an apparent conflict in the
-> choice of M686 in the module. But this is only semi-informed speculation
-> on my part. Someone else may know a lot more.
-> 
-> Hoping that the above helps in tracking down the problem.
-> 
-> Theodore Kilgore
-> 
+With respect to msp3400, one of the things you may need to do is to change the i2s
+speed, as msp3400 support two different speeds. If you use it with a wrong speed, you
+won't listen the audio. 
 
+There are two valid values: 1024000 and 2048000. The default is 1024000.
+
+So, if your board uses 2048000 speed on i2s, you'll need to add this:
+
+        case EM2880_BOARD_TERRATEC_HYBRID_XS_FR:
+		dev->i2s_speed = 2048000;
+
+to em28xx_pre_card_setup().
+
+If the GPIO's for analog are ok, this should be enough to have audio working on it.
 
 -- 
-~Randy
+
+Cheers,
+Mauro
+
+---
+ drivers/media/video/em28xx/em28xx-cards.c |   21 +++++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
+
+--- work.orig/drivers/media/video/em28xx/em28xx-cards.c
++++ work/drivers/media/video/em28xx/em28xx-cards.c
+@@ -170,6 +170,18 @@ static struct em28xx_reg_seq pinnacle_hy
+ 	{	-1,		-1,	-1,		-1},
+ };
+ 
++static struct em28xx_reg_seq terratec_cinergy_USB_XS_analog[] = {
++	{EM28XX_R08_GPIO,	0x6d,	~EM_GPIO_4,	10},
++	{EM2880_R04_GPO,	0x00,	0xff,		10},
++	{ -1,			-1,	-1,		-1},
++};
++
++static struct em28xx_reg_seq terratec_cinergy_USB_XS_digital[] = {
++	{EM28XX_R08_GPIO,	0x6e,	~EM_GPIO_4,	10},
++	{EM2880_R04_GPO,	0x08,	0xff,		10},
++	{ -1,			-1,	-1,		-1},
++};
++
+ /* eb1a:2868 Reddo DVB-C USB TV Box
+    GPIO4 - CU1216L NIM
+    Other GPIOs seems to be don't care. */
+@@ -750,22 +762,22 @@ struct em28xx_board em28xx_boards[] = {
+ 		.tuner_gpio   = default_tuner_gpio,
+ 		.decoder      = EM28XX_TVP5150,
+ 		.has_dvb      = 1,
+-		.dvb_gpio     = default_digital,
++		.dvb_gpio     = terratec_cinergy_USB_XS_digital,
+ 		.input        = { {
+ 			.type     = EM28XX_VMUX_TELEVISION,
+ 			.vmux     = TVP5150_COMPOSITE0,
+ 			.amux     = EM28XX_AMUX_VIDEO,
+-			.gpio     = default_analog,
++			.gpio     = terratec_cinergy_USB_XS_analog,
+ 		}, {
+ 			.type     = EM28XX_VMUX_COMPOSITE1,
+ 			.vmux     = TVP5150_COMPOSITE1,
+ 			.amux     = EM28XX_AMUX_LINE_IN,
+-			.gpio     = default_analog,
++			.gpio     = terratec_cinergy_USB_XS_analog,
+ 		}, {
+ 			.type     = EM28XX_VMUX_SVIDEO,
+ 			.vmux     = TVP5150_SVIDEO,
+ 			.amux     = EM28XX_AMUX_LINE_IN,
+-			.gpio     = default_analog,
++			.gpio     = terratec_cinergy_USB_XS_analog,
+ 		} },
+ 	},
+ 	[EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900] = {
+@@ -2118,6 +2130,7 @@ static void em28xx_setup_xc3028(struct e
+ 		ctl->demod = XC3028_FE_ZARLINK456;
+ 		break;
+ 	case EM2880_BOARD_TERRATEC_HYBRID_XS:
++	case EM2880_BOARD_TERRATEC_HYBRID_XS_FR:
+ 	case EM2881_BOARD_PINNACLE_HYBRID_PRO:
+ 		ctl->demod = XC3028_FE_ZARLINK456;
+ 		break;
