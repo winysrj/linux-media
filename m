@@ -1,127 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47807 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751154Ab0CSGEV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Mar 2010 02:04:21 -0400
-Received: from dbdp31.itg.ti.com ([172.24.170.98])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2J64Hjp010386
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 19 Mar 2010 01:04:20 -0500
-From: hvaibhav@ti.com
-To: linux-media@vger.kernel.org
-Cc: m-karicheri2@ti.com, Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH-V2 2/7] VPFE Capture: Add call back function for interrupt clear to vpfe_cfg
-Date: Fri, 19 Mar 2010 11:34:08 +0530
-Message-Id: <1268978653-32710-3-git-send-email-hvaibhav@ti.com>
-In-Reply-To: <hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
+Received: from csmtp1.one.com ([195.47.247.21]:50304 "EHLO csmtp1.one.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750750Ab0CIMBC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Mar 2010 07:01:02 -0500
+Received: from [94.196.234.254] (94.196.234.254.threembb.co.uk [94.196.234.254])
+	by csmtp1.one.com (Postfix) with ESMTP id 189FA1BC03B2C
+	for <linux-media@vger.kernel.org>; Tue,  9 Mar 2010 12:01:00 +0000 (UTC)
+Subject: Issue with dvbsnoop
+From: Mike <mike@redtux.org.uk>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 09 Mar 2010 12:08:41 +0000
+Message-Id: <1268136521.1825.18.camel@localhost.localdomain>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+Hi
 
-For the devices like AM3517, it is expected that driver clears the
-interrupt in ISR. Since this is device spcific, callback function
-added to the platform_data.
+I have been using dvbsnoop for quite a while to get an epg. However it
+has jjust started hanging when I give a -n value of more than about 300
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- drivers/media/video/davinci/vpfe_capture.c |   24 ++++++++++++++++++++----
- include/media/davinci/vpfe_capture.h       |    2 ++
- 2 files changed, 22 insertions(+), 4 deletions(-)
+command
+dvbsnoop -s sec -timeout 500-nph -n 1500 0x12
 
-diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
-index 885cd54..2219460 100644
---- a/drivers/media/video/davinci/vpfe_capture.c
-+++ b/drivers/media/video/davinci/vpfe_capture.c
-@@ -475,6 +475,11 @@ static int vpfe_initialize_device(struct vpfe_device *vpfe_dev)
- 	ret = ccdc_dev->hw_ops.open(vpfe_dev->pdev);
- 	if (!ret)
- 		vpfe_dev->initialized = 1;
-+
-+	/* Clear all VPFE/CCDC interrupts */
-+	if (vpfe_dev->cfg->clr_intr)
-+		vpfe_dev->cfg->clr_intr(-1);
-+
- unlock:
- 	mutex_unlock(&ccdc_lock);
- 	return ret;
-@@ -562,7 +567,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
+This gets run via a loop which tunes to each available frequency in turn
+so I dont neccessarily care if each iteration completes as long as it
+exits. 
 
- 	/* if streaming not started, don't do anything */
- 	if (!vpfe_dev->started)
--		return IRQ_HANDLED;
-+		goto clear_intr;
+Any way to stop the hang as I need to get more packets than 300 to get a
+sensible epg
 
- 	/* only for 6446 this will be applicable */
- 	if (NULL != ccdc_dev->hw_ops.reset)
-@@ -574,7 +579,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
- 			"frame format is progressive...\n");
- 		if (vpfe_dev->cur_frm != vpfe_dev->next_frm)
- 			vpfe_process_buffer_complete(vpfe_dev);
--		return IRQ_HANDLED;
-+		goto clear_intr;
- 	}
+thanks
 
- 	/* interlaced or TB capture check which field we are in hardware */
-@@ -604,7 +609,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
- 				addr += vpfe_dev->field_off;
- 				ccdc_dev->hw_ops.setfbaddr(addr);
- 			}
--			return IRQ_HANDLED;
-+			goto clear_intr;
- 		}
- 		/*
- 		 * if one field is just being captured configure
-@@ -624,6 +629,10 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
- 		 */
- 		vpfe_dev->field_id = fid;
- 	}
-+clear_intr:
-+	if (vpfe_dev->cfg->clr_intr)
-+		vpfe_dev->cfg->clr_intr(irq);
-+
- 	return IRQ_HANDLED;
- }
-
-@@ -635,8 +644,11 @@ static irqreturn_t vdint1_isr(int irq, void *dev_id)
- 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "\nInside vdint1_isr...\n");
-
- 	/* if streaming not started, don't do anything */
--	if (!vpfe_dev->started)
-+	if (!vpfe_dev->started) {
-+		if (vpfe_dev->cfg->clr_intr)
-+			vpfe_dev->cfg->clr_intr(irq);
- 		return IRQ_HANDLED;
-+	}
-
- 	spin_lock(&vpfe_dev->dma_queue_lock);
- 	if ((vpfe_dev->fmt.fmt.pix.field == V4L2_FIELD_NONE) &&
-@@ -644,6 +656,10 @@ static irqreturn_t vdint1_isr(int irq, void *dev_id)
- 	    vpfe_dev->cur_frm == vpfe_dev->next_frm)
- 		vpfe_schedule_next_buffer(vpfe_dev);
- 	spin_unlock(&vpfe_dev->dma_queue_lock);
-+
-+	if (vpfe_dev->cfg->clr_intr)
-+		vpfe_dev->cfg->clr_intr(irq);
-+
- 	return IRQ_HANDLED;
- }
-
-diff --git a/include/media/davinci/vpfe_capture.h b/include/media/davinci/vpfe_capture.h
-index d863e5e..dc0dd5b 100644
---- a/include/media/davinci/vpfe_capture.h
-+++ b/include/media/davinci/vpfe_capture.h
-@@ -94,6 +94,8 @@ struct vpfe_config {
- 	/* vpfe clock */
- 	struct clk *vpssclk;
- 	struct clk *slaveclk;
-+	/* Function for Clearing the interrupt */
-+	void (*clr_intr)(int vdint);
- };
-
- struct vpfe_device {
---
-1.6.2.4
 
