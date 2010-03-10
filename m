@@ -1,67 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2798 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753851Ab0CVIL7 (ORCPT
+Received: from mail-in-17.arcor-online.net ([151.189.21.57]:52846 "EHLO
+	mail-in-17.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932548Ab0CJR7W (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Mar 2010 04:11:59 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: RFC: Phase 2/3: Move the compat code into v4l1-compat. Convert apps.
-Date: Mon, 22 Mar 2010 09:11:35 +0100
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <201003201021.05426.hverkuil@xs4all.nl> <4BA556D1.1090602@redhat.com>
-In-Reply-To: <4BA556D1.1090602@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201003220911.36035.hverkuil@xs4all.nl>
+	Wed, 10 Mar 2010 12:59:22 -0500
+From: stefan.ringel@arcor.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH] tm6000: add new hybrid-stick
+Date: Wed, 10 Mar 2010 18:57:57 +0100
+Message-Id: <1268243877-29157-1-git-send-email-stefan.ringel@arcor.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 21 March 2010 00:14:25 Hans de Goede wrote:
-> Hi,
-> 
-> On 03/20/2010 10:21 AM, Hans Verkuil wrote:
-> > Hi all!
-> >
-> > The second phase that needs to be done to remove the v4l1 support from the
-> > kernel is that libv4l1 should replace the v4l1-compat code from the kernel.
-> >
-> > I do not know how complete the libv4l1 code is right now. I would like to
-> > know in particular whether the VIDIOCGMBUF/mmap behavior can be faked in
-> > libv4l1 if drivers do not support the cgmbuf vidioc call.
-> >
-> 
-> Yes it can, this for example already happens when using v4l1 apps with
-> uvcvideo (which is not possible without libv4l1).
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
-In what way does libv4l1 still depend on the kernel's v4l1 compat layer? And
-what is needed to remove that dependency?
+-add Hauppauge WinTV HVR 900H/WinTV USB2-Stick
+	vid/pid
+	0x2040/6601
+	0x2040/6610
+	0x2040/6611
 
-Because I think that that is the best approach.
+-add Terratec Cinergy Hybrid-Stick
+	vid/pid
+	0x0ccd/0x00a5
+
+-add Twinhan TU501(704D1)
+	vid/pid
+	0x13d3/0x3240
+	0x13d3/0x3241
+	0x13d3/0x3243
+	0x13d3/0x3264
+
+
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+---
+ drivers/staging/tm6000/tm6000-cards.c |   39 +++++++++++++++++++++++++++-----
+ 1 files changed, 33 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+index 83cb4b9..2053008 100644
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -47,6 +47,7 @@
+ #define TM6010_BOARD_BEHOLD_WANDER		10
+ #define TM6010_BOARD_BEHOLD_VOYAGER		11
+ #define TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE	12
++#define TM6010_BOARD_TWINHAN_TU501		13
  
-> > The third phase that can be done in parallel is to convert V4L1-only apps.
-> > I strongly suspect that any apps that are V4L1-only are also unmaintained.
-> > We have discussed before that we should set up git repositories for such
-> > tools (xawtv being one of the more prominent apps since it contains several
-> > v4l1-only console apps). Once we have maintainership, then we can convert
-> > these tools to v4l2 and distros and other interested parties have a place
-> > to send patches to.
-> >
-> 
-> As said before I wouldn't mind maintaining an xawtv git tree @ linuxtv,
-> assuming this tree were to be based on the 3.95 release.
-
-Mauro, do you have any objection to hosting xawtv on linuxtv? We may need
-another tree later as well if we decide to split off the xawtv console tools
-into a separate tree. But perhaps they would fit under v4l-utils as well,
-we'll have to see.
-
-Regards,
-
-	Hans
-
+ #define TM6000_MAXBOARDS        16
+ static unsigned int card[]     = {[0 ... (TM6000_MAXBOARDS - 1)] = UNSET };
+@@ -169,7 +170,7 @@ struct tm6000_board tm6000_boards[] = {
+ 		.gpio_addr_tun_reset = TM6000_GPIO_4,
+ 	},
+ 	[TM6010_BOARD_HAUPPAUGE_900H] = {
+-		.name         = "Hauppauge HVR-900H",
++		.name         = "Hauppauge WinTV HVR-900H / WinTV USB2-Stick",
+ 		.tuner_type   = TUNER_XC2028, /* has a XC3028 */
+ 		.tuner_addr   = 0xc2 >> 1,
+ 		.demod_addr   = 0x1e >> 1,
+@@ -180,7 +181,7 @@ struct tm6000_board tm6000_boards[] = {
+ 			.has_zl10353  = 1,
+ 			.has_eeprom   = 1,
+ 		},
+-		.gpio_addr_tun_reset = TM6000_GPIO_2,
++		.gpio_addr_tun_reset = TM6010_GPIO_2,
+ 	},
+ 	[TM6010_BOARD_BEHOLD_WANDER] = {
+ 		.name         = "Beholder Wander DVB-T/TV/FM USB2.0",
+@@ -212,7 +213,22 @@ struct tm6000_board tm6000_boards[] = {
+ 		.gpio_addr_tun_reset = TM6000_GPIO_2,
+ 	},
+ 	[TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE] = {
+-		.name         = "Terratec Cinergy Hybrid XE",
++		.name         = "Terratec Cinergy Hybrid XE / Cinergy Hybrid-Stick",
++		.tuner_type   = TUNER_XC2028, /* has a XC3028 */
++		.tuner_addr   = 0xc2 >> 1,
++		.demod_addr   = 0x1e >> 1,
++		.type         = TM6010,
++		.caps = {
++			.has_tuner    = 1,
++			.has_dvb      = 1,
++			.has_zl10353  = 1,
++			.has_eeprom   = 1,
++			.has_remote   = 1,
++		},
++		.gpio_addr_tun_reset = TM6010_GPIO_2,
++	},
++	[TM6010_BOARD_TWINHAN_TU501] = {
++		.name         = "Twinhan TU501(704D1)",
+ 		.tuner_type   = TUNER_XC2028, /* has a XC3028 */
+ 		.tuner_addr   = 0xc2 >> 1,
+ 		.demod_addr   = 0x1e >> 1,
+@@ -236,9 +252,17 @@ struct usb_device_id tm6000_id_table [] = {
+ 	{ USB_DEVICE(0x14aa, 0x0620), .driver_info = TM6000_BOARD_FREECOM_AND_SIMILAR },
+ 	{ USB_DEVICE(0x06e1, 0xb339), .driver_info = TM6000_BOARD_ADSTECH_MINI_DUAL_TV },
+ 	{ USB_DEVICE(0x2040, 0x6600), .driver_info = TM6010_BOARD_HAUPPAUGE_900H },
++	{ USB_DEVICE(0x2040, 0x6601), .driver_info = TM6010_BOARD_HAUPPAUGE_900H },
++	{ USB_DEVICE(0x2040, 0x6610), .driver_info = TM6010_BOARD_HAUPPAUGE_900H },
++	{ USB_DEVICE(0x2040, 0x6611), .driver_info = TM6010_BOARD_HAUPPAUGE_900H },
+ 	{ USB_DEVICE(0x6000, 0xdec0), .driver_info = TM6010_BOARD_BEHOLD_WANDER },
+ 	{ USB_DEVICE(0x6000, 0xdec1), .driver_info = TM6010_BOARD_BEHOLD_VOYAGER },
+ 	{ USB_DEVICE(0x0ccd, 0x0086), .driver_info = TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE },
++	{ USB_DEVICE(0x0ccd, 0x00A5), .driver_info = TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE },
++	{ USB_DEVICE(0x13d3, 0x3240), .driver_info = TM6010_BOARD_TWINHAN_TU501 },
++	{ USB_DEVICE(0x13d3, 0x3241), .driver_info = TM6010_BOARD_TWINHAN_TU501 },
++	{ USB_DEVICE(0x13d3, 0x3243), .driver_info = TM6010_BOARD_TWINHAN_TU501 },
++	{ USB_DEVICE(0x13d3, 0x3264), .driver_info = TM6010_BOARD_TWINHAN_TU501 },
+ 	{ },
+ };
+ 
+@@ -271,7 +295,9 @@ int tm6000_tuner_callback(void *ptr, int component, int command, int arg)
+ 		case 0:
+ 			/* newer tuner can faster reset */
+ 			switch (dev->model) {
++			case TM6010_BOARD_HAUPPAUGE_900H:
+ 			case TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE:
++			case TM6010_BOARD_TWINHAN_TU501:
+ 				tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+ 					       dev->tuner_reset_gpio, 0x01);
+ 				msleep(60);
+@@ -328,11 +354,11 @@ int tm6000_cards_setup(struct tm6000_core *dev)
+ 	 */
+ 	switch (dev->model) {
+ 	case TM6010_BOARD_HAUPPAUGE_900H:
++	case TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE:
++	case TM6010_BOARD_TWINHAN_TU501:
+ 		/* Turn xceive 3028 on */
+ 		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, TM6010_GPIO_3, 0x01);
+-		msleep(11);
+-		break;
+-	case TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE:
++		msleep(15);
+ 		/* Turn zarlink zl10353 on */
+ 		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, TM6010_GPIO_4, 0x00);
+ 		msleep(15);
+@@ -445,6 +471,7 @@ static void tm6000_config_tuner (struct tm6000_core *dev)
+ 		switch(dev->model) {
+ 		case TM6010_BOARD_HAUPPAUGE_900H:
+ 		case TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE:
++		case TM6010_BOARD_TWINHAN_TU501:
+ 			ctl.fname = "xc3028L-v36.fw";
+ 			break;
+ 		default:
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+1.6.6.1
+
