@@ -1,64 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f216.google.com ([209.85.219.216]:36246 "EHLO
-	mail-ew0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756202Ab0CJEWI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Mar 2010 23:22:08 -0500
-Received: by ewy8 with SMTP id 8so1104851ewy.28
-        for <linux-media@vger.kernel.org>; Tue, 09 Mar 2010 20:22:06 -0800 (PST)
-Message-ID: <4B971E7B.4080107@gmail.com>
-Date: Wed, 10 Mar 2010 14:22:19 +1000
-From: Jed <jedi.theone@gmail.com>
+Received: from mail.juropnet.hu ([212.24.188.131]:45714 "EHLO mail.juropnet.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932847Ab0CJXMP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Mar 2010 18:12:15 -0500
+Received: from kabelnet-199-221.juropnet.hu ([91.147.199.221])
+	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <istvan_v@mailbox.hu>)
+	id 1NpV4T-0006hq-MB
+	for linux-media@vger.kernel.org; Thu, 11 Mar 2010 00:12:13 +0100
+Message-ID: <4B98287B.4030506@mailbox.hu>
+Date: Thu, 11 Mar 2010 00:17:15 +0100
+From: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Hw capabilities of the HVR-2200
-References: <4AAF568D.1070308@gmail.com> <4AB3B43A.2030103@gmail.com> <4AB3B947.1040202@kernellabs.com> <4AB3C17D.1030300@gmail.com> <4AB3C8E5.4010700@kernellabs.com> <4AB3CDC2.20505@gmail.com>
-In-Reply-To: <4AB3CDC2.20505@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: linux-media@vger.kernel.org
+Subject: Re: [PATCH] DTV2000 H Plus issues
+References: <4B3F6FE0.4040307@internode.on.net> <4B3F7B0D.4030601@mailbox.hu>	 <4B405381.9090407@internode.on.net> <4B421BCB.6050909@mailbox.hu>	 <4B4294FE.8000309@internode.on.net> <4B463AC6.2000901@mailbox.hu>	 <4B719CD0.6060804@mailbox.hu> <4B745781.2020408@mailbox.hu>	 <4B7C303B.2040807@mailbox.hu> <4B7C80F5.5060405@redhat.com> <829197381002171559k10b692dcu99a3adc2f613437f@mail.gmail.com> <4B7EEC92.1090004@mailbox.hu>
+In-Reply-To: <4B7EEC92.1090004@mailbox.hu>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-19/09/09 Jed wrote:
->>>>>> 2) Component input for the A/V-in
->>>>
->>>> Yes, this exists on the HVR2250 product only.
->>>
->>> Ah shite, are you sure?
->>> If you look at the specs for the reference card it was there, did they
->>> take it out at the last minute?
->>
->> It's not feature Hauppauge supports on the HVR2200 today. I have a 
->> suspicion this may change but I'm neither confirming, denying or 
->> announcing anything. It would make sense to officially support 
->> component cables on the HVR2200 since the silicon supports it. If/when 
->> it does I'm sure it will be mentioned in the forums or on the HVR2200 
->> product packaging.
-
-Hi Steve, when you said this is not a feature Hauppauge supports.
-Did you mean it's not fully enabled physically in the PCB...
-Or is it just something they need to add support for in the driver?
-If the latter do you know if their policy has changed or is about to?
-
->>>>>> 3) Hw encode bypass for A/V-in
->>>>
->>>> No idea. Regardless of whether it does or does not I wouldn't plan to
->>>> add basic raw TV support to the driver, without going through the
->>>> encoder.
->>>
->>> Why do you rule it out unequivocally, is it just because I've annoyed
->>> you? :-(
->>
->> Raw analog TV isn't a high priority feature on my mental check-list. 
->> Analog TV via the encoder is much more interesting and applicable to 
->> many people.
-
-Assuming that progress has been made on analogue to
-h.263/mpeg4/VC-1/DivX/Xvid via the A/V-in encoder.
-Is this still considered a low priority?
-
-Has progress been made on hw encode via A/V-in?
-I'm "finally" putting my entire system together soon, can't wait!
-Looking forward to seeing how everything has progressed.
-I'll be sure to do some donations once I'm up & running!
-
-
+I have finally received some feedback on DVB-T, and it reportedly works,
+although with a minor bug: it was necessary to use the "cable" connector
+instead of the "antenna" one. There is an updated patch at the web page
+http://www.sharemation.com/IstvanV/v4l/xc4000.html that attempts to
+correct this problem. It also includes a few CX88 changes that are not
+related to adding support for XC4000 based cards, and could possibly be
+released as separate patches:
+ - implements a "sharpness" control using the CX2388x peaking filter
+   and changing the notch filter
+ - in two places (cx88-core.c and cx88-video.c) code that checked for
+   CX88_VMUX_TELEVISION did not also check for CX88_VMUX_CABLE; this
+   was the reason why selecting the audio standard did not work for the
+   cable input
+ - in cx88-mpeg.c, there was code that set core->input to CX88_VMUX_DVB;
+   this does not seem to make sense, since core->input is an index to an
+   array (core->board.input), while the CX88_VMUX_* values are not
+   intended to be used as indexes, but rather values of the 'type'
+   member of struct cx88_input. But it is also not obvious if this has
+   any actual effect other than what is reported as the current input
+   when queried by an application. In any case, I changed the code to
+   search for an input of type CX88_VMUX_DVB, or set the input to 0 if
+   it is not found
