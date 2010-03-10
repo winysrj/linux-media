@@ -1,18 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx04.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.8])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o28GCgR6012604
-	for <video4linux-list@redhat.com>; Mon, 8 Mar 2010 11:12:42 -0500
-Received: from mail.hidayahonline.org (hidayahonline.org [67.19.146.138])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o28GCP8Y006572
-	for <video4linux-list@redhat.com>; Mon, 8 Mar 2010 11:12:26 -0500
-Message-ID: <4B9521E4.9040901@hidayahonline.org>
-Date: Mon, 08 Mar 2010 11:12:20 -0500
-From: Basil Mohamed Gohar <abu_hurayrah@hidayahonline.org>
-MIME-Version: 1.0
+Received: from mx1.redhat.com (ext-mx03.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.7])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o2A2GHwB025921
+	for <video4linux-list@redhat.com>; Tue, 9 Mar 2010 21:16:17 -0500
+Received: from eastrmmtao107.cox.net (eastrmmtao107.cox.net [68.230.240.59])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2A2G4eV017059
+	for <video4linux-list@redhat.com>; Tue, 9 Mar 2010 21:16:05 -0500
+Received: from eastrmimpo03.cox.net ([68.1.16.126]) by eastrmmtao107.cox.net
+	(InterMail vM.8.00.01.00 201-2244-105-20090324) with ESMTP id
+	<20100310021605.KRNF18765.eastrmmtao107.cox.net@eastrmimpo03.cox.net>
+	for <video4linux-list@redhat.com>; Tue, 9 Mar 2010 21:16:05 -0500
+Received: from chris by localhost with local (Exim 4.66)
+	(envelope-from <c.shoemaker@cox.net>) id 1NpBSt-0006mk-Ub
+	for video4linux-list@redhat.com; Tue, 09 Mar 2010 21:16:03 -0500
+Date: Tue, 9 Mar 2010 21:16:03 -0500
+From: Chris Shoemaker <c.shoemaker@cox.net>
 To: video4linux-list@redhat.com
-Subject: image/jpeg format with v4l2 webcam
+Subject: Any experience with Mini-PCI MP-6100: Techwell TW2815 and SPCT6100?
+Message-ID: <20100310021603.GA26053@pe.Belkin>
+MIME-Version: 1.0
+Content-Disposition: inline
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,27 +34,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello, everyone.  I am using gstreamer (through gst-launch) to access my
-v4l2 webcam (I have two - Logitech QuickCam for Notebooks Pro & Logitech
-QuickCam Pro 5000), both of which work perfectly fine when using
-video/x-raw-yuv-type pixel formats.
+Hi,
 
-However, when I want to capture the video using the supported image/jpeg
-pixel formats, which I presume would be higher quality (if I dump
-straight to JPEG/MJPEG files) as no implicit conversion is happening, I
-get framerates much lower than expected.
+  I'm looking at this MP-6100:
+http://www.commell.com.tw/product/Surveillance/MP-6100.htm
 
-For example, my webcams claim to support up to 30 frames per second when
-capturing in the image/jpeg format.  But the resulting video is much,
-much slower.  And this scales, somehow, if I change the capture
-framerate.  So, for example, if I specify 25 fps, it's slower than the
-30, and 15 is slower than 25, etc.  But all of these are much slower in
-terms of capture than their yuv-format counterparts.
+Their press release [1] says it has "Techwell's TW2815 video decoder
+and SPCT6100 H.264 encoder DSP" and it comes with a Linux SDK for
+Fedora 11.  Does anyone have any experience with these chips?  What
+are the chances I'll be able to get this to capture H.264 under linux?
 
-Could someone guide me as to how I can find the source of this problem
-and/or test different settings that might work?
+Any tips?
 
-Thanks!
+Thanks in advance,
+-chris
+
+[1] http://news.thomasnet.com/fullstory/563735
 
 --
 video4linux-list mailing list
