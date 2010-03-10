@@ -1,45 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f223.google.com ([209.85.220.223]:50638 "EHLO
-	mail-fx0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752746Ab0CYMxM convert rfc822-to-8bit (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:65071 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755199Ab0CJK5V (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Mar 2010 08:53:12 -0400
-Received: by fxm23 with SMTP id 23so1028095fxm.21
-        for <linux-media@vger.kernel.org>; Thu, 25 Mar 2010 05:53:11 -0700 (PDT)
+	Wed, 10 Mar 2010 05:57:21 -0500
+Date: Wed, 10 Mar 2010 13:57:03 +0300
+From: Dan Carpenter <error27@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Greg Kroah-Hartman <gregkh@suse.de>,
+	Trent Piepho <xyzzy@speakeasy.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	kernel-janitors@vger.kernel.org, sakari.ailus@nokia.com
+Subject: [patch] omap24xxcam: potential buffer overflow
+Message-ID: <20100310105703.GD6321@bicker>
 MIME-Version: 1.0
-In-Reply-To: <1269517213.3087.12.camel@palomino.walls.org>
-References: <1269517213.3087.12.camel@palomino.walls.org>
-Date: Thu, 25 Mar 2010 13:53:11 +0100
-Message-ID: <846899811003250553n3dcb8ea5xc2cee6ac05741520@mail.gmail.com>
-Subject: Re: Andy Walls' change of email address
-From: HoP <jpetrous@gmail.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: linux-media@vger.kernel.org, ivtv-users@ivtvdriver.org,
-	ivtv-devel@ivtvdriver.org, awalls@radix.net
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The previous loop goes until last == VIDEO_MAX_FRAME, so this could 
+potentially go one past the end of the loop.
 
-> As a consequence of moving myself into the 21st century by obtaining
-> cable internet service, I have a new e-mail address:
->
->        awalls md.metrocast.net
->
-> My radix.net email address will soon cease working.
->
+Signed-off-by: Dan Carpenter <error27@gmail.com>
 
-of course it is not my job, but I wonder why you not
-stay on old email. In 21 century there is no problem
-to move domain to other place or, at least, do
-some type of forwarding :)
-
-My 2 cents
-
-/Honza
-
-PS: The only real reason I can imagine is that radix.com
-is not your own domain and owner of it doesn't allow
-mail forwarding.
+diff --git a/drivers/media/video/omap24xxcam.c b/drivers/media/video/omap24xxcam.c
+index 142c327..bedbee9 100644
+--- a/drivers/media/video/omap24xxcam.c
++++ b/drivers/media/video/omap24xxcam.c
+@@ -1404,7 +1404,7 @@ static int omap24xxcam_mmap_buffers(struct file *file,
+ 	}
+ 
+ 	size = 0;
+-	for (i = first; i <= last; i++) {
++	for (i = first; i <= last && i < VIDEO_MAX_FRAME; i++) {
+ 		struct videobuf_dmabuf *dma = videobuf_to_dma(vbq->bufs[i]);
+ 
+ 		for (j = 0; j < dma->sglen; j++) {
