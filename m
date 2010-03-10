@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx10.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.14])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o29AsLba015978
-	for <video4linux-list@redhat.com>; Tue, 9 Mar 2010 05:54:21 -0500
-Received: from gateway.tuioptics.com (gateway.tuioptics.com [213.183.22.85])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o29As53v020117
-	for <video4linux-list@redhat.com>; Tue, 9 Mar 2010 05:54:06 -0500
-Received: from tomcat.toptica.com (localhost [127.0.0.1])
-	by gateway.tuioptics.com (8.13.6/8.13.6/SuSE Linux 0.8) with ESMTP id
-	o29As6PJ025319
-	for <video4linux-list@redhat.com>; Tue, 9 Mar 2010 11:54:06 +0100
-Date: Tue, 9 Mar 2010 11:51:39 +0100
-From: Arno Euteneuer <arno.euteneuer@toptica.com>
-To: video4linux-list@redhat.com
-Message-ID: <4B96283B.2080800@toptica.com>
-In-Reply-To: <4B960AE2.3090803@toptica.com>
-References: <4B960AE2.3090803@toptica.com>
+Received: from mx1.redhat.com (ext-mx03.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.7])
+	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o2A7oRYe006417
+	for <video4linux-list@redhat.com>; Wed, 10 Mar 2010 02:50:27 -0500
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o2A7oEcP029556
+	for <video4linux-list@redhat.com>; Wed, 10 Mar 2010 02:50:14 -0500
+Date: Wed, 10 Mar 2010 08:50:15 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Arno Euteneuer <arno.euteneuer@toptica.com>
 Subject: Re: soc-camera driver for i.MX25
+In-Reply-To: <4B974A71.5030506@toptica.com>
+Message-ID: <Pine.LNX.4.64.1003100849200.4618@axis700.grange>
+References: <4B960AE2.3090803@toptica.com> <4B974A71.5030506@toptica.com>
 MIME-Version: 1.0
+Cc: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,20 +23,46 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Am 09.03.2010 09:46, schrieb Arno Euteneuer:
-> However, reducing the frame size to e.g. 640 x 480 leads to corrupted
-> pictures sometimes when using multiple buffers.
+On Wed, 10 Mar 2010, Arno Euteneuer wrote:
 
-Ooops, removing my residual printks in some other v4l2 modules seems to resolve 
-that problem ...
+> Thanks for your interest!
+> 
+> > Nice, thanks for the patch! Now, you'd have to formalise the submission -
+> > add your Signed-off-by line, provide a suitable patch description.
+> Ok. That sounds like the easy part ;)
+> 
+> > More
+> > importantly, it certainly has to be updated for 2.6.32 and 2.6.33 - the
+> > biggest change since 2.6.31 has been the conversion to the v4l2-subdev
+> > API, and a smaller one - the addition of the mediabus API.
+> I already suspected that I have to update it :D Currently I'm using a 2.6.31
+> kernel that has been patched with a BSP from the board supplier. So, I have to
+> first update these patches in order to be able to run my system with a current
+> kernel,I guess. I will try that ...
 
-Arno
+Good, looking forward to an updated patch;)
+
+> > For a single
+> > driver these are not very big changes, I could help you with them, but you
+> > certainly would have to re-test your setup with the current kernel. Would
+> > you be able to do that? And then, of course, we'd also have to pass your
+> > driver through the usual review rounds.
+> > 
+> Thanks for your encouraging answer. I never before submitted a driver and any
+> help is highly appreciated.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
 
 --
 video4linux-list mailing list
