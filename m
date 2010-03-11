@@ -1,81 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.rdslink.ro ([81.196.12.70]:54792 "EHLO smtp.rdslink.ro"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751386Ab0CUSBS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Mar 2010 14:01:18 -0400
-Subject: 0004-Staging-cx25821-fix-coding-style-issues-in-cx25821-i.patch
-From: Olimpiu Pascariu <olimpiu.pascariu@gmail.com>
-To: gregkh@suse.de, mchehab@redhat.com,
-	palash.bandyopadhyay@conexant.com
-Cc: devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset="ANSI_X3.4-1968"
-Date: Sun, 21 Mar 2010 20:01:13 +0200
-Message-ID: <1269194473.6971.8.camel@tuxtm-linux>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36976 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757330Ab0CKWCk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Mar 2010 17:02:40 -0500
+Message-Id: <201003112202.o2BM2KUh013134@imap1.linux-foundation.org>
+Subject: [patch 5/5] dib7000p: reduce large stack usage
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
+	randy.dunlap@oracle.com, pboettcher@dibcom.fr
+From: akpm@linux-foundation.org
+Date: Thu, 11 Mar 2010 14:02:20 -0800
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->From 5f02f6af270ce061174806a039d8d44a35b2ce5e Mon Sep 17 00:00:00 2001
-From: Olimpiu Pascariu <olimpiu.pascariu@gmail.com>
-Date: Sun, 21 Mar 2010 19:52:31 +0200
-Subject: [PATCH 4/4] Staging: cx25821: fix coding style issues in cx25821-i2c.c
- This is a patch to cx25821-i2c.c file that fixes up warnings and errors found by the checkpatch.pl tool
- Signed-off-by: Olimpiu Pascariu <olimpiu.pascariu@gmail.com>
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
+Reduce the static stack usage of one of the 2 top offenders as listed by
+'make checkstack':
+
+Building with CONFIG_FRAME_WARN=2048 produces:
+
+drivers/media/dvb/frontends/dib7000p.c:1367: warning: the frame size of 2320 bytes is larger than 2048 bytes
+
+and in 'make checkstack', the stack usage goes from:
+0x00002409 dib7000p_i2c_enumeration [dib7000p]:		2328
+to unlisted with this patch.
+
+Also change one caller of dib7000p_i2c_enumeration() to check its
+return value.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Patrick Boettcher <pboettcher@dibcom.fr>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
- drivers/staging/cx25821/cx25821-i2c.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/staging/cx25821/cx25821-i2c.c b/drivers/staging/cx25821/cx25821-i2c.c
-index f4f2681..f727b85 100644
---- a/drivers/staging/cx25821/cx25821-i2c.c
-+++ b/drivers/staging/cx25821/cx25821-i2c.c
-@@ -159,9 +159,9 @@ static int i2c_sendbytes(struct i2c_adapter *i2c_adap,
+ drivers/media/dvb/dvb-usb/cxusb.c      |    5 +--
+ drivers/media/dvb/frontends/dib7000p.c |   36 ++++++++++++++---------
+ 2 files changed, 25 insertions(+), 16 deletions(-)
+
+diff -puN drivers/media/dvb/dvb-usb/cxusb.c~dib7000p-reduce-large-stack-usage drivers/media/dvb/dvb-usb/cxusb.c
+--- a/drivers/media/dvb/dvb-usb/cxusb.c~dib7000p-reduce-large-stack-usage
++++ a/drivers/media/dvb/dvb-usb/cxusb.c
+@@ -1024,8 +1024,9 @@ static int cxusb_dualdig4_rev2_frontend_
  
- 	return msg->len;
+ 	cxusb_bluebird_gpio_pulse(adap->dev, 0x02, 1);
  
--      eio:
-+eio:
- 	retval = -EIO;
--      err:
-+err:
- 	if (i2c_debug)
- 		printk(KERN_ERR " ERR: %d\n", retval);
- 	return retval;
-@@ -223,9 +223,9 @@ static int i2c_readbytes(struct i2c_adapter *i2c_adap,
+-	dib7000p_i2c_enumeration(&adap->dev->i2c_adap, 1, 18,
+-				 &cxusb_dualdig4_rev2_config);
++	if (dib7000p_i2c_enumeration(&adap->dev->i2c_adap, 1, 18,
++				 &cxusb_dualdig4_rev2_config) < 0)
++		return -ENODEV;
+ 
+ 	adap->fe = dvb_attach(dib7000p_attach, &adap->dev->i2c_adap, 0x80,
+ 			      &cxusb_dualdig4_rev2_config);
+diff -puN drivers/media/dvb/frontends/dib7000p.c~dib7000p-reduce-large-stack-usage drivers/media/dvb/frontends/dib7000p.c
+--- a/drivers/media/dvb/frontends/dib7000p.c~dib7000p-reduce-large-stack-usage
++++ a/drivers/media/dvb/frontends/dib7000p.c
+@@ -1323,46 +1323,54 @@ EXPORT_SYMBOL(dib7000p_pid_filter);
+ 
+ int dib7000p_i2c_enumeration(struct i2c_adapter *i2c, int no_of_demods, u8 default_addr, struct dib7000p_config cfg[])
+ {
+-	struct dib7000p_state st = { .i2c_adap = i2c };
++	struct dib7000p_state *dpst;
+ 	int k = 0;
+ 	u8 new_addr = 0;
+ 
++	dpst = kzalloc(sizeof(struct dib7000p_state), GFP_KERNEL);
++	if (!dpst)
++		return -ENODEV;
++
++	dpst->i2c_adap = i2c;
++
+ 	for (k = no_of_demods-1; k >= 0; k--) {
+-		st.cfg = cfg[k];
++		dpst->cfg = cfg[k];
+ 
+ 		/* designated i2c address */
+ 		new_addr          = (0x40 + k) << 1;
+-		st.i2c_addr = new_addr;
+-		dib7000p_write_word(&st, 1287, 0x0003); /* sram lead in, rdy */
+-		if (dib7000p_identify(&st) != 0) {
+-			st.i2c_addr = default_addr;
+-			dib7000p_write_word(&st, 1287, 0x0003); /* sram lead in, rdy */
+-			if (dib7000p_identify(&st) != 0) {
++		dpst->i2c_addr = new_addr;
++		dib7000p_write_word(dpst, 1287, 0x0003); /* sram lead in, rdy */
++		if (dib7000p_identify(dpst) != 0) {
++			dpst->i2c_addr = default_addr;
++			dib7000p_write_word(dpst, 1287, 0x0003); /* sram lead in, rdy */
++			if (dib7000p_identify(dpst) != 0) {
+ 				dprintk("DiB7000P #%d: not identified\n", k);
++				kfree(dpst);
+ 				return -EIO;
+ 			}
+ 		}
+ 
+ 		/* start diversity to pull_down div_str - just for i2c-enumeration */
+-		dib7000p_set_output_mode(&st, OUTMODE_DIVERSITY);
++		dib7000p_set_output_mode(dpst, OUTMODE_DIVERSITY);
+ 
+ 		/* set new i2c address and force divstart */
+-		dib7000p_write_word(&st, 1285, (new_addr << 2) | 0x2);
++		dib7000p_write_word(dpst, 1285, (new_addr << 2) | 0x2);
+ 
+ 		dprintk("IC %d initialized (to i2c_address 0x%x)", k, new_addr);
  	}
  
- 	return msg->len;
--      eio:
-+eio:
- 	retval = -EIO;
--      err:
-+err:
- 	if (i2c_debug)
- 		printk(KERN_ERR " ERR: %d\n", retval);
- 	return retval;
-@@ -266,7 +266,7 @@ static int i2c_xfer(struct i2c_adapter *i2c_adap, struct i2c_msg *msgs, int num)
- 	}
- 	return num;
+ 	for (k = 0; k < no_of_demods; k++) {
+-		st.cfg = cfg[k];
+-		st.i2c_addr = (0x40 + k) << 1;
++		dpst->cfg = cfg[k];
++		dpst->i2c_addr = (0x40 + k) << 1;
  
--      err:
-+err:
- 	return retval;
+ 		// unforce divstr
+-		dib7000p_write_word(&st, 1285, st.i2c_addr << 2);
++		dib7000p_write_word(dpst, 1285, dpst->i2c_addr << 2);
+ 
+ 		/* deactivate div - it was just for i2c-enumeration */
+-		dib7000p_set_output_mode(&st, OUTMODE_HIGH_Z);
++		dib7000p_set_output_mode(dpst, OUTMODE_HIGH_Z);
+ 	}
+ 
++	kfree(dpst);
+ 	return 0;
  }
- 
-@@ -319,7 +319,7 @@ int cx25821_i2c_register(struct cx25821_i2c *bus)
- 
- 	bus->i2c_client.adapter = &bus->i2c_adap;
- 
--	//set up the I2c
-+	/* set up the I2c */
- 	bus->i2c_client.addr = (0x88 >> 1);
- 
- 	return bus->i2c_rc;
--- 
-1.7.0
-
-
-
+ EXPORT_SYMBOL(dib7000p_i2c_enumeration);
+_
