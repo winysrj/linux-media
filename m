@@ -1,59 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:34177 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753818Ab0C2JxP (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42187 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758222Ab0CKWCk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Mar 2010 05:53:15 -0400
-Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0L0100E4DFGORD@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 29 Mar 2010 10:53:12 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L0100LOIFGOQ8@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 29 Mar 2010 10:53:12 +0100 (BST)
-Date: Mon, 29 Mar 2010 11:53:05 +0200
-From: Kamil Debski <k.debski@samsung.com>
-Subject: [PATCH/RFC 0/1] v4l: Add support for binary controls
-To: linux-media@vger.kernel.org
-Cc: p.osciak@samsung.com, k.debski@samsung.com,
-	kyungmin.park@samsung.com
-Message-id: <1269856386-29557-1-git-send-email-k.debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+	Thu, 11 Mar 2010 17:02:40 -0500
+Message-Id: <201003112202.o2BM2JWk013131@imap1.linux-foundation.org>
+Subject: [patch 4/5] dib3000mc: reduce large stack usage
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
+	randy.dunlap@oracle.com, pboettcher@dibcom.fr
+From: akpm@linux-foundation.org
+Date: Thu, 11 Mar 2010 14:02:19 -0800
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Hello,
+Reduce the static stack usage of one of the 2 top offenders as listed by
+'make checkstack':
 
-This patch introduces new type of v4l2 control - the binary control. It
-will be useful for exchanging raw binary data between the user space and
-the driver/hardware.
+Building with CONFIG_FRAME_WARN=2048 produces:
 
-The patch is pretty small – basically it adds a new control type.
+drivers/media/dvb/frontends/dib3000mc.c:853: warning: the frame size of 2224 bytes is larger than 2048 bytes
 
-1.  Reasons to include this new type
-- Some devices require data which are not part of the stream, but there
-are necessary for the device to work e.g. coefficients for transformation
-matrices.
-- String control is not suitable as it suggests that the data is a null
-terminated string. This might be important when printing debug information -
-one might output strings as they are and binary data in hex.
+and in 'make checkstack', the stack usage goes from:
+0x00000bbd dib3000mc_i2c_enumeration [dib3000mc]:	2232
+to unlisted with this patch.
 
-2. How does the binary control work
-The binary control has been based on the string control. The principle of
-use is the same. It uses v4l2_ext_control structure to pass the pointer and
-size of the data. It is left for the driver to call the copy_from_user/
-copy_to_user function to copy the data.
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Patrick Boettcher <pboettcher@dibcom.fr>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-3. About the patch
-The patch is pretty small – it basically adds a new control type. 
+ drivers/media/dvb/frontends/dib3000mc.c |   35 +++++++++++++---------
+ 1 file changed, 22 insertions(+), 13 deletions(-)
 
-Best wishes,
--- 
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
+diff -puN drivers/media/dvb/frontends/dib3000mc.c~dib3000mc-reduce-large-stack-usage drivers/media/dvb/frontends/dib3000mc.c
+--- a/drivers/media/dvb/frontends/dib3000mc.c~dib3000mc-reduce-large-stack-usage
++++ a/drivers/media/dvb/frontends/dib3000mc.c
+@@ -813,42 +813,51 @@ EXPORT_SYMBOL(dib3000mc_set_config);
+ 
+ int dib3000mc_i2c_enumeration(struct i2c_adapter *i2c, int no_of_demods, u8 default_addr, struct dib3000mc_config cfg[])
+ {
+-	struct dib3000mc_state st = { .i2c_adap = i2c };
++	struct dib3000mc_state *dmcst;
+ 	int k;
+ 	u8 new_addr;
+ 
+ 	static u8 DIB3000MC_I2C_ADDRESS[] = {20,22,24,26};
+ 
++	dmcst = kzalloc(sizeof(struct dib3000mc_state), GFP_KERNEL);
++	if (dmcst == NULL)
++		return -ENODEV;
++
++	dmcst->i2c_adap = i2c;
++
+ 	for (k = no_of_demods-1; k >= 0; k--) {
+-		st.cfg = &cfg[k];
++		dmcst->cfg = &cfg[k];
+ 
+ 		/* designated i2c address */
+ 		new_addr          = DIB3000MC_I2C_ADDRESS[k];
+-		st.i2c_addr = new_addr;
+-		if (dib3000mc_identify(&st) != 0) {
+-			st.i2c_addr = default_addr;
+-			if (dib3000mc_identify(&st) != 0) {
++		dmcst->i2c_addr = new_addr;
++		if (dib3000mc_identify(dmcst) != 0) {
++			dmcst->i2c_addr = default_addr;
++			if (dib3000mc_identify(dmcst) != 0) {
+ 				dprintk("-E-  DiB3000P/MC #%d: not identified\n", k);
++				kfree(dmcst);
+ 				return -ENODEV;
+ 			}
+ 		}
+ 
+-		dib3000mc_set_output_mode(&st, OUTMODE_MPEG2_PAR_CONT_CLK);
++		dib3000mc_set_output_mode(dmcst, OUTMODE_MPEG2_PAR_CONT_CLK);
+ 
+ 		// set new i2c address and force divstr (Bit 1) to value 0 (Bit 0)
+-		dib3000mc_write_word(&st, 1024, (new_addr << 3) | 0x1);
+-		st.i2c_addr = new_addr;
++		dib3000mc_write_word(dmcst, 1024, (new_addr << 3) | 0x1);
++		dmcst->i2c_addr = new_addr;
+ 	}
+ 
+ 	for (k = 0; k < no_of_demods; k++) {
+-		st.cfg = &cfg[k];
+-		st.i2c_addr = DIB3000MC_I2C_ADDRESS[k];
++		dmcst->cfg = &cfg[k];
++		dmcst->i2c_addr = DIB3000MC_I2C_ADDRESS[k];
+ 
+-		dib3000mc_write_word(&st, 1024, st.i2c_addr << 3);
++		dib3000mc_write_word(dmcst, 1024, dmcst->i2c_addr << 3);
+ 
+ 		/* turn off data output */
+-		dib3000mc_set_output_mode(&st, OUTMODE_HIGH_Z);
++		dib3000mc_set_output_mode(dmcst, OUTMODE_HIGH_Z);
+ 	}
++
++	kfree(dmcst);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(dib3000mc_i2c_enumeration);
+_
