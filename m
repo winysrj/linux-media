@@ -1,216 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:57867 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751215Ab0CGQwy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Mar 2010 11:52:54 -0500
-Date: Sun, 7 Mar 2010 11:15:55 -0600 (CST)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Randy Dunlap <rdunlap@xenotime.net>
-cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	VDR User <user.vdr@gmail.com>, linux-media@vger.kernel.org,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: Re: "Invalid module format"
-In-Reply-To: <4B93D7EB.4080405@xenotime.net>
-Message-ID: <alpine.LNX.2.00.1003071112350.23253@banach.math.auburn.edu>
-References: <alpine.LNX.2.00.1003041737290.18039@banach.math.auburn.edu>  <alpine.LNX.2.00.1003051829210.21417@banach.math.auburn.edu> <a3ef07921003051651j12fbae25r5a3d5276b7da43b7@mail.gmail.com> <4B91AADD.4030300@xenotime.net> <4B91CE02.4090200@redhat.com>
- <alpine.LNX.2.00.1003052254200.21642@banach.math.auburn.edu> <4B93D7EB.4080405@xenotime.net>
+Received: from mail.gmx.net ([213.165.64.20]:38556 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1757872Ab0CKNox (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Mar 2010 08:44:53 -0500
+Date: Thu, 11 Mar 2010 14:45:00 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>,
+	Magnus Damm <damm@opensource.se>
+Subject: [PATCH 3/3] sh: add Video Output Unit (VOU) and AK8813 TV-encoder
+ support to ms7724se
+In-Reply-To: <Pine.LNX.4.64.1003111124440.4385@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1003111440300.4385@axis700.grange>
+References: <Pine.LNX.4.64.1003111124440.4385@axis700.grange>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add platform bindings, GPIO initialisation and allocation and AK8813 reset code
+to ms7724se.
 
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-On Sun, 7 Mar 2010, Randy Dunlap wrote:
+Obviously depends on the previous two VOU and AK881x patches, sorry for 
+not marking those with "PATCH x/3" accordingly. Those two patches do not 
+depend upon each other and initially I wasn't sure I'd be able to clean up 
+this patch sufficiently for submission. Two 10us delays are pretty random, 
+maybe they can be optimised out completely. I just tried to reproduced the 
+reset procedure from the ak8813 datasheet, and it says nothing about the 
+duration of respective stages.
 
-> On 03/05/10 22:48, Theodore Kilgore wrote:
->>
->>
->> On Sat, 6 Mar 2010, Mauro Carvalho Chehab wrote:
->>
->>> Randy Dunlap wrote:
->>>> On 03/05/10 16:51, VDR User wrote:
->>>>> On Fri, Mar 5, 2010 at 4:39 PM, Theodore Kilgore
->>>>> <kilgota@banach.math.auburn.edu> wrote:
->>>>>> This is to report the good news that none of the above suspicions have
->>>>>> panned out. I still do not know the exact cause of the problem, but
->>>>>> a local
->>>>>> compile and install of the 2.6.33 kernel did solve the problem.
->>>>>> Hence, it
->>>>>> does seem that the most likely origin of the problem is somewhere
->>>>>> in the
->>>>>> Slackware-current tree and the solution does not otherwise concern
->>>>>> anyone on
->>>>>> this list and does not need to be pursued here.
->>>>> I experienced the same problem and posted a new thread about it with
->>>>> the subject "Problem with v4l tree and kernel 2.6.33".  I'm a debian
->>>>> user as well so apparently whatever is causing this is not specific to
->>>>> debian or slackware.  Even though you've got it working now, the
->>>>> source of the problem should be investigated.
->>>>> --
->>>>
->>>> It's been several years since I last saw this error and I don't recall
->>>> what caused it then.
->>>>
->>>> The message "Invalid module format" comes from either of modprobe and/or
->>>> insmod when the kernel returns ENOEXEC to a module (load) syscall.
->>>> Sometimes the kernel produces more explanatory messages  & sometimes
->>>> not.
->>>>
->>>> If there are no more explanatory messages, then kernel/module.c can be
->>>> built with DEBUGP producing more output (and then that new kernel would
->>>> have to be loaded).
->>>>
->>>> Can one of you provide a kernel config file for a kernel/modprobe
->>>> combination
->>>> that produces this message?  Some of the CONFIG_MODULE* config
->>>> symbols could
->>>> have relevance here also.
->>>>
->>>
->>>
->>> I suspect that it may be related to this:
->>>
->>> # Select 32 or 64 bit
->>> config 64BIT
->>>        bool "64-bit kernel" if ARCH = "x86"
->>>        default ARCH = "x86_64"
->>>        ---help---
->>>          Say yes to build a 64-bit kernel - formerly known as x86_64
->>>          Say no to build a 32-bit kernel - formerly known as i386
->>>
->>> With 2.6.33, it is now possible to compile a 32 bits kernel on a 64 bits
->>> machine without needing to pass make ARCH=i386 or to use
->>> cross-compilation.
->>>
->>> Maybe you're running a 32bits kernel, and you've compiled the out-of-tree
->>> modules with 64bits or vice-versa.
->>>
->>> My suggestion is that you should try to force the compilation wit the
->>> proper
->>> ARCH with something like:
->>>     make distclean
->>>     make ARCH=`uname -i`
->>>     make ARCH=`uname -i` install
->>>
->>> --
->>>
->>> Cheers,
->>> Mauro
->>
->> Mauro,
->>
->> After I did a re-compile of the kernel and modules, all the gspca stuff
->> (at least, what I tested which is two or three cameras) all worked just
->> fine. All I needed to do was make distclean and then make menuconfig
->> again and the gspca setup "saw" my new kernel. I made sure to know this
->> by putting up a slightly different name for it, using
->> CONFIG_LOCALVERSION= option. So I guess to this extent I used force, but
->> I did not need to do more than that.
->>
->>
->> Now, seeing if I can help further in tracking this thing down, here are
->> some more details.
->>
->> 1. As I said, the problem is fixed now, by a local re-compile of the
->> kernel (I did change a few things in the configuration and also cleared
->> out a lot of junk which has nothing to do with my hardware, of course).
->> So there might be some things of interest in the two config files.
->> Naturally, I can send them to anyone who would like to see them. But I
->> think that I cover the important differences below.
->>
->>
->> Additional comment: I probably could have taken the option of running
->> Slackware64 if I wanted to do that, because I suspect that my hardware
->> would support it. But I used regular Slackware. So the kernel, the
->> modules, and everything else are 32-bit, or supposed to be, though the
->> machine could run 64-bit.
->>
->> 2. According to what you are saying, here from my current config file is
->> what might be relevant
->>
->> # CONFIG_64BIT is not set
->> CONFIG_X86_32=y
->> # CONFIG_X86_64 is not set
->> CONFIG_X86=y
->> CONFIG_OUTPUT_FORMAT="elf32-i386"
->> CONFIG_ARCH_DEFCONFIG="arch/x86/configs/i386_defconfig"
->>
->> and also it might possibly be important, too, that the processor type I
->> chose was
->>
->> CONFIG_MK8=y
->>
->> for the very good reason that this is what is in the machine. Also I cut
->> the choice for support of parallel CPUs down to 2 CPUs from 8 CPUs,
->> again because that is what is actually present.
->>
->> And furthermore my kernel config says
->>
->> CONFIG_LOCALVERSION="-my"
->>
->> and the original one says
->>
->> CONFIG_LOCALVERSION="-smp"
->>
->> so that I have two distinct sets of modules, 2.6.33-my and 2.6.33-smp
->> and I can go back and boot from the Slackware kernel to a functioning
->> machine, too.
->>
->> The kernel which I used from Slackware-current is one of the standard
->> ones, the one called vmlinuz-huge-smp-2.6.33-smp which comes in the
->> Slackware package called kernel-huge-smp-2.6.33_smp-i686-1.txz. Its
->> config file is in the package, too, so here are the similar parts of it:
->>
->> # CONFIG_64BIT is not set
->> CONFIG_X86_32=y
->> # CONFIG_X86_64 is not set
->> CONFIG_X86=y
->> CONFIG_OUTPUT_FORMAT="elf32-i386"
->> CONFIG_ARCH_DEFCONFIG="arch/x86/configs/i386_defconfig"
->>
->> The above looks the same to me as my choices. But the CPU type was quite
->> different, of course, because it was a distro kernel.
->>
->> CONFIG_M686=y
->>
->> And the Slackware kernel also chose
->>
->> CONFIG_X86_GENERIC=y
->>
->> but when re-compiling I turned that off.
->
-> Hey,
-> How are these kconfig symbols set?
->
-> CONFIG_MODULES
-> CONFIG_MODULE_FORCE_LOAD
-> CONFIG_MODULE_UNLOAD
-> CONFIG_MODULE_FORCE_UNLOAD
-> CONFIG_MODVERSIONS
-> CONFIG_MODULE_SRCVERSION_ALL
->
-> in both a working (distro?) kernel and in the failing kernel, please.
+ arch/sh/boards/mach-se/7724/setup.c |   88 ++++++++++++++++++++++++++++++++---
+ 1 files changed, 81 insertions(+), 7 deletions(-)
 
-In the failing kernel,
+diff --git a/arch/sh/boards/mach-se/7724/setup.c b/arch/sh/boards/mach-se/7724/setup.c
+index c7dbbec..8c8379b 100644
+--- a/arch/sh/boards/mach-se/7724/setup.c
++++ b/arch/sh/boards/mach-se/7724/setup.c
+@@ -489,6 +489,52 @@ static struct platform_device sdhi1_cn8_device = {
+ 	},
+ };
+ 
++#include <media/ak881x.h>
++#include <media/sh_vou.h>
++
++struct ak881x_pdata ak881x_pdata = {
++	.flags = AK881X_IF_MODE_SLAVE,
++};
++
++static struct i2c_board_info ak8813 = {
++	/* With open J18 jumper address is 0x21 */
++	I2C_BOARD_INFO("ak8813", 0x20),
++	.platform_data = &ak881x_pdata,
++};
++
++struct sh_vou_pdata sh_vou_pdata = {
++	.bus_fmt	= SH_VOU_BUS_PAL_8BIT,
++	.flags		= SH_VOU_HSYNC_LOW | SH_VOU_VSYNC_LOW,
++	.board_info	= &ak8813,
++	.i2c_adap	= 0,
++	.module_name	= "ak881x",
++};
++
++static struct resource sh_vou_resources[] = {
++	[0] = {
++		.start  = 0xfe960000,
++		.end    = 0xfe962043,
++		.flags  = IORESOURCE_MEM,
++	},
++	[1] = {
++		.start  = 55,
++		.flags  = IORESOURCE_IRQ,
++	},
++};
++
++static struct platform_device vou_device = {
++	.name           = "sh-vou",
++	.id		= -1,
++	.num_resources  = ARRAY_SIZE(sh_vou_resources),
++	.resource       = sh_vou_resources,
++	.dev		= {
++		.platform_data	= &sh_vou_pdata,
++	},
++	.archdata	= {
++		.hwblk_id	= HWBLK_VOU,
++	},
++};
++
+ static struct platform_device *ms7724se_devices[] __initdata = {
+ 	&heartbeat_device,
+ 	&smc91x_eth_device,
+@@ -503,6 +549,7 @@ static struct platform_device *ms7724se_devices[] __initdata = {
+ 	&fsi_device,
+ 	&sdhi0_cn7_device,
+ 	&sdhi1_cn8_device,
++	&vou_device,
+ };
+ 
+ /* I2C device */
+@@ -587,6 +634,7 @@ static int __init devices_setup(void)
+ {
+ 	u16 sw = __raw_readw(SW4140); /* select camera, monitor */
+ 	struct clk *fsia_clk;
++	u16 fpga_out;
+ 
+ 	/* register board specific self-refresh code */
+ 	sh_mobile_register_self_refresh(SUSP_SH_STANDBY | SUSP_SH_SF,
+@@ -595,13 +643,25 @@ static int __init devices_setup(void)
+ 					&ms7724se_sdram_leave_start,
+ 					&ms7724se_sdram_leave_end);
+ 	/* Reset Release */
+-	__raw_writew(__raw_readw(FPGA_OUT) &
+-		  ~((1 << 1)  | /* LAN */
+-		    (1 << 6)  | /* VIDEO DAC */
+-		    (1 << 7)  | /* AK4643 */
+-		    (1 << 12) | /* USB0 */
+-		    (1 << 14)), /* RMII */
+-		  FPGA_OUT);
++	fpga_out = __raw_readw(FPGA_OUT);
++	/* bit4: NTSC_PDN, bit5: NTSC_RESET */
++	fpga_out &= ~((1 << 1)  | /* LAN */
++		      (1 << 4)  | /* AK8813 PDN */
++		      (1 << 5)  | /* AK8813 RESET */
++		      (1 << 6)  | /* VIDEO DAC */
++		      (1 << 7)  | /* AK4643 */
++		      (1 << 12) | /* USB0 */
++		      (1 << 14)); /* RMII */
++	__raw_writew(fpga_out | (1 << 4), FPGA_OUT);
++
++	udelay(10);
++
++	/* AK8813 RESET */
++	__raw_writew(fpga_out | (1 << 5), FPGA_OUT);
++
++	udelay(10);
++
++	__raw_writew(fpga_out, FPGA_OUT);
+ 
+ 	/* turn on USB clocks, use external clock */
+ 	__raw_writew((__raw_readw(PORT_MSELCRB) & ~0xc000) | 0x8000, PORT_MSELCRB);
+@@ -837,6 +897,20 @@ static int __init devices_setup(void)
+ 		lcdc_info.ch[0].flags          = LCDC_FLAGS_DWPOL;
+ 	}
+ 
++	/* VOU */
++	gpio_request(GPIO_FN_DV_D15, NULL);
++	gpio_request(GPIO_FN_DV_D14, NULL);
++	gpio_request(GPIO_FN_DV_D13, NULL);
++	gpio_request(GPIO_FN_DV_D12, NULL);
++	gpio_request(GPIO_FN_DV_D11, NULL);
++	gpio_request(GPIO_FN_DV_D10, NULL);
++	gpio_request(GPIO_FN_DV_D9, NULL);
++	gpio_request(GPIO_FN_DV_D8, NULL);
++	gpio_request(GPIO_FN_DV_CLKI, NULL);
++	gpio_request(GPIO_FN_DV_CLK, NULL);
++	gpio_request(GPIO_FN_DV_VSYNC, NULL);
++	gpio_request(GPIO_FN_DV_HSYNC, NULL);
++
+ 	return platform_add_devices(ms7724se_devices,
+ 				    ARRAY_SIZE(ms7724se_devices));
+ }
+-- 
+1.6.2.4
 
-CONFIG_MODULES=y
-CONFIG_MODULE_FORCE_LOAD=y
-CONFIG_MODULE_UNLOAD=y
-CONFIG_MODULE_FORCE_UNLOAD=y
-# CONFIG_MODVERSIONS is not set
-# CONFIG_MODULE_SRCVERSION_ALL is not set
-
-In my locally compiled working kernel,
-
-CONFIG_MODULES=y
-CONFIG_MODULE_FORCE_LOAD=y
-CONFIG_MODULE_UNLOAD=y
-CONFIG_MODULE_FORCE_UNLOAD=y
-# CONFIG_MODVERSIONS is not set
-# CONFIG_MODULE_SRCVERSION_ALL is not set
-
-In other words, I did not touch those settings. They looked just fine to 
-me. So I would guess the problem is somewhere else.
-
-Theodore Kilgore
