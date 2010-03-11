@@ -1,357 +1,231 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:46399 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756001Ab0CCTFc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Mar 2010 14:05:32 -0500
-Received: by bwz1 with SMTP id 1so191926bwz.21
-        for <linux-media@vger.kernel.org>; Wed, 03 Mar 2010 11:05:30 -0800 (PST)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Hendrik Skarpeid <skarp@online.no>
-Subject: Re: DM1105: could not attach frontend 195d:1105
-Date: Wed, 3 Mar 2010 21:05:05 +0200
-Cc: linux-media@vger.kernel.org,
-	Nameer Kazzaz <nameer.kazzaz@gmail.com>
-References: <4B7D83B2.4030709@online.no> <201003031749.24261.liplianin@me.by> <4B8E9182.2010906@online.no>
-In-Reply-To: <4B8E9182.2010906@online.no>
-MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_iLrjLIZHtusTbLN"
-Message-Id: <201003032105.06263.liplianin@me.by>
+Received: from mx1.redhat.com ([209.132.183.28]:56292 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935538Ab0CMAqG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Mar 2010 19:46:06 -0500
+Received: from int-mx04.intmail.prod.int.phx2.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.17])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2D0k5mE032502
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 12 Mar 2010 19:46:05 -0500
+Received: from [10.3.250.145] (vpn-250-145.phx2.redhat.com [10.3.250.145])
+	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o2D0jkoj018388
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 12 Mar 2010 19:46:03 -0500
+Message-Id: <ce6bfd7f5f6ec23a59900422f6180ca49d006b18.1268440758.git.mchehab@redhat.com>
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Date: Thu, 11 Mar 2010 12:41:56 -0300
+Subject: [PATCH 1/4] V4L/DVB: ir: use a real device instead of a virtual class
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Boundary-00=_iLrjLIZHtusTbLN
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Change the ir-sysfs approach to create irrcv0 as a device, instead of
+using class_dev. Also, change the way input is registered, in order
+to make its parent to be the irrcv device.
 
-On 3 =D0=BC=D0=B0=D1=80=D1=82=D0=B0 2010 18:42:42 Hendrik Skarpeid wrote:
-> Igor M. Liplianin wrote:
-> > Now to find GPIO's for LNB power control and ... watch TV :)
->
-> Yep. No succesful tuning at the moment. There might also be an issue
-> with the reset signal and writing to GPIOCTR, as the module at the
-> moment loads succesfully only once.
-> As far as I can make out, the LNB power control is probably GPIO 16 and
-> 17, not sure which is which, and how they work.
-> GPIO15 is wired to tuner #reset
-New patch to test
-=2D-=20
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+Due to this change, now the event device is created under
+/sys/class/ir/irrcv class:
 
---Boundary-00=_iLrjLIZHtusTbLN
-Content-Type: text/x-patch;
-  charset="utf-8";
-  name="dm1105.c.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
-	filename="dm1105.c.diff"
+/sys/class/irrcv/irrcv0/
+|-- current_protocol
+|-- device -> ../../../1-3
+|-- input9
+|   |-- capabilities
+|   |   |-- abs
+...
 
---- a/linux/drivers/media/dvb/dm1105/dm1105.c	Sun Feb 07 16:26:33 2010 +0200
-+++ b/linux/drivers/media/dvb/dm1105/dm1105.c	Wed Mar 03 20:52:54 2010 +0200
-@@ -20,6 +20,7 @@
-  */
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
+index 0903f53..c9c0a54 100644
+--- a/drivers/media/IR/ir-keytable.c
++++ b/drivers/media/IR/ir-keytable.c
+@@ -448,22 +448,15 @@ int ir_input_register(struct input_dev *input_dev,
+ 	input_dev->setkeycode = ir_setkeycode;
+ 	input_set_drvdata(input_dev, ir_dev);
  
- #include <linux/i2c.h>
-+#include <linux/i2c-algo-bit.h>
- #include <linux/init.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
-@@ -47,11 +48,12 @@
+-	rc = input_register_device(input_dev);
+-	if (rc < 0)
+-		goto err;
+-
+ 	rc = ir_register_class(input_dev);
+-	if (rc < 0) {
+-		input_unregister_device(input_dev);
++	if (rc < 0)
+ 		goto err;
+-	}
  
- #define UNSET (-1U)
- 
--#define DM1105_BOARD_NOAUTO		UNSET
--#define DM1105_BOARD_UNKNOWN		0
--#define DM1105_BOARD_DVBWORLD_2002	1
--#define DM1105_BOARD_DVBWORLD_2004	2
--#define DM1105_BOARD_AXESS_DM05		3
-+#define DM1105_BOARD_NOAUTO			UNSET
-+#define DM1105_BOARD_UNKNOWN			0
-+#define DM1105_BOARD_DVBWORLD_2002		1
-+#define DM1105_BOARD_DVBWORLD_2004		2
-+#define DM1105_BOARD_AXESS_DM05			3
-+#define DM1105_BOARD_UNBRANDED_I2C_ON_GPIO	4
- 
- /* ----------------------------------------------- */
- /*
-@@ -155,23 +157,30 @@
- #define DM1105_MAX				0x04
- 
- #define DRIVER_NAME				"dm1105"
-+#define DM1105_I2C_GPIO_NAME			"dm1105-gpio"
- 
- #define DM1105_DMA_PACKETS			47
- #define DM1105_DMA_PACKET_LENGTH		(128*4)
- #define DM1105_DMA_BYTES			(128 * 4 * DM1105_DMA_PACKETS)
- 
- /* GPIO's for LNB power control */
--#define DM1105_LNB_MASK				0x00000000
-+#define DM1105_LNB_MASK				0x00006000
- #define DM1105_LNB_OFF				0x00020000
- #define DM1105_LNB_13V				0x00010100
- #define DM1105_LNB_18V				0x00000100
- 
- /* GPIO's for LNB power control for Axess DM05 */
--#define DM05_LNB_MASK				0x00000000
-+#define DM05_LNB_MASK				0x00006000
- #define DM05_LNB_OFF				0x00020000/* actually 13v */
- #define DM05_LNB_13V				0x00020000
- #define DM05_LNB_18V				0x00030000
- 
-+#define GPIO13					(1 << 13)
-+#define GPIO14					(1 << 14)
-+#define GPIO15					(1 << 15)
-+#define GPIO16					(1 << 16)
-+#define GPIO17					(1 << 17)
-+
- static unsigned int card[]  = {[0 ... 3] = UNSET };
- module_param_array(card,  int, NULL, 0444);
- MODULE_PARM_DESC(card, "card type");
-@@ -185,7 +194,8 @@
- DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- 
- struct dm1105_board {
--	char                    *name;
-+	char		*name;
-+	u32		gpio_scl, gpio_sda;
- };
- 
- struct dm1105_subid {
-@@ -207,6 +217,11 @@
- 	[DM1105_BOARD_AXESS_DM05] = {
- 		.name		= "Axess/EasyTv DM05",
- 	},
-+	[DM1105_BOARD_UNBRANDED_I2C_ON_GPIO] = {
-+		.name		= "Unbranded DM1105 with i2c on GPIOs",
-+		.gpio_scl	= GPIO14,
-+		.gpio_sda	= GPIO13,
-+	},
- };
- 
- static const struct dm1105_subid dm1105_subids[] = {
-@@ -292,6 +307,8 @@
- 
- 	/* i2c */
- 	struct i2c_adapter i2c_adap;
-+	struct i2c_adapter i2c_bb_adap;
-+	struct i2c_algo_bit_data i2c_bit;
- 
- 	/* irq */
- 	struct work_struct work;
-@@ -327,6 +344,101 @@
- #define dm_setl(reg, bit)	dm_andorl((reg), (bit), (bit))
- #define dm_clearl(reg, bit)	dm_andorl((reg), (bit), 0)
- 
-+/* The chip has 18 GPIOs. In HOST mode GPIO's used as 15 bit address lines,
-+ so we can use only 3 GPIO's from GPIO15 to GPIO17.
-+ Here I don't check whether HOST is enebled as it is not implemented yet.
-+ */
-+static void dm1105_gpio_set(struct dm1105_dev *dev, u32 mask)
-+{
-+	if (mask & 0xfffc0000)
-+		printk(KERN_ERR "%s: Only 18 GPIO's are allowed\n", __func__);
-+
-+	if (mask & 0x0003ffff)
-+		dm_setl(DM1105_GPIOVAL, mask & 0x0003ffff);
-+
-+}
-+
-+static void dm1105_gpio_clear(struct dm1105_dev *dev, u32 mask)
-+{
-+	if (mask & 0xfffc0000)
-+		printk(KERN_ERR "%s: Only 18 GPIO's are allowed\n", __func__);
-+
-+	if (mask & 0x0003ffff)
-+		dm_clearl(DM1105_GPIOVAL, mask & 0x0003ffff);
-+
-+}
-+
-+static void dm1105_gpio_andor(struct dm1105_dev *dev, u32 mask, u32 val)
-+{
-+	if (mask & 0xfffc0000)
-+		printk(KERN_ERR "%s: Only 18 GPIO's are allowed\n", __func__);
-+
-+	if (mask & 0x0003ffff)
-+		dm_andorl(DM1105_GPIOVAL, mask & 0x0003ffff, val);
-+
-+}
-+
-+static u32 dm1105_gpio_get(struct dm1105_dev *dev, u32 mask)
-+{
-+	if (mask & 0xfffc0000)
-+		printk(KERN_ERR "%s: Only 18 GPIO's are allowed\n", __func__);
-+
-+	if (mask & 0x0003ffff)
-+		return (dm_readl(DM1105_GPIOVAL) & mask & 0x0003ffff);
-+
-+	return 0;
-+}
-+
-+static void dm1105_gpio_enable(struct dm1105_dev *dev, u32 mask, int asoutput)
-+{
-+	if (mask & 0xfffc0000)
-+		printk(KERN_ERR "%s: Only 18 GPIO's are allowed\n", __func__);
-+
-+	if ((mask & 0x0003ffff) && asoutput)
-+		dm_clearl(DM1105_GPIOCTR, mask & 0x0003ffff);
-+	else if ((mask & 0x0003ffff) && !asoutput)
-+		dm_setl(DM1105_GPIOCTR, mask & 0x0003ffff);
-+
-+}
-+
-+static void dm1105_setline(struct dm1105_dev *dev, u32 line, int state)
-+{
-+	if (state)
-+		dm1105_gpio_enable(dev, line, 0);
-+	else {
-+		dm1105_gpio_enable(dev, line, 1);
-+		dm1105_gpio_clear(dev, line);
-+	}
-+}
-+
-+static void dm1105_setsda(void *data, int state)
-+{
-+	struct dm1105_dev *dev = data;
-+
-+	dm1105_setline(dev, dm1105_boards[dev->boardnr].gpio_sda, state);
-+}
-+
-+static void dm1105_setscl(void *data, int state)
-+{
-+	struct dm1105_dev *dev = data;
-+
-+	dm1105_setline(dev, dm1105_boards[dev->boardnr].gpio_scl, state);
-+}
-+
-+static int dm1105_getsda(void *data)
-+{
-+	struct dm1105_dev *dev = data;
-+
-+	return dm1105_gpio_get(dev, dm1105_boards[dev->boardnr].gpio_sda) ? 1 : 0;
-+}
-+
-+static int dm1105_getscl(void *data)
-+{
-+	struct dm1105_dev *dev = data;
-+
-+	return dm1105_gpio_get(dev, dm1105_boards[dev->boardnr].gpio_scl) ? 1 : 0;
-+}
-+
- static int dm1105_i2c_xfer(struct i2c_adapter *i2c_adap,
- 			    struct i2c_msg *msgs, int num)
- {
-@@ -467,6 +579,26 @@
  	return 0;
+ 
+ err:
+ 	kfree(rc_tab->scan);
+ 	kfree(ir_dev);
+-	input_set_drvdata(input_dev, NULL);
+ 	return rc;
+ }
+ EXPORT_SYMBOL_GPL(ir_input_register);
+@@ -492,7 +485,6 @@ void ir_input_unregister(struct input_dev *dev)
+ 	ir_unregister_class(dev);
+ 
+ 	kfree(ir_dev);
+-	input_unregister_device(dev);
+ }
+ EXPORT_SYMBOL_GPL(ir_input_unregister);
+ 
+diff --git a/drivers/media/IR/ir-sysfs.c b/drivers/media/IR/ir-sysfs.c
+index bf5fbcd..1bb011a 100644
+--- a/drivers/media/IR/ir-sysfs.c
++++ b/drivers/media/IR/ir-sysfs.c
+@@ -22,7 +22,15 @@
+ static unsigned long ir_core_dev_number;
+ 
+ /* class for /sys/class/irrcv */
+-static struct class *ir_input_class;
++static char *ir_devnode(struct device *dev, mode_t *mode)
++{
++	return kasprintf(GFP_KERNEL, "irrcv/%s", dev_name(dev));
++}
++
++struct class ir_input_class = {
++	.name		= "irrcv",
++	.devnode	= ir_devnode,
++};
+ 
+ /**
+  * show_protocol() - shows the current IR protocol
+@@ -128,6 +136,20 @@ static struct attribute *ir_dev_attrs[] = {
+ 	NULL,
+ };
+ 
++static struct attribute_group ir_dev_attr_grp = {
++	.attrs	=ir_dev_attrs,
++};
++
++static const struct attribute_group *ir_dev_attr_groups[] = {
++	&ir_dev_attr_grp,
++	NULL
++};
++
++static struct device_type ir_dev_type = {
++	.groups		= ir_dev_attr_groups,
++};
++
++
+ /**
+  * ir_register_class() - creates the sysfs for /sys/class/irrcv/irrcv?
+  * @input_dev:	the struct input_dev descriptor of the device
+@@ -137,7 +159,7 @@ static struct attribute *ir_dev_attrs[] = {
+ int ir_register_class(struct input_dev *input_dev)
+ {
+ 	int rc;
+-	struct kobject *kobj;
++	const char *path;
+ 
+ 	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
+ 	int devno = find_first_zero_bit(&ir_core_dev_number,
+@@ -146,19 +168,31 @@ int ir_register_class(struct input_dev *input_dev)
+ 	if (unlikely(devno < 0))
+ 		return devno;
+ 
+-	ir_dev->attr.attrs = ir_dev_attrs;
+-	ir_dev->class_dev = device_create(ir_input_class, NULL,
+-					  input_dev->dev.devt, ir_dev,
+-					  "irrcv%d", devno);
+-	kobj = &ir_dev->class_dev->kobj;
++	ir_dev->dev.type = &ir_dev_type;
++	ir_dev->dev.class = &ir_input_class;
++	ir_dev->dev.parent = input_dev->dev.parent;
++	dev_set_name(&ir_dev->dev, "irrcv%d", devno);
++	rc = device_register(&ir_dev->dev);
++	if (rc)
++		return rc;
+ 
+-	printk(KERN_WARNING "Creating IR device %s\n", kobject_name(kobj));
+-	rc = sysfs_create_group(kobj, &ir_dev->attr);
+-	if (unlikely(rc < 0)) {
+-		device_destroy(ir_input_class, input_dev->dev.devt);
+-		return -ENOMEM;
++
++	input_dev->dev.parent = &ir_dev->dev;
++	rc = input_register_device(input_dev);
++	if (rc < 0) {
++		device_del(&ir_dev->dev);
++		return rc;
+ 	}
+ 
++	__module_get(THIS_MODULE);
++
++	path = kobject_get_path(&input_dev->dev.kobj, GFP_KERNEL);
++	printk(KERN_INFO "%s: %s associated with sysfs %s\n",
++		dev_name(&ir_dev->dev),
++		input_dev->name ? input_dev->name : "Unspecified device",
++		path ? path : "N/A");
++	kfree(path);
++
+ 	ir_dev->devno = devno;
+ 	set_bit(devno, &ir_core_dev_number);
+ 
+@@ -175,16 +209,12 @@ int ir_register_class(struct input_dev *input_dev)
+ void ir_unregister_class(struct input_dev *input_dev)
+ {
+ 	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
+-	struct kobject *kobj;
+ 
+ 	clear_bit(ir_dev->devno, &ir_core_dev_number);
++	input_unregister_device(input_dev);
++	device_del(&ir_dev->dev);
+ 
+-	kobj = &ir_dev->class_dev->kobj;
+-
+-	sysfs_remove_group(kobj, &ir_dev->attr);
+-	device_destroy(ir_input_class, input_dev->dev.devt);
+-
+-	kfree(ir_dev->attr.name);
++	module_put(THIS_MODULE);
  }
  
-+static int dm1105_set_voltage1(struct dvb_frontend *fe, fe_sec_voltage_t voltage)
-+{
-+	struct dm1105_dev *dev = frontend_to_dm1105_dev(fe);
-+
-+	dm1105_gpio_enable(dev, GPIO16 | GPIO17, 1);
-+	switch (voltage) {
-+	case SEC_VOLTAGE_18:
-+		dm1105_gpio_andor(dev, GPIO16 | GPIO17, 0);
-+		break;
-+	case SEC_VOLTAGE_13:
-+		dm1105_gpio_andor(dev, GPIO16 | GPIO17, GPIO16);
-+		break;
-+	default:
-+		dm1105_gpio_set(dev, GPIO16 | GPIO17);
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
- static void dm1105_set_dma_addr(struct dm1105_dev *dev)
+ /*
+@@ -193,10 +223,10 @@ void ir_unregister_class(struct input_dev *input_dev)
+ 
+ static int __init ir_core_init(void)
  {
- 	dm_writel(DM1105_STADR, cpu_to_le32(dev->dma_addr));
-@@ -742,6 +874,38 @@
- 	int ret;
+-	ir_input_class = class_create(THIS_MODULE, "irrcv");
+-	if (IS_ERR(ir_input_class)) {
++	int rc = class_register(&ir_input_class);
++	if (rc) {
+ 		printk(KERN_ERR "ir_core: unable to register irrcv class\n");
+-		return PTR_ERR(ir_input_class);
++		return rc;
+ 	}
  
- 	switch (dev->boardnr) {
-+	case DM1105_BOARD_UNBRANDED_I2C_ON_GPIO:
-+		dm1105_gpio_enable(dev, GPIO15, 1);
-+		dm1105_gpio_clear(dev, GPIO15);
-+		msleep(100);
-+		dm1105_gpio_set(dev, GPIO15);
-+		msleep(200);
-+		dev->fe = dvb_attach(
-+			stv0299_attach, &sharp_z0194a_config,
-+			&dev->i2c_bb_adap);
-+		if (dev->fe) {
-+			dev->fe->ops.set_voltage = dm1105_set_voltage1;
-+			dvb_attach(dvb_pll_attach, dev->fe, 0x60,
-+					&dev->i2c_bb_adap, DVB_PLL_OPERA1);
-+			break;
-+		}
-+
-+		dev->fe = dvb_attach(
-+			stv0288_attach, &earda_config,
-+			&dev->i2c_bb_adap);
-+		if (dev->fe) {
-+			dev->fe->ops.set_voltage = dm1105_set_voltage1;
-+			dvb_attach(stb6000_attach, dev->fe, 0x61,
-+					&dev->i2c_bb_adap);
-+			break;
-+		}
-+
-+		dev->fe = dvb_attach(
-+			si21xx_attach, &serit_config,
-+			&dev->i2c_bb_adap);
-+		if (dev->fe)
-+			dev->fe->ops.set_voltage = dm1105_set_voltage1;
-+		break;
- 	case DM1105_BOARD_DVBWORLD_2004:
- 		dev->fe = dvb_attach(
- 			cx24116_attach, &serit_sp2633_config,
-@@ -905,11 +1069,33 @@
- 	if (ret < 0)
- 		goto err_dm1105_hw_exit;
+ 	return 0;
+@@ -204,7 +234,7 @@ static int __init ir_core_init(void)
  
-+	i2c_set_adapdata(&dev->i2c_bb_adap, dev);
-+	strcpy(dev->i2c_bb_adap.name, DM1105_I2C_GPIO_NAME);
-+	dev->i2c_bb_adap.owner = THIS_MODULE;
-+	dev->i2c_bb_adap.class = I2C_CLASS_TV_DIGITAL;
-+	dev->i2c_bb_adap.dev.parent = &pdev->dev;
-+	dev->i2c_bb_adap.algo_data = &dev->i2c_bit;
-+	dev->i2c_bit.data = dev;
-+	dev->i2c_bit.setsda = dm1105_setsda;
-+	dev->i2c_bit.setscl = dm1105_setscl;
-+	dev->i2c_bit.getsda = dm1105_getsda;
-+	dev->i2c_bit.getscl = dm1105_getscl;
-+	dev->i2c_bit.udelay = 10;
-+	dev->i2c_bit.timeout = 10;
-+
-+	/* Raise SCL and SDA */
-+	dm1105_setsda(dev, 1);
-+	dm1105_setscl(dev, 1);
-+
-+	ret = i2c_bit_add_bus(&dev->i2c_bb_adap);
-+	if (ret < 0)
-+		goto err_i2c_del_adapter;
-+
- 	/* dvb */
- 	ret = dvb_register_adapter(&dev->dvb_adapter, DRIVER_NAME,
- 					THIS_MODULE, &pdev->dev, adapter_nr);
- 	if (ret < 0)
--		goto err_i2c_del_adapter;
-+		goto err_i2c_del_adapters;
+ static void __exit ir_core_exit(void)
+ {
+-	class_destroy(ir_input_class);
++	class_unregister(&ir_input_class);
+ }
  
- 	dvb_adapter = &dev->dvb_adapter;
+ module_init(ir_core_init);
+diff --git a/include/media/ir-core.h b/include/media/ir-core.h
+index 61c223b..ce9f347 100644
+--- a/include/media/ir-core.h
++++ b/include/media/ir-core.h
+@@ -47,11 +47,9 @@ struct ir_dev_props {
  
-@@ -991,6 +1177,8 @@
- 	dvb_dmx_release(dvbdemux);
- err_dvb_unregister_adapter:
- 	dvb_unregister_adapter(dvb_adapter);
-+err_i2c_del_adapters:
-+	i2c_del_adapter(&dev->i2c_bb_adap);
- err_i2c_del_adapter:
- 	i2c_del_adapter(&dev->i2c_adap);
- err_dm1105_hw_exit:
+ 
+ struct ir_input_dev {
+-	struct input_dev		*dev;		/* Input device*/
++	struct device			dev;		/* device */
+ 	struct ir_scancode_table	rc_tab;		/* scan/key table */
+ 	unsigned long			devno;		/* device number */
+-	struct attribute_group		attr;		/* IR attributes */
+-	struct device			*class_dev;	/* virtual class dev */
+ 	const struct ir_dev_props	*props;		/* Device properties */
+ };
+ #define to_ir_input_dev(_attr) container_of(_attr, struct ir_input_dev, attr)
+-- 
+1.6.6.1
 
---Boundary-00=_iLrjLIZHtusTbLN--
+
