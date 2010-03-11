@@ -1,70 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2572 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752815Ab0C2TLT (ORCPT
+Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197]:51135 "EHLO
+	mta2.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933286Ab0CKQtu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Mar 2010 15:11:19 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Pawel Osciak <p.osciak@samsung.com>
-Subject: Re: [PATCH v2] v4l: videobuf: make poll() report proper flags for output video devices
-Date: Mon, 29 Mar 2010 21:11:48 +0200
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com
-References: <1269850591-9590-1-git-send-email-p.osciak@samsung.com>
-In-Reply-To: <1269850591-9590-1-git-send-email-p.osciak@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201003292111.48289.hverkuil@xs4all.nl>
+	Thu, 11 Mar 2010 11:49:50 -0500
+Received: from MacBook-Pro.local
+ (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta2.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KZ4000VAMQXBHK0@mta2.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Thu, 11 Mar 2010 11:49:46 -0500 (EST)
+Date: Thu, 11 Mar 2010 11:49:45 -0500
+From: Steven Toth <stoth@kernellabs.com>
+Subject: Re: DNTV Dual Hybrid (7164) PCIe
+In-reply-to: <4B991EAA.5070507@gmail.com>
+To: Jed <jedi.theone@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Message-id: <4B991F29.9090606@kernellabs.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <4B9919AA.9030505@gmail.com> <4B991D48.7000003@kernellabs.com>
+ <4B991EAA.5070507@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 29 March 2010 10:16:31 Pawel Osciak wrote:
-> According to the V4L2 specification, poll() should set POLLOUT | POLLWRNORM
-> flags for output devices after the frame has been displayed.
-> 
-> Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-> Reviewed-by: Kyungmin Park <kyungmin.park@samsung.com>
+On 3/11/10 11:47 AM, Jed wrote:
+> Happy to do this, so long as I can get it back eventually?
 
-Looks good to me!
-
-Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
-
-Regards,
-
-	Hans
-
-> ---
->  drivers/media/video/videobuf-core.c |   14 ++++++++++++--
->  1 files changed, 12 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/video/videobuf-core.c b/drivers/media/video/videobuf-core.c
-> index 63d7043..921277f 100644
-> --- a/drivers/media/video/videobuf-core.c
-> +++ b/drivers/media/video/videobuf-core.c
-> @@ -1075,8 +1075,18 @@ unsigned int videobuf_poll_stream(struct file *file,
->  	if (0 == rc) {
->  		poll_wait(file, &buf->done, wait);
->  		if (buf->state == VIDEOBUF_DONE ||
-> -		    buf->state == VIDEOBUF_ERROR)
-> -			rc = POLLIN|POLLRDNORM;
-> +		    buf->state == VIDEOBUF_ERROR) {
-> +			switch (q->type) {
-> +			case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-> +			case V4L2_BUF_TYPE_VBI_OUTPUT:
-> +			case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
-> +				rc = POLLOUT | POLLWRNORM;
-> +				break;
-> +			default:
-> +				rc = POLLIN | POLLRDNORM;
-> +				break;
-> +			}
-> +		}
->  	}
->  	mutex_unlock(&q->vb_lock);
->  	return rc;
-> 
+Assuming you want me to continue supporting that product then I generally keep 
+hold of the hardware indefinitely, else 2-3 driver patches from now your card 
+will no longer be regression tested and could stop working.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
+
