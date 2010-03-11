@@ -1,36 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-03.arcor-online.net ([151.189.21.43]:51677 "EHLO
-	mail-in-03.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754903Ab0C1SqJ (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4588 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754606Ab0CKUVl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Mar 2010 14:46:09 -0400
-Message-ID: <4BAFA3A9.1000301@arcor.de>
-Date: Sun, 28 Mar 2010 20:44:57 +0200
-From: Stefan Ringel <stefan.ringel@arcor.de>
-MIME-Version: 1.0
-To: George Tellalov <gtellalov@bigfoot.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Hauppauge WinTV HVR-900H
-References: <20100328153759.GA2893@joro.homelinux.org> <20100328120729.GB6153@joro.homelinux.org> <20100328105145.GA2427@joro.homelinux.org> <27890244.1269777077513.JavaMail.ngmail@webmail18.arcor-online.net> <23371307.1269778330976.JavaMail.ngmail@webmail11.arcor-online.net> <2835345.1269794199129.JavaMail.ngmail@webmail15.arcor-online.net> <20100328175718.GA2661@joro.homelinux.org>
-In-Reply-To: <20100328175718.GA2661@joro.homelinux.org>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+	Thu, 11 Mar 2010 15:21:41 -0500
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o2BKLdPG068458
+	for <linux-media@vger.kernel.org>; Thu, 11 Mar 2010 21:21:40 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 11 Mar 2010 21:21:39 +0100 (CET)
+Message-Id: <201003112021.o2BKLdPG068458@smtp-vbr7.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 28.03.2010 19:57, schrieb George Tellalov:
->> I said debug, but I see no debug info for tm6000 is it "modprobe tm6000 debug=1 debug_i2c=3". From what havew you debug activated? Have you a crash dump in the dmesg log? Can tvtime crash, and if tvtime crashed, then send it to tvtime project (ask Devin Heitmueller). 
->>
->>     
-> Sorry that was only with debug=1. Also I didn't make myself clear about the
-> crash - it's a kernel crash (oops) not tvtime crash. I'm attaching a new debug
-> run togther with the oops message. The oops message might have typos because I
-> had to type it myself (no serial console on this pc).
-> I'm also unable to do a dvbscan are you interested in the debug output of the
-> scan?
->   
-No,  say works, if dvb work. Not more.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
--- 
-Stefan Ringel <stefan.ringel@arcor.de>
+Results of the daily build of v4l-dvb:
 
+date:        Thu Mar 11 19:00:20 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14420:0d06fd6b500e
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 8c69c6ed6c74c94fa7ad6fa24eda452e4b212d81
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
+
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-rc1-armv5: OK
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-rc1-armv5-davinci: OK
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-armv5-ixp: OK
+linux-2.6.34-rc1-armv5-ixp: OK
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-rc1-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.17-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-rc1-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-rc1-m32r: OK
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-rc1-mips: OK
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-rc1-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.17-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-rc1-x86_64: WARNINGS
+linux-git-armv5: OK
+linux-git-armv5-davinci: OK
+linux-git-armv5-ixp: OK
+linux-git-armv5-omap2: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: WARNINGS
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: OK
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
