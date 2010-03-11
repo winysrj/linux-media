@@ -1,35 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:39933 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752723Ab0CRMcf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Mar 2010 08:32:35 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: Re: [PATCH 1/2] v4l: Add V4L2_CID_IRIS_ABSOLUTE and V4L2_CID_IRIS_RELATIVE controls
-Date: Thu, 18 Mar 2010 13:34:50 +0100
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <1268913303-30565-1-git-send-email-laurent.pinchart@ideasonboard.com> <1268913303-30565-2-git-send-email-laurent.pinchart@ideasonboard.com> <A24693684029E5489D1D202277BE8944541CC73C@dlee02.ent.ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE8944541CC73C@dlee02.ent.ti.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from mx1.redhat.com ([209.132.183.28]:21083 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756736Ab0CKN1F (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Mar 2010 08:27:05 -0500
+Received: from int-mx08.intmail.prod.int.phx2.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.21])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2BDR49q007902
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 11 Mar 2010 08:27:05 -0500
+Received: from pedra (vpn-234-51.phx2.redhat.com [10.3.234.51])
+	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o2BDQqf2015794
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 11 Mar 2010 08:27:03 -0500
+Date: Thu, 11 Mar 2010 10:26:45 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 7/7] V4L/DVB: tm6000: replace occurences of req05 magic by a
+ naming alias
+Message-ID: <20100311102645.1f8eae28@pedra>
+In-Reply-To: <cover.1268311636.git.mchehab@redhat.com>
+References: <cover.1268311636.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201003181334.51467.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergio,
+Yet another naming replace magic thanks to perl scripts. This time, it
+is done with:
 
-On Thursday 18 March 2010 13:19:57 Aguirre, Sergio wrote:
-> Hi Laurent,
-> 
-> Just a minor grammar issue.
+cat tm6000-regs.h |perl -ne 'if (m/(TM6010_REQ[^\s]+)\s+0x([a-f0-9]+)\,
+0x([a-f0-9]+)/) { $name="$1"; $req=$2; $val=$3; printf
+"s/REQ_${req}_SET_GET_USBREG, 0x[0]*$3,/$1,/\n" }'  >a; for i in tm*.c;
+do sed -f a $i >b && mv b $i; done
 
-Thanks. I'll resubmit a new version (or will send a pull request with that 
-change if the current version is accepted).
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
+diff --git a/drivers/staging/tm6000/tm6000-core.c b/drivers/staging/tm6000/tm6000-core.c
+index d501df2..1b588f8 100644
+--- a/drivers/staging/tm6000/tm6000-core.c
++++ b/drivers/staging/tm6000/tm6000-core.c
+@@ -341,7 +341,7 @@ struct reg_init tm6000_init_tab[] = {
+ 	{ TM6010_REQ07_RC1_TRESHOLD, 0xd0 },
+ 	{ TM6010_REQ07_RC3_HSTART1, 0x88 },
+ 	{ TM6010_REQ07_R3F_RESET, 0x00 },		/* End of the soft reset */
+-	{ REQ_05_SET_GET_USBREG, 0x18, 0x00 },
++	{ TM6010_REQ05_R18_IMASK7, 0x00 },
+ };
+ 
+ struct reg_init tm6010_init_tab[] = {
+@@ -414,7 +414,7 @@ struct reg_init tm6010_init_tab[] = {
+ 	{ TM6010_REQ07_RC3_HSTART1, 0x88 },
+ 	{ TM6010_REQ07_R3F_RESET, 0x00 },
+ 
+-	{ REQ_05_SET_GET_USBREG, 0x18, 0x00 },
++	{ TM6010_REQ05_R18_IMASK7, 0x00 },
+ 
+ 	{ TM6010_REQ07_RD8_IR_LEADER1, 0xaa },
+ 	{ TM6010_REQ07_RD8_IR_LEADER0, 0x30 },
 -- 
-Regards,
+1.6.6.1
 
-Laurent Pinchart
