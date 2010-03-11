@@ -1,48 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:52216 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754680Ab0CVNfY (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.158]:21816 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933337Ab0CKRA4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Mar 2010 09:35:24 -0400
-Date: Mon, 22 Mar 2010 16:35:13 +0300
-From: Dan Carpenter <error27@gmail.com>
-To: Olimpiu Pascariu <olimpiu.pascariu@gmail.com>
-Cc: gregkh@suse.de, mchehab@redhat.com,
-	palash.bandyopadhyay@conexant.com, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 5/5] Staging: cx25821: fix coding style issues in
-	cx25821-medusa-video.c
-Message-ID: <20100322133513.GO21571@bicker>
-References: <1269197503.6971.11.camel@tuxtm-linux>
+	Thu, 11 Mar 2010 12:00:56 -0500
+Received: by fg-out-1718.google.com with SMTP id l26so2817025fgb.1
+        for <linux-media@vger.kernel.org>; Thu, 11 Mar 2010 09:00:55 -0800 (PST)
+Message-ID: <4B9921D3.7090909@gmail.com>
+Date: Fri, 12 Mar 2010 03:01:07 +1000
+From: Jed <jedi.theone@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1269197503.6971.11.camel@tuxtm-linux>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: DNTV Dual Hybrid (7164) PCIe
+References: <4B9919AA.9030505@gmail.com> <4B991D48.7000003@kernellabs.com> <4B991EAA.5070507@gmail.com> <4B991FDA.3000202@gmail.com>
+In-Reply-To: <4B991FDA.3000202@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Mar 21, 2010 at 08:51:43PM +0200, Olimpiu Pascariu wrote:
-> >From 24e5efa163c1fa58f694fd8b44dc3488e0cc92d1 Mon Sep 17 00:00:00 2001
-> From: Olimpiu Pascariu <olimpiu.pascariu@gmail.com>
-> Date: Sun, 21 Mar 2010 20:46:26 +0200
-> Subject: [PATCH 5/5] Staging: cx25821: fix coding style issues in cx25821-medusa-video.c
->  This is a patch to cx25821-medusa-video.c file that fixes up warnings and errors found by the checkpatch.pl tool
->  Signed-off-by: Olimpiu Pascariu <olimpiu.pascariu@gmail.com>
-> 
+By "analogue side" I mainly mean A/V-in
+Thank-you/Good night
 
-[ snip ]
-
-> +/*
-> + * medusa_enable_bluefield_output()
-> + *
-> + * Enable the generation of blue filed output if no video
-> + *
-> +*/
-
-Missing a space there.  Otherwise looks good.
-
-Acked-by:  Dan Carpenter <error27@gmail.com>
-
-regards,
-dan carpenter
-
+Jed wrote:
+> Actually I'd be happy to donate...
+> So long as I knew there'd be some progress on the analogue side.
+> Already got the HVR-2200 for DVB.
+>
+> Jed wrote:
+>> Happy to do this, so long as I can get it back eventually?
+>>
+>> Steven Toth wrote:
+>>> On 3/11/10 11:26 AM, Jed wrote:
+>>>> Hi Kernellabs,
+>>>>
+>>>> I'm thinking of getting this:
+>>>> http://forums.dvbowners.com/index.php?showtopic=11720
+>>>> It seems very similar to the HVR-2200 yet has component-in.
+>>>> Do you reckon your module/s might support it?
+>>>>
+>>>> Thank-you!
+>>>
+>>> Highly likely the drivers will not support it. Each card has unique 
+>>> firmware identifiers that need to be added manually to the driver.
+>>>
+>>> If you'd like to provide me a card then I'd consider adding support.
+>>>
+>>> - Steve
+>>>
+>>
+>
