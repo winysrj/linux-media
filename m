@@ -1,69 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:59697 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751305Ab0CZL2D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Mar 2010 07:28:03 -0400
-Subject: Re: Andy Walls' change of email address
-From: Andy Walls <awalls@md.metrocast.net>
-To: HoP <jpetrous@gmail.com>
-Cc: "Jay R. Ashworth" <jra@baylink.com>, linux-media@vger.kernel.org
-In-Reply-To: <846899811003250741o6fd1ce40if22ab1fe440f4457@mail.gmail.com>
-References: <846899811003250553n3dcb8ea5xc2cee6ac05741520@mail.gmail.com>
-	 <28234983.58244.1269523270750.JavaMail.root@benjamin>
-	 <846899811003250741o6fd1ce40if22ab1fe440f4457@mail.gmail.com>
-Content-Type: text/plain
-Date: Fri, 26 Mar 2010 07:28:17 -0400
-Message-Id: <1269602897.3073.11.camel@palomino.walls.org>
+Received: from mx1.redhat.com ([209.132.183.28]:23979 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756733Ab0CKN1E (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Mar 2010 08:27:04 -0500
+Date: Thu, 11 Mar 2010 10:26:46 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Dmitri Belimov <d.belimov@gmail.com>
+Subject: [PATCH 0/7] tm6000: Remove register magic
+Message-ID: <20100311102646.01db8e13@pedra>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2010-03-25 at 15:41 +0100, HoP wrote:
-> 2010/3/25 Jay R. Ashworth <jra@baylink.com>:
-> > ----- "HoP" <jpetrous@gmail.com> wrote:
+Thanks to Dmitri, changeset 2fe1b227458f7a411ab3b5959169a0de6703b60a added 
+aliases for most of tm6000 registers. Yet, the driver still uses the
+old magic numbers. This set of patches replaces the magic numbers with
+the help of some simple perl scripts.
 
-> >> > My radix.net email address will soon cease working.
-> >>
-> >> of course it is not my job, but I wonder why you not
-> >> stay on old email. In 21 century there is no problem
-> >> to move domain to other place or, at least, do
-> >> some type of forwarding :)
+After it, just two registers at req 07 will have an alias missing 
+(registers 0xeb and 0xee):
 
-Radix.net by default does forwarding for 30 days.
+$ grep REQ_0[567] drivers/staging/tm6000/*.c
+drivers/staging/tm6000/tm6000-core.c:           tm6000_set_reg(dev, REQ_07_SET_GET_AVREG, 0xeb, 0x60);
+drivers/staging/tm6000/tm6000-core.c:           tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00eb, 0xd8);
+drivers/staging/tm6000/tm6000-core.c:           tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00eb, 0x08);
+drivers/staging/tm6000/tm6000-core.c:   { REQ_07_SET_GET_AVREG,  0xeb, 0x64 }, /* 48000 bits/sample, external input */
+drivers/staging/tm6000/tm6000-core.c:   { REQ_07_SET_GET_AVREG,  0xee, 0xc2 },
+drivers/staging/tm6000/tm6000-core.c:   val=tm6000_get_reg (dev, REQ_07_SET_GET_AVREG, 0xeb, 0x0);
+drivers/staging/tm6000/tm6000-core.c:   val=tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0xeb, val);
 
+This series introduces no changes at tm6000 behavior, but it will likely 
+help people to improve/maintain the driver.
 
-> >> My 2 cents
-> >>
-> >> /Honza
-> >>
-> >> PS: The only real reason I can imagine is that radix.com
-> >> is not your own domain and owner of it doesn't allow
-> >> mail forwarding.
-> >
-> > Which is, indeed, what one finds by pointing a browser at www.radix.net;
-> > that mailbox belongs to his old ISP, and presumably he doesn't want to keep
-> > paying them for it.
+It would be good to add alias names also for the above registers.
 
-Yes.  The value of keeping my old address, to me, is not worth the
-periodic charge to keep it active.  A simple case of cost vs. benefit
-not meeting my threshold.
+Mauro Carvalho Chehab (7):
+  V4L/DVB: tm6000: Replace all Req 7 group of regs with another naming
+    convention
+  V4L/DVB: tm6000: Replace all Req 8 group of regs with another naming
+    convention
+  V4L/DVB: tm6000: Add request at Req07/Req08 register definitions
+  V4L/DVB: tm6000: Replace all magic values by a register alias
+  V4L/DVB: tm6000: Replace naming convention for registers of req 05
+    group
+  V4L/DVB: tm6000: add request to registers of the group 05
+  V4L/DVB: tm6000: replace occurences of req05 magic by a naming alias
 
-
-> >
-> 
-> TBH I would imagine radix.net can be proud if so well-know developer
-> is using theirs domain. May be they would pay for his advertising :)
-
-Thank you. :)  I never asked them. 
-
-Quite honestly I think Radix is a great local ISP.  One of the first to
-provide real coverage to Southern Maryland, IIRC.  I think local ISPs
-provide the better customer service, and Radix.net was no exception.
-
-Regards,
-Andy
-
-
+ drivers/staging/tm6000/tm6000-alsa.c  |   12 +-
+ drivers/staging/tm6000/tm6000-core.c  |  356 +++++-----
+ drivers/staging/tm6000/tm6000-regs.h  |  862 ++++++++++++------------
+ drivers/staging/tm6000/tm6000-stds.c  | 1156 ++++++++++++++++----------------
+ drivers/staging/tm6000/tm6000-video.c |   16 +-
+ 5 files changed, 1201 insertions(+), 1201 deletions(-)
 
