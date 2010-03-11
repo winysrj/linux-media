@@ -1,130 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:40074 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753152Ab0CRMt0 convert rfc822-to-8bit (ORCPT
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:64072 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933349Ab0CKRAs convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Mar 2010 08:49:26 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH 1/2] v4l: Add V4L2_CID_IRIS_ABSOLUTE and V4L2_CID_IRIS_RELATIVE controls
-Date: Thu, 18 Mar 2010 13:51:42 +0100
-Cc: linux-media@vger.kernel.org
-References: <1268913303-30565-1-git-send-email-laurent.pinchart@ideasonboard.com> <4BA21F80.8050906@redhat.com> <201003181350.53195.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201003181350.53195.laurent.pinchart@ideasonboard.com>
+	Thu, 11 Mar 2010 12:00:48 -0500
+Received: by bwz1 with SMTP id 1so238124bwz.21
+        for <linux-media@vger.kernel.org>; Thu, 11 Mar 2010 09:00:47 -0800 (PST)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: VDR User <user.vdr@gmail.com>
+Subject: Re: s2-liplianin, mantis: sysfs: cannot create duplicate filename '/devices/virtual/irrcv'
+Date: Thu, 11 Mar 2010 19:00:18 +0200
+Cc: MartinG <gronslet@gmail.com>,
+	Linux Media <linux-media@vger.kernel.org>
+References: <bcb3ef431003081127y43d6d785jdc34e845fa07e746@mail.gmail.com> <201003102307.36762.liplianin@me.by> <a3ef07921003101331o62b02bc5v636513d328cb3064@mail.gmail.com>
+In-Reply-To: <a3ef07921003101331o62b02bc5v636513d328cb3064@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="koi8-r"
 Content-Transfer-Encoding: 8BIT
-Message-Id: <201003181351.43040.laurent.pinchart@ideasonboard.com>
+Content-Disposition: inline
+Message-Id: <201003111900.18685.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 10 марта 2010 23:31:06 VDR User wrote:
+> 2010/3/10 Igor M. Liplianin <liplianin@me.by>:
+> >> I'm glad to hear you're going to rebase the mantis driver with the
+> >> up-to-date code rather then keeping the old outdated stuff that's
+> >> currently in there!  Do you know when you'll be doing this??
+> >
+> > I know when.
+>
+> Ok.......when?
+After certain period of time.
 
-On Thursday 18 March 2010 13:50:50 Laurent Pinchart wrote:
-> On Thursday 18 March 2010 13:41:36 Mauro Carvalho Chehab wrote:
-> > Laurent Pinchart wrote:
-> > > On Thursday 18 March 2010 13:19:57 Mauro Carvalho Chehab wrote:
-> > >> Laurent Pinchart wrote:
-> > >>> Those control, as their names imply, control the camera aperture
-> > >>> settings.
-> > >>> 
-> > >>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > >>> ---
-> > >>> 
-> > >>>  Documentation/DocBook/v4l/compat.xml      |   11 +++++++++++
-> > >>>  Documentation/DocBook/v4l/controls.xml    |   19 +++++++++++++++++++
-> > >>>  Documentation/DocBook/v4l/videodev2.h.xml |    3 +++
-> > >>>  include/linux/videodev2.h                 |    3 +++
-> > >>>  4 files changed, 36 insertions(+), 0 deletions(-)
-> > >>> 
-> > >>> diff --git a/Documentation/DocBook/v4l/compat.xml
-> > >>> b/Documentation/DocBook/v4l/compat.xml index b9dbdf9..854235b 100644
-> > >>> --- a/Documentation/DocBook/v4l/compat.xml
-> > >>> +++ b/Documentation/DocBook/v4l/compat.xml
-> > >>> @@ -2332,6 +2332,17 @@ more information.</para>
-> > >>> 
-> > >>>  	</listitem>
-> > >>>  	
-> > >>>        </orderedlist>
-> > >>>      
-> > >>>      </section>
-> > >>> 
-> > >>> +    <section>
-> > >>> +      <title>V4L2 in Linux 2.6.34</title>
-> > >>> +      <orderedlist>
-> > >>> +	<listitem>
-> > >>> +	  <para>Added
-> > >>> +<constant>V4L2_CID_IRIS_ABSOLUTE</constant> and
-> > >>> +<constant>V4L2_CID_IRIS_RELATIVE</constant> controls to the
-> > >>> +	    <link linkend="camera-controls">Camera controls class</link>.
-> > >>> +	  </para>
-> > >>> +	</listitem>
-> > >>> +      </orderedlist>
-> > >>> 
-> > >>>     </section>
-> > >>>     
-> > >>>     <section id="other">
-> > >>> 
-> > >>> diff --git a/Documentation/DocBook/v4l/controls.xml
-> > >>> b/Documentation/DocBook/v4l/controls.xml index f464506..c412e89
-> > >>> 100644 --- a/Documentation/DocBook/v4l/controls.xml
-> > >>> +++ b/Documentation/DocBook/v4l/controls.xml
-> > >>> @@ -1825,6 +1825,25 @@ wide-angle direction. The zoom speed unit is
-> > >>> driver-specific.</entry>
-> > >>> 
-> > >>>  	  <row><entry></entry></row>
-> > >>>  	  
-> > >>>  	  <row>
-> > >>> 
-> > >>> +	    <entry
-> > >>> spanname="id"><constant>V4L2_CID_IRIS_ABSOLUTE</constant>&nbsp;</entr
-> > >>> y> +	    <entry>integer</entry>
-> > >>> +	  </row><row><entry spanname="descr">This control sets the
-> > >>> +camera aperture's to the specified value. The unit is undefined.
-> > >>> +Positive values open the iris, negative close it.</entry>
-> > >>> +	  </row>
-> > >>> +	  <row><entry></entry></row>
-> > >>> +
-> > >>> +	  <row>
-> > >>> +	    <entry
-> > >>> spanname="id"><constant>V4L2_CID_IRIS_RELATIVE</constant>&nbsp;</entr
-> > >>> y> +	    <entry>integer</entry>
-> > >>> +	  </row><row><entry spanname="descr">This control modifies the
-> > >>> +camera aperture's by the specified amount. The unit is undefined.
-> > >>> +Positive values open the iris one step further, negative values
-> > >>> close +it one step further. This is a write-only control.</entry>
-> > >>> +	  </row>
-> > >>> +	  <row><entry></entry></row>
-> > >>> +
-> > >>> +	  <row>
-> > >>> 
-> > >>>  	    <entry
-> > >>>  	    
-spanname="id"><constant>V4L2_CID_PRIVACY</constant>&nbsp;</entr
-> > >>>  	    y> <entry>boolean</entry>
-> > >>>  	  
-> > >>>  	  </row><row><entry spanname="descr">Prevent video from being
-> > >>>  	  acquired
-> > >> 
-> > >> Seems ok to me, but it would be good to add some sort of scale for
-> > >> those controls.
-> > > 
-> > > I'd love to, but most iris controllers will just let you specify a
-> > > value in an arbitrary scale (0 for closed, 255 for fully opened for
-> > > instance). In that case do we want to force driver developers to
-> > > measure the aperture in ╣m units with a micrometer caliper ? :-)
-> > :
-> > :)
-> > 
-> > Well, maybe then you could just comment that higher values means more
-> > opened apertures.
-> 
-> Could point, I will do.
+>
+> > But please, don't discuss much my tree here, I consider it like
+> > experimental, like my sandbox.
+>
+> If you make your tree publicly available and people ask questions
+> about it on mailing lists, do you really expect nobody to respond?
+Well, I didn't hide my e-mail addresses and my real name.
+I can talk about anything with anyone.
 
-I spoke too fast, it's already there :-)
+> The OP MartinG was given only good advice.
+Yet again, after mantis was merged with linuxtv tree, please use it for mantis cards.
+Mantis, hopper or whatever bugs cards they are. I insist.
 
 -- 
-Regards,
-
-Laurent Pinchart
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
