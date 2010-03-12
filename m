@@ -1,48 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from csmtp1.one.com ([195.47.247.21]:52322 "EHLO csmtp1.one.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753905Ab0CILks (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Mar 2010 06:40:48 -0500
-Received: from [94.196.47.140] (94.196.47.140.threembb.co.uk [94.196.47.140])
-	by csmtp1.one.com (Postfix) with ESMTP id 787191BC0282F
-	for <linux-media@vger.kernel.org>; Tue,  9 Mar 2010 11:40:45 +0000 (UTC)
-Subject: Post DSO scan file for Aberdare
-From: Mike <mike@redtux.org.uk>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: multipart/mixed; boundary="=-qFoe7ue4ggj8gl3xGRU1"
-Date: Tue, 09 Mar 2010 11:53:05 +0000
-Message-Id: <1268135585.1825.8.camel@localhost.localdomain>
-Mime-Version: 1.0
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1338 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753582Ab0CLVsa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Mar 2010 16:48:30 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: RoboSK <ucet.na.diskusie@gmail.com>
+Subject: Re: Analog (PAL) PCI or PCIe with MPEG HW encoder
+Date: Fri, 12 Mar 2010 22:48:48 +0100
+Cc: linux-media@vger.kernel.org
+References: <4B9A8093.9020902@gmail.com>
+In-Reply-To: <4B9A8093.9020902@gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201003122248.48440.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Friday 12 March 2010 18:57:39 RoboSK wrote:
+> Hi, exist Analog (PAL) PCI or PCIe with MPEG HW encoder card that is 
+> supported into linux and is still possible purchase this card into shop 
+> (as new)?
 
---=-qFoe7ue4ggj8gl3xGRU1
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+I see that the Hauppauge PVR-150 is still available (ivtv driver).
 
-Please see attached scan file for uk-Aberdare if anyone finds it useful
+These cards certainly work. There are also newer HVR cards from Hauppauge,
+but I'm not 100% certain which are fully supported by linux with respect to
+MPEG encoding.
 
+Regards,
 
---=-qFoe7ue4ggj8gl3xGRU1
-Content-Disposition: attachment; filename="uk-Aberdare"
-Content-Type: text/plain; name="uk-Aberdare"; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+	Hans
 
-# UK, Aberdare
-# Auto-generated from http://www.dtg.org.uk/retailer/dtt_channels.html
-# and http://www.ofcom.org.uk/static/reception_advice/index.asp.html
-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-T 489833000 8MHz 2/3 NONE QAM64 2k 1/32 NONE
-T 497833000 8MHz 2/3 NONE QAM64 2k 1/32 NONE
-T 513833000 8MHz 3/4 NONE QAM16 2k 1/32 NONE
-T 538167000 8MHz 3/4 NONE QAM16 2k 1/32 NONE
-T 562167000 8MHz 2/3 NONE QAM64 2k 1/32 NONE
-T 570167000  8MHz 3/4 NONE QAM16 2k 1/32 NONE
+> 
+> thanks
+> 
+> Robo
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
-
-
-
-
---=-qFoe7ue4ggj8gl3xGRU1--
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
