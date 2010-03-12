@@ -1,91 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 81-174-11-161.static.ngi.it ([81.174.11.161]:60514 "EHLO
-	mail.enneenne.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753112Ab0C3OGW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Mar 2010 10:06:22 -0400
-Date: Tue, 30 Mar 2010 16:06:11 +0200
-From: Rodolfo Giometti <giometti@enneenne.com>
-To: Richard =?iso-8859-15?Q?R=F6jfors?=
-	<richard.rojfors@pelagicore.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Message-ID: <20100330140611.GR5937@enneenne.com>
-References: <20100219174451.GH21778@enneenne.com>
- <Pine.LNX.4.64.1002192018170.5860@axis700.grange>
- <20100222160139.GL21778@enneenne.com>
- <4B8310F1.8070005@pelagicore.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <4B8310F1.8070005@pelagicore.com>
-Subject: Re: adv7180 as SoC camera device
+Received: from mx1.redhat.com ([209.132.183.28]:18590 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935580Ab0CMAni (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Mar 2010 19:43:38 -0500
+Received: from int-mx05.intmail.prod.int.phx2.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.18])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2D0hbtL013533
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 12 Mar 2010 19:43:37 -0500
+Received: from [10.3.250.145] (vpn-250-145.phx2.redhat.com [10.3.250.145])
+	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o2D0hPc2004690
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 12 Mar 2010 19:43:34 -0500
+Message-Id: <8e45844889fd93e5aea76154464f93e6e354e678.1268440758.git.mchehab@redhat.com>
+In-Reply-To: <ce6bfd7f5f6ec23a59900422f6180ca49d006b18.1268440758.git.mchehab@redhat.com>
+References: <ce6bfd7f5f6ec23a59900422f6180ca49d006b18.1268440758.git.mchehab@redhat.com>
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Date: Fri, 12 Mar 2010 11:50:17 -0300
+Subject: [PATCH 3/4] V4L/DVB: ir-core: Export IR name via uevent
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 23, 2010 at 12:19:13AM +0100, Richard Röjfors wrote:
-> 
-> We use it as a subdev to a driver not yet committed from us. So I think
-> you should extend it, not move it.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Finally I got something functional... but I'm puzzled to know how I
-can add platform data configuration struct by using the I2C's
-platform_data pointer if it is already used to hold struct
-soc_camera_device... O_o
-
-In fact my probe function looks like:
-
-static __devinit int adv7180_probe(struct i2c_client *client,
-                        const struct i2c_device_id *id)
-{
-        struct adv7180_state *state;
-        struct soc_camera_device *icd = client->dev.platform_data;
-        struct soc_camera_link *icl;
-        struct v4l2_subdev *sd;
-        int ret;
-
-        /* Check if the adapter supports the needed features */
-        if (!i2c_check_functionality(client->adapter,
-	I2C_FUNC_SMBUS_BYTE_DATA))
-                return -EIO;
-
-        v4l_info(client, "chip found @ 0x%02x (%s)\n",
-                        client->addr << 1, client->adapter->name);
-
-        if (icd) {
-                icl = to_soc_camera_link(icd);
-                if (!icl)
-                        return -EINVAL;
-
-                icd->ops = &adv7180_soc_ops;
-                v4l_info(client, "soc-camera support enabled\n");
-        } else
-                pdata = client->dev.platform_data;
-
-        state = kzalloc(sizeof(struct adv7180_state), GFP_KERNEL);
-        if (state == NULL) {
-                ret = -ENOMEM;
-                goto err;
-        }
-
-        state->irq = client->irq;
-        INIT_WORK(&state->work, adv7180_work);
-        mutex_init(&state->mutex);
-        state->autodetect = true;
-        sd = &state->sd;
-        v4l2_i2c_subdev_init(sd, client, &adv7180_ops);
-	...
-
-Thanks in advance,
-
-Rodolfo
-
+diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
+index c9c0a54..31f22ba 100644
+--- a/drivers/media/IR/ir-keytable.c
++++ b/drivers/media/IR/ir-keytable.c
+@@ -418,6 +418,7 @@ int ir_input_register(struct input_dev *input_dev,
+ 
+ 	spin_lock_init(&ir_dev->rc_tab.lock);
+ 
++	ir_dev->rc_tab.name = rc_tab->name;
+ 	ir_dev->rc_tab.size = ir_roundup_tablesize(rc_tab->size);
+ 	ir_dev->rc_tab.scan = kzalloc(ir_dev->rc_tab.size *
+ 				    sizeof(struct ir_scancode), GFP_KERNEL);
+diff --git a/drivers/media/IR/ir-sysfs.c b/drivers/media/IR/ir-sysfs.c
+index 1bb011a..0f4da05 100644
+--- a/drivers/media/IR/ir-sysfs.c
++++ b/drivers/media/IR/ir-sysfs.c
+@@ -125,6 +125,24 @@ static ssize_t store_protocol(struct device *d,
+ 	return len;
+ }
+ 
++
++#define ADD_HOTPLUG_VAR(fmt, val...)					\
++	do {								\
++		int err = add_uevent_var(env, fmt, val);		\
++		if (err)						\
++			return err;					\
++	} while (0)
++
++static int ir_dev_uevent(struct device *device, struct kobj_uevent_env *env)
++{
++	struct ir_input_dev *ir_dev = dev_get_drvdata(device);
++
++	if (ir_dev->rc_tab.name)
++		ADD_HOTPLUG_VAR("NAME=\"%s\"", ir_dev->rc_tab.name);
++
++	return 0;
++}
++
+ /*
+  * Static device attribute struct with the sysfs attributes for IR's
+  */
+@@ -137,7 +155,7 @@ static struct attribute *ir_dev_attrs[] = {
+ };
+ 
+ static struct attribute_group ir_dev_attr_grp = {
+-	.attrs	=ir_dev_attrs,
++	.attrs	= ir_dev_attrs,
+ };
+ 
+ static const struct attribute_group *ir_dev_attr_groups[] = {
+@@ -147,9 +165,9 @@ static const struct attribute_group *ir_dev_attr_groups[] = {
+ 
+ static struct device_type ir_dev_type = {
+ 	.groups		= ir_dev_attr_groups,
++	.uevent		= ir_dev_uevent,
+ };
+ 
+-
+ /**
+  * ir_register_class() - creates the sysfs for /sys/class/irrcv/irrcv?
+  * @input_dev:	the struct input_dev descriptor of the device
+@@ -172,6 +190,7 @@ int ir_register_class(struct input_dev *input_dev)
+ 	ir_dev->dev.class = &ir_input_class;
+ 	ir_dev->dev.parent = input_dev->dev.parent;
+ 	dev_set_name(&ir_dev->dev, "irrcv%d", devno);
++	dev_set_drvdata(&ir_dev->dev, ir_dev);
+ 	rc = device_register(&ir_dev->dev);
+ 	if (rc)
+ 		return rc;
+@@ -186,8 +205,8 @@ int ir_register_class(struct input_dev *input_dev)
+ 
+ 	__module_get(THIS_MODULE);
+ 
+-	path = kobject_get_path(&input_dev->dev.kobj, GFP_KERNEL);
+-	printk(KERN_INFO "%s: %s associated with sysfs %s\n",
++	path = kobject_get_path(&ir_dev->dev.kobj, GFP_KERNEL);
++	printk(KERN_INFO "%s: %s as %s\n",
+ 		dev_name(&ir_dev->dev),
+ 		input_dev->name ? input_dev->name : "Unspecified device",
+ 		path ? path : "N/A");
 -- 
+1.6.6.1
 
-GNU/Linux Solutions                  e-mail: giometti@enneenne.com
-Linux Device Driver                          giometti@linux.it
-Embedded Systems                     phone:  +39 349 2432127
-UNIX programming                     skype:  rodolfo.giometti
-Freelance ICT Italia - Consulente ICT Italia - www.consulenti-ict.it
+
