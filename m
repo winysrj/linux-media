@@ -1,86 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from onv-colo01.spothost.nl ([193.189.149.48]:51977 "EHLO
-	praag.spothost.nl" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752230Ab0CTQ1l (ORCPT
+Received: from smtp3-g21.free.fr ([212.27.42.3]:55383 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755864Ab0CLITb convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Mar 2010 12:27:41 -0400
-Message-ID: <54510.83.83.244.249.1269102017.squirrel@webmail.spothost.nl>
-Date: Sat, 20 Mar 2010 17:20:17 +0100 (CET)
-Subject: tevii s660 system slow/freeze
-From: kc@cobradevil.org
-To: linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Fri, 12 Mar 2010 03:19:31 -0500
+Date: Fri, 12 Mar 2010 09:20:03 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>, m-karicheri2@ti.com,
+	g.liakhovetski@gmx.de, pboettcher@dibcom.fr, tobias.lorenz@gmx.net,
+	awalls@radix.net, khali@linux-fr.org, abraham.manu@gmail.com,
+	hverkuil@xs4all.nl, crope@iki.fi, davidtlwong@gmail.com,
+	henrik@kurelid.se, stoth@kernellabs.com
+Subject: Re: Status of the patches under review (45 patches)
+Message-ID: <20100312092003.63a3404d@tele>
+In-Reply-To: <4B99F63A.2050501@redhat.com>
+References: <4B969C08.2030807@redhat.com>
+	<4B99F63A.2050501@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear mailinglist/Tevii,
+Hi Hans,
 
-i have received a new tevii s660 yesterday.
-I have tried to use the device with scan but then my system freezes/slows
-down and i don't get any channels. Also when i create a channel list with
-my nova 2 hd and check if that works with vdr, then i removed the drivers
-from the nova card and plugged in the s660 and started vdr. But then still
-no picture only system freeze/slow down. I get nothing in the logs so it
-seems a driver issue.
+On Fri, 12 Mar 2010 09:07:22 +0100
+Hans de Goede <hdegoede@redhat.com> wrote:
+> > 		== Gspca patches - Waiting Hans de
+> > Goede<hdegoede@redhat.com>  submission/review ==
+> >
+> > Jan,29 2010: [gspca_jf,tree] gspca zc3xx: signal when unknown
+> > packet received       http://patchwork.kernel.org/patch/75837
+> 
+> I nacked this one, as the zc3xx sends many non button press interrupt
+> packets per second which this patch would all log to dmesg as being
+> unknown.
 
-i have tried the drivers from the tevii site and also tried the 2.6.34rc1
-kernel from ubuntu. I also tried it on 3 different systems but to no
-avail.
+Agree.
 
-in dmesg i get:
-[16735.496800] usbcore: deregistering interface driver dw2102
-[16735.562114] dvb-usb: TeVii S660 USB successfully deinitialized and
-disconnected.
-[16737.219577] dvb-usb: found a 'TeVii S660 USB' in cold state, will try
-to load a firmware
-[16737.219593] usb 1-1: firmware: requesting dvb-usb-teviis660.fw
-[16737.229441] dvb-usb: downloading firmware from file 'dvb-usb-teviis660.fw'
-[16737.229453] dw2102: start downloading DW210X firmware
-[16737.350052] dvb-usb: found a 'TeVii S660 USB' in warm state.
-[16737.350171] dvb-usb: will pass the complete MPEG2 transport stream to
-the software demuxer.
-[16737.350414] DVB: registering new adapter (TeVii S660 USB)
-[16747.590032] dvb-usb: MAC address: 00:18:bd:5c:55:bb
-[16747.650033] Only Zarlink VP310/MT312/ZL10313 are supported chips.
-[16748.074008] DS3000 chip version: 0.192 attached.
-[16748.074015] dw2102: Attached ds3000+ds2020!
-[16748.074017]
-[16748.074189] DVB: registering adapter 0 frontend 0 (Montage Technology
-DS3000/TS2020)...
-[16748.076014] input: IR-receiver inside an USB DVB receiver as
-/devices/pci0000:00/0000:00:1d.7/usb1/1-1/input/input11
-[16748.076312] dvb-usb: schedule remote query interval to 150 msecs.
-[16748.076327] dvb-usb: TeVii S660 USB successfully initialized and
-connected.
-[16748.076596] usbcore: registered new interface driver dw2102
+> > Mar, 8 2010: [1/1] gspca-stv06xx: Remove the 046d:08da usb id from
+> > linking to the   http://patchwork.kernel.org/patch/84145
+> >
+> 
+> I acked this one, this should go in through Erik Andren's own tree.
 
+I already sent a pull request for this one.
 
-and after that i only see:
-[16748.224312] dw2102: query RC enter
-[16748.224320] dw2102: query RC start
-[16748.246317] dw2102: query RC end
-[16748.396311] dw2102: query RC enter
-[16748.396320] dw2102: query RC start
-[16748.415313] dw2102: query RC end
-[16748.561641] dw2102: query RC enter
-[16748.561650] dw2102: query RC start
-[16748.585317] dw2102: query RC end
+Cheers.
 
-
-over and over just filling the logs. i saw that it was from/for the remote
-but it looks like debug messages.
-
-I have tried 3 different kernels 2.6.32/3/4rc1 but they all have the same
-issue with the driver from 15 march.
-
-What can be wrong?
-Any suggestions how i can troubleshoot this?
-
-With kind regards
-William van de Velde
-
-
-new tevii S660 system slow/freeze no channels linux
-
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
