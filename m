@@ -1,59 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mgw2.diku.dk ([130.225.96.92]:60154 "EHLO mgw2.diku.dk"
+Received: from mx1.redhat.com ([209.132.183.28]:16362 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750972Ab0CIVNx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Mar 2010 16:13:53 -0500
-Date: Tue, 9 Mar 2010 22:13:49 +0100 (CET)
-From: Julia Lawall <julia@diku.dk>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [PATCH 1/5] drivers/media: drop redundant memset
-Message-ID: <Pine.LNX.4.64.1003092213280.4974@ask.diku.dk>
+	id S1754760Ab0CLAV4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Mar 2010 19:21:56 -0500
+Received: from int-mx03.intmail.prod.int.phx2.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2C0LuuG027262
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 11 Mar 2010 19:21:56 -0500
+Message-ID: <4B99891E.9010406@redhat.com>
+Date: Thu, 11 Mar 2010 21:21:50 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Hans De Goede <hdegoede@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: pushes at v4l-utils tree
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Julia Lawall <julia@diku.dk>
+Hi Hans,
 
-The region set by the call to memset is immediately overwritten by the
-subsequent call to memcpy.
+As we've agreed that the idea is to allow multiple people to commit at v4l-utils,
+today, I've added 3 commits at v4l-utils tree (2 keycode-related and 1 is .gitignore
+stuff). One of the reasons were to test the viability for such commits.
 
-The semantic patch that makes this change is as follows:
-(http://coccinelle.lip6.fr/)
+I've temporarily enabled the same script that we use for upstream patches to
+generate patches against linuxtv-commits ML.
 
-// <smpl>
-@@
-expression e1,e2,e3,e4;
-@@
+>From my experiences, I have some notes:
+	1) git won't work fine if more than one is committing at the same tree.
+The reason is simple: it won't preserve the same group as the previous commits. So,
+the next committer will have troubles if we allow multiple committers;
 
-- memset(e1,e2,e3);
-  memcpy(e1,e4,e3);
-// </smpl>
+	2) people need to pull/rebase before pushing, if we fix the group permission
+issue above. I've enabled a hook that is meant to avoid rebase upstream, to prevent
+troubles if people push something with -f. I hope it works fine.
 
-Signed-off-by: Julia Lawall <julia@diku.dk>
+	3) the mailbomb script uses the from: as the email author. However, the
+linuxtv-commits is limited to posts from a few specific authors. So, I need to add
+more emails there or change the policy, if we decide to use such script.
+I'll keep the script disabled for now, until I have some time to check it.
 
----
- drivers/media/dvb/bt8xx/dst.c |    2 --
- 1 file changed, 2 deletions(-)
+In summary, for now, I think that the better is to post all patches to v4l-utils at ML
+and ask Hans to merge them.
 
-diff -u -p a/drivers/media/dvb/bt8xx/dst.c b/drivers/media/dvb/bt8xx/dst.c
---- a/drivers/media/dvb/bt8xx/dst.c
-+++ b/drivers/media/dvb/bt8xx/dst.c
-@@ -930,7 +930,6 @@ static int dst_fw_ver(struct dst_state *
- 		dprintk(verbose, DST_INFO, 1, "Unsupported Command");
- 		return -1;
- 	}
--	memset(&state->fw_version, '\0', 8);
- 	memcpy(&state->fw_version, &state->rxbuffer, 8);
- 	dprintk(verbose, DST_ERROR, 1, "Firmware Ver = %x.%x Build = %02x, on %x:%x, %x-%x-20%02x",
- 		state->fw_version[0] >> 4, state->fw_version[0] & 0x0f,
-@@ -1053,7 +1052,6 @@ static int dst_get_tuner_info(struct dst
- 			goto force;
- 		}
- 	}
--	memset(&state->board_info, '\0', 8);
- 	memcpy(&state->board_info, &state->rxbuffer, 8);
- 	if (state->type_flags & DST_TYPE_HAS_MULTI_FE) {
- 		dprintk(verbose, DST_ERROR, 1, "DST type has TS=188");
+-- 
+
+Cheers,
+Mauro
