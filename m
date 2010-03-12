@@ -1,81 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:58816 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751597Ab0CTMRT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Mar 2010 08:17:19 -0400
-Subject: Re: RFC: Phase 2/3: Move the compat code into v4l1-compat. Convert
- apps.
-From: Chicken Shack <chicken.shack@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>
-In-Reply-To: <201003201021.05426.hverkuil@xs4all.nl>
-References: <201003201021.05426.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 20 Mar 2010 13:17:15 +0100
-Message-ID: <1269087435.2568.14.camel@brian.bconsult.de>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-px0-f198.google.com ([209.85.216.198]:44925 "EHLO
+	mail-px0-f198.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755297Ab0CLAJh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Mar 2010 19:09:37 -0500
+Received: by pxi36 with SMTP id 36so196350pxi.21
+        for <linux-media@vger.kernel.org>; Thu, 11 Mar 2010 16:09:37 -0800 (PST)
+MIME-Version: 1.0
+Date: Thu, 11 Mar 2010 19:09:37 -0500
+Message-ID: <412bdbff1003111609m72fc7e65he84a9791502cac7d@mail.gmail.com>
+Subject: [PATCH] v4l2-ctl: fix regression in ability to set/get private
+	controls
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Samstag, den 20.03.2010, 10:21 +0100 schrieb Hans Verkuil:
-> Hi all!
-> 
-> The second phase that needs to be done to remove the v4l1 support from the
-> kernel is that libv4l1 should replace the v4l1-compat code from the kernel.
-> 
-> I do not know how complete the libv4l1 code is right now. I would like to
-> know in particular whether the VIDIOCGMBUF/mmap behavior can be faked in
-> libv4l1 if drivers do not support the cgmbuf vidioc call.
-> 
-> In principle libv4l1 should allow V4L1 apps to run fine with V4L2 drivers.
-> That will also solve the problem of embedded device vendors running new
-> kernels with old V4L1 applications. They just need to use libv4l1.
-> 
-> The third phase that can be done in parallel is to convert V4L1-only apps.
-> I strongly suspect that any apps that are V4L1-only are also unmaintained.
-> We have discussed before that we should set up git repositories for such
-> tools (xawtv being one of the more prominent apps since it contains several
-> v4l1-only console apps). Once we have maintainership, then we can convert
-> these tools to v4l2 and distros and other interested parties have a place
-> to send patches to.
-> 
-> I'm afraid that it is unlikely that anyone will do that work for us, so it's
-> probably best just to bite the bullet and do it ourselves.
-> 
-> Regards,
-> 
-> 	Hans
-> 
+>From 3dbab2e437c4a1673c1966937faec6e0fc56be01 Mon Sep 17 00:00:00 2001
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date: Wed, 10 Mar 2010 23:01:53 -0500
+Subject: [PATCH] v4l2-ctl: fix regression in ability to set/get private controls
 
-Hello Hans,
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
 
-I haven't followed your discussion so far (sorry!).
-I got a trivial question:
+In hg revision 12546, a regression was introduced which resulted in the
+ability to get/set private controls.  The change resulted in all attempts
+to set private controls going through the extended controls interface, and
+the extended controls interface explicitly denies ability to use private
+control CIDs (it's enforced in the check_ext_ctl function in v4l2-ioctl.c.
 
-I run a Miro PCTV pro (stereo) on one of my machines.
-It needs "simple tuner transport" / "TDA 9885/6/7 analog IF
-demodulator", Micronas msp3400 for Stereo tone PLUS v4l1 compat layer as
-kernel options to run / to be usable at all.
+Fix the code such that it goes back to using the older g_ctrl/s_ctrl if the
+control ID is a private control.
 
-Can you make sure that this card will still be usable after your v4l1
-removal activities are finished?
+Priority: high
 
-In other words: What happens to this v4l1 compat code which is obviously
-necessary for this (and other) card(s) to run?
+Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ utils/v4l2-ctl/v4l2-ctl.cpp |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-That's it what I haven't understood right now, so could you please be
-kind enough to explain that with a couple of words?
+diff --git a/utils/v4l2-ctl/v4l2-ctl.cpp b/utils/v4l2-ctl/v4l2-ctl.cpp
+index 26d3996..c88bf6e 100644
+--- a/utils/v4l2-ctl/v4l2-ctl.cpp
++++ b/utils/v4l2-ctl/v4l2-ctl.cpp
+@@ -2589,7 +2589,8 @@ set_vid_fmt_error:
+                }
+                for (class2ctrls_map::iterator iter = class2ctrls.begin();
+                                iter != class2ctrls.end(); ++iter) {
+-                       if (iter->first == V4L2_CTRL_CLASS_USER) {
++                       if (iter->first == V4L2_CTRL_CLASS_USER ||
++                           iter->first == V4L2_CID_PRIVATE_BASE) {
+                                for (unsigned i = 0; i <
+iter->second.size(); i++) {
+                                        struct v4l2_control ctrl;
 
-Thanks!
+@@ -2881,7 +2882,8 @@ set_vid_fmt_error:
+                }
+                for (class2ctrls_map::iterator iter = class2ctrls.begin();
+                                iter != class2ctrls.end(); ++iter) {
+-                       if (iter->first == V4L2_CTRL_CLASS_USER) {
++                       if (iter->first == V4L2_CTRL_CLASS_USER ||
++                           iter->first == V4L2_CID_PRIVATE_BASE) {
+                                for (unsigned i = 0; i <
+iter->second.size(); i++) {
+                                        struct v4l2_control ctrl;
 
-CS
-
-P. S.: If you make your decision to host xawtv and other apps please do
-not merge hybrid applications (i. e. apps made for DVB and analogue
-devices) as you can find them in the xawtv 4.0 pre alpha code for
-example in analogue trees.
-Rather establish extra trees for hybrid applications please.
+-- 
+1.6.3.3
 
 
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
