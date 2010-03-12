@@ -1,135 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:59111 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752606Ab0CTOOy (ORCPT
+Received: from smtp-out108.alice.it ([85.37.17.108]:2798 "EHLO
+	smtp-out108.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933167Ab0CLVDr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Mar 2010 10:14:54 -0400
-From: Wolfram Sang <w.sang@pengutronix.de>
-To: kernel-janitors@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Wolfram Sang <w.sang@pengutronix.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Date: Sat, 20 Mar 2010 15:12:53 +0100
-Message-Id: <1269094385-16114-13-git-send-email-w.sang@pengutronix.de>
-In-Reply-To: <1269094385-16114-1-git-send-email-w.sang@pengutronix.de>
-References: <1269094385-16114-1-git-send-email-w.sang@pengutronix.de>
-Subject: [PATCH 12/24] media/video: fix dangling pointers
+	Fri, 12 Mar 2010 16:03:47 -0500
+Date: Fri, 12 Mar 2010 22:03:27 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: pushes at v4l-utils tree
+Message-Id: <20100312220327.0a37ee65.ospite@studenti.unina.it>
+In-Reply-To: <4B9A962A.2020407@redhat.com>
+References: <4B99891E.9010406@redhat.com>
+	<4B9A62B6.7090004@redhat.com>
+	<4B9A962A.2020407@redhat.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Fri__12_Mar_2010_22_03_28_+0100_lkXMP4+4tvvNdce_"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix I2C-drivers which missed setting clientdata to NULL before freeing the
-structure it points to. Also fix drivers which do this _after_ the structure
-was freed already.
+--Signature=_Fri__12_Mar_2010_22_03_28_+0100_lkXMP4+4tvvNdce_
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
----
+On Fri, 12 Mar 2010 16:29:46 -0300
+Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
 
-Found using coccinelle, then reviewed. Full patchset is available via
-kernel-janitors, linux-i2c, and LKML.
----
- drivers/media/video/cs5345.c     |    1 +
- drivers/media/video/cs53l32a.c   |    1 +
- drivers/media/video/ir-kbd-i2c.c |    2 ++
- drivers/media/video/tda9840.c    |    1 +
- drivers/media/video/tea6415c.c   |    1 +
- drivers/media/video/tea6420.c    |    1 +
- drivers/media/video/ths7303.c    |    1 +
- 7 files changed, 8 insertions(+), 0 deletions(-)
+> Hans de Goede wrote:
+> > Hi,
+> >=20
+> > On 03/12/2010 01:21 AM, Mauro Carvalho Chehab wrote:
+> >> Hi Hans,
+> >>
+> >> As we've agreed that the idea is to allow multiple people to commit at
+> >> v4l-utils,
+> >> today, I've added 3 commits at v4l-utils tree (2 keycode-related and 1
+> >> is .gitignore
+> >> stuff). One of the reasons were to test the viability for such commits.
+> >>
+> >> I've temporarily enabled the same script that we use for upstream
+> >> patches to
+> >> generate patches against linuxtv-commits ML.
+> >>
+> >>  From my experiences, I have some notes:
+> >>     1) git won't work fine if more than one is committing at the same
+> >> tree.
+> >> The reason is simple: it won't preserve the same group as the previous
+> >> commits. So,
+> >> the next committer will have troubles if we allow multiple committers;
+> >>
+> >=20
+> > I assume you are talking about some issues with permissions on the
+> > server side here ?
+>=20
+> Yes. The new objects and the touched files got a different group ownership
+> after git push. I had to manually fix them at the server.
+>=20
 
-diff --git a/drivers/media/video/cs5345.c b/drivers/media/video/cs5345.c
-index 57dc170..cd21aa8 100644
---- a/drivers/media/video/cs5345.c
-+++ b/drivers/media/video/cs5345.c
-@@ -196,6 +196,7 @@ static int cs5345_remove(struct i2c_client *client)
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
- 
- 	v4l2_device_unregister_subdev(sd);
-+	i2c_set_clientdata(client, NULL);
- 	kfree(sd);
- 	return 0;
- }
-diff --git a/drivers/media/video/cs53l32a.c b/drivers/media/video/cs53l32a.c
-index 80bca8d..527f731 100644
---- a/drivers/media/video/cs53l32a.c
-+++ b/drivers/media/video/cs53l32a.c
-@@ -199,6 +199,7 @@ static int cs53l32a_remove(struct i2c_client *client)
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
- 
- 	v4l2_device_unregister_subdev(sd);
-+	i2c_set_clientdata(client, NULL);
- 	kfree(sd);
- 	return 0;
- }
-diff --git a/drivers/media/video/ir-kbd-i2c.c b/drivers/media/video/ir-kbd-i2c.c
-index da18d69..f29c5cd 100644
---- a/drivers/media/video/ir-kbd-i2c.c
-+++ b/drivers/media/video/ir-kbd-i2c.c
-@@ -461,6 +461,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	return 0;
- 
-  err_out_free:
-+	i2c_set_clientdata(client, NULL);
- 	kfree(ir);
- 	return err;
- }
-@@ -476,6 +477,7 @@ static int ir_remove(struct i2c_client *client)
- 	ir_input_unregister(ir->input);
- 
- 	/* free memory */
-+	i2c_set_clientdata(client, NULL);
- 	kfree(ir);
- 	return 0;
- }
-diff --git a/drivers/media/video/tda9840.c b/drivers/media/video/tda9840.c
-index d381fce..b608aaf 100644
---- a/drivers/media/video/tda9840.c
-+++ b/drivers/media/video/tda9840.c
-@@ -188,6 +188,7 @@ static int tda9840_remove(struct i2c_client *client)
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
- 
- 	v4l2_device_unregister_subdev(sd);
-+	i2c_set_clientdata(client, NULL);
- 	kfree(sd);
- 	return 0;
- }
-diff --git a/drivers/media/video/tea6415c.c b/drivers/media/video/tea6415c.c
-index 1585839..49a6606 100644
---- a/drivers/media/video/tea6415c.c
-+++ b/drivers/media/video/tea6415c.c
-@@ -164,6 +164,7 @@ static int tea6415c_remove(struct i2c_client *client)
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
- 
- 	v4l2_device_unregister_subdev(sd);
-+	i2c_set_clientdata(client, NULL);
- 	kfree(sd);
- 	return 0;
- }
-diff --git a/drivers/media/video/tea6420.c b/drivers/media/video/tea6420.c
-index 6bf6bc7..821085d 100644
---- a/drivers/media/video/tea6420.c
-+++ b/drivers/media/video/tea6420.c
-@@ -146,6 +146,7 @@ static int tea6420_remove(struct i2c_client *client)
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
- 
- 	v4l2_device_unregister_subdev(sd);
-+	i2c_set_clientdata(client, NULL);
- 	kfree(sd);
- 	return 0;
- }
-diff --git a/drivers/media/video/ths7303.c b/drivers/media/video/ths7303.c
-index 21781f8..d411a73 100644
---- a/drivers/media/video/ths7303.c
-+++ b/drivers/media/video/ths7303.c
-@@ -114,6 +114,7 @@ static int ths7303_remove(struct i2c_client *client)
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
- 
- 	v4l2_device_unregister_subdev(sd);
-+	i2c_set_clientdata(client, NULL);
- 	kfree(sd);
- 
- 	return 0;
--- 
-1.7.0
+The following might be inappropriate, as I didn't follow the discussion
+about the linuxtv git infrastructure.
 
+Using gitosis[1,2] these permission issues shouldn't occur, because only
+one user (usually "git") actually writes to the filesystem while commit
+rights are still handled with ssh pubkeys, and this doesn't even
+require creating users on the server.
+
+As I said I don't know if you are using gitosis already, if so then
+sorry for the noise.
+
+Regards,
+   Antonio
+
+[1] http://eagain.net/gitweb/?p=3Dgitosis.git
+[2] http://ao2.it/wiki/How_to_setup_a_GIT_server_with_gitosis_and_gitweb
+
+--=20
+Antonio Ospite
+http://ao2.it
+
+PGP public key ID: 0x4553B001
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing in e-mail?
+
+--Signature=_Fri__12_Mar_2010_22_03_28_+0100_lkXMP4+4tvvNdce_
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAkuarCAACgkQ5xr2akVTsAEdHwCfYsAn/25jIXieNAGfzsau/a4Q
+FVIAnRIdykWr25N6mfKgb6JtA/KKJXXy
+=c8le
+-----END PGP SIGNATURE-----
+
+--Signature=_Fri__12_Mar_2010_22_03_28_+0100_lkXMP4+4tvvNdce_--
