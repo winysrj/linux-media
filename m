@@ -1,43 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:50648 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753503Ab0CZLYY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Mar 2010 07:24:24 -0400
-Date: Fri, 26 Mar 2010 12:24:26 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] V4L: fix ENUMSTD ioctl to report all supported standards
-In-Reply-To: <201003261219.59703.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1003261223160.4298@axis700.grange>
-References: <Pine.LNX.4.64.1003260758550.4298@axis700.grange>
- <201003261219.59703.hverkuil@xs4all.nl>
+Received: from mx02.kapsch.net ([148.198.2.17]:50480 "EHLO mx02.kapsch.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932092Ab0CLLCA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Mar 2010 06:02:00 -0500
+From: =?iso-8859-1?Q?H=F6rlin_Magnus?= <Magnus.Hoerlin@kapsch.net>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Fri, 12 Mar 2010 11:38:38 +0100
+Subject: tzap -r doesn't work on new Swedish DVB-T channels
+Message-ID: <7C87E377F5AEAC4F97A30AAB61B2CC283E74702C@s037b252.kapsch.co.at>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 26 Mar 2010, Hans Verkuil wrote:
+Hi. Since february there are some new h264 SD channels in the Swedish DVB-T network. I get a lock with tzap, I can watch the channels in VDR but I get no output on /dev/dvb/adapterX/dvr0 then running tzap -r on 506 MHz. On all other transponders I get a stream on dvr0. Scan finds some strange channels that don't provide a name on this frequency:
 
-> On Friday 26 March 2010 08:06:42 Guennadi Liakhovetski wrote:
-> > V4L2_STD_PAL, V4L2_STD_SECAM, and V4L2_STD_NTSC are not the only composite 
-> > standards. Currently, e.g., if a driver supports all of V4L2_STD_PAL_B, 
-> > V4L2_STD_PAL_B1 and V4L2_STD_PAL_G, the enumeration will report 
-> > V4L2_STD_PAL_BG and not the single standards, which can confuse 
-> > applications. Fix this by only clearing simple standards from the mask. 
-> > This, of course, will only work, if composite standards are listed before 
-> > simple ones in the standards array in v4l2-ioctl.c, which is currently 
-> > the case.
-> 
-> Do you have an specific example where the current implementation will do the
-> wrong thing?
+[04b0]:506000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:0:0:1200:3
+[0316]:506000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:0:0:790:3
+[0320]:506000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:0:0:800:3
+Boxer Navigator:506000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:0:0:65534:3
+[0302]:506000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:0:0:770:3
+[02ee]:506000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:0:0:750:3
+BBC World News:506000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:0:0:560:3
+Discovery T&L:506000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:0:0:570:3
+Discovery Science:506000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:0:0:580:3
+Disney XD:506000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:0:0:590:3
+Showtime:506000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:0:0:600:3
+7:506000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:0:0:810:3
+Star!:506000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE:0:0:960:3
 
-Yes - sh_vou with gstreamer. gstreamer enumerates standards and gest 
-PAL_BG but not PAL_B or PAL_G.
+Can anyone point me in the right direction in the tzap code to try to find the reason for this?
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+/Magnus H
+
+
+The information contained in this e-mail message is privileged and
+confidential and is for the exclusive use of the addressee. The person
+who receives this message and who is not the addressee, one of his
+employees or an agent entitled to hand it over to the addressee, is
+informed that he may not use, disclose or reproduce the contents
+thereof, and is kindly asked to notify the sender and delete the e-mail
+immediately.
+
+
