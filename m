@@ -1,34 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:18161 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750770Ab0CAIRg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Mar 2010 03:17:36 -0500
-Message-ID: <4B8B780B.8040202@nokia.com>
-Date: Mon, 01 Mar 2010 10:17:15 +0200
-From: Sakari Ailus <sakari.ailus@nokia.com>
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:53712 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932176Ab0CLULv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Mar 2010 15:11:51 -0500
+Received: by bwz1 with SMTP id 1so1384953bwz.21
+        for <linux-media@vger.kernel.org>; Fri, 12 Mar 2010 12:11:50 -0800 (PST)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	david.cohen@nokia.com
-Subject: Re: [PATCH v8 4/6] V4L: Events: Add backend
-References: <4B85AC1E.8060302@maxwell.research.nokia.com> <1267051568-5757-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <1267051568-5757-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+Date: Fri, 12 Mar 2010 15:11:49 -0500
+Message-ID: <829197381003121211l469c30bfjba077cea028bf680@mail.gmail.com>
+Subject: Remaining drivers that aren't V4L2?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sakari Ailus wrote:
-> Add event handling backend to V4L2. The backend handles event subscription
-> and delivery to file handles. Event subscriptions are based on file handle.
-> Events may be delivered to all subscribed file handles on a device
-> independent of where they originate from.
+Hello,
 
-Hi,
+I know some months ago, there was some discussion about a few drivers
+which were stragglers and had not been converted from V4L to V4L2.
 
-Some style problems accidentally slipped into this one. I'm not
-resending the whole set, just the broken patch, now v8.1.
+Do we have a current list of driver which still haven't been converted?
+
+I started doing some more tvtime work last night, and I would *love*
+to drop V4L support (and *only* support V4L2 devices), since it would
+make the code much cleaner, more reliable, and easier to test.
+
+If there are only a few obscure webcams remaining, then I'm willing to
+tell those users that they have to stick with whatever old version of
+tvtime they've been using since the last release four years ago.
+
+Devin
 
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
