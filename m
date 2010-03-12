@@ -1,114 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4539 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751239Ab0CIWBh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Mar 2010 17:01:37 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id o29M1ac2022002
-	for <linux-media@vger.kernel.org>; Tue, 9 Mar 2010 23:01:36 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 9 Mar 2010 23:01:36 +0100 (CET)
-Message-Id: <201003092201.o29M1ac2022002@smtp-vbr12.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3640 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932757Ab0CLWbx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Mar 2010 17:31:53 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Michael Akey <akeym@onid.orst.edu>
+Subject: Re: Remaining drivers that aren't V4L2?
+Date: Fri, 12 Mar 2010 23:32:07 +0100
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans de Goede <j.w.r.degoede@hhs.nl>
+References: <829197381003121211l469c30bfjba077cea028bf680@mail.gmail.com> <201003122242.06508.hverkuil@xs4all.nl> <4B9ABE3C.6010909@onid.orst.edu>
+In-Reply-To: <4B9ABE3C.6010909@onid.orst.edu>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201003122332.07921.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Friday 12 March 2010 23:20:44 Michael Akey wrote:
+> Hans Verkuil wrote:
+> > On Friday 12 March 2010 21:11:49 Devin Heitmueller wrote:
+> >   
+> >> Hello,
+> >>
+> >> I know some months ago, there was some discussion about a few drivers
+> >> which were stragglers and had not been converted from V4L to V4L2.
+> >>
+> >> Do we have a current list of driver which still haven't been converted?
+> >>     
+> >
+> > These drivers are still v4l1:
+> >
+> > arv
+> > bw-qcam
+> > c-qcam
+> > cpia_pp
+> > cpia_usb
+> > ov511
+> > se401
+> > stradis
+> > stv680
+> > usbvideo
+> > w9966
+> >
+> > Some of these have counterparts in gspca these days so possibly some drivers
+> > can be removed by now. Hans, can you point those out?
+> >
+> > arv, bw-qcam, c-qcam, cpia_pp and stradis can probably be moved to staging
+> > and if no one steps up then they can be dropped altogether.
+> >   
+> 
+> Does this mean that the bw-qcam driver will be removed in future 
+> revisions or does this mean it will just never be updated to v4l2?
 
-Results of the daily build of v4l-dvb:
+Removal. At least, that is what I would propose. Greg KH has proposed some time
+ago to use the staging tree not only for incoming but also for outgoing drivers.
 
-date:        Tue Mar  9 19:00:29 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14409:37bd06e25095
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 8c69c6ed6c74c94fa7ad6fa24eda452e4b212d81
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+And drivers that have not seen any development for years and that nobody seems
+to be using and where the hardware is obsolete are definitely candidates for
+this removal process.
 
-linux-2.6.32.6-armv5: ERRORS
-linux-2.6.33-armv5: ERRORS
-linux-2.6.34-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: ERRORS
-linux-2.6.33-armv5-davinci: ERRORS
-linux-2.6.34-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-rc1-armv5-ixp: WARNINGS
-linux-2.6.32.6-armv5-omap2: ERRORS
-linux-2.6.33-armv5-omap2: ERRORS
-linux-2.6.34-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.20-i686: ERRORS
-linux-2.6.26.8-i686: ERRORS
-linux-2.6.27.44-i686: ERRORS
-linux-2.6.28.10-i686: ERRORS
-linux-2.6.29.1-i686: ERRORS
-linux-2.6.30.10-i686: ERRORS
-linux-2.6.31.12-i686: ERRORS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-rc1-i686: WARNINGS
-linux-2.6.32.6-m32r: ERRORS
-linux-2.6.33-m32r: ERRORS
-linux-2.6.34-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: ERRORS
-linux-2.6.33-mips: ERRORS
-linux-2.6.34-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: ERRORS
-linux-2.6.33-powerpc64: ERRORS
-linux-2.6.34-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.20-x86_64: ERRORS
-linux-2.6.26.8-x86_64: ERRORS
-linux-2.6.27.44-x86_64: ERRORS
-linux-2.6.28.10-x86_64: ERRORS
-linux-2.6.29.1-x86_64: ERRORS
-linux-2.6.30.10-x86_64: ERRORS
-linux-2.6.31.12-x86_64: ERRORS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-rc1-x86_64: WARNINGS
-linux-git-armv5: OK
-linux-git-armv5-davinci: OK
-linux-git-armv5-ixp: OK
-linux-git-armv5-omap2: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+I suspect that the only two drivers that we might need to keep are usbvideo and
+cpia_usb. The latter is still used in hardware you can buy today, the same may
+also be true of the first, and products supported by the usbvideo driver are
+certainly still out there.
 
-Detailed results are available here:
+If we are indeed left with just two V4L1 drivers that cannot easily be removed,
+then we should perhaps try to convert them after all, even though it is hard to
+be motivated to do that work.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+I definitely agree with Devin that it would be really great to finally remove
+the V4L1 support completely from the kernel.
 
-Full logs are available here:
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+	Hans
 
-The V4L-DVB specification from this daily build is here:
+> 
+> > According to my notes I should be able to test cpia_usb. I would have to
+> > verify that, though. I think it is only used in a USB microscope. It is
+> > effectively a webcam. I can also test usbvideo (USB 1 TV capture device).
+> > The latter is probably the most important driver that needs converting,
+> > because I think these are not uncommon.
+> >
+> > However, I have no time to work on such a driver conversion. But if someone
+> > is seriously willing to put time and effort in that, then I am willing to
+> > mail the hardware.
+> >
+> >   
+> >> I started doing some more tvtime work last night, and I would *love*
+> >> to drop V4L support (and *only* support V4L2 devices), since it would
+> >> make the code much cleaner, more reliable, and easier to test.
+> >>
+> >> If there are only a few obscure webcams remaining, then I'm willing to
+> >> tell those users that they have to stick with whatever old version of
+> >> tvtime they've been using since the last release four years ago.
+> >>     
+> >
+> > To my knowledge the usbvideo driver is probably the least obscure device
+> > that is still using V4L1.
+> >
+> > Regards,
+> >
+> > 	Hans
+> >
+> >   
+> 
+> 
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
