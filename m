@@ -1,111 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-04.arcor-online.net ([151.189.21.44]:58754 "EHLO
-	mail-in-04.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751167Ab0CBEUP (ORCPT
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:40345 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932427Ab0CLW7S (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Mar 2010 23:20:15 -0500
-Subject: Re: [IR RC, REGRESSION] Didn't work IR RC
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Andy Walls <awalls@radix.net>, Jean Delvare <khali@linux-fr.org>,
-	Dmitri Belimov <d.belimov@gmail.com>,
-	linux-media@vger.kernel.org, "Timothy D. Lenz" <tlenz@vorgon.com>
-In-Reply-To: <4B8BC332.6060303@infradead.org>
-References: <20100301153645.5d529766@glory.loctelecom.ru>
-	 <1267442919.3110.20.camel@palomino.walls.org>
-	 <4B8BC332.6060303@infradead.org>
-Content-Type: text/plain
-Date: Tue, 02 Mar 2010 05:19:55 +0100
-Message-Id: <1267503595.3269.21.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 12 Mar 2010 17:59:18 -0500
+Received: by bwz1 with SMTP id 1so1500267bwz.21
+        for <linux-media@vger.kernel.org>; Fri, 12 Mar 2010 14:59:17 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4B9AC590.3020408@redhat.com>
+References: <829197381003121211l469c30bfjba077cea028bf680@mail.gmail.com>
+	 <201003122242.06508.hverkuil@xs4all.nl> <4B9AC590.3020408@redhat.com>
+Date: Fri, 12 Mar 2010 17:59:16 -0500
+Message-ID: <829197381003121459oed85501wbe7870785e91893@mail.gmail.com>
+Subject: Re: Remaining drivers that aren't V4L2?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans de Goede <j.w.r.degoede@hhs.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Fri, Mar 12, 2010 at 5:52 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> All the above are webcam drivers. I doubt that those drivers would work
+> with tvtime: this software were meant to test the Vector's deinterlacing
+> algorithms, so it requires some specific video formats/resolutions found on TV
+> and require 25 or 30 fps, as far as I remember. For example, It doesn't support
+> QCIF/QVGA cameras.
 
-Am Montag, den 01.03.2010, 10:37 -0300 schrieb Mauro Carvalho Chehab: 
-> Andy Walls wrote:
-> > On Mon, 2010-03-01 at 15:36 +0900, Dmitri Belimov wrote:
-> >> Hi All
-> >>
-> >> After rework of the IR subsystem, IR RC no more work in our TV cards.
-> >> As I see 
-> >> call saa7134_probe_i2c_ir,
-> >>   configure i2c
-> >>   call i2c_new_device
-> >>
-> >> New i2c device not registred.
-> >>
-> >> The module kbd-i2c-ir loaded after i2c_new_device.
-> > 
-> > Jean,
-> > 
-> > There was also a problem reported with the cx23885 driver's I2C
-> > connected IR by Timothy Lenz:
-> > 
-> > http://www.spinics.net/lists/linux-media/msg15122.html
-> > 
-> > The failure mode sounds similar to Dmitri's, but maybe they are
-> > unrelated.
-> > 
-> > I worked a bit with Timothy on IRC and the remote device fails to be
-> > detected whether ir-kbd-i2c is loaded before the cx23885 driver or after
-> > the cx23885 driver.  I haven't found time to do any folow-up and I don't
-> > have any of the hardware in question.
-> > 
-> > Do you have any thoughts or a suggested troubleshooting approach?
-> 
-> Andy/Dmitri,
-> 
-> With the current i2c approach, the bridge driver is responsible for binding
-> an i2c device into the i2c adapter. In other words, the bridge driver should
-> have some logic to know what devices use ir-kbd-i2c, loading it at the right
-> i2c address(es). Manually loading IR shouldn't make any difference.
+Yup, I was indeed aware that tvtime doesn't really work with webcams.
+I wanted to see the list of remaining drivers, and now that I see the
+list (and also came to the conclusion that they were all webcams), I
+feel much more comfortable just dropping V4L1 support.
 
-yes, we have info.addr at saa7134-input and Dmitri did add the Beholder
-IR address there recently.
+> If you want to extend tvtime to use webcams, some work is needed. Probably the easiest
+> way would be to use libv4l, that also does the V4L1 conversion, if needed. This may
+> actually make sense even for a few TV cards like em28xx, where you could use a bayer
+> format with a lower color depth and/or lower resolution, in order to allow viewing two
+> simultaneous streams.
+>
+> So, I suggest you to just drop V4L1 from tvtime and convert it to use libv4l (the conversion
+> is trivial: just replace open/close/ioctl from the V4L2 driver to the libv4l ones). This will
+> allow you to drop the old V4L1 driver from it, and, if you decide later to accept other
+> resolutions and make it more webcam friendly, you'll just need to allow tvtime to accept
+> other video resolutions and disable the de-interlacing setup if a webcam is detected.
 
-> >From Andy's comment, I suspect that such logic is missing at cx23885 for the board
-> you're referring. Not sure if this is the same case of the boards Dmitri is
-> concerned about.
+I have actually been considering converting tvtime to using libv4l for
+a while now, as I need it to support cards that use the HM12
+pixelformat (such as the HVR-1600).  I wanted to rip out the V4L1
+support first to make the conversion more straightforward.
 
-On a first look, Andy seems not to provide the IR addr from the bridge
-and without probing it can't work anymore.
+It really isn't my goal to make tvtime support webcams, although they
+might just start to work as an unintended side-effect.
 
-> It should be noticed that the i2c redesign happened on 2.6.31 or 2.6.32, so,
-> if this is the case, a patch should be sent also to -stable.
-> 
-> In the case of saa7134, Jean worked on a fix for some boards:
-> 	http://patchwork.kernel.org/patch/75883/
-> 
-> He is currently waiting for someone with the affected boards to test it and
-> give some return.
+Devin
 
-That fix should be unrelated and both variants of the patch are not
-anywhere yet.
-
-We can fake this single board in question on a P7131 Dual, but my
-receiver is broken, else all looked O.K., and it seems not worth yet to
-ask Mauro to lose time on faking it, assuming his IR receiver does still
-work.
-
-Here we can simply wait for Daro coming back from skiing, or can even
-apply already Jean's solution per this card without any risk.
-
-Else, do we not check for kernels < 2.6.30 on hg v4l-dvb not using auto
-probing anymore? I tested only on two machines with some 2.6.30 and one
-with 2.6.29 and recent hg v4l-dvb. There at least all was fine, also
-with the patch moving IR init1 to saa7134_input_init2 and also for
-ir-kbd-ic2 for a early Pinnacle 310i under all conditions.
-
-Dmitri, on what kernel and/or SCM version of v4l-dvb you discover that
-flaw? Maybe I can reproduce it then.
-
-Andy has reports, that ir-kbd-i2c is still fine on 2.6.31, but breaks on
-2.6.32. Do we already run out of sync?
-
-Cheers,
-Hermann
-
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
