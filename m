@@ -1,50 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay02.digicable.hu ([92.249.128.188]:38082 "EHLO
-	relay02.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752362Ab0CFJZ2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Mar 2010 04:25:28 -0500
-Message-ID: <4B921F84.3000803@freemail.hu>
-Date: Sat, 06 Mar 2010 10:25:24 +0100
-From: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+Received: from mx1.redhat.com ([209.132.183.28]:12870 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756022Ab0CLPyk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Mar 2010 10:54:40 -0500
+Message-ID: <4B9A63FA.80102@redhat.com>
+Date: Fri, 12 Mar 2010 16:55:38 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Jean Delvare <khali@linux-fr.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Douglas Schilling Landgraf <dougsland@redhat.com>
-CC: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] bttv: fix compiler warning before kernel 2.6.30
-References: <20100216182152.44129e46@hyperion.delvare> <4B921F5F.4000905@freemail.hu>
-In-Reply-To: <4B921F5F.4000905@freemail.hu>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+To: Douglas Schilling Landgraf <dougsland@gmail.com>
+CC: hermann pitton <hermann-pitton@arcor.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: v4l-utils: i2c-id.h and alevt
+References: <201003090848.29301.hverkuil@xs4all.nl> <1268197457.3199.17.camel@pc07.localdom.local> <4B98FABB.1040605@gmail.com>
+In-Reply-To: <4B98FABB.1040605@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+Hi,
 
-Fix the following compiler warnings when compiling before Linux
-kernel version 2.6.30:
-  bttv-i2c.c: In function 'init_bttv_i2c':
-  bttv-i2c.c:440: warning: control reaches end of non-void function
+On 03/11/2010 03:14 PM, Douglas Schilling Landgraf wrote:
+> On 03/10/2010 02:04 AM, hermann pitton wrote:
+>> Hi Hans, both,
+>>
+>> Am Dienstag, den 09.03.2010, 08:48 +0100 schrieb Hans Verkuil:
+>>> It's nice to see this new tree, that should be make it easier to develop
+>>> utilities!
+>>>
+>>> After a quick check I noticed that the i2c-id.h header was copied from the
+>>> kernel. This is not necessary. The only utility that includes this is v4l2-dbg
+>>> and that one no longer needs it. Hans, can you remove this?
+>>>
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
----
-diff -r 41c5482f2dac linux/drivers/media/video/bt8xx/bttv-i2c.c
---- a/linux/drivers/media/video/bt8xx/bttv-i2c.c	Thu Mar 04 02:49:46 2010 -0300
-+++ b/linux/drivers/media/video/bt8xx/bttv-i2c.c	Sat Mar 06 10:22:55 2010 +0100
-@@ -409,7 +409,6 @@
- 	}
- 	if (0 == btv->i2c_rc && i2c_scan)
- 		do_i2c_scan(btv->c.v4l2_dev.name, &btv->i2c_client);
--#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 30)
 
- 	return btv->i2c_rc;
- }
-@@ -417,6 +416,7 @@
- /* Instantiate the I2C IR receiver device, if present */
- void __devinit init_bttv_i2c_ir(struct bttv *btv)
- {
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 30)
- 	if (0 == btv->i2c_rc) {
- 		struct i2c_board_info info;
- 		/* The external IR receiver is at i2c address 0x34 (0x35 for
+I somehow missed the original mail from Hans Verkuil here, so I'm replying here,
+sorry for messing up the threading.
 
+Fixed!
+
+Regards,
+
+Hans
