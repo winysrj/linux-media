@@ -1,51 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:57903 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751106Ab0CFNwn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Mar 2010 08:52:43 -0500
-Message-ID: <4B925E25.2070105@infradead.org>
-Date: Sat, 06 Mar 2010 10:52:37 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from mail-fx0-f219.google.com ([209.85.220.219]:46695 "EHLO
+	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933363Ab0CLR02 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Mar 2010 12:26:28 -0500
+Received: by fxm19 with SMTP id 19so1399160fxm.21
+        for <linux-media@vger.kernel.org>; Fri, 12 Mar 2010 09:26:26 -0800 (PST)
+Message-ID: <4B9A794F.3040204@gmail.com>
+Date: Sat, 13 Mar 2010 03:26:39 +1000
+From: Jed <jedi.theone@gmail.com>
 MIME-Version: 1.0
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
-CC: linux-media@vger.kernel.org, Henrik Kurelid <henrik@kurelid.se>
-Subject: Re: [PATCH] firedtv: add parameter to fake ca_system_ids in CA_INFO
-References: <tkrat.dc97d52c76a2dc07@s5r6.in-berlin.de> <tkrat.a8cdf995cdc06e83@s5r6.in-berlin.de>
-In-Reply-To: <tkrat.a8cdf995cdc06e83@s5r6.in-berlin.de>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Hw capabilities of the HVR-2200
+References: <4AAF568D.1070308@gmail.com> <4AB3B43A.2030103@gmail.com> <4AB3B947.1040202@kernellabs.com> <4AB3C17D.1030300@gmail.com> <4AB3C8E5.4010700@kernellabs.com> <4AB3CDC2.20505@gmail.com> <4B968267.3090808@gmail.com> <4B990E76.2010603@kernellabs.com>
+In-Reply-To: <4B990E76.2010603@kernellabs.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stefan Richter wrote:
+>> 19/09/09 Jed wrote:
+>>>>>>>> 2) Component input for the A/V-in
+>>>>>>
+>>>>>> Yes, this exists on the HVR2250 product only.
+>>>>>
+>>>>> Ah shite, are you sure?
+>>>>> If you look at the specs for the reference card it was there, did they
+>>>>> take it out at the last minute?
+>>>>
+>>>> It's not feature Hauppauge supports on the HVR2200 today. I have a
+>>>> suspicion this may change but I'm neither confirming, denying or
+>>>> announcing anything. It would make sense to officially support
+>>>> component cables on the HVR2200 since the silicon supports it.
+>>>> If/when it does I'm sure it will be mentioned in the forums or on the
+>>>> HVR2200 product packaging.
+>>
+>> Hi Steve, when you said this is not a feature Hauppauge supports.
+>> Did you mean it's not fully enabled physically in the PCB...
+>> Or is it just something they need to add support for in the driver?
+>> If the latter do you know if their policy has changed or is about to?
+>
+> No idea, I have no answer.
 
-> The Digital Everywhere firmware have the shortcoming that ca_info_enq and
-> ca_info are not supported. This means that we can never retrieve the correct
-> ca_system_id to present in the CI message CA_INFO. Currently the driver uses
-> the application id retrieved using app_info_req and app_info, but this id
-> only match the correct ca_system_id as given in ca_info in some cases.
-> This patch adds a parameter to the driver in order for the user to override
-> what will be returned in the CA_INFO CI message. Up to four ca_system_ids can
-> be specified.
-> This is needed for users with CAMs that have different manufacturer id and
-> ca_system_id and that uses applications that take this into account, like
-> MythTV.
+Considering that in the specs for the reference card it was highlighted
+as part of the silicon... Wouldn't it be safe to assume that it's
+something that'd be unlocked by drivers?
 
-This seems an ugly workaround. The better seems to patch MythTV to accept a different
-CAM.
+But if that were true, what is their motivation in not wanting to enable
+it? (assuming they still haven't)
 
-> +static int num_fake_ca_system_ids;
-...
-> +		for (i = 0; i < num_fake_ca_system_ids; i++) {
-> +			app_info[4 + i * 2] =
-> +				(fake_ca_system_ids[i] >> 8) & 0xff;
-...
+>>>>>>>> 3) Hw encode bypass for A/V-in
+>>>>>>
+>>>>>> No idea. Regardless of whether it does or does not I wouldn't plan to
+>>>>>> add basic raw TV support to the driver, without going through the
+>>>>>> encoder.
+>>>>>
+>>>>> Why do you rule it out unequivocally, is it just because I've annoyed
+>>>>> you? :-(
+>>>>
+>>>> Raw analog TV isn't a high priority feature on my mental check-list.
+>>>> Analog TV via the encoder is much more interesting and applicable to
+>>>> many people.
+>>
+>> Assuming that progress has been made on analogue to
+>> h.263/mpeg4/VC-1/DivX/Xvid via the A/V-in encoder.
+>> Is this still considered a low priority?
+>
+> Raw analog is still very low down any list I have for the HVR22xx driver.
+>
+>>
+>> Has progress been made on hw encode via A/V-in?
+>> I'm "finally" putting my entire system together soon, can't wait!
+>> Looking forward to seeing how everything has progressed.
+>> I'll be sure to do some donations once I'm up & running!
+>
+> The current driver supports DTV only. I have no ETA for analog on the
+> HVR22xx driver. If you need analog support then the HVR22xx isn't the
+> right product for you.
 
-NAK. If someone put an arbitrary high value for num_fake_ca_system_id's, it will write outside
-the app_info array space, as the num_fake_ca_system_ids is not validated against the size
-of app_info. Also, it makes no sense a negative value for this parameter.
-
--- 
-
-Cheers,
-Mauro
