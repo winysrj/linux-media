@@ -1,167 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www49.your-server.de ([213.133.104.49]:60879 "EHLO
-	www49.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753740Ab0CXRTI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Mar 2010 13:19:08 -0400
-Received: from [78.46.5.203] (helo=sslproxy01.your-server.de)
-	by www49.your-server.de with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.69)
-	(envelope-from <mlohse@motama.com>)
-	id 1NuUET-0003D0-Ip
-	for linux-media@vger.kernel.org; Wed, 24 Mar 2010 18:19:05 +0100
-Received: from [188.107.127.143] (helo=[192.168.1.33])
-	by sslproxy01.your-server.de with esmtpsa (TLS-1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.63)
-	(envelope-from <mlohse@motama.com>)
-	id 1NuUXe-0001mH-Az
-	for linux-media@vger.kernel.org; Wed, 24 Mar 2010 18:38:54 +0100
-Message-ID: <4BAA4982.40202@motama.com>
-Date: Wed, 24 Mar 2010 18:18:58 +0100
-From: Marco Lohse <mlohse@motama.com>
+Received: from mx1.redhat.com ([209.132.183.28]:51729 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S936432Ab0CMBYp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Mar 2010 20:24:45 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2D1Oipg021519
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 12 Mar 2010 20:24:44 -0500
+Message-ID: <4B9AE956.203@redhat.com>
+Date: Fri, 12 Mar 2010 22:24:38 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Problems with ngene based DVB cards (Digital Devices Cine S2
- Dual 	DVB-S2 , Mystique SaTiX S2 Dual)
-References: <4BA10639.3000407@motama.com> <4BA1F9C6.3020807@motama.com>	 <829197381003180709t26f76b38y7e641b8c12a2d33d@mail.gmail.com>	 <4BA2419A.4070608@motama.com> <829197381003180812n7dfe92e7v236e50d6ab7bdc0@mail.gmail.com> <4BA88B5A.3040204@motama.com> <4BA88EBD.7060607@motama.com>
-In-Reply-To: <4BA88EBD.7060607@motama.com>
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: pushes at v4l-utils tree
+References: <4B99891E.9010406@redhat.com> <4B9A62B6.7090004@redhat.com> <4B9A962A.2020407@redhat.com>
+In-Reply-To: <4B9A962A.2020407@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Marco Lohse wrote:
-> Marco Lohse wrote:
->> Devin Heitmueller wrote:
->> [..]
->>> Hi Marco,
+Mauro Carvalho Chehab wrote:
+> Hans de Goede wrote:
+>> Hi,
+>>
+>> On 03/12/2010 01:21 AM, Mauro Carvalho Chehab wrote:
+>>> Hi Hans,
 >>>
->>> Ok, great.  Like I said, I will see if I can reproduce it here, as
->>> that will help narrow down whether it's really an issue with the ngene
->>> bridge, or whether it's got something to do with that particular
->>> bridge/demod/tuner combination.
+>>> As we've agreed that the idea is to allow multiple people to commit at
+>>> v4l-utils,
+>>> today, I've added 3 commits at v4l-utils tree (2 keycode-related and 1
+>>> is .gitignore
+>>> stuff). One of the reasons were to test the viability for such commits.
 >>>
->> We made some more tests and found some additional issues that we would
->> like to report.
->>
+>>> I've temporarily enabled the same script that we use for upstream
+>>> patches to
+>>> generate patches against linuxtv-commits ML.
+>>>
+>>>  From my experiences, I have some notes:
+>>>     1) git won't work fine if more than one is committing at the same
+>>> tree.
+>>> The reason is simple: it won't preserve the same group as the previous
+>>> commits. So,
+>>> the next committer will have troubles if we allow multiple committers;
+>>>
+>> I assume you are talking about some issues with permissions on the
+>> server side here ?
 > 
-> Sorry, I forgot the attachment (modified szap-s2)
-> 
->> Have fun, Marco
->>
->> *Problem A revisited * *****************************
->>
->> It was suggested that due to a bug the dvr should never be closed (as a
->> work-around)
->>
->> How does this affect channel tuning times?
->>
->> Test (using the latest version of the modified szap-s2)
->>
->> 0) su -c "rmmod ngene && modprobe ngene one_adapter=0"
->>
->> 1) Run szap-s2 using a channels.conf with "Das Erste" and "ZDF" on
->> different transponders
->>
->> szap-s2 -S 1 -H -c channels_DVB-S2_transponder_switch.conf -a 0 -n 1 -i
->> reading channels from file 'channels_DVB-S2_transponder_switch.conf'
->>
->>>>> Das Erste
->> zapping to 1 'Das Erste':
->> delivery DVB-S2, modulation QPSK
->> sat 0, frequency 11836 MHz H, symbolrate 27500000, coderate auto,
->> rolloff 0.35
->> vpid 0x0065, apid 0x0066, sid 0x0068
->> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->> Opened frontend
->> Opened video demux
->> Opened audio demux
->> status 1f | signal  69% | snr  67% | ber 1 | unc -2 | FE_HAS_LOCK
->> Delay zap_to : 0.586872
->>
->>>>> ZDF
->> zapping to 2 'ZDF':
->> delivery DVB-S2, modulation QPSK
->> sat 0, frequency 11953 MHz H, symbolrate 27500000, coderate auto,
->> rolloff 0.35
->> vpid 0x006e, apid 0x0078, sid 0x0082
->> status 1f | signal  67% | snr  63% | ber 1 | unc -2 | FE_HAS_LOCK
->> Delay zap_to : 0.580473
->>
->>>>> Das Erste
->> zapping to 1 'Das Erste':
->> delivery DVB-S2, modulation QPSK
->> sat 0, frequency 11836 MHz H, symbolrate 27500000, coderate auto,
->> rolloff 0.35
->> vpid 0x0065, apid 0x0066, sid 0x0068
->> status 1f | signal  69% | snr  67% | ber 1 | unc -2 | FE_HAS_LOCK
->> Delay zap_to : 0.553754
->>
->> => Good, you will see low tuning times.
->>
->> 2) in parallel to 1) - and without terminating 1) - run a second
->> instance of szap-s2 that reads from the device
->>
->> szap-s2 -S 1 -H -c channels_DVB-S2_transponder_switch.conf -a 1 -n 1 -r
->> reading channels from file 'channels_DVB-S2_transponder_switch.conf'
->> zapping to 1 'Das Erste':
->> delivery DVB-S2, modulation QPSK
->> sat 0, frequency 11836 MHz H, symbolrate 27500000, coderate auto,
->> rolloff 0.35
->> vpid 0x0065, apid 0x0066, sid 0x0068
->> using '/dev/dvb/adapter1/frontend0' and '/dev/dvb/adapter1/demux0'
->> Opened frontend
->> Opened video demux
->> Opened audio demux
->> ..
->>
->> 3) while 2) is running, go back to 1) and tune to different transponders
->> again:
->>
->>>>> ZDF
->> zapping to 2 'ZDF':
->> delivery DVB-S2, modulation QPSK
->> sat 0, frequency 11953 MHz H, symbolrate 27500000, coderate auto,
->> rolloff 0.35
->> vpid 0x006e, apid 0x0078, sid 0x0082
->> status 1f | signal  67% | snr  63% | ber 1 | unc -2 | FE_HAS_LOCK
->> Delay zap_to : 1.774598
->>
->>>>> Das Erste
->> zapping to 1 'Das Erste':
->> delivery DVB-S2, modulation QPSK
->> sat 0, frequency 11836 MHz H, symbolrate 27500000, coderate auto,
->> rolloff 0.35
->> vpid 0x0065, apid 0x0066, sid 0x0068
->> status 1f | signal  69% | snr  67% | ber 1 | unc -2 | FE_HAS_LOCK
->> Delay zap_to : 1.772805
->>
->> => Not good, whenver you use both tuners you will see tuning times to
->> increase from approx. 0.5 secs to 1.7 secs.
->>
+> Yes. The new objects and the touched files got a different group ownership
+> after git push. I had to manually fix them at the server.
 
-Was anyone able to reproduce the problem with the increased tuning times?
+I added a hook that will likely fix it. As I have a few more changes to ir-keytable,
+I'll be sending it directly and see if the permissions are properly fixed.
 
-Thank you for your comments.
+Please, don't upgrade the version yet just due to keytable, as I'm still working on
+more keytable patches, to handle the new uevent attributes (to match the IR core patches
+I posted earlier today).
 
-Have fun, Marco
+-- 
 
->>
->> *Problem B revisited * *****************************
->>
->> We also found that when reading data from the dvr device immediately
->> after tuning was completed (e.g. the lock was successful), then approx.
->> once in 50 iterations, we still get "old" data from the device. With
->> "old" I mean from the transponder previously tuned to.
->>
->> This results, for example, in the wrong "old" PAT received first.
->>
->> Work-around: Simple and annoying. Add a sleep(1) before starting to read
->> from device.
->>
->> *Remark*
->>
->> Both problems can _not_ be reproduced with any other board we tested
->> (Tevii, KNC, ..)
->>
->>
+Cheers,
+Mauro
