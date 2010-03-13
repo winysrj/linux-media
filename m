@@ -1,97 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1534 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751574Ab0C1QDE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Mar 2010 12:03:04 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: What would be a good time to move subdev drivers to a subdev directory?
-Date: Sun, 28 Mar 2010 18:03:22 +0200
-Cc: linux-media@vger.kernel.org
-References: <201003281224.17678.hverkuil@xs4all.nl> <4BAF77F7.3070205@redhat.com>
-In-Reply-To: <4BAF77F7.3070205@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:25911 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758166Ab0CMMdn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Mar 2010 07:33:43 -0500
+Message-ID: <4B9B8665.9080706@redhat.com>
+Date: Sat, 13 Mar 2010 13:34:45 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Chicken Shack <chicken.shack@gmx.de>
+CC: linux-media@vger.kernel.org,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: v4l-utils, dvb-utils, xawtv and alevt
+References: <201003090848.29301.hverkuil@xs4all.nl>	 <1268197457.3199.17.camel@pc07.localdom.local> <4B98FABB.1040605@gmail.com>	 <829197381003110631v52410d27m7e13d5438e09cd13@mail.gmail.com>	 <4B9A6089.4060300@redhat.com>	 <1a297b361003120820h768bc388n81077a4b6cfe71e6@mail.gmail.com>	 <1268421039.1971.46.camel@brian.bconsult.de>  <4B9B35E4.7070702@redhat.com> <1268475324.1752.59.camel@brian.bconsult.de>
+In-Reply-To: <1268475324.1752.59.camel@brian.bconsult.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201003281803.22405.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 28 March 2010 17:38:31 Mauro Carvalho Chehab wrote:
-> Hans Verkuil wrote:
-> > Hi Mauro,
-> > 
-> > Currently drivers/media/video is a mix of subdev drivers and bridge/platform
-> > drivers. I think it would be good to create a drivers/media/subdev directory
-> > where subdev drivers can go.
-> > 
-> > We discussed in the past whether we should have categories for audio subdevs,
-> > video subdevs, etc. but I think that will cause problems, especially with
-> > future multifunction devices.
-> 
-> Due to the discussions we had on the last time, I'm not so sure that such move
-> would be good: There are some cases where the division of a subdev is more a
-> matter of a logical organization than a physical device division. for example,
-> cx231xx is just one chip, but, as it has internally the same functionalities as
-> a cx2584x, the cx2584x is a subdev used by the driver. There are other similar
-> examples on other IC's and SoC.
+Hi,
 
-I should have mentioned why I think it is a good idea to split it: right now it
-is not clear in media/video what the bridge drivers are and what the subdev
-drivers are.
+On 03/13/2010 11:15 AM, Chicken Shack wrote:
+> Am Samstag, den 13.03.2010, 07:51 +0100 schrieb Hans de Goede:
+>> Hi,
+>>
+>> On 03/12/2010 08:10 PM, Chicken Shack wrote:
+>>> 1. Alevt 1.7.0 is not just another tool, but it is instead a
+>>> self-contained videotext application consisting of three parts:
+>>> a. alevt, b. alevt-date c. alevt-cap
+>>>
+>>> While the packed size of alevt is 78770 the complete size of the
+>>> dvb-apps as a whole ranges around 350000.
+>>>
+>>> I am not against hosting this program at linuxtv.org, but if this
+>>> decision is made the decision should be an intelligent one: alevt is a
+>>> separate tree, and any other choice is simply a dumb one.
+>>> Alevt-1.7.0 needs a lot of external dependencies, while the dvb-apps
+>>> only need the libc6.
+>
+> Good morning Hans,
+>
 
-Note that integrated subdev drivers that are tightly coupled to a bridge or
-platform driver should stay with that driver (in practice these will always
-be in a driver-specific subdirectory), but subdevs that can be used stand-alone
-should (I think) be moved to their own 'subdev' subdirectory.
+Good afternoon :)
 
-It also makes no sense to me to mix bridge drivers and subdev drivers in one
-directory. They are simply different types of driver.
+> Definitely not.
+> 3.95 is analogue only and thus is discontinued as version.
+> 4.0 pre is the alpha-state tarball that you can get here:
+>
 
-I don't care whether they are moved to media/subdev or media/video/subdev. The
-latter is probably easier.
- 
-> I remember that Oliver argued on that time that the better would be to reduce the
-> number of subdirs, instead of increasing. On that discussions, I got convinced 
-> that he was right, but maybe we have some new reasons to create a subdev dir.
-> 
-> So, let's get some feedback from developers about this again. Whatever decided,
-> we should clearly document the used criteria, to avoid having drivers misplaced.
+Ah, ok. Well I must honestly say I've no interest in that I'm doing
+package maintenance for the 3.95 release in Fedora and I know it
+needs a lot of patching, AFAIK other distros are doing the same,
+so it would be good to have / become a new upstream for xawtv 3.95,
+to have a place to gather all the distro patches mostly and release
+that, and where new patches if needed can accumulate and new
+releases can be done from.
 
-1) Reusable subdev drivers go into the subdev directory.
-2) Subdev drivers that are tightly coupled to a bridge or platform driver go
-into the subdirectory containing that bridge or platform driver.
 
-Rule 1 applies to roughly 50 subdev drivers.
+> http://dl.bytesex.org/cvs-snapshots/xawtv-20081014-100645.tar.gz
+>
+> Inofficial end of development somewhere in 2005 or 2006, last external
+> contribution from October 2008.
+>
+> 4.0 pre introduced DVB support for mtt (videotext) and the main program
+> xawtv.
+> It also introduced this disgusting slow channel scanner called alexplore
+> (DVB only) and dvbrowse as a complete new EPG solution for DVB only.
+> And it introduced dvbradio which would be excellent after some
+> investigation (->  learn to interpret channels.conf files).
+>
 
-I wonder if for rule 2 we should require that subdev drivers would go into a
-<bridge driver>/subdev directory. It would help in keeping track of what is what,
-but this may be overkill.
- 
-> Ah, as we're talking about drivers directory, I'm intending to move the Remote
-> Controller common code to another place, likely drivers/input/rc or drivers/rc.
-> The idea is to use this subsystem for pure input devices as well. By keeping it
-> at drivers/media, it will be missplaced.
-
-Makes sense.
-
-> 
-> > What is your opinion on this, and what would be a good time to start moving
-> > drivers?
-> 
-> If we're doing this change, I prefer to generate the patch by the end of a
-> merge window, after merging from everybody else and being sure that trivial patches
-> also got merged.
-
-OK, makes sense.
- 
-> Comments?
+I see, well if there is an interest in bits of the 4.0 code base, then
+grabbing those bits and having a tree with them and doing regular
+tarbal releases for distro's to consume might be in interesting project
+for some one. I would like to advocate to not call this xawtv, as AFAIK
+all distros are still shipping 3.95, and as you said the xawtv part of 4.0
+is broken so likely would not be included, at which point it
+would be good to no longer call the resulting project xawtv.
 
 Regards,
 
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Hans
