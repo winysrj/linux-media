@@ -1,55 +1,386 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f46.google.com ([74.125.82.46]:41714 "EHLO
-	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750880Ab0CHRA1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Mar 2010 12:00:27 -0500
-Received: by wwa36 with SMTP id 36so3388371wwa.19
-        for <linux-media@vger.kernel.org>; Mon, 08 Mar 2010 09:00:25 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:53192 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935788Ab0CMU7j (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Mar 2010 15:59:39 -0500
+Message-ID: <4B9BFCB6.4080805@redhat.com>
+Date: Sat, 13 Mar 2010 17:59:34 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <5b9ce2991003080858na3fc76bj52f3a1bc13a9acf6@mail.gmail.com>
-References: <5b9ce2991003080858na3fc76bj52f3a1bc13a9acf6@mail.gmail.com>
-Date: Mon, 8 Mar 2010 18:00:23 +0100
-Message-ID: <5b9ce2991003080900t6626e07fhddb17549ac4b7aa7@mail.gmail.com>
-Subject: updated frequency list for Denmark (DVB-T)
-From: =?ISO-8859-1?Q?Ren=E9_Kjellerup?= <rk.katana.steel@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=0016e6dab05963f36004814d0067
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-input@vger.kernel.org
+Subject: Re: [PATCH] V4L/DVB: ir: Add a link to associate /sys/class/ir/irrcv
+ with the input device
+References: <4B99104B.3090307@redhat.com> <20100311175214.GB7467@core.coreip.homeip.net> <4B99C3D7.7000301@redhat.com> <20100313084157.GD22494@core.coreip.homeip.net>
+In-Reply-To: <20100313084157.GD22494@core.coreip.homeip.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0016e6dab05963f36004814d0067
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Dmitry Torokhov wrote:
+> On Fri, Mar 12, 2010 at 01:32:23AM -0300, Mauro Carvalho Chehab wrote:
+>> Dmitry Torokhov wrote:
+>>> Hi Mauro,
+>>>
+>>> On Thu, Mar 11, 2010 at 12:46:19PM -0300, Mauro Carvalho Chehab wrote:
+>>>> In order to allow userspace programs to autoload an IR table, a link is
+>>>> needed to point to the corresponding input device.
+>>>>
+>>>> $ tree /sys/class/irrcv/irrcv0
+>>>> /sys/class/irrcv/irrcv0
+>>>> |-- current_protocol
+>>>> |-- input -> ../../../pci0000:00/0000:00:0b.1/usb1/1-3/input/input22
+>>>> |-- power
+>>>> |   `-- wakeup
+>>>> |-- subsystem -> ../../../../class/irrcv
+>>>> `-- uevent
+>>>>
+>>>> It is now easy to associate an irrcv device with the corresponding
+>>>> device node, at the input interface.
+>>>>
+>>> I guess the question is why don't you make input device a child of your
+>>> irrcvX device? Then I believe driver core will link them properly. It
+>>> will also ensure proper power management hierarchy.
+>>>
+>>> That probably will require you changing from class_dev into device but
+>>> that's the direction kernel is going to anyway.
+>> Done, see enclosed. It is now using class_register/device_register. The
+>> newly created device for irrcv is used as the parent for input_dev->dev.
+>>
+>> The resulting code looked cleaner after the change ;)
+>>
+> 
+> It is indeed better, however I wonder if current hierarchy expresses the
+> hardware in best way. You currently have irrcv devices grow in parallel
+> with input devices whereas I would expect input devices be children of
+> irrcv devices:
+> 
+> 
+> 	parent (PCI board, USB) -> irrcvX -> input1
+>                                           -> input2
+> 					 ...
+> 
 
-this is all the used frequencies of the Main MUX 1 & 2 transponders
+It is representing it right:
 
-Ren=E9
---
--- as life grows older, I gain experience.
+usb1/1-3 -> irrcv -> irrcv0 -> input7 -> event7
 
---0016e6dab05963f36004814d0067
-Content-Type: application/octet-stream; name=dk-All
-Content-Disposition: attachment; filename=dk-All
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_g6jiim1d0
+The only extra attribute there is the class name "irrcv", but this seems
+coherent with the other classes on this device (dvb, sound, power, video4linux).
 
-IyBEZW5tYXJrLCB3aG9sZSBjb3VudHJ5CiMgQ3JlYXRlZCBmcm9tIGh0dHA6Ly93d3cuZGlnaS10
-di5kay9JbmRob2xkX29nX3RpbGJ1ZC9mcmVrdmVuc2VyLmFzcAojIGFuZCBodHRwOi8vd3d3LmRp
-Z2ktdHYuZGsvU2VuZGVuZXR0ZXRzX29wYnlnbmluZy8KIyBUIGZyZXEgYncgZmVjX2hpIGZlY19s
-byBtb2QgdHJhbnNtaXNzaW9uLW1vZGUgZ3VhcmQtaW50ZXJ2YWwgaGllcmFyY2h5ClQgNTA2MDAw
-MDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS80IE5PTkUKVCA1MTQwMDAwMDAgOE1IeiAyLzMg
-Tk9ORSBRQU02NCA4ayAxLzQgTk9ORQpUIDUzODAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhr
-IDEvNCBOT05FClQgNTQ2MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS80IE5PTkUKVCA1
-NTQwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzQgTk9ORQpUIDU3ODAwMDAwMCA4TUh6
-IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FClQgNjAyMDAwMDAwIDhNSHogMi8zIE5PTkUgUUFN
-NjQgOGsgMS80IE5PTkUKVCA2MjYwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzQgTk9O
-RQpUIDY0MjAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FClQgNjU4MDAwMDAw
-IDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS80IE5PTkUKVCA2OTgwMDAwMDAgOE1IeiAyLzMgTk9O
-RSBRQU02NCA4ayAxLzQgTk9ORQpUIDcwNjAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEv
-NCBOT05FClQgNzE0MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS80IE5PTkUKVCA3MzAw
-MDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzQgTk9ORQpUIDczODAwMDAwMCA4TUh6IDIv
-MyBOT05FIFFBTTY0IDhrIDEvNCBOT05FClQgNzU0MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQg
-OGsgMS80IE5PTkUKVCA3NjIwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzQgTk9ORQpU
-IDc3MDAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FClQgNzc4MDAwMDAwIDhN
-SHogMi8zIE5PTkUgUUFNNjQgOGsgMS80IE5PTkUK
---0016e6dab05963f36004814d0067--
+The created tree is:
+
+$ tree /sys/class/irrcv/
+/sys/class/irrcv/
+`-- irrcv0 -> ../../devices/pci0000:00/0000:00:0b.1/usb1/1-3/irrcv/irrcv0
+
+$ tree /sys/devices/pci0000:00/0000:00:0b.1/usb1/1-3/
+/sys/devices/pci0000:00/0000:00:0b.1/usb1/1-3/
+|-- 1-3:1.0
+|   |-- bAlternateSetting
+|   |-- bInterfaceClass
+|   |-- bInterfaceNumber
+|   |-- bInterfaceProtocol
+|   |-- bInterfaceSubClass
+|   |-- bNumEndpoints
+|   |-- driver -> ../../../../../../bus/usb/drivers/em28xx
+|   |-- ep_81
+|   |   |-- bEndpointAddress
+|   |   |-- bInterval
+|   |   |-- bLength
+|   |   |-- bmAttributes
+|   |   |-- direction
+|   |   |-- interval
+|   |   |-- power
+|   |   |   `-- wakeup
+|   |   |-- type
+|   |   |-- uevent
+|   |   `-- wMaxPacketSize
+|   |-- ep_82
+|   |   |-- bEndpointAddress
+|   |   |-- bInterval
+|   |   |-- bLength
+|   |   |-- bmAttributes
+|   |   |-- direction
+|   |   |-- interval
+|   |   |-- power
+|   |   |   `-- wakeup
+|   |   |-- type
+|   |   |-- uevent
+|   |   `-- wMaxPacketSize
+|   |-- ep_83
+|   |   |-- bEndpointAddress
+|   |   |-- bInterval
+|   |   |-- bLength
+|   |   |-- bmAttributes
+|   |   |-- direction
+|   |   |-- interval
+|   |   |-- power
+|   |   |   `-- wakeup
+|   |   |-- type
+|   |   |-- uevent
+|   |   `-- wMaxPacketSize
+|   |-- ep_84
+|   |   |-- bEndpointAddress
+|   |   |-- bInterval
+|   |   |-- bLength
+|   |   |-- bmAttributes
+|   |   |-- direction
+|   |   |-- interval
+|   |   |-- power
+|   |   |   `-- wakeup
+|   |   |-- type
+|   |   |-- uevent
+|   |   `-- wMaxPacketSize
+|   |-- modalias
+|   |-- power
+|   |   `-- wakeup
+|   |-- subsystem -> ../../../../../../bus/usb
+|   |-- supports_autosuspend
+|   |-- uevent
+|   `-- video4linux
+|       |-- vbi2
+|       |   |-- dev
+|       |   |-- device -> ../../../1-3:1.0
+|       |   |-- index
+|       |   |-- name
+|       |   |-- power
+|       |   |   `-- wakeup
+|       |   |-- subsystem -> ../../../../../../../../class/video4linux
+|       |   `-- uevent
+|       `-- video2
+|           |-- dev
+|           |-- device -> ../../../1-3:1.0
+|           |-- index
+|           |-- name
+|           |-- power
+|           |   `-- wakeup
+|           |-- subsystem -> ../../../../../../../../class/video4linux
+|           `-- uevent
+|-- authorized
+|-- bcdDevice
+|-- bConfigurationValue
+|-- bDeviceClass
+|-- bDeviceProtocol
+|-- bDeviceSubClass
+|-- bmAttributes
+|-- bMaxPacketSize0
+|-- bMaxPower
+|-- bNumConfigurations
+|-- bNumInterfaces
+|-- busnum
+|-- configuration
+|-- descriptors
+|-- dev
+|-- devnum
+|-- devpath
+|-- driver -> ../../../../../bus/usb/drivers/usb
+|-- dvb
+|   |-- dvb0.demux0
+|   |   |-- dev
+|   |   |-- device -> ../../../1-3
+|   |   |-- power
+|   |   |   `-- wakeup
+|   |   |-- subsystem -> ../../../../../../../class/dvb
+|   |   `-- uevent
+|   |-- dvb0.dvr0
+|   |   |-- dev
+|   |   |-- device -> ../../../1-3
+|   |   |-- power
+|   |   |   `-- wakeup
+|   |   |-- subsystem -> ../../../../../../../class/dvb
+|   |   `-- uevent
+|   |-- dvb0.frontend0
+|   |   |-- dev
+|   |   |-- device -> ../../../1-3
+|   |   |-- power
+|   |   |   `-- wakeup
+|   |   |-- subsystem -> ../../../../../../../class/dvb
+|   |   `-- uevent
+|   `-- dvb0.net0
+|       |-- dev
+|       |-- device -> ../../../1-3
+|       |-- power
+|       |   `-- wakeup
+|       |-- subsystem -> ../../../../../../../class/dvb
+|       `-- uevent
+|-- ep_00
+|   |-- bEndpointAddress
+|   |-- bInterval
+|   |-- bLength
+|   |-- bmAttributes
+|   |-- direction
+|   |-- interval
+|   |-- power
+|   |   `-- wakeup
+|   |-- type
+|   |-- uevent
+|   `-- wMaxPacketSize
+|-- i2c-3
+|   |-- 3-005c
+|   |   |-- driver -> ../../../../../../../bus/i2c/drivers/tvp5150
+|   |   |-- modalias
+|   |   |-- name
+|   |   |-- power
+|   |   |   `-- wakeup
+|   |   |-- subsystem -> ../../../../../../../bus/i2c
+|   |   `-- uevent
+|   |-- 3-0061
+|   |   |-- driver -> ../../../../../../../bus/i2c/drivers/tuner
+|   |   |-- modalias
+|   |   |-- name
+|   |   |-- power
+|   |   |   `-- wakeup
+|   |   |-- subsystem -> ../../../../../../../bus/i2c
+|   |   `-- uevent
+|   |-- delete_device
+|   |-- device -> ../../1-3
+|   |-- name
+|   |-- new_device
+|   |-- power
+|   |   `-- wakeup
+|   |-- subsystem -> ../../../../../../bus/i2c
+|   `-- uevent
+|-- idProduct
+|-- idVendor
+|-- irrcv
+|   `-- irrcv0
+|       |-- current_protocol
+|       |-- device -> ../../../1-3
+|       |-- input7
+|       |   |-- capabilities
+|       |   |   |-- abs
+|       |   |   |-- ev
+|       |   |   |-- ff
+|       |   |   |-- key
+|       |   |   |-- led
+|       |   |   |-- msc
+|       |   |   |-- rel
+|       |   |   |-- snd
+|       |   |   `-- sw
+|       |   |-- device -> ../../irrcv0
+|       |   |-- event7
+|       |   |   |-- dev
+|       |   |   |-- device -> ../../input7
+|       |   |   |-- power
+|       |   |   |   `-- wakeup
+|       |   |   |-- subsystem -> ../../../../../../../../../class/input
+|       |   |   `-- uevent
+|       |   |-- id
+|       |   |   |-- bustype
+|       |   |   |-- product
+|       |   |   |-- vendor
+|       |   |   `-- version
+|       |   |-- modalias
+|       |   |-- name
+|       |   |-- phys
+|       |   |-- power
+|       |   |   `-- wakeup
+|       |   |-- subsystem -> ../../../../../../../../class/input
+|       |   |-- uevent
+|       |   `-- uniq
+|       |-- power
+|       |   `-- wakeup
+|       |-- subsystem -> ../../../../../../../class/irrcv
+|       `-- uevent
+|-- maxchild
+|-- power
+|   |-- active_duration
+|   |-- autosuspend
+|   |-- connected_duration
+|   |-- level
+|   |-- persist
+|   `-- wakeup
+|-- product
+|-- quirks
+|-- remove
+|-- serial
+|-- sound
+|   `-- card1
+|       |-- controlC1
+|       |   |-- dev
+|       |   |-- device -> ../../card1
+|       |   |-- power
+|       |   |   `-- wakeup
+|       |   |-- subsystem -> ../../../../../../../../class/sound
+|       |   `-- uevent
+|       |-- device -> ../../../1-3
+|       |-- id
+|       |-- number
+|       |-- pcmC1D0c
+|       |   |-- dev
+|       |   |-- device -> ../../card1
+|       |   |-- pcm_class
+|       |   |-- power
+|       |   |   `-- wakeup
+|       |   |-- subsystem -> ../../../../../../../../class/sound
+|       |   `-- uevent
+|       |-- power
+|       |   `-- wakeup
+|       |-- subsystem -> ../../../../../../../class/sound
+|       `-- uevent
+|-- speed
+|-- subsystem -> ../../../../../bus/usb
+|-- uevent
+|-- urbnum
+`-- version
+
+
+$ tree /sys/class/irrcv/irrcv0/
+/sys/class/irrcv/irrcv0/
+|-- current_protocol
+|-- device -> ../../../1-3
+|-- input7
+|   |-- capabilities
+|   |   |-- abs
+|   |   |-- ev
+|   |   |-- ff
+|   |   |-- key
+|   |   |-- led
+|   |   |-- msc
+|   |   |-- rel
+|   |   |-- snd
+|   |   `-- sw
+|   |-- device -> ../../irrcv0
+|   |-- event7
+|   |   |-- dev
+|   |   |-- device -> ../../input7
+|   |   |-- power
+|   |   |   `-- wakeup
+|   |   |-- subsystem -> ../../../../../../../../../class/input
+|   |   `-- uevent
+|   |-- id
+|   |   |-- bustype
+|   |   |-- product
+|   |   |-- vendor
+|   |   `-- version
+|   |-- modalias
+|   |-- name
+|   |-- phys
+|   |-- power
+|   |   `-- wakeup
+|   |-- subsystem -> ../../../../../../../../class/input
+|   |-- uevent
+|   `-- uniq
+|-- power
+|   `-- wakeup
+|-- subsystem -> ../../../../../../../class/irrcv
+`-- uevent
+
+13 directories, 25 files
+
+> This way your PM sequence as follows - input core does its thing and
+> releases all pressed keys, etc, then you can shut off the receiver and
+> then board driver can shut doen the main piece. Otherwise irrcv0 suspend
+> may be racing with input suspend and so forth.
+> 
+> Thanks.
+> 
+
+
+-- 
+
+Cheers,
+Mauro
