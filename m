@@ -1,105 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from blu0-omc2-s26.blu0.hotmail.com ([65.55.111.101]:63042 "EHLO
-	blu0-omc2-s26.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966003Ab0CPGgl convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Mar 2010 02:36:41 -0400
-Message-ID: <BLU198-W28D6F46833CDF4EF68E00B12D0@phx.gbl>
-From: John Selbie <jselbie@hotmail.com>
-To: <laurent.pinchart@ideasonboard.com>,
-	<abu_hurayrah@hidayahonline.org>
-CC: <linux-media@vger.kernel.org>
-Subject: RE: Capturing raw JPEG stream from webcam
-Date: Mon, 15 Mar 2010 23:30:30 -0700
-In-Reply-To: <201003152100.06497.laurent.pinchart@ideasonboard.com>
-References: <4B9AF0A3.4060701@hidayahonline.org>
- <201003151040.04057.laurent.pinchart@ideasonboard.com>
- <4B9E4DBD.8000502@hidayahonline.org>,<201003152100.06497.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from mail1.radix.net ([207.192.128.31]:51948 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933154Ab0CMSxT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Mar 2010 13:53:19 -0500
+Subject: Re: [patch 1/5] drivers/media/video/cx23885 needs kfifo conversion
+From: Andy Walls <awalls@radix.net>
+To: akpm@linux-foundation.org
+Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
+	stefani@seibold.net, stoth@kernellabs.com
+In-Reply-To: <201003112202.o2BM2FgS013122@imap1.linux-foundation.org>
+References: <201003112202.o2BM2FgS013122@imap1.linux-foundation.org>
+Content-Type: text/plain
+Date: Sat, 13 Mar 2010 13:52:14 -0500
+Message-Id: <1268506334.3084.85.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-Hi Basil:
-
-I ran the following command line with my Logitech 5000:
- 
-gst-launch-0.10 v4l2src device=/dev/video0 ! 'image/jpeg, width=640, height=480, framerate=30/1' ! multifilesink location=frame%.4d.jpg
-
-I let it run for 5 seconds or so and then cancel it.  When done I had a bit more than 150+ frames on disk.  Clearly, I'm getting 30 frames per second.
-
-I ran your command line below and compared with the equivalent command line of luvcview.  The weird thing is that luvcview shows nice smooth video with no blur (jpg was the format).  gst-launch at the same configuration just "seems" like a slower frame rate.  Then I dropped down the frame rate of both gst-launch and luvcview to 15fps.  gst-launch looked more like 7-8 fps.  luvcview looked fine.  Switching gst-launch to YUV was a noticeable improvement.
-
-My guess is jpeg decoding mixed with xvimagesink is the issue.  More debuging.  Switching to YUV or the file renderer produces better results.  More debugging is needed.
-
-Might be better to move this thread of discussion over to the GStreamer list.
-
-
-> From: laurent.pinchart@ideasonboard.com
-> To: abu_hurayrah@hidayahonline.org
-> Subject: Re: Capturing raw JPEG stream from webcam
-> Date: Mon, 15 Mar 2010 21:00:05 +0100
-> CC: linux-media@vger.kernel.org
+On Thu, 2010-03-11 at 14:02 -0800, akpm@linux-foundation.org wrote:
+> From: Andrew Morton <akpm@linux-foundation.org>
 > 
-> Hi Basil,
+> linux-next:
 > 
-> On Monday 15 March 2010 16:09:49 Basil Mohamed Gohar wrote:
->> On 03/15/2010 05:40 AM, Laurent Pinchart wrote:
->>> On Saturday 13 March 2010 02:55:47 Basil Mohamed Gohar wrote:
->>>> I originally posted this to the video4linux mailing list, but I've since
->>>> discovered that this is the appropriate place (or so I understand) for
->>>> video4linux questions.  My question is how can I capture the raw JPEG
->>>> image stream (e.g., MJPEG) from my webcam, which reports through v4l2
->>>> that it is capable of.  I am using the gst-launch cli to gstreamer,
->>>> 
->>>> which confirms that my webcam has this capability:
->>>>> image/jpeg, width=(int)640, height=(int)480, framerate=(fraction){
->>>>> 30/1, 25/1, 20/1, 15/1, 10/1, 5/1 }
->>>> 
->>>> And, indeed, I can capture using this capability, but the framerate is
->>>> not at the specified rate, but at a much lower value (half or less).
->>>> So, even if I specify 30fps, I get something less.  I can capture the
->>>> full 30fps when I use one of the yuv modes, though, so it's clearly
->>>> capable of delivering that framerate.
->>>> 
->>>> My webcam is a Logitech QuickCam Pro 5000.  The lsusb output is:
->>>>> 046d:08ce Logitech, Inc. QuickCam Pro 5000
->>>> 
->>>> An example command line I try is as follows:
->>>>> gst-launch-0.10 v4l2src device=/dev/video0 ! 'image/jpeg, width=640,
->>>>> height=480, framerate=30/1' ! jpegdec ! xvimagesink
->>> 
->>> Have you tried disabling auto-exposure ? The camera is allowed to reduce
->>> the frame rate in low-light conditions if auto-exposure is turned on.
->> 
->> Thanks for replying.  I haven't actually tried this yet (I am currently
->> at work), but I do not think this is the issue, because when I choose
->> the YUV-style modes, I can capture at the full framerates.  It's only
->> when I select the image/jpeg mode that I get the lower framerates,
->> despite explicitly requesting the higher ones.
->> 
->> I suppose it's not impossible that the camera is opting for different
->> behavior depending on the mode of the request, but I think that is not
->> likely the case.  I do appreciate the suggestion, though, and I'll try
->> it when I get home.
+> drivers/media/video/cx23885/cx23888-ir.c: In function 'cx23888_ir_irq_handler':
+> drivers/media/video/cx23885/cx23888-ir.c:597: error: implicit declaration of function 'kfifo_put'
+> drivers/media/video/cx23885/cx23888-ir.c: In function 'cx23888_ir_rx_read':
+> drivers/media/video/cx23885/cx23888-ir.c:660: error: implicit declaration of function 'kfifo_get'
+> drivers/media/video/cx23885/cx23888-ir.c: In function 'cx23888_ir_probe':
+> drivers/media/video/cx23885/cx23888-ir.c:1172: warning: passing argument 1 of 'kfifo_alloc' makes pointer from integer without a cast
+> drivers/media/video/cx23885/cx23888-ir.c:1172: warning: passing argument 3 of 'kfifo_alloc' makes integer from pointer without a cast
+> drivers/media/video/cx23885/cx23888-ir.c:1172: warning: assignment makes pointer from integer without a cast
+> drivers/media/video/cx23885/cx23888-ir.c:1178: warning: passing argument 1 of 'kfifo_alloc' makes pointer from integer without a cast
+> drivers/media/video/cx23885/cx23888-ir.c:1178: warning: passing argument 3 of 'kfifo_alloc' makes integer from pointer without a cast
+> drivers/media/video/cx23885/cx23888-ir.c:1178: warning: assignment makes pointer from integer without a cast
 > 
-> It could, but that indeed seems unlikely. The USB descriptors advertise 30fps 
-> in MJPEG mode. Unless the information is wrong (in which case this would be a 
-> firmware bug), 30fps should be achievable.
+> Cc: Stefani Seibold <stefani@seibold.net>
+> DESC
+> drivers/media/video/cx23885: needs kfifo updates
+> EDESC
+> From: Andrew Morton <akpm@linux-foundation.org>
 > 
->> Meanwhile, does anyone else have any other ideas?
+> linux-next again.
 > 
-> -- 
-> Regards,
+> Cc: Stefani Seibold <stefani@seibold.net>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
 > 
-> Laurent Pinchart
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
- 		 	   		  
-_________________________________________________________________
-Hotmail® has ever-growing storage! Don’t worry about storage limits.
-http://windowslive.com/Tutorial/Hotmail/Storage?ocid=TXT_TAGLM_WL_HM_Tutorial_Storage_062009
+>  drivers/media/video/cx231xx/Kconfig |    1 +
+>  drivers/media/video/cx23885/Kconfig |    1 +
+>  2 files changed, 2 insertions(+)
+> 
+> diff -puN drivers/media/video/cx231xx/Kconfig~drivers-media-video-cx23885-needs-kfifo-conversion drivers/media/video/cx231xx/Kconfig
+> --- a/drivers/media/video/cx231xx/Kconfig~drivers-media-video-cx23885-needs-kfifo-conversion
+> +++ a/drivers/media/video/cx231xx/Kconfig
+> @@ -1,6 +1,7 @@
+>  config VIDEO_CX231XX
+>  	tristate "Conexant cx231xx USB video capture support"
+>  	depends on VIDEO_DEV && I2C && INPUT
+> +	depends on BROKEN
+>  	select VIDEO_TUNER
+>  	select VIDEO_TVEEPROM
+>  	select VIDEO_IR
+
+NAck.
+
+What does the cx231xx driver have to do with a cx23885 driver build
+problem?
+
+
+> diff -puN drivers/media/video/cx23885/Kconfig~drivers-media-video-cx23885-needs-kfifo-conversion drivers/media/video/cx23885/Kconfig
+> --- a/drivers/media/video/cx23885/Kconfig~drivers-media-video-cx23885-needs-kfifo-conversion
+> +++ a/drivers/media/video/cx23885/Kconfig
+> @@ -1,6 +1,7 @@
+>  config VIDEO_CX23885
+>  	tristate "Conexant cx23885 (2388x successor) support"
+>  	depends on DVB_CORE && VIDEO_DEV && PCI && I2C && INPUT
+> +	depends on BROKEN
+>  	select I2C_ALGOBIT
+>  	select VIDEO_BTCX
+>  	select VIDEO_TUNER
+> _
+
+You should also Cc: Steve Toth if you are proposing disabling the
+cx23885 driver.
+
+
+Steve,
+
+To bring you up to speed, it looks like someone errantly reverted some
+cx23888-ir.c changes for kfifo from linux-next, when the code in 2.6.33
+was correct.
+
+Regards,
+Andy
+
