@@ -1,19 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx03.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.7])
-	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o2A7oRYe006417
-	for <video4linux-list@redhat.com>; Wed, 10 Mar 2010 02:50:27 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o2A7oEcP029556
-	for <video4linux-list@redhat.com>; Wed, 10 Mar 2010 02:50:14 -0500
-Date: Wed, 10 Mar 2010 08:50:15 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Arno Euteneuer <arno.euteneuer@toptica.com>
-Subject: Re: soc-camera driver for i.MX25
-In-Reply-To: <4B974A71.5030506@toptica.com>
-Message-ID: <Pine.LNX.4.64.1003100849200.4618@axis700.grange>
-References: <4B960AE2.3090803@toptica.com> <4B974A71.5030506@toptica.com>
+Received: from mx2.redhat.com (ext-mx01.rdu.redhat.com [10.11.45.6])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o2DILPgw008299
+	for <video4linux-list@redhat.com>; Sat, 13 Mar 2010 13:21:25 -0500
+Received: from web34408.mail.mud.yahoo.com (web34408.mail.mud.yahoo.com
+	[66.163.178.157])
+	by mx2.redhat.com (8.13.8/8.13.8) with SMTP id o2DILOTT021401
+	for <video4linux-list@redhat.com>; Sat, 13 Mar 2010 13:21:24 -0500
+Message-ID: <701703.28465.qm@web34408.mail.mud.yahoo.com>
+References: <737952.62741.qm@web34405.mail.mud.yahoo.com>
+	<829197381003130931m4b3c0d3doa17cb57cea70b62@mail.gmail.com>
+Date: Sat, 13 Mar 2010 10:14:43 -0800 (PST)
+From: Muppet Man <muppetman4662@yahoo.com>
+Subject: Re: support for hauppauge wintv-hvr 950Q
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+In-Reply-To: <829197381003130931m4b3c0d3doa17cb57cea70b62@mail.gmail.com>
 MIME-Version: 1.0
 Cc: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
@@ -29,41 +30,43 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, 10 Mar 2010, Arno Euteneuer wrote:
+Greetings,
+Yes, I rebooted after installing the code.  I do see the device now, but it was odd because I did not see it before (and I rebooted numerous times).
+Thanks!
 
-> Thanks for your interest!
-> 
-> > Nice, thanks for the patch! Now, you'd have to formalise the submission -
-> > add your Signed-off-by line, provide a suitable patch description.
-> Ok. That sounds like the easy part ;)
-> 
-> > More
-> > importantly, it certainly has to be updated for 2.6.32 and 2.6.33 - the
-> > biggest change since 2.6.31 has been the conversion to the v4l2-subdev
-> > API, and a smaller one - the addition of the mediabus API.
-> I already suspected that I have to update it :D Currently I'm using a 2.6.31
-> kernel that has been patched with a BSP from the board supplier. So, I have to
-> first update these patches in order to be able to run my system with a current
-> kernel,I guess. I will try that ...
 
-Good, looking forward to an updated patch;)
 
-> > For a single
-> > driver these are not very big changes, I could help you with them, but you
-> > certainly would have to re-test your setup with the current kernel. Would
-> > you be able to do that? And then, of course, we'd also have to pass your
-> > driver through the usual review rounds.
-> > 
-> Thanks for your encouraging answer. I never before submitted a driver and any
-> help is highly appreciated.
+________________________________
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Muppet Man <muppetman4662@yahoo.com>
+Cc: video4linux-list@redhat.com
+Sent: Sat, March 13, 2010 11:31:30 AM
+Subject: Re: support for hauppauge wintv-hvr 950Q
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+On Sat, Mar 13, 2010 at 11:50 AM, Muppet Man <muppetman4662@yahoo.com> wrote:
+> Greetings all,
+> I purchased a hauppauge wintv-hvr 950Q.  I downloaded and installed the lastest drivers from the v4l website.
+>
+> When attempting to use with TVtime, the only "video" device I can find is my webcam.
+> When running lsusb, this is what I get:
 
+Hello,
+
+Did you reboot after installing the code?  Did you install the code
+using the instructions at http://linuxtv.org/repo?
+
+After the device is plugged in, you should see a new /dev/video device
+appear.  If not, then the driver did not load.
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
+
+
+
+      
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
