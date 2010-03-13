@@ -1,20 +1,21 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:10165 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:43862 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750912Ab0CLPhN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Mar 2010 10:37:13 -0500
-Message-ID: <4B9A5FE7.9030504@redhat.com>
-Date: Fri, 12 Mar 2010 16:38:15 +0100
+	id S1753249Ab0CMGgM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Mar 2010 01:36:12 -0500
+Received: from int-mx03.intmail.prod.int.phx2.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2D6aB2e007593
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 13 Mar 2010 01:36:11 -0500
+Message-ID: <4B9B3417.7020008@redhat.com>
+Date: Sat, 13 Mar 2010 07:43:35 +0100
 From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	linux-media@vger.kernel.org
-Subject: Re: v4l-utils: i2c-id.h and alevt
-References: <201003090848.29301.hverkuil@xs4all.nl> <4B98FABB.1040605@gmail.com> <829197381003110631v52410d27m7e13d5438e09cd13@mail.gmail.com> <201003120827.44814.hverkuil@xs4all.nl>
-In-Reply-To: <201003120827.44814.hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: pushes at v4l-utils tree
+References: <4B99891E.9010406@redhat.com> <4B9A62B6.7090004@redhat.com> <4B9A962A.2020407@redhat.com> <4B9AE956.203@redhat.com>
+In-Reply-To: <4B9AE956.203@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
@@ -22,83 +23,15 @@ List-ID: <linux-media.vger.kernel.org>
 
 Hi,
 
-On 03/12/2010 08:27 AM, Hans Verkuil wrote:
-> On Thursday 11 March 2010 15:31:32 Devin Heitmueller wrote:
->> On Thu, Mar 11, 2010 at 9:14 AM, Douglas Schilling Landgraf
->> <dougsland@gmail.com>  wrote:
->>> On 03/10/2010 02:04 AM, hermann pitton wrote:
->>>> Hi Hans, both,
->>>>
->>>> Am Dienstag, den 09.03.2010, 08:48 +0100 schrieb Hans Verkuil:
->>>>> It's nice to see this new tree, that should be make it easier to develop
->>>>> utilities!
->>>>>
->>>>> After a quick check I noticed that the i2c-id.h header was copied from the
->>>>> kernel. This is not necessary. The only utility that includes this is v4l2-dbg
->>>>> and that one no longer needs it. Hans, can you remove this?
->>>>>
->>>>> The second question is whether anyone would object if alevt is moved from
->>>>> dvb-apps to v4l-utils? It is much more appropriate to have that tool in
->>>>> v4l-utils.
->>>>
->>>> i wonder that this stays such calm, hopefully a good sign.
->>>>
->>>> In fact alevt analog should come with almost every distribution, but the
->>>> former alevt-dvb, named now only alevt, well, might be ok in some
->>>> future, is enhanced for doing also dvb-t-s and hence there ATM.
->>>>
->>>>> Does anyone know of other unmaintained but useful tools that we might merge
->>>>> into v4l-utils? E.g. xawtv perhaps?
->>>>
->>>> If for xawtv could be some more care, ships also since close to ever
->>>> with alevtd, that would be fine, but I'm not sure we are talking about
->>>> tools anymore in such case, since xawtv4x, tvtime and mpeg4ip ;) for
->>>> example are also there and unmaintained.
->>>>
->>>
->>> I think would be nice to hear a word from Devin, which have been working in tvtime. Devin?
->>
->> Sorry, I've been sick for the last couple of days and not actively on email.
->>
->> I don't think it's a good idea to consolidate applications like xawtv
->> and tvtime into the v4l2-utils codebase.  The existing v4l2-utils is
->> nice because it's small and what the packages provides what it says it
->> does - v4l2 *utilities*.  I wouldn't consider full blown tv viewing
->> applications to be "utilities".
->>
->> The apps in question are currently packaged by multiple distros today
->> as standalone packages.  Today distros can decide whether they want
->> the "bloat" associated with large GUI applications just to get the
->> benefits of a couple of command line utilities.  Bundling them
->> together makes that much harder (and would also result in a package
->> with lots of external dependencies on third party libraries).
->>
->> Adding them into v4l2-utils doesn't really solve the real problem -
->> that there are very few people willing to put in the effort to
->> extend/improve these applications (something which, as Douglas pointed
->> out, I'm trying to improve in the case of tvtime).
->
-> For unmaintained applications the problem is that even those people that
-> have patches for them have no easy way to get them applied, precisely because
-> they are unmaintained.
->
-> We as v4l-dvb developers don't have the time to make TV apps, but perhaps if
-> we 'adopted' one unmaintained application and just update that whenever we
-> make new features, then that would be very helpful I think. Or perhaps just
-> provide a place for such applications where there is someone who can take
-> community supplied patches and review and apply them.
->
-> Such an application does not have to be in v4l2-utils, it can have its own
-> tree.
->
-> Anyway, regarding alevt: I believe that the consensus is that it should be
-> moved to v4l2-utils? Or am I wrong?
+On 03/13/2010 02:24 AM, Mauro Carvalho Chehab wrote:
+> Please, don't upgrade the version yet just due to keytable, as I'm still working on
+> more keytable patches, to handle the new uevent attributes (to match the IR core patches
+> I posted earlier today).
 >
 
-I'm not in favor of moving alevt into v4l-utils, if there are
-people who want to pick up its maintenance and host a separate tree for
-it at linuxtv.org including doing regular tarbal releases for upstream to consume
-that would seem a good idea to me.
+Ok,
+
+Note the main reason for the 0.7.91 release was a small libv4l fix which I wanted to get out there.
 
 Regards,
 
