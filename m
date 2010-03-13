@@ -1,120 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:54566 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755360Ab0C3NRE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Mar 2010 09:17:04 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kamil Debski <k.debski@samsung.com>
-Subject: Re: [PATCH/RFC 0/1] v4l: Add support for binary controls
-Date: Tue, 30 Mar 2010 15:17:16 +0200
-Cc: "'Hans Verkuil'" <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Pawel Osciak <p.osciak@samsung.com>, kyungmin.park@samsung.com
-References: <1269856386-29557-1-git-send-email-k.debski@samsung.com> <201003300841.47978.hverkuil@xs4all.nl> <000001cad004$2a770450$7f650cf0$%debski@samsung.com>
-In-Reply-To: <000001cad004$2a770450$7f650cf0$%debski@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201003301517.17422.laurent.pinchart@ideasonboard.com>
+Received: from mail1.radix.net ([207.192.128.31]:49997 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933894Ab0CMQpe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Mar 2010 11:45:34 -0500
+Subject: Re: [linux-dvb] USB1.1 vs. USB2.0
+From: Andy Walls <awalls@radix.net>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+In-Reply-To: <e77013311003120749q5c37f89at5e224f557fde0442@mail.gmail.com>
+References: <e77013311003120749q5c37f89at5e224f557fde0442@mail.gmail.com>
+Content-Type: text/plain
+Date: Sat, 13 Mar 2010 11:45:27 -0500
+Message-Id: <1268498728.3084.16.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kamil,
-
-On Tuesday 30 March 2010 14:26:00 Kamil Debski wrote:
-> > From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> > On Monday 29 March 2010 11:53:05 Kamil Debski wrote:
-> > > Hello,
-> > > 
-> > > This patch introduces new type of v4l2 control - the binary control. It
-> > > will be useful for exchanging raw binary data between the user space and
-> > > the driver/hardware.
-> > > 
-> > > The patch is pretty small – basically it adds a new control type.
-> > > 
-> > > 1.  Reasons to include this new type
-> > > - Some devices require data which are not part of the stream, but there
-> > > are necessary for the device to work e.g. coefficients for
-> > > transformation matrices.
-> > > - String control is not suitable as it suggests that the data is a
-> > > null terminated string. This might be important when printing debug
-> > > information - one might output strings as they are and binary data in
-> > > hex.
-> > > 
-> > > 2. How does the binary control work
-> > > The binary control has been based on the string control. The principle
-> > > of use is the same. It uses v4l2_ext_control structure to pass the
-> > > pointer and size of the data. It is left for the driver to call the
-> > > copy_from_user/copy_to_user function to copy the data.
-> > > 
-> > > 3. About the patch
-> > > The patch is pretty small – it basically adds a new control type.
-> > > 
-> > 
-> > I don't think this is a good idea. Controls are not really meant to be
-> > used as an ioctl replacement.
-> > 
-> > Controls can be used to control the hardware via a GUI (e.g. qv4l2).
-> > Obviously, this will fail for binary controls. Controls can also be used
-> > in cases where it is not known up front which controls are needed. This
-> > typically happens for bridge drivers that can use numerous combinations of
-> > i2c sub-devices. Each subdev can have its own controls.
-> > 
-> > There is a grey area where you want to give the application access to
-> > low-level parameters but without showing them to the end-user. This is
-> > currently not possible, but it will be once the control framework is
-> > finished and once we have the possibility to create device nodes for
-> > subdevs.
-> > 
-> > But what you want is to basically pass whole structs as a control.
-> > That's something that ioctls where invented for. Especially once we have
-> > subdev nodes this shouldn't be a problem.
-> > 
-> > Just the fact that it is easy to implement doesn't mean it should be
-> > done :-)
-> > 
-> > Do you have specific use-cases for your proposed binary control?
+On Fri, 2010-03-12 at 16:49 +0100, Ton Machielsen wrote:
+> Hi all!
+>  
+> When i insert a USB 2.0 device i get the following errors:
 > 
-> Yes, I have. I am working on a driver for a video codec which is using
-> the mem2mem framework. I have to admit it's a pretty difficult
-> hardware to work with. It was one of the reasons for Pawel Osciak
-> to add multiplane support to videobuf.
+> [   93.680054] usb 2-1: new full speed USB device using uhci_hcd and
+> address 3
+> [   93.843342] usb 2-1: configuration #1 chosen from 1 choice
+> [   93.855095] input: HID 18b4:1001
+> as /devices/pci0000:00/0000:00:1d.1/usb2/2-1/2-1:1.0/input/input12
+> [   93.855916] generic-usb 0003:18B4:1001.0002: input,hidraw0: USB HID
+> v1.11 Keyboard [HID 18b4:1001] on usb-0000:00:1d.1-1/input0
+> [   93.866130] dvb-usb: found a 'E3C EC168 DVB-T USB2.0 reference
+> design' in cold state, will try to load a firmware
+> [   93.866151] usb 2-1: firmware: requesting dvb-usb-ec168.fw
+> [   94.212405] dvb-usb: downloading firmware from file
+> 'dvb-usb-ec168.fw'
+> [   94.317243] dvb-usb: found a 'E3C EC168 DVB-T USB2.0 reference
+> design' in warm state.
+> [   94.317401] dvb-usb: This USB2.0 device cannot be run on a USB1.1
+> port. (it lacks a hardware PID filter)
+> [   94.317471] dvb-usb: E3C EC168 DVB-T USB2.0 reference design error
+> while loading driver (-19)
 > 
-> Before decoding, the hardware has to parse the header of the video
-> stream to get all necessary parameters such as the number of buffers,
-> width, height and some internal, codec specific stuff. The video stream
-> is then demultiplexed and divided into encoded frames in software and
-> the hardware can only process one, separated frame at a time.
-> 
-> The whole codec setup cannot be achieved by using VIDIOC_S_FMT call,
-> because hardware requires access to the header data. I wanted to use
-> this binary control to pass the header to the codec after setting the
-> right format with VIDIOC_S_FMT. Then video frames can be easily decoded
-> as a standard calls to QBUF/DQBUF pairs.
+> I've seen this message many times when searching the internet for a
+> solution, but i haven't found the solution yet.
+>  
+> Does anybody know how to solve this?
+>  
+> This is Ubuntu 2.6.32.8-1 on an EeePC 701. And yes, this machine does
+> have USB 2.0 ports.
 
-In that case I have to agree with Hans, a private ioctl is better.
+Remove any external USB hubs and connect the TV capture device directly
+into the port on the computer.
 
-> It is similar for encoding - the basic parameters are set with
-> VIDIOC_S_FMT, then some codec specific/advanced are accessible as
-> standard v4l2 controls. Then the encoding engine is initialized and the
-> hardware returns an header of the output video stream. The header can
-> be acquired by getting the value of the binary control. After that the
-> frame to be encoded is provided and hw returns a single frame of
-> encoded stream.
-> 
-> Using custom ioctls seems appropriate for a hardware specific driver.
-> Whereas the proposed binary control for getting and setting the video
-> stream header could be generic solution and can be used in many drivers
-> for hardware codecs.
+Do you get the same error?
 
-I don't think it would. The format of the data is pretty much hardware 
-specific. If you can make the format generic, then the private ioctl could 
-become generic.
 
-> Do You have any better solution for such device?
+As root, you may want to run 
 
--- 
+# /sbin/lsusb -t
+# /sbin/lsusb -v
+
+To make sure the device is connected to a USB2.0 "High" speed hub, and
+not a USB1.1 "Full" speed hub.
+
 Regards,
+Andy
 
-Laurent Pinchart
+> Thanks,
+>  
+> Ton.
+
+
+
