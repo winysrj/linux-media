@@ -1,95 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:55356 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751826Ab0CIUcr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Mar 2010 15:32:47 -0500
-Message-ID: <4B96B069.5000901@infradead.org>
-Date: Tue, 09 Mar 2010 17:32:41 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:53303 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757987Ab0CMOYA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Mar 2010 09:24:00 -0500
+Received: by bwz1 with SMTP id 1so1789020bwz.21
+        for <linux-media@vger.kernel.org>; Sat, 13 Mar 2010 06:23:58 -0800 (PST)
 MIME-Version: 1.0
-To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-CC: thomas.schorpp@gmail.com, linux-media@vger.kernel.org,
-	Antti Palosaari <crope@iki.fi>
-Subject: Re: Help with RTL2832U DVB-T dongle (LeadTek WinFast DTV Dongle Mini)
-References: <6934ea941003052353n4258600cs78dba8487d203564@mail.gmail.com> <4B93537F.30407@hoogenraad.net> <4B93D751.1020008@gmail.com> <4B956830.6070508@hoogenraad.net>
-In-Reply-To: <4B956830.6070508@hoogenraad.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4B9B31D5.5060603@redhat.com>
+References: <829197381003121211l469c30bfjba077cea028bf680@mail.gmail.com>
+	 <201003122242.06508.hverkuil@xs4all.nl> <4B9B31D5.5060603@redhat.com>
+Date: Sat, 13 Mar 2010 09:23:58 -0500
+Message-ID: <829197381003130623w22133c4eyadff26301381f8ca@mail.gmail.com>
+Subject: Re: Remaining drivers that aren't V4L2?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans de Goede <j.w.r.degoede@hhs.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jan Hoogenraad wrote:
-> Mauro:
-> 
-> Can you remove the VERY OLD branch:
-> http://linuxtv.org/hg/~mchehab/rtl2831/rev/d116540ebaab
-> It is giving some confusion here.
+On Sat, Mar 13, 2010 at 1:33 AM, Hans de Goede <hdegoede@redhat.com> wrote:
+>> usbvideo
+>
+> This actually is a framework for usb video devices a bit like
+> gspca one could say. It supports the following devices:
+>
+> "USB 3com HomeConnect (aka vicam)"
+> "USB IBM (Xirlink) C-it Camera"
+> "USB Konica Webcam support"
+> "USB Logitech Quickcam Messenger"
+>
+> Of which the Logitech Quickcam Messenger has a gspca subdriver
+> now, and is scheduled for removal.
 
-Removed. It would be great if you could work on put it at a good shape,
-in order to allow its merge upstream.
+Now that I see the product list, I realize that I actually have a 3com
+HomeConnect kicking around in a box.  So if nobody gets around to it,
+I could probably kill a few hours and do the conversion (given that
+was a fairly popular product at the time).
 
-> 
-> Thomas & Jan:
-> 
-> I've got the RTL2831 code (mind the last digit) vetted off by LeadTek.
-> For the rtl2832, I haven't had contact with them.
-> 
-> Certainly, Jan could try any of the three archives.
-> I know Antti has thoughts on the rtl2832, I'm sure he knows more.
-> 
-> thomas schorpp wrote:
->> Jan Hoogenraad wrote:
->>> Antti has been working on drivers for the RTL283x.
->>>
->>> http://linuxtv.org/hg/~anttip/rtl2831u
->>> or
->>> http://linuxtv.org/hg/~anttip/qt1010/
->>
->> ~jhoogenraad/rtl2831-r2     rtl2831-r2 development repository: *known
->> working version*     Jan Hoogenraad
->>
->> Should Jan Slaninka try it?
->>>
->>> If you have more information on the RTL2832, I'd be happy to add it at:
->>> http://www.linuxtv.org/wiki/index.php/Rtl2831_devices
->>
->> Nothing on the Realtek website yet.
->>
->>>
->>>
->>> Jan Slaninka wrote:
->>>> Hi,
->>>>
->>>> I'd like to ask for a support with getting LeadTek WindFast DTV Dongle
->>>> mini running on Linux. So far I was able to fetch latest v4l-dvb from
->>>> HG, and successfully compiled module dvb_usb_rtl2832u found in
->>
->>>> 090730_RTL2832U_LINUX_Ver1.1.rar  
->>
->> Can be considered as GPL code then according to
->>
->> http://linuxtv.org/hg/~mchehab/rtl2831/rev/d116540ebaab
->>
->> Patch to make RTL2831U DVB-T USB2.0 DEVICE work, based on RealTek
->> version 080314
->>
->> ~mchehab/rtl2831     rtl2831 development repository with *RealTek GPL
->> code* for rtl2831     Mauro Carvalho Chehab     24 months ago
->>
->> ?
->>
->> y
->> tom
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> 
-> 
+Or would it be better to convert the products to gpsca (I don't
+actually know/understand if that's possible at this point)?
 
+Devin
 
 -- 
-
-Cheers,
-Mauro
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
