@@ -1,69 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:48430 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753725Ab0CSRNk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Mar 2010 13:13:40 -0400
-Date: Fri, 19 Mar 2010 18:13:33 +0100
-From: Steffen Pankratz <kratz00@gmx.de>
+Received: from mx1.redhat.com ([209.132.183.28]:26988 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935670Ab0CMTnz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Mar 2010 14:43:55 -0500
+Message-ID: <4B9BEB3A.3010801@redhat.com>
+Date: Sat, 13 Mar 2010 20:44:58 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
 To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: em28xx - Your board has no unique USB ID and thus need a hint
- to  be detected
-Message-ID: <20100319181333.3352a029@hermes>
-In-Reply-To: <829197381003191007r1055f3dbo58d7712cff7cf19b@mail.gmail.com>
-References: <20100319180129.6fb65141@hermes>
-	<829197381003191007r1055f3dbo58d7712cff7cf19b@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/ph+lwhlIIidH+eWPw+HnACX";
- protocol="application/pgp-signature"; micalg=PGP-SHA1
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans de Goede <j.w.r.degoede@hhs.nl>
+Subject: Re: Remaining drivers that aren't V4L2?
+References: <829197381003121211l469c30bfjba077cea028bf680@mail.gmail.com>	 <201003122242.06508.hverkuil@xs4all.nl> <4B9B31D5.5060603@redhat.com> <829197381003130623w22133c4eyadff26301381f8ca@mail.gmail.com>
+In-Reply-To: <829197381003130623w22133c4eyadff26301381f8ca@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/ph+lwhlIIidH+eWPw+HnACX
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-On Fri, 19 Mar 2010 13:07:23 -0400
-Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
+On 03/13/2010 03:23 PM, Devin Heitmueller wrote:
+> On Sat, Mar 13, 2010 at 1:33 AM, Hans de Goede<hdegoede@redhat.com>  wrote:
+>>> usbvideo
+>>
+>> This actually is a framework for usb video devices a bit like
+>> gspca one could say. It supports the following devices:
+>>
+>> "USB 3com HomeConnect (aka vicam)"
+>> "USB IBM (Xirlink) C-it Camera"
+>> "USB Konica Webcam support"
+>> "USB Logitech Quickcam Messenger"
+>>
+>> Of which the Logitech Quickcam Messenger has a gspca subdriver
+>> now, and is scheduled for removal.
+>
+> Now that I see the product list, I realize that I actually have a 3com
+> HomeConnect kicking around in a box.  So if nobody gets around to it,
+> I could probably kill a few hours and do the conversion (given that
+> was a fairly popular product at the time).
+>
+> Or would it be better to convert the products to gpsca (I don't
+> actually know/understand if that's possible at this point)?
+>
 
-> On Fri, Mar 19, 2010 at 1:01 PM, Steffen Pankratz <kratz00@gmx.de> wrote:
-> > Hi,
-> >
-> > this USB stick is a Pinnacle Pctv Hybrid Pro 320e device
-> > (ID eb1a:2881 eMPIA Technology, Inc.).
-> >
-> > Is there anything else you need to know?
-> <snip>
->=20
-> This was fixed some time ago.  Just install the current v4l-dvb code
-> (instructions can be found at http://linuxtv.org/repo)
+It would be much better to change it into a gspca subdriver, gspca is
+a generic framework for usb webcams, and as such has a lot of code
+which all these devices need shared in place, making the subdrivers
+quite small, and nice to write as you can focus on the actual
+camera specifics instead of on things like getting locking in case of
+hot unplug while an app is streaming right.
 
-This is what I did.
+Regards,
 
-hg tip output:
-
-changeset:   14494:929298149eba
-tag:         tip
-user:        Douglas Schilling Landgraf <dougsland@redhat.com>
-date:        Thu Mar 18 23:47:27 2010 -0300
-summary:     ir-keytable: fix prototype for kernels < 2.6.22
-
-
---=20
-Hermes powered by LFS SVN-20070420 (Linux 2.6.33.1)
-
-Best regards, Steffen Pankratz.
-
---Sig_/ph+lwhlIIidH+eWPw+HnACX
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iEYEARECAAYFAkujsL0ACgkQqmIF0LCII9t8CACfYDl3EGPbyfuNzr9GDIL5lYqw
-gF8AoJDtPL1IDLXZ41IDkYknerjh9DkP
-=K5wv
------END PGP SIGNATURE-----
-
---Sig_/ph+lwhlIIidH+eWPw+HnACX--
+Hans
