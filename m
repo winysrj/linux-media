@@ -1,41 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f219.google.com ([209.85.220.219]:42297 "EHLO
-	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936641Ab0COUJf (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4449 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933489Ab0CMKDu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Mar 2010 16:09:35 -0400
-Received: by fxm19 with SMTP id 19so3605989fxm.21
-        for <linux-media@vger.kernel.org>; Mon, 15 Mar 2010 13:09:34 -0700 (PDT)
-Message-ID: <4B9E93F2.5080503@gmail.com>
-Date: Mon, 15 Mar 2010 21:09:22 +0100
-From: fogna <fogna80@gmail.com>
-MIME-Version: 1.0
-To: Adriano Gigante <adrigiga@yahoo.it>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Sat, 13 Mar 2010 05:03:50 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: Remaining drivers that aren't V4L2?
+Date: Sat, 13 Mar 2010 11:03:50 +0100
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	catimimi@orange.fr
-Subject: Re: terratec hybrid xs fm
-References: <4B9A39E5.6040101@yahoo.it>
-In-Reply-To: <4B9A39E5.6040101@yahoo.it>
-Content-Type: text/plain; charset=ISO-8859-15
+	Hans de Goede <j.w.r.degoede@hhs.nl>
+References: <829197381003121211l469c30bfjba077cea028bf680@mail.gmail.com> <201003122242.06508.hverkuil@xs4all.nl> <4B9B31D5.5060603@redhat.com>
+In-Reply-To: <4B9B31D5.5060603@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201003131103.50333.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Il 03/12/2010 01:56 PM, Adriano Gigante ha scritto:
-> Devin,
-> I know I'm boring...
-> any news about "0072/terratec hybrid xs fm" driver develop progress?
-> Thanks
-> Adri
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-hi, i'm interested too, i've seen catimmi has successfully implemented
-the Cinergy Hybrid T USB XS FR driver, maybe the hardware is very
-similar to the Cinergy Hybrid T USB XS FM ? it will be great to get at
-least dvb-t support.
+On Saturday 13 March 2010 07:33:57 Hans de Goede wrote:
+> > To my knowledge the usbvideo driver is probably the least obscure device
+> > that is still using V4L1.
+> 
+> I think you are confusing the usbvideo driver with the v4l2 usbvision
+> driver, which indeed gets used a lot in usb tv devices.
 
-Thanks bye!
+You are correct. I confused those two. Sorry about that.
+
+> 
+> I think it is ok to drop v4l1 support from tvtime.
+
+I agree.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
