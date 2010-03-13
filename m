@@ -1,223 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:40182 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752192Ab0CWOZc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Mar 2010 10:25:32 -0400
-Message-ID: <4BA8CF58.3080106@infradead.org>
-Date: Tue, 23 Mar 2010 11:25:28 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Dmitri Belimov <d.belimov@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [RESEND, PATCH] Add SPI support to V4L2
-References: <20100317130947.4eb84471@glory.loctelecom.ru>
-In-Reply-To: <20100317130947.4eb84471@glory.loctelecom.ru>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail.gmx.net ([213.165.64.20]:47078 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751824Ab0CMNol (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Mar 2010 08:44:41 -0500
+Subject: Re: v4l-utils, dvb-utils, xawtv and alevt
+From: Chicken Shack <chicken.shack@gmx.de>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: linux-media@vger.kernel.org,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <4B9B8665.9080706@redhat.com>
+References: <201003090848.29301.hverkuil@xs4all.nl>
+	 <1268197457.3199.17.camel@pc07.localdom.local> <4B98FABB.1040605@gmail.com>
+	 <829197381003110631v52410d27m7e13d5438e09cd13@mail.gmail.com>
+	 <4B9A6089.4060300@redhat.com>
+	 <1a297b361003120820h768bc388n81077a4b6cfe71e6@mail.gmail.com>
+	 <1268421039.1971.46.camel@brian.bconsult.de> <4B9B35E4.7070702@redhat.com>
+	 <1268475324.1752.59.camel@brian.bconsult.de>  <4B9B8665.9080706@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 13 Mar 2010 14:43:39 +0100
+Message-ID: <1268487819.2763.27.camel@brian.bconsult.de>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dmitri Belimov wrote:
-> Hi
+Am Samstag, den 13.03.2010, 13:34 +0100 schrieb Hans de Goede:
+> Hi,
 > 
-> Add support SPI bus to v4l2. Useful for control some device with SPI bus like
-> hardware MPEG2 encoders and etc.
-
-Hi Dmitri,
-
-Aplied, thanks.
-
-Next time, please don't use [RESEND] for a new version of the patch. Instead, you may
-name it as [PATCH v2]. The word resend is generally used to mean that you're
-submitting exactly the same patch as before, so, eventually the maintainer
-may apply either copies of the patch on the tree.
-
+> On 03/13/2010 11:15 AM, Chicken Shack wrote:
+> > Am Samstag, den 13.03.2010, 07:51 +0100 schrieb Hans de Goede:
+> >> Hi,
+> >>
+> >> On 03/12/2010 08:10 PM, Chicken Shack wrote:
+> >>> 1. Alevt 1.7.0 is not just another tool, but it is instead a
+> >>> self-contained videotext application consisting of three parts:
+> >>> a. alevt, b. alevt-date c. alevt-cap
+> >>>
+> >>> While the packed size of alevt is 78770 the complete size of the
+> >>> dvb-apps as a whole ranges around 350000.
+> >>>
+> >>> I am not against hosting this program at linuxtv.org, but if this
+> >>> decision is made the decision should be an intelligent one: alevt is a
+> >>> separate tree, and any other choice is simply a dumb one.
+> >>> Alevt-1.7.0 needs a lot of external dependencies, while the dvb-apps
+> >>> only need the libc6.
+> >
+> > Good morning Hans,
+> >
 > 
-> Small patch rework after reply from Hans.
+> Good afternoon :)
 > 
-> diff -r b6b82258cf5e linux/drivers/media/video/v4l2-common.c
-> --- a/linux/drivers/media/video/v4l2-common.c	Thu Dec 31 19:14:54 2009 -0200
-> +++ b/linux/drivers/media/video/v4l2-common.c	Wed Mar 17 04:53:52 2010 +0900
-> @@ -51,6 +51,9 @@
->  #include <linux/string.h>
->  #include <linux/errno.h>
->  #include <linux/i2c.h>
-> +#if defined(CONFIG_SPI)
-> +#include <linux/spi/spi.h>
-> +#endif
->  #include <asm/uaccess.h>
->  #include <asm/system.h>
->  #include <asm/pgtable.h>
-> @@ -1069,6 +1072,66 @@
->  
->  #endif /* defined(CONFIG_I2C) */
->  
-> +#if defined(CONFIG_SPI)
-> +
-> +/* Load a spi sub-device. */
-> +
-> +void v4l2_spi_subdev_init(struct v4l2_subdev *sd, struct spi_device *spi,
-> +		const struct v4l2_subdev_ops *ops)
-> +{
-> +	v4l2_subdev_init(sd, ops);
-> +	sd->flags |= V4L2_SUBDEV_FL_IS_SPI;
-> +	/* the owner is the same as the spi_device's driver owner */
-> +	sd->owner = spi->dev.driver->owner;
-> +	/* spi_device and v4l2_subdev point to one another */
-> +	v4l2_set_subdevdata(sd, spi);
-> +	spi_set_drvdata(spi, sd);
-> +	/* initialize name */
-> +	strlcpy(sd->name, spi->dev.driver->name, sizeof(sd->name));
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_spi_subdev_init);
-> +
-> +struct v4l2_subdev *v4l2_spi_new_subdev(struct v4l2_device *v4l2_dev,
-> +		struct spi_master *master, struct spi_board_info *info)
-> +{
-> +	struct v4l2_subdev *sd = NULL;
-> +	struct spi_device *spi = NULL;
-> +
-> +	BUG_ON(!v4l2_dev);
-> +
-> +	if (info->modalias)
-> +		request_module(info->modalias);
-> +
-> +	spi = spi_new_device(master, info);
-> +
-> +	if (spi == NULL || spi->dev.driver == NULL)
-> +		goto error;
-> +
-> +	if (!try_module_get(spi->dev.driver->owner))
-> +		goto error;
-> +
-> +	sd = spi_get_drvdata(spi);
-> +
-> +	/* Register with the v4l2_device which increases the module's
-> +	   use count as well. */
-> +	if (v4l2_device_register_subdev(v4l2_dev, sd))
-> +		sd = NULL;
-> +
-> +	/* Decrease the module use count to match the first try_module_get. */
-> +	module_put(spi->dev.driver->owner);
-> +
-> +error:
-> +	/* If we have a client but no subdev, then something went wrong and
-> +	   we must unregister the client. */
-> +	if (spi && sd == NULL)
-> +		spi_unregister_device(spi);
-> +
-> +	return sd;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_spi_new_subdev);
-> +
-> +#endif /* defined(CONFIG_SPI) */
-> +
->  /* Clamp x to be between min and max, aligned to a multiple of 2^align.  min
->   * and max don't have to be aligned, but there must be at least one valid
->   * value.  E.g., min=17,max=31,align=4 is not allowed as there are no multiples
-> diff -r b6b82258cf5e linux/drivers/media/video/v4l2-device.c
-> --- a/linux/drivers/media/video/v4l2-device.c	Thu Dec 31 19:14:54 2009 -0200
-> +++ b/linux/drivers/media/video/v4l2-device.c	Wed Mar 17 04:53:52 2010 +0900
-> @@ -21,6 +21,9 @@
->  #include <linux/types.h>
->  #include <linux/ioctl.h>
->  #include <linux/i2c.h>
-> +#if defined(CONFIG_SPI)
-> +#include <linux/spi/spi.h>
-> +#endif
->  #include <linux/videodev2.h>
->  #include <media/v4l2-device.h>
->  #include "compat.h"
-> @@ -100,6 +103,14 @@
->  		}
->  #endif
->  #endif
-> +#if defined(CONFIG_SPI)
-> +		if (sd->flags & V4L2_SUBDEV_FL_IS_SPI) {
-> +			struct spi_device *spi = v4l2_get_subdevdata(sd);
-> +
-> +			if (spi)
-> +				spi_unregister_device(spi);
-> +		}
-> +#endif
->  	}
->  }
->  EXPORT_SYMBOL_GPL(v4l2_device_unregister);
-> diff -r b6b82258cf5e linux/include/media/v4l2-common.h
-> --- a/linux/include/media/v4l2-common.h	Thu Dec 31 19:14:54 2009 -0200
-> +++ b/linux/include/media/v4l2-common.h	Wed Mar 17 04:53:52 2010 +0900
-> @@ -191,6 +191,25 @@
->  
->  /* ------------------------------------------------------------------------- */
->  
-> +/* SPI Helper functions */
-> +#if defined(CONFIG_SPI)
-> +
-> +#include <linux/spi/spi.h>
-> +
-> +struct spi_device;
-> +
-> +/* Load an spi module and return an initialized v4l2_subdev struct.
-> +   The client_type argument is the name of the chip that's on the adapter. */
-> +struct v4l2_subdev *v4l2_spi_new_subdev(struct v4l2_device *v4l2_dev,
-> +		struct spi_master *master, struct spi_board_info *info);
-> +
-> +/* Initialize an v4l2_subdev with data from an spi_device struct */
-> +void v4l2_spi_subdev_init(struct v4l2_subdev *sd, struct spi_device *spi,
-> +		const struct v4l2_subdev_ops *ops);
-> +#endif
-> +
-> +/* ------------------------------------------------------------------------- */
-> +
->  /* Note: these remaining ioctls/structs should be removed as well, but they are
->     still used in tuner-simple.c (TUNER_SET_CONFIG), cx18/ivtv (RESET) and
->     v4l2-int-device.h (v4l2_routing). To remove these ioctls some more cleanup
-> diff -r b6b82258cf5e linux/include/media/v4l2-subdev.h
-> --- a/linux/include/media/v4l2-subdev.h	Thu Dec 31 19:14:54 2009 -0200
-> +++ b/linux/include/media/v4l2-subdev.h	Wed Mar 17 04:53:52 2010 +0900
-> @@ -387,6 +387,8 @@
->  
->  /* Set this flag if this subdev is a i2c device. */
->  #define V4L2_SUBDEV_FL_IS_I2C (1U << 0)
-> +/* Set this flag if this subdev is a spi device. */
-> +#define V4L2_SUBDEV_FL_IS_SPI (1U << 1)
->  
->  /* Each instance of a subdev driver should create this struct, either
->     stand-alone or embedded in a larger struct.
-> diff -r b6b82258cf5e v4l/compat.h
-> --- a/v4l/compat.h	Thu Dec 31 19:14:54 2009 -0200
-> +++ b/v4l/compat.h	Wed Mar 17 04:53:52 2010 +0900
-> @@ -525,5 +525,19 @@
->  #define strcasecmp(a, b) strnicmp(a, b, sizeof(a))
->  #endif
->  
-> +/* Compatibility code for SPI subsystem */
-> +#ifdef _LINUX_SPI_H
-> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 21)
-> +static inline void spi_set_drvdata(struct spi_device *spi, void *data)
-> +{
-> +	dev_set_drvdata(&spi->dev, data);
-> +}
-> +
-> +static inline void spi_get_drvdata(struct spi_device *spi)
-> +{
-> +	return dev_get_drvdata(&spi->dev);
-> +}
-> +#endif
-> +#endif
->  
->  #endif /*  _COMPAT_H */
+> > Definitely not.
+> > 3.95 is analogue only and thus is discontinued as version.
+> > 4.0 pre is the alpha-state tarball that you can get here:
+> >
 > 
-> Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
-> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+> Ah, ok. Well I must honestly say I've no interest in that I'm doing
+> package maintenance for the 3.95 release in Fedora and I know it
+> needs a lot of patching, AFAIK other distros are doing the same,
+> so it would be good to have / become a new upstream for xawtv 3.95,
+> to have a place to gather all the distro patches mostly and release
+> that, and where new patches if needed can accumulate and new
+> releases can be done from.
 > 
 > 
-> With my best regards, Dmitry.
+> > http://dl.bytesex.org/cvs-snapshots/xawtv-20081014-100645.tar.gz
+> >
+> > Inofficial end of development somewhere in 2005 or 2006, last external
+> > contribution from October 2008.
+> >
+> > 4.0 pre introduced DVB support for mtt (videotext) and the main program
+> > xawtv.
+> > It also introduced this disgusting slow channel scanner called alexplore
+> > (DVB only) and dvbrowse as a complete new EPG solution for DVB only.
+> > And it introduced dvbradio which would be excellent after some
+> > investigation (->  learn to interpret channels.conf files).
+> >
 > 
+> I see, well if there is an interest in bits of the 4.0 code base, then
+> grabbing those bits and having a tree with them and doing regular
+> tarbal releases for distro's to consume might be in interesting project
+> for some one. I would like to advocate to not call this xawtv, as AFAIK
+> all distros are still shipping 3.95, and as you said the xawtv part of 4.0
+> is broken so likely would not be included, at which point it
+> would be good to no longer call the resulting project xawtv.
+> 
+> Regards,
+> 
+> Hans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Good afternoon Hans :)
+
+"and as you said the xawtv part of 4.0 is broken so likely would not be
+included, at which point it would be good to no longer call the
+resulting project xawtv."
+
+Pooh! Guess you got me wrong again.....
+
+You can watch TV with xawtv 4.0 pre in analogue mode.
+But if you want to record a film parallely you need
+to execute streamer on the command line, as the graphical support
+for starting the recording session will not work at all.
+
+In DVB mode parallel tasking works.
+The fact that I had many broken recordings can also be due to a
+former bad kernel / bad DVB driver. This happened years ago and
+thus I lost interest in xawtv as a common.
+In the meantime the kernel drivers have become more mature and
+I do not work with the same DVB card any longer.
+Got a better card now and better drivers (Flexcop Technisat).
+In spite of all changes the overlay capabilities of xawtv still remain a mess.
+
+There should be a separate tree for alevt plus one separate tree called
+"hybrid tools" combining all the orphaned software that does not fit into the
+200-liner-scheme of v4l-utils and / or dvb-utils.
+
+Linuxtv.org should not be a cemetery for orphaned software and it shouldn't
+be reduced to a highly specialized milk farm for kernel drivers only where
+the cows go "Mauro, please pull...".
+
+There should be enough appropriate people to establish a functionable service
+mode in which discussed issues also are being put into practice.....
+
+Cheers
+
+Uwe
 
 
--- 
-
-Cheers,
-Mauro
