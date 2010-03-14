@@ -1,79 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:46346 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756264Ab0C3LBn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Mar 2010 07:01:43 -0400
-Date: Tue, 30 Mar 2010 13:01:38 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Jon Smirl <jonsmirl@gmail.com>, Pavel Machek <pavel@ucw.cz>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
-	kraxel@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR system?
-Message-ID: <20100330110138.GA6164@hardeman.nu>
-References: <9e4733910912151229o371ee017tf3640d8f85728011@mail.gmail.com>
- <20091215203300.GL24406@elf.ucw.cz>
- <9e4733910912151245ne442a5dlcfee92609e364f70@mail.gmail.com>
- <9e4733910912151338n62b30af5i35f8d0963e6591c@mail.gmail.com>
- <4BAB7659.1040408@redhat.com>
- <20100326112755.GB5387@hardeman.nu>
- <4BACC769.6020906@redhat.com>
- <20100326160150.GA28804@core.coreip.homeip.net>
- <4BAFE4B7.2030204@redhat.com>
- <4BAFF985.3090703@redhat.com>
+Received: from mail.gmx.net ([213.165.64.20]:36438 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S932291Ab0CNLID (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Mar 2010 07:08:03 -0400
+Date: Sun, 14 Mar 2010 12:08:02 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>,
+	Magnus Damm <damm@opensource.se>
+Subject: Re: [PATCH] V4L: SuperH Video Output Unit (VOU) driver
+In-Reply-To: <201003141123.11963.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1003141143250.4425@axis700.grange>
+References: <Pine.LNX.4.64.1003111121380.4385@axis700.grange>
+ <201003141123.11963.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <4BAFF985.3090703@redhat.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Mar 28, 2010 at 09:51:17PM -0300, Mauro Carvalho Chehab wrote:
+Hi Hans
+
+On Sun, 14 Mar 2010, Hans Verkuil wrote:
+
+> Hi Guennadi,
 > 
-> I spoke too soon... removing the index causes a problem at the read ioctl: there's no way
-> to retrieve just the non-sparsed values.
+> Here is a quick review. It looks good, just a few small points.
+
+Thanks for the review! To most points - right, will update. The ones, that 
+I have more questions about:
+
+> On Thursday 11 March 2010 11:24:42 Guennadi Liakhovetski wrote:
+> > A number of SuperH SoCs, including sh7724, include a Video Output Unit. This
+> > patch adds a video (V4L2) output driver for it. The driver uses v4l2-subdev and
+> > mediabus APIs to interface to TV encoders.
+> > 
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > ---
+> > 
+> > Tested on ms7724se
+> > 
+> >  drivers/media/video/Kconfig  |    7 +
+> >  drivers/media/video/Makefile |    2 +
+> >  drivers/media/video/sh_vou.c | 1437 ++++++++++++++++++++++++++++++++++++++++++
+> >  include/media/sh_vou.h       |   35 +
+> >  4 files changed, 1481 insertions(+), 0 deletions(-)
+> >  create mode 100644 drivers/media/video/sh_vou.c
+> >  create mode 100644 include/media/sh_vou.h
+> > 
+> > diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+> > index 64682bf..be6d016 100644
+> > --- a/drivers/media/video/Kconfig
+> > +++ b/drivers/media/video/Kconfig
+
+[snip]
+
+> > +static int sh_vou_g_fmt_vid_ovrl(struct file *file, void *priv,
+> > +				 struct v4l2_format *fmt)
+> > +{
+> > +	/* This is needed for gstreamer, even if not used... */
+> > +	return 0;
+> > +}
 > 
-> There's one solution that would allow both read/write and compat to work nicely,
-> but the API would become somewhat asymmetrical:
+> Shouldn't this return -EINVAL if there is no overlay support?
+
+In fact I would just drop this methos altogether, but gstreamer needs it 
+_and_ it shouldn't return an error. In fact, I think, we can persuade 
+gstreamer guys to drop this restriction, if we really think this is 
+irrelevant. For some reason their v4l2sink is somewhat overlay-centric, 
+but I think we can discuss this with them.
+
+> > +enum sh_vou_bus_fmt {
+> > +	SH_VOU_BUS_NTSC_16BIT = 0,
+> > +	SH_VOU_BUS_NTSC_8BIT = 1,
+> > +	SH_VOU_BUS_NTSC_8BIT_REC656 = 3,
+> > +	SH_VOU_BUS_PAL_8BIT = 5,
 > 
-> At get (EVIOCGKEYCODEBIG):
-> 	use index/len as input and keycode/scancode as output;
-> 
-> At set (EVIOCSKEYCODEBIG):
-> 	use scancode/keycode/len as input (and, optionally, index as output).
-> 
+> Rather than NTSC and PAL it might be better to talk about 50 vs 60 Hz.
 
-This was exactly the approach I had in mind when I suggested using 
-indexes.
+Don't know, this is how these modes are called in the datasheet, so... Do 
+you think it's better to call them "correctly" or as in the datasheet?
 
-> Having it asymmetrical doesn't sound good, but, on the other hand, 
-> using index for
-> the set function also doesn't seem good, as the driver may reorder the entries after
-> setting, for example to work with a binary tree or with hashes.
-
-I don't think the assymetry is really a problem. As I see it, there are 
-basically two user cases:
-
-1) Userspace wants scancode X to generate keypress Y
-   (In which case userspace doesn't care one iota what the index is)
-
-2) Userspace wants to get the current keytable from the kernel
-   (In which case a loop with an index from 0 to n is appropriate)
-
-and, possibly:
-
-3) Userspace wants to know what keycode (if any) scancode X generates
-   (In which case approach 2 will work just as well, but this usecase
-    seems a bit contrived anyway...)
-
--- 
-David Härdeman
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
