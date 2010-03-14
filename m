@@ -1,343 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:58133 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934469Ab0CPCuD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Mar 2010 22:50:03 -0400
-Received: by bwz1 with SMTP id 1so3535801bwz.21
-        for <linux-media@vger.kernel.org>; Mon, 15 Mar 2010 19:50:00 -0700 (PDT)
-Date: Tue, 16 Mar 2010 11:50:59 +0900
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] Add SPI support to V4L2
-Message-ID: <20100316115059.7e1c0530@glory.loctelecom.ru>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/NiFe61vPTmUEVC+QeD2Q8he"
+Received: from mail-in-17.arcor-online.net ([151.189.21.57]:59769 "EHLO
+	mail-in-17.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751912Ab0CNOiM convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Mar 2010 10:38:12 -0400
+Message-ID: <24904455.1268577490516.JavaMail.ngmail@webmail14.arcor-online.net>
+Date: Sun, 14 Mar 2010 15:38:10 +0100 (CET)
+From: hermann-pitton@arcor.de
+To: chicken.shack@gmx.de, hermann-pitton@arcor.de
+Subject: Aw: Re: v4l-utils, dvb-utils, xawtv and alevt
+Cc: hdegoede@redhat.com, linux-media@vger.kernel.org,
+	dheitmueller@kernellabs.com, dougsland@gmail.com,
+	hverkuil@xs4all.nl
+In-Reply-To: <1268565198.7655.20.camel@brian.bconsult.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
+References: <1268565198.7655.20.camel@brian.bconsult.de> <201003090848.29301.hverkuil@xs4all.nl>
+	 <1268197457.3199.17.camel@pc07.localdom.local> <4B98FABB.1040605@gmail.com>
+	 <829197381003110631v52410d27m7e13d5438e09cd13@mail.gmail.com>
+	 <4B9A6089.4060300@redhat.com>
+	 <1a297b361003120820h768bc388n81077a4b6cfe71e6@mail.gmail.com>
+	 <1268421039.1971.46.camel@brian.bconsult.de> <4B9B35E4.7070702@redhat.com>
+	 <1268475324.1752.59.camel@brian.bconsult.de>  <4B9B8665.9080706@redhat.com>
+	 <1268487819.2763.27.camel@brian.bconsult.de>
+	 <1268545183.3228.55.camel@pc07.localdom.local>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---MP_/NiFe61vPTmUEVC+QeD2Q8he
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+ 
 
-Hi
 
-Add support SPI bus to v4l2. Useful for control some device with SPI bus like
-hardware MPEG2 encoders and etc.
+----- Original Nachricht ----
+Von:     Chicken Shack <chicken.shack@gmx.de>
+An:      hermann pitton <hermann-pitton@arcor.de>
+Datum:   14.03.2010 12:13
+Betreff: Re: v4l-utils, dvb-utils, xawtv and alevt
 
-diff -r b6b82258cf5e linux/drivers/media/video/v4l2-common.c
---- a/linux/drivers/media/video/v4l2-common.c	Thu Dec 31 19:14:54 2009 -0200
-+++ b/linux/drivers/media/video/v4l2-common.c	Tue Mar 16 05:06:04 2010 +0900
-@@ -63,6 +63,10 @@
- 
- #include <linux/videodev2.h>
- #include "compat.h"
-+
-+#if defined(CONFIG_SPI)
-+#include <linux/spi/spi.h>
-+#endif
- 
- MODULE_AUTHOR("Bill Dirks, Justin Schoeman, Gerd Knorr");
- MODULE_DESCRIPTION("misc helper functions for v4l2 device drivers");
-@@ -1069,6 +1073,66 @@
- 
- #endif /* defined(CONFIG_I2C) */
- 
-+#if defined(CONFIG_SPI)
-+
-+/* Load a spi sub-device. */
-+
-+void v4l2_spi_subdev_init(struct v4l2_subdev *sd, struct spi_device *spi,
-+		const struct v4l2_subdev_ops *ops)
-+{
-+	v4l2_subdev_init(sd, ops);
-+	sd->flags |= V4L2_SUBDEV_FL_IS_SPI;
-+	/* the owner is the same as the spi_device's driver owner */
-+	sd->owner = spi->dev.driver->owner;
-+	/* spi_device and v4l2_subdev point to one another */
-+	v4l2_set_subdevdata(sd, spi);
-+	spi_set_drvdata(spi, sd);
-+	/* initialize name */
-+	strlcpy(sd->name, spi->dev.driver->name, sizeof(sd->name));
-+}
-+EXPORT_SYMBOL_GPL(v4l2_spi_subdev_init);
-+
-+struct v4l2_subdev *v4l2_spi_new_subdev(struct v4l2_device *v4l2_dev,
-+		struct spi_master *master, struct spi_board_info *info)
-+{
-+	struct v4l2_subdev *sd = NULL;
-+	struct spi_device *spi = NULL;
-+
-+	BUG_ON(!v4l2_dev);
-+
-+	if (info->modalias)
-+		request_module(info->modalias);
-+
-+	spi = spi_new_device(master, info);
-+
-+	if (spi == NULL || spi->dev.driver == NULL)
-+		goto error;
-+
-+	if (!try_module_get(spi->dev.driver->owner))
-+		goto error;
-+
-+	sd = spi_get_drvdata(spi);
-+
-+	/* Register with the v4l2_device which increases the module's
-+	   use count as well. */
-+	if (v4l2_device_register_subdev(v4l2_dev, sd))
-+		sd = NULL;
-+
-+	/* Decrease the module use count to match the first try_module_get. */
-+	module_put(spi->dev.driver->owner);
-+
-+error:
-+	/* If we have a client but no subdev, then something went wrong and
-+	   we must unregister the client. */
-+	if (spi && sd == NULL)
-+		spi_unregister_device(spi);
-+
-+	return sd;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_spi_new_subdev);
-+
-+#endif /* defined(CONFIG_SPI) */
-+
- /* Clamp x to be between min and max, aligned to a multiple of 2^align.  min
-  * and max don't have to be aligned, but there must be at least one valid
-  * value.  E.g., min=17,max=31,align=4 is not allowed as there are no multiples
-diff -r b6b82258cf5e linux/drivers/media/video/v4l2-device.c
---- a/linux/drivers/media/video/v4l2-device.c	Thu Dec 31 19:14:54 2009 -0200
-+++ b/linux/drivers/media/video/v4l2-device.c	Tue Mar 16 05:06:04 2010 +0900
-@@ -24,6 +24,10 @@
- #include <linux/videodev2.h>
- #include <media/v4l2-device.h>
- #include "compat.h"
-+
-+#if defined(CONFIG_SPI)
-+#include <linux/spi/spi.h>
-+#endif
- 
- int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
- {
-@@ -100,6 +104,14 @@
- 		}
- #endif
- #endif
-+#if defined(CONFIG_SPI)
-+		if (sd->flags & V4L2_SUBDEV_FL_IS_SPI) {
-+			struct spi_device *spi = v4l2_get_subdevdata(sd);
-+
-+			if (spi)
-+				spi_unregister_device(spi);
-+		}
-+#endif
- 	}
- }
- EXPORT_SYMBOL_GPL(v4l2_device_unregister);
-diff -r b6b82258cf5e linux/include/media/v4l2-common.h
---- a/linux/include/media/v4l2-common.h	Thu Dec 31 19:14:54 2009 -0200
-+++ b/linux/include/media/v4l2-common.h	Tue Mar 16 05:06:04 2010 +0900
-@@ -191,6 +191,24 @@
- 
- /* ------------------------------------------------------------------------- */
- 
-+/* SPI Helper functions */
-+#if defined(CONFIG_SPI)
-+
-+#include <linux/spi/spi.h>
-+
-+struct spi_device;
-+
-+/* Load an spi module and return an initialized v4l2_subdev struct.
-+   The client_type argument is the name of the chip that's on the adapter. */
-+struct v4l2_subdev *v4l2_spi_new_subdev(struct v4l2_device *v4l2_dev,
-+		struct spi_master *master, struct spi_board_info *info);
-+
-+/* Initialize an v4l2_subdev with data from an spi_device struct */
-+void v4l2_spi_subdev_init(struct v4l2_subdev *sd, struct spi_device *spi,
-+		const struct v4l2_subdev_ops *ops);
-+#endif
-+/* ------------------------------------------------------------------------- */
-+
- /* Note: these remaining ioctls/structs should be removed as well, but they are
-    still used in tuner-simple.c (TUNER_SET_CONFIG), cx18/ivtv (RESET) and
-    v4l2-int-device.h (v4l2_routing). To remove these ioctls some more cleanup
-diff -r b6b82258cf5e linux/include/media/v4l2-subdev.h
---- a/linux/include/media/v4l2-subdev.h	Thu Dec 31 19:14:54 2009 -0200
-+++ b/linux/include/media/v4l2-subdev.h	Tue Mar 16 05:06:04 2010 +0900
-@@ -387,6 +387,8 @@
- 
- /* Set this flag if this subdev is a i2c device. */
- #define V4L2_SUBDEV_FL_IS_I2C (1U << 0)
-+/* Set this flag if this subdev is a spi device. */
-+#define V4L2_SUBDEV_FL_IS_SPI (1U << 1)
- 
- /* Each instance of a subdev driver should create this struct, either
-    stand-alone or embedded in a larger struct.
+> Am Sonntag, den 14.03.2010, 06:39 +0100 schrieb hermann pitton:
+> > Am Samstag, den 13.03.2010, 14:43 +0100 schrieb Chicken Shack:
+> > > Am Samstag, den 13.03.2010, 13:34 +0100 schrieb Hans de Goede:
+> > > > Hi,
+> > > > 
+> > > > On 03/13/2010 11:15 AM, Chicken Shack wrote:
+> > > > > Am Samstag, den 13.03.2010, 07:51 +0100 schrieb Hans de Goede:
+> > > > >> Hi,
+> > > > >>
+> > > > >> On 03/12/2010 08:10 PM, Chicken Shack wrote:
+> > > > >>> 1. Alevt 1.7.0 is not just another tool, but it is instead a
+> > > > >>> self-contained videotext application consisting of three parts:
+> > > > >>> a. alevt, b. alevt-date c. alevt-cap
+> > > > >>>
+> > > > >>> While the packed size of alevt is 78770 the complete size of the
+> > > > >>> dvb-apps as a whole ranges around 350000.
+> > > > >>>
+> > > > >>> I am not against hosting this program at linuxtv.org, but if this
+> > > > >>> decision is made the decision should be an intelligent one: alevt
+> is a
+> > > > >>> separate tree, and any other choice is simply a dumb one.
+> > > > >>> Alevt-1.7.0 needs a lot of external dependencies, while the
+> dvb-apps
+> > > > >>> only need the libc6.
+> > 
+> > More clever would have been never to rename it from alevt-dvb to alevt.
+> > On the prior you don't have any rights and I seriously doubt you have
+> > any on the later.
+> 
+> Only a pure brainless idiot who understands less than nothing can rant
+> crap like this.....
+> 
+> Typical Pitton, typical no-brain quality....
+> 
+> > 
+> > > > > Good morning Hans,
+> > > > >
+> > > > 
+> > > > Good afternoon :)
+> > > > 
+> > > > > Definitely not.
+> > > > > 3.95 is analogue only and thus is discontinued as version.
+> > > > > 4.0 pre is the alpha-state tarball that you can get here:
+> > 
+> > No, 3.95 is "official" and right for patching and 4x was never released.
+> 
+> See above.....
+> 
+> > I pointed to mpeg4ip only as a joke.
+> > 
+> > > > Ah, ok. Well I must honestly say I've no interest in that I'm doing
+> > > > package maintenance for the 3.95 release in Fedora and I know it
+> > > > needs a lot of patching, AFAIK other distros are doing the same,
+> > > > so it would be good to have / become a new upstream for xawtv 3.95,
+> > > > to have a place to gather all the distro patches mostly and release
+> > > > that, and where new patches if needed can accumulate and new
+> > > > releases can be done from.
+> > > > 
+> > > > 
+> > > > > http://dl.bytesex.org/cvs-snapshots/xawtv-20081014-100645.tar.gz
+> > > > >
+> > > > > Inofficial end of development somewhere in 2005 or 2006, last
+> external
+> > > > > contribution from October 2008.
+> > 
+> > It was on March 08 2005. You even don't know that?
+> 
+> Completely irrelevant, stupid moron!
+> 
+> > http://linux.bytesex.org/v4l2/maintainer.txt
+> > 
+> > Maybe improve your Pinnacle stuff first, I can point you to a lot on the
+> > TODO list.
+> 
+> Don't owe no Pinnacle any longer for years now.
+> 
+> I personally took part in flexcop development as well-informed people
+> know.
+> That's a good driver now, and Patrick is someone you can really work
+> with, not unproblematic, but OK so far.
+> He's no Abraham, and he's no Pitton....
+>
 
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+http://www.mail-archive.com/linux-dvb@linuxtv.org/msg23780.html
 
-With my best regards, Dmitry.
+There is not any progress with you and likely never will be.
 
---MP_/NiFe61vPTmUEVC+QeD2Q8he
-Content-Type: text/x-patch; name=v4l2_spi.patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=v4l2_spi.patch
+Cheers,
+Hermann
+ 
 
-diff -r b6b82258cf5e linux/drivers/media/video/v4l2-common.c
---- a/linux/drivers/media/video/v4l2-common.c	Thu Dec 31 19:14:54 2009 -0200
-+++ b/linux/drivers/media/video/v4l2-common.c	Tue Mar 16 05:06:04 2010 +0900
-@@ -63,6 +63,10 @@
- 
- #include <linux/videodev2.h>
- #include "compat.h"
-+
-+#if defined(CONFIG_SPI)
-+#include <linux/spi/spi.h>
-+#endif
- 
- MODULE_AUTHOR("Bill Dirks, Justin Schoeman, Gerd Knorr");
- MODULE_DESCRIPTION("misc helper functions for v4l2 device drivers");
-@@ -1069,6 +1073,66 @@
- 
- #endif /* defined(CONFIG_I2C) */
- 
-+#if defined(CONFIG_SPI)
-+
-+/* Load a spi sub-device. */
-+
-+void v4l2_spi_subdev_init(struct v4l2_subdev *sd, struct spi_device *spi,
-+		const struct v4l2_subdev_ops *ops)
-+{
-+	v4l2_subdev_init(sd, ops);
-+	sd->flags |= V4L2_SUBDEV_FL_IS_SPI;
-+	/* the owner is the same as the spi_device's driver owner */
-+	sd->owner = spi->dev.driver->owner;
-+	/* spi_device and v4l2_subdev point to one another */
-+	v4l2_set_subdevdata(sd, spi);
-+	spi_set_drvdata(spi, sd);
-+	/* initialize name */
-+	strlcpy(sd->name, spi->dev.driver->name, sizeof(sd->name));
-+}
-+EXPORT_SYMBOL_GPL(v4l2_spi_subdev_init);
-+
-+struct v4l2_subdev *v4l2_spi_new_subdev(struct v4l2_device *v4l2_dev,
-+		struct spi_master *master, struct spi_board_info *info)
-+{
-+	struct v4l2_subdev *sd = NULL;
-+	struct spi_device *spi = NULL;
-+
-+	BUG_ON(!v4l2_dev);
-+
-+	if (info->modalias)
-+		request_module(info->modalias);
-+
-+	spi = spi_new_device(master, info);
-+
-+	if (spi == NULL || spi->dev.driver == NULL)
-+		goto error;
-+
-+	if (!try_module_get(spi->dev.driver->owner))
-+		goto error;
-+
-+	sd = spi_get_drvdata(spi);
-+
-+	/* Register with the v4l2_device which increases the module's
-+	   use count as well. */
-+	if (v4l2_device_register_subdev(v4l2_dev, sd))
-+		sd = NULL;
-+
-+	/* Decrease the module use count to match the first try_module_get. */
-+	module_put(spi->dev.driver->owner);
-+
-+error:
-+	/* If we have a client but no subdev, then something went wrong and
-+	   we must unregister the client. */
-+	if (spi && sd == NULL)
-+		spi_unregister_device(spi);
-+
-+	return sd;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_spi_new_subdev);
-+
-+#endif /* defined(CONFIG_SPI) */
-+
- /* Clamp x to be between min and max, aligned to a multiple of 2^align.  min
-  * and max don't have to be aligned, but there must be at least one valid
-  * value.  E.g., min=17,max=31,align=4 is not allowed as there are no multiples
-diff -r b6b82258cf5e linux/drivers/media/video/v4l2-device.c
---- a/linux/drivers/media/video/v4l2-device.c	Thu Dec 31 19:14:54 2009 -0200
-+++ b/linux/drivers/media/video/v4l2-device.c	Tue Mar 16 05:06:04 2010 +0900
-@@ -24,6 +24,10 @@
- #include <linux/videodev2.h>
- #include <media/v4l2-device.h>
- #include "compat.h"
-+
-+#if defined(CONFIG_SPI)
-+#include <linux/spi/spi.h>
-+#endif
- 
- int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
- {
-@@ -100,6 +104,14 @@
- 		}
- #endif
- #endif
-+#if defined(CONFIG_SPI)
-+		if (sd->flags & V4L2_SUBDEV_FL_IS_SPI) {
-+			struct spi_device *spi = v4l2_get_subdevdata(sd);
-+
-+			if (spi)
-+				spi_unregister_device(spi);
-+		}
-+#endif
- 	}
- }
- EXPORT_SYMBOL_GPL(v4l2_device_unregister);
-diff -r b6b82258cf5e linux/include/media/v4l2-common.h
---- a/linux/include/media/v4l2-common.h	Thu Dec 31 19:14:54 2009 -0200
-+++ b/linux/include/media/v4l2-common.h	Tue Mar 16 05:06:04 2010 +0900
-@@ -191,6 +191,24 @@
- 
- /* ------------------------------------------------------------------------- */
- 
-+/* SPI Helper functions */
-+#if defined(CONFIG_SPI)
-+
-+#include <linux/spi/spi.h>
-+
-+struct spi_device;
-+
-+/* Load an spi module and return an initialized v4l2_subdev struct.
-+   The client_type argument is the name of the chip that's on the adapter. */
-+struct v4l2_subdev *v4l2_spi_new_subdev(struct v4l2_device *v4l2_dev,
-+		struct spi_master *master, struct spi_board_info *info);
-+
-+/* Initialize an v4l2_subdev with data from an spi_device struct */
-+void v4l2_spi_subdev_init(struct v4l2_subdev *sd, struct spi_device *spi,
-+		const struct v4l2_subdev_ops *ops);
-+#endif
-+/* ------------------------------------------------------------------------- */
-+
- /* Note: these remaining ioctls/structs should be removed as well, but they are
-    still used in tuner-simple.c (TUNER_SET_CONFIG), cx18/ivtv (RESET) and
-    v4l2-int-device.h (v4l2_routing). To remove these ioctls some more cleanup
-diff -r b6b82258cf5e linux/include/media/v4l2-subdev.h
---- a/linux/include/media/v4l2-subdev.h	Thu Dec 31 19:14:54 2009 -0200
-+++ b/linux/include/media/v4l2-subdev.h	Tue Mar 16 05:06:04 2010 +0900
-@@ -387,6 +387,8 @@
- 
- /* Set this flag if this subdev is a i2c device. */
- #define V4L2_SUBDEV_FL_IS_I2C (1U << 0)
-+/* Set this flag if this subdev is a spi device. */
-+#define V4L2_SUBDEV_FL_IS_SPI (1U << 1)
- 
- /* Each instance of a subdev driver should create this struct, either
-    stand-alone or embedded in a larger struct.
 
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
-
---MP_/NiFe61vPTmUEVC+QeD2Q8he--
+Topp oder Hopp? Tolle Figur, scharfes Dekolleté oder sehenswertes Tatoo?! Bewerten Sie die besten Bilder und zeigen Sie auch selbst, was Sie haben! Jetzt reinklicken und mitmachen: http://www.arcor.de/rd/footer.toh
