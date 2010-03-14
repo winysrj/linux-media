@@ -1,67 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:19352 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:48428 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750963Ab0CHBgf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Mar 2010 20:36:35 -0500
-Message-ID: <4B945497.9010907@redhat.com>
-Date: Sun, 07 Mar 2010 22:36:23 -0300
+	id S1754799Ab0CNXGu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Mar 2010 19:06:50 -0400
+Message-ID: <4B9D6C03.8000304@redhat.com>
+Date: Sun, 14 Mar 2010 20:06:43 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: VDR User <user.vdr@gmail.com>
-CC: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	Randy Dunlap <rdunlap@xenotime.net>,
-	linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
-Subject: Re: "Invalid module format"
-References: <alpine.LNX.2.00.1003041737290.18039@banach.math.auburn.edu>	 <alpine.LNX.2.00.1003051829210.21417@banach.math.auburn.edu>	 <a3ef07921003051651j12fbae25r5a3d5276b7da43b7@mail.gmail.com>	 <4B91AADD.4030300@xenotime.net> <4B91CE02.4090200@redhat.com>	 <a3ef07921003070955q7d7ce7e8j747c07d56a0ad98e@mail.gmail.com>	 <alpine.LNX.2.00.1003071557020.23682@banach.math.auburn.edu> <a3ef07921003071616l742095c1mfdc19b2cea88f22@mail.gmail.com>
-In-Reply-To: <a3ef07921003071616l742095c1mfdc19b2cea88f22@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Stefan Ringel <stefan.ringel@arcor.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] tm6000: add new hybrid-stick
+References: <1268243877-29157-1-git-send-email-stefan.ringel@arcor.de> <4B9C8C32.3070706@arcor.de> <4B9D2A67.80101@redhat.com> <4B9D44D3.8080201@arcor.de>
+In-Reply-To: <4B9D44D3.8080201@arcor.de>
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VDR User wrote:
-> On Sun, Mar 7, 2010 at 2:03 PM, Theodore Kilgore
-> <kilgota@banach.math.auburn.edu> wrote:
->> It seems that the problem is solved by a local re-compile of the kernel plus
->> its modules, using the original distro .config settings in order to do this.
->> What I suspect has happened is that there was a simultaneous minor upgrade
->> of gcc at the same time, and it is possible that this interfered. I would
->> further speculate that a similar problem happened with you, in your Debian
->> installation.
+Stefan Ringel wrote:
+> Am 14.03.2010 19:26, schrieb Mauro Carvalho Chehab:
+>> Stefan Ringel wrote:
+>>   
+>>> Mauro,
+>>>
+>>> you have accepted my patch, but it's not applied.
+>>>     
+>> This patch were applied on my git tree on Mar, 11:
 >>
->> Hoping that we have finally tracked this down.
+>> commit 50e3fe3b336fb2936f05bb9af752ef933c8b74aa
+>> Author:     Stefan Ringel <stefan.ringel@arcor.de>
+>> AuthorDate: Wed Mar 10 14:57:57 2010 -0300
+>> Commit:     Mauro Carvalho Chehab <mchehab@redhat.com>
+>> CommitDate: Thu Mar 11 07:41:43 2010 -0300
+>>
+>>     V4L/DVB: tm6000: add new hybrid-stick
+>>
+>> That's why it were marked as applied. I have no idea when it were
+>> backported to -hg, or if it is still on Douglas queue.
+>>
+>> Cheers,
+>> Mauro
+>>   
 > 
-> It's a good theory.  However, when I did my "update", I had compiled
-> the kernel, installed it, rebooted into it and then proceeded to grab
-> a fresh v4l tree and go from there.  There wern't any package updates
-> or anything else involved between the kernel compile and v4l compile.
-> (except for the reboot into 2.6.33 of course.)
+> that is the lastest entrys in weblog. And no patch can I see from me.
+> 
+> v4l-dvb.git
+> 
+> 
+> 
+> 3 days ago
+>     Mauro Carvalho...
+>     V4L/DVB: Fix bad whitespacing  master
+>     commit | commitdiff | tree
+> 
+> 
+> 4 days ago
+>     Max Thrun
+>     V4L/DVB: gspca - ov534: Update copyright info
+>     commit | commitdiff | tree
+> 
+> 
+> 4 days ago
+>     Mosalam Ebrahimi
+>     V4L/DVB: gspca - ov534: Add Powerline Frequency control
+>     commit | commitdiff | tree
+> 
+> 
+> 4 days ago
+>     Antonio Ospite
+>     V4L/DVB: gspca - ov534: Cosmetics: fix indentation...
+>     commit | commitdiff | tree
+> 
+> please check it!
 
-You may try to check if both the kernel files and the out of tree files are compiled
-using the same file format, with something like:
+I forgot to push from my local tree to the servers. I'm updating
+them right now.
 
-$ objdump v4l/cx23885.ko /lib/modules/`uname -r`/kernel/drivers/ata/ahci.ko -a
-
-v4l/cx23885.ko:     file format elf64-x86-64
-v4l/cx23885.ko
-
-
-/lib/modules/2.6.33/kernel/drivers/ata/ahci.ko:     file format elf64-x86-64
-/lib/modules/2.6.33/kernel/drivers/ata/ahci.ko
-
-(assuming that debian has ahci.ko compiled as module and at the right place - you may
-need to find another module there, it this one doesn't exist).
+-- 
 
 Cheers,
 Mauro
-
----
-
-PS.: if you're using kernel 2.6.33, plus the latest v4l-dvb hg tree, you could 
-alternatively use the latest git tree, as it is just 2.6.33 + drivers/media
-(and media staging) updates.
-
-I intend to keep v4l-dvb.git and fixes.git trees with 2.6.33 during all 2.6.34 rc cycle,
-in order to help people to test the drivers, if we don't have any mandatory reason to
-update to -rc1
-
