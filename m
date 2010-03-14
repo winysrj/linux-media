@@ -1,114 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47047 "EHLO arroyo.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:40613 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753605Ab0CQNwY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Mar 2010 09:52:24 -0400
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Wed, 17 Mar 2010 08:52:17 -0500
-Subject: RE: [omap3camera] Camera bring-up on Zoom3 (OMAP3630)
-Message-ID: <A24693684029E5489D1D202277BE894454137054@dlee02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE894453CC5C3F@dlee02.ent.ti.com>
- <201003162330.17454.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201003162330.17454.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	id S1752567Ab0CNS0z (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Mar 2010 14:26:55 -0400
+Message-ID: <4B9D2A67.80101@redhat.com>
+Date: Sun, 14 Mar 2010 15:26:47 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
+To: Stefan Ringel <stefan.ringel@arcor.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] tm6000: add new hybrid-stick
+References: <1268243877-29157-1-git-send-email-stefan.ringel@arcor.de> <4B9C8C32.3070706@arcor.de>
+In-Reply-To: <4B9C8C32.3070706@arcor.de>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Tuesday, March 16, 2010 5:30 PM
-> To: Aguirre, Sergio
-> Cc: Sakari Ailus; linux-media@vger.kernel.org
-> Subject: Re: [omap3camera] Camera bring-up on Zoom3 (OMAP3630)
+Stefan Ringel wrote:
+> Mauro,
 > 
-> Hi Sergio,
-> 
-> On Friday 05 March 2010 15:54:58 Aguirre, Sergio wrote:
-> > Hi Laurent, Sakari,
-> 
-> Oops, just noticed I forgot to answer your e-mail, sorry.
+> you have accepted my patch, but it's not applied.
 
-No problem.
+This patch were applied on my git tree on Mar, 11:
 
-> 
-> > I'm trying to get latest Sakari's tree (gitorious.org/omap3camera)
-> > 'devel' branch running on my Zoom3 HW (which has an OMAP3630, and a
-> > Sony IMX046 8MP sensor).
-> >
-> > I had first one NULL pointer dereference while the driver was
-> > registering devices and creating entities, which I resolved with
-> > the attached patch. (Is this patch acceptable, or maybe I am missing
-> > something...)
-> 
-> Either that, or make OMAP34XXCAM_VIDEODEVS dynamic (the value would be
-> passed
-> through platform data). The code will be removed (hopefully soon) anyway
-> when
-> the legacy video nodes will disappear.
+commit 50e3fe3b336fb2936f05bb9af752ef933c8b74aa
+Author:     Stefan Ringel <stefan.ringel@arcor.de>
+AuthorDate: Wed Mar 10 14:57:57 2010 -0300
+Commit:     Mauro Carvalho Chehab <mchehab@redhat.com>
+CommitDate: Thu Mar 11 07:41:43 2010 -0300
 
-Ok, so should I keep this patch only to myself until this code is removed?
+    V4L/DVB: tm6000: add new hybrid-stick
 
-> 
-> > And now, I don't get quite clear on how the created nodes work out.
-> >
-> > Now I have /dev/video[0-5], but I don't know how I'm I supposed to
-> handle
-> > them...
-> >
-> > Here's my current work-in-progress kernel:
-> >
-> > 	http://dev.omapzoom.org/?p=saaguirre/linux-omap-
-> camera.git;a=shortlog;h=re
-> > fs/heads/omap-devel-wip
-> >
-> > Can you please give some guidance on it?
-> 
-> Basically, the driver creates OMAP34XXCAM_VIDEODEVS "legacy" video nodes,
-> one
-> for each sensor connected to the ISP. As your board has a single sensor,
-> the
-> driver will create the /dev/video0 legacy video node.
+That's why it were marked as applied. I have no idea when it were
+backported to -hg, or if it is still on Douglas queue.
 
-Ok.
-
-> 
-> Legacy video nodes use hard-coded assumptions that were implemented
-> according
-> to Nokia's use cases on the N900. They can only offer a subset of the
-> functions available in the hardware.
-
-Hmm... Well, that should get me also at least a simple stream out of it for the moment. :)
-
-> 
-> For full access to the ISP, you will need to use the new video nodes (1 to
-> 5).
-> Those video nodes are to be used in conjunction with the media controller.
-> All
-> the necessary patches aren't available yet, but they should be soon (it's
-> hopefully a matter of days to get the userspace API there).
-
-Great!
-
-> 
-> I will try to make a userspace test application available when the patches
-> will be pushed to the linux-omap-camera tree.
-
-That would be really nice. :)
-
-Thanks and Regards,
-Sergio
-
-> 
-> --
-> Regards,
-> 
-> Laurent Pinchart
+Cheers,
+Mauro
