@@ -1,103 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-14.arcor-online.net ([151.189.21.54]:40875 "EHLO
-	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752979Ab0C2UzJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Mar 2010 16:55:09 -0400
-Subject: Re: Kworld Plus TV Hybrid PCI (DVB-T 210SE)
-From: hermann pitton <hermann-pitton@arcor.de>
-To: 0123peter@gmail.com
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <0uh687-4c1.ln1@psd.motzarella.org>
-References: <4B94CF9B.3060000@gmail.com>
-	 <1268777563.5120.57.camel@pc07.localdom.local>
-	 <0h2e77-gjl.ln1@psd.motzarella.org>
-	 <1269298611.5158.20.camel@pc07.localdom.local>
-	 <0uh687-4c1.ln1@psd.motzarella.org>
-Content-Type: text/plain
-Date: Mon, 29 Mar 2010 22:52:13 +0200
-Message-Id: <1269895933.3176.12.camel@pc07.localdom.local>
-Mime-Version: 1.0
+Received: from mail.juropnet.hu ([212.24.188.131]:48758 "EHLO mail.juropnet.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753198Ab0CNRpz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Mar 2010 13:45:55 -0400
+Received: from kabelnet-193-38.juropnet.hu ([91.147.193.38])
+	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <istvan_v@mailbox.hu>)
+	id 1NqrsT-0004qF-Kv
+	for linux-media@vger.kernel.org; Sun, 14 Mar 2010 18:45:52 +0100
+Message-ID: <4B9D21F3.8090902@mailbox.hu>
+Date: Sun, 14 Mar 2010 18:50:43 +0100
+From: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
+MIME-Version: 1.0
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] DTV2000 H Plus issues
+References: <4B3F6FE0.4040307@internode.on.net> <4B3F7B0D.4030601@mailbox.hu>	 <4B405381.9090407@internode.on.net> <4B421BCB.6050909@mailbox.hu>	 <4B4294FE.8000309@internode.on.net> <4B463AC6.2000901@mailbox.hu>	 <4B719CD0.6060804@mailbox.hu> <4B745781.2020408@mailbox.hu>	 <4B7C303B.2040807@mailbox.hu> <4B7C80F5.5060405@redhat.com> <829197381002171559k10b692dcu99a3adc2f613437f@mail.gmail.com> <4B7C84F3.4080708@redhat.com>
+In-Reply-To: <4B7C84F3.4080708@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Peter,
+OK, so should I write a new xc4000.c/h from scratch and sign that off ?
 
-Am Montag, den 29.03.2010, 23:10 +1100 schrieb 0123peter@gmail.com:
+On 02/18/2010 01:08 AM, Mauro Carvalho Chehab wrote:
 
+> Devin Heitmueller wrote:
+>> On Wed, Feb 17, 2010 at 6:51 PM, Mauro Carvalho Chehab
+>> <mchehab@redhat.com> wrote:
+>>> Hi Istvan,
+>>>
+>>> istvan_v@mailbox.hu wrote:
+>>>> The attached new patches contain all the previous changes merged, and
+>>>> are against the latest v4l-dvb revision.
+>>> Please provide your Signed-off-by. This is a basic requirement for your
+>>> driver to be accepted. Please read:
+>>>        http://linuxtv.org/hg/v4l-dvb/raw-file/tip/README.patches
+>>>
+>>> for instructions on how to submit a patch.
+>>
+>> Hi Mauro,
+>>
+>> I would hate to come across as a jerk here, but he cannot provide his
+>> SOB for this patch, as I wrote about 95% of the code here.  It's
+>> derived from a tree I have been working on for the PCTV 340e:
+>>
+>> http://kernellabs.com/hg/~dheitmueller/pctv-340e-2/
+>>
+>> I know that istvan wants to see the support merged, but he is going to
+>> have to wait a bit longer since he is not the author or maintainer of
+>> the driver in question.
 > 
-> Hi Hermann,  
-> 
-> I've been "fixing" my PC to the state that it stopped working.  
-> Hence the delay.  
-> 
-> > Hi Peter,
-> > 
-> > Am Samstag, den 20.03.2010, 16:20 +1100 schrieb 0123peter@gmail.com:
-
-> >> 
-> >> [snip]
-> >> > 
-> >> > unfortunately the problem with these cards is known, but no good
-> >> > solution for now.
-> >> > 
-> >> > Best description is from Hartmut and starts here.
-> >> > 
-> >> > http://www.spinics.net/lists/linux-dvb/msg26683.html
-> >> > 
-> >> [snip]
-> >> 
-> >> Interesting link.  I have one of the cards mentioned 
-> >> (an MSI TV(at)nywhere A/D hybrid).  I've decided not to throw it away.  
-> > 
-> > to not leave you without any response at least.
-> > 
-> > In hind sight, seeing how unfortunate using such devices can be, mainly
-> > because of being forced to try at random again with a cold boot after
-> > some i2c war brought down the tuner, we better should have such only in
-> > a still experimental league and not as supported.
-> > 
-> > This was not foreseeable in such rudeness and neither Hartmut nor me
-> > have such devices.
-> > 
-> > The Asus triple OEM 3in1 I have does not have any problems with loading
-> > firmware from file, the others do all get it from eeprom.
-> > 
-> > So, actually nobody is investigating on it with real hardware.
-> > 
-> > Maybe you can catch something with gpio_tracking and i2c_debug=1.
-> > I would expect that the complex analog tuner initialization gets broken
-> > somehow. This is at least known to be good to bring all down.
-> > 
-> > Cheers,
-> > Hermann
-> 
-> There was a patch about alignment that went through recently.  
-> Revert "V4L/DVB (11906): saa7134: Use v4l bounding/alignment function"
-> Maybe that was it.  
-
-did not even notice a problem with Trent's prior patch.
-The same is also at vivi.
-
-> Should I have a file called /etc/modprobe.d/TVanywhereAD 
-> that contains the line, 
-> 
-> options saa7134 card=94 gpio_tracking i2c_debug=1
-> 
-> and then watch the command line output of "kaffeine"?  
-
-If you want to produce debug output for failing firmware loading from
-file after a cold boot, yes, you might eventually be able to see that
-failing tuner initialization brings down i2c.
-
-If it is a additional new regression, then mercurial bisect can find the
-patch in question fairly quick.
-
-Mauro has a MSI cardbus device using also the card=94 entry, but at home
-he has no DVB-T.
-
-Cheers,
-Hermann
-
-
+> OK. Then, I need your SOB for the 95% of the code, and his SOB for the
+> remaining ;)
