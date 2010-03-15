@@ -1,96 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:15310 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758249Ab0CKWF6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Mar 2010 17:05:58 -0500
-Message-ID: <4B996936.8030905@redhat.com>
-Date: Thu, 11 Mar 2010 19:05:42 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-input@vger.kernel.org
-Subject: Re: [PATCH] V4L/DVB: ir: Add a link to associate /sys/class/ir/irrcv
- with the input device
-References: <4B99104B.3090307@redhat.com> <20100311175214.GB7467@core.coreip.homeip.net>
-In-Reply-To: <20100311175214.GB7467@core.coreip.homeip.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:15160 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759797Ab0COIJm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Mar 2010 04:09:42 -0400
+Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0KZB00F7GDC3EY@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 15 Mar 2010 08:09:39 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0KZB002S8DC30K@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 15 Mar 2010 08:09:39 +0000 (GMT)
+Date: Mon, 15 Mar 2010 09:07:56 +0100
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: Magic in videobuf
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	'Hans Verkuil' <hverkuil@xs4all.nl>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
+Message-id: <E4D3F24EA6C9E54F817833EAE0D912AC09C7FCA3BF@bssrvexch01.BS.local>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: en-US
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dmitry,
+Hello,
 
-Dmitry Torokhov wrote:
-> Hi Mauro,
-> 
-> On Thu, Mar 11, 2010 at 12:46:19PM -0300, Mauro Carvalho Chehab wrote:
->> In order to allow userspace programs to autoload an IR table, a link is
->> needed to point to the corresponding input device.
->>
->> $ tree /sys/class/irrcv/irrcv0
->> /sys/class/irrcv/irrcv0
->> |-- current_protocol
->> |-- input -> ../../../pci0000:00/0000:00:0b.1/usb1/1-3/input/input22
->> |-- power
->> |   `-- wakeup
->> |-- subsystem -> ../../../../class/irrcv
->> `-- uevent
->>
->> It is now easy to associate an irrcv device with the corresponding
->> device node, at the input interface.
->>
-> 
-> I guess the question is why don't you make input device a child of your
-> irrcvX device? Then I believe driver core will link them properly. It
-> will also ensure proper power management hierarchy.
-> 
-> That probably will require you changing from class_dev into device but
-> that's the direction kernel is going to anyway.
+is anyone aware of any other uses for MAGIC_CHECK()s in videobuf code
+besides driver debugging? I intend to remove them, as we weren't able
+to find any particular use for them when we were discussing this at
+the memory handling meeting in Norway...
 
-I remember you asked me to create a separate class for IR. The current code
-does it, using class_create(). Once the class is created, I'm using 
-device_create() to create the nodes. 
 
-The current code is:
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
 
-int ir_register_class(struct input_dev *input_dev)
-{
-	...
-	ir_dev->class_dev = device_create(ir_input_class, NULL,
-					  input_dev->dev.devt, ir_dev,
-					  "irrcv%d", devno);
-	...
-	rc = sysfs_create_group(kobj, &ir_dev->attr);
-	...
-	rc = sysfs_create_link(kobj, &input_dev->dev.kobj, "input");
-	...
-	return 0;
-};
-
-int ir_input_register(struct input_dev *input_dev,
-		      const struct ir_scancode_table *rc_tab,
-		      const struct ir_dev_props *props)
-{
-	...
-	rc = input_register_device(input_dev);
-	...
-	rc = ir_register_class(input_dev);
-	...
-}
-
-static int __init ir_core_init(void)
-{
-	ir_input_class = class_create(THIS_MODULE, "irrcv");
-	...
-}
-
-I couldn't find any other way to create the link without explicitly
-calling sysfs_create_link().
-
-Do you have a better idea?
-
--- 
-
-Cheers,
-Mauro
