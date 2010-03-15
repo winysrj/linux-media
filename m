@@ -1,60 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:25838 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754069Ab0CYTBK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Mar 2010 15:01:10 -0400
-Message-ID: <4BABB2DB.8030305@redhat.com>
-Date: Thu, 25 Mar 2010 16:00:43 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:41054 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932386Ab0COWxL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Mar 2010 18:53:11 -0400
+Received: by gwaa12 with SMTP id a12so77972gwa.19
+        for <linux-media@vger.kernel.org>; Mon, 15 Mar 2010 15:53:10 -0700 (PDT)
 MIME-Version: 1.0
-To: Pavel Machek <pavel@ucw.cz>
-CC: Jon Smirl <jonsmirl@gmail.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
-	kraxel@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR 	system?
-References: <20091215115011.GB1385@ucw.cz> <4B279017.3080303@redhat.com> <20091215195859.GI24406@elf.ucw.cz> <9e4733910912151214n68161fc7tca0ffbf34c2c4e4@mail.gmail.com> <20091215201933.GK24406@elf.ucw.cz> <9e4733910912151229o371ee017tf3640d8f85728011@mail.gmail.com> <20091215203300.GL24406@elf.ucw.cz> <9e4733910912151245ne442a5dlcfee92609e364f70@mail.gmail.com> <9e4733910912151338n62b30af5i35f8d0963e6591c@mail.gmail.com> <4BAB7659.1040408@redhat.com> <20100325183259.GA22902@elf.ucw.cz>
-In-Reply-To: <20100325183259.GA22902@elf.ucw.cz>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4B8FF80C.7050009@andago.com>
+References: <4B8E3C69.2090800@andago.com> <4B8FF80C.7050009@andago.com>
+Date: Mon, 15 Mar 2010 19:53:09 -0300
+Message-ID: <9c4b1d601003151553h42c8c74eoaa2cbceaefa38818@mail.gmail.com>
+Subject: Re: Ubuntu and AverMedia DVD EZMaker USB Gold
+From: Adrian Pardini <pardo.bsso@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Jorge Cabrera <jorge.cabrera@andago.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Pavel Machek wrote:
-> Hi!
-> 
->> This were the original plan we've discussed, back in December:
-> ....
-> 
-> Seems sane.
-> 
->> struct keycode_table_entry {
->> 	unsigned keycode;
->> 	char scancode[32];	/* 32 is just an arbitrary long array - maybe shorter */
->> 	int len;
->> }
-> 
-> What about
-> 
-> struct keycode_table_entry {
-> 	unsigned keycode;
-> 	int len;
-> 	char scancode[];
-> }
-> 
-> ? gcc extension, but commonly used around kernel.
+On 04/03/2010, Jorge Cabrera <jorge.cabrera@andago.com> wrote:
+> Hello again,
+>
+> I was wrong here, the driver works, the device works great but what's
+> going on is that it uses the tuner as the default input, when I run
+> mplayer with input=1 (composite video) or input=2 (s-video) it works good:
+>
+> mplayer tv:// -tv input=1:device=/dev/video0
+>
+> But this isn't good enough because cheese and camorama and flash use the
+> default input. How can I set up default input to composite video or
+> s-video? Should I add something to the options that the Avermedia kernel
+> module uses?
 
-Seems fine. Maybe we could just use "char *scancode" to avoid using a
-gcc extension on a public interface.
+Try using the v4lctl command. Something like
+
+v4lctl setinput Composite1
+
+will do. You can replace "Composite1" with other names like Television
+etc. The manpage has more information.
 
 
 -- 
-
-Cheers,
-Mauro
+Adrian.
+http://elesquinazotango.com.ar
+http://www.noalcodigodescioli.blogspot.com/
