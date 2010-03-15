@@ -1,76 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:32786 "EHLO smtp3-g21.free.fr"
+Received: from mail1.radix.net ([207.192.128.31]:52042 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750898Ab0CAJRr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Mar 2010 04:17:47 -0500
-Date: Mon, 1 Mar 2010 10:18:06 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/3] add feedback LED control
-Message-ID: <20100301101806.7c7986be@tele>
-In-Reply-To: <4B8AC618.80200@freemail.hu>
-References: <4B8A2158.6020701@freemail.hu>
-	<20100228202801.6986cb19@tele>
-	<4B8AC618.80200@freemail.hu>
+	id S936138Ab0COLvx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Mar 2010 07:51:53 -0400
+Subject: Re: cx18: "missing audio" for analog recordings
+From: Andy Walls <awalls@radix.net>
+To: Mark Lord <kernel@teksavvy.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	ivtv-devel@ivtvdriver.org
+In-Reply-To: <4B9DA003.90306@teksavvy.com>
+References: <4B8BE647.7070709@teksavvy.com>
+	 <1267493641.4035.17.camel@palomino.walls.org>
+	 <4B8CA8DD.5030605@teksavvy.com>
+	 <1267533630.3123.17.camel@palomino.walls.org> <4B9DA003.90306@teksavvy.com>
+Content-Type: text/plain
+Date: Mon, 15 Mar 2010 07:51:24 -0400
+Message-Id: <1268653884.3209.32.camel@palomino.walls.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 28 Feb 2010 20:38:00 +0100
-Németh Márton <nm127@freemail.hu> wrote:
-
-> With a bitfield on and off state can be specified. What about the
-> "auto" mode? Should two bits grouped together to have auto, on and
-> off state? Is there already a similar control?
+On Sun, 2010-03-14 at 22:48 -0400, Mark Lord wrote:
+> On 03/02/10 07:40, Andy Walls wrote:
+> > Again, maybe dynamically allocating these work order objects from the
+> > kernel as needed, would be better from a small dynamically allocated
+> > pool for each card.  I was concerned that the interrupt handler was
+> > taking to long at the time I implemented the things the way they are
+> > now.
+> ..
 > 
-> Is the brightness of the background light LEDs adjustable or are they
-> just on/off? If yes, then maybe the feedback LEDs and the background
-> light LEDs should be treated as different kind.
+> I haven't seen that particular issue again, with or without increasing
+> the work orders, so hopefully it won't recur.
 
-OK. My idea about switching the LEDs by v4l2 controls was not good. So,
-forget about it.
+OK.
 
-Instead, some job of the led class may be done in the gspca main,
-especially register/unregister.
 
-I propose to add a LED description in the gspca structure (level
-'struct cam'). There would be 'nleds' for the number of LEDS and
-'leds', a pointer to an array of:
+> But after updating to the tip of the v4l2-dvb git tree last week,
+> I've been hitting the "no audio" on analog recordings bug much more often.
 
-	struct gspca_led {
-		struct led_classdev led_cdev;
-		char led_name[32];
-		struct led_trigger led_trigger;
-		char trigger_name[32];
-	};
+Is that tuner audio or baseband (line-in) audio?
 
-(this array should be in the subdriver structure - I don't show the
-#ifdef's)
 
-Then, this would work as:
 
-- on probe, in the 'config' function of the subdriver, this one
-  initializes the led and trigger fields. The 'led_cdev.name' and
-  'led_trigger.name' should point to a sprintf format with one
-  argument: the video device number (ex: "video%d::toplight").
+> Digging through google, it appears this problem has been around as long
+> as the cx18 driver has existed, with no clear resolution.  Lots of people
+> have reported it to you before, and nobody has found a silver bullet fix.
 
-- then, at the end of gspca_dev_probe(), the gspca main creates the real
-  names of the leds and triggers, and does the register job.
+Correct.   I thought it was completely gone, but apparently, there just
+isn't a lot of reporting of this intermittent problem.
 
-- all led/trigger events are treated by the subdriver, normally by a
-  workqueue. This one must not be the system workqueue.
 
-- on disconnection, the gspca main unregisters the leds and triggers
-  without calling the subdriver. In the workqueue, the disconnection
-  can be simply handled testing the flag 'present' after each subsystem
-  call.
+> The problem is still there.
+> 
+> I have now spent a good many hours trying to isolate *when* it happens,
+> and have narrowed it down to module initialization.
+> 
+> Basically, if the audio is working after modprobe cx18, it then continues
+> to work from recording to recording until the next reboot.
+>
+> If the audio is not working after modprobe, then simply doing rmmod/modprobe
+> in a loop (until working audio is achieved) is enough to cure it.
 
-Cheers.
+Good to know.
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+
+> So for my Mythtv box here, I now have a script to check for missing audio
+> and do the rmmod/modprobe.  This is a good, effective workaround.
+> 
+>     http://rtr.ca/hvr1600/fix_hvr1600_audio.sh
+> 
+> That's a link to my script.
+> 
+> As for the actual underlying cause/bug, it's still not clear what is happening.
+> But the problem is a LOT more prevalent (for me, and for two other people I know)
+> with versions of the cx18 driver since spring 2009.
+> 
+> My suspicion is that the firmware download for the APU is somehow being corrupted,
+> and now that the driver downloads the firmware *twice* during init, it doubles the
+> odds of said corruption.  Just a theory, but it's the best fit so far.
+
+Please isolate an APU load and initialization problem, by seeing if
+audio fails for both tuner audio and baseband audio.
+
+
+Here are all the potential problem areas I can think of:
+
+1. A/V digitizer/decoder audio detection firmware load and init.  (I've
+added firmware readback verification to try and head this off.)
+
+2. A/V digitizer decoder audio microcontroller hard reset and "soft"
+reset sequencing.  (I think the cx18 driver has this wrong ATM.)
+
+3. APU load and init.  (The double load is to fix a DTV TS stream bug on
+every other APU & CPU firmware load sequence.  The APU_AI_RESET is to
+fix the audio bitrate problem on first capture after a double firmware
+load.)
+
+4. AI1 Mux setting failing when switching between the internal A/V
+decoder's I2S output and the external I2S inputs.  (I thought I had this
+fixed, but I don't have detailed register specs for that register - so
+maybe not.)
+
+5. A/V decoder audio clock PLL stops operating due to being programmed
+out of range.  (This was a problem for 32 ksps audio a while ago, but
+I'm pretty confident I have it fixed.)
+
+6. A/V decoder analog frontend setup for SIF wrong?.  (I fixed this due
+to a problen Helen Buus reported with cable TV.)
+
+
+
+I think #2 is the real problem.  I just started to disassmble the
+digitizer firmware 2 nights ago to see if I could get some insight as to
+how to properly reset it.
+
+I've got a first WAG at fixing the resets of the audio microcontroller's
+resets at:
+
+	http://linuxtv.org/hg/~awalls/cx18-audio
+
+If it doesn't work, change the CXADEC_AUDIO_SOFT_RESET register define
+from 0x810 to 0x9cc, although that may not work either.
+
+
+> I think we have some nasty i2c issues somewhere in the kernel.
+
+The only I2C connected devices for analog audio are the analog tuner IF
+demodulator chip for SIF audio and the CS5345 chip for baseband audio.
+Unlike the PVR-150, which has an I2C connected CX25843 A/V decoder, the
+CX23418's A/V decoder is integrated and accessed via PCI bus registers.
+ 
+With that said, the CX23418 will sometimes have to let register access
+over the PCI bus fail.  For that, I have routines in cx18-io.[ch] to
+perform retries.  You may wish to add a log statement there to watch for
+retry loops that completely fail. 
+
+
+Thanks for the troubleshooting and reporting.
+
+Regards,
+Andy
+
+
