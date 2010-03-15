@@ -1,87 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:42834 "EHLO mail1.radix.net"
+Received: from mx1.redhat.com ([209.132.183.28]:41514 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751337Ab0CUVfN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Mar 2010 17:35:13 -0400
-Subject: Re: [PATCH] V4L/DVB: saa7146: IRQF_DISABLED causes only trouble
-From: Andy Walls <awalls@radix.net>
-To: =?ISO-8859-1?Q?Bj=F8rn?= Mork <bjorn@mork.no>
-Cc: linux-media@vger.kernel.org, stable@kernel.org
-In-Reply-To: <1269202135-340-1-git-send-email-bjorn@mork.no>
-References: <1269202135-340-1-git-send-email-bjorn@mork.no>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 21 Mar 2010 17:24:01 -0400
-Message-Id: <1269206641.6135.68.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	id S964854Ab0COLZu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Mar 2010 07:25:50 -0400
+Message-ID: <4B9E1931.8060006@redhat.com>
+Date: Mon, 15 Mar 2010 08:25:37 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Pawel Osciak <p.osciak@samsung.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	"'Hans Verkuil'" <hverkuil@xs4all.nl>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
+Subject: Re: Magic in videobuf
+References: <E4D3F24EA6C9E54F817833EAE0D912AC09C7FCA3BF@bssrvexch01.BS.local>
+In-Reply-To: <E4D3F24EA6C9E54F817833EAE0D912AC09C7FCA3BF@bssrvexch01.BS.local>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2010-03-21 at 21:08 +0100, Bjørn Mork wrote:
-> As discussed many times, e.g. in http://lkml.org/lkml/2007/7/26/401
-> mixing IRQF_DISABLED with IRQF_SHARED just doesn't make sense.
+Hi Pawel,
+
+Pawel Osciak wrote:
+> Hello,
 > 
-> Remove IRQF_DISABLED to avoid random unexpected behaviour.
-> 
-> Ever since I started using the saa7146 driver, I've had occasional
-> soft lockups.  I do not have any real evidence that the saa7146
-> driver is the cause, but the lockups are gone after removing the
-> IRQF_DISABLED flag from this driver.
-> 
-> On my system, this driver shares an irq17 with the pata_jmicron
-> driver:
-> 
->  17:       2115      10605    9422844    8193902   IO-APIC-fasteoi   pata_jmicron, saa7146 (0)
-> 
-> This may be a mitigating factor.
-> 
-> Signed-off-by: Bjørn Mork <bjorn@mork.no>
-> Cc: stable@kernel.org
+> is anyone aware of any other uses for MAGIC_CHECK()s in videobuf code
+> besides driver debugging? I intend to remove them, as we weren't able
+> to find any particular use for them when we were discussing this at
+> the memory handling meeting in Norway...
 
-And here are some more recent discussions:
+It is a sort of paranoid check to avoid the risk of mass memory corruption 
+if something goes deadly wrong with the video buffers.
 
-http://lkml.org/lkml/2009/11/30/215
-http://lkml.org/lkml/2009/3/2/33
-http://lkml.org/lkml/2009/3/2/225
-http://www.mail-archive.com/ivtv-devel@ivtvdriver.org/msg06319.html
-http://www.mail-archive.com/ivtv-devel@ivtvdriver.org/msg06362.html
+The original videobuf, written back in 2001/2002 had this code, and I've
+kept it on the redesign I did in 2007, since I know that DMA is very badly
+implemented on some chipsets. There are several reports of the video driver
+to corrupt the system memory and damaging the disk data when a PCI transfer
+to disk happens at the same time that a PCI2PCI data transfer happens (This
+basically affects overlay mode, where the hardware is programmed to transfer
+data from the video board to the video adapter board).
 
-And the ones on the LKML seem prettry inconclusive to me.
+The DMA bug is present on several VIA and SYS old chipsets. It happened again
+in some newer chips (2007?), and the fix were to add a quirk blocking overlay
+mode on the reported broken hardware. It seems that newer BIOSes for those
+newer hardware fixed this issue.
 
+That's said, I never got any report from anyone explicitly saying that they
+hit the MAGIC_CHECK() logic.
 
-If the saa7146 driver was registered second, then this change should
-have no effect on your system.
+I prefer to keep this logic, but maybe we can add a CONFIG option to disable it.
+Something like:
 
-If the saa7146 driver was registered first, then this can cause the
-saa7146 driver's interrupt handler to be interrupted.  I doubt the
-saa7146 driver is prepared for this contingency.
+#ifdef CONFIG_VIDEO_DMA_PARANOID_CHECK
+	#define MAGIC_CHECK() ...
+#else
+	#define MAGIC_CHECK()
+#endif
 
-I doubt that this is the "proper" fix for your problem.
-
-
-Does the "soft lockup" put an Oops or BUG message in dmesg
-or /var/log/messages? 
-
-What precisely do you mean by "soft lockup"?
-
-Regards,
-Andy
-
-> ---
->  drivers/media/common/saa7146_core.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/common/saa7146_core.c b/drivers/media/common/saa7146_core.c
-> index 982f000..038dcc8 100644
-> --- a/drivers/media/common/saa7146_core.c
-> +++ b/drivers/media/common/saa7146_core.c
-> @@ -416,7 +416,7 @@ static int saa7146_init_one(struct pci_dev *pci, const struct pci_device_id *ent
->  	saa7146_write(dev, MC2, 0xf8000000);
->  
->  	/* request an interrupt for the saa7146 */
-> -	err = request_irq(pci->irq, interrupt_hw, IRQF_SHARED | IRQF_DISABLED,
-> +	err = request_irq(pci->irq, interrupt_hw, IRQF_SHARED,
->  			  dev->name, dev);
->  	if (err < 0) {
->  		ERR(("request_irq() failed.\n"));
-
+Cheers,
+Mauro
