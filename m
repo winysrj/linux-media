@@ -1,109 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:31640 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755557Ab0CXMCT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Mar 2010 08:02:19 -0400
-Message-ID: <4BA9FF3E.2090406@redhat.com>
-Date: Wed, 24 Mar 2010 09:02:06 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:65346 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756425Ab0CODza (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Mar 2010 23:55:30 -0400
+Received: by bwz1 with SMTP id 1so2567428bwz.21
+        for <linux-media@vger.kernel.org>; Sun, 14 Mar 2010 20:55:29 -0700 (PDT)
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [Resubmit: PATCH-V2] Introducing ti-media directory
-References: <hvaibhav@ti.com> <19F8576C6E063C45BE387C64729E7394044DE0EBC5@dbde02.ent.ti.com> <A69FA2915331DC488A831521EAE36FE4016A785F05@dlee06.ent.ti.com> <201003241005.51075.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201003241005.51075.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <74fd948d1003140806tc32b263y634405b60bd10cd0@mail.gmail.com>
+References: <74fd948d1003031535r1785b36dq4cece00f349975af@mail.gmail.com>
+	 <829197381003031548n703f0bf9sb44ce3527501c5c0@mail.gmail.com>
+	 <74fd948d1003031700h187dbfd0v3f54800e652569b@mail.gmail.com>
+	 <829197381003031706g1011f442hcc4be40ae2e79a47@mail.gmail.com>
+	 <4B8F347E.2010206@gmail.com>
+	 <74fd948d1003040314y2fc911f2k97b1d6fb66bdc0b9@mail.gmail.com>
+	 <829197381003041139j7300bc7cg1281aff59e5a60b@mail.gmail.com>
+	 <74fd948d1003041244s513dce3s69567cb9dbe31ae1@mail.gmail.com>
+	 <829197381003041252m7b547e2ehced781c59c1c6edc@mail.gmail.com>
+	 <74fd948d1003140806tc32b263y634405b60bd10cd0@mail.gmail.com>
+Date: Sun, 14 Mar 2010 23:55:29 -0400
+Message-ID: <829197381003142055r271fefcbs8c5e5ea97e47c585@mail.gmail.com>
+Subject: Re: Excessive rc polling interval in dvb_usb_dib0700 causes
+	interference with USB soundcard
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Pedro Ribeiro <pedrib@gmail.com>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent Pinchart wrote:
-> Hi Murali,
-> 
-> On Tuesday 23 March 2010 18:52:44 Karicheri, Muralidharan wrote:
->> Laurent,
->>
->>>> I'm not too sure to like the ti-media name. It will soon get quite
->>>> crowded, and name collisions might occur (look at the linux-omap-camera
->>>> tree and the ISP driver in there for instance). Isn't there an internal
->>>> name to refer to both the DM6446 and AM3517 that could be used ?
->>> [Hiremath, Vaibhav] Laurent,
->>>
->>> ti-media directory is top level directory where we are putting all TI
->>> devices drivers. So having said that, we should worrying about what goes
->>> inside this directory.
->>> For me ISP is more generic, if you compare davinci and OMAP.
->>>
->>> Frankly, there are various naming convention we do have from device to
->>> device, even if the IP's are being reused. For example, the internal name
->>> for OMAP is ISP but Davinci refers it as a VPSS.
->> Could you explain what name space issue you are referring to in
->> linux-omap-camera since I am not quite familiar with that tree?
-> 
-> The linux-omap-camera tree contains a driver for the OMAP3 ISP. Basically, 
-> most source files start with the "isp" prefix and are stored in 
-> drivers/media/video/isp/.
-> 
-> ISP is quite a generic name, and other vendors will probably develop an ISP at 
-> some point (if not already done), so there's already a potential name conflict 
-> today.
-> 
-> Using a dedicated directory in drivers/media/video for TI-specific cores is 
-> definitely a good idea (assuming the same IP cores won't be used by other 
-> vendors in the future).
-> 
-> My concern is that, if we move the ISP driver in drivers/media/video/ti-media, 
-> the directory will soon get quite crowded. If a new TI processor comes up with 
-> a totally incompatible ISP, we will get a name conflict in 
-> drivers/media/video/ti-media. I was thinking about either replacing the "isp" 
-> prefix with "omap3isp" (or similar), or moving the driver to 
-> drivers/media/video/ti-media/omap3isp, but that will impede code sharing code 
-> between the Davinci and OMAP processor families. That's where my uncertainty 
-> comes from.
+On Sun, Mar 14, 2010 at 11:06 AM, Pedro Ribeiro <pedrib@gmail.com> wrote:
+> Hi Devin,
+>
+> after some through investigation I found that your patch solves the
+> continuous interference.
+>
+> However, I have a second problem. It is also interference but appears
+> to be quite random, by which I mean it is not at a fixed interval,
+> sometimes it happens past 10 seconds, other times past 30 seconds,
+> other times 2 to 5 seconds.
+>
+> One thing is sure - it only happens when I'm actually streaming from
+> the DVB adapter. If I just plug it in, there is no interference. But
+> when I start vdr (for example) the interference starts.
+>
+> The DVB adapter and the sound card are not sharing irq's or anything
+> like that, and there is no system freeze when the interference
+> happens. I also thought it was either my docking bay or power supply,
+> but definitely it isn't.
+>
+> Any idea what can this be?
+>
+> Thank you for your help,
+> Pedro
 
-There are two separate points here. The first one is re-using a driver or some
-symbols. Whatever directory structure is used, this won't prevent to share the code.
-Just create the header files under include/media and be sure that the Kbuild 
-system will properly handle the dependencies, with "depends on".
+Hello Pedro,
 
-> 
->> Myself and Vaibhav had discussed this in the past and ti-media is the
->> generic name that we could agree on. On DM SoCs (DM6446, DM355, DM365) I
->> expect ti-media to be the home for all vpfe and vpbe driver files. Since
->> we had a case of common IP across OMAP and DMxxx SoCs, we want to place
->> all OMAP and DMxxx video driver files in a common directory so that
->> sharing the drivers across the SoCs will be easy. We could discuss and
->> agree on another name if need be. Any suggestions?
-> 
-> It's not the name ti-media that I don't agree on, it's just that this will 
-> move the problem one step further in the directory hierarchy without actually 
-> solving it :-)
-> 
-> Is it guaranteed today that no TI processors with new generation video blocks 
-> will reuse the names ISP, VPFE and VPBE ? The OMAP3 datasheet refers to VPFE 
-> and VPBE, but luckily those blocks are further divided into subblocks, and the 
-> driver doesn't refer to the VPFE and VPBE directly.
+Could you describe in more detail what you mean by "interference"?  Do
+you mean that you get corrupted audio for short bursts?  Or do you
+mean the audio is dropping out for periods of time?  Can you elaborate
+on how long the problem occurs for, and how often it occurs?  For
+example, do you get corrupted audio for 1 second at a time every ten
+or fifteen seconds?
 
-I agree that a name like ti-media would be too generic. Also, if we take a look on
-how the drivers are currently organized, the trees aren't vendor-based, but
-chipset-design based. There are even some cases where there's just one or two C files that
-are directly stored under drivers/media/video (like tvp5150, for example).
+This is a USB audio device, correct?  Are both devices on the same USB
+bus?  Is there a USB hub involved?
 
-IMO, simpler drivers where just one or a couple of files are needed should be stored
-into drivers/media/video. Bigger drivers should be organized by family, and not by vendor. 
-Otherwise, we would need to re-organize the tree to be coherent.
+It's also possible that this is just a general latency problem - where
+the CPU becomes too busy, it does not service the sound card often
+enough and PCM data is being dropped.  Have you tried running "top"?
+What does your CPU utilization look like when you are experiencing the
+problem?
 
-One interesting example of the a per-family directory is cx25840. The same driver
-is used by several different chipsets. The driver supports a separate IC chip (cx25836,
-cx2584x), and two designs where the decoder logic is inside an IC chip with the bridge
-and other functional blocks (cx23885 and cx231xx).
-
+Devin
 
 -- 
-
-Cheers,
-Mauro
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
