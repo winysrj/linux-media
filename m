@@ -1,274 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46248 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751591Ab0CIPD1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Mar 2010 10:03:27 -0500
-Message-ID: <4B966335.5060101@redhat.com>
-Date: Tue, 09 Mar 2010 12:03:17 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:64267 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936155Ab0COMut convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Mar 2010 08:50:49 -0400
+Received: by wyb38 with SMTP id 38so1453647wyb.19
+        for <linux-media@vger.kernel.org>; Mon, 15 Mar 2010 05:50:47 -0700 (PDT)
 MIME-Version: 1.0
-To: Pawel Osciak <p.osciak@samsung.com>
-CC: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl
-Subject: Re: [PATCH v2 1/3] v4l: Add support for multi-plane buffers to V4L2
- API.
-References: <1268146183-2018-1-git-send-email-p.osciak@samsung.com> <1268146183-2018-2-git-send-email-p.osciak@samsung.com>
-In-Reply-To: <1268146183-2018-2-git-send-email-p.osciak@samsung.com>
+In-Reply-To: <20100314215202.GA229@daniel.bse>
+References: <eccab77d1003140521v73b17897h76ce413d5dc59361@mail.gmail.com>
+	 <eccab77d1003140914p20debe7fka2fbd173a85b860f@mail.gmail.com>
+	 <20100314215202.GA229@daniel.bse>
+Date: Mon, 15 Mar 2010 13:50:45 +0100
+Message-ID: <eccab77d1003150550g2d1c03eapd45fd2daa6488fdf@mail.gmail.com>
+Subject: Re: dual TT C-1501 on a single PCI riser
+From: Martin van Es <mrvanes@gmail.com>
+To: Martin van Es <mrvanes@gmail.com>, linux-media@vger.kernel.org,
+	=?ISO-8859-1?Q?Daniel_Gl=F6ckner?= <daniel-gl@gmx.net>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Pawel Osciak wrote:
-> Current V4L2 API assumes that each video buffer contains exactly one,
-> contiguous memory buffer for video data. Even in case of planar video
-> formats, e.g. YCbCr with each component residing in a separate area
-> of memory, it is specified that each of those planes immediately follows
-> the previous one in memory.
-> 
-> There exist hardware video devices that handle, or even require, each of
-> the planes to reside in a separate, arbitrary memory area. Some even
-> require different planes to be placed in different, physical memory banks.
-> 
-> This patch introduces a backward-compatible extension of V4L2 API, which
-> allows passing additional, per-plane info in the video buffer structure.
-> 
-> Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-> Reviewed-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> Reviewed-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  drivers/media/video/v4l2-ioctl.c |   97 ++++++++++++++++++++++++++-----------
->  include/linux/videodev2.h        |   33 ++++++++++++-
->  2 files changed, 99 insertions(+), 31 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-> index 4b11257..b89b73f 100644
-> --- a/drivers/media/video/v4l2-ioctl.c
-> +++ b/drivers/media/video/v4l2-ioctl.c
-> @@ -172,6 +172,8 @@ static const char *v4l2_memory_names[] = {
->  	[V4L2_MEMORY_MMAP]    = "mmap",
->  	[V4L2_MEMORY_USERPTR] = "userptr",
->  	[V4L2_MEMORY_OVERLAY] = "overlay",
-> +	[V4L2_MEMORY_MULTI_USERPTR]	= "multi-userptr",
-> +	[V4L2_MEMORY_MULTI_MMAP]	= "multi-mmap",
->  };
->  
->  #define prt_names(a, arr) ((((a) >= 0) && ((a) < ARRAY_SIZE(arr))) ? \
-> @@ -1975,7 +1977,7 @@ static unsigned long cmd_input_size(unsigned int cmd)
->  	switch (cmd) {
->  		CMDINSIZE(ENUM_FMT,		fmtdesc,	type);
->  		CMDINSIZE(G_FMT,		format,		type);
-> -		CMDINSIZE(QUERYBUF,		buffer,		type);
-> +		CMDINSIZE(QUERYBUF,		buffer,		length);
->  		CMDINSIZE(G_PARM,		streamparm,	type);
->  		CMDINSIZE(ENUMSTD,		standard,	index);
->  		CMDINSIZE(ENUMINPUT,		input,		index);
-> @@ -2000,6 +2002,46 @@ static unsigned long cmd_input_size(unsigned int cmd)
->  	}
->  }
->  
-> +static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
-> +			    void * __user *user_ptr, void ***kernel_ptr)
-> +{
-> +	int ret = 0;
-> +
-> +	switch(cmd) {
-> +	case VIDIOC_QUERYBUF:
-> +	case VIDIOC_QBUF:
-> +	case VIDIOC_DQBUF: {
-> +		struct v4l2_buffer *buf = parg;
-> +
-> +		if ((buf->memory == V4L2_MEMORY_MULTI_USERPTR
-> +		     || buf->memory == V4L2_MEMORY_MULTI_MMAP)) {
-> +			*user_ptr = (void __user *)buf->m.planes;
-> +			*kernel_ptr = (void **)&buf->m.planes;
-> +			*array_size = sizeof(struct v4l2_plane) * buf->length;
-> +			ret = 1;
-> +		}
-> +		break;
-> +	}
-> +
-> +	case VIDIOC_S_EXT_CTRLS:
-> +	case VIDIOC_G_EXT_CTRLS:
-> +	case VIDIOC_TRY_EXT_CTRLS: {
-> +		struct v4l2_ext_controls *ctrls = parg;
-> +
-> +		if (ctrls->count != 0) {
-> +			*user_ptr = (void __user *)ctrls->controls;
-> +			*kernel_ptr = (void **)&ctrls->controls;
-> +			*array_size = sizeof(struct v4l2_ext_control)
-> +				    * ctrls->count;
-> +			ret = 1;
-> +		}
-> +		break;
-> +	}
-> +	}
-> +
-> +	return ret;
-> +}
-> +
->  long video_ioctl2(struct file *file,
->  	       unsigned int cmd, unsigned long arg)
->  {
-> @@ -2007,15 +2049,16 @@ long video_ioctl2(struct file *file,
->  	void    *mbuf = NULL;
->  	void	*parg = NULL;
->  	long	err  = -EINVAL;
-> -	int     is_ext_ctrl;
-> -	size_t  ctrls_size = 0;
-> +	int	has_array_args;
-> +	size_t  array_size = 0;
->  	void __user *user_ptr = NULL;
-> +	void	**kernel_ptr = NULL;
->  
->  #ifdef __OLD_VIDIOC_
->  	cmd = video_fix_command(cmd);
->  #endif
-> -	is_ext_ctrl = (cmd == VIDIOC_S_EXT_CTRLS || cmd == VIDIOC_G_EXT_CTRLS ||
-> -		       cmd == VIDIOC_TRY_EXT_CTRLS);
-> +	/*is_ext_ctrl = (cmd == VIDIOC_S_EXT_CTRLS || cmd == VIDIOC_G_EXT_CTRLS ||
-> +		       cmd == VIDIOC_TRY_EXT_CTRLS);*/
+Hi Daniel,
 
-Just drop it if not used anymore.
+Thx for your answer. It put me on the right track because I have
+finally solved the puzzle!
+Here's how:
 
->  
->  	/*  Copy arguments into temp kernel buffer  */
->  	if (_IOC_DIR(cmd) != _IOC_NONE) {
-> @@ -2045,43 +2088,39 @@ long video_ioctl2(struct file *file,
->  		}
->  	}
->  
-> -	if (is_ext_ctrl) {
-> -		struct v4l2_ext_controls *p = parg;
-> +	has_array_args = check_array_args(cmd, parg, &array_size,
-> +					  &user_ptr, &kernel_ptr);
->  
-> -		/* In case of an error, tell the caller that it wasn't
-> -		   a specific control that caused it. */
-> -		p->error_idx = p->count;
-> -		user_ptr = (void __user *)p->controls;
-> -		if (p->count) {
-> -			ctrls_size = sizeof(struct v4l2_ext_control) * p->count;
-> -			/* Note: v4l2_ext_controls fits in sbuf[] so mbuf is still NULL. */
-> -			mbuf = kmalloc(ctrls_size, GFP_KERNEL);
-> -			err = -ENOMEM;
-> -			if (NULL == mbuf)
-> -				goto out_ext_ctrl;
-> -			err = -EFAULT;
-> -			if (copy_from_user(mbuf, user_ptr, ctrls_size))
-> -				goto out_ext_ctrl;
-> -			p->controls = mbuf;
-> -		}
-> +	if (has_array_args) {
-> +		/* When adding new types of array args, make sure that the
-> +		 * parent argument to ioctl, which contains the array, fits into
-> +		 * sbuf (so that mbuf will still remain unused up to here).
-> +		 */
-> +		mbuf = kmalloc(array_size, GFP_KERNEL);
-> +		err = -ENOMEM;
-> +		if (NULL == mbuf)
-> +			goto out_array_args;
-> +		err = -EFAULT;
-> +		if (copy_from_user(mbuf, user_ptr, array_size))
-> +			goto out_array_args;
-> +		*kernel_ptr = mbuf;
+I did some testing with the IDSEL jumpers and saw the following pattern:
 
-You probably need something similar to this at v4l2-compat-ioctl32.c.
+IDSEL   GSI/IRQ reported by kernel.
+24      17
+25      20
+26      no route -> 1
+27      no route -> 1
+28      17
+29      20
+30      no route -> 1
+31      no device present
 
->  	}
->  
->  	/* Handles IOCTL */
->  	err = __video_do_ioctl(file, cmd, parg);
->  	if (err == -ENOIOCTLCMD)
->  		err = -EINVAL;
-> -	if (is_ext_ctrl) {
-> -		struct v4l2_ext_controls *p = parg;
->  
-> -		p->controls = (void *)user_ptr;
-> -		if (p->count && err == 0 && copy_to_user(user_ptr, mbuf, ctrls_size))
-> +	if (has_array_args) {
-> +		*kernel_ptr = user_ptr;
-> +		if (copy_to_user(user_ptr, mbuf, array_size))
->  			err = -EFAULT;
-> -		goto out_ext_ctrl;
-> +		goto out_array_args;
->  	}
->  	if (err < 0)
->  		goto out;
->  
-> -out_ext_ctrl:
-> +out_array_args:
->  	/*  Copy results into user buffer  */
->  	switch (_IOC_DIR(cmd)) {
->  	case _IOC_READ:
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index d4962a7..bf3f33d 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -70,6 +70,7 @@
->   * Moved from videodev.h
->   */
->  #define VIDEO_MAX_FRAME               32
-> +#define VIDEO_MAX_PLANES		3
->  
->  #ifndef __KERNEL__
->  
-> @@ -180,6 +181,10 @@ enum v4l2_memory {
->  	V4L2_MEMORY_MMAP             = 1,
->  	V4L2_MEMORY_USERPTR          = 2,
->  	V4L2_MEMORY_OVERLAY          = 3,
-> +
-> +	/* Discontiguous buffer types */
-> +	V4L2_MEMORY_MULTI_USERPTR    = 4,
-> +	V4L2_MEMORY_MULTI_MMAP       = 5,
->  };
->  
->  /* see also http://vektor.theorem.ca/graphics/ycbcr/ */
-> @@ -519,6 +524,29 @@ struct v4l2_requestbuffers {
->  	__u32			reserved[2];
->  };
->  
-> +/* struct v4l2_plane - a multi-plane buffer plane.
-> + *
-> + * Multi-plane buffers consist of two or more planes, e.g. an YCbCr buffer
-> + * with two planes has one plane for Y, and another for interleaved CbCr
-> + * components. Each plane can reside in a separate memory buffer, or in
-> + * a completely separate memory chip even (e.g. in embedded devices).
-> + */
-> +struct v4l2_plane {
-> +	__u32			bytesused;
-> +
-> +	union {
-> +		__u32		offset;
-> +		unsigned long	userptr;
-> +	} m;
-> +	__u32			length;
-> +	__u32			reserved[5];
-> +};
-> +
-> +/* struct v4l2_buffer - a video buffer (frame)
-> + * @length:	size of the buffer (not its payload) for single-plane buffers,
-> + * 		number of planes (and number of elements in planes array)
-> + * 		for multi-plane
-> + */
->  struct v4l2_buffer {
->  	__u32			index;
->  	enum v4l2_buf_type      type;
-> @@ -532,8 +560,9 @@ struct v4l2_buffer {
->  	/* memory location */
->  	enum v4l2_memory        memory;
->  	union {
-> -		__u32           offset;
-> -		unsigned long   userptr;
-> +		__u32			offset;
-> +		unsigned long		userptr;
-> +		struct v4l2_plane	*planes;
->  	} m;
->  	__u32			length;
->  	__u32			input;
+But none of these settings resulted in a response to interrupts.
+Also I had measured that INTA of slot2 was wired to INTD of the riser
+connector, which I thought strange, because I'd expect a forward rotation
+for slot2 (A>B)?
 
+When I look at the pci layout, pci device 05 is connected to bridge 1e.0:
 
--- 
+-[0000:00]-+-00.0
+           +-02.0
+           +-02.1
+           +-1b.0
+           +-1c.0-[01]----00.0
+           +-1c.1-[02]--
+           +-1c.2-[03]--
+           +-1c.3-[04]--
+           +-1d.0
+           +-1d.1
+           +-1d.2
+           +-1d.3
+           +-1d.7
+           +-1e.0-[05]--+-00.0  Philips Semiconductors SAA7146
+           |            \-0c.0  Philips Semiconductors SAA7146
+           +-1f.0
+           +-1f.1
+           +-1f.2
+           \-1f.3
 
-Cheers,
-Mauro
+Then I wondered if device 05 would still be present if I removed the riser and
+it was. So I started to suspect that the motherboard had no way to know what
+PCI int's were used behind the bridge if both cards were detected to serve
+INTA (i.e. 05.0x = INTA in lspci -v) and would thus (quite stupidly?)
+route any int for
+this slot to INTA?
+
+So, when I hard-wired the 2nd slot INTA to riser INTA together and used IDSEL 29
+I had a succesful initialisation of the DVB card (the other IDSELs didn't work,
+even on different PCI INTs), but way too many interrupts on int 20. Then I tried
+both cards and that worked as well, but again far too many interrupts
+on int 20.
+Last change was to cut the original slot2 connection to INTD and gone were my
+extra interrupts!
+
+So now I have two correctly recognised cards, both using int 20 and PCI INTA.
+Now I wonder if this will harm the performance if both cards are recording
+streams, let alone if they work, because that's the next test I still have to
+do.
+
+Regards,
+Martin van Es
+
+On Sun, Mar 14, 2010 at 22:52, Daniel Glöckner <daniel-gl@gmx.net> wrote:
+> Hi,
+>
+> On Sun, Mar 14, 2010 at 05:14:33PM +0100, Martin van Es wrote:
+>> ? Pin A11: additional 33 MHz PCI clock
+>> ? Pin B10: additional PCI request signal (i.e., PREQ#2)
+>> ? Pin B14: additional PCI Grant signal (i.e., GNT#2)
+>> -----
+>>
+>> I'm 100% sure the Tranquil riser does not support this suggestion
+>> since the A11/B10 and B14 leads are not used on the riser.
+>
+> Your riser card doesn't need these signals thanks to the IT8209R.
+> The drawback is that the cards will be granted less bus time when
+> competing with on board PCI peripherals.
+>
+>> On the other hand, my guess would be that an ordinary
+>> riser with arbiter and the correct wiring should do the trick. My
+>> question is more or less the same as Udo's in the thread I posted: how
+>> do I check if int 17 of the second card is correctly connected to int
+>> A of the second slot and if not, where to start changing things?
+>
+> PCI slots have four interrupts, INTA, INTB, INTC, and INTC. Riser cards
+> usually permute these for the second and following slots to avoid
+> interrupt sharing. The BIOS has a built-in table that tells Linux for
+> every slot which pin of the interrupt controller is connected to these
+> four interrupt lines. So we need to make the second slot appear to the
+> BIOS to be one where INTA is same interrupt as (probably) INTB of the
+> first slot.
+>
+> Slots are addressed using the IDSEL line. Every slot has its own line.
+> To reduce the number of signals (and to allow riser cards) the PCI
+> standards suggests reusing the upper AD lines as IDSEL lines for the
+> slots. So by changing the AD line connected to the IDSEL line of the
+> second slot with the jumper on the riser card, the slot will get another
+> number and thus another interrupt mapping.
+>
+> According to the ICH7 datasheet you should currently have selected
+> AD24, as your card is 08.0 on the bus (strange... at that position
+> should have been the intel ethernet controller..). Just subtract
+> 16 from the AD number to get the slot number. Now try all of them
+> until you find one where interrupts work. Avoid those already in
+> use on the same bus as listed by "lspci -tv".
+>
+> Good luck!
+>
+>  Daniel
+>
