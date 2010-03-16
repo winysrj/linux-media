@@ -1,75 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48400 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752470Ab0CQOYI convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3897 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753619Ab0CPTxu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Mar 2010 10:24:08 -0400
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Wed, 17 Mar 2010 09:23:58 -0500
-Subject: RE: [omap3camera] Camera bring-up on Zoom3 (OMAP3630)
-Message-ID: <A24693684029E5489D1D202277BE8944541370C5@dlee02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE894453CC5C3F@dlee02.ent.ti.com>
- <201003162330.17454.laurent.pinchart@ideasonboard.com>
- <A24693684029E5489D1D202277BE894454137054@dlee02.ent.ti.com>
- <201003171514.27538.laurent.pinchart@ideasonboard.com>
- <4BA0E434.1040402@maxwell.research.nokia.com>
-In-Reply-To: <4BA0E434.1040402@maxwell.research.nokia.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Tue, 16 Mar 2010 15:53:50 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id o2GJrmg9005711
+	for <linux-media@vger.kernel.org>; Tue, 16 Mar 2010 20:53:48 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 16 Mar 2010 20:53:48 +0100 (CET)
+Message-Id: <201003161953.o2GJrmg9005711@smtp-vbr1.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
+Results of the daily build of v4l-dvb:
 
-> -----Original Message-----
-> From: Sakari Ailus [mailto:sakari.ailus@maxwell.research.nokia.com]
-> Sent: Wednesday, March 17, 2010 9:16 AM
-> To: Laurent Pinchart
-> Cc: Aguirre, Sergio; linux-media@vger.kernel.org
-> Subject: Re: [omap3camera] Camera bring-up on Zoom3 (OMAP3630)
-> 
-> Laurent Pinchart wrote:
-> >>>> I'm trying to get latest Sakari's tree (gitorious.org/omap3camera)
-> >>>> 'devel' branch running on my Zoom3 HW (which has an OMAP3630, and a
-> >>>> Sony IMX046 8MP sensor).
-> >>>>
-> >>>> I had first one NULL pointer dereference while the driver was
-> >>>> registering devices and creating entities, which I resolved with
-> >>>> the attached patch. (Is this patch acceptable, or maybe I am missing
-> >>>> something...)
-> >>>
-> >>> Either that, or make OMAP34XXCAM_VIDEODEVS dynamic (the value would be
-> >>> passed through platform data). The code will be removed (hopefully
-> soon)
-> >>> anyway when the legacy video nodes will disappear.
-> >>
-> >> Ok, so should I keep this patch only to myself until this code is
-> removed?
-> >
-> > I'll let Sakari answer that, but I think they can still go in in the
-> meantime.
-> 
-> Is there a need for the patch? The other possible device is just left
-> unused, right?
+date:        Tue Mar 16 19:00:16 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14492:749f7ddc61ab
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 8c69c6ed6c74c94fa7ad6fa24eda452e4b212d81
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-There is need for it _if_ I don't change OMAP34XXCAM_VIDEODEVS in
-drivers/media/video/omap34xxcam.h, and if I have less devices listed
-in the platform data passed from the boardfile.
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-rc1-armv5: OK
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-rc1-armv5-davinci: WARNINGS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-rc1-armv5-ixp: WARNINGS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-rc1-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.20-i686: ERRORS
+linux-2.6.26.8-i686: ERRORS
+linux-2.6.27.44-i686: ERRORS
+linux-2.6.28.10-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30.10-i686: ERRORS
+linux-2.6.31.12-i686: ERRORS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-rc1-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-rc1-m32r: OK
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-rc1-mips: WARNINGS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-rc1-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.20-x86_64: ERRORS
+linux-2.6.26.8-x86_64: ERRORS
+linux-2.6.27.44-x86_64: ERRORS
+linux-2.6.28.10-x86_64: ERRORS
+linux-2.6.29.1-x86_64: ERRORS
+linux-2.6.30.10-x86_64: ERRORS
+linux-2.6.31.12-x86_64: ERRORS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-rc1-x86_64: WARNINGS
+linux-git-armv5: OK
+linux-git-armv5-davinci: OK
+linux-git-armv5-ixp: OK
+linux-git-armv5-omap2: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: WARNINGS
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-In this case, OMAP34XXCAM_VIDEODEVS is hardcoded to N900 case, which is 2,
-and I only have 1 sensor in my Zoom3.
+Detailed results are available here:
 
-I guess the patch is just protecting for potential pointer dereferencing, unless we get rid of current OMAP34XXCAM_VIDEODEVS hardcoded value.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Regards,
-Sergio
+Full logs are available here:
 
-> 
-> --
-> Sakari Ailus
-> sakari.ailus@maxwell.research.nokia.com
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
