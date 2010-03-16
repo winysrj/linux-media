@@ -1,94 +1,225 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:57223 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754287Ab0C3I5h convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3026 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S937522Ab0CPH1v (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Mar 2010 04:57:37 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH/RFC 0/1] v4l: Add support for binary controls
-Date: Tue, 30 Mar 2010 10:57:54 +0200
-Cc: Kamil Debski <k.debski@samsung.com>, linux-media@vger.kernel.org,
-	p.osciak@samsung.com, kyungmin.park@samsung.com
-References: <1269856386-29557-1-git-send-email-k.debski@samsung.com> <201003300841.47978.hverkuil@xs4all.nl>
-In-Reply-To: <201003300841.47978.hverkuil@xs4all.nl>
+	Tue, 16 Mar 2010 03:27:51 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Dmitri Belimov <d.belimov@gmail.com>
+Subject: Re: [PATCH] Add SPI support to V4L2
+Date: Tue, 16 Mar 2010 08:28:02 +0100
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <20100316115059.7e1c0530@glory.loctelecom.ru>
+In-Reply-To: <20100316115059.7e1c0530@glory.loctelecom.ru>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201003301057.56034.laurent.pinchart@ideasonboard.com>
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201003160828.02483.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Dmitri,
 
-On Tuesday 30 March 2010 08:41:47 Hans Verkuil wrote:
-> On Monday 29 March 2010 11:53:05 Kamil Debski wrote:
-> > Hello,
-> > 
-> > This patch introduces new type of v4l2 control - the binary control. It
-> > will be useful for exchanging raw binary data between the user space and
-> > the driver/hardware.
-> > 
-> > The patch is pretty small – basically it adds a new control type.
-> > 
-> > 1.  Reasons to include this new type
-> > - Some devices require data which are not part of the stream, but there
-> > are necessary for the device to work e.g. coefficients for transformation
-> > matrices.
-> > - String control is not suitable as it suggests that the data is a null
-> > terminated string. This might be important when printing debug
-> > information - one might output strings as they are and binary data in
-> > hex.
-> > 
-> > 2. How does the binary control work
-> > The binary control has been based on the string control. The principle of
-> > use is the same. It uses v4l2_ext_control structure to pass the pointer
-> > and size of the data. It is left for the driver to call the
-> > copy_from_user/ copy_to_user function to copy the data.
-> > 
-> > 3. About the patch
-> > The patch is pretty small – it basically adds a new control type.
-> > 
-> > Best wishes,
-> 
-> I don't think this is a good idea. Controls are not really meant to be used
-> as an ioctl replacement.
-> 
-> Controls can be used to control the hardware via a GUI (e.g. qv4l2).
-> Obviously, this will fail for binary controls. Controls can also be used
-> in cases where it is not known up front which controls are needed. This
-> typically happens for bridge drivers that can use numerous combinations of
-> i2c sub-devices. Each subdev can have its own controls.
-> 
-> There is a grey area where you want to give the application access to
-> low-level parameters but without showing them to the end-user. This is
-> currently not possible, but it will be once the control framework is
-> finished and once we have the possibility to create device nodes for
-> subdevs.
-> 
-> But what you want is to basically pass whole structs as a control. That's
-> something that ioctls where invented for. Especially once we have subdev
-> nodes this shouldn't be a problem.
-> 
-> Just the fact that it is easy to implement doesn't mean it should be done
-> :-)
-> 
-> Do you have specific use-cases for your proposed binary control?
+I did a quick review and I have a few very small things that should be
+adjusted.
 
-As discussed yesterday, here are a few use cases for the OMAP3 ISP driver.
+On Tuesday 16 March 2010 03:50:59 Dmitri Belimov wrote:
+> Hi
+> 
+> Add support SPI bus to v4l2. Useful for control some device with SPI bus like
+> hardware MPEG2 encoders and etc.
+> 
+> diff -r b6b82258cf5e linux/drivers/media/video/v4l2-common.c
+> --- a/linux/drivers/media/video/v4l2-common.c	Thu Dec 31 19:14:54 2009 -0200
+> +++ b/linux/drivers/media/video/v4l2-common.c	Tue Mar 16 05:06:04 2010 +0900
+> @@ -63,6 +63,10 @@
+>  
+>  #include <linux/videodev2.h>
+>  #include "compat.h"
+> +
+> +#if defined(CONFIG_SPI)
+> +#include <linux/spi/spi.h>
+> +#endif
 
-- white balance matrix
-- gamma correction tables
+Move this to just after the existing linux/i2c.h include. It should definitely
+go before the #include "compat.h".
 
-In both cases, the driver needs an array (possible 2 dimensional) of values to 
-configure the hardware.
+>  
+>  MODULE_AUTHOR("Bill Dirks, Justin Schoeman, Gerd Knorr");
+>  MODULE_DESCRIPTION("misc helper functions for v4l2 device drivers");
+> @@ -1069,6 +1073,66 @@
+>  
+>  #endif /* defined(CONFIG_I2C) */
+>  
+> +#if defined(CONFIG_SPI)
+> +
+> +/* Load a spi sub-device. */
+> +
+> +void v4l2_spi_subdev_init(struct v4l2_subdev *sd, struct spi_device *spi,
+> +		const struct v4l2_subdev_ops *ops)
+> +{
+> +	v4l2_subdev_init(sd, ops);
+> +	sd->flags |= V4L2_SUBDEV_FL_IS_SPI;
+> +	/* the owner is the same as the spi_device's driver owner */
+> +	sd->owner = spi->dev.driver->owner;
+> +	/* spi_device and v4l2_subdev point to one another */
+> +	v4l2_set_subdevdata(sd, spi);
+> +	spi_set_drvdata(spi, sd);
+> +	/* initialize name */
+> +	strlcpy(sd->name, spi->dev.driver->name, sizeof(sd->name));
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_spi_subdev_init);
+> +
+> +struct v4l2_subdev *v4l2_spi_new_subdev(struct v4l2_device *v4l2_dev,
+> +		struct spi_master *master, struct spi_board_info *info)
+> +{
+> +	struct v4l2_subdev *sd = NULL;
+> +	struct spi_device *spi = NULL;
+> +
+> +	BUG_ON(!v4l2_dev);
+> +
+> +	if (info->modalias)
+> +		request_module(info->modalias);
+> +
+> +	spi = spi_new_device(master, info);
+> +
+> +	if (spi == NULL || spi->dev.driver == NULL)
+> +		goto error;
+> +
+> +	if (!try_module_get(spi->dev.driver->owner))
+> +		goto error;
+> +
+> +	sd = spi_get_drvdata(spi);
+> +
+> +	/* Register with the v4l2_device which increases the module's
+> +	   use count as well. */
+> +	if (v4l2_device_register_subdev(v4l2_dev, sd))
+> +		sd = NULL;
+> +
+> +	/* Decrease the module use count to match the first try_module_get. */
+> +	module_put(spi->dev.driver->owner);
+> +
+> +error:
+> +	/* If we have a client but no subdev, then something went wrong and
+> +	   we must unregister the client. */
+> +	if (spi && sd == NULL)
+> +		spi_unregister_device(spi);
+> +
+> +	return sd;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_spi_new_subdev);
+> +
+> +#endif /* defined(CONFIG_SPI) */
+> +
+>  /* Clamp x to be between min and max, aligned to a multiple of 2^align.  min
+>   * and max don't have to be aligned, but there must be at least one valid
+>   * value.  E.g., min=17,max=31,align=4 is not allowed as there are no multiples
+> diff -r b6b82258cf5e linux/drivers/media/video/v4l2-device.c
+> --- a/linux/drivers/media/video/v4l2-device.c	Thu Dec 31 19:14:54 2009 -0200
+> +++ b/linux/drivers/media/video/v4l2-device.c	Tue Mar 16 05:06:04 2010 +0900
+> @@ -24,6 +24,10 @@
+>  #include <linux/videodev2.h>
+>  #include <media/v4l2-device.h>
+>  #include "compat.h"
+> +
+> +#if defined(CONFIG_SPI)
+> +#include <linux/spi/spi.h>
+> +#endif
 
-This can obviously be done using private ioctls, but what makes the red&blue 
-white balance gains different from the white balance matrix ? Why should the 
-first be controls and the later not ?
+Ditto.
 
--- 
+>  
+>  int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
+>  {
+> @@ -100,6 +104,14 @@
+>  		}
+>  #endif
+>  #endif
+> +#if defined(CONFIG_SPI)
+> +		if (sd->flags & V4L2_SUBDEV_FL_IS_SPI) {
+> +			struct spi_device *spi = v4l2_get_subdevdata(sd);
+> +
+> +			if (spi)
+> +				spi_unregister_device(spi);
+> +		}
+> +#endif
+>  	}
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_device_unregister);
+> diff -r b6b82258cf5e linux/include/media/v4l2-common.h
+> --- a/linux/include/media/v4l2-common.h	Thu Dec 31 19:14:54 2009 -0200
+> +++ b/linux/include/media/v4l2-common.h	Tue Mar 16 05:06:04 2010 +0900
+> @@ -191,6 +191,24 @@
+>  
+>  /* ------------------------------------------------------------------------- */
+>  
+> +/* SPI Helper functions */
+> +#if defined(CONFIG_SPI)
+> +
+> +#include <linux/spi/spi.h>
+> +
+> +struct spi_device;
+> +
+> +/* Load an spi module and return an initialized v4l2_subdev struct.
+> +   The client_type argument is the name of the chip that's on the adapter. */
+> +struct v4l2_subdev *v4l2_spi_new_subdev(struct v4l2_device *v4l2_dev,
+> +		struct spi_master *master, struct spi_board_info *info);
+> +
+> +/* Initialize an v4l2_subdev with data from an spi_device struct */
+> +void v4l2_spi_subdev_init(struct v4l2_subdev *sd, struct spi_device *spi,
+> +		const struct v4l2_subdev_ops *ops);
+> +#endif
+
+Add an empty line here to improve readability.
+
+> +/* ------------------------------------------------------------------------- */
+> +
+>  /* Note: these remaining ioctls/structs should be removed as well, but they are
+>     still used in tuner-simple.c (TUNER_SET_CONFIG), cx18/ivtv (RESET) and
+>     v4l2-int-device.h (v4l2_routing). To remove these ioctls some more cleanup
+> diff -r b6b82258cf5e linux/include/media/v4l2-subdev.h
+> --- a/linux/include/media/v4l2-subdev.h	Thu Dec 31 19:14:54 2009 -0200
+> +++ b/linux/include/media/v4l2-subdev.h	Tue Mar 16 05:06:04 2010 +0900
+> @@ -387,6 +387,8 @@
+>  
+>  /* Set this flag if this subdev is a i2c device. */
+>  #define V4L2_SUBDEV_FL_IS_I2C (1U << 0)
+> +/* Set this flag if this subdev is a spi device. */
+> +#define V4L2_SUBDEV_FL_IS_SPI (1U << 1)
+>  
+>  /* Each instance of a subdev driver should create this struct, either
+>     stand-alone or embedded in a larger struct.
+> 
+> Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+> 
+> With my best regards, Dmitry.
+> 
+
+As far as I can see we will also need to add this to compat.h:
+
+#ifdef __LINUX_SPI_H
+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 21)
+static inline void spi_set_drvdata(struct spi_device *spi, void *data)
+{
+        dev_set_drvdata(&spi->dev, data);
+}
+
+static inline void *spi_get_drvdata(struct spi_device *spi)
+{
+        return dev_get_drvdata(&spi->dev);
+}
+#endif
+#endif
+
+This allows this to compile for kernels < 2.6.21.
+
+This code snippet: Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+
 Regards,
 
-Laurent Pinchart
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
