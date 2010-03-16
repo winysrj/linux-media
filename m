@@ -1,166 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:43978 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754715Ab0C2Hp0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Mar 2010 03:45:26 -0400
-Date: Mon, 29 Mar 2010 09:45:28 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Magnus Damm <damm@opensource.se>,
-	"linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>
-Subject: [PATCH 3/3 v3] sh: add Video Output Unit (VOU) and AK8813 TV-encoder
- support to ms7724se
-In-Reply-To: <Pine.LNX.4.64.1003290936280.4417@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1003290941460.4417@axis700.grange>
-References: <Pine.LNX.4.64.1003290936280.4417@axis700.grange>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:56371 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932488Ab0CPJxA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Mar 2010 05:53:00 -0400
+From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
+	<u.kleine-koenig@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Antonio Ospite <ospite@studenti.unina.it>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-kernel@vger.kernel.org
+Subject: [PATCH] V4L/DVB: mx1-camera: compile fix
+Date: Tue, 16 Mar 2010 10:52:52 +0100
+Message-Id: <1268733172-17059-1-git-send-email-u.kleine-koenig@pengutronix.de>
+In-Reply-To: <Pine.LNX.4.64.1003121057090.4385@axis700.grange>
+References: <Pine.LNX.4.64.1003121057090.4385@axis700.grange>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add platform bindings, GPIO initialisation and allocation and AK8813 reset code
-to ms7724se.
+This is a regression of
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+	7d58289 (mx1: prefix SOC specific defines with MX1_ and deprecate old names)
+
+Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
 ---
+ arch/arm/plat-mxc/include/mach/dma-mx1-mx2.h |    4 +++-
+ drivers/media/video/mx1_camera.c             |    8 +++-----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-v2 -> v3:
-
-1. updated to a more recent git snapshot
-
- arch/sh/boards/mach-se/7724/setup.c |   90 +++++++++++++++++++++++++++++++---
- 1 files changed, 82 insertions(+), 8 deletions(-)
-
-diff --git a/arch/sh/boards/mach-se/7724/setup.c b/arch/sh/boards/mach-se/7724/setup.c
-index ccaa290..394a500 100644
---- a/arch/sh/boards/mach-se/7724/setup.c
-+++ b/arch/sh/boards/mach-se/7724/setup.c
-@@ -517,6 +517,52 @@ static struct platform_device irda_device = {
- 	.resource       = irda_resources,
- };
+diff --git a/arch/arm/plat-mxc/include/mach/dma-mx1-mx2.h b/arch/arm/plat-mxc/include/mach/dma-mx1-mx2.h
+index 07be8ad..d25a65f 100644
+--- a/arch/arm/plat-mxc/include/mach/dma-mx1-mx2.h
++++ b/arch/arm/plat-mxc/include/mach/dma-mx1-mx2.h
+@@ -31,7 +31,9 @@
+ #define DMA_MODE_WRITE		1
+ #define DMA_MODE_MASK		1
  
-+#include <media/ak881x.h>
-+#include <media/sh_vou.h>
-+
-+struct ak881x_pdata ak881x_pdata = {
-+	.flags = AK881X_IF_MODE_SLAVE,
-+};
-+
-+static struct i2c_board_info ak8813 = {
-+	/* With open J18 jumper address is 0x21 */
-+	I2C_BOARD_INFO("ak8813", 0x20),
-+	.platform_data = &ak881x_pdata,
-+};
-+
-+struct sh_vou_pdata sh_vou_pdata = {
-+	.bus_fmt	= SH_VOU_BUS_8BIT,
-+	.flags		= SH_VOU_HSYNC_LOW | SH_VOU_VSYNC_LOW,
-+	.board_info	= &ak8813,
-+	.i2c_adap	= 0,
-+	.module_name	= "ak881x",
-+};
-+
-+static struct resource sh_vou_resources[] = {
-+	[0] = {
-+		.start  = 0xfe960000,
-+		.end    = 0xfe962043,
-+		.flags  = IORESOURCE_MEM,
-+	},
-+	[1] = {
-+		.start  = 55,
-+		.flags  = IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct platform_device vou_device = {
-+	.name           = "sh-vou",
-+	.id		= -1,
-+	.num_resources  = ARRAY_SIZE(sh_vou_resources),
-+	.resource       = sh_vou_resources,
-+	.dev		= {
-+		.platform_data	= &sh_vou_pdata,
-+	},
-+	.archdata	= {
-+		.hwblk_id	= HWBLK_VOU,
-+	},
-+};
-+
- static struct platform_device *ms7724se_devices[] __initdata = {
- 	&heartbeat_device,
- 	&smc91x_eth_device,
-@@ -532,6 +578,7 @@ static struct platform_device *ms7724se_devices[] __initdata = {
- 	&sdhi0_cn7_device,
- 	&sdhi1_cn8_device,
- 	&irda_device,
-+	&vou_device,
- };
+-#define DMA_BASE IO_ADDRESS(DMA_BASE_ADDR)
++#define MX1_DMA_REG(offset)	MX1_IO_ADDRESS(MX1_DMA_BASE_ADDR + offset)
++#define MX1_DMA_CCR(x)		MX1_DMA_REG(0x8c + ((x) << 6))
++#define MX1_DMA_DIMR		MX1_DMA_REG(0x08)
  
- /* I2C device */
-@@ -616,6 +663,7 @@ static int __init devices_setup(void)
- {
- 	u16 sw = __raw_readw(SW4140); /* select camera, monitor */
- 	struct clk *clk;
-+	u16 fpga_out;
+ #define IMX_DMA_MEMSIZE_32	(0 << 4)
+ #define IMX_DMA_MEMSIZE_8	(1 << 4)
+diff --git a/drivers/media/video/mx1_camera.c b/drivers/media/video/mx1_camera.c
+index c167cc3..aa81acd 100644
+--- a/drivers/media/video/mx1_camera.c
++++ b/drivers/media/video/mx1_camera.c
+@@ -48,8 +48,6 @@
+ /*
+  * CSI registers
+  */
+-#define DMA_CCR(x)	(0x8c + ((x) << 6))	/* Control Registers */
+-#define DMA_DIMR	0x08			/* Interrupt mask Register */
+ #define CSICR1		0x00			/* CSI Control Register 1 */
+ #define CSISR		0x08			/* CSI Status Register */
+ #define CSIRXR		0x10			/* CSI RxFIFO Register */
+@@ -783,7 +781,7 @@ static int __init mx1_camera_probe(struct platform_device *pdev)
+ 			       pcdev);
  
- 	/* register board specific self-refresh code */
- 	sh_mobile_register_self_refresh(SUSP_SH_STANDBY | SUSP_SH_SF |
-@@ -625,14 +673,26 @@ static int __init devices_setup(void)
- 					&ms7724se_sdram_leave_start,
- 					&ms7724se_sdram_leave_end);
- 	/* Reset Release */
--	__raw_writew(__raw_readw(FPGA_OUT) &
--		  ~((1 << 1)  | /* LAN */
--		    (1 << 6)  | /* VIDEO DAC */
--		    (1 << 7)  | /* AK4643 */
--		    (1 << 8)  | /* IrDA */
--		    (1 << 12) | /* USB0 */
--		    (1 << 14)), /* RMII */
--		  FPGA_OUT);
-+	fpga_out = __raw_readw(FPGA_OUT);
-+	/* bit4: NTSC_PDN, bit5: NTSC_RESET */
-+	fpga_out &= ~((1 << 1)  | /* LAN */
-+		      (1 << 4)  | /* AK8813 PDN */
-+		      (1 << 5)  | /* AK8813 RESET */
-+		      (1 << 6)  | /* VIDEO DAC */
-+		      (1 << 7)  | /* AK4643 */
-+		      (1 << 8)  | /* IrDA */
-+		      (1 << 12) | /* USB0 */
-+		      (1 << 14)); /* RMII */
-+	__raw_writew(fpga_out | (1 << 4), FPGA_OUT);
-+
-+	udelay(10);
-+
-+	/* AK8813 RESET */
-+	__raw_writew(fpga_out | (1 << 5), FPGA_OUT);
-+
-+	udelay(10);
-+
-+	__raw_writew(fpga_out, FPGA_OUT);
+ 	imx_dma_config_channel(pcdev->dma_chan, IMX_DMA_TYPE_FIFO,
+-			       IMX_DMA_MEMSIZE_32, DMA_REQ_CSI_R, 0);
++			       IMX_DMA_MEMSIZE_32, MX1_DMA_REQ_CSI_R, 0);
+ 	/* burst length : 16 words = 64 bytes */
+ 	imx_dma_config_burstlen(pcdev->dma_chan, 0);
  
- 	/* turn on USB clocks, use external clock */
- 	__raw_writew((__raw_readw(PORT_MSELCRB) & ~0xc000) | 0x8000, PORT_MSELCRB);
-@@ -860,6 +920,20 @@ static int __init devices_setup(void)
- 		lcdc_info.ch[0].flags          = LCDC_FLAGS_DWPOL;
- 	}
+@@ -797,8 +795,8 @@ static int __init mx1_camera_probe(struct platform_device *pdev)
+ 	set_fiq_handler(&mx1_camera_sof_fiq_start, &mx1_camera_sof_fiq_end -
+ 						   &mx1_camera_sof_fiq_start);
  
-+	/* VOU */
-+	gpio_request(GPIO_FN_DV_D15, NULL);
-+	gpio_request(GPIO_FN_DV_D14, NULL);
-+	gpio_request(GPIO_FN_DV_D13, NULL);
-+	gpio_request(GPIO_FN_DV_D12, NULL);
-+	gpio_request(GPIO_FN_DV_D11, NULL);
-+	gpio_request(GPIO_FN_DV_D10, NULL);
-+	gpio_request(GPIO_FN_DV_D9, NULL);
-+	gpio_request(GPIO_FN_DV_D8, NULL);
-+	gpio_request(GPIO_FN_DV_CLKI, NULL);
-+	gpio_request(GPIO_FN_DV_CLK, NULL);
-+	gpio_request(GPIO_FN_DV_VSYNC, NULL);
-+	gpio_request(GPIO_FN_DV_HSYNC, NULL);
-+
- 	return platform_add_devices(ms7724se_devices,
- 				    ARRAY_SIZE(ms7724se_devices));
- }
+-	regs.ARM_r8 = DMA_BASE + DMA_DIMR;
+-	regs.ARM_r9 = DMA_BASE + DMA_CCR(pcdev->dma_chan);
++	regs.ARM_r8 = (long)MX1_DMA_DIMR;
++	regs.ARM_r9 = (long)MX1_DMA_CCR(pcdev->dma_chan);
+ 	regs.ARM_r10 = (long)pcdev->base + CSICR1;
+ 	regs.ARM_fp = (long)pcdev->base + CSISR;
+ 	regs.ARM_sp = 1 << pcdev->dma_chan;
 -- 
-1.6.2.4
+1.7.0
 
