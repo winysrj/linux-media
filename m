@@ -1,39 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:61555 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751439Ab0CSRH1 (ORCPT
+Received: from mail-fx0-f219.google.com ([209.85.220.219]:63476 "EHLO
+	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753399Ab0CPTaP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Mar 2010 13:07:27 -0400
-Received: by bwz1 with SMTP id 1so224181bwz.21
-        for <linux-media@vger.kernel.org>; Fri, 19 Mar 2010 10:07:24 -0700 (PDT)
+	Tue, 16 Mar 2010 15:30:15 -0400
+Received: by fxm19 with SMTP id 19so314637fxm.21
+        for <linux-media@vger.kernel.org>; Tue, 16 Mar 2010 12:30:14 -0700 (PDT)
+Message-ID: <4B9FDC37.8000806@googlemail.com>
+Date: Tue, 16 Mar 2010 20:29:59 +0100
+From: e9hack <e9hack@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <20100319180129.6fb65141@hermes>
-References: <20100319180129.6fb65141@hermes>
-Date: Fri, 19 Mar 2010 13:07:23 -0400
-Message-ID: <829197381003191007r1055f3dbo58d7712cff7cf19b@mail.gmail.com>
-Subject: Re: em28xx - Your board has no unique USB ID and thus need a hint to
-	be detected
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Steffen Pankratz <kratz00@gmx.de>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: changeset 14351:2eda2bcc8d6f
+References: <4B8E4A6F.2050809@googlemail.com> <201003131727.06450.hverkuil@xs4all.nl>
+In-Reply-To: <201003131727.06450.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 19, 2010 at 1:01 PM, Steffen Pankratz <kratz00@gmx.de> wrote:
-> Hi,
->
-> this USB stick is a Pinnacle Pctv Hybrid Pro 320e device
-> (ID eb1a:2881 eMPIA Technology, Inc.).
->
-> Is there anything else you need to know?
-<snip>
+Am 13.3.2010 17:27, schrieb Hans Verkuil:
+> If there are no further comments, then I'll post a pull request in a few days.
+> 
+> Tested with the mxb board. It would be nice if you can verify this with the
+> av7110.
 
-This was fixed some time ago.  Just install the current v4l-dvb code
-(instructions can be found at http://linuxtv.org/repo)
+Hi hans,
 
-Devin
+it works with my TT-C2300 perfectly. The main problem of your changes was: It wasn't
+possible to unload the module for the TT-C2300.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Regards,
+Hartmut
