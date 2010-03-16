@@ -1,43 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:43137 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752235Ab0CSICg (ORCPT
+Received: from 81-174-11-161.static.ngi.it ([81.174.11.161]:57167 "EHLO
+	mail.enneenne.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753073Ab0CPXGv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Mar 2010 04:02:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Subject: Re: RFC: Drop V4L1 support in V4L2 drivers
-Date: Fri, 19 Mar 2010 09:04:53 +0100
-Cc: "v4l-dvb" <linux-media@vger.kernel.org>
-References: <83e56201383c6a99ea51dafcd2794dfe.squirrel@webmail.xs4all.nl>
-In-Reply-To: <83e56201383c6a99ea51dafcd2794dfe.squirrel@webmail.xs4all.nl>
+	Tue, 16 Mar 2010 19:06:51 -0400
+Date: Wed, 17 Mar 2010 00:06:45 +0100
+From: Rodolfo Giometti <giometti@enneenne.com>
+To: Guennadi Liakhovetski <kernel@pengutronix.de>
+Cc: linux-media@vger.kernel.org
+Message-ID: <20100316230645.GA26770@enneenne.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201003190904.53867.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Subject: PXA camera and Planar YUV422 16 bit camera
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 19 March 2010 08:59:08 Hans Verkuil wrote:
-> Hi all,
-> 
-> V4L1 support has been marked as scheduled for removal for a long time. The
-> deadline for that in the feature-removal-schedule.txt file was July 2009.
-> 
-> I think it is time that we remove the V4L1 compatibility support from V4L2
-> drivers for 2.6.35.
+Hello,
 
-Do you mean just removing V4L1-specific code from V4L2 drivers, or removing 
-the V4L1 compatibility layer completely ?
+I'm puzzled to know if the pxa_camera driver can manage a data depth
+different from 8 bits.
 
-> It would help with the videobuf cleanup as well, but that's just a bonus.
+I'm currently trying to add a camera interface support to my PXA270
+based board with an adv7180 as soc camera device.
 
-Do we still have V4L1-only drivers that use videobuf ?
+For the adv7180 I defined:
 
-> If no one objects, then I can prepare a patch series for this.
+static const struct soc_camera_data_format adv7180_colour_formats[] =
+{
+        {
+                .name           = "Planar YUV422 16 bit",
+                .depth          = 16,
+                .fourcc         = V4L2_PIX_FMT_YUV422P,
+                .colorspace     = V4L2_COLORSPACE_JPEG,
+        }
+};
+
+but this is rejected by the pxa_camera driver buswidth_supported().
+
+On the other hands if I set .depth = 8 in above struct I get the
+following:
+
+debian:~# gst-launch v4l2src ! video/x-raw-yuv,width=320,height=240 !
+filesink location=/tmp/video.raw
+Setting pipeline to PAUSED ...
+Pipeline is live and does not need PREROLL ...
+WARNING: from element /pipeline0/v4l2src0: Could not get parameters on
+device '/dev/video0'
+Additional debug info:
+v4l2src_calls.c(1172): gst_v4l2src_set_capture ():
+/pipeline0/v4l2src0:
+system error: Invalid argument
+Setting pipeline to PLAYING ...
+New clock: GstSystemClock
+WARNING: from element /pipeline0/v4l2src0: Got unexpected frame size
+of 76800 instead of 153600.
+Additional debug info:
+gstv4l2src.c(1077): gst_v4l2src_get_mmap (): /pipeline0/v4l2src0
+WARNING: from element /pipeline0/v4l2src0: Got unexpected frame size
+of 76800 instead of 153600.
+
+That is the pax_camera device returns 8bits per pixel instead of 16...
+
+Can you please help me in finding what's wrong? :'(
+
+Thanks in advance,
+
+Rodolfo
 
 -- 
-Regards,
 
-Laurent Pinchart
+GNU/Linux Solutions                  e-mail: giometti@enneenne.com
+Linux Device Driver                          giometti@linux.it
+Embedded Systems                     phone:  +39 349 2432127
+UNIX programming                     skype:  rodolfo.giometti
+Freelance ICT Italia - Consulente ICT Italia - www.consulenti-ict.it
