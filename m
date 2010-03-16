@@ -1,153 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-14.arcor-online.net ([151.189.21.54]:35322 "EHLO
-	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755470Ab0CETs5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Mar 2010 14:48:57 -0500
-Message-ID: <4B916006.90303@arcor.de>
-Date: Fri, 05 Mar 2010 20:48:22 +0100
-From: Stefan Ringel <stefan.ringel@arcor.de>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: tm6000 and Hauppauge HVR-900H
-References: <4B913F2E.1080703@arcor.de> <4B9144E6.5000109@redhat.com>
-In-Reply-To: <4B9144E6.5000109@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-15
+Received: from mail1.radix.net ([207.192.128.31]:46028 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S937796Ab0CPLNJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Mar 2010 07:13:09 -0400
+Subject: Re: cx18: "missing audio" for analog recordings
+From: Andy Walls <awalls@radix.net>
+To: Mark Lord <kernel@teksavvy.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	ivtv-devel@ivtvdriver.org
+In-Reply-To: <4B9F0DF0.50006@teksavvy.com>
+References: <4B8BE647.7070709@teksavvy.com>
+	 <1267493641.4035.17.camel@palomino.walls.org>
+	 <4B8CA8DD.5030605@teksavvy.com>
+	 <1267533630.3123.17.camel@palomino.walls.org> <4B9DA003.90306@teksavvy.com>
+	 <1268653884.3209.32.camel@palomino.walls.org> <4B9F0DF0.50006@teksavvy.com>
+Content-Type: text/plain
+Date: Tue, 16 Mar 2010 07:11:52 -0400
+Message-Id: <1268737912.3078.45.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
- 
-Am 05.03.2010 18:52, schrieb Mauro Carvalho Chehab:
-> Stefan,
->
-> Stefan Ringel wrote:
->> -----BEGIN PGP SIGNED MESSAGE----- Hash: SHA1
->>
->> Hi Mauro, Devin,
->>
->> I study the tm6000 source and I have any questions.
->>
->> 1. I tested my stick (terratec cinery hybrid) with the windows
->> driver from the Hauppauge HVR-900H and it's work. So I think that
->> have the same driver setting.
->
-> It is very likely that the original driver has some code to probe
-> the devices and to read certain configurations at the board's
-> eeprom. At least on the USB sniffs I've saw, some probing is
-> noticed, and several eeprom addresses are read. So, the fact that
-> both devices work with the same driver doesn't mean that both use
-> the same GPIO's.
->
->> In the board struct is setting tuner reset gpio with label
->> TM6000_GPIO_2, but is that not a tm6010? Then it must set to
->> TM6010_GPIO_2. And can I add  the setting from terratec cinery
->> hybrid for the Hauppauge HVR-900H?
->
-> It should be noticed that all GPIO addresses that exists for tm6000
-> also exists for tm6010, but with different names:
->
-> #define TM6000_GPIO_1           0x102 #define TM6000_GPIO_2
-> 0x103 #define TM6000_GPIO_3           0x104 #define TM6000_GPIO_4
-> 0x300 #define TM6000_GPIO_5           0x301 #define TM6000_GPIO_6
-> 0x304 #define TM6000_GPIO_7           0x305
->
-> #define TM6010_GPIO_0      0x0102 #define TM6010_GPIO_1
-> 0x0103 #define TM6010_GPIO_2      0x0104 #define TM6010_GPIO_3
-> 0x0105 #define TM6010_GPIO_4      0x0106 #define TM6010_GPIO_5
-> 0x0107 #define TM6010_GPIO_6      0x0300 #define TM6010_GPIO_7
-> 0x0301 #define TM6010_GPIO_9      0x0305
->
-> So, maybe there are some issues there.
->
-I know that. You misunderstand me, I mean
+On Tue, 2010-03-16 at 00:49 -0400, Mark Lord wrote:
+> On 03/15/10 07:51, Andy Walls wrote:
+> > On Sun, 2010-03-14 at 22:48 -0400, Mark Lord wrote:
 
-[TM6010_BOARD_HAUPPAUGE_900H] = {
-            .name = "Hauppauge HVR-900H",
-            .tuner_type = TUNER_XC2028, /* has a XC3028 */
-            .tuner_addr = 0xc2 >> 1,
-            .demod_addr = 0x1e >> 1,
-            .type = TM6010,  /* that says it's tm6010 */
-            .caps = {
-            .has_tuner = 1,
-            .has_dvb = 1,
-            .has_zl10353 = 1,
-            .has_eeprom = 1,
-             },
-            .gpio_addr_tun_reset = TM6000_GPIO_2, /* but here use it's
-for TM6000 and I think it must use here TM6010_GPIO_2 */
-},
+> >> If the audio is not working after modprobe, then simply doing rmmod/modprobe
+> >> in a loop (until working audio is achieved) is enough to cure it.
+> ..
+> 
+> Well, crap.  Tonight our MythTV box proved that assertion to be false.
+> The cx18 audio was okay after modprobe, but went bad a few seconds later,
+> when mythbackend started up and did the initial channel tuning.
+> I have a script that attempts audio input toggling when that happens,
+> but it had no effect.  
+
+I'll note from your logs that you're capturing using the 48 ksps audio
+sampling rate with tuner audio.
+
+I've never had a problem with the AUX_PLL with 48 ksps audio, so I'm
+going to assume the AUX_PLL isn't the problem's cause.
 
 
-> AFAIK, this device uses those addresses:
->
-> GPIO_1 MT352_Reset GPIO_2 XC3028 Tuner_Reset GPIO_4 MT352_Sleep
->
-> Anyway, the better is to double-check those addresses, trying the
-> driver with both TM6000 and TM6010 addresses to be sure.
->
-This gpio use also the terratec cinery cybrid, but I think that TM6010
-use also this gpio for the same functions.
 
->> 2. In the board struct have not all a tuner reset gpio.
 
-TM5600_BOARD_10MOONS_UT330, TM6000_BOARD_ADSTECH_DUAL_TV have no
-.gpio_addr_tun_reset field.
+> rmmod/modprobe is still the only "solution",
+> and it's rather difficult to do those while mythbackend is running.
 
->> 3. Is it better when we implemented the firmware value in the
->> board struct?
->
-switch(dev->model) {
-case TM6010_BOARD_HAUPPAUGE_900H:
-case TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE:
-        ctl.fname = "xc3028L-v36.fw";
-        break;
-default:
-        if (dev->dev_type == TM6010)
-            ctl.fname = "xc3028-v27.fw";
-        else
-            ctl.fname = "tm6000-xc3028.fw";
-        }
+> >
+> > I've got a first WAG at fixing the resets of the audio microcontroller's
+> > resets at:
+> >
+> > 	http://linuxtv.org/hg/~awalls/cx18-audio
+> >
+> > If it doesn't work, change the CXADEC_AUDIO_SOFT_RESET register define
+> > from 0x810 to 0x9cc, although that may not work either.
+> ..
+> 
+> I'll have a go at that, and anything else you can dream up as well.
 
-I mean here, if we use the firmware defination from here into the
-board struct for example:
+Here's an easy one:
 
-[TM6010_BOARD_HAUPPAUGE_900H] = {
-            .name = "Hauppauge HVR-900H",
-            .tuner_type = TUNER_XC2028, /* has a XC3028 */
-            .tuner_addr = 0xc2 >> 1,
-            .demod_addr = 0x1e >> 1,
-            .type = TM6010,
-            .caps = {
-                    .has_tuner = 1,
-                    .has_dvb = 1,
-                    .has_zl10353 = 1,
-                    .has_eeprom = 1,
-             },
-            .gpio_addr_tun_reset = TM6000_GPIO_2,
-            .tuner_firmware = "xc3028L-v36.fw",  /* here */
-},
 
-and then without the switch(dev->model) and use directly ctl.fname =
-dev->tuner_firmware.
-> Sorry, but I didn't understand your questions.
->
+I see from the log your work-around is failing:
 
-Stefan Ringel
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.12 (MingW32)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
- 
-iQEcBAEBAgAGBQJLkWAGAAoJEDX/lZlmjdJlbKMH/j4T9fadC9JFd3HaM0M9UqIE
-SGGY1MqcQfvH1q8Clyd8iJeRgcJxJYFnHF5H8WpsN80mJXNHvKChqPhtwnTRaYgc
-tZg2BZ23jwQdweAabUMbKQvZDk6Zm3L11ln00Pdbq9ECcaoq/xSclomyHFdAPQrw
-V47KmLpIkdYjSkgD/f/m58lhbVMraNkcGYZ8oFhJYWyDIvYmk4oxyJIHubzN+8SZ
-qlw4ex7+KvgzBSuLPVOPctkXY1dLV0AaIuOhJgfXAODU7lLaVoFzDb25SVZkGFEo
-FdnEPFvDn57vgfxhtld02CtpCDS8JxGORTZKuIk5BiyG5UW2r2CDCCbGzfiLByk=
-=TNZ3
------END PGP SIGNATURE-----
+Mar 13 14:30:04 duke logger: /dev/video1: fix_hvr1600_stutter.sh: Pre-initializing
+Mar 13 14:30:09 duke logger: /dev/video1: fix_hvr1600_stutter.sh: HVR1600/cx18 audio bug, reloading cx18 driver
+Mar 13 14:30:09 duke logger: /dev/video1: fix_hvr1600_stutter.sh: rmmod cx18 failed
+
+If a cx18 video device node is open or a cx18-alsa device node is open
+you won't be able to unload the cx18 and cx18-alsa modules.
+
+Move the cx18-alsa.ko module out of the way so the kernel can't find it
+and load it.  Then you never have to worry about something like
+pulseaduio keeping it held open.
+
+
+
+I see in your log that this is a tuner audio standard autodetection
+problem in the A/V digitizer/decoder:
+
+Mar 13 14:42:16 duke kernel: cx18-0 843: Video signal:              present
+Mar 13 14:42:16 duke kernel: cx18-0 843: Detected format:           NTSC-M
+Mar 13 14:42:16 duke kernel: cx18-0 843: Specified standard:        NTSC-M
+Mar 13 14:42:16 duke kernel: cx18-0 843: Specified video input:     Composite 7
+Mar 13 14:42:16 duke kernel: cx18-0 843: Specified audioclock freq: 48000 Hz
+Mar 13 14:42:16 duke kernel: cx18-0 843: Detected audio mode:       mono
+Mar 13 14:42:16 duke kernel: cx18-0 843: Detected audio standard:   no detected audio standard
+Mar 13 14:42:16 duke kernel: cx18-0 843: Audio muted:               yes
+Mar 13 14:42:16 duke kernel: cx18-0 843: Audio microcontroller:     running
+Mar 13 14:42:16 duke kernel: cx18-0 843: Configured audio standard: automatic detection
+Mar 13 14:42:16 duke kernel: cx18-0 843: Configured audio system:   BTSC
+Mar 13 14:42:16 duke kernel: cx18-0 843: Specified audio input:     Tuner (In8)
+Mar 13 14:42:16 duke kernel: cx18-0 843: Preferred audio mode:      stereo
+
+The built-in A/V digitzer/decoder's microcontroller won't unmute the
+audio until it has detected the standard and set the registers. 
+
+I also note the "channel change" (audio input toggling from tuner to
+composite in and back?) is having no effect:
+
+Mar 13 14:30:23 duke logger: /dev/video1: channel_change: hit HVR1600/cx18 audio bug.. attempting workaround
+Mar 13 14:30:24 duke logger: /dev/video1: channel_change: hit HVR1600/cx18 audio bug.. workaround failed
+
+Which means the audio microcontroller didn't restart it's detection loop
+or the detection loop is still failing to find anything.  It should
+restart on an input toggle.
+
+
+This means your problem is occuring in the A/V digitizer or before it;
+ruling out the APU or the APU firmware, given the current information.
+
+
+So the areas to concentrate on here are:
+
+
+a. digitizer audio standard detection microcontroller intitialization,
+reset, and restart of the format detection loop
+
+b. TDA9887 analog IF demodulator programming via the CX23418's I2C
+master
+
+c. digitizer audio standard detection microcontroller firmware load and
+verification (the cx18 driver already does a lot here, but it may be
+worth re-inspecting the code)
+
+d. digitizer analog front end and AUX PLL settings for SIF audio (these
+should be correct though, so it is unlikely to be the problem)
+
+
+> But not for a few days -- really really crazy busy at work right now.
+
+Same here.  Crazy at work and home.  I don't mind waiting.
+
+
+> I am a Linux kernel developer, so I can handle patches and stuff
+> if you have any to offer.
+
+I'll keep that in mind.
+
+
+
+> Oh.. attached is a full log from a failure a few nights ago.
+> This one has the full card status dump included, which shows
+> where the audio is being muted at.
+> 
+> ...
+> > With that said, the CX23418 will sometimes have to let register access
+> > over the PCI bus fail.  For that, I have routines in cx18-io.[ch] to
+> > perform retries.  You may wish to add a log statement there to watch for
+> > retry loops that completely fail.
+> ..
+> 
+> I did that a while ago, and they didn't trigger back then.
+
+OK.
+
+Regards,
+Andy
+
 
