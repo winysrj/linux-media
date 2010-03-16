@@ -1,68 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43912 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753785Ab0CWRws convert rfc822-to-8bit (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:56357 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751187Ab0CPW2g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Mar 2010 13:52:48 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 23 Mar 2010 12:52:44 -0500
-Subject: RE: [Resubmit: PATCH-V2] Introducing ti-media directory
-Message-ID: <A69FA2915331DC488A831521EAE36FE4016A785F05@dlee06.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1268991350-549-1-git-send-email-hvaibhav@ti.com>
-	<201003231241.00281.laurent.pinchart@ideasonboard.com>
- <19F8576C6E063C45BE387C64729E7394044DE0EBC5@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044DE0EBC5@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Tue, 16 Mar 2010 18:28:36 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: Re: [omap3camera] Camera bring-up on Zoom3 (OMAP3630)
+Date: Tue, 16 Mar 2010 23:30:16 +0100
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <A24693684029E5489D1D202277BE894453CC5C3F@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE894453CC5C3F@dlee02.ent.ti.com>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201003162330.17454.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent,
+Hi Sergio,
 
->>
->> I'm not too sure to like the ti-media name. It will soon get quite
->crowded,
->> and name collisions might occur (look at the linux-omap-camera tree and
->the
->> ISP driver in there for instance). Isn't there an internal name to refer
->to
->> both the DM6446 and AM3517 that could be used ?
->[Hiremath, Vaibhav] Laurent,
->
->ti-media directory is top level directory where we are putting all TI
->devices drivers. So having said that, we should worrying about what goes
->inside this directory.
->For me ISP is more generic, if you compare davinci and OMAP.
->
->Frankly, there are various naming convention we do have from device to
->device, even if the IP's are being reused. For example, the internal name
->for OMAP is ISP but Davinci refers it as a VPSS.
->
+On Friday 05 March 2010 15:54:58 Aguirre, Sergio wrote:
+> Hi Laurent, Sakari,
 
-Could you explain what name space issue you are referring to in linux-omap-camera since I am not quite familiar with that tree?
+Oops, just noticed I forgot to answer your e-mail, sorry.
 
-Myself and Vaibhav had discussed this in the past and ti-media is the generic name that we could agree on. On DM SoCs (DM6446, DM355, DM365) I expect ti-media to be the home for all vpfe and vpbe driver files. Since we had a case of common IP across OMAP and DMxxx SoCs, we want to place all OMAP and DMxxx video driver files in a common directory so that sharing
-the drivers across the SoCs will be easy. We could discuss and agree on another name if need be. Any suggestions?
+> I'm trying to get latest Sakari's tree (gitorious.org/omap3camera)
+> 'devel' branch running on my Zoom3 HW (which has an OMAP3630, and a
+> Sony IMX046 8MP sensor).
+> 
+> I had first one NULL pointer dereference while the driver was
+> registering devices and creating entities, which I resolved with
+> the attached patch. (Is this patch acceptable, or maybe I am missing
+> something...)
 
->Thanks,
->Vaibhav
->
->>
->> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
->>
->> --
->> Regards,
->>
->> Laurent Pinchart
->_______________________________________________
->Davinci-linux-open-source mailing list
->Davinci-linux-open-source@linux.davincidsp.com
->http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
+Either that, or make OMAP34XXCAM_VIDEODEVS dynamic (the value would be passed 
+through platform data). The code will be removed (hopefully soon) anyway when 
+the legacy video nodes will disappear.
+
+> And now, I don't get quite clear on how the created nodes work out.
+> 
+> Now I have /dev/video[0-5], but I don't know how I'm I supposed to handle
+> them...
+> 
+> Here's my current work-in-progress kernel:
+> 
+> 	http://dev.omapzoom.org/?p=saaguirre/linux-omap-camera.git;a=shortlog;h=re
+> fs/heads/omap-devel-wip
+> 
+> Can you please give some guidance on it?
+
+Basically, the driver creates OMAP34XXCAM_VIDEODEVS "legacy" video nodes, one 
+for each sensor connected to the ISP. As your board has a single sensor, the 
+driver will create the /dev/video0 legacy video node.
+
+Legacy video nodes use hard-coded assumptions that were implemented according 
+to Nokia's use cases on the N900. They can only offer a subset of the 
+functions available in the hardware.
+
+For full access to the ISP, you will need to use the new video nodes (1 to 5). 
+Those video nodes are to be used in conjunction with the media controller. All 
+the necessary patches aren't available yet, but they should be soon (it's 
+hopefully a matter of days to get the userspace API there).
+
+I will try to make a userspace test application available when the patches 
+will be pushed to the linux-omap-camera tree.
+
+-- 
+Regards,
+
+Laurent Pinchart
