@@ -1,68 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 132.79-246-81.adsl-static.isp.belgacom.be ([81.246.79.132]:35616
-	"EHLO viper.mind.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754311Ab0CQWyg (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2740 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756050Ab0CQUFB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Mar 2010 18:54:36 -0400
-From: Arnout Vandecappelle <arnout@mind.be>
-To: linux-media@vger.kernel.org, mchehab@infradead.org, arnout@mind.be
-Subject: [PATCH 2/2] V4L/DVB: buf-dma-sg.c: support non-pageable user-allocated memory
-Date: Wed, 17 Mar 2010 23:53:05 +0100
-Message-Id: <1268866385-15692-3-git-send-email-arnout@mind.be>
-In-Reply-To: <1268866385-15692-1-git-send-email-arnout@mind.be>
-References: <1268866385-15692-1-git-send-email-arnout@mind.be>
+	Wed, 17 Mar 2010 16:05:01 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Pawel Osciak <p.osciak@samsung.com>
+Subject: Re: [PATCH/RFC 0/2] Fix DQBUF behavior for recoverable streaming errors
+Date: Wed, 17 Mar 2010 21:05:19 +0100
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com
+References: <1268836190-31051-1-git-send-email-p.osciak@samsung.com>
+In-Reply-To: <1268836190-31051-1-git-send-email-p.osciak@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201003172105.19708.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-videobuf_dma_init_user_locked() uses get_user_pages() to get the
-virtual-to-physical address mapping for user-allocated memory.
-However, the user-allocated memory may be non-pageable because it
-is an I/O range or similar.  get_user_pages() fails with -EFAULT
-in that case.
+On Wednesday 17 March 2010 15:29:48 Pawel Osciak wrote:
+> Hello,
+> 
+> during the V4L2 brainstorm meeting in Norway we have concluded that streaming
+> error handling in dqbuf is lacking a bit and might result in the application
+> losing video buffers.
+> 
+> V4L2 specification states that DQBUF should set errno to EIO in such cases:
+> 
+> 
+> "EIO
+> 
+> VIDIOC_DQBUF failed due to an internal error. Can also indicate temporary
+> problems like signal loss. Note the driver might dequeue an (empty) buffer
+> despite returning an error, or even stop capturing."
+> 
+> There is a problem with this though. v4l2-ioctl.c code does not copy back
+> v4l2_buffer fields to userspace on a failed ioctl invocation, i.e. when
+> __video_do_ioctl() does not return 0, it jumps over the copy_to_user()
+> code:
+> 
+> /* ... */
+> err = __video_do_ioctl(file, cmd, parg);
+> /* ... */
+> if (err < 0)
+> 	goto out;
+> /* ... */
+> 	if (copy_to_user((void __user *)arg, parg, _IOC_SIZE(cmd)))
+> 		err = -EFAULT;
+> /* ... */
+> out:
+> 
+> 
+> This is fine in general, but in the case of DQBUF errors, the v4l2_buffer
+> fields are not copied back. Because of that, the application does not have any
+> means of discovering on which buffer the operation failed. So it cannot reuse
+> that buffer, even despite the fact that the spec allows such behavior.
+> 
+> 
+> This RFC proposes a modification to the DQBUF behavior in cases of internal
+> (recoverable) errors to allow recovery from such situations.
+> 
+> We propose a new flag for the v4l2_buffer "flags" field, "V4L2_BUF_FLAG_ERROR".
+> There already exists a "V4L2_BUF_FLAG_DONE" flag, so to support older
+> applications, the new flag should always be set together with it.
+> 
+> Applications unaware of the new flag would simply display a corrupted frame, but
+> we believe it is still a better solution than failing altogether. Old EIO
+> behavior remains so the change is backwards compatible.
+> 
+> I will post relevant V4L2 documentation updates after (if) this change is 
+> accepted.
+> 
+> 
+> This series is rebased onto my recent videobuf clean-up and poll behavior
+> patches.
+> 
+> The series contains:
+> [PATCH 1/2] v4l: Add a new ERROR flag for DQBUF after recoverable streaming errors
+> [PATCH 2/2] v4l: videobuf: Add support for V4L2_BUF_FLAG_ERROR
 
-If the user-allocated memory is physically contiguous, the approach
-of V4L2_MEMORY_OVERLAY can be used.  If it is not, -EFAULT is still
-returned.
----
- drivers/media/video/videobuf-dma-sg.c |   18 ++++++++++++++++++
- 1 files changed, 18 insertions(+), 0 deletions(-)
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
 
-diff --git a/drivers/media/video/videobuf-dma-sg.c b/drivers/media/video/videobuf-dma-sg.c
-index 18aaf54..bd2d95d 100644
---- a/drivers/media/video/videobuf-dma-sg.c
-+++ b/drivers/media/video/videobuf-dma-sg.c
-@@ -136,6 +136,7 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
- {
- 	unsigned long first,last;
- 	int err, rw = 0;
-+	struct vm_area_struct *vma;
- 
- 	dma->direction = direction;
- 	switch (dma->direction) {
-@@ -153,6 +154,23 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
- 	last  = ((data+size-1) & PAGE_MASK) >> PAGE_SHIFT;
- 	dma->offset   = data & ~PAGE_MASK;
- 	dma->nr_pages = last-first+1;
-+
-+	/* In case the buffer is user-allocated and is actually an IO buffer for
-+	   some other hardware, we cannot map pages for it.  It in fact behaves
-+	   the same as an overlay. */
-+	vma = find_vma (current->mm, data);
-+	if (vma && (vma->vm_flags & VM_IO)) {
-+		/* Only a single contiguous buffer is supported. */
-+		if (vma->vm_end < data + size) {
-+			dprintk(1, "init user: non-contiguous IO buffer.\n");
-+			return -EFAULT; /* same error that get_user_pages() would give */
-+		}
-+		dma->bus_addr = (vma->vm_pgoff << PAGE_SHIFT) +	(data - vma->vm_start);
-+		dprintk(1,"init user IO [0x%lx+0x%lx => %d pages at 0x%x]\n",
-+			data, size, dma->nr_pages, dma->bus_addr);
-+		return 0;
-+	}
-+
- 	dma->pages = kmalloc(dma->nr_pages * sizeof(struct page*),
- 			     GFP_KERNEL);
- 	if (NULL == dma->pages)
+I think this is a very sensible change. After all, DQBUF succeeds, even though the
+buffer itself contains errors. But that is not the fault of DQBUF. It is enough to
+flag that the buffer does have an error. Without this you actually loose the
+buffer completely from the point of view of the application. And that's really
+nasty.
+
+Regards,
+
+	Hans
+
 -- 
-1.6.3.3
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
