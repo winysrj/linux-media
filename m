@@ -1,97 +1,259 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59196 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753715Ab0CROoP (ORCPT
+Received: from relay01.digicable.hu ([92.249.128.189]:36879 "EHLO
+	relay01.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753812Ab0CQVZk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Mar 2010 10:44:15 -0400
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH] V4L - vpfe capture - fix for kernel crash
-Date: Thu, 18 Mar 2010 10:44:12 -0400
-Message-Id: <1268923452-16329-1-git-send-email-m-karicheri2@ti.com>
+	Wed, 17 Mar 2010 17:25:40 -0400
+Received: from [94.21.97.195]
+	by relay01.digicable.hu with esmtpa
+	id 1Ns0kE-0007Oi-DR for <linux-media@vger.kernel.org>; Wed, 17 Mar 2010 22:25:38 +0100
+Message-ID: <4BA148CD.5060309@freemail.hu>
+Date: Wed, 17 Mar 2010 22:25:33 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+MIME-Version: 1.0
+To: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Sony DCR-HC23 + USB (0540:00c0) + Linux?
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+Hi,
 
-As part of upstream merge, set_params() function was removed from isif.c.
-This requires removal of BUG_ON() and check for set_params ptr in
-vpfe_capture.c. Without this kernel crash dump is seen while bootup on DM365
+does anybody have experience connecting Sony DCR-HC23 Handycam to Linux through
+USB? I send the USB descriptor below.
 
-Also made following changes:-
+The device appears only after selecting the "FN/MENU/SETUP MENU/USB STREAM"
+menu item of the handycam to "ON". When I select "OFF" and press "EXEC" button
+then the device disconnects from the USB bus, if I select "ON" and press "EXEC"
+the device connects again to USB bus.
 
- 1) converted error messages to debug messages since it is not right to flood
-    the console with error messages for user mistakes.
- 2) returns -EINVAL if ioctl is not supported
+(The device also have a Firewire port, unfortunately my PC doesn't have one.)
 
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
----
- drivers/media/video/davinci/vpfe_capture.c |   33 +++++++++++++++++-----------
- 1 files changed, 20 insertions(+), 13 deletions(-)
+Regards,
 
-diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
-index 91f665b..1d46210 100644
---- a/drivers/media/video/davinci/vpfe_capture.c
-+++ b/drivers/media/video/davinci/vpfe_capture.c
-@@ -222,7 +222,6 @@ int vpfe_register_ccdc_device(struct ccdc_hw_device *dev)
- 	BUG_ON(!dev->hw_ops.get_frame_format);
- 	BUG_ON(!dev->hw_ops.get_pixel_format);
- 	BUG_ON(!dev->hw_ops.set_pixel_format);
--	BUG_ON(!dev->hw_ops.set_params);
- 	BUG_ON(!dev->hw_ops.set_image_window);
- 	BUG_ON(!dev->hw_ops.get_image_window);
- 	BUG_ON(!dev->hw_ops.get_line_length);
-@@ -1688,11 +1687,12 @@ static long vpfe_param_handler(struct file *file, void *priv,
- 	struct vpfe_device *vpfe_dev = video_drvdata(file);
- 	int ret = 0;
- 
--	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_param_handler\n");
-+	v4l2_dbg(2, debug, &vpfe_dev->v4l2_dev, "vpfe_param_handler\n");
- 
- 	if (vpfe_dev->started) {
- 		/* only allowed if streaming is not started */
--		v4l2_err(&vpfe_dev->v4l2_dev, "device already started\n");
-+		v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
-+			"device already started\n");
- 		return -EBUSY;
- 	}
- 
-@@ -1704,16 +1704,23 @@ static long vpfe_param_handler(struct file *file, void *priv,
- 	case VPFE_CMD_S_CCDC_RAW_PARAMS:
- 		v4l2_warn(&vpfe_dev->v4l2_dev,
- 			  "VPFE_CMD_S_CCDC_RAW_PARAMS: experimental ioctl\n");
--		ret = ccdc_dev->hw_ops.set_params(param);
--		if (ret) {
--			v4l2_err(&vpfe_dev->v4l2_dev,
--				"Error in setting parameters in CCDC\n");
--			goto unlock_out;
--		}
--		if (vpfe_get_ccdc_image_format(vpfe_dev, &vpfe_dev->fmt) < 0) {
--			v4l2_err(&vpfe_dev->v4l2_dev,
--				"Invalid image format at CCDC\n");
--			goto unlock_out;
-+		if (ccdc_dev->hw_ops.set_params) {
-+			ret = ccdc_dev->hw_ops.set_params(param);
-+			if (ret) {
-+				v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
-+					"Error setting parameters in CCDC\n");
-+				goto unlock_out;
-+			}
-+			if (vpfe_get_ccdc_image_format(vpfe_dev,
-+						       &vpfe_dev->fmt) < 0) {
-+				v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
-+					"Invalid image format at CCDC\n");
-+				goto unlock_out;
-+			}
-+		} else {
-+			ret = -EINVAL;
-+			v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
-+				"VPFE_CMD_S_CCDC_RAW_PARAMS not supported\n");
- 		}
- 		break;
- 	default:
--- 
-1.6.0.4
+	Márton Németh
 
+snd-usb-audio
+Speed: 12Mb/s (full)
+USB Version:  1.10
+Device Class: 00(>ifc )
+Device Subclass: 00
+Device Protocol: 00
+Maximum Default Endpoint Size: 64
+Number of Configurations: 1
+Vendor Id: 054c
+Product Id: 00c0
+Revision Number:  1.00
+
+Config Number: 1
+	Number of Interfaces: 3
+	Attributes: c0
+	MaxPower Needed:   2mA
+
+	Interface Number: 0
+		Name: (none)
+		Alternate Number: 0
+		Class: 00(>ifc )
+		Sub Class: 00
+		Protocol: 00
+		Number of Endpoints: 2
+
+			Endpoint Address: 81
+			Direction: in
+			Attribute: 1
+			Type: Isoc
+			Max Packet Size: 0
+			Interval: 1ms
+
+			Endpoint Address: 82
+			Direction: in
+			Attribute: 1
+			Type: Isoc
+			Max Packet Size: 0
+			Interval: 1ms
+
+	Interface Number: 0
+		Name: (none)
+		Alternate Number: 1
+		Class: 00(>ifc )
+		Sub Class: 00
+		Protocol: 00
+		Number of Endpoints: 2
+
+			Endpoint Address: 81
+			Direction: in
+			Attribute: 1
+			Type: Isoc
+			Max Packet Size: 8
+			Interval: 1ms
+
+			Endpoint Address: 82
+			Direction: in
+			Attribute: 1
+			Type: Isoc
+			Max Packet Size: 256
+			Interval: 1ms
+
+	Interface Number: 0
+		Name: (none)
+		Alternate Number: 2
+		Class: 00(>ifc )
+		Sub Class: 00
+		Protocol: 00
+		Number of Endpoints: 2
+
+			Endpoint Address: 81
+			Direction: in
+			Attribute: 1
+			Type: Isoc
+			Max Packet Size: 8
+			Interval: 1ms
+
+			Endpoint Address: 82
+			Direction: in
+			Attribute: 1
+			Type: Isoc
+			Max Packet Size: 384
+			Interval: 1ms
+
+	Interface Number: 0
+		Name: (none)
+		Alternate Number: 3
+		Class: 00(>ifc )
+		Sub Class: 00
+		Protocol: 00
+		Number of Endpoints: 2
+
+			Endpoint Address: 81
+			Direction: in
+			Attribute: 1
+			Type: Isoc
+			Max Packet Size: 8
+			Interval: 1ms
+
+			Endpoint Address: 82
+			Direction: in
+			Attribute: 1
+			Type: Isoc
+			Max Packet Size: 512
+			Interval: 1ms
+
+	Interface Number: 0
+		Name: (none)
+		Alternate Number: 4
+		Class: 00(>ifc )
+		Sub Class: 00
+		Protocol: 00
+		Number of Endpoints: 2
+
+			Endpoint Address: 81
+			Direction: in
+			Attribute: 1
+			Type: Isoc
+			Max Packet Size: 8
+			Interval: 1ms
+
+			Endpoint Address: 82
+			Direction: in
+			Attribute: 1
+			Type: Isoc
+			Max Packet Size: 640
+			Interval: 1ms
+
+	Interface Number: 0
+		Name: (none)
+		Alternate Number: 5
+		Class: 00(>ifc )
+		Sub Class: 00
+		Protocol: 00
+		Number of Endpoints: 2
+
+			Endpoint Address: 81
+			Direction: in
+			Attribute: 1
+			Type: Isoc
+			Max Packet Size: 8
+			Interval: 1ms
+
+			Endpoint Address: 82
+			Direction: in
+			Attribute: 1
+			Type: Isoc
+			Max Packet Size: 768
+			Interval: 1ms
+
+	Interface Number: 0
+		Name: (none)
+		Alternate Number: 6
+		Class: 00(>ifc )
+		Sub Class: 00
+		Protocol: 00
+		Number of Endpoints: 2
+
+			Endpoint Address: 81
+			Direction: in
+			Attribute: 1
+			Type: Isoc
+			Max Packet Size: 8
+			Interval: 1ms
+
+			Endpoint Address: 82
+			Direction: in
+			Attribute: 1
+			Type: Isoc
+			Max Packet Size: 896
+			Interval: 1ms
+
+	Interface Number: 0
+		Name: (none)
+		Alternate Number: 7
+		Class: 00(>ifc )
+		Sub Class: 00
+		Protocol: 00
+		Number of Endpoints: 2
+
+			Endpoint Address: 81
+			Direction: in
+			Attribute: 1
+			Type: Isoc
+			Max Packet Size: 8
+			Interval: 1ms
+
+			Endpoint Address: 82
+			Direction: in
+			Attribute: 1
+			Type: Isoc
+			Max Packet Size: 1023
+			Interval: 1ms
+
+	Interface Number: 1
+		Name: snd-usb-audio
+		Alternate Number: 0
+		Class: 01(audio)
+		Sub Class: 01
+		Protocol: 00
+		Number of Endpoints: 0
+
+	Interface Number: 2
+		Name: snd-usb-audio
+		Alternate Number: 0
+		Class: 01(audio)
+		Sub Class: 02
+		Protocol: 00
+		Number of Endpoints: 0
+
+	Interface Number: 2
+		Name: snd-usb-audio
+		Alternate Number: 1
+		Class: 01(audio)
+		Sub Class: 02
+		Protocol: 00
+		Number of Endpoints: 1
+
+			Endpoint Address: 83
+			Direction: in
+			Attribute: 1
+			Type: Isoc
+			Max Packet Size: 64
+			Interval: 1ms
