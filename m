@@ -1,105 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from poutre.nerim.net ([62.4.16.124]:53369 "EHLO poutre.nerim.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754004Ab0C2PeX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Mar 2010 11:34:23 -0400
-Date: Mon, 29 Mar 2010 17:34:20 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Andy Walls <awalls@radix.net>,
-	Dmitri Belimov <d.belimov@gmail.com>,
-	linux-media@vger.kernel.org, "Timothy D. Lenz" <tlenz@vorgon.com>
-Subject: Re: [PATCH] FusionHDTV: Use quick reads for I2C IR device probing
-Message-ID: <20100329173420.39c4760b@hyperion.delvare>
-In-Reply-To: <20100319144250.5553055c@hyperion.delvare>
-References: <20100301153645.5d529766@glory.loctelecom.ru>
-	<1267442919.3110.20.camel@palomino.walls.org>
-	<20100316120502.3a9323ac@hyperion.delvare>
-	<20100319144250.5553055c@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:16693 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753748Ab0CQO37 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Mar 2010 10:29:59 -0400
+Received: from eu_spt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0KZF00KFIK9VXA@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 17 Mar 2010 14:29:56 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0KZF00HPJK9VAP@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 17 Mar 2010 14:29:55 +0000 (GMT)
+Date: Wed, 17 Mar 2010 15:29:49 +0100
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: [PATCH 1/2] v4l: Add a new ERROR flag for DQBUF after recoverable
+ streaming errors
+In-reply-to: <1268836190-31051-1-git-send-email-p.osciak@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com
+Message-id: <1268836190-31051-2-git-send-email-p.osciak@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1268836190-31051-1-git-send-email-p.osciak@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Can the fix below please be picked quickly? This is a regression, the
-fix should go upstream ASAP. Thanks.
+This flag is to be set together with V4L2_BUF_FLAG_DONE. It is intended
+to indicate streaming errors that might have resulted in corrupted video
+data in the buffer, but the buffer can still be reused and the streaming
+may continue.
 
-On Fri, 19 Mar 2010 14:42:50 +0100, Jean Delvare wrote:
-> IR support on FusionHDTV cards is broken since kernel 2.6.31. One side
-> effect of the switch to the standard binding model for IR I2C devices
-> was to let i2c-core do the probing instead of the ir-kbd-i2c driver.
-> There is a slight difference between the two probe methods: i2c-core
-> uses 0-byte writes, while the ir-kbd-i2c was using 0-byte reads. As
-> some IR I2C devices only support reads, the new probe method fails to
-> detect them.
-> 
-> For now, revert to letting the driver do the probe, using 0-byte
-> reads. In the future, i2c-core will be extended to let callers of
-> i2c_new_probed_device() provide a custom probing function.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Tested-by: "Timothy D. Lenz" <tlenz@vorgon.com>
-> ---
-> This fix applies to kernels 2.6.31 to 2.6.34. Should be sent to Linus
-> quickly.
-> 
->  drivers/media/video/cx23885/cx23885-i2c.c |   12 +++++++++++-
->  drivers/media/video/cx88/cx88-i2c.c       |   16 +++++++++++++++-
->  2 files changed, 26 insertions(+), 2 deletions(-)
-> 
-> --- linux-2.6.34-rc1.orig/drivers/media/video/cx23885/cx23885-i2c.c	2010-02-25 09:10:33.000000000 +0100
-> +++ linux-2.6.34-rc1/drivers/media/video/cx23885/cx23885-i2c.c	2010-03-18 13:33:05.000000000 +0100
-> @@ -365,7 +365,17 @@ int cx23885_i2c_register(struct cx23885_
->  
->  		memset(&info, 0, sizeof(struct i2c_board_info));
->  		strlcpy(info.type, "ir_video", I2C_NAME_SIZE);
-> -		i2c_new_probed_device(&bus->i2c_adap, &info, addr_list);
-> +		/*
-> +		 * We can't call i2c_new_probed_device() because it uses
-> +		 * quick writes for probing and the IR receiver device only
-> +		 * replies to reads.
-> +		 */
-> +		if (i2c_smbus_xfer(&bus->i2c_adap, addr_list[0], 0,
-> +				   I2C_SMBUS_READ, 0, I2C_SMBUS_QUICK,
-> +				   NULL) >= 0) {
-> +			info.addr = addr_list[0];
-> +			i2c_new_device(&bus->i2c_adap, &info);
-> +		}
->  	}
->  
->  	return bus->i2c_rc;
-> --- linux-2.6.34-rc1.orig/drivers/media/video/cx88/cx88-i2c.c	2010-02-25 09:08:40.000000000 +0100
-> +++ linux-2.6.34-rc1/drivers/media/video/cx88/cx88-i2c.c	2010-03-18 13:33:05.000000000 +0100
-> @@ -188,10 +188,24 @@ int cx88_i2c_init(struct cx88_core *core
->  			0x18, 0x6b, 0x71,
->  			I2C_CLIENT_END
->  		};
-> +		const unsigned short *addrp;
->  
->  		memset(&info, 0, sizeof(struct i2c_board_info));
->  		strlcpy(info.type, "ir_video", I2C_NAME_SIZE);
-> -		i2c_new_probed_device(&core->i2c_adap, &info, addr_list);
-> +		/*
-> +		 * We can't call i2c_new_probed_device() because it uses
-> +		 * quick writes for probing and at least some R receiver
-> +		 * devices only reply to reads.
-> +		 */
-> +		for (addrp = addr_list; *addrp != I2C_CLIENT_END; addrp++) {
-> +			if (i2c_smbus_xfer(&core->i2c_adap, *addrp, 0,
-> +					   I2C_SMBUS_READ, 0,
-> +					   I2C_SMBUS_QUICK, NULL) >= 0) {
-> +				info.addr = *addrp;
-> +				i2c_new_device(&core->i2c_adap, &info);
-> +				break;
-> +			}
-> +		}
->  	}
->  	return core->i2c_rc;
->  }
-> 
-> 
+Setting this flag and returning 0 is different from returning EIO. The
+latter should now indicate more serious (unrecoverable) errors.
 
+This patch also solves a problem with the ioctl handling code in
+vl42-ioctl.c, which does not copy buffer identification data back to the
+userspace when EIO is returned, so there is no way for applications
+to discover on which buffer the operation failed.
 
+Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+---
+ include/linux/videodev2.h |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 3c26560..1ae1568 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -550,6 +550,9 @@ struct v4l2_buffer {
+ #define V4L2_BUF_FLAG_KEYFRAME	0x0008	/* Image is a keyframe (I-frame) */
+ #define V4L2_BUF_FLAG_PFRAME	0x0010	/* Image is a P-frame */
+ #define V4L2_BUF_FLAG_BFRAME	0x0020	/* Image is a B-frame */
++/* Buffer is ready, but the data contained within is corrupted.
++ * Always set together with V4L2_BUF_FLAG_DONE (for backward compatibility). */
++#define V4L2_BUF_FLAG_ERROR	0x0040
+ #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
+ #define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
+ 
 -- 
-Jean Delvare
+1.7.0.31.g1df487
+
