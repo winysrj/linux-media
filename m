@@ -1,46 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.juropnet.hu ([212.24.188.131]:47715 "EHLO mail.juropnet.hu"
+Received: from mx1.redhat.com ([209.132.183.28]:22541 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751884Ab0CVS1y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Mar 2010 14:27:54 -0400
-Received: from kabelnet-199-249.juropnet.hu ([91.147.199.249])
-	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.69)
-	(envelope-from <istvan_v@mailbox.hu>)
-	id 1NtmLu-0002JO-UF
-	for linux-media@vger.kernel.org; Mon, 22 Mar 2010 19:27:53 +0100
-Message-ID: <4BA7B7FE.9040100@mailbox.hu>
-Date: Mon, 22 Mar 2010 19:33:34 +0100
-From: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
+	id S1755685Ab0CQTmh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Mar 2010 15:42:37 -0400
+Message-ID: <4BA130A3.6060203@redhat.com>
+Date: Wed, 17 Mar 2010 16:42:27 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] DTV2000 H Plus issues
-References: <4B3F6FE0.4040307@internode.on.net> <4B463AC6.2000901@mailbox.hu>	 <4B719CD0.6060804@mailbox.hu> <4B745781.2020408@mailbox.hu>	 <4B7C303B.2040807@mailbox.hu> <4B7C80F5.5060405@redhat.com>	 <829197381002171559k10b692dcu99a3adc2f613437f@mail.gmail.com>	 <4B7C84F3.4080708@redhat.com>	 <829197381002171611u7fcc8caeuea98e047164ae55@mail.gmail.com>	 <4B9D23DD.8080401@mailbox.hu> <829197381003142115v6b10a328n30eadeef64b87c8@mail.gmail.com>
-In-Reply-To: <829197381003142115v6b10a328n30eadeef64b87c8@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+To: Pawel Osciak <p.osciak@samsung.com>
+CC: "'Aguirre, Sergio'" <saaguirre@ti.com>,
+	linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	kyungmin.park@samsung.com
+Subject: Re: [PATCH v2] v4l: videobuf: code cleanup.
+References: <1268831061-307-1-git-send-email-p.osciak@samsung.com> <1268831061-307-2-git-send-email-p.osciak@samsung.com> <A24693684029E5489D1D202277BE894454137086@dlee02.ent.ti.com> <001001cac5dc$4407f690$cc17e3b0$%osciak@samsung.com>
+In-Reply-To: <001001cac5dc$4407f690$cc17e3b0$%osciak@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/15/2010 05:15 AM, Devin Heitmueller wrote:
+Pawel Osciak wrote:
+>> Aguirre, Sergio wrote:
+>>> Make videobuf pass checkpatch; minor code cleanups.
+>> I thought this kind patches were frowned upon..
+>>
+>> http://www.mjmwired.net/kernel/Documentation/development-process/4.Coding#41
+>>
+>> But maybe it's acceptable in this case... I'm not an expert on community policies :)
+> 
+> Hm, right...
+> I'm not an expert either, but it does seem reasonable. It was just a part of the
+> roadmap we agreed on in Norway, so I simply went ahead with it. Merging with other
+> patches would pollute them so I just posted it separately. I will leave the
+> decision up to Mauro then. I have some more "normal" patches lined up,
+> so please let me know. I'm guessing we are cancelling the clean-up then though.
 
-> I'll try to go through my tree and see if I can get something upstream
-> this week which you could build on.
+It is fine for me to send such patch in a series of changes. A pure CodingStyle patch
+is preferred if you're doing lots of changes, since it is very easy to review those
+changes. Yet, I generally hold pure CodingStyle changes to happen at the end of an
+rc cycle, to avoid conflicts with real patches, especially when the change is on a
+code that use to have lots of changes during a kernel cycle.
 
-Are there any news on this ?
+In the specific case of videobuf, I prefer to merge any changes functional changes at the
+beginning of a -rc cycle, and after having several tested-by replies with different
+architectures and boards, as a trouble there will affect almost all drivers.
 
-By the way, I have just received this mail from Mirek Slugen, with a
-patch for PxDVR3200 with XC4000 tuner. Should that patch also be
-submitted ?
-
-On 03/22/2010 04:40 PM, Mirek Slugeň wrote:
-
-> First I would like to thank you for your work on XC4000 Leadtek
-> tuners, analog TV, analog FM and DVB-T works great.
->
-> I created patch for new revision of Leadtek DVR3200 (xc4000) based on
-> your patch and it works also (patch is included).
->
-> After long testing I found only one small bug, signal strength is not
-> working on DVB-T XC4000 based tuners, so i will try to fix it.
+Cheers,
+Mauro
