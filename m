@@ -1,39 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f219.google.com ([209.85.220.219]:59409 "EHLO
-	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752379Ab0CDBG6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Mar 2010 20:06:58 -0500
-Received: by fxm19 with SMTP id 19so2250626fxm.21
-        for <linux-media@vger.kernel.org>; Wed, 03 Mar 2010 17:06:56 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <74fd948d1003031700h187dbfd0v3f54800e652569b@mail.gmail.com>
-References: <74fd948d1003031535r1785b36dq4cece00f349975af@mail.gmail.com>
-	 <829197381003031548n703f0bf9sb44ce3527501c5c0@mail.gmail.com>
-	 <74fd948d1003031700h187dbfd0v3f54800e652569b@mail.gmail.com>
-Date: Wed, 3 Mar 2010 20:06:55 -0500
-Message-ID: <829197381003031706g1011f442hcc4be40ae2e79a47@mail.gmail.com>
-Subject: Re: Excessive rc polling interval in dvb_usb_dib0700 causes
-	interference with USB soundcard
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Pedro Ribeiro <pedrib@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:16693 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751942Ab0CQO36 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Mar 2010 10:29:58 -0400
+Received: from eu_spt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0KZF00KFIK9VXA@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 17 Mar 2010 14:29:55 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0KZF00HPKK9VAP@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 17 Mar 2010 14:29:55 +0000 (GMT)
+Date: Wed, 17 Mar 2010 15:29:50 +0100
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: [PATCH 2/2] v4l: videobuf: Add support for V4L2_BUF_FLAG_ERROR
+In-reply-to: <1268836190-31051-1-git-send-email-p.osciak@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com
+Message-id: <1268836190-31051-3-git-send-email-p.osciak@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1268836190-31051-1-git-send-email-p.osciak@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 3, 2010 at 8:00 PM, Pedro Ribeiro <pedrib@gmail.com> wrote:
-> Its working very well, thanks.
->
-> Can you please tell me if its going to be pushed to .33 stable? And
-> should I close the kernel bug?
+On dqbuf videobuf will now return 0 and an error flag will be set, instead
+of returning EIO in case of recoverable streaming errors.
+---
+ drivers/media/video/videobuf-core.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-It's in Mauro's PULL request for 2.6.34-rc1.  It's marked "normal"
-priority so it likely won't get pulled into stable.  It was a
-non-trivial restructuring of the code, so doing a minimal fix that
-would be accepted by stable is unlikely.
-
-Devin
-
+diff --git a/drivers/media/video/videobuf-core.c b/drivers/media/video/videobuf-core.c
+index e93672a..aa361d3 100644
+--- a/drivers/media/video/videobuf-core.c
++++ b/drivers/media/video/videobuf-core.c
+@@ -286,8 +286,10 @@ static void videobuf_status(struct videobuf_queue *q, struct v4l2_buffer *b,
+ 	case VIDEOBUF_ACTIVE:
+ 		b->flags |= V4L2_BUF_FLAG_QUEUED;
+ 		break;
+-	case VIDEOBUF_DONE:
+ 	case VIDEOBUF_ERROR:
++		b->flags |= V4L2_BUF_FLAG_ERROR;
++		/* fall through */
++	case VIDEOBUF_DONE:
+ 		b->flags |= V4L2_BUF_FLAG_DONE;
+ 		break;
+ 	case VIDEOBUF_NEEDS_INIT:
+@@ -679,7 +681,6 @@ int videobuf_dqbuf(struct videobuf_queue *q,
+ 	switch (buf->state) {
+ 	case VIDEOBUF_ERROR:
+ 		dprintk(1, "dqbuf: state is error\n");
+-		retval = -EIO;
+ 		CALL(q, sync, q, buf);
+ 		buf->state = VIDEOBUF_IDLE;
+ 		break;
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.0.31.g1df487
+
