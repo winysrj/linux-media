@@ -1,74 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:49997 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933894Ab0CMQpe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Mar 2010 11:45:34 -0500
-Subject: Re: [linux-dvb] USB1.1 vs. USB2.0
-From: Andy Walls <awalls@radix.net>
-To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-In-Reply-To: <e77013311003120749q5c37f89at5e224f557fde0442@mail.gmail.com>
-References: <e77013311003120749q5c37f89at5e224f557fde0442@mail.gmail.com>
-Content-Type: text/plain
-Date: Sat, 13 Mar 2010 11:45:27 -0500
-Message-Id: <1268498728.3084.16.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:36752 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752166Ab0CQGwU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Mar 2010 02:52:20 -0400
+Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0KZE00KCOZ36P6@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 17 Mar 2010 06:52:18 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0KZE005JGZ32IU@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 17 Mar 2010 06:52:18 +0000 (GMT)
+Date: Wed, 17 Mar 2010 07:50:27 +0100
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: RE: Magic in videobuf
+In-reply-to: <37db8fe3121673cfbdce84e1de5ee844.squirrel@webmail.xs4all.nl>
+To: 'Hans Verkuil' <hverkuil@xs4all.nl>
+Cc: 'Andy Walls' <awalls@radix.net>,
+	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	kyungmin.park@samsung.com
+Message-id: <000d01cac59e$20c1b1f0$624515d0$%osciak@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <E4D3F24EA6C9E54F817833EAE0D912AC09C7FCA3BF@bssrvexch01.BS.local>
+ <4B9E1931.8060006@redhat.com>
+ <b320a5b9ff16d1df8ecc6272a7fe2c14.squirrel@webmail.xs4all.nl>
+ <4B9E5EF1.2000600@redhat.com>
+ <e1551c2096f8616e8b01344b1af51a51.squirrel@webmail.xs4all.nl>
+ <4B9E6DC4.5010301@redhat.com> <1268695849.3081.16.camel@palomino.walls.org>
+ <000e01cac4f1$50b1ea40$f215bec0$%osciak@samsung.com>
+ <37db8fe3121673cfbdce84e1de5ee844.squirrel@webmail.xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2010-03-12 at 16:49 +0100, Ton Machielsen wrote:
-> Hi all!
->  
-> When i insert a USB 2.0 device i get the following errors:
-> 
-> [   93.680054] usb 2-1: new full speed USB device using uhci_hcd and
-> address 3
-> [   93.843342] usb 2-1: configuration #1 chosen from 1 choice
-> [   93.855095] input: HID 18b4:1001
-> as /devices/pci0000:00/0000:00:1d.1/usb2/2-1/2-1:1.0/input/input12
-> [   93.855916] generic-usb 0003:18B4:1001.0002: input,hidraw0: USB HID
-> v1.11 Keyboard [HID 18b4:1001] on usb-0000:00:1d.1-1/input0
-> [   93.866130] dvb-usb: found a 'E3C EC168 DVB-T USB2.0 reference
-> design' in cold state, will try to load a firmware
-> [   93.866151] usb 2-1: firmware: requesting dvb-usb-ec168.fw
-> [   94.212405] dvb-usb: downloading firmware from file
-> 'dvb-usb-ec168.fw'
-> [   94.317243] dvb-usb: found a 'E3C EC168 DVB-T USB2.0 reference
-> design' in warm state.
-> [   94.317401] dvb-usb: This USB2.0 device cannot be run on a USB1.1
-> port. (it lacks a hardware PID filter)
-> [   94.317471] dvb-usb: E3C EC168 DVB-T USB2.0 reference design error
-> while loading driver (-19)
-> 
-> I've seen this message many times when searching the internet for a
-> solution, but i haven't found the solution yet.
->  
-> Does anybody know how to solve this?
->  
-> This is Ubuntu 2.6.32.8-1 on an EeePC 701. And yes, this machine does
-> have USB 2.0 ports.
+>Hans Verkuil wrote:
+>>>Andy Walls wrote:
+>>>On Mon, 2010-03-15 at 14:26 -0300, Mauro Carvalho Chehab wrote:
+>>>> Hans Verkuil wrote:
+>>>> >> Hans Verkuil wrote:
+>>>> >>>> Pawel Osciak wrote:
+>>>
+>>>> >>>>> is anyone aware of any other uses for MAGIC_CHECK()s in videobuf
+>>>> code
+>>>> >>>>> besides driver debugging? I intend to remove them, as we weren't
+>>>> able
+>>>> >>>>> to find any particular use for them when we were discussing this
+>>>> at
+>>>> >>>>> the memory handling meeting in Norway...
+>>>> >>>> It is a sort of paranoid check to avoid the risk of mass memory
+>>>> >>>> corruption
+>>>> >>>> if something goes deadly wrong with the video buffers.
+>>>> >>>>
+>>>
+>>>> >>> What on earth does this magic check have to do with possible DMA
+>>>> >>> overruns/memory corruption? This assumes that somehow exactly these
+>>>> >>> magic
+>>>> >>> fields are overwritten and that you didn't crash because of memory
+>>>> >>> corruption elsewhere much earlier.
+>>>
+>>>>  All it does is oops anyway, so it really doesn't 'avoid' a crash
+>>>> >>> (as if you could in such scenarios). And most likely the damage has
+>>>> been
+>>>> >>> done already in that case.
+>>>> >> It won't avoid the damage, but the error message could potentially
+>>>> help
+>>>> >> to track the issue. It will also likely limit the damage.
+>>>> >>
+>>>> >>> Please let us get rid of this. It makes no sense whatsoever.
+>>>> >> I don't have a strong opinion about this subject, but if this code
+>>>> might
+>>>> >> help
+>>>> >> to avoid propagating the damage and to track the issue, I don't see
+>>>> why we
+>>>> >> need to remove it, especially since it is easy to disable the entire
+>>>> logic
+>>>> >> by just adding a few #if's to remove this code on environments where
+>>>> no
+>>>> >> problem is expected.
+>>>> >
+>>>> > It is highly unlikely that this code ever prevented these issues.
+>>>> > Especially given the places where the check is done. I think this is
+>>>> just
+>>>> > debug code that has been dragged along for all these years without
+>>>> anyone
+>>>> > bothering to remove it.
+>>>
+>>>> I remember I had to re-format one disk, during that time, due to a
+>>>> videobuf issue.
+>>>> So, those checks help people that are touching at the videobuf code,
+>>>> reducing the
+>>>> chances of damaging their disk partitions when trying to implement
+>>>> overlay mode and
+>>>> userptr on the videobuf implementations that misses those features, or
+>>>> when
+>>>> working on a different mmap() logic at the driver.
+>>>
+>>>
+>>>In a previous job, working on a particularly large application, I had
+>>>occasional corruption in a shared memory segment that was shared by many
+>>>writer processes and 2 readers.  A simple checksum on the data header
+>>>(and contents if appropriate) was enough to detect corrpution and avoid
+>>>dereferencing a corrupted pointer to the next data element (when walking
+>>>a data area filled with Key-Length-Value encoded data).
+>>>
+>>>This "forward error detection" was inelegant to me - kind of like
+>>>putting armor on one's car instead of learning to drive properly.  I
+>>>only resorted to using the checksum because there was almost no way to
+>>>find which process was corrupting shared memory in a reasonable amount
+>>>of time.  It allowed me to change a "show stopper" bug into an annoying
+>>>data presentation bug, so the product could be released to a production
+>>>environment.
+>>>
+>>>In a development environment, it would be much better to disable such
+>>>defensive coding and let the kernel Oops.  You'll never find the
+>>>problems if you keep hiding them from yourself.
+>>
+>> So, to sum up (I hope I understood you guys correctly):
+>>
+>> we are not seeing any particular reason (besides debugging) for having
+>> the checks in videobuf-core. Checks in memory-specific handling may have
+>> some
+>> uses, although I am not sure how much. I am not an expert on sg drivers,
+>> but as
+>> the magics are in the kernel control structures, they are not really a
+>> subject
+>> to corruption. What may get corrupted is video data or sg lists, but the
+>> magics
+>> are in a separate memory areas anyway. So videobuf-core magics should be
+>> removed
+>> and we are leaning towards removing memory-type magics as well?
+>
+>That is my opinion, yes. However, there is one case where this is actually
+>useful. Take for example the function videobuf_to_dma in
+>videobuf-dma-sg.c. This is called by drivers and it makes sense that that
+>function should double-check that the videobuf_buffer is associated with
+>the dma_sg memtype.
+>
+>But calling this 'magic' is a poor choice of name. There is nothing magic
+>about it, in this case it is just an identifier of the memtype. And there
+>may be better ways to do this check anyway.
+>
+>I have not done any analysis, but might be enough to check whether the
+>int_ops field of videobuf_queue equals the sg_ops pointer. If so, then the
+>whole magic handling can go away in this case.
 
-Remove any external USB hubs and connect the TV capture device directly
-into the port on the computer.
 
-Do you get the same error?
+Well... I see this discussion is dragging on a bit.
+I will not be touching magics for now then, at least not until we arrive at
+a consensus sometime in the future.
 
 
-As root, you may want to run 
-
-# /sbin/lsusb -t
-# /sbin/lsusb -v
-
-To make sure the device is connected to a USB2.0 "High" speed hub, and
-not a USB1.1 "Full" speed hub.
-
-Regards,
-Andy
-
-> Thanks,
->  
-> Ton.
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
 
 
 
