@@ -1,56 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay02.digicable.hu ([92.249.128.188]:50780 "EHLO
-	relay02.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932256Ab0CaGbg (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:54553 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751308Ab0CQU6E (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Mar 2010 02:31:36 -0400
-Message-ID: <4BB2EC46.1000601@freemail.hu>
-Date: Wed, 31 Mar 2010 08:31:34 +0200
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+	Wed, 17 Mar 2010 16:58:04 -0400
+Message-ID: <4BA1422E.4030601@maxwell.research.nokia.com>
+Date: Wed, 17 Mar 2010 22:57:18 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: Krivchikov Sergei <sergei.krivchikov@gmail.com>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: genius islim 310 webcam test
-References: <68c794d61003301249u138e643am20bb264375c3dfe1@mail.gmail.com>	<4BB2E42B.4090302@freemail.hu> <20100331080757.40f9c478@tele>
-In-Reply-To: <20100331080757.40f9c478@tele>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Arnout Vandecappelle <arnout@mind.be>
+CC: linux-media@vger.kernel.org, mchehab@infradead.org
+Subject: Re: [PATCH 1/2] V4L/DVB: buf-dma-sg.c: don't assume nr_pages == sglen
+References: <201003031512.45428.arnout@mind.be> <1267718451-24961-2-git-send-email-arnout@mind.be>
+In-Reply-To: <1267718451-24961-2-git-send-email-arnout@mind.be>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jean-Francois Moine írta:
-> On Wed, 31 Mar 2010 07:56:59 +0200
-> Németh Márton <nm127@freemail.hu> wrote:
+Hi Arnout,
+
+Arnout Vandecappelle wrote:
+> videobuf_pages_to_sg() and videobuf_vmalloc_to_sg() happen to create
+> a scatterlist element for every page.  However, this is not true for
+> bus addresses, so other functions shouldn't rely on the length of the
+> scatter list being equal to nr_pages.
+> ---
+>  drivers/media/video/videobuf-dma-sg.c |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
 > 
->> The next thing is that you need to learn how to compile the Linux
->> kernel from source code. There is a description for Ubuntu at
->> https://help.ubuntu.com/community/Kernel/Compile . After you are able
->> to compile and install your new kernel, you can try to apply the
->> patch in this email, recompile the kernel, install the kernel and the
->> modules, unload the gspca_pac7302 kernel module ("rmmod
->> gspca_pac7302"), and then plug the webcam in order it can load the
->> new kernel module. When you were successful with these steps you'll
->> see new messages in the output of "dmesg" command. Please send this
->> output also.
-> 
-> Hello Németh and Sergei,
-> 
-> I think the patch is not needed because it just gives the vend:prod
-> which is already known by lsusb.
+> diff --git a/drivers/media/video/videobuf-dma-sg.c b/drivers/media/video/videobuf-dma-sg.c
+> index da1790e..3b6f1b8 100644
+> --- a/drivers/media/video/videobuf-dma-sg.c
+> +++ b/drivers/media/video/videobuf-dma-sg.c
+> @@ -244,7 +244,7 @@ int videobuf_dma_map(struct videobuf_queue* q, struct videobuf_dmabuf *dma)
+>  	}
+>  	if (!dma->bus_addr) {
+>  		dma->sglen = dma_map_sg(q->dev, dma->sglist,
+> -					dma->nr_pages, dma->direction);
+> +					dma->sglen, dma->direction);
+>  		if (0 == dma->sglen) {
+>  			printk(KERN_WARNING
+>  			       "%s: videobuf_map_sg failed\n",__func__);
 
-To avoid misunderstandings, the patch I sent is not just printing the
-USB vendor ID and product ID but also really enables the pac7302 gspca
-subdriver to actually work with the newly added USB IDs.
+Where is dma->sglen actually set?
 
-> On the other hand, compiling a full kernel is not needed with a small
-> tarball distribution as the one I have in my page (actual gspca-2.9.10).
+videobuf_dma_map() is used in __videobuf_iolock
+(drivers/media/video/videobuf-dma-sg.c) but neither
+videobuf_dma_init_kernel() nor videobuf_dma_init_user() seem to set it.
+This apparently leaves the value uninitialised.
 
-This is also a possible way to go, the important thing is that a kernel
-module has to be built and the previous version of gspca_pac7302 kernel
-module has to be replaced with the newly built one.
+I definitely think it should be assigned somewhere. :-)
 
-Regards,
-
-	Márton Németh
-
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
