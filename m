@@ -1,32 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.domeneshop.no ([194.63.248.54]:37144 "EHLO
-	smtp.domeneshop.no" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754207Ab0CCQmp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Mar 2010 11:42:45 -0500
-Message-ID: <4B8E9182.2010906@online.no>
-Date: Wed, 03 Mar 2010 17:42:42 +0100
-From: Hendrik Skarpeid <skarp@online.no>
+Received: from devils.ext.ti.com ([198.47.26.153]:34267 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753460Ab0CQOcw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Mar 2010 10:32:52 -0400
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Pawel Osciak <p.osciak@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"m.szyprowski@samsung.com" <m.szyprowski@samsung.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
+Date: Wed, 17 Mar 2010 09:32:45 -0500
+Subject: RE: [PATCH v2] v4l: videobuf: code cleanup.
+Message-ID: <A24693684029E5489D1D202277BE8944541370F5@dlee02.ent.ti.com>
+References: <1268831061-307-1-git-send-email-p.osciak@samsung.com>
+    <1268831061-307-2-git-send-email-p.osciak@samsung.com>
+    <A24693684029E5489D1D202277BE894454137086@dlee02.ent.ti.com>
+ <1b349bbb89725540c70175130caf9ae3.squirrel@webmail.xs4all.nl>
+In-Reply-To: <1b349bbb89725540c70175130caf9ae3.squirrel@webmail.xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: "Igor M. Liplianin" <liplianin@me.by>
-CC: linux-media@vger.kernel.org,
-	Nameer Kazzaz <nameer.kazzaz@gmail.com>
-Subject: Re: DM1105: could not attach frontend 195d:1105
-References: <4B7D83B2.4030709@online.no> <201003030110.32834.liplianin@me.by> <4B8E1FF1.8050605@online.no> <201003031749.24261.liplianin@me.by>
-In-Reply-To: <201003031749.24261.liplianin@me.by>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Igor M. Liplianin wrote:
->
-> Now to find GPIO's for LNB power control and ... watch TV :)
->
->   
-Yep. No succesful tuning at the moment. There might also be an issue 
-with the reset signal and writing to GPIOCTR, as the module at the 
-moment loads succesfully only once.
-As far as I can make out, the LNB power control is probably GPIO 16 and 
-17, not sure which is which, and how they work.
-GPIO15 is wired to tuner #reset
+
+
+> -----Original Message-----
+> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> Sent: Wednesday, March 17, 2010 9:26 AM
+> To: Aguirre, Sergio
+> Cc: Pawel Osciak; linux-media@vger.kernel.org; m.szyprowski@samsung.com;
+> kyungmin.park@samsung.com
+> Subject: RE: [PATCH v2] v4l: videobuf: code cleanup.
+> 
+> 
+> > Hi,
+> >
+> >> -----Original Message-----
+> >> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> >> owner@vger.kernel.org] On Behalf Of Pawel Osciak
+> >> Sent: Wednesday, March 17, 2010 8:04 AM
+> >> To: linux-media@vger.kernel.org
+> >> Cc: p.osciak@samsung.com; m.szyprowski@samsung.com;
+> >> kyungmin.park@samsung.com
+> >> Subject: [PATCH v2] v4l: videobuf: code cleanup.
+> >>
+> >> Make videobuf pass checkpatch; minor code cleanups.
+> >
+> > I thought this kind patches were frowned upon..
+> >
+> > http://www.mjmwired.net/kernel/Documentation/development-
+> process/4.Coding#41
+> >
+> > But maybe it's acceptable in this case... I'm not an expert on community
+> > policies :)
+> 
+> It is true that you shouldn't do this 'just to clean up code'. But in this
+> case we want to do a lot of work on the videobuf framework, and it helps a
+> lot if it is first brought up to date with the coding standards.
+> 
+> It's just step one in a much longer process :-)
+
+Ok, understood.
+
+No problem with that at all... I just wanted clarification on this coding
+policy. :)
+
+Regards,
+Sergio
+
+
+> 
+> Regards,
+> 
+>           Hans
+> 
+> --
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
