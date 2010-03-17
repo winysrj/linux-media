@@ -1,57 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:26988 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935670Ab0CMTnz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Mar 2010 14:43:55 -0500
-Message-ID: <4B9BEB3A.3010801@redhat.com>
-Date: Sat, 13 Mar 2010 20:44:58 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1675 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754659Ab0CQUea (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Mar 2010 16:34:30 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Pawel Osciak <p.osciak@samsung.com>
+Subject: Re: [PATCH v2] v4l: videobuf: code cleanup.
+Date: Wed, 17 Mar 2010 21:34:47 +0100
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com
+References: <1268831061-307-1-git-send-email-p.osciak@samsung.com> <1268831061-307-2-git-send-email-p.osciak@samsung.com>
+In-Reply-To: <1268831061-307-2-git-send-email-p.osciak@samsung.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <j.w.r.degoede@hhs.nl>
-Subject: Re: Remaining drivers that aren't V4L2?
-References: <829197381003121211l469c30bfjba077cea028bf680@mail.gmail.com>	 <201003122242.06508.hverkuil@xs4all.nl> <4B9B31D5.5060603@redhat.com> <829197381003130623w22133c4eyadff26301381f8ca@mail.gmail.com>
-In-Reply-To: <829197381003130623w22133c4eyadff26301381f8ca@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201003172134.47721.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Wednesday 17 March 2010 14:04:21 Pawel Osciak wrote:
+> Make videobuf pass checkpatch; minor code cleanups.
+> 
+> Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+> Reviewed-by: Kyungmin Park <kyungmin.park@samsung.com>
 
-On 03/13/2010 03:23 PM, Devin Heitmueller wrote:
-> On Sat, Mar 13, 2010 at 1:33 AM, Hans de Goede<hdegoede@redhat.com>  wrote:
->>> usbvideo
->>
->> This actually is a framework for usb video devices a bit like
->> gspca one could say. It supports the following devices:
->>
->> "USB 3com HomeConnect (aka vicam)"
->> "USB IBM (Xirlink) C-it Camera"
->> "USB Konica Webcam support"
->> "USB Logitech Quickcam Messenger"
->>
->> Of which the Logitech Quickcam Messenger has a gspca subdriver
->> now, and is scheduled for removal.
->
-> Now that I see the product list, I realize that I actually have a 3com
-> HomeConnect kicking around in a box.  So if nobody gets around to it,
-> I could probably kill a few hours and do the conversion (given that
-> was a fairly popular product at the time).
->
-> Or would it be better to convert the products to gpsca (I don't
-> actually know/understand if that's possible at this point)?
->
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
 
-It would be much better to change it into a gspca subdriver, gspca is
-a generic framework for usb webcams, and as such has a lot of code
-which all these devices need shared in place, making the subdrivers
-quite small, and nice to write as you can focus on the actual
-camera specifics instead of on things like getting locking in case of
-hot unplug while an app is streaming right.
+It would be really nice if this can be merged soon. With all the work that
+we want to do on videobuf it makes life easier if it is cleaned up first.
+
+I wonder if it is perhaps possible to get this merged for 2.6.34-rc2?
+That way it will be easier to merge fixes there. Although I think that it
+is unlikely that we will want to make any videobuf changes for 2.6.34.
 
 Regards,
 
-Hans
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
