@@ -1,45 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:9679 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754631Ab0CQVDa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Mar 2010 17:03:30 -0400
-Message-ID: <4BA14398.70609@redhat.com>
-Date: Wed, 17 Mar 2010 18:03:20 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp.nokia.com ([192.100.122.233]:41504 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752548Ab0CQORL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Mar 2010 10:17:11 -0400
+Message-ID: <4BA0E434.1040402@maxwell.research.nokia.com>
+Date: Wed, 17 Mar 2010 16:16:20 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Pawel Osciak <p.osciak@samsung.com>, linux-media@vger.kernel.org,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com
-Subject: Re: [PATCH v2] v4l: videobuf: code cleanup.
-References: <1268831061-307-1-git-send-email-p.osciak@samsung.com> <1268831061-307-2-git-send-email-p.osciak@samsung.com> <201003172134.47721.hverkuil@xs4all.nl>
-In-Reply-To: <201003172134.47721.hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "Aguirre, Sergio" <saaguirre@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [omap3camera] Camera bring-up on Zoom3 (OMAP3630)
+References: <A24693684029E5489D1D202277BE894453CC5C3F@dlee02.ent.ti.com> <201003162330.17454.laurent.pinchart@ideasonboard.com> <A24693684029E5489D1D202277BE894454137054@dlee02.ent.ti.com> <201003171514.27538.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201003171514.27538.laurent.pinchart@ideasonboard.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
-> On Wednesday 17 March 2010 14:04:21 Pawel Osciak wrote:
->> Make videobuf pass checkpatch; minor code cleanups.
+Laurent Pinchart wrote:
+>>>> I'm trying to get latest Sakari's tree (gitorious.org/omap3camera)
+>>>> 'devel' branch running on my Zoom3 HW (which has an OMAP3630, and a
+>>>> Sony IMX046 8MP sensor).
+>>>>
+>>>> I had first one NULL pointer dereference while the driver was
+>>>> registering devices and creating entities, which I resolved with
+>>>> the attached patch. (Is this patch acceptable, or maybe I am missing
+>>>> something...)
+>>>
+>>> Either that, or make OMAP34XXCAM_VIDEODEVS dynamic (the value would be
+>>> passed through platform data). The code will be removed (hopefully soon)
+>>> anyway when the legacy video nodes will disappear.
 >>
->> Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
->> Reviewed-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> Ok, so should I keep this patch only to myself until this code is removed?
 > 
-> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
-> 
-> It would be really nice if this can be merged soon. With all the work that
-> we want to do on videobuf it makes life easier if it is cleaned up first.
-> 
-> I wonder if it is perhaps possible to get this merged for 2.6.34-rc2?
-> That way it will be easier to merge fixes there. Although I think that it
-> is unlikely that we will want to make any videobuf changes for 2.6.34.
+> I'll let Sakari answer that, but I think they can still go in in the meantime.
 
-Videobuf changes for 2.6.34? Only if you catch a bug that affect the current
-drivers and after lots of testing. It seems very unlikely. I don't see any
-reason to send a pure cleanup patch outside the merge window. So, after review,
-I'll add it at v4l-dvb.git tree (so, a patch for 2.6.35).
+Is there a need for the patch? The other possible device is just left
+unused, right?
 
 -- 
-
-Cheers,
-Mauro
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
