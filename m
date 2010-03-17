@@ -1,58 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:46780 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751619Ab0CIO5H convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Mar 2010 09:57:07 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: =?utf-8?q?N=C3=A9meth_M=C3=A1rton?= <nm127@freemail.hu>
-Subject: Re: [RFC, PATCH 1/3] gspca: add LEDs subsystem connection
-Date: Tue, 9 Mar 2010 12:27:53 +0100
-Cc: "Jean-Francois Moine" <moinejf@free.fr>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-References: <4B8A2158.6020701@freemail.hu> <20100301101806.7c7986be@tele> <4B8DA25F.10602@freemail.hu>
-In-Reply-To: <4B8DA25F.10602@freemail.hu>
+Received: from mail.gmx.net ([213.165.64.20]:47308 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754902Ab0CQN4Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Mar 2010 09:56:24 -0400
+Date: Wed, 17 Mar 2010 14:56:26 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] V4L: introduce a Kconfig variable to disable helper-chip
+ autoselection
+In-Reply-To: <4BA0D214.3050506@redhat.com>
+Message-ID: <Pine.LNX.4.64.1003171446360.4354@axis700.grange>
+References: <Pine.LNX.4.64.1003171336180.4354@axis700.grange>
+ <4BA0D214.3050506@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201003091227.54229.laurent.pinchart@ideasonboard.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Màrton,
+On Wed, 17 Mar 2010, Mauro Carvalho Chehab wrote:
 
-Thanks for the patch.
-
-On Wednesday 03 March 2010 00:42:23 Németh Márton wrote:
-> From: Márton Németh <nm127@freemail.hu>
+> Em 17-03-2010 09:38, Guennadi Liakhovetski escreveu:
+> > Helper-chip autoselection doesn't work in some situations. Add a configuration
+> > variable to let drivers disable it. Use it to disable autoselection if
+> > SOC_CAMERA is selected.
+> > 
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > ---
+> > 
+> > This will also be used from VOU video-output driver, other SoC drivers 
+> > might also want to select this option.
+> > 
+> >  drivers/media/video/Kconfig |    5 +++++
+> >  1 files changed, 5 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+> > index 64682bf..73f3808 100644
+> > --- a/drivers/media/video/Kconfig
+> > +++ b/drivers/media/video/Kconfig
+> > @@ -77,8 +77,12 @@ config VIDEO_FIXED_MINOR_RANGES
+> >  
+> >  	  When in doubt, say N.
+> >  
+> > +config VIDEO_HELPER_CHIPS_AUTO_DISABLE
+> > +	bool
+> > +
+> >  config VIDEO_HELPER_CHIPS_AUTO
+> >  	bool "Autoselect pertinent encoders/decoders and other helper chips"
+> > +	depends on !VIDEO_HELPER_CHIPS_AUTO_DISABLE
+> >  	default y
+> >  	---help---
+> >  	  Most video cards may require additional modules to encode or
+> > @@ -816,6 +820,7 @@ config SOC_CAMERA
+> >  	tristate "SoC camera support"
+> >  	depends on VIDEO_V4L2 && HAS_DMA && I2C
+> >  	select VIDEOBUF_GEN
+> > +	select VIDEO_HELPER_CHIPS_AUTO_DISABLE
+> >  	help
+> >  	  SoC Camera is a common API to several cameras, not connecting
+> >  	  over a bus like PCI or USB. For example some i2c camera connected
+> NACK.
 > 
-> On some webcams one or more LEDs can be found. One type of these LEDs
-> are feedback LEDs: they usually shows the state of streaming mode.
-> The LED can be programmed to constantly switched off state (e.g. for
-> power saving reasons, preview mode) or on state (e.g. the application
-> shows motion detection or "on-air").
+> If this is not working, please fix, instead of doing a workaround.
 > 
-> The second type of LEDs are used to create enough light for the sensor
-> for example visible or in infra-red light.
-> 
-> Both type of these LEDs can be handled using the LEDs subsystem. This
-> patch add support to connect a gspca based driver to the LEDs subsystem.
+> What's the exact problem?
 
-They can indeed, but I'm not sure if the LEDs subsystem was designed for that 
-kind of use cases.
+Hi Mauro
 
-The LED framework was developed to handle LEDs found in embedded systems 
-(usually connected to GPIOs) that needed to be connected to software triggers 
-or controlled by drivers and/or specific userspace applications. Webcam LEDs 
-seem a bit out of scope to me, especially the "light" LED that might be better 
-handled by a V4L2 set of controls (we're currently missing controls for camera 
-flashes, be they LEDs or Xenon based).
+we just discussed this with Hans on IRC, and if I understood him 
+correctly, he was of the same opinion, that adding such a variable could 
+help.
 
-I'll let Richard speak on this.
+The problem is the following: this automatic selection works in a way, 
+that various bridge drivers select "helper" chip drivers (i2c subdevice 
+drivers" if this autoselection is enabled, e.g.
 
--- 
-Regards,
+config VIDEO_MXB
+	tristate "Siemens-Nixdorf 'Multimedia eXtension Board'"
+	depends on PCI && VIDEO_V4L1 && I2C
+	select VIDEO_SAA7146_VV
+	select VIDEO_TUNER
+	select VIDEO_SAA711X if VIDEO_HELPER_CHIPS_AUTO
+	select VIDEO_TDA9840 if VIDEO_HELPER_CHIPS_AUTO
+	select VIDEO_TEA6415C if VIDEO_HELPER_CHIPS_AUTO
+	select VIDEO_TEA6420 if VIDEO_HELPER_CHIPS_AUTO
 
-Laurent Pinchart
+With SoC-based set ups this cannot work. The only location where this 
+information is available is platform code under arch/... and selecting 
+these drivers from there would be awkward imho. So, for example, we want 
+to put the ak881x video encoder driver under
+
+comment "Video encoders"
+
+and those drivers are only visible if VIDEO_HELPER_CHIPS_AUTO is 
+unselected, and if it is selected, which it is by default, there is noone 
+to automatically select ak881x. So, I think, the proposed patch is not a 
+work-around, but a reasonable solution for this issue.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
