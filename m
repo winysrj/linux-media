@@ -1,77 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1291 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753280Ab0CLVlt (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:48400 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752470Ab0CQOYI convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Mar 2010 16:41:49 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: Remaining drivers that aren't V4L2?
-Date: Fri, 12 Mar 2010 22:42:06 +0100
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <j.w.r.degoede@hhs.nl>
-References: <829197381003121211l469c30bfjba077cea028bf680@mail.gmail.com>
-In-Reply-To: <829197381003121211l469c30bfjba077cea028bf680@mail.gmail.com>
+	Wed, 17 Mar 2010 10:24:08 -0400
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 17 Mar 2010 09:23:58 -0500
+Subject: RE: [omap3camera] Camera bring-up on Zoom3 (OMAP3630)
+Message-ID: <A24693684029E5489D1D202277BE8944541370C5@dlee02.ent.ti.com>
+References: <A24693684029E5489D1D202277BE894453CC5C3F@dlee02.ent.ti.com>
+ <201003162330.17454.laurent.pinchart@ideasonboard.com>
+ <A24693684029E5489D1D202277BE894454137054@dlee02.ent.ti.com>
+ <201003171514.27538.laurent.pinchart@ideasonboard.com>
+ <4BA0E434.1040402@maxwell.research.nokia.com>
+In-Reply-To: <4BA0E434.1040402@maxwell.research.nokia.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201003122242.06508.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 12 March 2010 21:11:49 Devin Heitmueller wrote:
-> Hello,
+
+
+> -----Original Message-----
+> From: Sakari Ailus [mailto:sakari.ailus@maxwell.research.nokia.com]
+> Sent: Wednesday, March 17, 2010 9:16 AM
+> To: Laurent Pinchart
+> Cc: Aguirre, Sergio; linux-media@vger.kernel.org
+> Subject: Re: [omap3camera] Camera bring-up on Zoom3 (OMAP3630)
 > 
-> I know some months ago, there was some discussion about a few drivers
-> which were stragglers and had not been converted from V4L to V4L2.
+> Laurent Pinchart wrote:
+> >>>> I'm trying to get latest Sakari's tree (gitorious.org/omap3camera)
+> >>>> 'devel' branch running on my Zoom3 HW (which has an OMAP3630, and a
+> >>>> Sony IMX046 8MP sensor).
+> >>>>
+> >>>> I had first one NULL pointer dereference while the driver was
+> >>>> registering devices and creating entities, which I resolved with
+> >>>> the attached patch. (Is this patch acceptable, or maybe I am missing
+> >>>> something...)
+> >>>
+> >>> Either that, or make OMAP34XXCAM_VIDEODEVS dynamic (the value would be
+> >>> passed through platform data). The code will be removed (hopefully
+> soon)
+> >>> anyway when the legacy video nodes will disappear.
+> >>
+> >> Ok, so should I keep this patch only to myself until this code is
+> removed?
+> >
+> > I'll let Sakari answer that, but I think they can still go in in the
+> meantime.
 > 
-> Do we have a current list of driver which still haven't been converted?
+> Is there a need for the patch? The other possible device is just left
+> unused, right?
 
-These drivers are still v4l1:
+There is need for it _if_ I don't change OMAP34XXCAM_VIDEODEVS in
+drivers/media/video/omap34xxcam.h, and if I have less devices listed
+in the platform data passed from the boardfile.
 
-arv
-bw-qcam
-c-qcam
-cpia_pp
-cpia_usb
-ov511
-se401
-stradis
-stv680
-usbvideo
-w9966
+In this case, OMAP34XXCAM_VIDEODEVS is hardcoded to N900 case, which is 2,
+and I only have 1 sensor in my Zoom3.
 
-Some of these have counterparts in gspca these days so possibly some drivers
-can be removed by now. Hans, can you point those out?
-
-arv, bw-qcam, c-qcam, cpia_pp and stradis can probably be moved to staging
-and if no one steps up then they can be dropped altogether.
-
-According to my notes I should be able to test cpia_usb. I would have to
-verify that, though. I think it is only used in a USB microscope. It is
-effectively a webcam. I can also test usbvideo (USB 1 TV capture device).
-The latter is probably the most important driver that needs converting,
-because I think these are not uncommon.
-
-However, I have no time to work on such a driver conversion. But if someone
-is seriously willing to put time and effort in that, then I am willing to
-mail the hardware.
-
-> I started doing some more tvtime work last night, and I would *love*
-> to drop V4L support (and *only* support V4L2 devices), since it would
-> make the code much cleaner, more reliable, and easier to test.
-> 
-> If there are only a few obscure webcams remaining, then I'm willing to
-> tell those users that they have to stick with whatever old version of
-> tvtime they've been using since the last release four years ago.
-
-To my knowledge the usbvideo driver is probably the least obscure device
-that is still using V4L1.
+I guess the patch is just protecting for potential pointer dereferencing, unless we get rid of current OMAP34XXCAM_VIDEODEVS hardcoded value.
 
 Regards,
+Sergio
 
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+> 
+> --
+> Sakari Ailus
+> sakari.ailus@maxwell.research.nokia.com
