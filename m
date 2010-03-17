@@ -1,230 +1,1498 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay02.digicable.hu ([92.249.128.188]:40140 "EHLO
-	relay02.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750892Ab0CAGbH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Mar 2010 01:31:07 -0500
-Message-ID: <4B8B5F26.4030301@freemail.hu>
-Date: Mon, 01 Mar 2010 07:31:02 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-MIME-Version: 1.0
-To: Huang Shijie <shijie8@gmail.com>
-CC: Kang Yong <kangyong@telegent.com>,
-	Zhang Xiaobing <xbzhang@telegent.com>,
-	Huang Shijie <zyziii@telegent.com>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] tlg2300: make local variables and functions static
-References: <4B8A8587.10306@freemail.hu> <4B8B2EAD.4060102@gmail.com>
-In-Reply-To: <4B8B2EAD.4060102@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:63707 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751011Ab0CQNE1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Mar 2010 09:04:27 -0400
+Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0KZF00KNXGBCP6@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 17 Mar 2010 13:04:24 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0KZF000M0GBB2J@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 17 Mar 2010 13:04:24 +0000 (GMT)
+Date: Wed, 17 Mar 2010 14:04:21 +0100
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: [PATCH v2] v4l: videobuf: code cleanup.
+In-reply-to: <1268831061-307-1-git-send-email-p.osciak@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com
+Message-id: <1268831061-307-2-git-send-email-p.osciak@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1268831061-307-1-git-send-email-p.osciak@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Márton Németh <nm127@freemail.hu>
+Make videobuf pass checkpatch; minor code cleanups.
 
-Make the local variables and functions static. Some of them are not exported by their
-symbol name but used trough other means. For example a pointer of the operation
-structure is passed through a function call.
-
-This will remove the following sparse warnings (see "make C=1"):
- * pd-video.c:20:5: warning: symbol 'usb_transfer_mode' was not declared. Should it be static?
- * pd-video.c:621:5: warning: symbol 'fire_all_urb' was not declared. Should it be static?
- * pd-video.c:881:5: warning: symbol 'vidioc_s_std' was not declared. Should it be static?
- * pd-video.c:1024:5: warning: symbol 'vidioc_g_audio' was not declared. Should it be static?
- * pd-video.c:1033:5: warning: symbol 'vidioc_s_audio' was not declared. Should it be static?
- * pd-video.c:1193:5: warning: symbol 'usb_transfer_stop' was not declared. Should it be static?
- * pd-video.c:1522:14: warning: symbol 'pd_video_poll' was not declared. Should it be static?
- * pd-video.c:1528:9: warning: symbol 'pd_video_read' was not declared. Should it be static?
- * pd-radio.c:164:5: warning: symbol 'tlg_fm_vidioc_g_tuner' was not declared. Should it be static?
- * pd-radio.c:206:5: warning: symbol 'fm_get_freq' was not declared. Should it be static?
- * pd-radio.c:249:5: warning: symbol 'fm_set_freq' was not declared. Should it be static?
- * pd-radio.c:261:5: warning: symbol 'tlg_fm_vidioc_g_ctrl' was not declared. Should it be static?
- * pd-radio.c:267:5: warning: symbol 'tlg_fm_vidioc_g_exts_ctrl' was not declared. Should it be static?
- * pd-radio.c:288:5: warning: symbol 'tlg_fm_vidioc_s_exts_ctrl' was not declared. Should it be static?
- * pd-radio.c:315:5: warning: symbol 'tlg_fm_vidioc_s_ctrl' was not declared. Should it be static?
- * pd-radio.c:321:5: warning: symbol 'tlg_fm_vidioc_queryctrl' was not declared. Should it be static?
- * pd-radio.c:340:5: warning: symbol 'tlg_fm_vidioc_querymenu' was not declared. Should it be static?
- * pd-main.c:58:12: warning: symbol 'firmware_name' was not declared. Should it be static?
- * pd-main.c:59:19: warning: symbol 'poseidon_driver' was not declared. Should it be static?
-
-Signed-off-by: Márton Németh <nm127@freemail.hu>
+Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+Reviewed-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
-diff -upr v4l-dvb.orig/linux/drivers/media/video/tlg2300/pd-main.c v4l-dvb/linux/drivers/media/video/tlg2300/pd-main.c
---- v4l-dvb.orig/linux/drivers/media/video/tlg2300/pd-main.c	2010-02-28 14:54:31.000000000 +0100
-+++ v4l-dvb/linux/drivers/media/video/tlg2300/pd-main.c	2010-02-28 15:49:10.000000000 +0100
-@@ -55,8 +55,8 @@ int debug_mode;
- module_param(debug_mode, int, 0644);
- MODULE_PARM_DESC(debug_mode, "0 = disable, 1 = enable, 2 = verbose");
+ drivers/media/video/videobuf-core.c    |  116 ++++++-------
+ drivers/media/video/videobuf-dma-sg.c  |  276 ++++++++++++++++----------------
+ drivers/media/video/videobuf-vmalloc.c |  112 ++++++-------
+ include/media/videobuf-core.h          |   10 +-
+ include/media/videobuf-dma-sg.h        |   27 ++--
+ include/media/videobuf-vmalloc.h       |   12 +-
+ 6 files changed, 272 insertions(+), 281 deletions(-)
 
--const char *firmware_name = "tlg2300_firmware.bin";
--struct usb_driver poseidon_driver;
-+static const char *firmware_name = "tlg2300_firmware.bin";
-+static struct usb_driver poseidon_driver;
- static LIST_HEAD(pd_device_list);
-
- /*
-@@ -501,7 +501,7 @@ static void poseidon_disconnect(struct u
- 	kref_put(&pd->kref, poseidon_delete);
+diff --git a/drivers/media/video/videobuf-core.c b/drivers/media/video/videobuf-core.c
+index bb0a1c8..37afb4e 100644
+--- a/drivers/media/video/videobuf-core.c
++++ b/drivers/media/video/videobuf-core.c
+@@ -24,10 +24,15 @@
+ #include <media/videobuf-core.h>
+ 
+ #define MAGIC_BUFFER 0x20070728
+-#define MAGIC_CHECK(is, should) do {					   \
+-	if (unlikely((is) != (should))) {				   \
+-	printk(KERN_ERR "magic mismatch: %x (expected %x)\n", is, should); \
+-	BUG(); } } while (0)
++#define MAGIC_CHECK(is, should)						\
++	do {								\
++		if (unlikely((is) != (should))) {			\
++			printk(KERN_ERR					\
++				"magic mismatch: %x (expected %x)\n",	\
++					is, should);			\
++			BUG();						\
++		}							\
++	} while (0)
+ 
+ static int debug;
+ module_param(debug, int, 0644);
+@@ -36,9 +41,11 @@ MODULE_DESCRIPTION("helper module to manage video4linux buffers");
+ MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@infradead.org>");
+ MODULE_LICENSE("GPL");
+ 
+-#define dprintk(level, fmt, arg...) do {			\
+-	if (debug >= level) 					\
+-	printk(KERN_DEBUG "vbuf: " fmt , ## arg); } while (0)
++#define dprintk(level, fmt, arg...)					\
++	do {								\
++		if (debug >= level)					\
++			printk(KERN_DEBUG "vbuf: " fmt, ## arg);	\
++	} while (0)
+ 
+ /* --------------------------------------------------------------------- */
+ 
+@@ -57,14 +64,14 @@ void *videobuf_alloc(struct videobuf_queue *q)
+ 	}
+ 
+ 	vb = q->int_ops->alloc(q->msize);
+-
+ 	if (NULL != vb) {
+ 		init_waitqueue_head(&vb->done);
+-		vb->magic     = MAGIC_BUFFER;
++		vb->magic = MAGIC_BUFFER;
+ 	}
+ 
+ 	return vb;
  }
-
--struct usb_driver poseidon_driver = {
-+static struct usb_driver poseidon_driver = {
- 	.name		= "poseidon",
- 	.probe		= poseidon_probe,
- 	.disconnect	= poseidon_disconnect,
-diff -upr v4l-dvb.orig/linux/drivers/media/video/tlg2300/pd-radio.c v4l-dvb/linux/drivers/media/video/tlg2300/pd-radio.c
---- v4l-dvb.orig/linux/drivers/media/video/tlg2300/pd-radio.c	2010-02-28 14:54:31.000000000 +0100
-+++ v4l-dvb/linux/drivers/media/video/tlg2300/pd-radio.c	2010-03-01 07:26:41.000000000 +0100
-@@ -161,7 +161,8 @@ static const struct v4l2_file_operations
- 	.ioctl	       = video_ioctl2,
- };
-
--int tlg_fm_vidioc_g_tuner(struct file *file, void *priv, struct v4l2_tuner *vt)
-+static int tlg_fm_vidioc_g_tuner(struct file *file, void *priv,
-+				 struct v4l2_tuner *vt)
- {
- 	struct tuner_fm_sig_stat_s fm_stat = {};
- 	int ret, status, count = 5;
-@@ -203,7 +204,8 @@ int tlg_fm_vidioc_g_tuner(struct file *f
++EXPORT_SYMBOL_GPL(videobuf_alloc);
+ 
+ #define WAITON_CONDITION (vb->state != VIDEOBUF_ACTIVE &&\
+ 				vb->state != VIDEOBUF_QUEUED)
+@@ -86,6 +93,7 @@ int videobuf_waiton(struct videobuf_buffer *vb, int non_blocking, int intr)
+ 
  	return 0;
  }
-
--int fm_get_freq(struct file *file, void *priv, struct v4l2_frequency *argp)
-+static int fm_get_freq(struct file *file, void *priv,
-+		       struct v4l2_frequency *argp)
++EXPORT_SYMBOL_GPL(videobuf_waiton);
+ 
+ int videobuf_iolock(struct videobuf_queue *q, struct videobuf_buffer *vb,
+ 		    struct v4l2_framebuffer *fbuf)
+@@ -95,9 +103,10 @@ int videobuf_iolock(struct videobuf_queue *q, struct videobuf_buffer *vb,
+ 
+ 	return CALL(q, iolock, q, vb, fbuf);
+ }
++EXPORT_SYMBOL_GPL(videobuf_iolock);
+ 
+-void *videobuf_queue_to_vmalloc (struct videobuf_queue *q,
+-			   struct videobuf_buffer *buf)
++void *videobuf_queue_to_vmalloc(struct videobuf_queue *q,
++				struct videobuf_buffer *buf)
  {
- 	struct poseidon *p = file->private_data;
-
-@@ -246,7 +248,8 @@ error:
+ 	if (q->int_ops->vmalloc)
+ 		return q->int_ops->vmalloc(buf);
+@@ -146,6 +155,7 @@ void videobuf_queue_core_init(struct videobuf_queue *q,
+ 	init_waitqueue_head(&q->wait);
+ 	INIT_LIST_HEAD(&q->stream);
+ }
++EXPORT_SYMBOL_GPL(videobuf_queue_core_init);
+ 
+ /* Locking: Only usage in bttv unsafe find way to remove */
+ int videobuf_queue_is_busy(struct videobuf_queue *q)
+@@ -184,6 +194,7 @@ int videobuf_queue_is_busy(struct videobuf_queue *q)
+ 	}
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(videobuf_queue_is_busy);
+ 
+ /* Locking: Caller holds q->vb_lock */
+ void videobuf_queue_cancel(struct videobuf_queue *q)
+@@ -216,6 +227,7 @@ void videobuf_queue_cancel(struct videobuf_queue *q)
+ 	}
+ 	INIT_LIST_HEAD(&q->stream);
+ }
++EXPORT_SYMBOL_GPL(videobuf_queue_cancel);
+ 
+ /* --------------------------------------------------------------------- */
+ 
+@@ -237,6 +249,7 @@ enum v4l2_field videobuf_next_field(struct videobuf_queue *q)
+ 	}
+ 	return field;
+ }
++EXPORT_SYMBOL_GPL(videobuf_next_field);
+ 
+ /* Locking: Caller holds q->vb_lock */
+ static void videobuf_status(struct videobuf_queue *q, struct v4l2_buffer *b,
+@@ -305,8 +318,7 @@ static int __videobuf_mmap_free(struct videobuf_queue *q)
+ 
+ 	MAGIC_CHECK(q->int_ops->magic, MAGIC_QTYPE_OPS);
+ 
+-
+-	rc  = CALL(q, mmap_free, q);
++	rc = CALL(q, mmap_free, q);
+ 
+ 	q->is_mmapped = 0;
+ 
+@@ -332,6 +344,7 @@ int videobuf_mmap_free(struct videobuf_queue *q)
+ 	mutex_unlock(&q->vb_lock);
  	return ret;
  }
-
--int fm_set_freq(struct file *file, void *priv, struct v4l2_frequency *argp)
-+static int fm_set_freq(struct file *file, void *priv,
-+		       struct v4l2_frequency *argp)
- {
- 	struct poseidon *p = file->private_data;
-
-@@ -258,13 +261,13 @@ int fm_set_freq(struct file *file, void
- 	return set_frequency(p, argp->frequency);
++EXPORT_SYMBOL_GPL(videobuf_mmap_free);
+ 
+ /* Locking: Caller holds q->vb_lock */
+ int __videobuf_mmap_setup(struct videobuf_queue *q,
+@@ -351,7 +364,7 @@ int __videobuf_mmap_setup(struct videobuf_queue *q,
+ 	for (i = 0; i < bcount; i++) {
+ 		q->bufs[i] = videobuf_alloc(q);
+ 
+-		if (q->bufs[i] == NULL)
++		if (NULL == q->bufs[i])
+ 			break;
+ 
+ 		q->bufs[i]->i      = i;
+@@ -372,11 +385,11 @@ int __videobuf_mmap_setup(struct videobuf_queue *q,
+ 	if (!i)
+ 		return -ENOMEM;
+ 
+-	dprintk(1, "mmap setup: %d buffers, %d bytes each\n",
+-		i, bsize);
++	dprintk(1, "mmap setup: %d buffers, %d bytes each\n", i, bsize);
+ 
+ 	return i;
  }
-
--int tlg_fm_vidioc_g_ctrl(struct file *file, void *priv,
-+static int tlg_fm_vidioc_g_ctrl(struct file *file, void *priv,
- 		struct v4l2_control *arg)
- {
- 	return 0;
++EXPORT_SYMBOL_GPL(__videobuf_mmap_setup);
+ 
+ int videobuf_mmap_setup(struct videobuf_queue *q,
+ 			unsigned int bcount, unsigned int bsize,
+@@ -388,6 +401,7 @@ int videobuf_mmap_setup(struct videobuf_queue *q,
+ 	mutex_unlock(&q->vb_lock);
+ 	return ret;
  }
-
--int tlg_fm_vidioc_g_exts_ctrl(struct file *file, void *fh,
-+static int tlg_fm_vidioc_g_exts_ctrl(struct file *file, void *fh,
- 				struct v4l2_ext_controls *ctrls)
- {
- 	struct poseidon *p = file->private_data;
-@@ -285,7 +288,7 @@ int tlg_fm_vidioc_g_exts_ctrl(struct fil
- 	return 0;
++EXPORT_SYMBOL_GPL(videobuf_mmap_setup);
+ 
+ int videobuf_reqbufs(struct videobuf_queue *q,
+ 		 struct v4l2_requestbuffers *req)
+@@ -432,7 +446,7 @@ int videobuf_reqbufs(struct videobuf_queue *q,
+ 	q->ops->buf_setup(q, &count, &size);
+ 	dprintk(1, "reqbufs: bufs=%d, size=0x%x [%u pages total]\n",
+ 		count, size,
+-		(unsigned int)((count*PAGE_ALIGN(size))>>PAGE_SHIFT) );
++		(unsigned int)((count * PAGE_ALIGN(size)) >> PAGE_SHIFT));
+ 
+ 	retval = __videobuf_mmap_setup(q, count, size, req->memory);
+ 	if (retval < 0) {
+@@ -447,6 +461,7 @@ int videobuf_reqbufs(struct videobuf_queue *q,
+ 	mutex_unlock(&q->vb_lock);
+ 	return retval;
  }
-
--int tlg_fm_vidioc_s_exts_ctrl(struct file *file, void *fh,
-+static int tlg_fm_vidioc_s_exts_ctrl(struct file *file, void *fh,
- 			struct v4l2_ext_controls *ctrls)
++EXPORT_SYMBOL_GPL(videobuf_reqbufs);
+ 
+ int videobuf_querybuf(struct videobuf_queue *q, struct v4l2_buffer *b)
  {
- 	int i;
-@@ -312,13 +315,13 @@ int tlg_fm_vidioc_s_exts_ctrl(struct fil
- 	return 0;
+@@ -473,9 +488,9 @@ done:
+ 	mutex_unlock(&q->vb_lock);
+ 	return ret;
  }
-
--int tlg_fm_vidioc_s_ctrl(struct file *file, void *priv,
-+static int tlg_fm_vidioc_s_ctrl(struct file *file, void *priv,
- 		struct v4l2_control *ctrl)
++EXPORT_SYMBOL_GPL(videobuf_querybuf);
+ 
+-int videobuf_qbuf(struct videobuf_queue *q,
+-	      struct v4l2_buffer *b)
++int videobuf_qbuf(struct videobuf_queue *q, struct v4l2_buffer *b)
  {
- 	return 0;
+ 	struct videobuf_buffer *buf;
+ 	enum v4l2_field field;
+@@ -571,7 +586,7 @@ int videobuf_qbuf(struct videobuf_queue *q,
+ 	retval = 0;
+ 	wake_up_interruptible_sync(&q->wait);
+ 
+- done:
++done:
+ 	mutex_unlock(&q->vb_lock);
+ 
+ 	if (b->memory == V4L2_MEMORY_MMAP)
+@@ -579,7 +594,7 @@ int videobuf_qbuf(struct videobuf_queue *q,
+ 
+ 	return retval;
  }
-
--int tlg_fm_vidioc_queryctrl(struct file *file, void *priv,
-+static int tlg_fm_vidioc_queryctrl(struct file *file, void *priv,
- 		struct v4l2_queryctrl *ctrl)
- {
- 	if (!(ctrl->id & V4L2_CTRL_FLAG_NEXT_CTRL))
-@@ -337,7 +340,7 @@ int tlg_fm_vidioc_queryctrl(struct file
- 	return -EINVAL;
+-
++EXPORT_SYMBOL_GPL(videobuf_qbuf);
+ 
+ /* Locking: Caller holds q->vb_lock */
+ static int stream_next_buffer_check_queue(struct videobuf_queue *q, int noblock)
+@@ -624,7 +639,6 @@ done:
+ 	return retval;
  }
-
--int tlg_fm_vidioc_querymenu(struct file *file, void *fh,
-+static int tlg_fm_vidioc_querymenu(struct file *file, void *fh,
- 				struct v4l2_querymenu *qmenu)
+ 
+-
+ /* Locking: Caller holds q->vb_lock */
+ static int stream_next_buffer(struct videobuf_queue *q,
+ 			struct videobuf_buffer **vb, int nonblocking)
+@@ -647,7 +661,7 @@ done:
+ }
+ 
+ int videobuf_dqbuf(struct videobuf_queue *q,
+-	       struct v4l2_buffer *b, int nonblocking)
++		   struct v4l2_buffer *b, int nonblocking)
  {
- 	return v4l2_ctrl_query_menu(qmenu, NULL, NULL);
-diff -upr v4l-dvb.orig/linux/drivers/media/video/tlg2300/pd-video.c v4l-dvb/linux/drivers/media/video/tlg2300/pd-video.c
---- v4l-dvb.orig/linux/drivers/media/video/tlg2300/pd-video.c	2010-02-28 15:00:55.000000000 +0100
-+++ v4l-dvb/linux/drivers/media/video/tlg2300/pd-video.c	2010-02-28 15:44:59.000000000 +0100
-@@ -17,7 +17,7 @@ static int pm_video_resume(struct poseid
+ 	struct videobuf_buffer *buf = NULL;
+ 	int retval;
+@@ -682,11 +696,11 @@ int videobuf_dqbuf(struct videobuf_queue *q,
+ 	list_del(&buf->stream);
+ 	memset(b, 0, sizeof(*b));
+ 	videobuf_status(q, b, buf, q->type);
+-
+- done:
++done:
+ 	mutex_unlock(&q->vb_lock);
+ 	return retval;
+ }
++EXPORT_SYMBOL_GPL(videobuf_dqbuf);
+ 
+ int videobuf_streamon(struct videobuf_queue *q)
+ {
+@@ -709,10 +723,11 @@ int videobuf_streamon(struct videobuf_queue *q)
+ 	spin_unlock_irqrestore(q->irqlock, flags);
+ 
+ 	wake_up_interruptible_sync(&q->wait);
+- done:
++done:
+ 	mutex_unlock(&q->vb_lock);
+ 	return retval;
+ }
++EXPORT_SYMBOL_GPL(videobuf_streamon);
+ 
+ /* Locking: Caller holds q->vb_lock */
+ static int __videobuf_streamoff(struct videobuf_queue *q)
+@@ -735,6 +750,7 @@ int videobuf_streamoff(struct videobuf_queue *q)
+ 
+ 	return retval;
+ }
++EXPORT_SYMBOL_GPL(videobuf_streamoff);
+ 
+ /* Locking: Caller holds q->vb_lock */
+ static ssize_t videobuf_read_zerocopy(struct videobuf_queue *q,
+@@ -774,7 +790,7 @@ static ssize_t videobuf_read_zerocopy(struct videobuf_queue *q,
+ 			retval = q->read_buf->size;
+ 	}
+ 
+- done:
++done:
+ 	/* cleanup */
+ 	q->ops->buf_release(q, q->read_buf);
+ 	kfree(q->read_buf);
+@@ -862,10 +878,11 @@ ssize_t videobuf_read_one(struct videobuf_queue *q,
+ 		q->read_buf = NULL;
+ 	}
+ 
+- done:
++done:
+ 	mutex_unlock(&q->vb_lock);
+ 	return retval;
+ }
++EXPORT_SYMBOL_GPL(videobuf_read_one);
+ 
+ /* Locking: Caller holds q->vb_lock */
+ static int __videobuf_read_start(struct videobuf_queue *q)
+@@ -917,7 +934,6 @@ static void __videobuf_read_stop(struct videobuf_queue *q)
+ 		q->bufs[i] = NULL;
+ 	}
+ 	q->read_buf = NULL;
+-
+ }
+ 
+ int videobuf_read_start(struct videobuf_queue *q)
+@@ -930,6 +946,7 @@ int videobuf_read_start(struct videobuf_queue *q)
+ 
+ 	return rc;
+ }
++EXPORT_SYMBOL_GPL(videobuf_read_start);
+ 
+ void videobuf_read_stop(struct videobuf_queue *q)
+ {
+@@ -937,6 +954,7 @@ void videobuf_read_stop(struct videobuf_queue *q)
+ 	__videobuf_read_stop(q);
+ 	mutex_unlock(&q->vb_lock);
+ }
++EXPORT_SYMBOL_GPL(videobuf_read_stop);
+ 
+ void videobuf_stop(struct videobuf_queue *q)
+ {
+@@ -950,7 +968,7 @@ void videobuf_stop(struct videobuf_queue *q)
+ 
+ 	mutex_unlock(&q->vb_lock);
+ }
+-
++EXPORT_SYMBOL_GPL(videobuf_stop);
+ 
+ ssize_t videobuf_read_stream(struct videobuf_queue *q,
+ 			     char __user *data, size_t count, loff_t *ppos,
+@@ -1019,10 +1037,11 @@ ssize_t videobuf_read_stream(struct videobuf_queue *q,
+ 			break;
+ 	}
+ 
+- done:
++done:
+ 	mutex_unlock(&q->vb_lock);
+ 	return retval;
+ }
++EXPORT_SYMBOL_GPL(videobuf_read_stream);
+ 
+ unsigned int videobuf_poll_stream(struct file *file,
+ 				  struct videobuf_queue *q,
+@@ -1062,9 +1081,9 @@ unsigned int videobuf_poll_stream(struct file *file,
+ 	mutex_unlock(&q->vb_lock);
+ 	return rc;
+ }
++EXPORT_SYMBOL_GPL(videobuf_poll_stream);
+ 
+-int videobuf_mmap_mapper(struct videobuf_queue *q,
+-			 struct vm_area_struct *vma)
++int videobuf_mmap_mapper(struct videobuf_queue *q, struct vm_area_struct *vma)
+ {
+ 	int retval;
+ 
+@@ -1077,6 +1096,7 @@ int videobuf_mmap_mapper(struct videobuf_queue *q,
+ 
+ 	return retval;
+ }
++EXPORT_SYMBOL_GPL(videobuf_mmap_mapper);
+ 
+ #ifdef CONFIG_VIDEO_V4L1_COMPAT
+ int videobuf_cgmbuf(struct videobuf_queue *q,
+@@ -1107,33 +1127,3 @@ int videobuf_cgmbuf(struct videobuf_queue *q,
+ EXPORT_SYMBOL_GPL(videobuf_cgmbuf);
  #endif
- static void iso_bubble_handler(struct work_struct *w);
-
--int usb_transfer_mode;
-+static int usb_transfer_mode;
- module_param(usb_transfer_mode, int, 0644);
- MODULE_PARM_DESC(usb_transfer_mode, "0 = Bulk, 1 = Isochronous");
-
-@@ -618,7 +618,7 @@ static int pd_buf_prepare(struct videobu
- 	return 0;
- }
-
--int fire_all_urb(struct video_data *video)
-+static int fire_all_urb(struct video_data *video)
+ 
+-/* --------------------------------------------------------------------- */
+-
+-EXPORT_SYMBOL_GPL(videobuf_waiton);
+-EXPORT_SYMBOL_GPL(videobuf_iolock);
+-
+-EXPORT_SYMBOL_GPL(videobuf_alloc);
+-
+-EXPORT_SYMBOL_GPL(videobuf_queue_core_init);
+-EXPORT_SYMBOL_GPL(videobuf_queue_cancel);
+-EXPORT_SYMBOL_GPL(videobuf_queue_is_busy);
+-
+-EXPORT_SYMBOL_GPL(videobuf_next_field);
+-EXPORT_SYMBOL_GPL(videobuf_reqbufs);
+-EXPORT_SYMBOL_GPL(videobuf_querybuf);
+-EXPORT_SYMBOL_GPL(videobuf_qbuf);
+-EXPORT_SYMBOL_GPL(videobuf_dqbuf);
+-EXPORT_SYMBOL_GPL(videobuf_streamon);
+-EXPORT_SYMBOL_GPL(videobuf_streamoff);
+-
+-EXPORT_SYMBOL_GPL(videobuf_read_start);
+-EXPORT_SYMBOL_GPL(videobuf_read_stop);
+-EXPORT_SYMBOL_GPL(videobuf_stop);
+-EXPORT_SYMBOL_GPL(videobuf_read_stream);
+-EXPORT_SYMBOL_GPL(videobuf_read_one);
+-EXPORT_SYMBOL_GPL(videobuf_poll_stream);
+-
+-EXPORT_SYMBOL_GPL(__videobuf_mmap_setup);
+-EXPORT_SYMBOL_GPL(videobuf_mmap_setup);
+-EXPORT_SYMBOL_GPL(videobuf_mmap_free);
+-EXPORT_SYMBOL_GPL(videobuf_mmap_mapper);
+diff --git a/drivers/media/video/videobuf-dma-sg.c b/drivers/media/video/videobuf-dma-sg.c
+index fcd045e..c9d946a 100644
+--- a/drivers/media/video/videobuf-dma-sg.c
++++ b/drivers/media/video/videobuf-dma-sg.c
+@@ -37,8 +37,12 @@
+ #define MAGIC_DMABUF 0x19721112
+ #define MAGIC_SG_MEM 0x17890714
+ 
+-#define MAGIC_CHECK(is,should)	if (unlikely((is) != (should))) \
+-	{ printk(KERN_ERR "magic mismatch: %x (expected %x)\n",is,should); BUG(); }
++#define MAGIC_CHECK(is, should)						\
++	if (unlikely((is) != (should))) {				\
++		printk(KERN_ERR "magic mismatch: %x (expected %x)\n",	\
++				is, should);				\
++		BUG();							\
++	}
+ 
+ static int debug;
+ module_param(debug, int, 0644);
+@@ -47,13 +51,13 @@ MODULE_DESCRIPTION("helper module to manage video4linux dma sg buffers");
+ MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@infradead.org>");
+ MODULE_LICENSE("GPL");
+ 
+-#define dprintk(level, fmt, arg...)	if (debug >= level) \
+-	printk(KERN_DEBUG "vbuf-sg: " fmt , ## arg)
++#define dprintk(level, fmt, arg...)					\
++	if (debug >= level)						\
++		printk(KERN_DEBUG "vbuf-sg: " fmt , ## arg)
+ 
+ /* --------------------------------------------------------------------- */
+ 
+-struct scatterlist*
+-videobuf_vmalloc_to_sg(unsigned char *virt, int nr_pages)
++struct scatterlist *videobuf_vmalloc_to_sg(unsigned char *virt, int nr_pages)
  {
- 	int i, ret;
-
-@@ -878,7 +878,7 @@ out:
+ 	struct scatterlist *sglist;
+ 	struct page *pg;
+@@ -73,13 +77,14 @@ videobuf_vmalloc_to_sg(unsigned char *virt, int nr_pages)
+ 	}
+ 	return sglist;
+ 
+- err:
++err:
+ 	vfree(sglist);
+ 	return NULL;
+ }
++EXPORT_SYMBOL_GPL(videobuf_vmalloc_to_sg);
+ 
+-struct scatterlist*
+-videobuf_pages_to_sg(struct page **pages, int nr_pages, int offset)
++struct scatterlist *videobuf_pages_to_sg(struct page **pages, int nr_pages,
++					 int offset)
+ {
+ 	struct scatterlist *sglist;
+ 	int i;
+@@ -104,20 +109,20 @@ videobuf_pages_to_sg(struct page **pages, int nr_pages, int offset)
+ 	}
+ 	return sglist;
+ 
+- nopage:
+-	dprintk(2,"sgl: oops - no page\n");
++nopage:
++	dprintk(2, "sgl: oops - no page\n");
+ 	vfree(sglist);
+ 	return NULL;
+ 
+- highmem:
+-	dprintk(2,"sgl: oops - highmem page\n");
++highmem:
++	dprintk(2, "sgl: oops - highmem page\n");
+ 	vfree(sglist);
+ 	return NULL;
+ }
+ 
+ /* --------------------------------------------------------------------- */
+ 
+-struct videobuf_dmabuf *videobuf_to_dma (struct videobuf_buffer *buf)
++struct videobuf_dmabuf *videobuf_to_dma(struct videobuf_buffer *buf)
+ {
+ 	struct videobuf_dma_sg_memory *mem = buf->priv;
+ 	BUG_ON(!mem);
+@@ -126,17 +131,19 @@ struct videobuf_dmabuf *videobuf_to_dma (struct videobuf_buffer *buf)
+ 
+ 	return &mem->dma;
+ }
++EXPORT_SYMBOL_GPL(videobuf_to_dma);
+ 
+ void videobuf_dma_init(struct videobuf_dmabuf *dma)
+ {
+-	memset(dma,0,sizeof(*dma));
++	memset(dma, 0, sizeof(*dma));
+ 	dma->magic = MAGIC_DMABUF;
+ }
++EXPORT_SYMBOL_GPL(videobuf_dma_init);
+ 
+ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
+ 			int direction, unsigned long data, unsigned long size)
+ {
+-	unsigned long first,last;
++	unsigned long first, last;
+ 	int err, rw = 0;
+ 
+ 	dma->direction = direction;
+@@ -155,21 +162,21 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
+ 	last  = ((data+size-1) & PAGE_MASK) >> PAGE_SHIFT;
+ 	dma->offset   = data & ~PAGE_MASK;
+ 	dma->nr_pages = last-first+1;
+-	dma->pages = kmalloc(dma->nr_pages * sizeof(struct page*),
+-			     GFP_KERNEL);
++	dma->pages = kmalloc(dma->nr_pages * sizeof(struct page *), GFP_KERNEL);
+ 	if (NULL == dma->pages)
+ 		return -ENOMEM;
+-	dprintk(1,"init user [0x%lx+0x%lx => %d pages]\n",
+-		data,size,dma->nr_pages);
+ 
+-	err = get_user_pages(current,current->mm,
++	dprintk(1, "init user [0x%lx+0x%lx => %d pages]\n",
++		data, size, dma->nr_pages);
++
++	err = get_user_pages(current, current->mm,
+ 			     data & PAGE_MASK, dma->nr_pages,
+ 			     rw == READ, 1, /* force */
+ 			     dma->pages, NULL);
+ 
+ 	if (err != dma->nr_pages) {
+ 		dma->nr_pages = (err >= 0) ? err : 0;
+-		dprintk(1,"get_user_pages: err=%d [%d]\n",err,dma->nr_pages);
++		dprintk(1, "get_user_pages: err=%d [%d]\n", err, dma->nr_pages);
+ 		return err < 0 ? err : -EINVAL;
+ 	}
+ 	return 0;
+@@ -179,48 +186,58 @@ int videobuf_dma_init_user(struct videobuf_dmabuf *dma, int direction,
+ 			   unsigned long data, unsigned long size)
+ {
+ 	int ret;
++
+ 	down_read(&current->mm->mmap_sem);
+ 	ret = videobuf_dma_init_user_locked(dma, direction, data, size);
+ 	up_read(&current->mm->mmap_sem);
+ 
  	return ret;
  }
-
--int vidioc_s_std(struct file *file, void *fh, v4l2_std_id *norm)
-+static int vidioc_s_std(struct file *file, void *fh, v4l2_std_id *norm)
++EXPORT_SYMBOL_GPL(videobuf_dma_init_user);
+ 
+ int videobuf_dma_init_kernel(struct videobuf_dmabuf *dma, int direction,
+ 			     int nr_pages)
  {
- 	struct front_face *front = fh;
- 	logs(front);
-@@ -1021,7 +1021,7 @@ static int vidioc_enumaudio(struct file
+-	dprintk(1,"init kernel [%d pages]\n",nr_pages);
++	dprintk(1, "init kernel [%d pages]\n", nr_pages);
++
+ 	dma->direction = direction;
+ 	dma->vmalloc = vmalloc_32(nr_pages << PAGE_SHIFT);
+ 	if (NULL == dma->vmalloc) {
+-		dprintk(1,"vmalloc_32(%d pages) failed\n",nr_pages);
++		dprintk(1, "vmalloc_32(%d pages) failed\n", nr_pages);
+ 		return -ENOMEM;
+ 	}
+-	dprintk(1,"vmalloc is at addr 0x%08lx, size=%d\n",
++
++	dprintk(1, "vmalloc is at addr 0x%08lx, size=%d\n",
+ 				(unsigned long)dma->vmalloc,
+ 				nr_pages << PAGE_SHIFT);
+-	memset(dma->vmalloc,0,nr_pages << PAGE_SHIFT);
++
++	memset(dma->vmalloc, 0, nr_pages << PAGE_SHIFT);
+ 	dma->nr_pages = nr_pages;
++
  	return 0;
  }
-
--int vidioc_g_audio(struct file *file, void *fh, struct v4l2_audio *a)
-+static int vidioc_g_audio(struct file *file, void *fh, struct v4l2_audio *a)
++EXPORT_SYMBOL_GPL(videobuf_dma_init_kernel);
+ 
+ int videobuf_dma_init_overlay(struct videobuf_dmabuf *dma, int direction,
+ 			      dma_addr_t addr, int nr_pages)
  {
- 	a->index = 0;
- 	a->capability = V4L2_AUDCAP_STEREO;
-@@ -1030,7 +1030,7 @@ int vidioc_g_audio(struct file *file, vo
+-	dprintk(1,"init overlay [%d pages @ bus 0x%lx]\n",
+-		nr_pages,(unsigned long)addr);
++	dprintk(1, "init overlay [%d pages @ bus 0x%lx]\n",
++		nr_pages, (unsigned long)addr);
+ 	dma->direction = direction;
++
+ 	if (0 == addr)
+ 		return -EINVAL;
+ 
+ 	dma->bus_addr = addr;
+ 	dma->nr_pages = nr_pages;
++
  	return 0;
  }
-
--int vidioc_s_audio(struct file *file, void *fh, struct v4l2_audio *a)
-+static int vidioc_s_audio(struct file *file, void *fh, struct v4l2_audio *a)
++EXPORT_SYMBOL_GPL(videobuf_dma_init_overlay);
+ 
+-int videobuf_dma_map(struct videobuf_queue* q, struct videobuf_dmabuf *dma)
++int videobuf_dma_map(struct videobuf_queue *q, struct videobuf_dmabuf *dma)
  {
- 	return (0 == a->index) ? 0 : -EINVAL;
+-	MAGIC_CHECK(dma->magic,MAGIC_DMABUF);
++	MAGIC_CHECK(dma->magic, MAGIC_DMABUF);
+ 	BUG_ON(0 == dma->nr_pages);
+ 
+ 	if (dma->pages) {
+@@ -228,20 +245,21 @@ int videobuf_dma_map(struct videobuf_queue* q, struct videobuf_dmabuf *dma)
+ 						   dma->offset);
+ 	}
+ 	if (dma->vmalloc) {
+-		dma->sglist = videobuf_vmalloc_to_sg
+-						(dma->vmalloc,dma->nr_pages);
++		dma->sglist = videobuf_vmalloc_to_sg(dma->vmalloc,
++						     dma->nr_pages);
+ 	}
+ 	if (dma->bus_addr) {
+ 		dma->sglist = vmalloc(sizeof(*dma->sglist));
+ 		if (NULL != dma->sglist) {
+-			dma->sglen  = 1;
+-			sg_dma_address(&dma->sglist[0]) = dma->bus_addr & PAGE_MASK;
+-			dma->sglist[0].offset           = dma->bus_addr & ~PAGE_MASK;
+-			sg_dma_len(&dma->sglist[0])     = dma->nr_pages * PAGE_SIZE;
++			dma->sglen = 1;
++			sg_dma_address(&dma->sglist[0])	= dma->bus_addr
++							& PAGE_MASK;
++			dma->sglist[0].offset = dma->bus_addr & ~PAGE_MASK;
++			sg_dma_len(&dma->sglist[0]) = dma->nr_pages * PAGE_SIZE;
+ 		}
+ 	}
+ 	if (NULL == dma->sglist) {
+-		dprintk(1,"scatterlist is NULL\n");
++		dprintk(1, "scatterlist is NULL\n");
+ 		return -ENOMEM;
+ 	}
+ 	if (!dma->bus_addr) {
+@@ -249,15 +267,17 @@ int videobuf_dma_map(struct videobuf_queue* q, struct videobuf_dmabuf *dma)
+ 					dma->nr_pages, dma->direction);
+ 		if (0 == dma->sglen) {
+ 			printk(KERN_WARNING
+-			       "%s: videobuf_map_sg failed\n",__func__);
++			       "%s: videobuf_map_sg failed\n", __func__);
+ 			vfree(dma->sglist);
+ 			dma->sglist = NULL;
+ 			dma->sglen = 0;
+ 			return -ENOMEM;
+ 		}
+ 	}
++
+ 	return 0;
  }
-@@ -1190,7 +1190,7 @@ static int vidioc_dqbuf(struct file *fil
- }
-
- /* Just stop the URBs, do not free the URBs */
--int usb_transfer_stop(struct video_data *video)
-+static int usb_transfer_stop(struct video_data *video)
++EXPORT_SYMBOL_GPL(videobuf_dma_map);
+ 
+ int videobuf_dma_sync(struct videobuf_queue *q, struct videobuf_dmabuf *dma)
  {
- 	if (video->is_streaming) {
- 		int i;
-@@ -1519,13 +1519,13 @@ static int pd_video_mmap(struct file *fi
- 	return  videobuf_mmap_mapper(&front->q, vma);
+@@ -265,12 +285,15 @@ int videobuf_dma_sync(struct videobuf_queue *q, struct videobuf_dmabuf *dma)
+ 	BUG_ON(!dma->sglen);
+ 
+ 	dma_sync_sg_for_cpu(q->dev, dma->sglist, dma->nr_pages, dma->direction);
++
+ 	return 0;
  }
-
--unsigned int pd_video_poll(struct file *file, poll_table *table)
-+static unsigned int pd_video_poll(struct file *file, poll_table *table)
++EXPORT_SYMBOL_GPL(videobuf_dma_sync);
+ 
+-int videobuf_dma_unmap(struct videobuf_queue* q,struct videobuf_dmabuf *dma)
++int videobuf_dma_unmap(struct videobuf_queue *q, struct videobuf_dmabuf *dma)
  {
- 	struct front_face *front = file->private_data;
- 	return videobuf_poll_stream(file, &front->q, table);
+ 	MAGIC_CHECK(dma->magic, MAGIC_DMABUF);
++
+ 	if (!dma->sglen)
+ 		return 0;
+ 
+@@ -279,17 +302,19 @@ int videobuf_dma_unmap(struct videobuf_queue* q,struct videobuf_dmabuf *dma)
+ 	vfree(dma->sglist);
+ 	dma->sglist = NULL;
+ 	dma->sglen = 0;
++
+ 	return 0;
  }
-
--ssize_t pd_video_read(struct file *file, char __user *buffer,
-+static ssize_t pd_video_read(struct file *file, char __user *buffer,
- 			size_t count, loff_t *ppos)
++EXPORT_SYMBOL_GPL(videobuf_dma_unmap);
+ 
+ int videobuf_dma_free(struct videobuf_dmabuf *dma)
  {
- 	struct front_face *front = file->private_data;
+-	MAGIC_CHECK(dma->magic,MAGIC_DMABUF);
++	int i;
++	MAGIC_CHECK(dma->magic, MAGIC_DMABUF);
+ 	BUG_ON(dma->sglen);
+ 
+ 	if (dma->pages) {
+-		int i;
+-		for (i=0; i < dma->nr_pages; i++)
++		for (i = 0; i < dma->nr_pages; i++)
+ 			page_cache_release(dma->pages[i]);
+ 		kfree(dma->pages);
+ 		dma->pages = NULL;
+@@ -298,12 +323,13 @@ int videobuf_dma_free(struct videobuf_dmabuf *dma)
+ 	vfree(dma->vmalloc);
+ 	dma->vmalloc = NULL;
+ 
+-	if (dma->bus_addr) {
++	if (dma->bus_addr)
+ 		dma->bus_addr = 0;
+-	}
+ 	dma->direction = DMA_NONE;
++
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(videobuf_dma_free);
+ 
+ /* --------------------------------------------------------------------- */
+ 
+@@ -315,6 +341,7 @@ int videobuf_sg_dma_map(struct device *dev, struct videobuf_dmabuf *dma)
+ 
+ 	return videobuf_dma_map(&q, dma);
+ }
++EXPORT_SYMBOL_GPL(videobuf_sg_dma_map);
+ 
+ int videobuf_sg_dma_unmap(struct device *dev, struct videobuf_dmabuf *dma)
+ {
+@@ -324,49 +351,48 @@ int videobuf_sg_dma_unmap(struct device *dev, struct videobuf_dmabuf *dma)
+ 
+ 	return videobuf_dma_unmap(&q, dma);
+ }
++EXPORT_SYMBOL_GPL(videobuf_sg_dma_unmap);
+ 
+ /* --------------------------------------------------------------------- */
+ 
+-static void
+-videobuf_vm_open(struct vm_area_struct *vma)
++static void videobuf_vm_open(struct vm_area_struct *vma)
+ {
+ 	struct videobuf_mapping *map = vma->vm_private_data;
+ 
+-	dprintk(2,"vm_open %p [count=%d,vma=%08lx-%08lx]\n",map,
+-		map->count,vma->vm_start,vma->vm_end);
++	dprintk(2, "vm_open %p [count=%d,vma=%08lx-%08lx]\n", map,
++		map->count, vma->vm_start, vma->vm_end);
++
+ 	map->count++;
+ }
+ 
+-static void
+-videobuf_vm_close(struct vm_area_struct *vma)
++static void videobuf_vm_close(struct vm_area_struct *vma)
+ {
+ 	struct videobuf_mapping *map = vma->vm_private_data;
+ 	struct videobuf_queue *q = map->q;
+ 	struct videobuf_dma_sg_memory *mem;
+ 	int i;
+ 
+-	dprintk(2,"vm_close %p [count=%d,vma=%08lx-%08lx]\n",map,
+-		map->count,vma->vm_start,vma->vm_end);
++	dprintk(2, "vm_close %p [count=%d,vma=%08lx-%08lx]\n", map,
++		map->count, vma->vm_start, vma->vm_end);
+ 
+ 	map->count--;
+ 	if (0 == map->count) {
+-		dprintk(1,"munmap %p q=%p\n",map,q);
++		dprintk(1, "munmap %p q=%p\n", map, q);
+ 		mutex_lock(&q->vb_lock);
+ 		for (i = 0; i < VIDEO_MAX_FRAME; i++) {
+ 			if (NULL == q->bufs[i])
+ 				continue;
+-			mem=q->bufs[i]->priv;
+-
++			mem = q->bufs[i]->priv;
+ 			if (!mem)
+ 				continue;
+ 
+-			MAGIC_CHECK(mem->magic,MAGIC_SG_MEM);
++			MAGIC_CHECK(mem->magic, MAGIC_SG_MEM);
+ 
+ 			if (q->bufs[i]->map != map)
+ 				continue;
+ 			q->bufs[i]->map   = NULL;
+ 			q->bufs[i]->baddr = 0;
+-			q->ops->buf_release(q,q->bufs[i]);
++			q->ops->buf_release(q, q->bufs[i]);
+ 		}
+ 		mutex_unlock(&q->vb_lock);
+ 		kfree(map);
+@@ -380,26 +406,27 @@ videobuf_vm_close(struct vm_area_struct *vma)
+  * now ...).  Bounce buffers don't work very well for the data rates
+  * video capture has.
+  */
+-static int
+-videobuf_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
++static int videobuf_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+ 	struct page *page;
+ 
+-	dprintk(3,"fault: fault @ %08lx [vma %08lx-%08lx]\n",
+-		(unsigned long)vmf->virtual_address,vma->vm_start,vma->vm_end);
++	dprintk(3, "fault: fault @ %08lx [vma %08lx-%08lx]\n",
++		(unsigned long)vmf->virtual_address,
++		vma->vm_start, vma->vm_end);
++
+ 	page = alloc_page(GFP_USER | __GFP_DMA32);
+ 	if (!page)
+ 		return VM_FAULT_OOM;
+ 	clear_user_highpage(page, (unsigned long)vmf->virtual_address);
+ 	vmf->page = page;
++
+ 	return 0;
+ }
+ 
+-static const struct vm_operations_struct videobuf_vm_ops =
+-{
+-	.open     = videobuf_vm_open,
+-	.close    = videobuf_vm_close,
+-	.fault    = videobuf_vm_fault,
++static const struct vm_operations_struct videobuf_vm_ops = {
++	.open	= videobuf_vm_open,
++	.close	= videobuf_vm_close,
++	.fault	= videobuf_vm_fault,
+ };
+ 
+ /* ---------------------------------------------------------------------
+@@ -417,23 +444,23 @@ static void *__videobuf_alloc(size_t size)
+ 	struct videobuf_dma_sg_memory *mem;
+ 	struct videobuf_buffer *vb;
+ 
+-	vb = kzalloc(size+sizeof(*mem),GFP_KERNEL);
++	vb = kzalloc(size + sizeof(*mem), GFP_KERNEL);
+ 	if (!vb)
+ 		return vb;
+ 
+-	mem = vb->priv = ((char *)vb)+size;
+-	mem->magic=MAGIC_SG_MEM;
++	mem = vb->priv = ((char *)vb) + size;
++	mem->magic = MAGIC_SG_MEM;
+ 
+ 	videobuf_dma_init(&mem->dma);
+ 
+-	dprintk(1,"%s: allocated at %p(%ld+%ld) & %p(%ld)\n",
+-		__func__,vb,(long)sizeof(*vb),(long)size-sizeof(*vb),
+-		mem,(long)sizeof(*mem));
++	dprintk(1, "%s: allocated at %p(%ld+%ld) & %p(%ld)\n",
++		__func__, vb, (long)sizeof(*vb), (long)size - sizeof(*vb),
++		mem, (long)sizeof(*mem));
+ 
+ 	return vb;
+ }
+ 
+-static void *__videobuf_to_vmalloc (struct videobuf_buffer *buf)
++static void *__videobuf_to_vmalloc(struct videobuf_buffer *buf)
+ {
+ 	struct videobuf_dma_sg_memory *mem = buf->priv;
+ 	BUG_ON(!mem);
+@@ -443,11 +470,11 @@ static void *__videobuf_to_vmalloc (struct videobuf_buffer *buf)
+ 	return mem->dma.vmalloc;
+ }
+ 
+-static int __videobuf_iolock (struct videobuf_queue* q,
+-			      struct videobuf_buffer *vb,
+-			      struct v4l2_framebuffer *fbuf)
++static int __videobuf_iolock(struct videobuf_queue *q,
++			     struct videobuf_buffer *vb,
++			     struct v4l2_framebuffer *fbuf)
+ {
+-	int err,pages;
++	int err, pages;
+ 	dma_addr_t bus;
+ 	struct videobuf_dma_sg_memory *mem = vb->priv;
+ 	BUG_ON(!mem);
+@@ -460,16 +487,16 @@ static int __videobuf_iolock (struct videobuf_queue* q,
+ 		if (0 == vb->baddr) {
+ 			/* no userspace addr -- kernel bounce buffer */
+ 			pages = PAGE_ALIGN(vb->size) >> PAGE_SHIFT;
+-			err = videobuf_dma_init_kernel( &mem->dma,
+-							DMA_FROM_DEVICE,
+-							pages );
++			err = videobuf_dma_init_kernel(&mem->dma,
++						       DMA_FROM_DEVICE,
++						       pages);
+ 			if (0 != err)
+ 				return err;
+ 		} else if (vb->memory == V4L2_MEMORY_USERPTR) {
+ 			/* dma directly to userspace */
+-			err = videobuf_dma_init_user( &mem->dma,
+-						      DMA_FROM_DEVICE,
+-						      vb->baddr,vb->bsize );
++			err = videobuf_dma_init_user(&mem->dma,
++						     DMA_FROM_DEVICE,
++						     vb->baddr, vb->bsize);
+ 			if (0 != err)
+ 				return err;
+ 		} else {
+@@ -516,9 +543,9 @@ static int __videobuf_sync(struct videobuf_queue *q,
+ {
+ 	struct videobuf_dma_sg_memory *mem = buf->priv;
+ 	BUG_ON(!mem);
+-	MAGIC_CHECK(mem->magic,MAGIC_SG_MEM);
++	MAGIC_CHECK(mem->magic, MAGIC_SG_MEM);
+ 
+-	return	videobuf_dma_sync(q,&mem->dma);
++	return videobuf_dma_sync(q, &mem->dma);
+ }
+ 
+ static int __videobuf_mmap_free(struct videobuf_queue *q)
+@@ -540,16 +567,16 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+ {
+ 	struct videobuf_dma_sg_memory *mem;
+ 	struct videobuf_mapping *map;
+-	unsigned int first,last,size,i;
++	unsigned int first, last, size, i;
+ 	int retval;
+ 
+ 	retval = -EINVAL;
+ 	if (!(vma->vm_flags & VM_WRITE)) {
+-		dprintk(1,"mmap app bug: PROT_WRITE please\n");
++		dprintk(1, "mmap app bug: PROT_WRITE please\n");
+ 		goto done;
+ 	}
+ 	if (!(vma->vm_flags & VM_SHARED)) {
+-		dprintk(1,"mmap app bug: MAP_SHARED please\n");
++		dprintk(1, "mmap app bug: MAP_SHARED please\n");
+ 		goto done;
+ 	}
+ 
+@@ -565,9 +592,9 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+ 	for (first = 0; first < VIDEO_MAX_FRAME; first++) {
+ 		if (NULL == q->bufs[first])
+ 			continue;
+-		mem=q->bufs[first]->priv;
++		mem = q->bufs[first]->priv;
+ 		BUG_ON(!mem);
+-		MAGIC_CHECK(mem->magic,MAGIC_SG_MEM);
++		MAGIC_CHECK(mem->magic, MAGIC_SG_MEM);
+ 
+ 		if (V4L2_MEMORY_MMAP != q->bufs[first]->memory)
+ 			continue;
+@@ -575,7 +602,7 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+ 			break;
+ 	}
+ 	if (VIDEO_MAX_FRAME == first) {
+-		dprintk(1,"mmap app bug: offset invalid [offset=0x%lx]\n",
++		dprintk(1, "mmap app bug: offset invalid [offset=0x%lx]\n",
+ 			(vma->vm_pgoff << PAGE_SHIFT));
+ 		goto done;
+ 	}
+@@ -595,14 +622,14 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+ 			break;
+ 	}
+ 	if (VIDEO_MAX_FRAME == last) {
+-		dprintk(1,"mmap app bug: size invalid [size=0x%lx]\n",
++		dprintk(1, "mmap app bug: size invalid [size=0x%lx]\n",
+ 			(vma->vm_end - vma->vm_start));
+ 		goto done;
+ 	}
+ 
+ 	/* create mapping + update buffer list */
+ 	retval = -ENOMEM;
+-	map = kmalloc(sizeof(struct videobuf_mapping),GFP_KERNEL);
++	map = kmalloc(sizeof(struct videobuf_mapping), GFP_KERNEL);
+ 	if (NULL == map)
+ 		goto done;
+ 
+@@ -623,21 +650,21 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+ 	vma->vm_flags |= VM_DONTEXPAND | VM_RESERVED;
+ 	vma->vm_flags &= ~VM_IO; /* using shared anonymous pages */
+ 	vma->vm_private_data = map;
+-	dprintk(1,"mmap %p: q=%p %08lx-%08lx pgoff %08lx bufs %d-%d\n",
+-		map,q,vma->vm_start,vma->vm_end,vma->vm_pgoff,first,last);
++	dprintk(1, "mmap %p: q=%p %08lx-%08lx pgoff %08lx bufs %d-%d\n",
++		map, q, vma->vm_start, vma->vm_end, vma->vm_pgoff, first, last);
+ 	retval = 0;
+ 
+- done:
++done:
+ 	return retval;
+ }
+ 
+-static int __videobuf_copy_to_user ( struct videobuf_queue *q,
++static int __videobuf_copy_to_user(struct videobuf_queue *q,
+ 				char __user *data, size_t count,
+-				int nonblocking )
++				int nonblocking)
+ {
+ 	struct videobuf_dma_sg_memory *mem = q->read_buf->priv;
+ 	BUG_ON(!mem);
+-	MAGIC_CHECK(mem->magic,MAGIC_SG_MEM);
++	MAGIC_CHECK(mem->magic, MAGIC_SG_MEM);
+ 
+ 	/* copy to userspace */
+ 	if (count > q->read_buf->size - q->read_off)
+@@ -649,30 +676,30 @@ static int __videobuf_copy_to_user ( struct videobuf_queue *q,
+ 	return count;
+ }
+ 
+-static int __videobuf_copy_stream ( struct videobuf_queue *q,
++static int __videobuf_copy_stream(struct videobuf_queue *q,
+ 				char __user *data, size_t count, size_t pos,
+-				int vbihack, int nonblocking )
++				int vbihack, int nonblocking)
+ {
+-	unsigned int  *fc;
++	unsigned int *fc;
+ 	struct videobuf_dma_sg_memory *mem = q->read_buf->priv;
+ 	BUG_ON(!mem);
+-	MAGIC_CHECK(mem->magic,MAGIC_SG_MEM);
++	MAGIC_CHECK(mem->magic, MAGIC_SG_MEM);
+ 
+ 	if (vbihack) {
+ 		/* dirty, undocumented hack -- pass the frame counter
+-			* within the last four bytes of each vbi data block.
+-			* We need that one to maintain backward compatibility
+-			* to all vbi decoding software out there ... */
+-		fc  = (unsigned int*)mem->dma.vmalloc;
+-		fc += (q->read_buf->size>>2) -1;
++		 * within the last four bytes of each vbi data block.
++		 * We need that one to maintain backward compatibility
++		 * to all vbi decoding software out there ... */
++		fc  = (unsigned int *)mem->dma.vmalloc;
++		fc += (q->read_buf->size >> 2) - 1;
+ 		*fc = q->read_buf->field_count >> 1;
+-		dprintk(1,"vbihack: %d\n",*fc);
++		dprintk(1, "vbihack: %d\n", *fc);
+ 	}
+ 
+ 	/* copy stuff using the common method */
+-	count = __videobuf_copy_to_user (q,data,count,nonblocking);
++	count = __videobuf_copy_to_user(q, data, count, nonblocking);
+ 
+-	if ( (count==-EFAULT) && (0 == pos) )
++	if ((count == -EFAULT) && (0 == pos))
+ 		return -EFAULT;
+ 
+ 	return count;
+@@ -702,8 +729,9 @@ void *videobuf_sg_alloc(size_t size)
+ 
+ 	return videobuf_alloc(&q);
+ }
++EXPORT_SYMBOL_GPL(videobuf_sg_alloc);
+ 
+-void videobuf_queue_sg_init(struct videobuf_queue* q,
++void videobuf_queue_sg_init(struct videobuf_queue *q,
+ 			 const struct videobuf_queue_ops *ops,
+ 			 struct device *dev,
+ 			 spinlock_t *irqlock,
+@@ -715,29 +743,5 @@ void videobuf_queue_sg_init(struct videobuf_queue* q,
+ 	videobuf_queue_core_init(q, ops, dev, irqlock, type, field, msize,
+ 				 priv, &sg_ops);
+ }
+-
+-/* --------------------------------------------------------------------- */
+-
+-EXPORT_SYMBOL_GPL(videobuf_vmalloc_to_sg);
+-
+-EXPORT_SYMBOL_GPL(videobuf_to_dma);
+-EXPORT_SYMBOL_GPL(videobuf_dma_init);
+-EXPORT_SYMBOL_GPL(videobuf_dma_init_user);
+-EXPORT_SYMBOL_GPL(videobuf_dma_init_kernel);
+-EXPORT_SYMBOL_GPL(videobuf_dma_init_overlay);
+-EXPORT_SYMBOL_GPL(videobuf_dma_map);
+-EXPORT_SYMBOL_GPL(videobuf_dma_sync);
+-EXPORT_SYMBOL_GPL(videobuf_dma_unmap);
+-EXPORT_SYMBOL_GPL(videobuf_dma_free);
+-
+-EXPORT_SYMBOL_GPL(videobuf_sg_dma_map);
+-EXPORT_SYMBOL_GPL(videobuf_sg_dma_unmap);
+-EXPORT_SYMBOL_GPL(videobuf_sg_alloc);
+-
+ EXPORT_SYMBOL_GPL(videobuf_queue_sg_init);
+ 
+-/*
+- * Local variables:
+- * c-basic-offset: 8
+- * End:
+- */
+diff --git a/drivers/media/video/videobuf-vmalloc.c b/drivers/media/video/videobuf-vmalloc.c
+index 136e093..d6a8a38 100644
+--- a/drivers/media/video/videobuf-vmalloc.c
++++ b/drivers/media/video/videobuf-vmalloc.c
+@@ -30,8 +30,12 @@
+ #define MAGIC_DMABUF   0x17760309
+ #define MAGIC_VMAL_MEM 0x18221223
+ 
+-#define MAGIC_CHECK(is,should)	if (unlikely((is) != (should))) \
+-	{ printk(KERN_ERR "magic mismatch: %x (expected %x)\n",is,should); BUG(); }
++#define MAGIC_CHECK(is, should)						\
++	if (unlikely((is) != (should))) {				\
++		printk(KERN_ERR "magic mismatch: %x (expected %x)\n",	\
++				is, should);				\
++		BUG();							\
++	}
+ 
+ static int debug;
+ module_param(debug, int, 0644);
+@@ -40,19 +44,19 @@ MODULE_DESCRIPTION("helper module to manage video4linux vmalloc buffers");
+ MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@infradead.org>");
+ MODULE_LICENSE("GPL");
+ 
+-#define dprintk(level, fmt, arg...)	if (debug >= level) \
+-	printk(KERN_DEBUG "vbuf-vmalloc: " fmt , ## arg)
++#define dprintk(level, fmt, arg...)					\
++	if (debug >= level)						\
++		printk(KERN_DEBUG "vbuf-vmalloc: " fmt , ## arg)
+ 
+ 
+ /***************************************************************************/
+ 
+-static void
+-videobuf_vm_open(struct vm_area_struct *vma)
++static void videobuf_vm_open(struct vm_area_struct *vma)
+ {
+ 	struct videobuf_mapping *map = vma->vm_private_data;
+ 
+-	dprintk(2,"vm_open %p [count=%u,vma=%08lx-%08lx]\n",map,
+-		map->count,vma->vm_start,vma->vm_end);
++	dprintk(2, "vm_open %p [count=%u,vma=%08lx-%08lx]\n", map,
++		map->count, vma->vm_start, vma->vm_end);
+ 
+ 	map->count++;
+ }
+@@ -63,7 +67,7 @@ static void videobuf_vm_close(struct vm_area_struct *vma)
+ 	struct videobuf_queue *q = map->q;
+ 	int i;
+ 
+-	dprintk(2,"vm_close %p [count=%u,vma=%08lx-%08lx]\n", map,
++	dprintk(2, "vm_close %p [count=%u,vma=%08lx-%08lx]\n", map,
+ 		map->count, vma->vm_start, vma->vm_end);
+ 
+ 	map->count--;
+@@ -116,8 +120,7 @@ static void videobuf_vm_close(struct vm_area_struct *vma)
+ 	return;
+ }
+ 
+-static const struct vm_operations_struct videobuf_vm_ops =
+-{
++static const struct vm_operations_struct videobuf_vm_ops = {
+ 	.open     = videobuf_vm_open,
+ 	.close    = videobuf_vm_close,
+ };
+@@ -137,23 +140,23 @@ static void *__videobuf_alloc(size_t size)
+ 	struct videobuf_vmalloc_memory *mem;
+ 	struct videobuf_buffer *vb;
+ 
+-	vb = kzalloc(size+sizeof(*mem),GFP_KERNEL);
++	vb = kzalloc(size + sizeof(*mem), GFP_KERNEL);
+ 	if (!vb)
+ 		return vb;
+ 
+-	mem = vb->priv = ((char *)vb)+size;
+-	mem->magic=MAGIC_VMAL_MEM;
++	mem = vb->priv = ((char *)vb) + size;
++	mem->magic = MAGIC_VMAL_MEM;
+ 
+-	dprintk(1,"%s: allocated at %p(%ld+%ld) & %p(%ld)\n",
+-		__func__,vb,(long)sizeof(*vb),(long)size-sizeof(*vb),
+-		mem,(long)sizeof(*mem));
++	dprintk(1, "%s: allocated at %p(%ld+%ld) & %p(%ld)\n",
++		__func__, vb, (long)sizeof(*vb), (long)size - sizeof(*vb),
++		mem, (long)sizeof(*mem));
+ 
+ 	return vb;
+ }
+ 
+-static int __videobuf_iolock (struct videobuf_queue* q,
+-			      struct videobuf_buffer *vb,
+-			      struct v4l2_framebuffer *fbuf)
++static int __videobuf_iolock(struct videobuf_queue *q,
++			     struct videobuf_buffer *vb,
++			     struct v4l2_framebuffer *fbuf)
+ {
+ 	struct videobuf_vmalloc_memory *mem = vb->priv;
+ 	int pages;
+@@ -177,15 +180,13 @@ static int __videobuf_iolock (struct videobuf_queue* q,
+ 
+ 		dprintk(1, "%s memory method USERPTR\n", __func__);
+ 
+-#if 1
+ 		if (vb->baddr) {
+ 			printk(KERN_ERR "USERPTR is currently not supported\n");
+ 			return -EINVAL;
+ 		}
+-#endif
+ 
+ 		/* The only USERPTR currently supported is the one needed for
+-		   read() method.
++		 * read() method.
+ 		 */
+ 
+ 		mem->vmalloc = vmalloc_user(pages);
+@@ -210,7 +211,7 @@ static int __videobuf_iolock (struct videobuf_queue* q,
+ 		/* Try to remap memory */
+ 		rc = remap_vmalloc_range(mem->vma, (void *)vb->baddr, 0);
+ 		if (rc < 0) {
+-			printk(KERN_ERR "mmap: remap failed with error %d. ", rc);
++			printk(KERN_ERR "mmap: remap failed with error %d", rc);
+ 			return -ENOMEM;
+ 		}
+ #endif
+@@ -273,7 +274,7 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+ 			break;
+ 	}
+ 	if (VIDEO_MAX_FRAME == first) {
+-		dprintk(1,"mmap app bug: offset invalid [offset=0x%lx]\n",
++		dprintk(1, "mmap app bug: offset invalid [offset=0x%lx]\n",
+ 			(vma->vm_pgoff << PAGE_SHIFT));
+ 		return -EINVAL;
+ 	}
+@@ -300,8 +301,7 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+ 		printk(KERN_ERR "vmalloc (%d pages) failed\n", pages);
+ 		goto error;
+ 	}
+-	dprintk(1, "vmalloc is at addr %p (%d pages)\n",
+-		mem->vmalloc, pages);
++	dprintk(1, "vmalloc is at addr %p (%d pages)\n", mem->vmalloc, pages);
+ 
+ 	/* Try to remap memory */
+ 	retval = remap_vmalloc_range(vma, mem->vmalloc, 0);
+@@ -315,7 +315,7 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+ 	vma->vm_flags       |= VM_DONTEXPAND | VM_RESERVED;
+ 	vma->vm_private_data = map;
+ 
+-	dprintk(1,"mmap %p: q=%p %08lx-%08lx (%lx) pgoff %08lx buf %d\n",
++	dprintk(1, "mmap %p: q=%p %08lx-%08lx (%lx) pgoff %08lx buf %d\n",
+ 		map, q, vma->vm_start, vma->vm_end,
+ 		(long int) q->bufs[first]->bsize,
+ 		vma->vm_pgoff, first);
+@@ -330,15 +330,15 @@ error:
+ 	return -ENOMEM;
+ }
+ 
+-static int __videobuf_copy_to_user ( struct videobuf_queue *q,
+-				char __user *data, size_t count,
+-				int nonblocking )
++static int __videobuf_copy_to_user(struct videobuf_queue *q,
++				   char __user *data, size_t count,
++				   int nonblocking)
+ {
+-	struct videobuf_vmalloc_memory *mem=q->read_buf->priv;
+-	BUG_ON (!mem);
+-	MAGIC_CHECK(mem->magic,MAGIC_VMAL_MEM);
++	struct videobuf_vmalloc_memory *mem = q->read_buf->priv;
++	BUG_ON(!mem);
++	MAGIC_CHECK(mem->magic, MAGIC_VMAL_MEM);
+ 
+-	BUG_ON (!mem->vmalloc);
++	BUG_ON(!mem->vmalloc);
+ 
+ 	/* copy to userspace */
+ 	if (count > q->read_buf->size - q->read_off)
+@@ -350,30 +350,30 @@ static int __videobuf_copy_to_user ( struct videobuf_queue *q,
+ 	return count;
+ }
+ 
+-static int __videobuf_copy_stream ( struct videobuf_queue *q,
+-				char __user *data, size_t count, size_t pos,
+-				int vbihack, int nonblocking )
++static int __videobuf_copy_stream(struct videobuf_queue *q,
++				  char __user *data, size_t count, size_t pos,
++				  int vbihack, int nonblocking)
+ {
+-	unsigned int  *fc;
+-	struct videobuf_vmalloc_memory *mem=q->read_buf->priv;
+-	BUG_ON (!mem);
+-	MAGIC_CHECK(mem->magic,MAGIC_VMAL_MEM);
++	unsigned int *fc;
++	struct videobuf_vmalloc_memory *mem = q->read_buf->priv;
++	BUG_ON(!mem);
++	MAGIC_CHECK(mem->magic, MAGIC_VMAL_MEM);
+ 
+ 	if (vbihack) {
+ 		/* dirty, undocumented hack -- pass the frame counter
+ 			* within the last four bytes of each vbi data block.
+ 			* We need that one to maintain backward compatibility
+ 			* to all vbi decoding software out there ... */
+-		fc  = (unsigned int*)mem->vmalloc;
+-		fc += (q->read_buf->size>>2) -1;
++		fc  = (unsigned int *)mem->vmalloc;
++		fc += (q->read_buf->size >> 2) - 1;
+ 		*fc = q->read_buf->field_count >> 1;
+-		dprintk(1,"vbihack: %d\n",*fc);
++		dprintk(1, "vbihack: %d\n", *fc);
+ 	}
+ 
+ 	/* copy stuff using the common method */
+-	count = __videobuf_copy_to_user (q,data,count,nonblocking);
++	count = __videobuf_copy_to_user(q, data, count, nonblocking);
+ 
+-	if ( (count==-EFAULT) && (0 == pos) )
++	if ((count == -EFAULT) && (0 == pos))
+ 		return -EFAULT;
+ 
+ 	return count;
+@@ -392,7 +392,7 @@ static struct videobuf_qtype_ops qops = {
+ 	.vmalloc      = videobuf_to_vmalloc,
+ };
+ 
+-void videobuf_queue_vmalloc_init(struct videobuf_queue* q,
++void videobuf_queue_vmalloc_init(struct videobuf_queue *q,
+ 			 const struct videobuf_queue_ops *ops,
+ 			 struct device *dev,
+ 			 spinlock_t *irqlock,
+@@ -404,20 +404,19 @@ void videobuf_queue_vmalloc_init(struct videobuf_queue* q,
+ 	videobuf_queue_core_init(q, ops, dev, irqlock, type, field, msize,
+ 				 priv, &qops);
+ }
+-
+ EXPORT_SYMBOL_GPL(videobuf_queue_vmalloc_init);
+ 
+-void *videobuf_to_vmalloc (struct videobuf_buffer *buf)
++void *videobuf_to_vmalloc(struct videobuf_buffer *buf)
+ {
+-	struct videobuf_vmalloc_memory *mem=buf->priv;
+-	BUG_ON (!mem);
+-	MAGIC_CHECK(mem->magic,MAGIC_VMAL_MEM);
++	struct videobuf_vmalloc_memory *mem = buf->priv;
++	BUG_ON(!mem);
++	MAGIC_CHECK(mem->magic, MAGIC_VMAL_MEM);
+ 
+ 	return mem->vmalloc;
+ }
+ EXPORT_SYMBOL_GPL(videobuf_to_vmalloc);
+ 
+-void videobuf_vmalloc_free (struct videobuf_buffer *buf)
++void videobuf_vmalloc_free(struct videobuf_buffer *buf)
+ {
+ 	struct videobuf_vmalloc_memory *mem = buf->priv;
+ 
+@@ -442,8 +441,3 @@ void videobuf_vmalloc_free (struct videobuf_buffer *buf)
+ }
+ EXPORT_SYMBOL_GPL(videobuf_vmalloc_free);
+ 
+-/*
+- * Local variables:
+- * c-basic-offset: 8
+- * End:
+- */
+diff --git a/include/media/videobuf-core.h b/include/media/videobuf-core.h
+index 316fdcc..b1f7bf4 100644
+--- a/include/media/videobuf-core.h
++++ b/include/media/videobuf-core.h
+@@ -129,14 +129,14 @@ struct videobuf_qtype_ops {
+ 
+ 	void *(*alloc)		(size_t size);
+ 	void *(*vmalloc)	(struct videobuf_buffer *buf);
+-	int (*iolock)		(struct videobuf_queue* q,
++	int (*iolock)		(struct videobuf_queue *q,
+ 				 struct videobuf_buffer *vb,
+ 				 struct v4l2_framebuffer *fbuf);
+ 	int (*mmap)		(struct videobuf_queue *q,
+ 				 unsigned int *count,
+ 				 unsigned int *size,
+ 				 enum v4l2_memory memory);
+-	int (*sync)		(struct videobuf_queue* q,
++	int (*sync)		(struct videobuf_queue *q,
+ 				 struct videobuf_buffer *buf);
+ 	int (*video_copy_to_user)(struct videobuf_queue *q,
+ 				 char __user *data,
+@@ -185,14 +185,14 @@ struct videobuf_queue {
+ };
+ 
+ int videobuf_waiton(struct videobuf_buffer *vb, int non_blocking, int intr);
+-int videobuf_iolock(struct videobuf_queue* q, struct videobuf_buffer *vb,
++int videobuf_iolock(struct videobuf_queue *q, struct videobuf_buffer *vb,
+ 		struct v4l2_framebuffer *fbuf);
+ 
+ void *videobuf_alloc(struct videobuf_queue* q);
+ 
+ /* Used on videobuf-dvb */
+-void *videobuf_queue_to_vmalloc (struct videobuf_queue* q,
+-				 struct videobuf_buffer *buf);
++void *videobuf_queue_to_vmalloc(struct videobuf_queue *q,
++				struct videobuf_buffer *buf);
+ 
+ void videobuf_queue_core_init(struct videobuf_queue *q,
+ 			 const struct videobuf_queue_ops *ops,
+diff --git a/include/media/videobuf-dma-sg.h b/include/media/videobuf-dma-sg.h
+index 53e72f7..dbfd8cf 100644
+--- a/include/media/videobuf-dma-sg.h
++++ b/include/media/videobuf-dma-sg.h
+@@ -17,6 +17,8 @@
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation; either version 2
+  */
++#ifndef _VIDEOBUF_DMA_SG_H
++#define _VIDEOBUF_DMA_SG_H
+ 
+ #include <media/videobuf-core.h>
+ 
+@@ -27,14 +29,14 @@
+  * block (NULL on errors).  Memory for the scatterlist is allocated
+  * using kmalloc.  The caller must free the memory.
+  */
+-struct scatterlist* videobuf_vmalloc_to_sg(unsigned char *virt, int nr_pages);
++struct scatterlist *videobuf_vmalloc_to_sg(unsigned char *virt, int nr_pages);
+ 
+ /*
+  * Return a scatterlist for a an array of userpages (NULL on errors).
+  * Memory for the scatterlist is allocated using kmalloc.  The caller
+  * must free the memory.
+  */
+-struct scatterlist* videobuf_pages_to_sg(struct page **pages, int nr_pages,
++struct scatterlist *videobuf_pages_to_sg(struct page **pages, int nr_pages,
+ 					 int offset);
+ 
+ /* --------------------------------------------------------------------- */
+@@ -78,8 +80,7 @@ struct videobuf_dmabuf {
+ 	int                 direction;
+ };
+ 
+-struct videobuf_dma_sg_memory
+-{
++struct videobuf_dma_sg_memory {
+ 	u32                 magic;
+ 
+ 	/* for mmap'ed buffers */
+@@ -95,14 +96,14 @@ int videobuf_dma_init_overlay(struct videobuf_dmabuf *dma, int direction,
+ 			      dma_addr_t addr, int nr_pages);
+ int videobuf_dma_free(struct videobuf_dmabuf *dma);
+ 
+-int videobuf_dma_map(struct videobuf_queue* q,struct videobuf_dmabuf *dma);
+-int videobuf_dma_sync(struct videobuf_queue* q,struct videobuf_dmabuf *dma);
+-int videobuf_dma_unmap(struct videobuf_queue* q,struct videobuf_dmabuf *dma);
+-struct videobuf_dmabuf *videobuf_to_dma (struct videobuf_buffer *buf);
++int videobuf_dma_map(struct videobuf_queue *q, struct videobuf_dmabuf *dma);
++int videobuf_dma_sync(struct videobuf_queue *q, struct videobuf_dmabuf *dma);
++int videobuf_dma_unmap(struct videobuf_queue *q, struct videobuf_dmabuf *dma);
++struct videobuf_dmabuf *videobuf_to_dma(struct videobuf_buffer *buf);
+ 
+ void *videobuf_sg_alloc(size_t size);
+ 
+-void videobuf_queue_sg_init(struct videobuf_queue* q,
++void videobuf_queue_sg_init(struct videobuf_queue *q,
+ 			 const struct videobuf_queue_ops *ops,
+ 			 struct device *dev,
+ 			 spinlock_t *irqlock,
+@@ -111,9 +112,11 @@ void videobuf_queue_sg_init(struct videobuf_queue* q,
+ 			 unsigned int msize,
+ 			 void *priv);
+ 
+-	/*FIXME: these variants are used only on *-alsa code, where videobuf is
+-	 * used without queue
+-	 */
++/*FIXME: these variants are used only on *-alsa code, where videobuf is
++ * used without queue
++ */
+ int videobuf_sg_dma_map(struct device *dev, struct videobuf_dmabuf *dma);
+ int videobuf_sg_dma_unmap(struct device *dev, struct videobuf_dmabuf *dma);
+ 
++#endif /* _VIDEOBUF_DMA_SG_H */
++
+diff --git a/include/media/videobuf-vmalloc.h b/include/media/videobuf-vmalloc.h
+index 4b419a2..851eb1a 100644
+--- a/include/media/videobuf-vmalloc.h
++++ b/include/media/videobuf-vmalloc.h
+@@ -19,17 +19,17 @@
+ 
+ /* --------------------------------------------------------------------- */
+ 
+-struct videobuf_vmalloc_memory
+-{
++struct videobuf_vmalloc_memory {
+ 	u32                 magic;
+ 
+ 	void                *vmalloc;
+ 
+-	/* remap_vmalloc_range seems to need to run after mmap() on some cases */
++	/* remap_vmalloc_range seems to need to run
++	 * after mmap() on some cases */
+ 	struct vm_area_struct *vma;
+ };
+ 
+-void videobuf_queue_vmalloc_init(struct videobuf_queue* q,
++void videobuf_queue_vmalloc_init(struct videobuf_queue *q,
+ 			 const struct videobuf_queue_ops *ops,
+ 			 struct device *dev,
+ 			 spinlock_t *irqlock,
+@@ -38,8 +38,8 @@ void videobuf_queue_vmalloc_init(struct videobuf_queue* q,
+ 			 unsigned int msize,
+ 			 void *priv);
+ 
+-void *videobuf_to_vmalloc (struct videobuf_buffer *buf);
++void *videobuf_to_vmalloc(struct videobuf_buffer *buf);
+ 
+-void videobuf_vmalloc_free (struct videobuf_buffer *buf);
++void videobuf_vmalloc_free(struct videobuf_buffer *buf);
+ 
+ #endif
+-- 
+1.7.0.31.g1df487
+
