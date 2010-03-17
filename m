@@ -1,62 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:24694 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:59651 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754619Ab0CLPtH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Mar 2010 10:49:07 -0500
-Received: from int-mx03.intmail.prod.int.phx2.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.16])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2CFn7et020575
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 12 Mar 2010 10:49:07 -0500
-Message-ID: <4B9A62B6.7090004@redhat.com>
-Date: Fri, 12 Mar 2010 16:50:14 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1755614Ab0CQT2N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Mar 2010 15:28:13 -0400
+Message-ID: <4BA12D47.8090808@redhat.com>
+Date: Wed, 17 Mar 2010 16:28:07 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: pushes at v4l-utils tree
-References: <4B99891E.9010406@redhat.com>
-In-Reply-To: <4B99891E.9010406@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] V4L: introduce a Kconfig variable to disable helper-chip
+ autoselection
+References: <Pine.LNX.4.64.1003171336180.4354@axis700.grange> <4BA0D214.3050506@redhat.com> <Pine.LNX.4.64.1003171446360.4354@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1003171446360.4354@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Guennadi Liakhovetski wrote:
 
-On 03/12/2010 01:21 AM, Mauro Carvalho Chehab wrote:
-> Hi Hans,
->
-> As we've agreed that the idea is to allow multiple people to commit at v4l-utils,
-> today, I've added 3 commits at v4l-utils tree (2 keycode-related and 1 is .gitignore
-> stuff). One of the reasons were to test the viability for such commits.
->
-> I've temporarily enabled the same script that we use for upstream patches to
-> generate patches against linuxtv-commits ML.
->
->  From my experiences, I have some notes:
-> 	1) git won't work fine if more than one is committing at the same tree.
-> The reason is simple: it won't preserve the same group as the previous commits. So,
-> the next committer will have troubles if we allow multiple committers;
->
+> Hi Mauro
+> 
+> we just discussed this with Hans on IRC, and if I understood him 
+> correctly, he was of the same opinion, that adding such a variable could 
+> help.
+> 
+> The problem is the following: this automatic selection works in a way, 
+> that various bridge drivers select "helper" chip drivers (i2c subdevice 
+> drivers" if this autoselection is enabled, e.g.
+> 
+> config VIDEO_MXB
+> 	tristate "Siemens-Nixdorf 'Multimedia eXtension Board'"
+> 	depends on PCI && VIDEO_V4L1 && I2C
+> 	select VIDEO_SAA7146_VV
+> 	select VIDEO_TUNER
+> 	select VIDEO_SAA711X if VIDEO_HELPER_CHIPS_AUTO
+> 	select VIDEO_TDA9840 if VIDEO_HELPER_CHIPS_AUTO
+> 	select VIDEO_TEA6415C if VIDEO_HELPER_CHIPS_AUTO
+> 	select VIDEO_TEA6420 if VIDEO_HELPER_CHIPS_AUTO
+> 
+> With SoC-based set ups this cannot work. The only location where this 
+> information is available is platform code under arch/... and selecting 
+> these drivers from there would be awkward imho.
 
-I assume you are talking about some issues with permissions on the server side here ?
+Kconfig works fine if the var is on another place. So, you could do things
+like:
 
-> 	2) people need to pull/rebase before pushing, if we fix the group permission
-> issue above. I've enabled a hook that is meant to avoid rebase upstream, to prevent
-> troubles if people push something with -f. I hope it works fine.
->
+config VIDEO_xxx
+	select VIDEO_foo if VIDEO_HELPER_CHIPS_AUTO && ARCH_bar
 
-Ack, actually I just did that (rebase my local tree before pushing) as you pushed
-some changes before I did.
+You may even convert it into dependencies like:
 
-> In summary, for now, I think that the better is to post all patches to v4l-utils at ML
-> and ask Hans to merge them.
->
+config VIDEO_I2C_foo
+	depends on ARCH_bar && config VIDEO_xxx
+	default y if VIDEO_HELPER_CHIPS_AUTO
 
-Yes and no, if you've a few patches, sure. If you are doing regular development you should
-get commit access. In my experience in various projects multiple people pushing to the
-same git tree will work fine.
+The depends on syntax generally works better than using select. We've converted
+some select into depends on a few places like tuner, like, for example:
 
-Regards,
+config MEDIA_TUNER_TDA827X
+        tristate "Philips TDA827X silicon tuner"
+        depends on VIDEO_MEDIA && I2C
+        default m if MEDIA_TUNER_CUSTOMISE
 
-Hans
+> So, for example, we want 
+> to put the ak881x video encoder driver under
+> 
+> comment "Video encoders"
+> 
+> and those drivers are only visible if VIDEO_HELPER_CHIPS_AUTO is 
+> unselected, and if it is selected, which it is by default, there is noone 
+> to automatically select ak881x. So, I think, the proposed patch is not a 
+> work-around, but a reasonable solution for this issue.
+
+Even the menu being invisible, any of the above logic would work, if you do
+something like:
+
+config VIDEO_AK881X
+	depends on ARCH_MX1 && I2C
+	default y if VIDEO_HELPER_CHIPS_AUTO && SOC_CAMERA
+
+or:
+
+config SOC_CAMERA
+	select VIDEO_AK881X if VIDEO_HELPER_CHIPS_AUTO && ARCH_MX1
+
+You should just take some care, since there are some combinations that won't work.
+For example, if SOC_CAMERA is a module, any ancillary drivers used by it should also
+be 'm', otherwise, the driver will break. That's why, when having multiple
+dependencies, the better is to use the "depends on" way.
+
+
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+-- 
+
+Cheers,
+Mauro
