@@ -1,53 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:34522 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751052Ab0CSPSk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Mar 2010 11:18:40 -0400
-Subject: Re: RFC: Drop V4L1 support in V4L2 drivers
-From: Andy Walls <awalls@radix.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	v4l-dvb <linux-media@vger.kernel.org>
-In-Reply-To: <50cd74a798bbf96501cd40b90d2a2b93.squirrel@webmail.xs4all.nl>
-References: <83e56201383c6a99ea51dafcd2794dfe.squirrel@webmail.xs4all.nl>
-	 <201003190904.53867.laurent.pinchart@ideasonboard.com>
-	 <50cd74a798bbf96501cd40b90d2a2b93.squirrel@webmail.xs4all.nl>
-Content-Type: text/plain
-Date: Fri, 19 Mar 2010 11:17:44 -0400
-Message-Id: <1269011864.3073.7.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from 132.79-246-81.adsl-static.isp.belgacom.be ([81.246.79.132]:35588
+	"EHLO viper.mind.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750960Ab0CQWxs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Mar 2010 18:53:48 -0400
+From: Arnout Vandecappelle <arnout@mind.be>
+To: linux-media@vger.kernel.org, mchehab@infradead.org, arnout@mind.be
+Subject: [PATCH v3] Support for zerocopy to DMA buffers
+Date: Wed, 17 Mar 2010 23:53:03 +0100
+Message-Id: <1268866385-15692-1-git-send-email-arnout@mind.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2010-03-19 at 09:46 +0100, Hans Verkuil wrote:
-> > On Friday 19 March 2010 08:59:08 Hans Verkuil wrote:
-> >> Hi all,
-> >>
-> >> V4L1 support has been marked as scheduled for removal for a long time.
-> >> The
-> >> deadline for that in the feature-removal-schedule.txt file was July
-> >> 2009.
-> >>
-> >> I think it is time that we remove the V4L1 compatibility support from
-> >> V4L2
-> >> drivers for 2.6.35.
-> >
+ Hoi,
 
-> This means that V4L2 drivers can only be used by V4L2-aware applications
-> and can no longer be accessed by V4L1-only applications.
+ [Please CC me, I'm not subscribed.]
 
->From user reports I've seen lately, it looks like Debian (or some Debian
-derivative) is not packaging v4l2-ctl, etc. but only the older v4lctl
-and related utilities.  Can anyone verify this?
+ I'm implementing zerocopy transfer from a v4l2 camera to the DSP on an 
+OMAP3 (based on earlier work by Stefan Kost [1][2]).  Therefore I'm using 
+V4L2_MEMORY_USERPTR to pass in the memory area allocated by TI's DMAI 
+driver.  However, this has flags VM_IO | VM_PFNMAP.  This means that it is 
+not possible to do get_user_pages() on it - it's an area that is not 
+pageable and possibly even doesn't pass the MMU.
 
-If that is so, I anticipate end user complaints coming in.  I wouldn't
-cut the V4L1 inetrface out until we've got v4l2-ctl and friends in a
-repository that is easily packaged as stand alone utils - separate from
-the v4l-dvb driver tree.  And perhaps a link on the webpage for
-packagers and end users to find the v4l2 utils would head off some
-complaints.
+ In order to support this kind of zerocopy construct, I propose to add 
+checks for VM_IO | VM_PFNMAP and only get pages from areas that don't have 
+these flags set.
 
-Regards,
-Andy
+ I also fixed another issue: it was assumed that dma->sglen == dma->nr_pages,
+which is not true for the USERPTR memory.  Thanks to Sakari Ailus for
+pointing out a bug I introduced there.
+
+ Regards,
+ Arnout
+
+[1] https://bugzilla.gnome.org/show_bug.cgi?id=583890
+[2] http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/6209
 
