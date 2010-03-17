@@ -1,47 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:54707 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754022Ab0CHLIX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Mar 2010 06:08:23 -0500
-Date: Mon, 8 Mar 2010 12:08:21 +0100 (CET)
-From: Jiri Kosina <jkosina@suse.cz>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Matthew Garrett <mjg@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Input <linux-input@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Platform Driver x86 <platform-driver-x86@vger.kernel.org>
-Subject: Re: [PATCH] Input: scancode in get/set_keycodes should be unsigned
-In-Reply-To: <20100228061310.GA765@core.coreip.homeip.net>
-Message-ID: <alpine.LNX.2.00.1003081207510.17799@pobox.suse.cz>
-References: <20100228061310.GA765@core.coreip.homeip.net>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:18063 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754257Ab0CQORM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Mar 2010 10:17:12 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=us-ascii
+Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0KZF003GSJOF2R80@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 17 Mar 2010 14:17:03 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0KZF002XQJOFIB@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 17 Mar 2010 14:17:03 +0000 (GMT)
+Date: Wed, 17 Mar 2010 15:15:15 +0100
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: RE: [PATCH v2] v4l: videobuf: code cleanup.
+In-reply-to: <A24693684029E5489D1D202277BE894454137086@dlee02.ent.ti.com>
+To: "'Aguirre, Sergio'" <saaguirre@ti.com>, linux-media@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	kyungmin.park@samsung.com
+Message-id: <001001cac5dc$4407f690$cc17e3b0$%osciak@samsung.com>
+Content-language: pl
+References: <1268831061-307-1-git-send-email-p.osciak@samsung.com>
+ <1268831061-307-2-git-send-email-p.osciak@samsung.com>
+ <A24693684029E5489D1D202277BE894454137086@dlee02.ent.ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 27 Feb 2010, Dmitry Torokhov wrote:
+> Aguirre, Sergio wrote:
+>> Make videobuf pass checkpatch; minor code cleanups.
+>
+>I thought this kind patches were frowned upon..
+>
+>http://www.mjmwired.net/kernel/Documentation/development-process/4.Coding#41
+>
+>But maybe it's acceptable in this case... I'm not an expert on community policies :)
 
-> The HID layer has some scan codes of the form 0xffbc0000 for logitech
-> devices which do not work if scancode is typed as signed int, so we need
-> to switch to unsigned int instead. While at it keycode being signed does
-> not make much sense either.
-> 
-> Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-> ---
-> 
-> Guys,
-> 
-> I was originally going to switch all platfrom drivers to use sparse
-> keymap libary to eliminate at least one subsystem from this patch but
-> it takes longer than I anticipated so here is mechanical conversion.
-> I'd really like to make get/set keycodes usable for HID so I'd like
-> to get this patch in before .34-rc1, could I get some ACKs please?
+Hm, right...
+I'm not an expert either, but it does seem reasonable. It was just a part of the
+roadmap we agreed on in Norway, so I simply went ahead with it. Merging with other
+patches would pollute them so I just posted it separately. I will leave the
+decision up to Mauro then. I have some more "normal" patches lined up,
+so please let me know. I'm guessing we are cancelling the clean-up then though.
 
-Sorry for late response, I have been offline for the whole past week.
 
-	Acked-by: Jiri Kosina <jkosina@suse.cz>
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
 
--- 
-Jiri Kosina
-SUSE Labs, Novell Inc.
+
