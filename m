@@ -1,93 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out26.alice.it ([85.33.2.26]:3618 "EHLO
-	smtp-out26.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754817Ab0CDJEB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Mar 2010 04:04:01 -0500
-Date: Thu, 4 Mar 2010 10:03:46 +0100
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: Jim Paris <jim@jtan.com>
-Cc: "M.Ebrahimi" <m.ebrahimi@ieee.org>, Max Thrun <bear24rw@gmail.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 10/11] ov534: Add Powerline Frequency control
-Message-Id: <20100304100346.79818884.ospite@studenti.unina.it>
-In-Reply-To: <20100304045533.GA17821@psychosis.jim.sh>
-References: <1267302028-7941-1-git-send-email-ospite@studenti.unina.it>
-	<1267302028-7941-11-git-send-email-ospite@studenti.unina.it>
-	<20100228194951.1c1e26ce@tele>
-	<20100228201850.81f7904a.ospite@studenti.unina.it>
-	<20100228205528.54d1ba69@tele>
-	<1d742ad81003020326h5e02189bt6511b840dd17d7e3@mail.gmail.com>
-	<20100302163937.70a15c19.ospite@studenti.unina.it>
-	<7b67a5ec1003020806x65164673ue699de2067bc4fb8@mail.gmail.com>
-	<1d742ad81003021827p181bf0a6mdf87ad7535bc37bd@mail.gmail.com>
-	<20100303090008.f94e7789.ospite@studenti.unina.it>
-	<20100304045533.GA17821@psychosis.jim.sh>
-Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Thu__4_Mar_2010_10_03_47_+0100_Y.f9+g_//Nd.jA=3"
+Received: from smtp1.sscnet.ucla.edu ([128.97.229.231]:47957 "EHLO
+	smtp1.sscnet.ucla.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752173Ab0CQFar (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Mar 2010 01:30:47 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by smtp1.sscnet.ucla.edu (8.13.8/8.13.8) with ESMTP id o2H53Bj0014687
+	for <linux-media@vger.kernel.org>; Tue, 16 Mar 2010 22:03:11 -0700
+Received: from smtp1.sscnet.ucla.edu ([127.0.0.1])
+	by localhost (smtp1.sscnet.ucla.edu [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id picAm0T-959D for <linux-media@vger.kernel.org>;
+	Tue, 16 Mar 2010 22:02:59 -0700 (PDT)
+Received: from smtp5.sscnet.ucla.edu (smtp5.sscnet.ucla.edu [128.97.229.235])
+	by smtp1.sscnet.ucla.edu (8.13.8/8.13.8) with ESMTP id o2H52uPv014662
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 16 Mar 2010 22:02:56 -0700
+Received: from weber.sscnet.ucla.edu (weber.sscnet.ucla.edu [128.97.42.3])
+	by smtp5.sscnet.ucla.edu (8.13.8/8.13.8) with ESMTP id o2H52njo001479
+	for <linux-media@vger.kernel.org>; Tue, 16 Mar 2010 22:02:49 -0700
+Received: from Titania.local (vpn-8061f520.host.ucla.edu [128.97.245.32])
+	by weber.sscnet.ucla.edu (8.14.2/8.14.2) with ESMTP id o2H52lP5003682
+	for <linux-media@vger.kernel.org>; Tue, 16 Mar 2010 22:02:47 -0700 (PDT)
+Message-ID: <4BA06274.2030107@cogweb.net>
+Date: Tue, 16 Mar 2010 22:02:44 -0700
+From: David Liontooth <lionteeth@cogweb.net>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: PCI slots vanish with hvr-1800
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Signature=_Thu__4_Mar_2010_10_03_47_+0100_Y.f9+g_//Nd.jA=3
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Wed, 3 Mar 2010 23:55:33 -0500
-Jim Paris <jim@jtan.com> wrote:
+I just purchased some Hauppauge HVR-1800 cards. They work fine in these 
+two PCIe slots:
 
-> Antonio Ospite wrote:
-[...]
-> >=20
-> > I see. It would be interesting to see how Powerline Frequency filtering
-> > is done on PS3. I added Jim Paris on CC.
->=20
-> Hi Antonio and Mosalam,
->=20
-> I tried, but I can't capture that.  My USB logger only does USB 1.1,
-> which is too slow for the camera to run normally, but good enough to
-> see the initialization sequence.  However, the 50/60Hz option only
-> appears later, once the PS3 is receiving good frame data.
->=20
-> I can open up the camera and sniff the I2C bus instead.  It'll take
-> a little longer.
->
+0000:06:00.0
+0000:09:00.0
 
-Thanks for your time Jim.
+These are "PCI Express* Gen1" slots (see details below); the others are 
+PCI Express* Gen2.
+When I place a card in one of these Gen2 slots, the card does not show up.
 
-> Interesting side note, the only change in the initialization sequence
-> between PS3 firmware 1.93 and 3.15 is 0x0C bit 6 -- horizontal flip :)
-> So they haven't made any improvements that we can borrow.
->
-> -jim
->=20
+What's more, the slot disappears from dmesg. Here's an example.
 
-Regards,
-   Antonio
+First, the 0000:04:00.0 slot has no card and shows up like this:
 
---=20
-Antonio Ospite
-http://ao2.it
+pci 0000:04:00.0: reg 10 64bit mmio: [0xb2000000-0xb21fffff]
+pci 0000:04:00.0: supports D1 D2
+pci 0000:04:00.0: PME# supported from D0 D1 D2 D3hot D3cold
+pci 0000:04:00.0: PME# disabled
 
-PGP public key ID: 0x4553B001
+Second, using a different card, the Hauppauge HVR-1850, we have no problems:
 
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
-A: Top-posting.
-Q: What is the most annoying thing in e-mail?
+cx23885 0000:04:00.0: PCI INT A -> GSI 19 (level, low) -> IRQ 19
+cx23885[0]/0: found at 0000:04:00.0, rev: 4, irq: 19, latency: 0, mmio: 
+0xb2000000
+cx23885 0000:04:00.0: setting latency timer to 64
 
---Signature=_Thu__4_Mar_2010_10_03_47_+0100_Y.f9+g_//Nd.jA=3
-Content-Type: application/pgp-signature
+Third, using the Haupauge HVR-1800, the card does not show up *and*
+the four pci lines above about mmio and PME are also gone without a trace.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
+The problem arises only if an HVR-1800 is in one or more of the slots 4, 
+5, and 6.
+These slots are not affected if the HVR-1800 cards are in slots 2 and 3 
+only.
 
-iEYEARECAAYFAkuPd3MACgkQ5xr2akVTsAFzmgCffo8EQiAzFZi7xw/TJoMhGNCQ
-UMoAoJSnC6M6hZHvWA7Nev7XE+EmyP43
-=WCLK
------END PGP SIGNATURE-----
+I get exactly the same behavior on two different machines (same hardware).
+The HVR-1800 cards work fine in slots 2 and 3, but fail consistently in 
+slots 4, 5, and 6.
+The slots themselves are known to be good, since other cards work fine 
+in them.
 
---Signature=_Thu__4_Mar_2010_10_03_47_+0100_Y.f9+g_//Nd.jA=3--
+Is this a known problem? PCI Express Gen2 is supposed to be backwardly
+compatible with Gen1, but it looks like these PCIe 1.0 cards are knocking
+out the PCIe 2.0 resources.
+
+Cheers,
+David
+
+
+Intel Server Board S3420GPLX has six card slots:
+
+– Slot1: One 5-V PCI 32-bit / 33 MHz connector.
+– Slot2: One PCI Express* Gen1 x4 (x1 throughput)
+connector).
+– Slot3: One PCI Express* Gen1 x8 (x4 throughput)
+connector).
+– Slot4: One PCI Express* Gen2 x8 (x4 throughput)
+connector).
+– Slot5: One PCI Express* Gen2x8 (x8 throughput)
+connector).
+– Slot6: One PCI Express* Gen2 x16 (x8 throughput)
+connector).
+
+
