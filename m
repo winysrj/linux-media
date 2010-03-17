@@ -1,50 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:63909 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933035Ab0CaJcq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Mar 2010 05:32:46 -0400
-Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0L0500K7F3UJWP@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 31 Mar 2010 10:32:43 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L0500F9F3UJCU@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 31 Mar 2010 10:32:43 +0100 (BST)
-Date: Wed, 31 Mar 2010 11:32:24 +0200
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: [PATCH v2 0/3] Fix DQBUF behavior for recoverable streaming errors
-To: linux-media@vger.kernel.org
-Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com
-Message-id: <1270027947-28327-1-git-send-email-p.osciak@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
+Received: from mx1.redhat.com ([209.132.183.28]:9679 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754631Ab0CQVDa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Mar 2010 17:03:30 -0400
+Message-ID: <4BA14398.70609@redhat.com>
+Date: Wed, 17 Mar 2010 18:03:20 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Pawel Osciak <p.osciak@samsung.com>, linux-media@vger.kernel.org,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com
+Subject: Re: [PATCH v2] v4l: videobuf: code cleanup.
+References: <1268831061-307-1-git-send-email-p.osciak@samsung.com> <1268831061-307-2-git-send-email-p.osciak@samsung.com> <201003172134.47721.hverkuil@xs4all.nl>
+In-Reply-To: <201003172134.47721.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hans Verkuil wrote:
+> On Wednesday 17 March 2010 14:04:21 Pawel Osciak wrote:
+>> Make videobuf pass checkpatch; minor code cleanups.
+>>
+>> Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+>> Reviewed-by: Kyungmin Park <kyungmin.park@samsung.com>
+> 
+> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+> 
+> It would be really nice if this can be merged soon. With all the work that
+> we want to do on videobuf it makes life easier if it is cleaned up first.
+> 
+> I wonder if it is perhaps possible to get this merged for 2.6.34-rc2?
+> That way it will be easier to merge fixes there. Although I think that it
+> is unlikely that we will want to make any videobuf changes for 2.6.34.
 
-this is the second version of a series that introduces a V4L2_BUF_FLAG_ERROR
-flag for recoverable stream errors. It allows applications to gracefully recover
-in case of such errors instead of losing the buffer or having to guess
-its index.
+Videobuf changes for 2.6.34? Only if you catch a bug that affect the current
+drivers and after lots of testing. It seems very unlikely. I don't see any
+reason to send a pure cleanup patch outside the merge window. So, after review,
+I'll add it at v4l-dvb.git tree (so, a patch for 2.6.35).
 
-Changes since v1:
-- the new flag is not returned along with V4L2_BUF_FLAG_DONE (I misinterpreted
-  the docs previously)
+-- 
 
-This series contains:
-[PATCH v2 1/3] v4l: Add a new ERROR flag for DQBUF after recoverable streaming errors
-[PATCH v2 2/3] v4l: videobuf: Add support for V4L2_BUF_FLAG_ERROR
-[PATCH v2 3/3] v4l: Add documentation for the new error flag
-
-Best regards
---
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
-
+Cheers,
+Mauro
