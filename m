@@ -1,46 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rouge.crans.org ([138.231.136.3]:48766 "EHLO rouge.crans.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755880Ab0CDLyg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Mar 2010 06:54:36 -0500
-Message-ID: <4B8F9EB7.7050302@braice.net>
-Date: Thu, 04 Mar 2010 12:51:19 +0100
-From: Brice <braice@braice.net>
+Received: from mail-bw0-f212.google.com ([209.85.218.212]:53325 "EHLO
+	mail-bw0-f212.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751458Ab0CQPMI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Mar 2010 11:12:08 -0400
+Date: Wed, 17 Mar 2010 18:11:56 +0300
+From: Dan Carpenter <error27@gmail.com>
+To: Andy Walls <awalls@radix.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] ivtv: sizeof() => ARRAY_SIZE()
+Message-ID: <20100317151156.GG5331@bicker>
 MIME-Version: 1.0
-To: Aslam Mullapilly <aslam@hcscomm.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
-Subject: Re: Mumu DVB & Infinity Smart Card reader
-References: <1267260444.4176.31.camel@lisa> <425356A9213FA046A466287AF4E18B19568EB175DB@ALH-MAIL.alhgroup.net>
-In-Reply-To: <425356A9213FA046A466287AF4E18B19568EB175DB@ALH-MAIL.alhgroup.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Aslam Mullapilly wrote:
-> Hi,
-> 
-> It will be great full if somebody can help me use Infinity smart card reader to tune scrambled channel in mumudvb.
-> 
-> 
-> 
+This fixes a smatch warning:
+drivers/media/video/ivtv/ivtv-vbi.c +138 ivtv_write_vbi(43) 
+	error: buffer overflow 'vi->cc_payload' 256 <= 1023
 
+Signed-off-by: Dan Carpenter <error27@gmail.com>
 
-Hello
-
-Basically once your soft CAM works, DVB programs as MuMuDVB doesn't need
-some more extra configuration
-
-So your question is making your smart card reader working under linux in
-general...
-
-Unfortunately I cannot tell you more than having a look to sasc-ng and
-dvbloopback documentation
-
-
-Regards
-
-
--- 
-Brice
+diff --git a/drivers/media/video/ivtv/ivtv-vbi.c b/drivers/media/video/ivtv/ivtv-vbi.c
+index f420d31..d73af45 100644
+--- a/drivers/media/video/ivtv/ivtv-vbi.c
++++ b/drivers/media/video/ivtv/ivtv-vbi.c
+@@ -134,7 +134,7 @@ void ivtv_write_vbi(struct ivtv *itv, const struct v4l2_sliced_vbi_data *sliced,
+ 			}
+ 		}
+ 	}
+-	if (found_cc && vi->cc_payload_idx < sizeof(vi->cc_payload)) {
++	if (found_cc && vi->cc_payload_idx < ARRAY_SIZE(vi->cc_payload)) {
+ 		vi->cc_payload[vi->cc_payload_idx++] = cc;
+ 		set_bit(IVTV_F_I_UPDATE_CC, &itv->i_flags);
+ 	}
