@@ -1,86 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.oregonstate.edu ([128.193.15.35]:42364 "EHLO
-	smtp1.oregonstate.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933042Ab0CLW0s (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:47000 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754432Ab0CQOpR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Mar 2010 17:26:48 -0500
-Message-ID: <4B9ABE3C.6010909@onid.orst.edu>
-Date: Fri, 12 Mar 2010 14:20:44 -0800
-From: Michael Akey <akeym@onid.orst.edu>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <j.w.r.degoede@hhs.nl>
-Subject: Re: Remaining drivers that aren't V4L2?
-References: <829197381003121211l469c30bfjba077cea028bf680@mail.gmail.com> <201003122242.06508.hverkuil@xs4all.nl>
-In-Reply-To: <201003122242.06508.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Wed, 17 Mar 2010 10:45:17 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=us-ascii
+Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0KZF00BCQKZF8380@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 17 Mar 2010 14:45:15 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0KZF006HJKZECV@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 17 Mar 2010 14:45:15 +0000 (GMT)
+Date: Wed, 17 Mar 2010 15:43:27 +0100
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: RE: [PATCH v2] v4l: videobuf: code cleanup.
+In-reply-to: <A24693684029E5489D1D202277BE8944541370F8@dlee02.ent.ti.com>
+To: "'Aguirre, Sergio'" <saaguirre@ti.com>,
+	'Hans Verkuil' <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	kyungmin.park@samsung.com
+Message-id: <001701cac5e0$3454cf80$9cfe6e80$%osciak@samsung.com>
+Content-language: pl
+References: <1268831061-307-1-git-send-email-p.osciak@samsung.com>
+ <1268831061-307-2-git-send-email-p.osciak@samsung.com>
+ <A24693684029E5489D1D202277BE894454137086@dlee02.ent.ti.com>
+ <001001cac5dc$4407f690$cc17e3b0$%osciak@samsung.com>
+ <03b82834cbbe28326f10899d781d2701.squirrel@webmail.xs4all.nl>
+ <A24693684029E5489D1D202277BE8944541370F8@dlee02.ent.ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
-> On Friday 12 March 2010 21:11:49 Devin Heitmueller wrote:
->   
->> Hello,
+> Aguirre, Sergio wrote:
+>> >> Aguirre, Sergio wrote:
+>> >>> Make videobuf pass checkpatch; minor code cleanups.
+>> >>
+>> >>I thought this kind patches were frowned upon..
+>> >>
+>> >>http://www.mjmwired.net/kernel/Documentation/development-
+>> process/4.Coding#41
+>> >>
+>> >>But maybe it's acceptable in this case... I'm not an expert on community
+>> >> policies :)
+>> >
+>> > Hm, right...
+>> > I'm not an expert either, but it does seem reasonable. It was just a
+>> part
+>> > of the
+>> > roadmap we agreed on in Norway, so I simply went ahead with it. Merging
+>> > with other
+>> > patches would pollute them so I just posted it separately. I will leave
+>> > the
+>> > decision up to Mauro then. I have some more "normal" patches lined up,
+>> > so please let me know. I'm guessing we are cancelling the clean-up then
+>> > though.
+>
+>It wasn't my intention to cancel your effort :) Please don't give up because of my comment.
+>
 >>
->> I know some months ago, there was some discussion about a few drivers
->> which were stragglers and had not been converted from V4L to V4L2.
->>
->> Do we have a current list of driver which still haven't been converted?
->>     
+>> As I said, you give up way too easily. There are good reasons for doing a
+>> simple straightforward cleanup patch first before tackling all the more
+>> complex issues. Let's get this in first, then the future patches will only
+>> do the actual functional changes instead of them having to do codingstyle
+>> cleanups at the same time. I want to avoid that.
 >
-> These drivers are still v4l1:
+>Sounds reasonable.
 >
-> arv
-> bw-qcam
-> c-qcam
-> cpia_pp
-> cpia_usb
-> ov511
-> se401
-> stradis
-> stv680
-> usbvideo
-> w9966
->
-> Some of these have counterparts in gspca these days so possibly some drivers
-> can be removed by now. Hans, can you point those out?
->
-> arv, bw-qcam, c-qcam, cpia_pp and stradis can probably be moved to staging
-> and if no one steps up then they can be dropped altogether.
->   
+>I wont say naything more about the topic. I think you guys have cleared it enough for me :)
 
-Does this mean that the bw-qcam driver will be removed in future 
-revisions or does this mean it will just never be updated to v4l2?
 
-> According to my notes I should be able to test cpia_usb. I would have to
-> verify that, though. I think it is only used in a USB microscope. It is
-> effectively a webcam. I can also test usbvideo (USB 1 TV capture device).
-> The latter is probably the most important driver that needs converting,
-> because I think these are not uncommon.
->
-> However, I have no time to work on such a driver conversion. But if someone
-> is seriously willing to put time and effort in that, then I am willing to
-> mail the hardware.
->
->   
->> I started doing some more tvtime work last night, and I would *love*
->> to drop V4L support (and *only* support V4L2 devices), since it would
->> make the code much cleaner, more reliable, and easier to test.
->>
->> If there are only a few obscure webcams remaining, then I'm willing to
->> tell those users that they have to stick with whatever old version of
->> tvtime they've been using since the last release four years ago.
->>     
->
-> To my knowledge the usbvideo driver is probably the least obscure device
-> that is still using V4L1.
->
-> Regards,
->
-> 	Hans
->
->   
+Come on guys, I really do not give up that easily, I just went on with more important
+patches. I am just a very agreeable person, that's all :)
+
+
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
+
+
+
+
 
