@@ -1,37 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from poutre.nerim.net ([62.4.16.124]:56840 "EHLO poutre.nerim.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752764Ab0CaLAo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Mar 2010 07:00:44 -0400
-Date: Wed, 31 Mar 2010 13:00:42 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: Andrzej Hajda <andrzej.hajda@wp.pl>
-Cc: LMML <linux-media@vger.kernel.org>
-Subject: cx88 remote control event device
-Message-ID: <20100331130042.276d7ef7@hyperion.delvare>
-Mime-Version: 1.0
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4639 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752539Ab0CQO02 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Mar 2010 10:26:28 -0400
+Message-ID: <1b349bbb89725540c70175130caf9ae3.squirrel@webmail.xs4all.nl>
+In-Reply-To: <A24693684029E5489D1D202277BE894454137086@dlee02.ent.ti.com>
+References: <1268831061-307-1-git-send-email-p.osciak@samsung.com>
+    <1268831061-307-2-git-send-email-p.osciak@samsung.com>
+    <A24693684029E5489D1D202277BE894454137086@dlee02.ent.ti.com>
+Date: Wed, 17 Mar 2010 15:26:21 +0100
+Subject: RE: [PATCH v2] v4l: videobuf: code cleanup.
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Cc: "Pawel Osciak" <p.osciak@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"m.szyprowski@samsung.com" <m.szyprowski@samsung.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
+MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrzej,
 
-Last year, you submitted a fix for the cx88 remote control not behaving
-properly on some cards. The fix works fine for me and lets me use my
-remote control, and I am very grateful for this.
+> Hi,
+>
+>> -----Original Message-----
+>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>> owner@vger.kernel.org] On Behalf Of Pawel Osciak
+>> Sent: Wednesday, March 17, 2010 8:04 AM
+>> To: linux-media@vger.kernel.org
+>> Cc: p.osciak@samsung.com; m.szyprowski@samsung.com;
+>> kyungmin.park@samsung.com
+>> Subject: [PATCH v2] v4l: videobuf: code cleanup.
+>>
+>> Make videobuf pass checkpatch; minor code cleanups.
+>
+> I thought this kind patches were frowned upon..
+>
+> http://www.mjmwired.net/kernel/Documentation/development-process/4.Coding#41
+>
+> But maybe it's acceptable in this case... I'm not an expert on community
+> policies :)
 
-However, I have noticed (using powertop) that the cx88 driver is waking
-up the kernel 1250 times per second to handle the remote control. I
-understand that it is needed for proper operation when the remote
-control is in use. What I do not understand is why it still happens
-when nobody uses the remote control. Even when no application has the
-event device node opened, polling still happens.
+It is true that you shouldn't do this 'just to clean up code'. But in this
+case we want to do a lot of work on the videobuf framework, and it helps a
+lot if it is first brought up to date with the coding standards.
 
-Can't we have the cx88 driver poll the remote control only when the
-device node is opened? I believe this would save some power by allowing
-the CPU to stay in higher C states.
+It's just step one in a much longer process :-)
 
-Thanks,
+Regards,
+
+          Hans
+
 -- 
-Jean Delvare
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+
