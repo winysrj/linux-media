@@ -1,58 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:47671 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754716Ab0CQMhz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Mar 2010 08:37:55 -0400
-Date: Wed, 17 Mar 2010 13:38:01 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] V4L: introduce a Kconfig variable to disable helper-chip
- autoselection
-Message-ID: <Pine.LNX.4.64.1003171336180.4354@axis700.grange>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2304 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751108Ab0CQUOd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Mar 2010 16:14:33 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Pawel Osciak <p.osciak@samsung.com>
+Subject: Re: [PATCH] v4l: videobuf: make poll() report proper flags for output video devices
+Date: Wed, 17 Mar 2010 21:14:42 +0100
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, m-karicheri2@ti.com, chaithrika@ti.com
+References: <1268834402-31355-1-git-send-email-p.osciak@samsung.com>
+In-Reply-To: <1268834402-31355-1-git-send-email-p.osciak@samsung.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201003172114.42210.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Helper-chip autoselection doesn't work in some situations. Add a configuration
-variable to let drivers disable it. Use it to disable autoselection if
-SOC_CAMERA is selected.
+On Wednesday 17 March 2010 15:00:02 Pawel Osciak wrote:
+> According to the V4L2 specification, poll() should set POLLOUT | POLLWRNORM
+> flags for output devices after the frame has been displayed.
+> 
+> Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+> Reviewed-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  drivers/media/video/videobuf-core.c |   10 ++++++++--
+>  1 files changed, 8 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/video/videobuf-core.c b/drivers/media/video/videobuf-core.c
+> index 37afb4e..e93672a 100644
+> --- a/drivers/media/video/videobuf-core.c
+> +++ b/drivers/media/video/videobuf-core.c
+> @@ -1075,8 +1075,14 @@ unsigned int videobuf_poll_stream(struct file *file,
+>  	if (0 == rc) {
+>  		poll_wait(file, &buf->done, wait);
+>  		if (buf->state == VIDEOBUF_DONE ||
+> -		    buf->state == VIDEOBUF_ERROR)
+> -			rc = POLLIN|POLLRDNORM;
+> +		    buf->state == VIDEOBUF_ERROR) {
+> +			if (q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> +				rc = POLLIN | POLLRDNORM;
+> +			else if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> +				rc = POLLOUT | POLLWRNORM;
+> +			else
+> +				BUG();
+> +		}
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+This is not right. First of all you shouldn't call BUG here. It is better to
+default to POLLIN|POLLRDNORM. Secondly, there are more types than just these
+two.
 
-This will also be used from VOU video-output driver, other SoC drivers 
-might also want to select this option.
+This is better:
 
- drivers/media/video/Kconfig |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+	switch (q->type) {
+		case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+		case V4L2_BUF_TYPE_VBI_OUTPUT:
+		case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
+			rc = POLLOUT | POLLWRNORM;
+			break;
+		default:
+			rc = POLLIN | POLLRDNORM;
+			break;
+	}
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 64682bf..73f3808 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -77,8 +77,12 @@ config VIDEO_FIXED_MINOR_RANGES
- 
- 	  When in doubt, say N.
- 
-+config VIDEO_HELPER_CHIPS_AUTO_DISABLE
-+	bool
-+
- config VIDEO_HELPER_CHIPS_AUTO
- 	bool "Autoselect pertinent encoders/decoders and other helper chips"
-+	depends on !VIDEO_HELPER_CHIPS_AUTO_DISABLE
- 	default y
- 	---help---
- 	  Most video cards may require additional modules to encode or
-@@ -816,6 +820,7 @@ config SOC_CAMERA
- 	tristate "SoC camera support"
- 	depends on VIDEO_V4L2 && HAS_DMA && I2C
- 	select VIDEOBUF_GEN
-+	select VIDEO_HELPER_CHIPS_AUTO_DISABLE
- 	help
- 	  SoC Camera is a common API to several cameras, not connecting
- 	  over a bus like PCI or USB. For example some i2c camera connected
+Regards,
+
+	Hans
+
+
+>  	}
+>  	mutex_unlock(&q->vb_lock);
+>  	return rc;
+> 
+
 -- 
-1.6.2.4
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
