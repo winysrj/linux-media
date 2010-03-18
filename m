@@ -1,64 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.26]:33977 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752701Ab0CBApN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Mar 2010 19:45:13 -0500
-Received: by ey-out-2122.google.com with SMTP id 25so319696eya.5
-        for <linux-media@vger.kernel.org>; Mon, 01 Mar 2010 16:45:12 -0800 (PST)
-MIME-Version: 1.0
-Date: Tue, 2 Mar 2010 00:45:04 +0000
-Message-ID: <74fd948d1003011645l3b595442qde58b6263b4ce710@mail.gmail.com>
-Subject: Audio4DJ (snd-usb-caiaq) noise when using DVB usb adapter
-From: Pedro Ribeiro <pedrib@gmail.com>
-To: alsa-devel@alsa-project.org, Daniel Mack <daniel@caiaq.de>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail1.radix.net ([207.192.128.31]:64941 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752818Ab0CRLYU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Mar 2010 07:24:20 -0400
+Subject: Re: DMX Input selection
+From: Andy Walls <awalls@radix.net>
+To: The Duke Forever <thedukevip@gmail.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <4adcd9b21003170344j63f8b845ja1033d7ce590f978@mail.gmail.com>
+References: <4adcd9b21003170344j63f8b845ja1033d7ce590f978@mail.gmail.com>
+Content-Type: text/plain
+Date: Thu, 18 Mar 2010 07:24:32 -0400
+Message-Id: <1268911472.3084.4.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On Wed, 2010-03-17 at 11:44 +0100, The Duke Forever wrote:
+> Hello,
+> I'm currently developing a DVB test application without real hardware,
+> instead, I'm using dvb_dummy_adapter (+dvb-core and dvb_dummy_fe)
+> Testing PES filtering is OK, since I have read/write operations on the
+> logical dvr device "/dev/dvb/adapter0/dvr0"
+> I have problems with section filtering, I can't find a way to read
+> data from a TS file.
+> Methods I've tried :
+> - Write data to DVR, set the demux to read data from DVR using ioctl
+> "DMX_SET_SOURCE" -> seems that this ioctl is not implemented
+> - As the section filter reads data from frontend, I've tried to write
+> data to "/dev/dvb/adapter0/frontend0" so they can be read by the
+> demux, but no luck, no writing operation available
+> 
+> Any suggestions please ?!
 
-I'm encountering a problem with the Audio4DJ audio card with a  DVB
-USB adapter (Win-TV NOVA-T USB2 STICK).
+My dvb_dummy_adapter patch was a 1-hour hack just for "fun".  It does
+nothing non-standard (hopefully) and adds no APIs.  IIRC, writing to the
+frontend is not a valid operation in the DVB API.
 
-The problem is strange because it only happens after I disconnect and
-reconnect the audio card.
-
-Procedure 1:
-- boot from fresh
-- plug the DVB adapter
-- plug the Audio4DJ
-
-Everything works correctly - meaning I can watch TV and my audio is fine.
-
-Procedure 2:
-- boot from fresh
-- plug the Audio4DJ
-- plug the DVB adapter
-
-The audio starts cracking every few seconds, and constantly if I use jackd.
-
-Procedure 3:
-- boot from fresh
-- plug the DVB adapter
-- plug the Audio4DJ
-(everything is correct, as above in Procedure 1)
-- unplug the Audio4DJ
-- plug it again
-
-Cracking audio. I'm insisting in "boot from fresh" because from now on
-(that is, from the moment that I unplug the Audio4DJ) I always get
-cracking audio.
-
-rmmod'ing the snd-usb-caiaq and the usb-dvb modules produces the same
-result. I have to boot from fresh and do Procedure 1 for it to work
-OK.
-
-
-Can anyone please give a hint on how to debug this?
-
-(Please CC me directly as I'm not in both lists).
-
+I would suggest looking around for the dvbloopback (dvb_loopback ?)
+patches.  They create a more complete dummy adapater and provide a
+special (non-standard) character device node for injecting data as if it
+came from the frontend.
 
 Regards,
-Pedro
+Andy
+
+
