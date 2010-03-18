@@ -1,119 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:33865 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966338Ab0CPPA0 (ORCPT
+Received: from aa003msb.fastweb.it ([85.18.95.82]:48322 "EHLO
+	aa003msb.fastweb.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752186Ab0CRJrT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Mar 2010 11:00:26 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0KZD0064YR0OMB60@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 16 Mar 2010 15:00:24 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0KZD00D2XR0N0T@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 16 Mar 2010 15:00:24 +0000 (GMT)
-Date: Tue, 16 Mar 2010 15:58:36 +0100
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: RE: Magic in videobuf
-In-reply-to: <4B9E6DC4.5010301@redhat.com>
-To: 'Mauro Carvalho Chehab' <mchehab@redhat.com>,
-	'Hans Verkuil' <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	kyungmin.park@samsung.com
-Message-id: <001a01cac519$27e2cdf0$77a869d0$%osciak@samsung.com>
-Content-language: pl
-References: <E4D3F24EA6C9E54F817833EAE0D912AC09C7FCA3BF@bssrvexch01.BS.local>
- <4B9E1931.8060006@redhat.com>
- <b320a5b9ff16d1df8ecc6272a7fe2c14.squirrel@webmail.xs4all.nl>
- <4B9E5EF1.2000600@redhat.com>
- <e1551c2096f8616e8b01344b1af51a51.squirrel@webmail.xs4all.nl>
- <4B9E6DC4.5010301@redhat.com>
+	Thu, 18 Mar 2010 05:47:19 -0400
+Received: from mi-04.localnet (2.253.108.116) by aa003msb.fastweb.it (8.5.016.6)
+        id 4B86A23801F8190C for linux-media@vger.kernel.org; Thu, 18 Mar 2010 10:49:30 +0100
+From: Viviano Guastalla <vguastal@tiscali.it>
+To: linux-media@vger.kernel.org
+Subject: sending log
+Date: Thu, 18 Mar 2010 10:41:49 +0100
+MIME-Version: 1.0
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_dVfoLCn+mR2h3QZ"
+Message-Id: <201003181041.50036.vguastal@tiscali.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->Mauro Carvalho Chehab wrote:
->>>>>> is anyone aware of any other uses for MAGIC_CHECK()s in videobuf code
->>>>>> besides driver debugging? I intend to remove them, as we weren't able
->>>>>> to find any particular use for them when we were discussing this at
->>>>>> the memory handling meeting in Norway...
->>>>> It is a sort of paranoid check to avoid the risk of mass memory
->>>>> corruption
->>>>> if something goes deadly wrong with the video buffers.
->>>>>
->>>>> The original videobuf, written back in 2001/2002 had this code, and
->>>>> I've
->>>>> kept it on the redesign I did in 2007, since I know that DMA is very
->>>>> badly
->>>>> implemented on some chipsets. There are several reports of the video
->>>>> driver
->>>>> to corrupt the system memory and damaging the disk data when a PCI
->>>>> transfer
->>>>> to disk happens at the same time that a PCI2PCI data transfer happens
->>>>> (This
->>>>> basically affects overlay mode, where the hardware is programmed to
->>>>> transfer
->>>>> data from the video board to the video adapter board).
->>>>>
->>>>> The DMA bug is present on several VIA and SYS old chipsets. It happened
->>>>> again
->>>>> in some newer chips (2007?), and the fix were to add a quirk blocking
->>>>> overlay
->>>>> mode on the reported broken hardware. It seems that newer BIOSes for
->>>>> those
->>>>> newer hardware fixed this issue.
->>>>>
->>>>> That's said, I never got any report from anyone explicitly saying that
->>>>> they
->>>>> hit the MAGIC_CHECK() logic.
->>>>>
->>>>> I prefer to keep this logic, but maybe we can add a CONFIG option to
->>>>> disable it.
->>>>> Something like:
->>>>>
->>>>> #ifdef CONFIG_VIDEO_DMA_PARANOID_CHECK
->>>>> 	#define MAGIC_CHECK() ...
->>>>> #else
->>>>> 	#define MAGIC_CHECK()
->>>>> #endif
->>>> What on earth does this magic check have to do with possible DMA
->>>> overruns/memory corruption? This assumes that somehow exactly these
->>>> magic
->>>> fields are overwritten and that you didn't crash because of memory
->>>> corruption elsewhere much earlier.
->>> Yes, that's the assumption. As, in general, there are more than one
->>> videobuffer,
->>> and assuming that one buffer physical address is close to the other, if
->>> the data
->>> got miss-aligned at the DMA, it is likely that the magic number of the
->>> next buffer
->>> will be overwritten if something got bad. The real situation will depend
->>> on how
->>> fragmented is the memory.
->>
->> For the record: we are talking about the magic fields as found in
->> include/media/videobuf*.h. None of the magic field there are actually in
->> the video buffers. They are in administrative structures or in ops structs
->> which are unlikely to be close in memory to the actual buffers.
->
->Well, Pawel's email didn't mentioned that he is referring just to one type
->of magic check.
+--Boundary-00=_dVfoLCn+mR2h3QZ
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 
-Thanks for the explanation. Although I don't really understand how any of
-the magic numbers would help with DMA corruption, short of DMA operations
-overwriting random memory areas (or just huge amounts of memory). If I understood
-correctly, even the magics in dma-sg code are in structs videobuf_dmabuf and
-videobuf_dma_sg_memory. Do dma operations touch those structures directly?
+Hello, I inserted my USB Video Grabber labeled "Extreme Video Grabber - Model 
+DK-8701" and got the attached log.
+Thank you for your attention
 
+Viviano Guastalla
 
-Best regards
---
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
+--Boundary-00=_dVfoLCn+mR2h3QZ
+Content-Type: text/plain;
+  charset="UTF-8";
+  name="log.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="log.txt"
 
-
-
+[15931.796364] usb 1-4.4.1: new high speed USB device using ehci_hcd and address 10                               
+[15931.888352] usb 1-4.4.1: New USB device found, idVendor=eb1a, idProduct=2861                                   
+[15931.888391] usb 1-4.4.1: New USB device strings: Mfr=0, Product=0, SerialNumber=0                              
+[15931.888593] usb 1-4.4.1: configuration #1 chosen from 1 choice                                                 
+[15932.017207] Linux video capture interface: v2.00                                                               
+[15932.072176] em28xx: New device @ 480 Mbps (eb1a:2861, interface 0, class 0)                                    
+[15932.072329] em28xx #0: chip ID is em2860                                                                       
+[15932.200896] em28xx #0: board has no eeprom                                                                     
+[15932.212388] em28xx #0: Identified as Unknown EM2750/28xx video grabber (card=1)                                
+[15932.245260] em28xx #0: found i2c device @ 0xb8 [tvp5150a]                                                      
+[15932.257378] em28xx #0: Your board has no unique USB ID and thus need a hint to be detected.                    
+[15932.257393] em28xx #0: You may try to use card=<n> insmod option to workaround that.                           
+[15932.257403] em28xx #0: Please send an email with this log to:                                                  
+[15932.257411] em28xx #0:       V4L Mailing List <linux-media@vger.kernel.org>                                    
+[15932.257420] em28xx #0: Board eeprom hash is 0x00000000                                                         
+[15932.257429] em28xx #0: Board i2c devicelist hash is 0x77800080                                                 
+[15932.257437] em28xx #0: Here is a list of valid choices for the card=<n> insmod option:                         
+[15932.257448] em28xx #0:     card=0 -> Unknown EM2800 video grabber                                              
+[15932.257457] em28xx #0:     card=1 -> Unknown EM2750/28xx video grabber                                         
+[15932.257466] em28xx #0:     card=2 -> Terratec Cinergy 250 USB                                                  
+[15932.257475] em28xx #0:     card=3 -> Pinnacle PCTV USB 2                                                       
+[15932.257484] em28xx #0:     card=4 -> Hauppauge WinTV USB 2                                                     
+[15932.257492] em28xx #0:     card=5 -> MSI VOX USB 2.0                                                           
+[15932.257501] em28xx #0:     card=6 -> Terratec Cinergy 200 USB                                                  
+[15932.257510] em28xx #0:     card=7 -> Leadtek Winfast USB II                                                    
+[15932.257518] em28xx #0:     card=8 -> Kworld USB2800                                                            
+[15932.257527] em28xx #0:     card=9 -> Pinnacle Dazzle DVC 90/100/101/107 / Kaiser Baas Video to DVD maker       
+[15932.257538] em28xx #0:     card=10 -> Hauppauge WinTV HVR 900                                                  
+[15932.257547] em28xx #0:     card=11 -> Terratec Hybrid XS                                                       
+[15932.257556] em28xx #0:     card=12 -> Kworld PVR TV 2800 RF                                                    
+[15932.257564] em28xx #0:     card=13 -> Terratec Prodigy XS                                                      
+[15932.257573] em28xx #0:     card=14 -> SIIG AVTuner-PVR / Pixelview Prolink PlayTV USB 2.0                      
+[15932.257583] em28xx #0:     card=15 -> V-Gear PocketTV                                                          
+[15932.257592] em28xx #0:     card=16 -> Hauppauge WinTV HVR 950                                                  
+[15932.257601] em28xx #0:     card=17 -> Pinnacle PCTV HD Pro Stick                                               
+[15932.257610] em28xx #0:     card=18 -> Hauppauge WinTV HVR 900 (R2)                                             
+[15932.257619] em28xx #0:     card=19 -> EM2860/SAA711X Reference Design                                          
+[15932.257628] em28xx #0:     card=20 -> AMD ATI TV Wonder HD 600                                                 
+[15932.257637] em28xx #0:     card=21 -> eMPIA Technology, Inc. GrabBeeX+ Video Encoder                           
+[15932.257647] em28xx #0:     card=22 -> EM2710/EM2750/EM2751 webcam grabber                                      
+[15932.257656] em28xx #0:     card=23 -> Huaqi DLCW-130                                                           
+[15932.257665] em28xx #0:     card=24 -> D-Link DUB-T210 TV Tuner                                                 
+[15932.257674] em28xx #0:     card=25 -> Gadmei UTV310                                                            
+[15932.257682] em28xx #0:     card=26 -> Hercules Smart TV USB 2.0                                                
+[15932.257691] em28xx #0:     card=27 -> Pinnacle PCTV USB 2 (Philips FM1216ME)                                   
+[15932.257701] em28xx #0:     card=28 -> Leadtek Winfast USB II Deluxe                                            
+[15932.257710] em28xx #0:     card=29 -> <NULL>                                                                   
+[15932.257718] em28xx #0:     card=30 -> Videology 20K14XUSB USB2.0                                               
+[15932.257727] em28xx #0:     card=31 -> Usbgear VD204v9                                                          
+[15932.257735] em28xx #0:     card=32 -> Supercomp USB 2.0 TV                                                     
+[15932.257744] em28xx #0:     card=33 -> <NULL>                                                                   
+[15932.257752] em28xx #0:     card=34 -> Terratec Cinergy A Hybrid XS                                             
+[15932.257761] em28xx #0:     card=35 -> Typhoon DVD Maker                                                        
+[15932.257769] em28xx #0:     card=36 -> NetGMBH Cam                                                              
+[15932.257778] em28xx #0:     card=37 -> Gadmei UTV330                                                            
+[15932.257786] em28xx #0:     card=38 -> Yakumo MovieMixer                                                        
+[15932.257795] em28xx #0:     card=39 -> KWorld PVRTV 300U                                                        
+[15932.257803] em28xx #0:     card=40 -> Plextor ConvertX PX-TV100U                                               
+[15932.257812] em28xx #0:     card=41 -> Kworld 350 U DVB-T                                                       
+[15932.257821] em28xx #0:     card=42 -> Kworld 355 U DVB-T
+[15932.257829] em28xx #0:     card=43 -> Terratec Cinergy T XS
+[15932.257838] em28xx #0:     card=44 -> Terratec Cinergy T XS (MT2060)
+[15932.257847] em28xx #0:     card=45 -> Pinnacle PCTV DVB-T
+[15932.257856] em28xx #0:     card=46 -> Compro, VideoMate U3
+[15932.257864] em28xx #0:     card=47 -> KWorld DVB-T 305U
+[15932.257873] em28xx #0:     card=48 -> KWorld DVB-T 310U
+[15932.257881] em28xx #0:     card=49 -> MSI DigiVox A/D
+[15932.257890] em28xx #0:     card=50 -> MSI DigiVox A/D II
+[15932.257898] em28xx #0:     card=51 -> Terratec Hybrid XS Secam
+[15932.257907] em28xx #0:     card=52 -> DNT DA2 Hybrid
+[15932.257915] em28xx #0:     card=53 -> Pinnacle Hybrid Pro
+[15932.257924] em28xx #0:     card=54 -> Kworld VS-DVB-T 323UR
+[15932.257933] em28xx #0:     card=55 -> Terratec Hybrid XS (em2882)
+[15932.257942] em28xx #0:     card=56 -> Pinnacle Hybrid Pro (2)
+[15932.257950] em28xx #0:     card=57 -> Kworld PlusTV HD Hybrid 330
+[15932.257960] em28xx #0:     card=58 -> Compro VideoMate ForYou/Stereo
+[15932.257969] em28xx #0:     card=59 -> <NULL>
+[15932.257977] em28xx #0:     card=60 -> Hauppauge WinTV HVR 850
+[15932.257985] em28xx #0:     card=61 -> Pixelview PlayTV Box 4 USB 2.0
+[15932.257995] em28xx #0:     card=62 -> Gadmei TVR200
+[15932.258003] em28xx #0:     card=63 -> Kaiomy TVnPC U2
+[15932.258011] em28xx #0:     card=64 -> Easy Cap Capture DC-60
+[15932.258020] em28xx #0:     card=65 -> IO-DATA GV-MVP/SZ
+[15932.258028] em28xx #0:     card=66 -> Empire dual TV
+[15932.258037] em28xx #0:     card=67 -> Terratec Grabby
+[15932.258045] em28xx #0:     card=68 -> Terratec AV350
+[15932.258054] em28xx #0:     card=69 -> KWorld ATSC 315U HDTV TV Box
+[15932.258063] em28xx #0:     card=70 -> Evga inDtube
+[15932.258071] em28xx #0:     card=71 -> Silvercrest Webcam 1.3mpix
+[15932.258127] em28xx #0: Config register raw data: 0x10
+[15932.280251] em28xx #0: AC97 vendor ID = 0xffffffff
+[15932.292248] em28xx #0: AC97 features = 0x6a90
+[15932.292260] em28xx #0: Empia 202 AC97 audio processor detected
+[15932.704026] em28xx #0: v4l2 driver version 0.1.2
+[15933.548342] em28xx #0: V4L2 device registered as /dev/video0 and /dev/vbi0
+[15933.555011] usbcore: registered new interface driver snd-usb-audio
+[15933.555094] usbcore: registered new interface driver em28xx
+[15933.555106] em28xx driver loaded
+--Boundary-00=_dVfoLCn+mR2h3QZ--
