@@ -1,74 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:56357 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751187Ab0CPW2g (ORCPT
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:61050 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753813Ab0CROJr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Mar 2010 18:28:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: Re: [omap3camera] Camera bring-up on Zoom3 (OMAP3630)
-Date: Tue, 16 Mar 2010 23:30:16 +0100
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <A24693684029E5489D1D202277BE894453CC5C3F@dlee02.ent.ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE894453CC5C3F@dlee02.ent.ti.com>
+	Thu, 18 Mar 2010 10:09:47 -0400
+Received: by bwz1 with SMTP id 1so2080117bwz.21
+        for <linux-media@vger.kernel.org>; Thu, 18 Mar 2010 07:09:46 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201003162330.17454.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <4BA1F9C6.3020807@motama.com>
+References: <4BA10639.3000407@motama.com> <4BA1F9C6.3020807@motama.com>
+Date: Thu, 18 Mar 2010 10:09:45 -0400
+Message-ID: <829197381003180709t26f76b38y7e641b8c12a2d33d@mail.gmail.com>
+Subject: Re: Problems with ngene based DVB cards (Digital Devices Cine S2 Dual
+	DVB-S2 , Mystique SaTiX S2 Dual)
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Andreas Besse <besse@motama.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergio,
+On Thu, Mar 18, 2010 at 6:00 AM, Andreas Besse <besse@motama.com> wrote:
+> Hello,
+>
+> We are now able to reproduce the problem faster and easier (using the
+> patched version of szap-s2 and the scripts included in the tar.gz :
+> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/17334
+> and
+> http://cache.gmane.org//gmane/linux/drivers/video-input-infrastructure/17334-001.bin
+> )
 
-On Friday 05 March 2010 15:54:58 Aguirre, Sergio wrote:
-> Hi Laurent, Sakari,
+This is pretty interesting.  I'm doing some ngene work over the next
+few weeks, so I will see if I can reproduce the behavior you are
+seeing here.
 
-Oops, just noticed I forgot to answer your e-mail, sorry.
+I noticed  that you are manually setting the "one_adapter=0" modprobe
+setting.  Does this have any bearing on the test results?
 
-> I'm trying to get latest Sakari's tree (gitorious.org/omap3camera)
-> 'devel' branch running on my Zoom3 HW (which has an OMAP3630, and a
-> Sony IMX046 8MP sensor).
-> 
-> I had first one NULL pointer dereference while the driver was
-> registering devices and creating entities, which I resolved with
-> the attached patch. (Is this patch acceptable, or maybe I am missing
-> something...)
+Dvein
 
-Either that, or make OMAP34XXCAM_VIDEODEVS dynamic (the value would be passed 
-through platform data). The code will be removed (hopefully soon) anyway when 
-the legacy video nodes will disappear.
 
-> And now, I don't get quite clear on how the created nodes work out.
-> 
-> Now I have /dev/video[0-5], but I don't know how I'm I supposed to handle
-> them...
-> 
-> Here's my current work-in-progress kernel:
-> 
-> 	http://dev.omapzoom.org/?p=saaguirre/linux-omap-camera.git;a=shortlog;h=re
-> fs/heads/omap-devel-wip
-> 
-> Can you please give some guidance on it?
-
-Basically, the driver creates OMAP34XXCAM_VIDEODEVS "legacy" video nodes, one 
-for each sensor connected to the ISP. As your board has a single sensor, the 
-driver will create the /dev/video0 legacy video node.
-
-Legacy video nodes use hard-coded assumptions that were implemented according 
-to Nokia's use cases on the N900. They can only offer a subset of the 
-functions available in the hardware.
-
-For full access to the ISP, you will need to use the new video nodes (1 to 5). 
-Those video nodes are to be used in conjunction with the media controller. All 
-the necessary patches aren't available yet, but they should be soon (it's 
-hopefully a matter of days to get the userspace API there).
-
-I will try to make a userspace test application available when the patches 
-will be pushed to the linux-omap-camera tree.
 
 -- 
-Regards,
-
-Laurent Pinchart
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
