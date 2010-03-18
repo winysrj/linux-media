@@ -1,56 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:18063 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754257Ab0CQORM (ORCPT
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:59734 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752874Ab0CRLZH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Mar 2010 10:17:12 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0KZF003GSJOF2R80@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 17 Mar 2010 14:17:03 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0KZF002XQJOFIB@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 17 Mar 2010 14:17:03 +0000 (GMT)
-Date: Wed, 17 Mar 2010 15:15:15 +0100
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: RE: [PATCH v2] v4l: videobuf: code cleanup.
-In-reply-to: <A24693684029E5489D1D202277BE894454137086@dlee02.ent.ti.com>
-To: "'Aguirre, Sergio'" <saaguirre@ti.com>, linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	kyungmin.park@samsung.com
-Message-id: <001001cac5dc$4407f690$cc17e3b0$%osciak@samsung.com>
-Content-language: pl
-References: <1268831061-307-1-git-send-email-p.osciak@samsung.com>
- <1268831061-307-2-git-send-email-p.osciak@samsung.com>
- <A24693684029E5489D1D202277BE894454137086@dlee02.ent.ti.com>
+	Thu, 18 Mar 2010 07:25:07 -0400
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.1003171103030.4354@axis700.grange>
+References: <Pine.LNX.4.64.1003171103030.4354@axis700.grange>
+Date: Thu, 18 Mar 2010 20:25:06 +0900
+Message-ID: <aec7e5c31003180425l5066edffl4eda8804278b42d8@mail.gmail.com>
+Subject: Re: [PATCH 1/3 v2] V4L: SuperH Video Output Unit (VOU) driver
+From: Magnus Damm <magnus.damm@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Magnus Damm <damm@opensource.se>,
+	"linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Aguirre, Sergio wrote:
->> Make videobuf pass checkpatch; minor code cleanups.
+Hey Guennadi,
+
+On Thu, Mar 18, 2010 at 7:28 PM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> A number of SuperH SoCs, including sh7724, include a Video Output Unit. This
+> patch adds a video (V4L2) output driver for it. The driver uses v4l2-subdev and
+> mediabus APIs to interface to TV encoders.
 >
->I thought this kind patches were frowned upon..
->
->http://www.mjmwired.net/kernel/Documentation/development-process/4.Coding#41
->
->But maybe it's acceptable in this case... I'm not an expert on community policies :)
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
 
-Hm, right...
-I'm not an expert either, but it does seem reasonable. It was just a part of the
-roadmap we agreed on in Norway, so I simply went ahead with it. Merging with other
-patches would pollute them so I just posted it separately. I will leave the
-decision up to Mauro then. I have some more "normal" patches lined up,
-so please let me know. I'm guessing we are cancelling the clean-up then though.
+Thanks for your work on this. The VOU block is actually used by the
+SH-Mobile series of SoCs. So you may want to throw in a "mobile" there
+in you description to avoid future name space collisions.
 
+I'll make sure that people test your V2 patch.
 
-Best regards
---
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
+Is both NTSC and PAL known to be ok with v2?
 
+Thanks,
 
+/ magnus
