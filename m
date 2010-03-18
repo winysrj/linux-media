@@ -1,115 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4966 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751341Ab0CSUhi (ORCPT
+Received: from mail-bw0-f212.google.com ([209.85.218.212]:34764 "EHLO
+	mail-bw0-f212.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751229Ab0CRG7R (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Mar 2010 16:37:38 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o2JKbaW4087215
-	for <linux-media@vger.kernel.org>; Fri, 19 Mar 2010 21:37:37 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 19 Mar 2010 21:37:36 +0100 (CET)
-Message-Id: <201003192037.o2JKbaW4087215@smtp-vbr7.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
+	Thu, 18 Mar 2010 02:59:17 -0400
+Received: by bwz4 with SMTP id 4so1848886bwz.39
+        for <linux-media@vger.kernel.org>; Wed, 17 Mar 2010 23:59:15 -0700 (PDT)
+Date: Thu, 18 Mar 2010 16:00:19 +0900
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] Add CHIP ID of the uPD61151
+Message-ID: <20100318160019.43043c8f@glory.loctelecom.ru>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/sOntcJ/n5..Cj0JyVmWk2BW"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+--MP_/sOntcJ/n5..Cj0JyVmWk2BW
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Results of the daily build of v4l-dvb:
+Hi
 
-date:        Fri Mar 19 19:00:28 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14494:929298149eba
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 8c69c6ed6c74c94fa7ad6fa24eda452e4b212d81
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Add CHIP ID of the NEC MPEG2 encoders uPD61151 and uPD61152.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc1-armv5: OK
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-rc1-armv5-davinci: WARNINGS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-rc1-armv5-ixp: WARNINGS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-rc1-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.17-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-rc1-i686: WARNINGS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc1-m32r: OK
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-rc1-mips: WARNINGS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-rc1-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.17-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-rc1-x86_64: WARNINGS
-linux-git-armv5: OK
-linux-git-armv5-davinci: OK
-linux-git-armv5-ixp: OK
-linux-git-armv5-omap2: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.7-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.62-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.7-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+diff -r b6b82258cf5e linux/include/media/v4l2-chip-ident.h
+--- a/linux/include/media/v4l2-chip-ident.h	Thu Dec 31 19:14:54 2009 -0200
++++ b/linux/include/media/v4l2-chip-ident.h	Wed Mar 17 04:53:52 2010 +0900
+@@ -278,6 +278,11 @@
+ 	/* module cs53132a: just ident 53132 */
+ 	V4L2_IDENT_CS53l32A = 53132,
+ 
++	/* modules upd61151 MPEG2 encoder: just ident 54000 */
++	V4L2_IDENT_UPD61161 = 54000,
++	/* modules upd61152 MPEG2 encoder with AC3: just ident 54001 */
++	V4L2_IDENT_UPD61162 = 54001,
++
+ 	/* module upd64031a: just ident 64031 */
+ 	V4L2_IDENT_UPD64031A = 64031,
+ 
 
-Detailed results are available here:
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-Full logs are available here:
+With my best regards, Dmitry.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+--MP_/sOntcJ/n5..Cj0JyVmWk2BW
+Content-Type: text/x-patch; name=v4l2_upd61151.patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=v4l2_upd61151.patch
 
-The V4L-DVB specification from this daily build is here:
+diff -r b6b82258cf5e linux/include/media/v4l2-chip-ident.h
+--- a/linux/include/media/v4l2-chip-ident.h	Thu Dec 31 19:14:54 2009 -0200
++++ b/linux/include/media/v4l2-chip-ident.h	Wed Mar 17 04:53:52 2010 +0900
+@@ -278,6 +278,11 @@
+ 	/* module cs53132a: just ident 53132 */
+ 	V4L2_IDENT_CS53l32A = 53132,
+ 
++	/* modules upd61151 MPEG2 encoder: just ident 54000 */
++	V4L2_IDENT_UPD61161 = 54000,
++	/* modules upd61152 MPEG2 encoder with AC3: just ident 54001 */
++	V4L2_IDENT_UPD61162 = 54001,
++
+ 	/* module upd64031a: just ident 64031 */
+ 	V4L2_IDENT_UPD64031A = 64031,
+ 
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+
+--MP_/sOntcJ/n5..Cj0JyVmWk2BW--
