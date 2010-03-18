@@ -1,119 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:51186 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751035Ab0CRMRy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Mar 2010 08:17:54 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH/RFC 0/2] Fix DQBUF behavior for recoverable streaming errors
-Date: Thu, 18 Mar 2010 13:20:07 +0100
-Cc: Pawel Osciak <p.osciak@samsung.com>, linux-media@vger.kernel.org,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com
-References: <1268836190-31051-1-git-send-email-p.osciak@samsung.com> <201003172105.19708.hverkuil@xs4all.nl>
-In-Reply-To: <201003172105.19708.hverkuil@xs4all.nl>
+Received: from mail.gmx.net ([213.165.64.20]:60061 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752671Ab0CRK2e (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Mar 2010 06:28:34 -0400
+Date: Thu, 18 Mar 2010 11:28:37 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Magnus Damm <damm@opensource.se>,
+	"linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>
+Subject: [PATCH 3/3 v2] sh: add Video Output Unit (VOU) and AK8813 TV-encoder
+ support to ms7724se
+In-Reply-To: <Pine.LNX.4.64.1003181051420.4485@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1003181126170.4485@axis700.grange>
+References: <Pine.LNX.4.64.1003171103030.4354@axis700.grange>
+ <Pine.LNX.4.64.1003181051420.4485@axis700.grange>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201003181320.08756.laurent.pinchart@ideasonboard.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans, Pavel,
+Add platform bindings, GPIO initialisation and allocation and AK8813 reset code
+to ms7724se.
 
-On Wednesday 17 March 2010 21:05:19 Hans Verkuil wrote:
-> On Wednesday 17 March 2010 15:29:48 Pawel Osciak wrote:
-> > Hello,
-> > 
-> > during the V4L2 brainstorm meeting in Norway we have concluded that
-> > streaming error handling in dqbuf is lacking a bit and might result in
-> > the application losing video buffers.
-> > 
-> > V4L2 specification states that DQBUF should set errno to EIO in such
-> > cases:
-> > 
-> > 
-> > "EIO
-> > 
-> > VIDIOC_DQBUF failed due to an internal error. Can also indicate temporary
-> > problems like signal loss. Note the driver might dequeue an (empty)
-> > buffer despite returning an error, or even stop capturing."
-> > 
-> > There is a problem with this though. v4l2-ioctl.c code does not copy back
-> > v4l2_buffer fields to userspace on a failed ioctl invocation, i.e. when
-> > __video_do_ioctl() does not return 0, it jumps over the copy_to_user()
-> > code:
-> > 
-> > /* ... */
-> > err = __video_do_ioctl(file, cmd, parg);
-> > /* ... */
-> > if (err < 0)
-> > 
-> > 	goto out;
-> > 
-> > /* ... */
-> > 
-> > 	if (copy_to_user((void __user *)arg, parg, _IOC_SIZE(cmd)))
-> > 	
-> > 		err = -EFAULT;
-> > 
-> > /* ... */
-> > out:
-> > 
-> > 
-> > This is fine in general, but in the case of DQBUF errors, the v4l2_buffer
-> > fields are not copied back. Because of that, the application does not
-> > have any means of discovering on which buffer the operation failed. So
-> > it cannot reuse that buffer, even despite the fact that the spec allows
-> > such behavior.
-> > 
-> > 
-> > This RFC proposes a modification to the DQBUF behavior in cases of
-> > internal (recoverable) errors to allow recovery from such situations.
-> > 
-> > We propose a new flag for the v4l2_buffer "flags" field,
-> > "V4L2_BUF_FLAG_ERROR". There already exists a "V4L2_BUF_FLAG_DONE" flag,
-> > so to support older applications, the new flag should always be set
-> > together with it.
-> > 
-> > Applications unaware of the new flag would simply display a corrupted
-> > frame, but we believe it is still a better solution than failing
-> > altogether. Old EIO behavior remains so the change is backwards
-> > compatible.
-> > 
-> > I will post relevant V4L2 documentation updates after (if) this change is
-> > accepted.
-> > 
-> > 
-> > This series is rebased onto my recent videobuf clean-up and poll behavior
-> > patches.
-> > 
-> > The series contains:
-> > [PATCH 1/2] v4l: Add a new ERROR flag for DQBUF after recoverable
-> > streaming errors [PATCH 2/2] v4l: videobuf: Add support for
-> > V4L2_BUF_FLAG_ERROR
-> 
-> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
-> 
-> I think this is a very sensible change. After all, DQBUF succeeds, even
-> though the buffer itself contains errors. But that is not the fault of
-> DQBUF. It is enough to flag that the buffer does have an error. Without
-> this you actually loose the buffer completely from the point of view of
-> the application. And that's really nasty.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-Especially with the current wording of the spec:
+v1 -> v2
 
-"Note the driver might dequeue an (empty) buffer despite returning an error, 
-or even stop capturing."
+1. VOU bus type name changed
 
-That's pretty bad. Because of video_ioctl2 the application won't know which 
-buffer has been dequeued, if any, and will thus have no way to requeue it.
+ arch/sh/boards/mach-se/7724/setup.c |   88 ++++++++++++++++++++++++++++++++---
+ 1 files changed, 81 insertions(+), 7 deletions(-)
 
-Pavel, could you update the Docbook documentation as well in your patch set ? 
-The behaviour of DQBUF needs to be properly documented.
-
+diff --git a/arch/sh/boards/mach-se/7724/setup.c b/arch/sh/boards/mach-se/7724/setup.c
+index c7dbbec..5a3b6da 100644
+--- a/arch/sh/boards/mach-se/7724/setup.c
++++ b/arch/sh/boards/mach-se/7724/setup.c
+@@ -489,6 +489,52 @@ static struct platform_device sdhi1_cn8_device = {
+ 	},
+ };
+ 
++#include <media/ak881x.h>
++#include <media/sh_vou.h>
++
++struct ak881x_pdata ak881x_pdata = {
++	.flags = AK881X_IF_MODE_SLAVE,
++};
++
++static struct i2c_board_info ak8813 = {
++	/* With open J18 jumper address is 0x21 */
++	I2C_BOARD_INFO("ak8813", 0x20),
++	.platform_data = &ak881x_pdata,
++};
++
++struct sh_vou_pdata sh_vou_pdata = {
++	.bus_fmt	= SH_VOU_BUS_8BIT,
++	.flags		= SH_VOU_HSYNC_LOW | SH_VOU_VSYNC_LOW,
++	.board_info	= &ak8813,
++	.i2c_adap	= 0,
++	.module_name	= "ak881x",
++};
++
++static struct resource sh_vou_resources[] = {
++	[0] = {
++		.start  = 0xfe960000,
++		.end    = 0xfe962043,
++		.flags  = IORESOURCE_MEM,
++	},
++	[1] = {
++		.start  = 55,
++		.flags  = IORESOURCE_IRQ,
++	},
++};
++
++static struct platform_device vou_device = {
++	.name           = "sh-vou",
++	.id		= -1,
++	.num_resources  = ARRAY_SIZE(sh_vou_resources),
++	.resource       = sh_vou_resources,
++	.dev		= {
++		.platform_data	= &sh_vou_pdata,
++	},
++	.archdata	= {
++		.hwblk_id	= HWBLK_VOU,
++	},
++};
++
+ static struct platform_device *ms7724se_devices[] __initdata = {
+ 	&heartbeat_device,
+ 	&smc91x_eth_device,
+@@ -503,6 +549,7 @@ static struct platform_device *ms7724se_devices[] __initdata = {
+ 	&fsi_device,
+ 	&sdhi0_cn7_device,
+ 	&sdhi1_cn8_device,
++	&vou_device,
+ };
+ 
+ /* I2C device */
+@@ -587,6 +634,7 @@ static int __init devices_setup(void)
+ {
+ 	u16 sw = __raw_readw(SW4140); /* select camera, monitor */
+ 	struct clk *fsia_clk;
++	u16 fpga_out;
+ 
+ 	/* register board specific self-refresh code */
+ 	sh_mobile_register_self_refresh(SUSP_SH_STANDBY | SUSP_SH_SF,
+@@ -595,13 +643,25 @@ static int __init devices_setup(void)
+ 					&ms7724se_sdram_leave_start,
+ 					&ms7724se_sdram_leave_end);
+ 	/* Reset Release */
+-	__raw_writew(__raw_readw(FPGA_OUT) &
+-		  ~((1 << 1)  | /* LAN */
+-		    (1 << 6)  | /* VIDEO DAC */
+-		    (1 << 7)  | /* AK4643 */
+-		    (1 << 12) | /* USB0 */
+-		    (1 << 14)), /* RMII */
+-		  FPGA_OUT);
++	fpga_out = __raw_readw(FPGA_OUT);
++	/* bit4: NTSC_PDN, bit5: NTSC_RESET */
++	fpga_out &= ~((1 << 1)  | /* LAN */
++		      (1 << 4)  | /* AK8813 PDN */
++		      (1 << 5)  | /* AK8813 RESET */
++		      (1 << 6)  | /* VIDEO DAC */
++		      (1 << 7)  | /* AK4643 */
++		      (1 << 12) | /* USB0 */
++		      (1 << 14)); /* RMII */
++	__raw_writew(fpga_out | (1 << 4), FPGA_OUT);
++
++	udelay(10);
++
++	/* AK8813 RESET */
++	__raw_writew(fpga_out | (1 << 5), FPGA_OUT);
++
++	udelay(10);
++
++	__raw_writew(fpga_out, FPGA_OUT);
+ 
+ 	/* turn on USB clocks, use external clock */
+ 	__raw_writew((__raw_readw(PORT_MSELCRB) & ~0xc000) | 0x8000, PORT_MSELCRB);
+@@ -837,6 +897,20 @@ static int __init devices_setup(void)
+ 		lcdc_info.ch[0].flags          = LCDC_FLAGS_DWPOL;
+ 	}
+ 
++	/* VOU */
++	gpio_request(GPIO_FN_DV_D15, NULL);
++	gpio_request(GPIO_FN_DV_D14, NULL);
++	gpio_request(GPIO_FN_DV_D13, NULL);
++	gpio_request(GPIO_FN_DV_D12, NULL);
++	gpio_request(GPIO_FN_DV_D11, NULL);
++	gpio_request(GPIO_FN_DV_D10, NULL);
++	gpio_request(GPIO_FN_DV_D9, NULL);
++	gpio_request(GPIO_FN_DV_D8, NULL);
++	gpio_request(GPIO_FN_DV_CLKI, NULL);
++	gpio_request(GPIO_FN_DV_CLK, NULL);
++	gpio_request(GPIO_FN_DV_VSYNC, NULL);
++	gpio_request(GPIO_FN_DV_HSYNC, NULL);
++
+ 	return platform_add_devices(ms7724se_devices,
+ 				    ARRAY_SIZE(ms7724se_devices));
+ }
 -- 
-Regards,
+1.6.2.4
 
-Laurent Pinchart
