@@ -1,26 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from joe.mail.tiscali.it ([213.205.33.54]:45162 "EHLO
-	joe.mail.tiscali.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757387Ab0CJWsS (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:59020 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751648Ab0CRLzQ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Mar 2010 17:48:18 -0500
-Received: from [192.168.0.60] (78.14.35.130) by joe.mail.tiscali.it (8.0.031)
-        id 4B94E617001D9CD7 for linux-media@vger.kernel.org; Wed, 10 Mar 2010 23:48:17 +0100
-Message-ID: <4B982156.4060409@gmail.com>
-Date: Wed, 10 Mar 2010 23:46:46 +0100
-From: "Andrea.Amorosi76@gmail.com" <Andrea.Amorosi76@gmail.com>
+	Thu, 18 Mar 2010 07:55:16 -0400
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Date: Thu, 18 Mar 2010 06:55:02 -0500
+Subject: RE: [PATCH 2/4] Add a macro to properly create IR tables
+Message-ID: <A24693684029E5489D1D202277BE8944541CC708@dlee02.ent.ti.com>
+References: <ce6bfd7f5f6ec23a59900422f6180ca49d006b18.1268440758.git.mchehab@redhat.com>
+ <636219277bb150426e3219e48d30138f00b8a52e.1268440758.git.mchehab@redhat.com>
+In-Reply-To: <636219277bb150426e3219e48d30138f00b8a52e.1268440758.git.mchehab@redhat.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: How to test s-video em28xx card input?
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-I would like to know how can I test the svideo input of a em28xx usb
-card. The svideo has a round 9-pin female connector so, if I'm not
-wrong, it should have also the audio in. Is it correct?
-Thank you,
-Andrea
+Hi Mauro,
+
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Mauro Carvalho Chehab
+> Sent: Friday, March 12, 2010 8:40 AM
+> To: Linux Media Mailing List
+> Subject: [PATCH 2/4] Add a macro to properly create IR tables
+
+This one is missing it's respective "V4L2/DVB:" prefix, as the other patches
+In the series has.
+
+Regards,
+Sergio
+
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+
+<snip>
 
