@@ -1,23 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.5])
-	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o23Eufvc021544
-	for <video4linux-list@redhat.com>; Wed, 3 Mar 2010 09:56:41 -0500
-Received: from mail-fx0-f216.google.com (mail-fx0-f216.google.com
-	[209.85.220.216])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o23EuRkk008818
-	for <video4linux-list@redhat.com>; Wed, 3 Mar 2010 09:56:28 -0500
-Received: by fxm8 with SMTP id 8so1554188fxm.11
-	for <video4linux-list@redhat.com>; Wed, 03 Mar 2010 06:56:27 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1267621938.3066.46.camel@chimpin>
-References: <1267621938.3066.46.camel@chimpin>
-Date: Wed, 3 Mar 2010 09:56:27 -0500
-Message-ID: <829197381003030656q6b5cf73eybcf30b713ba9be37@mail.gmail.com>
-Subject: Re: em28xx v4l-info returns gibberish on igepv2
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: John Banks <john.banks@noonanmedia.com>
+Received: from mx1.redhat.com (ext-mx03.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.7])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o2ID9obY028561
+	for <video4linux-list@redhat.com>; Thu, 18 Mar 2010 09:09:51 -0400
+Received: from smtp.positive-internet.com (mail.positive-internet.com
+	[80.87.128.64])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o2ID9ZtL019383
+	for <video4linux-list@redhat.com>; Thu, 18 Mar 2010 09:09:36 -0400
+Subject: Re: Any update on em28xx on igevp2 ?
+From: John Banks <john.banks@noonanmedia.com>
+To: Gert-Jan de Jonge <de_jonge@bysky.nl>
+In-Reply-To: <4BA21C12.6090609@bysky.nl>
+References: <4B9FA07B.3000206@bysky.nl>
+	<829197381003160834k7e82cd6am5cf8153e3e5625b2@mail.gmail.com>
+	<4BA2197E.4000305@saturnus.nl>  <4BA21C12.6090609@bysky.nl>
+Date: Thu, 18 Mar 2010 13:09:34 +0000
+Message-ID: <1268917774.3616.61.camel@chimpin>
+Mime-Version: 1.0
 Cc: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
@@ -32,38 +32,66 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wed, Mar 3, 2010 at 8:12 AM, John Banks <john.banks@noonanmedia.com> wrote:
-> I have an usb capture card that accepts composite and svideo and outputs
-> raw video through v4l2.
->
-> When running the card on my laptop (ubuntu karmic) I am able to use
-> gstreamer to dump the raw video to a file. It comes out as yuv and can
-> be easily played back.
+On Thu, 2010-03-18 at 13:26 +0100, Gert-Jan de Jonge wrote:
+> Hi Devin,
+> 
+> just some extra info:
+> 
+> I have tested the difference on the arm board compared to the pc:
+>   int  height=576;
+>   height >>= 576;
+>   printf("%d\n", height);
+> 
+> on arm it gives a 0, on the pc it gives 576.
+> on both i get a warning from the compiler, as in my test code the 576 is 
+> hardcoded in stead of a variable
+> warning: right shift count >= width of type ( which is logical ;) )
+> 
+> regards,
+> Gert-Jan
+> 
+> 
+> Gert-Jan de Jonge wrote:
+> > Hi Devin,
+> >
+> > I am a big step further, I can now get video from the device.
+> > At this moment I am looking at  the function em28xx_resolution_set on 
+> > arm the height is set to 0 by the following lines:
+> >
+> >       if (!dev->progressive)
+> >                height >>= norm_maxh(dev);
+> >
+> > I am not sure what it should do, should it really shift the height 
+> > over the value of height ?
+> > If I set the height to f.e. 576 ater this line, i can capture video ( 
+> > it is 576 before this line )
+> > should it shift by 1 if it is interlaced and the resolution is higher 
+> > than the interlaced height ?
+> >
+> > regards,
+> > Gert-Jan
+> >
 
-Hi John
+Hey,
 
-I saw your question on #linuxtv yesterday, and reached out to you but
-I guess you didn't see the message.
+Yeah this is how I fixed my problem also. Though mine was set as 0 but
+144 on the pc. Strange since the resolution I then get out is certainly
+not 144.
 
-I did some ARM work for the em28xx last year, and assuming there has
-been no regression, it should be working fine.  The fact that even the
-enumstd ioctl is returning zero'd data suggests that you've got some
-sort of basic userland/kernel communications problem, since that
-command has no interaction with the hardware at all (the driver fills
-out the result with statically defined data).  It might also be some
-sort of bug in v4l2-info.
+Hardcoding the values completely fixed the problem for me (as long as I
+ignore the compiler warnings :P ).
 
-Have you tried writing a quick 50-line C program that performs the
-ioctl and dumps the result?  That might help you narrow down whether
-it's a v4l2-info problem.
+Looking to find out why the arm gives 0 to fix the cause.
 
-Without a board though, I'm not quite sure how I could debug this.
-
-Devin
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+John Banks - Head of Engineering
+Noonan Media Ltd 
+
+www.noonanmedia.com 
+
+MB: +44 779 62 64 707 
+E: john.banks@noonanmedia.com
 
 --
 video4linux-list mailing list
