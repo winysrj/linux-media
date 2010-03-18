@@ -1,108 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1903 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751361Ab0CWHLs (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:56471 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753191Ab0CRMyo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Mar 2010 03:11:48 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: omap2 camera
-Date: Tue, 23 Mar 2010 08:12:03 +0100
-Cc: Viral Mehta <Viral.Mehta@lntinfotech.com>,
-	"Aguirre, Sergio" <saaguirre@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <70376CA23424B34D86F1C7DE6B997343017F5D5BD5@VSHINMSMBX01.vshodc.lntinfotech.com> <70376CA23424B34D86F1C7DE6B997343017F5D5BD8@VSHINMSMBX01.vshodc.lntinfotech.com> <4BA85699.1070308@maxwell.research.nokia.com>
-In-Reply-To: <4BA85699.1070308@maxwell.research.nokia.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201003230812.03198.hverkuil@xs4all.nl>
+	Thu, 18 Mar 2010 08:54:44 -0400
+Received: from localhost.localdomain (unknown [192.100.124.156])
+	by perceval.irobotique.be (Postfix) with ESMTPSA id 8183A35A9B
+	for <linux-media@vger.kernel.org>; Thu, 18 Mar 2010 12:54:42 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 1/2] v4l: Add V4L2_CID_IRIS_ABSOLUTE and V4L2_CID_IRIS_RELATIVE controls
+Date: Thu, 18 Mar 2010 13:56:57 +0100
+Message-Id: <1268917018-3458-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1268917018-3458-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1268917018-3458-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 23 March 2010 06:50:17 Sakari Ailus wrote:
-> Viral Mehta wrote:
-> > Hi Sakari,
-> 
-> Hi Viral,
-> 
-> > ________________________________________
-> > From: Sakari Ailus [sakari.ailus@maxwell.research.nokia.com]
-> > Sent: Monday, March 22, 2010 10:51 PM
-> > To: Aguirre, Sergio
-> > Cc: Viral Mehta; linux-media@vger.kernel.org
-> > Subject: Re: omap2 camera
-> > 
-> > Aguirre, Sergio wrote:
-> >> Hi Viral,
-> >>
-> >>> -----Original Message-----
-> >>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> >>> owner@vger.kernel.org] On Behalf Of Viral Mehta
-> >>> Sent: Monday, March 22, 2010 5:20 AM
-> >>> To: linux-media@vger.kernel.org
-> >>> Subject: omap2 camera
-> >>>
-> >>> Hi list,
-> >>>
-> >>> I am using OMAP2430 board and I wanted to test camera module on that
-> >>> board.
-> >>> I am using latest 2.6.33 kernel. However, it looks like camera module is
-> >>> not supported with latest kernel.
-> >>>
-> >>> Anyone is having any idea? Also, do we require to have ex3691 sensor
-> >>> driver in mainline kernel in order to get omap24xxcam working ?
-> >>>
-> >>> These are the steps I followed,
-> >>> 1. make omap2430_sdp_defconfig
-> >>> 2. Enable omap2 camera option which is under drivers/media/video
-> >>> 3. make uImage
-> >>>
-> >>> And with this uImage, camera is not working. I would appreciate any help.
-> >>
-> >> I'm adding Sakari Ailus to the CC list, which is the owner of the driver.
-> > 
-> >> Thanks, Sergio!
-> > 
-> > Thanks for your response. Thanks Sergio.
-> > 
-> >> I've only aware of the tcm825x sensor driver that works with the OMAP
-> >> 2420 camera controller (omap24xxcam) driver.
-> > 
-> > Does this also mean that omap24xxcam.ko will *only* work with OMAP2420?
-> > Or the same driver can be used for OMAP2430 board as well ?  As name suggests, omap24xxcam....
-> 
-> I'm not fully aware of the differences in the camera controllers in 2420
-> and 2430 --- never had a 2430. If they are the same then the driver
-> should work as it is. Sergio, do you know whether there are differences
-> between the two?
-> 
-> >> So likely you'd need the driver for the sensor you have on that board.
-> > Okie, I am trying to get that done. I took linux-2.6.14-V5 kernel from linux.omap.com and
-> > that supports camera on OMAP2430 and it has functional driver for ex3691 sensor.
-> > I am trying to know if I can forward port that.
-> 
-> That one very likely isn't using even the v4l2-int-device. But as soon
-> as you do, it is very easy to convert it to v4l2_subdev. The interface
-> is different but the ops are almost the same.
-> 
-> >> The omap24xxcam and tcm825x drivers should be moved to use v4l2_subdev
-> >> but I'm not quite sure what will be the schedule of that. Then we could
-> >> get rid of the v4l2-int-device interface that those drives still use.
-> > 
-> > They are still using v4l2-int-device as of 2.6.33.
-> 
-> That's true. AFAIK no work has been done to get rid of this yet.
+Those control, as their names imply, control the camera aperture
+settings.
 
-And if anyone is going to work on this, then *please* convert it to subdev!
-It shouldn't be that much work. omap24xxcam and tcm825x are the only ones
-still using this and it would be great if they are converted. Then omap24xxcam
-can use other sensors and the tcm825x can be used with other video hardware.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/DocBook/v4l/compat.xml      |   11 +++++++++++
+ Documentation/DocBook/v4l/controls.xml    |   19 +++++++++++++++++++
+ Documentation/DocBook/v4l/videodev2.h.xml |    3 +++
+ include/linux/videodev2.h                 |    3 +++
+ 4 files changed, 36 insertions(+), 0 deletions(-)
 
-Regards,
-
-	Hans
-
+diff --git a/Documentation/DocBook/v4l/compat.xml b/Documentation/DocBook/v4l/compat.xml
+index b9dbdf9..854235b 100644
+--- a/Documentation/DocBook/v4l/compat.xml
++++ b/Documentation/DocBook/v4l/compat.xml
+@@ -2332,6 +2332,17 @@ more information.</para>
+ 	</listitem>
+       </orderedlist>
+     </section>
++    <section>
++      <title>V4L2 in Linux 2.6.34</title>
++      <orderedlist>
++	<listitem>
++	  <para>Added
++<constant>V4L2_CID_IRIS_ABSOLUTE</constant> and
++<constant>V4L2_CID_IRIS_RELATIVE</constant> controls to the
++	    <link linkend="camera-controls">Camera controls class</link>.
++	  </para>
++	</listitem>
++      </orderedlist>
+    </section>
+ 
+    <section id="other">
+diff --git a/Documentation/DocBook/v4l/controls.xml b/Documentation/DocBook/v4l/controls.xml
+index f464506..e47999d 100644
+--- a/Documentation/DocBook/v4l/controls.xml
++++ b/Documentation/DocBook/v4l/controls.xml
+@@ -1825,6 +1825,25 @@ wide-angle direction. The zoom speed unit is driver-specific.</entry>
+ 	  <row><entry></entry></row>
+ 
+ 	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_IRIS_ABSOLUTE</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row><row><entry spanname="descr">This control sets the
++camera's aperture to the specified value. The unit is undefined.
++Larger values open the iris wider, smaller values close it.</entry>
++	  </row>
++	  <row><entry></entry></row>
++
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_IRIS_RELATIVE</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row><row><entry spanname="descr">This control modifies the
++camera's aperture by the specified amount. The unit is undefined.
++Positive values open the iris one step further, negative values close
++it one step further. This is a write-only control.</entry>
++	  </row>
++	  <row><entry></entry></row>
++
++	  <row>
+ 	    <entry spanname="id"><constant>V4L2_CID_PRIVACY</constant>&nbsp;</entry>
+ 	    <entry>boolean</entry>
+ 	  </row><row><entry spanname="descr">Prevent video from being acquired
+diff --git a/Documentation/DocBook/v4l/videodev2.h.xml b/Documentation/DocBook/v4l/videodev2.h.xml
+index 0683259..c18dfeb 100644
+--- a/Documentation/DocBook/v4l/videodev2.h.xml
++++ b/Documentation/DocBook/v4l/videodev2.h.xml
+@@ -1271,6 +1271,9 @@ enum  <link linkend="v4l2-exposure-auto-type">v4l2_exposure_auto_type</link> {
+ 
+ #define V4L2_CID_PRIVACY                        (V4L2_CID_CAMERA_CLASS_BASE+16)
+ 
++#define V4L2_CID_IRIS_ABSOLUTE                  (V4L2_CID_CAMERA_CLASS_BASE+17)
++#define V4L2_CID_IRIS_RELATIVE                  (V4L2_CID_CAMERA_CLASS_BASE+18)
++
+ /* FM Modulator class control IDs */
+ #define V4L2_CID_FM_TX_CLASS_BASE               (V4L2_CTRL_CLASS_FM_TX | 0x900)
+ #define V4L2_CID_FM_TX_CLASS                    (V4L2_CTRL_CLASS_FM_TX | 1)
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 3c26560..c9d2120 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1277,6 +1277,9 @@ enum  v4l2_exposure_auto_type {
+ 
+ #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
+ 
++#define V4L2_CID_IRIS_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+17)
++#define V4L2_CID_IRIS_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+18)
++
+ /* FM Modulator class control IDs */
+ #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
+ #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+1.6.4.4
+
