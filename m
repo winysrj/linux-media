@@ -1,113 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iw0-f202.google.com ([209.85.223.202]:36991 "EHLO
-	mail-iw0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752205Ab0CFDRr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Mar 2010 22:17:47 -0500
-Received: by iwn40 with SMTP id 40so752482iwn.1
-        for <linux-media@vger.kernel.org>; Fri, 05 Mar 2010 19:17:47 -0800 (PST)
+Received: from impaqm1.telefonica.net ([213.4.138.1]:58142 "EHLO
+	IMPaqm1.telefonica.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752186Ab0CSVLY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Mar 2010 17:11:24 -0400
+From: "Inet" <inet_swor@telefonica.net>
+To: <linux-media@vger.kernel.org>
+Subject: Help with Conceptronic CHVIDEOCR 1b80: e34e
+Date: Fri, 19 Mar 2010 22:05:32 +0100
+Message-ID: <!&!AAAAAAAAAAAYAAAAAAAAAC8QqRo14epHl0GiWaz2tEzCgAAAEAAAAIwzmdNRGmdBo5vY9QinTY8BAAAAAA==@telefonica.net>
 MIME-Version: 1.0
-In-Reply-To: <FF5F7993-6EC1-4C8E-9730-F85D1DC473D6@wilsonet.com>
-References: <15cfa2a50910071839j58026d10we2ccbaeb26527abc@mail.gmail.com>
-	 <15cfa2a50910091827l449f0fb0t2974219b6ea76608@mail.gmail.com>
-	 <4B00D91B.1000906@wilsonet.com> <4B00DB5B.10109@wilsonet.com>
-	 <409C0215-68B1-4F90-A8E0-EBAF4F02AC1A@wilsonet.com>
-	 <4B023AC9.8080403@linuxtv.org>
-	 <15cfa2a50911162203w1ad1584bhfdbe0213421abd6a@mail.gmail.com>
-	 <C5BCB298-B166-4F9D-998C-EE58C5AF8B78@wilsonet.com>
-	 <829197380911170637h6a7918fcl461c01d70ab20599@mail.gmail.com>
-	 <FF5F7993-6EC1-4C8E-9730-F85D1DC473D6@wilsonet.com>
-Date: Fri, 5 Mar 2010 22:09:43 -0500
-Message-ID: <be3a4a1003051909l6ea96eb3kb06c04f212f43bcf@mail.gmail.com>
-Subject: Re: KWorld UB435-Q Support
-From: Jarod Wilson <jarod@wilsonet.com>
-To: linux-media@vger.kernel.org
-Cc: Robert Cicconetti <grythumn@gmail.com>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Language: es
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 17, 2009 at 11:59 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
-> On Nov 17, 2009, at 9:37 AM, Devin Heitmueller wrote:
->>>>> If you see this happen more than once consecutively, and there is only 1
->>>>> silicon tuner present, then it means something very bad is happening, and
->>>>> there is a chance of burning out a part.  I still wouldnt not recommend any
->>>>> mainline merge until you can prevent this behavior -- I suspect that a GPIO
->>>>> reset is being toggled where it shouldnt be, which should be harmless ...
->>>>> but until we fix it, we cant be sure what damage might get done...
->>>>>
->>>>> The RF tracking filter calibration is a procedure that should only happen
->>>>> once while the tuner is powered on -- it should *only* be repeated if the
->>>>> tuner indicated that calibration is necessary, and that would only happen
->>>>> after a hardware reset.
->>>>>
->>>>> This still looks fishy to me...
->>>
->>> Agreed. I did manage to dig into this some more last night, something is definitely still awry.
-> ...
->> Hey Jarod,
->>
->> I haven't seen your exact GPIO config but I noticed something
->> recently:  the em28xx driver runs the dvb_gpio sequence whenever
->> starting streaming, not just whenever opening the DVB frontend.  This
->> means that if your dvb_gpio definition strobes the tda18271 reset (as
->> opposed to just taking it out of reset), then the chip will get reset
->> whenever the streaming is started (a real problem if multiple tuning
->> attempts are performed without closing the frontend first).
->>
->> Mauro seems to think this is intended behavior, although I cannot see
->> how this could possibly be correct, especially since the .init()
->> callback is not called in that case.  I setup a tree to remove the
->> call, but never got far enough into the testing to confirm whether it
->> broke any improperly configured boards depending on the incorrect
->> behavior.
->
-> This tree, I presume.
->
-> http://kernellabs.com/hg/~dheitmueller/em28xx-modeswitch/
->
-> I just tacked on the very last patch there onto my local tree to test with one of these sticks. Behavior is the same though, and the tda18271 reg dumps look equally bad -- they're all reported 0x00.
->
->> As a test, you might want to check your dvb_gpio config and see if you
->> are pulling anything low and then high, and just remove the line that
->> sets the pin low and see if the recalibration still occurs.
->
-> I'm pretty sure you explained how to do this to me once before on irc, but its been a while, and that knowledge has since leaked out of my brain... Currently, I have:
->
-> /*
->  * KWorld PlusTV 340U and UB435-Q (ATSC) GPIOs map:
->  * EM_GPIO_0 - currently unknown
->  * EM_GPIO_1 - LED disable/enable (1 = off, 0 = on)
->  * EM_GPIO_2 - currently unknown
->  * EM_GPIO_3 - currently unknown
->  * EM_GPIO_4 - TDA18271HD tuner (1 = active, 0 = in reset)
->  * EM_GPIO_5 - LGDT3304 ATSC/QAM demod (1 = active, 0 = in reset)
->  * EM_GPIO_6 - currently unknown
->  * EM_GPIO_7 - currently unknown
->  */
-> static struct em28xx_reg_seq kworld_a340_digital[] = {
->        /* only diff from default gpio is to keep 1 clear to turn on LED */
->        {EM28XX_R08_GPIO,       0x6d,   ~EM_GPIO_4,     10},
->        { -1,                   -1,             -1,     -1},
-> };
->
-> I've tried various combinations in here today, all without any significant change in behavior. But I suspect I'm missing something I should be trying. Ah well. Bed time. More poking tomorrow...
+Hello. I recently purchased a CHVIDEOCR conceptronic device, but is not
+detected in opensuse 11.2 after having compiled and installed the latest
+v4l-dvb. 
 
-Or a few months later. About two weeks ago, I finally poked at these
-sticks some more, after getting a bit of info from another user, and
-we've finally got an actual fix for this problem -- .deny_i2c_rptr = 1
-just needed to be set in the lgdt3305_config struct, as the device's
-tuner isn't actually behind an i2c gate. With that change, the stick
-behaves quite well w/o any alterations to the tda18271 code. Patches
-are here:
+The vendor and product ID is 1b80:e34e.
 
-http://wilsonet.com/jarod/junk/kworld-a340-20100218/
+I tried to make it work with the em28xx module with ID card 9 (not fully
+recognized) and 19 (system hangs). This is the dmesg output with card = 19.
 
-They're in Mike's hands now, since they rely so heavily on the lgdt3305 driver.
+#modprobe em28xx card=19 i2c_scan=0
+#echo 1b80 e34e > /sys/bus/usb/drivers/em28xx/new_id
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
+[25994.968035] usb 1-6: new high speed USB device using ehci_hcd and address
+2                 
+[25995.085408] usb 1-6: New USB device found, idVendor=1b80, idProduct=e34e
+
+[25995.085421] usb 1-6: New USB device strings: Mfr=0, Product=1,
+SerialNumber=0               
+[25995.085428] usb 1-6: Product: USB 2863 Device
+
+[25995.085545] usb 1-6: configuration #1 chosen from 1 choice
+
+[26024.365635] usbcore: registered new interface driver em28xx
+
+[26024.365649] em28xx driver loaded
+
+[26033.874447] em28xx: New device USB 2863 Device @ 480 Mbps (1b80:e34e,
+interface 0, class 0) 
+[26033.874608] em28xx #0: chip ID is em2860
+
+[26033.973167] em28xx #0: i2c eeprom 00: 1a eb 67 95 80 1b 4e e3 50 00 20 03
+6a 20 00 00       
+[26033.973189] em28xx #0: i2c eeprom 10: 00 00 04 57 06 02 00 00 00 00 00 00
+00 00 00 00       
+[26033.973207] em28xx #0: i2c eeprom 20: 02 00 01 00 f0 00 01 00 00 00 00 00
+5b 00 00 00       
+[26033.973224] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01 02 01
+00 00 00 00       
+[26033.973241] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00       
+[26033.973258] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00       
+[26033.973274] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 20 03
+55 00 53 00       
+[26033.973291] em28xx #0: i2c eeprom 70: 42 00 20 00 32 00 38 00 36 00 33 00
+20 00 44 00       
+[26033.973307] em28xx #0: i2c eeprom 80: 65 00 76 00 69 00 63 00 65 00 00 00
+00 00 00 00       
+[26033.973324] em28xx #0: i2c eeprom 90: 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00       
+[26033.973340] em28xx #0: i2c eeprom a0: 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00       
+[26033.973357] em28xx #0: i2c eeprom b0: 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00       
+[26033.973373] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00       
+[26033.973390] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00       
+[26033.973406] em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00       
+[26033.973422] em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00
+00 00 00 00       
+[26033.973440] em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x559a2440
+
+[26033.973446] em28xx #0: EEPROM info:
+[26033.973451] em28xx #0:       AC97 audio (5 sample rates)
+[26033.973456] em28xx #0:       500mA max power
+[26033.973462] em28xx #0:       Table at 0x04, strings=0x206a, 0x0000,
+0x0000
+[26033.974539] em28xx #0: Identified as EM2860/SAA711X Reference Design
+(card=19)
+[26033.974549] em28xx #0: Registering snapshot button...
+[26033.974609] input: em28xx snapshot button as
+/devices/pci0000:00/0000:00:1a.7/usb1/1-6/input/input7
+[26034.209521] saa7115 4-0025: saa7113 found (1f7113d0e100000) @ 0x4a
+(em28xx #0)
+[26034.581286] em28xx #0: Config register raw data: 0x50
+[26034.595147] em28xx #0: AC97 vendor ID = 0xffffffff
+[26034.601396] em28xx #0: AC97 features = 0x6a90
+[26034.601404] em28xx #0: Empia 202 AC97 audio processor detected
+[26034.848010] em28xx #0: v4l2 driver version 0.1.2
+[26035.320116] em28xx #0: V4L2 video device registered as video1
+[26035.320127] em28xx #0: V4L2 VBI device registered as vbi1
+[26035.376728] em28xx-audio.c: probing for em28x1 non standard usbaudio
+[26035.376740] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+[26035.377123] Em28xx: Initialized (Em28xx Audio Extension) extension
+
+ I opened the device and these are its components: 
+
+- usb video capture EM2862
+- Single chip dual channel AC'97 EMP202
+- NXP SAA7113H decoder.
+
+
+ Can you help me? Thanks
+
