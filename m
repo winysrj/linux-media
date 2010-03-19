@@ -1,34 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:6258 "EHLO mx1.redhat.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56605 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751435Ab0CFRRs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Mar 2010 12:17:48 -0500
-Message-ID: <4B928E37.2060407@redhat.com>
-Date: Sat, 06 Mar 2010 14:17:43 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1750855Ab0CSSJf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Mar 2010 14:09:35 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2JI9YX0024105
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 19 Mar 2010 13:09:34 -0500
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id o2JI9YLf021447
+	for <linux-media@vger.kernel.org>; Fri, 19 Mar 2010 13:09:34 -0500 (CDT)
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "Rajashekhara, Sudhakar" <sudhakar.raj@ti.com>
+Date: Fri, 19 Mar 2010 13:09:33 -0500
+Subject: RE: [PATCH-V2 7/7] TVP514x: Add Powerup sequence during s_input to
+ lock the signal properly
+Message-ID: <A69FA2915331DC488A831521EAE36FE4016A6ECBC9@dlee06.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1268978653-32710-8-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <1268978653-32710-8-git-send-email-hvaibhav@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [git:v4l-dvb/master] Input: lifebook - add another Lifebook DMI
- signature
-References: <E1Nnuz1-0001ZP-DD@www.linuxtv.org> <20100306171501.GB24836@core.coreip.homeip.net>
-In-Reply-To: <20100306171501.GB24836@core.coreip.homeip.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dmitry Torokhov wrote:
-> Guys,
-> 
-> Please fix your scripts, While it is useful to know if you applied
-> something to your tree that might affect input I am not really interested
-> in patches that are coming from mainline.
+Vaibhav,
 
-Sorry!
+This patch has not fully resolved the lock issue. In my testing the change
+done by Brijesh was required as well. Can you update me on what was your
+findings based on my last email on this issue?
 
-I've disabled the script for now and removed the patches that were still at the
-queue.
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+phone: 301-407-9583
+email: m-karicheri2@ti.com
 
-Cheers,
-Mauro
+>-----Original Message-----
+>From: Hiremath, Vaibhav
+>Sent: Friday, March 19, 2010 2:04 AM
+>To: linux-media@vger.kernel.org
+>Cc: Karicheri, Muralidharan; Hiremath, Vaibhav; Rajashekhara, Sudhakar
+>Subject: [PATCH-V2 7/7] TVP514x: Add Powerup sequence during s_input to
+>lock the signal properly
+>
+>From: Vaibhav Hiremath <hvaibhav@ti.com>
+>
+>For the sequence streamon -> streamoff and again s_input, it fails
+>to lock the signal, since streamoff puts TVP514x into power off state
+>which leads to failure in sub-sequent s_input.
+>
+>So add powerup sequence in s_routing (if disabled), since it is
+>important to lock the signal at this stage.
+>
+>Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+>Signed-off-by: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
+>---
+> drivers/media/video/tvp514x.c |   13 +++++++++++++
+> 1 files changed, 13 insertions(+), 0 deletions(-)
+>
+>diff --git a/drivers/media/video/tvp514x.c b/drivers/media/video/tvp514x.c
+>index 26b4e71..97b7db5 100644
+>--- a/drivers/media/video/tvp514x.c
+>+++ b/drivers/media/video/tvp514x.c
+>@@ -78,6 +78,8 @@ struct tvp514x_std_info {
+> };
+>
+> static struct tvp514x_reg tvp514x_reg_list_default[0x40];
+>+
+>+static int tvp514x_s_stream(struct v4l2_subdev *sd, int enable);
+> /**
+>  * struct tvp514x_decoder - TVP5146/47 decoder object
+>  * @sd: Subdevice Slave handle
+>@@ -643,6 +645,17 @@ static int tvp514x_s_routing(struct v4l2_subdev *sd,
+> 		/* Index out of bound */
+> 		return -EINVAL;
+>
+>+	/*
+>+	 * For the sequence streamon -> streamoff and again s_input
+>+	 * it fails to lock the signal, since streamoff puts TVP514x
+>+	 * into power off state which leads to failure in sub-sequent s_input.
+>+	 *
+>+	 * So power up the TVP514x device here, since it is important to lock
+>+	 * the signal at this stage.
+>+	 */
+>+	if (!decoder->streaming)
+>+		tvp514x_s_stream(sd, 1);
+>+
+> 	input_sel = input;
+> 	output_sel = output;
+>
+>--
+>1.6.2.4
+
