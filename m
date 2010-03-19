@@ -1,52 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:23671 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753363Ab0CIOts (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Mar 2010 09:49:48 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0KZ000EGFRUXQV50@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 09 Mar 2010 14:49:45 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0KZ0007Z9RUXJL@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 09 Mar 2010 14:49:45 +0000 (GMT)
-Date: Tue, 09 Mar 2010 15:49:40 +0100
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: [PATCH/RFC v2 0/3] Multi-plane video buffer support for V4L2 API and
- videobuf
-To: linux-media@vger.kernel.org
-Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl
-Message-id: <1268146183-2018-1-git-send-email-p.osciak@samsung.com>
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:42483 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752208Ab0CSJD7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Mar 2010 05:03:59 -0400
+Received: by bwz1 with SMTP id 1so2765365bwz.21
+        for <linux-media@vger.kernel.org>; Fri, 19 Mar 2010 02:03:57 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <50cd74a798bbf96501cd40b90d2a2b93.squirrel@webmail.xs4all.nl>
+References: <83e56201383c6a99ea51dafcd2794dfe.squirrel@webmail.xs4all.nl>
+	 <201003190904.53867.laurent.pinchart@ideasonboard.com>
+	 <50cd74a798bbf96501cd40b90d2a2b93.squirrel@webmail.xs4all.nl>
+Date: Fri, 19 Mar 2010 10:03:57 +0100
+Message-ID: <d9def9db1003190203n40052476nc1f0d544d05ba4b6@mail.gmail.com>
+Subject: Re: RFC: Drop V4L1 support in V4L2 drivers
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	v4l-dvb <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Fri, Mar 19, 2010 at 9:46 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+>> On Friday 19 March 2010 08:59:08 Hans Verkuil wrote:
+>>> Hi all,
+>>>
+>>> V4L1 support has been marked as scheduled for removal for a long time.
+>>> The
+>>> deadline for that in the feature-removal-schedule.txt file was July
+>>> 2009.
+>>>
+>>> I think it is time that we remove the V4L1 compatibility support from
+>>> V4L2
+>>> drivers for 2.6.35.
+>>
+>> Do you mean just removing V4L1-specific code from V4L2 drivers, or
+>> removing
+>> the V4L1 compatibility layer completely ?
+>
+> The compat layer as well. So the only V4L1 code left is that for V4L1-only
+> drivers.
+>
 
-this version differs only slightly from the previous one, it fixes some
-memory allocation/freeing-related problems of the previous patchset.
+I'm against this we have customers using the compat layer.
+Aside of that the compat layer doesn't hurt anyone, newer more serious
+applications
+are written with v4l2 only actually.
 
-As was the case with v1, it is still intended for demonstration/discussion/testing
-purposes only.
+> This means that V4L2 drivers can only be used by V4L2-aware applications
+> and can no longer be accessed by V4L1-only applications.
+>
+>>> It would help with the videobuf cleanup as well, but that's just a
+>>> bonus.
+>>
+>> Do we still have V4L1-only drivers that use videobuf ?
+>
+> No V4L1-only drivers use videobuf, but videobuf has support for the V4L1
+> compat support in V4L2 drivers (the cgmbuf ioctl). So when we remove the
+> compat support, then that videobuf code can be removed as well.
+>
 
+that's just a bad implementation then and just should be fixed up the compat
+layer can handle this quite elegant.
 
-Changes since v2:
-- simplified videobuf_buffer allocation
-- fixed some videobuf_buffer memory leaks (missing kfrees)
-
-
-The series contains:
-
-[PATCH v2 1/3] v4l: Add support for multi-plane buffers to V4L2 API.
-[PATCH v2 2/3] v4l: videobuf: Add support for multi-plane buffers.
-[PATCH v2 3/3] v4l: vivi: add 2- and 3-planar YCbCr422
-
-Best regards
---
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
+-Markus
