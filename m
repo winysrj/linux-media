@@ -1,40 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:40278 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755417Ab0CVRyS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Mar 2010 13:54:18 -0400
-Received: by bwz1 with SMTP id 1so2167757bwz.21
-        for <linux-media@vger.kernel.org>; Mon, 22 Mar 2010 10:54:17 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:19263 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751424Ab0CSRnZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Mar 2010 13:43:25 -0400
+Message-ID: <4BA3B7A9.2050405@redhat.com>
+Date: Fri, 19 Mar 2010 14:43:05 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20100322184553.0433ae24@hermes>
-References: <20100319180129.6fb65141@hermes>
-	 <829197381003191007r1055f3dbo58d7712cff7cf19b@mail.gmail.com>
-	 <20100319181333.3352a029@hermes>
-	 <829197381003191017k5adab45ejee5179bc66880cac@mail.gmail.com>
-	 <20100322184553.0433ae24@hermes>
-Date: Mon, 22 Mar 2010 13:54:16 -0400
-Message-ID: <829197381003221054h6624f4d6x648f844c54e51b37@mail.gmail.com>
-Subject: Re: em28xx - Your board has no unique USB ID and thus need a hint to
-	be detected
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Steffen Pankratz <kratz00@gmx.de>
-Cc: linux-media@vger.kernel.org
+To: David Ellingsworth <david@identd.dyndns.org>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	v4l-dvb <linux-media@vger.kernel.org>
+Subject: Re: RFC: Drop V4L1 support in V4L2 drivers
+References: <83e56201383c6a99ea51dafcd2794dfe.squirrel@webmail.xs4all.nl>	 <201003190904.53867.laurent.pinchart@ideasonboard.com>	 <50cd74a798bbf96501cd40b90d2a2b93.squirrel@webmail.xs4all.nl>	 <4BA38088.1020006@redhat.com> <30353c3d1003190849v35b57dcai9ab11ff1362b4f46@mail.gmail.com>
+In-Reply-To: <30353c3d1003190849v35b57dcai9ab11ff1362b4f46@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 22, 2010 at 1:45 PM, Steffen Pankratz <kratz00@gmx.de> wrote:
-> Hi Devin,
->
-> I don't want to push you but are there any news?
+David Ellingsworth wrote:
+> On Fri, Mar 19, 2010 at 9:47 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> The V4L1 drivers that lasts are the ones without maintainers and probably without
+>> a large users base. So, basically legacy hardware. So, their removals make sense.
+>>
+> 
+> In many ways the above statement is a catch 22. Most, if not all the
+> v4l1 drivers are currently broken or unmaintained. However, this does
+> not mean there are users who would not be using these drivers if they
+> actually worked or had been properly maintained. I know this to be a
+> fact of the ibmcam driver. It is both broken and unmaintained. Because
+> of this I'm sure no one is currently using it.
 
-I've been too buried in other projects to work on it.  In the
-meantime, you can add "card=53" as a modprobe option to em28xx, and it
-should start working for you.
+It makes sense. However, considering that no new V4L1 driver is committed
+since 2006, this means that those are old drivers for old hardware.
 
-Devin
+> I happen to have a USB
+> camera which is supposedly supported by the ibmcam driver.
+
+In the specific case of ibmcam, we had only 10 commits on -hg since its
+addition, back in 2006.
+
+Just using it as an example about the remaining drivers, for today's hardware,
+an ibmusb model 3 webcam has 640x480x3fps, according to his driver. Other models
+have QCIF or QVGA as their maximum resolution. I can easily buy a 640x480x30fps
+camera (or even something better than that) for US$12,00 on a close shopping.
+
+So, even if the driver would be 100% functional, I doubt that you would find too
+many users of this webcam, simply because people would need a faster frame rate
+or wanted a higher resolution.
+
+> Unfortunately, I have not the time nor expertise needed to
+> update/fix/replace this driver, though I have previously tried. If
+> someone on this list is willing to collaborate with me to make a
+> functional v4l2 driver to replace the existing ibmcam driver, I'd be
+> more than willing to expend more time and energy in doing so.
+> Hopefully someday I'll actually be able to use the camera that I own,
+> considering as is it barely works under Windows.
+
+I agree that it would be interesting to port it to V4L2, instead of just
+dropping it. Maybe Hans Geode or someone else with some spare time
+could help you on this task.
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+
+Cheers,
+Mauro
