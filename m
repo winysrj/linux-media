@@ -1,111 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2334 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756804Ab0CNLd3 (ORCPT
+Received: from mail-fx0-f219.google.com ([209.85.220.219]:37638 "EHLO
+	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751758Ab0CSP0E (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Mar 2010 07:33:29 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] V4L: SuperH Video Output Unit (VOU) driver
-Date: Sun, 14 Mar 2010 12:33:49 +0100
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>,
-	Magnus Damm <damm@opensource.se>
-References: <Pine.LNX.4.64.1003111121380.4385@axis700.grange> <201003141123.11963.hverkuil@xs4all.nl> <Pine.LNX.4.64.1003141143250.4425@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1003141143250.4425@axis700.grange>
+	Fri, 19 Mar 2010 11:26:04 -0400
+Received: by fxm19 with SMTP id 19so706980fxm.21
+        for <linux-media@vger.kernel.org>; Fri, 19 Mar 2010 08:26:03 -0700 (PDT)
+Message-ID: <4BA39794.7010208@googlemail.com>
+Date: Fri, 19 Mar 2010 16:26:12 +0100
+From: Frank Schaefer <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/2] v4l: Add V4L2_CID_IRIS_ABSOLUTE and V4L2_CID_IRIS_RELATIVE
+ controls
+References: <1268917018-3458-1-git-send-email-laurent.pinchart@ideasonboard.com> <1268917018-3458-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1268917018-3458-2-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Message-Id: <201003141233.49663.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 14 March 2010 12:08:02 Guennadi Liakhovetski wrote:
-> Hi Hans
-> 
-> On Sun, 14 Mar 2010, Hans Verkuil wrote:
-> 
-> > Hi Guennadi,
-> > 
-> > Here is a quick review. It looks good, just a few small points.
-> 
-> Thanks for the review! To most points - right, will update. The ones, that 
-> I have more questions about:
-> 
-> > On Thursday 11 March 2010 11:24:42 Guennadi Liakhovetski wrote:
-> > > A number of SuperH SoCs, including sh7724, include a Video Output Unit. This
-> > > patch adds a video (V4L2) output driver for it. The driver uses v4l2-subdev and
-> > > mediabus APIs to interface to TV encoders.
-> > > 
-> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > > ---
-> > > 
-> > > Tested on ms7724se
-> > > 
-> > >  drivers/media/video/Kconfig  |    7 +
-> > >  drivers/media/video/Makefile |    2 +
-> > >  drivers/media/video/sh_vou.c | 1437 ++++++++++++++++++++++++++++++++++++++++++
-> > >  include/media/sh_vou.h       |   35 +
-> > >  4 files changed, 1481 insertions(+), 0 deletions(-)
-> > >  create mode 100644 drivers/media/video/sh_vou.c
-> > >  create mode 100644 include/media/sh_vou.h
-> > > 
-> > > diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> > > index 64682bf..be6d016 100644
-> > > --- a/drivers/media/video/Kconfig
-> > > +++ b/drivers/media/video/Kconfig
-> 
-> [snip]
-> 
-> > > +static int sh_vou_g_fmt_vid_ovrl(struct file *file, void *priv,
-> > > +				 struct v4l2_format *fmt)
-> > > +{
-> > > +	/* This is needed for gstreamer, even if not used... */
-> > > +	return 0;
-> > > +}
-> > 
-> > Shouldn't this return -EINVAL if there is no overlay support?
-> 
-> In fact I would just drop this methos altogether, but gstreamer needs it 
-> _and_ it shouldn't return an error. In fact, I think, we can persuade 
-> gstreamer guys to drop this restriction, if we really think this is 
-> irrelevant. For some reason their v4l2sink is somewhat overlay-centric, 
-> but I think we can discuss this with them.
-
-This seems to be a true gstreamer bug. If the capabilities of the video device
-do not include overlay, then it shouldn't try to use overlay types.
-
-I'm not sure whether we should work around an application bug in the kernel,
-that doesn't seem right. I really don't like this.
-
-> > > +enum sh_vou_bus_fmt {
-> > > +	SH_VOU_BUS_NTSC_16BIT = 0,
-> > > +	SH_VOU_BUS_NTSC_8BIT = 1,
-> > > +	SH_VOU_BUS_NTSC_8BIT_REC656 = 3,
-> > > +	SH_VOU_BUS_PAL_8BIT = 5,
-> > 
-> > Rather than NTSC and PAL it might be better to talk about 50 vs 60 Hz.
-> 
-> Don't know, this is how these modes are called in the datasheet, so... Do 
-> you think it's better to call them "correctly" or as in the datasheet?
-
-Either call them correctly or add a comment here that clarifies that 'NTSC'
-applies to all 60 Hz formats and PAL to all 50 Hz formats and that we keep
-these names since the datasheet uses them.
-
-Regards,
-
-	Hans
-
-> 
-> Thanks
-> Guennadi
+Laurent Pinchart schrieb:
+> Those control, as their names imply, control the camera aperture
+> settings.
+>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 > ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> 
+>  Documentation/DocBook/v4l/compat.xml      |   11 +++++++++++
+>  Documentation/DocBook/v4l/controls.xml    |   19 +++++++++++++++++++
+>  Documentation/DocBook/v4l/videodev2.h.xml |    3 +++
+>  include/linux/videodev2.h                 |    3 +++
+>  4 files changed, 36 insertions(+), 0 deletions(-)
+>
+> diff --git a/Documentation/DocBook/v4l/compat.xml b/Documentation/DocBook/v4l/compat.xml
+> index b9dbdf9..854235b 100644
+> --- a/Documentation/DocBook/v4l/compat.xml
+> +++ b/Documentation/DocBook/v4l/compat.xml
+> @@ -2332,6 +2332,17 @@ more information.</para>
+>  	</listitem>
+>        </orderedlist>
+>      </section>
+> +    <section>
+> +      <title>V4L2 in Linux 2.6.34</title>
+> +      <orderedlist>
+> +	<listitem>
+> +	  <para>Added
+> +<constant>V4L2_CID_IRIS_ABSOLUTE</constant> and
+> +<constant>V4L2_CID_IRIS_RELATIVE</constant> controls to the
+> +	    <link linkend="camera-controls">Camera controls class</link>.
+> +	  </para>
+> +	</listitem>
+> +      </orderedlist>
+>     </section>
+>  
+>     <section id="other">
+> diff --git a/Documentation/DocBook/v4l/controls.xml b/Documentation/DocBook/v4l/controls.xml
+> index f464506..e47999d 100644
+> --- a/Documentation/DocBook/v4l/controls.xml
+> +++ b/Documentation/DocBook/v4l/controls.xml
+> @@ -1825,6 +1825,25 @@ wide-angle direction. The zoom speed unit is driver-specific.</entry>
+>  	  <row><entry></entry></row>
+>  
+>  	  <row>
+> +	    <entry spanname="id"><constant>V4L2_CID_IRIS_ABSOLUTE</constant>&nbsp;</entry>
+> +	    <entry>integer</entry>
+> +	  </row><row><entry spanname="descr">This control sets the
+> +camera's aperture to the specified value. The unit is undefined.
+> +Larger values open the iris wider, smaller values close it.</entry>
+> +	  </row>
+> +	  <row><entry></entry></row>
+> +
+> +	  <row>
+> +	    <entry spanname="id"><constant>V4L2_CID_IRIS_RELATIVE</constant>&nbsp;</entry>
+> +	    <entry>integer</entry>
+> +	  </row><row><entry spanname="descr">This control modifies the
+> +camera's aperture by the specified amount. The unit is undefined.
+> +Positive values open the iris one step further, negative values close
+> +it one step further. This is a write-only control.</entry>
+> +	  </row>
+> +	  <row><entry></entry></row>
+> +
+> +	  <row>
+>  	    <entry spanname="id"><constant>V4L2_CID_PRIVACY</constant>&nbsp;</entry>
+>  	    <entry>boolean</entry>
+>  	  </row><row><entry spanname="descr">Prevent video from being acquired
+> diff --git a/Documentation/DocBook/v4l/videodev2.h.xml b/Documentation/DocBook/v4l/videodev2.h.xml
+> index 0683259..c18dfeb 100644
+> --- a/Documentation/DocBook/v4l/videodev2.h.xml
+> +++ b/Documentation/DocBook/v4l/videodev2.h.xml
+> @@ -1271,6 +1271,9 @@ enum  <link linkend="v4l2-exposure-auto-type">v4l2_exposure_auto_type</link> {
+>  
+>  #define V4L2_CID_PRIVACY                        (V4L2_CID_CAMERA_CLASS_BASE+16)
+>  
+> +#define V4L2_CID_IRIS_ABSOLUTE                  (V4L2_CID_CAMERA_CLASS_BASE+17)
+> +#define V4L2_CID_IRIS_RELATIVE                  (V4L2_CID_CAMERA_CLASS_BASE+18)
+> +
+>  /* FM Modulator class control IDs */
+>  #define V4L2_CID_FM_TX_CLASS_BASE               (V4L2_CTRL_CLASS_FM_TX | 0x900)
+>  #define V4L2_CID_FM_TX_CLASS                    (V4L2_CTRL_CLASS_FM_TX | 1)
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 3c26560..c9d2120 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -1277,6 +1277,9 @@ enum  v4l2_exposure_auto_type {
+>  
+>  #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
+>  
+> +#define V4L2_CID_IRIS_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+17)
+> +#define V4L2_CID_IRIS_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+18)
+> +
+>  /* FM Modulator class control IDs */
+>  #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
+>  #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
+>   
+Please also add proper titles to v4l2_ctrl_get_name() in v4l2-common.c.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Thanks,
+Frank
