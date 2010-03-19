@@ -1,101 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:56605 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750855Ab0CSSJf convert rfc822-to-8bit (ORCPT
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:51178 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750865Ab0CSSNB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Mar 2010 14:09:35 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2JI9YX0024105
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 19 Mar 2010 13:09:34 -0500
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id o2JI9YLf021447
-	for <linux-media@vger.kernel.org>; Fri, 19 Mar 2010 13:09:34 -0500 (CDT)
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "Rajashekhara, Sudhakar" <sudhakar.raj@ti.com>
-Date: Fri, 19 Mar 2010 13:09:33 -0500
-Subject: RE: [PATCH-V2 7/7] TVP514x: Add Powerup sequence during s_input to
- lock the signal properly
-Message-ID: <A69FA2915331DC488A831521EAE36FE4016A6ECBC9@dlee06.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1268978653-32710-8-git-send-email-hvaibhav@ti.com>
-In-Reply-To: <1268978653-32710-8-git-send-email-hvaibhav@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Fri, 19 Mar 2010 14:13:01 -0400
+Received: by bwz1 with SMTP id 1so278585bwz.21
+        for <linux-media@vger.kernel.org>; Fri, 19 Mar 2010 11:12:59 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <30353c3d1003191100q2446edeekb161dba45624489a@mail.gmail.com>
+References: <83e56201383c6a99ea51dafcd2794dfe.squirrel@webmail.xs4all.nl>
+	 <201003190904.53867.laurent.pinchart@ideasonboard.com>
+	 <50cd74a798bbf96501cd40b90d2a2b93.squirrel@webmail.xs4all.nl>
+	 <4BA38088.1020006@redhat.com>
+	 <30353c3d1003190849v35b57dcai9ab11ff1362b4f46@mail.gmail.com>
+	 <4BA3B7A9.2050405@redhat.com>
+	 <30353c3d1003191100q2446edeekb161dba45624489a@mail.gmail.com>
+Date: Fri, 19 Mar 2010 14:12:58 -0400
+Message-ID: <829197381003191112i762baf17ta2658d859a858a76@mail.gmail.com>
+Subject: Re: RFC: Drop V4L1 support in V4L2 drivers
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: David Ellingsworth <david@identd.dyndns.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	v4l-dvb <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Vaibhav,
+On Fri, Mar 19, 2010 at 2:00 PM, David Ellingsworth
+<david@identd.dyndns.org> wrote:
+> Yes it is an old camera, but that does not mean there aren't people
+> out there who still own cameras which would otherwise be usable if the
+> driver worked. And sure people could just buy another camera.. but why
+> replace hardware that's obviously not broken?
 
-This patch has not fully resolved the lock issue. In my testing the change
-done by Brijesh was required as well. Can you update me on what was your
-findings based on my last email on this issue?
+Because of the cost of keeping a driver in the tree for an old piece
+of hardware that almost nobody has, where there is no developer
+willing to maintain it, at the cost of preventing removal of a bunch
+of old common infrastructure which increases the maintenance cost of
+all the drivers that people do care about.
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-phone: 301-407-9583
-email: m-karicheri2@ti.com
+In a perfect world, it would be great to support every piece of
+hardware under the sun until the end of time.  In reality though, with
+limited developer resources, we sometimes have to decided that
+supporting certain archaic hardware that isn't popular "just isn't
+worth it".
 
->-----Original Message-----
->From: Hiremath, Vaibhav
->Sent: Friday, March 19, 2010 2:04 AM
->To: linux-media@vger.kernel.org
->Cc: Karicheri, Muralidharan; Hiremath, Vaibhav; Rajashekhara, Sudhakar
->Subject: [PATCH-V2 7/7] TVP514x: Add Powerup sequence during s_input to
->lock the signal properly
->
->From: Vaibhav Hiremath <hvaibhav@ti.com>
->
->For the sequence streamon -> streamoff and again s_input, it fails
->to lock the signal, since streamoff puts TVP514x into power off state
->which leads to failure in sub-sequent s_input.
->
->So add powerup sequence in s_routing (if disabled), since it is
->important to lock the signal at this stage.
->
->Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
->Signed-off-by: Sudhakar Rajashekhara <sudhakar.raj@ti.com>
->---
-> drivers/media/video/tvp514x.c |   13 +++++++++++++
-> 1 files changed, 13 insertions(+), 0 deletions(-)
->
->diff --git a/drivers/media/video/tvp514x.c b/drivers/media/video/tvp514x.c
->index 26b4e71..97b7db5 100644
->--- a/drivers/media/video/tvp514x.c
->+++ b/drivers/media/video/tvp514x.c
->@@ -78,6 +78,8 @@ struct tvp514x_std_info {
-> };
->
-> static struct tvp514x_reg tvp514x_reg_list_default[0x40];
->+
->+static int tvp514x_s_stream(struct v4l2_subdev *sd, int enable);
-> /**
->  * struct tvp514x_decoder - TVP5146/47 decoder object
->  * @sd: Subdevice Slave handle
->@@ -643,6 +645,17 @@ static int tvp514x_s_routing(struct v4l2_subdev *sd,
-> 		/* Index out of bound */
-> 		return -EINVAL;
->
->+	/*
->+	 * For the sequence streamon -> streamoff and again s_input
->+	 * it fails to lock the signal, since streamoff puts TVP514x
->+	 * into power off state which leads to failure in sub-sequent s_input.
->+	 *
->+	 * So power up the TVP514x device here, since it is important to lock
->+	 * the signal at this stage.
->+	 */
->+	if (!decoder->streaming)
->+		tvp514x_s_stream(sd, 1);
->+
-> 	input_sel = input;
-> 	output_sel = output;
->
->--
->1.6.2.4
+Removing all the old V4L1 cruft will make currently maintained drivers
+cleaner, faster and simpler to understand and implement, and less
+likely to have bugs.
 
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
