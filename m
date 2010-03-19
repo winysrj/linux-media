@@ -1,59 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-14.arcor-online.net ([151.189.21.54]:39320 "EHLO
-	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754918Ab0C1SMy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Mar 2010 14:12:54 -0400
-Message-ID: <4BAF9BDF.9020805@arcor.de>
-Date: Sun, 28 Mar 2010 20:11:43 +0200
-From: Stefan Ringel <stefan.ringel@arcor.de>
-MIME-Version: 1.0
-To: George Tellalov <gtellalov@bigfoot.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Hauppauge WinTV HVR-900H
-References: <20100328120729.GB6153@joro.homelinux.org> <20100328105145.GA2427@joro.homelinux.org> <27890244.1269777077513.JavaMail.ngmail@webmail18.arcor-online.net> <23371307.1269778330976.JavaMail.ngmail@webmail11.arcor-online.net> <20100328153759.GA2893@joro.homelinux.org>
-In-Reply-To: <20100328153759.GA2893@joro.homelinux.org>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:48430 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753725Ab0CSRNk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Mar 2010 13:13:40 -0400
+Date: Fri, 19 Mar 2010 18:13:33 +0100
+From: Steffen Pankratz <kratz00@gmx.de>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: em28xx - Your board has no unique USB ID and thus need a hint
+ to  be detected
+Message-ID: <20100319181333.3352a029@hermes>
+In-Reply-To: <829197381003191007r1055f3dbo58d7712cff7cf19b@mail.gmail.com>
+References: <20100319180129.6fb65141@hermes>
+	<829197381003191007r1055f3dbo58d7712cff7cf19b@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; boundary="Sig_/ph+lwhlIIidH+eWPw+HnACX";
+ protocol="application/pgp-signature"; micalg=PGP-SHA1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 28.03.2010 17:37, schrieb George Tellalov:
-> On Sun, Mar 28, 2010 at 02:12:10PM +0200, Stefan Ringel wrote:
->   
->>  
->>
->>
->> ----- Original Nachricht ----
->> Von:     George Tellalov <gtellalov@bigfoot.com>
->> An:      Stefan Ringel <stefan.ringel@arcor.de>
->> Datum:   28.03.2010 14:07
->> Betreff: Re: Hauppauge WinTV HVR-900H
->>
->>     
->>> On Sun, Mar 28, 2010 at 01:51:17PM +0200, Stefan Ringel wrote:
->>>       
->>>>  
->>>> In what for mode, analog or dvb-t?
->>>>
->>>>         
->>> The test? It was in analog mode using tvtime.
->>>
->>>       
->> And the dmsg log (with debug info), so we can see what wrong is. What for options have you set in the .config file?
->>
->>     
-> Okay the same result with 2.6.33. I'm attaching my .config and dmesg's output.
-> I also have debug=9 output but I'm not sure if it's appropriate to attach it
-> here. Maybe I should gzip it?
->   
+--Sig_/ph+lwhlIIidH+eWPw+HnACX
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-I have also this bug (v4l2 in tm6000)! It can go any time to find and
-bugfix it. Please, test the dvb mode, what I think works and resend test
-result.
+On Fri, 19 Mar 2010 13:07:23 -0400
+Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
 
-Stefan Ringel
+> On Fri, Mar 19, 2010 at 1:01 PM, Steffen Pankratz <kratz00@gmx.de> wrote:
+> > Hi,
+> >
+> > this USB stick is a Pinnacle Pctv Hybrid Pro 320e device
+> > (ID eb1a:2881 eMPIA Technology, Inc.).
+> >
+> > Is there anything else you need to know?
+> <snip>
+>=20
+> This was fixed some time ago.  Just install the current v4l-dvb code
+> (instructions can be found at http://linuxtv.org/repo)
 
--- 
-Stefan Ringel <stefan.ringel@arcor.de>
+This is what I did.
 
+hg tip output:
+
+changeset:   14494:929298149eba
+tag:         tip
+user:        Douglas Schilling Landgraf <dougsland@redhat.com>
+date:        Thu Mar 18 23:47:27 2010 -0300
+summary:     ir-keytable: fix prototype for kernels < 2.6.22
+
+
+--=20
+Hermes powered by LFS SVN-20070420 (Linux 2.6.33.1)
+
+Best regards, Steffen Pankratz.
+
+--Sig_/ph+lwhlIIidH+eWPw+HnACX
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEARECAAYFAkujsL0ACgkQqmIF0LCII9t8CACfYDl3EGPbyfuNzr9GDIL5lYqw
+gF8AoJDtPL1IDLXZ41IDkYknerjh9DkP
+=K5wv
+-----END PGP SIGNATURE-----
+
+--Sig_/ph+lwhlIIidH+eWPw+HnACX--
