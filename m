@@ -1,71 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ironport2-out.teksavvy.com ([206.248.154.181]:52102 "EHLO
-	ironport2-out.pppoe.ca" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751293Ab0CBF55 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Mar 2010 00:57:57 -0500
-Message-ID: <4B8CA8DD.5030605@teksavvy.com>
-Date: Tue, 02 Mar 2010 00:57:49 -0500
-From: Mark Lord <kernel@teksavvy.com>
+Received: from mx1.redhat.com ([209.132.183.28]:49895 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751057Ab0CSTJp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Mar 2010 15:09:45 -0400
+Message-ID: <4BA3CC3B.1050705@redhat.com>
+Date: Fri, 19 Mar 2010 20:10:51 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Andy Walls <awalls@radix.net>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org
-Subject: Re: cx18: Unable to find blank work order form to schedule incoming
- mailbox ...
-References: <4B8BE647.7070709@teksavvy.com> <1267493641.4035.17.camel@palomino.walls.org>
-In-Reply-To: <1267493641.4035.17.camel@palomino.walls.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	v4l-dvb <linux-media@vger.kernel.org>
+Subject: Re: RFC: Drop V4L1 support in V4L2 drivers
+References: <83e56201383c6a99ea51dafcd2794dfe.squirrel@webmail.xs4all.nl> <4BA375A7.3000400@redhat.com>
+In-Reply-To: <4BA375A7.3000400@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/01/10 20:34, Andy Walls wrote:
-> On Mon, 2010-03-01 at 11:07 -0500, Mark Lord wrote:
->> I'm using MythTV-0.21-fixes (from svn) on top of Linux-2.6.33 (from kernel.org),
->> with an HVR-1600 tuner card.  This card usually works okay (with workarounds for
->> the known analog recording bugs) in both analog and digital modes.
+Hi,
+
+On 03/19/2010 02:01 PM, Mauro Carvalho Chehab wrote:
+> Hans Verkuil wrote:
+>> Hi all,
 >>
->> Last night, for the first time ever, MythTV chose to record from both the analog
->> and digital sides of the HVR-1600 card at exactly the same times..
+>> V4L1 support has been marked as scheduled for removal for a long time. The
+>> deadline for that in the feature-removal-schedule.txt file was July 2009.
+>
+> As reference, this is what's written there:
+>
+> What:   Video4Linux API 1 ioctls and from Video devices.
+> When:   July 2009
+> Files:  include/linux/videodev.h
+> Check:  include/linux/videodev.h
+> Why:    V4L1 AP1 was replaced by V4L2 API during migration from 2.4 to 2.6
+>          series. The old API have lots of drawbacks and don't provide enough
+>          means to work with all video and audio standards. The newer API is
+>          already available on the main drivers and should be used instead.
+>          Newer drivers should use v4l_compat_translate_ioctl function to handle
+>          old calls, replacing to newer ones.
+>          Decoder iocts are using internally to allow video drivers to
+>          communicate with video decoders. This should also be improved to allow
+>          V4L2 calls being translated into compatible internal ioctls.
+>          Compatibility ioctls will be provided, for a while, via
+>          v4l1-compat module.
+> Who:    Mauro Carvalho Chehab<mchehab@infradead.org>
+>
+>
 >>
->> The kernel driver failed, and neither recording was successful.
->> The only message in /var/log/messages was:
+>> I think it is time that we remove the V4L1 compatibility support from V4L2
+>> drivers for 2.6.35.
 >>
->> Feb 28 19:59:45 duke kernel: cx18-0: Unable to find blank work order form to schedule incoming mailbox command processing
+>> It would help with the videobuf cleanup as well, but that's just a bonus.
+>>
+>> If no one objects, then I can prepare a patch series for this.
 >
+> With respect to V4L1, there are some aspects to consider:
 >
-> This is really odd.  It means:
+> 1) The removal (or conversion to V4L2) of the existing V4L1 drivers. I think this
+> is a good thing. Hans already said he wants to convert a few more drivers to V4L2.
+> So, we need to check with him if 2.6.35 is feasible. This means that he has something
+> like 5-6 weeks to convert, in order to get the next window.
 >
-> 1. Your machine had a very busy burst of cx18 driver buffer handling
-> activity.  Stopping a number of different streams, MPEG, VBI, and (DTV)
-> TS at nearly the same time could do it
+
+Heh, I might be able to get around to port over se401 to gspca before then, for
+the other ones: -ENEEDHARDWARE.
+
+> 2) The removal of V4L1 compatibility layer. If you take a look at the
+> feature-removal-schedule.txt annoncement, it talks about removing the V4L1 drivers,
+> not about removing the V4L1 compat layer: it mentions only videodev.h removal from
+> userspace API, and says that V4L1 compat will exist "for a while". What I'm meant
+> to do with that announcement text is that, once removed all V4L1 drivers, we'll replace
+> the V4L1 removal announcement with a V4L1 compat layer announcement, giving app developers
+> some time to fix their userspace apps. So, assuming that we'll remove V4L1 drivers on
+> 2.6.35, we should wait at least to 2.6.36 before removing V4L1 compat.
 >
-> 2. The firmware locked up.
+> 3) The removal of V4L1 means that the existing applications should not try to include
+> videodev.h with newer kernels or their compilations will break (easy to fix, but better
+> to remind application developers that may be reading this thread). Also, the removal of
+> V4L1 compat means that all V4L1 only applications will stop working. What's the current
+> status of webcam/TV/stream/radio/videotext/vbi applications? Just yesterday, somebody
+> reported me a problem with radio crashing at the V4L1 compat layer. It seemed that maybe
+> not all radio apps got converted. So, before dropping compat layer support, we should
+> double check what apps will break.
 >
-> 3. The work handler kernel thread, cx18-0-in, got killed, if that's
-> possible, or the processor it was running on got really bogged down.
-..
 
-Yeah, it was pretty strange.
-I wonder.. the system also has a Hauppauge 950Q USB tuner,
-which is also partially controlled by the cx18 driver (I think).
+I think the best way forward here is making libv4l1 completely independ of the kernel
+v4l1 compat layer. This isn't to hard to do, I could even copy over the necessary bits
+to compile v4l1 apps from linux/videodev.h to libv4l1.h, then the kernel can completely
+drop v4l1 compat for v4l2 drivers, but this will need some time...
 
-I wonder if perhaps that had anything to do with it?
+Regards,
 
-> If you want to make the problem "just go away" then up this parameter in
-> cx18-driver.h:
->
-> #define CX18_MAX_IN_WORK_ORDERS (CX18_MAX_FW_MDLS_PER_STREAM + 7)
-> to something like
-> #define CX18_MAX_IN_WORK_ORDERS (2*CX18_MAX_FW_MDLS_PER_STREAM + 7)
-..
-
-Heh.. Yup, that's the first thing I did after looking at the code.  :)
-Dunno if it'll help or not, but easy enough to do.
-
-And if the cx18 is indeed being used by two cards (HVR-1600 and HVR-950Q),
-then perhaps that number does need to be bigger or dynamic (?).
-
-I've since tried to reproduce the failure on purpose, with no luck to date.
-
-Thanks guys!
+Hans
