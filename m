@@ -1,21 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (ext-mx04.extmail.prod.ext.phx2.redhat.com
 	[10.5.110.8])
-	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o29M5hN3013590
-	for <video4linux-list@redhat.com>; Tue, 9 Mar 2010 17:05:43 -0500
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o29M5UMI005510
-	for <video4linux-list@redhat.com>; Tue, 9 Mar 2010 17:05:30 -0500
-Date: Tue, 9 Mar 2010 23:05:24 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Arno Euteneuer <arno.euteneuer@toptica.com>
-Subject: Re: soc-camera driver for i.MX25
-In-Reply-To: <4B960AE2.3090803@toptica.com>
-Message-ID: <Pine.LNX.4.64.1003092256140.4891@axis700.grange>
-References: <4B960AE2.3090803@toptica.com>
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o2J0Ienp005484
+	for <video4linux-list@redhat.com>; Thu, 18 Mar 2010 20:18:40 -0400
+Received: from gateway04.websitewelcome.com (gateway04.websitewelcome.com
+	[67.18.44.19])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o2J0IUp1007649
+	for <video4linux-list@redhat.com>; Thu, 18 Mar 2010 20:18:31 -0400
+From: "Charlie X. Liu" <charlie@sensoray.com>
+To: "'Basil Mohamed Gohar'" <abu_hurayrah@hidayahonline.org>,
+        <video4linux-list@redhat.com>
+References: <fe6fd5f61003180356i4f9346b9j31089e4d6fa94a44@mail.gmail.com>
+	<4BA22CBF.3080902@hidayahonline.org>
+In-Reply-To: <4BA22CBF.3080902@hidayahonline.org>
+Subject: RE: .yuv file
+Date: Thu, 18 Mar 2010 17:18:27 -0700
+Message-ID: <002901cac6f9$b3692810$1a3b7830$@com>
 MIME-Version: 1.0
-Cc: video4linux-list@redhat.com
+Content-Language: en-us
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,38 +32,51 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, 9 Mar 2010, Arno Euteneuer wrote:
+The FFmpeg does support the .yuv format (http://linux.die.net/man/1/ffmpeg
+), though it's YUV420P. You may take a look at FFmpeg
+(http://ffmpeg.org/download.html ) code to find out how it implements it.
 
-> Hi,
-> I wrote a soc-camera driver for the i.MX25 which seems to work well on my
-> setup with a monochrome mt9m001 camera chip if I use the full resolution of
-> 10bits x 1280 x 1024 and up to three buffers. However, reducing the frame size
-> to e.g. 640 x 480 leads to corrupted pictures sometimes when using multiple
-> buffers. Using only one buffer for single shots seems to work always.
-> Unfortunately for my application I don't need streaming at all and single
-> shots is all I need, which is why I will have to stop working on this topic
-> soon and focus on my user space problem again. Furthermore I will not be able
-> to test it with other camera chips.
-> Nevertheless I would like to contribute my work. Maybe somebody is interested
-> or even is able to improve it.
-> The patch is against kernel 2.6.31 (sorry).
 
-Nice, thanks for the patch! Now, you'd have to formalise the submission - 
-add your Signed-off-by line, provide a suitable patch description. More 
-importantly, it certainly has to be updated for 2.6.32 and 2.6.33 - the 
-biggest change since 2.6.31 has been the conversion to the v4l2-subdev 
-API, and a smaller one - the addition of the mediabus API. For a single 
-driver these are not very big changes, I could help you with them, but you 
-certainly would have to re-test your setup with the current kernel. Would 
-you be able to do that? And then, of course, we'd also have to pass your 
-driver through the usual review rounds.
+-----Original Message-----
+From: video4linux-list-bounces@redhat.com
+[mailto:video4linux-list-bounces@redhat.com] On Behalf Of Basil Mohamed
+Gohar
+Sent: Thursday, March 18, 2010 6:38 AM
+To: video4linux-list@redhat.com
+Subject: Re: .yuv file
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+On 03/18/2010 06:56 AM, Carlos Lavin wrote:
+> hello, I am making an application for save images in yuv format in files
+> with .yuv extension, but I don't find information about how the
+information
+> about the image is save in the file, how the image is saved in the file?
+how
+> it is organized in the file .yuv? anyboy can help me? anybody kwon any
+link
+> where to explain my problem? thanks
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>   
+A "yuv" format image is a raw stream of bits.  It does not normally
+store *any* metadata about the image itself.  So, typically, there's no
+way to know the dimensions of the image, the framerate of the stream, or
+even the format of the pixels themselves.  You will have to know these
+yourself if you wish to work with those images, and since you're
+creating them, that shouldn't be a problem.
+
+If, on the other hand, you want to store raw, uncompressed data but
+retain some metadata about it, you can choose the yuv4mpeg format, which
+can store data such as the resolution, pixel format, frame rate, and
+even whether the frames are progressive or interlaced.  A yuv4mpeg file
+has nothing explicitly to do with mpeg video, it was just named that
+because that was the original primary use for such raw data.
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
 
 --
 video4linux-list mailing list
