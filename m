@@ -1,49 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:43044 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751570Ab0CaFLs (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:47807 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751154Ab0CSGEV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Mar 2010 01:11:48 -0400
-Received: by bwz1 with SMTP id 1so4897852bwz.21
-        for <linux-media@vger.kernel.org>; Tue, 30 Mar 2010 22:11:46 -0700 (PDT)
-MIME-Version: 1.0
-Reply-To: fernando@develcuy.com
-Date: Wed, 31 Mar 2010 01:11:46 -0400
-Message-ID: <k2p5ba75e2f1003302211w2a7f4e0cy3fac5da36acc649@mail.gmail.com>
-Subject: Re: GIGABYTE U8000-RH Analog source support ?
-From: =?UTF-8?Q?Fernando_P=2E_Garc=C3=ADa?=
-	<fernandoparedesgarcia@gmail.com>
+	Fri, 19 Mar 2010 02:04:21 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2J64Hjp010386
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 19 Mar 2010 01:04:20 -0500
+From: hvaibhav@ti.com
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Cc: m-karicheri2@ti.com, Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH-V2 2/7] VPFE Capture: Add call back function for interrupt clear to vpfe_cfg
+Date: Fri, 19 Mar 2010 11:34:08 +0530
+Message-Id: <1268978653-32710-3-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-May you elaborate about the "huge undertaking"
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Fernando.
+For the devices like AM3517, it is expected that driver clears the
+interrupt in ISR. Since this is device spcific, callback function
+added to the platform_data.
 
->
-> 2010/3/3 RoboSK <ucet.na.disku...@gmail.com>:
-> > Hi, i find this page *1 with last change from "3 May 2009" with text "no
-> > driver written for the CX25843-24Z" and then this *2 from "27 September
-> > 2009" with text "CX2584x chips are fully supported by Linux..." = have linux
-> > (now/future) support for Analog source with this USB stick ?
-> >
-> > thanks
-> >
-> > Robo
->
-> The wiki page is just wrong.  The reason that board is not supported
-> is not because of the cx25843.  It's because the dib0700 bridge falls
-> under the dvb-usb framework, and the framework doesn't have analog
-> support at all.
->
-> Adding such support would be a huge undertaking, but if it were done a
-> whole bunch of products would start getting analog support (all of the
-> dib0700 products which also have analog onboard).
->
-> Devin
->
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ drivers/media/video/davinci/vpfe_capture.c |   24 ++++++++++++++++++++----
+ include/media/davinci/vpfe_capture.h       |    2 ++
+ 2 files changed, 22 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
+index 885cd54..2219460 100644
+--- a/drivers/media/video/davinci/vpfe_capture.c
++++ b/drivers/media/video/davinci/vpfe_capture.c
+@@ -475,6 +475,11 @@ static int vpfe_initialize_device(struct vpfe_device *vpfe_dev)
+ 	ret = ccdc_dev->hw_ops.open(vpfe_dev->pdev);
+ 	if (!ret)
+ 		vpfe_dev->initialized = 1;
++
++	/* Clear all VPFE/CCDC interrupts */
++	if (vpfe_dev->cfg->clr_intr)
++		vpfe_dev->cfg->clr_intr(-1);
++
+ unlock:
+ 	mutex_unlock(&ccdc_lock);
+ 	return ret;
+@@ -562,7 +567,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
+
+ 	/* if streaming not started, don't do anything */
+ 	if (!vpfe_dev->started)
+-		return IRQ_HANDLED;
++		goto clear_intr;
+
+ 	/* only for 6446 this will be applicable */
+ 	if (NULL != ccdc_dev->hw_ops.reset)
+@@ -574,7 +579,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
+ 			"frame format is progressive...\n");
+ 		if (vpfe_dev->cur_frm != vpfe_dev->next_frm)
+ 			vpfe_process_buffer_complete(vpfe_dev);
+-		return IRQ_HANDLED;
++		goto clear_intr;
+ 	}
+
+ 	/* interlaced or TB capture check which field we are in hardware */
+@@ -604,7 +609,7 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
+ 				addr += vpfe_dev->field_off;
+ 				ccdc_dev->hw_ops.setfbaddr(addr);
+ 			}
+-			return IRQ_HANDLED;
++			goto clear_intr;
+ 		}
+ 		/*
+ 		 * if one field is just being captured configure
+@@ -624,6 +629,10 @@ static irqreturn_t vpfe_isr(int irq, void *dev_id)
+ 		 */
+ 		vpfe_dev->field_id = fid;
+ 	}
++clear_intr:
++	if (vpfe_dev->cfg->clr_intr)
++		vpfe_dev->cfg->clr_intr(irq);
++
+ 	return IRQ_HANDLED;
+ }
+
+@@ -635,8 +644,11 @@ static irqreturn_t vdint1_isr(int irq, void *dev_id)
+ 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "\nInside vdint1_isr...\n");
+
+ 	/* if streaming not started, don't do anything */
+-	if (!vpfe_dev->started)
++	if (!vpfe_dev->started) {
++		if (vpfe_dev->cfg->clr_intr)
++			vpfe_dev->cfg->clr_intr(irq);
+ 		return IRQ_HANDLED;
++	}
+
+ 	spin_lock(&vpfe_dev->dma_queue_lock);
+ 	if ((vpfe_dev->fmt.fmt.pix.field == V4L2_FIELD_NONE) &&
+@@ -644,6 +656,10 @@ static irqreturn_t vdint1_isr(int irq, void *dev_id)
+ 	    vpfe_dev->cur_frm == vpfe_dev->next_frm)
+ 		vpfe_schedule_next_buffer(vpfe_dev);
+ 	spin_unlock(&vpfe_dev->dma_queue_lock);
++
++	if (vpfe_dev->cfg->clr_intr)
++		vpfe_dev->cfg->clr_intr(irq);
++
+ 	return IRQ_HANDLED;
+ }
+
+diff --git a/include/media/davinci/vpfe_capture.h b/include/media/davinci/vpfe_capture.h
+index d863e5e..dc0dd5b 100644
+--- a/include/media/davinci/vpfe_capture.h
++++ b/include/media/davinci/vpfe_capture.h
+@@ -94,6 +94,8 @@ struct vpfe_config {
+ 	/* vpfe clock */
+ 	struct clk *vpssclk;
+ 	struct clk *slaveclk;
++	/* Function for Clearing the interrupt */
++	void (*clr_intr)(int vdint);
+ };
+
+ struct vpfe_device {
+--
+1.6.2.4
+
