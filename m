@@ -1,87 +1,219 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57491 "EHLO mx1.redhat.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:60309 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753267Ab0CERwr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Mar 2010 12:52:47 -0500
-Message-ID: <4B9144E6.5000109@redhat.com>
-Date: Fri, 05 Mar 2010 14:52:38 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Stefan Ringel <stefan.ringel@arcor.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: tm6000 and Hauppauge HVR-900H
-References: <4B913F2E.1080703@arcor.de>
-In-Reply-To: <4B913F2E.1080703@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+	id S1750802Ab0CSJhy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Mar 2010 05:37:54 -0400
+From: hvaibhav@ti.com
+To: linux-omap@vger.kernel.org
+Cc: linux-media@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [Resubmit: PATCH-V2] AM3517: Add VPFE Capture driver support
+Date: Fri, 19 Mar 2010 15:07:49 +0530
+Message-Id: <1268991469-2747-1-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stefan,
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Stefan Ringel wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
->  
-> Hi Mauro, Devin,
-> 
-> I study the tm6000 source and I have any questions.
-> 
-> 1. I tested my stick (terratec cinery hybrid) with the windows driver
-> from the Hauppauge HVR-900H and it's work. So I think that have the
-> same driver setting. 
+AM3517 and DM644x uses same CCDC IP, so reusing the driver
+for AM3517.
 
-It is very likely that the original driver has some code to probe the devices
-and to read certain configurations at the board's eeprom. At least on the USB
-sniffs I've saw, some probing is noticed, and several eeprom addresses are
-read. So, the fact that both devices work with the same driver doesn't mean that
-both use the same GPIO's.
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ arch/arm/mach-omap2/board-am3517evm.c |  160 +++++++++++++++++++++++++++++++++
+ 1 files changed, 160 insertions(+), 0 deletions(-)
 
-> In the board struct is setting tuner reset gpio
-> with label TM6000_GPIO_2, but is that not a tm6010? Then it must set
-> to TM6010_GPIO_2. And can I add  the setting from terratec cinery
-> hybrid for the Hauppauge HVR-900H?
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index f04311f..d2d2ced 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -30,11 +30,164 @@
 
-It should be noticed that all GPIO addresses that exists for tm6000 also
-exists for tm6010, but with different names:
+ #include <plat/board.h>
+ #include <plat/common.h>
++#include <plat/control.h>
+ #include <plat/usb.h>
+ #include <plat/display.h>
 
-#define TM6000_GPIO_1           0x102
-#define TM6000_GPIO_2           0x103
-#define TM6000_GPIO_3           0x104
-#define TM6000_GPIO_4           0x300
-#define TM6000_GPIO_5           0x301
-#define TM6000_GPIO_6           0x304
-#define TM6000_GPIO_7           0x305
++#include <media/tvp514x.h>
++#include <media/ti-media/vpfe_capture.h>
++
+ #include "mux.h"
 
-#define TM6010_GPIO_0      0x0102
-#define TM6010_GPIO_1      0x0103
-#define TM6010_GPIO_2      0x0104
-#define TM6010_GPIO_3      0x0105
-#define TM6010_GPIO_4      0x0106
-#define TM6010_GPIO_5      0x0107
-#define TM6010_GPIO_6      0x0300
-#define TM6010_GPIO_7      0x0301
-#define TM6010_GPIO_9      0x0305
++/*
++ * VPFE - Video Decoder interface
++ */
++#define TVP514X_STD_ALL		(V4L2_STD_NTSC | V4L2_STD_PAL)
++
++/* Inputs available at the TVP5146 */
++static struct v4l2_input tvp5146_inputs[] = {
++	{
++		.index	= 0,
++		.name	= "Composite",
++		.type	= V4L2_INPUT_TYPE_CAMERA,
++		.std	= TVP514X_STD_ALL,
++	},
++	{
++		.index	= 1,
++		.name	= "S-Video",
++		.type	= V4L2_INPUT_TYPE_CAMERA,
++		.std	= TVP514X_STD_ALL,
++	},
++};
++
++static struct tvp514x_platform_data tvp5146_pdata = {
++	.clk_polarity	= 0,
++	.hs_polarity	= 1,
++	.vs_polarity	= 1
++};
++
++static struct vpfe_route tvp5146_routes[] = {
++	{
++		.input	= INPUT_CVBS_VI1A,
++		.output	= OUTPUT_10BIT_422_EMBEDDED_SYNC,
++	},
++	{
++		.input	= INPUT_SVIDEO_VI2C_VI1C,
++		.output	= OUTPUT_10BIT_422_EMBEDDED_SYNC,
++	},
++};
++
++static struct vpfe_subdev_info vpfe_sub_devs[] = {
++	{
++		.name		= "tvp5146",
++		.grp_id		= 0,
++		.num_inputs	= ARRAY_SIZE(tvp5146_inputs),
++		.inputs		= tvp5146_inputs,
++		.routes		= tvp5146_routes,
++		.can_route	= 1,
++		.ccdc_if_params	= {
++			.if_type = VPFE_BT656,
++			.hdpol	= VPFE_PINPOL_POSITIVE,
++			.vdpol	= VPFE_PINPOL_POSITIVE,
++		},
++		.board_info	= {
++			I2C_BOARD_INFO("tvp5146", 0x5C),
++			.platform_data = &tvp5146_pdata,
++		},
++	},
++};
++
++static void am3517_evm_clear_vpfe_intr(int vdint)
++{
++	unsigned int vpfe_int_clr;
++
++	vpfe_int_clr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
++
++	switch (vdint) {
++	/* VD0 interrrupt */
++	case INT_35XX_CCDC_VD0_IRQ:
++		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD0_INT_CLR;
++		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD0_INT_CLR;
++		break;
++	/* VD1 interrrupt */
++	case INT_35XX_CCDC_VD1_IRQ:
++		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD1_INT_CLR;
++		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD1_INT_CLR;
++		break;
++	/* VD2 interrrupt */
++	case INT_35XX_CCDC_VD2_IRQ:
++		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD2_INT_CLR;
++		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD2_INT_CLR;
++		break;
++	/* Clear all interrrupts */
++	default:
++		vpfe_int_clr &= ~(AM35XX_VPFE_CCDC_VD0_INT_CLR |
++				AM35XX_VPFE_CCDC_VD1_INT_CLR |
++				AM35XX_VPFE_CCDC_VD2_INT_CLR);
++		vpfe_int_clr |= (AM35XX_VPFE_CCDC_VD0_INT_CLR |
++				AM35XX_VPFE_CCDC_VD1_INT_CLR |
++				AM35XX_VPFE_CCDC_VD2_INT_CLR);
++		break;
++	}
++	omap_ctrl_writel(vpfe_int_clr, AM35XX_CONTROL_LVL_INTR_CLEAR);
++	vpfe_int_clr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
++}
++
++static struct vpfe_config vpfe_cfg = {
++	.num_subdevs	= ARRAY_SIZE(vpfe_sub_devs),
++	.i2c_adapter_id	= 3,
++	.sub_devs	= vpfe_sub_devs,
++	.clr_intr	= am3517_evm_clear_vpfe_intr,
++	.card_name	= "DM6446 EVM",
++	.ccdc		= "DM6446 CCDC",
++};
++
++static struct resource vpfe_resources[] = {
++	{
++		.start	= INT_35XX_CCDC_VD0_IRQ,
++		.end	= INT_35XX_CCDC_VD0_IRQ,
++		.flags	= IORESOURCE_IRQ,
++	},
++	{
++		.start	= INT_35XX_CCDC_VD1_IRQ,
++		.end	= INT_35XX_CCDC_VD1_IRQ,
++		.flags	= IORESOURCE_IRQ,
++	},
++};
++
++static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
++static struct platform_device vpfe_capture_dev = {
++	.name		= CAPTURE_DRV_NAME,
++	.id		= -1,
++	.num_resources	= ARRAY_SIZE(vpfe_resources),
++	.resource	= vpfe_resources,
++	.dev = {
++		.dma_mask		= &vpfe_capture_dma_mask,
++		.coherent_dma_mask	= DMA_BIT_MASK(32),
++		.platform_data		= &vpfe_cfg,
++	},
++};
++
++static struct resource dm644x_ccdc_resource[] = {
++	/* CCDC Base address */
++	{
++		.start	= AM35XX_IPSS_VPFE_BASE,
++		.end	= AM35XX_IPSS_VPFE_BASE + 0xffff,
++		.flags	= IORESOURCE_MEM,
++	},
++};
++
++static struct platform_device dm644x_ccdc_dev = {
++	.name		= "dm644x_ccdc",
++	.id		= -1,
++	.num_resources	= ARRAY_SIZE(dm644x_ccdc_resource),
++	.resource	= dm644x_ccdc_resource,
++	.dev = {
++		.dma_mask		= &vpfe_capture_dma_mask,
++		.coherent_dma_mask	= DMA_BIT_MASK(32),
++	},
++};
++
+ #define LCD_PANEL_PWR		176
+ #define LCD_PANEL_BKLIGHT_PWR	182
+ #define LCD_PANEL_PWM		181
+@@ -261,6 +414,8 @@ static struct omap_board_config_kernel am3517_evm_config[] __initdata = {
 
-So, maybe there are some issues there.
+ static struct platform_device *am3517_evm_devices[] __initdata = {
+ 	&am3517_evm_dss_device,
++	&dm644x_ccdc_dev,
++	&vpfe_capture_dev,
+ };
 
-AFAIK, this device uses those addresses:
+ static void __init am3517_evm_init_irq(void)
+@@ -313,6 +468,11 @@ static void __init am3517_evm_init(void)
 
-	GPIO_1 MT352_Reset
-	GPIO_2 XC3028 Tuner_Reset
-	GPIO_4 MT352_Sleep 
+ 	i2c_register_board_info(1, am3517evm_i2c_boardinfo,
+ 				ARRAY_SIZE(am3517evm_i2c_boardinfo));
++
++	clk_add_alias("master", "dm644x_ccdc", "master",
++			&vpfe_capture_dev.dev);
++	clk_add_alias("slave", "dm644x_ccdc", "slave",
++			&vpfe_capture_dev.dev);
+ }
 
-Anyway, the better is to double-check those addresses, trying the driver
-with both TM6000 and TM6010 addresses to be sure.
+ static void __init am3517_evm_map_io(void)
+--
+1.6.2.4
 
-> 2. In the board struct have not all a tuner reset gpio.
-> 3. Is it better when we implemented the firmware value in the board
-> struct?
-
-Sorry, but I didn't understand your questions.
-
--- 
-
-Cheers,
-Mauro
