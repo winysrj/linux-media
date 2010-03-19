@@ -1,54 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f213.google.com ([209.85.220.213]:53146 "EHLO
-	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751853Ab0CWLHG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Mar 2010 07:07:06 -0400
-Date: Tue, 23 Mar 2010 14:06:55 +0300
-From: Dan Carpenter <error27@gmail.com>
-To: Olimpiu Pascariu <olimpiu.pascariu@gmail.com>, gregkh@suse.de,
-	mchehab@redhat.com, palash.bandyopadhyay@conexant.com,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 5/5] Staging: cx25821: fix coding style issues in
-	cx25821-medusa-video.c
-Message-ID: <20100323110655.GW21571@bicker>
-References: <1269197503.6971.11.camel@tuxtm-linux> <20100322133513.GO21571@bicker> <1269288630.6365.1.camel@tuxtm-linux> <20100323110259.GV21571@bicker>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20100323110259.GV21571@bicker>
+Received: from mail.gmx.net ([213.165.64.20]:55326 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751421Ab0CSOZg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Mar 2010 10:25:36 -0400
+Subject: Re: cx23885: Hauppauge WinTV HVR-1400 firmware loading problem
+From: Alina Friedrichsen <x-alina@gmx.net>
+To: linux-media@vger.kernel.org
+In-Reply-To: <1268788483.1536.24.camel@destiny>
+References: <1268788483.1536.24.camel@destiny>
+Content-Type: text/plain; charset="UTF-8"
+Date: Fri, 19 Mar 2010 15:25:33 +0100
+Message-ID: <1269008733.1645.8.camel@destiny>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 23, 2010 at 02:03:00PM +0300, Dan Carpenter wrote:
-> On Mon, Mar 22, 2010 at 10:10:30PM +0200, Olimpiu Pascariu wrote:
-> > >From 32591165a537a03f472c68289798044d6eeea2e0 Mon Sep 17 00:00:00 2001
-> > From: Olimpiu Pascariu <olimpiu.pascariu@gmail.com>
-> > Date: Mon, 22 Mar 2010 22:07:20 +0200
-> > Subject: [PATCH 5/5] Staging: cx25821: fix coding style issues in cx25821-medusa-video.c
-> >  This is a patch to cx25821-medusa-video.c file that fixes up warnings and errors found by the checkpatch.pl tool
-> >  Signed-off-by: Olimpiu Pascariu <olimpiu.pascariu@gmail.com>
-> 
-> 	[snip]
-> 
-> > +		/*
-> > +		 * clear VPRES_VERT_EN bit, fixes the chroma run away problem
-> > +		 * when the input switching rate < 16 fields
-> > +		*/
->                ^^^
-> 	Missing a space here.
-> 
-> Otherwise looks good.
-> 
-> Acked-by: Dan Carpenter <error27@gmail.com>
-> 
-> regard,
-> dan carpenter
+No one has got this card and can say if this is normal (on a stable
+kernel) or my hardware is broken?
 
-Oh sorry.  I thought this was a new patch.  This is fine to go in as is
-by me...  Maybe hold off for a couple days and see if anyone else has
-any comments.
+Regards
+Alina
 
-regards,
-dan carpenter  
+Am Mittwoch, den 17.03.2010, 02:14 +0100 schrieb Alina Friedrichsen:
+> My kernel is 2.6.33.
+> When I want to watch DVB-T with VLC, loading the firmwares stops after
+> the following and don't see any pictures:
+> 
+> cx23885 0000:03:00.0: firmware: requesting xc3028L-v36.fw
+> xc2028 3-0064: Loading 81 firmware images from xc3028L-v36.fw, type:
+> xc2028 firmware, ver 3.6
+> xc2028 3-0064: Loading firmware for type=BASE F8MHZ (3), id
+> 0000000000000000.
+> xc2028 3-0064: Loading firmware for type=D2633 DTV7 (90), id
+> 0000000000000000.
+> 
+> And hangs forever. Any retries has the same effect.
+> 
+> But if I start "scan /usr/share/dvb/dvb-t/de-Berlin" the tuning fails
+> two times, then all firmwares load correctly and scanning works.
+> 
+> xc2028 3-0064: Loading firmware for type=BASE F8MHZ (3), id
+> 0000000000000000.
+> xc2028 3-0064: Loading firmware for type=D2633 DTV7 (90), id
+> 0000000000000000.
+> xc2028 3-0064: Loading firmware for type=BASE F8MHZ (3), id
+> 0000000000000000.
+> xc2028 3-0064: Loading firmware for type=D2633 DTV7 (90), id
+> 0000000000000000.
+> xc2028 3-0064: Loading firmware for type=D2633 DTV78 (110), id
+> 0000000000000000.
+> xc2028 3-0064: Loading SCODE for type=DTV78 DTV8 DIBCOM52 SCODE
+> HAS_IF_5200 (61000300), id 0000000000000000.
+> 
+> After that all other firmware loadings works fine and I can watch TV.
+> 
+> Any idea whats goes wrong? Is this a problem of the driver, or is my
+> express card broken? I unfortunately has no other card to test.
+> 
+> Thanks!
+> Alina
+> 
+> 
+> 
+
+
