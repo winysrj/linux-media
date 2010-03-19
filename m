@@ -1,55 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:42586 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752581Ab0CSIsf (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4966 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751341Ab0CSUhi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Mar 2010 04:48:35 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Subject: Re: RFC: Drop V4L1 support in V4L2 drivers
-Date: Fri, 19 Mar 2010 09:50:52 +0100
-Cc: "v4l-dvb" <linux-media@vger.kernel.org>
-References: <83e56201383c6a99ea51dafcd2794dfe.squirrel@webmail.xs4all.nl> <201003190904.53867.laurent.pinchart@ideasonboard.com> <50cd74a798bbf96501cd40b90d2a2b93.squirrel@webmail.xs4all.nl>
-In-Reply-To: <50cd74a798bbf96501cd40b90d2a2b93.squirrel@webmail.xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201003190950.52964.laurent.pinchart@ideasonboard.com>
+	Fri, 19 Mar 2010 16:37:38 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o2JKbaW4087215
+	for <linux-media@vger.kernel.org>; Fri, 19 Mar 2010 21:37:37 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 19 Mar 2010 21:37:36 +0100 (CET)
+Message-Id: <201003192037.o2JKbaW4087215@smtp-vbr7.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 19 March 2010 09:46:02 Hans Verkuil wrote:
-> > On Friday 19 March 2010 08:59:08 Hans Verkuil wrote:
-> >> Hi all,
-> >> 
-> >> V4L1 support has been marked as scheduled for removal for a long time.
-> >> The deadline for that in the feature-removal-schedule.txt file was July
-> >> 2009.
-> >> 
-> >> I think it is time that we remove the V4L1 compatibility support from
-> >> V4L2 drivers for 2.6.35.
-> > 
-> > Do you mean just removing V4L1-specific code from V4L2 drivers, or
-> > removing the V4L1 compatibility layer completely ?
-> 
-> The compat layer as well. So the only V4L1 code left is that for V4L1-only
-> drivers.
-> 
-> This means that V4L2 drivers can only be used by V4L2-aware applications
-> and can no longer be accessed by V4L1-only applications.
-> 
-> >> It would help with the videobuf cleanup as well, but that's just a bonus.
-> > 
-> > Do we still have V4L1-only drivers that use videobuf ?
-> 
-> No V4L1-only drivers use videobuf, but videobuf has support for the V4L1
-> compat support in V4L2 drivers (the cgmbuf ioctl). So when we remove the
-> compat support, then that videobuf code can be removed as well.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-In that case, please go for it :-)
+Results of the daily build of v4l-dvb:
 
--- 
-Regards,
+date:        Fri Mar 19 19:00:28 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14494:929298149eba
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 8c69c6ed6c74c94fa7ad6fa24eda452e4b212d81
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-Laurent Pinchart
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-rc1-armv5: OK
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-rc1-armv5-davinci: WARNINGS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-rc1-armv5-ixp: WARNINGS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-rc1-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.17-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-rc1-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-rc1-m32r: OK
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-rc1-mips: WARNINGS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-rc1-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.17-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-rc1-x86_64: WARNINGS
+linux-git-armv5: OK
+linux-git-armv5-davinci: OK
+linux-git-armv5-ixp: OK
+linux-git-armv5-omap2: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: WARNINGS
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.7-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.62-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.7-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
