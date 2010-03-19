@@ -1,52 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f227.google.com ([209.85.220.227]:50096 "EHLO
-	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932346Ab0CKRwY (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:47808 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751153Ab0CSGEV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Mar 2010 12:52:24 -0500
-Date: Thu, 11 Mar 2010 09:52:14 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-input@vger.kernel.org
-Subject: Re: [PATCH] V4L/DVB: ir: Add a link to associate /sys/class/ir/irrcv
- with the input device
-Message-ID: <20100311175214.GB7467@core.coreip.homeip.net>
-References: <4B99104B.3090307@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4B99104B.3090307@redhat.com>
+	Fri, 19 Mar 2010 02:04:21 -0400
+Received: from dbdp31.itg.ti.com ([172.24.170.98])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o2J64ISX010387
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 19 Mar 2010 01:04:20 -0500
+From: hvaibhav@ti.com
+To: linux-media@vger.kernel.org
+Cc: m-karicheri2@ti.com, Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH-V2 1/7] AM3517 CCDC: Debug register read prints removed
+Date: Fri, 19 Mar 2010 11:34:07 +0530
+Message-Id: <1268978653-32710-2-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-On Thu, Mar 11, 2010 at 12:46:19PM -0300, Mauro Carvalho Chehab wrote:
-> In order to allow userspace programs to autoload an IR table, a link is
-> needed to point to the corresponding input device.
-> 
-> $ tree /sys/class/irrcv/irrcv0
-> /sys/class/irrcv/irrcv0
-> |-- current_protocol
-> |-- input -> ../../../pci0000:00/0000:00:0b.1/usb1/1-3/input/input22
-> |-- power
-> |   `-- wakeup
-> |-- subsystem -> ../../../../class/irrcv
-> `-- uevent
-> 
-> It is now easy to associate an irrcv device with the corresponding
-> device node, at the input interface.
-> 
 
-I guess the question is why don't you make input device a child of your
-irrcvX device? Then I believe driver core will link them properly. It
-will also ensure proper power management hierarchy.
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ drivers/media/video/davinci/dm644x_ccdc.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-That probably will require you changing from class_dev into device but
-that's the direction kernel is going to anyway.
+diff --git a/drivers/media/video/davinci/dm644x_ccdc.c b/drivers/media/video/davinci/dm644x_ccdc.c
+index 0c394ca..840eee9 100644
+--- a/drivers/media/video/davinci/dm644x_ccdc.c
++++ b/drivers/media/video/davinci/dm644x_ccdc.c
+@@ -434,7 +434,6 @@ void ccdc_config_ycbcr(void)
 
-Thanks.
+ 	ccdc_sbl_reset();
+ 	dev_dbg(ccdc_cfg.dev, "\nEnd of ccdc_config_ycbcr...\n");
+-	ccdc_readregs();
+ }
 
--- 
-Dmitry
+ static void ccdc_config_black_clamp(struct ccdc_black_clamp *bclamp)
+--
+1.6.2.4
+
