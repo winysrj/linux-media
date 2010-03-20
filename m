@@ -1,65 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3283 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753352Ab0CZLT1 (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1492 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751079Ab0CTSi6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Mar 2010 07:19:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] V4L: fix ENUMSTD ioctl to report all supported standards
-Date: Fri, 26 Mar 2010 12:19:59 +0100
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <Pine.LNX.4.64.1003260758550.4298@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1003260758550.4298@axis700.grange>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+	Sat, 20 Mar 2010 14:38:58 -0400
+Subject: Re: RFC: Phase 1: Proposal to convert V4L1 drivers
+From: Gerard Klaver <gerard.klaver@xs4all.nl>
+Reply-To: gerard.klaver@xs4all.nl
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	David Ellingsworth <david@identd.dyndns.org>
+In-Reply-To: <201003200958.49649.hverkuil@xs4all.nl>
+References: <201003200958.49649.hverkuil@xs4all.nl>
+Content-Type: text/plain
+Date: Sat, 20 Mar 2010 19:38:39 +0100
+Message-Id: <1269110319.4102.4.camel@gk-sem3.gkall.nl>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201003261219.59703.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 26 March 2010 08:06:42 Guennadi Liakhovetski wrote:
-> V4L2_STD_PAL, V4L2_STD_SECAM, and V4L2_STD_NTSC are not the only composite 
-> standards. Currently, e.g., if a driver supports all of V4L2_STD_PAL_B, 
-> V4L2_STD_PAL_B1 and V4L2_STD_PAL_G, the enumeration will report 
-> V4L2_STD_PAL_BG and not the single standards, which can confuse 
-> applications. Fix this by only clearing simple standards from the mask. 
-> This, of course, will only work, if composite standards are listed before 
-> simple ones in the standards array in v4l2-ioctl.c, which is currently 
-> the case.
+On Sat, 2010-03-20 at 09:58 +0100, Hans Verkuil wrote:
+> Hi all,
+> 
+<lines deleted>
+> 
+> - ov511
+> - ovcamchip
+> - w9968cf
+> - stv680
+> 
 
-Do you have an specific example where the current implementation will do the
-wrong thing?
-
-Regards,
-
-	Hans
+> Conclusion:
+> 
+> These drivers have no hardware to test with: bw-qcam, c-qcam, arv, w9966.
+> However, all four should be easy to convert to v4l2, even without hardware.
+> Volunteers?
+> 
 
 > 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
-> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-> index 4b11257..2389df0 100644
-> --- a/drivers/media/video/v4l2-ioctl.c
-> +++ b/drivers/media/video/v4l2-ioctl.c
-> @@ -1065,9 +1065,7 @@ static long __video_do_ioctl(struct file *file,
->  			j++;
->  			if (curr_id == 0)
->  				break;
-> -			if (curr_id != V4L2_STD_PAL &&
-> -			    curr_id != V4L2_STD_SECAM &&
-> -			    curr_id != V4L2_STD_NTSC)
-> +			if (is_power_of_2(curr_id))
->  				id &= ~curr_id;
->  		}
->  		if (i <= index)
+> Regards,
+> 
+> 	Hans
+> 
+> -- 
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+
+Hello, 
+
+I have a c-qcam with par. port, so i can do some test, see page below
+for some information webcam:
+ 
+http://gkall.hobby.nl/connectix-quickcam.html
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+--------
+m.vr.gr.
+Gerard Klaver
+
