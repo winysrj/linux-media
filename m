@@ -1,75 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:37836 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753473Ab0CVGkf (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2823 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751154Ab0CTVha (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Mar 2010 02:40:35 -0400
-Date: Sun, 21 Mar 2010 23:40:28 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Wolfram Sang <w.sang@pengutronix.de>
-Cc: kernel-janitors@vger.kernel.org,
-	"Eric W. Biederman" <ebiederm@xmission.com>,
-	Greg KH <gregkh@suse.de>,
-	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-	Mike Isely <isely@pobox.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Sujith Thomas <sujith.thomas@intel.com>,
-	Matthew Garrett <mjg@redhat.com>, linuxppc-dev@ozlabs.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	platform-driver-x86@vger.kernel.org
-Subject: Re: [PATCH] device_attributes: add sysfs_attr_init() for dynamic
- attributes
-Message-ID: <20100322064027.GG31621@core.coreip.homeip.net>
-References: <1269238878-991-1-git-send-email-w.sang@pengutronix.de>
+	Sat, 20 Mar 2010 17:37:30 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: e9hack <e9hack@googlemail.com>
+Subject: Re: av7110 and budget_av are broken!
+Date: Sat, 20 Mar 2010 22:37:23 +0100
+Cc: linux-media@vger.kernel.org
+References: <4B8E4A6F.2050809@googlemail.com> <201003201520.40069.hverkuil@xs4all.nl> <4BA4F1B5.80500@googlemail.com>
+In-Reply-To: <4BA4F1B5.80500@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1269238878-991-1-git-send-email-w.sang@pengutronix.de>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201003202237.23174.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Wolfram,
+On Saturday 20 March 2010 17:03:01 e9hack wrote:
+> Am 20.3.2010 15:20, schrieb Hans Verkuil:
+> > Hartmut, is the problem with unloading the module something that my patch
+> > caused? Or was that there as well before changeset 14351:2eda2bcc8d6f?
+> > Are there any kernel messages indicating why it won't unload?
+> 
+> Changset 14351:2eda2bcc8d6f causes a kernel oops during unload of the module for my dvb
+> cards.
 
-On Mon, Mar 22, 2010 at 07:21:17AM +0100, Wolfram Sang wrote:
-> Made necessary by 6992f5334995af474c2b58d010d08bc597f0f2fe.
-> 
-> Found by this semantic patch:
-> 
-> @ init @
-> type T;
-> identifier A;
-> @@
-> 
->         T {
->                 ...
->                 struct device_attribute A;
->                 ...
->         };
-> 
-> @ main extends init @
-> expression E;
-> statement S;
-> identifier err;
-> T *name;
-> @@
-> 
->         ... when != sysfs_attr_init(&name->A.attr);
-> (
-> +       sysfs_attr_init(&name->A.attr);
->         if (device_create_file(E, &name->A))
->                 S
-> |
-> +       sysfs_attr_init(&name->A.attr);
->         err = device_create_file(E, &name->A);
-> )
-> 
-> While reviewing, I put the initialization to apropriate places.
-> 
+OK, I know that. But does the patch I mailed you last time fix this problem
+without causing new ones? If so, then I'll post that patch to the list.
 
-My standard question - are all of these need to be dynamically
-allocated?
+Regards,
 
-Thanks.
+	Hans
+
+> The call trace points to dvb_ttpci. I assumed, that the FF card is affected only.
+> It may be possible, that budget-av does crash also, if it is unload as second.
 
 -- 
-Dmitry
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
