@@ -1,53 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:38147 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753954Ab0CWOmZ convert rfc822-to-8bit (ORCPT
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:34304 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753003Ab0CTQOO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Mar 2010 10:42:25 -0400
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: linux-media@vger.kernel.org
-To: =?iso-8859-1?q?Bj=F8rn_Mork?= <bjorn@mork.no>
-Subject: Re: [PATCH] V4L/DVB: saa7146: Making IRQF_DISABLED or IRQF_SHARED optional
-Date: Tue, 23 Mar 2010 15:40:58 +0100
-Cc: linux-media@vger.kernel.org
-References: <1269202135-340-1-git-send-email-bjorn@mork.no> <87ocigwvrf.fsf@nemi.mork.no> <1269351981-12292-1-git-send-email-bjorn@mork.no>
-In-Reply-To: <1269351981-12292-1-git-send-email-bjorn@mork.no>
+	Sat, 20 Mar 2010 12:14:14 -0400
+Received: by bwz1 with SMTP id 1so778294bwz.21
+        for <linux-media@vger.kernel.org>; Sat, 20 Mar 2010 09:14:12 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <201003231541.03636@orion.escape-edv.de>
+In-Reply-To: <201003201514.57420.hverkuil@xs4all.nl>
+References: <201003201021.05426.hverkuil@xs4all.nl>
+	 <201003201337.03741.hverkuil@xs4all.nl>
+	 <1269093104.2909.13.camel@brian.bconsult.de>
+	 <201003201514.57420.hverkuil@xs4all.nl>
+Date: Sat, 20 Mar 2010 12:14:12 -0400
+Message-ID: <829197381003200914u170d5f3ra6f6463338f41b45@mail.gmail.com>
+Subject: Re: RFC: Phase 2/3: Move the compat code into v4l1-compat. Convert
+	apps.
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Chicken Shack <chicken.shack@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Sat, Mar 20, 2010 at 10:14 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Of course, the best solution is to convert the V4L1 apps to using V4L2.
 
-Bjørn Mork wrote:
-> As discussed many times, e.g. in http://lkml.org/lkml/2007/7/26/401
-> mixing IRQF_DISABLED with IRQF_SHARED may cause unpredictable and
-> unexpected results.
-> 
-> Add a module parameter to allow fine tuning the request_irq
-> flags based on local system requirements.  Some may need to turn
-> off IRQF_DISABLED to be able to share interrupt with drivers
-> needing interrupts enabled, while others may want to turn off
-> IRQF_SHARED to ensure that IRQF_DISABLED has an effect.
+On that topic, if I wanted to ensure that an application was not using
+any V4L1 functionality, is there any easy way to do that?  For
+example, can I just remove the #include "videodev.h" and fix whatever
+breaks?
 
-NAK. We should not add module parameters for this kind of crap.
+Right now a problem is that there could easily be situations where an
+app uses V4L1 functionality without my knowledge, and it would be good
+if there were an easy way to audit the app and make sure it is doing
+V4L2 entirely (in fact, I had this issue in a few places with tvtime).
 
-Let's check whether IRQF_DISABLED is really required.
-Afaics it can be removed.
-
-@all:
-Please check whether the first patch causes any problems.
-
-CU
-Oliver
+Devin
 
 -- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
