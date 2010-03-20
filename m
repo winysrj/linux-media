@@ -1,47 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60611 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755245Ab0CQOIs convert rfc822-to-8bit (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:59093 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752592Ab0CTOOm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Mar 2010 10:08:48 -0400
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: Pawel Osciak <p.osciak@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "m.szyprowski@samsung.com" <m.szyprowski@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
-Date: Wed, 17 Mar 2010 09:08:41 -0500
-Subject: RE: [PATCH v2] v4l: videobuf: code cleanup.
-Message-ID: <A24693684029E5489D1D202277BE894454137086@dlee02.ent.ti.com>
-References: <1268831061-307-1-git-send-email-p.osciak@samsung.com>
- <1268831061-307-2-git-send-email-p.osciak@samsung.com>
-In-Reply-To: <1268831061-307-2-git-send-email-p.osciak@samsung.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Sat, 20 Mar 2010 10:14:42 -0400
+From: Wolfram Sang <w.sang@pengutronix.de>
+To: kernel-janitors@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Wolfram Sang <w.sang@pengutronix.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Date: Sat, 20 Mar 2010 15:12:51 +0100
+Message-Id: <1269094385-16114-11-git-send-email-w.sang@pengutronix.de>
+In-Reply-To: <1269094385-16114-1-git-send-email-w.sang@pengutronix.de>
+References: <1269094385-16114-1-git-send-email-w.sang@pengutronix.de>
+Subject: [PATCH 10/24] media/radio: fix dangling pointers
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Fix I2C-drivers which missed setting clientdata to NULL before freeing the
+structure it points to. Also fix drivers which do this _after_ the structure
+was freed already.
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Pawel Osciak
-> Sent: Wednesday, March 17, 2010 8:04 AM
-> To: linux-media@vger.kernel.org
-> Cc: p.osciak@samsung.com; m.szyprowski@samsung.com;
-> kyungmin.park@samsung.com
-> Subject: [PATCH v2] v4l: videobuf: code cleanup.
-> 
-> Make videobuf pass checkpatch; minor code cleanups.
+Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+---
 
-I thought this kind patches were frowned upon..
+Found using coccinelle, then reviewed. Full patchset is available via
+kernel-janitors, linux-i2c, and LKML.
+---
+ drivers/media/radio/radio-tea5764.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-http://www.mjmwired.net/kernel/Documentation/development-process/4.Coding#41
+diff --git a/drivers/media/radio/radio-tea5764.c b/drivers/media/radio/radio-tea5764.c
+index 8e718bf..8a6be0a 100644
+--- a/drivers/media/radio/radio-tea5764.c
++++ b/drivers/media/radio/radio-tea5764.c
+@@ -571,6 +571,7 @@ static int __devinit tea5764_i2c_probe(struct i2c_client *client,
+ 	return 0;
+ errrel:
+ 	video_device_release(radio->videodev);
++	i2c_set_clientdata(client, NULL);
+ errfr:
+ 	kfree(radio);
+ 	return ret;
+@@ -584,6 +585,7 @@ static int __devexit tea5764_i2c_remove(struct i2c_client *client)
+ 	if (radio) {
+ 		tea5764_power_down(radio);
+ 		video_unregister_device(radio->videodev);
++		i2c_set_clientdata(client, NULL);
+ 		kfree(radio);
+ 	}
+ 	return 0;
+-- 
+1.7.0
 
-But maybe it's acceptable in this case... I'm not an expert on community policies :)
-
-Regards,
-Sergio
-
-<snip>
