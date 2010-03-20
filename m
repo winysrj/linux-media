@@ -1,41 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:56624 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S932164Ab0CLJ6X convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Mar 2010 04:58:23 -0500
-Date: Fri, 12 Mar 2010 10:58:31 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Antonio Ospite <ospite@studenti.unina.it>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2] V4L/DVB: mx1-camera: compile fix
-In-Reply-To: <20100312094148.GA15123@pengutronix.de>
-Message-ID: <Pine.LNX.4.64.1003121057090.4385@axis700.grange>
-References: <20100304194241.GG19843@pengutronix.de>
- <1267785924-16167-1-git-send-email-u.kleine-koenig@pengutronix.de>
- <Pine.LNX.4.64.1003121016480.4385@axis700.grange> <20100312094148.GA15123@pengutronix.de>
+Received: from mx1.redhat.com ([209.132.183.28]:16997 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752515Ab0CTXIR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Mar 2010 19:08:17 -0400
+Message-ID: <4BA5559C.8000203@redhat.com>
+Date: Sun, 21 Mar 2010 00:09:16 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	David Ellingsworth <david@identd.dyndns.org>
+Subject: Re: RFC: Phase 1: Proposal to convert V4L1 drivers
+References: <201003200958.49649.hverkuil@xs4all.nl>
+In-Reply-To: <201003200958.49649.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 12 Mar 2010, Uwe Kleine-König wrote:
+Hi,
 
-> >                       Or maybe even we shall remap those registers?
-> Well, they are remapped, don't they?  Otherwise IO_ADDRESS wouldn't
-> work.
+On 03/20/2010 09:58 AM, Hans Verkuil wrote:
+> Hi all,
+>
+> Well, I certainly fired everyone up with my RFC. Based on the replies I got I
+> do think the time is right to start the removal process.
+>
+> Phase 1 would be to convert the remaining V4L1 drivers.
+>
+> To see what needs to be done I decided to analyse the remaining V4L1 drivers:
+>
+> - usbvideo (really four drivers: vicam, ibmcam, konicawc, quickcam_messenger)
+>
+> Hans de Goede added support for the quickcam_messenger to gspca, so that driver
+> is scheduled for removal. Devin has hardware to test the vicam driver. David
+> Ellingsworth has hardware to test the ibmcam driver. It would be great if
+> Devin and David can either send it to Hans de Goede or work on it themselves.
+>
+> The konicawc is for an Intel YC76 webcam. I found one for sale here:
+>
+> http://www.ecrater.com/product.php?pid=6593985
+>
+> Unfortunately the seller does not ship to the Netherlands or to Norway. Can
+> some kind US developer buy it and donate it to Hans de Goede? It's fairly
+> expensive at $39.99, but it's for a good cause.
+>
+> So in theory all these drivers can be tested and converted.
+>
+> - bw-qcam
+>
+> A parallel port Connectix QuickCam webcam. To my knowledge no one has hardware
+> to test this. However, it should not be hard to convert this to V4L2, even
+> without having hardware since this driver doesn't do any streaming or DMA.
+>
 
-Yes, they are (statically, I presume), but not in _this_ driver...
+It is parallel port only so lets just drop it.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+> - c-qcam
+>
+> A parallel port color Connectix QuickCam webcam. To my knowledge no one has
+> hardware to test this. However, it should not be hard to convert this to V4L2,
+> even without having hardware since this driver doesn't do any streaming or DMA.
+>
+
+It is parallel port only so lets just drop it.
+
+
+> - w9966
+>
+> A parallel port LifeView FlyCam Supra webcam. To my knowledge no one has
+> hardware to test this. However, it should not be hard to convert this to V4L2,
+> even without having hardware since this driver doesn't do any streaming or DMA.
+>
+
+It is parallel port only so lets just drop it.
+
+> - cpia_pp
+>
+> Parallel port webcam driver for the Creative Webcam II. I found one on eBay,
+> so with luck I can get hold of the hardware and get it to HdG.
+>
+
+Although I appreaciate your effort in getting this cam into my hands, I don't
+know what to with it once I have it, my stance on it can be summarized as:
+It is parallel port only so lets just drop it.
+
+> - cpia_usb
+>
+> USB variant of cpia_pp. Deprecated since it is now supported by gspca.
+>
+
+Ack, note that there is no sane way to make the gspca code also support the
+parallel port version, so if we would like to do that we would have
+to keep the pp part of the old cpia1 v4l1 driver which could do both pp and
+usb around, and convert that v4l2.
+
+<snip>
+
+> So if we all pitch in, then can get everything converted without having to
+> remove drivers.
+
+I'm not sure if the parallel port attached are worth keeping support for. But
+if someone else is willing to convert those, sure.
+
+Regards,
+
+Hans
