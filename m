@@ -1,49 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:38324 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932129Ab0CaGIH convert rfc822-to-8bit (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:59101 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752649Ab0CTOOr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Mar 2010 02:08:07 -0400
-Date: Wed, 31 Mar 2010 08:07:57 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>,
-	Krivchikov Sergei <sergei.krivchikov@gmail.com>
-Cc: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: genius islim 310 webcam test
-Message-ID: <20100331080757.40f9c478@tele>
-In-Reply-To: <4BB2E42B.4090302@freemail.hu>
-References: <68c794d61003301249u138e643am20bb264375c3dfe1@mail.gmail.com>
-	<4BB2E42B.4090302@freemail.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Sat, 20 Mar 2010 10:14:47 -0400
+From: Wolfram Sang <w.sang@pengutronix.de>
+To: kernel-janitors@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Wolfram Sang <w.sang@pengutronix.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Date: Sat, 20 Mar 2010 15:12:52 +0100
+Message-Id: <1269094385-16114-12-git-send-email-w.sang@pengutronix.de>
+In-Reply-To: <1269094385-16114-1-git-send-email-w.sang@pengutronix.de>
+References: <1269094385-16114-1-git-send-email-w.sang@pengutronix.de>
+Subject: [PATCH 11/24] media/radio/si470x: fix dangling pointers
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 31 Mar 2010 07:56:59 +0200
-Németh Márton <nm127@freemail.hu> wrote:
+Fix I2C-drivers which missed setting clientdata to NULL before freeing the
+structure it points to. Also fix drivers which do this _after_ the structure
+was freed already.
 
-> The next thing is that you need to learn how to compile the Linux
-> kernel from source code. There is a description for Ubuntu at
-> https://help.ubuntu.com/community/Kernel/Compile . After you are able
-> to compile and install your new kernel, you can try to apply the
-> patch in this email, recompile the kernel, install the kernel and the
-> modules, unload the gspca_pac7302 kernel module ("rmmod
-> gspca_pac7302"), and then plug the webcam in order it can load the
-> new kernel module. When you were successful with these steps you'll
-> see new messages in the output of "dmesg" command. Please send this
-> output also.
+Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+---
 
-Hello Németh and Sergei,
+Found using coccinelle, then reviewed. Full patchset is available via
+kernel-janitors, linux-i2c, and LKML.
+---
+ drivers/media/radio/si470x/radio-si470x-i2c.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I think the patch is not needed because it just gives the vend:prod
-which is already known by lsusb.
-
-On the other hand, compiling a full kernel is not needed with a small
-tarball distribution as the one I have in my page (actual gspca-2.9.10).
-
-Best regards.
-
+diff --git a/drivers/media/radio/si470x/radio-si470x-i2c.c b/drivers/media/radio/si470x/radio-si470x-i2c.c
+index 5466015..2dabfac 100644
+--- a/drivers/media/radio/si470x/radio-si470x-i2c.c
++++ b/drivers/media/radio/si470x/radio-si470x-i2c.c
+@@ -480,8 +480,8 @@ static __devexit int si470x_i2c_remove(struct i2c_client *client)
+ 	free_irq(client->irq, radio);
+ 	cancel_work_sync(&radio->radio_work);
+ 	video_unregister_device(radio->videodev);
+-	kfree(radio);
+ 	i2c_set_clientdata(client, NULL);
++	kfree(radio);
+ 
+ 	return 0;
+ }
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+1.7.0
+
