@@ -1,21 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx10.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.14])
-	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o2IAusIh018329
-	for <video4linux-list@redhat.com>; Thu, 18 Mar 2010 06:56:54 -0400
-Received: from mail-pz0-f188.google.com (mail-pz0-f188.google.com
-	[209.85.222.188])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2IAudQM001720
-	for <video4linux-list@redhat.com>; Thu, 18 Mar 2010 06:56:39 -0400
-Received: by pzk26 with SMTP id 26so1375290pzk.6
-	for <video4linux-list@redhat.com>; Thu, 18 Mar 2010 03:56:38 -0700 (PDT)
+Received: from mx1.redhat.com (ext-mx08.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.12])
+	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o2K8R7nt022076
+	for <video4linux-list@redhat.com>; Sat, 20 Mar 2010 04:27:07 -0400
+Received: from snt0-omc4-s13.snt0.hotmail.com (snt0-omc4-s13.snt0.hotmail.com
+	[65.55.90.216])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2K8Qvrt010401
+	for <video4linux-list@redhat.com>; Sat, 20 Mar 2010 04:26:57 -0400
+Message-ID: <SNT127-W53B045B0EA552F9B250282DF290@phx.gbl>
+From: L E O N <mjardeli@hotmail.com>
+To: <hno@squid-cache.org>, <jim.burgauer@hotmail.com>, <rl_sita@hotmail.com>,
+        <squid-users@squid-cache.org>, <video4linux-list@redhat.com>
+Subject: katia bony
+Date: Sat, 20 Mar 2010 08:26:56 +0000
 MIME-Version: 1.0
-Date: Thu, 18 Mar 2010 11:56:38 +0100
-Message-ID: <fe6fd5f61003180356i4f9346b9j31089e4d6fa94a44@mail.gmail.com>
-Subject: .yuv file
-From: Carlos Lavin <carlos.lavin@vista-silicon.com>
-To: video4linux-list <video4linux-list@redhat.com>
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -23,18 +22,20 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-hello, I am making an application for save images in yuv format in files
-with .yuv extension, but I don't find information about how the information
-about the image is save in the file, how the image is saved in the file? how
-it is organized in the file .yuv? anyboy can help me? anybody kwon any link
-where to explain my problem? thanks
+http://technodrive.net/Claire.html
+ 		 	   		  =
+
+_________________________________________________________________
+N=E3o deixe rastros ao navegar na Internet. Instale Gr=E1tis o Internet Exp=
+lorer 8 agora.
+http://go.microsoft.com/?linkid=3D9707132
 --
 video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
