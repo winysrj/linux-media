@@ -1,97 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:51948 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933154Ab0CMSxT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Mar 2010 13:53:19 -0500
-Subject: Re: [patch 1/5] drivers/media/video/cx23885 needs kfifo conversion
-From: Andy Walls <awalls@radix.net>
-To: akpm@linux-foundation.org
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
-	stefani@seibold.net, stoth@kernellabs.com
-In-Reply-To: <201003112202.o2BM2FgS013122@imap1.linux-foundation.org>
-References: <201003112202.o2BM2FgS013122@imap1.linux-foundation.org>
-Content-Type: text/plain
-Date: Sat, 13 Mar 2010 13:52:14 -0500
-Message-Id: <1268506334.3084.85.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtpas8.vodafone.es ([62.87.37.76]:50784 "EHLO
+	smtpas8.vodafone.es" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752904Ab0CUCvw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Mar 2010 22:51:52 -0400
+Received: from vodafone.es ([10.101.251.64])
+	by smtpas8.vodafone.es with ESMTP id o2KMCI6A003229
+	for <linux-media@vger.kernel.org>; Sat, 20 Mar 2010 23:12:18 +0100
+Received: from [192.168.1.104] ([79.109.168.127]) by mail-smtp03-p.vodafone.es
+ (Messaging) with ESMTPA id <0KZL00LEKPOH50B0@mail-smtp03-p.vodafone.es> for
+ linux-media@vger.kernel.org; Sat, 20 Mar 2010 23:12:17 +0100 (MET)
+Date: Sat, 20 Mar 2010 23:12:17 +0100
+From: =?ISO-8859-1?Q?Jes=FAs_Vidal_Panal=E9s?= <jesusvpct@vodafone.es>
+Subject: pinnacle pctv dvb-t 2000i
+To: linux-media@vger.kernel.org
+Message-id: <4BA54841.1060302@vodafone.es>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2010-03-11 at 14:02 -0800, akpm@linux-foundation.org wrote:
-> From: Andrew Morton <akpm@linux-foundation.org>
-> 
-> linux-next:
-> 
-> drivers/media/video/cx23885/cx23888-ir.c: In function 'cx23888_ir_irq_handler':
-> drivers/media/video/cx23885/cx23888-ir.c:597: error: implicit declaration of function 'kfifo_put'
-> drivers/media/video/cx23885/cx23888-ir.c: In function 'cx23888_ir_rx_read':
-> drivers/media/video/cx23885/cx23888-ir.c:660: error: implicit declaration of function 'kfifo_get'
-> drivers/media/video/cx23885/cx23888-ir.c: In function 'cx23888_ir_probe':
-> drivers/media/video/cx23885/cx23888-ir.c:1172: warning: passing argument 1 of 'kfifo_alloc' makes pointer from integer without a cast
-> drivers/media/video/cx23885/cx23888-ir.c:1172: warning: passing argument 3 of 'kfifo_alloc' makes integer from pointer without a cast
-> drivers/media/video/cx23885/cx23888-ir.c:1172: warning: assignment makes pointer from integer without a cast
-> drivers/media/video/cx23885/cx23888-ir.c:1178: warning: passing argument 1 of 'kfifo_alloc' makes pointer from integer without a cast
-> drivers/media/video/cx23885/cx23888-ir.c:1178: warning: passing argument 3 of 'kfifo_alloc' makes integer from pointer without a cast
-> drivers/media/video/cx23885/cx23888-ir.c:1178: warning: assignment makes pointer from integer without a cast
-> 
-> Cc: Stefani Seibold <stefani@seibold.net>
-> DESC
-> drivers/media/video/cx23885: needs kfifo updates
-> EDESC
-> From: Andrew Morton <akpm@linux-foundation.org>
-> 
-> linux-next again.
-> 
-> Cc: Stefani Seibold <stefani@seibold.net>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  drivers/media/video/cx231xx/Kconfig |    1 +
->  drivers/media/video/cx23885/Kconfig |    1 +
->  2 files changed, 2 insertions(+)
-> 
-> diff -puN drivers/media/video/cx231xx/Kconfig~drivers-media-video-cx23885-needs-kfifo-conversion drivers/media/video/cx231xx/Kconfig
-> --- a/drivers/media/video/cx231xx/Kconfig~drivers-media-video-cx23885-needs-kfifo-conversion
-> +++ a/drivers/media/video/cx231xx/Kconfig
-> @@ -1,6 +1,7 @@
->  config VIDEO_CX231XX
->  	tristate "Conexant cx231xx USB video capture support"
->  	depends on VIDEO_DEV && I2C && INPUT
-> +	depends on BROKEN
->  	select VIDEO_TUNER
->  	select VIDEO_TVEEPROM
->  	select VIDEO_IR
+Any news about this card? Some time ago i read that it was on 
+development the pinnacle DTV bridge, but i can't find any information 
+now about this.
 
-NAck.
+lspci -vvnnnx
 
-What does the cx231xx driver have to do with a cx23885 driver build
-problem?
+03:07.0 Multimedia controller [0480]: Pinnacle Systems Inc. Royal TS 
+Function 1 [11bd:0040]
+         Subsystem: Pinnacle Systems Inc. Device [11bd:0044]
+         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- 
+ParErr- Stepping- SERR- FastB2B- DisINTx-
+         Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium 
+ >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+         Latency: 32 (500ns min, 4000ns max), Cache Line Size: 4 bytes
+         Interrupt: pin A routed to IRQ 11
+         Region 0: Memory at fdcff000 (32-bit, non-prefetchable) [size=4K]
+         Capabilities: <access denied>
+00: bd 11 40 00 06 00 90 02 00 00 80 04 01 20 80 00
+10: 00 f0 cf fd 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 bd 11 44 00
+30: 00 00 00 00 40 00 00 00 00 00 00 00 0b 01 02 10
 
+03:07.1 Multimedia controller [0480]: Pinnacle Systems Inc. RoyalTS 
+Function 2 [11bd:0041]
+         Subsystem: Pinnacle Systems Inc. Device [11bd:0044]
+         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- 
+ParErr- Stepping- SERR- FastB2B- DisINTx-
+         Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium 
+ >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+         Latency: 32 (500ns min, 4000ns max), Cache Line Size: 4 bytes
+         Interrupt: pin A routed to IRQ 11
+         Region 0: Memory at fdcfe000 (32-bit, non-prefetchable) [size=4K]
+         Capabilities: <access denied>
+00: bd 11 41 00 06 00 90 02 00 00 80 04 01 20 80 00
+10: 00 e0 cf fd 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 bd 11 44 00
+30: 00 00 00 00 40 00 00 00 00 00 00 00 0b 01 02 10
 
-> diff -puN drivers/media/video/cx23885/Kconfig~drivers-media-video-cx23885-needs-kfifo-conversion drivers/media/video/cx23885/Kconfig
-> --- a/drivers/media/video/cx23885/Kconfig~drivers-media-video-cx23885-needs-kfifo-conversion
-> +++ a/drivers/media/video/cx23885/Kconfig
-> @@ -1,6 +1,7 @@
->  config VIDEO_CX23885
->  	tristate "Conexant cx23885 (2388x successor) support"
->  	depends on DVB_CORE && VIDEO_DEV && PCI && I2C && INPUT
-> +	depends on BROKEN
->  	select I2C_ALGOBIT
->  	select VIDEO_BTCX
->  	select VIDEO_TUNER
-> _
+03:07.2 Multimedia controller [0480]: Pinnacle Systems Inc. Royal TS 
+Function 3 [11bd:0042]
+         Subsystem: Pinnacle Systems Inc. Device [11bd:0044]
+         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- 
+ParErr- Stepping- SERR- FastB2B- DisINTx-
+         Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium 
+ >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+         Latency: 32 (500ns min, 4000ns max), Cache Line Size: 4 bytes
+         Interrupt: pin A routed to IRQ 11
+         Region 0: Memory at fdcfd000 (32-bit, non-prefetchable) [size=4K]
+         Capabilities: <access denied>
+00: bd 11 42 00 06 00 90 02 00 00 80 04 01 20 80 00
+10: 00 d0 cf fd 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 bd 11 44 00
+30: 00 00 00 00 40 00 00 00 00 00 00 00 0b 01 02 10
 
-You should also Cc: Steve Toth if you are proposing disabling the
-cx23885 driver.
-
-
-Steve,
-
-To bring you up to speed, it looks like someone errantly reverted some
-cx23888-ir.c changes for kfifo from linux-next, when the code in 2.6.33
-was correct.
-
-Regards,
-Andy
 
