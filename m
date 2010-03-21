@@ -1,108 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay01.digicable.hu ([92.249.128.189]:52458 "EHLO
-	relay01.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750736Ab0CAGj2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Mar 2010 01:39:28 -0500
-Message-ID: <4B8B611D.20705@freemail.hu>
-Date: Mon, 01 Mar 2010 07:39:25 +0100
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-MIME-Version: 1.0
-To: Huang Shijie <shijie8@gmail.com>
-CC: Kang Yong <kangyong@telegent.com>,
-	Zhang Xiaobing <xbzhang@telegent.com>,
-	Huang Shijie <zyziii@telegent.com>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] tlg2300: cleanups when power management is not configured
-References: <4B8A7B83.8060203@freemail.hu> <4B8B3EA1.3090806@gmail.com>
-In-Reply-To: <4B8B3EA1.3090806@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from smtp1.rdslink.ro ([81.196.12.70]:41836 "EHLO smtp.rdslink.ro"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751054Ab0CURtX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Mar 2010 13:49:23 -0400
+Subject: 0003-Staging-cx25821-fix-coding-style-issues-in-cx25821-g.patch
+From: Olimpiu Pascariu <olimpiu.pascariu@gmail.com>
+To: gregkh@suse.de, mchehab@redhat.com,
+	palash.bandyopadhyay@conexant.com
+Cc: devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset="ANSI_X3.4-1968"
+Date: Sun, 21 Mar 2010 19:49:09 +0200
+Message-ID: <1269193749.6971.4.camel@tuxtm-linux>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-Huang Shijie wrote:
-> hi Marton, thanks a lot.
-> 
->> From: Márton Németh<nm127@freemail.hu>
->>
->> When power management is not configured (CONFIG_PM) then some code is no longer
->> necessary.
->>
->> This patch will remove the following compiler warnings:
->>   * pd-dvb.c: In function 'poseidon_fe_release':
->>   * pd-dvb.c:101: warning: unused variable 'pd'
->>   * pd-video.c:14: warning: 'pm_video_suspend' declared 'static' but never defined
->>   * pd-video.c:15: warning: 'pm_video_resume' declared 'static' but never defined
->>
->> Signed-off-by: Márton Németh<nm127@freemail.hu>
->> ---
->> diff -r 37581bb7e6f1 linux/drivers/media/video/tlg2300/pd-dvb.c
->> --- a/linux/drivers/media/video/tlg2300/pd-dvb.c	Wed Feb 24 22:48:50 2010 -0300
->> +++ b/linux/drivers/media/video/tlg2300/pd-dvb.c	Sun Feb 28 15:13:05 2010 +0100
->> @@ -96,15 +96,17 @@
->>   	return ret;
->>   }
->>
->> +#ifdef CONFIG_PM
->>   static void poseidon_fe_release(struct dvb_frontend *fe)
->>   {
->>   	struct poseidon *pd = fe->demodulator_priv;
->>
->> -#ifdef CONFIG_PM
->>   	pd->pm_suspend = NULL;
->>   	pd->pm_resume  = NULL;
->> +}
->> +#else
->> +#define poseidon_fe_release NULL
->>   #endif
->> -}
->>
->>    
-> I think the change here is a little more complicated.I prefer to change 
-> it like this :
-> 
-> static void poseidon_fe_release(struct dvb_frontend *fe)
-> {
-> #ifdef CONFIG_PM
->      struct poseidon *pd = fe->demodulator_priv;
->      pd->pm_suspend = NULL;
->      pd->pm_resume  = NULL;
-> #endif
-> }
-> 
-> Could you change the patch, and resend it to me ?
-> thanks.
+>From fae275cf48fd318cbd88e59e90f119c3f75dab72 Mon Sep 17 00:00:00 2001
+From: Olimpiu Pascariu <olimpiu.pascariu@gmail.com>
+Date: Sun, 21 Mar 2010 19:44:01 +0200
+Subject: [PATCH 3/3] Staging: cx25821: fix coding style issues in cx25821-gpio.c
+ This is a patch to cx25821-gpio.c file that fixes up warnings and errors found by the checkpatch.pl tool
+ Signed-off-by: Olimpiu Pascariu <olimpiu.pascariu@gmail.com>
 
-I'm afraid in this case we'll get a warning saying that the parameter fe is unused.
-Here is an example:
+---
+ drivers/staging/cx25821/cx25821-gpio.c |   25 ++++++++++++-------------
+ 1 files changed, 12 insertions(+), 13 deletions(-)
 
-	$ gcc -Wall -O2 -Wextra test.c
-	test.c: In function ‘foo’:
-	test.c:2: warning: unused parameter ‘x’
-	$ cat test.c
-	
-	static void foo(int x)
-	{
-	
-	}
-	
-	int main()
-	{
-		foo(0);
-		return 0;
-	}
+diff --git a/drivers/staging/cx25821/cx25821-gpio.c b/drivers/staging/cx25821/cx25821-gpio.c
+index e8a37b4..2f154b3 100644
+--- a/drivers/staging/cx25821/cx25821-gpio.c
++++ b/drivers/staging/cx25821/cx25821-gpio.c
+@@ -31,7 +31,7 @@ void cx25821_set_gpiopin_direction(struct cx25821_dev *dev,
+ 	u32 gpio_register = 0;
+ 	u32 value = 0;
+ 
+-	// Check for valid pinNumber
++	/* Check for valid pinNumber */
+ 	if (pin_number >= 47)
+ 		return;
+ 
+@@ -39,14 +39,14 @@ void cx25821_set_gpiopin_direction(struct cx25821_dev *dev,
+ 		bit = pin_number - 31;
+ 		gpio_oe_reg = GPIO_HI_OE;
+ 	}
+-	// Here we will make sure that the GPIOs 0 and 1 are output. keep the rest as is
++	/* Here we will make sure that the GPIOs 0 and 1 are output. keep the
++	 * rest as is */
+ 	gpio_register = cx_read(gpio_oe_reg);
+ 
+-	if (pin_logic_value == 1) {
++	if (pin_logic_value == 1)
+ 		value = gpio_register | Set_GPIO_Bit(bit);
+-	} else {
++	else
+ 		value = gpio_register & Clear_GPIO_Bit(bit);
+-	}
+ 
+ 	cx_write(gpio_oe_reg, value);
+ }
+@@ -58,11 +58,12 @@ static void cx25821_set_gpiopin_logicvalue(struct cx25821_dev *dev,
+ 	u32 gpio_reg = GPIO_LO;
+ 	u32 value = 0;
+ 
+-	// Check for valid pinNumber
++	/* Check for valid pinNumber */
+ 	if (pin_number >= 47)
+ 		return;
+ 
+-	cx25821_set_gpiopin_direction(dev, pin_number, 0);	// change to output direction
++	/* change to output direction */
++	cx25821_set_gpiopin_direction(dev, pin_number, 0);
+ 
+ 	if (pin_number > 31) {
+ 		bit = pin_number - 31;
+@@ -71,25 +72,23 @@ static void cx25821_set_gpiopin_logicvalue(struct cx25821_dev *dev,
+ 
+ 	value = cx_read(gpio_reg);
+ 
+-	if (pin_logic_value == 0) {
++	if (pin_logic_value == 0)
+ 		value &= Clear_GPIO_Bit(bit);
+-	} else {
++	else
+ 		value |= Set_GPIO_Bit(bit);
+-	}
+ 
+ 	cx_write(gpio_reg, value);
+ }
+ 
+ void cx25821_gpio_init(struct cx25821_dev *dev)
+ {
+-	if (dev == NULL) {
++	if (dev == NULL)
+ 		return;
+-	}
+ 
+ 	switch (dev->board) {
+ 	case CX25821_BOARD_CONEXANT_ATHENA10:
+ 	default:
+-		//set GPIO 5 to select the path for Medusa/Athena
++		/* set GPIO 5 to select the path for Medusa/Athena */
+ 		cx25821_set_gpiopin_logicvalue(dev, 5, 1);
+ 		mdelay(20);
+ 		break;
+-- 
+1.7.0
 
-The second reason I modified the code like this is that the the .release
-opreation is used with the following sequence:
 
-	if (dvb->frontend->ops.release)
-		dvb->frontend->ops.release(dvb->frontend);
 
-If power management is not configured then the symbol poseidon_fe_release will be
-NULL and the condition dvb->frontend->ops.release will be false. So the otherwise
-empty function will not be called at all.
-
-Regards,
-
-	Márton Németh
