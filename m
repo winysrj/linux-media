@@ -1,47 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52153 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753585Ab0CKXAm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Mar 2010 18:00:42 -0500
-Date: Thu, 11 Mar 2010 14:59:59 -0800
-From: Andrew Morton <akpm@linux-foundation.org>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Cc: "mchehab@infradead.org" <mchehab@infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"julia@diku.dk" <julia@diku.dk>
-Subject: Re: [patch 2/5] drivers/media/video: move dereference after NULL
- test
-Message-Id: <20100311145959.287e504e.akpm@linux-foundation.org>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE4016A5A3F25@dlee06.ent.ti.com>
-References: <201003112202.o2BM2HpB013125@imap1.linux-foundation.org>
-	<A69FA2915331DC488A831521EAE36FE4016A5A3F25@dlee06.ent.ti.com>
+Received: from www.youplala.net ([88.191.51.216]:47170 "EHLO mail.youplala.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751410Ab0CUJYP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Mar 2010 05:24:15 -0400
+Subject: Re: RFC: Phase 1: Proposal to convert V4L1 drivers
+From: Nicolas Will <nico@youplala.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	David Ellingsworth <david@identd.dyndns.org>
+In-Reply-To: <201003210919.43101.hverkuil@xs4all.nl>
+References: <201003200958.49649.hverkuil@xs4all.nl>
+	 <4BA5559C.8000203@redhat.com>  <201003210919.43101.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 21 Mar 2010 09:13:34 +0000
+Message-ID: <1269162814.12759.1.camel@youkaida>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 11 Mar 2010 16:38:21 -0600
-"Karicheri, Muralidharan" <m-karicheri2@ti.com> wrote:
+On Sun, 2010-03-21 at 09:19 +0100, Hans Verkuil wrote:
+> > > - cpia_pp
+> > >
+> > > Parallel port webcam driver for the Creative Webcam II. I found
+> one on eBay,
+> > > so with luck I can get hold of the hardware and get it to HdG.
+> > >
+> > 
+> > Although I appreaciate your effort in getting this cam into my
+> hands, I don't
+> > know what to with it once I have it, my stance on it can be
+> summarized as:
+> > It is parallel port only so lets just drop it. 
 
-> >diff -puN drivers/media/video/davinci/vpif_display.c~drivers-media-video-
-> >move-dereference-after-null-test drivers/media/video/davinci/vpif_display.c
-> >--- a/drivers/media/video/davinci/vpif_display.c~drivers-media-video-move-
-> >dereference-after-null-test
-> >+++ a/drivers/media/video/davinci/vpif_display.c
-> >@@ -383,8 +383,6 @@ static int vpif_get_std_info(struct chan
-> > 	int index;
-> >
-> > 	std_info->stdid = vid_ch->stdid;
-> >-	if (!std_info)
-> >-		return -1;
-> 
-> Please change it as 
-> 
-> if (!std_info->stdid)
-> 	return -1;
+I have one of those in my toys.
 
-Could you please do this, and send the patch?  It's better that way as
-you're more familar with the code and maybe can even test it.
+I can donate it to anyone in Europe.
+
+I guess that my willingness to get rid of it is a testimony to how
+important it is to me...
+
+Nico
 
