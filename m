@@ -1,115 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4878 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752382Ab0CWUhc (ORCPT
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:54596 "EHLO
+	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753040Ab0CUOOU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Mar 2010 16:37:32 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id o2NKbUXQ037751
-	for <linux-media@vger.kernel.org>; Tue, 23 Mar 2010 21:37:30 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 23 Mar 2010 21:37:30 +0100 (CET)
-Message-Id: <201003232037.o2NKbUXQ037751@smtp-vbr14.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
+	Sun, 21 Mar 2010 10:14:20 -0400
+Date: Sun, 21 Mar 2010 14:14:17 +0000
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Wolfram Sang <w.sang@pengutronix.de>,
+	kernel-janitors@vger.kernel.org, linux-i2c@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 12/24] media/video: fix dangling pointers
+Message-ID: <20100321141417.GA19626@opensource.wolfsonmicro.com>
+References: <1269094385-16114-1-git-send-email-w.sang@pengutronix.de> <1269094385-16114-13-git-send-email-w.sang@pengutronix.de> <201003202302.49526.hverkuil@xs4all.nl> <20100321144655.4747fd2a@hyperion.delvare>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20100321144655.4747fd2a@hyperion.delvare>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Sun, Mar 21, 2010 at 02:46:55PM +0100, Jean Delvare wrote:
+> On Sat, 20 Mar 2010 23:02:49 +0100, Hans Verkuil wrote:
 
-Results of the daily build of v4l-dvb:
+> > I feel I am missing something here. Why does clientdata have to be set to
+> > NULL when we are tearing down the device anyway?
 
-date:        Tue Mar 23 19:00:28 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14502:a79dd2ae4d0e
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 8c69c6ed6c74c94fa7ad6fa24eda452e4b212d81
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+> We're not tearing down the device, that's the point. We are only
+> unbinding it from its driver. The device itself survives the operation.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc1-armv5: OK
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-rc1-armv5-davinci: WARNINGS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-rc1-armv5-ixp: WARNINGS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-rc1-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.17-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-rc1-i686: WARNINGS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc1-m32r: OK
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-rc1-mips: WARNINGS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-rc1-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.17-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-rc1-x86_64: WARNINGS
-linux-git-armv5: OK
-linux-git-armv5-davinci: OK
-linux-git-armv5-ixp: OK
-linux-git-armv5-omap2: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.7-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.62-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.7-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+That's the subsystem point of view, not the driver point of view.  As
+far as the driver is concerned the device appears when probe() is called
+and vanishes after remove() has completed, any management the subsystem
+does in between is up to it.
 
-Detailed results are available here:
+> 1* It is good practice to have memory freed not too far from where it
+> was allocated, otherwise there is always a risk of unmatched pairs. In
+> this regard, it seems preferable to let each i2c driver kfree the
+> device memory it kalloc'd, be it in probe() or remove().
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+I agree with this.  There are also some use cases where the device data
+is actually static (eg, a generic description of the device or a
+reference to some other shared resource rather than per device allocated
+data).
 
-Full logs are available here:
+> 2* References to allocated memory should be dropped before that memory
+> is freed. This means that we want to call i2c_set_clientdata(c, NULL)
+> before kfree(d). As a corollary, we can't do the former in i2c-core and
+> the later in device drivers.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+This is where the mismatch between the subsystem view of the device
+lifetime and the driver view of the device lifetime comes into play.
+For the driver once the device is unregistered the device no longer
+exists - if the driver tries to work with the device it's buggy.  This
+means that to the driver returning from the remove() function is
+dropping the reference to the data and there's no reason for the driver
+to take any other action.
 
-The V4L-DVB specification from this daily build is here:
+The device may hang around after the remove() has happened, but if the
+device driver knows or cares about it then it's doing something wrong.
+Similarly on probe() we can't assme anything about the pointer since
+even if we saw the device before we can't guarantee that some other
+driver didn't do so as well.  The situation is similar to that with
+kfree() - we don't memset() data we're freeing with that, even though it
+might contain pointers to other things.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> So we are in the difficult situation where we can't do both in i2c-core
+> because that violates point 1 above, we can't do half in i2c-core and
+> half in device drivers because this violates point 2 above, so we fall
+> back to doing both in device drivers, which doesn't violate any point
+> but duplicates the code all around.
+
+Personally I'd much rather just not bother setting the driver data in
+the removal path, it seems unneeded.  I had assumed that the subsystem
+code cared for some reason when I saw the patch series.
