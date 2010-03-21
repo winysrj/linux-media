@@ -1,128 +1,255 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hidayahonline.org ([67.19.146.138]:51824 "EHLO
-	mail.hidayahonline.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964982Ab0CPNci (ORCPT
+Received: from mail-fx0-f221.google.com ([209.85.220.221]:61156 "EHLO
+	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753105Ab0CUOVl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Mar 2010 09:32:38 -0400
-Message-ID: <4B9F8873.2030708@hidayahonline.org>
-Date: Tue, 16 Mar 2010 09:32:35 -0400
-From: Basil Mohamed Gohar <abu_hurayrah@hidayahonline.org>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Capturing raw JPEG stream from webcam
-References: <4B9AF0A3.4060701@hidayahonline.org> <201003151040.04057.laurent.pinchart@ideasonboard.com> <4B9E4DBD.8000502@hidayahonline.org>,<201003152100.06497.laurent.pinchart@ideasonboard.com> <BLU198-W28D6F46833CDF4EF68E00B12D0@phx.gbl>
-In-Reply-To: <BLU198-W28D6F46833CDF4EF68E00B12D0@phx.gbl>
-Content-Type: text/plain; charset=UTF-8
+	Sun, 21 Mar 2010 10:21:41 -0400
+Received: by fxm21 with SMTP id 21so987220fxm.2
+        for <linux-media@vger.kernel.org>; Sun, 21 Mar 2010 07:21:39 -0700 (PDT)
+Subject: Re: [PATCH] saa7134: add capture boards Hawell HW-404M7 and
+ HW-808M7
+From: Vladimir Ermakov <vooon341@gmail.com>
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <1269134920.3222.3.camel@pc07.localdom.local>
+References: <1268235897.25823.31.camel@desinto.vehq>
+	 <1268954515.24551.15.camel@pc07.localdom.local>
+	 <1269097100.17096.12.camel@desinto.vehq>
+	 <1269134920.3222.3.camel@pc07.localdom.local>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 21 Mar 2010 17:14:36 +0300
+Message-ID: <1269180876.4408.6.camel@desinto.vehq>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/16/2010 02:30 AM, John Selbie wrote:
-> Hi Basil:
->
-> I ran the following command line with my Logitech 5000:
->  
-> gst-launch-0.10 v4l2src device=/dev/video0 ! 'image/jpeg, width=640, height=480, framerate=30/1' ! multifilesink location=frame%.4d.jpg
->
-> I let it run for 5 seconds or so and then cancel it.  When done I had a bit more than 150+ frames on disk.  Clearly, I'm getting 30 frames per second.
->   
-Thanks for helping me test this.  Just out of curiosity, did you
-actually look at the individual files and see if they changed each
-frame?  It's possible that it's writing 30 fps, but the video it is
-grabbing may not be 30 distinct frames per second.  Testing this case
-might help us pin down the problem.  I am, once again, at work, so I
-cannot test this until after I get home once again (about 8 hours from
-now!).
-> I ran your command line below and compared with the equivalent command line of luvcview.  The weird thing is that luvcview shows nice smooth video with no blur (jpg was the format).  gst-launch at the same configuration just "seems" like a slower frame rate.  Then I dropped down the frame rate of both gst-launch and luvcview to 15fps.  gst-launch looked more like 7-8 fps.  luvcview looked fine.  Switching gst-launch to YUV was a noticeable improvement.
->   
-I'd never heard of luvcview until you just mentioned it now!  Here's the
-link for anyone else that might find this utility useful, as I'm sure I
-will:
+Hi Hermann.
 
-http://www.quickcamteam.net/software/linux/v4l2-software/luvcview/
-> My guess is jpeg decoding mixed with xvimagesink is the issue.  More debuging.  Switching to YUV or the file renderer produces better results.  More debugging is needed.
->
-> Might be better to move this thread of discussion over to the GStreamer list.
->   
-If luvcview did indeed operate at a higher/the expected fps, then that
-makes the most sense.  I will wait until I have confirmed for myself,
-though, before I move on.  But thank you, John, for taking the time out
-to help me figure out this problem!  I'll post back here once I've done
-some testing myself.
->
->   
->> From: laurent.pinchart@ideasonboard.com
->> To: abu_hurayrah@hidayahonline.org
->> Subject: Re: Capturing raw JPEG stream from webcam
->> Date: Mon, 15 Mar 2010 21:00:05 +0100
->> CC: linux-media@vger.kernel.org
->>
->> Hi Basil,
->>
->> On Monday 15 March 2010 16:09:49 Basil Mohamed Gohar wrote:
->>     
->>> On 03/15/2010 05:40 AM, Laurent Pinchart wrote:
->>>       
->>>> On Saturday 13 March 2010 02:55:47 Basil Mohamed Gohar wrote:
->>>>         
->>>>> I originally posted this to the video4linux mailing list, but I've since
->>>>> discovered that this is the appropriate place (or so I understand) for
->>>>> video4linux questions.  My question is how can I capture the raw JPEG
->>>>> image stream (e.g., MJPEG) from my webcam, which reports through v4l2
->>>>> that it is capable of.  I am using the gst-launch cli to gstreamer,
->>>>>
->>>>> which confirms that my webcam has this capability:
->>>>>           
->>>>>> image/jpeg, width=(int)640, height=(int)480, framerate=(fraction){
->>>>>> 30/1, 25/1, 20/1, 15/1, 10/1, 5/1 }
->>>>>>             
->>>>> And, indeed, I can capture using this capability, but the framerate is
->>>>> not at the specified rate, but at a much lower value (half or less).
->>>>> So, even if I specify 30fps, I get something less.  I can capture the
->>>>> full 30fps when I use one of the yuv modes, though, so it's clearly
->>>>> capable of delivering that framerate.
->>>>>
->>>>> My webcam is a Logitech QuickCam Pro 5000.  The lsusb output is:
->>>>>           
->>>>>> 046d:08ce Logitech, Inc. QuickCam Pro 5000
->>>>>>             
->>>>> An example command line I try is as follows:
->>>>>           
->>>>>> gst-launch-0.10 v4l2src device=/dev/video0 ! 'image/jpeg, width=640,
->>>>>> height=480, framerate=30/1' ! jpegdec ! xvimagesink
->>>>>>             
->>>> Have you tried disabling auto-exposure ? The camera is allowed to reduce
->>>> the frame rate in low-light conditions if auto-exposure is turned on.
->>>>         
->>> Thanks for replying.  I haven't actually tried this yet (I am currently
->>> at work), but I do not think this is the issue, because when I choose
->>> the YUV-style modes, I can capture at the full framerates.  It's only
->>> when I select the image/jpeg mode that I get the lower framerates,
->>> despite explicitly requesting the higher ones.
->>>
->>> I suppose it's not impossible that the camera is opting for different
->>> behavior depending on the mode of the request, but I think that is not
->>> likely the case.  I do appreciate the suggestion, though, and I'll try
->>> it when I get home.
->>>       
->> It could, but that indeed seems unlikely. The USB descriptors advertise 30fps 
->> in MJPEG mode. Unless the information is wrong (in which case this would be a 
->> firmware bug), 30fps should be achievable.
->>
->>     
->>> Meanwhile, does anyone else have any other ideas?
->>>       
->> -- 
->> Regards,
->>
->> Laurent Pinchart
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>     
->  		 	   		  
-> _________________________________________________________________
-> Hotmail® has ever-growing storage! Don’t worry about storage limits.
-> http://windowslive.com/Tutorial/Hotmail/Storage?ocid=TXT_TAGLM_WL_HM_Tutorial_Storage_062009
+Sorry, i forgot it.
+Resend patch with SOB.
+
+Signed-off-by: Vladimir Ermakov <vooon341@gmail.com>
+
+# HG changeset patch
+# User Vladimir Ermakov <vooon341@gmail.com>
+# Date 1269096094 -10800
+# Node ID a91db2cf4f5774866c8c5bf906d9ac4faff9173d
+# Parent  929298149eba4b6d0696124b9880113c25cd0788
+saa7134: fix GPIO HW-404M7
+
+diff -r 929298149eba -r a91db2cf4f57 linux/drivers/media/video/saa7134/saa7134-cards.c
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Thu Mar 18 23:47:27 2010 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Sat Mar 20 17:41:34 2010 +0300
+@@ -5403,12 +5403,12 @@
+ 		.radio_type    = UNSET,
+ 		.tuner_addr   = ADDR_UNSET,
+ 		.radio_addr   = ADDR_UNSET,
+-		.gpiomask      = 0x01fc00,
++		.gpiomask      = 0x389c00,
+ 		.inputs       = {{
+ 			.name = name_comp1,
+ 			.vmux = 3,
+ 			.amux = LINE1,
+-			.gpio = 0x389c00,
++			.gpio = 0x01fc00,
+ 		} },
+ 	},
+ 
+diff -r 929298149eba -r a91db2cf4f57 linux/drivers/media/video/saa7134/saa7134-input.c
+--- a/linux/drivers/media/video/saa7134/saa7134-input.c	Thu Mar 18 23:47:27 2010 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134-input.c	Sat Mar 20 17:41:34 2010 +0300
+@@ -531,7 +531,6 @@
+ 	switch (dev->board) {
+ 	case SAA7134_BOARD_FLYVIDEO2000:
+ 	case SAA7134_BOARD_FLYVIDEO3000:
+-	case SAA7134_BOARD_HAWELL_HW_404M7:
+ 	case SAA7134_BOARD_FLYTVPLATINUM_FM:
+ 	case SAA7134_BOARD_FLYTVPLATINUM_MINI2:
+ 	case SAA7134_BOARD_ROVERMEDIA_LINK_PRO_FM:
+
+
+В Вск, 21/03/2010 в 02:28 +0100, hermann pitton пишет:
+> Hi Vladimir,
+> 
+> Am Samstag, den 20.03.2010, 17:58 +0300 schrieb Vladimir Ermakov:
+> > Hi Hermann.
+> > 
+> > 1. It's my mistake. Fixed.
+> > 2. Dead code. Removed.
+> 
+> thanks for looking at it.
+> 
+> We likely need your SOB line again, since it is a new patch.
+> 
+> Here is my
+> 
+> Reviewed-by: hermann pitton <hermann-pitton@arcor.de>
+> 
+> Cheers,
+> Hermann
+> 
+> > # HG changeset patch
+> > # User Vladimir Ermakov <vooon341@gmail.com>
+> > # Date 1269096094 -10800
+> > # Node ID a91db2cf4f5774866c8c5bf906d9ac4faff9173d
+> > # Parent  929298149eba4b6d0696124b9880113c25cd0788
+> > saa7134: fix GPIO HW-404M7
+> > 
+> > diff -r 929298149eba -r a91db2cf4f57 linux/drivers/media/video/saa7134/saa7134-cards.c
+> > --- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Thu Mar 18 23:47:27 2010 -0300
+> > +++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Sat Mar 20 17:41:34 2010 +0300
+> > @@ -5403,12 +5403,12 @@
+> >  		.radio_type    = UNSET,
+> >  		.tuner_addr   = ADDR_UNSET,
+> >  		.radio_addr   = ADDR_UNSET,
+> > -		.gpiomask      = 0x01fc00,
+> > +		.gpiomask      = 0x389c00,
+> >  		.inputs       = {{
+> >  			.name = name_comp1,
+> >  			.vmux = 3,
+> >  			.amux = LINE1,
+> > -			.gpio = 0x389c00,
+> > +			.gpio = 0x01fc00,
+> >  		} },
+> >  	},
+> >  
+> > diff -r 929298149eba -r a91db2cf4f57 linux/drivers/media/video/saa7134/saa7134-input.c
+> > --- a/linux/drivers/media/video/saa7134/saa7134-input.c	Thu Mar 18 23:47:27 2010 -0300
+> > +++ b/linux/drivers/media/video/saa7134/saa7134-input.c	Sat Mar 20 17:41:34 2010 +0300
+> > @@ -531,7 +531,6 @@
+> >  	switch (dev->board) {
+> >  	case SAA7134_BOARD_FLYVIDEO2000:
+> >  	case SAA7134_BOARD_FLYVIDEO3000:
+> > -	case SAA7134_BOARD_HAWELL_HW_404M7:
+> >  	case SAA7134_BOARD_FLYTVPLATINUM_FM:
+> >  	case SAA7134_BOARD_FLYTVPLATINUM_MINI2:
+> >  	case SAA7134_BOARD_ROVERMEDIA_LINK_PRO_FM:
+> > 
+> > 
+> > В Птн, 19/03/2010 в 00:21 +0100, hermann pitton пишет:
+> > > Hi Vladimir,
+> > > 
+> > > thanks, your patch is already accepted, but if have a two comments.
+> > > 
+> > > Am Mittwoch, den 10.03.2010, 18:44 +0300 schrieb Vladimir Ermakov:
+> > >> This patch adds new capture boards Hawell HW-404M7 and HW-808M7.
+> > >> Those cards have 4 or 8 SAA7130 chips and for the work it only needs initialize registers.
+> > >> The value of those registers were dumped under Windows using flytest.
+> > >> But board haven't EEPROM.
+> > >> 
+> > >> For the first chip:
+> > >> 
+> > >>  SAA7130 (0x7130, SubVenID:1131, SubDevID:0000, Rev: 01)
+> > >> 
+> > >>  I2C slave devices found:
+> > >>  No devices
+> > >> 
+> > >>  GPIO pins:
+> > >>  Mode : 0x00389C00
+> > >>  Value: 0x00016C00
+> > >
+> > > Later in the code you swapped mode (gpio mask) and value (out status).
+> > >
+> > > This does not cause a functional problem in this case, but is visible
+> > > for example with saa7134 gpio_tracking=1.
+> > >
+> > > Second, you did add the card to the flyvideo remotes in saa7134-input,
+> > > but this is only a line of dead code currently.
+> > >
+> > > If it really has such a remote, you must also add the card to the switch
+> > > case dev->has_remote = SAA7134_REMOTE_GPIO in in the function
+> > > int saa7134_board_init1 in saa7134-cards.c or please remove it from
+> > > saa7134-input.c.
+> > >
+> > > Thanks,
+> > > Hermann
+> > >
+> > >>  Video input: 3
+> > >>  Audio input: Analog Line1
+> > >> 
+> > >> For other chips:
+> > >> 
+> > >>  SAA7130 (0x7130, SubVenID:1131, SubDevID:0000, Rev: 01)
+> > >> 
+> > >>  I2C slave devices found:
+> > >>  No devices
+> > >> 
+> > >>  GPIO pins:
+> > >>  Mode : 0x00389200
+> > >>  Value: 0x00010000
+> > >> 
+> > >>  Video input: 3
+> > >>  Audio input: Analog Line1
+> > >> 
+> > >> Signed-off-by: Vladimir Ermakov <vooon341@gmail.com>
+> > >> 
+> > >> # HG changeset patch
+> > >> # User Vladimir Ermakov <vooon341@gmail.com>
+> > >> # Date 1268232221 -10800
+> > >> # Node ID 072cd67c6aabe0e700a9e4727b50ad6424cb59f5
+> > >> # Parent  7a58d924fb049ff1d318514939b3a7e416670c13
+> > >> saa7134: add Hawell HW-404M7 & HW-808M7
+> > >> 
+> > >> diff -r 7a58d924fb04 -r 072cd67c6aab linux/Documentation/video4linux/CARDLIST.saa7134
+> > >> --- a/linux/Documentation/video4linux/CARDLIST.saa7134	Tue Mar 09 23:00:59 2010 -0300
+> > >> +++ b/linux/Documentation/video4linux/CARDLIST.saa7134	Wed Mar 10 17:43:41 2010 +0300
+> > >> @@ -175,3 +175,4 @@
+> > >>  174 -> Asus Europa Hybrid OEM                   [1043:4847]
+> > >>  175 -> Leadtek Winfast DTV1000S                 [107d:6655]
+> > >>  176 -> Beholder BeholdTV 505 RDS                [0000:5051]
+> > >> +177 -> Hawell HW-404M7 / HW-808M7
+> > >> diff -r 7a58d924fb04 -r 072cd67c6aab linux/drivers/media/video/saa7134/saa7134-cards.c
+> > >> --- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Tue Mar 09 23:00:59 2010 -0300
+> > >> +++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Wed Mar 10 17:43:41 2010 +0300
+> > >> @@ -5394,6 +5394,23 @@
+> > >>  			.amux = LINE2,
+> > >>  		},
+> > >>  	},
+> > >> +	[SAA7134_BOARD_HAWELL_HW_404M7] = {
+> > >> +		/* Hawell HW-404M7 & Hawell HW-808M7  */
+> > >> +		/* Bogoslovskiy Viktor <bogovic@bk.ru> */
+> > >> +		.name         = "Hawell HW-404M7",
+> > >> +		.audio_clock   = 0x00200000,
+> > >> +		.tuner_type    = UNSET,
+> > >> +		.radio_type    = UNSET,
+> > >> +		.tuner_addr   = ADDR_UNSET,
+> > >> +		.radio_addr   = ADDR_UNSET,
+> > >> +		.gpiomask      = 0x01fc00,
+> > >> +		.inputs       = {{
+> > >> +			.name = name_comp1,
+> > >> +			.vmux = 3,
+> > >> +			.amux = LINE1,
+> > >> +			.gpio = 0x389c00,
+> > >> +		} },
+> > >> +	},
+> > >>  
+> > >>  };
+> > >>  
+> > >> diff -r 7a58d924fb04 -r 072cd67c6aab linux/drivers/media/video/saa7134/saa7134-input.c
+> > >> --- a/linux/drivers/media/video/saa7134/saa7134-input.c	Tue Mar 09 23:00:59 2010 -0300
+> > >> +++ b/linux/drivers/media/video/saa7134/saa7134-input.c	Wed Mar 10 17:43:41 2010 +0300
+> > >> @@ -529,6 +529,7 @@
+> > >>  	switch (dev->board) {
+> > >>  	case SAA7134_BOARD_FLYVIDEO2000:
+> > >>  	case SAA7134_BOARD_FLYVIDEO3000:
+> > >> +	case SAA7134_BOARD_HAWELL_HW_404M7:
+> > >>  	case SAA7134_BOARD_FLYTVPLATINUM_FM:
+> > >>  	case SAA7134_BOARD_FLYTVPLATINUM_MINI2:
+> > >>  	case SAA7134_BOARD_ROVERMEDIA_LINK_PRO_FM:
+> > >> diff -r 7a58d924fb04 -r 072cd67c6aab linux/drivers/media/video/saa7134/saa7134.h
+> > >> --- a/linux/drivers/media/video/saa7134/saa7134.h	Tue Mar 09 23:00:59 2010 -0300
+> > >> +++ b/linux/drivers/media/video/saa7134/saa7134.h	Wed Mar 10 17:43:41 2010 +0300
+> > >> @@ -301,6 +301,7 @@
+> > >>  #define SAA7134_BOARD_ASUS_EUROPA_HYBRID	174
+> > >>  #define SAA7134_BOARD_LEADTEK_WINFAST_DTV1000S 175
+> > >>  #define SAA7134_BOARD_BEHOLD_505RDS_MK3     176
+> > >> +#define SAA7134_BOARD_HAWELL_HW_404M7		177
+> > >>  
+> > >>  #define SAA7134_MAXBOARDS 32
+> > >>  #define SAA7134_INPUT_MAX 8
+> > >>
+> > 
+> 
+
 
