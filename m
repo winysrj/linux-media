@@ -1,38 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3260 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751647Ab0C1KYD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Mar 2010 06:24:03 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: What would be a good time to move subdev drivers to a subdev directory?
-Date: Sun, 28 Mar 2010 12:24:17 +0200
+Received: from smtp2-g21.free.fr ([212.27.42.2]:54388 "EHLO smtp2-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751900Ab0CULcG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Mar 2010 07:32:06 -0400
+Received: from smtp2-g21.free.fr (localhost [127.0.0.1])
+	by smtp2-g21.free.fr (Postfix) with ESMTP id 4E5AE4B0042
+	for <linux-media@vger.kernel.org>; Sun, 21 Mar 2010 12:31:58 +0100 (CET)
+Received: from [192.168.1.234] (cac94-1-81-57-151-96.fbx.proxad.net [81.57.151.96])
+	by smtp2-g21.free.fr (Postfix) with ESMTP id 281A44B0193
+	for <linux-media@vger.kernel.org>; Sun, 21 Mar 2010 12:31:56 +0100 (CET)
+Message-ID: <4BA603AB.6070809@free.fr>
+Date: Sun, 21 Mar 2010 12:31:55 +0100
+From: matthieu castet <castet.matthieu@free.fr>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+To: linux-media@vger.kernel.org
+Subject: dvb frontend lockup
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201003281224.17678.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi,
 
-Currently drivers/media/video is a mix of subdev drivers and bridge/platform
-drivers. I think it would be good to create a drivers/media/subdev directory
-where subdev drivers can go.
+With my current kernel (2.6.32), if my dvb device is removed while in use, I got [1].
 
-We discussed in the past whether we should have categories for audio subdevs,
-video subdevs, etc. but I think that will cause problems, especially with
-future multifunction devices.
+After checking the source code, the problem seems to happen also in master :
 
-What is your opinion on this, and what would be a good time to start moving
-drivers?
+If there are users (for example users == -2) :
+- dvb_unregister_frontend :
+ - stop kernel thread with dvb_frontend_stop :
+  - fepriv->exit = 1;
+  - thread loop catch stop event and break while loop
+  - fepriv->thread = NULL; and fepriv->exit = 0;
+- dvb_unregister_frontend wait on "fepriv->dvbdev->wait_queue" that fepriv->dvbdev->users==-1.
+The user finish :
+- dvb_frontend_release 
+ - set users to -1
+ - don't wait wait_queue because fepriv->exit != 1
 
-Regards,
+=> dvb_unregister_frontend never exit the wait queue.
 
-	Hans
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Matthieu
+
+
+[ 4920.484047] khubd         D c2008000     0   198      2 0x00000000
+[ 4920.484056]  f64c8000 00000046 00000000 c2008000 00000004 c13fa000 c13fa000 f
+64c8000
+[ 4920.484066]  f64c81bc c2008000 00000000 d9d9dce6 00000452 00000001 f64c8000 c
+102daad
+[ 4920.484075]  00100100 f64c81bc 00000286 f0a7ccc0 f0913404 f0cba404 f644de58 f
+092b0a8
+[ 4920.484084] Call Trace:
+[ 4920.484102]  [<c102daad>] ? default_wake_function+0x0/0x8
+[ 4920.484147]  [<f8cb09e1>] ? dvb_unregister_frontend+0x95/0xcc [dvb_core]
+[ 4920.484157]  [<c1044412>] ? autoremove_wake_function+0x0/0x2d
+[ 4920.484168]  [<f8dd1af2>] ? dvb_usb_adapter_frontend_exit+0x12/0x21 [dvb_usb]
+[ 4920.484176]  [<f8dd12f1>] ? dvb_usb_exit+0x26/0x88 [dvb_usb]
+[ 4920.484184]  [<f8dd138d>] ? dvb_usb_device_exit+0x3a/0x4a [dvb_usb]
+[ 4920.484217]  [<f7fe1b08>] ? usb_unbind_interface+0x3f/0xb4 [usbcore]
+[ 4920.484227]  [<c11a4178>] ? __device_release_driver+0x74/0xb7
+[ 4920.484233]  [<c11a4247>] ? device_release_driver+0x15/0x1e
+[ 4920.484243]  [<c11a3a33>] ? bus_remove_device+0x6e/0x87
+[ 4920.484249]  [<c11a26d6>] ? device_del+0xfa/0x152
+[ 4920.484264]  [<f7fdf609>] ? usb_disable_device+0x59/0xb9 [usbcore]
+[ 4920.484279]  [<f7fdb9ee>] ? usb_disconnect+0x70/0xdc [usbcore]
+[ 4920.484294]  [<f7fdc728>] ? hub_thread+0x521/0xe1d [usbcore]
+[ 4920.484301]  [<c1044412>] ? autoremove_wake_function+0x0/0x2d
+[ 4920.484316]  [<f7fdc207>] ? hub_thread+0x0/0xe1d [usbcore]
+[ 4920.484321]  [<c10441e0>] ? kthread+0x61/0x66
+[ 4920.484327]  [<c104417f>] ? kthread+0x0/0x66
+[ 4920.484336]  [<c1003d47>] ? kernel_thread_helper+0x7/0x10
