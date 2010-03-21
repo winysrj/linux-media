@@ -1,76 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fmmailgate03.web.de ([217.72.192.234]:39512 "EHLO
-	fmmailgate03.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752337Ab0CXWNf (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2149 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753308Ab0CUUwy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Mar 2010 18:13:35 -0400
-Received: from smtp05.web.de (fmsmtp05.dlan.cinetic.de [172.20.4.166])
-	by fmmailgate03.web.de (Postfix) with ESMTP id 28397147C38CB
-	for <linux-media@vger.kernel.org>; Wed, 24 Mar 2010 23:13:34 +0100 (CET)
-Received: from [92.193.211.8] (helo=[192.168.2.4])
-	by smtp05.web.de with asmtp (WEB.DE 4.110 #4)
-	id 1NuYpR-0002Xi-00
-	for linux-media@vger.kernel.org; Wed, 24 Mar 2010 23:13:34 +0100
-Subject: Re: [linux-dvb] saa716x driver status
-From: Martin Pauly <martinpauly@web.de>
+	Sun, 21 Mar 2010 16:52:54 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id o2LKqqji013018
+	for <linux-media@vger.kernel.org>; Sun, 21 Mar 2010 21:52:53 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 21 Mar 2010 21:52:52 +0100 (CET)
+Message-Id: <201003212052.o2LKqqji013018@smtp-vbr4.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-In-Reply-To: <1269427550.2680.54.camel@localhost.localdomain>
-References: <1269427550.2680.54.camel@localhost.localdomain>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 24 Mar 2010 23:13:33 +0100
-Message-ID: <1269468813.4428.3.camel@martin>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Mittwoch, den 24.03.2010, 21:45 +1100 schrieb Rodd Clarkson:
-> Hi All,
-> 
-> I've recently acquired a AverMedia Hybrid NanoExpress tv tuner and I'm
-> trying to get it working with Fedora 13 and Fedora 12.
-> 
-> I've found drivers at http://www.jusst.de/hg/saa716x/
-> 
-> On f12 the driver build and install, but I have missing symbols when I
-> try to modprobe the drivers.
-> 
-> On f13 the drivers fail to build.
-> 
-> I've tried contacting Manu Abraham (whom I believe is the developer)
-> about the f12 issues, but haven't heard back.
-> 
-> I've searched google for everything from saa716x, AverMedia Hybrid Nano
-> Express, HC82 and 1461:0555 (the pci address, I guess).  There's bits
-> and pieces about this driver in the results, but most are that they can
-> build the driver, but it doesn't work.
-> 
-> I'm happy to 'risk' my card and try stuff to get this to work, but I'm
-> curious about whether or not development is ongoing and how I can help
-> (not being a c coder)
-> 
-> I'll attach the output of the build attempt on f13 in case someone can
-> advise what is going wrong.  The build log was captured using:
-> 
-> $ make &> /tmp/saa716x.build.log.f13
-> 
-> regards 
-> 
-> 
-> Rodd
-> 
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Hi,
-i have a avertv hybrid nano express over here and managed to solve some
-build problems by copying some v4l files into the downloaded
-directories. but after installation finished succesfully, the driver
-unfortunately didnt work. so if you have any success please let me know
-regards
-martin
+Results of the daily build of v4l-dvb:
 
+date:        Sun Mar 21 19:00:14 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14494:929298149eba
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 8c69c6ed6c74c94fa7ad6fa24eda452e4b212d81
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-rc1-armv5: OK
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-rc1-armv5-davinci: WARNINGS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-rc1-armv5-ixp: WARNINGS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-rc1-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.17-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-rc1-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-rc1-m32r: OK
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-rc1-mips: WARNINGS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-rc1-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.17-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-rc1-x86_64: WARNINGS
+linux-git-armv5: OK
+linux-git-armv5-davinci: OK
+linux-git-armv5-ixp: OK
+linux-git-armv5-omap2: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: WARNINGS
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.7-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.62-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.7-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
