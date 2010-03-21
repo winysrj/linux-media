@@ -1,73 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:56974 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936605Ab0COT6S (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Mar 2010 15:58:18 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Basil Mohamed Gohar <abu_hurayrah@hidayahonline.org>
-Subject: Re: Capturing raw JPEG stream from webcam
-Date: Mon, 15 Mar 2010 21:00:05 +0100
-Cc: linux-media@vger.kernel.org
-References: <4B9AF0A3.4060701@hidayahonline.org> <201003151040.04057.laurent.pinchart@ideasonboard.com> <4B9E4DBD.8000502@hidayahonline.org>
-In-Reply-To: <4B9E4DBD.8000502@hidayahonline.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Received: from smtp1.rdslink.ro ([81.196.12.70]:54792 "EHLO smtp.rdslink.ro"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751386Ab0CUSBS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Mar 2010 14:01:18 -0400
+Subject: 0004-Staging-cx25821-fix-coding-style-issues-in-cx25821-i.patch
+From: Olimpiu Pascariu <olimpiu.pascariu@gmail.com>
+To: gregkh@suse.de, mchehab@redhat.com,
+	palash.bandyopadhyay@conexant.com
+Cc: devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset="ANSI_X3.4-1968"
+Date: Sun, 21 Mar 2010 20:01:13 +0200
+Message-ID: <1269194473.6971.8.camel@tuxtm-linux>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201003152100.06497.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Basil,
+>From 5f02f6af270ce061174806a039d8d44a35b2ce5e Mon Sep 17 00:00:00 2001
+From: Olimpiu Pascariu <olimpiu.pascariu@gmail.com>
+Date: Sun, 21 Mar 2010 19:52:31 +0200
+Subject: [PATCH 4/4] Staging: cx25821: fix coding style issues in cx25821-i2c.c
+ This is a patch to cx25821-i2c.c file that fixes up warnings and errors found by the checkpatch.pl tool
+ Signed-off-by: Olimpiu Pascariu <olimpiu.pascariu@gmail.com>
 
-On Monday 15 March 2010 16:09:49 Basil Mohamed Gohar wrote:
-> On 03/15/2010 05:40 AM, Laurent Pinchart wrote:
-> > On Saturday 13 March 2010 02:55:47 Basil Mohamed Gohar wrote:
-> >> I originally posted this to the video4linux mailing list, but I've since
-> >> discovered that this is the appropriate place (or so I understand) for
-> >> video4linux questions.  My question is how can I capture the raw JPEG
-> >> image stream (e.g., MJPEG) from my webcam, which reports through v4l2
-> >> that it is capable of.  I am using the gst-launch cli to gstreamer,
-> >> 
-> >> which confirms that my webcam has this capability:
-> >>> image/jpeg, width=(int)640, height=(int)480, framerate=(fraction){
-> >>> 30/1, 25/1, 20/1, 15/1, 10/1, 5/1 }
-> >> 
-> >> And, indeed, I can capture using this capability, but the framerate is
-> >> not at the specified rate, but at a much lower value (half or less).
-> >> So, even if I specify 30fps, I get something less.  I can capture the
-> >> full 30fps when I use one of the yuv modes, though, so it's clearly
-> >> capable of delivering that framerate.
-> >> 
-> >> My webcam is a Logitech QuickCam Pro 5000.  The lsusb output is:
-> >>> 046d:08ce Logitech, Inc. QuickCam Pro 5000
-> >> 
-> >> An example command line I try is as follows:
-> >>> gst-launch-0.10 v4l2src device=/dev/video0 ! 'image/jpeg, width=640,
-> >>> height=480, framerate=30/1' ! jpegdec ! xvimagesink
-> > 
-> > Have you tried disabling auto-exposure ? The camera is allowed to reduce
-> > the frame rate in low-light conditions if auto-exposure is turned on.
-> 
-> Thanks for replying.  I haven't actually tried this yet (I am currently
-> at work), but I do not think this is the issue, because when I choose
-> the YUV-style modes, I can capture at the full framerates.  It's only
-> when I select the image/jpeg mode that I get the lower framerates,
-> despite explicitly requesting the higher ones.
-> 
-> I suppose it's not impossible that the camera is opting for different
-> behavior depending on the mode of the request, but I think that is not
-> likely the case.  I do appreciate the suggestion, though, and I'll try
-> it when I get home.
+---
+ drivers/staging/cx25821/cx25821-i2c.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-It could, but that indeed seems unlikely. The USB descriptors advertise 30fps 
-in MJPEG mode. Unless the information is wrong (in which case this would be a 
-firmware bug), 30fps should be achievable.
-
-> Meanwhile, does anyone else have any other ideas?
-
+diff --git a/drivers/staging/cx25821/cx25821-i2c.c b/drivers/staging/cx25821/cx25821-i2c.c
+index f4f2681..f727b85 100644
+--- a/drivers/staging/cx25821/cx25821-i2c.c
++++ b/drivers/staging/cx25821/cx25821-i2c.c
+@@ -159,9 +159,9 @@ static int i2c_sendbytes(struct i2c_adapter *i2c_adap,
+ 
+ 	return msg->len;
+ 
+-      eio:
++eio:
+ 	retval = -EIO;
+-      err:
++err:
+ 	if (i2c_debug)
+ 		printk(KERN_ERR " ERR: %d\n", retval);
+ 	return retval;
+@@ -223,9 +223,9 @@ static int i2c_readbytes(struct i2c_adapter *i2c_adap,
+ 	}
+ 
+ 	return msg->len;
+-      eio:
++eio:
+ 	retval = -EIO;
+-      err:
++err:
+ 	if (i2c_debug)
+ 		printk(KERN_ERR " ERR: %d\n", retval);
+ 	return retval;
+@@ -266,7 +266,7 @@ static int i2c_xfer(struct i2c_adapter *i2c_adap, struct i2c_msg *msgs, int num)
+ 	}
+ 	return num;
+ 
+-      err:
++err:
+ 	return retval;
+ }
+ 
+@@ -319,7 +319,7 @@ int cx25821_i2c_register(struct cx25821_i2c *bus)
+ 
+ 	bus->i2c_client.adapter = &bus->i2c_adap;
+ 
+-	//set up the I2c
++	/* set up the I2c */
+ 	bus->i2c_client.addr = (0x88 >> 1);
+ 
+ 	return bus->i2c_rc;
 -- 
-Regards,
+1.7.0
 
-Laurent Pinchart
+
+
