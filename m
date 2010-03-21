@@ -1,54 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from xenotime.net ([72.52.64.118]:58657 "HELO xenotime.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754194Ab0C3SQp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Mar 2010 14:16:45 -0400
-Received: from chimera.site ([71.245.98.113]) by xenotime.net for <linux-media@vger.kernel.org>; Tue, 30 Mar 2010 11:16:44 -0700
-Message-ID: <4BB2400C.3060509@xenotime.net>
-Date: Tue, 30 Mar 2010 11:16:44 -0700
-From: Randy Dunlap <rdunlap@xenotime.net>
+Received: from smtpfb1-g21.free.fr ([212.27.42.9]:43302 "EHLO
+	smtpfb1-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751329Ab0CULXu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Mar 2010 07:23:50 -0400
+Received: from smtp2-g21.free.fr (smtp2-g21.free.fr [212.27.42.2])
+	by smtpfb1-g21.free.fr (Postfix) with ESMTP id 9742F794407
+	for <linux-media@vger.kernel.org>; Sun, 21 Mar 2010 12:15:34 +0100 (CET)
+Message-ID: <4BA5FFA5.7030800@free.fr>
+Date: Sun, 21 Mar 2010 12:14:45 +0100
+From: matthieu castet <castet.matthieu@free.fr>
 MIME-Version: 1.0
-To: Ricardo Maraschini <xrmarsx@gmail.com>
-CC: linux-media@vger.kernel.org, dougsland@gmail.com,
-	mchehab@infradead.org
-Subject: Re: [PATCH] dib7000p.c: Fix for warning: the frame size of 1236 bytes
- is larger than 1024 bytes
-References: <4BB23CB0.1080501@gmail.com>
-In-Reply-To: <4BB23CB0.1080501@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+CC: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] af9015 : more robust eeprom parsing
+Content-Type: multipart/mixed;
+ boundary="------------050809010503070309040100"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/30/10 11:02, Ricardo Maraschini wrote:
-> When compiling the last version of v4l-dvb tree I got the following message:
-> 
-> /data/Projects/kernel/v4l-dvb/v4l/dib7000p.c: In function 'dib7000p_i2c_enumeration':
-> /data/Projects/kernel/v4l-dvb/v4l/dib7000p.c:1393: warning: the frame size of 1236 bytes is larger than 1024 bytes
-> 
-> I believe that this problem is related to stack size, because we are allocating memory for a big structure.
-> I changed the approach to dinamic allocated memory and the warning disappears.
-> The same problem appears on dib3000 as well, and I can fix that too if this patch get in.
-> 
-> Any comment on that?
-> I'll appreciate to read any comment from more experienced code makers.
+This is a multi-part message in MIME format.
+--------------050809010503070309040100
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+
+the af9015 eeprom parsing accept 0x38 as 2nd demodulator. But this is impossible because the
+first one is already hardcoded to 0x38.
+This remove a special case for AverMedia AVerTV Volar Black HD.
+
+Also in af9015_copy_firmware don't hardcode the 2nd demodulator address to 0x3a.
 
 
-Hi,
+Signed-off-by: Matthieu CASTET <castet.matthieu@free.fr> 
 
-There is one caller of dib7000p_i2c_enumeration() that does not check its
-return value/error code.  See
-drivers/media/dvb/dvb-usb/cxusb.c::cxusb_dualdig4_rev2_frontend_attach():
+--------------050809010503070309040100
+Content-Type: text/x-diff;
+ name="af9015.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="af9015.diff"
 
-	dib7000p_i2c_enumeration(&adap->dev->i2c_adap, 1, 18,
-				 &cxusb_dualdig4_rev2_config);
+diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
+index d797538..f93767e 100644
+--- a/drivers/media/dvb/dvb-usb/af9015.c
++++ b/drivers/media/dvb/dvb-usb/af9015.c
+@@ -493,7 +493,7 @@ static int af9015_copy_firmware(struct dvb_usb_device *d)
+ 	/* wait 2nd demodulator ready */
+ 	msleep(100);
+ 
+-	ret = af9015_read_reg_i2c(d, 0x3a, 0x98be, &val);
++	ret = af9015_read_reg_i2c(d, af9015_af9013_config[1].demod_address, 0x98be, &val);
+ 	if (ret)
+ 		goto error;
+ 	else
+@@ -913,8 +913,13 @@ static int af9015_read_config(struct usb_device *udev)
+ 		ret = af9015_rw_udev(udev, &req);
+ 		if (ret)
+ 			goto error;
+-		af9015_af9013_config[1].demod_address = val;
++		if (val != AF9015_I2C_DEMOD)
++			af9015_af9013_config[1].demod_address = val;
++		else 
++			af9015_config.dual_mode = 0;
++	}
+ 
++	if (af9015_config.dual_mode) {
+ 		/* enable 2nd adapter */
+ 		for (i = 0; i < af9015_properties_count; i++)
+ 			af9015_properties[i].num_adapters = 2;
+@@ -1023,11 +1028,6 @@ error:
+ 	if (le16_to_cpu(udev->descriptor.idVendor) == USB_VID_AVERMEDIA &&
+ 	    le16_to_cpu(udev->descriptor.idProduct) == USB_PID_AVERMEDIA_A850) {
+ 		deb_info("%s: AverMedia A850: overriding config\n", __func__);
+-		/* disable dual mode */
+-		af9015_config.dual_mode = 0;
+-		 /* disable 2nd adapter */
+-		for (i = 0; i < af9015_properties_count; i++)
+-			af9015_properties[i].num_adapters = 1;
+ 
+ 		/* set correct IF */
+ 		af9015_af9013_config[0].tuner_if = 4570;
 
-
-That is in my (similar) patch and I also posted a dib3000 patch.
-Yes, it would be good if someone could review & merge them.
-
-https://patchwork.kernel.org/patch/77891/
-https://patchwork.kernel.org/patch/77892/
-
--- 
-~Randy
+--------------050809010503070309040100--
