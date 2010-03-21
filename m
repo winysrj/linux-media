@@ -1,70 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:58484 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751256Ab0CFOKR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Mar 2010 09:10:17 -0500
-Message-ID: <4B92623C.2060302@s5r6.in-berlin.de>
-Date: Sat, 06 Mar 2010 15:10:04 +0100
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: linux-media@vger.kernel.org, Henrik Kurelid <henrik@kurelid.se>
-Subject: Re: [PATCH] firedtv: add parameter to fake ca_system_ids in CA_INFO
-References: <tkrat.dc97d52c76a2dc07@s5r6.in-berlin.de> <tkrat.a8cdf995cdc06e83@s5r6.in-berlin.de> <4B925E25.2070105@infradead.org>
-In-Reply-To: <4B925E25.2070105@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail1.radix.net ([207.192.128.31]:42834 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751337Ab0CUVfN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Mar 2010 17:35:13 -0400
+Subject: Re: [PATCH] V4L/DVB: saa7146: IRQF_DISABLED causes only trouble
+From: Andy Walls <awalls@radix.net>
+To: =?ISO-8859-1?Q?Bj=F8rn?= Mork <bjorn@mork.no>
+Cc: linux-media@vger.kernel.org, stable@kernel.org
+In-Reply-To: <1269202135-340-1-git-send-email-bjorn@mork.no>
+References: <1269202135-340-1-git-send-email-bjorn@mork.no>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 21 Mar 2010 17:24:01 -0400
+Message-Id: <1269206641.6135.68.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
-> Stefan Richter wrote:
+On Sun, 2010-03-21 at 21:08 +0100, Bjørn Mork wrote:
+> As discussed many times, e.g. in http://lkml.org/lkml/2007/7/26/401
+> mixing IRQF_DISABLED with IRQF_SHARED just doesn't make sense.
 > 
->> The Digital Everywhere firmware have the shortcoming that ca_info_enq and
->> ca_info are not supported. This means that we can never retrieve the correct
->> ca_system_id to present in the CI message CA_INFO. Currently the driver uses
->> the application id retrieved using app_info_req and app_info, but this id
->> only match the correct ca_system_id as given in ca_info in some cases.
->> This patch adds a parameter to the driver in order for the user to override
->> what will be returned in the CA_INFO CI message. Up to four ca_system_ids can
->> be specified.
->> This is needed for users with CAMs that have different manufacturer id and
->> ca_system_id and that uses applications that take this into account, like
->> MythTV.
+> Remove IRQF_DISABLED to avoid random unexpected behaviour.
 > 
-> This seems an ugly workaround. The better seems to patch MythTV to accept a different
-> CAM.
-
-Ugly it is, for sure.  Can't comment on application-level solutions; if
-thats the proper layer at which to address this, then that would be
-preferable of course.
-
->> +static int num_fake_ca_system_ids;
-> ...
->> +		for (i = 0; i < num_fake_ca_system_ids; i++) {
->> +			app_info[4 + i * 2] =
->> +				(fake_ca_system_ids[i] >> 8) & 0xff;
-> ...
+> Ever since I started using the saa7146 driver, I've had occasional
+> soft lockups.  I do not have any real evidence that the saa7146
+> driver is the cause, but the lockups are gone after removing the
+> IRQF_DISABLED flag from this driver.
 > 
-> NAK. If someone put an arbitrary high value for num_fake_ca_system_id's, it will write outside
-> the app_info array space, as the num_fake_ca_system_ids is not validated against the size
-> of app_info.
+> On my system, this driver shares an irq17 with the pata_jmicron
+> driver:
+> 
+>  17:       2115      10605    9422844    8193902   IO-APIC-fasteoi   pata_jmicron, saa7146 (0)
+> 
+> This may be a mitigating factor.
+> 
+> Signed-off-by: Bjørn Mork <bjorn@mork.no>
+> Cc: stable@kernel.org
 
-That's what I thought at first look at the patch too, but then I noticed
-that inlcude/linux/moduleparam.h and kernel/params.c properly track
-kparam_arry.max = ARRAY_SIZE(array).
-http://lxr.linux.no/#linux+v2.6.33/include/linux/moduleparam.h#L62
-http://lxr.linux.no/#linux+v2.6.33/include/linux/moduleparam.h#L213
-http://lxr.linux.no/#linux+v2.6.33/kernel/params.c#L351
-http://lxr.linux.no/#linux+v2.6.33/kernel/params.c#L296
+And here are some more recent discussions:
 
-So no danger here.
+http://lkml.org/lkml/2009/11/30/215
+http://lkml.org/lkml/2009/3/2/33
+http://lkml.org/lkml/2009/3/2/225
+http://www.mail-archive.com/ivtv-devel@ivtvdriver.org/msg06319.html
+http://www.mail-archive.com/ivtv-devel@ivtvdriver.org/msg06362.html
 
-> Also, it makes no sense a negative value for this parameter.
+And the ones on the LKML seem prettry inconclusive to me.
 
-I already posted an updated version of the patch which correctly defines
-num_fake_ca_system_ids as an unsigned long.
--- 
-Stefan Richter
--=====-==-=- --== --==-
-http://arcgraph.de/sr/
+
+If the saa7146 driver was registered second, then this change should
+have no effect on your system.
+
+If the saa7146 driver was registered first, then this can cause the
+saa7146 driver's interrupt handler to be interrupted.  I doubt the
+saa7146 driver is prepared for this contingency.
+
+I doubt that this is the "proper" fix for your problem.
+
+
+Does the "soft lockup" put an Oops or BUG message in dmesg
+or /var/log/messages? 
+
+What precisely do you mean by "soft lockup"?
+
+Regards,
+Andy
+
+> ---
+>  drivers/media/common/saa7146_core.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/common/saa7146_core.c b/drivers/media/common/saa7146_core.c
+> index 982f000..038dcc8 100644
+> --- a/drivers/media/common/saa7146_core.c
+> +++ b/drivers/media/common/saa7146_core.c
+> @@ -416,7 +416,7 @@ static int saa7146_init_one(struct pci_dev *pci, const struct pci_device_id *ent
+>  	saa7146_write(dev, MC2, 0xf8000000);
+>  
+>  	/* request an interrupt for the saa7146 */
+> -	err = request_irq(pci->irq, interrupt_hw, IRQF_SHARED | IRQF_DISABLED,
+> +	err = request_irq(pci->irq, interrupt_hw, IRQF_SHARED,
+>  			  dev->name, dev);
+>  	if (err < 0) {
+>  		ERR(("request_irq() failed.\n"));
+
