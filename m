@@ -1,60 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f219.google.com ([209.85.220.219]:64664 "EHLO
-	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753153Ab0CCXsF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Mar 2010 18:48:05 -0500
-Received: by fxm19 with SMTP id 19so2188493fxm.21
-        for <linux-media@vger.kernel.org>; Wed, 03 Mar 2010 15:48:02 -0800 (PST)
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:49412 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751900Ab0CULbr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Mar 2010 07:31:47 -0400
+Date: Sun, 21 Mar 2010 12:31:14 +0100
+From: Wolfram Sang <w.sang@pengutronix.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: kernel-janitors@vger.kernel.org, linux-i2c@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 12/24] media/video: fix dangling pointers
+Message-ID: <20100321113114.GB26984@pengutronix.de>
+References: <1269094385-16114-1-git-send-email-w.sang@pengutronix.de> <1269094385-16114-13-git-send-email-w.sang@pengutronix.de> <201003202302.49526.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <74fd948d1003031535r1785b36dq4cece00f349975af@mail.gmail.com>
-References: <74fd948d1003031535r1785b36dq4cece00f349975af@mail.gmail.com>
-Date: Wed, 3 Mar 2010 18:48:02 -0500
-Message-ID: <829197381003031548n703f0bf9sb44ce3527501c5c0@mail.gmail.com>
-Subject: Re: Excessive rc polling interval in dvb_usb_dib0700 causes
-	interference with USB soundcard
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Pedro Ribeiro <pedrib@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="rS8CxjVDS/+yyDmU"
+Content-Disposition: inline
+In-Reply-To: <201003202302.49526.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 3, 2010 at 6:35 PM, Pedro Ribeiro <pedrib@gmail.com> wrote:
-> Hello all,
->
-> yesterday I sent a message asking for help with a problem I was having
-> with a dib0700 USB adapter and my USB audio soundcard.
->
-> Basically I discovered that the remote control polling in dvb_usb
-> module was causing it. For reference, my original message is here
-> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/16782
-> and I also file a kernel bug here
-> http://bugzilla.kernel.org/show_bug.cgi?id=15430
->
-> Looking at dmesg when I plug the DVB adapter it says
-> dvb-usb: schedule remote query interval to 50 msecs.
->
-> This seemed to me extremely excessive, so I solved the problem by
-> doing a quick dirty hack. In linux/drivers/media/dvb/dvb-usb-remote.c
-> I changed d->props.rc_interval to 10000, instead of the default 50
-> msec.
->
-> So now when I load the driver, I get
-> dvb-usb: schedule remote query interval to 10000 msecs.
->
-> And not only the USB audio card is working properly with the DVB
-> adapter but also the remote control is working perfectly, without any
-> delay at all!
->
-> So my question is: why is this set to an excessive 50 msec? This is
-> waaaaaaay too much for remote control polling, and its proven it
-> causes trouble in the USB bus!
-> Also, I know my hack was dirty, what the is the proper way to change this?
 
-It's already been fixed.  Just update to the latest v4l-dvb code.
+--rS8CxjVDS/+yyDmU
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Devin
+Hello Hans,
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+> > Fix I2C-drivers which missed setting clientdata to NULL before freeing =
+the
+> > structure it points to. Also fix drivers which do this _after_ the stru=
+cture
+> > was freed already.
+>=20
+> I feel I am missing something here. Why does clientdata have to be set to
+> NULL when we are tearing down the device anyway?
+>=20
+> And if there is a good reason for doing this, then it should be done in
+> v4l2_device_unregister_subdev or even in the i2c core, not in each driver=
+s.
+
+Discussion to take this into the i2c-layer has already started. Regarding V=
+4L,
+I noticed there is a v4l2_i2c_subdev_init() but no v4l2_i2c_subdev_exit(), =
+so I
+grepped what drivers are doing. There are some which set clientdata to NULL=
+, so
+I thought this was accepted in general.
+
+> And why does coccinelle apparently find this in e.g. cs5345.c but not in
+> saa7115.c, which has exactly the same construct? For that matter, I think
+
+It was the to_state()-call inside kfree() which prevented the match. I would
+need to extend my patch for V4L, it seems.
+
+Regards,
+
+   Wolfram
+
+--=20
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+
+--rS8CxjVDS/+yyDmU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAkumA4IACgkQD27XaX1/VRuJKACfYtVBg2DgQcE85z2GznQ4PTFK
+OaMAnign0fO1MzKYEi6BQ0BQ5cvBIkoD
+=4EBn
+-----END PGP SIGNATURE-----
+
+--rS8CxjVDS/+yyDmU--
