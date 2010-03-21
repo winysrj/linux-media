@@ -1,102 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:42459 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753178Ab0CDKJF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Mar 2010 05:09:05 -0500
-Subject: Re: git over http from linuxtv
-From: m7aalton <matti.j.aaltonen@nokia.com>
-Reply-To: matti.j.aaltonen@nokia.com
-To: ext Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <4B8E7872.3000602@redhat.com>
-References: <4B82F7ED.6020502@redhat.com>
-	 <1267550594.27183.22.camel@masi.mnp.nokia.com>
-	 <4B8D6231.1020806@redhat.com>
-	 <1267614726.27183.55.camel@masi.mnp.nokia.com>
-	 <4B8E7872.3000602@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 04 Mar 2010 12:08:34 +0200
-Message-ID: <1267697314.27183.69.camel@masi.mnp.nokia.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtpq1.gn.mail.iss.as9143.net ([212.54.34.164]:49646 "EHLO
+	smtpq1.gn.mail.iss.as9143.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752435Ab0CURP1 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Mar 2010 13:15:27 -0400
+Received: from [212.54.34.134] (helo=smtp3.gn.mail.iss.as9143.net)
+	by smtpq1.gn.mail.iss.as9143.net with esmtp (Exim 4.69)
+	(envelope-from <joep@groovytunes.nl>)
+	id 1NtOQz-0002CC-6z
+	for linux-media@vger.kernel.org; Sun, 21 Mar 2010 17:55:29 +0100
+Received: from 84-105-5-223.cable.quicknet.nl ([84.105.5.223] helo=werkstation.localnet)
+	by smtp3.gn.mail.iss.as9143.net with esmtp (Exim 4.69)
+	(envelope-from <joep@groovytunes.nl>)
+	id 1NtOQo-0003ed-G0
+	for linux-media@vger.kernel.org; Sun, 21 Mar 2010 17:55:18 +0100
+From: joep admiraal <joep@groovytunes.nl>
+To: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: prof 7300
+Date: Sun, 21 Mar 2010 17:55:18 +0100
+References: <201001171542.27314.joep@groovytunes.nl> <201001171742.54145.liplianin@me.by>
+In-Reply-To: <201001171742.54145.liplianin@me.by>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="koi8-r"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201003211755.18165.joep@groovytunes.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-HI.
-
-On Wed, 2010-03-03 at 15:55 +0100, ext Mauro Carvalho Chehab wrote:
-> m7aalton wrote:
-> > Hello.
-> > 
-> > On Tue, 2010-03-02 at 20:08 +0100, ext Mauro Carvalho Chehab wrote:
-> >> m7aalton wrote:
-> >>> Hi.
-> >>>
-> >>> Is it possible to access the linuxtv.org git repositories using http?
-> >>> I tried to do this:
-> >>>
-> >>> git remote add linuxtv git://linuxtv.org/v4l-dvb.git
-> >> You should be able to use both URL's:
-> >>
-> >> URL	http://git.linuxtv.org/v4l-dvb.git
-> >> 	git://linuxtv.org/v4l-dvb.git
-> >>
-> >> There were a miss-configuration for the http URL. I just fixed it.
-> > 
-> > 
-> > Now it works better but I still couldn't clone it properly. The update
-> > from linuxtv didn't seem to do anything....
-> > 
-> > Here's what happened:
-> > 
-> > $ git clone
-> > http://www.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
-> > v4l-dvb
-> > 
-> > $ cd v4l-dvb
-> > 
-> > $ git remote add linuxtv http://git.linuxtv.org/v4l-dvb.git
-> > 
-> > $ git remote update
-> > Updating origin
-> >>From http://www.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6
-> >    13dda80..3a5b27b  master     -> origin/master
-> > Updating linuxtv
-> > 
-> > $ git branch -a
-> > * master
-> >   origin/HEAD
-> >   origin/master
-> > 
-> > $ git checkout -b media-master linuxtv/master
-> > fatal: git checkout: updating paths is incompatible with switching
-> > branches.
-> > Did you intend to checkout 'linuxtv/master' which can not be resolved as
-> > commit?
+Op zondag 17 januari 2010 16:42:53 schreef Igor M. Liplianin:
+> On 17 января 2010 16:42:27 joep admiraal wrote:
+> > I had some troubles with a prof 7300 dvb s-2 card.
+> > I am running OpenSuse 11.2 with a recent hg copy of the v4l-dvb
+> > repository. It was detected as a Hauppauge WinTV instead of a prof 7300.
+> > After some runs with info_printk statements I found a problem in
+> > linux/drivers/media/video/cx88.c
+> > As far as I can understand the code I would say card[core->nr] will
+> > always be smaller than ARRAY_SIZE(cx88_boards).
+> > Therefore core->boardnr is never looked up from the cx88_subids array.
+> > After I removed the check with ARRAY_SIZE the correct card is detected
+> > and I can watch tv with both my prof 7300 cards.
+> > Can someone confirm if the patch I made is correct or explain what the
+> > purpose is of the ARRAY_SIZE check?
+> >
+> >
+> > For search references:
+> > I was getting this error in dmesg:
+> > cx88[1]/2: dvb_register failed (err = -22)
+> > cx88[1]/2: cx8802 probe failed, err = -22
+> >
+> > Regards,
+> > Joep Admiraal
 > 
-> This happens when you try to use a gitweb URL instead of the proper one. At the above,
-> you've used the wrong URL. The correct one is:
-> 	 http://linuxtv.org/git/v4l-dvb.git
-
-OK. Thanks. Earlier your said:
-
->> You should be able to use both URL's:
-> >>
-> >> URL	http://git.linuxtv.org/v4l-dvb.git
-> >> 	git://linuxtv.org/v4l-dvb.git
-
-I didn't realize that you were referring to gitweb... Maybe it would
-make sense to have also an example using http on your git repositories
-page.
-
-Cheers,
-Matti
-
-
-
+> Do/did you have another TV tuner?
+> Please check file /etc/modprobe.conf or files in /etc/modprobe.d/ for line
+>  like this options cx88xx card=n
+> Then remove the line
 > 
-> You don't need to re-do the entire procedure. Just edit .git/config and put the
-> correct URL there for the linuxtv remote.
+> You can try to check your card
+> 	modprobe cx88xx card=75
 > 
 
+Hi Igor,
 
+Today I finally checked the modprobe file.
+Since this machine is running OpenSuse 11.2, I checked /etc/modprobe.d/50-
+tv.conf.
+I can confirm the line was present.
+After removing it and rebooting the machine, the card was detected correctly.
+This was off course tested without my hacked v4l.
+
+Thanks for your help.
