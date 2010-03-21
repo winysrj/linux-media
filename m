@@ -1,72 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:46318 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753670Ab0C3V4A convert rfc822-to-8bit (ORCPT
+Received: from mail-fx0-f221.google.com ([209.85.220.221]:46954 "EHLO
+	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751601Ab0CUPve convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Mar 2010 17:56:00 -0400
+	Sun, 21 Mar 2010 11:51:34 -0400
+Received: by fxm21 with SMTP id 21so1030305fxm.2
+        for <linux-media@vger.kernel.org>; Sun, 21 Mar 2010 08:51:32 -0700 (PDT)
 MIME-Version: 1.0
-From: Mohamed Ikbel Boulabiar <boulabiar@gmail.com>
-Date: Tue, 30 Mar 2010 23:55:38 +0200
-Message-ID: <45cc95261003301455u10e6ee24pfb66176bfb279d1@mail.gmail.com>
-Subject: webcam problem after suspend/hibernate
-To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <20100321133708.GA9353@kzdoos.xs4all.nl>
+References: <mailman.1.1269169202.10776.linux-dvb@linuxtv.org>
+	 <20100321133708.GA9353@kzdoos.xs4all.nl>
+Date: Sun, 21 Mar 2010 18:46:22 +0300
+Message-ID: <19619f3b1003210846x54775dccr8fa6a743e1eaf409@mail.gmail.com>
+Subject: Re: [linux-dvb] Problem with decrypting dvb-s channels
+From: OJ <olejl77@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+> "A couple of months" triggers me: for as far as I am aware dvb decoder
+> cards need regular 'entitlement messages' to continue to work. And
+> when the card is not in an active system for a long time it misses those
+> messages and gets shut out. You need to ask the card issuer to re-activate
+> the card (usually they offer this option on a website) and have the dvb-s
+> card, cam and dish all powered up and tuned to a transponder controlled
+> by the card-issuer. Â Usually they advise you to tune to a certain channel.
 
-After suspend/resume, I have my webcam no more working.
-The /dev/video0 file still exist, but the webcam won't be used until I do this :
-rmmod     uvcvideo
-modprobe uvcvideo
-(2.6.31.8-0.1)
-
-This is may be caused by a bug somewhere.
-These are more information about my hardware :
-
-I have Microdia webcam
-`lsusb`
-Bus 001 Device 004: ID 0c45:62c0 Microdia Sonix USB 2.0 Camera
-
-on openSUSE 11.2 `uname -a`
-Linux linux-l365 2.6.31.8-0.1-desktop #1 SMP PREEMPT 2009-12-15
-23:55:40 +0100 i686 i686 i386 GNU/Linux
-
-`hwinfo --usb`
-: USB 00.0: 0000 Unclassified device
-  [Created at usb.122]
-  UDI: /org/freedesktop/Hal/devices/usb_device_c45_62c0_1_3_2_1_7_if0_logicaldev_input
-  Unique ID: Uc5H.F0c0EBqBP10
-  Parent ID: k4bc.9T1GDCLyFd9
-  SysFS ID: /devices/pci0000:00/0000:00:1d.7/usb1/1-4/1-4:1.0
-  SysFS BusID: 1-4:1.0
-  Hardware Class: unknown
-  Model: "Microdia LG Webcam"
-  Hotplug: USB
-  Vendor: usb 0x0c45 "Microdia"
-  Device: usb 0x62c0 "LG Webcam"
-  Revision: "32.17"
-  Serial ID: "1.3.2.1.7"
-  Driver: "uvcvideo"
-  Driver Modules: "uvcvideo"
-  Device File: /dev/input/event8
-  Device Files: /dev/input/event8, /dev/char/13:72,
-/dev/input/by-id/usb-LG_Innotek_LG_Webcam_1.3.2.1.7-event-if00,
-/dev/input/by-path/pci-0000:00:1d.7-usb-0:4:1.0-event
-  Device Number: char 13:72
-  Speed: 480 Mbps
-  Module Alias: "usb:v0C45p62C0d3217dcEFdsc02dp01ic0Eisc01ip00"
-  Driver Info #0:
-    Driver Status: uvcvideo is active
-    Driver Activation Cmd: "modprobe uvcvideo"
-  Config Status: cfg=no, avail=yes, need=no, active=unknown
-  Attached to: #4 (Hub)
-
-
-If there is a scenario you propose me to do to detect from where comes
-the problem, I can apply it.
-Thanks,
-
-ik.
+I  forgot to mentioned, the card has been active in a regular receiver
+when not used in the PC. If I put the card back in the receiver, the
+channels are decrypted successfully.
