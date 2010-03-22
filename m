@@ -1,44 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.152]:31643 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756050Ab0CDUwv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Mar 2010 15:52:51 -0500
-Received: by fg-out-1718.google.com with SMTP id l26so884733fgb.1
-        for <linux-media@vger.kernel.org>; Thu, 04 Mar 2010 12:52:50 -0800 (PST)
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2692 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753796Ab0CVGvk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Mar 2010 02:51:40 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: Re: Proposal for a V4L2 Media Controller mini-summit
+Date: Mon, 22 Mar 2010 07:51:33 +0100
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Laurent Pinchart <laurent.pinchart@skynet.be>,
+	Vaibhav Hiremath <hvaibhav@ti.com>,
+	"Gole, Anant" <anantgole@ti.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>,
+	Sergio Rodriguez <saaguirre@ti.com>, molnar@ti.com,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Guru Raj <gururaj.nagendra@intel.com>,
+	"Zhang, Xiaolin" <xiaolin.zhang@intel.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	"Jin-Sung Yang" <jsgood.yang@samsung.com>,
+	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
+	Kyungmin Park <kmpark@infradead.org>, mcharleb@qualcomm.com,
+	hrao@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Devin Heitmueller <devin.heitmueller@gmail.com>
+References: <201002121550.08706.hverkuil@xs4all.nl>
+In-Reply-To: <201002121550.08706.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <74fd948d1003041244s513dce3s69567cb9dbe31ae1@mail.gmail.com>
-References: <74fd948d1003031535r1785b36dq4cece00f349975af@mail.gmail.com>
-	 <829197381003031548n703f0bf9sb44ce3527501c5c0@mail.gmail.com>
-	 <74fd948d1003031700h187dbfd0v3f54800e652569b@mail.gmail.com>
-	 <829197381003031706g1011f442hcc4be40ae2e79a47@mail.gmail.com>
-	 <4B8F347E.2010206@gmail.com>
-	 <74fd948d1003040314y2fc911f2k97b1d6fb66bdc0b9@mail.gmail.com>
-	 <829197381003041139j7300bc7cg1281aff59e5a60b@mail.gmail.com>
-	 <74fd948d1003041244s513dce3s69567cb9dbe31ae1@mail.gmail.com>
-Date: Thu, 4 Mar 2010 15:52:47 -0500
-Message-ID: <829197381003041252m7b547e2ehced781c59c1c6edc@mail.gmail.com>
-Subject: Re: Excessive rc polling interval in dvb_usb_dib0700 causes
-	interference with USB soundcard
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Pedro Ribeiro <pedrib@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201003220751.33340.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 4, 2010 at 3:44 PM, Pedro Ribeiro <pedrib@gmail.com> wrote:
-> I think you are right. I was to quick to blame it. It occurs whether
-> or not the DVB adapter is connected.
->
-> Once again, thanks.
->
-> Pedro
+On Friday 12 February 2010 15:50:08 Hans Verkuil wrote:
+> Hi all,
+> 
+> During the Linux Plumbers Conference in September 2009 I organized a V4L-DVB
+> mini-summit. The focus of that summit was on discussing a framework through
+> which we could support all the functionality that the video hardware of modern
+> embedded devices provides.
+> 
+> It was a very successful summit and a lot of work has been done since that
+> time. See this posting for to get an idea of what was discussed for those
+> who were not present:
+> 
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg10136.html
+> 
+> Since that time we have added a new API to support HDTV formats, a new
+> event API is almost ready, a lot of work is being done on the media
+> controller API with omap3 as guinea pig and Samsung has done work on the
+> memory handling of V4L2.
+> 
+> From April 12th to 14th the CELF Embedded Linux Conference is held in
+> San Francisco, and it is co-located with the Linux Foundation Collaboration
+> Summit (April 14th-16th). Links to these conferences are here:
+> 
+> http://www.embeddedlinuxconference.com/elc_2010/index.html
+> http://events.linuxfoundation.org/events/collaboration-summit
+> 
+> I will be doing a presentation on the new framework during the ELC.
+> 
+> Since this conference is about 6 months after the mini-summit I consider this
+> a good time to organize a new V4L2 Media Controller mini-summit to discuss
+> progress and future work in this area. I think that particular attention
+> should be given to how we are going to do memory handling. The proposals
+> from Samsung have received very little attention and we should discuss those
+> in more detail.
+> 
+> I do not know on which dates exactly such a summit can take place. There
+> are three possibilities:
+> 
+> April 10-11/12
+> April 12-14 
+> April 14/15-16
+> 
+> I think that registering for the ELC gives to free access to the Collaboration
+> Summit, but I'm waiting for a confirmation on that.
+> 
+> I'm not keen on the center option (12-14 April) since that often means that
+> you don't see a lot of the conference itself. And the ELC is generally quite
+> interesting.
+> 
+> There is another alternative and that is that I organize a mini-summit in May
+> in Lysaker (near Oslo, Norway) at the Tandberg offices. But frankly I think
+> that it is more fun to do this during/before/after a conference. If only
+> because there are a lot of linux kernel experts on hand during such a
+> conference that you can ask for help if needed.
+> 
+> Please let me know asap if you are interested in attending such a mini-summit
+> and what dates are possible for you:
+> 
+> a: April 10-11 (or 12)
+> b: April 12-14 
+> c: April 14 (or 15)-16
+> d: Somewhere in May (suggestions for dates are welcome)
 
-Ok, that's great to hear.  I'm putting linux-media back into the CC in
-case anyone else finds this thread in the mailing list archives.
+A quick update on the mini-summit: it looks like it will be in June. The place
+and date are still not fixed, unfortunately. Hopefully I will know more soon.
 
-Devin
+Regards,
+
+	Hans
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
