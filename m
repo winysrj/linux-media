@@ -1,31 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f222.google.com ([209.85.219.222]:49298 "EHLO
-	mail-ew0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752854Ab0C1MHd (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2347 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754306Ab0CVUgx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Mar 2010 08:07:33 -0400
-Received: by ewy22 with SMTP id 22so1553495ewy.37
-        for <linux-media@vger.kernel.org>; Sun, 28 Mar 2010 05:07:31 -0700 (PDT)
-Date: Sun, 28 Mar 2010 15:07:29 +0300
-From: George Tellalov <gtellalov@bigfoot.com>
-To: Stefan Ringel <stefan.ringel@arcor.de>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Hauppauge WinTV HVR-900H
-Message-ID: <20100328120729.GB6153@joro.homelinux.org>
-References: <20100328105145.GA2427@joro.homelinux.org>
- <27890244.1269777077513.JavaMail.ngmail@webmail18.arcor-online.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <27890244.1269777077513.JavaMail.ngmail@webmail18.arcor-online.net>
+	Mon, 22 Mar 2010 16:36:53 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id o2MKamMr015353
+	for <linux-media@vger.kernel.org>; Mon, 22 Mar 2010 21:36:52 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 22 Mar 2010 21:36:48 +0100 (CET)
+Message-Id: <201003222036.o2MKamMr015353@smtp-vbr14.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Mar 28, 2010 at 01:51:17PM +0200, Stefan Ringel wrote:
->  
-> In what for mode, analog or dvb-t?
-> 
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-The test? It was in analog mode using tvtime.
+Results of the daily build of v4l-dvb:
 
-P.S. Sorry for the double reply, I forgot to reply to the list as well.
+date:        Mon Mar 22 19:00:21 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14494:929298149eba
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 8c69c6ed6c74c94fa7ad6fa24eda452e4b212d81
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
+
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-rc1-armv5: OK
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-rc1-armv5-davinci: WARNINGS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-rc1-armv5-ixp: WARNINGS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-rc1-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.17-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-rc1-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-rc1-m32r: OK
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-rc1-mips: WARNINGS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-rc1-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.17-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-rc1-x86_64: WARNINGS
+linux-git-armv5: OK
+linux-git-armv5-davinci: OK
+linux-git-armv5-ixp: OK
+linux-git-armv5-omap2: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: WARNINGS
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.7-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.62-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.7-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
