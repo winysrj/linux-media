@@ -1,24 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (ext-mx06.extmail.prod.ext.phx2.redhat.com
 	[10.5.110.10])
-	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o22E74Tp012480
-	for <video4linux-list@redhat.com>; Tue, 2 Mar 2010 09:07:04 -0500
-Received: from mail-yx0-f192.google.com (mail-yx0-f192.google.com
-	[209.85.210.192])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o22E6rtm000429
-	for <video4linux-list@redhat.com>; Tue, 2 Mar 2010 09:06:54 -0500
-Received: by yxe30 with SMTP id 30so101876yxe.23
-	for <video4linux-list@redhat.com>; Tue, 02 Mar 2010 06:06:53 -0800 (PST)
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o2N94wRL010467
+	for <video4linux-list@redhat.com>; Tue, 23 Mar 2010 05:04:59 -0400
+Received: from ipmail07.adl2.internode.on.net (ipmail07.adl2.internode.on.net
+	[150.101.137.131])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2N94mHB002308
+	for <video4linux-list@redhat.com>; Tue, 23 Mar 2010 05:04:49 -0400
+Message-ID: <4BA7E97D.9020605@dtlm.homelinux.net>
+Date: Tue, 23 Mar 2010 09:04:45 +1100
+From: Daniel Rose <drose@dtlm.homelinux.net>
 MIME-Version: 1.0
-In-Reply-To: <9c4b1d601003020605t737cad37uf682184d5b264045@mail.gmail.com>
-References: <4B8CDBAC.4030909@andago.com>
-	<9c4b1d601003020605t737cad37uf682184d5b264045@mail.gmail.com>
-Date: Tue, 2 Mar 2010 11:06:53 -0300
-Message-ID: <9c4b1d601003020606v7418c63fnb2f0c2eb0b794a43@mail.gmail.com>
-Subject: Ubuntu and AverMedia DVD EZMaker USB Gold
-From: Adrian Pardini <pardo.bsso@gmail.com>
 To: video4linux-list@redhat.com
+Subject: Dvico hell
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,38 +27,37 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-forgot the list...
-
----------- Forwarded message ----------
-From: Adrian Pardini <pardo.bsso@gmail.com>
-Date: Tue, 2 Mar 2010 11:05:49 -0300
-Subject: Re: Ubuntu and AverMedia DVD EZMaker USB Gold
-To: Jorge Cabrera <jorge.cabrera@andago.com>
-
-On 02/03/2010, Jorge Cabrera <jorge.cabrera@andago.com> wrote:
-> Hi everyone,
->
-> I'm trying to make an "AverMedia DVD EZMaker USB Gold" work with Ubuntu
-> (tried in a computer with 9.04 and other two with 9.10) with a Sony EVI
-> D70P Camera. I installed the linux drivers from AverMedia and when I
-> connect the device the system shows the following message when i run dmesg:
-
-[...]
-
-Hi there, just gessing... Could you try the drivers at linuxtv.org
-instead and see what happens?(unistall the avermedia ones before)
-Either clone a repo or grab this:
- http://linuxtv.org/hg/v4l-dvb/archive/tip.tar.bz2
-
-By the way, this list is deprecated, the new one is at
-linux-media@vger.kernel.org
-
-cheers
+I have the problem referenced here.
 
 
--- 
-Adrian.
-http://milongadelplayon.com.ar
+http://forums.whirlpool.net.au/forum-replies-archive.cfm/521910.html
+
+Because ABC has this weird offset thingy:
+
+ABC TV Canberra:205625000:INVERSION_OFF:BANDWIDTH_7_MHZ:FEC_3_4:FEC_3_4:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE:512:650:529
+
+The 625 part is not present in the other stations.
+
+I've downloaded and am running the latest drivers, as far as I know, using the instructions here:
+
+http://www.linuxtv.org/wiki/index.php/How_to_install_DVB_device_drivers
+
+If I use a different DTV card, the station tunes fine, so it's not my antenna.
+
+Can anyone help me out please?  The card is this:
+
+http://www.itee.uq.edu.au/~chrisp/Linux-DVB/DVICO/dd4_rev1.jpg
+
+and is discussed in an old page here:
+
+http://www.itee.uq.edu.au/~chrisp/Linux-DVB/DVICO/
+
+
+I would *really* appreciate some help.
+
+Thanks!
+
+
 
 --
 video4linux-list mailing list
