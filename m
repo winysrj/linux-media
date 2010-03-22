@@ -1,54 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:39400 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935701Ab0COJh6 (ORCPT
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:52216 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754680Ab0CVNfY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Mar 2010 05:37:58 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Basil Mohamed Gohar <abu_hurayrah@hidayahonline.org>
-Subject: Re: Capturing raw JPEG stream from webcam
-Date: Mon, 15 Mar 2010 10:40:03 +0100
-Cc: linux-media@vger.kernel.org
-References: <4B9AF0A3.4060701@hidayahonline.org>
-In-Reply-To: <4B9AF0A3.4060701@hidayahonline.org>
+	Mon, 22 Mar 2010 09:35:24 -0400
+Date: Mon, 22 Mar 2010 16:35:13 +0300
+From: Dan Carpenter <error27@gmail.com>
+To: Olimpiu Pascariu <olimpiu.pascariu@gmail.com>
+Cc: gregkh@suse.de, mchehab@redhat.com,
+	palash.bandyopadhyay@conexant.com, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 5/5] Staging: cx25821: fix coding style issues in
+	cx25821-medusa-video.c
+Message-ID: <20100322133513.GO21571@bicker>
+References: <1269197503.6971.11.camel@tuxtm-linux>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201003151040.04057.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1269197503.6971.11.camel@tuxtm-linux>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Basil,
-
-On Saturday 13 March 2010 02:55:47 Basil Mohamed Gohar wrote:
-> I originally posted this to the video4linux mailing list, but I've since
-> discovered that this is the appropriate place (or so I understand) for
-> video4linux questions.  My question is how can I capture the raw JPEG
-> image stream (e.g., MJPEG) from my webcam, which reports through v4l2
-> that it is capable of.  I am using the gst-launch cli to gstreamer,
+On Sun, Mar 21, 2010 at 08:51:43PM +0200, Olimpiu Pascariu wrote:
+> >From 24e5efa163c1fa58f694fd8b44dc3488e0cc92d1 Mon Sep 17 00:00:00 2001
+> From: Olimpiu Pascariu <olimpiu.pascariu@gmail.com>
+> Date: Sun, 21 Mar 2010 20:46:26 +0200
+> Subject: [PATCH 5/5] Staging: cx25821: fix coding style issues in cx25821-medusa-video.c
+>  This is a patch to cx25821-medusa-video.c file that fixes up warnings and errors found by the checkpatch.pl tool
+>  Signed-off-by: Olimpiu Pascariu <olimpiu.pascariu@gmail.com>
 > 
-> which confirms that my webcam has this capability:
-> > image/jpeg, width=(int)640, height=(int)480, framerate=(fraction){
-> > 30/1, 25/1, 20/1, 15/1, 10/1, 5/1 }
-> 
-> And, indeed, I can capture using this capability, but the framerate is
-> not at the specified rate, but at a much lower value (half or less).
-> So, even if I specify 30fps, I get something less.  I can capture the
-> full 30fps when I use one of the yuv modes, though, so it's clearly
-> capable of delivering that framerate.
-> 
-> My webcam is a Logitech QuickCam Pro 5000.  The lsusb output is:
-> > 046d:08ce Logitech, Inc. QuickCam Pro 5000
-> 
-> An example command line I try is as follows:
-> > gst-launch-0.10 v4l2src device=/dev/video0 ! 'image/jpeg, width=640,
-> > height=480, framerate=30/1' ! jpegdec ! xvimagesink
 
-Have you tried disabling auto-exposure ? The camera is allowed to reduce the 
-frame rate in low-light conditions if auto-exposure is turned on.
+[ snip ]
 
--- 
-Regards,
+> +/*
+> + * medusa_enable_bluefield_output()
+> + *
+> + * Enable the generation of blue filed output if no video
+> + *
+> +*/
 
-Laurent Pinchart
+Missing a space there.  Otherwise looks good.
+
+Acked-by:  Dan Carpenter <error27@gmail.com>
+
+regards,
+dan carpenter
+
