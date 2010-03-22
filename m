@@ -1,20 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx02.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.6])
+Received: from mx1.redhat.com (ext-mx09.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.13])
 	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o2PH5N93018038
-	for <video4linux-list@redhat.com>; Thu, 25 Mar 2010 13:05:23 -0400
-Received: from mail.hidayahonline.org (hidayahonline.org [67.19.146.138])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2PH5DLJ008359
-	for <video4linux-list@redhat.com>; Thu, 25 Mar 2010 13:05:14 -0400
-Message-ID: <4BAB97C8.4000506@hidayahonline.org>
-Date: Thu, 25 Mar 2010 13:05:12 -0400
-From: Basil Mohamed Gohar <abu_hurayrah@hidayahonline.org>
+	id o2MIU8Td004706
+	for <video4linux-list@redhat.com>; Mon, 22 Mar 2010 14:30:08 -0400
+Received: from mail-yx0-f188.google.com (mail-yx0-f188.google.com
+	[209.85.210.188])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2MITvDh026079
+	for <video4linux-list@redhat.com>; Mon, 22 Mar 2010 14:29:58 -0400
+Received: by yxe26 with SMTP id 26so1866124yxe.23
+	for <video4linux-list@redhat.com>; Mon, 22 Mar 2010 11:29:57 -0700 (PDT)
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Subject: Re: [ogg-dev] On-the-Fly multiplexing Video
-References: <7ad6557e3fe0cc26a7e5be8c7d5c7da5.squirrel@www.openmeetings.org>
-In-Reply-To: <7ad6557e3fe0cc26a7e5be8c7d5c7da5.squirrel@www.openmeetings.org>
+In-Reply-To: <4BA7A993.2080008@pillar.it>
+References: <4BA75D27.10807@pillar.it>
+	<9c4b1d601003220735i5af4be8bo8dc64138bb359f9b@mail.gmail.com>
+	<4BA7A993.2080008@pillar.it>
+Date: Mon, 22 Mar 2010 15:29:56 -0300
+Message-ID: <9c4b1d601003221129g123a3895h6acc8bda00f6de11@mail.gmail.com>
+Subject: Re: Set Frequency Problem
+From: Adrian Pardini <pardo.bsso@gmail.com>
+To: Linux and Kernel Video <video4linux-list@redhat.com>
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,45 +33,64 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 03/25/2010 11:16 AM, George Chriss wrote:
+(I forgot to cc' the list)
+
+---------- Forwarded message ----------
+From: Sanfelici Claudio <sanfelici@pillar.it>
+Date: Mon, 22 Mar 2010 18:32:03 +0100
+Subject: Re: Set Frequency Problem
+To: Adrian Pardini <pardo.bsso@gmail.com>
+
+Yes, I set the input during initialization time. The set frequency
+sometimes works correctly and I can see the images. Normally, the
+first set works and I can see the images; than i call the set
+frequency and (sometimes) the signal goes 0. In this moment to
+continue with other tests, I've put the set frequency ioctl in a
+do/while loop that continue to call the set frequency untill the
+signal goes >0
+
+Of course, with other programs the card works
+
+Thank you !
+
+Pillar Engineering
+di Sanfelici Claudio
+Via Monza, 53
+20063 Cernusco sul Naviglio - MI
+P.Iva 05403820961
+C.F. SNFCDP81D28C523E
+Tel. 02.99.76.55.69
+Fax. 02.99.76.55.70
+Cell. +39 333.14.27.805
+E-Mail info@pillar.it
+Sito: www.pillar.it
+
+
+
+Adrian Pardini ha scritto:
+>
+> On 22/03/2010, Sanfelici Claudio <sanfelici@pillar.it> wrote:
+> [...]
 >
 >>
->>> It sounds good to me. Could you tell me how to create on-the-fly live
-> video streaming? What program should i installed?
+>> When I call the VIDIOC_S_FREQUENCY the driver change the frequency, but
+>> the video signal is 0 (according to the VIDIOC_G_TUNER) and the image is
+>> black. I've to call some times the VIDIOC_S_FREQUENCY to get the signal on
+>>
+>>
 >
-> Slightly off-topic, but there are tie-ins to Ogg here.
+> Hi, is the right input selected? Does the card work with other
+> programs, like xawtv?
+>
+> cheers
 >
 >
-> There are at least three approaches to Theora-based live streaming:
->  -ffmpeg2theora (+Icecast2)
->    Works best with DV video, as combining audio with v4l input is not yet
-> implemented.  This tool is a standard-bearer for Theora encoding.
->
->  -VLC (+Icecast2)
->    Documented here:
->     http://en.flossmanuals.net/TheoraCookbook/VLCStreaming
->    I haven't much experience here -- perhaps others can chime in?
->
->  -Flumotion
->    There are two versions: DIY-FLOSS and 'appliance-mode' by Flumotion
-> Services, SA.  The company develops and thus is tightly integrated with
-> GStreamer, although the DIY-FLOSS version is hard to setup and not
-> well-documented.  It is also known to crash on window launch.
-> 'Appliance-mode' works well but is not suitable for casual usage.
->   
-Gstreamer is another great & viable option for Ogg streaming.  The
-shout2send element can be used to send an ogg stream to an Icecast
-server.  It's not very well documented though, unfortunately, but works
-great in my experience.  It'll handle everything from capturing v4l2
-through to streaming, including multiplexing in audio.  Works great with
-DV as well.
+
 
 -- 
-      Basil Mohamed Gohar
-abu_hurayrah@hidayahonline.org
-http://www.basilgohar.com/blog
-basilgohar on irc.freenode.net
-GPG Key Fingerprint:  5AF4B362
+Adrian.
+http://elesquinazotango.com.ar
+http://www.noalcodigodescioli.blogspot.com/
 
 --
 video4linux-list mailing list
