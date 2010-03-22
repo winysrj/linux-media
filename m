@@ -1,37 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197]:51135 "EHLO
-	mta2.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933286Ab0CKQtu (ORCPT
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:39664 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755283Ab0CVQym (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Mar 2010 11:49:50 -0500
-Received: from MacBook-Pro.local
- (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta2.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KZ4000VAMQXBHK0@mta2.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Thu, 11 Mar 2010 11:49:46 -0500 (EST)
-Date: Thu, 11 Mar 2010 11:49:45 -0500
-From: Steven Toth <stoth@kernellabs.com>
-Subject: Re: DNTV Dual Hybrid (7164) PCIe
-In-reply-to: <4B991EAA.5070507@gmail.com>
-To: Jed <jedi.theone@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-id: <4B991F29.9090606@kernellabs.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <4B9919AA.9030505@gmail.com> <4B991D48.7000003@kernellabs.com>
- <4B991EAA.5070507@gmail.com>
+	Mon, 22 Mar 2010 12:54:42 -0400
+Date: Mon, 22 Mar 2010 19:54:30 +0300
+From: Dan Carpenter <error27@gmail.com>
+To: Takashi Iwai <tiwai@suse.de>
+Cc: Joe Perches <joe@perches.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Srinivasa Deevi <srinivasa.deevi@conexant.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: Re: [patch v2] cx231xx: card->driver "Conexant cx231xx Audio" too
+	long
+Message-ID: <20100322165430.GU21571@bicker>
+References: <20100319114957.GQ5331@bicker> <s5hr5ncxvm9.wl%tiwai@suse.de> <20100322153909.GC23411@bicker> <1269272627.22616.35.camel@Joe-Laptop.home> <s5h39zsxryw.wl%tiwai@suse.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <s5h39zsxryw.wl%tiwai@suse.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 3/11/10 11:47 AM, Jed wrote:
-> Happy to do this, so long as I can get it back eventually?
+On Mon, Mar 22, 2010 at 05:04:55PM +0100, Takashi Iwai wrote:
+> At Mon, 22 Mar 2010 08:43:47 -0700,
+> Joe Perches wrote:
+> > 
+> > On Mon, 2010-03-22 at 18:39 +0300, Dan Carpenter wrote:
+> > > card->driver is 15 characters and a NULL, the original code could 
+> > > cause a buffer overflow.
+> > 
+> > > In version 2, I used a better name that Takashi Iwai suggested.
+> > 
+> > Perhaps it's better to use strncpy as well.
+> 
+> strlcpy() would be safer :)
+> 
+> But, in such a case, we want rather that the error is notified at
+> build time.
+> 
+> Maybe a macro like below would be helpful to catch such bugs?
+> 
+> #define COPY_STRING(buf, src)						\
+> 	do {								\
+> 		if (__builtin_constant_p(src))				\
+> 			BUILD_BUG_ON(strlen(src) >= sizeof(buf));	\
+> 		strcpy(buf, src);					\
+> 	} while (0)
+> 
+> and used like:
+> 
+> struct foo {
+> 	char foo[5];
+> } x;
+> 
+> COPY_STRING(x.foo, "OK"); // OK
+> COPY_STRING(x.foo, "1234567890"); // NG
+> 
 
-Assuming you want me to continue supporting that product then I generally keep 
-hold of the hardware indefinitely, else 2-3 driver patches from now your card 
-will no longer be regression tested and could stop working.
+I can do the same thing with Smatch.  The smatch check can also find 
+bugs like this:
 
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+	buf = kmalloc(10, GFP_KERNEL);
+	strcpy(buf, "1234567890"); 
 
+I used smatch to find this bug and 5 others on my allmodconfig w/ staging.
+I also found 19 other places that use strcpy() to copy from a large buffer
+into a smaller buffer.
+
+Your idea is nice, but I think anyone who deliberately uses the new
+macro is not going to have the bug in the first place.  ;)
+
+regards,
+dan carpenter
+
+> 
+> Takashi
