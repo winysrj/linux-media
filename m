@@ -1,26 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx04.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.8])
-	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o24JgglJ008509
-	for <video4linux-list@redhat.com>; Thu, 4 Mar 2010 14:42:42 -0500
-Received: from mail-fx0-f218.google.com (mail-fx0-f218.google.com
-	[209.85.220.218])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o24JgTPJ021224
-	for <video4linux-list@redhat.com>; Thu, 4 Mar 2010 14:42:30 -0500
-Received: by fxm10 with SMTP id 10so990111fxm.30
-	for <video4linux-list@redhat.com>; Thu, 04 Mar 2010 11:42:29 -0800 (PST)
+Received: from mx1.redhat.com (ext-mx02.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.6])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o2MIa60o006413
+	for <video4linux-list@redhat.com>; Mon, 22 Mar 2010 14:36:06 -0400
+Received: from mail-gy0-f174.google.com (mail-gy0-f174.google.com
+	[209.85.160.174])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2MIZuAA012774
+	for <video4linux-list@redhat.com>; Mon, 22 Mar 2010 14:35:56 -0400
+Received: by gyg8 with SMTP id 8so3342741gyg.33
+	for <video4linux-list@redhat.com>; Mon, 22 Mar 2010 11:35:55 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1267702141.5175.15.camel@chimpin>
-References: <1267621938.3066.46.camel@chimpin>
-	<829197381003030656q6b5cf73eybcf30b713ba9be37@mail.gmail.com>
-	<1267702141.5175.15.camel@chimpin>
-Date: Thu, 4 Mar 2010 14:42:28 -0500
-Message-ID: <829197381003041142n2af48730q8d73a0c985be22ba@mail.gmail.com>
-Subject: Re: em28xx v4l-info returns gibberish on igepv2
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: John Banks <john.banks@noonanmedia.com>
-Cc: video4linux-list@redhat.com
+In-Reply-To: <4BA7A993.2080008@pillar.it>
+References: <4BA75D27.10807@pillar.it>
+	<9c4b1d601003220735i5af4be8bo8dc64138bb359f9b@mail.gmail.com>
+	<4BA7A993.2080008@pillar.it>
+Date: Mon, 22 Mar 2010 15:35:55 -0300
+Message-ID: <9c4b1d601003221135x461bae9w756b7c49c542b93d@mail.gmail.com>
+Subject: Re: Set Frequency Problem
+From: Adrian Pardini <pardo.bsso@gmail.com>
+To: Sanfelici Claudio <sanfelici@pillar.it>
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,34 +34,51 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi John,
-
-On Thu, Mar 4, 2010 at 6:29 AM, John Banks <john.banks@noonanmedia.com> wrote:
-> As you can see I get the correct output. I think it has to do with the
-> size of variables created in struct-v4l2.c as they don't match the
-> declaration in videodev2.h
+On 22/03/2010, Sanfelici Claudio <sanfelici@pillar.it> wrote:
+> Yes, I set the input during initialization time. The set frequency sometimes
+> works correctly and I can see the images. Normally, the first set works and
+> I can see the images; than i call the set frequency and (sometimes) the
+> signal goes 0. In this moment to continue with other tests, I've put the set
+> frequency ioctl in a do/while loop that continue to call the set frequency
+> untill the signal goes >0
 >
-> Anyway this doesn't help to explain why I get the 0000's seen in the
-> hexdump of the file. I had been hoping that it was incorrectly reading
-> the variables it needed in order for it to create the output correctly.
+> Of course, with other programs the card works
 >
-> I was originally using the gstreamer v4l2src module that was in the
-> repositories but I tried compiling the gstreamer provided by TI (it
-> contains extra plugins for use on the dsp) but the same problem
-> occurred.
->
-> If I want to further track down this problem, where should I look?
+> Thank you !
 
-At this point, your best bet would probably to be to build v4l-info
-program from source and add some debugging (for example, dumping out
-the sizes of some of the structs).  If you can reproduce it, then
-nailing down the issue is just a matter of iterative debugging.
 
-Devin
+Well, thats a good sign. Could you share with us the relevant C code
+and more info about the card?
+
+
+
+
+
+> Adrian Pardini ha scritto:
+>>
+>> On 22/03/2010, Sanfelici Claudio <sanfelici@pillar.it> wrote:
+>> [...]
+>>
+>>>
+>>> When I call the VIDIOC_S_FREQUENCY the driver change the frequency, but
+>>> the video signal is 0 (according to the VIDIOC_G_TUNER) and the image is
+>>> black. I've to call some times the VIDIOC_S_FREQUENCY to get the signal
+>>> on
+>>>
+>>>
+>>
+>> Hi, is the right input selected? Does the card work with other
+>> programs, like xawtv?
+>>
+>> cheers
+>>
+>>
+
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Adrian.
+http://elesquinazotango.com.ar
+http://www.noalcodigodescioli.blogspot.com/
 
 --
 video4linux-list mailing list
