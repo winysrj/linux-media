@@ -1,116 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:39932 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752049Ab0CRMb2 convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4833 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754503Ab0CVK4J (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Mar 2010 08:31:28 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH 1/2] v4l: Add V4L2_CID_IRIS_ABSOLUTE and V4L2_CID_IRIS_RELATIVE controls
-Date: Thu, 18 Mar 2010 13:33:41 +0100
-Cc: linux-media@vger.kernel.org
-References: <1268913303-30565-1-git-send-email-laurent.pinchart@ideasonboard.com> <1268913303-30565-2-git-send-email-laurent.pinchart@ideasonboard.com> <4BA21A6D.30500@redhat.com>
-In-Reply-To: <4BA21A6D.30500@redhat.com>
+	Mon, 22 Mar 2010 06:56:09 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: RFC: Phase 1: Proposal to convert V4L1 drivers
+Date: Mon, 22 Mar 2010 11:55:45 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	David Ellingsworth <david@identd.dyndns.org>
+References: <201003200958.49649.hverkuil@xs4all.nl> <201003220117.34790.hverkuil@xs4all.nl> <4BA73865.3070107@redhat.com>
+In-Reply-To: <4BA73865.3070107@redhat.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201003181333.42266.laurent.pinchart@ideasonboard.com>
+Content-Transfer-Encoding: 7bit
+Message-Id: <201003221155.45733.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-On Thursday 18 March 2010 13:19:57 Mauro Carvalho Chehab wrote:
-> Laurent Pinchart wrote:
-> > Those control, as their names imply, control the camera aperture
-> > settings.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  Documentation/DocBook/v4l/compat.xml      |   11 +++++++++++
-> >  Documentation/DocBook/v4l/controls.xml    |   19 +++++++++++++++++++
-> >  Documentation/DocBook/v4l/videodev2.h.xml |    3 +++
-> >  include/linux/videodev2.h                 |    3 +++
-> >  4 files changed, 36 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/Documentation/DocBook/v4l/compat.xml
-> > b/Documentation/DocBook/v4l/compat.xml index b9dbdf9..854235b 100644
-> > --- a/Documentation/DocBook/v4l/compat.xml
-> > +++ b/Documentation/DocBook/v4l/compat.xml
-> > @@ -2332,6 +2332,17 @@ more information.</para>
-> > 
-> >  	</listitem>
-> >  	
-> >        </orderedlist>
-> >      
-> >      </section>
-> > 
-> > +    <section>
-> > +      <title>V4L2 in Linux 2.6.34</title>
-> > +      <orderedlist>
-> > +	<listitem>
-> > +	  <para>Added
-> > +<constant>V4L2_CID_IRIS_ABSOLUTE</constant> and
-> > +<constant>V4L2_CID_IRIS_RELATIVE</constant> controls to the
-> > +	    <link linkend="camera-controls">Camera controls class</link>.
-> > +	  </para>
-> > +	</listitem>
-> > +      </orderedlist>
-> > 
-> >     </section>
-> >     
-> >     <section id="other">
-> > 
-> > diff --git a/Documentation/DocBook/v4l/controls.xml
-> > b/Documentation/DocBook/v4l/controls.xml index f464506..c412e89 100644
-> > --- a/Documentation/DocBook/v4l/controls.xml
-> > +++ b/Documentation/DocBook/v4l/controls.xml
-> > @@ -1825,6 +1825,25 @@ wide-angle direction. The zoom speed unit is
-> > driver-specific.</entry>
-> > 
-> >  	  <row><entry></entry></row>
-> >  	  
-> >  	  <row>
-> > 
-> > +	    <entry
-> > spanname="id"><constant>V4L2_CID_IRIS_ABSOLUTE</constant>&nbsp;</entry>
-> > +	    <entry>integer</entry>
-> > +	  </row><row><entry spanname="descr">This control sets the
-> > +camera aperture's to the specified value. The unit is undefined.
-> > +Positive values open the iris, negative close it.</entry>
-> > +	  </row>
-> > +	  <row><entry></entry></row>
-> > +
-> > +	  <row>
-> > +	    <entry
-> > spanname="id"><constant>V4L2_CID_IRIS_RELATIVE</constant>&nbsp;</entry>
-> > +	    <entry>integer</entry>
-> > +	  </row><row><entry spanname="descr">This control modifies the
-> > +camera aperture's by the specified amount. The unit is undefined.
-> > +Positive values open the iris one step further, negative values close
-> > +it one step further. This is a write-only control.</entry>
-> > +	  </row>
-> > +	  <row><entry></entry></row>
-> > +
-> > +	  <row>
-> > 
-> >  	    <entry
-> >  	    spanname="id"><constant>V4L2_CID_PRIVACY</constant>&nbsp;</entry>
-> >  	    <entry>boolean</entry>
-> >  	  
-> >  	  </row><row><entry spanname="descr">Prevent video from being acquired
+On Monday 22 March 2010 10:29:09 Hans de Goede wrote:
+> Hi,
 > 
-> Seems ok to me, but it would be good to add some sort of scale for those
-> controls.
+> On 03/22/2010 01:17 AM, Hans Verkuil wrote:
+> > On Sunday 21 March 2010 23:45:04 Hans Verkuil wrote:
+> >> On Saturday 20 March 2010 09:58:49 Hans Verkuil wrote:
+> >>> These drivers have no hardware to test with: bw-qcam, c-qcam, arv, w9966.
+> >>> However, all four should be easy to convert to v4l2, even without hardware.
+> >>> Volunteers?
+> >>
+> >> I've converted these four drivers to V4L2.
+> >
+> > I've also removed the V4L1 support from cpia2 and pwc and removed some last
+> > V4L1 code remnants from meye and zoran. It's all in the same tree.
+> >
+> > Hans, could you test the pwc driver for me?
+> >
+> 
+> Done,
+> 
+> And the news is not good I'm afraid, it does not work. I've one interesting
+> observation though. It does work if I first run it once with the "old"
+> version of the driver and then load your version (also replacing videodev.ko,
+> etc with the ones from your tree). But if I plug it in with your driver in
+> place it does not stream (nothing interesting in dmesg). So it seems like
+> an initialization problem.
 
-I'd love to, but most iris controllers will just let you specify a value in an 
-arbitrary scale (0 for closed, 255 for fully opened for instance). In that 
-case do we want to force driver developers to measure the aperture in µm units 
-with a micrometer caliper ? :-)
+When you run it with the old version, are you using the V4L1 API or the V4L2
+API? And what program do you use for testing?
 
--- 
+As far as I can see there should be no difference in the code between the old
+and the new version if you use the V4L2 API in both cases. It's a fairly
+straightforward patch.
+
+> As said the pwc driver needs some love in general, I've seen the same problem
+> (not streaming) with the "old" version when used with machines with UHCI usb
+> controllers (rather then OHCI), such as atom based laptops.
+> 
+> So maybe this is some timing issues, and your changes have speed up some path?
+> 
+> Note that I've 3 identical pwc cams, I would be more then happy to give you
+> one, let me know how to best get it to you.
+
+I will have to double check tomorrow whether I have a pwc camera or not. I'll
+get back to you on this.
+
 Regards,
 
-Laurent Pinchart
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
