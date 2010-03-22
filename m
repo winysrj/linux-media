@@ -1,161 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.openhardware.ru ([84.19.182.172]:58857 "EHLO
-	ns.openhardware.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753504Ab0CBIYS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Mar 2010 03:24:18 -0500
-Date: Tue, 2 Mar 2010 16:36:34 +0900
-From: Dmitri Belimov <dimon@openhardware.ru>
-Cc: hermann pitton <hermann-pitton@arcor.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Andy Walls <awalls@radix.net>,
-	Jean Delvare <khali@linux-fr.org>, linux-media@vger.kernel.org,
-	"Timothy D. Lenz" <tlenz@vorgon.com>
-Subject: Re: [IR RC, REGRESSION] Didn't work IR RC
-Message-ID: <20100302163634.31c934e4@glory.loctelecom.ru>
-In-Reply-To: <20100302134320.748ac292@glory.loctelecom.ru>
-References: <20100301153645.5d529766@glory.loctelecom.ru>
-	<1267442919.3110.20.camel@palomino.walls.org>
-	<4B8BC332.6060303@infradead.org>
-	<1267503595.3269.21.camel@pc07.localdom.local>
-	<20100302134320.748ac292@glory.loctelecom.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail.gmx.net ([213.165.64.20]:46449 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754490Ab0CVLSE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Mar 2010 07:18:04 -0400
+From: "Bjoern Wuest" <bjoern.wuest@gmx.net>
+To: <linux-media@vger.kernel.org>
+Subject: WG: Tuning very unreliable (Technisat Skystar HD2)
+Date: Mon, 22 Mar 2010 12:17:58 +0100
+Message-ID: <3E43F9EB62D448E19BAC00632092C0AB@gskv.org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+Hello alltogether,
 
-When I add 
 
-diff -r 37ff78330942 linux/drivers/media/video/ir-kbd-i2c.c
---- a/linux/drivers/media/video/ir-kbd-i2c.c	Sun Feb 28 16:59:57 2010 -0300
-+++ b/linux/drivers/media/video/ir-kbd-i2c.c	Tue Mar 02 10:31:31 2010 +0900
-@@ -465,6 +519,11 @@
- 		ir_type     = IR_TYPE_OTHER;
- 		ir_codes    = &ir_codes_avermedia_cardbus_table;
- 		break;
-+	case 0x2d:
-+		/* Handled by saa7134-input */
-+		name        = "SAA713x remote";
-+		ir_type     = IR_TYPE_OTHER;
-+		break;
- 	}
- 
- #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 30)
+I am in the process of switching my home entertainment system from Windows
+to Linux. The distro of choice is OpenSuse 11.2 . Ultimately, I want to run
+MythTV with XFCE on it.
 
-The IR subsystem register event device. But for get key code use ir_pool_key function.
+My TV cards are two pieces of Technisat Skystar HD2. In Windows, my hardware
+works just fine. Yet, in Linux I have problems that I cannot explain to
+myself.
 
-For our IR RC need use our special function. How I can do it?
+I have downloaded the latest s2-liplianin drivers, compiled and installed
+them (make && make install). Then I downloaded and installed scan-s2 from
+the repository (make). I did this all yesterday night, with cloudy skies and
+some rain. While scanning with scan-s2 –o zap dvb-s/Astra-19.2E I could fine
+a number of channels, yet I did not save the channel list. As it was quite
+late, I decided to shutdown the PC and continue this morning. However, now I
+just get the following response from scan-s2 – under blue sky and clear
+view:
 
-With my best regards, Dmitry.
+media-pc-wz:~/tv/scan-s2 # ./scan-s2 -o zap dvb-s/Astra-19.2E
+API major 5, minor 1
+scanning dvb-s/Astra-19.2E
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+initial transponder DVB-S  12551500 V 22000000 5/6 AUTO AUTO
+initial transponder DVB-S2 12551500 V 22000000 5/6 AUTO AUTO
+----------------------------------> Using DVB-S
+>>> tune to: 12551:v:0:22000
+DVB-S IF freq is 1951500
+WARNING: >>> tuning failed!!!
+>>> tune to: 12551:v:0:22000 (tuning failed)
+DVB-S IF freq is 1951500
+WARNING: >>> tuning failed!!!
+----------------------------------> Using DVB-S2
+>>> tune to: 12551:v:0:22000
+DVB-S IF freq is 1951500
+WARNING: >>> tuning failed!!!
+>>> tune to: 12551:v:0:22000 (tuning failed)
+DVB-S IF freq is 1951500
+WARNING: >>> tuning failed!!!
+ERROR: initial tuning failed
+dumping lists (0 services)
+Done.
 
-> Hi
-> 
-> Not work I2C IR RC. GPIO RC I think works well.
-> 
-> This patch remove addr of our RC from switch-case
-> 
-> http://linuxtv.org/hg/v4l-dvb/rev/f700bce82813
-> 
-> When I set debug for ir-kbd-i2c I get 
-> 
-> ir-kbd-i2c: :Unsupported device at address 0x2d
-> 
-> People with broken IR RC what addr has your I2C IR RC?
-> 
-> With my best regards, Dmitry.
-> 
-> > Hi,
-> > 
-> > Am Montag, den 01.03.2010, 10:37 -0300 schrieb Mauro Carvalho
-> > Chehab: 
-> > > Andy Walls wrote:
-> > > > On Mon, 2010-03-01 at 15:36 +0900, Dmitri Belimov wrote:
-> > > >> Hi All
-> > > >>
-> > > >> After rework of the IR subsystem, IR RC no more work in our TV
-> > > >> cards. As I see 
-> > > >> call saa7134_probe_i2c_ir,
-> > > >>   configure i2c
-> > > >>   call i2c_new_device
-> > > >>
-> > > >> New i2c device not registred.
-> > > >>
-> > > >> The module kbd-i2c-ir loaded after i2c_new_device.
-> > > > 
-> > > > Jean,
-> > > > 
-> > > > There was also a problem reported with the cx23885 driver's I2C
-> > > > connected IR by Timothy Lenz:
-> > > > 
-> > > > http://www.spinics.net/lists/linux-media/msg15122.html
-> > > > 
-> > > > The failure mode sounds similar to Dmitri's, but maybe they are
-> > > > unrelated.
-> > > > 
-> > > > I worked a bit with Timothy on IRC and the remote device fails
-> > > > to be detected whether ir-kbd-i2c is loaded before the cx23885
-> > > > driver or after the cx23885 driver.  I haven't found time to do
-> > > > any folow-up and I don't have any of the hardware in question.
-> > > > 
-> > > > Do you have any thoughts or a suggested troubleshooting
-> > > > approach?
-> > > 
-> > > Andy/Dmitri,
-> > > 
-> > > With the current i2c approach, the bridge driver is responsible
-> > > for binding an i2c device into the i2c adapter. In other words,
-> > > the bridge driver should have some logic to know what devices use
-> > > ir-kbd-i2c, loading it at the right i2c address(es). Manually
-> > > loading IR shouldn't make any difference.
-> > 
-> > yes, we have info.addr at saa7134-input and Dmitri did add the
-> > Beholder IR address there recently.
-> > 
-> > > >From Andy's comment, I suspect that such logic is missing at
-> > > >cx23885 for the board
-> > > you're referring. Not sure if this is the same case of the boards
-> > > Dmitri is concerned about.
-> > 
-> > On a first look, Andy seems not to provide the IR addr from the
-> > bridge and without probing it can't work anymore.
-> > 
-> > > It should be noticed that the i2c redesign happened on 2.6.31 or
-> > > 2.6.32, so, if this is the case, a patch should be sent also to
-> > > -stable.
-> > > 
-> > > In the case of saa7134, Jean worked on a fix for some boards:
-> > > 	http://patchwork.kernel.org/patch/75883/
-> > > 
-> > > He is currently waiting for someone with the affected boards to
-> > > test it and give some return.
-> > 
-> > That fix should be unrelated and both variants of the patch are not
-> > anywhere yet.
-> > 
-> > We can fake this single board in question on a P7131 Dual, but my
-> > receiver is broken, else all looked O.K., and it seems not worth yet
-> > to ask Mauro to lose time on faking it, assuming his IR receiver
-> > does still work.
-> > 
-> > Here we can simply wait for Daro coming back from skiing, or can
-> > even apply already Jean's solution per this card without any risk.
-> > 
-> > Else, do we not check for kernels < 2.6.30 on hg v4l-dvb not using
-> > auto probing anymore? I tested only on two machines with some 2.6.30
-> > and one with 2.6.29 and recent hg v4l-dvb. There at least all was
-> > fine, also with the patch moving IR init1 to saa7134_input_init2 and
-> > also for ir-kbd-ic2 for a early Pinnacle 310i under all conditions.
-> > 
-> > Dmitri, on what kernel and/or SCM version of v4l-dvb you discover
-> > that flaw? Maybe I can reproduce it then.
-> > 
-> > Andy has reports, that ir-kbd-i2c is still fine on 2.6.31, but
-> > breaks on 2.6.32. Do we already run out of sync?
-> > 
-> > Cheers,
-> > Hermann
-> > 
-> > 
+
+My TV cards are detected (lspci-output):
+
+03:05.0 Multimedia controller: Twinhan Technology Co. Ltd Mantis DTV PCI
+Bridge Controller [Ver 1.0] (rev 01)
+        Subsystem: Device 1ae4:0001
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+Stepping- SERR+ FastB2B- DisINTx-
+        Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort-
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+        Latency: 64 (2000ns min, 63750ns max)
+        Interrupt: pin A routed to IRQ 20
+        Region 0: Memory at fdfff000 (32-bit, prefetchable) [size=4K]
+        Kernel driver in use: Mantis
+
+03:06.0 Multimedia controller: Twinhan Technology Co. Ltd Mantis DTV PCI
+Bridge Controller [Ver 1.0] (rev 01)
+        Subsystem: Device 1ae4:0001
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+Stepping- SERR+ FastB2B- DisINTx-
+        Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort-
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+        Latency: 64 (2000ns min, 63750ns max)
+        Interrupt: pin A routed to IRQ 21
+        Region 0: Memory at fdffe000 (32-bit, prefetchable) [size=4K]
+        Kernel driver in use: Mantis
+
+The only change on my system since yesterday evening, where it worked, was a
+“shutdown –h now”, pressing the power switch this morning and logging in
+with my username and password. Nothing else happened.
+
+
+Mit besten Grüßen / Kind regards,
+Bjoern Wuest
+
+
