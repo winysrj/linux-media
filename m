@@ -1,37 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f223.google.com ([209.85.220.223]:48916 "EHLO
-	mail-fx0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756168Ab0CXN1F (ORCPT
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:40278 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755417Ab0CVRyS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Mar 2010 09:27:05 -0400
-Received: by fxm23 with SMTP id 23so23434fxm.1
-        for <linux-media@vger.kernel.org>; Wed, 24 Mar 2010 06:27:03 -0700 (PDT)
+	Mon, 22 Mar 2010 13:54:18 -0400
+Received: by bwz1 with SMTP id 1so2167757bwz.21
+        for <linux-media@vger.kernel.org>; Mon, 22 Mar 2010 10:54:17 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <499b283a1003231547k1e7f8060x53a4ea5ec43236d4@mail.gmail.com>
-References: <499b283a1003231342h6fcbe74di2aa67eb91b18cf0c@mail.gmail.com>
-	 <4BA91A44.4090709@oracle.com>
-	 <499b283a1003231547k1e7f8060x53a4ea5ec43236d4@mail.gmail.com>
-Date: Wed, 24 Mar 2010 10:27:03 -0300
-Message-ID: <499b283a1003240627p4e97bd73v594f031e3f7b5726@mail.gmail.com>
-Subject: Re: [PATCH] Fix Warning ISO C90 forbids mixed declarations and code -
-	cx88-dvb
-From: Ricardo Maraschini <xrmarsx@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: doug <dougsland@gmail.com>, mchehab@redhat.com
+In-Reply-To: <20100322184553.0433ae24@hermes>
+References: <20100319180129.6fb65141@hermes>
+	 <829197381003191007r1055f3dbo58d7712cff7cf19b@mail.gmail.com>
+	 <20100319181333.3352a029@hermes>
+	 <829197381003191017k5adab45ejee5179bc66880cac@mail.gmail.com>
+	 <20100322184553.0433ae24@hermes>
+Date: Mon, 22 Mar 2010 13:54:16 -0400
+Message-ID: <829197381003221054h6624f4d6x648f844c54e51b37@mail.gmail.com>
+Subject: Re: em28xx - Your board has no unique USB ID and thus need a hint to
+	be detected
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Steffen Pankratz <kratz00@gmx.de>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ricardo Maraschini <ricardo.maraschini@gmail.com>
+On Mon, Mar 22, 2010 at 1:45 PM, Steffen Pankratz <kratz00@gmx.de> wrote:
+> Hi Devin,
+>
+> I don't want to push you but are there any news?
 
---- a/linux/drivers/media/video/cx88/cx88-dvb.c Tue Mar 23 17:52:23 2010 -0300
-+++ b/linux/drivers/media/video/cx88/cx88-dvb.c Wed Mar 24 09:57:06 2010 -0300
-@@ -1401,8 +1401,6 @@
-        case CX88_BOARD_SAMSUNG_SMT_7020:
-                dev->ts_gen_cntrl = 0x08;
+I've been too buried in other projects to work on it.  In the
+meantime, you can add "card=53" as a modprobe option to em28xx, and it
+should start working for you.
 
--               struct cx88_core *core = dev->core;
--
-                cx_set(MO_GP0_IO, 0x0101);
+Devin
 
-                cx_clear(MO_GP0_IO, 0x01);
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
