@@ -1,95 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3364 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751644Ab0CCTw2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Mar 2010 14:52:28 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id o23JqNwQ085304
-	for <linux-media@vger.kernel.org>; Wed, 3 Mar 2010 20:52:23 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 3 Mar 2010 20:52:23 +0100 (CET)
-Message-Id: <201003031952.o23JqNwQ085304@smtp-vbr11.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:46660 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755575Ab0CVVvZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Mar 2010 17:51:25 -0400
+Date: Mon, 22 Mar 2010 21:51:18 +0000
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Wolfram Sang <w.sang@pengutronix.de>,
+	kernel-janitors@vger.kernel.org, linux-i2c@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Message-ID: <20100322215118.GC17533@sirena.org.uk>
+References: <1269094385-16114-1-git-send-email-w.sang@pengutronix.de>
+ <20100321144655.4747fd2a@hyperion.delvare>
+ <20100321141417.GA19626@opensource.wolfsonmicro.com>
+ <201003211709.56319.hverkuil@xs4all.nl>
+ <20100322213358.31e50b3c@hyperion.delvare>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20100322213358.31e50b3c@hyperion.delvare>
+Subject: Re: [PATCH 12/24] media/video: fix dangling pointers
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Mon, Mar 22, 2010 at 09:33:58PM +0100, Jean Delvare wrote:
+> On Sun, 21 Mar 2010 17:09:56 +0100, Hans Verkuil wrote:
+> > On Sunday 21 March 2010 15:14:17 Mark Brown wrote:
 
-Results of the daily build of v4l-dvb:
+> > > I agree with this.  There are also some use cases where the device data
+> > > is actually static (eg, a generic description of the device or a
+> > > reference to some other shared resource rather than per device allocated
+> > > data).
 
-date:        Wed Mar  3 19:00:23 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14355:58ae12f18e80
-gcc version: i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:     2.6.32.5
+> From a technical perspective, there is little rationale to have the
+> client data pointed to static data. If you could reach it from probe(),
+> it has to be a global, and if it is a global, you can reach it again
+> directly from the rest of your code.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.32.6-armv5-dm365: ERRORS
-linux-2.6.33-armv5-dm365: ERRORS
-linux-2.6.32.6-armv5-ixp: OK
-linux-2.6.33-armv5-ixp: OK
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.17-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.17-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-spec: OK
-sparse (linux-2.6.33): ERRORS
-linux-2.6.16.62-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.7-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.62-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.7-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+The use case I can think of there is bus type specific stuff for devices
+that support multiple buses.
