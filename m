@@ -1,72 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bamako.nerim.net ([62.4.17.28]:54132 "EHLO bamako.nerim.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754194Ab0CIK5v (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Mar 2010 05:57:51 -0500
-Date: Tue, 9 Mar 2010 11:57:48 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Dmitri Belimov <dimon@openhardware.ru>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org,
-	"Timothy D. Lenz" <tlenz@vorgon.com>
-Subject: Re: [IR RC, REGRESSION] Didn't work IR RC
-Message-ID: <20100309115748.5ec7fd7a@hyperion.delvare>
-In-Reply-To: <4B8CD10D.2010009@infradead.org>
-References: <20100301153645.5d529766@glory.loctelecom.ru>
-	<1267442919.3110.20.camel@palomino.walls.org>
-	<4B8BC332.6060303@infradead.org>
-	<1267503595.3269.21.camel@pc07.localdom.local>
-	<20100302134320.748ac292@glory.loctelecom.ru>
-	<20100302163634.31c934e4@glory.loctelecom.ru>
-	<4B8CD10D.2010009@infradead.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail142.messagelabs.com ([216.82.249.99]:43964 "EHLO
+	mail142.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752526Ab0CWG4R convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Mar 2010 02:56:17 -0400
+From: Viral Mehta <Viral.Mehta@lntinfotech.com>
+To: "Aguirre, Sergio" <saaguirre@ti.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"source@mvista.com" <source@mvista.com>
+Date: Tue, 23 Mar 2010 12:26:02 +0530
+Subject: RE: omap2 camera
+Message-ID: <70376CA23424B34D86F1C7DE6B997343017F5D5BDB@VSHINMSMBX01.vshodc.lntinfotech.com>
+References: <70376CA23424B34D86F1C7DE6B997343017F5D5BD5@VSHINMSMBX01.vshodc.lntinfotech.com>
+ <A24693684029E5489D1D202277BE89445428BE8E@dlee02.ent.ti.com>,<4BA7A72B.9000300@maxwell.research.nokia.com>
+ <70376CA23424B34D86F1C7DE6B997343017F5D5BD8@VSHINMSMBX01.vshodc.lntinfotech.com>,<4BA85699.1070308@maxwell.research.nokia.com>,<A24693684029E5489D1D202277BE8944537B8E31@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE8944537B8E31@dlee02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro, Dmitri,
 
-On Tue, 02 Mar 2010 05:49:17 -0300, Mauro Carvalho Chehab wrote:
-> Dmitri Belimov wrote:
-> > When I add 
-> > 
-> > diff -r 37ff78330942 linux/drivers/media/video/ir-kbd-i2c.c
-> > --- a/linux/drivers/media/video/ir-kbd-i2c.c	Sun Feb 28 16:59:57 2010 -0300
-> > +++ b/linux/drivers/media/video/ir-kbd-i2c.c	Tue Mar 02 10:31:31 2010 +0900
-> > @@ -465,6 +519,11 @@
-> >  		ir_type     = IR_TYPE_OTHER;
-> >  		ir_codes    = &ir_codes_avermedia_cardbus_table;
-> >  		break;
-> > +	case 0x2d:
-> > +		/* Handled by saa7134-input */
-> > +		name        = "SAA713x remote";
-> > +		ir_type     = IR_TYPE_OTHER;
-> > +		break;
-> >  	}
-> >  
-> >  #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 30)
-> > 
-> > The IR subsystem register event device. But for get key code use ir_pool_key function.
-> > 
-> > For our IR RC need use our special function. How I can do it?
-> 
-> Just add your get_key callback to "ir->get_key". If you want to do this from
-> saa7134-input, please take a look at the code at em28xx_register_i2c_ir(). 
-> It basically fills the platform_data.
-> 
-> While you're there, I suggest you to change your code to work with the
-> full scancode (e. g. address + command), instead of just getting the command.
-> Currently, em28xx-input has one I2C IR already changed to this mode (seek
-> for full_code for the differences).
-> 
-> You'll basically need to change the IR tables to contain address+command, and
-> inform the used protocol (RC5/NEC) on it. The getkey function will need to
-> return the full code as well.
+________________________________________
+From: Aguirre, Sergio [saaguirre@ti.com]
+Sent: Tuesday, March 23, 2010 11:54 AM
+To: Sakari Ailus; Viral Mehta
+Cc: linux-media@vger.kernel.org
+Subject: RE: omap2 camera
 
-Sorry for the late reply. Is the problem solved by now, or is my help
-still needed?
+> ________________________________________
+> From: Sakari Ailus [sakari.ailus@maxwell.research.nokia.com]
+> Sent: Monday, March 22, 2010 11:50 PM
+> To: Viral Mehta
+> Cc: Aguirre, Sergio; linux-media@vger.kernel.org
+> Subject: Re: omap2 camera
+>
+> Viral Mehta wrote:
+> > Hi Sakari,
+>
+> Hi Viral,
+>
+> > ________________________________________
+> > From: Sakari Ailus [sakari.ailus@maxwell.research.nokia.com]
+> > Sent: Monday, March 22, 2010 10:51 PM
+> > To: Aguirre, Sergio
+> > Cc: Viral Mehta; linux-media@vger.kernel.org
+> > Subject: Re: omap2 camera
+> >
+> > Aguirre, Sergio wrote:
+> >> Hi Viral,
+> >>
+> >>> -----Original Message-----
+> >>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> >>> owner@vger.kernel.org] On Behalf Of Viral Mehta
+> >>> Sent: Monday, March 22, 2010 5:20 AM
+> >>> To: linux-media@vger.kernel.org
+> >>> Subject: omap2 camera
+> >>>
+> >>> Hi list,
+> >>>
+> >>> I am using OMAP2430 board and I wanted to test camera module on that
+> >>> board.
+> >>> I am using latest 2.6.33 kernel. However, it looks like camera module is
+> >>> not supported with latest kernel.
+> >>>
+> >>> Anyone is having any idea? Also, do we require to have ex3691 sensor
+> >>> driver in mainline kernel in order to get omap24xxcam working ?
+> >>>
+> >>> These are the steps I followed,
+> >>> 1. make omap2430_sdp_defconfig
+> >>> 2. Enable omap2 camera option which is under drivers/media/video
+> >>> 3. make uImage
+> >>>
+> >>> And with this uImage, camera is not working. I would appreciate any help.
+> >>
+> >> I'm adding Sakari Ailus to the CC list, which is the owner of the driver.
+> >
+> >> Thanks, Sergio!
+> >
+> > Thanks for your response. Thanks Sergio.
+> >
+> >> I've only aware of the tcm825x sensor driver that works with the OMAP
+> >> 2420 camera controller (omap24xxcam) driver.
+> >
+> > Does this also mean that omap24xxcam.ko will *only* work with OMAP2420?
+> > Or the same driver can be used for OMAP2430 board as well ?  As name suggests, omap24xxcam....
+>
+> I'm not fully aware of the differences in the camera controllers in 2420
+> and 2430 --- never had a 2430. If they are the same then the driver
+> should work as it is. Sergio, do you know whether there are differences
+> between the two?
 
--- 
-Jean Delvare
+> Well, I personally haven't worked with OMAP2 family, but by looking at the differences in both chip descriptions:
+> OMAP 2430 / 2431: http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?templateId=6123&navigationId=12609&contentId=4672
+>OMAP 2420: http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?templateId=6123&navigationId=11990&contentId=4671
+
+> Camera wise, I can see that the 243x chips have interface for 2 cameras, meanwhile the 2420 only has one.
+
+Comment on top of the file suggests that Author for this driver is Sakari only. I would like to change file name, kconfig, Makefile in case if it does not support omap2430. Any way that I can get HW manual for omap2430 and/or 2420 ?
+
+> Generally speaking, the xx3x variants are usually more resourceful than xx2x sub-families.
+
+Regards,
+Sergio
+
+>
+> >> So likely you'd need the driver for the sensor you have on that board.
+> > Okie, I am trying to get that done. I took linux-2.6.14-V5 kernel from linux.omap.com and
+> > that supports camera on OMAP2430 and it has functional driver for ex3691 sensor.
+> > I am trying to know if I can forward port that.
+>
+> That one very likely isn't using even the v4l2-int-device. But as soon
+> as you do, it is very easy to convert it to v4l2_subdev. The interface
+> is different but the ops are almost the same.
+>
+> >> The omap24xxcam and tcm825x drivers should be moved to use v4l2_subdev
+> >> but I'm not quite sure what will be the schedule of that. Then we could
+> >> get rid of the v4l2-int-device interface that those drives still use.
+> >
+> > They are still using v4l2-int-device as of 2.6.33.
+>
+> That's true. AFAIK no work has been done to get rid of this yet.
+>
+> Regards,
+>
+> --
+> Sakari Ailus
+> sakari.ailus@maxwell.research.nokia.com
+>
+
+______________________________________________________________________
+
+This Email may contain confidential or privileged information for the intended recipient (s) If you are not the intended recipient, please do not use or disseminate the information, notify the sender and delete it from your system.
+
+______________________________________________________________________
