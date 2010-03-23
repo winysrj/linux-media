@@ -1,42 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60480 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751128Ab0CSJmz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Mar 2010 05:42:55 -0400
-From: hvaibhav@ti.com
+Received: from mail-fx0-f223.google.com ([209.85.220.223]:60781 "EHLO
+	mail-fx0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753967Ab0CWUmZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Mar 2010 16:42:25 -0400
+Received: by fxm23 with SMTP id 23so2605718fxm.1
+        for <linux-media@vger.kernel.org>; Tue, 23 Mar 2010 13:42:23 -0700 (PDT)
+MIME-Version: 1.0
+Date: Tue, 23 Mar 2010 17:42:23 -0300
+Message-ID: <499b283a1003231342h6fcbe74di2aa67eb91b18cf0c@mail.gmail.com>
+Subject: [PATCH] Fix Warning ISO C90 forbids mixed declarations and code -
+	cx88-dvb
+From: Ricardo Maraschini <xrmarsx@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, m-karicheri2@ti.com,
-	Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [Resubmit: PATCH-V6 0/2] OMAP3: Add V4L2 display driver support
-Date: Fri, 19 Mar 2010 15:12:47 +0530
-Message-Id: <1268991769-7368-1-git-send-email-hvaibhav@ti.com>
-In-Reply-To: <hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
+Cc: doug <dougsland@gmail.com>, mchehab@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+--- a/linux/drivers/media/video/cx88/cx88-dvb.c Tue Mar 23 16:17:11 2010 -0300
++++ b/linux/drivers/media/video/cx88/cx88-dvb.c Tue Mar 23 17:29:29 2010 -0300
+@@ -1401,7 +1401,8 @@
+       case CX88_BOARD_SAMSUNG_SMT_7020:
+               dev->ts_gen_cntrl = 0x08;
 
-Refreshed on top of latest linuxtv/master repository and
-resubmitting the patch series again.
+-               struct cx88_core *core = dev->core;
++               struct cx88_core *core;
++               core = dev->core;
 
-Please note that this patch is dependent on patch which add "ti-media"
-directory (submitted earlier to this patch series).
+               cx_set(MO_GP0_IO, 0x0101);
 
-Vaibhav Hiremath (2):
-  OMAP2/3 V4L2: Add support for OMAP2/3 V4L2 driver on top of DSS2
-  OMAP2/3: Add V4L2 DSS driver support in device.c
 
- arch/arm/mach-omap2/devices.c               |   28 +
- drivers/media/video/ti-media/Kconfig        |   12 +
- drivers/media/video/ti-media/Makefile       |    4 +
- drivers/media/video/ti-media/omap_vout.c    | 2655 +++++++++++++++++++++++++++
- drivers/media/video/ti-media/omap_voutdef.h |  148 ++
- drivers/media/video/ti-media/omap_voutlib.c |  258 +++
- drivers/media/video/ti-media/omap_voutlib.h |   34 +
- 7 files changed, 3139 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/ti-media/omap_vout.c
- create mode 100644 drivers/media/video/ti-media/omap_voutdef.h
- create mode 100644 drivers/media/video/ti-media/omap_voutlib.c
- create mode 100644 drivers/media/video/ti-media/omap_voutlib.h
 
+Signed-off-by: Ricardo Maraschini <ricardo.maraschini@gmail.com>
+
+
+For any comments, please CC me in the message. I am waiting moderator
+approval to subscribe to this mailing list
