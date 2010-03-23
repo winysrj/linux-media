@@ -1,95 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1878 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756230Ab0CDTwl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Mar 2010 14:52:41 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id o24JqTq0090613
-	for <linux-media@vger.kernel.org>; Thu, 4 Mar 2010 20:52:40 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 4 Mar 2010 20:52:29 +0100 (CET)
-Message-Id: <201003041952.o24JqTq0090613@smtp-vbr2.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
+Received: from mail.gmx.net ([213.165.64.20]:60578 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752558Ab0CWOzN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Mar 2010 10:55:13 -0400
+Received: from lyakh (helo=localhost)
+	by axis700.grange with local-esmtp (Exim 4.63)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1Nu5Vq-00023z-SB
+	for linux-media@vger.kernel.org; Tue, 23 Mar 2010 15:55:22 +0100
+Date: Tue, 23 Mar 2010 15:55:22 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] soc-camera: update comment
+Message-ID: <Pine.LNX.4.64.1003231554120.7689@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+soc-camera no longer requires .set_crop() implementations to update their
+argument. Update the commentary.
 
-Results of the daily build of v4l-dvb:
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/soc_camera.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-date:        Thu Mar  4 19:00:19 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14391:41c5482f2dac
-gcc version: i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:     2.6.32.5
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index c5a6c44..95cb336 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -752,8 +752,7 @@ static int soc_camera_g_crop(struct file *file, void *fh,
+ /*
+  * According to the V4L2 API, drivers shall not update the struct v4l2_crop
+  * argument with the actual geometry, instead, the user shall use G_CROP to
+- * retrieve it. However, we expect camera host and client drivers to update
+- * the argument, which we then use internally, but do not return to the user.
++ * retrieve it.
+  */
+ static int soc_camera_s_crop(struct file *file, void *fh,
+ 			     struct v4l2_crop *a)
+-- 
+1.6.2.4
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.32.6-armv5-dm365: ERRORS
-linux-2.6.33-armv5-dm365: ERRORS
-linux-2.6.32.6-armv5-ixp: OK
-linux-2.6.33-armv5-ixp: OK
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.17-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.17-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-spec: OK
-sparse (linux-2.6.33): ERRORS
-linux-2.6.16.62-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.7-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.62-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.7-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
