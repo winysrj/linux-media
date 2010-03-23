@@ -1,115 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2308 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753163Ab0CZUjB (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47193 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752826Ab0CWGPv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Mar 2010 16:39:01 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id o2QKcxsT026796
-	for <linux-media@vger.kernel.org>; Fri, 26 Mar 2010 21:39:00 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 26 Mar 2010 21:38:59 +0100 (CET)
-Message-Id: <201003262039.o2QKcxsT026796@smtp-vbr15.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
+	Tue, 23 Mar 2010 02:15:51 -0400
+Date: Mon, 22 Mar 2010 23:14:41 -0400
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Julia Lawall <julia@diku.dk>
+Cc: Mark McClelland <mmcclell@bigfoot.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH] drivers/media/video: avoid NULL dereference
+Message-Id: <20100322231441.b7e33bf9.akpm@linux-foundation.org>
+In-Reply-To: <Pine.LNX.4.64.1003212230380.12371@ask.diku.dk>
+References: <Pine.LNX.4.64.1003212230380.12371@ask.diku.dk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Sun, 21 Mar 2010 22:31:06 +0100 (CET) Julia Lawall <julia@diku.dk> wrote:
 
-Results of the daily build of v4l-dvb:
+> From: Julia Lawall <julia@diku.dk>
+> 
+> If ov is NULL, it will not be possible to take the lock in the first place,
+> so move the test up earlier.
+> 
+> ...
+>
+> --- a/drivers/media/video/ov511.c
+> +++ b/drivers/media/video/ov511.c
+> @@ -5913,14 +5913,12 @@ ov51x_disconnect(struct usb_interface *intf)
+>  
+>  	PDEBUG(3, "");
+>  
+> +	if (!ov)
+> +		return;
+> +
+>  	mutex_lock(&ov->lock);
+>  	usb_set_intfdata (intf, NULL);
+>  
+> -	if (!ov) {
+> -		mutex_unlock(&ov->lock);
+> -		return;
+> -	}
+> -
+>  	/* Free device number */
+>  	ov511_devused &= ~(1 << ov->nr);
 
-date:        Fri Mar 26 19:00:27 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14527:1ef0265456c8
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 8c69c6ed6c74c94fa7ad6fa24eda452e4b212d81
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+I think we can pretty safely assume that we never get here with ov==NULL.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc1-armv5: OK
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-rc1-armv5-davinci: WARNINGS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-rc1-armv5-ixp: WARNINGS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-rc1-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.17-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-rc1-i686: WARNINGS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc1-m32r: OK
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-rc1-mips: WARNINGS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-rc1-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.17-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-rc1-x86_64: WARNINGS
-linux-git-armv5: OK
-linux-git-armv5-davinci: OK
-linux-git-armv5-ixp: OK
-linux-git-armv5-omap2: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.7-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.62-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.7-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Oh well, I'll leave the test there for others to ponder.
