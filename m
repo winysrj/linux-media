@@ -1,100 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2685 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751970Ab0CAHpg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Mar 2010 02:45:36 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-Subject: Re: Announcing v4l-utils-0.7.90 (which includes libv4l-0.7.90)
-Date: Mon, 1 Mar 2010 08:45:50 +0100
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <4B882457.1050006@hhs.nl>
-In-Reply-To: <4B882457.1050006@hhs.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="windows-1252"
+Received: from mail96.messagelabs.com ([216.82.254.19]:42601 "EHLO
+	mail96.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752580Ab0CWOjz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Mar 2010 10:39:55 -0400
+From: Viral Mehta <Viral.Mehta@lntinfotech.com>
+To: Viral Mehta <Viral.Mehta@lntinfotech.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"Aguirre, Sergio" <saaguirre@ti.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 23 Mar 2010 20:04:50 +0530
+Subject: RE: omap2 camera
+Message-ID: <70376CA23424B34D86F1C7DE6B997343017F5D5BDF@VSHINMSMBX01.vshodc.lntinfotech.com>
+References: <70376CA23424B34D86F1C7DE6B997343017F5D5BD5@VSHINMSMBX01.vshodc.lntinfotech.com>
+ <A24693684029E5489D1D202277BE89445428BE8E@dlee02.ent.ti.com>,<4BA7A72B.9000300@maxwell.research.nokia.com>,<70376CA23424B34D86F1C7DE6B997343017F5D5BD8@VSHINMSMBX01.vshodc.lntinfotech.com>
+In-Reply-To: <70376CA23424B34D86F1C7DE6B997343017F5D5BD8@VSHINMSMBX01.vshodc.lntinfotech.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Message-Id: <201003010845.50657.hverkuil@xs4all.nl>
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 26 February 2010 20:43:19 Hans de Goede wrote:
-> Hi,
-> 
-> I'm happy to announce the first (test / beta) release of v4l-utils,
-> v4l-utils is the combination of various v4l and dvb utilities which
-> used to be part of the v4l-dvb mercurial kernel tree and libv4l.
 
-Is it correct that I only see v4l utilities and no dvb?
- 
-> I encourage people to give this version a spin. I esp. would like
-> feedback on which v4l / dvb utilities should end up being installed
-> by make install. For now I've stuck with what the Makefile in v4l2-apps
-> did. See README for a list of all utilities and if they are currently
-> installed or not.
+>> Thanks, Sergio!
 
-qv4l2-qt3 should either be dropped altogether (my preference, although Mauro
-thinks differently), or be moved to contrib. I think it is nuts to keep that
-one around since the qt4 version is much, much better and the qt3 version is
-no longer maintained anyway.
+>Thanks for your response. Thanks Sergio.
 
-xc3028-firmware, v4l2-compliance and rds should also be moved to contrib.
+>> I've only aware of the tcm825x sensor driver that works with the OMAP
+>> 2420 camera controller (omap24xxcam) driver.
 
-I'm not sure about decode_tm6000, keytable and v4l2-sysfs-path. These too
-may belong to contrib.
+>Does this also mean that omap24xxcam.ko will *only* work with OMAP2420?
+>Or the same driver can be used for OMAP2430 board as well ?  As name suggests, omap24xxcam....
 
-We definitely want to have alevtv here as well (it's currently in dvb-apps).
+>> So likely you'd need the driver for the sensor you have on that board.
+>Okie, I am trying to get that done. I took linux-2.6.14-V5 kernel from linux.omap.com and
+>that supports camera on OMAP2430 and it has functional driver for ex3691 sensor.
+>I am trying to know if I can forward port that.
 
-> If you are doing distribution packaging of libv4l, note that the
-> good old libv4l tarbal releases are going away, libv4l will now
-> be released as part of v4l-utils, and you are encouraged to
-> package that up completely including the included utilities. As
-> I'm doing distro package maintenance  myself I know this is a pain,
-> but in the long run having a single source for v4l + dvb userspace tools
-> and libraries is for the best.
-> 
-> New this release:
-> 
-> v4l-utils-0.7.90
-> ----------------
-> * This is the first release of v4l-utils, v4l-utils is the combination
->    of various v4l and dvb utilities which used to be part of v4l-dvb
->    mercurial kernel tree and libv4l.
-> * This first version is 0.7.90, as the version numbers continue were libv4l
->    as a standalone source archive stops.
-> * libv4l changes:
->    * Add more laptop models to the upside down devices table
->    * Fix Pixart JPEG ff ff ff xx markers removal, this fixes the occasional
->      corrupt frame we used to get (thanks to Németh Márton)
->    * Enable whitebalance by default on various sonixj based cams
->    * Enable whitebalance + gamma correction by default on all sonixb cams
->    * Enable gamma correction by default on pac7302 based cams
-> 
-> Go get it here:
-> http://people.fedoraproject.org/~jwrdegoede/v4l-utils-0.7.90.tar.bz2
-> 
-> You can always find the latest developments here:
-> http://git.linuxtv.org/v4l-utils.git
+I started forward porting that and I found out there is no support for OMAP 2430 i2c-controller with the latest kernel.
 
-Hmm, I get errors when I attempt to clone this.
+I dont understand whether latest kernel at all supports anything on OMAP2430 or not :(
 
-Regards,
+This Email may contain confidential or privileged information for the intended recipient (s) If you are not the intended recipient, please do not use or disseminate the information, notify the sender and delete it from your system.
 
-	Hans
- 
-> Note, it would be good to have some place at linuxtv.org to host the
-> tarbals, if someone could help me set that up that would be great.
-> 
-> Regards,
-> 
-> Hans
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+______________________________________________________________________
