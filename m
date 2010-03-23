@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx03.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.7])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o2ID9obY028561
-	for <video4linux-list@redhat.com>; Thu, 18 Mar 2010 09:09:51 -0400
-Received: from smtp.positive-internet.com (mail.positive-internet.com
-	[80.87.128.64])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o2ID9ZtL019383
-	for <video4linux-list@redhat.com>; Thu, 18 Mar 2010 09:09:36 -0400
-Subject: Re: Any update on em28xx on igevp2 ?
-From: John Banks <john.banks@noonanmedia.com>
-To: Gert-Jan de Jonge <de_jonge@bysky.nl>
-In-Reply-To: <4BA21C12.6090609@bysky.nl>
-References: <4B9FA07B.3000206@bysky.nl>
-	<829197381003160834k7e82cd6am5cf8153e3e5625b2@mail.gmail.com>
-	<4BA2197E.4000305@saturnus.nl>  <4BA21C12.6090609@bysky.nl>
-Date: Thu, 18 Mar 2010 13:09:34 +0000
-Message-ID: <1268917774.3616.61.camel@chimpin>
-Mime-Version: 1.0
-Cc: video4linux-list@redhat.com
+Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.5])
+	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o2NJjoUx030112
+	for <video4linux-list@redhat.com>; Tue, 23 Mar 2010 15:45:50 -0400
+Received: from mail-ew0-f213.google.com (mail-ew0-f213.google.com
+	[209.85.219.213])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2NJjcLG030916
+	for <video4linux-list@redhat.com>; Tue, 23 Mar 2010 15:45:39 -0400
+Received: by ewy5 with SMTP id 5so962670ewy.30
+	for <video4linux-list@redhat.com>; Tue, 23 Mar 2010 12:45:38 -0700 (PDT)
+MIME-Version: 1.0
+Date: Tue, 23 Mar 2010 14:45:37 -0500
+Message-ID: <dfbf38831003231245o5b501793h8d22320e60ab98ba@mail.gmail.com>
+Subject: Which of my 3 video capture devices will work best with my PC?
+From: Serge Pontejos <jeepster.goons@gmail.com>
+To: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,67 +29,46 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, 2010-03-18 at 13:26 +0100, Gert-Jan de Jonge wrote:
-> Hi Devin,
-> 
-> just some extra info:
-> 
-> I have tested the difference on the arm board compared to the pc:
->   int  height=576;
->   height >>= 576;
->   printf("%d\n", height);
-> 
-> on arm it gives a 0, on the pc it gives 576.
-> on both i get a warning from the compiler, as in my test code the 576 is 
-> hardcoded in stead of a variable
-> warning: right shift count >= width of type ( which is logical ;) )
-> 
-> regards,
-> Gert-Jan
-> 
-> 
-> Gert-Jan de Jonge wrote:
-> > Hi Devin,
-> >
-> > I am a big step further, I can now get video from the device.
-> > At this moment I am looking at  the function em28xx_resolution_set on 
-> > arm the height is set to 0 by the following lines:
-> >
-> >       if (!dev->progressive)
-> >                height >>= norm_maxh(dev);
-> >
-> > I am not sure what it should do, should it really shift the height 
-> > over the value of height ?
-> > If I set the height to f.e. 576 ater this line, i can capture video ( 
-> > it is 576 before this line )
-> > should it shift by 1 if it is interlaced and the resolution is higher 
-> > than the interlaced height ?
-> >
-> > regards,
-> > Gert-Jan
-> >
+Greetings all...
 
-Hey,
+I'm interested in doing video transfer from VCR to PC and want to know which
+of the 3 capture devices I have has the best chance of working with my
+setup? I have 3 different symptoms happening with each.
 
-Yeah this is how I fixed my problem also. Though mine was set as 0 but
-144 on the pc. Strange since the resolution I then get out is certainly
-not 144.
+My PC setup:
+Ubuntu Karmic 9.10/2.6.31-20 generic
+Socket 754 AMD Sempron 3000+ with passive cooling (non AMD64)
+Biostar MB with Nforce3 250Gb chipset
+NV31 GPU (Geforce FX5600 Ultra 128MB) using Nvidia 196 driver
+1GB PC3200 DDR RAM
+34GB SCSI coupled to a Adaptec 19160 card
+Soundblaster Audigy
+dvd+-R floppy etc etc.
 
-Hardcoding the values completely fixed the problem for me (as long as I
-ignore the compiler warnings :P ).
+The devices in question:
 
-Looking to find out why the arm gives 0 to fix the cause.
+USB: Dazzle Digital Photo Maker, using a USBvision driver recognized as a
+Global Village GV-7000)
+
+--This one recognizes and I can display video but if I try to record in
+either xawtv or Kdenlive the program crashes.
+
+PCI: Hauppauge WinTV model 38101
+--When installed it shows /dev/video0 when I do an ls, but I don't get a
+signal with either composite or coax input.   I tried following steps from
+this link http://howtoubuntu.org/?p=20 but it didn't change a thing...
+
+PCI: Aurora Systems Fuse previously used on a Mac
+--This card picks up the ZR36067 driver, but it's saying it can't initialize
+the i2c bus. Thus, no /dev/video* shows
+
+Let me know which I should focus on and then I'll show the query dumps.
+
+Any help on this would be greatly appreciated.
 
 
--- 
-John Banks - Head of Engineering
-Noonan Media Ltd 
 
-www.noonanmedia.com 
-
-MB: +44 779 62 64 707 
-E: john.banks@noonanmedia.com
-
+~Serge
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
