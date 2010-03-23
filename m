@@ -1,64 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-14.arcor-online.net ([151.189.21.54]:33768 "EHLO
-	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754506Ab0C1Qgm (ORCPT
+Received: from mail.gmx.net ([213.165.64.20]:38147 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753954Ab0CWOmZ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Mar 2010 12:36:42 -0400
-Message-ID: <2835345.1269794199129.JavaMail.ngmail@webmail15.arcor-online.net>
-Date: Sun, 28 Mar 2010 18:36:39 +0200 (CEST)
-From: Stefan Ringel <stefan.ringel@arcor.de>
-To: gtellalov@bigfoot.com, stefan.ringel@arcor.de
-Subject: Aw: Re: Re: Hauppauge WinTV HVR-900H
+	Tue, 23 Mar 2010 10:42:25 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: linux-media@vger.kernel.org
+To: =?iso-8859-1?q?Bj=F8rn_Mork?= <bjorn@mork.no>
+Subject: Re: [PATCH] V4L/DVB: saa7146: Making IRQF_DISABLED or IRQF_SHARED optional
+Date: Tue, 23 Mar 2010 15:40:58 +0100
 Cc: linux-media@vger.kernel.org
-In-Reply-To: <20100328153759.GA2893@joro.homelinux.org>
+References: <1269202135-340-1-git-send-email-bjorn@mork.no> <87ocigwvrf.fsf@nemi.mork.no> <1269351981-12292-1-git-send-email-bjorn@mork.no>
+In-Reply-To: <1269351981-12292-1-git-send-email-bjorn@mork.no>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-References: <20100328153759.GA2893@joro.homelinux.org> <20100328120729.GB6153@joro.homelinux.org>
- <20100328105145.GA2427@joro.homelinux.org>
- <27890244.1269777077513.JavaMail.ngmail@webmail18.arcor-online.net>
- <23371307.1269778330976.JavaMail.ngmail@webmail11.arcor-online.net>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <201003231541.03636@orion.escape-edv.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
- 
+Hi,
 
-
------ Original Nachricht ----
-Von:     George Tellalov <gtellalov@bigfoot.com>
-An:      Stefan Ringel <stefan.ringel@arcor.de>
-Datum:   28.03.2010 17:37
-Betreff: Re: Re: Hauppauge WinTV HVR-900H
-
-> On Sun, Mar 28, 2010 at 02:12:10PM +0200, Stefan Ringel wrote:
-> >  
-> > 
-> > 
-> > ----- Original Nachricht ----
-> > Von:     George Tellalov <gtellalov@bigfoot.com>
-> > An:      Stefan Ringel <stefan.ringel@arcor.de>
-> > Datum:   28.03.2010 14:07
-> > Betreff: Re: Hauppauge WinTV HVR-900H
-> > 
-> > > On Sun, Mar 28, 2010 at 01:51:17PM +0200, Stefan Ringel wrote:
-> > > >  
-> > > > In what for mode, analog or dvb-t?
-> > > > 
-> > > 
-> > > The test? It was in analog mode using tvtime.
-> > > 
-> > 
-> > And the dmsg log (with debug info), so we can see what wrong is. What for
-> options have you set in the .config file?
-> > 
+Bjørn Mork wrote:
+> As discussed many times, e.g. in http://lkml.org/lkml/2007/7/26/401
+> mixing IRQF_DISABLED with IRQF_SHARED may cause unpredictable and
+> unexpected results.
 > 
-> Okay the same result with 2.6.33. I'm attaching my .config and dmesg's
-> output.
-> I also have debug=9 output but I'm not sure if it's appropriate to attach
-> it
-> here. Maybe I should gzip it?
-> 
+> Add a module parameter to allow fine tuning the request_irq
+> flags based on local system requirements.  Some may need to turn
+> off IRQF_DISABLED to be able to share interrupt with drivers
+> needing interrupts enabled, while others may want to turn off
+> IRQF_SHARED to ensure that IRQF_DISABLED has an effect.
 
-I said debug, but I see no debug info for tm6000 is it "modprobe tm6000 debug=1 debug_i2c=3". From what havew you debug activated? Have you a crash dump in the dmesg log? Can tvtime crash, and if tvtime crashed, then send it to tvtime project (ask Devin Heitmueller). 
+NAK. We should not add module parameters for this kind of crap.
 
-Stefan Ringel <stefan.ringel@arcor.de>
+Let's check whether IRQF_DISABLED is really required.
+Afaics it can be removed.
+
+@all:
+Please check whether the first patch causes any problems.
+
+CU
+Oliver
+
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
