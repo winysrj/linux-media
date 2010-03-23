@@ -1,90 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.openhardware.ru ([84.19.182.172]:47027 "EHLO
-	ns.openhardware.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756151Ab0CJECV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Mar 2010 23:02:21 -0500
-Date: Wed, 10 Mar 2010 13:02:25 +0900
-From: Dmitri Belimov <dimon@openhardware.ru>
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org,
-	"Timothy D. Lenz" <tlenz@vorgon.com>
-Subject: Re: [IR RC, REGRESSION] Didn't work IR RC
-Message-ID: <20100310130225.75d2bca4@glory.loctelecom.ru>
-In-Reply-To: <20100309115748.5ec7fd7a@hyperion.delvare>
-References: <20100301153645.5d529766@glory.loctelecom.ru>
-	<1267442919.3110.20.camel@palomino.walls.org>
-	<4B8BC332.6060303@infradead.org>
-	<1267503595.3269.21.camel@pc07.localdom.local>
-	<20100302134320.748ac292@glory.loctelecom.ru>
-	<20100302163634.31c934e4@glory.loctelecom.ru>
-	<4B8CD10D.2010009@infradead.org>
-	<20100309115748.5ec7fd7a@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:33080 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754476Ab0CWUsY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Mar 2010 16:48:24 -0400
+Received: by bwz1 with SMTP id 1so2261174bwz.21
+        for <linux-media@vger.kernel.org>; Tue, 23 Mar 2010 13:48:23 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <499b283a1003231342h6fcbe74di2aa67eb91b18cf0c@mail.gmail.com>
+References: <499b283a1003231342h6fcbe74di2aa67eb91b18cf0c@mail.gmail.com>
+Date: Tue, 23 Mar 2010 16:48:22 -0400
+Message-ID: <829197381003231348h5c09c76av1adfbf7f13df10a1@mail.gmail.com>
+Subject: Re: [PATCH] Fix Warning ISO C90 forbids mixed declarations and code -
+	cx88-dvb
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Ricardo Maraschini <xrmarsx@gmail.com>
+Cc: linux-media@vger.kernel.org, doug <dougsland@gmail.com>,
+	mchehab@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jean
+On Tue, Mar 23, 2010 at 4:42 PM, Ricardo Maraschini <xrmarsx@gmail.com> wrote:
+> --- a/linux/drivers/media/video/cx88/cx88-dvb.c Tue Mar 23 16:17:11 2010 -0300
+> +++ b/linux/drivers/media/video/cx88/cx88-dvb.c Tue Mar 23 17:29:29 2010 -0300
+> @@ -1401,7 +1401,8 @@
+>       case CX88_BOARD_SAMSUNG_SMT_7020:
+>               dev->ts_gen_cntrl = 0x08;
+>
+> -               struct cx88_core *core = dev->core;
+> +               struct cx88_core *core;
+> +               core = dev->core;
+>
+>               cx_set(MO_GP0_IO, 0x0101);
+>
+>
+>
+> Signed-off-by: Ricardo Maraschini <ricardo.maraschini@gmail.com>
 
-> Hi Mauro, Dmitri,
-> 
-> On Tue, 02 Mar 2010 05:49:17 -0300, Mauro Carvalho Chehab wrote:
-> > Dmitri Belimov wrote:
-> > > When I add 
-> > > 
-> > > diff -r 37ff78330942 linux/drivers/media/video/ir-kbd-i2c.c
-> > > --- a/linux/drivers/media/video/ir-kbd-i2c.c	Sun Feb 28
-> > > 16:59:57 2010 -0300 +++
-> > > b/linux/drivers/media/video/ir-kbd-i2c.c	Tue Mar 02
-> > > 10:31:31 2010 +0900 @@ -465,6 +519,11 @@ ir_type     =
-> > > IR_TYPE_OTHER; ir_codes    = &ir_codes_avermedia_cardbus_table;
-> > >  		break;
-> > > +	case 0x2d:
-> > > +		/* Handled by saa7134-input */
-> > > +		name        = "SAA713x remote";
-> > > +		ir_type     = IR_TYPE_OTHER;
-> > > +		break;
-> > >  	}
-> > >  
-> > >  #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 30)
-> > > 
-> > > The IR subsystem register event device. But for get key code use
-> > > ir_pool_key function.
-> > > 
-> > > For our IR RC need use our special function. How I can do it?
-> > 
-> > Just add your get_key callback to "ir->get_key". If you want to do
-> > this from saa7134-input, please take a look at the code at
-> > em28xx_register_i2c_ir(). It basically fills the platform_data.
-> > 
-> > While you're there, I suggest you to change your code to work with
-> > the full scancode (e. g. address + command), instead of just
-> > getting the command. Currently, em28xx-input has one I2C IR already
-> > changed to this mode (seek for full_code for the differences).
-> > 
-> > You'll basically need to change the IR tables to contain
-> > address+command, and inform the used protocol (RC5/NEC) on it. The
-> > getkey function will need to return the full code as well.
-> 
-> Sorry for the late reply. Is the problem solved by now, or is my help
-> still needed?
+How do you think this actually addresses the warning in question?  You
+still have the declaration of the variable in the middle of the switch
+statement.
 
-Yes. I found what happens and solve this regression. Patch already comitted.
+Devin
 
-diff -r 37ff78330942 linux/drivers/media/video/saa7134/saa7134-input.c
---- a/linux/drivers/media/video/saa7134/saa7134-input.c	Sun Feb 28 16:59:57 2010 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134-input.c	Thu Mar 04 08:35:15 2010 +0900
-@@ -947,6 +947,7 @@
- 		dev->init_data.name = "BeholdTV";
- 		dev->init_data.get_key = get_key_beholdm6xx;
- 		dev->init_data.ir_codes = &ir_codes_behold_table;
-+		dev->init_data.type = IR_TYPE_NEC;
- 		info.addr = 0x2d;
- #endif
- 		break;
-
-
-With my best regards, Dmitry.
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
