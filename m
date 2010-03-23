@@ -1,368 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:44372 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754092Ab0CBXK6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Mar 2010 18:10:58 -0500
-Received: by bwz1 with SMTP id 1so257401bwz.21
-        for <linux-media@vger.kernel.org>; Tue, 02 Mar 2010 15:10:55 -0800 (PST)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Hendrik Skarpeid <skarp@online.no>, linux-media@vger.kernel.org,
-	Nameer Kazzaz <nameer.kazzaz@gmail.com>
-Subject: Re: DM1105: could not attach frontend 195d:1105
-Date: Wed, 3 Mar 2010 01:10:32 +0200
-References: <4B7D83B2.4030709@online.no> <201002231940.13385.liplianin@me.by> <4B8D6270.70803@online.no>
-In-Reply-To: <4B8D6270.70803@online.no>
+Received: from comal.ext.ti.com ([198.47.26.152]:35443 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754134Ab0CWOoj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Mar 2010 10:44:39 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 23 Mar 2010 20:14:33 +0530
+Subject: RE: [Resubmit: PATCH-V2] Introducing ti-media directory
+Message-ID: <19F8576C6E063C45BE387C64729E7394044DE0EBC5@dbde02.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1268991350-549-1-git-send-email-hvaibhav@ti.com>
+ <201003231241.00281.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201003231241.00281.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_orZjLIGcKRVTMyl"
-Message-Id: <201003030110.32834.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Boundary-00=_orZjLIGcKRVTMyl
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
 
-On 2 =D0=BC=D0=B0=D1=80=D1=82=D0=B0 2010, "Igor M. Liplianin" <liplianin@me=
-=2Eby> wrote:
-> Igor M. Liplianin skrev:
-> > On 23 =D1=84=D0=B5=D0=B2=D1=80=D0=B0=D0=BB=D1=8F 2010 15:12:05 Nameer K=
-azzaz wrote:
-> >> Sounds cool, let me know if I can help you with anything.
-> >>
-> >> Thanks
-> >> Nameer
-> >>
-> >> Hendrik Skarpeid wrote:
-> >>> No luck here either, still working on it.
-> >>> My plan is to solder som wires on strategic points on the board and
-> >>> debug i2c and other activity with an oscilloscope. Will probably start
-> >>> next week.
-> >>>
-> >>> Nameer Kazzaz wrote:
-> >>>> Hey Igor,
-> >>>> I'm getting the same error:
-> >>>> dm1105 0000:04:0b.0: could not attach frontend
-> >>>>
-> >>>> Did you get your one to work.
-> >>>>
-> >>>> Thanks
-> >>>> Nameer
-> >>>>
-> >>>> Igor M. Liplianin wrote:
-> >>>>> On 18 =D1=84=D0=B5=D0=B2=D1=80=D0=B0=D0=BB=D1=8F 2010, liplianin@me=
-=2Eby wrote:
-> >>>>>> I also got the unbranded dm1105 card. I tried the four possible i2c
-> >>>>>> addresses, just i case. Noen worked of course. Then I traced the i=
-2c
-> >>>>>> pins on the tuner to pins 100 and 101 on the DM1105.
-> >>>>>> These are GPIO pins, so bit-banging i2c on these pins seems to be
-> >>>>>> the solution.
-> >>>>>>
-> >>>>>> scl =3D p101 =3D gpio14
-> >>>>>> sda =3D p100 =3D gpio13
-> >>>>>
-> >>>>> Here is the patch to test. Use option card=3D4.
-> >>>>>     modprobe dm1105 card=3D4
+> -----Original Message-----
+> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> Sent: Tuesday, March 23, 2010 5:11 PM
+> To: davinci-linux-open-source@linux.davincidsp.com
+> Cc: Hiremath, Vaibhav; linux-media@vger.kernel.org
+> Subject: Re: [Resubmit: PATCH-V2] Introducing ti-media directory
+> 
+> On Friday 19 March 2010 10:35:50 hvaibhav@ti.com wrote:
+> > From: Vaibhav Hiremath <hvaibhav@ti.com>
 > >
-> > I didn't test patch in real hardware.
-> > But I can connect GPIO14 and GPIO13 to SCL and SDA in any dm1105 card a=
-nd
-> > test whether it works. Then I will ask you to test also.
-> >
-> >
-> > ------------------------------------------------------------------------
-> >
-> >
-> > No virus found in this incoming message.
-> > Checked by AVG - www.avg.com
-> > Version: 9.0.733 / Virus Database: 271.1.1/2708 - Release Date: 02/24/10
-> > 20:34:00
->
-> Think I solved it.
-> The dm1105_getsda and dm1105_getscl functions need to mask out the other
-> GPIO bits.
-> I hacked the code to return 1 if corresponding GPIO set, and 0 if not
-> set. That did the trick. Now the frontend registers and /dev/dvb is
-> populated. :)
-> Haven't done any tuning yet.
+> > Looking towards the number of files which are cluttering in media/video/
+> > directory, it is required to introduce seperate working
+> > directory for TI devices.
+> 
+> You should then move the omap24xxcam driver as well.
+[Hiremath, Vaibhav] I wanted to move this file to ti-media directory, but left it only because it is based on V4L2-Int framework (legacy).
 
-Do you cut connections between dm1105 i2c pins and the=20
-gpio pins you make earlier?
+> 
+> > Again the IP's are being re-used across the devices which makes it very
+> > difficuilt to re-use the driver code. For example, DM6446 and AM3517 both
+> > uses exactly same VPFE/CCDC IP, but the driver is encapsulated under
+> > DAVINCI which makes it impossible to re-use.
+> 
+> I'm not too sure to like the ti-media name. It will soon get quite crowded,
+> and name collisions might occur (look at the linux-omap-camera tree and the
+> ISP driver in there for instance). Isn't there an internal name to refer to
+> both the DM6446 and AM3517 that could be used ?
+[Hiremath, Vaibhav] Laurent,
 
-=2D-=20
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+ti-media directory is top level directory where we are putting all TI devices drivers. So having said that, we should worrying about what goes inside this directory.
+For me ISP is more generic, if you compare davinci and OMAP. 
 
+Frankly, there are various naming convention we do have from device to device, even if the IP's are being reused. For example, the internal name for OMAP is ISP but Davinci refers it as a VPSS.
 
---Boundary-00=_orZjLIGcKRVTMyl
-Content-Type: text/x-patch;
-  charset="utf-8";
-  name="dm1105.c.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
-	filename="dm1105.c.diff"
+Thanks,
+Vaibhav
 
---- a/linux/drivers/media/dvb/dm1105/dm1105.c	Sun Feb 07 16:26:33 2010 +0200
-+++ b/linux/drivers/media/dvb/dm1105/dm1105.c	Wed Mar 03 00:55:45 2010 +0200
-@@ -20,6 +20,7 @@
-  */
- 
- #include <linux/i2c.h>
-+#include <linux/i2c-algo-bit.h>
- #include <linux/init.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
-@@ -47,11 +48,12 @@
- 
- #define UNSET (-1U)
- 
--#define DM1105_BOARD_NOAUTO		UNSET
--#define DM1105_BOARD_UNKNOWN		0
--#define DM1105_BOARD_DVBWORLD_2002	1
--#define DM1105_BOARD_DVBWORLD_2004	2
--#define DM1105_BOARD_AXESS_DM05		3
-+#define DM1105_BOARD_NOAUTO			UNSET
-+#define DM1105_BOARD_UNKNOWN			0
-+#define DM1105_BOARD_DVBWORLD_2002		1
-+#define DM1105_BOARD_DVBWORLD_2004		2
-+#define DM1105_BOARD_AXESS_DM05			3
-+#define DM1105_BOARD_UNBRANDED_I2C_ON_GPIO	4
- 
- /* ----------------------------------------------- */
- /*
-@@ -155,23 +157,27 @@
- #define DM1105_MAX				0x04
- 
- #define DRIVER_NAME				"dm1105"
-+#define DM1105_I2C_GPIO_NAME			"dm1105-gpio"
- 
- #define DM1105_DMA_PACKETS			47
- #define DM1105_DMA_PACKET_LENGTH		(128*4)
- #define DM1105_DMA_BYTES			(128 * 4 * DM1105_DMA_PACKETS)
- 
- /* GPIO's for LNB power control */
--#define DM1105_LNB_MASK				0x00000000
-+#define DM1105_LNB_MASK				0x00006000
- #define DM1105_LNB_OFF				0x00020000
- #define DM1105_LNB_13V				0x00010100
- #define DM1105_LNB_18V				0x00000100
- 
- /* GPIO's for LNB power control for Axess DM05 */
--#define DM05_LNB_MASK				0x00000000
-+#define DM05_LNB_MASK				0x00006000
- #define DM05_LNB_OFF				0x00020000/* actually 13v */
- #define DM05_LNB_13V				0x00020000
- #define DM05_LNB_18V				0x00030000
- 
-+#define GPIO13					(1 << 13)
-+#define GPIO14					(1 << 14)
-+
- static unsigned int card[]  = {[0 ... 3] = UNSET };
- module_param_array(card,  int, NULL, 0444);
- MODULE_PARM_DESC(card, "card type");
-@@ -185,7 +191,8 @@
- DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- 
- struct dm1105_board {
--	char                    *name;
-+	char		*name;
-+	u32		gpio_scl, gpio_sda;
- };
- 
- struct dm1105_subid {
-@@ -207,6 +214,11 @@
- 	[DM1105_BOARD_AXESS_DM05] = {
- 		.name		= "Axess/EasyTv DM05",
- 	},
-+	[DM1105_BOARD_UNBRANDED_I2C_ON_GPIO] = {
-+		.name		= "Unbranded DM1105 with i2c on GPIOs",
-+		.gpio_scl	= GPIO14,
-+		.gpio_sda	= GPIO13,
-+	},
- };
- 
- static const struct dm1105_subid dm1105_subids[] = {
-@@ -292,6 +304,8 @@
- 
- 	/* i2c */
- 	struct i2c_adapter i2c_adap;
-+	struct i2c_adapter i2c_bb_adap;
-+	struct i2c_algo_bit_data i2c_bit;
- 
- 	/* irq */
- 	struct work_struct work;
-@@ -327,6 +341,91 @@
- #define dm_setl(reg, bit)	dm_andorl((reg), (bit), (bit))
- #define dm_clearl(reg, bit)	dm_andorl((reg), (bit), 0)
- 
-+/* The chip has 18 GPIOs. In HOST mode GPIO's used as 15 bit address lines,
-+ so we can use only 3 GPIO's from GPIO15 to GPIO17.
-+ Here I don't check whether HOST is enebled as it is not implemented yet.
-+ */
-+void dm1105_gpio_set(struct dm1105_dev *dev, u32 mask)
-+{
-+	if (mask & 0xfffc0000)
-+		printk(KERN_ERR "%s: Only 18 GPIO's are allowed\n", __func__);
-+
-+	if (mask & 0x0003ffff)
-+		dm_setl(DM1105_GPIOVAL, mask & 0x0003ffff);
-+
-+}
-+
-+void dm1105_gpio_clear(struct dm1105_dev *dev, u32 mask)
-+{
-+	if (mask & 0xfffc0000)
-+		printk(KERN_ERR "%s: Only 18 GPIO's are allowed\n", __func__);
-+
-+	if (mask & 0x0003ffff)
-+		dm_clearl(DM1105_GPIOVAL, mask & 0x0003ffff);
-+
-+}
-+
-+u32 dm1105_gpio_get(struct dm1105_dev *dev, u32 mask)
-+{
-+	if (mask & 0xfffc0000)
-+		printk(KERN_ERR "%s: Only 18 GPIO's are allowed\n", __func__);
-+
-+	if (mask & 0x0003ffff)
-+		return (dm_readl(DM1105_GPIOVAL) & mask & 0x0003ffff);
-+
-+	return 0;
-+}
-+
-+void dm1105_gpio_enable(struct dm1105_dev *dev, u32 mask, int asoutput)
-+{
-+	if (mask & 0xfffc0000)
-+		printk(KERN_ERR "%s: Only 18 GPIO's are allowed\n", __func__);
-+
-+	if ((mask & 0x0003ffff) && asoutput)
-+		dm_clearl(DM1105_GPIOCTR, mask & 0x0003ffff);
-+	else if ((mask & 0x0003ffff) && !asoutput)
-+		dm_setl(DM1105_GPIOCTR, mask & 0x0003ffff);
-+
-+}
-+
-+static void dm1105_setline(struct dm1105_dev *dev, u32 line, int state)
-+{
-+	if (state)
-+		dm1105_gpio_enable(dev, line, 0);
-+	else {
-+		dm1105_gpio_enable(dev, line, 1);
-+		dm1105_gpio_clear(dev, line);
-+	}
-+}
-+
-+static void dm1105_setsda(void *data, int state)
-+{
-+	struct dm1105_dev *dev = data;
-+
-+	dm1105_setline(dev, dm1105_boards[dev->boardnr].gpio_sda, state);
-+}
-+
-+static void dm1105_setscl(void *data, int state)
-+{
-+	struct dm1105_dev *dev = data;
-+
-+	dm1105_setline(dev, dm1105_boards[dev->boardnr].gpio_scl, state);
-+}
-+
-+static int dm1105_getsda(void *data)
-+{
-+	struct dm1105_dev *dev = data;
-+
-+	return dm1105_gpio_get(dev, dm1105_boards[dev->boardnr].gpio_sda) ? 1 : 0;
-+}
-+
-+static int dm1105_getscl(void *data)
-+{
-+	struct dm1105_dev *dev = data;
-+
-+	return dm1105_gpio_get(dev, dm1105_boards[dev->boardnr].gpio_scl) ? 1 : 0;
-+}
-+
- static int dm1105_i2c_xfer(struct i2c_adapter *i2c_adap,
- 			    struct i2c_msg *msgs, int num)
- {
-@@ -742,6 +841,33 @@
- 	int ret;
- 
- 	switch (dev->boardnr) {
-+	case DM1105_BOARD_UNBRANDED_I2C_ON_GPIO:
-+		dev->fe = dvb_attach(
-+			stv0299_attach, &sharp_z0194a_config,
-+			&dev->i2c_bb_adap);
-+		if (dev->fe) {
-+			dev->fe->ops.set_voltage = dm1105_set_voltage;
-+			dvb_attach(dvb_pll_attach, dev->fe, 0x60,
-+					&dev->i2c_bb_adap, DVB_PLL_OPERA1);
-+			break;
-+		}
-+
-+		dev->fe = dvb_attach(
-+			stv0288_attach, &earda_config,
-+			&dev->i2c_bb_adap);
-+		if (dev->fe) {
-+			dev->fe->ops.set_voltage = dm1105_set_voltage;
-+			dvb_attach(stb6000_attach, dev->fe, 0x61,
-+					&dev->i2c_bb_adap);
-+			break;
-+		}
-+
-+		dev->fe = dvb_attach(
-+			si21xx_attach, &serit_config,
-+			&dev->i2c_bb_adap);
-+		if (dev->fe)
-+			dev->fe->ops.set_voltage = dm1105_set_voltage;
-+		break;
- 	case DM1105_BOARD_DVBWORLD_2004:
- 		dev->fe = dvb_attach(
- 			cx24116_attach, &serit_sp2633_config,
-@@ -905,11 +1031,33 @@
- 	if (ret < 0)
- 		goto err_dm1105_hw_exit;
- 
-+	i2c_set_adapdata(&dev->i2c_bb_adap, dev);
-+	strcpy(dev->i2c_bb_adap.name, DM1105_I2C_GPIO_NAME);
-+	dev->i2c_bb_adap.owner = THIS_MODULE;
-+	dev->i2c_bb_adap.class = I2C_CLASS_TV_DIGITAL;
-+	dev->i2c_bb_adap.dev.parent = &pdev->dev;
-+	dev->i2c_bb_adap.algo_data = &dev->i2c_bit;
-+	dev->i2c_bit.data = dev;
-+	dev->i2c_bit.setsda = dm1105_setsda;
-+	dev->i2c_bit.setscl = dm1105_setscl;
-+	dev->i2c_bit.getsda = dm1105_getsda;
-+	dev->i2c_bit.getscl = dm1105_getscl;
-+	dev->i2c_bit.udelay = 10;
-+	dev->i2c_bit.timeout = 10;
-+
-+	/* Raise SCL and SDA */
-+	dm1105_setsda(dev, 1);
-+	dm1105_setscl(dev, 1);
-+
-+	ret = i2c_bit_add_bus(&dev->i2c_bb_adap);
-+	if (ret < 0)
-+		goto err_i2c_del_adapter;
-+
- 	/* dvb */
- 	ret = dvb_register_adapter(&dev->dvb_adapter, DRIVER_NAME,
- 					THIS_MODULE, &pdev->dev, adapter_nr);
- 	if (ret < 0)
--		goto err_i2c_del_adapter;
-+		goto err_i2c_del_adapters;
- 
- 	dvb_adapter = &dev->dvb_adapter;
- 
-@@ -991,6 +1139,8 @@
- 	dvb_dmx_release(dvbdemux);
- err_dvb_unregister_adapter:
- 	dvb_unregister_adapter(dvb_adapter);
-+err_i2c_del_adapters:
-+	i2c_del_adapter(&dev->i2c_bb_adap);
- err_i2c_del_adapter:
- 	i2c_del_adapter(&dev->i2c_adap);
- err_dm1105_hw_exit:
-
---Boundary-00=_orZjLIGcKRVTMyl--
+> 
+> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> 
+> --
+> Regards,
+> 
+> Laurent Pinchart
