@@ -1,43 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.159]:10444 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759562Ab0CNSqo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Mar 2010 14:46:44 -0400
-Received: by fg-out-1718.google.com with SMTP id l26so1028463fgb.1
-        for <linux-media@vger.kernel.org>; Sun, 14 Mar 2010 11:46:43 -0700 (PDT)
+Received: from mail.gmx.net ([213.165.64.20]:56704 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754336Ab0CWO7F (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Mar 2010 10:59:05 -0400
+Received: from lyakh (helo=localhost)
+	by axis700.grange with local-esmtp (Exim 4.63)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1Nu5ZZ-00024n-Vc
+	for linux-media@vger.kernel.org; Tue, 23 Mar 2010 15:59:13 +0100
+Date: Tue, 23 Mar 2010 15:59:13 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] videobuf-dma-contig.c: simplify pointer dereference
+Message-ID: <Pine.LNX.4.64.1003231558300.7689@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <c1fb08351003140849l23e826d3hfddd3e2aa952d3e5@mail.gmail.com>
-References: <c1fb08351003140849l23e826d3hfddd3e2aa952d3e5@mail.gmail.com>
-Date: Sun, 14 Mar 2010 20:46:43 +0200
-Message-ID: <c1fb08351003141146v3b36a02djd6c127e4081437db@mail.gmail.com>
-Subject: Fwd: Leadtek WinFast PxPVR2200
-From: Anca Emanuel <anca.emanuel@gmail.com>
-To: dougsland <dougsland@redhat.com>, mchehab <mchehab@redhat.com>,
-	"d.belimov" <d.belimov@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	mkrufky <mkrufky@linuxtv.org>,
-	Greg Kroah-Hartman <gregkh@suse.de>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-added come cc
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/videobuf-dma-contig.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
----------- Forwarded message ----------
-From: Anca Emanuel <anca.emanuel@gmail.com>
-Date: Sun, Mar 14, 2010 at 5:49 PM
-Subject: Leadtek WinFast PxPVR2200
-To: linux-kernel <linux-kernel@vger.kernel.org>, Steven Toth <stoth@linuxtv.org>
+diff --git a/drivers/media/video/videobuf-dma-contig.c b/drivers/media/video/videobuf-dma-contig.c
+index 22c0109..8e45a49 100644
+--- a/drivers/media/video/videobuf-dma-contig.c
++++ b/drivers/media/video/videobuf-dma-contig.c
+@@ -54,14 +54,14 @@ static void videobuf_vm_close(struct vm_area_struct *vma)
+ 	struct videobuf_queue *q = map->q;
+ 	int i;
+ 
+-	dev_dbg(map->q->dev, "vm_close %p [count=%u,vma=%08lx-%08lx]\n",
++	dev_dbg(q->dev, "vm_close %p [count=%u,vma=%08lx-%08lx]\n",
+ 		map, map->count, vma->vm_start, vma->vm_end);
+ 
+ 	map->count--;
+ 	if (0 == map->count) {
+ 		struct videobuf_dma_contig_memory *mem;
+ 
+-		dev_dbg(map->q->dev, "munmap %p q=%p\n", map, q);
++		dev_dbg(q->dev, "munmap %p q=%p\n", map, q);
+ 		mutex_lock(&q->vb_lock);
+ 
+ 		/* We need first to cancel streams, before unmapping */
+@@ -88,7 +88,7 @@ static void videobuf_vm_close(struct vm_area_struct *vma)
+ 				/* vfree is not atomic - can't be
+ 				   called with IRQ's disabled
+ 				 */
+-				dev_dbg(map->q->dev, "buf[%d] freeing %p\n",
++				dev_dbg(q->dev, "buf[%d] freeing %p\n",
+ 					i, mem->vaddr);
+ 
+ 				dma_free_coherent(q->dev, mem->size,
+-- 
+1.6.2.4
 
-
-in the file
-drivers\media\video\cx23885\cx23885-cards.c
-
-there is:
-CX23885_BOARD_LEADTEK_WINFAST_PXTV1200
-
-it is possible to add LeadTek WinFast PxPVR2200 to that file ?
-
-it uses the CONEXANT PCIe A/V Decoder CX23885-13Z
-and CONEXANT MPEG II A/V ENCODER CX23417-11Z
