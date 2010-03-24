@@ -1,39 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1278 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752509Ab0CUWp0 (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1840 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753781Ab0CXHzT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Mar 2010 18:45:26 -0400
+	Wed, 24 Mar 2010 03:55:19 -0400
+Received: from tschai.localnet (cm-84.208.87.21.getinternet.no [84.208.87.21])
+	(authenticated bits=0)
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id o2O7tHWS024428
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 24 Mar 2010 08:55:18 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: RFC: Phase 1: Proposal to convert V4L1 drivers
-Date: Sun, 21 Mar 2010 23:45:04 +0100
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	David Ellingsworth <david@identd.dyndns.org>
-References: <201003200958.49649.hverkuil@xs4all.nl>
-In-Reply-To: <201003200958.49649.hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: Testers for the cpia2 driver wanted!
+Date: Wed, 24 Mar 2010 08:55:50 +0100
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201003212345.04736.hverkuil@xs4all.nl>
+Message-Id: <201003240855.50598.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 20 March 2010 09:58:49 Hans Verkuil wrote:
-> These drivers have no hardware to test with: bw-qcam, c-qcam, arv, w9966.
-> However, all four should be easy to convert to v4l2, even without hardware.
-> Volunteers?
+Hi all,
 
-I've converted these four drivers to V4L2.
+I'm looking for someone who has hardware that can test the cpia2 driver.
 
-See my tree:
-
-http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-v4l1
-
-It's obviously untested and it needs a closer review, but the bulk of the work
-is done.
+I thought I had hardware for that, but it turned out that it used the gspca
+mars driver instead.
 
 Regards,
 
