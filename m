@@ -1,107 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 93-125-200-5.dsl.alice.nl ([93.125.200.5]:55118 "EHLO
-	william-laptop" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754035Ab0CXFwo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Mar 2010 01:52:44 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by william-laptop (Postfix) with ESMTPS id 80A601800DD
-	for <linux-media@vger.kernel.org>; Wed, 24 Mar 2010 06:46:06 +0100 (CET)
-Message-ID: <4BA9A71E.6090309@cobradevil.org>
-Date: Wed, 24 Mar 2010 06:46:06 +0100
-From: william <kc@cobradevil.org>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: tevii s660 system slow/freeze
-References: <54510.83.83.244.249.1269102017.squirrel@webmail.spothost.nl>
-In-Reply-To: <54510.83.83.244.249.1269102017.squirrel@webmail.spothost.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from bamako.nerim.net ([62.4.17.28]:63930 "EHLO bamako.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755290Ab0CXJ4j (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Mar 2010 05:56:39 -0400
+Date: Wed, 24 Mar 2010 10:56:36 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: matthieu castet <castet.matthieu@free.fr>
+Cc: linux-media@vger.kernel.org, linux-i2c@vger.kernel.org
+Subject: Re: i2c interface bugs in dvb drivers
+Message-ID: <20100324105636.4d6bf82d@hyperion.delvare>
+In-Reply-To: <4BA6270A.4050703@free.fr>
+References: <4BA6270A.4050703@free.fr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update
+Hi Matthieu,
 
-it was a problem with the device itself.
+On Sun, 21 Mar 2010 15:02:50 +0100, matthieu castet wrote:
+> some dvb driver that export a i2c interface contains some mistakes
+> because they mainly used by driver (frontend, tuner) wrote for them.
+> But the i2c interface is exposed to everybody.
+> 
+> One mistake is expect msg[i].addr with 8 bits address instead of 7
+> bits address. This make them use eeprom address at 0xa0 instead of
+> 0x50. Also they shift tuner address (qt1010 tuner is likely to be
+> at address 0x62, but some put it a 0xc4 (af9015, af9005, dtv5100)).
+> 
+> Other mistakes is in xfer callback. Often the controller support a
+> limited i2c support (n bytes write then m bytes read). The driver
+> try to convert the linux i2c msg to this pattern, but they often
+> miss cases :
+> - msg[i].len can be null
 
-I have send it back to my supplier for rma.
+Zero, not null. This is a very rare case, I've never seen it in
+multi-message transactions (wouldn't make much sense IMHO), only in
+the single-message transaction known as SMBus quick command. Many
+controllers don't support it, so I2C bus drivers don't have to support
+it. It should be assumed by I2C chip drivers that an I2C adapter
+without functionality bit I2C_FUNC_SMBUS_QUICK does not support 0-byte
+messages.
 
-With kind regards
+> - msg write are not always followed by msg read
+> 
+> And this can be dangerous if these interfaces are exported to
+> userspace via i2c-dev :
 
-William
-On 03/20/2010 05:20 PM, kc@cobradevil.org wrote:
-> Dear mailinglist/Tevii,
->
-> i have received a new tevii s660 yesterday.
-> I have tried to use the device with scan but then my system freezes/slows
-> down and i don't get any channels. Also when i create a channel list with
-> my nova 2 hd and check if that works with vdr, then i removed the drivers
-> from the nova card and plugged in the s660 and started vdr. But then still
-> no picture only system freeze/slow down. I get nothing in the logs so it
-> seems a driver issue.
->
-> i have tried the drivers from the tevii site and also tried the 2.6.34rc1
-> kernel from ubuntu. I also tried it on 3 different systems but to no
-> avail.
->
-> in dmesg i get:
-> [16735.496800] usbcore: deregistering interface driver dw2102
-> [16735.562114] dvb-usb: TeVii S660 USB successfully deinitialized and
-> disconnected.
-> [16737.219577] dvb-usb: found a 'TeVii S660 USB' in cold state, will try
-> to load a firmware
-> [16737.219593] usb 1-1: firmware: requesting dvb-usb-teviis660.fw
-> [16737.229441] dvb-usb: downloading firmware from file 'dvb-usb-teviis660.fw'
-> [16737.229453] dw2102: start downloading DW210X firmware
-> [16737.350052] dvb-usb: found a 'TeVii S660 USB' in warm state.
-> [16737.350171] dvb-usb: will pass the complete MPEG2 transport stream to
-> the software demuxer.
-> [16737.350414] DVB: registering new adapter (TeVii S660 USB)
-> [16747.590032] dvb-usb: MAC address: 00:18:bd:5c:55:bb
-> [16747.650033] Only Zarlink VP310/MT312/ZL10313 are supported chips.
-> [16748.074008] DS3000 chip version: 0.192 attached.
-> [16748.074015] dw2102: Attached ds3000+ds2020!
-> [16748.074017]
-> [16748.074189] DVB: registering adapter 0 frontend 0 (Montage Technology
-> DS3000/TS2020)...
-> [16748.076014] input: IR-receiver inside an USB DVB receiver as
-> /devices/pci0000:00/0000:00:1d.7/usb1/1-1/input/input11
-> [16748.076312] dvb-usb: schedule remote query interval to 150 msecs.
-> [16748.076327] dvb-usb: TeVii S660 USB successfully initialized and
-> connected.
-> [16748.076596] usbcore: registered new interface driver dw2102
->
->
-> and after that i only see:
-> [16748.224312] dw2102: query RC enter
-> [16748.224320] dw2102: query RC start
-> [16748.246317] dw2102: query RC end
-> [16748.396311] dw2102: query RC enter
-> [16748.396320] dw2102: query RC start
-> [16748.415313] dw2102: query RC end
-> [16748.561641] dw2102: query RC enter
-> [16748.561650] dw2102: query RC start
-> [16748.585317] dw2102: query RC end
->
->
-> over and over just filling the logs. i saw that it was from/for the remote
-> but it looks like debug messages.
->
-> I have tried 3 different kernels 2.6.32/3/4rc1 but they all have the same
-> issue with the driver from 15 march.
->
-> What can be wrong?
-> Any suggestions how i can troubleshoot this?
->
-> With kind regards
-> William van de Velde
->
->
-> new tevii S660 system slow/freeze no channels linux
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->    
+Even without that... We certainly hope to reuse client drivers for
+other families of DVB cards, and for this to work, every driver must
+stick to the standard.
 
+> - some scanning program avoid eeprom by filtering 0x5x range, but
+> now it is at 0xax range (well that should happen because scan limit
+> should be 0x77)
+> - some read only command can be interpreted as write command.
+
+Very bad indeed.
+
+> What should be done ?
+> Fix the drivers.
+
+Yes, definitely. The sooner, the better.
+
+> Have a mode where i2c interface are not exported to everybody.
+
+I have considered this for a moment. It might be fair to let I2C bus
+drivers decide whether they want i2c-dev to expose their buses or not.
+We could use a new class bit (I2C_CLASS_USER or such) to this purpose. I
+didn't get to it yet though, as this doesn't seem to be urgent, and
+i2c-dev has so many other problems...
+
+That being said, this is hardly a valid answer to the problem you
+discovered. Preventing user-space from triggering bugs is not fixing
+them.
+
+> Don't care.
+
+No, that's not an option.
+
+> First why does the i2c stack doesn't check that the address is on
+> 7 bits (like the attached patch) ?
+
+Performance reasons, I presume. Having to check this each time a
+transaction is attempted would be quite costly.
+
+Secondly, I suspect it was never thought that raw I2C messaging would
+become so popular. The original intent was to have all I2C device
+drivers (except maybe i2c-dev) register their clients. The legacy
+method for this (i2c_detect) _does_ have an address check included, and
+so do i2c_new_probed_device and i2c_sysfs_new_device. Probably we
+should add it to i2c_new_device as well, for consistency. It is way
+less expensive to check the address once and for all, than with each
+transaction.
+
+I certainly hope that DVB will move to client-based I2C device drivers
+at some point in time.
+
+Note though that the address check is in no way bullet-proof. If
+addresses in the range 0x03-0x3b are handled as 8-bit entities instead
+of 7-bit entities, they will appear to be in the range 0x06-0x76, which
+is perfectly valid.
+
+> Also I believe a program for testing i2c interface corner case
+> should catch most of these bugs :
+> - null msg[i].len
+> - different transactions on a device :
+>  - one write/read transaction
+>  - one write transaction then one read transaction
+> [...]
+> 
+> Does a such program exist ?
+
+We have several programs in the i2c-tools package, which can be used to
+this purpose:
+* i2cdetect
+* i2cdump
+* i2cget
+* i2cset
+
+With these 4 tools, almost all SMBus transaction types are covered.
+This is sufficient in most cases in my experience. If not, these tools
+can certainly get extended, at least to cover all of SMBus.
+
+-- 
+Jean Delvare
