@@ -1,107 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from psmtp12.wxs.nl ([195.121.247.24]:47791 "EHLO psmtp12.wxs.nl"
+Received: from mx1.redhat.com ([209.132.183.28]:31640 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755313Ab0CDWwD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Mar 2010 17:52:03 -0500
-Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
- by psmtp12.wxs.nl
- (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
- with ESMTP id <0KYS00C9H4ULGB@psmtp12.wxs.nl> for linux-media@vger.kernel.org;
- Thu, 04 Mar 2010 23:52:02 +0100 (MET)
-Date: Thu, 04 Mar 2010 23:51:49 +0100
-From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-Subject: Re: [linux-dvb] Compro U80 Nearly there???
-In-reply-to: <1267260444.4176.31.camel@lisa>
-To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-Message-id: <4B903985.3020404@hoogenraad.net>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <1267260444.4176.31.camel@lisa>
+	id S1755557Ab0CXMCT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Mar 2010 08:02:19 -0400
+Message-ID: <4BA9FF3E.2090406@redhat.com>
+Date: Wed, 24 Mar 2010 09:02:06 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [Resubmit: PATCH-V2] Introducing ti-media directory
+References: <hvaibhav@ti.com> <19F8576C6E063C45BE387C64729E7394044DE0EBC5@dbde02.ent.ti.com> <A69FA2915331DC488A831521EAE36FE4016A785F05@dlee06.ent.ti.com> <201003241005.51075.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201003241005.51075.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Please see if there is more information on the tuner in the logging with 
-debugging switched on:
+Laurent Pinchart wrote:
+> Hi Murali,
+> 
+> On Tuesday 23 March 2010 18:52:44 Karicheri, Muralidharan wrote:
+>> Laurent,
+>>
+>>>> I'm not too sure to like the ti-media name. It will soon get quite
+>>>> crowded, and name collisions might occur (look at the linux-omap-camera
+>>>> tree and the ISP driver in there for instance). Isn't there an internal
+>>>> name to refer to both the DM6446 and AM3517 that could be used ?
+>>> [Hiremath, Vaibhav] Laurent,
+>>>
+>>> ti-media directory is top level directory where we are putting all TI
+>>> devices drivers. So having said that, we should worrying about what goes
+>>> inside this directory.
+>>> For me ISP is more generic, if you compare davinci and OMAP.
+>>>
+>>> Frankly, there are various naming convention we do have from device to
+>>> device, even if the IP's are being reused. For example, the internal name
+>>> for OMAP is ISP but Davinci refers it as a VPSS.
+>> Could you explain what name space issue you are referring to in
+>> linux-omap-camera since I am not quite familiar with that tree?
+> 
+> The linux-omap-camera tree contains a driver for the OMAP3 ISP. Basically, 
+> most source files start with the "isp" prefix and are stored in 
+> drivers/media/video/isp/.
+> 
+> ISP is quite a generic name, and other vendors will probably develop an ISP at 
+> some point (if not already done), so there's already a potential name conflict 
+> today.
+> 
+> Using a dedicated directory in drivers/media/video for TI-specific cores is 
+> definitely a good idea (assuming the same IP cores won't be used by other 
+> vendors in the future).
+> 
+> My concern is that, if we move the ISP driver in drivers/media/video/ti-media, 
+> the directory will soon get quite crowded. If a new TI processor comes up with 
+> a totally incompatible ISP, we will get a name conflict in 
+> drivers/media/video/ti-media. I was thinking about either replacing the "isp" 
+> prefix with "omap3isp" (or similar), or moving the driver to 
+> drivers/media/video/ti-media/omap3isp, but that will impede code sharing code 
+> between the Davinci and OMAP processor families. That's where my uncertainty 
+> comes from.
 
-	sudo modprobe -r dvb-usb-rtl2831u
-	sudo modprobe dvb-usb-rtl2831u debug=1
+There are two separate points here. The first one is re-using a driver or some
+symbols. Whatever directory structure is used, this won't prevent to share the code.
+Just create the header files under include/media and be sure that the Kbuild 
+system will properly handle the dependencies, with "depends on".
 
-The ~jhoogenraad/rtl2831-r2 has two tuners hard-coded in the driver (no 
-separation of back-end and front-end), and logs the interactions with 
-those tuners in debug mode.
+> 
+>> Myself and Vaibhav had discussed this in the past and ti-media is the
+>> generic name that we could agree on. On DM SoCs (DM6446, DM355, DM365) I
+>> expect ti-media to be the home for all vpfe and vpbe driver files. Since
+>> we had a case of common IP across OMAP and DMxxx SoCs, we want to place
+>> all OMAP and DMxxx video driver files in a common directory so that
+>> sharing the drivers across the SoCs will be easy. We could discuss and
+>> agree on another name if need be. Any suggestions?
+> 
+> It's not the name ti-media that I don't agree on, it's just that this will 
+> move the problem one step further in the directory hierarchy without actually 
+> solving it :-)
+> 
+> Is it guaranteed today that no TI processors with new generation video blocks 
+> will reuse the names ISP, VPFE and VPBE ? The OMAP3 datasheet refers to VPFE 
+> and VPBE, but luckily those blocks are further divided into subblocks, and the 
+> driver doesn't refer to the VPFE and VPBE directly.
 
-I maintain the wiki with info on the driver:
-http://www.linuxtv.org/wiki/index.php/Rtl2831_devices
+I agree that a name like ti-media would be too generic. Also, if we take a look on
+how the drivers are currently organized, the trees aren't vendor-based, but
+chipset-design based. There are even some cases where there's just one or two C files that
+are directly stored under drivers/media/video (like tvp5150, for example).
 
-Please also try the new driver (alas with no IR remote support) from
-~anttip/rtl2831u
+IMO, simpler drivers where just one or a couple of files are needed should be stored
+into drivers/media/video. Bigger drivers should be organized by family, and not by vendor. 
+Otherwise, we would need to re-organize the tree to be coherent.
 
-peter wrote:
-> I'm running Ubuntu Karmic, and have a Compro U80 Device USB ID
-> 185b:0150.
-> 
-> To get this close to working I have:
-> 
-> 1) Added 50-udev.rules which seem to allow the device to be recognised.
-> 
-> 2) Compiled the ~jhoogenraad/rtl2831-r2 version of the driver.
-> 
-> This gets me to the point where:
-> - /dev/dvb exists.
-> - my applications recognise the device
-> 
-> - In the log I see:
-> 
-> [   14.311735] dvb-usb: found a 'VideoMate U90' in warm state.
-> [   14.311743] dvb-usb: will pass the complete MPEG2 transport stream to
-> the software demuxer.
-> [   14.312131] DVB: registering new adapter (VideoMate U90)
-> [   14.312420] DVB: registering adapter 0 frontend 0 (Realtek RTL2831
-> DVB-T)...
-> [   14.312521] input: IR-receiver inside an USB DVB receiver
-> as /devices/pci0000:00/0000:00:02.1/usb1/1-1/input/input5
-> [   14.312552] dvb-usb: schedule remote query interval to 300 msecs.
-> [   14.312558] dvb-usb: VideoMate U90 successfully initialized and
-> connected.
-> [   14.312589] usbcore: registered new interface driver dvb_usb_rtd2831u
-> 
-> So looking good so far.
-> 
-> 
-> However, if i used scan, or an application like Kaffeine tuning fails. I
-> know that the device works as I can get it to work on windows.
-> 
-> So I have been looking at the RTL2831U data sheets which I know from the
-> windows driver that this is based on. (I don't know much about this
-> hardware I am trying to figure it out ). So this chip is just doing the
-> demodulating and the USB interface. It must therefore be paired with
-> tuner.  It seems logical to me (but is possibly wrong ) that if the
-> demodulator is working and I cant tune, then the issue is with the tuner
-> part of the driver. The windows drivers refer to both the MT2060 and the
-> QT1010, but I don't know which one is being used. (I have not had the
-> guts to rip the thing apart yet). Docu in the code of for the driver
-> implies that it can support the MT2060 but not the QT1010 so I guess
-> with my luck it is the quantec one. 
-> 
-> Has any one got any advice as to where I should look next? Has anyone
-> got this to work? It seems to be quite close. I any suggestions would be
-> appreciated.
-> Thanks
-> Peter
-> 
-> 
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> 
+One interesting example of the a per-family directory is cx25840. The same driver
+is used by several different chipsets. The driver supports a separate IC chip (cx25836,
+cx2584x), and two designs where the decoder logic is inside an IC chip with the bridge
+and other functional blocks (cx23885 and cx231xx).
 
 
 -- 
-Jan Hoogenraad
-Hoogenraad Interface Services
-Postbus 2717
-3500 GS Utrecht
+
+Cheers,
+Mauro
