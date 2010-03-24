@@ -1,82 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34267 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753460Ab0CQOcw convert rfc822-to-8bit (ORCPT
+Received: from www49.your-server.de ([213.133.104.49]:60879 "EHLO
+	www49.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753740Ab0CXRTI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Mar 2010 10:32:52 -0400
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Pawel Osciak <p.osciak@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"m.szyprowski@samsung.com" <m.szyprowski@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
-Date: Wed, 17 Mar 2010 09:32:45 -0500
-Subject: RE: [PATCH v2] v4l: videobuf: code cleanup.
-Message-ID: <A24693684029E5489D1D202277BE8944541370F5@dlee02.ent.ti.com>
-References: <1268831061-307-1-git-send-email-p.osciak@samsung.com>
-    <1268831061-307-2-git-send-email-p.osciak@samsung.com>
-    <A24693684029E5489D1D202277BE894454137086@dlee02.ent.ti.com>
- <1b349bbb89725540c70175130caf9ae3.squirrel@webmail.xs4all.nl>
-In-Reply-To: <1b349bbb89725540c70175130caf9ae3.squirrel@webmail.xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Wed, 24 Mar 2010 13:19:08 -0400
+Received: from [78.46.5.203] (helo=sslproxy01.your-server.de)
+	by www49.your-server.de with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.69)
+	(envelope-from <mlohse@motama.com>)
+	id 1NuUET-0003D0-Ip
+	for linux-media@vger.kernel.org; Wed, 24 Mar 2010 18:19:05 +0100
+Received: from [188.107.127.143] (helo=[192.168.1.33])
+	by sslproxy01.your-server.de with esmtpsa (TLS-1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.63)
+	(envelope-from <mlohse@motama.com>)
+	id 1NuUXe-0001mH-Az
+	for linux-media@vger.kernel.org; Wed, 24 Mar 2010 18:38:54 +0100
+Message-ID: <4BAA4982.40202@motama.com>
+Date: Wed, 24 Mar 2010 18:18:58 +0100
+From: Marco Lohse <mlohse@motama.com>
 MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: Problems with ngene based DVB cards (Digital Devices Cine S2
+ Dual 	DVB-S2 , Mystique SaTiX S2 Dual)
+References: <4BA10639.3000407@motama.com> <4BA1F9C6.3020807@motama.com>	 <829197381003180709t26f76b38y7e641b8c12a2d33d@mail.gmail.com>	 <4BA2419A.4070608@motama.com> <829197381003180812n7dfe92e7v236e50d6ab7bdc0@mail.gmail.com> <4BA88B5A.3040204@motama.com> <4BA88EBD.7060607@motama.com>
+In-Reply-To: <4BA88EBD.7060607@motama.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Wednesday, March 17, 2010 9:26 AM
-> To: Aguirre, Sergio
-> Cc: Pawel Osciak; linux-media@vger.kernel.org; m.szyprowski@samsung.com;
-> kyungmin.park@samsung.com
-> Subject: RE: [PATCH v2] v4l: videobuf: code cleanup.
+Marco Lohse wrote:
+> Marco Lohse wrote:
+>> Devin Heitmueller wrote:
+>> [..]
+>>> Hi Marco,
+>>>
+>>> Ok, great.  Like I said, I will see if I can reproduce it here, as
+>>> that will help narrow down whether it's really an issue with the ngene
+>>> bridge, or whether it's got something to do with that particular
+>>> bridge/demod/tuner combination.
+>>>
+>> We made some more tests and found some additional issues that we would
+>> like to report.
+>>
 > 
+> Sorry, I forgot the attachment (modified szap-s2)
 > 
-> > Hi,
-> >
-> >> -----Original Message-----
-> >> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> >> owner@vger.kernel.org] On Behalf Of Pawel Osciak
-> >> Sent: Wednesday, March 17, 2010 8:04 AM
-> >> To: linux-media@vger.kernel.org
-> >> Cc: p.osciak@samsung.com; m.szyprowski@samsung.com;
-> >> kyungmin.park@samsung.com
-> >> Subject: [PATCH v2] v4l: videobuf: code cleanup.
-> >>
-> >> Make videobuf pass checkpatch; minor code cleanups.
-> >
-> > I thought this kind patches were frowned upon..
-> >
-> > http://www.mjmwired.net/kernel/Documentation/development-
-> process/4.Coding#41
-> >
-> > But maybe it's acceptable in this case... I'm not an expert on community
-> > policies :)
-> 
-> It is true that you shouldn't do this 'just to clean up code'. But in this
-> case we want to do a lot of work on the videobuf framework, and it helps a
-> lot if it is first brought up to date with the coding standards.
-> 
-> It's just step one in a much longer process :-)
+>> Have fun, Marco
+>>
+>> *Problem A revisited * *****************************
+>>
+>> It was suggested that due to a bug the dvr should never be closed (as a
+>> work-around)
+>>
+>> How does this affect channel tuning times?
+>>
+>> Test (using the latest version of the modified szap-s2)
+>>
+>> 0) su -c "rmmod ngene && modprobe ngene one_adapter=0"
+>>
+>> 1) Run szap-s2 using a channels.conf with "Das Erste" and "ZDF" on
+>> different transponders
+>>
+>> szap-s2 -S 1 -H -c channels_DVB-S2_transponder_switch.conf -a 0 -n 1 -i
+>> reading channels from file 'channels_DVB-S2_transponder_switch.conf'
+>>
+>>>>> Das Erste
+>> zapping to 1 'Das Erste':
+>> delivery DVB-S2, modulation QPSK
+>> sat 0, frequency 11836 MHz H, symbolrate 27500000, coderate auto,
+>> rolloff 0.35
+>> vpid 0x0065, apid 0x0066, sid 0x0068
+>> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+>> Opened frontend
+>> Opened video demux
+>> Opened audio demux
+>> status 1f | signal  69% | snr  67% | ber 1 | unc -2 | FE_HAS_LOCK
+>> Delay zap_to : 0.586872
+>>
+>>>>> ZDF
+>> zapping to 2 'ZDF':
+>> delivery DVB-S2, modulation QPSK
+>> sat 0, frequency 11953 MHz H, symbolrate 27500000, coderate auto,
+>> rolloff 0.35
+>> vpid 0x006e, apid 0x0078, sid 0x0082
+>> status 1f | signal  67% | snr  63% | ber 1 | unc -2 | FE_HAS_LOCK
+>> Delay zap_to : 0.580473
+>>
+>>>>> Das Erste
+>> zapping to 1 'Das Erste':
+>> delivery DVB-S2, modulation QPSK
+>> sat 0, frequency 11836 MHz H, symbolrate 27500000, coderate auto,
+>> rolloff 0.35
+>> vpid 0x0065, apid 0x0066, sid 0x0068
+>> status 1f | signal  69% | snr  67% | ber 1 | unc -2 | FE_HAS_LOCK
+>> Delay zap_to : 0.553754
+>>
+>> => Good, you will see low tuning times.
+>>
+>> 2) in parallel to 1) - and without terminating 1) - run a second
+>> instance of szap-s2 that reads from the device
+>>
+>> szap-s2 -S 1 -H -c channels_DVB-S2_transponder_switch.conf -a 1 -n 1 -r
+>> reading channels from file 'channels_DVB-S2_transponder_switch.conf'
+>> zapping to 1 'Das Erste':
+>> delivery DVB-S2, modulation QPSK
+>> sat 0, frequency 11836 MHz H, symbolrate 27500000, coderate auto,
+>> rolloff 0.35
+>> vpid 0x0065, apid 0x0066, sid 0x0068
+>> using '/dev/dvb/adapter1/frontend0' and '/dev/dvb/adapter1/demux0'
+>> Opened frontend
+>> Opened video demux
+>> Opened audio demux
+>> ..
+>>
+>> 3) while 2) is running, go back to 1) and tune to different transponders
+>> again:
+>>
+>>>>> ZDF
+>> zapping to 2 'ZDF':
+>> delivery DVB-S2, modulation QPSK
+>> sat 0, frequency 11953 MHz H, symbolrate 27500000, coderate auto,
+>> rolloff 0.35
+>> vpid 0x006e, apid 0x0078, sid 0x0082
+>> status 1f | signal  67% | snr  63% | ber 1 | unc -2 | FE_HAS_LOCK
+>> Delay zap_to : 1.774598
+>>
+>>>>> Das Erste
+>> zapping to 1 'Das Erste':
+>> delivery DVB-S2, modulation QPSK
+>> sat 0, frequency 11836 MHz H, symbolrate 27500000, coderate auto,
+>> rolloff 0.35
+>> vpid 0x0065, apid 0x0066, sid 0x0068
+>> status 1f | signal  69% | snr  67% | ber 1 | unc -2 | FE_HAS_LOCK
+>> Delay zap_to : 1.772805
+>>
+>> => Not good, whenver you use both tuners you will see tuning times to
+>> increase from approx. 0.5 secs to 1.7 secs.
+>>
 
-Ok, understood.
+Was anyone able to reproduce the problem with the increased tuning times?
 
-No problem with that at all... I just wanted clarification on this coding
-policy. :)
+Thank you for your comments.
 
-Regards,
-Sergio
+Have fun, Marco
 
-
-> 
-> Regards,
-> 
->           Hans
-> 
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
-
+>>
+>> *Problem B revisited * *****************************
+>>
+>> We also found that when reading data from the dvr device immediately
+>> after tuning was completed (e.g. the lock was successful), then approx.
+>> once in 50 iterations, we still get "old" data from the device. With
+>> "old" I mean from the transponder previously tuned to.
+>>
+>> This results, for example, in the wrong "old" PAT received first.
+>>
+>> Work-around: Simple and annoying. Add a sleep(1) before starting to read
+>> from device.
+>>
+>> *Remark*
+>>
+>> Both problems can _not_ be reproduced with any other board we tested
+>> (Tevii, KNC, ..)
+>>
+>>
