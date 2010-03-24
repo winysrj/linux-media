@@ -1,90 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48]:56788 "EHLO
-	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750730Ab0CAF1s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Mar 2010 00:27:48 -0500
-Subject: Re: Problems with Pinnacle 310i (saa7134) and recent kernels
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Avl Jawrowski <avljawrowski@gmail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <loom.20100220T123935-59@post.gmane.org>
-References: <loom.20090718T135733-267@post.gmane.org>
-	 <1248033581.3667.40.camel@pc07.localdom.local>
-	 <loom.20090720T224156-477@post.gmane.org>
-	 <1248146456.3239.6.camel@pc07.localdom.local>
-	 <loom.20090722T123703-889@post.gmane.org>
-	 <1248338430.3206.34.camel@pc07.localdom.local>
-	 <loom.20090910T234610-403@post.gmane.org>
-	 <1252630820.3321.14.camel@pc07.localdom.local>
-	 <loom.20090912T211959-273@post.gmane.org>
-	 <1252815178.3259.39.camel@pc07.localdom.local>
-	 <loom.20090913T115105-855@post.gmane.org>
-	 <1252881736.4318.48.camel@pc07.localdom.local>
-	 <loom.20090914T150511-456@post.gmane.org>
-	 <1252968793.3250.23.camel@pc07.localdom.local>
-	 <loom.20090915T215753-102@post.gmane.org>
-	 <1253138846.3901.19.camel@pc07.localdom.local>
-	 <loom.20100220T123935-59@post.gmane.org>
-Content-Type: text/plain
-Date: Mon, 01 Mar 2010 06:21:17 +0100
-Message-Id: <1267420877.3185.31.camel@pc07.localdom.local>
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:55078 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755856Ab0CXMQj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Mar 2010 08:16:39 -0400
+Message-ID: <4BAA0257.3090303@redhat.com>
+Date: Wed, 24 Mar 2010 09:15:19 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Jean Delvare <khali@linux-fr.org>
+CC: matthieu castet <castet.matthieu@free.fr>,
+	linux-media@vger.kernel.org, linux-i2c@vger.kernel.org
+Subject: Re: i2c interface bugs in dvb drivers
+References: <4BA6270A.4050703@free.fr> <20100324105636.4d6bf82d@hyperion.delvare>
+In-Reply-To: <20100324105636.4d6bf82d@hyperion.delvare>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Avl,
-
-Am Samstag, den 20.02.2010, 11:49 +0000 schrieb Avl Jawrowski:
-> Hi, sorry for the late.
+Jean Delvare wrote:
+> Hi Matthieu,
 > 
-> hermann pitton <hermann-pitton <at> arcor.de> writes:
+> On Sun, 21 Mar 2010 15:02:50 +0100, matthieu castet wrote:
+>> some dvb driver that export a i2c interface contains some mistakes
+>> because they mainly used by driver (frontend, tuner) wrote for them.
+>> But the i2c interface is exposed to everybody.
+>>
+>> One mistake is expect msg[i].addr with 8 bits address instead of 7
+>> bits address. This make them use eeprom address at 0xa0 instead of
+>> 0x50. Also they shift tuner address (qt1010 tuner is likely to be
+>> at address 0x62, but some put it a 0xc4 (af9015, af9005, dtv5100)).
+>>
+>> Other mistakes is in xfer callback. Often the controller support a
+>> limited i2c support (n bytes write then m bytes read). The driver
+>> try to convert the linux i2c msg to this pattern, but they often
+>> miss cases :
+>> - msg[i].len can be null
 > 
-> > > But I can't see any video.
-> > > With Kaffeine I can see the same channels as well.
-> > 
-> > My guess is, kaffeine has a bit more trust in error correction,
-> > but you over all reception quality seems to be on a critical limit.
+> Zero, not null. This is a very rare case, I've never seen it in
+> multi-message transactions (wouldn't make much sense IMHO), only in
+> the single-message transaction known as SMBus quick command. Many
+> controllers don't support it, so I2C bus drivers don't have to support
+> it. It should be assumed by I2C chip drivers that an I2C adapter
+> without functionality bit I2C_FUNC_SMBUS_QUICK does not support 0-byte
+> messages.
 > 
-> In Kaffeine I see signal at 72% and SNR at 100% for that channel, so I don't
-> think it's so bad.
-
-yes, should be good enough.
-
-> > So it is still some sort of 310i, but you should mention the new name
-> > and that the remote chip on 0x47/0x8e is not detected.
+>> - msg write are not always followed by msg read
+>>
+>> And this can be dangerous if these interfaces are exported to
+>> userspace via i2c-dev :
 > 
-> I add a note and some photos:
+> Even without that... We certainly hope to reuse client drivers for
+> other families of DVB cards, and for this to work, every driver must
+> stick to the standard.
 > 
-> http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_(310i)
+>> - some scanning program avoid eeprom by filtering 0x5x range, but
+>> now it is at 0xax range (well that should happen because scan limit
+>> should be 0x77)
+>> - some read only command can be interpreted as write command.
 > 
-> Can I add any other useful information, log or photo?
+> Very bad indeed.
+> 
+>> What should be done ?
+>> Fix the drivers.
+> 
+> Yes, definitely. The sooner, the better.
 
-We most likely need the former Pinnacle devs here, if not already fired.
-Maybe Mike and Devin can agree these days on it and it seems some
-work-flow does recover.
+Agreed. Could you please propose some patches to fix them?
 
-You can have from me all details for the early device I do have now,
-after later ones caused more confusion, and of course can use all that
-on the wiki.
+>> Have a mode where i2c interface are not exported to everybody.
+> 
+> I have considered this for a moment. It might be fair to let I2C bus
+> drivers decide whether they want i2c-dev to expose their buses or not.
+> We could use a new class bit (I2C_CLASS_USER or such) to this purpose. 
 
-Let me know, I'll sent photos off list then.
-
-After latest on wiki stuff, I'm for sure not interested to have an
-account and was always in doubt, how to separate developer announces and
-user reports there.
-
-I did vote for user reports, if in doubt, since you can't match all
-conditions, at least for such cards I was involved, and did stay away,
-even on worst wrong stuff you sometimes can read there.
-
-Either that wiki idea works or not. In longer terms it should,
-but can also become pretty crufty soon.
+This is a good idea. Users shouldn't be playing with the internal interfaces
+inside the DVB driver. This can be dangerous, as it may cause driver
+miss-functioning, cause memory corruption or eventually hit some bug and
+make the driver crash. Also, due to I2C bridges that are very common 
+on DVB designs, this interface is broken anyway, as the bridge code, when needed,
+is generally implemented outside i2c xfer routines.
 
 Cheers,
-Hermann
- 
-
-
-
+Mauro
