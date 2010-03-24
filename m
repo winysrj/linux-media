@@ -1,75 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.domeneshop.no ([194.63.248.54]:49469 "EHLO
-	smtp.domeneshop.no" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754137Ab0CDXPN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Mar 2010 18:15:13 -0500
-Message-ID: <4B90383D.2040405@skarpeid.com>
-Date: Thu, 04 Mar 2010 23:46:21 +0100
-From: Hendrik Skarpeid <hendrik@skarpeid.com>
+Received: from mail.gmx.net ([213.165.64.20]:38143 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754788Ab0CXTaF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Mar 2010 15:30:05 -0400
+Date: Wed, 24 Mar 2010 20:30:11 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Adam Sutton <aps@plextek.co.uk>
+cc: linux-media@vger.kernel.org
+Subject: Re: SOC camera port for ov7675/ov2640 on i.MX25
+In-Reply-To: <8C9A6B7580601F4FBDC0ED4C1D6A9B1D02AF2F1B@plextek3.plextek.lan>
+Message-ID: <Pine.LNX.4.64.1003242025000.6783@axis700.grange>
+References: <8C9A6B7580601F4FBDC0ED4C1D6A9B1D02AF2F1B@plextek3.plextek.lan>
 MIME-Version: 1.0
-To: "Igor M. Liplianin" <liplianin@me.by>
-CC: linux-media@vger.kernel.org,
-	Nameer Kazzaz <nameer.kazzaz@gmail.com>
-Subject: Re: DM1105: could not attach frontend 195d:1105
-References: <4B7D83B2.4030709@online.no> <201003031749.24261.liplianin@me.by> <4B8E9182.2010906@online.no> <201003032105.06263.liplianin@me.by> <4B903127.208@online.no>
-In-Reply-To: <4B903127.208@online.no>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hendrik Skarpeid skrev:
-> Igor M. Liplianin skrev:
->> On 3 марта 2010 18:42:42 Hendrik Skarpeid wrote:
->>  
->>> Igor M. Liplianin wrote:
->>>    
->>>> Now to find GPIO's for LNB power control and ... watch TV :)
->>>>       
->>> Yep. No succesful tuning at the moment. There might also be an issue
->>> with the reset signal and writing to GPIOCTR, as the module at the
->>> moment loads succesfully only once.
->>> As far as I can make out, the LNB power control is probably GPIO 16 and
->>> 17, not sure which is which, and how they work.
->>> GPIO15 is wired to tuner #reset
->>>     
->> New patch to test
->>   
->> ------------------------------------------------------------------------
->>
->>
->> No virus found in this incoming message.
->> Checked by AVG - www.avg.com Version: 9.0.733 / Virus Database: 
->> 271.1.1/2721 - Release Date: 03/03/10 20:34:00
->>
->
-> modprobe si21xx debug=1 produces this output when scanning.
->
-> [ 2187.998349] si21xx: si21_read_status : FE_READ_STATUS : VSTATUS: 0x02
-> [ 2187.998353] si21xx: si21xx_set_frontend : FE_SET_FRONTEND
-> [ 2187.999881] si21xx: si21xx_setacquire
-> [ 2187.999884] si21xx: si21xx_set_symbolrate : srate = 27500000
-> [ 2188.022645] si21xx: si21_read_status : FE_READ_STATUS : VSTATUS: 0x01
-> [ 2188.054350] si21xx: si21_read_status : FE_READ_STATUS : VSTATUS: 0x02
-> [ 2188.054355] si21xx: si21xx_set_frontend : FE_SET_FRONTEND
-> [ 2188.055875] si21xx: si21xx_setacquire
-> [ 2188.055879] si21xx: si21xx_set_symbolrate : srate = 27500000
-> [ 2188.110359] si21xx: si21_read_status : FE_READ_STATUS : VSTATUS: 0x02
-> [ 2188.110366] si21xx: si21xx_set_frontend : FE_SET_FRONTEND
-> [ 2188.111885] si21xx: si21xx_setacquire
-> [ 2188.111889] si21xx: si21xx_set_symbolrate : srate = 27500000
-> [ 2188.166350] si21xx: si21_read_status : FE_READ_STATUS : VSTATUS: 0x02
-> [ 2188.166354] si21xx: si21xx_set_frontend : FE_SET_FRONTEND
->
-> Since the tuner at hand uses a Si2109 chip, VSTATUS 0x01 and 0x02 
-> would indicate that blind scanning is used. Blind scanning is a 
-> 2109/2110 specific function, and may not very usable since we always 
-> use initial tuning files anyway. 2109/10 also supports the legacy 
-> scanning method which is supported by Si2107708.
->
-> Is the use of blind scanning intentional?
->
-Sorry, my bad. Mixed up the registers.
-Got a VSTATUS: 0x0b once. Mostly I'm getting 0x01 and 0x02. Sometimes 
-0x00 and 0x03
+Hi
 
+On Wed, 24 Mar 2010, Adam Sutton wrote:
+
+> Hi,
+> 
+> I'm just beginning a Linux based project running on a Freescale i.MX25.
+> One of 
+> my jobs is to write a camera driver for the sensor we're going to be
+> using 
+> (Omnivision 7675). However at present I only have access to an ov2640
+> attached 
+> to a Freescale 3stack development board. I thought it would be a useful
+> and 
+> interesting exercise to port the driver provided by Freescale to the new
+> 
+> soc_camera framework.
+> 
+> I've written the ov2640 driver, using a variety of other drivers as
+> references 
+> and I'm using the mx25_camera host driver (with a few mods) posted by
+> Arno 
+> Euteneuer. After getting over some basic setup/config problems I've now
+> got as 
+> far as the mx25_camera loading and this then auto loading the ov2640.
+> This 
+> correctly probes the I2C and detects the sensor.
+> 
+> However I've now come up against a problem that I'm unsure of how to
+> solve and 
+> I'm not sure whether its a case of my not properly following the current
+> 
+> framework. soc_camera_probe() is called and detects the the
+> soc_camera_link 
+> object contains board information and therefore calls
+> soc_camera_init_i2c() this 
+> in turn calls v4l2_i2c_new_subdev_board() which then attempts to create
+> a new 
+> i2c_client (i2c_new_device()) and it is at this point things fail.
+> 
+> Because an i2c_client already exists (auto created from the static board
+> info 
+> registered by the platform configuration), the one passed into the
+> probe() 
+> routine of my chip driver, the i2c_new_device() call fails as it believe
+> the 
+> device is busy as a client already exists for that I2C address.
+> 
+> I can only assume that there is something wrong with the way I've set
+> things up 
+> / used the framework. However I've compared it to several other modules
+> and 
+> can't see any obvious faults (although its not obvious which drivers
+> represent 
+> the current "preferred" approach).
+> 
+> I should say that I'm using a 2.6.31 based kernel (provided by
+> Freescale) into 
+> which I've grafted the 2.6.33 media drivers (and obvious dependencies)
+> so I 
+> guess something about this graft could be causing the problem. Though I
+> cannot 
+> see what from looking at other changes.
+
+Your board shouldn't register static i2c devices for cameras. See any 
+(soc-)camera-enabled platform in the _current_ kernel. E.g., 
+arch/arm/mach-mx3/mach-pcm037.c. However, for us to be able to really help 
+you, you have to base your work on current development kernel, or at least 
+on a recent release (2.6.33 / 2.6.34-rc2).
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
