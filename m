@@ -1,82 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1134 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755587Ab0C3GlX convert rfc822-to-8bit (ORCPT
+Received: from mail-fx0-f223.google.com ([209.85.220.223]:46056 "EHLO
+	mail-fx0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755345Ab0CXK5y convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Mar 2010 02:41:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Kamil Debski <k.debski@samsung.com>
-Subject: Re: [PATCH/RFC 0/1] v4l: Add support for binary controls
-Date: Tue, 30 Mar 2010 08:41:47 +0200
-Cc: linux-media@vger.kernel.org, p.osciak@samsung.com,
-	kyungmin.park@samsung.com
-References: <1269856386-29557-1-git-send-email-k.debski@samsung.com>
-In-Reply-To: <1269856386-29557-1-git-send-email-k.debski@samsung.com>
+	Wed, 24 Mar 2010 06:57:54 -0400
+Received: by fxm23 with SMTP id 23so2943286fxm.1
+        for <linux-media@vger.kernel.org>; Wed, 24 Mar 2010 03:57:53 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+In-Reply-To: <1269410755.2680.53.camel@localhost.localdomain>
+References: <1269410755.2680.53.camel@localhost.localdomain>
+Date: Wed, 24 Mar 2010 14:57:53 +0400
+Message-ID: <1a297b361003240357k19226513q8b70730cfb12371@mail.gmail.com>
+Subject: Re: saa716x driver status
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Rodd Clarkson <rodd@clarkson.id.au>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
-Message-Id: <201003300841.47978.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kamil!
+Hi,
 
-On Monday 29 March 2010 11:53:05 Kamil Debski wrote:
-> 
-> Hello,
-> 
-> This patch introduces new type of v4l2 control - the binary control. It
-> will be useful for exchanging raw binary data between the user space and
-> the driver/hardware.
-> 
-> The patch is pretty small â€“ basically it adds a new control type.
-> 
-> 1.  Reasons to include this new type
-> - Some devices require data which are not part of the stream, but there
-> are necessary for the device to work e.g. coefficients for transformation
-> matrices.
-> - String control is not suitable as it suggests that the data is a null
-> terminated string. This might be important when printing debug information -
-> one might output strings as they are and binary data in hex.
-> 
-> 2. How does the binary control work
-> The binary control has been based on the string control. The principle of
-> use is the same. It uses v4l2_ext_control structure to pass the pointer and
-> size of the data. It is left for the driver to call the copy_from_user/
-> copy_to_user function to copy the data.
-> 
-> 3. About the patch
-> The patch is pretty small â€“ it basically adds a new control type. 
-> 
-> Best wishes,
-> 
+On Wed, Mar 24, 2010 at 10:05 AM, Rodd Clarkson <rodd@clarkson.id.au> wrote:
+> Hi All,
+>
+> I've recently acquired a AverMedia Hybrid NanoExpress tv tuner and I'm
+> trying to get it working with Fedora 13 and Fedora 12.
+>
+> I've found drivers at http://www.jusst.de/hg/saa716x/
+>
+> On f12 the driver build and install, but I have missing symbols when I
+> try to modprobe the drivers.
+>
+> On f13 the drivers fail to build.
+>
+> I've tried contacting Manu Abraham (whom I believe is the developer)
+> about the f12 issues, but haven't heard back.
 
-I don't think this is a good idea. Controls are not really meant to be used
-as an ioctl replacement.
 
-Controls can be used to control the hardware via a GUI (e.g. qv4l2). Obviously,
-this will fail for binary controls. Controls can also be used in cases where
-it is not known up front which controls are needed. This typically happens for
-bridge drivers that can use numerous combinations of i2c sub-devices. Each
-subdev can have its own controls.
+I searched through my email, but was unable to find your email. Maybe
+I happened to miss your email somehow.
 
-There is a grey area where you want to give the application access to low-level
-parameters but without showing them to the end-user. This is currently not
-possible, but it will be once the control framework is finished and once we
-have the possibility to create device nodes for subdevs.
+> I've searched google for everything from saa716x, AverMedia Hybrid Nano
+> Express, HC82 and 1461:0555 (the pci address, I guess).  There's bits
+> and pieces about this driver in the results, but most are that they can
+> build the driver, but it doesn't work.
+>
+> I'm happy to 'risk' my card and try stuff to get this to work, but I'm
+> curious about whether or not development is ongoing and how I can help
+> (not being a c coder)
+>
+> I'll attach the output of the build attempt on f13 in case someone can
+> advise what is going wrong.  The build log was captured using:
+>
+> $ make &> /tmp/saa716x.build.log.f13
+>
 
-But what you want is to basically pass whole structs as a control. That's
-something that ioctls where invented for. Especially once we have subdev nodes
-this shouldn't be a problem.
+I switched to using a 2.6.31 kernel for the development, with regards
+to the logs that you have attached, it looks that the recent IR
+related changes are in conflict. It would be more productive on my
+side to focus on the development of the driver, rather than to keep
+switching, till I have something that is consumable for the end user.
 
-Just the fact that it is easy to implement doesn't mean it should be done :-)
-
-Do you have specific use-cases for your proposed binary control?
+With regards to Fedora 12, maybe that you have some module not
+loaded/not built, so that you see those missing symbols.
 
 Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Manu
