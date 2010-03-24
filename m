@@ -1,76 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:57250 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750865Ab0CANiH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Mar 2010 08:38:07 -0500
-Message-ID: <4B8BC332.6060303@infradead.org>
-Date: Mon, 01 Mar 2010 10:37:54 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1281 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750955Ab0CXHwK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Mar 2010 03:52:10 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Pawel Osciak <p.osciak@samsung.com>
+Subject: Re: [PATCH/RFC 0/2] Fix DQBUF behavior for recoverable streaming errors
+Date: Wed, 24 Mar 2010 08:52:34 +0100
+Cc: "'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	kyungmin.park@samsung.com
+References: <1268836190-31051-1-git-send-email-p.osciak@samsung.com> <201003181320.08756.laurent.pinchart@ideasonboard.com> <003d01cac6b0$e4dccda0$ae9668e0$%osciak@samsung.com>
+In-Reply-To: <003d01cac6b0$e4dccda0$ae9668e0$%osciak@samsung.com>
 MIME-Version: 1.0
-To: Andy Walls <awalls@radix.net>
-CC: Jean Delvare <khali@linux-fr.org>,
-	Dmitri Belimov <d.belimov@gmail.com>,
-	linux-media@vger.kernel.org, "Timothy D. Lenz" <tlenz@vorgon.com>
-Subject: Re: [IR RC, REGRESSION] Didn't work IR RC
-References: <20100301153645.5d529766@glory.loctelecom.ru> <1267442919.3110.20.camel@palomino.walls.org>
-In-Reply-To: <1267442919.3110.20.camel@palomino.walls.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201003240852.34962.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andy Walls wrote:
-> On Mon, 2010-03-01 at 15:36 +0900, Dmitri Belimov wrote:
->> Hi All
->>
->> After rework of the IR subsystem, IR RC no more work in our TV cards.
->> As I see 
->> call saa7134_probe_i2c_ir,
->>   configure i2c
->>   call i2c_new_device
->>
->> New i2c device not registred.
->>
->> The module kbd-i2c-ir loaded after i2c_new_device.
+On Thursday 18 March 2010 16:37:18 Pawel Osciak wrote:
+> >Laurent Pinchart wrote:
+> >On Wednesday 17 March 2010 21:05:19 Hans Verkuil wrote:
+> >> On Wednesday 17 March 2010 15:29:48 Pawel Osciak wrote:
+> >> > Hello,
+> >> >
+> >> > during the V4L2 brainstorm meeting in Norway we have concluded that
+> >> > streaming error handling in dqbuf is lacking a bit and might result in
+> >> > the application losing video buffers.
+> >> >
+> >> > V4L2 specification states that DQBUF should set errno to EIO in such
+> >> > cases:
+> >> >
+> >> >
+> >> > "EIO
+> >> >
+> >> > VIDIOC_DQBUF failed due to an internal error. Can also indicate temporary
+> >> > problems like signal loss. Note the driver might dequeue an (empty)
+> >> > buffer despite returning an error, or even stop capturing."
+> >> >
+> >> > There is a problem with this though. v4l2-ioctl.c code does not copy back
+> >> > v4l2_buffer fields to userspace on a failed ioctl invocation, i.e. when
+> >> > __video_do_ioctl() does not return 0, it jumps over the copy_to_user()
+> >> > code:
+> >> >
+> >> > /* ... */
+> >> > err = __video_do_ioctl(file, cmd, parg);
+> >> > /* ... */
+> >> > if (err < 0)
+> >> >
+> >> > 	goto out;
+> >> >
+> >> > /* ... */
+> >> >
+> >> > 	if (copy_to_user((void __user *)arg, parg, _IOC_SIZE(cmd)))
+> >> >
+> >> > 		err = -EFAULT;
+> >> >
+> >> > /* ... */
+> >> > out:
+> >> >
+> >> >
+> >> > This is fine in general, but in the case of DQBUF errors, the v4l2_buffer
+> >> > fields are not copied back. Because of that, the application does not
+> >> > have any means of discovering on which buffer the operation failed. So
+> >> > it cannot reuse that buffer, even despite the fact that the spec allows
+> >> > such behavior.
+> >> >
+> >> >
+> >> > This RFC proposes a modification to the DQBUF behavior in cases of
+> >> > internal (recoverable) errors to allow recovery from such situations.
+> >> >
+> >> > We propose a new flag for the v4l2_buffer "flags" field,
+> >> > "V4L2_BUF_FLAG_ERROR". There already exists a "V4L2_BUF_FLAG_DONE" flag,
+> >> > so to support older applications, the new flag should always be set
+> >> > together with it.
+> >> >
+> >> > Applications unaware of the new flag would simply display a corrupted
+> >> > frame, but we believe it is still a better solution than failing
+> >> > altogether. Old EIO behavior remains so the change is backwards
+> >> > compatible.
+> >> >
+> >> > I will post relevant V4L2 documentation updates after (if) this change is
+> >> > accepted.
+> >> >
+> >> >
+> >> > This series is rebased onto my recent videobuf clean-up and poll behavior
+> >> > patches.
+> >> >
+> >> > The series contains:
+> >> > [PATCH 1/2] v4l: Add a new ERROR flag for DQBUF after recoverable
+> >> > streaming errors [PATCH 2/2] v4l: videobuf: Add support for
+> >> > V4L2_BUF_FLAG_ERROR
+> >>
+> >> Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
+> >>
+> >> I think this is a very sensible change. After all, DQBUF succeeds, even
+> >> though the buffer itself contains errors. But that is not the fault of
+> >> DQBUF. It is enough to flag that the buffer does have an error. Without
+> >> this you actually loose the buffer completely from the point of view of
+> >> the application. And that's really nasty.
+> >
+> >Especially with the current wording of the spec:
+> >
+> >"Note the driver might dequeue an (empty) buffer despite returning an error,
+> >or even stop capturing."
+> >
+> >That's pretty bad. Because of video_ioctl2 the application won't know which
+> >buffer has been dequeued, if any, and will thus have no way to requeue it.
+> >
+> >Pavel, could you update the Docbook documentation as well in your patch set ?
+> >The behaviour of DQBUF needs to be properly documented.
 > 
-> Jean,
 > 
-> There was also a problem reported with the cx23885 driver's I2C
-> connected IR by Timothy Lenz:
+> Sure. Although I just noticed something. The spec for V4L2_BUF_FLAG_DONE says:
 > 
-> http://www.spinics.net/lists/linux-media/msg15122.html
+> "When this flag is set, the buffer is currently on the outgoing queue,
+> ready to be dequeued from the driver. Drivers set or clear this flag when
+> the VIDIOC_QUERYBUF ioctl is called. After calling the VIDIOC_QBUF or
+> VIDIOC_DQBUF it is always cleared. Of course a buffer cannot be on both queues
+> at the same time, the V4L2_BUF_FLAG_QUEUED and V4L2_BUF_FLAG_DONE flag are
+> mutually exclusive. They can be both cleared however, then the buffer is in
+> "dequeued" state, in the application domain to say so."
 > 
-> The failure mode sounds similar to Dmitri's, but maybe they are
-> unrelated.
 > 
-> I worked a bit with Timothy on IRC and the remote device fails to be
-> detected whether ir-kbd-i2c is loaded before the cx23885 driver or after
-> the cx23885 driver.  I haven't found time to do any folow-up and I don't
-> have any of the hardware in question.
+> So according to the spec, "DONE" means done but not yet returned to userspace.
+> So it should be cleared during dequeueing. But videobuf actually sets that
+> flag in dqbuf. And frankly, it seems more sensible to me.
 > 
-> Do you have any thoughts or a suggested troubleshooting approach?
+> Could you confirm that this is how we want it and I should follow the specs?
+> If so, I will "fix" videobuf to stop setting that flag.
 
-Andy/Dmitri,
+I think the spec makes sense, actually. But doesn't videobuf clear this already?
 
-With the current i2c approach, the bridge driver is responsible for binding
-an i2c device into the i2c adapter. In other words, the bridge driver should
-have some logic to know what devices use ir-kbd-i2c, loading it at the right
-i2c address(es). Manually loading IR shouldn't make any difference.
+On ERROR and DONE videobuf_dqbuf will change the state to IDLE. videobuf_status
+then won't set the DONE flag.
 
->From Andy's comment, I suspect that such logic is missing at cx23885 for the board
-you're referring. Not sure if this is the same case of the boards Dmitri is
-concerned about.
+So as far as I can tell there is nothing that needs to change here.
 
-It should be noticed that the i2c redesign happened on 2.6.31 or 2.6.32, so,
-if this is the case, a patch should be sent also to -stable.
+Regards,
 
-In the case of saa7134, Jean worked on a fix for some boards:
-	http://patchwork.kernel.org/patch/75883/
+          Hans
 
-He is currently waiting for someone with the affected boards to test it and
-give some return.
+> 
+> 
+> Best regards
+> --
+> Pawel Osciak
+> Linux Platform Group
+> Samsung Poland R&D Center
+> 
+> 
+> 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
 -- 
-
-Cheers,
-Mauro
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
