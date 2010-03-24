@@ -1,78 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bamako.nerim.net ([62.4.17.28]:62169 "EHLO bamako.nerim.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932895Ab0CNUsb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Mar 2010 16:48:31 -0400
-Date: Sun, 14 Mar 2010 21:48:28 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Daro <ghost-rider@aster.pl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: hermann pitton <hermann-pitton@arcor.de>,
-	LMML <linux-media@vger.kernel.org>,
-	Roman Kellner <muzungu@gmx.net>
-Subject: Re: [PATCH] saa7134: Fix IR support of some ASUS TV-FM 7135  
- variants
-Message-ID: <20100314214828.5e440058@hyperion.delvare>
-In-Reply-To: <4B9D3A4A.7000803@aster.pl>
-References: <E1Nl2po-000877-Di@services.gcu-squad.org>
-	<20100312103835.79b26455@hyperion.delvare>
-	<4B9C4C13.1010801@aster.pl>
-	<20100314092635.63c4a1b3@hyperion.delvare>
-	<4B9D3A4A.7000803@aster.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp.nokia.com ([192.100.122.230]:57122 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751449Ab0CXFoI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Mar 2010 01:44:08 -0400
+Message-ID: <4BA9A67A.3070004@maxwell.research.nokia.com>
+Date: Wed, 24 Mar 2010 07:43:22 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+MIME-Version: 1.0
+To: Arnout Vandecappelle <arnout@mind.be>
+CC: linux-media@vger.kernel.org, mchehab@infradead.org
+Subject: Re: [PATCH 1/2] V4L/DVB: buf-dma-sg.c: don't assume nr_pages == sglen
+References: <1268866385-15692-1-git-send-email-arnout@mind.be> <1268866385-15692-2-git-send-email-arnout@mind.be>
+In-Reply-To: <1268866385-15692-2-git-send-email-arnout@mind.be>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 14 Mar 2010 20:34:34 +0100, Daro wrote:
-> W dniu 14.03.2010 09:26, Jean Delvare pisze:
-> > It will be easier with the kernel you compiled yourself. First of all,
-> > download the patch from:
-> > http://patchwork.kernel.org/patch/75883/raw/
-> >
-> > Then, move to the source directory of your 2.6.32.2 kernel and apply
-> > the patch:
-> >
-> > $ cd ~/src/linux-2.6.32
-> > $ patch -p2<  ~/download/saa7134-Fix-IR-support-of-some-ASUS-TV-FM-7135-variants.patch
-> >
-> > Adjust the path in each command to match your own setup. Then just
-> > build and install the kernel:
-> >
-> > $ make
-> > $ sudo make modules_install
-> > $ sudo make install
-> >
-> > Or whatever method you use to install your self-compiled kernels. Then
-> > reboot to kernel 2.6.32.2 and test that the remote control works even
-> > when _not_ passing any card parameter to the driver.
-> >
-> > If you ever need to remove the patch, use:
-> >
-> > $ cd ~/src/linux-2.6.32
-> > $ patch -p2 -R<  ~/download/saa7134-Fix-IR-support-of-some-ASUS-TV-FM-7135-variants.patch
-> >
-> > I hope my instructions are clear enough, if you have any problem, just
-> > ask.
-> >
-> > Thanks,
-> >    
+Hi Arnout,
+
+Thanks for the patch.
+
+Arnout Vandecappelle wrote:
+> videobuf_pages_to_sg() and videobuf_vmalloc_to_sg() happen to create
+> a scatterlist element for every page.  However, this is not true for
+> bus addresses, so other functions shouldn't rely on the length of the
+> scatter list being equal to nr_pages.
+> ---
+>  drivers/media/video/videobuf-dma-sg.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
 > 
-> Hi Jean!
-> 
-> It works!
-> dmesg output is attached.
+> diff --git a/drivers/media/video/videobuf-dma-sg.c b/drivers/media/video/videobuf-dma-sg.c
+> index da1790e..18aaf54 100644
+> --- a/drivers/media/video/videobuf-dma-sg.c
+> +++ b/drivers/media/video/videobuf-dma-sg.c
+> @@ -262,7 +262,7 @@ int videobuf_dma_sync(struct videobuf_queue *q, struct videobuf_dmabuf *dma)
+>  	MAGIC_CHECK(dma->magic, MAGIC_DMABUF);
+>  	BUG_ON(!dma->sglen);
+>  
+> -	dma_sync_sg_for_cpu(q->dev, dma->sglist, dma->nr_pages, dma->direction);
+> +	dma_sync_sg_for_cpu(q->dev, dma->sglist, dma->sglen, dma->direction);
+>  	return 0;
+>  }
 
-Thanks for reporting! Mauro, you can pick my (second) patch now and
-apply it.
+I think the same problem still exists --- dma->sglen is not initialised
+anywhere, is it?
 
-> However I will have to go back to "generic" kernel as under my 
-> "self-built" kernels fglrx driver stops working and I did not manage to 
-> solve it :(
-> Or maybe you could give me a hint what to do with it?
+> @@ -272,7 +272,7 @@ int videobuf_dma_unmap(struct videobuf_queue* q,struct videobuf_dmabuf *dma)
+>  	if (!dma->sglen)
+>  		return 0;
+>  
+> -	dma_unmap_sg(q->dev, dma->sglist, dma->nr_pages, dma->direction);
+> +	dma_unmap_sg(q->dev, dma->sglist, dma->sglen, dma->direction);
+>  
+>  	kfree(dma->sglist);
+>  	dma->sglist = NULL;
 
-I can't help you with that, sorry, I don't use binary drivers.
 
 -- 
-Jean Delvare
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
