@@ -1,113 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from canardo.mork.no ([148.122.252.1]:54022 "EHLO canardo.mork.no"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753202Ab0CUT72 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Mar 2010 15:59:28 -0400
-From: =?utf-8?q?Bj=C3=B8rn=20Mork?= <bjorn@mork.no>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4031 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932295Ab0CXUiJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Mar 2010 16:38:09 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id o2OKbxrU038758
+	for <linux-media@vger.kernel.org>; Wed, 24 Mar 2010 21:38:07 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 24 Mar 2010 21:37:59 +0100 (CET)
+Message-Id: <201003242038.o2OKbxrU038758@smtp-vbr2.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: =?utf-8?q?Bj=C3=B8rn=20Mork?= <bjorn@mork.no>, stable@kernel.org
-Subject: [PATCH] V4L/DVB: budget-av: wait longer for frontend to power on
-Date: Sun, 21 Mar 2010 20:46:27 +0100
-Message-Id: <1269200787-30681-1-git-send-email-bjorn@mork.no>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some devices need much more time than 100ms to power on, leading to a
-failure to enable the frontend on the first attempt. Instead we get
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-[   38.194200] saa7146: register extension 'budget_av'.
-[   38.253828] budget_av 0000:05:01.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
-[   38.601572] saa7146: found saa7146 @ mem ffffc90000c6ac00 (revision 1, irq 17) (0x1894,0x0022).
-[   39.251324] saa7146 (0): dma buffer size 1347584
-[   39.306757] DVB: registering new adapter (KNC1 DVB-C MK3)
-[   39.462785] adapter failed MAC signature check
-[   39.516159] encoded MAC from EEPROM was ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff
-[   39.892397] KNC1-0: MAC addr = 00:09:d6:6d:94:5c
-[   40.552028] saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
-[   40.580044] saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
-[   40.608026] saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
-[   40.636027] saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
-[   40.652026] DVB: TDA10023(-1): tda10023_writereg, writereg error (reg == 0x00, val == 0x33, ret == -5)
-[   40.664027] saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
-[   40.692027] saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
-[   40.720027] saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
-[   40.748027] saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
-[   40.764025] DVB: TDA10023(-1): tda10023_readreg: readreg error (reg == 0x1a, ret == -5)
-[   40.764067] budget-av: A frontend driver was not found for device [1131:7146] subsystem [1894:0022]
+Results of the daily build of v4l-dvb:
 
-Unloading and the reloading the driver will work around this problem.  But
-it can also be easily fixed by increasing the wait period after powering
-on.  The optimum value is unclear to me.  But I've found the 500 ms is not
-enough.  5 s is enough for my card, but might be more than actually needed.
-However, as long as we don't handle this failure more gracefully, then the
-timeout need to be long enough.
+date:        Wed Mar 24 19:00:20 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14512:5b152630ae7c
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 8c69c6ed6c74c94fa7ad6fa24eda452e4b212d81
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-Signed-off-by: Bjørn Mork <bjorn@mork.no>
-Cc: stable@kernel.org
----
-Hello,
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-rc1-armv5: OK
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-rc1-armv5-davinci: WARNINGS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-rc1-armv5-ixp: WARNINGS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-rc1-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.17-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-rc1-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-rc1-m32r: OK
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-rc1-mips: WARNINGS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-rc1-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.17-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-rc1-x86_64: WARNINGS
+linux-git-armv5: OK
+linux-git-armv5-davinci: OK
+linux-git-armv5-ixp: OK
+linux-git-armv5-omap2: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: WARNINGS
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.7-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.62-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.7-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
-I have recently bought a KNC1 clone, called Mystique CaBiX-C2.  This card 
-would just not work on reboot in my system, giving the errors shown above.
-Unloading the module and then loading it again always fixed the problem,
-indicating that it was just a startup timing problem.
+Detailed results are available here:
 
-As you can see, the i2c timeouts are from the frontend attach function, 
-tda10023_attach():
-	/* wakeup if in standby */
-	tda10023_writereg (state, 0x00, 0x33);
-	/* check if the demod is there */
-	if ((tda10023_readreg(state, 0x1a) & 0xf0) != 0x70) goto error;
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-cleary showing that it just isn't responding yet at that point.
+Full logs are available here:
 
-I first tried increasing the msleep() to 500 ms, but still got the same
-error.  Increasing it to 5000 ms helped, however, and made my card work
-from boot.  I have not tried any values inbetween, as each attempt AFAIK
-requires a reboot to get the card into the "cold state" where it will
-fail.
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-dmesg with the patch installed:
+The V4L-DVB specification from this daily build is here:
 
-[   37.786955] saa7146: register extension 'budget_av'.
-[   37.846592] budget_av 0000:05:01.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
-[   37.933318] saa7146: found saa7146 @ mem ffffc90000c70c00 (revision 1, irq 17) (0x1894,0x0022).
-[   38.037851] saa7146 (0): dma buffer size 1347584
-[   38.093224] DVB: registering new adapter (KNC1 DVB-C MK3)
-[   38.194254] adapter failed MAC signature check
-[   38.247527] encoded MAC from EEPROM was ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff
-[   38.622678] KNC1-0: MAC addr = 00:09:d6:6d:94:5c
-[   43.765897] DVB: registering adapter 0 frontend 0 (Philips TDA10023 DVB-C)...
-[   43.851587] budget-av: ci interface initialised.
-
-Please consider this patch.  Or maybe it is possible to wait smarter,
-testing actual frontend power status instead of just a blind sleep?
-
-I've also included a CC stable as I've had the same problem with the 2.6.32
-and 2.6.33 stable drivers.
-
-
-Bjørn
-
- drivers/media/dvb/ttpci/budget-av.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/dvb/ttpci/budget-av.c b/drivers/media/dvb/ttpci/budget-av.c
-index 983672a..b53bd80 100644
---- a/drivers/media/dvb/ttpci/budget-av.c
-+++ b/drivers/media/dvb/ttpci/budget-av.c
-@@ -1215,7 +1215,7 @@ static void frontend_init(struct budget_av *budget_av)
- 	saa7146_setgpio(saa, 0, SAA7146_GPIO_OUTLO);
- 
- 	/* Wait for PowerON */
--	msleep(100);
-+	msleep(5000);
- 
- 	/* additional setup necessary for the PLUS cards */
- 	switch (saa->pci->subsystem_device) {
--- 
-1.5.6.5
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
