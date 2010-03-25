@@ -1,86 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f219.google.com ([209.85.220.219]:63697 "EHLO
-	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755823Ab0CDLgq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Mar 2010 06:36:46 -0500
-MIME-Version: 1.0
-In-Reply-To: <4B8F974A.4090001@redhat.com>
-References: <1820d69d1003030445n18b35839r407d4d277b1bf48d@mail.gmail.com>
-	 <62e5edd41003030517g6fa9b64awdf18578d6c5db7e@mail.gmail.com>
-	 <4B8F974A.4090001@redhat.com>
-Date: Thu, 4 Mar 2010 12:36:44 +0100
-Message-ID: <62e5edd41003040336x16253369ycb1905a9938432db@mail.gmail.com>
-Subject: Re: Gspca USB driver zc3xx and STV06xx probe the same device ..
-From: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Gabriel C <nix.or.die@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4180 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751351Ab0CYUjn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Mar 2010 16:39:43 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id o2PKdcYL060573
+	for <linux-media@vger.kernel.org>; Thu, 25 Mar 2010 21:39:42 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 25 Mar 2010 21:39:38 +0100 (CET)
+Message-Id: <201003252039.o2PKdcYL060573@smtp-vbr14.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2010/3/4 Hans de Goede <hdegoede@redhat.com>:
-> Hi,
->
-> On 03/03/2010 02:17 PM, Erik Andrén wrote:
->>
->> 2010/3/3 Gabriel C<nix.or.die@googlemail.com>:
->>>
->>> Hello,
->>>
->>> I own a QuickCam Messanger webcam.. I didn't used it in ages but today
->>> I plugged it in..
->>> ( Device 002: ID 046d:08da Logitech, Inc. QuickCam Messanger )
->>>
->>> Now zc3xx and stv06xx are starting both to probe the device .. In
->>> 2.6.33 that result in a not working webcam.
->>> ( rmmod both&&  modprobe zc3xx one seems to fix that )
->>>
->>> On current git head zc3xx works fine even when both are probing the
->>> device.
->>>
->>> Also I noticed stv06xx fails anyway for my webcam with this error:
->>> ....
->>>
->>> [  360.910243] STV06xx: Configuring camera
->>> [  360.910244] STV06xx: st6422 sensor detected
->>> [  360.910245] STV06xx: Initializing camera
->>> [  361.161948] STV06xx: probe of 6-1:1.0 failed with error -32
->>> [  361.161976] usbcore: registered new interface driver STV06xx
->>> [  361.161978] STV06xx: registered
->>> .....
->>>
->>> Next thing is stv06xx tells it is an st6422 sensor and does not work
->>> with it while zc3xx tells it is an HV7131R(c) sensor and works fine
->>> with it.
->>>
->>> What is right ?
->>
->> Hans,
->> As you added support for the st6422 sensor to the stv06xx subdriver I
->> imagine you best know what's going on.
->>
->
-> I took the USB-ID in question from the out of tree v4l1 driver I was basing
-> my
-> st6422 work on. Looking at the other ID's (which are very close together)
-> and
-> combining that with this bug report, I think it is safe to say that the
-> USB-ID
-> in question should be removed from the stv06xx driver.
->
-> Erik will you handle this, or shall I ?
->
-Either way is fine by me.
-I can try to do it tonight.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Best regards,
-ERik
+Results of the daily build of v4l-dvb:
 
-> Regards,
->
-> Hans
->
+date:        Thu Mar 25 19:01:59 CET 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14512:5b152630ae7c
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 8c69c6ed6c74c94fa7ad6fa24eda452e4b212d81
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
+
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-rc1-armv5: OK
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-rc1-armv5-davinci: WARNINGS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-rc1-armv5-ixp: WARNINGS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-rc1-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.17-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-rc1-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-rc1-m32r: OK
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-rc1-mips: WARNINGS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-rc1-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.17-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-rc1-x86_64: WARNINGS
+linux-git-armv5: OK
+linux-git-armv5-davinci: OK
+linux-git-armv5-ixp: OK
+linux-git-armv5-omap2: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: WARNINGS
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.7-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.62-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.7-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
