@@ -1,20 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
 	[10.5.110.5])
-	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o2NJjoUx030112
-	for <video4linux-list@redhat.com>; Tue, 23 Mar 2010 15:45:50 -0400
-Received: from mail-ew0-f213.google.com (mail-ew0-f213.google.com
-	[209.85.219.213])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2NJjcLG030916
-	for <video4linux-list@redhat.com>; Tue, 23 Mar 2010 15:45:39 -0400
-Received: by ewy5 with SMTP id 5so962670ewy.30
-	for <video4linux-list@redhat.com>; Tue, 23 Mar 2010 12:45:38 -0700 (PDT)
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o2PELKRB011629
+	for <video4linux-list@redhat.com>; Thu, 25 Mar 2010 10:21:20 -0400
+Received: from qw-out-2122.google.com (qw-out-2122.google.com [74.125.92.25])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2PEL8W7006049
+	for <video4linux-list@redhat.com>; Thu, 25 Mar 2010 10:21:08 -0400
+Received: by qw-out-2122.google.com with SMTP id 5so1523828qwi.39
+	for <video4linux-list@redhat.com>; Thu, 25 Mar 2010 07:21:08 -0700 (PDT)
 MIME-Version: 1.0
-Date: Tue, 23 Mar 2010 14:45:37 -0500
-Message-ID: <dfbf38831003231245o5b501793h8d22320e60ab98ba@mail.gmail.com>
-Subject: Which of my 3 video capture devices will work best with my PC?
-From: Serge Pontejos <jeepster.goons@gmail.com>
+Date: Thu, 25 Mar 2010 10:21:08 -0400
+Message-ID: <ea3b75ed1003250721w401de6d8u1660613689674a@mail.gmail.com>
+Subject: Open Source Hardware Video Capture
+From: Brian Phelps <lm317t@gmail.com>
 To: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
@@ -29,46 +28,20 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Greetings all...
+I am looking for help on the following project.
+http://www.opencircuits.com/OpenHDCapture
 
-I'm interested in doing video transfer from VCR to PC and want to know which
-of the 3 capture devices I have has the best chance of working with my
-setup? I have 3 different symptoms happening with each.
+All the hardware is open source and all specs and design (what little there
+is right now) are available via git:
 
-My PC setup:
-Ubuntu Karmic 9.10/2.6.31-20 generic
-Socket 754 AMD Sempron 3000+ with passive cooling (non AMD64)
-Biostar MB with Nforce3 250Gb chipset
-NV31 GPU (Geforce FX5600 Ultra 128MB) using Nvidia 196 driver
-1GB PC3200 DDR RAM
-34GB SCSI coupled to a Adaptec 19160 card
-Soundblaster Audigy
-dvd+-R floppy etc etc.
+git clone git://
+openhdcapture.git.sourceforge.net/gitroot/openhdcapture/openhdcapture(read-only)
+If anyone has any suggestions or would like to help please contact me off
+list.  I am still working on setting up a mailing list for this project but
+you can email me.
 
-The devices in question:
-
-USB: Dazzle Digital Photo Maker, using a USBvision driver recognized as a
-Global Village GV-7000)
-
---This one recognizes and I can display video but if I try to record in
-either xawtv or Kdenlive the program crashes.
-
-PCI: Hauppauge WinTV model 38101
---When installed it shows /dev/video0 when I do an ls, but I don't get a
-signal with either composite or coax input.   I tried following steps from
-this link http://howtoubuntu.org/?p=20 but it didn't change a thing...
-
-PCI: Aurora Systems Fuse previously used on a Mac
---This card picks up the ZR36067 driver, but it's saying it can't initialize
-the i2c bus. Thus, no /dev/video* shows
-
-Let me know which I should focus on and then I'll show the query dumps.
-
-Any help on this would be greatly appreciated.
-
-
-
-~Serge
+When we have a working prototype I would like to add in the V4l2 API to the
+driver.
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
