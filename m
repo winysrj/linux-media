@@ -1,19 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx10.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.14])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o2DHGsfP003241
-	for <video4linux-list@redhat.com>; Sat, 13 Mar 2010 12:16:54 -0500
-Received: from web34405.mail.mud.yahoo.com (web34405.mail.mud.yahoo.com
-	[66.163.178.154])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o2DHGfqJ017858
-	for <video4linux-list@redhat.com>; Sat, 13 Mar 2010 12:16:42 -0500
-Message-ID: <737952.62741.qm@web34405.mail.mud.yahoo.com>
-Date: Sat, 13 Mar 2010 08:50:00 -0800 (PST)
-From: Muppet Man <muppetman4662@yahoo.com>
-Subject: support for hauppauge wintv-hvr 950Q
-To: video4linux-list@redhat.com
+Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.5])
+	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o2PFXDF1021884
+	for <video4linux-list@redhat.com>; Thu, 25 Mar 2010 11:33:13 -0400
+Received: from mail-pz0-f188.google.com (mail-pz0-f188.google.com
+	[209.85.222.188])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2PFWw5q023178
+	for <video4linux-list@redhat.com>; Thu, 25 Mar 2010 11:32:59 -0400
+Received: by pzk26 with SMTP id 26so4132231pzk.6
+	for <video4linux-list@redhat.com>; Thu, 25 Mar 2010 08:32:58 -0700 (PDT)
 MIME-Version: 1.0
+Date: Thu, 25 Mar 2010 11:32:58 -0400
+Message-ID: <ea3b75ed1003250832x5da065b4v571b100bc5fe129d@mail.gmail.com>
+Subject: Hauppaauge USB-Live-2
+From: Brian Phelps <lm317t@gmail.com>
+To: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,31 +29,8 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Greetings all,
-I purchased a hauppauge wintv-hvr 950Q.  I downloaded and installed the lastest drivers from the v4l website.
-
-When attempting to use with TVtime, the only "video" device I can find is my webcam.  
-When running lsusb, this is what I get:
-
-Bus 007 Device 005: ID 0a5c:4503 Broadcom Corp. 
-Bus 007 Device 004: ID 0a5c:4502 Broadcom Corp. 
-Bus 007 Device 003: ID 413c:8126 Dell Computer Corp. Wireless 355 Bluetooth
-Bus 007 Device 002: ID 0a5c:4500 Broadcom Corp. 
-Bus 007 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 005 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 002 Device 004: ID 2040:7200 Hauppauge 
-Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 006 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 001 Device 002: ID 05a9:2640 OmniVision Technologies, Inc. OV2640 Webcam
-Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-
-So I believe my tuner is found, but I don't know what I am doing wrong in order to use it.  Any help would be greatly appreciated.
-Thanks
-
-
-      
+I have been using the Hauppauge USB-Live, does anyone know what chipset the
+USB-Live-2 uses and if it works with v4l or v4l2?
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
