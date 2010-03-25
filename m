@@ -1,47 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet11.oracle.com ([141.146.126.233]:19206 "EHLO
-	acsinet11.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932138Ab0CXQ7L (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Mar 2010 12:59:11 -0400
-Message-ID: <4BAA449F.1060506@oracle.com>
-Date: Wed, 24 Mar 2010 09:58:07 -0700
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Received: from mx1.redhat.com ([209.132.183.28]:25838 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754069Ab0CYTBK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Mar 2010 15:01:10 -0400
+Message-ID: <4BABB2DB.8030305@redhat.com>
+Date: Thu, 25 Mar 2010 16:00:43 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: akpm@linux-foundation.org
-CC: devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	shu.lin@conexant.com, hiep.huynh@conexant.com,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: mmotm 2010-03-23-15-34 uploaded (staging vs. media)
-References: <201003232301.o2NN1bms031050@imap1.linux-foundation.org>
-In-Reply-To: <201003232301.o2NN1bms031050@imap1.linux-foundation.org>
+To: Pavel Machek <pavel@ucw.cz>
+CC: Jon Smirl <jonsmirl@gmail.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
+	kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR 	system?
+References: <20091215115011.GB1385@ucw.cz> <4B279017.3080303@redhat.com> <20091215195859.GI24406@elf.ucw.cz> <9e4733910912151214n68161fc7tca0ffbf34c2c4e4@mail.gmail.com> <20091215201933.GK24406@elf.ucw.cz> <9e4733910912151229o371ee017tf3640d8f85728011@mail.gmail.com> <20091215203300.GL24406@elf.ucw.cz> <9e4733910912151245ne442a5dlcfee92609e364f70@mail.gmail.com> <9e4733910912151338n62b30af5i35f8d0963e6591c@mail.gmail.com> <4BAB7659.1040408@redhat.com> <20100325183259.GA22902@elf.ucw.cz>
+In-Reply-To: <20100325183259.GA22902@elf.ucw.cz>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/23/10 15:34, akpm@linux-foundation.org wrote:
-> The mm-of-the-moment snapshot 2010-03-23-15-34 has been uploaded to
+Pavel Machek wrote:
+> Hi!
 > 
->    http://userweb.kernel.org/~akpm/mmotm/
+>> This were the original plan we've discussed, back in December:
+> ....
 > 
-> and will soon be available at
+> Seems sane.
 > 
->    git://zen-kernel.org/kernel/mmotm.git
+>> struct keycode_table_entry {
+>> 	unsigned keycode;
+>> 	char scancode[32];	/* 32 is just an arbitrary long array - maybe shorter */
+>> 	int len;
+>> }
+> 
+> What about
+> 
+> struct keycode_table_entry {
+> 	unsigned keycode;
+> 	int len;
+> 	char scancode[];
+> }
+> 
+> ? gcc extension, but commonly used around kernel.
 
-
-drivers/staging/cx25821/cx25821-video.c:89:struct cx25821_fmt *format_by_fourcc(unsigned int fourcc)
-(not static)
-
-conflicts with (has the same non-static name as)
-
-drivers/media/common/saa7146_video.c:87:struct saa7146_format* format_by_fourcc(struct saa7146_dev *dev, int fourcc)
-
-
-so when both of these drivers are built into the kernel image:
-
-(.text+0x6360): multiple definition of `format_by_fourcc'
+Seems fine. Maybe we could just use "char *scancode" to avoid using a
+gcc extension on a public interface.
 
 
 -- 
-~Randy
+
+Cheers,
+Mauro
