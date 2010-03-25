@@ -1,66 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:16693 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753748Ab0CQO37 (ORCPT
+Received: from mail-fx0-f223.google.com ([209.85.220.223]:52023 "EHLO
+	mail-fx0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754231Ab0CYOlM convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Mar 2010 10:29:59 -0400
-Received: from eu_spt2 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0KZF00KFIK9VXA@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 17 Mar 2010 14:29:56 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0KZF00HPJK9VAP@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 17 Mar 2010 14:29:55 +0000 (GMT)
-Date: Wed, 17 Mar 2010 15:29:49 +0100
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: [PATCH 1/2] v4l: Add a new ERROR flag for DQBUF after recoverable
- streaming errors
-In-reply-to: <1268836190-31051-1-git-send-email-p.osciak@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com
-Message-id: <1268836190-31051-2-git-send-email-p.osciak@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1268836190-31051-1-git-send-email-p.osciak@samsung.com>
+	Thu, 25 Mar 2010 10:41:12 -0400
+Received: by fxm23 with SMTP id 23so1142888fxm.21
+        for <linux-media@vger.kernel.org>; Thu, 25 Mar 2010 07:41:10 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <28234983.58244.1269523270750.JavaMail.root@benjamin>
+References: <846899811003250553n3dcb8ea5xc2cee6ac05741520@mail.gmail.com>
+	 <28234983.58244.1269523270750.JavaMail.root@benjamin>
+Date: Thu, 25 Mar 2010 15:41:10 +0100
+Message-ID: <846899811003250741o6fd1ce40if22ab1fe440f4457@mail.gmail.com>
+Subject: Re: [ivtv-devel] Andy Walls' change of email address
+From: HoP <jpetrous@gmail.com>
+To: "Jay R. Ashworth" <jra@baylink.com>
+Cc: linux-media@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This flag is to be set together with V4L2_BUF_FLAG_DONE. It is intended
-to indicate streaming errors that might have resulted in corrupted video
-data in the buffer, but the buffer can still be reused and the streaming
-may continue.
+2010/3/25 Jay R. Ashworth <jra@baylink.com>:
+> ----- "HoP" <jpetrous@gmail.com> wrote:
+>> > As a consequence of moving myself into the 21st century by obtaining
+>> > cable internet service, I have a new e-mail address:
+>> >
+>> >        awalls md.metrocast.net
+>> >
+>> > My radix.net email address will soon cease working.
+>>
+>> of course it is not my job, but I wonder why you not
+>> stay on old email. In 21 century there is no problem
+>> to move domain to other place or, at least, do
+>> some type of forwarding :)
+>>
+>> My 2 cents
+>>
+>> /Honza
+>>
+>> PS: The only real reason I can imagine is that radix.com
+>> is not your own domain and owner of it doesn't allow
+>> mail forwarding.
+>
+> Which is, indeed, what one finds by pointing a browser at www.radix.net;
+> that mailbox belongs to his old ISP, and presumably he doesn't want to keep
+> paying them for it.
+>
+> It might be worth your while, though, Andy, as active as you are in the
+> development community (and thanks again for it) to ask them if they'd forward
+> that address for a while, for a nominal charge...  I used to do it, when I
+> ran a small dialup ISP...
+>
 
-Setting this flag and returning 0 is different from returning EIO. The
-latter should now indicate more serious (unrecoverable) errors.
+TBH I would imagine radix.net can be proud if so well-know developer
+is using theirs domain. May be they would pay for his advertising :)
 
-This patch also solves a problem with the ioctl handling code in
-vl42-ioctl.c, which does not copy buffer identification data back to the
-userspace when EIO is returned, so there is no way for applications
-to discover on which buffer the operation failed.
-
-Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
----
- include/linux/videodev2.h |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
-
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 3c26560..1ae1568 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -550,6 +550,9 @@ struct v4l2_buffer {
- #define V4L2_BUF_FLAG_KEYFRAME	0x0008	/* Image is a keyframe (I-frame) */
- #define V4L2_BUF_FLAG_PFRAME	0x0010	/* Image is a P-frame */
- #define V4L2_BUF_FLAG_BFRAME	0x0020	/* Image is a B-frame */
-+/* Buffer is ready, but the data contained within is corrupted.
-+ * Always set together with V4L2_BUF_FLAG_DONE (for backward compatibility). */
-+#define V4L2_BUF_FLAG_ERROR	0x0040
- #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
- #define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
- 
--- 
-1.7.0.31.g1df487
-
+/Honza
