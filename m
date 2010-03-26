@@ -1,51 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:53259 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751629Ab0CTGBe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Mar 2010 02:01:34 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1Nsrka-0001Tv-Dl
-	for linux-media@vger.kernel.org; Sat, 20 Mar 2010 07:01:32 +0100
-Received: from 154.139.70.115.static.exetel.com.au ([115.70.139.154])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sat, 20 Mar 2010 07:01:32 +0100
-Received: from 0123peter by 154.139.70.115.static.exetel.com.au with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sat, 20 Mar 2010 07:01:32 +0100
-To: linux-media@vger.kernel.org
-From: 0123peter@gmail.com
-Subject: Re: Kworld Plus TV Hybrid PCI (DVB-T 210SE)
-Date: Sat, 20 Mar 2010 16:20 +1100
-Message-ID: <0h2e77-gjl.ln1@psd.motzarella.org>
-References: <4B94CF9B.3060000@gmail.com> <1268777563.5120.57.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7Bit
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:37064 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751426Ab0CZTVW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Mar 2010 15:21:22 -0400
+Date: Fri, 26 Mar 2010 20:21:17 +0100
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Jon Smirl <jonsmirl@gmail.com>, Pavel Machek <pavel@ucw.cz>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
+	kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR 	system?
+Message-ID: <20100326192117.GA9290@hardeman.nu>
+References: <20091215195859.GI24406@elf.ucw.cz>
+ <9e4733910912151214n68161fc7tca0ffbf34c2c4e4@mail.gmail.com>
+ <20091215201933.GK24406@elf.ucw.cz>
+ <9e4733910912151229o371ee017tf3640d8f85728011@mail.gmail.com>
+ <20091215203300.GL24406@elf.ucw.cz>
+ <9e4733910912151245ne442a5dlcfee92609e364f70@mail.gmail.com>
+ <9e4733910912151338n62b30af5i35f8d0963e6591c@mail.gmail.com>
+ <4BAB7659.1040408@redhat.com>
+ <20100326122317.GC5387@hardeman.nu>
+ <4BACD00E.7040401@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <4BACD00E.7040401@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-on Wed, 17 Mar 2010 09:12 am
-in the Usenet newsgroup gmane.linux.drivers.video-input-infrastructure
-hermann pitton wrote:
+On Fri, Mar 26, 2010 at 12:17:34PM -0300, Mauro Carvalho Chehab wrote:
+> David Härdeman wrote:
+> > On Thu, Mar 25, 2010 at 11:42:33AM -0300, Mauro Carvalho Chehab wrote:
+> >>>        2) add current_protocol support on other drivers;
+> >> Done. Patch were already merged upstream.
+> >>
+> >> The current_protocol attribute shows the protocol(s) that the device is accepting
+> >> and allows changing it to another protocol. 
+> >>
+> >> In the case of the em28xx hardware, only one protocol can be active, since the decoder
+> >> is inside the hardware. 
+> >>
+> >> On the raw IR decode implementation I've done at the saa7134, all raw pulse events are
+> >> sent to all registered decoders, so I'm thinking on using this sysfs node to allow
+> >> disabling the standard behavior of passing the IR codes to all decoders, routing it
+> >> to just one decoder.
+> >>
+> >> Another alternative would be to show current_protocol only for devices with hardware
+> >> decoder, and create one sysfs node for each decoder, allowing enabling/disabling each
+> >> decoder individually.
+> > 
+> > You're eventually going to want to add ioctl's to set a lot of TX or RX 
+> > parameters in one go (stuff like active receiver(s) and transmitter(s), 
+> > carrier frequency, duty cycle, timeouts, filter levels and resolution - 
+> > all of which would need to be set in one operation since some hardware 
+> > will need to be reset after each parameter is changed).
+> 
+> TX is a completely different history. It has nothing to do with input event
+> subsystem. So, another approach should be taken for it.
 
-[snip]
-> 
-> unfortunately the problem with these cards is known, but no good
-> solution for now.
-> 
-> Best description is from Hartmut and starts here.
-> 
-> http://www.spinics.net/lists/linux-dvb/msg26683.html
-> 
-[snip]
+I suggest (though I might not have been clear on that point) that irrcv 
+devices create a char node...ir specifics are handled via that node 
+(with read/write/ioctl...see the other mail I just send).
 
-Interesting link.  I have one of the cards mentioned 
-(an MSI TV(at)nywhere A/D hybrid).  I've decided not to throw it away.  
+> I haven't seen yet a hardware decoder with such parameters, but maybe I just
+> don't have enough specs here to adjust them.
+
+The entire idea is to have a common API for hardware decoders and 
+decoders which provide raw pulse/space timings. That, to me, is one of 
+the major points of having in-kernel IR decoders - being able to provide 
+a consistent interface for both hardware decoders and pulse/space 
+hardware.
+
+> Anyway, one simple way to avoid
+> resetting the hardware for every new parameter change would be to use a timer
+> for reset. This way, an userspace application or script that is touching on 
+> several parameters would just send the complete RX init sequence and
+> after some dozens of milliseconds, the hardware will load the new parameters.
+
+And I do not think that sounds like a good interface.
+
+> > Then you'll end up with a few things being controlled via sysfs and some 
+> > being controlled via ioctls. Maybe it's a good idea to have a bitmask of 
+> > supported and enabled protocols in those ioctls instead?
+> 
+> There's an interesting discussion about bitmasks x a list of enumerated values
+> as a way to represent a bitmask into a series of values on sysfs,
+> at http://lwn.net/Articles/378219/  (see "A critical look at sysfs attribute values"
+> article there).
+
+Not really relevant...that's just the minor detail of how a sysfs file 
+might be represented.
+
+> That's said, I'm starting to think that the better is to have some differentiation
+> there between hardware and software decoders. IMO, software decoders are better
+> handled with an "enabled" attribute, per software decoder, inside each irrcv.
+
+I think we can create an interface which obscures the differences:
+
+Software decoders will export all in-kernel IR decoders in a bitmask in 
+the "supported_protocols" sysfs file or ioctl struct member.
+
+Hardware decoders will export the hardware supported protocol(s) in the 
+same file/member.
+
+In addition, a sysfs file or ioctl member for "enabled_protocols" will 
+control either the enabled in-kernel IR decoders or hardware decoder(s).
+
+
+
+As should be quite obvious by now...I suggest ioctls (on a irrcv 
+specific chardev) for controlling this :)
 
 -- 
-Sig goes here...  
-Peter D.  
-
-
+David Härdeman
