@@ -1,115 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4180 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751351Ab0CYUjn (ORCPT
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:60753 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753537Ab0CZNcz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Mar 2010 16:39:43 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id o2PKdcYL060573
-	for <linux-media@vger.kernel.org>; Thu, 25 Mar 2010 21:39:42 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 25 Mar 2010 21:39:38 +0100 (CET)
-Message-Id: <201003252039.o2PKdcYL060573@smtp-vbr14.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
+	Fri, 26 Mar 2010 09:32:55 -0400
+Date: Fri, 26 Mar 2010 12:27:55 +0100
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Jon Smirl <jonsmirl@gmail.com>, Pavel Machek <pavel@ucw.cz>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
+	kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR 	system?
+Message-ID: <20100326112755.GB5387@hardeman.nu>
+References: <20091215115011.GB1385@ucw.cz>
+ <4B279017.3080303@redhat.com>
+ <20091215195859.GI24406@elf.ucw.cz>
+ <9e4733910912151214n68161fc7tca0ffbf34c2c4e4@mail.gmail.com>
+ <20091215201933.GK24406@elf.ucw.cz>
+ <9e4733910912151229o371ee017tf3640d8f85728011@mail.gmail.com>
+ <20091215203300.GL24406@elf.ucw.cz>
+ <9e4733910912151245ne442a5dlcfee92609e364f70@mail.gmail.com>
+ <9e4733910912151338n62b30af5i35f8d0963e6591c@mail.gmail.com>
+ <4BAB7659.1040408@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <4BAB7659.1040408@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Thu, Mar 25, 2010 at 11:42:33AM -0300, Mauro Carvalho Chehab wrote:
+> >        10) extend keycode table replacement to support big/variable 
+> >        sized scancodes;
+> 
+> Pending.
+> 
+> The current limit here is the scancode ioctl's are defined as:
+> 
+> #define EVIOCGKEYCODE           _IOR('E', 0x04, int[2])                 /* get keycode */
+> #define EVIOCSKEYCODE           _IOW('E', 0x04, int[2])                 /* set keycode */
+> 
+> As int size is 32 bits, and we must pass both 64 (or even bigger) scancodes, associated
+> with a keycode, there's not enough bits there for IR.
+> 
+> The better approach seems to create an struct with an arbitrary long size, like:
+> 
+> struct keycode_table_entry {
+> 	unsigned keycode;
+> 	char scancode[32];	/* 32 is just an arbitrary long array - maybe shorter */
+> 	int len;
+> }
+>
+> and re-define the ioctls. For example we might be doing:
+> 
+> #define EVIOCGKEYCODEBIG           _IOR('E', 0x04, struct keycode_table_entry)
+> #define EVIOCSKEYCODEBIG           _IOW('E', 0x04, struct keycode_table_entry)
+> #define EVIOCLEARKEYCODEBIG        _IOR('E', 0x04, void)
+> 
+> Provided that the size for struct keycode_table_entry is different, _IO will generate
+> a different magic number for those.
+> 
+> Or, instead of using 0x04, just use another sequential number at the 'E' namespace.
+> 
+> An specific function to clear the table is needed with big scancode space,
+> as already discussed.
+> 
 
-Results of the daily build of v4l-dvb:
+I'd suggest:
 
-date:        Thu Mar 25 19:01:59 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14512:5b152630ae7c
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 8c69c6ed6c74c94fa7ad6fa24eda452e4b212d81
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+struct keycode_table_entry {
+	unsigned keycode;
+	unsigned index;
+	unsigned len;
+	char scancode[];
+};
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc1-armv5: OK
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-rc1-armv5-davinci: WARNINGS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-rc1-armv5-ixp: WARNINGS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-rc1-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.17-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-rc1-i686: WARNINGS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc1-m32r: OK
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-rc1-mips: WARNINGS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-rc1-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.17-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-rc1-x86_64: WARNINGS
-linux-git-armv5: OK
-linux-git-armv5-davinci: OK
-linux-git-armv5-ixp: OK
-linux-git-armv5-omap2: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.7-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.62-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.7-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+Use index in EVIOCGKEYCODEBIG to look up a keycode (all other fields are 
+ignored), that way no special function to clear the table is necessary, 
+instead you do a loop with:
 
-Detailed results are available here:
+EVIOCGKEYCODEBIG (with index 0)
+EVIOCSKEYCODEBIG (with the returned struct from EVIOCGKEYCODEBIG and
+		  keycode = KEY_RESERVED)
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+until EVIOCGKEYCODEBIG returns an error.
 
-Full logs are available here:
+This also allows you to get all the current mappings from the kernel 
+without having to blindly search through an arbitrarily large keyspace.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+Also, EVIOCLEARKEYCODEBIG should be:
 
-The V4L-DVB specification from this daily build is here:
+#define EVIOCLEARKEYCODEBIG _IOR('E', 0x04, struct keycode_table_entry)
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+That way a user space application can simply call EVIOCLEARKEYCODEBIG, 
+ask the user for an appropriate keycode, fill in the keycode member of 
+the struct returned from EVIOCLEARKEYCODEBIG and call EVIOCSKEYCODEBIG.
+
+On a related note, I really think the interface would benefit from 
+allowing more than one keytable per irrcv device with an input device 
+created per keytable. That way you can have one input device per remote 
+control. This implies that EVIOCLEARKEYCODEBIG is a bit misplaced as an 
+evdev IOCTL since there's an N-1 mapping between input devices and irrcv 
+devices.
+
+ioctl's to set/get keycodes for ir should also take a flag parameter in 
+the struct to allow special properties to be set/returned for a given 
+keycode mapping (I'm thinking of keycodes which powers on the computer 
+for instance, that should be exposed to userspace somehow).
+
+With all of that, the struct might need to be something like:
+
+struct keycode_table_entry {
+	unsigned keycode; /* e.g. KEY_A */
+	unsigned table;   /* Table index, for multiple keytables */
+	unsigned index;   /* Index in the given keytable */
+	unsigned flags;   /* For additional functionality */
+	unsigned len;     /* Of the struct */
+	char scancode[];  /* Per-protocol scancode data follows */
+};
+
+Finally, I think irrcv should create a chardev of its own with ioctl's 
+like EVIOCLEARKEYCODEBIG (and RX/TX parameter setting ioctl's).  The 
+same chardev can be used for IR blasting (by writing data to it once TX 
+parameters have been set).
+
+
+-- 
+David Härdeman
