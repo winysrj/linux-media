@@ -1,158 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f222.google.com ([209.85.218.222]:41277 "EHLO
-	mail-bw0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753437Ab0CGOg0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Mar 2010 09:36:26 -0500
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:60755 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753559Ab0CZNcz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Mar 2010 09:32:55 -0400
+Date: Fri, 26 Mar 2010 13:23:18 +0100
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Jon Smirl <jonsmirl@gmail.com>, Pavel Machek <pavel@ucw.cz>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
+	kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR 	system?
+Message-ID: <20100326122317.GC5387@hardeman.nu>
+References: <20091215115011.GB1385@ucw.cz>
+ <4B279017.3080303@redhat.com>
+ <20091215195859.GI24406@elf.ucw.cz>
+ <9e4733910912151214n68161fc7tca0ffbf34c2c4e4@mail.gmail.com>
+ <20091215201933.GK24406@elf.ucw.cz>
+ <9e4733910912151229o371ee017tf3640d8f85728011@mail.gmail.com>
+ <20091215203300.GL24406@elf.ucw.cz>
+ <9e4733910912151245ne442a5dlcfee92609e364f70@mail.gmail.com>
+ <9e4733910912151338n62b30af5i35f8d0963e6591c@mail.gmail.com>
+ <4BAB7659.1040408@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <62e5edd41003061146x689527c9s5b3ab81eec3425a0@mail.gmail.com>
-References: <1820d69d1003030445n18b35839r407d4d277b1bf48d@mail.gmail.com>
-	 <62e5edd41003030517g6fa9b64awdf18578d6c5db7e@mail.gmail.com>
-	 <4B8F974A.4090001@redhat.com>
-	 <62e5edd41003040336x16253369ycb1905a9938432db@mail.gmail.com>
-	 <4B8F9FC6.9030105@redhat.com>
-	 <62e5edd41003061146x689527c9s5b3ab81eec3425a0@mail.gmail.com>
-Date: Sun, 7 Mar 2010 15:36:24 +0100
-Message-ID: <1820d69d1003070636y7fee5ce1q5e60f40d93379065@mail.gmail.com>
-Subject: Re: Gspca USB driver zc3xx and STV06xx probe the same device ..
-From: Gabriel C <nix.or.die@googlemail.com>
-To: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <4BAB7659.1040408@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2010/3/6 Erik Andrén <erik.andren@gmail.com>:
-> 2010/3/4 Hans de Goede <hdegoede@redhat.com>:
->> Hi,
->>
->> On 03/04/2010 12:36 PM, Erik Andrén wrote:
->>>
->>> 2010/3/4 Hans de Goede<hdegoede@redhat.com>:
->>>>
->>>> Hi,
->>>>
->>>> On 03/03/2010 02:17 PM, Erik Andrén wrote:
->>>>>
->>>>> 2010/3/3 Gabriel C<nix.or.die@googlemail.com>:
->>>>>>
->>>>>> Hello,
->>>>>>
->>>>>> I own a QuickCam Messanger webcam.. I didn't used it in ages but today
->>>>>> I plugged it in..
->>>>>> ( Device 002: ID 046d:08da Logitech, Inc. QuickCam Messanger )
->>>>>>
->>>>>> Now zc3xx and stv06xx are starting both to probe the device .. In
->>>>>> 2.6.33 that result in a not working webcam.
->>>>>> ( rmmod both&&    modprobe zc3xx one seems to fix that )
->>>>>>
->>>>>> On current git head zc3xx works fine even when both are probing the
->>>>>> device.
->>>>>>
->>>>>> Also I noticed stv06xx fails anyway for my webcam with this error:
->>>>>> ....
->>>>>>
->>>>>> [  360.910243] STV06xx: Configuring camera
->>>>>> [  360.910244] STV06xx: st6422 sensor detected
->>>>>> [  360.910245] STV06xx: Initializing camera
->>>>>> [  361.161948] STV06xx: probe of 6-1:1.0 failed with error -32
->>>>>> [  361.161976] usbcore: registered new interface driver STV06xx
->>>>>> [  361.161978] STV06xx: registered
->>>>>> .....
->>>>>>
->>>>>> Next thing is stv06xx tells it is an st6422 sensor and does not work
->>>>>> with it while zc3xx tells it is an HV7131R(c) sensor and works fine
->>>>>> with it.
->>>>>>
->>>>>> What is right ?
->>>>>
->>>>> Hans,
->>>>> As you added support for the st6422 sensor to the stv06xx subdriver I
->>>>> imagine you best know what's going on.
->>>>>
->>>>
->>>> I took the USB-ID in question from the out of tree v4l1 driver I was
->>>> basing
->>>> my
->>>> st6422 work on. Looking at the other ID's (which are very close together)
->>>> and
->>>> combining that with this bug report, I think it is safe to say that the
->>>> USB-ID
->>>> in question should be removed from the stv06xx driver.
->>>>
->>>> Erik will you handle this, or shall I ?
->>>>
->>> Either way is fine by me.
->>> I can try to do it tonight.
->>>
->>
->> If you could take care of this that would be great!
->>
->> Thanks,
->>
->> Hans
->>
->
-> Sorry for delaying this, real life came in the way.
-> I'm pasting in a patch that removes the usb id.
-> I'm also attaching it as an attachment as gmail probably will stomp on
-> the inline version.
->
+On Thu, Mar 25, 2010 at 11:42:33AM -0300, Mauro Carvalho Chehab wrote:
+>>        2) add current_protocol support on other drivers;
+> 
+> Done. Patch were already merged upstream.
+> 
+> The current_protocol attribute shows the protocol(s) that the device is accepting
+> and allows changing it to another protocol. 
+> 
+> In the case of the em28xx hardware, only one protocol can be active, since the decoder
+> is inside the hardware. 
+> 
+> On the raw IR decode implementation I've done at the saa7134, all raw pulse events are
+> sent to all registered decoders, so I'm thinking on using this sysfs node to allow
+> disabling the standard behavior of passing the IR codes to all decoders, routing it
+> to just one decoder.
+> 
+> Another alternative would be to show current_protocol only for devices with hardware
+> decoder, and create one sysfs node for each decoder, allowing enabling/disabling each
+> decoder individually.
 
-Sorry too also I was busy these days.
+You're eventually going to want to add ioctl's to set a lot of TX or RX 
+parameters in one go (stuff like active receiver(s) and transmitter(s), 
+carrier frequency, duty cycle, timeouts, filter levels and resolution - 
+all of which would need to be set in one operation since some hardware 
+will need to be reset after each parameter is changed).
 
-> Gabriel, could you please apply and test this patch and verify that it
-> works as intended, i. e. the stv06xx driver _doesn't_ bind to your
-> camera but the zx3xx driver instead does.
-> If it works as intended could you please reply to this mail with a
+Then you'll end up with a few things being controlled via sysfs and some 
+being controlled via ioctls. Maybe it's a good idea to have a bitmask of 
+supported and enabled protocols in those ioctls instead?
 
-Yes does work.
-
-> tested-by: your name <email> tag.
->
-
-tested-by: Gabriel Craciunescu <nix.or.die@googlemail.com>
-
-> Best regards,
-> Erik
->
-> From 6f40494d48c5641326168115a96659581cea6273 Mon Sep 17 00:00:00 2001
-> From: =?utf-8?q?Erik=20Andr=C3=A9n?= <erik.andren@gmail.com>
-> Date: Sat, 6 Mar 2010 20:34:51 +0100
-> Subject: [PATCH 1/1] gspca-stv06xx: Remove the 046d:08da usb id from
-> linking to the stv06xx driver
-> MIME-Version: 1.0
-> Content-Type: text/plain; charset=utf-8
-> Content-Transfer-Encoding: 8bit
->
-> The 046d:08da usb id shouldn't be associated with the stv06xx driver
-> as they're not compatible with each other.
-> This fixes a bug where Quickcam Messenger cams fail to use its proper
-> driver (gspca-zc3xx), rendering the camera inoperable.
->
-> Signed-off-by: Erik Andrén <erik.andren@gmail.com>
-> ---
->  drivers/media/video/gspca/stv06xx/stv06xx.c |    2 --
->  1 files changed, 0 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/video/gspca/stv06xx/stv06xx.c
-> b/drivers/media/video/gspca/stv06xx/stv06xx.c
-> index de823ed..b1f7e28 100644
-> --- a/drivers/media/video/gspca/stv06xx/stv06xx.c
-> +++ b/drivers/media/video/gspca/stv06xx/stv06xx.c
-> @@ -497,8 +497,6 @@ static const __devinitdata struct usb_device_id
-> device_table[] = {
->        {USB_DEVICE(0x046D, 0x08F5), .driver_info = BRIDGE_ST6422 },
->        /* QuickCam Messenger (new) */
->        {USB_DEVICE(0x046D, 0x08F6), .driver_info = BRIDGE_ST6422 },
-> -       /* QuickCam Messenger (new) */
-> -       {USB_DEVICE(0x046D, 0x08DA), .driver_info = BRIDGE_ST6422 },
->        {}
->  };
->  MODULE_DEVICE_TABLE(usb, device_table);
-> --
-> 1.6.3.3
->
+-- 
+David Härdeman
