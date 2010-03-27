@@ -1,135 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway03.websitewelcome.com ([69.93.87.23]:60447 "HELO
-	gateway03.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1757604Ab0CaQl0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Mar 2010 12:41:26 -0400
-Date: Wed, 31 Mar 2010 09:34:39 -0700 (PDT)
-From: "Dean A." <dean@sensoray.com>
-Subject: [PATCH] s2255drv: v4l2 device added
-To: linux-media@vger.kernel.org
-cc: hverkuil@xs4all.nl
-Message-ID: <tkrat.6506e871933e5a00@sensoray.com>
+Received: from mail.juropnet.hu ([212.24.188.131]:44466 "EHLO mail.juropnet.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752998Ab0C0Mbp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Mar 2010 08:31:45 -0400
+Received: from kabelnet-194-37.juropnet.hu ([91.147.194.37])
+	by mail.juropnet.hu with esmtps (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <istvan_v@mailbox.hu>)
+	id 1NvVAz-0006xo-Kb
+	for linux-media@vger.kernel.org; Sat, 27 Mar 2010 13:31:44 +0100
+Message-ID: <4BADFC12.4030707@mailbox.hu>
+Date: Sat, 27 Mar 2010 13:37:38 +0100
+From: "istvan_v@mailbox.hu" <istvan_v@mailbox.hu>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=us-ascii
-Content-Disposition: INLINE
+To: linux-media@vger.kernel.org
+Subject: [PATCH] cx88: implement sharpness control
+Content-Type: multipart/mixed;
+ boundary="------------090004070906010201070009"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-# HG changeset patch
-# User Dean Anderson <dean@sensoray.com>
-# Date 1270053044 25200
-# Node ID 0690e4e1d81e785af1a5f06a13573dcf2cc5cb0c
-# Parent  c72bdc8732abc0cf7bc376babfd06b2d999bdcf4
-s2255drv: adding v4l2_device structure. video_register_device cleanup
+This is a multi-part message in MIME format.
+--------------090004070906010201070009
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-From: Dean Anderson <dean@sensoray.com>
+This patch adds support for V4L2_CID_SHARPNESS by changing the luma peak
+filter and notch filter. It can be set in the range 0 to 9, with 0 being
+the original and default mode.
+One minor problem is that other code that sets the registers being used
+(for example when switching TV channels) could reset the control to the
+default. This could be avoided by making changes so that the bits used
+to implement this control are not overwritten.
 
-adding v4l2_device structure.
-if one video_register_device call fails, allows use of other devices
-or channels.
+Signed-off-by: Istvan Varga <istvanv@users.sourceforge.net>
 
-Priority: normal
+--------------090004070906010201070009
+Content-Type: text/x-patch;
+ name="cx88-sharpness.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="cx88-sharpness.patch"
 
-Signed-off-by: Dean Anderson <dean@sensoray.com>
-
-diff -r c72bdc8732ab -r 0690e4e1d81e linux/drivers/media/video/s2255drv.c
---- a/linux/drivers/media/video/s2255drv.c	Wed Mar 31 07:38:11 2010 -0700
-+++ b/linux/drivers/media/video/s2255drv.c	Wed Mar 31 09:30:44 2010 -0700
-@@ -51,6 +51,7 @@
- #include <linux/smp_lock.h>
- #include <media/videobuf-vmalloc.h>
- #include <media/v4l2-common.h>
-+#include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- #include <linux/vmalloc.h>
- #include <linux/usb.h>
-@@ -77,7 +78,6 @@
- #define S2255_DEF_BUFS          16
- #define S2255_SETMODE_TIMEOUT   500
- #define S2255_VIDSTATUS_TIMEOUT 350
--#define MAX_CHANNELS		4
- #define S2255_MARKER_FRAME	cpu_to_le32(0x2255DA4AL)
- #define S2255_MARKER_RESPONSE	cpu_to_le32(0x2255ACACL)
- #define S2255_RESPONSE_SETMODE  cpu_to_le32(0x01)
-@@ -225,6 +225,8 @@
- 
- struct s2255_dev {
- 	struct video_device	vdev[MAX_CHANNELS];
-+	struct v4l2_device 	v4l2_dev[MAX_CHANNELS];
-+	int                     channels; /* number of channels registered */
- 	int			frames;
- 	struct mutex		lock;
- 	struct mutex		open_lock;
-@@ -1753,7 +1755,8 @@
- 	int state;
- 	dprintk(1, "s2255: open called (dev=%s)\n",
- 		video_device_node_name(vdev));
--	for (i = 0; i < MAX_CHANNELS; i++)
-+
-+	for (i = 0; i < dev->channels; i++)
- 		if (&dev->vdev[i] == vdev) {
- 			cur_channel = i;
- 			break;
-@@ -1994,7 +1997,11 @@
- 	int ret;
- 	int i;
- 	int cur_nr = video_nr;
--
-+	for (i = 0; i < MAX_CHANNELS; i++) {
-+		ret = v4l2_device_register(&dev->udev->dev, &dev->v4l2_dev[i]);
-+		if (ret)
-+			goto unreg_v4l2;
-+	}
- 	/* initialize all video 4 linux */
- 	/* register 4 video devices */
- 	for (i = 0; i < MAX_CHANNELS; i++) {
-@@ -2014,16 +2021,29 @@
- 						    VFL_TYPE_GRABBER,
- 						    cur_nr + i);
- 		video_set_drvdata(&dev->vdev[i], dev);
--
--		if (ret != 0) {
-+		if (ret) {
- 			dev_err(&dev->udev->dev,
- 				"failed to register video device!\n");
--			return ret;
-+			break;
- 		}
-+		dev->channels++;
-+		v4l2_info(&dev->v4l2_dev[i], "V4L2 device registered as %s\n",
-+			  video_device_node_name(&dev->vdev[i]));
-+
+diff -r -d -N -U4 v4l-dvb-a79dd2ae4d0e.old/linux/drivers/media/video/cx88/cx88-video.c v4l-dvb-a79dd2ae4d0e/linux/drivers/media/video/cx88/cx88-video.c
+--- v4l-dvb-a79dd2ae4d0e.old/linux/drivers/media/video/cx88/cx88-video.c	2010-03-23 03:39:52.000000000 +0100
++++ v4l-dvb-a79dd2ae4d0e/linux/drivers/media/video/cx88/cx88-video.c	2010-03-23 19:07:26.000000000 +0100
+@@ -220,9 +220,24 @@
+ 		.off                   = 0,
+ 		.reg                   = MO_UV_SATURATION,
+ 		.mask                  = 0x00ff,
+ 		.shift                 = 0,
+-	},{
++	}, {
++		.v = {
++			.id            = V4L2_CID_SHARPNESS,
++			.name          = "Sharpness",
++			.minimum       = 0,
++			.maximum       = 9,
++			.default_value = 0x0,
++			.type          = V4L2_CTRL_TYPE_INTEGER,
++		},
++		.off		       = 0,
++		/* NOTE: the value is converted and written to both even
++		   and odd registers in the code */
++		.reg                   = MO_FILTER_ODD,
++		.mask                  = 7 << 7,
++		.shift                 = 7,
++	}, {
+ 		.v = {
+ 			.id            = V4L2_CID_CHROMA_AGC,
+ 			.name          = "Chroma AGC",
+ 			.minimum       = 0,
+@@ -300,8 +315,9 @@
+ 	V4L2_CID_HUE,
+ 	V4L2_CID_AUDIO_VOLUME,
+ 	V4L2_CID_AUDIO_BALANCE,
+ 	V4L2_CID_AUDIO_MUTE,
++	V4L2_CID_SHARPNESS,
+ 	V4L2_CID_CHROMA_AGC,
+ 	V4L2_CID_COLOR_KILLER,
+ 	0
+ };
+@@ -1187,8 +1203,13 @@
+ 		break;
+ 	case V4L2_CID_AUDIO_VOLUME:
+ 		ctl->value = 0x3f - (value & 0x3f);
+ 		break;
++	case V4L2_CID_SHARPNESS:
++		ctl->value = (value & 0x0380) >> 6;
++		ctl->value = (ctl->value < 8 ? 0 : (ctl->value - 6))
++			     | ((cx_read(MO_HTOTAL) & 0x0800) >> 11);
++		break;
+ 	default:
+ 		ctl->value = ((value + (c->off << c->shift)) & c->mask) >> c->shift;
+ 		break;
  	}
-+
- 	printk(KERN_INFO "Sensoray 2255 V4L driver Revision: %d.%d\n",
- 	       S2255_MAJOR_VERSION,
- 	       S2255_MINOR_VERSION);
-+	/* if no channels registered, return error and probe will fail*/
-+	if (dev->channels == 0)
-+		return ret;
-+	if (dev->channels != MAX_CHANNELS)
-+		printk(KERN_WARNING "s2255: Not all channels available.\n");
-+	return 0;
-+unreg_v4l2:
-+	for (i-- ; i > 0; i--)
-+		v4l2_device_unregister(&dev->v4l2_dev[i]);
- 	return ret;
- }
- 
-@@ -2705,13 +2725,9 @@
- 	/* loads v4l specific */
- 	retval = s2255_probe_v4l(dev);
- 	if (retval)
--		goto errorV4L;
-+		goto errorBOARDINIT;
- 	dev_info(&interface->dev, "Sensoray 2255 detected\n");
- 	return 0;
--errorV4L:
--	for (i = 0; i < MAX_CHANNELS; i++)
--		if (video_is_registered(&dev->vdev[i]))
--			video_unregister_device(&dev->vdev[i]);
- errorBOARDINIT:
- 	s2255_board_shutdown(dev);
- errorFWMARKER:
+@@ -1246,8 +1267,16 @@
+ 			value=(value*0x5a)/0x7f<<8|value;
+ 		}
+ 		mask=0xffff;
+ 		break;
++	case V4L2_CID_SHARPNESS:
++		/* use 4xFsc or square pixel notch filter */
++		cx_andor(MO_HTOTAL, 0x1800, (ctl->value & 1) << 11);
++		/* 0b000, 0b100, 0b101, 0b110, or 0b111 */
++		value = (ctl->value < 2 ? 0 : (((ctl->value + 6) & 0x0E) << 6));
++		/* needs to be set for both fields */
++		cx_andor(MO_FILTER_EVEN, mask, value);
++		break;
+ 	case V4L2_CID_CHROMA_AGC:
+ 		/* Do not allow chroma AGC to be enabled for SECAM */
+ 		value = ((ctl->value - c->off) << c->shift) & c->mask;
+ 		if (core->tvnorm & V4L2_STD_SECAM && value)
 
+--------------090004070906010201070009--
