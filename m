@@ -1,334 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out30.alice.it ([85.33.2.30]:3821 "EHLO
-	smtp-out30.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751192Ab0CALyw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Mar 2010 06:54:52 -0500
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: linux-media@vger.kernel.org
-Cc: Antonio Ospite <ospite@studenti.unina.it>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Max Thrun <bear24rw@gmail.com>
-Subject: [PATCH v2 09/11] ov534: Cosmetics: fix indentation and hex digits
-Date: Mon,  1 Mar 2010 12:54:33 +0100
-Message-Id: <1267444473-29298-1-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <20100228201133.d4e4b5c6.ospite@studenti.unina.it>
-References: <20100228201133.d4e4b5c6.ospite@studenti.unina.it>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4689 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753382Ab0C0Ocj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Mar 2010 10:32:39 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Andy Walls <awalls@radix.net>
+Subject: Re: Testers for the cpia2 driver wanted!
+Date: Sat, 27 Mar 2010 15:32:56 +0100
+Cc: linux-media@vger.kernel.org
+References: <201003240855.50598.hverkuil@xs4all.nl> <1269692744.3079.17.camel@palomino.walls.org>
+In-Reply-To: <1269692744.3079.17.camel@palomino.walls.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201003271532.56054.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Saturday 27 March 2010 13:25:44 Andy Walls wrote:
+> On Wed, 2010-03-24 at 08:55 +0100, Hans Verkuil wrote:
+> > Hi all,
+> > 
+> > I'm looking for someone who has hardware that can test the cpia2 driver.
+> > 
+> > I thought I had hardware for that, but it turned out that it used the gspca
+> > mars driver instead.
+> 
+> A co-worker just gave me an Intel Play QX3 microscope:
+> 
+>         [ 1218.810045] usb 3-3: new full speed USB device using ohci_hcd and address 3
+>         [ 1219.026373] usb 3-3: configuration #1 chosen from 1 choice
+>         [ 1219.027352] usb 3-3: New USB device found, idVendor=0813, idProduct=0001
+>         [ 1219.027358] usb 3-3: New USB device strings: Mfr=2, Product=1, SerialNumber=0
+>         [ 1219.027363] usb 3-3: Product: Intel Play QX3 Microscope
+>         [ 1219.027367] usb 3-3: Manufacturer: Mattel Inc.
+>         [ 1219.145032] gspca: main v2.9.0 registered
+>         [ 1219.152733] gspca: probing 0813:0001
+>         [ 1219.152758] cpia1: cpia CPiA camera detected (vid/pid 0x0813:0x0001)
+>         [ 1219.479599] cpia1: CPIA Version:             1.33 (2.10)
+>         [ 1219.479614] cpia1: CPIA PnP-ID:              0813:0001:0106
+>         [ 1219.479619] cpia1: VP-Version:               1.0 0100
+>         [ 1219.481976] gspca: video2 created
+>         [ 1219.482271] usbcore: registered new interface driver cpia1
+>         [ 1219.484291] cpia1: registered
+>         [ 1219.500235] V4L-Driver for Vision CPiA based cameras v1.2.3
+>         [ 1219.500256] Since in-kernel colorspace conversion is not allowed, it is disabled by default now. Users should fix the applications in case they don't work without conversion reenabled by setting the 'colorspace_conv' module parameter to 1
+>         [ 1219.508170] USB driver for Vision CPiA based cameras v1.2.3
+>         [ 1219.508267] usbcore: registered new interface driver cpia
+> 
+> 
+> But it looks like it is not supported by cpia2:
+> 
+> 	$ grep 'USB_DEVICE(.*813' cpia* cpia2/* gspca/* 
+> 	cpia_usb.c:	{ USB_DEVICE(0x0813, 0x0001) },
+> 	gspca/cpia1.c:	{USB_DEVICE(0x0813, 0x0001)},
+> 	gspca/ov519.c:	{USB_DEVICE(0x0813, 0x0002), .driver_info = BRIDGE_OV511PLUS },
+> 
+> Is there any testing you need done with this device?
 
-  * Indent with tabs, not with spaces, nor with mixed style.
-  * Less indentation for controls index comments.
-  * Use lowercase hex digits.
+No, thanks. I think that the original QX3 had the cpia2 device, but that later
+models switched to other sensors.
 
-Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
----
-Changes since v1:
+Thanks for looking at this!
 
-Indent controls by one more level as JF requested.
-Note that the controls "index comments" are still less indented than before,
-it is more readable this way.
+	Hans
 
-Thanks,
-   Antonio
+> 
+> 
+> Regards,
+> Andy
+> 
+> 
+> 
 
- linux/drivers/media/video/gspca/ov534.c |  260 ++++++++++++++++----------------
- 1 file changed, 130 insertions(+), 130 deletions(-)
-
-Index: gspca/linux/drivers/media/video/gspca/ov534.c
-===================================================================
---- gspca.orig/linux/drivers/media/video/gspca/ov534.c
-+++ gspca/linux/drivers/media/video/gspca/ov534.c
-@@ -92,147 +92,147 @@
- static int sd_getcontrast(struct gspca_dev *gspca_dev, __s32 *val);
- 
- static const struct ctrl sd_ctrls[] = {
--    {							/* 0 */
--	{
--		.id      = V4L2_CID_BRIGHTNESS,
--		.type    = V4L2_CTRL_TYPE_INTEGER,
--		.name    = "Brightness",
--		.minimum = 0,
--		.maximum = 255,
--		.step    = 1,
-+	{	/* 0 */
-+		{
-+			.id      = V4L2_CID_BRIGHTNESS,
-+			.type    = V4L2_CTRL_TYPE_INTEGER,
-+			.name    = "Brightness",
-+			.minimum = 0,
-+			.maximum = 255,
-+			.step    = 1,
- #define BRIGHTNESS_DEF 0
--		.default_value = BRIGHTNESS_DEF,
--	},
--	.set = sd_setbrightness,
--	.get = sd_getbrightness,
--    },
--    {							/* 1 */
--	{
--		.id      = V4L2_CID_CONTRAST,
--		.type    = V4L2_CTRL_TYPE_INTEGER,
--		.name    = "Contrast",
--		.minimum = 0,
--		.maximum = 255,
--		.step    = 1,
-+			.default_value = BRIGHTNESS_DEF,
-+		},
-+		.set = sd_setbrightness,
-+		.get = sd_getbrightness,
-+	},
-+	{	/* 1 */
-+		{
-+			.id      = V4L2_CID_CONTRAST,
-+			.type    = V4L2_CTRL_TYPE_INTEGER,
-+			.name    = "Contrast",
-+			.minimum = 0,
-+			.maximum = 255,
-+			.step    = 1,
- #define CONTRAST_DEF 32
--		.default_value = CONTRAST_DEF,
--	},
--	.set = sd_setcontrast,
--	.get = sd_getcontrast,
--    },
--    {							/* 2 */
--	{
--	    .id      = V4L2_CID_GAIN,
--	    .type    = V4L2_CTRL_TYPE_INTEGER,
--	    .name    = "Main Gain",
--	    .minimum = 0,
--	    .maximum = 63,
--	    .step    = 1,
-+			.default_value = CONTRAST_DEF,
-+		},
-+		.set = sd_setcontrast,
-+		.get = sd_getcontrast,
-+	},
-+	{	/* 2 */
-+		{
-+			.id      = V4L2_CID_GAIN,
-+			.type    = V4L2_CTRL_TYPE_INTEGER,
-+			.name    = "Main Gain",
-+			.minimum = 0,
-+			.maximum = 63,
-+			.step    = 1,
- #define GAIN_DEF 20
--	    .default_value = GAIN_DEF,
--	},
--	.set = sd_setgain,
--	.get = sd_getgain,
--    },
--    {							/* 3 */
--	{
--	    .id      = V4L2_CID_EXPOSURE,
--	    .type    = V4L2_CTRL_TYPE_INTEGER,
--	    .name    = "Exposure",
--	    .minimum = 0,
--	    .maximum = 255,
--	    .step    = 1,
-+			.default_value = GAIN_DEF,
-+		},
-+		.set = sd_setgain,
-+		.get = sd_getgain,
-+	},
-+	{	/* 3 */
-+		{
-+			.id      = V4L2_CID_EXPOSURE,
-+			.type    = V4L2_CTRL_TYPE_INTEGER,
-+			.name    = "Exposure",
-+			.minimum = 0,
-+			.maximum = 255,
-+			.step    = 1,
- #define EXPO_DEF 120
--	    .default_value = EXPO_DEF,
--	},
--	.set = sd_setexposure,
--	.get = sd_getexposure,
--    },
--    {							/* 4 */
--	{
--	    .id      = V4L2_CID_AUTOGAIN,
--	    .type    = V4L2_CTRL_TYPE_BOOLEAN,
--	    .name    = "Auto Gain",
--	    .minimum = 0,
--	    .maximum = 1,
--	    .step    = 1,
-+			.default_value = EXPO_DEF,
-+		},
-+		.set = sd_setexposure,
-+		.get = sd_getexposure,
-+	},
-+	{	/* 4 */
-+		{
-+			.id      = V4L2_CID_AUTOGAIN,
-+			.type    = V4L2_CTRL_TYPE_BOOLEAN,
-+			.name    = "Auto Gain",
-+			.minimum = 0,
-+			.maximum = 1,
-+			.step    = 1,
- #define AGC_DEF 1
--	    .default_value = AGC_DEF,
-+			.default_value = AGC_DEF,
-+		},
-+		.set = sd_setagc,
-+		.get = sd_getagc,
- 	},
--	.set = sd_setagc,
--	.get = sd_getagc,
--    },
- #define AWB_IDX 5
--    {							/* 5 */
--	{
--		.id      = V4L2_CID_AUTO_WHITE_BALANCE,
--		.type    = V4L2_CTRL_TYPE_BOOLEAN,
--		.name    = "Auto White Balance",
--		.minimum = 0,
--		.maximum = 1,
--		.step    = 1,
-+	{	/* 5 */
-+		{
-+			.id      = V4L2_CID_AUTO_WHITE_BALANCE,
-+			.type    = V4L2_CTRL_TYPE_BOOLEAN,
-+			.name    = "Auto White Balance",
-+			.minimum = 0,
-+			.maximum = 1,
-+			.step    = 1,
- #define AWB_DEF 1
--		.default_value = AWB_DEF,
--	},
--	.set = sd_setawb,
--	.get = sd_getawb,
--    },
--    {							/* 6 */
--	{
--		.id      = V4L2_CID_EXPOSURE_AUTO,
--		.type    = V4L2_CTRL_TYPE_BOOLEAN,
--		.name    = "Auto Exposure",
--		.minimum = 0,
--		.maximum = 1,
--		.step    = 1,
-+			.default_value = AWB_DEF,
-+		},
-+		.set = sd_setawb,
-+		.get = sd_getawb,
-+	},
-+	{	/* 6 */
-+		{
-+			.id      = V4L2_CID_EXPOSURE_AUTO,
-+			.type    = V4L2_CTRL_TYPE_BOOLEAN,
-+			.name    = "Auto Exposure",
-+			.minimum = 0,
-+			.maximum = 1,
-+			.step    = 1,
- #define AEC_DEF 1
--		.default_value = AEC_DEF,
--	},
--	.set = sd_setaec,
--	.get = sd_getaec,
--    },
--    {							/* 7 */
--	{
--	    .id      = V4L2_CID_SHARPNESS,
--	    .type    = V4L2_CTRL_TYPE_INTEGER,
--	    .name    = "Sharpness",
--	    .minimum = 0,
--	    .maximum = 63,
--	    .step    = 1,
-+			.default_value = AEC_DEF,
-+		},
-+		.set = sd_setaec,
-+		.get = sd_getaec,
-+	},
-+	{	/* 7 */
-+		{
-+			.id      = V4L2_CID_SHARPNESS,
-+			.type    = V4L2_CTRL_TYPE_INTEGER,
-+			.name    = "Sharpness",
-+			.minimum = 0,
-+			.maximum = 63,
-+			.step    = 1,
- #define SHARPNESS_DEF 0
--	    .default_value = SHARPNESS_DEF,
--	},
--	.set = sd_setsharpness,
--	.get = sd_getsharpness,
--    },
--    {							/* 8 */
--	{
--	    .id      = V4L2_CID_HFLIP,
--	    .type    = V4L2_CTRL_TYPE_BOOLEAN,
--	    .name    = "HFlip",
--	    .minimum = 0,
--	    .maximum = 1,
--	    .step    = 1,
-+			.default_value = SHARPNESS_DEF,
-+		},
-+		.set = sd_setsharpness,
-+		.get = sd_getsharpness,
-+	},
-+	{	/* 8 */
-+		{
-+			.id      = V4L2_CID_HFLIP,
-+			.type    = V4L2_CTRL_TYPE_BOOLEAN,
-+			.name    = "HFlip",
-+			.minimum = 0,
-+			.maximum = 1,
-+			.step    = 1,
- #define HFLIP_DEF 0
--	    .default_value = HFLIP_DEF,
--	},
--	.set = sd_sethflip,
--	.get = sd_gethflip,
--    },
--    {							/* 9 */
--	{
--	    .id      = V4L2_CID_VFLIP,
--	    .type    = V4L2_CTRL_TYPE_BOOLEAN,
--	    .name    = "VFlip",
--	    .minimum = 0,
--	    .maximum = 1,
--	    .step    = 1,
-+			.default_value = HFLIP_DEF,
-+		},
-+		.set = sd_sethflip,
-+		.get = sd_gethflip,
-+	},
-+	{	/* 9 */
-+		{
-+			.id      = V4L2_CID_VFLIP,
-+			.type    = V4L2_CTRL_TYPE_BOOLEAN,
-+			.name    = "VFlip",
-+			.minimum = 0,
-+			.maximum = 1,
-+			.step    = 1,
- #define VFLIP_DEF 0
--	    .default_value = VFLIP_DEF,
-+			.default_value = VFLIP_DEF,
-+		},
-+		.set = sd_setvflip,
-+		.get = sd_getvflip,
- 	},
--	.set = sd_setvflip,
--	.get = sd_getvflip,
--    },
- };
- 
- static const struct v4l2_pix_format ov772x_mode[] = {
-@@ -641,14 +641,14 @@
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
- 
--	sccb_reg_write(gspca_dev, 0x9B, sd->brightness);
-+	sccb_reg_write(gspca_dev, 0x9b, sd->brightness);
- }
- 
- static void setcontrast(struct gspca_dev *gspca_dev)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
- 
--	sccb_reg_write(gspca_dev, 0x9C, sd->contrast);
-+	sccb_reg_write(gspca_dev, 0x9c, sd->contrast);
- }
- 
- static void setgain(struct gspca_dev *gspca_dev)
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
