@@ -1,76 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.infomaniak.ch ([84.16.68.89]:59103 "EHLO
-	smtp1.infomaniak.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755201Ab0CDSdU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Mar 2010 13:33:20 -0500
-Message-ID: <4B8FFAEC.1060708@deckpoint.ch>
-Date: Thu, 04 Mar 2010 19:24:44 +0100
-From: Thomas Kernen <tkernen@deckpoint.ch>
+Received: from smtp2-g21.free.fr ([212.27.42.2]:53796 "EHLO smtp2-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754083Ab0C0WEt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Mar 2010 18:04:49 -0400
+Received: from smtp2-g21.free.fr (localhost [127.0.0.1])
+	by smtp2-g21.free.fr (Postfix) with ESMTP id 1EA114B0045
+	for <linux-media@vger.kernel.org>; Sat, 27 Mar 2010 23:04:43 +0100 (CET)
+Received: from [192.168.1.234] (cac94-1-81-57-151-96.fbx.proxad.net [81.57.151.96])
+	by smtp2-g21.free.fr (Postfix) with ESMTP id 209844B00D9
+	for <linux-media@vger.kernel.org>; Sat, 27 Mar 2010 23:04:41 +0100 (CET)
+Message-ID: <4BAE810A.6030405@free.fr>
+Date: Sat, 27 Mar 2010 23:04:58 +0100
+From: matthieu castet <castet.matthieu@free.fr>
 MIME-Version: 1.0
-To: Per Lundberg <perlun@gmail.com>
-CC: hermann pitton <hermann-pitton@arcor.de>,
-	linux-media@vger.kernel.org
-Subject: Re: TBS 6980 Dual DVB-S2 PCIe card
-References: <loom.20100304T091408-554@post.gmane.org>	 <1267693537.3190.17.camel@pc07.localdom.local> <8f1895b91003040403q52ed1cf4of72a61977d6cdc36@mail.gmail.com>
-In-Reply-To: <8f1895b91003040403q52ed1cf4of72a61977d6cdc36@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Subject: [PATCH] fix dvb frontend lockup
+References: <4BA603AB.6070809@free.fr>
+In-Reply-To: <4BA603AB.6070809@free.fr>
+Content-Type: multipart/mixed;
+ boundary="------------060505080405020005080704"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 3/4/10 1:03 PM, Per Lundberg wrote:
-> Hi Hermann,
->
-> On Thu, Mar 4, 2010 at 11:05 AM, hermann pitton<hermann-pitton@arcor.de>  wrote:
->
->>> Has anyone done any attempt at contacting TBS to see if they can release their
->>> changes under the GPLv2? Ideally, they would provide a patch themselves, but it
->>> should be fairly simple to diff the linux/ trees from their provided
->>> linux-s2api-tbs6980.tar.bz2 file with the stock Linux 2.6.32 code... in fact, it
->>> could be that their patch is so trivial that we could just include it in the
->>> stock Linux kernel without asking them for license clarifications... but
->>> obviously, if we can get a green sign from them, it would be even better.
->>
->> It is always the other way round.
->>
->> In the end they need a green sign from us.
->
-> Well... I guess we are both right. :-) They need to assert ownership
-> and license the code under the GPL, and we need to ensure that the
-> quality of the code is high enough (driver is working and does not
-> interfer with other parts of the code base...).
+This is a multi-part message in MIME format.
+--------------060505080405020005080704
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-We I asked TBS' support about this question they told me they would like 
-to get it out under GPL as it has been done with other cards they sell 
-but that right now it was not possible due to legal contraints related 
-to some of the code in use by some of the chips on the board. No further 
-details were provided.
+matthieu castet a écrit :
+> Hi,
+> 
+> With my current kernel (2.6.32), if my dvb device is removed while in 
+> use, I got [1].
+> 
+> After checking the source code, the problem seems to happen also in 
+> master :
+> 
+> If there are users (for example users == -2) :
+> - dvb_unregister_frontend :
+> - stop kernel thread with dvb_frontend_stop :
+>  - fepriv->exit = 1;
+>  - thread loop catch stop event and break while loop
+>  - fepriv->thread = NULL; and fepriv->exit = 0;
+> - dvb_unregister_frontend wait on "fepriv->dvbdev->wait_queue" that 
+> fepriv->dvbdev->users==-1.
+> The user finish :
+> - dvb_frontend_release - set users to -1
+> - don't wait wait_queue because fepriv->exit != 1
+> 
+> => dvb_unregister_frontend never exit the wait queue.
+> 
+> 
+> Matthieu
+> 
+> 
+> [ 4920.484047] khubd         D c2008000     0   198      2 0x00000000
+> [ 4920.484056]  f64c8000 00000046 00000000 c2008000 00000004 c13fa000 
+> c13fa000 f
+> 64c8000
+> [ 4920.484066]  f64c81bc c2008000 00000000 d9d9dce6 00000452 00000001 
+> f64c8000 c
+> 102daad
+> [ 4920.484075]  00100100 f64c81bc 00000286 f0a7ccc0 f0913404 f0cba404 
+> f644de58 f
+> 092b0a8
+> [ 4920.484084] Call Trace:
+> [ 4920.484102]  [<c102daad>] ? default_wake_function+0x0/0x8
+> [ 4920.484147]  [<f8cb09e1>] ? dvb_unregister_frontend+0x95/0xcc [dvb_core]
+> [ 4920.484157]  [<c1044412>] ? autoremove_wake_function+0x0/0x2d
+> [ 4920.484168]  [<f8dd1af2>] ? dvb_usb_adapter_frontend_exit+0x12/0x21 
+> [dvb_usb]
+> [ 4920.484176]  [<f8dd12f1>] ? dvb_usb_exit+0x26/0x88 [dvb_usb]
+> [ 4920.484184]  [<f8dd138d>] ? dvb_usb_device_exit+0x3a/0x4a [dvb_usb]
+> [ 4920.484217]  [<f7fe1b08>] ? usb_unbind_interface+0x3f/0xb4 [usbcore]
+> [ 4920.484227]  [<c11a4178>] ? __device_release_driver+0x74/0xb7
+> [ 4920.484233]  [<c11a4247>] ? device_release_driver+0x15/0x1e
+> [ 4920.484243]  [<c11a3a33>] ? bus_remove_device+0x6e/0x87
+> [ 4920.484249]  [<c11a26d6>] ? device_del+0xfa/0x152
+> [ 4920.484264]  [<f7fdf609>] ? usb_disable_device+0x59/0xb9 [usbcore]
+> [ 4920.484279]  [<f7fdb9ee>] ? usb_disconnect+0x70/0xdc [usbcore]
+> [ 4920.484294]  [<f7fdc728>] ? hub_thread+0x521/0xe1d [usbcore]
+> [ 4920.484301]  [<c1044412>] ? autoremove_wake_function+0x0/0x2d
+> [ 4920.484316]  [<f7fdc207>] ? hub_thread+0x0/0xe1d [usbcore]
+> [ 4920.484321]  [<c10441e0>] ? kthread+0x61/0x66
+> [ 4920.484327]  [<c104417f>] ? kthread+0x0/0x66
+> [ 4920.484336]  [<c1003d47>] ? kernel_thread_helper+0x7/0x10
+> 
+Here a patch that fix the issue
 
->
->> BTW, the TBS dual seems to be fine on m$, but there are some mysterious
->> lockups without any trace, if used in conjunction with some prior
->> S2/HDTV cards. I can't tell yet, if that it is evenly distributed over
->> amd/ati and nvidia stuff or whatever on win7 ... , but people do spend
->> lifetime in vain on it.
->
-> This is pretty interesting, do you have any references? (forum links
-> or similar)
-> In my particular case, I was thinking about using it as the "only" S2
-> card in the machine, later possibly adding a DVB-C card if/when we get
-> cable... so, it might not be a problem for me, but it still doesn't
-> feel really good. I guess the card is pretty new, so maybe (hopefully)
-> it will get fixed by a new firmware release.
->
-> Do we have any readers of this list who own the card and use it in
-> Linux (with the drivers from TBS)? Could you please share your
-> experiences: is the picture quality good? Sound? Does the tuner work
-> well? (e.g. can you receive all channels you normally receive...)
 
-Yes I use the card. Have had it for a couple of months now running in a 
-server that acts as a video head-end in my test network. I only tune to 
-specific transponders when I boot the server so I can't really comment 
-on tuning time and related issues. Yes I've used it for S and S2 feeds 
-and so far it fits my requirements.
+Signed-off-by: Matthieu CASTET <castet.matthieu@free.fr>
 
-HTH,
-Thomas
+--------------060505080405020005080704
+Content-Type: text/x-diff;
+ name="frontend_release.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="frontend_release.diff"
+
+--- 1/linux/drivers/media/dvb/dvb-core/dvb_frontend.c	2010-03-27 22:59:50.000000000 +0100
++++ 2/linux/drivers/media/dvb/dvb-core/dvb_frontend.c	2010-03-27 23:01:34.000000000 +0100
+@@ -686,7 +686,10 @@
+ 	}
+ 
+ 	fepriv->thread = NULL;
+-	fepriv->exit = 0;
++	if (kthread_should_stop())
++		fepriv->exit = 2;
++	else
++		fepriv->exit = 0;
+ 	mb();
+ 
+ 	dvb_frontend_wakeup(fe);
+@@ -1929,6 +1932,8 @@
+ 	int ret;
+ 
+ 	dprintk ("%s\n", __func__);
++	if (fepriv->exit == 2)
++		return -ENODEV;
+ 
+ 	if (adapter->mfe_shared) {
+ 		mutex_lock (&adapter->mfe_lock);
+@@ -2021,7 +2026,7 @@
+ 	ret = dvb_generic_release (inode, file);
+ 
+ 	if (dvbdev->users == -1) {
+-		if (fepriv->exit == 1) {
++		if (fepriv->exit) {
+ 			fops_put(file->f_op);
+ 			file->f_op = NULL;
+ 			wake_up(&dvbdev->wait_queue);
+
+--------------060505080405020005080704--
