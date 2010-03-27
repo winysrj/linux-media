@@ -1,238 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from xenotime.net ([72.52.64.118]:53327 "HELO xenotime.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754056Ab0CCAOo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Mar 2010 19:14:44 -0500
-Received: from chimera.site ([71.245.98.113]) by xenotime.net for <linux-media@vger.kernel.org>; Tue, 2 Mar 2010 16:14:42 -0800
-Message-ID: <4B8DA9F3.2090407@xenotime.net>
-Date: Tue, 02 Mar 2010 16:14:43 -0800
-From: Randy Dunlap <rdunlap@xenotime.net>
-MIME-Version: 1.0
-To: imunsie@au1.ibm.com
-CC: linux-kernel@vger.kernel.org,
+Received: from einhorn.in-berlin.de ([192.109.42.8]:42050 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752036Ab0C0Kkq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Mar 2010 06:40:46 -0400
+Date: Sat, 27 Mar 2010 11:40:31 +0100 (CET)
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: [PATCH RFC] DVB: add dvb_generic_nonseekable_open,
+ dvb_generic_unlocked_ioctl, use in firedtv
+To: linux-media@vger.kernel.org
+cc: linux-kernel@vger.kernel.org,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Patrick Boettcher <pboettcher@kernellabs.com>,
-	Olivier Grenie <olivier.grenie@dibcom.fr>,
-	Martin Samek <martin@marsark.sytes.net>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] Remove large struct from stack in DVB dib3000mc and dib7000p
- drivers
-References: <1267574404-5874-1-git-send-email-imunsie@au.ibm.com>
-In-Reply-To: <1267574404-5874-1-git-send-email-imunsie@au.ibm.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Arnd Bergmann <arnd@arndb.de>,
+	Henrik Kurelid <henrik@kurelid.se>
+In-Reply-To: <4BAD4795.2040700@s5r6.in-berlin.de>
+Message-ID: <tkrat.7662a00017241225@s5r6.in-berlin.de>
+References: <201003242240.54907.arnd@arndb.de>
+ <alpine.LRH.2.00.1003251354200.16443@twin.jikos.cz>
+ <201003251406.10177.arnd@arndb.de> <201003251438.59062.arnd@arndb.de>
+ <4BAD4795.2040700@s5r6.in-berlin.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; CHARSET=us-ascii
+Content-Disposition: INLINE
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/02/10 16:00, imunsie@au1.ibm.com wrote:
-> From: Ian Munsie <imunsie@au.ibm.com>
-> 
-> Compiling these drivers results in the following compiler warnings on
-> PowerPC 64 bit:
-> 
-> drivers/media/dvb/frontends/dib3000mc.c:853: warning: the frame size of 2208 bytes is larger than 2048 bytes
-> drivers/media/dvb/frontends/dib7000p.c:1367: warning: the frame size of 2288 bytes is larger than 2048 bytes
-> 
-> The <driver>_i2c_enumeration functions use a large struct to hold the
-> state, which is stored on the stack.
-> 
-> This patch allocates that structure dynamically instead, thereby
-> conserving the driver's use of the stack.
+In order to remove Big Kernel Lock usages from the DVB subsystem,
+we need to
+  - provide .llseek file operations that do not grab the BKL (unlike
+    fs/read_write.c::default_llseek) or mark files as not seekable,
+  - provide .unlocked_ioctl file operations.
 
-Is this the same as the already-submitted patches?
+Add two dvb_generic_ file operations for file interfaces which are not
+seekable and, respectively, do not require the BKL in their ioctl
+handlers.
 
-Please see http://patchwork.kernel.org/patch/77892/
-and http://patchwork.kernel.org/patch/77891/
+Use them in one driver of which I am sure of that these are applicable.
+(Affected code paths were not runtime-tested since I don't have a CAM.)
 
-and in general, use http://patchwork.kernel.org/ and
-http://patchwork.ozlabs.org/ and/or mailing lists to see if patches
-have already been submitted so that you don't waste time.
-Or you could comments on my patches. ;)
+Notes:
+
+  - In order to maximize code reuse and minimize API churn, I pass a
+    dummy NULL struct inode * through dvb_usercopy() to
+    dvbdev->kernel_ioctl().  Very ugly; it may be better to convert
+    everything from .ioctl to .unlocked_ioctl in one go and remove the
+    inode pointer argument everywhere.
+
+  - I suspect that actually all dvb_generic_open() users really want
+    nonseekable_open --- then we should simply change dvb_generic_open()
+    instead of adding dvb_generic_nonseekable_open() --- but I haven't
+    checked other users of dvb_generic_open whether they require
+    .llssek mehods other than fs/read_write.c::no_llseek.
+
+Signed-off-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+---
+
+This patch is motivated by Arnd's
+"bkl removal: make unlocked_ioctl mandatory"
+http://git.kernel.org/?p=linux/kernel/git/arnd/playground.git;a=blobdiff;f=drivers/media/dvb/firewire/firedtv-ci.c;h=7ab89035c101240a860d6c72bf8541a0fdf3aed9;hp=853e04b7cb361d45257f80dcafdcf121cd340c63;hb=05e7753338045e9ee3950b2da032c5e5774efa90;hpb=03165e1d096afb4b1d9cfccdad66eed038121cec
+"BKL removal: mark remaining users as 'depends on BKL'"
+http://git.kernel.org/?p=linux/kernel/git/arnd/playground.git;a=blobdiff;f=drivers/media/dvb/firewire/Kconfig;h=ba8938e26414c8c82c41677f87c1361ed8fcebd0;hp=4afa29256df110d3383b6b469762cefbb46436b6;hb=abb83d8fe5f8dcc8fca09bd9117429f73e1417e0;hpb=33c014b118f45516113d4b6823e40ea6f834dc6a
 
 
-> There is now the possibility that these functions will return -ENOMEM in
-> case the dynamic memory allocation fails and while a useful message will
-> show up in dmesg, at the moment the -ENOMEM condition is not relayed
-> all the way back to userspace and it will receive an -ENODEV instead.
-> Is it worth pursuing returning the correct error all the way up to
-> userspace?
-> 
-> Signed-off-by: Ian Munsie <imunsie@au.ibm.com>
-> ---
->  drivers/media/dvb/frontends/dib3000mc.c |   43 +++++++++++++++++++-----------
->  drivers/media/dvb/frontends/dib7000p.c  |   44 +++++++++++++++++++-----------
->  2 files changed, 55 insertions(+), 32 deletions(-)
-> 
-> diff --git a/drivers/media/dvb/frontends/dib3000mc.c b/drivers/media/dvb/frontends/dib3000mc.c
-> index fa85160..78c2813 100644
-> --- a/drivers/media/dvb/frontends/dib3000mc.c
-> +++ b/drivers/media/dvb/frontends/dib3000mc.c
-> @@ -13,6 +13,7 @@
->  
->  #include <linux/kernel.h>
->  #include <linux/i2c.h>
-> +#include <linux/slab.h>
->  
->  #include "dvb_frontend.h"
->  
-> @@ -813,43 +814,53 @@ EXPORT_SYMBOL(dib3000mc_set_config);
->  
->  int dib3000mc_i2c_enumeration(struct i2c_adapter *i2c, int no_of_demods, u8 default_addr, struct dib3000mc_config cfg[])
->  {
-> -	struct dib3000mc_state st = { .i2c_adap = i2c };
-> +	struct dib3000mc_state *st;
->  	int k;
->  	u8 new_addr;
-> -
->  	static u8 DIB3000MC_I2C_ADDRESS[] = {20,22,24,26};
-> +	int ret = 0;
-> +
-> +	st = kzalloc(sizeof(struct dib3000mc_state), GFP_KERNEL);
-> +	if (!st) {
-> +		dprintk(KERN_ERR "Out of memory allocating dib3000mc_state in %s", __func__);
-> +		return -ENOMEM;
-> +	}
-> +	st->i2c_adap = i2c;
->  
->  	for (k = no_of_demods-1; k >= 0; k--) {
-> -		st.cfg = &cfg[k];
-> +		st->cfg = &cfg[k];
->  
->  		/* designated i2c address */
->  		new_addr          = DIB3000MC_I2C_ADDRESS[k];
-> -		st.i2c_addr = new_addr;
-> -		if (dib3000mc_identify(&st) != 0) {
-> -			st.i2c_addr = default_addr;
-> -			if (dib3000mc_identify(&st) != 0) {
-> +		st->i2c_addr = new_addr;
-> +		if (dib3000mc_identify(st) != 0) {
-> +			st->i2c_addr = default_addr;
-> +			if (dib3000mc_identify(st) != 0) {
->  				dprintk("-E-  DiB3000P/MC #%d: not identified\n", k);
-> -				return -ENODEV;
-> +				ret = -ENODEV;
-> +				goto out;
->  			}
->  		}
->  
-> -		dib3000mc_set_output_mode(&st, OUTMODE_MPEG2_PAR_CONT_CLK);
-> +		dib3000mc_set_output_mode(st, OUTMODE_MPEG2_PAR_CONT_CLK);
->  
->  		// set new i2c address and force divstr (Bit 1) to value 0 (Bit 0)
-> -		dib3000mc_write_word(&st, 1024, (new_addr << 3) | 0x1);
-> -		st.i2c_addr = new_addr;
-> +		dib3000mc_write_word(st, 1024, (new_addr << 3) | 0x1);
-> +		st->i2c_addr = new_addr;
->  	}
->  
->  	for (k = 0; k < no_of_demods; k++) {
-> -		st.cfg = &cfg[k];
-> -		st.i2c_addr = DIB3000MC_I2C_ADDRESS[k];
-> +		st->cfg = &cfg[k];
-> +		st->i2c_addr = DIB3000MC_I2C_ADDRESS[k];
->  
-> -		dib3000mc_write_word(&st, 1024, st.i2c_addr << 3);
-> +		dib3000mc_write_word(st, 1024, st->i2c_addr << 3);
->  
->  		/* turn off data output */
-> -		dib3000mc_set_output_mode(&st, OUTMODE_HIGH_Z);
-> +		dib3000mc_set_output_mode(st, OUTMODE_HIGH_Z);
->  	}
-> -	return 0;
-> +out:
-> +	kfree(st);
-> +	return ret;
->  }
->  EXPORT_SYMBOL(dib3000mc_i2c_enumeration);
->  
-> diff --git a/drivers/media/dvb/frontends/dib7000p.c b/drivers/media/dvb/frontends/dib7000p.c
-> index 750ae61..08d47f2 100644
-> --- a/drivers/media/dvb/frontends/dib7000p.c
-> +++ b/drivers/media/dvb/frontends/dib7000p.c
-> @@ -9,6 +9,7 @@
->   */
->  #include <linux/kernel.h>
->  #include <linux/i2c.h>
-> +#include <linux/slab.h>
->  
->  #include "dvb_math.h"
->  #include "dvb_frontend.h"
-> @@ -1323,47 +1324,58 @@ EXPORT_SYMBOL(dib7000p_pid_filter);
->  
->  int dib7000p_i2c_enumeration(struct i2c_adapter *i2c, int no_of_demods, u8 default_addr, struct dib7000p_config cfg[])
->  {
-> -	struct dib7000p_state st = { .i2c_adap = i2c };
-> +	struct dib7000p_state *st;
->  	int k = 0;
->  	u8 new_addr = 0;
-> +	int ret = 0;
-> +
-> +	st = kzalloc(sizeof(struct dib7000p_state), GFP_KERNEL);
-> +	if (!st) {
-> +		dprintk(KERN_ERR "Out of memory allocating dib7000p_state in %s", __func__);
-> +		return -ENOMEM;
-> +	}
-> +	st->i2c_adap = i2c;
->  
->  	for (k = no_of_demods-1; k >= 0; k--) {
-> -		st.cfg = cfg[k];
-> +		st->cfg = cfg[k];
->  
->  		/* designated i2c address */
->  		new_addr          = (0x40 + k) << 1;
-> -		st.i2c_addr = new_addr;
-> -		dib7000p_write_word(&st, 1287, 0x0003); /* sram lead in, rdy */
-> -		if (dib7000p_identify(&st) != 0) {
-> -			st.i2c_addr = default_addr;
-> -			dib7000p_write_word(&st, 1287, 0x0003); /* sram lead in, rdy */
-> -			if (dib7000p_identify(&st) != 0) {
-> +		st->i2c_addr = new_addr;
-> +		dib7000p_write_word(st, 1287, 0x0003); /* sram lead in, rdy */
-> +		if (dib7000p_identify(st) != 0) {
-> +			st->i2c_addr = default_addr;
-> +			dib7000p_write_word(st, 1287, 0x0003); /* sram lead in, rdy */
-> +			if (dib7000p_identify(st) != 0) {
->  				dprintk("DiB7000P #%d: not identified\n", k);
-> -				return -EIO;
-> +				ret = -EIO;
-> +				goto out;
->  			}
->  		}
->  
->  		/* start diversity to pull_down div_str - just for i2c-enumeration */
-> -		dib7000p_set_output_mode(&st, OUTMODE_DIVERSITY);
-> +		dib7000p_set_output_mode(st, OUTMODE_DIVERSITY);
->  
->  		/* set new i2c address and force divstart */
-> -		dib7000p_write_word(&st, 1285, (new_addr << 2) | 0x2);
-> +		dib7000p_write_word(st, 1285, (new_addr << 2) | 0x2);
->  
->  		dprintk("IC %d initialized (to i2c_address 0x%x)", k, new_addr);
->  	}
->  
->  	for (k = 0; k < no_of_demods; k++) {
-> -		st.cfg = cfg[k];
-> -		st.i2c_addr = (0x40 + k) << 1;
-> +		st->cfg = cfg[k];
-> +		st->i2c_addr = (0x40 + k) << 1;
->  
->  		// unforce divstr
-> -		dib7000p_write_word(&st, 1285, st.i2c_addr << 2);
-> +		dib7000p_write_word(st, 1285, st->i2c_addr << 2);
->  
->  		/* deactivate div - it was just for i2c-enumeration */
-> -		dib7000p_set_output_mode(&st, OUTMODE_HIGH_Z);
-> +		dib7000p_set_output_mode(st, OUTMODE_HIGH_Z);
->  	}
->  
-> -	return 0;
-> +out:
-> +	kfree(st);
-> +	return ret;
->  }
->  EXPORT_SYMBOL(dib7000p_i2c_enumeration);
->  
+ drivers/media/dvb/dvb-core/dvbdev.c     |   20 ++++++++++++++++++++
+ drivers/media/dvb/dvb-core/dvbdev.h     |   11 +++++++----
+ drivers/media/dvb/firewire/firedtv-ci.c |    4 ++--
+ 3 files changed, 29 insertions(+), 6 deletions(-)
 
+Index: b/drivers/media/dvb/dvb-core/dvbdev.c
+===================================================================
+--- a/drivers/media/dvb/dvb-core/dvbdev.c
++++ b/drivers/media/dvb/dvb-core/dvbdev.c
+@@ -135,6 +135,18 @@ int dvb_generic_open(struct inode *inode
+ EXPORT_SYMBOL(dvb_generic_open);
+ 
+ 
++int dvb_generic_nonseekable_open(struct inode *inode, struct file *file)
++{
++	int retval = dvb_generic_open(inode, file);
++
++	if (retval == 0)
++		retval = nonseekable_open(inode, file);
++
++	return retval;
++}
++EXPORT_SYMBOL(dvb_generic_nonseekable_open);
++
++
+ int dvb_generic_release(struct inode *inode, struct file *file)
+ {
+ 	struct dvb_device *dvbdev = file->private_data;
+@@ -170,6 +182,14 @@ int dvb_generic_ioctl(struct inode *inod
+ EXPORT_SYMBOL(dvb_generic_ioctl);
+ 
+ 
++long dvb_generic_unlocked_ioctl(struct file *file,
++				unsigned int cmd, unsigned long arg)
++{
++	return dvb_generic_ioctl(NULL, file, cmd, arg);
++}
++EXPORT_SYMBOL(dvb_generic_unlocked_ioctl);
++
++
+ static int dvbdev_get_free_id (struct dvb_adapter *adap, int type)
+ {
+ 	u32 id = 0;
+Index: b/drivers/media/dvb/dvb-core/dvbdev.h
+===================================================================
+--- a/drivers/media/dvb/dvb-core/dvbdev.h
++++ b/drivers/media/dvb/dvb-core/dvbdev.h
+@@ -136,10 +136,13 @@ extern int dvb_register_device (struct d
+ 
+ extern void dvb_unregister_device (struct dvb_device *dvbdev);
+ 
+-extern int dvb_generic_open (struct inode *inode, struct file *file);
+-extern int dvb_generic_release (struct inode *inode, struct file *file);
+-extern int dvb_generic_ioctl (struct inode *inode, struct file *file,
+-			      unsigned int cmd, unsigned long arg);
++extern int dvb_generic_open(struct inode *inode, struct file *file);
++extern int dvb_generic_nonseekable_open(struct inode *inode, struct file *file);
++extern int dvb_generic_release(struct inode *inode, struct file *file);
++extern int dvb_generic_ioctl(struct inode *inode, struct file *file,
++			     unsigned int cmd, unsigned long arg);
++extern long dvb_generic_unlocked_ioctl(struct file *file,
++				       unsigned int cmd, unsigned long arg);
+ 
+ /* we don't mess with video_usercopy() any more,
+ we simply define out own dvb_usercopy(), which will hopefully become
+Index: b/drivers/media/dvb/firewire/firedtv-ci.c
+===================================================================
+--- a/drivers/media/dvb/firewire/firedtv-ci.c
++++ b/drivers/media/dvb/firewire/firedtv-ci.c
+@@ -217,8 +217,8 @@ static unsigned int fdtv_ca_io_poll(stru
+ 
+ static const struct file_operations fdtv_ca_fops = {
+ 	.owner		= THIS_MODULE,
+-	.ioctl		= dvb_generic_ioctl,
+-	.open		= dvb_generic_open,
++	.unlocked_ioctl	= dvb_generic_unlocked_ioctl,
++	.open		= dvb_generic_nonseekable_open,
+ 	.release	= dvb_generic_release,
+ 	.poll		= fdtv_ca_io_poll,
+ };
 
 -- 
-~Randy
+Stefan Richter
+-=====-==-=- --== ==-==
+http://arcgraph.de/sr/
+
+
