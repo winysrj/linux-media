@@ -1,95 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f213.google.com ([209.85.220.213]:33093 "EHLO
-	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751849Ab0CSSAs (ORCPT
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:48551 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751113Ab0C0I1i (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Mar 2010 14:00:48 -0400
-Received: by fxm5 with SMTP id 5so971474fxm.29
-        for <linux-media@vger.kernel.org>; Fri, 19 Mar 2010 11:00:46 -0700 (PDT)
+	Sat, 27 Mar 2010 04:27:38 -0400
+Date: Sat, 27 Mar 2010 09:27:33 +0100
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Jon Smirl <jonsmirl@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Pavel Machek <pavel@ucw.cz>, Krzysztof Halasa <khc@pm.waw.pl>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
+	kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR system?
+Message-ID: <20100327082733.GA4494@hardeman.nu>
+References: <9e4733910912151229o371ee017tf3640d8f85728011@mail.gmail.com>
+ <20091215203300.GL24406@elf.ucw.cz>
+ <9e4733910912151245ne442a5dlcfee92609e364f70@mail.gmail.com>
+ <9e4733910912151338n62b30af5i35f8d0963e6591c@mail.gmail.com>
+ <4BAB7659.1040408@redhat.com>
+ <20100326112755.GB5387@hardeman.nu>
+ <4BACC769.6020906@redhat.com>
+ <20100326160150.GA28804@core.coreip.homeip.net>
+ <4BACED6B.9030409@redhat.com>
+ <9e4733911003261537s770a66c8v92ab7384fde34839@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4BA3B7A9.2050405@redhat.com>
-References: <83e56201383c6a99ea51dafcd2794dfe.squirrel@webmail.xs4all.nl>
-	 <201003190904.53867.laurent.pinchart@ideasonboard.com>
-	 <50cd74a798bbf96501cd40b90d2a2b93.squirrel@webmail.xs4all.nl>
-	 <4BA38088.1020006@redhat.com>
-	 <30353c3d1003190849v35b57dcai9ab11ff1362b4f46@mail.gmail.com>
-	 <4BA3B7A9.2050405@redhat.com>
-Date: Fri, 19 Mar 2010 14:00:46 -0400
-Message-ID: <30353c3d1003191100q2446edeekb161dba45624489a@mail.gmail.com>
-Subject: Re: RFC: Drop V4L1 support in V4L2 drivers
-From: David Ellingsworth <david@identd.dyndns.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	v4l-dvb <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <9e4733911003261537s770a66c8v92ab7384fde34839@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 19, 2010 at 1:43 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> David Ellingsworth wrote:
->> On Fri, Mar 19, 2010 at 9:47 AM, Mauro Carvalho Chehab
->> <mchehab@redhat.com> wrote:
->>> The V4L1 drivers that lasts are the ones without maintainers and probably without
->>> a large users base. So, basically legacy hardware. So, their removals make sense.
->>>
->>
->> In many ways the above statement is a catch 22. Most, if not all the
->> v4l1 drivers are currently broken or unmaintained. However, this does
->> not mean there are users who would not be using these drivers if they
->> actually worked or had been properly maintained. I know this to be a
->> fact of the ibmcam driver. It is both broken and unmaintained. Because
->> of this I'm sure no one is currently using it.
->
-> It makes sense. However, considering that no new V4L1 driver is committed
-> since 2006, this means that those are old drivers for old hardware.
->
->> I happen to have a USB
->> camera which is supposedly supported by the ibmcam driver.
->
-> In the specific case of ibmcam, we had only 10 commits on -hg since its
-> addition, back in 2006.
->
-> Just using it as an example about the remaining drivers, for today's hardware,
-> an ibmusb model 3 webcam has 640x480x3fps, according to his driver. Other models
-> have QCIF or QVGA as their maximum resolution. I can easily buy a 640x480x30fps
-> camera (or even something better than that) for US$12,00 on a close shopping.
+On Fri, Mar 26, 2010 at 06:37:41PM -0400, Jon Smirl wrote:
+> On Fri, Mar 26, 2010 at 1:22 PM, Mauro Carvalho Chehab 
+> <mchehab@redhat.com> wrote:
+> > 2) create a read/write sysfs node that would indicate the number of 
+> > event/keymaps
+> > associated with a given IR. By writing a bigger number, it would create new devices.
+> > By writing a smaller number, it will delete some maps. There's an issue though:
+> > what criteria would be used to delete? The newly created ones?
+> 
+> This is normally handled a sysfs node on the core, something like
+> 'adddev'. You echo '1' to this node and a new interface is created.
+> 
+> Each interface has a sysfs node, make a 'remove' attribute in it. Echo
+> '1' to remove to make it disappear.
+> 
+> You have to implement the code behind these interfaces but this
+> convention is used in other subsubsystems.
+> 
+> BTW - you're recreating everything the configfs interface did. it
+> achieved the same results with mkdir/rmdir. I liked the configfs
+> scheme since there are no obscure commands to learn. Everybody can
+> make files and directories.
 
-The limitation on the frame rate within the driver is not an issue
-with the camera itself per-say. The camera I have supports
-640x480x30fps but the ibmcam driver lacks support for the video mode
-used to achieve that rate. Specifically speaking, the camera uses a
-proprietary compressed image format that the current v4l1 ibmcam
-driver does not support for several reasons. First and foremost, the
-original author stated that he did not have time to reverse engineer
-the compressed format. Second even if he had, the code to do so
-doesn't belong in the driver itself.
+I've looked at your configfs interface, it was the inspiration for 
+suggesting that each irrcv device should have more than one keymap with 
+one input device for each keytable.
 
-Yes it is an old camera, but that does not mean there aren't people
-out there who still own cameras which would otherwise be usable if the
-driver worked. And sure people could just buy another camera.. but why
-replace hardware that's obviously not broken?
+However, I don't agree that the configfs interface would somehow be more 
+user-friendly than an ioctl based one. Getting the correct "scancode" 
+(e.g, protocol, device, function values), finding a corresponding 
+keycode (is it KEY_0, no wait, it's KEY_NUMERIC_0), etc are bigger 
+hurdles than mkdir/rmdir/echo or calling a tool similar to input-utils 
+which does the ioctl.
 
->
-> So, even if the driver would be 100% functional, I doubt that you would find too
-> many users of this webcam, simply because people would need a faster frame rate
-> or wanted a higher resolution.
->
->> Unfortunately, I have not the time nor expertise needed to
->> update/fix/replace this driver, though I have previously tried. If
->> someone on this list is willing to collaborate with me to make a
->> functional v4l2 driver to replace the existing ibmcam driver, I'd be
->> more than willing to expend more time and energy in doing so.
->> Hopefully someday I'll actually be able to use the camera that I own,
->> considering as is it barely works under Windows.
->
-> I agree that it would be interesting to port it to V4L2, instead of just
-> dropping it. Maybe Hans Geode or someone else with some spare time
-> could help you on this task.
->
-> --
->
-> Cheers,
-> Mauro
->
+mount -t configfs blabla /somewhere (distros don't seem to mount 
+configfs per default)
+cd /somewhere/somewhere-else
+mkdir something
+echo gibberish1 > yada1
+echo gibberish2 > yada2
+echo gibberish3 > yada3
+
+Doesn't seem all that much less obscure than the command line interface 
+to an ioctl based interface:
+
+ir-util load_keytable /usr/share/remotes/blah
+
+or
+
+ir-util load_keyentry "gibberish1,gibberish2 = gibberish3"
+
+Assume the user provides an invalid (e.g. out-of-bounds value for the 
+device field of a RC5 ir command) scancode. With the configfs approach 
+the user will get a standard perror reply from echo/cat. With a 
+dedicated tool the user can get a much more informative error message.
+
+But in the end, the majority of users are going to use some GUI to do 
+all of this anyway (and they'll only do it once)....start GUI, ask user 
+to press all keys on remote one by one, provide them with a list of 
+possible descriptions (i.e. input.h type keycodes) for each detected key 
+on the remote (something like the keymapping interface most quake-like 
+computer games provide).  Once done, save keymap. Load keymap at boot.  
+Configfs or ioctl or sysfs or netlink or blorkfs is a detail which won't 
+matter to those users.
+
+-- 
+David Härdeman
