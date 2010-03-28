@@ -1,42 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f211.google.com ([209.85.218.211]:45085 "EHLO
-	mail-bw0-f211.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751121Ab0CIUFY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Mar 2010 15:05:24 -0500
-Received: by bwz3 with SMTP id 3so1270455bwz.29
-        for <linux-media@vger.kernel.org>; Tue, 09 Mar 2010 12:05:22 -0800 (PST)
+Received: from mail-in-16.arcor-online.net ([151.189.21.56]:53957 "EHLO
+	mail-in-16.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754209Ab0C1LvU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 28 Mar 2010 07:51:20 -0400
+Message-ID: <27890244.1269777077513.JavaMail.ngmail@webmail18.arcor-online.net>
+Date: Sun, 28 Mar 2010 13:51:17 +0200 (CEST)
+From: Stefan Ringel <stefan.ringel@arcor.de>
+To: gtellalov@bigfoot.com, linux-media@vger.kernel.org
+Subject: Aw: Hauppauge WinTV HVR-900H
+In-Reply-To: <20100328105145.GA2427@joro.homelinux.org>
 MIME-Version: 1.0
-In-Reply-To: <a3ef07921003091155q2a11335bo887251ed2c3300d2@mail.gmail.com>
-References: <4B969C08.2030807@redhat.com>
-	 <a3ef07921003091155q2a11335bo887251ed2c3300d2@mail.gmail.com>
-Date: Tue, 9 Mar 2010 15:05:22 -0500
-Message-ID: <829197381003091205vfeb1e81oa09b8320f02cd2c5@mail.gmail.com>
-Subject: Re: Status of the patches under review (45 patches)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: VDR User <user.vdr@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>, moinejf@free.fr,
-	m-karicheri2@ti.com, g.liakhovetski@gmx.de, pboettcher@dibcom.fr,
-	tobias.lorenz@gmx.net, awalls@radix.net, khali@linux-fr.org,
-	hdegoede@redhat.com, abraham.manu@gmail.com, hverkuil@xs4all.nl,
-	crope@iki.fi, davidtlwong@gmail.com, henrik@kurelid.se,
-	stoth@kernellabs.com
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+References: <20100328105145.GA2427@joro.homelinux.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 9, 2010 at 2:55 PM, VDR User <user.vdr@gmail.com> wrote:
-> What happened to the statistics patch?
+ 
 
-The statistics patch still needs a ton of work before it could be
-accepted upstream.  Mostly these things are related to clarification
-as to how the API should behave and how a variety of edge cases should
-be handled.  I came up with about three paragraphs worth of issues
-with the proposed approach, but haven't had a chance to push it to the
-mailing list for further discussion.
 
-Devin
+----- Original Nachricht ----
+Von:     George Tellalov <gtellalov@bigfoot.com>
+An:      linux-media@vger.kernel.org
+Datum:   28.03.2010 12:51
+Betreff: Hauppauge WinTV HVR-900H
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+> Hello linux-media,
+> 
+> I've recently bought an HVR-900H usb hybrid tuner (marketed as
+> 900-without-h)
+> and discovered that it's been unsupported for a while now. Nevertheless
+> some work is being done there:
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg16498.html
+> I've tried the patch (with linux 2.6.32) and I got as far as the firmware
+> being uploaded, but when I tried playing some TV it crashed the kernel.
+> I'm willing to help speeding up the driver development, so I was wondering
+> if
+> there's anything I can start with (like testing). Hopefully I'll be able to
+> do
+> some development later on, but I've got a lot of reading ahead before this
+> could
+> happen.
+> 
+> Oh, yes - the device id is 2040:6600.
+> 
+> Regards
+> George
+
+In what for mode, analog or dvb-t?
+
+Stefan Ringel
