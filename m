@@ -1,66 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:63909 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933060Ab0CaJcr (ORCPT
+Received: from mga11.intel.com ([192.55.52.93]:45406 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751647Ab0C1LaG convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Mar 2010 05:32:47 -0400
-Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0L0500K7F3UJWP@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 31 Mar 2010 10:32:43 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L05002VR3UJVU@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 31 Mar 2010 10:32:43 +0100 (BST)
-Date: Wed, 31 Mar 2010 11:32:25 +0200
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: [PATCH v2 1/3] v4l: Add a new ERROR flag for DQBUF after recoverable
- streaming errors
-In-reply-to: <1270027947-28327-1-git-send-email-p.osciak@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com
-Message-id: <1270027947-28327-2-git-send-email-p.osciak@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1270027947-28327-1-git-send-email-p.osciak@samsung.com>
+	Sun, 28 Mar 2010 07:30:06 -0400
+From: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Zhu, Daniel" <daniel.zhu@intel.com>,
+	"Yu, Jinlu" <jinlu.yu@intel.com>,
+	"Wang, Wen W" <wen.w.wang@intel.com>,
+	"Huang, Kai" <kai.huang@intel.com>,
+	"Hu, Gang A" <gang.a.hu@intel.com>,
+	"Ba, Zheng" <zheng.ba@intel.com>
+Date: Sun, 28 Mar 2010 19:28:25 +0800
+Subject: RE: [PATCH v2 0/10] V4L2 patches for Intel Moorestown Camera
+ Imaging Drivers
+Message-ID: <33AB447FBD802F4E932063B962385B351D6D5359@shsmsx501.ccr.corp.intel.com>
+References: <33AB447FBD802F4E932063B962385B351D6D534A@shsmsx501.ccr.corp.intel.com>
+ <201003281031.15064.hverkuil@xs4all.nl>
+In-Reply-To: <201003281031.15064.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This flag is intended to indicate streaming errors, which might have
-resulted in corrupted video data in the buffer, but the buffer can still
-be reused and streaming may continue.
+Hi Hans,
 
-Setting this flag and returning 0 is different from returning EIO. The
-latter should now indicate more serious (unrecoverable) errors.
+Thank you comment. I will try to figure out why patch 2/10 is missing. maybe it is a little bit large. I will split it two more patches and resubmit again.
 
-This patch also solves a problem with the ioctl handling code in
-vl42-ioctl.c, which does not copy buffer identification data back to the
-userspace when EIO is returned, so there is no way for applications
-to discover on which buffer the operation failed in such cases.
+BRs
+Xiaolin
 
-Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-Reviewed-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- include/linux/videodev2.h |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+-----Original Message-----
+From: Hans Verkuil [mailto:hverkuil@xs4all.nl] 
+Sent: Sunday, March 28, 2010 4:31 PM
+To: Zhang, Xiaolin
+Cc: linux-media@vger.kernel.org; Zhu, Daniel; Yu, Jinlu; Wang, Wen W; Huang, Kai; Hu, Gang A; Ba, Zheng
+Subject: Re: [PATCH v2 0/10] V4L2 patches for Intel Moorestown Camera Imaging Drivers
 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 418dacf..e9222e8 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -550,6 +550,9 @@ struct v4l2_buffer {
- #define V4L2_BUF_FLAG_KEYFRAME	0x0008	/* Image is a keyframe (I-frame) */
- #define V4L2_BUF_FLAG_PFRAME	0x0010	/* Image is a P-frame */
- #define V4L2_BUF_FLAG_BFRAME	0x0020	/* Image is a B-frame */
-+/* Buffer is ready, but the data contained within is corrupted.
-+ * Always set together with V4L2_BUF_FLAG_DONE (for backward compatibility). */
-+#define V4L2_BUF_FLAG_ERROR	0x0040
- #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
- #define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
- 
+Hi Xiaolin!
+
+Here are a few comments based on a first read-through.
+
+First of all, patch 2/10 did not seem to make it to the list for some reason.
+Because of that I'm deferring reviewing patches 1/10 and (of course) 2/10.
+
+The other patches for the i2c devices all have the same problems, so I will
+only review one and you can apply the comments made there to all the others.
+
+A general comment I have is that I think there is too much debugging code.
+Creating good debug code is an art. In my experience things like DBG_entering
+and DBG_leaving just clutter the code and are pretty useless once the initial
+implementation phase is finished. The trick is to have just enough debug or
+logging available so that you can deduce the path taken by the driver.
+
+What I found to be very useful as well is to implement VIDIOC_LOG_STATUS to
+get a full status overview of the various (sub)devices at a given moment.
+
+On Sunday 28 March 2010 09:46:35 Zhang, Xiaolin wrote:
+> Hi, 
+> 
+> Here is the second version of V4L2 camera sensors and ISP driver patch set to support the Intel Moorestown camera imaging subsystem. 
+> 
+> The Camera Imaging interface (CI) in Moorestown is responsible for still image and video capture which can handle demosaicing, color synthesis, filtering, image enhancement, etc functionalities with a integrated JPEG encode. 
+> Intel Moorestown platform can support either a single camera or dual cameras. If a platform with dual camera will have one low resolution camera on the same side as this display for video conference and a high resolution camera on the opposite side the display for high quality still image capture.
+> 
+> The driver framework is updated to the v4l2 sub-dev and video buffer framework, in this set of driver patches, I will submit the 10 patches to enable the camera subsystem with the device drivers for ISP HW and 4 cameras module (two SoCs: 1.3MP - Omnivision 9665, 2MP - Omnivison 2650 and two RAWs: 5MP - Omnivision 5630, 5MP - Samsong s5k4e1).
+> 
+> 1. Intel Moorestown ISP driver - header files.
+
+Just a single comment on these files here: I see new PIXFMT defines in a
+Moorestown-specific header: just add these to videodev2.h.
+
+Regards,
+
+	Hans
+
+> 2. Intel Moorestown ISP driver - V4L2 implementation including hardware component functionality  
+> 3. Intel Moorestown flash sub-dev driver
+> 4. Intel Moorestown 2MP camera (ov2650) sensor subdev driver.
+> 5. Intel Moorestown 1.3MP camera (ov9665) sensor subdev driver.
+> 6. Intel Moorestown 5MP camera (ov5630) sensor subdev driver.
+> 7. Intel Moorestown 5MP camera (ov5630) lens subdev driver.
+> 8. Intel Moorestown 5MP camera (s5k4e1) sensor subdev driver.
+> 9. Intel Moorestown 5MP camera (s5k4e1) lens subdev driver
+> 10. make/kconfig files change to enable camera drivers for intel Moorestown platform.
+> 
+> Please review them and comments are welcome as always. 
+> 
+> Regards,
+> 
+> Xiaolin
+> Xiaolin.zhang@intel.com
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+
 -- 
-1.7.0.31.g1df487
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
