@@ -1,32 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx10.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.14])
-	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o2UCWtcH028052
-	for <video4linux-list@redhat.com>; Tue, 30 Mar 2010 08:32:56 -0400
-Received: from cleopatra.basesoft.com (cleopatra.basesoft.com [82.199.92.137])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2UCWfYf020980
-	for <video4linux-list@redhat.com>; Tue, 30 Mar 2010 08:32:43 -0400
-Received: from localhost (unknown [127.0.0.1])
-	by cleopatra.basesoft.com (Postfix) with ESMTP id 64E85554CC9
-	for <video4linux-list@redhat.com>; Tue, 30 Mar 2010 12:32:40 +0000 (UTC)
-Received: from cleopatra.basesoft.com ([127.0.0.1])
-	by localhost (cleopatra.basesoft.com [127.0.0.1]) (amavisd-new,
-	port 10024)
-	with ESMTP id qbkHbMDC1KfE for <video4linux-list@redhat.com>;
-	Tue, 30 Mar 2010 14:32:37 +0200 (CEST)
-Received: from [10.0.5.151] (unknown [89.137.114.41])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by cleopatra.basesoft.com (Postfix) with ESMTPSA id 81214554CC7
-	for <video4linux-list@redhat.com>;
-	Tue, 30 Mar 2010 14:32:37 +0200 (CEST)
-Message-ID: <4BB1EF66.9000500@basesoft.ro>
-Date: Tue, 30 Mar 2010 15:32:38 +0300
-From: Mircea Uifalean <mircea@basesoft.ro>
+Received: from mx1.redhat.com (ext-mx09.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.13])
+	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o2SCTgPo018134
+	for <video4linux-list@redhat.com>; Sun, 28 Mar 2010 08:29:42 -0400
+Received: from mail-pv0-f174.google.com (mail-pv0-f174.google.com
+	[74.125.83.174])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2SCTRGl006300
+	for <video4linux-list@redhat.com>; Sun, 28 Mar 2010 08:29:28 -0400
+Received: by pva18 with SMTP id 18so2291234pva.33
+	for <video4linux-list@redhat.com>; Sun, 28 Mar 2010 05:29:27 -0700 (PDT)
 MIME-Version: 1.0
+Date: Sun, 28 Mar 2010 20:29:27 +0800
+Message-ID: <3c76e9761003280529r14d86dbepa0f61e8d94d969d3@mail.gmail.com>
+Subject: Image format set with VIDIOC_S_FMT successfully on host PC, yet
+	failed on target ARM dev-board.
+From: Gallon Fr <gallonfr@gmail.com>
 To: video4linux-list@redhat.com
-Subject: [SOLVED] problem with streaming from two webcams with v4l2
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -40,35 +30,26 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello.
-
-I wrote a couple of days ago about a problem with streaming from two
-webcams. I had errors when I tried to start both streams simultaneously
-but individually they both worked fine.
-
-According to a page on the matter (not sure if I'm allowed to post links
-so I'll just quote):
-
-"A USB camera uses all the bandwidth a USB1.1 controller can give. Even
-at low framerates the camera reserves more than half the 11 Mb/s. This
-means that the 2nd camera gets rejected. Few motherboards have more than
-one controller. Often 2 or 4 physical connections on a motherboard
-shares one and the same USB controller. To add more cameras you need to
-put USB adapter cards. One per camera. There exists cards with full
-bandwidth per USB socket. These present themselves as for example 4 USB
-controllers to Linux and they work fine with 4 cameras. Also, many (if
-not most) cheap PCI USB1/2 cards ($10 range) have a controller capable
-of supporting 2 x USB1 cameras and an additional USB2 camera per card.
-With those cards and USB1 extender cards (allowing extension of a USB1
-device for up to 100m, typically 50m) you can have a capable
-surveillance setup using only USB cameras.".
-
-So the problem was fixed by adding a PCI card that had some extra USB
-ports. Hope this helps others that have a similar problem.
-
--- 
-Regards,
-Mircea Uifalean
+Hi,all:
+I got a problem while I was trying to capture a frame through a webcam
+on a dev-board.I just followed the example provided by V4L2 specs and
+made a little change in the process_image() function.The code runs
+well on my PC,and I can exactly get a converted BMP file after setting
+the image format to "YUYV".
+BUT when port it to ARM, I just got the "Invalid Argument" error
+returned by VIDIOC_S_FMT.I tried with the G_FMT ioctl both on PC and
+ARM and the result confused me.While on ARM the returned supported
+format is "MJPG",rather than "YUYV" on PC and that's why the S_FMT
+complained.
+Here is some info about my environment.
+host-pc: Fedora 12( kernel 2.6.31.5)
+target-arm: arm-linux (kernel 2.6.32.2) EABI enabled/V4L enabled/gspca
+enabled/uvc enabled
+cross-compiler: Soucery G++ (EABI)
+Should I just install a module to ARM or add something else?Or maybe
+someone could leave me a hint?
+Thanks and Regards
+Fei
 
 --
 video4linux-list mailing list
