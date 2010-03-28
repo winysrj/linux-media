@@ -1,113 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:39374 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752148Ab0CRLwu (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:53778 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755337Ab0C1XIV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Mar 2010 07:52:50 -0400
-Received: from localhost.localdomain (unknown [192.100.124.156])
-	by perceval.irobotique.be (Postfix) with ESMTPSA id 8C28635AD7
-	for <linux-media@vger.kernel.org>; Thu, 18 Mar 2010 11:52:48 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/2] v4l: Add V4L2_CID_IRIS_ABSOLUTE and V4L2_CID_IRIS_RELATIVE controls
-Date: Thu, 18 Mar 2010 12:55:02 +0100
-Message-Id: <1268913303-30565-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1268913303-30565-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1268913303-30565-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Sun, 28 Mar 2010 19:08:21 -0400
+Subject: Re: What would be a good time to move subdev drivers to a subdev
+ directory?
+From: Andy Walls <awalls@md.metrocast.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+In-Reply-To: <201003281803.22405.hverkuil@xs4all.nl>
+References: <201003281224.17678.hverkuil@xs4all.nl>
+	 <4BAF77F7.3070205@redhat.com>  <201003281803.22405.hverkuil@xs4all.nl>
+Content-Type: text/plain
+Date: Sun, 28 Mar 2010 19:08:23 -0400
+Message-Id: <1269817703.21755.12.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Those control, as their names imply, control the camera aperture
-settings.
+On Sun, 2010-03-28 at 18:03 +0200, Hans Verkuil wrote:
+> On Sunday 28 March 2010 17:38:31 Mauro Carvalho Chehab wrote:
+> > Hans Verkuil wrote:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/DocBook/v4l/compat.xml      |   11 +++++++++++
- Documentation/DocBook/v4l/controls.xml    |   19 +++++++++++++++++++
- Documentation/DocBook/v4l/videodev2.h.xml |    3 +++
- include/linux/videodev2.h                 |    3 +++
- 4 files changed, 36 insertions(+), 0 deletions(-)
+> > So, let's get some feedback from developers about this again. Whatever decided,
+> > we should clearly document the used criteria, to avoid having drivers misplaced.
+> 
+> 1) Reusable subdev drivers go into the subdev directory.
 
-diff --git a/Documentation/DocBook/v4l/compat.xml b/Documentation/DocBook/v4l/compat.xml
-index b9dbdf9..854235b 100644
---- a/Documentation/DocBook/v4l/compat.xml
-+++ b/Documentation/DocBook/v4l/compat.xml
-@@ -2332,6 +2332,17 @@ more information.</para>
- 	</listitem>
-       </orderedlist>
-     </section>
-+    <section>
-+      <title>V4L2 in Linux 2.6.34</title>
-+      <orderedlist>
-+	<listitem>
-+	  <para>Added
-+<constant>V4L2_CID_IRIS_ABSOLUTE</constant> and
-+<constant>V4L2_CID_IRIS_RELATIVE</constant> controls to the
-+	    <link linkend="camera-controls">Camera controls class</link>.
-+	  </para>
-+	</listitem>
-+      </orderedlist>
-    </section>
- 
-    <section id="other">
-diff --git a/Documentation/DocBook/v4l/controls.xml b/Documentation/DocBook/v4l/controls.xml
-index f464506..c412e89 100644
---- a/Documentation/DocBook/v4l/controls.xml
-+++ b/Documentation/DocBook/v4l/controls.xml
-@@ -1825,6 +1825,25 @@ wide-angle direction. The zoom speed unit is driver-specific.</entry>
- 	  <row><entry></entry></row>
- 
- 	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_IRIS_ABSOLUTE</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row><row><entry spanname="descr">This control sets the
-+camera aperture's to the specified value. The unit is undefined.
-+Positive values open the iris, negative close it.</entry>
-+	  </row>
-+	  <row><entry></entry></row>
-+
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_IRIS_RELATIVE</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row><row><entry spanname="descr">This control modifies the
-+camera aperture's by the specified amount. The unit is undefined.
-+Positive values open the iris one step further, negative values close
-+it one step further. This is a write-only control.</entry>
-+	  </row>
-+	  <row><entry></entry></row>
-+
-+	  <row>
- 	    <entry spanname="id"><constant>V4L2_CID_PRIVACY</constant>&nbsp;</entry>
- 	    <entry>boolean</entry>
- 	  </row><row><entry spanname="descr">Prevent video from being acquired
-diff --git a/Documentation/DocBook/v4l/videodev2.h.xml b/Documentation/DocBook/v4l/videodev2.h.xml
-index 0683259..c18dfeb 100644
---- a/Documentation/DocBook/v4l/videodev2.h.xml
-+++ b/Documentation/DocBook/v4l/videodev2.h.xml
-@@ -1271,6 +1271,9 @@ enum  <link linkend="v4l2-exposure-auto-type">v4l2_exposure_auto_type</link> {
- 
- #define V4L2_CID_PRIVACY                        (V4L2_CID_CAMERA_CLASS_BASE+16)
- 
-+#define V4L2_CID_IRIS_ABSOLUTE                  (V4L2_CID_CAMERA_CLASS_BASE+17)
-+#define V4L2_CID_IRIS_RELATIVE                  (V4L2_CID_CAMERA_CLASS_BASE+18)
-+
- /* FM Modulator class control IDs */
- #define V4L2_CID_FM_TX_CLASS_BASE               (V4L2_CTRL_CLASS_FM_TX | 0x900)
- #define V4L2_CID_FM_TX_CLASS                    (V4L2_CTRL_CLASS_FM_TX | 1)
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 3c26560..c9d2120 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1277,6 +1277,9 @@ enum  v4l2_exposure_auto_type {
- 
- #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
- 
-+#define V4L2_CID_IRIS_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+17)
-+#define V4L2_CID_IRIS_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+18)
-+
- /* FM Modulator class control IDs */
- #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
- #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
--- 
-1.6.4.4
+OK by me.
+
+I will note the cx25840 module is used stand-alone and by the cx23885
+and cx231xx drivers as an integrated A/V core.  However the integrated
+core is internally I2C connected so it's fairly loosely coupled.  I
+don't see a problem with the cx25840 module being pushed into a subdev
+directory.
+
+
+> 2) Subdev drivers that are tightly coupled to a bridge or platform driver go
+> into the subdirectory containing that bridge or platform driver.
+
+Ack.
+
+
+> Rule 1 applies to roughly 50 subdev drivers.
+> 
+> I wonder if for rule 2 we should require that subdev drivers would go into a
+> <bridge driver>/subdev directory. It would help in keeping track of what is what,
+> but this may be overkill.
+
+NAK.  That is overkill.
+
+
+
+BTW, here are some exceptional cases to ponder:
+
+Where does the cx2341x module go?  It is common code used by ivtv, cx18,
+and cx23885 (and probably cx88), but it is not a subdevice.  
+
+Also some code in cx23885/cx23888-ir.c could be broken out and shared
+between the cx25840, cx18, and cx231xx modules since it is the same IR
+hardware (mostly), but connected to the bridge chip differently.  Where
+would that go?
+
+Regards,
+Andy
 
