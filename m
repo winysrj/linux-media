@@ -1,67 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51997 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755375Ab0CDQy6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Mar 2010 11:54:58 -0500
-From: =?UTF-8?q?Uwe=20Kleine-K=C3=B6nig?=
-	<u.kleine-koenig@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Antonio Ospite <ospite@studenti.unina.it>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-kernel@vger.kernel.org
-Subject: [PATCH] V4L/DVB: mx1-camera: compile fix
-Date: Thu,  4 Mar 2010 17:54:46 +0100
-Message-Id: <1267721687-19697-1-git-send-email-u.kleine-koenig@pengutronix.de>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1534 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751574Ab0C1QDE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 28 Mar 2010 12:03:04 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: What would be a good time to move subdev drivers to a subdev directory?
+Date: Sun, 28 Mar 2010 18:03:22 +0200
+Cc: linux-media@vger.kernel.org
+References: <201003281224.17678.hverkuil@xs4all.nl> <4BAF77F7.3070205@redhat.com>
+In-Reply-To: <4BAF77F7.3070205@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201003281803.22405.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a regression of
+On Sunday 28 March 2010 17:38:31 Mauro Carvalho Chehab wrote:
+> Hans Verkuil wrote:
+> > Hi Mauro,
+> > 
+> > Currently drivers/media/video is a mix of subdev drivers and bridge/platform
+> > drivers. I think it would be good to create a drivers/media/subdev directory
+> > where subdev drivers can go.
+> > 
+> > We discussed in the past whether we should have categories for audio subdevs,
+> > video subdevs, etc. but I think that will cause problems, especially with
+> > future multifunction devices.
+> 
+> Due to the discussions we had on the last time, I'm not so sure that such move
+> would be good: There are some cases where the division of a subdev is more a
+> matter of a logical organization than a physical device division. for example,
+> cx231xx is just one chip, but, as it has internally the same functionalities as
+> a cx2584x, the cx2584x is a subdev used by the driver. There are other similar
+> examples on other IC's and SoC.
 
-	7d58289 (mx1: prefix SOC specific defines with MX1_ and deprecate old names)
+I should have mentioned why I think it is a good idea to split it: right now it
+is not clear in media/video what the bridge drivers are and what the subdev
+drivers are.
 
-Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
----
-Hello,
+Note that integrated subdev drivers that are tightly coupled to a bridge or
+platform driver should stay with that driver (in practice these will always
+be in a driver-specific subdirectory), but subdevs that can be used stand-alone
+should (I think) be moved to their own 'subdev' subdirectory.
 
-this went unnoticed up to now as mx1_defconfig doesn't include support
-for mx1-camera.
-I have a patch pending to change that though.
+It also makes no sense to me to mix bridge drivers and subdev drivers in one
+directory. They are simply different types of driver.
 
-Best regards
-Uwe
-
- drivers/media/video/mx1_camera.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/mx1_camera.c b/drivers/media/video/mx1_camera.c
-index 2ba14fb..38e5315 100644
---- a/drivers/media/video/mx1_camera.c
-+++ b/drivers/media/video/mx1_camera.c
-@@ -45,6 +45,9 @@
- #include <mach/hardware.h>
- #include <mach/mx1_camera.h>
+I don't care whether they are moved to media/subdev or media/video/subdev. The
+latter is probably easier.
  
-+#undef DMA_BASE 
-+#define DMA_BASE MX1_IO_ADDRESS(MX1_DMA_BASE_ADDR)
-+
- /*
-  * CSI registers
-  */
-@@ -783,7 +786,7 @@ static int __init mx1_camera_probe(struct platform_device *pdev)
- 			       pcdev);
+> I remember that Oliver argued on that time that the better would be to reduce the
+> number of subdirs, instead of increasing. On that discussions, I got convinced 
+> that he was right, but maybe we have some new reasons to create a subdev dir.
+> 
+> So, let's get some feedback from developers about this again. Whatever decided,
+> we should clearly document the used criteria, to avoid having drivers misplaced.
+
+1) Reusable subdev drivers go into the subdev directory.
+2) Subdev drivers that are tightly coupled to a bridge or platform driver go
+into the subdirectory containing that bridge or platform driver.
+
+Rule 1 applies to roughly 50 subdev drivers.
+
+I wonder if for rule 2 we should require that subdev drivers would go into a
+<bridge driver>/subdev directory. It would help in keeping track of what is what,
+but this may be overkill.
  
- 	imx_dma_config_channel(pcdev->dma_chan, IMX_DMA_TYPE_FIFO,
--			       IMX_DMA_MEMSIZE_32, DMA_REQ_CSI_R, 0);
-+			       IMX_DMA_MEMSIZE_32, MX1_DMA_REQ_CSI_R, 0);
- 	/* burst length : 16 words = 64 bytes */
- 	imx_dma_config_burstlen(pcdev->dma_chan, 0);
+> Ah, as we're talking about drivers directory, I'm intending to move the Remote
+> Controller common code to another place, likely drivers/input/rc or drivers/rc.
+> The idea is to use this subsystem for pure input devices as well. By keeping it
+> at drivers/media, it will be missplaced.
+
+Makes sense.
+
+> 
+> > What is your opinion on this, and what would be a good time to start moving
+> > drivers?
+> 
+> If we're doing this change, I prefer to generate the patch by the end of a
+> merge window, after merging from everybody else and being sure that trivial patches
+> also got merged.
+
+OK, makes sense.
  
+> Comments?
+
+Regards,
+
+	Hans
+
 -- 
-1.7.0
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
