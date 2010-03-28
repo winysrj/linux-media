@@ -1,121 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50230 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753007Ab0CRMln (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Mar 2010 08:41:43 -0400
-Message-ID: <4BA21F80.8050906@redhat.com>
-Date: Thu, 18 Mar 2010 09:41:36 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-in-14.arcor-online.net ([151.189.21.54]:39320 "EHLO
+	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754918Ab0C1SMy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 28 Mar 2010 14:12:54 -0400
+Message-ID: <4BAF9BDF.9020805@arcor.de>
+Date: Sun, 28 Mar 2010 20:11:43 +0200
+From: Stefan Ringel <stefan.ringel@arcor.de>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: George Tellalov <gtellalov@bigfoot.com>
 CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] v4l: Add V4L2_CID_IRIS_ABSOLUTE and V4L2_CID_IRIS_RELATIVE
- controls
-References: <1268913303-30565-1-git-send-email-laurent.pinchart@ideasonboard.com> <1268913303-30565-2-git-send-email-laurent.pinchart@ideasonboard.com> <4BA21A6D.30500@redhat.com> <201003181333.42266.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201003181333.42266.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Subject: Re: Hauppauge WinTV HVR-900H
+References: <20100328120729.GB6153@joro.homelinux.org> <20100328105145.GA2427@joro.homelinux.org> <27890244.1269777077513.JavaMail.ngmail@webmail18.arcor-online.net> <23371307.1269778330976.JavaMail.ngmail@webmail11.arcor-online.net> <20100328153759.GA2893@joro.homelinux.org>
+In-Reply-To: <20100328153759.GA2893@joro.homelinux.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent Pinchart wrote:
-> Hi Mauro,
-> 
-> On Thursday 18 March 2010 13:19:57 Mauro Carvalho Chehab wrote:
->> Laurent Pinchart wrote:
->>> Those control, as their names imply, control the camera aperture
->>> settings.
+Am 28.03.2010 17:37, schrieb George Tellalov:
+> On Sun, Mar 28, 2010 at 02:12:10PM +0200, Stefan Ringel wrote:
+>   
+>>  
+>>
+>>
+>> ----- Original Nachricht ----
+>> Von:     George Tellalov <gtellalov@bigfoot.com>
+>> An:      Stefan Ringel <stefan.ringel@arcor.de>
+>> Datum:   28.03.2010 14:07
+>> Betreff: Re: Hauppauge WinTV HVR-900H
+>>
+>>     
+>>> On Sun, Mar 28, 2010 at 01:51:17PM +0200, Stefan Ringel wrote:
+>>>       
+>>>>  
+>>>> In what for mode, analog or dvb-t?
+>>>>
+>>>>         
+>>> The test? It was in analog mode using tvtime.
 >>>
->>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>> ---
->>>
->>>  Documentation/DocBook/v4l/compat.xml      |   11 +++++++++++
->>>  Documentation/DocBook/v4l/controls.xml    |   19 +++++++++++++++++++
->>>  Documentation/DocBook/v4l/videodev2.h.xml |    3 +++
->>>  include/linux/videodev2.h                 |    3 +++
->>>  4 files changed, 36 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/Documentation/DocBook/v4l/compat.xml
->>> b/Documentation/DocBook/v4l/compat.xml index b9dbdf9..854235b 100644
->>> --- a/Documentation/DocBook/v4l/compat.xml
->>> +++ b/Documentation/DocBook/v4l/compat.xml
->>> @@ -2332,6 +2332,17 @@ more information.</para>
->>>
->>>  	</listitem>
->>>  	
->>>        </orderedlist>
->>>      
->>>      </section>
->>>
->>> +    <section>
->>> +      <title>V4L2 in Linux 2.6.34</title>
->>> +      <orderedlist>
->>> +	<listitem>
->>> +	  <para>Added
->>> +<constant>V4L2_CID_IRIS_ABSOLUTE</constant> and
->>> +<constant>V4L2_CID_IRIS_RELATIVE</constant> controls to the
->>> +	    <link linkend="camera-controls">Camera controls class</link>.
->>> +	  </para>
->>> +	</listitem>
->>> +      </orderedlist>
->>>
->>>     </section>
->>>     
->>>     <section id="other">
->>>
->>> diff --git a/Documentation/DocBook/v4l/controls.xml
->>> b/Documentation/DocBook/v4l/controls.xml index f464506..c412e89 100644
->>> --- a/Documentation/DocBook/v4l/controls.xml
->>> +++ b/Documentation/DocBook/v4l/controls.xml
->>> @@ -1825,6 +1825,25 @@ wide-angle direction. The zoom speed unit is
->>> driver-specific.</entry>
->>>
->>>  	  <row><entry></entry></row>
->>>  	  
->>>  	  <row>
->>>
->>> +	    <entry
->>> spanname="id"><constant>V4L2_CID_IRIS_ABSOLUTE</constant>&nbsp;</entry>
->>> +	    <entry>integer</entry>
->>> +	  </row><row><entry spanname="descr">This control sets the
->>> +camera aperture's to the specified value. The unit is undefined.
->>> +Positive values open the iris, negative close it.</entry>
->>> +	  </row>
->>> +	  <row><entry></entry></row>
->>> +
->>> +	  <row>
->>> +	    <entry
->>> spanname="id"><constant>V4L2_CID_IRIS_RELATIVE</constant>&nbsp;</entry>
->>> +	    <entry>integer</entry>
->>> +	  </row><row><entry spanname="descr">This control modifies the
->>> +camera aperture's by the specified amount. The unit is undefined.
->>> +Positive values open the iris one step further, negative values close
->>> +it one step further. This is a write-only control.</entry>
->>> +	  </row>
->>> +	  <row><entry></entry></row>
->>> +
->>> +	  <row>
->>>
->>>  	    <entry
->>>  	    spanname="id"><constant>V4L2_CID_PRIVACY</constant>&nbsp;</entry>
->>>  	    <entry>boolean</entry>
->>>  	  
->>>  	  </row><row><entry spanname="descr">Prevent video from being acquired
->> Seems ok to me, but it would be good to add some sort of scale for those
->> controls.
-> 
-> I'd love to, but most iris controllers will just let you specify a value in an 
-> arbitrary scale (0 for closed, 255 for fully opened for instance). In that 
-> case do we want to force driver developers to measure the aperture in µm units 
-> with a micrometer caliper ? :-)
-:)
+>>>       
+>> And the dmsg log (with debug info), so we can see what wrong is. What for options have you set in the .config file?
+>>
+>>     
+> Okay the same result with 2.6.33. I'm attaching my .config and dmesg's output.
+> I also have debug=9 output but I'm not sure if it's appropriate to attach it
+> here. Maybe I should gzip it?
+>   
 
+I have also this bug (v4l2 in tm6000)! It can go any time to find and
+bugfix it. Please, test the dvb mode, what I think works and resend test
+result.
 
-Well, maybe then you could just comment that higher values means more opened
-apertures.
-
+Stefan Ringel
 
 -- 
+Stefan Ringel <stefan.ringel@arcor.de>
 
-Cheers,
-Mauro
