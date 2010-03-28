@@ -1,75 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:47304 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752767Ab0CVNCp (ORCPT
+Received: from mail-in-14.arcor-online.net ([151.189.21.54]:33768 "EHLO
+	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754506Ab0C1Qgm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Mar 2010 09:02:45 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0KZO00FL9PKI4660@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 22 Mar 2010 13:02:42 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0KZO001C6PKIY9@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 22 Mar 2010 13:02:42 +0000 (GMT)
-Date: Mon, 22 Mar 2010 14:00:51 +0100
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: RE: [REPORT] Brainstorm meeting on V4L2 memory handling
-In-reply-to: <19F8576C6E063C45BE387C64729E7394044DE0E50D@dbde02.ent.ti.com>
-To: "'Hiremath, Vaibhav'" <hvaibhav@ti.com>,
-	linux-media@vger.kernel.org
-Message-id: <004801cac9bf$b2e32e90$18a98bb0$%osciak@samsung.com>
-Content-language: pl
-References: <201003131456.21510.hverkuil@xs4all.nl>
- <19F8576C6E063C45BE387C64729E7394044DE0E50D@dbde02.ent.ti.com>
+	Sun, 28 Mar 2010 12:36:42 -0400
+Message-ID: <2835345.1269794199129.JavaMail.ngmail@webmail15.arcor-online.net>
+Date: Sun, 28 Mar 2010 18:36:39 +0200 (CEST)
+From: Stefan Ringel <stefan.ringel@arcor.de>
+To: gtellalov@bigfoot.com, stefan.ringel@arcor.de
+Subject: Aw: Re: Re: Hauppauge WinTV HVR-900H
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <20100328153759.GA2893@joro.homelinux.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+References: <20100328153759.GA2893@joro.homelinux.org> <20100328120729.GB6153@joro.homelinux.org>
+ <20100328105145.GA2427@joro.homelinux.org>
+ <27890244.1269777077513.JavaMail.ngmail@webmail18.arcor-online.net>
+ <23371307.1269778330976.JavaMail.ngmail@webmail11.arcor-online.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello!
-
->Hiremath, Vaibhav wrote:
->> 1) Memory-to-memory devices
->>
->> Original thread with the proposal from Samsung:
->>
->> http://www.mail-archive.com/linux-samsung-soc@vger.kernel.org/msg00391.html
->>
->[Hiremath, Vaibhav] Pawel,
->
->I wanted to start prototyping Resizer and Previewer driver to this framework,
-> before starting just wanted to make sure that I start with latest and
-> greatest. Is V2 post still holds latest? Did you do any changes after that?
->
-
-Only some minor tweaks for v3, which is currently underway. This is the expected
-changelog for it:
-
-- streamon/off will have to be called on both queues instead of just either one
-- automatic rescheduling for instances if they have more buffers waiting
-- addressing comments from Andy Walls
-
-All in all, I do not expect any other API changes and only minor tweaks under
-the hood. It should be ready this week.
+ 
 
 
->Also, have you validated this with actual hardware module? If not then I think
->I can now start on this and add resizer driver to it.
+----- Original Nachricht ----
+Von:     George Tellalov <gtellalov@bigfoot.com>
+An:      Stefan Ringel <stefan.ringel@arcor.de>
+Datum:   28.03.2010 17:37
+Betreff: Re: Re: Hauppauge WinTV HVR-900H
 
-Yes, we have actually been using v2 for several real devices, one of which was
-the previously posted S3C rotator driver:
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg13606.html
+> On Sun, Mar 28, 2010 at 02:12:10PM +0200, Stefan Ringel wrote:
+> >  
+> > 
+> > 
+> > ----- Original Nachricht ----
+> > Von:     George Tellalov <gtellalov@bigfoot.com>
+> > An:      Stefan Ringel <stefan.ringel@arcor.de>
+> > Datum:   28.03.2010 14:07
+> > Betreff: Re: Hauppauge WinTV HVR-900H
+> > 
+> > > On Sun, Mar 28, 2010 at 01:51:17PM +0200, Stefan Ringel wrote:
+> > > >  
+> > > > In what for mode, analog or dvb-t?
+> > > > 
+> > > 
+> > > The test? It was in analog mode using tvtime.
+> > > 
+> > 
+> > And the dmsg log (with debug info), so we can see what wrong is. What for
+> options have you set in the .config file?
+> > 
+> 
+> Okay the same result with 2.6.33. I'm attaching my .config and dmesg's
+> output.
+> I also have debug=9 output but I'm not sure if it's appropriate to attach
+> it
+> here. Maybe I should gzip it?
+> 
 
-And there is always the test device, which was posted along with v2.
+I said debug, but I see no debug info for tm6000 is it "modprobe tm6000 debug=1 debug_i2c=3". From what havew you debug activated? Have you a crash dump in the dmesg log? Can tvtime crash, and if tvtime crashed, then send it to tvtime project (ask Devin Heitmueller). 
 
-If you come across any problems or have more questions, I would be happy to help.
-
-Best regards
---
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
-
-
+Stefan Ringel <stefan.ringel@arcor.de>
