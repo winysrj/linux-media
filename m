@@ -1,21 +1,32 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.5])
-	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o229fxFr005218
-	for <video4linux-list@redhat.com>; Tue, 2 Mar 2010 04:41:59 -0500
-Received: from mail-fx0-f216.google.com (mail-fx0-f216.google.com
-	[209.85.220.216])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o229fgP3031182
-	for <video4linux-list@redhat.com>; Tue, 2 Mar 2010 04:41:43 -0500
-Received: by fxm8 with SMTP id 8so49864fxm.11
-	for <video4linux-list@redhat.com>; Tue, 02 Mar 2010 01:41:42 -0800 (PST)
+Received: from mx1.redhat.com (ext-mx08.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.12])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o2T942Yn004538
+	for <video4linux-list@redhat.com>; Mon, 29 Mar 2010 05:04:03 -0400
+Received: from cleopatra.basesoft.com (cleopatra.basesoft.com [82.199.92.137])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2T93nwA007288
+	for <video4linux-list@redhat.com>; Mon, 29 Mar 2010 05:03:50 -0400
+Received: from localhost (unknown [127.0.0.1])
+	by cleopatra.basesoft.com (Postfix) with ESMTP id 7FF094E4144
+	for <video4linux-list@redhat.com>; Mon, 29 Mar 2010 09:03:46 +0000 (UTC)
+Received: from cleopatra.basesoft.com ([127.0.0.1])
+	by localhost (cleopatra.basesoft.com [127.0.0.1]) (amavisd-new,
+	port 10024)
+	with ESMTP id rDK4w9G2UEWw for <video4linux-list@redhat.com>;
+	Mon, 29 Mar 2010 11:03:43 +0200 (CEST)
+Received: from [10.0.5.151] (unknown [89.137.114.41])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by cleopatra.basesoft.com (Postfix) with ESMTPSA id 9810D4DC161
+	for <video4linux-list@redhat.com>;
+	Mon, 29 Mar 2010 11:03:43 +0200 (CEST)
+Message-ID: <4BB06CEF.9040500@basesoft.ro>
+Date: Mon, 29 Mar 2010 12:03:43 +0300
+From: Mircea Uifalean <mircea@basesoft.ro>
 MIME-Version: 1.0
-Date: Tue, 2 Mar 2010 10:41:42 +0100
-Message-ID: <1098293f1003020141q530a1cadk52810baaf8bca1a4@mail.gmail.com>
-Subject: Webcam. Brightness & Gamma Control
-From: =?ISO-8859-1?Q?=C1lvaro_Canivell?= <oooh.oooh@gmail.com>
 To: video4linux-list@redhat.com
+Subject: problem with streaming from two webcams with v4l2
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,26 +40,78 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello
+Hello guys.
 
-I am using a Ricoh Webcam with the driver r5u870.
+I have two computers (same configuration, same operating system, same
+package versions) and on each of them I have 2 webcams connected
+(a4tech-pk-335e).
+I'm running Mandriva, kernel 2.6.31.5 on both of them, and vlc version
+1.0.5. On both computers the cameras are /dev/video0 and /dev/video1.
 
-The problem is that the image quality is poor, it is too dark, thus I
-would like to brighten it.
+On one computer the streaming works perfect for both cameras, but for
+the second one I can only get streaming for one or the other, never at
+the same time.
 
-I have tried to do it using v4l-conf, v4lctl, but I get a message like this:
+The commands I use for streaming are the following (on both computers):
 
-"v4l brightness control not supported"
+    |cvlc --color v4l2:///dev/video0 :v4l2-width=320 :v4l2-height=240
+    --sout="#transcode{vcodec=FLV1,vb=640,width=320,height=240}:std{mux=ffmpeg{mux=flv},access=http{mime=video/x-flv},dst=0.0.0.0:9000/stream.flv}"
 
-I am not sure I am asking in the right place, but I have been
-"interneting" for a while on r5u870 and v4l and found nothing that
-helps me.
+    cvlc --color v4l2:///dev/video1 :v4l2-width=320 :v4l2-height=240
+    --sout="#transcode{vcodec=FLV1,vb=640,width=320,height=240}:std{mux=ffmpeg{mux=flv},access=http{mime=video/x-flv},dst=0.0.0.0:9001/stream.flv}"|
 
-How could I determine where the problem is? Where can I check the
-logfile for v4l start up. That would help me check wether the problem
-is from the webcam driver or from v4l.
+on the first computer, if I start both streams, I get the same output,
+all is working properly, I can see both my streams. on the second
+computer though, I start the first stream, output is ok, but when I'm
+starting the second stream I get:
 
-Cheers
+    |[webcam@computer2]$ cvlc --color v4l2:///dev/video1 :v4l2-width=320
+    :v4l2-height=240
+    --sout="#transcode{vcodec=FLV1,vb=640,width=320,height=240}:std{mux=ffmpeg{mux=flv},access=http{mime=video/x-flv},dst=0.0.0.0:9001/stream.flv}"
+    VLC media player 1.0.4 Goldeneye
+    [0x884e648] inhibit interface error: Failed to connect to the D-Bus
+    session daemon: /usr/bin/dbus-launch terminated abnormally with the
+    following error: No protocol specified
+    Autolaunch error: X11 initialization failed.
+
+    [0x884e648] main interface error: no suitable interface module
+    [0x87bc560] main libvlc error: interface "inhibit,none"
+    initialization failed
+    No protocol specified
+    [0x884ecc8] main interface error: no suitable interface module
+    [0x87bc560] main libvlc error: interface "globalhotkeys,none"
+    initialization failed
+    [0x884ecc8] dummy interface: using the dummy interface module...
+    [0x8868aa0] main access out: creating httpd
+    [0x8865438] v4l2 demux error: VIDIOC_STREAMON failed
+    [0x8865438] v4l2 demux error: cannot set input (Device or resource busy)
+    [0x886c5f0] v4l2 access error: VIDIOC_STREAMON failed
+    [0x886c5f0] v4l2 access error: cannot set input (Device or resource
+    busy)
+    [0x88556d0] main input error: open of `v4l2:///dev/video1' failed:
+    (null)
+    [0x88556d0] main input error: Your input can't be opened
+    [0x88556d0] main input error: VLC is unable to open the MRL
+    'v4l2:///dev/video1'. Check the log for details.|
+
+On the first impression, it looks like /dev/video0 and /dev/video1 point
+to the same camera, but when I start them individually, I can clearly
+see the output is different, each time from the proper camera. I tried
+connecting the cameras to different usb ports, but to no avail. The
+problem is still there.
+
+First place I posted my problem was on the vlc forum, but they said the
+error comes from the device driver, so I thought I'd ask you guys.
+
+Any ideas on what I could try to fix this problem ? It's really weird
+that in one place it works fine and in the second it doesn't.
+
+Any help is greatly appreciated. Thanks for any ideas.
+
+-- 
+Regards,
+Mircea Uifalean
+
 
 --
 video4linux-list mailing list
