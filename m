@@ -1,87 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:46458 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934020Ab0CLPVw (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:43355 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750925Ab0C2L4o (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Mar 2010 10:21:52 -0500
-Received: by bwz1 with SMTP id 1so1126991bwz.21
-        for <linux-media@vger.kernel.org>; Fri, 12 Mar 2010 07:21:50 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <201003120827.44814.hverkuil@xs4all.nl>
-References: <201003090848.29301.hverkuil@xs4all.nl>
-	 <4B98FABB.1040605@gmail.com>
-	 <829197381003110631v52410d27m7e13d5438e09cd13@mail.gmail.com>
-	 <201003120827.44814.hverkuil@xs4all.nl>
-Date: Fri, 12 Mar 2010 10:21:50 -0500
-Message-ID: <829197381003120721r2e9250eeu6c981e4b493c8b55@mail.gmail.com>
-Subject: Re: v4l-utils: i2c-id.h and alevt
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Douglas Schilling Landgraf <dougsland@gmail.com>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	linux-media@vger.kernel.org, hdegoede@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 29 Mar 2010 07:56:44 -0400
+Subject: Re: [PATCH v3 1/2] v4l: Add memory-to-memory device helper
+ framework for videobuf.
+From: Andy Walls <awalls@md.metrocast.net>
+To: Pawel Osciak <p.osciak@samsung.com>
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hvaibhav@ti.com
+In-Reply-To: <1269848207-2325-2-git-send-email-p.osciak@samsung.com>
+References: <1269848207-2325-1-git-send-email-p.osciak@samsung.com>
+	 <1269848207-2325-2-git-send-email-p.osciak@samsung.com>
+Content-Type: text/plain
+Date: Mon, 29 Mar 2010 07:57:01 -0400
+Message-Id: <1269863821.3952.8.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 12, 2010 at 2:27 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> For unmaintained applications the problem is that even those people that
-> have patches for them have no easy way to get them applied, precisely because
-> they are unmaintained.
->
-> We as v4l-dvb developers don't have the time to make TV apps, but perhaps if
-> we 'adopted' one unmaintained application and just update that whenever we
-> make new features, then that would be very helpful I think. Or perhaps just
-> provide a place for such applications where there is someone who can take
-> community supplied patches and review and apply them.
+On Mon, 2010-03-29 at 09:36 +0200, Pawel Osciak wrote:
+> A mem-to-mem device is a device that uses memory buffers passed by
+> userspace applications for both their source and destination data. This
+> is different from existing drivers, which utilize memory buffers for either
+> input or output, but not both.
+> 
+> In terms of V4L2 such a device would be both of OUTPUT and CAPTURE type.
+> 
+> Examples of such devices would be: image 'resizers', 'rotators',
+> 'colorspace converters', etc.
+> 
+> This patch adds a separate Kconfig sub-menu for mem-to-mem devices as well.
+> 
+> Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> Reviewed-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
 
-This is the key reason that KernelLabs "adopted" tvtime - the goal being to:
+Pawel,
 
-1.  Consolidate all the distro patches floating around
-2.  Have a source tree that compiles without patches on modern distributions
-3.  Have a channel for people to submit new patches
-4.  Make improvements as necessary to make the app "just work" for
-most modern tuner cards.
+I didn't do a full review (I have no time lately), but I noticed this: 
 
-The goal is to get the distros to switch over to treating our tree as
-the "official upstream source" so that people will finally have a
-lightweight application for analog tv that "just works" and ships with
-their Linux distro by default.
 
-> Such an application does not have to be in v4l2-utils, it can have its own
-> tree.
+> +static void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+> +{
+> +	struct v4l2_m2m_dev *m2m_dev;
+[...]
+> +	v4l2_m2m_try_run(m2m_dev);
+> +}
 
-If the goal is for the LinuxTV group to adopt some of these
-applications, I would definitely recommend it not be in the v4l-utils
-tree (for reasons stated in the previous email).  that said, I
-certainly have no objection to it in principle.
+[...]
 
-> Anyway, regarding alevt: I believe that the consensus is that it should be
-> moved to v4l2-utils? Or am I wrong?
+> +void v4l2_m2m_job_finish(struct v4l2_m2m_dev *m2m_dev,
+> +			 struct v4l2_m2m_ctx *m2m_ctx)
+> +{
+[...]
+> +	  v4l2_m2m_try_schedule(m2m_ctx);
+> +	v4l2_m2m_try_run(m2m_dev);
+> +}
 
-I haven't looked at the alevt code itself but I believe the answer
-should be based on the following questions:
+I assume it is not bad, but was it your intention to have an addtitonal
+call to v4l2_m2m_try_run() ?
 
-1.  How big is it?  Will distros not want to include the package by
-default because along with a few KB of utilities they also end up with
-several megabytes of crap that the vast majority of people don't care
-about?
 
-2.  What external dependencies does it have?  Right now, v4l-utils is
-just a few command line tools with minimal dependencies (meaning it is
-trivial to install in pretty much all environments, including those
-without X11).  If the result is that you would now have to install
-dozens of packages, then that would be a bad thing.
+Regards,
+Andy
 
-Jamming stuff into v4l-utils should not be seen as some sort of
-backdoor way to get Linux distributions to include programs that they
-wouldn't have otherwise.  The distributions should see real value in
-the additional tool.  If they value the program, they will package the
-program if we host it even as a standalone project outside of
-v4l-utils.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
