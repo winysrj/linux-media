@@ -1,82 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-02.arcor-online.net ([151.189.21.42]:51076 "EHLO
-	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751043Ab0CCGFw (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:22263 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754460Ab0C2Hgw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Mar 2010 01:05:52 -0500
-Subject: Re: saa7231 is anybody trying
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Jens Chievitz <jenscz@adslhome.dk>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <4B7FA312.6090005@adslhome.dk>
-References: <4B7FA312.6090005@adslhome.dk>
-Content-Type: text/plain
-Date: Wed, 03 Mar 2010 07:02:57 +0100
-Message-Id: <1267596177.3388.25.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Mon, 29 Mar 2010 03:36:52 -0400
+Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0L0100EOX95DRD@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 29 Mar 2010 08:36:50 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L0100MUK95DJ4@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 29 Mar 2010 08:36:49 +0100 (BST)
+Date: Mon, 29 Mar 2010 09:36:45 +0200
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: [PATCH v3 0/2] Mem-to-mem device framework
+To: linux-media@vger.kernel.org
+Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hvaibhav@ti.com
+Message-id: <1269848207-2325-1-git-send-email-p.osciak@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hello,
 
-Am Samstag, den 20.02.2010, 09:53 +0100 schrieb Jens Chievitz:
-> Hi developers
-> Is anybody trying to get this device working under linux?
-> I have found some code here:
-> > http://www.jusst.de/hg/saa7231
-> but it it is not finished.
-> Regards
->   Jens chievitz
+this is the third version of the mem-to-mem memory device framework.
+It addresses previous comments and issues raised in Norway as well.
 
-got some such fish on the hook, notoriously buying some latest
-Medion/Aldi/Tevion/Creatix stuff. That sort was not exactly wanted, but
-it has some big NXP on it and else the fuzzy picture was for nothing
-good enough ;)
+It is rather independent from videobuf so I believe it can be merged separately.
 
-CTX1924_V2
+Changes in v3:
+- streamon, streamoff now have to be called for both queues separately
+- added automatic rescheduling of an instance after finish (if ready)
+- tweaked up locking
+- addressed Andy Walls' comments
 
-isl6405ezr.
-Most important chip on it ;)
+We have been using v2 for three different devices on an embedded system.
+I did some additional testing of v3 on a 4-core SMP as well.
 
-saa7231ne
+The series contains:
 
-cx24120-13z
-
-24118a12 clock 40.44
-
-tda18271HDC2 clock 16.00
-
-Looks like Manu has a lot already and also Sergey.
-
-filename:       /lib/modules/2.6.30.1/kernel/drivers/media/dvb/frontends/cx24120.ko
-license:        GPL
-author:         Sergey Tyurin
-description:    DVB Frontend module for Conexant CX24120/CX24118
-hardware
-srcversion:     C9FCDA7FA6E37AED28B5DD8
-depends:        i2c-core
-vermagic:       2.6.30.1 SMP preempt mod_unload
-parm:           cx24120_debug:Activates frontend debugging (default:0)
-(int)
-
-But still seems to be a long road.
-
-BTW, there are lots of complaints about overheating for that card within
-short time on the original machine, what I don't see on my old AMD Quad
-machine.
-
-DVB-T looks ok on vista, did not test any analog stuff yet, but DVB-S is
-very poor. Not even 50% of the usual services. S2 not tested, need to
-move the dish.
-
-Looks like we might import a DVB-S bug from initial m$ drivers again?
-
-Cheers,
-Hermann
+[PATCH v3 1/2] v4l: Add memory-to-memory device helper framework for videobuf.
+[PATCH v3 2/2] v4l: Add a mem-to-mem videobuf framework test device.
 
 
-
-
-
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
 
