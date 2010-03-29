@@ -1,50 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:33080 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754476Ab0CWUsY convert rfc822-to-8bit (ORCPT
+Received: from web113202.mail.gq1.yahoo.com ([98.136.165.123]:45102 "HELO
+	web113202.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752272Ab0C2PIB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Mar 2010 16:48:24 -0400
-Received: by bwz1 with SMTP id 1so2261174bwz.21
-        for <linux-media@vger.kernel.org>; Tue, 23 Mar 2010 13:48:23 -0700 (PDT)
+	Mon, 29 Mar 2010 11:08:01 -0400
+Message-ID: <904368.99706.qm@web113202.mail.gq1.yahoo.com>
+Date: Mon, 29 Mar 2010 08:07:59 -0700 (PDT)
+From: Don Kramer <gedaliah_atl@yahoo.com>
+Subject: Plextor ConvertX AV100U update; works but have not gotten highest resolution yet
+To: linux-media@vger.kernel.org
 MIME-Version: 1.0
-In-Reply-To: <499b283a1003231342h6fcbe74di2aa67eb91b18cf0c@mail.gmail.com>
-References: <499b283a1003231342h6fcbe74di2aa67eb91b18cf0c@mail.gmail.com>
-Date: Tue, 23 Mar 2010 16:48:22 -0400
-Message-ID: <829197381003231348h5c09c76av1adfbf7f13df10a1@mail.gmail.com>
-Subject: Re: [PATCH] Fix Warning ISO C90 forbids mixed declarations and code -
-	cx88-dvb
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Ricardo Maraschini <xrmarsx@gmail.com>
-Cc: linux-media@vger.kernel.org, doug <dougsland@gmail.com>,
-	mchehab@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 23, 2010 at 4:42 PM, Ricardo Maraschini <xrmarsx@gmail.com> wrote:
-> --- a/linux/drivers/media/video/cx88/cx88-dvb.c Tue Mar 23 16:17:11 2010 -0300
-> +++ b/linux/drivers/media/video/cx88/cx88-dvb.c Tue Mar 23 17:29:29 2010 -0300
-> @@ -1401,7 +1401,8 @@
->       case CX88_BOARD_SAMSUNG_SMT_7020:
->               dev->ts_gen_cntrl = 0x08;
->
-> -               struct cx88_core *core = dev->core;
-> +               struct cx88_core *core;
-> +               core = dev->core;
->
->               cx_set(MO_GP0_IO, 0x0101);
->
->
->
-> Signed-off-by: Ricardo Maraschini <ricardo.maraschini@gmail.com>
+Hi all,
 
-How do you think this actually addresses the warning in question?  You
-still have the declaration of the variable in the middle of the switch
-statement.
+Good news.  I have gotten the Plextor ConvertX AV100U to work in Linux.  It's this device:
 
-Devin
+http://www.overclockersonline.net/images/articles/plextor/av100u/large/pcb.jpg
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+with the eMPIA EM2820 chip. 
+
+It requires this coding addition in em28xx-cards-c:
+
+{ USB_DEVICE(0x093b, 0xa003),
+            .driver_info = EM2820_BOARD_PINNACLE_DVC_90 }, /* Plextor Corp. ConvertX AV100U A/V Capture Audio */
+
+So I have video.  Only problem is in VLC Player and kdenlive have not been able to get 720 x 480 resolution even through I know the device is capable of it.  Any advice?
+
+
+      
