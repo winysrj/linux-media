@@ -1,47 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:55833 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757618Ab0CaRpk convert rfc822-to-8bit (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:60295 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751240Ab0C2MSz convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Mar 2010 13:45:40 -0400
-Received: by bwz1 with SMTP id 1so270898bwz.21
-        for <linux-media@vger.kernel.org>; Wed, 31 Mar 2010 10:45:39 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <k2p5ba75e2f1003302211w2a7f4e0cy3fac5da36acc649@mail.gmail.com>
-References: <k2p5ba75e2f1003302211w2a7f4e0cy3fac5da36acc649@mail.gmail.com>
-Date: Wed, 31 Mar 2010 13:45:39 -0400
-Message-ID: <n2w829197381003311045v8218dcb4o274b20197a58994f@mail.gmail.com>
-Subject: Re: GIGABYTE U8000-RH Analog source support ?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: fernando@develcuy.com
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 29 Mar 2010 08:18:55 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Pawel Osciak <p.osciak@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"m.szyprowski@samsung.com" <m.szyprowski@samsung.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
+Date: Mon, 29 Mar 2010 17:48:45 +0530
+Subject: RE: [PATCH v3 0/2] Mem-to-mem device framework
+Message-ID: <19F8576C6E063C45BE387C64729E7394044DEBF165@dbde02.ent.ti.com>
+References: <1269848207-2325-1-git-send-email-p.osciak@samsung.com>
+    <19F8576C6E063C45BE387C64729E7394044DEBF0BC@dbde02.ent.ti.com>
+ <a685d91d0fca5abb6895959636041b26.squirrel@webmail.xs4all.nl>
+In-Reply-To: <a685d91d0fca5abb6895959636041b26.squirrel@webmail.xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2010/3/31 Fernando P. García <fernandoparedesgarcia@gmail.com>:
-> May you elaborate about the "huge undertaking"
->
-> Fernando.
 
-The issue is the dvb-usb framework on which the dib0700 driver is
-built has absolutely no support for analog.  Adding support for a new
-bridge (both raw video and PCM audio) is on the order of 100 hours of
-work for somebody who knows what they are doing.  It includes adding
-all the V4L2 hooks and ioctls(), reverse engineering the format of the
-delivered video, inserting the video into videobuf, reverse
-engineering how audio is provided by the hardware (and how it is
-controlled), and creating an ALSA driver to handle the audio feed.
+> -----Original Message-----
+> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> Sent: Monday, March 29, 2010 5:36 PM
+> To: Hiremath, Vaibhav
+> Cc: Pawel Osciak; linux-media@vger.kernel.org; m.szyprowski@samsung.com;
+> kyungmin.park@samsung.com
+> Subject: RE: [PATCH v3 0/2] Mem-to-mem device framework
+> 
+> 
+> >
+> >> -----Original Message-----
+> >> From: Pawel Osciak [mailto:p.osciak@samsung.com]
+> >> Sent: Monday, March 29, 2010 1:07 PM
+> >> To: linux-media@vger.kernel.org
+> >> Cc: p.osciak@samsung.com; m.szyprowski@samsung.com;
+> >> kyungmin.park@samsung.com; Hiremath, Vaibhav
+> >> Subject: [PATCH v3 0/2] Mem-to-mem device framework
+> >>
+> >> Hello,
+> >>
+> >> this is the third version of the mem-to-mem memory device framework.
+> >> It addresses previous comments and issues raised in Norway as well.
+> >>
+> >> It is rather independent from videobuf so I believe it can be merged
+> >> separately.
+> >>
+> >> Changes in v3:
+> >> - streamon, streamoff now have to be called for both queues separately
+> >> - added automatic rescheduling of an instance after finish (if ready)
+> >> - tweaked up locking
+> >> - addressed Andy Walls' comments
+> >>
+> >> We have been using v2 for three different devices on an embedded system.
+> >> I did some additional testing of v3 on a 4-core SMP as well.
+> >>
+> >> The series contains:
+> >>
+> >> [PATCH v3 1/2] v4l: Add memory-to-memory device helper framework for
+> >> videobuf.
+> >> [PATCH v3 2/2] v4l: Add a mem-to-mem videobuf framework test device.
+> >>
+> > [Hiremath, Vaibhav] pawel,
+> >
+> > Thanks for the updated patch series; I will rebase my code onto this.
+> >
+> > As I mentioned I had started with migrating OMAP Resizer module to this
+> > framework (V2) and I could use it without any major issues.
+> >
+> > I am now cleaning up the patches and also before submitting the patch I
+> > had to merge/rebase it with Sakari's omap3camer/devel branch, since I have
+> > my version of ISP (required for Resizer module and bit hard-coded) which I
+> > think need to merge.
+> >
+> > Today I have pulled in latest changes from Sakari's branch, I am working
+> > on this and soon I will post patches for the same.
+> >
+> > Also, I have done some minor cleanups in your patches which also I will
+> > submit.
+> 
+> Hiremath,
+> 
+> Be aware that the omap3 tree with media controller support that Laurent is
+> working on does not use these mem-to-mem devices. Instead you have
+> separate input and output devices. You should probably talk to Laurent
+> about this before you do work that will not be needed eventually.
+> 
+[Hiremath, Vaibhav] Thanks Hans and yes I am aware that, this branch/repo doesn't have Mem-to-Mem support.
 
-Oh, and then you have to debug all the edge cases.
+I just cloned whole tree here, and reviewing the code. Especially I will try to re-use the underneath ISP part of it for my Mem-to-Mem driver interface. 
 
-I did it for the au0828 bridge, and I'm in the middle of doing it for
-the ngene bridge.  It's a royal PITA and at this point no developer is
-willing to invest the time/energy to do it for free.
+And definitely I will talk to Laurent if I have any issues/questions.
 
-Devin
+Thanks,
+Vaibhav
+> Regards,
+> 
+>          Hans
+> 
+> >
+> > Thanks,
+> > Vaibhav Hiremath
+> >
+> >>
+> >> Best regards
+> >> --
+> >> Pawel Osciak
+> >> Linux Platform Group
+> >> Samsung Poland R&D Center
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> 
+> 
+> --
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
