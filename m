@@ -1,133 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36976 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757330Ab0CKWCk (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3260 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751970Ab0C2MFl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Mar 2010 17:02:40 -0500
-Message-Id: <201003112202.o2BM2KUh013134@imap1.linux-foundation.org>
-Subject: [patch 5/5] dib7000p: reduce large stack usage
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
-	randy.dunlap@oracle.com, pboettcher@dibcom.fr
-From: akpm@linux-foundation.org
-Date: Thu, 11 Mar 2010 14:02:20 -0800
+	Mon, 29 Mar 2010 08:05:41 -0400
+Message-ID: <a685d91d0fca5abb6895959636041b26.squirrel@webmail.xs4all.nl>
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044DEBF0BC@dbde02.ent.ti.com>
+References: <1269848207-2325-1-git-send-email-p.osciak@samsung.com>
+    <19F8576C6E063C45BE387C64729E7394044DEBF0BC@dbde02.ent.ti.com>
+Date: Mon, 29 Mar 2010 14:05:31 +0200
+Subject: RE: [PATCH v3 0/2] Mem-to-mem device framework
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Cc: "Pawel Osciak" <p.osciak@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"m.szyprowski@samsung.com" <m.szyprowski@samsung.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Reduce the static stack usage of one of the 2 top offenders as listed by
-'make checkstack':
+>
+>> -----Original Message-----
+>> From: Pawel Osciak [mailto:p.osciak@samsung.com]
+>> Sent: Monday, March 29, 2010 1:07 PM
+>> To: linux-media@vger.kernel.org
+>> Cc: p.osciak@samsung.com; m.szyprowski@samsung.com;
+>> kyungmin.park@samsung.com; Hiremath, Vaibhav
+>> Subject: [PATCH v3 0/2] Mem-to-mem device framework
+>>
+>> Hello,
+>>
+>> this is the third version of the mem-to-mem memory device framework.
+>> It addresses previous comments and issues raised in Norway as well.
+>>
+>> It is rather independent from videobuf so I believe it can be merged
+>> separately.
+>>
+>> Changes in v3:
+>> - streamon, streamoff now have to be called for both queues separately
+>> - added automatic rescheduling of an instance after finish (if ready)
+>> - tweaked up locking
+>> - addressed Andy Walls' comments
+>>
+>> We have been using v2 for three different devices on an embedded system.
+>> I did some additional testing of v3 on a 4-core SMP as well.
+>>
+>> The series contains:
+>>
+>> [PATCH v3 1/2] v4l: Add memory-to-memory device helper framework for
+>> videobuf.
+>> [PATCH v3 2/2] v4l: Add a mem-to-mem videobuf framework test device.
+>>
+> [Hiremath, Vaibhav] pawel,
+>
+> Thanks for the updated patch series; I will rebase my code onto this.
+>
+> As I mentioned I had started with migrating OMAP Resizer module to this
+> framework (V2) and I could use it without any major issues.
+>
+> I am now cleaning up the patches and also before submitting the patch I
+> had to merge/rebase it with Sakari's omap3camer/devel branch, since I have
+> my version of ISP (required for Resizer module and bit hard-coded) which I
+> think need to merge.
+>
+> Today I have pulled in latest changes from Sakari's branch, I am working
+> on this and soon I will post patches for the same.
+>
+> Also, I have done some minor cleanups in your patches which also I will
+> submit.
 
-Building with CONFIG_FRAME_WARN=2048 produces:
+Hiremath,
 
-drivers/media/dvb/frontends/dib7000p.c:1367: warning: the frame size of 2320 bytes is larger than 2048 bytes
+Be aware that the omap3 tree with media controller support that Laurent is
+working on does not use these mem-to-mem devices. Instead you have
+separate input and output devices. You should probably talk to Laurent
+about this before you do work that will not be needed eventually.
 
-and in 'make checkstack', the stack usage goes from:
-0x00002409 dib7000p_i2c_enumeration [dib7000p]:		2328
-to unlisted with this patch.
+Regards,
 
-Also change one caller of dib7000p_i2c_enumeration() to check its
-return value.
+         Hans
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Patrick Boettcher <pboettcher@dibcom.fr>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+>
+> Thanks,
+> Vaibhav Hiremath
+>
+>>
+>> Best regards
+>> --
+>> Pawel Osciak
+>> Linux Platform Group
+>> Samsung Poland R&D Center
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
- drivers/media/dvb/dvb-usb/cxusb.c      |    5 +--
- drivers/media/dvb/frontends/dib7000p.c |   36 ++++++++++++++---------
- 2 files changed, 25 insertions(+), 16 deletions(-)
 
-diff -puN drivers/media/dvb/dvb-usb/cxusb.c~dib7000p-reduce-large-stack-usage drivers/media/dvb/dvb-usb/cxusb.c
---- a/drivers/media/dvb/dvb-usb/cxusb.c~dib7000p-reduce-large-stack-usage
-+++ a/drivers/media/dvb/dvb-usb/cxusb.c
-@@ -1024,8 +1024,9 @@ static int cxusb_dualdig4_rev2_frontend_
- 
- 	cxusb_bluebird_gpio_pulse(adap->dev, 0x02, 1);
- 
--	dib7000p_i2c_enumeration(&adap->dev->i2c_adap, 1, 18,
--				 &cxusb_dualdig4_rev2_config);
-+	if (dib7000p_i2c_enumeration(&adap->dev->i2c_adap, 1, 18,
-+				 &cxusb_dualdig4_rev2_config) < 0)
-+		return -ENODEV;
- 
- 	adap->fe = dvb_attach(dib7000p_attach, &adap->dev->i2c_adap, 0x80,
- 			      &cxusb_dualdig4_rev2_config);
-diff -puN drivers/media/dvb/frontends/dib7000p.c~dib7000p-reduce-large-stack-usage drivers/media/dvb/frontends/dib7000p.c
---- a/drivers/media/dvb/frontends/dib7000p.c~dib7000p-reduce-large-stack-usage
-+++ a/drivers/media/dvb/frontends/dib7000p.c
-@@ -1323,46 +1323,54 @@ EXPORT_SYMBOL(dib7000p_pid_filter);
- 
- int dib7000p_i2c_enumeration(struct i2c_adapter *i2c, int no_of_demods, u8 default_addr, struct dib7000p_config cfg[])
- {
--	struct dib7000p_state st = { .i2c_adap = i2c };
-+	struct dib7000p_state *dpst;
- 	int k = 0;
- 	u8 new_addr = 0;
- 
-+	dpst = kzalloc(sizeof(struct dib7000p_state), GFP_KERNEL);
-+	if (!dpst)
-+		return -ENODEV;
-+
-+	dpst->i2c_adap = i2c;
-+
- 	for (k = no_of_demods-1; k >= 0; k--) {
--		st.cfg = cfg[k];
-+		dpst->cfg = cfg[k];
- 
- 		/* designated i2c address */
- 		new_addr          = (0x40 + k) << 1;
--		st.i2c_addr = new_addr;
--		dib7000p_write_word(&st, 1287, 0x0003); /* sram lead in, rdy */
--		if (dib7000p_identify(&st) != 0) {
--			st.i2c_addr = default_addr;
--			dib7000p_write_word(&st, 1287, 0x0003); /* sram lead in, rdy */
--			if (dib7000p_identify(&st) != 0) {
-+		dpst->i2c_addr = new_addr;
-+		dib7000p_write_word(dpst, 1287, 0x0003); /* sram lead in, rdy */
-+		if (dib7000p_identify(dpst) != 0) {
-+			dpst->i2c_addr = default_addr;
-+			dib7000p_write_word(dpst, 1287, 0x0003); /* sram lead in, rdy */
-+			if (dib7000p_identify(dpst) != 0) {
- 				dprintk("DiB7000P #%d: not identified\n", k);
-+				kfree(dpst);
- 				return -EIO;
- 			}
- 		}
- 
- 		/* start diversity to pull_down div_str - just for i2c-enumeration */
--		dib7000p_set_output_mode(&st, OUTMODE_DIVERSITY);
-+		dib7000p_set_output_mode(dpst, OUTMODE_DIVERSITY);
- 
- 		/* set new i2c address and force divstart */
--		dib7000p_write_word(&st, 1285, (new_addr << 2) | 0x2);
-+		dib7000p_write_word(dpst, 1285, (new_addr << 2) | 0x2);
- 
- 		dprintk("IC %d initialized (to i2c_address 0x%x)", k, new_addr);
- 	}
- 
- 	for (k = 0; k < no_of_demods; k++) {
--		st.cfg = cfg[k];
--		st.i2c_addr = (0x40 + k) << 1;
-+		dpst->cfg = cfg[k];
-+		dpst->i2c_addr = (0x40 + k) << 1;
- 
- 		// unforce divstr
--		dib7000p_write_word(&st, 1285, st.i2c_addr << 2);
-+		dib7000p_write_word(dpst, 1285, dpst->i2c_addr << 2);
- 
- 		/* deactivate div - it was just for i2c-enumeration */
--		dib7000p_set_output_mode(&st, OUTMODE_HIGH_Z);
-+		dib7000p_set_output_mode(dpst, OUTMODE_HIGH_Z);
- 	}
- 
-+	kfree(dpst);
- 	return 0;
- }
- EXPORT_SYMBOL(dib7000p_i2c_enumeration);
-_
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+
