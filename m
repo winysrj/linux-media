@@ -1,50 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:22541 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755685Ab0CQTmh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Mar 2010 15:42:37 -0400
-Message-ID: <4BA130A3.6060203@redhat.com>
-Date: Wed, 17 Mar 2010 16:42:27 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Pawel Osciak <p.osciak@samsung.com>
-CC: "'Aguirre, Sergio'" <saaguirre@ti.com>,
-	linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	kyungmin.park@samsung.com
-Subject: Re: [PATCH v2] v4l: videobuf: code cleanup.
-References: <1268831061-307-1-git-send-email-p.osciak@samsung.com> <1268831061-307-2-git-send-email-p.osciak@samsung.com> <A24693684029E5489D1D202277BE894454137086@dlee02.ent.ti.com> <001001cac5dc$4407f690$cc17e3b0$%osciak@samsung.com>
-In-Reply-To: <001001cac5dc$4407f690$cc17e3b0$%osciak@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-ew0-f222.google.com ([209.85.219.222]:39425 "EHLO
+	mail-ew0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752621Ab0C2FUH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Mar 2010 01:20:07 -0400
+Received: by ewy22 with SMTP id 22so1704794ewy.37
+        for <linux-media@vger.kernel.org>; Sun, 28 Mar 2010 22:20:06 -0700 (PDT)
+Date: Mon, 29 Mar 2010 14:21:38 +1000
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: MPEG2 encoder uPD61151 next...
+Message-ID: <20100329142138.7d8b4e91@glory.loctelecom.ru>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Pawel Osciak wrote:
->> Aguirre, Sergio wrote:
->>> Make videobuf pass checkpatch; minor code cleanups.
->> I thought this kind patches were frowned upon..
->>
->> http://www.mjmwired.net/kernel/Documentation/development-process/4.Coding#41
->>
->> But maybe it's acceptable in this case... I'm not an expert on community policies :)
-> 
-> Hm, right...
-> I'm not an expert either, but it does seem reasonable. It was just a part of the
-> roadmap we agreed on in Norway, so I simply went ahead with it. Merging with other
-> patches would pollute them so I just posted it separately. I will leave the
-> decision up to Mauro then. I have some more "normal" patches lined up,
-> so please let me know. I'm guessing we are cancelling the clean-up then though.
+Hi All.
 
-It is fine for me to send such patch in a series of changes. A pure CodingStyle patch
-is preferred if you're doing lots of changes, since it is very easy to review those
-changes. Yet, I generally hold pure CodingStyle changes to happen at the end of an
-rc cycle, to avoid conflicts with real patches, especially when the change is on a
-code that use to have lots of changes during a kernel cycle.
+I have more questions now.
 
-In the specific case of videobuf, I prefer to merge any changes functional changes at the
-beginning of a -rc cycle, and after having several tested-by replies with different
-architectures and boards, as a trouble there will affect almost all drivers.
+Our card has DVB-T zl10353. Befor start encoder need set its out to Z-state. How to I can do it?
+This is my last big problem.
 
-Cheers,
-Mauro
+Startup step by step:
+
+Call zarlink to set Z-state of a bus.
+Configure TS port of the saa7134 to PARALLEL_PS and config other regs
+Configure DMA of a TS
+Prepare settings for uPD61151 encoder
+Enable MPEG out of the uPD61151 by GPIO pin of the saa7134
+Start DMA and TS
+Start encoder
+
+Stop step by step:
+
+Stop encoder
+Stop DMA and TS
+Disable  MPEG out by GPIO pin of the saa7134
+
+Zarlink and encoder connected to same bus and has different TS config.
+I need know who want use TS: zarlink or encoder. Now to I can do it?
+
+> Um, what is the 'Z state' of a bus?  
+
+Write special value to command register of the zl10353. The chip disconnect
+internal bus from output bus. This bus used for send MPEG TS data from zl10353 to saa7134.
+uPD61151 and zl10353 connected to the same bus. At one time only one chip can
+send MPEG TS data to the saa7134. When DVB-T mode zl10353 send date, uPD61151 disconnected from a bus.
+When MPEG2 encode mode, uPD61151 send date, zl10353 disconnected from a bus.
+
+With my best regards, Dmitry.
