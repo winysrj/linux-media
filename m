@@ -1,125 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50069 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754495Ab0CWGYz convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2260 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752633Ab0C2GkT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Mar 2010 02:24:55 -0400
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Viral Mehta <Viral.Mehta@lntinfotech.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 23 Mar 2010 01:24:50 -0500
-Subject: RE: omap2 camera
-Message-ID: <A24693684029E5489D1D202277BE8944537B8E31@dlee02.ent.ti.com>
-References: <70376CA23424B34D86F1C7DE6B997343017F5D5BD5@VSHINMSMBX01.vshodc.lntinfotech.com>
- <A24693684029E5489D1D202277BE89445428BE8E@dlee02.ent.ti.com>,<4BA7A72B.9000300@maxwell.research.nokia.com>
- <70376CA23424B34D86F1C7DE6B997343017F5D5BD8@VSHINMSMBX01.vshodc.lntinfotech.com>,<4BA85699.1070308@maxwell.research.nokia.com>
-In-Reply-To: <4BA85699.1070308@maxwell.research.nokia.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Mon, 29 Mar 2010 02:40:19 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
+Subject: Re: [PATCH v2 2/10] V4L2 patches for Intel Moorestown Camera Imaging Drivers - part 1
+Date: Mon, 29 Mar 2010 08:40:50 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Zhu, Daniel" <daniel.zhu@intel.com>,
+	"Yu, Jinlu" <jinlu.yu@intel.com>,
+	"Wang, Wen W" <wen.w.wang@intel.com>,
+	"Huang, Kai" <kai.huang@intel.com>,
+	"Hu, Gang A" <gang.a.hu@intel.com>,
+	"Ba, Zheng" <zheng.ba@intel.com>,
+	Pawel Osciak <p.osciak@samsung.com>
+References: <33AB447FBD802F4E932063B962385B351D6D536E@shsmsx501.ccr.corp.intel.com>
+In-Reply-To: <33AB447FBD802F4E932063B962385B351D6D536E@shsmsx501.ccr.corp.intel.com>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201003290840.50223.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Xiaolin,
 
-> ________________________________________
-> From: Sakari Ailus [sakari.ailus@maxwell.research.nokia.com]
-> Sent: Monday, March 22, 2010 11:50 PM
-> To: Viral Mehta
-> Cc: Aguirre, Sergio; linux-media@vger.kernel.org
-> Subject: Re: omap2 camera
+On Sunday 28 March 2010 16:42:30 Zhang, Xiaolin wrote:
+> From 1c18c41be33246e4b766d0e95e28a72dded87475 Mon Sep 17 00:00:00 2001
+> From: Xiaolin Zhang <xiaolin.zhang@intel.com>
+> Date: Sun, 28 Mar 2010 21:31:24 +0800
+> Subject: [PATCH 2/10] This patch is second part of intel moorestown isp driver and c files collection which is v4l2 implementation.
 > 
-> Viral Mehta wrote:
-> > Hi Sakari,
-> 
-> Hi Viral,
-> 
-> > ________________________________________
-> > From: Sakari Ailus [sakari.ailus@maxwell.research.nokia.com]
-> > Sent: Monday, March 22, 2010 10:51 PM
-> > To: Aguirre, Sergio
-> > Cc: Viral Mehta; linux-media@vger.kernel.org
-> > Subject: Re: omap2 camera
-> >
-> > Aguirre, Sergio wrote:
-> >> Hi Viral,
-> >>
-> >>> -----Original Message-----
-> >>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> >>> owner@vger.kernel.org] On Behalf Of Viral Mehta
-> >>> Sent: Monday, March 22, 2010 5:20 AM
-> >>> To: linux-media@vger.kernel.org
-> >>> Subject: omap2 camera
-> >>>
-> >>> Hi list,
-> >>>
-> >>> I am using OMAP2430 board and I wanted to test camera module on that
-> >>> board.
-> >>> I am using latest 2.6.33 kernel. However, it looks like camera module is
-> >>> not supported with latest kernel.
-> >>>
-> >>> Anyone is having any idea? Also, do we require to have ex3691 sensor
-> >>> driver in mainline kernel in order to get omap24xxcam working ?
-> >>>
-> >>> These are the steps I followed,
-> >>> 1. make omap2430_sdp_defconfig
-> >>> 2. Enable omap2 camera option which is under drivers/media/video
-> >>> 3. make uImage
-> >>>
-> >>> And with this uImage, camera is not working. I would appreciate any help.
-> >>
-> >> I'm adding Sakari Ailus to the CC list, which is the owner of the driver.
-> >
-> >> Thanks, Sergio!
-> >
-> > Thanks for your response. Thanks Sergio.
-> >
-> >> I've only aware of the tcm825x sensor driver that works with the OMAP
-> >> 2420 camera controller (omap24xxcam) driver.
-> >
-> > Does this also mean that omap24xxcam.ko will *only* work with OMAP2420?
-> > Or the same driver can be used for OMAP2430 board as well ?  As name suggests, omap24xxcam....
-> 
-> I'm not fully aware of the differences in the camera controllers in 2420
-> and 2430 --- never had a 2430. If they are the same then the driver
-> should work as it is. Sergio, do you know whether there are differences
-> between the two?
 
-Well, I personally haven't worked with OMAP2 family, but by looking at the differences in both chip descriptions:
+....
 
-OMAP 2430 / 2431: http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?templateId=6123&navigationId=12609&contentId=4672
+> +struct videobuf_dma_contig_memory {
+> +       u32 magic;
+> +       void *vaddr;
+> +       dma_addr_t dma_handle;
+> +       unsigned long size;
+> +       int is_userptr;
+> +};
+> +
+> +#define MAGIC_DC_MEM 0x0733ac61
+> +#define MAGIC_CHECK(is, should)                                                    \
+> +       if (unlikely((is) != (should))) {                                   \
+> +               pr_err("magic mismatch: %x expected %x\n", (is), (should)); \
+> +               BUG();                                                      \
+> +       }
 
-OMAP 2420: http://focus.ti.com/general/docs/wtbu/wtbuproductcontent.tsp?templateId=6123&navigationId=11990&contentId=4671
+I will do a more in-depth review in a few days. However, I did notice that
+you added your own dma_contig implementation. What were the reasons for doing
+this? I've CC-ed Pawel since he will be interested in this as well.
 
-Camera wise, I can see that the 243x chips have interface for 2 cameras, meanwhile the 2420 only has one.
+Another question that came up is: what is 'marvin'? It's clearly a codename,
+but a codename for what? This should be documented at the top of some source
+or header. Apologies if it is already documented, I didn't read everything yet.
 
-Generally speaking, the xx3x variants are usually more resourceful than xx2x sub-families.
+A final point I noticed: don't cast away a function result:
+
+(void)ci_isp_set_bp_detection(NULL);
+
+No need for (void). The gcc compiler won't warn about this unless the function
+is annotated with __must_check__.
 
 Regards,
-Sergio
 
-> 
-> >> So likely you'd need the driver for the sensor you have on that board.
-> > Okie, I am trying to get that done. I took linux-2.6.14-V5 kernel from linux.omap.com and
-> > that supports camera on OMAP2430 and it has functional driver for ex3691 sensor.
-> > I am trying to know if I can forward port that.
-> 
-> That one very likely isn't using even the v4l2-int-device. But as soon
-> as you do, it is very easy to convert it to v4l2_subdev. The interface
-> is different but the ops are almost the same.
-> 
-> >> The omap24xxcam and tcm825x drivers should be moved to use v4l2_subdev
-> >> but I'm not quite sure what will be the schedule of that. Then we could
-> >> get rid of the v4l2-int-device interface that those drives still use.
-> >
-> > They are still using v4l2-int-device as of 2.6.33.
-> 
-> That's true. AFAIK no work has been done to get rid of this yet.
-> 
-> Regards,
-> 
-> --
-> Sakari Ailus
-> sakari.ailus@maxwell.research.nokia.com
-> 
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
