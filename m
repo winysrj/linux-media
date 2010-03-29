@@ -1,74 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48269 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758222Ab0CKWCi (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2572 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752815Ab0C2TLT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Mar 2010 17:02:38 -0500
-Message-Id: <201003112202.o2BM2FgS013122@imap1.linux-foundation.org>
-Subject: [patch 1/5] drivers/media/video/cx23885 needs kfifo conversion
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
-	stefani@seibold.net
-From: akpm@linux-foundation.org
-Date: Thu, 11 Mar 2010 14:02:15 -0800
+	Mon, 29 Mar 2010 15:11:19 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Pawel Osciak <p.osciak@samsung.com>
+Subject: Re: [PATCH v2] v4l: videobuf: make poll() report proper flags for output video devices
+Date: Mon, 29 Mar 2010 21:11:48 +0200
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com
+References: <1269850591-9590-1-git-send-email-p.osciak@samsung.com>
+In-Reply-To: <1269850591-9590-1-git-send-email-p.osciak@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201003292111.48289.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Andrew Morton <akpm@linux-foundation.org>
+On Monday 29 March 2010 10:16:31 Pawel Osciak wrote:
+> According to the V4L2 specification, poll() should set POLLOUT | POLLWRNORM
+> flags for output devices after the frame has been displayed.
+> 
+> Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+> Reviewed-by: Kyungmin Park <kyungmin.park@samsung.com>
 
-linux-next:
+Looks good to me!
 
-drivers/media/video/cx23885/cx23888-ir.c: In function 'cx23888_ir_irq_handler':
-drivers/media/video/cx23885/cx23888-ir.c:597: error: implicit declaration of function 'kfifo_put'
-drivers/media/video/cx23885/cx23888-ir.c: In function 'cx23888_ir_rx_read':
-drivers/media/video/cx23885/cx23888-ir.c:660: error: implicit declaration of function 'kfifo_get'
-drivers/media/video/cx23885/cx23888-ir.c: In function 'cx23888_ir_probe':
-drivers/media/video/cx23885/cx23888-ir.c:1172: warning: passing argument 1 of 'kfifo_alloc' makes pointer from integer without a cast
-drivers/media/video/cx23885/cx23888-ir.c:1172: warning: passing argument 3 of 'kfifo_alloc' makes integer from pointer without a cast
-drivers/media/video/cx23885/cx23888-ir.c:1172: warning: assignment makes pointer from integer without a cast
-drivers/media/video/cx23885/cx23888-ir.c:1178: warning: passing argument 1 of 'kfifo_alloc' makes pointer from integer without a cast
-drivers/media/video/cx23885/cx23888-ir.c:1178: warning: passing argument 3 of 'kfifo_alloc' makes integer from pointer without a cast
-drivers/media/video/cx23885/cx23888-ir.c:1178: warning: assignment makes pointer from integer without a cast
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
 
-Cc: Stefani Seibold <stefani@seibold.net>
-DESC
-drivers/media/video/cx23885: needs kfifo updates
-EDESC
-From: Andrew Morton <akpm@linux-foundation.org>
+Regards,
 
-linux-next again.
+	Hans
 
-Cc: Stefani Seibold <stefani@seibold.net>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+> ---
+>  drivers/media/video/videobuf-core.c |   14 ++++++++++++--
+>  1 files changed, 12 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/video/videobuf-core.c b/drivers/media/video/videobuf-core.c
+> index 63d7043..921277f 100644
+> --- a/drivers/media/video/videobuf-core.c
+> +++ b/drivers/media/video/videobuf-core.c
+> @@ -1075,8 +1075,18 @@ unsigned int videobuf_poll_stream(struct file *file,
+>  	if (0 == rc) {
+>  		poll_wait(file, &buf->done, wait);
+>  		if (buf->state == VIDEOBUF_DONE ||
+> -		    buf->state == VIDEOBUF_ERROR)
+> -			rc = POLLIN|POLLRDNORM;
+> +		    buf->state == VIDEOBUF_ERROR) {
+> +			switch (q->type) {
+> +			case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+> +			case V4L2_BUF_TYPE_VBI_OUTPUT:
+> +			case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
+> +				rc = POLLOUT | POLLWRNORM;
+> +				break;
+> +			default:
+> +				rc = POLLIN | POLLRDNORM;
+> +				break;
+> +			}
+> +		}
+>  	}
+>  	mutex_unlock(&q->vb_lock);
+>  	return rc;
+> 
 
- drivers/media/video/cx231xx/Kconfig |    1 +
- drivers/media/video/cx23885/Kconfig |    1 +
- 2 files changed, 2 insertions(+)
-
-diff -puN drivers/media/video/cx231xx/Kconfig~drivers-media-video-cx23885-needs-kfifo-conversion drivers/media/video/cx231xx/Kconfig
---- a/drivers/media/video/cx231xx/Kconfig~drivers-media-video-cx23885-needs-kfifo-conversion
-+++ a/drivers/media/video/cx231xx/Kconfig
-@@ -1,6 +1,7 @@
- config VIDEO_CX231XX
- 	tristate "Conexant cx231xx USB video capture support"
- 	depends on VIDEO_DEV && I2C && INPUT
-+	depends on BROKEN
- 	select VIDEO_TUNER
- 	select VIDEO_TVEEPROM
- 	select VIDEO_IR
-diff -puN drivers/media/video/cx23885/Kconfig~drivers-media-video-cx23885-needs-kfifo-conversion drivers/media/video/cx23885/Kconfig
---- a/drivers/media/video/cx23885/Kconfig~drivers-media-video-cx23885-needs-kfifo-conversion
-+++ a/drivers/media/video/cx23885/Kconfig
-@@ -1,6 +1,7 @@
- config VIDEO_CX23885
- 	tristate "Conexant cx23885 (2388x successor) support"
- 	depends on DVB_CORE && VIDEO_DEV && PCI && I2C && INPUT
-+	depends on BROKEN
- 	select I2C_ALGOBIT
- 	select VIDEO_BTCX
- 	select VIDEO_TUNER
-_
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
