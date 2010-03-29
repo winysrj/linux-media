@@ -1,58 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:23979 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756733Ab0CKN1E (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Mar 2010 08:27:04 -0500
-Date: Thu, 11 Mar 2010 10:26:46 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Dmitri Belimov <d.belimov@gmail.com>
-Subject: [PATCH 0/7] tm6000: Remove register magic
-Message-ID: <20100311102646.01db8e13@pedra>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3220 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750761Ab0C2GHi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Mar 2010 02:07:38 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Andy Walls <awalls@md.metrocast.net>
+Subject: Re: What would be a good time to move subdev drivers to a subdev directory?
+Date: Mon, 29 Mar 2010 08:07:55 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+References: <201003281224.17678.hverkuil@xs4all.nl> <201003281803.22405.hverkuil@xs4all.nl> <1269817703.21755.12.camel@palomino.walls.org>
+In-Reply-To: <1269817703.21755.12.camel@palomino.walls.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201003290807.55268.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks to Dmitri, changeset 2fe1b227458f7a411ab3b5959169a0de6703b60a added 
-aliases for most of tm6000 registers. Yet, the driver still uses the
-old magic numbers. This set of patches replaces the magic numbers with
-the help of some simple perl scripts.
+On Monday 29 March 2010 01:08:23 Andy Walls wrote:
+> On Sun, 2010-03-28 at 18:03 +0200, Hans Verkuil wrote:
+> > On Sunday 28 March 2010 17:38:31 Mauro Carvalho Chehab wrote:
+> > > Hans Verkuil wrote:
+> 
+> > > So, let's get some feedback from developers about this again. Whatever decided,
+> > > we should clearly document the used criteria, to avoid having drivers misplaced.
+> > 
+> > 1) Reusable subdev drivers go into the subdev directory.
+> 
+> OK by me.
+> 
+> I will note the cx25840 module is used stand-alone and by the cx23885
+> and cx231xx drivers as an integrated A/V core.  However the integrated
+> core is internally I2C connected so it's fairly loosely coupled.  I
+> don't see a problem with the cx25840 module being pushed into a subdev
+> directory.
+> 
+> 
+> > 2) Subdev drivers that are tightly coupled to a bridge or platform driver go
+> > into the subdirectory containing that bridge or platform driver.
+> 
+> Ack.
+> 
+> 
+> > Rule 1 applies to roughly 50 subdev drivers.
+> > 
+> > I wonder if for rule 2 we should require that subdev drivers would go into a
+> > <bridge driver>/subdev directory. It would help in keeping track of what is what,
+> > but this may be overkill.
+> 
+> NAK.  That is overkill.
+> 
+> 
+> 
+> BTW, here are some exceptional cases to ponder:
+> 
+> Where does the cx2341x module go?  It is common code used by ivtv, cx18,
+> and cx23885 (and probably cx88), but it is not a subdevice.  
+> 
+> Also some code in cx23885/cx23888-ir.c could be broken out and shared
+> between the cx25840, cx18, and cx231xx modules since it is the same IR
+> hardware (mostly), but connected to the bridge chip differently.  Where
+> would that go?
 
-After it, just two registers at req 07 will have an alias missing 
-(registers 0xeb and 0xee):
+It is common code for Conexant bridge drivers. So it definitely belongs under
+media/video. Perhaps we might want to move it to media/video/cx-common, but
+personally I do not think that is needed.
 
-$ grep REQ_0[567] drivers/staging/tm6000/*.c
-drivers/staging/tm6000/tm6000-core.c:           tm6000_set_reg(dev, REQ_07_SET_GET_AVREG, 0xeb, 0x60);
-drivers/staging/tm6000/tm6000-core.c:           tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00eb, 0xd8);
-drivers/staging/tm6000/tm6000-core.c:           tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0x00eb, 0x08);
-drivers/staging/tm6000/tm6000-core.c:   { REQ_07_SET_GET_AVREG,  0xeb, 0x64 }, /* 48000 bits/sample, external input */
-drivers/staging/tm6000/tm6000-core.c:   { REQ_07_SET_GET_AVREG,  0xee, 0xc2 },
-drivers/staging/tm6000/tm6000-core.c:   val=tm6000_get_reg (dev, REQ_07_SET_GET_AVREG, 0xeb, 0x0);
-drivers/staging/tm6000/tm6000-core.c:   val=tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0xeb, val);
+Regards,
 
-This series introduces no changes at tm6000 behavior, but it will likely 
-help people to improve/maintain the driver.
+	Hans
 
-It would be good to add alias names also for the above registers.
+> 
+> Regards,
+> Andy
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Mauro Carvalho Chehab (7):
-  V4L/DVB: tm6000: Replace all Req 7 group of regs with another naming
-    convention
-  V4L/DVB: tm6000: Replace all Req 8 group of regs with another naming
-    convention
-  V4L/DVB: tm6000: Add request at Req07/Req08 register definitions
-  V4L/DVB: tm6000: Replace all magic values by a register alias
-  V4L/DVB: tm6000: Replace naming convention for registers of req 05
-    group
-  V4L/DVB: tm6000: add request to registers of the group 05
-  V4L/DVB: tm6000: replace occurences of req05 magic by a naming alias
-
- drivers/staging/tm6000/tm6000-alsa.c  |   12 +-
- drivers/staging/tm6000/tm6000-core.c  |  356 +++++-----
- drivers/staging/tm6000/tm6000-regs.h  |  862 ++++++++++++------------
- drivers/staging/tm6000/tm6000-stds.c  | 1156 ++++++++++++++++----------------
- drivers/staging/tm6000/tm6000-video.c |   16 +-
- 5 files changed, 1201 insertions(+), 1201 deletions(-)
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
