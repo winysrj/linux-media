@@ -1,706 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:52559 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755216Ab0C1UxJ (ORCPT
+Received: from gateway09.websitewelcome.com ([69.93.179.27]:38860 "HELO
+	gateway09.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751156Ab0C2WPI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Mar 2010 16:53:09 -0400
-Date: Sun, 28 Mar 2010 22:53:01 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org
-Subject: [PATCH] drivers/media/IR - improve keytable code
-Message-ID: <20100328205301.GA7899@hardeman.nu>
+	Mon, 29 Mar 2010 18:15:08 -0400
+Date: Mon, 29 Mar 2010 15:15:01 -0700 (PDT)
+From: "Dean A." <dean@sensoray.com>
+Subject: [PATCH] s2255drv: code cleanup
+To: linux-media@vger.kernel.org
+Message-ID: <tkrat.a25da9e9182ef79b@sensoray.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; CHARSET=us-ascii
+Content-Disposition: INLINE
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The attached patch rewrites much of the keytable code in
-drivers/media/IR/ir-keytable.c.
+# HG changeset patch
+# User Dean Anderson <dean@sensoray.com>
+# Date 1269900678 25200
+# Node ID 18586e4ac3ed5972dac2015600f8c21e26c0fc16
+# Parent  c437bd6f3659885afbe20ad12857347f0850156b
+s2255drv: code cleanup
 
-(applies to http://git.linuxtv.org/mchehab/ir.git)
+From: Dean Anderson <dean@sensoray.com>
 
-The scancodes are now inserted into the array in sorted
-order which allows for a binary search on lookup.
+removal of unused pipe array (of size one).
 
-The code has also been shrunk by about 150 lines.
+Priority: normal
 
-In addition it fixes the following bugs:
+Signed-off-by: Dean Anderson <dean@sensoray.com>
 
-Any use of ir_seek_table() was racy.
-
-ir_dev->driver_name is leaked between ir_input_register() and
-ir_input_unregister().
-
-ir_setkeycode() unconditionally does clear_bit() on dev->keybit
-when removing a mapping, but there might be another mapping with
-a different scancode and the same keycode.
-
-Signed-off-by: David Härdeman <david@hardeman.nu>
----
- drivers/media/IR/ir-keymaps.c  |    2 +
- drivers/media/IR/ir-keytable.c |  516 ++++++++++++++-------------------------
- include/media/ir-core.h        |    4 +-
- 3 files changed, 190 insertions(+), 332 deletions(-)
-
-diff --git a/drivers/media/IR/ir-keymaps.c b/drivers/media/IR/ir-keymaps.c
-index 55e7acd..bae8522 100644
---- a/drivers/media/IR/ir-keymaps.c
-+++ b/drivers/media/IR/ir-keymaps.c
-@@ -39,6 +39,8 @@
- struct ir_scancode_table tabname ## _table = {			\
- 	.scan = tabname,					\
- 	.size = ARRAY_SIZE(tabname),				\
-+	.len = ARRAY_SIZE(tabname),				\
-+	.alloc = 0,						\
- 	.ir_type = type,					\
- 	.name = #irname,					\
- };								\
-diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
-index ad41af0..cd51bab 100644
---- a/drivers/media/IR/ir-keytable.c
-+++ b/drivers/media/IR/ir-keytable.c
-@@ -16,344 +16,216 @@
- #include <linux/input.h>
- #include <media/ir-common.h>
+diff -r c437bd6f3659 -r 18586e4ac3ed linux/drivers/media/video/s2255drv.c
+--- a/linux/drivers/media/video/s2255drv.c	Mon Mar 29 14:57:45 2010 -0700
++++ b/linux/drivers/media/video/s2255drv.c	Mon Mar 29 15:11:18 2010 -0700
+@@ -85,7 +85,6 @@
+ #define S2255_RESPONSE_STATUS   cpu_to_le32(0x20)
+ #define S2255_USB_XFER_SIZE	(16 * 1024)
+ #define MAX_CHANNELS		4
+-#define MAX_PIPE_BUFFERS	1
+ #define SYS_FRAMES		4
+ /* maximum size is PAL full size plus room for the marker header(s) */
+ #define SYS_FRAMES_MAXSIZE	(720*288*2*2 + 4096)
+@@ -237,8 +236,8 @@
+ 	struct video_device	*vdev[MAX_CHANNELS];
+ 	struct timer_list	timer;
+ 	struct s2255_fw	*fw_data;
+-	struct s2255_pipeinfo	pipes[MAX_PIPE_BUFFERS];
+-	struct s2255_bufferi		buffer[MAX_CHANNELS];
++	struct s2255_pipeinfo	pipe;
++	struct s2255_bufferi	buffer[MAX_CHANNELS];
+ 	struct s2255_mode	mode[MAX_CHANNELS];
+ 	/* jpeg compression */
+ 	struct v4l2_jpegcompression jc[MAX_CHANNELS];
+@@ -2334,25 +2333,21 @@
  
--#define IR_TAB_MIN_SIZE	32
--#define IR_TAB_MAX_SIZE	1024
-+#define IR_TAB_MIN_SIZE	1024
-+#define IR_TAB_MAX_SIZE	8192
- 
- /**
-- * ir_seek_table() - returns the element order on the table
-- * @rc_tab:	the ir_scancode_table with the keymap to be used
-- * @scancode:	the scancode that we're seeking
-+ * ir_resize_table() - resizes a scancode table if necessary
-+ * @rc_tab:	the ir_scancode_table to resize
-+ * @return:	zero on success or a negative error code
-  *
-- * This routine is used by the input routines when a key is pressed at the
-- * IR. The scancode is received and needs to be converted into a keycode.
-- * If the key is not found, it returns KEY_UNKNOWN. Otherwise, returns the
-- * corresponding keycode from the table.
-+ * This routine will shrink the ir_scancode_table if it has lots of
-+ * unused entries and grow it if it is full.
-  */
--static int ir_seek_table(struct ir_scancode_table *rc_tab, u32 scancode)
-+static int ir_resize_table(struct ir_scancode_table *rc_tab)
+ static int s2255_board_init(struct s2255_dev *dev)
  {
--	int rc;
--	unsigned long flags;
--	struct ir_scancode *keymap = rc_tab->scan;
-+	unsigned int oldalloc = rc_tab->alloc;
-+	unsigned int newalloc = oldalloc;
-+	struct ir_scancode *oldscan = rc_tab->scan;
-+	struct ir_scancode *newscan;
-+
-+	if (rc_tab->size == rc_tab->len) {
-+		/* All entries in use -> grow keytable */
-+		if (rc_tab->alloc >= IR_TAB_MAX_SIZE)
-+			return -ENOMEM;
+-	int j;
+ 	struct s2255_mode mode_def = DEF_MODEI_NTSC_CONT;
+ 	int fw_ver;
++	int j;
++	struct s2255_pipeinfo *pipe = &dev->pipe;
+ 	dprintk(4, "board init: %p", dev);
++	memset(pipe, 0, sizeof(*pipe));
++	pipe->dev = dev;
++	pipe->cur_transfer_size = S2255_USB_XFER_SIZE;
++	pipe->max_transfer_size = S2255_USB_XFER_SIZE;
  
--	spin_lock_irqsave(&rc_tab->lock, flags);
-+		if (oldalloc == 0)
-+			newalloc = IR_TAB_MIN_SIZE;
-+		else
-+			newalloc *= 2;
-+		IR_dprintk(1, "Growing table to %u bytes\n", newalloc);
-+	}
+-	for (j = 0; j < MAX_PIPE_BUFFERS; j++) {
+-		struct s2255_pipeinfo *pipe = &dev->pipes[j];
+-
+-		memset(pipe, 0, sizeof(*pipe));
+-		pipe->dev = dev;
+-		pipe->cur_transfer_size = S2255_USB_XFER_SIZE;
+-		pipe->max_transfer_size = S2255_USB_XFER_SIZE;
+-
+-		pipe->transfer_buffer = kzalloc(pipe->max_transfer_size,
+-						GFP_KERNEL);
+-		if (pipe->transfer_buffer == NULL) {
+-			dprintk(1, "out of memory!\n");
+-			return -ENOMEM;
+-		}
++	pipe->transfer_buffer = kzalloc(pipe->max_transfer_size,
++					GFP_KERNEL);
++	if (pipe->transfer_buffer == NULL) {
++		dprintk(1, "out of memory!\n");
++		return -ENOMEM;
+ 	}
+ 	/* query the firmware */
+ 	fw_ver = s2255_get_fx2fw(dev);
+@@ -2401,12 +2396,8 @@
  
--	/* FIXME: replace it by a binary search */
-+	if ((rc_tab->len * 3 < rc_tab->size) && (oldalloc > IR_TAB_MIN_SIZE)) {
-+		/* Less than 1/3 of entries in use -> shrink keytable */
-+		newalloc /= 2;
-+		IR_dprintk(1, "Shrinking table to %u bytes\n", newalloc);
-+	}
+ 	for (i = 0; i < MAX_CHANNELS; i++)
+ 		s2255_release_sys_buffers(dev, i);
+-
+-	/* release transfer buffers */
+-	for (i = 0; i < MAX_PIPE_BUFFERS; i++) {
+-		struct s2255_pipeinfo *pipe = &dev->pipes[i];
+-		kfree(pipe->transfer_buffer);
+-	}
++	/* release transfer buffer */
++	kfree(dev->pipe.transfer_buffer);
+ 	return 0;
+ }
  
--	for (rc = 0; rc < rc_tab->size; rc++)
--		if (keymap[rc].scancode == scancode)
--			goto exit;
-+	if (newalloc == oldalloc)
-+		return 0;
- 
--	/* Not found */
--	rc = -EINVAL;
-+	newscan = kmalloc(newalloc, GFP_ATOMIC);
-+	if (!newscan) {
-+		IR_dprintk(1, "Failed to kmalloc %u bytes\n", newalloc);
+@@ -2472,35 +2463,30 @@
+ {
+ 	int pipe;
+ 	int retval;
+-	int i;
+-	struct s2255_pipeinfo *pipe_info = dev->pipes;
++	struct s2255_pipeinfo *pipe_info = &dev->pipe;
+ 	pipe = usb_rcvbulkpipe(dev->udev, dev->read_endpoint);
+ 	dprintk(2, "start pipe IN %d\n", dev->read_endpoint);
++	pipe_info->state = 1;
++	pipe_info->err_count = 0;
++	pipe_info->stream_urb = usb_alloc_urb(0, GFP_KERNEL);
++	if (!pipe_info->stream_urb) {
++		dev_err(&dev->udev->dev,
++			"ReadStream: Unable to alloc URB\n");
 +		return -ENOMEM;
 +	}
++	/* transfer buffer allocated in board_init */
++	usb_fill_bulk_urb(pipe_info->stream_urb, dev->udev,
++			  pipe,
++			  pipe_info->transfer_buffer,
++			  pipe_info->cur_transfer_size,
++			  read_pipe_completion, pipe_info);
  
--exit:
--	spin_unlock_irqrestore(&rc_tab->lock, flags);
--	return rc;
-+	memcpy(newscan, rc_tab->scan, rc_tab->len * sizeof(struct ir_scancode));
-+	rc_tab->scan = newscan;
-+	rc_tab->alloc = newalloc;
-+	rc_tab->size = rc_tab->alloc / sizeof(struct ir_scancode);
-+	kfree(oldscan);
-+	return 0;
- }
- 
- /**
-- * ir_roundup_tablesize() - gets an optimum value for the table size
-- * @n_elems:		minimum number of entries to store keycodes
-- *
-- * This routine is used to choose the keycode table size.
-+ * ir_do_setkeycode() - internal function to set a keycode in the
-+ *			scancode->keycode table
-+ * @dev:	the struct input_dev device descriptor
-+ * @rc_tab:	the struct ir_scancode_table to set the keycode in
-+ * @scancode:	the scancode for the ir command
-+ * @keycode:	the keycode for the ir command
-+ * @return:	-EINVAL if the keycode could not be inserted, otherwise zero.
-  *
-- * In order to have some empty space for new keycodes,
-- * and knowing in advance that kmalloc allocates only power of two
-- * segments, it optimizes the allocated space to have some spare space
-- * for those new keycodes by using the maximum number of entries that
-- * will be effectively be allocated by kmalloc.
-- * In order to reduce the quantity of table resizes, it has a minimum
-- * table size of IR_TAB_MIN_SIZE.
-+ * This routine is used internally to manipulate the scancode->keycode table.
-+ * The caller has to hold @rc_tab->lock.
-  */
--static int ir_roundup_tablesize(int n_elems)
-+static int ir_do_setkeycode(struct input_dev *dev,
-+			    struct ir_scancode_table *rc_tab,
-+			    int scancode, int keycode)
- {
--	size_t size;
-+	unsigned int i;
-+	int old_keycode = KEY_RESERVED;
-+
-+	/* First check if we already have a mapping for this ir command */
-+	for (i = 0; i < rc_tab->len; i++) {
-+		/* Keytable is sorted from lowest to highest scancode */
-+		if (rc_tab->scan[i].scancode > scancode)
-+			break;
-+		else if (rc_tab->scan[i].scancode < scancode)
-+			continue;
- 
--	if (n_elems < IR_TAB_MIN_SIZE)
--		n_elems = IR_TAB_MIN_SIZE;
-+		old_keycode = rc_tab->scan[i].keycode;
-+		rc_tab->scan[i].keycode = keycode;
- 
--	/*
--	 * As kmalloc only allocates sizes of power of two, get as
--	 * much entries as possible for the allocated memory segment
--	 */
--	size = roundup_pow_of_two(n_elems * sizeof(struct ir_scancode));
--	n_elems = size / sizeof(struct ir_scancode);
-+		/* Did the user wish to remove the mapping? */
-+		if (keycode == KEY_RESERVED || keycode == KEY_UNKNOWN) {
-+			rc_tab->len--;
-+			memmove(&rc_tab->scan[i], &rc_tab->scan[i + 1],
-+				(rc_tab->len - i) * sizeof(struct ir_scancode));
-+		}
- 
--	return n_elems;
--}
--
--/**
-- * ir_copy_table() - copies a keytable, discarding the unused entries
-- * @destin:	destin table
-- * @origin:	origin table
-- *
-- * Copies all entries where the keycode is not KEY_UNKNOWN/KEY_RESERVED
-- * Also copies table size and table protocol.
-- * NOTE: It shouldn't copy the lock field
-- */
--
--static int ir_copy_table(struct ir_scancode_table *destin,
--		 const struct ir_scancode_table *origin)
--{
--	int i, j = 0;
-+		/* Possibly shrink the keytable, failure is not a problem */
-+		ir_resize_table(rc_tab);
-+		break;
-+	}
- 
--	for (i = 0; i < origin->size; i++) {
--		if (origin->scan[i].keycode == KEY_UNKNOWN ||
--		   origin->scan[i].keycode == KEY_RESERVED)
--			continue;
-+	if (old_keycode == KEY_RESERVED) {
-+		/* No previous mapping found, we might need to grow the table */
-+		if (ir_resize_table(rc_tab))
-+			return -ENOMEM;
- 
--		memcpy(&destin->scan[j], &origin->scan[i], sizeof(struct ir_scancode));
--		j++;
-+		/* i is the proper index to insert our new keycode */
-+		memmove(&rc_tab->scan[i + 1], &rc_tab->scan[i],
-+			(rc_tab->len - i) * sizeof(struct ir_scancode));
-+		rc_tab->scan[i].scancode = scancode;
-+		rc_tab->scan[i].keycode = keycode;
-+		rc_tab->len++;
-+		set_bit(keycode, dev->keybit);
-+	} else {
-+		/* A previous mapping was updated... */
-+		clear_bit(old_keycode, dev->keybit);
-+		/* ...but another scancode might use the same keycode */
-+		for (i = 0; i < rc_tab->len; i++) {
-+			if (rc_tab->scan[i].keycode == old_keycode) {
-+				set_bit(old_keycode, dev->keybit);
-+				break;
-+			}
-+		}
- 	}
--	destin->size = j;
--	destin->ir_type = origin->ir_type;
--
--	IR_dprintk(1, "Copied %d scancodes to the new keycode table\n", destin->size);
- 
- 	return 0;
- }
- 
- /**
-- * ir_getkeycode() - get a keycode at the evdev scancode ->keycode table
-+ * ir_setkeycode() - set a keycode in the scancode->keycode table
-  * @dev:	the struct input_dev device descriptor
-  * @scancode:	the desired scancode
-- * @keycode:	the keycode to be retorned.
-+ * @keycode:	result
-+ * @return:	-EINVAL if the keycode could not be inserted, otherwise zero.
-  *
-- * This routine is used to handle evdev EVIOCGKEY ioctl.
-- * If the key is not found, returns -EINVAL, otherwise, returns 0.
-+ * This routine is used to handle evdev EVIOCSKEY ioctl.
-  */
--static int ir_getkeycode(struct input_dev *dev,
--			 int scancode, int *keycode)
-+static int ir_setkeycode(struct input_dev *dev,
-+			 int scancode, int keycode)
- {
--	int elem;
-+	int rc;
-+	unsigned long flags;
- 	struct ir_input_dev *ir_dev = input_get_drvdata(dev);
- 	struct ir_scancode_table *rc_tab = &ir_dev->rc_tab;
- 
--	elem = ir_seek_table(rc_tab, scancode);
--	if (elem >= 0) {
--		*keycode = rc_tab->scan[elem].keycode;
--		return 0;
--	}
--
--	/*
--	 * Scancode not found and table can't be expanded
--	 */
--	if (elem < 0 && rc_tab->size == IR_TAB_MAX_SIZE)
--		return -EINVAL;
--
--	/*
--	 * If is there extra space, returns KEY_RESERVED,
--	 * otherwise, input core won't let ir_setkeycode to work
--	 */
--	*keycode = KEY_RESERVED;
--	return 0;
--}
--
--/**
-- * ir_is_resize_needed() - Check if the table needs rezise
-- * @table:		keycode table that may need to resize
-- * @n_elems:		minimum number of entries to store keycodes
-- *
-- * Considering that kmalloc uses power of two storage areas, this
-- * routine detects if the real alloced size will change. If not, it
-- * just returns without doing nothing. Otherwise, it will extend or
-- * reduce the table size to meet the new needs.
-- *
-- * It returns 0 if no resize is needed, 1 otherwise.
-- */
--static int ir_is_resize_needed(struct ir_scancode_table *table, int n_elems)
--{
--	int cur_size = ir_roundup_tablesize(table->size);
--	int new_size = ir_roundup_tablesize(n_elems);
--
--	if (cur_size == new_size)
--		return 0;
--
--	/* Resize is needed */
--	return 1;
--}
--
--/**
-- * ir_delete_key() - remove a keycode from the table
-- * @rc_tab:		keycode table
-- * @elem:		element to be removed
-- *
-- */
--static void ir_delete_key(struct ir_scancode_table *rc_tab, int elem)
--{
--	unsigned long flags = 0;
--	int newsize = rc_tab->size - 1;
--	int resize = ir_is_resize_needed(rc_tab, newsize);
--	struct ir_scancode *oldkeymap = rc_tab->scan;
--	struct ir_scancode *newkeymap = NULL;
--
--	if (resize)
--		newkeymap = kzalloc(ir_roundup_tablesize(newsize) *
--				    sizeof(*newkeymap), GFP_ATOMIC);
--
--	/* There's no memory for resize. Keep the old table */
--	if (!resize || !newkeymap) {
--		newkeymap = oldkeymap;
--
--		/* We'll modify the live table. Lock it */
--		spin_lock_irqsave(&rc_tab->lock, flags);
--	}
--
--	/*
--	 * Copy the elements before the one that will be deleted
--	 * if (!resize), both oldkeymap and newkeymap points
--	 * to the same place, so, there's no need to copy
--	 */
--	if (resize && elem > 0)
--		memcpy(newkeymap, oldkeymap,
--		       elem * sizeof(*newkeymap));
--
--	/*
--	 * Copy the other elements overwriting the element to be removed
--	 * This operation applies to both resize and non-resize case
--	 */
--	if (elem < newsize)
--		memcpy(&newkeymap[elem], &oldkeymap[elem + 1],
--		       (newsize - elem) * sizeof(*newkeymap));
--
--	if (resize) {
--		/*
--		 * As the copy happened to a temporary table, only here
--		 * it needs to lock while replacing the table pointers
--		 * to use the new table
--		 */
--		spin_lock_irqsave(&rc_tab->lock, flags);
--		rc_tab->size = newsize;
--		rc_tab->scan = newkeymap;
--		spin_unlock_irqrestore(&rc_tab->lock, flags);
--
--		/* Frees the old keytable */
--		kfree(oldkeymap);
--	} else {
--		rc_tab->size = newsize;
--		spin_unlock_irqrestore(&rc_tab->lock, flags);
--	}
-+	spin_lock_irqsave(&rc_tab->lock, flags);
-+	rc = ir_do_setkeycode(dev, rc_tab, scancode, keycode);
-+	spin_unlock_irqrestore(&rc_tab->lock, flags);
-+	return rc;
- }
- 
- /**
-- * ir_insert_key() - insert a keycode at the table
-- * @rc_tab:		keycode table
-- * @scancode:	the desired scancode
-- * @keycode:	the keycode to be retorned.
-+ * ir_setkeytable() - sets several entries in the scancode->keycode table
-+ * @dev:	the struct input_dev device descriptor
-+ * @to:		the struct ir_scancode_table to copy entries to
-+ * @from:	the struct ir_scancode_table to copy entries from
-+ * @return:	-EINVAL if all keycodes could not be inserted, otherwise zero.
-  *
-+ * This routine is used to handle table initialization.
-  */
--static int ir_insert_key(struct ir_scancode_table *rc_tab,
--			  int scancode, int keycode)
-+static int ir_setkeytable(struct input_dev *dev,
-+			  struct ir_scancode_table *to,
-+			  const struct ir_scancode_table *from)
- {
-+	struct ir_input_dev *ir_dev = input_get_drvdata(dev);
-+	struct ir_scancode_table *rc_tab = &ir_dev->rc_tab;
- 	unsigned long flags;
--	int elem = rc_tab->size;
--	int newsize = rc_tab->size + 1;
--	int resize = ir_is_resize_needed(rc_tab, newsize);
--	struct ir_scancode *oldkeymap = rc_tab->scan;
--	struct ir_scancode *newkeymap;
--
--	if (resize) {
--		newkeymap = kzalloc(ir_roundup_tablesize(newsize) *
--				    sizeof(*newkeymap), GFP_ATOMIC);
--		if (!newkeymap)
+-	for (i = 0; i < MAX_PIPE_BUFFERS; i++) {
+-		pipe_info->state = 1;
+-		pipe_info->err_count = 0;
+-		pipe_info->stream_urb = usb_alloc_urb(0, GFP_KERNEL);
+-		if (!pipe_info->stream_urb) {
+-			dev_err(&dev->udev->dev,
+-				"ReadStream: Unable to alloc URB\n");
 -			return -ENOMEM;
+-		}
+-		/* transfer buffer allocated in board_init */
+-		usb_fill_bulk_urb(pipe_info->stream_urb, dev->udev,
+-				  pipe,
+-				  pipe_info->transfer_buffer,
+-				  pipe_info->cur_transfer_size,
+-				  read_pipe_completion, pipe_info);
 -
--		memcpy(newkeymap, oldkeymap,
--		       rc_tab->size * sizeof(*newkeymap));
--	} else
--		newkeymap  = oldkeymap;
--
--	/* Stores the new code at the table */
--	IR_dprintk(1, "#%d: New scan 0x%04x with key 0x%04x\n",
--		   rc_tab->size, scancode, keycode);
-+	unsigned int i;
-+	int rc = 0;
- 
- 	spin_lock_irqsave(&rc_tab->lock, flags);
--	rc_tab->size = newsize;
--	if (resize) {
--		rc_tab->scan = newkeymap;
--		kfree(oldkeymap);
-+	for (i = 0; i < from->len; i++) {
-+		rc = ir_do_setkeycode(dev, to, from->scan[i].scancode,
-+				      from->scan[i].keycode);
-+		if (rc)
-+			break;
+-		dprintk(4, "submitting URB %p\n", pipe_info->stream_urb);
+-		retval = usb_submit_urb(pipe_info->stream_urb, GFP_KERNEL);
+-		if (retval) {
+-			printk(KERN_ERR "s2255: start read pipe failed\n");
+-			return retval;
+-		}
++	dprintk(4, "submitting URB %p\n", pipe_info->stream_urb);
++	retval = usb_submit_urb(pipe_info->stream_urb, GFP_KERNEL);
++	if (retval) {
++		printk(KERN_ERR "s2255: start read pipe failed\n");
++		return retval;
  	}
--	newkeymap[elem].scancode = scancode;
--	newkeymap[elem].keycode  = keycode;
- 	spin_unlock_irqrestore(&rc_tab->lock, flags);
 -
--	return 0;
-+	return rc;
- }
- 
- /**
-- * ir_setkeycode() - set a keycode at the evdev scancode ->keycode table
-+ * ir_getkeycode() - get a keycode from the scancode->keycode table
-  * @dev:	the struct input_dev device descriptor
-  * @scancode:	the desired scancode
-- * @keycode:	the keycode to be retorned.
-+ * @keycode:	used to return the keycode, if found, or KEY_RESERVED
-+ * @return:	always returns zero.
-  *
-- * This routine is used to handle evdev EVIOCSKEY ioctl.
-- * There's one caveat here: how can we increase the size of the table?
-- * If the key is not found, returns -EINVAL, otherwise, returns 0.
-+ * This routine is used to handle evdev EVIOCGKEY ioctl.
-  */
--static int ir_setkeycode(struct input_dev *dev,
--			 int scancode, int keycode)
-+static int ir_getkeycode(struct input_dev *dev,
-+			 int scancode, int *keycode)
- {
--	int rc = 0;
-+	int start, end, mid;
-+	unsigned long flags;
-+	int key = KEY_RESERVED;
- 	struct ir_input_dev *ir_dev = input_get_drvdata(dev);
- 	struct ir_scancode_table *rc_tab = &ir_dev->rc_tab;
--	struct ir_scancode *keymap = rc_tab->scan;
--	unsigned long flags;
--
--	/*
--	 * Handle keycode table deletions
--	 *
--	 * If userspace is adding a KEY_UNKNOWN or KEY_RESERVED,
--	 * deal as a trial to remove an existing scancode attribution
--	 * if table become too big, reduce it to save space
--	 */
--	if (keycode == KEY_UNKNOWN || keycode == KEY_RESERVED) {
--		rc = ir_seek_table(rc_tab, scancode);
--		if (rc < 0)
--			return 0;
--
--		IR_dprintk(1, "#%d: Deleting scan 0x%04x\n", rc, scancode);
--		clear_bit(keymap[rc].keycode, dev->keybit);
--		ir_delete_key(rc_tab, rc);
--
--		return 0;
--	}
--
--	/*
--	 * Handle keycode replacements
--	 *
--	 * If the scancode exists, just replace by the new value
--	 */
--	rc = ir_seek_table(rc_tab, scancode);
--	if (rc >= 0) {
--		IR_dprintk(1, "#%d: Replacing scan 0x%04x with key 0x%04x\n",
--			rc, scancode, keycode);
--
--		clear_bit(keymap[rc].keycode, dev->keybit);
--
--		spin_lock_irqsave(&rc_tab->lock, flags);
--		keymap[rc].keycode = keycode;
--		spin_unlock_irqrestore(&rc_tab->lock, flags);
- 
--		set_bit(keycode, dev->keybit);
--
--		return 0;
-+	spin_lock_irqsave(&rc_tab->lock, flags);
-+	start = 0;
-+	end = rc_tab->len - 1;
-+	while (start <= end) {
-+		mid = (start + end) / 2;
-+		if (rc_tab->scan[mid].scancode < scancode)
-+			start = mid + 1;
-+		else if (rc_tab->scan[mid].scancode > scancode)
-+			end = mid - 1;
-+		else {
-+			key = rc_tab->scan[mid].keycode;
-+			break;
-+		}
- 	}
-+	spin_unlock_irqrestore(&rc_tab->lock, flags);
- 
--	/*
--	 * Handle new scancode inserts
--	 *
--	 * reallocate table if needed and insert a new keycode
--	 */
--
--	/* Avoid growing the table indefinitely */
--	if (rc_tab->size + 1 > IR_TAB_MAX_SIZE)
--		return -EINVAL;
--
--	rc = ir_insert_key(rc_tab, scancode, keycode);
--	if (rc < 0)
--		return rc;
--	set_bit(keycode, dev->keybit);
--
-+	*keycode = key;
  	return 0;
  }
  
-@@ -369,24 +241,12 @@ static int ir_setkeycode(struct input_dev *dev,
-  */
- u32 ir_g_keycode_from_table(struct input_dev *dev, u32 scancode)
- {
--	struct ir_input_dev *ir_dev = input_get_drvdata(dev);
--	struct ir_scancode_table *rc_tab = &ir_dev->rc_tab;
--	struct ir_scancode *keymap = rc_tab->scan;
--	int elem;
--
--	elem = ir_seek_table(rc_tab, scancode);
--	if (elem >= 0) {
--		IR_dprintk(1, "%s: scancode 0x%04x keycode 0x%02x\n",
--			   dev->name, scancode, keymap[elem].keycode);
-+	int keycode;
+@@ -2581,30 +2567,19 @@
  
--		return rc_tab->scan[elem].keycode;
+ static void s2255_stop_readpipe(struct s2255_dev *dev)
+ {
+-	int j;
++	struct s2255_pipeinfo *pipe = &dev->pipe;
+ 	if (dev == NULL) {
+ 		s2255_dev_err(&dev->udev->dev, "invalid device\n");
+ 		return;
+ 	}
+-	dprintk(4, "stop read pipe\n");
+-	for (j = 0; j < MAX_PIPE_BUFFERS; j++) {
+-		struct s2255_pipeinfo *pipe_info = &dev->pipes[j];
+-		if (pipe_info) {
+-			if (pipe_info->state == 0)
+-				continue;
+-			pipe_info->state = 0;
+-		}
++	pipe->state = 0;
++	if (pipe->stream_urb) {
++		/* cancel urb */
++		usb_kill_urb(pipe->stream_urb);
++		usb_free_urb(pipe->stream_urb);
++		pipe->stream_urb = NULL;
+ 	}
+-	for (j = 0; j < MAX_PIPE_BUFFERS; j++) {
+-		struct s2255_pipeinfo *pipe_info = &dev->pipes[j];
+-		if (pipe_info->stream_urb) {
+-			/* cancel urb */
+-			usb_kill_urb(pipe_info->stream_urb);
+-			usb_free_urb(pipe_info->stream_urb);
+-			pipe_info->stream_urb = NULL;
+-		}
 -	}
--
--	printk(KERN_INFO "%s: unknown key for scancode 0x%04x\n",
--	       dev->name, scancode);
--
--	/* Reports userspace that an unknown keycode were got */
--	return KEY_RESERVED;
-+	ir_getkeycode(dev, scancode, &keycode);
-+	IR_dprintk(1, "%s: scancode 0x%04x keycode 0x%02x\n",
-+		   dev->name, scancode, keycode);
-+	return keycode;
+-	dprintk(2, "s2255 stop read pipe: %d\n", j);
++	dprintk(4, "%s", __func__);
+ 	return;
  }
- EXPORT_SYMBOL_GPL(ir_g_keycode_from_table);
  
-@@ -463,8 +323,7 @@ int ir_input_register(struct input_dev *input_dev,
- 		      const char *driver_name)
- {
- 	struct ir_input_dev *ir_dev;
--	struct ir_scancode  *keymap    = rc_tab->scan;
--	int i, rc;
-+	int rc;
- 
- 	if (rc_tab->scan == NULL || !rc_tab->size)
- 		return -EINVAL;
-@@ -473,51 +332,45 @@ int ir_input_register(struct input_dev *input_dev,
- 	if (!ir_dev)
- 		return -ENOMEM;
- 
--	spin_lock_init(&ir_dev->rc_tab.lock);
--
--	ir_dev->driver_name = kmalloc(strlen(driver_name) + 1, GFP_KERNEL);
--	if (!ir_dev->driver_name)
--		return -ENOMEM;
--	strcpy(ir_dev->driver_name, driver_name);
--	ir_dev->rc_tab.name = rc_tab->name;
--	ir_dev->rc_tab.size = ir_roundup_tablesize(rc_tab->size);
--	ir_dev->rc_tab.scan = kzalloc(ir_dev->rc_tab.size *
--				    sizeof(struct ir_scancode), GFP_KERNEL);
--	if (!ir_dev->rc_tab.scan) {
--		kfree(ir_dev);
--		return -ENOMEM;
-+	ir_dev->driver_name = kasprintf(GFP_KERNEL, "%s", driver_name);
-+	if (!ir_dev->driver_name) {
-+		rc = -ENOMEM;
-+		goto out_dev;
- 	}
- 
--	IR_dprintk(1, "Allocated space for %d keycode entries (%zd bytes)\n",
--		ir_dev->rc_tab.size,
--		ir_dev->rc_tab.size * sizeof(ir_dev->rc_tab.scan));
--
--	ir_copy_table(&ir_dev->rc_tab, rc_tab);
--	ir_dev->props = props;
-+	input_dev->getkeycode = ir_getkeycode;
-+	input_dev->setkeycode = ir_setkeycode;
-+	input_set_drvdata(input_dev, ir_dev);
- 
--	/* set the bits for the keys */
--	IR_dprintk(1, "key map size: %d\n", rc_tab->size);
--	for (i = 0; i < rc_tab->size; i++) {
--		IR_dprintk(1, "#%d: setting bit for keycode 0x%04x\n",
--			i, keymap[i].keycode);
--		set_bit(keymap[i].keycode, input_dev->keybit);
-+	spin_lock_init(&ir_dev->rc_tab.lock);
-+	ir_dev->rc_tab.name = rc_tab->name;
-+	ir_dev->rc_tab.ir_type = rc_tab->ir_type;
-+	if (ir_resize_table(&ir_dev->rc_tab)) {
-+		rc = -ENOMEM;
-+		goto out_name;
- 	}
--	clear_bit(0, input_dev->keybit);
- 
--	set_bit(EV_KEY, input_dev->evbit);
-+	IR_dprintk(1, "Allocated space for %u keycode entries (%u bytes)\n",
-+		   ir_dev->rc_tab.size, ir_dev->rc_tab.alloc);
- 
--	input_dev->getkeycode = ir_getkeycode;
--	input_dev->setkeycode = ir_setkeycode;
--	input_set_drvdata(input_dev, ir_dev);
-+	set_bit(EV_KEY, input_dev->evbit);
-+	if (ir_setkeytable(input_dev, &ir_dev->rc_tab, rc_tab)) {
-+		rc = -ENOMEM;
-+		goto out_table;
-+	}
-+	ir_dev->props = props;
- 
- 	rc = ir_register_class(input_dev);
- 	if (rc < 0)
--		goto err;
-+		goto out_table;
- 
- 	return 0;
- 
--err:
--	kfree(rc_tab->scan);
-+out_table:
-+	kfree(ir_dev->rc_tab.scan);
-+out_name:
-+	kfree(ir_dev->driver_name);
-+out_dev:
- 	kfree(ir_dev);
- 	return rc;
- }
-@@ -546,6 +399,7 @@ void ir_input_unregister(struct input_dev *dev)
- 
- 	ir_unregister_class(dev);
- 
-+	kfree(ir_dev->driver_name);
- 	kfree(ir_dev);
- }
- EXPORT_SYMBOL_GPL(ir_input_unregister);
-diff --git a/include/media/ir-core.h b/include/media/ir-core.h
-index 87dd738..c250e36 100644
---- a/include/media/ir-core.h
-+++ b/include/media/ir-core.h
-@@ -46,7 +46,9 @@ struct ir_scancode {
- 
- struct ir_scancode_table {
- 	struct ir_scancode	*scan;
--	int			size;
-+	unsigned int		size;	/* Max number of entries */
-+	unsigned int		len;	/* Used number of entries */
-+	unsigned int		alloc;	/* Size of *scan in bytes */
- 	u64			ir_type;
- 	char			*name;
- 	spinlock_t		lock;
--- 
-1.7.0.3
-
 
