@@ -1,115 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4588 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754606Ab0CKUVl (ORCPT
+Received: from mail-in-14.arcor-online.net ([151.189.21.54]:40875 "EHLO
+	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752979Ab0C2UzJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Mar 2010 15:21:41 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o2BKLdPG068458
-	for <linux-media@vger.kernel.org>; Thu, 11 Mar 2010 21:21:40 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 11 Mar 2010 21:21:39 +0100 (CET)
-Message-Id: <201003112021.o2BKLdPG068458@smtp-vbr7.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Mon, 29 Mar 2010 16:55:09 -0400
+Subject: Re: Kworld Plus TV Hybrid PCI (DVB-T 210SE)
+From: hermann pitton <hermann-pitton@arcor.de>
+To: 0123peter@gmail.com
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <0uh687-4c1.ln1@psd.motzarella.org>
+References: <4B94CF9B.3060000@gmail.com>
+	 <1268777563.5120.57.camel@pc07.localdom.local>
+	 <0h2e77-gjl.ln1@psd.motzarella.org>
+	 <1269298611.5158.20.camel@pc07.localdom.local>
+	 <0uh687-4c1.ln1@psd.motzarella.org>
+Content-Type: text/plain
+Date: Mon, 29 Mar 2010 22:52:13 +0200
+Message-Id: <1269895933.3176.12.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi Peter,
 
-Results of the daily build of v4l-dvb:
+Am Montag, den 29.03.2010, 23:10 +1100 schrieb 0123peter@gmail.com:
 
-date:        Thu Mar 11 19:00:20 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14420:0d06fd6b500e
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 8c69c6ed6c74c94fa7ad6fa24eda452e4b212d81
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+> 
+> Hi Hermann,  
+> 
+> I've been "fixing" my PC to the state that it stopped working.  
+> Hence the delay.  
+> 
+> > Hi Peter,
+> > 
+> > Am Samstag, den 20.03.2010, 16:20 +1100 schrieb 0123peter@gmail.com:
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc1-armv5: OK
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-rc1-armv5-davinci: OK
-linux-2.6.32.6-armv5-ixp: OK
-linux-2.6.33-armv5-ixp: OK
-linux-2.6.34-rc1-armv5-ixp: OK
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-rc1-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.17-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-rc1-i686: WARNINGS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc1-m32r: OK
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-rc1-mips: OK
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-rc1-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.17-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-rc1-x86_64: WARNINGS
-linux-git-armv5: OK
-linux-git-armv5-davinci: OK
-linux-git-armv5-ixp: OK
-linux-git-armv5-omap2: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: OK
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: OK
+> >> 
+> >> [snip]
+> >> > 
+> >> > unfortunately the problem with these cards is known, but no good
+> >> > solution for now.
+> >> > 
+> >> > Best description is from Hartmut and starts here.
+> >> > 
+> >> > http://www.spinics.net/lists/linux-dvb/msg26683.html
+> >> > 
+> >> [snip]
+> >> 
+> >> Interesting link.  I have one of the cards mentioned 
+> >> (an MSI TV(at)nywhere A/D hybrid).  I've decided not to throw it away.  
+> > 
+> > to not leave you without any response at least.
+> > 
+> > In hind sight, seeing how unfortunate using such devices can be, mainly
+> > because of being forced to try at random again with a cold boot after
+> > some i2c war brought down the tuner, we better should have such only in
+> > a still experimental league and not as supported.
+> > 
+> > This was not foreseeable in such rudeness and neither Hartmut nor me
+> > have such devices.
+> > 
+> > The Asus triple OEM 3in1 I have does not have any problems with loading
+> > firmware from file, the others do all get it from eeprom.
+> > 
+> > So, actually nobody is investigating on it with real hardware.
+> > 
+> > Maybe you can catch something with gpio_tracking and i2c_debug=1.
+> > I would expect that the complex analog tuner initialization gets broken
+> > somehow. This is at least known to be good to bring all down.
+> > 
+> > Cheers,
+> > Hermann
+> 
+> There was a patch about alignment that went through recently.  
+> Revert "V4L/DVB (11906): saa7134: Use v4l bounding/alignment function"
+> Maybe that was it.  
 
-Detailed results are available here:
+did not even notice a problem with Trent's prior patch.
+The same is also at vivi.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+> Should I have a file called /etc/modprobe.d/TVanywhereAD 
+> that contains the line, 
+> 
+> options saa7134 card=94 gpio_tracking i2c_debug=1
+> 
+> and then watch the command line output of "kaffeine"?  
 
-Full logs are available here:
+If you want to produce debug output for failing firmware loading from
+file after a cold boot, yes, you might eventually be able to see that
+failing tuner initialization brings down i2c.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+If it is a additional new regression, then mercurial bisect can find the
+patch in question fairly quick.
 
-The V4L-DVB specification from this daily build is here:
+Mauro has a MSI cardbus device using also the card=94 entry, but at home
+he has no DVB-T.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Cheers,
+Hermann
+
+
