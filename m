@@ -1,115 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1884 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752486Ab0C1Tie (ORCPT
+Received: from mail.gmx.net ([213.165.64.20]:35478 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1756358Ab0C3OkJ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Mar 2010 15:38:34 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id o2SJcTWl069638
-	for <linux-media@vger.kernel.org>; Sun, 28 Mar 2010 21:38:33 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 28 Mar 2010 21:38:29 +0200 (CEST)
-Message-Id: <201003281938.o2SJcTWl069638@smtp-vbr6.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
+	Tue, 30 Mar 2010 10:40:09 -0400
+Date: Tue, 30 Mar 2010 16:40:17 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Rodolfo Giometti <giometti@enneenne.com>
+cc: Richard =?iso-8859-15?Q?R=F6jfors?=
+	<richard.rojfors@pelagicore.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: adv7180 as SoC camera device
+In-Reply-To: <20100330140611.GR5937@enneenne.com>
+Message-ID: <Pine.LNX.4.64.1003301638090.6963@axis700.grange>
+References: <20100219174451.GH21778@enneenne.com> <Pine.LNX.4.64.1002192018170.5860@axis700.grange>
+ <20100222160139.GL21778@enneenne.com> <4B8310F1.8070005@pelagicore.com>
+ <20100330140611.GR5937@enneenne.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=iso-8859-15
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Tue, 30 Mar 2010, Rodolfo Giometti wrote:
 
-Results of the daily build of v4l-dvb:
+> On Tue, Feb 23, 2010 at 12:19:13AM +0100, Richard Röjfors wrote:
+> > 
+> > We use it as a subdev to a driver not yet committed from us. So I think
+> > you should extend it, not move it.
+> 
+> Finally I got something functional... but I'm puzzled to know how I
+> can add platform data configuration struct by using the I2C's
+> platform_data pointer if it is already used to hold struct
+> soc_camera_device... O_o
 
-date:        Sun Mar 28 19:00:15 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14536:a539e5b68945
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 8c69c6ed6c74c94fa7ad6fa24eda452e4b212d81
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+As usual, looking at existing examples helps, e.g., in ov772x:
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc1-armv5: OK
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-rc1-armv5-davinci: WARNINGS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-rc1-armv5-ixp: WARNINGS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-rc1-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.17-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-rc1-i686: WARNINGS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc1-m32r: OK
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-rc1-mips: WARNINGS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-rc1-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.17-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-rc1-x86_64: WARNINGS
-linux-git-armv5: OK
-linux-git-armv5-davinci: OK
-linux-git-armv5-ixp: OK
-linux-git-armv5-omap2: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.7-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.62-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.7-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+	priv->info = icl->priv;
 
-Detailed results are available here:
+i.e., icl->priv is where you pass subdevice-driver specific data with 
+the soc-camera API.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+> In fact my probe function looks like:
+> 
+> static __devinit int adv7180_probe(struct i2c_client *client,
+>                         const struct i2c_device_id *id)
+> {
+>         struct adv7180_state *state;
+>         struct soc_camera_device *icd = client->dev.platform_data;
+>         struct soc_camera_link *icl;
+>         struct v4l2_subdev *sd;
+>         int ret;
+> 
+>         /* Check if the adapter supports the needed features */
+>         if (!i2c_check_functionality(client->adapter,
+> 	I2C_FUNC_SMBUS_BYTE_DATA))
+>                 return -EIO;
+> 
+>         v4l_info(client, "chip found @ 0x%02x (%s)\n",
+>                         client->addr << 1, client->adapter->name);
+> 
+>         if (icd) {
+>                 icl = to_soc_camera_link(icd);
+>                 if (!icl)
+>                         return -EINVAL;
+> 
+>                 icd->ops = &adv7180_soc_ops;
+>                 v4l_info(client, "soc-camera support enabled\n");
+>         } else
+>                 pdata = client->dev.platform_data;
 
-Full logs are available here:
+This is a complicated way to say
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+		pdata = NULL;
 
-The V4L-DVB specification from this daily build is here:
+Thanks
+Guennadi
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> 
+>         state = kzalloc(sizeof(struct adv7180_state), GFP_KERNEL);
+>         if (state == NULL) {
+>                 ret = -ENOMEM;
+>                 goto err;
+>         }
+> 
+>         state->irq = client->irq;
+>         INIT_WORK(&state->work, adv7180_work);
+>         mutex_init(&state->mutex);
+>         state->autodetect = true;
+>         sd = &state->sd;
+>         v4l2_i2c_subdev_init(sd, client, &adv7180_ops);
+> 	...
+> 
+> Thanks in advance,
+> 
+> Rodolfo
+> 
+> -- 
+> 
+> GNU/Linux Solutions                  e-mail: giometti@enneenne.com
+> Linux Device Driver                          giometti@linux.it
+> Embedded Systems                     phone:  +39 349 2432127
+> UNIX programming                     skype:  rodolfo.giometti
+> Freelance ICT Italia - Consulente ICT Italia - www.consulenti-ict.it
+> 
+
+---
+Guennadi Liakhovetski
