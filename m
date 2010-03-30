@@ -1,30 +1,32 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.5])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o229YnVe003583
-	for <video4linux-list@redhat.com>; Tue, 2 Mar 2010 04:34:49 -0500
-Received: from denebola.andago.com (denebola.andago.com [213.171.250.124])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o229YYpq029215
-	for <video4linux-list@redhat.com>; Tue, 2 Mar 2010 04:34:35 -0500
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by denebola.andago.com (Postfix) with ESMTP id 903D211B927
-	for <video4linux-list@redhat.com>; Tue,  2 Mar 2010 10:34:32 +0100 (CET)
-Received: from denebola.andago.com ([127.0.0.1])
-	by localhost (denebola.andago.com [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id A4Q+bPqXIy6g for <video4linux-list@redhat.com>;
-	Tue,  2 Mar 2010 10:34:31 +0100 (CET)
-Received: from [192.168.16.16] (madrid.andago.com [213.171.250.126])
+Received: from mx1.redhat.com (ext-mx10.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.14])
+	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o2UCWtcH028052
+	for <video4linux-list@redhat.com>; Tue, 30 Mar 2010 08:32:56 -0400
+Received: from cleopatra.basesoft.com (cleopatra.basesoft.com [82.199.92.137])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2UCWfYf020980
+	for <video4linux-list@redhat.com>; Tue, 30 Mar 2010 08:32:43 -0400
+Received: from localhost (unknown [127.0.0.1])
+	by cleopatra.basesoft.com (Postfix) with ESMTP id 64E85554CC9
+	for <video4linux-list@redhat.com>; Tue, 30 Mar 2010 12:32:40 +0000 (UTC)
+Received: from cleopatra.basesoft.com ([127.0.0.1])
+	by localhost (cleopatra.basesoft.com [127.0.0.1]) (amavisd-new,
+	port 10024)
+	with ESMTP id qbkHbMDC1KfE for <video4linux-list@redhat.com>;
+	Tue, 30 Mar 2010 14:32:37 +0200 (CEST)
+Received: from [10.0.5.151] (unknown [89.137.114.41])
 	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by denebola.andago.com (Postfix) with ESMTPS id 344C111B743
-	for <video4linux-list@redhat.com>; Tue,  2 Mar 2010 10:34:31 +0100 (CET)
-Message-ID: <4B8CDBAC.4030909@andago.com>
-Date: Tue, 02 Mar 2010 10:34:36 +0100
-From: Jorge Cabrera <jorge.cabrera@andago.com>
+	by cleopatra.basesoft.com (Postfix) with ESMTPSA id 81214554CC7
+	for <video4linux-list@redhat.com>;
+	Tue, 30 Mar 2010 14:32:37 +0200 (CEST)
+Message-ID: <4BB1EF66.9000500@basesoft.ro>
+Date: Tue, 30 Mar 2010 15:32:38 +0300
+From: Mircea Uifalean <mircea@basesoft.ro>
 MIME-Version: 1.0
 To: video4linux-list@redhat.com
-Subject: Ubuntu and AverMedia DVD EZMaker USB Gold
+Subject: [SOLVED] problem with streaming from two webcams with v4l2
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,64 +34,43 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi everyone,
+Hello.
 
-I'm trying to make an "AverMedia DVD EZMaker USB Gold" work with Ubuntu =
+I wrote a couple of days ago about a problem with streaming from two
+webcams. I had errors when I tried to start both streams simultaneously
+but individually they both worked fine.
 
-(tried in a computer with 9.04 and other two with 9.10) with a Sony EVI =
+According to a page on the matter (not sure if I'm allowed to post links
+so I'll just quote):
 
-D70P Camera. I installed the linux drivers from AverMedia and when I =
+"A USB camera uses all the bandwidth a USB1.1 controller can give. Even
+at low framerates the camera reserves more than half the 11 Mb/s. This
+means that the 2nd camera gets rejected. Few motherboards have more than
+one controller. Often 2 or 4 physical connections on a motherboard
+shares one and the same USB controller. To add more cameras you need to
+put USB adapter cards. One per camera. There exists cards with full
+bandwidth per USB socket. These present themselves as for example 4 USB
+controllers to Linux and they work fine with 4 cameras. Also, many (if
+not most) cheap PCI USB1/2 cards ($10 range) have a controller capable
+of supporting 2 x USB1 cameras and an additional USB2 camera per card.
+With those cards and USB1 extender cards (allowing extension of a USB1
+device for up to 100m, typically 50m) you can have a capable
+surveillance setup using only USB cameras.".
 
-connect the device the system shows the following message when i run dmesg:
+So the problem was fixed by adding a PCI card that had some extra USB
+ports. Hope this helps others that have a similar problem.
 
-[69302.964025] usb 2-1: new high speed USB device using ehci_hcd and =
-
-address 6
-[69303.637332] usb 2-1: configuration #1 chosen from 1 choice
-[69303.860132] C038 registered V4L2 device video0[video]
-[69303.860160] C038 registered V4L2 device vbi0[vbi]
-[69303.860440] C038 registered ALSA sound card 2
-
-Problem is that when I connect the camera it doesn' work, tried with =
-
-cheese, gstreamer-properties, camorama and always get the same error:
-
-libv4l2: error getting pixformat: Invalid argument
-
-I tried connecting the camera with s-video and composite video with the =
-
-same result. Funny thing is that I get the same error without connecting =
-
-the camera so I guess it's just a problem with the AverMedia device. =
-
-Works well on Windows.
-
-I've been reading a lot on this but still have no clues. Has anyone got =
-
-this type of device working under linux? should I use some other driver?
-
-I would really appreciate any help.
-
-Cheers,
-
--- =
-
-Jorge Cabrera
-=C1ndago Ingenier=EDa - www.andago.com
-
-Tel=E9fono: +34 916 011 373
-M=F3vil: +34 637 741 034
-e-mail: jorge.cabrera@andago.com
-
-C/Alcalde =C1ngel Arroyo n.=BA10 1.=AAPl. (28904) Getafe, Madrid
+-- 
+Regards,
+Mircea Uifalean
 
 --
 video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscribe
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
