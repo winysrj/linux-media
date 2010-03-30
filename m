@@ -1,132 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55655 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751600Ab0CKWij convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3475 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751409Ab0C3Ti4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Mar 2010 17:38:39 -0500
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
-	"mchehab@infradead.org" <mchehab@infradead.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"julia@diku.dk" <julia@diku.dk>
-Date: Thu, 11 Mar 2010 16:38:21 -0600
-Subject: RE: [patch 2/5] drivers/media/video: move dereference after NULL
- test
-Message-ID: <A69FA2915331DC488A831521EAE36FE4016A5A3F25@dlee06.ent.ti.com>
-References: <201003112202.o2BM2HpB013125@imap1.linux-foundation.org>
-In-Reply-To: <201003112202.o2BM2HpB013125@imap1.linux-foundation.org>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Tue, 30 Mar 2010 15:38:56 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id o2UJcsRF061625
+	for <linux-media@vger.kernel.org>; Tue, 30 Mar 2010 21:38:54 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 30 Mar 2010 21:38:54 +0200 (CEST)
+Message-Id: <201003301938.o2UJcsRF061625@smtp-vbr2.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
->-----Original Message-----
->From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->owner@vger.kernel.org] On Behalf Of akpm@linux-foundation.org
->Sent: Thursday, March 11, 2010 5:02 PM
->To: mchehab@infradead.org
->Cc: linux-media@vger.kernel.org; akpm@linux-foundation.org; julia@diku.dk
->Subject: [patch 2/5] drivers/media/video: move dereference after NULL test
->
->From: Julia Lawall <julia@diku.dk>
->
->In quickcam_messenger.c, if the NULL test on uvd is needed, then the
->dereference should be after the NULL test.
->
->In vpif_display.c, std_info is initialized to the address of a structure
->field.  This seems unlikely to be NULL.  If it could somehow be NULL, then
->the assignment should be moved after the NULL test.  Alternatively, perhaps
->the NULL test is intended to test std_info->stdid rather than std_info?
->
->In saa7134-alsa.c, the function is only called from one place, where the
->chip argument has already been dereferenced.  On the other hand, if it
->should be kept, then card should be initialized after it.
->
->A simplified version of the semantic match that detects this problem is as
->follows (http://coccinelle.lip6.fr/):
->
->// <smpl>
->@match exists@
->expression x, E;
->identifier fld;
->@@
->
->* x->fld
->  ... when != \(x = E\|&x\)
->* x == NULL
->// </smpl>
->
->Signed-off-by: Julia Lawall <julia@diku.dk>
->Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
->Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
->---
->
-> drivers/media/video/davinci/vpif_display.c        |    2 --
-> drivers/media/video/saa7134/saa7134-alsa.c        |    2 --
-> drivers/media/video/usbvideo/quickcam_messenger.c |    3 ++-
-> 3 files changed, 2 insertions(+), 5 deletions(-)
->
->diff -puN drivers/media/video/davinci/vpif_display.c~drivers-media-video-
->move-dereference-after-null-test drivers/media/video/davinci/vpif_display.c
->--- a/drivers/media/video/davinci/vpif_display.c~drivers-media-video-move-
->dereference-after-null-test
->+++ a/drivers/media/video/davinci/vpif_display.c
->@@ -383,8 +383,6 @@ static int vpif_get_std_info(struct chan
-> 	int index;
->
-> 	std_info->stdid = vid_ch->stdid;
->-	if (!std_info)
->-		return -1;
+Results of the daily build of v4l-dvb:
 
-Please change it as 
+date:        Tue Mar 30 19:00:20 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14536:a539e5b68945
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 8c69c6ed6c74c94fa7ad6fa24eda452e4b212d81
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-if (!std_info->stdid)
-	return -1;
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-rc1-armv5: OK
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-rc1-armv5-davinci: WARNINGS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-rc1-armv5-ixp: WARNINGS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-rc1-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.17-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-rc1-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-rc1-m32r: OK
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-rc1-mips: WARNINGS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-rc1-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.17-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-rc1-x86_64: WARNINGS
+linux-git-armv5: OK
+linux-git-armv5-davinci: OK
+linux-git-armv5-ixp: OK
+linux-git-armv5-omap2: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: WARNINGS
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.7-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.62-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.7-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
-Murali	
->
-> 	for (index = 0; index < ARRAY_SIZE(ch_params); index++) {
-> 		config = &ch_params[index];
->diff -puN drivers/media/video/saa7134/saa7134-alsa.c~drivers-media-video-
->move-dereference-after-null-test drivers/media/video/saa7134/saa7134-alsa.c
->--- a/drivers/media/video/saa7134/saa7134-alsa.c~drivers-media-video-move-
->dereference-after-null-test
->+++ a/drivers/media/video/saa7134/saa7134-alsa.c
->@@ -1011,8 +1011,6 @@ static int snd_card_saa7134_new_mixer(sn
-> 	unsigned int idx;
-> 	int err, addr;
->
->-	if (snd_BUG_ON(!chip))
->-		return -EINVAL;
-> 	strcpy(card->mixername, "SAA7134 Mixer");
->
-> 	for (idx = 0; idx < ARRAY_SIZE(snd_saa7134_volume_controls); idx++) {
->diff -puN drivers/media/video/usbvideo/quickcam_messenger.c~drivers-media-
->video-move-dereference-after-null-test
->drivers/media/video/usbvideo/quickcam_messenger.c
->--- a/drivers/media/video/usbvideo/quickcam_messenger.c~drivers-media-
->video-move-dereference-after-null-test
->+++ a/drivers/media/video/usbvideo/quickcam_messenger.c
->@@ -692,12 +692,13 @@ static int qcm_start_data(struct uvd *uv
->
-> static void qcm_stop_data(struct uvd *uvd)
-> {
->-	struct qcm *cam = (struct qcm *) uvd->user_data;
->+	struct qcm *cam;
-> 	int i, j;
-> 	int ret;
->
-> 	if ((uvd == NULL) || (!uvd->streaming) || (uvd->dev == NULL))
-> 		return;
->+	cam = (struct qcm *) uvd->user_data;
->
-> 	ret = qcm_camera_off(uvd);
-> 	if (ret)
->_
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
