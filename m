@@ -1,106 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:48551 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751113Ab0C0I1i (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:47483 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755631Ab0C3MjZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Mar 2010 04:27:38 -0400
-Date: Sat, 27 Mar 2010 09:27:33 +0100
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Jon Smirl <jonsmirl@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Pavel Machek <pavel@ucw.cz>, Krzysztof Halasa <khc@pm.waw.pl>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
-	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
-	kraxel@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR system?
-Message-ID: <20100327082733.GA4494@hardeman.nu>
-References: <9e4733910912151229o371ee017tf3640d8f85728011@mail.gmail.com>
- <20091215203300.GL24406@elf.ucw.cz>
- <9e4733910912151245ne442a5dlcfee92609e364f70@mail.gmail.com>
- <9e4733910912151338n62b30af5i35f8d0963e6591c@mail.gmail.com>
- <4BAB7659.1040408@redhat.com>
- <20100326112755.GB5387@hardeman.nu>
- <4BACC769.6020906@redhat.com>
- <20100326160150.GA28804@core.coreip.homeip.net>
- <4BACED6B.9030409@redhat.com>
- <9e4733911003261537s770a66c8v92ab7384fde34839@mail.gmail.com>
+	Tue, 30 Mar 2010 08:39:25 -0400
+Date: Tue, 30 Mar 2010 14:39:12 +0200
+From: Wolfram Sang <w.sang@pengutronix.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Jean Delvare <khali@linux-fr.org>,
+	kernel-janitors@vger.kernel.org, linux-i2c@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 12/24] media/video: fix dangling pointers
+Message-ID: <20100330123912.GI29472@pengutronix.de>
+References: <1269094385-16114-1-git-send-email-w.sang@pengutronix.de> <20100321144655.4747fd2a@hyperion.delvare> <20100321141417.GA19626@opensource.wolfsonmicro.com> <201003211709.56319.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="v2/QI0iRXglpx0hK"
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <9e4733911003261537s770a66c8v92ab7384fde34839@mail.gmail.com>
+In-Reply-To: <201003211709.56319.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 26, 2010 at 06:37:41PM -0400, Jon Smirl wrote:
-> On Fri, Mar 26, 2010 at 1:22 PM, Mauro Carvalho Chehab 
-> <mchehab@redhat.com> wrote:
-> > 2) create a read/write sysfs node that would indicate the number of 
-> > event/keymaps
-> > associated with a given IR. By writing a bigger number, it would create new devices.
-> > By writing a smaller number, it will delete some maps. There's an issue though:
-> > what criteria would be used to delete? The newly created ones?
-> 
-> This is normally handled a sysfs node on the core, something like
-> 'adddev'. You echo '1' to this node and a new interface is created.
-> 
-> Each interface has a sysfs node, make a 'remove' attribute in it. Echo
-> '1' to remove to make it disappear.
-> 
-> You have to implement the code behind these interfaces but this
-> convention is used in other subsubsystems.
-> 
-> BTW - you're recreating everything the configfs interface did. it
-> achieved the same results with mkdir/rmdir. I liked the configfs
-> scheme since there are no obscure commands to learn. Everybody can
-> make files and directories.
 
-I've looked at your configfs interface, it was the inspiration for 
-suggesting that each irrcv device should have more than one keymap with 
-one input device for each keytable.
+--v2/QI0iRXglpx0hK
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-However, I don't agree that the configfs interface would somehow be more 
-user-friendly than an ioctl based one. Getting the correct "scancode" 
-(e.g, protocol, device, function values), finding a corresponding 
-keycode (is it KEY_0, no wait, it's KEY_NUMERIC_0), etc are bigger 
-hurdles than mkdir/rmdir/echo or calling a tool similar to input-utils 
-which does the ioctl.
+Hans,
 
-mount -t configfs blabla /somewhere (distros don't seem to mount 
-configfs per default)
-cd /somewhere/somewhere-else
-mkdir something
-echo gibberish1 > yada1
-echo gibberish2 > yada2
-echo gibberish3 > yada3
+> But this just feels like an i2c core thing to me. After remove() is called
+> the core should just set the client data to NULL. If there are drivers th=
+at
+> rely on the current behavior, then those drivers should be reviewed first=
+ as
+> to the reason why they need it.
 
-Doesn't seem all that much less obscure than the command line interface 
-to an ioctl based interface:
+It will be done this way now. As you have taken part in the discussion, I g=
+uess
+the media-subsystem never really considered picking those patches up ;)
 
-ir-util load_keytable /usr/share/remotes/blah
+Regards,
 
-or
+   Wolfram
 
-ir-util load_keyentry "gibberish1,gibberish2 = gibberish3"
+--=20
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
 
-Assume the user provides an invalid (e.g. out-of-bounds value for the 
-device field of a RC5 ir command) scancode. With the configfs approach 
-the user will get a standard perror reply from echo/cat. With a 
-dedicated tool the user can get a much more informative error message.
+--v2/QI0iRXglpx0hK
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-But in the end, the majority of users are going to use some GUI to do 
-all of this anyway (and they'll only do it once)....start GUI, ask user 
-to press all keys on remote one by one, provide them with a list of 
-possible descriptions (i.e. input.h type keycodes) for each detected key 
-on the remote (something like the keymapping interface most quake-like 
-computer games provide).  Once done, save keymap. Load keymap at boot.  
-Configfs or ioctl or sysfs or netlink or blorkfs is a detail which won't 
-matter to those users.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
 
--- 
-David Härdeman
+iEYEARECAAYFAkux8PAACgkQD27XaX1/VRsNLACeMRihdtZYj1mX2Ywgi3AXwWp2
+yycAoJeFx9bZZCseZnxm8vkZ1NroWbF/
+=94gs
+-----END PGP SIGNATURE-----
+
+--v2/QI0iRXglpx0hK--
