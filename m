@@ -1,163 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:46028 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S937796Ab0CPLNJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Mar 2010 07:13:09 -0400
-Subject: Re: cx18: "missing audio" for analog recordings
-From: Andy Walls <awalls@radix.net>
-To: Mark Lord <kernel@teksavvy.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org
-In-Reply-To: <4B9F0DF0.50006@teksavvy.com>
-References: <4B8BE647.7070709@teksavvy.com>
-	 <1267493641.4035.17.camel@palomino.walls.org>
-	 <4B8CA8DD.5030605@teksavvy.com>
-	 <1267533630.3123.17.camel@palomino.walls.org> <4B9DA003.90306@teksavvy.com>
-	 <1268653884.3209.32.camel@palomino.walls.org> <4B9F0DF0.50006@teksavvy.com>
-Content-Type: text/plain
-Date: Tue, 16 Mar 2010 07:11:52 -0400
-Message-Id: <1268737912.3078.45.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from perceval.irobotique.be ([92.243.18.41]:57223 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754287Ab0C3I5h convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Mar 2010 04:57:37 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH/RFC 0/1] v4l: Add support for binary controls
+Date: Tue, 30 Mar 2010 10:57:54 +0200
+Cc: Kamil Debski <k.debski@samsung.com>, linux-media@vger.kernel.org,
+	p.osciak@samsung.com, kyungmin.park@samsung.com
+References: <1269856386-29557-1-git-send-email-k.debski@samsung.com> <201003300841.47978.hverkuil@xs4all.nl>
+In-Reply-To: <201003300841.47978.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201003301057.56034.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2010-03-16 at 00:49 -0400, Mark Lord wrote:
-> On 03/15/10 07:51, Andy Walls wrote:
-> > On Sun, 2010-03-14 at 22:48 -0400, Mark Lord wrote:
+Hi Hans,
 
-> >> If the audio is not working after modprobe, then simply doing rmmod/modprobe
-> >> in a loop (until working audio is achieved) is enough to cure it.
-> ..
+On Tuesday 30 March 2010 08:41:47 Hans Verkuil wrote:
+> On Monday 29 March 2010 11:53:05 Kamil Debski wrote:
+> > Hello,
+> > 
+> > This patch introduces new type of v4l2 control - the binary control. It
+> > will be useful for exchanging raw binary data between the user space and
+> > the driver/hardware.
+> > 
+> > The patch is pretty small – basically it adds a new control type.
+> > 
+> > 1.  Reasons to include this new type
+> > - Some devices require data which are not part of the stream, but there
+> > are necessary for the device to work e.g. coefficients for transformation
+> > matrices.
+> > - String control is not suitable as it suggests that the data is a null
+> > terminated string. This might be important when printing debug
+> > information - one might output strings as they are and binary data in
+> > hex.
+> > 
+> > 2. How does the binary control work
+> > The binary control has been based on the string control. The principle of
+> > use is the same. It uses v4l2_ext_control structure to pass the pointer
+> > and size of the data. It is left for the driver to call the
+> > copy_from_user/ copy_to_user function to copy the data.
+> > 
+> > 3. About the patch
+> > The patch is pretty small – it basically adds a new control type.
+> > 
+> > Best wishes,
 > 
-> Well, crap.  Tonight our MythTV box proved that assertion to be false.
-> The cx18 audio was okay after modprobe, but went bad a few seconds later,
-> when mythbackend started up and did the initial channel tuning.
-> I have a script that attempts audio input toggling when that happens,
-> but it had no effect.  
-
-I'll note from your logs that you're capturing using the 48 ksps audio
-sampling rate with tuner audio.
-
-I've never had a problem with the AUX_PLL with 48 ksps audio, so I'm
-going to assume the AUX_PLL isn't the problem's cause.
-
-
-
-
-> rmmod/modprobe is still the only "solution",
-> and it's rather difficult to do those while mythbackend is running.
-
-> >
-> > I've got a first WAG at fixing the resets of the audio microcontroller's
-> > resets at:
-> >
-> > 	http://linuxtv.org/hg/~awalls/cx18-audio
-> >
-> > If it doesn't work, change the CXADEC_AUDIO_SOFT_RESET register define
-> > from 0x810 to 0x9cc, although that may not work either.
-> ..
+> I don't think this is a good idea. Controls are not really meant to be used
+> as an ioctl replacement.
 > 
-> I'll have a go at that, and anything else you can dream up as well.
-
-Here's an easy one:
-
-
-I see from the log your work-around is failing:
-
-Mar 13 14:30:04 duke logger: /dev/video1: fix_hvr1600_stutter.sh: Pre-initializing
-Mar 13 14:30:09 duke logger: /dev/video1: fix_hvr1600_stutter.sh: HVR1600/cx18 audio bug, reloading cx18 driver
-Mar 13 14:30:09 duke logger: /dev/video1: fix_hvr1600_stutter.sh: rmmod cx18 failed
-
-If a cx18 video device node is open or a cx18-alsa device node is open
-you won't be able to unload the cx18 and cx18-alsa modules.
-
-Move the cx18-alsa.ko module out of the way so the kernel can't find it
-and load it.  Then you never have to worry about something like
-pulseaduio keeping it held open.
-
-
-
-I see in your log that this is a tuner audio standard autodetection
-problem in the A/V digitizer/decoder:
-
-Mar 13 14:42:16 duke kernel: cx18-0 843: Video signal:              present
-Mar 13 14:42:16 duke kernel: cx18-0 843: Detected format:           NTSC-M
-Mar 13 14:42:16 duke kernel: cx18-0 843: Specified standard:        NTSC-M
-Mar 13 14:42:16 duke kernel: cx18-0 843: Specified video input:     Composite 7
-Mar 13 14:42:16 duke kernel: cx18-0 843: Specified audioclock freq: 48000 Hz
-Mar 13 14:42:16 duke kernel: cx18-0 843: Detected audio mode:       mono
-Mar 13 14:42:16 duke kernel: cx18-0 843: Detected audio standard:   no detected audio standard
-Mar 13 14:42:16 duke kernel: cx18-0 843: Audio muted:               yes
-Mar 13 14:42:16 duke kernel: cx18-0 843: Audio microcontroller:     running
-Mar 13 14:42:16 duke kernel: cx18-0 843: Configured audio standard: automatic detection
-Mar 13 14:42:16 duke kernel: cx18-0 843: Configured audio system:   BTSC
-Mar 13 14:42:16 duke kernel: cx18-0 843: Specified audio input:     Tuner (In8)
-Mar 13 14:42:16 duke kernel: cx18-0 843: Preferred audio mode:      stereo
-
-The built-in A/V digitzer/decoder's microcontroller won't unmute the
-audio until it has detected the standard and set the registers. 
-
-I also note the "channel change" (audio input toggling from tuner to
-composite in and back?) is having no effect:
-
-Mar 13 14:30:23 duke logger: /dev/video1: channel_change: hit HVR1600/cx18 audio bug.. attempting workaround
-Mar 13 14:30:24 duke logger: /dev/video1: channel_change: hit HVR1600/cx18 audio bug.. workaround failed
-
-Which means the audio microcontroller didn't restart it's detection loop
-or the detection loop is still failing to find anything.  It should
-restart on an input toggle.
-
-
-This means your problem is occuring in the A/V digitizer or before it;
-ruling out the APU or the APU firmware, given the current information.
-
-
-So the areas to concentrate on here are:
-
-
-a. digitizer audio standard detection microcontroller intitialization,
-reset, and restart of the format detection loop
-
-b. TDA9887 analog IF demodulator programming via the CX23418's I2C
-master
-
-c. digitizer audio standard detection microcontroller firmware load and
-verification (the cx18 driver already does a lot here, but it may be
-worth re-inspecting the code)
-
-d. digitizer analog front end and AUX PLL settings for SIF audio (these
-should be correct though, so it is unlikely to be the problem)
-
-
-> But not for a few days -- really really crazy busy at work right now.
-
-Same here.  Crazy at work and home.  I don't mind waiting.
-
-
-> I am a Linux kernel developer, so I can handle patches and stuff
-> if you have any to offer.
-
-I'll keep that in mind.
-
-
-
-> Oh.. attached is a full log from a failure a few nights ago.
-> This one has the full card status dump included, which shows
-> where the audio is being muted at.
+> Controls can be used to control the hardware via a GUI (e.g. qv4l2).
+> Obviously, this will fail for binary controls. Controls can also be used
+> in cases where it is not known up front which controls are needed. This
+> typically happens for bridge drivers that can use numerous combinations of
+> i2c sub-devices. Each subdev can have its own controls.
 > 
-> ...
-> > With that said, the CX23418 will sometimes have to let register access
-> > over the PCI bus fail.  For that, I have routines in cx18-io.[ch] to
-> > perform retries.  You may wish to add a log statement there to watch for
-> > retry loops that completely fail.
-> ..
+> There is a grey area where you want to give the application access to
+> low-level parameters but without showing them to the end-user. This is
+> currently not possible, but it will be once the control framework is
+> finished and once we have the possibility to create device nodes for
+> subdevs.
 > 
-> I did that a while ago, and they didn't trigger back then.
+> But what you want is to basically pass whole structs as a control. That's
+> something that ioctls where invented for. Especially once we have subdev
+> nodes this shouldn't be a problem.
+> 
+> Just the fact that it is easy to implement doesn't mean it should be done
+> :-)
+> 
+> Do you have specific use-cases for your proposed binary control?
 
-OK.
+As discussed yesterday, here are a few use cases for the OMAP3 ISP driver.
 
+- white balance matrix
+- gamma correction tables
+
+In both cases, the driver needs an array (possible 2 dimensional) of values to 
+configure the hardware.
+
+This can obviously be done using private ioctls, but what makes the red&blue 
+white balance gains different from the white balance matrix ? Why should the 
+first be controls and the later not ?
+
+-- 
 Regards,
-Andy
 
-
+Laurent Pinchart
