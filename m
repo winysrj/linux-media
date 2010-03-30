@@ -1,181 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46762 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753232Ab0CZKwv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Mar 2010 06:52:51 -0400
-Message-ID: <4BAC91FC.2070008@redhat.com>
-Date: Fri, 26 Mar 2010 07:52:44 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1039 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754668Ab0C3VPl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Mar 2010 17:15:41 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: dean <dean@sensoray.com>
+Subject: Re: [PATCH] s2255drv: cleanup of driver disconnect code
+Date: Tue, 30 Mar 2010 23:09:49 +0200
+Cc: David Ellingsworth <david@identd.dyndns.org>,
+	mchehab@infradead.org, laurent.pinchart@ideasonboard.com,
+	isely@pobox.com, andre.goddard@gmail.com,
+	linux-media@vger.kernel.org
+References: <tkrat.7f9b79c0eafb6d4f@sensoray.com> <30353c3d1003300821n4b38f974w57ab6858252aa50f@mail.gmail.com> <4BB263C4.4040900@sensoray.com>
+In-Reply-To: <4BB263C4.4040900@sensoray.com>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] V4L: fix ENUMSTD ioctl to report all supported standards
-References: <Pine.LNX.4.64.1003260758550.4298@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1003260758550.4298@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201003302309.49188.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski wrote:
-> V4L2_STD_PAL, V4L2_STD_SECAM, and V4L2_STD_NTSC are not the only composite 
-> standards. Currently, e.g., if a driver supports all of V4L2_STD_PAL_B, 
-> V4L2_STD_PAL_B1 and V4L2_STD_PAL_G, the enumeration will report 
-> V4L2_STD_PAL_BG and not the single standards, which can confuse 
-> applications. Fix this by only clearing simple standards from the mask. 
-> This, of course, will only work, if composite standards are listed before 
-> simple ones in the standards array in v4l2-ioctl.c, which is currently 
-> the case.
+On Tuesday 30 March 2010 22:49:08 dean wrote:
+> Thanks for this and the other feedback.
 > 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> The concern, without knowing the full history, is if video_device_alloc 
+> changes to do more than just allocate the whole structure with a single 
+> call to kzalloc?  Otherwise, why have this extra indirection and 
+> overhead in most V4L drivers?
 
-The patch looks sane to me. Yet, as it assumes the the standards array will follow
-an specific construction rule, please add a comment before the array with the rule.
+It is unlikely that video_device_alloc() will change. I think it is just
+historical. I have a preference for not allocating it at all, but embedding
+it in a larger struct. This type of embedding is very common in the kernel.
 
-I doubt we would have any new analog standard added there, but yet, someone might
-have the bright idea of sending a patch to reorder it with some different logic as
-a "cleanup"  patch.
+But if you do allocate it, then use video_device_alloc() rather than kzalloc,
+if only because that makes it consistent and easier to grep on should we
+need to replace it in the future.
 
+Regards,
 
--
+	Hans
 
-PS.: For the others that also want to review this patch, assuming that all PAL and
-SECAM formats are supported, after the patch, it will also enumerate the following
-video standards:
+> The majority of V4L drivers are using video_device_alloc.  Very few 
+> (bw-qcam.h, c-qcam.c, cpia.h, pvrusb2, usbvideo) are using "struct 
+> video_device" statically similar to solution 1.  Three drivers(zoran, 
+> radio-gemtek, saa5249) are allocating their own video_device structure 
+> directly with kzalloc similar to solution #2.
+> 
+> The call definitely needs checked, but I'd like some more feedback on this.
+> 
+> Thanks and best regards,
+> 
+> Dean
+> 
+> 
+> 
+> 
+> David Ellingsworth wrote:
+> > This patch looks good, but there was one other thing that caught my eye.
+> >
+> > In s2255_probe_v4l, video_device_alloc is called for each video
+> > device, which is nothing more than a call to kzalloc, but the result
+> > of the call is never verified.
+> >
+> > Given that this driver has a fixed number of video device nodes, the
+> > array of video_device structs could be allocated within the s2255_dev
+> > struct. This would remove the extra calls to video_device_alloc,
+> > video_device_release, and the additional error checks that should have
+> > been there. If you'd prefer to keep the array of video_device structs
+> > independent of the s2255_dev struct, an alternative would be to
+> > dynamically allocate the entire array at once using kcalloc and store
+> > only the pointer to the array in the s2255_dev struct. In my opinion,
+> > either of these methods would be better than calling
+> > video_device_alloc for each video device that needs to be registered.
+> >
+> > Regards,
+> >
+> > David Ellingsworth
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-PAL-B
-PAL-B1
-PAL-G
-PAL-D
-PAL-D1
-PAL-K
-SECAM-D
-SECAM-K
-SECAM-K1
-
-While the code is short, the logic behind it is somewhat complex, as the routine
-will return the i-th element of an array of video standards.
-
-The better way to test if the logic is properly working is to run it from
-userspace, playing with the supported standards.
-
-To save people some time, I've enclosed a simple test program that
-could be used for that purpose, that I used on my review.
-
-Playing with STD define and see the diffs between the old and the new code is
-as simple as:
-
-$ gcc -Wall -o test_std test_std.c && ./test_std old >old && ./test_std >new && diff --unified=0 old new 
-
-A similar procedure can be done to compare the diff between the code with all
-standards and all but some standards.
-
-
----
-#include <stdio.h>
-#include <string.h>
-#include <sys/types.h>
-#include <linux/videodev2.h>
-
-//#define STD V4L2_STD_ALL
-#define STD V4L2_STD_ALL & (~V4L2_STD_PAL_D1)
-//#define STD V4L2_STD_ALL & (~V4L2_STD_SECAM_LC)
-
-int is_power_of_2(unsigned long n)
-{
-        return (n != 0 && ((n & (n - 1)) == 0));
-}
-
-struct std_descr {
-        v4l2_std_id std;
-        const char *descr;
-};
-
-static const struct std_descr standards[] = {
-	{ V4L2_STD_NTSC, 	"NTSC"      },
-	{ V4L2_STD_NTSC_M, 	"NTSC-M"    },
-	{ V4L2_STD_NTSC_M_JP, 	"NTSC-M-JP" },
-	{ V4L2_STD_NTSC_M_KR,	"NTSC-M-KR" },
-	{ V4L2_STD_NTSC_443, 	"NTSC-443"  },
-	{ V4L2_STD_PAL, 	"PAL"       },
-	{ V4L2_STD_PAL_BG, 	"PAL-BG"    },
-	{ V4L2_STD_PAL_B, 	"PAL-B"     },
-	{ V4L2_STD_PAL_B1, 	"PAL-B1"    },
-	{ V4L2_STD_PAL_G, 	"PAL-G"     },
-	{ V4L2_STD_PAL_H, 	"PAL-H"     },
-	{ V4L2_STD_PAL_I, 	"PAL-I"     },
-	{ V4L2_STD_PAL_DK, 	"PAL-DK"    },
-	{ V4L2_STD_PAL_D, 	"PAL-D"     },
-	{ V4L2_STD_PAL_D1, 	"PAL-D1"    },
-	{ V4L2_STD_PAL_K, 	"PAL-K"     },
-	{ V4L2_STD_PAL_M, 	"PAL-M"     },
-	{ V4L2_STD_PAL_N, 	"PAL-N"     },
-	{ V4L2_STD_PAL_Nc, 	"PAL-Nc"    },
-	{ V4L2_STD_PAL_60, 	"PAL-60"    },
-	{ V4L2_STD_SECAM, 	"SECAM"     },
-	{ V4L2_STD_SECAM_B, 	"SECAM-B"   },
-	{ V4L2_STD_SECAM_G, 	"SECAM-G"   },
-	{ V4L2_STD_SECAM_H, 	"SECAM-H"   },
-	{ V4L2_STD_SECAM_DK, 	"SECAM-DK"  },
-	{ V4L2_STD_SECAM_D, 	"SECAM-D"   },
-	{ V4L2_STD_SECAM_K, 	"SECAM-K"   },
-	{ V4L2_STD_SECAM_K1, 	"SECAM-K1"  },
-	{ V4L2_STD_SECAM_L, 	"SECAM-L"   },
-	{ V4L2_STD_SECAM_LC, 	"SECAM-Lc"  },
-	{ 0, 			"Unknown"   }
-};
-
-const char *v4l2_norm_to_name(v4l2_std_id id)
-{
-	int i;
-
-	for (i = 0; standards[i].std; i++)
-		if (id == standards[i].std)
-			break;
-	return standards[i].descr;
-}
-
-int main(int argc, char *argv[])
-{
-	v4l2_std_id curr_id, id = STD;
-	unsigned int i, j = 0;
-	const char *descr = "";
-	int old = 0;
-
-	if (argc == 2 && !strcasecmp(argv[1],"old"))
-		old = 1;
-
-	printf ("%s code\n", old? "old":"new");
-
-	{
-
-		/* Use here the code on __video_do_ioctl for ENUMSTD */
-
-		/* Return norm array in a canonical way */
-		for (i = 0; id; i++) {
-			/* last std value in the standards array is 0, so this
-			   while always ends there since (id & 0) == 0. */
-			while ((id & standards[j].std) != standards[j].std)
-				j++;
-			curr_id = standards[j].std;
-			descr = standards[j].descr;
-			j++;
-			if (curr_id == 0)
-				break;
-if (old) {
-			if (curr_id != V4L2_STD_PAL &&
-			    curr_id != V4L2_STD_SECAM &&
-			    curr_id != V4L2_STD_NTSC)
-				id &= ~curr_id;
-} else {
-			if (is_power_of_2(curr_id))
-				id &= ~curr_id;
-}
-
-			printf("%s\n", v4l2_norm_to_name(curr_id));
-		}
-
-	}
-
-	return 0;
-}
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
