@@ -1,140 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:64267 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936155Ab0COMut convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Mar 2010 08:50:49 -0400
-Received: by wyb38 with SMTP id 38so1453647wyb.19
-        for <linux-media@vger.kernel.org>; Mon, 15 Mar 2010 05:50:47 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:25771 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751475Ab0C3NOS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Mar 2010 09:14:18 -0400
+Message-ID: <4BB1F920.7060705@redhat.com>
+Date: Tue, 30 Mar 2010 10:14:08 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20100314215202.GA229@daniel.bse>
-References: <eccab77d1003140521v73b17897h76ce413d5dc59361@mail.gmail.com>
-	 <eccab77d1003140914p20debe7fka2fbd173a85b860f@mail.gmail.com>
-	 <20100314215202.GA229@daniel.bse>
-Date: Mon, 15 Mar 2010 13:50:45 +0100
-Message-ID: <eccab77d1003150550g2d1c03eapd45fd2daa6488fdf@mail.gmail.com>
-Subject: Re: dual TT C-1501 on a single PCI riser
-From: Martin van Es <mrvanes@gmail.com>
-To: Martin van Es <mrvanes@gmail.com>, linux-media@vger.kernel.org,
-	=?ISO-8859-1?Q?Daniel_Gl=F6ckner?= <daniel-gl@gmx.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Kamil Debski <k.debski@samsung.com>
+CC: "'Hans Verkuil'" <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Pawel Osciak <p.osciak@samsung.com>, kyungmin.park@samsung.com
+Subject: Re: [PATCH/RFC 0/1] v4l: Add support for binary controls
+References: <1269856386-29557-1-git-send-email-k.debski@samsung.com> <201003300841.47978.hverkuil@xs4all.nl> <000001cad004$2a770450$7f650cf0$%debski@samsung.com>
+In-Reply-To: <000001cad004$2a770450$7f650cf0$%debski@samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Daniel,
-
-Thx for your answer. It put me on the right track because I have
-finally solved the puzzle!
-Here's how:
-
-I did some testing with the IDSEL jumpers and saw the following pattern:
-
-IDSEL   GSI/IRQ reported by kernel.
-24      17
-25      20
-26      no route -> 1
-27      no route -> 1
-28      17
-29      20
-30      no route -> 1
-31      no device present
-
-But none of these settings resulted in a response to interrupts.
-Also I had measured that INTA of slot2 was wired to INTD of the riser
-connector, which I thought strange, because I'd expect a forward rotation
-for slot2 (A>B)?
-
-When I look at the pci layout, pci device 05 is connected to bridge 1e.0:
-
--[0000:00]-+-00.0
-           +-02.0
-           +-02.1
-           +-1b.0
-           +-1c.0-[01]----00.0
-           +-1c.1-[02]--
-           +-1c.2-[03]--
-           +-1c.3-[04]--
-           +-1d.0
-           +-1d.1
-           +-1d.2
-           +-1d.3
-           +-1d.7
-           +-1e.0-[05]--+-00.0  Philips Semiconductors SAA7146
-           |            \-0c.0  Philips Semiconductors SAA7146
-           +-1f.0
-           +-1f.1
-           +-1f.2
-           \-1f.3
-
-Then I wondered if device 05 would still be present if I removed the riser and
-it was. So I started to suspect that the motherboard had no way to know what
-PCI int's were used behind the bridge if both cards were detected to serve
-INTA (i.e. 05.0x = INTA in lspci -v) and would thus (quite stupidly?)
-route any int for
-this slot to INTA?
-
-So, when I hard-wired the 2nd slot INTA to riser INTA together and used IDSEL 29
-I had a succesful initialisation of the DVB card (the other IDSELs didn't work,
-even on different PCI INTs), but way too many interrupts on int 20. Then I tried
-both cards and that worked as well, but again far too many interrupts
-on int 20.
-Last change was to cut the original slot2 connection to INTD and gone were my
-extra interrupts!
-
-So now I have two correctly recognised cards, both using int 20 and PCI INTA.
-Now I wonder if this will harm the performance if both cards are recording
-streams, let alone if they work, because that's the next test I still have to
-do.
-
-Regards,
-Martin van Es
-
-On Sun, Mar 14, 2010 at 22:52, Daniel Glöckner <daniel-gl@gmx.net> wrote:
-> Hi,
->
-> On Sun, Mar 14, 2010 at 05:14:33PM +0100, Martin van Es wrote:
->> ? Pin A11: additional 33 MHz PCI clock
->> ? Pin B10: additional PCI request signal (i.e., PREQ#2)
->> ? Pin B14: additional PCI Grant signal (i.e., GNT#2)
->> -----
+Kamil Debski wrote:
+>> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
 >>
->> I'm 100% sure the Tranquil riser does not support this suggestion
->> since the A11/B10 and B14 leads are not used on the riser.
->
-> Your riser card doesn't need these signals thanks to the IT8209R.
-> The drawback is that the cards will be granted less bus time when
-> competing with on board PCI peripherals.
->
->> On the other hand, my guess would be that an ordinary
->> riser with arbiter and the correct wiring should do the trick. My
->> question is more or less the same as Udo's in the thread I posted: how
->> do I check if int 17 of the second card is correctly connected to int
->> A of the second slot and if not, where to start changing things?
->
-> PCI slots have four interrupts, INTA, INTB, INTC, and INTC. Riser cards
-> usually permute these for the second and following slots to avoid
-> interrupt sharing. The BIOS has a built-in table that tells Linux for
-> every slot which pin of the interrupt controller is connected to these
-> four interrupt lines. So we need to make the second slot appear to the
-> BIOS to be one where INTA is same interrupt as (probably) INTB of the
-> first slot.
->
-> Slots are addressed using the IDSEL line. Every slot has its own line.
-> To reduce the number of signals (and to allow riser cards) the PCI
-> standards suggests reusing the upper AD lines as IDSEL lines for the
-> slots. So by changing the AD line connected to the IDSEL line of the
-> second slot with the jumper on the riser card, the slot will get another
-> number and thus another interrupt mapping.
->
-> According to the ICH7 datasheet you should currently have selected
-> AD24, as your card is 08.0 on the bus (strange... at that position
-> should have been the intel ethernet controller..). Just subtract
-> 16 from the AD number to get the slot number. Now try all of them
-> until you find one where interrupts work. Avoid those already in
-> use on the same bus as listed by "lspci -tv".
->
-> Good luck!
->
->  Daniel
->
+>> Hi Kamil!
+> 
+> Hi Hans,
+> 
+>> On Monday 29 March 2010 11:53:05 Kamil Debski wrote:
+>>> Hello,
+>>>
+>>> This patch introduces new type of v4l2 control - the binary control.
+>> It
+>>> will be useful for exchanging raw binary data between the user space
+>> and
+>>> the driver/hardware.
+>>>
+>>> The patch is pretty small â€“ basically it adds a new control type.
+>>>
+>>> 1.  Reasons to include this new type
+>>> - Some devices require data which are not part of the stream, but
+>> there
+>>> are necessary for the device to work e.g. coefficients for
+>> transformation
+>>> matrices.
+>>> - String control is not suitable as it suggests that the data is a
+>> null
+>>> terminated string. This might be important when printing debug
+>> information -
+>>> one might output strings as they are and binary data in hex.
+>>>
+>>> 2. How does the binary control work
+>>> The binary control has been based on the string control. The
+>> principle of
+>>> use is the same. It uses v4l2_ext_control structure to pass the
+>> pointer and
+>>> size of the data. It is left for the driver to call the
+>> copy_from_user/
+>>> copy_to_user function to copy the data.
+>>>
+>>> 3. About the patch
+>>> The patch is pretty small â€“ it basically adds a new control type.
+>>>
+>>> Best wishes,
+>>>
+>> I don't think this is a good idea. Controls are not really meant to be
+>> used
+>> as an ioctl replacement.
+>>
+>> Controls can be used to control the hardware via a GUI (e.g. qv4l2).
+>> Obviously,
+>> this will fail for binary controls. Controls can also be used in cases
+>> where
+>> it is not known up front which controls are needed. This typically
+>> happens for
+>> bridge drivers that can use numerous combinations of i2c sub-devices.
+>> Each
+>> subdev can have its own controls.
+>>
+>> There is a grey area where you want to give the application access to
+>> low-level
+>> parameters but without showing them to the end-user. This is currently
+>> not
+>> possible, but it will be once the control framework is finished and
+>> once we
+>> have the possibility to create device nodes for subdevs.
+>>
+>> But what you want is to basically pass whole structs as a control.
+>> That's
+>> something that ioctls where invented for. Especially once we have
+>> subdev nodes
+>> this shouldn't be a problem.
+>>
+>> Just the fact that it is easy to implement doesn't mean it should be
+>> done :-)
+>>
+>> Do you have specific use-cases for your proposed binary control?
+> 
+> Yes, I have. I am working on a driver for a video codec which is using 
+> the mem2mem framework. I have to admit it's a pretty difficult 
+> hardware to work with. It was one of the reasons for Pawel Osciak 
+> to add multiplane support to videobuf.
+> 
+> Before decoding, the hardware has to parse the header of the video
+> stream to get all necessary parameters such as the number of buffers,
+> width, height and some internal, codec specific stuff. The video stream
+> is then demultiplexed and divided into encoded frames in software and
+> the hardware can only process one, separated frame at a time.
+> 
+> The whole codec setup cannot be achieved by using VIDIOC_S_FMT call, 
+> because hardware requires access to the header data. I wanted to use
+> this binary control to pass the header to the codec after setting the
+> right format with VIDIOC_S_FMT. Then video frames can be easily decoded
+> as a standard calls to QBUF/DQBUF pairs.
+> 
+> It is similar for encoding - the basic parameters are set with
+> VIDIOC_S_FMT, then some codec specific/advanced are accessible as
+> standard v4l2 controls. Then the encoding engine is initialized and the
+> hardware returns an header of the output video stream. The header can
+> be acquired by getting the value of the binary control. After that the
+> frame to be encoded is provided and hw returns a single frame of
+> encoded stream. 
+> 
+> Using custom ioctls seems appropriate for a hardware specific driver.
+> Whereas the proposed binary control for getting and setting the video
+> stream header could be generic solution and can be used in many drivers
+> for hardware codecs.
+> 
+> Do You have any better solution for such device?
+
+For sure using custom CTRL's is wrong.
+
+If I understood correctly, you want to send some mpeg transport stream
+(or something like) to the hardware and let it decode, right?
+
+For sure the current API spec don't cover such usecase. IMO, whatever decided,
+we need to add an example for this non-trivial usage. 
+
+On a first glance, by using what we currently have for V4L2 API, it seems that 
+the more correct approach is to format with S_FMT as MPEG, using a "resolution" 
+that will allocate a buffer with enough size for sending the stream
+to the hardware (this is basically the way other mpeg-capable encoders/decoders
+do). Then, send the header via the usual stream interface and retrieve
+the stream information via VIDIOC_G_* ioctls. 
+
+Only after having the header processed by the hardware, you'll be able to mmap
+memory to receive the decoded streams.
+
+I don't think we should add a custom ioctl for this case, as other hardware may
+have similar requirements, but maybe we should, instead, just create a new set of
+ioctl's for video processing.
+
+-- 
+
+Cheers,
+Mauro
