@@ -1,70 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:54601 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933042Ab0CLWYW (ORCPT
+Received: from relay02.digicable.hu ([92.249.128.188]:39713 "EHLO
+	relay02.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932103Ab0CaF5B (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Mar 2010 17:24:22 -0500
-Received: by bwz1 with SMTP id 1so1480032bwz.21
-        for <linux-media@vger.kernel.org>; Fri, 12 Mar 2010 14:24:20 -0800 (PST)
+	Wed, 31 Mar 2010 01:57:01 -0400
+Message-ID: <4BB2E42B.4090302@freemail.hu>
+Date: Wed, 31 Mar 2010 07:56:59 +0200
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-In-Reply-To: <4B9ABE3C.6010909@onid.orst.edu>
-References: <829197381003121211l469c30bfjba077cea028bf680@mail.gmail.com>
-	 <201003122242.06508.hverkuil@xs4all.nl>
-	 <4B9ABE3C.6010909@onid.orst.edu>
-Date: Fri, 12 Mar 2010 17:24:20 -0500
-Message-ID: <829197381003121424s2fde7d34m46b7641f33f78e85@mail.gmail.com>
-Subject: Re: Remaining drivers that aren't V4L2?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Michael Akey <akeym@onid.orst.edu>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <j.w.r.degoede@hhs.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Krivchikov Sergei <sergei.krivchikov@gmail.com>,
+	Jean-Francois Moine <moinejf@free.fr>
+CC: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: genius islim 310 webcam test
+References: <68c794d61003301249u138e643am20bb264375c3dfe1@mail.gmail.com>
+In-Reply-To: <68c794d61003301249u138e643am20bb264375c3dfe1@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 12, 2010 at 5:20 PM, Michael Akey <akeym@onid.orst.edu> wrote:
-> Hans Verkuil wrote:
->> These drivers are still v4l1:
->>
->> arv
->> bw-qcam
->> c-qcam
->> cpia_pp
->> cpia_usb
->> ov511
->> se401
->> stradis
->> stv680
->> usbvideo
->> w9966
->>
->> Some of these have counterparts in gspca these days so possibly some
->> drivers
->> can be removed by now. Hans, can you point those out?
->>
->> arv, bw-qcam, c-qcam, cpia_pp and stradis can probably be moved to staging
->> and if no one steps up then they can be dropped altogether.
->>
->
-> Does this mean that the bw-qcam driver will be removed in future revisions
-> or does this mean it will just never be updated to v4l2?
+Hello Sergei,
 
-Hans is suggesting that support for those devices would be dropped
-entirely if no developer steps up to convert them to v4l2.
+Krivchikov Sergei wrote:
+> Hi!
+> I have a Genius iSlim 310 webcam and linux ubuntu 9.10 kernel 2.6.31. My
+> developer level under linux - beginner (very beginner) :) but i'm ready
+> to test this webcam undr linux. But I need the instructions:) How was
+> your success in the launch of this webcam under Linux?
+> 
+> Sincerely, Sergei Krivchikov.
 
-The problem is that supporting the long deprecated API is a burden
-that makes it much harder to extend certain aspects of the internal
-code.  If we were able to drop those devices, it would be much easier
-to improve all the other drivers (of which the *vast* majority have
-been converted to v4l2).
+Currently the Genius iSlim 310 webcam is not supported by the mainline Linux
+kernel, but I think that the support can be added very easily. See the
+description at http://linuxtv.org/wiki/index.php/PixArt_PAC7301/PAC7302 why.
 
-It's been over ten years since v4l2 came out.  If nobody has converted
-those drivers to v4l2, then it's safe to say it's probably never going
-to happen.
+First thing what I'll need that you connect your Genius iSlim 310 to the Linux
+box, open an xterm and send the output of "lsusb" command. Then we can find
+out the USB ID of the device.
 
-Devin
+Also, please send the output of dmesg. The easiest way to do this is to redirect
+the standard output to a file like this: "dmesg >dmesg.txt" and then send the
+created file as an attachment.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+The next thing is that you need to learn how to compile the Linux kernel
+from source code. There is a description for Ubuntu at
+https://help.ubuntu.com/community/Kernel/Compile . After you are able to
+compile and install your new kernel, you can try to apply the patch in this
+email, recompile the kernel, install the kernel and the modules,
+unload the gspca_pac7302 kernel module ("rmmod gspca_pac7302"), and then
+plug the webcam in order it can load the new kernel module. When you were
+successful with these steps you'll see new messages in the output of "dmesg"
+command. Please send this output also.
+
+Finally, what you will also need is that the libv4l-0 package of Ubuntu
+( http://packages.ubuntu.com/intrepid/libv4l-0 ) is installed on your computer.
+This package you may have already installed.
+
+These are the main points. Let's see how far you can proceed. Let me know
+if you need further assistance.
+
+Regards,
+
+	Márton Németh
+
+---
+From: Márton Németh <nm127@freemail.hu>
+
+On the schematics in PixArt PAC7301/PAC7302 datasheet
+(http://www.pixart.com.tw/upload/PAC7301_7302%20%20Spec%20V1_20091228174030.pdf)
+pages 19, 20, 21 and 22 there is a note titled "PID IO_TRAP" which describes
+the possible product ID range 0x2620..0x262f. In this range there are some
+known webcams, however, there are some PIDs with unknown or future devices.
+Because PixArt PAC7301/PAC7302 is a System on a Chip (SoC) device is is
+probable that this driver will work correctly independent of the used PID.
+
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+diff -r dfa82cf98a85 linux/drivers/media/video/gspca/pac7302.c
+--- a/linux/drivers/media/video/gspca/pac7302.c	Sat Jan 30 20:03:02 2010 +0100
++++ b/linux/drivers/media/video/gspca/pac7302.c	Sun Jan 31 11:08:21 2010 +0100
+@@ -96,6 +96,7 @@
+ 	u8 flags;
+ #define FL_HFLIP 0x01		/* mirrored by default */
+ #define FL_VFLIP 0x02		/* vertical flipped by default */
++#define FL_EXPERIMENTAL 0x80	/* USB IDs based on heuristic without any known product */
+
+ 	u8 sof_read;
+ 	u8 autogain_ignore_frames;
+@@ -1220,17 +1221,33 @@
+ };
+
+ /* -- module initialisation -- */
++/* Note on FL_EXPERIMENTAL:
++ * On the schematics in PixArt PAC7301/PAC7302 datasheet
++ * (http://www.pixart.com.tw/upload/PAC7301_7302%20%20Spec%20V1_20091228174030.pdf)
++ * pages 19, 20, 21 and 22 there is a note titled "PID IO_TRAP" which describes
++ * the possible product ID range 0x2620..0x262f. In this range there are some
++ * known webcams, however, there are some PIDs with unknown or future devices.
++ * Because PixArt PAC7301/PAC7302 is a System on a Chip (SoC) device is is
++ * probable that this driver will work correctly independent of the used PID.
++ */
+ static const struct usb_device_id device_table[] __devinitconst = {
+ 	{USB_DEVICE(0x06f8, 0x3009)},
+ 	{USB_DEVICE(0x093a, 0x2620)},
+ 	{USB_DEVICE(0x093a, 0x2621)},
+ 	{USB_DEVICE(0x093a, 0x2622), .driver_info = FL_VFLIP},
++	{USB_DEVICE(0x093a, 0x2623), .driver_info = FL_EXPERIMENTAL },
+ 	{USB_DEVICE(0x093a, 0x2624), .driver_info = FL_VFLIP},
++	{USB_DEVICE(0x093a, 0x2625), .driver_info = FL_EXPERIMENTAL },
+ 	{USB_DEVICE(0x093a, 0x2626)},
++	{USB_DEVICE(0x093a, 0x2627), .driver_info = FL_EXPERIMENTAL },
+ 	{USB_DEVICE(0x093a, 0x2628)},
+ 	{USB_DEVICE(0x093a, 0x2629), .driver_info = FL_VFLIP},
+ 	{USB_DEVICE(0x093a, 0x262a)},
++	{USB_DEVICE(0x093a, 0x262b), .driver_info = FL_EXPERIMENTAL },
+ 	{USB_DEVICE(0x093a, 0x262c)},
++	{USB_DEVICE(0x093a, 0x262d), .driver_info = FL_EXPERIMENTAL },
++	{USB_DEVICE(0x093a, 0x262e), .driver_info = FL_EXPERIMENTAL },
++	{USB_DEVICE(0x093a, 0x262f), .driver_info = FL_EXPERIMENTAL },
+ 	{}
+ };
+ MODULE_DEVICE_TABLE(usb, device_table);
+@@ -1239,6 +1256,17 @@
+ static int __devinit sd_probe(struct usb_interface *intf,
+ 			const struct usb_device_id *id)
+ {
++	if ((u8)id->driver_info & FL_EXPERIMENTAL) {
++		PDEBUG(D_ERR | D_PROBE, "WARNING: USB device ID %04x:%04x is "
++			"not known, but based on some heuristics this driver "
++			"tries to handle it.",
++			id->idVendor, id->idProduct);
++		PDEBUG(D_ERR | D_PROBE, "WARNING: Plase send an email to "
++			"linux-media@vger.kernel.org with 'lsusb -v' output, "
++			"the vendor and name of the product and whether the "
++			"device is working or not.");
++	}
++
+ 	return gspca_dev_probe(intf, id, &sd_desc, sizeof(struct sd),
+ 				THIS_MODULE);
+ }
+
