@@ -1,43 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f194.google.com ([209.85.222.194]:38308 "EHLO
-	mail-pz0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753935Ab0CEQch convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Mar 2010 11:32:37 -0500
-Received: by pzk32 with SMTP id 32so1458346pzk.4
-        for <linux-media@vger.kernel.org>; Fri, 05 Mar 2010 08:32:36 -0800 (PST)
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:47305 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753109Ab0CaKPD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Mar 2010 06:15:03 -0400
+Received: by bwz1 with SMTP id 1so5063104bwz.21
+        for <linux-media@vger.kernel.org>; Wed, 31 Mar 2010 03:15:00 -0700 (PDT)
 MIME-Version: 1.0
-Date: Fri, 5 Mar 2010 17:32:36 +0100
-Message-ID: <815e21b51003050832j728a915byf7909badc85ddd16@mail.gmail.com>
-Subject: DVB-S2 Multistream (?)
-From: Matteo <marchimatteo@gmail.com>
+Date: Wed, 31 Mar 2010 14:14:59 +0400
+Message-ID: <h2iaa09d86e1003310314kb5c89ff6rc0d674197db538e9@mail.gmail.com>
+Subject: stv0903bab i2c-repeater question
+From: Sergey Mironov <ierton@gmail.com>
 To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hello maillist!
+I am integrating frontend with dvb-demux driver of one device
+called mdemux.
 
-I have problems with some frequencies which I suppose are broadcasted
-in DVB-S2 Multistream,  I think it's the same topic already discussed
-a long time ago here:
-http://www.mail-archive.com/linux-dvb@linuxtv.org/msg26874.html
+The frontend includes following parts:
+- stv0903bab demodulator
+- stv6110a tuner
+- lnbp21 power supply controller
 
-Frequencies that use this feature on Hotbird (13°E) should be:
+stv6110a is connected to i2c bus via stv0903's repeater.
 
-11334 MHz, pol H, SR 27500
-11373 MHz, pol H, SR 27500
-11432 MHz, pol V, SR 27500
+My question is about setting up i2c repeater frequency divider (I2CRPT
+register).  stv0903 datasheet says that "the speed of the i2c repeater
+obtained by
+dividing the internal chip frequency (that is, 135 MHz)"
 
-I can lock the frequencies, but the signal is really unstable, video
-full of errors, and everytime I do a scan I get the channel list from
-only one TS (apparently chosen randomly). Exact same problems on
-Windows.
+budget.c driver uses value STV090x_RPTLEVEL_16 for this divider. But
+135*10^6/16 is still too high to be valid i2c freq.
 
-I use a TechnoTrend S2-1600, and I was wondering if there is any plan
-to eventually support this feature (if it's not an hardware
-limitation).
+Please explain where I'm wrong. Does the base frequency really equals to 135
+Mhz? Thanks.
 
-
-Thanks
-Matteo
+-- 
+Sergey
