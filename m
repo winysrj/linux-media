@@ -1,90 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:13570 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757642Ab0CaSDa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Mar 2010 14:03:30 -0400
-Message-ID: <4BB38E65.2080607@redhat.com>
-Date: Wed, 31 Mar 2010 15:03:17 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:55833 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757618Ab0CaRpk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Mar 2010 13:45:40 -0400
+Received: by bwz1 with SMTP id 1so270898bwz.21
+        for <linux-media@vger.kernel.org>; Wed, 31 Mar 2010 10:45:39 -0700 (PDT)
 MIME-Version: 1.0
-To: Jean Delvare <khali@linux-fr.org>
-CC: Andrzej Hajda <andrzej.hajda@wp.pl>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: cx88 remote control event device
-References: <20100331130042.276d7ef7@hyperion.delvare> <4BB38A7D.7080702@redhat.com>
-In-Reply-To: <4BB38A7D.7080702@redhat.com>
+In-Reply-To: <k2p5ba75e2f1003302211w2a7f4e0cy3fac5da36acc649@mail.gmail.com>
+References: <k2p5ba75e2f1003302211w2a7f4e0cy3fac5da36acc649@mail.gmail.com>
+Date: Wed, 31 Mar 2010 13:45:39 -0400
+Message-ID: <n2w829197381003311045v8218dcb4o274b20197a58994f@mail.gmail.com>
+Subject: Re: GIGABYTE U8000-RH Analog source support ?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: fernando@develcuy.com
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
-> Hi Jean,
-> 
-> Jean Delvare wrote:
->> Hi Andrzej,
->>
->> Last year, you submitted a fix for the cx88 remote control not behaving
->> properly on some cards. The fix works fine for me and lets me use my
->> remote control, and I am very grateful for this.
->>
->> However, I have noticed (using powertop) that the cx88 driver is waking
->> up the kernel 1250 times per second to handle the remote control. I
->> understand that it is needed for proper operation when the remote
->> control is in use. What I do not understand is why it still happens
->> when nobody uses the remote control. Even when no application has the
->> event device node opened, polling still happens.
->>
->> Can't we have the cx88 driver poll the remote control only when the
->> device node is opened? I believe this would save some power by allowing
->> the CPU to stay in higher C states.
-> 
-> The IR can be used even when nobody is opening the /dev/video device, as
-> it is an input device that can be used to control other things, including
-> the start of the video application.
-> 
-> That's said, it makes sense to only enable the polling when the /dev/input/event 
-> device is opened. 
-> 
-> Btw, the same polling logic is also present on bttv and saa7134 drivers.
-> 
-> As I'm doing a large IR rework, with the addition of the IR core subsystem,
-> and the patch for handing the open/close is very simple, I've already wrote
-> a patch for saa7134, on my IR tree:
-> 	http://git.linuxtv.org/mchehab/ir.git?a=commitdiff;h=2b1d3acdb48266f05b82923b8db06e6c7ada0c72
-> 
-> The change itself is very simple, although I've added some additional checks
-> to avoid the risk of having an IRQ while IR is disabled.
-> 
-> I have one cx88 board on my IR test machine (although I need to find the IR sensor for the
-> board I'm using there). If I find one that works, I'll try later to write a similar 
-> code to cx88.
-> 
+2010/3/31 Fernando P. García <fernandoparedesgarcia@gmail.com>:
+> May you elaborate about the "huge undertaking"
+>
+> Fernando.
 
-Btw, I found one sensor here and started working with it. With the new code,
-cx88 is generating lots of missing ticks. My IR debug log is full of those
-messages:
+The issue is the dvb-usb framework on which the dib0700 driver is
+built has absolutely no support for analog.  Adding support for a new
+bridge (both raw video and PCM audio) is on the order of 100 hours of
+work for somebody who knows what they are doing.  It includes adding
+all the V4L2 hooks and ioctls(), reverse engineering the format of the
+delivered video, inserting the video into videobuf, reverse
+engineering how audio is provided by the hardware (and how it is
+controlled), and creating an ALSA driver to handle the audio feed.
 
-[ 3276.764939] cx88[0] IR: Missed ticks 15                                      
-[ 3276.768999] cx88[0] IR: Missed ticks 3                                       
-[ 3276.772323] cx88[0] IR: Missed ticks 3                                       
-[ 3276.789027] cx88[0] IR: Missed ticks 15                                      
-[ 3276.793085] cx88[0] IR: Missed ticks 3                                       
-[ 3276.796409] cx88[0] IR: Missed ticks 3                                       
-[ 3276.813025] cx88[0] IR: Missed ticks 15                                      
-[ 3276.816347] cx88[0] IR: Missed ticks 3                                       
-[ 3276.816347] cx88[0] IR: Missed ticks 3                                       
-[ 3276.837011] cx88[0] IR: Missed ticks 15                                      
-[ 3276.840339] cx88[0] IR: Missed ticks 3                                       
-[ 3276.845028] cx88[0] IR: Missed ticks 3                                       
-[ 3276.861019] cx88[0] IR: Missed ticks 15                                      
-[ 3276.864342] cx88[0] IR: Missed ticks 3                                       
-[ 3276.869089] cx88[0] IR: Missed ticks 3                                       
+Oh, and then you have to debug all the edge cases.
 
-This doesn't seem right, especially since this test machine is in text mode,
-and there's nothing running there.
+I did it for the au0828 bridge, and I'm in the middle of doing it for
+the ngene bridge.  It's a royal PITA and at this point no developer is
+willing to invest the time/energy to do it for free.
+
+Devin
 
 -- 
-
-Cheers,
-Mauro
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
