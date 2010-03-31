@@ -1,89 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:36438 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S932291Ab0CNLID (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Mar 2010 07:08:03 -0400
-Date: Sun, 14 Mar 2010 12:08:02 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>,
-	Magnus Damm <damm@opensource.se>
-Subject: Re: [PATCH] V4L: SuperH Video Output Unit (VOU) driver
-In-Reply-To: <201003141123.11963.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1003141143250.4425@axis700.grange>
-References: <Pine.LNX.4.64.1003111121380.4385@axis700.grange>
- <201003141123.11963.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:63909 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933060Ab0CaJcr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Mar 2010 05:32:47 -0400
+Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0L0500K7F3UJWP@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 31 Mar 2010 10:32:43 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L05002VR3UJVU@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 31 Mar 2010 10:32:43 +0100 (BST)
+Date: Wed, 31 Mar 2010 11:32:25 +0200
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: [PATCH v2 1/3] v4l: Add a new ERROR flag for DQBUF after recoverable
+ streaming errors
+In-reply-to: <1270027947-28327-1-git-send-email-p.osciak@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com
+Message-id: <1270027947-28327-2-git-send-email-p.osciak@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1270027947-28327-1-git-send-email-p.osciak@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans
+This flag is intended to indicate streaming errors, which might have
+resulted in corrupted video data in the buffer, but the buffer can still
+be reused and streaming may continue.
 
-On Sun, 14 Mar 2010, Hans Verkuil wrote:
+Setting this flag and returning 0 is different from returning EIO. The
+latter should now indicate more serious (unrecoverable) errors.
 
-> Hi Guennadi,
-> 
-> Here is a quick review. It looks good, just a few small points.
+This patch also solves a problem with the ioctl handling code in
+vl42-ioctl.c, which does not copy buffer identification data back to the
+userspace when EIO is returned, so there is no way for applications
+to discover on which buffer the operation failed in such cases.
 
-Thanks for the review! To most points - right, will update. The ones, that 
-I have more questions about:
-
-> On Thursday 11 March 2010 11:24:42 Guennadi Liakhovetski wrote:
-> > A number of SuperH SoCs, including sh7724, include a Video Output Unit. This
-> > patch adds a video (V4L2) output driver for it. The driver uses v4l2-subdev and
-> > mediabus APIs to interface to TV encoders.
-> > 
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > ---
-> > 
-> > Tested on ms7724se
-> > 
-> >  drivers/media/video/Kconfig  |    7 +
-> >  drivers/media/video/Makefile |    2 +
-> >  drivers/media/video/sh_vou.c | 1437 ++++++++++++++++++++++++++++++++++++++++++
-> >  include/media/sh_vou.h       |   35 +
-> >  4 files changed, 1481 insertions(+), 0 deletions(-)
-> >  create mode 100644 drivers/media/video/sh_vou.c
-> >  create mode 100644 include/media/sh_vou.h
-> > 
-> > diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> > index 64682bf..be6d016 100644
-> > --- a/drivers/media/video/Kconfig
-> > +++ b/drivers/media/video/Kconfig
-
-[snip]
-
-> > +static int sh_vou_g_fmt_vid_ovrl(struct file *file, void *priv,
-> > +				 struct v4l2_format *fmt)
-> > +{
-> > +	/* This is needed for gstreamer, even if not used... */
-> > +	return 0;
-> > +}
-> 
-> Shouldn't this return -EINVAL if there is no overlay support?
-
-In fact I would just drop this methos altogether, but gstreamer needs it 
-_and_ it shouldn't return an error. In fact, I think, we can persuade 
-gstreamer guys to drop this restriction, if we really think this is 
-irrelevant. For some reason their v4l2sink is somewhat overlay-centric, 
-but I think we can discuss this with them.
-
-> > +enum sh_vou_bus_fmt {
-> > +	SH_VOU_BUS_NTSC_16BIT = 0,
-> > +	SH_VOU_BUS_NTSC_8BIT = 1,
-> > +	SH_VOU_BUS_NTSC_8BIT_REC656 = 3,
-> > +	SH_VOU_BUS_PAL_8BIT = 5,
-> 
-> Rather than NTSC and PAL it might be better to talk about 50 vs 60 Hz.
-
-Don't know, this is how these modes are called in the datasheet, so... Do 
-you think it's better to call them "correctly" or as in the datasheet?
-
-Thanks
-Guennadi
+Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+Reviewed-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ include/linux/videodev2.h |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 418dacf..e9222e8 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -550,6 +550,9 @@ struct v4l2_buffer {
+ #define V4L2_BUF_FLAG_KEYFRAME	0x0008	/* Image is a keyframe (I-frame) */
+ #define V4L2_BUF_FLAG_PFRAME	0x0010	/* Image is a P-frame */
+ #define V4L2_BUF_FLAG_BFRAME	0x0020	/* Image is a B-frame */
++/* Buffer is ready, but the data contained within is corrupted.
++ * Always set together with V4L2_BUF_FLAG_DONE (for backward compatibility). */
++#define V4L2_BUF_FLAG_ERROR	0x0040
+ #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
+ #define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
+ 
+-- 
+1.7.0.31.g1df487
+
