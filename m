@@ -1,107 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3260 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751970Ab0C2MFl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Mar 2010 08:05:41 -0400
-Message-ID: <a685d91d0fca5abb6895959636041b26.squirrel@webmail.xs4all.nl>
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044DEBF0BC@dbde02.ent.ti.com>
-References: <1269848207-2325-1-git-send-email-p.osciak@samsung.com>
-    <19F8576C6E063C45BE387C64729E7394044DEBF0BC@dbde02.ent.ti.com>
-Date: Mon, 29 Mar 2010 14:05:31 +0200
-Subject: RE: [PATCH v3 0/2] Mem-to-mem device framework
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "Pawel Osciak" <p.osciak@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"m.szyprowski@samsung.com" <m.szyprowski@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
+Received: from vip1scan.telenor.net ([148.123.15.75]:47387 "EHLO sv07.e.nsc.no"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752764Ab0CaLBD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Mar 2010 07:01:03 -0400
+Message-ID: <4BB32826.8060103@skarpeid.com>
+Date: Wed, 31 Mar 2010 12:47:02 +0200
+From: Hendrik Skarpeid <hendrik@skarpeid.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: linux-media@vger.kernel.org
+CC: "Igor M. Liplianin" <liplianin@me.by>,
+	Nameer Kazzaz <nameer.kazzaz@gmail.com>
+Subject: Re: DM1105: could not attach frontend 195d:1105
+References: <4B7D83B2.4030709@online.no> <201003031749.24261.liplianin@me.by> <4B8E9182.2010906@online.no> <201003032105.06263.liplianin@me.by> <4B978D75.5080501@online.no>
+In-Reply-To: <4B978D75.5080501@online.no>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+A little update on the matter.
 
->
->> -----Original Message-----
->> From: Pawel Osciak [mailto:p.osciak@samsung.com]
->> Sent: Monday, March 29, 2010 1:07 PM
->> To: linux-media@vger.kernel.org
->> Cc: p.osciak@samsung.com; m.szyprowski@samsung.com;
->> kyungmin.park@samsung.com; Hiremath, Vaibhav
->> Subject: [PATCH v3 0/2] Mem-to-mem device framework
->>
->> Hello,
->>
->> this is the third version of the mem-to-mem memory device framework.
->> It addresses previous comments and issues raised in Norway as well.
->>
->> It is rather independent from videobuf so I believe it can be merged
->> separately.
->>
->> Changes in v3:
->> - streamon, streamoff now have to be called for both queues separately
->> - added automatic rescheduling of an instance after finish (if ready)
->> - tweaked up locking
->> - addressed Andy Walls' comments
->>
->> We have been using v2 for three different devices on an embedded system.
->> I did some additional testing of v3 on a 4-core SMP as well.
->>
->> The series contains:
->>
->> [PATCH v3 1/2] v4l: Add memory-to-memory device helper framework for
->> videobuf.
->> [PATCH v3 2/2] v4l: Add a mem-to-mem videobuf framework test device.
->>
-> [Hiremath, Vaibhav] pawel,
->
-> Thanks for the updated patch series; I will rebase my code onto this.
->
-> As I mentioned I had started with migrating OMAP Resizer module to this
-> framework (V2) and I could use it without any major issues.
->
-> I am now cleaning up the patches and also before submitting the patch I
-> had to merge/rebase it with Sakari's omap3camer/devel branch, since I have
-> my version of ISP (required for Resizer module and bit hard-coded) which I
-> think need to merge.
->
-> Today I have pulled in latest changes from Sakari's branch, I am working
-> on this and soon I will post patches for the same.
->
-> Also, I have done some minor cleanups in your patches which also I will
-> submit.
+These cards are broken!
 
-Hiremath,
+It seems that the card is designed for a different NIM than what is 
+actually on the cards.
+The worst problem is 3.3V power supply for the digital portion of the 
+NIM. This powers the 3.3V IO on the Si2109, and it is unconnected! This 
+effectively disables all the IO that is not open drain like i2c. That is 
+why you will not get any 22khz tone from these cards.
 
-Be aware that the omap3 tree with media controller support that Laurent is
-working on does not use these mem-to-mem devices. Instead you have
-separate input and output devices. You should probably talk to Laurent
-about this before you do work that will not be needed eventually.
+Luckily, I think I have found a way to fix it. The card is now tuning, 
+and the 22khz tone is working.
+The LNB voltage is a little high, but that can be fixed by adding or 
+replacing a resistor.
+I have not tried to watch TV yet, so I am not certain if it is at all 
+possible to get these cards into working order.
 
-Regards,
+I will try the fix on a couple of boards and test them, and if it is 
+successful, I will post a howto on the v4l wiki. Be warned though, it 
+will involve the use of a soldering iron.
 
-         Hans
-
+Hendrik Skarpeid wrote:
+> Igor M. Liplianin wrote:
+>> On 3 марта 2010 18:42:42 Hendrik Skarpeid wrote:
+>>  
+>>> Igor M. Liplianin wrote:
+>>>    
+>>>> Now to find GPIO's for LNB power control and ... watch TV :)
+>>>>       
+>>> Yep. No succesful tuning at the moment. There might also be an issue
+>>> with the reset signal and writing to GPIOCTR, as the module at the
+>>> moment loads succesfully only once.
+>>> As far as I can make out, the LNB power control is probably GPIO 16 and
+>>> 17, not sure which is which, and how they work.
+>>> GPIO15 is wired to tuner #reset
+>>>     
+>> New patch to test
+>>   
+> I think the LNB voltage may be a little to high on my card, 14.5V and 
+> 20V. I would be a little more happy if they were 14 and 19, 13 and 18 
+> would be perfect.
+> Anyways, as Igor pointet out, I don't have any signal from the LNB, 
+> checked with another tuner card. It's a quad LNB, and the other 
+> outputs are fine. Maybe it's' toasted from to high supply voltage! I 
+> little word of warning then.
+> Anyways, here's my tweaked driver.
 >
-> Thanks,
-> Vaibhav Hiremath
 >
->>
->> Best regards
->> --
->> Pawel Osciak
->> Linux Platform Group
->> Samsung Poland R&D Center
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
