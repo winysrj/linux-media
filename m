@@ -1,72 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f220.google.com ([209.85.219.220]:48643 "EHLO
-	mail-ew0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752379Ab0CDBAX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Mar 2010 20:00:23 -0500
-Received: by ewy20 with SMTP id 20so1427966ewy.21
-        for <linux-media@vger.kernel.org>; Wed, 03 Mar 2010 17:00:22 -0800 (PST)
+Received: from gateway03.websitewelcome.com ([69.93.87.23]:60447 "HELO
+	gateway03.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1757604Ab0CaQl0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Mar 2010 12:41:26 -0400
+Date: Wed, 31 Mar 2010 09:34:39 -0700 (PDT)
+From: "Dean A." <dean@sensoray.com>
+Subject: [PATCH] s2255drv: v4l2 device added
+To: linux-media@vger.kernel.org
+cc: hverkuil@xs4all.nl
+Message-ID: <tkrat.6506e871933e5a00@sensoray.com>
 MIME-Version: 1.0
-In-Reply-To: <829197381003031548n703f0bf9sb44ce3527501c5c0@mail.gmail.com>
-References: <74fd948d1003031535r1785b36dq4cece00f349975af@mail.gmail.com>
-	 <829197381003031548n703f0bf9sb44ce3527501c5c0@mail.gmail.com>
-Date: Thu, 4 Mar 2010 01:00:22 +0000
-Message-ID: <74fd948d1003031700h187dbfd0v3f54800e652569b@mail.gmail.com>
-Subject: Re: Excessive rc polling interval in dvb_usb_dib0700 causes
-	interference with USB soundcard
-From: Pedro Ribeiro <pedrib@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; CHARSET=us-ascii
+Content-Disposition: INLINE
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 3 March 2010 23:48, Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
-> On Wed, Mar 3, 2010 at 6:35 PM, Pedro Ribeiro <pedrib@gmail.com> wrote:
->> Hello all,
->>
->> yesterday I sent a message asking for help with a problem I was having
->> with a dib0700 USB adapter and my USB audio soundcard.
->>
->> Basically I discovered that the remote control polling in dvb_usb
->> module was causing it. For reference, my original message is here
->> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/16782
->> and I also file a kernel bug here
->> http://bugzilla.kernel.org/show_bug.cgi?id=15430
->>
->> Looking at dmesg when I plug the DVB adapter it says
->> dvb-usb: schedule remote query interval to 50 msecs.
->>
->> This seemed to me extremely excessive, so I solved the problem by
->> doing a quick dirty hack. In linux/drivers/media/dvb/dvb-usb-remote.c
->> I changed d->props.rc_interval to 10000, instead of the default 50
->> msec.
->>
->> So now when I load the driver, I get
->> dvb-usb: schedule remote query interval to 10000 msecs.
->>
->> And not only the USB audio card is working properly with the DVB
->> adapter but also the remote control is working perfectly, without any
->> delay at all!
->>
->> So my question is: why is this set to an excessive 50 msec? This is
->> waaaaaaay too much for remote control polling, and its proven it
->> causes trouble in the USB bus!
->> Also, I know my hack was dirty, what the is the proper way to change this?
->
-> It's already been fixed.  Just update to the latest v4l-dvb code.
->
-> Devin
->
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
->
+# HG changeset patch
+# User Dean Anderson <dean@sensoray.com>
+# Date 1270053044 25200
+# Node ID 0690e4e1d81e785af1a5f06a13573dcf2cc5cb0c
+# Parent  c72bdc8732abc0cf7bc376babfd06b2d999bdcf4
+s2255drv: adding v4l2_device structure. video_register_device cleanup
 
-Its working very well, thanks.
+From: Dean Anderson <dean@sensoray.com>
 
-Can you please tell me if its going to be pushed to .33 stable? And
-should I close the kernel bug?
+adding v4l2_device structure.
+if one video_register_device call fails, allows use of other devices
+or channels.
 
-Thanks,
-Pedro
+Priority: normal
+
+Signed-off-by: Dean Anderson <dean@sensoray.com>
+
+diff -r c72bdc8732ab -r 0690e4e1d81e linux/drivers/media/video/s2255drv.c
+--- a/linux/drivers/media/video/s2255drv.c	Wed Mar 31 07:38:11 2010 -0700
++++ b/linux/drivers/media/video/s2255drv.c	Wed Mar 31 09:30:44 2010 -0700
+@@ -51,6 +51,7 @@
+ #include <linux/smp_lock.h>
+ #include <media/videobuf-vmalloc.h>
+ #include <media/v4l2-common.h>
++#include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ #include <linux/vmalloc.h>
+ #include <linux/usb.h>
+@@ -77,7 +78,6 @@
+ #define S2255_DEF_BUFS          16
+ #define S2255_SETMODE_TIMEOUT   500
+ #define S2255_VIDSTATUS_TIMEOUT 350
+-#define MAX_CHANNELS		4
+ #define S2255_MARKER_FRAME	cpu_to_le32(0x2255DA4AL)
+ #define S2255_MARKER_RESPONSE	cpu_to_le32(0x2255ACACL)
+ #define S2255_RESPONSE_SETMODE  cpu_to_le32(0x01)
+@@ -225,6 +225,8 @@
+ 
+ struct s2255_dev {
+ 	struct video_device	vdev[MAX_CHANNELS];
++	struct v4l2_device 	v4l2_dev[MAX_CHANNELS];
++	int                     channels; /* number of channels registered */
+ 	int			frames;
+ 	struct mutex		lock;
+ 	struct mutex		open_lock;
+@@ -1753,7 +1755,8 @@
+ 	int state;
+ 	dprintk(1, "s2255: open called (dev=%s)\n",
+ 		video_device_node_name(vdev));
+-	for (i = 0; i < MAX_CHANNELS; i++)
++
++	for (i = 0; i < dev->channels; i++)
+ 		if (&dev->vdev[i] == vdev) {
+ 			cur_channel = i;
+ 			break;
+@@ -1994,7 +1997,11 @@
+ 	int ret;
+ 	int i;
+ 	int cur_nr = video_nr;
+-
++	for (i = 0; i < MAX_CHANNELS; i++) {
++		ret = v4l2_device_register(&dev->udev->dev, &dev->v4l2_dev[i]);
++		if (ret)
++			goto unreg_v4l2;
++	}
+ 	/* initialize all video 4 linux */
+ 	/* register 4 video devices */
+ 	for (i = 0; i < MAX_CHANNELS; i++) {
+@@ -2014,16 +2021,29 @@
+ 						    VFL_TYPE_GRABBER,
+ 						    cur_nr + i);
+ 		video_set_drvdata(&dev->vdev[i], dev);
+-
+-		if (ret != 0) {
++		if (ret) {
+ 			dev_err(&dev->udev->dev,
+ 				"failed to register video device!\n");
+-			return ret;
++			break;
+ 		}
++		dev->channels++;
++		v4l2_info(&dev->v4l2_dev[i], "V4L2 device registered as %s\n",
++			  video_device_node_name(&dev->vdev[i]));
++
+ 	}
++
+ 	printk(KERN_INFO "Sensoray 2255 V4L driver Revision: %d.%d\n",
+ 	       S2255_MAJOR_VERSION,
+ 	       S2255_MINOR_VERSION);
++	/* if no channels registered, return error and probe will fail*/
++	if (dev->channels == 0)
++		return ret;
++	if (dev->channels != MAX_CHANNELS)
++		printk(KERN_WARNING "s2255: Not all channels available.\n");
++	return 0;
++unreg_v4l2:
++	for (i-- ; i > 0; i--)
++		v4l2_device_unregister(&dev->v4l2_dev[i]);
+ 	return ret;
+ }
+ 
+@@ -2705,13 +2725,9 @@
+ 	/* loads v4l specific */
+ 	retval = s2255_probe_v4l(dev);
+ 	if (retval)
+-		goto errorV4L;
++		goto errorBOARDINIT;
+ 	dev_info(&interface->dev, "Sensoray 2255 detected\n");
+ 	return 0;
+-errorV4L:
+-	for (i = 0; i < MAX_CHANNELS; i++)
+-		if (video_is_registered(&dev->vdev[i]))
+-			video_unregister_device(&dev->vdev[i]);
+ errorBOARDINIT:
+ 	s2255_board_shutdown(dev);
+ errorFWMARKER:
+
