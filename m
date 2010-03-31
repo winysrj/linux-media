@@ -1,43 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eastrmmtao106.cox.net ([68.230.240.48]:37188 "EHLO
-	eastrmmtao106.cox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755977Ab0CJDVM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Mar 2010 22:21:12 -0500
-Received: from eastrmimpo02.cox.net ([68.1.16.120])
-          by eastrmmtao101.cox.net
-          (InterMail vM.8.00.01.00 201-2244-105-20090324) with ESMTP
-          id <20100310031145.ELCB7328.eastrmmtao101.cox.net@eastrmimpo02.cox.net>
-          for <linux-media@vger.kernel.org>; Tue, 9 Mar 2010 22:11:45 -0500
-Received: from chris by localhost with local (Exim 4.66)
-	(envelope-from <c.shoemaker@cox.net>)
-	id 1NpCKn-0006qJ-Dt
-	for linux-media@vger.kernel.org; Tue, 09 Mar 2010 22:11:45 -0500
-Date: Tue, 9 Mar 2010 22:11:45 -0500
-From: Chris Shoemaker <c.shoemaker@cox.net>
-To: linux-media@vger.kernel.org
-Subject: Any experience with Mini-PCI MP-6100: Techwell TW2815 and SPCT6100?
-Message-ID: <20100310031145.GB26143@pe.Belkin>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from poutre.nerim.net ([62.4.16.124]:49219 "EHLO poutre.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757642Ab0CaSJm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Mar 2010 14:09:42 -0400
+Date: Wed, 31 Mar 2010 20:09:38 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Andrzej Hajda <andrzej.hajda@wp.pl>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: cx88 remote control event device
+Message-ID: <20100331200938.7bd49eee@hyperion.delvare>
+In-Reply-To: <4BB38A7D.7080702@redhat.com>
+References: <20100331130042.276d7ef7@hyperion.delvare>
+	<4BB38A7D.7080702@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[posted at video4linux-list@redhat.com before I found linux-media]
+Hi Mauro,
 
-Hi,
+On Wed, 31 Mar 2010 14:46:37 -0300, Mauro Carvalho Chehab wrote:
+> Hi Jean,
+> 
+> Jean Delvare wrote:
+> > Hi Andrzej,
+> > 
+> > Last year, you submitted a fix for the cx88 remote control not behaving
+> > properly on some cards. The fix works fine for me and lets me use my
+> > remote control, and I am very grateful for this.
+> > 
+> > However, I have noticed (using powertop) that the cx88 driver is waking
+> > up the kernel 1250 times per second to handle the remote control. I
+> > understand that it is needed for proper operation when the remote
+> > control is in use. What I do not understand is why it still happens
+> > when nobody uses the remote control. Even when no application has the
+> > event device node opened, polling still happens.
+> > 
+> > Can't we have the cx88 driver poll the remote control only when the
+> > device node is opened? I believe this would save some power by allowing
+> > the CPU to stay in higher C states.
+> 
+> The IR can be used even when nobody is opening the /dev/video device, as
+> it is an input device that can be used to control other things, including
+> the start of the video application.
+> 
+> That's said, it makes sense to only enable the polling when the /dev/input/event 
+> device is opened. 
 
-  I'm looking at this MP-6100:
-http://www.commell.com.tw/product/Surveillance/MP-6100.htm
+Sorry for not being clear originally; this is exactly what I meant.
 
-Their press release [1] says it has "Techwell's TW2815 video decoder
-and SPCT6100 H.264 encoder DSP" and it comes with a Linux SDK for
-Fedora 11.  Does anyone have any experience with these chips?  What
-are the chances I'll be able to get this to capture H.264 under linux?
+> Btw, the same polling logic is also present on bttv and saa7134 drivers.
+> 
+> As I'm doing a large IR rework, with the addition of the IR core subsystem,
+> and the patch for handing the open/close is very simple, I've already wrote
+> a patch for saa7134, on my IR tree:
+> 	http://git.linuxtv.org/mchehab/ir.git?a=commitdiff;h=2b1d3acdb48266f05b82923b8db06e6c7ada0c72
+> 
+> The change itself is very simple, although I've added some additional checks
+> to avoid the risk of having an IRQ while IR is disabled.
 
-Any tips?
+Looks very good, nice to see someone is already working on the problem.
 
-Thanks in advance,
--chris
+> I have one cx88 board on my IR test machine (although I need to find the IR sensor for the
+> board I'm using there). If I find one that works, I'll try later to write a similar 
+> code to cx88.
 
-[1] http://news.thomasnet.com/fullstory/563735
+Thanks,
+-- 
+Jean Delvare
