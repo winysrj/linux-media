@@ -1,45 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:46660 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755575Ab0CVVvZ (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:63909 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933035Ab0CaJcq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Mar 2010 17:51:25 -0400
-Date: Mon, 22 Mar 2010 21:51:18 +0000
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Wolfram Sang <w.sang@pengutronix.de>,
-	kernel-janitors@vger.kernel.org, linux-i2c@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Message-ID: <20100322215118.GC17533@sirena.org.uk>
-References: <1269094385-16114-1-git-send-email-w.sang@pengutronix.de>
- <20100321144655.4747fd2a@hyperion.delvare>
- <20100321141417.GA19626@opensource.wolfsonmicro.com>
- <201003211709.56319.hverkuil@xs4all.nl>
- <20100322213358.31e50b3c@hyperion.delvare>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20100322213358.31e50b3c@hyperion.delvare>
-Subject: Re: [PATCH 12/24] media/video: fix dangling pointers
+	Wed, 31 Mar 2010 05:32:46 -0400
+Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0L0500K7F3UJWP@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 31 Mar 2010 10:32:43 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L0500F9F3UJCU@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 31 Mar 2010 10:32:43 +0100 (BST)
+Date: Wed, 31 Mar 2010 11:32:24 +0200
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: [PATCH v2 0/3] Fix DQBUF behavior for recoverable streaming errors
+To: linux-media@vger.kernel.org
+Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com
+Message-id: <1270027947-28327-1-git-send-email-p.osciak@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 22, 2010 at 09:33:58PM +0100, Jean Delvare wrote:
-> On Sun, 21 Mar 2010 17:09:56 +0100, Hans Verkuil wrote:
-> > On Sunday 21 March 2010 15:14:17 Mark Brown wrote:
+Hello,
 
-> > > I agree with this.  There are also some use cases where the device data
-> > > is actually static (eg, a generic description of the device or a
-> > > reference to some other shared resource rather than per device allocated
-> > > data).
+this is the second version of a series that introduces a V4L2_BUF_FLAG_ERROR
+flag for recoverable stream errors. It allows applications to gracefully recover
+in case of such errors instead of losing the buffer or having to guess
+its index.
 
-> From a technical perspective, there is little rationale to have the
-> client data pointed to static data. If you could reach it from probe(),
-> it has to be a global, and if it is a global, you can reach it again
-> directly from the rest of your code.
+Changes since v1:
+- the new flag is not returned along with V4L2_BUF_FLAG_DONE (I misinterpreted
+  the docs previously)
 
-The use case I can think of there is bus type specific stuff for devices
-that support multiple buses.
+This series contains:
+[PATCH v2 1/3] v4l: Add a new ERROR flag for DQBUF after recoverable streaming errors
+[PATCH v2 2/3] v4l: videobuf: Add support for V4L2_BUF_FLAG_ERROR
+[PATCH v2 3/3] v4l: Add documentation for the new error flag
+
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
+
