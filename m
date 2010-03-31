@@ -1,60 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46773 "EHLO mx1.redhat.com"
+Received: from smtp3-g21.free.fr ([212.27.42.3]:38324 "EHLO smtp3-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752154Ab0CIPpf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Mar 2010 10:45:35 -0500
-Message-ID: <4B966D15.50300@redhat.com>
-Date: Tue, 09 Mar 2010 12:45:25 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Cohen David Abraham <david.cohen@nokia.com>
-Subject: Re: [PATCH v8 0/6] V4L2 file handles and event interface
-References: <4B85AC1E.8060302@maxwell.research.nokia.com>
-In-Reply-To: <4B85AC1E.8060302@maxwell.research.nokia.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S932129Ab0CaGIH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Mar 2010 02:08:07 -0400
+Date: Wed, 31 Mar 2010 08:07:57 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>,
+	Krivchikov Sergei <sergei.krivchikov@gmail.com>
+Cc: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: genius islim 310 webcam test
+Message-ID: <20100331080757.40f9c478@tele>
+In-Reply-To: <4BB2E42B.4090302@freemail.hu>
+References: <68c794d61003301249u138e643am20bb264375c3dfe1@mail.gmail.com>
+	<4BB2E42B.4090302@freemail.hu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sakari,
+On Wed, 31 Mar 2010 07:56:59 +0200
+Németh Márton <nm127@freemail.hu> wrote:
 
-As usual, I'm marking those patches as RFC. Please add them on some tree
-and ask me to pull from it, when you think that event interface is ready 
-for upstream merge.
+> The next thing is that you need to learn how to compile the Linux
+> kernel from source code. There is a description for Ubuntu at
+> https://help.ubuntu.com/community/Kernel/Compile . After you are able
+> to compile and install your new kernel, you can try to apply the
+> patch in this email, recompile the kernel, install the kernel and the
+> modules, unload the gspca_pac7302 kernel module ("rmmod
+> gspca_pac7302"), and then plug the webcam in order it can load the
+> new kernel module. When you were successful with these steps you'll
+> see new messages in the output of "dmesg" command. Please send this
+> output also.
 
-Cheers,
-Mauro.
+Hello Németh and Sergei,
 
-Sakari Ailus wrote:
-> Hi,
-> 
-> Here's the tenth version of the V4L2 file handle and event interface
-> patchset.
-> 
-> The patchset has been tested with the OMAP 3 ISP driver. Patches for
-> OMAP 3 ISP are not part of this patchset but are available in Gitorious
-> (branch is called event):
-> 
-> 	git://gitorious.org/omap3camera/mainline.git event
-> 
-> The patchset I'm posting now is against the v4l-dvb tree instead of
-> linux-omap. The omap3camera tree thus has a slightly different
-> version of these patches (just Makefiles) due to different baselines.
-> 
-> Some more comments from Hans and Randy. There are only improvements in
-> documentation this time.
-> 
-> Comments are welcome as always.
-> 
-> Cheers,
-> 
+I think the patch is not needed because it just gives the vend:prod
+which is already known by lsusb.
 
+On the other hand, compiling a full kernel is not needed with a small
+tarball distribution as the one I have in my page (actual gspca-2.9.10).
+
+Best regards.
 
 -- 
-
-Cheers,
-Mauro
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
