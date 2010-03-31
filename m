@@ -1,32 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f220.google.com ([209.85.219.220]:39558 "EHLO
-	mail-ew0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751327Ab0CCRAP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Mar 2010 12:00:15 -0500
-Received: by ewy20 with SMTP id 20so1099311ewy.21
-        for <linux-media@vger.kernel.org>; Wed, 03 Mar 2010 09:00:13 -0800 (PST)
-Message-ID: <4B8E959E.6010400@gmail.com>
-Date: Wed, 03 Mar 2010 18:00:14 +0100
-From: RoboSK <ucet.na.diskusie@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:17191 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932376Ab0CaGC6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Mar 2010 02:02:58 -0400
+Message-ID: <4BB2E554.6030308@redhat.com>
+Date: Wed, 31 Mar 2010 03:01:56 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: GIGABYTE U8000-RH Analog source support ?
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Jon Smirl <jonsmirl@gmail.com>, Pavel Machek <pavel@ucw.cz>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, awalls@radix.net,
+	j@jannau.net, jarod@redhat.com, jarod@wilsonet.com,
+	kraxel@redhat.com, linux-input@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR system?
+References: <9e4733910912151229o371ee017tf3640d8f85728011@mail.gmail.com> <20091215203300.GL24406@elf.ucw.cz> <9e4733910912151245ne442a5dlcfee92609e364f70@mail.gmail.com> <9e4733910912151338n62b30af5i35f8d0963e6591c@mail.gmail.com> <4BAB7659.1040408@redhat.com> <20100326112755.GB5387@hardeman.nu> <4BACC769.6020906@redhat.com> <20100326160150.GA28804@core.coreip.homeip.net> <4BAFE4B7.2030204@redhat.com> <4BAFF985.3090703@redhat.com> <20100330110138.GA6164@hardeman.nu>
+In-Reply-To: <20100330110138.GA6164@hardeman.nu>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, i find this page *1 with last change from "3 May 2009" with text "no 
-driver written for the CX25843-24Z" and then this *2 from "27 September 
-2009" with text "CX2584x chips are fully supported by Linux..." = have 
-linux (now/future) support for Analog source with this USB stick ?
+David Härdeman wrote:
+> On Sun, Mar 28, 2010 at 09:51:17PM -0300, Mauro Carvalho Chehab wrote:
+>> I spoke too soon... removing the index causes a problem at the read ioctl: there's no way
+>> to retrieve just the non-sparsed values.
+>>
+>> There's one solution that would allow both read/write and compat to work nicely,
+>> but the API would become somewhat asymmetrical:
+>>
+>> At get (EVIOCGKEYCODEBIG):
+>> 	use index/len as input and keycode/scancode as output;
+>>
+>> At set (EVIOCSKEYCODEBIG):
+>> 	use scancode/keycode/len as input (and, optionally, index as output).
+>>
+> 
+> This was exactly the approach I had in mind when I suggested using 
+> indexes.
 
-thanks
+Doesn't work perfectly. The asymmetry has a side effect on the internal logic: 
 
-Robo
+EVIOCGKEYCODEBIG should be implemented with a pseudo-code like:
+	kt_entry = getkeycodebig_from_index(index);
 
-*1
-http://www.linuxtv.org/wiki/index.php/Gigabyte_U8000-RH
+EVIOCSKEYCODEBIG should be implemented with a pseudo-code like:
+	kt_entry = getkeycodebig_from_scan(scan, len);
+	old_key = kt_entry->keycode;
 
-*2
-http://www.linuxtv.org/wiki/index.php/Conexant_CX2584x
+	kt_entry->keycode = newkey;
+	if (setkeycodebig(kt_entry) == 0)
+		keyup(old_key);
+
+As you see, the input parameters for the getkeycodebig*() are different.
+
+So, this approach requires 3 ops instead of 2. Yet, as scancode->keycode is
+needed anyway, this doesn't actually hurts.
+
+I just added the patches that implement those two ioctls on my IR development tree.
+I tested only the original EVIOCGKEYCODE/EVIOSGKEYCODE and calling a clear_table
+function using EVIOCSKEYCODEBIG via emulation.
+
+My next step is to test the remaining ir-keytable functions via emulation, and then
+implement the *BIG ioctls at ir-core, for testing.
+
+I haven't test yet the *keycode*default methods. 
+
+After having it fully tested, I'll submit the complete input ioctl patch via ML.
+
+-- 
+
+Cheers,
+Mauro
