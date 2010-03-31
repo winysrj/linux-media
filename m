@@ -1,115 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4031 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932295Ab0CXUiJ (ORCPT
+Received: from gateway07.websitewelcome.com ([69.56.159.26]:38160 "HELO
+	gateway07.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1756719Ab0CaTfR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Mar 2010 16:38:09 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id o2OKbxrU038758
-	for <linux-media@vger.kernel.org>; Wed, 24 Mar 2010 21:38:07 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 24 Mar 2010 21:37:59 +0100 (CET)
-Message-Id: <201003242038.o2OKbxrU038758@smtp-vbr2.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
+	Wed, 31 Mar 2010 15:35:17 -0400
+Message-ID: <4BB3A3F1.4090303@sensoray.com>
+Date: Wed, 31 Mar 2010 12:35:13 -0700
+From: dean <dean@sensoray.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] s2255drv: v4l2 device added
+References: <tkrat.6506e871933e5a00@sensoray.com> <201003312103.21952.hverkuil@xs4all.nl>
+In-Reply-To: <201003312103.21952.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+You are correct.  Please withdraw this 
+patch(https://patchwork.kernel.org/patch/89985/).
 
-Results of the daily build of v4l-dvb:
+Regards,
 
-date:        Wed Mar 24 19:00:20 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14512:5b152630ae7c
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 8c69c6ed6c74c94fa7ad6fa24eda452e4b212d81
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc1-armv5: OK
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-rc1-armv5-davinci: WARNINGS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-rc1-armv5-ixp: WARNINGS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-rc1-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.17-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-rc1-i686: WARNINGS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc1-m32r: OK
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-rc1-mips: WARNINGS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-rc1-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.17-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-rc1-x86_64: WARNINGS
-linux-git-armv5: OK
-linux-git-armv5-davinci: OK
-linux-git-armv5-ixp: OK
-linux-git-armv5-omap2: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.7-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.62-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.7-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+Hans Verkuil wrote:
+> On Wednesday 31 March 2010 18:34:39 Dean A. wrote:
+>   
+>> # HG changeset patch
+>> # User Dean Anderson <dean@sensoray.com>
+>> # Date 1270053044 25200
+>> # Node ID 0690e4e1d81e785af1a5f06a13573dcf2cc5cb0c
+>> # Parent  c72bdc8732abc0cf7bc376babfd06b2d999bdcf4
+>> s2255drv: adding v4l2_device structure. video_register_device cleanup
+>>
+>> From: Dean Anderson <dean@sensoray.com>
+>>
+>> adding v4l2_device structure.
+>> if one video_register_device call fails, allows use of other devices
+>> or channels.
+>>     
+>
+> That's not correct. There is only one v4l2_device per USB device. And the
+> first argument should be &dev->interface->dev, not &dev->udev->dev.
+>
+> When you register the video device node you shouldn't set vdev[i]->parent
+> anymore, instead point vdev[i]->v4l2_dev to the v4l2_device struct.
+>
+> Regards,
+>
+> 	Hans
+>
+>   
+>> Priority: normal
+>>
+>> Signed-off-by: Dean Anderson <dean@sensoray.com>
+>>
+>> diff -r c72bdc8732ab -r 0690e4e1d81e linux/drivers/media/video/s2255drv.c
+>> --- a/linux/drivers/media/video/s2255drv.c	Wed Mar 31 07:38:11 2010 -0700
+>> +++ b/linux/drivers/media/video/s2255drv.c	Wed Mar 31 09:30:44 2010 -0700
+>> @@ -51,6 +51,7 @@
+>>  #include <linux/smp_lock.h>
+>>  #include <media/videobuf-vmalloc.h>
+>>  #include <media/v4l2-common.h>
+>> +#include <media/v4l2-device.h>
+>>  #include <media/v4l2-ioctl.h>
+>>  #include <linux/vmalloc.h>
+>>  #include <linux/usb.h>
+>> @@ -77,7 +78,6 @@
+>>  #define S2255_DEF_BUFS          16
+>>  #define S2255_SETMODE_TIMEOUT   500
+>>  #define S2255_VIDSTATUS_TIMEOUT 350
+>> -#define MAX_CHANNELS		4
+>>  #define S2255_MARKER_FRAME	cpu_to_le32(0x2255DA4AL)
+>>  #define S2255_MARKER_RESPONSE	cpu_to_le32(0x2255ACACL)
+>>  #define S2255_RESPONSE_SETMODE  cpu_to_le32(0x01)
+>> @@ -225,6 +225,8 @@
+>>  
+>>  struct s2255_dev {
+>>  	struct video_device	vdev[MAX_CHANNELS];
+>> +	struct v4l2_device 	v4l2_dev[MAX_CHANNELS];
+>> +	int                     channels; /* number of channels registered */
+>>  	int			frames;
+>>  	struct mutex		lock;
+>>  	struct mutex		open_lock;
+>> @@ -1753,7 +1755,8 @@
+>>  	int state;
+>>  	dprintk(1, "s2255: open called (dev=%s)\n",
+>>  		video_device_node_name(vdev));
+>> -	for (i = 0; i < MAX_CHANNELS; i++)
+>> +
+>> +	for (i = 0; i < dev->channels; i++)
+>>  		if (&dev->vdev[i] == vdev) {
+>>  			cur_channel = i;
+>>  			break;
+>> @@ -1994,7 +1997,11 @@
+>>  	int ret;
+>>  	int i;
+>>  	int cur_nr = video_nr;
+>> -
+>> +	for (i = 0; i < MAX_CHANNELS; i++) {
+>> +		ret = v4l2_device_register(&dev->udev->dev, &dev->v4l2_dev[i]);
+>> +		if (ret)
+>> +			goto unreg_v4l2;
+>> +	}
+>>  	/* initialize all video 4 linux */
+>>  	/* register 4 video devices */
+>>  	for (i = 0; i < MAX_CHANNELS; i++) {
+>> @@ -2014,16 +2021,29 @@
+>>  						    VFL_TYPE_GRABBER,
+>>  						    cur_nr + i);
+>>  		video_set_drvdata(&dev->vdev[i], dev);
+>> -
+>> -		if (ret != 0) {
+>> +		if (ret) {
+>>  			dev_err(&dev->udev->dev,
+>>  				"failed to register video device!\n");
+>> -			return ret;
+>> +			break;
+>>  		}
+>> +		dev->channels++;
+>> +		v4l2_info(&dev->v4l2_dev[i], "V4L2 device registered as %s\n",
+>> +			  video_device_node_name(&dev->vdev[i]));
+>> +
+>>  	}
+>> +
+>>  	printk(KERN_INFO "Sensoray 2255 V4L driver Revision: %d.%d\n",
+>>  	       S2255_MAJOR_VERSION,
+>>  	       S2255_MINOR_VERSION);
+>> +	/* if no channels registered, return error and probe will fail*/
+>> +	if (dev->channels == 0)
+>> +		return ret;
+>> +	if (dev->channels != MAX_CHANNELS)
+>> +		printk(KERN_WARNING "s2255: Not all channels available.\n");
+>> +	return 0;
+>> +unreg_v4l2:
+>> +	for (i-- ; i > 0; i--)
+>> +		v4l2_device_unregister(&dev->v4l2_dev[i]);
+>>  	return ret;
+>>  }
+>>  
+>> @@ -2705,13 +2725,9 @@
+>>  	/* loads v4l specific */
+>>  	retval = s2255_probe_v4l(dev);
+>>  	if (retval)
+>> -		goto errorV4L;
+>> +		goto errorBOARDINIT;
+>>  	dev_info(&interface->dev, "Sensoray 2255 detected\n");
+>>  	return 0;
+>> -errorV4L:
+>> -	for (i = 0; i < MAX_CHANNELS; i++)
+>> -		if (video_is_registered(&dev->vdev[i]))
+>> -			video_unregister_device(&dev->vdev[i]);
+>>  errorBOARDINIT:
+>>  	s2255_board_shutdown(dev);
+>>  errorFWMARKER:
+>>
+>>
+>>     
+>
+>   
+> ------------------------------------------------------------------------
+>
+>
+> No virus found in this incoming message.
+> Checked by AVG - www.avg.com 
+> Version: 9.0.791 / Virus Database: 271.1.1/2781 - Release Date: 03/30/10 23:32:00
+>
+>   
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
