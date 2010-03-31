@@ -1,115 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3312 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752521Ab0CTUgU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Mar 2010 16:36:20 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id o2KKaIQp024865
-	for <linux-media@vger.kernel.org>; Sat, 20 Mar 2010 21:36:19 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 20 Mar 2010 21:36:18 +0100 (CET)
-Message-Id: <201003202036.o2KKaIQp024865@smtp-vbr1.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
+Received: from mail1.radix.net ([207.192.128.31]:54117 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756346Ab0CaLkF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Mar 2010 07:40:05 -0400
+Subject: Re: CX23102 (Polaris?)
+From: Andy Walls <awalls@radix.net>
+To: Rich <rich.kcsa@gmail.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <6d1fd7691003302150n4e56ea40y9b58285994ab2bdd@mail.gmail.com>
+References: <6d1fd7691003302150n4e56ea40y9b58285994ab2bdd@mail.gmail.com>
+Content-Type: text/plain
+Date: Wed, 31 Mar 2010 07:40:00 -0400
+Message-Id: <1270035601.3937.12.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Tue, 2010-03-30 at 22:50 -0600, Rich wrote:
+> I have a ez grabber with a CX23102 windows calls it Polaris. Ubuntu
+> 9.10 does not find it.  Is  there a driver for this part?
 
-Results of the daily build of v4l-dvb:
+Rich,
 
-date:        Sat Mar 20 19:00:24 CET 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14494:929298149eba
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 8c69c6ed6c74c94fa7ad6fa24eda452e4b212d81
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+(Be advised, I generally don't respond to personal emails on linux
+driver issues.  I prefer to keep conversations public, so I'm Cc:-ing
+the linux-media list.)
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc1-armv5: OK
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-rc1-armv5-davinci: WARNINGS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-rc1-armv5-ixp: WARNINGS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-rc1-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.17-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-rc1-i686: WARNINGS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc1-m32r: OK
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-rc1-mips: WARNINGS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-rc1-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.17-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-rc1-x86_64: WARNINGS
-linux-git-armv5: OK
-linux-git-armv5-davinci: OK
-linux-git-armv5-ixp: OK
-linux-git-armv5-omap2: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.7-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.62-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.7-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
 
-Detailed results are available here:
+1. Yes, there is a driver: the cx231xx module with the cx25840 module as
+a major supporting module.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+2. The cx231xx module only has card definitions for a couple of Conexant
+reference designs.  Defintions to support your board would need to be
+added to the driver before it would work.
 
-Full logs are available here:
+3. Looking at the cx231xx code paths in the cx25840 module, I suspect
+that module may need some tweaking too. 
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-The V4L-DVB specification from this daily build is here:
+4. If you need support for this board, and you don't want to make the
+patches yourself, please build a page at the V4L-DVB wiki, and provide 
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+a. USB ID information
+b. A list of chips on the board
+c. pictures of both sides of the board if you can.
+
+Also you will most likely need to get a board in the hands of developer
+who has time.
+
+Regards,
+Andy
+
+
