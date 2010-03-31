@@ -1,41 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:34516 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751110Ab0CAGyo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Mar 2010 01:54:44 -0500
-Date: Mon, 1 Mar 2010 07:55:03 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Olivier Lorin <olorin75@gmail.com>
-Cc: V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/2] New driver for MI2020 sensor with GL860 bridge
-Message-ID: <20100301075503.5963576f@tele>
-In-Reply-To: <1267388365.1854.30.camel@miniol>
-References: <1267388365.1854.30.camel@miniol>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:42357 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750795Ab0CaTwb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 31 Mar 2010 15:52:31 -0400
+MIME-Version: 1.0
+In-Reply-To: <201003310125.26266.laurent.pinchart@ideasonboard.com>
+References: <45cc95261003301455u10e6ee24pfb66176bfb279d1@mail.gmail.com>
+	<201003310125.26266.laurent.pinchart@ideasonboard.com>
+From: Mohamed Ikbel Boulabiar <boulabiar@gmail.com>
+Date: Wed, 31 Mar 2010 21:51:59 +0200
+Message-ID: <v2x45cc95261003311251idfdc9b8anb7b2060618611d30@mail.gmail.com>
+Subject: Re: webcam problem after suspend/hibernate
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 28 Feb 2010 21:19:25 +0100
-Olivier Lorin <olorin75@gmail.com> wrote:
+Hi,
 
-> - General changes for all drivers because of new MI2020 sensor
-> driver :
->   - add the light source control
->   - control value changes only applied after an end of image
->   - replace msleep with duration less than 5 ms by a busy loop
-> - Fix for an irrelevant OV9655 image resolution identifier name
+Do you mean the dmesg output ?
+A full dmesg is included in this address :
+http://pastebin.com/8XU619Uk
+Not in all suspend/hibernate the problem comes, only in some of them
+and this included dmesg output is just after a non working case of
+webcam fault.
 
-Hello Olivier,
 
-What is this 'light source'? In the list, we are talking about the
-webcam LEDs and how to switch them on/off. Is it the same feature?
+I also have found this in `/var/log/messages | grep uvcvideo`
+Mar 31 00:31:16 linux-l365 kernel: [399905.714743] usbcore:
+deregistering interface driver uvcvideo
+Mar 31 00:31:24 linux-l365 kernel: [399914.121386] uvcvideo: Found UVC
+1.00 device LG Webcam (0c45:62c0)
+Mar 31 00:31:24 linux-l365 kernel: [399914.135661] usbcore: registered
+new interface driver uvcvideo
 
-Is it important to have a so precise delay in the webcam exchanges?
+and in `cat /proc/modules | grep uvcvideo`
+uvcvideo 65900 0 - Live 0xfa386000
+videodev 39168 1 uvcvideo, Live 0xf8244000
+v4l1_compat 16004 2 uvcvideo,videodev, Live 0xf822f000
 
-Cheers.
 
--- 
-Ken ar c'henta√±	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+And thanks in advance for you help.
+
+
+
+On Wed, Mar 31, 2010 at 1:25 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Mohamed,
+>
+> On Tuesday 30 March 2010 23:55:38 Mohamed Ikbel Boulabiar wrote:
+>> Hi,
+>>
+>> After suspend/resume, I have my webcam no more working.
+>> The /dev/video0 file still exist, but the webcam won't be used until I do
+>> this : rmmod † † uvcvideo
+>> modprobe uvcvideo
+>> (2.6.31.8-0.1)
+>>
+>> This is may be caused by a bug somewhere.
+>> These are more information about my hardware :
+>>
+>> I have Microdia webcam
+>> `lsusb`
+>> Bus 001 Device 004: ID 0c45:62c0 Microdia Sonix USB 2.0 Camera
+>>
+>> on openSUSE 11.2 `uname -a`
+>> Linux linux-l365 2.6.31.8-0.1-desktop #1 SMP PREEMPT 2009-12-15
+>> 23:55:40 +0100 i686 i686 i386 GNU/Linux
+>>
+>> `hwinfo --usb`
+>>
+>> : USB 00.0: 0000 Unclassified device
+>>
+>> † [Created at usb.122]
+>> † UDI:
+>> /org/freedesktop/Hal/devices/usb_device_c45_62c0_1_3_2_1_7_if0_logicaldev_
+>> input Unique ID: Uc5H.F0c0EBqBP10
+>> † Parent ID: k4bc.9T1GDCLyFd9
+>> † SysFS ID: /devices/pci0000:00/0000:00:1d.7/usb1/1-4/1-4:1.0
+>> † SysFS BusID: 1-4:1.0
+>> † Hardware Class: unknown
+>> † Model: "Microdia LG Webcam"
+>> † Hotplug: USB
+>> † Vendor: usb 0x0c45 "Microdia"
+>> † Device: usb 0x62c0 "LG Webcam"
+>> † Revision: "32.17"
+>> † Serial ID: "1.3.2.1.7"
+>> † Driver: "uvcvideo"
+>> † Driver Modules: "uvcvideo"
+>> † Device File: /dev/input/event8
+>> † Device Files: /dev/input/event8, /dev/char/13:72,
+>> /dev/input/by-id/usb-LG_Innotek_LG_Webcam_1.3.2.1.7-event-if00,
+>> /dev/input/by-path/pci-0000:00:1d.7-usb-0:4:1.0-event
+>> † Device Number: char 13:72
+>> † Speed: 480 Mbps
+>> † Module Alias: "usb:v0C45p62C0d3217dcEFdsc02dp01ic0Eisc01ip00"
+>> † Driver Info #0:
+>> † † Driver Status: uvcvideo is active
+>> † † Driver Activation Cmd: "modprobe uvcvideo"
+>> † Config Status: cfg=no, avail=yes, need=no, active=unknown
+>> † Attached to: #4 (Hub)
+>>
+>>
+>> If there is a scenario you propose me to do to detect from where comes
+>> the problem, I can apply it.
+>
+> Could you please post the messages printed by the uvcvideo driver and USB core
+> to the kernel log when you suspend and resume your system ? Thanks.
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
