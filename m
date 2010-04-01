@@ -1,440 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:52168 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757778Ab0DOVqQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Apr 2010 17:46:16 -0400
-Subject: [PATCH 3/8] ir-core: Add Sony support to ir-core
-To: mchehab@redhat.com
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org
-Date: Thu, 15 Apr 2010 23:46:10 +0200
-Message-ID: <20100415214610.14142.85260.stgit@localhost.localdomain>
-In-Reply-To: <20100415214520.14142.56114.stgit@localhost.localdomain>
-References: <20100415214520.14142.56114.stgit@localhost.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:21379 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751562Ab0DAO70 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 10:59:26 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=us-ascii
+Received: from eu_spt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0L0700BZQDMZXT80@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 01 Apr 2010 15:59:23 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L0700CJVDMZWY@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 01 Apr 2010 15:59:23 +0100 (BST)
+Date: Thu, 01 Apr 2010 16:57:24 +0200
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: [RFC] Non-FIFO waiting on buffers in videobuf
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <004501cad1ab$a350ba30$e9f22e90$%osciak@samsung.com>
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a Sony12/15/20 decoder to ir-core.
+Hello,
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
----
- drivers/media/IR/Kconfig           |    9 +
- drivers/media/IR/Makefile          |    1 
- drivers/media/IR/ir-core-priv.h    |    7 +
- drivers/media/IR/ir-raw-event.c    |    1 
- drivers/media/IR/ir-sony-decoder.c |  312 ++++++++++++++++++++++++++++++++++++
- drivers/media/IR/ir-sysfs.c        |    4 
- 6 files changed, 334 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/IR/ir-sony-decoder.c
+we would like to propose a change to how videobuf handles the process
+of waking up buffers, to allow returning them to userspace in a different
+order than FIFO, if a driver (device) so requires.
 
-diff --git a/drivers/media/IR/Kconfig b/drivers/media/IR/Kconfig
-index 179e4c3..25e10b5 100644
---- a/drivers/media/IR/Kconfig
-+++ b/drivers/media/IR/Kconfig
-@@ -45,3 +45,12 @@ config IR_JVC_DECODER
- 	---help---
- 	   Enable this option if you have an infrared remote control which
- 	   uses the JVC protocol, and you need software decoding support.
-+
-+config IR_SONY_DECODER
-+	tristate "Enable IR raw decoder for the Sony protocol"
-+	depends on IR_CORE
-+	default y
-+
-+	---help---
-+	   Enable this option if you have an infrared remote control which
-+	   uses the Sony protocol, and you need software decoding support.
-diff --git a/drivers/media/IR/Makefile b/drivers/media/IR/Makefile
-index 8d0098f..a12ee37 100644
---- a/drivers/media/IR/Makefile
-+++ b/drivers/media/IR/Makefile
-@@ -9,3 +9,4 @@ obj-$(CONFIG_IR_NEC_DECODER) += ir-nec-decoder.o
- obj-$(CONFIG_IR_RC5_DECODER) += ir-rc5-decoder.o
- obj-$(CONFIG_IR_RC6_DECODER) += ir-rc6-decoder.o
- obj-$(CONFIG_IR_JVC_DECODER) += ir-jvc-decoder.o
-+obj-$(CONFIG_IR_SONY_DECODER) += ir-sony-decoder.o
-diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
-index 4b1a21d..04962a6 100644
---- a/drivers/media/IR/ir-core-priv.h
-+++ b/drivers/media/IR/ir-core-priv.h
-@@ -118,4 +118,11 @@ void ir_raw_init(void);
- #define load_jvc_decode()	0
- #endif
- 
-+/* from ir-sony-decoder.c */
-+#ifdef CONFIG_IR_SONY_DECODER_MODULE
-+#define load_sony_decode()	request_module("ir-sony-decoder")
-+#else
-+#define load_sony_decode()	0
-+#endif
-+
- #endif /* _IR_RAW_EVENT */
-diff --git a/drivers/media/IR/ir-raw-event.c b/drivers/media/IR/ir-raw-event.c
-index 7eef6bf..ea68a3f 100644
---- a/drivers/media/IR/ir-raw-event.c
-+++ b/drivers/media/IR/ir-raw-event.c
-@@ -234,6 +234,7 @@ static void init_decoders(struct work_struct *work)
- 	load_rc5_decode();
- 	load_rc6_decode();
- 	load_jvc_decode();
-+	load_sony_decode();
- 
- 	/* If needed, we may later add some init code. In this case,
- 	   it is needed to change the CONFIG_MODULE test at ir-core.h
-diff --git a/drivers/media/IR/ir-sony-decoder.c b/drivers/media/IR/ir-sony-decoder.c
-new file mode 100644
-index 0000000..9f440c5
---- /dev/null
-+++ b/drivers/media/IR/ir-sony-decoder.c
-@@ -0,0 +1,312 @@
-+/* ir-sony-decoder.c - handle Sony IR Pulse/Space protocol
-+ *
-+ * Copyright (C) 2010 by David Härdeman <david@hardeman.nu>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation version 2 of the License.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/bitrev.h>
-+#include "ir-core-priv.h"
-+
-+#define SONY_UNIT		600000 /* ns */
-+#define SONY_HEADER_PULSE	(4 * SONY_UNIT)
-+#define	SONY_HEADER_SPACE	(1 * SONY_UNIT)
-+#define SONY_BIT_0_PULSE	(1 * SONY_UNIT)
-+#define SONY_BIT_1_PULSE	(2 * SONY_UNIT)
-+#define SONY_BIT_SPACE		(1 * SONY_UNIT)
-+#define SONY_TRAILER_SPACE	(10 * SONY_UNIT) /* minimum */
-+
-+/* Used to register sony_decoder clients */
-+static LIST_HEAD(decoder_list);
-+static DEFINE_SPINLOCK(decoder_lock);
-+
-+enum sony_state {
-+	STATE_INACTIVE,
-+	STATE_HEADER_SPACE,
-+	STATE_BIT_PULSE,
-+	STATE_BIT_SPACE,
-+	STATE_FINISHED,
-+};
-+
-+struct decoder_data {
-+	struct list_head	list;
-+	struct ir_input_dev	*ir_dev;
-+	int			enabled:1;
-+
-+	/* State machine control */
-+	enum sony_state		state;
-+	u32			sony_bits;
-+	unsigned		count;
-+};
-+
-+
-+/**
-+ * get_decoder_data()	- gets decoder data
-+ * @input_dev:	input device
-+ *
-+ * Returns the struct decoder_data that corresponds to a device
-+ */
-+static struct decoder_data *get_decoder_data(struct  ir_input_dev *ir_dev)
-+{
-+	struct decoder_data *data = NULL;
-+
-+	spin_lock(&decoder_lock);
-+	list_for_each_entry(data, &decoder_list, list) {
-+		if (data->ir_dev == ir_dev)
-+			break;
-+	}
-+	spin_unlock(&decoder_lock);
-+	return data;
-+}
-+
-+static ssize_t store_enabled(struct device *d,
-+			     struct device_attribute *mattr,
-+			     const char *buf,
-+			     size_t len)
-+{
-+	unsigned long value;
-+	struct ir_input_dev *ir_dev = dev_get_drvdata(d);
-+	struct decoder_data *data = get_decoder_data(ir_dev);
-+
-+	if (!data)
-+		return -EINVAL;
-+
-+	if (strict_strtoul(buf, 10, &value) || value > 1)
-+		return -EINVAL;
-+
-+	data->enabled = value;
-+
-+	return len;
-+}
-+
-+static ssize_t show_enabled(struct device *d,
-+			     struct device_attribute *mattr, char *buf)
-+{
-+	struct ir_input_dev *ir_dev = dev_get_drvdata(d);
-+	struct decoder_data *data = get_decoder_data(ir_dev);
-+
-+	if (!data)
-+		return -EINVAL;
-+
-+	if (data->enabled)
-+		return sprintf(buf, "1\n");
-+	else
-+	return sprintf(buf, "0\n");
-+}
-+
-+static DEVICE_ATTR(enabled, S_IRUGO | S_IWUSR, show_enabled, store_enabled);
-+
-+static struct attribute *decoder_attributes[] = {
-+	&dev_attr_enabled.attr,
-+	NULL
-+};
-+
-+static struct attribute_group decoder_attribute_group = {
-+	.name	= "sony_decoder",
-+	.attrs	= decoder_attributes,
-+};
-+
-+/**
-+ * ir_sony_decode() - Decode one Sony pulse or space
-+ * @input_dev:	the struct input_dev descriptor of the device
-+ * @ev:         the struct ir_raw_event descriptor of the pulse/space
-+ *
-+ * This function returns -EINVAL if the pulse violates the state machine
-+ */
-+static int ir_sony_decode(struct input_dev *input_dev, struct ir_raw_event ev)
-+{
-+	struct decoder_data *data;
-+	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
-+	u32 scancode;
-+	u8 device, subdevice, function;
-+
-+	data = get_decoder_data(ir_dev);
-+	if (!data)
-+		return -EINVAL;
-+
-+	if (!data->enabled)
-+		return 0;
-+
-+	if (IS_RESET(ev)) {
-+		data->state = STATE_INACTIVE;
-+		return 0;
-+	}
-+
-+	if (!geq_margin(ev.duration, SONY_UNIT, SONY_UNIT / 2))
-+		goto out;
-+
-+	IR_dprintk(2, "Sony decode started at state %d (%uus %s)\n",
-+		   data->state, TO_US(ev.duration), TO_STR(ev.pulse));
-+
-+	switch (data->state) {
-+
-+	case STATE_INACTIVE:
-+		if (!ev.pulse)
-+			break;
-+
-+		if (!eq_margin(ev.duration, SONY_HEADER_PULSE, SONY_UNIT / 2))
-+			break;
-+
-+		data->count = 0;
-+		data->state = STATE_HEADER_SPACE;
-+		return 0;
-+
-+	case STATE_HEADER_SPACE:
-+		if (ev.pulse)
-+			break;
-+
-+		if (!eq_margin(ev.duration, SONY_HEADER_SPACE, SONY_UNIT / 2))
-+			break;
-+
-+		data->state = STATE_BIT_PULSE;
-+		return 0;
-+
-+	case STATE_BIT_PULSE:
-+		if (!ev.pulse)
-+			break;
-+
-+		data->sony_bits <<= 1;
-+		if (eq_margin(ev.duration, SONY_BIT_1_PULSE, SONY_UNIT / 2))
-+			data->sony_bits |= 1;
-+		else if (!eq_margin(ev.duration, SONY_BIT_0_PULSE, SONY_UNIT / 2))
-+			break;
-+
-+		data->count++;
-+		data->state = STATE_BIT_SPACE;
-+		return 0;
-+
-+	case STATE_BIT_SPACE:
-+		if (ev.pulse)
-+			break;
-+
-+		if (!geq_margin(ev.duration, SONY_BIT_SPACE, SONY_UNIT / 2))
-+			break;
-+
-+		decrease_duration(&ev, SONY_BIT_SPACE);
-+
-+		if (!geq_margin(ev.duration, SONY_UNIT, SONY_UNIT / 2)) {
-+			data->state = STATE_BIT_PULSE;
-+			return 0;
-+		}
-+
-+		data->state = STATE_FINISHED;
-+		/* Fall through */
-+
-+	case STATE_FINISHED:
-+		if (ev.pulse)
-+			break;
-+
-+		if (!geq_margin(ev.duration, SONY_TRAILER_SPACE, SONY_UNIT / 2))
-+			break;
-+
-+		switch (data->count) {
-+		case 12:
-+			device    = bitrev8((data->sony_bits <<  3) & 0xF8);
-+			subdevice = 0;
-+			function  = bitrev8((data->sony_bits >>  4) & 0xFE);
-+			break;
-+		case 15:
-+			device    = bitrev8((data->sony_bits >>  0) & 0xFF);
-+			subdevice = 0;
-+			function  = bitrev8((data->sony_bits >>  7) & 0xFD);
-+			break;
-+		case 20:
-+			device    = bitrev8((data->sony_bits >>  5) & 0xF8);
-+			subdevice = bitrev8((data->sony_bits >>  0) & 0xFF);
-+			function  = bitrev8((data->sony_bits >> 12) & 0xFE);
-+			break;
-+		default:
-+			IR_dprintk(1, "Sony invalid bitcount %u\n", data->count);
-+			goto out;
-+		}
-+
-+		scancode = device << 16 | subdevice << 8 | function;
-+		IR_dprintk(1, "Sony(%u) scancode 0x%05x\n", data->count, scancode);
-+		ir_keydown(input_dev, scancode, 0);
-+		data->state = STATE_INACTIVE;
-+		return 0;
-+	}
-+
-+out:
-+	IR_dprintk(1, "Sony decode failed at state %d (%uus %s)\n",
-+		   data->state, TO_US(ev.duration), TO_STR(ev.pulse));
-+	data->state = STATE_INACTIVE;
-+	return -EINVAL;
-+}
-+
-+static int ir_sony_register(struct input_dev *input_dev)
-+{
-+	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
-+	struct decoder_data *data;
-+	int rc;
-+
-+	rc = sysfs_create_group(&ir_dev->dev.kobj, &decoder_attribute_group);
-+	if (rc < 0)
-+		return rc;
-+
-+	data = kzalloc(sizeof(*data), GFP_KERNEL);
-+	if (!data) {
-+		sysfs_remove_group(&ir_dev->dev.kobj, &decoder_attribute_group);
-+		return -ENOMEM;
-+	}
-+
-+	data->ir_dev = ir_dev;
-+	data->enabled = 1;
-+
-+	spin_lock(&decoder_lock);
-+	list_add_tail(&data->list, &decoder_list);
-+	spin_unlock(&decoder_lock);
-+
-+	return 0;
-+}
-+
-+static int ir_sony_unregister(struct input_dev *input_dev)
-+{
-+	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
-+	static struct decoder_data *data;
-+
-+	data = get_decoder_data(ir_dev);
-+	if (!data)
-+		return 0;
-+
-+	sysfs_remove_group(&ir_dev->dev.kobj, &decoder_attribute_group);
-+
-+	spin_lock(&decoder_lock);
-+	list_del(&data->list);
-+	spin_unlock(&decoder_lock);
-+
-+	return 0;
-+}
-+
-+static struct ir_raw_handler sony_handler = {
-+	.decode		= ir_sony_decode,
-+	.raw_register	= ir_sony_register,
-+	.raw_unregister	= ir_sony_unregister,
-+};
-+
-+static int __init ir_sony_decode_init(void)
-+{
-+	ir_raw_handler_register(&sony_handler);
-+
-+	printk(KERN_INFO "IR Sony protocol handler initialized\n");
-+	return 0;
-+}
-+
-+static void __exit ir_sony_decode_exit(void)
-+{
-+	ir_raw_handler_unregister(&sony_handler);
-+}
-+
-+module_init(ir_sony_decode_init);
-+module_exit(ir_sony_decode_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("David Härdeman <david@hardeman.nu>");
-+MODULE_DESCRIPTION("Sony IR protocol decoder");
-diff --git a/drivers/media/IR/ir-sysfs.c b/drivers/media/IR/ir-sysfs.c
-index 8e2751e..dfd45fa 100644
---- a/drivers/media/IR/ir-sysfs.c
-+++ b/drivers/media/IR/ir-sysfs.c
-@@ -64,6 +64,8 @@ static ssize_t show_protocol(struct device *d,
- 		s = "rc6";
- 	else if (ir_type == IR_TYPE_JVC)
- 		s = "jvc";
-+	else if (ir_type == IR_TYPE_SONY)
-+		s = "sony";
- 	else
- 		s = "other";
- 
-@@ -103,6 +105,8 @@ static ssize_t store_protocol(struct device *d,
- 			ir_type |= IR_TYPE_NEC;
- 		if (!strcasecmp(buf, "jvc"))
- 			ir_type |= IR_TYPE_JVC;
-+		if (!strcasecmp(buf, "sony"))
-+			ir_type |= IR_TYPE_SONY;
- 	}
- 
- 	if (!ir_type) {
-diff --git a/include/media/rc-map.h b/include/media/rc-map.h
-index 214f072..67af24e 100644
---- a/include/media/rc-map.h
-+++ b/include/media/rc-map.h
-@@ -17,6 +17,7 @@
- #define IR_TYPE_NEC	(1  << 2)
- #define IR_TYPE_RC6	(1  << 3)	/* Philips RC6 protocol */
- #define IR_TYPE_JVC	(1  << 4)	/* JVC protocol */
-+#define IR_TYPE_SONY	(1  << 5)	/* Sony12/15/20 protocol */
- #define IR_TYPE_OTHER	(1u << 31)
- 
- struct ir_scancode {
+Currently, when poll() or dqbuf() is called, videobuf takes the first
+(i.e. first qbuf()-ed) buffer from the stream queue and waits for it
+to change its state (if it has not changed already).
+
+In other words, it is assumed that buffers are consumed in FIFO order
+and that they should be dequeued in that order as well.
+
+It would be essential for some of our devices though, particularly video
+codecs, to allow dequeuing buffers not only in FIFO order, but just any
+buffer that has been consumed. Video codecs may need to hold some buffers
+(usually keyframes) for longer periods of time than others.
+
+Moreover, there is no way in V4L2 API to wait for a particular buffer.
+According to it, buffer index in v4l2_buffer has and can only be filled
+by a driver anyway. So switching to waiting for any buffer - instead of
+for the first one - is not a breach of V4L2 API. 
+
+And unless I am missing something, since videobuf always uses the first
+buffer, why have separate queues in each? Drivers could use any other way
+to indicate that they are finished with the particular buffer instead of
+waking up their queues (actually, they are already - by marking them with
+VIDEOBUF_ERROR or VIDEOBUF_DONE). So the current method seems superfluous.
+
+I am not really fond of the way in which drivers have to finish operations
+on buffers at the moment anyway. Normally, it is done in a way similar to:
+
+
+/* buf points to the buffer to be returned */
+spin_lock_irqsave(irqlock, ...);
+
+/* take buf off of driver's queue */
+list_del(&buf->vb.queue);
+
+buf->vb.state = VIDEOBUF_DONE; /* or VIDEOBUF_ERROR */
+wake_up(&buf->vb.done);
+
+spin_unlock_irqrestore(irqlock, ...);
+
+
+Wouldn't it be more clear if drivers called some kind of a finish()
+function in videobuf instead, which would mark the buffers as DONE/ERROR
+and wake them up? I am not convinced that drivers have to be aware of
+the videobuf's internal buffer waking mechanism... I believe they normally
+just want to signal that they are finished with this particular buffer
+while optionally indicating an error. Wouldn't it be better to move the
+actual waking logic to videobuf? Not only it would simplify the drivers,
+but would allow to introduce changes/improvements to the whole process of
+waking up more easily, without having to modify all the drivers.
+
+
+Our first idea and a preliminary proposal is as follows:
+
+1. Add one, additional, general buffer wait queue to a videobuf_queue,
+on which poll and dqbuf would actually wait.
+
+2. When a driver is to release a buffer, it could call a videobuf function
+(instead of waking buffers manually), which could handle whatever would be
+required to return this buffer to the userspace. That would include waking
+up process(es) waiting on the main queue in dqbuf() or poll().
+
+
+All the abovementioned arguments aside, I kind of feel that there may have
+been a good reason for having separate queues in each buffer, instead of
+just one, common queue. If so, is anybody able to point it out?
+
+
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
+
 
