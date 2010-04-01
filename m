@@ -1,97 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ppsw-6.csi.cam.ac.uk ([131.111.8.136]:39820 "EHLO
-	ppsw-6.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755868Ab0DFQQv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Apr 2010 12:16:51 -0400
-Message-ID: <4BBB5F12.5040102@cam.ac.uk>
-Date: Tue, 06 Apr 2010 17:19:30 +0100
-From: Jonathan Cameron <jic23@cam.ac.uk>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3099 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757544Ab0DARhL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 13:37:11 -0400
+Received: from tschai.localnet (cm-84.208.87.21.getinternet.no [84.208.87.21])
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id o31Hb9Ju036619
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 1 Apr 2010 19:37:09 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [RFC] Serialization flag example
+Date: Thu, 1 Apr 2010 19:37:39 +0200
 MIME-Version: 1.0
-To: Mike Isely <isely@isely.net>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: RFC: exposing controls in sysfs
-References: <201004052347.10845.hverkuil@xs4all.nl> <201004060012.48261.hverkuil@xs4all.nl> <alpine.DEB.1.10.1004060933550.27169@cnc.isely.net>
-In-Reply-To: <alpine.DEB.1.10.1004060933550.27169@cnc.isely.net>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201004011937.39331.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/06/10 15:41, Mike Isely wrote:
-> On Tue, 6 Apr 2010, Hans Verkuil wrote:
-> 
->    [...]
-> 
->>
->> One thing that might be useful is to prefix the name with the control class
->> name. E.g. hue becomes user_hue and audio_crc becomes mpeg_audio_crc. It would
->> groups them better. Or one could make a controls/user and controls/mpeg
->> directory. That might not be such a bad idea actually.
-> 
-> I agree with grouping in concept, and using subdirectories is not a bad 
-> thing.  Probably however you'd want to ensure that in the end all the 
-> controls end up logically at the same depth in the tree.
-> 
-> 
->    [...]
-> 
->>
->> An in between solution would be to add _type files. So you would have 
->> 'hue' and 'hue_type'. 'cat hue_type' would give something like:
->>
->> int 0 255 1 128 0x0000 Hue
->>
->> In other words 'type min max step flags name'.
-> 
-> There was I thought at some point in the past a kernel policy that sysfs 
-> controls were supposed to limit themselves to one value per node.
-It's usually considered to be one 'conceptual' value per node, though
-this falls fowl of that rule too.  So you could have one file with a list
-of possible values, or even one for say hue_range 0...255 but people are
-going to through a wobbly about antyhing with as much data in it as above.
+I made a quick implementation which is available here:
 
-The debate on this was actually pretty well covered in an lwn article the
-other week. http://lwn.net/Articles/378884/
+http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-serialize
 
-So the above hue type would probably need:
+It's pretty easy to use and it also gives you a very simple way to block
+access to the video device nodes until all have been allocated by simply
+taking the serialization lock and holding it until we are done with the
+initialization.
 
-hue_type (int)
-hue_range (0...255)
-hue_step (1)
-hue_flags (128)
-hue_name (Hue)
+I converted radio-mr800.c and ivtv.
 
-Of those, hue_name doesn't in this case tell us anything and hue_step could
-be suppressed as an obvious default.  It could be argued that parts of the
-above could be considered a single 'conceptual' value but I don't think the
-whole can be.  The reasoning behind this  (and it is definitely true with
-your above example) is that sysfs should be human readable without needing
-to reach for the documentation.
-> 
->>
->> And for menu controls like stream_type (hmm, that would become 
->> stream_type_type...) you would get:
->>
->> menu 0 5 1 0 Stream Type
+That said, almost all drivers that register multiple device nodes probably
+suffer from a race condition when one of the device node registrations
+returns an error and all devices have to be unregistered and the driver
+needs to release all resources.
 
->> MPEG-2 Program Stream
->>
->> MPEG-1 System Stream
->> MPEG-2 DVD-compatible Stream
->> MPEG-1 VCD-compatible Stream
->> MPEG-2 SVCD-compatible Stream
->>
->> Note the empty line to denote the unsupported menu item (transport stream).
->>
->> This would give the same information with just a single extra file. Still not
->> sure whether it is worth it though.
-> 
-> Just remember that the more complex / subtle you make the node contents, 
-> then the more parsing will be required for any program that tries to use 
-> it.  I also think it's probably a bad idea for example to define a 
-> format where the whitespace conveys additional information.  The case 
-> where I've seen whitespace as part of the syntax actually work cleanly 
-> is in Python.
-> 
-> 
+Currently most if not all drivers just release resources and free the memory.
+But if an application managed to open one device before the driver removes it
+again, then we have almost certainly a crash.
 
+It is possible to do this correctly in the driver, but it really needs core
+support where a release callback can be installed in v4l2_device that is
+called when the last video_device is closed by the application.
+
+We already can cleanup correctly after the last close of a video_device, but
+there is no top-level release yet.
+
+
+Anyway, I tried to use the serialization flag in bttv as well, but I ran into
+problems with videobuf. Basically when you need to wait for some event you
+should release the serialization lock and grab it after the event arrives.
+
+Unfortunately videobuf has no access to v4l2_device at the moment. If we would
+have that, then videobuf can just release the serialization lock while waiting
+for something to happen.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
