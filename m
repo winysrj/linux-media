@@ -1,62 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:33431 "EHLO mail1.radix.net"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47366 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751444Ab0DIWNe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 Apr 2010 18:13:34 -0400
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR  system?
-From: Andy Walls <awalls@radix.net>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	James Hogan <james@albanarts.com>,
-	Jon Smirl <jonsmirl@gmail.com>, Pavel Machek <pavel@ucw.cz>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Christoph Bartelmus <lirc@bartelmus.de>, j@jannau.net,
-	jarod@redhat.com, jarod@wilsonet.com, kraxel@redhat.com,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, superm1@ubuntu.com
-In-Reply-To: <g2k829197381004091455m20368cc6r63df4a4f00d36b45@mail.gmail.com>
-References: <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
-	 <9e4733910912151338n62b30af5i35f8d0963e6591c@mail.gmail.com>
-	 <4BAB7659.1040408@redhat.com> <201004090821.10435.james@albanarts.com>
-	 <1270810226.3764.34.camel@palomino.walls.org> <4BBF253A.8030406@redhat.com>
-	 <g2k829197381004091455m20368cc6r63df4a4f00d36b45@mail.gmail.com>
-Content-Type: text/plain
-Date: Fri, 09 Apr 2010 18:14:00 -0400
-Message-Id: <1270851240.3038.51.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	id S1754193Ab0DAIUe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 1 Apr 2010 04:20:34 -0400
+From: hvaibhav@ti.com
+To: p.osciak@samsung.com
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH 1/2] v4l2-mem2mem: Code cleanup
+Date: Thu,  1 Apr 2010 13:50:24 +0530
+Message-Id: <1270110025-1854-1-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2010-04-09 at 17:55 -0400, Devin Heitmueller wrote:
-> On Fri, Apr 9, 2010 at 9:01 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
-> > [1] Basically, a keycode (like KEY_POWER) could be used to wake up the machine. So, by
-> > associating some scancode to KEY_POWER via ir-core, the driver can program the hardware
-> > to wake up the machine with the corresponding scancode. I can't see a need for a change at
-> > ir-core to implement such behavior. Of course, some attributes at sysfs can be added
-> > to enable or disable this feature, and to control the associated logic, but we first
-> > need to implement the wakeup feature at the hardware driver, and then adding some logic
-> > at ir-core to add the non-hardware specific code there.
-> 
-> Really?  Have you actually seen any hardware where a particular scan
-> code can be used to wake up the hardware?  The only hardware I have
-> seen has the ability to unsuspend on arrival of IR traffic, but you
-> didn't have the granularity to dictate that it only wake up on
-> particular scancodes.
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-The CX23888 and CX23102 can do it.  Basically any IR pulse pattern your
-heart desires; within reason.  And any carrier freq you want too; within
-reason.
 
-But let's be real, the cx23885, cx231xx, and cx25840 modules are nowhere
-near properly supporing suspend/resume for their main video and DMA
-functions, AFAIK.
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ drivers/media/video/v4l2-mem2mem.c |   40 ++++++++++++++---------------------
+ 1 files changed, 16 insertions(+), 24 deletions(-)
 
-Regards,
-Andy
-
+diff --git a/drivers/media/video/v4l2-mem2mem.c b/drivers/media/video/v4l2-mem2mem.c
+index a78157f..4cd79ba 100644
+--- a/drivers/media/video/v4l2-mem2mem.c
++++ b/drivers/media/video/v4l2-mem2mem.c
+@@ -23,12 +23,12 @@ MODULE_DESCRIPTION("Mem to mem device framework for videobuf");
+ MODULE_AUTHOR("Pawel Osciak, <p.osciak@samsung.com>");
+ MODULE_LICENSE("GPL");
+ 
+-static int debug;
+-module_param(debug, int, 0644);
++static bool debug;
++module_param(debug, bool, 0644);
+ 
+ #define dprintk(fmt, arg...)						\
+ 	do {								\
+-		if (debug >= 1)						\
++		if (debug)						\
+ 			printk(KERN_DEBUG "%s: " fmt, __func__, ## arg);\
+ 	} while (0)
+ 
+@@ -215,12 +215,10 @@ EXPORT_SYMBOL(v4l2_m2m_dst_buf_remove);
+ void *v4l2_m2m_get_curr_priv(struct v4l2_m2m_dev *m2m_dev)
+ {
+ 	unsigned long flags;
+-	void *ret;
++	void *ret = NULL;
+ 
+ 	spin_lock_irqsave(&m2m_dev->job_spinlock, flags);
+-	if (!m2m_dev->curr_ctx)
+-		ret = NULL;
+-	else
++	if (m2m_dev->curr_ctx)
+ 		ret = m2m_dev->curr_ctx->priv;
+ 	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
+ 
+@@ -319,10 +317,9 @@ static void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+ 		return;
+ 	}
+ 
+-	if (!(m2m_ctx->job_flags & TRANS_QUEUED)) {
+-		list_add_tail(&m2m_ctx->queue, &m2m_dev->jobqueue);
+-		m2m_ctx->job_flags |= TRANS_QUEUED;
+-	}
++	list_add_tail(&m2m_ctx->queue, &m2m_dev->jobqueue);
++	m2m_ctx->job_flags |= TRANS_QUEUED;
++
+ 	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+ 
+ 	v4l2_m2m_try_run(m2m_dev);
+@@ -414,12 +411,10 @@ int v4l2_m2m_qbuf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ 
+ 	vq = v4l2_m2m_get_vq(m2m_ctx, buf->type);
+ 	ret = videobuf_qbuf(vq, buf);
+-	if (ret)
+-		return ret;
+-
+-	v4l2_m2m_try_schedule(m2m_ctx);
++	if (!ret)
++		v4l2_m2m_try_schedule(m2m_ctx);
+ 
+-	return 0;
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_m2m_qbuf);
+ 
+@@ -448,12 +443,10 @@ int v4l2_m2m_streamon(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ 
+ 	vq = v4l2_m2m_get_vq(m2m_ctx, type);
+ 	ret = videobuf_streamon(vq);
+-	if (ret)
+-		return ret;
+-
+-	v4l2_m2m_try_schedule(m2m_ctx);
++	if (!ret)
++		v4l2_m2m_try_schedule(m2m_ctx);
+ 
+-	return 0;
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_m2m_streamon);
+ 
+@@ -587,8 +580,7 @@ struct v4l2_m2m_ctx *v4l2_m2m_ctx_init(void *priv, struct v4l2_m2m_dev *m2m_dev,
+ 					enum v4l2_buf_type))
+ {
+ 	struct v4l2_m2m_ctx *m2m_ctx;
+-	struct v4l2_m2m_queue_ctx *out_q_ctx;
+-	struct v4l2_m2m_queue_ctx *cap_q_ctx;
++	struct v4l2_m2m_queue_ctx *out_q_ctx, *cap_q_ctx;
+ 
+ 	if (!vq_init)
+ 		return ERR_PTR(-EINVAL);
+@@ -662,7 +654,7 @@ EXPORT_SYMBOL_GPL(v4l2_m2m_ctx_release);
+ /**
+  * v4l2_m2m_buf_queue() - add a buffer to the proper ready buffers list.
+  *
+- * Call from withing buf_queue() videobuf_queue_ops callback.
++ * Call from buf_queue(), videobuf_queue_ops callback.
+  *
+  * Locking: Caller holds q->irqlock (taken by videobuf before calling buf_queue
+  * callback in the driver).
+-- 
+1.6.2.4
 
