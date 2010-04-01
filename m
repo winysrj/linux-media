@@ -1,67 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49929 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753146Ab0DFSSO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Apr 2010 14:18:14 -0400
-Received: from int-mx04.intmail.prod.int.phx2.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.17])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o36IIEvd022073
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 6 Apr 2010 14:18:14 -0400
-Date: Tue, 6 Apr 2010 15:18:01 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: linux-media@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 13/26] V4L/DVB: saa7134: Add support for both positive and
- negative edge IRQ
-Message-ID: <20100406151801.642ec970@pedra>
-In-Reply-To: <cover.1270577768.git.mchehab@redhat.com>
-References: <cover.1270577768.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2533 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751562Ab0DAVGT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 17:06:19 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: V4L-DVB drivers and BKL
+Date: Thu, 1 Apr 2010 23:06:31 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+References: <201004011001.10500.hverkuil@xs4all.nl> <4BB4D9AB.6070907@redhat.com> <g2q829197381004011129lc706e6c3jcac6dcc756012173@mail.gmail.com>
+In-Reply-To: <g2q829197381004011129lc706e6c3jcac6dcc756012173@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201004012306.31471.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The code that enables IRQ for the Remote Controller on saa7134 is a little
-messy: it is outside saa7134-input, it checks if RC is GPIO based, and
-it mixes both serial raw decode with parallel reads from a hardware-based
-IR decoder.
+On Thursday 01 April 2010 20:29:52 Devin Heitmueller wrote:
+> On Thu, Apr 1, 2010 at 1:36 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+> > If you take a look at em28xx-dvb, it is not lock-protected. If the bug is due
+> > to the async load, we'll need to add the same locking at *alsa and *dvb
+> > parts of em28xx.
+> 
+> Yes, that is correct.  The problem effects both dvb and alsa, although
+> empirically it is more visible with the dvb case.
+> 
+> > Yet, in this specific case, as the errors are due to the reception of
+> > wrong data from tvp5150, maybe the problem is due to the lack of a
+> > proper lock at the i2c access.
+> 
+> The problem is because hald sees the new device and is making v4l2
+> calls against the tvp5150 even though the gpio has been toggled over
+> to digital mode.  Hence an i2c lock won't help.  We would need to
+> implement proper locking of analog versus digital mode, which
+> unfortunately would either result in hald getting back -EBUSY on open
+> of the V4L device or the DVB module loading being deferred while the
+> v4l side of the board is in use (neither of which is a very good
+> solution).
+> 
+> This is what got me thinking a few weeks ago that perhaps the
+> submodules should not be loaded asynchronously.  In that case, at
+> least the main em28xx module could continue to hold the lock while the
+> submodules are still being loaded.
 
-Also, currently, it doesn't allow to trigger both transition edges at GPIO16
-and GPIO18 lines. A rework on the code is needed to provide a better way
-to specify what saa7134-input needs, maybe even moving part of the code from
-saa7134-core and saa7134-cards into saa7134-input.
+What was the reason behind the asynchronous loading? In general it simplifies
+things a lot if you load modules up front.
 
-Yet, as a large rework is happening at RC core, it is better to wait until
-the core changes stablize, in order to rework saa7134 RC internals.While
-this don't happen, let's just change the logic a little bit to allow
-enabling IRQ to be generated on both edge transitions, in order to better
-support pulse/space raw decoders.
+Regards,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+	Hans
 
-diff --git a/drivers/media/video/saa7134/saa7134-core.c b/drivers/media/video/saa7134/saa7134-core.c
-index 0612fff..90f2318 100644
---- a/drivers/media/video/saa7134/saa7134-core.c
-+++ b/drivers/media/video/saa7134/saa7134-core.c
-@@ -701,10 +701,12 @@ static int saa7134_hw_enable2(struct saa7134_dev *dev)
- 	if (dev->has_remote == SAA7134_REMOTE_GPIO && dev->remote) {
- 		if (dev->remote->mask_keydown & 0x10000)
- 			irq2_mask |= SAA7134_IRQ2_INTE_GPIO16_N;
--		else if (dev->remote->mask_keydown & 0x40000)
--			irq2_mask |= SAA7134_IRQ2_INTE_GPIO18_P;
--		else if (dev->remote->mask_keyup & 0x40000)
--			irq2_mask |= SAA7134_IRQ2_INTE_GPIO18_N;
-+		else {		/* Allow enabling both IRQ edge triggers */
-+			if (dev->remote->mask_keydown & 0x40000)
-+				irq2_mask |= SAA7134_IRQ2_INTE_GPIO18_P;
-+			if (dev->remote->mask_keyup & 0x40000)
-+				irq2_mask |= SAA7134_IRQ2_INTE_GPIO18_N;
-+		}
- 	}
- 
- 	if (dev->has_remote == SAA7134_REMOTE_I2C) {
+> 
+> Devin
+> 
+> 
+
 -- 
-1.6.6.1
-
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
