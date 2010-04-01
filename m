@@ -1,40 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ppsw-43.csi.cam.ac.uk ([131.111.8.143]:39777 "EHLO
-	ppsw-43.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753226Ab0DPK3R (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Apr 2010 06:29:17 -0400
-Message-ID: <4BC836FD.8010301@cam.ac.uk>
-Date: Fri, 16 Apr 2010 11:07:57 +0100
-From: Jonathan Cameron <jic23@cam.ac.uk>
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:45679 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757889Ab0DAQ6h convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 12:58:37 -0400
+Received: by bwz1 with SMTP id 1so999002bwz.21
+        for <linux-media@vger.kernel.org>; Thu, 01 Apr 2010 09:58:35 -0700 (PDT)
 MIME-Version: 1.0
-To: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: pxa_camera + ov9655: image shifted on first capture after reset
-References: <4BC81EEF.3000107@hni.uni-paderborn.de>
-In-Reply-To: <4BC81EEF.3000107@hni.uni-paderborn.de>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4BB4B569.3080608@redhat.com>
+References: <201004011001.10500.hverkuil@xs4all.nl>
+	 <201004011411.02344.laurent.pinchart@ideasonboard.com>
+	 <4BB4A9E2.9090706@redhat.com> <201004011642.19889.hverkuil@xs4all.nl>
+	 <4BB4B569.3080608@redhat.com>
+Date: Thu, 1 Apr 2010 12:58:28 -0400
+Message-ID: <x2y829197381004010958u82deb516if189d4fb00fbc5e6@mail.gmail.com>
+Subject: Re: V4L-DVB drivers and BKL
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/16/10 09:25, Stefan Herbrechtsmeier wrote:
-> Hi,
-> 
-> I have updated my ov9655 driver to kernel 2.6.33 and
-> did some test regarding the image shift problem on pxa.
-> (http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/10773/focus=11810)
-> 
-> 
-> - The image was shifted 32 pixels (64 bytes) to the right
->  or rather the first 32 pixels belongs to the previous image.
-> - The image was only shifted on the first capture after reset.
->   It doesn't matter whether I previous change the resolution with v4l2-ctl.
-> - On big images (1280 x 1024) the shift disappears after some images,
->   but not on small images (320 x 240).
-> 
-> It looks like the FIFO was not cleared at start capture.
-> 
-Sounds reasonable.  Similar problem seen with ov7670 attached to pxa271.
-I've never taken the time to try and track it down.
+On Thu, Apr 1, 2010 at 11:02 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> I remember I had to do it on em28xx:
+>
+> This is the init code for it:
+>        ...
+>        mutex_init(&dev->lock);
+>        mutex_lock(&dev->lock);
+>        em28xx_init_dev(&dev, udev, interface, nr);
+>        ...
+>        request_modules(dev);
+>
+>        /* Should be the last thing to do, to avoid newer udev's to
+>           open the device before fully initializing it
+>         */
+>        mutex_unlock(&dev->lock);
+>        ...
+>
+> And this is the open code:
+>
+> static int em28xx_v4l2_open(struct file *filp)
+> {
+>        ...
+>        mutex_lock(&dev->lock);
+>        ...
+>        mutex_unlock(&dev->lock);
+>
+
+It's probably worth noting that this change is actually pretty badly
+broken.  Because the modules are loading asynchronously, there is a
+high probability that the em28xx-dvb driver will still be loading when
+hald connects in to the v4l device.  That's the big reason people
+often see things like tvp5150 i2c errors when the driver is first
+loaded up.
+
+It's a good idea in theory, but pretty fatally flawed due to the async
+loading (as to make it work properly you would have to do something
+like locking the mutex in em28xx and clearing it in em28xx-dvb at the
+end of its initialization).
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
