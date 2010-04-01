@@ -1,59 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:52461 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754792Ab0DAS3y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 14:29:54 -0400
-Received: by bwz1 with SMTP id 1so1063266bwz.21
-        for <linux-media@vger.kernel.org>; Thu, 01 Apr 2010 11:29:53 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4BB4D9AB.6070907@redhat.com>
-References: <201004011001.10500.hverkuil@xs4all.nl>
-	 <201004011411.02344.laurent.pinchart@ideasonboard.com>
-	 <4BB4A9E2.9090706@redhat.com> <201004011642.19889.hverkuil@xs4all.nl>
-	 <4BB4B569.3080608@redhat.com>
-	 <x2y829197381004010958u82deb516if189d4fb00fbc5e6@mail.gmail.com>
-	 <4BB4D9AB.6070907@redhat.com>
-Date: Thu, 1 Apr 2010 14:29:52 -0400
-Message-ID: <g2q829197381004011129lc706e6c3jcac6dcc756012173@mail.gmail.com>
+Received: from perceval.irobotique.be ([92.243.18.41]:58032 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755761Ab0DAMKe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 08:10:34 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
 Subject: Re: V4L-DVB drivers and BKL
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Date: Thu, 1 Apr 2010 14:11:00 +0200
+Cc: linux-media@vger.kernel.org
+References: <201004011001.10500.hverkuil@xs4all.nl> <201004011123.31080.laurent.pinchart@ideasonboard.com> <201004011311.51505.hverkuil@xs4all.nl>
+In-Reply-To: <201004011311.51505.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201004011411.02344.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 1, 2010 at 1:36 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> If you take a look at em28xx-dvb, it is not lock-protected. If the bug is due
-> to the async load, we'll need to add the same locking at *alsa and *dvb
-> parts of em28xx.
+Hi Hans,
 
-Yes, that is correct.  The problem effects both dvb and alsa, although
-empirically it is more visible with the dvb case.
+On Thursday 01 April 2010 13:11:51 Hans Verkuil wrote:
+> On Thursday 01 April 2010 11:23:30 Laurent Pinchart wrote:
+> > On Thursday 01 April 2010 10:01:10 Hans Verkuil wrote:
+> > > Hi all,
+> > > 
+> > > I just read on LWN that the core kernel guys are putting more effort
+> > > into removing the BKL. We are still using it in our own drivers,
+> > > mostly V4L.
+> > > 
+> > > I added a BKL column to my driver list:
+> > > 
+> > > http://www.linuxtv.org/wiki/index.php/V4L_framework_progress#Bridge_Dri
+> > > vers
+> > > 
+> > > If you 'own' one of these drivers that still use BKL, then it would be
+> > > nice if you can try and remove the use of the BKL from those drivers.
+> > > 
+> > > The other part that needs to be done is to move from using the .ioctl
+> > > file op to using .unlocked_ioctl. Very few drivers do that, but I
+> > > suspect almost no driver actually needs to use .ioctl.
+> > 
+> > What about something like this patch as a first step ?
+> 
+> That doesn't fix anything. You just move the BKL from one place to another.
+> I don't see any benefit from that.
 
-> Yet, in this specific case, as the errors are due to the reception of
-> wrong data from tvp5150, maybe the problem is due to the lack of a
-> proper lock at the i2c access.
+Removing the BKL is a long-term project that basically pushes the BKL from 
+core code to subsystems and drivers, and then replace it on a case by case 
+basis. This patch (along with a replacement of lock_kernel/unlock_kernel by a 
+V4L-specific lock) goes into that direction and removes the BKL usage from V4L 
+ioctls. The V4L lock would then need to be pushed into individual drivers. 
 
-The problem is because hald sees the new device and is making v4l2
-calls against the tvp5150 even though the gpio has been toggled over
-to digital mode.  Hence an i2c lock won't help.  We would need to
-implement proper locking of analog versus digital mode, which
-unfortunately would either result in hald getting back -EBUSY on open
-of the V4L device or the DVB module loading being deferred while the
-v4l side of the board is in use (neither of which is a very good
-solution).
-
-This is what got me thinking a few weeks ago that perhaps the
-submodules should not be loaded asynchronously.  In that case, at
-least the main em28xx module could continue to hold the lock while the
-submodules are still being loaded.
-
-Devin
+> > diff --git a/drivers/media/video/v4l2-dev.c
+> > b/drivers/media/video/v4l2-dev.c index 7090699..14e1b1c 100644
+> > --- a/drivers/media/video/v4l2-dev.c
+> > +++ b/drivers/media/video/v4l2-dev.c
+> > @@ -25,6 +25,7 @@
+> > 
+> >  #include <linux/init.h>
+> >  #include <linux/kmod.h>
+> >  #include <linux/slab.h>
+> > 
+> > +#include <linux/smp_lock.h>
+> > 
+> >  #include <asm/uaccess.h>
+> >  #include <asm/system.h>
+> > 
+> > @@ -215,28 +216,22 @@ static unsigned int v4l2_poll(struct file *filp,
+> > struct poll_table_struct *poll)
+> > 
+> >  	return vdev->fops->poll(filp, poll);
+> >  
+> >  }
+> > 
+> > -static int v4l2_ioctl(struct inode *inode, struct file *filp,
+> > -		unsigned int cmd, unsigned long arg)
+> > -{
+> > -	struct video_device *vdev = video_devdata(filp);
+> > -
+> > -	if (!vdev->fops->ioctl)
+> > -		return -ENOTTY;
+> > -	/* Allow ioctl to continue even if the device was unregistered.
+> > -	   Things like dequeueing buffers might still be useful. */
+> > -	return vdev->fops->ioctl(filp, cmd, arg);
+> > -}
+> > -
+> > 
+> >  static long v4l2_unlocked_ioctl(struct file *filp,
+> >  
+> >  		unsigned int cmd, unsigned long arg)
+> >  
+> >  {
+> >  
+> >  	struct video_device *vdev = video_devdata(filp);
+> > 
+> > +	int ret = -ENOTTY;
+> > 
+> > -	if (!vdev->fops->unlocked_ioctl)
+> > -		return -ENOTTY;
+> > 
+> >  	/* Allow ioctl to continue even if the device was unregistered.
+> >  	
+> >  	   Things like dequeueing buffers might still be useful. */
+> > 
+> > -	return vdev->fops->unlocked_ioctl(filp, cmd, arg);
+> > +	if (vdev->fops->ioctl) {
+> > +		lock_kernel();
+> > +		ret = vdev->fops->ioctl(filp, cmd, arg);
+> > +		unlock_kernel();
+> > +	} else if (vdev->fops->unlocked_ioctl)
+> > +		ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
+> > +
+> > +	return ret;
+> > 
+> >  }
+> >  
+> >  #ifdef CONFIG_MMU
+> > 
+> > @@ -323,22 +318,6 @@ static const struct file_operations
+> > v4l2_unlocked_fops = {
+> > 
+> >  	.llseek = no_llseek,
+> >  
+> >  };
+> > 
+> > -static const struct file_operations v4l2_fops = {
+> > -	.owner = THIS_MODULE,
+> > -	.read = v4l2_read,
+> > -	.write = v4l2_write,
+> > -	.open = v4l2_open,
+> > -	.get_unmapped_area = v4l2_get_unmapped_area,
+> > -	.mmap = v4l2_mmap,
+> > -	.ioctl = v4l2_ioctl,
+> > -#ifdef CONFIG_COMPAT
+> > -	.compat_ioctl = v4l2_compat_ioctl32,
+> > -#endif
+> > -	.release = v4l2_release,
+> > -	.poll = v4l2_poll,
+> > -	.llseek = no_llseek,
+> > -};
+> > -
+> > 
+> >  /**
+> >  
+> >   * get_index - assign stream index number based on parent device
+> >   * @vdev: video_device to assign index number to, vdev->parent should be
+> >   assigned
+> > 
+> > @@ -517,10 +496,7 @@ static int __video_register_device(struct
+> > video_device *vdev, int type, int nr,
+> > 
+> >  		ret = -ENOMEM;
+> >  		goto cleanup;
+> >  	
+> >  	}
+> > 
+> > -	if (vdev->fops->unlocked_ioctl)
+> > -		vdev->cdev->ops = &v4l2_unlocked_fops;
+> > -	else
+> > -		vdev->cdev->ops = &v4l2_fops;
+> > +	vdev->cdev->ops = &v4l2_unlocked_fops;
+> > 
+> >  	vdev->cdev->owner = vdev->fops->owner;
+> >  	ret = cdev_add(vdev->cdev, MKDEV(VIDEO_MAJOR, vdev->minor), 1);
+> >  	if (ret < 0) {
+> > 
+> > A second step would be to replace lock_kernel/unlock_kernel with a
+> > V4L-specific lock, and the third step to push the lock into drivers.
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Regards,
+
+Laurent Pinchart
