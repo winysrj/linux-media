@@ -1,92 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48]:58917 "EHLO
-	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754456Ab0C2HmI (ORCPT
+Received: from mail-in-07.arcor-online.net ([151.189.21.47]:42506 "EHLO
+	mail-in-07.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755984Ab0DAAcP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Mar 2010 03:42:08 -0400
-Subject: Re: [PATCH v2 2/10] V4L2 patches for Intel Moorestown Camera
-	Imaging Drivers - part 1
+	Wed, 31 Mar 2010 20:32:15 -0400
+Subject: Re: [PATCH] Fix default state Beholder H6 tuner.
 From: hermann pitton <hermann-pitton@arcor.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Zhu, Daniel" <daniel.zhu@intel.com>,
-	"Yu, Jinlu" <jinlu.yu@intel.com>,
-	"Wang, Wen W" <wen.w.wang@intel.com>,
-	"Huang, Kai" <kai.huang@intel.com>,
-	"Hu, Gang A" <gang.a.hu@intel.com>,
-	"Ba, Zheng" <zheng.ba@intel.com>,
-	Pawel Osciak <p.osciak@samsung.com>
-In-Reply-To: <201003290840.50223.hverkuil@xs4all.nl>
-References: <33AB447FBD802F4E932063B962385B351D6D536E@shsmsx501.ccr.corp.intel.com>
-	 <201003290840.50223.hverkuil@xs4all.nl>
+To: Dmitri Belimov <d.belimov@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <20100331131407.741b7822@glory.loctelecom.ru>
+References: <20100330160217.52e26a33@glory.loctelecom.ru>
+	 <1269942855.3361.7.camel@pc07.localdom.local>
+	 <20100331131407.741b7822@glory.loctelecom.ru>
 Content-Type: text/plain
-Date: Mon, 29 Mar 2010 09:40:37 +0200
-Message-Id: <1269848437.3227.44.camel@pc07.localdom.local>
+Date: Thu, 01 Apr 2010 02:31:55 +0200
+Message-Id: <1270081915.3227.8.camel@pc07.localdom.local>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Dimitry,
 
-Am Montag, den 29.03.2010, 08:40 +0200 schrieb Hans Verkuil:
-> Hi Xiaolin,
+Am Mittwoch, den 31.03.2010, 13:14 +1000 schrieb Dmitri Belimov:
+> Hi Hermann
 > 
-> On Sunday 28 March 2010 16:42:30 Zhang, Xiaolin wrote:
-> > From 1c18c41be33246e4b766d0e95e28a72dded87475 Mon Sep 17 00:00:00 2001
-> > From: Xiaolin Zhang <xiaolin.zhang@intel.com>
-> > Date: Sun, 28 Mar 2010 21:31:24 +0800
-> > Subject: [PATCH 2/10] This patch is second part of intel moorestown isp driver and c files collection which is v4l2 implementation.
+> > Hi,
 > > 
+> > Am Dienstag, den 30.03.2010, 16:02 +1000 schrieb Dmitri Belimov:
+> > > Hi
+> > > 
+> > > The hybrid tuner FMD1216MEX_MK3 after cold start has disabled IF.
+> > > This tuner has internal I2C switch. This switch switch I2C bus
+> > > between DVB-T and IF part. Default state is DVB-T. When module
+> > > saa7134 is load it can't find IF tda9887 and disable analog TV mode.
+> > > 
+> > > This patch set internal I2C switch of the tuner to IF by send
+> > > special value to the tuner as for receive analog TV from low band.
+> > > It can be usefule for other cards.
+> > > 
+> > > I didn't set configure a tuner by a tuner model because this tuner
+> > > can has different I2C address. May be we can do it later after
+> > > discuss for more robust support a tuners.
+> > 
+> > just as a reminder. It is the same for the FMD1216ME hybrid MK3.
+> > After every boot, analog mode fails with missing tda9887.
+> > 
+> > Currently, after tuner modules are not independent anymore, one has to
+> > reload the saa7134 driver once.
+> > 
+> > Relevant code in tuner.core.c.
+> > 
+> > 	case TUNER_PHILIPS_FMD1216ME_MK3:
+> > 		buffer[0] = 0x0b;
+> > 		buffer[1] = 0xdc;
+> > 		buffer[2] = 0x9c;
+> > 		buffer[3] = 0x60;
+> > 		i2c_master_send(c, buffer, 4);
+> > 		mdelay(1);
+> > 		buffer[2] = 0x86;
+> > 		buffer[3] = 0x54;
+> > 		i2c_master_send(c, buffer, 4);
+> > 		if (!dvb_attach(simple_tuner_attach, &t->fe,
+> > 				t->i2c->adapter, t->i2c->addr,
+> > t->type)) goto attach_failed;
+> > 		break;
 > 
-> ....
-> 
-> > +struct videobuf_dma_contig_memory {
-> > +       u32 magic;
-> > +       void *vaddr;
-> > +       dma_addr_t dma_handle;
-> > +       unsigned long size;
-> > +       int is_userptr;
-> > +};
-> > +
-> > +#define MAGIC_DC_MEM 0x0733ac61
-> > +#define MAGIC_CHECK(is, should)                                                    \
-> > +       if (unlikely((is) != (should))) {                                   \
-> > +               pr_err("magic mismatch: %x expected %x\n", (is), (should)); \
-> > +               BUG();                                                      \
-> > +       }
-> 
-> I will do a more in-depth review in a few days. However, I did notice that
-> you added your own dma_contig implementation. What were the reasons for doing
-> this? I've CC-ed Pawel since he will be interested in this as well.
-> 
-> Another question that came up is: what is 'marvin'? It's clearly a codename,
-> but a codename for what? This should be documented at the top of some source
-> or header. Apologies if it is already documented, I didn't read everything yet.
-> 
-> A final point I noticed: don't cast away a function result:
-> 
-> (void)ci_isp_set_bp_detection(NULL);
-> 
-> No need for (void). The gcc compiler won't warn about this unless the function
-> is annotated with __must_check__.
-> 
-> Regards,
-> 
-> 	Hans
+> That is good. I'll try add case TUNER_PHILIPS_FMD1216MEX_MK3 here and test.
+> This is much better.
 
-How to avoid this and similar?
+it wont work for any what I can tell.
 
-"you added your own dma_contig implementation"
+We were forced into such an universal looking solution, but it was
+broken only a short time later.
 
-The answer is very simple.
+I for sure don't say that this time, late 2005, it was in anyway
+perfect, too much random on module load orders and also duplicate
+address stuff around meanwhile.
 
-NACK.
+But, however, it seems to be blocked for a global attempt within the
+current schemes too.
 
+Cheers,
 Hermann
 
-
-
-
-
+> With my best regards, Dmitry.
+> 
+> > Hermann
+> > 
+> > > diff -r 1ef0265456c8
+> > > linux/drivers/media/video/saa7134/saa7134-cards.c ---
+> > > a/linux/drivers/media/video/saa7134/saa7134-cards.c	Fri Mar
+> > > 26 00:54:18 2010 -0300 +++
+> > > b/linux/drivers/media/video/saa7134/saa7134-cards.c	Sun Mar
+> > > 28 08:21:10 2010 -0400 @@ -7450,6 +7450,21 @@ } break;
+> > >  	}
+> > > +	case SAA7134_BOARD_BEHOLD_H6:
+> > > +	{
+> > > +		u8 data[] = { 0x09, 0x9f, 0x86, 0x11};
+> > > +		struct i2c_msg msg = {.addr = 0x61, .flags =
+> > > 0, .buf = data,
+> > > +							.len =
+> > > sizeof(data)}; +
+> > > +		/* The tuner TUNER_PHILIPS_FMD1216MEX_MK3 after
+> > > hardware    */
+> > > +		/* start has disabled IF and enabled DVB-T. When
+> > > saa7134    */
+> > > +		/* scan I2C devices it not detect IF tda9887 and
+> > > can`t      */
+> > > +		/* watch TV without software reboot. For solve
+> > > this problem */
+> > > +		/* switch the tuner to analog TV mode
+> > > manually.             */
+> > > +		if (i2c_transfer(&dev->i2c_adap, &msg, 1) != 1)
+> > > +				printk(KERN_WARNING
+> > > +				      "%s: Unable to enable IF of
+> > > the tuner.\n",
+> > > +				       dev->name);
+> > > +		break;
+> > > +	}
+> > >  	} /* switch() */
+> > >  
+> > >  	/* initialize tuner */
+> > > 
+> > > Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov
+> > > <d.belimov@gmail.com>
+> > > 
+> > > With my best regards, Dmitry.
+> > 
 
