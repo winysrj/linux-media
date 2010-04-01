@@ -1,70 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4613 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754345Ab0D1GV2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Apr 2010 02:21:28 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: Doing a stable v4l-utils release
-Date: Wed, 28 Apr 2010 08:22:03 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <4BD5423B.4040200@redhat.com> <201004260955.13792.hverkuil@xs4all.nl> <4BD69B66.1090904@redhat.com>
-In-Reply-To: <4BD69B66.1090904@redhat.com>
+Received: from 81-174-11-161.static.ngi.it ([81.174.11.161]:49291 "EHLO
+	mail.enneenne.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755594Ab0DALsm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 07:48:42 -0400
+Date: Thu, 1 Apr 2010 13:48:27 +0200
+From: Rodolfo Giometti <giometti@enneenne.com>
+To: Richard =?iso-8859-15?Q?R=F6jfors?=
+	<richard.rojfors@pelagicore.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Message-ID: <20100401114827.GA6573@gundam.enneenne.com>
+References: <20100219174451.GH21778@enneenne.com> <Pine.LNX.4.64.1002192018170.5860@axis700.grange> <20100222160139.GL21778@enneenne.com> <4B8310F1.8070005@pelagicore.com> <20100330140611.GR5937@enneenne.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201004280822.03571.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20100330140611.GR5937@enneenne.com>
+Subject: Re: adv7180 as SoC camera device
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 27 April 2010 10:08:06 Hans de Goede wrote:
-> Hi,
+On Tue, Mar 30, 2010 at 04:06:11PM +0200, Rodolfo Giometti wrote:
+> On Tue, Feb 23, 2010 at 12:19:13AM +0100, Richard Röjfors wrote:
+> > 
+> > We use it as a subdev to a driver not yet committed from us. So I think
+> > you should extend it, not move it.
 > 
-> On 04/26/2010 09:55 AM, Hans Verkuil wrote:
-> > On Monday 26 April 2010 09:35:23 Hans de Goede wrote:
-> >> Hi all,
-> >>
-> >> Currently v4l-utils is at version 0.7.91, which as the version
-> >> suggests is meant as a beta release.
-> >>
-> >> As this release seems to be working well I would like to do
-> >> a v4l-utils-0.8.0 release soon. This is a headsup, to give
-> >> people a chance to notify me of any bugs they would like to
-> >> see fixed first / any patches they would like to add first.
-> >
-> > This is a good opportunity to mention that I would like to run checkpatch
-> > over the libs and clean them up.
-> >
-> > I also know that there is a bug in the control handling code w.r.t.
-> > V4L2_CTRL_FLAG_NEXT_CTRL. I have a patch, but I'd like to do the clean up
-> > first.
-> >
-> > If no one else has major patch series that they need to apply, then I can
-> > start working on this. The clean up is just purely whitespace changes to
-> > improve readability, no functionality will be touched.
-> >
-> 
-> I've no big changes planned on the short term, so from my pov go ahead.
+> Finally I got something functional... but I'm puzzled to know how I
+> can add platform data configuration struct by using the I2C's
+> platform_data pointer if it is already used to hold struct
+> soc_camera_device... O_o
 
-As you noticed I have cleaned up the includes, libv4l1 and libv4l2. libv4lconvert
-is a lot more work, so I will do that bit by bit, hopefully this week.
+Here my solution:
 
-Regards,
+static __devinit int adv7180_probe(struct i2c_client *client,
+                        const struct i2c_device_id *id)
+{
+        struct adv7180_state *state;
+#if defined(CONFIG_SOC_CAMERA)
+        struct soc_camera_device *icd = client->dev.platform_data;
+        struct soc_camera_link *icl;
+        struct adv7180_platform_data *pdata = NULL;
+#else
+        struct adv7180_platform_data *pdata =
+	client->dev.platform_data;
+#endif
+        struct v4l2_subdev *sd;
+        int i, ret;
 
-         Hans
+        /* Check if the adapter supports the needed features */
+        if (!i2c_check_functionality(client->adapter,
+	I2C_FUNC_SMBUS_BYTE_DATA))
+                return -EIO;
 
-> 
-> Regards,
-> 
-> Hans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+        v4l_info(client, "chip found @ 0x%02x (%s)\n",
+                        client->addr << 1, client->adapter->name);
+
+#if defined(CONFIG_SOC_CAMERA)
+        if (icd) {
+                icl = to_soc_camera_link(icd);
+                if (!icl || !icl->priv) {
+                        v4l_err(client, "missing platform data!\n");
+                        return -EINVAL;
+                }
+                pdata = icl->priv;
+
+                icd->ops = &adv7180_soc_ops;
+                v4l_info(client, "soc-camera support enabled\n");
+        }
+#endif
+
+        state = kzalloc(sizeof(struct adv7180_state), GFP_KERNEL);
+        if (state == NULL) {
+                ret = -ENOMEM;
+                goto err;
+        }
+
+        state->irq = client->irq;
+        INIT_WORK(&state->work, adv7180_work);
+        mutex_init(&state->mutex);
+        state->autodetect = true;
+        sd = &state->sd;
+        v4l2_i2c_subdev_init(sd, client, &adv7180_ops);
+
+        if (pdata)
+                for (i = 0; pdata[i].reg >= 0; i++) {
+                        printk("----> %x %x\n", pdata[i].reg,
+			pdata[i].val);
+                        ret = i2c_smbus_write_byte_data(client,
+                                        pdata[i].reg, pdata[i].val);
+                        if (ret < 0)
+                                goto err_unreg_subdev;
+                }
+
+Rodolfo
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
+GNU/Linux Solutions                  e-mail: giometti@enneenne.com
+Linux Device Driver                          giometti@linux.it
+Embedded Systems                     phone:  +39 349 2432127
+UNIX programming                     skype:  rodolfo.giometti
+Freelance ICT Italia - Consulente ICT Italia - www.consulenti-ict.it
