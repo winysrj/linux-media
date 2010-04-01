@@ -1,30 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:55508 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932317Ab0DPT4A (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Apr 2010 15:56:00 -0400
-Received: by wyb39 with SMTP id 39so1397689wyb.19
-        for <linux-media@vger.kernel.org>; Fri, 16 Apr 2010 12:55:59 -0700 (PDT)
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4981 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754217Ab0DAIcW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 04:32:22 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Wolfram Sang <w.sang@pengutronix.de>
+Subject: Re: [PATCH 12/24] media/video: fix dangling pointers
+Date: Thu, 1 Apr 2010 10:32:50 +0200
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Jean Delvare <khali@linux-fr.org>,
+	kernel-janitors@vger.kernel.org, linux-i2c@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+References: <1269094385-16114-1-git-send-email-w.sang@pengutronix.de> <201003211709.56319.hverkuil@xs4all.nl> <20100330123912.GI29472@pengutronix.de>
+In-Reply-To: <20100330123912.GI29472@pengutronix.de>
 MIME-Version: 1.0
-Date: Fri, 16 Apr 2010 21:55:59 +0200
-Message-ID: <v2z3907abe61004161255nd905a661zd1001feab5c8c77@mail.gmail.com>
-Subject: DVB-S2 and DVB-T on same PCIe
-From: Josu Lazkano <josu.lazkano@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201004011032.50117.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello everybody!
+On Tuesday 30 March 2010 14:39:12 Wolfram Sang wrote:
+> Hans,
+> 
+> > But this just feels like an i2c core thing to me. After remove() is called
+> > the core should just set the client data to NULL. If there are drivers that
+> > rely on the current behavior, then those drivers should be reviewed first as
+> > to the reason why they need it.
+> 
+> It will be done this way now. As you have taken part in the discussion, I guess
+> the media-subsystem never really considered picking those patches up ;)
 
-I want to configure a HTPC with GNU/Linux. I want to add DVB-T and DVB-S2 cards.
+I remember that there was one patch in your patch series where the client data
+was set after it was freed.
 
-Do you know if exists thoose two on the same PCIe?
+That should still be fixed (by just removing the i2c_set_clientdata).
 
-I am thinkin on TeVii S470 DVB-S2 PCIe: http://www.tevii.com/Products_S470_1.asp
+Can you post that one again?
 
-But it will be great to have a DVB-T interface too.
+Regards,
 
---
-Josu Lazkano
+	Hans
+
+
+> 
+> Regards,
+> 
+>    Wolfram
+> 
+> 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
