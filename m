@@ -1,69 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:9222 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751769Ab0DVG7x (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Apr 2010 02:59:53 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0L1900FGZNFRBK30@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 22 Apr 2010 07:59:51 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L1900FFZNFR72@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 22 Apr 2010 07:59:51 +0100 (BST)
-Date: Thu, 22 Apr 2010 08:59:34 +0200
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: RE: [PATCH v1 1/2] v4l: videobuf: Add support for out-of-order buffer
- dequeuing.
-In-reply-to: <1271866235-14370-2-git-send-email-p.osciak@samsung.com>
-To: Pawel Osciak <p.osciak@samsung.com>, linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	kyungmin.park@samsung.com
-Message-id: <000601cae1e9$5dbf7b20$193e7160$%osciak@samsung.com>
-Content-language: pl
-References: <1271866235-14370-1-git-send-email-p.osciak@samsung.com>
- <1271866235-14370-2-git-send-email-p.osciak@samsung.com>
+Received: from hp3.statik.tu-cottbus.de ([141.43.120.68]:44949 "EHLO
+	hp3.statik.tu-cottbus.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755623Ab0DAMPB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 08:15:01 -0400
+Message-ID: <4BB48A19.7080904@s5r6.in-berlin.de>
+Date: Thu, 01 Apr 2010 13:57:13 +0200
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: V4L-DVB drivers and BKL
+References: <201004011001.10500.hverkuil@xs4all.nl>
+In-Reply-To: <201004011001.10500.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Responding to my own e-mail here, but I just realized one little thing.
+Hans Verkuil wrote:
+> I just read on LWN that the core kernel guys are putting more effort into
+> removing the BKL. We are still using it in our own drivers, mostly V4L.
+> 
+> I added a BKL column to my driver list:
+> 
+> http://www.linuxtv.org/wiki/index.php/V4L_framework_progress#Bridge_Drivers
+> 
+> If you 'own' one of these drivers that still use BKL, then it would be nice
+> if you can try and remove the use of the BKL from those drivers.
+> 
+> The other part that needs to be done is to move from using the .ioctl file op
+> to using .unlocked_ioctl. Very few drivers do that, but I suspect almost no
+> driver actually needs to use .ioctl.
 
+Also note that struct file_operations.llseek() grabs the BKL if .llseek
+= default_llseek, or if .llseek == NULL && (struct file.f_mode &
+FMODE_LSEEK) != 0.
 
->Pawel Osciak <p.osciak@samsung.com> wrote:
+I guess V4L/DVB character device file ABIs do not involve lseek() and
+friends, do they?  If so, are the files flagged as non-seekable?
 
-[snip]
+> On the DVB side there seem to be only two sources that use the BKL:
+> 
+> linux/drivers/media/dvb/bt8xx/dst_ca.c: lock_kernel();
+> linux/drivers/media/dvb/bt8xx/dst_ca.c: unlock_kernel();
+> linux/drivers/media/dvb/dvb-core/dvbdev.c:      lock_kernel();
+> linux/drivers/media/dvb/dvb-core/dvbdev.c:              unlock_kernel();
+> linux/drivers/media/dvb/dvb-core/dvbdev.c:      unlock_kernel();
+> 
+> At first glance it doesn't seem too difficult to remove them, but I leave
+> that to the DVB experts.
 
->+void videobuf_buf_finish(struct videobuf_queue *q, struct videobuf_buffer *vb)
->+{
->+	unsigned long flags;
->+
->+	spin_lock_irqsave(&q->vb_done_lock, flags);
->+	list_add_tail(&vb->done_list, &q->vb_done_list);
->+	spin_unlock_irqrestore(&q->vb_done_lock, flags);
->+
->+	spin_lock_irqsave(q->irqlock, flags);
->+	wake_up(&vb->done);
->+	wake_up_interruptible(&q->vb_done_wait);
->+	spin_unlock_irqrestore(q->irqlock, flags);
->+}
->+EXPORT_SYMBOL_GPL(videobuf_buf_finish);
-
-
-There is a slight problem here if this function is not called from an interrupt
-context (which is the case usually though). irqlock is not held for a period of
-time and vb could potentially become NULL. So a recheck against vb == NULL is
-required; alternatively the function could be called by driver while holding
-the irqlock the whole time. So not really a problem, just a thing to point out.
-
-
-Best regards
---
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
-
-
+As a dvb/firewire/firedtv user, I started to mess around with dvbdev and
+firedtv:  https://patchwork.kernel.org/patch/88778/
+-- 
+Stefan Richter
+-=====-==-=- -=-- ----=
+http://arcgraph.de/sr/
