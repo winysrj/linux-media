@@ -1,109 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:37142 "EHLO cnc.isely.net"
+Received: from mx1.redhat.com ([209.132.183.28]:18725 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758205Ab0DHArg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Apr 2010 20:47:36 -0400
-Date: Wed, 7 Apr 2010 19:47:35 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: hermann pitton <hermann-pitton@arcor.de>
-cc: Lars Hanisch <dvb@cinnamon-sage.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: RFC: exposing controls in sysfs
-In-Reply-To: <1270678528.6429.35.camel@pc07.localdom.local>
-Message-ID: <alpine.DEB.1.10.1004071939510.5518@ivanova.isely.net>
-References: <201004052347.10845.hverkuil@xs4all.nl>  <alpine.DEB.1.10.1004060848540.27169@cnc.isely.net>  <4BBCD3F9.1070207@cinnamon-sage.de> <1270678528.6429.35.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+	id S1754136Ab0DARgx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 1 Apr 2010 13:36:53 -0400
+Message-ID: <4BB4D9AB.6070907@redhat.com>
+Date: Thu, 01 Apr 2010 14:36:43 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: Re: V4L-DVB drivers and BKL
+References: <201004011001.10500.hverkuil@xs4all.nl>	 <201004011411.02344.laurent.pinchart@ideasonboard.com>	 <4BB4A9E2.9090706@redhat.com> <201004011642.19889.hverkuil@xs4all.nl>	 <4BB4B569.3080608@redhat.com> <x2y829197381004010958u82deb516if189d4fb00fbc5e6@mail.gmail.com>
+In-Reply-To: <x2y829197381004010958u82deb516if189d4fb00fbc5e6@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 8 Apr 2010, hermann pitton wrote:
-
-> Hi,
+Devin Heitmueller wrote:
+> On Thu, Apr 1, 2010 at 11:02 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> I remember I had to do it on em28xx:
+>>
+>> This is the init code for it:
+>>        ...
+>>        mutex_init(&dev->lock);
+>>        mutex_lock(&dev->lock);
+>>        em28xx_init_dev(&dev, udev, interface, nr);
+>>        ...
+>>        request_modules(dev);
+>>
+>>        /* Should be the last thing to do, to avoid newer udev's to
+>>           open the device before fully initializing it
+>>         */
+>>        mutex_unlock(&dev->lock);
+>>        ...
+>>
+>> And this is the open code:
+>>
+>> static int em28xx_v4l2_open(struct file *filp)
+>> {
+>>        ...
+>>        mutex_lock(&dev->lock);
+>>        ...
+>>        mutex_unlock(&dev->lock);
+>>
 > 
-> Am Mittwoch, den 07.04.2010, 20:50 +0200 schrieb Lars Hanisch:
-> > Am 06.04.2010 16:33, schrieb Mike Isely:
-> [snip]
-> > >>
-> > >> Mike, do you know of anyone actively using that additional information?
-> > >
-> > > Yes.
-> > >
-> > > The VDR project at one time implemented a plugin to directly interface
-> > > to the pvrusb2 driver in this manner.  I do not know if it is still
-> > > being used since I don't maintain that plugin.
-> > 
-> >   Just FYI:
-> >   The PVR USB2 device is now handled by the pvrinput-plugin, which uses only ioctls. The "old" pvrusb2-plugin is obsolete.
-> > 
-> >   http://projects.vdr-developer.org/projects/show/plg-pvrinput
-
-Lars:
-
-Thanks for letting me know about that - until this message I had no idea 
-if VDR was still using that interface.
-
-
-> > 
-> > Regards,
-> > Lars.
+> It's probably worth noting that this change is actually pretty badly
+> broken.  Because the modules are loading asynchronously, there is a
+> high probability that the em28xx-dvb driver will still be loading when
+> hald connects in to the v4l device.  That's the big reason people
+> often see things like tvp5150 i2c errors when the driver is first
+> loaded up.
 > 
-> [snip]
-> 
-> thanks Lars.
-> 
-> Mike is really caring and went out for even any most obscure tuner bit
-> to help to improve such stuff in the past, when we have been without any
-> data sheets.
+> It's a good idea in theory, but pretty fatally flawed due to the async
+> loading (as to make it work properly you would have to do something
+> like locking the mutex in em28xx and clearing it in em28xx-dvb at the
+> end of its initialization).
 
-Hermann:
+If you take a look at em28xx-dvb, it is not lock-protected. If the bug is due
+to the async load, we'll need to add the same locking at *alsa and *dvb
+parts of em28xx.
 
-You might have me confused with Mike Krufky there - he's the one who did 
-so much of the tuner driver overhauling in v4l-dvb in the past.
-
-
-> 
-> To open second, maybe third and even forth ways for apps to use a
-> device, likely going out of sync soon, does only load maintenance work
-> without real gain.
-
-Well it was an experiment at the time to see how well such a concept 
-would work.  I had done it in a way to minimize maintenance load going 
-forward.  On both counts I feel the interface actually has done very 
-well, nonstandard though it may be.
-
-I still get the general impression that the user community really has 
-liked the sysfs interface, but the developers never really got very fond 
-of it :-(
+Yet, in this specific case, as the errors are due to the reception of
+wrong data from tvp5150, maybe the problem is due to the lack of a 
+proper lock at the i2c access. 
 
 
 > 
-> We should stay sharp to discover something others don't want to let us
-> know about. All other ideas about markets are illusions. Or?
+> Devin
 > 
-> So, debugfs sounds much better than sysfs for my taste.
-> 
-> Any app and any driver, going out of sync on the latter, will remind us
-> that backward compat _must always be guaranteed_  ...
-> 
-> Or did change anything on that and is sysfs excluded from that rule?
 
-Backwards compatibility is very important and thus any kind of new 
-interface deserves a lot of forethought to ensure that choices are made 
-in the present that people will regret in the future.  Making an 
-interface self-describing is one way that helps with compatibility: if 
-the app can discover on its own how to use the interface then it can 
-adapt to interface changes in the future.  I think a lot of people get 
-their brains so wrapped around the "ioctl-way" of doing things and then 
-they try to map that concept into a sysfs-like (or debugfs-like) 
-abstraction that they don't see how to naturally take advantage of what 
-is possible there.
-
-  -Mike
 
 -- 
 
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+Cheers,
+Mauro
