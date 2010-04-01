@@ -1,145 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-17.arcor-online.net ([151.189.21.57]:52629 "EHLO
-	mail-in-17.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752912Ab0DBArS convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Apr 2010 20:47:18 -0400
-Message-ID: <20537285.1270169235912.JavaMail.ngmail@webmail09.arcor-online.net>
-Date: Fri, 2 Apr 2010 02:47:15 +0200 (CEST)
-From: hermann-pitton@arcor.de
-To: mchehab@redhat.com, dheitmueller@kernellabs.com
-Subject: Aw: Re: V4L-DVB drivers and BKL
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	linux-media@vger.kernel.org
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1924 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755165Ab0DALLX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 07:11:23 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: V4L-DVB drivers and BKL
+Date: Thu, 1 Apr 2010 13:11:51 +0200
+Cc: linux-media@vger.kernel.org
+References: <201004011001.10500.hverkuil@xs4all.nl> <201004011123.31080.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201004011123.31080.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201004011311.51505.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
- 
-Hi!
-
------ Original Nachricht ----
-Von:     Mauro Carvalho Chehab <mchehab@redhat.com>
-An:      Devin Heitmueller <dheitmueller@kernellabs.com>
-Datum:   02.04.2010 01:10
-Betreff: Re: V4L-DVB drivers and BKL
-
-> Devin Heitmueller wrote:
-> > On Thu, Apr 1, 2010 at 5:07 PM, Mauro Carvalho Chehab
-> > <mchehab@redhat.com> wrote:
-> >>> Most i2c locks typically are only held for the duration of a single
-> >>> i2c transaction.  What you are proposing would likely result in just
-> >>> about every function having to explicitly lock/unlock, which just
-> >>> seems bound to be error prone.
-> >> The i2c open/close should be part of the transaction. Of course, there's
-> no
-> >> need to send a command to open an already opened gate (yet, from some
-> sniff
-> >> dumps, it seems that some drivers for other OS's do it for every single
-> i2c
-> >> access).
+On Thursday 01 April 2010 11:23:30 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Thursday 01 April 2010 10:01:10 Hans Verkuil wrote:
+> > Hi all,
 > > 
-> > I'm not even talking about i2c gate control, which is a whole separate
-> > case where it is applied inconsistently across drivers.  Even under
-> > Linux, we have lots of cases where there are double opens and double
-> > closes of the i2c gate, depending on whether the developer is
-> > controlling the gate from the tuner driver or the demodulator.
+> > I just read on LWN that the core kernel guys are putting more effort into
+> > removing the BKL. We are still using it in our own drivers, mostly V4L.
 > > 
-> > What I'm getting at though is that the lock granularity today is
-> > typically at the i2c transaction level, so something like an demod
-> > driver attempting to set two disparate registers is likely to be two
-> > i2c transactions.  Without moving the locking into the caller, the
-> > other half of the driver can take control between those two
-> > transactions.  And moving the logic into the caller means we will have
-> > to litter the code all over the place with lock/unlock calls.
-> 
-> I agree with a caller logic.
-> 
-> Yet, even moving to the caller, an i2c lock is still needed. For example,
-> i2c IR
-> events are polling at interrupt time, so, they can happen anytime,
-> including
-> in the middle of one i2c transaction (by transaction, I mean gate
-> control+i2c
-> read/write ops go get/set a single register).
-> 
-> >>> We've got enough power management problems as it is without adding
-> >>> lots additional complexity with little benefit and only increasing the
-> >>> likelihood of buggy code.
-> >> For sure a lock at the open() is simple, but I suspect that this may
-> >> cause some troubles with applications that may just open everything
-> >> on startup (even letting the device unused). Just as one example of
-> >> such apps, kmix, pulseaudio and other alsa mixers love to keep the
-> >> mixer node opened, even if nobody is using it.
+> > I added a BKL column to my driver list:
 > > 
-> > I'm frankly far less worried about the ALSA devices than I am about
-> > DVB versus V4L Vdeo/VBI, based on all the feedback I see from real
-> > users.
+> > http://www.linuxtv.org/wiki/index.php/V4L_framework_progress#Bridge_Drivers
+> > 
+> > If you 'own' one of these drivers that still use BKL, then it would be nice
+> > if you can try and remove the use of the BKL from those drivers.
+> > 
+> > The other part that needs to be done is to move from using the .ioctl file
+> > op to using .unlocked_ioctl. Very few drivers do that, but I suspect
+> > almost no driver actually needs to use .ioctl.
 > 
-> Ok, but alsa driver may also try to access things like i2c. For example,
-> msp34xx audio controls are reached via I2C.
+> What about something like this patch as a first step ?
+
+That doesn't fix anything. You just move the BKL from one place to another.
+I don't see any benefit from that.
+
+Regards,
+
+	Hans
+
 > 
-> > The cases where we are getting continuously burned are MythTV
-> > users who don't have their "input groups" properly defined and as a
-> > result MythTV attempts to use both digital and analog at the same time
-> > (input groups themselves are really a hack to deal with the fact that
-> > the Linux kernel doesn't have any way to inform userland of the
-> > relationships).
-
-We see the same on other OSs as well.
-
-In fact, to use digital and analog at once is totally valid.
-
-It is much too short to think about a device with a single hybrid tuner,
-best known meanwhile for causing troubles.
-
-The Medion Quad (md8080) on the saa713x with two hybrid tuners, 
-two DVB-S tuners, four digital and two analog demodulators with two dedicated PCI 
-bridges, with its restrictions too, is already ancient stuff.
-
-> > And the more I think about it, we can probably even implement the
-> > locking itself in the V4L and DVB core (further reducing the risk of
-> > some bridge maintainer screwing it up).  All the bridge driver would
-> > have to do is declare the relationship between the DVB and V4L devices
-> > (both video and vbi), and the enforcement of the locking could be
-> > abstracted out.
-
-On older dual tuner, triple and quad stuff it needs granularity through each driver 
-down to the physically existing device.
-
-No app on any OS seems to have it right. In best case they have some framework 
-around to ask the user about his knowledge for what is a go and what a no go.
-
-Newer hardware can really do triple stuff at once for example.
-Nothing much left to configure wrong from the user and the app.
-
-But, to start simple, if a single bridge can pass DVB-T and DVB-S at once is as important to know these days 
-as all details about tuners, demodulators and SECs on a given device. 
-
-That mixture of old and new will continue over years anyway 
-and to escape with some easy rules doesn't look simple.
-
-Some either digital or analog does not exist, except for a single hybrid tuner.
-
-Even then, on such a simplest hybrid device, the tuner can be in digital mode and without 
-any problems you can have analog video from external inputs at once.
-
-> I agree on having some sort of resource locking in core, but this type
-> of lock between radio/audio/analog/analog mpeg-encoded/digital/vbi/...
-> is different than a mere mutex-type of locking from what we've discussed
-> so far. It has nothing to do with BKL.
+> diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+> index 7090699..14e1b1c 100644
+> --- a/drivers/media/video/v4l2-dev.c
+> +++ b/drivers/media/video/v4l2-dev.c
+> @@ -25,6 +25,7 @@
+>  #include <linux/init.h>
+>  #include <linux/kmod.h>
+>  #include <linux/slab.h>
+> +#include <linux/smp_lock.h>
+>  #include <asm/uaccess.h>
+>  #include <asm/system.h>
+>  
+> @@ -215,28 +216,22 @@ static unsigned int v4l2_poll(struct file *filp, struct poll_table_struct *poll)
+>  	return vdev->fops->poll(filp, poll);
+>  }
+>  
+> -static int v4l2_ioctl(struct inode *inode, struct file *filp,
+> -		unsigned int cmd, unsigned long arg)
+> -{
+> -	struct video_device *vdev = video_devdata(filp);
+> -
+> -	if (!vdev->fops->ioctl)
+> -		return -ENOTTY;
+> -	/* Allow ioctl to continue even if the device was unregistered.
+> -	   Things like dequeueing buffers might still be useful. */
+> -	return vdev->fops->ioctl(filp, cmd, arg);
+> -}
+> -
+>  static long v4l2_unlocked_ioctl(struct file *filp,
+>  		unsigned int cmd, unsigned long arg)
+>  {
+>  	struct video_device *vdev = video_devdata(filp);
+> +	int ret = -ENOTTY;
+>  
+> -	if (!vdev->fops->unlocked_ioctl)
+> -		return -ENOTTY;
+>  	/* Allow ioctl to continue even if the device was unregistered.
+>  	   Things like dequeueing buffers might still be useful. */
+> -	return vdev->fops->unlocked_ioctl(filp, cmd, arg);
+> +	if (vdev->fops->ioctl) {
+> +		lock_kernel();
+> +		ret = vdev->fops->ioctl(filp, cmd, arg);
+> +		unlock_kernel();
+> +	} else if (vdev->fops->unlocked_ioctl)
+> +		ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
+> +
+> +	return ret;
+>  }
+>  
+>  #ifdef CONFIG_MMU
+> @@ -323,22 +318,6 @@ static const struct file_operations v4l2_unlocked_fops = {
+>  	.llseek = no_llseek,
+>  };
+>  
+> -static const struct file_operations v4l2_fops = {
+> -	.owner = THIS_MODULE,
+> -	.read = v4l2_read,
+> -	.write = v4l2_write,
+> -	.open = v4l2_open,
+> -	.get_unmapped_area = v4l2_get_unmapped_area,
+> -	.mmap = v4l2_mmap,
+> -	.ioctl = v4l2_ioctl,
+> -#ifdef CONFIG_COMPAT
+> -	.compat_ioctl = v4l2_compat_ioctl32,
+> -#endif
+> -	.release = v4l2_release,
+> -	.poll = v4l2_poll,
+> -	.llseek = no_llseek,
+> -};
+> -
+>  /**
+>   * get_index - assign stream index number based on parent device
+>   * @vdev: video_device to assign index number to, vdev->parent should be assigned
+> @@ -517,10 +496,7 @@ static int __video_register_device(struct video_device *vdev, int type, int nr,
+>  		ret = -ENOMEM;
+>  		goto cleanup;
+>  	}
+> -	if (vdev->fops->unlocked_ioctl)
+> -		vdev->cdev->ops = &v4l2_unlocked_fops;
+> -	else
+> -		vdev->cdev->ops = &v4l2_fops;
+> +	vdev->cdev->ops = &v4l2_unlocked_fops;
+>  	vdev->cdev->owner = vdev->fops->owner;
+>  	ret = cdev_add(vdev->cdev, MKDEV(VIDEO_MAJOR, vdev->minor), 1);
+>  	if (ret < 0) {
 > 
-> -- 
+> A second step would be to replace lock_kernel/unlock_kernel with a
+> V4L-specific lock, and the third step to push the lock into drivers.
 > 
-> Cheers,
-> Mauro
+> 
 
-Just some thoughts again.
-
-Cheers,
-Hermann
-
-
-Frohe Ostern! Alles für's Fest der Hasen und Lämmer jetzt im Osterspecial auf Arcor.de: http://www.arcor.de/rd/footer.ostern
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
