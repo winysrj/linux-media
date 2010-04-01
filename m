@@ -1,64 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:53051 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752709Ab0DXRNw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Apr 2010 13:13:52 -0400
-Date: Sat, 24 Apr 2010 12:13:51 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: Sven Barth <pascaldragon@googlemail.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: Problem with cx25840 and Terratec Grabster AV400
-In-Reply-To: <4BD2EACA.5040005@googlemail.com>
-Message-ID: <alpine.DEB.1.10.1004241212100.5135@ivanova.isely.net>
-References: <4BD2EACA.5040005@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:45967 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754758Ab0DAV3c (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 17:29:32 -0400
+Received: by gwaa18 with SMTP id a18so1054361gwa.19
+        for <linux-media@vger.kernel.org>; Thu, 01 Apr 2010 14:29:31 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4BB50D1A.7020803@redhat.com>
+References: <201004011001.10500.hverkuil@xs4all.nl>
+	 <4BB4D9AB.6070907@redhat.com>
+	 <g2q829197381004011129lc706e6c3jcac6dcc756012173@mail.gmail.com>
+	 <201004012306.31471.hverkuil@xs4all.nl> <4BB50D1A.7020803@redhat.com>
+Date: Thu, 1 Apr 2010 17:29:30 -0400
+Message-ID: <n2y829197381004011429u1d405025t8586abebeb3948ef@mail.gmail.com>
+Subject: Re: V4L-DVB drivers and BKL
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu, Apr 1, 2010 at 5:16 PM, Mauro Carvalho Chehab <mchehab@redhat.com>
+>> What was the reason behind the asynchronous loading? In general it simplifies
+>> things a lot if you load modules up front.
+>
+> The reason is to avoid a dead lock: driver A depends on symbols on B (the
+> other driver init code) that depends on symbols at A (core stuff, locks, etc).
 
-Actually the support in the pvrusb2 driver was never really completed.  
-But since I don't have a sample of the hardware here I went on ahead and 
-merged what was there so that it could get exposure and the remaining 
-problems sorted out.
+I believe these problems can be avoided with a common entry point for
+initializing the DVB submodule (where the loading of the subordinate
+module sets a pointer to a function for the main module to call).  In
+fact, doesn't em28xx do that today with it's "init" function for its
+submodules?
 
-  -Mike
+> There are other approaches to avoid this trouble, like the attach method used
+> by the DVB modules, but an asynchronous (and parallel) load offers another
+> advantage: it speeds up boot time, as other processors can take care of the
+> load of the additonal modules.
 
+I think though that we need to favor stability/reliability over
+performance.  In this case, I have seen a number of bridges where
+having a "-dvb.ko" exposes this race, and I would much rather have it
+take another 200ms to load the driver than continue to deal with
+intermittent problems with hardware being in an unknown state.  Don't
+quote me on this number, but on em28xx I run into problems about 20%
+of the time where the dvb device fails to get created successfully
+because of this race (forcing me to reboot the system).
 
-On Sat, 24 Apr 2010, Sven Barth wrote:
-
-> Hello together!
-> 
-> I'm the owner of a Terratec Grabster AV400, which is supported by the pvrusb2
-> (currently standalone version only). Video works well, but I have a problem
-> with audio, when I use an unmodified v4l-dvb: the audio is too slow, as if the
-> bitrate is set to low.
-> 
-> The device contains a cx25837-3 (according to dmesg) and audio routing has to
-> be set to CX25840_AUDIO_SERIAL.
-> 
-> The problem now is, that this audio route setting is never applied, because
-> there are (at least) two locations in cx25840-core.c where a check with
-> is_cx2583x is done.
-> Locally I've simply disabled that checks (see attached patch) and the AV400
-> works as expected now. Of course this can't be the correct solution for the
-> official v4l. Also I have to apply that patch after every kernel update (which
-> happens rather often with ArchLinux ^^).
-> 
-> Thus I ask how this situation might be solved so that I can use the AV400
-> without patching around in the source of v4l.
-> 
-> Attached:
-> * dmesg output with unpatched cx25840 module
-> * my "quick & dirty" patch for cx25840-core.c
-> 
-> Regards,
-> Sven
-> 
+Devin
 
 -- 
-
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
