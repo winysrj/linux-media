@@ -1,71 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.perfora.net ([74.208.4.194]:51746 "EHLO mout.perfora.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751312Ab0DUW0k (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Apr 2010 18:26:40 -0400
-Message-ID: <4BCF7B92.6010608@vorgon.com>
-Date: Wed, 21 Apr 2010 15:26:26 -0700
-From: "Timothy D. Lenz" <tlenz@vorgon.com>
+Received: from hp3.statik.tu-cottbus.de ([141.43.120.68]:44923 "EHLO
+	hp3.statik.tu-cottbus.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755249Ab0DAMIR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 08:08:17 -0400
+Message-ID: <4BB48CA3.1070109@s5r6.in-berlin.de>
+Date: Thu, 01 Apr 2010 14:08:03 +0200
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org
-Subject: Re: cx5000 default auto sleep mode
-References: <4BC5FB77.2020303@vorgon.com>	 <k2h829197381004141040n4aa69e06x7a10c7ea70be3dcf@mail.gmail.com>	 <1271303099.7643.7.camel@palomino.walls.org> <h2h829197381004142139q35705f60q61dd04b05f509af6@mail.gmail.com>
-In-Reply-To: <h2h829197381004142139q35705f60q61dd04b05f509af6@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: V4L-DVB drivers and BKL
+References: <201004011001.10500.hverkuil@xs4all.nl>
+In-Reply-To: <201004011001.10500.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hans Verkuil wrote:
+> On the DVB side there seem to be only two sources that use the BKL:
+> 
+> linux/drivers/media/dvb/bt8xx/dst_ca.c: lock_kernel();
+> linux/drivers/media/dvb/bt8xx/dst_ca.c: unlock_kernel();
 
+This is from an incomplete conversion from .ioctl to .unlocked_ioctl (no
+conversion really, only a BKL push-down).
 
-On 4/14/2010 9:39 PM, Devin Heitmueller wrote:
-> On Wed, Apr 14, 2010 at 11:44 PM, Andy Walls<awalls@md.metrocast.net>  wrote:
->> On Wed, 2010-04-14 at 13:40 -0400, Devin Heitmueller wrote:
->>> On Wed, Apr 14, 2010 at 1:29 PM, Timothy D. Lenz<tlenz@vorgon.com>  wrote:
->>>> Thanks to Andy Walls, found out why I kept loosing 1 tuner on a FusionHD7
->>>> Dual express. Didn't know linux supported an auto sleep mode on the tuner
->>>> chips and that it defaulted to on. Seems like it would be better to default
->>>> to off.
->>>
->>> Regarding the general assertion that the power management should be
->>> disabled by default, I disagree.  The power savings is considerable,
->>> the time to bring the tuner out of sleep is negligible, and it's
->>> generally good policy.
->>>
->>> Andy, do you have any actual details regarding the nature of the problem?
->>
->> Not really.  DViCo Fusion dual digital tv card.  One side of the card
->> would yield "black video screen" when starting a digital capture
->> sometime after (?) the VDR ATSC EPG plugin tried to suck off data.  I'm
->> not sure there was a causal relationship.
->>
->> I hypothesized that one side of the dual-tuner was going stupid or one
->> of the two channels used in the cx23885 was getting confused.  I was
->> looking at how to narrow the problem down to cx23885 chip or xc5000
->> tuner, or s5h14xx demod when I noted the power managment module option
->> for the xc5000.  I suggested Tim try it.
->>
->> It was dumb luck that my guess actually made his symptoms go away.
->>
->> That's all I know.
->
-> We did have a similar issue with the PCTV 800i.  Basically, the GPIO
-> definition was improperly defined for the xc5000 reset callback.  As a
-> result, it was strobing the reset on both the xc5000 *and* the
-> s5h1411, which would then cause the s5h1411's hardware state to not
-> match the driver state.
->
-> After multiple round trips with the hardware engineer at PCTV, I
-> finally concluded that there actually wasn't a way to strobe the reset
-> without screwing up the demodulator, which prompted me to disable the
-> xc5000 reset callback (see cx88-cards:2944).
->
-> My guess is that the reset GPIO definition for that board is wrong (a
-> problem exposed by this change), or that it's resetting the s5h1411 as
-> well.
->
-> Devin
->
+> linux/drivers/media/dvb/dvb-core/dvbdev.c:      lock_kernel();
+> linux/drivers/media/dvb/dvb-core/dvbdev.c:              unlock_kernel();
+> linux/drivers/media/dvb/dvb-core/dvbdev.c:      unlock_kernel();
 
-Are any of the logs usefull?
+This is from when the BKL was pushed down into drivers' open() methods.
+To remove BKL from open(), check for possible races with module
+insertion.  (A driver's module_init has to have set up everything that's
+going to be used by open() before the char device is being registered.)
+
+Apart from those two BKL uses in media/dvb/, there are also
+  - remaining .ioctl that need to be checked for possible concurrency
+    issues, then converted to .unlocked_ioctl,
+  - remaining .llseek uses (all implicit) which need to be checked
+    whether they should be no_llseek() (accompanied by nonseekable_open)
+    or generic_file_llseek() or default_llseek().
+-- 
+Stefan Richter
+-=====-==-=- -=-- ----=
+http://arcgraph.de/sr/
