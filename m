@@ -1,81 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3537 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752316Ab0DAVL1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 17:11:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: V4L-DVB drivers and BKL
-Date: Thu, 1 Apr 2010 23:11:40 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-References: <201004011001.10500.hverkuil@xs4all.nl> <4BB4E91B.9030508@redhat.com> <v2y829197381004011156ld4b30171s169a296bb682e638@mail.gmail.com>
-In-Reply-To: <v2y829197381004011156ld4b30171s169a296bb682e638@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201004012311.40264.hverkuil@xs4all.nl>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:20649 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753113Ab0DAKK7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 06:10:59 -0400
+Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0L0700HWB0A8UL@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 01 Apr 2010 11:10:56 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L07006JG0A7IG@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 01 Apr 2010 11:10:56 +0100 (BST)
+Date: Thu, 01 Apr 2010 12:08:56 +0200
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: RE: [PATCH 2/2] mem2mem_testdev: Code cleanup
+In-reply-to: <1270110025-1854-2-git-send-email-hvaibhav@ti.com>
+To: hvaibhav@ti.com
+Cc: linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	kyungmin.park@samsung.com
+Message-id: <003001cad183$5757e720$0607b560$%osciak@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <hvaibhav@ti.com> <1270110025-1854-2-git-send-email-hvaibhav@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 01 April 2010 20:56:19 Devin Heitmueller wrote:
-> On Thu, Apr 1, 2010 at 2:42 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
-> > If the i2c lock was toggled to digital mode, then it means that the i2c
-> > code is being in use simultaneously by analog and digital mode. It also
-> > means that an i2c IR device, or alsa will have troubles also. So, we
-> > really need one i2c lock that will protect the access to the I2C bus as
-> > a hole, including the i2c gate.
-> 
-> Most i2c locks typically are only held for the duration of a single
-> i2c transaction.  What you are proposing would likely result in just
-> about every function having to explicitly lock/unlock, which just
-> seems bound to be error prone.
-> 
-> >> We would need to implement proper locking of analog versus digital mode,
-> >> which unfortunately would either result in hald getting back -EBUSY on open
-> >> of the V4L device or the DVB module loading being deferred while the
-> >> v4l side of the board is in use (neither of which is a very good
-> >> solution).
-> >
-> > Yes, this is also needed: we shouldn't let simultaneous stream access to the
-> > analog and digital mode at the same time, but I don't see, by itself, any problem
-> > on having both analog and digital nodes opened at the same time. So, the solution
-> > seems to lock some resources between digital/analog access.
-> 
-> I think this is probably a bad idea.  The additional granularity
-> provides you little benefit, and you could easily end up in situations
-> where power is being continuously being toggled on the decoder and
-> demodulator as ioctls come in from both analog and digital.  The
-> solution would probably not be too bad if you're only talking about
-> boards where everything is powered up all the time (like most of the
-> PCI boards), but this approach would be horrific for any board where
-> power management were a concern (e.g. USB devices).
-> 
-> A fairly simple locking scheme at open() would prevent essentially all
-> of race conditions, the change would only be in one or two places per
-> bridge (as opposed to littering the code with locking logic), and the
-> only constraint is that applications would have to be diligent in
-> closing the device when its not in use.
+Hi again,
 
-I agree. The biggest problem with v4l-dvb devices is driver complexity. It
-has never been performance. Reducing that complexity by moving some of that
-into the core is a good thing in my view.
+> Vaibhav Hiremath <hvaibhav@ti.com> wrote:
+>From: Vaibhav Hiremath <hvaibhav@ti.com>
+>
+>
+>Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+>---
+> drivers/media/video/mem2mem_testdev.c |   58 ++++++++++++++------------------
+> 1 files changed, 25 insertions(+), 33 deletions(-)
+>
+>diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
+>index 05630e3..1f35b7e 100644
+>--- a/drivers/media/video/mem2mem_testdev.c
+>+++ b/drivers/media/video/mem2mem_testdev.c
+>@@ -98,11 +98,10 @@ static struct m2mtest_fmt formats[] = {
+> };
+>
+> /* Per-queue, driver-specific private data */
+>-struct m2mtest_q_data
+>-{
+>-	unsigned int		width;
+>-	unsigned int		height;
+>-	unsigned int		sizeimage;
+>+struct m2mtest_q_data {
+>+	u32			width;
+>+	u32			height;
+>+	u32			sizeimage;
+> 	struct m2mtest_fmt	*fmt;
+> };
 
-> We've got enough power management problems as it is without adding
-> lots additional complexity with little benefit and only increasing the
-> likelihood of buggy code.
+Could you explain this change?
 
-Right.
+[...]
 
-	Hans
+>@@ -158,7 +156,7 @@ static struct v4l2_queryctrl m2mtest_ctrls[] = {
+> static struct m2mtest_fmt *find_format(struct v4l2_format *f)
+> {
+> 	struct m2mtest_fmt *fmt;
+>-	unsigned int k;
+>+	u32 k;
 
-> 
-> Devin
-> 
-> 
+This is a loop index... Is there any reason for using u32?
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+[...]
+
+>@@ -535,8 +532,8 @@ static int vidioc_s_fmt(struct m2mtest_ctx *ctx, struct v4l2_format *f)
+>
+> 	if (videobuf_queue_is_busy(vq)) {
+> 		v4l2_err(&ctx->dev->v4l2_dev, "%s queue busy\n", __func__);
+>-		ret = -EBUSY;
+>-		goto out;
+>+		mutex_unlock(&vq->vb_lock);
+>+		return -EBUSY;
+> 	}
+>
+> 	q_data->fmt		= find_format(f);
+>@@ -550,9 +547,7 @@ static int vidioc_s_fmt(struct m2mtest_ctx *ctx, struct v4l2_format *f)
+> 		"Setting format for type %d, wxh: %dx%d, fmt: %d\n",
+> 		f->type, q_data->width, q_data->height, q_data->fmt->fourcc);
+>
+>-out:
+>-	mutex_unlock(&vq->vb_lock);
+>-	return ret;
+>+	return 0;
+> }
+>
+
+Unless I'm somehow misreading patch output, aren't you removing mutex_unlock for the path
+that reaches the end of the function?
+
+[...]
+
+
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
+
+
+
+
+
