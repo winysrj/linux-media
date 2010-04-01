@@ -1,102 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway05.websitewelcome.com ([67.18.14.14]:43733 "HELO
-	gateway05.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750776Ab0DLSMT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Apr 2010 14:12:19 -0400
-Date: Mon, 12 Apr 2010 11:05:37 -0700 (PDT)
-From: sensoray-dev <linux-dev@sensoray.com>
-Subject: [PATCH] s2255drv: firmware reload on timeout
-To: linux-media@vger.kernel.org
-Message-ID: <tkrat.2ea419ae585217f5@sensoray.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=us-ascii
-Content-Disposition: INLINE
+Received: from mx1.redhat.com ([209.132.183.28]:44285 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758678Ab0DAR6K (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 1 Apr 2010 13:58:10 -0400
+Date: Thu, 1 Apr 2010 14:56:32 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: linux-input@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 05/15] V4L/DVB: ir-core: add two functions to report
+ keyup/keydown events
+Message-ID: <20100401145632.374ec6c9@pedra>
+In-Reply-To: <cover.1270142346.git.mchehab@redhat.com>
+References: <cover.1270142346.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-# HG changeset patch
-# User Dean Anderson <linux-dev@sensoray.com>
-# Date 1271095297 25200
-# Node ID 88db759d6bdf2f352acf3763a8db3787ba8f7215
-# Parent  686a2330f4a6a4c79e299a17663f0f150031098e
-s2255drv: firmware reload on timeout
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-From: Dean Anderson <linux-dev@sensoray.com>
-
-Firmware retry on timeout
-
-Priority: normal
-
-Signed-off-by: Dean Anderson <linux-dev@sensoray.com>
-
-diff -r 686a2330f4a6 -r 88db759d6bdf linux/drivers/media/video/s2255drv.c
---- a/linux/drivers/media/video/s2255drv.c	Mon Apr 12 10:15:23 2010 -0700
-+++ b/linux/drivers/media/video/s2255drv.c	Mon Apr 12 11:01:37 2010 -0700
-@@ -58,7 +58,7 @@
- #include "compat.h"
+diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
+index 2d9ba84..ab60730 100644
+--- a/drivers/media/IR/ir-keytable.c
++++ b/drivers/media/IR/ir-keytable.c
+@@ -364,7 +364,7 @@ static int ir_setkeycode(struct input_dev *dev,
+  *
+  * This routine is used by the input routines when a key is pressed at the
+  * IR. The scancode is received and needs to be converted into a keycode.
+- * If the key is not found, it returns KEY_UNKNOWN. Otherwise, returns the
++ * If the key is not found, it returns KEY_RESERVED. Otherwise, returns the
+  * corresponding keycode from the table.
+  */
+ u32 ir_g_keycode_from_table(struct input_dev *dev, u32 scancode)
+@@ -391,6 +391,61 @@ u32 ir_g_keycode_from_table(struct input_dev *dev, u32 scancode)
+ EXPORT_SYMBOL_GPL(ir_g_keycode_from_table);
  
- #define S2255_MAJOR_VERSION	1
--#define S2255_MINOR_VERSION	19
-+#define S2255_MINOR_VERSION	20
- #define S2255_RELEASE		0
- #define S2255_VERSION		KERNEL_VERSION(S2255_MAJOR_VERSION, \
- 					       S2255_MINOR_VERSION, \
-@@ -1753,7 +1753,7 @@
- 				     == S2255_FW_SUCCESS) ||
- 				    (atomic_read(&dev->fw_data->fw_state)
- 				     == S2255_FW_DISCONNECTING)),
--			msecs_to_jiffies(S2255_LOAD_TIMEOUT));
-+				   msecs_to_jiffies(S2255_LOAD_TIMEOUT));
- 		/* state may have changed, re-read */
- 		state = atomic_read(&dev->fw_data->fw_state);
- 		break;
-@@ -1761,27 +1761,38 @@
- 	default:
- 		break;
- 	}
--	mutex_unlock(&dev->open_lock);
- 	/* state may have changed in above switch statement */
- 	switch (state) {
- 	case S2255_FW_SUCCESS:
- 		break;
- 	case S2255_FW_FAILED:
- 		printk(KERN_INFO "2255 firmware load failed.\n");
-+		mutex_unlock(&dev->open_lock);
- 		return -ENODEV;
- 	case S2255_FW_DISCONNECTING:
- 		printk(KERN_INFO "%s: disconnecting\n", __func__);
-+		mutex_unlock(&dev->open_lock);
- 		return -ENODEV;
- 	case S2255_FW_LOADED_DSPWAIT:
- 	case S2255_FW_NOTLOADED:
- 		printk(KERN_INFO "%s: firmware not loaded yet"
- 		       "please try again later\n",
- 		       __func__);
-+		/*
-+		 * Timeout on firmware load means device unusable.
-+		 * Set firmware failure state.
-+		 * On next s2255_open the firmware will be reloaded.
-+		 */
-+		atomic_set(&dev->fw_data->fw_state,
-+			   S2255_FW_FAILED);
-+		mutex_unlock(&dev->open_lock);
- 		return -EAGAIN;
- 	default:
- 		printk(KERN_INFO "%s: unknown state\n", __func__);
-+		mutex_unlock(&dev->open_lock);
- 		return -EFAULT;
- 	}
-+	mutex_unlock(&dev->open_lock);
- 	/* allocate + initialize per filehandle data */
- 	fh = kzalloc(sizeof(*fh), GFP_KERNEL);
- 	if (NULL == fh)
-@@ -2074,7 +2085,6 @@
- 					dprintk(5, "setmode ready %d\n", cc);
- 					break;
- 				case S2255_RESPONSE_FW:
--
- 					dev->chn_ready |= (1 << cc);
- 					if ((dev->chn_ready & 0x0f) != 0x0f)
- 						break;
+ /**
++ * ir_keyup() - generates input event to cleanup a key press
++ * @input_dev:	the struct input_dev descriptor of the device
++ *
++ * This routine is used by the input routines when a key is pressed at the
++ * IR. It reports a keyup input event via input_report_key().
++ */
++void ir_keyup(struct input_dev *dev)
++{
++	struct ir_input_dev *ir = input_get_drvdata(dev);
++
++	if (!ir->keypressed)
++		return;
++
++	input_report_key(dev, ir->keycode, 0);
++	input_sync(dev);
++	ir->keypressed = 0;
++}
++EXPORT_SYMBOL_GPL(ir_keyup);
++
++/**
++ * ir_keydown() - generates input event for a key press
++ * @input_dev:	the struct input_dev descriptor of the device
++ * @scancode:	the scancode that we're seeking
++ *
++ * This routine is used by the input routines when a key is pressed at the
++ * IR. It gets the keycode for a scancode and reports an input event via
++ * input_report_key().
++ */
++void ir_keydown(struct input_dev *dev, int scancode)
++{
++	struct ir_input_dev *ir = input_get_drvdata(dev);
++
++	u32 keycode = ir_g_keycode_from_table(dev, scancode);
++
++	/* If already sent a keydown, do a keyup */
++	if (ir->keypressed)
++		ir_keyup(dev);
++
++	if (KEY_RESERVED == keycode)
++		return;
++
++	ir->keycode = keycode;
++	ir->keypressed = 1;
++
++	IR_dprintk(1, "%s: key down event, key 0x%04x, scancode 0x%04x\n",
++		dev->name, keycode, scancode);
++
++	input_report_key(dev, ir->keycode, 1);
++	input_sync(dev);
++
++}
++EXPORT_SYMBOL_GPL(ir_keydown);
++
++
++/**
+  * ir_input_register() - sets the IR keycode table and add the handlers
+  *			    for keymap table get/set
+  * @input_dev:	the struct input_dev descriptor of the device
+diff --git a/include/media/ir-core.h b/include/media/ir-core.h
+index 369969d..198fd61 100644
+--- a/include/media/ir-core.h
++++ b/include/media/ir-core.h
+@@ -72,6 +72,10 @@ struct ir_input_dev {
+ 	unsigned long			devno;		/* device number */
+ 	const struct ir_dev_props	*props;		/* Device properties */
+ 	struct ir_raw_event_ctrl	*raw;		/* for raw pulse/space events */
++
++	/* key info - needed by IR keycode handlers */
++	u32				keycode;	/* linux key code */
++	int				keypressed;	/* current state */
+ };
+ 
+ #define to_ir_input_dev(_attr) container_of(_attr, struct ir_input_dev, attr)
+-- 
+1.6.6.1
+
 
