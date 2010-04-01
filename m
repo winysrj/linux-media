@@ -1,175 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:58032 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755761Ab0DAMKe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 08:10:34 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: V4L-DVB drivers and BKL
-Date: Thu, 1 Apr 2010 14:11:00 +0200
-Cc: linux-media@vger.kernel.org
-References: <201004011001.10500.hverkuil@xs4all.nl> <201004011123.31080.laurent.pinchart@ideasonboard.com> <201004011311.51505.hverkuil@xs4all.nl>
-In-Reply-To: <201004011311.51505.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from mx1.redhat.com ([209.132.183.28]:54886 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758683Ab0DAR6M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 1 Apr 2010 13:58:12 -0400
+Date: Thu, 1 Apr 2010 14:56:31 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: linux-input@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 14/15] V4L/DVB: cx88: Only start IR if the input device is
+ opened
+Message-ID: <20100401145631.60201d22@pedra>
+In-Reply-To: <cover.1270142346.git.mchehab@redhat.com>
+References: <cover.1270142346.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201004011411.02344.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-On Thursday 01 April 2010 13:11:51 Hans Verkuil wrote:
-> On Thursday 01 April 2010 11:23:30 Laurent Pinchart wrote:
-> > On Thursday 01 April 2010 10:01:10 Hans Verkuil wrote:
-> > > Hi all,
-> > > 
-> > > I just read on LWN that the core kernel guys are putting more effort
-> > > into removing the BKL. We are still using it in our own drivers,
-> > > mostly V4L.
-> > > 
-> > > I added a BKL column to my driver list:
-> > > 
-> > > http://www.linuxtv.org/wiki/index.php/V4L_framework_progress#Bridge_Dri
-> > > vers
-> > > 
-> > > If you 'own' one of these drivers that still use BKL, then it would be
-> > > nice if you can try and remove the use of the BKL from those drivers.
-> > > 
-> > > The other part that needs to be done is to move from using the .ioctl
-> > > file op to using .unlocked_ioctl. Very few drivers do that, but I
-> > > suspect almost no driver actually needs to use .ioctl.
-> > 
-> > What about something like this patch as a first step ?
-> 
-> That doesn't fix anything. You just move the BKL from one place to another.
-> I don't see any benefit from that.
-
-Removing the BKL is a long-term project that basically pushes the BKL from 
-core code to subsystems and drivers, and then replace it on a case by case 
-basis. This patch (along with a replacement of lock_kernel/unlock_kernel by a 
-V4L-specific lock) goes into that direction and removes the BKL usage from V4L 
-ioctls. The V4L lock would then need to be pushed into individual drivers. 
-
-> > diff --git a/drivers/media/video/v4l2-dev.c
-> > b/drivers/media/video/v4l2-dev.c index 7090699..14e1b1c 100644
-> > --- a/drivers/media/video/v4l2-dev.c
-> > +++ b/drivers/media/video/v4l2-dev.c
-> > @@ -25,6 +25,7 @@
-> > 
-> >  #include <linux/init.h>
-> >  #include <linux/kmod.h>
-> >  #include <linux/slab.h>
-> > 
-> > +#include <linux/smp_lock.h>
-> > 
-> >  #include <asm/uaccess.h>
-> >  #include <asm/system.h>
-> > 
-> > @@ -215,28 +216,22 @@ static unsigned int v4l2_poll(struct file *filp,
-> > struct poll_table_struct *poll)
-> > 
-> >  	return vdev->fops->poll(filp, poll);
-> >  
-> >  }
-> > 
-> > -static int v4l2_ioctl(struct inode *inode, struct file *filp,
-> > -		unsigned int cmd, unsigned long arg)
-> > -{
-> > -	struct video_device *vdev = video_devdata(filp);
-> > -
-> > -	if (!vdev->fops->ioctl)
-> > -		return -ENOTTY;
-> > -	/* Allow ioctl to continue even if the device was unregistered.
-> > -	   Things like dequeueing buffers might still be useful. */
-> > -	return vdev->fops->ioctl(filp, cmd, arg);
-> > -}
-> > -
-> > 
-> >  static long v4l2_unlocked_ioctl(struct file *filp,
-> >  
-> >  		unsigned int cmd, unsigned long arg)
-> >  
-> >  {
-> >  
-> >  	struct video_device *vdev = video_devdata(filp);
-> > 
-> > +	int ret = -ENOTTY;
-> > 
-> > -	if (!vdev->fops->unlocked_ioctl)
-> > -		return -ENOTTY;
-> > 
-> >  	/* Allow ioctl to continue even if the device was unregistered.
-> >  	
-> >  	   Things like dequeueing buffers might still be useful. */
-> > 
-> > -	return vdev->fops->unlocked_ioctl(filp, cmd, arg);
-> > +	if (vdev->fops->ioctl) {
-> > +		lock_kernel();
-> > +		ret = vdev->fops->ioctl(filp, cmd, arg);
-> > +		unlock_kernel();
-> > +	} else if (vdev->fops->unlocked_ioctl)
-> > +		ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
-> > +
-> > +	return ret;
-> > 
-> >  }
-> >  
-> >  #ifdef CONFIG_MMU
-> > 
-> > @@ -323,22 +318,6 @@ static const struct file_operations
-> > v4l2_unlocked_fops = {
-> > 
-> >  	.llseek = no_llseek,
-> >  
-> >  };
-> > 
-> > -static const struct file_operations v4l2_fops = {
-> > -	.owner = THIS_MODULE,
-> > -	.read = v4l2_read,
-> > -	.write = v4l2_write,
-> > -	.open = v4l2_open,
-> > -	.get_unmapped_area = v4l2_get_unmapped_area,
-> > -	.mmap = v4l2_mmap,
-> > -	.ioctl = v4l2_ioctl,
-> > -#ifdef CONFIG_COMPAT
-> > -	.compat_ioctl = v4l2_compat_ioctl32,
-> > -#endif
-> > -	.release = v4l2_release,
-> > -	.poll = v4l2_poll,
-> > -	.llseek = no_llseek,
-> > -};
-> > -
-> > 
-> >  /**
-> >  
-> >   * get_index - assign stream index number based on parent device
-> >   * @vdev: video_device to assign index number to, vdev->parent should be
-> >   assigned
-> > 
-> > @@ -517,10 +496,7 @@ static int __video_register_device(struct
-> > video_device *vdev, int type, int nr,
-> > 
-> >  		ret = -ENOMEM;
-> >  		goto cleanup;
-> >  	
-> >  	}
-> > 
-> > -	if (vdev->fops->unlocked_ioctl)
-> > -		vdev->cdev->ops = &v4l2_unlocked_fops;
-> > -	else
-> > -		vdev->cdev->ops = &v4l2_fops;
-> > +	vdev->cdev->ops = &v4l2_unlocked_fops;
-> > 
-> >  	vdev->cdev->owner = vdev->fops->owner;
-> >  	ret = cdev_add(vdev->cdev, MKDEV(VIDEO_MAJOR, vdev->minor), 1);
-> >  	if (ret < 0) {
-> > 
-> > A second step would be to replace lock_kernel/unlock_kernel with a
-> > V4L-specific lock, and the third step to push the lock into drivers.
-
+diff --git a/drivers/media/video/cx88/cx88-input.c b/drivers/media/video/cx88/cx88-input.c
+index 8f1b846..a7214d0 100644
+--- a/drivers/media/video/cx88/cx88-input.c
++++ b/drivers/media/video/cx88/cx88-input.c
+@@ -39,6 +39,10 @@ struct cx88_IR {
+ 	struct cx88_core *core;
+ 	struct input_dev *input;
+ 	struct ir_input_state ir;
++	struct ir_dev_props props;
++
++	int users;
++
+ 	char name[32];
+ 	char phys[32];
+ 
+@@ -160,8 +164,16 @@ static enum hrtimer_restart cx88_ir_work(struct hrtimer *timer)
+ 	return HRTIMER_RESTART;
+ }
+ 
+-void cx88_ir_start(struct cx88_core *core, struct cx88_IR *ir)
++static int __cx88_ir_start(void *priv)
+ {
++	struct cx88_core *core = priv;
++	struct cx88_IR *ir;
++
++	if (!core || !core->ir)
++		return -EINVAL;
++
++	ir = core->ir;
++
+ 	if (ir->polling) {
+ 		hrtimer_init(&ir->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+ 		ir->timer.function = cx88_ir_work;
+@@ -174,10 +186,18 @@ void cx88_ir_start(struct cx88_core *core, struct cx88_IR *ir)
+ 		cx_write(MO_DDS_IO, 0xa80a80);	/* 4 kHz sample rate */
+ 		cx_write(MO_DDSCFG_IO, 0x5);	/* enable */
+ 	}
++	return 0;
+ }
+ 
+-void cx88_ir_stop(struct cx88_core *core, struct cx88_IR *ir)
++static void __cx88_ir_stop(void *priv)
+ {
++	struct cx88_core *core = priv;
++	struct cx88_IR *ir;
++
++	if (!core || !core->ir)
++		return;
++
++	ir = core->ir;
+ 	if (ir->sampling) {
+ 		cx_write(MO_DDSCFG_IO, 0x0);
+ 		core->pci_irqmask &= ~PCI_INT_IR_SMPINT;
+@@ -187,6 +207,37 @@ void cx88_ir_stop(struct cx88_core *core, struct cx88_IR *ir)
+ 		hrtimer_cancel(&ir->timer);
+ }
+ 
++int cx88_ir_start(struct cx88_core *core)
++{
++	if (core->ir->users)
++		return __cx88_ir_start(core);
++
++	return 0;
++}
++
++void cx88_ir_stop(struct cx88_core *core)
++{
++	if (core->ir->users)
++		__cx88_ir_stop(core);
++}
++
++static int cx88_ir_open(void *priv)
++{
++	struct cx88_core *core = priv;
++
++	core->ir->users++;
++	return __cx88_ir_start(core);
++}
++
++static void cx88_ir_close(void *priv)
++{
++	struct cx88_core *core = priv;
++
++	core->ir->users--;
++	if (!core->ir->users)
++		__cx88_ir_stop(core);
++}
++
+ /* ---------------------------------------------------------------------- */
+ 
+ int cx88_ir_init(struct cx88_core *core, struct pci_dev *pci)
+@@ -382,19 +433,19 @@ int cx88_ir_init(struct cx88_core *core, struct pci_dev *pci)
+ 	ir->core = core;
+ 	core->ir = ir;
+ 
+-	cx88_ir_start(core, ir);
++	ir->props.priv = core;
++	ir->props.open = cx88_ir_open;
++	ir->props.close = cx88_ir_close;
+ 
+ 	/* all done */
+-	err = ir_input_register(ir->input, ir_codes, NULL, MODULE_NAME);
++	err = ir_input_register(ir->input, ir_codes, &ir->props, MODULE_NAME);
+ 	if (err)
+-		goto err_out_stop;
++		goto err_out_free;
+ 
+ 	return 0;
+ 
+- err_out_stop:
+-	cx88_ir_stop(core, ir);
+-	core->ir = NULL;
+  err_out_free:
++	core->ir = NULL;
+ 	kfree(ir);
+ 	return err;
+ }
+@@ -407,7 +458,7 @@ int cx88_ir_fini(struct cx88_core *core)
+ 	if (NULL == ir)
+ 		return 0;
+ 
+-	cx88_ir_stop(core, ir);
++	cx88_ir_stop(core);
+ 	ir_input_unregister(ir->input);
+ 	kfree(ir);
+ 
+diff --git a/drivers/media/video/cx88/cx88-video.c b/drivers/media/video/cx88/cx88-video.c
+index 48c450f..8e414f7 100644
+--- a/drivers/media/video/cx88/cx88-video.c
++++ b/drivers/media/video/cx88/cx88-video.c
+@@ -1977,7 +1977,7 @@ static void __devexit cx8800_finidev(struct pci_dev *pci_dev)
+ 	}
+ 
+ 	if (core->ir)
+-		cx88_ir_stop(core, core->ir);
++		cx88_ir_stop(core);
+ 
+ 	cx88_shutdown(core); /* FIXME */
+ 	pci_disable_device(pci_dev);
+@@ -2015,7 +2015,7 @@ static int cx8800_suspend(struct pci_dev *pci_dev, pm_message_t state)
+ 	spin_unlock(&dev->slock);
+ 
+ 	if (core->ir)
+-		cx88_ir_stop(core, core->ir);
++		cx88_ir_stop(core);
+ 	/* FIXME -- shutdown device */
+ 	cx88_shutdown(core);
+ 
+@@ -2056,7 +2056,7 @@ static int cx8800_resume(struct pci_dev *pci_dev)
+ 	/* FIXME: re-initialize hardware */
+ 	cx88_reset(core);
+ 	if (core->ir)
+-		cx88_ir_start(core, core->ir);
++		cx88_ir_start(core);
+ 
+ 	cx_set(MO_PCI_INTMSK, core->pci_irqmask);
+ 
+diff --git a/drivers/media/video/cx88/cx88.h b/drivers/media/video/cx88/cx88.h
+index b5f054d..bdb03d3 100644
+--- a/drivers/media/video/cx88/cx88.h
++++ b/drivers/media/video/cx88/cx88.h
+@@ -41,7 +41,7 @@
+ 
+ #include <linux/version.h>
+ #include <linux/mutex.h>
+-#define CX88_VERSION_CODE KERNEL_VERSION(0,0,7)
++#define CX88_VERSION_CODE KERNEL_VERSION(0, 0, 8)
+ 
+ #define UNSET (-1U)
+ 
+@@ -683,8 +683,8 @@ s32 cx88_dsp_detect_stereo_sap(struct cx88_core *core);
+ int cx88_ir_init(struct cx88_core *core, struct pci_dev *pci);
+ int cx88_ir_fini(struct cx88_core *core);
+ void cx88_ir_irq(struct cx88_core *core);
+-void cx88_ir_start(struct cx88_core *core, struct cx88_IR *ir);
+-void cx88_ir_stop(struct cx88_core *core, struct cx88_IR *ir);
++int cx88_ir_start(struct cx88_core *core);
++void cx88_ir_stop(struct cx88_core *core);
+ 
+ /* ----------------------------------------------------------- */
+ /* cx88-mpeg.c                                                 */
 -- 
-Regards,
+1.6.6.1
 
-Laurent Pinchart
+
