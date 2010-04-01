@@ -1,131 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.26]:51499 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754480Ab0DBBvU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 21:51:20 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:8082 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758426Ab0DAQoi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 1 Apr 2010 12:44:38 -0400
+Message-ID: <4BB4B569.3080608@redhat.com>
+Date: Thu, 01 Apr 2010 12:02:01 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20100401145632.5631756f@pedra>
-References: <20100401145632.5631756f@pedra>
-Date: Thu, 1 Apr 2010 21:44:12 -0400
-Message-ID: <t2z9e4733911004011844pd155bbe8g13e4cbcc1a5bf1f6@mail.gmail.com>
-Subject: Re: [PATCH 00/15] ir-core: Several improvements to allow adding LIRC
-	and decoder plugins
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-input@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jarod Wilson <jarod@wilsonet.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: Re: V4L-DVB drivers and BKL
+References: <201004011001.10500.hverkuil@xs4all.nl> <201004011411.02344.laurent.pinchart@ideasonboard.com> <4BB4A9E2.9090706@redhat.com> <201004011642.19889.hverkuil@xs4all.nl>
+In-Reply-To: <201004011642.19889.hverkuil@xs4all.nl>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 1, 2010 at 1:56 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> This series of 15 patches improves support for IR, as discussed at the
-> "What are the goals for the architecture of an in-kernel IR system?"
-> thread.
->
-> It basically adds a raw decoder layer at ir-core, allowing decoders to plug
-> into IR core, and preparing for the addition of a lirc_dev driver that will
-> allow raw IR codes to be sent to userspace.
->
-> There's no lirc patch in this series. I have also a few other patches from
-> David Härdeman that I'm about to test/review probably later today, but
-> as I prefer to first merge what I have at V4L/DVB tree, before applying
-> them.
+Hans Verkuil wrote:
 
-Has anyone ported the MSMCE driver onto these patches yet? That would
-be a good check to make sure that rc-core has the necessary API.
-Cooler if it works both through LIRC and with an internal protocol
-decoder. The MSMCE driver in my old patches was very simplified, it
-removed about half of the code from the LIRC version.
+> What to do if we have multiple device nodes? E.g. video0 and vbi0? Should we
+> allow access to video0 when vbi0 is not yet registered? Or should we block
+> access until all video nodes are registered?
 
->
-> There are two patches on this series that deserve a better analysis, IMO:
->
-> -  V4L/DVB: ir-core: rename sysfs remote controller class from ir to rc
->
-> As discussed, "IR" is not a good name, as this infrastructure could later
-> be used by other types of Remote Controllers, as it has nothing that
-> is specific to IR inside the code, except for the name. So, I'm proposing
-> to replace the sysfs notes do "rc", instead of "ir". The sooner we do
-> such changes, the better, as userspace apps using it are still under
-> development. So, an API change is still possible, without causing
-> much hurt.
->
-> Also, as some RC devices allow RC code transmission, we probably need to add
-> a TX node somewhere, associated with the same RX part (as some devices
-> don't allow simultaneous usage of TX and RX).
->
-> So, we have a few alternatives for the RC device sysfs node:
-> a) /sys/class/rc/rc0
->                 |--> rx
->                 ---> tx
-> b) /sys/class/rc/rcrcv0
->   /sys/class/rc/rctx0
->
-> c) /sys/class/rc/rc0
->  and have there the RX and TX nodes/attributes mixed. IMO, (b) is a bad idea,
-> so, I am between (a) and (c).
->
-> -  V4L/DVB: input: Add support for EVIO[CS]GKEYCODEBIG
->
-> Adds two new ioctls in order to handle with big keycode tables. As already
-> said, we'll need another ioctl, in order to get the maximum keycode supported
-> by a given device. I didn't wrote the patch for the new ioctl yet.
-> This patch will probably have a small conflict with upstream input, but I
-> prefer to keep it on my tree and fix the upstream conflicts when submiting
-> it, as the rest of the new IR code is also on my tree, and this patch is
-> needed to procced with the IR code development.
->
-> Mauro Carvalho Chehab (15):
->  V4L/DVB: ir-core: be less pedantic with RC protocol name
->  V4L/DVB: saa7134: use a full scancode table for M135A
->  V4L/DVB: saa7134: add code to allow changing IR protocol
->  V4L/DVB: ir-core: Add logic to decode IR protocols at the IR core
->  V4L/DVB: ir-core: add two functions to report keyup/keydown events
->  V4L/DVB: ir-core/saa7134: Move ir keyup/keydown code to the ir-core
->  V4L/DVB: saa7134: don't wait too much to generate an IR event on raw_decode
->  V4L/DVB: ir-core: dynamically load the compiled IR protocols
->  V4L/DVB: ir-core: prepare to add more operations for ir decoders
->  V4L/DVB: ir-nec-decoder: Add sysfs node to enable/disable per irrcv
->  V4L/DVB: saa7134: clear warning noise
->  V4L/DVB: ir-core: rename sysfs remote controller class from ir to rc
->  V4L/DVB: ir-core: Add callbacks for input/evdev open/close on IR core
->  V4L/DVB: cx88: Only start IR if the input device is opened
->  V4L/DVB: input: Add support for EVIO[CS]GKEYCODEBIG
->
->  drivers/input/evdev.c                       |   39 +++
->  drivers/input/input.c                       |  260 ++++++++++++++++++--
->  drivers/media/IR/Kconfig                    |    9 +
->  drivers/media/IR/Makefile                   |    3 +-
->  drivers/media/IR/ir-keymaps.c               |   98 ++++----
->  drivers/media/IR/ir-keytable.c              |   75 ++++++-
->  drivers/media/IR/ir-nec-decoder.c           |  351 +++++++++++++++++++++++++++
->  drivers/media/IR/ir-raw-event.c             |  231 ++++++++++++++++++
->  drivers/media/IR/ir-sysfs.c                 |   29 ++-
->  drivers/media/video/cx88/cx88-input.c       |   69 +++++-
->  drivers/media/video/cx88/cx88-video.c       |    6 +-
->  drivers/media/video/cx88/cx88.h             |    6 +-
->  drivers/media/video/saa7134/saa7134-core.c  |    2 +-
->  drivers/media/video/saa7134/saa7134-input.c |  207 +++++++++++++++--
->  drivers/media/video/saa7134/saa7134.h       |    4 +-
->  include/linux/input.h                       |   40 +++-
->  include/media/ir-common.h                   |    9 +-
->  include/media/ir-core.h                     |   59 +++++-
->  18 files changed, 1368 insertions(+), 129 deletions(-)
->  create mode 100644 drivers/media/IR/ir-nec-decoder.c
->  create mode 100644 drivers/media/IR/ir-raw-event.c
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-input" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+It will depend on the driver implementation, but, as new udev implementations
+try to open v4l devices asap, the better is to lock the register operation
+to avoid an open while not finished.
+
+I remember I had to do it on em28xx:
+
+This is the init code for it:
+	...
+        mutex_init(&dev->lock);
+        mutex_lock(&dev->lock);
+        em28xx_init_dev(&dev, udev, interface, nr);
+	...
+        request_modules(dev);
+
+        /* Should be the last thing to do, to avoid newer udev's to
+           open the device before fully initializing it
+         */
+        mutex_unlock(&dev->lock);
+	...
+
+And this is the open code:
+
+static int em28xx_v4l2_open(struct file *filp)
+{
+	...
+        mutex_lock(&dev->lock);
+	...
+	mutex_unlock(&dev->lock);
 
 
+The same lock is also used at the ioctl handlers that need to be protected, like:
+
+static int radio_g_tuner(struct file *file, void *priv,
+                         struct v4l2_tuner *t)
+{
+	...
+        mutex_lock(&dev->lock);
+        v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, g_tuner, t);
+        mutex_unlock(&dev->lock);
+	...
+}
+
+There are some obvious cases where no lock is needed, like for example
+vidioc_querycap.
+
+
+> 
+>> One (far from perfect) solution, would be to add a mutex protecting the entire
+>> ioctl loop inside the drivers, and the open/close methods. This can later be
+>> optimized by a mutex that will just protect the operations that can actually
+>> cause problems if happening in parallel.
+> 
+> I have thought about this in the past.
+> 
+> What I think would be needed to make locking much more reliable is the following:
+> 
+> 1) Currently when a device is unregistered all read()s, write()s, poll()s, etc.
+> are blocked. Except for ioctl().
+> 
+> The comment in v4l2-dev.c says this:
+> 
+>         /* Allow ioctl to continue even if the device was unregistered.
+>            Things like dequeueing buffers might still be useful. */
+> 
+> I disagree with this. Once the device is gone (USB disconnect and similar
+> hotplug scenarios), then the only thing an application can do is to close.
+> 
+> Allowing ioctl to still work makes it hard for drivers since every ioctl
+> op that might do something with the device has to call video_is_registered()
+> to check whether the device is still alive.
+> 
+> I know, this is not directly related to the BKL, but it is an additional
+> complication.
+
+Depending on how the video buffers are implemented, you may need to run dequeue,
+in order to allow freeing the mmaped memories. That's said, maybe we could use
+a kref implementation for those kind or resources.
+
+> 2) Add a new video_device flag that turns on serialization. Basically all
+> calls are serialized with a mutex in v4l2_device. To handle blocking calls
+> like read() or VIDIOC_DQBUF we can either not take the serialization mutex
+> in the core, or instead the driver needs to unlock the mutex before it
+> waits for an event and lock it afterwards.
+> 
+> In the first case the core has to know all the exceptions.
+> 
+> Perhaps we should just add a second flag: whether the core should do full
+> serialization (and the driver will have to unlock/lock around blocking waits)
+> or smart serialization where know blocking operations are allowed unserialized.
+> 
+> I think it is fairly simple to add this serialization mechanism. And for many
+> drivers this will actually be more than enough.
+
+I remember I proposed a solution to implement the mutex at V4L core level,
+when we had this discussion with Alan Cox BKL patches. 
+
+The conclusion I had from the discussion is that, while this is a simple way, 
+it may end that a poorly implemented lock would stay there forever.
+
+Also, core has no way to foresee what the driver is doing on their side, and may
+miss some cases where the lock needs to be used.
+
+I don't think that adding flags would help to improve it.
 
 -- 
-Jon Smirl
-jonsmirl@gmail.com
+
+Cheers,
+Mauro
