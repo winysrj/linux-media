@@ -1,128 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.154]:45139 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756458Ab0DROwB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Apr 2010 10:52:01 -0400
-Received: by fg-out-1718.google.com with SMTP id d23so1426000fga.1
-        for <linux-media@vger.kernel.org>; Sun, 18 Apr 2010 07:51:53 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4BCB06E7.8050806@tvdr.de>
-References: <4BC19294.4010200@tvdr.de>
-	 <s2n1a297b361004151321rb51b5225q79842aac2964371b@mail.gmail.com>
-	 <4BCB06E7.8050806@tvdr.de>
-Date: Sun, 18 Apr 2010 18:51:53 +0400
-Message-ID: <x2l1a297b361004180751y1e8c89f2pafbd257d8107e50c@mail.gmail.com>
-Subject: Re: [linux-media] Re: [PATCH] Add FE_CAN_PSK_8 to allow apps to
-	identify PSK_8 capable DVB devices
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:28896 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758695Ab0DAR6V (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 1 Apr 2010 13:58:21 -0400
+Date: Thu, 1 Apr 2010 14:56:32 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: linux-input@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 03/15] V4L/DVB: saa7134: add code to allow changing IR
+ protocol
+Message-ID: <20100401145632.20550888@pedra>
+In-Reply-To: <cover.1270142346.git.mchehab@redhat.com>
+References: <cover.1270142346.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Apr 18, 2010 at 5:19 PM, Klaus Schmidinger
-<Klaus.Schmidinger@tvdr.de> wrote:
-> On 15.04.2010 22:21, Manu Abraham wrote:
->> Hi Klaus,
->>
->> On Sun, Apr 11, 2010 at 1:12 PM, Klaus Schmidinger
->> <Klaus.Schmidinger@tvdr.de> wrote:
->>> The enum fe_caps provides flags that allow an application to detect
->>> whether a device is capable of handling various modulation types etc.
->>> A flag for detecting PSK_8, however, is missing.
->>> This patch adds the flag FE_CAN_PSK_8 to frontend.h and implements
->>> it for the gp8psk-fe.c and cx24116.c driver (apparently the only ones
->>> with PSK_8). Only the gp8psk-fe.c has been explicitly tested, though.
->>
->>
->> The FE_CAN_PSK_8 is a misnomer. In fact what you are looking for is
->> FE_CAN_TURBO_FEC
->
-> Well, when processing the NIT data in VDR, for instance, the possible
-> modulation types that can be used according to the driver's frontend.h
-> are
->        QPSK,
->        QAM_16,
->        QAM_32,
->        QAM_64,
->        QAM_128,
->        QAM_256,
->        QAM_AUTO,
->        VSB_8,
->        VSB_16,
->        PSK_8,
->        APSK_16,
->        APSK_32,
->        DQPSK,
->
-> There is nothing in frontend.h that would be in any way related to
-> "turbo fec" (whatever that may be).
->
-> Of course we can rename FE_CAN_PSK_8 to FE_CAN_TURBO_FEC, but wouldn't
-> something like
->
->  if (Modulation == PSK_8 && !(frontendInfo.caps & FE_CAN_TURBO_FEC))
->    return false;
->
-> be even more irritating than a straight forward
->
->  if (Modulation == PSK_8 && !(frontendInfo.caps & FE_CAN_PSK_8))
->    return false;
->
-> After all it's
->
->  if (Modulation == QAM_256 && !(frontendInfo.caps & FE_CAN_QAM_256))
->    return false;
->
-> Please advise. Whatever you prefer is fine with me.
-> All I need in VDR is a flag that allows me to detect whether a device
-> can handle a given transponder's modulation. I don't really care how
-> that flag is named ;-).
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/video/saa7134/saa7134-input.c b/drivers/media/video/saa7134/saa7134-input.c
+index d7e73de..8187928 100644
+--- a/drivers/media/video/saa7134/saa7134-input.c
++++ b/drivers/media/video/saa7134/saa7134-input.c
+@@ -420,6 +420,10 @@ static void saa7134_input_timer(unsigned long data)
+ 
+ void saa7134_ir_start(struct saa7134_dev *dev, struct card_ir *ir)
+ {
++	if (ir->running)
++		return;
++
++	ir->running = 1;
+ 	if (ir->polling) {
+ 		setup_timer(&ir->timer, saa7134_input_timer,
+ 			    (unsigned long)dev);
+@@ -447,8 +451,50 @@ void saa7134_ir_start(struct saa7134_dev *dev, struct card_ir *ir)
+ 
+ void saa7134_ir_stop(struct saa7134_dev *dev)
+ {
++	struct card_ir *ir = dev->remote;
++
++	if (!ir->running)
++		return;
+ 	if (dev->remote->polling)
+ 		del_timer_sync(&dev->remote->timer);
++	else if (ir->rc5_gpio)
++		del_timer_sync(&ir->timer_end);
++	else if (ir->nec_gpio)
++		tasklet_kill(&ir->tlet);
++	ir->running = 0;
++}
++
++int saa7134_ir_change_protocol(void *priv, u64 ir_type)
++{
++	struct saa7134_dev *dev = priv;
++	struct card_ir *ir = dev->remote;
++	u32 nec_gpio, rc5_gpio;
++
++	if (ir_type == IR_TYPE_RC5) {
++		dprintk("Changing protocol to RC5\n");
++		nec_gpio = 0;
++		rc5_gpio = 1;
++	} else if (ir_type == IR_TYPE_NEC) {
++		dprintk("Changing protocol to NEC\n");
++		nec_gpio = 1;
++		rc5_gpio = 0;
++	} else {
++		dprintk("IR protocol type %ud is not supported\n",
++			(unsigned)ir_type);
++		return -EINVAL;
++	}
++
++	if (ir->running) {
++		saa7134_ir_stop(dev);
++		ir->nec_gpio = nec_gpio;
++		ir->rc5_gpio = rc5_gpio;
++		saa7134_ir_start(dev, ir);
++	} else {
++		ir->nec_gpio = nec_gpio;
++		ir->rc5_gpio = rc5_gpio;
++	}
++
++	return 0;
+ }
+ 
+ int saa7134_input_init1(struct saa7134_dev *dev)
+@@ -697,6 +743,9 @@ int saa7134_input_init1(struct saa7134_dev *dev)
+ 	}
+ 
+ 	ir->dev = input_dev;
++	dev->remote = ir;
++
++	ir->running = 0;
+ 
+ 	/* init hardware-specific stuff */
+ 	ir->mask_keycode = mask_keycode;
+@@ -712,6 +761,14 @@ int saa7134_input_init1(struct saa7134_dev *dev)
+ 	snprintf(ir->phys, sizeof(ir->phys), "pci-%s/ir0",
+ 		 pci_name(dev->pci));
+ 
++	if (ir_codes->ir_type != IR_TYPE_OTHER) {
++		ir->props.allowed_protos = IR_TYPE_RC5 | IR_TYPE_NEC;
++		ir->props.priv = dev;
++		ir->props.change_protocol = saa7134_ir_change_protocol;
++
++		/* Set IR protocol */
++		saa7134_ir_change_protocol(ir->props.priv, ir_codes->ir_type);
++	}
+ 	err = ir_input_init(input_dev, &ir->ir, ir_type);
+ 	if (err < 0)
+ 		goto err_out_free;
+@@ -729,13 +786,12 @@ int saa7134_input_init1(struct saa7134_dev *dev)
+ 	}
+ 	input_dev->dev.parent = &dev->pci->dev;
+ 
+-	dev->remote = ir;
+-	saa7134_ir_start(dev, ir);
+-
+-	err = ir_input_register(ir->dev, ir_codes, NULL, MODULE_NAME);
++	err = ir_input_register(ir->dev, ir_codes, &ir->props, MODULE_NAME);
+ 	if (err)
+ 		goto err_out_stop;
+ 
++	saa7134_ir_start(dev, ir);
++
+ 	/* the remote isn't as bouncy as a keyboard */
+ 	ir->dev->rep[REP_DELAY] = repeat_delay;
+ 	ir->dev->rep[REP_PERIOD] = repeat_period;
+diff --git a/include/media/ir-common.h b/include/media/ir-common.h
+index c30b283..41469b7 100644
+--- a/include/media/ir-common.h
++++ b/include/media/ir-common.h
+@@ -51,6 +51,9 @@ struct card_ir {
+ 	char                    name[32];
+ 	char                    phys[32];
+ 
++	u32			running:1;
++	struct ir_dev_props	props;
++
+ 	/* Usual gpio signalling */
+ 
+ 	u32                     mask_keycode;
+-- 
+1.6.6.1
 
 
-Maybe I wasn't clear enough, why I stated that ...
-
-consider any DVB-S2 frontend: stb0899, cx24116, stv090x, ds3000 or any
-other any frontend ..
-All these devices are capable of demodulating 8PSK. Now, if people
-start adding capabilities that which the devices are capable, then it
-will cause a lot of problems for the applications themselves, since
-you don't get the differentiation between the frontends that you were
-originally looking for.
-
-Now looking at another angle ..
-
-consider the Genpix frontend, can it tune to 8PSK ? Yes, it can..
-
-Eventually, it implies that, all DVB-S2 devices are 8PSK capable, but
-not all 8PSK capable devices are DVB-S2 capable.
-
-Now, assume the FE_CAN_PSK8 or FE_CAN8PSK flag; Does it really make
-any sense, when it is applied to the whole group of 8PSK frontends ? I
-guess not. You would require a flag that is capable of distinguishing
-between the S2 8PSK category and the other category.
-
-Looking back at history, originally France Telecom introduced the
-superior Error Correction scheme called Turbo Mode or so called
-Concatenated FEC mode on a 8PSK modulated carrier. This was a great
-approach, but they wanted to people to pay them a royalty and hence
-the general acceptance for it went down. In the initial phase, it was
-implemented in the Americas and for small clients alone. Eventually,
-the rest of the world wanted a royalty free approach and thus came
-LDPC which is just as good.
-
-So eventually while the difference between these 2 carriers is that
-while both are 8PSK modulated stream, the Error correction used with
-France Telecom's proprietary stream is Concatenated Codes, while for
-S2 and DVB.org it became LDPC.
-
-As you can see, the discriminating factor is the FEC, in this
-condition and nothing else. You will need a flag to discriminate
-between the FEC types, rather than the modulation, if things were to
-look more logical.
-
-Regards,
-Manu
