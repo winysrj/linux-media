@@ -1,86 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:34813 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754339Ab0DNBp0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Apr 2010 21:45:26 -0400
-Subject: Re: cx18: "missing audio" for analog recordings
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mark Lord <mlord@pobox.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org, Darren Blaber <dmbtech@gmail.com>
-In-Reply-To: <4BC466A1.3070403@pobox.com>
-References: <4B8BE647.7070709@teksavvy.com>
-	 <1267493641.4035.17.camel@palomino.walls.org>
-	 <4B8CA8DD.5030605@teksavvy.com>
-	 <1267533630.3123.17.camel@palomino.walls.org> <4B9DA003.90306@teksavvy.com>
-	 <1268653884.3209.32.camel@palomino.walls.org>  <4BC0FB79.7080601@pobox.com>
-	 <1270940043.3100.43.camel@palomino.walls.org>  <4BC1401F.9080203@pobox.com>
-	 <1270961760.5365.14.camel@palomino.walls.org>
-	 <1270986453.3077.4.camel@palomino.walls.org>  <4BC1CDA2.7070003@pobox.com>
-	 <1271012464.24325.34.camel@palomino.walls.org> <4BC37DB2.3070107@pobox.com>
-	 <1271107061.3246.52.camel@palomino.walls.org> <4BC3D578.9060107@pobox.com>
-	 <4BC3D73D.5030106@pobox.com>  <4BC3D81E.9060808@pobox.com>
-	 <1271154932.3077.7.camel@palomino.walls.org>  <4BC466A1.3070403@pobox.com>
-Content-Type: text/plain
-Date: Tue, 13 Apr 2010 21:45:20 -0400
-Message-Id: <1271209520.4102.18.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from old-tantale.fifi.org ([64.81.30.200]:32804 "EHLO
+	old-tantale.fifi.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755429Ab0DARV4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 13:21:56 -0400
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Mohamed Ikbel Boulabiar <boulabiar@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: webcam problem after suspend/hibernate
+References: <45cc95261003301455u10e6ee24pfb66176bfb279d1@mail.gmail.com>
+	<201003310125.26266.laurent.pinchart@ideasonboard.com>
+	<v2x45cc95261003311251idfdc9b8anb7b2060618611d30@mail.gmail.com>
+	<20100401165606.GA1677@ucw.cz>
+From: Philippe Troin <phil@fifi.org>
+Date: 01 Apr 2010 10:05:52 -0700
+In-Reply-To: <20100401165606.GA1677@ucw.cz>
+Message-ID: <87aatn9k7j.fsf@old-tantale.fifi.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2010-04-13 at 08:42 -0400, Mark Lord wrote:
-> On 13/04/10 06:35 AM, Andy Walls wrote:
-> > On Mon, 2010-04-12 at 22:34 -0400, Mark Lord wrote:
-> ..
-> >> As soon as I quit from LiveTV, the next recording still needed
-> >> a new fallback.  So the chip is still in some weird state where
-> >> auto-audio will continue to fail until I reload the module.
-> ..
-> > The *only* other thing I can think of, that I have control over, is the
-> > PLL charge pump current in the analog tuner.  Right now it is set to low
-> > current to minimize phase noise when tuned to a channel.  Perhaps
-> > setting the PLL charge pump to high current while chaning the channel to
-> > get a faster lock, and low current after a short time, will help get a
-> > good SIF output from the analog tuner assembly sooner.  Perhaps when I
-> > have time....
-> ..
+Pavel Machek <pavel@ucw.cz> writes:
+
+> > Do you mean the dmesg output ?
+> > A full dmesg is included in this address :
+> > http://pastebin.com/8XU619Uk
+> > Not in all suspend/hibernate the problem comes, only in some of them
+> > and this included dmesg output is just after a non working case of
+> > webcam fault.
+> > 
+> > 
+> > I also have found this in `/var/log/messages | grep uvcvideo`
+> > Mar 31 00:31:16 linux-l365 kernel: [399905.714743] usbcore:
+> > deregistering interface driver uvcvideo
+> > Mar 31 00:31:24 linux-l365 kernel: [399914.121386] uvcvideo: Found UVC
+> > 1.00 device LG Webcam (0c45:62c0)
+> > Mar 31 00:31:24 linux-l365 kernel: [399914.135661] usbcore: registered
+> > new interface driver uvcvideo
 > 
-> What's weird, is that things work most of the time.
-> But as soon as one fallback is needed, the chip then fails
-> continuously afterward, requiring fallback after fallback.
-> Until the driver is reloaded.
+> Also try unloading uvcvideo before suspend and reloading it after
+> resume...
 
-Hmmm.  Interesting observation. 
+I have a similar problem with a Creative Optia webcam.
 
-> So to me, that suggests that perhaps some register has gotten corrupted,
-> or some part of the chip has gone wanky.
->
-> Perhaps if the driver could re-init more of the chip when tuning,
-> which might correct whatever bits/state happen to need fixing?
+I have found that removing the ehci_hcd module and reinserting it
+fixes the problem.
 
-If needed, once we're in a forced mode, we could stop the
-microcontroller, reload all of the microcontroller firmware, and restart
-it.  Kind of heavy handed, but it may work.
+If your kernel ships with ehci_hcd built-in (F11 and later), the
+script included also fixes the problem (it rebind the device).
 
+Of course, I'd love to see this issue fixed.
 
-> I might have a look later, and see if there are any obvious registers
-> that perhaps I could have it dump out prior to doing the fallback,
-> and then compare that state with a "good" tuning state.  Or something.
+Phil.
 
+Script: /etc/pm/sleep.d/50kickuvc
 
-# v4l2-dbg -d /dev/video0 -c host1 --list-registers=min=0x800,max=0x9ff
+#!/bin/sh
 
-Keep in mind that some of these registers aren't settable and only read
-out the state of various hardware blocks and functions.
-
-
-Dumping the state of the microcontroller memory could also be done, but
-I'd have to modify the driver to do it.
-cx18-av-firmware.c:cx18_av_verifyfw() has code that's really close to
-doing that.
-
-Regards,
-Andy
-
+case "$1" in
+  resume|thaw)
+    cd /sys/bus/usb/drivers/uvcvideo || exit 1
+    devices=''
+    for i in [0-9]*-[0-9]*:*
+    do
+      [ -L "$i" ] || break
+      saved_IFS="$IFS"
+      IFS=:
+      set -- $i
+      IFS="$saved_IFS"
+      found=no
+      for j in $devices
+      do
+        if [ "$j" = "$1" ]
+        then
+          found=yes
+        fi
+      done
+      if [ "$found" = no ]
+      then
+        devices="$devices $1"
+      fi
+    done
+    if [ "$devices" != "" ]
+    then
+      cd /sys/bus/usb/drivers/usb || exit 1
+      for i in $devices
+      do
+        echo $i > unbind
+        sleep 1
+        echo $i > bind
+      done
+    fi
+    ;;
+esac
