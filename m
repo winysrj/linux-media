@@ -1,66 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from racoon.tvdr.de ([188.40.50.18]:55543 "EHLO racoon.tvdr.de"
+Received: from mx1.redhat.com ([209.132.183.28]:8082 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751697Ab0DKJtO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Apr 2010 05:49:14 -0400
-Received: from whale.cadsoft.de (whale.tvdr.de [192.168.100.6])
-	by racoon.tvdr.de (8.14.3/8.14.3) with ESMTP id o3B9CwA6005876
-	for <linux-media@vger.kernel.org>; Sun, 11 Apr 2010 11:12:58 +0200
-Received: from [192.168.100.10] (hawk.cadsoft.de [192.168.100.10])
-	by whale.cadsoft.de (8.14.3/8.14.3) with ESMTP id o3B9Cq7q028763
-	for <linux-media@vger.kernel.org>; Sun, 11 Apr 2010 11:12:52 +0200
-Message-ID: <4BC19294.4010200@tvdr.de>
-Date: Sun, 11 Apr 2010 11:12:52 +0200
-From: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
+	id S1757663Ab0DAQoi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 1 Apr 2010 12:44:38 -0400
+Message-ID: <4BB4B15B.2040302@redhat.com>
+Date: Thu, 01 Apr 2010 11:44:43 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [PATCH] Add FE_CAN_PSK_8 to allow apps to identify PSK_8 capable
- DVB devices
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: V4L-DVB drivers and BKL
+References: <201004011001.10500.hverkuil@xs4all.nl> <201004011411.02344.laurent.pinchart@ideasonboard.com> <4BB4A9E2.9090706@redhat.com> <201004011630.06159.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201004011630.06159.laurent.pinchart@ideasonboard.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The enum fe_caps provides flags that allow an application to detect
-whether a device is capable of handling various modulation types etc.
-A flag for detecting PSK_8, however, is missing.
-This patch adds the flag FE_CAN_PSK_8 to frontend.h and implements
-it for the gp8psk-fe.c and cx24116.c driver (apparently the only ones
-with PSK_8). Only the gp8psk-fe.c has been explicitly tested, though.
+Laurent Pinchart wrote:
 
-Signed-off-by: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
-Tested-by: Derek Kelly <user.vdr@gmail.com>
+>> One typical problem that I see is that some drivers register too soon: they
+>> first register, then initialize some things. I've seen (and fixed) some
+>> race conditions due to that. Just moving the register to the end solves
+>> this issue.
+> 
+> That's right, devices should not be registered until they are ready to be 
+> opened by userspace. However, I don't see how that's related to the BKL.
 
+Before the BKL changes, open were allowed only after the full module loading.
 
---- linux/include/linux/dvb/frontend.h.001      2010-04-05 16:13:08.000000000 +0200
-+++ linux/include/linux/dvb/frontend.h  2010-04-10 12:08:47.000000000 +0200
-@@ -62,6 +62,7 @@
-        FE_CAN_8VSB                     = 0x200000,
-        FE_CAN_16VSB                    = 0x400000,
-        FE_HAS_EXTENDED_CAPS            = 0x800000,   /* We need more bitspace for newer APIs, indicate this. */
-+       FE_CAN_PSK_8                    = 0x8000000,  /* frontend supports "8psk modulation" */
-        FE_CAN_2G_MODULATION            = 0x10000000, /* frontend supports "2nd generation modulation" (DVB-S2) */
-        FE_NEEDS_BENDING                = 0x20000000, /* not supported anymore, don't use (frontend requires frequency bending) */
-        FE_CAN_RECOVER                  = 0x40000000, /* frontend can recover from a cable unplug automatically */
---- linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c.001     2010-04-05 16:13:08.000000000 +0200
-+++ linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c 2010-04-10 12:18:37.000000000 +0200
-@@ -349,7 +349,7 @@
-                         * FE_CAN_QAM_16 is for compatibility
-                         * (Myth incorrectly detects Turbo-QPSK as plain QAM-16)
-                         */
--                       FE_CAN_QPSK | FE_CAN_QAM_16
-+                       FE_CAN_QPSK | FE_CAN_QAM_16 | FE_CAN_PSK_8
-        },
+>> One (far from perfect) solution, would be to add a mutex protecting the
+>> entire ioctl loop inside the drivers, and the open/close methods. This can
+>> later be optimized by a mutex that will just protect the operations that
+>> can actually cause problems if happening in parallel.
+> 
+> The BKL protects both open() and ioctl(), but the ioctl operation can't be 
+> called before open succeeds anyway, so I'm not sure we have a problem there.
 
-        .release = gp8psk_fe_release,
---- linux/drivers/media/dvb/frontends/cx24116.c.001     2010-04-05 16:13:08.000000000 +0200
-+++ linux/drivers/media/dvb/frontends/cx24116.c 2010-04-10 13:40:32.000000000 +0200
-@@ -1496,7 +1496,7 @@
-                        FE_CAN_FEC_4_5 | FE_CAN_FEC_5_6 | FE_CAN_FEC_6_7 |
-                        FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
-                        FE_CAN_2G_MODULATION |
--                       FE_CAN_QPSK | FE_CAN_RECOVER
-+                       FE_CAN_QPSK | FE_CAN_RECOVER | FE_CAN_PSK_8
-        },
+You may have, as one file handler may be doing an ioctl, while another application
+opens or closes another file handler. Depending on what the driver have on the open
+handler, it might interfere on the ioctl.
 
-        .release = cx24116_release,
+> The real problem is that most drivers rely on ioctls being serialized by the 
+> BKL. The drivers need to be fixed on a case by case basis, but we could 
+> already drop the BKL there by using a V4L-specific lock to serialize ioctl 
+> calls.
+
+Yes, that's my point. It is not hard to write such patch, moving from BKL to an
+ioctl/open/close mutex, and it should be safe, provided that it doesn't introduce
+any dead lock with some existing mutexes.
+
+-- 
+
+Cheers,
+Mauro
