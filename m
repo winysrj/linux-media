@@ -1,69 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-16.arcor-online.net ([151.189.21.56]:47385 "EHLO
-	mail-in-16.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752894Ab0DZWI5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Apr 2010 18:08:57 -0400
-Subject: Re: Kworld Plus TV Hybrid PCI (DVB-T 210SE)
-From: hermann pitton <hermann-pitton@arcor.de>
-To: 0123peter@gmail.com
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <dabga7-50k.ln1@psd.motzarella.org>
-References: <4B94CF9B.3060000@gmail.com>
-	 <1268777563.5120.57.camel@pc07.localdom.local>
-	 <0h2e77-gjl.ln1@psd.motzarella.org>
-	 <1269298611.5158.20.camel@pc07.localdom.local>
-	 <0uh687-4c1.ln1@psd.motzarella.org>
-	 <1269895933.3176.12.camel@pc07.localdom.local>
-	 <iou897-qu3.ln1@psd.motzarella.org>
-	 <1271302350.3184.16.camel@pc07.localdom.local>
-	 <g1hj97-b2a.ln1@psd.motzarella.org>
-	 <1271375445.12504.69.camel@pc07.localdom.local>
-	 <dabga7-50k.ln1@psd.motzarella.org>
-Content-Type: text/plain
-Date: Tue, 27 Apr 2010 00:04:34 +0200
-Message-Id: <1272319474.4246.7.camel@pc07.localdom.local>
+Received: from mx1.redhat.com ([209.132.183.28]:54314 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758680Ab0DAR5x convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 13:57:53 -0400
+Date: Thu, 1 Apr 2010 14:56:32 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: linux-input@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 00/15] ir-core: Several improvements to allow adding LIRC
+ and decoder plugins
+Message-ID: <20100401145632.5631756f@pedra>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This series of 15 patches improves support for IR, as discussed at the
+"What are the goals for the architecture of an in-kernel IR system?"
+thread.
 
-Am Montag, den 26.04.2010, 21:51 +1000 schrieb 0123peter@gmail.com:
+It basically adds a raw decoder layer at ir-core, allowing decoders to plug
+into IR core, and preparing for the addition of a lirc_dev driver that will
+allow raw IR codes to be sent to userspace.
 
-[snip]
-> >> >> > 
-> >> >> > If it is a additional new regression, then mercurial bisect can find the
-> >> >> > patch in question fairly quick.
-> >> >> 
-> >> >> That sounds like something that I should be able to do, if only 
-> >> >> I'd read the instructions.  
-> >> > 
-> >> > It is totally up to you and all others with that hardware.
-> >> 
-> >> Can you provide a like for where to start reading?
-> > 
-> > README.patches.  
-> > 
-> >      Part III - Best Practices
-> > 	1. Community best practices
-> > 	2. Mercurial specific procedures
-> > 	3. Knowing about newer patches committed at the development repositories
-> > 	4. Patch submission from the community
-> > 	5. Identifying regressions with Mercurial
-> 
-> I have not found the file README.patches.  
-> 
+There's no lirc patch in this series. I have also a few other patches from
+David Härdeman that I'm about to test/review probably later today, but
+as I prefer to first merge what I have at V4L/DVB tree, before applying
+them.
 
-Peter, for that one.
+There are two patches on this series that deserve a better analysis, IMO:
 
-"yum", or whatever, "install mercurial".
+-  V4L/DVB: ir-core: rename sysfs remote controller class from ir to rc
 
-"hg clone http://linuxtv.org/hg/v4l-dvb"
-"cd v4l-dvb"
-"less README.patches"
+As discussed, "IR" is not a good name, as this infrastructure could later
+be used by other types of Remote Controllers, as it has nothing that
+is specific to IR inside the code, except for the name. So, I'm proposing
+to replace the sysfs notes do "rc", instead of "ir". The sooner we do
+such changes, the better, as userspace apps using it are still under
+development. So, an API change is still possible, without causing
+much hurt.
 
-Cheers,
-Hermann
+Also, as some RC devices allow RC code transmission, we probably need to add
+a TX node somewhere, associated with the same RX part (as some devices
+don't allow simultaneous usage of TX and RX).
 
+So, we have a few alternatives for the RC device sysfs node:
+a) /sys/class/rc/rc0
+                 |--> rx
+                 ---> tx
+b) /sys/class/rc/rcrcv0
+   /sys/class/rc/rctx0
+
+c) /sys/class/rc/rc0
+  and have there the RX and TX nodes/attributes mixed. IMO, (b) is a bad idea,
+so, I am between (a) and (c).
+
+-  V4L/DVB: input: Add support for EVIO[CS]GKEYCODEBIG
+
+Adds two new ioctls in order to handle with big keycode tables. As already
+said, we'll need another ioctl, in order to get the maximum keycode supported
+by a given device. I didn't wrote the patch for the new ioctl yet.
+This patch will probably have a small conflict with upstream input, but I
+prefer to keep it on my tree and fix the upstream conflicts when submiting
+it, as the rest of the new IR code is also on my tree, and this patch is
+needed to procced with the IR code development.
+
+Mauro Carvalho Chehab (15):
+  V4L/DVB: ir-core: be less pedantic with RC protocol name
+  V4L/DVB: saa7134: use a full scancode table for M135A
+  V4L/DVB: saa7134: add code to allow changing IR protocol
+  V4L/DVB: ir-core: Add logic to decode IR protocols at the IR core
+  V4L/DVB: ir-core: add two functions to report keyup/keydown events
+  V4L/DVB: ir-core/saa7134: Move ir keyup/keydown code to the ir-core
+  V4L/DVB: saa7134: don't wait too much to generate an IR event on raw_decode
+  V4L/DVB: ir-core: dynamically load the compiled IR protocols
+  V4L/DVB: ir-core: prepare to add more operations for ir decoders
+  V4L/DVB: ir-nec-decoder: Add sysfs node to enable/disable per irrcv
+  V4L/DVB: saa7134: clear warning noise
+  V4L/DVB: ir-core: rename sysfs remote controller class from ir to rc
+  V4L/DVB: ir-core: Add callbacks for input/evdev open/close on IR core
+  V4L/DVB: cx88: Only start IR if the input device is opened
+  V4L/DVB: input: Add support for EVIO[CS]GKEYCODEBIG
+
+ drivers/input/evdev.c                       |   39 +++
+ drivers/input/input.c                       |  260 ++++++++++++++++++--
+ drivers/media/IR/Kconfig                    |    9 +
+ drivers/media/IR/Makefile                   |    3 +-
+ drivers/media/IR/ir-keymaps.c               |   98 ++++----
+ drivers/media/IR/ir-keytable.c              |   75 ++++++-
+ drivers/media/IR/ir-nec-decoder.c           |  351 +++++++++++++++++++++++++++
+ drivers/media/IR/ir-raw-event.c             |  231 ++++++++++++++++++
+ drivers/media/IR/ir-sysfs.c                 |   29 ++-
+ drivers/media/video/cx88/cx88-input.c       |   69 +++++-
+ drivers/media/video/cx88/cx88-video.c       |    6 +-
+ drivers/media/video/cx88/cx88.h             |    6 +-
+ drivers/media/video/saa7134/saa7134-core.c  |    2 +-
+ drivers/media/video/saa7134/saa7134-input.c |  207 +++++++++++++++--
+ drivers/media/video/saa7134/saa7134.h       |    4 +-
+ include/linux/input.h                       |   40 +++-
+ include/media/ir-common.h                   |    9 +-
+ include/media/ir-core.h                     |   59 +++++-
+ 18 files changed, 1368 insertions(+), 129 deletions(-)
+ create mode 100644 drivers/media/IR/ir-nec-decoder.c
+ create mode 100644 drivers/media/IR/ir-raw-event.c
 
