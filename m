@@ -1,61 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:20738 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751431Ab0DINCS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 Apr 2010 09:02:18 -0400
-Message-ID: <4BBF253A.8030406@redhat.com>
-Date: Fri, 09 Apr 2010 10:01:46 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Andy Walls <awalls@radix.net>
-CC: James Hogan <james@albanarts.com>, Jon Smirl <jonsmirl@gmail.com>,
-	Pavel Machek <pavel@ucw.cz>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Christoph Bartelmus <lirc@bartelmus.de>, j@jannau.net,
-	jarod@redhat.com, jarod@wilsonet.com, kraxel@redhat.com,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
- IR 	system?
-References: <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>	 <9e4733910912151338n62b30af5i35f8d0963e6591c@mail.gmail.com>	 <4BAB7659.1040408@redhat.com>  <201004090821.10435.james@albanarts.com> <1270810226.3764.34.camel@palomino.walls.org>
-In-Reply-To: <1270810226.3764.34.camel@palomino.walls.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-in-07.arcor-online.net ([151.189.21.47]:50987 "EHLO
+	mail-in-07.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754894Ab0DBQyG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Apr 2010 12:54:06 -0400
+From: stefan.ringel@arcor.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 2/2] tm6000: tm6000_i2c_xfer: request labeling
+Date: Fri,  2 Apr 2010 18:52:50 +0200
+Message-Id: <1270227170-4879-2-git-send-email-stefan.ringel@arcor.de>
+In-Reply-To: <1270227170-4879-1-git-send-email-stefan.ringel@arcor.de>
+References: <1270227170-4879-1-git-send-email-stefan.ringel@arcor.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi James,
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
-Andy Walls wrote:
-> On Fri, 2010-04-09 at 08:21 +0100, James Hogan wrote:
->> Hi,
->>
->> On Thursday 25 March 2010 14:42:33 Mauro Carvalho Chehab wrote:
->>> Comments?
->> I haven't seen this mentioned yet, but are there any plans for a sysfs 
->> interface to set up waking from suspend/standby on a particular IR scancode 
->> (for hardware decoders that support masking of comparing of the IR data), kind 
->> of analagous to the rtc framework's wakealarm sysfs file?
-> 
-> This requires support at the hardware level.  (You can't have CPU code
-> running to decode IR pulses when your CPU is "asleep".)
+labeling the request after tuner reading and writeing
 
-The additions at IR core, if needed [1], shouldn't be hard, but the main changes should
-happen at the hardware driver level.  There's no current plans for it, at least from
-my side, but, let's see if some hardware driver developers want to implement it on
-the corresponding driver.
 
-[1] Basically, a keycode (like KEY_POWER) could be used to wake up the machine. So, by 
-associating some scancode to KEY_POWER via ir-core, the driver can program the hardware 
-to wake up the machine with the corresponding scancode. I can't see a need for a change at
-ir-core to implement such behavior. Of course, some attributes at sysfs can be added
-to enable or disable this feature, and to control the associated logic, but we first
-need to implement the wakeup feature at the hardware driver, and then adding some logic
-at ir-core to add the non-hardware specific code there.
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+---
+ drivers/staging/tm6000/tm6000-i2c.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
+diff --git a/drivers/staging/tm6000/tm6000-i2c.c b/drivers/staging/tm6000/tm6000-i2c.c
+index ec4c938..2ab632b 100644
+--- a/drivers/staging/tm6000/tm6000-i2c.c
++++ b/drivers/staging/tm6000/tm6000-i2c.c
+@@ -135,8 +135,8 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 			i++;
+ 
+ 			if (addr == dev->tuner_addr << 1) {
+-				tm6000_set_reg(dev, 0x32, 0,0);
+-				tm6000_set_reg(dev, 0x33, 0,0);
++				tm6000_set_reg(dev, REQ_50_SET_START, 0, 0);
++				tm6000_set_reg(dev, REQ_51_SET_STOP, 0, 0);
+ 			}
+ 			if (i2c_debug >= 2)
+ 				for (byte = 0; byte < msgs[i].len; byte++)
+@@ -150,8 +150,8 @@ static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 				msgs[i].buf + 1, msgs[i].len - 1);
+ 
+ 			if (addr == dev->tuner_addr  << 1) {
+-				tm6000_set_reg(dev, 0x32, 0,0);
+-				tm6000_set_reg(dev, 0x33, 0,0);
++				tm6000_set_reg(dev, REQ_50_SET_START, 0, 0);
++				tm6000_set_reg(dev, REQ_51_SET_STOP, 0, 0);
+ 			}
+ 		}
+ 		if (i2c_debug >= 2)
 -- 
+1.6.6.1
 
-Cheers,
-Mauro
