@@ -1,47 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:60281 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752940Ab0DUMM1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Apr 2010 08:12:27 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0L18006HP78E1M70@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 21 Apr 2010 13:12:19 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L18005GO77RES@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 21 Apr 2010 13:11:51 +0100 (BST)
-Date: Wed, 21 Apr 2010 13:39:42 +0200
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: [PATCH v3 0/3] Fix DQBUF behavior for recoverable streaming errors
-To: linux-media@vger.kernel.org
-Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com
-Message-id: <1271849985-368-1-git-send-email-p.osciak@samsung.com>
+Received: from mail-bw0-f217.google.com ([209.85.218.217]:39349 "EHLO
+	mail-bw0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932371Ab0DBLiw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Apr 2010 07:38:52 -0400
+Date: Fri, 2 Apr 2010 14:31:50 +0300
+From: Dan Carpenter <error27@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [patch] cx88: improve error handling
+Message-ID: <20100402113150.GL5265@bicker>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Return -EINVAL if we don't find the right query control id.
 
-this is the third version of a series that introduces a V4L2_BUF_FLAG_ERROR
-flag for recoverable stream errors. It allows applications to gracefully recover
-in case of such errors instead of losing the buffer or having to guess
-its index.
+Signed-off-by: Dan Carpenter <error27@gmail.com>
 
-Changes since v2:
-- replaced the second patch of the series with Hans' version
-
-This series contains:
-[PATCH v3 1/3] v4l: Add a new ERROR flag for DQBUF after recoverable streaming errors
-[PATCH v3 2/3] v4l: videobuf: Add support for V4L2_BUF_FLAG_ERROR
-[PATCH v3 3/3] v4l: Add documentation for the new error flag
-
-Best regards
---
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
+diff --git a/drivers/media/video/cx88/cx88-video.c b/drivers/media/video/cx88/cx88-video.c
+index 48c450f..b4c80cb 100644
+--- a/drivers/media/video/cx88/cx88-video.c
++++ b/drivers/media/video/cx88/cx88-video.c
+@@ -1537,9 +1537,12 @@ static int radio_queryctrl (struct file *file, void *priv,
+ 		c->id >= V4L2_CID_LASTP1)
+ 		return -EINVAL;
+ 	if (c->id == V4L2_CID_AUDIO_MUTE) {
+-		for (i = 0; i < CX8800_CTLS; i++)
++		for (i = 0; i < CX8800_CTLS; i++) {
+ 			if (cx8800_ctls[i].v.id == c->id)
+ 				break;
++		}
++		if (i == CX8800_CTLS)
++			return -EINVAL;
+ 		*c = cx8800_ctls[i].v;
+ 	} else
+ 		*c = no_ctl;
