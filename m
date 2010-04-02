@@ -1,98 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:37433 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751706Ab0DIUnr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 Apr 2010 16:43:47 -0400
-Subject: Found NEC IR specification in NEC uPD6122 datasheet (Re: [RFC3]
- Teach drivers/media/IR/ir-raw-event.c to use durations)
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Jon Smirl <jonsmirl@gmail.com>,
-	David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-In-Reply-To: <4BBF3309.6020909@infradead.org>
-References: <20100408113910.GA17104@hardeman.nu>
-	 <1270812351.3764.66.camel@palomino.walls.org>
-	 <s2o9e4733911004090531we8ff39b4r570e32fdafa04204@mail.gmail.com>
-	 <4BBF3309.6020909@infradead.org>
-Content-Type: text/plain
-Date: Fri, 09 Apr 2010 16:44:10 -0400
-Message-Id: <1270845850.3038.30.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from qw-out-2122.google.com ([74.125.92.26]:51499 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754480Ab0DBBvU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 21:51:20 -0400
+MIME-Version: 1.0
+In-Reply-To: <20100401145632.5631756f@pedra>
+References: <20100401145632.5631756f@pedra>
+Date: Thu, 1 Apr 2010 21:44:12 -0400
+Message-ID: <t2z9e4733911004011844pd155bbe8g13e4cbcc1a5bf1f6@mail.gmail.com>
+Subject: Re: [PATCH 00/15] ir-core: Several improvements to allow adding LIRC
+	and decoder plugins
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-input@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jarod Wilson <jarod@wilsonet.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2010-04-09 at 11:00 -0300, Mauro Carvalho Chehab wrote:
-> Jon Smirl wrote:
+On Thu, Apr 1, 2010 at 1:56 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> This series of 15 patches improves support for IR, as discussed at the
+> "What are the goals for the architecture of an in-kernel IR system?"
+> thread.
+>
+> It basically adds a raw decoder layer at ir-core, allowing decoders to plug
+> into IR core, and preparing for the addition of a lirc_dev driver that will
+> allow raw IR codes to be sent to userspace.
+>
+> There's no lirc patch in this series. I have also a few other patches from
+> David Härdeman that I'm about to test/review probably later today, but
+> as I prefer to first merge what I have at V4L/DVB tree, before applying
+> them.
 
-> >>>  #define NEC_NBITS            32
-> >>> -#define NEC_UNIT             559979 /* ns */
-> >>> -#define NEC_HEADER_MARK              (16 * NEC_UNIT)
-> >>> -#define NEC_HEADER_SPACE     (8 * NEC_UNIT)
-> >>> -#define NEC_REPEAT_SPACE     (4 * NEC_UNIT)
-> >>> -#define NEC_MARK             (NEC_UNIT)
-> >>> -#define NEC_0_SPACE          (NEC_UNIT)
-> >>> -#define NEC_1_SPACE          (3 * NEC_UNIT)
-> >>> +#define NEC_UNIT             562500  /* ns */
-> >> Have you got a spec on the NEC protocol that justifies 562.5 usec?
-> >>
-> >> >From the best I can tell from the sources I have read and some deductive
-> >> reasoning, 560 usec is the actual number.  Here's one:
-> >>
-> >>        http://www.audiodevelopers.com/temp/Remote_Controls.ppt
-> >>
-> >> Note:
-> >>        560 usec * 38 kHz ~= 4192/197
-> > 
-> > In the PPT you reference there are three numbers...
-> > http://www.sbprojects.com/knowledge/ir/nec.htm
-> > 
-> > 560us
-> > 1.12ms
-> > 2.25ms
-> > 
-> > I think those are rounding errors.
-> > 
-> > 562.5 * 2 = 1.125ms * 2 = 2.25ms
-> > 
-> > Most IR protocols are related in a power of two pattern for their
-> > timings to make them easy to decode.
-> > 
-> > The protocol doesn't appear to be based on an even number of 38Khz cycles.
-> > These are easy things to change as we get better data on the protocols.
+Has anyone ported the MSMCE driver onto these patches yet? That would
+be a good check to make sure that rc-core has the necessary API.
+Cooler if it works both through LIRC and with an internal protocol
+decoder. The MSMCE driver in my old patches was very simplified, it
+removed about half of the code from the LIRC version.
 
-I just found authoritative data.  It is in the datasheet for the uPD6122
-authored by NEC Corporation:
+>
+> There are two patches on this series that deserve a better analysis, IMO:
+>
+> -  V4L/DVB: ir-core: rename sysfs remote controller class from ir to rc
+>
+> As discussed, "IR" is not a good name, as this infrastructure could later
+> be used by other types of Remote Controllers, as it has nothing that
+> is specific to IR inside the code, except for the name. So, I'm proposing
+> to replace the sysfs notes do "rc", instead of "ir". The sooner we do
+> such changes, the better, as userspace apps using it are still under
+> development. So, an API change is still possible, without causing
+> much hurt.
+>
+> Also, as some RC devices allow RC code transmission, we probably need to add
+> a TX node somewhere, associated with the same RX part (as some devices
+> don't allow simultaneous usage of TX and RX).
+>
+> So, we have a few alternatives for the RC device sysfs node:
+> a) /sys/class/rc/rc0
+>                 |--> rx
+>                 ---> tx
+> b) /sys/class/rc/rcrcv0
+>   /sys/class/rc/rctx0
+>
+> c) /sys/class/rc/rc0
+>  and have there the RX and TX nodes/attributes mixed. IMO, (b) is a bad idea,
+> so, I am between (a) and (c).
+>
+> -  V4L/DVB: input: Add support for EVIO[CS]GKEYCODEBIG
+>
+> Adds two new ioctls in order to handle with big keycode tables. As already
+> said, we'll need another ioctl, in order to get the maximum keycode supported
+> by a given device. I didn't wrote the patch for the new ioctl yet.
+> This patch will probably have a small conflict with upstream input, but I
+> prefer to keep it on my tree and fix the upstream conflicts when submiting
+> it, as the rest of the new IR code is also on my tree, and this patch is
+> needed to procced with the IR code development.
+>
+> Mauro Carvalho Chehab (15):
+>  V4L/DVB: ir-core: be less pedantic with RC protocol name
+>  V4L/DVB: saa7134: use a full scancode table for M135A
+>  V4L/DVB: saa7134: add code to allow changing IR protocol
+>  V4L/DVB: ir-core: Add logic to decode IR protocols at the IR core
+>  V4L/DVB: ir-core: add two functions to report keyup/keydown events
+>  V4L/DVB: ir-core/saa7134: Move ir keyup/keydown code to the ir-core
+>  V4L/DVB: saa7134: don't wait too much to generate an IR event on raw_decode
+>  V4L/DVB: ir-core: dynamically load the compiled IR protocols
+>  V4L/DVB: ir-core: prepare to add more operations for ir decoders
+>  V4L/DVB: ir-nec-decoder: Add sysfs node to enable/disable per irrcv
+>  V4L/DVB: saa7134: clear warning noise
+>  V4L/DVB: ir-core: rename sysfs remote controller class from ir to rc
+>  V4L/DVB: ir-core: Add callbacks for input/evdev open/close on IR core
+>  V4L/DVB: cx88: Only start IR if the input device is opened
+>  V4L/DVB: input: Add support for EVIO[CS]GKEYCODEBIG
+>
+>  drivers/input/evdev.c                       |   39 +++
+>  drivers/input/input.c                       |  260 ++++++++++++++++++--
+>  drivers/media/IR/Kconfig                    |    9 +
+>  drivers/media/IR/Makefile                   |    3 +-
+>  drivers/media/IR/ir-keymaps.c               |   98 ++++----
+>  drivers/media/IR/ir-keytable.c              |   75 ++++++-
+>  drivers/media/IR/ir-nec-decoder.c           |  351 +++++++++++++++++++++++++++
+>  drivers/media/IR/ir-raw-event.c             |  231 ++++++++++++++++++
+>  drivers/media/IR/ir-sysfs.c                 |   29 ++-
+>  drivers/media/video/cx88/cx88-input.c       |   69 +++++-
+>  drivers/media/video/cx88/cx88-video.c       |    6 +-
+>  drivers/media/video/cx88/cx88.h             |    6 +-
+>  drivers/media/video/saa7134/saa7134-core.c  |    2 +-
+>  drivers/media/video/saa7134/saa7134-input.c |  207 +++++++++++++++--
+>  drivers/media/video/saa7134/saa7134.h       |    4 +-
+>  include/linux/input.h                       |   40 +++-
+>  include/media/ir-common.h                   |    9 +-
+>  include/media/ir-core.h                     |   59 +++++-
+>  18 files changed, 1368 insertions(+), 129 deletions(-)
+>  create mode 100644 drivers/media/IR/ir-nec-decoder.c
+>  create mode 100644 drivers/media/IR/ir-raw-event.c
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-input" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-	http://www.datasheetcatalog.org/datasheet/nec/UPD6122G-002.pdf
-
-Looking at page 11, especially line (5), it appears that all the timings
-are derived in terms of 1/3 of a carrier period and powers of 2.
-
-So....
-
-Resonator frequency: fr = 455 kHz   (AM IF parts are cheap apparently)
-Carrier frequency:   fc = fr / 12 = 37.91667 kHz
-Duty cycle: 1/3
-
-unit pulse:         64/3 / fc = 562.637 us (Jon was closer than me)
-header pulse:  16 * 64/3 / fc =   9.002 ms
-header space:   8 * 64/3 / fc =   4.501 ms
-repeat space:   4 * 64/3 / fc =   2.250 ms
-'1' symbol:     4 * 64/3 / fc =   2.250 ms
-'0' symbol:     2 * 64/3 / fc =   1.125 ms
-repeat time:  192 * 64/3 / fc = 108.026 ms
-
-Page 15 also shows that the older chips had a silence gap that could
-result in signals coming closer than 108 ms.
 
 
-Whew!  I'm glad I've worked through my fit of Obsessive Compulsive
-Disorder for now. :)
-
-
-Regards,
-Andy
-
+-- 
+Jon Smirl
+jonsmirl@gmail.com
