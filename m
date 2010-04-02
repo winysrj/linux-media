@@ -1,51 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:34932 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753255Ab0DBOW3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Apr 2010 10:22:29 -0400
-Received: by gwb19 with SMTP id 19so157901gwb.19
-        for <linux-media@vger.kernel.org>; Fri, 02 Apr 2010 07:22:28 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <y2w994f7fe91004020715o18226cfdt565a7f40582e537a@mail.gmail.com>
-References: <y2w994f7fe91004020715o18226cfdt565a7f40582e537a@mail.gmail.com>
-Date: Fri, 2 Apr 2010 10:22:28 -0400
-Message-ID: <y2v829197381004020722w496f5220y6c1f776c3b89ef21@mail.gmail.com>
-Subject: Re: em28xx vbi read timeout
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Tim Stowell <stowellt@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1435 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754047Ab0DBTjA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Apr 2010 15:39:00 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id o32JcxZ2005103
+	for <linux-media@vger.kernel.org>; Fri, 2 Apr 2010 21:38:59 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 2 Apr 2010 21:38:59 +0200 (CEST)
+Message-Id: <201004021938.o32JcxZ2005103@smtp-vbr14.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 2, 2010 at 10:15 AM, Tim Stowell <stowellt@gmail.com> wrote:
-> Hi,
->
-> I have a KWorld usb 2800D device and am using the newest em28xx
-> v4l-dvb drivers from linuxtv.org. I'm running Gentoo with a 2.6.31
-> kernel. The driver compiles fine, and then I issue the following
-> commands:
->
-> v4lctl setnorm NTSC
-> zvbi-ntsc-cc -c -d /dev/vbio -v
->
->
-> after that I just get constant "VBI Read Timeout (Ignored)" messages.
-> Any help is greatly appreciated. (I initially posted this question to
-> the kernellabs blog, I apologize I didn't know there was a mailing
-> list at the time, so I'm posting my question here now.) Thanks
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Hi Tim,
+Results of the daily build of v4l-dvb:
 
-Yeah, I'm a couple of hours behind on the blog postings and just
-getting caught up on email.  I just sent a reply now.
+date:        Fri Apr  2 19:00:19 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14536:a539e5b68945
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 8c69c6ed6c74c94fa7ad6fa24eda452e4b212d81
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-http://www.kernellabs.com/blog/?p=755#comment-1344
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-rc1-armv5: OK
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-rc1-armv5-davinci: WARNINGS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-rc1-armv5-ixp: WARNINGS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-rc1-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.17-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-rc1-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-rc1-m32r: OK
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-rc1-mips: WARNINGS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-rc1-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.17-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-rc1-x86_64: WARNINGS
+linux-git-armv5: OK
+linux-git-armv5-davinci: OK
+linux-git-armv5-ixp: OK
+linux-git-armv5-omap2: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: WARNINGS
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.7-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.62-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.7-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
-Cheers,
+Detailed results are available here:
 
-Devin
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
