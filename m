@@ -1,117 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1334 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754508Ab0DZHdj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Apr 2010 03:33:39 -0400
-Message-Id: <5f14ea711d1d98ea7fbdfbbc27422e679a9a1f63.1272267137.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1272267136.git.hverkuil@xs4all.nl>
-References: <cover.1272267136.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Mon, 26 Apr 2010 09:33:33 +0200
-Subject: [PATCH 02/15] [RFC] v4l2-ctrls: reorder 'case' statements to match order in header.
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
+Received: from mail.gmx.net ([213.165.64.20]:59581 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1758719Ab0DBHGQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Apr 2010 03:06:16 -0400
+Date: Fri, 2 Apr 2010 09:06:23 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Rodolfo Giometti <giometti@enneenne.com>
+cc: Richard =?iso-8859-15?Q?R=F6jfors?=
+	<richard.rojfors@pelagicore.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: adv7180 as SoC camera device
+In-Reply-To: <20100330154235.GU5937@enneenne.com>
+Message-ID: <Pine.LNX.4.64.1004020900010.24014@axis700.grange>
+References: <20100219174451.GH21778@enneenne.com> <Pine.LNX.4.64.1002192018170.5860@axis700.grange>
+ <20100222160139.GL21778@enneenne.com> <4B8310F1.8070005@pelagicore.com>
+ <20100330140611.GR5937@enneenne.com> <Pine.LNX.4.64.1003301638090.6963@axis700.grange>
+ <20100330154235.GU5937@enneenne.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To make it easier to determine whether all controls are added in v4l2-ctrls.c
-the case statements inside the switch are re-ordered to match the header.
+On Tue, 30 Mar 2010, Rodolfo Giometti wrote:
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+> On Tue, Mar 30, 2010 at 04:40:17PM +0200, Guennadi Liakhovetski wrote:
+> > On Tue, 30 Mar 2010, Rodolfo Giometti wrote:
+> > 
+> > > On Tue, Feb 23, 2010 at 12:19:13AM +0100, Richard Röjfors wrote:
+> > > > 
+> > > > We use it as a subdev to a driver not yet committed from us. So I think
+> > > > you should extend it, not move it.
+> > > 
+> > > Finally I got something functional... but I'm puzzled to know how I
+> > > can add platform data configuration struct by using the I2C's
+> > > platform_data pointer if it is already used to hold struct
+> > > soc_camera_device... O_o
+> > 
+> > As usual, looking at existing examples helps, e.g., in ov772x:
+> > 
+> > 	priv->info = icl->priv;
+> > 
+> > i.e., icl->priv is where you pass subdevice-driver specific data with 
+> > the soc-camera API.
+> 
+> This driver was developed as v4l2-sub device and I just add the
+> soc-camera support.
+> 
+> Doing what are you suggesting is not compatible with the v4l2-sub
+> device support, in fact the I2C platform_data is used to know if the
+> driver must enable soc-camera or not...
+
+Yes, this is a known limitation, I have tried to discuss this on this ML 
+in the past to get some reasonable solution for this, i.e., to standardise 
+the use of the platform-data pointer. However, this hasn't worked until 
+now. Maybe we manage it this time. So, what we would need is some standard 
+optional struct, to which platform-data may point. If it is not NULL, then 
+there could be either a "priv" member, that we would then use for 
+soc-camera specific data, or we could embed that common struct in an 
+soc-camera specific one. I would prefer a priv pointer.
+
+> 
+> Look the code:
+> 
+>    static __devinit int adv7180_probe(struct i2c_client *client,
+>                            const struct i2c_device_id *id)
+>    {
+>            struct adv7180_state *state;
+>            struct soc_camera_device *icd = client->dev.platform_data;
+> 
+> icd is set as client->dev.platform_data. This can be use for normal
+> I2C devices to hold custom platform_data initialization.
+> 
+>            struct soc_camera_link *icl;
+>            struct adv7180_platform_data *pdata = NULL;
+>            struct v4l2_subdev *sd;
+>            int ret;
+> 
+>            /* Check if the adapter supports the needed features */
+>            if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+>                    return -EIO;
+> 
+>            v4l_info(client, "chip found @ 0x%02x (%s)\n",
+>                            client->addr << 1, client->adapter->name);
+> 
+>            if (icd) {
+> 
+> If the icd is set we assume it holds a soc-camera struct.
+> 
+>                    icl = to_soc_camera_link(icd);
+>                    if (!icl || !icl->priv) {
+>                            v4l_err(client, "missing platform data!\n");
+>                            return -EINVAL;
+>                    }
+> 
+>                    icd->ops = &adv7180_soc_ops;
+> 
+> If soc-camera is defined we set some info in order to enable it...
+> 
+>                    v4l_info(client, "soc-camera support enabled\n");
+>            }
+> ...otherwise the driver works in the old way.
+
+Exactly, now we just have to standardise the use of 
+client->dev.platform_data for v4l(2) I2C devices.
+
+> 
+>            state = kzalloc(sizeof(struct adv7180_state), GFP_KERNEL);
+>            if (state == NULL) {
+>                    ret = -ENOMEM;
+>                    goto err;
+>            }
+> 
+>            state->irq = client->irq;
+>            INIT_WORK(&state->work, adv7180_work);
+>            mutex_init(&state->mutex);
+>            state->autodetect = true;
+>            sd = &state->sd;
+>            v4l2_i2c_subdev_init(sd, client, &adv7180_ops);
+> 
+> Ciao,
+> 
+> Rodolfo
+
+Thanks
+Guennadi
 ---
- drivers/media/video/v4l2-ctrls.c |   30 +++++++++++++++++-------------
- 1 files changed, 17 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 442f0c5..0193b2d 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -259,6 +259,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- {
- 	switch (id) {
- 	/* USER controls */
-+	/* Keep the order of the 'case's the same as in videodev2.h! */
- 	case V4L2_CID_USER_CLASS: 		return "User Controls";
- 	case V4L2_CID_BRIGHTNESS: 		return "Brightness";
- 	case V4L2_CID_CONTRAST: 		return "Contrast";
-@@ -289,28 +290,37 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_SHARPNESS:		return "Sharpness";
- 	case V4L2_CID_BACKLIGHT_COMPENSATION:	return "Backlight Compensation";
- 	case V4L2_CID_CHROMA_AGC:		return "Chroma AGC";
--	case V4L2_CID_CHROMA_GAIN:		return "Chroma Gain";
- 	case V4L2_CID_COLOR_KILLER:		return "Color Killer";
- 	case V4L2_CID_COLORFX:			return "Color Effects";
- 	case V4L2_CID_AUTOBRIGHTNESS:		return "Brightness, Automatic";
- 	case V4L2_CID_BAND_STOP_FILTER:		return "Band-Stop Filter";
- 	case V4L2_CID_ROTATE:			return "Rotate";
- 	case V4L2_CID_BG_COLOR:			return "Background Color";
-+	case V4L2_CID_CHROMA_GAIN:		return "Chroma Gain";
- 
- 	/* MPEG controls */
-+	/* Keep the order of the 'case's the same as in videodev2.h! */
- 	case V4L2_CID_MPEG_CLASS: 		return "MPEG Encoder Controls";
-+	case V4L2_CID_MPEG_STREAM_TYPE: 	return "Stream Type";
-+	case V4L2_CID_MPEG_STREAM_PID_PMT: 	return "Stream PMT Program ID";
-+	case V4L2_CID_MPEG_STREAM_PID_AUDIO: 	return "Stream Audio Program ID";
-+	case V4L2_CID_MPEG_STREAM_PID_VIDEO: 	return "Stream Video Program ID";
-+	case V4L2_CID_MPEG_STREAM_PID_PCR: 	return "Stream PCR Program ID";
-+	case V4L2_CID_MPEG_STREAM_PES_ID_AUDIO: return "Stream PES Audio ID";
-+	case V4L2_CID_MPEG_STREAM_PES_ID_VIDEO: return "Stream PES Video ID";
-+	case V4L2_CID_MPEG_STREAM_VBI_FMT:	return "Stream VBI Format";
- 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ: return "Audio Sampling Frequency";
- 	case V4L2_CID_MPEG_AUDIO_ENCODING: 	return "Audio Encoding";
- 	case V4L2_CID_MPEG_AUDIO_L1_BITRATE: 	return "Audio Layer I Bitrate";
- 	case V4L2_CID_MPEG_AUDIO_L2_BITRATE: 	return "Audio Layer II Bitrate";
- 	case V4L2_CID_MPEG_AUDIO_L3_BITRATE: 	return "Audio Layer III Bitrate";
--	case V4L2_CID_MPEG_AUDIO_AAC_BITRATE: 	return "Audio AAC Bitrate";
--	case V4L2_CID_MPEG_AUDIO_AC3_BITRATE: 	return "Audio AC-3 Bitrate";
- 	case V4L2_CID_MPEG_AUDIO_MODE: 		return "Audio Stereo Mode";
- 	case V4L2_CID_MPEG_AUDIO_MODE_EXTENSION: return "Audio Stereo Mode Extension";
- 	case V4L2_CID_MPEG_AUDIO_EMPHASIS: 	return "Audio Emphasis";
- 	case V4L2_CID_MPEG_AUDIO_CRC: 		return "Audio CRC";
- 	case V4L2_CID_MPEG_AUDIO_MUTE: 		return "Audio Mute";
-+	case V4L2_CID_MPEG_AUDIO_AAC_BITRATE: 	return "Audio AAC Bitrate";
-+	case V4L2_CID_MPEG_AUDIO_AC3_BITRATE: 	return "Audio AC-3 Bitrate";
- 	case V4L2_CID_MPEG_VIDEO_ENCODING: 	return "Video Encoding";
- 	case V4L2_CID_MPEG_VIDEO_ASPECT: 	return "Video Aspect";
- 	case V4L2_CID_MPEG_VIDEO_B_FRAMES: 	return "Video B Frames";
-@@ -323,16 +333,9 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_MPEG_VIDEO_TEMPORAL_DECIMATION: return "Video Temporal Decimation";
- 	case V4L2_CID_MPEG_VIDEO_MUTE: 		return "Video Mute";
- 	case V4L2_CID_MPEG_VIDEO_MUTE_YUV:	return "Video Mute YUV";
--	case V4L2_CID_MPEG_STREAM_TYPE: 	return "Stream Type";
--	case V4L2_CID_MPEG_STREAM_PID_PMT: 	return "Stream PMT Program ID";
--	case V4L2_CID_MPEG_STREAM_PID_AUDIO: 	return "Stream Audio Program ID";
--	case V4L2_CID_MPEG_STREAM_PID_VIDEO: 	return "Stream Video Program ID";
--	case V4L2_CID_MPEG_STREAM_PID_PCR: 	return "Stream PCR Program ID";
--	case V4L2_CID_MPEG_STREAM_PES_ID_AUDIO: return "Stream PES Audio ID";
--	case V4L2_CID_MPEG_STREAM_PES_ID_VIDEO: return "Stream PES Video ID";
--	case V4L2_CID_MPEG_STREAM_VBI_FMT:	return "Stream VBI Format";
- 
- 	/* CAMERA controls */
-+	/* Keep the order of the 'case's the same as in videodev2.h! */
- 	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
- 	case V4L2_CID_EXPOSURE_AUTO:		return "Auto Exposure";
- 	case V4L2_CID_EXPOSURE_ABSOLUTE:	return "Exposure Time, Absolute";
-@@ -346,14 +349,15 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_FOCUS_ABSOLUTE:		return "Focus, Absolute";
- 	case V4L2_CID_FOCUS_RELATIVE:		return "Focus, Relative";
- 	case V4L2_CID_FOCUS_AUTO:		return "Focus, Automatic";
--	case V4L2_CID_IRIS_ABSOLUTE:		return "Iris, Absolute";
--	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
- 	case V4L2_CID_ZOOM_ABSOLUTE:		return "Zoom, Absolute";
- 	case V4L2_CID_ZOOM_RELATIVE:		return "Zoom, Relative";
- 	case V4L2_CID_ZOOM_CONTINUOUS:		return "Zoom, Continuous";
- 	case V4L2_CID_PRIVACY:			return "Privacy";
-+	case V4L2_CID_IRIS_ABSOLUTE:		return "Iris, Absolute";
-+	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
- 
- 	/* FM Radio Modulator control */
-+	/* Keep the order of the 'case's the same as in videodev2.h! */
- 	case V4L2_CID_FM_TX_CLASS:		return "FM Radio Modulator Controls";
- 	case V4L2_CID_RDS_TX_DEVIATION:		return "RDS Signal Deviation";
- 	case V4L2_CID_RDS_TX_PI:		return "RDS Program ID";
--- 
-1.6.4.2
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
