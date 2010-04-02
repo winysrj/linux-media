@@ -1,63 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mis07.de ([93.186.196.80]:60096 "EHLO mis07.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751735Ab0DEKC5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Apr 2010 06:02:57 -0400
-Message-ID: <B4223F04BF7147EA9A1F5CAE8966F318@pcvirus>
-From: "rath" <mailings@hardware-datenbank.de>
-To: "Hans de Goede" <hdegoede@redhat.com>
-Cc: <linux-media@vger.kernel.org>
-References: <2A74AB3078F34BB484457496310C528B@pcvirus> <4BB9A2E1.5020903@redhat.com>
-Subject: Re: update gspca driver in linux source tree
-Date: Mon, 5 Apr 2010 12:02:44 +0200
+Received: from mail-fx0-f227.google.com ([209.85.220.227]:55397 "EHLO
+	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751791Ab0DBSZA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Apr 2010 14:25:00 -0400
+Received: by fxm27 with SMTP id 27so600541fxm.28
+        for <linux-media@vger.kernel.org>; Fri, 02 Apr 2010 11:24:57 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=response
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <x2v829197381004021053nf77e2d42q4f1614eced7f999d@mail.gmail.com>
+References: <201004011937.39331.hverkuil@xs4all.nl>
+	 <4BB4E4CC.3020100@redhat.com>
+	 <y2v1a297b361004021043wa43821d2hfb5b573b110dd5e0@mail.gmail.com>
+	 <x2v829197381004021053nf77e2d42q4f1614eced7f999d@mail.gmail.com>
+Date: Fri, 2 Apr 2010 22:24:57 +0400
+Message-ID: <y2x1a297b361004021124jb2cc1b9ctc2c8bfb7c5a5f320@mail.gmail.com>
+Subject: Re: [RFC] Serialization flag example
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The problem with all the trees (http://linuxtv.org/hg/v4l-dvb/ and 
-http://linuxtv.org/hg/v4l-dvb/) are the used perl scripts to build the 
-makefile. They use "uname -r" to get the kernel version and they use 
-directories like "/lib/modules" as default.
-Now, I try to cross compile the tree on my ubuntu machine for an ARM 
-embedded system. The arm kernel tree is under a different path than 
-"/lib/modules/xxxx/build" and "uname -r" returns the kernel version of my 
-local machine. So the drivers don't get properly compiled.
+Hi Devin,
 
-After some changes in the perl scripts I was able to cross compile the 
-drivers for my ARM linux system. I have already tried it some weeks before, 
-but at that time I had no succes. For this reason I tried it by copying the 
-driver sources into my ARM kernel tree. Now it works for me.
-
-I have still one question: Where can I find the ".config" file in the linux 
-tree after "make menuconfig"?
-
-Regards, Joern
-
-
-> You will want to not use my tree, but use the latest generic tree:
-> hg clone http://linuxtv.org/hg/v4l-dvb/
-> Then simply compile that tree (this will need the headers of your 2.6.29 
-> kernel
-> in the usual place):
-> cd v4l-dvb
-> make menuconfig
-> make
-> sudo make install
+> Hello Manu,
 >
-> And then reboot, now you will be using your 2.9.29 kernel with a fully
-> up2date v4l-dvb subsystem.
+> The argument I am trying to make is that there are numerous cases
+> where you should not be able to use both a particular DVB and V4L
+> device at the same time.  The implementation of such locking should be
+> handled by the v4l-dvb core, but the definition of the relationships
+> dictating which devices cannot be used in parallel is still the
+> responsibility of the driver.
 >
-> Regards,
->
-> Hans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> This way, a bridge driver can say "this DVB device cannot be used at
+> the same time as this V4L device" but the actual enforcement of the
+> locking is done in the core.  For cases where the devices can be used
+> in parallel, the bridge driver doesn't have to do anything.
 
+I follow what you mean. Why I emphasized that it shouldn't be at the
+core, but basically in the bridge driver:
+
+Case 1
+- there is a 1:n relation, In this case there is only 1 path and 3
+users sharing that path
+In such a case, You can use such a mentioned scheme, where things do
+look okay, since it is only about locking a single path.
+
+Case 2
+- there is a n:n relation, in this case there are n paths and n users
+In such a case, it is hard to make the core aware of all the details,
+since there could be more than 1 resource of the same category;
+Mapping each of them properly won't be easy, as for the same chip
+driver Resource A on Card A, would mean different for Resource A on
+Card B.
+
+Case 3
+- there is a m:n relation, in this case, there are m paths and n users
+This case is even more painful than the previous ones.
+
+In cases 2 & 3, the option to handle such cases is using a
+configuration scheme based on the card type. I guess handling such
+would be quite daunting and hard to get right. I guess it would be
+much more efficient and useful to have such a feature to be made
+available in the bridge driver as it is a resource of the card
+configuration, rather than a common bridge resource.
+
+
+Manu
