@@ -1,63 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:35280 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751212Ab0DFFdW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Apr 2010 01:33:22 -0400
-Message-ID: <4BBAC79B.5030107@redhat.com>
-Date: Tue, 06 Apr 2010 02:33:15 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: linux-input@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 04/15] V4L/DVB: ir-core: Add logic to decode IR protocols
- at the IR core
-References: <cover.1270142346.git.mchehab@redhat.com>	 <20100401145632.7b1b98d5@pedra>	 <1270251567.3027.55.camel@palomino.walls.org> <4BB69A95.5000705@redhat.com>	 <1270314992.9169.40.camel@palomino.walls.org>  <4BB7C795.20506@redhat.com>	 <1270384551.4979.47.camel@palomino.walls.org>	 <4BB8D3D6.5010706@infradead.org> <1270431911.3506.25.camel@palomino.walls.org> <4BBA2D05.2080505@infradead.org>
-In-Reply-To: <4BBA2D05.2080505@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-in-05.arcor-online.net ([151.189.21.45]:54224 "EHLO
+	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754615Ab0DBQyG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Apr 2010 12:54:06 -0400
+From: stefan.ringel@arcor.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 1/2] tm6000: request labeling board version check
+Date: Fri,  2 Apr 2010 18:52:49 +0200
+Message-Id: <1270227170-4879-1-git-send-email-stefan.ringel@arcor.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
-> Andy Walls wrote:
->> I have an RC-5 decoder in cx23885-input.c that isn't as clean as the NEC
->> protocol decoder I developed.  The cx23885-input.c RC-5 decoder is not a
->> very explicit state machine however (it is a bit hack-ish).
-> 
-> The state machine seems to be working fine with the code, but I think I
-> found the issue: it was expecting 14 bits after the start+toggle bits, instead
-> of a total of 14 bits. I'll fix it. I'll probably end by simplifying it to have
-> only 3 states: inactive, mark-space and trailer.
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
-Done. I've re-written the state machine logic. The code is now simpler to understand,
-require less processing and works properly with RC-5.
-
-Instead of generating an intermediate code, like the code in ir-functions, it measures
-directly the length of each pulse or space event and generate the corresponding bit directly,
-putting it into a shift register. At the end of the 14 bits reception, the shift register
-will contain the scancode.
-
-When compared with saa7134 original RC5 decoder, this code is much more reliable, since it doesn't
-propagate the errors, if the frequency is not precisely 36 kHz.
-
-I tested here with my device and it is properly recognizing the Hauppauge Grey IR keys.
-
-Both NEC and RC-5 decoders can run in parallel.
+request labeling board version check
 
 
-The patch here:
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+---
+ drivers/staging/tm6000/tm6000-cards.c |    4 ++--
+ drivers/staging/tm6000/tm6000-core.c  |   18 ++++++++++++++++--
+ drivers/staging/tm6000/tm6000.h       |    1 +
+ 3 files changed, 19 insertions(+), 4 deletions(-)
 
-http://git.linuxtv.org/mchehab/ir.git?a=commitdiff;h=37b215ea1280a621d652469cd35328a208f8ef77
-
-And the complete code:
-
-http://git.linuxtv.org/mchehab/ir.git?a=blob;f=drivers/media/IR/ir-rc5-decoder.c;h=a62277b625a8ed78028e7060a677598eeae03ffe;hb=37b215ea1280a621d652469cd35328a208f8ef77
-
-I'll likely send an email to the ML with the RC patches that are on my experimental tree,
-to properly document, and merge it at the -git, together with the other pending requests.
-
+diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+index 2f0274d..f795a3e 100644
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -480,9 +480,9 @@ int tm6000_cards_setup(struct tm6000_core *dev)
+ 		}
+ 
+ 		if (!i) {
+-			rc = tm6000_get_reg16(dev, 0x40, 0, 0);
++			rc = tm6000_get_reg32(dev, REQ_40_GET_VERSION, 0, 0);
+ 			if (rc >= 0)
+-				printk(KERN_DEBUG "board=%d\n", rc);
++				printk(KERN_DEBUG "board=0x%08x\n", rc);
+ 		}
+ 	}
+ 
+diff --git a/drivers/staging/tm6000/tm6000-core.c b/drivers/staging/tm6000/tm6000-core.c
+index d9cade0..0b4dc64 100644
+--- a/drivers/staging/tm6000/tm6000-core.c
++++ b/drivers/staging/tm6000/tm6000-core.c
+@@ -139,6 +139,20 @@ int tm6000_get_reg16 (struct tm6000_core *dev, u8 req, u16 value, u16 index)
+ 	return buf[1]|buf[0]<<8;
+ }
+ 
++int tm6000_get_reg32 (struct tm6000_core *dev, u8 req, u16 value, u16 index)
++{
++	int rc;
++	u8 buf[4];
++
++	rc=tm6000_read_write_usb (dev, USB_DIR_IN | USB_TYPE_VENDOR, req,
++				       value, index, buf, 4);
++
++	if (rc<0)
++		return rc;
++
++	return buf[3] | buf[2] << 8 | buf[1] << 16 | buf[0] << 24;
++}
++
+ void tm6000_set_fourcc_format(struct tm6000_core *dev)
+ {
+ 	if (dev->dev_type == TM6010) {
+@@ -455,9 +469,9 @@ int tm6000_init (struct tm6000_core *dev)
+ 	msleep(5); /* Just to be conservative */
+ 
+ 	/* Check board version - maybe 10Moons specific */
+-	board=tm6000_get_reg16 (dev, 0x40, 0, 0);
++	board=tm6000_get_reg32 (dev, REQ_40_GET_VERSION, 0, 0);
+ 	if (board >=0) {
+-		printk (KERN_INFO "Board version = 0x%04x\n",board);
++		printk (KERN_INFO "Board version = 0x%08x\n",board);
+ 	} else {
+ 		printk (KERN_ERR "Error %i while retrieving board version\n",board);
+ 	}
+diff --git a/drivers/staging/tm6000/tm6000.h b/drivers/staging/tm6000/tm6000.h
+index 172f7d7..d9d076b 100644
+--- a/drivers/staging/tm6000/tm6000.h
++++ b/drivers/staging/tm6000/tm6000.h
+@@ -224,6 +224,7 @@ int tm6000_read_write_usb (struct tm6000_core *dev, u8 reqtype, u8 req,
+ 			   u16 value, u16 index, u8 *buf, u16 len);
+ int tm6000_get_reg (struct tm6000_core *dev, u8 req, u16 value, u16 index);
+ int tm6000_get_reg16(struct tm6000_core *dev, u8 req, u16 value, u16 index);
++int tm6000_get_reg32(struct tm6000_core *dev, u8 req, u16 value, u16 index);
+ int tm6000_set_reg (struct tm6000_core *dev, u8 req, u16 value, u16 index);
+ int tm6000_init (struct tm6000_core *dev);
+ 
 -- 
+1.6.6.1
 
-Cheers,
-Mauro
