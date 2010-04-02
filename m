@@ -1,142 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:64193 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751154Ab0D2Dmr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Apr 2010 23:42:47 -0400
-From: Frederic Weisbecker <fweisbec@gmail.com>
-To: LKML <linux-kernel@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Frederic Weisbecker <fweisbec@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Arnd Bergmann <arnd@arndb.de>, John Kacur <jkacur@redhat.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Jan Blunck <jblunck@gmail.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Greg KH <gregkh@suse.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 0/5] Pushdown bkl from v4l ioctls
-Date: Thu, 29 Apr 2010 05:42:39 +0200
-Message-Id: <1272512564-14683-1-git-send-regression-fweisbec@gmail.com>
-In-Reply-To: <alpine.LFD.2.00.1004280750330.3739@i5.linux-foundation.org>
-References: <alpine.LFD.2.00.1004280750330.3739@i5.linux-foundation.org>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:34887 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754773Ab0DBOYn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Apr 2010 10:24:43 -0400
+Received: by gwb19 with SMTP id 19so158928gwb.19
+        for <linux-media@vger.kernel.org>; Fri, 02 Apr 2010 07:24:43 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <r2z829197381004020659m8f31d527u12f7069d3cbacdca@mail.gmail.com>
+References: <i2s6e8e83e21004020648n21b07894ma8ad2bf6757e83ff@mail.gmail.com>
+	 <r2z829197381004020659m8f31d527u12f7069d3cbacdca@mail.gmail.com>
+Date: Fri, 2 Apr 2010 22:24:42 +0800
+Message-ID: <q2s6e8e83e21004020724xe5df6c55h27ac0606c6cc8a5f@mail.gmail.com>
+Subject: Re: how does v4l2 driver communicate a frequency lock to mythtv
+From: Bee Hock Goh <beehock@gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Thanks a lot for your advice! I will look into the g_tuner and signal function.
 
-Linus suggested to rename struct v4l2_file_operations::ioctl
-into bkl_ioctl to eventually get something greppable and make
-its background explicit.
-
-While at it I thought it could be a good idea to just pushdown
-the bkl to every v4l drivers that have an .ioctl, so that we
-actually remove struct v4l2_file_operations::ioctl for good.
-
-It passed make allyesconfig on sparc.
-Please tell me what you think.
-
-Thanks.
-
-Frederic Weisbecker (5):
-      v4l: Pushdown bkl into video_ioctl2
-      v4l: Use video_ioctl2_unlocked from drivers that don't want the bkl
-      v4l: Change users of video_ioctl2 to use unlocked_ioctl
-      v4l: Pushdown bkl to drivers that implement their own ioctl
-      v4l: Remove struct v4l2_file_operations::ioctl
-
- drivers/media/common/saa7146_fops.c              |    2 +-
- drivers/media/radio/dsbr100.c                    |    2 +-
- drivers/media/radio/radio-aimslab.c              |    2 +-
- drivers/media/radio/radio-aztech.c               |    2 +-
- drivers/media/radio/radio-cadet.c                |    2 +-
- drivers/media/radio/radio-gemtek-pci.c           |    2 +-
- drivers/media/radio/radio-gemtek.c               |    2 +-
- drivers/media/radio/radio-maestro.c              |    2 +-
- drivers/media/radio/radio-maxiradio.c            |    2 +-
- drivers/media/radio/radio-miropcm20.c            |    2 +-
- drivers/media/radio/radio-mr800.c                |    2 +-
- drivers/media/radio/radio-rtrack2.c              |    2 +-
- drivers/media/radio/radio-sf16fmi.c              |    2 +-
- drivers/media/radio/radio-sf16fmr2.c             |    2 +-
- drivers/media/radio/radio-si4713.c               |    2 +-
- drivers/media/radio/radio-tea5764.c              |    2 +-
- drivers/media/radio/radio-terratec.c             |    2 +-
- drivers/media/radio/radio-timb.c                 |    2 +-
- drivers/media/radio/radio-trust.c                |    2 +-
- drivers/media/radio/radio-typhoon.c              |    2 +-
- drivers/media/radio/radio-zoltrix.c              |    2 +-
- drivers/media/radio/si470x/radio-si470x-common.c |    2 +-
- drivers/media/video/arv.c                        |    2 +-
- drivers/media/video/au0828/au0828-video.c        |   14 ++++----
- drivers/media/video/bt8xx/bttv-driver.c          |   26 +++++++-------
- drivers/media/video/bw-qcam.c                    |   11 +++++-
- drivers/media/video/c-qcam.c                     |   11 +++++-
- drivers/media/video/cafe_ccic.c                  |   14 ++++----
- drivers/media/video/cpia.c                       |   11 +++++-
- drivers/media/video/cpia2/cpia2_v4l.c            |   11 +++++-
- drivers/media/video/cx18/cx18-streams.c          |   12 +++---
- drivers/media/video/cx231xx/cx231xx-video.c      |    4 +-
- drivers/media/video/cx23885/cx23885-417.c        |    2 +-
- drivers/media/video/cx23885/cx23885-video.c      |    4 +-
- drivers/media/video/cx88/cx88-blackbird.c        |    2 +-
- drivers/media/video/cx88/cx88-video.c            |    4 +-
- drivers/media/video/davinci/vpfe_capture.c       |    2 +-
- drivers/media/video/davinci/vpif_capture.c       |    2 +-
- drivers/media/video/davinci/vpif_display.c       |    2 +-
- drivers/media/video/em28xx/em28xx-video.c        |    4 +-
- drivers/media/video/et61x251/et61x251_core.c     |   27 +++++++++++----
- drivers/media/video/gspca/gspca.c                |    2 +-
- drivers/media/video/hdpvr/hdpvr-video.c          |    2 +-
- drivers/media/video/meye.c                       |    2 +-
- drivers/media/video/omap24xxcam.c                |   10 +++---
- drivers/media/video/ov511.c                      |   15 +++++---
- drivers/media/video/pms.c                        |    2 +-
- drivers/media/video/pvrusb2/pvrusb2-v4l2.c       |   20 +++++++----
- drivers/media/video/pwc/pwc-if.c                 |   19 ++++++----
- drivers/media/video/s2255drv.c                   |   12 +++---
- drivers/media/video/saa5246a.c                   |   11 ++++--
- drivers/media/video/saa5249.c                    |    6 +++-
- drivers/media/video/saa7134/saa7134-empress.c    |   14 ++++----
- drivers/media/video/saa7134/saa7134-video.c      |   26 +++++++-------
- drivers/media/video/se401.c                      |   20 +++++++----
- drivers/media/video/sn9c102/sn9c102_core.c       |   27 +++++++++++----
- drivers/media/video/soc_camera.c                 |    2 +-
- drivers/media/video/stk-webcam.c                 |   14 ++++----
- drivers/media/video/stradis.c                    |   26 +++++++++++----
- drivers/media/video/stv680.c                     |   20 +++++++----
- drivers/media/video/tlg2300/pd-radio.c           |    8 ++--
- drivers/media/video/tlg2300/pd-video.c           |    2 +-
- drivers/media/video/usbvideo/usbvideo.c          |   21 ++++++++----
- drivers/media/video/usbvideo/vicam.c             |   14 +++++++-
- drivers/media/video/usbvision/usbvision-video.c  |    4 +-
- drivers/media/video/uvc/uvc_v4l2.c               |   11 +++++-
- drivers/media/video/v4l2-dev.c                   |   38 ++-------------------
- drivers/media/video/v4l2-ioctl.c                 |   17 ++++++++-
- drivers/media/video/vivi.c                       |    2 +-
- drivers/media/video/w9966.c                      |    2 +-
- drivers/media/video/w9968cf.c                    |   25 +++++++++++---
- drivers/media/video/zc0301/zc0301_core.c         |   27 +++++++++++----
- drivers/media/video/zoran/zoran_driver.c         |   16 ++++----
- drivers/media/video/zr364xx.c                    |   14 ++++----
- drivers/staging/cx25821/cx25821-audups11.c       |   18 ++++++----
- drivers/staging/cx25821/cx25821-video0.c         |   14 ++++----
- drivers/staging/cx25821/cx25821-video1.c         |   14 ++++----
- drivers/staging/cx25821/cx25821-video2.c         |   14 ++++----
- drivers/staging/cx25821/cx25821-video3.c         |   14 ++++----
- drivers/staging/cx25821/cx25821-video4.c         |   14 ++++----
- drivers/staging/cx25821/cx25821-video5.c         |   14 ++++----
- drivers/staging/cx25821/cx25821-video6.c         |   14 ++++----
- drivers/staging/cx25821/cx25821-video7.c         |   14 ++++----
- drivers/staging/cx25821/cx25821-videoioctl.c     |   27 +++++++++++----
- drivers/staging/cx25821/cx25821-vidups10.c       |   19 +++++++----
- drivers/staging/cx25821/cx25821-vidups9.c        |   18 ++++++----
- drivers/staging/dream/camera/msm_v4l2.c          |   27 +++++++++++----
- drivers/staging/go7007/go7007-v4l2.c             |    2 +-
- drivers/staging/tm6000/tm6000-video.c            |    2 +-
- include/media/v4l2-dev.h                         |    1 -
- include/media/v4l2-ioctl.h                       |    2 +
- sound/i2c/other/tea575x-tuner.c                  |    2 +-
- 92 files changed, 530 insertions(+), 360 deletions(-)
+On Fri, Apr 2, 2010 at 9:59 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> On Fri, Apr 2, 2010 at 9:48 AM, Bee Hock Goh <beehock@gmail.com> wrote:
+>> Dear all,
+>>
+>> i have been doing some usb snoop and making some changes to the
+>> existing staging tm6000 to get my tm5600/xc2028 usb stick to work.
+>> Thanks to a lot of help from Stefan, I have some limited success and
+>> is able to get mythtv to do channel scan. However, mythtv is not able
+>> to logon to the channel even though usbmon shown the same in/out using
+>> usbmon and snoop on the stick windows application.
+>>
+>> Where should I be looking at to inform that a channel is to be locked?
+>
+> For most applications, the G_TUNER call must set the response struct
+> v4l2_tuner's "signal" field to a nonzero value.
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
+>
