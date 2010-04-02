@@ -1,144 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:61239 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752760Ab0DWCF0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Apr 2010 22:05:26 -0400
-Received: by gyg13 with SMTP id 13so4856519gyg.19
-        for <linux-media@vger.kernel.org>; Thu, 22 Apr 2010 19:05:25 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:54379 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753824Ab0DBVQM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Apr 2010 17:16:12 -0400
+Message-ID: <4BB65E67.9050605@redhat.com>
+Date: Fri, 02 Apr 2010 18:15:19 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20100422202017.GA13005@joro.homelinux.org>
-References: <u2u6e8e83e21004212214i8c186922he28162cbed66d292@mail.gmail.com>
-	 <20100422202017.GA13005@joro.homelinux.org>
-Date: Fri, 23 Apr 2010 10:05:25 +0800
-Message-ID: <s2i6e8e83e21004221905pe0f079ddye1477c26f6b9f712@mail.gmail.com>
-Subject: Re: tm6000: Patch that will fixed analog video (tested on tm5600)
-From: Bee Hock Goh <beehock@gmail.com>
-To: Bee Hock Goh <beehock@gmail.com>,
-	LMML <linux-media@vger.kernel.org>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Manu Abraham <abraham.manu@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: [RFC] Serialization flag example
+References: <201004011937.39331.hverkuil@xs4all.nl>	 <4BB4E4CC.3020100@redhat.com>	 <y2v1a297b361004021043wa43821d2hfb5b573b110dd5e0@mail.gmail.com> <x2v829197381004021053nf77e2d42q4f1614eced7f999d@mail.gmail.com>
+In-Reply-To: <x2v829197381004021053nf77e2d42q4f1614eced7f999d@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-George,
+Devin Heitmueller wrote:
+> On Fri, Apr 2, 2010 at 1:43 PM, Manu Abraham <abraham.manu@gmail.com> wrote:
+>> IMO, A framework shouldn't lock.
 
-Which device are you using?
+Current DVB framework is locked with BKL. I agree that an unconditional 
+lock like this is very bad. We need to get rid of it as soon as possible.
 
-I have introduced a number of manual registers settings in the tm6000
-codes which might be specific to my device and its a pure duplication
-from usb snooping which is not suitable to be introduce to the
-mainstream codes.
+> Hello Manu,
+> 
+> The argument I am trying to make is that there are numerous cases
+> where you should not be able to use both a particular DVB and V4L
+> device at the same time.  The implementation of such locking should be
+> handled by the v4l-dvb core, but the definition of the relationships
+> dictating which devices cannot be used in parallel is still the
+> responsibility of the driver.
+> 
+> This way, a bridge driver can say "this DVB device cannot be used at
+> the same time as this V4L device" but the actual enforcement of the
+> locking is done in the core.  For cases where the devices can be used
+> in parallel, the bridge driver doesn't have to do anything.
 
-On Fri, Apr 23, 2010 at 4:20 AM, George Tellalov <gtellalov@bigfoot.com> wrote:
-> On Thu, Apr 22, 2010 at 01:14:39PM +0800, Bee Hock Goh wrote:
->> Dear all,
->>
->> Anyone who have a tm6000 compatible analog device, please do try out this patch.
->>
->> Its working for me on a tm5600 using mplayer. It can be compile
->> against the latest hg tree.
->>
->
-> Here's what I get using mplayer:
->
-> tm6000 tm6000_irq_callback :urb resubmit failed (error=-1)
-> tm6000 tm6000_irq_callback :urb resubmit failed (error=-1)
-> tm6000 tm6000_irq_callback :urb resubmit failed (error=-1)
-> tm6000 tm6000_irq_callback :urb resubmit failed (error=-1)
-> tm6000 tm6000_irq_callback :urb resubmit failed (error=-1)
-> tm6000 tm6000_irq_callback :urb resubmit failed (error=-1)
-> tm6000 tm6000_irq_callback :urb resubmit failed (error=-1)
-> tm6000 tm6000_irq_callback :urb resubmit failed (error=-1)
-> tm6000 tm6000_irq_callback :urb resubmit failed (error=-1)
-> tm6000 tm6000_irq_callback :urb resubmit failed (error=-1)
-> tm6000 tm6000_irq_callback :urb resubmit failed (error=-1)
-> tm6000 tm6000_irq_callback :urb resubmit failed (error=-1)
-> tm6000 tm6000_irq_callback :urb resubmit failed (error=-1)
-> tm6000 tm6000_irq_callback :urb resubmit failed (error=-1)
-> tm6000 tm6000_irq_callback :urb resubmit failed (error=-1)
-> BUG: unable to handle kernel paging request at 0000000000800200
-> IP: [<ffffffffa0340b48>] tm6000_irq_callback+0x32a/0x886 [tm6000]
-> PGD 5de26067 PUD 5d50d067 PMD 0
-> Oops: 0002 [#1] SMP
-> last sysfs file: /sys/devices/platform/abituguru.224/temp3_input
-> CPU 0
-> Pid: 0, comm: swapper Tainted: G         C 2.6.33 #1 AV8 (VIA K8T800P-8237)/
-> RIP: 0010:[<ffffffffa0340b48>]  [<ffffffffa0340b48>] tm6000_irq_callback+0x32a/0x886 [tm6000]
-> RSP: 0018:ffff880001803cc8  EFLAGS: 00010006
-> RAX: 0000000000000004 RBX: ffff8800425df800 RCX: 0000000000000003
-> RDX: ffff8800425df800 RSI: ffff880042612c00 RDI: 0000000000800200
-> RBP: ffff8800425df800 R08: 0000000000000000 R09: 0000000000000002
-> R10: ffff8800425df800 R11: ffffffff814af69b R12: ffff8800425dfe9c
-> R13: ffff880042612c00 R14: 00000000000000b4 R15: 00000000000000b4
-> FS:  00000000459cb950(0000) GS:ffff880001800000(0000) knlGS:0000000000000000
-> CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-> CR2: 0000000000800200 CR3: 000000005d548000 CR4: 00000000000006f0
-> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-> Process swapper (pid: 0, threadinfo ffffffff81600000, task ffffffff81648020)
-> Stack:
->  ffffffff81248064 ffff88005f911000 ffff88005d683750 0000000000000000
-> <0> ffff880001803d80 00000000000ca800 ffff880042612ffd ffff880200000001
-> <0> ffffffff8123420d 0000000000005593 d392d818d757d33e 0000000400000003
-> Call Trace:
->  <IRQ>
->  [<ffffffff81248064>] ? tcp_v4_do_rcv+0x19b/0x346
->  [<ffffffff8123420d>] ? __inet_lookup_established+0x43/0x245
->  [<ffffffffa0055f65>] ? usb_hcd_giveback_urb+0x76/0xa9 [usbcore]
->  [<ffffffffa0103a54>] ? ehci_urb_done+0x6b/0x7b [ehci_hcd]
->  [<ffffffffa0105dfb>] ? ehci_work+0x3ec/0x78d [ehci_hcd]
->  [<ffffffffa0108f89>] ? ehci_irq+0x18f/0x1ba [ehci_hcd]
->  [<ffffffffa0055819>] ? usb_hcd_irq+0x39/0x7e [usbcore]
->  [<ffffffff8107b853>] ? handle_IRQ_event+0x58/0x126
->  [<ffffffff8107d0e7>] ? handle_fasteoi_irq+0x78/0xaf
->  [<ffffffff81005664>] ? handle_irq+0x17/0x1f
->  [<ffffffff81004cb6>] ? do_IRQ+0x57/0xbd
->  [<ffffffff812b2353>] ? ret_from_intr+0x0/0x11
->  <EOI>
->  [<ffffffff8101d534>] ? native_safe_halt+0x2/0x3
->  [<ffffffff8100a0bd>] ? default_idle+0x34/0x51
->  [<ffffffff81001d9e>] ? cpu_idle+0xa2/0xda
->  [<ffffffff816b6140>] ? early_idt_handler+0x0/0x71
->  [<ffffffff816b6cc4>] ? start_kernel+0x3e5/0x3f1
->  [<ffffffff816b6396>] ? x86_64_start_kernel+0xf9/0x106
-> Code: b8 04 00 00 00 f3 a4 4c 89 ee 48 8b 94 24 98 00 00 00 b1 04 2b 8a a0 06 00 00 8b ba 9c 06 00 00 48 03 bc 24 b8 00 00 00 48 63 c9 <f3> a4 2b 82 a0 06 00 00 48 98 49 01 c5 eb 63 41 80 7d 03 47 74
-> RIP  [<ffffffffa0340b48>] tm6000_irq_callback+0x32a/0x886 [tm6000]
->  RSP <ffff880001803cc8>
-> CR2: 0000000000800200
-> ---[ end trace e0d33b74978ba13e ]---
-> Kernel panic - not syncing: Fatal exception in interrupt
-> Pid: 0, comm: swapper Tainted: G      D  C 2.6.33 #1
-> Call Trace:
->  <IRQ>  [<ffffffff812b00fd>] ? panic+0x86/0x14b
->  [<ffffffff81069f6b>] ? crash_kexec+0xf8/0x101
->  [<ffffffff8105259a>] ? up+0xe/0x37
->  [<ffffffff81037466>] ? kmsg_dump+0xa6/0x13e
->  [<ffffffff81006635>] ? oops_end+0xa6/0xb3
->  [<ffffffff8101fcec>] ? no_context+0x1f2/0x201
->  [<ffffffff8101fea8>] ? __bad_area_nosemaphore+0x1ad/0x1d1
->  [<ffffffffa0335209>] ? tcp_packet+0xc56/0xc99 [nf_conntrack]
->  [<ffffffff812627bb>] ? bictcp_cong_avoid+0x12/0x247
->  [<ffffffffa005710e>] ? usb_hcd_submit_urb+0x7f5/0x8eb [usbcore]
->  [<ffffffff812b25c5>] ? page_fault+0x25/0x30
->  [<ffffffffa0340b48>] ? tm6000_irq_callback+0x32a/0x886 [tm6000]
->  [<ffffffffa0340939>] ? tm6000_irq_callback+0x11b/0x886 [tm6000]
->  [<ffffffff81248064>] ? tcp_v4_do_rcv+0x19b/0x346
->  [<ffffffff8123420d>] ? __inet_lookup_established+0x43/0x245
->  [<ffffffffa0055f65>] ? usb_hcd_giveback_urb+0x76/0xa9 [usbcore]
->  [<ffffffffa0103a54>] ? ehci_urb_done+0x6b/0x7b [ehci_hcd]
->  [<ffffffffa0105dfb>] ? ehci_work+0x3ec/0x78d [ehci_hcd]
->  [<ffffffffa0108f89>] ? ehci_irq+0x18f/0x1ba [ehci_hcd]
->  [<ffffffffa0055819>] ? usb_hcd_irq+0x39/0x7e [usbcore]
->  [<ffffffff8107b853>] ? handle_IRQ_event+0x58/0x126
->  [<ffffffff8107d0e7>] ? handle_fasteoi_irq+0x78/0xaf
->  [<ffffffff81005664>] ? handle_irq+0x17/0x1f
->  [<ffffffff81004cb6>] ? do_IRQ+0x57/0xbd
->  [<ffffffff812b2353>] ? ret_from_intr+0x0/0x11
->  <EOI>  [<ffffffff8101d534>] ? native_safe_halt+0x2/0x3
->  [<ffffffff8100a0bd>] ? default_idle+0x34/0x51
->  [<ffffffff81001d9e>] ? cpu_idle+0xa2/0xda
->  [<ffffffff816b6140>] ? early_idt_handler+0x0/0x71
->  [<ffffffff816b6cc4>] ? start_kernel+0x3e5/0x3f1
->  [<ffffffff816b6396>] ? x86_64_start_kernel+0xf9/0x106
->
+Although both are some sort of locks, the BKL replacement lock is
+basically a memory barrier to serialize data, avoiding that the driver's
+internal structs to be corrupted or to return a wrong value. Only the
+driver really knows what should be protected.
+
+In the case of V4L/DVB devices, the struct to be protected is the struct *_dev
+(struct core, on cx88, struct em28xx on em28xx, struct saa7134_dev, and so on).
+
+Of course, if everything got serialized by the core, and assuming that the 
+driver doesn't have IRQ's and/or other threads accessing the same data, the 
+problem disappears, at the expense of a performance reduction that may or 
+may not be relevant.
+
+That's said, except for the most simple drivers, like radio ones, there's always
+some sort of IRQ and/or threads evolved, touching on struct *_dev. 
+
+For example, both cx88 and saa7134 have (depending on the hardware):
+	- IRQ to announce that a data buffer was filled for video, vbi, alsa;
+	- IRQ for IR;
+	- IR polling;
+	- video audio standard detection thread;
+
+A lock to protect the internal data structs should protect all the above. Even
+the most pedantic core-only lock won't solve it.
+
+Yet, a lock, on core, for ioctl/poll/open/close may be part of a protection, if
+the same lock is used also to protect the other usages of struct *_dev.
+
+So, I'm OK on having an optional mutex parameter to be passed to V4L core, to provide
+the BKL removal.
+
+In the case of a V4L x DVB type of lock, this is not to protect some memory, but,
+instead, to limit the usage of a hardware that is not capable of simultaneously
+provide V4L and DVB streams. This is a common case on almost all devices, but, as
+Hermann pointed, there are a few devices that are capable of doing both analog
+and digital streams at the same time, but saa7134 driver currently doesn't support.
+
+Some drivers, like cx88 has a sort of lock meant to protect such things. It is
+implemented on res_get/res_check/res_locked/res_free. Currently, the lock is only
+protecting simultaneous usage of the analog part of the driver. It works by not
+allowing to start two simultaneous video streams of the same memory access type, 
+for example, while allowing multiple device opens, for example to call V4L controls, 
+while another application is streaming. It also allows having a mmapped or overlay
+stream and a separate read() stream (used on applications like xawtv and xdtv to
+record a video on PCI devices that has enough bandwidth to provide two simultaneous 
+streams).
+
+Maybe this kind of lock can be abstracted, and we can add a class of resource protectors
+inside the core, for the drivers to use it when needed.
+
+-- 
+
+Cheers,
+Mauro
