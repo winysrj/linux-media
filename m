@@ -1,128 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47366 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754193Ab0DAIUe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Apr 2010 04:20:34 -0400
-From: hvaibhav@ti.com
-To: p.osciak@samsung.com
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH 1/2] v4l2-mem2mem: Code cleanup
-Date: Thu,  1 Apr 2010 13:50:24 +0530
-Message-Id: <1270110025-1854-1-git-send-email-hvaibhav@ti.com>
-In-Reply-To: <hvaibhav@ti.com>
-References: <hvaibhav@ti.com>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:49052 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753876Ab0DBTDF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Apr 2010 15:03:05 -0400
+Message-Id: <20100402190255.774628605@hardeman.nu>
+Date: Fri, 02 Apr 2010 20:58:30 +0200
+From: david@hardeman.nu
+To: mchehab@infradead.org
+Cc: linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [patch 3/3] Convert drivers/media/dvb/ttpci/budget-ci.c to use ir-core
+References: <20100402185827.425741206@hardeman.nu>
+Content-Disposition: inline; filename=convert-budget-ci-to-use-ir-core
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vaibhav Hiremath <hvaibhav@ti.com>
+This patch converts drivers/media/dvb/ttpci/budget-ci.c to use ir-core
+rather than rolling its own keydown timeout handler and reporting keys
+via drivers/media/IR/ir-functions.c.
+
+Signed-off-by: David Härdeman <david@hardeman.nu>
 
 
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- drivers/media/video/v4l2-mem2mem.c |   40 ++++++++++++++---------------------
- 1 files changed, 16 insertions(+), 24 deletions(-)
-
-diff --git a/drivers/media/video/v4l2-mem2mem.c b/drivers/media/video/v4l2-mem2mem.c
-index a78157f..4cd79ba 100644
---- a/drivers/media/video/v4l2-mem2mem.c
-+++ b/drivers/media/video/v4l2-mem2mem.c
-@@ -23,12 +23,12 @@ MODULE_DESCRIPTION("Mem to mem device framework for videobuf");
- MODULE_AUTHOR("Pawel Osciak, <p.osciak@samsung.com>");
- MODULE_LICENSE("GPL");
+Index: ir/drivers/media/dvb/ttpci/budget-ci.c
+===================================================================
+--- ir.orig/drivers/media/dvb/ttpci/budget-ci.c	2010-04-02 16:41:15.524206900 +0200
++++ ir/drivers/media/dvb/ttpci/budget-ci.c	2010-04-02 16:48:15.668239437 +0200
+@@ -35,7 +35,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/input.h>
+ #include <linux/spinlock.h>
+-#include <media/ir-common.h>
++#include <media/ir-core.h>
  
--static int debug;
--module_param(debug, int, 0644);
-+static bool debug;
-+module_param(debug, bool, 0644);
+ #include "budget.h"
  
- #define dprintk(fmt, arg...)						\
- 	do {								\
--		if (debug >= 1)						\
-+		if (debug)						\
- 			printk(KERN_DEBUG "%s: " fmt, __func__, ## arg);\
- 	} while (0)
+@@ -82,12 +82,6 @@
+ #define SLOTSTATUS_READY	8
+ #define SLOTSTATUS_OCCUPIED	(SLOTSTATUS_PRESENT|SLOTSTATUS_RESET|SLOTSTATUS_READY)
  
-@@ -215,12 +215,10 @@ EXPORT_SYMBOL(v4l2_m2m_dst_buf_remove);
- void *v4l2_m2m_get_curr_priv(struct v4l2_m2m_dev *m2m_dev)
+-/*
+- * Milliseconds during which a key is regarded as pressed.
+- * If an identical command arrives within this time, the timer will start over.
+- */
+-#define IR_KEYPRESS_TIMEOUT	250
+-
+ /* RC5 device wildcard */
+ #define IR_DEVICE_ANY		255
+ 
+@@ -104,12 +98,9 @@
+ struct budget_ci_ir {
+ 	struct input_dev *dev;
+ 	struct tasklet_struct msp430_irq_tasklet;
+-	struct timer_list timer_keyup;
+ 	char name[72]; /* 40 + 32 for (struct saa7146_dev).name */
+ 	char phys[32];
+-	struct ir_input_state state;
+ 	int rc5_device;
+-	u32 last_raw;
+ 	u32 ir_key;
+ 	bool have_command;
+ };
+@@ -124,18 +115,11 @@
+ 	u8 tuner_pll_address; /* used for philips_tdm1316l configs */
+ };
+ 
+-static void msp430_ir_keyup(unsigned long data)
+-{
+-	struct budget_ci_ir *ir = (struct budget_ci_ir *) data;
+-	ir_input_nokey(ir->dev, &ir->state);
+-}
+-
+ static void msp430_ir_interrupt(unsigned long data)
  {
- 	unsigned long flags;
--	void *ret;
-+	void *ret = NULL;
+ 	struct budget_ci *budget_ci = (struct budget_ci *) data;
+ 	struct input_dev *dev = budget_ci->ir.dev;
+ 	u32 command = ttpci_budget_debiread(&budget_ci->budget, DEBINOSWAP, DEBIADDR_IR, 2, 1, 0) >> 8;
+-	u32 raw;
  
- 	spin_lock_irqsave(&m2m_dev->job_spinlock, flags);
--	if (!m2m_dev->curr_ctx)
--		ret = NULL;
--	else
-+	if (m2m_dev->curr_ctx)
- 		ret = m2m_dev->curr_ctx->priv;
- 	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
- 
-@@ -319,10 +317,9 @@ static void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+ 	/*
+ 	 * The msp430 chip can generate two different bytes, command and device
+@@ -171,20 +155,12 @@
  		return;
- 	}
+ 	budget_ci->ir.have_command = false;
  
--	if (!(m2m_ctx->job_flags & TRANS_QUEUED)) {
--		list_add_tail(&m2m_ctx->queue, &m2m_dev->jobqueue);
--		m2m_ctx->job_flags |= TRANS_QUEUED;
++	/* FIXME: We should generate complete scancodes with device info */
+ 	if (budget_ci->ir.rc5_device != IR_DEVICE_ANY &&
+ 	    budget_ci->ir.rc5_device != (command & 0x1f))
+ 		return;
+ 
+-	/* Is this a repeated key sequence? (same device, command, toggle) */
+-	raw = budget_ci->ir.ir_key | (command << 8);
+-	if (budget_ci->ir.last_raw != raw || !timer_pending(&budget_ci->ir.timer_keyup)) {
+-		ir_input_nokey(dev, &budget_ci->ir.state);
+-		ir_input_keydown(dev, &budget_ci->ir.state,
+-				 budget_ci->ir.ir_key);
+-		budget_ci->ir.last_raw = raw;
 -	}
-+	list_add_tail(&m2m_ctx->queue, &m2m_dev->jobqueue);
-+	m2m_ctx->job_flags |= TRANS_QUEUED;
-+
- 	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
- 
- 	v4l2_m2m_try_run(m2m_dev);
-@@ -414,12 +411,10 @@ int v4l2_m2m_qbuf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
- 
- 	vq = v4l2_m2m_get_vq(m2m_ctx, buf->type);
- 	ret = videobuf_qbuf(vq, buf);
--	if (ret)
--		return ret;
 -
--	v4l2_m2m_try_schedule(m2m_ctx);
-+	if (!ret)
-+		v4l2_m2m_try_schedule(m2m_ctx);
- 
--	return 0;
-+	return ret;
+-	mod_timer(&budget_ci->ir.timer_keyup, jiffies + msecs_to_jiffies(IR_KEYPRESS_TIMEOUT));
++	ir_keydown(dev, budget_ci->ir.ir_key, (command & 0x20) ? 1 : 0);
  }
- EXPORT_SYMBOL_GPL(v4l2_m2m_qbuf);
  
-@@ -448,12 +443,10 @@ int v4l2_m2m_streamon(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ static int msp430_ir_init(struct budget_ci *budget_ci)
+@@ -251,11 +227,6 @@
  
- 	vq = v4l2_m2m_get_vq(m2m_ctx, type);
- 	ret = videobuf_streamon(vq);
--	if (ret)
--		return ret;
+ 	ir_input_init(input_dev, &budget_ci->ir.state, IR_TYPE_RC5);
+ 
+-	/* initialise the key-up timeout handler */
+-	init_timer(&budget_ci->ir.timer_keyup);
+-	budget_ci->ir.timer_keyup.function = msp430_ir_keyup;
+-	budget_ci->ir.timer_keyup.data = (unsigned long) &budget_ci->ir;
+-	budget_ci->ir.last_raw = 0xffff; /* An impossible value */
+ 	error = ir_input_register(input_dev, ir_codes, NULL, MODULE_NAME);
+ 	if (error) {
+ 		printk(KERN_ERR "budget_ci: could not init driver for IR device (code %d)\n", error);
+@@ -284,9 +255,6 @@
+ 	saa7146_setgpio(saa, 3, SAA7146_GPIO_INPUT);
+ 	tasklet_kill(&budget_ci->ir.msp430_irq_tasklet);
+ 
+-	del_timer_sync(&dev->timer);
+-	ir_input_nokey(dev, &budget_ci->ir.state);
 -
--	v4l2_m2m_try_schedule(m2m_ctx);
-+	if (!ret)
-+		v4l2_m2m_try_schedule(m2m_ctx);
- 
--	return 0;
-+	return ret;
+ 	ir_input_unregister(dev);
  }
- EXPORT_SYMBOL_GPL(v4l2_m2m_streamon);
  
-@@ -587,8 +580,7 @@ struct v4l2_m2m_ctx *v4l2_m2m_ctx_init(void *priv, struct v4l2_m2m_dev *m2m_dev,
- 					enum v4l2_buf_type))
- {
- 	struct v4l2_m2m_ctx *m2m_ctx;
--	struct v4l2_m2m_queue_ctx *out_q_ctx;
--	struct v4l2_m2m_queue_ctx *cap_q_ctx;
-+	struct v4l2_m2m_queue_ctx *out_q_ctx, *cap_q_ctx;
- 
- 	if (!vq_init)
- 		return ERR_PTR(-EINVAL);
-@@ -662,7 +654,7 @@ EXPORT_SYMBOL_GPL(v4l2_m2m_ctx_release);
- /**
-  * v4l2_m2m_buf_queue() - add a buffer to the proper ready buffers list.
-  *
-- * Call from withing buf_queue() videobuf_queue_ops callback.
-+ * Call from buf_queue(), videobuf_queue_ops callback.
-  *
-  * Locking: Caller holds q->irqlock (taken by videobuf before calling buf_queue
-  * callback in the driver).
--- 
-1.6.2.4
 
