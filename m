@@ -1,67 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:7335 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932417Ab0DPV2C (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Apr 2010 17:28:02 -0400
-Date: Fri, 16 Apr 2010 17:27:58 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org
-Subject: [PATCH 1/3] ir-core: make ir_g_keycode_from_table a public function
-Message-ID: <20100416212758.GB2427@redhat.com>
-References: <20100416212622.GA6888@redhat.com>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:54629 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752782Ab0DBSeq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Apr 2010 14:34:46 -0400
+Received: by gwb19 with SMTP id 19so277951gwb.19
+        for <linux-media@vger.kernel.org>; Fri, 02 Apr 2010 11:34:44 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20100416212622.GA6888@redhat.com>
+In-Reply-To: <y2x1a297b361004021124jb2cc1b9ctc2c8bfb7c5a5f320@mail.gmail.com>
+References: <201004011937.39331.hverkuil@xs4all.nl>
+	 <4BB4E4CC.3020100@redhat.com>
+	 <y2v1a297b361004021043wa43821d2hfb5b573b110dd5e0@mail.gmail.com>
+	 <x2v829197381004021053nf77e2d42q4f1614eced7f999d@mail.gmail.com>
+	 <y2x1a297b361004021124jb2cc1b9ctc2c8bfb7c5a5f320@mail.gmail.com>
+Date: Fri, 2 Apr 2010 14:34:44 -0400
+Message-ID: <y2j829197381004021134gf51277c6wdfe2d1c892e7f12f@mail.gmail.com>
+Subject: Re: [RFC] Serialization flag example
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Manu Abraham <abraham.manu@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The imon driver I've previously submitted and have been porting to
-use ir-core needs to use ir_g_keycode_from_table, as ir_keydown is
-not sufficient, due to these things having really oddball hardware
-decoders in them. This just moves the function declaration from
-ir-core-priv.h over to ir-core.h.
+On Fri, Apr 2, 2010 at 2:24 PM, Manu Abraham <abraham.manu@gmail.com> wrote:
+> Hi Devin,
+>
+>> Hello Manu,
+>>
+>> The argument I am trying to make is that there are numerous cases
+>> where you should not be able to use both a particular DVB and V4L
+>> device at the same time.  The implementation of such locking should be
+>> handled by the v4l-dvb core, but the definition of the relationships
+>> dictating which devices cannot be used in parallel is still the
+>> responsibility of the driver.
+>>
+>> This way, a bridge driver can say "this DVB device cannot be used at
+>> the same time as this V4L device" but the actual enforcement of the
+>> locking is done in the core.  For cases where the devices can be used
+>> in parallel, the bridge driver doesn't have to do anything.
+>
+> I follow what you mean. Why I emphasized that it shouldn't be at the
+> core, but basically in the bridge driver:
+>
+> Case 1
+> - there is a 1:n relation, In this case there is only 1 path and 3
+> users sharing that path
+> In such a case, You can use such a mentioned scheme, where things do
+> look okay, since it is only about locking a single path.
+>
+> Case 2
+> - there is a n:n relation, in this case there are n paths and n users
+> In such a case, it is hard to make the core aware of all the details,
+> since there could be more than 1 resource of the same category;
+> Mapping each of them properly won't be easy, as for the same chip
+> driver Resource A on Card A, would mean different for Resource A on
+> Card B.
+>
+> Case 3
+> - there is a m:n relation, in this case, there are m paths and n users
+> This case is even more painful than the previous ones.
+>
+> In cases 2 & 3, the option to handle such cases is using a
+> configuration scheme based on the card type. I guess handling such
+> would be quite daunting and hard to get right. I guess it would be
+> much more efficient and useful to have such a feature to be made
+> available in the bridge driver as it is a resource of the card
+> configuration, rather than a common bridge resource.
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
+Hi Manu,
 
----
- drivers/media/IR/ir-core-priv.h |    7 -------
- include/media/ir-core.h         |    1 +
- 2 files changed, 1 insertions(+), 7 deletions(-)
+I don't have any problem with a bridge choosing to implement some much
+more complicated scheme to meet its own special requirements.
+However, it feels like the vast majority of bridges would fall into
+scenario #1, and having that functionality in the core would mean that
+all of those bridges would work properly (only needing a 2 line code
+change).  Hence, making the core handle the common case and still
+allowing the bridge maintainer to override the logic if necessary
+would seem like an ideal solution.
 
-diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
-index ef7f543..d79d91e 100644
---- a/drivers/media/IR/ir-core-priv.h
-+++ b/drivers/media/IR/ir-core-priv.h
-@@ -57,13 +57,6 @@ struct ir_raw_event_ctrl {
- #define TO_US(duration)		((int)TO_UNITS(duration, 1000))
- 
- /*
-- * Routines from ir-keytable.c to be used internally on ir-core and decoders
-- */
--
--u32 ir_g_keycode_from_table(struct input_dev *input_dev,
--			    u32 scancode);
--
--/*
-  * Routines from ir-sysfs.c - Meant to be called only internally inside
-  * ir-core
-  */
-diff --git a/include/media/ir-core.h b/include/media/ir-core.h
-index ab3bd30..51e8eb3 100644
---- a/include/media/ir-core.h
-+++ b/include/media/ir-core.h
-@@ -124,6 +124,7 @@ void ir_input_unregister(struct input_dev *input_dev);
- 
- void ir_repeat(struct input_dev *dev);
- void ir_keydown(struct input_dev *dev, int scancode, u8 toggle);
-+u32 ir_g_keycode_from_table(struct input_dev *input_dev, u32 scancode);
- 
- /* From ir-raw-event.c */
- 
+Nothing I have suggested precludes the bridge maintainer from *not*
+adding the code making the association in the core and instead adding
+his/her own locking infrastructure to the bridge driver.
+
+Right now, I can think of five or six bridges all of which fall into
+category #1.  Should we really add effectively the exact same locking
+code to all those bridges, running the risk of of screwing up the
+cut/paste?
+
+Devin
 
 -- 
-Jarod Wilson
-jarod@redhat.com
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
