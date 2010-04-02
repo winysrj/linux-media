@@ -1,18 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <dngtk92hx9@snkmail.com>) id 1O1PvU-0005bs-1F
-	for linux-dvb@linuxtv.org; Mon, 12 Apr 2010 22:08:08 +0200
-Received: from sneak2.sneakemail.com ([38.113.6.65])
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-d) with smtp
+	(envelope-from <shaulkremer@gmail.com>) id 1NxiKA-0004Bc-1M
+	for linux-dvb@linuxtv.org; Fri, 02 Apr 2010 16:58:18 +0200
+Received: from mail-fx0-f211.google.com ([209.85.220.211])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-a) with esmtp
 	for <linux-dvb@linuxtv.org>
-	id 1O1PvT-000273-0s; Mon, 12 Apr 2010 22:08:07 +0200
-Message-ID: <17143-1271102883-986537@sneakemail.com>
-From: dngtk92hx9@snkmail.com
-Date: Mon, 12 Apr 2010 20:08:03 +0000
-To: linux-dvb@linuxtv.org
+	id 1NxiK9-0006nG-As; Fri, 02 Apr 2010 16:58:17 +0200
+Received: by fxm3 with SMTP id 3so1549934fxm.11
+	for <linux-dvb@linuxtv.org>; Fri, 02 Apr 2010 07:58:16 -0700 (PDT)
 MIME-Version: 1.0
-Subject: [linux-dvb] nxt2004 broken in latest kernel release
+In-Reply-To: <y2q94764e701004020656kee6ae0b7vd14494f0cf779218@mail.gmail.com>
+References: <y2q94764e701004020656kee6ae0b7vd14494f0cf779218@mail.gmail.com>
+Date: Fri, 2 Apr 2010 17:58:15 +0300
+Message-ID: <z2w94764e701004020758tfcf45702ydad41557990c02fd@mail.gmail.com>
+From: Shaul Kremer <shaulkr@gmail.com>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] DVB-T initial tuning data for Israel
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -21,55 +25,45 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1861008441=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I have a pair of K-World ATSC 115 cards for my mythtv setup.  They've worked without any problems for the last 2 years.  My system uses Archlinux.  Roughly a month ago, an upgrade to kernel 2.6.32.10 caused problems in which nxt200x doesn't initialize properly some of the time (no firmware getting downloaded), and thus there's no /dev/dvb directory getting created.  I believe each card succeeds randomly about 1/3 of the time, so that came out to about 9 reboots to get both cards initialized properly.  After that it worked fine.
+--===============1861008441==
+Content-Type: multipart/alternative; boundary=002215b0354a8bd9ed048342354a
 
-However, when I upgraded to 2.6.33.2 a couple of days ago, I got the same error messages, but the probability of getting a success firmware download is like 1 in 10.  I haven't succeeded in getting both cards initialized at the same time.  Furthermore, even though I can get one of the cards to initialize (seeing /dev/dvb/adapter0), it doesn't function.  Tuner says locked but never returns a picture in mythtv.
+--002215b0354a8bd9ed048342354a
+Content-Type: text/plain; charset=UTF-8
 
-Here's the information when I do a lspci:
+Hi,
 
-03:06.0 Multimedia controller: Philips Semiconductors SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d1)
-03:07.0 Multimedia controller: Philips Semiconductors SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d1)
+I've made initial tuning files for IBA's DVB-T transmitters.
 
-This is the error from dmesg when init fails on a card:
+What is the preferred way to send them? Are Mercurial changesets acceptable?
 
-nxt200x: nxt200x_readbytes: i2c read error (addr 0x0a, err == -5)
-Unknown/Unsupported NXT chip: 00 00 00 00 00
-saa7133[0]/dvb: frontend initialization failed
+Shaul.
 
-Here's the message from a "successful" init (from error log since dmesg gets spammed with errors after it):
+--002215b0354a8bd9ed048342354a
+Content-Type: text/html; charset=UTF-8
 
-Apr 10 13:00:19 ruyi kernel: nxt200x: NXT2004 Detected
-Apr 10 13:00:19 ruyi kernel: nxt2004: Waiting for firmware upload (dvb-fe-nxt2004.fw)...
-Apr 10 13:00:19 ruyi kernel: saa7134 0000:03:06.0: firmware: requesting dvb-fe-nxt2004.fw
-Apr 10 13:00:19 ruyi kernel: nxt2004: Waiting for firmware upload(2)...
-Apr 10 13:00:19 ruyi kernel: nxt2004: Firmware upload complete
-Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_readbytes: i2c read error (addr 0x0a, err == -5)
-Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_writebytes: i2c write error (addr 0x0a, err == -5)
-Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_writebytes: i2c write error (addr 0x0a, err == -5)
-Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_writebytes: i2c write error (addr 0x0a, err == -5)
-Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_writebytes: i2c write error (addr 0x0a, err == -5)
-Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_readbytes: i2c read error (addr 0x0a, err == -5)
-Apr 10 13:00:19 ruyi kernel: nxt200x: Error writing multireg register 0x80
+<div dir="ltr"><div class="gmail_quote"><div dir="ltr">Hi,<br><br>I&#39;ve made initial tuning files for IBA&#39;s DVB-T transmitters.<br><br>What is the preferred way to send them? Are Mercurial changesets acceptable?<br>
+<br>Shaul.<br></div>
+</div><br></div>
 
-Then when I tried to tune to a channel it just spams the following error in dmesg forever while no picture gets shown:
+--002215b0354a8bd9ed048342354a--
 
-nxt200x: i2c_readbytes: i2c read error (addr 0x61, err == -5)
-nxt200x: Timeout waiting for nxt2004 to init.
-nxt200x: i2c_writebytes: i2c write error (addr 0x61, err == -5)
-nxt200x: error writing to tuner
 
-Please let me know if you want any additional logs.  thanks
-
-Ben
+--===============1861008441==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1861008441==--
