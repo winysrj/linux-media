@@ -1,60 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fmmailgate02.web.de ([217.72.192.227]:49035 "EHLO
-	fmmailgate02.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750840Ab0D1M3Q (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:49204 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752395Ab0DCAXj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Apr 2010 08:29:16 -0400
-Message-ID: <4BD82A16.5020301@web.de>
-Date: Wed, 28 Apr 2010 14:29:10 +0200
-From: =?UTF-8?B?QW5kcsOpIFdlaWRlbWFubg==?= <Andre.Weidemann@web.de>
-MIME-Version: 1.0
-To: Guy Martin <gmsoft@tuxicoman.be>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] TT S2-1600 allow more current for diseqc
-References: <20100411231805.4bc7fdef@borg.bxl.tuxicoman.be>	<4BD7E7A3.2060101@web.de> <20100428103303.2fe4c9ea@zombie>
-In-Reply-To: <20100428103303.2fe4c9ea@zombie>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+	Fri, 2 Apr 2010 20:23:39 -0400
+Subject: Re: V4L-DVB drivers and BKL
+From: Andy Walls <awalls@md.metrocast.net>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+In-Reply-To: <n2y829197381004011429u1d405025t8586abebeb3948ef@mail.gmail.com>
+References: <201004011001.10500.hverkuil@xs4all.nl>
+	 <4BB4D9AB.6070907@redhat.com>
+	 <g2q829197381004011129lc706e6c3jcac6dcc756012173@mail.gmail.com>
+	 <201004012306.31471.hverkuil@xs4all.nl> <4BB50D1A.7020803@redhat.com>
+	 <n2y829197381004011429u1d405025t8586abebeb3948ef@mail.gmail.com>
+Content-Type: text/plain
+Date: Fri, 02 Apr 2010 20:23:45 -0400
+Message-Id: <1270254225.3027.69.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Guy,
+On Thu, 2010-04-01 at 17:29 -0400, Devin Heitmueller wrote:
+> On Thu, Apr 1, 2010 at 5:16 PM, Mauro Carvalho Chehab <mchehab@redhat.com>
 
-On 28.04.2010 10:33, Guy Martin wrote:
+> I think though that we need to favor stability/reliability over
+> performance.
 
-> On Wed, 28 Apr 2010 09:45:39 +0200
-> André Weidemann<Andre.Weidemann@web.de>  wrote:
->
->> I advise not to pull this change into the kernel sources.
->> The card has only been testet with the a maximum current of 515mA.
->> Anything above is outside the specification for this card.
->
->
-> I'm currently running two of these cards in the same box with this
-> patch.
-> Actually, later on I've even set curlim = SEC_CURRENT_LIM_OFF because
-> sometimes diseqc wasn't working fine and that seemed to solve the
-> problem.
->
-> I used to have skystar2 cards before and I did not run into those
-> issues. Diseqc just worked fine.
->
-> For reference each tt s2 is plugged to a diseqc switch with 4 output,
-> each output connected to a quad lnb.
+You mean doing the wrong thing, as fast as you can, isn't performing? ;)
 
+I usually consider performance with two broad criteria
 
-How come there is such a high current drain to drive the switch plus the 
-LNBs? From what I understand, the switch should only power one LNB at a 
-time. Usually the switch plus the LNB should not drain more than 
-300-400mA, or am I wrong here?
+	- requirements correctly implemented (can be a weighted sum)
+	- efficient use of limited resources (usually time or bandwidth)
 
-> Is there another way to solve this ?
-> Maybe add a module parameter for people who want to override the
-> default ?
+Regards,
+Andy
 
-
-I think this could be done. Nevertheless, the card would still operate 
-outside its specification.
-
-Regards
-  André
