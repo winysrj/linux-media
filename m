@@ -1,66 +1,46 @@
-Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx02.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.6])
-	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o39CjTes017543
-	for <video4linux-list@redhat.com>; Fri, 9 Apr 2010 08:45:29 -0400
-Received: from namebay.info (mail.namebay.info [80.247.68.40])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o39CjGeK009478
-	for <video4linux-list@redhat.com>; Fri, 9 Apr 2010 08:45:17 -0400
-Received: from localhost by namebay.info (MDaemon PRO v9.6.2)
-	with ESMTP id md50000007809.msg
-	for <video4linux-list@redhat.com>; Fri, 09 Apr 2010 14:45:15 +0200
-Message-ID: <20100409144514.35011u3w7iibwk7u@webmail.hebergement.com>
-Date: Fri, 09 Apr 2010 14:45:14 +0200
-From: fpantaleao@mobisensesystems.com
-To: video4linux-list@redhat.com
-Subject: Re: configuration of sensor
-References: <v2gfe6fd5f61004090024o49727a3fw6ebe9fa8745718f5@mail.gmail.com>
-In-Reply-To: <v2gfe6fd5f61004090024o49727a3fw6ebe9fa8745718f5@mail.gmail.com>
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from mail.tu-berlin.de ([130.149.7.33])
+	by www.linuxtv.org with esmtp (Exim 4.69)
+	(envelope-from <uncurbed@swipnet.se>) id 1NxyVg-00010b-VJ
+	for linux-dvb@linuxtv.org; Sat, 03 Apr 2010 10:15:19 +0200
+Received: from smtp-out12.han.skanova.net ([195.67.226.212])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-a) with esmtp
+	for <linux-dvb@linuxtv.org>
+	id 1NxyVg-0005a0-BE; Sat, 03 Apr 2010 10:15:16 +0200
+Received: from [192.168.1.143] (213.67.3.39) by smtp-out12.han.skanova.net
+	(8.5.114) (authenticated as u23505651)
+	id 4B9F448A005D66B9 for linux-dvb@linuxtv.org;
+	Sat, 3 Apr 2010 10:15:12 +0200
+Message-ID: <4BB6F90E.2040104@swipnet.se>
+Date: Sat, 03 Apr 2010 10:15:10 +0200
+From: Conny Enstrom <uncurbed@swipnet.se>
 MIME-Version: 1.0
-Content-Disposition: inline
-Reply-To: fpantaleao@mobisensesystems.com
-List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"; Format="flowed"; DelSp="Yes"
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
-List-ID: <video4linux-list@redhat.com>
+To: DVB Linux <linux-dvb@linuxtv.org>
+Subject: [linux-dvb] USB Q-Box
+Reply-To: linux-media@vger.kernel.org
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Sender: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+List-ID: <linux-dvb@linuxtv.org>
 
-Carlos Lavin <carlos.lavin@vista-silicon.com> a =E9crit=A0:
+Any one tried this one yet?
+http://www.tbsdtv.com/english/product/QBoxS2.html
 
-> hello, I am work with a optical sensor ov7670, but his configuration is v=
-ery
-> complicated,I don't get a good image , I want to work with YUV format ant
-> VGA size, can anybody send me any good configuration? thank you.
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscr=
-ibe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
+I'm struggling right now to get it work but I can't get the card to Lock 
+in MythTV.
 
-Check out the software for Spykee robot developped by Meccano, it is  =
+Conny
 
-equipped with a 0V7670 sensor.
-
-Florin PANTALEAO
-Mobisense Systems - Solutions for mobile robot guidance
-
-http://www.spykeeworld.com/spykee/UK/freeSoftware.html
-
-----------------------------------------------------------------
-This message was sent using IMP, the Internet Messaging Program.
-
-
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
