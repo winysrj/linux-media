@@ -1,140 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from av9-1-sn3.vrr.skanova.net ([81.228.9.185]:43566 "EHLO
-	av9-1-sn3.vrr.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758603Ab0DPQpb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Apr 2010 12:45:31 -0400
-Subject: [PATCH 2/2] mfd: Add timberdale video-in driver to timberdale
-From: Richard =?ISO-8859-1?Q?R=F6jfors?=
-	<richard.rojfors@pelagicore.com>
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"Williams, Dan J" <dan.j.williams@intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 16 Apr 2010 18:28:17 +0200
-Message-ID: <1271435297.11641.46.camel@debian>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mail-fx0-f227.google.com ([209.85.220.227]:36218 "EHLO
+	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752918Ab0DDVzJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Apr 2010 17:55:09 -0400
+Received: by fxm27 with SMTP id 27so633149fxm.28
+        for <linux-media@vger.kernel.org>; Sun, 04 Apr 2010 14:55:08 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201003092133.12235.liplianin@me.by>
+References: <bcb3ef431003081127y43d6d785jdc34e845fa07e746@mail.gmail.com>
+	 <a3ef07921003081241t16e1a63ag1d8f93ebe35f15f2@mail.gmail.com>
+	 <201003092133.12235.liplianin@me.by>
+Date: Sun, 4 Apr 2010 23:55:07 +0200
+Message-ID: <o2lbcb3ef431004041455x49a28290h3fe76b498735e029@mail.gmail.com>
+Subject: Re: s2-liplianin, mantis: sysfs: cannot create duplicate filename
+	'/devices/virtual/irrcv'
+From: MartinG <gronslet@gmail.com>
+To: Linux Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch defines platform data for the video-in driver
-and adds it to all configurations of timberdale.
+2010/3/9 Igor M. Liplianin <liplianin@me.by>:
+> MartinG, I'm already planning to replace mantis related part with linuxtv one,
+> so please use http://linuxtv.org/hg/v4l-dvb.
+> But not get wrong, this tree isn't panacea, your reports are welcome.
 
-Signed-off-by: Richard Röjfors <richard.rojfors@pelagicore.com>
----
-diff --git a/drivers/mfd/timberdale.c b/drivers/mfd/timberdale.c
-index 2d4691a..49aa733 100644
---- a/drivers/mfd/timberdale.c
-+++ b/drivers/mfd/timberdale.c
-@@ -40,6 +40,7 @@
- #include <linux/spi/mc33880.h>
- 
- #include <media/timb_radio.h>
-+#include <media/timb_video.h>
- 
- #include <linux/timb_dma.h>
- 
-@@ -238,6 +239,22 @@ const static __devinitconst struct resource timberdale_uartlite_resources[] = {
- 	},
- };
- 
-+static __devinitdata struct i2c_board_info timberdale_adv7180_i2c_board_info = {
-+	/* Requires jumper JP9 to be off */
-+	I2C_BOARD_INFO("adv7180", 0x42 >> 1),
-+	.irq = IRQ_TIMBERDALE_ADV7180
-+};
-+
-+static __devinitdata struct timb_video_platform_data
-+	timberdale_video_platform_data = {
-+	.dma_channel = DMA_VIDEO_RX,
-+	.i2c_adapter = 0,
-+	.encoder = {
-+		.module_name = "adv7180",
-+		.info = &timberdale_adv7180_i2c_board_info
-+	}
-+};
-+
- const static __devinitconst struct resource timberdale_radio_resources[] = {
- 	{
- 		.start	= RDSOFFSET,
-@@ -272,6 +289,18 @@ static __devinitdata struct timb_radio_platform_data
- 	}
- };
- 
-+const static __devinitconst struct resource timberdale_video_resources[] = {
-+	{
-+		.start	= LOGIWOFFSET,
-+		.end	= LOGIWEND,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	/*
-+	note that the "frame buffer" is located in DMA area
-+	starting at 0x1200000
-+	*/
-+};
-+
- static __devinitdata struct timb_dma_platform_data timb_dma_platform_data = {
- 	.nr_channels = 10,
- 	.channels = {
-@@ -372,6 +401,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg0[] = {
- 		.data_size = sizeof(timberdale_gpio_platform_data),
- 	},
- 	{
-+		.name = "timb-video",
-+		.num_resources = ARRAY_SIZE(timberdale_video_resources),
-+		.resources = timberdale_video_resources,
-+		.platform_data = &timberdale_video_platform_data,
-+		.data_size = sizeof(timberdale_video_platform_data),
-+	},
-+	{
- 		.name = "timb-radio",
- 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
- 		.resources = timberdale_radio_resources,
-@@ -430,6 +466,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg1[] = {
- 		.resources = timberdale_mlogicore_resources,
- 	},
- 	{
-+		.name = "timb-video",
-+		.num_resources = ARRAY_SIZE(timberdale_video_resources),
-+		.resources = timberdale_video_resources,
-+		.platform_data = &timberdale_video_platform_data,
-+		.data_size = sizeof(timberdale_video_platform_data),
-+	},
-+	{
- 		.name = "timb-radio",
- 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
- 		.resources = timberdale_radio_resources,
-@@ -478,6 +521,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg2[] = {
- 		.data_size = sizeof(timberdale_gpio_platform_data),
- 	},
- 	{
-+		.name = "timb-video",
-+		.num_resources = ARRAY_SIZE(timberdale_video_resources),
-+		.resources = timberdale_video_resources,
-+		.platform_data = &timberdale_video_platform_data,
-+		.data_size = sizeof(timberdale_video_platform_data),
-+	},
-+	{
- 		.name = "timb-radio",
- 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
- 		.resources = timberdale_radio_resources,
-@@ -521,6 +571,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg3[] = {
- 		.data_size = sizeof(timberdale_gpio_platform_data),
- 	},
- 	{
-+		.name = "timb-video",
-+		.num_resources = ARRAY_SIZE(timberdale_video_resources),
-+		.resources = timberdale_video_resources,
-+		.platform_data = &timberdale_video_platform_data,
-+		.data_size = sizeof(timberdale_video_platform_data),
-+	},
-+	{
- 		.name = "timb-radio",
- 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
- 		.resources = timberdale_radio_resources,
+Thanks, I've pulled the linuxtv tree, and it compiled, installed and
+seems to work just fine. No more "mantis_ack_wait (0): Slave RACK Fail
+!" I hope ;).
 
+Anyways - I really appreciate your work!
 
+Best regards,
+MartinG
