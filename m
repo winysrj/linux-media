@@ -1,114 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4863 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755603Ab0DIThj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Apr 2010 15:37:39 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id o39JbbZG036097
-	for <linux-media@vger.kernel.org>; Fri, 9 Apr 2010 21:37:37 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 9 Apr 2010 21:37:37 +0200 (CEST)
-Message-Id: <201004091937.o39JbbZG036097@smtp-vbr12.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
+Received: from mail.perches.com ([173.55.12.10]:1378 "EHLO mail.perches.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756188Ab0DETFz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Apr 2010 15:05:55 -0400
+From: Joe Perches <joe@perches.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Mike Isely <isely@pobox.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 09/11] pvrusb2-v4l2: Rename dev_info to pdi
+Date: Mon,  5 Apr 2010 12:05:39 -0700
+Message-Id: <2044c4a5829aa21c3ec4bb90535289dd749bf4f1.1270493677.git.joe@perches.com>
+In-Reply-To: <20100304232928.2e45bdd1.akpm@linux-foundation.org>
+References: <20100304232928.2e45bdd1.akpm@linux-foundation.org>
+In-Reply-To: <cover.1270493677.git.joe@perches.com>
+References: <cover.1270493677.git.joe@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+There is a macro called dev_info that prints struct device specific
+information.  Having variables with the same name can be confusing and
+prevents conversion of the macro to a function.
 
-Results of the daily build of v4l-dvb:
+Rename the existing dev_info variables to something else in preparation
+to converting the dev_info macro to a function.
 
-date:        Fri Apr  9 19:00:23 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14561:7c0b887911cf
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 8b680a770f6bdcd52f6816d7a5fe7aee9a9f7c78
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/media/video/pvrusb2/pvrusb2-v4l2.c |   22 +++++++++++-----------
+ 1 files changed, 11 insertions(+), 11 deletions(-)
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc1-armv5: OK
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-rc1-armv5-davinci: WARNINGS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-rc1-armv5-ixp: WARNINGS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-rc1-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.17-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-rc1-i686: WARNINGS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc1-m32r: OK
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-rc1-mips: WARNINGS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-rc1-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.17-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-rc1-x86_64: WARNINGS
-linux-git-armv5: OK
-linux-git-armv5-davinci: OK
-linux-git-armv5-ixp: OK
-linux-git-armv5-omap2: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.7-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.62-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.7-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+diff --git a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
+index cc8ddb2..ba32c91 100644
+--- a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
++++ b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
+@@ -48,7 +48,7 @@ struct pvr2_v4l2_dev {
+ 
+ struct pvr2_v4l2_fh {
+ 	struct pvr2_channel channel;
+-	struct pvr2_v4l2_dev *dev_info;
++	struct pvr2_v4l2_dev *pdi;
+ 	enum v4l2_priority prio;
+ 	struct pvr2_ioread *rhp;
+ 	struct file *file;
+@@ -161,7 +161,7 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ {
+ 	struct pvr2_v4l2_fh *fh = file->private_data;
+ 	struct pvr2_v4l2 *vp = fh->vhead;
+-	struct pvr2_v4l2_dev *dev_info = fh->dev_info;
++	struct pvr2_v4l2_dev *pdi = fh->pdi;
+ 	struct pvr2_hdw *hdw = fh->channel.mc_head->hdw;
+ 	long ret = -EINVAL;
+ 
+@@ -563,14 +563,14 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 
+ 	case VIDIOC_STREAMON:
+ 	{
+-		if (!fh->dev_info->stream) {
++		if (!fh->pdi->stream) {
+ 			/* No stream defined for this node.  This means
+ 			   that we're not currently allowed to stream from
+ 			   this node. */
+ 			ret = -EPERM;
+ 			break;
+ 		}
+-		ret = pvr2_hdw_set_stream_type(hdw,dev_info->config);
++		ret = pvr2_hdw_set_stream_type(hdw,pdi->config);
+ 		if (ret < 0) return ret;
+ 		ret = pvr2_hdw_set_streaming(hdw,!0);
+ 		break;
+@@ -578,7 +578,7 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 
+ 	case VIDIOC_STREAMOFF:
+ 	{
+-		if (!fh->dev_info->stream) {
++		if (!fh->pdi->stream) {
+ 			/* No stream defined for this node.  This means
+ 			   that we're not currently allowed to stream from
+ 			   this node. */
+@@ -1031,7 +1031,7 @@ static int pvr2_v4l2_open(struct file *file)
+ 	}
+ 
+ 	init_waitqueue_head(&fhp->wait_data);
+-	fhp->dev_info = dip;
++	fhp->pdi = dip;
+ 
+ 	pvr2_trace(PVR2_TRACE_STRUCT,"Creating pvr_v4l2_fh id=%p",fhp);
+ 	pvr2_channel_init(&fhp->channel,vp->channel.mc_head);
+@@ -1112,7 +1112,7 @@ static int pvr2_v4l2_iosetup(struct pvr2_v4l2_fh *fh)
+ 	struct pvr2_hdw *hdw;
+ 	if (fh->rhp) return 0;
+ 
+-	if (!fh->dev_info->stream) {
++	if (!fh->pdi->stream) {
+ 		/* No stream defined for this node.  This means that we're
+ 		   not currently allowed to stream from this node. */
+ 		return -EPERM;
+@@ -1121,21 +1121,21 @@ static int pvr2_v4l2_iosetup(struct pvr2_v4l2_fh *fh)
+ 	/* First read() attempt.  Try to claim the stream and start
+ 	   it... */
+ 	if ((ret = pvr2_channel_claim_stream(&fh->channel,
+-					     fh->dev_info->stream)) != 0) {
++					     fh->pdi->stream)) != 0) {
+ 		/* Someone else must already have it */
+ 		return ret;
+ 	}
+ 
+-	fh->rhp = pvr2_channel_create_mpeg_stream(fh->dev_info->stream);
++	fh->rhp = pvr2_channel_create_mpeg_stream(fh->pdi->stream);
+ 	if (!fh->rhp) {
+ 		pvr2_channel_claim_stream(&fh->channel,NULL);
+ 		return -ENOMEM;
+ 	}
+ 
+ 	hdw = fh->channel.mc_head->hdw;
+-	sp = fh->dev_info->stream->stream;
++	sp = fh->pdi->stream->stream;
+ 	pvr2_stream_set_callback(sp,(pvr2_stream_callback)pvr2_v4l2_notify,fh);
+-	pvr2_hdw_set_stream_type(hdw,fh->dev_info->config);
++	pvr2_hdw_set_stream_type(hdw,fh->pdi->config);
+ 	if ((ret = pvr2_hdw_set_streaming(hdw,!0)) < 0) return ret;
+ 	return pvr2_ioread_set_enabled(fh->rhp,!0);
+ }
+-- 
+1.7.0.3.311.g6a6955
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
