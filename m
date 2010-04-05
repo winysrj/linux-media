@@ -1,84 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:38829 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933364Ab0D3RqL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Apr 2010 13:46:11 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 0/5] Pushdown bkl from v4l ioctls
-Date: Thu, 29 Apr 2010 09:10:42 +0200
-Cc: Frederic Weisbecker <fweisbec@gmail.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Arnd Bergmann <arnd@arndb.de>, John Kacur <jkacur@redhat.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Jan Blunck <jblunck@gmail.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Greg KH <gregkh@suse.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <alpine.LFD.2.00.1004280750330.3739@i5.linux-foundation.org> <1272512564-14683-1-git-send-regression-fweisbec@gmail.com> <201004290844.29347.hverkuil@xs4all.nl>
-In-Reply-To: <201004290844.29347.hverkuil@xs4all.nl>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2295 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756104Ab0DETrm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Apr 2010 15:47:42 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: RFC: new V4L control framework
+Date: Mon, 5 Apr 2010 21:47:47 +0200
+Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <201004041741.51869.hverkuil@xs4all.nl> <4BBA04BB.5030600@redhat.com> <201004052011.13162.hverkuil@xs4all.nl>
+In-Reply-To: <201004052011.13162.hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201004290910.43412.laurent.pinchart@ideasonboard.com>
+Message-Id: <201004052147.47477.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Monday 05 April 2010 20:11:13 Hans Verkuil wrote:
+> Another option would be to set aside a range of IDs at the end of each control
+> class that could be used as a 'remap' area.
+> 
+> For example: the IDs for user class controls go from 0x980000-0x98ffff. Of
+> which anything >= 0x981000 is a private control (i.e. specific to a driver).
+> We could set aside 0x98f000-0x98ffff for remapped controls.
+> 
+> So if you want to make a subdev's volume control available as a secondary
+> control you can do something like this:
+> 
+> v4l2_ctrl_add_ctrl_remap(struct v4l2_ctrl_handler *hdl,
+> 			 struct v4l2_ctrl_info *cinfo,
+> 			 const char *fmt);
+> 
+> The framework will pick a new ID from the remap range and add this control
+> with the name created using snprintf(fmt, sz, cinfo->name). Since this control
+> is remapped as a private control it will be seen by old applications as well
+> since they just iterate from V4L2_CID_PRIVATE_BASE, and the framework handles
+> that transparently.
+> 
+> It is even possible to do this for all controls from a subdev, e.g.:
+> 
+> v4l2_ctrl_add_handler_remap(struct v4l2_ctrl_handler *hdl,
+> 			    struct v4l2_ctrl_handler *add,
+> 			    const char *fmt);
+> 
+> Every control in 'add' that already exists in 'hdl' would then be remapped
+> and a new name is generated.
 
-On Thursday 29 April 2010 08:44:29 Hans Verkuil wrote:
-> On Thursday 29 April 2010 05:42:39 Frederic Weisbecker wrote:
-> > Hi,
-> > 
-> > Linus suggested to rename struct v4l2_file_operations::ioctl
-> > into bkl_ioctl to eventually get something greppable and make
-> > its background explicit.
-> > 
-> > While at it I thought it could be a good idea to just pushdown
-> > the bkl to every v4l drivers that have an .ioctl, so that we
-> > actually remove struct v4l2_file_operations::ioctl for good.
-> > 
-> > It passed make allyesconfig on sparc.
-> > Please tell me what you think.
-> 
-> I much prefer to keep the bkl inside the v4l2 core. One reason is that I
-> think that we can replace the bkl in the core with a mutex. Still not
-> ideal of course, so the next step will be to implement proper locking in
-> each driver. For this some additional v4l infrastructure work needs to be
-> done. I couldn't proceed with that until the v4l events API patches went
-> in, and that happened yesterday.
-> 
-> So from my point of view the timeline is this:
-> 
-> 1) I do the infrastructure work this weekend. This will make it much easier
-> to convert drivers to do proper locking. And it will also simplify
-> v4l2_priority handling, so I'm killing two birds with one stone :-)
-> 
-> 2) Wait until Arnd's patch gets merged that pushes the bkl down to
-> v4l2-dev.c
-> 
-> 3) Investigate what needs to be done to replace the bkl with a v4l2-dev.c
-> global mutex. Those drivers that call the bkl themselves should probably be
-> converted to do proper locking, but there are only about 14 drivers that do
-> this. The other 60 or so drivers should work fine if a v4l2-dev global lock
-> is used. At this point the bkl is effectively removed from the v4l
-> subsystem.
-> 
-> 4) Work on the remaining 60 drivers to do proper locking and get rid of the
-> v4l2-dev global lock. This is probably less work than it sounds.
-> 
-> Since your patch moves everything down to the driver level it will actually
-> make this work harder rather than easier. And it touches almost all drivers
-> as well.
+I implemented this scheme in this tree:
 
-Every driver will need to be carefully checked to make sure the BKL can be 
-replaced by a v4l2-dev global mutex. Why would it be more difficult to do so 
-if the BKL is pushed down to the drivers ?
+http://linuxtv.org/hg/~hverkuil/v4l-dvb-fw-remap/
 
--- 
+I also hacked vivi to use this. After creating a second handler with volume,
+mute and saturation controls I added this line to merge the two:
+
+v4l2_ctrl_add_handler_remap(&dev->hdl, &dev->hdl2, "Secondary %s");
+
+The end result is this:
+
+$ v4l2-ctl --list-ctrls
+
+User Controls
+
+                     brightness (int)  : min=0 max=255 step=1 default=127 value=127 flags=slider
+                       contrast (int)  : min=0 max=255 step=1 default=16 value=16 flags=slider
+                     saturation (int)  : min=0 max=255 step=1 default=127 value=127 flags=slider
+                            hue (int)  : min=-128 max=127 step=1 default=0 value=0 flags=slider
+                         volume (int)  : min=0 max=255 step=1 default=200 value=200 flags=slider
+                           mute (bool) : default=1 value=1
+           integer_test_control (int)  : min=-2147483648 max=2147483647 step=1 default=0 value=0
+              toggle_text_color (bool) : default=0 value=0
+                       press_me (btn)  : flags=write-only
+              menu_test_control (menu) : min=0 max=5 default=1 value=1
+         integer64_test_control (int64): value=0
+            string_test_control (str)  : min=0 max=100 step=2 value=''
+               secondary_volume (int)  : min=0 max=128 step=1 default=20 value=20 flags=slider
+           secondary_saturation (int)  : min=100 max=200 step=1 default=150 value=150 flags=slider
+
+So mute was added unchanged while volume and saturation were remapped automatically.
+And they showed up in xawtv as well.
+
 Regards,
 
-Laurent Pinchart
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
