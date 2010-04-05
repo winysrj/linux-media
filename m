@@ -1,51 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:16700 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754692Ab0DSMaX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Apr 2010 08:30:23 -0400
-Received: from eu_spt2 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0L14005U1IQLQT@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 19 Apr 2010 13:30:21 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L14007ZSIQK0J@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 19 Apr 2010 13:30:21 +0100 (BST)
-Date: Mon, 19 Apr 2010 14:30:16 +0200
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: [PATCH v4 0/2] Mem-to-mem device framework
-To: linux-media@vger.kernel.org
-Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hvaibhav@ti.com
-Message-id: <1271680218-32395-1-git-send-email-p.osciak@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
+Received: from perceval.irobotique.be ([92.243.18.41]:47005 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756589Ab0DEWpb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Apr 2010 18:45:31 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: David Ellingsworth <david@identd.dyndns.org>
+Subject: Re: [RFC] Serialization flag example
+Date: Tue, 6 Apr 2010 00:46:11 +0200
+Cc: hermann-pitton@arcor.de, awalls@md.metrocast.net,
+	mchehab@redhat.com, dheitmueller@kernellabs.com,
+	abraham.manu@gmail.com, hverkuil@xs4all.nl,
+	linux-media@vger.kernel.org
+References: <32832848.1270295705043.JavaMail.ngmail@webmail10.arcor-online.net> <x2r30353c3d1004032014qc2b31bd5uab4da9a0d364e8ff@mail.gmail.com>
+In-Reply-To: <x2r30353c3d1004032014qc2b31bd5uab4da9a0d364e8ff@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201004060046.12997.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Sunday 04 April 2010 05:14:17 David Ellingsworth wrote:
+> After looking at the proposed solution, I personally find the
+> suggestion for a serialization flag to be quite ridiculous. As others
+> have mentioned, the mere presence of the flag means that driver
+> writers will gloss over any concurrency issues that might exist in
+> their driver on the mere assumption that specifying the serialization
+> flag will handle it all for them.
 
-this is the fourth version of the mem-to-mem device framework.
+I happen to agree with this. Proper locking is difficult, but that's not a 
+reason to introduce such a workaround. I'd much rather see proper 
+documentation for driver developers on how to implement locking properly.
 
-Changes in v4:
-- v4l2_m2m_poll() now also reports POLLOUT | POLLWRNORM when an output
-  buffer is ready to be dequeued
-- more cleaning up, addressing most of the comments to v3
+-- 
+Regards,
 
-Vaibhav: your clean-up patch didn't apply after my changes. I incorporated most
-of your clean-up changes. If you prefer it to be separate, we will have
-to prepare another one somehow. Also, sorry, but I cannot agree with changing
-unsigned types into u32, I do not see any reason to use fixed-width types there.
-
-This series contains:
-[PATCH v4 1/2] v4l: Add memory-to-memory device helper framework for videobuf.
-[PATCH v4 2/2] v4l: Add a mem-to-mem videobuf framework test device.
-
-Best regards
---
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
+Laurent Pinchart
