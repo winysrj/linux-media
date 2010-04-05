@@ -1,95 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:64820 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752939Ab0D1HFr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Apr 2010 03:05:47 -0400
-Received: from eu_spt2 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0L1K00K77RPL05@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 28 Apr 2010 08:05:45 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L1K000W5RPGEX@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 28 Apr 2010 08:05:45 +0100 (BST)
-Date: Wed, 28 Apr 2010 09:05:23 +0200
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: [PATCH v4 3/3] v4l: Add documentation for the new error flag
-In-reply-to: <1272438323-4790-1-git-send-email-p.osciak@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com
-Message-id: <1272438323-4790-4-git-send-email-p.osciak@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1272438323-4790-1-git-send-email-p.osciak@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:63379 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751847Ab0DES0o (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Apr 2010 14:26:44 -0400
+Message-ID: <4BBA2B58.4000007@redhat.com>
+Date: Mon, 05 Apr 2010 15:26:32 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Jean Delvare <khali@linux-fr.org>
+CC: Linux I2C <linux-i2c@vger.kernel.org>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/2] V4L/DVB: Use custom I2C probing function mechanism
+References: <20100404161454.0f99cc06@hyperion.delvare>
+In-Reply-To: <20100404161454.0f99cc06@hyperion.delvare>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add documentation for V4L2_BUF_FLAG_ERROR.
+Hi Jean,
 
-Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- Documentation/DocBook/v4l/io.xml          |   10 ++++++++++
- Documentation/DocBook/v4l/vidioc-qbuf.xml |   14 ++++++++++++--
- 2 files changed, 22 insertions(+), 2 deletions(-)
+Jean Delvare wrote:
+> Now that i2c-core offers the possibility to provide custom probing
+> function for I2C devices, let's make use of it.
+> 
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> ---
+> I wasn't too sure where to put the custom probe function: in each driver,
+> in the ir-common module or in the v4l2-common module. I went for the
+> second option as a middle ground, but am ready to discuss it if anyone
+> objects.
 
-diff --git a/Documentation/DocBook/v4l/io.xml b/Documentation/DocBook/v4l/io.xml
-index e870330..c5632ff 100644
---- a/Documentation/DocBook/v4l/io.xml
-+++ b/Documentation/DocBook/v4l/io.xml
-@@ -702,6 +702,16 @@ They can be both cleared however, then the buffer is in "dequeued"
- state, in the application domain to say so.</entry>
- 	  </row>
- 	  <row>
-+	    <entry><constant>V4L2_BUF_FLAG_ERROR</constant></entry>
-+	    <entry>0x0040</entry>
-+	    <entry>When this flag is set, the buffer has been dequeued
-+	    successfully, although the data might have been corrupted.
-+	    This is recoverable, streaming may continue as normal and
-+	    the buffer may be reused normally.
-+	    Drivers set this flag when the <constant>VIDIOC_DQBUF</constant>
-+	    ioctl is called.</entry>
-+	  </row>
-+	  <row>
- 	    <entry><constant>V4L2_BUF_FLAG_KEYFRAME</constant></entry>
- 	    <entry>0x0008</entry>
- 	  <entry>Drivers set or clear this flag when calling the
-diff --git a/Documentation/DocBook/v4l/vidioc-qbuf.xml b/Documentation/DocBook/v4l/vidioc-qbuf.xml
-index b843bd7..ab691eb 100644
---- a/Documentation/DocBook/v4l/vidioc-qbuf.xml
-+++ b/Documentation/DocBook/v4l/vidioc-qbuf.xml
-@@ -111,7 +111,11 @@ from the driver's outgoing queue. They just set the
- and <structfield>reserved</structfield>
- fields of a &v4l2-buffer; as above, when <constant>VIDIOC_DQBUF</constant>
- is called with a pointer to this structure the driver fills the
--remaining fields or returns an error code.</para>
-+remaining fields or returns an error code. The driver may also set
-+<constant>V4L2_BUF_FLAG_ERROR</constant> in the <structfield>flags</structfield>
-+field. It indicates a non-critical (recoverable) streaming error. In such case
-+the application may continue as normal, but should be aware that data in the
-+dequeued buffer might be corrupted.</para>
- 
-     <para>By default <constant>VIDIOC_DQBUF</constant> blocks when no
- buffer is in the outgoing queue. When the
-@@ -158,7 +162,13 @@ enqueue a user pointer buffer.</para>
- 	  <para><constant>VIDIOC_DQBUF</constant> failed due to an
- internal error. Can also indicate temporary problems like signal
- loss. Note the driver might dequeue an (empty) buffer despite
--returning an error, or even stop capturing.</para>
-+returning an error, or even stop capturing. Reusing such buffer may be unsafe
-+though and its details (e.g. <structfield>index</structfield>) may not be
-+returned either. It is recommended that drivers indicate recoverable errors
-+by setting the <constant>V4L2_BUF_FLAG_ERROR</constant> and returning 0 instead.
-+In that case the application should be able to safely reuse the buffer and
-+continue streaming.
-+	</para>
- 	</listitem>
-       </varlistentry>
-     </variablelist>
+Please, don't add new things at ir-common module. It basically contains the
+decoding functions for RC5 and pulse/distance, plus several IR keymaps. With
+the IR rework I'm doing, this module will go away, after having all the current 
+IR decoders implemented via ir-raw-input binding. 
+
+The keymaps were already removed from it, on my experimental tree 
+(http://git.linuxtv.org/mchehab/ir.git), and rc5 decoder is already written
+(but still needs a few fixes). 
+
+The new ir-core is creating an abstract way to deal with Remote Controllers,
+meant to be used not only by IR's, but also for other types of RC, like, 
+bluetooth and USB HID. It will also export a raw event interface, for use
+with lirc. As this is the core of the RC subsystem, a i2c-specific binding
+method also doesn't seem to belong there. SO, IMO, the better place is to add 
+it as a static inline function at ir-kbd-i2c.h.
+
+
+> 
+>  drivers/media/IR/ir-functions.c           |   12 ++++++++++++
+>  drivers/media/video/cx23885/cx23885-i2c.c |   14 +++-----------
+>  drivers/media/video/cx88/cx88-i2c.c       |   18 +++---------------
+>  include/media/ir-common.h                 |    5 +++++
+>  4 files changed, 23 insertions(+), 26 deletions(-)
+> 
+> --- linux-2.6.34-rc3.orig/drivers/media/video/cx23885/cx23885-i2c.c	2010-04-04 09:06:38.000000000 +0200
+> +++ linux-2.6.34-rc3/drivers/media/video/cx23885/cx23885-i2c.c	2010-04-04 13:34:34.000000000 +0200
+> @@ -28,6 +28,7 @@
+>  #include "cx23885.h"
+>  
+>  #include <media/v4l2-common.h>
+> +#include <media/ir-common.h>
+>  
+>  static unsigned int i2c_debug;
+>  module_param(i2c_debug, int, 0644);
+> @@ -365,17 +366,8 @@ int cx23885_i2c_register(struct cx23885_
+>  
+>  		memset(&info, 0, sizeof(struct i2c_board_info));
+>  		strlcpy(info.type, "ir_video", I2C_NAME_SIZE);
+> -		/*
+> -		 * We can't call i2c_new_probed_device() because it uses
+> -		 * quick writes for probing and the IR receiver device only
+> -		 * replies to reads.
+> -		 */
+> -		if (i2c_smbus_xfer(&bus->i2c_adap, addr_list[0], 0,
+> -				   I2C_SMBUS_READ, 0, I2C_SMBUS_QUICK,
+> -				   NULL) >= 0) {
+> -			info.addr = addr_list[0];
+> -			i2c_new_device(&bus->i2c_adap, &info);
+> -		}
+> +		i2c_new_probed_device(&bus->i2c_adap, &info, addr_list,
+> +				      ir_i2c_probe);
+>  	}
+>  
+>  	return bus->i2c_rc;
+> --- linux-2.6.34-rc3.orig/drivers/media/video/cx88/cx88-i2c.c	2010-04-04 09:06:38.000000000 +0200
+> +++ linux-2.6.34-rc3/drivers/media/video/cx88/cx88-i2c.c	2010-04-04 13:34:34.000000000 +0200
+> @@ -34,6 +34,7 @@
+>  
+>  #include "cx88.h"
+>  #include <media/v4l2-common.h>
+> +#include <media/ir-common.h>
+>  
+>  static unsigned int i2c_debug;
+>  module_param(i2c_debug, int, 0644);
+> @@ -188,24 +189,11 @@ int cx88_i2c_init(struct cx88_core *core
+>  			0x18, 0x6b, 0x71,
+>  			I2C_CLIENT_END
+>  		};
+> -		const unsigned short *addrp;
+>  
+>  		memset(&info, 0, sizeof(struct i2c_board_info));
+>  		strlcpy(info.type, "ir_video", I2C_NAME_SIZE);
+> -		/*
+> -		 * We can't call i2c_new_probed_device() because it uses
+> -		 * quick writes for probing and at least some R receiver
+> -		 * devices only reply to reads.
+> -		 */
+> -		for (addrp = addr_list; *addrp != I2C_CLIENT_END; addrp++) {
+> -			if (i2c_smbus_xfer(&core->i2c_adap, *addrp, 0,
+> -					   I2C_SMBUS_READ, 0,
+> -					   I2C_SMBUS_QUICK, NULL) >= 0) {
+> -				info.addr = *addrp;
+> -				i2c_new_device(&core->i2c_adap, &info);
+> -				break;
+> -			}
+> -		}
+> +		i2c_new_probed_device(&core->i2c_adap, &info, addr_list,
+> +				      ir_i2c_probe);
+>  	}
+>  	return core->i2c_rc;
+>  }
+> --- linux-2.6.34-rc3.orig/drivers/media/IR/ir-functions.c	2010-03-18 17:06:30.000000000 +0100
+> +++ linux-2.6.34-rc3/drivers/media/IR/ir-functions.c	2010-04-04 14:30:29.000000000 +0200
+> @@ -23,6 +23,7 @@
+>  #include <linux/module.h>
+>  #include <linux/string.h>
+>  #include <linux/jiffies.h>
+> +#include <linux/i2c.h>
+>  #include <media/ir-common.h>
+>  
+>  /* -------------------------------------------------------------------------- */
+> @@ -353,3 +354,14 @@ void ir_rc5_timer_keyup(unsigned long da
+>  	ir_input_nokey(ir->dev, &ir->ir);
+>  }
+>  EXPORT_SYMBOL_GPL(ir_rc5_timer_keyup);
+> +
+> +/* Some functions only needed for I2C devices */
+> +#if defined CONFIG_I2C || defined CONFIG_I2C_MODULE
+> +/* use quick read command for probe, some IR chips don't support writes */
+> +int ir_i2c_probe(struct i2c_adapter *i2c, unsigned short addr)
+> +{
+> +	return i2c_smbus_xfer(i2c, addr, 0, I2C_SMBUS_READ, 0,
+> +			      I2C_SMBUS_QUICK, NULL) >= 0;
+> +}
+> +EXPORT_SYMBOL_GPL(ir_i2c_probe);
+> +#endif
+> --- linux-2.6.34-rc3.orig/include/media/ir-common.h	2010-03-18 17:06:30.000000000 +0100
+> +++ linux-2.6.34-rc3/include/media/ir-common.h	2010-04-04 14:29:54.000000000 +0200
+> @@ -97,6 +97,11 @@ u32  ir_rc5_decode(unsigned int code);
+>  void ir_rc5_timer_end(unsigned long data);
+>  void ir_rc5_timer_keyup(unsigned long data);
+>  
+> +#if defined CONFIG_I2C || defined CONFIG_I2C_MODULE
+> +struct i2c_adapter;
+> +int ir_i2c_probe(struct i2c_adapter *i2c, unsigned short addr);
+> +#endif
+> +
+>  /* scancode->keycode map tables from ir-keymaps.c */
+>  
+>  extern struct ir_scancode_table ir_codes_empty_table;
+> 
+> 
+
+
 -- 
-1.7.1.rc1.12.ga601
 
+Cheers,
+Mauro
