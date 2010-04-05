@@ -1,66 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:4555 "EHLO mx1.redhat.com"
+Received: from mail.perches.com ([173.55.12.10]:1350 "EHLO mail.perches.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932369Ab0DPV00 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Apr 2010 17:26:26 -0400
-Date: Fri, 16 Apr 2010 17:26:22 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org
-Subject: [PATCH 0/3] ir-core: add imon device driver
-Message-ID: <20100416212622.GA6888@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+	id S1753416Ab0DETFt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Apr 2010 15:05:49 -0400
+From: Joe Perches <joe@perches.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>,
+	Mark Gross <mark.gross@intel.com>,
+	Doug Thompson <dougthompson@xmission.com>,
+	Mike Isely <isely@pobox.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Martin Schwidefsky <schwidefsky@de.ibm.com>,
+	Heiko Carstens <heiko.carstens@de.ibm.com>,
+	linux390@de.ibm.com, Greg Kroah-Hartman <gregkh@suse.de>,
+	David Vrabel <david.vrabel@csr.com>,
+	linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org,
+	bluesmoke-devel@lists.sourceforge.net, linux-media@vger.kernel.org,
+	linux-s390@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-usb@vger.kernel.org, netdev@vger.kernel.org
+Subject: [PATCH 00/11] treewide: rename dev_info variables to something else
+Date: Mon,  5 Apr 2010 12:05:30 -0700
+Message-Id: <cover.1270493677.git.joe@perches.com>
+In-Reply-To: <20100304232928.2e45bdd1.akpm@linux-foundation.org>
+References: <20100304232928.2e45bdd1.akpm@linux-foundation.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following series adds a new device driver for the SoundGraph iMON and
-Antec Veris IR/display devices commonly found in many home theater pc
-cases and as after-market case additions.
+There is a macro called dev_info that prints struct device specific
+information.  Having variables with the same name can be confusing and
+prevents conversion of the macro to a function.
 
-This driver was previously submitted as a pure input layer driver, but I
-was convinced to port it to the new ir-core infrastructure, so this patch
-is against http://git.linuxtv.org/mchehab/ir.git.
+Rename the existing dev_info variables to something else in preparation
+to converting the dev_info macro to a function.
 
-With only some minor modifications to ir-core (making an already exported
-function public) and reasonably little porting driver-side, I've managed
-to finish at least the initial conversion. There's still a local key
-release timer in use in the driver that needs to be converted to use
-ir-core's keyup timer, and I'm not using ir_keydown due to some serious
-quirks in the way the imon hardware decodes IR signals (I need to do my
-own key release detection, as there are three different ways a key release
-is identified even on the exact same device...), but it does use all the
-ir-core keymap loading and parsing code, ir_input_dev, ir_dev_props, etc.
+Joe Perches (11):
+  arch/ia64/hp/common/sba_iommu.c: Rename dev_info to adi
+  drivers/usb/host/hwa-hc.c: Rename dev_info to hdi
+  drivers/usb/wusbcore/wusbhc.h: Remove unused dev_info from struct wusb_port
+  drivers/s390/block/dcssblk.c: Rename dev_info to ddi
+  drivers/edac/amd: Rename dev_info to adi
+  drivers/edac/cpc925_edac.c: Rename dev_info to cdi
+  drivers/edac/e7*_edac.c: Rename dev_info to edi
+  drivers/staging/iio: Rename dev_info to idi
+  pvrusb2-v4l2: Rename dev_info to pdi
+  drivers/char/mem.c: Rename dev_info to bdi
+  drivers/uwb: Rename dev_info to wdi
 
-Something I wasn't too sure about... Where exactly should an IR-only device
-driver live in the tree? I've put it at drivers/media/IR/imon.c for the
-moment, but it might make sense to have a drivers/media/IR/hardware/
-directory to drop things like this and the forthcoming lirc_mceusb port
-into, rather than intermingling with the core bits.
-
-The most important part: I've tested this out w/actual imon hardware, and
-it even works. :)
-
----
-
-Jarod Wilson (3)
-	ir-core: make ir_g_keycode_from_table a public function
-	ir-core: add imon pad and mce keymaps
-	ir-core: add imon driver
-
- drivers/media/IR/Kconfig               |   12 +
- drivers/media/IR/Makefile              |    3 +
- drivers/media/IR/imon.c                | 2417 ++++++++++++++++++++++++++++++++
- drivers/media/IR/ir-core-priv.h        |    7 -
- drivers/media/IR/keymaps/Makefile      |    2 +
- drivers/media/IR/keymaps/rc-imon-mce.c |  142 ++
- drivers/media/IR/keymaps/rc-imon-pad.c |  155 ++
- include/media/ir-core.h                |    1 +
- include/media/rc-map.h                 |    2 +
- 9 files changed, 2734 insertions(+), 7 deletions(-)
-
--- 
-Jarod Wilson
-jarod@redhat.com
+ arch/ia64/hp/common/sba_iommu.c            |    8 +-
+ drivers/char/mem.c                         |    6 +-
+ drivers/edac/amd8111_edac.c                |   88 ++++----
+ drivers/edac/amd8131_edac.c                |   86 ++++----
+ drivers/edac/cpc925_edac.c                 |  122 +++++-----
+ drivers/edac/e752x_edac.c                  |   18 +-
+ drivers/edac/e7xxx_edac.c                  |    8 +-
+ drivers/media/video/pvrusb2/pvrusb2-v4l2.c |   22 +-
+ drivers/s390/block/dcssblk.c               |  328 ++++++++++++++--------------
+ drivers/staging/iio/accel/lis3l02dq_core.c |    4 +-
+ drivers/staging/iio/accel/lis3l02dq_ring.c |   20 +-
+ drivers/staging/iio/accel/sca3000_core.c   |   24 +-
+ drivers/staging/iio/adc/max1363_core.c     |   36 ++--
+ drivers/staging/iio/adc/max1363_ring.c     |    6 +-
+ drivers/staging/iio/chrdev.h               |    2 +-
+ drivers/staging/iio/iio.h                  |   54 +++---
+ drivers/staging/iio/industrialio-core.c    |  232 ++++++++++----------
+ drivers/staging/iio/industrialio-ring.c    |   38 ++--
+ drivers/staging/iio/industrialio-trigger.c |   34 ++--
+ drivers/staging/iio/ring_generic.h         |    4 +-
+ drivers/staging/iio/trigger_consumer.h     |   16 +-
+ drivers/usb/host/hwa-hc.c                  |   18 +-
+ drivers/usb/wusbcore/wusbhc.h              |   10 -
+ drivers/uwb/i1480/i1480u-wlp/lc.c          |   16 +-
+ drivers/uwb/wlp/messages.c                 |   40 ++--
+ drivers/uwb/wlp/sysfs.c                    |   46 ++--
+ drivers/uwb/wlp/wlp-lc.c                   |   12 +-
+ 27 files changed, 644 insertions(+), 654 deletions(-)
 
