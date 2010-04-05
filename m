@@ -1,383 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59432 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758694Ab0DAR6G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Apr 2010 13:58:06 -0400
-Date: Thu, 1 Apr 2010 14:56:32 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: linux-input@vger.kernel.org,
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:54135 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752965Ab0DEBot (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 4 Apr 2010 21:44:49 -0400
+Subject: Re: [PATCH 04/15] V4L/DVB: ir-core: Add logic to decode IR
+ protocols at the IR core
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-input@vger.kernel.org,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 07/15] V4L/DVB: saa7134: don't wait too much to generate an
- IR event on raw_decode
-Message-ID: <20100401145632.5d708551@pedra>
-In-Reply-To: <cover.1270142346.git.mchehab@redhat.com>
+In-Reply-To: <4BB8D3D6.5010706@infradead.org>
 References: <cover.1270142346.git.mchehab@redhat.com>
+	 <20100401145632.7b1b98d5@pedra>
+	 <1270251567.3027.55.camel@palomino.walls.org> <4BB69A95.5000705@redhat.com>
+	 <1270314992.9169.40.camel@palomino.walls.org>  <4BB7C795.20506@redhat.com>
+	 <1270384551.4979.47.camel@palomino.walls.org>
+	 <4BB8D3D6.5010706@infradead.org>
+Content-Type: multipart/mixed; boundary="=-sL4AHAg3BY4Ocs1g02Yj"
+Date: Sun, 04 Apr 2010 21:45:11 -0400
+Message-Id: <1270431911.3506.25.camel@palomino.walls.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-At raw_decode mode, the key is processed after the end of a timer. The
-previous code resets the timer every time something is received at the IR
-port. While this works fine with IR's that don't implement repeat, like
-Avermedia RM-JX IR, it keeps waiting until keydown, on IR's that implement
-NEC repeat command, like the Terratec yellow.
 
-The solution is to change the behaviour to do the timeout after the first
-received data.
+--=-sL4AHAg3BY4Ocs1g02Yj
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-The timeout is currently set to 15 ms, as it works fine with NEC protcocol.
-It may need some adjustments to support other protocols and to better handle
-spurious detections that may happen with some IR sensors.
+On Sun, 2010-04-04 at 15:00 -0300, Mauro Carvalho Chehab wrote:
+> Andy Walls wrote:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> > And when you have time:
+ 
+> > A way to generate random IR
+> > glitches is with bright sunlight reflecting off of a basin of water
+> > that's surface is being disturbed to make waves.  
+> 
+> I have a better way: just let my IR sensor to be pointed to the fluorescent
+> lamp I have on my room... It produces _lots_ of glitches.
 
-diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
-index ab60730..f25193c 100644
---- a/drivers/media/IR/ir-keytable.c
-+++ b/drivers/media/IR/ir-keytable.c
-@@ -404,6 +404,7 @@ void ir_keyup(struct input_dev *dev)
- 	if (!ir->keypressed)
- 		return;
- 
-+	IR_dprintk(1, "keyup key 0x%04x\n", ir->keycode);
- 	input_report_key(dev, ir->keycode, 0);
- 	input_sync(dev);
- 	ir->keypressed = 0;
-diff --git a/drivers/media/IR/ir-nec-decoder.c b/drivers/media/IR/ir-nec-decoder.c
-index a58c717..104482a 100644
---- a/drivers/media/IR/ir-nec-decoder.c
-+++ b/drivers/media/IR/ir-nec-decoder.c
-@@ -14,21 +14,51 @@
- 
- #include <media/ir-core.h>
- 
--/* Start time: 4.5 ms  */
--#define MIN_START_TIME	3900000
--#define MAX_START_TIME	5100000
-+/* Start time: 4.5 ms + 560 us of the next pulse */
-+#define MIN_START_TIME	(3900000 + 560000)
-+#define MAX_START_TIME	(5100000 + 560000)
- 
--/* Pulse time: 560 us  */
--#define MIN_PULSE_TIME	460000
--#define MAX_PULSE_TIME	660000
-+/* Bit 1 time: 2.25ms us */
-+#define MIN_BIT1_TIME	2050000
-+#define MAX_BIT1_TIME	2450000
- 
--/* Bit 1 space time: 2.25ms-560 us */
--#define MIN_BIT1_TIME	1490000
--#define MAX_BIT1_TIME	1890000
-+/* Bit 0 time: 1.12ms us */
-+#define MIN_BIT0_TIME	920000
-+#define MAX_BIT0_TIME	1320000
- 
--/* Bit 0 space time: 1.12ms-560 us */
--#define MIN_BIT0_TIME	360000
--#define MAX_BIT0_TIME	760000
-+/* Total IR code is 110 ms, including the 9 ms for the start pulse */
-+#define MAX_NEC_TIME	4000000
-+
-+/* Total IR code is 110 ms, including the 9 ms for the start pulse */
-+#define MIN_REPEAT_TIME	99000000
-+#define MAX_REPEAT_TIME	112000000
-+
-+/* Repeat time: 2.25ms us */
-+#define MIN_REPEAT_START_TIME	2050000
-+#define MAX_REPEAT_START_TIME	3000000
-+
-+#define REPEAT_TIME	240 /* ms */
-+
-+/** is_repeat - Check if it is a NEC repeat event
-+ * @input_dev:	the struct input_dev descriptor of the device
-+ * @pos:	the position of the first event
-+ * @len:	the length of the buffer
-+ */
-+static int is_repeat(struct ir_raw_event *evs, int len, int pos)
-+{
-+	if ((evs[pos].delta.tv_nsec < MIN_REPEAT_START_TIME) ||
-+	    (evs[pos].delta.tv_nsec > MAX_REPEAT_START_TIME))
-+		return 0;
-+
-+	if (++pos >= len)
-+		return 0;
-+
-+	if ((evs[pos].delta.tv_nsec < MIN_REPEAT_TIME) ||
-+	    (evs[pos].delta.tv_nsec > MAX_REPEAT_TIME))
-+		return 0;
-+
-+	return 1;
-+}
- 
- /**
-  * __ir_nec_decode() - Decode one NEC pulsecode
-@@ -36,49 +66,59 @@
-  * @evs:	event array with type/duration of pulse/space
-  * @len:	length of the array
-  * @pos:	position to start seeking for a code
-- * This function returns the decoded ircode or -EINVAL if no pulse got decoded
-+ * This function returns -EINVAL if no pulse got decoded,
-+ * 0 if buffer is empty and 1 if one keycode were handled.
-  */
- static int __ir_nec_decode(struct input_dev *input_dev,
- 			   struct ir_raw_event *evs,
- 			   int len, int *pos)
- {
-+	struct ir_input_dev *ir = input_get_drvdata(input_dev);
- 	int count = -1;
- 	int ircode = 0, not_code = 0;
- 
- 	/* Be sure that the first event is an start one and is a pulse */
- 	for (; *pos < len; (*pos)++) {
--		if (evs[*pos].type & (IR_START_EVENT | IR_PULSE))
-+		/* Very long delays are considered as start events */
-+		if (evs[*pos].delta.tv_nsec > MAX_NEC_TIME)
- 			break;
--	}
--	(*pos)++;	/* First event doesn't contain data */
-+		if (evs[*pos].type & IR_START_EVENT)
-+			break;
-+		IR_dprintk(1, "%luus: Spurious NEC %s\n",
-+			   (evs[*pos].delta.tv_nsec + 500) / 1000,
-+			   (evs[*pos].type & IR_SPACE) ? "space" : "pulse");
- 
-+	}
- 	if (*pos >= len)
- 		return 0;
- 
-+	(*pos)++;	/* First event doesn't contain data */
-+
-+	if (evs[*pos].type != IR_PULSE)
-+		goto err;
-+
-+	/* Check if it is a NEC repeat event */
-+	if (is_repeat(evs, len, *pos)) {
-+		*pos += 2;
-+		if (ir->keypressed) {
-+			mod_timer(&ir->raw->timer_keyup,
-+				jiffies + msecs_to_jiffies(REPEAT_TIME));
-+			IR_dprintk(1, "NEC repeat event\n");
-+			return 1;
-+		} else {
-+			IR_dprintk(1, "missing NEC repeat event\n");
-+			return 0;
-+		}
-+	}
-+
- 	/* First space should have 4.5 ms otherwise is not NEC protocol */
--	if ((evs[*pos].delta.tv_nsec < MIN_START_TIME) |
--	    (evs[*pos].delta.tv_nsec > MAX_START_TIME) |
--	    (evs[*pos].type != IR_SPACE))
-+	if ((evs[*pos].delta.tv_nsec < MIN_START_TIME) ||
-+	    (evs[*pos].delta.tv_nsec > MAX_START_TIME))
- 		goto err;
- 
--	/*
--	 * FIXME: need to implement the repeat sequence
--	 */
--
- 	count = 0;
- 	for ((*pos)++; *pos < len; (*pos)++) {
- 		int bit;
--
--		if ((evs[*pos].delta.tv_nsec < MIN_PULSE_TIME) |
--		    (evs[*pos].delta.tv_nsec > MAX_PULSE_TIME) |
--		    (evs[*pos].type != IR_PULSE))
--			goto err;
--
--		if (++*pos >= len)
--			goto err;
--		if (evs[*pos].type != IR_SPACE)
--			goto err;
--
- 		if ((evs[*pos].delta.tv_nsec > MIN_BIT1_TIME) &&
- 		    (evs[*pos].delta.tv_nsec < MAX_BIT1_TIME))
- 			bit = 1;
-@@ -107,6 +147,7 @@ static int __ir_nec_decode(struct input_dev *input_dev,
- 		if (++count == 32)
- 			break;
- 	}
-+	*pos++;
- 
- 	/*
- 	 * Fixme: may need to accept Extended NEC protocol?
-@@ -119,12 +160,15 @@ static int __ir_nec_decode(struct input_dev *input_dev,
- 
- 	IR_dprintk(1, "NEC scancode 0x%04x\n", ircode);
- 	ir_keydown(input_dev, ircode);
--	ir_keyup(input_dev);
-+	mod_timer(&ir->raw->timer_keyup,
-+		  jiffies + msecs_to_jiffies(REPEAT_TIME));
- 
--	return ircode;
-+	return 1;
- err:
--	IR_dprintk(1, "NEC decoded failed at bit %d while decoding %luus time\n",
--		   count, (evs[*pos].delta.tv_nsec + 500) / 1000);
-+	IR_dprintk(1, "NEC decoded failed at bit %d (%s) while decoding %luus time\n",
-+		   count,
-+		   (evs[*pos].type & IR_SPACE) ? "space" : "pulse",
-+		   (evs[*pos].delta.tv_nsec + 500) / 1000);
- 
- 	return -EINVAL;
- }
-@@ -145,7 +189,7 @@ int ir_nec_decode(struct input_dev *input_dev,
- 	int rc = 0;
- 
- 	while (pos < len) {
--		if (__ir_nec_decode(input_dev, evs, len, &pos) >= 0)
-+		if (__ir_nec_decode(input_dev, evs, len, &pos) > 0)
- 			rc++;
- 	}
- 
-diff --git a/drivers/media/IR/ir-raw-event.c b/drivers/media/IR/ir-raw-event.c
-index 9c71ac8..0ae5543 100644
---- a/drivers/media/IR/ir-raw-event.c
-+++ b/drivers/media/IR/ir-raw-event.c
-@@ -17,6 +17,13 @@
- /* Define the max number of bit transitions per IR keycode */
- #define MAX_IR_EVENT_SIZE	256
- 
-+static void ir_keyup_timer(unsigned long data)
-+{
-+	struct input_dev *input_dev = (struct input_dev *)data;
-+
-+	ir_keyup(input_dev);
-+}
-+
- int ir_raw_event_register(struct input_dev *input_dev)
- {
- 	struct ir_input_dev *ir = input_get_drvdata(input_dev);
-@@ -27,6 +34,11 @@ int ir_raw_event_register(struct input_dev *input_dev)
- 	size = sizeof(struct ir_raw_event) * MAX_IR_EVENT_SIZE * 2;
- 	size = roundup_pow_of_two(size);
- 
-+	init_timer(&ir->raw->timer_keyup);
-+	ir->raw->timer_keyup.function = ir_keyup_timer;
-+	ir->raw->timer_keyup.data = (unsigned long)input_dev;
-+	set_bit(EV_REP, input_dev->evbit);
-+
- 	rc = kfifo_alloc(&ir->raw->kfifo, size, GFP_KERNEL);
- 
- 	return rc;
-@@ -40,6 +52,8 @@ void ir_raw_event_unregister(struct input_dev *input_dev)
- 	if (!ir->raw)
- 		return;
- 
-+	del_timer_sync(&ir->raw->timer_keyup);
-+
- 	kfifo_free(&ir->raw->kfifo);
- 	kfree(ir->raw);
- 	ir->raw = NULL;
-diff --git a/drivers/media/video/saa7134/saa7134-input.c b/drivers/media/video/saa7134/saa7134-input.c
-index 740adb3..38f60e4 100644
---- a/drivers/media/video/saa7134/saa7134-input.c
-+++ b/drivers/media/video/saa7134/saa7134-input.c
-@@ -424,8 +424,11 @@ static void saa7134_input_timer(unsigned long data)
- void ir_raw_decode_timer_end(unsigned long data)
- {
- 	struct saa7134_dev *dev = (struct saa7134_dev *)data;
-+	struct card_ir *ir = dev->remote;
- 
- 	ir_raw_event_handle(dev->remote->dev);
-+
-+	ir->active = 0;
- }
- 
- void saa7134_ir_start(struct saa7134_dev *dev, struct card_ir *ir)
-@@ -461,6 +464,7 @@ void saa7134_ir_start(struct saa7134_dev *dev, struct card_ir *ir)
- 		init_timer(&ir->timer_end);
- 		ir->timer_end.function = ir_raw_decode_timer_end;
- 		ir->timer_end.data = (unsigned long)dev;
-+		ir->active = 0;
- 	}
- }
- 
-@@ -476,8 +480,10 @@ void saa7134_ir_stop(struct saa7134_dev *dev)
- 		del_timer_sync(&ir->timer_end);
- 	else if (ir->nec_gpio)
- 		tasklet_kill(&ir->tlet);
--	else if (ir->raw_decode)
-+	else if (ir->raw_decode) {
- 		del_timer_sync(&ir->timer_end);
-+		ir->active = 0;
-+	}
- 
- 	ir->running = 0;
- }
-@@ -950,39 +956,24 @@ static int saa7134_raw_decode_irq(struct saa7134_dev *dev)
- 	unsigned long 	timeout;
- 	int count, pulse, oldpulse;
- 
--	/* Disable IR IRQ line */
--	saa_clearl(SAA7134_IRQ2, SAA7134_IRQ2_INTE_GPIO18);
--
- 	/* Generate initial event */
- 	saa_clearb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
- 	saa_setb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
- 	pulse = saa_readl(SAA7134_GPIO_GPSTATUS0 >> 2) & ir->mask_keydown;
- 	ir_raw_event_store(dev->remote->dev, pulse? IR_PULSE : IR_SPACE);
- 
--#if 1
--	/* Wait up to 10 ms for event change */
--	oldpulse = pulse;
--	for (count = 0; count < 1000; count++)  {
--		udelay(10);
--		/* rising SAA7134_GPIO_GPRESCAN reads the status */
--		saa_clearb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
--		saa_setb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
--		pulse = saa_readl(SAA7134_GPIO_GPSTATUS0 >> 2)
--			& ir->mask_keydown;
--		if (pulse != oldpulse)
--			break;
-+
-+	/*
-+	 * Wait 15 ms from the start of the first IR event before processing
-+	 * the event. This time is enough for NEC protocol. May need adjustments
-+	 * to work with other protocols.
-+	 */
-+	if (!ir->active) {
-+		timeout = jiffies + jiffies_to_msecs(15);
-+		mod_timer(&ir->timer_end, timeout);
-+		ir->active = 1;
- 	}
- 
--	/* Store final event */
--	ir_raw_event_store(dev->remote->dev, pulse? IR_PULSE : IR_SPACE);
--#endif
--	/* Wait 15 ms before deciding to do something else */
--	timeout = jiffies + jiffies_to_msecs(15);
--	mod_timer(&ir->timer_end, timeout);
--
--	/* Enable IR IRQ line */
--	saa_setl(SAA7134_IRQ2, SAA7134_IRQ2_INTE_GPIO18);
--
- 	return 1;
- }
- 
-diff --git a/include/media/ir-core.h b/include/media/ir-core.h
-index 9e03528..8d8ed7e 100644
---- a/include/media/ir-core.h
-+++ b/include/media/ir-core.h
-@@ -18,6 +18,7 @@
- #include <linux/spinlock.h>
- #include <linux/kfifo.h>
- #include <linux/time.h>
-+#include <linux/timer.h>
- 
- extern int ir_core_debug;
- #define IR_dprintk(level, fmt, arg...)	if (ir_core_debug >= level) \
-@@ -63,6 +64,7 @@ struct ir_raw_event {
- struct ir_raw_event_ctrl {
- 	struct kfifo			kfifo;		/* fifo for the pulse/space events */
- 	struct timespec			last_event;	/* when last event occurred */
-+	struct timer_list		timer_keyup;	/* timer for key release */
- };
- 
- struct ir_input_dev {
--- 
-1.6.6.1
+:)
 
+
+ 
+> > Since a glitch filter is probably going to be needed by a number of
+> > drivers and since the minimum acceptable pulse depends slightly on the
+> > protocol, it probably makes sense for
+> > 
+> > 1. A driver to indicate if its raw events need glitch filtering
+> > 
+> > 2. A common glitch filtering library function that can be used by all
+> > decoders, and that also can accept a decoder specified minimum
+> > acceptable pulse width.
+> 
+> Seems a nice improvement. I doubt I'll have time for handling it right now,
+> since there are still many things to do, but I'll put it on my todo list.
+> Of course, patches adding it are wellcome ;)
+
+:)
+
+OK.  When I find time I'll hack something up as a prototype.
+
+
+
+> Btw, I added a RC-5 decoder there, at my IR experimental tree:
+> 	http://git.linuxtv.org/mchehab/ir.git
+
+I'll try to review it some time this week.  Streaming state machine
+decoders do seem to be best way to go with these decoders.
+
+I have an RC-5 decoder in cx23885-input.c that isn't as clean as the NEC
+protocol decoder I developed.  The cx23885-input.c RC-5 decoder is not a
+very explicit state machine however (it is a bit hack-ish).
+
+
+> Unfortunately, there's some problem with either my Remote Controller or 
+> with the saa7134 driver. After 11 bits received, after the 2 start bits, 
+> it receives a pause (see the enclosed sequence).
+
+-ENOATTACHMENT
+
+
+> I'm starting to suspect that the Hauppauge Grey IR produces a sequence with shorter
+> bits, but, as the hardware decoders are capable or receiving IR codes, it may
+> also be a hardware problem.
+
+The fundamental unit in RC-5 is 32 cycles / 36 kHz = 888889 ns ~= 889 us.
+
+I turned on the cx23888-ir.c debugging on the HVR-1850 and using a
+Hauppague grey remote (address 0x1e IIRC) and got this as just one
+example:
+
+cx23885[1]/888-ir: rx read:     802037 ns  mark
+cx23885[1]/888-ir: rx read:     852704 ns  space
+cx23885[1]/888-ir: rx read:     775370 ns  mark
+cx23885[1]/888-ir: rx read:     852407 ns  space
+cx23885[1]/888-ir: rx read:     802037 ns  mark
+cx23885[1]/888-ir: rx read:     852852 ns  space
+cx23885[1]/888-ir: rx read:     775667 ns  mark
+cx23885[1]/888-ir: rx read:     852407 ns  space
+cx23885[1]/888-ir: rx read:     801741 ns  mark
+cx23885[1]/888-ir: rx read:     852852 ns  space
+cx23885[1]/888-ir: rx read:     775667 ns  mark
+cx23885[1]/888-ir: rx read:     852407 ns  space
+cx23885[1]/888-ir: rx read:    1602926 ns  mark
+cx23885[1]/888-ir: rx read:     852407 ns  space
+cx23885[1]/888-ir: rx read:     801741 ns  mark
+cx23885[1]/888-ir: rx read:     852852 ns  space
+cx23885[1]/888-ir: rx read:     775074 ns  mark
+cx23885[1]/888-ir: rx read:     853148 ns  space
+cx23885[1]/888-ir: rx read:     801593 ns  mark
+cx23885[1]/888-ir: rx read:     852704 ns  space
+cx23885[1]/888-ir: rx read:     775667 ns  mark
+cx23885[1]/888-ir: rx read:     852556 ns  space
+cx23885[1]/888-ir: rx read:     801741 ns  mark
+cx23885[1]/888-ir: rx read:     852259 ns  space
+cx23885[1]/888-ir: rx read:     775963 ns  mark
+cx23885[1]/888-ir: rx read: end of rx
+
+That should be a press of '0' on the remote.
+
+'end of rx' means the hardware measured a really long space.
+
+I also had the hardware low pass filter on.   I think that would effect
+the space measurements by making them shorter, if IR noise caused a
+glitch. 
+
+Note that many of the marks are a bit shorter than the ideal 889 us.  In
+fact the single marks from the grey remote seem to alternate between 775
+us and 802 us.
+
+I have attached a larger capture of (attempted) single presses of the
+digits '0' through '9' and then an intentionally held down press of '7'.
+
+With a quick glance, I don't see pauses from the grey remote.
+
+Regards,
+Andy
+
+
+--=-sL4AHAg3BY4Ocs1g02Yj
+Content-Disposition: attachment; filename="hpg-grey-ir-pulses.txt.gz"
+Content-Type: application/x-gzip; name="hpg-grey-ir-pulses.txt.gz"
+Content-Transfer-Encoding: base64
+
+H4sICFA5uUsCA2hwZy1ncmV5LWlyLXB1bHNlcy50eHQA7V1tb9tGEv6uX7HAfZEB21q+UwRyOMdO
+zgaaXhsbboEiCChy5RCVRJWkFPvfdyiasXNOWj5Eh1jZa8SxLe3ucPZlnpnZmdEP2WpzK7ZZqnKR
+xOtqUyiRrSpVzONERWJrH0s5Sm5tJww9kRbZVhWCvsssXwl5LI9tscjjVKVf2kj6iqQTSXo3Ej+d
+XoiLH6/EiTj6t/jv5YWwfDFeqK1aHFLHzwf1yxfvf6aXR6f/e/9G3I/ym/UhEuVmVt6VlVpGNGgg
+o9BzrUMxy+MijcR5vFmv482NEr9kq6vro/Pr91boSfFbQm+/st3DeFPlqapUUqn0w6jaKrUu8qUI
+jqT05OP+S2q2ENTXptELtRWn3lvvUJSqyOLFv4RvB1bg2E9HeHdyKuI0LVRZiqwUNddpNFeRN49m
+djR3n/aoNiuavYYe9fjx15+EFdLwp7YYZ+mtsDyiW92tlfDcg6fdr65FWcWrlBikzleXp+N3B+KE
+fk7Orl+Ls+wmq+KFGN/3krdh+I1B4k2a5YJeSui586J+jtNf6zkPm2dw5Tc6pSqhhy7+opvzrQf+
+FJeiiIne4e7Xi/c0vYmqt1DzwiqvX6uKeFUus4r23Ojx8n/6skLNsFEzc692K1W39EJXiinRct3o
+fuOE4mRy/eVx5/lmlYr/7KZCjB/GPnjSe54Vy89xQRu+UH9sVFllqxuxdRdH952O4m2SF+pIWsfz
+z096Nyfgu+2/jC7Glu+EtpjdVao8+IrZQt1ktNULGiZV2yxRzZGk/bxcq5sPbduP6Xb2sW07PhDx
+YpEn8e5pLTEvcjq4q3T8f2O3J3MWl/Xw25moz8ioSuPd7tstl0/LlRSqGWqlPpMMqPdaokZXZye7
+ZudnE9qn7YmiWW26jWjvPTx+2ztOSZTQCnw16U9atq0eHl1IMb6Ml+WG3r30zi3XssTPJ+8m4fXl
+a/H2vtHB8fHxw4So7cfkk0p+p5Ob1VKJZuWc2NvNd/uaeEV7IJWPZmVC/DbbI66+Elk7ERAJ91Bk
+xR8RySWSUzFRTe5ICh2K5TLL6ZfbeZDUveR3xF6pqt1M3ncVVbYkPqtc+O6oEXeTxytEL739eHZx
+efL6hzdn9dla5ZW42cR0MipFk00clJ/ienNQy3KUrdab6mFd6QyNvyEOBZ2wSbOZysk6yZonlJP7
+n5F0j9s/msee7MZt/idx3O4GGv5+S2ZFkWy/mkU6cUdZsWNAXFZxtSkjIaqyEAV9P/4qZnff6/dm
+Fc8Wqu5Ytytp1Sr6zpWhY+h0prPrQ+fr0dc/Qae4JXEQp03bUNrSCcSqFGIZF7//fXvPDqS7a1+u
+SZv62w5B4DmBhAi4MgAI9OCA/mEc+H7AyoEVuNYec2D50p7a/p5PkQxchIBjuSHGgTd1eA8ausie
+5/Ouge1NMQ6mfscpqvWqfE5/GwQydF4oclthOGU87zoKFAw1enCASSzSPRzH0WsNLMuCkNvhVs/g
+RYanqDNq9FUwLbJIWXEvtDzeg4aKCmgXEQd+28Egt6HDRGcAREVVdNRMcmzb7kzA8oNpa5R0Poet
+6OlqxUgpMUliT31eyAZlIcZBbaoGQcgLeOgugk1Vz9JskWFTFQU8jABx4Lou60Ezpqqh8wwAj9WE
+RP2C9TlsrRF9JAlovoDCFnc8YnAxiG+W3RHBbh+9LN9sL83SWHiGzr4Dnu1h0pxkLSaqplNMVNkh
+KGxxDkBRNZ1ioqoHBxhc9FgDzCFoh5C/zvLtADHj+0yRj3kcB9imoGPc9rFLeZQAyIHle167Zp0X
+ubOVbQDP0Hk2gIcq/xLzOA4AeLAkwW7A7BDz1/WQ5tjtC61BO6cdCQQtQP7zsrAfBzhcgG5lXCcA
+DTBcq0GvmmVnA6wBPLc1+w3gGTovCPAwV449Be+PbB8J+aBz6IN36dMpKmxBl6btIZcjOOD1MCFB
+l6bt+47knSJwF+FqEyLNBzHAYD8Bsk1rAwxz7fdAVD5PhwE8Q0dbwGNVPFFvF6x41rKw1bXZdHPU
+hIQNMFSag4FDdoBdEvawsrUDPJiDNiGDRfFDTUjY48jvM0V8NQbwDB1tg1Yw82WA6DTQIYhzAEcI
+gkH9cDKbbJ9Il4xFPAwUMyGZQxAHSeqEtykSBgoHb9Xh0GjoE1/YjQE8Q+fZRGmyp+iz5x/BHLCH
+xKPSnD2LDQ7FRfMeWOFikCBK9qyB9oHYAI8vXdQAnqHzMmvSoLIQPuiDiCo0Yh3NSUYzCW3Qrcwt
+C3sknsN4xArZgxhgiOLHm49q8MjQ0bbSCqr8w7IQzQvHrhboHGIRgjgeybZDVwOsnVI9Mqj6pMnB
+kI0awXzls4ZKMmutcrZ0UYiAsY8MnefhEGTPSQbdaRpW/kJlIXqXzl/WihvwHCyLrccUoYDHXQiF
+H/BgvYy1Xk+NqJ2jlQ3gGTrPpjDX3leYwCGbvY6jdlU+2ItUcztlLSgPr49TlrVYZ596PRq5lQ3g
+GTrPJagfz+hFrIs6qL+9MWNyCOIpw3DeA3dWNZ5YgSaec2dVY7tIu8yNQXJP4FIu7IVQTCVKQ2fv
+AQ8+JmCde0zY1pKkjQ/vrDq3Ftv+SnNWyO6TxaZZ1Sk8iw1dA6xWzCB6mWb1epA1MIBn6GgLeLoV
+hcLxCOQAxyPdOMDXACyOpl9hLv6yVsgi9yprBRajCVo3tD5TZIIoDZ19D6JkNl/6WHj7rzqzV0ZG
+LTwfu2LDHYKw0oFlboCQzVtXWFufaWfINnhk6GiLR9hHd/ao2QQWyHPd0NLrig2dIlzYorcvsMcR
+FLa8/rpekA1e1OJ4xG0foQVTGT3vBo8MnRefXN3CDFvmMJhrZqGoAX8eM3vyAOoXRDnAAwXRfD/u
+jw23UOcvWk0ELGGGLzLMgY1d5QUhZofRIoM5l/g2ReswwB8b3ln/M8ht6Lz4NHT2ghZafUrlIFVL
+YJGImcT8If4W6CaXDpo0p59yo10WBJz2h4UR9dA9UCUfRm5zJ2noGOTuanNzW6y8qNFHqKOVOQIs
+fJY/Gx2HJcyZraHNrZ1yw2ux1jY3FgPQY5G502wZXUMGuQ2dF4/caNVk7qz3fTYFhoIl7IbyOXjL
+0U+zwFEDtVjBW2KMg0GQm91bzlci3iC3oWOKiGPHEUcNdmNGO0cqanPDHKBrAN/Uo5XiHfaySuCV
+CP8icxfJw5EbVc+4t6nxlhs6Brn1+fgP7YrDwhywl/pGYYk/9AeNEoRUgyHuueGCiPAUgTY37zYd
+otof7vdAlXxYe+ocY2eQ29B58cit3QUiaszwCxR2m1s73QP2loPIreGVCDdyQ7rHEIXp2QNKGENB
+H5D7T6w+hB46wAAA
+
+
+--=-sL4AHAg3BY4Ocs1g02Yj--
 
