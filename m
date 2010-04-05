@@ -1,60 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:28321 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753697Ab0DCBLk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Apr 2010 21:11:40 -0400
-Message-ID: <4BB695C1.3080208@redhat.com>
-Date: Fri, 02 Apr 2010 22:11:29 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: linux-input@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 04/15] V4L/DVB: ir-core: Add logic to decode IR protocols
- at the IR core
-References: <cover.1270142346.git.mchehab@redhat.com>	 <20100401145632.7b1b98d5@pedra>	 <1270251567.3027.55.camel@palomino.walls.org> <1270256387.3027.84.camel@palomino.walls.org>
-In-Reply-To: <1270256387.3027.84.camel@palomino.walls.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:46593 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750698Ab0DEEPU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Apr 2010 00:15:20 -0400
+From: Wolfram Sang <w.sang@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Wolfram Sang <w.sang@pengutronix.de>,
+	Olivier Grenie <Olivier.Grenie@dibcom.fr>,
+	Patrick Boettcher <pboettcher@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Date: Mon,  5 Apr 2010 06:14:26 +0200
+Message-Id: <1270440866-23421-1-git-send-email-w.sang@pengutronix.de>
+Subject: [PATCH] dvb/dib8000: fix build warning
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andy Walls wrote:
-> On Fri, 2010-04-02 at 19:39 -0400, Andy Walls wrote:
->> On Thu, 2010-04-01 at 14:56 -0300, Mauro Carvalho Chehab wrote:
-> 
->>> +enum raw_event_type {
->>> +	IR_SPACE	= (1 << 0),
->>> +	IR_PULSE	= (1 << 1),
->>> +	IR_START_EVENT	= (1 << 2),
->>> +	IR_STOP_EVENT	= (1 << 3),
->>> +};
->>> +
->> Why are these events encoded as bit flags?  Shouldn't they all be
->> orthogonal?
->   ^^^^^^^^^^
-> Argh, wrong word.
+  In file included from drivers/media/dvb/dvb-usb/dib0700_devices.c:14:
+  drivers/media/dvb/frontends/dib8000.h: In function 'dib8000_get_adc_power':
+  drivers/media/dvb/frontends/dib8000.h:112: warning: no return statement in function returning non-void
 
-Why is it wrong? It seems appropriate to me.
-> 
-> Shouldn't they all be mutually exclusive?
+Fixed by adding a return to the dummy function.
 
-space x pulse are mutually exclusive, and start x stop are also
-mutually exclusive, but you may have several possible combinations
-for an event. The hole set of possibilities are:
+Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Olivier Grenie <Olivier.Grenie@dibcom.fr>
+Cc: Patrick Boettcher <pboettcher@kernellabs.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+---
+ drivers/media/dvb/frontends/dib8000.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-IR_SPACE
-IR_PULSE
-IR_SPACE | IR_START_EVENT
-IR_SPACE | IR_STOP_EVENT
-IR_PULSE | IR_START_EVENT
-IR_PULSE | IR_STOP_EVENT
-
-With bit flags, it is possible to cover all the above combinations.
-
-In a matter of fact, the driver is currently not using the stop events.
-
+diff --git a/drivers/media/dvb/frontends/dib8000.h b/drivers/media/dvb/frontends/dib8000.h
+index b1ee207..e0a9ded 100644
+--- a/drivers/media/dvb/frontends/dib8000.h
++++ b/drivers/media/dvb/frontends/dib8000.h
+@@ -109,6 +109,7 @@ static inline void dib8000_pwm_agc_reset(struct dvb_frontend *fe)
+ static inline s32 dib8000_get_adc_power(struct dvb_frontend *fe, u8 mode)
+ {
+ 	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
++	return 0;
+ }
+ #endif
+ 
 -- 
+1.7.0
 
-Cheers,
-Mauro
