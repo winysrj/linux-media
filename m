@@ -1,114 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2795 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754773Ab0DATjD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 15:39:03 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id o31Jd0hh063111
-	for <linux-media@vger.kernel.org>; Thu, 1 Apr 2010 21:39:00 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 1 Apr 2010 21:39:00 +0200 (CEST)
-Message-Id: <201004011939.o31Jd0hh063111@smtp-vbr6.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
+Received: from mail-gx0-f217.google.com ([209.85.217.217]:48861 "EHLO
+	mail-gx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755410Ab0DEPrK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Apr 2010 11:47:10 -0400
+Received: by gxk9 with SMTP id 9so3030123gxk.8
+        for <linux-media@vger.kernel.org>; Mon, 05 Apr 2010 08:47:09 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1270436282.12543.18.camel@palomino.walls.org>
+References: <201004041741.51869.hverkuil@xs4all.nl>
+	 <1270436282.12543.18.camel@palomino.walls.org>
+Date: Mon, 5 Apr 2010 11:47:09 -0400
+Message-ID: <y2i829197381004050847p430f9f29me0289c2cb3c80995@mail.gmail.com>
+Subject: Re: RFC: new V4L control framework
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Sun, Apr 4, 2010 at 10:58 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+> I think I have 2 cases where that is undesriable:
+>
+> 1. cx18 volume control: av_core subdev has a volume control (which the
+> bridge driver currently reports as it's volume control) and the cs5435
+> subdev has a volume control.
+>
+> I'd really need them *both* to be controllable by the user.  I'd also
+> like them to appear as a single (bridge driver) volume control to the
+> user - as that is what a user would expect.
 
-Results of the daily build of v4l-dvb:
+For what it's worth, I've got a similar problem I am going to need to
+deal with.  I'm working on a hardware design which has a volume
+control built into the audio processor, as well as a separate i2c
+controllable volume control (a cs3308).
 
-date:        Thu Apr  1 19:00:20 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14536:a539e5b68945
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 8c69c6ed6c74c94fa7ad6fa24eda452e4b212d81
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+So I am indeed *very* interested in seeing the best approach for
+dealing with this issue.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc1-armv5: OK
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-rc1-armv5-davinci: WARNINGS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-rc1-armv5-ixp: WARNINGS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-rc1-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.17-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-rc1-i686: WARNINGS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc1-m32r: OK
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-rc1-mips: WARNINGS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-rc1-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.17-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-rc1-x86_64: WARNINGS
-linux-git-armv5: OK
-linux-git-armv5-davinci: OK
-linux-git-armv5-ixp: OK
-linux-git-armv5-omap2: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.7-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.62-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.7-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+Devin
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
