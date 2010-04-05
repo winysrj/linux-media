@@ -1,73 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:53800 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752331Ab0DMKgw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Apr 2010 06:36:52 -0400
-Subject: Re: cx18: "missing audio" for analog recordings
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mark Lord <mlord@pobox.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org, Darren Blaber <dmbtech@gmail.com>
-In-Reply-To: <4BC3D81E.9060808@pobox.com>
-References: <4B8BE647.7070709@teksavvy.com>
-	 <1267493641.4035.17.camel@palomino.walls.org>
-	 <4B8CA8DD.5030605@teksavvy.com>
-	 <1267533630.3123.17.camel@palomino.walls.org> <4B9DA003.90306@teksavvy.com>
-	 <1268653884.3209.32.camel@palomino.walls.org>  <4BC0FB79.7080601@pobox.com>
-	 <1270940043.3100.43.camel@palomino.walls.org>  <4BC1401F.9080203@pobox.com>
-	 <1270961760.5365.14.camel@palomino.walls.org>
-	 <1270986453.3077.4.camel@palomino.walls.org>  <4BC1CDA2.7070003@pobox.com>
-	 <1271012464.24325.34.camel@palomino.walls.org> <4BC37DB2.3070107@pobox.com>
-	 <1271107061.3246.52.camel@palomino.walls.org> <4BC3D578.9060107@pobox.com>
-	 <4BC3D73D.5030106@pobox.com>  <4BC3D81E.9060808@pobox.com>
-Content-Type: text/plain
-Date: Tue, 13 Apr 2010 06:35:32 -0400
-Message-Id: <1271154932.3077.7.camel@palomino.walls.org>
-Mime-Version: 1.0
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2957 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751152Ab0DFFlW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Apr 2010 01:41:22 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC] Serialization flag example
+Date: Tue, 6 Apr 2010 00:58:54 +0200
+Cc: David Ellingsworth <david@identd.dyndns.org>,
+	hermann-pitton@arcor.de, awalls@md.metrocast.net,
+	mchehab@redhat.com, dheitmueller@kernellabs.com,
+	abraham.manu@gmail.com, linux-media@vger.kernel.org
+References: <32832848.1270295705043.JavaMail.ngmail@webmail10.arcor-online.net> <x2r30353c3d1004032014qc2b31bd5uab4da9a0d364e8ff@mail.gmail.com> <201004060046.12997.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201004060046.12997.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201004060058.54050.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2010-04-12 at 22:34 -0400, Mark Lord wrote:
-> On 12/04/10 10:30 PM, Mark Lord wrote:
-> ..
-> > Mmm.. further to that: the problem went away as soon as I told
-> > it to tune to a different channel. No more fallbacks (for now).
-> > It can now even retune the original channel without fallbacks.
-> >
-> > So.. tuning to a new channel appears to fix whatever the bad state was
-> > that was triggering the fallbacks. Based on my sample of one, anyway. ;)
-> ..
+On Tuesday 06 April 2010 00:46:11 Laurent Pinchart wrote:
+> On Sunday 04 April 2010 05:14:17 David Ellingsworth wrote:
+> > After looking at the proposed solution, I personally find the
+> > suggestion for a serialization flag to be quite ridiculous. As others
+> > have mentioned, the mere presence of the flag means that driver
+> > writers will gloss over any concurrency issues that might exist in
+> > their driver on the mere assumption that specifying the serialization
+> > flag will handle it all for them.
 > 
-> Nope.. what that second email should have said, was
-> Changing channels in LiveTV, no fallbacks required
-> because the audio is already working from the initial fallback.
-> 
-> As soon as I quit from LiveTV, the next recording still needed
-> a new fallback.  So the chip is still in some weird state where
-> auto-audio will continue to fail until I reload the module.
+> I happen to agree with this. Proper locking is difficult, but that's not a 
+> reason to introduce such a workaround. I'd much rather see proper 
+> documentation for driver developers on how to implement locking properly.
 
+I've taken a different approach in another tree:
 
-Thansk you for all the testing and feedback.
+http://linuxtv.org/hg/~hverkuil/v4l-dvb-ser2/
 
-At this point I'm going to brush up the fixes by properly incorporating
-support for the cx18_av_g_tuner()/cx18_av_s_tuner() calls so that user
-space can still influence the audio mode (mono, stereo, Lang1, lang2,
-etc.) even when audio standard and format are forced.  I'll have time on
-Friday for this.
+It adds two callbacks to ioctl_ops: pre_hook and post_hook. You can use these
+to do things like prio checking and taking your own mutex to serialize the
+ioctl call.
 
-
-
-The *only* other thing I can think of, that I have control over, is the
-PLL charge pump current in the analog tuner.  Right now it is set to low
-current to minimize phase noise when tuned to a channel.  Perhaps
-setting the PLL charge pump to high current while chaning the channel to
-get a faster lock, and low current after a short time, will help get a
-good SIF output from the analog tuner assembly sooner.  Perhaps when I
-have time....
+This might be a good compromise between convenience and not hiding anything.
 
 Regards,
-Andy
+
+	Hans
 
 
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
