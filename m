@@ -1,122 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:21265 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752783Ab0DKTBW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Apr 2010 15:01:22 -0400
-Subject: Re: cx18: "missing audio" for analog recordings
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mark Lord <mlord@pobox.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org, Darren Blaber <dmbtech@gmail.com>
-In-Reply-To: <4BC1CDA2.7070003@pobox.com>
-References: <4B8BE647.7070709@teksavvy.com>
-	 <1267493641.4035.17.camel@palomino.walls.org>
-	 <4B8CA8DD.5030605@teksavvy.com>
-	 <1267533630.3123.17.camel@palomino.walls.org> <4B9DA003.90306@teksavvy.com>
-	 <1268653884.3209.32.camel@palomino.walls.org>  <4BC0FB79.7080601@pobox.com>
-	 <1270940043.3100.43.camel@palomino.walls.org>  <4BC1401F.9080203@pobox.com>
-	 <1270961760.5365.14.camel@palomino.walls.org>
-	 <1270986453.3077.4.camel@palomino.walls.org>  <4BC1CDA2.7070003@pobox.com>
-Content-Type: text/plain
-Date: Sun, 11 Apr 2010 15:01:04 -0400
-Message-Id: <1271012464.24325.34.camel@palomino.walls.org>
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:44873 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755370Ab0DEPmB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Apr 2010 11:42:01 -0400
+Message-ID: <4BBA04BB.5030600@redhat.com>
+Date: Mon, 05 Apr 2010 12:41:47 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: RFC: new V4L control framework
+References: <201004041741.51869.hverkuil@xs4all.nl> <1270436282.12543.18.camel@palomino.walls.org> <201004051125.20672.hverkuil@xs4all.nl>
+In-Reply-To: <201004051125.20672.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-6
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2010-04-11 at 09:24 -0400, Mark Lord wrote:
-> On 11/04/10 07:47 AM, Andy Walls wrote:
-> > On Sun, 2010-04-11 at 00:56 -0400, Andy Walls wrote:
-> >> Try this:
-> >>
-> >> 	http://linuxtv.org/hg/~awalls/cx18-audio2
-> >>
-> >> this waits 1.5 seconds after an input/channel change to see if the audio
-> >> standard micrcontroller can detect the standard.  If it can't, the
-> >> driver tells it to try a fallback detection.  Right now, only the NTSC-M
-> >> fallback detection is set to force a mode (i.e. BTSC), all the others
-> >> "fall back" to their same auto-detection.
-> >>
-> >> Some annoyances with the fallback to a forced audio standard, mode, and
-> >> format:
-> >>
-> >> 1. Static gets unmuted on stations with no signal. :(
-> >>
-> >> 2. I can't seem to force mode "MONO2 (LANGUAGE B)".  I'm guessing the
-> >> microcontroller keeps setting it back down to "MONO1 (LANGUAGE A/Mono L
-> >> +R channel for BTSC, EIAJ, A2)"  Feel free to experiment with the LSB of
-> >> the fallback setting magic number (0x1101) in
-> >> cx18-av-core.c:input_change().
-> >
-> > I fixed #2.  I had a bug so the first patch didn't properly set the
-> > fallback audio mode.
-> >
-> > I still need to fixup cx18_av_s_tuner() and cx18_av_g_tuner() to take
-> > into consideration that we might be using a forced audio mode vs. auto
-> > detection.  However, that is not essential for testing; this should be
-> > good enough for testing.
-> ..
+Hans Verkuil wrote:
+> On Monday 05 April 2010 04:58:02 Andy Walls wrote:
+>> On Sun, 2010-04-04 at 17:41 +0200, Hans Verkuil wrote:
+>>> Hi all,
+>>>
+>>> The support in drivers for the V4L2 control API is currently very chaotic.
+>>> Few if any drivers support the API correctly. Especially the support for the
+>>> new extended controls is very much hit and miss.
+>>>
+>>> Combine that with the requirements for the upcoming embedded devices that
+>>> will want to use controls much more actively and you end up with a big mess.
+>>>
+>>> I've wanted to fix this for a long time and last week I finally had the time.
+>>>
+>>> The new framework works like a charm and massively reduces the complexity in
+>>> drivers when it comes to control handling. And just as importantly, any driver
+>>> that uses it is fully compliant to the V4L spec. Something that application
+>>> writers will appreciate.
+>>>
+>>> I have converted the cx2341x.c module and tested it with ivtv since that is
+>>> by far the most complex example of control handling. The new code is much,
+>>> much cleaner.
+>>>
+>>> The documentation is available here:
+>>>
+>>> http://linuxtv.org/hg/~hverkuil/v4l-dvb-fw/raw-file/9b6708e8293c/linux/Documentation/video4linux/v4l2-controls.txt
+>> >From reading the Documentation.  Things look very much improved.
+>>
+>> However:
+>>
+>> "When a subdevice is registered with a bridge driver and the ctrl_handler
+>> fields of both v4l2_subdev and v4l2_device are set, then the controls of the
+>> subdev will become automatically available in the bridge driver as well. If
+>> the subdev driver contains controls that already exist in the bridge driver,
+>> then those will be skipped (so a bridge driver can always override a subdev
+>> control)."
+>>
+>> I think I have 2 cases where that is undesriable:
+>>
+>> 1. cx18 volume control: av_core subdev has a volume control (which the
+>> bridge driver currently reports as it's volume control) and the cs5435
+>> subdev has a volume control.
+>>
+>> I'd really need them *both* to be controllable by the user.  I'd also
+>> like them to appear as a single (bridge driver) volume control to the
+>> user - as that is what a user would expect.
 > 
-> Those new patches don't want to coexist with the earlier hard/soft reset
-> changes.  There's always a chance that *both* things might be needed,
-> and the reset stuff didn't look obviously "bad".  Why dropped?
+> So the bridge driver implements the volume control, but the bridge's s_ctrl
+> operation will in turn control the subdev's volume implementation, right?
+> That's no problem. I do need to add a few utility functions to make this
+> easy, though. I realized that I need that anyway when I worked on converting
+> bttv yesterday.
 
-Because...
+I think this is a common case for some audio controls: in general, bridge drivers
+have a set of volume adjustments, but, depending on how the audio is connected
+(I2S, analog input, analog directly wired to an output pin or to an  AC97 chip), 
+the bridge volume may or may not work, and you may need to map the sub-device
+volume control.
 
-1. Darren had problems with a black video screen with them and so did I
-(once I found an analog OTA station).
+Em28xx is probably an interesting case, since it is designed to work with an
+AC97 audio chip, but it also supports I2S. Older designs were shipped with a
+msp34xx audio chip, while newer designs come with an Empia202 or with other
+AC97 chips. Depending on the specific hardware, the volume should be controlled
+into either one of the devices.
+> 
+> Of course, once we can create device nodes for sub-devices, then the controls
+> of the cs5435 will show up there as well so the user can have direct access
+> to that volume control. But that's not really for applications, though.
 
-2.  I also suspect those previous patches were not performing the format
-detection loop reset properly.
+I don't think  that a "technical" volume control  per subdevice would make sense,
+ except on a very few cases, where you might need to deal with more than one volume
+control, to avoid distortions. On most cases, you need to use just one of
+the controls.
+>> 2. ivtv volume control for an AverTV M113 card.  The CX2584x chip is
+>> normally the volume control.  However, due to some poor baseband audio
+>> noise performance on this card, it is advantagous to adjust the volume
+>> control on the WM8739 subdev that feeds I2S audio into the CX2584x chip.
+>> Here, I would like a secondary volume control, not an override of the
+>> primary.
+>>
+>> (Here's my old hack:
+>> 	http://linuxtv.org/hg/~awalls/ivtv-avertv-m113/rev/c8f2378a3119 )
+>>
+>>
+>> Maybe there's a way to use the control clusters to handle some of this.
+>> I'm a bit too tired to figure it all out at the moment.
+> 
+> Interesting use case. I have several ideas, but I need some time to think
+> about it a bit more. Basically you want to be able to merge-and-remap
+> controls. Or perhaps even allow some sort of control hierarchy.
 
-3. One could possibly reset the microcontroller all day long without
-auto-detection ever working.  Also autodetection will auto-mute, and
-restart the detection loop, if it thinks the audio carrier went away.
+I'd say that the bridge driver should be able to disable the visibility of
+a control from userspace, while keeping being able of accessing it for its
+own control implementations.
 
-4. Falling back to a known used audio standard, format, and mode is
-guaranteed to work.  I guess it can be a problem in some region for some
-video stanadrd where one just can't know what each broadcaster is using.
-For NTSC-M this is not the case: BTSC at 4.5 MHz is always used.
+-- 
 
-5. I don't understand the exact failure mode of why the microcontroller
-is failing to detect the audio standard, so any other fix that doesn't
-explicitly set a standard will likely be unreliable.  I'm tired of audio
-detection fixes with unpredictable outcomes based on variations in cable
-and OTA signal sources.  Forcing the microcontroller to a particular
-standard, after autodetection fails, gives a deterministic outcome.
-
-(BTW, we really do need the microcontroller to do some work for us.  No
-documentation accessable to me has enough detail to allow one to fully
-program the audio decoder portion of the A/V core.  We have to rely on
-the microntroller firmware to set up some of the undocumented or
-unexplained registers.)
-
-
-I can always throw the other reset patches back in I guess, but this
-latest patch set should dominate the behavior of the microcontroller (if
-I didn't miss something because I was tired).
-
-I would be interested in hearing how frequent these patches show "forced
-audio standard" for you:
-        
-        [  389.388200] cx18-0 843: Detected format:           NTSC-M
-        [  389.388204] cx18-0 843: Specified standard:        NTSC-M
-        [  389.388208] cx18-0 843: Specified video input:     Composite 7
-        [  389.388212] cx18-0 843: Specified audioclock freq: 48000 Hz
-        [  389.388232] cx18-0 843: Detected audio mode:       forced mode
-        [  389.388237] cx18-0 843: Detected audio standard:   forced audio standard
-        [  389.388241] cx18-0 843: Audio muted:               no
-        [  389.388245] cx18-0 843: Audio microcontroller:     running
-        [  389.388249] cx18-0 843: Configured audio standard: BTSC
-        [  389.388253] cx18-0 843: Configured audio mode:     MONO2 (LANGUAGE B)
-        [  389.388257] cx18-0 843: Specified audio input:     Tuner (In8)
-        [  389.388261] cx18-0 843: Preferred audio mode:      stereo
-
-meaning that the fallback audio settings were used because auto
-detection failed.
-
-Regards,
-Andy
-
+Cheers,
+Mauro
