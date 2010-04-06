@@ -1,102 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:24911 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:6941 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755520Ab0DWFXI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Apr 2010 01:23:08 -0400
-Date: Fri, 23 Apr 2010 01:23:02 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org
-Subject: Re: [PATCH 3/3] ir-core: add imon driver
-Message-ID: <20100423052302.GB29167@redhat.com>
-References: <20100416212622.GA6888@redhat.com>
- <20100416212902.GD2427@redhat.com>
- <20100420182236.2e5a1325@pedra>
- <20100422015525.GA14221@redhat.com>
- <4BD050C6.6060206@redhat.com>
+	id S1752951Ab0DFOme (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Apr 2010 10:42:34 -0400
+Message-ID: <4BBB4843.7030109@redhat.com>
+Date: Tue, 06 Apr 2010 11:42:11 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4BD050C6.6060206@redhat.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	David Ellingsworth <david@identd.dyndns.org>,
+	hermann-pitton@arcor.de, awalls@md.metrocast.net,
+	dheitmueller@kernellabs.com, abraham.manu@gmail.com,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC] Serialization flag example
+References: <32832848.1270295705043.JavaMail.ngmail@webmail10.arcor-online.net>    <201004060046.12997.laurent.pinchart@ideasonboard.com>    <201004060058.54050.hverkuil@xs4all.nl>    <201004060830.54375.hverkuil@xs4all.nl> <4BBB3022.6080406@redhat.com> <45a097098cc45db25ddbd05334b8be3e.squirrel@webmail.xs4all.nl>
+In-Reply-To: <45a097098cc45db25ddbd05334b8be3e.squirrel@webmail.xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 22, 2010 at 10:36:06AM -0300, Mauro Carvalho Chehab wrote:
-> Jarod Wilson wrote:
-> > On Tue, Apr 20, 2010 at 06:22:36PM -0300, Mauro Carvalho Chehab wrote:
-> >> Em Fri, 16 Apr 2010 17:29:02 -0400
-> >> Jarod Wilson <jarod@redhat.com> escreveu:
-> >>
-> >>> This is a new driver for the SoundGraph iMON and Antec Veris IR/display
-> >>> devices commonly found in many home theater pc cases and as after-market
-> >>> case additions.
-> >>
-> >>> +/* IR protocol: native iMON, Windows MCE (RC-6), or iMON w/o PAD stabilize */
-> >>> +static int ir_protocol;
-> >>> +module_param(ir_protocol, int, S_IRUGO | S_IWUSR);
-> >>> +MODULE_PARM_DESC(ir_protocol, "Which IR protocol to use. 0=auto-detect, "
-> >>> +		 "1=Windows Media Center Ed. (RC-6), 2=iMON native, "
-> >>> +		 "4=iMON w/o PAD stabilize (default: auto-detect)");
-> >>> +
-> >> You don't need this. Let's the protocol to be adjustable via sysfs. All you need to do is
-> >> to use the set_protocol callbacks with something like:
-> >>
-> >>         props->allowed_protos = IR_TYPE_RC6 | IR_TYPE_<imon protocol>;
-> >>         props->change_protocol = imon_ir_change_protocol;
-> >>
-> >> You can see an example of such implementation at drivers/media/video/em28xx-em28xx-input.c.
-> >> Look for em28xx_ir_change_protocol() function.
-> > 
-> > Working on it now... I'm about 95% of the way there, just need to sort out
-> > one last little bit...
+Hans Verkuil wrote:
+>> Hans Verkuil wrote:
+
+>> 	- performance is important only for the ioctl's that directly handles
+>> the streaming (dbuf/dqbuf & friends);
 > 
-> Good!
+> What performance? These calls just block waiting for a frame. How the hell
+> am I suppose to test performance anyway on something like that?
 
-Patch coming momentarily. Nice to submit one that actually removes more
-lines than it adds... :)
+They are called on the main loop for receiving buffers. As the userspace may be
+doing some video processing, by introducing latency here, you may affect the
+applications. By using perf subsystem, you should be able to test how much
+time is spent by an ioctl.
 
-> >> That's said, I'm not sure what would be better way to map IR_TYPE_<imon protocol>. Maybe we
-> >> can just use IR_TYPE_OTHER.
-> >>
-> >> So, basically, we'll have:
-> >>
-> >> 	IR_TYPE_OTHER | IR_TYPE_RC6	- auto-detected between RC-6 and iMON
-> >> 	IR_TYPE_OTHER			- iMON proprietary protocol
-> >> 	IR_TYPE_RC6			- RC-6 protocol
-> >>
-> >>
-> >> By doing this, the userspace application ir-keycode will already be able to handle the
-> >> IR protocol.
-> > 
-> > I'm going to go with IR_TYPE_OTHER for the iMON native proto for now. To
-> > be honest, I don't have a clue what the actual IR protocol looks like... I
-> > should try one of my iMON remotes w/an mce transceiver to see if I can
-> > figure it out...
 > 
-> It would be a good idea to get the real protocol, instead of using OTHER. Maybe one of the
-> already-existing decoders may be able to catch it, if you use a raw decoder device.
-
-On the TODO list, probably after porting the mceusb driver to ir-core,
-which I can then use for this very purpose.
-
-> >> I'm not sure how to map the "PAD stablilize" case, but it seems that the better would be to
-> >> add a sysfs node for it, at sys/class/rc/rc0. There are other cases where some protocols
-> >> may require some adjustments, so I'm thinking on having some protocol-specific properties there.
-> > 
-> > For the moment, I'm dropping the ir_protocol modparam and adding a
-> > pad_stabilize one. It was a hack to have it as a protocol, all it really
-> > needs to do is bypass a function when processing the pad signals. Can
-> > convert it to something more standard once we have a standard for
-> > protocol-specific properties. (The pad_thresh modparam is probably a
-> > similar case).
+>> 	- videobuf has its own lock implementation;
+>>
+>> 	- a trivial mutex-based approach won't protect the stream to have
+>> some parameters modified by a VIDIOC_S_* ioctl (such protection should be
+>> provided by a resource locking);
 > 
-> Yes. Suggestions/patches for those protocol-specific parameters are welcome ;)
+> Generally once streaming starts drivers should return -EBUSY for such
+> calls. Nothing to do with locking in general.
 
-Going to keep it in mind while starting to port more lirc drivers,
-thinking maybe ideas will emerge after looking at the needs of multiple
-drivers.
+Yes, that's exactly what I said. This is a resource locking: you cannot
+change several stream properties while streaming (yet, you can change a
+few ones, like bright, contrast, etc).
+
+>> then, maybe the better would be to not call the hooks for those ioctls.
+>> It may be useful to do some perf tests and measure the real penalty before
+>> adding
+>> any extra code to exclude the buffer ioctls from the hook logic.
+> 
+> Yuck. We want something easy to understand. Like: 'the hook is called for
+> every ioctl'. Not: 'the hook is called for every ioctl except this one and
+> this one and this one'. Then the driver might have to do different things
+> for different ioctls just because some behind-the-scene logic dictated
+> that the hook isn't called in some situations.
+> 
+> I have said it before and I'll say it again: the problem with V4L2 drivers
+> has never been performance since all the heavy lifting is done with DMA,
+> the problem is complexity. Remember: premature optimization is the root of
+> all evil. If a driver really needs the last drop of performance (for what,
+> I wonder?) then it can choose to just not implement those hooks and do
+> everything itself.
+
+I tend to agree with you. All I'm saying is that it is valuable to double
+check the impacts before committing it.
 
 -- 
-Jarod Wilson
-jarod@redhat.com
 
+Cheers,
+Mauro
