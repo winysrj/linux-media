@@ -1,574 +1,725 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:30012 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:62852 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758731Ab0DAR6P (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Apr 2010 13:58:15 -0400
-Date: Thu, 1 Apr 2010 14:56:32 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: linux-input@vger.kernel.org,
+	id S1756706Ab0DFTMw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Apr 2010 15:12:52 -0400
+Received: from int-mx08.intmail.prod.int.phx2.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.21])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o36JCpbY012736
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 6 Apr 2010 15:12:51 -0400
+Received: from pedra (vpn-8-182.rdu.redhat.com [10.11.8.182])
+	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o36JCmll005311
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 6 Apr 2010 15:12:50 -0400
+Date: Tue, 6 Apr 2010 15:18:02 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com> (by way of Mauro
+	Carvalho Chehab <mchehab@redhat.com>)
+To: linux-media@vger.kernel.org,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 04/15] V4L/DVB: ir-core: Add logic to decode IR protocols at
- the IR core
-Message-ID: <20100401145632.7b1b98d5@pedra>
-In-Reply-To: <cover.1270142346.git.mchehab@redhat.com>
-References: <cover.1270142346.git.mchehab@redhat.com>
+Message-ID: <20100406151802.767a15db@pedra>
+In-Reply-To: <cover.1270577768.git.mchehab@redhat.com>
+References: <cover.1270577768.git.mchehab@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
+Subject: [PATCH 14/26] V4L/DVB: drivers/media/IR - improve keytable code
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds a method to pass IR raw pulse/code events into ir-core. This is
-needed in order to support LIRC. It also helps to move common code
-from the drivers into the core.
+From: David Härdeman <david@hardeman.nu>                  
 
-In order to allow testing, it implements a simple NEC protocol decoder
-at ir-nec-decoder.c file. The logic is about the same used at saa7134
-driver that handles Avermedia M135A and Encore FM53 boards.
+The attached patch rewrites much of the keytable code in
+drivers/media/IR/ir-keytable.c.
 
+The scancodes are now inserted into the array in sorted
+order which allows for a binary search on lookup.
+
+The code has also been shrunk by about 150 lines.
+
+In addition it fixes the following bugs:
+
+Any use of ir_seek_table() was racy.
+
+ir_dev->driver_name is leaked between ir_input_register() and
+ir_input_unregister().
+
+ir_setkeycode() unconditionally does clear_bit() on dev->keybit
+when removing a mapping, but there might be another mapping with
+a different scancode and the same keycode.
+
+This version has been updated to incorporate patch feedback from
+Mauro Carvalho Chehab.
+
+[mchehab@redhat.com: Fix a conflict with RC keytable breakup patches]
+
+Signed-off-by: David Härdeman <david@hardeman.nu>
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
- create mode 100644 drivers/media/IR/ir-nec-decoder.c
- create mode 100644 drivers/media/IR/ir-raw-event.c
-
-diff --git a/drivers/media/IR/Makefile b/drivers/media/IR/Makefile
-index 171890e..18794c7 100644
---- a/drivers/media/IR/Makefile
-+++ b/drivers/media/IR/Makefile
-@@ -1,5 +1,5 @@
- ir-common-objs  := ir-functions.o ir-keymaps.o
--ir-core-objs	:= ir-keytable.o ir-sysfs.o
-+ir-core-objs	:= ir-keytable.o ir-sysfs.o ir-raw-event.o ir-nec-decoder.o
+diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
+index 1d9c467..d3bc909 100644
+--- a/drivers/media/IR/ir-keytable.c
++++ b/drivers/media/IR/ir-keytable.c
+@@ -16,344 +16,214 @@
+ #include <linux/input.h>
+ #include <media/ir-common.h>
  
- obj-$(CONFIG_IR_CORE) += ir-core.o
- obj-$(CONFIG_VIDEO_IR) += ir-common.o
-diff --git a/drivers/media/IR/ir-nec-decoder.c b/drivers/media/IR/ir-nec-decoder.c
-new file mode 100644
-index 0000000..16360eb
---- /dev/null
-+++ b/drivers/media/IR/ir-nec-decoder.c
-@@ -0,0 +1,131 @@
-+/* ir-raw-event.c - handle IR Pulse/Space event
-+ *
-+ * Copyright (C) 2010 by Mauro Carvalho Chehab <mchehab@redhat.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation version 2 of the License.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ */
-+
-+#include <media/ir-core.h>
-+
-+/* Start time: 4.5 ms  */
-+#define MIN_START_TIME	3900000
-+#define MAX_START_TIME	5100000
-+
-+/* Pulse time: 560 us  */
-+#define MIN_PULSE_TIME	460000
-+#define MAX_PULSE_TIME	660000
-+
-+/* Bit 1 space time: 2.25ms-560 us */
-+#define MIN_BIT1_TIME	1490000
-+#define MAX_BIT1_TIME	1890000
-+
-+/* Bit 0 space time: 1.12ms-560 us */
-+#define MIN_BIT0_TIME	360000
-+#define MAX_BIT0_TIME	760000
-+
-+
-+/** Decode NEC pulsecode. This code can take up to 76.5 ms to run.
-+	Unfortunately, using IRQ to decode pulse didn't work, since it uses
-+	a pulse train of 38KHz. This means one pulse on each 52 us
-+*/
-+
-+int ir_nec_decode(struct input_dev *input_dev,
-+		  struct ir_raw_event *evs,
-+		  int len)
-+{
-+	int i, count = -1;
-+	int ircode = 0, not_code = 0;
-+#if 0
-+	/* Needed only after porting the event code to the decoder */
-+	struct ir_input_dev *ir = input_get_drvdata(input_dev);
-+#endif
-+
-+	/* Be sure that the first event is an start one and is a pulse */
-+	for (i = 0; i < len; i++) {
-+		if (evs[i].type & (IR_START_EVENT | IR_PULSE))
-+			break;
+-#define IR_TAB_MIN_SIZE	32
+-#define IR_TAB_MAX_SIZE	1024
++/* Sizes are in bytes, 256 bytes allows for 32 entries on x64 */
++#define IR_TAB_MIN_SIZE	256
++#define IR_TAB_MAX_SIZE	8192
+ 
+ /**
+- * ir_seek_table() - returns the element order on the table
+- * @rc_tab:	the ir_scancode_table with the keymap to be used
+- * @scancode:	the scancode that we're seeking
++ * ir_resize_table() - resizes a scancode table if necessary
++ * @rc_tab:	the ir_scancode_table to resize
++ * @return:	zero on success or a negative error code
+  *
+- * This routine is used by the input routines when a key is pressed at the
+- * IR. The scancode is received and needs to be converted into a keycode.
+- * If the key is not found, it returns KEY_UNKNOWN. Otherwise, returns the
+- * corresponding keycode from the table.
++ * This routine will shrink the ir_scancode_table if it has lots of
++ * unused entries and grow it if it is full.
+  */
+-static int ir_seek_table(struct ir_scancode_table *rc_tab, u32 scancode)
++static int ir_resize_table(struct ir_scancode_table *rc_tab)
+ {
+-	int rc;
+-	unsigned long flags;
+-	struct ir_scancode *keymap = rc_tab->scan;
++	unsigned int oldalloc = rc_tab->alloc;
++	unsigned int newalloc = oldalloc;
++	struct ir_scancode *oldscan = rc_tab->scan;
++	struct ir_scancode *newscan;
+ 
+-	spin_lock_irqsave(&rc_tab->lock, flags);
++	if (rc_tab->size == rc_tab->len) {
++		/* All entries in use -> grow keytable */
++		if (rc_tab->alloc >= IR_TAB_MAX_SIZE)
++			return -ENOMEM;
+ 
+-	/* FIXME: replace it by a binary search */
++		newalloc *= 2;
++		IR_dprintk(1, "Growing table to %u bytes\n", newalloc);
 +	}
-+	i++;	/* First event doesn't contain data */
-+
-+	if (i >= len)
+ 
+-	for (rc = 0; rc < rc_tab->size; rc++)
+-		if (keymap[rc].scancode == scancode)
+-			goto exit;
++	if ((rc_tab->len * 3 < rc_tab->size) && (oldalloc > IR_TAB_MIN_SIZE)) {
++		/* Less than 1/3 of entries in use -> shrink keytable */
++		newalloc /= 2;
++		IR_dprintk(1, "Shrinking table to %u bytes\n", newalloc);
++	}
+ 
+-	/* Not found */
+-	rc = -EINVAL;
++	if (newalloc == oldalloc)
 +		return 0;
+ 
+-exit:
+-	spin_unlock_irqrestore(&rc_tab->lock, flags);
+-	return rc;
+-}
+-
+-/**
+- * ir_roundup_tablesize() - gets an optimum value for the table size
+- * @n_elems:		minimum number of entries to store keycodes
+- *
+- * This routine is used to choose the keycode table size.
+- *
+- * In order to have some empty space for new keycodes,
+- * and knowing in advance that kmalloc allocates only power of two
+- * segments, it optimizes the allocated space to have some spare space
+- * for those new keycodes by using the maximum number of entries that
+- * will be effectively be allocated by kmalloc.
+- * In order to reduce the quantity of table resizes, it has a minimum
+- * table size of IR_TAB_MIN_SIZE.
+- */
+-static int ir_roundup_tablesize(int n_elems)
+-{
+-	size_t size;
+-
+-	if (n_elems < IR_TAB_MIN_SIZE)
+-		n_elems = IR_TAB_MIN_SIZE;
++	newscan = kmalloc(newalloc, GFP_ATOMIC);
++	if (!newscan) {
++		IR_dprintk(1, "Failed to kmalloc %u bytes\n", newalloc);
++		return -ENOMEM;
++	}
+ 
+-	/*
+-	 * As kmalloc only allocates sizes of power of two, get as
+-	 * much entries as possible for the allocated memory segment
+-	 */
+-	size = roundup_pow_of_two(n_elems * sizeof(struct ir_scancode));
+-	n_elems = size / sizeof(struct ir_scancode);
+-
+-	return n_elems;
++	memcpy(newscan, rc_tab->scan, rc_tab->len * sizeof(struct ir_scancode));
++	rc_tab->scan = newscan;
++	rc_tab->alloc = newalloc;
++	rc_tab->size = rc_tab->alloc / sizeof(struct ir_scancode);
++	kfree(oldscan);
++	return 0;
+ }
+ 
+ /**
+- * ir_copy_table() - copies a keytable, discarding the unused entries
+- * @destin:	destin table
+- * @origin:	origin table
++ * ir_do_setkeycode() - internal function to set a keycode in the
++ *			scancode->keycode table
++ * @dev:	the struct input_dev device descriptor
++ * @rc_tab:	the struct ir_scancode_table to set the keycode in
++ * @scancode:	the scancode for the ir command
++ * @keycode:	the keycode for the ir command
++ * @return:	-EINVAL if the keycode could not be inserted, otherwise zero.
+  *
+- * Copies all entries where the keycode is not KEY_UNKNOWN/KEY_RESERVED
+- * Also copies table size and table protocol.
+- * NOTE: It shouldn't copy the lock field
++ * This routine is used internally to manipulate the scancode->keycode table.
++ * The caller has to hold @rc_tab->lock.
+  */
+-
+-static int ir_copy_table(struct ir_scancode_table *destin,
+-		 const struct ir_scancode_table *origin)
++static int ir_do_setkeycode(struct input_dev *dev,
++			    struct ir_scancode_table *rc_tab,
++			    int scancode, int keycode)
+ {
+-	int i, j = 0;
++	unsigned int i;
++	int old_keycode = KEY_RESERVED;
+ 
+-	for (i = 0; i < origin->size; i++) {
+-		if (origin->scan[i].keycode == KEY_UNKNOWN ||
+-		   origin->scan[i].keycode == KEY_RESERVED)
++	/* First check if we already have a mapping for this ir command */
++	for (i = 0; i < rc_tab->len; i++) {
++		/* Keytable is sorted from lowest to highest scancode */
++		if (rc_tab->scan[i].scancode > scancode)
++			break;
++		else if (rc_tab->scan[i].scancode < scancode)
+ 			continue;
+ 
+-		memcpy(&destin->scan[j], &origin->scan[i], sizeof(struct ir_scancode));
+-		j++;
++		old_keycode = rc_tab->scan[i].keycode;
++		rc_tab->scan[i].keycode = keycode;
 +
-+	/* First space should have 4.5 ms otherwise is not NEC protocol */
-+	if ((evs[i].delta.tv_nsec < MIN_START_TIME) |
-+	    (evs[i].delta.tv_nsec > MAX_START_TIME) |
-+	    (evs[i].type != IR_SPACE))
-+		goto err;
++		/* Did the user wish to remove the mapping? */
++		if (keycode == KEY_RESERVED || keycode == KEY_UNKNOWN) {
++			rc_tab->len--;
++			memmove(&rc_tab->scan[i], &rc_tab->scan[i + 1],
++				(rc_tab->len - i) * sizeof(struct ir_scancode));
++		}
 +
-+	/*
-+	 * FIXME: need to implement the repeat sequence
-+	 */
++		/* Possibly shrink the keytable, failure is not a problem */
++		ir_resize_table(rc_tab);
++		break;
+ 	}
+-	destin->size = j;
+-	destin->ir_type = origin->ir_type;
+ 
+-	IR_dprintk(1, "Copied %d scancodes to the new keycode table\n", destin->size);
+-
+-	return 0;
+-}
+-
+-/**
+- * ir_getkeycode() - get a keycode at the evdev scancode ->keycode table
+- * @dev:	the struct input_dev device descriptor
+- * @scancode:	the desired scancode
+- * @keycode:	the keycode to be retorned.
+- *
+- * This routine is used to handle evdev EVIOCGKEY ioctl.
+- * If the key is not found, returns -EINVAL, otherwise, returns 0.
+- */
+-static int ir_getkeycode(struct input_dev *dev,
+-			 int scancode, int *keycode)
+-{
+-	int elem;
+-	struct ir_input_dev *ir_dev = input_get_drvdata(dev);
+-	struct ir_scancode_table *rc_tab = &ir_dev->rc_tab;
+-
+-	elem = ir_seek_table(rc_tab, scancode);
+-	if (elem >= 0) {
+-		*keycode = rc_tab->scan[elem].keycode;
+-		return 0;
+-	}
+-
+-	/*
+-	 * Scancode not found and table can't be expanded
+-	 */
+-	if (elem < 0 && rc_tab->size == IR_TAB_MAX_SIZE)
+-		return -EINVAL;
+-
+-	/*
+-	 * If is there extra space, returns KEY_RESERVED,
+-	 * otherwise, input core won't let ir_setkeycode to work
+-	 */
+-	*keycode = KEY_RESERVED;
+-	return 0;
+-}
+-
+-/**
+- * ir_is_resize_needed() - Check if the table needs rezise
+- * @table:		keycode table that may need to resize
+- * @n_elems:		minimum number of entries to store keycodes
+- *
+- * Considering that kmalloc uses power of two storage areas, this
+- * routine detects if the real alloced size will change. If not, it
+- * just returns without doing nothing. Otherwise, it will extend or
+- * reduce the table size to meet the new needs.
+- *
+- * It returns 0 if no resize is needed, 1 otherwise.
+- */
+-static int ir_is_resize_needed(struct ir_scancode_table *table, int n_elems)
+-{
+-	int cur_size = ir_roundup_tablesize(table->size);
+-	int new_size = ir_roundup_tablesize(n_elems);
+-
+-	if (cur_size == new_size)
+-		return 0;
+-
+-	/* Resize is needed */
+-	return 1;
+-}
+-
+-/**
+- * ir_delete_key() - remove a keycode from the table
+- * @rc_tab:		keycode table
+- * @elem:		element to be removed
+- *
+- */
+-static void ir_delete_key(struct ir_scancode_table *rc_tab, int elem)
+-{
+-	unsigned long flags = 0;
+-	int newsize = rc_tab->size - 1;
+-	int resize = ir_is_resize_needed(rc_tab, newsize);
+-	struct ir_scancode *oldkeymap = rc_tab->scan;
+-	struct ir_scancode *newkeymap = NULL;
+-
+-	if (resize)
+-		newkeymap = kzalloc(ir_roundup_tablesize(newsize) *
+-				    sizeof(*newkeymap), GFP_ATOMIC);
+-
+-	/* There's no memory for resize. Keep the old table */
+-	if (!resize || !newkeymap) {
+-		newkeymap = oldkeymap;
+-
+-		/* We'll modify the live table. Lock it */
+-		spin_lock_irqsave(&rc_tab->lock, flags);
+-	}
+-
+-	/*
+-	 * Copy the elements before the one that will be deleted
+-	 * if (!resize), both oldkeymap and newkeymap points
+-	 * to the same place, so, there's no need to copy
+-	 */
+-	if (resize && elem > 0)
+-		memcpy(newkeymap, oldkeymap,
+-		       elem * sizeof(*newkeymap));
+-
+-	/*
+-	 * Copy the other elements overwriting the element to be removed
+-	 * This operation applies to both resize and non-resize case
+-	 */
+-	if (elem < newsize)
+-		memcpy(&newkeymap[elem], &oldkeymap[elem + 1],
+-		       (newsize - elem) * sizeof(*newkeymap));
+-
+-	if (resize) {
+-		/*
+-		 * As the copy happened to a temporary table, only here
+-		 * it needs to lock while replacing the table pointers
+-		 * to use the new table
+-		 */
+-		spin_lock_irqsave(&rc_tab->lock, flags);
+-		rc_tab->size = newsize;
+-		rc_tab->scan = newkeymap;
+-		spin_unlock_irqrestore(&rc_tab->lock, flags);
+-
+-		/* Frees the old keytable */
+-		kfree(oldkeymap);
++	if (old_keycode == KEY_RESERVED) {
++		/* No previous mapping found, we might need to grow the table */
++		if (ir_resize_table(rc_tab))
++			return -ENOMEM;
 +
-+	count = 0;
-+	for (i++; i < len; i++) {
-+		int bit;
-+
-+		if ((evs[i].delta.tv_nsec < MIN_PULSE_TIME) |
-+		    (evs[i].delta.tv_nsec > MAX_PULSE_TIME) |
-+		    (evs[i].type != IR_PULSE))
-+			goto err;
-+
-+		if (++i >= len)
-+			goto err;
-+		if (evs[i].type != IR_SPACE)
-+			goto err;
-+
-+		if ((evs[i].delta.tv_nsec > MIN_BIT1_TIME) &&
-+		    (evs[i].delta.tv_nsec < MAX_BIT1_TIME))
-+			bit = 1;
-+		else if ((evs[i].delta.tv_nsec > MIN_BIT0_TIME) &&
-+			 (evs[i].delta.tv_nsec < MAX_BIT0_TIME))
-+			bit = 0;
-+		else
-+			goto err;
-+
-+		if (bit) {
-+			int shift = count;
-+			/* Address first, then command */
-+			if (shift < 8) {
-+				shift += 8;
-+				ircode |= 1 << shift;
-+			} else if (shift < 16) {
-+				not_code |= 1 << shift;
-+			} else if (shift < 24) {
-+				shift -= 16;
-+				ircode |= 1 << shift;
-+			} else {
-+				shift -= 24;
-+				not_code |= 1 << shift;
++		/* i is the proper index to insert our new keycode */
++		memmove(&rc_tab->scan[i + 1], &rc_tab->scan[i],
++			(rc_tab->len - i) * sizeof(struct ir_scancode));
++		rc_tab->scan[i].scancode = scancode;
++		rc_tab->scan[i].keycode = keycode;
++		rc_tab->len++;
++		set_bit(keycode, dev->keybit);
+ 	} else {
+-		rc_tab->size = newsize;
+-		spin_unlock_irqrestore(&rc_tab->lock, flags);
++		/* A previous mapping was updated... */
++		clear_bit(old_keycode, dev->keybit);
++		/* ...but another scancode might use the same keycode */
++		for (i = 0; i < rc_tab->len; i++) {
++			if (rc_tab->scan[i].keycode == old_keycode) {
++				set_bit(old_keycode, dev->keybit);
++				break;
 +			}
 +		}
-+		if (++count == 32)
-+			break;
-+	}
-+
-+	/*
-+	 * Fixme: may need to accept Extended NEC protocol?
-+	 */
-+	if ((ircode & ~not_code) != ircode) {
-+		IR_dprintk(1, "NEC checksum error: code 0x%04x, not-code 0x%04x\n",
-+			   ircode, not_code);
-+		return -EINVAL;
-+	}
-+
-+	IR_dprintk(1, "NEC scancode 0x%04x\n", ircode);
-+
-+	return ircode;
-+err:
-+	IR_dprintk(1, "NEC decoded failed at bit %d while decoding %luus time\n",
-+		   count, (evs[i].delta.tv_nsec + 500) / 1000);
-+
-+	return -EINVAL;
-+}
-+EXPORT_SYMBOL_GPL(ir_nec_decode);
-diff --git a/drivers/media/IR/ir-raw-event.c b/drivers/media/IR/ir-raw-event.c
-new file mode 100644
-index 0000000..9c71ac8
---- /dev/null
-+++ b/drivers/media/IR/ir-raw-event.c
-@@ -0,0 +1,117 @@
-+/* ir-raw-event.c - handle IR Pulse/Space event
-+ *
-+ * Copyright (C) 2010 by Mauro Carvalho Chehab <mchehab@redhat.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation version 2 of the License.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ */
-+
-+#include <media/ir-core.h>
-+
-+/* Define the max number of bit transitions per IR keycode */
-+#define MAX_IR_EVENT_SIZE	256
-+
-+int ir_raw_event_register(struct input_dev *input_dev)
-+{
-+	struct ir_input_dev *ir = input_get_drvdata(input_dev);
-+	int rc, size;
-+
-+	ir->raw = kzalloc(sizeof(*ir->raw), GFP_KERNEL);
-+
-+	size = sizeof(struct ir_raw_event) * MAX_IR_EVENT_SIZE * 2;
-+	size = roundup_pow_of_two(size);
-+
-+	rc = kfifo_alloc(&ir->raw->kfifo, size, GFP_KERNEL);
-+
-+	return rc;
-+}
-+EXPORT_SYMBOL_GPL(ir_raw_event_register);
-+
-+void ir_raw_event_unregister(struct input_dev *input_dev)
-+{
-+	struct ir_input_dev *ir = input_get_drvdata(input_dev);
-+
-+	if (!ir->raw)
-+		return;
-+
-+	kfifo_free(&ir->raw->kfifo);
-+	kfree(ir->raw);
-+	ir->raw = NULL;
-+}
-+EXPORT_SYMBOL_GPL(ir_raw_event_unregister);
-+
-+int ir_raw_event_store(struct input_dev *input_dev, enum raw_event_type type)
-+{
-+	struct ir_input_dev	*ir = input_get_drvdata(input_dev);
-+	struct timespec		ts;
-+	struct ir_raw_event	event;
-+	int			rc;
-+
-+	if (!ir->raw)
-+		return -EINVAL;
-+
-+	event.type = type;
-+	event.delta.tv_sec = 0;
-+	event.delta.tv_nsec = 0;
-+
-+	ktime_get_ts(&ts);
-+
-+	if (timespec_equal(&ir->raw->last_event, &event.delta))
-+		event.type |= IR_START_EVENT;
-+	else
-+		event.delta = timespec_sub(ts, ir->raw->last_event);
-+
-+	memcpy(&ir->raw->last_event, &ts, sizeof(ts));
-+
-+	if (event.delta.tv_sec) {
-+		event.type |= IR_START_EVENT;
-+		event.delta.tv_sec = 0;
-+		event.delta.tv_nsec = 0;
-+	}
-+
-+	kfifo_in(&ir->raw->kfifo, &event, sizeof(event));
-+
-+	return rc;
-+}
-+EXPORT_SYMBOL_GPL(ir_raw_event_store);
-+
-+int ir_raw_event_handle(struct input_dev *input_dev)
-+{
-+	struct ir_input_dev		*ir = input_get_drvdata(input_dev);
-+	int				rc;
-+	struct ir_raw_event		*evs;
-+	int 				len, i;
-+
-+	/*
-+	 * Store the events into a temporary buffer. This allows calling more than
-+	 * one decoder to deal with the received data
-+	 */
-+	len = kfifo_len(&ir->raw->kfifo) / sizeof(*evs);
-+	if (!len)
-+		return 0;
-+	evs = kmalloc(len * sizeof(*evs), GFP_ATOMIC);
-+
-+	for (i = 0; i < len; i++) {
-+		rc = kfifo_out(&ir->raw->kfifo, &evs[i], sizeof(*evs));
-+		if (rc != sizeof(*evs)) {
-+			IR_dprintk(1, "overflow error: received %d instead of %zd\n",
-+				   rc, sizeof(*evs));
-+			return -EINVAL;
-+		}
-+		IR_dprintk(2, "event type %d, time before event: %07luus\n",
-+			evs[i].type, (evs[i].delta.tv_nsec + 500) / 1000);
-+	}
-+
-+	rc = ir_nec_decode(input_dev, evs, len);
-+
-+	kfree(evs);
-+
-+	return rc;
-+}
-+EXPORT_SYMBOL_GPL(ir_raw_event_handle);
-diff --git a/drivers/media/video/saa7134/saa7134-input.c b/drivers/media/video/saa7134/saa7134-input.c
-index 8187928..7382995 100644
---- a/drivers/media/video/saa7134/saa7134-input.c
-+++ b/drivers/media/video/saa7134/saa7134-input.c
-@@ -67,6 +67,7 @@ MODULE_PARM_DESC(disable_other_ir, "disable full codes of "
- /* Helper functions for RC5 and NEC decoding at GPIO16 or GPIO18 */
- static int saa7134_rc5_irq(struct saa7134_dev *dev);
- static int saa7134_nec_irq(struct saa7134_dev *dev);
-+static int saa7134_raw_decode_irq(struct saa7134_dev *dev);
- static void nec_task(unsigned long data);
- static void saa7134_nec_timer(unsigned long data);
- 
-@@ -402,10 +403,12 @@ void saa7134_input_irq(struct saa7134_dev *dev)
- 
- 	if (ir->nec_gpio) {
- 		saa7134_nec_irq(dev);
--	} else if (!ir->polling && !ir->rc5_gpio) {
-+	} else if (!ir->polling && !ir->rc5_gpio && !ir->raw_decode) {
- 		build_key(dev);
- 	} else if (ir->rc5_gpio) {
- 		saa7134_rc5_irq(dev);
-+	} else if (ir->raw_decode) {
-+		saa7134_raw_decode_irq(dev);
  	}
- }
- 
-@@ -418,6 +421,23 @@ static void saa7134_input_timer(unsigned long data)
- 	mod_timer(&ir->timer, jiffies + msecs_to_jiffies(ir->polling));
- }
- 
-+void ir_raw_decode_timer_end(unsigned long data)
-+{
-+	struct saa7134_dev *dev = (struct saa7134_dev *)data;
-+	struct card_ir *ir = dev->remote;
-+	int rc;
-+
-+	/*
-+	 * FIXME: the IR key handling code should be called by the decoder,
-+	 * after implementing the repeat mode
-+	 */
-+	rc = ir_raw_event_handle(dev->remote->dev);
-+	if (rc >= 0) {
-+		ir_input_keydown(ir->dev, &ir->ir, rc);
-+		ir_input_nokey(ir->dev, &ir->ir);
-+	}
-+}
-+
- void saa7134_ir_start(struct saa7134_dev *dev, struct card_ir *ir)
- {
- 	if (ir->running)
-@@ -446,6 +466,11 @@ void saa7134_ir_start(struct saa7134_dev *dev, struct card_ir *ir)
- 		setup_timer(&ir->timer_keyup, saa7134_nec_timer,
- 			    (unsigned long)dev);
- 		tasklet_init(&ir->tlet, nec_task, (unsigned long)dev);
-+	} else if (ir->raw_decode) {
-+		/* set timer_end for code completion */
-+		init_timer(&ir->timer_end);
-+		ir->timer_end.function = ir_raw_decode_timer_end;
-+		ir->timer_end.data = (unsigned long)dev;
- 	}
- }
- 
-@@ -461,6 +486,9 @@ void saa7134_ir_stop(struct saa7134_dev *dev)
- 		del_timer_sync(&ir->timer_end);
- 	else if (ir->nec_gpio)
- 		tasklet_kill(&ir->tlet);
-+	else if (ir->raw_decode)
-+		del_timer_sync(&ir->timer_end);
-+
- 	ir->running = 0;
- }
- 
-@@ -508,6 +536,7 @@ int saa7134_input_init1(struct saa7134_dev *dev)
- 	int polling      = 0;
- 	int rc5_gpio	 = 0;
- 	int nec_gpio	 = 0;
-+	int raw_decode   = 0;
- 	u64 ir_type = IR_TYPE_OTHER;
- 	int err;
- 
-@@ -573,7 +602,7 @@ int saa7134_input_init1(struct saa7134_dev *dev)
- 		ir_codes     = &ir_codes_avermedia_m135a_rm_jx_table;
- 		mask_keydown = 0x0040000;
- 		mask_keycode = 0xffff;
--		nec_gpio     = 1;
-+		raw_decode   = 1;
- 		break;
- 	case SAA7134_BOARD_AVERMEDIA_777:
- 	case SAA7134_BOARD_AVERMEDIA_A16AR:
-@@ -754,6 +783,7 @@ int saa7134_input_init1(struct saa7134_dev *dev)
- 	ir->polling      = polling;
- 	ir->rc5_gpio	 = rc5_gpio;
- 	ir->nec_gpio	 = nec_gpio;
-+	ir->raw_decode	 = raw_decode;
- 
- 	/* init input device */
- 	snprintf(ir->name, sizeof(ir->name), "saa7134 IR (%s)",
-@@ -761,7 +791,7 @@ int saa7134_input_init1(struct saa7134_dev *dev)
- 	snprintf(ir->phys, sizeof(ir->phys), "pci-%s/ir0",
- 		 pci_name(dev->pci));
- 
--	if (ir_codes->ir_type != IR_TYPE_OTHER) {
-+	if (ir_codes->ir_type != IR_TYPE_OTHER && !raw_decode) {
- 		ir->props.allowed_protos = IR_TYPE_RC5 | IR_TYPE_NEC;
- 		ir->props.priv = dev;
- 		ir->props.change_protocol = saa7134_ir_change_protocol;
-@@ -789,6 +819,11 @@ int saa7134_input_init1(struct saa7134_dev *dev)
- 	err = ir_input_register(ir->dev, ir_codes, &ir->props, MODULE_NAME);
- 	if (err)
- 		goto err_out_stop;
-+	if (ir_codes->ir_type != IR_TYPE_OTHER) {
-+		err = ir_raw_event_register(ir->dev);
-+		if (err)
-+			goto err_out_stop;
-+	}
- 
- 	saa7134_ir_start(dev, ir);
- 
-@@ -812,6 +847,7 @@ void saa7134_input_fini(struct saa7134_dev *dev)
- 		return;
- 
- 	saa7134_ir_stop(dev);
-+	ir_raw_event_unregister(dev->remote->dev);
- 	ir_input_unregister(dev->remote->dev);
- 	kfree(dev->remote);
- 	dev->remote = NULL;
-@@ -918,6 +954,48 @@ void saa7134_probe_i2c_ir(struct saa7134_dev *dev)
- 	i2c_new_device(&dev->i2c_adap, &info);
- }
- 
-+static int saa7134_raw_decode_irq(struct saa7134_dev *dev)
-+{
-+	struct card_ir	*ir = dev->remote;
-+	unsigned long 	timeout;
-+	int count, pulse, oldpulse;
-+
-+	/* Disable IR IRQ line */
-+	saa_clearl(SAA7134_IRQ2, SAA7134_IRQ2_INTE_GPIO18);
-+
-+	/* Generate initial event */
-+	saa_clearb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
-+	saa_setb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
-+	pulse = saa_readl(SAA7134_GPIO_GPSTATUS0 >> 2) & ir->mask_keydown;
-+	ir_raw_event_store(dev->remote->dev, pulse? IR_PULSE : IR_SPACE);
-+
-+#if 1
-+	/* Wait up to 10 ms for event change */
-+	oldpulse = pulse;
-+	for (count = 0; count < 1000; count++)  {
-+		udelay(10);
-+		/* rising SAA7134_GPIO_GPRESCAN reads the status */
-+		saa_clearb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
-+		saa_setb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
-+		pulse = saa_readl(SAA7134_GPIO_GPSTATUS0 >> 2)
-+			& ir->mask_keydown;
-+		if (pulse != oldpulse)
-+			break;
-+	}
-+
-+	/* Store final event */
-+	ir_raw_event_store(dev->remote->dev, pulse? IR_PULSE : IR_SPACE);
-+#endif
-+	/* Wait 15 ms before deciding to do something else */
-+	timeout = jiffies + jiffies_to_msecs(15);
-+	mod_timer(&ir->timer_end, timeout);
-+
-+	/* Enable IR IRQ line */
-+	saa_setl(SAA7134_IRQ2, SAA7134_IRQ2_INTE_GPIO18);
-+
-+	return 1;
-+}
-+
- static int saa7134_rc5_irq(struct saa7134_dev *dev)
- {
- 	struct card_ir *ir = dev->remote;
-@@ -960,7 +1038,6 @@ static int saa7134_rc5_irq(struct saa7134_dev *dev)
- 	return 1;
- }
- 
+-}
 -
- /* On NEC protocol, One has 2.25 ms, and zero has 1.125 ms
-    The first pulse (start) has 9 + 4.5 ms
-  */
-diff --git a/include/media/ir-common.h b/include/media/ir-common.h
-index 41469b7..87f2ec7 100644
---- a/include/media/ir-common.h
-+++ b/include/media/ir-common.h
-@@ -82,6 +82,9 @@ struct card_ir {
- 	/* NEC decoding */
- 	u32			nec_gpio;
- 	struct tasklet_struct   tlet;
-+
-+	/* IR core raw decoding */
-+	u32			raw_decode;
- };
+-/**
+- * ir_insert_key() - insert a keycode at the table
+- * @rc_tab:		keycode table
+- * @scancode:	the desired scancode
+- * @keycode:	the keycode to be retorned.
+- *
+- */
+-static int ir_insert_key(struct ir_scancode_table *rc_tab,
+-			  int scancode, int keycode)
+-{
+-	unsigned long flags;
+-	int elem = rc_tab->size;
+-	int newsize = rc_tab->size + 1;
+-	int resize = ir_is_resize_needed(rc_tab, newsize);
+-	struct ir_scancode *oldkeymap = rc_tab->scan;
+-	struct ir_scancode *newkeymap;
+-
+-	if (resize) {
+-		newkeymap = kzalloc(ir_roundup_tablesize(newsize) *
+-				    sizeof(*newkeymap), GFP_ATOMIC);
+-		if (!newkeymap)
+-			return -ENOMEM;
+-
+-		memcpy(newkeymap, oldkeymap,
+-		       rc_tab->size * sizeof(*newkeymap));
+-	} else
+-		newkeymap  = oldkeymap;
+-
+-	/* Stores the new code at the table */
+-	IR_dprintk(1, "#%d: New scan 0x%04x with key 0x%04x\n",
+-		   rc_tab->size, scancode, keycode);
+-
+-	spin_lock_irqsave(&rc_tab->lock, flags);
+-	rc_tab->size = newsize;
+-	if (resize) {
+-		rc_tab->scan = newkeymap;
+-		kfree(oldkeymap);
+-	}
+-	newkeymap[elem].scancode = scancode;
+-	newkeymap[elem].keycode  = keycode;
+-	spin_unlock_irqrestore(&rc_tab->lock, flags);
  
- /* Routines from ir-functions.c */
+ 	return 0;
+ }
+ 
+ /**
+- * ir_setkeycode() - set a keycode at the evdev scancode ->keycode table
++ * ir_setkeycode() - set a keycode in the scancode->keycode table
+  * @dev:	the struct input_dev device descriptor
+  * @scancode:	the desired scancode
+- * @keycode:	the keycode to be retorned.
++ * @keycode:	result
++ * @return:	-EINVAL if the keycode could not be inserted, otherwise zero.
+  *
+  * This routine is used to handle evdev EVIOCSKEY ioctl.
+- * There's one caveat here: how can we increase the size of the table?
+- * If the key is not found, returns -EINVAL, otherwise, returns 0.
+  */
+ static int ir_setkeycode(struct input_dev *dev,
+ 			 int scancode, int keycode)
+ {
++	int rc;
++	unsigned long flags;
++	struct ir_input_dev *ir_dev = input_get_drvdata(dev);
++	struct ir_scancode_table *rc_tab = &ir_dev->rc_tab;
++
++	spin_lock_irqsave(&rc_tab->lock, flags);
++	rc = ir_do_setkeycode(dev, rc_tab, scancode, keycode);
++	spin_unlock_irqrestore(&rc_tab->lock, flags);
++	return rc;
++}
++
++/**
++ * ir_setkeytable() - sets several entries in the scancode->keycode table
++ * @dev:	the struct input_dev device descriptor
++ * @to:		the struct ir_scancode_table to copy entries to
++ * @from:	the struct ir_scancode_table to copy entries from
++ * @return:	-EINVAL if all keycodes could not be inserted, otherwise zero.
++ *
++ * This routine is used to handle table initialization.
++ */
++static int ir_setkeytable(struct input_dev *dev,
++			  struct ir_scancode_table *to,
++			  const struct ir_scancode_table *from)
++{
++	struct ir_input_dev *ir_dev = input_get_drvdata(dev);
++	struct ir_scancode_table *rc_tab = &ir_dev->rc_tab;
++	unsigned long flags;
++	unsigned int i;
+ 	int rc = 0;
++
++	spin_lock_irqsave(&rc_tab->lock, flags);
++	for (i = 0; i < from->size; i++) {
++		rc = ir_do_setkeycode(dev, to, from->scan[i].scancode,
++				      from->scan[i].keycode);
++		if (rc)
++			break;
++	}
++	spin_unlock_irqrestore(&rc_tab->lock, flags);
++	return rc;
++}
++
++/**
++ * ir_getkeycode() - get a keycode from the scancode->keycode table
++ * @dev:	the struct input_dev device descriptor
++ * @scancode:	the desired scancode
++ * @keycode:	used to return the keycode, if found, or KEY_RESERVED
++ * @return:	always returns zero.
++ *
++ * This routine is used to handle evdev EVIOCGKEY ioctl.
++ */
++static int ir_getkeycode(struct input_dev *dev,
++			 int scancode, int *keycode)
++{
++	int start, end, mid;
++	unsigned long flags;
++	int key = KEY_RESERVED;
+ 	struct ir_input_dev *ir_dev = input_get_drvdata(dev);
+ 	struct ir_scancode_table *rc_tab = &ir_dev->rc_tab;
+-	struct ir_scancode *keymap = rc_tab->scan;
+-	unsigned long flags;
+ 
+-	/*
+-	 * Handle keycode table deletions
+-	 *
+-	 * If userspace is adding a KEY_UNKNOWN or KEY_RESERVED,
+-	 * deal as a trial to remove an existing scancode attribution
+-	 * if table become too big, reduce it to save space
+-	 */
+-	if (keycode == KEY_UNKNOWN || keycode == KEY_RESERVED) {
+-		rc = ir_seek_table(rc_tab, scancode);
+-		if (rc < 0)
+-			return 0;
+-
+-		IR_dprintk(1, "#%d: Deleting scan 0x%04x\n", rc, scancode);
+-		clear_bit(keymap[rc].keycode, dev->keybit);
+-		ir_delete_key(rc_tab, rc);
+-
+-		return 0;
++	spin_lock_irqsave(&rc_tab->lock, flags);
++	start = 0;
++	end = rc_tab->len - 1;
++	while (start <= end) {
++		mid = (start + end) / 2;
++		if (rc_tab->scan[mid].scancode < scancode)
++			start = mid + 1;
++		else if (rc_tab->scan[mid].scancode > scancode)
++			end = mid - 1;
++		else {
++			key = rc_tab->scan[mid].keycode;
++			break;
++		}
+ 	}
++	spin_unlock_irqrestore(&rc_tab->lock, flags);
+ 
+-	/*
+-	 * Handle keycode replacements
+-	 *
+-	 * If the scancode exists, just replace by the new value
+-	 */
+-	rc = ir_seek_table(rc_tab, scancode);
+-	if (rc >= 0) {
+-		IR_dprintk(1, "#%d: Replacing scan 0x%04x with key 0x%04x\n",
+-			rc, scancode, keycode);
+-
+-		clear_bit(keymap[rc].keycode, dev->keybit);
+-
+-		spin_lock_irqsave(&rc_tab->lock, flags);
+-		keymap[rc].keycode = keycode;
+-		spin_unlock_irqrestore(&rc_tab->lock, flags);
+-
+-		set_bit(keycode, dev->keybit);
+-
+-		return 0;
+-	}
+-
+-	/*
+-	 * Handle new scancode inserts
+-	 *
+-	 * reallocate table if needed and insert a new keycode
+-	 */
+-
+-	/* Avoid growing the table indefinitely */
+-	if (rc_tab->size + 1 > IR_TAB_MAX_SIZE)
+-		return -EINVAL;
+-
+-	rc = ir_insert_key(rc_tab, scancode, keycode);
+-	if (rc < 0)
+-		return rc;
+-	set_bit(keycode, dev->keybit);
+-
++	*keycode = key;
+ 	return 0;
+ }
+ 
+@@ -369,24 +239,12 @@ static int ir_setkeycode(struct input_dev *dev,
+  */
+ u32 ir_g_keycode_from_table(struct input_dev *dev, u32 scancode)
+ {
+-	struct ir_input_dev *ir_dev = input_get_drvdata(dev);
+-	struct ir_scancode_table *rc_tab = &ir_dev->rc_tab;
+-	struct ir_scancode *keymap = rc_tab->scan;
+-	int elem;
++	int keycode;
+ 
+-	elem = ir_seek_table(rc_tab, scancode);
+-	if (elem >= 0) {
+-		IR_dprintk(1, "%s: scancode 0x%04x keycode 0x%02x\n",
+-			   dev->name, scancode, keymap[elem].keycode);
+-
+-		return rc_tab->scan[elem].keycode;
+-	}
+-
+-	printk(KERN_INFO "%s: unknown key for scancode 0x%04x\n",
+-	       dev->name, scancode);
+-
+-	/* Reports userspace that an unknown keycode were got */
+-	return KEY_RESERVED;
++	ir_getkeycode(dev, scancode, &keycode);
++	IR_dprintk(1, "%s: scancode 0x%04x keycode 0x%02x\n",
++		   dev->name, scancode, keycode);
++	return keycode;
+ }
+ EXPORT_SYMBOL_GPL(ir_g_keycode_from_table);
+ 
+@@ -476,8 +334,7 @@ int __ir_input_register(struct input_dev *input_dev,
+ 		      const char *driver_name)
+ {
+ 	struct ir_input_dev *ir_dev;
+-	struct ir_scancode  *keymap    = rc_tab->scan;
+-	int i, rc;
++	int rc;
+ 
+ 	if (rc_tab->scan == NULL || !rc_tab->size)
+ 		return -EINVAL;
+@@ -486,55 +343,55 @@ int __ir_input_register(struct input_dev *input_dev,
+ 	if (!ir_dev)
+ 		return -ENOMEM;
+ 
++	ir_dev->driver_name = kasprintf(GFP_KERNEL, "%s", driver_name);
++	if (!ir_dev->driver_name) {
++		rc = -ENOMEM;
++		goto out_dev;
++	}
++
++	input_dev->getkeycode = ir_getkeycode;
++	input_dev->setkeycode = ir_setkeycode;
++	input_set_drvdata(input_dev, ir_dev);
++
+ 	spin_lock_init(&ir_dev->rc_tab.lock);
+-
+-	ir_dev->driver_name = kmalloc(strlen(driver_name) + 1, GFP_KERNEL);
+-	if (!ir_dev->driver_name)
+-		return -ENOMEM;
+-	strcpy(ir_dev->driver_name, driver_name);
+ 	ir_dev->rc_tab.name = rc_tab->name;
+-	ir_dev->rc_tab.size = ir_roundup_tablesize(rc_tab->size);
+-	ir_dev->rc_tab.scan = kzalloc(ir_dev->rc_tab.size *
+-				    sizeof(struct ir_scancode), GFP_KERNEL);
++	ir_dev->rc_tab.ir_type = rc_tab->ir_type;
++	ir_dev->rc_tab.alloc = roundup_pow_of_two(rc_tab->size *
++						  sizeof(struct ir_scancode));
++	ir_dev->rc_tab.scan = kmalloc(ir_dev->rc_tab.alloc, GFP_KERNEL);
++	ir_dev->rc_tab.size = ir_dev->rc_tab.alloc / sizeof(struct ir_scancode);
++
+ 	if (!ir_dev->rc_tab.scan) {
+-		kfree(ir_dev);
+-		return -ENOMEM;
++		rc = -ENOMEM;
++		goto out_name;
+ 	}
+ 
+-	IR_dprintk(1, "Allocated space for %d keycode entries (%zd bytes)\n",
+-		ir_dev->rc_tab.size,
+-		ir_dev->rc_tab.size * sizeof(ir_dev->rc_tab.scan));
++	IR_dprintk(1, "Allocated space for %u keycode entries (%u bytes)\n",
++		   ir_dev->rc_tab.size, ir_dev->rc_tab.alloc);
++
++	set_bit(EV_KEY, input_dev->evbit);
++	if (ir_setkeytable(input_dev, &ir_dev->rc_tab, rc_tab)) {
++		rc = -ENOMEM;
++		goto out_table;
++	}
+ 
+-	ir_copy_table(&ir_dev->rc_tab, rc_tab);
+ 	ir_dev->props = props;
+ 	if (props && props->open)
+ 		input_dev->open = ir_open;
+ 	if (props && props->close)
+ 		input_dev->close = ir_close;
+ 
+-	/* set the bits for the keys */
+-	IR_dprintk(1, "key map size: %d\n", rc_tab->size);
+-	for (i = 0; i < rc_tab->size; i++) {
+-		IR_dprintk(1, "#%d: setting bit for keycode 0x%04x\n",
+-			i, keymap[i].keycode);
+-		set_bit(keymap[i].keycode, input_dev->keybit);
+-	}
+-	clear_bit(0, input_dev->keybit);
+-
+-	set_bit(EV_KEY, input_dev->evbit);
+-
+-	input_dev->getkeycode = ir_getkeycode;
+-	input_dev->setkeycode = ir_setkeycode;
+-	input_set_drvdata(input_dev, ir_dev);
+-
+ 	rc = ir_register_class(input_dev);
+ 	if (rc < 0)
+-		goto err;
++		goto out_table;
+ 
+ 	return 0;
+ 
+-err:
+-	kfree(rc_tab->scan);
++out_table:
++	kfree(ir_dev->rc_tab.scan);
++out_name:
++	kfree(ir_dev->driver_name);
++out_dev:
+ 	kfree(ir_dev);
+ 	return rc;
+ }
+@@ -563,6 +420,7 @@ void ir_input_unregister(struct input_dev *dev)
+ 
+ 	ir_unregister_class(dev);
+ 
++	kfree(ir_dev->driver_name);
+ 	kfree(ir_dev);
+ }
+ EXPORT_SYMBOL_GPL(ir_input_unregister);
 diff --git a/include/media/ir-core.h b/include/media/ir-core.h
-index 1eae72d..369969d 100644
+index c6b8e17..7a0be8d 100644
 --- a/include/media/ir-core.h
 +++ b/include/media/ir-core.h
-@@ -16,6 +16,8 @@
+@@ -47,7 +47,9 @@ struct ir_scancode {
  
- #include <linux/input.h>
- #include <linux/spinlock.h>
-+#include <linux/kfifo.h>
-+#include <linux/time.h>
- 
- extern int ir_core_debug;
- #define IR_dprintk(level, fmt, arg...)	if (ir_core_debug >= level) \
-@@ -27,6 +29,13 @@ extern int ir_core_debug;
- #define IR_TYPE_NEC	(1  << 2)
- #define IR_TYPE_OTHER	(((u64)1) << 63l)
- 
-+enum raw_event_type {
-+	IR_SPACE	= (1 << 0),
-+	IR_PULSE	= (1 << 1),
-+	IR_START_EVENT	= (1 << 2),
-+	IR_STOP_EVENT	= (1 << 3),
-+};
-+
- struct ir_scancode {
- 	u16	scancode;
- 	u32	keycode;
-@@ -46,6 +55,15 @@ struct ir_dev_props {
- 	int (*change_protocol)(void *priv, u64 ir_type);
- };
- 
-+struct ir_raw_event {
-+	struct timespec		delta;	/* Time spent before event */
-+	enum raw_event_type	type;	/* event type */
-+};
-+
-+struct ir_raw_event_ctrl {
-+	struct kfifo			kfifo;		/* fifo for the pulse/space events */
-+	struct timespec			last_event;	/* when last event occurred */
-+};
- 
- struct ir_input_dev {
- 	struct device			dev;		/* device */
-@@ -53,7 +71,9 @@ struct ir_input_dev {
- 	struct ir_scancode_table	rc_tab;		/* scan/key table */
- 	unsigned long			devno;		/* device number */
- 	const struct ir_dev_props	*props;		/* Device properties */
-+	struct ir_raw_event_ctrl	*raw;		/* for raw pulse/space events */
- };
-+
- #define to_ir_input_dev(_attr) container_of(_attr, struct ir_input_dev, attr)
- 
- /* Routines from ir-keytable.c */
-@@ -72,4 +92,16 @@ void ir_input_unregister(struct input_dev *input_dev);
- int ir_register_class(struct input_dev *input_dev);
- void ir_unregister_class(struct input_dev *input_dev);
- 
-+/* Routines from ir-raw-event.c */
-+int ir_raw_event_register(struct input_dev *input_dev);
-+void ir_raw_event_unregister(struct input_dev *input_dev);
-+int ir_raw_event_store(struct input_dev *input_dev, enum raw_event_type type);
-+int ir_raw_event_handle(struct input_dev *input_dev);
-+
-+/* from ir-nec-decoder.c */
-+int ir_nec_decode(struct input_dev *input_dev,
-+		  struct ir_raw_event *evs,
-+		  int len);
-+
-+
- #endif
+ struct ir_scancode_table {
+ 	struct ir_scancode	*scan;
+-	int			size;
++	unsigned int		size;	/* Max number of entries */
++	unsigned int		len;	/* Used number of entries */
++	unsigned int		alloc;	/* Size of *scan in bytes */
+ 	u64			ir_type;
+ 	char			*name;
+ 	spinlock_t		lock;
 -- 
 1.6.6.1
 
