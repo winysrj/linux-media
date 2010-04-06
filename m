@@ -1,105 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 81-174-11-161.static.ngi.it ([81.174.11.161]:49291 "EHLO
-	mail.enneenne.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755594Ab0DALsm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 07:48:42 -0400
-Date: Thu, 1 Apr 2010 13:48:27 +0200
-From: Rodolfo Giometti <giometti@enneenne.com>
-To: Richard =?iso-8859-15?Q?R=F6jfors?=
-	<richard.rojfors@pelagicore.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Message-ID: <20100401114827.GA6573@gundam.enneenne.com>
-References: <20100219174451.GH21778@enneenne.com> <Pine.LNX.4.64.1002192018170.5860@axis700.grange> <20100222160139.GL21778@enneenne.com> <4B8310F1.8070005@pelagicore.com> <20100330140611.GR5937@enneenne.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20100330140611.GR5937@enneenne.com>
-Subject: Re: adv7180 as SoC camera device
+Received: from mx1.redhat.com ([209.132.183.28]:21652 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757435Ab0DFSSd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Apr 2010 14:18:33 -0400
+Received: from int-mx04.intmail.prod.int.phx2.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.17])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o36IIX9O022123
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 6 Apr 2010 14:18:33 -0400
+Date: Tue, 6 Apr 2010 15:18:04 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: linux-media@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 02/26] V4L/DVB: ir-common: re-order keytables by name and
+ remove duplicates
+Message-ID: <20100406151804.63d7f541@pedra>
+In-Reply-To: <cover.1270577768.git.mchehab@redhat.com>
+References: <cover.1270577768.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 30, 2010 at 04:06:11PM +0200, Rodolfo Giometti wrote:
-> On Tue, Feb 23, 2010 at 12:19:13AM +0100, Richard Röjfors wrote:
-> > 
-> > We use it as a subdev to a driver not yet committed from us. So I think
-> > you should extend it, not move it.
-> 
-> Finally I got something functional... but I'm puzzled to know how I
-> can add platform data configuration struct by using the I2C's
-> platform_data pointer if it is already used to hold struct
-> soc_camera_device... O_o
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Here my solution:
-
-static __devinit int adv7180_probe(struct i2c_client *client,
-                        const struct i2c_device_id *id)
-{
-        struct adv7180_state *state;
-#if defined(CONFIG_SOC_CAMERA)
-        struct soc_camera_device *icd = client->dev.platform_data;
-        struct soc_camera_link *icl;
-        struct adv7180_platform_data *pdata = NULL;
-#else
-        struct adv7180_platform_data *pdata =
-	client->dev.platform_data;
-#endif
-        struct v4l2_subdev *sd;
-        int i, ret;
-
-        /* Check if the adapter supports the needed features */
-        if (!i2c_check_functionality(client->adapter,
-	I2C_FUNC_SMBUS_BYTE_DATA))
-                return -EIO;
-
-        v4l_info(client, "chip found @ 0x%02x (%s)\n",
-                        client->addr << 1, client->adapter->name);
-
-#if defined(CONFIG_SOC_CAMERA)
-        if (icd) {
-                icl = to_soc_camera_link(icd);
-                if (!icl || !icl->priv) {
-                        v4l_err(client, "missing platform data!\n");
-                        return -EINVAL;
-                }
-                pdata = icl->priv;
-
-                icd->ops = &adv7180_soc_ops;
-                v4l_info(client, "soc-camera support enabled\n");
-        }
-#endif
-
-        state = kzalloc(sizeof(struct adv7180_state), GFP_KERNEL);
-        if (state == NULL) {
-                ret = -ENOMEM;
-                goto err;
-        }
-
-        state->irq = client->irq;
-        INIT_WORK(&state->work, adv7180_work);
-        mutex_init(&state->mutex);
-        state->autodetect = true;
-        sd = &state->sd;
-        v4l2_i2c_subdev_init(sd, client, &adv7180_ops);
-
-        if (pdata)
-                for (i = 0; pdata[i].reg >= 0; i++) {
-                        printk("----> %x %x\n", pdata[i].reg,
-			pdata[i].val);
-                        ret = i2c_smbus_write_byte_data(client,
-                                        pdata[i].reg, pdata[i].val);
-                        if (ret < 0)
-                                goto err_unreg_subdev;
-                }
-
-Rodolfo
-
+diff --git a/include/media/ir-common.h b/include/media/ir-common.h
+index 800fc98..2e27515 100644
+--- a/include/media/ir-common.h
++++ b/include/media/ir-common.h
+@@ -112,69 +112,69 @@ void ir_rc5_timer_keyup(unsigned long data);
+ #define DECLARE_IR_KEYTABLE(a)					\
+ extern struct ir_scancode_table IR_KEYTABLE(a)
+ 
+-DECLARE_IR_KEYTABLE(empty);
++DECLARE_IR_KEYTABLE(adstech_dvb_t_pci);
++DECLARE_IR_KEYTABLE(apac_viewcomp);
++DECLARE_IR_KEYTABLE(asus_pc39);
++DECLARE_IR_KEYTABLE(ati_tv_wonder_hd_600);
+ DECLARE_IR_KEYTABLE(avermedia);
++DECLARE_IR_KEYTABLE(avermedia_a16d);
++DECLARE_IR_KEYTABLE(avermedia_cardbus);
+ DECLARE_IR_KEYTABLE(avermedia_dvbt);
+ DECLARE_IR_KEYTABLE(avermedia_m135a_rm_jx);
+-DECLARE_IR_KEYTABLE(avermedia_cardbus);
+-DECLARE_IR_KEYTABLE(apac_viewcomp);
+-DECLARE_IR_KEYTABLE(pixelview);
+-DECLARE_IR_KEYTABLE(pixelview_new);
+-DECLARE_IR_KEYTABLE(nebula);
+-DECLARE_IR_KEYTABLE(dntv_live_dvb_t);
+-DECLARE_IR_KEYTABLE(iodata_bctv7e);
+-DECLARE_IR_KEYTABLE(adstech_dvb_t_pci);
+-DECLARE_IR_KEYTABLE(msi_tvanywhere);
+-DECLARE_IR_KEYTABLE(cinergy_1400);
+ DECLARE_IR_KEYTABLE(avertv_303);
++DECLARE_IR_KEYTABLE(behold);
++DECLARE_IR_KEYTABLE(behold_columbus);
++DECLARE_IR_KEYTABLE(budget_ci_old);
++DECLARE_IR_KEYTABLE(cinergy);
++DECLARE_IR_KEYTABLE(cinergy_1400);
++DECLARE_IR_KEYTABLE(dm1105_nec);
++DECLARE_IR_KEYTABLE(dntv_live_dvb_t);
+ DECLARE_IR_KEYTABLE(dntv_live_dvbt_pro);
++DECLARE_IR_KEYTABLE(empty);
+ DECLARE_IR_KEYTABLE(em_terratec);
+-DECLARE_IR_KEYTABLE(pinnacle_grey);
+-DECLARE_IR_KEYTABLE(flyvideo);
+-DECLARE_IR_KEYTABLE(flydvb);
+-DECLARE_IR_KEYTABLE(cinergy);
++DECLARE_IR_KEYTABLE(encore_enltv);
++DECLARE_IR_KEYTABLE(encore_enltv2);
++DECLARE_IR_KEYTABLE(encore_enltv_fm53);
++DECLARE_IR_KEYTABLE(evga_indtube);
+ DECLARE_IR_KEYTABLE(eztv);
+-DECLARE_IR_KEYTABLE(avermedia);
+-DECLARE_IR_KEYTABLE(videomate_tv_pvr);
+-DECLARE_IR_KEYTABLE(manli);
++DECLARE_IR_KEYTABLE(flydvb);
++DECLARE_IR_KEYTABLE(flyvideo);
++DECLARE_IR_KEYTABLE(fusionhdtv_mce);
++DECLARE_IR_KEYTABLE(gadmei_rm008z);
++DECLARE_IR_KEYTABLE(genius_tvgo_a11mce);
+ DECLARE_IR_KEYTABLE(gotview7135);
+-DECLARE_IR_KEYTABLE(purpletv);
+-DECLARE_IR_KEYTABLE(pctv_sedna);
+-DECLARE_IR_KEYTABLE(pv951);
+-DECLARE_IR_KEYTABLE(rc5_tv);
+-DECLARE_IR_KEYTABLE(winfast);
+-DECLARE_IR_KEYTABLE(pinnacle_color);
+ DECLARE_IR_KEYTABLE(hauppauge_new);
+-DECLARE_IR_KEYTABLE(rc5_hauppauge_new);
+-DECLARE_IR_KEYTABLE(npgtech);
++DECLARE_IR_KEYTABLE(iodata_bctv7e);
++DECLARE_IR_KEYTABLE(kaiomy);
++DECLARE_IR_KEYTABLE(kworld_315u);
++DECLARE_IR_KEYTABLE(kworld_plus_tv_analog);
++DECLARE_IR_KEYTABLE(manli);
++DECLARE_IR_KEYTABLE(msi_tvanywhere);
++DECLARE_IR_KEYTABLE(msi_tvanywhere_plus);
++DECLARE_IR_KEYTABLE(nebula);
++DECLARE_IR_KEYTABLE(nec_terratec_cinergy_xs);
+ DECLARE_IR_KEYTABLE(norwood);
+-DECLARE_IR_KEYTABLE(proteus_2309);
+-DECLARE_IR_KEYTABLE(budget_ci_old);
+-DECLARE_IR_KEYTABLE(asus_pc39);
+-DECLARE_IR_KEYTABLE(encore_enltv);
+-DECLARE_IR_KEYTABLE(encore_enltv2);
+-DECLARE_IR_KEYTABLE(tt_1500);
+-DECLARE_IR_KEYTABLE(fusionhdtv_mce);
+-DECLARE_IR_KEYTABLE(behold);
+-DECLARE_IR_KEYTABLE(behold_columbus);
++DECLARE_IR_KEYTABLE(npgtech);
++DECLARE_IR_KEYTABLE(pctv_sedna);
++DECLARE_IR_KEYTABLE(pinnacle_color);
++DECLARE_IR_KEYTABLE(pinnacle_grey);
+ DECLARE_IR_KEYTABLE(pinnacle_pctv_hd);
+-DECLARE_IR_KEYTABLE(genius_tvgo_a11mce);
++DECLARE_IR_KEYTABLE(pixelview);
++DECLARE_IR_KEYTABLE(pixelview_new);
+ DECLARE_IR_KEYTABLE(powercolor_real_angel);
+-DECLARE_IR_KEYTABLE(avermedia_a16d);
+-DECLARE_IR_KEYTABLE(encore_enltv_fm53);
++DECLARE_IR_KEYTABLE(proteus_2309);
++DECLARE_IR_KEYTABLE(purpletv);
++DECLARE_IR_KEYTABLE(pv951);
++DECLARE_IR_KEYTABLE(rc5_hauppauge_new);
++DECLARE_IR_KEYTABLE(rc5_tv);
+ DECLARE_IR_KEYTABLE(real_audio_220_32_keys);
+-DECLARE_IR_KEYTABLE(msi_tvanywhere_plus);
+-DECLARE_IR_KEYTABLE(ati_tv_wonder_hd_600);
+-DECLARE_IR_KEYTABLE(kworld_plus_tv_analog);
+-DECLARE_IR_KEYTABLE(kaiomy);
+-DECLARE_IR_KEYTABLE(dm1105_nec);
+-DECLARE_IR_KEYTABLE(tevii_nec);
+ DECLARE_IR_KEYTABLE(tbs_nec);
+-DECLARE_IR_KEYTABLE(evga_indtube);
+ DECLARE_IR_KEYTABLE(terratec_cinergy_xs);
++DECLARE_IR_KEYTABLE(tevii_nec);
++DECLARE_IR_KEYTABLE(tt_1500);
+ DECLARE_IR_KEYTABLE(videomate_s350);
+-DECLARE_IR_KEYTABLE(gadmei_rm008z);
+-DECLARE_IR_KEYTABLE(nec_terratec_cinergy_xs);
++DECLARE_IR_KEYTABLE(videomate_tv_pvr);
++DECLARE_IR_KEYTABLE(winfast);
+ DECLARE_IR_KEYTABLE(winfast_usbii_deluxe);
+-DECLARE_IR_KEYTABLE(kworld_315u);
++
+ #endif
 -- 
+1.6.6.1
 
-GNU/Linux Solutions                  e-mail: giometti@enneenne.com
-Linux Device Driver                          giometti@linux.it
-Embedded Systems                     phone:  +39 349 2432127
-UNIX programming                     skype:  rodolfo.giometti
-Freelance ICT Italia - Consulente ICT Italia - www.consulenti-ict.it
+
