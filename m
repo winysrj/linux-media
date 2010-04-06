@@ -1,115 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3003 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751703Ab0DJThx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Apr 2010 15:37:53 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id o3AJbl9l092905
-	for <linux-media@vger.kernel.org>; Sat, 10 Apr 2010 21:37:52 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 10 Apr 2010 21:37:47 +0200 (CEST)
-Message-Id: <201004101937.o3AJbl9l092905@smtp-vbr13.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:62012 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751669Ab0DFQgS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Apr 2010 12:36:18 -0400
+Received: by bwz1 with SMTP id 1so72496bwz.21
+        for <linux-media@vger.kernel.org>; Tue, 06 Apr 2010 09:36:17 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4BBB5C0E.8000906@cam.ac.uk>
+References: <201004052347.10845.hverkuil@xs4all.nl>
+	 <201004060012.48261.hverkuil@xs4all.nl>
+	 <201004060837.24770.hverkuil@xs4all.nl> <4BBB341D.2010300@redhat.com>
+	 <59e96807eef191ed2c8913139748b655.squirrel@webmail.xs4all.nl>
+	 <4BBB4617.7040102@redhat.com> <4BBB5C0E.8000906@cam.ac.uk>
+Date: Tue, 6 Apr 2010 18:36:16 +0200
+Message-ID: <o2s5f2b61004060936kdfe94615j6735c6362673173f@mail.gmail.com>
+Subject: Re: RFC: exposing controls in sysfs
+From: =?UTF-8?Q?Bj=C3=B8rn_Forsman?= <bjorn.forsman@gmail.com>
+To: Jonathan Cameron <jic23@cam.ac.uk>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Mike Isely <isely@isely.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On 6 April 2010 18:06, Jonathan Cameron <jic23@cam.ac.uk> wrote:
+> On 04/06/10 15:32, Mauro Carvalho Chehab wrote:
+>> Hans Verkuil wrote:
+>>>> Hans Verkuil wrote:
+>>>>> $ ls /sys/class/video4linux/video1/controls
+>>>>> balance                           mpeg_insert_navigation_packets
+>>>>> mpeg_video_aspect
+>>>>> brightness                        mpeg_median_chroma_filter_maximum
+>>>>> mpeg_video_b_frames
+>>>>> chroma_agc                        mpeg_median_chroma_filter_minimum
+>>>>> mpeg_video_bitrate
+>>>>> chroma_gain                       mpeg_median_filter_type
+>>>>> mpeg_video_bitrate_mode
+>>>>> contrast                          mpeg_median_luma_filter_maximum
+>>>>> mpeg_video_encoding
+>>>>> hue                               mpeg_median_luma_filter_minimum
+>>>>> mpeg_video_gop_closure
+>>>>> mpeg_audio_crc                    mpeg_spatial_chroma_filter_type
+>>>>> mpeg_video_gop_size
+>>>>> mpeg_audio_emphasis               mpeg_spatial_filter
+>>>>> mpeg_video_mute
+>>>>> mpeg_audio_encoding               mpeg_spatial_filter_mode
+>>>>> mpeg_video_mute_yuv
+>>>>> mpeg_audio_layer_ii_bitrate       mpeg_spatial_luma_filter_type
+>>>>> mpeg_video_peak_bitrate
+>>>>> mpeg_audio_mute                   mpeg_stream_type
+>>>>> mpeg_video_temporal_decimation
+>>>>> mpeg_audio_sampling_frequency     mpeg_stream_vbi_format
+>>>>> mute
+>>>>> mpeg_audio_stereo_mode            mpeg_temporal_filter
+>>>>> saturation
+>>>>> mpeg_audio_stereo_mode_extension  mpeg_temporal_filter_mode
+>>>>> volume
+>>>>
+>>>> It would be more intuitive if you group the classes with a few subdirs:
+>>>>
+>>>> /video/balance
+>>>> /video/brightness
+>>>> ...
+>>>> /mpeg_audio/crc
+>>>> /mpeg_audio/mute
+>>>> ...
+>>>> /audio/volume
+>>>> /audio/bass
+>>>> /audio/treble
+>>>
+>>> 1) We don't have that information.
+>>> 2) It would make a simple scheme suddenly a lot more complicated (see
+>>> Andy's comments)
+>>> 3) The main interface is always the application's GUI through ioctls, not
+>>> sysfs.
+>>> 4) Remember that ivtv has an unusually large number of controls. Most
+>>> drivers will just have the usual audio and video controls, perhaps 10 at
+>>> most.
+>>
+>> Ok.
+>>
+>>> I think we should just ditch this for the first implementation of the
+>>> control framework. It can always be added later, but once added it is
+>>> *much* harder to remove again. It's a nice proof-of-concept, though :-)
+>>
+>> I like the concept, especially if we can get rid of other similar sysfs interfaces
+>> that got added on a few drivers (pvrusb2 and some non-gspca drivers have
+>> it, for sure). I think I saw some of the gspca patches also touching on sysfs.
+>> Having this unified into a common interface is a bonus.
+>
+> Obviously it adds to the review burden, but perhaps we can state that the sysfs
+> interface is only an additional option (and personally I think I'd find it pretty
+> helpful for debugging if nothing else) and that all functionality there MUST be
+> available through the normal routes?  If any functionality only supported via
+> sysfs is seen as a bug, then we can point it out in reviews etc.
+>
+> I agree with Mauro that it would be really handy to unify any interfaces that are
+> going to turn up there anyway.
+>
+> Generally I'm personally in favor with the convenience of sysfs interfaces for quick
+> and dirty debugging purposes but perhaps this isn't the time to do it here.
 
-Results of the daily build of v4l-dvb:
+Hi all,
 
-date:        Sat Apr 10 19:00:18 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14561:7c0b887911cf
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 8b680a770f6bdcd52f6816d7a5fe7aee9a9f7c78
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+I'm a newbie but I have to ask: how about using debugfs instead of
+sysfs? Then everyone will know that the interface is for debugging
+only and not production code :-)
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc1-armv5: OK
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-rc1-armv5-davinci: WARNINGS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-rc1-armv5-ixp: WARNINGS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-rc1-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.17-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-rc1-i686: WARNINGS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc1-m32r: OK
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-rc1-mips: WARNINGS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-rc1-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.17-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-rc1-x86_64: WARNINGS
-linux-git-armv5: OK
-linux-git-armv5-davinci: OK
-linux-git-armv5-ixp: OK
-linux-git-armv5-omap2: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.7-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.62-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.7-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Best regards,
+Bjørn Forsman
