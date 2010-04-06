@@ -1,59 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from a-pb-sasl-quonix.pobox.com ([208.72.237.25]:39500 "EHLO
-	sasl.smtp.pobox.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754582Ab0DMCad (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Apr 2010 22:30:33 -0400
-Message-ID: <4BC3D73D.5030106@pobox.com>
-Date: Mon, 12 Apr 2010 22:30:21 -0400
-From: Mark Lord <mlord@pobox.com>
+Received: from mail-fx0-f223.google.com ([209.85.220.223]:56478 "EHLO
+	mail-fx0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752166Ab0DFJKU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Apr 2010 05:10:20 -0400
+Received: by fxm23 with SMTP id 23so3492411fxm.21
+        for <linux-media@vger.kernel.org>; Tue, 06 Apr 2010 02:10:18 -0700 (PDT)
 MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org, Darren Blaber <dmbtech@gmail.com>
-Subject: Re: cx18: "missing audio" for analog recordings
-References: <4B8BE647.7070709@teksavvy.com>
- <1267493641.4035.17.camel@palomino.walls.org> <4B8CA8DD.5030605@teksavvy.com>
- <1267533630.3123.17.camel@palomino.walls.org> <4B9DA003.90306@teksavvy.com>
- <1268653884.3209.32.camel@palomino.walls.org>  <4BC0FB79.7080601@pobox.com>
- <1270940043.3100.43.camel@palomino.walls.org>  <4BC1401F.9080203@pobox.com>
- <1270961760.5365.14.camel@palomino.walls.org>
- <1270986453.3077.4.camel@palomino.walls.org>  <4BC1CDA2.7070003@pobox.com>
- <1271012464.24325.34.camel@palomino.walls.org> <4BC37DB2.3070107@pobox.com>
- <1271107061.3246.52.camel@palomino.walls.org> <4BC3D578.9060107@pobox.com>
-In-Reply-To: <4BC3D578.9060107@pobox.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Date: Tue, 6 Apr 2010 10:10:18 +0100
+Message-ID: <t2oecc841d81004060210re511232ek4837df452d6acb4d@mail.gmail.com>
+Subject: Scan not getting Channel names after DSO
+From: Mike Martin <redtux1@googlemail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/04/10 10:22 PM, Mark Lord wrote:
-..
-> Okay, the "fallback" works -- recordings made with it do have good audio.
->
-> And.. my hypothesis appears to be true thus far: once the audio fails,
-> requiring the fallback, it stays failed until the driver is reloaded.
->
-> Every subsequent recording made (after a "fallback") also experiences the fallback.
-> This is with a good channel, with good audio. Subsequent recordings
-> using the exact same channel.
-..
+Hi on one (and only one I think) multiplex after digital switchover I
+am getting the following
 
-Mmm.. further to that:  the problem went away as soon as I told
-it to tune to a different channel.  No more fallbacks (for now).
-It can now even retune the original channel without fallbacks.
+[6440]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:101:102:25664
+[6480]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:201:202:25728
+[64c0]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:301:302:25792
+[6500]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:25856
+[6540]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:501:502:25920
+[6b00]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:2101:2102:27392
+[6b40]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:27456
+[6b80]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:27520
+[6bc0]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:27584
+[6c00]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:27648
+[6c40]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:27712
+[6c80]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:27776
+[6cc0]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:2311:2312:27840
+[6d00]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:27904
+[6d80]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:601:602:28032
+[6980]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GDone.
+UARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:27008
+[6840]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:1901:26688
+[6800]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:1809:26624
+[67c0]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:1701:26560
+[66c0]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:1301:26304
+[6680]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:1201:26240
+[6640]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:1101:26176
+[6700]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:1401:26368
+[6a00]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:701:702:27136
 
-So.. tuning to a new channel appears to fix whatever the bad state was
-that was triggering the fallbacks.  Based on my sample of one, anyway. ;)
+As you can see instead of the Channel name I am getting what looks to
+be hex - any idea why, this is on 530167000 frequency (channel 28+)
+example being this item
 
-Now that it is behaving again, I cannot poke further until the next time
-I'm lucky enough to be around when it fails.
+[6d80]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:601:602:28032
 
-> Weird, eh. I wonder how to discover the real cause?
-> Good workaround, though! Thanks.
+should be
 
-Cheers
--- 
-Mark Lord
-Real-Time Remedies Inc.
-mlord@pobox.com
+ITV4:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:601:602:28032
+
+any ideas
