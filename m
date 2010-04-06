@@ -1,101 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57827 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:28551 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755366Ab0DUOfA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Apr 2010 10:35:00 -0400
-Message-ID: <4BCF0D03.3030802@redhat.com>
-Date: Wed, 21 Apr 2010 11:34:43 -0300
+	id S1755124Ab0DFM7i (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Apr 2010 08:59:38 -0400
+Message-ID: <4BBB3022.6080406@redhat.com>
+Date: Tue, 06 Apr 2010 09:59:14 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: linux-media@vger.kernel.org, manu@linuxtv.org, user.vdr@gmail.com,
-	Klaus.Schmidinger@vdr.de
-Subject: Re: [git:v4l-dvb/master] V4L/DVB: Add FE_CAN_PSK_8 to allow apps
- to	identify PSK_8 capable DVB devices
-References: <E1O4Rsq-0006zj-NH@www.linuxtv.org> <4BCEB022.2040807@linuxtv.org>
-In-Reply-To: <4BCEB022.2040807@linuxtv.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	David Ellingsworth <david@identd.dyndns.org>,
+	hermann-pitton@arcor.de, awalls@md.metrocast.net,
+	dheitmueller@kernellabs.com, abraham.manu@gmail.com,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC] Serialization flag example
+References: <32832848.1270295705043.JavaMail.ngmail@webmail10.arcor-online.net> <201004060046.12997.laurent.pinchart@ideasonboard.com> <201004060058.54050.hverkuil@xs4all.nl> <201004060830.54375.hverkuil@xs4all.nl>
+In-Reply-To: <201004060830.54375.hverkuil@xs4all.nl>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andreas Oberritter wrote:
-> Hello Mauro,
+Hans Verkuil wrote:
+> On Tuesday 06 April 2010 00:58:54 Hans Verkuil wrote:
+>> On Tuesday 06 April 2010 00:46:11 Laurent Pinchart wrote:
+>>> On Sunday 04 April 2010 05:14:17 David Ellingsworth wrote:
+>>>> After looking at the proposed solution, I personally find the
+>>>> suggestion for a serialization flag to be quite ridiculous. As others
+>>>> have mentioned, the mere presence of the flag means that driver
+>>>> writers will gloss over any concurrency issues that might exist in
+>>>> their driver on the mere assumption that specifying the serialization
+>>>> flag will handle it all for them.
+>>> I happen to agree with this. Proper locking is difficult, but that's not a 
+>>> reason to introduce such a workaround. I'd much rather see proper 
+>>> documentation for driver developers on how to implement locking properly.
+>> I've taken a different approach in another tree:
+>>
+>> http://linuxtv.org/hg/~hverkuil/v4l-dvb-ser2/
+>>
+>> It adds two callbacks to ioctl_ops: pre_hook and post_hook. You can use these
+>> to do things like prio checking and taking your own mutex to serialize the
+>> ioctl call.
+>>
+>> This might be a good compromise between convenience and not hiding anything.
 > 
-> Mauro Carvalho Chehab wrote:
->> Subject: V4L/DVB: Add FE_CAN_PSK_8 to allow apps to identify PSK_8 capable DVB devices
->> Author:  Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
->> Date:    Sun Apr 11 06:12:52 2010 -0300
+> I realized that something like this is needed anyway if we go ahead with the
+> new control framework. That exposes controls in sysfs, but if you set a control
+> from sysfs, then that bypasses the ioctl completely. So you need a way to hook
+> into whatever serialization scheme you have (if any).
 > 
-> I wonder why this patch was applied without any modification. It seems
-> like, as Manu pointed out, the flag should really indicate support for
-> Turbo-FEC modes rather than just 8PSK (which is already a subset of
-> FE_CAN_2G_MODULATION).
-
-It is partially due to Patchwork's fault, plus my hurry of trying to handle my long
-queue after returning for a one week trip. Unfortunately, the patchwork xml support 
-only provides the patch on the mbox format, stripping all the patch history, just 
-like if you click at the <mbox> link on the patch:
-
-	https://patchwork.kernel.org/patch/91888/mbox/
-
-So, the patch comments appear as:
-
->From patchwork Sun Apr 11 09:12:52 2010
-Content-Type: text/plain; charset="utf-8"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Subject: Add FE_CAN_PSK_8 to allow apps to identify PSK_8 capable DVB devices
-Date: Sun, 11 Apr 2010 09:12:52 -0000
-From: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
-X-Patchwork-Id: 91888
-Message-Id: <4BC19294.4010200@tvdr.de>
-To: linux-media@vger.kernel.org
-
-The enum fe_caps provides flags that allow an application to detect
-whether a device is capable of handling various modulation types etc.
-A flag for detecting PSK_8, however, is missing.
-This patch adds the flag FE_CAN_PSK_8 to frontend.h and implements
-it for the gp8psk-fe.c and cx24116.c driver (apparently the only ones
-with PSK_8). Only the gp8psk-fe.c has been explicitly tested, though.
-
-Signed-off-by: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
-Tested-by: Derek Kelly <user.vdr@gmail.com>
-Acked-by: Manu Abraham <manu@linuxtv.org>
-
-I generally take a look at the full patch history at the email, but, as the last
-tag was an ack, and no nacked-by: tags were added on the patch, I assumed that
-the patch were fine to apply.
-
-People should not add a formal "acked-by" tag if the patch is not ready
-yet to be committed.
-
-I've submitted an email to patchwork ML asking for they to fix this bad behavior.
-Let's see if this could be corrected on newer versions of the tool.
-
+> It is trivial to get to the video_device struct in the control handler and
+> from there you can access ioctl_ops. So calling the pre/post hooks for the
+> sysfs actions is very simple.
 > 
-> Btw., there is also no FE_CAN_APSK_16, FE_CAN_APSK_32 or FE_CAN_DQPSK.
+> The prototype for the hooks needs to change, though, since accesses from
+> sysfs do not provide you with a struct file pointer.
 > 
-> Also, I'm unsure how to instruct a driver whether to choose Turbo-FEC
-> mode or not in case it supports both DVB-S2 and what's used in the US.
+> Something like this should work:
 > 
-> Third, it was stated that cx24116's support for Turbo-FEC was untested
-> and probably unsupported.
-
-Btw, the DocBook describing the FE_CAN features (frontend.xml) is outdated. I
-suggest to add the remaining features there, to keep the specs updated.
-
-> So I'd vote for reverting this patch until these issues are cleared.
-
-Ok, I'll do it.
-
-> If my assumptions above are correct, my proposal is to rename the flag
->  to FE_CAN_TURBO_FEC (as Manu proposed earlier) and remove it from
-> cx24116.c.
+> int pre_hook(struct video_device *vdev, enum v4l2_priority prio, int cmd);
+> void post_hook(struct video_device *vdev, int cmd);
 > 
-> Regards,
-> Andreas
+> The prio is there to make priority checking possible. It will be initially
+> unused, but as soon as the events API with the new v4l2_fh struct is merged
+> we can add centralized support for this.
 
+I like this strategy. 
+
+My only concern is about performance. Especially in the cases where we need to 
+handle the command at the hooks, those methods will introduce two extra jumps
+to the driver and two extra switches. As the jump will go to a code outside 
+V4L core, I suspect that they'll likely flush the L1 cache. 
+
+If we consider that:
+
+	- performance is important only for the ioctl's that directly handles
+the streaming (dbuf/dqbuf & friends);
+
+	- videobuf has its own lock implementation;
+
+	- a trivial mutex-based approach won't protect the stream to have
+some parameters modified by a VIDIOC_S_* ioctl (such protection should be
+provided by a resource locking);
+
+then, maybe the better would be to not call the hooks for those ioctls. 
+It may be useful to do some perf tests and measure the real penalty before adding
+any extra code to exclude the buffer ioctls from the hook logic.
 
 -- 
 
