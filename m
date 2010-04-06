@@ -1,89 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-15.arcor-online.net ([151.189.21.55]:54368 "EHLO
-	mail-in-15.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933610Ab0D3R50 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Apr 2010 13:57:26 -0400
-Subject: Re: [PATCH] TT S2-1600 allow more current for diseqc
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Manu Abraham <abraham.manu@gmail.com>
-Cc: Guy Martin <gmsoft@tuxicoman.be>,
-	=?ISO-8859-1?Q?Andr=E9?= Weidemann <Andre.Weidemann@web.de>,
-	linux-media@vger.kernel.org
-In-Reply-To: <r2y1a297b361004280613s10585a6we3d14ddb9de5bcfc@mail.gmail.com>
-References: <20100411231805.4bc7fdef@borg.bxl.tuxicoman.be>
-	 <4BD7E7A3.2060101@web.de> <20100428103303.2fe4c9ea@zombie>
-	 <r2y1a297b361004280613s10585a6we3d14ddb9de5bcfc@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Date: Fri, 30 Apr 2010 02:31:05 +0200
-Message-Id: <1272587465.3305.34.camel@pc07.localdom.local>
+Received: from mx1.redhat.com ([209.132.183.28]:49093 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757483Ab0DFSSy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Apr 2010 14:18:54 -0400
+Received: from int-mx04.intmail.prod.int.phx2.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.17])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o36IIsXC019249
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 6 Apr 2010 14:18:54 -0400
+Date: Tue, 6 Apr 2010 15:18:03 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: linux-media@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 07/26] V4L/DVB: ir-core: Add support for RC map code
+ register
+Message-ID: <20100406151803.593c8b4c@pedra>
+In-Reply-To: <cover.1270577768.git.mchehab@redhat.com>
+References: <cover.1270577768.git.mchehab@redhat.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Instead of having all RC tables hardcoded on one file with
+all tables there, add infrastructure for registering and dynamically
+load the table(s) when needed.
 
-Am Mittwoch, den 28.04.2010, 17:13 +0400 schrieb Manu Abraham:
-> On Wed, Apr 28, 2010 at 12:33 PM, Guy Martin <gmsoft@tuxicoman.be> wrote:
-> > On Wed, 28 Apr 2010 09:45:39 +0200
-> > André Weidemann <Andre.Weidemann@web.de> wrote:
-> >
-> >> I advise not to pull this change into the kernel sources.
-> >> The card has only been testet with the a maximum current of 515mA.
-> >> Anything above is outside the specification for this card.
-> >
-> >
-> > I'm currently running two of these cards in the same box with this
-> > patch.
-> > Actually, later on I've even set curlim = SEC_CURRENT_LIM_OFF because
-> > sometimes diseqc wasn't working fine and that seemed to solve the
-> > problem.
-> 
-> I would advise to not do this: since disabling current limiting etc
-> will cause a large problem in the case of a short circuit thereby no
-> protection to the hardware. In such an event, it could probably damage
-> the tracks carrying power on the card as well as the tracks on the
-> motherboard, and in some cases the gold finches themselves and or the
-> PCI connector.
-> 
-> Generally, there are only a few devices capable of sourcing > 0.5A, So
-> I wonder ....
-> 
-> Regards,
-> Manu
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-for the few devices I do have, you seem to be for sure right.
+ create mode 100644 drivers/media/IR/rc-map.c
 
-All the Creatix stuff drawing up to 900mA on a potentially dual isl6405
-has direct voltage from the PSU over an extra floppy connector.
-
-Max. 500mA should be sufficient with a DiSEqC 1.2 compliant rotor.
-Nothing else should come above that limit.
-
-I wonder, if someone close in reading specs just now, can tell if 900mA
-can be sufficient for two rotors ;)
-
-Andre, BTW, assuming you still have a CTX944 (md8800 Quad), can you
-measure if the 16be:0008 device really does switch between 13 and 18V.
-
-Mine does not, but is also not in the original PC and the 0007 and 0008
-devices are swapped on the PCI bus compared to that one.
-
-Seen from my limited skills, it should not make any difference. So I
-don't know why some did report all is fine on 0008 and I can only say it
-hangs on 18V after init from the i2c capable 0007 device and on exit it
-powers down properly, that's all, but _never_ is on 13V.
-
-Be aware, that RF loopthrough between the two DVB-S tuners is
-enabled ...
-
-Thanks,
-Hermann
-
-
-
-
-
+diff --git a/drivers/media/IR/Makefile b/drivers/media/IR/Makefile
+index 6140b27..3a4f590 100644
+--- a/drivers/media/IR/Makefile
++++ b/drivers/media/IR/Makefile
+@@ -1,5 +1,5 @@
+ ir-common-objs  := ir-functions.o ir-keymaps.o
+-ir-core-objs	:= ir-keytable.o ir-sysfs.o ir-raw-event.o
++ir-core-objs	:= ir-keytable.o ir-sysfs.o ir-raw-event.o rc-map.o
+ 
+ obj-$(CONFIG_IR_CORE) += ir-core.o
+ obj-$(CONFIG_VIDEO_IR) += ir-common.o
+diff --git a/drivers/media/IR/rc-map.c b/drivers/media/IR/rc-map.c
+new file mode 100644
+index 0000000..aa269f5
+--- /dev/null
++++ b/drivers/media/IR/rc-map.c
+@@ -0,0 +1,75 @@
++/* ir-raw-event.c - handle IR Pulse/Space event
++ *
++ * Copyright (C) 2010 by Mauro Carvalho Chehab <mchehab@redhat.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation version 2 of the License.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ */
++
++#include <media/ir-core.h>
++#include <linux/spinlock.h>
++
++/* Used to handle IR raw handler extensions */
++static LIST_HEAD(rc_map_list);
++static spinlock_t rc_map_lock;
++
++
++static struct rc_keymap *seek_rc_map(const char *name)
++{
++	struct rc_keymap *map = NULL;
++
++	spin_lock(&rc_map_lock);
++	list_for_each_entry(map, &rc_map_list, list) {
++		if (!strcmp(name, map->map.name))
++			break;
++	}
++	spin_unlock(&rc_map_lock);
++
++	return map;
++}
++
++struct ir_scancode_table *get_rc_map(const char *name)
++{
++	int rc = 0;
++
++	struct rc_keymap *map;
++
++	map = seek_rc_map(name);
++#ifdef MODULE
++	if (!map) {
++		rc = request_module("name");
++		if (rc < 0)
++			return NULL;
++
++		map = seek_rc_map(name);
++	}
++#endif
++	if (!map)
++		return NULL;
++
++	return &map->map;
++}
++EXPORT_SYMBOL_GPL(get_rc_map);
++
++int ir_register_map(struct rc_keymap *map)
++{
++	spin_lock(&rc_map_lock);
++	list_add_tail(&map->list, &rc_map_list);
++	spin_unlock(&rc_map_lock);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(ir_raw_handler_register);
++
++void ir_unregister_map(struct rc_keymap *map)
++{
++	spin_lock(&rc_map_lock);
++	list_del(&map->list);
++	spin_unlock(&rc_map_lock);
++}
++EXPORT_SYMBOL_GPL(ir_raw_handler_unregister);
+diff --git a/include/media/ir-core.h b/include/media/ir-core.h
+index 643ff25..39df3cf 100644
+--- a/include/media/ir-core.h
++++ b/include/media/ir-core.h
+@@ -52,6 +52,11 @@ struct ir_scancode_table {
+ 	spinlock_t		lock;
+ };
+ 
++struct rc_keymap {
++	struct list_head	 list;
++	struct ir_scancode_table map;
++};
++
+ struct ir_dev_props {
+ 	unsigned long allowed_protos;
+ 	void 		*priv;
+@@ -126,6 +131,12 @@ int ir_input_register(struct input_dev *dev,
+ 		      const char *driver_name);
+ void ir_input_unregister(struct input_dev *input_dev);
+ 
++/* Routines from rc-map.c */
++
++int ir_register_map(struct rc_keymap *map);
++void ir_unregister_map(struct rc_keymap *map);
++struct ir_scancode_table *get_rc_map(const char *name);
++
+ /* Routines from ir-sysfs.c */
+ 
+ int ir_register_class(struct input_dev *input_dev);
+-- 
+1.6.6.1
 
 
