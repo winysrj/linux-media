@@ -1,50 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.26]:48136 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750829Ab0DJMQB convert rfc822-to-8bit (ORCPT
+Received: from ksp.mff.cuni.cz ([195.113.26.206]:52926 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755908Ab0DFNal (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Apr 2010 08:16:01 -0400
+	Tue, 6 Apr 2010 09:30:41 -0400
+Date: Tue, 6 Apr 2010 15:30:33 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Mohamed Ikbel Boulabiar <boulabiar@gmail.com>
+Cc: Philippe Troin <phil@fifi.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: webcam problem after suspend/hibernate
+Message-ID: <20100406133033.GB1424@ucw.cz>
+References: <45cc95261003301455u10e6ee24pfb66176bfb279d1@mail.gmail.com> <201003310125.26266.laurent.pinchart@ideasonboard.com> <v2x45cc95261003311251idfdc9b8anb7b2060618611d30@mail.gmail.com> <20100401165606.GA1677@ucw.cz> <87aatn9k7j.fsf@old-tantale.fifi.org> <20100404132223.GA1346@ucw.cz> <87ljd3ujrp.fsf@old-tantale.fifi.org> <20100404193405.GA15065@elf.ucw.cz> <r2m45cc95261004060232y4c862040r9044bb435ad7eae5@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20100410064801.GA2667@hardeman.nu>
-References: <20100408113910.GA17104@hardeman.nu>
-	 <1270812351.3764.66.camel@palomino.walls.org>
-	 <s2o9e4733911004090531we8ff39b4r570e32fdafa04204@mail.gmail.com>
-	 <4BBF3309.6020909@infradead.org> <20100410064801.GA2667@hardeman.nu>
-Date: Sat, 10 Apr 2010 08:16:00 -0400
-Message-ID: <y2t9e4733911004100516wf10a8c94lfb83e6503776222a@mail.gmail.com>
-Subject: Re: [RFC3] Teach drivers/media/IR/ir-raw-event.c to use durations
-From: Jon Smirl <jonsmirl@gmail.com>
-To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Andy Walls <awalls@md.metrocast.net>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <r2m45cc95261004060232y4c862040r9044bb435ad7eae5@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Apr 10, 2010 at 2:48 AM, David Härdeman <david@hardeman.nu> wrote:
-> On Fri, Apr 09, 2010 at 11:00:41AM -0300, Mauro Carvalho Chehab wrote:
->> struct {
->>       unsigned mark : 1;
->>       unsigned duration :31;
->> }
->>
->> There's no memory spend at all: it will use just one unsigned int and it is
->> clearly indicated what's mark and what's duration.
->
-> If all three of you agree on this approach, I'll write a patch to convert
-> ir-core to use it instead.
+On Tue 2010-04-06 11:32:46, Mohamed Ikbel Boulabiar wrote:
+> Hi !
+> 
+> > Ok, that puts the problem firmly into uvcvideo area.
+> >
+> > Try changing its _resume routine to whatever is done on device
+> > unplug... it should be rather easy, and is quite close to "correct"
+> > solution.
+> 
+> I am waiting to try that.
+> 
+> If I always need to rmmod/modprobe everytime, that is meaning that
+> something is kept messed somewhere in memory and should be cleaned by
+> restart (reinitialize ?) the device.
 
-Fine with me.
-
->
-> --
-> David Härdeman
->
-
-
+Yes. And it also means that problem is within the stuff being rmmoded/insmoded.
 
 -- 
-Jon Smirl
-jonsmirl@gmail.com
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
