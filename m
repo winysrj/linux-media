@@ -1,51 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:42873 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932497Ab0DQAOs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Apr 2010 20:14:48 -0400
-Received: by gwaa18 with SMTP id a18so1631427gwa.19
-        for <linux-media@vger.kernel.org>; Fri, 16 Apr 2010 17:14:47 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4BC8F087.3050805@cogweb.net>
-References: <4BC8F087.3050805@cogweb.net>
-Date: Fri, 16 Apr 2010 20:14:47 -0400
-Message-ID: <u2g829197381004161714z2f0b827eu824a3bcb17d2aa17@mail.gmail.com>
-Subject: Re: zvbi-atsc-cc device node conflict
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: David Liontooth <lionteeth@cogweb.net>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:26028 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756888Ab0DFSSX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Apr 2010 14:18:23 -0400
+Received: from int-mx04.intmail.prod.int.phx2.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.17])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o36IINDc008011
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 6 Apr 2010 14:18:23 -0400
+Date: Tue, 6 Apr 2010 15:18:00 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: linux-media@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 25/26] V4L/DVB: re-add enable/disable check to the IR
+ decoders
+Message-ID: <20100406151800.7653fe23@pedra>
+In-Reply-To: <cover.1270577768.git.mchehab@redhat.com>
+References: <cover.1270577768.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 16, 2010 at 7:19 PM, David Liontooth <lionteeth@cogweb.net> wrote:
-> I'm using a HVR-1850 in digital mode and get good picture and sound using
->
->  mplayer -autosync 30 -cache 2048 dvb://KCAL-DT
->
-> Closed captioning works flawlessly with this command:
->
-> zvbi-atsc-cc -C test-cc.txt KCAL-DT
->
-> However, if I try to run both at the same time, I get a device node
-> conflict:
->
->  zvbi-atsc-cc: Cannot open '/dev/dvb/adapter0/frontend0': Device or resource
-> busy.
->
-> How do I get video and closed captioning at the same time?
+A previous cleanup patch removed more than needed. Re-add the logic that
+disable the decoders.
 
-To my knowledge, you cannot run two userland apps streaming from the
-frontend at the same time.  Generally, when people need to do this
-sort of thing they write a userland daemon that multiplexes.
-Alternatively, you can cat the frontend to disk and then have both
-mplayer and your cc parser reading the resulting file.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Devin
-
-
+diff --git a/drivers/media/IR/ir-nec-decoder.c b/drivers/media/IR/ir-nec-decoder.c
+index 28d7735..9d1ada9 100644
+--- a/drivers/media/IR/ir-nec-decoder.c
++++ b/drivers/media/IR/ir-nec-decoder.c
+@@ -142,6 +142,9 @@ static int ir_nec_decode(struct input_dev *input_dev,
+ 	if (!data)
+ 		return -EINVAL;
+ 
++	if (!data->enabled)
++		return 0;
++
+ 	/* Except for the initial event, what matters is the previous bit */
+ 	bit = (ev->type & IR_PULSE) ? 1 : 0;
+ 
+diff --git a/drivers/media/IR/ir-rc5-decoder.c b/drivers/media/IR/ir-rc5-decoder.c
+index 61b5839..4fb3ce4 100644
+--- a/drivers/media/IR/ir-rc5-decoder.c
++++ b/drivers/media/IR/ir-rc5-decoder.c
+@@ -153,6 +153,9 @@ static int ir_rc5_decode(struct input_dev *input_dev,
+ 	if (!data)
+ 		return -EINVAL;
+ 
++	if (!data->enabled)
++		return 0;
++
+ 	/* Except for the initial event, what matters is the previous bit */
+ 	bit = (ev->type & IR_PULSE) ? 1 : 0;
+ 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.6.6.1
+
+
