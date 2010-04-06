@@ -1,293 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:57115 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750991Ab0DZM6l convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Apr 2010 08:58:41 -0400
-Received: by gyg13 with SMTP id 13so6265682gyg.19
-        for <linux-media@vger.kernel.org>; Mon, 26 Apr 2010 05:58:40 -0700 (PDT)
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:38902 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753461Ab0DFLot convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Apr 2010 07:44:49 -0400
+Received: by bwz1 with SMTP id 1so3517275bwz.21
+        for <linux-media@vger.kernel.org>; Tue, 06 Apr 2010 04:44:47 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20100426102514.2c13761e@glory.loctelecom.ru>
-References: <20100423104804.784fb730@glory.loctelecom.ru>
-	 <4BD1B985.8060703@arcor.de>
-	 <20100426102514.2c13761e@glory.loctelecom.ru>
-Date: Mon, 26 Apr 2010 20:58:24 +0800
-Message-ID: <k2m6e8e83e21004260558sb3695c27o5d061b7bc69198c1@mail.gmail.com>
-Subject: Re: [PATCH] tm6000 fix i2c
-From: Bee Hock Goh <beehock@gmail.com>
-To: Dmitri Belimov <d.belimov@gmail.com>
-Cc: Stefan Ringel <stefan.ringel@arcor.de>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <201004061327.05929.laurent.pinchart@ideasonboard.com>
+References: <201004052347.10845.hverkuil@xs4all.nl>
+	 <201004060837.24770.hverkuil@xs4all.nl>
+	 <1270551978.3025.38.camel@palomino.walls.org>
+	 <201004061327.05929.laurent.pinchart@ideasonboard.com>
+Date: Tue, 6 Apr 2010 13:44:47 +0200
+Message-ID: <t2wd9def9db1004060444o3c251ed6g7967b9f594ebd421@mail.gmail.com>
+Subject: Re: RFC: exposing controls in sysfs
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Mike Isely <isely@isely.net>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-thanks. This is work fine on my tm5600.
+On Tue, Apr 6, 2010 at 1:27 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Andy,
+>
+> On Tuesday 06 April 2010 13:06:18 Andy Walls wrote:
+>> On Tue, 2010-04-06 at 08:37 +0200, Hans Verkuil wrote:
+>
+> [snip]
+>
+>> > Again, I still don't know whether we should do this. It is dangerously
+>> > seductive because it would be so trivial to implement.
+>>
+>> It's like watching ships run aground on a shallow sandbar that all the
+>> locals know about.  The waters off of 'Point /sys' are full of usability
+>> shipwrecks.  I don't know if it's some siren's song, the lack of a light
+>> house, or just strange currents that deceive even seasoned
+>> navigators....
+>>
+>> Let the user run 'v4l2-ctl -d /dev/videoN -L' to learn about the control
+>> metatdata.  It's not as easy as typing 'cat', but the user base using
+>> sysfs in an interactive shell or shell script should also know how to
+>> use v4l2-ctl.  In embedded systems, the final system deployment should
+>> not need the control metadata available from sysfs in a command shell
+>> anyway.
+>
+> I fully agree with this. If we push the idea one step further, why do we need
+> to expose controls in sysfs at all ?
+>
 
-btw, can you use the git tree? There is some codes update from Stefan
-there for the tm6000-i2c that is still not sync with hg.
+how about security permissions? while you can easily change the
+permission levels for nodes in /dev you can't do this so easily with
+sysfs entries.
+I don't really think this is needed at all some applications will
+start to use ioctl some other apps might
+go for sysfs.. this makes the API a little bit whacko
 
-On Mon, Apr 26, 2010 at 8:25 AM, Dmitri Belimov <d.belimov@gmail.com> wrote:
-> Hi
->
-> Rework last I2C patch.
-> Set correct limit for I2C packet.
-> Use different method for the tm5600/tm6000 and tm6010 to read word.
->
-> Try this patch.
->
-> diff -r 7c0b887911cf linux/drivers/staging/tm6000/tm6000-i2c.c
-> --- a/linux/drivers/staging/tm6000/tm6000-i2c.c Mon Apr 05 22:56:43 2010 -0400
-> +++ b/linux/drivers/staging/tm6000/tm6000-i2c.c Mon Apr 26 04:15:56 2010 +1000
-> @@ -24,6 +24,7 @@
->  #include <linux/kernel.h>
->  #include <linux/usb.h>
->  #include <linux/i2c.h>
-> +#include <linux/delay.h>
->
->  #include "compat.h"
->  #include "tm6000.h"
-> @@ -45,11 +46,49 @@
->                        printk(KERN_DEBUG "%s at %s: " fmt, \
->                        dev->name, __FUNCTION__ , ##args); } while (0)
->
-> +static void tm6000_i2c_reset(struct tm6000_core *dev)
-> +{
-> +       tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, TM6000_GPIO_CLK, 0);
-> +       msleep(15);
-> +       tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, TM6000_GPIO_CLK, 1);
-> +       msleep(15);
-> +}
-> +
->  static int tm6000_i2c_send_regs(struct tm6000_core *dev, unsigned char addr,
->                                __u8 reg, char *buf, int len)
->  {
-> -       return tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-> -               REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0, buf, len);
-> +       int rc;
-> +       unsigned int tsleep;
-> +       unsigned int i2c_packet_limit = 16;
-> +
-> +       if (dev->dev_type == TM6010)
-> +               i2c_packet_limit = 64;
-> +
-> +       if (!buf)
-> +               return -1;
-> +
-> +       if (len < 1 || len > i2c_packet_limit){
-> +               printk("Incorrect lenght of i2c packet = %d, limit set to %d\n",
-> +                       len, i2c_packet_limit);
-> +               return -1;
-> +       }
-> +
-> +       /* capture mutex */
-> +       rc = tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR |
-> +               USB_RECIP_DEVICE, REQ_16_SET_GET_I2C_WR1_RDN,
-> +               addr | reg << 8, 0, buf, len);
-> +
-> +       if (rc < 0) {
-> +               /* release mutex */
-> +               return rc;
-> +       }
-> +
-> +       /* Calculate delay time, 14000us for 64 bytes */
-> +       tsleep = ((len * 200) + 200 + 1000) / 1000;
-> +       msleep(tsleep);
-> +
-> +       /* release mutex */
-> +       return rc;
->  }
->
->  /* Generic read - doesn't work fine with 16bit registers */
-> @@ -58,23 +97,41 @@
->  {
->        int rc;
->        u8 b[2];
-> +       unsigned int i2c_packet_limit = 16;
->
-> -       if ((dev->caps.has_zl10353) && (dev->demod_addr << 1 == addr) && (reg % 2 == 0)) {
-> +       if (dev->dev_type == TM6010)
-> +               i2c_packet_limit = 64;
-> +
-> +       if (!buf)
-> +               return -1;
-> +
-> +       if (len < 1 || len > i2c_packet_limit){
-> +               printk("Incorrect lenght of i2c packet = %d, limit set to %d\n",
-> +                       len, i2c_packet_limit);
-> +               return -1;
-> +       }
-> +
-> +       /* capture mutex */
-> +       if ((dev->caps.has_zl10353) && (dev->demod_addr << 1 == addr)
-> +       && (reg % 2 == 0)) {
->                /*
->                 * Workaround an I2C bug when reading from zl10353
->                 */
->                reg -= 1;
->                len += 1;
->
-> -               rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-> -                       REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0, b, len);
-> +               rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR |
-> +               USB_RECIP_DEVICE, REQ_16_SET_GET_I2C_WR1_RDN,
-> +               addr | reg << 8, 0, b, len);
->
->                *buf = b[1];
->        } else {
-> -               rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-> -                       REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0, buf, len);
-> +               rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR |
-> +               USB_RECIP_DEVICE, REQ_16_SET_GET_I2C_WR1_RDN,
-> +               addr | reg << 8, 0, buf, len);
->        }
->
-> +       /* release mutex */
->        return rc;
->  }
->
-> @@ -85,8 +142,137 @@
->  static int tm6000_i2c_recv_regs16(struct tm6000_core *dev, unsigned char addr,
->                                  __u16 reg, char *buf, int len)
->  {
-> -       return tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-> -               REQ_14_SET_GET_I2C_WR2_RDN, addr, reg, buf, len);
-> +       int rc;
-> +       unsigned char ureg;
-> +
-> +       if (!buf || len != 2)
-> +               return -1;
-> +
-> +       /* capture mutex */
-> +       if (dev->dev_type == TM6010){
-> +               ureg = reg & 0xFF;
-> +               rc = tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR |
-> +                       USB_RECIP_DEVICE, REQ_16_SET_GET_I2C_WR1_RDN,
-> +                       addr | (reg & 0xFF00), 0, &ureg, 1);
-> +
-> +               if (rc < 0) {
-> +                       /* release mutex */
-> +                       return rc;
-> +               }
-> +
-> +               msleep(1400 / 1000);
-> +               rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR |
-> +                       USB_RECIP_DEVICE, REQ_35_AFTEK_TUNER_READ,
-> +                       reg, 0, buf, len);
-> +       }
-> +       else {
-> +               rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR |
-> +                       USB_RECIP_DEVICE, REQ_14_SET_GET_I2C_WR2_RDN,
-> +                       addr, reg, buf, len);
-> +       }
-> +
-> +       /* release mutex */
-> +       return rc;
-> +}
-> +
-> +static int tm6000_i2c_read_sequence(struct tm6000_core *dev, unsigned char addr,
-> +                                 __u16 reg, char *buf, int len)
-> +{
-> +       int rc;
-> +
-> +       if (dev->dev_type != TM6010)
-> +               return -1;
-> +
-> +       if (!buf)
-> +               return -1;
-> +
-> +       if (len < 1 || len > 64){
-> +               printk("Incorrect lenght of i2c packet = %d, limit set to 64\n",
-> +                       len);
-> +               return -1;
-> +       }
-> +
-> +       /* capture mutex */
-> +       rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR |
-> +               USB_RECIP_DEVICE, REQ_35_AFTEK_TUNER_READ,
-> +               reg, 0, buf, len);
-> +       /* release mutex */
-> +       return rc;
-> +}
-> +
-> +static int tm6000_i2c_write_sequence(struct tm6000_core *dev,
-> +                               unsigned char addr, __u16 reg, char *buf,
-> +                               int len)
-> +{
-> +       int rc;
-> +       unsigned int tsleep;
-> +       unsigned int i2c_packet_limit = 16;
-> +
-> +       if (dev->dev_type == TM6010)
-> +               i2c_packet_limit = 64;
-> +
-> +       if (!buf)
-> +               return -1;
-> +
-> +       if (len < 1 || len > i2c_packet_limit){
-> +               printk("Incorrect lenght of i2c packet = %d, limit set to %d\n",
-> +                       len, i2c_packet_limit);
-> +               return -1;
-> +       }
-> +
-> +       /* capture mutex */
-> +       rc = tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR |
-> +               USB_RECIP_DEVICE, REQ_16_SET_GET_I2C_WR1_RDN,
-> +               addr | reg << 8, 0, buf+1, len-1);
-> +
-> +       if (rc < 0) {
-> +               /* release mutex */
-> +               return rc;
-> +       }
-> +
-> +       /* Calculate delay time, 13800us for 64 bytes */
-> +       tsleep = ((len * 200) + 1000) / 1000;
-> +       msleep(tsleep);
-> +
-> +       /* release mutex */
-> +       return rc;
-> +}
-> +
-> +static int tm6000_i2c_write_uni(struct tm6000_core *dev, unsigned char addr,
-> +                                 __u16 reg, char *buf, int len)
-> +{
-> +       int rc;
-> +       unsigned int tsleep;
-> +       unsigned int i2c_packet_limit = 16;
-> +
-> +       if (dev->dev_type == TM6010)
-> +               i2c_packet_limit = 64;
-> +
-> +       if (!buf)
-> +               return -1;
-> +
-> +       if (len < 1 || len > i2c_packet_limit){
-> +               printk("Incorrect lenght of i2c packet = %d, limit set to %d\n",
-> +                       len, i2c_packet_limit);
-> +               return -1;
-> +       }
-> +
-> +       /* capture mutex */
-> +       rc = tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR |
-> +               USB_RECIP_DEVICE, REQ_30_I2C_WRITE,
-> +               addr | reg << 8, 0, buf+1, len-1);
-> +
-> +       if (rc < 0) {
-> +               /* release mutex */
-> +               return rc;
-> +       }
-> +
-> +       /* Calculate delay time, 14800us for 64 bytes */
-> +       tsleep = ((len * 200) + 1000 + 1000) / 1000;
-> +       msleep(tsleep);
-> +
-> +       /* release mutex */
-> +       return rc;
->  }
->
->  static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
->
->
-> With my best regards, Dmitry.
+Markus
