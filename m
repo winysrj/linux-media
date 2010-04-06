@@ -1,57 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:45967 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754758Ab0DAV3c (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 17:29:32 -0400
-Received: by gwaa18 with SMTP id a18so1054361gwa.19
-        for <linux-media@vger.kernel.org>; Thu, 01 Apr 2010 14:29:31 -0700 (PDT)
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:65081 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751682Ab0DFJdN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Apr 2010 05:33:13 -0400
 MIME-Version: 1.0
-In-Reply-To: <4BB50D1A.7020803@redhat.com>
-References: <201004011001.10500.hverkuil@xs4all.nl>
-	 <4BB4D9AB.6070907@redhat.com>
-	 <g2q829197381004011129lc706e6c3jcac6dcc756012173@mail.gmail.com>
-	 <201004012306.31471.hverkuil@xs4all.nl> <4BB50D1A.7020803@redhat.com>
-Date: Thu, 1 Apr 2010 17:29:30 -0400
-Message-ID: <n2y829197381004011429u1d405025t8586abebeb3948ef@mail.gmail.com>
-Subject: Re: V4L-DVB drivers and BKL
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+In-Reply-To: <20100404193405.GA15065@elf.ucw.cz>
+References: <45cc95261003301455u10e6ee24pfb66176bfb279d1@mail.gmail.com>
+	<201003310125.26266.laurent.pinchart@ideasonboard.com> <v2x45cc95261003311251idfdc9b8anb7b2060618611d30@mail.gmail.com>
+	<20100401165606.GA1677@ucw.cz> <87aatn9k7j.fsf@old-tantale.fifi.org>
+	<20100404132223.GA1346@ucw.cz> <87ljd3ujrp.fsf@old-tantale.fifi.org>
+	<20100404193405.GA15065@elf.ucw.cz>
+From: Mohamed Ikbel Boulabiar <boulabiar@gmail.com>
+Date: Tue, 6 Apr 2010 11:32:46 +0200
+Message-ID: <r2m45cc95261004060232y4c862040r9044bb435ad7eae5@mail.gmail.com>
+Subject: Re: webcam problem after suspend/hibernate
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Philippe Troin <phil@fifi.org>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 1, 2010 at 5:16 PM, Mauro Carvalho Chehab <mchehab@redhat.com>
->> What was the reason behind the asynchronous loading? In general it simplifies
->> things a lot if you load modules up front.
+Hi !
+
+> Ok, that puts the problem firmly into uvcvideo area.
 >
-> The reason is to avoid a dead lock: driver A depends on symbols on B (the
-> other driver init code) that depends on symbols at A (core stuff, locks, etc).
+> Try changing its _resume routine to whatever is done on device
+> unplug... it should be rather easy, and is quite close to "correct"
+> solution.
 
-I believe these problems can be avoided with a common entry point for
-initializing the DVB submodule (where the loading of the subordinate
-module sets a pointer to a function for the main module to call).  In
-fact, doesn't em28xx do that today with it's "init" function for its
-submodules?
+I am waiting to try that.
 
-> There are other approaches to avoid this trouble, like the attach method used
-> by the DVB modules, but an asynchronous (and parallel) load offers another
-> advantage: it speeds up boot time, as other processors can take care of the
-> load of the additonal modules.
+If I always need to rmmod/modprobe everytime, that is meaning that
+something is kept messed somewhere in memory and should be cleaned by
+restart (reinitialize ?) the device.
 
-I think though that we need to favor stability/reliability over
-performance.  In this case, I have seen a number of bridges where
-having a "-dvb.ko" exposes this race, and I would much rather have it
-take another 200ms to load the driver than continue to deal with
-intermittent problems with hardware being in an unknown state.  Don't
-quote me on this number, but on em28xx I run into problems about 20%
-of the time where the dvb device fails to get created successfully
-because of this race (forcing me to reboot the system).
 
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Mohamed-Ikbel
