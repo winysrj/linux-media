@@ -1,132 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:34737 "EHLO lo.gmane.org"
+Received: from mx1.redhat.com ([209.132.183.28]:35280 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751272Ab0DKNTi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Apr 2010 09:19:38 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1O0x4a-0004VE-0b
-	for linux-media@vger.kernel.org; Sun, 11 Apr 2010 15:19:36 +0200
-Received: from 154.139.70.115.static.exetel.com.au ([115.70.139.154])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sun, 11 Apr 2010 15:19:36 +0200
-Received: from 0123peter by 154.139.70.115.static.exetel.com.au with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sun, 11 Apr 2010 15:19:36 +0200
-To: linux-media@vger.kernel.org
-From: 0123peter@gmail.com
-Subject: Re: Kworld Plus TV Hybrid PCI (DVB-T 210SE)
-Date: Sun, 11 Apr 2010 23:17:37 +1000
-Message-ID: <iou897-qu3.ln1@psd.motzarella.org>
-References: <4B94CF9B.3060000@gmail.com> <1268777563.5120.57.camel@pc07.localdom.local> <0h2e77-gjl.ln1@psd.motzarella.org> <1269298611.5158.20.camel@pc07.localdom.local> <0uh687-4c1.ln1@psd.motzarella.org> <1269895933.3176.12.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7Bit
+	id S1751212Ab0DFFdW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Apr 2010 01:33:22 -0400
+Message-ID: <4BBAC79B.5030107@redhat.com>
+Date: Tue, 06 Apr 2010 02:33:15 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Andy Walls <awalls@md.metrocast.net>
+CC: linux-input@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 04/15] V4L/DVB: ir-core: Add logic to decode IR protocols
+ at the IR core
+References: <cover.1270142346.git.mchehab@redhat.com>	 <20100401145632.7b1b98d5@pedra>	 <1270251567.3027.55.camel@palomino.walls.org> <4BB69A95.5000705@redhat.com>	 <1270314992.9169.40.camel@palomino.walls.org>  <4BB7C795.20506@redhat.com>	 <1270384551.4979.47.camel@palomino.walls.org>	 <4BB8D3D6.5010706@infradead.org> <1270431911.3506.25.camel@palomino.walls.org> <4BBA2D05.2080505@infradead.org>
+In-Reply-To: <4BBA2D05.2080505@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-on Tue, 30 Mar 2010 07:52 am
-in the Usenet newsgroup gmane.linux.drivers.video-input-infrastructure
-hermann pitton wrote:
-
-> Hi Peter,
+Mauro Carvalho Chehab wrote:
+> Andy Walls wrote:
+>> I have an RC-5 decoder in cx23885-input.c that isn't as clean as the NEC
+>> protocol decoder I developed.  The cx23885-input.c RC-5 decoder is not a
+>> very explicit state machine however (it is a bit hack-ish).
 > 
-> Am Montag, den 29.03.2010, 23:10 +1100 schrieb 0123peter@gmail.com:
-> 
->> 
->> Hi Hermann,  
->> 
->> I've been "fixing" my PC to the state that it stopped working.  
->> Hence the delay.  
->> 
->> > Hi Peter,
->> > 
->> > Am Samstag, den 20.03.2010, 16:20 +1100 schrieb 0123peter@gmail.com:
-> 
->> >> 
->> >> [snip]
->> >> > 
->> >> > unfortunately the problem with these cards is known, but no good
->> >> > solution for now.
->> >> > 
->> >> > Best description is from Hartmut and starts here.
->> >> > 
->> >> > http://www.spinics.net/lists/linux-dvb/msg26683.html
->> >> > 
->> >> [snip]
->> >> 
->> >> Interesting link.  I have one of the cards mentioned 
->> >> (an MSI TV(at)nywhere A/D hybrid).  I've decided not to throw it away.  
->> > 
->> > to not leave you without any response at least.
->> > 
->> > In hind sight, seeing how unfortunate using such devices can be, mainly
->> > because of being forced to try at random again with a cold boot after
->> > some i2c war brought down the tuner, we better should have such only in
->> > a still experimental league and not as supported.
->> > 
->> > This was not foreseeable in such rudeness and neither Hartmut nor me
->> > have such devices.
->> > 
->> > The Asus triple OEM 3in1 I have does not have any problems with loading
->> > firmware from file, the others do all get it from eeprom.
->> > 
->> > So, actually nobody is investigating on it with real hardware.
->> > 
->> > Maybe you can catch something with gpio_tracking and i2c_debug=1.
->> > I would expect that the complex analog tuner initialization gets broken
->> > somehow. This is at least known to be good to bring all down.
->> > 
->> > Cheers,
->> > Hermann
->> 
->> There was a patch about alignment that went through recently.  
->> Revert "V4L/DVB (11906): saa7134: Use v4l bounding/alignment function"
->> Maybe that was it.  
-> 
-> did not even notice a problem with Trent's prior patch.
-> The same is also at vivi.
-> 
->> Should I have a file called /etc/modprobe.d/TVanywhereAD 
->> that contains the line, 
->> 
->> options saa7134 card=94 gpio_tracking i2c_debug=1
->> 
->> and then watch the command line output of "kaffeine"?  
+> The state machine seems to be working fine with the code, but I think I
+> found the issue: it was expecting 14 bits after the start+toggle bits, instead
+> of a total of 14 bits. I'll fix it. I'll probably end by simplifying it to have
+> only 3 states: inactive, mark-space and trailer.
 
-I've found a GUI that allows tweaking lots of module parameters 
-that I have never heard of.  Card=94 in the config file, 
-gpio_tracking and i2c_debug are set to "1" in the GUI.  
+Done. I've re-written the state machine logic. The code is now simpler to understand,
+require less processing and works properly with RC-5.
 
-Strange things are appearing in dmesg and syslog.  I assume that 
-[snip]
-saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-i2c-adapter i2c-0: Invalid 7-bit address 0x7a
-saa7133[0]: i2c xfer: < 8e ERROR: NO_DEVICE
-[snip]
-is significant.  
+Instead of generating an intermediate code, like the code in ir-functions, it measures
+directly the length of each pulse or space event and generate the corresponding bit directly,
+putting it into a shift register. At the end of the 14 bits reception, the shift register
+will contain the scancode.
 
-> If you want to produce debug output for failing firmware loading from
-> file after a cold boot, yes, you might eventually be able to see that
-> failing tuner initialization brings down i2c.
-> 
-> If it is a additional new regression, then mercurial bisect can find the
-> patch in question fairly quick.
+When compared with saa7134 original RC5 decoder, this code is much more reliable, since it doesn't
+propagate the errors, if the frequency is not precisely 36 kHz.
 
-That sounds like something that I should be able to do, if only 
-I'd read the instructions.  
+I tested here with my device and it is properly recognizing the Hauppauge Grey IR keys.
 
-> Mauro has a MSI cardbus device using also the card=94 entry, but at home
-> he has no DVB-T.
-> 
-> Cheers,
-> Hermann
+Both NEC and RC-5 decoders can run in parallel.
 
-Would you like me to post a 2000 line /var/log/dmesg?  
+
+The patch here:
+
+http://git.linuxtv.org/mchehab/ir.git?a=commitdiff;h=37b215ea1280a621d652469cd35328a208f8ef77
+
+And the complete code:
+
+http://git.linuxtv.org/mchehab/ir.git?a=blob;f=drivers/media/IR/ir-rc5-decoder.c;h=a62277b625a8ed78028e7060a677598eeae03ffe;hb=37b215ea1280a621d652469cd35328a208f8ef77
+
+I'll likely send an email to the ML with the RC patches that are on my experimental tree,
+to properly document, and merge it at the -git, together with the other pending requests.
 
 -- 
-Sig goes here...  
-Peter D.  
 
-
+Cheers,
+Mauro
