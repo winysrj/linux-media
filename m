@@ -1,53 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:58815 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932662Ab0DHRE4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Apr 2010 13:04:56 -0400
-Message-ID: <4BBE0CB4.9040807@infradead.org>
-Date: Thu, 08 Apr 2010 14:04:52 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from mx1.redhat.com ([209.132.183.28]:37199 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751269Ab0DFFe7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Apr 2010 01:34:59 -0400
+Message-ID: <4BBAC7F6.5030807@redhat.com>
+Date: Tue, 06 Apr 2010 02:34:46 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
-CC: Jon Smirl <jonsmirl@gmail.com>, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC2] Teach drivers/media/IR/ir-raw-event.c to use durations
-References: <20100407201835.GA8438@hardeman.nu> <4BBD6550.6030000@infradead.org> <r2l9e4733911004080541s58fd4e70o215800426290a09a@mail.gmail.com> <4BBDD4ED.5040007@infradead.org> <20100408155317.GA21848@hardeman.nu>
-In-Reply-To: <20100408155317.GA21848@hardeman.nu>
+To: Jean Delvare <khali@linux-fr.org>
+CC: Linux I2C <linux-i2c@vger.kernel.org>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/2] V4L/DVB: Use custom I2C probing function mechanism
+References: <20100404161454.0f99cc06@hyperion.delvare>	<4BBA2B58.4000007@redhat.com> <20100405230616.443792ac@hyperion.delvare>
+In-Reply-To: <20100405230616.443792ac@hyperion.delvare>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-David Härdeman wrote:
-> On Thu, Apr 08, 2010 at 10:06:53AM -0300, Mauro Carvalho Chehab wrote:
->> Jon Smirl wrote:
->>> On Thu, Apr 8, 2010 at 1:10 AM, Mauro Carvalho Chehab
->>> <mchehab@infradead.org> wrote:
->>>> On the previous code, it is drivers responsibility to call the 
->>>> function that
->>>> de-queue. On saa7134, I've scheduled it to wake after 15 ms. So, instead of
->>>> 32 wakeups, just one is done, and the additional delay introduced by it is not
->>>> enough to disturb the user.
->>> The wakeup is variable when the default thread is used. My quad core
->>> desktop wakes up on every pulse. My embedded system wakes up about
->>> every 15 pulses. The embedded system called schedule_work() fifteen
->>> times from the IRQ, but the kernel collapsed them into a single
->>> wakeup. I'd stick with the default thread and let the kernel get
->>> around to processing IR whenever it has some time.
->> Makes sense.
+Jean Delvare wrote:
+> Hi Mauro,
 > 
-> Given Jon's experience, it would perhaps make sense to remove 
-> ir_raw_event_handle() and call schedule_work() from every call to 
-> ir_raw_event_store()?
+> On Mon, 05 Apr 2010 15:26:32 -0300, Mauro Carvalho Chehab wrote:
+>> Jean Delvare wrote:
+>>> Now that i2c-core offers the possibility to provide custom probing
+>>> function for I2C devices, let's make use of it.
+>>>
+>>> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+>>> ---
+>>> I wasn't too sure where to put the custom probe function: in each driver,
+>>> in the ir-common module or in the v4l2-common module. I went for the
+>>> second option as a middle ground, but am ready to discuss it if anyone
+>>> objects.
+>> Please, don't add new things at ir-common module. It basically contains the
+>> decoding functions for RC5 and pulse/distance, plus several IR keymaps. With
+>> the IR rework I'm doing, this module will go away, after having all the current 
+>> IR decoders implemented via ir-raw-input binding. 
+>>
+>> The keymaps were already removed from it, on my experimental tree 
+>> (http://git.linuxtv.org/mchehab/ir.git), and rc5 decoder is already written
+>> (but still needs a few fixes). 
+>>
+>> The new ir-core is creating an abstract way to deal with Remote Controllers,
+>> meant to be used not only by IR's, but also for other types of RC, like, 
+>> bluetooth and USB HID. It will also export a raw event interface, for use
+>> with lirc. As this is the core of the RC subsystem, a i2c-specific binding
+>> method also doesn't seem to belong there. SO, IMO, the better place is to add 
+>> it as a static inline function at ir-kbd-i2c.h.
 > 
-> One thing less for IR drivers to care about...
+> Ever tried to pass the address of an inline function as another
+> function's parameter? :)
 
-Maybe, on a separate patch, but let's do it by the end of the changes,
-to let people to give us some feedback about the practical effects
-on the users side, and the corresponding perf impacts. 
+:) Never tried... maybe gcc would to the hard thing, de-inlining it ;)
 
-I won't mind to move the mod_timer stuff from saa7134 to the core, 
-as a way to easy this change.
+Well, we need to put this code somewhere. Where are the other probing codes? Probably
+the better is to put them together.
+
 
 -- 
 
