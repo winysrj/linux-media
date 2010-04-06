@@ -1,139 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:14993 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753349Ab0D1RhC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Apr 2010 13:37:02 -0400
-Date: Wed, 28 Apr 2010 13:37:00 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: linux-input@vger.kernel.org
-Subject: [PATCH] IR/imon: add proper auto-repeat support
-Message-ID: <20100428173700.GA14240@redhat.com>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4998 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752343Ab0DFWrK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Apr 2010 18:47:10 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Jonathan Cameron <jic23@cam.ac.uk>
+Subject: Re: RFC: exposing controls in sysfs
+Date: Wed, 7 Apr 2010 00:47:21 +0200
+Cc: Mike Isely <isely@isely.net>, linux-media@vger.kernel.org
+References: <201004052347.10845.hverkuil@xs4all.nl> <alpine.DEB.1.10.1004060933550.27169@cnc.isely.net> <4BBB5F12.5040102@cam.ac.uk>
+In-Reply-To: <4BBB5F12.5040102@cam.ac.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201004070047.21349.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Set the EV_REP bit, so reported key repeats actually make their
-way out to userspace, and fix up the handling of repeats a bit,
-routines for which are shamelessly heisted from ati_remote2.c.
+On Tuesday 06 April 2010 18:19:30 Jonathan Cameron wrote:
+> On 04/06/10 15:41, Mike Isely wrote:
+> > On Tue, 6 Apr 2010, Hans Verkuil wrote:
+> > 
+> >    [...]
+> > 
+> >>
+> >> One thing that might be useful is to prefix the name with the control class
+> >> name. E.g. hue becomes user_hue and audio_crc becomes mpeg_audio_crc. It would
+> >> groups them better. Or one could make a controls/user and controls/mpeg
+> >> directory. That might not be such a bad idea actually.
+> > 
+> > I agree with grouping in concept, and using subdirectories is not a bad 
+> > thing.  Probably however you'd want to ensure that in the end all the 
+> > controls end up logically at the same depth in the tree.
+> > 
+> > 
+> >    [...]
+> > 
+> >>
+> >> An in between solution would be to add _type files. So you would have 
+> >> 'hue' and 'hue_type'. 'cat hue_type' would give something like:
+> >>
+> >> int 0 255 1 128 0x0000 Hue
+> >>
+> >> In other words 'type min max step flags name'.
+> > 
+> > There was I thought at some point in the past a kernel policy that sysfs 
+> > controls were supposed to limit themselves to one value per node.
+> It's usually considered to be one 'conceptual' value per node, though
+> this falls fowl of that rule too.  So you could have one file with a list
+> of possible values, or even one for say hue_range 0...255 but people are
+> going to through a wobbly about antyhing with as much data in it as above.
+> 
+> The debate on this was actually pretty well covered in an lwn article the
+> other week. http://lwn.net/Articles/378884/
+> 
+> So the above hue type would probably need:
+> 
+> hue_type (int)
+> hue_range (0...255)
+> hue_step (1)
+> hue_flags (128)
+> hue_name (Hue)
+> 
+> Of those, hue_name doesn't in this case tell us anything and hue_step could
+> be suppressed as an obvious default.  It could be argued that parts of the
+> above could be considered a single 'conceptual' value but I don't think the
+> whole can be.  The reasoning behind this  (and it is definitely true with
+> your above example) is that sysfs should be human readable without needing
+> to reach for the documentation.
+> > 
+> >>
+> >> And for menu controls like stream_type (hmm, that would become 
+> >> stream_type_type...) you would get:
+> >>
+> >> menu 0 5 1 0 Stream Type
+> 
+> >> MPEG-2 Program Stream
+> >>
+> >> MPEG-1 System Stream
+> >> MPEG-2 DVD-compatible Stream
+> >> MPEG-1 VCD-compatible Stream
+> >> MPEG-2 SVCD-compatible Stream
+> >>
+> >> Note the empty line to denote the unsupported menu item (transport stream).
+> >>
+> >> This would give the same information with just a single extra file. Still not
+> >> sure whether it is worth it though.
+> > 
+> > Just remember that the more complex / subtle you make the node contents, 
+> > then the more parsing will be required for any program that tries to use 
+> > it.  I also think it's probably a bad idea for example to define a 
+> > format where the whitespace conveys additional information.  The case 
+> > where I've seen whitespace as part of the syntax actually work cleanly 
+> > is in Python.
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/IR/imon.c |   38 +++++++++++++++++++++++++++++++-------
- 1 files changed, 31 insertions(+), 7 deletions(-)
+You are correct, it should be one value per item. It would become a really
+big mess, though :-(
 
-diff --git a/drivers/media/IR/imon.c b/drivers/media/IR/imon.c
-index b65c31a..16e2e7f 100644
---- a/drivers/media/IR/imon.c
-+++ b/drivers/media/IR/imon.c
-@@ -130,6 +130,7 @@ struct imon_context {
- 	u64 ir_type;			/* iMON or MCE (RC6) IR protocol? */
- 	u8 mce_toggle_bit;		/* last mce toggle bit */
- 	bool release_code;		/* some keys send a release code */
-+	unsigned long jiffies;		/* repeat timer */
- 
- 	u8 display_type;		/* store the display type */
- 	bool pad_mouse;			/* toggle kbd(0)/mouse(1) mode */
-@@ -146,7 +147,6 @@ struct imon_context {
- };
- 
- #define TOUCH_TIMEOUT	(HZ/30)
--#define MCE_TIMEOUT_MS	200
- 
- /* vfd character device file operations */
- static const struct file_operations vfd_fops = {
-@@ -1394,6 +1394,8 @@ static int imon_parse_press_type(struct imon_context *ictx,
- 				 unsigned char *buf, u8 ktype)
- {
- 	int press_type = 0;
-+	int rep_delay = ictx->idev->rep[REP_DELAY];
-+	int rep_period = ictx->idev->rep[REP_PERIOD];
- 
- 	/* key release of 0x02XXXXXX key */
- 	if (ictx->kc == KEY_RESERVED && buf[0] == 0x02 && buf[3] == 0x00)
-@@ -1418,12 +1420,12 @@ static int imon_parse_press_type(struct imon_context *ictx,
- 			ictx->mce_toggle_bit = buf[2];
- 			press_type = 1;
- 			mod_timer(&ictx->itimer,
--				  jiffies + msecs_to_jiffies(MCE_TIMEOUT_MS));
-+				  jiffies + msecs_to_jiffies(rep_delay));
- 		/* repeat */
- 		} else {
- 			press_type = 2;
- 			mod_timer(&ictx->itimer,
--				  jiffies + msecs_to_jiffies(MCE_TIMEOUT_MS));
-+				  jiffies + msecs_to_jiffies(rep_period));
- 		}
- 
- 	/* incoherent or irrelevant data */
-@@ -1458,12 +1460,14 @@ static void imon_incoming_packet(struct imon_context *ictx,
- 	u32 remote_key = 0;
- 	struct input_dev *idev = NULL;
- 	int press_type = 0;
--	int msec;
-+	int msec, rep_delay, rep_period;
- 	struct timeval t;
- 	static struct timeval prev_time = { 0, 0 };
- 	u8 ktype = IMON_KEY_IMON;
- 
- 	idev = ictx->idev;
-+	rep_delay = idev->rep[REP_DELAY];
-+	rep_period = idev->rep[REP_PERIOD];
- 
- 	/* filter out junk data on the older 0xffdc imon devices */
- 	if ((buf[0] == 0xff) && (buf[7] == 0xff))
-@@ -1529,8 +1533,28 @@ static void imon_incoming_packet(struct imon_context *ictx,
- 	}
- 
- 	press_type = imon_parse_press_type(ictx, buf, ktype);
--	if (press_type < 0)
-+
-+	switch (press_type) {
-+	/* release */
-+	case 0:
-+		break;
-+	/* press */
-+	case 1:
-+		ictx->jiffies = jiffies + msecs_to_jiffies(rep_delay);
-+		break;
-+	/* repeat */
-+	case 2:
-+		/* don't repeat too fast */
-+		if (!time_after_eq(jiffies, ictx->jiffies))
-+			return;
-+
-+		ictx->jiffies = jiffies + msecs_to_jiffies(rep_period);
-+		break;
-+	case -EINVAL:
-+	default:
- 		goto not_input_data;
-+		break;
-+	}
- 
- 	if (ictx->kc == KEY_UNKNOWN)
- 		goto unknown_key;
-@@ -1541,7 +1565,7 @@ static void imon_incoming_packet(struct imon_context *ictx,
- 		do_gettimeofday(&t);
- 		msec = tv2int(&t, &prev_time);
- 		prev_time = t;
--		if (msec < 200)
-+		if (msec < rep_delay)
- 			return;
- 	}
- 
-@@ -1686,7 +1710,7 @@ static struct input_dev *imon_init_idev(struct imon_context *ictx)
- 	strlcat(ictx->phys_idev, "/input0", sizeof(ictx->phys_idev));
- 	idev->phys = ictx->phys_idev;
- 
--	idev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REL);
-+	idev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REP) | BIT_MASK(EV_REL);
- 
- 	idev->keybit[BIT_WORD(BTN_MOUSE)] =
- 		BIT_MASK(BTN_LEFT) | BIT_MASK(BTN_RIGHT);
+I don't see much of an advantage to doing this in sysfs. If you need to know
+the type, then use v4l2-ctl. We could make a simple option for v4l2-ctl, or
+write a new tool that does this in a format that's easy to handle by scripting
+languages. Creating a zillion sysfs files strikes me as major overkill (not to
+mention the additional resources it would claim).
+
+Regards,
+
+	Hans
 
 -- 
-Jarod Wilson
-jarod@redhat.com
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
