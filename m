@@ -1,85 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:57233 "EHLO smtp3-g21.free.fr"
+Received: from bamako.nerim.net ([62.4.17.28]:57632 "EHLO bamako.nerim.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752694Ab0DRSbI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Apr 2010 14:31:08 -0400
-Received: from smtp3-g21.free.fr (localhost [127.0.0.1])
-	by smtp3-g21.free.fr (Postfix) with ESMTP id 383418180EE
-	for <linux-media@vger.kernel.org>; Sun, 18 Apr 2010 20:31:00 +0200 (CEST)
-Received: from [192.168.0.10] (cot38-1-78-243-40-12.fbx.proxad.net [78.243.40.12])
-	by smtp3-g21.free.fr (Postfix) with ESMTP id 3F236818036
-	for <linux-media@vger.kernel.org>; Sun, 18 Apr 2010 20:30:58 +0200 (CEST)
-Message-ID: <4BCB4FE1.7020808@free.fr>
-Date: Sun, 18 Apr 2010 20:30:57 +0200
-From: moebius <moebius1@free.fr>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: terratec grabby sound problem
-References: <4B7BB7CF.7000208@free.fr>
-In-Reply-To: <4B7BB7CF.7000208@free.fr>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+	id S1755678Ab0DFQZO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Apr 2010 12:25:14 -0400
+Date: Tue, 6 Apr 2010 18:25:11 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux I2C <linux-i2c@vger.kernel.org>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/2] V4L/DVB: Use custom I2C probing function mechanism
+Message-ID: <20100406182511.62894659@hyperion.delvare>
+In-Reply-To: <4BBAC7F6.5030807@redhat.com>
+References: <20100404161454.0f99cc06@hyperion.delvare>
+	<4BBA2B58.4000007@redhat.com>
+	<20100405230616.443792ac@hyperion.delvare>
+	<4BBAC7F6.5030807@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Bonsoir,
+Hi Mauro,
 
-I've tried to specify another card (an easy cap), so I do :
+On Tue, 06 Apr 2010 02:34:46 -0300, Mauro Carvalho Chehab wrote:
+> Jean Delvare wrote:
+> > On Mon, 05 Apr 2010 15:26:32 -0300, Mauro Carvalho Chehab wrote:
+> >> Please, don't add new things at ir-common module. It basically contains the
+> >> decoding functions for RC5 and pulse/distance, plus several IR keymaps. With
+> >> the IR rework I'm doing, this module will go away, after having all the current 
+> >> IR decoders implemented via ir-raw-input binding. 
+> >>
+> >> The keymaps were already removed from it, on my experimental tree 
+> >> (http://git.linuxtv.org/mchehab/ir.git), and rc5 decoder is already written
+> >> (but still needs a few fixes). 
+> >>
+> >> The new ir-core is creating an abstract way to deal with Remote Controllers,
+> >> meant to be used not only by IR's, but also for other types of RC, like, 
+> >> bluetooth and USB HID. It will also export a raw event interface, for use
+> >> with lirc. As this is the core of the RC subsystem, a i2c-specific binding
+> >> method also doesn't seem to belong there. SO, IMO, the better place is to add 
+> >> it as a static inline function at ir-kbd-i2c.h.
+> > 
+> > Ever tried to pass the address of an inline function as another
+> > function's parameter? :)
+> 
+> :) Never tried... maybe gcc would to the hard thing, de-inlining it ;)
+> 
+> Well, we need to put this code somewhere. Where are the other probing
+> codes? Probably the better is to put them together.
 
-rmmod em28xx
-modprobe em28xx card=64
+There are no other probing functions yet, this is the first one. I have
+added the mechanism to i2c-core for these very IR chips.
 
-In this case, I avoid alsamixer step : I get immediatly the bad sound 
-and I just have to shut off and on the terratec grabby in pulseaudio 
-control applet to get mplayer working. But no progress with mencoder.
+Putting all probe functions together would mean moving them to
+i2c-core. This wasn't my original intent, but after all, it makes some
+sense. Would you be happy with the following?
 
-There's really a problem...noone else own a terratec grabby device ?
+* * * * *
 
-It's really boring, I have a job to do since a long time nowq, and I 
-can't do it ......
+From: Jean Delvare <khali@linux-fr.org>
+Subject: V4L/DVB: Use custom I2C probing function mechanism
+
+Now that i2c-core offers the possibility to provide custom probing
+function for I2C devices, let's make use of it.
+
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ drivers/i2c/i2c-core.c                    |    7 +++++++
+ drivers/media/video/cx23885/cx23885-i2c.c |   15 ++++-----------
+ drivers/media/video/cx88/cx88-i2c.c       |   19 ++++---------------
+ include/linux/i2c.h                       |    3 +++
+ 4 files changed, 18 insertions(+), 26 deletions(-)
+
+--- linux-2.6.34-rc3.orig/drivers/media/video/cx23885/cx23885-i2c.c	2010-04-06 11:31:20.000000000 +0200
++++ linux-2.6.34-rc3/drivers/media/video/cx23885/cx23885-i2c.c	2010-04-06 12:28:09.000000000 +0200
+@@ -365,17 +365,10 @@ int cx23885_i2c_register(struct cx23885_
+ 
+ 		memset(&info, 0, sizeof(struct i2c_board_info));
+ 		strlcpy(info.type, "ir_video", I2C_NAME_SIZE);
+-		/*
+-		 * We can't call i2c_new_probed_device() because it uses
+-		 * quick writes for probing and the IR receiver device only
+-		 * replies to reads.
+-		 */
+-		if (i2c_smbus_xfer(&bus->i2c_adap, addr_list[0], 0,
+-				   I2C_SMBUS_READ, 0, I2C_SMBUS_QUICK,
+-				   NULL) >= 0) {
+-			info.addr = addr_list[0];
+-			i2c_new_device(&bus->i2c_adap, &info);
+-		}
++		/* Use quick read command for probe, some IR chips don't
++		 * support writes */
++		i2c_new_probed_device(&bus->i2c_adap, &info, addr_list,
++				      i2c_probe_func_quick_read);
+ 	}
+ 
+ 	return bus->i2c_rc;
+--- linux-2.6.34-rc3.orig/drivers/media/video/cx88/cx88-i2c.c	2010-04-06 11:31:20.000000000 +0200
++++ linux-2.6.34-rc3/drivers/media/video/cx88/cx88-i2c.c	2010-04-06 12:28:06.000000000 +0200
+@@ -188,24 +188,13 @@ int cx88_i2c_init(struct cx88_core *core
+ 			0x18, 0x6b, 0x71,
+ 			I2C_CLIENT_END
+ 		};
+-		const unsigned short *addrp;
+ 
+ 		memset(&info, 0, sizeof(struct i2c_board_info));
+ 		strlcpy(info.type, "ir_video", I2C_NAME_SIZE);
+-		/*
+-		 * We can't call i2c_new_probed_device() because it uses
+-		 * quick writes for probing and at least some R receiver
+-		 * devices only reply to reads.
+-		 */
+-		for (addrp = addr_list; *addrp != I2C_CLIENT_END; addrp++) {
+-			if (i2c_smbus_xfer(&core->i2c_adap, *addrp, 0,
+-					   I2C_SMBUS_READ, 0,
+-					   I2C_SMBUS_QUICK, NULL) >= 0) {
+-				info.addr = *addrp;
+-				i2c_new_device(&core->i2c_adap, &info);
+-				break;
+-			}
+-		}
++		/* Use quick read command for probe, some IR chips don't
++		 * support writes */
++		i2c_new_probed_device(&core->i2c_adap, &info, addr_list,
++				      i2c_probe_func_quick_read);
+ 	}
+ 	return core->i2c_rc;
+ }
+--- linux-2.6.34-rc3.orig/drivers/i2c/i2c-core.c	2010-04-06 10:15:02.000000000 +0200
++++ linux-2.6.34-rc3/drivers/i2c/i2c-core.c	2010-04-06 12:25:31.000000000 +0200
+@@ -1460,6 +1460,13 @@ static int i2c_default_probe(struct i2c_
+ 	return err >= 0;
+ }
+ 
++int i2c_probe_func_quick_read(struct i2c_adapter *i2c, unsigned short addr)
++{
++	return i2c_smbus_xfer(i2c, addr, 0, I2C_SMBUS_READ, 0,
++			      I2C_SMBUS_QUICK, NULL) >= 0;
++}
++EXPORT_SYMBOL_GPL(i2c_probe_func_quick_read);
++
+ struct i2c_client *
+ i2c_new_probed_device(struct i2c_adapter *adap,
+ 		      struct i2c_board_info *info,
+--- linux-2.6.34-rc3.orig/include/linux/i2c.h	2010-04-06 10:15:02.000000000 +0200
++++ linux-2.6.34-rc3/include/linux/i2c.h	2010-04-06 12:26:29.000000000 +0200
+@@ -288,6 +288,9 @@ i2c_new_probed_device(struct i2c_adapter
+ 		      unsigned short const *addr_list,
+ 		      int (*probe)(struct i2c_adapter *, unsigned short addr));
+ 
++/* common custom probe functions */
++extern int i2c_probe_func_quick_read(struct i2c_adapter *, unsigned short addr);
++
+ /* For devices that use several addresses, use i2c_new_dummy() to make
+  * client handles for the extra addresses.
+  */
 
 
-cordialement,
 
-
-Le 17/02/2010 10:33, moebius a écrit :
-> Bonjour,
->
-> I've bought a terratec grabby device but I've experimented some audio
-> problems with it
-> I run an ubuntu karmic (9.10) distri and use mplayer/mencoder to see and
-> capture vhs pal stuff.
->
-> But, If video works with mplayer/mencoder, sound doesn't
-> So I run alsamixer -c1 to access grabby capture volume, then when I
-> change volume slider a little bit I get an ugly sound very jerky
-> Then I go to sound préférences of pulsaudio and swith the grabby device
-> to off (éteint in french) andb after to analog input and then I get a
-> good sound.
->
-> I's very strange because with my old pinnacle dvc100 sound works
-> immediatly (but this device seems to have problem because sound move
-> time to time to an affect like a flanger and then come normal again ; I
-> suspect a hardware problem of the device but I cannot be sure because I
-> have no microsoft computer to test it).
->
-> I've bought this low-cost terratec grabby to do the job but, finally, I
-> experiment another problem....I'm trying to grab my vhs since several
-> months and I have still no success !
->
-> I cannot try to grab my vhs because,even doing things I've mentionned,
-> I'm never sure that it works because mencoder encodes but don't show any
-> video or sound during it works.
->
->
-> I've seached but found nothing...so I post here.....if someone has an
-> idea.....
->
-> cordialement,
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at http://vger.kernel.org/majordomo-info.html
->
->
+-- 
+Jean Delvare
