@@ -1,63 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57117 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:30936 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933543Ab0DHTho convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Apr 2010 15:37:44 -0400
-Date: Thu, 8 Apr 2010 16:37:17 -0300
+	id S1751987Ab0DGUX5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Apr 2010 16:23:57 -0400
+Message-ID: <4BBCE9D7.5060309@redhat.com>
+Date: Wed, 07 Apr 2010 17:23:51 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: linux-input@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 0/8] ir-core improvements
-Message-ID: <20100408163717.05c3581c@pedra>
-Mime-Version: 1.0
+MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] em28xx: fix locks during dvb init sequence - was: Re:
+ 	V4L-DVB drivers and BKL
+References: <201004011001.10500.hverkuil@xs4all.nl>	 <201004011411.02344.laurent.pinchart@ideasonboard.com>	 <4BB4A9E2.9090706@redhat.com> <201004011642.19889.hverkuil@xs4all.nl>	 <4BB4B569.3080608@redhat.com>	 <x2y829197381004010958u82deb516if189d4fb00fbc5e6@mail.gmail.com>	 <4BBCE61E.3090504@redhat.com> <g2x829197381004071315o9000e858gd64d982a73d65809@mail.gmail.com>
+In-Reply-To: <g2x829197381004071315o9000e858gd64d982a73d65809@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Yet another series of ir-core improvements.
+Devin Heitmueller wrote:
+> On Wed, Apr 7, 2010 at 4:07 PM, Mauro Carvalho Chehab
 
-This series contain two fixes, plus those improvements:
+> At first glance, this looks really promising.  I will have to look at
+> this in more detail when I have access to the source code (I'm at the
+> office right now).
 
-1) sysfs: better define the behaviour for in-hardware and in-software raw
-   decoders: different types require different functionalities;
+Ok. Please test it when you have some time, for me to apply it upstream. 
+On my tests, it worked like a charm, and the Kernel circular lock detector 
+also didn't complain (it is always a good idea to have it turn on when 
+touching on locks).
 
-2) sysfs: rename Remote Controllers as rc0, rc1, ...
-   this is better than rcrcv0, rcrcv1, ..., because some devices have
-   also RC transmitters, and they may share some functionality with
-   the receiver. So, a receiver and a transmitter will be later be
-   differenciated via the associated device nodes;
+-- 
 
-3) Rework ir-raw-event to support a third type of decoders: in-hardware
-   samplers, with in-software decoders. In this case, the IR events
-   (duration and type) are provided by the hardware, and the protocol
-   decode is done in software.
-
-Those are the patches from this series:
-
-David Härdeman (2):
-  V4L/DVB: rename sysfs remote controller devices from rcrcv to rc
-  V4L/DVB: Teach drivers/media/IR/ir-raw-event.c to use durations
-
-Mauro Carvalho Chehab (6):
-  V4L/DVB: em28xx: fix a regression caused by the rc-map changes
-  V4L/DVB: ir: Make sure that the spinlocks are properly initialized
-  V4L/DVB: ir-core: Distinguish sysfs attributes for in-hardware and raw decoders
-  V4L/DVB: ir-core: properly present the supported and current protocols
-  V4L/DVB: ir-core: fix gcc warning noise
-  V4L/DVB: ir-core: move subsystem internal calls to ir-core-priv.h
-
- drivers/media/IR/ir-core-priv.h             |  112 +++++++++++++
- drivers/media/IR/ir-functions.c             |    1 +
- drivers/media/IR/ir-keytable.c              |   19 ++-
- drivers/media/IR/ir-nec-decoder.c           |  241 +++++++++++----------------
- drivers/media/IR/ir-raw-event.c             |  161 ++++++++++--------
- drivers/media/IR/ir-rc5-decoder.c           |  154 +++++++++---------
- drivers/media/IR/ir-sysfs.c                 |  100 ++++++++----
- drivers/media/IR/rc-map.c                   |    3 +-
- drivers/media/video/em28xx/em28xx-input.c   |   21 ++-
- drivers/media/video/saa7134/saa7134-input.c |   11 +-
- include/media/ir-core.h                     |   81 +++-------
- 11 files changed, 502 insertions(+), 402 deletions(-)
- create mode 100644 drivers/media/IR/ir-core-priv.h
-
+Cheers,
+Mauro
