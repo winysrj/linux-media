@@ -1,76 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:59001 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754550Ab0DIVmS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Apr 2010 17:42:18 -0400
-From: James Hogan <james@albanarts.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR 	system?
-Date: Fri, 9 Apr 2010 22:42:03 +0100
-Cc: Andy Walls <awalls@radix.net>, Jon Smirl <jonsmirl@gmail.com>,
-	Pavel Machek <pavel@ucw.cz>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Christoph Bartelmus <lirc@bartelmus.de>, j@jannau.net,
-	jarod@redhat.com, jarod@wilsonet.com, kraxel@redhat.com,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, superm1@ubuntu.com
-References: <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com> <1270810226.3764.34.camel@palomino.walls.org> <4BBF253A.8030406@redhat.com>
-In-Reply-To: <4BBF253A.8030406@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:21850 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751027Ab0DGUIE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Apr 2010 16:08:04 -0400
+Message-ID: <4BBCE61E.3090504@redhat.com>
+Date: Wed, 07 Apr 2010 17:07:58 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart3311773.ZsyI2Y3QfT";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: linux-media@vger.kernel.org
+Subject: [PATCH] em28xx: fix locks during dvb init sequence - was: Re: V4L-DVB
+ drivers and BKL
+References: <201004011001.10500.hverkuil@xs4all.nl>	 <201004011411.02344.laurent.pinchart@ideasonboard.com>	 <4BB4A9E2.9090706@redhat.com> <201004011642.19889.hverkuil@xs4all.nl>	 <4BB4B569.3080608@redhat.com> <x2y829197381004010958u82deb516if189d4fb00fbc5e6@mail.gmail.com>
+In-Reply-To: <x2y829197381004010958u82deb516if189d4fb00fbc5e6@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201004092242.11897.james@albanarts.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---nextPart3311773.ZsyI2Y3QfT
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Devin Heitmueller wrote:
+> On Thu, Apr 1, 2010 at 11:02 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> I remember I had to do it on em28xx:
+>>
+>> This is the init code for it:
+>>        ...
+>>        mutex_init(&dev->lock);
+>>        mutex_lock(&dev->lock);
+>>        em28xx_init_dev(&dev, udev, interface, nr);
+>>        ...
+>>        request_modules(dev);
+>>
+>>        /* Should be the last thing to do, to avoid newer udev's to
+>>           open the device before fully initializing it
+>>         */
+>>        mutex_unlock(&dev->lock);
+>>        ...
+>>
+>> And this is the open code:
+>>
+>> static int em28xx_v4l2_open(struct file *filp)
+>> {
+>>        ...
+>>        mutex_lock(&dev->lock);
+>>        ...
+>>        mutex_unlock(&dev->lock);
+>>
+> 
+> It's probably worth noting that this change is actually pretty badly
+> broken.  Because the modules are loading asynchronously, there is a
+> high probability that the em28xx-dvb driver will still be loading when
+> hald connects in to the v4l device.  That's the big reason people
+> often see things like tvp5150 i2c errors when the driver is first
+> loaded up.
+> 
+> It's a good idea in theory, but pretty fatally flawed due to the async
+> loading (as to make it work properly you would have to do something
+> like locking the mutex in em28xx and clearing it in em28xx-dvb at the
+> end of its initialization).
 
-On Fri, Apr 09, 2010 at 06:50:26AM -0400, Andy Walls wrote:
-> If you're waiting for me to get that working, I'll advise you to plan on
-> getting off the couch and pushing the power switch for some time to
-> come. ;)
+Devin,
 
-:-)
+I found some time to fix the above reported issue. Patch follows.
 
-On Friday 09 April 2010 14:01:46 Mauro Carvalho Chehab wrote:
-> The additions at IR core, if needed [1], shouldn't be hard, but the main
-> changes should happen at the hardware driver level.  There's no current
-> plans for it, at least from my side, but, let's see if some hardware
-> driver developers want to implement it on the corresponding driver.
->=20
-> [1] Basically, a keycode (like KEY_POWER) could be used to wake up the
-> machine. So, by associating some scancode to KEY_POWER via ir-core, the
-> driver can program the hardware to wake up the machine with the
-> corresponding scancode. I can't see a need for a change at ir-core to
-> implement such behavior. Of course, some attributes at sysfs can be added
-> to enable or disable this feature, and to control the associated logic,
-> but we first need to implement the wakeup feature at the hardware driver,
-> and then adding some logic at ir-core to add the non-hardware specific
-> code there.
+---
 
-Thanks for the info Mauro.
+V4L/DVB: em28xx: fix locks during dvb init sequence
 
-Cheers
-James
+During em28xx init, em28xx-dvb needs to change to digital mode, in order to
+properly initialize. However, as soon as em28xx-video registers /dev/video0,
+udev will try to run v4l_id program, to retrieve some information that it is
+needed by udev device creation.
 
---nextPart3311773.ZsyI2Y3QfT
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+So, while v4l_id is opening the /dev/video? device and setting the device in 
+analog mode, the em28xx-dvb is putting the same device on digital mode, and
+trying to initialize the DVB demod.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.13 (GNU/Linux)
+On devices that have a I2C bridge, this results on one of the devices to not
+being accessed, either resulting on I2C error or on wrong readings at devices
+like tvp5150.
 
-iEYEABECAAYFAku/nzMACgkQ4hGc8zKz77CimACePOvNj7FsSe8t5n+Y2mUKfoih
-oHoAn3RUdSvZEIoSu65YGypFaqaIMVRJ
-=4Vmu
------END PGP SIGNATURE-----
+As the analog operations are protected by dev->lock, the fix is as simple as
+locking it also during em28xx-dvb initialization.
 
---nextPart3311773.ZsyI2Y3QfT--
+While here, also simplifies the locking schema for the extension
+register/unregister functions.
+
+Tested on WinTV HVR-950 (2040:6513), doing several sequences of unload/reload.
+On all cases, the proper init happened:
+
+[ 1075.497596] tvp5150 2-005c: tvp5150am1 detected.
+[ 1075.647916] xc2028 2-0061: attaching existing instance
+[ 1075.653106] xc2028 2-0061: type set to XCeive xc2028/xc3028 tuner
+[ 1075.659254] em28xx #0: em28xx #0/2: xc3028 attached
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/video/em28xx/em28xx-core.c b/drivers/media/video/em28xx/em28xx-core.c
+index d4f4525..c8c4e8f 100644
+--- a/drivers/media/video/em28xx/em28xx-core.c
++++ b/drivers/media/video/em28xx/em28xx-core.c
+@@ -1177,21 +1177,18 @@ void em28xx_add_into_devlist(struct em28xx *dev)
+  */
+ 
+ static LIST_HEAD(em28xx_extension_devlist);
+-static DEFINE_MUTEX(em28xx_extension_devlist_lock);
+ 
+ int em28xx_register_extension(struct em28xx_ops *ops)
+ {
+ 	struct em28xx *dev = NULL;
+ 
+ 	mutex_lock(&em28xx_devlist_mutex);
+-	mutex_lock(&em28xx_extension_devlist_lock);
+ 	list_add_tail(&ops->next, &em28xx_extension_devlist);
+ 	list_for_each_entry(dev, &em28xx_devlist, devlist) {
+ 		if (dev)
+ 			ops->init(dev);
+ 	}
+ 	printk(KERN_INFO "Em28xx: Initialized (%s) extension\n", ops->name);
+-	mutex_unlock(&em28xx_extension_devlist_lock);
+ 	mutex_unlock(&em28xx_devlist_mutex);
+ 	return 0;
+ }
+@@ -1207,10 +1204,8 @@ void em28xx_unregister_extension(struct em28xx_ops *ops)
+ 			ops->fini(dev);
+ 	}
+ 
+-	mutex_lock(&em28xx_extension_devlist_lock);
+ 	printk(KERN_INFO "Em28xx: Removed (%s) extension\n", ops->name);
+ 	list_del(&ops->next);
+-	mutex_unlock(&em28xx_extension_devlist_lock);
+ 	mutex_unlock(&em28xx_devlist_mutex);
+ }
+ EXPORT_SYMBOL(em28xx_unregister_extension);
+@@ -1219,26 +1214,26 @@ void em28xx_init_extension(struct em28xx *dev)
+ {
+ 	struct em28xx_ops *ops = NULL;
+ 
+-	mutex_lock(&em28xx_extension_devlist_lock);
++	mutex_lock(&em28xx_devlist_mutex);
+ 	if (!list_empty(&em28xx_extension_devlist)) {
+ 		list_for_each_entry(ops, &em28xx_extension_devlist, next) {
+ 			if (ops->init)
+ 				ops->init(dev);
+ 		}
+ 	}
+-	mutex_unlock(&em28xx_extension_devlist_lock);
++	mutex_unlock(&em28xx_devlist_mutex);
+ }
+ 
+ void em28xx_close_extension(struct em28xx *dev)
+ {
+ 	struct em28xx_ops *ops = NULL;
+ 
+-	mutex_lock(&em28xx_extension_devlist_lock);
++	mutex_lock(&em28xx_devlist_mutex);
+ 	if (!list_empty(&em28xx_extension_devlist)) {
+ 		list_for_each_entry(ops, &em28xx_extension_devlist, next) {
+ 			if (ops->fini)
+ 				ops->fini(dev);
+ 		}
+ 	}
+-	mutex_unlock(&em28xx_extension_devlist_lock);
++	mutex_unlock(&em28xx_devlist_mutex);
+ }
+diff --git a/drivers/media/video/em28xx/em28xx-dvb.c b/drivers/media/video/em28xx/em28xx-dvb.c
+index 8f23aa1..f0de731 100644
+--- a/drivers/media/video/em28xx/em28xx-dvb.c
++++ b/drivers/media/video/em28xx/em28xx-dvb.c
+@@ -466,6 +466,7 @@ static int dvb_init(struct em28xx *dev)
+ 	}
+ 	dev->dvb = dvb;
+ 
++	mutex_lock(&dev->lock);
+ 	em28xx_set_mode(dev, EM28XX_DIGITAL_MODE);
+ 	/* init frontend */
+ 	switch (dev->model) {
+@@ -589,15 +590,16 @@ static int dvb_init(struct em28xx *dev)
+ 	if (result < 0)
+ 		goto out_free;
+ 
+-	em28xx_set_mode(dev, EM28XX_SUSPEND);
+ 	em28xx_info("Successfully loaded em28xx-dvb\n");
+-	return 0;
++ret:
++	em28xx_set_mode(dev, EM28XX_SUSPEND);
++	mutex_unlock(&dev->lock);
++	return result;
+ 
+ out_free:
+-	em28xx_set_mode(dev, EM28XX_SUSPEND);
+ 	kfree(dvb);
+ 	dev->dvb = NULL;
+-	return result;
++	goto ret;
+ }
+ 
+ static int dvb_fini(struct em28xx *dev)
