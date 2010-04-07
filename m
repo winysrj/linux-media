@@ -1,45 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:24566 "EHLO mx1.redhat.com"
+Received: from mout.perfora.net ([74.208.4.195]:65064 "EHLO mout.perfora.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757435Ab0DFSSm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Apr 2010 14:18:42 -0400
-Received: from int-mx04.intmail.prod.int.phx2.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.17])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o36IIg4t022141
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 6 Apr 2010 14:18:42 -0400
-Date: Tue, 6 Apr 2010 15:18:01 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: linux-media@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 21/26] V4L/DVB: cx88: don't handle IR on Pixelview too fast
-Message-ID: <20100406151801.589eb9cb@pedra>
-In-Reply-To: <cover.1270577768.git.mchehab@redhat.com>
-References: <cover.1270577768.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	id S1753645Ab0DGSfN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Apr 2010 14:35:13 -0400
+Message-ID: <4BBCD05A.2060305@vorgon.com>
+Date: Wed, 07 Apr 2010 11:35:06 -0700
+From: "Timothy D. Lenz" <tlenz@vorgon.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: Possible bug with FusionHDTV7 Dual Express
+References: <4BBA462E.5060203@vorgon.com>
+In-Reply-To: <4BBA462E.5060203@vorgon.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Ran fin without problems for several days. Changed setting to "-D 0 -D 1 
+-D 2" So it would use all 3 tuners (default) and left it on the 3rd 
+tuner. Next morning first tuner was down. Today I'm trying it with "-D 0 
+-D 2" So it uses the first tuner of the dual and the 3rd tuner (second 
+card). Leaving it set with vdr on the 3rd tuner.
 
-diff --git a/drivers/media/video/cx88/cx88-input.c b/drivers/media/video/cx88/cx88-input.c
-index f5d6130..9dbec1c 100644
---- a/drivers/media/video/cx88/cx88-input.c
-+++ b/drivers/media/video/cx88/cx88-input.c
-@@ -315,9 +315,9 @@ int cx88_ir_init(struct cx88_core *core, struct pci_dev *pci)
- 	case CX88_BOARD_PIXELVIEW_PLAYTV_ULTRA_PRO:
- 		ir_codes = RC_MAP_PIXELVIEW;
- 		ir->gpio_addr = MO_GP1_IO;
--		ir->mask_keycode = 0x1f;
-+		ir->mask_keycode = 0x1f;	/* Only command is retrieved */
- 		ir->mask_keyup = 0x80;
--		ir->polling = 1; /* ms */
-+		ir->polling = 10; /* ms */
- 		break;
- 	case CX88_BOARD_PROLINK_PV_8000GT:
- 	case CX88_BOARD_PROLINK_PV_GLOBAL_XTREME:
--- 
-1.6.6.1
-
-
+On 4/5/2010 1:21 PM, Timothy D. Lenz wrote:
+> For some time I have been having problems with VDR seemingly loosing
+> control over one of the two tuners. It seems to be related to the
+> atscepg plugin. It happened quicker after VDR had timer recorded a show.
+> Removing the plugin seemed to stop it but also get no epg data. basicly,
+> which ever tuner vdr was displaying from, the other tuner would seem to
+> stop working. You get no signal. But only vdr needed to be restarted to
+> get the tuner back. One tuner always seemed to go down within 24hrs when
+> using the plugin. It seems to be related to when the plugin used a free
+> tuner to scan epg.
+>
+> I put a second card in, an HVR-1800 which became the 3rd dvb device
+> according to vdr. Same thing kept happening. Always the first or second
+> tuner since no mater which vdr was using, it would always be one of
+> those that was left free. I started vdr with "-D 1 -D 2" to force vdr to
+> only use 1 tuner of the dual and the second card. I also use femon to
+> make sure vdr is using dvb1 after changing channels so that the plugin
+> uses the second card for scanning.
+>
+> It has been running for a couple of days and done recordings without
+> loosing a tuner. Since forcing it to use only one tuner of the dual
+> seems to have stopped the problem, it is starting to look like a driver
+> problem with the fusion card. Today I used femon to put vdr on dvb2 so
+> that the plugin uses the fusion to scan epg. In a couple days if the
+> problem still doesn't show, I may swap slot positions of the two cards
+> so vdr use the 1800 without forcing by blocking a tuner.
+>
+> The plugin Author has also been looking into this, but he only recently
+> got a second tuner card working.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at http://vger.kernel.org/majordomo-info.html
+>
