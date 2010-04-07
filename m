@@ -1,51 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:62709 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757259Ab0D3REY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Apr 2010 13:04:24 -0400
-Received: by bwz19 with SMTP id 19so262809bwz.21
-        for <linux-media@vger.kernel.org>; Fri, 30 Apr 2010 10:04:18 -0700 (PDT)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59408 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757259Ab0DGJZ7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Apr 2010 05:25:59 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Dan Carpenter <error27@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
+Date: Wed, 7 Apr 2010 14:55:34 +0530
+Subject: RE: [patch] davinci: don't return under lock on error path
+Message-ID: <19F8576C6E063C45BE387C64729E7394044DF7F9AA@dbde02.ent.ti.com>
+References: <20100407092105.GC5157@bicker>
+In-Reply-To: <20100407092105.GC5157@bicker>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <1272567524.15240.6.camel@localhost.localdomain>
-References: <1268135585.1825.8.camel@localhost.localdomain>
-	 <o2q19a3b7a81004291048u8515c6by3e3dd6823c70ada4@mail.gmail.com>
-	 <1272567524.15240.6.camel@localhost.localdomain>
-Date: Thu, 29 Apr 2010 21:16:33 +0200
-Message-ID: <o2g19a3b7a81004291216tfdf23fb8ycc4733881e680753@mail.gmail.com>
-Subject: Re: Post DSO scan file for Aberdare
-From: Christoph Pfister <christophpfister@gmail.com>
-To: Mike <mike@redtux.org.uk>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2010/4/29 Mike <mike@redtux.org.uk>:
-> On Thu, 2010-04-29 at 19:48 +0200, Christoph Pfister wrote:
->> 2010/3/9 Mike <mike@redtux.org.uk>:
->> > Please see attached scan file for uk-Aberdare if anyone finds it useful
->>
->> Hmm, I'm not sure whether you're the guy who also sent this
->> (different) update:
->> http://www.mail-archive.com/linux-media@vger.kernel.org/msg17569.html
->>
->> Can you enlighten me please?
->>
->> Thanks,
->>
->> Christoph
->
-> Yep the first file was for DSO stage 1 , and the second was for full
-> switchover.
->
-> Here Switchover was
-> Part 1 3/3/2010
-> Part 2 31/3/2010
->
-> Obviously now full switchover has taken place the first file is u/s as
-> is is the old scan file
 
-Ok.
+> -----Original Message-----
+> From: Dan Carpenter [mailto:error27@gmail.com]
+> Sent: Wednesday, April 07, 2010 2:51 PM
+> To: Mauro Carvalho Chehab
+> Cc: Hans Verkuil; Hiremath, Vaibhav; Laurent Pinchart; Karicheri,
+> Muralidharan; linux-media@vger.kernel.org; kernel-janitors@vger.kernel.org
+> Subject: [patch] davinci: don't return under lock on error path
+> 
+> If the kmalloc() failed for "ccdc_cfg = kmalloc(...);" then we would exit
+> with the lock held.  I moved the mutex_lock() below the allocation
+> because it isn't protecting anything in that block and allocations are
+> allocations are sometimes slow.
+[Hiremath, Vaibhav] Good catch and thanks for the patch.
 
-Christoph
+
+Acked-by: Vaibhav Hiremath <hvaibhav@ti.com>
+
+Thanks,
+Vaibhav
+> 
+> Signed-off-by: Dan Carpenter <error27@gmail.com>
+> 
+> diff --git a/drivers/media/video/davinci/vpfe_capture.c
+> b/drivers/media/video/davinci/vpfe_capture.c
+> index 7cf042f..5c83f90 100644
+> --- a/drivers/media/video/davinci/vpfe_capture.c
+> +++ b/drivers/media/video/davinci/vpfe_capture.c
+> @@ -1824,7 +1824,6 @@ static __init int vpfe_probe(struct platform_device
+> *pdev)
+>  		goto probe_free_dev_mem;
+>  	}
+> 
+> -	mutex_lock(&ccdc_lock);
+>  	/* Allocate memory for ccdc configuration */
+>  	ccdc_cfg = kmalloc(sizeof(struct ccdc_config), GFP_KERNEL);
+>  	if (NULL == ccdc_cfg) {
+> @@ -1833,6 +1832,8 @@ static __init int vpfe_probe(struct platform_device
+> *pdev)
+>  		goto probe_free_dev_mem;
+>  	}
+> 
+> +	mutex_lock(&ccdc_lock);
+> +
+>  	strncpy(ccdc_cfg->name, vpfe_cfg->ccdc, 32);
+>  	/* Get VINT0 irq resource */
+>  	res1 = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
