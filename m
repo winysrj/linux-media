@@ -1,163 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bamako.nerim.net ([62.4.17.28]:57632 "EHLO bamako.nerim.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755678Ab0DFQZO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Apr 2010 12:25:14 -0400
-Date: Tue, 6 Apr 2010 18:25:11 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux I2C <linux-i2c@vger.kernel.org>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/2] V4L/DVB: Use custom I2C probing function mechanism
-Message-ID: <20100406182511.62894659@hyperion.delvare>
-In-Reply-To: <4BBAC7F6.5030807@redhat.com>
-References: <20100404161454.0f99cc06@hyperion.delvare>
-	<4BBA2B58.4000007@redhat.com>
-	<20100405230616.443792ac@hyperion.delvare>
-	<4BBAC7F6.5030807@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-qy0-f179.google.com ([209.85.221.179]:39630 "EHLO
+	mail-qy0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932667Ab0DGPDQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Apr 2010 11:03:16 -0400
+MIME-Version: 1.0
+In-Reply-To: <4BBC88AA.4030808@infradead.org>
+References: <20100406104410.710253548@hardeman.nu>
+	 <20100406104811.GA6414@hardeman.nu> <4BBB449B.3000207@infradead.org>
+	 <1270635607.3021.222.camel@palomino.walls.org>
+	 <20100407114234.GA3476@hardeman.nu>
+	 <j2g9e4733911004070611je836445apb6527b4e2d8137fb@mail.gmail.com>
+	 <4BBC88AA.4030808@infradead.org>
+Date: Wed, 7 Apr 2010 11:03:14 -0400
+Message-ID: <k2i9e4733911004070803ib02cf971k810c0b02971a2e67@mail.gmail.com>
+Subject: Re: [RFC] Teach drivers/media/IR/ir-raw-event.c to use durations
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
+	Andy Walls <awalls@md.metrocast.net>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Wed, Apr 7, 2010 at 9:29 AM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+> On the implementation I did, each event is passed to each decoder serialized (yet, as one keystroke
+> is a series of events, it behaves as if they are processed in parallel). We might create separate
+> kthreads for each decoder, and use a spinlock at kfifo, but I suspect that the end result will be
+> very close and we'll have more threads interfering at the samples collect, especially on those
+> (broken) hardware that don't have IRQ's to indicate a state transition, so the driver needs
+> to poll the samples.
 
-On Tue, 06 Apr 2010 02:34:46 -0300, Mauro Carvalho Chehab wrote:
-> Jean Delvare wrote:
-> > On Mon, 05 Apr 2010 15:26:32 -0300, Mauro Carvalho Chehab wrote:
-> >> Please, don't add new things at ir-common module. It basically contains the
-> >> decoding functions for RC5 and pulse/distance, plus several IR keymaps. With
-> >> the IR rework I'm doing, this module will go away, after having all the current 
-> >> IR decoders implemented via ir-raw-input binding. 
-> >>
-> >> The keymaps were already removed from it, on my experimental tree 
-> >> (http://git.linuxtv.org/mchehab/ir.git), and rc5 decoder is already written
-> >> (but still needs a few fixes). 
-> >>
-> >> The new ir-core is creating an abstract way to deal with Remote Controllers,
-> >> meant to be used not only by IR's, but also for other types of RC, like, 
-> >> bluetooth and USB HID. It will also export a raw event interface, for use
-> >> with lirc. As this is the core of the RC subsystem, a i2c-specific binding
-> >> method also doesn't seem to belong there. SO, IMO, the better place is to add 
-> >> it as a static inline function at ir-kbd-i2c.h.
-> > 
-> > Ever tried to pass the address of an inline function as another
-> > function's parameter? :)
-> 
-> :) Never tried... maybe gcc would to the hard thing, de-inlining it ;)
-> 
-> Well, we need to put this code somewhere. Where are the other probing
-> codes? Probably the better is to put them together.
+Polling should be the driver's problem. They can set up a timer
+interrupt and do it that way. Do all of the protocols have a long
+enough lead one for a timer tick to catch them? If so, look for it in
+the timer event, then go into a polling loop. You'd be way better off
+buying new hardware since your video is going to stop while this
+pooling loop runs. Do modern serial ports interrupt on DTR or whatever
+those Iguana devices use? What is an example of a polled input device?
+I can't think of one, even IR diode on mic input is interrupt driven
+(that require a special ALSA driver to pass the data into RC core).
 
-There are no other probing functions yet, this is the first one. I have
-added the mechanism to i2c-core for these very IR chips.
+No need to use different kthreads for each protocol decoder, but don't
+lock up the default kernel thread waiting for a user space response.
+What I meant by parallel was that pulses are fed one at a time into
+each of the decoders, don't wait for a long space and then feed the
+entire message into the decoders.
 
-Putting all probe functions together would mean moving them to
-i2c-core. This wasn't my original intent, but after all, it makes some
-sense. Would you be happy with the following?
-
-* * * * *
-
-From: Jean Delvare <khali@linux-fr.org>
-Subject: V4L/DVB: Use custom I2C probing function mechanism
-
-Now that i2c-core offers the possibility to provide custom probing
-function for I2C devices, let's make use of it.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- drivers/i2c/i2c-core.c                    |    7 +++++++
- drivers/media/video/cx23885/cx23885-i2c.c |   15 ++++-----------
- drivers/media/video/cx88/cx88-i2c.c       |   19 ++++---------------
- include/linux/i2c.h                       |    3 +++
- 4 files changed, 18 insertions(+), 26 deletions(-)
-
---- linux-2.6.34-rc3.orig/drivers/media/video/cx23885/cx23885-i2c.c	2010-04-06 11:31:20.000000000 +0200
-+++ linux-2.6.34-rc3/drivers/media/video/cx23885/cx23885-i2c.c	2010-04-06 12:28:09.000000000 +0200
-@@ -365,17 +365,10 @@ int cx23885_i2c_register(struct cx23885_
- 
- 		memset(&info, 0, sizeof(struct i2c_board_info));
- 		strlcpy(info.type, "ir_video", I2C_NAME_SIZE);
--		/*
--		 * We can't call i2c_new_probed_device() because it uses
--		 * quick writes for probing and the IR receiver device only
--		 * replies to reads.
--		 */
--		if (i2c_smbus_xfer(&bus->i2c_adap, addr_list[0], 0,
--				   I2C_SMBUS_READ, 0, I2C_SMBUS_QUICK,
--				   NULL) >= 0) {
--			info.addr = addr_list[0];
--			i2c_new_device(&bus->i2c_adap, &info);
--		}
-+		/* Use quick read command for probe, some IR chips don't
-+		 * support writes */
-+		i2c_new_probed_device(&bus->i2c_adap, &info, addr_list,
-+				      i2c_probe_func_quick_read);
- 	}
- 
- 	return bus->i2c_rc;
---- linux-2.6.34-rc3.orig/drivers/media/video/cx88/cx88-i2c.c	2010-04-06 11:31:20.000000000 +0200
-+++ linux-2.6.34-rc3/drivers/media/video/cx88/cx88-i2c.c	2010-04-06 12:28:06.000000000 +0200
-@@ -188,24 +188,13 @@ int cx88_i2c_init(struct cx88_core *core
- 			0x18, 0x6b, 0x71,
- 			I2C_CLIENT_END
- 		};
--		const unsigned short *addrp;
- 
- 		memset(&info, 0, sizeof(struct i2c_board_info));
- 		strlcpy(info.type, "ir_video", I2C_NAME_SIZE);
--		/*
--		 * We can't call i2c_new_probed_device() because it uses
--		 * quick writes for probing and at least some R receiver
--		 * devices only reply to reads.
--		 */
--		for (addrp = addr_list; *addrp != I2C_CLIENT_END; addrp++) {
--			if (i2c_smbus_xfer(&core->i2c_adap, *addrp, 0,
--					   I2C_SMBUS_READ, 0,
--					   I2C_SMBUS_QUICK, NULL) >= 0) {
--				info.addr = *addrp;
--				i2c_new_device(&core->i2c_adap, &info);
--				break;
--			}
--		}
-+		/* Use quick read command for probe, some IR chips don't
-+		 * support writes */
-+		i2c_new_probed_device(&core->i2c_adap, &info, addr_list,
-+				      i2c_probe_func_quick_read);
- 	}
- 	return core->i2c_rc;
- }
---- linux-2.6.34-rc3.orig/drivers/i2c/i2c-core.c	2010-04-06 10:15:02.000000000 +0200
-+++ linux-2.6.34-rc3/drivers/i2c/i2c-core.c	2010-04-06 12:25:31.000000000 +0200
-@@ -1460,6 +1460,13 @@ static int i2c_default_probe(struct i2c_
- 	return err >= 0;
- }
- 
-+int i2c_probe_func_quick_read(struct i2c_adapter *i2c, unsigned short addr)
-+{
-+	return i2c_smbus_xfer(i2c, addr, 0, I2C_SMBUS_READ, 0,
-+			      I2C_SMBUS_QUICK, NULL) >= 0;
-+}
-+EXPORT_SYMBOL_GPL(i2c_probe_func_quick_read);
-+
- struct i2c_client *
- i2c_new_probed_device(struct i2c_adapter *adap,
- 		      struct i2c_board_info *info,
---- linux-2.6.34-rc3.orig/include/linux/i2c.h	2010-04-06 10:15:02.000000000 +0200
-+++ linux-2.6.34-rc3/include/linux/i2c.h	2010-04-06 12:26:29.000000000 +0200
-@@ -288,6 +288,9 @@ i2c_new_probed_device(struct i2c_adapter
- 		      unsigned short const *addr_list,
- 		      int (*probe)(struct i2c_adapter *, unsigned short addr));
- 
-+/* common custom probe functions */
-+extern int i2c_probe_func_quick_read(struct i2c_adapter *, unsigned short addr);
-+
- /* For devices that use several addresses, use i2c_new_dummy() to make
-  * client handles for the extra addresses.
-  */
+>
+> --
+>
+> Cheers,
+> Mauro
+>
 
 
 
 -- 
-Jean Delvare
+Jon Smirl
+jonsmirl@gmail.com
