@@ -1,54 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:34957 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753496Ab0DVJbM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Apr 2010 05:31:12 -0400
-Date: Thu, 22 Apr 2010 11:31:10 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Valentin Longchamp <valentin.longchamp@epfl.ch>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] mt9t031: preserve output format on VIDIOC_S_CROP
-In-Reply-To: <4BD01373.2040601@epfl.ch>
-Message-ID: <Pine.LNX.4.64.1004221128550.4655@axis700.grange>
-References: <Pine.LNX.4.64.1004141605110.9388@axis700.grange>
- <Pine.LNX.4.64.1004221048420.4655@axis700.grange> <4BD01373.2040601@epfl.ch>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:52589 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752963Ab0DGJcJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Apr 2010 05:32:09 -0400
+Date: Wed, 7 Apr 2010 11:32:05 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Jon Smirl <jonsmirl@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-input@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 00/15] ir-core: Several improvements to allow adding
+ LIRC and decoder plugins
+Message-ID: <20100407093205.GB3029@hardeman.nu>
+References: <20100401145632.5631756f@pedra>
+ <t2z9e4733911004011844pd155bbe8g13e4cbcc1a5bf1f6@mail.gmail.com>
+ <20100402102011.GA6947@hardeman.nu>
+ <p2ube3a4a1004051349y11e3004bk1c71e3ab38d3f669@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <p2ube3a4a1004051349y11e3004bk1c71e3ab38d3f669@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 22 Apr 2010, Valentin Longchamp wrote:
-
-> Guennadi Liakhovetski wrote:
-> > On Wed, 14 Apr 2010, Guennadi Liakhovetski wrote:
-> > 
-> > > Interpretation of the V4L2 API specification, according to which the
-> > > VIDIOC_S_CROP ioctl for capture devices shall set the input window and
-> > > preserve the scales, thus possibly changing the output window, seems to be
-> > > incorrect. Switch to using a more intuitive definition, i.e., to
-> > > preserving the output format while changing scales.
-> > > 
-> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > > ---
-> > > 
-> > > Val, I do not have any mt9t031 hardware any more, could you, please, test
-> > > this patch and verify, that it does indeed do, what's described above?
-> > 
-> > There hasn't been any replies to this, so, I presume, this patch cannot be
-> > tested at present. Therefore I'm going to leave it out of my pull requests
-> > until it gets tested somehow.
+On Mon, Apr 05, 2010 at 04:49:10PM -0400, Jarod Wilson wrote:
+> On Fri, Apr 2, 2010 at 6:20 AM, David Härdeman <david@hardeman.nu> wrote:
+> > Porting the msmce driver to rc-core will be high on my list of
+> > priorities once I've done some more changes to the API.
 > 
-> Sorry Guennadi, the testing is on my todo-list, but I am getting nearer to the
-> end of my thesis and I really am very busy at the moment. I hope I can give it
-> a spin on a mt9t031 in the coming weeks.
+> Very cool. Though note that the latest lirc_mceusb is quite heavily
+> modified from what Jon had initially ported, and I still have a few
+> outstanding enhancements to make, such as auto-detecting xmit mask to
+> eliminate the crude inverted mask list and support for the mce IR
+> keyboard/mouse, though that'll probably be trivial once RC5 and RC6
+> in-kernel decoders are in place. I'd intended to start with porting
+> the imon driver I'm working on over to this new infra (onboard
+> hardware decoder, should be rather easy to port), and then hop over to
+> the mceusb driver, but if you beat me to it, I've got no problem with
+> you doing it instead. :)
 
-Np, we can push it out with the next development cycle, noone is 
-complaining, so, noone actually has a problem with the present version 
-either, I just would prefer to get it fixed, but it's not urgent.
+I'd be happy with you doing it, you seem to know the hardware better 
+than me. The mceusb driver I'm using right now with ir-core is based on 
+Jon's driver which is in turn based on a version of lirc_mceusb which is 
+quite old by now. My version of the driver is basically just random bits 
+and pieces thrown together, enough to get pulse/space durations flowing 
+through ir-core so that I can test the decoders, but not much more - so 
+it's not something I'd even consider useful as a starting point :)
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Note however that you won't be able to actually port the mceusb driver 
+over until ir-core is taught to use durations (first version of the 
+patch is at [1], second version still brewing but I still need to 
+convince Mauro though).
+
+[1] http://www.spinics.net/lists/linux-input/msg07859.html
+
+-- 
+David Härdeman
