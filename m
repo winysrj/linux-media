@@ -1,51 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp105.rog.mail.re2.yahoo.com ([206.190.36.83]:46935 "HELO
-	smtp105.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753345Ab0DRPPO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Apr 2010 11:15:14 -0400
-Message-ID: <4BCB2070.5030608@rogers.com>
-Date: Sun, 18 Apr 2010 11:08:32 -0400
-From: CityK <cityk@rogers.com>
+Received: from bombadil.infradead.org ([18.85.46.34]:51020 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933226Ab0DHXak (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Apr 2010 19:30:40 -0400
+Message-ID: <4BBE671D.7070308@infradead.org>
+Date: Thu, 08 Apr 2010 20:30:37 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: linux newbie <linux.newbie79@gmail.com>,
-	Linux-media <linux-media@vger.kernel.org>,
-	video4linux-list@redhat.com
-Subject: Re: [Bulk] Need Info
-References: <x2ha64f67eb1004180534u17079d45lcb224fb3940a27ca@mail.gmail.com>
-In-Reply-To: <x2ha64f67eb1004180534u17079d45lcb224fb3940a27ca@mail.gmail.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+To: =?UTF-8?B?RGF2aWQgSMOkcmRlbWFu?= <david@hardeman.nu>
+CC: linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [patch 3/3] Convert drivers/media/dvb/ttpci/budget-ci.c to use
+ ir-core
+References: <20100402185827.425741206@hardeman.nu> <20100402190255.774628605@hardeman.nu> <4BBE51C2.8060505@infradead.org> <20100408230948.GB18316@hardeman.nu>
+In-Reply-To: <20100408230948.GB18316@hardeman.nu>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+David Härdeman wrote:
+> On Thu, Apr 08, 2010 at 06:59:30PM -0300, Mauro Carvalho Chehab wrote:
+>> david@hardeman.nu wrote:
+>>> This patch converts drivers/media/dvb/ttpci/budget-ci.c to use ir-core
+>>> rather than rolling its own keydown timeout handler and reporting keys
+>>> via drivers/media/IR/ir-functions.c.
+>>
+>> Hmm... had you test this patch? It got me an error here:
+> 
+> Sorry, I must have sent you the wrong one :)
+> 
+>> drivers/media/dvb/ttpci/budget-ci.c: In function ‘msp430_ir_init’:
+>> drivers/media/dvb/ttpci/budget-ci.c:228: error: implicit declaration
+>> of function ‘ir_input_init’
+>> drivers/media/dvb/ttpci/budget-ci.c:228: error: ‘struct budget_ci_ir’
+>> has no member named ‘state’
+>>
+>> The fix is trivial. Just drop this line:
+>>
+>>        ir_input_init(input_dev, &budget_ci->ir.state, IR_TYPE_RC5);
+>>
+>> It shouldn't cause any troubles, since the only things this function
+>> currently do are:
+>>        ir->ir_type = ir_type;
+>>
+>>        if (repeat)
+>>                set_bit(EV_REP, dev->evbit);
+>>
+>> As the repeat is inside ir-core, and the ir struct is not used
+>> anymore, this removal
+>> should cause no harm.
+>>
+>> So, I am dropping the line at the code I'm committing at v4l-dvb.git,
+>> to avoid bisect
+>> breakages.
+> 
+> You're entirely correct, that line should have been dropped (I even sent
+> the same thing as part of my latest patch series before I read this
+> mail, but if you can fixup the original patch that'd be even better).
 
-the video4linux mailing list is all but dead and has been superseded by
-the linux-media mailing list (Lmml). I've cc'ed the Lmml with this reply.
+While I don't care much on experimental trees, I always do a make allyesconfig
+and try to compile all drivers before pushing on my master tree. This helps
+to avoid some silly mistakes to go upstream ;)
 
+-- 
 
-linux newbie wrote:
-> Hi,
->
-> On my embedded PXA255 platform, we have working USB module. ISP1362 is the
-> controller. Recently we want to integrate Microsoft Lifecam Cinema webcam
-> and want to take still images.
->
-> Linux kernel is 2.6.26.3 and we enabled V4L2 and UVC class drivers. On
-> plugging the Cam and querying the proc and sys file system, I can able to
-> view cam details.
->
-> I want to capture the frame (preferably in jpeg) and write to a file. Is
-> there any example code for that? I went through the below web page
-> http://v4l2spec.bytesex.org/spec/capture-example.html, but if you can
-> suggest some more example, it will be of great help to me.
->
-> Thanks
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
->   
-
+Cheers,
+Mauro
