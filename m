@@ -1,63 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway03.websitewelcome.com ([69.93.223.26]:44381 "HELO
-	gateway03.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1757064Ab0DOWtb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Apr 2010 18:49:31 -0400
-Date: Thu, 15 Apr 2010 15:42:47 -0700 (PDT)
-From: sensoray-dev <linux-dev@sensoray.com>
-Subject: s2255drv: V4L2_MODE_HIGHQUALITY correction
-To: linux-media@vger.kernel.org
-Message-ID: <tkrat.ee2f6ea3db309dab@sensoray.com>
+Received: from mail-fx0-f223.google.com ([209.85.220.223]:60597 "EHLO
+	mail-fx0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750804Ab0DHLcV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Apr 2010 07:32:21 -0400
+Received: by fxm23 with SMTP id 23so1957538fxm.21
+        for <linux-media@vger.kernel.org>; Thu, 08 Apr 2010 04:32:19 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=us-ascii
-Content-Disposition: INLINE
+Date: Thu, 8 Apr 2010 12:32:19 +0100
+Message-ID: <u2tecc841d81004080432u491ffe81nfb273001552aa245@mail.gmail.com>
+Subject: Scan-file for uk-Aberdare
+From: Mike Martin <redtux1@googlemail.com>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=0015174733a60d2cde0483b8086f
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-# HG changeset patch
-# User Dean Anderson <linux-dev@sensoray.com>
-# Date 1271371256 25200
-# Node ID f12b3074bb02dbb9b9d5af3aa816bd53e6b61dd1
-# Parent  bffdebcb994ce8c7e493524087f601f7f1134f09
-s2255drv: fix for V4L2_MODE_HIGHQUALITY
+--0015174733a60d2cde0483b8086f
+Content-Type: text/plain; charset=ISO-8859-1
 
-From: Dean Anderson <linux-dev@sensoray.com>
+Attached is a working scan file for uk-Aberdare post switchover
 
-V4L2 high quality mode not being saved
-comments about experimental API removed
+--0015174733a60d2cde0483b8086f
+Content-Type: application/octet-stream; name=uk-Aberdare_dso
+Content-Disposition: attachment; filename=uk-Aberdare_dso
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_g7rhn2ha0
 
-Priority: normal
-
-Signed-off-by: Dean Anderson <linux-dev@sensoray.com>
-
-diff -r bffdebcb994c -r f12b3074bb02 linux/drivers/media/video/s2255drv.c
---- a/linux/drivers/media/video/s2255drv.c	Thu Apr 15 08:48:31 2010 -0700
-+++ b/linux/drivers/media/video/s2255drv.c	Thu Apr 15 15:40:56 2010 -0700
-@@ -23,8 +23,6 @@
-  *
-  * -full size, color mode YUYV or YUV422P 1/2 frame rate: all 4 channels
-  *  at once.
-- *  (TODO: Incorporate videodev2 frame rate(FR) enumeration,
-- *  which is currently experimental.)
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-@@ -127,7 +125,7 @@
- #define MASK_COLOR       0x000000ff
- #define MASK_JPG_QUALITY 0x0000ff00
- #define MASK_INPUT_TYPE  0x000f0000
--/* frame decimation. Not implemented by V4L yet(experimental in V4L) */
-+/* frame decimation. */
- #define FDEC_1		1	/* capture every frame. default */
- #define FDEC_2		2	/* capture every 2nd frame */
- #define FDEC_3		3	/* capture every 3rd frame */
-@@ -1662,6 +1660,7 @@
- 	}
- 	mode.fdec = fdec;
- 	sp->parm.capture.timeperframe.denominator = def_dem;
-+	stream->cap_parm = sp->parm.capture;
- 	s2255_set_mode(channel, &mode);
- 	dprintk(4, "%s capture mode, %d timeperframe %d/%d, fdec %d\n",
- 		__func__,
-
+IyBVSywgQWJlcmRhcmUNCiMgQXV0by1nZW5lcmF0ZWQgZnJvbSBodHRwOi8vd3d3LmR0Zy5vcmcu
+dWsvcmV0YWlsZXIvZHR0X2NoYW5uZWxzLmh0bWwNCiMgYW5kIGh0dHA6Ly93d3cub2Zjb20ub3Jn
+LnVrL3N0YXRpYy9yZWNlcHRpb25fYWR2aWNlL2luZGV4LmFzcC5odG1sDQojIFQgZnJlcSBidyBm
+ZWNfaGkgZmVjX2xvIG1vZCB0cmFuc21pc3Npb24tbW9kZSBndWFyZC1pbnRlcnZhbCBoaWVyYXJj
+aHkNCg0KVCA0NzQxNjcwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCAyayAxLzMyIE5PTkUNClQgNDgy
+MTY3MDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgMmsgMS8zMiBOT05FDQpUIDQ5NzgzMzAwMCA4TUh6
+IDIvMyBOT05FIFFBTTY0IDJrIDEvMzIgTk9ORQ0KVCA1MDYxNjcwMDAgOE1IeiAyLzMgTk9ORSBR
+QU02NCAyayAxLzMyIE5PTkUNClQgNTIxODMzMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgMmsgMS8z
+MiBOT05FDQpUIDUzMDE2NzAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDJrIDEvMzIgTk9ORQ0KDQoN
+CiNDMjErCUMyMisJQzI0LQlDMjUrCUMyNy0JQzI4Kw0KDQo=
+--0015174733a60d2cde0483b8086f--
