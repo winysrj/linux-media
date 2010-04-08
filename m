@@ -1,53 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:9454 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:57117 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750895Ab0DEIog (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Apr 2010 04:44:36 -0400
-Message-ID: <4BB9A2E1.5020903@redhat.com>
-Date: Mon, 05 Apr 2010 10:44:17 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: rath <mailings@web150.mis07.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: update gspca driver in linux source tree
-References: <2A74AB3078F34BB484457496310C528B@pcvirus>
-In-Reply-To: <2A74AB3078F34BB484457496310C528B@pcvirus>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S933543Ab0DHTho convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Apr 2010 15:37:44 -0400
+Date: Thu, 8 Apr 2010 16:37:17 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: linux-input@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 0/8] ir-core improvements
+Message-ID: <20100408163717.05c3581c@pedra>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Yet another series of ir-core improvements.
 
-On 04/04/2010 08:47 PM, rath wrote:
-> Hi,
->
-> I have a 2.6.29 kernel for my embedded ARM system. I need an newer gspca
-> driver, so I downloaded the gspca driver from
-> http://linuxtv.org/hg/~hgoede/gspca/ an copied the content of the linux
-> folder to my 2.6.29 source tree and tried to cross compile it. But I get
-> the error "drivers/media/IR/irfunctions.c:27:20: error: compat.h: No
-> such file or directory". Where can I find the missing file and where I
-> have to put it in my linux tree?
->
-> Do you have some other ideas to cross compile the gspca driver?
->
+This series contain two fixes, plus those improvements:
 
-The hg v4l-dvb trees are meant for out of tree compilation (this means your
-v4l subsystem must be compiled modular).
+1) sysfs: better define the behaviour for in-hardware and in-software raw
+   decoders: different types require different functionalities;
 
-You will want to not use my tree, but use the latest generic tree:
-hg clone http://linuxtv.org/hg/v4l-dvb/
-Then simply compile that tree (this will need the headers of your 2.6.29 kernel
-in the usual place):
-cd v4l-dvb
-make menuconfig
-make
-sudo make install
+2) sysfs: rename Remote Controllers as rc0, rc1, ...
+   this is better than rcrcv0, rcrcv1, ..., because some devices have
+   also RC transmitters, and they may share some functionality with
+   the receiver. So, a receiver and a transmitter will be later be
+   differenciated via the associated device nodes;
 
-And then reboot, now you will be using your 2.9.29 kernel with a fully
-up2date v4l-dvb subsystem.
+3) Rework ir-raw-event to support a third type of decoders: in-hardware
+   samplers, with in-software decoders. In this case, the IR events
+   (duration and type) are provided by the hardware, and the protocol
+   decode is done in software.
 
-Regards,
+Those are the patches from this series:
 
-Hans
+David Härdeman (2):
+  V4L/DVB: rename sysfs remote controller devices from rcrcv to rc
+  V4L/DVB: Teach drivers/media/IR/ir-raw-event.c to use durations
+
+Mauro Carvalho Chehab (6):
+  V4L/DVB: em28xx: fix a regression caused by the rc-map changes
+  V4L/DVB: ir: Make sure that the spinlocks are properly initialized
+  V4L/DVB: ir-core: Distinguish sysfs attributes for in-hardware and raw decoders
+  V4L/DVB: ir-core: properly present the supported and current protocols
+  V4L/DVB: ir-core: fix gcc warning noise
+  V4L/DVB: ir-core: move subsystem internal calls to ir-core-priv.h
+
+ drivers/media/IR/ir-core-priv.h             |  112 +++++++++++++
+ drivers/media/IR/ir-functions.c             |    1 +
+ drivers/media/IR/ir-keytable.c              |   19 ++-
+ drivers/media/IR/ir-nec-decoder.c           |  241 +++++++++++----------------
+ drivers/media/IR/ir-raw-event.c             |  161 ++++++++++--------
+ drivers/media/IR/ir-rc5-decoder.c           |  154 +++++++++---------
+ drivers/media/IR/ir-sysfs.c                 |  100 ++++++++----
+ drivers/media/IR/rc-map.c                   |    3 +-
+ drivers/media/video/em28xx/em28xx-input.c   |   21 ++-
+ drivers/media/video/saa7134/saa7134-input.c |   11 +-
+ include/media/ir-core.h                     |   81 +++-------
+ 11 files changed, 502 insertions(+), 402 deletions(-)
+ create mode 100644 drivers/media/IR/ir-core-priv.h
+
