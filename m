@@ -1,41 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.158]:50915 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750790Ab0DGJlU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Apr 2010 05:41:20 -0400
-Date: Wed, 7 Apr 2010 12:41:14 +0300
-From: Dan Carpenter <error27@gmail.com>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:59271 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932798Ab0DHPxV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Apr 2010 11:53:21 -0400
+Date: Thu, 8 Apr 2010 17:53:17 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
 To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Kuninori Morimoto <morimoto.kuninori@renesas.com>,
-	Magnus Damm <damm@opensource.se>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [patch] video: comparing unsigned with negative 0
-Message-ID: <20100407094114.GH5157@bicker>
+Cc: Jon Smirl <jonsmirl@gmail.com>, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC2] Teach drivers/media/IR/ir-raw-event.c to use durations
+Message-ID: <20100408155317.GA21848@hardeman.nu>
+References: <20100407201835.GA8438@hardeman.nu>
+ <4BBD6550.6030000@infradead.org>
+ <r2l9e4733911004080541s58fd4e70o215800426290a09a@mail.gmail.com>
+ <4BBDD4ED.5040007@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <4BBDD4ED.5040007@infradead.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-soc_mbus_bytes_per_line() returns -EINVAL on error but we store it in an
-unsigned int so the test for less than zero doesn't work.  I think it
-always returns "small" positive values so we can just cast it to int
-here.
+On Thu, Apr 08, 2010 at 10:06:53AM -0300, Mauro Carvalho Chehab wrote:
+> Jon Smirl wrote:
+> > On Thu, Apr 8, 2010 at 1:10 AM, Mauro Carvalho Chehab
+> > <mchehab@infradead.org> wrote:
+> >> On the previous code, it is drivers responsibility to call the 
+> >> function that
+> >> de-queue. On saa7134, I've scheduled it to wake after 15 ms. So, instead of
+> >> 32 wakeups, just one is done, and the additional delay introduced by it is not
+> >> enough to disturb the user.
+> > 
+> > The wakeup is variable when the default thread is used. My quad core
+> > desktop wakes up on every pulse. My embedded system wakes up about
+> > every 15 pulses. The embedded system called schedule_work() fifteen
+> > times from the IRQ, but the kernel collapsed them into a single
+> > wakeup. I'd stick with the default thread and let the kernel get
+> > around to processing IR whenever it has some time.
+> 
+> Makes sense.
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
+Given Jon's experience, it would perhaps make sense to remove 
+ir_raw_event_handle() and call schedule_work() from every call to 
+ir_raw_event_store()?
 
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index 6e16b39..1ad980f 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -1633,7 +1633,7 @@ static int sh_mobile_ceu_try_fmt(struct soc_camera_device *icd,
- 	height = pix->height;
- 
- 	pix->bytesperline = soc_mbus_bytes_per_line(width, xlate->host_fmt);
--	if (pix->bytesperline < 0)
-+	if ((int)pix->bytesperline < 0)
- 		return pix->bytesperline;
- 	pix->sizeimage = height * pix->bytesperline;
- 
+One thing less for IR drivers to care about...
+
+-- 
+David Härdeman
