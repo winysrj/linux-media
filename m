@@ -1,74 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45679 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754193Ab0DAIUY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 04:20:24 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Pawel Osciak <p.osciak@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "m.szyprowski@samsung.com" <m.szyprowski@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
-Date: Thu, 1 Apr 2010 13:50:01 +0530
-Subject: RE: [PATCH v3 0/2] Mem-to-mem device framework
-Message-ID: <19F8576C6E063C45BE387C64729E7394044DF7EE68@dbde02.ent.ti.com>
-References: <1269848207-2325-1-git-send-email-p.osciak@samsung.com>
-In-Reply-To: <1269848207-2325-1-git-send-email-p.osciak@samsung.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from bombadil.infradead.org ([18.85.46.34]:58815 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932662Ab0DHRE4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Apr 2010 13:04:56 -0400
+Message-ID: <4BBE0CB4.9040807@infradead.org>
+Date: Thu, 08 Apr 2010 14:04:52 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
+To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
+CC: Jon Smirl <jonsmirl@gmail.com>, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC2] Teach drivers/media/IR/ir-raw-event.c to use durations
+References: <20100407201835.GA8438@hardeman.nu> <4BBD6550.6030000@infradead.org> <r2l9e4733911004080541s58fd4e70o215800426290a09a@mail.gmail.com> <4BBDD4ED.5040007@infradead.org> <20100408155317.GA21848@hardeman.nu>
+In-Reply-To: <20100408155317.GA21848@hardeman.nu>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+David Härdeman wrote:
+> On Thu, Apr 08, 2010 at 10:06:53AM -0300, Mauro Carvalho Chehab wrote:
+>> Jon Smirl wrote:
+>>> On Thu, Apr 8, 2010 at 1:10 AM, Mauro Carvalho Chehab
+>>> <mchehab@infradead.org> wrote:
+>>>> On the previous code, it is drivers responsibility to call the 
+>>>> function that
+>>>> de-queue. On saa7134, I've scheduled it to wake after 15 ms. So, instead of
+>>>> 32 wakeups, just one is done, and the additional delay introduced by it is not
+>>>> enough to disturb the user.
+>>> The wakeup is variable when the default thread is used. My quad core
+>>> desktop wakes up on every pulse. My embedded system wakes up about
+>>> every 15 pulses. The embedded system called schedule_work() fifteen
+>>> times from the IRQ, but the kernel collapsed them into a single
+>>> wakeup. I'd stick with the default thread and let the kernel get
+>>> around to processing IR whenever it has some time.
+>> Makes sense.
+> 
+> Given Jon's experience, it would perhaps make sense to remove 
+> ir_raw_event_handle() and call schedule_work() from every call to 
+> ir_raw_event_store()?
+> 
+> One thing less for IR drivers to care about...
 
-> -----Original Message-----
-> From: Pawel Osciak [mailto:p.osciak@samsung.com]
-> Sent: Monday, March 29, 2010 1:07 PM
-> To: linux-media@vger.kernel.org
-> Cc: p.osciak@samsung.com; m.szyprowski@samsung.com;
-> kyungmin.park@samsung.com; Hiremath, Vaibhav
-> Subject: [PATCH v3 0/2] Mem-to-mem device framework
-> 
-> Hello,
-> 
-> this is the third version of the mem-to-mem memory device framework.
-> It addresses previous comments and issues raised in Norway as well.
-> 
-> It is rather independent from videobuf so I believe it can be merged
-> separately.
-> 
-> Changes in v3:
-> - streamon, streamoff now have to be called for both queues separately
-> - added automatic rescheduling of an instance after finish (if ready)
-> - tweaked up locking
-> - addressed Andy Walls' comments
-> 
-> We have been using v2 for three different devices on an embedded system.
-> I did some additional testing of v3 on a 4-core SMP as well.
-> 
-> The series contains:
-> 
-> [PATCH v3 1/2] v4l: Add memory-to-memory device helper framework for
-> videobuf.
-> [PATCH v3 2/2] v4l: Add a mem-to-mem videobuf framework test device.
-> 
-[Hiremath, Vaibhav] I have reviewed the changes and also tested it here at my end, even I have tested it with real hardware module (OMAP3 Resizer driver) so I think we can merge these patches now.
+Maybe, on a separate patch, but let's do it by the end of the changes,
+to let people to give us some feedback about the practical effects
+on the users side, and the corresponding perf impacts. 
 
-I have cleanup patch (Submitting shortly), I just changed while reviewing/testing the code. So you can directly merge the patch into your next version.
+I won't mind to move the mod_timer stuff from saa7134 to the core, 
+as a way to easy this change.
 
-Also it would be really great if we could add documentation for this.
+-- 
 
-You can also add,
-
-Reviewed-by: Hiremath Vaibhav <hvaibhav@ti.com>
-Tested-by: Hiremath Vaibhav <hvaibhav@ti.com>
-
-Thanks,
-Vaibhav
-> 
-> Best regards
-> --
-> Pawel Osciak
-> Linux Platform Group
-> Samsung Poland R&D Center
-
+Cheers,
+Mauro
