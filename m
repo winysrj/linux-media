@@ -1,154 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-12.arcor-online.net ([151.189.21.52]:37209 "EHLO
-	mail-in-12.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755520Ab0DWPdf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Apr 2010 11:33:35 -0400
-Message-ID: <4BD1BD78.3050105@arcor.de>
-Date: Fri, 23 Apr 2010 17:32:08 +0200
-From: Stefan Ringel <stefan.ringel@arcor.de>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3004 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758387Ab0DHGzc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Apr 2010 02:55:32 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: Control Framework Roadmap
+Date: Thu, 8 Apr 2010 08:55:47 +0200
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Bee Hock Goh <beehock@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Help needed in understanding v4l2_device_call_all
-References: <x2m6e8e83e21004062310ia0eef09fgf97bcfafcdf25737@mail.gmail.com>	 <4BD0B32B.8060505@redhat.com>	 <i2k6e8e83e21004221920q3f687324z8d8aba7ca26978ad@mail.gmail.com>	 <4BD1BB75.9020907@arcor.de> <x2p6e8e83e21004230828vac56ac76q613941884944c0f@mail.gmail.com>
-In-Reply-To: <x2p6e8e83e21004230828vac56ac76q613941884944c0f@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201004080855.47063.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 23.04.2010 17:28, schrieb Bee Hock Goh:
-> So do you mean its required for tm6010 to set the registers?
->   
-that is not a register, please see you in lastest git, that this request
-a command is (send start and send stop!).
-> On Fri, Apr 23, 2010 at 11:23 PM, Stefan Ringel <stefan.ringel@arcor.de> wrote:
->   
->> Am 23.04.2010 04:20, schrieb Bee Hock Goh:
->>     
->>> Mauro,
->>>
->>> Thanks.
->>>
->>> Previously, I have done some limited test and it seem that
->>> xc2028_signal seem to be getting the correct registered value for the
->>> detected a signal locked.
->>>
->>> Since I am now able to get video working(though somewhat limited since
->>> it still crashed if i change channel from mythtv), i will be spending
->>> more time to look getting a lock on the signal.
->>>
->>>
->>> Is line 139,140,155,156 needed? Its slowing down the loading of
->>> firmware and it working for me with the additional register setting.
->>>
->>>  138 if (addr == dev->tuner_addr << 1) {
->>> 139 tm6000_set_reg(dev, 0x32, 0,0);
->>> 140 tm6000_set_reg(dev, 0x33, 0,0);
->>>
->>>       
->> use tm6010
->>     
->>> 141 }
->>> 142 if (i2c_debug >= 2)
->>> 143 for (byte = 0; byte < msgs[i].len; byte++)
->>> 144 printk(" %02x", msgs[i].buf[byte]);
->>> 145 } else {
->>> 146 /* write bytes */
->>> 147 if (i2c_debug >= 2)
->>> 148 for (byte = 0; byte < msgs[i].len; byte++)
->>> 149 printk(" %02x", msgs[i].buf[byte]);
->>> 150 rc = tm6000_i2c_send_regs(dev, addr, msgs[i].buf[0],
->>> 151 msgs[i].buf + 1, msgs[i].len - 1);
->>> 152
->>> 153 if (addr == dev->tuner_addr << 1) {
->>> 154 tm6000_set_reg(dev, 0x32, 0,0);
->>> 155 tm6000_set_reg(dev, 0x33, 0,0);
->>>
->>>       
->> use tm6010
->>     
->>> On Fri, Apr 23, 2010 at 4:35 AM, Mauro Carvalho Chehab
->>> <mchehab@redhat.com> wrote:
->>>
->>>       
->>>> Bee Hock Goh wrote:
->>>>
->>>>         
->>>>> Hi,
->>>>>
->>>>> I am trying to understand how the subdev function are triggered when I
->>>>> use v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, g_tuner,t) on
->>>>> tm600-video.
->>>>>
->>>>>           
->>>> It calls tuner-core.c code, with g_tuner command. tuner-core
->>>> checks what's the used tuner and, in the case of tm6000, calls the corresponding
->>>> function at tuner-xc2028. This is implemented on tuner_g_tuner() function.
->>>>
->>>> The function basically does some sanity checks, and some common tuner code, but
->>>> the actual implementation is handled by some callbacks that the driver needs to
->>>> define (get_afc, get_status, is_stereo, has_signal). In general, drivers use
->>>> get_status for it:
->>>>                fe_tuner_ops->get_status(&t->fe, &tuner_status);
->>>>
->>>>
->>>> You will find a good example of how to implement such code at tuner-simple
->>>> simple_get_status() function.
->>>>
->>>> In the case of tuner-xc2028, we never found a way for it to properly report the
->>>> status of the tuner lock. That's why this function is not implemented on the driver.
->>>>
->>>>
->>>>         
->>>>> How am i able to link the callback from the tuner_xc2028 function?
->>>>>
->>>>>           
->>>> The callback is used by tuner-xc2028 when it detects the need of changing the
->>>> firmware (or when the firmware is not loaded yet, or when you select a standard
->>>> that it is not supported by the current firmware).
->>>>
->>>> Basically, xc2028 driver will use the callback that was set previously via:
->>>>
->>>>        v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_config, &xc2028_cfg);
->>>>
->>>>
->>>>
->>>>         
->>>>> Please help me to understand or directly me to any documentation that
->>>>> I can read up?
->>>>>
->>>>> thanks,
->>>>>  Hock.
->>>>> --
->>>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>>>> the body of a message to majordomo@vger.kernel.org
->>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>>
->>>>>           
->>>> --
->>>>
->>>> Cheers,
->>>> Mauro
->>>>
->>>>
->>>>         
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>>       
->>
->> --
->> Stefan Ringel <stefan.ringel@arcor.de>
->>
->>
->>     
+OK, the discussion in response to my RFC was very enlightening. Based on
+that I decided on the following roadmap:
+
+1) Remove the sysfs code from the framework for the time being.
+
+It is not necessary for the first version. What I would like to do is to take
+another good look at the data structures and code to see if I can organize it
+in such a way that adding debugfs and/or sysfs in the future would be very
+easy to do. I also want to make sure that 'remap' functionality would be
+easy to add later. I strongly suspect that we will need that for certain
+corner cases as Andy described.
+
+2) Verify that uvc can work with this.
+
+The UVC driver can dynamically add new controls for UVC webcams. It should
+work with the framework but this needs to be verified. This will take some
+time since both Laurent and myself are busy for the next two weeks.
+
+3) If all is OK, then I can post a patch series for the basic framework.
+
+4) Once merged the work can begin on converting bridge and subdev drivers.
+
+5) Further discuss sysfs/debugfs support.
+
+Support for sysfs (and possibly debugfs) will depend on the event patches
+being merged (as that introduces struct v4l2_fh) and the proposed pre/post
+hooks in ioctl_ops. Pre/post hooks in turn depend on improve core support for
+v4l2_priority (which in turn depends on the struct v4l2_fh). It's all pretty
+trivial code, but it is needed to provide a 'fixed' control path that drivers
+can rely on. No matter whether the driver is approached via an ioctl, sysfs
+or debugfs, from the point of view of the driver it should all look like an
+ioctl. That way the driver doesn't have to deal with multiple points of entry.
+
+Regards,
+
+	Hans
 
 
 -- 
-Stefan Ringel <stefan.ringel@arcor.de>
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
