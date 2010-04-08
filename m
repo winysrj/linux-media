@@ -1,99 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2881 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754445Ab0DWJRA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Apr 2010 05:17:00 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Subject: Re: [PATCH 0/3] Driver for TI WL1273 FM radio.
-Date: Fri, 23 Apr 2010 11:16:55 +0200
-Cc: linux-media@vger.kernel.org, eduardo.valentin@nokia.com
-References: <1271776807-2710-1-git-send-email-matti.j.aaltonen@nokia.com>
-In-Reply-To: <1271776807-2710-1-git-send-email-matti.j.aaltonen@nokia.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Received: from mx1.redhat.com ([209.132.183.28]:20854 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933150Ab0DHThg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 8 Apr 2010 15:37:36 -0400
+Date: Thu, 8 Apr 2010 16:37:17 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: linux-input@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 5/8] V4L/DVB: ir-core: properly present the supported and
+ current protocols
+Message-ID: <20100408163717.7d193308@pedra>
+In-Reply-To: <cover.1270754989.git.mchehab@redhat.com>
+References: <cover.1270754989.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201004231116.55983.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 20 April 2010 17:20:04 Matti J. Aaltonen wrote:
-> Hi.
-> 
-> This is the initial version of my driver for Texas Instruments
-> WL1273 FM receiver transmitter. The driver is divided into three parts:
-> the MFD core which handles the communication with the chip and also
-> keeps the chip state, ASoC codec takes care of the digital audio part and
-> the V4L2 control part with some private IOCTLs.
-> 
-> This is my first up-streaming effort so all comments are welcome.
+Hardware decoders have a more limited set of decoders than software ones.
+In general, they support just one protocol at a given time, but allow
+changing between a few options.
 
-OK, I did a quick review and the main things that you need to look at are
-the RDS receiver API as defined in the spec
-(http://www.linuxtv.org/downloads/v4l-dvb-apis/ch04s11.html) and the FM and
-RDS transmitter controls:
-http://www.linuxtv.org/downloads/v4l-dvb-apis/ch01s09.html#fm-tx-controls.
+Rename the previous badly named "current_protocol" as just "protocol",
+meaning the current protocol(s) accepted by the driver, and
+add a "support_protocols" to represent the entire universe of supported
+protocols by that specific hardware.
 
-Any private controls that you think you need should be discussed first. We
-may need to standardize them.
+As commented on http://lwn.net/Articles/378884/, the "one file, one value"
+rule doesn't fit nor does make much sense for bitmap or enum values. So, the
+supported_protocols will enum all supported protocols, and the protocol
+will present all active protocols.
 
-The other thing you have to do in the V4L2 driver is to use struct v4l2_device.
-See also Documentation/video4linux/v4l2-framework.txt.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-I also noticed some FM and RDS things in the alsa driver. It is not clear to
-me why these are there since this is pretty much V4L2 specific.
-
-Regarding hardcoding regions: isn't this more for the application? Are there
-any legal requirements for region handling?
-
-Most radio tuners just accept the whole frequency range that they support and
-leave it to the application to restrict it if needed depending on the region.
-
-Those disabled controls like bass, treble etc. should be removed. Workarounds
-for plainly broken applications is not something we want in our drivers.
-Instead make a patch for that app and send it to the maintainer. If it is
-unmaintained, then let us know: we can move unmaintained but frequently used
-apps to our own repository.
-
-Regards,
-
-	Hans
-
-> 
-> Cheers,
-> Matti
-> 
-> Matti J. Aaltonen (3):
->   MFD: WL1273 FM Radio: MFD driver for the FM radio.
->   ASoC: WL1273 FM Radio: Digital audio codec.
->   V4L2: WL1273 FM Radio: Controls for the FM radio.
-> 
->  drivers/media/radio/Kconfig        |   15 +
->  drivers/media/radio/Makefile       |    1 +
->  drivers/media/radio/radio-wl1273.c |  805 ++++++++++++++++
->  drivers/mfd/Kconfig                |    6 +
->  drivers/mfd/Makefile               |    2 +
->  drivers/mfd/wl1273-core.c          | 1825 ++++++++++++++++++++++++++++++++++++
->  include/linux/mfd/wl1273-core.h    |  265 ++++++
->  sound/soc/codecs/Kconfig           |    6 +
->  sound/soc/codecs/Makefile          |    2 +
->  sound/soc/codecs/wl1273.c          |  708 ++++++++++++++
->  sound/soc/codecs/wl1273.h          |   49 +
->  11 files changed, 3684 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/radio/radio-wl1273.c
->  create mode 100644 drivers/mfd/wl1273-core.c
->  create mode 100644 include/linux/mfd/wl1273-core.h
->  create mode 100644 sound/soc/codecs/wl1273.c
->  create mode 100644 sound/soc/codecs/wl1273.h
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-
+diff --git a/drivers/media/IR/ir-sysfs.c b/drivers/media/IR/ir-sysfs.c
+index efde912..9d132d0 100644
+--- a/drivers/media/IR/ir-sysfs.c
++++ b/drivers/media/IR/ir-sysfs.c
+@@ -55,13 +55,13 @@ static ssize_t show_protocol(struct device *d,
+ 	if (ir_type == IR_TYPE_UNKNOWN)
+ 		s = "Unknown";
+ 	else if (ir_type == IR_TYPE_RC5)
+-		s = "RC-5";
++		s = "rc-5";
+ 	else if (ir_type == IR_TYPE_PD)
+-		s = "Pulse/distance";
++		s = "pulse-distance";
+ 	else if (ir_type == IR_TYPE_NEC)
+-		s = "NEC";
++		s = "nec";
+ 	else
+-		s = "Other";
++		s = "other";
+ 
+ 	return sprintf(buf, "%s\n", s);
+ }
+@@ -85,23 +85,22 @@ static ssize_t store_protocol(struct device *d,
+ 			      size_t len)
+ {
+ 	struct ir_input_dev *ir_dev = dev_get_drvdata(d);
+-	u64 ir_type = IR_TYPE_UNKNOWN;
++	u64 ir_type = 0;
+ 	int rc = -EINVAL;
+ 	unsigned long flags;
+ 	char *buf;
+ 
+-	buf = strsep((char **) &data, "\n");
++	while (buf = strsep((char **) &data, " \n")) {
++		if (!strcasecmp(buf, "rc-5") || !strcasecmp(buf, "rc5"))
++			ir_type |= IR_TYPE_RC5;
++		if (!strcasecmp(buf, "pd") || !strcasecmp(buf, "pulse-distance"))
++			ir_type |= IR_TYPE_PD;
++		if (!strcasecmp(buf, "nec"))
++			ir_type |= IR_TYPE_NEC;
++	}
+ 
+-	if (!strcasecmp(buf, "rc-5") || !strcasecmp(buf, "rc5"))
+-		ir_type = IR_TYPE_RC5;
+-	else if (!strcasecmp(buf, "pd"))
+-		ir_type = IR_TYPE_PD;
+-	else if (!strcasecmp(buf, "nec"))
+-		ir_type = IR_TYPE_NEC;
+-
+-	if (ir_type == IR_TYPE_UNKNOWN) {
+-		IR_dprintk(1, "Error setting protocol to %lld\n",
+-			   (long long)ir_type);
++	if (!ir_type) {
++		IR_dprintk(1, "Unknown protocol\n");
+ 		return -EINVAL;
+ 	}
+ 
+@@ -119,12 +118,34 @@ static ssize_t store_protocol(struct device *d,
+ 	ir_dev->rc_tab.ir_type = ir_type;
+ 	spin_unlock_irqrestore(&ir_dev->rc_tab.lock, flags);
+ 
+-	IR_dprintk(1, "Current protocol is %lld\n",
++	IR_dprintk(1, "Current protocol(s) is(are) %lld\n",
+ 		   (long long)ir_type);
+ 
+ 	return len;
+ }
+ 
++static ssize_t show_supported_protocols(struct device *d,
++			     struct device_attribute *mattr, char *buf)
++{
++	char *orgbuf = buf;
++	struct ir_input_dev *ir_dev = dev_get_drvdata(d);
++
++	/* FIXME: doesn't support multiple protocols at the same time */
++	if (ir_dev->props->allowed_protos == IR_TYPE_UNKNOWN)
++		buf += sprintf(buf, "unknown ");
++	if (ir_dev->props->allowed_protos & IR_TYPE_RC5)
++		buf += sprintf(buf, "rc-5 ");
++	if (ir_dev->props->allowed_protos & IR_TYPE_PD)
++		buf += sprintf(buf, "pulse-distance ");
++	if (ir_dev->props->allowed_protos & IR_TYPE_NEC)
++		buf += sprintf(buf, "nec ");
++	if (buf == orgbuf)
++		buf += sprintf(buf, "other ");
++
++	buf += sprintf(buf - 1, "\n");
++
++	return buf - orgbuf;
++}
+ 
+ #define ADD_HOTPLUG_VAR(fmt, val...)					\
+ 	do {								\
+@@ -148,11 +169,15 @@ static int ir_dev_uevent(struct device *device, struct kobj_uevent_env *env)
+ /*
+  * Static device attribute struct with the sysfs attributes for IR's
+  */
+-static DEVICE_ATTR(current_protocol, S_IRUGO | S_IWUSR,
++static DEVICE_ATTR(protocol, S_IRUGO | S_IWUSR,
+ 		   show_protocol, store_protocol);
+ 
++static DEVICE_ATTR(supported_protocols, S_IRUGO | S_IWUSR,
++		   show_supported_protocols, NULL);
++
+ static struct attribute *ir_hw_dev_attrs[] = {
+-	&dev_attr_current_protocol.attr,
++	&dev_attr_protocol.attr,
++	&dev_attr_supported_protocols.attr,
+ 	NULL,
+ };
+ 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+1.6.6.1
+
+
