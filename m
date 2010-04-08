@@ -1,205 +1,366 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from queue01.mail.zen.net.uk ([212.23.3.234]:44600 "EHLO
-	fizeau.zen.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756341Ab0DPI5o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Apr 2010 04:57:44 -0400
-Received: from [212.23.3.141] (helo=smarthost02.mail.zen.net.uk)
-	by fizeau.zen.co.uk with esmtp (Exim 4.63)
-	(envelope-from <paul@whitelands.org.uk>)
-	id 1O2h4K-0004We-J2
-	for linux-media@vger.kernel.org; Fri, 16 Apr 2010 08:38:32 +0000
-Received: from [217.155.39.57] (helo=proxyplus.universe)
-	by smarthost02.mail.zen.net.uk with esmtp (Exim 4.63)
-	(envelope-from <paul@whitelands.org.uk>)
-	id 1O2h3B-0004XS-MU
-	for linux-media@vger.kernel.org; Fri, 16 Apr 2010 08:37:22 +0000
-Received: from 127.0.0.1 [127.0.0.1]
-	by Proxy+ with ESMTP
-	for <linux-media@vger.kernel.org>; Fri, 16 Apr 2010 09:36:42 +0100
-Message-ID: <4BC8219A.6060604@whitelands.org.uk>
-Date: Fri, 16 Apr 2010 09:36:42 +0100
-From: Paul Shepherd <paul@whitelands.org.uk>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Fwd: Tevii S660 USB card and dw2102 module generating RC messages
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mx1.redhat.com ([209.132.183.28]:43402 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757316Ab0DHTha (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 8 Apr 2010 15:37:30 -0400
+Date: Thu, 8 Apr 2010 16:37:16 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: linux-input@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 8/8] V4L/DVB: ir-core: move subsystem internal calls to
+ ir-core-priv.h
+Message-ID: <20100408163716.70862743@pedra>
+In-Reply-To: <cover.1270754989.git.mchehab@redhat.com>
+References: <cover.1270754989.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+ir-core.h has the kABI to be used by the bridge drivers, when needing to register
+IR protocols and pass IR events. However, the same file also contains IR subsystem
+internal calls, meant to be used inside ir-core and between ir-core and the raw
+decoders.
 
-I have a Tevii S660 (a usb dvb-s2 device) which is causing a problem.
+Better to move those functions to an internal header, for some reasons:
 
-After the S660 is attached to a USB 2 socket, the firmware is d/l and
-everything looks fine but then there are continual RC (check/debug?)
-messages every 150 ms, then some time later everything goes pear shaped:
+1) Header will be a little more cleaner;
 
-> Apr  9 22:15:49 antec300 kernel: [   16.801141] EXT3 FS on sdd1, internal journal
-> Apr  9 22:15:49 antec300 kernel: [   16.801144] EXT3-fs: mounted filesystem with writeback data mode.
-> Apr  9 22:15:49 antec300 kernel: [   17.490262] hda-intel: Codec #3 probe error; disabling it...
-> Apr  9 22:15:50 antec300 kernel: [   17.568264] hda_codec: Unknown model for ALC889, trying auto-probe from BIOS...
-> Apr  9 22:15:50 antec300 kernel: [   17.568513] input: HDA Digital PCBeep as /devices/pci0000:00/0000:00:1b.0/input/input6
-> Apr  9 22:15:55 antec300 kernel: [   22.697708] __ratelimit: 24 callbacks suppressed
-> Apr  9 22:15:55 antec300 kernel: [   22.697711] type=1503 audit(1270847755.406:33): operation="open" pid=2328 parent=1870 profile="/usr/sbin/mysqld" requested_mask="::r" denied_mask="::r" fsuid=119 ouid=0 name="/sys/devices/system/cpu/"
-> .
-> # plug the S660 in ...
-> .
-> Apr  9 22:24:52 antec300 kernel: [  559.078860] usb 1-1: new high speed USB device using ehci_hcd and address 7
-> Apr  9 22:24:52 antec300 kernel: [  559.211222] usb 1-1: configuration #1 chosen from 1 choice
-> Apr  9 22:24:52 antec300 kernel: [  559.211390] dvb-usb: found a 'TeVii S660 USB' in cold state, will try to load a firmware
-> Apr  9 22:24:52 antec300 kernel: [  559.211396] usb 1-1: firmware: requesting dvb-usb-teviis660.fw
-> Apr  9 22:24:52 antec300 kernel: [  559.224426] dvb-usb: downloading firmware from file 'dvb-usb-teviis660.fw'
-> Apr  9 22:24:52 antec300 kernel: [  559.224431] dw2102: start downloading DW210X firmware
-> Apr  9 22:24:52 antec300 kernel: [  559.342492] dvb-usb: found a 'TeVii S660 USB' in warm state.
-> Apr  9 22:24:52 antec300 kernel: [  559.342561] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-> Apr  9 22:24:52 antec300 kernel: [  559.346560] DVB: registering new adapter (TeVii S660 USB)
-> Apr  9 22:24:58 antec300 kernel: [  565.369380] dvb-usb: MAC address: d0:d0:d0:d0:d0:d0
-> Apr  9 22:24:58 antec300 kernel: [  565.394061] Only Zarlink VP310/MT312/ZL10313 are supported chips.
-> Apr  9 22:24:59 antec300 kernel: [  565.665303] input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1a.7/usb1/1-1/input/input11
-> Apr  9 22:24:59 antec300 kernel: [  565.665361] dvb-usb: schedule remote query interval to 150 msecs.
-> Apr  9 22:24:59 antec300 kernel: [  565.665366] dvb-usb: TeVii S660 USB successfully initialized and connected.
-> Apr  9 22:24:59 antec300 kernel: [  565.665817] usb 1-1: USB disconnect, address 7
-> Apr  9 22:24:59 antec300 kernel: [  565.693209] dvb-usb: TeVii S660 USB successfully deinitialized and disconnected.
-> Apr  9 22:24:59 antec300 kernel: [  565.932522] usb 1-1: new high speed USB device using ehci_hcd and address 8
-> Apr  9 22:24:59 antec300 kernel: [  566.064970] usb 1-1: config 1 interface 0 altsetting 0 bulk endpoint 0x81 has invalid maxpacket 2
-> Apr  9 22:24:59 antec300 kernel: [  566.065590] usb 1-1: configuration #1 chosen from 1 choice
-> Apr  9 22:24:59 antec300 kernel: [  566.066164] dvb-usb: found a 'TeVii S660 USB' in cold state, will try to load a firmware
-> Apr  9 22:24:59 antec300 kernel: [  566.066171] usb 1-1: firmware: requesting dvb-usb-teviis660.fw
-> Apr  9 22:24:59 antec300 kernel: [  566.072788] dvb-usb: downloading firmware from file 'dvb-usb-teviis660.fw'
-> Apr  9 22:24:59 antec300 kernel: [  566.072792] dw2102: start downloading DW210X firmware
-> Apr  9 22:24:59 antec300 kernel: [  566.192150] dvb-usb: found a 'TeVii S660 USB' in warm state.
-> Apr  9 22:24:59 antec300 kernel: [  566.192213] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-> Apr  9 22:24:59 antec300 kernel: [  566.192644] DVB: registering new adapter (TeVii S660 USB)
-> Apr  9 22:25:03 antec300 kernel: [  570.298170] dvb-usb: MAC address: 00:18:bd:5c:60:b0
-> Apr  9 22:25:03 antec300 kernel: [  570.314148] Only Zarlink VP310/MT312/ZL10313 are supported chips.
-> Apr  9 22:25:04 antec300 kernel: [  570.589497] DS3000 chip version: 0.192 attached.
-> Apr  9 22:25:04 antec300 kernel: [  570.589501] dw2102: Attached ds3000+ds2020!
-> Apr  9 22:25:04 antec300 kernel: [  570.589503]
-> Apr  9 22:25:04 antec300 kernel: [  570.589707] DVB: registering adapter 1 frontend 0 (Montage Technology DS3000/TS2020)...
-> Apr  9 22:25:04 antec300 kernel: [  570.590909] input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1a.7/usb1/1-1/input/input12
-> Apr  9 22:25:04 antec300 kernel: [  570.590965] dvb-usb: schedule remote query interval to 150 msecs.
-> Apr  9 22:25:04 antec300 kernel: [  570.590971] dvb-usb: TeVii S660 USB successfully initialized and connected.
-> Apr  9 22:25:04 antec300 kernel: [  570.741992] dw2102: query RC enter
-> Apr  9 22:25:04 antec300 kernel: [  570.741996] dw2102: query RC start
-> Apr  9 22:25:04 antec300 kernel: [  570.761941] dw2102: query RC end
-> Apr  9 22:25:04 antec300 kernel: [  570.912988] dw2102: query RC enter
-> Apr  9 22:25:04 antec300 kernel: [  570.912993] dw2102: query RC start
-> Apr  9 22:25:04 antec300 kernel: [  570.920950] dw2102: query RC end
-> Apr  9 22:25:04 antec300 kernel: [  571.072756] dw2102: query RC enter
-> Apr  9 22:25:04 antec300 kernel: [  571.072761] dw2102: query RC start
-> Apr  9 22:25:04 antec300 kernel: [  571.080742] dw2102: query RC end
-> Apr  9 22:25:04 antec300 kernel: [  571.232512] dw2102: query RC enter
-> Apr  9 22:25:04 antec300 kernel: [  571.232517] dw2102: query RC start
-> Apr  9 22:25:04 antec300 kernel: [  571.240503] dw2102: query RC end
-> Apr  9 22:25:04 antec300 kernel: [  571.393004] dw2102: query RC enter
-> Apr  9 22:25:04 antec300 kernel: [  571.393009] dw2102: query RC start
-> Apr  9 22:25:04 antec300 kernel: [  571.400998] dw2102: query RC end
-> Apr  9 22:25:05 antec300 kernel: [  571.552774] dw2102: query RC enter
-> Apr  9 22:25:05 antec300 kernel: [  571.552778] dw2102: query RC start
-> Apr  9 22:25:05 antec300 kernel: [  571.560764] dw2102: query RC end
-> Apr  9 22:25:05 antec300 kernel: [  571.711791] dw2102: query RC enter
-> Apr  9 22:25:05 antec300 kernel: [  571.711796] dw2102: query RC start
-> Apr  9 22:25:05 antec300 kernel: [  571.719776] dw2102: query RC end
-> Apr  9 22:25:05 antec300 kernel: [  571.871529] dw2102: query RC enter
-> Apr  9 22:25:05 antec300 kernel: [  571.871535] dw2102: query RC start
-> Apr  9 22:25:05 antec300 kernel: [  571.879506] dw2102: query RC end
-> Apr  9 22:25:05 antec300 kernel: [  572.031296] dw2102: query RC enter
-> Apr  9 22:25:05 antec300 kernel: [  572.031301] dw2102: query RC start
-> Apr  9 22:25:05 antec300 kernel: [  572.039283] dw2102: query RC end
-> Apr  9 22:25:05 antec300 kernel: [  572.191370] dw2102: query RC enter
-> Apr  9 22:25:05 antec300 kernel: [  572.191374] dw2102: query RC start
-> Apr  9 22:25:05 antec300 kernel: [  572.199064] dw2102: query RC end
-> Apr  9 22:25:05 antec300 kernel: [  572.351564] dw2102: query RC enter
-> Apr  9 22:25:05 antec300 kernel: [  572.351569] dw2102: query RC start
-> Apr  9 22:25:05 antec300 kernel: [  572.359550] dw2102: query RC end
-> Apr  9 22:25:06 antec300 kernel: [  572.510583] dw2102: query RC enter
-> Apr  9 22:25:06 antec300 kernel: [  572.510587] dw2102: query RC start
-> Apr  9 22:25:06 antec300 kernel: [  572.518557] dw2102: query RC end
-> Apr  9 22:25:06 antec300 kernel: [  572.670334] dw2102: query RC enter
-> Apr  9 22:25:06 antec300 kernel: [  572.670339] dw2102: query RC start
-> Apr  9 22:25:06 antec300 kernel: [  572.679070] dw2102: query RC end
-> Apr  9 22:25:06 antec300 kernel: [  572.830080] dw2102: query RC enter
-> Apr  9 22:25:06 antec300 kernel: [  572.830084] dw2102: query RC start
-> Apr  9 22:25:06 antec300 kernel: [  572.838076] dw2102: query RC end
-> .
-> # 15 hrs later ...
-> .
-> Apr 10 13:01:27 antec300 kernel: [53074.896764] dw2102: query RC enter
-> Apr 10 13:01:27 antec300 kernel: [53074.896768] dw2102: query RC start
-> Apr 10 13:01:27 antec300 kernel: [53074.904732] dw2102: query RC end
-> Apr 10 13:01:27 antec300 kernel: [53075.055779] dw2102: query RC enter
-> Apr 10 13:01:27 antec300 kernel: [53075.055784] dw2102: query RC start
-> Apr 10 13:01:27 antec300 kernel: [53075.064511] dw2102: query RC end
-> Apr 10 13:01:27 antec300 kernel: [53075.215544] dw2102: query RC enter
-> Apr 10 13:01:27 antec300 kernel: [53075.215550] dw2102: query RC start
-> Apr 10 13:01:27 antec300 kernel: [53075.224272] dw2102: query RC end
-> Apr 10 13:01:27 antec300 kernel: [53075.375283] dw2102: query RC enter
-> Apr 10 13:01:27 antec300 kernel: [53075.375288] dw2102: query RC start
-> Apr 10 13:01:27 antec300 kernel: [53075.400123] usb 1-1: USB disconnect, address 8
-> Apr 10 13:01:27 antec300 kernel: [53075.407986] dw2102: dw2102_rc_query: unknown rc key: f7, ec
-> Apr 10 13:01:27 antec300 kernel: [53075.407988]
-> Apr 10 13:01:27 antec300 kernel: [53075.407990] dw2102: query RC end
-> Apr 10 13:03:33 antec300 kernel: [53200.638775] khubd         D c08185c0     0    40      2 0x00000000
-> Apr 10 13:03:33 antec300 kernel: [53200.638782]  f71a9da8 00000046 f7193ed0 c08185c0 f7194168 c08185c0 96b72f6a 00003045
-> Apr 10 13:03:33 antec300 kernel: [53200.638792]  c08185c0 c08185c0 f7194168 c08185c0 96b724c4 00003045 c08185c0 f6b19880
-> Apr 10 13:03:33 antec300 kernel: [53200.638800]  f7193ed0 f1ed7000 f71a9db8 f1f867f4 f71a9dd4 f822b50d f71a9dbc c03a4552
-> Apr 10 13:03:33 antec300 kernel: [53200.638809] Call Trace:
-> Apr 10 13:03:33 antec300 kernel: [53200.638836]  [<f822b50d>] dvb_unregister_frontend+0x9d/0xe0 [dvb_core]
-> Apr 10 13:03:33 antec300 kernel: [53200.638845]  [<c03a4552>] ? device_unregister+0x12/0x20
-> Apr 10 13:03:33 antec300 kernel: [53200.638852]  [<c015c180>] ? autoremove_wake_function+0x0/0x40
-> Apr 10 13:03:33 antec300 kernel: [53200.638862]  [<f8145095>] dvb_usb_adapter_frontend_exit+0x15/0x30 [dvb_usb]
-> Apr 10 13:03:33 antec300 kernel: [53200.638870]  [<f8144485>] dvb_usb_exit+0x45/0xf0 [dvb_usb]
-> Apr 10 13:03:33 antec300 kernel: [53200.638876]  [<c0572da4>] ? mutex_lock+0x14/0x40
-> Apr 10 13:03:33 antec300 kernel: [53200.638883]  [<f814455d>] dvb_usb_device_exit+0x2d/0x50 [dvb_usb]
-> Apr 10 13:03:33 antec300 kernel: [53200.638892]  [<c0418ab9>] usb_unbind_interface+0xe9/0x120
-> Apr 10 13:03:33 antec300 kernel: [53200.638897]  [<c03a691e>] __device_release_driver+0x3e/0x90
-> Apr 10 13:03:33 antec300 kernel: [53200.638902]  [<c03a6a30>] device_release_driver+0x20/0x40
-> Apr 10 13:03:33 antec300 kernel: [53200.638908]  [<c03a5d73>] bus_remove_device+0x73/0x90
-> Apr 10 13:03:33 antec300 kernel: [53200.638912]  [<c03a44df>] device_del+0xef/0x150
-> Apr 10 13:03:33 antec300 kernel: [53200.638917]  [<c041596d>] usb_disable_device+0x7d/0xf0
-> Apr 10 13:03:33 antec300 kernel: [53200.638922]  [<c04105be>] usb_disconnect+0x9e/0x110
-> Apr 10 13:03:33 antec300 kernel: [53200.638927]  [<c0410973>] hub_port_connect_change+0x83/0x830
-> Apr 10 13:03:33 antec300 kernel: [53200.638932]  [<c0416640>] ? usb_control_msg+0xd0/0x120
-> Apr 10 13:03:33 antec300 kernel: [53200.638937]  [<c040e7bb>] ? clear_port_feature+0x4b/0x60
-> Apr 10 13:03:33 antec300 kernel: [53200.638942]  [<c04121d5>] hub_events+0x1f5/0x500
-> Apr 10 13:03:33 antec300 kernel: [53200.638946]  [<c057209c>] ? schedule+0x40c/0x730
-> Apr 10 13:03:33 antec300 kernel: [53200.638952]  [<c015c2da>] ? finish_wait+0x4a/0x70
-> Apr 10 13:03:33 antec300 kernel: [53200.638956]  [<c04124e0>] ? hub_thread+0x0/0x150
-> Apr 10 13:03:33 antec300 kernel: [53200.638960]  [<c0412515>] hub_thread+0x35/0x150
-> Apr 10 13:03:33 antec300 kernel: [53200.638965]  [<c015c180>] ? autoremove_wake_function+0x0/0x40
-> Apr 10 13:03:33 antec300 kernel: [53200.638970]  [<c015be8c>] kthread+0x7c/0x90
-> Apr 10 13:03:33 antec300 kernel: [53200.638975]  [<c015be10>] ? kthread+0x0/0x90
-> Apr 10 13:03:33 antec300 kernel: [53200.638981]  [<c0104047>] kernel_thread_helper+0x7/0x10
+2) It avoids the need of recompile everything (bridge/hardware drivers, etc),
+   just because a new decoder were added, or some other internal change were needed;
 
-Tevii say the h/w is ok as it works with a Windows box with their
-myTevii application.  It does work while the RC messages are occurring,
-I can watch and record SD+HD content in mythtv until the crash.
+3) Better organize the ir-core API, splitting the functions that are internal to
+   IR core and the ancillary drivers (decoders, lirc_dev) from the features that
+   should be exported to IR subsystem clients.
 
-I have tried the latest tevii beta s/w (v4l and .fw files) and also the
-v4l-dvb drivers from linuxtv dated 6 april - the same result each time.
-  I can see in the dw2102.c where 150ms is defined and this seems the
-same as other devices in the code.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Google indicates others have seen similar problems but it's not clear
-what the solution is.
+ create mode 100644 drivers/media/IR/ir-core-priv.h
 
-Three questions:
-
-1) are the RC messages caused by a h/w or s/w issue?
-
-2) if it's s/w what do I need to do?
-
-3) is the subsequent khubd crash related and how do I fix that?
-
-I have a nova dvb-t usb box connected and that works fine - I assume
-there's no interaction.
-
-I am running Ubuntu 9.10 with the following kernel:
-
-Linux antec300.home.org 2.6.31-20-generic #57-Ubuntu SMP Mon Feb 8
-09:05:19 UTC 2010 i686 GNU/Linux
-
-thanks for any suggestions, paul
-
+diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
+new file mode 100644
+index 0000000..ab785bc
+--- /dev/null
++++ b/drivers/media/IR/ir-core-priv.h
+@@ -0,0 +1,112 @@
++/*
++ * Remote Controller core raw events header
++ *
++ * Copyright (C) 2010 by Mauro Carvalho Chehab <mchehab@redhat.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation version 2 of the License.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ */
++
++#ifndef _IR_RAW_EVENT
++#define _IR_RAW_EVENT
++
++#include <media/ir-core.h>
++
++struct ir_raw_handler {
++	struct list_head list;
++
++	int (*decode)(struct input_dev *input_dev, s64 duration);
++	int (*raw_register)(struct input_dev *input_dev);
++	int (*raw_unregister)(struct input_dev *input_dev);
++};
++
++struct ir_raw_event_ctrl {
++	struct work_struct		rx_work;	/* for the rx decoding workqueue */
++	struct kfifo			kfifo;		/* fifo for the pulse/space durations */
++	ktime_t				last_event;	/* when last event occurred */
++	enum raw_event_type		last_type;	/* last event type */
++	struct input_dev		*input_dev;	/* pointer to the parent input_dev */
++};
++
++/* macros for IR decoders */
++#define PULSE(units)				((units))
++#define SPACE(units)				(-(units))
++#define IS_RESET(duration)			((duration) == 0)
++#define IS_PULSE(duration)			((duration) > 0)
++#define IS_SPACE(duration)			((duration) < 0)
++#define DURATION(duration)			(abs((duration)))
++#define IS_TRANSITION(x, y)			((x) * (y) < 0)
++#define DECREASE_DURATION(duration, amount)			\
++	do {							\
++		if (IS_SPACE(duration))				\
++			duration += (amount);			\
++		else if (IS_PULSE(duration))			\
++			duration -= (amount);			\
++	} while (0)
++
++#define TO_UNITS(duration, unit_len)				\
++	((int)((duration) > 0 ?					\
++		DIV_ROUND_CLOSEST(abs((duration)), (unit_len)) :\
++		-DIV_ROUND_CLOSEST(abs((duration)), (unit_len))))
++#define TO_US(duration)		((int)TO_UNITS(duration, 1000))
++
++/*
++ * Routines from ir-keytable.c to be used internally on ir-core and decoders
++ */
++
++u32 ir_g_keycode_from_table(struct input_dev *input_dev,
++			    u32 scancode);
++void ir_repeat(struct input_dev *dev);
++void ir_keydown(struct input_dev *dev, int scancode, u8 toggle);
++
++/*
++ * Routines from ir-sysfs.c - Meant to be called only internally inside
++ * ir-core
++ */
++
++int ir_register_class(struct input_dev *input_dev);
++void ir_unregister_class(struct input_dev *input_dev);
++
++/*
++ * Routines from ir-raw-event.c to be used internally and by decoders
++ */
++int ir_raw_event_register(struct input_dev *input_dev);
++void ir_raw_event_unregister(struct input_dev *input_dev);
++static inline void ir_raw_event_reset(struct input_dev *input_dev)
++{
++	ir_raw_event_store(input_dev, 0);
++	ir_raw_event_handle(input_dev);
++}
++int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler);
++void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler);
++void ir_raw_init(void);
++
++
++/*
++ * Decoder initialization code
++ *
++ * Those load logic are called during ir-core init, and automatically
++ * loads the compiled decoders for their usage with IR raw events
++ */
++
++/* from ir-nec-decoder.c */
++#ifdef CONFIG_IR_NEC_DECODER_MODULE
++#define load_nec_decode()	request_module("ir-nec-decoder")
++#else
++#define load_nec_decode()	0
++#endif
++
++/* from ir-rc5-decoder.c */
++#ifdef CONFIG_IR_RC5_DECODER_MODULE
++#define load_rc5_decode()	request_module("ir-rc5-decoder")
++#else
++#define load_rc5_decode()	0
++#endif
++
++#endif /* _IR_RAW_EVENT */
+diff --git a/drivers/media/IR/ir-functions.c b/drivers/media/IR/ir-functions.c
+index ab06919..db591e4 100644
+--- a/drivers/media/IR/ir-functions.c
++++ b/drivers/media/IR/ir-functions.c
+@@ -24,6 +24,7 @@
+ #include <linux/string.h>
+ #include <linux/jiffies.h>
+ #include <media/ir-common.h>
++#include "ir-core-priv.h"
+ 
+ /* -------------------------------------------------------------------------- */
+ 
+diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
+index 67b2aa1..01bddc4 100644
+--- a/drivers/media/IR/ir-keytable.c
++++ b/drivers/media/IR/ir-keytable.c
+@@ -14,7 +14,7 @@
+ 
+ 
+ #include <linux/input.h>
+-#include <media/ir-common.h>
++#include "ir-core-priv.h"
+ 
+ /* Sizes are in bytes, 256 bytes allows for 32 entries on x64 */
+ #define IR_TAB_MIN_SIZE	256
+diff --git a/drivers/media/IR/ir-nec-decoder.c b/drivers/media/IR/ir-nec-decoder.c
+index 5085f90..f22d1af 100644
+--- a/drivers/media/IR/ir-nec-decoder.c
++++ b/drivers/media/IR/ir-nec-decoder.c
+@@ -12,8 +12,8 @@
+  *  GNU General Public License for more details.
+  */
+ 
+-#include <media/ir-core.h>
+ #include <linux/bitrev.h>
++#include "ir-core-priv.h"
+ 
+ #define NEC_NBITS		32
+ #define NEC_UNIT		562500  /* ns */
+diff --git a/drivers/media/IR/ir-raw-event.c b/drivers/media/IR/ir-raw-event.c
+index 3a25d8d..2efc051 100644
+--- a/drivers/media/IR/ir-raw-event.c
++++ b/drivers/media/IR/ir-raw-event.c
+@@ -12,10 +12,10 @@
+  *  GNU General Public License for more details.
+  */
+ 
+-#include <media/ir-core.h>
+ #include <linux/workqueue.h>
+ #include <linux/spinlock.h>
+ #include <linux/sched.h>
++#include "ir-core-priv.h"
+ 
+ /* Define the max number of pulse/space transitions to buffer */
+ #define MAX_IR_EVENT_SIZE      512
+diff --git a/drivers/media/IR/ir-rc5-decoder.c b/drivers/media/IR/ir-rc5-decoder.c
+index d6def8c..59bcaa9 100644
+--- a/drivers/media/IR/ir-rc5-decoder.c
++++ b/drivers/media/IR/ir-rc5-decoder.c
+@@ -19,7 +19,7 @@
+  * the first two bits are start bits, and a third one is a filing bit
+  */
+ 
+-#include <media/ir-core.h>
++#include "ir-core-priv.h"
+ 
+ #define RC5_NBITS		14
+ #define RC5_UNIT		888888 /* ns */
+diff --git a/drivers/media/IR/ir-sysfs.c b/drivers/media/IR/ir-sysfs.c
+index 17d4341..a222d4f 100644
+--- a/drivers/media/IR/ir-sysfs.c
++++ b/drivers/media/IR/ir-sysfs.c
+@@ -14,7 +14,7 @@
+ 
+ #include <linux/input.h>
+ #include <linux/device.h>
+-#include <media/ir-core.h>
++#include "ir-core-priv.h"
+ 
+ #define IRRCV_NUM_DEVICES	256
+ 
+diff --git a/include/media/ir-core.h b/include/media/ir-core.h
+index e9a0cbf..40b6250 100644
+--- a/include/media/ir-core.h
++++ b/include/media/ir-core.h
+@@ -31,13 +31,6 @@ enum rc_driver_type {
+ 	RC_DRIVER_IR_RAW,	/* Needs a Infra-Red pulse/space decoder */
+ };
+ 
+-enum raw_event_type {
+-	IR_SPACE	= (1 << 0),
+-	IR_PULSE	= (1 << 1),
+-	IR_START_EVENT	= (1 << 2),
+-	IR_STOP_EVENT	= (1 << 3),
+-};
+-
+ /**
+  * struct ir_dev_props - Allow caller drivers to set special properties
+  * @driver_type: specifies if the driver or hardware have already a decoder,
+@@ -65,14 +58,6 @@ struct ir_dev_props {
+ 	void			(*close)(void *priv);
+ };
+ 
+-struct ir_raw_event_ctrl {
+-	struct work_struct		rx_work;	/* for the rx decoding workqueue */
+-	struct kfifo			kfifo;		/* fifo for the pulse/space durations */
+-	ktime_t				last_event;	/* when last event occurred */
+-	enum raw_event_type		last_type;	/* last event type */
+-	struct input_dev		*input_dev;	/* pointer to the parent input_dev */
+-};
+-
+ struct ir_input_dev {
+ 	struct device			dev;		/* device */
+ 	char				*driver_name;	/* Name of the driver module */
+@@ -92,22 +77,16 @@ struct ir_input_dev {
+ 	u8				last_toggle;	/* toggle of last command */
+ };
+ 
+-struct ir_raw_handler {
+-	struct list_head list;
+-
+-	int (*decode)(struct input_dev *input_dev, s64 duration);
+-	int (*raw_register)(struct input_dev *input_dev);
+-	int (*raw_unregister)(struct input_dev *input_dev);
++enum raw_event_type {
++	IR_SPACE        = (1 << 0),
++	IR_PULSE        = (1 << 1),
++	IR_START_EVENT  = (1 << 2),
++	IR_STOP_EVENT   = (1 << 3),
+ };
+ 
+ #define to_ir_input_dev(_attr) container_of(_attr, struct ir_input_dev, attr)
+ 
+-/* Routines from ir-keytable.c */
+-
+-u32 ir_g_keycode_from_table(struct input_dev *input_dev,
+-			    u32 scancode);
+-void ir_repeat(struct input_dev *dev);
+-void ir_keydown(struct input_dev *dev, int scancode, u8 toggle);
++/* From ir-keytable.c */
+ int __ir_input_register(struct input_dev *dev,
+ 		      const struct ir_scancode_table *ir_codes,
+ 		      const struct ir_dev_props *props,
+@@ -143,60 +122,11 @@ static inline int ir_input_register(struct input_dev *dev,
+ 
+ void ir_input_unregister(struct input_dev *input_dev);
+ 
+-/* Routines from ir-sysfs.c */
++/* From ir-raw-event.c */
+ 
+-int ir_register_class(struct input_dev *input_dev);
+-void ir_unregister_class(struct input_dev *input_dev);
+-
+-/* Routines from ir-raw-event.c */
+-int ir_raw_event_register(struct input_dev *input_dev);
+-void ir_raw_event_unregister(struct input_dev *input_dev);
+ void ir_raw_event_handle(struct input_dev *input_dev);
+ int ir_raw_event_store(struct input_dev *input_dev, s64 duration);
+ int ir_raw_event_store_edge(struct input_dev *input_dev, enum raw_event_type type);
+-static inline void ir_raw_event_reset(struct input_dev *input_dev)
+-{
+-	ir_raw_event_store(input_dev, 0);
+-	ir_raw_event_handle(input_dev);
+-}
+-int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler);
+-void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler);
+-void ir_raw_init(void);
+ 
+-/* from ir-nec-decoder.c */
+-#ifdef CONFIG_IR_NEC_DECODER_MODULE
+-#define load_nec_decode()	request_module("ir-nec-decoder")
+-#else
+-#define load_nec_decode()	0
+-#endif
+-
+-/* from ir-rc5-decoder.c */
+-#ifdef CONFIG_IR_RC5_DECODER_MODULE
+-#define load_rc5_decode()	request_module("ir-rc5-decoder")
+-#else
+-#define load_rc5_decode()	0
+-#endif
+-
+-/* macros for ir decoders */
+-#define PULSE(units)				((units))
+-#define SPACE(units)				(-(units))
+-#define IS_RESET(duration)			((duration) == 0)
+-#define IS_PULSE(duration)			((duration) > 0)
+-#define IS_SPACE(duration)			((duration) < 0)
+-#define DURATION(duration)			(abs((duration)))
+-#define IS_TRANSITION(x, y)			((x) * (y) < 0)
+-#define DECREASE_DURATION(duration, amount)			\
+-	do {							\
+-		if (IS_SPACE(duration))				\
+-			duration += (amount);			\
+-		else if (IS_PULSE(duration))			\
+-			duration -= (amount);			\
+-	} while (0)
+-
+-#define TO_UNITS(duration, unit_len)				\
+-	((int)((duration) > 0 ?					\
+-		DIV_ROUND_CLOSEST(abs((duration)), (unit_len)) :\
+-		-DIV_ROUND_CLOSEST(abs((duration)), (unit_len))))
+-#define TO_US(duration)		((int)TO_UNITS(duration, 1000))
+ 
+ #endif /* _IR_CORE */
+-- 
+1.6.6.1
 
