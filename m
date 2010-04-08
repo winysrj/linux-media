@@ -1,39 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f223.google.com ([209.85.220.223]:60597 "EHLO
-	mail-fx0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750804Ab0DHLcV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Apr 2010 07:32:21 -0400
-Received: by fxm23 with SMTP id 23so1957538fxm.21
-        for <linux-media@vger.kernel.org>; Thu, 08 Apr 2010 04:32:19 -0700 (PDT)
-MIME-Version: 1.0
-Date: Thu, 8 Apr 2010 12:32:19 +0100
-Message-ID: <u2tecc841d81004080432u491ffe81nfb273001552aa245@mail.gmail.com>
-Subject: Scan-file for uk-Aberdare
-From: Mike Martin <redtux1@googlemail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=0015174733a60d2cde0483b8086f
+Received: from cnc.isely.net ([64.81.146.143]:55138 "EHLO cnc.isely.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758109Ab0DHAwV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Apr 2010 20:52:21 -0400
+Date: Wed, 7 Apr 2010 19:52:20 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	linux-media@vger.kernel.org
+Subject: Re: RFC: exposing controls in sysfs
+In-Reply-To: <201004070856.40867.hverkuil@xs4all.nl>
+Message-ID: <alpine.DEB.1.10.1004071947520.5518@ivanova.isely.net>
+References: <201004052347.10845.hverkuil@xs4all.nl> <alpine.DEB.1.10.1004061008500.27169@cnc.isely.net> <201004070039.20167.hverkuil@xs4all.nl> <201004070856.40867.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0015174733a60d2cde0483b8086f
-Content-Type: text/plain; charset=ISO-8859-1
+On Wed, 7 Apr 2010, Hans Verkuil wrote:
 
-Attached is a working scan file for uk-Aberdare post switchover
+   [...]
 
---0015174733a60d2cde0483b8086f
-Content-Type: application/octet-stream; name=uk-Aberdare_dso
-Content-Disposition: attachment; filename=uk-Aberdare_dso
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_g7rhn2ha0
+> 
+> Perhaps we should just not do this in sysfs at all but in debugfs? We have a
+> lot more freedom there. No requirement of one-value-per-file, and if we need
+> to we can change things in the future. It would actually be easier to issue
+> ioctl commands to a driver from debugfs since we have a proper struct file
+> there.
+> 
+> It could be implemented as a separate module that can be loaded if debugfs is
+> enabled and suddenly you have all this extra debug functionality.
+> 
+> I admit, I would really enjoy writing something like this. I just don't want
+> to do this in sysfs as that makes it too 'official' so to speak. In other words,
+> mainline applications should not use sysfs, but home-grown scripts are free to
+> use it as far as I am concerned.
+> 
+> How much of a problem would that be for you, Mike? On the one hand users have
+> to mount debugfs, but on the other hand it will be consistent for all drivers
+> that use the control framework. And you should be able to ditch a substantial
+> amount of code :-)
 
-IyBVSywgQWJlcmRhcmUNCiMgQXV0by1nZW5lcmF0ZWQgZnJvbSBodHRwOi8vd3d3LmR0Zy5vcmcu
-dWsvcmV0YWlsZXIvZHR0X2NoYW5uZWxzLmh0bWwNCiMgYW5kIGh0dHA6Ly93d3cub2Zjb20ub3Jn
-LnVrL3N0YXRpYy9yZWNlcHRpb25fYWR2aWNlL2luZGV4LmFzcC5odG1sDQojIFQgZnJlcSBidyBm
-ZWNfaGkgZmVjX2xvIG1vZCB0cmFuc21pc3Npb24tbW9kZSBndWFyZC1pbnRlcnZhbCBoaWVyYXJj
-aHkNCg0KVCA0NzQxNjcwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCAyayAxLzMyIE5PTkUNClQgNDgy
-MTY3MDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgMmsgMS8zMiBOT05FDQpUIDQ5NzgzMzAwMCA4TUh6
-IDIvMyBOT05FIFFBTTY0IDJrIDEvMzIgTk9ORQ0KVCA1MDYxNjcwMDAgOE1IeiAyLzMgTk9ORSBR
-QU02NCAyayAxLzMyIE5PTkUNClQgNTIxODMzMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgMmsgMS8z
-MiBOT05FDQpUIDUzMDE2NzAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDJrIDEvMzIgTk9ORQ0KDQoN
-CiNDMjErCUMyMisJQzI0LQlDMjUrCUMyNy0JQzI4Kw0KDQo=
---0015174733a60d2cde0483b8086f--
+Adding a debugfs interface that can be used by all V4L drivers is 
+obviously a concept I would not have any problem with.
+
+However that does not necessarily mean that I would agree with eventual 
+removal of the pvrusb2 driver's existing sysfs interface.  That would 
+depend on whether or not doing such a thing loses functionality and what 
+the driver's user community would think about it.
+
+  -Mike
+
+
+-- 
+
+Mike Isely
+isely @ isely (dot) net
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
