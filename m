@@ -1,81 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40176 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753641Ab0D1GBP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Apr 2010 02:01:15 -0400
-Message-ID: <4BD78769.8070002@redhat.com>
-Date: Tue, 27 Apr 2010 21:55:05 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:42416 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933775Ab0DHXJt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Apr 2010 19:09:49 -0400
+Date: Fri, 9 Apr 2010 01:09:48 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [patch 3/3] Convert drivers/media/dvb/ttpci/budget-ci.c to use
+	ir-core
+Message-ID: <20100408230948.GB18316@hardeman.nu>
+References: <20100402185827.425741206@hardeman.nu> <20100402190255.774628605@hardeman.nu> <4BBE51C2.8060505@infradead.org>
 MIME-Version: 1.0
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-CC: Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Doing a stable v4l-utils release
-References: <4BD5423B.4040200@redhat.com> <201004260955.13792.hverkuil@xs4all.nl> <4BD69B66.1090904@redhat.com> <A24693684029E5489D1D202277BE894454F78141@dlee02.ent.ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE894454F78141@dlee02.ent.ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <4BBE51C2.8060505@infradead.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergio,
+On Thu, Apr 08, 2010 at 06:59:30PM -0300, Mauro Carvalho Chehab wrote:
+>david@hardeman.nu wrote:
+>> This patch converts drivers/media/dvb/ttpci/budget-ci.c to use ir-core
+>> rather than rolling its own keydown timeout handler and reporting keys
+>> via drivers/media/IR/ir-functions.c.
+>
+>Hmm... had you test this patch? It got me an error here:
 
-Aguirre, Sergio wrote:
-> Hi,
-> 
->> -----Original Message-----
->> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->> owner@vger.kernel.org] On Behalf Of Hans de Goede
->> Sent: Tuesday, April 27, 2010 3:08 AM
->> To: Hans Verkuil
->> Cc: Linux Media Mailing List
->> Subject: Re: Doing a stable v4l-utils release
->>
->> Hi,
->>
->> On 04/26/2010 09:55 AM, Hans Verkuil wrote:
->>> On Monday 26 April 2010 09:35:23 Hans de Goede wrote:
->>>> Hi all,
->>>>
->>>> Currently v4l-utils is at version 0.7.91, which as the version
->>>> suggests is meant as a beta release.
->>>>
->>>> As this release seems to be working well I would like to do
->>>> a v4l-utils-0.8.0 release soon. This is a headsup, to give
->>>> people a chance to notify me of any bugs they would like to
->>>> see fixed first / any patches they would like to add first.
->>> This is a good opportunity to mention that I would like to run
->> checkpatch
->>> over the libs and clean them up.
->>>
->>> I also know that there is a bug in the control handling code w.r.t.
->>> V4L2_CTRL_FLAG_NEXT_CTRL. I have a patch, but I'd like to do the clean
->> up
->>> first.
->>>
->>> If no one else has major patch series that they need to apply, then I
->> can
->>> start working on this. The clean up is just purely whitespace changes to
->>> improve readability, no functionality will be touched.
->>>
->> I've no big changes planned on the short term, so from my pov go ahead.
-> 
-> I have one question regarding this utils:
-> 
-> Is it meant to be platform agnostic v4l2 utilities?
-> 
-> I tried once to compile it for a ARM based CPU (OMAP3 to be specific) from my x86 using a Codesourcery cross compilation toolchain, but it required some changes, which I haven't done still...
-> 
-> Anyways, before proposing patches for this, I just wanted to know how much priority you're giving to multi-platform support.
+Sorry, I must have sent you the wrong one :)
 
-The major usage of v4l-utils is on x86 and x86_64 archs. I don't see why not adding
-there a logic that will also work with ARM and other architectures, providing, of
-course, that they won't break compilation on x86/x86_64 ;) Eventually, maybe the qt
-tools (currently, qv4l2) may need a specific versions for those architectures, as they
-may need different graphics layouts, in order to better work on cellular phones and 
-other devices that have smaller screens.
+>drivers/media/dvb/ttpci/budget-ci.c: In function ‘msp430_ir_init’:
+>drivers/media/dvb/ttpci/budget-ci.c:228: error: implicit declaration of function ‘ir_input_init’
+>drivers/media/dvb/ttpci/budget-ci.c:228: error: ‘struct budget_ci_ir’ has no member named ‘state’
+>
+>The fix is trivial. Just drop this line:
+>
+>        ir_input_init(input_dev, &budget_ci->ir.state, IR_TYPE_RC5);
+>
+>It shouldn't cause any troubles, since the only things this function currently do are:
+>        ir->ir_type = ir_type;
+>
+>        if (repeat)
+>                set_bit(EV_REP, dev->evbit);
+>
+>As the repeat is inside ir-core, and the ir struct is not used anymore, this removal
+>should cause no harm.
+>
+>So, I am dropping the line at the code I'm committing at v4l-dvb.git, to avoid bisect
+>breakages.
+
+You're entirely correct, that line should have been dropped (I even sent 
+the same thing as part of my latest patch series before I read this 
+mail, but if you can fixup the original patch that'd be even better).
 
 
-Cheers,
-Mauro
+-- 
+David Härdeman
