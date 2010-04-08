@@ -1,116 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3538 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753947Ab0DAOmH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 10:42:07 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: V4L-DVB drivers and BKL
-Date: Thu, 1 Apr 2010 16:42:19 +0200
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-References: <201004011001.10500.hverkuil@xs4all.nl> <201004011411.02344.laurent.pinchart@ideasonboard.com> <4BB4A9E2.9090706@redhat.com>
-In-Reply-To: <4BB4A9E2.9090706@redhat.com>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:46622 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758338Ab0DHLXK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Apr 2010 07:23:10 -0400
+Date: Thu, 8 Apr 2010 13:23:05 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [RFC2] Teach drivers/media/IR/ir-raw-event.c to use durations
+Message-ID: <20100408112305.GA2803@hardeman.nu>
+References: <20100407201835.GA8438@hardeman.nu>
+ <4BBD6550.6030000@infradead.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201004011642.19889.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <4BBD6550.6030000@infradead.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 01 April 2010 16:12:50 Mauro Carvalho Chehab wrote:
-> Laurent Pinchart wrote:
-> > Hi Hans,
+On Thu, Apr 08, 2010 at 02:10:40AM -0300, Mauro Carvalho Chehab wrote:
+> David Härdeman wrote:
 > > 
-> > On Thursday 01 April 2010 13:11:51 Hans Verkuil wrote:
-> >> On Thursday 01 April 2010 11:23:30 Laurent Pinchart wrote:
-> >>> On Thursday 01 April 2010 10:01:10 Hans Verkuil wrote:
-> >>>> Hi all,
-> >>>>
-> >>>> I just read on LWN that the core kernel guys are putting more effort
-> >>>> into removing the BKL. We are still using it in our own drivers,
-> >>>> mostly V4L.
-> >>>>
-> >>>> I added a BKL column to my driver list:
-> >>>>
-> >>>> http://www.linuxtv.org/wiki/index.php/V4L_framework_progress#Bridge_Dri
-> >>>> vers
-> >>>>
-> >>>> If you 'own' one of these drivers that still use BKL, then it would be
-> >>>> nice if you can try and remove the use of the BKL from those drivers.
-> >>>>
-> >>>> The other part that needs to be done is to move from using the .ioctl
-> >>>> file op to using .unlocked_ioctl. Very few drivers do that, but I
-> >>>> suspect almost no driver actually needs to use .ioctl.
-> >>> What about something like this patch as a first step ?
-> >> That doesn't fix anything. You just move the BKL from one place to another.
-> >> I don't see any benefit from that.
-> > 
-> > Removing the BKL is a long-term project that basically pushes the BKL from 
-> > core code to subsystems and drivers, and then replace it on a case by case 
-> > basis. This patch (along with a replacement of lock_kernel/unlock_kernel by a 
-> > V4L-specific lock) goes into that direction and removes the BKL usage from V4L 
-> > ioctls. The V4L lock would then need to be pushed into individual drivers. 
+> > o The RX decoding is now handled via a workqueue (I can break that up into a
+> >   separate patch later, but I think it helps the discussion to have it in for
+> >   now), with inspiration from Andy's code.
 > 
-> True, but, as almost all V4L drivers share a "common ancestor", fixing the
-> problems for one will also fix for the others.
+> I'm in doubt about that. the workqueue is called just after an event. this means
+> that, just after every IRQ trigger (assuming the worse case), the workqueue will 
+> be called.
+
+No
+
+> On the previous code, it is drivers responsibility to call the function that 
+> de-queue. On saa7134, I've scheduled it to wake after 15 ms. So, instead of
+> 32 wakeups, just one is done, and the additional delay introduced by it is not
+> enough to disturb the user.
+
+It's still the case with my patch, the ir_raw_event_handle() function is 
+still there and it will call schedule_work().
+
+>> o int's are still used to represent pulse/space durations in ms.
+>>   Mauro and I seem to disagree on this one but I'm right :)
 > 
-> One typical problem that I see is that some drivers register too soon: they
-> first register, then initialize some things. I've seen (and fixed) some race 
-> conditions due to that. Just moving the register to the end solves this issue.
+> :)
+> 
+> We both have different opinions on that. I didn't hear a good argument from you
+> why your're right and I am wrong ;)
+> 
+> Maybe we can try to make a deal on it.
+> 
+> What you're really doing is:
+> 
+> struct rc_event {
+> 	u32	mark : 1;
+> 	u32	duration :31;	/* in microsseconds */
+> };
+> 
+> Please, correct me if I'm wrong, but I suspect that the technical reasons behind your
+> proposal are:
+> 	1) to save space at kfifo and argument exchange with the functions;
+> 	2) nanoseconds is too short for a carrier at the order of 10^4 
+> 	Hz;
+> 
+> My proposal is to do something like:
+> 
+> struct rc_event {
+> 	enum rc_event_type type;
+> 	u64 duration		/* in nanoseconds */
+> 
+> My rationale are:
+> 	1) To make the decoder code less obfuscated;
 
-Correct.
+Subjective
 
-What to do if we have multiple device nodes? E.g. video0 and vbi0? Should we
-allow access to video0 when vbi0 is not yet registered? Or should we block
-access until all video nodes are registered?
+> 	2) To use the same time measurement as used on kernel timers, avoiding an uneeded division
+> for IRQ and polling-based devices.
 
-> One (far from perfect) solution, would be to add a mutex protecting the entire
-> ioctl loop inside the drivers, and the open/close methods. This can later be
-> optimized by a mutex that will just protect the operations that can actually
-> cause problems if happening in parallel.
+Are you sure you don't want to rewrite ir_raw_event_store_edge() and 
+ir_raw_event_store() in assembly?
+> 
+> It might have some other non-technical issues, like foo/bar uses this/that, this means less changes
+> on some code, etc, but we shouldn't consider those non-technical issues when discussing
+> the architecture.
+> 
+> So, here's the deal:
+>
+> 
+> Let's do something in-between. While I still think that using a different measure for
+> duration will add an unnecessary runtime conversion from kernel ktime into
+> microsseconds, for me, the most important point is to avoid obfuscating the code.
+> 
+> So, we can define a opaque type:
+> 
+> typedef u32 mark_duration_t;
+> 
+> To represent the rc_event struct (this isn't a number anymore - it is a struct with one
+> bit for mark/space and 31 bits for unsigned duration). The use of an opaque type may
+> avoid people to do common mistakes.
 
-I have thought about this in the past.
+I've seldom seen a case where a "typedef gobbledygook" is considered 
+clearer than a native data type.
 
-What I think would be needed to make locking much more reliable is the following:
+> And use some macros to convert from this type, like:
+> 		
+> #define DURATION(mark_duration)	abs(mark_duration)
+> #define MARK(duration)	(abs(duration))
+> #define SPACE(duration)	(-abs(duration))
+> #define IS_MARK(mark_duration)	((duration > 0) ? 1 : 0)
+> #define IS_SPACE(mark_duration)	((duration < 0) ? 1 : 0)
+> #define DURATION(mark_duration)	abs(mark_duration)
+> #define TO_UNITS(mark_duration, unit)	\
+> 	do { \
+> 		a = DIV_ROUND_CLOSEST(DURATION(mark_duration), unit); \
+> 		a = (mark_duration < 0) ? -a: a; \
+> 	} while (0)
+> 
+> And use it along the decoders:
 
-1) Currently when a device is unregistered all read()s, write()s, poll()s, etc.
-are blocked. Except for ioctl().
+If you think a couple of defines would make it that much clearer, I can 
+add some defines. If the division in ktime_us_delta() worries you that 
+much, I can avoid it as well.
 
-The comment in v4l2-dev.c says this:
+So how about:
 
-        /* Allow ioctl to continue even if the device was unregistered.
-           Things like dequeueing buffers might still be useful. */
+s64 duration; /* signed to represent pulse/space, in ns */
 
-I disagree with this. Once the device is gone (USB disconnect and similar
-hotplug scenarios), then the only thing an application can do is to close.
+This is the return value from ktime subtraction, so no conversion 
+necessary. Then I'll also add defines along your lines.
 
-Allowing ioctl to still work makes it hard for drivers since every ioctl
-op that might do something with the device has to call video_is_registered()
-to check whether the device is still alive.
-
-I know, this is not directly related to the BKL, but it is an additional
-complication.
-
-2) Add a new video_device flag that turns on serialization. Basically all
-calls are serialized with a mutex in v4l2_device. To handle blocking calls
-like read() or VIDIOC_DQBUF we can either not take the serialization mutex
-in the core, or instead the driver needs to unlock the mutex before it
-waits for an event and lock it afterwards.
-
-In the first case the core has to know all the exceptions.
-
-Perhaps we should just add a second flag: whether the core should do full
-serialization (and the driver will have to unlock/lock around blocking waits)
-or smart serialization where know blocking operations are allowed unserialized.
-
-I think it is fairly simple to add this serialization mechanism. And for many
-drivers this will actually be more than enough.
-
-Regards,
-
-	Hans
+New patch coming up...
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+David Härdeman
