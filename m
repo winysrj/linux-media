@@ -1,202 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48365 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757764Ab0DAR6J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Apr 2010 13:58:09 -0400
-Date: Thu, 1 Apr 2010 14:56:32 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: linux-input@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 06/15] V4L/DVB: ir-core/saa7134: Move ir keyup/keydown code
- to the ir-core
-Message-ID: <20100401145632.60dd3a16@pedra>
-In-Reply-To: <cover.1270142346.git.mchehab@redhat.com>
-References: <cover.1270142346.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([18.85.46.34]:50140 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754777Ab0DHV7e (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Apr 2010 17:59:34 -0400
+Message-ID: <4BBE51C2.8060505@infradead.org>
+Date: Thu, 08 Apr 2010 18:59:30 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: david@hardeman.nu
+CC: linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [patch 3/3] Convert drivers/media/dvb/ttpci/budget-ci.c to use
+ ir-core
+References: <20100402185827.425741206@hardeman.nu> <20100402190255.774628605@hardeman.nu>
+In-Reply-To: <20100402190255.774628605@hardeman.nu>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+david@hardeman.nu wrote:
+> This patch converts drivers/media/dvb/ttpci/budget-ci.c to use ir-core
+> rather than rolling its own keydown timeout handler and reporting keys
+> via drivers/media/IR/ir-functions.c.
 
-diff --git a/drivers/media/IR/ir-nec-decoder.c b/drivers/media/IR/ir-nec-decoder.c
-index 16360eb..a58c717 100644
---- a/drivers/media/IR/ir-nec-decoder.c
-+++ b/drivers/media/IR/ir-nec-decoder.c
-@@ -30,37 +30,35 @@
- #define MIN_BIT0_TIME	360000
- #define MAX_BIT0_TIME	760000
- 
--
--/** Decode NEC pulsecode. This code can take up to 76.5 ms to run.
--	Unfortunately, using IRQ to decode pulse didn't work, since it uses
--	a pulse train of 38KHz. This means one pulse on each 52 us
--*/
--
--int ir_nec_decode(struct input_dev *input_dev,
--		  struct ir_raw_event *evs,
--		  int len)
-+/**
-+ * __ir_nec_decode() - Decode one NEC pulsecode
-+ * @input_dev:	the struct input_dev descriptor of the device
-+ * @evs:	event array with type/duration of pulse/space
-+ * @len:	length of the array
-+ * @pos:	position to start seeking for a code
-+ * This function returns the decoded ircode or -EINVAL if no pulse got decoded
-+ */
-+static int __ir_nec_decode(struct input_dev *input_dev,
-+			   struct ir_raw_event *evs,
-+			   int len, int *pos)
- {
--	int i, count = -1;
-+	int count = -1;
- 	int ircode = 0, not_code = 0;
--#if 0
--	/* Needed only after porting the event code to the decoder */
--	struct ir_input_dev *ir = input_get_drvdata(input_dev);
--#endif
- 
- 	/* Be sure that the first event is an start one and is a pulse */
--	for (i = 0; i < len; i++) {
--		if (evs[i].type & (IR_START_EVENT | IR_PULSE))
-+	for (; *pos < len; (*pos)++) {
-+		if (evs[*pos].type & (IR_START_EVENT | IR_PULSE))
- 			break;
- 	}
--	i++;	/* First event doesn't contain data */
-+	(*pos)++;	/* First event doesn't contain data */
- 
--	if (i >= len)
-+	if (*pos >= len)
- 		return 0;
- 
- 	/* First space should have 4.5 ms otherwise is not NEC protocol */
--	if ((evs[i].delta.tv_nsec < MIN_START_TIME) |
--	    (evs[i].delta.tv_nsec > MAX_START_TIME) |
--	    (evs[i].type != IR_SPACE))
-+	if ((evs[*pos].delta.tv_nsec < MIN_START_TIME) |
-+	    (evs[*pos].delta.tv_nsec > MAX_START_TIME) |
-+	    (evs[*pos].type != IR_SPACE))
- 		goto err;
- 
- 	/*
-@@ -68,24 +66,24 @@ int ir_nec_decode(struct input_dev *input_dev,
- 	 */
- 
- 	count = 0;
--	for (i++; i < len; i++) {
-+	for ((*pos)++; *pos < len; (*pos)++) {
- 		int bit;
- 
--		if ((evs[i].delta.tv_nsec < MIN_PULSE_TIME) |
--		    (evs[i].delta.tv_nsec > MAX_PULSE_TIME) |
--		    (evs[i].type != IR_PULSE))
-+		if ((evs[*pos].delta.tv_nsec < MIN_PULSE_TIME) |
-+		    (evs[*pos].delta.tv_nsec > MAX_PULSE_TIME) |
-+		    (evs[*pos].type != IR_PULSE))
- 			goto err;
- 
--		if (++i >= len)
-+		if (++*pos >= len)
- 			goto err;
--		if (evs[i].type != IR_SPACE)
-+		if (evs[*pos].type != IR_SPACE)
- 			goto err;
- 
--		if ((evs[i].delta.tv_nsec > MIN_BIT1_TIME) &&
--		    (evs[i].delta.tv_nsec < MAX_BIT1_TIME))
-+		if ((evs[*pos].delta.tv_nsec > MIN_BIT1_TIME) &&
-+		    (evs[*pos].delta.tv_nsec < MAX_BIT1_TIME))
- 			bit = 1;
--		else if ((evs[i].delta.tv_nsec > MIN_BIT0_TIME) &&
--			 (evs[i].delta.tv_nsec < MAX_BIT0_TIME))
-+		else if ((evs[*pos].delta.tv_nsec > MIN_BIT0_TIME) &&
-+			 (evs[*pos].delta.tv_nsec < MAX_BIT0_TIME))
- 			bit = 0;
- 		else
- 			goto err;
-@@ -120,12 +118,40 @@ int ir_nec_decode(struct input_dev *input_dev,
- 	}
- 
- 	IR_dprintk(1, "NEC scancode 0x%04x\n", ircode);
-+	ir_keydown(input_dev, ircode);
-+	ir_keyup(input_dev);
- 
- 	return ircode;
- err:
- 	IR_dprintk(1, "NEC decoded failed at bit %d while decoding %luus time\n",
--		   count, (evs[i].delta.tv_nsec + 500) / 1000);
-+		   count, (evs[*pos].delta.tv_nsec + 500) / 1000);
- 
- 	return -EINVAL;
- }
-+
-+/**
-+ * __ir_nec_decode() - Decodes all NEC pulsecodes on a given array
-+ * @input_dev:	the struct input_dev descriptor of the device
-+ * @evs:	event array with type/duration of pulse/space
-+ * @len:	length of the array
-+ * This function returns the number of decoded pulses or -EINVAL if no
-+ * pulse got decoded
-+ */
-+int ir_nec_decode(struct input_dev *input_dev,
-+			   struct ir_raw_event *evs,
-+			   int len)
-+{
-+	int pos = 0;
-+	int rc = 0;
-+
-+	while (pos < len) {
-+		if (__ir_nec_decode(input_dev, evs, len, &pos) >= 0)
-+			rc++;
-+	}
-+
-+	if (!rc)
-+		return -EINVAL;
-+	return rc;
-+}
-+
- EXPORT_SYMBOL_GPL(ir_nec_decode);
-diff --git a/drivers/media/video/saa7134/saa7134-input.c b/drivers/media/video/saa7134/saa7134-input.c
-index 7382995..740adb3 100644
---- a/drivers/media/video/saa7134/saa7134-input.c
-+++ b/drivers/media/video/saa7134/saa7134-input.c
-@@ -424,18 +424,8 @@ static void saa7134_input_timer(unsigned long data)
- void ir_raw_decode_timer_end(unsigned long data)
- {
- 	struct saa7134_dev *dev = (struct saa7134_dev *)data;
--	struct card_ir *ir = dev->remote;
--	int rc;
- 
--	/*
--	 * FIXME: the IR key handling code should be called by the decoder,
--	 * after implementing the repeat mode
--	 */
--	rc = ir_raw_event_handle(dev->remote->dev);
--	if (rc >= 0) {
--		ir_input_keydown(ir->dev, &ir->ir, rc);
--		ir_input_nokey(ir->dev, &ir->ir);
--	}
-+	ir_raw_event_handle(dev->remote->dev);
- }
- 
- void saa7134_ir_start(struct saa7134_dev *dev, struct card_ir *ir)
-diff --git a/include/media/ir-core.h b/include/media/ir-core.h
-index 198fd61..9e03528 100644
---- a/include/media/ir-core.h
-+++ b/include/media/ir-core.h
-@@ -84,7 +84,8 @@ struct ir_input_dev {
- 
- u32 ir_g_keycode_from_table(struct input_dev *input_dev,
- 			    u32 scancode);
--
-+void ir_keyup(struct input_dev *dev);
-+void ir_keydown(struct input_dev *dev, int scancode);
- int ir_input_register(struct input_dev *dev,
- 		      const struct ir_scancode_table *ir_codes,
- 		      const struct ir_dev_props *props,
+Hmm... had you test this patch? It got me an error here:
+
+drivers/media/dvb/ttpci/budget-ci.c: In function ‘msp430_ir_init’:
+drivers/media/dvb/ttpci/budget-ci.c:228: error: implicit declaration of function ‘ir_input_init’
+drivers/media/dvb/ttpci/budget-ci.c:228: error: ‘struct budget_ci_ir’ has no member named ‘state’
+
+The fix is trivial. Just drop this line:
+
+        ir_input_init(input_dev, &budget_ci->ir.state, IR_TYPE_RC5);
+
+It shouldn't cause any troubles, since the only things this function currently do are:
+        ir->ir_type = ir_type;
+
+        if (repeat)
+                set_bit(EV_REP, dev->evbit);
+
+As the repeat is inside ir-core, and the ir struct is not used anymore, this removal
+should cause no harm.
+
+So, I am dropping the line at the code I'm committing at v4l-dvb.git, to avoid bisect
+breakages.
+
+> 
+> Signed-off-by: David HÃ¤rdeman <david@hardeman.nu>
+> 
+> 
+> Index: ir/drivers/media/dvb/ttpci/budget-ci.c
+> ===================================================================
+> --- ir.orig/drivers/media/dvb/ttpci/budget-ci.c	2010-04-02 16:41:15.524206900 +0200
+> +++ ir/drivers/media/dvb/ttpci/budget-ci.c	2010-04-02 16:48:15.668239437 +0200
+> @@ -35,7 +35,7 @@
+>  #include <linux/interrupt.h>
+>  #include <linux/input.h>
+>  #include <linux/spinlock.h>
+> -#include <media/ir-common.h>
+> +#include <media/ir-core.h>
+>  
+>  #include "budget.h"
+>  
+> @@ -82,12 +82,6 @@
+>  #define SLOTSTATUS_READY	8
+>  #define SLOTSTATUS_OCCUPIED	(SLOTSTATUS_PRESENT|SLOTSTATUS_RESET|SLOTSTATUS_READY)
+>  
+> -/*
+> - * Milliseconds during which a key is regarded as pressed.
+> - * If an identical command arrives within this time, the timer will start over.
+> - */
+> -#define IR_KEYPRESS_TIMEOUT	250
+> -
+>  /* RC5 device wildcard */
+>  #define IR_DEVICE_ANY		255
+>  
+> @@ -104,12 +98,9 @@
+>  struct budget_ci_ir {
+>  	struct input_dev *dev;
+>  	struct tasklet_struct msp430_irq_tasklet;
+> -	struct timer_list timer_keyup;
+>  	char name[72]; /* 40 + 32 for (struct saa7146_dev).name */
+>  	char phys[32];
+> -	struct ir_input_state state;
+>  	int rc5_device;
+> -	u32 last_raw;
+>  	u32 ir_key;
+>  	bool have_command;
+>  };
+> @@ -124,18 +115,11 @@
+>  	u8 tuner_pll_address; /* used for philips_tdm1316l configs */
+>  };
+>  
+> -static void msp430_ir_keyup(unsigned long data)
+> -{
+> -	struct budget_ci_ir *ir = (struct budget_ci_ir *) data;
+> -	ir_input_nokey(ir->dev, &ir->state);
+> -}
+> -
+>  static void msp430_ir_interrupt(unsigned long data)
+>  {
+>  	struct budget_ci *budget_ci = (struct budget_ci *) data;
+>  	struct input_dev *dev = budget_ci->ir.dev;
+>  	u32 command = ttpci_budget_debiread(&budget_ci->budget, DEBINOSWAP, DEBIADDR_IR, 2, 1, 0) >> 8;
+> -	u32 raw;
+>  
+>  	/*
+>  	 * The msp430 chip can generate two different bytes, command and device
+> @@ -171,20 +155,12 @@
+>  		return;
+>  	budget_ci->ir.have_command = false;
+>  
+> +	/* FIXME: We should generate complete scancodes with device info */
+>  	if (budget_ci->ir.rc5_device != IR_DEVICE_ANY &&
+>  	    budget_ci->ir.rc5_device != (command & 0x1f))
+>  		return;
+>  
+> -	/* Is this a repeated key sequence? (same device, command, toggle) */
+> -	raw = budget_ci->ir.ir_key | (command << 8);
+> -	if (budget_ci->ir.last_raw != raw || !timer_pending(&budget_ci->ir.timer_keyup)) {
+> -		ir_input_nokey(dev, &budget_ci->ir.state);
+> -		ir_input_keydown(dev, &budget_ci->ir.state,
+> -				 budget_ci->ir.ir_key);
+> -		budget_ci->ir.last_raw = raw;
+> -	}
+> -
+> -	mod_timer(&budget_ci->ir.timer_keyup, jiffies + msecs_to_jiffies(IR_KEYPRESS_TIMEOUT));
+> +	ir_keydown(dev, budget_ci->ir.ir_key, (command & 0x20) ? 1 : 0);
+>  }
+>  
+>  static int msp430_ir_init(struct budget_ci *budget_ci)
+> @@ -251,11 +227,6 @@
+>  
+>  	ir_input_init(input_dev, &budget_ci->ir.state, IR_TYPE_RC5);
+>  
+> -	/* initialise the key-up timeout handler */
+> -	init_timer(&budget_ci->ir.timer_keyup);
+> -	budget_ci->ir.timer_keyup.function = msp430_ir_keyup;
+> -	budget_ci->ir.timer_keyup.data = (unsigned long) &budget_ci->ir;
+> -	budget_ci->ir.last_raw = 0xffff; /* An impossible value */
+>  	error = ir_input_register(input_dev, ir_codes, NULL, MODULE_NAME);
+>  	if (error) {
+>  		printk(KERN_ERR "budget_ci: could not init driver for IR device (code %d)\n", error);
+> @@ -284,9 +255,6 @@
+>  	saa7146_setgpio(saa, 3, SAA7146_GPIO_INPUT);
+>  	tasklet_kill(&budget_ci->ir.msp430_irq_tasklet);
+>  
+> -	del_timer_sync(&dev->timer);
+> -	ir_input_nokey(dev, &budget_ci->ir.state);
+> -
+>  	ir_input_unregister(dev);
+>  }
+>  
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
 -- 
-1.6.6.1
 
-
+Cheers,
+Mauro
