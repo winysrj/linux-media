@@ -1,70 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:19432 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758582Ab0DVUgA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Apr 2010 16:36:00 -0400
-Message-ID: <4BD0B32B.8060505@redhat.com>
-Date: Thu, 22 Apr 2010 17:35:55 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Bee Hock Goh <beehock@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Help needed in understanding v4l2_device_call_all
-References: <x2m6e8e83e21004062310ia0eef09fgf97bcfafcdf25737@mail.gmail.com>
-In-Reply-To: <x2m6e8e83e21004062310ia0eef09fgf97bcfafcdf25737@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2859 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933375Ab0DHT3l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Apr 2010 15:29:41 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id o38JTd3Z014672
+	for <linux-media@vger.kernel.org>; Thu, 8 Apr 2010 21:29:39 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 8 Apr 2010 21:29:39 +0200 (CEST)
+Message-Id: <201004081929.o38JTd3Z014672@smtp-vbr1.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Bee Hock Goh wrote:
-> Hi,
-> 
-> I am trying to understand how the subdev function are triggered when I
-> use v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, g_tuner,t) on
-> tm600-video.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-It calls tuner-core.c code, with g_tuner command. tuner-core
-checks what's the used tuner and, in the case of tm6000, calls the corresponding
-function at tuner-xc2028. This is implemented on tuner_g_tuner() function.
+Results of the daily build of v4l-dvb:
 
-The function basically does some sanity checks, and some common tuner code, but
-the actual implementation is handled by some callbacks that the driver needs to
-define (get_afc, get_status, is_stereo, has_signal). In general, drivers use
-get_status for it:
-                fe_tuner_ops->get_status(&t->fe, &tuner_status);
+date:        Thu Apr  8 19:00:16 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14561:7c0b887911cf
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: a6eb7bc8e0eea78f96ad1b0f0195ec52b88c6a00
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-rc1-armv5: OK
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-rc1-armv5-davinci: WARNINGS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-rc1-armv5-ixp: WARNINGS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-rc1-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.17-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-rc1-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-rc1-m32r: OK
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-rc1-mips: WARNINGS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-rc1-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.17-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-rc1-x86_64: WARNINGS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: WARNINGS
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: ERRORS
+sparse: ERRORS
+linux-2.6.16.62-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.7-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.62-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.7-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
-You will find a good example of how to implement such code at tuner-simple 
-simple_get_status() function.
+Detailed results are available here:
 
-In the case of tuner-xc2028, we never found a way for it to properly report the
-status of the tuner lock. That's why this function is not implemented on the driver.
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-> How am i able to link the callback from the tuner_xc2028 function?
+Full logs are available here:
 
-The callback is used by tuner-xc2028 when it detects the need of changing the
-firmware (or when the firmware is not loaded yet, or when you select a standard
-that it is not supported by the current firmware).
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-Basically, xc2028 driver will use the callback that was set previously via:
+The V4L-DVB specification failed to build, but the last compiled spec is here:
 
-	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_config, &xc2028_cfg);
-
-
-> 
-> Please help me to understand or directly me to any documentation that
-> I can read up?
-> 
-> thanks,
->  Hock.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
--- 
-
-Cheers,
-Mauro
+http://www.xs4all.nl/~hverkuil/spec/media.html
