@@ -1,74 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from a-pb-sasl-quonix.pobox.com ([208.72.237.25]:59392 "EHLO
-	sasl.smtp.pobox.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753558Ab0DOFQu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Apr 2010 01:16:50 -0400
-Message-ID: <4BC6A135.4070400@pobox.com>
-Date: Thu, 15 Apr 2010 01:16:37 -0400
-From: Mark Lord <mlord@pobox.com>
-MIME-Version: 1.0
+Received: from canardo.mork.no ([148.122.252.1]:56633 "EHLO canardo.mork.no"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758326Ab0DHKFc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Apr 2010 06:05:32 -0400
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
 To: Andy Walls <awalls@md.metrocast.net>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org, Darren Blaber <dmbtech@gmail.com>
-Subject: Re: cx18: "missing audio" for analog recordings
-References: <4B8BE647.7070709@teksavvy.com>
- <1267493641.4035.17.camel@palomino.walls.org> <4B8CA8DD.5030605@teksavvy.com>
- <1267533630.3123.17.camel@palomino.walls.org> <4B9DA003.90306@teksavvy.com>
- <1268653884.3209.32.camel@palomino.walls.org>  <4BC0FB79.7080601@pobox.com>
- <1270940043.3100.43.camel@palomino.walls.org>  <4BC1401F.9080203@pobox.com>
- <1270961760.5365.14.camel@palomino.walls.org>
- <1270986453.3077.4.camel@palomino.walls.org>  <4BC1CDA2.7070003@pobox.com>
- <1271012464.24325.34.camel@palomino.walls.org> <4BC37DB2.3070107@pobox.com>
- <1271107061.3246.52.camel@palomino.walls.org> <4BC3D578.9060107@pobox.com>
- <4BC3D73D.5030106@pobox.com>  <4BC3D81E.9060808@pobox.com>
- <1271154932.3077.7.camel@palomino.walls.org>  <4BC466A1.3070403@pobox.com>
- <1271209520.4102.18.camel@palomino.walls.org> <4BC54569.7020301@pobox.com>
- <4BC64119.5070200@pobox.com> <1271306803.7643.67.camel@palomino.walls.org>
-In-Reply-To: <1271306803.7643.67.camel@palomino.walls.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: linux-media@vger.kernel.org, stable@kernel.org
+Subject: Re: [PATCH] V4L/DVB: saa7146: IRQF_DISABLED causes only trouble
+References: <1269202135-340-1-git-send-email-bjorn@mork.no>
+	<1269206641.6135.68.camel@palomino.walls.org>
+	<87ocigwvrf.fsf@nemi.mork.no>
+	<1270634174.3021.176.camel@palomino.walls.org>
+Date: Thu, 08 Apr 2010 12:05:15 +0200
+In-Reply-To: <1270634174.3021.176.camel@palomino.walls.org> (Andy Walls's
+	message of "Wed, 07 Apr 2010 05:56:14 -0400")
+Message-ID: <877hoifeec.fsf@nemi.mork.no>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15/04/10 12:46 AM, Andy Walls wrote:
-> On Wed, 2010-04-14 at 18:26 -0400, Mark Lord wrote:
-..
->> Oddly, none of those spinlocks use _irq or _irq_save/restore,
->> which means they aren't providing any sort of mutual exclusion
->> against the interrupt handler.
+Ehh...., this is very embarrassing, but please disregard all my
+statements about a hanging system related to IRQF_DISABLED.
+
+It turns out that I've had a faulty SATA hard drive which probably have
+caused all these problems.  I do not understand the inner workings of
+the SATA hardware and software, but it appears that this drive has been
+able to block interrupts for a considerable time without SMART detecting
+any error at all.  I wrongly suspected saa7146 to be the cause because
+these problems appeared after adding the saa7146 hardware.  But that was
+probably just a coincidence (or maybe not really, only unrelated: I
+suspect that the problem was triggered by the powercycle when adding
+this card)
+
+The drive has now been replaced, and I will start verifying that use of
+saa7146 with IRQF_DISABLED does not in fact pose any real problems at
+all.
+
+I still find the discussion about it's usefulness interesting though...
+
+
+Andy Walls <awalls@md.metrocast.net> writes:
+
+> Given your /proc/interrupts output, the first handler registered would
+> be the pata_jmicron module's irq handler.  So interrupts will be enabled
+> when the saa7146 module's irq handler runs.
 >
-> There is no need.  The hard irq handler only really deals with firmware
-> mailbox ack and firmware mailbox ready notifications.  It sucks off the
-> mailbox contents and shoves it over to the cx18-NN-in workhandler via
-> work orders placed on a workqueue.  The work handler does grab the
-> spinlocks, but it is from a non-irq context.
-..
+> So this is puzzling to me as to why IRQF_DISABLED for the saa7146 module
+> matters at all for your situation.  It should be ignored.
 
-Mmmm.. but it does do read-modify-write on several registers inside the IRQ handling.
-I suppose those might be "safe" groups, written to _only_ by the IRQ handler,
-but maybe not.
+Yes, it probably was ignored.  Sorry for not being able to sort that out
+earlier.
 
- From what I can see, (nearly?) all registers are read/written as full 32-bit units.
-So when code wants to modify an 8-bit "register", this is converted into a read-
-modify-write of the corresponding 32-bit register.
+>> The discussion about which is correct, always disabled or always
+>> enabled, is way out of my league.  But I believe that current drivers
+>> have to adapt to the current kernel default, and that is always enabled.
+>
+> Why do you believe that?
 
-So if two threads, or any thread and the irq handler, want to modify parts
-of the same 32-bit register, then there's a race.  The code _appears_ to mostly
-not have such a problem, but it would conveniently explain the sporadic failures.  :)
+Because any other driver sharing the interrupt otherwise will cause
+unpredictable results.  
 
-So, for now, I've added lower level spinlock protection onto all register writes,
-as well as to routines that themselves do a higher level read-modify-write:
-eg. the routines to enable/disable specific IRQ sources.
+But your suggestions that one should be able to detect the current state
+and make system level policy decision would make that argument void, and
+are generally much better solutions.
 
-This was easy enough to do, and it'll give us confidence that the r-m-w sequences
-are not the issue.  Or perhaps it'll cure some problems.  Time will tell.
+> For hardware devices which, after a short period of time, overwrite
+> their information about what caused the interrupt (i.e. CX23418),
+> yielding to another IRQ handler increases the potential for losing
+> information (i.e. losing tack of video buffers). 
 
-I'll run with that patch on top of yours for the next couple of days,
-or until I see a "fallback" log again.  None so far, though.
+Sure, I can see that problem.  But you can't avoid it unless you find
+some way to ensure that IRQF_DISABLED is enforced.  And today, that
+would mean not sharing at all, would it not?
 
-Cheers
--- 
-Mark Lord
-Real-Time Remedies Inc.
-mlord@pobox.com
+> Really the kernel needs to be smarter about identifying these cases:
+>
+> 1. an IRQ line where all the drivers request IRQF_DISABLED
+> 2. an IRQ line where all the drivers request IRQs remain enabled
+> 3. an IRQ line where the drivers have mixed requests
+>
+> Case 3 is the only case that requires resolution.  It's a system level
+> decision that the user should be able to set as to whether he wants one
+> type of behavior or the other on that interrupt line.  The kernel can
+> never know absolutely what's right for the user in case 3.
+
+Sounds like a solution to me.
+
+And the current warning should be disabled in case 1, as the behaviour
+is predictable.  But this means that the kernel also need to be smart
+enough to notice both when the case changes from 1 to 3 and from 2 to 3.
+
+>> No, maybe it's not.  But doesn't the fact that you can't predict the
+>> actual effect of the IRQF_DISABLED flag tell you that using it is wrong? 
+>
+> No.  Not being able to reliably predict an outcome, doesn't really speak
+> to the correctness of settings that appear to affect the outcome
+> (correlation is not causation).
+
+OK.
+
+> I do know that on any particular machine, one should be able to know
+> whether IRQF_DISABLED will be ignored or enforced on all IRQ handlers on
+> an interrupt line.
+
+Yes, that would be useful.  Like it is now, you have to inspect the
+source code and the current driver load order to know the actual state. 
+
+
+
+Bjørn
