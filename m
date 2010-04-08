@@ -1,44 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f217.google.com ([209.85.218.217]:34917 "EHLO
-	mail-bw0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932293Ab0DBLgZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Apr 2010 07:36:25 -0400
-Date: Fri, 2 Apr 2010 14:30:10 +0300
-From: Dan Carpenter <error27@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Srinivasa Deevi <srinivasa.deevi@conexant.com>,
-	Trent Piepho <xyzzy@speakeasy.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [patch] cx231xx: improve error handling
-Message-ID: <20100402113010.GK5265@bicker>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:45506 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933787Ab0DHXEk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Apr 2010 19:04:40 -0400
+Subject: [PATCH 3/4] Add NECx support to ir-core
+To: mchehab@redhat.com
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Date: Fri, 09 Apr 2010 01:04:35 +0200
+Message-ID: <20100408230435.14453.56505.stgit@localhost.localdomain>
+In-Reply-To: <20100408230246.14453.97377.stgit@localhost.localdomain>
+References: <20100408230246.14453.97377.stgit@localhost.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Return -EINVAL if we don't find the control id.
+This patch adds NECx support to drivers/media/IR/ir-nec-decoder.c
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/IR/ir-nec-decoder.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/video/cx231xx/cx231xx-video.c b/drivers/media/video/cx231xx/cx231xx-video.c
-index d4f546f..5a74ef8 100644
---- a/drivers/media/video/cx231xx/cx231xx-video.c
-+++ b/drivers/media/video/cx231xx/cx231xx-video.c
-@@ -1901,9 +1901,12 @@ static int radio_queryctrl(struct file *file, void *priv,
- 	if (c->id < V4L2_CID_BASE || c->id >= V4L2_CID_LASTP1)
- 		return -EINVAL;
- 	if (c->id == V4L2_CID_AUDIO_MUTE) {
--		for (i = 0; i < CX231XX_CTLS; i++)
-+		for (i = 0; i < CX231XX_CTLS; i++) {
- 			if (cx231xx_ctls[i].v.id == c->id)
- 				break;
-+		}
-+		if (i == CX231XX_CTLS)
-+			return -EINVAL;
- 		*c = cx231xx_ctls[i].v;
- 	} else
- 		*c = no_ctl;
+diff --git a/drivers/media/IR/ir-nec-decoder.c b/drivers/media/IR/ir-nec-decoder.c
+index f22d1af..d128c19 100644
+--- a/drivers/media/IR/ir-nec-decoder.c
++++ b/drivers/media/IR/ir-nec-decoder.c
+@@ -18,6 +18,7 @@
+ #define NEC_NBITS		32
+ #define NEC_UNIT		562500  /* ns */
+ #define NEC_HEADER_PULSE	PULSE(16)
++#define NECX_HEADER_PULSE	PULSE(8) /* Less common NEC variant */
+ #define NEC_HEADER_SPACE	SPACE(8)
+ #define NEC_REPEAT_SPACE	SPACE(4)
+ #define NEC_BIT_PULSE		PULSE(1)
+@@ -152,7 +153,7 @@ static int ir_nec_decode(struct input_dev *input_dev, s64 duration)
+ 	switch (data->state) {
+ 
+ 	case STATE_INACTIVE:
+-		if (u == NEC_HEADER_PULSE) {
++		if (u == NEC_HEADER_PULSE || u == NECX_HEADER_PULSE) {
+ 			data->count = 0;
+ 			data->state = STATE_HEADER_SPACE;
+ 		}
+
