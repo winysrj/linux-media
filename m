@@ -1,54 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f223.google.com ([209.85.220.223]:63662 "EHLO
-	mail-fx0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753236Ab0DIXQw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Apr 2010 19:16:52 -0400
-Received: by fxm23 with SMTP id 23so3143872fxm.21
-        for <linux-media@vger.kernel.org>; Fri, 09 Apr 2010 16:16:50 -0700 (PDT)
+Received: from mail-gx0-f217.google.com ([209.85.217.217]:54429 "EHLO
+	mail-gx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752324Ab0DHOBK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Apr 2010 10:01:10 -0400
+Received: by gxk9 with SMTP id 9so1367655gxk.8
+        for <linux-media@vger.kernel.org>; Thu, 08 Apr 2010 07:01:09 -0700 (PDT)
 MIME-Version: 1.0
-Date: Sat, 10 Apr 2010 02:16:50 +0300
-Message-ID: <y2p94764e701004091616x59467e3qc4efc2580dad53d@mail.gmail.com>
-Subject: [PATCH] DVB-T initial scan file for Israel (dvb-utils)
-From: Shaul Kremer <shaulkr@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <1270727417-3872-1-git-send-email-weiyi.huang@gmail.com>
+References: <1270727417-3872-1-git-send-email-weiyi.huang@gmail.com>
+Date: Thu, 8 Apr 2010 10:01:08 -0400
+Message-ID: <m2y829197381004080701uf00e37cavaf0eaac85d6c15f@mail.gmail.com>
+Subject: Re: [PATCH 11/16] V4L/DVB: DVB: ngene, remove unused #include
+	<linux/version.h>
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Huang Weiyi <weiyi.huang@gmail.com>
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Thu, Apr 8, 2010 at 7:50 AM, Huang Weiyi <weiyi.huang@gmail.com> wrote:
+> Remove unused #include <linux/version.h>('s) in
+>  drivers/media/dvb/ngene/ngene-core.c
+>
+> Signed-off-by: Huang Weiyi <weiyi.huang@gmail.com>
+> ---
+>  drivers/media/dvb/ngene/ngene-core.c |    1 -
+>  1 files changed, 0 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/media/dvb/ngene/ngene-core.c b/drivers/media/dvb/ngene/ngene-core.c
+> index 645e8b8..6dc567b 100644
+> --- a/drivers/media/dvb/ngene/ngene-core.c
+> +++ b/drivers/media/dvb/ngene/ngene-core.c
+> @@ -37,7 +37,6 @@
+>  #include <linux/pci_ids.h>
+>  #include <linux/smp_lock.h>
+>  #include <linux/timer.h>
+> -#include <linux/version.h>
+>  #include <linux/byteorder/generic.h>
+>  #include <linux/firmware.h>
+>  #include <linux/vmalloc.h>
 
-Here is an initial scan file for IBA's DVB-T transmitters.
+Hello Huang,
 
-Generated from info at http://www.iba.org.il/reception/ (Hebrew)
+I just wanted to let you know that KernelLabs has a rather large
+project ongoing to clean up the ngene driver.  So while I have no
+objection to this patch in principle, please be advised that there is
+not much value in doing additional cleanup to that driver as it is
+likely to be redundant (and will just increase our work in merging the
+changes upstream).
 
-# HG changeset patch
-# User Shaul Kremer <shaulkr@gmail.com>
-# Date 1270854557 -10800
-# Node ID ac84f6db6f031db82509c247ac1775ca48b0e2f3
-# Parent  7de0663facd92bbb9049aeeda3dcba9601228f30
-Added DVB-T initial tuning tables for Israel.
+Cheers,
 
-diff -r 7de0663facd9 -r ac84f6db6f03 util/scan/dvb-t/il-SFN1
---- /dev/null   Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/il-SFN1   Sat Apr 10 02:09:17 2010 +0300
-@@ -0,0 +1,4 @@
-+# Israel, Israel Broadcasting Authority's SFN-1 transmitter (northern Israel)
-+# Generated from list in http://www.iba.org.il/reception/
-+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+T 538000000 8MHz 2/3 NONE QAM16 8k 1/4 NONE
-diff -r 7de0663facd9 -r ac84f6db6f03 util/scan/dvb-t/il-SFN2
---- /dev/null   Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/il-SFN2   Sat Apr 10 02:09:17 2010 +0300
-@@ -0,0 +1,4 @@
-+# Israel, Israel Broadcasting Authority's SFN-2 transmitter (central Israel)
-+# Generated from list in http://www.iba.org.il/reception/
-+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+T 514000000 8MHz 2/3 NONE QAM16 8k 1/4 NONE
-diff -r 7de0663facd9 -r ac84f6db6f03 util/scan/dvb-t/il-SFN3
---- /dev/null   Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/il-SFN3   Sat Apr 10 02:09:17 2010 +0300
-@@ -0,0 +1,4 @@
-+# Israel, Israel Broadcasting Authority's SFN-3 transmitter (southern Israel)
-+# Generated from list in http://www.iba.org.il/reception/
-+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+T 538000000 8MHz 2/3 NONE QAM16 8k 1/4 NONE
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
