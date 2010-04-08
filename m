@@ -1,1163 +1,902 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:57520 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752936Ab0DUIes convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Apr 2010 04:34:48 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Pawel Osciak <p.osciak@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "m.szyprowski@samsung.com" <m.szyprowski@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
-Date: Wed, 21 Apr 2010 14:04:39 +0530
-Subject: RE: [PATCH v4 2/2] v4l: Add a mem-to-mem videobuf framework test
- device.
-Message-ID: <19F8576C6E063C45BE387C64729E7394044E1EB2CB@dbde02.ent.ti.com>
-References: <1271680218-32395-1-git-send-email-p.osciak@samsung.com>
- <1271680218-32395-3-git-send-email-p.osciak@samsung.com>
-In-Reply-To: <1271680218-32395-3-git-send-email-p.osciak@samsung.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-qy0-f179.google.com ([209.85.221.179]:64183 "EHLO
+	mail-qy0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751545Ab0DHASX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Apr 2010 20:18:23 -0400
 MIME-Version: 1.0
+In-Reply-To: <20100407201835.GA8438@hardeman.nu>
+References: <20100407201835.GA8438@hardeman.nu>
+Date: Wed, 7 Apr 2010 20:18:22 -0400
+Message-ID: <n2n9e4733911004071718r4523fbefx4b2a21bf5f9c3b78@mail.gmail.com>
+Subject: Re: [RFC2] Teach drivers/media/IR/ir-raw-event.c to use durations
+From: Jon Smirl <jonsmirl@gmail.com>
+To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
+Cc: mchehab@infradead.org, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-> -----Original Message-----
-> From: Pawel Osciak [mailto:p.osciak@samsung.com]
-> Sent: Monday, April 19, 2010 6:00 PM
-> To: linux-media@vger.kernel.org
-> Cc: p.osciak@samsung.com; m.szyprowski@samsung.com;
-> kyungmin.park@samsung.com; Hiremath, Vaibhav
-> Subject: [PATCH v4 2/2] v4l: Add a mem-to-mem videobuf framework test
-> device.
+On Wed, Apr 7, 2010 at 4:18 PM, David Härdeman <david@hardeman.nu> wrote:
+> drivers/media/IR/ir-raw-event.c is currently written with the assumption
+> that all "raw" hardware will generate events only on state change (i.e.
+> when a pulse or space starts).
 >
-> This is a virtual device driver for testing the memory-to-memory framework.
+> However, some hardware (like mceusb, probably the most popular IR receiver
+> out there) only generates duration data (and that data is buffered so using
+> any kind of timing on the data is futile).
 >
-> This virtual device uses in-memory buffers for both its source and
-> destination.
-> It is capable of multi-instance, multi-buffer-per-transaction operation
-> (via the mem2mem framework).
-[Hiremath, Vaibhav] Some minor comments -
-
+> Furthermore, using signed int's to represent pulse/space durations in ms
+> is a well-known approach to anyone with experience in writing ir decoders.
 >
-> Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> Reviewed-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  drivers/media/video/Kconfig           |   14 +
->  drivers/media/video/Makefile          |    1 +
->  drivers/media/video/mem2mem_testdev.c | 1050
-> +++++++++++++++++++++++++++++++++
->  3 files changed, 1065 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/mem2mem_testdev.c
+> This patch (which has been tested this time) is still a RFC on my proposed
+> interface changes.
 >
-> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> index 5fd041e..9a306a6 100644
-> --- a/drivers/media/video/Kconfig
-> +++ b/drivers/media/video/Kconfig
-> @@ -1121,3 +1121,17 @@ menuconfig V4L_MEM2MEM_DRIVERS
->         use system memory for both source and destination buffers, as
-> opposed
->         to capture and output drivers, which use memory buffers for just
->         one of those.
-> +
-> +if V4L_MEM2MEM_DRIVERS
-> +
-> +config VIDEO_MEM2MEM_TESTDEV
-> +     tristate "Virtual test device for mem2mem framework"
-> +     depends on VIDEO_DEV && VIDEO_V4L2
-> +     select VIDEOBUF_VMALLOC
-> +     select V4L2_MEM2MEM_DEV
-> +     default n
-> +     ---help---
-> +       This is a virtual test device for the memory-to-memory driver
-> +       framework.
-> +
-> +endif # V4L_MEM2MEM_DRIVERS
-> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-> index e974680..2fa3c13 100644
-> --- a/drivers/media/video/Makefile
-> +++ b/drivers/media/video/Makefile
-> @@ -151,6 +151,7 @@ obj-$(CONFIG_VIDEO_IVTV) += ivtv/
->  obj-$(CONFIG_VIDEO_CX18) += cx18/
+> Changes since last version:
 >
->  obj-$(CONFIG_VIDEO_VIVI) += vivi.o
-> +obj-$(CONFIG_VIDEO_MEM2MEM_TESTDEV) += mem2mem_testdev.o
->  obj-$(CONFIG_VIDEO_CX23885) += cx23885/
+> o RC5x and NECx support no longer added in patch (separate patches to follow)
 >
->  obj-$(CONFIG_VIDEO_OMAP2)            += omap2cam.o
-> diff --git a/drivers/media/video/mem2mem_testdev.c
-> b/drivers/media/video/mem2mem_testdev.c
-> new file mode 100644
-> index 0000000..d6e6ca9
-> --- /dev/null
-> +++ b/drivers/media/video/mem2mem_testdev.c
-> @@ -0,0 +1,1050 @@
-> +/*
-> + * A virtual v4l2-mem2mem example device.
-> + *
-> + * This is a virtual device driver for testing mem-to-mem videobuf
-> framework.
-> + * It simulates a device that uses memory buffers for both source and
-> + * destination, processes the data and issues an "irq" (simulated by a
-> timer).
-> + * The device is capable of multi-instance, multi-buffer-per-transaction
-> + * operation (via the mem2mem framework).
-> + *
-> + * Copyright (c) 2009-2010 Samsung Electronics Co., Ltd.
-> + * Pawel Osciak, <p.osciak@samsung.com>
-> + * Marek Szyprowski, <m.szyprowski@samsung.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by the
-> + * Free Software Foundation; either version 2 of the
-> + * License, or (at your option) any later version
-> + */
-> +#include <linux/module.h>
-> +#include <linux/delay.h>
-> +#include <linux/fs.h>
-> +#include <linux/version.h>
-> +#include <linux/timer.h>
+> o The use of a kfifo has been left given feedback from Jon, Andy, Mauro
+>
+> o The RX decoding is now handled via a workqueue (I can break that up into a
+>  separate patch later, but I think it helps the discussion to have it in for
+>  now), with inspiration from Andy's code.
+>
+> o Separate reset operations are no longer added to decoders, a duration of
+>  zero is instead used to signal a reset (which allows the reset request to
+>  be inserted into the kfifo).
+>
+> o Not sent using quilt...Mauro, does it still trip up your MUA?
+>
+> Not changed:
+>
+> o int's are still used to represent pulse/space durations in ms. Mauro and I
+>  seem to disagree on this one but I'm right :)
+>
+> Index: ir/drivers/media/IR/ir-raw-event.c
+> ===================================================================
+> --- ir.orig/drivers/media/IR/ir-raw-event.c     2010-04-06 12:16:27.000000000 +0200
+> +++ ir/drivers/media/IR/ir-raw-event.c  2010-04-07 21:32:13.961850481 +0200
+> @@ -15,13 +15,14 @@
+>  #include <media/ir-core.h>
+>  #include <linux/workqueue.h>
+>  #include <linux/spinlock.h>
 > +#include <linux/sched.h>
-> +
-> +#include <linux/platform_device.h>
-> +#include <media/v4l2-mem2mem.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-ioctl.h>
-> +#include <media/videobuf-vmalloc.h>
-> +
-> +#define MEM2MEM_TEST_MODULE_NAME "mem2mem-testdev"
-> +
-> +MODULE_DESCRIPTION("Virtual device for mem2mem framework testing");
-> +MODULE_AUTHOR("Pawel Osciak, <p.osciak@samsung.com>");
-> +MODULE_LICENSE("GPL");
-> +
-> +
-> +#define MIN_W 32
-> +#define MIN_H 32
-> +#define MAX_W 640
-> +#define MAX_H 480
-> +#define DIM_ALIGN_MASK 0x08 /* 8-alignment for dimensions */
-> +
-> +/* Flags that indicate a format can be used for capture/output */
-> +#define MEM2MEM_CAPTURE      (1 << 0)
-> +#define MEM2MEM_OUTPUT       (1 << 1)
-> +
-> +#define MEM2MEM_NAME         "m2m-testdev"
-> +
-> +/* Per queue */
-> +#define MEM2MEM_DEF_NUM_BUFS VIDEO_MAX_FRAME
-> +/* In bytes, per queue */
-> +#define MEM2MEM_VID_MEM_LIMIT        (16 * 1024 * 1024)
-> +
-> +/* Default transaction time in msec */
-> +#define MEM2MEM_DEF_TRANSTIME        1000
-> +/* Default number of buffers per transaction */
-> +#define MEM2MEM_DEF_TRANSLEN 1
-> +#define MEM2MEM_COLOR_STEP   (0xff >> 4)
-> +#define MEM2MEM_NUM_TILES    8
-> +
-> +#define dprintk(dev, fmt, arg...) \
-> +     v4l2_dbg(1, 1, &dev->v4l2_dev, "%s: " fmt, __func__, ## arg)
-> +
-> +
-> +void m2mtest_dev_release(struct device *dev)
-> +{}
-> +
-> +static struct platform_device m2mtest_pdev = {
-> +     .name           = MEM2MEM_NAME,
-> +     .dev.release    = m2mtest_dev_release,
-> +};
-> +
-> +struct m2mtest_fmt {
-> +     char    *name;
-> +     u32     fourcc;
-> +     int     depth;
-> +     /* Types the format can be used for */
-> +     u32     types;
-> +};
-> +
-> +static struct m2mtest_fmt formats[] = {
-> +     {
-> +             .name   = "RGB565 (BE)",
-> +             .fourcc = V4L2_PIX_FMT_RGB565X, /* rrrrrggg gggbbbbb */
-> +             .depth  = 16,
-> +             /* Both capture and output format */
-> +             .types  = MEM2MEM_CAPTURE | MEM2MEM_OUTPUT,
-> +     },
-> +     {
-> +             .name   = "4:2:2, packed, YUYV",
-> +             .fourcc = V4L2_PIX_FMT_YUYV,
-> +             .depth  = 16,
-> +             /* Output-only format */
-> +             .types  = MEM2MEM_OUTPUT,
-> +     },
-> +};
-> +
-> +/* Per-queue, driver-specific private data */
-> +struct m2mtest_q_data
+>
+>  /* Define the max number of bit transitions per IR keycode */
+>  #define MAX_IR_EVENT_SIZE      256
+>
+>  /* Used to handle IR raw handler extensions */
+>  static LIST_HEAD(ir_raw_handler_list);
+> -static spinlock_t ir_raw_handler_lock;
+> +static DEFINE_SPINLOCK(ir_raw_handler_lock);
+>
+>  /**
+>  * RUN_DECODER()       - runs an operation on all IR decoders
+> @@ -53,19 +54,30 @@
+>  /* Used to load the decoders */
+>  static struct work_struct wq_load;
+>
+> +static void ir_raw_event_work(struct work_struct *work)
 > +{
-[Hiremath, Vaibhav] Please run the checkpatch.pl, you should move starting brace to the above line.
-
-Thanks,
-Vaibhav
-
-> +     unsigned int            width;
-> +     unsigned int            height;
-> +     unsigned int            sizeimage;
-> +     struct m2mtest_fmt      *fmt;
-> +};
+> +       int d;
+> +       struct ir_raw_event_ctrl *raw =
+> +               container_of(work, struct ir_raw_event_ctrl, rx_work);
 > +
-> +enum {
-> +     V4L2_M2M_SRC = 0,
-> +     V4L2_M2M_DST = 1,
-> +};
-> +
-> +/* Source and destination queue data */
-> +static struct m2mtest_q_data q_data[2];
-> +
-> +static struct m2mtest_q_data *get_q_data(enum v4l2_buf_type type)
-> +{
-> +     switch (type) {
-> +     case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-> +             return &q_data[V4L2_M2M_SRC];
-> +     case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-> +             return &q_data[V4L2_M2M_DST];
-> +     default:
-> +             BUG();
-> +     }
-> +     return NULL;
+> +       while (kfifo_out(&raw->kfifo, &d, sizeof(d)) == sizeof(d))
+> +               RUN_DECODER(decode, raw->input_dev, d);
 > +}
 > +
-> +#define V4L2_CID_TRANS_TIME_MSEC     V4L2_CID_PRIVATE_BASE
-> +#define V4L2_CID_TRANS_NUM_BUFS              (V4L2_CID_PRIVATE_BASE + 1)
-> +
-> +static struct v4l2_queryctrl m2mtest_ctrls[] = {
-> +     {
-> +             .id             = V4L2_CID_TRANS_TIME_MSEC,
-> +             .type           = V4L2_CTRL_TYPE_INTEGER,
-> +             .name           = "Transaction time (msec)",
-> +             .minimum        = 1,
-> +             .maximum        = 10000,
-> +             .step           = 100,
-> +             .default_value  = 1000,
-> +             .flags          = 0,
-> +     }, {
-> +             .id             = V4L2_CID_TRANS_NUM_BUFS,
-> +             .type           = V4L2_CTRL_TYPE_INTEGER,
-> +             .name           = "Buffers per transaction",
-> +             .minimum        = 1,
-> +             .maximum        = MEM2MEM_DEF_NUM_BUFS,
-> +             .step           = 1,
-> +             .default_value  = 1,
-> +             .flags          = 0,
-> +     },
-> +};
-> +
-> +#define NUM_FORMATS ARRAY_SIZE(formats)
-> +
-> +static struct m2mtest_fmt *find_format(struct v4l2_format *f)
-> +{
-> +     struct m2mtest_fmt *fmt;
-> +     unsigned int k;
-> +
-> +     for (k = 0; k < NUM_FORMATS; k++) {
-> +             fmt = &formats[k];
-> +             if (fmt->fourcc == f->fmt.pix.pixelformat)
-> +                     break;
-> +     }
-> +
-> +     if (k == NUM_FORMATS)
-> +             return NULL;
-> +
-> +     return &formats[k];
-> +}
-> +
-> +struct m2mtest_dev {
-> +     struct v4l2_device      v4l2_dev;
-> +     struct video_device     *vfd;
-> +
-> +     atomic_t                num_inst;
-> +     struct mutex            dev_mutex;
-> +     spinlock_t              irqlock;
-> +
-> +     struct timer_list       timer;
-> +
-> +     struct v4l2_m2m_dev     *m2m_dev;
-> +};
-> +
-> +struct m2mtest_ctx {
-> +     struct m2mtest_dev      *dev;
-> +
-> +     /* Processed buffers in this transaction */
-> +     u8                      num_processed;
-> +
-> +     /* Transaction length (i.e. how many buffers per transaction) */
-> +     u32                     translen;
-> +     /* Transaction time (i.e. simulated processing time) in milliseconds
-> */
-> +     u32                     transtime;
-> +
-> +     /* Abort requested by m2m */
-> +     int                     aborting;
-> +
-> +     struct v4l2_m2m_ctx     *m2m_ctx;
-> +};
-> +
-> +struct m2mtest_buffer {
-> +     /* vb must be first! */
-> +     struct videobuf_buffer  vb;
-> +};
-> +
-> +static struct v4l2_queryctrl *get_ctrl(int id)
-> +{
-> +     int i;
-> +
-> +     for (i = 0; i < ARRAY_SIZE(m2mtest_ctrls); ++i) {
-> +             if (id == m2mtest_ctrls[i].id)
-> +                     return &m2mtest_ctrls[i];
-> +     }
-> +
-> +     return NULL;
-> +}
-> +
-> +static int device_process(struct m2mtest_ctx *ctx,
-> +                       struct m2mtest_buffer *in_buf,
-> +                       struct m2mtest_buffer *out_buf)
-> +{
-> +     struct m2mtest_dev *dev = ctx->dev;
-> +     u8 *p_in, *p_out;
-> +     int x, y, t, w;
-> +     int tile_w, bytes_left;
-> +     struct videobuf_queue *src_q;
-> +     struct videobuf_queue *dst_q;
-> +
-> +     src_q = v4l2_m2m_get_src_vq(ctx->m2m_ctx);
-> +     dst_q = v4l2_m2m_get_dst_vq(ctx->m2m_ctx);
-> +     p_in = videobuf_queue_to_vmalloc(src_q, &in_buf->vb);
-> +     p_out = videobuf_queue_to_vmalloc(dst_q, &out_buf->vb);
-> +     if (!p_in || !p_out) {
-> +             v4l2_err(&dev->v4l2_dev,
-> +                      "Acquiring kernel pointers to buffers failed\n");
-> +             return -EFAULT;
-> +     }
-> +
-> +     if (in_buf->vb.size < out_buf->vb.size) {
-> +             v4l2_err(&dev->v4l2_dev, "Output buffer is too small\n");
-> +             return -EINVAL;
-> +     }
-> +
-> +     tile_w = (in_buf->vb.width * (q_data[V4L2_M2M_DST].fmt->depth >> 3))
-> +             / MEM2MEM_NUM_TILES;
-> +     bytes_left = in_buf->vb.bytesperline - tile_w * MEM2MEM_NUM_TILES;
-> +     w = 0;
-> +
-> +     for (y = 0; y < in_buf->vb.height; ++y) {
-> +             for (t = 0; t < MEM2MEM_NUM_TILES; ++t) {
-> +                     if (w & 0x1) {
-> +                             for (x = 0; x < tile_w; ++x)
-> +                                     *p_out++ = *p_in++ + MEM2MEM_COLOR_STEP;
-> +                     } else {
-> +                             for (x = 0; x < tile_w; ++x)
-> +                                     *p_out++ = *p_in++ - MEM2MEM_COLOR_STEP;
-> +                     }
-> +                     ++w;
-> +             }
-> +             p_in += bytes_left;
-> +             p_out += bytes_left;
-> +     }
-> +
-> +     return 0;
-> +}
-> +
-> +static void schedule_irq(struct m2mtest_dev *dev, int msec_timeout)
-> +{
-> +     dprintk(dev, "Scheduling a simulated irq\n");
-> +     mod_timer(&dev->timer, jiffies + msecs_to_jiffies(msec_timeout));
-> +}
-> +
-> +/*
-> + * mem2mem callbacks
-> + */
-> +
+>  int ir_raw_event_register(struct input_dev *input_dev)
+>  {
+>        struct ir_input_dev *ir = input_get_drvdata(input_dev);
+> -       int rc, size;
+> +       int rc;
+>
+>        ir->raw = kzalloc(sizeof(*ir->raw), GFP_KERNEL);
+>        if (!ir->raw)
+>                return -ENOMEM;
+>
+> -       size = sizeof(struct ir_raw_event) * MAX_IR_EVENT_SIZE * 2;
+> -       size = roundup_pow_of_two(size);
+> +       ir->raw->input_dev = input_dev;
+> +       INIT_WORK(&ir->raw->rx_work, ir_raw_event_work);
+>
+> -       rc = kfifo_alloc(&ir->raw->kfifo, size, GFP_KERNEL);
+> +       rc = kfifo_alloc(&ir->raw->kfifo, sizeof(int) * MAX_IR_EVENT_SIZE,
+> +                        GFP_KERNEL);
+>        if (rc < 0) {
+>                kfree(ir->raw);
+>                ir->raw = NULL;
+> @@ -91,6 +103,7 @@
+>        if (!ir->raw)
+>                return;
+>
+> +       cancel_work_sync(&ir->raw->rx_work);
+>        RUN_DECODER(raw_unregister, input_dev);
+>
+>        kfifo_free(&ir->raw->kfifo);
+> @@ -99,74 +112,85 @@
+>  }
+>  EXPORT_SYMBOL_GPL(ir_raw_event_unregister);
+>
+> -int ir_raw_event_store(struct input_dev *input_dev, enum raw_event_type type)
 > +/**
-> + * job_ready() - check whether an instance is ready to be scheduled to run
-> + */
-> +static int job_ready(void *priv)
-> +{
-> +     struct m2mtest_ctx *ctx = priv;
-> +
-> +     if (v4l2_m2m_num_src_bufs_ready(ctx->m2m_ctx) < ctx->translen
-> +         || v4l2_m2m_num_dst_bufs_ready(ctx->m2m_ctx) < ctx->translen) {
-> +             dprintk(ctx->dev, "Not enough buffers available\n");
-> +             return 0;
-> +     }
-> +
-> +     return 1;
-> +}
-> +
-> +static void job_abort(void *priv)
-> +{
-> +     struct m2mtest_ctx *ctx = priv;
-> +
-> +     /* Will cancel the transaction in the next interrupt handler */
-> +     ctx->aborting = 1;
-> +}
-> +
-> +/* device_run() - prepares and starts the device
+> + * ir_raw_event_store() - pass a pulse/space duration to the raw ir decoders
+> + * @input_dev: the struct input_dev device descriptor
+> + * @duration:  duration of the pulse or space
 > + *
-> + * This simulates all the immediate preparations required before starting
-> + * a device. This will be called by the framework when it decides to
-> schedule
-> + * a particular instance.
-> + */
-> +static void device_run(void *priv)
-> +{
-> +     struct m2mtest_ctx *ctx = priv;
-> +     struct m2mtest_dev *dev = ctx->dev;
-> +     struct m2mtest_buffer *src_buf, *dst_buf;
-> +
-> +     src_buf = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
-> +     dst_buf = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
-> +
-> +     device_process(ctx, src_buf, dst_buf);
-> +
-> +     /* Run a timer, which simulates a hardware irq  */
-> +     schedule_irq(dev, ctx->transtime);
-> +}
-> +
-> +
-> +static void device_isr(unsigned long priv)
-> +{
-> +     struct m2mtest_dev *m2mtest_dev = (struct m2mtest_dev *)priv;
-> +     struct m2mtest_ctx *curr_ctx;
-> +     struct m2mtest_buffer *src_buf, *dst_buf;
-> +     unsigned long flags;
-> +
-> +     curr_ctx = v4l2_m2m_get_curr_priv(m2mtest_dev->m2m_dev);
-> +
-> +     if (NULL == curr_ctx) {
-> +             printk(KERN_ERR
-> +                     "Instance released before the end of transaction\n");
-> +             return;
-> +     }
-> +
-> +     src_buf = v4l2_m2m_src_buf_remove(curr_ctx->m2m_ctx);
-> +     dst_buf = v4l2_m2m_dst_buf_remove(curr_ctx->m2m_ctx);
-> +     curr_ctx->num_processed++;
-> +
-> +     if (curr_ctx->num_processed == curr_ctx->translen
-> +         || curr_ctx->aborting) {
-> +             dprintk(curr_ctx->dev, "Finishing transaction\n");
-> +             curr_ctx->num_processed = 0;
-> +             spin_lock_irqsave(&m2mtest_dev->irqlock, flags);
-> +             src_buf->vb.state = dst_buf->vb.state = VIDEOBUF_DONE;
-> +             wake_up(&src_buf->vb.done);
-> +             wake_up(&dst_buf->vb.done);
-> +             spin_unlock_irqrestore(&m2mtest_dev->irqlock, flags);
-> +             v4l2_m2m_job_finish(m2mtest_dev->m2m_dev, curr_ctx->m2m_ctx);
-> +     } else {
-> +             spin_lock_irqsave(&m2mtest_dev->irqlock, flags);
-> +             src_buf->vb.state = dst_buf->vb.state = VIDEOBUF_DONE;
-> +             wake_up(&src_buf->vb.done);
-> +             wake_up(&dst_buf->vb.done);
-> +             spin_unlock_irqrestore(&m2mtest_dev->irqlock, flags);
-> +             device_run(curr_ctx);
-> +     }
-> +}
-> +
-> +
-> +/*
-> + * video ioctls
-> + */
-> +static int vidioc_querycap(struct file *file, void *priv,
-> +                        struct v4l2_capability *cap)
-> +{
-> +     strncpy(cap->driver, MEM2MEM_NAME, sizeof(cap->driver) - 1);
-> +     strncpy(cap->card, MEM2MEM_NAME, sizeof(cap->card) - 1);
-> +     cap->bus_info[0] = 0;
-> +     cap->version = KERNEL_VERSION(0, 1, 0);
-> +     cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT
-> +                       | V4L2_CAP_STREAMING;
-> +
-> +     return 0;
-> +}
-> +
-> +static int enum_fmt(struct v4l2_fmtdesc *f, u32 type)
-> +{
-> +     int i, num;
-> +     struct m2mtest_fmt *fmt;
-> +
-> +     num = 0;
-> +
-> +     for (i = 0; i < NUM_FORMATS; ++i) {
-> +             if (formats[i].types & type) {
-> +                     /* index-th format of type type found ? */
-> +                     if (num == f->index)
-> +                             break;
-> +                     /* Correct type but haven't reached our index yet,
-> +                      * just increment per-type index */
-> +                     ++num;
-> +             }
-> +     }
-> +
-> +     if (i < NUM_FORMATS) {
-> +             /* Format found */
-> +             fmt = &formats[i];
-> +             strncpy(f->description, fmt->name, sizeof(f->description) - 1);
-> +             f->pixelformat = fmt->fourcc;
-> +             return 0;
-> +     }
-> +
-> +     /* Format not found */
-> +     return -EINVAL;
-> +}
-> +
-> +static int vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
-> +                                struct v4l2_fmtdesc *f)
-> +{
-> +     return enum_fmt(f, MEM2MEM_CAPTURE);
-> +}
-> +
-> +static int vidioc_enum_fmt_vid_out(struct file *file, void *priv,
-> +                                struct v4l2_fmtdesc *f)
-> +{
-> +     return enum_fmt(f, MEM2MEM_OUTPUT);
-> +}
-> +
-> +static int vidioc_g_fmt(struct m2mtest_ctx *ctx, struct v4l2_format *f)
-> +{
-> +     struct videobuf_queue *vq;
-> +     struct m2mtest_q_data *q_data;
-> +
-> +     vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
-> +     if (!vq)
-> +             return -EINVAL;
-> +
-> +     q_data = get_q_data(f->type);
-> +
-> +     f->fmt.pix.width        = q_data->width;
-> +     f->fmt.pix.height       = q_data->height;
-> +     f->fmt.pix.field        = vq->field;
-> +     f->fmt.pix.pixelformat  = q_data->fmt->fourcc;
-> +     f->fmt.pix.bytesperline = (q_data->width * q_data->fmt->depth) >> 3;
-> +     f->fmt.pix.sizeimage    = q_data->sizeimage;
-> +
-> +     return 0;
-> +}
-> +
-> +static int vidioc_g_fmt_vid_out(struct file *file, void *priv,
-> +                             struct v4l2_format *f)
-> +{
-> +     return vidioc_g_fmt(priv, f);
-> +}
-> +
-> +static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
-> +                             struct v4l2_format *f)
-> +{
-> +     return vidioc_g_fmt(priv, f);
-> +}
-> +
-> +static int vidioc_try_fmt(struct v4l2_format *f, struct m2mtest_fmt *fmt)
-> +{
-> +     enum v4l2_field field;
-> +
-> +     field = f->fmt.pix.field;
-> +
-> +     if (field == V4L2_FIELD_ANY)
-> +             field = V4L2_FIELD_NONE;
-> +     else if (V4L2_FIELD_NONE != field)
-> +             return -EINVAL;
-> +
-> +     /* V4L2 specification suggests the driver corrects the format struct
-> +      * if any of the dimensions is unsupported */
-> +     f->fmt.pix.field = field;
-> +
-> +     if (f->fmt.pix.height < MIN_H)
-> +             f->fmt.pix.height = MIN_H;
-> +     else if (f->fmt.pix.height > MAX_H)
-> +             f->fmt.pix.height = MAX_H;
-> +
-> +     if (f->fmt.pix.width < MIN_W)
-> +             f->fmt.pix.width = MIN_W;
-> +     else if (f->fmt.pix.width > MAX_W)
-> +             f->fmt.pix.width = MAX_W;
-> +
-> +     f->fmt.pix.width &= ~DIM_ALIGN_MASK;
-> +     f->fmt.pix.bytesperline = (f->fmt.pix.width * fmt->depth) >> 3;
-> +     f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
-> +
-> +     return 0;
-> +}
-> +
-> +static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
-> +                               struct v4l2_format *f)
-> +{
-> +     struct m2mtest_fmt *fmt;
-> +     struct m2mtest_ctx *ctx = priv;
-> +
-> +     fmt = find_format(f);
-> +     if (!fmt || !(fmt->types & MEM2MEM_CAPTURE)) {
-> +             v4l2_err(&ctx->dev->v4l2_dev,
-> +                      "Fourcc format (0x%08x) invalid.\n",
-> +                      f->fmt.pix.pixelformat);
-> +             return -EINVAL;
-> +     }
-> +
-> +     return vidioc_try_fmt(f, fmt);
-> +}
-> +
-> +static int vidioc_try_fmt_vid_out(struct file *file, void *priv,
-> +                               struct v4l2_format *f)
-> +{
-> +     struct m2mtest_fmt *fmt;
-> +     struct m2mtest_ctx *ctx = priv;
-> +
-> +     fmt = find_format(f);
-> +     if (!fmt || !(fmt->types & MEM2MEM_OUTPUT)) {
-> +             v4l2_err(&ctx->dev->v4l2_dev,
-> +                      "Fourcc format (0x%08x) invalid.\n",
-> +                      f->fmt.pix.pixelformat);
-> +             return -EINVAL;
-> +     }
-> +
-> +     return vidioc_try_fmt(f, fmt);
-> +}
-> +
-> +static int vidioc_s_fmt(struct m2mtest_ctx *ctx, struct v4l2_format *f)
-> +{
-> +     struct m2mtest_q_data *q_data;
-> +     struct videobuf_queue *vq;
-> +     int ret = 0;
-> +
-> +     vq = v4l2_m2m_get_vq(ctx->m2m_ctx, f->type);
-> +     if (!vq)
-> +             return -EINVAL;
-> +
-> +     q_data = get_q_data(f->type);
-> +     if (!q_data)
-> +             return -EINVAL;
-> +
-> +     mutex_lock(&vq->vb_lock);
-> +
-> +     if (videobuf_queue_is_busy(vq)) {
-> +             v4l2_err(&ctx->dev->v4l2_dev, "%s queue busy\n", __func__);
-> +             ret = -EBUSY;
-> +             goto out;
-> +     }
-> +
-> +     q_data->fmt             = find_format(f);
-> +     q_data->width           = f->fmt.pix.width;
-> +     q_data->height          = f->fmt.pix.height;
-> +     q_data->sizeimage       = q_data->width * q_data->height
-> +                             * q_data->fmt->depth >> 3;
-> +     vq->field               = f->fmt.pix.field;
-> +
-> +     dprintk(ctx->dev,
-> +             "Setting format for type %d, wxh: %dx%d, fmt: %d\n",
-> +             f->type, q_data->width, q_data->height, q_data->fmt->fourcc);
-> +
-> +out:
-> +     mutex_unlock(&vq->vb_lock);
-> +     return ret;
-> +}
-> +
-> +static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
-> +                             struct v4l2_format *f)
-> +{
-> +     int ret;
-> +
-> +     ret = vidioc_try_fmt_vid_cap(file, priv, f);
-> +     if (ret)
-> +             return ret;
-> +
-> +     return vidioc_s_fmt(priv, f);
-> +}
-> +
-> +static int vidioc_s_fmt_vid_out(struct file *file, void *priv,
-> +                             struct v4l2_format *f)
-> +{
-> +     int ret;
-> +
-> +     ret = vidioc_try_fmt_vid_out(file, priv, f);
-> +     if (ret)
-> +             return ret;
-> +
-> +     return vidioc_s_fmt(priv, f);
-> +}
-> +
-> +static int vidioc_reqbufs(struct file *file, void *priv,
-> +                       struct v4l2_requestbuffers *reqbufs)
-> +{
-> +     struct m2mtest_ctx *ctx = priv;
-> +
-> +     return v4l2_m2m_reqbufs(file, ctx->m2m_ctx, reqbufs);
-> +}
-> +
-> +static int vidioc_querybuf(struct file *file, void *priv,
-> +                        struct v4l2_buffer *buf)
-> +{
-> +     struct m2mtest_ctx *ctx = priv;
-> +
-> +     return v4l2_m2m_querybuf(file, ctx->m2m_ctx, buf);
-> +}
-> +
-> +static int vidioc_qbuf(struct file *file, void *priv, struct v4l2_buffer
-> *buf)
-> +{
-> +     struct m2mtest_ctx *ctx = priv;
-> +
-> +     return v4l2_m2m_qbuf(file, ctx->m2m_ctx, buf);
-> +}
-> +
-> +static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer
-> *buf)
-> +{
-> +     struct m2mtest_ctx *ctx = priv;
-> +
-> +     return v4l2_m2m_dqbuf(file, ctx->m2m_ctx, buf);
-> +}
-> +
-> +static int vidioc_streamon(struct file *file, void *priv,
-> +                        enum v4l2_buf_type type)
-> +{
-> +     struct m2mtest_ctx *ctx = priv;
-> +
-> +     return v4l2_m2m_streamon(file, ctx->m2m_ctx, type);
-> +}
-> +
-> +static int vidioc_streamoff(struct file *file, void *priv,
-> +                         enum v4l2_buf_type type)
-> +{
-> +     struct m2mtest_ctx *ctx = priv;
-> +
-> +     return v4l2_m2m_streamoff(file, ctx->m2m_ctx, type);
-> +}
-> +
-> +static int vidioc_queryctrl(struct file *file, void *priv,
-> +                         struct v4l2_queryctrl *qc)
-> +{
-> +     struct v4l2_queryctrl *c;
-> +
-> +     c = get_ctrl(qc->id);
-> +     if (!c)
-> +             return -EINVAL;
-> +
-> +     *qc = *c;
-> +     return 0;
-> +}
-> +
-> +static int vidioc_g_ctrl(struct file *file, void *priv,
-> +                      struct v4l2_control *ctrl)
-> +{
-> +     struct m2mtest_ctx *ctx = priv;
-> +
-> +     switch (ctrl->id) {
-> +     case V4L2_CID_TRANS_TIME_MSEC:
-> +             ctrl->value = ctx->transtime;
-> +             break;
-> +
-> +     case V4L2_CID_TRANS_NUM_BUFS:
-> +             ctrl->value = ctx->translen;
-> +             break;
-> +
-> +     default:
-> +             v4l2_err(&ctx->dev->v4l2_dev, "Invalid control\n");
-> +             return -EINVAL;
-> +     }
-> +
-> +     return 0;
-> +}
-> +
-> +static int check_ctrl_val(struct m2mtest_ctx *ctx, struct v4l2_control
-> *ctrl)
-> +{
-> +     struct v4l2_queryctrl *c;
-> +
-> +     c = get_ctrl(ctrl->id);
-> +     if (!c)
-> +             return -EINVAL;
-> +
-> +     if (ctrl->value < c->minimum || ctrl->value > c->maximum) {
-> +             v4l2_err(&ctx->dev->v4l2_dev, "Value out of range\n");
-> +             return -ERANGE;
-> +     }
-> +
-> +     return 0;
-> +}
-> +
-> +static int vidioc_s_ctrl(struct file *file, void *priv,
-> +                      struct v4l2_control *ctrl)
-> +{
-> +     struct m2mtest_ctx *ctx = priv;
-> +     int ret = 0;
-> +
-> +     ret = check_ctrl_val(ctx, ctrl);
-> +     if (ret != 0)
-> +             return ret;
-> +
-> +     switch (ctrl->id) {
-> +     case V4L2_CID_TRANS_TIME_MSEC:
-> +             ctx->transtime = ctrl->value;
-> +             break;
-> +
-> +     case V4L2_CID_TRANS_NUM_BUFS:
-> +             ctx->translen = ctrl->value;
-> +             break;
-> +
-> +     default:
-> +             v4l2_err(&ctx->dev->v4l2_dev, "Invalid control\n");
-> +             return -EINVAL;
-> +     }
-> +
-> +     return 0;
-> +}
-> +
-> +
-> +static const struct v4l2_ioctl_ops m2mtest_ioctl_ops = {
-> +     .vidioc_querycap        = vidioc_querycap,
-> +
-> +     .vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
-> +     .vidioc_g_fmt_vid_cap   = vidioc_g_fmt_vid_cap,
-> +     .vidioc_try_fmt_vid_cap = vidioc_try_fmt_vid_cap,
-> +     .vidioc_s_fmt_vid_cap   = vidioc_s_fmt_vid_cap,
-> +
-> +     .vidioc_enum_fmt_vid_out = vidioc_enum_fmt_vid_out,
-> +     .vidioc_g_fmt_vid_out   = vidioc_g_fmt_vid_out,
-> +     .vidioc_try_fmt_vid_out = vidioc_try_fmt_vid_out,
-> +     .vidioc_s_fmt_vid_out   = vidioc_s_fmt_vid_out,
-> +
-> +     .vidioc_reqbufs         = vidioc_reqbufs,
-> +     .vidioc_querybuf        = vidioc_querybuf,
-> +
-> +     .vidioc_qbuf            = vidioc_qbuf,
-> +     .vidioc_dqbuf           = vidioc_dqbuf,
-> +
-> +     .vidioc_streamon        = vidioc_streamon,
-> +     .vidioc_streamoff       = vidioc_streamoff,
-> +
-> +     .vidioc_queryctrl       = vidioc_queryctrl,
-> +     .vidioc_g_ctrl          = vidioc_g_ctrl,
-> +     .vidioc_s_ctrl          = vidioc_s_ctrl,
-> +};
-> +
-> +
-> +/*
-> + * Queue operations
-> + */
-> +
-> +static void m2mtest_buf_release(struct videobuf_queue *vq,
-> +                             struct videobuf_buffer *vb)
-> +{
-> +     struct m2mtest_ctx *ctx = vq->priv_data;
-> +
-> +     dprintk(ctx->dev, "type: %d, index: %d, state: %d\n",
-> +             vq->type, vb->i, vb->state);
-> +
-> +     videobuf_vmalloc_free(vb);
-> +     vb->state = VIDEOBUF_NEEDS_INIT;
-> +}
-> +
-> +static int m2mtest_buf_setup(struct videobuf_queue *vq, unsigned int
-> *count,
-> +                       unsigned int *size)
-> +{
-> +     struct m2mtest_ctx *ctx = vq->priv_data;
-> +     struct m2mtest_q_data *q_data;
-> +
-> +     q_data = get_q_data(vq->type);
-> +
-> +     *size = q_data->width * q_data->height * q_data->fmt->depth >> 3;
-> +     dprintk(ctx->dev, "size:%d, w/h %d/%d, depth: %d\n",
-> +             *size, q_data->width, q_data->height, q_data->fmt->depth);
-> +
-> +     if (0 == *count)
-> +             *count = MEM2MEM_DEF_NUM_BUFS;
-> +
-> +     while (*size * *count > MEM2MEM_VID_MEM_LIMIT)
-> +             (*count)--;
-> +
-> +     v4l2_info(&ctx->dev->v4l2_dev,
-> +               "%d buffers of size %d set up.\n", *count, *size);
-> +
-> +     return 0;
-> +}
-> +
-> +static int m2mtest_buf_prepare(struct videobuf_queue *vq,
-> +                            struct videobuf_buffer *vb,
-> +                            enum v4l2_field field)
-> +{
-> +     struct m2mtest_ctx *ctx = vq->priv_data;
-> +     struct m2mtest_q_data *q_data;
-> +     int ret;
-> +
-> +     dprintk(ctx->dev, "type: %d, index: %d, state: %d\n",
-> +             vq->type, vb->i, vb->state);
-> +
-> +     q_data = get_q_data(vq->type);
-> +
-> +     if (vb->baddr) {
-> +             /* User-provided buffer */
-> +             if (vb->bsize < q_data->sizeimage) {
-> +                     /* Buffer too small to fit a frame */
-> +                     v4l2_err(&ctx->dev->v4l2_dev,
-> +                              "User-provided buffer too small\n");
-> +                     return -EINVAL;
-> +             }
-> +     } else if (vb->state != VIDEOBUF_NEEDS_INIT
-> +                     && vb->bsize < q_data->sizeimage) {
-> +             /* We provide the buffer, but it's already been initialized
-> +              * and is too small */
-> +             return -EINVAL;
-> +     }
-> +
-> +     vb->width       = q_data->width;
-> +     vb->height      = q_data->height;
-> +     vb->bytesperline = (q_data->width * q_data->fmt->depth) >> 3;
-> +     vb->size        = q_data->sizeimage;
-> +     vb->field       = field;
-> +
-> +     if (VIDEOBUF_NEEDS_INIT == vb->state) {
-> +             ret = videobuf_iolock(vq, vb, NULL);
-> +             if (ret) {
-> +                     v4l2_err(&ctx->dev->v4l2_dev,
-> +                              "Iolock failed\n");
-> +                     goto fail;
-> +             }
-> +     }
-> +
-> +     vb->state = VIDEOBUF_PREPARED;
-> +
-> +     return 0;
-> +fail:
-> +     m2mtest_buf_release(vq, vb);
-> +     return ret;
-> +}
-> +
-> +static void m2mtest_buf_queue(struct videobuf_queue *vq,
-> +                        struct videobuf_buffer *vb)
-> +{
-> +     struct m2mtest_ctx *ctx = vq->priv_data;
-> +
-> +     v4l2_m2m_buf_queue(ctx->m2m_ctx, vq, vb);
-> +}
-> +
-> +static struct videobuf_queue_ops m2mtest_qops = {
-> +     .buf_setup      = m2mtest_buf_setup,
-> +     .buf_prepare    = m2mtest_buf_prepare,
-> +     .buf_queue      = m2mtest_buf_queue,
-> +     .buf_release    = m2mtest_buf_release,
-> +};
-> +
-> +static void queue_init(void *priv, struct videobuf_queue *vq,
-> +                    enum v4l2_buf_type type)
-> +{
-> +     struct m2mtest_ctx *ctx = priv;
-> +
-> +     videobuf_queue_vmalloc_init(vq, &m2mtest_qops, ctx->dev->v4l2_dev.dev,
-> +                                 &ctx->dev->irqlock, type, V4L2_FIELD_NONE,
-> +                                 sizeof(struct m2mtest_buffer), priv);
-> +}
-> +
-> +
-> +/*
-> + * File operations
-> + */
-> +static int m2mtest_open(struct file *file)
-> +{
-> +     struct m2mtest_dev *dev = video_drvdata(file);
-> +     struct m2mtest_ctx *ctx = NULL;
-> +
-> +     ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
-> +     if (!ctx)
-> +             return -ENOMEM;
-> +
-> +     file->private_data = ctx;
-> +     ctx->dev = dev;
-> +     ctx->translen = MEM2MEM_DEF_TRANSLEN;
-> +     ctx->transtime = MEM2MEM_DEF_TRANSTIME;
-> +     ctx->num_processed = 0;
-> +
-> +     ctx->m2m_ctx = v4l2_m2m_ctx_init(ctx, dev->m2m_dev, queue_init);
-> +     if (IS_ERR(ctx->m2m_ctx)) {
-> +             kfree(ctx);
-> +             return PTR_ERR(ctx->m2m_ctx);
-> +     }
-> +
-> +     atomic_inc(&dev->num_inst);
-> +
-> +     dprintk(dev, "Created instance %p, m2m_ctx: %p\n", ctx, ctx->m2m_ctx);
-> +
-> +     return 0;
-> +}
-> +
-> +static int m2mtest_release(struct file *file)
-> +{
-> +     struct m2mtest_dev *dev = video_drvdata(file);
-> +     struct m2mtest_ctx *ctx = file->private_data;
-> +
-> +     dprintk(dev, "Releasing instance %p\n", ctx);
-> +
-> +     v4l2_m2m_ctx_release(ctx->m2m_ctx);
-> +     kfree(ctx);
-> +
-> +     atomic_dec(&dev->num_inst);
-> +
-> +     return 0;
-> +}
-> +
-> +static unsigned int m2mtest_poll(struct file *file,
-> +                              struct poll_table_struct *wait)
-> +{
-> +     struct m2mtest_ctx *ctx = (struct m2mtest_ctx *)file->private_data;
-> +
-> +     return v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
-> +}
-> +
-> +static int m2mtest_mmap(struct file *file, struct vm_area_struct *vma)
-> +{
-> +     struct m2mtest_ctx *ctx = (struct m2mtest_ctx *)file->private_data;
-> +
-> +     return v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
-> +}
-> +
-> +static const struct v4l2_file_operations m2mtest_fops = {
-> +     .owner          = THIS_MODULE,
-> +     .open           = m2mtest_open,
-> +     .release        = m2mtest_release,
-> +     .poll           = m2mtest_poll,
-> +     .ioctl          = video_ioctl2,
-> +     .mmap           = m2mtest_mmap,
-> +};
-> +
-> +static struct video_device m2mtest_videodev = {
-> +     .name           = MEM2MEM_NAME,
-> +     .fops           = &m2mtest_fops,
-> +     .ioctl_ops      = &m2mtest_ioctl_ops,
-> +     .minor          = -1,
-> +     .release        = video_device_release,
-> +};
-> +
-> +static struct v4l2_m2m_ops m2m_ops = {
-> +     .device_run     = device_run,
-> +     .job_ready      = job_ready,
-> +     .job_abort      = job_abort,
-> +};
-> +
-> +static int m2mtest_probe(struct platform_device *pdev)
-> +{
-> +     struct m2mtest_dev *dev;
-> +     struct video_device *vfd;
-> +     int ret;
-> +
-> +     dev = kzalloc(sizeof *dev, GFP_KERNEL);
-> +     if (!dev)
-> +             return -ENOMEM;
-> +
-> +     spin_lock_init(&dev->irqlock);
-> +
-> +     ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
-> +     if (ret)
-> +             goto free_dev;
-> +
-> +     atomic_set(&dev->num_inst, 0);
-> +     mutex_init(&dev->dev_mutex);
-> +
-> +     vfd = video_device_alloc();
-> +     if (!vfd) {
-> +             v4l2_err(&dev->v4l2_dev, "Failed to allocate video device\n");
-> +             ret = -ENOMEM;
-> +             goto unreg_dev;
-> +     }
-> +
-> +     *vfd = m2mtest_videodev;
-> +
-> +     ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
-> +     if (ret) {
-> +             v4l2_err(&dev->v4l2_dev, "Failed to register video device\n");
-> +             goto rel_vdev;
-> +     }
-> +
-> +     video_set_drvdata(vfd, dev);
-> +     snprintf(vfd->name, sizeof(vfd->name), "%s", m2mtest_videodev.name);
-> +     dev->vfd = vfd;
-> +     v4l2_info(&dev->v4l2_dev, MEM2MEM_TEST_MODULE_NAME
-> +                     "Device registered as /dev/video%d\n", vfd->num);
-> +
-> +     setup_timer(&dev->timer, device_isr, (long)dev);
-> +     platform_set_drvdata(pdev, dev);
-> +
-> +     dev->m2m_dev = v4l2_m2m_init(&m2m_ops);
-> +     if (IS_ERR(dev->m2m_dev)) {
-> +             v4l2_err(&dev->v4l2_dev, "Failed to init mem2mem device\n");
-> +             ret = PTR_ERR(dev->m2m_dev);
-> +             goto err_m2m;
-> +     }
-> +
-> +     return 0;
-> +
-> +err_m2m:
-> +     video_unregister_device(dev->vfd);
-> +rel_vdev:
-> +     video_device_release(vfd);
-> +unreg_dev:
-> +     v4l2_device_unregister(&dev->v4l2_dev);
-> +free_dev:
-> +     kfree(dev);
-> +
-> +     return ret;
-> +}
-> +
-> +static int m2mtest_remove(struct platform_device *pdev)
-> +{
-> +     struct m2mtest_dev *dev =
-> +             (struct m2mtest_dev *)platform_get_drvdata(pdev);
-> +
-> +     v4l2_info(&dev->v4l2_dev, "Removing " MEM2MEM_TEST_MODULE_NAME);
-> +     v4l2_m2m_release(dev->m2m_dev);
-> +     del_timer_sync(&dev->timer);
-> +     video_unregister_device(dev->vfd);
-> +     v4l2_device_unregister(&dev->v4l2_dev);
-> +     kfree(dev);
-> +
-> +     return 0;
-> +}
-> +
-> +static struct platform_driver m2mtest_pdrv = {
-> +     .probe          = m2mtest_probe,
-> +     .remove         = m2mtest_remove,
-> +     .driver         = {
-> +             .name   = MEM2MEM_NAME,
-> +             .owner  = THIS_MODULE,
-> +     },
-> +};
-> +
-> +static void __exit m2mtest_exit(void)
-> +{
-> +     platform_driver_unregister(&m2mtest_pdrv);
-> +     platform_device_unregister(&m2mtest_pdev);
-> +}
-> +
-> +static int __init m2mtest_init(void)
-> +{
-> +     int ret;
-> +
-> +     ret = platform_device_register(&m2mtest_pdev);
-> +     if (ret)
-> +             return ret;
-> +
-> +     ret = platform_driver_register(&m2mtest_pdrv);
-> +     if (ret)
-> +             platform_device_unregister(&m2mtest_pdev);
-> +
-> +     return 0;
-> +}
-> +
-> +module_init(m2mtest_init);
-> +module_exit(m2mtest_exit);
-> +
-> --
-> 1.7.1.rc1.12.ga601
+> + * This routine passes a pulse/space duration to the raw ir decoding state
+> + * machines. Pulses are signalled as positive values and spaces as negative
+> + * values. A zero value will reset the decoding state machines.
 
+Mention that this routine is safe to call from interrupt context
+
+> + */
+> +int ir_raw_event_store(struct input_dev *input_dev, int duration)
+>  {
+> -       struct ir_input_dev     *ir = input_get_drvdata(input_dev);
+> -       struct timespec         ts;
+> -       struct ir_raw_event     event;
+> -       int                     rc;
+> +       struct ir_input_dev *ir = input_get_drvdata(input_dev);
+>
+>        if (!ir->raw)
+>                return -EINVAL;
+>
+> -       event.type = type;
+> -       event.delta.tv_sec = 0;
+> -       event.delta.tv_nsec = 0;
+> +       if (kfifo_in(&ir->raw->kfifo, &duration, sizeof(duration)) != sizeof(duration))
+> +               return -ENOMEM;
+>
+> -       ktime_get_ts(&ts);
+> +       return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(ir_raw_event_store);
+>
+> -       if (timespec_equal(&ir->raw->last_event, &event.delta))
+> -               event.type |= IR_START_EVENT;
+> -       else
+> -               event.delta = timespec_sub(ts, ir->raw->last_event);
+> +/**
+> + * ir_raw_event_store_edge() - notify raw ir decoders of the start of a pulse/space
+> + * @input_dev: the struct input_dev device descriptor
+> + * @type:      the type of the event that has occurred
+> + *
+> + * This routine is used to notify the raw ir decoders on the beginning of an
+> + * ir pulse or space (or the start/end of ir reception). This is used by
+> + * hardware which does not provide durations directly but only interrupts
+> + * (or similar events) on state change.
+
+Mention that this routine is safe to call from interrupt context
+
+> + */
+> +int ir_raw_event_store_edge(struct input_dev *input_dev, enum raw_event_type type)
+> +{
+> +       struct ir_input_dev     *ir = input_get_drvdata(input_dev);
+> +       ktime_t                 now;
+> +       s64                     delta; /* us */
+> +       int                     rc = 0;
+>
+> -       memcpy(&ir->raw->last_event, &ts, sizeof(ts));
+> +       if (!ir->raw)
+> +               return -EINVAL;
+>
+> -       if (event.delta.tv_sec) {
+> -               event.type |= IR_START_EVENT;
+> -               event.delta.tv_sec = 0;
+> -               event.delta.tv_nsec = 0;
+> -       }
+> +       now = ktime_get();
+> +       delta = ktime_us_delta(now, ir->raw->last_event);
+>
+> -       kfifo_in(&ir->raw->kfifo, &event, sizeof(event));
+> +       /* Are we called for the first time? */
+> +       if (!ir->raw->last_type)
+> +               type |= IR_START_EVENT;
+> +
+> +       if (type & IR_START_EVENT)
+> +               ir_raw_event_reset(input_dev);
+
+--- make sure this is ok to call from interrupt context
+
+> +       else if (ir->raw->last_type & IR_SPACE)
+> +               rc = ir_raw_event_store(input_dev, (int)-delta);
+> +       else if (ir->raw->last_type & IR_PULSE)
+> +               rc = ir_raw_event_store(input_dev, (int)delta);
+> +       else
+> +               return 0;
+>
+> +       ir->raw->last_event = now;
+> +       ir->raw->last_type = type;
+>        return rc;
+>  }
+> -EXPORT_SYMBOL_GPL(ir_raw_event_store);
+> +EXPORT_SYMBOL_GPL(ir_raw_event_store_edge);
+>
+> -int ir_raw_event_handle(struct input_dev *input_dev)
+> +/**
+> + * ir_raw_event_handle() - schedules the decoding of stored ir data
+> + * @input_dev: the struct input_dev device descriptor
+> + *
+> + * This routine will signal the workqueue to start decoding stored ir data.
+> + */
+> +void ir_raw_event_handle(struct input_dev *input_dev)
+>  {
+> -       struct ir_input_dev             *ir = input_get_drvdata(input_dev);
+> -       int                             rc;
+> -       struct ir_raw_event             ev;
+> -       int                             len, i;
+> -
+> -       /*
+> -        * Store the events into a temporary buffer. This allows calling more than
+> -        * one decoder to deal with the received data
+> -        */
+> -       len = kfifo_len(&ir->raw->kfifo) / sizeof(ev);
+> -       if (!len)
+> -               return 0;
+> -
+> -       for (i = 0; i < len; i++) {
+> -               rc = kfifo_out(&ir->raw->kfifo, &ev, sizeof(ev));
+> -               if (rc != sizeof(ev)) {
+> -                       IR_dprintk(1, "overflow error: received %d instead of %zd\n",
+> -                                  rc, sizeof(ev));
+> -                       return -EINVAL;
+> -               }
+> -               IR_dprintk(2, "event type %d, time before event: %07luus\n",
+> -                       ev.type, (ev.delta.tv_nsec + 500) / 1000);
+> -               rc = RUN_DECODER(decode, input_dev, &ev);
+> -       }
+> +       struct ir_input_dev *ir = input_get_drvdata(input_dev);
+>
+> -       /*
+> -        * Call all ir decoders. This allows decoding the same event with
+> -        * more than one protocol handler.
+> -        */
+> +       if (!ir->raw)
+> +               return;
+>
+> -       return rc;
+> +       schedule_work(&ir->raw->rx_work);
+>  }
+>  EXPORT_SYMBOL_GPL(ir_raw_event_handle);
+>
+> @@ -205,8 +229,6 @@
+>
+>  void ir_raw_init(void)
+>  {
+> -       spin_lock_init(&ir_raw_handler_lock);
+> -
+>  #ifdef MODULE
+>        INIT_WORK(&wq_load, init_decoders);
+>        schedule_work(&wq_load);
+> Index: ir/include/media/ir-core.h
+> ===================================================================
+> --- ir.orig/include/media/ir-core.h     2010-04-06 12:16:27.000000000 +0200
+> +++ ir/include/media/ir-core.h  2010-04-07 18:17:53.524850074 +0200
+> @@ -57,14 +57,12 @@
+>        void            (*close)(void *priv);
+>  };
+>
+> -struct ir_raw_event {
+> -       struct timespec         delta;  /* Time spent before event */
+> -       enum raw_event_type     type;   /* event type */
+> -};
+> -
+>  struct ir_raw_event_ctrl {
+> -       struct kfifo                    kfifo;          /* fifo for the pulse/space events */
+> -       struct timespec                 last_event;     /* when last event occurred */
+> +       struct work_struct              rx_work;        /* for the rx decoding workqueue */
+> +       struct kfifo                    kfifo;          /* fifo for the pulse/space durations */
+> +       ktime_t                         last_event;     /* when last event occurred */
+> +       enum raw_event_type             last_type;      /* last event type */
+> +       struct input_dev                *input_dev;     /* pointer to the parent input_dev */
+>  };
+>
+>  struct ir_input_dev {
+> @@ -89,8 +87,7 @@
+>  struct ir_raw_handler {
+>        struct list_head list;
+>
+> -       int (*decode)(struct input_dev *input_dev,
+> -                     struct ir_raw_event *ev);
+> +       int (*decode)(struct input_dev *input_dev, int duration);
+>        int (*raw_register)(struct input_dev *input_dev);
+>        int (*raw_unregister)(struct input_dev *input_dev);
+>  };
+> @@ -146,8 +143,13 @@
+>  /* Routines from ir-raw-event.c */
+>  int ir_raw_event_register(struct input_dev *input_dev);
+>  void ir_raw_event_unregister(struct input_dev *input_dev);
+> -int ir_raw_event_store(struct input_dev *input_dev, enum raw_event_type type);
+> -int ir_raw_event_handle(struct input_dev *input_dev);
+> +void ir_raw_event_handle(struct input_dev *input_dev);
+> +int ir_raw_event_store(struct input_dev *input_dev, int duration);
+> +int ir_raw_event_store_edge(struct input_dev *input_dev, enum raw_event_type type);
+> +static inline void ir_raw_event_reset(struct input_dev *dev) {
+> +       ir_raw_event_store(input_dev, 0);
+> +       ir_raw_event_handle(input_dev);
+> +}
+>  int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler);
+>  void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler);
+>  void ir_raw_init(void);
+> Index: ir/drivers/media/IR/ir-nec-decoder.c
+> ===================================================================
+> --- ir.orig/drivers/media/IR/ir-nec-decoder.c   2010-04-06 12:16:27.000000000 +0200
+> +++ ir/drivers/media/IR/ir-nec-decoder.c        2010-04-07 18:32:10.892853025 +0200
+> @@ -13,23 +13,23 @@
+>  */
+>
+>  #include <media/ir-core.h>
+> +#include <linux/bitrev.h>
+>
+>  #define NEC_NBITS              32
+> -#define NEC_UNIT               559979 /* ns */
+> -#define NEC_HEADER_MARK                (16 * NEC_UNIT)
+> -#define NEC_HEADER_SPACE       (8 * NEC_UNIT)
+> -#define NEC_REPEAT_SPACE       (4 * NEC_UNIT)
+> -#define NEC_MARK               (NEC_UNIT)
+> -#define NEC_0_SPACE            (NEC_UNIT)
+> -#define NEC_1_SPACE            (3 * NEC_UNIT)
+> +#define NEC_UNIT               562     /* us */
+> +#define NEC_HEADER_MARK                16
+> +#define NEC_HEADER_SPACE       -8
+> +#define NEC_REPEAT_SPACE       -4
+> +#define NEC_MARK               1
+> +#define NEC_0_SPACE            -1
+> +#define NEC_1_SPACE            -3
+>
+>  /* Used to register nec_decoder clients */
+>  static LIST_HEAD(decoder_list);
+> -static spinlock_t decoder_lock;
+> +static DEFINE_SPINLOCK(decoder_lock);
+>
+>  enum nec_state {
+>        STATE_INACTIVE,
+> -       STATE_HEADER_MARK,
+>        STATE_HEADER_SPACE,
+>        STATE_MARK,
+>        STATE_SPACE,
+> @@ -37,13 +37,6 @@
+>        STATE_TRAILER_SPACE,
+>  };
+>
+> -struct nec_code {
+> -       u8      address;
+> -       u8      not_address;
+> -       u8      command;
+> -       u8      not_command;
+> -};
+> -
+>  struct decoder_data {
+>        struct list_head        list;
+>        struct ir_input_dev     *ir_dev;
+> @@ -51,7 +44,7 @@
+>
+>        /* State machine control */
+>        enum nec_state          state;
+> -       struct nec_code         nec_code;
+> +       u32                     nec_bits;
+>        unsigned                count;
+>  };
+>
+> @@ -62,7 +55,6 @@
+>  *
+>  * Returns the struct decoder_data that corresponds to a device
+>  */
+> -
+>  static struct decoder_data *get_decoder_data(struct  ir_input_dev *ir_dev)
+>  {
+>        struct decoder_data *data = NULL;
+> @@ -123,20 +115,20 @@
+>        .attrs  = decoder_attributes,
+>  };
+>
+> -
+>  /**
+>  * ir_nec_decode() - Decode one NEC pulse or space
+>  * @input_dev: the struct input_dev descriptor of the device
+> - * @ev:                event array with type/duration of pulse/space
+> + * @duration:  duration in us of pulse/space
+>  *
+>  * This function returns -EINVAL if the pulse violates the state machine
+>  */
+> -static int ir_nec_decode(struct input_dev *input_dev,
+> -                        struct ir_raw_event *ev)
+> +static int ir_nec_decode(struct input_dev *input_dev, int duration)
+>  {
+>        struct decoder_data *data;
+>        struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
+> -       int bit, last_bit;
+> +       int d;
+> +       u32 scancode;
+> +       u8 address, not_address, command, not_command;
+>
+>        data = get_decoder_data(ir_dev);
+>        if (!data)
+> @@ -145,150 +137,106 @@
+>        if (!data->enabled)
+>                return 0;
+>
+> -       /* Except for the initial event, what matters is the previous bit */
+> -       bit = (ev->type & IR_PULSE) ? 1 : 0;
+> -
+> -       last_bit = !bit;
+> -
+> -       /* Discards spurious space last_bits when inactive */
+> -
+> -       /* Very long delays are considered as start events */
+> -       if (ev->delta.tv_nsec > NEC_HEADER_MARK + NEC_HEADER_SPACE - NEC_UNIT / 2)
+> +       if (duration == 0) {
+>                data->state = STATE_INACTIVE;
+> +               return 0;
+> +       }
+>
+> -       if (ev->type & IR_START_EVENT)
+> -               data->state = STATE_INACTIVE;
+> +       d = DIV_ROUND_CLOSEST(abs(duration), NEC_UNIT);
+> +       if (duration < 0)
+> +               d = -d;
+
+d = abs(duration)
+d = DIV_ROUND_CLOSEST(d, NEC_UNIT);
+
+
+> +
+> +       IR_dprintk(2, "NEC decode started at state %d (%i units, %ius)\n",
+> +                  data->state, d, duration);
+>
+>        switch (data->state) {
+> -       case STATE_INACTIVE:
+> -               if (!bit)               /* PULSE marks the start event */
+> -                       return 0;
+>
+> -               data->count = 0;
+> -               data->state = STATE_HEADER_MARK;
+> -               memset (&data->nec_code, 0, sizeof(data->nec_code));
+> -               return 0;
+> -       case STATE_HEADER_MARK:
+> -               if (!last_bit)
+> -                       goto err;
+> -               if (ev->delta.tv_nsec < NEC_HEADER_MARK - 6 * NEC_UNIT)
+> -                       goto err;
+> -               data->state = STATE_HEADER_SPACE;
+> +       case STATE_INACTIVE:
+> +               if (d == NEC_HEADER_MARK) {
+> +                       data->count = 0;
+> +                       data->state = STATE_HEADER_SPACE;
+> +               }
+>                return 0;
+> +
+>        case STATE_HEADER_SPACE:
+> -               if (last_bit)
+> -                       goto err;
+> -               if (ev->delta.tv_nsec >= NEC_HEADER_SPACE - NEC_UNIT / 2) {
+> +               if (d == NEC_HEADER_SPACE) {
+>                        data->state = STATE_MARK;
+>                        return 0;
+> -               }
+> -
+> -               if (ev->delta.tv_nsec >= NEC_REPEAT_SPACE - NEC_UNIT / 2) {
+> +               } else if (d == NEC_REPEAT_SPACE) {
+>                        ir_repeat(input_dev);
+>                        IR_dprintk(1, "Repeat last key\n");
+>                        data->state = STATE_TRAILER_MARK;
+>                        return 0;
+>                }
+> -               goto err;
+> +               break;
+> +
+>        case STATE_MARK:
+> -               if (!last_bit)
+> -                       goto err;
+> -               if ((ev->delta.tv_nsec > NEC_MARK + NEC_UNIT / 2) ||
+> -                   (ev->delta.tv_nsec < NEC_MARK - NEC_UNIT / 2))
+> -                       goto err;
+> -               data->state = STATE_SPACE;
+> -               return 0;
+> +               if (d == NEC_MARK) {
+> +                       data->state = STATE_SPACE;
+> +                       return 0;
+> +               }
+> +               break;
+> +
+>        case STATE_SPACE:
+> -               if (last_bit)
+> -                       goto err;
+> +               if (d != NEC_0_SPACE && d != NEC_1_SPACE)
+> +                       break;
+>
+> -               if ((ev->delta.tv_nsec >= NEC_0_SPACE - NEC_UNIT / 2) &&
+> -                   (ev->delta.tv_nsec < NEC_0_SPACE + NEC_UNIT / 2))
+> -                       bit = 0;
+> -               else if ((ev->delta.tv_nsec >= NEC_1_SPACE - NEC_UNIT / 2) &&
+> -                        (ev->delta.tv_nsec < NEC_1_SPACE + NEC_UNIT / 2))
+> -                       bit = 1;
+> -               else {
+> -                       IR_dprintk(1, "Decode failed at %d-th bit (%s) @%luus\n",
+> -                               data->count,
+> -                               last_bit ? "pulse" : "space",
+> -                               (ev->delta.tv_nsec + 500) / 1000);
+> +               data->nec_bits <<= 1;
+> +               if (d == NEC_1_SPACE)
+> +                       data->nec_bits |= 1;
+> +               data->count++;
+>
+> -                       goto err2;
+> +               if (data->count != NEC_NBITS) {
+> +                       data->state = STATE_MARK;
+> +                       return 0;
+>                }
+>
+> -               /* Ok, we've got a valid bit. proccess it */
+> -               if (bit) {
+> -                       int shift = data->count;
+> -
+> -                       /*
+> -                        * NEC transmit bytes on this temporal order:
+> -                        * address | not address | command | not command
+> -                        */
+> -                       if (shift < 8) {
+> -                               data->nec_code.address |= 1 << shift;
+> -                       } else if (shift < 16) {
+> -                               data->nec_code.not_address |= 1 << (shift - 8);
+> -                       } else if (shift < 24) {
+> -                               data->nec_code.command |= 1 << (shift - 16);
+> -                       } else {
+> -                               data->nec_code.not_command |= 1 << (shift - 24);
+> -                       }
+> +               address     = bitrev8((data->nec_bits >> 24) & 0xff);
+> +               not_address = bitrev8((data->nec_bits >> 16) & 0xff);
+> +               command     = bitrev8((data->nec_bits >>  8) & 0xff);
+> +               not_command = bitrev8((data->nec_bits >>  0) & 0xff);
+> +
+> +               if ((command ^ not_command) != 0xff) {
+> +                       IR_dprintk(1, "NEC checksum error: received 0x%08x\n",
+> +                                  data->nec_bits);
+> +                       break;
+>                }
+> -               if (++data->count == NEC_NBITS) {
+> -                       u32 scancode;
+> -                       /*
+> -                        * Fixme: may need to accept Extended NEC protocol?
+> -                        */
+> -                       if ((data->nec_code.command ^ data->nec_code.not_command) != 0xff)
+> -                               goto checksum_err;
+> -
+> -                       if ((data->nec_code.address ^ data->nec_code.not_address) != 0xff) {
+> -                               /* Extended NEC */
+> -                               scancode = data->nec_code.address << 16 |
+> -                                          data->nec_code.not_address << 8 |
+> -                                          data->nec_code.command;
+> -                               IR_dprintk(1, "NEC scancode 0x%06x\n", scancode);
+> -                       } else {
+> -                               /* normal NEC */
+> -                               scancode = data->nec_code.address << 8 |
+> -                                          data->nec_code.command;
+> -                               IR_dprintk(1, "NEC scancode 0x%04x\n", scancode);
+> -                       }
+> -                       ir_keydown(input_dev, scancode, 0);
+>
+> -                       data->state = STATE_TRAILER_MARK;
+> -               } else
+> -                       data->state = STATE_MARK;
+> +               if ((address ^ not_address) != 0xff) {
+> +                       /* Extended NEC */
+> +                       scancode = address     << 16 |
+> +                                  not_address <<  8 |
+> +                                  command;
+> +                       IR_dprintk(1, "NEC (Ext) scancode 0x%06x\n", scancode);
+> +               } else {
+> +                       /* normal NEC */
+> +                       scancode = address << 8 | command;
+> +                       IR_dprintk(1, "NEC scancode 0x%04x\n", scancode);
+> +               }
+> +
+> +               ir_keydown(input_dev, scancode, 0);
+> +               data->state = STATE_TRAILER_MARK;
+>                return 0;
+> +
+>        case STATE_TRAILER_MARK:
+> -               if (!last_bit)
+> -                       goto err;
+> -               data->state = STATE_TRAILER_SPACE;
+> -               return 0;
+> +               if (d > 0) {
+> +                       data->state = STATE_TRAILER_SPACE;
+> +                       return 0;
+> +               }
+> +               break;
+> +
+>        case STATE_TRAILER_SPACE:
+> -               if (last_bit)
+> -                       goto err;
+> -               data->state = STATE_INACTIVE;
+> -               return 0;
+> -       }
+> +               if (d < 0) {
+> +                       data->state = STATE_INACTIVE;
+> +                       return 0;
+> +               }
+>
+> -err:
+> -       IR_dprintk(1, "NEC decoded failed at state %d (%s) @ %luus\n",
+> -                  data->state,
+> -                  bit ? "pulse" : "space",
+> -                  (ev->delta.tv_nsec + 500) / 1000);
+> -err2:
+> -       data->state = STATE_INACTIVE;
+> -       return -EINVAL;
+> +               break;
+> +       }
+>
+> -checksum_err:
+> +       IR_dprintk(1, "NEC decode failed at state %d (%i units, %ius)\n",
+> +                  data->state, d, duration);
+>        data->state = STATE_INACTIVE;
+> -       IR_dprintk(1, "NEC checksum error: received 0x%02x%02x%02x%02x\n",
+> -                  data->nec_code.address,
+> -                  data->nec_code.not_address,
+> -                  data->nec_code.command,
+> -                  data->nec_code.not_command);
+>        return -EINVAL;
+>  }
+>
+> Index: ir/drivers/media/IR/ir-rc5-decoder.c
+> ===================================================================
+> --- ir.orig/drivers/media/IR/ir-rc5-decoder.c   2010-04-06 12:16:51.784849187 +0200
+> +++ ir/drivers/media/IR/ir-rc5-decoder.c        2010-04-07 21:34:14.816870395 +0200
+> @@ -15,31 +15,22 @@
+>  /*
+>  * This code only handles 14 bits RC-5 protocols. There are other variants
+>  * that use a different number of bits. This is currently unsupported
+> - * It considers a carrier of 36 kHz, with a total of 14 bits, where
+> - * the first two bits are start bits, and a third one is a filing bit
+>  */
+>
+>  #include <media/ir-core.h>
+>
+> -static unsigned int ir_rc5_remote_gap = 888888;
+> -
+> -#define RC5_NBITS              14
+> -#define RC5_BIT                        (ir_rc5_remote_gap * 2)
+> -#define RC5_DURATION           (ir_rc5_remote_gap * RC5_NBITS)
+> +#define RC5_UNIT               889 /* us */
+> +#define        RC5_BITS                14
+>
+>  /* Used to register rc5_decoder clients */
+>  static LIST_HEAD(decoder_list);
+> -static spinlock_t decoder_lock;
+> +static DEFINE_SPINLOCK(decoder_lock);
+>
+>  enum rc5_state {
+>        STATE_INACTIVE,
+> -       STATE_MARKSPACE,
+> -       STATE_TRAILER,
+> -};
+> -
+> -struct rc5_code {
+> -       u8      address;
+> -       u8      command;
+> +       STATE_BIT_START,
+> +       STATE_BIT_END,
+> +       STATE_FINISHED,
+>  };
+>
+>  struct decoder_data {
+> @@ -49,8 +40,9 @@
+>
+>        /* State machine control */
+>        enum rc5_state          state;
+> -       struct rc5_code         rc5_code;
+> -       unsigned                code, elapsed, last_bit, last_code;
+> +       u32                     rc5_bits;
+> +       int                     last_delta;
+> +       unsigned                count;
+>  };
+>
+>
+> @@ -122,18 +114,19 @@
+>  };
+>
+>  /**
+> - * handle_event() - Decode one RC-5 pulse or space
+> + * ir_rc5_decode() - Decode one RC-5 pulse or space
+>  * @input_dev: the struct input_dev descriptor of the device
+> - * @ev:                event array with type/duration of pulse/space
+> + * @duration:  duration of pulse/space
+>  *
+>  * This function returns -EINVAL if the pulse violates the state machine
+>  */
+> -static int ir_rc5_decode(struct input_dev *input_dev,
+> -                       struct ir_raw_event *ev)
+> +static int ir_rc5_decode(struct input_dev *input_dev, int duration)
+>  {
+>        struct decoder_data *data;
+>        struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
+> -       int is_pulse, scancode, delta, toggle;
+> +       u8 command, system, toggle;
+> +       u32 scancode;
+> +       int d;
+>
+>        data = get_decoder_data(ir_dev);
+>        if (!data)
+> @@ -142,79 +135,86 @@
+>        if (!data->enabled)
+>                return 0;
+>
+> -       delta = DIV_ROUND_CLOSEST(ev->delta.tv_nsec, ir_rc5_remote_gap);
+> +       if (duration == 0) {
+> +               data->state = STATE_INACTIVE;
+> +               return 0;
+> +       }
+>
+> -       /* The duration time refers to the last bit time */
+> -       is_pulse = (ev->type & IR_PULSE) ? 1 : 0;
+> +       d = DIV_ROUND_CLOSEST(abs(duration), RC5_UNIT);
+> +       if (duration < 0)
+> +               d = -d;
+
+d = abs(duration)
+d = DIV_ROUND_CLOSEST(d, RC5_UNIT);
+
+> +
+> +again:
+> +       IR_dprintk(2, "RC5 decode started at state %i (%i units, %ius)\n",
+> +                  data->state, d, duration);
+>
+> -       /* Very long delays are considered as start events */
+> -       if (delta > RC5_DURATION || (ev->type & IR_START_EVENT))
+> -               data->state = STATE_INACTIVE;
+> +       if (d == 0 && data->state != STATE_FINISHED)
+> +               return 0;
+>
+>        switch (data->state) {
+> +
+>        case STATE_INACTIVE:
+> -       IR_dprintk(2, "currently inative. Start bit (%s) @%uus\n",
+> -                  is_pulse ? "pulse" : "space",
+> -                  (unsigned)(ev->delta.tv_nsec + 500) / 1000);
+> -
+> -               /* Discards the initial start space */
+> -               if (!is_pulse)
+> -                       goto err;
+> -               data->code = 1;
+> -               data->last_bit = 1;
+> -               data->elapsed = 0;
+> -               memset(&data->rc5_code, 0, sizeof(data->rc5_code));
+> -               data->state = STATE_MARKSPACE;
+> -               return 0;
+> -       case STATE_MARKSPACE:
+> -               if (delta != 1)
+> -                       data->last_bit = data->last_bit ? 0 : 1;
+> +               if ((d == 1) || (d == 2)) {
+> +                       data->state = STATE_BIT_START;
+> +                       data->count = 1;
+> +                       d--;
+> +                       goto again;
+> +               }
+> +               break;
+>
+> -               data->elapsed += delta;
+> +       case STATE_BIT_START:
+> +               if (abs(d) == 1) {
+> +                       data->rc5_bits <<= 1;
+> +                       if (d == -1)
+> +                               data->rc5_bits |= 1;
+> +                       data->count++;
+> +                       data->last_delta = d;
+> +
+> +                       /*
+> +                        * If the last bit is zero, a space will "merge"
+> +                        * with the silence after the command.
+> +                        */
+> +                       if ((data->count == data->wanted_bits) && (d == 1))
+> +                               data->state = STATE_FINISHED;
+> +                       else
+> +                               data->state = STATE_BIT_END;
+>
+> -               if ((data->elapsed % 2) == 1)
+>                        return 0;
+> +               }
+> +               break;
+>
+> -               data->code <<= 1;
+> -               data->code |= data->last_bit;
+> -
+> -               /* Fill the 2 unused bits at the command with 0 */
+> -               if (data->elapsed / 2 == 6)
+> -                       data->code <<= 2;
+> -
+> -               if (data->elapsed >= (RC5_NBITS - 1) * 2) {
+> -                       scancode = data->code;
+> -
+> -                       /* Check for the start bits */
+> -                       if ((scancode & 0xc000) != 0xc000) {
+> -                               IR_dprintk(1, "Code 0x%04x doesn't have two start bits. It is not RC-5\n", scancode);
+> -                               goto err;
+> -                       }
+> -
+> -                       toggle = (scancode & 0x2000) ? 1 : 0;
+> -
+> -                       if (scancode == data->last_code) {
+> -                               IR_dprintk(1, "RC-5 repeat\n");
+> -                               ir_repeat(input_dev);
+> -                       } else {
+> -                               data->last_code = scancode;
+> -                               scancode &= 0x1fff;
+> -                               IR_dprintk(1, "RC-5 scancode 0x%04x\n", scancode);
+> -
+> -                               ir_keydown(input_dev, scancode, 0);
+> -                       }
+> -                       data->state = STATE_TRAILER;
+> +       case STATE_BIT_END:
+> +               /* delta and last_delta signedness must differ */
+> +               if (d * data->last_delta < 0) {
+> +                       if (data->count == RC5_BITS)
+> +                               data->state = STATE_FINISHED;
+> +                       else
+> +                               data->state = STATE_BIT_START;
+> +
+> +                       if (d > 0)
+> +                               d--;
+> +                       else if (d < 0)
+> +                               d++;
+> +                       goto again;
+>                }
+> -               return 0;
+> -       case STATE_TRAILER:
+> +               break;
+> +
+> +       case STATE_FINISHED:
+> +               command  = (data->rc5_bits & 0x0003F) >> 0;
+> +               system   = (data->rc5_bits & 0x007C0) >> 6;
+> +               toggle   = (data->rc5_bits & 0x00800) ? 1 : 0;
+> +               command += (data->rc5_bits & 0x01000) ? 0 : 0x40;
+> +               scancode = system << 8 | command;
+> +
+> +               IR_dprintk(1, "RC5 scancode 0x%04x (toggle: %u)\n",
+> +                          scancode, toggle);
+> +               ir_keydown(input_dev, scancode, toggle);
+>                data->state = STATE_INACTIVE;
+>                return 0;
+>        }
+>
+> -err:
+> -       IR_dprintk(1, "RC-5 decoded failed at %s @ %luus\n",
+> -                  is_pulse ? "pulse" : "space",
+> -                  (ev->delta.tv_nsec + 500) / 1000);
+> +       IR_dprintk(1, "RC5 decode failed at state %i (%i units, %ius)\n",
+> +                  data->state, d, duration);
+>        data->state = STATE_INACTIVE;
+>        return -EINVAL;
+>  }
+> Index: ir/drivers/media/video/saa7134/saa7134-input.c
+> ===================================================================
+> --- ir.orig/drivers/media/video/saa7134/saa7134-input.c 2010-04-06 12:30:16.428854774 +0200
+> +++ ir/drivers/media/video/saa7134/saa7134-input.c      2010-04-07 18:05:27.756852639 +0200
+> @@ -1021,7 +1021,7 @@
+>        saa_clearb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
+>        saa_setb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
+>        space = saa_readl(SAA7134_GPIO_GPSTATUS0 >> 2) & ir->mask_keydown;
+> -       ir_raw_event_store(dev->remote->dev, space ? IR_SPACE : IR_PULSE);
+> +       ir_raw_event_store_edge(dev->remote->dev, space ? IR_SPACE : IR_PULSE);
+>
+>
+>        /*
+>
+> --
+> David Härdeman
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-input" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
+
+-- 
+Jon Smirl
+jonsmirl@gmail.com
