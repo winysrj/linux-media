@@ -1,301 +1,531 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:18626 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758053Ab0DAR6A (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Apr 2010 13:58:00 -0400
-Date: Thu, 1 Apr 2010 14:56:32 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: linux-input@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 08/15] V4L/DVB: ir-core: dynamically load the compiled IR
- protocols
-Message-ID: <20100401145632.09268907@pedra>
-In-Reply-To: <cover.1270142346.git.mchehab@redhat.com>
-References: <cover.1270142346.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:45507 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933787Ab0DHXEp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Apr 2010 19:04:45 -0400
+Subject: [PATCH 4/4] Add RC6 support to ir-core
+To: mchehab@redhat.com
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Date: Fri, 09 Apr 2010 01:04:40 +0200
+Message-ID: <20100408230440.14453.36936.stgit@localhost.localdomain>
+In-Reply-To: <20100408230246.14453.97377.stgit@localhost.localdomain>
+References: <20100408230246.14453.97377.stgit@localhost.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of hardcoding the protocols into ir-core, add a register interface
-for the IR protocol decoders, and convert ir-nec-decoder into a client of
-ir-core.
+This patch adds an RC6 decoder (modes 0 and 6A) to ir-core.
 
-With this approach, it is possible to dynamically load the needed IR protocols,
-and to add a RAW IR interface module, registered as one IR raw protocol decoder.
-
-This patch opens a way to register a lirc_dev interface to work as an userspace
-IR protocol decoder.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/IR/Kconfig          |    9 +
+ drivers/media/IR/Makefile         |    1 
+ drivers/media/IR/ir-core-priv.h   |    7 +
+ drivers/media/IR/ir-raw-event.c   |    1 
+ drivers/media/IR/ir-rc6-decoder.c |  412 +++++++++++++++++++++++++++++++++++++
+ drivers/media/IR/ir-sysfs.c       |    2 
+ include/media/rc-map.h            |    1 
+ 7 files changed, 433 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/IR/ir-rc6-decoder.c
 
 diff --git a/drivers/media/IR/Kconfig b/drivers/media/IR/Kconfig
-index 4dde7d1..de410d4 100644
+index ba81bda..28d336d 100644
 --- a/drivers/media/IR/Kconfig
 +++ b/drivers/media/IR/Kconfig
-@@ -7,3 +7,12 @@ config VIDEO_IR
- 	tristate
- 	depends on IR_CORE
- 	default IR_CORE
+@@ -27,3 +27,12 @@ config IR_RC5_DECODER
+ 	---help---
+ 	   Enable this option if you have IR with RC-5 protocol, and
+ 	   if the IR is decoded in software
 +
-+config IR_NEC_DECODER
-+	tristate "Enable IR raw decoder for NEC protocol"
++config IR_RC6_DECODER
++	tristate "Enable IR raw decoder for the RC6 protocol"
 +	depends on IR_CORE
 +	default y
 +
 +	---help---
-+	   Enable this option if you have IR with NEC protocol, and
-+	   if the IR is decoded in software
++	   Enable this option if you have an infrared remote control which
++	   uses the RC6 protocol, and you need software decoding support.
 diff --git a/drivers/media/IR/Makefile b/drivers/media/IR/Makefile
-index 18794c7..6140b27 100644
+index 62e12d5..792d9ca 100644
 --- a/drivers/media/IR/Makefile
 +++ b/drivers/media/IR/Makefile
-@@ -1,5 +1,6 @@
- ir-common-objs  := ir-functions.o ir-keymaps.o
--ir-core-objs	:= ir-keytable.o ir-sysfs.o ir-raw-event.o ir-nec-decoder.o
-+ir-core-objs	:= ir-keytable.o ir-sysfs.o ir-raw-event.o
- 
- obj-$(CONFIG_IR_CORE) += ir-core.o
+@@ -7,3 +7,4 @@ obj-$(CONFIG_IR_CORE) += ir-core.o
  obj-$(CONFIG_VIDEO_IR) += ir-common.o
-+obj-$(CONFIG_IR_NEC_DECODER) += ir-nec-decoder.o
-diff --git a/drivers/media/IR/ir-nec-decoder.c b/drivers/media/IR/ir-nec-decoder.c
-index 104482a..c9a986d 100644
---- a/drivers/media/IR/ir-nec-decoder.c
-+++ b/drivers/media/IR/ir-nec-decoder.c
-@@ -1,4 +1,4 @@
--/* ir-raw-event.c - handle IR Pulse/Space event
-+/* ir-nec-decoder.c - handle NEC IR Pulse/Space protocol
-  *
-  * Copyright (C) 2010 by Mauro Carvalho Chehab <mchehab@redhat.com>
-  *
-@@ -147,7 +147,7 @@ static int __ir_nec_decode(struct input_dev *input_dev,
- 		if (++count == 32)
- 			break;
- 	}
--	*pos++;
-+	(*pos)++;
+ obj-$(CONFIG_IR_NEC_DECODER) += ir-nec-decoder.o
+ obj-$(CONFIG_IR_RC5_DECODER) += ir-rc5-decoder.o
++obj-$(CONFIG_IR_RC6_DECODER) += ir-rc6-decoder.o
+diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
+index ab785bc..853ec80 100644
+--- a/drivers/media/IR/ir-core-priv.h
++++ b/drivers/media/IR/ir-core-priv.h
+@@ -109,4 +109,11 @@ void ir_raw_init(void);
+ #define load_rc5_decode()	0
+ #endif
  
- 	/*
- 	 * Fixme: may need to accept Extended NEC protocol?
-@@ -181,9 +181,9 @@ err:
-  * This function returns the number of decoded pulses or -EINVAL if no
-  * pulse got decoded
-  */
--int ir_nec_decode(struct input_dev *input_dev,
--			   struct ir_raw_event *evs,
--			   int len)
-+static int ir_nec_decode(struct input_dev *input_dev,
-+			 struct ir_raw_event *evs,
-+			 int len)
- {
- 	int pos = 0;
- 	int rc = 0;
-@@ -198,4 +198,27 @@ int ir_nec_decode(struct input_dev *input_dev,
- 	return rc;
- }
- 
--EXPORT_SYMBOL_GPL(ir_nec_decode);
-+static struct ir_raw_handler nec_handler = {
-+	.decode = ir_nec_decode,
-+};
++/* from ir-rc6-decoder.c */
++#ifdef CONFIG_IR_RC5_DECODER_MODULE
++#define load_rc6_decode()	request_module("ir-rc6-decoder")
++#else
++#define load_rc6_decode()	0
++#endif
 +
-+static int __init ir_nec_decode_init(void)
-+{
-+	ir_raw_handler_register(&nec_handler);
-+
-+	printk(KERN_INFO "IR NEC protocol handler initialized\n");
-+	return 0;
-+}
-+
-+static void __exit ir_nec_decode_exit(void)
-+{
-+	ir_raw_handler_unregister(&nec_handler);
-+}
-+
-+module_init(ir_nec_decode_init);
-+module_exit(ir_nec_decode_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@redhat.com>");
-+MODULE_AUTHOR("Red Hat Inc. (http://www.redhat.com)");
-+MODULE_DESCRIPTION("NEC IR protocol decoder");
+ #endif /* _IR_RAW_EVENT */
 diff --git a/drivers/media/IR/ir-raw-event.c b/drivers/media/IR/ir-raw-event.c
-index 0ae5543..3eae128 100644
+index 2efc051..ef0f231 100644
 --- a/drivers/media/IR/ir-raw-event.c
 +++ b/drivers/media/IR/ir-raw-event.c
-@@ -13,10 +13,18 @@
-  */
+@@ -224,6 +224,7 @@ static void init_decoders(struct work_struct *work)
  
- #include <media/ir-core.h>
-+#include <linux/workqueue.h>
+ 	load_nec_decode();
+ 	load_rc5_decode();
++	load_rc6_decode();
  
- /* Define the max number of bit transitions per IR keycode */
- #define MAX_IR_EVENT_SIZE	256
- 
-+/* Used to handle IR raw handler extensions */
-+static LIST_HEAD(ir_raw_handler_list);
-+static DEFINE_MUTEX(ir_raw_handler_lock);
-+
-+/* Used to load the decoders */
-+static struct work_struct wq_load;
-+
- static void ir_keyup_timer(unsigned long data)
- {
- 	struct input_dev *input_dev = (struct input_dev *)data;
-@@ -101,6 +109,7 @@ int ir_raw_event_handle(struct input_dev *input_dev)
- 	int				rc;
- 	struct ir_raw_event		*evs;
- 	int 				len, i;
-+	struct ir_raw_handler		*ir_raw_handler;
- 
- 	/*
- 	 * Store the events into a temporary buffer. This allows calling more than
-@@ -122,10 +131,56 @@ int ir_raw_event_handle(struct input_dev *input_dev)
- 			evs[i].type, (evs[i].delta.tv_nsec + 500) / 1000);
- 	}
- 
--	rc = ir_nec_decode(input_dev, evs, len);
-+	/*
-+	 * Call all ir decoders. This allows decoding the same event with
-+	 * more than one protocol handler.
-+	 * FIXME: better handle the returned code: does it make sense to use
-+	 * other decoders, if the first one already handled the IR?
-+	 */
-+	list_for_each_entry(ir_raw_handler, &ir_raw_handler_list, list) {
-+		rc = ir_raw_handler->decode(input_dev, evs, len);
-+	}
- 
- 	kfree(evs);
- 
- 	return rc;
- }
- EXPORT_SYMBOL_GPL(ir_raw_event_handle);
-+
-+/*
-+ * Extension interface - used to register the IR decoders
+ 	/* If needed, we may later add some init code. In this case,
+ 	   it is needed to change the CONFIG_MODULE test at ir-core.h
+diff --git a/drivers/media/IR/ir-rc6-decoder.c b/drivers/media/IR/ir-rc6-decoder.c
+new file mode 100644
+index 0000000..ccc5be2
+--- /dev/null
++++ b/drivers/media/IR/ir-rc6-decoder.c
+@@ -0,0 +1,412 @@
++/* ir-rc6-decoder.c - A decoder for the RC6 IR protocol
++ *
++ * Copyright (C) 2010 by David Härdeman <david@hardeman.nu>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation version 2 of the License.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
 + */
 +
-+int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler)
-+{
-+	mutex_lock(&ir_raw_handler_lock);
-+	list_add_tail(&ir_raw_handler->list, &ir_raw_handler_list);
-+	mutex_unlock(&ir_raw_handler_lock);
-+	return 0;
-+}
-+EXPORT_SYMBOL(ir_raw_handler_register);
++#include "ir-core-priv.h"
 +
-+void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler)
-+{
-+	mutex_lock(&ir_raw_handler_lock);
-+	list_del(&ir_raw_handler->list);
-+	mutex_unlock(&ir_raw_handler_lock);
-+}
-+EXPORT_SYMBOL(ir_raw_handler_unregister);
++/*
++ * This decoder currently supports:
++ * RC6-0-16	(standard toggle bit in header)
++ * RC6-6A-24	(no toggle bit)
++ * RC6-6A-32	(MCE version with toggle bit in body)
++ */
 +
-+static void init_decoders(struct work_struct *work)
-+{
-+	/* Load the decoder modules */
++#define RC6_UNIT		444444	/* us */
++#define RC6_HEADER_NBITS	4	/* not including toggle bit */
++#define RC6_0_NBITS		16
++#define RC6_6A_SMALL_NBITS	24
++#define RC6_6A_LARGE_NBITS	32
++#define RC6_PREFIX_PULSE	PULSE(6)
++#define RC6_PREFIX_SPACE	SPACE(2)
++#define RC6_MODE_MASK		0x07	/* for the header bits */
++#define RC6_STARTBIT_MASK	0x08	/* for the header bits */
++#define RC6_6A_MCE_TOGGLE_MASK	0x8000	/* for the body bits */
 +
-+	load_nec_decode();
++/* Used to register rc6_decoder clients */
++static LIST_HEAD(decoder_list);
++static DEFINE_SPINLOCK(decoder_lock);
 +
-+	/* If needed, we may later add some init code. In this case,
-+	   it is needed to change the CONFIG_MODULE test at ir-core.h
-+	 */
-+}
-+
-+void ir_raw_init(void)
-+{
-+	INIT_WORK(&wq_load, init_decoders);
-+	schedule_work(&wq_load);
-+}
-\ No newline at end of file
-diff --git a/drivers/media/IR/ir-sysfs.c b/drivers/media/IR/ir-sysfs.c
-index ee6b36d..2dbce59 100644
---- a/drivers/media/IR/ir-sysfs.c
-+++ b/drivers/media/IR/ir-sysfs.c
-@@ -1,6 +1,6 @@
- /* ir-register.c - handle IR scancode->keycode tables
-  *
-- * Copyright (C) 2009 by Mauro Carvalho Chehab <mchehab@redhat.com>
-+ * Copyright (C) 2009-2010 by Mauro Carvalho Chehab <mchehab@redhat.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  *  it under the terms of the GNU General Public License as published by
-@@ -27,7 +27,7 @@ static char *ir_devnode(struct device *dev, mode_t *mode)
- 	return kasprintf(GFP_KERNEL, "irrcv/%s", dev_name(dev));
- }
- 
--struct class ir_input_class = {
-+static struct class ir_input_class = {
- 	.name		= "irrcv",
- 	.devnode	= ir_devnode,
- };
-@@ -250,6 +250,9 @@ static int __init ir_core_init(void)
- 		return rc;
- 	}
- 
-+	/* Initialize/load the decoders that will be used */
-+	ir_raw_init();
-+
- 	return 0;
- }
- 
-diff --git a/include/media/ir-core.h b/include/media/ir-core.h
-index 8d8ed7e..c377bf4 100644
---- a/include/media/ir-core.h
-+++ b/include/media/ir-core.h
-@@ -1,6 +1,8 @@
- /*
-  * Remote Controller core header
-  *
-+ * Copyright (C) 2009-2010 by Mauro Carvalho Chehab <mchehab@redhat.com>
-+ *
-  * This program is free software; you can redistribute it and/or modify
-  *  it under the terms of the GNU General Public License as published by
-  *  the Free Software Foundation version 2 of the License.
-@@ -80,6 +82,14 @@ struct ir_input_dev {
- 	int				keypressed;	/* current state */
- };
- 
-+struct ir_raw_handler {
-+	struct list_head list;
-+
-+	int (*decode)(struct input_dev *input_dev,
-+		      struct ir_raw_event *evs,
-+		      int len);
++enum rc6_mode {
++	RC6_MODE_0,
++	RC6_MODE_6A,
++	RC6_MODE_UNKNOWN,
 +};
 +
- #define to_ir_input_dev(_attr) container_of(_attr, struct ir_input_dev, attr)
- 
- /* Routines from ir-keytable.c */
-@@ -104,11 +114,20 @@ int ir_raw_event_register(struct input_dev *input_dev);
- void ir_raw_event_unregister(struct input_dev *input_dev);
- int ir_raw_event_store(struct input_dev *input_dev, enum raw_event_type type);
- int ir_raw_event_handle(struct input_dev *input_dev);
-+int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler);
-+void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler);
++enum rc6_state {
++	STATE_INACTIVE,
++	STATE_PREFIX_SPACE,
++	STATE_HEADER_BIT_START,
++	STATE_HEADER_BIT_END,
++	STATE_TOGGLE_START,
++	STATE_TOGGLE_END,
++	STATE_BODY_BIT_START,
++	STATE_BODY_BIT_END,
++	STATE_FINISHED,
++};
 +
-+#ifdef MODULE
-+void ir_raw_init(void);
-+#else
-+#define ir_raw_init() 0
-+#endif
- 
- /* from ir-nec-decoder.c */
--int ir_nec_decode(struct input_dev *input_dev,
--		  struct ir_raw_event *evs,
--		  int len);
--
--
-+#ifdef CONFIG_IR_NEC_DECODER_MODULE
-+#define load_nec_decode()	request_module("ir-nec-decoder")
-+#else
-+#define load_nec_decode()	0
- #endif
++struct decoder_data {
++	struct list_head	list;
++	struct ir_input_dev	*ir_dev;
++	int			enabled:1;
 +
-+#endif /* _IR_CORE */
--- 
-1.6.6.1
-
++	/* State machine control */
++	enum rc6_state		state;
++	u8			header;
++	u32			body;
++	int			last_unit;
++	bool			toggle;
++	unsigned		count;
++	unsigned		wanted_bits;
++};
++
++
++/**
++ * get_decoder_data()	- gets decoder data
++ * @input_dev:	input device
++ *
++ * Returns the struct decoder_data that corresponds to a device
++ */
++static struct decoder_data *get_decoder_data(struct  ir_input_dev *ir_dev)
++{
++	struct decoder_data *data = NULL;
++
++	spin_lock(&decoder_lock);
++	list_for_each_entry(data, &decoder_list, list) {
++		if (data->ir_dev == ir_dev)
++			break;
++	}
++	spin_unlock(&decoder_lock);
++	return data;
++}
++
++static ssize_t store_enabled(struct device *d,
++			     struct device_attribute *mattr,
++			     const char *buf,
++			     size_t len)
++{
++	unsigned long value;
++	struct ir_input_dev *ir_dev = dev_get_drvdata(d);
++	struct decoder_data *data = get_decoder_data(ir_dev);
++
++	if (!data)
++		return -EINVAL;
++
++	if (strict_strtoul(buf, 10, &value) || value > 1)
++		return -EINVAL;
++
++	data->enabled = value;
++
++	return len;
++}
++
++static ssize_t show_enabled(struct device *d,
++			     struct device_attribute *mattr, char *buf)
++{
++	struct ir_input_dev *ir_dev = dev_get_drvdata(d);
++	struct decoder_data *data = get_decoder_data(ir_dev);
++
++	if (!data)
++		return -EINVAL;
++
++	if (data->enabled)
++		return sprintf(buf, "1\n");
++	else
++	return sprintf(buf, "0\n");
++}
++
++static DEVICE_ATTR(enabled, S_IRUGO | S_IWUSR, show_enabled, store_enabled);
++
++static struct attribute *decoder_attributes[] = {
++	&dev_attr_enabled.attr,
++	NULL
++};
++
++static struct attribute_group decoder_attribute_group = {
++	.name	= "rc6_decoder",
++	.attrs	= decoder_attributes,
++};
++
++static enum rc6_mode rc6_mode(struct decoder_data *data) {
++	switch (data->header & RC6_MODE_MASK) {
++	case 0:
++		return RC6_MODE_0;
++	case 6:
++		if (!data->toggle)
++			return RC6_MODE_6A;
++		/* fall through */
++	default:
++		return RC6_MODE_UNKNOWN;
++	}
++}
++
++/**
++ * ir_rc6_decode() - Decode one RC6 pulse or space
++ * @input_dev:	the struct input_dev descriptor of the device
++ * @duration:	duration of pulse/space in ns
++ *
++ * This function returns -EINVAL if the pulse violates the state machine
++ */
++static int ir_rc6_decode(struct input_dev *input_dev, s64 duration)
++{
++	struct decoder_data *data;
++	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
++	u32 scancode;
++	u8 toggle;
++	int u;
++
++	data = get_decoder_data(ir_dev);
++	if (!data)
++		return -EINVAL;
++
++	if (!data->enabled)
++		return 0;
++
++	if (IS_RESET(duration)) {
++		data->state = STATE_INACTIVE;
++		return 0;
++	}
++
++	u =  TO_UNITS(duration, RC6_UNIT);
++	if (DURATION(u) == 0)
++		goto out;
++
++again:
++	IR_dprintk(2, "RC6 decode started at state %i (%i units, %ius)\n",
++		   data->state, u, TO_US(duration));
++
++	if (DURATION(u) == 0 && data->state != STATE_FINISHED)
++		return 0;
++
++	switch (data->state) {
++
++	case STATE_INACTIVE:
++		if (u >= RC6_PREFIX_PULSE - 1 && u <= RC6_PREFIX_PULSE + 1) {
++			data->state = STATE_PREFIX_SPACE;
++			data->count = 0;
++			return 0;
++		}
++		break;
++
++	case STATE_PREFIX_SPACE:
++		if (u == RC6_PREFIX_SPACE) {
++			data->state = STATE_HEADER_BIT_START;
++			return 0;
++		}
++		break;
++
++	case STATE_HEADER_BIT_START:
++		if (DURATION(u) == 1) {
++			data->header <<= 1;
++			if (IS_PULSE(u))
++				data->header |= 1;
++			data->count++;
++			data->last_unit = u;
++			data->state = STATE_HEADER_BIT_END;
++			return 0;
++		}
++		break;
++
++	case STATE_HEADER_BIT_END:
++		if (IS_TRANSITION(u, data->last_unit)) {
++			if (data->count == RC6_HEADER_NBITS)
++				data->state = STATE_TOGGLE_START;
++			else
++				data->state = STATE_HEADER_BIT_START;
++
++			DECREASE_DURATION(u, 1);
++			goto again;
++		}
++		break;
++
++	case STATE_TOGGLE_START:
++		if (DURATION(u) == 2) {
++			data->toggle = IS_PULSE(u);
++			data->last_unit = u;
++			data->state = STATE_TOGGLE_END;
++			return 0;
++		}
++		break;
++
++	case STATE_TOGGLE_END:
++		if (IS_TRANSITION(u, data->last_unit) && DURATION(u) >= 2) {
++			data->state = STATE_BODY_BIT_START;
++			data->last_unit = u;
++			DECREASE_DURATION(u, 2);
++			data->count = 0;
++
++			if (!(data->header & RC6_STARTBIT_MASK)) {
++				IR_dprintk(1, "RC6 invalid start bit\n");
++				break;
++			}
++
++			switch (rc6_mode(data)) {
++			case RC6_MODE_0:
++				data->wanted_bits = RC6_0_NBITS;
++				break;
++			case RC6_MODE_6A:
++				/* This might look weird, but we basically
++				   check the value of the first body bit to
++				   determine the number of bits in mode 6A */
++				if ((DURATION(u) == 0 && IS_SPACE(data->last_unit)) || DURATION(u) > 0)
++					data->wanted_bits = RC6_6A_LARGE_NBITS;
++				else
++					data->wanted_bits = RC6_6A_SMALL_NBITS;
++				break;
++			default:
++				IR_dprintk(1, "RC6 unknown mode\n");
++				goto out;
++			}
++			goto again;
++		}
++		break;
++
++	case STATE_BODY_BIT_START:
++		if (DURATION(u) == 1) {
++			data->body <<= 1;
++			if (IS_PULSE(u))
++				data->body |= 1;
++			data->count++;
++			data->last_unit = u;
++
++			/*
++			 * If the last bit is one, a space will merge
++			 * with the silence after the command.
++			 */
++			if (IS_PULSE(u) && data->count == data->wanted_bits) {
++				data->state = STATE_FINISHED;
++				goto again;
++			}
++
++			data->state = STATE_BODY_BIT_END;
++			return 0;
++		}
++		break;
++
++	case STATE_BODY_BIT_END:
++		if (IS_TRANSITION(u, data->last_unit)) {
++			if (data->count == data->wanted_bits)
++				data->state = STATE_FINISHED;
++			else
++				data->state = STATE_BODY_BIT_START;
++
++			DECREASE_DURATION(u, 1);
++			goto again;
++		}
++		break;
++
++	case STATE_FINISHED:
++		switch (rc6_mode(data)) {
++		case RC6_MODE_0:
++			scancode = data->body & 0xffff;
++			toggle = data->toggle;
++			IR_dprintk(1, "RC6(0) scancode 0x%04x (toggle: %u)\n",
++				   scancode, toggle);
++			break;
++		case RC6_MODE_6A:
++			if (data->wanted_bits == RC6_6A_LARGE_NBITS) {
++				toggle = data->body & RC6_6A_MCE_TOGGLE_MASK ? 1 : 0;
++				scancode = data->body & ~RC6_6A_MCE_TOGGLE_MASK;
++			} else {
++				toggle = 0;
++				scancode = data->body & 0xffffff;
++			}
++
++			IR_dprintk(1, "RC6(6A) scancode 0x%08x (toggle: %u)\n",
++				   scancode, toggle);
++			break;
++		default:
++			IR_dprintk(1, "RC6 unknown mode\n");
++			goto out;
++		}
++
++		ir_keydown(input_dev, scancode, toggle);
++		data->state = STATE_INACTIVE;
++		return 0;
++	}
++
++out:
++	IR_dprintk(1, "RC6 decode failed at state %i (%i units, %ius)\n",
++		   data->state, u, TO_US(duration));
++	data->state = STATE_INACTIVE;
++	return -EINVAL;
++}
++
++static int ir_rc6_register(struct input_dev *input_dev)
++{
++	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
++	struct decoder_data *data;
++	int rc;
++
++	rc = sysfs_create_group(&ir_dev->dev.kobj, &decoder_attribute_group);
++	if (rc < 0)
++		return rc;
++
++	data = kzalloc(sizeof(*data), GFP_KERNEL);
++	if (!data) {
++		sysfs_remove_group(&ir_dev->dev.kobj, &decoder_attribute_group);
++		return -ENOMEM;
++	}
++
++	data->ir_dev = ir_dev;
++	data->enabled = 1;
++
++	spin_lock(&decoder_lock);
++	list_add_tail(&data->list, &decoder_list);
++	spin_unlock(&decoder_lock);
++
++	return 0;
++}
++
++static int ir_rc6_unregister(struct input_dev *input_dev)
++{
++	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
++	static struct decoder_data *data;
++
++	data = get_decoder_data(ir_dev);
++	if (!data)
++		return 0;
++
++	sysfs_remove_group(&ir_dev->dev.kobj, &decoder_attribute_group);
++
++	spin_lock(&decoder_lock);
++	list_del(&data->list);
++	spin_unlock(&decoder_lock);
++
++	return 0;
++}
++
++static struct ir_raw_handler rc6_handler = {
++	.decode		= ir_rc6_decode,
++	.raw_register	= ir_rc6_register,
++	.raw_unregister	= ir_rc6_unregister,
++};
++
++static int __init ir_rc6_decode_init(void)
++{
++	ir_raw_handler_register(&rc6_handler);
++
++	printk(KERN_INFO "IR RC6 protocol handler initialized\n");
++	return 0;
++}
++
++static void __exit ir_rc6_decode_exit(void)
++{
++	ir_raw_handler_unregister(&rc6_handler);
++}
++
++module_init(ir_rc6_decode_init);
++module_exit(ir_rc6_decode_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("David Härdeman <david@hardeman.nu>");
++MODULE_DESCRIPTION("RC6 IR protocol decoder");
+diff --git a/drivers/media/IR/ir-sysfs.c b/drivers/media/IR/ir-sysfs.c
+index a222d4f..d7ec973 100644
+--- a/drivers/media/IR/ir-sysfs.c
++++ b/drivers/media/IR/ir-sysfs.c
+@@ -60,6 +60,8 @@ static ssize_t show_protocol(struct device *d,
+ 		s = "pulse-distance";
+ 	else if (ir_type == IR_TYPE_NEC)
+ 		s = "nec";
++	else if (ir_type == IR_TYPE_RC6)
++		s = "rc6";
+ 	else
+ 		s = "other";
+ 
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index 3b7fe5a..11f6618 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -15,6 +15,7 @@
+ #define IR_TYPE_RC5	(1  << 0)	/* Philips RC5 protocol */
+ #define IR_TYPE_PD	(1  << 1)	/* Pulse distance encoded IR */
+ #define IR_TYPE_NEC	(1  << 2)
++#define IR_TYPE_RC6	(1  << 3)	/* Philips RC6 protocol */
+ #define IR_TYPE_OTHER	(1u << 31)
+ 
+ struct ir_scancode {
 
