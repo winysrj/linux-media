@@ -1,115 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2272 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750948Ab0D1TjA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Apr 2010 15:39:00 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id o3SJcw39051187
-	for <linux-media@vger.kernel.org>; Wed, 28 Apr 2010 21:38:58 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 28 Apr 2010 21:38:58 +0200 (CEST)
-Message-Id: <201004281938.o3SJcw39051187@smtp-vbr4.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:45499 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933788Ab0DHXEZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Apr 2010 19:04:25 -0400
+Subject: [PATCH 0/4] ir-core: one-line bugfix, add RC5x, NECx, RC6
+To: mchehab@redhat.com
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Date: Fri, 09 Apr 2010 01:04:20 +0200
+Message-ID: <20100408230246.14453.97377.stgit@localhost.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+The following series implements support for a couple of new protocols
+now that we finally reached an agreement on how durations should be
+handled in ir-raw-event.
 
-Results of the daily build of v4l-dvb:
+Also included is a one-line fix that got missed in my previous conversion
+of drivers/media/dvb/ttpci/budget-ci.c.
 
-date:        Wed Apr 28 19:00:24 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14605:5910305f6d48
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: b88a1e83c9bfa5afbe1dd7481ea15fbea5ad9e55
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+(not to mention that this is my first test run with stgit)
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc1-armv5: OK
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-rc1-armv5-davinci: OK
-linux-2.6.32.6-armv5-ixp: OK
-linux-2.6.33-armv5-ixp: OK
-linux-2.6.34-rc1-armv5-ixp: OK
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-rc1-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.17-i686: WARNINGS
-linux-2.6.24.7-i686: OK
-linux-2.6.25.20-i686: OK
-linux-2.6.26.8-i686: OK
-linux-2.6.27.44-i686: OK
-linux-2.6.28.10-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: OK
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-rc1-i686: WARNINGS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc1-m32r: OK
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-rc1-mips: OK
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-rc1-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.17-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.20-x86_64: OK
-linux-2.6.26.8-x86_64: OK
-linux-2.6.27.44-x86_64: OK
-linux-2.6.28.10-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: OK
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-rc1-x86_64: WARNINGS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.7-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.62-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.7-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+---
 
-Detailed results are available here:
+David Härdeman (4):
+      Fix the drivers/media/dvb/ttpci/budget-ci.c conversion to ir-core
+      Add RC5x support to ir-core
+      Add NECx support to ir-core
+      Add RC6 support to ir-core
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-Full logs are available here:
+ drivers/media/IR/Kconfig            |    9 +
+ drivers/media/IR/Makefile           |    1 
+ drivers/media/IR/ir-core-priv.h     |    7 +
+ drivers/media/IR/ir-nec-decoder.c   |    3 
+ drivers/media/IR/ir-raw-event.c     |    1 
+ drivers/media/IR/ir-rc5-decoder.c   |   78 +++++--
+ drivers/media/IR/ir-rc6-decoder.c   |  412 +++++++++++++++++++++++++++++++++++
+ drivers/media/IR/ir-sysfs.c         |    2 
+ drivers/media/dvb/ttpci/budget-ci.c |    2 
+ include/media/rc-map.h              |    1 
+ 10 files changed, 494 insertions(+), 22 deletions(-)
+ create mode 100644 drivers/media/IR/ir-rc6-decoder.c
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
