@@ -1,67 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from a-pb-sasl-quonix.pobox.com ([208.72.237.25]:33319 "EHLO
-	sasl.smtp.pobox.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750809Ab0DQMSK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Apr 2010 08:18:10 -0400
-Message-ID: <4BC9A6F8.4010507@pobox.com>
-Date: Sat, 17 Apr 2010 08:18:00 -0400
-From: Mark Lord <mlord@pobox.com>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:61394 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752460Ab0DIVza (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Apr 2010 17:55:30 -0400
 MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org, Darren Blaber <dmbtech@gmail.com>
-Subject: Re: cx18: "missing audio" for analog recordings
-References: <4B8BE647.7070709@teksavvy.com>
- <1267493641.4035.17.camel@palomino.walls.org> <4B8CA8DD.5030605@teksavvy.com>
- <1267533630.3123.17.camel@palomino.walls.org> <4B9DA003.90306@teksavvy.com>
- <1268653884.3209.32.camel@palomino.walls.org>  <4BC0FB79.7080601@pobox.com>
- <1270940043.3100.43.camel@palomino.walls.org>  <4BC1401F.9080203@pobox.com>
- <1270961760.5365.14.camel@palomino.walls.org>
- <1270986453.3077.4.camel@palomino.walls.org>  <4BC1CDA2.7070003@pobox.com>
- <1271012464.24325.34.camel@palomino.walls.org> <4BC37DB2.3070107@pobox.com>
- <1271107061.3246.52.camel@palomino.walls.org> <4BC3D578.9060107@pobox.com>
- <4BC3D73D.5030106@pobox.com>  <4BC3D81E.9060808@pobox.com>
- <1271154932.3077.7.camel@palomino.walls.org>  <4BC466A1.3070403@pobox.com>
- <1271209520.4102.18.camel@palomino.walls.org> <4BC54569.7020301@pobox.com>
- <4BC64119.5070200@pobox.com> <1271306803.7643.67.camel@palomino.walls.org>
- <4BC6A135.4070400@pobox.com> <1271422766.3086.33.camel@palomino.walls.org>
-In-Reply-To: <1271422766.3086.33.camel@palomino.walls.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4BBF253A.8030406@redhat.com>
+References: <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
+	 <9e4733910912151338n62b30af5i35f8d0963e6591c@mail.gmail.com>
+	 <4BAB7659.1040408@redhat.com> <201004090821.10435.james@albanarts.com>
+	 <1270810226.3764.34.camel@palomino.walls.org>
+	 <4BBF253A.8030406@redhat.com>
+Date: Fri, 9 Apr 2010 17:55:28 -0400
+Message-ID: <g2k829197381004091455m20368cc6r63df4a4f00d36b45@mail.gmail.com>
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
+	system?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Andy Walls <awalls@radix.net>, James Hogan <james@albanarts.com>,
+	Jon Smirl <jonsmirl@gmail.com>, Pavel Machek <pavel@ucw.cz>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, j@jannau.net,
+	jarod@redhat.com, jarod@wilsonet.com, kraxel@redhat.com,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, superm1@ubuntu.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 16/04/10 08:59 AM, Andy Walls wrote:
-..
-> Accesses to those are orthognal to the rest of the cx18 driver,
-> including the IRQ handler.  (I agree, its hard to follow things in the
-> driver; it's very large.)
->
-> Do note, however, that the audio standard detection microcontroller
-> *does* write to the registers in 0x800-0x9ff *independent* of the linux
-> cx18 driver.
->
-> Locking with respect to the microcontroller would mean halting and
-> restarting the microcontroller.  I don't know if that causes it to reset
-> or not, and I do not know how it affects it's internal timers.
-..
+On Fri, Apr 9, 2010 at 9:01 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> [1] Basically, a keycode (like KEY_POWER) could be used to wake up the machine. So, by
+> associating some scancode to KEY_POWER via ir-core, the driver can program the hardware
+> to wake up the machine with the corresponding scancode. I can't see a need for a change at
+> ir-core to implement such behavior. Of course, some attributes at sysfs can be added
+> to enable or disable this feature, and to control the associated logic, but we first
+> need to implement the wakeup feature at the hardware driver, and then adding some logic
+> at ir-core to add the non-hardware specific code there.
 
-Since the problem really does behave like a "race condition" would behave,
-I wonder if it could have something to do with how/when we modify any of
-those registers which are shared with the microcontroller?
+Really?  Have you actually seen any hardware where a particular scan
+code can be used to wake up the hardware?  The only hardware I have
+seen has the ability to unsuspend on arrival of IR traffic, but you
+didn't have the granularity to dictate that it only wake up on
+particular scancodes.
 
-The cx18 driver *always* does read-modify-write (RMW) of 32-bits at at time,
-even when just an "8-bit" register is being modified.
+Devin
 
-If the microcontroller is using/updating the other 24-bits of any of those
-registers, then the cx18 driver's RMW will destroy values that the microcontroller
-has written.
-
-Is it possible to write only 8-bits, rather than having to do the RMW on 32-bits ?
-
-Cheers
 -- 
-Mark Lord
-Real-Time Remedies Inc.
-mlord@pobox.com
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
