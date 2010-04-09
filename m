@@ -1,81 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f227.google.com ([209.85.220.227]:42423 "EHLO
-	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756394Ab0DEUtN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Apr 2010 16:49:13 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:1026 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755380Ab0DIXeQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 9 Apr 2010 19:34:16 -0400
+Message-ID: <4BBFB925.7080606@redhat.com>
+Date: Fri, 09 Apr 2010 20:32:53 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20100402102011.GA6947@hardeman.nu>
-References: <20100401145632.5631756f@pedra>
-	 <t2z9e4733911004011844pd155bbe8g13e4cbcc1a5bf1f6@mail.gmail.com>
-	 <20100402102011.GA6947@hardeman.nu>
-Date: Mon, 5 Apr 2010 16:49:10 -0400
-Message-ID: <p2ube3a4a1004051349y11e3004bk1c71e3ab38d3f669@mail.gmail.com>
-Subject: Re: [PATCH 00/15] ir-core: Several improvements to allow adding LIRC
-	and decoder plugins
-From: Jarod Wilson <jarod@wilsonet.com>
-To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
-Cc: Jon Smirl <jonsmirl@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-input@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
+To: Andy Walls <awalls@radix.net>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	James Hogan <james@albanarts.com>,
+	Jon Smirl <jonsmirl@gmail.com>, Pavel Machek <pavel@ucw.cz>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, j@jannau.net,
+	jarod@redhat.com, jarod@wilsonet.com, kraxel@redhat.com,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, superm1@ubuntu.com
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR  system?
+References: <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>	 <9e4733910912151338n62b30af5i35f8d0963e6591c@mail.gmail.com>	 <4BAB7659.1040408@redhat.com> <201004090821.10435.james@albanarts.com>	 <1270810226.3764.34.camel@palomino.walls.org> <4BBF253A.8030406@redhat.com>	 <g2k829197381004091455m20368cc6r63df4a4f00d36b45@mail.gmail.com> <1270851240.3038.51.camel@palomino.walls.org>
+In-Reply-To: <1270851240.3038.51.camel@palomino.walls.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 2, 2010 at 6:20 AM, David Härdeman <david@hardeman.nu> wrote:
-> On Thu, Apr 01, 2010 at 09:44:12PM -0400, Jon Smirl wrote:
->> On Thu, Apr 1, 2010 at 1:56 PM, Mauro Carvalho Chehab
+Andy Walls wrote:
+> On Fri, 2010-04-09 at 17:55 -0400, Devin Heitmueller wrote:
+>> On Fri, Apr 9, 2010 at 9:01 AM, Mauro Carvalho Chehab
 >> <mchehab@redhat.com> wrote:
->> > This series of 15 patches improves support for IR, as discussed at the
->> > "What are the goals for the architecture of an in-kernel IR system?"
->> > thread.
->> >
->> > It basically adds a raw decoder layer at ir-core, allowing decoders to plug
->> > into IR core, and preparing for the addition of a lirc_dev driver that will
->> > allow raw IR codes to be sent to userspace.
->> >
->> > There's no lirc patch in this series. I have also a few other patches from
->> > David Härdeman that I'm about to test/review probably later today, but
->> > as I prefer to first merge what I have at V4L/DVB tree, before applying
->> > them.
->>
->> Has anyone ported the MSMCE driver onto these patches yet? That would
->> be a good check to make sure that rc-core has the necessary API.
->
-> I still plan to make lots of changes to the rc-core API (I just have to
-> convince Mauro first, but I'll get there). What I have done is to port
-> your port of the msmce driver to the suggested rc-core subsystem I sent
-> you in private a week or so ago, and it works fine (I've bought the
-> hardware and tested it with 20 or so different protocols).
->
-> The subsystem I suggested is basically what I'm using as inspiration
-> while working with Mauro in improving rc-core so msmce should work well
-> with the end product...but there's still some ground to cover.
->
-> Porting the msmce driver to rc-core will be high on my list of
-> priorities once I've done some more changes to the API.
+>>> [1] Basically, a keycode (like KEY_POWER) could be used to wake up the machine. So, by
+>>> associating some scancode to KEY_POWER via ir-core, the driver can program the hardware
+>>> to wake up the machine with the corresponding scancode. I can't see a need for a change at
+>>> ir-core to implement such behavior. Of course, some attributes at sysfs can be added
+>>> to enable or disable this feature, and to control the associated logic, but we first
+>>> need to implement the wakeup feature at the hardware driver, and then adding some logic
+>>> at ir-core to add the non-hardware specific code there.
+>> Really?  Have you actually seen any hardware where a particular scan
+>> code can be used to wake up the hardware?  The only hardware I have
+>> seen has the ability to unsuspend on arrival of IR traffic, but you
+>> didn't have the granularity to dictate that it only wake up on
+>> particular scancodes.
+> 
+> The CX23888 and CX23102 can do it.  Basically any IR pulse pattern your
+> heart desires; within reason.  And any carrier freq you want too; within
+> reason.
+> 
+> But let's be real, the cx23885, cx231xx, and cx25840 modules are nowhere
+> near properly supporing suspend/resume for their main video and DMA
+> functions, AFAIK.
 
-Very cool. Though note that the latest lirc_mceusb is quite heavily
-modified from what Jon had initially ported, and I still have a few
-outstanding enhancements to make, such as auto-detecting xmit mask to
-eliminate the crude inverted mask list and support for the mce IR
-keyboard/mouse, though that'll probably be trivial once RC5 and RC6
-in-kernel decoders are in place. I'd intended to start with porting
-the imon driver I'm working on over to this new infra (onboard
-hardware decoder, should be rather easy to port), and then hop over to
-the mceusb driver, but if you beat me to it, I've got no problem with
-you doing it instead. :)
+AFAIK, only saa7134 have a good suspend/resume code [1]. You may be watching TV,
+do a suspend and waking the hardware again, and you'll keep seeing the same
+channel (I tested it some time ago, when the proper suspend code were added,
+on analog mode, with alsa enabled). Other drivers can suspend/resume, but
+they won't properly restore the video registers, so, you'll see artifacts when
+it returns.
 
->> Cooler if it works both through LIRC and with an internal protocol
->> decoder. The MSMCE driver in my old patches was very simplified, it
->> removed about half of the code from the LIRC version.
->
-> Yes, and it was a great help to me at least...thanks :)
+So, yes, you're right: before any suspend/resume code on those drivers, we
+first need to add some code to properly handle kernel threads and work queues
+during suspend, and to restore all the registers to a sane state at resume,
+before implementing IR wakeup on them.
 
-Yeah, copy that. Good to see we've got some major momentum going now,
-just need to get off my butt and do some more work on it myself...
+In the case of mceusb, as there is already an userspace code for it on lirc,
+it would probably not be that hard to make this feature to work with ir-core.
+
+[1] Yet, none of the in-hardware decoders allow resume, AFAIK. With a software
+decoder, the IR IRQ might be used to wake, but this means that everything,
+even a glitch, would wake the hardware, so this won't work neither.
 
 -- 
-Jarod Wilson
-jarod@wilsonet.com
+
+Cheers,
+Mauro
