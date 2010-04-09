@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx10.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.14])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o316t60S024752
-	for <video4linux-list@redhat.com>; Thu, 1 Apr 2010 02:55:06 -0400
-Received: from mail-pv0-f174.google.com (mail-pv0-f174.google.com
-	[74.125.83.174])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o316ss9G006315
-	for <video4linux-list@redhat.com>; Thu, 1 Apr 2010 02:54:54 -0400
-Received: by pva18 with SMTP id 18so251851pva.33
-	for <video4linux-list@redhat.com>; Wed, 31 Mar 2010 23:54:54 -0700 (PDT)
-MIME-Version: 1.0
-Date: Thu, 1 Apr 2010 12:24:53 +0530
-Message-ID: <y2mea05c7011003312354vf3d8b694r37d2d5ac80c521b4@mail.gmail.com>
-Subject: driver support enter card
-From: Akhilesh Soni <akhilrekha@gmail.com>
+Received: from mx1.redhat.com (ext-mx02.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.6])
+	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o39CjTes017543
+	for <video4linux-list@redhat.com>; Fri, 9 Apr 2010 08:45:29 -0400
+Received: from namebay.info (mail.namebay.info [80.247.68.40])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o39CjGeK009478
+	for <video4linux-list@redhat.com>; Fri, 9 Apr 2010 08:45:17 -0400
+Received: from localhost by namebay.info (MDaemon PRO v9.6.2)
+	with ESMTP id md50000007809.msg
+	for <video4linux-list@redhat.com>; Fri, 09 Apr 2010 14:45:15 +0200
+Message-ID: <20100409144514.35011u3w7iibwk7u@webmail.hebergement.com>
+Date: Fri, 09 Apr 2010 14:45:14 +0200
+From: fpantaleao@mobisensesystems.com
 To: video4linux-list@redhat.com
+Subject: Re: configuration of sensor
+References: <v2gfe6fd5f61004090024o49727a3fw6ebe9fa8745718f5@mail.gmail.com>
+In-Reply-To: <v2gfe6fd5f61004090024o49727a3fw6ebe9fa8745718f5@mail.gmail.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+Reply-To: fpantaleao@mobisensesystems.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -23,25 +27,40 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"; Format="flowed"; DelSp="Yes"
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Carlos Lavin <carlos.lavin@vista-silicon.com> a =E9crit=A0:
 
-I've got a E-4AV dvr card from Enter. Where can I get linux driver for this
-?
+> hello, I am work with a optical sensor ov7670, but his configuration is v=
+ery
+> complicated,I don't get a good image , I want to work with YUV format ant
+> VGA size, can anybody send me any good configuration? thank you.
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscr=
+ibe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
+
+Check out the software for Spykee robot developped by Meccano, it is  =
+
+equipped with a 0V7670 sensor.
+
+Florin PANTALEAO
+Mobisense Systems - Solutions for mobile robot guidance
+
+http://www.spykeeworld.com/spykee/UK/freeSoftware.html
+
+----------------------------------------------------------------
+This message was sent using IMP, the Internet Messaging Program.
 
 
-http://entermultimedia.com/surveillance/dvr_card.html
 
-
-
-Regards,
-Aks
 --
 video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
