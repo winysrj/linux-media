@@ -1,220 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from a-pb-sasl-quonix.pobox.com ([208.72.237.25]:41051 "EHLO
-	sasl.smtp.pobox.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752212Ab0DJW2U (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Apr 2010 18:28:20 -0400
-Message-ID: <4BC0FB79.7080601@pobox.com>
-Date: Sat, 10 Apr 2010 18:28:09 -0400
-From: Mark Lord <mlord@pobox.com>
+Received: from qw-out-2122.google.com ([74.125.92.26]:46956 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754010Ab0DIPOE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Apr 2010 11:14:04 -0400
 MIME-Version: 1.0
-To: Andy Walls <awalls@radix.net>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org
-Subject: Re: cx18: "missing audio" for analog recordings
-References: <4B8BE647.7070709@teksavvy.com>	
- <1267493641.4035.17.camel@palomino.walls.org>	
- <4B8CA8DD.5030605@teksavvy.com>	
- <1267533630.3123.17.camel@palomino.walls.org> <4B9DA003.90306@teksavvy.com>
- <1268653884.3209.32.camel@palomino.walls.org>
-In-Reply-To: <1268653884.3209.32.camel@palomino.walls.org>
-Content-Type: multipart/mixed; boundary="------------060700030405060204020306"
+In-Reply-To: <4BBF3309.6020909@infradead.org>
+References: <20100408113910.GA17104@hardeman.nu>
+	 <1270812351.3764.66.camel@palomino.walls.org>
+	 <s2o9e4733911004090531we8ff39b4r570e32fdafa04204@mail.gmail.com>
+	 <4BBF3309.6020909@infradead.org>
+Date: Fri, 9 Apr 2010 11:14:03 -0400
+Message-ID: <p2o9e4733911004090814gd4869e27g5f154babf26a403b@mail.gmail.com>
+Subject: Re: [RFC3] Teach drivers/media/IR/ir-raw-event.c to use durations
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------060700030405060204020306
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-
-On 15/03/10 07:51 AM, Andy Walls wrote:
-> On Sun, 2010-03-14 at 22:48 -0400, Mark Lord wrote:
->> On 03/02/10 07:40, Andy Walls wrote:
-..
->> after updating to the tip of the v4l2-dvb git tree last week,
->> I've been hitting the "no audio" on analog recordings bug much more often.
+On Fri, Apr 9, 2010 at 10:00 AM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+> Jon Smirl wrote:
+>>>>
+>>>> +/* macros for ir decoders */
+>>>> +#define PULSE(units)                         ((units))
+>>>> +#define SPACE(units)                         (-(units))
+>>> Encoding pulse vs space with a negative sign, even if now hidden with
+>>> macros, is still just using a sign instead of a boolean.  Memory in
+>>> modern computers (and now microcontrollers) is cheap and only getting
+>>> cheaper.  Don't give up readability, flexibility, or mainatainability,
+>>> for the sake of saving memory.
+>
+> That was my point since the beginning: the amount of saved memory doesn't
+> justify the lack of readability. I understand such constraints when using
+> a hardware implementation on a microcontroller chip that offers just a very
+> few limited registers and a very small or no RAM. Also, if you define it with
+> something like:
+>
+> struct {
+>        unsigned mark : 1;
+>        unsigned duration :31;
+> }
+>
+> There's no memory spend at all: it will use just one unsigned int and it is
+> clearly indicated what's mark and what's duration.
+>
+>> I agree with this. I did it with signed ints in my first version, then
+>> ripped it out and switched to duration + boolean. The duration/boolean
+>> pair was much easier to understand. This is a matter of style, both
+>> schemes work.
+>
+> Yes. It shouldn't be hard to convert the code to better represent the type/duration
+> vector in the future. Actually, that's one of the things i took into consideration
+> when accepting the patch: the code readability were not seriously compromised with
+> the usage of the macros, and, if needed, a patch converting it to a structured type
+> wouldn't be hard.
+>
+>>>>  #endif /* _IR_CORE */
+>>>> Index: ir/drivers/media/IR/ir-nec-decoder.c
+>>>> ===================================================================
+>>>> --- ir.orig/drivers/media/IR/ir-nec-decoder.c 2010-04-08 12:30:28.000000000 +0200
+>>>> +++ ir/drivers/media/IR/ir-nec-decoder.c      2010-04-08 12:35:02.276484204 +0200
+>>>> @@ -13,15 +13,16 @@
+>>>>   */
+>>>>
+>>>>  #include <media/ir-core.h>
+>>>> +#include <linux/bitrev.h>
+>>>>
+>>>>  #define NEC_NBITS            32
+>>>> -#define NEC_UNIT             559979 /* ns */
+>>>> -#define NEC_HEADER_MARK              (16 * NEC_UNIT)
+>>>> -#define NEC_HEADER_SPACE     (8 * NEC_UNIT)
+>>>> -#define NEC_REPEAT_SPACE     (4 * NEC_UNIT)
+>>>> -#define NEC_MARK             (NEC_UNIT)
+>>>> -#define NEC_0_SPACE          (NEC_UNIT)
+>>>> -#define NEC_1_SPACE          (3 * NEC_UNIT)
+>>>> +#define NEC_UNIT             562500  /* ns */
+>>> Have you got a spec on the NEC protocol that justifies 562.5 usec?
+>>>
+>>> >From the best I can tell from the sources I have read and some deductive
+>>> reasoning, 560 usec is the actual number.  Here's one:
+>>>
+>>>        http://www.audiodevelopers.com/temp/Remote_Controls.ppt
+>>>
+>>> Note:
+>>>        560 usec * 38 kHz ~= 4192/197
 >>
->> Digging through google, it appears this problem has been around as long
->> as the cx18 driver has existed, with no clear resolution.  Lots of people
->> have reported it to you before, and nobody has found a silver bullet fix.
-..
-> Here are all the potential problem areas I can think of:
+>> In the PPT you reference there are three numbers...
+>> http://www.sbprojects.com/knowledge/ir/nec.htm
+>>
+>> 560us
+>> 1.12ms
+>> 2.25ms
+>>
+>> I think those are rounding errors.
+>>
+>> 562.5 * 2 = 1.125ms * 2 = 2.25ms
+>>
+>> Most IR protocols are related in a power of two pattern for their
+>> timings to make them easy to decode.
+>>
+>> The protocol doesn't appear to be based on an even number of 38Khz cycles.
+>> These are easy things to change as we get better data on the protocols.
 >
-> 1. A/V digitizer/decoder audio detection firmware load and init.  (I've
-> added firmware readback verification to try and head this off.)
->
-> 2. A/V digitizer decoder audio microcontroller hard reset and "soft"
-> reset sequencing.  (I think the cx18 driver has this wrong ATM.)
->
-> 3. APU load and init.  (The double load is to fix a DTV TS stream bug on
-> every other APU&  CPU firmware load sequence.  The APU_AI_RESET is to
-> fix the audio bitrate problem on first capture after a double firmware
-> load.)
->
-> 4. AI1 Mux setting failing when switching between the internal A/V
-> decoder's I2S output and the external I2S inputs.  (I thought I had this
-> fixed, but I don't have detailed register specs for that register - so
-> maybe not.)
->
-> 5. A/V decoder audio clock PLL stops operating due to being programmed
-> out of range.  (This was a problem for 32 ksps audio a while ago, but
-> I'm pretty confident I have it fixed.)
->
-> 6. A/V decoder analog frontend setup for SIF wrong?.  (I fixed this due
-> to a problen Helen Buus reported with cable TV.)
->
-> I think #2 is the real problem.  I just started to disassmble the
-> digitizer firmware 2 nights ago to see if I could get some insight as to
-> how to properly reset it.
->
-> I've got a first WAG at fixing the resets of the audio microcontroller's
-> resets at:
->
-> 	http://linuxtv.org/hg/~awalls/cx18-audio
->
-> If it doesn't work, change the CXADEC_AUDIO_SOFT_RESET register define
-> from 0x810 to 0x9cc, although that may not work either.
-..
-> Thanks for the troubleshooting and reporting.
-..
+> I don't think that the actual number really matters much. The decoders are
+> reliable enough to work with such small differences. I suspect that, in
 
-Back at this again today, after a month away from it -- getting tired
-of watching "Survivor" with closed-captioning instead of audio.  :)
+I found that the ratios between the numbers are the critical item, not
+the numbers themselves.
 
-I pulled your (Andy) repository today, and merged the cx18 audio reset
-changes from it into today's tip from v4l-dvb.  Patch attached for reference.
+The absolute numbers are used to differentiate the protocol families.
+The total length of the messages is also important in differentiating
+the families.
 
-So far, so good.  I'll keep tabs on it over time, and see if the audio
-is stable, or if it still fails once in a while.
+The protocol decoders should reconcile the total message length as
+another check to make sure they aren't triggering on a message in the
+wrong protocol. Add up the durations of everything seen and see if it
+is within 5-10% of the expected message length.
 
-Cheers
+
+> practice, hardware developers just use a close frequency that can be divided
+> by some existing XTAL clock already available at the machines. In the case of
+> video devices, most of them use a 27 MHz clock. If divided by 711, this gives
+> a clock of 37.974 kHz, and the closest timings are 579 us and 605 us.
+>
+> So, in practical, I think we'll see much more devices using 579 us than
+> 560 us or 562 us.
+>
+>>> and that the three numbers that yield ~560 usec don't evenly divide each
+>>> other:
+>>>
+>>>        $ factor 4192 197 38000
+>>>        4192: 2 2 2 2 2 131
+>>>        197: 197
+>>>        38000: 2 2 2 2 5 5 5 19
+>>>
+>>> which strikes me as being done on purpose (maybe only by me?).
+>>>
+>>> Also note that:
+>>>
+>>>        4192 / 38 kHz = 110.32 usec
+>>>
+>>> and public sources list 110 usec as the NEC repeat period.
+>>>
+>>>
+>>>> +#define NEC_HEADER_PULSE     PULSE(16)
+>>>> +#define NEC_HEADER_SPACE     SPACE(8)
+>>>> +#define NEC_REPEAT_SPACE     SPACE(4)
+>>>> +#define NEC_BIT_PULSE                PULSE(1)
+>>>> +#define NEC_BIT_0_SPACE              SPACE(1)
+>>>> +#define NEC_BIT_1_SPACE              SPACE(3)
+>>> This is slightly better than your previous patch, but the original
+>>> #defines were still clearer.  A maintainer coming through has to spend
+>>> time and energy on asking "16 what?" for example.
+>
+> The units can be expressed as a comment:
+>
+> #define NEC_BIT_PULSE                PULSE(1)   /* nec units */
+>
+> A patch like that is welcome.
+>
+> --
+>
+> Cheers,
+> Mauro
+>
+
+
+
 -- 
-Mark Lord
-Real-Time Remedies Inc.
-mlord@pobox.com
-
---------------060700030405060204020306
-Content-Type: text/plain;
- name="xx_cx18_audio_resets.patch.v4l"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="xx_cx18_audio_resets.patch.v4l"
-
-LS0tIHY0bC1kdmItN2MwYjg4NzkxMWNmL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gx
-OC9jeDE4LWF2LWF1ZGlvLmMJMjAxMC0wNC0wNSAyMjo1Njo0My4wMDAwMDAwMDAgLTA0MDAK
-KysrIHBhdGNoZWQvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDE4L2N4MTgtYXYtYXVk
-aW8uYwkyMDEwLTAzLTEzIDIyOjA2OjU1LjAwMDAwMDAwMCAtMDUwMApAQCAtMzA1LDE0ICsz
-MDUsMTQgQEAKIAlzdHJ1Y3QgY3gxOF9hdl9zdGF0ZSAqc3RhdGUgPSAmY3gtPmF2X3N0YXRl
-OwogCXU4IHY7CiAKKwkvKiBhc3NlcnQgc29mdCByZXNldCAqLworCXYgPSBjeDE4X2F2X3Jl
-YWQoY3gsIENYQURFQ19BVURJT19TT0ZUX1JFU0VUKSB8IDB4MDE7CisJY3gxOF9hdl93cml0
-ZV9leHBlY3QoY3gsIENYQURFQ19BVURJT19TT0ZUX1JFU0VULCB2LCB2LCAweDBmKTsKKwog
-CS8qIHN0b3AgbWljcm9jb250cm9sbGVyICovCiAJdiA9IGN4MThfYXZfcmVhZChjeCwgMHg4
-MDMpICYgfjB4MTA7CiAJY3gxOF9hdl93cml0ZV9leHBlY3QoY3gsIDB4ODAzLCB2LCB2LCAw
-eDFmKTsKIAotCS8qIGFzc2VydCBzb2Z0IHJlc2V0ICovCi0JdiA9IGN4MThfYXZfcmVhZChj
-eCwgMHg4MTApIHwgMHgwMTsKLQljeDE4X2F2X3dyaXRlX2V4cGVjdChjeCwgMHg4MTAsIHYs
-IHYsIDB4MGYpOwotCiAJLyogTXV0ZSBldmVyeXRoaW5nIHRvIHByZXZlbnQgdGhlIFBGRlQh
-ICovCiAJY3gxOF9hdl93cml0ZShjeCwgMHg4ZDMsIDB4MWYpOwogCkBAIC0zMzAsMTYgKzMz
-MCwxNyBAQAogCiAJc2V0X2F1ZGNsa19mcmVxKGN4LCBzdGF0ZS0+YXVkY2xrX2ZyZXEpOwog
-Ci0JLyogZGVhc3NlcnQgc29mdCByZXNldCAqLwotCXYgPSBjeDE4X2F2X3JlYWQoY3gsIDB4
-ODEwKSAmIH4weDAxOwotCWN4MThfYXZfd3JpdGVfZXhwZWN0KGN4LCAweDgxMCwgdiwgdiwg
-MHgwZik7Ci0KIAlpZiAoc3RhdGUtPmF1ZF9pbnB1dCA+IENYMThfQVZfQVVESU9fU0VSSUFM
-MikgeworCQkvKiBzdGFydCBtaWNyb2NvbnRyb2xsZXIgKi8KIAkJLyogV2hlbiB0aGUgbWlj
-cm9jb250cm9sbGVyIGRldGVjdHMgdGhlCiAJCSAqIGF1ZGlvIGZvcm1hdCwgaXQgd2lsbCB1
-bm11dGUgdGhlIGxpbmVzICovCiAJCXYgPSBjeDE4X2F2X3JlYWQoY3gsIDB4ODAzKSB8IDB4
-MTA7CiAJCWN4MThfYXZfd3JpdGVfZXhwZWN0KGN4LCAweDgwMywgdiwgdiwgMHgxZik7CiAJ
-fQorCisJLyogZGVhc3NlcnQgc29mdCByZXNldCAqLworCXYgPSBjeDE4X2F2X3JlYWQoY3gs
-IENYQURFQ19BVURJT19TT0ZUX1JFU0VUKSAmIH4weDAxOworCWN4MThfYXZfd3JpdGVfZXhw
-ZWN0KGN4LCBDWEFERUNfQVVESU9fU09GVF9SRVNFVCwgdiwgdiwgMHgwZik7CiB9CiAKIHN0
-YXRpYyBpbnQgZ2V0X3ZvbHVtZShzdHJ1Y3QgY3gxOCAqY3gpCkBAIC00NDksMTIgKzQ1MCwx
-MyBAQAogCQkgKiBjaGFuZ2VzIHRvIHRoZSBtdXRlIHJlZ2lzdGVyLiAqLwogCQl2ID0gY3gx
-OF9hdl9yZWFkKGN4LCAweDgwMyk7CiAJCWlmIChtdXRlKSB7Ci0JCQkvKiBkaXNhYmxlIG1p
-Y3JvY29udHJvbGxlciAqLworCQkJLyogc3RvcCBtaWNyb2NvbnRyb2xsZXIgKi8KIAkJCXYg
-Jj0gfjB4MTA7CiAJCQljeDE4X2F2X3dyaXRlX2V4cGVjdChjeCwgMHg4MDMsIHYsIHYsIDB4
-MWYpOworCQkJLyogbXV0ZSBhbGwgb2YgUGF0aCAxICovCiAJCQljeDE4X2F2X3dyaXRlKGN4
-LCAweDhkMywgMHgxZik7CiAJCX0gZWxzZSB7Ci0JCQkvKiBlbmFibGUgbWljcm9jb250cm9s
-bGVyICovCisJCQkvKiBzdGFydCBtaWNyb2NvbnRyb2xsZXIgKi8KIAkJCXYgfD0gMHgxMDsK
-IAkJCWN4MThfYXZfd3JpdGVfZXhwZWN0KGN4LCAweDgwMywgdiwgdiwgMHgxZik7CiAJCX0K
-QEAgLTQ3MSwyMiArNDczLDI5IEBACiAJaW50IHJldHZhbDsKIAl1OCB2OwogCisJLyogYXNz
-ZXJ0IHNvZnQgcmVzZXQgKi8KKwl2ID0gY3gxOF9hdl9yZWFkKGN4LCBDWEFERUNfQVVESU9f
-U09GVF9SRVNFVCkgfCAweDE7CisJY3gxOF9hdl93cml0ZV9leHBlY3QoY3gsIENYQURFQ19B
-VURJT19TT0ZUX1JFU0VULCB2LCB2LCAweDBmKTsKKwogCWlmIChzdGF0ZS0+YXVkX2lucHV0
-ID4gQ1gxOF9BVl9BVURJT19TRVJJQUwyKSB7CisJCS8qIHN0b3AgbWljcm9jb250cm9sbGVy
-ICovCiAJCXYgPSBjeDE4X2F2X3JlYWQoY3gsIDB4ODAzKSAmIH4weDEwOwogCQljeDE4X2F2
-X3dyaXRlX2V4cGVjdChjeCwgMHg4MDMsIHYsIHYsIDB4MWYpOworCQkvKiBtdXRlIGFsbCBv
-ZiBQYXRoIDEgKi8KIAkJY3gxOF9hdl93cml0ZShjeCwgMHg4ZDMsIDB4MWYpOwogCX0KLQl2
-ID0gY3gxOF9hdl9yZWFkKGN4LCAweDgxMCkgfCAweDE7Ci0JY3gxOF9hdl93cml0ZV9leHBl
-Y3QoY3gsIDB4ODEwLCB2LCB2LCAweDBmKTsKIAogCXJldHZhbCA9IHNldF9hdWRjbGtfZnJl
-cShjeCwgZnJlcSk7CiAKLQl2ID0gY3gxOF9hdl9yZWFkKGN4LCAweDgxMCkgJiB+MHgxOwot
-CWN4MThfYXZfd3JpdGVfZXhwZWN0KGN4LCAweDgxMCwgdiwgdiwgMHgwZik7CiAJaWYgKHN0
-YXRlLT5hdWRfaW5wdXQgPiBDWDE4X0FWX0FVRElPX1NFUklBTDIpIHsKKwkJLyogc3RhcnQg
-bWljcm9jb250cm9sbGVyICovCiAJCXYgPSBjeDE4X2F2X3JlYWQoY3gsIDB4ODAzKSB8IDB4
-MTA7CiAJCWN4MThfYXZfd3JpdGVfZXhwZWN0KGN4LCAweDgwMywgdiwgdiwgMHgxZik7CiAJ
-fQorCisJLyogZGVhc3NlcnQgc29mdCByZXNldCAqLworCXYgPSBjeDE4X2F2X3JlYWQoY3gs
-IENYQURFQ19BVURJT19TT0ZUX1JFU0VUKSAmIH4weDE7CisJY3gxOF9hdl93cml0ZV9leHBl
-Y3QoY3gsIENYQURFQ19BVURJT19TT0ZUX1JFU0VULCB2LCB2LCAweDBmKTsKIAlyZXR1cm4g
-cmV0dmFsOwogfQogCmRpZmYgLXUgLS1yZWN1cnNpdmUgLS1uZXctZmlsZSAtLWV4Y2x1ZGU9
-Jy4qJyAtLWV4Y2x1ZGU9JyouW29zYV0nIC0tZXhjbHVkZT1TeXN0ZW0ubWFwIC0tZXhjbHVk
-ZT0nKi5vcmlnJyAtLWV4Y2x1ZGU9JyoubGRzJyAtLWV4Y2x1ZGU9Jyouc3ltdmVycycgLS1l
-eGNsdWRlPScqLm1vZC5jJyAtLWV4Y2x1ZGU9Jyoua28nIHY0bC1kdmItN2MwYjg4NzkxMWNm
-L2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gxOC9jeDE4LWF2LWNvcmUuYyBwYXRjaGVk
-L2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gxOC9jeDE4LWF2LWNvcmUuYwotLS0gdjRs
-LWR2Yi03YzBiODg3OTExY2YvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDE4L2N4MTgt
-YXYtY29yZS5jCTIwMTAtMDQtMDUgMjI6NTY6NDMuMDAwMDAwMDAwIC0wNDAwCisrKyBwYXRj
-aGVkL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gxOC9jeDE4LWF2LWNvcmUuYwkyMDEw
-LTA0LTEwIDE3OjEwOjEzLjYxODcxOTEzOSAtMDQwMApAQCAtNTI1LDYgKzUyNSwxMCBAQAog
-CWN4MThfYXZfYW5kX29yKGN4LCAweDQwMSwgfjB4NjAsIDApOwogCWN4MThfYXZfYW5kX29y
-KGN4LCAweDQwMSwgfjB4NjAsIDB4NjApOwogCisJLyogYXNzZXJ0IHNvZnQgcmVzZXQgb2Yg
-YXVkaW8gKi8KKwl2ID0gY3gxOF9hdl9yZWFkKGN4LCBDWEFERUNfQVVESU9fU09GVF9SRVNF
-VCkgfCAweDAxOworCWN4MThfYXZfd3JpdGVfZXhwZWN0KGN4LCBDWEFERUNfQVVESU9fU09G
-VF9SRVNFVCwgdiwgdiwgMHgwZik7CisKIAlpZiAoc3RkICYgVjRMMl9TVERfNTI1XzYwKSB7
-CiAJCWlmIChzdGQgPT0gVjRMMl9TVERfTlRTQ19NX0pQKSB7CiAJCQkvKiBKYXBhbiB1c2Vz
-IEVJQUogYXVkaW8gc3RhbmRhcmQgKi8KQEAgLTU0OSwxNCArNTUzLDkgQEAKIAkJY3gxOF9h
-dl93cml0ZV9leHBlY3QoY3gsIDB4ODBiLCAweDAzLCAweDAzLCAweDNmKTsKIAl9CiAKLQl2
-ID0gY3gxOF9hdl9yZWFkKGN4LCAweDgwMyk7Ci0JaWYgKHYgJiAweDEwKSB7Ci0JCS8qIHJl
-c3RhcnQgYXVkaW8gZGVjb2RlciBtaWNyb2NvbnRyb2xsZXIgKi8KLQkJdiAmPSB+MHgxMDsK
-LQkJY3gxOF9hdl93cml0ZV9leHBlY3QoY3gsIDB4ODAzLCB2LCB2LCAweDFmKTsKLQkJdiB8
-PSAweDEwOwotCQljeDE4X2F2X3dyaXRlX2V4cGVjdChjeCwgMHg4MDMsIHYsIHYsIDB4MWYp
-OwotCX0KKwkvKiBkZWFzc2VydCBzb2Z0IHJlc2V0IG9mIGF1ZGlvICovCisJdiA9IGN4MThf
-YXZfcmVhZChjeCwgQ1hBREVDX0FVRElPX1NPRlRfUkVTRVQpICYgfjB4MDE7CisJY3gxOF9h
-dl93cml0ZV9leHBlY3QoY3gsIENYQURFQ19BVURJT19TT0ZUX1JFU0VULCB2LCB2LCAweDBm
-KTsKIH0KIAogc3RhdGljIGludCBjeDE4X2F2X3NfZnJlcXVlbmN5KHN0cnVjdCB2NGwyX3N1
-YmRldiAqc2QsCmRpZmYgLXUgLS1yZWN1cnNpdmUgLS1uZXctZmlsZSAtLWV4Y2x1ZGU9Jy4q
-JyAtLWV4Y2x1ZGU9JyouW29zYV0nIC0tZXhjbHVkZT1TeXN0ZW0ubWFwIC0tZXhjbHVkZT0n
-Ki5vcmlnJyAtLWV4Y2x1ZGU9JyoubGRzJyAtLWV4Y2x1ZGU9Jyouc3ltdmVycycgLS1leGNs
-dWRlPScqLm1vZC5jJyAtLWV4Y2x1ZGU9Jyoua28nIHY0bC1kdmItN2MwYjg4NzkxMWNmL2xp
-bnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gxOC9jeDE4LWF2LWNvcmUuaCBwYXRjaGVkL2xp
-bnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gxOC9jeDE4LWF2LWNvcmUuaAotLS0gdjRsLWR2
-Yi03YzBiODg3OTExY2YvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDE4L2N4MTgtYXYt
-Y29yZS5oCTIwMTAtMDQtMDUgMjI6NTY6NDMuMDAwMDAwMDAwIC0wNDAwCisrKyBwYXRjaGVk
-L2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gxOC9jeDE4LWF2LWNvcmUuaAkyMDEwLTA0
-LTEwIDE3OjA5OjI2LjUzMjg5MDc3MyAtMDQwMApAQCAtMjQ2LDYgKzI0Niw3IEBACiAKICNk
-ZWZpbmUgQ1hBREVDX0RXODA1MV9JTlQgICAgICAgICAgMHg4MEMKICNkZWZpbmUgQ1hBREVD
-X0dFTkVSQUxfQ1RMICAgICAgICAgMHg4MTAKKyNkZWZpbmUgQ1hBREVDX0FVRElPX1NPRlRf
-UkVTRVQgICAgMHg4MTAgIC8qIDB4ODEwIG9yIDB4OWNjID8/PyAqLwogI2RlZmluZSBDWEFE
-RUNfQUFHQ19DVEwgICAgICAgICAgICAweDgxNAogI2RlZmluZSBDWEFERUNfSUZfU1JDX0NU
-TCAgICAgICAgICAweDgxOAogI2RlZmluZSBDWEFERUNfQU5MT0dfREVNT0RfQ1RMICAgICAw
-eDgxQwpkaWZmIC11IC0tcmVjdXJzaXZlIC0tbmV3LWZpbGUgLS1leGNsdWRlPScuKicgLS1l
-eGNsdWRlPScqLltvc2FdJyAtLWV4Y2x1ZGU9U3lzdGVtLm1hcCAtLWV4Y2x1ZGU9Jyoub3Jp
-ZycgLS1leGNsdWRlPScqLmxkcycgLS1leGNsdWRlPScqLnN5bXZlcnMnIC0tZXhjbHVkZT0n
-Ki5tb2QuYycgLS1leGNsdWRlPScqLmtvJyB2NGwtZHZiLTdjMGI4ODc5MTFjZi9saW51eC9k
-cml2ZXJzL21lZGlhL3ZpZGVvL2N4MTgvY3gxOC1hdi1maXJtd2FyZS5jIHBhdGNoZWQvbGlu
-dXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDE4L2N4MTgtYXYtZmlybXdhcmUuYwotLS0gdjRs
-LWR2Yi03YzBiODg3OTExY2YvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDE4L2N4MTgt
-YXYtZmlybXdhcmUuYwkyMDEwLTA0LTA1IDIyOjU2OjQzLjAwMDAwMDAwMCAtMDQwMAorKysg
-cGF0Y2hlZC9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4MTgvY3gxOC1hdi1maXJtd2Fy
-ZS5jCTIwMTAtMDMtMTMgMjI6MDY6NTUuMDAwMDAwMDAwIC0wNTAwCkBAIC0xNDIsMTQgKzE0
-MiwyMCBAQAogCQlyZXR1cm4gLUVJTzsKIAl9CiAKKwkvKiBEaXNhYmxlIGZpcm13YXJlIHVw
-bG9hZCwga2VlcGluZyB0aGUgODA1MSBpbiByZXNldCAqLwogCWN4MThfYXZfd3JpdGU0X2V4
-cGVjdChjeCwgQ1hBREVDX0RMX0NUTCwKIAkJCQkweDAzMDAwMDAwIHwgZnctPnNpemUsIDB4
-MDMwMDAwMDAsIDB4MTMwMDAwMDApOwogCiAJQ1gxOF9JTkZPX0RFVihzZCwgImxvYWRlZCAl
-cyBmaXJtd2FyZSAoJWQgYnl0ZXMpXG4iLCBGV0ZJTEUsIHNpemUpOwogCi0JaWYgKGN4MThf
-YXZfdmVyaWZ5ZncoY3gsIGZ3KSA9PSAwKQorCWlmIChjeDE4X2F2X3ZlcmlmeWZ3KGN4LCBm
-dykgPT0gMCkgeworCQkvKiBkZWFzc2VydCBzb2Z0IHJlc2V0ICovCisJCXYgPSBjeDE4X2F2
-X3JlYWQ0KGN4LCBDWEFERUNfQVVESU9fU09GVF9SRVNFVCkgJiB+MHgwMTsKKwkJY3gxOF9h
-dl93cml0ZTRfZXhwZWN0KGN4LCBDWEFERUNfQVVESU9fU09GVF9SRVNFVCwgdiwgdiwgMHgw
-Zik7CisJCS8qIGRlYXNzZXJ0IDgwNTEgcmVzZXQgKi8KIAkJY3gxOF9hdl93cml0ZTRfZXhw
-ZWN0KGN4LCBDWEFERUNfRExfQ1RMLAogCQkJCTB4MTMwMDAwMDAgfCBmdy0+c2l6ZSwgMHgx
-MzAwMDAwMCwgMHgxMzAwMDAwMCk7CisJfQogCiAJLyogT3V0cHV0IHRvIHRoZSA0MTYgKi8K
-IAljeDE4X2F2X2FuZF9vcjQoY3gsIENYQURFQ19QSU5fQ1RSTDEsIH4wLCAweDc4MDAwKTsK
-
---------------060700030405060204020306--
+Jon Smirl
+jonsmirl@gmail.com
