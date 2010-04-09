@@ -1,68 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:15170 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751354Ab0DWS37 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Apr 2010 14:29:59 -0400
-Message-ID: <4BD1E71D.5070102@redhat.com>
-Date: Fri, 23 Apr 2010 15:29:49 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from bombadil.infradead.org ([18.85.46.34]:43403 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750918Ab0DIOAw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Apr 2010 10:00:52 -0400
+Message-ID: <4BBF3309.6020909@infradead.org>
+Date: Fri, 09 Apr 2010 11:00:41 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
 To: Jon Smirl <jonsmirl@gmail.com>
-CC: Jarod Wilson <jarod@wilsonet.com>,
-	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
-	linux-input@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 00/15] ir-core: Several improvements to allow adding LIRC
- 	and decoder plugins
-References: <20100401145632.5631756f@pedra>	 <t2z9e4733911004011844pd155bbe8g13e4cbcc1a5bf1f6@mail.gmail.com>	 <20100402102011.GA6947@hardeman.nu>	 <p2ube3a4a1004051349y11e3004bk1c71e3ab38d3f669@mail.gmail.com>	 <20100407093205.GB3029@hardeman.nu>	 <z2hbe3a4a1004231040uce51091fnf24b97de215e3ef1@mail.gmail.com> <o2l9e4733911004231106te8b727e9nfa75bfd9c73e9506@mail.gmail.com>
-In-Reply-To: <o2l9e4733911004231106te8b727e9nfa75bfd9c73e9506@mail.gmail.com>
+CC: Andy Walls <awalls@md.metrocast.net>,
+	=?ISO-8859-1?Q?David_H=E4rdem?= =?ISO-8859-1?Q?an?=
+	<david@hardeman.nu>, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC3] Teach drivers/media/IR/ir-raw-event.c to use durations
+References: <20100408113910.GA17104@hardeman.nu>	 <1270812351.3764.66.camel@palomino.walls.org> <s2o9e4733911004090531we8ff39b4r570e32fdafa04204@mail.gmail.com>
+In-Reply-To: <s2o9e4733911004090531we8ff39b4r570e32fdafa04204@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Jon Smirl wrote:
->> So now that I'm more or less done with porting the imon driver, I
->> think I'm ready to start tackling the mceusb driver. But I'm debating
->> on what approach to take with respect to lirc support. It sort of
->> feels like we should have lirc_dev ported as an ir "decoder"
->> driver/plugin before starting to port mceusb to ir-core, so that we
->> can maintain lirc compat and transmit support. Alternatively, I could
->> port mceusb without lirc support for now, leaving it to only use
->> in-kernel decoding and have no transmit support for the moment, then
->> re-add lirc support. I'm thinking that porting lirc_dev as, say,
->> ir-lirc-decoder first is probably the way to go though. Anyone else
->> want to share their thoughts on this?
+>>>
+>>> +/* macros for ir decoders */
+>>> +#define PULSE(units)                         ((units))
+>>> +#define SPACE(units)                         (-(units))
+>> Encoding pulse vs space with a negative sign, even if now hidden with
+>> macros, is still just using a sign instead of a boolean.  Memory in
+>> modern computers (and now microcontrollers) is cheap and only getting
+>> cheaper.  Don't give up readability, flexibility, or mainatainability,
+>> for the sake of saving memory.
+
+That was my point since the beginning: the amount of saved memory doesn't 
+justify the lack of readability. I understand such constraints when using
+a hardware implementation on a microcontroller chip that offers just a very 
+few limited registers and a very small or no RAM. Also, if you define it with
+something like:
+
+struct {
+	unsigned mark : 1;
+	unsigned duration :31;
+}
+
+There's no memory spend at all: it will use just one unsigned int and it is
+clearly indicated what's mark and what's duration.
+
+> I agree with this. I did it with signed ints in my first version, then
+> ripped it out and switched to duration + boolean. The duration/boolean
+> pair was much easier to understand. This is a matter of style, both
+> schemes work.
+
+Yes. It shouldn't be hard to convert the code to better represent the type/duration
+vector in the future. Actually, that's one of the things i took into consideration 
+when accepting the patch: the code readability were not seriously compromised with
+the usage of the macros, and, if needed, a patch converting it to a structured type
+wouldn't be hard.
+
+>>>  #endif /* _IR_CORE */
+>>> Index: ir/drivers/media/IR/ir-nec-decoder.c
+>>> ===================================================================
+>>> --- ir.orig/drivers/media/IR/ir-nec-decoder.c 2010-04-08 12:30:28.000000000 +0200
+>>> +++ ir/drivers/media/IR/ir-nec-decoder.c      2010-04-08 12:35:02.276484204 +0200
+>>> @@ -13,15 +13,16 @@
+>>>   */
+>>>
+>>>  #include <media/ir-core.h>
+>>> +#include <linux/bitrev.h>
+>>>
+>>>  #define NEC_NBITS            32
+>>> -#define NEC_UNIT             559979 /* ns */
+>>> -#define NEC_HEADER_MARK              (16 * NEC_UNIT)
+>>> -#define NEC_HEADER_SPACE     (8 * NEC_UNIT)
+>>> -#define NEC_REPEAT_SPACE     (4 * NEC_UNIT)
+>>> -#define NEC_MARK             (NEC_UNIT)
+>>> -#define NEC_0_SPACE          (NEC_UNIT)
+>>> -#define NEC_1_SPACE          (3 * NEC_UNIT)
+>>> +#define NEC_UNIT             562500  /* ns */
+>> Have you got a spec on the NEC protocol that justifies 562.5 usec?
+>>
+>> >From the best I can tell from the sources I have read and some deductive
+>> reasoning, 560 usec is the actual number.  Here's one:
+>>
+>>        http://www.audiodevelopers.com/temp/Remote_Controls.ppt
+>>
+>> Note:
+>>        560 usec * 38 kHz ~= 4192/197
 > 
-> I'd take whatever you think is the simplest path. It is more likely
-> that initial testers will want to work with the new in-kernel system
-> than the compatibility layer to LIRC. Existing users that are happy
-> with the current LIRC should just keep on using it.
-
-Agreed. You may start by adding either lirc "decoder" or mce. Both ways
-will end on having the same result ;)
-
->> (Actually, while sharing thoughts... Should drivers/media/IR become
->> drivers/media/RC, ir-core.h become rc-core.h, ir-keytable.c become
->> rc-keytable.c and so on?)
+> In the PPT you reference there are three numbers...
+> http://www.sbprojects.com/knowledge/ir/nec.htm
 > 
-> Why aren't these files going into drivers/input/rc? My embedded system
-> has a remote control and it has nothing to do with media.
+> 560us
+> 1.12ms
+> 2.25ms
+> 
+> I think those are rounding errors.
+> 
+> 562.5 * 2 = 1.125ms * 2 = 2.25ms
+> 
+> Most IR protocols are related in a power of two pattern for their
+> timings to make them easy to decode.
+> 
+> The protocol doesn't appear to be based on an even number of 38Khz cycles.
+> These are easy things to change as we get better data on the protocols.
 
-Historical reasons. It were simpler to start from drivers/media, as we've
-started with some already existing code there.
+I don't think that the actual number really matters much. The decoders are
+reliable enough to work with such small differences. I suspect that, in
+practice, hardware developers just use a close frequency that can be divided
+by some existing XTAL clock already available at the machines. In the case of
+video devices, most of them use a 27 MHz clock. If divided by 711, this gives
+a clock of 37.974 kHz, and the closest timings are 579 us and 605 us.
 
-My intention is to write one or two big patches at the end, moving everything
-to drivers/rc or drivers/input/rc and renaming the structures. The point is
-that a patch like that will force people that are working on the code to rebase
-to the newer names, so I prefer to postpone it to happen after we finish with
-the big changes. A change like that won't affect just the new RC code, but also
-several V4L/DVB drivers.
+So, in practical, I think we'll see much more devices using 579 us than
+560 us or 562 us.
 
-Maybe the right moment would be during the next merge window, as all pending 
-work for 2.6.35 will be already finished, and people likely didn't start 
-working for 2.6.36. So, my intention is to write such patch during the merge
-week, just after sending the pending stuff.
+>> and that the three numbers that yield ~560 usec don't evenly divide each
+>> other:
+>>
+>>        $ factor 4192 197 38000
+>>        4192: 2 2 2 2 2 131
+>>        197: 197
+>>        38000: 2 2 2 2 5 5 5 19
+>>
+>> which strikes me as being done on purpose (maybe only by me?).
+>>
+>> Also note that:
+>>
+>>        4192 / 38 kHz = 110.32 usec
+>>
+>> and public sources list 110 usec as the NEC repeat period.
+>>
+>>
+>>> +#define NEC_HEADER_PULSE     PULSE(16)
+>>> +#define NEC_HEADER_SPACE     SPACE(8)
+>>> +#define NEC_REPEAT_SPACE     SPACE(4)
+>>> +#define NEC_BIT_PULSE                PULSE(1)
+>>> +#define NEC_BIT_0_SPACE              SPACE(1)
+>>> +#define NEC_BIT_1_SPACE              SPACE(3)
+>> This is slightly better than your previous patch, but the original
+>> #defines were still clearer.  A maintainer coming through has to spend
+>> time and energy on asking "16 what?" for example.
+
+The units can be expressed as a comment:
+
+#define NEC_BIT_PULSE                PULSE(1)	/* nec units */
+
+A patch like that is welcome.
 
 -- 
 
