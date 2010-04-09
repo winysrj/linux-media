@@ -1,77 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:62835 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750836Ab0DKE4H (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Apr 2010 00:56:07 -0400
-Subject: Re: cx18: "missing audio" for analog recordings
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mark Lord <mlord@pobox.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org, Darren Blaber <dmbtech@gmail.com>
-In-Reply-To: <4BC1401F.9080203@pobox.com>
-References: <4B8BE647.7070709@teksavvy.com>
-	 <1267493641.4035.17.camel@palomino.walls.org>
-	 <4B8CA8DD.5030605@teksavvy.com>
-	 <1267533630.3123.17.camel@palomino.walls.org> <4B9DA003.90306@teksavvy.com>
-	 <1268653884.3209.32.camel@palomino.walls.org>  <4BC0FB79.7080601@pobox.com>
-	 <1270940043.3100.43.camel@palomino.walls.org>  <4BC1401F.9080203@pobox.com>
-Content-Type: text/plain
-Date: Sun, 11 Apr 2010 00:56:00 -0400
-Message-Id: <1270961760.5365.14.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-fx0-f223.google.com ([209.85.220.223]:63662 "EHLO
+	mail-fx0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753236Ab0DIXQw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Apr 2010 19:16:52 -0400
+Received: by fxm23 with SMTP id 23so3143872fxm.21
+        for <linux-media@vger.kernel.org>; Fri, 09 Apr 2010 16:16:50 -0700 (PDT)
+MIME-Version: 1.0
+Date: Sat, 10 Apr 2010 02:16:50 +0300
+Message-ID: <y2p94764e701004091616x59467e3qc4efc2580dad53d@mail.gmail.com>
+Subject: [PATCH] DVB-T initial scan file for Israel (dvb-utils)
+From: Shaul Kremer <shaulkr@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2010-04-10 at 23:21 -0400, Mark Lord wrote:
-> On 10/04/10 06:54 PM, Andy Walls wrote:
-> >
-> > Hmmm.  Darren's having problems (loss of video/black screen) with my
-> > patches under my cx18-audio repo, but I'm not quite convinced he doesn't
-> > have some other PCI bus problem either.
-> >
-> > Anyway, my plan now is this:
-> >
-> > 1. on cx18-av-core.c:input_change()
-> > 	a. set register 0x808 for audio autodetection
-> > 	b. restart the format detection loop
-> > 	c. set or reset a 1.5 second timeout
-> >
-> > 2. after the timer expires, if no audio standard was detected,
-> > 	a. force the audio standard by programming register 0x808
-> > 		(e.g. BTSC for NTSC-M)
-> > 	b. restart the format detection loop so the micrcontroller will
-> > 		do the unmute when it detects audio
-> >
-> > Darren is in NTSC-M/BTSC land.  What TV standard are you dealing with?
-> ..
-> 
-> I'm in Canada, using the tuner for over-the-air NTSC broadcasts.
+Hi,
 
+Here is an initial scan file for IBA's DVB-T transmitters.
 
-Try this:
+Generated from info at http://www.iba.org.il/reception/ (Hebrew)
 
-	http://linuxtv.org/hg/~awalls/cx18-audio2
+# HG changeset patch
+# User Shaul Kremer <shaulkr@gmail.com>
+# Date 1270854557 -10800
+# Node ID ac84f6db6f031db82509c247ac1775ca48b0e2f3
+# Parent  7de0663facd92bbb9049aeeda3dcba9601228f30
+Added DVB-T initial tuning tables for Israel.
 
-this waits 1.5 seconds after an input/channel change to see if the audio
-standard micrcontroller can detect the standard.  If it can't, the
-driver tells it to try a fallback detection.  Right now, only the NTSC-M
-fallback detection is set to force a mode (i.e. BTSC), all the others
-"fall back" to their same auto-detection.
-
-Some annoyances with the fallback to a forced audio standard, mode, and
-format:
-
-1. Static gets unmuted on stations with no signal. :(
-
-2. I can't seem to force mode "MONO2 (LANGUAGE B)".  I'm guessing the
-microcontroller keeps setting it back down to "MONO1 (LANGUAGE A/Mono L
-+R channel for BTSC, EIAJ, A2)"  Feel free to experiment with the LSB of
-the fallback setting magic number (0x1101) in
-cx18-av-core.c:input_change().
-
-
-Regards,
-Andy
-
+diff -r 7de0663facd9 -r ac84f6db6f03 util/scan/dvb-t/il-SFN1
+--- /dev/null   Thu Jan 01 00:00:00 1970 +0000
++++ b/util/scan/dvb-t/il-SFN1   Sat Apr 10 02:09:17 2010 +0300
+@@ -0,0 +1,4 @@
++# Israel, Israel Broadcasting Authority's SFN-1 transmitter (northern Israel)
++# Generated from list in http://www.iba.org.il/reception/
++# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
++T 538000000 8MHz 2/3 NONE QAM16 8k 1/4 NONE
+diff -r 7de0663facd9 -r ac84f6db6f03 util/scan/dvb-t/il-SFN2
+--- /dev/null   Thu Jan 01 00:00:00 1970 +0000
++++ b/util/scan/dvb-t/il-SFN2   Sat Apr 10 02:09:17 2010 +0300
+@@ -0,0 +1,4 @@
++# Israel, Israel Broadcasting Authority's SFN-2 transmitter (central Israel)
++# Generated from list in http://www.iba.org.il/reception/
++# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
++T 514000000 8MHz 2/3 NONE QAM16 8k 1/4 NONE
+diff -r 7de0663facd9 -r ac84f6db6f03 util/scan/dvb-t/il-SFN3
+--- /dev/null   Thu Jan 01 00:00:00 1970 +0000
++++ b/util/scan/dvb-t/il-SFN3   Sat Apr 10 02:09:17 2010 +0300
+@@ -0,0 +1,4 @@
++# Israel, Israel Broadcasting Authority's SFN-3 transmitter (southern Israel)
++# Generated from list in http://www.iba.org.il/reception/
++# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
++T 538000000 8MHz 2/3 NONE QAM16 8k 1/4 NONE
