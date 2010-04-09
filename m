@@ -1,72 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f189.google.com ([209.85.221.189]:61915 "EHLO
-	mail-qy0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751094Ab0D1EcX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Apr 2010 00:32:23 -0400
-MIME-Version: 1.0
-In-Reply-To: <20100424051206.GA3101@hardeman.nu>
-References: <20100401145632.5631756f@pedra>
-	 <t2z9e4733911004011844pd155bbe8g13e4cbcc1a5bf1f6@mail.gmail.com>
-	 <20100402102011.GA6947@hardeman.nu>
-	 <p2ube3a4a1004051349y11e3004bk1c71e3ab38d3f669@mail.gmail.com>
-	 <20100407093205.GB3029@hardeman.nu>
-	 <z2hbe3a4a1004231040uce51091fnf24b97de215e3ef1@mail.gmail.com>
-	 <20100424051206.GA3101@hardeman.nu>
-Date: Wed, 28 Apr 2010 00:32:22 -0400
-Message-ID: <h2hbe3a4a1004272132y46e90a8ak862f20620053b1cc@mail.gmail.com>
-Subject: Re: [PATCH 00/15] ir-core: Several improvements to allow adding LIRC
-	and decoder plugins
-From: Jarod Wilson <jarod@wilsonet.com>
-To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
-Cc: Jon Smirl <jonsmirl@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-input@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail1.radix.net ([207.192.128.31]:33431 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751444Ab0DIWNe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 9 Apr 2010 18:13:34 -0400
+Subject: Re: [RFC] What are the goals for the architecture of an in-kernel
+ IR  system?
+From: Andy Walls <awalls@radix.net>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	James Hogan <james@albanarts.com>,
+	Jon Smirl <jonsmirl@gmail.com>, Pavel Machek <pavel@ucw.cz>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Krzysztof Halasa <khc@pm.waw.pl>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Christoph Bartelmus <lirc@bartelmus.de>, j@jannau.net,
+	jarod@redhat.com, jarod@wilsonet.com, kraxel@redhat.com,
+	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, superm1@ubuntu.com
+In-Reply-To: <g2k829197381004091455m20368cc6r63df4a4f00d36b45@mail.gmail.com>
+References: <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
+	 <9e4733910912151338n62b30af5i35f8d0963e6591c@mail.gmail.com>
+	 <4BAB7659.1040408@redhat.com> <201004090821.10435.james@albanarts.com>
+	 <1270810226.3764.34.camel@palomino.walls.org> <4BBF253A.8030406@redhat.com>
+	 <g2k829197381004091455m20368cc6r63df4a4f00d36b45@mail.gmail.com>
+Content-Type: text/plain
+Date: Fri, 09 Apr 2010 18:14:00 -0400
+Message-Id: <1270851240.3038.51.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Apr 24, 2010 at 1:12 AM, David Härdeman <david@hardeman.nu> wrote:
-> On Fri, Apr 23, 2010 at 01:40:34PM -0400, Jarod Wilson wrote:
->> So now that I'm more or less done with porting the imon driver, I
->> think I'm ready to start tackling the mceusb driver. But I'm debating
->> on what approach to take with respect to lirc support. It sort of
->> feels like we should have lirc_dev ported as an ir "decoder"
->> driver/plugin before starting to port mceusb to ir-core, so that we
->> can maintain lirc compat and transmit support. Alternatively, I could
->> port mceusb without lirc support for now, leaving it to only use
->> in-kernel decoding and have no transmit support for the moment, then
->> re-add lirc support. I'm thinking that porting lirc_dev as, say,
->> ir-lirc-decoder first is probably the way to go though. Anyone else
->> want to share their thoughts on this?
->
-> I think it would make sense to start with a mce driver without the TX
-> and lirc bits first. Adding lirc rx support can be done as a separate
-> "raw" decoder later (so its scope is outside the mce driver anyway) and
-> TX support is not implemented in ir-core yet and we haven't had any
-> discussion yet on which form it should take.
+On Fri, 2010-04-09 at 17:55 -0400, Devin Heitmueller wrote:
+> On Fri, Apr 9, 2010 at 9:01 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+> > [1] Basically, a keycode (like KEY_POWER) could be used to wake up the machine. So, by
+> > associating some scancode to KEY_POWER via ir-core, the driver can program the hardware
+> > to wake up the machine with the corresponding scancode. I can't see a need for a change at
+> > ir-core to implement such behavior. Of course, some attributes at sysfs can be added
+> > to enable or disable this feature, and to control the associated logic, but we first
+> > need to implement the wakeup feature at the hardware driver, and then adding some logic
+> > at ir-core to add the non-hardware specific code there.
+> 
+> Really?  Have you actually seen any hardware where a particular scan
+> code can be used to wake up the hardware?  The only hardware I have
+> seen has the ability to unsuspend on arrival of IR traffic, but you
+> didn't have the granularity to dictate that it only wake up on
+> particular scancodes.
 
-So after looking at folks feedback, I did settle on starting the
-mceusb port first, my logic going more or less like this... Having a
-well-supported general-purpose IR receiver functional is a Good Thing
-for people wanting to work on protocol support (i.e., so they have a
-way to actually test protocol support). Having an
-already-ir-core-ified driver to test out an ir-lirc-decoder (lirc_dev
-port) would also be rather helpful. So rather than trying to port
-lirc_dev before there's anything that can actually make use of it,
-give myself something to work with. I'm kind of thinking that
-ir-lirc-decoder might actually be ir-lirc-codec, able to do xmit as
-well, maintaining full compat with lirc userspace, and then we'd have
-a separate input subsystem based xmit method at some point, which
-might be the "preferred/blessed" route. This means ripping a bunch of
-code out of lirc_mceusb.c only to put it back in later, but that's not
-terribly painful. I've already got as far as having an mceusb.c that
-has no lirc dependency, which builds, but doesn't actually do anything
-useful yet (not wired up to ir-core). Should be able to get something
-functional RSN, I hope...
+The CX23888 and CX23102 can do it.  Basically any IR pulse pattern your
+heart desires; within reason.  And any carrier freq you want too; within
+reason.
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
+But let's be real, the cx23885, cx231xx, and cx25840 modules are nowhere
+near properly supporing suspend/resume for their main video and DMA
+functions, AFAIK.
+
+Regards,
+Andy
+
+
