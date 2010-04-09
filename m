@@ -1,103 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:30723 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753523Ab0DUJ3e (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Apr 2010 05:29:34 -0400
-Subject: Re: [PATCH 1/3] MFD: WL1273 FM Radio: MFD driver for the FM radio.
-From: m7aalton <matti.j.aaltonen@nokia.com>
-Reply-To: matti.j.aaltonen@nokia.com
-To: ext Jonathan Corbet <corbet@lwn.net>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>
-In-Reply-To: <20100420133334.75184ea5@bike.lwn.net>
-References: <1271776807-2710-1-git-send-email-matti.j.aaltonen@nokia.com>
-	 <1271776807-2710-2-git-send-email-matti.j.aaltonen@nokia.com>
-	 <20100420133334.75184ea5@bike.lwn.net>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 21 Apr 2010 12:29:00 +0300
-Message-ID: <1271842140.4927.20.camel@masi.mnp.nokia.com>
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:1027 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752730Ab0DII7j (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 9 Apr 2010 04:59:39 -0400
+Message-ID: <4BBEECBF.3050607@redhat.com>
+Date: Fri, 09 Apr 2010 11:00:47 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	David Cohen <david.cohen@nokia.com>,
+	"Koskipaa Antti (Nokia-D/Helsinki)" <antti.koskipaa@nokia.com>,
+	"'vimarsh.zutshi@nokia.com'" <vimarsh.zutshi@nokia.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Zhang, Xiaolin" <xiaolin.zhang@intel.com>,
+	Guru Raj <gururaj.nagendra@intel.com>
+Subject: Re: V4L2 and Media controller mini-summit in Helsinki 14.--16. June
+References: <4BBA3BC3.2060205@maxwell.research.nokia.com> <201004090858.52251.hverkuil@xs4all.nl>
+In-Reply-To: <201004090858.52251.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+Hi,
 
-Thanks for the comments.
+On 04/09/2010 08:58 AM, Hans Verkuil wrote:
+> On Monday 05 April 2010 21:36:35 Sakari Ailus wrote:
+>> Hello everyone,
+>>
+>> I'm glad to announce Nokia will be hosting a V4L2 and Media controller
+>> mini-summit in Helsinki, Finland from 14th to 16th June --- that's from
+>> Monday to Wednesday. The event replaces the V4L2 Media Controller
+>> mini-summit in Oslo in April / May proposed by Hans Verkuil. Just the
+>> location is different; Hans is still responsible for the technical content.
+>
+> Then I'd better start on that technical content :-)
+>
+> Here is a short overview of the topics I want to put on the agenda (in no
+> particular order):
+>
+> - Media controller progress. Especially with regards to the roadmap of getting
+>    this merged.
+>
+> - Memory handling. See this link for a report on a preliminary meeting:
+>    http://www.mail-archive.com/linux-media@vger.kernel.org/msg16618.html
+>    It would be nice if we can spend some more time on the memory pool
+>    concept.
+>
+> - V4L1 removal. We need to decide how we are going to do this. In particular
+>    the role that libv4l1 can play in this is of interest.
 
-On Tue, 2010-04-20 at 21:33 +0200, ext Jonathan Corbet wrote:
-> On Tue, 20 Apr 2010 18:20:05 +0300
-> "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com> wrote:
-> 
-> > This is a parent driver for two child drivers: the V4L2 driver and
-> > the ALSA codec driver. The MFD part provides the I2C communication
-> > to the device and the state handling.
-> 
-> So I was taking a quick look at this; it mostly looks OK (though I wonder
-> about all those symbol exports - does all that stuff need to be in the
+Let me chime in here by mail, as I assume I won't be able to attend (see below),
+libv4l1 can completely replace the in kernel compatibility layer. Moreover it
+cannot only completely replace it, it can even do a better job then the
+in kernel compat layer. Actually in many cases libv4l1 is already needed for
+v4l1 apps to work with v4l2 drivers:
+1) Many v4l2 drivers don't implement VIDIOCGMBUF, which in the kernel compat
+    implementation is something which needs to be handled at the driver level
+    and thus separately for each driver. Since this is a rather important ioctl
+    this means in practice that v4l1 apps won't work with these drivers using
+    the kernel compat ioctl support. libv4l1 emulates VIDIOCGMBUF without needing
+    any special driver support (it can even emulate it on drivers which only
+    support read()). One well known example of a driver missing VIDIOCGMBUF
+    support is uvcvideo.
 
-Some functions get called from both child drivers/modules, but some
-stuff could probably be moved from the core to either of the children.
-Should I actually do that?
+2) Many video devices produce video formats v4l1 apps don't grok (and there aren't
+    even VIDEO_PALETTE_FOO defines for them). libv4l1 will use libv4l2 + libv4lconvert
+    to let the app see well known formats.
 
-> core?).  One thing caught my eye, though:
-> 
-> > +int wl1273_fm_rds_off(struct wl1273_core *core)
-> > +{
-> > +	struct device *dev = &core->i2c_dev->dev;
-> > +	int r;
-> > +
-> > +	if (core->mode == WL1273_MODE_TX)
-> > +		return 0;
-> > +
-> > +	wait_for_completion_timeout(&core->busy, msecs_to_jiffies(1000));
-> The use of a completion here looks like a mistake to me.  This isn't a
-> normal pattern, and I'm not quite sure what you're trying to do.  Here,
-> also, you're ignoring the return value, so you don't know if completion
-> was signaled or not.
+So I definitely believe that libv4l1 can meet all v4l1 compat needs, and even do a
+better job then the in kernel code. But ...
 
-Yes that wait_for_completion is a mistake.
-
-> 
-> If you look in functions like:
-> 
-> > +int wl1273_fm_set_rx_freq(struct wl1273_core *core, unsigned int freq)
-> > +{
-> 
-> [...]
-> 
-> > +	INIT_COMPLETION(core->busy);
-> > +	r = wl1273_fm_write_cmd(core, WL1273_TUNER_MODE_SET,
-> > +				TUNER_MODE_PRESET);
-> > +	if (r) {
-> > +		complete(&core->busy);
-> > +		goto err;
-> > +	}
-> 
-> What will prevent multiple threads from doing INIT_COMPLETION()
-> simultaneously?  It  looks racy to me.  What happens if multiple
-> threads try to wait simultaneously on the completion?
-> 
-> OK, looking further, you're not using it for mutual exclusion.  In fact,
-> you're not using anything for mutual exclusion; how do you prevent
-> concurrent access to the hardware registers?
-
-I have mutexes everywhere that function is called from. My aim was to
-have the mutexes in the interface functions. So that the radio use is
-serialized on as high a level as possible.
-
-> What I would suggest you do is remove the completion in favor of a wait
-> queue which the interrupt handler can use to signal that something has
-> completed.  You can then use wait_event() to wait for a wakeup and test
-> that the specific condition you are waiting for has come to pass.
-
-Do you agree with my explanation? Or should I switch to using wait
-queue?
-
-Cheers,
-Matti
-
-> jon
+libv4l1 atm is not ready to fully replace the kernel compat ioctl stuff, as it relies
+on it in some cases. This is fixable, and fixing it isn't hard, but this needs someone
+to work on it. Patches welcome :)
 
 
+> - Work on the V4L core framework: what is in place, what still needs to be
+>    done, what other parts can be moved to the core.
+>
+> - Compliance tests. I'd like to start discussing this as well. I think we
+>    have to start work on a tool that will do basic compliance testing of new
+>    (and existing) drivers. The API is so big that it is way too easy to forget
+>    things. My guess is that at least 80% of all drivers violate the spec in
+>    one way or another. Relates as well to the framework topic: if we can move
+>    more into the core, then it is much easier to enforce spec compliance.
+>
+> - Anything else someone wants to discuss?
+
+I know that there are various people who would like to use libv4l's video processing
+to work together with video processing abilities of various SOC's (Nokia and Intel come
+to mind here). So that the controlling of those video processing abilities (lens correction,
+whitebalance, etc, etc.) can be done with libv4l processing plugins rather then with
+solutions using custom ioctl's and daemons as is done now.
+
+I plan to write a RFC with a new libv4l plugin API for this in time for it to be discussed
+at the summit.
+
+It certainly would be nice if I could be present at the summit to discuss this in person,
+but -ENOBUDGET. If any of the companies interested in this work would be willing to
+sponsor my travel to the summit that would be great!
+
+Regards,
+
+Hans
