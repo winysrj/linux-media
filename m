@@ -1,83 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57019 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759131Ab0DHVe0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 8 Apr 2010 17:34:26 -0400
-Message-ID: <4BBE4BDE.80500@redhat.com>
-Date: Thu, 08 Apr 2010 18:34:22 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: linux-input@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 8/8] V4L/DVB: ir-core: move subsystem internal calls to
- ir-core-priv.h
-References: <cover.1270754989.git.mchehab@redhat.com> <20100408163716.70862743@pedra>
-In-Reply-To: <20100408163716.70862743@pedra>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4863 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755603Ab0DIThj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Apr 2010 15:37:39 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id o39JbbZG036097
+	for <linux-media@vger.kernel.org>; Fri, 9 Apr 2010 21:37:37 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 9 Apr 2010 21:37:37 +0200 (CEST)
+Message-Id: <201004091937.o39JbbZG036097@smtp-vbr12.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
-> ir-core.h has the kABI to be used by the bridge drivers, when needing to register
-> IR protocols and pass IR events. However, the same file also contains IR subsystem
-> internal calls, meant to be used inside ir-core and between ir-core and the raw
-> decoders.
-> 
-> Better to move those functions to an internal header, for some reasons:
-> 
-> 1) Header will be a little more cleaner;
-> 
-> 2) It avoids the need of recompile everything (bridge/hardware drivers, etc),
->    just because a new decoder were added, or some other internal change were needed;
-> 
-> 3) Better organize the ir-core API, splitting the functions that are internal to
->    IR core and the ancillary drivers (decoders, lirc_dev) from the features that
->    should be exported to IR subsystem clients.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
->  create mode 100644 drivers/media/IR/ir-core-priv.h
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-This cleanup were too aggressive:
+Results of the daily build of v4l-dvb:
 
-drivers/media/dvb/ttpci/budget-ci.c: In function ‘msp430_ir_interrupt’:
-drivers/media/dvb/ttpci/budget-ci.c:163: error: implicit declaration of function ‘ir_keydown’
+date:        Fri Apr  9 19:00:23 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14561:7c0b887911cf
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 8b680a770f6bdcd52f6816d7a5fe7aee9a9f7c78
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-We need ir_keydown() / ir_repeat() for in-hardware decoders. I'm folding it
-with this patch:
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-rc1-armv5: OK
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-rc1-armv5-davinci: WARNINGS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-rc1-armv5-ixp: WARNINGS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-rc1-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.17-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-rc1-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-rc1-m32r: OK
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-rc1-mips: WARNINGS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-rc1-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.17-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-rc1-x86_64: WARNINGS
+linux-git-armv5: OK
+linux-git-armv5-davinci: OK
+linux-git-armv5-ixp: OK
+linux-git-armv5-omap2: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.7-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.62-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.7-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
-diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
-index ab785bc..8d97d6c 100644
---- a/drivers/media/IR/ir-core-priv.h
-+++ b/drivers/media/IR/ir-core-priv.h
-@@ -62,8 +62,6 @@ struct ir_raw_event_ctrl {
- 
- u32 ir_g_keycode_from_table(struct input_dev *input_dev,
-                            u32 scancode);
--void ir_repeat(struct input_dev *dev);
--void ir_keydown(struct input_dev *dev, int scancode, u8 toggle);
- 
- /*
-  * Routines from ir-sysfs.c - Meant to be called only internally inside
-diff --git a/include/media/ir-core.h b/include/media/ir-core.h
-index 40b6250..ab3bd30 100644
---- a/include/media/ir-core.h
-+++ b/include/media/ir-core.h
-@@ -122,6 +122,9 @@ static inline int ir_input_register(struct input_dev *dev,
- 
- void ir_input_unregister(struct input_dev *input_dev);
- 
-+void ir_repeat(struct input_dev *dev);
-+void ir_keydown(struct input_dev *dev, int scancode, u8 toggle);
-+
- /* From ir-raw-event.c */
- 
- void ir_raw_event_handle(struct input_dev *input_dev);
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
+Full logs are available here:
 
--- 
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-Cheers,
-Mauro
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
