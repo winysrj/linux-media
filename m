@@ -1,52 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from a-pb-sasl-quonix.pobox.com ([208.72.237.25]:60137 "EHLO
-	sasl.smtp.pobox.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751651Ab0DQNBM (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:27069 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751206Ab0DJMdv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Apr 2010 09:01:12 -0400
-Message-ID: <4BC9B10C.9080508@pobox.com>
-Date: Sat, 17 Apr 2010 09:01:00 -0400
-From: Mark Lord <mlord@pobox.com>
-MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org, Darren Blaber <dmbtech@gmail.com>
-Subject: Re: cx18: "missing audio" for analog recordings
-References: <4B8BE647.7070709@teksavvy.com> <4B8CA8DD.5030605@teksavvy.com>
- <1267533630.3123.17.camel@palomino.walls.org> <4B9DA003.90306@teksavvy.com>
- <1268653884.3209.32.camel@palomino.walls.org>  <4BC0FB79.7080601@pobox.com>
- <1270940043.3100.43.camel@palomino.walls.org>  <4BC1401F.9080203@pobox.com>
- <1270961760.5365.14.camel@palomino.walls.org>
- <1270986453.3077.4.camel@palomino.walls.org>  <4BC1CDA2.7070003@pobox.com>
- <1271012464.24325.34.camel@palomino.walls.org> <4BC37DB2.3070107@pobox.com>
- <1271107061.3246.52.camel@palomino.walls.org> <4BC3D578.9060107@pobox.com>
- <4BC3D73D.5030106@pobox.com>  <4BC3D81E.9060808@pobox.com>
- <1271154932.3077.7.camel@palomino.walls.org>  <4BC466A1.3070403@pobox.com>
- <1271209520.4102.18.camel@palomino.walls.org> <4BC54569.7020301@pobox.com>
- <4BC64119.5070200@pobox.com> <1271306803.7643.67.camel@palomino.walls.org>
- <4BC6A135.4070400@pobox.com>  <4BC71F86.4020509@pobox.com>
- <1271479406.3120.9.camel@palomino.walls.org> <4BC9A507.3080807@pobox.com>
-In-Reply-To: <4BC9A507.3080807@pobox.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sat, 10 Apr 2010 08:33:51 -0400
+Subject: Re: [RFC3] Teach drivers/media/IR/ir-raw-event.c to use durations
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
+	Jon Smirl <jonsmirl@gmail.com>, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org
+In-Reply-To: <4BC06AC9.4060203@infradead.org>
+References: <20100408113910.GA17104@hardeman.nu>
+	 <1270812351.3764.66.camel@palomino.walls.org>
+	 <s2o9e4733911004090531we8ff39b4r570e32fdafa04204@mail.gmail.com>
+	 <4BBF3309.6020909@infradead.org>  <20100410064801.GA2667@hardeman.nu>
+	 <1270900579.3034.25.camel@palomino.walls.org>
+	 <4BC06AC9.4060203@infradead.org>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 10 Apr 2010 08:34:13 -0400
+Message-Id: <1270902853.3034.53.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17/04/10 08:09 AM, Mark Lord wrote:
-..
-> Mmm.. something is not right -- the audio is failing constantly with that change.
-> Perhaps if I could dump out the registers, we might see what is wrong.
-..
+On Sat, 2010-04-10 at 09:10 -0300, Mauro Carvalho Chehab wrote:
+> Andy Walls wrote:
+> > On Sat, 2010-04-10 at 08:48 +0200, David Härdeman wrote:
+> >> On Fri, Apr 09, 2010 at 11:00:41AM -0300, Mauro Carvalho Chehab wrote:
+> >>> struct {
+> >>> 	unsigned mark : 1;
+> >>> 	unsigned duration :31;
+> >>> }
+> >>>
+> >>> There's no memory spend at all: it will use just one unsigned int and it is
+> >>> clearly indicated what's mark and what's duration.
+> >> If all three of you agree on this approch, I'll write a patch to convert 
+> >> ir-core to use it instead.
+> > 
+> > I'm OK with it.
+> > 
+> > I haven't been paying close attention,so I must ask: What will the units
+> > of duration be?
+> > 
+> > a. If we use nanoseconds the max duration is 2.147 seconds.
+> > 
+> > If passing pulse measurments out to LIRC, there are cases where irrecord
+> > and lircd want the duration of the long silence between the
+> > transmissions from the remote. Do any remotes have silence periods
+> > longer than 2.1 seconds?
+> > 
+> > b. If we use microseconds, the max duration is 214.7 seconds or 3.6
+> > minutes.  That's too high to be useful.
+> > 
+> > c.  Something in between, like 1/8 (or 1/2, 1/4, or 1/10) of a
+> > microsecond?  1/8 gives a max duration of 26.8 seconds and a little
+> > extra precision.
+> 
+> (c) is really ugly.
+>
+> (b) max limit is too high. Currently, the core assumes that everything longer
+> than one second is enough to re-start the state machine. So, I think (a)
+> is the better option.
+> 
+> Another way to see it: it is not reasonable for someone to press a key and wait
+> for 2.1 seconds to see one bit of the key to be recognized.
 
-When the microcontroller is reset, does it put all settings back to defaults?
-I wonder if this causes it to select a different audio input, as part of the reset?
-
-If so, then we'll need to reselect the tuner-audio afterward.
-Anything else?
+True enough.
 
 
-??
--- 
-Mark Lord
-Real-Time Remedies Inc.
-mlord@pobox.com
+> So, IMHO, let's just use nanoseconds with 31 bits. the sampling event function
+> should check for ktime value: if bigger than 2^32-1, then assume it is a
+> long event, resetting the state machine.
+
+Sounds OK to me.  Thanks for the reply.
+
+Regards,
+Andy
+
+> Cheers,
+> Mauro
+
+
