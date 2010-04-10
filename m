@@ -1,115 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:20649 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753113Ab0DAKK7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 06:10:59 -0400
-Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0L0700HWB0A8UL@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 01 Apr 2010 11:10:56 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L07006JG0A7IG@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 01 Apr 2010 11:10:56 +0100 (BST)
-Date: Thu, 01 Apr 2010 12:08:56 +0200
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: RE: [PATCH 2/2] mem2mem_testdev: Code cleanup
-In-reply-to: <1270110025-1854-2-git-send-email-hvaibhav@ti.com>
-To: hvaibhav@ti.com
-Cc: linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	kyungmin.park@samsung.com
-Message-id: <003001cad183$5757e720$0607b560$%osciak@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <hvaibhav@ti.com> <1270110025-1854-2-git-send-email-hvaibhav@ti.com>
+Received: from mail1.radix.net ([207.192.128.31]:61459 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752357Ab0DJWyn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Apr 2010 18:54:43 -0400
+Subject: Re: cx18: "missing audio" for analog recordings
+From: Andy Walls <awalls@radix.net>
+To: Mark Lord <mlord@pobox.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	ivtv-devel@ivtvdriver.org
+In-Reply-To: <4BC0FB79.7080601@pobox.com>
+References: <4B8BE647.7070709@teksavvy.com>
+	 <1267493641.4035.17.camel@palomino.walls.org>
+	 <4B8CA8DD.5030605@teksavvy.com>
+	 <1267533630.3123.17.camel@palomino.walls.org> <4B9DA003.90306@teksavvy.com>
+	 <1268653884.3209.32.camel@palomino.walls.org>  <4BC0FB79.7080601@pobox.com>
+Content-Type: text/plain
+Date: Sat, 10 Apr 2010 18:54:03 -0400
+Message-Id: <1270940043.3100.43.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi again,
+On Sat, 2010-04-10 at 18:28 -0400, Mark Lord wrote:
+> On 15/03/10 07:51 AM, Andy Walls wrote:
+> > On Sun, 2010-03-14 at 22:48 -0400, Mark Lord wrote:
+> >> On 03/02/10 07:40, Andy Walls wrote:
+> ..
+> >> after updating to the tip of the v4l2-dvb git tree last week,
+> >> I've been hitting the "no audio" on analog recordings bug much more often.
+> >>
+> >> Digging through google, it appears this problem has been around as long
+> >> as the cx18 driver has existed, with no clear resolution.  Lots of people
+> >> have reported it to you before, and nobody has found a silver bullet fix.
+> ..
+> > Here are all the potential problem areas I can think of:
+> >
+> > 1. A/V digitizer/decoder audio detection firmware load and init.  (I've
+> > added firmware readback verification to try and head this off.)
+> >
+> > 2. A/V digitizer decoder audio microcontroller hard reset and "soft"
+> > reset sequencing.  (I think the cx18 driver has this wrong ATM.)
+> >
+> > 3. APU load and init.  (The double load is to fix a DTV TS stream bug on
+> > every other APU&  CPU firmware load sequence.  The APU_AI_RESET is to
+> > fix the audio bitrate problem on first capture after a double firmware
+> > load.)
+> >
+> > 4. AI1 Mux setting failing when switching between the internal A/V
+> > decoder's I2S output and the external I2S inputs.  (I thought I had this
+> > fixed, but I don't have detailed register specs for that register - so
+> > maybe not.)
+> >
+> > 5. A/V decoder audio clock PLL stops operating due to being programmed
+> > out of range.  (This was a problem for 32 ksps audio a while ago, but
+> > I'm pretty confident I have it fixed.)
+> >
+> > 6. A/V decoder analog frontend setup for SIF wrong?.  (I fixed this due
+> > to a problen Helen Buus reported with cable TV.)
+> >
+> > I think #2 is the real problem.  I just started to disassmble the
+> > digitizer firmware 2 nights ago to see if I could get some insight as to
+> > how to properly reset it.
+> >
+> > I've got a first WAG at fixing the resets of the audio microcontroller's
+> > resets at:
+> >
+> > 	http://linuxtv.org/hg/~awalls/cx18-audio
+> >
+> > If it doesn't work, change the CXADEC_AUDIO_SOFT_RESET register define
+> > from 0x810 to 0x9cc, although that may not work either.
+> ..
+> > Thanks for the troubleshooting and reporting.
+> ..
+> 
+> Back at this again today, after a month away from it -- getting tired
+> of watching "Survivor" with closed-captioning instead of audio.  :)
+> 
+> I pulled your (Andy) repository today, and merged the cx18 audio reset
+> changes from it into today's tip from v4l-dvb.  Patch attached for reference.
+> 
+> So far, so good.  I'll keep tabs on it over time, and see if the audio
+> is stable, or if it still fails once in a while.
 
-> Vaibhav Hiremath <hvaibhav@ti.com> wrote:
->From: Vaibhav Hiremath <hvaibhav@ti.com>
->
->
->Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
->---
-> drivers/media/video/mem2mem_testdev.c |   58 ++++++++++++++------------------
-> 1 files changed, 25 insertions(+), 33 deletions(-)
->
->diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
->index 05630e3..1f35b7e 100644
->--- a/drivers/media/video/mem2mem_testdev.c
->+++ b/drivers/media/video/mem2mem_testdev.c
->@@ -98,11 +98,10 @@ static struct m2mtest_fmt formats[] = {
-> };
->
-> /* Per-queue, driver-specific private data */
->-struct m2mtest_q_data
->-{
->-	unsigned int		width;
->-	unsigned int		height;
->-	unsigned int		sizeimage;
->+struct m2mtest_q_data {
->+	u32			width;
->+	u32			height;
->+	u32			sizeimage;
-> 	struct m2mtest_fmt	*fmt;
-> };
+Hmmm.  Darren's having problems (loss of video/black screen) with my
+patches under my cx18-audio repo, but I'm not quite convinced he doesn't
+have some other PCI bus problem either.
 
-Could you explain this change?
+Anyway, my plan now is this:
 
-[...]
+1. on cx18-av-core.c:input_change()
+	a. set register 0x808 for audio autodetection
+	b. restart the format detection loop
+	c. set or reset a 1.5 second timeout
 
->@@ -158,7 +156,7 @@ static struct v4l2_queryctrl m2mtest_ctrls[] = {
-> static struct m2mtest_fmt *find_format(struct v4l2_format *f)
-> {
-> 	struct m2mtest_fmt *fmt;
->-	unsigned int k;
->+	u32 k;
-
-This is a loop index... Is there any reason for using u32?
-
-[...]
-
->@@ -535,8 +532,8 @@ static int vidioc_s_fmt(struct m2mtest_ctx *ctx, struct v4l2_format *f)
->
-> 	if (videobuf_queue_is_busy(vq)) {
-> 		v4l2_err(&ctx->dev->v4l2_dev, "%s queue busy\n", __func__);
->-		ret = -EBUSY;
->-		goto out;
->+		mutex_unlock(&vq->vb_lock);
->+		return -EBUSY;
-> 	}
->
-> 	q_data->fmt		= find_format(f);
->@@ -550,9 +547,7 @@ static int vidioc_s_fmt(struct m2mtest_ctx *ctx, struct v4l2_format *f)
-> 		"Setting format for type %d, wxh: %dx%d, fmt: %d\n",
-> 		f->type, q_data->width, q_data->height, q_data->fmt->fourcc);
->
->-out:
->-	mutex_unlock(&vq->vb_lock);
->-	return ret;
->+	return 0;
-> }
->
-
-Unless I'm somehow misreading patch output, aren't you removing mutex_unlock for the path
-that reaches the end of the function?
-
-[...]
-
-
-Best regards
---
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
+2. after the timer expires, if no audio standard was detected, 
+	a. force the audio standard by programming register 0x808
+		(e.g. BTSC for NTSC-M)
+	b. restart the format detection loop so the micrcontroller will 
+		do the unmute when it detects audio
 
 
 
+Darren is in NTSC-M/BTSC land.  What TV standard are you dealing with?
 
+Regards,
+Andy
 
