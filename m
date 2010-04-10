@@ -1,79 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:48241 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751676Ab0DKKw4 (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:44933 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751050Ab0DJMK4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Apr 2010 06:52:56 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Pavel Machek <pavel@ucw.cz>
-Subject: Re: webcam problem after suspend/hibernate
-Date: Sun, 11 Apr 2010 12:53:57 +0200
-Cc: Philippe Troin <phil@fifi.org>,
-	Mohamed Ikbel Boulabiar <boulabiar@gmail.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-References: <45cc95261003301455u10e6ee24pfb66176bfb279d1@mail.gmail.com> <87ljd3ujrp.fsf@old-tantale.fifi.org> <20100404193405.GA15065@elf.ucw.cz>
-In-Reply-To: <20100404193405.GA15065@elf.ucw.cz>
+	Sat, 10 Apr 2010 08:10:56 -0400
+Message-ID: <4BC06AC9.4060203@infradead.org>
+Date: Sat, 10 Apr 2010 09:10:49 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201004111253.58237.laurent.pinchart@ideasonboard.com>
+To: Andy Walls <awalls@md.metrocast.net>
+CC: =?UTF-8?B?RGF2aWQgSMOkcmRlbWFu?= <david@hardeman.nu>,
+	Jon Smirl <jonsmirl@gmail.com>, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC3] Teach drivers/media/IR/ir-raw-event.c to use durations
+References: <20100408113910.GA17104@hardeman.nu>	 <1270812351.3764.66.camel@palomino.walls.org>	 <s2o9e4733911004090531we8ff39b4r570e32fdafa04204@mail.gmail.com>	 <4BBF3309.6020909@infradead.org>  <20100410064801.GA2667@hardeman.nu> <1270900579.3034.25.camel@palomino.walls.org>
+In-Reply-To: <1270900579.3034.25.camel@palomino.walls.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 04 April 2010 21:34:06 Pavel Machek wrote:
-> Hi!
+Andy Walls wrote:
+> On Sat, 2010-04-10 at 08:48 +0200, David Härdeman wrote:
+>> On Fri, Apr 09, 2010 at 11:00:41AM -0300, Mauro Carvalho Chehab wrote:
+>>> struct {
+>>> 	unsigned mark : 1;
+>>> 	unsigned duration :31;
+>>> }
+>>>
+>>> There's no memory spend at all: it will use just one unsigned int and it is
+>>> clearly indicated what's mark and what's duration.
+>> If all three of you agree on this approch, I'll write a patch to convert 
+>> ir-core to use it instead.
 > 
-> > > If unload/reload of uvcvideo helps, it is most likely problem in that.
-> > > 
-> > > If unload/reload of ehci_hcd is needed, it is most likely ehci problem.
-> > 
-> > My testing shows that:
-> >  1. If I remove uvcvideo BEFORE suspend and reinsert it after resume,
-> >  
-> >     it works.  However, I cannot always rmmod uvcvideo before suspend
-> >     as it may be in use.
-> >  
-> >  2. As a work around, removing ehci_hcd and reinserting ehci_hcd upon
-> >  
-> >     resume works as well.
-> >  
-> >  3. Since my distribution's kernels come with ehci_hcd built into the
-> >  
-> >     kernel, and I cannot do #2 any more, I also found that unbinding
-> >     and rebinding the device (with the script I sent earlier on) works
-> >     as well.
-> > 
-> > I think uvcvideo is failing to reinitialize the camera on resume, and
-> > forcing an uvcvideo "reset" with either of these three methods kicks
-> > uvcvideo into working again.
+> I'm OK with it.
 > 
-> Ok, that puts the problem firmly into uvcvideo area.
+> I haven't been paying close attention,so I must ask: What will the units
+> of duration be?
+> 
+> a. If we use nanoseconds the max duration is 2.147 seconds.
+> 
+> If passing pulse measurments out to LIRC, there are cases where irrecord
+> and lircd want the duration of the long silence between the
+> transmissions from the remote. Do any remotes have silence periods
+> longer than 2.1 seconds?
+> 
+> b. If we use microseconds, the max duration is 214.7 seconds or 3.6
+> minutes.  That's too high to be useful.
+> 
+> c.  Something in between, like 1/8 (or 1/2, 1/4, or 1/10) of a
+> microsecond?  1/8 gives a max duration of 26.8 seconds and a little
+> extra precision.
 
-No, it doesn't.
+(c) is really ugly.
 
-First of all, the dmesg output available on pastebin.com is difficult to 
-understand. As it seems you perform several suspend/resume cycles there. 
-Mohamed, could you please
+(b) max limit is too high. Currently, the core assumes that everything longer
+than one second is enough to re-start the state machine. So, I think (a)
+is the better option.
 
-- clear the kernel log ('dmesg -c' as root)
-- suspend and resume your system
-- post the kernel log content ('dmesg')
-- clear the kernel log
-- try to use your webcam with whatever test software your prefer
-- describe the failure (application error messages, ...)
-- post the kernel log content
+Another way to see it: it is not reasonable for someone to press a key and wait
+for 2.1 seconds to see one bit of the key to be recognized.
 
-> Try changing its _resume routine to whatever is done on device
-> unplug... it should be rather easy, and is quite close to "correct"
-> solution.
+So, IMHO, let's just use nanoseconds with 31 bits. the sampling event function
+should check for ktime value: if bigger than 2^32-1, then assume it is a
+long event, resetting the state machine.
 
-That's not a solution. Devices are supposed to resume properly without being 
-reset. The camera might be crashing, or the USB core might be doing something 
-wrong, requiring some kind of reset. I'd like to diagnose the problem 
-correctly before trying to fix it.
-
--- 
-Regards,
-
-Laurent Pinchart
+Cheers,
+Mauro
