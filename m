@@ -1,95 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:41135 "EHLO
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:38643 "EHLO
 	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756444Ab0DFByo (ORCPT
+	by vger.kernel.org with ESMTP id S1751923Ab0DJR0g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Apr 2010 21:54:44 -0400
-Subject: Re: RFC: new V4L control framework
+	Sat, 10 Apr 2010 13:26:36 -0400
+Subject: Re: [PATCH 08/26] V4L/DVB: Break Remote Controller keymaps into
+ modules
 From: Andy Walls <awalls@md.metrocast.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201004051125.20672.hverkuil@xs4all.nl>
-References: <201004041741.51869.hverkuil@xs4all.nl>
-	 <1270436282.12543.18.camel@palomino.walls.org>
-	 <201004051125.20672.hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <4BC0A1EE.1000504@redhat.com>
+References: <cover.1270577768.git.mchehab@redhat.com>
+	 <20100406151803.514759bf@pedra>
+	 <1270902458.3034.49.camel@palomino.walls.org> <4BC0A1EE.1000504@redhat.com>
 Content-Type: text/plain
-Date: Mon, 05 Apr 2010 21:55:01 -0400
-Message-Id: <1270518901.11489.15.camel@palomino.walls.org>
+Date: Sat, 10 Apr 2010 13:26:53 -0400
+Message-Id: <1270920413.3029.6.camel@palomino.walls.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2010-04-05 at 11:25 +0200, Hans Verkuil wrote:
-> On Monday 05 April 2010 04:58:02 Andy Walls wrote:
-> > On Sun, 2010-04-04 at 17:41 +0200, Hans Verkuil wrote:
-
-> > 1. cx18 volume control: av_core subdev has a volume control (which the
-> > bridge driver currently reports as it's volume control) and the cs5435
-> > subdev has a volume control.
+On Sat, 2010-04-10 at 13:06 -0300, Mauro Carvalho Chehab wrote:
+> Andy Walls wrote:
+> > On Tue, 2010-04-06 at 15:18 -0300, Mauro Carvalho Chehab wrote:
+> >> The original Remote Controller approach were very messy: a big file,
+> >> that were part of ir-common kernel module, containing 64 different
+> >> RC keymap tables, used by the V4L/DVB drivers.
+> >>
+> >> Better to break each RC keymap table into a separate module,
+> >> registering them into rc core on a process similar to the fs/nls tables.
+> >>
+> >> As an userspace program is now in charge of loading those tables,
+> >> adds an option to allow the complete removal of those tables from
+> >> kernelspace.
+> >>
+> >> Yet, on embedded devices like Set Top Boxes and TV sets, maybe the
+> >> only available input device is the IR. So, we should keep allowing
+> >> the usage of in-kernel tables, but a latter patch should change
+> >> the default to 'n', after giving some time for distros to add
+> >> the v4l-utils with the ir-keytable program, to allow the table
+> >> load via userspace.
 > > 
-> > I'd really need them *both* to be controllable by the user.  I'd also
-> > like them to appear as a single (bridge driver) volume control to the
-> > user - as that is what a user would expect.
+> > I know I'm probably late on commenting on this.
+> > 
+> > Although this is interesting, it seems like overkill.
+> > 
+> > 
+> > 1. How will this help move us to the "just works" case, if now userspace
+> > has to help the kernel.  Every distro is likely just going to bundle a
+> > script which loads them all into the kernel and forgets about them.
 > 
-> So the bridge driver implements the volume control, but the bridge's s_ctrl
-> operation will in turn control the subdev's volume implementation, right?
-
-Yes, I think we're saying the same thing.
-
-The bridge only has one analog audio capture going on at a time and that
-volume is what needs to be controlled with the bridge *driver's* s_ctrl.
-The actual implementation of volume control for analog audio capture is
-performed by different subdevs depending on the input source: av_core
-subdev for tuner audio, or cs5345 subdev for line-in audio.
-
-
-> That's no problem. I do need to add a few utility functions to make this
-> easy, though. I realized that I need that anyway when I worked on converting
-> bttv yesterday.
-
-Good. :)
-
-> Of course, once we can create device nodes for sub-devices, then the controls
-> of the cs5435 will show up there as well so the user can have direct access
-> to that volume control. But that's not really for applications, though.
-
-That's convenient.  But yes you are correct.  It is not a control one
-would expect an end user app to find and use.
-
-
-> > 2. ivtv volume control for an AverTV M113 card.  The CX2584x chip is
-> > normally the volume control.  However, due to some poor baseband audio
-> > noise performance on this card, it is advantagous to adjust the volume
-> > control on the WM8739 subdev that feeds I2S audio into the CX2584x chip.
-> > Here, I would like a secondary volume control, not an override of the
-> > primary.
-> > 
-> > (Here's my old hack:
-> > 	http://linuxtv.org/hg/~awalls/ivtv-avertv-m113/rev/c8f2378a3119 )
-> > 
-> > 
-> > Maybe there's a way to use the control clusters to handle some of this.
-> > I'm a bit too tired to figure it all out at the moment.
+> No. They will either use userspace or kernelspace keymaps. For in-kernel
+> keymaps, there's nothing needed on userspace.
 > 
-> Interesting use case. I have several ideas, but I need some time to think
-> about it a bit more. Basically you want to be able to merge-and-remap
-> controls. Or perhaps even allow some sort of control hierarchy.
+> > 2. How is a driver, which knows the bundled remote, supposed to convey
+> > to userspace "load this map by default for my IR receiver"?  Is that
+> > covered in another portion of the patch?
+> 
+> It is on a separate patch. Basically, by the name. The table name is stored
+> on each IR map entry on kernel. If the table is in kernel, the table will
+> be dynamically loaded, when needed.
+> 
+> Userspace can always replace it by another one.
+> 
+> For example, this is my current test setup:
+> 
+> $ ./ir-keytable 
+> Found /sys/class/rc/rc0/ (/dev/input/event8) with:
+>         Driver "saa7134", raw software decoder, table "rc-avermedia-m135a-rm-jx"
+>         Supported protocols: NEC RC-5 RC-6 
+> Found /sys/class/rc/rc1/ (/dev/input/event9) with:
+>         Driver "cx88xx", hardware decoder, table "rc-pixelview-mk12"
+>         Supported protocols: other 
+>         Current protocols: NEC 
+> Found /sys/class/rc/rc2/ (/dev/input/event10) with:
+>         Driver "em28xx", hardware decoder, table "rc-rc5-hauppauge-new"
+>         Supported protocols: NEC RC-5 
+>         Current protocols: RC-5 
+> 
+> When ready, ir-keytable udev option will get driver and table info and
+> seek on some files for the proper keymap, if the user wants to replace it
+> by a customized one, or if the kernel keymap is disabled.
+> 
+> > 
+> > 3. If you're going to be so remote specific, why not add protocol
+> > information in these regarding the remotes?  You can tell the core
+> > everything to expect from this remote: raw vs. hardware decoder and the
+> > RC-5/NEC/RC-6/JVC/whatever raw protocol decoder to use.  That gets us
+> > closer to "just works" and avoids false input events from two of the raw
+> > deoders both thinking they got a valid code.
+> 
+> The table contains the info.
 
-Something.  Maybe worst case the user will just have to knwo about the
-subdev device node specific volume control and fix it with a start-up
-script or module post-install script.
 
-The ideas is really just to crank up the baseband analog audio gain in
-as early a stage as possible to improve the noise figure.
-http://en.wikipedia.org/wiki/Friis_formulas_for_noise
 
-The WM8739 and CX25841(!) are cascaded on this board, so both sliders
-could be active at once.  However, I suspect the CX25841 volume should
-be fixed at something less than 0 dB, and the primary volume control
-remapped to the WM8739 when using line-in.
+> > 4. /sbin/lsmod is now going to give a very long listing with lots of
+> > noise.  When these things are registered with the core, is the module's
+> > use count incremented when the core knows a driver is using one of them?
+> 
+> No. It will just show the used modules, as they're dynamically loaded.
+> For example, with my 3 test device driver loaded, it shows:
+> 
+> rc_rc5_hauppauge_new     1100  0 
+> rc_pixelview_mk12        953  0 
+> rc_avermedia_m135a_rm_jx     1016  0 
+> 
+
+Ah OK.  Thanks for all your replies.  Shame on me for not reading all
+the patch series.  I'll try to do my homework better next time.
 
 Regards,
 Andy
+
+> > 5. Each module is going to consume a page of vmalloc address space and
+> > ram, and an addtional page of vmalloc address as a gap behind it.  These
+> > maps are rather small in comparison.  Is it really worth all the page
+> > table entries to load all these as individual modules?  Memory is cheap,
+> > and small allocations can fill in fragmentation gaps in the vmalloc
+> > address space, but page table entries are spent on better things.
+> 
+> My plan is to merge several keymaps. I'm currently trying to obtain some
+> RC's to write the correct keymaps and try to merge them.
+> 
+> > I guess I'm not aware of what the return is here for the costs.
+
 
