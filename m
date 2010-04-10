@@ -1,70 +1,214 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:64396 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752416Ab0DPNAt (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:56337 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751456Ab0DJRNA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Apr 2010 09:00:49 -0400
-Subject: Re: cx18: "missing audio" for analog recordings
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mark Lord <mlord@pobox.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org, Darren Blaber <dmbtech@gmail.com>
-In-Reply-To: <4BC6A135.4070400@pobox.com>
-References: <4B8BE647.7070709@teksavvy.com>
-	 <1267493641.4035.17.camel@palomino.walls.org>
-	 <4B8CA8DD.5030605@teksavvy.com>
-	 <1267533630.3123.17.camel@palomino.walls.org> <4B9DA003.90306@teksavvy.com>
-	 <1268653884.3209.32.camel@palomino.walls.org>  <4BC0FB79.7080601@pobox.com>
-	 <1270940043.3100.43.camel@palomino.walls.org>  <4BC1401F.9080203@pobox.com>
-	 <1270961760.5365.14.camel@palomino.walls.org>
-	 <1270986453.3077.4.camel@palomino.walls.org>  <4BC1CDA2.7070003@pobox.com>
-	 <1271012464.24325.34.camel@palomino.walls.org> <4BC37DB2.3070107@pobox.com>
-	 <1271107061.3246.52.camel@palomino.walls.org> <4BC3D578.9060107@pobox.com>
-	 <4BC3D73D.5030106@pobox.com>  <4BC3D81E.9060808@pobox.com>
-	 <1271154932.3077.7.camel@palomino.walls.org>  <4BC466A1.3070403@pobox.com>
-	 <1271209520.4102.18.camel@palomino.walls.org> <4BC54569.7020301@pobox.com>
-	 <4BC64119.5070200@pobox.com> <1271306803.7643.67.camel@palomino.walls.org>
-	 <4BC6A135.4070400@pobox.com>
-Content-Type: text/plain
-Date: Fri, 16 Apr 2010 08:59:26 -0400
-Message-Id: <1271422766.3086.33.camel@palomino.walls.org>
-Mime-Version: 1.0
+	Sat, 10 Apr 2010 13:13:00 -0400
+Message-ID: <4BC0B191.9040703@infradead.org>
+Date: Sat, 10 Apr 2010 14:12:49 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Mike Isely <isely@isely.net>
+CC: Wolfram Sang <w.sang@pengutronix.de>,
+	kernel-janitors@vger.kernel.org,
+	"Eric W. Biederman" <ebiederm@xmission.com>,
+	Greg KH <gregkh@suse.de>,
+	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+	Sujith Thomas <sujith.thomas@intel.com>,
+	Matthew Garrett <mjg@redhat.com>, linuxppc-dev@ozlabs.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org, platform-driver-x86@vger.kernel.org
+Subject: Re: [PATCH] device_attributes: add sysfs_attr_init() for dynamic
+ attributes
+References: <1269238878-991-1-git-send-email-w.sang@pengutronix.de> <alpine.DEB.1.10.1004101154480.5518@ivanova.isely.net>
+In-Reply-To: <alpine.DEB.1.10.1004101154480.5518@ivanova.isely.net>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2010-04-15 at 01:16 -0400, Mark Lord wrote:
-> On 15/04/10 12:46 AM, Andy Walls wrote:
-> > On Wed, 2010-04-14 at 18:26 -0400, Mark Lord wrote:
-> .
+Mike Isely wrote:
+> Acked-By: Mike Isely <isely@pobox.com>
 > 
-> Mmmm.. but it does do read-modify-write on several registers inside the IRQ handling.
-> I suppose those might be "safe" groups, written to _only_ by the IRQ handler,
-> but maybe not.
+> (in the context of the pvrusb2 driver related changes)
 
-In the linux driver, the registers in CX23418 address range:
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+>   -Mike
+> 
+> On Mon, 22 Mar 2010, Wolfram Sang wrote:
+> 
+>> Made necessary by 6992f5334995af474c2b58d010d08bc597f0f2fe.
+>>
+>> Found by this semantic patch:
+>>
+>> @ init @
+>> type T;
+>> identifier A;
+>> @@
+>>
+>>         T {
+>>                 ...
+>>                 struct device_attribute A;
+>>                 ...
+>>         };
+>>
+>> @ main extends init @
+>> expression E;
+>> statement S;
+>> identifier err;
+>> T *name;
+>> @@
+>>
+>>         ... when != sysfs_attr_init(&name->A.attr);
+>> (
+>> +       sysfs_attr_init(&name->A.attr);
+>>         if (device_create_file(E, &name->A))
+>>                 S
+>> |
+>> +       sysfs_attr_init(&name->A.attr);
+>>         err = device_create_file(E, &name->A);
+>> )
+>>
+>> While reviewing, I put the initialization to apropriate places.
+>>
+>> Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+>> Cc: Eric W. Biederman <ebiederm@xmission.com>
+>> Cc: Greg KH <gregkh@suse.de>
+>> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+>> Cc: Mike Isely <isely@pobox.com>
+>> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+>> Cc: Sujith Thomas <sujith.thomas@intel.com>
+>> Cc: Matthew Garrett <mjg@redhat.com>
+>> ---
+>>
+>> The thermal-sys.c-part should fix bugs #15548 and #15584.
+>>
+>>  drivers/macintosh/windfarm_core.c           |    1 +
+>>  drivers/media/video/pvrusb2/pvrusb2-sysfs.c |    8 ++++++++
+>>  drivers/platform/x86/intel_menlow.c         |    1 +
+>>  drivers/thermal/thermal_sys.c               |    1 +
+>>  drivers/video/fsl-diu-fb.c                  |    1 +
+>>  5 files changed, 12 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/macintosh/windfarm_core.c b/drivers/macintosh/windfarm_core.c
+>> index 419795f..f447642 100644
+>> --- a/drivers/macintosh/windfarm_core.c
+>> +++ b/drivers/macintosh/windfarm_core.c
+>> @@ -209,6 +209,7 @@ int wf_register_control(struct wf_control *new_ct)
+>>  	kref_init(&new_ct->ref);
+>>  	list_add(&new_ct->link, &wf_controls);
+>>  
+>> +	sysfs_attr_init(&new_ct->attr.attr);
+>>  	new_ct->attr.attr.name = new_ct->name;
+>>  	new_ct->attr.attr.mode = 0644;
+>>  	new_ct->attr.show = wf_show_control;
+>> diff --git a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c b/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
+>> index 6c23456..71f5056 100644
+>> --- a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
+>> +++ b/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
+>> @@ -423,10 +423,12 @@ static void pvr2_sysfs_add_debugifc(struct pvr2_sysfs *sfp)
+>>  
+>>  	dip = kzalloc(sizeof(*dip),GFP_KERNEL);
+>>  	if (!dip) return;
+>> +	sysfs_attr_init(&dip->attr_debugcmd.attr);
+>>  	dip->attr_debugcmd.attr.name = "debugcmd";
+>>  	dip->attr_debugcmd.attr.mode = S_IRUGO|S_IWUSR|S_IWGRP;
+>>  	dip->attr_debugcmd.show = debugcmd_show;
+>>  	dip->attr_debugcmd.store = debugcmd_store;
+>> +	sysfs_attr_init(&dip->attr_debuginfo.attr);
+>>  	dip->attr_debuginfo.attr.name = "debuginfo";
+>>  	dip->attr_debuginfo.attr.mode = S_IRUGO;
+>>  	dip->attr_debuginfo.show = debuginfo_show;
+>> @@ -644,6 +646,7 @@ static void class_dev_create(struct pvr2_sysfs *sfp,
+>>  		return;
+>>  	}
+>>  
+>> +	sysfs_attr_init(&sfp->attr_v4l_minor_number.attr);
+>>  	sfp->attr_v4l_minor_number.attr.name = "v4l_minor_number";
+>>  	sfp->attr_v4l_minor_number.attr.mode = S_IRUGO;
+>>  	sfp->attr_v4l_minor_number.show = v4l_minor_number_show;
+>> @@ -658,6 +661,7 @@ static void class_dev_create(struct pvr2_sysfs *sfp,
+>>  		sfp->v4l_minor_number_created_ok = !0;
+>>  	}
+>>  
+>> +	sysfs_attr_init(&sfp->attr_v4l_radio_minor_number.attr);
+>>  	sfp->attr_v4l_radio_minor_number.attr.name = "v4l_radio_minor_number";
+>>  	sfp->attr_v4l_radio_minor_number.attr.mode = S_IRUGO;
+>>  	sfp->attr_v4l_radio_minor_number.show = v4l_radio_minor_number_show;
+>> @@ -672,6 +676,7 @@ static void class_dev_create(struct pvr2_sysfs *sfp,
+>>  		sfp->v4l_radio_minor_number_created_ok = !0;
+>>  	}
+>>  
+>> +	sysfs_attr_init(&sfp->attr_unit_number.attr);
+>>  	sfp->attr_unit_number.attr.name = "unit_number";
+>>  	sfp->attr_unit_number.attr.mode = S_IRUGO;
+>>  	sfp->attr_unit_number.show = unit_number_show;
+>> @@ -685,6 +690,7 @@ static void class_dev_create(struct pvr2_sysfs *sfp,
+>>  		sfp->unit_number_created_ok = !0;
+>>  	}
+>>  
+>> +	sysfs_attr_init(&sfp->attr_bus_info.attr);
+>>  	sfp->attr_bus_info.attr.name = "bus_info_str";
+>>  	sfp->attr_bus_info.attr.mode = S_IRUGO;
+>>  	sfp->attr_bus_info.show = bus_info_show;
+>> @@ -699,6 +705,7 @@ static void class_dev_create(struct pvr2_sysfs *sfp,
+>>  		sfp->bus_info_created_ok = !0;
+>>  	}
+>>  
+>> +	sysfs_attr_init(&sfp->attr_hdw_name.attr);
+>>  	sfp->attr_hdw_name.attr.name = "device_hardware_type";
+>>  	sfp->attr_hdw_name.attr.mode = S_IRUGO;
+>>  	sfp->attr_hdw_name.show = hdw_name_show;
+>> @@ -713,6 +720,7 @@ static void class_dev_create(struct pvr2_sysfs *sfp,
+>>  		sfp->hdw_name_created_ok = !0;
+>>  	}
+>>  
+>> +	sysfs_attr_init(&sfp->attr_hdw_desc.attr);
+>>  	sfp->attr_hdw_desc.attr.name = "device_hardware_description";
+>>  	sfp->attr_hdw_desc.attr.mode = S_IRUGO;
+>>  	sfp->attr_hdw_desc.show = hdw_desc_show;
+>> diff --git a/drivers/platform/x86/intel_menlow.c b/drivers/platform/x86/intel_menlow.c
+>> index f0a90a6..90ba5d7 100644
+>> --- a/drivers/platform/x86/intel_menlow.c
+>> +++ b/drivers/platform/x86/intel_menlow.c
+>> @@ -396,6 +396,7 @@ static int intel_menlow_add_one_attribute(char *name, int mode, void *show,
+>>  	if (!attr)
+>>  		return -ENOMEM;
+>>  
+>> +	sysfs_attr_init(&attr->attr.attr); /* That's consistent naming :D */
+>>  	attr->attr.attr.name = name;
+>>  	attr->attr.attr.mode = mode;
+>>  	attr->attr.show = show;
+>> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
+>> index 5066de5..d4fec47 100644
+>> --- a/drivers/thermal/thermal_sys.c
+>> +++ b/drivers/thermal/thermal_sys.c
+>> @@ -725,6 +725,7 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
+>>  		goto release_idr;
+>>  
+>>  	sprintf(dev->attr_name, "cdev%d_trip_point", dev->id);
+>> +	sysfs_attr_init(&dev->attr.attr);
+>>  	dev->attr.attr.name = dev->attr_name;
+>>  	dev->attr.attr.mode = 0444;
+>>  	dev->attr.show = thermal_cooling_device_trip_point_show;
+>> diff --git a/drivers/video/fsl-diu-fb.c b/drivers/video/fsl-diu-fb.c
+>> index 4637bcb..994358a 100644
+>> --- a/drivers/video/fsl-diu-fb.c
+>> +++ b/drivers/video/fsl-diu-fb.c
+>> @@ -1536,6 +1536,7 @@ static int __devinit fsl_diu_probe(struct of_device *ofdev,
+>>  		goto error;
+>>  	}
+>>  
+>> +	sysfs_attr_init(&machine_data->dev_attr.attr);
+>>  	machine_data->dev_attr.attr.name = "monitor";
+>>  	machine_data->dev_attr.attr.mode = S_IRUGO|S_IWUSR;
+>>  	machine_data->dev_attr.show = show_monitor;
+>>
+> 
 
-	0x2c40000-0x2c409ff
 
-are only written to by the files named cx18-av-*[ch], which is mostly
-ioctl() call driven.  (Those registers are logically mapped by the linux
-driver code to 0x000-0x9ff to make the integrated A/V decoder look like
-a CX25843 chip for convenience.)
+-- 
 
-Accesses to those are orthognal to the rest of the cx18 driver,
-including the IRQ handler.  (I agree, its hard to follow things in the
-driver; it's very large.)
-
-Do note, however, that the audio standard detection microcontroller
-*does* write to the registers in 0x800-0x9ff *independent* of the linux
-cx18 driver.
-
-Locking with respect to the microcontroller would mean halting and
-restarting the microcontroller.  I don't know if that causes it to reset
-or not, and I do not know how it affects it's internal timers.
-
-Regards,
-Andy
-
-
-
+Cheers,
+Mauro
