@@ -1,115 +1,211 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3619 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757633Ab0D3QuC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Apr 2010 12:50:02 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o3TJdZ6L010534
-	for <linux-media@vger.kernel.org>; Thu, 29 Apr 2010 21:39:35 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 29 Apr 2010 21:39:35 +0200 (CEST)
-Message-Id: <201004291939.o3TJdZ6L010534@smtp-vbr7.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
+Received: from cnc.isely.net ([64.81.146.143]:36373 "EHLO cnc.isely.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751446Ab0DJQzg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Apr 2010 12:55:36 -0400
+Date: Sat, 10 Apr 2010 11:55:35 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+To: Wolfram Sang <w.sang@pengutronix.de>
+cc: kernel-janitors@vger.kernel.org,
+	"Eric W. Biederman" <ebiederm@xmission.com>,
+	Greg KH <gregkh@suse.de>,
+	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sujith Thomas <sujith.thomas@intel.com>,
+	Matthew Garrett <mjg@redhat.com>, linuxppc-dev@ozlabs.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org, platform-driver-x86@vger.kernel.org,
+	Mike Isely <isely@isely.net>
+Subject: Re: [PATCH] device_attributes: add sysfs_attr_init() for dynamic
+ attributes
+In-Reply-To: <1269238878-991-1-git-send-email-w.sang@pengutronix.de>
+Message-ID: <alpine.DEB.1.10.1004101154480.5518@ivanova.isely.net>
+References: <1269238878-991-1-git-send-email-w.sang@pengutronix.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
 
-Results of the daily build of v4l-dvb:
+Acked-By: Mike Isely <isely@pobox.com>
 
-date:        Thu Apr 29 19:00:29 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14618:905d76b95175
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: d3be2fab3a10b6c798a5f9970146d166d3345c37
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+(in the context of the pvrusb2 driver related changes)
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc1-armv5: OK
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-rc1-armv5-davinci: OK
-linux-2.6.32.6-armv5-ixp: OK
-linux-2.6.33-armv5-ixp: OK
-linux-2.6.34-rc1-armv5-ixp: OK
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-rc1-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.17-i686: WARNINGS
-linux-2.6.24.7-i686: OK
-linux-2.6.25.20-i686: OK
-linux-2.6.26.8-i686: OK
-linux-2.6.27.44-i686: OK
-linux-2.6.28.10-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: OK
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-rc1-i686: WARNINGS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc1-m32r: OK
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-rc1-mips: OK
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-rc1-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.17-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.20-x86_64: OK
-linux-2.6.26.8-x86_64: OK
-linux-2.6.27.44-x86_64: OK
-linux-2.6.28.10-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: OK
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-rc1-x86_64: WARNINGS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.7-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.62-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.7-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+  -Mike
 
-Detailed results are available here:
+On Mon, 22 Mar 2010, Wolfram Sang wrote:
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+> Made necessary by 6992f5334995af474c2b58d010d08bc597f0f2fe.
+> 
+> Found by this semantic patch:
+> 
+> @ init @
+> type T;
+> identifier A;
+> @@
+> 
+>         T {
+>                 ...
+>                 struct device_attribute A;
+>                 ...
+>         };
+> 
+> @ main extends init @
+> expression E;
+> statement S;
+> identifier err;
+> T *name;
+> @@
+> 
+>         ... when != sysfs_attr_init(&name->A.attr);
+> (
+> +       sysfs_attr_init(&name->A.attr);
+>         if (device_create_file(E, &name->A))
+>                 S
+> |
+> +       sysfs_attr_init(&name->A.attr);
+>         err = device_create_file(E, &name->A);
+> )
+> 
+> While reviewing, I put the initialization to apropriate places.
+> 
+> Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+> Cc: Eric W. Biederman <ebiederm@xmission.com>
+> Cc: Greg KH <gregkh@suse.de>
+> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+> Cc: Mike Isely <isely@pobox.com>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: Sujith Thomas <sujith.thomas@intel.com>
+> Cc: Matthew Garrett <mjg@redhat.com>
+> ---
+> 
+> The thermal-sys.c-part should fix bugs #15548 and #15584.
+> 
+>  drivers/macintosh/windfarm_core.c           |    1 +
+>  drivers/media/video/pvrusb2/pvrusb2-sysfs.c |    8 ++++++++
+>  drivers/platform/x86/intel_menlow.c         |    1 +
+>  drivers/thermal/thermal_sys.c               |    1 +
+>  drivers/video/fsl-diu-fb.c                  |    1 +
+>  5 files changed, 12 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/macintosh/windfarm_core.c b/drivers/macintosh/windfarm_core.c
+> index 419795f..f447642 100644
+> --- a/drivers/macintosh/windfarm_core.c
+> +++ b/drivers/macintosh/windfarm_core.c
+> @@ -209,6 +209,7 @@ int wf_register_control(struct wf_control *new_ct)
+>  	kref_init(&new_ct->ref);
+>  	list_add(&new_ct->link, &wf_controls);
+>  
+> +	sysfs_attr_init(&new_ct->attr.attr);
+>  	new_ct->attr.attr.name = new_ct->name;
+>  	new_ct->attr.attr.mode = 0644;
+>  	new_ct->attr.show = wf_show_control;
+> diff --git a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c b/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
+> index 6c23456..71f5056 100644
+> --- a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
+> +++ b/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
+> @@ -423,10 +423,12 @@ static void pvr2_sysfs_add_debugifc(struct pvr2_sysfs *sfp)
+>  
+>  	dip = kzalloc(sizeof(*dip),GFP_KERNEL);
+>  	if (!dip) return;
+> +	sysfs_attr_init(&dip->attr_debugcmd.attr);
+>  	dip->attr_debugcmd.attr.name = "debugcmd";
+>  	dip->attr_debugcmd.attr.mode = S_IRUGO|S_IWUSR|S_IWGRP;
+>  	dip->attr_debugcmd.show = debugcmd_show;
+>  	dip->attr_debugcmd.store = debugcmd_store;
+> +	sysfs_attr_init(&dip->attr_debuginfo.attr);
+>  	dip->attr_debuginfo.attr.name = "debuginfo";
+>  	dip->attr_debuginfo.attr.mode = S_IRUGO;
+>  	dip->attr_debuginfo.show = debuginfo_show;
+> @@ -644,6 +646,7 @@ static void class_dev_create(struct pvr2_sysfs *sfp,
+>  		return;
+>  	}
+>  
+> +	sysfs_attr_init(&sfp->attr_v4l_minor_number.attr);
+>  	sfp->attr_v4l_minor_number.attr.name = "v4l_minor_number";
+>  	sfp->attr_v4l_minor_number.attr.mode = S_IRUGO;
+>  	sfp->attr_v4l_minor_number.show = v4l_minor_number_show;
+> @@ -658,6 +661,7 @@ static void class_dev_create(struct pvr2_sysfs *sfp,
+>  		sfp->v4l_minor_number_created_ok = !0;
+>  	}
+>  
+> +	sysfs_attr_init(&sfp->attr_v4l_radio_minor_number.attr);
+>  	sfp->attr_v4l_radio_minor_number.attr.name = "v4l_radio_minor_number";
+>  	sfp->attr_v4l_radio_minor_number.attr.mode = S_IRUGO;
+>  	sfp->attr_v4l_radio_minor_number.show = v4l_radio_minor_number_show;
+> @@ -672,6 +676,7 @@ static void class_dev_create(struct pvr2_sysfs *sfp,
+>  		sfp->v4l_radio_minor_number_created_ok = !0;
+>  	}
+>  
+> +	sysfs_attr_init(&sfp->attr_unit_number.attr);
+>  	sfp->attr_unit_number.attr.name = "unit_number";
+>  	sfp->attr_unit_number.attr.mode = S_IRUGO;
+>  	sfp->attr_unit_number.show = unit_number_show;
+> @@ -685,6 +690,7 @@ static void class_dev_create(struct pvr2_sysfs *sfp,
+>  		sfp->unit_number_created_ok = !0;
+>  	}
+>  
+> +	sysfs_attr_init(&sfp->attr_bus_info.attr);
+>  	sfp->attr_bus_info.attr.name = "bus_info_str";
+>  	sfp->attr_bus_info.attr.mode = S_IRUGO;
+>  	sfp->attr_bus_info.show = bus_info_show;
+> @@ -699,6 +705,7 @@ static void class_dev_create(struct pvr2_sysfs *sfp,
+>  		sfp->bus_info_created_ok = !0;
+>  	}
+>  
+> +	sysfs_attr_init(&sfp->attr_hdw_name.attr);
+>  	sfp->attr_hdw_name.attr.name = "device_hardware_type";
+>  	sfp->attr_hdw_name.attr.mode = S_IRUGO;
+>  	sfp->attr_hdw_name.show = hdw_name_show;
+> @@ -713,6 +720,7 @@ static void class_dev_create(struct pvr2_sysfs *sfp,
+>  		sfp->hdw_name_created_ok = !0;
+>  	}
+>  
+> +	sysfs_attr_init(&sfp->attr_hdw_desc.attr);
+>  	sfp->attr_hdw_desc.attr.name = "device_hardware_description";
+>  	sfp->attr_hdw_desc.attr.mode = S_IRUGO;
+>  	sfp->attr_hdw_desc.show = hdw_desc_show;
+> diff --git a/drivers/platform/x86/intel_menlow.c b/drivers/platform/x86/intel_menlow.c
+> index f0a90a6..90ba5d7 100644
+> --- a/drivers/platform/x86/intel_menlow.c
+> +++ b/drivers/platform/x86/intel_menlow.c
+> @@ -396,6 +396,7 @@ static int intel_menlow_add_one_attribute(char *name, int mode, void *show,
+>  	if (!attr)
+>  		return -ENOMEM;
+>  
+> +	sysfs_attr_init(&attr->attr.attr); /* That's consistent naming :D */
+>  	attr->attr.attr.name = name;
+>  	attr->attr.attr.mode = mode;
+>  	attr->attr.show = show;
+> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
+> index 5066de5..d4fec47 100644
+> --- a/drivers/thermal/thermal_sys.c
+> +++ b/drivers/thermal/thermal_sys.c
+> @@ -725,6 +725,7 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
+>  		goto release_idr;
+>  
+>  	sprintf(dev->attr_name, "cdev%d_trip_point", dev->id);
+> +	sysfs_attr_init(&dev->attr.attr);
+>  	dev->attr.attr.name = dev->attr_name;
+>  	dev->attr.attr.mode = 0444;
+>  	dev->attr.show = thermal_cooling_device_trip_point_show;
+> diff --git a/drivers/video/fsl-diu-fb.c b/drivers/video/fsl-diu-fb.c
+> index 4637bcb..994358a 100644
+> --- a/drivers/video/fsl-diu-fb.c
+> +++ b/drivers/video/fsl-diu-fb.c
+> @@ -1536,6 +1536,7 @@ static int __devinit fsl_diu_probe(struct of_device *ofdev,
+>  		goto error;
+>  	}
+>  
+> +	sysfs_attr_init(&machine_data->dev_attr.attr);
+>  	machine_data->dev_attr.attr.name = "monitor";
+>  	machine_data->dev_attr.attr.mode = S_IRUGO|S_IWUSR;
+>  	machine_data->dev_attr.show = show_monitor;
+> 
 
-Full logs are available here:
+-- 
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Mike Isely
+isely @ isely (dot) net
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
