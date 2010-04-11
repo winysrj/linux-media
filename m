@@ -1,128 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f179.google.com ([209.85.221.179]:62779 "EHLO
-	mail-qy0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757580Ab0DGNLx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Apr 2010 09:11:53 -0400
+Received: from smtp103.plus.mail.re1.yahoo.com ([69.147.102.66]:23978 "HELO
+	smtp103.plus.mail.re1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753995Ab0DIILQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 9 Apr 2010 04:11:16 -0400
+Message-ID: <4BC18320.70604@yahoo.gr>
+Date: Sun, 11 Apr 2010 11:06:56 +0300
+From: Nick GIannakopoulos <int_nick_dot@yahoo.gr>
 MIME-Version: 1.0
-In-Reply-To: <20100407114234.GA3476@hardeman.nu>
-References: <20100406104410.710253548@hardeman.nu>
-	 <20100406104811.GA6414@hardeman.nu> <4BBB449B.3000207@infradead.org>
-	 <1270635607.3021.222.camel@palomino.walls.org>
-	 <20100407114234.GA3476@hardeman.nu>
-Date: Wed, 7 Apr 2010 09:11:51 -0400
-Message-ID: <j2g9e4733911004070611je836445apb6527b4e2d8137fb@mail.gmail.com>
-Subject: Re: [RFC] Teach drivers/media/IR/ir-raw-event.c to use durations
-From: Jon Smirl <jonsmirl@gmail.com>
-To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
-	Andy Walls <awalls@md.metrocast.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org
+Subject: em28xx: board id  [eb1a:e310]
+Content-Type: text/plain; charset=ISO-8859-7
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I had to rework this portion of code several times in the IR code I posted.
+ Hi, 
 
-I had the core provide input_ir_queue() which was legal to call from
-interrupt context. Calling from interrupt context was an important
-aspect I missed in the first versions. I made this a common routine so
-that the code didn't get copied into all of the drivers. This code
-should have used kfifo but I didn't know about kfifo.
+ I've made tests with my *KWORLD DVB USB 2.0 310U* board:
 
->>The question is though, is the kfifo and work handler really
-necessary?
+ *Model*: KWORLD DVB USB 2.0 310U
+ *Vendor/Product id*: [eb1a:e310]
+ *Kernel:* 2.6.33 + v4l-dvb-fw-bf7cd2fb7a35 + xc3028-v27.fw
 
-Yes, otherwise it will get duplicated into all of the drivers that run
-in interrupt context like this GPIO one. Put this common code into the
-core so that the individual drivers writers don't mess it up.
+ *Tests made*: 
 
-void input_ir_queue(struct input_dev *dev, int sample)
-{
-	unsigned int next;
+     - Analog [Worked Video+Audio, But i can change channels correctly only if i set manually frequencies to mplayer freq=]
+     - DVB    [No]
+     - VBI    [ Seems to work ]
 
-	spin_lock(dev->ir->queue.lock);
-	dev->ir->queue.samples[dev->ir->queue.head] = sample;
-	next = dev->ir->queue.head + 1;
-	dev->ir->queue.head = (next >= MAX_SAMPLES ? 0 : next);
-	spin_unlock(dev->ir->queue.lock);
+* Part of Kernel Logs:*
+  
+ --------------->
+ [ 2268.140148] em28xx: New device USB 2881 Device @ 480 Mbps (eb1a:e310, interface 0, class 0)
+ [ 2268.141492] em28xx #0: chip ID is em2882/em2883
+  ...
 
-	schedule_work(&dev->ir->work);
-}
+ [ 2269.439708] xc2028 1-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
+  ...
 
-My GPIO implementation simply call input_it_queue() with the timing
-data. I collapsed multiple long space interrupts into one very long
-space. If you are using protocol engines, there is no need to detect
-the long trailing space. The protocol engine will trigger on the last
-pulse of the signal.
+ [ 2271.510368] em28xx #0: /2: dvb frontend not attached. Can't attach xc3028
+ [ 2271.510373] Em28xx: Initialized (Em28xx dvb Extension) extension
+ ---------------->
 
-On the other hand, LIRC in user space needs the last long space to
-know when to flush the buffer from kernel space into user space. The
-timeout for this flush should be implemented in the LIRC compatibility
-driver, not ir-core. In this case my GPIO driver doesn't ever generate
-an event for the long space at the end of the message (because it
-doesn't end). Instead the LIRC compatibility layer should start a
-timer and flush when no data has been received for 200ms or whatever.
+ More tests i will post soon.
+ If you need more informations/logs about this board let me know. 
 
-static irqreturn_t dpeak_ir_irq(int irq, void *_ir)
-{
-	struct ir_gpt *ir_gpt = _ir;
-	int sample, count, delta, bit, wrap;
+ *Tested-by*: int_nick_dot@yahoo.gr
 
-	sample = in_be32(&ir_gpt->regs->status);
-	out_be32(&ir_gpt->regs->status, 0xF);
 
-	count = sample >> 16;
-	wrap = (sample >> 12) & 7;
-	bit = (sample >> 8) & 1;
 
-	delta = count - ir_gpt->previous;
-	delta += wrap * 0x10000;
-
-	ir_gpt->previous = count;
-
-	if (bit)
-		delta = -delta;
-
-	input_ir_queue(ir_gpt->input, delta);
-
-	return IRQ_HANDLED;
-}
-
-For MSMCE I converted their format back into simple delays and fed it
-into input_ir_queue(). This was not done in interrupt context because
-of the way USB works. input_ir_queue() doesn't care - it works
-correctly when called from either context.
-
-				if (ir->last.command == 0x80) {
-					bit = ((ir->buf_in[i] & MCE_PULSE_BIT) != 0);
-					delta = (ir->buf_in[i] & MCE_PULSE_MASK) * MCE_TIME_BASE;
-
-					if ((ir->buf_in[i] & MCE_PULSE_MASK) == 0x7f) {
-						if (ir->last.bit == bit)
-							ir->last.delta += delta;
-						else {
-							ir->last.delta = delta;
-							ir->last.bit = bit;
-						}
-						continue;
-					}
-					delta += ir->last.delta;
-					ir->last.delta = 0;
-					ir->last.bit = bit;
-
-					dev_dbg(&ir->usbdev->dev, "bit %d delta %d\n", bit, delta);
-					if (bit)
-						delta = -delta;
-
-					input_ir_queue(ir->input, delta);
-				}
-
-These delay messages are then fed into the protocol engines which
-process the pulses in parallel. Processing in parallel works, because
-that's how IR receivers work. When you shine a remote on an equipment
-rack, all of the equipment sees the command in parallel. The protocols
-are designed so that parallel decode works properly.
-
--- 
-Jon Smirl
-jonsmirl@gmail.com
