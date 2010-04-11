@@ -1,29 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:60139 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757306Ab0DOV7k (ORCPT
+Received: from smtp-1.ramapo.edu ([192.107.108.40]:33432 "EHLO
+	smtp-1.ramapo.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752130Ab0DKTtm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Apr 2010 17:59:40 -0400
-Date: Thu, 15 Apr 2010 23:59:34 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org
-Subject: Re: [PATCH 0/8] Series short description
-Message-ID: <20100415215934.GA14463@hardeman.nu>
-References: <20100415214520.14142.56114.stgit@localhost.localdomain>
+	Sun, 11 Apr 2010 15:49:42 -0400
+Message-ID: <4BC227D4.6010406@gmail.com>
+Date: Sun, 11 Apr 2010 15:49:40 -0400
+From: Darren Blaber <dmbtech@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20100415214520.14142.56114.stgit@localhost.localdomain>
+To: Andy Walls <awalls@md.metrocast.net>
+CC: Mark Lord <mlord@pobox.com>, Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media@vger.kernel.org, ivtv-devel@ivtvdriver.org
+Subject: Re: cx18: "missing audio" for analog recordings
+References: <4B8BE647.7070709@teksavvy.com>	 <1267493641.4035.17.camel@palomino.walls.org>	 <4B8CA8DD.5030605@teksavvy.com>	 <1267533630.3123.17.camel@palomino.walls.org> <4B9DA003.90306@teksavvy.com>	 <1268653884.3209.32.camel@palomino.walls.org>  <4BC0FB79.7080601@pobox.com>	 <1270940043.3100.43.camel@palomino.walls.org>  <4BC1401F.9080203@pobox.com> <1270961760.5365.14.camel@palomino.walls.org>
+In-Reply-To: <1270961760.5365.14.camel@palomino.walls.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 15, 2010 at 11:45:55PM +0200, David Härdeman wrote:
-> The following series implements the suggested change to ir-core
-> to use a 1:31 struct for pulse/space durations, adds two new
-> raw decoders, converts two users of ir-functions to plain ir-core
-> and fixes a few small bugs in ir-core.
-
-Sorry about the subject of this mail...missed filling in that field :)
-
+Andy Walls wrote:
+> On Sat, 2010-04-10 at 23:21 -0400, Mark Lord wrote:
+>   
+>> On 10/04/10 06:54 PM, Andy Walls wrote:
+>>     
+>>> Hmmm.  Darren's having problems (loss of video/black screen) with my
+>>> patches under my cx18-audio repo, but I'm not quite convinced he doesn't
+>>> have some other PCI bus problem either.
+>>>
+>>> Anyway, my plan now is this:
+>>>
+>>> 1. on cx18-av-core.c:input_change()
+>>> 	a. set register 0x808 for audio autodetection
+>>> 	b. restart the format detection loop
+>>> 	c. set or reset a 1.5 second timeout
+>>>
+>>> 2. after the timer expires, if no audio standard was detected,
+>>> 	a. force the audio standard by programming register 0x808
+>>> 		(e.g. BTSC for NTSC-M)
+>>> 	b. restart the format detection loop so the micrcontroller will
+>>> 		do the unmute when it detects audio
+>>>
+>>> Darren is in NTSC-M/BTSC land.  What TV standard are you dealing with?
+>>>       
+>> ..
+>>
+>> I'm in Canada, using the tuner for over-the-air NTSC broadcasts.
+>>     
+>
+>
+> Try this:
+>
+> 	http://linuxtv.org/hg/~awalls/cx18-audio2
+>
+> this waits 1.5 seconds after an input/channel change to see if the audio
+> standard micrcontroller can detect the standard.  If it can't, the
+> driver tells it to try a fallback detection.  Right now, only the NTSC-M
+> fallback detection is set to force a mode (i.e. BTSC), all the others
+> "fall back" to their same auto-detection.
+>
+> Some annoyances with the fallback to a forced audio standard, mode, and
+> format:
+>
+> 1. Static gets unmuted on stations with no signal. :(
+>
+> 2. I can't seem to force mode "MONO2 (LANGUAGE B)".  I'm guessing the
+> microcontroller keeps setting it back down to "MONO1 (LANGUAGE A/Mono L
+> +R channel for BTSC, EIAJ, A2)"  Feel free to experiment with the LSB of
+> the fallback setting magic number (0x1101) in
+> cx18-av-core.c:input_change().
+>
+>
+> Regards,
+> Andy
+>
+>   
+So far, it seems fine, no black screens, and audio seems to be fine.
