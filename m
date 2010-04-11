@@ -1,137 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from a-pb-sasl-quonix.pobox.com ([208.72.237.25]:50703 "EHLO
-	sasl.smtp.pobox.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752784Ab0DLUIf (ORCPT
+Received: from fb1.tech.numericable.fr ([82.216.111.51]:44108 "EHLO
+	fb1.tech.numericable.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752388Ab0DKVZx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Apr 2010 16:08:35 -0400
-Message-ID: <4BC37DB2.3070107@pobox.com>
-Date: Mon, 12 Apr 2010 16:08:18 -0400
-From: Mark Lord <mlord@pobox.com>
-MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org, Darren Blaber <dmbtech@gmail.com>
-Subject: Re: cx18: "missing audio" for analog recordings
-References: <4B8BE647.7070709@teksavvy.com>
- <1267493641.4035.17.camel@palomino.walls.org> <4B8CA8DD.5030605@teksavvy.com>
- <1267533630.3123.17.camel@palomino.walls.org> <4B9DA003.90306@teksavvy.com>
- <1268653884.3209.32.camel@palomino.walls.org>  <4BC0FB79.7080601@pobox.com>
- <1270940043.3100.43.camel@palomino.walls.org>  <4BC1401F.9080203@pobox.com>
- <1270961760.5365.14.camel@palomino.walls.org>
- <1270986453.3077.4.camel@palomino.walls.org>  <4BC1CDA2.7070003@pobox.com>
- <1271012464.24325.34.camel@palomino.walls.org>
-In-Reply-To: <1271012464.24325.34.camel@palomino.walls.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sun, 11 Apr 2010 17:25:53 -0400
+Received: from smtp4.tech.numericable.fr (smtp4.nc.sdv.fr [10.0.0.60])
+	by fb1.tech.numericable.fr (Postfix) with ESMTP id 6959B9E60B
+	for <linux-media@vger.kernel.org>; Sun, 11 Apr 2010 23:16:36 +0200 (CEST)
+Received: from ibiza.bxl.tuxicoman.be (cable-85.28.93.50.coditel.net [85.28.93.50])
+	by smtp4.tech.numericable.fr (Postfix) with ESMTP id 3003A12A80D
+	for <linux-media@vger.kernel.org>; Sun, 11 Apr 2010 23:15:33 +0200 (CEST)
+Received: from borg.bxl.tuxicoman.be ([172.19.0.10])
+	by ibiza.bxl.tuxicoman.be with esmtps (TLS1.0:DHE_RSA_AES_128_CBC_SHA1:16)
+	(Exim 4.71)
+	(envelope-from <gmsoft@tuxicoman.be>)
+	id 1O14V7-00088o-SL
+	for linux-media@vger.kernel.org; Sun, 11 Apr 2010 23:15:33 +0200
+Date: Sun, 11 Apr 2010 23:15:29 +0200
+From: Guy Martin <gmsoft@tuxicoman.be>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] stv090x Fix kernel oops when plugging two cards
+Message-ID: <20100411231529.1538cf69@borg.bxl.tuxicoman.be>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/bSjZDzDomOiB5iVwiZXZaNt"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/04/10 03:01 PM, Andy Walls wrote:
->
-> I would be interested in hearing how frequent these patches show "forced
-> audio standard" for you:
-..
+--MP_/bSjZDzDomOiB5iVwiZXZaNt
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-The MythTV box here has many tuners, most of which are not used every power-up.
-But mythbackend _always_ initializes all tuners, and pre-tunes them to their startup channel
-each time the system boots up to record/play something.
 
-So.. in the logs from the other night, there are some "fallback" messages.
-But since the HVR1600 was not actually used to record anything,
-I don't know for sure if the audio fallback actually "worked",
-other than that v4l-ctl reported non-muted audio afterwards.
+Hi linux-media,
 
-The abridged syslog is below.
-Something I find interesting, is that it reported having to
-fallback twice on this boot (once during the initial anti-stutter tune,
-and again when mythbackend started up).
+This patch fix initialization of the TT s2-1600 card when plugging two
+of them in the same box. The frontend relies on the fact that
+state->config->tuner_sleep is set to put the tuner sleep. However the
+config struct is shared amongst all cards. The patch adds a check for
+fe->tuner_priv to be set, validating that a tuner has been attached to
+the frontend.
 
-I wonder if this means that once the audio bug is present,
-it remains present until the next time the driver is loaded/unloaded.
+This has been introduced in commit 5ff2bc2dc92c on linux-tv's v4l-dvb mercurial.
 
-Which matches previous observations.
-The fallback (hopefully) works around this, but there's still a bug
-somewhere that is preventing the audio from working without the fallback.
+Signed-off-by : Guy Martin <gmsoft@tuxicoman.be>
 
-Cheers
+For reference, here is the null pointer deref :
+[   96.521023] saa7146: register extension 'budget dvb'.
+[   96.521052] budget dvb 0000:05:00.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
+[   96.521070] IRQ 16/: IRQF_DISABLED is not guaranteed on shared IRQs
+[   96.521076] saa7146: found saa7146 @ mem ffffc90011182c00 (revision 1, irq 16) (0x13c2,0x101c). 
+[   96.521080] saa7146 (0): dma buffer size 192512
+[   96.521081] DVB: registering new adapter (TT-Budget S2-1600 PCI)
+[   96.539929] adapter has MAC addr = 00:d0:5c:cc:b0:a2 
+[   96.890149] stv6110x_attach: Attaching STV6110x 
+[   96.912516] DVB: registering adapter 0 frontend 0 (STV090x Multistandard)...
+[   96.912600] budget dvb 0000:05:01.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
+[   96.912639] IRQ 17/: IRQF_DISABLED is not guaranteed on shared IRQs
+[   96.912667] saa7146: found saa7146 @ mem ffffc90011314800 (revision 1, irq 17) (0x13c2,0x101c). 
+[   96.912673] saa7146 (1): dma buffer size 192512
+[   96.912676] DVB: registering new adapter (TT-Budget S2-1600 PCI)
+[   96.930893] adapter has MAC addr = 00:d0:5c:cc:b0:a3 
+[   97.233478] BUG: unable to handle kernel NULL pointer dereference at 0000000000000010
+[   97.233647] IP: [<ffffffffa029c450>] stv6110x_set_mode+0x70/0x80 [stv6110x]
+[   97.233753] PGD 3c16f067 PUD 3c383067 PMD 0 
+[   97.234147] CPU 0 
+[   97.234246] Pid: 5200, comm: modprobe Not tainted 2.6.33.2 #1 P5Q SE/P5Q SE
+[   97.234317] RIP: 0010:[<ffffffffa029c450>]  [<ffffffffa029c450>] stv6110x_set_mode+0x70/0x80 [stv6110x]
+[   97.234456] RSP: 0018:ffff88003c125c98  EFLAGS: 00010246
+[   97.234461] RAX: ffffffffa029c460 RBX: ffff88003f84d800 RCX: ffff88003a19e140
+[   97.234461] RDX: 0000000000000000 RSI: 0000000000000001 RDI: 0000000000000000
+[   97.234461] RBP: ffff88003f84d828 R08: 0000000000000002 R09: 0000000000000004
+[   97.234461] R10: 0000000000000003 R11: 0000000000000010 R12: ffff88003f84d800
+[   97.234461] R13: ffff88003f84d828 R14: ffff88003f84d828 R15: 0000000000000001
+[   97.234461] FS:  00007f9f7253e6f0(0000) GS:ffff880001800000(0000) knlGS:0000000000000000
+[   97.234461] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+[   97.234461] CR2: 0000000000000010 CR3: 000000003c382000 CR4: 00000000000006b0
+[   97.234461] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+[   97.234461] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+[   97.234461] Process modprobe (pid: 5200, threadinfo ffff88003c124000, task ffff88003e893ac0)
+[   97.234461]  ffff88003f84d800 ffff88003f84d828 ffff88003f84d800 ffffffffa0292343
+[   97.234461] <0> ffff88003f84d828 ffff88003ef70ae0 ffffffffa0280800 ffffffffa02934d2
+[   97.234461] <0> ffffffffa0295260 0000000000000000 ffffffffa02948b0 ffff88003df79800
+[   97.234461]  [<ffffffffa0292343>] ? stv090x_sleep+0x33/0x120 [stv090x]
+[   97.234461]  [<ffffffffa02934d2>] ? stv090x_attach+0x1e2/0x73c [stv090x]
+[   97.234461]  [<ffffffff81007cc5>] ? dma_generic_alloc_coherent+0xa5/0x160
+[   97.234461]  [<ffffffffa026e1f5>] ? saa7146_init_one+0x7d5/0x910 [saa7146]
+[   97.234461]  [<ffffffff811b84b2>] ? local_pci_probe+0x12/0x20
+[   97.234461]  [<ffffffff811b87d0>] ? pci_device_probe+0x110/0x120
+[   97.234461]  [<ffffffff81221788>] ? driver_probe_device+0x98/0x1b0
+[   97.234461]  [<ffffffff81221933>] ? __driver_attach+0x93/0xa0
+[   97.234461]  [<ffffffff812218a0>] ? __driver_attach+0x0/0xa0 
+[   97.234461]  [<ffffffff81220f18>] ? bus_for_each_dev+0x58/0x80
+[   97.234461]  [<ffffffff8122079d>] ? bus_add_driver+0x14d/0x280
+[   97.234461]  [<ffffffffa0284000>] ? budget_init+0x0/0xc [budget]
+[   97.234461]  [<ffffffff81221c29>] ? driver_register+0x79/0x170
+[   97.234461]  [<ffffffffa0284000>] ? budget_init+0x0/0xc [budget]
+[   97.234461]  [<ffffffff811b8a48>] ? __pci_register_driver+0x58/0xe0
+[   97.234461]  [<ffffffffa0284000>] ? budget_init+0x0/0xc [budget]
+[   97.234461]  [<ffffffff810001d5>] ? do_one_initcall+0x35/0x190
+[   97.234461]  [<ffffffff81063d37>] ? sys_init_module+0xe7/0x260
+[   97.234461]  [<ffffffff8100256b>] ? system_call_fastpath+0x16/0x1b
+[   97.234461] RIP  [<ffffffffa029c450>] stv6110x_set_mode+0x70/0x80 [stv6110x]
+[   97.234461]  RSP <ffff88003c125c98>
+[   97.240074] ---[ end trace b53ecbbbbef15e99 ]---
 
-Mark Lord
 
-* * * *
+Regards,
+  Guy
+--MP_/bSjZDzDomOiB5iVwiZXZaNt
+Content-Type: text/x-patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=stv090x-card-init-fix.patch
 
-Apr 12 03:56:55 duke kernel: cx18:  Start initialization, version 1.4.0
-Apr 12 03:56:55 duke kernel: cx18-0: Initializing card 0
-Apr 12 03:56:55 duke kernel: cx18-0: Autodetected Hauppauge card
-Apr 12 03:56:55 duke kernel: cx18 0000:05:03.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
-Apr 12 03:56:55 duke kernel: cx18-0: Unreasonably low latency timer, setting to 64 (was 2)
-Apr 12 03:56:55 duke kernel: cx18-0: cx23418 revision 01010000 (B)
-Apr 12 03:56:55 duke kernel: tveeprom 1-0050: Hauppauge model 74551, rev C1A3, serial# 1752579
-Apr 12 03:56:55 duke kernel: tveeprom 1-0050: MAC address is 00:0d:fe:1a:be:03
-Apr 12 03:56:55 duke kernel: tveeprom 1-0050: tuner model is TCL MFNM05-4 (idx 103, type 43)
-Apr 12 03:56:55 duke kernel: tveeprom 1-0050: TV standards NTSC(M) (eeprom 0x08)
-Apr 12 03:56:55 duke kernel: tveeprom 1-0050: audio processor is CX23418 (idx 38)
-Apr 12 03:56:55 duke kernel: tveeprom 1-0050: decoder processor is CX23418 (idx 31)
-Apr 12 03:56:55 duke kernel: tveeprom 1-0050: has radio
-Apr 12 03:56:55 duke kernel: cx18-0: Autodetected Hauppauge HVR-1600
-Apr 12 03:56:55 duke kernel: cx18-0: Simultaneous Digital and Analog TV capture supported
-Apr 12 03:56:55 duke kernel: IRQ 18/cx18-0: IRQF_DISABLED is not guaranteed on shared IRQs
-Apr 12 03:56:55 duke kernel: tuner 2-0043: chip found @ 0x86 (cx18 i2c driver #0-1)
-Apr 12 03:56:55 duke kernel: tda9887 2-0043: creating new instance
-Apr 12 03:56:55 duke kernel: tda9887 2-0043: tda988[5/6/7] found
-Apr 12 03:56:55 duke kernel: tuner 2-0061: chip found @ 0xc2 (cx18 i2c driver #0-1)
-Apr 12 03:56:55 duke kernel: cs5345 1-004c: chip found @ 0x98 (cx18 i2c driver #0-0)
-Apr 12 03:56:55 duke kernel: tuner-simple 2-0061: creating new instance
-Apr 12 03:56:55 duke kernel: tuner-simple 2-0061: type set to 43 (Philips NTSC MK3 (FM1236MK3 or FM1236/F))
-Apr 12 03:56:55 duke kernel: cx18-0: Registered device video1 for encoder MPEG (64 x 32.00 kB)
-Apr 12 03:56:55 duke kernel: DVB: registering new adapter (cx18)
-Apr 12 03:56:55 duke kernel: MXL5005S: Attached at address 0x63
-Apr 12 03:56:55 duke kernel: DVB: registering adapter 0 frontend 0 (Samsung S5H1409 QAM/8VSB Frontend)...
-Apr 12 03:56:55 duke kernel: cx18-0: DVB Frontend registered
-Apr 12 03:56:55 duke kernel: cx18-0: Registered DVB adapter0 for TS (32 x 32.00 kB)
-Apr 12 03:56:55 duke kernel: cx18-0: Registered device video33 for encoder YUV (20 x 101.25 kB)
-Apr 12 03:56:55 duke kernel: cx18-0: Registered device vbi1 for encoder VBI (20 x 51984 bytes)
-Apr 12 03:56:55 duke kernel: cx18-0: Registered device video25 for encoder PCM audio (256 x 4.00 kB)
-Apr 12 03:56:55 duke kernel: cx18-0: Registered device radio1 for encoder radio
-Apr 12 03:56:55 duke kernel: cx18-0: Initialized card: Hauppauge HVR-1600
-Apr 12 03:56:55 duke kernel: cx18:  End initialization
+diff -r 7c0b887911cf linux/drivers/media/dvb/frontends/stv090x.c
+--- a/linux/drivers/media/dvb/frontends/stv090x.c	Mon Apr 05 22:56:43 2010 -0400
++++ b/linux/drivers/media/dvb/frontends/stv090x.c	Sun Apr 11 13:46:43 2010 +0200
+@@ -4664,7 +4664,7 @@
+ 	if (stv090x_i2c_gate_ctrl(state, 1) < 0)
+ 		goto err;
+ 
+-	if (state->config->tuner_sleep) {
++	if (fe->tuner_priv && state->config->tuner_sleep) {
+ 		if (state->config->tuner_sleep(fe) < 0)
+ 			goto err_gateoff;
+ 	}
 
-Apr 12 03:56:58 duke kernel: cx18 0000:05:03.0: firmware: requesting v4l-cx23418-cpu.fw
-Apr 12 03:56:58 duke kernel: cx18-0: loaded v4l-cx23418-cpu.fw firmware (158332 bytes)
-Apr 12 03:56:58 duke kernel: cx18 0000:05:03.0: firmware: requesting v4l-cx23418-apu.fw
-Apr 12 03:56:58 duke kernel: cx18-0: loaded v4l-cx23418-apu.fw firmware V00120000 (141200 bytes)
-Apr 12 03:56:58 duke kernel: cx18-0: FW version: 0.0.74.0 (Release 2007/03/12)
-Apr 12 03:56:58 duke kernel: cx18 0000:05:03.0: firmware: requesting v4l-cx23418-cpu.fw
-Apr 12 03:56:59 duke kernel: cx18 0000:05:03.0: firmware: requesting v4l-cx23418-apu.fw
-Apr 12 03:56:59 duke kernel: cx18 0000:05:03.0: firmware: requesting v4l-cx23418-dig.fw
-Apr 12 03:56:59 duke kernel: cx18-0 843: loaded v4l-cx23418-dig.fw firmware (16382 bytes)
-Apr 12 03:56:59 duke kernel: cx18-0 843: verified load of v4l-cx23418-dig.fw firmware (16382 bytes)
-
-Apr 12 03:57:00 duke kernel: ivtv 0000:05:02.0: firmware: requesting v4l-cx2341x-enc.fw
-Apr 12 03:57:00 duke kernel: ivtv0: Loaded v4l-cx2341x-enc.fw firmware (376836 bytes)
-Apr 12 03:57:00 duke kernel: ivtv0: Encoder revision: 0x02060039
-
-Apr 12 03:57:01 duke logger: /usr/local/bin/enable_hauppauge_remote.sh: reconfiguring driver
-Apr 12 03:57:01 duke kernel: cx18_av_aud_detect_work: cx18/hvr1600 audio bug: doing fallback detection      <-------------------
-Apr 12 03:57:01 duke kernel: input: i2c IR (Hauppauge) as /class/input/input5
-Apr 12 03:57:01 duke kernel: irrcv0: i2c IR (Hauppauge) as /class/irrcv/irrcv0
-Apr 12 03:57:01 duke kernel: ir-kbd-i2c: i2c IR (Hauppauge) detected at i2c-0/0-0018/ir0 [ivtv i2c driver #0]
-Apr 12 03:57:01 duke logger: /usr/local/bin/enable_hauppauge_remote.sh: waiting for device(s)
-
-Apr 12 03:57:02 duke logger[4238]: /usr/bin/input-kbd -f /usr/local/bin/hauppauge_remote.conf 5
-Apr 12 03:57:02 duke logger: /dev/video1: fix_hvr1600_audio.sh: Pre-initializing
-
-Apr 12 03:57:04 duke logger: /dev/video1: fix_hvr1600_audio.sh: HVR1600/cx18 audio ok.
-Apr 12 03:57:04 duke nanny.mythbackend[4263]: mythbackend[4265] started
-
-Apr 12 03:57:20 duke /usr/local/bin/antenna_switcher[4828]: Selecting '2C' (hvr1600)
-Apr 12 03:57:20 duke /usr/local/bin/antenna_switcher[4828]: writing 0x08 [- - - - 1 - - -]
-
-Apr 12 03:57:22 duke logger: channel_change: /dev/video1: cx18/hvr1600 audio ok.
-Apr 12 03:57:22 duke kernel: cx18_av_aud_detect_work: cx18/hvr1600 audio bug: doing fallback detection      <-------------------
-Apr 12 03:57:22 duke /usr/local/bin/antenna_switcher[4858]: Selecting '1D' (pvr250)
-Apr 12 03:57:22 duke /usr/local/bin/antenna_switcher[4858]: writing 0x0b [- - - - 1 - 1 1]
-Apr 12 03:57:23 duke logger: channel_change: /dev/video0: ivtv/pvr250 audio ok.
-
-Apr 12 03:59:31 duke /usr/local/bin/antenna_switcher[5603]: Selecting '1C' (pvr250)
-Apr 12 03:59:31 duke /usr/local/bin/antenna_switcher[5603]: writing 0x0a [- - - - 1 - 1 -]
-Apr 12 03:59:32 duke logger: channel_change: /dev/video0: ivtv/pvr250 audio ok.
+--MP_/bSjZDzDomOiB5iVwiZXZaNt--
