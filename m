@@ -1,57 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:57991 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752076Ab0DSJ6a (ORCPT
+Received: from a-pb-sasl-quonix.pobox.com ([208.72.237.25]:38603 "EHLO
+	sasl.smtp.pobox.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751225Ab0DKDVP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Apr 2010 05:58:30 -0400
-Date: Mon, 19 Apr 2010 11:58:18 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Manu Abraham <abraham.manu@gmail.com>
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	linux-input@vger.kernel.org
-Subject: Re: [PATCH 5/8] ir-core: convert mantis from ir-functions.c
-Message-ID: <20100419095818.GA3055@hardeman.nu>
-References: <20100415214520.14142.56114.stgit@localhost.localdomain>
- <20100415214620.14142.19939.stgit@localhost.localdomain>
- <u2x1a297b361004151617gbd08bc10l4fa202ab8dcec306@mail.gmail.com>
- <20100416205638.GA2873@hardeman.nu>
- <j2r1a297b361004161427q88bd9fa3hbf64a38662199712@mail.gmail.com>
+	Sat, 10 Apr 2010 23:21:15 -0400
+Message-ID: <4BC1401F.9080203@pobox.com>
+Date: Sat, 10 Apr 2010 23:21:03 -0400
+From: Mark Lord <mlord@pobox.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <j2r1a297b361004161427q88bd9fa3hbf64a38662199712@mail.gmail.com>
+To: Andy Walls <awalls@radix.net>
+CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	ivtv-devel@ivtvdriver.org
+Subject: Re: cx18: "missing audio" for analog recordings
+References: <4B8BE647.7070709@teksavvy.com>
+ <1267493641.4035.17.camel@palomino.walls.org> <4B8CA8DD.5030605@teksavvy.com>
+ <1267533630.3123.17.camel@palomino.walls.org> <4B9DA003.90306@teksavvy.com>
+ <1268653884.3209.32.camel@palomino.walls.org>  <4BC0FB79.7080601@pobox.com>
+ <1270940043.3100.43.camel@palomino.walls.org>
+In-Reply-To: <1270940043.3100.43.camel@palomino.walls.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Apr 17, 2010 at 01:27:05AM +0400, Manu Abraham wrote:
-> On Sat, Apr 17, 2010 at 12:56 AM, David Härdeman <david@hardeman.nu> wrote:
-> > On Fri, Apr 16, 2010 at 03:17:35AM +0400, Manu Abraham wrote:
-> >> On Fri, Apr 16, 2010 at 1:46 AM, David Härdeman <david@hardeman.nu> wrote:
-> >> > Convert drivers/media/dvb/mantis/mantis_input.c to not use ir-functions.c
-> >> > (The driver is anyway not complete enough to actually use the subsystem yet).
-> >>
-> >> Huh ? I don't follow what you imply here ..
-> >>
-> >
-> > The mantis_input.c file seems to be a skeleton as far as I could
-> > tell...not actually in use yet. Or am I mistaken?
-> 
-> Only the input related parts of the IR stuff is there in
-> mantis_input.c, the hardware handling is done by mantis_uart.c/h.
-> There is a small bit which has not gone upstream yet, which is
-> pending;
-> http://jusst.de/hg/mantis-v4l-dvb/rev/ad8b00c9edc2
-> 
+On 10/04/10 06:54 PM, Andy Walls wrote:
+>
+> Hmmm.  Darren's having problems (loss of video/black screen) with my
+> patches under my cx18-audio repo, but I'm not quite convinced he doesn't
+> have some other PCI bus problem either.
+>
+> Anyway, my plan now is this:
+>
+> 1. on cx18-av-core.c:input_change()
+> 	a. set register 0x808 for audio autodetection
+> 	b. restart the format detection loop
+> 	c. set or reset a 1.5 second timeout
+>
+> 2. after the timer expires, if no audio standard was detected,
+> 	a. force the audio standard by programming register 0x808
+> 		(e.g. BTSC for NTSC-M)
+> 	b. restart the format detection loop so the micrcontroller will
+> 		do the unmute when it detects audio
+>
+> Darren is in NTSC-M/BTSC land.  What TV standard are you dealing with?
+..
 
-Yes, and that patch includes actually calling mantis_input_init(), which 
-wasn't called previously, so mantis_input.c wasn't actually in use.
+I'm in Canada, using the tuner for over-the-air NTSC broadcasts.
 
-Anyways, my patch still applies (or the principle at least) - use the 
-functionality of ir-core and not ir-functions.c (which is going away).
-
-And on a related note, the above patch adds keytables with entries like 
-KEY_0, they should probably be KEY_NUMERIC_* instead.
-
+Cheers!
 -- 
-David Härdeman
+Mark Lord
+Real-Time Remedies Inc.
+mlord@pobox.com
