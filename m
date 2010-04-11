@@ -1,87 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:19764 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751031Ab0DKLrj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Apr 2010 07:47:39 -0400
-Subject: Re: cx18: "missing audio" for analog recordings
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mark Lord <mlord@pobox.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org, Darren Blaber <dmbtech@gmail.com>
-In-Reply-To: <1270961760.5365.14.camel@palomino.walls.org>
-References: <4B8BE647.7070709@teksavvy.com>
-	 <1267493641.4035.17.camel@palomino.walls.org>
-	 <4B8CA8DD.5030605@teksavvy.com>
-	 <1267533630.3123.17.camel@palomino.walls.org> <4B9DA003.90306@teksavvy.com>
-	 <1268653884.3209.32.camel@palomino.walls.org>  <4BC0FB79.7080601@pobox.com>
-	 <1270940043.3100.43.camel@palomino.walls.org>  <4BC1401F.9080203@pobox.com>
-	 <1270961760.5365.14.camel@palomino.walls.org>
-Content-Type: text/plain
-Date: Sun, 11 Apr 2010 07:47:33 -0400
-Message-Id: <1270986453.3077.4.camel@palomino.walls.org>
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:4138 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750733Ab0DKFJM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Apr 2010 01:09:12 -0400
+Message-ID: <4BC1596F.2020900@redhat.com>
+Date: Sun, 11 Apr 2010 02:09:03 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org, linux-input@vger.kernel.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Remote Controller subsystem status
+References: <E1O0o8u-0007A9-7r@www.linuxtv.org>
+In-Reply-To: <E1O0o8u-0007A9-7r@www.linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2010-04-11 at 00:56 -0400, Andy Walls wrote:
-> On Sat, 2010-04-10 at 23:21 -0400, Mark Lord wrote:
-> > On 10/04/10 06:54 PM, Andy Walls wrote:
-> > >
-> > > Hmmm.  Darren's having problems (loss of video/black screen) with my
-> > > patches under my cx18-audio repo, but I'm not quite convinced he doesn't
-> > > have some other PCI bus problem either.
-> > >
-> > > Anyway, my plan now is this:
-> > >
-> > > 1. on cx18-av-core.c:input_change()
-> > > 	a. set register 0x808 for audio autodetection
-> > > 	b. restart the format detection loop
-> > > 	c. set or reset a 1.5 second timeout
-> > >
-> > > 2. after the timer expires, if no audio standard was detected,
-> > > 	a. force the audio standard by programming register 0x808
-> > > 		(e.g. BTSC for NTSC-M)
-> > > 	b. restart the format detection loop so the micrcontroller will
-> > > 		do the unmute when it detects audio
-> > >
-> > > Darren is in NTSC-M/BTSC land.  What TV standard are you dealing with?
-> > ..
-> > 
-> > I'm in Canada, using the tuner for over-the-air NTSC broadcasts.
-> 
-> 
-> Try this:
-> 
-> 	http://linuxtv.org/hg/~awalls/cx18-audio2
-> 
-> this waits 1.5 seconds after an input/channel change to see if the audio
-> standard micrcontroller can detect the standard.  If it can't, the
-> driver tells it to try a fallback detection.  Right now, only the NTSC-M
-> fallback detection is set to force a mode (i.e. BTSC), all the others
-> "fall back" to their same auto-detection.
-> 
-> Some annoyances with the fallback to a forced audio standard, mode, and
-> format:
-> 
-> 1. Static gets unmuted on stations with no signal. :(
-> 
-> 2. I can't seem to force mode "MONO2 (LANGUAGE B)".  I'm guessing the
-> microcontroller keeps setting it back down to "MONO1 (LANGUAGE A/Mono L
-> +R channel for BTSC, EIAJ, A2)"  Feel free to experiment with the LSB of
-> the fallback setting magic number (0x1101) in
-> cx18-av-core.c:input_change().
+For those that are following the discussions, we're having lots of fun with the
+Remote Controller support those days ;)
 
-I fixed #2.  I had a bug so the first patch didn't properly set the
-fallback audio mode.
+We're basically re-writing the entire subsystem, that used to be part of V4L/DVB
+core and drivers, into a core subsystem that can be used not only by media
+drivers, but also for separate Remote Controllers, like those media center
+infra red remote controllers. The idea is to also add support to send raw
+events to userspace applications like lirc. It started pretending to work
+just with Infra Red, but it makes sense to be used also with other type of
+transmission media, so Remote Controller is a more general name.
 
-I still need to fixup cx18_av_s_tuner() and cx18_av_g_tuner() to take
-into consideration that we might be using a forced audio mode vs. auto
-detection.  However, that is not essential for testing; this should be
-good enough for testing.
+We had some important additions on the kernel drivers those days, and I did
+some major changes at the userspace tool that is meant to control the keymap
+tables used by Remote Controllers (ir-keytable). I also fixed yesterday two 
+kernel bugs at ir-core, that affected the userspace app.
 
-Regards,
-Andy
+So, both the kernel driver and the userspace tool are in sync. With this, I 
+hope we don't need to change anymore any existing sysfs attribute (yet, this 
+might happen until kernel 2.6.35, where I expect that those changes will be 
+merged). Currently, only ir-keytable uses those sysfs attributes.
+
+The current version of the ir-keytable application is providing full support 
+to all features currently exported via sysfs by the remote controller sysfs 
+class, at:
+	/sys/class/rc
+
+Without any parameter, it lists all Remote Controllers on the machine:
+
+$ ir-keytable 
+Found /sys/class/rc/rc0/ (/dev/input/event8) with:
+        Driver saa7134, raw software decoder, table rc-avermedia-m135a-rm-jx
+        Supported protocols: NEC RC-5   Enabled protocols: RC-5 
+Found /sys/class/rc/rc1/ (/dev/input/event9) with:
+        Driver em28xx, hardware decoder, table rc-rc5-hauppauge-new
+        Supported protocols: NEC RC-5   Current protocols: RC-5 
+Found /sys/class/rc/rc2/ (/dev/input/event10) with:
+        Driver cx88xx, hardware decoder, table rc-pixelview-mk12
+        Supported protocols: other      Current protocols: NEC 
+
+There are parameters for reading the current table, to add another table to the
+driver, to clear the drivers table and to change the current protocol (on hardware
+decoders) or the enabled protocols (on software decoders).
+
+The most interesting option is "-a" or "--auto-load". It reads a file with rules
+that associates a device (by its driver name and by the table name - both info
+provided by the kernel driver), with a file with the corresponding keymap.
+
+The idea is to use it to automatically load a table via udev, with a rule like:
+
+ACTION=="add", SUBSYSTEM=="rc", RUN+="/usr/local/bin/ir-keytable -v -a /etc/rc_maps.cfg -s $name"
+
+Note: The above rule is not working yet (at least on the very quick test
+I did here with udev, just before starting writing this email).
+Currently, it is giving this error message:
+
+[16009.232502] ir-keytable[20836]: segfault at 4 ip 08048bb1 sp bf8fb110 error 4 in ir-keytable[8048000+5000]
+[16009.242716] Process 20836(ir-keytable) has RLIMIT_CORE set to 0
+[16009.248744] Aborting core
+
+I intend to do enable the core dump and do some tests to check why and fix it, but
+for sure not today. In fact, it may take some time, since I'm going to travel 
+those days to the Collaboration Summit. Maybe I'll find time to fix it only 
+after my return. Of course, people are welcome to fix it before ;)
+
+Anyway, with what we currently have, we have both the IR subsystem and the userspace
+application in a good shape for testing.
+
+There are still lots of things to do. On a very quick brainstorm, this is a non-exhaustive
+lists of tasks for a TODO list:
+
+- Add support for 64 bits scancode tables, using EVIOCGKEYCODEBIG/EVIOCSKEYCODEBIG;
+- Port the DVB drivers to IR core;
+- Remove ir-common module from V4L drivers (It currently contains only a few decoders - 
+  one of them  is pulse-distance - not implemented yet on rc-core);
+- Add the full scancodes for all RC tables;
+- Fix the script to get the new table formats and locations (better to port DVB drivers first);
+- Add lirc_dev;
+- Add other IR drivers;
+- Rename IR to RC on all files and move the subsystem to a better location (probably, this will be
+  the final step);
+- Add support for filtering scancode/keycode maps into different event devices;
+- Use it with other Remote Controller devices (HID, Bluetooth, radio RC?);
+- Cleanups;
+- Add more decoders;
+- IR blaster/transmitter;
+- Merge some keymaps;
+  ...
+
+Currently, all kernel patches are at the main development tree for V4L/DVB
+(and, as consequence, being exported to linux-next):
+	http://git.linuxtv.org/v4l-dvb.git
+
+The userspace application (ir-keycode) is at:
+	http://git.linuxtv.org/v4l-utils.git
+
+The make install will install it at the binary dir and copy the keymaps into /etc/rc_keymaps,
+together with an automatic mode example file, at /etc/rc_maps.cfg.example.
+
+I keep maintaining an experimental tree for new IR patches under testing at:
+	http://git.linuxtv.org/mchehab/ir.git
+	(today status: it is in sync with v4l-dvb.git).
+
+Thank you all that are helping to improve it,
+Mauro
+
+Mauro Carvalho Chehab wrote:
+
+> Subject: keytable: Add an example for rc_maps.cfg
+> Author:  Mauro Carvalho Chehab <mchehab@redhat.com>
+> Date:    Sun Apr 11 00:58:13 2010 -0300
+> 
+> 
+>  utils/keytable/rc_maps.cfg.example |   27 +++++++++++++++++++++++++++
+>  1 files changed, 27 insertions(+), 0 deletions(-)
 
 
+
+
+> 
+> ---
+> 
+> http://git.linuxtv.org/v4l-utils.git?a=commitdiff;h=82b1322de3964390657289116dc08fe4a714f085
+> 
+> diff --git a/utils/keytable/rc_maps.cfg.example b/utils/keytable/rc_maps.cfg.example
+> new file mode 100644
+> index 0000000..bfbae52
+> --- /dev/null
+> +++ b/utils/keytable/rc_maps.cfg.example
+> @@ -0,0 +1,27 @@
+> +#
+> +# Keymaps table
+> +#
+> +# This table creates an association between a keycode file and a kernel
+> +# driver. It can be used to automatically override a keycode definition.
+> +#
+> +# Although not yet tested, it is mented to be added at udev.
+> +#
+> +# To use, you just need to run:
+> +#	./ir-keytable -a
+> +#
+> +# Or, if the remote is not the first device:
+> +#	./ir-keytable -a -s rc1		# for RC at rc1
+> +#
+> +
+> +# Format:
+> +#	driver - name of the driver provided via uevent - use * for any driver
+> +#	table -  RC keymap table, provided via uevent - use * for any table
+> +#	file - file name. If directory is not specified, it will default to
+> +#		/etc/rc_keymaps.
+> +
+> +#driver	table				file
+> +cx8800	*				./keycodes/rc5_hauppauge_new
+> +*	rc-avermedia-m135a-rm-jx	./keycodes/kworld_315u
+> +saa7134	rc-avermedia-m135a-rm-jx	./keycodes/keycodes/nec_terratec_cinergy_xs
+> +em28xx	*				./keycodes/kworld_315u
+> +*	*				./keycodes/rc5_hauppauge_new
+> 
