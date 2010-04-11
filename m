@@ -1,57 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from canardo.mork.no ([148.122.252.1]:46423 "EHLO canardo.mork.no"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752887Ab0DIShs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Apr 2010 14:37:48 -0400
-From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Oliver Endriss <o.endriss@gmx.de>, linux-media@vger.kernel.org,
-	stable@kernel.org
-Subject: Re: [PATCH] V4L/DVB: budget-av: wait longer for frontend to power on
-References: <1269200787-30681-1-git-send-email-bjorn@mork.no>
-	<4BBE477E.80006@redhat.com> <201004091607.18364@orion.escape-edv.de>
-	<4BBF37D9.2060206@redhat.com>
-Date: Fri, 09 Apr 2010 20:37:16 +0200
-In-Reply-To: <4BBF37D9.2060206@redhat.com> (Mauro Carvalho Chehab's message of
-	"Fri, 09 Apr 2010 11:21:13 -0300")
-Message-ID: <87k4sgtqub.fsf@nemi.mork.no>
+Received: from ksp.mff.cuni.cz ([195.113.26.206]:46322 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751143Ab0DKPoo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Apr 2010 11:44:44 -0400
+Date: Sun, 11 Apr 2010 17:44:37 +0200
+From: Pavel Machek <pavel@ucw.cz>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Philippe Troin <phil@fifi.org>,
+	Mohamed Ikbel Boulabiar <boulabiar@gmail.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: webcam problem after suspend/hibernate
+Message-ID: <20100411154437.GA16098@elf.ucw.cz>
+References: <45cc95261003301455u10e6ee24pfb66176bfb279d1@mail.gmail.com>
+ <87ljd3ujrp.fsf@old-tantale.fifi.org>
+ <20100404193405.GA15065@elf.ucw.cz>
+ <201004111253.58237.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201004111253.58237.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab <mchehab@redhat.com> writes:
-> Oliver Endriss wrote:
->
->> Mauro, please do not apply this patch!
->
-> Don't worry, I won't apply this patch.
->> 
->> Afaik there is no tuner which takes 5 seconds to initialize. (And if
->> there was one, it would be a bad idea to add a 5s delay for all tuners!)
->
-> Yes, that's my point: if is there such hardware, the fix should touch
-> only on the hardware with that broken design.
->
-> (btw, there is one tuner that takes almost 30 seconds to initialize:
-> the firmware load for xc3028 on tm6000 rev A should go on slow speed, 
-> otherwise, it fails loading - the i2c implementation on tm6000 were
-> really badly designed)
->
->> The saa7146_i2c_writeout errors are likely caused by broken hardware.
->
-> I think so.
+Hi!
 
-You are so right both of you.  Please drop the patch.
+> > > My testing shows that:
+> > >  1. If I remove uvcvideo BEFORE suspend and reinsert it after resume,
+> > >  
+> > >     it works.  However, I cannot always rmmod uvcvideo before suspend
+> > >     as it may be in use.
+...
+> > > I think uvcvideo is failing to reinitialize the camera on resume, and
+> > > forcing an uvcvideo "reset" with either of these three methods kicks
+> > > uvcvideo into working again.
+> > 
+> > Ok, that puts the problem firmly into uvcvideo area.
+> 
+> No, it doesn't.
 
-I believe this problem was yet another symptom of my faulty SATA hard
-drive.  The driver is working fine with the default 100 ms timeout after
-replacing that drive.
+I believe that the fact that rmmod/insmod fixes it means that problem
+is in the driver (and not in ehci or something like that).
 
-Sorry about all the unnecessary work I created for you, and thanks for
-taking the time to review this even though you suspected user/hardware
-error. 
+> First of all, the dmesg output available on pastebin.com is difficult to 
+> understand. As it seems you perform several suspend/resume cycles there. 
+> Mohamed, could you please
+> 
+> - clear the kernel log ('dmesg -c' as root)
+> - suspend and resume your system
+> - post the kernel log content ('dmesg')
+> - clear the kernel log
+> - try to use your webcam with whatever test software your prefer
+> - describe the failure (application error messages, ...)
+> - post the kernel log content
 
+Good idea.
 
-Bjørn
+> > Try changing its _resume routine to whatever is done on device
+> > unplug... it should be rather easy, and is quite close to "correct"
+> > solution.
+> 
+> That's not a solution. Devices are supposed to resume properly without being 
+> reset. The camera might be crashing, or the USB core might be doing something 
+> wrong, requiring some kind of reset. I'd like to diagnose the problem 
+> correctly before trying to fix it.
+
+Ok. (You are right that simulating rmmod/insmod is not the same as
+proper suspend/resume support, but I still guess it would help with
+debugging.)
+								Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
