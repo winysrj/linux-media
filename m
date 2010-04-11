@@ -1,46 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f194.google.com ([209.85.211.194]:62061 "EHLO
-	mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751733Ab0D1Hct (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:47298 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750836Ab0DKFDR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Apr 2010 03:32:49 -0400
-Received: by ywh32 with SMTP id 32so8280888ywh.33
-        for <linux-media@vger.kernel.org>; Wed, 28 Apr 2010 00:32:47 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20100428154903.374449eb@glory.loctelecom.ru>
-References: <20100423104804.784fb730@glory.loctelecom.ru>
-	 <4BD1B985.8060703@arcor.de>
-	 <20100426102514.2c13761e@glory.loctelecom.ru>
-	 <k2m6e8e83e21004260558sb3695c27o5d061b7bc69198c1@mail.gmail.com>
-	 <20100427151545.217a5c90@glory.loctelecom.ru>
-	 <t2v6e8e83e21004262307wfc0b746x22779c4a2ad431ee@mail.gmail.com>
-	 <20100428154903.374449eb@glory.loctelecom.ru>
-Date: Wed, 28 Apr 2010 15:32:47 +0800
-Message-ID: <h2j6e8e83e21004280032g3913236mfa97a6e099e046ce@mail.gmail.com>
-Subject: Re: tm6000
-From: Bee Hock Goh <beehock@gmail.com>
-To: Dmitri Belimov <d.belimov@gmail.com>
-Cc: Stefan Ringel <stefan.ringel@arcor.de>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Sun, 11 Apr 2010 01:03:17 -0400
+Subject: Re: [ivtv-devel] cx18: "missing audio" for analog recordings
+From: Andy Walls <awalls@md.metrocast.net>
+To: Discussion list for development of the IVTV driver
+	<ivtv-devel@ivtvdriver.org>
+Cc: Mark Lord <mlord@pobox.com>, Darren Blaber <dmbtech@gmail.com>,
+	linux-media@vger.kernel.org
+In-Reply-To: <1270961760.5365.14.camel@palomino.walls.org>
+References: <4B8BE647.7070709@teksavvy.com>
+	 <1267493641.4035.17.camel@palomino.walls.org>
+	 <4B8CA8DD.5030605@teksavvy.com>
+	 <1267533630.3123.17.camel@palomino.walls.org> <4B9DA003.90306@teksavvy.com>
+	 <1268653884.3209.32.camel@palomino.walls.org> <4BC0FB79.7080601@pobox.com>
+	 <1270940043.3100.43.camel@palomino.walls.org> <4BC1401F.9080203@pobox.com>
+	 <1270961760.5365.14.camel@palomino.walls.org>
+Content-Type: text/plain
+Date: Sun, 11 Apr 2010 01:03:41 -0400
+Message-Id: <1270962221.5365.16.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-its working fine on my tm5600. Run fine for more than 5mins without crashing.
+On Sun, 2010-04-11 at 00:56 -0400, Andy Walls wrote:
+> On Sat, 2010-04-10 at 23:21 -0400, Mark Lord wrote:
+> > On 10/04/10 06:54 PM, Andy Walls wrote:
+> > >
+> > > Hmmm.  Darren's having problems (loss of video/black screen) with my
+> > > patches under my cx18-audio repo, but I'm not quite convinced he doesn't
+> > > have some other PCI bus problem either.
+> > >
+> > > Anyway, my plan now is this:
+> > >
+> > > 1. on cx18-av-core.c:input_change()
+> > > 	a. set register 0x808 for audio autodetection
+> > > 	b. restart the format detection loop
+> > > 	c. set or reset a 1.5 second timeout
+> > >
+> > > 2. after the timer expires, if no audio standard was detected,
+> > > 	a. force the audio standard by programming register 0x808
+> > > 		(e.g. BTSC for NTSC-M)
+> > > 	b. restart the format detection loop so the micrcontroller will
+> > > 		do the unmute when it detects audio
+> > >
+> > > Darren is in NTSC-M/BTSC land.  What TV standard are you dealing with?
+> > ..
+> > 
+> > I'm in Canada, using the tuner for over-the-air NTSC broadcasts.
+> 
+> 
+> Try this:
+> 
+> 	http://linuxtv.org/hg/~awalls/cx18-audio2
+> 
+> this waits 1.5 seconds after an input/channel change to see if the audio
+> standard micrcontroller can detect the standard.  If it can't, the
+> driver tells it to try a fallback detection.  Right now, only the NTSC-M
+> fallback detection is set to force a mode (i.e. BTSC), all the others
+> "fall back" to their same auto-detection.
+> 
+> Some annoyances with the fallback to a forced audio standard, mode, and
+> format:
+> 
+> 1. Static gets unmuted on stations with no signal. :(
+> 
+> 2. I can't seem to force mode "MONO2 (LANGUAGE B)".  I'm guessing the
+> microcontroller keeps setting it back down to "MONO1 (LANGUAGE A/Mono L
+> +R channel for BTSC, EIAJ, A2)"  Feel free to experiment with the LSB of
+                                                                    ^^^
 
-But it does crashed everytime when its playing on the first channel
-and I switch channel in mythtv. I am waiting for usb/serial cable to
-arrive from ebay to find out why.
+Bah, wrong byte.  That should have been the LSN of the MSB of the 0x1101
+number.  I'm too tired. 
 
-I hope to work on the audio part though.
+Regards,
+Andy
 
-On Wed, Apr 28, 2010 at 1:49 PM, Dmitri Belimov <d.belimov@gmail.com> wrote:
-> Hi
->
-> Anyone can watch TV with tm6000 module??
->
-> I try mplayer. My PC crashed inside copy_streams function after some time.
->
-> With my best regards, Dmitry.
->
+> the fallback setting magic number (0x1101) in
+> cx18-av-core.c:input_change().
+> 
+> 
+> Regards,
+> Andy
+> 
+> 
+> _______________________________________________
+> ivtv-devel mailing list
+> ivtv-devel@ivtvdriver.org
+> http://ivtvdriver.org/mailman/listinfo/ivtv-devel
+
