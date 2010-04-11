@@ -1,98 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f194.google.com ([209.85.211.194]:41006 "EHLO
-	mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751214Ab0DSGe5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Apr 2010 02:34:57 -0400
-Received: by ywh32 with SMTP id 32so2571820ywh.33
-        for <linux-media@vger.kernel.org>; Sun, 18 Apr 2010 23:34:57 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <u2wc58d1d9d1004171056t879761f9n5acb957d5bfa9a4@mail.gmail.com>
-References: <u2wc58d1d9d1004171056t879761f9n5acb957d5bfa9a4@mail.gmail.com>
-Date: Mon, 19 Apr 2010 14:34:56 +0800
-Message-ID: <u2qc58d1d9d1004182334k912a9d90vb4c5c6a370f87b2d@mail.gmail.com>
-Subject: Problem in USB DVB devices: dvb-usb: recv bulk message failed: -110
-From: Halu Wong <waichai@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:57775 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751065Ab0DKDUN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Apr 2010 23:20:13 -0400
+Date: Sun, 11 Apr 2010 00:20:00 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: linux-input@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/2] ir-core: Fix the delete logic
+Message-ID: <20100411002000.0ba27cdd@pedra>
+In-Reply-To: <ccda6144bee4797ab2f2524c4c4fe43c964c56e2.1270955959.git.mchehab@redhat.com>
+References: <ccda6144bee4797ab2f2524c4c4fe43c964c56e2.1270955959.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
-I got a Mygica D689 which already have driver in v4l-dvb.
-But i can only get it work in VM (VMware player) but not in a real machine.
-Both using the same distribution/kernel/v4l-dvb etc.
-- Fedora 11 (32 bits)
-- Standard installation with the default kernel: 2.6.29.4-167.fc11.i686.PAE
-- with development tools/libraries installed
-download the latest v4l-dvb
-#hg clone http://www.linuxtv.org/hg/v4l-dvb
-#cd v4l-dvb
-#make
-- remove all the things in
-"/lib/modules/2.6.29.4-167.fc11.i686.PAE/kernel/drivers/media"
-# make install
-plug the Mygica D689,
-message in real machine:
-Apr 18 09:23:06 localhost kernel: usb 1-7: new high speed USB device
-using ehci_hcd and address 3
-Apr 18 09:23:06 localhost kernel: usb 1-7: New USB device found,
-idVendor=0572, idProduct=d811
-Apr 18 09:23:06 localhost kernel: usb 1-7: New USB device strings:
-Mfr=1, Product=2, SerialNumber=3
-Apr 18 09:23:06 localhost kernel: usb 1-7: Product: USB Stick
-Apr 18 09:23:06 localhost kernel: usb 1-7: Manufacturer: Geniatech
-Apr 18 09:23:06 localhost kernel: usb 1-7: SerialNumber: 080116
-Apr 18 09:23:06 localhost kernel: usb 1-7: configuration #1 chosen from 1 choice
-Apr 18 09:23:06 localhost kernel: dvb-usb: found a 'Mygica D689
-DMB-TH' in warm state.
-Apr 18 09:23:06 localhost kernel: dvb-usb: will pass the complete
-MPEG2 transport stream to the software demuxer.
-Apr 18 09:23:06 localhost kernel: DVB: registering new adapter (Mygica
-D689 DMB-TH)
-Apr 18 09:23:07 localhost kernel: DVB: registering adapter 0 frontend
-0 (AltoBeam ATBM8830/8831 DMB-TH)...
-Apr 18 09:23:07 localhost kernel: input: IR-receiver inside an USB DVB
-receiver as /devices/pci0000:00/0000:00:1d.7/usb1/1-7/input/input6
-Apr 18 09:23:07 localhost kernel: dvb-usb: schedule remote query
-interval to 100 msecs.
-Apr 18 09:23:07 localhost kernel: dvb-usb: Mygica D689 DMB-TH
-successfully initialized and connected.
-Apr 18 09:23:07 localhost kernel: usbcore: registered new interface
-driver dvb_usb_cxusb
-Apr 18 09:23:09 localhost kernel: dvb-usb: recv bulk message failed: -110
-message in VM:
-Apr 18 09:51:51 f11vm kernel: usb 1-1: new high speed USB device using
-ehci_hcd and address 2
-Apr 18 09:51:51 f11vm kernel: usb 1-1: New USB device found,
-idVendor=0572, idProduct=d811
-Apr 18 09:51:51 f11vm kernel: usb 1-1: New USB device strings: Mfr=1,
-Product=2, SerialNumber=3
-Apr 18 09:51:51 f11vm kernel: usb 1-1: Product: USB Stick
-Apr 18 09:51:51 f11vm kernel: usb 1-1: Manufacturer: Geniatech
-Apr 18 09:51:51 f11vm kernel: usb 1-1: SerialNumber: 080116
-Apr 18 09:51:52 f11vm kernel: usb 1-1: configuration #1 chosen from 1 choice
-Apr 18 09:51:52 f11vm kernel: dvb-usb: found a 'Mygica D689 DMB-TH' in
-warm state.
-Apr 18 09:51:52 f11vm kernel: dvb-usb: will pass the complete MPEG2
-transport stream to the software demuxer.
-Apr 18 09:51:52 f11vm kernel: DVB: registering new adapter (Mygica D689 DMB-TH)
-Apr 18 09:51:53 f11vm kernel: DVB: registering adapter 0 frontend 0
-(AltoBeam ATBM8830/8831 DMB-TH)...
-Apr 18 09:51:54 f11vm kernel: input: IR-receiver inside an USB DVB
-receiver as /devices/pci0000:00/0000:00:11.0/0000:02:03.0/usb1/1-1/input/input5
-Apr 18 09:51:54 f11vm kernel: dvb-usb: schedule remote query interval
-to 100 msecs.
-Apr 18 09:51:54 f11vm kernel: dvb-usb: Mygica D689 DMB-TH successfully
-initialized and connected.
-Apr 18 09:51:54 f11vm kernel: usbcore: registered new interface driver
-dvb_usb_cxusb
-i can do w_scan with 11 services in VM but not ZERO in real machine!!
-Did the following log message imply sth!?!?
-Apr 18 09:23:09 localhost kernel: dvb-usb: recv bulk message failed: -110
-I have tried to install in another real machine but also with the same result!
-Can anyone give me a hint on how to check/solve this issue!!
+Instead of removing an entry, the logic were doing both a deletion and
+a key addition, as shown by the log:
 
-Thanks,
-Halu Wong
+[11517.323314] ir_getkeycode: unknown key for scancode 0x0050
+[11517.326529] ir_do_setkeycode: #80: Deleting scan 0x0050
+[11517.326529] ir_do_setkeycode: #80: New scan 0x0050 with key 0x0000
+[11517.340598] ir_getkeycode: unknown key for scancode 0x0051
+[11517.343811] ir_do_setkeycode: #81: Deleting scan 0x0051
+[11517.343811] ir_do_setkeycode: #81: New scan 0x0051 with key 0x0000
+[11517.357889] ir_getkeycode: unknown key for scancode 0x0052
+[11517.361104] ir_do_setkeycode: #82: Deleting scan 0x0052
+[11517.361104] ir_do_setkeycode: #82: New scan 0x0052 with key 0x0000
+[11517.375453] ir_getkeycode: unknown key for scancode 0x0053
+[11517.378474] ir_do_setkeycode: #83: Deleting scan 0x0053
+[11517.378474] ir_do_setkeycode: #83: New scan 0x0053 with key 0x0000
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
+index 01bddc4..f0eb680 100644
+--- a/drivers/media/IR/ir-keytable.c
++++ b/drivers/media/IR/ir-keytable.c
+@@ -126,7 +126,7 @@ static int ir_do_setkeycode(struct input_dev *dev,
+ 		break;
+ 	}
+ 
+-	if (old_keycode == KEY_RESERVED) {
++	if (old_keycode == KEY_RESERVED && keycode != KEY_RESERVED) {
+ 		/* No previous mapping found, we might need to grow the table */
+ 		if (ir_resize_table(rc_tab))
+ 			return -ENOMEM;
+-- 
+1.6.6.1
+
