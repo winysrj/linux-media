@@ -1,26 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <bloch@verdurin.com>) id 1NyQyu-0005UC-QW
-	for linux-dvb@linuxtv.org; Sun, 04 Apr 2010 16:39:21 +0200
-Received: from 87-194-100-54.bethere.co.uk ([87.194.100.54]
-	helo=shuttle.verdurin.salon)
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-c) with esmtps
-	[TLSv1:AES256-SHA:256] for <linux-dvb@linuxtv.org>
-	id 1NyQyu-0001ns-3W; Sun, 04 Apr 2010 16:39:20 +0200
-Received: from shuttle.verdurin.salon (localhost.localdomain [127.0.0.1])
-	by shuttle.verdurin.salon (8.14.3/8.14.3) with ESMTP id o34EXJeX019389
-	for <linux-dvb@linuxtv.org>; Sun, 4 Apr 2010 15:33:19 +0100
-Received: (from adam@localhost)
-	by shuttle.verdurin.salon (8.14.3/8.14.3/Submit) id o34EXJFY019387
-	for linux-dvb@linuxtv.org; Sun, 4 Apr 2010 15:33:19 +0100
-Date: Sun, 4 Apr 2010 15:33:19 +0100
-From: Adam Huffman <bloch@verdurin.com>
+	(envelope-from <dngtk92hx9@snkmail.com>) id 1O1PvU-0005bs-1F
+	for linux-dvb@linuxtv.org; Mon, 12 Apr 2010 22:08:08 +0200
+Received: from sneak2.sneakemail.com ([38.113.6.65])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-d) with smtp
+	for <linux-dvb@linuxtv.org>
+	id 1O1PvT-000273-0s; Mon, 12 Apr 2010 22:08:07 +0200
+Message-ID: <17143-1271102883-986537@sneakemail.com>
+From: dngtk92hx9@snkmail.com
+Date: Mon, 12 Apr 2010 20:08:03 +0000
 To: linux-dvb@linuxtv.org
-Message-ID: <20100404143319.GA27383@shuttle.verdurin.salon>
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Problem tuning to BBC mux from Winter Hill
+Subject: [linux-dvb] nxt2004 broken in latest kernel release
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -35,41 +27,46 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+I have a pair of K-World ATSC 115 cards for my mythtv setup.  They've worked without any problems for the last 2 years.  My system uses Archlinux.  Roughly a month ago, an upgrade to kernel 2.6.32.10 caused problems in which nxt200x doesn't initialize properly some of the time (no firmware getting downloaded), and thus there's no /dev/dvb directory getting created.  I believe each card succeeds randomly about 1/3 of the time, so that came out to about 9 reboots to get both cards initialized properly.  After that it worked fine.
 
-I've been trying to use a Freecom DVB-T USB stick.
+However, when I upgraded to 2.6.33.2 a couple of days ago, I got the same error messages, but the probability of getting a success firmware download is like 1 in 10.  I haven't succeeded in getting both cards initialized at the same time.  Furthermore, even though I can get one of the cards to initialize (seeing /dev/dvb/adapter0), it doesn't function.  Tuner says locked but never returns a picture in mythtv.
 
-With the latest data for the UK Winter Hill transmitter (taking account
-of the switchover in December 2009), it works except for the BBC
-channels:
+Here's the information when I do a lspci:
 
->>> tune to:
->>> 801833000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
->>> tune to:
->>> 801833000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->>> (tuning failed)
-WARNING: >>> tuning failed!!!
->>> tune to:
->>> 793833000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
->>> tune to:
->>> 793833000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->>> (tuning failed)
-WARNING: >>> tuning failed!!!
+03:06.0 Multimedia controller: Philips Semiconductors SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d1)
+03:07.0 Multimedia controller: Philips Semiconductors SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d1)
 
-This is with the following tuning information:
+This is the error from dmesg when init fails on a card:
 
-# UK, Winter Hill
-# Populated by J. Hornsby from a scan of active multiplexes
-# UK, Winter Hill B Ceased broadcasting on 02 December 2009
-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-T 746000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-T 770000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-T 778000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-T 794000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-T 801833000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+nxt200x: nxt200x_readbytes: i2c read error (addr 0x0a, err == -5)
+Unknown/Unsupported NXT chip: 00 00 00 00 00
+saa7133[0]/dvb: frontend initialization failed
 
-I would appreciate any suggestions.
+Here's the message from a "successful" init (from error log since dmesg gets spammed with errors after it):
+
+Apr 10 13:00:19 ruyi kernel: nxt200x: NXT2004 Detected
+Apr 10 13:00:19 ruyi kernel: nxt2004: Waiting for firmware upload (dvb-fe-nxt2004.fw)...
+Apr 10 13:00:19 ruyi kernel: saa7134 0000:03:06.0: firmware: requesting dvb-fe-nxt2004.fw
+Apr 10 13:00:19 ruyi kernel: nxt2004: Waiting for firmware upload(2)...
+Apr 10 13:00:19 ruyi kernel: nxt2004: Firmware upload complete
+Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_readbytes: i2c read error (addr 0x0a, err == -5)
+Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_writebytes: i2c write error (addr 0x0a, err == -5)
+Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_writebytes: i2c write error (addr 0x0a, err == -5)
+Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_writebytes: i2c write error (addr 0x0a, err == -5)
+Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_writebytes: i2c write error (addr 0x0a, err == -5)
+Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_readbytes: i2c read error (addr 0x0a, err == -5)
+Apr 10 13:00:19 ruyi kernel: nxt200x: Error writing multireg register 0x80
+
+Then when I tried to tune to a channel it just spams the following error in dmesg forever while no picture gets shown:
+
+nxt200x: i2c_readbytes: i2c read error (addr 0x61, err == -5)
+nxt200x: Timeout waiting for nxt2004 to init.
+nxt200x: i2c_writebytes: i2c write error (addr 0x61, err == -5)
+nxt200x: error writing to tuner
+
+Please let me know if you want any additional logs.  thanks
+
+Ben
 
 _______________________________________________
 linux-dvb users mailing list
