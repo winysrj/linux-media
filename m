@@ -1,96 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from old-tantale.fifi.org ([64.81.30.200]:32804 "EHLO
-	old-tantale.fifi.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755429Ab0DARV4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 13:21:56 -0400
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Mohamed Ikbel Boulabiar <boulabiar@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: webcam problem after suspend/hibernate
-References: <45cc95261003301455u10e6ee24pfb66176bfb279d1@mail.gmail.com>
-	<201003310125.26266.laurent.pinchart@ideasonboard.com>
-	<v2x45cc95261003311251idfdc9b8anb7b2060618611d30@mail.gmail.com>
-	<20100401165606.GA1677@ucw.cz>
-From: Philippe Troin <phil@fifi.org>
-Date: 01 Apr 2010 10:05:52 -0700
-In-Reply-To: <20100401165606.GA1677@ucw.cz>
-Message-ID: <87aatn9k7j.fsf@old-tantale.fifi.org>
+Received: from sneak2.sneakemail.com ([38.113.6.65]:58438 "HELO
+	sneak2.sneakemail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753475Ab0DLUVz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Apr 2010 16:21:55 -0400
+Message-ID: <17821-1271103314-44442@sneakemail.com>
+From: dngtk92hx9@snkmail.com
+Date: Mon, 12 Apr 2010 20:15:13 +0000
+To: linux-media@vger.kernel.org
+Subject: nxt2004 broken in latest kernel release
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Pavel Machek <pavel@ucw.cz> writes:
+I have a pair of K-World ATSC 115 cards for my mythtv setup.  They've worked without any problems for the last 2 years.  My system uses Archlinux.  Roughly a month ago, an upgrade to kernel 2.6.32.10 caused problems in which nxt200x doesn't initialize properly some of the time (no firmware getting downloaded), and thus there's no /dev/dvb directory getting created.  I believe each card succeeds randomly about 1/3 of the time, so that came out to about 9 reboots to get both cards initialized properly.  After that it worked fine.
 
-> > Do you mean the dmesg output ?
-> > A full dmesg is included in this address :
-> > http://pastebin.com/8XU619Uk
-> > Not in all suspend/hibernate the problem comes, only in some of them
-> > and this included dmesg output is just after a non working case of
-> > webcam fault.
-> > 
-> > 
-> > I also have found this in `/var/log/messages | grep uvcvideo`
-> > Mar 31 00:31:16 linux-l365 kernel: [399905.714743] usbcore:
-> > deregistering interface driver uvcvideo
-> > Mar 31 00:31:24 linux-l365 kernel: [399914.121386] uvcvideo: Found UVC
-> > 1.00 device LG Webcam (0c45:62c0)
-> > Mar 31 00:31:24 linux-l365 kernel: [399914.135661] usbcore: registered
-> > new interface driver uvcvideo
-> 
-> Also try unloading uvcvideo before suspend and reloading it after
-> resume...
+However, when I upgraded to 2.6.33.2 a couple of days ago, I got the same error messages, but the probability of getting a success firmware download is like 1 in 10.  I haven't succeeded in getting both cards initialized at the same time.  Furthermore, even though I can get one of the cards to initialize (seeing /dev/dvb/adapter0), it doesn't function.  Tuner says locked but never returns a picture in mythtv.
 
-I have a similar problem with a Creative Optia webcam.
+Here's the information when I do a lspci:
 
-I have found that removing the ehci_hcd module and reinserting it
-fixes the problem.
+03:06.0 Multimedia controller: Philips Semiconductors SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d1)
+03:07.0 Multimedia controller: Philips Semiconductors SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d1)
 
-If your kernel ships with ehci_hcd built-in (F11 and later), the
-script included also fixes the problem (it rebind the device).
+This is the error from dmesg when init fails on a card:
 
-Of course, I'd love to see this issue fixed.
+nxt200x: nxt200x_readbytes: i2c read error (addr 0x0a, err == -5)
+Unknown/Unsupported NXT chip: 00 00 00 00 00
+saa7133[0]/dvb: frontend initialization failed
 
-Phil.
+Here's the message from a "successful" init (from error log since dmesg gets spammed with errors after it):
 
-Script: /etc/pm/sleep.d/50kickuvc
+Apr 10 13:00:19 ruyi kernel: nxt200x: NXT2004 Detected
+Apr 10 13:00:19 ruyi kernel: nxt2004: Waiting for firmware upload (dvb-fe-nxt2004.fw)...
+Apr 10 13:00:19 ruyi kernel: saa7134 0000:03:06.0: firmware: requesting dvb-fe-nxt2004.fw
+Apr 10 13:00:19 ruyi kernel: nxt2004: Waiting for firmware upload(2)...
+Apr 10 13:00:19 ruyi kernel: nxt2004: Firmware upload complete
+Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_readbytes: i2c read error (addr 0x0a, err == -5)
+Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_writebytes: i2c write error (addr 0x0a, err == -5)
+Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_writebytes: i2c write error (addr 0x0a, err == -5)
+Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_writebytes: i2c write error (addr 0x0a, err == -5)
+Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_writebytes: i2c write error (addr 0x0a, err == -5)
+Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_readbytes: i2c read error (addr 0x0a, err == -5)
+Apr 10 13:00:19 ruyi kernel: nxt200x: Error writing multireg register 0x80
 
-#!/bin/sh
+Then when I tried to tune to a channel it just spams the following error in dmesg forever while no picture gets shown:
 
-case "$1" in
-  resume|thaw)
-    cd /sys/bus/usb/drivers/uvcvideo || exit 1
-    devices=''
-    for i in [0-9]*-[0-9]*:*
-    do
-      [ -L "$i" ] || break
-      saved_IFS="$IFS"
-      IFS=:
-      set -- $i
-      IFS="$saved_IFS"
-      found=no
-      for j in $devices
-      do
-        if [ "$j" = "$1" ]
-        then
-          found=yes
-        fi
-      done
-      if [ "$found" = no ]
-      then
-        devices="$devices $1"
-      fi
-    done
-    if [ "$devices" != "" ]
-    then
-      cd /sys/bus/usb/drivers/usb || exit 1
-      for i in $devices
-      do
-        echo $i > unbind
-        sleep 1
-        echo $i > bind
-      done
-    fi
-    ;;
-esac
+nxt200x: i2c_readbytes: i2c read error (addr 0x61, err == -5)
+nxt200x: Timeout waiting for nxt2004 to init.
+nxt200x: i2c_writebytes: i2c write error (addr 0x61, err == -5)
+nxt200x: error writing to tuner
+
+Please let me know if you want any additional logs.  thanks
+
+Ben
