@@ -1,112 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:54079 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752516Ab0DZQZU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Apr 2010 12:25:20 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1O6R7Q-0006uU-U7
-	for linux-media@vger.kernel.org; Mon, 26 Apr 2010 18:25:12 +0200
-Received: from 92.103.125.220 ([92.103.125.220])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 26 Apr 2010 18:25:12 +0200
-Received: from ticapix by 92.103.125.220 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 26 Apr 2010 18:25:12 +0200
-To: linux-media@vger.kernel.org
-From: "pierre.gronlier" <ticapix@gmail.com>
-Subject: [PATCH] Read MAC for TeVii S470 PCI-e DVB-S2 card
-Date: Mon, 26 Apr 2010 18:26:29 +0200
-Message-ID: <hr4eor$2t9$1@dough.gmane.org>
+Received: from ey-out-2122.google.com ([74.125.78.27]:24095 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750983Ab0DLE6W (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Apr 2010 00:58:22 -0400
+Received: by ey-out-2122.google.com with SMTP id d26so405892eyd.19
+        for <linux-media@vger.kernel.org>; Sun, 11 Apr 2010 21:58:21 -0700 (PDT)
+Date: Mon, 12 Apr 2010 15:00:31 +1000
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: saa7134 only one MPEG device
+Message-ID: <20100412150031.3ac6b3ca@glory.loctelecom.ru>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000204000905010600000802"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------000204000905010600000802
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Hi 
 
-This patch retrieve the correct mac address from the eeprom for TeVii
-S470 card.
+Now saa7134 can support only one MPEG device. It can be MPEG2 encoder or DVB frontend.
+struct saa7134_dev->mops.
 
+But our TV card has two different MPEG devices: encoder and DVB frontend.
+I make some chandes for support both. But pointer to MPEG ops is only one.
+This is dmesh log with my changes.
 
-Signed-off-by: Pierre Gronlier <pierre.gronlier@gmail.com>
+[   33.587365] befor request_submodules
+[   33.587530] saa7133[0]: registered device video0 [v4l2]
+[   33.587592] saa7133[0]: registered device vbi0
+[   33.587658] saa7133[0]: registered device radio0
+[   33.592894] request_mod_async
+[   33.592940]   request mod empress
+[   33.644596]     saa7134_ts_register start
+[   33.644645]       mpeg_ops_attach start
+[   33.644730]         saa7133[0]: registered device video1 [mpeg]
+[   33.644777]       mpeg_ops_attach OK stop
+[   33.644822]     saa7134_ts_register stop
+[   33.645894]   dvb = 2
+[   33.645940]   request mod dvb
+[   33.767654]     call saa7134_ts_register
+[   33.767703]       saa7134_ts_register start
+[   33.767749]         mpeg_ops_attach start
+[   33.767800]         mpeg_ops_attach FAIL stop, mops already exist FAILURE
+[   33.767846]       saa7134_ts_register stop
 
+Who can help me for add support multiple MPEG devices for saa7134?
 
-diff --git a/linux/drivers/media/video/cx23885/cx23885-dvb.c
-b/linux/drivers/media/video/cx23885/cx23885-dvb.c
---- a/linux/drivers/media/video/cx23885/cx23885-dvb.c
-+++ b/linux/drivers/media/video/cx23885/cx23885-dvb.c
-@@ -929,6 +929,22 @@
-                netup_ci_init(port);
-                break;
-                }
-+       case CX23885_BOARD_TEVII_S470: {
-+               u8 eeprom[256]; /* 24C02 i2c eeprom */
-+
-+               if (port->nr != 1)
-+                       break;
-+
-+               /* Read entire EEPROM */
-+               dev->i2c_bus[0].i2c_client.addr = 0xa0 >> 1;
-+               tveeprom_read(&dev->i2c_bus[0].i2c_client, eeprom,
-sizeof(eeprom));
-+               printk(KERN_INFO "TeVii S470 MAC= "
-+                               "%02X:%02X:%02X:%02X:%02X:%02X\n",
-+                               eeprom[0xa0], eeprom[0xa1], eeprom[0xa2],
-+                               eeprom[0xa3], eeprom[0xa4], eeprom[0xa5]);
-+               memcpy(port->frontends.adapter.proposed_mac, eeprom +
-0xa0, 6);
-+               break;
-+               }
-        }
-
-        return ret;
-
-
--- 
-pierre gronlier
-
---------------000204000905010600000802
-Content-Type: text/x-patch;
- name="s470_read_mac_address.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="s470_read_mac_address.patch"
-
-Read MAC for TeVii S470 PCI-e DVB-S2 card.
-Signed-off-by: Pierre Gronlier <pierre.gronlier@gmail.com>
-
-diff --git a/linux/drivers/media/video/cx23885/cx23885-dvb.c b/linux/drivers/media/video/cx23885/cx23885-dvb.c
---- a/linux/drivers/media/video/cx23885/cx23885-dvb.c
-+++ b/linux/drivers/media/video/cx23885/cx23885-dvb.c
-@@ -929,6 +929,22 @@
- 		netup_ci_init(port);
- 		break;
- 		}
-+	case CX23885_BOARD_TEVII_S470: {
-+		u8 eeprom[256]; /* 24C02 i2c eeprom */
-+
-+		if (port->nr != 1)
-+			break;
-+
-+		/* Read entire EEPROM */
-+		dev->i2c_bus[0].i2c_client.addr = 0xa0 >> 1;
-+		tveeprom_read(&dev->i2c_bus[0].i2c_client, eeprom, sizeof(eeprom));
-+		printk(KERN_INFO "TeVii S470 MAC= "
-+				"%02X:%02X:%02X:%02X:%02X:%02X\n",
-+				eeprom[0xa0], eeprom[0xa1], eeprom[0xa2],
-+				eeprom[0xa3], eeprom[0xa4], eeprom[0xa5]);
-+		memcpy(port->frontends.adapter.proposed_mac, eeprom + 0xa0, 6);
-+		break;
-+		}
- 	}
- 
- 	return ret;
-
---------------000204000905010600000802--
-
+With my best regards, Dmitry.
