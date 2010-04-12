@@ -1,134 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:8082 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758426Ab0DAQoi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Apr 2010 12:44:38 -0400
-Message-ID: <4BB4B569.3080608@redhat.com>
-Date: Thu, 01 Apr 2010 12:02:01 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from gateway05.websitewelcome.com ([67.18.14.14]:43733 "HELO
+	gateway05.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750776Ab0DLSMT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Apr 2010 14:12:19 -0400
+Date: Mon, 12 Apr 2010 11:05:37 -0700 (PDT)
+From: sensoray-dev <linux-dev@sensoray.com>
+Subject: [PATCH] s2255drv: firmware reload on timeout
+To: linux-media@vger.kernel.org
+Message-ID: <tkrat.2ea419ae585217f5@sensoray.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Subject: Re: V4L-DVB drivers and BKL
-References: <201004011001.10500.hverkuil@xs4all.nl> <201004011411.02344.laurent.pinchart@ideasonboard.com> <4BB4A9E2.9090706@redhat.com> <201004011642.19889.hverkuil@xs4all.nl>
-In-Reply-To: <201004011642.19889.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; CHARSET=us-ascii
+Content-Disposition: INLINE
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
+# HG changeset patch
+# User Dean Anderson <linux-dev@sensoray.com>
+# Date 1271095297 25200
+# Node ID 88db759d6bdf2f352acf3763a8db3787ba8f7215
+# Parent  686a2330f4a6a4c79e299a17663f0f150031098e
+s2255drv: firmware reload on timeout
 
-> What to do if we have multiple device nodes? E.g. video0 and vbi0? Should we
-> allow access to video0 when vbi0 is not yet registered? Or should we block
-> access until all video nodes are registered?
+From: Dean Anderson <linux-dev@sensoray.com>
 
-It will depend on the driver implementation, but, as new udev implementations
-try to open v4l devices asap, the better is to lock the register operation
-to avoid an open while not finished.
+Firmware retry on timeout
 
-I remember I had to do it on em28xx:
+Priority: normal
 
-This is the init code for it:
-	...
-        mutex_init(&dev->lock);
-        mutex_lock(&dev->lock);
-        em28xx_init_dev(&dev, udev, interface, nr);
-	...
-        request_modules(dev);
+Signed-off-by: Dean Anderson <linux-dev@sensoray.com>
 
-        /* Should be the last thing to do, to avoid newer udev's to
-           open the device before fully initializing it
-         */
-        mutex_unlock(&dev->lock);
-	...
+diff -r 686a2330f4a6 -r 88db759d6bdf linux/drivers/media/video/s2255drv.c
+--- a/linux/drivers/media/video/s2255drv.c	Mon Apr 12 10:15:23 2010 -0700
++++ b/linux/drivers/media/video/s2255drv.c	Mon Apr 12 11:01:37 2010 -0700
+@@ -58,7 +58,7 @@
+ #include "compat.h"
+ 
+ #define S2255_MAJOR_VERSION	1
+-#define S2255_MINOR_VERSION	19
++#define S2255_MINOR_VERSION	20
+ #define S2255_RELEASE		0
+ #define S2255_VERSION		KERNEL_VERSION(S2255_MAJOR_VERSION, \
+ 					       S2255_MINOR_VERSION, \
+@@ -1753,7 +1753,7 @@
+ 				     == S2255_FW_SUCCESS) ||
+ 				    (atomic_read(&dev->fw_data->fw_state)
+ 				     == S2255_FW_DISCONNECTING)),
+-			msecs_to_jiffies(S2255_LOAD_TIMEOUT));
++				   msecs_to_jiffies(S2255_LOAD_TIMEOUT));
+ 		/* state may have changed, re-read */
+ 		state = atomic_read(&dev->fw_data->fw_state);
+ 		break;
+@@ -1761,27 +1761,38 @@
+ 	default:
+ 		break;
+ 	}
+-	mutex_unlock(&dev->open_lock);
+ 	/* state may have changed in above switch statement */
+ 	switch (state) {
+ 	case S2255_FW_SUCCESS:
+ 		break;
+ 	case S2255_FW_FAILED:
+ 		printk(KERN_INFO "2255 firmware load failed.\n");
++		mutex_unlock(&dev->open_lock);
+ 		return -ENODEV;
+ 	case S2255_FW_DISCONNECTING:
+ 		printk(KERN_INFO "%s: disconnecting\n", __func__);
++		mutex_unlock(&dev->open_lock);
+ 		return -ENODEV;
+ 	case S2255_FW_LOADED_DSPWAIT:
+ 	case S2255_FW_NOTLOADED:
+ 		printk(KERN_INFO "%s: firmware not loaded yet"
+ 		       "please try again later\n",
+ 		       __func__);
++		/*
++		 * Timeout on firmware load means device unusable.
++		 * Set firmware failure state.
++		 * On next s2255_open the firmware will be reloaded.
++		 */
++		atomic_set(&dev->fw_data->fw_state,
++			   S2255_FW_FAILED);
++		mutex_unlock(&dev->open_lock);
+ 		return -EAGAIN;
+ 	default:
+ 		printk(KERN_INFO "%s: unknown state\n", __func__);
++		mutex_unlock(&dev->open_lock);
+ 		return -EFAULT;
+ 	}
++	mutex_unlock(&dev->open_lock);
+ 	/* allocate + initialize per filehandle data */
+ 	fh = kzalloc(sizeof(*fh), GFP_KERNEL);
+ 	if (NULL == fh)
+@@ -2074,7 +2085,6 @@
+ 					dprintk(5, "setmode ready %d\n", cc);
+ 					break;
+ 				case S2255_RESPONSE_FW:
+-
+ 					dev->chn_ready |= (1 << cc);
+ 					if ((dev->chn_ready & 0x0f) != 0x0f)
+ 						break;
 
-And this is the open code:
-
-static int em28xx_v4l2_open(struct file *filp)
-{
-	...
-        mutex_lock(&dev->lock);
-	...
-	mutex_unlock(&dev->lock);
-
-
-The same lock is also used at the ioctl handlers that need to be protected, like:
-
-static int radio_g_tuner(struct file *file, void *priv,
-                         struct v4l2_tuner *t)
-{
-	...
-        mutex_lock(&dev->lock);
-        v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, g_tuner, t);
-        mutex_unlock(&dev->lock);
-	...
-}
-
-There are some obvious cases where no lock is needed, like for example
-vidioc_querycap.
-
-
-> 
->> One (far from perfect) solution, would be to add a mutex protecting the entire
->> ioctl loop inside the drivers, and the open/close methods. This can later be
->> optimized by a mutex that will just protect the operations that can actually
->> cause problems if happening in parallel.
-> 
-> I have thought about this in the past.
-> 
-> What I think would be needed to make locking much more reliable is the following:
-> 
-> 1) Currently when a device is unregistered all read()s, write()s, poll()s, etc.
-> are blocked. Except for ioctl().
-> 
-> The comment in v4l2-dev.c says this:
-> 
->         /* Allow ioctl to continue even if the device was unregistered.
->            Things like dequeueing buffers might still be useful. */
-> 
-> I disagree with this. Once the device is gone (USB disconnect and similar
-> hotplug scenarios), then the only thing an application can do is to close.
-> 
-> Allowing ioctl to still work makes it hard for drivers since every ioctl
-> op that might do something with the device has to call video_is_registered()
-> to check whether the device is still alive.
-> 
-> I know, this is not directly related to the BKL, but it is an additional
-> complication.
-
-Depending on how the video buffers are implemented, you may need to run dequeue,
-in order to allow freeing the mmaped memories. That's said, maybe we could use
-a kref implementation for those kind or resources.
-
-> 2) Add a new video_device flag that turns on serialization. Basically all
-> calls are serialized with a mutex in v4l2_device. To handle blocking calls
-> like read() or VIDIOC_DQBUF we can either not take the serialization mutex
-> in the core, or instead the driver needs to unlock the mutex before it
-> waits for an event and lock it afterwards.
-> 
-> In the first case the core has to know all the exceptions.
-> 
-> Perhaps we should just add a second flag: whether the core should do full
-> serialization (and the driver will have to unlock/lock around blocking waits)
-> or smart serialization where know blocking operations are allowed unserialized.
-> 
-> I think it is fairly simple to add this serialization mechanism. And for many
-> drivers this will actually be more than enough.
-
-I remember I proposed a solution to implement the mutex at V4L core level,
-when we had this discussion with Alan Cox BKL patches. 
-
-The conclusion I had from the discussion is that, while this is a simple way, 
-it may end that a poorly implemented lock would stay there forever.
-
-Also, core has no way to foresee what the driver is doing on their side, and may
-miss some cases where the lock needs to be used.
-
-I don't think that adding flags would help to improve it.
-
--- 
-
-Cheers,
-Mauro
