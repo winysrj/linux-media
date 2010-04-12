@@ -1,53 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:44294 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754157Ab0DCAq5 (ORCPT
+Received: from sneak2.sneakemail.com ([38.113.6.65]:37231 "HELO
+	sneak2.sneakemail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752776Ab0DLWKg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Apr 2010 20:46:57 -0400
-Subject: Re: [RFC] Serialization flag example
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-In-Reply-To: <4BB65E67.9050605@redhat.com>
-References: <201004011937.39331.hverkuil@xs4all.nl>
-	 <4BB4E4CC.3020100@redhat.com>
-	 <y2v1a297b361004021043wa43821d2hfb5b573b110dd5e0@mail.gmail.com>
-	 <x2v829197381004021053nf77e2d42q4f1614eced7f999d@mail.gmail.com>
-	 <4BB65E67.9050605@redhat.com>
-Content-Type: text/plain
-Date: Fri, 02 Apr 2010 20:47:05 -0400
-Message-Id: <1270255625.3027.82.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Mon, 12 Apr 2010 18:10:36 -0400
+Message-ID: <24561-1271110235-336777@sneakemail.com>
+From: dngtk92hx9@snkmail.com
+Date: Mon, 12 Apr 2010 22:10:34 +0000
+To: linux-media@vger.kernel.org
+Subject: nxt2004 broken in latest kernel release
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2010-04-02 at 18:15 -0300, Mauro Carvalho Chehab wrote:
-> Devin Heitmueller wrote:
+I have a pair of K-World ATSC 115 cards for my mythtv setup.  They've worked without any problems for the last 2 years.  My system uses Archlinux.  Roughly a month ago, an upgrade to kernel 2.6.32.10 caused problems in which nxt200x doesn't initialize properly some of the time (no firmware getting downloaded), and thus there's no /dev/dvb directory getting created.  I believe each card succeeds randomly about 1/3 of the time, so that came out to about 9 reboots to get both cards initialized properly.  After that it worked fine.
 
-> In the case of a V4L x DVB type of lock, this is not to protect some memory, but,
-> instead, to limit the usage of a hardware that is not capable of simultaneously
-> provide V4L and DVB streams. This is a common case on almost all devices, but, as
-> Hermann pointed, there are a few devices that are capable of doing both analog
-> and digital streams at the same time, but saa7134 driver currently doesn't support.
+However, when I upgraded to 2.6.33.2 a couple of days ago, I got the same error messages, but the probability of getting a success firmware download is like 1 in 10.  I haven't succeeded in getting both cards initialized at the same time.  Furthermore, even though I can get one of the cards to initialize (seeing /dev/dvb/adapter0), it doesn't function.  Tuner says locked but never returns a picture in mythtv.
 
-I know a driver that does:
+Here's the information when I do a lspci:
 
-cx18 can handle simultaneous streaming of DTV and analog.
+03:06.0 Multimedia controller: Philips Semiconductors SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d1)
+03:07.0 Multimedia controller: Philips Semiconductors SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d1)
 
-Some cards have both an analog and digital tuner, so both DTV and analog
-can come from an RF source simultaneously.  (No locking needed really.)
+This is the error from dmesg when init fails on a card:
 
-Some cards only have one tuner, which means simultaneous streaming is
-limited to DTV from RF and analog from baseband inputs.  Streaming
-analog from an RF source on these cards precludes streaming of DTV.  (An
-odd locking ruleset when you consider MPEG, YUV, PCM, and VBI from the
-bridge chip can independently be streamed from the selected analog
-source to 4 different device nodes.)
+nxt200x: nxt200x_readbytes: i2c read error (addr 0x0a, err == -5)
+Unknown/Unsupported NXT chip: 00 00 00 00 00
+saa7133[0]/dvb: frontend initialization failed
 
-Regards,
-Andy
+Here's the message from a "successful" init (from error log since dmesg gets spammed with errors after it):
 
+Apr 10 13:00:19 ruyi kernel: nxt200x: NXT2004 Detected
+Apr 10 13:00:19 ruyi kernel: nxt2004: Waiting for firmware upload (dvb-fe-nxt2004.fw)...
+Apr 10 13:00:19 ruyi kernel: saa7134 0000:03:06.0: firmware: requesting dvb-fe-nxt2004.fw
+Apr 10 13:00:19 ruyi kernel: nxt2004: Waiting for firmware upload(2)...
+Apr 10 13:00:19 ruyi kernel: nxt2004: Firmware upload complete
+Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_readbytes: i2c read error (addr 0x0a, err == -5)
+Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_writebytes: i2c write error (addr 0x0a, err == -5)
+Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_writebytes: i2c write error (addr 0x0a, err == -5)
+Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_writebytes: i2c write error (addr 0x0a, err == -5)
+Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_writebytes: i2c write error (addr 0x0a, err == -5)
+Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_readbytes: i2c read error (addr 0x0a, err == -5)
+Apr 10 13:00:19 ruyi kernel: nxt200x: Error writing multireg register 0x80
 
+Then when I tried to tune to a channel it just spams the following error in dmesg forever while no picture gets shown:
+
+nxt200x: i2c_readbytes: i2c read error (addr 0x61, err == -5)
+nxt200x: Timeout waiting for nxt2004 to init.
+nxt200x: i2c_writebytes: i2c write error (addr 0x61, err == -5)
+nxt200x: error writing to tuner
+
+Please let me know if you want any additional logs.  thanks
+
+Ben
