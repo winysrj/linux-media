@@ -1,35 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f227.google.com ([209.85.220.227]:36218 "EHLO
-	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752918Ab0DDVzJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Apr 2010 17:55:09 -0400
-Received: by fxm27 with SMTP id 27so633149fxm.28
-        for <linux-media@vger.kernel.org>; Sun, 04 Apr 2010 14:55:08 -0700 (PDT)
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4594 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751356Ab0DMNmU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Apr 2010 09:42:20 -0400
+Message-ID: <258a57e817688f9fa0c1e87fdadc740c.squirrel@webmail.xs4all.nl>
+In-Reply-To: <33AB447FBD802F4E932063B962385B351D84C129@shsmsx501.ccr.corp.intel.com>
+References: <33AB447FBD802F4E932063B962385B351D84C129@shsmsx501.ccr.corp.intel.com>
+Date: Tue, 13 Apr 2010 15:42:17 +0200
+Subject: Re: [RFC] support more color effects by extending the
+ V4L2_CID_COLORFX user contorl ID
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Zhu, Daniel" <daniel.zhu@intel.com>,
+	"Bian, Jonathan" <jonathan.bian@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <201003092133.12235.liplianin@me.by>
-References: <bcb3ef431003081127y43d6d785jdc34e845fa07e746@mail.gmail.com>
-	 <a3ef07921003081241t16e1a63ag1d8f93ebe35f15f2@mail.gmail.com>
-	 <201003092133.12235.liplianin@me.by>
-Date: Sun, 4 Apr 2010 23:55:07 +0200
-Message-ID: <o2lbcb3ef431004041455x49a28290h3fe76b498735e029@mail.gmail.com>
-Subject: Re: s2-liplianin, mantis: sysfs: cannot create duplicate filename
-	'/devices/virtual/irrcv'
-From: MartinG <gronslet@gmail.com>
-To: Linux Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2010/3/9 Igor M. Liplianin <liplianin@me.by>:
-> MartinG, I'm already planning to replace mantis related part with linuxtv one,
-> so please use http://linuxtv.org/hg/v4l-dvb.
-> But not get wrong, this tree isn't panacea, your reports are welcome.
 
-Thanks, I've pulled the linuxtv tree, and it compiled, installed and
-seems to work just fine. No more "mantis_ack_wait (0): Slave RACK Fail
-!" I hope ;).
+> Hi linux-media,
+>
+> Current V4l2 support a limited image effects (black white and sepia) and
+> this is a RFC to support more color effects by extending the
+> V4L2_CID_COLORFX user control ID, these effects are not platform specific
+> and are available in mainstream digital camera devices, and will be
+> supported by the ISP on Intel Atom platforms.
+>
+> The image effects are listed as in below, we are proposing to extend
+> V4L2_CID_COLORFX to support them:
+>
+> V4L2_COLORFX_NEGATIVE - negative image effect.
+> V4L2_COLORFX_EMBOSS - emboss image effect
+> V4L2_COLORFX_SKETECH - sketch image effect
+> V4L2_COLORFX_SKY_BLUE - sky blue image effect
+> V4L2_COLORFX_GRASS_GREEN - grass green image effect
+> V4L2_COLORFX_SKIN_WHITEN - skin whiten image effect
+> V4L2_COLORFX_VIVID - vivid image effect
+>
+> The v4l2_colorfx also needs to contain more enum items (as in below) to
+> support them, welcome any comment and suggest.
+>
+> enum v4l2_colorfx {
+> 	V4L2_COLORFX_DEFAULT	= 0,
+> 	V4L2_COLORFX_BW		= 1,
+> 	V4L2_COLORFX_SEPIA	= 2,
+> 	V4L2_COLORFX_NEGATIVE = 3,
+> 	V4L2_COLORFX_EMBOSS =4,
+> 	V4L2_COLORFX_SKETECH =5,
 
-Anyways - I really appreciate your work!
+Typo: SKETECH -> SKETCH
 
-Best regards,
-MartinG
+> 	V4L2_COLORFX_SKY_BLUE =6,
+> 	V4L2_COLORFX_GRASS_GREEN =7,
+> 	V4L2_COLORFX_SKIN_WHITEN = 8,
+> 	V4L2_COLORFX_VIVID = 9,
+> };
+
+Looks fine to me! Remember to also change v4l2_ctrl_get_menu() in
+v4l2-common.c.
+
+Regards,
+
+        Hans
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+
