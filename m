@@ -1,124 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp6.tech.numericable.fr ([82.216.111.42]:57262 "EHLO
-	smtp6.tech.numericable.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752543Ab0DZQw7 (ORCPT
+Received: from mail-ew0-f220.google.com ([209.85.219.220]:40308 "EHLO
+	mail-ew0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753208Ab0DNH2v (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Apr 2010 12:52:59 -0400
-Date: Mon, 26 Apr 2010 18:52:46 +0200
-From: Guy Martin <gmsoft@tuxicoman.be>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Xawtv sparc 64bit fix
-Message-ID: <20100426185246.174c0197@borg.bxl.tuxicoman.be>
-In-Reply-To: <4BD47410.9000006@redhat.com>
-References: <20100423170316.12e01bfc@borg.bxl.tuxicoman.be>
-	<4BD47410.9000006@redhat.com>
+	Wed, 14 Apr 2010 03:28:51 -0400
+Received: by ewy20 with SMTP id 20so2945235ewy.1
+        for <linux-media@vger.kernel.org>; Wed, 14 Apr 2010 00:28:48 -0700 (PDT)
+Date: Wed, 14 Apr 2010 17:31:02 +1000
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] tm6000, moving cards name defines
+Message-ID: <20100414173102.58b0f184@glory.loctelecom.ru>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/8B8Cybmk5I/Rl5PSbO2Kaja"
+Content-Type: multipart/mixed; boundary="MP_/dKkpb5_Bb4aTjW8_Gxhicb7"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---MP_/8B8Cybmk5I/Rl5PSbO2Kaja
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+--MP_/dKkpb5_Bb4aTjW8_Gxhicb7
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
+Hi
 
-Hi Mauro,
+Move TV cards name defines to better place header file.
 
-Thanks for the feedback. Here is the fixed version.
+diff -r 7c0b887911cf linux/drivers/staging/tm6000/tm6000-cards.c
+--- a/linux/drivers/staging/tm6000/tm6000-cards.c	Mon Apr 05 22:56:43 2010 -0400
++++ b/linux/drivers/staging/tm6000/tm6000-cards.c	Wed Apr 14 11:18:03 2010 +1000
+@@ -35,22 +35,6 @@
+ #include "tuner-xc2028.h"
+ #include "xc5000.h"
+ 
+-#define TM6000_BOARD_UNKNOWN			0
+-#define TM5600_BOARD_GENERIC			1
+-#define TM6000_BOARD_GENERIC			2
+-#define TM6010_BOARD_GENERIC			3
+-#define TM5600_BOARD_10MOONS_UT821		4
+-#define TM5600_BOARD_10MOONS_UT330		5
+-#define TM6000_BOARD_ADSTECH_DUAL_TV		6
+-#define TM6000_BOARD_FREECOM_AND_SIMILAR	7
+-#define TM6000_BOARD_ADSTECH_MINI_DUAL_TV	8
+-#define TM6010_BOARD_HAUPPAUGE_900H		9
+-#define TM6010_BOARD_BEHOLD_WANDER		10
+-#define TM6010_BOARD_BEHOLD_VOYAGER		11
+-#define TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE	12
+-#define TM6010_BOARD_TWINHAN_TU501		13
+-
+-#define TM6000_MAXBOARDS        16
+ static unsigned int card[]     = {[0 ... (TM6000_MAXBOARDS - 1)] = UNSET };
+ 
+ module_param_array(card,  int, NULL, 0444);
+diff -r 7c0b887911cf linux/drivers/staging/tm6000/tm6000.h
+--- a/linux/drivers/staging/tm6000/tm6000.h	Mon Apr 05 22:56:43 2010 -0400
++++ b/linux/drivers/staging/tm6000/tm6000.h	Wed Apr 14 11:18:03 2010 +1000
+@@ -41,6 +41,23 @@
+ #include "dmxdev.h"
+ 
+ #define TM6000_VERSION KERNEL_VERSION(0, 0, 2)
++
++#define TM6000_BOARD_UNKNOWN			0
++#define TM5600_BOARD_GENERIC			1
++#define TM6000_BOARD_GENERIC			2
++#define TM6010_BOARD_GENERIC			3
++#define TM5600_BOARD_10MOONS_UT821		4
++#define TM5600_BOARD_10MOONS_UT330		5
++#define TM6000_BOARD_ADSTECH_DUAL_TV		6
++#define TM6000_BOARD_FREECOM_AND_SIMILAR	7
++#define TM6000_BOARD_ADSTECH_MINI_DUAL_TV	8
++#define TM6010_BOARD_HAUPPAUGE_900H		9
++#define TM6010_BOARD_BEHOLD_WANDER		10
++#define TM6010_BOARD_BEHOLD_VOYAGER		11
++#define TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE	12
++#define TM6010_BOARD_TWINHAN_TU501		13
++
++#define TM6000_MAXBOARDS        16
+ 
+ /* Inputs */
+ 
 
-Cheers,
-  Guy
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
 
-On Sun, 25 Apr 2010 13:55:44 -0300
-Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+With my best regards, Dmitry.
 
-> Guy Martin wrote:
-> >=20
-> > Hi,
-> >=20
-> > Here is an old patch of mine which I tried to submit in 2006 but
-> > never got it. I didn't really know who was xawtv's maintainer at
-> > that time.
-> >=20
-> >=20
-> >=20
-> > The calculation to compute the 64bit alignement in struct-dump.c is
-> > plain wrong. The alignment has to be computed with a structure
-> > containing a char and then a 64bit integer and then substract the
-> > pointer of the 64bit int to the one of the char.
-> >=20
-> > This fix v4l-info doing a Bus Error on sparc with structs containing
-> > 64 bit integer following a non 64bit field aligned on a 8 byte
-> > boundary like v4l2_standard.
-> >=20
-> >=20
-> > Signed-off-by: Guy Martin <gmsoft@tuxicoman.be>
->=20
-> I tried to compile it (x86_64 arch) and your patch produced two
-> warnings:
->=20
-> ../structs/struct-dump.c: In function =E2=80=98print_struct=E2=80=99:
-> ../structs/struct-dump.c:48: warning: cast from pointer to integer of
-> different size ../structs/struct-dump.c:48: warning: cast from
-> pointer to integer of different size
->=20
-> Could you please fix it?
->=20
-> >=20
-> >=20
-> > Regards,
-> >   Guy
-> >=20
->=20
->=20
-
-
---MP_/8B8Cybmk5I/Rl5PSbO2Kaja
-Content-Type: text/x-patch
+--MP_/dKkpb5_Bb4aTjW8_Gxhicb7
+Content-Type: text/x-patch; name=tm6000_defs.patch
 Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=xawtv-struct-dump.diff
+Content-Disposition: attachment; filename=tm6000_defs.patch
 
-diff --git a/structs/struct-dump.c b/structs/struct-dump.c
-index 0ee7fc8..49bfe2d 100644
---- a/structs/struct-dump.c
-+++ b/structs/struct-dump.c
-@@ -43,7 +43,9 @@ int print_struct(FILE *fp, struct struct_desc *desc, void *data,
- 	int16_t  s16;
- 	uint8_t  u8;
- 	int8_t   s8;
--	int al = sizeof(long)-1; /* struct + union + 64bit alignment */
-+	struct al64_t { char c; uint64_t t; } al64_t;
-+	int al = sizeof(long)-1; /* struct + union */
-+	int al64 = (unsigned long)&al64_t.t - (unsigned long)&al64_t.c - 1; /* 64 bit alignement */
- 	void *p;
- 	unsigned int i,j,first;
+diff -r 7c0b887911cf linux/drivers/staging/tm6000/tm6000-cards.c
+--- a/linux/drivers/staging/tm6000/tm6000-cards.c	Mon Apr 05 22:56:43 2010 -0400
++++ b/linux/drivers/staging/tm6000/tm6000-cards.c	Wed Apr 14 11:18:03 2010 +1000
+@@ -35,22 +35,6 @@
+ #include "tuner-xc2028.h"
+ #include "xc5000.h"
  
-@@ -149,7 +151,7 @@ int print_struct(FILE *fp, struct struct_desc *desc, void *data,
- 			ptr += 4;
- 			break;
- 		case BITS64:
--			ptr = (void*)(((intptr_t)ptr + al) & ~al);
-+			ptr = (void*)(((intptr_t)ptr + al64) & ~al64);
- 			u64 = *((uint64_t*)ptr);
- 			first = 1;
- 			fprintf(fp,"0x%" PRIx64 " [",u64);
-@@ -166,13 +168,13 @@ int print_struct(FILE *fp, struct struct_desc *desc, void *data,
- 			break;
+-#define TM6000_BOARD_UNKNOWN			0
+-#define TM5600_BOARD_GENERIC			1
+-#define TM6000_BOARD_GENERIC			2
+-#define TM6010_BOARD_GENERIC			3
+-#define TM5600_BOARD_10MOONS_UT821		4
+-#define TM5600_BOARD_10MOONS_UT330		5
+-#define TM6000_BOARD_ADSTECH_DUAL_TV		6
+-#define TM6000_BOARD_FREECOM_AND_SIMILAR	7
+-#define TM6000_BOARD_ADSTECH_MINI_DUAL_TV	8
+-#define TM6010_BOARD_HAUPPAUGE_900H		9
+-#define TM6010_BOARD_BEHOLD_WANDER		10
+-#define TM6010_BOARD_BEHOLD_VOYAGER		11
+-#define TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE	12
+-#define TM6010_BOARD_TWINHAN_TU501		13
+-
+-#define TM6000_MAXBOARDS        16
+ static unsigned int card[]     = {[0 ... (TM6000_MAXBOARDS - 1)] = UNSET };
  
- 		case UINT64:
--			ptr = (void*)(((intptr_t)ptr + al) & ~al);
-+			ptr = (void*)(((intptr_t)ptr + al64) & ~al64);
- 			u64 = *((uint64_t*)ptr);
- 			fprintf(fp,"%" PRIu64,u64);
- 			ptr += 8;
- 			break;
- 		case SINT64:
--			ptr = (void*)(((intptr_t)ptr + al) & ~al);
-+			ptr = (void*)(((intptr_t)ptr + al64) & ~al64);
- 			s64 = *((int64_t*)ptr);
- 			fprintf(fp,"%" PRId64,s64);
- 			ptr += 8;
+ module_param_array(card,  int, NULL, 0444);
+diff -r 7c0b887911cf linux/drivers/staging/tm6000/tm6000.h
+--- a/linux/drivers/staging/tm6000/tm6000.h	Mon Apr 05 22:56:43 2010 -0400
++++ b/linux/drivers/staging/tm6000/tm6000.h	Wed Apr 14 11:18:03 2010 +1000
+@@ -41,6 +41,23 @@
+ #include "dmxdev.h"
+ 
+ #define TM6000_VERSION KERNEL_VERSION(0, 0, 2)
++
++#define TM6000_BOARD_UNKNOWN			0
++#define TM5600_BOARD_GENERIC			1
++#define TM6000_BOARD_GENERIC			2
++#define TM6010_BOARD_GENERIC			3
++#define TM5600_BOARD_10MOONS_UT821		4
++#define TM5600_BOARD_10MOONS_UT330		5
++#define TM6000_BOARD_ADSTECH_DUAL_TV		6
++#define TM6000_BOARD_FREECOM_AND_SIMILAR	7
++#define TM6000_BOARD_ADSTECH_MINI_DUAL_TV	8
++#define TM6010_BOARD_HAUPPAUGE_900H		9
++#define TM6010_BOARD_BEHOLD_WANDER		10
++#define TM6010_BOARD_BEHOLD_VOYAGER		11
++#define TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE	12
++#define TM6010_BOARD_TWINHAN_TU501		13
++
++#define TM6000_MAXBOARDS        16
+ 
+ /* Inputs */
+ 
 
---MP_/8B8Cybmk5I/Rl5PSbO2Kaja--
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+
+--MP_/dKkpb5_Bb4aTjW8_Gxhicb7--
