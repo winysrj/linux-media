@@ -1,64 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2533 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751562Ab0DAVGT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 17:06:19 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: V4L-DVB drivers and BKL
-Date: Thu, 1 Apr 2010 23:06:31 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-References: <201004011001.10500.hverkuil@xs4all.nl> <4BB4D9AB.6070907@redhat.com> <g2q829197381004011129lc706e6c3jcac6dcc756012173@mail.gmail.com>
-In-Reply-To: <g2q829197381004011129lc706e6c3jcac6dcc756012173@mail.gmail.com>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:42899 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756587Ab0DNRkO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Apr 2010 13:40:14 -0400
+Received: by gwaa18 with SMTP id a18so168550gwa.19
+        for <linux-media@vger.kernel.org>; Wed, 14 Apr 2010 10:40:13 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201004012306.31471.hverkuil@xs4all.nl>
+In-Reply-To: <4BC5FB77.2020303@vorgon.com>
+References: <4BC5FB77.2020303@vorgon.com>
+Date: Wed, 14 Apr 2010 13:40:12 -0400
+Message-ID: <k2h829197381004141040n4aa69e06x7a10c7ea70be3dcf@mail.gmail.com>
+Subject: Re: cx5000 default auto sleep mode
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: "Timothy D. Lenz" <tlenz@vorgon.com>,
+	Andy Walls <awalls@md.metrocast.net>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 01 April 2010 20:29:52 Devin Heitmueller wrote:
-> On Thu, Apr 1, 2010 at 1:36 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
-> > If you take a look at em28xx-dvb, it is not lock-protected. If the bug is due
-> > to the async load, we'll need to add the same locking at *alsa and *dvb
-> > parts of em28xx.
-> 
-> Yes, that is correct.  The problem effects both dvb and alsa, although
-> empirically it is more visible with the dvb case.
-> 
-> > Yet, in this specific case, as the errors are due to the reception of
-> > wrong data from tvp5150, maybe the problem is due to the lack of a
-> > proper lock at the i2c access.
-> 
-> The problem is because hald sees the new device and is making v4l2
-> calls against the tvp5150 even though the gpio has been toggled over
-> to digital mode.  Hence an i2c lock won't help.  We would need to
-> implement proper locking of analog versus digital mode, which
-> unfortunately would either result in hald getting back -EBUSY on open
-> of the V4L device or the DVB module loading being deferred while the
-> v4l side of the board is in use (neither of which is a very good
-> solution).
-> 
-> This is what got me thinking a few weeks ago that perhaps the
-> submodules should not be loaded asynchronously.  In that case, at
-> least the main em28xx module could continue to hold the lock while the
-> submodules are still being loaded.
+On Wed, Apr 14, 2010 at 1:29 PM, Timothy D. Lenz <tlenz@vorgon.com> wrote:
+> Thanks to Andy Walls, found out why I kept loosing 1 tuner on a FusionHD7
+> Dual express. Didn't know linux supported an auto sleep mode on the tuner
+> chips and that it defaulted to on. Seems like it would be better to default
+> to off. If someone wants an auto power down/sleep mode and their software
+> supports it, then let the program activate it. Seems people are more likely
+> to want the tuners to stay on then keep shutting down.
+>
+> Spent over a year trying to figure out why vdr would loose control of 1 of
+> the dual tuners when the atscepg pluging was used thinking it was a problem
+> with the plugin.
 
-What was the reason behind the asynchronous loading? In general it simplifies
-things a lot if you load modules up front.
+The xc5000 power management changes I made were actually pretty
+thoroughly tested with that card (between myself and Michael Krufky,
+we tested it with just about every card that uses the tuner).  In
+fact, we uncovered several power management bugs in other drivers as a
+result of that effort.  It was a grueling effort that I spent almost
+three months working on.
 
-Regards,
+Generally I agree with the premise that functionality like this should
+only be enabled for boards it was tested with.  However, in this case
+it actually was pretty extensively tested with all the cards in
+question (including this one), and thus it was deemed safe to enable
+by default.  We've had cases in the past where developers exercised
+poor judgement and blindly turned on power management to make it work
+with one card, disregarding the possible breakage that could occur
+with other cards that use the same driver -- this was *not* one of
+those cases.
 
-	Hans
+If there is a bug, it should be pretty straightforward to fix provided
+it can be reproduced.
 
-> 
-> Devin
-> 
-> 
+Regarding the general assertion that the power management should be
+disabled by default, I disagree.  The power savings is considerable,
+the time to bring the tuner out of sleep is negligible, and it's
+generally good policy.
+
+Andy, do you have any actual details regarding the nature of the problem?
+
+Devin
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
