@@ -1,128 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:38643 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751923Ab0DJR0g (ORCPT
+Received: from a-pb-sasl-quonix.pobox.com ([208.72.237.25]:46556 "EHLO
+	sasl.smtp.pobox.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750814Ab0DNEcx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Apr 2010 13:26:36 -0400
-Subject: Re: [PATCH 08/26] V4L/DVB: Break Remote Controller keymaps into
- modules
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <4BC0A1EE.1000504@redhat.com>
-References: <cover.1270577768.git.mchehab@redhat.com>
-	 <20100406151803.514759bf@pedra>
-	 <1270902458.3034.49.camel@palomino.walls.org> <4BC0A1EE.1000504@redhat.com>
-Content-Type: text/plain
-Date: Sat, 10 Apr 2010 13:26:53 -0400
-Message-Id: <1270920413.3029.6.camel@palomino.walls.org>
-Mime-Version: 1.0
+	Wed, 14 Apr 2010 00:32:53 -0400
+Message-ID: <4BC54569.7020301@pobox.com>
+Date: Wed, 14 Apr 2010 00:32:41 -0400
+From: Mark Lord <mlord@pobox.com>
+MIME-Version: 1.0
+To: Andy Walls <awalls@md.metrocast.net>
+CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	ivtv-devel@ivtvdriver.org, Darren Blaber <dmbtech@gmail.com>
+Subject: Re: cx18: "missing audio" for analog recordings
+References: <4B8BE647.7070709@teksavvy.com>
+ <1267493641.4035.17.camel@palomino.walls.org> <4B8CA8DD.5030605@teksavvy.com>
+ <1267533630.3123.17.camel@palomino.walls.org> <4B9DA003.90306@teksavvy.com>
+ <1268653884.3209.32.camel@palomino.walls.org>  <4BC0FB79.7080601@pobox.com>
+ <1270940043.3100.43.camel@palomino.walls.org>  <4BC1401F.9080203@pobox.com>
+ <1270961760.5365.14.camel@palomino.walls.org>
+ <1270986453.3077.4.camel@palomino.walls.org>  <4BC1CDA2.7070003@pobox.com>
+ <1271012464.24325.34.camel@palomino.walls.org> <4BC37DB2.3070107@pobox.com>
+ <1271107061.3246.52.camel@palomino.walls.org> <4BC3D578.9060107@pobox.com>
+ <4BC3D73D.5030106@pobox.com>  <4BC3D81E.9060808@pobox.com>
+ <1271154932.3077.7.camel@palomino.walls.org>  <4BC466A1.3070403@pobox.com>
+ <1271209520.4102.18.camel@palomino.walls.org>
+In-Reply-To: <1271209520.4102.18.camel@palomino.walls.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2010-04-10 at 13:06 -0300, Mauro Carvalho Chehab wrote:
-> Andy Walls wrote:
-> > On Tue, 2010-04-06 at 15:18 -0300, Mauro Carvalho Chehab wrote:
-> >> The original Remote Controller approach were very messy: a big file,
-> >> that were part of ir-common kernel module, containing 64 different
-> >> RC keymap tables, used by the V4L/DVB drivers.
-> >>
-> >> Better to break each RC keymap table into a separate module,
-> >> registering them into rc core on a process similar to the fs/nls tables.
-> >>
-> >> As an userspace program is now in charge of loading those tables,
-> >> adds an option to allow the complete removal of those tables from
-> >> kernelspace.
-> >>
-> >> Yet, on embedded devices like Set Top Boxes and TV sets, maybe the
-> >> only available input device is the IR. So, we should keep allowing
-> >> the usage of in-kernel tables, but a latter patch should change
-> >> the default to 'n', after giving some time for distros to add
-> >> the v4l-utils with the ir-keytable program, to allow the table
-> >> load via userspace.
-> > 
-> > I know I'm probably late on commenting on this.
-> > 
-> > Although this is interesting, it seems like overkill.
-> > 
-> > 
-> > 1. How will this help move us to the "just works" case, if now userspace
-> > has to help the kernel.  Every distro is likely just going to bundle a
-> > script which loads them all into the kernel and forgets about them.
-> 
-> No. They will either use userspace or kernelspace keymaps. For in-kernel
-> keymaps, there's nothing needed on userspace.
-> 
-> > 2. How is a driver, which knows the bundled remote, supposed to convey
-> > to userspace "load this map by default for my IR receiver"?  Is that
-> > covered in another portion of the patch?
-> 
-> It is on a separate patch. Basically, by the name. The table name is stored
-> on each IR map entry on kernel. If the table is in kernel, the table will
-> be dynamically loaded, when needed.
-> 
-> Userspace can always replace it by another one.
-> 
-> For example, this is my current test setup:
-> 
-> $ ./ir-keytable 
-> Found /sys/class/rc/rc0/ (/dev/input/event8) with:
->         Driver "saa7134", raw software decoder, table "rc-avermedia-m135a-rm-jx"
->         Supported protocols: NEC RC-5 RC-6 
-> Found /sys/class/rc/rc1/ (/dev/input/event9) with:
->         Driver "cx88xx", hardware decoder, table "rc-pixelview-mk12"
->         Supported protocols: other 
->         Current protocols: NEC 
-> Found /sys/class/rc/rc2/ (/dev/input/event10) with:
->         Driver "em28xx", hardware decoder, table "rc-rc5-hauppauge-new"
->         Supported protocols: NEC RC-5 
->         Current protocols: RC-5 
-> 
-> When ready, ir-keytable udev option will get driver and table info and
-> seek on some files for the proper keymap, if the user wants to replace it
-> by a customized one, or if the kernel keymap is disabled.
-> 
-> > 
-> > 3. If you're going to be so remote specific, why not add protocol
-> > information in these regarding the remotes?  You can tell the core
-> > everything to expect from this remote: raw vs. hardware decoder and the
-> > RC-5/NEC/RC-6/JVC/whatever raw protocol decoder to use.  That gets us
-> > closer to "just works" and avoids false input events from two of the raw
-> > deoders both thinking they got a valid code.
-> 
-> The table contains the info.
+On 13/04/10 09:45 PM, Andy Walls wrote:
+..
+> # v4l2-dbg -d /dev/video0 -c host1 --list-registers=min=0x800,max=0x9ff
+>
+> Keep in mind that some of these registers aren't settable and only read
+> out the state of various hardware blocks and functions.
+>
+>
+> Dumping the state of the microcontroller memory could also be done, but
+> I'd have to modify the driver to do it.
+> cx18-av-firmware.c:cx18_av_verifyfw() has code that's really close to
+> doing that.
+..
 
+Thanks.  I'll have a go at that some night.
 
+Meanwhile, tonight, audio failed.
 
-> > 4. /sbin/lsmod is now going to give a very long listing with lots of
-> > noise.  When these things are registered with the core, is the module's
-> > use count incremented when the core knows a driver is using one of them?
-> 
-> No. It will just show the used modules, as they're dynamically loaded.
-> For example, with my 3 test device driver loaded, it shows:
-> 
-> rc_rc5_hauppauge_new     1100  0 
-> rc_pixelview_mk12        953  0 
-> rc_avermedia_m135a_rm_jx     1016  0 
-> 
+The syslog shows the usual "fallback" messages,
+but the audio consisted of very loud static, the kind
+of noise one gets when the sample bits are all reversed.
 
-Ah OK.  Thanks for all your replies.  Shame on me for not reading all
-the patch series.  I'll try to do my homework better next time.
+While it was failing, I tried retuning, stopping/starting
+the recording, etc..  nothing mattered.  It wanted a reload
+of the cx18 driver to cure it.
 
-Regards,
-Andy
+> If needed, once we're in a forced mode, we could stop the
+> microcontroller, reload all of the microcontroller firmware, and restart
+> it.  Kind of heavy handed, but it may work.
+..
 
-> > 5. Each module is going to consume a page of vmalloc address space and
-> > ram, and an addtional page of vmalloc address as a gap behind it.  These
-> > maps are rather small in comparison.  Is it really worth all the page
-> > table entries to load all these as individual modules?  Memory is cheap,
-> > and small allocations can fill in fragmentation gaps in the vmalloc
-> > address space, but page table entries are spent on better things.
-> 
-> My plan is to merge several keymaps. I'm currently trying to obtain some
-> RC's to write the correct keymaps and try to merge them.
-> 
-> > I guess I'm not aware of what the return is here for the costs.
+Perhaps that's what is needed here.
 
-
+Cheers
+-- 
+Mark Lord
+Real-Time Remedies Inc.
+mlord@pobox.com
