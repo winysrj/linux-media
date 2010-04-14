@@ -1,57 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.158]:19590 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753713Ab0DQGoc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Apr 2010 02:44:32 -0400
-Received: by fg-out-1718.google.com with SMTP id 19so726751fgg.1
-        for <linux-media@vger.kernel.org>; Fri, 16 Apr 2010 23:44:30 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <u2g829197381004161714z2f0b827eu824a3bcb17d2aa17@mail.gmail.com>
-References: <4BC8F087.3050805@cogweb.net>
-	 <u2g829197381004161714z2f0b827eu824a3bcb17d2aa17@mail.gmail.com>
-Date: Sat, 17 Apr 2010 08:44:30 +0200
-Message-ID: <g2w846899811004162344ib3c9223ek8bcef2df83e7f23b@mail.gmail.com>
-Subject: Re: zvbi-atsc-cc device node conflict
-From: HoP <jpetrous@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: David Liontooth <lionteeth@cogweb.net>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from lo.gmane.org ([80.91.229.12]:40914 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754984Ab0DNLpH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Apr 2010 07:45:07 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1O211i-0007IA-Ta
+	for linux-media@vger.kernel.org; Wed, 14 Apr 2010 13:45:02 +0200
+Received: from 070-190-045-062.dynamic.caiway.nl ([62.45.190.70])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 14 Apr 2010 13:45:02 +0200
+Received: from gandalf by 070-190-045-062.dynamic.caiway.nl with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 14 Apr 2010 13:45:02 +0200
+To: linux-media@vger.kernel.org
+From: hans van den Bogert <gandalf@unit-westland.nl>
+Subject: Re: mantis crashes
+Date: Wed, 14 Apr 2010 11:41:18 +0000 (UTC)
+Message-ID: <loom.20100414T133315-652@post.gmane.org>
+References: <20100413150153.GB11631@mail.tyldum.com> <87ochne35i.fsf@nemi.mork.no> <20100413165616.GC11631@mail.tyldum.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2010/4/17 Devin Heitmueller <dheitmueller@kernellabs.com>:
-> On Fri, Apr 16, 2010 at 7:19 PM, David Liontooth <lionteeth@cogweb.net> wrote:
->> I'm using a HVR-1850 in digital mode and get good picture and sound using
->>
->>  mplayer -autosync 30 -cache 2048 dvb://KCAL-DT
->>
->> Closed captioning works flawlessly with this command:
->>
->> zvbi-atsc-cc -C test-cc.txt KCAL-DT
->>
->> However, if I try to run both at the same time, I get a device node
->> conflict:
->>
->>  zvbi-atsc-cc: Cannot open '/dev/dvb/adapter0/frontend0': Device or resource
->> busy.
->>
->> How do I get video and closed captioning at the same time?
->
-> To my knowledge, you cannot run two userland apps streaming from the
-> frontend at the same time.  Generally, when people need to do this
-> sort of thing they write a userland daemon that multiplexes.
-> Alternatively, you can cat the frontend to disk and then have both
-> mplayer and your cc parser reading the resulting file.
->
+I have the exact same symptoms with a technisat cablestar HD2,
+ also a twinhan clone like the terratec. 
+Glad to know this isn't a broken hardware issue (that
+is it seems highly unlikely we have the exact same problem 
+for it to be a hardware malfunction ). 
 
-Usually there is some way, for ex. command line option,
-how to say to "second" app that frondend is already locked.
-Then second app simply skips tuning at all.
+Have used the .31 and .32 and .33 kernel in ubuntu under karmic and lucid.
+With a own compiled mantis driver from intuxication and linuxtv mercurial repos.
 
-Rest processing is made using demux and dvr devices,
-so there is not reason why 2 apps should tune in same
-time.
+So it kinda looks like this is a ubuntu thing? Or are there alternative 
+conclusions?
 
-/Honza
+ Hans
+
