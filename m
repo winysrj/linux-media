@@ -1,70 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33564 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755260Ab0DTVWm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Apr 2010 17:22:42 -0400
-Date: Tue, 20 Apr 2010 18:22:36 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Jarod Wilson <jarod@redhat.com>
-Cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org
-Subject: Re: [PATCH 3/3] ir-core: add imon driver
-Message-ID: <20100420182236.2e5a1325@pedra>
-In-Reply-To: <20100416212902.GD2427@redhat.com>
-References: <20100416212622.GA6888@redhat.com>
-	<20100416212902.GD2427@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-in-10.arcor-online.net ([151.189.21.50]:60066 "EHLO
+	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756064Ab0DNSnQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Apr 2010 14:43:16 -0400
+Message-ID: <4BC60C72.6020901@arcor.de>
+Date: Wed, 14 Apr 2010 20:41:54 +0200
+From: Stefan Ringel <stefan.ringel@arcor.de>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: tm6000: firmware
+References: <4BC5ECB8.2060208@arcor.de> <4BC5FF15.10605@redhat.com>
+In-Reply-To: <4BC5FF15.10605@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 16 Apr 2010 17:29:02 -0400
-Jarod Wilson <jarod@redhat.com> escreveu:
-
-> 
-> This is a new driver for the SoundGraph iMON and Antec Veris IR/display
-> devices commonly found in many home theater pc cases and as after-market
-> case additions.
-
-
-> +/* IR protocol: native iMON, Windows MCE (RC-6), or iMON w/o PAD stabilize */
-> +static int ir_protocol;
-> +module_param(ir_protocol, int, S_IRUGO | S_IWUSR);
-> +MODULE_PARM_DESC(ir_protocol, "Which IR protocol to use. 0=auto-detect, "
-> +		 "1=Windows Media Center Ed. (RC-6), 2=iMON native, "
-> +		 "4=iMON w/o PAD stabilize (default: auto-detect)");
-> +
-
-You don't need this. Let's the protocol to be adjustable via sysfs. All you need to do is
-to use the set_protocol callbacks with something like:
-
-        props->allowed_protos = IR_TYPE_RC6 | IR_TYPE_<imon protocol>;
-        props->change_protocol = imon_ir_change_protocol;
-
-You can see an example of such implementation at drivers/media/video/em28xx-em28xx-input.c.
-Look for em28xx_ir_change_protocol() function.
-
-That's said, I'm not sure what would be better way to map IR_TYPE_<imon protocol>. Maybe we
-can just use IR_TYPE_OTHER.
-
-So, basically, we'll have:
-
-	IR_TYPE_OTHER | IR_TYPE_RC6	- auto-detected between RC-6 and iMON
-	IR_TYPE_OTHER			- iMON proprietary protocol
-	IR_TYPE_RC6			- RC-6 protocol
-
-
-By doing this, the userspace application ir-keycode will already be able to handle the
-IR protocol.
-
-I'm not sure how to map the "PAD stablilize" case, but it seems that the better would be to
-add a sysfs node for it, at sys/class/rc/rc0. There are other cases where some protocols
-may require some adjustments, so I'm thinking on having some protocol-specific properties there.
-
-Except for that, the patch looked sane to my eyes. So, I'll add it on my tree and wait for a
-latter patch from you addressing the protocol control.
+Am 14.04.2010 19:44, schrieb Mauro Carvalho Chehab:
+> Hi Stefan,
+>
+> Em 14-04-2010 09:26, Stefan Ringel escreveu:
+>   
+>> Hi Mauro,
+>>
+>> Can you added these three firmwares? The third is into archive file,
+>> because I'm extracted for an user (Bee Hock Goh).
+>>     
+> Sorry, but for us to put the firmwares at the server and/or add them at linux-firmware 
+> git tree, we need to get the distribution rights from the manufacturer,
+> as described on:
+> 	http://linuxtv.org/wiki/index.php/Development:_How_to_submit_patches#Firmware_submission
+>
+> So, we need Xceive's ack, in order to add the firmware files somewhere. That's why
+> currently we're using the procedure described on the comments at the extraction
+> tool:
+> 	Documentation/video4linux/extract_xc3028.pl  
+>
+> Cheers,
+> Mauro
+>   
+OK. In the archive is the modified extract_xc3028 tool for
+tm6000-xc3028.fw . Is that useful?
 
 -- 
+Stefan Ringel <stefan.ringel@arcor.de>
 
-Cheers,
-Mauro
