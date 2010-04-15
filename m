@@ -1,27 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.156]:11487 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752518Ab0DOXRk convert rfc822-to-8bit (ORCPT
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:52179 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757804Ab0DOVqk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Apr 2010 19:17:40 -0400
-MIME-Version: 1.0
-In-Reply-To: <20100415214620.14142.19939.stgit@localhost.localdomain>
+	Thu, 15 Apr 2010 17:46:40 -0400
+Subject: [PATCH 8/8] ir-core: fix some confusing comments
+To: mchehab@redhat.com
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org
+Date: Thu, 15 Apr 2010 23:46:35 +0200
+Message-ID: <20100415214635.14142.52670.stgit@localhost.localdomain>
+In-Reply-To: <20100415214520.14142.56114.stgit@localhost.localdomain>
 References: <20100415214520.14142.56114.stgit@localhost.localdomain>
-	 <20100415214620.14142.19939.stgit@localhost.localdomain>
-Date: Fri, 16 Apr 2010 03:17:35 +0400
-Message-ID: <u2x1a297b361004151617gbd08bc10l4fa202ab8dcec306@mail.gmail.com>
-Subject: Re: [PATCH 5/8] ir-core: convert mantis from ir-functions.c
-From: Manu Abraham <abraham.manu@gmail.com>
-To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	linux-input@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 16, 2010 at 1:46 AM, David Härdeman <david@hardeman.nu> wrote:
-> Convert drivers/media/dvb/mantis/mantis_input.c to not use ir-functions.c
-> (The driver is anyway not complete enough to actually use the subsystem yet).
+Fix some confusing comments in drivers/media/IR/*
 
-Huh ? I don't follow what you imply here ..
+Signed-off-by: David HÃ¤rdeman <david@hardeman.nu>
+---
+ drivers/media/IR/ir-keytable.c |    2 +-
+ drivers/media/IR/ir-sysfs.c    |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
+index b8baf8f..de923fc 100644
+--- a/drivers/media/IR/ir-keytable.c
++++ b/drivers/media/IR/ir-keytable.c
+@@ -1,4 +1,4 @@
+-/* ir-register.c - handle IR scancode->keycode tables
++/* ir-keytable.c - handle IR scancode->keycode tables
+  *
+  * Copyright (C) 2009 by Mauro Carvalho Chehab <mchehab@redhat.com>
+  *
+diff --git a/drivers/media/IR/ir-sysfs.c b/drivers/media/IR/ir-sysfs.c
+index 876baae..501dc2f 100644
+--- a/drivers/media/IR/ir-sysfs.c
++++ b/drivers/media/IR/ir-sysfs.c
+@@ -1,4 +1,4 @@
+-/* ir-register.c - handle IR scancode->keycode tables
++/* ir-sysfs.c - sysfs interface for RC devices (/sys/class/rc)
+  *
+  * Copyright (C) 2009-2010 by Mauro Carvalho Chehab <mchehab@redhat.com>
+  *
+
