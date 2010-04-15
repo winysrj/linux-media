@@ -1,117 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:44108 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750732Ab0DWPST (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Apr 2010 11:18:19 -0400
-Subject: Re: Xawtv version 3.96
-From: Chicken Shack <chicken.shack@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <4BD19F77.2020303@redhat.com>
-References: <4BD19F77.2020303@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 23 Apr 2010 17:18:21 +0200
-Message-ID: <1272035901.4167.5.camel@brian.bconsult.de>
+Received: from lo.gmane.org ([80.91.229.12]:39785 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753567Ab0DONbv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Apr 2010 09:31:51 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1O2PAZ-0006xQ-W8
+	for linux-media@vger.kernel.org; Thu, 15 Apr 2010 15:31:48 +0200
+Received: from 154.139.70.115.static.exetel.com.au ([115.70.139.154])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 15 Apr 2010 15:31:47 +0200
+Received: from 0123peter by 154.139.70.115.static.exetel.com.au with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 15 Apr 2010 15:31:47 +0200
+To: linux-media@vger.kernel.org
+From: 0123peter@gmail.com
+Subject: Re: Kworld Plus TV Hybrid PCI (DVB-T 210SE)
+Date: Thu, 15 Apr 2010 23:30:55 +1000
+Message-ID: <g1hj97-b2a.ln1@psd.motzarella.org>
+References: <4B94CF9B.3060000@gmail.com> <1268777563.5120.57.camel@pc07.localdom.local> <0h2e77-gjl.ln1@psd.motzarella.org> <1269298611.5158.20.camel@pc07.localdom.local> <0uh687-4c1.ln1@psd.motzarella.org> <1269895933.3176.12.camel@pc07.localdom.local> <iou897-qu3.ln1@psd.motzarella.org> <1271302350.3184.16.camel@pc07.localdom.local>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7Bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Freitag, den 23.04.2010, 10:24 -0300 schrieb Mauro Carvalho Chehab:
-> For those that haven't notice yet, we're fixing some bugs at xawtv 3. Probably, we
-> won't be adding new features on it, but we want to keep it on a sane state, in order
-> to allow people to use it as a reference application on driver development.
+on Thu, 15 Apr 2010 01:32 pm
+in the Usenet newsgroup gmane.linux.drivers.video-input-infrastructure
+hermann pitton wrote:
+
+> Hi,
 > 
-> I've just committed a few patches I wrote yesterday that backports some of the 
-> Fedora 12 patches to xawtv, and fixed a few bugs on it. As result, after having all 
-> dependencies installed, xawtv should compile fine with a recent distro (tested here 
-> with Fedora 12 and RHEL 5).
+> to be honest, there is a little too much delay on those reports.
+
+I have been very slow, sorry.  
+ 
+>> > did not even notice a problem with Trent's prior patch.
+>> > The same is also at vivi.
+>> > 
+>> >> Should I have a file called /etc/modprobe.d/TVanywhereAD 
+>> >> that contains the line, 
+>> >> 
+>> >> options saa7134 card=94 gpio_tracking i2c_debug=1
+>> >> 
+>> >> and then watch the command line output of "kaffeine"?  
+>> 
+>> I've found a GUI that allows tweaking lots of module parameters 
+>> that I have never heard of.  Card=94 in the config file, 
+>> gpio_tracking and i2c_debug are set to "1" in the GUI.  
+>> 
+>> Strange things are appearing in dmesg and syslog.  I assume that 
+>> [snip]
+>> saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> i2c-adapter i2c-0: Invalid 7-bit address 0x7a
+>> saa7133[0]: i2c xfer: < 8e ERROR: NO_DEVICE
+>> [snip]
+>> is significant.  
 > 
-> The version was increased to 3.96.
+> No, not at all for my knowledge.
+
+Unsurprisingly, that just highlights my ignorance.  
+
+>> > If you want to produce debug output for failing firmware loading from
+>> > file after a cold boot, yes, you might eventually be able to see that
+>> > failing tuner initialization brings down i2c.
+>> > 
+>> > If it is a additional new regression, then mercurial bisect can find the
+>> > patch in question fairly quick.
+>> 
+>> That sounds like something that I should be able to do, if only 
+>> I'd read the instructions.  
 > 
-> As usual, all commit messages are sent to linuxtv-commits mailing list. So, people
-> that are interested on tracking what's happening can subscribe to the list.
+> It is totally up to you and all others with that hardware.
+
+Can you provide a like for where to start reading?  
+
+> Since already in some multiple broken conditions, never working without
+> flaws previously, I would suggest not to wait any longer, until some
+> sort of hadron collider is available ...
+
+Now I'm discouraged.  It might be a better use of my time to do 
+something else - anything else.  Maybe I'll just put it in a box 
+for a year and see what happens.  
+
+> First try in all known ways.
+> 
+> We likely don't have the budget for anything else that soon ;)
 > 
 > Cheers,
-> Mauro.
-> 
-> -------- Mensagem original --------
-> Assunto: [git:xawtv3/master] Increase version to 3.96
-> Data: Fri, 23 Apr 2010 14:47:57 +0200
-> De: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Responder a: linux-media@vger.kernel.org
-> Para: linuxtv-commits@linuxtv.org
-> 
-> This is an automatic generated email to let you know that the following patch were queued at the 
-> http://git.linuxtv.org/xawtv3.git tree:
-> 
-> Subject: Increase version to 3.96
-> Author:  Mauro Carvalho Chehab <mchehab@redhat.com>
-> Date:    Fri Apr 23 09:37:43 2010 -0300
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
->  Changes    |   10 ++++++++++
->  xawtv.spec |    2 +-
->  2 files changed, 11 insertions(+), 1 deletions(-)
-> 
-> ---
-> 
-> http://git.linuxtv.org/xawtv3.git?a=commitdiff;h=091c0a39d56419253cc501a121c81655c94296e7
-> 
-> diff --git a/Changes b/Changes
-> index fa941ff..916c373 100644
-> --- a/Changes
-> +++ b/Changes
-> @@ -1,4 +1,14 @@
->  
-> +3.96
-> +====
-> + * misc minor fixes collected at Fedora 12.
-> + * Fix requement of /dev/vbi instead of /dev/vbi0 on scantv.
-> + * Fix compilation with Xorg and remove the --x_libraries parameter from
-> +   the configure script (as, on Xorg, X11 libraries are at /usr/lib).
-> + * Now, providing that all build dependencies are satisfied, just typing
-> +   make after the download is enough to generate/run configure and build
-> +   the tools.
-> +
->  3.95
->  ====
->  
-> diff --git a/xawtv.spec b/xawtv.spec
-> index d390d1b..77b4098 100644
-> --- a/xawtv.spec
-> +++ b/xawtv.spec
-> @@ -1,7 +1,7 @@
->  Name:         xawtv
->  Group:        Applications/Multimedia
->  Autoreqprov:  on
-> -Version:      3.95
-> +Version:      3.96
->  Release:      0
->  License:      GPL
->  Summary:      v4l applications
-> 
-> _______________________________________________
-> linuxtv-commits mailing list
-> linuxtv-commits@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linuxtv-commits
-> 
+> Hermann
 
-It would make much more sense to complete (or at least try to complete)
-xawtv 4.0 pre instead of fixing bugs in 3.96.
-
-Reasons why?
-
-1. 4.0 pre contains more innovation, new ideas.
-2. 3.96 s analogue only, not DVB.
-3. Both the analogue AND the DVB driver development section do need
-reference applications for driver development: 4.0 pre contains BOTH:
-reference apps for analogue AND DVB driver development.
-
-Cheers
-
-CS
-
+-- 
+Sig goes here...  
+Peter D.  
 
 
