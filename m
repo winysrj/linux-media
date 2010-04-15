@@ -1,382 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f220.google.com ([209.85.219.220]:33898 "EHLO
-	mail-ew0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753533Ab0D0V5G (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:15960 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751569Ab0DOErL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Apr 2010 17:57:06 -0400
-Received: by mail-ew0-f220.google.com with SMTP id 20so4568645ewy.1
-        for <linux-media@vger.kernel.org>; Tue, 27 Apr 2010 14:57:05 -0700 (PDT)
-From: Roel Van Nyen <roel.vannyen@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Roel Van Nyen <roel.vannyen@gmail.com>
-Subject: [PATCH] Staging: tm6000: fix coding style issues of tm6000-cards.c
-Date: Tue, 27 Apr 2010 23:57:00 +0200
-Message-Id: <1272405420-26785-1-git-send-email-roel.vannyen@gmail.com>
+	Thu, 15 Apr 2010 00:47:11 -0400
+Subject: Re: cx18: "missing audio" for analog recordings
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mark Lord <mlord@pobox.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	ivtv-devel@ivtvdriver.org, Darren Blaber <dmbtech@gmail.com>
+In-Reply-To: <4BC64119.5070200@pobox.com>
+References: <4B8BE647.7070709@teksavvy.com>
+	 <1267493641.4035.17.camel@palomino.walls.org>
+	 <4B8CA8DD.5030605@teksavvy.com>
+	 <1267533630.3123.17.camel@palomino.walls.org> <4B9DA003.90306@teksavvy.com>
+	 <1268653884.3209.32.camel@palomino.walls.org>  <4BC0FB79.7080601@pobox.com>
+	 <1270940043.3100.43.camel@palomino.walls.org>  <4BC1401F.9080203@pobox.com>
+	 <1270961760.5365.14.camel@palomino.walls.org>
+	 <1270986453.3077.4.camel@palomino.walls.org>  <4BC1CDA2.7070003@pobox.com>
+	 <1271012464.24325.34.camel@palomino.walls.org> <4BC37DB2.3070107@pobox.com>
+	 <1271107061.3246.52.camel@palomino.walls.org> <4BC3D578.9060107@pobox.com>
+	 <4BC3D73D.5030106@pobox.com>  <4BC3D81E.9060808@pobox.com>
+	 <1271154932.3077.7.camel@palomino.walls.org>  <4BC466A1.3070403@pobox.com>
+	 <1271209520.4102.18.camel@palomino.walls.org> <4BC54569.7020301@pobox.com>
+	 <4BC64119.5070200@pobox.com>
+Content-Type: text/plain
+Date: Thu, 15 Apr 2010 00:46:43 -0400
+Message-Id: <1271306803.7643.67.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-fix coding style issues
+On Wed, 2010-04-14 at 18:26 -0400, Mark Lord wrote:
+> On 14/04/10 12:32 AM, Mark Lord wrote:
+> ..
+> > The syslog shows the usual "fallback" messages,
+> > but the audio consisted of very loud static, the kind
+> > of noise one gets when the sample bits are all reversed.
+> >
+> > While it was failing, I tried retuning, stopping/starting
+> > the recording, etc.. nothing mattered. It wanted a reload
+> > of the cx18 driver to cure it.
+> ..
+> 
+> Since all of this happens rather randomly,
+> I'm beginning to more strongly suspect a race condition
+> somewhere in the driver.
+> 
+> Now, it's a rather large driver -- lots of complexity in that chip
+> -- so it will take me a while to sort through things.
 
-Signed-off-by: Roel Van Nyen <roel.vannyen@gmail.com>
----
- drivers/staging/tm6000/tm6000-cards.c |  131 ++++++++++++++++-----------------
- 1 files changed, 63 insertions(+), 68 deletions(-)
+You can at least logically break it into components:
 
-diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
-index 2935533..a7e2b54 100644
---- a/drivers/staging/tm6000/tm6000-cards.c
-+++ b/drivers/staging/tm6000/tm6000-cards.c
-@@ -246,7 +246,7 @@ struct tm6000_board tm6000_boards[] = {
- };
- 
- /* table of devices that work with this driver */
--struct usb_device_id tm6000_id_table [] = {
-+struct usb_device_id tm6000_id_table[] = {
- 	{ USB_DEVICE(0x6000, 0x0001), .driver_info = TM5600_BOARD_10MOONS_UT821 },
- 	{ USB_DEVICE(0x6000, 0x0002), .driver_info = TM6010_BOARD_GENERIC },
- 	{ USB_DEVICE(0x06e1, 0xf332), .driver_info = TM6000_BOARD_ADSTECH_DUAL_TV },
-@@ -271,23 +271,23 @@ struct usb_device_id tm6000_id_table [] = {
- 
- int tm6000_tuner_callback(void *ptr, int component, int command, int arg)
- {
--	int rc=0;
-+	int rc = 0;
- 	struct tm6000_core *dev = ptr;
- 
--	if (dev->tuner_type!=TUNER_XC2028)
-+	if (dev->tuner_type != TUNER_XC2028)
- 		return 0;
- 
- 	switch (command) {
- 	case XC2028_RESET_CLK:
--		tm6000_set_reg (dev, REQ_04_EN_DISABLE_MCU_INT,
-+		tm6000_set_reg(dev, REQ_04_EN_DISABLE_MCU_INT,
- 					0x02, arg);
- 		msleep(10);
--		rc=tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
-+		rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
- 					TM6000_GPIO_CLK, 0);
--		if (rc<0)
-+		if (rc < 0)
- 			return rc;
- 		msleep(10);
--		rc=tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
-+		rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
- 					TM6000_GPIO_CLK, 1);
- 		break;
- 	case XC2028_TUNER_RESET:
-@@ -320,24 +320,24 @@ int tm6000_tuner_callback(void *ptr, int component, int command, int arg)
- 			}
- 			break;
- 		case 1:
--			tm6000_set_reg (dev, REQ_04_EN_DISABLE_MCU_INT,
-+			tm6000_set_reg(dev, REQ_04_EN_DISABLE_MCU_INT,
- 						0x02, 0x01);
- 			msleep(10);
- 			break;
- 
- 		case 2:
--			rc=tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
-+			rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
- 						TM6000_GPIO_CLK, 0);
--			if (rc<0)
-+			if (rc < 0)
- 				return rc;
- 			msleep(100);
--			rc=tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
-+			rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
- 						TM6000_GPIO_CLK, 1);
- 			msleep(100);
- 			break;
- 		}
- 	}
--	return (rc);
-+	return rc;
- }
- 
- int tm6000_cards_setup(struct tm6000_core *dev)
-@@ -437,28 +437,28 @@ int tm6000_cards_setup(struct tm6000_core *dev)
- 	return 0;
- };
- 
--static void tm6000_config_tuner (struct tm6000_core *dev)
-+static void tm6000_config_tuner(struct tm6000_core *dev)
- {
--	struct tuner_setup           tun_setup;
-+	struct tuner_setup tun_setup;
- 
- 	/* Load tuner module */
- 	v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap,
--		"tuner", "tuner",dev->tuner_addr, NULL);
-+		"tuner", "tuner", dev->tuner_addr, NULL);
- 
- 	memset(&tun_setup, 0, sizeof(tun_setup));
--	tun_setup.type   = dev->tuner_type;
--	tun_setup.addr   = dev->tuner_addr;
-+	tun_setup.type = dev->tuner_type;
-+	tun_setup.addr = dev->tuner_addr;
- 	tun_setup.mode_mask = T_ANALOG_TV | T_RADIO | T_DIGITAL_TV;
- 	tun_setup.tuner_callback = tm6000_tuner_callback;
- 
- 	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_type_addr, &tun_setup);
- 
- 	if (dev->tuner_type == TUNER_XC2028) {
--		struct v4l2_priv_tun_config  xc2028_cfg;
--		struct xc2028_ctrl           ctl;
-+		struct v4l2_priv_tun_config xc2028_cfg;
-+		struct xc2028_ctrl ctl;
- 
- 		memset(&xc2028_cfg, 0, sizeof(xc2028_cfg));
--		memset (&ctl,0,sizeof(ctl));
-+		memset(&ctl, 0, sizeof(ctl));
- 
- 		ctl.input1 = 1;
- 		ctl.read_not_reliable = 0;
-@@ -469,7 +469,7 @@ static void tm6000_config_tuner (struct tm6000_core *dev)
- 		xc2028_cfg.tuner = TUNER_XC2028;
- 		xc2028_cfg.priv  = &ctl;
- 
--		switch(dev->model) {
-+		switch (dev->model) {
- 		case TM6010_BOARD_HAUPPAUGE_900H:
- 		case TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE:
- 		case TM6010_BOARD_TWINHAN_TU501:
-@@ -509,8 +509,8 @@ static int tm6000_init_dev(struct tm6000_core *dev)
- 	dev->caps = tm6000_boards[dev->model].caps;
- 
- 	/* initialize hardware */
--	rc=tm6000_init (dev);
--	if (rc<0)
-+	rc = tm6000_init(dev);
-+	if (rc < 0)
- 		goto err;
- 
- 	rc = v4l2_device_register(&dev->udev->dev, &dev->v4l2_dev);
-@@ -518,8 +518,8 @@ static int tm6000_init_dev(struct tm6000_core *dev)
- 		goto err;
- 
- 	/* register i2c bus */
--	rc=tm6000_i2c_register(dev);
--	if (rc<0)
-+	rc = tm6000_i2c_register(dev);
-+	if (rc < 0)
- 		goto err;
- 
- 	/* Default values for STD and resolutions */
-@@ -528,7 +528,7 @@ static int tm6000_init_dev(struct tm6000_core *dev)
- 	dev->norm = V4L2_STD_PAL_M;
- 
- 	/* Configure tuner */
--	tm6000_config_tuner (dev);
-+	tm6000_config_tuner(dev);
- 
- 	/* Set video standard */
- 	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std, dev->norm);
-@@ -545,20 +545,20 @@ static int tm6000_init_dev(struct tm6000_core *dev)
- 			"tvaudio", "tvaudio", I2C_ADDR_TDA9874, NULL);
- 
- 	/* register and initialize V4L2 */
--	rc=tm6000_v4l2_register(dev);
--	if (rc<0)
-+	rc = tm6000_v4l2_register(dev);
-+	if (rc < 0)
- 		goto err;
- 
--	if(dev->caps.has_dvb) {
-+	if (dev->caps.has_dvb) {
- 		dev->dvb = kzalloc(sizeof(*(dev->dvb)), GFP_KERNEL);
--		if(!dev->dvb) {
-+		if (!dev->dvb) {
- 			rc = -ENOMEM;
- 			goto err2;
- 		}
- 
- #ifdef CONFIG_VIDEO_TM6000_DVB
- 		rc = tm6000_dvb_register(dev);
--		if(rc < 0) {
-+		if (rc < 0) {
- 			kfree(dev->dvb);
- 			dev->dvb = NULL;
- 			goto err2;
-@@ -579,24 +579,23 @@ err:
- /* high bandwidth multiplier, as encoded in highspeed endpoint descriptors */
- #define hb_mult(wMaxPacketSize) (1 + (((wMaxPacketSize) >> 11) & 0x03))
- 
--static void get_max_endpoint (  struct usb_device *usbdev,
-+static void get_max_endpoint (struct usb_device *usbdev,
- 				char *msgtype,
- 				struct usb_host_endpoint *curr_e,
- 				unsigned int *maxsize,
--				struct usb_host_endpoint **ep  )
-+				struct usb_host_endpoint **ep)
- {
- 	u16 tmp = le16_to_cpu(curr_e->desc.wMaxPacketSize);
- 	unsigned int size = tmp & 0x7ff;
- 
- 	if (usbdev->speed == USB_SPEED_HIGH)
--		size = size * hb_mult (tmp);
-+		size = size * hb_mult(tmp);
- 
--	if (size>*maxsize) {
-+	if (size > *maxsize) {
- 		*ep = curr_e;
- 		*maxsize = size;
--		printk("tm6000: %s endpoint: 0x%02x (max size=%u bytes)\n",
--					msgtype, curr_e->desc.bEndpointAddress,
--					size);
-+		printk(KERN_INFO "tm6000: %s endpoint: 0x%02x (max size=%u bytes)\n",
-+			msgtype, curr_e->desc.bEndpointAddress, size);
- 	}
- }
- 
-@@ -609,22 +608,21 @@ static int tm6000_usb_probe(struct usb_interface *interface,
- {
- 	struct usb_device *usbdev;
- 	struct tm6000_core *dev = NULL;
--	int i,rc=0;
--	int nr=0;
-+	int i, rc = 0;
-+	int nr = 0;
- 	char *speed;
- 
--
--	usbdev=usb_get_dev(interface_to_usbdev(interface));
-+	usbdev = usb_get_dev(interface_to_usbdev(interface));
- 
- 	/* Selects the proper interface */
--	rc=usb_set_interface(usbdev,0,1);
--	if (rc<0)
-+	rc = usb_set_interface(usbdev, 0, 1);
-+	if (rc < 0)
- 		goto err;
- 
- 	/* Check to see next free device and mark as used */
--	nr=find_first_zero_bit(&tm6000_devused,TM6000_MAXBOARDS);
-+	nr = find_first_zero_bit(&tm6000_devused, TM6000_MAXBOARDS);
- 	if (nr >= TM6000_MAXBOARDS) {
--		printk ("tm6000: Supports only %i tm60xx boards.\n",TM6000_MAXBOARDS);
-+		printk(KERN_ERR "tm6000: Supports only %i tm60xx boards.\n", TM6000_MAXBOARDS);
- 		usb_put_dev(usbdev);
- 		return -ENOMEM;
- 	}
-@@ -632,23 +630,22 @@ static int tm6000_usb_probe(struct usb_interface *interface,
- 	/* Create and initialize dev struct */
- 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
- 	if (dev == NULL) {
--		printk ("tm6000" ": out of memory!\n");
-+		printk(KERN_ERR "tm6000" ": out of memory!\n");
- 		usb_put_dev(usbdev);
- 		return -ENOMEM;
- 	}
- 	spin_lock_init(&dev->slock);
- 
- 	/* Increment usage count */
--	tm6000_devused|=1<<nr;
-+	tm6000_devused |= 1<<nr;
- 	snprintf(dev->name, 29, "tm6000 #%d", nr);
- 
--	dev->model=id->driver_info;
--	if ((card[nr]>=0) && (card[nr]<ARRAY_SIZE(tm6000_boards))) {
--		dev->model=card[nr];
--	}
-+	dev->model = id->driver_info;
-+	if ((card[nr] >= 0) && (card[nr] < ARRAY_SIZE(tm6000_boards)))
-+		dev->model = card[nr];
- 
--	dev->udev= usbdev;
--	dev->devno=nr;
-+	dev->udev = usbdev;
-+	dev->devno = nr;
- 
- 	switch (usbdev->speed) {
- 	case USB_SPEED_LOW:
-@@ -680,7 +677,7 @@ static int tm6000_usb_probe(struct usb_interface *interface,
- 			dir_out = ((e->desc.bEndpointAddress &
- 					USB_ENDPOINT_DIR_MASK) == USB_DIR_OUT);
- 
--			printk("tm6000: alt %d, interface %i, class %i\n",
-+			printk(KERN_INFO "tm6000: alt %d, interface %i, class %i\n",
- 			       i,
- 			       interface->altsetting[i].desc.bInterfaceNumber,
- 			       interface->altsetting[i].desc.bInterfaceClass);
-@@ -713,7 +710,7 @@ static int tm6000_usb_probe(struct usb_interface *interface,
- 	}
- 
- 
--	printk("tm6000: New video device @ %s Mbps (%04x:%04x, ifnum %d)\n",
-+	printk(KERN_INFO "tm6000: New video device @ %s Mbps (%04x:%04x, ifnum %d)\n",
- 		speed,
- 		le16_to_cpu(dev->udev->descriptor.idVendor),
- 		le16_to_cpu(dev->udev->descriptor.idProduct),
-@@ -721,8 +718,8 @@ static int tm6000_usb_probe(struct usb_interface *interface,
- 
- /* check if the the device has the iso in endpoint at the correct place */
- 	if (!dev->isoc_in) {
--		printk("tm6000: probing error: no IN ISOC endpoint!\n");
--		rc= -ENODEV;
-+		printk(KERN_ERR"tm6000: probing error: no IN ISOC endpoint!\n");
-+		rc = -ENODEV;
- 
- 		goto err;
- 	}
-@@ -730,19 +727,19 @@ static int tm6000_usb_probe(struct usb_interface *interface,
- 	/* save our data pointer in this interface device */
- 	usb_set_intfdata(interface, dev);
- 
--	printk("tm6000: Found %s\n", tm6000_boards[dev->model].name);
-+	printk(KERN_INFO "tm6000: Found %s\n", tm6000_boards[dev->model].name);
- 
--	rc=tm6000_init_dev(dev);
-+	rc = tm6000_init_dev(dev);
- 
--	if (rc<0)
-+	if (rc < 0)
- 		goto err;
- 
- 	return 0;
- 
- err:
--	printk("tm6000: Error %d while registering\n", rc);
-+	printk(KERN_ERR "tm6000: Error %d while registering\n", rc);
- 
--	tm6000_devused&=~(1<<nr);
-+	tm6000_devused &= ~(1<<nr);
- 	usb_put_dev(usbdev);
- 
- 	kfree(dev);
-@@ -762,12 +759,12 @@ static void tm6000_usb_disconnect(struct usb_interface *interface)
- 	if (!dev)
- 		return;
- 
--	printk("tm6000: disconnecting %s\n", dev->name);
-+	printk(KERN_INFO "tm6000: disconnecting %s\n", dev->name);
- 
- 	mutex_lock(&dev->lock);
- 
- #ifdef CONFIG_VIDEO_TM6000_DVB
--	if(dev->dvb) {
-+	if (dev->dvb) {
- 		tm6000_dvb_unregister(dev);
- 		kfree(dev->dvb);
- 	}
-@@ -779,8 +776,6 @@ static void tm6000_usb_disconnect(struct usb_interface *interface)
- 
- 	v4l2_device_unregister(&dev->v4l2_dev);
- 
--//	wake_up_interruptible_all(&dev->open);
--
- 	dev->state |= DEV_DISCONNECTED;
- 
- 	usb_put_dev(dev->udev);
-@@ -807,7 +802,7 @@ static int __init tm6000_module_init(void)
- 	/* register this driver with the USB subsystem */
- 	result = usb_register(&tm6000_usb_driver);
- 	if (result)
--		printk("tm6000"
-+		printk(KERN_ERR "tm6000"
- 			   " usb_register failed. Error number %d.\n", result);
- 
- 	return result;
--- 
-1.6.3.3
+cx18-av-*      : the integrated A/V decoder subdevice (very much like a CX25843)
+
+cx18-gpio*     : logical subdevices for functions controlled by GPIO
+cx18-alsa*     : the ALSA interface presented to userspace
+cx18-fileops*, cx18-ioctl*, cx18-contorls* : The V4L2 interface
+cx18-dvb*      : The DTV interface
+cx18-streams*  : main streams management, and empty DMA buffer handover
+cx18-queue*    : queue routines used for all queues for all streams
+cx18-mailbox*, cx18-scb* : driver-firmware API, main body of hard irq handler for incoming DMA, and workhandler for incoming DMA
+cx18-io*       : Insanity to handle CX23418 PCI MMIO quirks
+cx18-irq*      : The hard irq handler
+cx18-driver*   : main driver probe and shutdown
+cx18-cards*    : specifics on each supported card
+cx18-firmware* : Bridge and MPEG encoder firmware load and init, but not A/V core firmware
+cx18-i2c*      : I2C master setup, bus driving, and device registration
+cx18-audio*    : Top level audio routing functions
+cx18-video*    : Top level video routing functions
+cx18-vbi*      : VBI data extraction
+
+
+> But at first blush, I don't see any obvious locking around
+> the various read-modify-write sequences for the audio registers.
+
+The ioctl handling in the driver does it:
+
+$ grep serialize_lock *
+
+The serialize_lock is a bit overloaded, but it's frequent operational
+use is ioctl() serialization.  The A/V core is almost exclusively
+manipulated by ioctl()s.  The timer I added for fallback is an
+exception.
+
+
+> And a quick "grep spin *.[ch]" shows a few spin_lock/spin_unlock
+> calls in cx18-queue.c and cx18-stream.c (as well as the alsa code,
+> which shouldn't be in play in this scenario).
+
+Correct.
+
+What is involved are the three "reset" processes in the cx18-av-* files:
+
+1. Stopping and restarting the microcontroller via register 803
+2. Soft reset (of what exactly?) via register 0x810
+3. Format detection loop restart via register 0x9cc
+
+I have no idea if 2 & 3 above reset hardware and registers, or simply
+set a flag for the microcontroller firmware to notice, or both.
+
+So I've wondered about the exact sequencing of stopping the
+microcontoller, peforming the other 2 resets, and restarting the
+microcontroller.
+
+
+> Oddly, none of those spinlocks use _irq or _irq_save/restore,
+> which means they aren't providing any sort of mutual exclusion
+> against the interrupt handler.
+
+There is no need.  The hard irq handler only really deals with firmware
+mailbox ack and firmware mailbox ready notifications.  It sucks off the
+mailbox contents and shoves it over to the cx18-NN-in workhandler via
+work orders placed on a workqueue.  The work handler does grab the
+spinlocks, but it is from a non-irq context.
+
+
+> But like I said, I'm only just beginning to look more closely now.
+
+Look at the publicly available CX25843 datasheet:
+
+	http://dl.ivtvdriver.org/
+
+pages 107-116 and Section 5.7.  In figure 3.30 we've got SIF coming in
+from the analog tuner and the microcontoller is represented by the "Auto
+Std/Mode Detection" block.  In figure 3-38 the output of the "source
+select" block is what then gets fed to the baseband processing chain as
+digital audio from the tuner.
+
+
+
+For reference, you may want to also grab FCC docment OET60 (Rev A from
+1996?), which technically describes the BTSC audio subcarriers.  Then
+Google for a nice pciture of the MTS/BTSC spectrum.
+
+This app note has a good picture in figure 1:
+	http://assets.fluke.com/appnotes/it_products/Anbtsc.pdf
+although it is missing the "PRO" channel that is above SAP at 6fh IIRC.
+
+I don't know what part of the BTSC spectrum the Conexant microcontroller
+is keying off of, but I guessing the pilot for sure is part of the
+decision process.
+
+Regards,
+Andy
 
