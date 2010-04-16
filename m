@@ -1,58 +1,381 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:52172 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757791Ab0DOVqY (ORCPT
+Received: from tx2ehsobe001.messaging.microsoft.com ([65.55.88.11]:1613 "EHLO
+	TX2EHSOBE002.bigfish.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752676Ab0DPKch (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Apr 2010 17:46:24 -0400
-Subject: [PATCH 5/8] ir-core: convert mantis from ir-functions.c
-To: mchehab@redhat.com
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org
-Date: Thu, 15 Apr 2010 23:46:20 +0200
-Message-ID: <20100415214620.14142.19939.stgit@localhost.localdomain>
-In-Reply-To: <20100415214520.14142.56114.stgit@localhost.localdomain>
-References: <20100415214520.14142.56114.stgit@localhost.localdomain>
+	Fri, 16 Apr 2010 06:32:37 -0400
+Content-Class: urn:content-classes:message
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/mixed;
+	boundary="----_=_NextPart_001_01CADD50.19CA3045"
+Subject: RE: xHCI bandwidth error with USB webcam
+Date: Fri, 16 Apr 2010 18:32:23 +0800
+Message-ID: <1793EC4BDC456040AA0FC17136E1732B25FCAF@sshaexmb1.amd.com>
+In-Reply-To: <20100412222932.GA18647@xanatos>
+References: <20100412222932.GA18647@xanatos>
+From: "Xu, Andiry" <Andiry.Xu@amd.com>
+To: "Sarah Sharp" <sarah.a.sharp@intel.com>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>
+CC: "Yang, Libin" <Libin.Yang@amd.com>,
+	"Jean-Francois Moine" <moinejf@free.fr>,
+	"Mauro Carvalho Chehab" <mchehab@infradead.org>,
+	"Hans de Goede" <hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert drivers/media/dvb/mantis/mantis_input.c to not use ir-functions.c
-(The driver is anyway not complete enough to actually use the subsystem yet).
+------_=_NextPart_001_01CADD50.19CA3045
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
----
- 0 files changed, 0 insertions(+), 0 deletions(-)
+> -----Original Message-----
+> From: Sarah Sharp [mailto:sarah.a.sharp@intel.com]
+>=20
+> I've been trying out the patches to enable isochronous transfers under
+> xHCI, and they work fine on my USB speaker.  However, I've been having
+> trouble getting my high speed USB webcam to work.  The NEC Express
+Card
+> I have rejects the first alternate setting that the uvcvideo driver
+> tries to install (altsetting 11), saying that it takes too much
+> bandwidth.  This happens even when I plug the device directly into the
+> roothub with no other devices plugged in.
+>=20
+> I would like to know if this is correct behavior for the host, as I
+> can't believe a device would advertise an alternate setting that took
+up
+> too much bandwidth by itself.  Device descriptors and a log snippet
+are
+> attached.
 
-diff --git a/drivers/media/dvb/mantis/mantis_input.c b/drivers/media/dvb/mantis/mantis_input.c
-index 3d4e466..a99489b 100644
---- a/drivers/media/dvb/mantis/mantis_input.c
-+++ b/drivers/media/dvb/mantis/mantis_input.c
-@@ -19,7 +19,7 @@
- */
- 
- #include <linux/input.h>
--#include <media/ir-common.h>
-+#include <media/ir-core.h>
- #include <linux/pci.h>
- 
- #include "dmxdev.h"
-@@ -104,7 +104,6 @@ EXPORT_SYMBOL_GPL(ir_mantis);
- int mantis_input_init(struct mantis_pci *mantis)
- {
- 	struct input_dev *rc;
--	struct ir_input_state rc_state;
- 	char name[80], dev[80];
- 	int err;
- 
-@@ -120,8 +119,6 @@ int mantis_input_init(struct mantis_pci *mantis)
- 	rc->name = name;
- 	rc->phys = dev;
- 
--	ir_input_init(rc, &rc_state, IR_TYPE_OTHER);
--
- 	rc->id.bustype	= BUS_PCI;
- 	rc->id.vendor	= mantis->vendor_id;
- 	rc->id.product	= mantis->device_id;
+I'm also verifying usb webcam these days. The host controller also
+rejects alternate setting, indicating not enough bandwidth. Fortunately
+the webcam I used is using gspca and the patch for gspca below does
+work. After several times of failure, it will set the alt setting
+successfully. See the log and descriptors.
 
+But I don't think it's normal behavior. The xHC should accept the alt
+setting request at the first time. I'm also using the NEC chips, perhaps
+it's a HW or FW issue but I can't make sure.=20
+
+Another problem of the isoc transfer is the size of the transfer ring.
+Currently in xhci_endpoint_init() of xhci-mem.c, the ring allocated for
+each endpoint just contains one segment, which can hold 64 - 1 =3D 63
+trbs. But the gspca will submit 3 urbs at one time, each consists of 32
+packets. Each packet needs an isoc TD to carry, and the driver will
+insert 96 trbs to the ring at one time. It will cause the room_on_ring
+check failure since the xHC cannot process the trbs in time. After I
+modify the parameter of xhci_ring_alloc() in xhci_endpoint_init() to
+allocate 2 segments, the webcam works smoothly. It looks like dynamic
+ring allocation is necessary for isoc endpoint since it will put
+multiple trbs on the ring and the fixed size is too small.
+
+
+> The other problem is that uvcvideo then gives up on the device when
+> installing the alt setting fails, rather than trying the next less
+> resource-intensive alternate setting.  The past, submit_urb() might
+fail
+> if there wasn't enough bandwidth for the isochronous transfers, but
+> under an xHCI host controller, it will fail sooner, when
+> usb_set_interface() is called.  That needs to be fixed in all the USB
+> video drivers.
+>=20
+> I figured out how to patch the gspca driver, but not uvcvideo.  The
+> patch looks a bit hackish; can with experience with that driver look
+it
+> over?  Can anyone tell me where to look for the usb_set_interface() in
+> uvcvideo?
+>=20
+> Sarah Sharp
+>=20
+> 8<----------------------
+>=20
+> From 0e6bc81b178364ee9771c64a06ab006588c73ae6 Mon Sep 17 00:00:00 2001
+> From: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+> Date: Mon, 12 Apr 2010 11:23:46 -0700
+>=20
+> Subject: [PATCH] gspca: Try a less bandwidth-intensive alt setting.
+>=20
+> Under OHCI, UHCI, and EHCI, if an alternate interface setting took too
+> much of the bus bandwidth, then submit_urb() would fail.  The xHCI
+host
+> controller does bandwidth checking when the alternate interface
+setting is
+> installed, so usb_set_interface() can fail.  If it does, try the next
+> alternate interface setting.
+>=20
+> Signed-off-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
+> ---
+>  drivers/media/video/gspca/gspca.c |   10 ++++++----
+>  1 files changed, 6 insertions(+), 4 deletions(-)
+>=20
+> diff --git a/drivers/media/video/gspca/gspca.c
+> b/drivers/media/video/gspca/gspca.c
+> index 222af47..6de3117 100644
+> --- a/drivers/media/video/gspca/gspca.c
+> +++ b/drivers/media/video/gspca/gspca.c
+> @@ -643,6 +643,7 @@ static struct usb_host_endpoint *get_ep(struct
+> gspca_dev *gspca_dev)
+>  	xfer =3D gspca_dev->cam.bulk ? USB_ENDPOINT_XFER_BULK
+>  				   : USB_ENDPOINT_XFER_ISOC;
+>  	i =3D gspca_dev->alt;			/* previous alt setting
+*/
+> +find_alt:
+>  	if (gspca_dev->cam.reverse_alts) {
+>  		while (++i < gspca_dev->nbalt) {
+>  			ep =3D alt_xfer(&intf->altsetting[i], xfer);
+> @@ -666,10 +667,11 @@ static struct usb_host_endpoint *get_ep(struct
+> gspca_dev *gspca_dev)
+>  	if (gspca_dev->nbalt > 1) {
+>  		gspca_input_destroy_urb(gspca_dev);
+>  		ret =3D usb_set_interface(gspca_dev->dev,
+gspca_dev->iface, i);
+> -		if (ret < 0) {
+> -			err("set alt %d err %d", i, ret);
+> -			ep =3D NULL;
+> -		}
+> +		/* xHCI hosts will reject set interface requests
+> +		 * if they take too much bandwidth, so try again.
+> +		 */
+> +		if (ret < 0)
+> +			goto find_alt;
+>  		gspca_input_create_urb(gspca_dev);
+>  	}
+>  	return ep;
+> --
+> 1.6.3.3
+
+
+------_=_NextPart_001_01CADD50.19CA3045
+Content-Type: text/plain; name="descriptors.txt"
+Content-Transfer-Encoding: base64
+Content-Description: descriptors.txt
+Content-Disposition: attachment; filename="descriptors.txt"
+
+CkJ1cyAwMDggRGV2aWNlIDAwMjogSUQgMDRmYzowNTYxIFN1bnBsdXMgVGVjaG5vbG9neSBDby4s
+IEx0ZCBGbGV4Y2FtIDEwMApEZXZpY2UgRGVzY3JpcHRvcjoKICBiTGVuZ3RoICAgICAgICAgICAg
+ICAgIDE4CiAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgMQogIGJjZFVTQiAgICAgICAgICAgICAg
+IDEuMTAKICBiRGV2aWNlQ2xhc3MgICAgICAgICAgMjU1IFZlbmRvciBTcGVjaWZpYyBDbGFzcwog
+IGJEZXZpY2VTdWJDbGFzcyAgICAgICAyNTUgVmVuZG9yIFNwZWNpZmljIFN1YmNsYXNzCiAgYkRl
+dmljZVByb3RvY29sICAgICAgICAgMCAKICBiTWF4UGFja2V0U2l6ZTAgICAgICAgICA4CiAgaWRW
+ZW5kb3IgICAgICAgICAgIDB4MDRmYyBTdW5wbHVzIFRlY2hub2xvZ3kgQ28uLCBMdGQKICBpZFBy
+b2R1Y3QgICAgICAgICAgMHgwNTYxIEZsZXhjYW0gMTAwCiAgYmNkRGV2aWNlICAgICAgICAgICAg
+MC4wMAogIGlNYW51ZmFjdHVyZXIgICAgICAgICAgIDEgU3VucGx1cyBUZWNobm9sb2d5IENvLiwg
+THRkLgogIGlQcm9kdWN0ICAgICAgICAgICAgICAgIDIgR2VuZXJpYyBEaWdpdGFsIGNhbWVyYQog
+IGlTZXJpYWwgICAgICAgICAgICAgICAgIDAgCiAgYk51bUNvbmZpZ3VyYXRpb25zICAgICAgMQog
+IENvbmZpZ3VyYXRpb24gRGVzY3JpcHRvcjoKICAgIGJMZW5ndGggICAgICAgICAgICAgICAgIDkK
+ICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDIKICAgIHdUb3RhbExlbmd0aCAgICAgICAgICAy
+MzMKICAgIGJOdW1JbnRlcmZhY2VzICAgICAgICAgIDEKICAgIGJDb25maWd1cmF0aW9uVmFsdWUg
+ICAgIDEKICAgIGlDb25maWd1cmF0aW9uICAgICAgICAgIDAgCiAgICBibUF0dHJpYnV0ZXMgICAg
+ICAgICAweDgwCiAgICAgIChCdXMgUG93ZXJlZCkKICAgIE1heFBvd2VyICAgICAgICAgICAgICAx
+MDBtQQogICAgSW50ZXJmYWNlIERlc2NyaXB0b3I6CiAgICAgIGJMZW5ndGggICAgICAgICAgICAg
+ICAgIDkKICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNAogICAgICBiSW50ZXJmYWNlTnVt
+YmVyICAgICAgICAwCiAgICAgIGJBbHRlcm5hdGVTZXR0aW5nICAgICAgIDAKICAgICAgYk51bUVu
+ZHBvaW50cyAgICAgICAgICAgMQogICAgICBiSW50ZXJmYWNlQ2xhc3MgICAgICAgMjU1IFZlbmRv
+ciBTcGVjaWZpYyBDbGFzcwogICAgICBiSW50ZXJmYWNlU3ViQ2xhc3MgICAgICAwIAogICAgICBi
+SW50ZXJmYWNlUHJvdG9jb2wgICAgICAwIAogICAgICBpSW50ZXJmYWNlICAgICAgICAgICAgICAw
+IAogICAgICBFbmRwb2ludCBEZXNjcmlwdG9yOgogICAgICAgIGJMZW5ndGggICAgICAgICAgICAg
+ICAgIDcKICAgICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA1CiAgICAgICAgYkVuZHBvaW50
+QWRkcmVzcyAgICAgMHg4MSAgRVAgMSBJTgogICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAgICAg
+IDEKICAgICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBJc29jaHJvbm91cwogICAgICAg
+ICAgU3luY2ggVHlwZSAgICAgICAgICAgICAgIE5vbmUKICAgICAgICAgIFVzYWdlIFR5cGUgICAg
+ICAgICAgICAgICBEYXRhCiAgICAgICAgd01heFBhY2tldFNpemUgICAgIDB4MDAwMCAgMXggMCBi
+eXRlcwogICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAgIDEKICAgIEludGVyZmFjZSBEZXNj
+cmlwdG9yOgogICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA5CiAgICAgIGJEZXNjcmlwdG9y
+VHlwZSAgICAgICAgIDQKICAgICAgYkludGVyZmFjZU51bWJlciAgICAgICAgMAogICAgICBiQWx0
+ZXJuYXRlU2V0dGluZyAgICAgICAxCiAgICAgIGJOdW1FbmRwb2ludHMgICAgICAgICAgIDEKICAg
+ICAgYkludGVyZmFjZUNsYXNzICAgICAgIDI1NSBWZW5kb3IgU3BlY2lmaWMgQ2xhc3MKICAgICAg
+YkludGVyZmFjZVN1YkNsYXNzICAgICAgMCAKICAgICAgYkludGVyZmFjZVByb3RvY29sICAgICAg
+MCAKICAgICAgaUludGVyZmFjZSAgICAgICAgICAgICAgMCAKICAgICAgRW5kcG9pbnQgRGVzY3Jp
+cHRvcjoKICAgICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA3CiAgICAgICAgYkRlc2NyaXB0
+b3JUeXBlICAgICAgICAgNQogICAgICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4ODEgIEVQIDEg
+SU4KICAgICAgICBibUF0dHJpYnV0ZXMgICAgICAgICAgICAxCiAgICAgICAgICBUcmFuc2ZlciBU
+eXBlICAgICAgICAgICAgSXNvY2hyb25vdXMKICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAg
+ICAgICBOb25lCiAgICAgICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAgRGF0YQogICAgICAg
+IHdNYXhQYWNrZXRTaXplICAgICAweDAwODAgIDF4IDEyOCBieXRlcwogICAgICAgIGJJbnRlcnZh
+bCAgICAgICAgICAgICAgIDEKICAgIEludGVyZmFjZSBEZXNjcmlwdG9yOgogICAgICBiTGVuZ3Ro
+ICAgICAgICAgICAgICAgICA5CiAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDQKICAgICAg
+YkludGVyZmFjZU51bWJlciAgICAgICAgMAogICAgICBiQWx0ZXJuYXRlU2V0dGluZyAgICAgICAy
+CiAgICAgIGJOdW1FbmRwb2ludHMgICAgICAgICAgIDEKICAgICAgYkludGVyZmFjZUNsYXNzICAg
+ICAgIDI1NSBWZW5kb3IgU3BlY2lmaWMgQ2xhc3MKICAgICAgYkludGVyZmFjZVN1YkNsYXNzICAg
+ICAgMCAKICAgICAgYkludGVyZmFjZVByb3RvY29sICAgICAgMCAKICAgICAgaUludGVyZmFjZSAg
+ICAgICAgICAgICAgMCAKICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoKICAgICAgICBiTGVuZ3Ro
+ICAgICAgICAgICAgICAgICA3CiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNQogICAg
+ICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4ODEgIEVQIDEgSU4KICAgICAgICBibUF0dHJpYnV0
+ZXMgICAgICAgICAgICAxCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAgICAgICAgSXNvY2hy
+b25vdXMKICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25lCiAgICAgICAgICBV
+c2FnZSBUeXBlICAgICAgICAgICAgICAgRGF0YQogICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAw
+eDAzNzAgIDF4IDg4MCBieXRlcwogICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAgIDEKICAg
+IEludGVyZmFjZSBEZXNjcmlwdG9yOgogICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA5CiAg
+ICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDQKICAgICAgYkludGVyZmFjZU51bWJlciAgICAg
+ICAgMAogICAgICBiQWx0ZXJuYXRlU2V0dGluZyAgICAgICAzCiAgICAgIGJOdW1FbmRwb2ludHMg
+ICAgICAgICAgIDEKICAgICAgYkludGVyZmFjZUNsYXNzICAgICAgIDI1NSBWZW5kb3IgU3BlY2lm
+aWMgQ2xhc3MKICAgICAgYkludGVyZmFjZVN1YkNsYXNzICAgICAgMCAKICAgICAgYkludGVyZmFj
+ZVByb3RvY29sICAgICAgMCAKICAgICAgaUludGVyZmFjZSAgICAgICAgICAgICAgMCAKICAgICAg
+RW5kcG9pbnQgRGVzY3JpcHRvcjoKICAgICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA3CiAg
+ICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNQogICAgICAgIGJFbmRwb2ludEFkZHJlc3Mg
+ICAgIDB4ODEgIEVQIDEgSU4KICAgICAgICBibUF0dHJpYnV0ZXMgICAgICAgICAgICAxCiAgICAg
+ICAgICBUcmFuc2ZlciBUeXBlICAgICAgICAgICAgSXNvY2hyb25vdXMKICAgICAgICAgIFN5bmNo
+IFR5cGUgICAgICAgICAgICAgICBOb25lCiAgICAgICAgICBVc2FnZSBUeXBlICAgICAgICAgICAg
+ICAgRGF0YQogICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAweDAyMDAgIDF4IDUxMiBieXRlcwog
+ICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAgIDEKICAgIEludGVyZmFjZSBEZXNjcmlwdG9y
+OgogICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA5CiAgICAgIGJEZXNjcmlwdG9yVHlwZSAg
+ICAgICAgIDQKICAgICAgYkludGVyZmFjZU51bWJlciAgICAgICAgMAogICAgICBiQWx0ZXJuYXRl
+U2V0dGluZyAgICAgICA0CiAgICAgIGJOdW1FbmRwb2ludHMgICAgICAgICAgIDEKICAgICAgYklu
+dGVyZmFjZUNsYXNzICAgICAgIDI1NSBWZW5kb3IgU3BlY2lmaWMgQ2xhc3MKICAgICAgYkludGVy
+ZmFjZVN1YkNsYXNzICAgICAgMCAKICAgICAgYkludGVyZmFjZVByb3RvY29sICAgICAgMCAKICAg
+ICAgaUludGVyZmFjZSAgICAgICAgICAgICAgMCAKICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoK
+ICAgICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA3CiAgICAgICAgYkRlc2NyaXB0b3JUeXBl
+ICAgICAgICAgNQogICAgICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4ODEgIEVQIDEgSU4KICAg
+ICAgICBibUF0dHJpYnV0ZXMgICAgICAgICAgICAxCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAg
+ICAgICAgICAgSXNvY2hyb25vdXMKICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBO
+b25lCiAgICAgICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAgRGF0YQogICAgICAgIHdNYXhQ
+YWNrZXRTaXplICAgICAweDAyODAgIDF4IDY0MCBieXRlcwogICAgICAgIGJJbnRlcnZhbCAgICAg
+ICAgICAgICAgIDEKICAgIEludGVyZmFjZSBEZXNjcmlwdG9yOgogICAgICBiTGVuZ3RoICAgICAg
+ICAgICAgICAgICA5CiAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDQKICAgICAgYkludGVy
+ZmFjZU51bWJlciAgICAgICAgMAogICAgICBiQWx0ZXJuYXRlU2V0dGluZyAgICAgICA1CiAgICAg
+IGJOdW1FbmRwb2ludHMgICAgICAgICAgIDEKICAgICAgYkludGVyZmFjZUNsYXNzICAgICAgIDI1
+NSBWZW5kb3IgU3BlY2lmaWMgQ2xhc3MKICAgICAgYkludGVyZmFjZVN1YkNsYXNzICAgICAgMCAK
+ICAgICAgYkludGVyZmFjZVByb3RvY29sICAgICAgMCAKICAgICAgaUludGVyZmFjZSAgICAgICAg
+ICAgICAgMCAKICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoKICAgICAgICBiTGVuZ3RoICAgICAg
+ICAgICAgICAgICA3CiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNQogICAgICAgIGJF
+bmRwb2ludEFkZHJlc3MgICAgIDB4ODEgIEVQIDEgSU4KICAgICAgICBibUF0dHJpYnV0ZXMgICAg
+ICAgICAgICAxCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAgICAgICAgSXNvY2hyb25vdXMK
+ICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25lCiAgICAgICAgICBVc2FnZSBU
+eXBlICAgICAgICAgICAgICAgRGF0YQogICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAweDAzMDAg
+IDF4IDc2OCBieXRlcwogICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAgIDEKICAgIEludGVy
+ZmFjZSBEZXNjcmlwdG9yOgogICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA5CiAgICAgIGJE
+ZXNjcmlwdG9yVHlwZSAgICAgICAgIDQKICAgICAgYkludGVyZmFjZU51bWJlciAgICAgICAgMAog
+ICAgICBiQWx0ZXJuYXRlU2V0dGluZyAgICAgICA2CiAgICAgIGJOdW1FbmRwb2ludHMgICAgICAg
+ICAgIDEKICAgICAgYkludGVyZmFjZUNsYXNzICAgICAgIDI1NSBWZW5kb3IgU3BlY2lmaWMgQ2xh
+c3MKICAgICAgYkludGVyZmFjZVN1YkNsYXNzICAgICAgMCAKICAgICAgYkludGVyZmFjZVByb3Rv
+Y29sICAgICAgMCAKICAgICAgaUludGVyZmFjZSAgICAgICAgICAgICAgMCAKICAgICAgRW5kcG9p
+bnQgRGVzY3JpcHRvcjoKICAgICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA3CiAgICAgICAg
+YkRlc2NyaXB0b3JUeXBlICAgICAgICAgNQogICAgICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4
+ODEgIEVQIDEgSU4KICAgICAgICBibUF0dHJpYnV0ZXMgICAgICAgICAgICAxCiAgICAgICAgICBU
+cmFuc2ZlciBUeXBlICAgICAgICAgICAgSXNvY2hyb25vdXMKICAgICAgICAgIFN5bmNoIFR5cGUg
+ICAgICAgICAgICAgICBOb25lCiAgICAgICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAgRGF0
+YQogICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAweDAzODAgIDF4IDg5NiBieXRlcwogICAgICAg
+IGJJbnRlcnZhbCAgICAgICAgICAgICAgIDEKICAgIEludGVyZmFjZSBEZXNjcmlwdG9yOgogICAg
+ICBiTGVuZ3RoICAgICAgICAgICAgICAgICA5CiAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAg
+IDQKICAgICAgYkludGVyZmFjZU51bWJlciAgICAgICAgMAogICAgICBiQWx0ZXJuYXRlU2V0dGlu
+ZyAgICAgICA3CiAgICAgIGJOdW1FbmRwb2ludHMgICAgICAgICAgIDEKICAgICAgYkludGVyZmFj
+ZUNsYXNzICAgICAgIDI1NSBWZW5kb3IgU3BlY2lmaWMgQ2xhc3MKICAgICAgYkludGVyZmFjZVN1
+YkNsYXNzICAgICAgMCAKICAgICAgYkludGVyZmFjZVByb3RvY29sICAgICAgMCAKICAgICAgaUlu
+dGVyZmFjZSAgICAgICAgICAgICAgMCAKICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoKICAgICAg
+ICBiTGVuZ3RoICAgICAgICAgICAgICAgICA3CiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAg
+ICAgNQogICAgICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4ODEgIEVQIDEgSU4KICAgICAgICBi
+bUF0dHJpYnV0ZXMgICAgICAgICAgICAxCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAgICAg
+ICAgSXNvY2hyb25vdXMKICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25lCiAg
+ICAgICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAgRGF0YQogICAgICAgIHdNYXhQYWNrZXRT
+aXplICAgICAweDAzZmYgIDF4IDEwMjMgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAg
+ICAgICAxCiAgICBJbnRlcmZhY2UgRGVzY3JpcHRvcjoKICAgICAgYkxlbmd0aCAgICAgICAgICAg
+ICAgICAgOQogICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA0CiAgICAgIGJJbnRlcmZhY2VO
+dW1iZXIgICAgICAgIDAKICAgICAgYkFsdGVybmF0ZVNldHRpbmcgICAgICAgOAogICAgICBiTnVt
+RW5kcG9pbnRzICAgICAgICAgICAxCiAgICAgIGJJbnRlcmZhY2VDbGFzcyAgICAgICAyNTUgVmVu
+ZG9yIFNwZWNpZmljIENsYXNzCiAgICAgIGJJbnRlcmZhY2VTdWJDbGFzcyAgICAgIDAgCiAgICAg
+IGJJbnRlcmZhY2VQcm90b2NvbCAgICAgIDAgCiAgICAgIGlJbnRlcmZhY2UgICAgICAgICAgICAg
+IDAgCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAg
+ICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9p
+bnRBZGRyZXNzICAgICAweDgxICBFUCAxIElOCiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAgICAg
+ICAgMQogICAgICAgICAgVHJhbnNmZXIgVHlwZSAgICAgICAgICAgIElzb2Nocm9ub3VzCiAgICAg
+ICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9uZQogICAgICAgICAgVXNhZ2UgVHlwZSAg
+ICAgICAgICAgICAgIERhdGEKICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgwMjIwICAxeCA1
+NDQgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAgICAxCiAgICBJbnRlcmZhY2Ug
+RGVzY3JpcHRvcjoKICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgOQogICAgICBiRGVzY3Jp
+cHRvclR5cGUgICAgICAgICA0CiAgICAgIGJJbnRlcmZhY2VOdW1iZXIgICAgICAgIDAKICAgICAg
+YkFsdGVybmF0ZVNldHRpbmcgICAgICAgOQogICAgICBiTnVtRW5kcG9pbnRzICAgICAgICAgICAx
+CiAgICAgIGJJbnRlcmZhY2VDbGFzcyAgICAgICAyNTUgVmVuZG9yIFNwZWNpZmljIENsYXNzCiAg
+ICAgIGJJbnRlcmZhY2VTdWJDbGFzcyAgICAgIDAgCiAgICAgIGJJbnRlcmZhY2VQcm90b2NvbCAg
+ICAgIDAgCiAgICAgIGlJbnRlcmZhY2UgICAgICAgICAgICAgIDAgCiAgICAgIEVuZHBvaW50IERl
+c2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNj
+cmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgxICBF
+UCAxIElOCiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAgMQogICAgICAgICAgVHJhbnNm
+ZXIgVHlwZSAgICAgICAgICAgIElzb2Nocm9ub3VzCiAgICAgICAgICBTeW5jaCBUeXBlICAgICAg
+ICAgICAgICAgTm9uZQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAg
+ICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgwMjkwICAxeCA2NTYgYnl0ZXMKICAgICAgICBiSW50
+ZXJ2YWwgICAgICAgICAgICAgICAxCiAgICBJbnRlcmZhY2UgRGVzY3JpcHRvcjoKICAgICAgYkxl
+bmd0aCAgICAgICAgICAgICAgICAgOQogICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA0CiAg
+ICAgIGJJbnRlcmZhY2VOdW1iZXIgICAgICAgIDAKICAgICAgYkFsdGVybmF0ZVNldHRpbmcgICAg
+ICAxMAogICAgICBiTnVtRW5kcG9pbnRzICAgICAgICAgICAxCiAgICAgIGJJbnRlcmZhY2VDbGFz
+cyAgICAgICAyNTUgVmVuZG9yIFNwZWNpZmljIENsYXNzCiAgICAgIGJJbnRlcmZhY2VTdWJDbGFz
+cyAgICAgIDAgCiAgICAgIGJJbnRlcmZhY2VQcm90b2NvbCAgICAgIDAgCiAgICAgIGlJbnRlcmZh
+Y2UgICAgICAgICAgICAgIDAgCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAgYkxl
+bmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDUK
+ICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgxICBFUCAxIElOCiAgICAgICAgYm1BdHRy
+aWJ1dGVzICAgICAgICAgICAgMQogICAgICAgICAgVHJhbnNmZXIgVHlwZSAgICAgICAgICAgIElz
+b2Nocm9ub3VzCiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9uZQogICAgICAg
+ICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAgICB3TWF4UGFja2V0U2l6ZSAg
+ICAgMHgwMmMwICAxeCA3MDQgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAgICAx
+CiAgICBJbnRlcmZhY2UgRGVzY3JpcHRvcjoKICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAg
+OQogICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA0CiAgICAgIGJJbnRlcmZhY2VOdW1iZXIg
+ICAgICAgIDAKICAgICAgYkFsdGVybmF0ZVNldHRpbmcgICAgICAxMQogICAgICBiTnVtRW5kcG9p
+bnRzICAgICAgICAgICAxCiAgICAgIGJJbnRlcmZhY2VDbGFzcyAgICAgICAyNTUgVmVuZG9yIFNw
+ZWNpZmljIENsYXNzCiAgICAgIGJJbnRlcmZhY2VTdWJDbGFzcyAgICAgIDAgCiAgICAgIGJJbnRl
+cmZhY2VQcm90b2NvbCAgICAgIDAgCiAgICAgIGlJbnRlcmZhY2UgICAgICAgICAgICAgIDAgCiAg
+ICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAg
+NwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRy
+ZXNzICAgICAweDgxICBFUCAxIElOCiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAgMQog
+ICAgICAgICAgVHJhbnNmZXIgVHlwZSAgICAgICAgICAgIElzb2Nocm9ub3VzCiAgICAgICAgICBT
+eW5jaCBUeXBlICAgICAgICAgICAgICAgTm9uZQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAg
+ICAgICAgIERhdGEKICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgwMzYwICAxeCA4NjQgYnl0
+ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAgICAxCiAgICBJbnRlcmZhY2UgRGVzY3Jp
+cHRvcjoKICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgOQogICAgICBiRGVzY3JpcHRvclR5
+cGUgICAgICAgICA0CiAgICAgIGJJbnRlcmZhY2VOdW1iZXIgICAgICAgIDAKICAgICAgYkFsdGVy
+bmF0ZVNldHRpbmcgICAgICAxMgogICAgICBiTnVtRW5kcG9pbnRzICAgICAgICAgICAxCiAgICAg
+IGJJbnRlcmZhY2VDbGFzcyAgICAgICAyNTUgVmVuZG9yIFNwZWNpZmljIENsYXNzCiAgICAgIGJJ
+bnRlcmZhY2VTdWJDbGFzcyAgICAgIDAgCiAgICAgIGJJbnRlcmZhY2VQcm90b2NvbCAgICAgIDAg
+CiAgICAgIGlJbnRlcmZhY2UgICAgICAgICAgICAgIDAgCiAgICAgIEVuZHBvaW50IERlc2NyaXB0
+b3I6CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9y
+VHlwZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgxICBFUCAxIElO
+CiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAgMQogICAgICAgICAgVHJhbnNmZXIgVHlw
+ZSAgICAgICAgICAgIElzb2Nocm9ub3VzCiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAg
+ICAgTm9uZQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAgICB3
+TWF4UGFja2V0U2l6ZSAgICAgMHgwM2MwICAxeCA5NjAgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwg
+ICAgICAgICAgICAgICAxCiAgICBJbnRlcmZhY2UgRGVzY3JpcHRvcjoKICAgICAgYkxlbmd0aCAg
+ICAgICAgICAgICAgICAgOQogICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA0CiAgICAgIGJJ
+bnRlcmZhY2VOdW1iZXIgICAgICAgIDAKICAgICAgYkFsdGVybmF0ZVNldHRpbmcgICAgICAxMwog
+ICAgICBiTnVtRW5kcG9pbnRzICAgICAgICAgICAxCiAgICAgIGJJbnRlcmZhY2VDbGFzcyAgICAg
+ICAyNTUgVmVuZG9yIFNwZWNpZmljIENsYXNzCiAgICAgIGJJbnRlcmZhY2VTdWJDbGFzcyAgICAg
+IDAgCiAgICAgIGJJbnRlcmZhY2VQcm90b2NvbCAgICAgIDAgCiAgICAgIGlJbnRlcmZhY2UgICAg
+ICAgICAgICAgIDAgCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAg
+ICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAg
+ICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgxICBFUCAxIElOCiAgICAgICAgYm1BdHRyaWJ1dGVz
+ICAgICAgICAgICAgMQogICAgICAgICAgVHJhbnNmZXIgVHlwZSAgICAgICAgICAgIElzb2Nocm9u
+b3VzCiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9uZQogICAgICAgICAgVXNh
+Z2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgw
+MzRkICAxeCA4NDUgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAgICAxCkRldmlj
+ZSBTdGF0dXM6ICAgICAweDAwMDAKICAoQnVzIFBvd2VyZWQpCgo=
+
+------_=_NextPart_001_01CADD50.19CA3045
+Content-Type: text/plain; name="dmesg2.txt"
+Content-Transfer-Encoding: base64
+Content-Description: dmesg2.txt
+Content-Disposition: attachment; filename="dmesg2.txt"
+
+WyAgNjEzLjY2MDE1N10geGhjaV9oY2QgMDAwMDowMjowMC4wOiBDYW4ndCByZXNldCBkZXZpY2Ug
+KHNsb3QgSUQgMSkgaW4gZW5hYmxlZC9kaXNhYmxlZCBzdGF0ZQpbICA2MTMuNjYwMTY1XSB4aGNp
+X2hjZCAwMDAwOjAyOjAwLjA6IE5vdCBmcmVlaW5nIGRldmljZSByaW5ncy4KWyAgNjEzLjY2MDE4
+OF0gdXNiIDgtNDogbmV3IGZ1bGwgc3BlZWQgVVNCIGRldmljZSB1c2luZyB4aGNpX2hjZCBhbmQg
+YWRkcmVzcyAwClsgIDYxMy43MjgyNDNdIHhoY2lfaGNkIDAwMDA6MDI6MDAuMDogV0FSTjogc2hv
+cnQgdHJhbnNmZXIgb24gY29udHJvbCBlcApbICA2MTMuNzM2MjQzXSB4aGNpX2hjZCAwMDAwOjAy
+OjAwLjA6IFdBUk46IHNob3J0IHRyYW5zZmVyIG9uIGNvbnRyb2wgZXAKWyAgNjEzLjc0NjIzOV0g
+eGhjaV9oY2QgMDAwMDowMjowMC4wOiBXQVJOOiBzaG9ydCB0cmFuc2ZlciBvbiBjb250cm9sIGVw
+ClsgIDYxMy43NDc0NTBdIHVzYiA4LTQ6IGNvbmZpZ3VyYXRpb24gIzEgY2hvc2VuIGZyb20gMSBj
+aG9pY2UKWyAgNjEzLjg5NzEyNF0gTGludXggdmlkZW8gY2FwdHVyZSBpbnRlcmZhY2U6IHYyLjAw
+ClsgIDYxMy45Mzk0NDddIGdzcGNhOiBtYWluIHYyLjcuMCByZWdpc3RlcmVkClsgIDYxMy45NjE2
+NTldIGdzcGNhOiBwcm9iaW5nIDA0ZmM6MDU2MQpbICA2MTQuNDI5NTE0XSBnc3BjYTogcHJvYmUg
+b2sKWyAgNjE0LjQyOTU1N10gdXNiY29yZTogcmVnaXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZl
+ciBzcGNhNTYxClsgIDYxNC40MzAxMDhdIHNwY2E1NjE6IHJlZ2lzdGVyZWQKWyAgNjE3LjEyMjEy
+Ml0gdXNiIDgtNDogTm90IGVub3VnaCBiYW5kd2lkdGggZm9yIG5ldyBkZXZpY2Ugc3RhdGUuClsg
+IDYxNy4xMjIxNDBdIHVzYiA4LTQ6IE5vdCBlbm91Z2ggYmFuZHdpZHRoIGZvciBhbHRzZXR0aW5n
+IDcKWyAgNjE3LjEyMjE0Nl0gZ3NwY2E6IHNldCBhbHQgNyBlcnIgLTI4ClsgIDYxNy4xMjIzNzhd
+IHVzYiA4LTQ6IE5vdCBlbm91Z2ggYmFuZHdpZHRoIGZvciBuZXcgZGV2aWNlIHN0YXRlLgpbICA2
+MTcuMTIyMzkyXSB1c2IgOC00OiBOb3QgZW5vdWdoIGJhbmR3aWR0aCBmb3IgYWx0c2V0dGluZyA2
+ClsgIDYxNy4xMjIzOTddIGdzcGNhOiBzZXQgYWx0IDYgZXJyIC0yOApbICA2MTkuMDkzNzgwXSB1
+c2IgOC00OiBOb3QgZW5vdWdoIGJhbmR3aWR0aCBmb3IgbmV3IGRldmljZSBzdGF0ZS4KWyAgNjE5
+LjA5Mzc4OF0gdXNiIDgtNDogTm90IGVub3VnaCBiYW5kd2lkdGggZm9yIGFsdHNldHRpbmcgNwpb
+ICA2MTkuMDkzNzkxXSBnc3BjYTogc2V0IGFsdCA3IGVyciAtMjgKWyAgNjE5LjA5NDAxNl0gdXNi
+IDgtNDogTm90IGVub3VnaCBiYW5kd2lkdGggZm9yIG5ldyBkZXZpY2Ugc3RhdGUuClsgIDYxOS4w
+OTQwMjRdIHVzYiA4LTQ6IE5vdCBlbm91Z2ggYmFuZHdpZHRoIGZvciBhbHRzZXR0aW5nIDYKWyAg
+NjE5LjA5NDAyNl0gZ3NwY2E6IHNldCBhbHQgNiBlcnIgLTI4Cg==
+
+------_=_NextPart_001_01CADD50.19CA3045--
