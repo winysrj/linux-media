@@ -1,53 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:20545 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932610Ab0EAAsc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Apr 2010 20:48:32 -0400
-Message-ID: <4BDB7A5B.7070204@redhat.com>
-Date: Fri, 30 Apr 2010 21:48:27 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mga10.intel.com ([192.55.52.92]:50401 "EHLO
+	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1758679Ab0DPRNK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Apr 2010 13:13:10 -0400
+Date: Fri, 16 Apr 2010 19:13:36 +0200
+From: Samuel Ortiz <sameo@linux.intel.com>
+To: Richard =?iso-8859-1?Q?R=F6jfors?=
+	<richard.rojfors@pelagicore.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>,
+	"Williams, Dan J" <dan.j.williams@intel.com>
+Subject: Re: [PATCH 0/2] media, mfd: Add timberdale video-in driver
+Message-ID: <20100416171335.GC28863@sortiz.org>
+References: <1271435274.11641.44.camel@debian>
 MIME-Version: 1.0
-To: Randy Dunlap <rdunlap@xenotime.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: [OT] preferred video apps?
-References: <20100430095721.b1da05af.rdunlap@xenotime.net>
-In-Reply-To: <20100430095721.b1da05af.rdunlap@xenotime.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1271435274.11641.44.camel@debian>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Randy Dunlap wrote:
-> Hi,
+Hi Richard,
+
+On Fri, Apr 16, 2010 at 06:27:54PM +0200, Richard Röjfors wrote:
+> To follow are two patches.
 > 
-> Sorry for a non-kernel question, but I'd like to get some suggestions
-> on video recording and editing software, please.
+> The first one adds the timberdale video-in driver to the media tree.
 > 
-> If it matters, this is mostly for recording & editing sports events (matches).
+> The second one adds it to the timberdale MFD driver.
 > 
-> Reply privately if you prefer ...
-
-Please, _do_not_ reply privately ;) 
-
-We should build a relation of the userspace applications we need to care when 
-testing for regressions, so, this is not OT. It would be nice to hear what are
-the preferred open source applications.
-
->From my side, those are the applications I use:
-	analog: xawtv 3, xawtv 4, tvtime, mencoder, ffmpeg
-
-Only mencoder and ffmpeg can record - but xawtv (and xdtv) call them.
-
-On digital side, I use kaffeine, gnutv and vlc. Kaffeine and gnutv can record. 
-Not sure about vlc.
-
-mplayer is capable of working with both analog and digital (and, by consequence,
-mencoder).
-
-Although I don't use, mythtv and vdr are also very popular applications. AFAIK,
-both have record support.
-
--- 
+> The Kconfig of the media patch selects TIMB_DMA which is introduced
+> in the DMA tree, that's why I cc:d in Dan.
+> 
+> Samuel and Mauro hope you can support and solve the potential merge
+> issue between your two trees.
+Mauro, the mfd part of this patch depends on the video one. Do you mind if I
+take both through my tree, after getting your Acked-by ?
 
 Cheers,
-Mauro
+Samuel.
+
+
+> Thanks
+> --Richard
+> 
+
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
