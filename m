@@ -1,54 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:13254 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751629Ab0DWMWk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Apr 2010 08:22:40 -0400
-Message-ID: <4BD1910B.40400@redhat.com>
-Date: Fri, 23 Apr 2010 09:22:35 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp1.sscnet.ucla.edu ([128.97.229.231]:56148 "EHLO
+	smtp1.sscnet.ucla.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932738Ab0DPXUH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Apr 2010 19:20:07 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by smtp1.sscnet.ucla.edu (8.13.8/8.13.8) with ESMTP id o3GNK6tF002989
+	for <linux-media@vger.kernel.org>; Fri, 16 Apr 2010 16:20:06 -0700
+Received: from smtp1.sscnet.ucla.edu ([127.0.0.1])
+	by localhost (smtp1.sscnet.ucla.edu [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id VcF+7d8Isp1O for <linux-media@vger.kernel.org>;
+	Fri, 16 Apr 2010 16:19:54 -0700 (PDT)
+Received: from smtp5.sscnet.ucla.edu (smtp5.sscnet.ucla.edu [128.97.229.235])
+	by smtp1.sscnet.ucla.edu (8.13.8/8.13.8) with ESMTP id o3GNJlHB002523
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 16 Apr 2010 16:19:47 -0700
+Received: from weber.sscnet.ucla.edu (weber.sscnet.ucla.edu [128.97.42.3])
+	by smtp5.sscnet.ucla.edu (8.13.8/8.13.8) with ESMTP id o3GNJctI005855
+	for <linux-media@vger.kernel.org>; Fri, 16 Apr 2010 16:19:38 -0700
+Received: from [128.97.221.45] ([128.97.221.45])
+	by weber.sscnet.ucla.edu (8.14.2/8.14.2) with ESMTP id o3GNJdUH009190
+	for <linux-media@vger.kernel.org>; Fri, 16 Apr 2010 16:19:39 -0700 (PDT)
+Message-ID: <4BC8F087.3050805@cogweb.net>
+Date: Fri, 16 Apr 2010 16:19:35 -0700
+From: David Liontooth <lionteeth@cogweb.net>
 MIME-Version: 1.0
-To: Bee Hock Goh <beehock@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Help needed in understanding v4l2_device_call_all
-References: <x2m6e8e83e21004062310ia0eef09fgf97bcfafcdf25737@mail.gmail.com>	 <4BD0B32B.8060505@redhat.com> <i2k6e8e83e21004221920q3f687324z8d8aba7ca26978ad@mail.gmail.com>
-In-Reply-To: <i2k6e8e83e21004221920q3f687324z8d8aba7ca26978ad@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org
+Subject: zvbi-atsc-cc device node conflict
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Bee Hock Goh wrote:
-> Mauro,
-> 
-> Thanks.
-> 
-> Previously, I have done some limited test and it seem that
-> xc2028_signal seem to be getting the correct registered value for the
-> detected a signal locked.
+I'm using a HVR-1850 in digital mode and get good picture and sound using
 
-With the i2c reads working perfectly, it should be already providing the
-signal strength with the current code. Dmitri submitted an interesting
-patch that it is probably improving the i2c code. It is a worthy trial.
+  mplayer -autosync 30 -cache 2048 dvb://KCAL-DT
 
-> Since I am now able to get video working(though somewhat limited since
-> it still crashed if i change channel from mythtv), i will be spending
-> more time to look getting a lock on the signal.
+Closed captioning works flawlessly with this command:
 
-There are still troubles on video. I tested yesterday, and it still crashing.
-Tested on a tm6010 device. Unfortunately, some patch broke support for my
-10moons device: it is now failing when reading the firmware. Probably, the
-GPIO code is wrong.
+ zvbi-atsc-cc -C test-cc.txt KCAL-DT
 
-> Is line 139,140,155,156 needed? Its slowing down the loading of
-> firmware and it working for me with the additional register setting.
-> 
->  138 if (addr == dev->tuner_addr << 1) {
-> 139 tm6000_set_reg(dev, 0x32, 0,0);
-> 140 tm6000_set_reg(dev, 0x33, 0,0);
+However, if I try to run both at the same time, I get a device node 
+conflict:
 
-On my tests with HVR-950H, it makes no difference. Probably, Dmitri approach
-should be enough, but it won't solve the slow down, as it adds some delay
-on i2c operations.
+  zvbi-atsc-cc: Cannot open '/dev/dvb/adapter0/frontend0': Device or 
+resource busy.
+
+How do I get video and closed captioning at the same time?
 
 Cheers,
-Mauro
+Dave
+
