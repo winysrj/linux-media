@@ -1,52 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:61394 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752460Ab0DIVza (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Apr 2010 17:55:30 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:4555 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932369Ab0DPV00 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Apr 2010 17:26:26 -0400
+Date: Fri, 16 Apr 2010 17:26:22 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org
+Subject: [PATCH 0/3] ir-core: add imon device driver
+Message-ID: <20100416212622.GA6888@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <4BBF253A.8030406@redhat.com>
-References: <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
-	 <9e4733910912151338n62b30af5i35f8d0963e6591c@mail.gmail.com>
-	 <4BAB7659.1040408@redhat.com> <201004090821.10435.james@albanarts.com>
-	 <1270810226.3764.34.camel@palomino.walls.org>
-	 <4BBF253A.8030406@redhat.com>
-Date: Fri, 9 Apr 2010 17:55:28 -0400
-Message-ID: <g2k829197381004091455m20368cc6r63df4a4f00d36b45@mail.gmail.com>
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
-	system?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Andy Walls <awalls@radix.net>, James Hogan <james@albanarts.com>,
-	Jon Smirl <jonsmirl@gmail.com>, Pavel Machek <pavel@ucw.cz>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Christoph Bartelmus <lirc@bartelmus.de>, j@jannau.net,
-	jarod@redhat.com, jarod@wilsonet.com, kraxel@redhat.com,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, superm1@ubuntu.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 9, 2010 at 9:01 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> [1] Basically, a keycode (like KEY_POWER) could be used to wake up the machine. So, by
-> associating some scancode to KEY_POWER via ir-core, the driver can program the hardware
-> to wake up the machine with the corresponding scancode. I can't see a need for a change at
-> ir-core to implement such behavior. Of course, some attributes at sysfs can be added
-> to enable or disable this feature, and to control the associated logic, but we first
-> need to implement the wakeup feature at the hardware driver, and then adding some logic
-> at ir-core to add the non-hardware specific code there.
+The following series adds a new device driver for the SoundGraph iMON and
+Antec Veris IR/display devices commonly found in many home theater pc
+cases and as after-market case additions.
 
-Really?  Have you actually seen any hardware where a particular scan
-code can be used to wake up the hardware?  The only hardware I have
-seen has the ability to unsuspend on arrival of IR traffic, but you
-didn't have the granularity to dictate that it only wake up on
-particular scancodes.
+This driver was previously submitted as a pure input layer driver, but I
+was convinced to port it to the new ir-core infrastructure, so this patch
+is against http://git.linuxtv.org/mchehab/ir.git.
 
-Devin
+With only some minor modifications to ir-core (making an already exported
+function public) and reasonably little porting driver-side, I've managed
+to finish at least the initial conversion. There's still a local key
+release timer in use in the driver that needs to be converted to use
+ir-core's keyup timer, and I'm not using ir_keydown due to some serious
+quirks in the way the imon hardware decodes IR signals (I need to do my
+own key release detection, as there are three different ways a key release
+is identified even on the exact same device...), but it does use all the
+ir-core keymap loading and parsing code, ir_input_dev, ir_dev_props, etc.
+
+Something I wasn't too sure about... Where exactly should an IR-only device
+driver live in the tree? I've put it at drivers/media/IR/imon.c for the
+moment, but it might make sense to have a drivers/media/IR/hardware/
+directory to drop things like this and the forthcoming lirc_mceusb port
+into, rather than intermingling with the core bits.
+
+The most important part: I've tested this out w/actual imon hardware, and
+it even works. :)
+
+---
+
+Jarod Wilson (3)
+	ir-core: make ir_g_keycode_from_table a public function
+	ir-core: add imon pad and mce keymaps
+	ir-core: add imon driver
+
+ drivers/media/IR/Kconfig               |   12 +
+ drivers/media/IR/Makefile              |    3 +
+ drivers/media/IR/imon.c                | 2417 ++++++++++++++++++++++++++++++++
+ drivers/media/IR/ir-core-priv.h        |    7 -
+ drivers/media/IR/keymaps/Makefile      |    2 +
+ drivers/media/IR/keymaps/rc-imon-mce.c |  142 ++
+ drivers/media/IR/keymaps/rc-imon-pad.c |  155 ++
+ include/media/ir-core.h                |    1 +
+ include/media/rc-map.h                 |    2 +
+ 9 files changed, 2734 insertions(+), 7 deletions(-)
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Jarod Wilson
+jarod@redhat.com
+
