@@ -1,22 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <shaulkremer@gmail.com>) id 1NxiKA-0004Bc-1M
-	for linux-dvb@linuxtv.org; Fri, 02 Apr 2010 16:58:18 +0200
-Received: from mail-fx0-f211.google.com ([209.85.220.211])
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-a) with esmtp
+	(envelope-from <paul@whitelands.org.uk>) id 1O2g1h-00020U-Ha
+	for linux-dvb@linuxtv.org; Fri, 16 Apr 2010 09:31:49 +0200
+Received: from smarthost02.mail.zen.net.uk ([212.23.3.141])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-d) with esmtp
 	for <linux-dvb@linuxtv.org>
-	id 1NxiK9-0006nG-As; Fri, 02 Apr 2010 16:58:17 +0200
-Received: by fxm3 with SMTP id 3so1549934fxm.11
-	for <linux-dvb@linuxtv.org>; Fri, 02 Apr 2010 07:58:16 -0700 (PDT)
+	id 1O2g1g-00067Z-35; Fri, 16 Apr 2010 09:31:45 +0200
+Received: from [217.155.39.57] (helo=proxyplus.universe)
+	by smarthost02.mail.zen.net.uk with esmtp (Exim 4.63)
+	(envelope-from <paul@whitelands.org.uk>) id 1O2g1f-0004Mo-LW
+	for linux-dvb@linuxtv.org; Fri, 16 Apr 2010 07:31:43 +0000
+Received: from 127.0.0.1 [127.0.0.1] by Proxy+ with ESMTP
+	for <linux-dvb@linuxtv.org>; Fri, 16 Apr 2010 08:31:43 +0100
+Message-ID: <4BC8125F.6000203@whitelands.org.uk>
+Date: Fri, 16 Apr 2010 08:31:43 +0100
+From: Paul Shepherd <paul@whitelands.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <y2q94764e701004020656kee6ae0b7vd14494f0cf779218@mail.gmail.com>
-References: <y2q94764e701004020656kee6ae0b7vd14494f0cf779218@mail.gmail.com>
-Date: Fri, 2 Apr 2010 17:58:15 +0300
-Message-ID: <z2w94764e701004020758tfcf45702ydad41557990c02fd@mail.gmail.com>
-From: Shaul Kremer <shaulkr@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] DVB-T initial tuning data for Israel
+Subject: [linux-dvb] Tevii S660 USB card and dw2102 module generating RC
+	messages
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -25,45 +28,54 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1861008441=="
-Mime-version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1861008441==
-Content-Type: multipart/alternative; boundary=002215b0354a8bd9ed048342354a
 
---002215b0354a8bd9ed048342354a
-Content-Type: text/plain; charset=UTF-8
+I have a Tevii S660 (a usb dvb-s2 device) which is causing a problem.
 
-Hi,
+After the S660 is attached to a USB 2 socket, the firmware is d/l and 
+everything looks fine but then there are continual RC (check/debug?) 
+messages every 150 ms, then some time later everything goes pear shaped, 
+see http://pastebin.com/r9DtUaqX
 
-I've made initial tuning files for IBA's DVB-T transmitters.
+Tevii think the h/w is ok as it works in a Windows box with their 
+myTevii application.  It does work with Ubuntu while the RC messages are 
+occurring, I can watch and record SD+HD content in mythtv until the crash.
 
-What is the preferred way to send them? Are Mercurial changesets acceptable?
+I have tried the latest tevii beta s/w (v4l and .fw files) and also the 
+v4l-dvb drivers from linuxtv dated 6 april - the same result each time. 
+  I can see in the dw2102.c where 150ms is defined and this seems the 
+same as other devices in the code.
 
-Shaul.
+Google suggests that others have seen the problem but it's not clear 
+what the solution is.
 
---002215b0354a8bd9ed048342354a
-Content-Type: text/html; charset=UTF-8
+Three questions:
 
-<div dir="ltr"><div class="gmail_quote"><div dir="ltr">Hi,<br><br>I&#39;ve made initial tuning files for IBA&#39;s DVB-T transmitters.<br><br>What is the preferred way to send them? Are Mercurial changesets acceptable?<br>
-<br>Shaul.<br></div>
-</div><br></div>
+1) are the RC messages caused by a h/w or s/w issue?
 
---002215b0354a8bd9ed048342354a--
+2) if its s/w what do I need to do?
+
+3) is the subsequent khubd crash related and how do I fix that?
+
+I have a nova dvb-t usb box connected and that works fine - I assume 
+there's no interaction.
+
+I am running Ubuntu 9.10 with the following kernel:
+
+Linux antec300.home.org 2.6.31-20-generic #57-Ubuntu SMP Mon Feb 8 
+09:05:19 UTC 2010 i686 GNU/Linux
+
+thanks for any suggestions, paul
 
 
---===============1861008441==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1861008441==--
