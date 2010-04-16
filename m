@@ -1,997 +1,298 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-15.arcor-online.net ([151.189.21.55]:33517 "EHLO
-	mail-in-15.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756237Ab0DOTaF (ORCPT
+Received: from smarthost03.mail.zen.net.uk ([212.23.3.142]:34931 "EHLO
+	smarthost03.mail.zen.net.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753871Ab0DPRnN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Apr 2010 15:30:05 -0400
-Message-ID: <4BC768E7.8070204@arcor.de>
-Date: Thu, 15 Apr 2010 21:28:39 +0200
-From: Stefan Ringel <stefan.ringel@arcor.de>
+	Fri, 16 Apr 2010 13:43:13 -0400
+Message-ID: <4BC8A1AA.6020609@whitelands.org.uk>
+Date: Fri, 16 Apr 2010 18:43:06 +0100
+From: Paul Shepherd <paul@whitelands.org.uk>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Josu Lazkano <josu.lazkano@gmail.com>
 CC: linux-media@vger.kernel.org
-Subject: Re: tm6000: firmware
-References: <4BC5ECB8.2060208@arcor.de> <4BC5FF15.10605@redhat.com> <4BC60C72.6020901@arcor.de> <4BC62E69.60600@redhat.com> <4BC7249C.9010201@arcor.de> <4BC7496A.6090105@redhat.com>
-In-Reply-To: <4BC7496A.6090105@redhat.com>
-Content-Type: multipart/mixed;
- boundary="------------060101070001030402090202"
+Subject: Re: Fwd: Tevii S660 USB card and dw2102 module generating RC messages
+References: <4BC8219A.6060604@whitelands.org.uk> <s2k3907abe61004160234vd88652e6h2738162ba90d0279@mail.gmail.com>
+In-Reply-To: <s2k3907abe61004160234vd88652e6h2738162ba90d0279@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------060101070001030402090202
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
 
-Am 15.04.2010 19:14, schrieb Mauro Carvalho Chehab:
-> Em 15-04-2010 07:37, Stefan Ringel escreveu:
->   
->> Am 14.04.2010 23:06, schrieb Mauro Carvalho Chehab:
->>     
->>> Em 14-04-2010 11:41, Stefan Ringel escreveu:
->>>   
->>>       
->>>> Am 14.04.2010 19:44, schrieb Mauro Carvalho Chehab:
->>>>     
->>>>         
->>>>> Hi Stefan,
->>>>>
->>>>> Em 14-04-2010 09:26, Stefan Ringel escreveu:
->>>>>   
->>>>>       
->>>>>           
->>>>>> Hi Mauro,
->>>>>>
->>>>>> Can you added these three firmwares? The third is into archive file,
->>>>>> because I'm extracted for an user (Bee Hock Goh).
->>>>>>     
->>>>>>         
->>>>>>             
->>>>> Sorry, but for us to put the firmwares at the server and/or add them at linux-firmware 
->>>>> git tree, we need to get the distribution rights from the manufacturer,
->>>>> as described on:
->>>>> 	http://linuxtv.org/wiki/index.php/Development:_How_to_submit_patches#Firmware_submission
->>>>>
->>>>> So, we need Xceive's ack, in order to add the firmware files somewhere. That's why
->>>>> currently we're using the procedure described on the comments at the extraction
->>>>> tool:
->>>>> 	Documentation/video4linux/extract_xc3028.pl  
->>>>>
->>>>> Cheers,
->>>>> Mauro
->>>>>   
->>>>>       
->>>>>           
->>>> OK. In the archive is the modified extract_xc3028 tool for
->>>> tm6000-xc3028.fw . Is that useful?
->>>>     
->>>>         
->>> Yes, but:
->>>
->>> 1) Please, send it as a patch, with the proper SOB;
->>>
->>> 2) From a diff I did here:
->>>
->>> -       my $sourcefile = "UDXTTM6000.sys";
->>> -       my $hash = "cb9deb5508a5e150af2880f5b0066d78";
->>> -       my $outfile = "tm6000-xc3028.fw";
->>> +       my $sourcefile = "hcw85bda.sys";
->>> +       my $hash = "0e44dbf63bb0169d57446aec21881ff2";
->>> +       my $outfile = "xc3028-v27.fw";
->>>
->>> This version works with another *.sys file. The proper way is to
->>> check for the hash, and use the proper logic, based on the provided
->>> sys file;
->>>
->>> 3) Please document where to get the UDXTTTM6000.sys file at the 
->>> comments;
->>>
->>> 4) tm6000-xc3028.fw is a really bad name. It made sense only during
->>> the development of tuner-xc2028.c, since, on that time, it seemed that
->>> tm6000 had a different firmware version. In fact, the first devices
->>> appeared with v 1.e firmware. So, a proper name for that version
->>> would be xc3028-v1e.fw. We should rename it to be consistent.
->>>
->>>   
->>>       
->> The firmware name is was you write in tm6000-card.c file and yes it can
->> renamed. This firmware work in tm5600 and tm6000 sticks where the
->> firmware v2.7 or v3.6 not works. The version isn't v1.e , it is v2.4 see
->> log file from Bee Hock Goh (
->>     
-> Ok. then, please send me a patch renaming the firmware used by this card as
-> xc3028-v24.fw.
+Josu,
+
+mythtv version 0.22-fixes [22594] however I don't think it's mythtv 
+problem but an interaction somewhere between the S660 h/w, firmware and 
+the kernel (vl4-dvb etc)
+
+paul
+
+On 16/04/2010 10:34, Josu Lazkano wrote:
+> Which version of mythtv are you using?
 >
-> I won't be able to apply any patch until next week (I'm currently abroad for
-> the Collaboration Summit).
+> Josu Lazkano
 >
->   
->> http://www.mail-archive.com/linux-media@vger.kernel.org/msg17378.html ).
->>     
->>> It is not clear what version is provided with this version. Is it
->>> v3.6? On a few cases, we've seen some modified versions of XC3028 firmwares
->>> shipped with some specific board. Is it the case?
->>>       
-> With respect to your patch, you need to add some logic to decide to generate
-> either v2.4 or v2.7, based on the *.sys checksum code. So, instead of just
-> renaming things, the proper solution is to create two sub-routines: one for
-> v2.7 and another for v2.4, and decide to use either one, based on the checksum
-> of the *.sys file.
+>> El 16/04/2010 10:58, "Paul Shepherd" <paul@whitelands.org.uk
+>> <mailto:paul@whitelands.org.uk>> escribió:
+>>
+>>
+>> I have a Tevii S660 (a usb dvb-s2 device) which is causing a problem.
+>>
+>> After the S660 is attached to a USB 2 socket, the firmware is d/l and
+>> everything looks fine but then there are continual RC (check/debug?)
+>> messages every 150 ms, then some time later everything goes pear shaped:
+>>
+>>     Apr  9 22:15:49 antec300 kernel: [   16.801141] EXT3 FS on sdd1,
+>>     internal journal
+>>     Apr  9 22:15:49 antec300 kernel: [   16.801144] EXT3-fs: mounted
+>>     filesystem with writeback data mode.
+>>     Apr  9 22:15:49 antec300 kernel: [   17.490262] hda-intel: Codec
+>>     #3 probe error; disabling it...
+>>     Apr  9 22:15:50 antec300 kernel: [   17.568264] hda_codec: Unknown
+>>     model for ALC889, trying auto-probe from BIOS...
+>>     Apr  9 22:15:50 antec300 kernel: [   17.568513] input: HDA Digital
+>>     PCBeep as /devices/pci0000:00/0000:00:1b.0/input/input6
+>>     Apr  9 22:15:55 antec300 kernel: [   22.697708] __ratelimit: 24
+>>     callbacks suppressed
+>>     Apr  9 22:15:55 antec300 kernel: [   22.697711] type=1503
+>>     audit(1270847755.406:33): operation="open" pid=2328 parent=1870
+>>     profile="/usr/sbin/mysqld" requested_mask="::r" denied_mask="::r"
+>>     fsuid=119 ouid=0 name="/sys/devices/system/cpu/"
+>>     .
+>>     # plug the S660 in ...
+>>     .
+>>     Apr  9 22:24:52 antec300 kernel: [  559.078860] usb 1-1: new high
+>>     speed USB device using ehci_hcd and address 7
+>>     Apr  9 22:24:52 antec300 kernel: [  559.211222] usb 1-1:
+>>     configuration #1 chosen from 1 choice
+>>     Apr  9 22:24:52 antec300 kernel: [  559.211390] dvb-usb: found a
+>>     'TeVii S660 USB' in cold state, will try to load a firmware
+>>     Apr  9 22:24:52 antec300 kernel: [  559.211396] usb 1-1: firmware:
+>>     requesting dvb-usb-teviis660.fw
+>>     Apr  9 22:24:52 antec300 kernel: [  559.224426] dvb-usb:
+>>     downloading firmware from file 'dvb-usb-teviis660.fw'
+>>     Apr  9 22:24:52 antec300 kernel: [  559.224431] dw2102: start
+>>     downloading DW210X firmware
+>>     Apr  9 22:24:52 antec300 kernel: [  559.342492] dvb-usb: found a
+>>     'TeVii S660 USB' in warm state.
+>>     Apr  9 22:24:52 antec300 kernel: [  559.342561] dvb-usb: will pass
+>>     the complete MPEG2 transport stream to the software demuxer.
+>>     Apr  9 22:24:52 antec300 kernel: [  559.346560] DVB: registering
+>>     new adapter (TeVii S660 USB)
+>>     Apr  9 22:24:58 antec300 kernel: [  565.369380] dvb-usb: MAC
+>>     address: d0:d0:d0:d0:d0:d0
+>>     Apr  9 22:24:58 antec300 kernel: [  565.394061] Only Zarlink
+>>     VP310/MT312/ZL10313 are supported chips.
+>>     Apr  9 22:24:59 antec300 kernel: [  565.665303] input: IR-receiver
+>>     inside an USB DVB receiver as
+>>     /devices/pci0000:00/0000:00:1a.7/usb1/1-1/input/input11
+>>     Apr  9 22:24:59 antec300 kernel: [  565.665361] dvb-usb: schedule
+>>     remote query interval to 150 msecs.
+>>     Apr  9 22:24:59 antec300 kernel: [  565.665366] dvb-usb: TeVii
+>>     S660 USB successfully initialized and connected.
+>>     Apr  9 22:24:59 antec300 kernel: [  565.665817] usb 1-1: USB
+>>     disconnect, address 7
+>>     Apr  9 22:24:59 antec300 kernel: [  565.693209] dvb-usb: TeVii
+>>     S660 USB successfully deinitialized and disconnected.
+>>     Apr  9 22:24:59 antec300 kernel: [  565.932522] usb 1-1: new high
+>>     speed USB device using ehci_hcd and address 8
+>>     Apr  9 22:24:59 antec300 kernel: [  566.064970] usb 1-1: config 1
+>>     interface 0 altsetting 0 bulk endpoint 0x81 has invalid maxpacket 2
+>>     Apr  9 22:24:59 antec300 kernel: [  566.065590] usb 1-1:
+>>     configuration #1 chosen from 1 choice
+>>     Apr  9 22:24:59 antec300 kernel: [  566.066164] dvb-usb: found a
+>>     'TeVii S660 USB' in cold state, will try to load a firmware
+>>     Apr  9 22:24:59 antec300 kernel: [  566.066171] usb 1-1: firmware:
+>>     requesting dvb-usb-teviis660.fw
+>>     Apr  9 22:24:59 antec300 kernel: [  566.072788] dvb-usb:
+>>     downloading firmware from file 'dvb-usb-teviis660.fw'
+>>     Apr  9 22:24:59 antec300 kernel: [  566.072792] dw2102: start
+>>     downloading DW210X firmware
+>>     Apr  9 22:24:59 antec300 kernel: [  566.192150] dvb-usb: found a
+>>     'TeVii S660 USB' in warm state.
+>>     Apr  9 22:24:59 antec300 kernel: [  566.192213] dvb-usb: will pass
+>>     the complete MPEG2 transport stream to the software demuxer.
+>>     Apr  9 22:24:59 antec300 kernel: [  566.192644] DVB: registering
+>>     new adapter (TeVii S660 USB)
+>>     Apr  9 22:25:03 antec300 kernel: [  570.298170] dvb-usb: MAC
+>>     address: 00:18:bd:5c:60:b0
+>>     Apr  9 22:25:03 antec300 kernel: [  570.314148] Only Zarlink
+>>     VP310/MT312/ZL10313 are supported chips.
+>>     Apr  9 22:25:04 antec300 kernel: [  570.589497] DS3000 chip
+>>     version: 0.192 attached.
+>>     Apr  9 22:25:04 antec300 kernel: [  570.589501] dw2102: Attached
+>>     ds3000+ds2020!
+>>     Apr  9 22:25:04 antec300 kernel: [  570.589503]
+>>     Apr  9 22:25:04 antec300 kernel: [  570.589707] DVB: registering
+>>     adapter 1 frontend 0 (Montage Technology DS3000/TS2020)...
+>>     Apr  9 22:25:04 antec300 kernel: [  570.590909] input: IR-receiver
+>>     inside an USB DVB receiver as
+>>     /devices/pci0000:00/0000:00:1a.7/usb1/1-1/input/input12
+>>     Apr  9 22:25:04 antec300 kernel: [  570.590965] dvb-usb: schedule
+>>     remote query interval to 150 msecs.
+>>     Apr  9 22:25:04 antec300 kernel: [  570.590971] dvb-usb: TeVii
+>>     S660 USB successfully initialized and connected.
+>>     Apr  9 22:25:04 antec300 kernel: [  570.741992] dw2102: query RC enter
+>>     Apr  9 22:25:04 antec300 kernel: [  570.741996] dw2102: query RC start
+>>     Apr  9 22:25:04 antec300 kernel: [  570.761941] dw2102: query RC end
+>>     Apr  9 22:25:04 antec300 kernel: [  570.912988] dw2102: query RC enter
+>>     Apr  9 22:25:04 antec300 kernel: [  570.912993] dw2102: query RC start
+>>     Apr  9 22:25:04 antec300 kernel: [  570.920950] dw2102: query RC end
+>>     Apr  9 22:25:04 antec300 kernel: [  571.072756] dw2102: query RC enter
+>>     Apr  9 22:25:04 antec300 kernel: [  571.072761] dw2102: query RC start
+>>     Apr  9 22:25:04 antec300 kernel: [  571.080742] dw2102: query RC end
+>>     Apr  9 22:25:04 antec300 kernel: [  571.232512] dw2102: query RC enter
+>>     Apr  9 22:25:04 antec300 kernel: [  571.232517] dw2102: query RC start
+>>     Apr  9 22:25:04 antec300 kernel: [  571.240503] dw2102: query RC end
+>>     Apr  9 22:25:04 antec300 kernel: [  571.393004] dw2102: query RC enter
+>>     Apr  9 22:25:04 antec300 kernel: [  571.393009] dw2102: query RC start
+>>     Apr  9 22:25:04 antec300 kernel: [  571.400998] dw2102: query RC end
+>>     Apr  9 22:25:05 antec300 kernel: [  571.552774] dw2102: query RC enter
+>>     Apr  9 22:25:05 antec300 kernel: [  571.552778] dw2102: query RC start
+>>     Apr  9 22:25:05 antec300 kernel: [  571.560764] dw2102: query RC end
+>>     Apr  9 22:25:05 antec300 kernel: [  571.711791] dw2102: query RC enter
+>>     Apr  9 22:25:05 antec300 kernel: [  571.711796] dw2102: query RC start
+>>     Apr  9 22:25:05 antec300 kernel: [  571.719776] dw2102: query RC end
+>>     Apr  9 22:25:05 antec300 kernel: [  571.871529] dw2102: query RC enter
+>>     Apr  9 22:25:05 antec300 kernel: [  571.871535] dw2102: query RC start
+>>     Apr  9 22:25:05 antec300 kernel: [  571.879506] dw2102: query RC end
+>>     Apr  9 22:25:05 antec300 kernel: [  572.031296] dw2102: query RC enter
+>>     Apr  9 22:25:05 antec300 kernel: [  572.031301] dw2102: query RC start
+>>     Apr  9 22:25:05 antec300 kernel: [  572.039283] dw2102: query RC end
+>>     Apr  9 22:25:05 antec300 kernel: [  572.191370] dw2102: query RC enter
+>>     Apr  9 22:25:05 antec300 kernel: [  572.191374] dw2102: query RC start
+>>     Apr  9 22:25:05 antec300 kernel: [  572.199064] dw2102: query RC end
+>>     Apr  9 22:25:05 antec300 kernel: [  572.351564] dw2102: query RC enter
+>>     Apr  9 22:25:05 antec300 kernel: [  572.351569] dw2102: query RC start
+>>     Apr  9 22:25:05 antec300 kernel: [  572.359550] dw2102: query RC end
+>>     Apr  9 22:25:06 antec300 kernel: [  572.510583] dw2102: query RC enter
+>>     Apr  9 22:25:06 antec300 kernel: [  572.510587] dw2102: query RC start
+>>     Apr  9 22:25:06 antec300 kernel: [  572.518557] dw2102: query RC end
+>>     Apr  9 22:25:06 antec300 kernel: [  572.670334] dw2102: query RC enter
+>>     Apr  9 22:25:06 antec300 kernel: [  572.670339] dw2102: query RC start
+>>     Apr  9 22:25:06 antec300 kernel: [  572.679070] dw2102: query RC end
+>>     Apr  9 22:25:06 antec300 kernel: [  572.830080] dw2102: query RC enter
+>>     Apr  9 22:25:06 antec300 kernel: [  572.830084] dw2102: query RC start
+>>     Apr  9 22:25:06 antec300 kernel: [  572.838076] dw2102: query RC end
+>>     .
+>>     # 15 hrs later ...
+>>     .
+>>     Apr 10 13:01:27 antec300 kernel: [53074.896764] dw2102: query RC enter
+>>     Apr 10 13:01:27 antec300 kernel: [53074.896768] dw2102: query RC start
+>>     Apr 10 13:01:27 antec300 kernel: [53074.904732] dw2102: query RC end
+>>     Apr 10 13:01:27 antec300 kernel: [53075.055779] dw2102: query RC enter
+>>     Apr 10 13:01:27 antec300 kernel: [53075.055784] dw2102: query RC start
+>>     Apr 10 13:01:27 antec300 kernel: [53075.064511] dw2102: query RC end
+>>     Apr 10 13:01:27 antec300 kernel: [53075.215544] dw2102: query RC enter
+>>     Apr 10 13:01:27 antec300 kernel: [53075.215550] dw2102: query RC start
+>>     Apr 10 13:01:27 antec300 kernel: [53075.224272] dw2102: query RC end
+>>     Apr 10 13:01:27 antec300 kernel: [53075.375283] dw2102: query RC enter
+>>     Apr 10 13:01:27 antec300 kernel: [53075.375288] dw2102: query RC start
+>>     Apr 10 13:01:27 antec300 kernel: [53075.400123] usb 1-1: USB
+>>     disconnect, address 8
+>>     Apr 10 13:01:27 antec300 kernel: [53075.407986] dw2102:
+>>     dw2102_rc_query: unknown rc key: f7, ec
+>>     Apr 10 13:01:27 antec300 kernel: [53075.407988]
+>>     Apr 10 13:01:27 antec300 kernel: [53075.407990] dw2102: query RC end
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638775] khubd         D
+>>     c08185c0     0    40      2 0x00000000
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638782]  f71a9da8 00000046
+>>     f7193ed0 c08185c0 f7194168 c08185c0 96b72f6a 00003045
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638792]  c08185c0 c08185c0
+>>     f7194168 c08185c0 96b724c4 00003045 c08185c0 f6b19880
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638800]  f7193ed0 f1ed7000
+>>     f71a9db8 f1f867f4 f71a9dd4 f822b50d f71a9dbc c03a4552
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638809] Call Trace:
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638836]  [<f822b50d>]
+>>     dvb_unregister_frontend+0x9d/0xe0 [dvb_core]
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638845]  [<c03a4552>] ?
+>>     device_unregister+0x12/0x20
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638852]  [<c015c180>] ?
+>>     autoremove_wake_function+0x0/0x40
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638862]  [<f8145095>]
+>>     dvb_usb_adapter_frontend_exit+0x15/0x30 [dvb_usb]
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638870]  [<f8144485>]
+>>     dvb_usb_exit+0x45/0xf0 [dvb_usb]
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638876]  [<c0572da4>] ?
+>>     mutex_lock+0x14/0x40
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638883]  [<f814455d>]
+>>     dvb_usb_device_exit+0x2d/0x50 [dvb_usb]
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638892]  [<c0418ab9>]
+>>     usb_unbind_interface+0xe9/0x120
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638897]  [<c03a691e>]
+>>     __device_release_driver+0x3e/0x90
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638902]  [<c03a6a30>]
+>>     device_release_driver+0x20/0x40
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638908]  [<c03a5d73>]
+>>     bus_remove_device+0x73/0x90
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638912]  [<c03a44df>]
+>>     device_del+0xef/0x150
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638917]  [<c041596d>]
+>>     usb_disable_device+0x7d/0xf0
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638922]  [<c04105be>]
+>>     usb_disconnect+0x9e/0x110
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638927]  [<c0410973>]
+>>     hub_port_connect_change+0x83/0x830
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638932]  [<c0416640>] ?
+>>     usb_control_msg+0xd0/0x120
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638937]  [<c040e7bb>] ?
+>>     clear_port_feature+0x4b/0x60
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638942]  [<c04121d5>]
+>>     hub_events+0x1f5/0x500
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638946]  [<c057209c>] ?
+>>     schedule+0x40c/0x730
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638952]  [<c015c2da>] ?
+>>     finish_wait+0x4a/0x70
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638956]  [<c04124e0>] ?
+>>     hub_thread+0x0/0x150
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638960]  [<c0412515>]
+>>     hub_thread+0x35/0x150
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638965]  [<c015c180>] ?
+>>     autoremove_wake_function+0x0/0x40
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638970]  [<c015be8c>]
+>>     kthread+0x7c/0x90
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638975]  [<c015be10>] ?
+>>     kthread+0x0/0x90
+>>     Apr 10 13:03:33 antec300 kernel: [53200.638981]  [<c0104047>]
+>>     kernel_thread_helper+0x7/0x10
+>>
+>>
+>> Tevii say the h/w is ok as it works with a Windows box with their
+>> myTevii application.  It does work while the RC messages are occurring,
+>> I can watch and record SD+HD content in mythtv until the crash.
+>>
+>> I have tried the latest tevii beta s/w (v4l and .fw files) and also the
+>> v4l-dvb drivers from linuxtv dated 6 april - the same result each time.
+>>  I can see in the dw2102.c where 150ms is defined and this seems the
+>> same as other devices in the code.
+>>
+>> Google indicates others have seen similar problems but it's not clear
+>> what the solution is.
+>>
+>> Three questions:
+>>
+>> 1) are the RC messages caused by a h/w or s/w issue?
+>>
+>> 2) if it's s/w what do I need to do?
+>>
+>> 3) is the subsequent khubd crash related and how do I fix that?
+>>
+>> I have a nova dvb-t usb box connected and that works fine - I assume
+>> there's no interaction.
+>>
+>> I am running Ubuntu 9.10 with the following kernel:
+>>
+>> Linux antec300.home.org <http://antec300.home.org> 2.6.31-20-generic
+>> #57-Ubuntu SMP Mon Feb 8
+>> 09:05:19 UTC 2010 i686 GNU/Linux
+>>
+>> thanks for any suggestions, paul
+>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> <mailto:majordomo@vger.kernel.org>
+>> More majordomo info at http://vger.kernel.org/majordomo-info.html
 >
->   
-I have generated new the patch.
 
-Cheers,
-Stefan
-> Cheers,
-> Mauro
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->   
-
-
--- 
-Stefan Ringel <stefan.ringel@arcor.de>
-
-
---------------060101070001030402090202
-Content-Type: text/x-patch;
- name="extract_xc3028.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="extract_xc3028.diff"
-
---- usr/src/src/tm6010/v4l-dvb/linux/Documentation/video4linux/extract_xc3028.pl	2010-03-27 13:14:22.215564668 +0100
-+++ home/stefan/Downloads/tm6000-xc3028/extract_xc3028.pl	2010-04-15 21:24:18.546613323 +0200
-@@ -5,12 +5,18 @@
- #
- # In order to use, you need to:
- #	1) Download the windows driver with something like:
-+#	Version 2.4
-+#		wget http://www.twinhan.com/files/AW/BDA T/20080303_V1.0.6.7.zip
-+#		or wget http://www.stefanringel.de/pub/20080303_V1.0.6.7.zip
-+#	Version 2.7
- #		wget http://www.steventoth.net/linux/xc5000/HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip
--#	2) Extract the file hcw85bda.sys from the zip into the current dir:
-+#	2) Extract the files from the zip into the current dir:
-+#		unzip -j 20080303_V1.0.6.7.zip 20080303_v1.0.6.7/UDXTTM6000.sys
- #		unzip -j HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip Driver85/hcw85bda.sys
- #	3) run the script:
- #		./extract_xc3028.pl
--#	4) copy the generated file:
-+#	4) copy the generated files:
-+#		cp xc3028-v24.fw /lib/firmware
- #		cp xc3028-v27.fw /lib/firmware
- 
- #use strict;
-@@ -135,7 +141,7 @@
- 	}
- }
- 
--sub main_firmware($$$$)
-+sub main_firmware_24($$$$)
- {
- 	my $out;
- 	my $j=0;
-@@ -146,8 +152,774 @@
- 
- 	for ($j = length($name); $j <32; $j++) {
- 		$name = $name.chr(0);
-+	}
-+
-+	open OUTFILE, ">$outfile";
-+	syswrite(OUTFILE, $name);
-+	write_le16($version);
-+	write_le16($nr_desc);
-+
-+	#
-+	# Firmware 0, type: BASE FW   F8MHZ (0x00000003), id: (0000000000000000), size: 6635
-+	#
-+
-+	write_le32(0x00000003);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le32(6635);			# Size
-+	write_hunk_fix_endian(257752, 6635);
-+
-+	#
-+	# Firmware 1, type: BASE FW   F8MHZ MTS (0x00000007), id: (0000000000000000), size: 6635
-+	#
-+
-+	write_le32(0x00000007);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le32(6635);			# Size
-+	write_hunk_fix_endian(264392, 6635);
-+
-+	#
-+	# Firmware 2, type: BASE FW   FM (0x00000401), id: (0000000000000000), size: 6525
-+	#
-+
-+	write_le32(0x00000401);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le32(6525);			# Size
-+	write_hunk_fix_endian(271040, 6525);
-+
-+	#
-+	# Firmware 3, type: BASE FW   FM INPUT1 (0x00000c01), id: (0000000000000000), size: 6539
-+	#
-+
-+	write_le32(0x00000c01);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le32(6539);			# Size
-+	write_hunk_fix_endian(277568, 6539);
-+
-+	#
-+	# Firmware 4, type: BASE FW   (0x00000001), id: (0000000000000000), size: 6633
-+	#
-+
-+	write_le32(0x00000001);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le32(6633);			# Size
-+	write_hunk_fix_endian(284120, 6633);
-+
-+	#
-+	# Firmware 5, type: BASE FW   MTS (0x00000005), id: (0000000000000000), size: 6617
-+	#
-+
-+	write_le32(0x00000005);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le32(6617);			# Size
-+	write_hunk_fix_endian(290760, 6617);
-+
-+	#
-+	# Firmware 6, type: STD FW    (0x00000000), id: PAL/BG A2/A (0000000100000007), size: 161
-+	#
-+
-+	write_le32(0x00000000);			# Type
-+	write_le64(0x00000001, 0x00000007);	# ID
-+	write_le32(161);			# Size
-+	write_hunk_fix_endian(297384, 161);
-+
-+	#
-+	# Firmware 7, type: STD FW    MTS (0x00000004), id: PAL/BG A2/A (0000000100000007), size: 169
-+	#
-+
-+	write_le32(0x00000004);			# Type
-+	write_le64(0x00000001, 0x00000007);	# ID
-+	write_le32(169);			# Size
-+	write_hunk_fix_endian(297552, 169);
-+
-+	#
-+	# Firmware 8, type: STD FW    (0x00000000), id: PAL/BG A2/B (0000000200000007), size: 161
-+	#
-+
-+	write_le32(0x00000000);			# Type
-+	write_le64(0x00000002, 0x00000007);	# ID
-+	write_le32(161);			# Size
-+	write_hunk_fix_endian(297728, 161);
-+
-+	#
-+	# Firmware 9, type: STD FW    MTS (0x00000004), id: PAL/BG A2/B (0000000200000007), size: 169
-+	#
-+
-+	write_le32(0x00000004);			# Type
-+	write_le64(0x00000002, 0x00000007);	# ID
-+	write_le32(169);			# Size
-+	write_hunk_fix_endian(297896, 169);
-+
-+	#
-+	# Firmware 10, type: STD FW    (0x00000000), id: PAL/BG NICAM/A (0000000400000007), size: 161
-+	#
-+
-+	write_le32(0x00000000);			# Type
-+	write_le64(0x00000004, 0x00000007);	# ID
-+	write_le32(161);			# Size
-+	write_hunk_fix_endian(298072, 161);
-+
-+	#
-+	# Firmware 11, type: STD FW    MTS (0x00000004), id: PAL/BG NICAM/A (0000000400000007), size: 169
-+	#
-+
-+	write_le32(0x00000004);			# Type
-+	write_le64(0x00000004, 0x00000007);	# ID
-+	write_le32(169);			# Size
-+	write_hunk_fix_endian(298240, 169);
-+
-+	#
-+	# Firmware 12, type: STD FW    (0x00000000), id: PAL/BG NICAM/B (0000000800000007), size: 161
-+	#
-+
-+	write_le32(0x00000000);			# Type
-+	write_le64(0x00000008, 0x00000007);	# ID
-+	write_le32(161);			# Size
-+	write_hunk_fix_endian(298416, 161);
-+
-+	#
-+	# Firmware 13, type: STD FW    MTS (0x00000004), id: PAL/BG NICAM/B (0000000800000007), size: 169
-+	#
-+
-+	write_le32(0x00000004);			# Type
-+	write_le64(0x00000008, 0x00000007);	# ID
-+	write_le32(169);			# Size
-+	write_hunk_fix_endian(298584, 169);
-+
-+	#
-+	# Firmware 14, type: STD FW    (0x00000000), id: PAL/DK A2 (00000003000000e0), size: 161
-+	#
-+
-+	write_le32(0x00000000);			# Type
-+	write_le64(0x00000003, 0x000000e0);	# ID
-+	write_le32(161);			# Size
-+	write_hunk_fix_endian(298760, 161);
-+
-+	#
-+	# Firmware 15, type: STD FW    MTS (0x00000004), id: PAL/DK A2 (00000003000000e0), size: 169
-+	#
-+
-+	write_le32(0x00000004);			# Type
-+	write_le64(0x00000003, 0x000000e0);	# ID
-+	write_le32(169);			# Size
-+	write_hunk_fix_endian(298928, 169);
-+
-+	#
-+	# Firmware 16, type: STD FW    (0x00000000), id: PAL/DK NICAM (0000000c000000e0), size: 161
-+	#
-+
-+	write_le32(0x00000000);			# Type
-+	write_le64(0x0000000c, 0x000000e0);	# ID
-+	write_le32(161);			# Size
-+	write_hunk_fix_endian(299104, 161);
-+
-+	#
-+	# Firmware 17, type: STD FW    MTS (0x00000004), id: PAL/DK NICAM (0000000c000000e0), size: 169
-+	#
-+
-+	write_le32(0x00000004);			# Type
-+	write_le64(0x0000000c, 0x000000e0);	# ID
-+	write_le32(169);			# Size
-+	write_hunk_fix_endian(299272, 169);
-+
-+	#
-+	# Firmware 18, type: STD FW    (0x00000000), id: SECAM/K1 (0000000000200000), size: 161
-+	#
-+
-+	write_le32(0x00000000);			# Type
-+	write_le64(0x00000000, 0x00200000);	# ID
-+	write_le32(161);			# Size
-+	write_hunk_fix_endian(299448, 161);
-+
-+	#
-+	# Firmware 19, type: STD FW    MTS (0x00000004), id: SECAM/K1 (0000000000200000), size: 169
-+	#
-+
-+	write_le32(0x00000004);			# Type
-+	write_le64(0x00000000, 0x00200000);	# ID
-+	write_le32(169);			# Size
-+	write_hunk_fix_endian(299616, 169);
-+
-+	#
-+	# Firmware 20, type: STD FW    (0x00000000), id: SECAM/K3 (0000000004000000), size: 161
-+	#
-+
-+	write_le32(0x00000000);			# Type
-+	write_le64(0x00000000, 0x04000000);	# ID
-+	write_le32(161);			# Size
-+	write_hunk_fix_endian(299792, 161);
-+
-+	#
-+	# Firmware 21, type: STD FW    MTS (0x00000004), id: SECAM/K3 (0000000004000000), size: 169
-+	#
-+
-+	write_le32(0x00000004);			# Type
-+	write_le64(0x00000000, 0x04000000);	# ID
-+	write_le32(169);			# Size
-+	write_hunk_fix_endian(299960, 169);
-+
-+	#
-+	# Firmware 22, type: STD FW    D2633 DTV6 ATSC (0x00010030), id: (0000000000000000), size: 149
-+	#
-+
-+	write_le32(0x00010030);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le32(149);			# Size
-+	write_hunk_fix_endian(300136, 149);
-+
-+	#
-+	# Firmware 23, type: STD FW    D2620 DTV6 QAM (0x00000068), id: (0000000000000000), size: 149
-+	#
-+
-+	write_le32(0x00000068);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le32(149);			# Size
-+	write_hunk_fix_endian(300296, 149);
-+
-+	#
-+	# Firmware 24, type: STD FW    D2633 DTV6 QAM (0x00000070), id: (0000000000000000), size: 149
-+	#
-+
-+	write_le32(0x00000070);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le32(149);			# Size
-+	write_hunk_fix_endian(300448, 149);
-+
-+	#
-+	# Firmware 25, type: STD FW    D2620 DTV7 (0x00000088), id: (0000000000000000), size: 149
-+	#
-+
-+	write_le32(0x00000088);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le32(149);			# Size
-+	write_hunk_fix_endian(300608, 149);
-+
-+	#
-+	# Firmware 26, type: STD FW    D2633 DTV7 (0x00000090), id: (0000000000000000), size: 149
-+	#
-+
-+	write_le32(0x00000090);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le32(149);			# Size
-+	write_hunk_fix_endian(300760, 149);
-+
-+	#
-+	# Firmware 27, type: STD FW    D2620 DTV78 (0x00000108), id: (0000000000000000), size: 149
-+	#
-+
-+	write_le32(0x00000108);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le32(149);			# Size
-+	write_hunk_fix_endian(300920, 149);
-+
-+	#
-+	# Firmware 28, type: STD FW    D2633 DTV78 (0x00000110), id: (0000000000000000), size: 149
-+	#
-+
-+	write_le32(0x00000110);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le32(149);			# Size
-+	write_hunk_fix_endian(301072, 149);
-+
-+	#
-+	# Firmware 29, type: STD FW    D2620 DTV8 (0x00000208), id: (0000000000000000), size: 149
-+	#
-+
-+	write_le32(0x00000208);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le32(149);			# Size
-+	write_hunk_fix_endian(301232, 149);
-+
-+	#
-+	# Firmware 30, type: STD FW    D2633 DTV8 (0x00000210), id: (0000000000000000), size: 149
-+	#
-+
-+	write_le32(0x00000210);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le32(149);			# Size
-+	write_hunk_fix_endian(301384, 149);
-+
-+	#
-+	# Firmware 31, type: STD FW    FM (0x00000400), id: (0000000000000000), size: 135
-+	#
-+
-+	write_le32(0x00000400);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le32(135);			# Size
-+	write_hunk_fix_endian(301554, 135);
-+
-+	#
-+	# Firmware 32, type: STD FW    (0x00000000), id: PAL/I (0000000000000010), size: 161
-+	#
-+
-+	write_le32(0x00000000);			# Type
-+	write_le64(0x00000000, 0x00000010);	# ID
-+	write_le32(161);			# Size
-+	write_hunk_fix_endian(301688, 161);
-+
-+	#
-+	# Firmware 33, type: STD FW    MTS (0x00000004), id: PAL/I (0000000000000010), size: 169
-+	#
-+
-+	write_le32(0x00000004);			# Type
-+	write_le64(0x00000000, 0x00000010);	# ID
-+	write_le32(169);			# Size
-+	write_hunk_fix_endian(301856, 169);
-+
-+	#
-+	# Firmware 34, type: STD FW    (0x00000000), id: SECAM/L AM (0000001000400000), size: 169
-+	#
-+
-+	#
-+	# Firmware 35, type: STD FW    (0x00000000), id: SECAM/L NICAM (0000000c00400000), size: 161
-+	#
-+
-+	write_le32(0x00000000);			# Type
-+	write_le64(0x0000000c, 0x00400000);	# ID
-+	write_le32(161);			# Size
-+	write_hunk_fix_endian(302032, 161);
-+
-+	#
-+	# Firmware 36, type: STD FW    (0x00000000), id: SECAM/Lc (0000000000800000), size: 161
-+	#
-+
-+	write_le32(0x00000000);			# Type
-+	write_le64(0x00000000, 0x00800000);	# ID
-+	write_le32(161);			# Size
-+	write_hunk_fix_endian(302200, 161);
-+
-+	#
-+	# Firmware 37, type: STD FW    (0x00000000), id: NTSC/M Kr (0000000000008000), size: 161
-+	#
-+
-+	write_le32(0x00000000);			# Type
-+	write_le64(0x00000000, 0x00008000);	# ID
-+	write_le32(161);			# Size
-+	write_hunk_fix_endian(302368, 161);
-+
-+	#
-+	# Firmware 38, type: STD FW    LCD (0x00001000), id: NTSC/M Kr (0000000000008000), size: 161
-+	#
-+
-+	write_le32(0x00001000);			# Type
-+	write_le64(0x00000000, 0x00008000);	# ID
-+	write_le32(161);			# Size
-+	write_hunk_fix_endian(302536, 161);
-+
-+	#
-+	# Firmware 39, type: STD FW    LCD NOGD (0x00003000), id: NTSC/M Kr (0000000000008000), size: 161
-+	#
-+
-+	write_le32(0x00003000);			# Type
-+	write_le64(0x00000000, 0x00008000);	# ID
-+	write_le32(161);			# Size
-+	write_hunk_fix_endian(302704, 161);
-+
-+	#
-+	# Firmware 40, type: STD FW    MTS (0x00000004), id: NTSC/M Kr (0000000000008000), size: 169
-+	#
-+
-+	write_le32(0x00000004);			# Type
-+	write_le64(0x00000000, 0x00008000);	# ID
-+	write_le32(169);			# Size
-+	write_hunk_fix_endian(302872, 169);
-+
-+	#
-+	# Firmware 41, type: STD FW    (0x00000000), id: NTSC PAL/M PAL/N (000000000000b700), size: 161
-+	#
-+
-+	write_le32(0x00000000);			# Type
-+	write_le64(0x00000000, 0x0000b700);	# ID
-+	write_le32(161);			# Size
-+	write_hunk_fix_endian(303048, 161);
-+
-+	#
-+	# Firmware 42, type: STD FW    LCD (0x00001000), id: NTSC PAL/M PAL/N (000000000000b700), size: 161
-+	#
-+
-+	write_le32(0x00001000);			# Type
-+	write_le64(0x00000000, 0x0000b700);	# ID
-+	write_le32(161);			# Size
-+	write_hunk_fix_endian(303216, 161);
-+
-+	#
-+	# Firmware 43, type: STD FW    LCD NOGD (0x00003000), id: NTSC PAL/M PAL/N (000000000000b700), size: 161
-+	#
-+
-+	write_le32(0x00003000);			# Type
-+	write_le64(0x00000000, 0x0000b700);	# ID
-+	write_le32(161);			# Size
-+	write_hunk_fix_endian(303384, 161);
-+
-+	#
-+	# Firmware 44, type: STD FW    (0x00000000), id: NTSC/M Jp (0000000000002000), size: 161
-+	#
-+
-+	write_le32(0x00000000);			# Type
-+	write_le64(0x00000000, 0x00002000);	# ID
-+	write_le32(161);			# Size
-+	write_hunk_fix_endian(303552, 161);
-+
-+	#
-+	# Firmware 45, type: STD FW    MTS (0x00000004), id: NTSC PAL/M PAL/N (000000000000b700), size: 169
-+	#
-+
-+	write_le32(0x00000004);			# Type
-+	write_le64(0x00000000, 0x0000b700);	# ID
-+	write_le32(169);			# Size
-+	write_hunk_fix_endian(303720, 169);
-+
-+	#
-+	# Firmware 46, type: STD FW    MTS LCD (0x00001004), id: NTSC PAL/M PAL/N (000000000000b700), size: 169
-+	#
-+
-+	write_le32(0x00001004);			# Type
-+	write_le64(0x00000000, 0x0000b700);	# ID
-+	write_le32(169);			# Size
-+	write_hunk_fix_endian(303896, 169);
-+
-+	#
-+	# Firmware 47, type: STD FW    MTS LCD NOGD (0x00003004), id: NTSC PAL/M PAL/N (000000000000b700), size: 169
-+	#
-+
-+	write_le32(0x00003004);			# Type
-+	write_le64(0x00000000, 0x0000b700);	# ID
-+	write_le32(169);			# Size
-+	write_hunk_fix_endian(304072, 169);
-+
-+	#
-+	# Firmware 48, type: SCODE FW  HAS IF (0x60000000), IF = 3.28 MHz id: (0000000000000000), size: 192
-+	#
-+
-+	write_le32(0x60000000);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le16(3280);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(309048, 192);
-+
-+	#
-+	# Firmware 49, type: SCODE FW  HAS IF (0x60000000), IF = 3.30 MHz id: (0000000000000000), size: 192
-+	#
-+
-+#	write_le32(0x60000000);			# Type
-+#	write_le64(0x00000000, 0x00000000);	# ID
-+#	write_le16(3300);			# IF
-+#	write_le32(192);			# Size
-+#	write_hunk(304440, 192);
-+
-+	#
-+	# Firmware 50, type: SCODE FW  HAS IF (0x60000000), IF = 3.44 MHz id: (0000000000000000), size: 192
-+	#
-+
-+	write_le32(0x60000000);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le16(3440);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(309432, 192);
-+
-+	#
-+	# Firmware 51, type: SCODE FW  HAS IF (0x60000000), IF = 3.46 MHz id: (0000000000000000), size: 192
-+	#
-+
-+	write_le32(0x60000000);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le16(3460);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(309624, 192);
-+
-+	#
-+	# Firmware 52, type: SCODE FW  DTV6 ATSC OREN36 HAS IF (0x60210020), IF = 3.80 MHz id: (0000000000000000), size: 192
-+	#
-+
-+	write_le32(0x60210020);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le16(3800);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(306936, 192);
-+
-+	#
-+	# Firmware 53, type: SCODE FW  HAS IF (0x60000000), IF = 4.00 MHz id: (0000000000000000), size: 192
-+	#
-+
-+	write_le32(0x60000000);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le16(4000);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(309240, 192);
-+
-+	#
-+	# Firmware 54, type: SCODE FW  DTV6 ATSC TOYOTA388 HAS IF (0x60410020), IF = 4.08 MHz id: (0000000000000000), size: 192
-+	#
-+
-+	write_le32(0x60410020);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le16(4080);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(307128, 192);
-+
-+	#
-+	# Firmware 55, type: SCODE FW  HAS IF (0x60000000), IF = 4.20 MHz id: (0000000000000000), size: 192
-+	#
-+
-+	write_le32(0x60000000);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le16(4200);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(308856, 192);
-+
-+	#
-+	# Firmware 56, type: SCODE FW  MONO HAS IF (0x60008000), IF = 4.32 MHz id: NTSC/M Kr (0000000000008000), size: 192
-+	#
-+
-+	write_le32(0x60008000);			# Type
-+	write_le64(0x00000000, 0x00008000);	# ID
-+	write_le16(4320);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(305208, 192);
-+
-+	#
-+	# Firmware 57, type: SCODE FW  HAS IF (0x60000000), IF = 4.45 MHz id: (0000000000000000), size: 192
-+	#
-+
-+	write_le32(0x60000000);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le16(4450);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(309816, 192);
-+
-+	#
-+	# Firmware 58, type: SCODE FW  MTS LCD NOGD MONO IF HAS IF (0x6002b004), IF = 4.50 MHz id: NTSC PAL/M PAL/N (000000000000b700), size: 192
-+	#
-+
-+	write_le32(0x6002b004);			# Type
-+	write_le64(0x00000000, 0x0000b700);	# ID
-+	write_le16(4500);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(304824, 192);
-+
-+	#
-+	# Firmware 59, type: SCODE FW  LCD NOGD IF HAS IF (0x60023000), IF = 4.60 MHz id: NTSC/M Kr (0000000000008000), size: 192
-+	#
-+
-+	write_le32(0x60023000);			# Type
-+	write_le64(0x00000000, 0x00008000);	# ID
-+	write_le16(4600);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(305016, 192);
-+
-+	#
-+	# Firmware 60, type: SCODE FW  DTV6 QAM DTV7 DTV78 DTV8 ZARLINK456 HAS IF (0x620003e0), IF = 4.76 MHz id: (0000000000000000), size: 192
-+	#
-+
-+	write_le32(0x620003e0);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le16(4760);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(304440, 192);
-+
-+	#
-+	# Firmware 61, type: SCODE FW  HAS IF (0x60000000), IF = 4.94 MHz id: (0000000000000000), size: 192
-+	#
-+
-+	write_le32(0x60000000);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le16(4940);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(308664, 192);
-+
-+	#
-+	# Firmware 62, type: SCODE FW  HAS IF (0x60000000), IF = 5.26 MHz id: (0000000000000000), size: 192
-+	#
-+
-+	write_le32(0x60000000);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le16(5260);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(307704, 192);
-+
-+	#
-+	# Firmware 63, type: SCODE FW  MONO HAS IF (0x60008000), IF = 5.32 MHz id: PAL/BG A2 NICAM (0000000f00000007), size: 192
-+	#
-+
-+	write_le32(0x60008000);			# Type
-+	write_le64(0x0000000f, 0x00000007);	# ID
-+	write_le16(5320);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(307896, 192);
-+
-+	#
-+	# Firmware 64, type: SCODE FW  DTV7 DTV78 DTV8 DIBCOM52 CHINA HAS IF (0x65000380), IF = 5.40 MHz id: (0000000000000000), size: 192
-+	#
-+
-+	write_le32(0x65000380);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le16(5400);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(304248, 192);
-+
-+	#
-+	# Firmware 65, type: SCODE FW  DTV6 ATSC OREN538 HAS IF (0x60110020), IF = 5.58 MHz id: (0000000000000000), size: 192
-+	#
-+
-+	write_le32(0x60110020);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le16(5580);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(306744, 192);
-+
-+	#
-+	# Firmware 66, type: SCODE FW  HAS IF (0x60000000), IF = 5.64 MHz id: PAL/BG A2 (0000000300000007), size: 192
-+	#
-+
-+	write_le32(0x60000000);			# Type
-+	write_le64(0x00000003, 0x00000007);	# ID
-+	write_le16(5640);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(305592, 192);
-+
-+	#
-+	# Firmware 67, type: SCODE FW  HAS IF (0x60000000), IF = 5.74 MHz id: PAL/BG NICAM (0000000c00000007), size: 192
-+	#
-+
-+	write_le32(0x60000000);			# Type
-+	write_le64(0x0000000c, 0x00000007);	# ID
-+	write_le16(5740);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(305784, 192);
-+
-+	#
-+	# Firmware 68, type: SCODE FW  HAS IF (0x60000000), IF = 5.90 MHz id: (0000000000000000), size: 192
-+	#
-+
-+	write_le32(0x60000000);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le16(5900);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(307512, 192);
-+
-+	#
-+	# Firmware 69, type: SCODE FW  MONO HAS IF (0x60008000), IF = 6.00 MHz id: PAL/DK PAL/I SECAM/K3 SECAM/L SECAM/Lc NICAM (0000000c04c000f0), size: 192
-+	#
-+
-+	write_le32(0x60008000);			# Type
-+	write_le64(0x0000000c, 0x04c000f0);	# ID
-+	write_le16(6000);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(305576, 192);
-+
-+	#
-+	# Firmware 70, type: SCODE FW  DTV6 QAM ATSC LG60 F6MHZ HAS IF (0x68050060), IF = 6.20 MHz id: (0000000000000000), size: 192
-+	#
-+
-+	write_le32(0x68050060);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le16(6200);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(306552, 192);
-+
-+	#
-+	# Firmware 71, type: SCODE FW  HAS IF (0x60000000), IF = 6.24 MHz id: PAL/I (0000000000000010), size: 192
-+	#
-+
-+	write_le32(0x60000000);			# Type
-+	write_le64(0x00000000, 0x00000010);	# ID
-+	write_le16(6240);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(305400, 192);
-+
-+	#
-+	# Firmware 72, type: SCODE FW  MONO HAS IF (0x60008000), IF = 6.32 MHz id: SECAM/K1 (0000000000200000), size: 192
-+	#
-+
-+	write_le32(0x60008000);			# Type
-+	write_le64(0x00000000, 0x00200000);	# ID
-+	write_le16(6320);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(308472, 192);
-+
-+	#
-+	# Firmware 73, type: SCODE FW  HAS IF (0x60000000), IF = 6.34 MHz id: SECAM/K1 (0000000000200000), size: 192
-+	#
-+
-+	write_le32(0x60000000);			# Type
-+	write_le64(0x00000000, 0x00200000);	# ID
-+	write_le16(6340);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(306360, 192);
-+
-+	#
-+	# Firmware 74, type: SCODE FW  MONO HAS IF (0x60008000), IF = 6.50 MHz id: PAL/DK SECAM/K3 SECAM/L NICAM (0000000c044000e0), size: 192
-+	#
-+
-+	write_le32(0x60008000);			# Type
-+	write_le64(0x0000000c, 0x044000e0);	# ID
-+	write_le16(6500);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(308280, 192);
-+
-+	#
-+	# Firmware 75, type: SCODE FW  DTV6 ATSC ATI638 HAS IF (0x60090020), IF = 6.58 MHz id: (0000000000000000), size: 192
-+	#
-+
-+	write_le32(0x60090020);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le16(6580);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(304632, 192);
-+
-+	#
-+	# Firmware 76, type: SCODE FW  HAS IF (0x60000000), IF = 6.60 MHz id: PAL/DK A2 (00000003000000e0), size: 192
-+	#
-+
-+	write_le32(0x60000000);			# Type
-+	write_le64(0x00000003, 0x000000e0);	# ID
-+	write_le16(6600);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(306168, 192);
-+
-+	#
-+	# Firmware 77, type: SCODE FW  MONO HAS IF (0x60008000), IF = 6.68 MHz id: PAL/DK A2 (00000003000000e0), size: 192
-+	#
-+
-+	write_le32(0x60008000);			# Type
-+	write_le64(0x00000003, 0x000000e0);	# ID
-+	write_le16(6680);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(308088, 192);
-+
-+	#
-+	# Firmware 78, type: SCODE FW  DTV6 ATSC TOYOTA794 HAS IF (0x60810020), IF = 8.14 MHz id: (0000000000000000), size: 192
-+	#
-+
-+	write_le32(0x60810020);			# Type
-+	write_le64(0x00000000, 0x00000000);	# ID
-+	write_le16(8140);			# IF
-+	write_le32(192);			# Size
-+	write_hunk(307320, 192);
-+
-+	#
-+	# Firmware 79, type: SCODE FW  HAS IF (0x60000000), IF = 8.20 MHz id: (0000000000000000), size: 192
-+	#
-+
-+#	write_le32(0x60000000);			# Type
-+#	write_le64(0x00000000, 0x00000000);	# ID
-+#	write_le16(8200);			# IF
-+#	write_le32(192);			# Size
-+#	write_hunk(308088, 192);
- }
- 
-+sub main_firmware_27($$$$)
-+{
-+	my $out;
-+	my $j=0;
-+	my $outfile = shift;
-+	my $name    = shift;
-+	my $version = shift;
-+	my $nr_desc = shift;
-+
-+	for ($j = length($name); $j <32; $j++) {
-+		$name = $name.chr(0);
-+	}
-+
- 	open OUTFILE, ">$outfile";
- 	syswrite(OUTFILE, $name);
- 	write_le16($version);
-@@ -906,19 +1678,33 @@
- 	write_hunk(812856, 192);
- }
- 
-+
- sub extract_firmware {
--	my $sourcefile = "hcw85bda.sys";
--	my $hash = "0e44dbf63bb0169d57446aec21881ff2";
--	my $outfile = "xc3028-v27.fw";
--	my $name = "xc2028 firmware";
--	my $version = 519;
--	my $nr_desc = 80;
-+	my $sourcefile_24 = "UDXTTM6000.sys";
-+	my $hash_24 = "cb9deb5508a5e150af2880f5b0066d78";
-+	my $outfile_24 = "xc3028-v24.fw";
-+	my $name_24 = "xc2028 firmware";
-+	my $version_24 = 516;
-+	my $nr_desc_24 = 77;
- 	my $out;
- 
--	verify($sourcefile, $hash);
-+	my $sourcefile_27 = "hcw85bda.sys";
-+	my $hash_27 = "0e44dbf63bb0169d57446aec21881ff2";
-+	my $outfile_27 = "xc3028-v27.fw";
-+	my $name_27 = "xc2028 firmware";
-+	my $version_27 = 519;
-+	my $nr_desc_27 = 80;
-+	my $out;
- 
--	open INFILE, "<$sourcefile";
--	main_firmware($outfile, $name, $version, $nr_desc);
-+	verify($sourcefile_24, $hash_24);
-+	verify($sourcefile_27, $hash_27);
-+
-+	open INFILE, "<$sourcefile_24";
-+	main_firmware_24($outfile_24, $name_24, $version_24, $nr_desc_24);
-+	close INFILE;
-+
-+	open INFILE, "<$sourcefile_27";
-+	main_firmware_27($outfile_27, $name_27, $version_27, $nr_desc_27);
- 	close INFILE;
- }
- 
-
---------------060101070001030402090202--
