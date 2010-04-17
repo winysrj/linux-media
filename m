@@ -1,256 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:23191 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753096Ab0DSKkT (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:12009 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750769Ab0DQRh5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Apr 2010 06:40:19 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Mon, 19 Apr 2010 12:29:59 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v1 2/3] ARM: S5PC100: Add FIMC driver platform helpers
-In-reply-to: <1271673000-3020-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <1271673000-3020-3-git-send-email-s.nawrocki@samsung.com>
-References: <1271673000-3020-1-git-send-email-s.nawrocki@samsung.com>
+	Sat, 17 Apr 2010 13:37:57 -0400
+Subject: Re: cx18: "missing audio" for analog recordings
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mark Lord <mlord@pobox.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	ivtv-devel@ivtvdriver.org, Darren Blaber <dmbtech@gmail.com>
+In-Reply-To: <4BC9A6F8.4010507@pobox.com>
+References: <4B8BE647.7070709@teksavvy.com>
+	 <1267493641.4035.17.camel@palomino.walls.org>
+	 <4B8CA8DD.5030605@teksavvy.com>
+	 <1267533630.3123.17.camel@palomino.walls.org> <4B9DA003.90306@teksavvy.com>
+	 <1268653884.3209.32.camel@palomino.walls.org>  <4BC0FB79.7080601@pobox.com>
+	 <1270940043.3100.43.camel@palomino.walls.org>  <4BC1401F.9080203@pobox.com>
+	 <1270961760.5365.14.camel@palomino.walls.org>
+	 <1270986453.3077.4.camel@palomino.walls.org>  <4BC1CDA2.7070003@pobox.com>
+	 <1271012464.24325.34.camel@palomino.walls.org> <4BC37DB2.3070107@pobox.com>
+	 <1271107061.3246.52.camel@palomino.walls.org> <4BC3D578.9060107@pobox.com>
+	 <4BC3D73D.5030106@pobox.com>  <4BC3D81E.9060808@pobox.com>
+	 <1271154932.3077.7.camel@palomino.walls.org>  <4BC466A1.3070403@pobox.com>
+	 <1271209520.4102.18.camel@palomino.walls.org> <4BC54569.7020301@pobox.com>
+	 <4BC64119.5070200@pobox.com> <1271306803.7643.67.camel@palomino.walls.org>
+	 <4BC6A135.4070400@pobox.com> <1271422766.3086.33.camel@palomino.walls.org>
+	 <4BC9A6F8.4010507@pobox.com>
+Content-Type: text/plain
+Date: Sat, 17 Apr 2010 13:37:10 -0400
+Message-Id: <1271525830.3085.42.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add FIMC driver platform helpers.
+On Sat, 2010-04-17 at 08:18 -0400, Mark Lord wrote:
+> On 16/04/10 08:59 AM, Andy Walls wrote:
+> ..
+> > Accesses to those are orthognal to the rest of the cx18 driver,
+> > including the IRQ handler.  (I agree, its hard to follow things in the
+> > driver; it's very large.)
+> >
+> > Do note, however, that the audio standard detection microcontroller
+> > *does* write to the registers in 0x800-0x9ff *independent* of the linux
+> > cx18 driver.
+> >
+> > Locking with respect to the microcontroller would mean halting and
+> > restarting the microcontroller.  I don't know if that causes it to reset
+> > or not, and I do not know how it affects it's internal timers.
+> ..
+> 
+> Since the problem really does behave like a "race condition" would behave,
+> I wonder if it could have something to do with how/when we modify any of
+> those registers which are shared with the microcontroller?
 
-    Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-    Reviewed-by: Marek Szyprowski <m.szyprowski@samsung.com>
-    Reviewed-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- arch/arm/mach-s5pc100/Kconfig            |   21 +++++++++++++++++++++
- arch/arm/mach-s5pc100/Makefile           |    4 ++++
- arch/arm/mach-s5pc100/include/mach/map.h |    8 ++++++++
- arch/arm/mach-s5pc100/mach-smdkc100.c    |    9 +++++++++
- arch/arm/mach-s5pc100/setup-fimc0.c      |   27 +++++++++++++++++++++++++++
- arch/arm/mach-s5pc100/setup-fimc1.c      |   27 +++++++++++++++++++++++++++
- arch/arm/mach-s5pc100/setup-fimc2.c      |   27 +++++++++++++++++++++++++++
- 7 files changed, 123 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-s5pc100/setup-fimc0.c
- create mode 100644 arch/arm/mach-s5pc100/setup-fimc1.c
- create mode 100644 arch/arm/mach-s5pc100/setup-fimc2.c
+It certainly could.  The changes where we set our preferences in
+registers 0x808-0x80b need to be protected.  We then need to notify the
+microcontroller properly that we have set things.
 
-diff --git a/arch/arm/mach-s5pc100/Kconfig b/arch/arm/mach-s5pc100/Kconfig
-index 092925b..c6f8adf 100644
---- a/arch/arm/mach-s5pc100/Kconfig
-+++ b/arch/arm/mach-s5pc100/Kconfig
-@@ -36,6 +36,21 @@ config S5PC100_SETUP_SDHCI_GPIO
- 	help
- 	  Common setup code for SDHCI gpio.
- 
-+config S5PC100_SETUP_FIMC0
-+	bool
-+	help
-+	  Setup code for FIMC controller 0
-+
-+config S5PC100_SETUP_FIMC1
-+	bool
-+	help
-+	  Setup code for FIMC controller 1
-+
-+config S5PC100_SETUP_FIMC2
-+	bool
-+	help
-+	  Setup code for FIMC controller 2
-+
- config MACH_SMDKC100
- 	bool "SMDKC100"
- 	select CPU_S5PC100
-@@ -48,6 +63,12 @@ config MACH_SMDKC100
- 	select S3C_DEV_HSMMC
- 	select S3C_DEV_HSMMC1
- 	select S3C_DEV_HSMMC2
-+	select S5P_DEV_FIMC0
-+	select S5PC100_SETUP_FIMC0
-+	select S5P_DEV_FIMC1
-+	select S5PC100_SETUP_FIMC1
-+	select S5P_DEV_FIMC2
-+	select S5PC100_SETUP_FIMC2
- 	help
- 	  Machine support for the Samsung SMDKC100
- 
-diff --git a/arch/arm/mach-s5pc100/Makefile b/arch/arm/mach-s5pc100/Makefile
-index d7681bf..c568043 100644
---- a/arch/arm/mach-s5pc100/Makefile
-+++ b/arch/arm/mach-s5pc100/Makefile
-@@ -21,6 +21,10 @@ obj-$(CONFIG_S5PC100_SETUP_I2C1) += setup-i2c1.o
- obj-$(CONFIG_S5PC100_SETUP_SDHCI)       += setup-sdhci.o
- obj-$(CONFIG_S5PC100_SETUP_SDHCI_GPIO)	+= setup-sdhci-gpio.o
- 
-+obj-$(CONFIG_S5PC100_SETUP_FIMC0)	+= setup-fimc0.o
-+obj-$(CONFIG_S5PC100_SETUP_FIMC1)	+= setup-fimc1.o
-+obj-$(CONFIG_S5PC100_SETUP_FIMC2)	+= setup-fimc2.o
-+
- # machine support
- 
- obj-$(CONFIG_MACH_SMDKC100)	+= mach-smdkc100.o
-diff --git a/arch/arm/mach-s5pc100/include/mach/map.h b/arch/arm/mach-s5pc100/include/mach/map.h
-index 9d672fa..2bd72b8 100644
---- a/arch/arm/mach-s5pc100/include/mach/map.h
-+++ b/arch/arm/mach-s5pc100/include/mach/map.h
-@@ -64,6 +64,11 @@
- 
- #define S5P_PA_SDRAM		S5PC100_PA_SDRAM
- 
-+/* FIMC */
-+#define S5PC100_PA_FIMC0	(0xEE200000)
-+#define S5PC100_PA_FIMC1	(0xEE300000)
-+#define S5PC100_PA_FIMC2	(0xEE400000)
-+
- /* compatibiltiy defines. */
- #define S3C_PA_UART		S5PC100_PA_UART
- #define S3C_PA_IIC		S5PC100_PA_IIC0
-@@ -72,5 +77,8 @@
- #define S3C_PA_HSMMC0		S5PC100_PA_HSMMC0
- #define S3C_PA_HSMMC1		S5PC100_PA_HSMMC1
- #define S3C_PA_HSMMC2		S5PC100_PA_HSMMC2
-+#define S5P_PA_FIMC0		S5PC100_PA_FIMC0
-+#define S5P_PA_FIMC1		S5PC100_PA_FIMC1
-+#define S5P_PA_FIMC2		S5PC100_PA_FIMC2
- 
- #endif /* __ASM_ARCH_MAP_H */
-diff --git a/arch/arm/mach-s5pc100/mach-smdkc100.c b/arch/arm/mach-s5pc100/mach-smdkc100.c
-index 1668dba..a7fdabc 100644
---- a/arch/arm/mach-s5pc100/mach-smdkc100.c
-+++ b/arch/arm/mach-s5pc100/mach-smdkc100.c
-@@ -41,6 +41,7 @@
- #include <plat/s5pc100.h>
- #include <plat/fb.h>
- #include <plat/iic.h>
-+#include <plat/fimc.h>
- 
- #define UCON (S3C2410_UCON_DEFAULT | S3C2410_UCON_UCLK)
- #define ULCON (S3C2410_LCON_CS8 | S3C2410_LCON_PNONE | S3C2410_LCON_STOPB)
-@@ -147,6 +148,9 @@ static struct platform_device *smdkc100_devices[] __initdata = {
- 	&s3c_device_hsmmc1,
- 	&s3c_device_hsmmc2,
- 	&s3c_device_onenand,
-+	&s5p_device_fimc0,
-+	&s5p_device_fimc1,
-+	&s5p_device_fimc2,
- };
- 
- static void __init smdkc100_map_io(void)
-@@ -166,6 +170,11 @@ static void __init smdkc100_machine_init(void)
- 
- 	s3c_fb_set_platdata(&smdkc100_lcd_pdata);
- 
-+	/* FIMC */
-+	s5p_fimc0_set_platdata(NULL);
-+	s5p_fimc1_set_platdata(NULL);
-+	s5p_fimc2_set_platdata(NULL);
-+
- 	/* LCD init */
- 	gpio_request(S5PC100_GPD(0), "GPD");
- 	gpio_request(S5PC100_GPH0(6), "GPH0");
-diff --git a/arch/arm/mach-s5pc100/setup-fimc0.c b/arch/arm/mach-s5pc100/setup-fimc0.c
-new file mode 100644
-index 0000000..00693d2
---- /dev/null
-+++ b/arch/arm/mach-s5pc100/setup-fimc0.c
-@@ -0,0 +1,27 @@
-+/* linux/arch/arm/mach-s5pc100/setup-fimc0.c
-+ *
-+ * Copyright (c) 2010 Samsung Electronics
-+ *
-+ * S5PC100 - setup and capabilities definitions for S5P FIMC device 0
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <plat/fimc.h>
-+
-+struct s5p_platform_fimc s5p_fimc0_default_data __initdata = {
-+	.srclk_name	= "dout_mpll",
-+	.clockrate	= 133000000,
-+	.capability	= S5P_FIMC_IN_ROT | S5P_FIMC_OUT_ROT,
-+	/* scaler input pixel size constraints */
-+	.scaler_en_w	= 3264,
-+	.scaler_dis_w	= 8192,
-+	/* input rotator limits for (input) image pixel size */
-+	.in_rot_en_h	= 1280,
-+	.in_rot_dis_w	= 8192,
-+	/* output rotator limits for (output) image pixel size */
-+	.out_rot_en_w	= 1280,
-+	.out_rot_dis_w	= 3264
-+};
-diff --git a/arch/arm/mach-s5pc100/setup-fimc1.c b/arch/arm/mach-s5pc100/setup-fimc1.c
-new file mode 100644
-index 0000000..5a9cecb
---- /dev/null
-+++ b/arch/arm/mach-s5pc100/setup-fimc1.c
-@@ -0,0 +1,27 @@
-+/* linux/arch/arm/mach-s5pc100/setup-fimc1.c
-+ *
-+ * Copyright (c) 2010 Samsung Electronics
-+ *
-+ * S5PC100 - setup and capabilities definitions for S5P FIMC device 1
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <plat/fimc.h>
-+
-+struct s5p_platform_fimc s5p_fimc1_default_data __initdata = {
-+	.srclk_name	= "dout_mpll",
-+	.clockrate	= 133000000,
-+	.capability	= S5P_FIMC_IN_ROT | S5P_FIMC_OUT_ROT,
-+	/* scaler input pixel size constraints */
-+	.scaler_en_w	= 1280,
-+	.scaler_dis_w	= 8192,
-+	/* input rotator limits for (input) image pixel size */
-+	.in_rot_en_h	= 768,
-+	.in_rot_dis_w	= 8192,
-+	/* output rotator limits for (output) image pixel size */
-+	.out_rot_en_w	= 768,
-+	.out_rot_dis_w	= 1280
-+};
-diff --git a/arch/arm/mach-s5pc100/setup-fimc2.c b/arch/arm/mach-s5pc100/setup-fimc2.c
-new file mode 100644
-index 0000000..9fa6c7f
---- /dev/null
-+++ b/arch/arm/mach-s5pc100/setup-fimc2.c
-@@ -0,0 +1,27 @@
-+/* linux/arch/arm/mach-s5pc100/setup-fimc2.c
-+ *
-+ * Copyright (c) 2010 Samsung Electronics
-+ *
-+ * S5PC100 - setup and capabilities definitions for S5P FIMC device 2
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <plat/fimc.h>
-+
-+struct s5p_platform_fimc s5p_fimc2_default_data __initdata = {
-+	.srclk_name	= "dout_mpll",
-+	.clockrate	= 133000000,
-+	.capability	= 0,
-+	/* scaler input pixel size constraints */
-+	.scaler_en_w	= 1440,
-+	.scaler_dis_w	= 8192,
-+	/* input rotator limits for (input) image pixel size */
-+	.in_rot_en_h	= 0,
-+	.in_rot_dis_w	= 1440,
-+	/* output rotator limits for (output) image pixel size */
-+	.out_rot_en_w	= 0,
-+	.out_rot_dis_w	= 1440
-+};
--- 
-1.6.3.3
+Currently tmy latest changes do this:
+
+1. halt the microcontroller by holding it in reset via register 0x803
+(This is our lock out of the microcontroller from modifying registers)
+2. assert the soft reset via register 0x810
+3. set our preferences in register 0x808-0x80b
+4. deassert soft reset via register 0x810
+5. restart the microcontroller via register 0x803
+6. Pulse the format detection reset flag via register 0x9cc
+7. Schedule a 1.5 second delay to come back and check if the
+microcontroller found something.
+
+
+So I'm unsure about 
+
+a. the exact sequencing of the current steps 2-4 (and if steps 2 & 4 are
+needed at all)
+
+b. if we're pulsing the bit in 0x9cc too rapidly in step 6
+
+c. if we should wait a little longer than 1.5 seconds in step 7.
+
+
+
+
+> The cx18 driver *always* does read-modify-write (RMW) of 32-bits at at time,
+> even when just an "8-bit" register is being modified.
+> 
+> If the microcontroller is using/updating the other 24-bits of any of those
+> registers, then the cx18 driver's RMW will destroy values that the microcontroller
+> has written.
+
+The micrcontroller should only read registers 0x808-0x80b and never
+write them.
+
+I suspect the micrcontroller does check and modify the soft reset bit in
+register 0x810 itself at times.  (I do not know what hardware units that
+bit resets, if any.)
+
+Register 0x9cc only ever appears to be read by the microcontroller.
+
+> 
+> Is it possible to write only 8-bits, rather than having to do the RMW on 32-bits ?
+
+Yes it should be possible.  PCI read of bytes are possible PCI bus
+transactions.  I've never tried it, and there are no routines in
+cx18-io.[ch] presently to assist with the occasional failure to write a
+CX23418 register.
+
+You're welcome to check to se if it makes a difference, but please make
+sure you don't modify the firmware loading process, it's pretty touchy.
+
+Regards,
+Andy
+
 
