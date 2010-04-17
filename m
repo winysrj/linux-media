@@ -1,55 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from a-pb-sasl-quonix.pobox.com ([208.72.237.25]:65078 "EHLO
-	sasl.smtp.pobox.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753091Ab0DOOPs (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1112 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755067Ab0DQTh6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Apr 2010 10:15:48 -0400
-Message-ID: <4BC71F86.4020509@pobox.com>
-Date: Thu, 15 Apr 2010 10:15:34 -0400
-From: Mark Lord <mlord@pobox.com>
-MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org, Darren Blaber <dmbtech@gmail.com>
-Subject: Re: cx18: "missing audio" for analog recordings
-References: <4B8BE647.7070709@teksavvy.com>
- <1267493641.4035.17.camel@palomino.walls.org> <4B8CA8DD.5030605@teksavvy.com>
- <1267533630.3123.17.camel@palomino.walls.org> <4B9DA003.90306@teksavvy.com>
- <1268653884.3209.32.camel@palomino.walls.org>  <4BC0FB79.7080601@pobox.com>
- <1270940043.3100.43.camel@palomino.walls.org>  <4BC1401F.9080203@pobox.com>
- <1270961760.5365.14.camel@palomino.walls.org>
- <1270986453.3077.4.camel@palomino.walls.org>  <4BC1CDA2.7070003@pobox.com>
- <1271012464.24325.34.camel@palomino.walls.org> <4BC37DB2.3070107@pobox.com>
- <1271107061.3246.52.camel@palomino.walls.org> <4BC3D578.9060107@pobox.com>
- <4BC3D73D.5030106@pobox.com>  <4BC3D81E.9060808@pobox.com>
- <1271154932.3077.7.camel@palomino.walls.org>  <4BC466A1.3070403@pobox.com>
- <1271209520.4102.18.camel@palomino.walls.org> <4BC54569.7020301@pobox.com>
- <4BC64119.5070200@pobox.com> <1271306803.7643.67.camel@palomino.walls.org>
- <4BC6A135.4070400@pobox.com>
-In-Reply-To: <4BC6A135.4070400@pobox.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sat, 17 Apr 2010 15:37:58 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o3HJbuh9009363
+	for <linux-media@vger.kernel.org>; Sat, 17 Apr 2010 21:37:56 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 17 Apr 2010 21:37:56 +0200 (CEST)
+Message-Id: <201004171937.o3HJbuh9009363@smtp-vbr7.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15/04/10 01:16 AM, Mark Lord wrote:
->
-> for now, I've added lower level spinlock protection onto all
-> register writes,
-..
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-As you expected, this doesn't seem to have cured anything obvious.  :)
+Results of the daily build of v4l-dvb:
 
-I had Mythtv wakeup/record/powerdown several times overnight,
-and it still required "fallbacks" for about half of those.
+date:        Sat Apr 17 19:00:08 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14571:a95a93b29a94
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 184b7c85f31583632ad00c062a295b622759eef3
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-And.. one of the "fallback" recordings still had muted audio.
-Even though my script which checks for that reported "audio ok".
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-rc1-armv5: OK
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-rc1-armv5-davinci: OK
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-armv5-ixp: OK
+linux-2.6.34-rc1-armv5-ixp: OK
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-rc1-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.17-i686: WARNINGS
+linux-2.6.24.7-i686: OK
+linux-2.6.25.20-i686: OK
+linux-2.6.26.8-i686: OK
+linux-2.6.27.44-i686: OK
+linux-2.6.28.10-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: OK
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-rc1-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-rc1-m32r: OK
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-rc1-mips: OK
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-rc1-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.17-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.20-x86_64: OK
+linux-2.6.26.8-x86_64: OK
+linux-2.6.27.44-x86_64: OK
+linux-2.6.28.10-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: OK
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-rc1-x86_64: WARNINGS
+linux-git-armv5: OK
+linux-git-armv5-davinci: OK
+linux-git-armv5-ixp: OK
+linux-git-armv5-omap2: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.7-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.62-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.7-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
-Enough for now.. I'll hack some more on the weekend.
+Detailed results are available here:
 
-cheers
--- 
-Mark Lord
-Real-Time Remedies Inc.
-mlord@pobox.com
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
