@@ -1,43 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:64085 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754465Ab0DENV3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Apr 2010 09:21:29 -0400
-Received: by bwz1 with SMTP id 1so2782374bwz.21
-        for <linux-media@vger.kernel.org>; Mon, 05 Apr 2010 06:21:28 -0700 (PDT)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: STV6110 vs STV6110x
-Date: Mon, 5 Apr 2010 15:21:25 +0200
+Received: from smtp.meta.ua ([194.0.131.41]:55306 "EHLO smtp.meta.ua"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751973Ab0DQPPh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 Apr 2010 11:15:37 -0400
+Received: from 198-147-92-178.pool.ukrtel.net ([178.92.147.198]:54777)
+	by smtp.meta.ua with esmtpsa id 1O39Rc-0001BP-0J by authid <geroin22@meta.ua>
+	for <linux-media@vger.kernel.org>; Sat, 17 Apr 2010 17:56:28 +0300
+Message-ID: <4BC9CC02.5060305@meta.ua>
+Date: Sat, 17 Apr 2010 17:56:02 +0300
+From: "geroin22@meta.ua " <geroin22@meta.ua>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201004051521.25997.pboettcher@kernellabs.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] Add support analog part of Compro Videomate E800
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Igor,
-hi Manu,
+Signed-off-by: Vladimir Geroy geroin22@yandex.ru
 
-I'm currently adding support for a device based on STV0903+STV6110 frontend 
-combination.
-
-Early investigation have shown that for both devices there is a driver - now 
-looking in more detail because I'm doing the actual coding, I'm finding out 
-that there is actually 2 drivers for STV6110.
-
-Which one I need to/can use for my hardware?
-
->From a first glance the actual code is identical (not the coding itself, but 
-the things done). 
-
-Please advise me what to do?
-
-In any case thanks for your initial work on the stv090x-driver (+ stv6110x), 
-Manu - it saves me a lot of time now for my project. Thanks to Igor for the 
-stv6110. I'm sure one of those two is the right for me.
-
--- 
-Patrick Boettcher - KernelLabs
-http://www.kernellabs.com/
+diff -Naur a/linux/drivers/media/video/cx23885/cx23885-cards.c 
+b/linux/drivers/media/video/cx23885/cx23885-cards.c
+--- a/linux/drivers/media/video/cx23885/cx23885-cards.c    2009-11-27 
+16:52:15.000000000 +0200
++++ b/linux/drivers/media/video/cx23885/cx23885-cards.c    2009-12-12 
+15:26:41.370488942 +0200
+@@ -287,7 +287,29 @@
+     },
+     [CX23885_BOARD_COMPRO_VIDEOMATE_E800] = {
+         .name        = "Compro VideoMate E800",
+-        .portc        = CX23885_MPEG_DVB,
++        .porta        = CX23885_ANALOG_VIDEO,
++         .portc        = CX23885_MPEG_DVB,
++        .tuner_type    = TUNER_XC2028,
++        .tuner_addr    = 0x61,
++        .input        = {
++            {
++                .type   = CX23885_VMUX_TELEVISION,
++                .vmux   = CX25840_COMPOSITE2,
++            }, {
++                .type   = CX23885_VMUX_COMPOSITE1,
++                .vmux   = CX25840_COMPOSITE8,
++            }, {
++                .type   = CX23885_VMUX_SVIDEO,
++                .vmux   = CX25840_SVIDEO_LUMA3 |
++                    CX25840_SVIDEO_CHROMA4,
++            }, {
++                .type   = CX23885_VMUX_COMPONENT,
++                .vmux   = CX25840_COMPONENT_ON |
++                    CX25840_VIN1_CH1 |
++                    CX25840_VIN6_CH2 |
++                    CX25840_VIN7_CH3,
++            },
++        },
+     },
+     [CX23885_BOARD_HAUPPAUGE_HVR1290] = {
+         .name        = "Hauppauge WinTV-HVR1290",
