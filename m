@@ -1,115 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2475 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751628Ab0DMTiC (ORCPT
+Received: from canardo.mork.no ([148.122.252.1]:50834 "EHLO canardo.mork.no"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755194Ab0DQVB2 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Apr 2010 15:38:02 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id o3DJbsqK027810
-	for <linux-media@vger.kernel.org>; Tue, 13 Apr 2010 21:38:00 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 13 Apr 2010 21:37:54 +0200 (CEST)
-Message-Id: <201004131938.o3DJbsqK027810@smtp-vbr11.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
+	Sat, 17 Apr 2010 17:01:28 -0400
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+To: Vidar Tyldum Hansen <vidar@tyldum.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: mantis crashes
+References: <20100413150153.GB11631@mail.tyldum.com>
+	<87ochne35i.fsf@nemi.mork.no> <20100413165616.GC11631@mail.tyldum.com>
+	<loom.20100414T133315-652@post.gmane.org>
+	<20100417054749.GA6067@mail.tyldum.com>
+Date: Sat, 17 Apr 2010 23:01:20 +0200
+In-Reply-To: <20100417054749.GA6067@mail.tyldum.com> (Vidar Tyldum Hansen's
+	message of "Sat, 17 Apr 2010 07:47:49 +0200")
+Message-ID: <87aat1dc9r.fsf@nemi.mork.no>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Vidar Tyldum Hansen <vidar@tyldum.com> writes:
 
-Results of the daily build of v4l-dvb:
+> Things left to try hardware-wise is to switch to a different PCI slot,
+> but I guess I'll go down the new kernel route... I'll have to do some
+> research regarding v4l versions in .31, .32 and .33 to figure out to
+> which kernel I can 'backport' mantis without replacing v4l completely.
 
-date:        Tue Apr 13 19:00:16 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14561:7c0b887911cf
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 184b7c85f31583632ad00c062a295b622759eef3
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+I attached a patch for 2.6.32 to http://bugs.debian.org/577264
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc1-armv5: OK
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-rc1-armv5-davinci: WARNINGS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-rc1-armv5-ixp: WARNINGS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-rc1-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.17-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-rc1-i686: WARNINGS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc1-m32r: OK
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-rc1-mips: WARNINGS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-rc1-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.17-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-rc1-x86_64: WARNINGS
-linux-git-armv5: OK
-linux-git-armv5-davinci: OK
-linux-git-armv5-ixp: OK
-linux-git-armv5-omap2: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.7-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.62-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.7-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+This keeps most of the existing DVB subsystem intact, only adding new
+files with the exception of the necessary one-liner in tda10021.c to
+avoid unwanted binding to tda10023.
 
-Detailed results are available here:
+I based the patch on the driver in 2.6.34-rc4, but updating it with
+newer versions should be trivial.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Bjørn
