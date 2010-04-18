@@ -1,50 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:50377 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758246Ab0DHA6W (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Apr 2010 20:58:22 -0400
-Date: Wed, 7 Apr 2010 19:58:21 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: hermann pitton <hermann-pitton@arcor.de>
-cc: Lars Hanisch <dvb@cinnamon-sage.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: RFC: exposing controls in sysfs
-In-Reply-To: <alpine.DEB.1.10.1004071939510.5518@ivanova.isely.net>
-Message-ID: <alpine.DEB.1.10.1004071957070.5518@ivanova.isely.net>
-References: <201004052347.10845.hverkuil@xs4all.nl>  <alpine.DEB.1.10.1004060848540.27169@cnc.isely.net>  <4BBCD3F9.1070207@cinnamon-sage.de> <1270678528.6429.35.camel@pc07.localdom.local> <alpine.DEB.1.10.1004071939510.5518@ivanova.isely.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1325 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751983Ab0DRTls (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Apr 2010 15:41:48 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id o3IJfdCx061888
+	for <linux-media@vger.kernel.org>; Sun, 18 Apr 2010 21:41:47 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 18 Apr 2010 21:41:39 +0200 (CEST)
+Message-Id: <201004181941.o3IJfdCx061888@smtp-vbr6.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 7 Apr 2010, Mike Isely wrote:
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-> 
-> Backwards compatibility is very important and thus any kind of new 
-> interface deserves a lot of forethought to ensure that choices are made 
-> in the present that people will regret in the future.  Making an 
+Results of the daily build of v4l-dvb:
 
-"in the present that people will NOT (!!) regret in the future."
+date:        Sun Apr 18 19:00:19 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14592:b438301e588f
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 184b7c85f31583632ad00c062a295b622759eef3
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-Holy cow, what a typo...  :-)
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-rc1-armv5: OK
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-rc1-armv5-davinci: OK
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-armv5-ixp: OK
+linux-2.6.34-rc1-armv5-ixp: OK
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-rc1-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.17-i686: WARNINGS
+linux-2.6.24.7-i686: OK
+linux-2.6.25.20-i686: OK
+linux-2.6.26.8-i686: OK
+linux-2.6.27.44-i686: OK
+linux-2.6.28.10-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: OK
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-rc1-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-rc1-m32r: OK
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-rc1-mips: OK
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-rc1-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.17-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.20-x86_64: OK
+linux-2.6.26.8-x86_64: OK
+linux-2.6.27.44-x86_64: OK
+linux-2.6.28.10-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: OK
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-rc1-x86_64: WARNINGS
+linux-git-armv5: OK
+linux-git-armv5-davinci: OK
+linux-git-armv5-ixp: OK
+linux-git-armv5-omap2: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.7-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.62-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.7-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
-  -Mike
+Detailed results are available here:
 
-> interface self-describing is one way that helps with compatibility: if 
-> the app can discover on its own how to use the interface then it can 
-> adapt to interface changes in the future.  I think a lot of people get 
-> their brains so wrapped around the "ioctl-way" of doing things and then 
-> they try to map that concept into a sysfs-like (or debugfs-like) 
-> abstraction that they don't see how to naturally take advantage of what 
-> is possible there.
-> 
->   -Mike
-> 
-> 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
--- 
+Full logs are available here:
 
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
