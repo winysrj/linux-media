@@ -1,516 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4010 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754541Ab0DZHdx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Apr 2010 03:33:53 -0400
-Message-Id: <4a55b56f7166edd18f511c2674ce071fee5f79cc.1272267137.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1272267136.git.hverkuil@xs4all.nl>
-References: <cover.1272267136.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Mon, 26 Apr 2010 09:33:51 +0200
-Subject: [PATCH 06/15] [RFC] msp3400: convert to the new control framework
+Received: from racoon.tvdr.de ([188.40.50.18]:43266 "EHLO racoon.tvdr.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752144Ab0DRNTo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Apr 2010 09:19:44 -0400
+Received: from whale.cadsoft.de (whale.tvdr.de [192.168.100.6])
+	by racoon.tvdr.de (8.14.3/8.14.3) with ESMTP id o3IDJfF2020059
+	for <linux-media@vger.kernel.org>; Sun, 18 Apr 2010 15:19:41 +0200
+Message-ID: <4BCB06E7.8050806@tvdr.de>
+Date: Sun, 18 Apr 2010 15:19:35 +0200
+From: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
+Subject: Re: [linux-media] Re: [PATCH] Add FE_CAN_PSK_8 to allow apps to identify
+ PSK_8 capable 	DVB devices
+References: <4BC19294.4010200@tvdr.de> <s2n1a297b361004151321rb51b5225q79842aac2964371b@mail.gmail.com>
+In-Reply-To: <s2n1a297b361004151321rb51b5225q79842aac2964371b@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/msp3400-driver.c   |  248 +++++++++++--------------------
- drivers/media/video/msp3400-driver.h   |   16 ++-
- drivers/media/video/msp3400-kthreads.c |   16 +-
- 3 files changed, 108 insertions(+), 172 deletions(-)
+On 15.04.2010 22:21, Manu Abraham wrote:
+> Hi Klaus,
+> 
+> On Sun, Apr 11, 2010 at 1:12 PM, Klaus Schmidinger
+> <Klaus.Schmidinger@tvdr.de> wrote:
+>> The enum fe_caps provides flags that allow an application to detect
+>> whether a device is capable of handling various modulation types etc.
+>> A flag for detecting PSK_8, however, is missing.
+>> This patch adds the flag FE_CAN_PSK_8 to frontend.h and implements
+>> it for the gp8psk-fe.c and cx24116.c driver (apparently the only ones
+>> with PSK_8). Only the gp8psk-fe.c has been explicitly tested, though.
+> 
+> 
+> The FE_CAN_PSK_8 is a misnomer. In fact what you are looking for is
+> FE_CAN_TURBO_FEC
 
-diff --git a/drivers/media/video/msp3400-driver.c b/drivers/media/video/msp3400-driver.c
-index e9df3cb..de0da40 100644
---- a/drivers/media/video/msp3400-driver.c
-+++ b/drivers/media/video/msp3400-driver.c
-@@ -283,51 +283,6 @@ void msp_set_scart(struct i2c_client *client, int in, int out)
- 		msp_write_dem(client, 0x40, state->i2s_mode);
- }
- 
--void msp_set_audio(struct i2c_client *client)
--{
--	struct msp_state *state = to_state(i2c_get_clientdata(client));
--	int bal = 0, bass, treble, loudness;
--	int val = 0;
--	int reallymuted = state->muted | state->scan_in_progress;
--
--	if (!reallymuted)
--		val = (state->volume * 0x7f / 65535) << 8;
--
--	v4l_dbg(1, msp_debug, client, "mute=%s scanning=%s volume=%d\n",
--		state->muted ? "on" : "off",
--		state->scan_in_progress ? "yes" : "no",
--		state->volume);
--
--	msp_write_dsp(client, 0x0000, val);
--	msp_write_dsp(client, 0x0007, reallymuted ? 0x1 : (val | 0x1));
--	if (state->has_scart2_out_volume)
--		msp_write_dsp(client, 0x0040, reallymuted ? 0x1 : (val | 0x1));
--	if (state->has_headphones)
--		msp_write_dsp(client, 0x0006, val);
--	if (!state->has_sound_processing)
--		return;
--
--	if (val)
--		bal = (u8)((state->balance / 256) - 128);
--	bass = ((state->bass - 32768) * 0x60 / 65535) << 8;
--	treble = ((state->treble - 32768) * 0x60 / 65535) << 8;
--	loudness = state->loudness ? ((5 * 4) << 8) : 0;
--
--	v4l_dbg(1, msp_debug, client, "balance=%d bass=%d treble=%d loudness=%d\n",
--		state->balance, state->bass, state->treble, state->loudness);
--
--	msp_write_dsp(client, 0x0001, bal << 8);
--	msp_write_dsp(client, 0x0002, bass);
--	msp_write_dsp(client, 0x0003, treble);
--	msp_write_dsp(client, 0x0004, loudness);
--	if (!state->has_headphones)
--		return;
--	msp_write_dsp(client, 0x0030, bal << 8);
--	msp_write_dsp(client, 0x0031, bass);
--	msp_write_dsp(client, 0x0032, treble);
--	msp_write_dsp(client, 0x0033, loudness);
--}
--
- /* ------------------------------------------------------------------------ */
- 
- static void msp_wake_thread(struct i2c_client *client)
-@@ -363,98 +318,73 @@ int msp_sleep(struct msp_state *state, int timeout)
- 
- /* ------------------------------------------------------------------------ */
- 
--static int msp_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-+static int msp_s_ctrl(struct v4l2_ctrl *ctrl)
- {
--	struct msp_state *state = to_state(sd);
-+	struct msp_state *state = ctrl_to_state(ctrl);
-+	struct i2c_client *client = v4l2_get_subdevdata(&state->sd);
-+	int val = ctrl->val;
- 
- 	switch (ctrl->id) {
--	case V4L2_CID_AUDIO_VOLUME:
--		ctrl->value = state->volume;
--		break;
--
--	case V4L2_CID_AUDIO_MUTE:
--		ctrl->value = state->muted;
--		break;
--
--	case V4L2_CID_AUDIO_BALANCE:
--		if (!state->has_sound_processing)
--			return -EINVAL;
--		ctrl->value = state->balance;
--		break;
--
--	case V4L2_CID_AUDIO_BASS:
--		if (!state->has_sound_processing)
--			return -EINVAL;
--		ctrl->value = state->bass;
-+	case V4L2_CID_AUDIO_VOLUME: {
-+		/* audio volume cluster */
-+		int reallymuted = state->muted->val | state->scan_in_progress;
-+
-+		if (!reallymuted)
-+			val = (val * 0x7f / 65535) << 8;
-+
-+		v4l_dbg(1, msp_debug, client, "mute=%s scanning=%s volume=%d\n",
-+				state->muted->val ? "on" : "off",
-+				state->scan_in_progress ? "yes" : "no",
-+				state->volume->val);
-+
-+		msp_write_dsp(client, 0x0000, val);
-+		msp_write_dsp(client, 0x0007, reallymuted ? 0x1 : (val | 0x1));
-+		if (state->has_scart2_out_volume)
-+			msp_write_dsp(client, 0x0040, reallymuted ? 0x1 : (val | 0x1));
-+		if (state->has_headphones)
-+			msp_write_dsp(client, 0x0006, val);
- 		break;
--
--	case V4L2_CID_AUDIO_TREBLE:
--		if (!state->has_sound_processing)
--			return -EINVAL;
--		ctrl->value = state->treble;
--		break;
--
--	case V4L2_CID_AUDIO_LOUDNESS:
--		if (!state->has_sound_processing)
--			return -EINVAL;
--		ctrl->value = state->loudness;
--		break;
--
--	default:
--		return -EINVAL;
- 	}
--	return 0;
--}
--
--static int msp_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
--{
--	struct msp_state *state = to_state(sd);
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--
--	switch (ctrl->id) {
--	case V4L2_CID_AUDIO_VOLUME:
--		state->volume = ctrl->value;
--		if (state->volume == 0)
--			state->balance = 32768;
--		break;
--
--	case V4L2_CID_AUDIO_MUTE:
--		if (ctrl->value < 0 || ctrl->value >= 2)
--			return -ERANGE;
--		state->muted = ctrl->value;
--		break;
- 
- 	case V4L2_CID_AUDIO_BASS:
--		if (!state->has_sound_processing)
--			return -EINVAL;
--		state->bass = ctrl->value;
-+		val = ((val - 32768) * 0x60 / 65535) << 8;
-+		msp_write_dsp(client, 0x0002, val);
-+		if (state->has_headphones)
-+			msp_write_dsp(client, 0x0031, val);
- 		break;
- 
- 	case V4L2_CID_AUDIO_TREBLE:
--		if (!state->has_sound_processing)
--			return -EINVAL;
--		state->treble = ctrl->value;
-+		val = ((val - 32768) * 0x60 / 65535) << 8;
-+		msp_write_dsp(client, 0x0003, val);
-+		if (state->has_headphones)
-+			msp_write_dsp(client, 0x0032, val);
- 		break;
- 
- 	case V4L2_CID_AUDIO_LOUDNESS:
--		if (!state->has_sound_processing)
--			return -EINVAL;
--		state->loudness = ctrl->value;
-+		val = val ? ((5 * 4) << 8) : 0;
-+		msp_write_dsp(client, 0x0004, val);
-+		if (state->has_headphones)
-+			msp_write_dsp(client, 0x0033, val);
- 		break;
- 
- 	case V4L2_CID_AUDIO_BALANCE:
--		if (!state->has_sound_processing)
--			return -EINVAL;
--		state->balance = ctrl->value;
-+		val = (u8)((val / 256) - 128);
-+		msp_write_dsp(client, 0x0001, val << 8);
-+		if (state->has_headphones)
-+			msp_write_dsp(client, 0x0030, val << 8);
- 		break;
- 
- 	default:
- 		return -EINVAL;
- 	}
--	msp_set_audio(client);
- 	return 0;
- }
- 
-+void msp_update_volume(struct msp_state *state)
-+{
-+	v4l2_ctrl_s(state->volume, v4l2_ctrl_g(state->volume));
-+}
-+
- /* --- v4l2 ioctls --- */
- static int msp_s_radio(struct v4l2_subdev *sd)
- {
-@@ -472,7 +402,7 @@ static int msp_s_radio(struct v4l2_subdev *sd)
- 		msp3400c_set_mode(client, MSP_MODE_FM_RADIO);
- 		msp3400c_set_carrier(client, MSP_CARRIER(10.7),
- 				MSP_CARRIER(10.7));
--		msp_set_audio(client);
-+		msp_update_volume(state);
- 		break;
- 	case OPMODE_AUTODETECT:
- 	case OPMODE_AUTOSELECT:
-@@ -592,33 +522,6 @@ static int msp_s_i2s_clock_freq(struct v4l2_subdev *sd, u32 freq)
- 	return 0;
- }
- 
--static int msp_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc)
--{
--	struct msp_state *state = to_state(sd);
--
--	switch (qc->id) {
--	case V4L2_CID_AUDIO_VOLUME:
--		return v4l2_ctrl_query_fill(qc, 0, 65535, 65535 / 100, 58880);
--	case V4L2_CID_AUDIO_MUTE:
--		return v4l2_ctrl_query_fill(qc, 0, 1, 1, 0);
--	default:
--		break;
--	}
--	if (!state->has_sound_processing)
--		return -EINVAL;
--	switch (qc->id) {
--	case V4L2_CID_AUDIO_LOUDNESS:
--		return v4l2_ctrl_query_fill(qc, 0, 1, 1, 0);
--	case V4L2_CID_AUDIO_BALANCE:
--	case V4L2_CID_AUDIO_BASS:
--	case V4L2_CID_AUDIO_TREBLE:
--		return v4l2_ctrl_query_fill(qc, 0, 65535, 65535 / 100, 32768);
--	default:
--		return -EINVAL;
--	}
--	return 0;
--}
--
- static int msp_g_chip_ident(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident *chip)
- {
- 	struct msp_state *state = to_state(sd);
-@@ -633,19 +536,14 @@ static int msp_log_status(struct v4l2_subdev *sd)
- 	struct msp_state *state = to_state(sd);
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	const char *p;
-+	char prefix[V4L2_SUBDEV_NAME_SIZE + 20];
- 
- 	if (state->opmode == OPMODE_AUTOSELECT)
- 		msp_detect_stereo(client);
- 	v4l_info(client, "%s rev1 = 0x%04x rev2 = 0x%04x\n",
- 			client->name, state->rev1, state->rev2);
--	v4l_info(client, "Audio:    volume %d%s\n",
--			state->volume, state->muted ? " (muted)" : "");
--	if (state->has_sound_processing) {
--		v4l_info(client, "Audio:    balance %d bass %d treble %d loudness %s\n",
--				state->balance, state->bass,
--				state->treble,
--				state->loudness ? "on" : "off");
--	}
-+	snprintf(prefix, sizeof(prefix), "%s: Audio:    ", sd->name);
-+	v4l2_ctrl_handler_log_status(&state->hdl, prefix);
- 	switch (state->mode) {
- 		case MSP_MODE_AM_DETECT: p = "AM (for carrier detect)"; break;
- 		case MSP_MODE_FM_RADIO: p = "FM Radio"; break;
-@@ -695,12 +593,20 @@ static int msp_resume(struct i2c_client *client)
- 
- /* ----------------------------------------------------------------------- */
- 
-+static const struct v4l2_ctrl_ops msp_ctrl_ops = {
-+	.s_ctrl = msp_s_ctrl,
-+};
-+
- static const struct v4l2_subdev_core_ops msp_core_ops = {
- 	.log_status = msp_log_status,
- 	.g_chip_ident = msp_g_chip_ident,
--	.g_ctrl = msp_g_ctrl,
--	.s_ctrl = msp_s_ctrl,
--	.queryctrl = msp_queryctrl,
-+	.g_ext_ctrls = v4l2_sd_g_ext_ctrls,
-+	.try_ext_ctrls = v4l2_sd_try_ext_ctrls,
-+	.s_ext_ctrls = v4l2_sd_s_ext_ctrls,
-+	.g_ctrl = v4l2_sd_g_ctrl,
-+	.s_ctrl = v4l2_sd_s_ctrl,
-+	.queryctrl = v4l2_sd_queryctrl,
-+	.querymenu = v4l2_sd_querymenu,
- 	.s_std = msp_s_std,
- };
- 
-@@ -728,6 +634,7 @@ static int msp_probe(struct i2c_client *client, const struct i2c_device_id *id)
- {
- 	struct msp_state *state;
- 	struct v4l2_subdev *sd;
-+	struct v4l2_ctrl_handler *hdl;
- 	int (*thread_func)(void *data) = NULL;
- 	int msp_hard;
- 	int msp_family;
-@@ -752,13 +659,7 @@ static int msp_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 
- 	state->v4l2_std = V4L2_STD_NTSC;
- 	state->audmode = V4L2_TUNER_MODE_STEREO;
--	state->volume = 58880;	/* 0db gain */
--	state->balance = 32768;	/* 0db gain */
--	state->bass = 32768;
--	state->treble = 32768;
--	state->loudness = 0;
- 	state->input = -1;
--	state->muted = 0;
- 	state->i2s_mode = 0;
- 	init_waitqueue_head(&state->wq);
- 	/* These are the reset input/output positions */
-@@ -777,8 +678,6 @@ static int msp_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		return -ENODEV;
- 	}
- 
--	msp_set_audio(client);
--
- 	msp_family = ((state->rev1 >> 4) & 0x0f) + 3;
- 	msp_product = (state->rev2 >> 8) & 0xff;
- 	msp_prod_hi = msp_product / 10;
-@@ -849,6 +748,34 @@ static int msp_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 			state->opmode = OPMODE_MANUAL;
- 	}
- 
-+	hdl = &state->hdl;
-+	v4l2_ctrl_handler_init(hdl, 6);
-+	if (state->has_sound_processing) {
-+		v4l2_ctrl_new_std(hdl, &msp_ctrl_ops,
-+			V4L2_CID_AUDIO_BASS, 0, 65535, 65535 / 100, 32768);
-+		v4l2_ctrl_new_std(hdl, &msp_ctrl_ops,
-+			V4L2_CID_AUDIO_TREBLE, 0, 65535, 65535 / 100, 32768);
-+		v4l2_ctrl_new_std(hdl, &msp_ctrl_ops,
-+			V4L2_CID_AUDIO_LOUDNESS, 0, 1, 1, 0);
-+	}
-+	state->volume = v4l2_ctrl_new_std(hdl, &msp_ctrl_ops,
-+			V4L2_CID_AUDIO_VOLUME, 0, 65535, 65535 / 100, 58880);
-+	v4l2_ctrl_new_std(hdl, &msp_ctrl_ops,
-+			V4L2_CID_AUDIO_BALANCE, 0, 65535, 65535 / 100, 32768);
-+	state->muted = v4l2_ctrl_new_std(hdl, &msp_ctrl_ops,
-+			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 0);
-+	sd->ctrl_handler = hdl;
-+	if (hdl->error) {
-+		int err = hdl->error;
-+
-+		v4l2_ctrl_handler_free(hdl);
-+		kfree(state);
-+		return err;
-+	}
-+
-+	v4l2_ctrl_cluster(2, &state->volume);
-+	v4l2_ctrl_handler_setup(hdl);
-+
- 	/* hello world :-) */
- 	v4l_info(client, "MSP%d4%02d%c-%c%d found @ 0x%x (%s)\n",
- 			msp_family, msp_product,
-@@ -903,6 +830,7 @@ static int msp_remove(struct i2c_client *client)
- 	}
- 	msp_reset(client);
- 
-+	v4l2_ctrl_handler_free(&state->hdl);
- 	kfree(state);
- 	return 0;
- }
-diff --git a/drivers/media/video/msp3400-driver.h b/drivers/media/video/msp3400-driver.h
-index d6b3e6d..cba4559 100644
---- a/drivers/media/video/msp3400-driver.h
-+++ b/drivers/media/video/msp3400-driver.h
-@@ -6,6 +6,7 @@
- 
- #include <media/msp3400.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-ctrls.h>
- 
- /* ---------------------------------------------------------------------- */
- 
-@@ -51,6 +52,7 @@ extern int msp_stereo_thresh;
- 
- struct msp_state {
- 	struct v4l2_subdev sd;
-+	struct v4l2_ctrl_handler hdl;
- 	int rev1, rev2;
- 	int ident;
- 	u8 has_nicam;
-@@ -87,9 +89,10 @@ struct msp_state {
- 	int audmode;
- 	int rxsubchans;
- 
--	int volume, muted;
--	int balance, loudness;
--	int bass, treble;
-+	/* volume cluster */
-+	struct v4l2_ctrl *volume;
-+	struct v4l2_ctrl *muted;
-+
- 	int scan_in_progress;
- 
- 	/* thread */
-@@ -104,6 +107,11 @@ static inline struct msp_state *to_state(struct v4l2_subdev *sd)
- 	return container_of(sd, struct msp_state, sd);
- }
- 
-+static inline struct msp_state *ctrl_to_state(struct v4l2_ctrl *ctrl)
-+{
-+	return container_of(ctrl->handler, struct msp_state, hdl);
-+}
-+
- /* msp3400-driver.c */
- int msp_write_dem(struct i2c_client *client, int addr, int val);
- int msp_write_dsp(struct i2c_client *client, int addr, int val);
-@@ -111,7 +119,7 @@ int msp_read_dem(struct i2c_client *client, int addr);
- int msp_read_dsp(struct i2c_client *client, int addr);
- int msp_reset(struct i2c_client *client);
- void msp_set_scart(struct i2c_client *client, int in, int out);
--void msp_set_audio(struct i2c_client *client);
-+void msp_update_volume(struct msp_state *state);
- int msp_sleep(struct msp_state *state, int timeout);
- 
- /* msp3400-kthreads.c */
-diff --git a/drivers/media/video/msp3400-kthreads.c b/drivers/media/video/msp3400-kthreads.c
-index 168bca7..107d9c6 100644
---- a/drivers/media/video/msp3400-kthreads.c
-+++ b/drivers/media/video/msp3400-kthreads.c
-@@ -497,13 +497,13 @@ restart:
- 			v4l_dbg(1, msp_debug, client,
- 				"thread: no carrier scan\n");
- 			state->scan_in_progress = 0;
--			msp_set_audio(client);
-+			msp_update_volume(state);
- 			continue;
- 		}
- 
- 		/* mute audio */
- 		state->scan_in_progress = 1;
--		msp_set_audio(client);
-+		msp_update_volume(state);
- 
- 		msp3400c_set_mode(client, MSP_MODE_AM_DETECT);
- 		val1 = val2 = 0;
-@@ -635,7 +635,7 @@ no_second:
- 		/* unmute */
- 		state->scan_in_progress = 0;
- 		msp3400c_set_audmode(client);
--		msp_set_audio(client);
-+		msp_update_volume(state);
- 
- 		if (msp_debug)
- 			msp3400c_print_mode(client);
-@@ -680,13 +680,13 @@ restart:
- 			v4l_dbg(1, msp_debug, client,
- 				"thread: no carrier scan\n");
- 			state->scan_in_progress = 0;
--			msp_set_audio(client);
-+			msp_update_volume(state);
- 			continue;
- 		}
- 
- 		/* mute audio */
- 		state->scan_in_progress = 1;
--		msp_set_audio(client);
-+		msp_update_volume(state);
- 
- 		/* start autodetect. Note: autodetect is not supported for
- 		   NTSC-M and radio, hence we force the standard in those
-@@ -798,7 +798,7 @@ restart:
- 		/* unmute */
- 		msp3400c_set_audmode(client);
- 		state->scan_in_progress = 0;
--		msp_set_audio(client);
-+		msp_update_volume(state);
- 
- 		/* monitor tv audio mode, the first time don't wait
- 		   so long to get a quick stereo/bilingual result */
-@@ -975,7 +975,7 @@ restart:
- 			v4l_dbg(1, msp_debug, client,
- 				"thread: no carrier scan\n");
- 			state->scan_in_progress = 0;
--			msp_set_audio(client);
-+			msp_update_volume(state);
- 			continue;
- 		}
- 
-@@ -1021,7 +1021,7 @@ unmute:
- 		}
- 
- 		/* unmute: dispatch sound to scart output, set scart volume */
--		msp_set_audio(client);
-+		msp_update_volume(state);
- 
- 		/* restore ACB */
- 		if (msp_write_dsp(client, 0x13, state->acb))
--- 
-1.6.4.2
+Well, when processing the NIT data in VDR, for instance, the possible
+modulation types that can be used according to the driver's frontend.h
+are
+        QPSK,
+        QAM_16,
+        QAM_32,
+        QAM_64,
+        QAM_128,
+        QAM_256,
+        QAM_AUTO,
+        VSB_8,
+        VSB_16,
+        PSK_8,
+        APSK_16,
+        APSK_32,
+        DQPSK,
 
+There is nothing in frontend.h that would be in any way related to
+"turbo fec" (whatever that may be).
+
+Of course we can rename FE_CAN_PSK_8 to FE_CAN_TURBO_FEC, but wouldn't
+something like
+
+ if (Modulation == PSK_8 && !(frontendInfo.caps & FE_CAN_TURBO_FEC))
+    return false;
+
+be even more irritating than a straight forward
+
+ if (Modulation == PSK_8 && !(frontendInfo.caps & FE_CAN_PSK_8))
+    return false;
+
+After all it's
+
+ if (Modulation == QAM_256 && !(frontendInfo.caps & FE_CAN_QAM_256))
+    return false;
+
+Please advise. Whatever you prefer is fine with me.
+All I need in VDR is a flag that allows me to detect whether a device
+can handle a given transponder's modulation. I don't really care how
+that flag is named ;-).
+
+> FE_CAN_8PSK will be matched by any DVB-S2 capable frontend, so that
+> name is very likely to cause a very large confusion.
+
+I chose FE_CAN_PSK_8 over FE_CAN_8PSK, because the modulation itself
+is named PSK_8. This allows for easily finding all PSK_8 related places
+with 'grep'. Personally I find the FE_CAN_8VSB and FE_CAN_16VSB misnomers,
+because the modulations are named VSB_8 and VSB_16, respectively. They
+should have been named FE_CAN_VSB_8 and FE_CAN_VSB_16 in the first place.
+But that's, of course, a different story...
+
+Klaus Schmidinger
+
+> Another thing I am not entirely sure though ... The cx24116 requires a
+> separate firmware and maybe some necessary code changes (?) for Turbo
+> FEC to be supported, so I wonder whether applying the flag to the
+> cx24116 driver would be any relevant....
+> 
+> With regards to the Genpix driver, i guess the flag would be necessary.
+> 
+>> Signed-off-by: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
+>> Tested-by: Derek Kelly <user.vdr@gmail.com>
+> 
+> Other than for the naming of the Flag (which i suggest strongly to
+> update the patch) and the application to the cx24116 driver, it looks
+> appropriate;
+> 
+> Acked-by: Manu Abraham <manu@linuxtv.org>
+> 
+> 
+> 
+> 
+>>
+>> --- linux/include/linux/dvb/frontend.h.001      2010-04-05 16:13:08.000000000 +0200
+>> +++ linux/include/linux/dvb/frontend.h  2010-04-10 12:08:47.000000000 +0200
+>> @@ -62,6 +62,7 @@
+>>        FE_CAN_8VSB                     = 0x200000,
+>>        FE_CAN_16VSB                    = 0x400000,
+>>        FE_HAS_EXTENDED_CAPS            = 0x800000,   /* We need more bitspace for newer APIs, indicate this. */
+>> +       FE_CAN_PSK_8                    = 0x8000000,  /* frontend supports "8psk modulation" */
+>>        FE_CAN_2G_MODULATION            = 0x10000000, /* frontend supports "2nd generation modulation" (DVB-S2) */
+>>        FE_NEEDS_BENDING                = 0x20000000, /* not supported anymore, don't use (frontend requires frequency bending) */
+>>        FE_CAN_RECOVER                  = 0x40000000, /* frontend can recover from a cable unplug automatically */
+>> --- linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c.001     2010-04-05 16:13:08.000000000 +0200
+>> +++ linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c 2010-04-10 12:18:37.000000000 +0200
+>> @@ -349,7 +349,7 @@
+>>                         * FE_CAN_QAM_16 is for compatibility
+>>                         * (Myth incorrectly detects Turbo-QPSK as plain QAM-16)
+>>                         */
+>> -                       FE_CAN_QPSK | FE_CAN_QAM_16
+>> +                       FE_CAN_QPSK | FE_CAN_QAM_16 | FE_CAN_PSK_8
+>>        },
+>>
+>>        .release = gp8psk_fe_release,
+>> --- linux/drivers/media/dvb/frontends/cx24116.c.001     2010-04-05 16:13:08.000000000 +0200
+>> +++ linux/drivers/media/dvb/frontends/cx24116.c 2010-04-10 13:40:32.000000000 +0200
+>> @@ -1496,7 +1496,7 @@
+>>                        FE_CAN_FEC_4_5 | FE_CAN_FEC_5_6 | FE_CAN_FEC_6_7 |
+>>                        FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
+>>                        FE_CAN_2G_MODULATION |
+>> -                       FE_CAN_QPSK | FE_CAN_RECOVER
+>> +                       FE_CAN_QPSK | FE_CAN_RECOVER | FE_CAN_PSK_8
+>>        },
+>>
+>>        .release = cx24116_release,
