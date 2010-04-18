@@ -1,61 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:55138 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758109Ab0DHAwV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Apr 2010 20:52:21 -0400
-Date: Wed, 7 Apr 2010 19:52:20 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	linux-media@vger.kernel.org
-Subject: Re: RFC: exposing controls in sysfs
-In-Reply-To: <201004070856.40867.hverkuil@xs4all.nl>
-Message-ID: <alpine.DEB.1.10.1004071947520.5518@ivanova.isely.net>
-References: <201004052347.10845.hverkuil@xs4all.nl> <alpine.DEB.1.10.1004061008500.27169@cnc.isely.net> <201004070039.20167.hverkuil@xs4all.nl> <201004070856.40867.hverkuil@xs4all.nl>
-Mime-Version: 1.0
+Received: from smtp102.rog.mail.re2.yahoo.com ([206.190.36.80]:30705 "HELO
+	smtp102.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752011Ab0DRPNQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Apr 2010 11:13:16 -0400
+Message-ID: <4BCB1FF4.5090103@rogers.com>
+Date: Sun, 18 Apr 2010 11:06:28 -0400
+From: CityK <cityk@rogers.com>
+MIME-Version: 1.0
+To: Carlos Lavin <carlos.lavin@vista-silicon.com>,
+	Linux-media <linux-media@vger.kernel.org>,
+	video4linux-list <video4linux-list@redhat.com>
+Subject: Re: hue
+References: <t2zfe6fd5f61004160241k8e6e6418h8b9a796a33e41c2d@mail.gmail.com>
+In-Reply-To: <t2zfe6fd5f61004160241k8e6e6418h8b9a796a33e41c2d@mail.gmail.com>
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 7 Apr 2010, Hans Verkuil wrote:
+Hi Carlos,
 
-   [...]
+the video4linux mailing list is all but dead and has been superseded by
+the linux-media mailing list (Lmml). I've cc'ed the Lmml with this reply.
 
-> 
-> Perhaps we should just not do this in sysfs at all but in debugfs? We have a
-> lot more freedom there. No requirement of one-value-per-file, and if we need
-> to we can change things in the future. It would actually be easier to issue
-> ioctl commands to a driver from debugfs since we have a proper struct file
-> there.
-> 
-> It could be implemented as a separate module that can be loaded if debugfs is
-> enabled and suddenly you have all this extra debug functionality.
-> 
-> I admit, I would really enjoy writing something like this. I just don't want
-> to do this in sysfs as that makes it too 'official' so to speak. In other words,
-> mainline applications should not use sysfs, but home-grown scripts are free to
-> use it as far as I am concerned.
-> 
-> How much of a problem would that be for you, Mike? On the one hand users have
-> to mount debugfs, but on the other hand it will be consistent for all drivers
-> that use the control framework. And you should be able to ditch a substantial
-> amount of code :-)
-
-Adding a debugfs interface that can be used by all V4L drivers is 
-obviously a concept I would not have any problem with.
-
-However that does not necessarily mean that I would agree with eventual 
-removal of the pvrusb2 driver's existing sysfs interface.  That would 
-depend on whether or not doing such a thing loses functionality and what 
-the driver's user community would think about it.
-
-  -Mike
-
-
--- 
-
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+Carlos Lavin wrote:
+> hello, I am develop a driver for a sensor of omnivision ov7670 for work only
+> soc-camera subsystem in the version 2.6.30. I have a problem with the hue,
+> when I put the color bars after DSP, the color fo this bars aren't corrects,
+> the hue function are same that the ov7670 mainline. any body know anything
+> about this topic?
