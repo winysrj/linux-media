@@ -1,107 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54314 "EHLO mx1.redhat.com"
+Received: from kroah.org ([198.145.64.141]:45555 "EHLO coco.kroah.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758680Ab0DAR5x convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 13:57:53 -0400
-Date: Thu, 1 Apr 2010 14:56:32 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: linux-input@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 00/15] ir-core: Several improvements to allow adding LIRC
- and decoder plugins
-Message-ID: <20100401145632.5631756f@pedra>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	id S1750715Ab0DSSci (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Apr 2010 14:32:38 -0400
+Date: Mon, 19 Apr 2010 11:21:40 -0700
+From: Greg KH <greg@kroah.com>
+To: =?iso-8859-1?Q?Bj=F8rn?= Mork <bjorn@mork.no>
+Cc: linux-media@vger.kernel.org, stable@kernel.org
+Subject: Re: [stable] [PATCH v2] V4L/DVB: budget: Oops: "BUG: unable to
+ handle kernel NULL pointer dereference"
+Message-ID: <20100419182140.GE32347@kroah.com>
+References: <1269428277-6709-1-git-send-email-bjorn@mork.no>
+ <201003241325.52864@orion.escape-edv.de>
+ <1269436658-20370-1-git-send-email-bjorn@mork.no>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1269436658-20370-1-git-send-email-bjorn@mork.no>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series of 15 patches improves support for IR, as discussed at the
-"What are the goals for the architecture of an in-kernel IR system?"
-thread.
+On Wed, Mar 24, 2010 at 02:17:38PM +0100, Bjørn Mork wrote:
+> Never call dvb_frontend_detach if we failed to attach a frontend. This fixes
+> the following oops:
+> 
+> [    8.172997] DVB: registering new adapter (TT-Budget S2-1600 PCI)
+> [    8.209018] adapter has MAC addr = 00:d0:5c:cc:a7:29
+> [    8.328665] Intel ICH 0000:00:1f.5: PCI INT B -> GSI 17 (level, low) -> IRQ 17
+> [    8.328753] Intel ICH 0000:00:1f.5: setting latency timer to 64
+> [    8.562047] DVB: Unable to find symbol stv090x_attach()
+> [    8.562117] BUG: unable to handle kernel NULL pointer dereference at 000000ac
+> [    8.562239] IP: [<e08b04a3>] dvb_frontend_detach+0x4/0x67 [dvb_core]
+> 
+> Ref http://bugs.debian.org/575207
+> 
+> Also clean up if we are unable to register the tuner and LNB drivers
+> 
+> Signed-off-by: Bjørn Mork <bjorn@mork.no>
+> Cc: stable@kernel.org
+> Reported-by: Fladischer Michael <FladischerMichael@fladi.at>
+> ---
+> Oliver Endriss <o.endriss@gmx.de> writes:
+> 
+> > Could you please extend your patch in a way
+> > that it will also catch, if
+> > - dvb_attach(stv6110x_attach,...)
+> > - dvb_attach(isl6423_attach,...)
+> > fail?
+> 
+> OK.  Attempting, although I have no clue whether such failures are really
+> fatal or not...
+> 
+> This is version 2 of this patch, adding cleanup in case we fail to register
+> the two submodules used by this card/frontend.  I'm not certain that this 
+> additional cleanup is appropriate for stable as any failure to register 
+> these will be handled cleanly AFAICS.  But I have no way to test this.
+> 
+> This patch should apply cleanly to 2.6.32, 2.6.33, 2.6.34-rc2
+> 
+> This does not apply cleanly to git://linuxtv.org/v4l-dvb.git master.  I will 
+> followup with a similar patch for that branch
+> 
+> Please apply to stable if appropriate.  If not, please apply version 1
+> of the patch, which fixes only the oops condition.
 
-It basically adds a raw decoder layer at ir-core, allowing decoders to plug
-into IR core, and preparing for the addition of a lirc_dev driver that will
-allow raw IR codes to be sent to userspace.
+Any reason why this patch isn't in Linus's tree yet?
 
-There's no lirc patch in this series. I have also a few other patches from
-David Härdeman that I'm about to test/review probably later today, but
-as I prefer to first merge what I have at V4L/DVB tree, before applying
-them.
+thanks,
 
-There are two patches on this series that deserve a better analysis, IMO:
-
--  V4L/DVB: ir-core: rename sysfs remote controller class from ir to rc
-
-As discussed, "IR" is not a good name, as this infrastructure could later
-be used by other types of Remote Controllers, as it has nothing that
-is specific to IR inside the code, except for the name. So, I'm proposing
-to replace the sysfs notes do "rc", instead of "ir". The sooner we do
-such changes, the better, as userspace apps using it are still under
-development. So, an API change is still possible, without causing
-much hurt.
-
-Also, as some RC devices allow RC code transmission, we probably need to add
-a TX node somewhere, associated with the same RX part (as some devices
-don't allow simultaneous usage of TX and RX).
-
-So, we have a few alternatives for the RC device sysfs node:
-a) /sys/class/rc/rc0
-                 |--> rx
-                 ---> tx
-b) /sys/class/rc/rcrcv0
-   /sys/class/rc/rctx0
-
-c) /sys/class/rc/rc0
-  and have there the RX and TX nodes/attributes mixed. IMO, (b) is a bad idea,
-so, I am between (a) and (c).
-
--  V4L/DVB: input: Add support for EVIO[CS]GKEYCODEBIG
-
-Adds two new ioctls in order to handle with big keycode tables. As already
-said, we'll need another ioctl, in order to get the maximum keycode supported
-by a given device. I didn't wrote the patch for the new ioctl yet.
-This patch will probably have a small conflict with upstream input, but I
-prefer to keep it on my tree and fix the upstream conflicts when submiting
-it, as the rest of the new IR code is also on my tree, and this patch is
-needed to procced with the IR code development.
-
-Mauro Carvalho Chehab (15):
-  V4L/DVB: ir-core: be less pedantic with RC protocol name
-  V4L/DVB: saa7134: use a full scancode table for M135A
-  V4L/DVB: saa7134: add code to allow changing IR protocol
-  V4L/DVB: ir-core: Add logic to decode IR protocols at the IR core
-  V4L/DVB: ir-core: add two functions to report keyup/keydown events
-  V4L/DVB: ir-core/saa7134: Move ir keyup/keydown code to the ir-core
-  V4L/DVB: saa7134: don't wait too much to generate an IR event on raw_decode
-  V4L/DVB: ir-core: dynamically load the compiled IR protocols
-  V4L/DVB: ir-core: prepare to add more operations for ir decoders
-  V4L/DVB: ir-nec-decoder: Add sysfs node to enable/disable per irrcv
-  V4L/DVB: saa7134: clear warning noise
-  V4L/DVB: ir-core: rename sysfs remote controller class from ir to rc
-  V4L/DVB: ir-core: Add callbacks for input/evdev open/close on IR core
-  V4L/DVB: cx88: Only start IR if the input device is opened
-  V4L/DVB: input: Add support for EVIO[CS]GKEYCODEBIG
-
- drivers/input/evdev.c                       |   39 +++
- drivers/input/input.c                       |  260 ++++++++++++++++++--
- drivers/media/IR/Kconfig                    |    9 +
- drivers/media/IR/Makefile                   |    3 +-
- drivers/media/IR/ir-keymaps.c               |   98 ++++----
- drivers/media/IR/ir-keytable.c              |   75 ++++++-
- drivers/media/IR/ir-nec-decoder.c           |  351 +++++++++++++++++++++++++++
- drivers/media/IR/ir-raw-event.c             |  231 ++++++++++++++++++
- drivers/media/IR/ir-sysfs.c                 |   29 ++-
- drivers/media/video/cx88/cx88-input.c       |   69 +++++-
- drivers/media/video/cx88/cx88-video.c       |    6 +-
- drivers/media/video/cx88/cx88.h             |    6 +-
- drivers/media/video/saa7134/saa7134-core.c  |    2 +-
- drivers/media/video/saa7134/saa7134-input.c |  207 +++++++++++++++--
- drivers/media/video/saa7134/saa7134.h       |    4 +-
- include/linux/input.h                       |   40 +++-
- include/media/ir-common.h                   |    9 +-
- include/media/ir-core.h                     |   59 +++++-
- 18 files changed, 1368 insertions(+), 129 deletions(-)
- create mode 100644 drivers/media/IR/ir-nec-decoder.c
- create mode 100644 drivers/media/IR/ir-raw-event.c
-
+greg k-h
