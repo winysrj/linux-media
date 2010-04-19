@@ -1,127 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:64526 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753040Ab0DIOVb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 Apr 2010 10:21:31 -0400
-Message-ID: <4BBF37D9.2060206@redhat.com>
-Date: Fri, 09 Apr 2010 11:21:13 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-yw0-f194.google.com ([209.85.211.194]:41006 "EHLO
+	mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751214Ab0DSGe5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Apr 2010 02:34:57 -0400
+Received: by ywh32 with SMTP id 32so2571820ywh.33
+        for <linux-media@vger.kernel.org>; Sun, 18 Apr 2010 23:34:57 -0700 (PDT)
 MIME-Version: 1.0
-To: Oliver Endriss <o.endriss@gmx.de>
-CC: =?ISO-8859-1?Q?Bj=F8rn_Mork?= <bjorn@mork.no>,
-	linux-media@vger.kernel.org, stable@kernel.org
-Subject: Re: [PATCH] V4L/DVB: budget-av: wait longer for frontend to power
- on
-References: <1269200787-30681-1-git-send-email-bjorn@mork.no> <4BBE477E.80006@redhat.com> <201004091607.18364@orion.escape-edv.de>
-In-Reply-To: <201004091607.18364@orion.escape-edv.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <u2wc58d1d9d1004171056t879761f9n5acb957d5bfa9a4@mail.gmail.com>
+References: <u2wc58d1d9d1004171056t879761f9n5acb957d5bfa9a4@mail.gmail.com>
+Date: Mon, 19 Apr 2010 14:34:56 +0800
+Message-ID: <u2qc58d1d9d1004182334k912a9d90vb4c5c6a370f87b2d@mail.gmail.com>
+Subject: Problem in USB DVB devices: dvb-usb: recv bulk message failed: -110
+From: Halu Wong <waichai@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Oliver Endriss wrote:
-> Mauro Carvalho Chehab wrote:
->> Bjørn Mork wrote:
->>> Some devices need much more time than 100ms to power on, leading to a
->>> failure to enable the frontend on the first attempt. Instead we get
->>>
->>> [   38.194200] saa7146: register extension 'budget_av'.
->>> [   38.253828] budget_av 0000:05:01.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
->>> [   38.601572] saa7146: found saa7146 @ mem ffffc90000c6ac00 (revision 1, irq 17) (0x1894,0x0022).
->>> [   39.251324] saa7146 (0): dma buffer size 1347584
->>> [   39.306757] DVB: registering new adapter (KNC1 DVB-C MK3)
->>> [   39.462785] adapter failed MAC signature check
->>> [   39.516159] encoded MAC from EEPROM was ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff
->>> [   39.892397] KNC1-0: MAC addr = 00:09:d6:6d:94:5c
->>> [   40.552028] saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
->>> [   40.580044] saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
->>> [   40.608026] saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
->>> [   40.636027] saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
->>> [   40.652026] DVB: TDA10023(-1): tda10023_writereg, writereg error (reg == 0x00, val == 0x33, ret == -5)
->>> [   40.664027] saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
->>> [   40.692027] saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
->>> [   40.720027] saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
->>> [   40.748027] saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for end of xfer
->>> [   40.764025] DVB: TDA10023(-1): tda10023_readreg: readreg error (reg == 0x1a, ret == -5)
->>> [   40.764067] budget-av: A frontend driver was not found for device [1131:7146] subsystem [1894:0022]
->>>
->>> Unloading and the reloading the driver will work around this problem.  But
->>> it can also be easily fixed by increasing the wait period after powering
->>> on.  The optimum value is unclear to me.  But I've found the 500 ms is not
->>> enough.  5 s is enough for my card, but might be more than actually needed.
->>> However, as long as we don't handle this failure more gracefully, then the
->>> timeout need to be long enough.
->>>
->>> Signed-off-by: Bjørn Mork <bjorn@mork.no>
->>> Cc: stable@kernel.org
->>> ---
->>> Hello,
->>>
->>> I have recently bought a KNC1 clone, called Mystique CaBiX-C2.  This card 
->>> would just not work on reboot in my system, giving the errors shown above.
->>> Unloading the module and then loading it again always fixed the problem,
->>> indicating that it was just a startup timing problem.
->>>
->>> As you can see, the i2c timeouts are from the frontend attach function, 
->>> tda10023_attach():
->>> 	/* wakeup if in standby */
->>> 	tda10023_writereg (state, 0x00, 0x33);
->>> 	/* check if the demod is there */
->>> 	if ((tda10023_readreg(state, 0x1a) & 0xf0) != 0x70) goto error;
->>>
->>> cleary showing that it just isn't responding yet at that point.
->>>
->>> I first tried increasing the msleep() to 500 ms, but still got the same
->>> error.  Increasing it to 5000 ms helped, however, and made my card work
->>> from boot.  I have not tried any values inbetween, as each attempt AFAIK
->>> requires a reboot to get the card into the "cold state" where it will
->>> fail.
->>>
->>> dmesg with the patch installed:
->>>
->>> [   37.786955] saa7146: register extension 'budget_av'.
->>> [   37.846592] budget_av 0000:05:01.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
->>> [   37.933318] saa7146: found saa7146 @ mem ffffc90000c70c00 (revision 1, irq 17) (0x1894,0x0022).
->>> [   38.037851] saa7146 (0): dma buffer size 1347584
->>> [   38.093224] DVB: registering new adapter (KNC1 DVB-C MK3)
->>> [   38.194254] adapter failed MAC signature check
->>> [   38.247527] encoded MAC from EEPROM was ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff
->>> [   38.622678] KNC1-0: MAC addr = 00:09:d6:6d:94:5c
->>> [   43.765897] DVB: registering adapter 0 frontend 0 (Philips TDA10023 DVB-C)...
->>> [   43.851587] budget-av: ci interface initialised.
->>>
->>> Please consider this patch.  Or maybe it is possible to wait smarter,
->>> testing actual frontend power status instead of just a blind sleep?
->>>
->>> I've also included a CC stable as I've had the same problem with the 2.6.32
->>> and 2.6.33 stable drivers.
->> Are you sure you really need 5 seconds to initialize? This time is probably
->> board-specific, and shouldn't be applied as-is. So, if you really need such
->> high timeout, it should be added inside the switch.
->>
->> I dunno if is there a way to test if the power-on cycle has completed,
->> but for sure an approach like that would be better than blindly waiting
->> for 5 secs.
-> 
-> Mauro, please do not apply this patch!
+Hi all,
+I got a Mygica D689 which already have driver in v4l-dvb.
+But i can only get it work in VM (VMware player) but not in a real machine.
+Both using the same distribution/kernel/v4l-dvb etc.
+- Fedora 11 (32 bits)
+- Standard installation with the default kernel:Â 2.6.29.4-167.fc11.i686.PAE
+- with development tools/libraries installed
+download the latest v4l-dvb
+#hg clone http://www.linuxtv.org/hg/v4l-dvb
+#cdÂ v4l-dvb
+#make
+- remove all the things in
+"/lib/modules/2.6.29.4-167.fc11.i686.PAE/kernel/drivers/media"
+# make install
+plug the Mygica D689,
+message in real machine:
+Apr 18 09:23:06 localhost kernel: usb 1-7: new high speed USB device
+using ehci_hcd and address 3
+Apr 18 09:23:06 localhost kernel: usb 1-7: New USB device found,
+idVendor=0572, idProduct=d811
+Apr 18 09:23:06 localhost kernel: usb 1-7: New USB device strings:
+Mfr=1, Product=2, SerialNumber=3
+Apr 18 09:23:06 localhost kernel: usb 1-7: Product: USB Stick
+Apr 18 09:23:06 localhost kernel: usb 1-7: Manufacturer: Geniatech
+Apr 18 09:23:06 localhost kernel: usb 1-7: SerialNumber: 080116
+Apr 18 09:23:06 localhost kernel: usb 1-7: configuration #1 chosen from 1 choice
+Apr 18 09:23:06 localhost kernel: dvb-usb: found a 'Mygica D689
+DMB-TH' in warm state.
+Apr 18 09:23:06 localhost kernel: dvb-usb: will pass the complete
+MPEG2 transport stream to the software demuxer.
+Apr 18 09:23:06 localhost kernel: DVB: registering new adapter (Mygica
+D689 DMB-TH)
+Apr 18 09:23:07 localhost kernel: DVB: registering adapter 0 frontend
+0 (AltoBeam ATBM8830/8831 DMB-TH)...
+Apr 18 09:23:07 localhost kernel: input: IR-receiver inside an USB DVB
+receiver as /devices/pci0000:00/0000:00:1d.7/usb1/1-7/input/input6
+Apr 18 09:23:07 localhost kernel: dvb-usb: schedule remote query
+interval to 100 msecs.
+Apr 18 09:23:07 localhost kernel: dvb-usb: Mygica D689 DMB-TH
+successfully initialized and connected.
+Apr 18 09:23:07 localhost kernel: usbcore: registered new interface
+driver dvb_usb_cxusb
+Apr 18 09:23:09 localhost kernel: dvb-usb: recv bulk message failed: -110
+message in VM:
+Apr 18 09:51:51 f11vm kernel: usb 1-1: new high speed USB device using
+ehci_hcd and address 2
+Apr 18 09:51:51 f11vm kernel: usb 1-1: New USB device found,
+idVendor=0572, idProduct=d811
+Apr 18 09:51:51 f11vm kernel: usb 1-1: New USB device strings: Mfr=1,
+Product=2, SerialNumber=3
+Apr 18 09:51:51 f11vm kernel: usb 1-1: Product: USB Stick
+Apr 18 09:51:51 f11vm kernel: usb 1-1: Manufacturer: Geniatech
+Apr 18 09:51:51 f11vm kernel: usb 1-1: SerialNumber: 080116
+Apr 18 09:51:52 f11vm kernel: usb 1-1: configuration #1 chosen from 1 choice
+Apr 18 09:51:52 f11vm kernel: dvb-usb: found a 'Mygica D689 DMB-TH' in
+warm state.
+Apr 18 09:51:52 f11vm kernel: dvb-usb: will pass the complete MPEG2
+transport stream to the software demuxer.
+Apr 18 09:51:52 f11vm kernel: DVB: registering new adapter (Mygica D689 DMB-TH)
+Apr 18 09:51:53 f11vm kernel: DVB: registering adapter 0 frontend 0
+(AltoBeam ATBM8830/8831 DMB-TH)...
+Apr 18 09:51:54 f11vm kernel: input: IR-receiver inside an USB DVB
+receiver as /devices/pci0000:00/0000:00:11.0/0000:02:03.0/usb1/1-1/input/input5
+Apr 18 09:51:54 f11vm kernel: dvb-usb: schedule remote query interval
+to 100 msecs.
+Apr 18 09:51:54 f11vm kernel: dvb-usb: Mygica D689 DMB-TH successfully
+initialized and connected.
+Apr 18 09:51:54 f11vm kernel: usbcore: registered new interface driver
+dvb_usb_cxusb
+i can do w_scan with 11 services in VM but not ZERO in real machine!!
+Did the following log message imply sth!?!?
+Apr 18 09:23:09 localhost kernel: dvb-usb: recv bulk message failed: -110
+I have tried to install in another real machine but also with the same result!
+Can anyone give me a hint on how to check/solve this issue!!
 
-Don't worry, I won't apply this patch.
-> 
-> Afaik there is no tuner which takes 5 seconds to initialize. (And if
-> there was one, it would be a bad idea to add a 5s delay for all tuners!)
-
-Yes, that's my point: if is there such hardware, the fix should touch
-only on the hardware with that broken design.
-
-(btw, there is one tuner that takes almost 30 seconds to initialize:
-the firmware load for xc3028 on tm6000 rev A should go on slow speed, 
-otherwise, it fails loading - the i2c implementation on tm6000 were
-really badly designed)
-
-> The saa7146_i2c_writeout errors are likely caused by broken hardware.
-
-I think so.
-
-
-Cheers,
-Mauro
+Thanks,
+Halu Wong
