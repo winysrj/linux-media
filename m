@@ -1,48 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45795 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756907Ab0D0VVX (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:23191 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751499Ab0DSKkR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Apr 2010 17:21:23 -0400
-Message-Id: <201004272111.o3RLBMrP019991@imap1.linux-foundation.org>
-Subject: [patch 05/11] drivers/media/video/au0828/au0828-video.c: off by one bug
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
-	error27@gmail.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com
-From: akpm@linux-foundation.org
-Date: Tue, 27 Apr 2010 14:11:22 -0700
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: 8bit
+	Mon, 19 Apr 2010 06:40:17 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Mon, 19 Apr 2010 12:29:57 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH/RFC v1 0/3] [ARM] Add Samsung S5P camera interface driver
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com
+Message-id: <1271673000-3020-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Dan Carpenter <error27@gmail.com>
+Hello
 
-The "AUVI_INPUT(tmp)" macro uses "tmp" as an index of an array with
-AU0828_MAX_INPUT elements.
+The following  patch series is a camera interface driver for the Samsung S5PC100 and S5PV210 SoCs.
+The camera interface in these chips can operate in three modes:
+- ITU-R or MIPI camera capture mode
+- Memory to memory mode enabling color format conversion, scaling, flipping and rotation,
+- LCD FIFO mode where it can be configured to transfer image data from memory to LCD controller, 
+  through its direct FIFO channel to LCD controller; this allows to lower main data bus 
+  bandwidth and memory requirements.
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+There is no designated memory for FIMC device (it shares the system memory) and it requires 
+physically contiguous buffers.
+We are planning  to use separate video nodes, each supporting one of the aforementioned features.
 
- drivers/media/video/au0828/au0828-video.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The following patches implement memory to memory mode and require the memory to memory device framework
+posted by Pawel Osciak. Also in some use cases like video stream encoding, where FIMC acts as video 
+postprocessor, non contiguous multi-planar buffers, as discussed in this thread
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg15850.html
+would be needed. To simplify things a bit, I did not add a code related to non contiguous multi-planar 
+formats in the following patches. 
 
-diff -puN drivers/media/video/au0828/au0828-video.c~drivers-media-video-au0828-au0828-videoc-off-by-one-bug drivers/media/video/au0828/au0828-video.c
---- a/drivers/media/video/au0828/au0828-video.c~drivers-media-video-au0828-au0828-videoc-off-by-one-bug
-+++ a/drivers/media/video/au0828/au0828-video.c
-@@ -1105,7 +1105,7 @@ static int vidioc_enum_input(struct file
- 
- 	tmp = input->index;
- 
--	if (tmp > AU0828_MAX_INPUT)
-+	if (tmp >= AU0828_MAX_INPUT)
- 		return -EINVAL;
- 	if (AUVI_INPUT(tmp).type == 0)
- 		return -EINVAL;
-_
+Any comments and suggestions are really appreciated.
+
+This series contains:
+
+[PATCH v1 1/3] ARM: S5P: Add FIMC driver platform helpers
+[PATCH v1 2/3] ARM: S5PC100: Add FIMC driver platform helpers
+[PATCH v1 3/3] ARM: S5P: Add Camera interface (video postprocessor) driver
+
+
+Regards,
+--
+Sylwester Nawrocki
+SPRC,
+Linux Platform Group
