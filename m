@@ -1,41 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta02.eastlink.ca ([24.224.136.13]:50826 "EHLO
-	mta02.eastlink.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755804Ab0DUQWs (ORCPT
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:57991 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752076Ab0DSJ6a (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Apr 2010 12:22:48 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; CHARSET=US-ASCII; format=flowed
-Received: from ip05.eastlink.ca ([unknown] [24.222.39.68])
- by mta02.eastlink.ca (Sun Java(tm) System Messaging Server 7.3-11.01 64bit
- (built Sep  1 2009)) with ESMTP id <0L1800GVZIT1W7V1@mta02.eastlink.ca> for
- linux-media@vger.kernel.org; Wed, 21 Apr 2010 13:22:13 -0300 (ADT)
-Message-id: <4BCF2636.4010803@apple2pl.us>
-Date: Wed, 21 Apr 2010 13:22:14 -0300
-From: Donald Bailey <donnie@apple2pl.us>
-To: linux-media@vger.kernel.org
-Subject: Issue loading SAA7134 module
+	Mon, 19 Apr 2010 05:58:30 -0400
+Date: Mon, 19 Apr 2010 11:58:18 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Manu Abraham <abraham.manu@gmail.com>
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
+	linux-input@vger.kernel.org
+Subject: Re: [PATCH 5/8] ir-core: convert mantis from ir-functions.c
+Message-ID: <20100419095818.GA3055@hardeman.nu>
+References: <20100415214520.14142.56114.stgit@localhost.localdomain>
+ <20100415214620.14142.19939.stgit@localhost.localdomain>
+ <u2x1a297b361004151617gbd08bc10l4fa202ab8dcec306@mail.gmail.com>
+ <20100416205638.GA2873@hardeman.nu>
+ <j2r1a297b361004161427q88bd9fa3hbf64a38662199712@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <j2r1a297b361004161427q88bd9fa3hbf64a38662199712@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I've got a couple of boxes that have two no-name 8-chip SAA713X cards.  
-Both have the same issue: the kernel will only set up the first eight on 
-one board and only two on the second.  It leaves the other six unusable 
-with error -23.  I am unable to figure out what that means.
+On Sat, Apr 17, 2010 at 01:27:05AM +0400, Manu Abraham wrote:
+> On Sat, Apr 17, 2010 at 12:56 AM, David Härdeman <david@hardeman.nu> wrote:
+> > On Fri, Apr 16, 2010 at 03:17:35AM +0400, Manu Abraham wrote:
+> >> On Fri, Apr 16, 2010 at 1:46 AM, David Härdeman <david@hardeman.nu> wrote:
+> >> > Convert drivers/media/dvb/mantis/mantis_input.c to not use ir-functions.c
+> >> > (The driver is anyway not complete enough to actually use the subsystem yet).
+> >>
+> >> Huh ? I don't follow what you imply here ..
+> >>
+> >
+> > The mantis_input.c file seems to be a skeleton as far as I could
+> > tell...not actually in use yet. Or am I mistaken?
+> 
+> Only the input related parts of the IR stuff is there in
+> mantis_input.c, the hardware handling is done by mantis_uart.c/h.
+> There is a small bit which has not gone upstream yet, which is
+> pending;
+> http://jusst.de/hg/mantis-v4l-dvb/rev/ad8b00c9edc2
+> 
 
-Sample dmesg as follows.  More (/proc/ioports, /proc/interrupts, etc) 
-can be posted if requested.  Tried kernels 2.6.18 and 2.6.33.2 on CentOS 
-5.4 and Fedora 11 fully updated. The module is loaded as card=0. The 
-following is output for chips 11 through 16.
+Yes, and that patch includes actually calling mantis_input_init(), which 
+wasn't called previously, so mantis_input.c wasn't actually in use.
 
-saa7130[10]: subsystem: 1131:0000, board: UNKNOWN/GENERIC 
-[card=0,autodetected]
-saa7130[10]: board init: gpio is 10000
-saa7130[10]: Huh, no eeprom present (err=-5)?
-saa7130[10]: can't register video device
-saa7134: probe of 0000:05:0f.0 failed with error -23
+Anyways, my patch still applies (or the principle at least) - use the 
+functionality of ir-core and not ir-functions.c (which is going away).
 
-Thanks in advance,
+And on a related note, the above patch adds keytables with entries like 
+KEY_0, they should probably be KEY_NUMERIC_* instead.
 
-Donald Bailey
+-- 
+David Härdeman
