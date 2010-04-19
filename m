@@ -1,127 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.perches.com ([173.55.12.10]:1378 "EHLO mail.perches.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756188Ab0DETFz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Apr 2010 15:05:55 -0400
-From: Joe Perches <joe@perches.com>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Mike Isely <isely@pobox.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 09/11] pvrusb2-v4l2: Rename dev_info to pdi
-Date: Mon,  5 Apr 2010 12:05:39 -0700
-Message-Id: <2044c4a5829aa21c3ec4bb90535289dd749bf4f1.1270493677.git.joe@perches.com>
-In-Reply-To: <20100304232928.2e45bdd1.akpm@linux-foundation.org>
-References: <20100304232928.2e45bdd1.akpm@linux-foundation.org>
-In-Reply-To: <cover.1270493677.git.joe@perches.com>
-References: <cover.1270493677.git.joe@perches.com>
+Received: from mail.gmx.net ([213.165.64.20]:50167 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751787Ab0DSQnQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Apr 2010 12:43:16 -0400
+From: Toralf =?iso-8859-1?q?F=F6rster?= <toralf.foerster@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: kmemleak from module dvb_usb_dib0700
+Date: Mon, 19 Apr 2010 18:43:12 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201004191843.13249.toralf.foerster@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is a macro called dev_info that prints struct device specific
-information.  Having variables with the same name can be confusing and
-prevents conversion of the macro to a function.
+Hello,
 
-Rename the existing dev_info variables to something else in preparation
-to converting the dev_info macro to a function.
+with current git kernel -rc4 I get this kmemleak if I plugin this stick 
+('Terratec Cinergy T USB XXS (HD)/ T3') into my ThinkPad T400 under a stable 
+Gentoo system :
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- drivers/media/video/pvrusb2/pvrusb2-v4l2.c |   22 +++++++++++-----------
- 1 files changed, 11 insertions(+), 11 deletions(-)
+tfoerste@n22 ~ $ cat /sys/kernel/debug/kmemleak
+unreferenced object 0xf40c0fa0 (size 32):
+  comm "modprobe", pid 28848, jiffies 21186033 (age 3785.635s)
+  hex dump (first 32 bytes):
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<c122caed>] kmemleak_alloc+0x3d/0x60
+    [<c109c137>] kmem_cache_alloc+0xa7/0xe0
+    [<fc630a35>] dib0700_rc_setup+0xb5/0x170 [dvb_usb_dib0700]
+    [<fc630b76>] dib0700_probe+0x86/0xa0 [dvb_usb_dib0700]
+    [<f8716c81>] usb_probe_interface+0xc1/0x1e0 [usbcore]
+    [<c1186f4d>] driver_probe_device+0x7d/0x190
+    [<c11870f1>] __driver_attach+0x91/0xa0
+    [<c11867f3>] bus_for_each_dev+0x53/0x80
+    [<c1186dd9>] driver_attach+0x19/0x20
+    [<c11860bf>] bus_add_driver+0xaf/0x260
+    [<c1187395>] driver_register+0x75/0x170
+    [<f871690c>] usb_register_driver+0x7c/0x140 [usbcore]
+    [<fc63f030>] 0xfc63f030
+    [<c1001123>] do_one_initcall+0x23/0x180
+    [<c105fc7f>] sys_init_module+0xaf/0x210
+    [<c1002cd7>] sysenter_do_call+0x12/0x26
 
-diff --git a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-index cc8ddb2..ba32c91 100644
---- a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-+++ b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-@@ -48,7 +48,7 @@ struct pvr2_v4l2_dev {
- 
- struct pvr2_v4l2_fh {
- 	struct pvr2_channel channel;
--	struct pvr2_v4l2_dev *dev_info;
-+	struct pvr2_v4l2_dev *pdi;
- 	enum v4l2_priority prio;
- 	struct pvr2_ioread *rhp;
- 	struct file *file;
-@@ -161,7 +161,7 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- {
- 	struct pvr2_v4l2_fh *fh = file->private_data;
- 	struct pvr2_v4l2 *vp = fh->vhead;
--	struct pvr2_v4l2_dev *dev_info = fh->dev_info;
-+	struct pvr2_v4l2_dev *pdi = fh->pdi;
- 	struct pvr2_hdw *hdw = fh->channel.mc_head->hdw;
- 	long ret = -EINVAL;
- 
-@@ -563,14 +563,14 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 
- 	case VIDIOC_STREAMON:
- 	{
--		if (!fh->dev_info->stream) {
-+		if (!fh->pdi->stream) {
- 			/* No stream defined for this node.  This means
- 			   that we're not currently allowed to stream from
- 			   this node. */
- 			ret = -EPERM;
- 			break;
- 		}
--		ret = pvr2_hdw_set_stream_type(hdw,dev_info->config);
-+		ret = pvr2_hdw_set_stream_type(hdw,pdi->config);
- 		if (ret < 0) return ret;
- 		ret = pvr2_hdw_set_streaming(hdw,!0);
- 		break;
-@@ -578,7 +578,7 @@ static long pvr2_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 
- 	case VIDIOC_STREAMOFF:
- 	{
--		if (!fh->dev_info->stream) {
-+		if (!fh->pdi->stream) {
- 			/* No stream defined for this node.  This means
- 			   that we're not currently allowed to stream from
- 			   this node. */
-@@ -1031,7 +1031,7 @@ static int pvr2_v4l2_open(struct file *file)
- 	}
- 
- 	init_waitqueue_head(&fhp->wait_data);
--	fhp->dev_info = dip;
-+	fhp->pdi = dip;
- 
- 	pvr2_trace(PVR2_TRACE_STRUCT,"Creating pvr_v4l2_fh id=%p",fhp);
- 	pvr2_channel_init(&fhp->channel,vp->channel.mc_head);
-@@ -1112,7 +1112,7 @@ static int pvr2_v4l2_iosetup(struct pvr2_v4l2_fh *fh)
- 	struct pvr2_hdw *hdw;
- 	if (fh->rhp) return 0;
- 
--	if (!fh->dev_info->stream) {
-+	if (!fh->pdi->stream) {
- 		/* No stream defined for this node.  This means that we're
- 		   not currently allowed to stream from this node. */
- 		return -EPERM;
-@@ -1121,21 +1121,21 @@ static int pvr2_v4l2_iosetup(struct pvr2_v4l2_fh *fh)
- 	/* First read() attempt.  Try to claim the stream and start
- 	   it... */
- 	if ((ret = pvr2_channel_claim_stream(&fh->channel,
--					     fh->dev_info->stream)) != 0) {
-+					     fh->pdi->stream)) != 0) {
- 		/* Someone else must already have it */
- 		return ret;
- 	}
- 
--	fh->rhp = pvr2_channel_create_mpeg_stream(fh->dev_info->stream);
-+	fh->rhp = pvr2_channel_create_mpeg_stream(fh->pdi->stream);
- 	if (!fh->rhp) {
- 		pvr2_channel_claim_stream(&fh->channel,NULL);
- 		return -ENOMEM;
- 	}
- 
- 	hdw = fh->channel.mc_head->hdw;
--	sp = fh->dev_info->stream->stream;
-+	sp = fh->pdi->stream->stream;
- 	pvr2_stream_set_callback(sp,(pvr2_stream_callback)pvr2_v4l2_notify,fh);
--	pvr2_hdw_set_stream_type(hdw,fh->dev_info->config);
-+	pvr2_hdw_set_stream_type(hdw,fh->pdi->config);
- 	if ((ret = pvr2_hdw_set_streaming(hdw,!0)) < 0) return ret;
- 	return pvr2_ioread_set_enabled(fh->rhp,!0);
- }
+I'm wondering whether this is harmful or not. - OTOH my system do not wakeup 
+after suspend2ram if the stick was plugged in ...
+
 -- 
-1.7.0.3.311.g6a6955
+MfG/Sincerely
+Toralf Förster
+
+pgp finger print: 7B1A 07F4 EC82 0F90 D4C2 8936 872A E508 7DB6 9DA3
 
