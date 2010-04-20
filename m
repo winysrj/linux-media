@@ -1,49 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:52179 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757804Ab0DOVqk (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:42672 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753658Ab0DTHBH convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Apr 2010 17:46:40 -0400
-Subject: [PATCH 8/8] ir-core: fix some confusing comments
-To: mchehab@redhat.com
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org
-Date: Thu, 15 Apr 2010 23:46:35 +0200
-Message-ID: <20100415214635.14142.52670.stgit@localhost.localdomain>
-In-Reply-To: <20100415214520.14142.56114.stgit@localhost.localdomain>
-References: <20100415214520.14142.56114.stgit@localhost.localdomain>
+	Tue, 20 Apr 2010 03:01:07 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Pawel Osciak <p.osciak@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "m.szyprowski@samsung.com" <m.szyprowski@samsung.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
+Date: Tue, 20 Apr 2010 12:30:59 +0530
+Subject: RE: [PATCH v4 0/2] Mem-to-mem device framework
+Message-ID: <19F8576C6E063C45BE387C64729E7394044E137814@dbde02.ent.ti.com>
+References: <1271680218-32395-1-git-send-email-p.osciak@samsung.com>
+In-Reply-To: <1271680218-32395-1-git-send-email-p.osciak@samsung.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix some confusing comments in drivers/media/IR/*
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
----
- drivers/media/IR/ir-keytable.c |    2 +-
- drivers/media/IR/ir-sysfs.c    |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+> -----Original Message-----
+> From: Pawel Osciak [mailto:p.osciak@samsung.com]
+> Sent: Monday, April 19, 2010 6:00 PM
+> To: linux-media@vger.kernel.org
+> Cc: p.osciak@samsung.com; m.szyprowski@samsung.com;
+> kyungmin.park@samsung.com; Hiremath, Vaibhav
+> Subject: [PATCH v4 0/2] Mem-to-mem device framework
+> 
+> Hello,
+> 
+> this is the fourth version of the mem-to-mem device framework.
+> 
+> Changes in v4:
+> - v4l2_m2m_poll() now also reports POLLOUT | POLLWRNORM when an output
+>   buffer is ready to be dequeued
+> - more cleaning up, addressing most of the comments to v3
+> 
+> Vaibhav: your clean-up patch didn't apply after my changes. I incorporated
+> most
+> of your clean-up changes. If you prefer it to be separate, we will have
+> to prepare another one somehow. 
+[Hiremath, Vaibhav] No need to create separate patch for this, it's ok as long as you included all the required changes.
 
-diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
-index b8baf8f..de923fc 100644
---- a/drivers/media/IR/ir-keytable.c
-+++ b/drivers/media/IR/ir-keytable.c
-@@ -1,4 +1,4 @@
--/* ir-register.c - handle IR scancode->keycode tables
-+/* ir-keytable.c - handle IR scancode->keycode tables
-  *
-  * Copyright (C) 2009 by Mauro Carvalho Chehab <mchehab@redhat.com>
-  *
-diff --git a/drivers/media/IR/ir-sysfs.c b/drivers/media/IR/ir-sysfs.c
-index 876baae..501dc2f 100644
---- a/drivers/media/IR/ir-sysfs.c
-+++ b/drivers/media/IR/ir-sysfs.c
-@@ -1,4 +1,4 @@
--/* ir-register.c - handle IR scancode->keycode tables
-+/* ir-sysfs.c - sysfs interface for RC devices (/sys/class/rc)
-  *
-  * Copyright (C) 2009-2010 by Mauro Carvalho Chehab <mchehab@redhat.com>
-  *
+You can add "Tested-By" Or "Reviewed-By" in your patch series, that should be ok.
 
+I will take a final look to this patch and respond.
+
+> Also, sorry, but I cannot agree with
+> changing
+> unsigned types into u32, I do not see any reason to use fixed-width types
+> there.
+> 
+[Hiremath, Vaibhav] As I mentioned there no strict rule for this, it was learning from my first patch.
+
+Thanks,
+Vaibhav
+> This series contains:
+> [PATCH v4 1/2] v4l: Add memory-to-memory device helper framework for
+> videobuf.
+> [PATCH v4 2/2] v4l: Add a mem-to-mem videobuf framework test device.
+> 
+> Best regards
+> --
+> Pawel Osciak
+> Linux Platform Group
+> Samsung Poland R&D Center
