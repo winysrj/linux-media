@@ -1,207 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54886 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758683Ab0DAR6M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Apr 2010 13:58:12 -0400
-Date: Thu, 1 Apr 2010 14:56:31 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: linux-input@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 14/15] V4L/DVB: cx88: Only start IR if the input device is
- opened
-Message-ID: <20100401145631.60201d22@pedra>
-In-Reply-To: <cover.1270142346.git.mchehab@redhat.com>
-References: <cover.1270142346.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3762 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754627Ab0DTTlX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Apr 2010 15:41:23 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id o3KJfLD2064818
+	for <linux-media@vger.kernel.org>; Tue, 20 Apr 2010 21:41:22 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 20 Apr 2010 21:41:21 +0200 (CEST)
+Message-Id: <201004201941.o3KJfLD2064818@smtp-vbr2.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-diff --git a/drivers/media/video/cx88/cx88-input.c b/drivers/media/video/cx88/cx88-input.c
-index 8f1b846..a7214d0 100644
---- a/drivers/media/video/cx88/cx88-input.c
-+++ b/drivers/media/video/cx88/cx88-input.c
-@@ -39,6 +39,10 @@ struct cx88_IR {
- 	struct cx88_core *core;
- 	struct input_dev *input;
- 	struct ir_input_state ir;
-+	struct ir_dev_props props;
-+
-+	int users;
-+
- 	char name[32];
- 	char phys[32];
- 
-@@ -160,8 +164,16 @@ static enum hrtimer_restart cx88_ir_work(struct hrtimer *timer)
- 	return HRTIMER_RESTART;
- }
- 
--void cx88_ir_start(struct cx88_core *core, struct cx88_IR *ir)
-+static int __cx88_ir_start(void *priv)
- {
-+	struct cx88_core *core = priv;
-+	struct cx88_IR *ir;
-+
-+	if (!core || !core->ir)
-+		return -EINVAL;
-+
-+	ir = core->ir;
-+
- 	if (ir->polling) {
- 		hrtimer_init(&ir->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
- 		ir->timer.function = cx88_ir_work;
-@@ -174,10 +186,18 @@ void cx88_ir_start(struct cx88_core *core, struct cx88_IR *ir)
- 		cx_write(MO_DDS_IO, 0xa80a80);	/* 4 kHz sample rate */
- 		cx_write(MO_DDSCFG_IO, 0x5);	/* enable */
- 	}
-+	return 0;
- }
- 
--void cx88_ir_stop(struct cx88_core *core, struct cx88_IR *ir)
-+static void __cx88_ir_stop(void *priv)
- {
-+	struct cx88_core *core = priv;
-+	struct cx88_IR *ir;
-+
-+	if (!core || !core->ir)
-+		return;
-+
-+	ir = core->ir;
- 	if (ir->sampling) {
- 		cx_write(MO_DDSCFG_IO, 0x0);
- 		core->pci_irqmask &= ~PCI_INT_IR_SMPINT;
-@@ -187,6 +207,37 @@ void cx88_ir_stop(struct cx88_core *core, struct cx88_IR *ir)
- 		hrtimer_cancel(&ir->timer);
- }
- 
-+int cx88_ir_start(struct cx88_core *core)
-+{
-+	if (core->ir->users)
-+		return __cx88_ir_start(core);
-+
-+	return 0;
-+}
-+
-+void cx88_ir_stop(struct cx88_core *core)
-+{
-+	if (core->ir->users)
-+		__cx88_ir_stop(core);
-+}
-+
-+static int cx88_ir_open(void *priv)
-+{
-+	struct cx88_core *core = priv;
-+
-+	core->ir->users++;
-+	return __cx88_ir_start(core);
-+}
-+
-+static void cx88_ir_close(void *priv)
-+{
-+	struct cx88_core *core = priv;
-+
-+	core->ir->users--;
-+	if (!core->ir->users)
-+		__cx88_ir_stop(core);
-+}
-+
- /* ---------------------------------------------------------------------- */
- 
- int cx88_ir_init(struct cx88_core *core, struct pci_dev *pci)
-@@ -382,19 +433,19 @@ int cx88_ir_init(struct cx88_core *core, struct pci_dev *pci)
- 	ir->core = core;
- 	core->ir = ir;
- 
--	cx88_ir_start(core, ir);
-+	ir->props.priv = core;
-+	ir->props.open = cx88_ir_open;
-+	ir->props.close = cx88_ir_close;
- 
- 	/* all done */
--	err = ir_input_register(ir->input, ir_codes, NULL, MODULE_NAME);
-+	err = ir_input_register(ir->input, ir_codes, &ir->props, MODULE_NAME);
- 	if (err)
--		goto err_out_stop;
-+		goto err_out_free;
- 
- 	return 0;
- 
-- err_out_stop:
--	cx88_ir_stop(core, ir);
--	core->ir = NULL;
-  err_out_free:
-+	core->ir = NULL;
- 	kfree(ir);
- 	return err;
- }
-@@ -407,7 +458,7 @@ int cx88_ir_fini(struct cx88_core *core)
- 	if (NULL == ir)
- 		return 0;
- 
--	cx88_ir_stop(core, ir);
-+	cx88_ir_stop(core);
- 	ir_input_unregister(ir->input);
- 	kfree(ir);
- 
-diff --git a/drivers/media/video/cx88/cx88-video.c b/drivers/media/video/cx88/cx88-video.c
-index 48c450f..8e414f7 100644
---- a/drivers/media/video/cx88/cx88-video.c
-+++ b/drivers/media/video/cx88/cx88-video.c
-@@ -1977,7 +1977,7 @@ static void __devexit cx8800_finidev(struct pci_dev *pci_dev)
- 	}
- 
- 	if (core->ir)
--		cx88_ir_stop(core, core->ir);
-+		cx88_ir_stop(core);
- 
- 	cx88_shutdown(core); /* FIXME */
- 	pci_disable_device(pci_dev);
-@@ -2015,7 +2015,7 @@ static int cx8800_suspend(struct pci_dev *pci_dev, pm_message_t state)
- 	spin_unlock(&dev->slock);
- 
- 	if (core->ir)
--		cx88_ir_stop(core, core->ir);
-+		cx88_ir_stop(core);
- 	/* FIXME -- shutdown device */
- 	cx88_shutdown(core);
- 
-@@ -2056,7 +2056,7 @@ static int cx8800_resume(struct pci_dev *pci_dev)
- 	/* FIXME: re-initialize hardware */
- 	cx88_reset(core);
- 	if (core->ir)
--		cx88_ir_start(core, core->ir);
-+		cx88_ir_start(core);
- 
- 	cx_set(MO_PCI_INTMSK, core->pci_irqmask);
- 
-diff --git a/drivers/media/video/cx88/cx88.h b/drivers/media/video/cx88/cx88.h
-index b5f054d..bdb03d3 100644
---- a/drivers/media/video/cx88/cx88.h
-+++ b/drivers/media/video/cx88/cx88.h
-@@ -41,7 +41,7 @@
- 
- #include <linux/version.h>
- #include <linux/mutex.h>
--#define CX88_VERSION_CODE KERNEL_VERSION(0,0,7)
-+#define CX88_VERSION_CODE KERNEL_VERSION(0, 0, 8)
- 
- #define UNSET (-1U)
- 
-@@ -683,8 +683,8 @@ s32 cx88_dsp_detect_stereo_sap(struct cx88_core *core);
- int cx88_ir_init(struct cx88_core *core, struct pci_dev *pci);
- int cx88_ir_fini(struct cx88_core *core);
- void cx88_ir_irq(struct cx88_core *core);
--void cx88_ir_start(struct cx88_core *core, struct cx88_IR *ir);
--void cx88_ir_stop(struct cx88_core *core, struct cx88_IR *ir);
-+int cx88_ir_start(struct cx88_core *core);
-+void cx88_ir_stop(struct cx88_core *core);
- 
- /* ----------------------------------------------------------- */
- /* cx88-mpeg.c                                                 */
--- 
-1.6.6.1
+Results of the daily build of v4l-dvb:
 
+date:        Tue Apr 20 19:00:18 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14592:b438301e588f
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 184b7c85f31583632ad00c062a295b622759eef3
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-rc1-armv5: OK
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-rc1-armv5-davinci: OK
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-armv5-ixp: OK
+linux-2.6.34-rc1-armv5-ixp: OK
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-rc1-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.17-i686: WARNINGS
+linux-2.6.24.7-i686: OK
+linux-2.6.25.20-i686: OK
+linux-2.6.26.8-i686: OK
+linux-2.6.27.44-i686: OK
+linux-2.6.28.10-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: OK
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-rc1-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-rc1-m32r: OK
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-rc1-mips: OK
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-rc1-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.17-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.20-x86_64: OK
+linux-2.6.26.8-x86_64: OK
+linux-2.6.27.44-x86_64: OK
+linux-2.6.28.10-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: OK
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-rc1-x86_64: WARNINGS
+linux-git-armv5: OK
+linux-git-armv5-davinci: OK
+linux-git-armv5-ixp: OK
+linux-git-armv5-omap2: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.7-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.62-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.7-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
