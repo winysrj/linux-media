@@ -1,21 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx10.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.14])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o3ID1Qta031386
-	for <video4linux-list@redhat.com>; Sun, 18 Apr 2010 09:01:26 -0400
-Received: from mail-pv0-f174.google.com (mail-pv0-f174.google.com
-	[74.125.83.174])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o3ID0dpB001111
-	for <video4linux-list@redhat.com>; Sun, 18 Apr 2010 09:01:15 -0400
-Received: by mail-pv0-f174.google.com with SMTP id 18so2522369pva.33
-	for <video4linux-list@redhat.com>; Sun, 18 Apr 2010 06:01:15 -0700 (PDT)
+Received: from mx1.redhat.com (ext-mx09.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.13])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o3K97ZJR005795
+	for <video4linux-list@redhat.com>; Tue, 20 Apr 2010 05:07:35 -0400
+Received: from gateway.tuioptics.com (gateway.tuioptics.com [213.183.22.85])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o3K97II0010826
+	for <video4linux-list@redhat.com>; Tue, 20 Apr 2010 05:07:20 -0400
+Date: Tue, 20 Apr 2010 11:05:17 +0200
+From: Arno Euteneuer <arno.euteneuer@toptica.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Message-ID: <4BCD6E4D.2060708@toptica.com>
+In-Reply-To: <Pine.LNX.4.64.1003100849200.4618@axis700.grange>
+References: <4B960AE2.3090803@toptica.com>
+References: <4B974A71.5030506@toptica.com>
+References: <Pine.LNX.4.64.1003100849200.4618@axis700.grange>
+Subject: Re: soc-camera driver for i.MX25
 MIME-Version: 1.0
-Date: Sun, 18 Apr 2010 22:34:58 +1000
-Message-ID: <x2ha64f67eb1004180534u17079d45lcb224fb3940a27ca@mail.gmail.com>
-Subject: Need Info
-From: linux newbie <linux.newbie79@gmail.com>
-To: video4linux-list@redhat.com
+Cc: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -23,28 +25,34 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
 Hi,
 
-On my embedded PXA255 platform, we have working USB module. ISP1362 is the
-controller. Recently we want to integrate Microsoft Lifecam Cinema webcam
-and want to take still images.
+>>> More
+>>> importantly, it certainly has to be updated for 2.6.32 and 2.6.33 - the
+>>> biggest change since 2.6.31 has been the conversion to the v4l2-subdev
+>>> API, and a smaller one - the addition of the mediabus API.
+>> I already suspected that I have to update it :D Currently I'm using a 2.6.31
+>> kernel that has been patched with a BSP from the board supplier. So, I have to
+>> first update these patches in order to be able to run my system with a current
+>> kernel,I guess. I will try that ...
+>
+> Good, looking forward to an updated patch;)
 
-Linux kernel is 2.6.26.3 and we enabled V4L2 and UVC class drivers. On
-plugging the Cam and querying the proc and sys file system, I can able to
-view cam details.
+It seems that I will not find the time for preparing my driver for a newer 
+kernel in the near future :( I started upgrading the BSP of my board a few weeks 
+ago, but was interrupted by urgent work on several other things. I will now have 
+to use my driver rather than updating and improving it. Sorry. But I'm sure I 
+will have to update it sooner or later and will hopefully come back then ;)
 
-I want to capture the frame (preferably in jpeg) and write to a file. Is
-there any example code for that? I went through the below web page
-http://v4l2spec.bytesex.org/spec/capture-example.html, but if you can
-suggest some more example, it will be of great help to me.
+Regards,
+Arno
 
-Thanks
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
