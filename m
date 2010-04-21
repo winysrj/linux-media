@@ -1,98 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f172.google.com ([209.85.211.172]:65289 "EHLO
-	mail-yw0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752562Ab0DBNsF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Apr 2010 09:48:05 -0400
-Received: by ywh2 with SMTP id 2so1383021ywh.33
-        for <linux-media@vger.kernel.org>; Fri, 02 Apr 2010 06:48:01 -0700 (PDT)
+Received: from mout.perfora.net ([74.208.4.194]:65455 "EHLO mout.perfora.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753419Ab0DUCLD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Apr 2010 22:11:03 -0400
+Message-ID: <4BCE5EAD.4070107@vorgon.com>
+Date: Tue, 20 Apr 2010 19:10:53 -0700
+From: "Timothy D. Lenz" <tlenz@vorgon.com>
 MIME-Version: 1.0
-Date: Fri, 2 Apr 2010 21:48:01 +0800
-Message-ID: <i2s6e8e83e21004020648n21b07894ma8ad2bf6757e83ff@mail.gmail.com>
-Subject: how does v4l2 driver communicate a frequency lock to mythtv
-From: Bee Hock Goh <beehock@gmail.com>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: Re: cx5000 default auto sleep mode
+References: <4BC5FB77.2020303@vorgon.com> <k2h829197381004141040n4aa69e06x7a10c7ea70be3dcf@mail.gmail.com>
+In-Reply-To: <k2h829197381004141040n4aa69e06x7a10c7ea70be3dcf@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear all,
 
-i have been doing some usb snoop and making some changes to the
-existing staging tm6000 to get my tm5600/xc2028 usb stick to work.
-Thanks to a lot of help from Stefan, I have some limited success and
-is able to get mythtv to do channel scan. However, mythtv is not able
-to logon to the channel even though usbmon shown the same in/out using
-usbmon and snoop on the stick windows application.
 
-Where should I be looking at to inform that a channel is to be locked?
+On 4/14/2010 10:40 AM, Devin Heitmueller wrote:
+> On Wed, Apr 14, 2010 at 1:29 PM, Timothy D. Lenz<tlenz@vorgon.com>  wrote:
+>> Thanks to Andy Walls, found out why I kept loosing 1 tuner on a FusionHD7
+>> Dual express. Didn't know linux supported an auto sleep mode on the tuner
+>> chips and that it defaulted to on. Seems like it would be better to default
+>> to off. If someone wants an auto power down/sleep mode and their software
+>> supports it, then let the program activate it. Seems people are more likely
+>> to want the tuners to stay on then keep shutting down.
+>>
+>> Spent over a year trying to figure out why vdr would loose control of 1 of
+>> the dual tuners when the atscepg pluging was used thinking it was a problem
+>> with the plugin.
+>
+> The xc5000 power management changes I made were actually pretty
+> thoroughly tested with that card (between myself and Michael Krufky,
+> we tested it with just about every card that uses the tuner).  In
+> fact, we uncovered several power management bugs in other drivers as a
+> result of that effort.  It was a grueling effort that I spent almost
+> three months working on.
+>
+> Generally I agree with the premise that functionality like this should
+> only be enabled for boards it was tested with.  However, in this case
+> it actually was pretty extensively tested with all the cards in
+> question (including this one), and thus it was deemed safe to enable
+> by default.  We've had cases in the past where developers exercised
+> poor judgement and blindly turned on power management to make it work
+> with one card, disregarding the possible breakage that could occur
+> with other cards that use the same driver -- this was *not* one of
+> those cases.
+>
+> If there is a bug, it should be pretty straightforward to fix provided
+> it can be reproduced.
+>
+> Regarding the general assertion that the power management should be
+> disabled by default, I disagree.  The power savings is considerable,
+> the time to bring the tuner out of sleep is negligible, and it's
+> generally good policy.
+>
+> Andy, do you have any actual details regarding the nature of the problem?
+>
+> Devin
+>
 
-here's small snapshot of the dmesg when mythtv is scanning. its
-basically calling on the  VIDIOC_S_FREQUENCY and  VIDIOC_G_FREQUENCY.
-If  VIDIOC_G_FREQUENCY use in some form to inform that the correct
-freq has been selected? on the tm6000 code, it only return the
-frequency value.
-
-Hope that some of the you expert can offer me a advice.
-
-[ 3759.600038] tm6000: VIDIOC_G_FREQUENCY
-[ 3759.600046] xc2028 5-0061: xc2028_get_frequency called
-[ 3759.600108] tm6000: VIDIOC_G_TUNER
-[ 3759.625446] tm6000: VIDIOC_G_MODULATOR
-[ 3759.625454] tm6000: VIDIOC_S_FREQUENCY
-[ 3759.625461] xc2028 5-0061: xc2028_set_analog_freq called
-[ 3759.625466] xc2028 5-0061: generic_set_freq called
-[ 3759.625470] xc2028 5-0061: should set frequency 224250 kHz
-[ 3759.625473] xc2028 5-0061: check_firmware called
-[ 3759.625477] xc2028 5-0061: checking firmware, user requested
-type=F8MHZ (2), id 0000000000000010, scode_tbl (0), scode_nr 0
-[ 3759.625487] xc2028 5-0061: BASE firmware not changed.
-[ 3759.625490] xc2028 5-0061: Std-specific firmware already loaded.
-[ 3759.625494] xc2028 5-0061: SCODE firmware already loaded.
-[ 3759.625498] xc2028 5-0061: xc2028_get_reg 0004 called
-[ 3759.660023] xc2028 5-0061: xc2028_get_reg 0008 called
-[ 3759.700027] xc2028 5-0061: Device is Xceive 3028 version 1.0,
-firmware version 2.4
-[ 3760.070039] xc2028 5-0061: divisor= 00 00 38 10 (freq=224.250)
-[ 3760.070053] tm6000: VIDIOC_G_FREQUENCY
-[ 3760.070061] xc2028 5-0061: xc2028_get_frequency called
-[ 3760.070124] tm6000: VIDIOC_G_TUNER
-[ 3760.095457] tm6000: VIDIOC_G_MODULATOR
-[ 3760.095465] tm6000: VIDIOC_S_FREQUENCY
-[ 3760.095472] xc2028 5-0061: xc2028_set_analog_freq called
-[ 3760.095476] xc2028 5-0061: generic_set_freq called
-[ 3760.095480] xc2028 5-0061: should set frequency 487250 kHz
-[ 3760.095484] xc2028 5-0061: check_firmware called
-[ 3760.095487] xc2028 5-0061: checking firmware, user requested
-type=F8MHZ (2), id 0000000000000010, scode_tbl (0), scode_nr 0
-[ 3760.095497] xc2028 5-0061: BASE firmware not changed.
-[ 3760.095501] xc2028 5-0061: Std-specific firmware already loaded.
-[ 3760.095504] xc2028 5-0061: SCODE firmware already loaded.
-[ 3760.095508] xc2028 5-0061: xc2028_get_reg 0004 called
-[ 3760.130027] xc2028 5-0061: xc2028_get_reg 0008 called
-[ 3760.170040] xc2028 5-0061: Device is Xceive 3028 version 1.0,
-firmware version 2.4
-[ 3760.540035] xc2028 5-0061: divisor= 00 00 79 d0 (freq=487.250)
-[ 3760.540048] tm6000: VIDIOC_G_FREQUENCY
-[ 3760.540056] xc2028 5-0061: xc2028_get_frequency called
-[ 3760.540118] tm6000: VIDIOC_G_TUNER
-[ 3760.565446] tm6000: VIDIOC_G_MODULATOR
-[ 3760.565455] tm6000: VIDIOC_S_FREQUENCY
-[ 3760.565462] xc2028 5-0061: xc2028_set_analog_freq called
-[ 3760.565467] xc2028 5-0061: generic_set_freq called
-[ 3760.565471] xc2028 5-0061: should set frequency 495250 kHz
-[ 3760.565474] xc2028 5-0061: check_firmware called
-[ 3760.565478] xc2028 5-0061: checking firmware, user requested
-type=F8MHZ (2), id 0000000000000010, scode_tbl (0), scode_nr 0
-[ 3760.565488] xc2028 5-0061: BASE firmware not changed.
-[ 3760.565491] xc2028 5-0061: Std-specific firmware already loaded.
-[ 3760.565495] xc2028 5-0061: SCODE firmware already loaded.
-[ 3760.565499] xc2028 5-0061: xc2028_get_reg 0004 called
-[ 3760.600031] xc2028 5-0061: xc2028_get_reg 0008 called
-[ 3760.640030] xc2028 5-0061: Device is Xceive 3028 version 1.0,
-firmware version 2.4
-[ 3761.010032] xc2028 5-0061: divisor= 00 00 7b d0 (freq=495.250)
-[ 3761.010047] tm6000: VIDIOC_G_FREQUENCY
-[ 3761.010055] xc2028 5-0061: xc2028_get_frequency called
-
-thanks,
- Hock.
+Went down a second time today, so copied the logs over again. If what is 
+needed to fix this isn't in those, will have to look else where.
