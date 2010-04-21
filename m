@@ -1,80 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.perfora.net ([74.208.4.195]:61860 "EHLO mout.perfora.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752244Ab0DZTup (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Apr 2010 15:50:45 -0400
-Message-ID: <4BD5EE8E.5070603@vorgon.com>
-Date: Mon, 26 Apr 2010 12:50:38 -0700
-From: "Timothy D. Lenz" <tlenz@vorgon.com>
-MIME-Version: 1.0
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:41255 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753807Ab0DUJol (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Apr 2010 05:44:41 -0400
+Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0L18002YT0EEO8@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 21 Apr 2010 10:44:38 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L1800J5I0EDXN@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 21 Apr 2010 10:44:37 +0100 (BST)
+Date: Wed, 21 Apr 2010 11:44:27 +0200
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: [PATCH] v4l: videobuf: qbuf now uses relevant v4l2_buffer fields for
+ OUTPUT types
 To: linux-media@vger.kernel.org
-Subject: Re: tuner XC5000 race condition??
-References: <20100426104446.01bca601@glory.loctelecom.ru> <1272243610.3060.6.camel@palomino.walls.org> <4BD5E1FF.8030704@vorgon.com>
-In-Reply-To: <4BD5E1FF.8030704@vorgon.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com
+Message-id: <1271843067-23496-1-git-send-email-p.osciak@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+According to the V4L2 specification, applications set bytesused, field and
+timestamp fields of struct v4l2_buffer when the buffer is intended for
+output and memory type is MMAP. This adds proper copying of those values
+to videobuf_buffer so drivers can use them.
 
+Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/videobuf-core.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
 
-On 4/26/2010 11:57 AM, Timothy D. Lenz wrote:
->
->
-> On 4/25/2010 6:00 PM, Andy Walls wrote:
->> On Mon, 2010-04-26 at 10:44 +1000, Dmitri Belimov wrote:
->>> Hi
->>>
->>> Sometimes tuner XC5000 crashed on boot. This PC is dual-core.
->>> It can be race condition or multi-core depend problem.
->>>
->>> Add mutex for solve this problem is correct?
->>
->> Dmitri,
->>
->> This problem may be related to the firmware loading race described here:
->>
->> https://bugzilla.kernel.org/show_bug.cgi?id=15294
->>
->> I still have not fixed that bug yet.
->>
->> But for your problem, perhaps you can try:
->>
->> echo 120> /sys/class/firmware/timeout
->>
->> as root in the initialization scripts to lengthen the firmware loading
->> timeout to 120 seconds. Maybe that will work around the crash.
->>
->> I'll try and look at what is going on in your crash dumps, if I have
->> time.
->>
->> Regards,
->> Andy
->>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at http://vger.kernel.org/majordomo-info.html
->>
->
-> Could this problem also be related to the tuner problem I've been having
-> with one tuner stop tuning? Because it is on a Athlon64 x2 (dual core).
-> I put up logs with debug on. First set was I think about 24hrs with no
-> crash, then the file ext new and new2 where each copied out after the
-> tuner was found crashed.
->
-> http://24.255.17.209:2400/vdr/logs/
->
-> The computer hosting these logs, I hope to take down for a short while,
-> maybe a few hours to switch it over to raid boot. So if you can't
-> connect, try again later.
+diff --git a/drivers/media/video/videobuf-core.c b/drivers/media/video/videobuf-core.c
+index 63d7043..e573ca7 100644
+--- a/drivers/media/video/videobuf-core.c
++++ b/drivers/media/video/videobuf-core.c
+@@ -549,6 +549,13 @@ int videobuf_qbuf(struct videobuf_queue *q, struct v4l2_buffer *b)
+ 				   "but buffer addr is zero!\n");
+ 			goto done;
+ 		}
++		if (q->type == V4L2_BUF_TYPE_VIDEO_OUTPUT
++		    || q->type == V4L2_BUF_TYPE_VBI_OUTPUT
++		    || q->type == V4L2_BUF_TYPE_SLICED_VBI_OUTPUT) {
++			buf->size = b->bytesused;
++			buf->field = b->field;
++			buf->ts = b->timestamp;
++		}
+ 		break;
+ 	case V4L2_MEMORY_USERPTR:
+ 		if (b->length < buf->bsize) {
+-- 
+1.7.1.rc1.12.ga601
 
-Keep forgetting, reply on this list doesn't go to the list unless you 
-reply all or manually change the address:(
-
-Could this problem also be related to the tuner problem I've been having 
-with one tuner stop tuning? Because it is on a Athlon64 x2 (dual core). 
-I put up logs with debug on. First set was I think about 24hrs with no 
-crash, then the file ext new and new2 where each copied out after the 
-tuner was found crashed.
