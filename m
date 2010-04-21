@@ -1,76 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:32958 "EHLO mx1.redhat.com"
+Received: from mout.perfora.net ([74.208.4.194]:51746 "EHLO mout.perfora.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751431Ab0DIM7z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 Apr 2010 08:59:55 -0400
-Date: Fri, 9 Apr 2010 08:58:32 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Andy Walls <awalls@radix.net>
-Cc: James Hogan <james@albanarts.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jon Smirl <jonsmirl@gmail.com>, Pavel Machek <pavel@ucw.cz>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Krzysztof Halasa <khc@pm.waw.pl>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Christoph Bartelmus <lirc@bartelmus.de>, j@jannau.net,
-	jarod@wilsonet.com, kraxel@redhat.com, linux-input@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	superm1@ubuntu.com
-Subject: Re: [RFC] What are the goals for the architecture of an in-kernel IR
- system?
-Message-ID: <20100409125832.GA22814@redhat.com>
-References: <9e4733910912060952h4aad49dake8e8486acb6566bc@mail.gmail.com>
- <9e4733910912151338n62b30af5i35f8d0963e6591c@mail.gmail.com>
- <4BAB7659.1040408@redhat.com>
- <201004090821.10435.james@albanarts.com>
- <1270810226.3764.34.camel@palomino.walls.org>
+	id S1751312Ab0DUW0k (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Apr 2010 18:26:40 -0400
+Message-ID: <4BCF7B92.6010608@vorgon.com>
+Date: Wed, 21 Apr 2010 15:26:26 -0700
+From: "Timothy D. Lenz" <tlenz@vorgon.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1270810226.3764.34.camel@palomino.walls.org>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org
+Subject: Re: cx5000 default auto sleep mode
+References: <4BC5FB77.2020303@vorgon.com>	 <k2h829197381004141040n4aa69e06x7a10c7ea70be3dcf@mail.gmail.com>	 <1271303099.7643.7.camel@palomino.walls.org> <h2h829197381004142139q35705f60q61dd04b05f509af6@mail.gmail.com>
+In-Reply-To: <h2h829197381004142139q35705f60q61dd04b05f509af6@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 09, 2010 at 06:50:26AM -0400, Andy Walls wrote:
-> On Fri, 2010-04-09 at 08:21 +0100, James Hogan wrote:
-> > Hi,
-> > 
-> > On Thursday 25 March 2010 14:42:33 Mauro Carvalho Chehab wrote:
-> > > Comments?
-> > 
-> > I haven't seen this mentioned yet, but are there any plans for a sysfs 
-> > interface to set up waking from suspend/standby on a particular IR scancode 
-> > (for hardware decoders that support masking of comparing of the IR data), kind 
-> > of analagous to the rtc framework's wakealarm sysfs file?
-> 
-> This requires support at the hardware level.  (You can't have CPU code
-> running to decode IR pulses when your CPU is "asleep".)
-> 
-> I know of two video chips supported under linux that provide such a
-> function.
-> 
-> Wake-up from IR for these chips will rely on the kernel PCIe or USB
-> infrastructure supporting PCIe or USB Power Managment Events from
-> hardware.  It will take a huge amount of work and time to get the
-> respective linux video drivers to properly support suspend/resume
-> properly.
-> 
-> If you're waiting for me to get that working, I'll advise you to plan on
-> getting off the couch and pushing the power switch for some time to
-> come. ;)
-> 
-> 
-> 
-> 
-> The MCE-USB, I *speculate*, can perform wakes.  It's driver would need
-> to support that, if it can.
 
-Yep, it can perform wakes, and the current lirc_mceusb does support it,
-though it requires some screwing around with echoing something into
-somewhere in sysfs (for the usb controller its attached to) to enable it,
-from what I recall... Making it Just Work would be a good idea.
 
--- 
-Jarod Wilson
-jarod@redhat.com
+On 4/14/2010 9:39 PM, Devin Heitmueller wrote:
+> On Wed, Apr 14, 2010 at 11:44 PM, Andy Walls<awalls@md.metrocast.net>  wrote:
+>> On Wed, 2010-04-14 at 13:40 -0400, Devin Heitmueller wrote:
+>>> On Wed, Apr 14, 2010 at 1:29 PM, Timothy D. Lenz<tlenz@vorgon.com>  wrote:
+>>>> Thanks to Andy Walls, found out why I kept loosing 1 tuner on a FusionHD7
+>>>> Dual express. Didn't know linux supported an auto sleep mode on the tuner
+>>>> chips and that it defaulted to on. Seems like it would be better to default
+>>>> to off.
+>>>
+>>> Regarding the general assertion that the power management should be
+>>> disabled by default, I disagree.  The power savings is considerable,
+>>> the time to bring the tuner out of sleep is negligible, and it's
+>>> generally good policy.
+>>>
+>>> Andy, do you have any actual details regarding the nature of the problem?
+>>
+>> Not really.  DViCo Fusion dual digital tv card.  One side of the card
+>> would yield "black video screen" when starting a digital capture
+>> sometime after (?) the VDR ATSC EPG plugin tried to suck off data.  I'm
+>> not sure there was a causal relationship.
+>>
+>> I hypothesized that one side of the dual-tuner was going stupid or one
+>> of the two channels used in the cx23885 was getting confused.  I was
+>> looking at how to narrow the problem down to cx23885 chip or xc5000
+>> tuner, or s5h14xx demod when I noted the power managment module option
+>> for the xc5000.  I suggested Tim try it.
+>>
+>> It was dumb luck that my guess actually made his symptoms go away.
+>>
+>> That's all I know.
+>
+> We did have a similar issue with the PCTV 800i.  Basically, the GPIO
+> definition was improperly defined for the xc5000 reset callback.  As a
+> result, it was strobing the reset on both the xc5000 *and* the
+> s5h1411, which would then cause the s5h1411's hardware state to not
+> match the driver state.
+>
+> After multiple round trips with the hardware engineer at PCTV, I
+> finally concluded that there actually wasn't a way to strobe the reset
+> without screwing up the demodulator, which prompted me to disable the
+> xc5000 reset callback (see cx88-cards:2944).
+>
+> My guess is that the reset GPIO definition for that board is wrong (a
+> problem exposed by this change), or that it's resetting the s5h1411 as
+> well.
+>
+> Devin
+>
 
+Are any of the logs usefull?
