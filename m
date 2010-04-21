@@ -1,73 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fmmailgate02.web.de ([217.72.192.227]:54752 "EHLO
-	fmmailgate02.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932984Ab0D3RaB (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3471 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755733Ab0DUTmG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Apr 2010 13:30:01 -0400
-Message-ID: <4BDA6E47.6050200@web.de>
-Date: Fri, 30 Apr 2010 07:44:39 +0200
-From: =?UTF-8?B?QW5kcsOpIFdlaWRlbWFubg==?= <Andre.Weidemann@web.de>
-MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] TT S2-1600 allow more current for diseqc
-References: <20100411231805.4bc7fdef@borg.bxl.tuxicoman.be>	 <4BD7E7A3.2060101@web.de> <20100428103303.2fe4c9ea@zombie>	 <r2y1a297b361004280613s10585a6we3d14ddb9de5bcfc@mail.gmail.com> <1272587465.3305.34.camel@pc07.localdom.local>
-In-Reply-To: <1272587465.3305.34.camel@pc07.localdom.local>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+	Wed, 21 Apr 2010 15:42:06 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id o3LJfoqI094013
+	for <linux-media@vger.kernel.org>; Wed, 21 Apr 2010 21:42:03 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 21 Apr 2010 21:41:50 +0200 (CEST)
+Message-Id: <201004211942.o3LJfoqI094013@smtp-vbr2.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hermann,
-On 30.04.2010 02:31, hermann pitton wrote:
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-> Hi,
->
-> Am Mittwoch, den 28.04.2010, 17:13 +0400 schrieb Manu Abraham:
->> On Wed, Apr 28, 2010 at 12:33 PM, Guy Martin<gmsoft@tuxicoman.be>  wrote:
->>> On Wed, 28 Apr 2010 09:45:39 +0200
->>> André Weidemann<Andre.Weidemann@web.de>  wrote:
->>>
->>>> I advise not to pull this change into the kernel sources.
->>>> The card has only been testet with the a maximum current of 515mA.
->>>> Anything above is outside the specification for this card.
->>>
->>>
->>> I'm currently running two of these cards in the same box with this
->>> patch.
->>> Actually, later on I've even set curlim = SEC_CURRENT_LIM_OFF because
->>> sometimes diseqc wasn't working fine and that seemed to solve the
->>> problem.
->>
->> I would advise to not do this: since disabling current limiting etc
->> will cause a large problem in the case of a short circuit thereby no
->> protection to the hardware. In such an event, it could probably damage
->> the tracks carrying power on the card as well as the tracks on the
->> motherboard, and in some cases the gold finches themselves and or the
->> PCI connector.
->>
->> Generally, there are only a few devices capable of sourcing>  0.5A, So
->> I wonder ....
->>
->> Regards,
->> Manu
->
-> for the few devices I do have, you seem to be for sure right.
->
-> All the Creatix stuff drawing up to 900mA on a potentially dual isl6405
-> has direct voltage from the PSU over an extra floppy connector.
->
-> Max. 500mA should be sufficient with a DiSEqC 1.2 compliant rotor.
-> Nothing else should come above that limit.
->
-> I wonder, if someone close in reading specs just now, can tell if 900mA
-> can be sufficient for two rotors ;)
->
-> Andre, BTW, assuming you still have a CTX944 (md8800 Quad), can you
-> measure if the 16be:0008 device really does switch between 13 and 18V.
+Results of the daily build of v4l-dvb:
 
-You seem to mistake me for someone else. I do not have a CTX944 and 
-never had.
+date:        Wed Apr 21 19:00:18 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14592:b438301e588f
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 1f96716187774be265c59a713fb570810e3a15c7
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-Regards
-  André
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-rc1-armv5: OK
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-rc1-armv5-davinci: OK
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-armv5-ixp: OK
+linux-2.6.34-rc1-armv5-ixp: OK
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-rc1-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.17-i686: WARNINGS
+linux-2.6.24.7-i686: OK
+linux-2.6.25.20-i686: OK
+linux-2.6.26.8-i686: OK
+linux-2.6.27.44-i686: OK
+linux-2.6.28.10-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: OK
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-rc1-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-rc1-m32r: OK
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-rc1-mips: OK
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-rc1-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.17-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.20-x86_64: OK
+linux-2.6.26.8-x86_64: OK
+linux-2.6.27.44-x86_64: OK
+linux-2.6.28.10-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: OK
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-rc1-x86_64: WARNINGS
+linux-git-armv5: OK
+linux-git-armv5-davinci: OK
+linux-git-armv5-ixp: OK
+linux-git-armv5-omap2: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.7-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.62-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.7-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
