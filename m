@@ -1,80 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:39279 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752207Ab0DFPQS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Apr 2010 11:16:18 -0400
-Date: Tue, 6 Apr 2010 10:16:17 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Andy Walls <awalls@md.metrocast.net>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: RFC: exposing controls in sysfs
-In-Reply-To: <201004061327.05929.laurent.pinchart@ideasonboard.com>
-Message-ID: <alpine.DEB.1.10.1004061008500.27169@cnc.isely.net>
-References: <201004052347.10845.hverkuil@xs4all.nl> <201004060837.24770.hverkuil@xs4all.nl> <1270551978.3025.38.camel@palomino.walls.org> <201004061327.05929.laurent.pinchart@ideasonboard.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:60281 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752940Ab0DUMM1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Apr 2010 08:12:27 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0L18006HP78E1M70@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 21 Apr 2010 13:12:19 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L18005GO77RES@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 21 Apr 2010 13:11:51 +0100 (BST)
+Date: Wed, 21 Apr 2010 13:39:42 +0200
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: [PATCH v3 0/3] Fix DQBUF behavior for recoverable streaming errors
+To: linux-media@vger.kernel.org
+Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com
+Message-id: <1271849985-368-1-git-send-email-p.osciak@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 6 Apr 2010, Laurent Pinchart wrote:
+Hello,
 
-> Hi Andy,
-> 
-> On Tuesday 06 April 2010 13:06:18 Andy Walls wrote:
-> > On Tue, 2010-04-06 at 08:37 +0200, Hans Verkuil wrote:
-> 
-> [snip]
-> 
-> > > Again, I still don't know whether we should do this. It is dangerously
-> > > seductive because it would be so trivial to implement.
-> > 
-> > It's like watching ships run aground on a shallow sandbar that all the
-> > locals know about.  The waters off of 'Point /sys' are full of usability
-> > shipwrecks.  I don't know if it's some siren's song, the lack of a light
-> > house, or just strange currents that deceive even seasoned
-> > navigators....
-> > 
-> > Let the user run 'v4l2-ctl -d /dev/videoN -L' to learn about the control
-> > metatdata.  It's not as easy as typing 'cat', but the user base using
-> > sysfs in an interactive shell or shell script should also know how to
-> > use v4l2-ctl.  In embedded systems, the final system deployment should
-> > not need the control metadata available from sysfs in a command shell
-> > anyway.
-> 
-> I fully agree with this. If we push the idea one step further, why do we need 
-> to expose controls in sysfs at all ?
+this is the third version of a series that introduces a V4L2_BUF_FLAG_ERROR
+flag for recoverable stream errors. It allows applications to gracefully recover
+in case of such errors instead of losing the buffer or having to guess
+its index.
 
-I have found it useful to have the sysfs interface within the pvrusb2 
-driver.
+Changes since v2:
+- replaced the second patch of the series with Hans' version
 
-If it is going to take a lot of work to specifically craft a sysfs 
-interface that exports the V4L API, then it will probably be a pain to 
-maintain going forward.  By "a lot of work" I mean that each V4L API 
-function would have to be explicitly coded for in this interface, thus 
-as the V4L API evolves over time then extra work must be expended each 
-time to keep the sysfs interface in step.  If that is to be the case 
-then it may not be worth it.
+This series contains:
+[PATCH v3 1/3] v4l: Add a new ERROR flag for DQBUF after recoverable streaming errors
+[PATCH v3 2/3] v4l: videobuf: Add support for V4L2_BUF_FLAG_ERROR
+[PATCH v3 3/3] v4l: Add documentation for the new error flag
 
-In the pvrusb2 driver this has not been the case because the code I 
-wrote which implements the sysfs interface for the driver does this 
-programmatically.  That is, there is nothing in the pvrusb2-sysfs.c 
-module which is specific to a particular function.  Instead, when the 
-module initializes it is able to enumerate the API on its own and 
-generate the appropriate interface for each control it finds.  Thus as 
-the pvrusb2 driver's implementation has evolved over time, the sysfs 
-implementation has simply continues to do its job, automatically 
-reflecting internal changes without any extra work in that module's 
-code.  I don't know if that same strategy could be done in the V4L core.  
-If it could, then this would probably alleviate a lot of concerns about 
-testing / maintenance going forward.
-
-  -Mike
-
-
--- 
-
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
