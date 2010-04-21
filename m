@@ -1,56 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bamako.nerim.net ([62.4.17.28]:56781 "EHLO bamako.nerim.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756385Ab0DEVGT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Apr 2010 17:06:19 -0400
-Date: Mon, 5 Apr 2010 23:06:16 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux I2C <linux-i2c@vger.kernel.org>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/2] V4L/DVB: Use custom I2C probing function mechanism
-Message-ID: <20100405230616.443792ac@hyperion.delvare>
-In-Reply-To: <4BBA2B58.4000007@redhat.com>
-References: <20100404161454.0f99cc06@hyperion.delvare>
-	<4BBA2B58.4000007@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail.gmx.net ([213.165.64.20]:50064 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753807Ab0DUJop (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Apr 2010 05:44:45 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+Subject: Re: av7110 and budget_av are broken!
+Date: Wed, 21 Apr 2010 11:44:16 +0200
+Cc: "e9hack" <e9hack@googlemail.com>, linux-media@vger.kernel.org,
+	"Mauro Carvalho Chehab" <mchehab@infradead.org>
+References: <ee20bb7da9d2708352bb7236108294d5.squirrel@webmail.xs4all.nl>
+In-Reply-To: <ee20bb7da9d2708352bb7236108294d5.squirrel@webmail.xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201004211144.19591@orion.escape-edv.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Wednesday 21 April 2010 08:37:39 Hans Verkuil wrote:
+> > Am 22.3.2010 20:34, schrieb e9hack:
+> >> Am 20.3.2010 22:37, schrieb Hans Verkuil:
+> >>> On Saturday 20 March 2010 17:03:01 e9hack wrote:
+> >>> OK, I know that. But does the patch I mailed you last time fix this
+> >>> problem
+> >>> without causing new ones? If so, then I'll post that patch to the list.
+> >>
+> >> With your last patch, I've no problems. I'm using a a TT-C2300 and a
+> >> Budget card. If my
+> >> VDR does start, currently I've no chance to determine which module is
+> >> load first, but it
+> >> works. If I unload all modules and load it again, I've no problem. In
+> >> this case, the
+> >> modules for the budget card is load first and the modules for the FF
+> >> loads as second one.
+> >
+> > Ping!!!!!!
+>
+> It's merged in Mauro's fixes tree, but I don't think those pending patches
+> have been pushed upstream yet. Mauro, can you verify this? They should be
+> pushed to 2.6.34!
 
-On Mon, 05 Apr 2010 15:26:32 -0300, Mauro Carvalho Chehab wrote:
-> Jean Delvare wrote:
-> > Now that i2c-core offers the possibility to provide custom probing
-> > function for I2C devices, let's make use of it.
-> > 
-> > Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> > ---
-> > I wasn't too sure where to put the custom probe function: in each driver,
-> > in the ir-common module or in the v4l2-common module. I went for the
-> > second option as a middle ground, but am ready to discuss it if anyone
-> > objects.
-> 
-> Please, don't add new things at ir-common module. It basically contains the
-> decoding functions for RC5 and pulse/distance, plus several IR keymaps. With
-> the IR rework I'm doing, this module will go away, after having all the current 
-> IR decoders implemented via ir-raw-input binding. 
-> 
-> The keymaps were already removed from it, on my experimental tree 
-> (http://git.linuxtv.org/mchehab/ir.git), and rc5 decoder is already written
-> (but still needs a few fixes). 
-> 
-> The new ir-core is creating an abstract way to deal with Remote Controllers,
-> meant to be used not only by IR's, but also for other types of RC, like, 
-> bluetooth and USB HID. It will also export a raw event interface, for use
-> with lirc. As this is the core of the RC subsystem, a i2c-specific binding
-> method also doesn't seem to belong there. SO, IMO, the better place is to add 
-> it as a static inline function at ir-kbd-i2c.h.
+What about the HG driver?
+The v4l-dvb HG repository is broken for 7 weeks...
 
-Ever tried to pass the address of an inline function as another
-function's parameter? :)
+CU
+Oliver
 
 -- 
-Jean Delvare
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
