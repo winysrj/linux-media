@@ -1,81 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44048 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753349Ab0D1Rhb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Apr 2010 13:37:31 -0400
-Date: Wed, 28 Apr 2010 13:37:29 -0400
-From: Jarod Wilson <jarod@redhat.com>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:11588 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755901Ab0DUQKl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Apr 2010 12:10:41 -0400
+Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0L18003JUI9PCW@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 21 Apr 2010 17:10:37 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L1800IRMI9PW6@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 21 Apr 2010 17:10:37 +0100 (BST)
+Date: Wed, 21 Apr 2010 18:10:35 +0200
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: [PATCH v1 2/2] v4l: vivi: adapt to out-of-order buffer dequeuing in
+ videobuf.
+In-reply-to: <1271866235-14370-1-git-send-email-p.osciak@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: linux-input@vger.kernel.org
-Subject: [PATCH] IR/imon: minor change_protocol fixups
-Message-ID: <20100428173729.GA14256@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com
+Message-id: <1271866235-14370-3-git-send-email-p.osciak@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1271866235-14370-1-git-send-email-p.osciak@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a follow-up to my prior patch implementing ir-core's
-change_protocol functionality in the imon driver, which eliminates
-a false warning when change_protocol is called without a specific
-protocol selected yet (i.e., still IR_TYPE_UNKNOWN). It also removes
-some extraneous blank lines getting spewn into dmesg.
+Make vivi use new videobuf helpers for finishing processing a buffer and
+checking for consumers.
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
-
+Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/IR/imon.c |   20 +++++++++-----------
- 1 files changed, 9 insertions(+), 11 deletions(-)
+ drivers/media/video/vivi.c |   17 +++++++++--------
+ 1 files changed, 9 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/IR/imon.c b/drivers/media/IR/imon.c
-index 16e2e7f..6fb3b05 100644
---- a/drivers/media/IR/imon.c
-+++ b/drivers/media/IR/imon.c
-@@ -999,7 +999,7 @@ int imon_ir_change_protocol(void *priv, u64 ir_type)
- 	unsigned char ir_proto_packet[] = {
- 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x86 };
+diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
+index cdbe703..4a91761 100644
+--- a/drivers/media/video/vivi.c
++++ b/drivers/media/video/vivi.c
+@@ -630,13 +630,13 @@ static void vivi_thread_tick(struct vivi_fh *fh)
+ 		goto unlock;
+ 	}
  
--	if (!(ir_type & ictx->props->allowed_protos))
-+	if (ir_type && !(ir_type & ictx->props->allowed_protos))
- 		dev_warn(dev, "Looks like you're trying to use an IR protocol "
- 			 "this device does not support\n");
+-	buf = list_entry(dma_q->active.next,
+-			 struct vivi_buffer, vb.queue);
+-
+-	/* Nobody is waiting on this buffer, return */
+-	if (!waitqueue_active(&buf->vb.done))
++	if (!videobuf_has_consumers(&fh->vb_vidq)) {
++		dprintk(dev, 1, "No consumers\n");
+ 		goto unlock;
++	}
  
-@@ -1014,12 +1014,11 @@ int imon_ir_change_protocol(void *priv, u64 ir_type)
- 		break;
- 	case IR_TYPE_UNKNOWN:
- 	case IR_TYPE_OTHER:
--		dev_dbg(dev, "Configuring IR receiver for iMON protocol");
--		if (pad_stabilize) {
--			printk(KERN_CONT "\n");
-+		dev_dbg(dev, "Configuring IR receiver for iMON protocol\n");
-+		if (pad_stabilize)
- 			pad_mouse = true;
--		} else {
--			printk(KERN_CONT " (without PAD stabilization)\n");
-+		else {
-+			dev_dbg(dev, "PAD stabilize functionality disabled\n");
- 			pad_mouse = false;
- 		}
- 		/* ir_proto_packet[0] = 0x00; // already the default */
-@@ -1027,12 +1026,11 @@ int imon_ir_change_protocol(void *priv, u64 ir_type)
- 		break;
- 	default:
- 		dev_warn(dev, "Unsupported IR protocol specified, overriding "
--			 "to iMON IR protocol");
--		if (pad_stabilize) {
--			printk(KERN_CONT "\n");
-+			 "to iMON IR protocol\n");
-+		if (pad_stabilize)
- 			pad_mouse = true;
--		} else {
--			printk(KERN_CONT " (without PAD stabilization)\n");
-+		else {
-+			dev_dbg(dev, "PAD stabilize functionality disabled\n");
- 			pad_mouse = false;
- 		}
- 		/* ir_proto_packet[0] = 0x00; // already the default */
-
++	buf = list_entry(dma_q->active.next,
++			 struct vivi_buffer, vb.queue);
+ 	list_del(&buf->vb.queue);
+ 
+ 	do_gettimeofday(&buf->vb.ts);
+@@ -645,11 +645,12 @@ static void vivi_thread_tick(struct vivi_fh *fh)
+ 	vivi_fillbuff(fh, buf);
+ 	dprintk(dev, 1, "filled buffer %p\n", buf);
+ 
+-	wake_up(&buf->vb.done);
+-	dprintk(dev, 2, "[%p/%d] wakeup\n", buf, buf->vb. i);
+-unlock:
+ 	spin_unlock_irqrestore(&dev->slock, flags);
++	videobuf_buf_finish(&fh->vb_vidq, &buf->vb);
+ 	return;
++
++unlock:
++	spin_unlock_irqrestore(&dev->slock, flags);
+ }
+ 
+ #define frames_to_ms(frames)					\
 -- 
-Jarod Wilson
-jarod@redhat.com
+1.7.1.rc1.12.ga601
 
