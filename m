@@ -1,63 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f217.google.com ([209.85.217.217]:57578 "EHLO
-	mail-gx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751038Ab0DYG5M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Apr 2010 02:57:12 -0400
-Received: by gxk9 with SMTP id 9so43452gxk.8
-        for <linux-media@vger.kernel.org>; Sat, 24 Apr 2010 23:57:11 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:7792 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753411Ab0DVNgL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Apr 2010 09:36:11 -0400
+Message-ID: <4BD050C6.6060206@redhat.com>
+Date: Thu, 22 Apr 2010 10:36:06 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Date: Sun, 25 Apr 2010 14:57:11 +0800
-Message-ID: <h2n6e8e83e21004242357pb00773f2qbbd4b6ca8272a1e2@mail.gmail.com>
-Subject: [PATCH 2/2] tm6000 : Fix filling up of buffer for video frame
-From: Bee Hock Goh <beehock@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
+To: Jarod Wilson <jarod@redhat.com>
+CC: linux-media@vger.kernel.org, linux-input@vger.kernel.org
+Subject: Re: [PATCH 3/3] ir-core: add imon driver
+References: <20100416212622.GA6888@redhat.com> <20100416212902.GD2427@redhat.com> <20100420182236.2e5a1325@pedra> <20100422015525.GA14221@redhat.com>
+In-Reply-To: <20100422015525.GA14221@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Avoid(until there is a better fix) cleaning up of buffer as it will
-cause partital green screen when there are frame dropped.
+Jarod Wilson wrote:
+> On Tue, Apr 20, 2010 at 06:22:36PM -0300, Mauro Carvalho Chehab wrote:
+>> Em Fri, 16 Apr 2010 17:29:02 -0400
+>> Jarod Wilson <jarod@redhat.com> escreveu:
+>>
+>>> This is a new driver for the SoundGraph iMON and Antec Veris IR/display
+>>> devices commonly found in many home theater pc cases and as after-market
+>>> case additions.
+>>
+>>> +/* IR protocol: native iMON, Windows MCE (RC-6), or iMON w/o PAD stabilize */
+>>> +static int ir_protocol;
+>>> +module_param(ir_protocol, int, S_IRUGO | S_IWUSR);
+>>> +MODULE_PARM_DESC(ir_protocol, "Which IR protocol to use. 0=auto-detect, "
+>>> +		 "1=Windows Media Center Ed. (RC-6), 2=iMON native, "
+>>> +		 "4=iMON w/o PAD stabilize (default: auto-detect)");
+>>> +
+>> You don't need this. Let's the protocol to be adjustable via sysfs. All you need to do is
+>> to use the set_protocol callbacks with something like:
+>>
+>>         props->allowed_protos = IR_TYPE_RC6 | IR_TYPE_<imon protocol>;
+>>         props->change_protocol = imon_ir_change_protocol;
+>>
+>> You can see an example of such implementation at drivers/media/video/em28xx-em28xx-input.c.
+>> Look for em28xx_ir_change_protocol() function.
+> 
+> Working on it now... I'm about 95% of the way there, just need to sort out
+> one last little bit...
 
-Fix video line couting corruption when cmd is not a video packet.
+Good!
 
-Signed-off-by: Bee Hock Goh <beehock@gmail.com>
+>> That's said, I'm not sure what would be better way to map IR_TYPE_<imon protocol>. Maybe we
+>> can just use IR_TYPE_OTHER.
+>>
+>> So, basically, we'll have:
+>>
+>> 	IR_TYPE_OTHER | IR_TYPE_RC6	- auto-detected between RC-6 and iMON
+>> 	IR_TYPE_OTHER			- iMON proprietary protocol
+>> 	IR_TYPE_RC6			- RC-6 protocol
+>>
+>>
+>> By doing this, the userspace application ir-keycode will already be able to handle the
+>> IR protocol.
+> 
+> I'm going to go with IR_TYPE_OTHER for the iMON native proto for now. To
+> be honest, I don't have a clue what the actual IR protocol looks like... I
+> should try one of my iMON remotes w/an mce transceiver to see if I can
+> figure it out...
 
-diff --git a/drivers/staging/tm6000/tm6000-video.c
-b/drivers/staging/tm6000/tm6000-video.c
-index c53de47..50b12ac 100644
---- a/drivers/staging/tm6000/tm6000-video.c
-+++ b/drivers/staging/tm6000/tm6000-video.c
-@@ -133,7 +133,7 @@ static inline void get_next_buf(struct
-tm6000_dmaqueue *dma_q,
- 			       struct tm6000_buffer   **buf)
- {
- 	struct tm6000_core *dev = container_of(dma_q, struct tm6000_core, vidq);
--	char *outp;
-+//	char *outp;
+It would be a good idea to get the real protocol, instead of using OTHER. Maybe one of the
+already-existing decoders may be able to catch it, if you use a raw decoder device.
 
- 	if (list_empty(&dma_q->active)) {
- 		dprintk(dev, V4L2_DEBUG_QUEUE, "No active queue to serve\n");
-@@ -148,8 +148,8 @@ static inline void get_next_buf(struct
-tm6000_dmaqueue *dma_q,
- 		return;
+>> I'm not sure how to map the "PAD stablilize" case, but it seems that the better would be to
+>> add a sysfs node for it, at sys/class/rc/rc0. There are other cases where some protocols
+>> may require some adjustments, so I'm thinking on having some protocol-specific properties there.
+> 
+> For the moment, I'm dropping the ir_protocol modparam and adding a
+> pad_stabilize one. It was a hack to have it as a protocol, all it really
+> needs to do is bypass a function when processing the pad signals. Can
+> convert it to something more standard once we have a standard for
+> protocol-specific properties. (The pad_thresh modparam is probably a
+> similar case).
 
- 	/* Cleans up buffer - Usefull for testing for frame/URB loss */
--	outp = videobuf_to_vmalloc(&(*buf)->vb);
--	memset(outp, 0, (*buf)->vb.size);
-+//	outp = videobuf_to_vmalloc(&(*buf)->vb);
-+//	memset(outp, 0, (*buf)->vb.size);
+Yes. Suggestions/patches for those protocol-specific parameters are welcome ;)
 
- 	return;
- }
-@@ -282,7 +282,8 @@ static int copy_packet(struct urb *urb, u32
-header, u8 **ptr, u8 *endp,
- 			start_line=line;
- 			last_field=field;
- 		}
--		last_line=line;
-+		if (cmd == TM6000_URB_MSG_VIDEO)
-+			last_line=line;
+>> Except for that, the patch looked sane to my eyes. So, I'll add it on my tree and wait for a
+>> latter patch from you addressing the protocol control.
+> 
+> Good deal, I'm working off the v4l-dvb git tree now, hope to have
+> something a bit later tonight or tomorrow.
 
- 		pktsize = TM6000_URB_MSG_LEN;
- 	} else {
+Ok. 
+
+-- 
+
+Cheers,
+Mauro
