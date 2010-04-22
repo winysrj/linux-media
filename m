@@ -1,57 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f223.google.com ([209.85.220.223]:56478 "EHLO
-	mail-fx0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752166Ab0DFJKU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Apr 2010 05:10:20 -0400
-Received: by fxm23 with SMTP id 23so3492411fxm.21
-        for <linux-media@vger.kernel.org>; Tue, 06 Apr 2010 02:10:18 -0700 (PDT)
+Received: from smtp.nokia.com ([192.100.122.233]:59214 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754646Ab0DVOSo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Apr 2010 10:18:44 -0400
+Message-ID: <4BD05A8E.5060905@nokia.com>
+Date: Thu, 22 Apr 2010 17:17:50 +0300
+From: Sakari Ailus <sakari.ailus@nokia.com>
 MIME-Version: 1.0
-Date: Tue, 6 Apr 2010 10:10:18 +0100
-Message-ID: <t2oecc841d81004060210re511232ek4837df452d6acb4d@mail.gmail.com>
-Subject: Scan not getting Channel names after DSO
-From: Mike Martin <redtux1@googlemail.com>
-To: linux-media@vger.kernel.org
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	David Cohen <david.cohen@nokia.com>,
+	"Koskipaa Antti (Nokia-D/Helsinki)" <antti.koskipaa@nokia.com>,
+	"'vimarsh.zutshi@nokia.com'" <vimarsh.zutshi@nokia.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Zhang, Xiaolin" <xiaolin.zhang@intel.com>,
+	"Penda, Naveen Kumar" <pnaveen@ti.com>
+Subject: Re: V4L2 and Media controller mini-summit in Helsinki 14.--16. June
+ --- PLEASE REGISTER!
+References: <4BBA3BC3.2060205@maxwell.research.nokia.com>
+In-Reply-To: <4BBA3BC3.2060205@maxwell.research.nokia.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi on one (and only one I think) multiplex after digital switchover I
-am getting the following
+Hello all,
 
-[6440]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:101:102:25664
-[6480]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:201:202:25728
-[64c0]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:301:302:25792
-[6500]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:25856
-[6540]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:501:502:25920
-[6b00]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:2101:2102:27392
-[6b40]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:27456
-[6b80]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:27520
-[6bc0]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:27584
-[6c00]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:27648
-[6c40]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:27712
-[6c80]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:27776
-[6cc0]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:2311:2312:27840
-[6d00]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:27904
-[6d80]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:601:602:28032
-[6980]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GDone.
-UARD_INTERVAL_1_32:HIERARCHY_NONE:0:0:27008
-[6840]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:1901:26688
-[6800]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:1809:26624
-[67c0]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:1701:26560
-[66c0]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:1301:26304
-[6680]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:1201:26240
-[6640]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:1101:26176
-[6700]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:0:1401:26368
-[6a00]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:701:702:27136
+Sakari Ailus wrote:
+> Hello everyone,
+> 
+> I'm glad to announce Nokia will be hosting a V4L2 and Media controller
+> mini-summit in Helsinki, Finland from 14th to 16th June --- that's from
+> Monday to Wednesday. The event replaces the V4L2 Media Controller
+> mini-summit in Oslo in April / May proposed by Hans Verkuil. Just the
+> location is different; Hans is still responsible for the technical content.
 
-As you can see instead of the Channel name I am getting what looks to
-be hex - any idea why, this is on 530167000 frequency (channel 28+)
-example being this item
+And many thanks to Hans for doing this! Without him, this mini-summit
+would not be possible.
 
-[6d80]:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:601:602:28032
+> Hans' original posting is available here:
+> 
+> <URL:http://www.mail-archive.com/linux-media@vger.kernel.org/msg15526.html>
+> 
+> The participation to the event is free of charge and open for anyone.
+> However, we do have a limited number of seats but I'm very trustful
+> everyone will be able to fit in. I'd like to ask the participants to
+> sign up by sending me mail telling they want to participate.
 
-should be
+A few things related to practical arrangements.
 
-ITV4:530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE:601:602:28032
+There seems to be a largish conference in Helsinki just at the time
+we're having our V4L2 mini-summit and this is the reason it is quite
+difficult to book hotel rooms here. We have a quota reservation for the
+V4L2 mini-summit between 2010-06-12 -- 2010-06-18 which expires
+2010-05-12 (just a bit over two weeks!). After this it may be very
+difficult to find rooms, depending on the activity of a certain volcano
+in Iceland, though.
 
-any ideas
+Even if you are not absolutely certain of your participation, please
+inform me you're interested and I'll send you the hotel reservation
+information. Cancelling the reservation without extra fee is possible
+(and not difficult at all).
+
+Please also tell if you're happy with being publicly (in this list that
+is) listed as a participant to the meeting or not. Otherwise the
+assumption is "yes". :)
+
+Sincerely,
+
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
