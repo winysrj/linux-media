@@ -1,72 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iw0-f182.google.com ([209.85.223.182]:46571 "EHLO
-	mail-iw0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755081Ab0DWRkf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Apr 2010 13:40:35 -0400
+Received: from mout.perfora.net ([74.208.4.195]:64915 "EHLO mout.perfora.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754561Ab0DVSl0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Apr 2010 14:41:26 -0400
+Message-ID: <4BD0984E.4070609@vorgon.com>
+Date: Thu, 22 Apr 2010 11:41:18 -0700
+From: "Timothy D. Lenz" <tlenz@vorgon.com>
 MIME-Version: 1.0
-In-Reply-To: <20100407093205.GB3029@hardeman.nu>
-References: <20100401145632.5631756f@pedra>
-	 <t2z9e4733911004011844pd155bbe8g13e4cbcc1a5bf1f6@mail.gmail.com>
-	 <20100402102011.GA6947@hardeman.nu>
-	 <p2ube3a4a1004051349y11e3004bk1c71e3ab38d3f669@mail.gmail.com>
-	 <20100407093205.GB3029@hardeman.nu>
-Date: Fri, 23 Apr 2010 13:40:34 -0400
-Message-ID: <z2hbe3a4a1004231040uce51091fnf24b97de215e3ef1@mail.gmail.com>
-Subject: Re: [PATCH 00/15] ir-core: Several improvements to allow adding LIRC
-	and decoder plugins
-From: Jarod Wilson <jarod@wilsonet.com>
-To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
-Cc: Jon Smirl <jonsmirl@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-input@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: linux-media@vger.kernel.org
+Subject: Re: DViCo Dual Fusion Express (cx23885) remote control issue
+References: <201004151519.58012.darius@dons.net.au> <201004222241.28624.darius@dons.net.au>
+In-Reply-To: <201004222241.28624.darius@dons.net.au>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 7, 2010 at 5:32 AM, David Härdeman <david@hardeman.nu> wrote:
-> On Mon, Apr 05, 2010 at 04:49:10PM -0400, Jarod Wilson wrote:
->> On Fri, Apr 2, 2010 at 6:20 AM, David Härdeman <david@hardeman.nu> wrote:
->> > Porting the msmce driver to rc-core will be high on my list of
->> > priorities once I've done some more changes to the API.
->>
->> Very cool. Though note that the latest lirc_mceusb is quite heavily
->> modified from what Jon had initially ported, and I still have a few
->> outstanding enhancements to make, such as auto-detecting xmit mask to
->> eliminate the crude inverted mask list and support for the mce IR
->> keyboard/mouse, though that'll probably be trivial once RC5 and RC6
->> in-kernel decoders are in place. I'd intended to start with porting
->> the imon driver I'm working on over to this new infra (onboard
->> hardware decoder, should be rather easy to port), and then hop over to
->> the mceusb driver, but if you beat me to it, I've got no problem with
->> you doing it instead. :)
+
+
+On 4/22/2010 6:11 AM, Daniel O'Connor wrote:
+> On Thu, 15 Apr 2010, Daniel O'Connor wrote:
+>> I haven't delved much further yet (planning to printf my way through
+>> the probe routines) as I am a Linux kernel noob (plenty of FreeBSD
+>> experience though!).
 >
-> I'd be happy with you doing it, you seem to know the hardware better
-> than me. The mceusb driver I'm using right now with ir-core is based on
-> Jon's driver which is in turn based on a version of lirc_mceusb which is
-> quite old by now. My version of the driver is basically just random bits
-> and pieces thrown together, enough to get pulse/space durations flowing
-> through ir-core so that I can test the decoders, but not much more - so
-> it's not something I'd even consider useful as a starting point :)
+> I found that it is intermittent with no pattern I can determine.
+>
+> When it doesn't work the probe routine is not called, but I am not sure
+> how i2c_register_driver decides to call the probe routine.
+>
+> Does anyone have an idea what the cause could be? Or at least somewhere
+> to start looking :)
+>
+> Thanks.
+>
 
-So now that I'm more or less done with porting the imon driver, I
-think I'm ready to start tackling the mceusb driver. But I'm debating
-on what approach to take with respect to lirc support. It sort of
-feels like we should have lirc_dev ported as an ir "decoder"
-driver/plugin before starting to port mceusb to ir-core, so that we
-can maintain lirc compat and transmit support. Alternatively, I could
-port mceusb without lirc support for now, leaving it to only use
-in-kernel decoding and have no transmit support for the moment, then
-re-add lirc support. I'm thinking that porting lirc_dev as, say,
-ir-lirc-decoder first is probably the way to go though. Anyone else
-want to share their thoughts on this?
-
-(Actually, while sharing thoughts... Should drivers/media/IR become
-drivers/media/RC, ir-core.h become rc-core.h, ir-keytable.c become
-rc-keytable.c and so on?)
-
--- 
-Jarod Wilson
-jarod@wilsonet.com
+A patch was posted that was suposed to be merged that fixed the ir 
+problem, at least for me. Though my problem was not intermittent. The 
+patch worked for me. Now if I could just get both tuners to keep working
