@@ -1,54 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.158]:45133 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753712Ab0DQTIs (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1756 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757464Ab0DVTpo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Apr 2010 15:08:48 -0400
-Received: by fg-out-1718.google.com with SMTP id 19so1039769fgg.1
-        for <linux-media@vger.kernel.org>; Sat, 17 Apr 2010 12:08:46 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4BC9F6B8.1050302@cogweb.net>
-References: <4BC8F087.3050805@cogweb.net>
-	 <u2g829197381004161714z2f0b827eu824a3bcb17d2aa17@mail.gmail.com>
-	 <g2w846899811004162344ib3c9223ek8bcef2df83e7f23b@mail.gmail.com>
-	 <4BC96A12.2040007@cogweb.net>
-	 <i2g846899811004170310s6f0a26fejace49a3886240bca@mail.gmail.com>
-	 <4BC9F6B8.1050302@cogweb.net>
-Date: Sat, 17 Apr 2010 21:08:46 +0200
-Message-ID: <n2m846899811004171208k9113f001o36545c70fedcd6d9@mail.gmail.com>
-Subject: Re: zvbi-atsc-cc device node conflict
-From: HoP <jpetrous@gmail.com>
-To: David Liontooth <lionteeth@cogweb.net>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 22 Apr 2010 15:45:44 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id o3MJjgtt050779
+	for <linux-media@vger.kernel.org>; Thu, 22 Apr 2010 21:45:42 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 22 Apr 2010 21:45:42 +0200 (CEST)
+Message-Id: <201004221945.o3MJjgtt050779@smtp-vbr13.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> That's promising but no cigar:
->
-> cat test-cat3.mpeg > zvbi-atsc-cc --ts
->
-> just feeds the output of the cat into a file called zvbi-atsc-cc (not
-> surprisingly).
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Hehe. Sure, it was my mistake. Piping syntax what you tried
-later is exactly what I thought :-)
+Results of the daily build of v4l-dvb:
 
->
->  cat test-cat3.mpeg | zvbi-atsc-cc --ts
->
-> also doesn't work. zvbi-atsc-cc's --ts switch is designed to "Decode a DVB
-> Transport Stream on stdin", so if the file created with
->
->  cat /dev/dvb/adapter0/dvr0 > test-cat3.mpeg
->
-> qualifies as a DVB Transport Stream, then there's a way to pipe it to
-> zvbi-atsc-cc.  How do we get the syntax for this?
->
+date:        Thu Apr 22 19:00:21 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14592:b438301e588f
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 1f96716187774be265c59a713fb570810e3a15c7
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-Of course I can be wrong as I have exactly zero experiences of using
-zvbi tool, but I think command line option --ts should tell that
-data are not comming from dvr device but from stdin. Dunno
-why it not works for you. May be it needs some additional options?
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-rc1-armv5: OK
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-rc1-armv5-davinci: OK
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-armv5-ixp: OK
+linux-2.6.34-rc1-armv5-ixp: OK
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-rc1-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.17-i686: WARNINGS
+linux-2.6.24.7-i686: OK
+linux-2.6.25.20-i686: OK
+linux-2.6.26.8-i686: OK
+linux-2.6.27.44-i686: OK
+linux-2.6.28.10-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: OK
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-rc1-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-rc1-m32r: OK
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-rc1-mips: OK
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-rc1-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.17-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.20-x86_64: OK
+linux-2.6.26.8-x86_64: OK
+linux-2.6.27.44-x86_64: OK
+linux-2.6.28.10-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: OK
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-rc1-x86_64: WARNINGS
+linux-git-armv5: OK
+linux-git-armv5-davinci: OK
+linux-git-armv5-ixp: OK
+linux-git-armv5-omap2: OK
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.7-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.62-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.7-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
-/Honza
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
