@@ -1,115 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3072 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751815Ab0DZTjj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Apr 2010 15:39:39 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id o3QJdcHF037669
-	for <linux-media@vger.kernel.org>; Mon, 26 Apr 2010 21:39:38 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 26 Apr 2010 21:39:38 +0200 (CEST)
-Message-Id: <201004261939.o3QJdcHF037669@smtp-vbr12.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from cain.gsoft.com.au ([203.31.81.10]:60010 "EHLO cain.gsoft.com.au"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754383Ab0DVNMV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Apr 2010 09:12:21 -0400
+From: "Daniel O'Connor" <darius@dons.net.au>
+Reply-To: darius@dons.net.au
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
+Subject: Re: DViCo Dual Fusion Express (cx23885) remote control issue
+Date: Thu, 22 Apr 2010 22:41:20 +0930
+References: <201004151519.58012.darius@dons.net.au>
+In-Reply-To: <201004151519.58012.darius@dons.net.au>
+MIME-Version: 1.0
+Content-Type: multipart/signed;
+  boundary="nextPart2047839.NZhbMQMRh1";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
+Content-Transfer-Encoding: 7bit
+Message-Id: <201004222241.28624.darius@dons.net.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+--nextPart2047839.NZhbMQMRh1
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Results of the daily build of v4l-dvb:
+On Thu, 15 Apr 2010, Daniel O'Connor wrote:
+> I haven't delved much further yet (planning to printf my way through
+> the probe routines) as I am a Linux kernel noob (plenty of FreeBSD
+> experience though!).
 
-date:        Mon Apr 26 19:00:20 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14592:b438301e588f
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 1fa9d4c07f3ddee1c054a751cd78e53e8b9050b4
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+I found that it is intermittent with no pattern I can determine.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc1-armv5: OK
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-rc1-armv5-davinci: OK
-linux-2.6.32.6-armv5-ixp: OK
-linux-2.6.33-armv5-ixp: OK
-linux-2.6.34-rc1-armv5-ixp: OK
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-rc1-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.17-i686: WARNINGS
-linux-2.6.24.7-i686: OK
-linux-2.6.25.20-i686: OK
-linux-2.6.26.8-i686: OK
-linux-2.6.27.44-i686: OK
-linux-2.6.28.10-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: OK
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-rc1-i686: WARNINGS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc1-m32r: OK
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-rc1-mips: OK
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-rc1-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.17-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.20-x86_64: OK
-linux-2.6.26.8-x86_64: OK
-linux-2.6.27.44-x86_64: OK
-linux-2.6.28.10-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: OK
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-rc1-x86_64: WARNINGS
-linux-git-armv5: OK
-linux-git-armv5-davinci: OK
-linux-git-armv5-ixp: OK
-linux-git-armv5-omap2: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.7-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.62-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.7-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+When it doesn't work the probe routine is not called, but I am not sure=20
+how i2c_register_driver decides to call the probe routine.
 
-Detailed results are available here:
+Does anyone have an idea what the cause could be? Or at least somewhere=20
+to start looking :)
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+Thanks.
 
-Full logs are available here:
+=2D-=20
+Daniel O'Connor software and network engineer
+for Genesis Software - http://www.gsoft.com.au
+"The nice thing about standards is that there
+are so many of them to choose from."
+  -- Andrew Tanenbaum
+GPG Fingerprint - 5596 B766 97C0 0E94 4347 295E E593 DC20 7B3F CE8C
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+--nextPart2047839.NZhbMQMRh1
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
 
-The V4L-DVB specification from this daily build is here:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.12 (FreeBSD)
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+iD8DBQBL0EsA5ZPcIHs/zowRAhGsAJ9BanCngP13D9l5kE/nesobP7CNyACfXpfO
+0rMl87nvF5DWLcb9N81lFhA=
+=WS9X
+-----END PGP SIGNATURE-----
+
+--nextPart2047839.NZhbMQMRh1--
