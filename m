@@ -1,199 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:21850 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:41353 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751027Ab0DGUIE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Apr 2010 16:08:04 -0400
-Message-ID: <4BBCE61E.3090504@redhat.com>
-Date: Wed, 07 Apr 2010 17:07:58 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1755894Ab0DVBza (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Apr 2010 21:55:30 -0400
+Date: Wed, 21 Apr 2010 21:55:25 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org
+Subject: Re: [PATCH 3/3] ir-core: add imon driver
+Message-ID: <20100422015525.GA14221@redhat.com>
+References: <20100416212622.GA6888@redhat.com>
+ <20100416212902.GD2427@redhat.com>
+ <20100420182236.2e5a1325@pedra>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: linux-media@vger.kernel.org
-Subject: [PATCH] em28xx: fix locks during dvb init sequence - was: Re: V4L-DVB
- drivers and BKL
-References: <201004011001.10500.hverkuil@xs4all.nl>	 <201004011411.02344.laurent.pinchart@ideasonboard.com>	 <4BB4A9E2.9090706@redhat.com> <201004011642.19889.hverkuil@xs4all.nl>	 <4BB4B569.3080608@redhat.com> <x2y829197381004010958u82deb516if189d4fb00fbc5e6@mail.gmail.com>
-In-Reply-To: <x2y829197381004010958u82deb516if189d4fb00fbc5e6@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20100420182236.2e5a1325@pedra>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller wrote:
-> On Thu, Apr 1, 2010 at 11:02 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> I remember I had to do it on em28xx:
->>
->> This is the init code for it:
->>        ...
->>        mutex_init(&dev->lock);
->>        mutex_lock(&dev->lock);
->>        em28xx_init_dev(&dev, udev, interface, nr);
->>        ...
->>        request_modules(dev);
->>
->>        /* Should be the last thing to do, to avoid newer udev's to
->>           open the device before fully initializing it
->>         */
->>        mutex_unlock(&dev->lock);
->>        ...
->>
->> And this is the open code:
->>
->> static int em28xx_v4l2_open(struct file *filp)
->> {
->>        ...
->>        mutex_lock(&dev->lock);
->>        ...
->>        mutex_unlock(&dev->lock);
->>
+On Tue, Apr 20, 2010 at 06:22:36PM -0300, Mauro Carvalho Chehab wrote:
+> Em Fri, 16 Apr 2010 17:29:02 -0400
+> Jarod Wilson <jarod@redhat.com> escreveu:
 > 
-> It's probably worth noting that this change is actually pretty badly
-> broken.  Because the modules are loading asynchronously, there is a
-> high probability that the em28xx-dvb driver will still be loading when
-> hald connects in to the v4l device.  That's the big reason people
-> often see things like tvp5150 i2c errors when the driver is first
-> loaded up.
+> > 
+> > This is a new driver for the SoundGraph iMON and Antec Veris IR/display
+> > devices commonly found in many home theater pc cases and as after-market
+> > case additions.
 > 
-> It's a good idea in theory, but pretty fatally flawed due to the async
-> loading (as to make it work properly you would have to do something
-> like locking the mutex in em28xx and clearing it in em28xx-dvb at the
-> end of its initialization).
+> 
+> > +/* IR protocol: native iMON, Windows MCE (RC-6), or iMON w/o PAD stabilize */
+> > +static int ir_protocol;
+> > +module_param(ir_protocol, int, S_IRUGO | S_IWUSR);
+> > +MODULE_PARM_DESC(ir_protocol, "Which IR protocol to use. 0=auto-detect, "
+> > +		 "1=Windows Media Center Ed. (RC-6), 2=iMON native, "
+> > +		 "4=iMON w/o PAD stabilize (default: auto-detect)");
+> > +
+> 
+> You don't need this. Let's the protocol to be adjustable via sysfs. All you need to do is
+> to use the set_protocol callbacks with something like:
+> 
+>         props->allowed_protos = IR_TYPE_RC6 | IR_TYPE_<imon protocol>;
+>         props->change_protocol = imon_ir_change_protocol;
+> 
+> You can see an example of such implementation at drivers/media/video/em28xx-em28xx-input.c.
+> Look for em28xx_ir_change_protocol() function.
 
-Devin,
+Working on it now... I'm about 95% of the way there, just need to sort out
+one last little bit...
 
-I found some time to fix the above reported issue. Patch follows.
+> That's said, I'm not sure what would be better way to map IR_TYPE_<imon protocol>. Maybe we
+> can just use IR_TYPE_OTHER.
+> 
+> So, basically, we'll have:
+> 
+> 	IR_TYPE_OTHER | IR_TYPE_RC6	- auto-detected between RC-6 and iMON
+> 	IR_TYPE_OTHER			- iMON proprietary protocol
+> 	IR_TYPE_RC6			- RC-6 protocol
+> 
+> 
+> By doing this, the userspace application ir-keycode will already be able to handle the
+> IR protocol.
 
----
+I'm going to go with IR_TYPE_OTHER for the iMON native proto for now. To
+be honest, I don't have a clue what the actual IR protocol looks like... I
+should try one of my iMON remotes w/an mce transceiver to see if I can
+figure it out...
 
-V4L/DVB: em28xx: fix locks during dvb init sequence
+> I'm not sure how to map the "PAD stablilize" case, but it seems that the better would be to
+> add a sysfs node for it, at sys/class/rc/rc0. There are other cases where some protocols
+> may require some adjustments, so I'm thinking on having some protocol-specific properties there.
 
-During em28xx init, em28xx-dvb needs to change to digital mode, in order to
-properly initialize. However, as soon as em28xx-video registers /dev/video0,
-udev will try to run v4l_id program, to retrieve some information that it is
-needed by udev device creation.
+For the moment, I'm dropping the ir_protocol modparam and adding a
+pad_stabilize one. It was a hack to have it as a protocol, all it really
+needs to do is bypass a function when processing the pad signals. Can
+convert it to something more standard once we have a standard for
+protocol-specific properties. (The pad_thresh modparam is probably a
+similar case).
 
-So, while v4l_id is opening the /dev/video? device and setting the device in 
-analog mode, the em28xx-dvb is putting the same device on digital mode, and
-trying to initialize the DVB demod.
+> Except for that, the patch looked sane to my eyes. So, I'll add it on my tree and wait for a
+> latter patch from you addressing the protocol control.
 
-On devices that have a I2C bridge, this results on one of the devices to not
-being accessed, either resulting on I2C error or on wrong readings at devices
-like tvp5150.
+Good deal, I'm working off the v4l-dvb git tree now, hope to have
+something a bit later tonight or tomorrow.
 
-As the analog operations are protected by dev->lock, the fix is as simple as
-locking it also during em28xx-dvb initialization.
+-- 
+Jarod Wilson
+jarod@redhat.com
 
-While here, also simplifies the locking schema for the extension
-register/unregister functions.
-
-Tested on WinTV HVR-950 (2040:6513), doing several sequences of unload/reload.
-On all cases, the proper init happened:
-
-[ 1075.497596] tvp5150 2-005c: tvp5150am1 detected.
-[ 1075.647916] xc2028 2-0061: attaching existing instance
-[ 1075.653106] xc2028 2-0061: type set to XCeive xc2028/xc3028 tuner
-[ 1075.659254] em28xx #0: em28xx #0/2: xc3028 attached
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/video/em28xx/em28xx-core.c b/drivers/media/video/em28xx/em28xx-core.c
-index d4f4525..c8c4e8f 100644
---- a/drivers/media/video/em28xx/em28xx-core.c
-+++ b/drivers/media/video/em28xx/em28xx-core.c
-@@ -1177,21 +1177,18 @@ void em28xx_add_into_devlist(struct em28xx *dev)
-  */
- 
- static LIST_HEAD(em28xx_extension_devlist);
--static DEFINE_MUTEX(em28xx_extension_devlist_lock);
- 
- int em28xx_register_extension(struct em28xx_ops *ops)
- {
- 	struct em28xx *dev = NULL;
- 
- 	mutex_lock(&em28xx_devlist_mutex);
--	mutex_lock(&em28xx_extension_devlist_lock);
- 	list_add_tail(&ops->next, &em28xx_extension_devlist);
- 	list_for_each_entry(dev, &em28xx_devlist, devlist) {
- 		if (dev)
- 			ops->init(dev);
- 	}
- 	printk(KERN_INFO "Em28xx: Initialized (%s) extension\n", ops->name);
--	mutex_unlock(&em28xx_extension_devlist_lock);
- 	mutex_unlock(&em28xx_devlist_mutex);
- 	return 0;
- }
-@@ -1207,10 +1204,8 @@ void em28xx_unregister_extension(struct em28xx_ops *ops)
- 			ops->fini(dev);
- 	}
- 
--	mutex_lock(&em28xx_extension_devlist_lock);
- 	printk(KERN_INFO "Em28xx: Removed (%s) extension\n", ops->name);
- 	list_del(&ops->next);
--	mutex_unlock(&em28xx_extension_devlist_lock);
- 	mutex_unlock(&em28xx_devlist_mutex);
- }
- EXPORT_SYMBOL(em28xx_unregister_extension);
-@@ -1219,26 +1214,26 @@ void em28xx_init_extension(struct em28xx *dev)
- {
- 	struct em28xx_ops *ops = NULL;
- 
--	mutex_lock(&em28xx_extension_devlist_lock);
-+	mutex_lock(&em28xx_devlist_mutex);
- 	if (!list_empty(&em28xx_extension_devlist)) {
- 		list_for_each_entry(ops, &em28xx_extension_devlist, next) {
- 			if (ops->init)
- 				ops->init(dev);
- 		}
- 	}
--	mutex_unlock(&em28xx_extension_devlist_lock);
-+	mutex_unlock(&em28xx_devlist_mutex);
- }
- 
- void em28xx_close_extension(struct em28xx *dev)
- {
- 	struct em28xx_ops *ops = NULL;
- 
--	mutex_lock(&em28xx_extension_devlist_lock);
-+	mutex_lock(&em28xx_devlist_mutex);
- 	if (!list_empty(&em28xx_extension_devlist)) {
- 		list_for_each_entry(ops, &em28xx_extension_devlist, next) {
- 			if (ops->fini)
- 				ops->fini(dev);
- 		}
- 	}
--	mutex_unlock(&em28xx_extension_devlist_lock);
-+	mutex_unlock(&em28xx_devlist_mutex);
- }
-diff --git a/drivers/media/video/em28xx/em28xx-dvb.c b/drivers/media/video/em28xx/em28xx-dvb.c
-index 8f23aa1..f0de731 100644
---- a/drivers/media/video/em28xx/em28xx-dvb.c
-+++ b/drivers/media/video/em28xx/em28xx-dvb.c
-@@ -466,6 +466,7 @@ static int dvb_init(struct em28xx *dev)
- 	}
- 	dev->dvb = dvb;
- 
-+	mutex_lock(&dev->lock);
- 	em28xx_set_mode(dev, EM28XX_DIGITAL_MODE);
- 	/* init frontend */
- 	switch (dev->model) {
-@@ -589,15 +590,16 @@ static int dvb_init(struct em28xx *dev)
- 	if (result < 0)
- 		goto out_free;
- 
--	em28xx_set_mode(dev, EM28XX_SUSPEND);
- 	em28xx_info("Successfully loaded em28xx-dvb\n");
--	return 0;
-+ret:
-+	em28xx_set_mode(dev, EM28XX_SUSPEND);
-+	mutex_unlock(&dev->lock);
-+	return result;
- 
- out_free:
--	em28xx_set_mode(dev, EM28XX_SUSPEND);
- 	kfree(dvb);
- 	dev->dvb = NULL;
--	return result;
-+	goto ret;
- }
- 
- static int dvb_fini(struct em28xx *dev)
