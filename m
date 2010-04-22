@@ -1,77 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:24842 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754786Ab0DAJtj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Apr 2010 05:49:39 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Received: from eu_spt2 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0L0600125ZAOFF60@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 01 Apr 2010 10:49:36 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L0600L1NZANMZ@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 01 Apr 2010 10:49:36 +0100 (BST)
-Date: Thu, 01 Apr 2010 11:47:36 +0200
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: RE: [PATCH 1/2] v4l2-mem2mem: Code cleanup
-In-reply-to: <1270110025-1854-1-git-send-email-hvaibhav@ti.com>
-To: hvaibhav@ti.com
-Cc: linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	kyungmin.park@samsung.com
-Message-id: <002401cad180$5c4befe0$14e3cfa0$%osciak@samsung.com>
-Content-language: pl
-References: <hvaibhav@ti.com> <1270110025-1854-1-git-send-email-hvaibhav@ti.com>
+Received: from mail.gmx.net ([213.165.64.20]:34957 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753496Ab0DVJbM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Apr 2010 05:31:12 -0400
+Date: Thu, 22 Apr 2010 11:31:10 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Valentin Longchamp <valentin.longchamp@epfl.ch>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] mt9t031: preserve output format on VIDIOC_S_CROP
+In-Reply-To: <4BD01373.2040601@epfl.ch>
+Message-ID: <Pine.LNX.4.64.1004221128550.4655@axis700.grange>
+References: <Pine.LNX.4.64.1004141605110.9388@axis700.grange>
+ <Pine.LNX.4.64.1004221048420.4655@axis700.grange> <4BD01373.2040601@epfl.ch>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Thu, 22 Apr 2010, Valentin Longchamp wrote:
 
-thanks for the patch, one comment below:
+> Guennadi Liakhovetski wrote:
+> > On Wed, 14 Apr 2010, Guennadi Liakhovetski wrote:
+> > 
+> > > Interpretation of the V4L2 API specification, according to which the
+> > > VIDIOC_S_CROP ioctl for capture devices shall set the input window and
+> > > preserve the scales, thus possibly changing the output window, seems to be
+> > > incorrect. Switch to using a more intuitive definition, i.e., to
+> > > preserving the output format while changing scales.
+> > > 
+> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > ---
+> > > 
+> > > Val, I do not have any mt9t031 hardware any more, could you, please, test
+> > > this patch and verify, that it does indeed do, what's described above?
+> > 
+> > There hasn't been any replies to this, so, I presume, this patch cannot be
+> > tested at present. Therefore I'm going to leave it out of my pull requests
+> > until it gets tested somehow.
+> 
+> Sorry Guennadi, the testing is on my todo-list, but I am getting nearer to the
+> end of my thesis and I really am very busy at the moment. I hope I can give it
+> a spin on a mt9t031 in the coming weeks.
 
->Vaibhav Hiremath (hvaibhav@ti.com) wrote:
->
->Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
->---
-> drivers/media/video/v4l2-mem2mem.c |   40 ++++++++++++++---------------------
-> 1 files changed, 16 insertions(+), 24 deletions(-)
+Np, we can push it out with the next development cycle, noone is 
+complaining, so, noone actually has a problem with the present version 
+either, I just would prefer to get it fixed, but it's not urgent.
 
-[...]
-
->@@ -319,10 +317,9 @@ static void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
-> 		return;
-> 	}
->
->-	if (!(m2m_ctx->job_flags & TRANS_QUEUED)) {
->-		list_add_tail(&m2m_ctx->queue, &m2m_dev->jobqueue);
->-		m2m_ctx->job_flags |= TRANS_QUEUED;
->-	}
->+	list_add_tail(&m2m_ctx->queue, &m2m_dev->jobqueue);
->+	m2m_ctx->job_flags |= TRANS_QUEUED;
->+
-> 	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
->
-> 	v4l2_m2m_try_run(m2m_dev);
-
-Nice catch! This wasn't the case before, but as v3 is now holding the job_spinlock
-for the whole time, the check can be safely removed.
-
-[...]
-
-
-Acked-by: Pawel Osciak <p.osciak@samsung.com>
-
-
-Best regards
---
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
-
-
-
-
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
