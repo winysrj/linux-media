@@ -1,96 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-05.arcor-online.net ([151.189.21.45]:54224 "EHLO
-	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754615Ab0DBQyG (ORCPT
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:58410 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758468Ab0DWSGv convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Apr 2010 12:54:06 -0400
-From: stefan.ringel@arcor.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, dheitmueller@kernellabs.com,
-	Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH 1/2] tm6000: request labeling board version check
-Date: Fri,  2 Apr 2010 18:52:49 +0200
-Message-Id: <1270227170-4879-1-git-send-email-stefan.ringel@arcor.de>
+	Fri, 23 Apr 2010 14:06:51 -0400
+MIME-Version: 1.0
+In-Reply-To: <z2hbe3a4a1004231040uce51091fnf24b97de215e3ef1@mail.gmail.com>
+References: <20100401145632.5631756f@pedra>
+	 <t2z9e4733911004011844pd155bbe8g13e4cbcc1a5bf1f6@mail.gmail.com>
+	 <20100402102011.GA6947@hardeman.nu>
+	 <p2ube3a4a1004051349y11e3004bk1c71e3ab38d3f669@mail.gmail.com>
+	 <20100407093205.GB3029@hardeman.nu>
+	 <z2hbe3a4a1004231040uce51091fnf24b97de215e3ef1@mail.gmail.com>
+Date: Fri, 23 Apr 2010 14:06:49 -0400
+Message-ID: <o2l9e4733911004231106te8b727e9nfa75bfd9c73e9506@mail.gmail.com>
+Subject: Re: [PATCH 00/15] ir-core: Several improvements to allow adding LIRC
+	and decoder plugins
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-input@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <stefan.ringel@arcor.de>
+On Fri, Apr 23, 2010 at 1:40 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
+> On Wed, Apr 7, 2010 at 5:32 AM, David Härdeman <david@hardeman.nu> wrote:
+>> On Mon, Apr 05, 2010 at 04:49:10PM -0400, Jarod Wilson wrote:
+>>> On Fri, Apr 2, 2010 at 6:20 AM, David Härdeman <david@hardeman.nu> wrote:
+>>> > Porting the msmce driver to rc-core will be high on my list of
+>>> > priorities once I've done some more changes to the API.
+>>>
+>>> Very cool. Though note that the latest lirc_mceusb is quite heavily
+>>> modified from what Jon had initially ported, and I still have a few
+>>> outstanding enhancements to make, such as auto-detecting xmit mask to
+>>> eliminate the crude inverted mask list and support for the mce IR
+>>> keyboard/mouse, though that'll probably be trivial once RC5 and RC6
+>>> in-kernel decoders are in place. I'd intended to start with porting
+>>> the imon driver I'm working on over to this new infra (onboard
+>>> hardware decoder, should be rather easy to port), and then hop over to
+>>> the mceusb driver, but if you beat me to it, I've got no problem with
+>>> you doing it instead. :)
+>>
+>> I'd be happy with you doing it, you seem to know the hardware better
+>> than me. The mceusb driver I'm using right now with ir-core is based on
+>> Jon's driver which is in turn based on a version of lirc_mceusb which is
+>> quite old by now. My version of the driver is basically just random bits
+>> and pieces thrown together, enough to get pulse/space durations flowing
+>> through ir-core so that I can test the decoders, but not much more - so
+>> it's not something I'd even consider useful as a starting point :)
+>
+> So now that I'm more or less done with porting the imon driver, I
+> think I'm ready to start tackling the mceusb driver. But I'm debating
+> on what approach to take with respect to lirc support. It sort of
+> feels like we should have lirc_dev ported as an ir "decoder"
+> driver/plugin before starting to port mceusb to ir-core, so that we
+> can maintain lirc compat and transmit support. Alternatively, I could
+> port mceusb without lirc support for now, leaving it to only use
+> in-kernel decoding and have no transmit support for the moment, then
+> re-add lirc support. I'm thinking that porting lirc_dev as, say,
+> ir-lirc-decoder first is probably the way to go though. Anyone else
+> want to share their thoughts on this?
 
-request labeling board version check
+I'd take whatever you think is the simplest path. It is more likely
+that initial testers will want to work with the new in-kernel system
+than the compatibility layer to LIRC. Existing users that are happy
+with the current LIRC should just keep on using it.
 
+MSMCE is a good device for debugging protocol engines. It's easy to
+use and pretty much always captures the pulses correctly.
 
-Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
----
- drivers/staging/tm6000/tm6000-cards.c |    4 ++--
- drivers/staging/tm6000/tm6000-core.c  |   18 ++++++++++++++++--
- drivers/staging/tm6000/tm6000.h       |    1 +
- 3 files changed, 19 insertions(+), 4 deletions(-)
+>
+> (Actually, while sharing thoughts... Should drivers/media/IR become
+> drivers/media/RC, ir-core.h become rc-core.h, ir-keytable.c become
+> rc-keytable.c and so on?)
 
-diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
-index 2f0274d..f795a3e 100644
---- a/drivers/staging/tm6000/tm6000-cards.c
-+++ b/drivers/staging/tm6000/tm6000-cards.c
-@@ -480,9 +480,9 @@ int tm6000_cards_setup(struct tm6000_core *dev)
- 		}
- 
- 		if (!i) {
--			rc = tm6000_get_reg16(dev, 0x40, 0, 0);
-+			rc = tm6000_get_reg32(dev, REQ_40_GET_VERSION, 0, 0);
- 			if (rc >= 0)
--				printk(KERN_DEBUG "board=%d\n", rc);
-+				printk(KERN_DEBUG "board=0x%08x\n", rc);
- 		}
- 	}
- 
-diff --git a/drivers/staging/tm6000/tm6000-core.c b/drivers/staging/tm6000/tm6000-core.c
-index d9cade0..0b4dc64 100644
---- a/drivers/staging/tm6000/tm6000-core.c
-+++ b/drivers/staging/tm6000/tm6000-core.c
-@@ -139,6 +139,20 @@ int tm6000_get_reg16 (struct tm6000_core *dev, u8 req, u16 value, u16 index)
- 	return buf[1]|buf[0]<<8;
- }
- 
-+int tm6000_get_reg32 (struct tm6000_core *dev, u8 req, u16 value, u16 index)
-+{
-+	int rc;
-+	u8 buf[4];
-+
-+	rc=tm6000_read_write_usb (dev, USB_DIR_IN | USB_TYPE_VENDOR, req,
-+				       value, index, buf, 4);
-+
-+	if (rc<0)
-+		return rc;
-+
-+	return buf[3] | buf[2] << 8 | buf[1] << 16 | buf[0] << 24;
-+}
-+
- void tm6000_set_fourcc_format(struct tm6000_core *dev)
- {
- 	if (dev->dev_type == TM6010) {
-@@ -455,9 +469,9 @@ int tm6000_init (struct tm6000_core *dev)
- 	msleep(5); /* Just to be conservative */
- 
- 	/* Check board version - maybe 10Moons specific */
--	board=tm6000_get_reg16 (dev, 0x40, 0, 0);
-+	board=tm6000_get_reg32 (dev, REQ_40_GET_VERSION, 0, 0);
- 	if (board >=0) {
--		printk (KERN_INFO "Board version = 0x%04x\n",board);
-+		printk (KERN_INFO "Board version = 0x%08x\n",board);
- 	} else {
- 		printk (KERN_ERR "Error %i while retrieving board version\n",board);
- 	}
-diff --git a/drivers/staging/tm6000/tm6000.h b/drivers/staging/tm6000/tm6000.h
-index 172f7d7..d9d076b 100644
---- a/drivers/staging/tm6000/tm6000.h
-+++ b/drivers/staging/tm6000/tm6000.h
-@@ -224,6 +224,7 @@ int tm6000_read_write_usb (struct tm6000_core *dev, u8 reqtype, u8 req,
- 			   u16 value, u16 index, u8 *buf, u16 len);
- int tm6000_get_reg (struct tm6000_core *dev, u8 req, u16 value, u16 index);
- int tm6000_get_reg16(struct tm6000_core *dev, u8 req, u16 value, u16 index);
-+int tm6000_get_reg32(struct tm6000_core *dev, u8 req, u16 value, u16 index);
- int tm6000_set_reg (struct tm6000_core *dev, u8 req, u16 value, u16 index);
- int tm6000_init (struct tm6000_core *dev);
- 
+Why aren't these files going into drivers/input/rc? My embedded system
+has a remote control and it has nothing to do with media.
+
 -- 
-1.6.6.1
-
+Jon Smirl
+jonsmirl@gmail.com
