@@ -1,78 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-1.ramapo.edu ([192.107.108.40]:33432 "EHLO
-	smtp-1.ramapo.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752130Ab0DKTtm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Apr 2010 15:49:42 -0400
-Message-ID: <4BC227D4.6010406@gmail.com>
-Date: Sun, 11 Apr 2010 15:49:40 -0400
-From: Darren Blaber <dmbtech@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:27054 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755234Ab0DWNYL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Apr 2010 09:24:11 -0400
+Received: from int-mx05.intmail.prod.int.phx2.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.18])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o3NDOB3J013022
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 23 Apr 2010 09:24:11 -0400
+Received: from [10.11.10.245] (vpn-10-245.rdu.redhat.com [10.11.10.245])
+	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o3NDO8MH022755
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 23 Apr 2010 09:24:10 -0400
+Message-ID: <4BD19F77.2020303@redhat.com>
+Date: Fri, 23 Apr 2010 10:24:07 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: Mark Lord <mlord@pobox.com>, Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media@vger.kernel.org, ivtv-devel@ivtvdriver.org
-Subject: Re: cx18: "missing audio" for analog recordings
-References: <4B8BE647.7070709@teksavvy.com>	 <1267493641.4035.17.camel@palomino.walls.org>	 <4B8CA8DD.5030605@teksavvy.com>	 <1267533630.3123.17.camel@palomino.walls.org> <4B9DA003.90306@teksavvy.com>	 <1268653884.3209.32.camel@palomino.walls.org>  <4BC0FB79.7080601@pobox.com>	 <1270940043.3100.43.camel@palomino.walls.org>  <4BC1401F.9080203@pobox.com> <1270961760.5365.14.camel@palomino.walls.org>
-In-Reply-To: <1270961760.5365.14.camel@palomino.walls.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Xawtv version 3.96
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andy Walls wrote:
-> On Sat, 2010-04-10 at 23:21 -0400, Mark Lord wrote:
->   
->> On 10/04/10 06:54 PM, Andy Walls wrote:
->>     
->>> Hmmm.  Darren's having problems (loss of video/black screen) with my
->>> patches under my cx18-audio repo, but I'm not quite convinced he doesn't
->>> have some other PCI bus problem either.
->>>
->>> Anyway, my plan now is this:
->>>
->>> 1. on cx18-av-core.c:input_change()
->>> 	a. set register 0x808 for audio autodetection
->>> 	b. restart the format detection loop
->>> 	c. set or reset a 1.5 second timeout
->>>
->>> 2. after the timer expires, if no audio standard was detected,
->>> 	a. force the audio standard by programming register 0x808
->>> 		(e.g. BTSC for NTSC-M)
->>> 	b. restart the format detection loop so the micrcontroller will
->>> 		do the unmute when it detects audio
->>>
->>> Darren is in NTSC-M/BTSC land.  What TV standard are you dealing with?
->>>       
->> ..
->>
->> I'm in Canada, using the tuner for over-the-air NTSC broadcasts.
->>     
->
->
-> Try this:
->
-> 	http://linuxtv.org/hg/~awalls/cx18-audio2
->
-> this waits 1.5 seconds after an input/channel change to see if the audio
-> standard micrcontroller can detect the standard.  If it can't, the
-> driver tells it to try a fallback detection.  Right now, only the NTSC-M
-> fallback detection is set to force a mode (i.e. BTSC), all the others
-> "fall back" to their same auto-detection.
->
-> Some annoyances with the fallback to a forced audio standard, mode, and
-> format:
->
-> 1. Static gets unmuted on stations with no signal. :(
->
-> 2. I can't seem to force mode "MONO2 (LANGUAGE B)".  I'm guessing the
-> microcontroller keeps setting it back down to "MONO1 (LANGUAGE A/Mono L
-> +R channel for BTSC, EIAJ, A2)"  Feel free to experiment with the LSB of
-> the fallback setting magic number (0x1101) in
-> cx18-av-core.c:input_change().
->
->
-> Regards,
-> Andy
->
->   
-So far, it seems fine, no black screens, and audio seems to be fine.
+For those that haven't notice yet, we're fixing some bugs at xawtv 3. Probably, we
+won't be adding new features on it, but we want to keep it on a sane state, in order
+to allow people to use it as a reference application on driver development.
+
+I've just committed a few patches I wrote yesterday that backports some of the 
+Fedora 12 patches to xawtv, and fixed a few bugs on it. As result, after having all 
+dependencies installed, xawtv should compile fine with a recent distro (tested here 
+with Fedora 12 and RHEL 5).
+
+The version was increased to 3.96.
+
+As usual, all commit messages are sent to linuxtv-commits mailing list. So, people
+that are interested on tracking what's happening can subscribe to the list.
+
+Cheers,
+Mauro.
+
+-------- Mensagem original --------
+Assunto: [git:xawtv3/master] Increase version to 3.96
+Data: Fri, 23 Apr 2010 14:47:57 +0200
+De: Mauro Carvalho Chehab <mchehab@redhat.com>
+Responder a: linux-media@vger.kernel.org
+Para: linuxtv-commits@linuxtv.org
+
+This is an automatic generated email to let you know that the following patch were queued at the 
+http://git.linuxtv.org/xawtv3.git tree:
+
+Subject: Increase version to 3.96
+Author:  Mauro Carvalho Chehab <mchehab@redhat.com>
+Date:    Fri Apr 23 09:37:43 2010 -0300
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+ Changes    |   10 ++++++++++
+ xawtv.spec |    2 +-
+ 2 files changed, 11 insertions(+), 1 deletions(-)
+
+---
+
+http://git.linuxtv.org/xawtv3.git?a=commitdiff;h=091c0a39d56419253cc501a121c81655c94296e7
+
+diff --git a/Changes b/Changes
+index fa941ff..916c373 100644
+--- a/Changes
++++ b/Changes
+@@ -1,4 +1,14 @@
+ 
++3.96
++====
++ * misc minor fixes collected at Fedora 12.
++ * Fix requement of /dev/vbi instead of /dev/vbi0 on scantv.
++ * Fix compilation with Xorg and remove the --x_libraries parameter from
++   the configure script (as, on Xorg, X11 libraries are at /usr/lib).
++ * Now, providing that all build dependencies are satisfied, just typing
++   make after the download is enough to generate/run configure and build
++   the tools.
++
+ 3.95
+ ====
+ 
+diff --git a/xawtv.spec b/xawtv.spec
+index d390d1b..77b4098 100644
+--- a/xawtv.spec
++++ b/xawtv.spec
+@@ -1,7 +1,7 @@
+ Name:         xawtv
+ Group:        Applications/Multimedia
+ Autoreqprov:  on
+-Version:      3.95
++Version:      3.96
+ Release:      0
+ License:      GPL
+ Summary:      v4l applications
+
+_______________________________________________
+linuxtv-commits mailing list
+linuxtv-commits@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linuxtv-commits
+
+-- 
+
+Cheers,
+Mauro
