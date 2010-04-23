@@ -1,49 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:60514 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752691Ab0D1HFg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Apr 2010 03:05:36 -0400
-Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0L1K00FJFRP4KQ@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 28 Apr 2010 08:05:28 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L1K000EGRP40Z@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 28 Apr 2010 08:05:28 +0100 (BST)
-Date: Wed, 28 Apr 2010 09:05:20 +0200
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: [PATCH v4 0/3] Fix DQBUF behavior for recoverable streaming errors
-To: linux-media@vger.kernel.org
-Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com
-Message-id: <1272438323-4790-1-git-send-email-p.osciak@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
+Received: from mx1.redhat.com ([209.132.183.28]:1025 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754501Ab0DWArI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Apr 2010 20:47:08 -0400
+Received: from int-mx04.intmail.prod.int.phx2.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.17])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o3N0l4Bn023001
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 22 Apr 2010 20:47:04 -0400
+Received: from [10.11.10.107] (vpn-10-107.rdu.redhat.com [10.11.10.107])
+	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o3N0l1f1000942
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 22 Apr 2010 20:47:03 -0400
+Message-ID: <4BD0EE04.4080601@redhat.com>
+Date: Thu, 22 Apr 2010 21:47:00 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: How to use git development trees
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi,
 
-this is the fourth version of a series that introduces a V4L2_BUF_FLAG_ERROR
-flag for recoverable stream errors. It allows applications to gracefully recover
-in case of such errors instead of losing the buffer or having to guess
-its index.
+A few developers asked me how I'm working with the git trees for development.
 
-Changes since v3:
-- fixed a typo in docs
-- removed a comment which no longer relevant
+So, I decided to write a few quick notes about it at the wiki:
+	http://linuxtv.org/wiki/index.php/Using_a_git_driver_development_tree
 
-Contents:
-[PATCH v4 1/3] v4l: Add a new ERROR flag for DQBUF after recoverable streaming errors
-[PATCH 2/3] v4l: videobuf: Add support for V4L2_BUF_FLAG_ERROR
-[PATCH v4 3/3] v4l: Add documentation for the new error flag
+I also added the script I use to remove the modules from the memory.
 
-Best regards
---
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
+Based on my own experience, using the Git tree instead of Mercurial speed up
+my development time when working with IR, especially since I had to touch at
+the input system core, to add two new ioctls. As input core is not at the Mercurial,
+if I was using the old way, I would have to deal with both mercurial and upstream
+trees. The drawback of doing a full compilation of the upstream kernel is not bad
+for me, since I always test the latest kernel anyway. Of course, other people may
+have different experiences. That's why we're keep supporting the mercurial trees ;)
+
+Btw, in order to help developers to work with git, I'm trying to preserve the git
+tree with the latest stable Linus kernel version (currently, 2.6.33), plus the
+v4l-dvb new drivers. So, I intend to backport from upstream only with 2.6.34.
+
+PS.: with respect to the pending patches, I was abroad last week, and I'm currently
+with a very high volume of patches, some requiring lots of tests. My intention
+is to merge the great majority of the patches until the end of this weekend.
+
+-- 
+
+Cheers,
+Mauro
