@@ -1,56 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sneak2.sneakemail.com ([38.113.6.65]:58438 "HELO
-	sneak2.sneakemail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753475Ab0DLUVz (ORCPT
+Received: from mail-yw0-f194.google.com ([209.85.211.194]:38846 "EHLO
+	mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755885Ab0DWP2q convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Apr 2010 16:21:55 -0400
-Message-ID: <17821-1271103314-44442@sneakemail.com>
-From: dngtk92hx9@snkmail.com
-Date: Mon, 12 Apr 2010 20:15:13 +0000
-To: linux-media@vger.kernel.org
-Subject: nxt2004 broken in latest kernel release
+	Fri, 23 Apr 2010 11:28:46 -0400
+Received: by ywh32 with SMTP id 32so5725238ywh.33
+        for <linux-media@vger.kernel.org>; Fri, 23 Apr 2010 08:28:45 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <4BD1BB75.9020907@arcor.de>
+References: <x2m6e8e83e21004062310ia0eef09fgf97bcfafcdf25737@mail.gmail.com>
+	 <4BD0B32B.8060505@redhat.com>
+	 <i2k6e8e83e21004221920q3f687324z8d8aba7ca26978ad@mail.gmail.com>
+	 <4BD1BB75.9020907@arcor.de>
+Date: Fri, 23 Apr 2010 23:28:39 +0800
+Message-ID: <x2p6e8e83e21004230828vac56ac76q613941884944c0f@mail.gmail.com>
+Subject: Re: Help needed in understanding v4l2_device_call_all
+From: Bee Hock Goh <beehock@gmail.com>
+To: Stefan Ringel <stefan.ringel@arcor.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have a pair of K-World ATSC 115 cards for my mythtv setup.  They've worked without any problems for the last 2 years.  My system uses Archlinux.  Roughly a month ago, an upgrade to kernel 2.6.32.10 caused problems in which nxt200x doesn't initialize properly some of the time (no firmware getting downloaded), and thus there's no /dev/dvb directory getting created.  I believe each card succeeds randomly about 1/3 of the time, so that came out to about 9 reboots to get both cards initialized properly.  After that it worked fine.
+So do you mean its required for tm6010 to set the registers?
 
-However, when I upgraded to 2.6.33.2 a couple of days ago, I got the same error messages, but the probability of getting a success firmware download is like 1 in 10.  I haven't succeeded in getting both cards initialized at the same time.  Furthermore, even though I can get one of the cards to initialize (seeing /dev/dvb/adapter0), it doesn't function.  Tuner says locked but never returns a picture in mythtv.
-
-Here's the information when I do a lspci:
-
-03:06.0 Multimedia controller: Philips Semiconductors SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d1)
-03:07.0 Multimedia controller: Philips Semiconductors SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d1)
-
-This is the error from dmesg when init fails on a card:
-
-nxt200x: nxt200x_readbytes: i2c read error (addr 0x0a, err == -5)
-Unknown/Unsupported NXT chip: 00 00 00 00 00
-saa7133[0]/dvb: frontend initialization failed
-
-Here's the message from a "successful" init (from error log since dmesg gets spammed with errors after it):
-
-Apr 10 13:00:19 ruyi kernel: nxt200x: NXT2004 Detected
-Apr 10 13:00:19 ruyi kernel: nxt2004: Waiting for firmware upload (dvb-fe-nxt2004.fw)...
-Apr 10 13:00:19 ruyi kernel: saa7134 0000:03:06.0: firmware: requesting dvb-fe-nxt2004.fw
-Apr 10 13:00:19 ruyi kernel: nxt2004: Waiting for firmware upload(2)...
-Apr 10 13:00:19 ruyi kernel: nxt2004: Firmware upload complete
-Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_readbytes: i2c read error (addr 0x0a, err == -5)
-Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_writebytes: i2c write error (addr 0x0a, err == -5)
-Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_writebytes: i2c write error (addr 0x0a, err == -5)
-Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_writebytes: i2c write error (addr 0x0a, err == -5)
-Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_writebytes: i2c write error (addr 0x0a, err == -5)
-Apr 10 13:00:19 ruyi kernel: nxt200x: nxt200x_readbytes: i2c read error (addr 0x0a, err == -5)
-Apr 10 13:00:19 ruyi kernel: nxt200x: Error writing multireg register 0x80
-
-Then when I tried to tune to a channel it just spams the following error in dmesg forever while no picture gets shown:
-
-nxt200x: i2c_readbytes: i2c read error (addr 0x61, err == -5)
-nxt200x: Timeout waiting for nxt2004 to init.
-nxt200x: i2c_writebytes: i2c write error (addr 0x61, err == -5)
-nxt200x: error writing to tuner
-
-Please let me know if you want any additional logs.  thanks
-
-Ben
+On Fri, Apr 23, 2010 at 11:23 PM, Stefan Ringel <stefan.ringel@arcor.de> wrote:
+> Am 23.04.2010 04:20, schrieb Bee Hock Goh:
+>> Mauro,
+>>
+>> Thanks.
+>>
+>> Previously, I have done some limited test and it seem that
+>> xc2028_signal seem to be getting the correct registered value for the
+>> detected a signal locked.
+>>
+>> Since I am now able to get video working(though somewhat limited since
+>> it still crashed if i change channel from mythtv), i will be spending
+>> more time to look getting a lock on the signal.
+>>
+>>
+>> Is line 139,140,155,156 needed? Its slowing down the loading of
+>> firmware and it working for me with the additional register setting.
+>>
+>>  138 if (addr == dev->tuner_addr << 1) {
+>> 139 tm6000_set_reg(dev, 0x32, 0,0);
+>> 140 tm6000_set_reg(dev, 0x33, 0,0);
+>>
+> use tm6010
+>> 141 }
+>> 142 if (i2c_debug >= 2)
+>> 143 for (byte = 0; byte < msgs[i].len; byte++)
+>> 144 printk(" %02x", msgs[i].buf[byte]);
+>> 145 } else {
+>> 146 /* write bytes */
+>> 147 if (i2c_debug >= 2)
+>> 148 for (byte = 0; byte < msgs[i].len; byte++)
+>> 149 printk(" %02x", msgs[i].buf[byte]);
+>> 150 rc = tm6000_i2c_send_regs(dev, addr, msgs[i].buf[0],
+>> 151 msgs[i].buf + 1, msgs[i].len - 1);
+>> 152
+>> 153 if (addr == dev->tuner_addr << 1) {
+>> 154 tm6000_set_reg(dev, 0x32, 0,0);
+>> 155 tm6000_set_reg(dev, 0x33, 0,0);
+>>
+> use tm6010
+>>
+>> On Fri, Apr 23, 2010 at 4:35 AM, Mauro Carvalho Chehab
+>> <mchehab@redhat.com> wrote:
+>>
+>>> Bee Hock Goh wrote:
+>>>
+>>>> Hi,
+>>>>
+>>>> I am trying to understand how the subdev function are triggered when I
+>>>> use v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, g_tuner,t) on
+>>>> tm600-video.
+>>>>
+>>> It calls tuner-core.c code, with g_tuner command. tuner-core
+>>> checks what's the used tuner and, in the case of tm6000, calls the corresponding
+>>> function at tuner-xc2028. This is implemented on tuner_g_tuner() function.
+>>>
+>>> The function basically does some sanity checks, and some common tuner code, but
+>>> the actual implementation is handled by some callbacks that the driver needs to
+>>> define (get_afc, get_status, is_stereo, has_signal). In general, drivers use
+>>> get_status for it:
+>>>                fe_tuner_ops->get_status(&t->fe, &tuner_status);
+>>>
+>>>
+>>> You will find a good example of how to implement such code at tuner-simple
+>>> simple_get_status() function.
+>>>
+>>> In the case of tuner-xc2028, we never found a way for it to properly report the
+>>> status of the tuner lock. That's why this function is not implemented on the driver.
+>>>
+>>>
+>>>> How am i able to link the callback from the tuner_xc2028 function?
+>>>>
+>>> The callback is used by tuner-xc2028 when it detects the need of changing the
+>>> firmware (or when the firmware is not loaded yet, or when you select a standard
+>>> that it is not supported by the current firmware).
+>>>
+>>> Basically, xc2028 driver will use the callback that was set previously via:
+>>>
+>>>        v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_config, &xc2028_cfg);
+>>>
+>>>
+>>>
+>>>> Please help me to understand or directly me to any documentation that
+>>>> I can read up?
+>>>>
+>>>> thanks,
+>>>>  Hock.
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>
+>>>
+>>> --
+>>>
+>>> Cheers,
+>>> Mauro
+>>>
+>>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+>
+> --
+> Stefan Ringel <stefan.ringel@arcor.de>
+>
+>
