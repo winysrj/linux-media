@@ -1,58 +1,239 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40966 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756949Ab0D0VWE (ORCPT
+Received: from mail-in-08.arcor-online.net ([151.189.21.48]:60677 "EHLO
+	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750820Ab0DWPQn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Apr 2010 17:22:04 -0400
-Message-Id: <201004272111.o3RLBNSk019996@imap1.linux-foundation.org>
-Subject: [patch 06/11] drivers/media/video/zc0301/zc0301_core.c: improve error handling
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
-	error27@gmail.com, laurent.pinchart@ideasonboard.com,
-	luca.risolia@studio.unibo.it
-From: akpm@linux-foundation.org
-Date: Tue, 27 Apr 2010 14:11:23 -0700
+	Fri, 23 Apr 2010 11:16:43 -0400
+Message-ID: <4BD1B985.8060703@arcor.de>
+Date: Fri, 23 Apr 2010 17:15:17 +0200
+From: Stefan Ringel <stefan.ringel@arcor.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ANSI_X3.4-1968
-Content-Transfer-Encoding: 8bit
+To: Dmitri Belimov <d.belimov@gmail.com>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] tm6000 fix i2c
+References: <20100423104804.784fb730@glory.loctelecom.ru>
+In-Reply-To: <20100423104804.784fb730@glory.loctelecom.ru>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Dan Carpenter <error27@gmail.com>
+Am 23.04.2010 02:48, schrieb Dmitri Belimov:
+> Hi
+>
+> Rework I2C for read word from connected devices, now it works well.
+> Add new functions for read/write blocks.
+>
+> diff -r 7c0b887911cf linux/drivers/staging/tm6000/tm6000-i2c.c
+> --- a/linux/drivers/staging/tm6000/tm6000-i2c.c	Mon Apr 05 22:56:43 2010 -0400
+> +++ b/linux/drivers/staging/tm6000/tm6000-i2c.c	Fri Apr 23 04:23:03 2010 +1000
+> @@ -24,6 +24,7 @@
+>  #include <linux/kernel.h>
+>  #include <linux/usb.h>
+>  #include <linux/i2c.h>
+> +#include <linux/delay.h>
+>  
+>  #include "compat.h"
+>  #include "tm6000.h"
+> @@ -45,11 +46,39 @@
+>  			printk(KERN_DEBUG "%s at %s: " fmt, \
+>  			dev->name, __FUNCTION__ , ##args); } while (0)
+>  
+> +static void tm6000_i2c_reset(struct tm6000_core *dev)
+> +{
+> +	tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, TM6000_GPIO_CLK, 0);
+> +	msleep(15);
+> +	tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, TM6000_GPIO_CLK, 1);
+> +	msleep(15);
+> +}
+> +
+>  static int tm6000_i2c_send_regs(struct tm6000_core *dev, unsigned char addr,
+>  				__u8 reg, char *buf, int len)
+>  {
+> -	return tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+> -		REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0, buf, len);
+> +	int rc;
+> +	unsigned int tsleep;
+> +
+> +	if (!buf || len < 1 || len > 64)
+> +		return -1;
+> +
+> +	/* capture mutex */
+> +	rc = tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR |
+> +		USB_RECIP_DEVICE, REQ_16_SET_GET_I2C_WR1_RDN,
+> +		addr | reg << 8, 0, buf, len);
+> +
+> +	if (rc < 0) {
+> +		/* release mutex */
+> +		return rc;
+> +	}
+> +
+> +	/* Calculate delay time, 14000us for 64 bytes */
+> +	tsleep = ((len * 200) + 200 + 1000) / 1000;
+> +	msleep(tsleep);
+> +
+> +	/* release mutex */
+> +	return rc;
+>  }
+>  
+>  /* Generic read - doesn't work fine with 16bit registers */
+> @@ -59,22 +88,30 @@
+>  	int rc;
+>  	u8 b[2];
+>  
+> -	if ((dev->caps.has_zl10353) && (dev->demod_addr << 1 == addr) && (reg % 2 == 0)) {
+> +	if (!buf || len < 1 || len > 64)
+> +		return -1;
+> +
+> +	/* capture mutex */
+> +	if ((dev->caps.has_zl10353) && (dev->demod_addr << 1 == addr)
+> +	&& (reg % 2 == 0)) {
+>  		/*
+>  		 * Workaround an I2C bug when reading from zl10353
+>  		 */
+>  		reg -= 1;
+>  		len += 1;
+>  
+> -		rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+> -			REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0, b, len);
+> +		rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR |
+> +		USB_RECIP_DEVICE, REQ_16_SET_GET_I2C_WR1_RDN,
+> +		addr | reg << 8, 0, b, len);
+>  
+>  		*buf = b[1];
+>  	} else {
+> -		rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+> -			REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0, buf, len);
+> +		rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR |
+> +		USB_RECIP_DEVICE, REQ_16_SET_GET_I2C_WR1_RDN,
+> +		addr | reg << 8, 0, buf, len);
+>  	}
+>  
+> +	/* release mutex */
+>  	return rc;
+>  }
+>  
+> @@ -85,8 +122,106 @@
+>  static int tm6000_i2c_recv_regs16(struct tm6000_core *dev, unsigned char addr,
+>  				  __u16 reg, char *buf, int len)
+>  {
+> -	return tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+> -		REQ_14_SET_GET_I2C_WR2_RDN, addr, reg, buf, len);
+> +	int rc;
+> +	unsigned char ureg;
+> +
+> +	if (!buf || len != 2)
+> +		return -1;
+> +
+> +	/* capture mutex */
+> +	ureg = reg & 0xFF;
+> +	rc = tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR |
+> +		USB_RECIP_DEVICE, REQ_16_SET_GET_I2C_WR1_RDN,
+> +		addr | (reg & 0xFF00), 0, &ureg, 1);
+> +
+> +	if (rc < 0) {
+> +		/* release mutex */
+> +		return rc;
+> +	}
+> +
+> +	msleep(1400 / 1000);
+> +	rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR |
+> +		USB_RECIP_DEVICE, REQ_35_AFTEK_TUNER_READ,
+> +		reg, 0, buf, len);
+> +
+>   
+not all can this request (chip revision 0xf3 and 0xf4 can it)
+> +	if (rc < 0) {
+> +		/* release mutex */
+> +		return rc;
+> +	}
+> +
+> +	/* release mutex */
+> +	return rc;
+> +}
+> +
+> +static int tm6000_i2c_read_sequence(struct tm6000_core *dev, unsigned char addr,
+> +				  __u16 reg, char *buf, int len)
+> +{
+> +	int rc;
+> +
+> +	if (!buf || len < 1 || len > 64)
+> +		return -1;
+> +
+> +	/* capture mutex */
+> +	rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR |
+> +		USB_RECIP_DEVICE, REQ_35_AFTEK_TUNER_READ,
+> +		reg, 0, buf, len);
+>   
+ditto
+> +	/* release mutex */
+> +	return rc;
+> +}
+> +
+> +static int tm6000_i2c_write_sequence(struct tm6000_core *dev,
+> +				unsigned char addr, __u16 reg, char *buf,
+> +				int len)
+> +{
+> +	int rc;
+> +	unsigned int tsleep;
+> +
+> +	if (!buf || len < 1 || len > 64)
+> +		return -1;
+> +
+> +	/* capture mutex */
+> +	rc = tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR |
+> +		USB_RECIP_DEVICE, REQ_16_SET_GET_I2C_WR1_RDN,
+> +		addr | reg << 8, 0, buf+1, len-1);
+> +
+> +	if (rc < 0) {
+> +		/* release mutex */
+> +		return rc;
+> +	}
+> +
+> +	/* Calculate delay time, 13800us for 64 bytes */
+> +	tsleep = ((len * 200) + 1000) / 1000;
+> +	msleep(tsleep);
+> +
+> +	/* release mutex */
+> +	return rc;
+> +}
+> +
+> +static int tm6000_i2c_write_uni(struct tm6000_core *dev, unsigned char addr,
+> +				  __u16 reg, char *buf, int len)
+> +{
+> +	int rc;
+> +	unsigned int tsleep;
+> +
+> +	if (!buf || len < 1 || len > 64)
+> +		return -1;
+> +
+> +	/* capture mutex */
+> +	rc = tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR |
+> +		USB_RECIP_DEVICE, REQ_30_I2C_WRITE,
+> +		addr | reg << 8, 0, buf+1, len-1);
+> +
+> +	if (rc < 0) {
+> +		/* release mutex */
+> +		return rc;
+> +	}
+> +
+> +	/* Calculate delay time, 14800us for 64 bytes */
+> +	tsleep = ((len * 200) + 1000 + 1000) / 1000;
+> +	msleep(tsleep);
+> +
+> +	/* release mutex */
+> +	return rc;
+>  }
+>  
+>  static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
+>
+> Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+>
+>
+> With my best regards, Dmitry.
 
-Return an error if the controller is not found.
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Cc: Luca Risolia <luca.risolia@studio.unibo.it>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+-- 
+Stefan Ringel <stefan.ringel@arcor.de>
 
- drivers/media/video/zc0301/zc0301_core.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff -puN drivers/media/video/zc0301/zc0301_core.c~drivers-media-video-zc0301-zc0301_corec-improve-error-handling drivers/media/video/zc0301/zc0301_core.c
---- a/drivers/media/video/zc0301/zc0301_core.c~drivers-media-video-zc0301-zc0301_corec-improve-error-handling
-+++ a/drivers/media/video/zc0301/zc0301_core.c
-@@ -1153,7 +1153,7 @@ zc0301_vidioc_s_ctrl(struct zc0301_devic
- 	if (copy_from_user(&ctrl, arg, sizeof(ctrl)))
- 		return -EFAULT;
- 
--	for (i = 0; i < ARRAY_SIZE(s->qctrl); i++)
-+	for (i = 0; i < ARRAY_SIZE(s->qctrl); i++) {
- 		if (ctrl.id == s->qctrl[i].id) {
- 			if (s->qctrl[i].flags & V4L2_CTRL_FLAG_DISABLED)
- 				return -EINVAL;
-@@ -1163,7 +1163,9 @@ zc0301_vidioc_s_ctrl(struct zc0301_devic
- 			ctrl.value -= ctrl.value % s->qctrl[i].step;
- 			break;
- 		}
--
-+	}
-+	if (i == ARRAY_SIZE(s->qctrl))
-+		return -EINVAL;
- 	if ((err = s->set_ctrl(cam, &ctrl)))
- 		return err;
- 
-_
