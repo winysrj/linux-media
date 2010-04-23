@@ -1,46 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from drm03.Deuromedia.ro ([194.176.161.3]:33677 "HELO deuromedia.de"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
-	id S1757565Ab0DBKHE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Apr 2010 06:07:04 -0400
-Message-ID: <4BB5C0D1.9090000@Deuromedia.ro>
-Date: Fri, 02 Apr 2010 13:02:57 +0300
-From: Doru Marin <Doru.Marin@Deuromedia.ro>
+Received: from fg-out-1718.google.com ([72.14.220.157]:59661 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755080Ab0DWTMJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Apr 2010 15:12:09 -0400
+Received: by fg-out-1718.google.com with SMTP id 19so346046fgg.1
+        for <linux-media@vger.kernel.org>; Fri, 23 Apr 2010 12:12:08 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: linux-dvb@linuxtv.org
-Subject: CX88 TS overflows too often
-References: <4B0FE7AC.3000002@Deuromedia.ro>
-In-Reply-To: <4B0FE7AC.3000002@Deuromedia.ro>
+In-Reply-To: <4BD1D564.50109@redhat.com>
+References: <q2w499b283a1004230611x36ac50a2o6c5f7815db4f17d@mail.gmail.com>
+	 <4BD1D564.50109@redhat.com>
+Date: Fri, 23 Apr 2010 16:12:08 -0300
+Message-ID: <v2z499b283a1004231212o10ac4b09lecec942d779bee4d@mail.gmail.com>
+Subject: Re: Please ignore this message
+From: Ricardo Maraschini <xrmarsx@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Mauro,
 
-I have a system with two Hauppauge Nova-S-Plus cards and a HVR4000Lite.
-Very often I'm getting errors like:
+On Fri, Apr 23, 2010 at 2:14 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> You don't need to be subscribed to be able to sending patches, but you need to be
+> sure that you don't have any html attachments on your email, as vger will simply
+> discard anything that it might contain a spam (including html emails).
 
-cx88[0]/2-mpeg: general errors: 0x00000100
-cx88[2]/2-mpeg: general errors: 0x00000100
+Sorry to make you loose your time. Shame on me...
+Now I discovered that Majordomo didn't forward the e-mail I sent to my
+account, only to the other list members...
 
-Digging in the code, I found that is DMA related, meaning TS overflow.
+Due to my fault, the patch I sent arrived two times[1] [2] according
+to patchwork.
 
-Looking further, I found that for TS handling, FIFO queue size is really
-small, only 4K, of available 32K.
-As long as the DVB-S2 streams are running up to 80Mbps, isn't this value
-too small a fluent running ?
-I presume that these overflows are caused by larger PCI latencies,
-causing delays in buffer transfers.
+-rm
 
-As long as these cards are used most of the time for TS handling, isn't
-there any chance to increase the TS FIFO size ?
-Or optionally allocating more for this purpose ? The HVR4000Lite has no
-video or audio inputs, but there are allocated resources for them,
-wasted resources.
-
-Regards,
-
-Doru Marin
-
+[1] https://patchwork.kernel.org/patch/94156/
+[2] https://patchwork.kernel.org/patch/93688/
