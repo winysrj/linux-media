@@ -1,70 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:42672 "EHLO bear.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:22124 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753658Ab0DTHBH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Apr 2010 03:01:07 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Pawel Osciak <p.osciak@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "m.szyprowski@samsung.com" <m.szyprowski@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
-Date: Tue, 20 Apr 2010 12:30:59 +0530
-Subject: RE: [PATCH v4 0/2] Mem-to-mem device framework
-Message-ID: <19F8576C6E063C45BE387C64729E7394044E137814@dbde02.ent.ti.com>
-References: <1271680218-32395-1-git-send-email-p.osciak@samsung.com>
-In-Reply-To: <1271680218-32395-1-git-send-email-p.osciak@samsung.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	id S1758142Ab0DWQwV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Apr 2010 12:52:21 -0400
+Message-ID: <4BD1D03D.6070403@redhat.com>
+Date: Fri, 23 Apr 2010 13:52:13 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
+To: Stefan Ringel <stefan.ringel@arcor.de>
+CC: Bee Hock Goh <beehock@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Help needed in understanding v4l2_device_call_all
+References: <x2m6e8e83e21004062310ia0eef09fgf97bcfafcdf25737@mail.gmail.com>	 <4BD0B32B.8060505@redhat.com>	 <i2k6e8e83e21004221920q3f687324z8d8aba7ca26978ad@mail.gmail.com>	 <4BD1BB75.9020907@arcor.de> <x2p6e8e83e21004230828vac56ac76q613941884944c0f@mail.gmail.com> <4BD1BD78.3050105@arcor.de>
+In-Reply-To: <4BD1BD78.3050105@arcor.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Stefan Ringel wrote:
+> Am 23.04.2010 17:28, schrieb Bee Hock Goh:
+>> So do you mean its required for tm6010 to set the registers?
+>>   
+> that is not a register, please see you in lastest git, that this request
+> a command is (send start and send stop!).
 
-> -----Original Message-----
-> From: Pawel Osciak [mailto:p.osciak@samsung.com]
-> Sent: Monday, April 19, 2010 6:00 PM
-> To: linux-media@vger.kernel.org
-> Cc: p.osciak@samsung.com; m.szyprowski@samsung.com;
-> kyungmin.park@samsung.com; Hiremath, Vaibhav
-> Subject: [PATCH v4 0/2] Mem-to-mem device framework
-> 
-> Hello,
-> 
-> this is the fourth version of the mem-to-mem device framework.
-> 
-> Changes in v4:
-> - v4l2_m2m_poll() now also reports POLLOUT | POLLWRNORM when an output
->   buffer is ready to be dequeued
-> - more cleaning up, addressing most of the comments to v3
-> 
-> Vaibhav: your clean-up patch didn't apply after my changes. I incorporated
-> most
-> of your clean-up changes. If you prefer it to be separate, we will have
-> to prepare another one somehow. 
-[Hiremath, Vaibhav] No need to create separate patch for this, it's ok as long as you included all the required changes.
+It is hard to know what it really does, but I suspect that it were meant to
+implement manual i2c handling, on a similar way to what other drivers do.
+On the logs I have here for tm6000 and tm6010, this is not used. So, I suspect
+that this is one of the i2c tricks that were used by the vendor of your board.
+Other vendors seem to implement different tricks to make i2c work. We need
+to figure out what would work better for the devices supported by the driver.
 
-You can add "Tested-By" Or "Reviewed-By" in your patch series, that should be ok.
-
-I will take a final look to this patch and respond.
-
-> Also, sorry, but I cannot agree with
-> changing
-> unsigned types into u32, I do not see any reason to use fixed-width types
-> there.
-> 
-[Hiremath, Vaibhav] As I mentioned there no strict rule for this, it was learning from my first patch.
-
-Thanks,
-Vaibhav
-> This series contains:
-> [PATCH v4 1/2] v4l: Add memory-to-memory device helper framework for
-> videobuf.
-> [PATCH v4 2/2] v4l: Add a mem-to-mem videobuf framework test device.
-> 
-> Best regards
-> --
-> Pawel Osciak
-> Linux Platform Group
-> Samsung Poland R&D Center
+Cheers,
+Mauro
