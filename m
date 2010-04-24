@@ -1,76 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:52136 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752495Ab0D1OrD (ORCPT
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:34934 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751238Ab0DXVOA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Apr 2010 10:47:03 -0400
-Message-ID: <4BD84A56.6060806@infradead.org>
-Date: Wed, 28 Apr 2010 11:46:46 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Sat, 24 Apr 2010 17:14:00 -0400
+Subject: [PATCH 0/4] ir-core sysfs protocol selection simplification
+To: mchehab@redhat.com
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org
+Date: Sat, 24 Apr 2010 23:13:55 +0200
+Message-ID: <20100424210843.11570.82007.stgit@localhost.localdomain>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, Arnd Bergmann <arnd@arndb.de>,
-	John Kacur <jkacur@redhat.com>,
-	lkml <linux-kernel@vger.kernel.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Frederic Weisbecker <fweisbec@gmail.com>,
-	Jan Blunck <jblunck@gmail.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 10/10] bkl: Fix-up compile problems as a result of the
- bkl-pushdown.
-References: <1272359898-32020-1-git-send-email-jkacur@redhat.com> <4BD82905.2020408@infradead.org> <9bc05165144f526ccb015c1ae4f44f9b.squirrel@webmail.xs4all.nl> <201004281502.51174.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201004281502.51174.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Wednesday 28 April 2010 14:37:10 Hans Verkuil wrote:
->>> Arnd Bergmann wrote:
-> 
-> [snip]
-> 
->>>> Mauro, does this patch make sense to you? It would be good to have your
->>>> Ack so we can queue this in the series leading to the removal of the
->>>> ->ioctl file operation. We can also do the minimal change and let you
->>>> take care of fixing this up in a different way in your own tree.
->>> We had a similar discussion a while ago at linux-media. The idea is to do
->>> it on a deeper level, changing the drivers to not need to use KBL.
->>> Hans is working on those patches. Not sure about the current status.
->> I'm waiting for the event patch series from Sakari to go in before I can
->> continue working on this.
->>
->>> Anyway, I think that the better is to apply first your patch, to avoid
->>> breaking your patch series, and then ours, as we may otherwise have some
->>> conflicts between your tree and drivers/media git tree.
->> I have no real problem with this patch, as long as people realize that
->> this only moves the BKL from one place to another and does not really fix
->> any drivers.
-> 
-> Seems that Arnd was more convincing than me. I've submitted the exact same 
-> patch a while ago :-)
+The following series changes the sysfs implementation in ir-core to
+make the protocol selection work in the same manner for hardware
+decoders and software decoders (the distinction between the two
+should be hidden from the user as much as possible IMHO).
 
-Same patch, different situation ;)
+This also allows for a nice reduction of duplicated code between
+the raw ir protocol decoders.
 
-> Of course this doesn't solve the BKL issue, but it pushes it one level down, 
-> closer to the drivers. Higher levels can then stop caring about it. Of course 
-> lower levels will still need to remove the BKL.
+The first patch is merely preparatory and should hopefully not
+be controversial.
 
-Yes. This patch doesn't change anything in practice, but it allows RT people
-to keep working on their series of changes, giving us a little more time to 
-work on a definitive solution. If nacked, we would need to send an alternative
-patch for them, and, as this is not ready (and such patch applied via RT tree would
-likely cause merge conflicts with our patches), the better is to just ack and keep 
-writing the patch that will solve the issue.
+The second and third patch should be considered RFC's on the
+implementation of the sysfs interface.
 
-Your patch were very useful, as it started the discussions for the BKL removal
-on drivers/media drivers.
+The last patch is orthogonal to the rest of the patchset and should
+hopefully not be controversial (though it would be nice if someone
+with the actual hardware could test it).
+
+---
+
+David Härdeman (4):
+      ir-core: remove IR_TYPE_PD
+      ir-core: centralize sysfs raw decoder enabling/disabling
+      ir-core: move decoding state to ir_raw_event_ctrl
+      ir-core: remove ir-functions usage from cx231xx
+
+
+ drivers/media/IR/ir-core-priv.h             |   40 ++++
+ drivers/media/IR/ir-jvc-decoder.c           |  152 +---------------
+ drivers/media/IR/ir-nec-decoder.c           |  151 +---------------
+ drivers/media/IR/ir-raw-event.c             |  136 ++++++--------
+ drivers/media/IR/ir-rc5-decoder.c           |  165 ++---------------
+ drivers/media/IR/ir-rc6-decoder.c           |  154 +---------------
+ drivers/media/IR/ir-sony-decoder.c          |  155 +---------------
+ drivers/media/IR/ir-sysfs.c                 |  262 +++++++++++++++------------
+ drivers/media/video/cx231xx/cx231xx-input.c |   47 +----
+ drivers/media/video/cx231xx/cx231xx.h       |    2 
+ drivers/media/video/cx88/cx88-input.c       |    8 -
+ include/media/ir-kbd-i2c.h                  |    2 
+ include/media/rc-map.h                      |    9 -
+ 13 files changed, 322 insertions(+), 961 deletions(-)
 
 -- 
-
-Cheers,
-Mauro
+David Härdeman
