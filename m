@@ -1,194 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3837 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751732Ab0DESLO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Apr 2010 14:11:14 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: RFC: new V4L control framework
-Date: Mon, 5 Apr 2010 20:11:13 +0200
-Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <201004041741.51869.hverkuil@xs4all.nl> <201004051125.20672.hverkuil@xs4all.nl> <4BBA04BB.5030600@redhat.com>
-In-Reply-To: <4BBA04BB.5030600@redhat.com>
+Received: from fg-out-1718.google.com ([72.14.220.152]:6565 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753278Ab0DXUzE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Apr 2010 16:55:04 -0400
+Received: by fg-out-1718.google.com with SMTP id d23so1557481fga.1
+        for <linux-media@vger.kernel.org>; Sat, 24 Apr 2010 13:55:01 -0700 (PDT)
+Message-ID: <4BD35AA3.7070003@googlemail.com>
+Date: Sat, 24 Apr 2010 22:54:59 +0200
+From: Sven Barth <pascaldragon@googlemail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
+To: Mike Isely <isely@isely.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: Problem with cx25840 and Terratec Grabster AV400
+References: <4BD2EACA.5040005@googlemail.com> <alpine.DEB.1.10.1004241212100.5135@ivanova.isely.net> <4BD34E5A.40507@googlemail.com> <alpine.DEB.1.10.1004241517320.5135@ivanova.isely.net>
+In-Reply-To: <alpine.DEB.1.10.1004241517320.5135@ivanova.isely.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201004052011.13162.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 05 April 2010 17:41:47 Mauro Carvalho Chehab wrote:
-> Hans Verkuil wrote:
-> > On Monday 05 April 2010 04:58:02 Andy Walls wrote:
-> >> On Sun, 2010-04-04 at 17:41 +0200, Hans Verkuil wrote:
-> >>> Hi all,
-> >>>
-> >>> The support in drivers for the V4L2 control API is currently very chaotic.
-> >>> Few if any drivers support the API correctly. Especially the support for the
-> >>> new extended controls is very much hit and miss.
-> >>>
-> >>> Combine that with the requirements for the upcoming embedded devices that
-> >>> will want to use controls much more actively and you end up with a big mess.
-> >>>
-> >>> I've wanted to fix this for a long time and last week I finally had the time.
-> >>>
-> >>> The new framework works like a charm and massively reduces the complexity in
-> >>> drivers when it comes to control handling. And just as importantly, any driver
-> >>> that uses it is fully compliant to the V4L spec. Something that application
-> >>> writers will appreciate.
-> >>>
-> >>> I have converted the cx2341x.c module and tested it with ivtv since that is
-> >>> by far the most complex example of control handling. The new code is much,
-> >>> much cleaner.
-> >>>
-> >>> The documentation is available here:
-> >>>
-> >>> http://linuxtv.org/hg/~hverkuil/v4l-dvb-fw/raw-file/9b6708e8293c/linux/Documentation/video4linux/v4l2-controls.txt
-> >> >From reading the Documentation.  Things look very much improved.
-> >>
-> >> However:
-> >>
-> >> "When a subdevice is registered with a bridge driver and the ctrl_handler
-> >> fields of both v4l2_subdev and v4l2_device are set, then the controls of the
-> >> subdev will become automatically available in the bridge driver as well. If
-> >> the subdev driver contains controls that already exist in the bridge driver,
-> >> then those will be skipped (so a bridge driver can always override a subdev
-> >> control)."
-> >>
-> >> I think I have 2 cases where that is undesriable:
-> >>
-> >> 1. cx18 volume control: av_core subdev has a volume control (which the
-> >> bridge driver currently reports as it's volume control) and the cs5435
-> >> subdev has a volume control.
-> >>
-> >> I'd really need them *both* to be controllable by the user.  I'd also
-> >> like them to appear as a single (bridge driver) volume control to the
-> >> user - as that is what a user would expect.
-> > 
-> > So the bridge driver implements the volume control, but the bridge's s_ctrl
-> > operation will in turn control the subdev's volume implementation, right?
-> > That's no problem. I do need to add a few utility functions to make this
-> > easy, though. I realized that I need that anyway when I worked on converting
-> > bttv yesterday.
-> 
-> I think this is a common case for some audio controls: in general, bridge drivers
-> have a set of volume adjustments, but, depending on how the audio is connected
-> (I2S, analog input, analog directly wired to an output pin or to an  AC97 chip), 
-> the bridge volume may or may not work, and you may need to map the sub-device
-> volume control.
-> 
-> Em28xx is probably an interesting case, since it is designed to work with an
-> AC97 audio chip, but it also supports I2S. Older designs were shipped with a
-> msp34xx audio chip, while newer designs come with an Empia202 or with other
-> AC97 chips. Depending on the specific hardware, the volume should be controlled
-> into either one of the devices.
+Hi!
 
-There are a few possibilities:
+On 24.04.2010 22:24, Mike Isely wrote:
+> On Sat, 24 Apr 2010, Sven Barth wrote:
+>>
+>> Hi!
+>>
+>> Although you never really completed that support for the AV400 it runs pretty
+>> well once you've touched the cx25840 source. I'm using it for months now and
+>> it runs better than it did with Windows (I sometimes had troubles with audio
+>> there which led to an "out of sync" audio track).
+>
+> Unfortunately I can't really "say" it is supported in the pvrusb2 driver
+> until it actually works well enough that a user doesn't have to hack
+> driver source (pvrusb2 or otherwise).  Otherwise I'm just going to get
+> inundated with help requests for this.  Not having a sample of the
+> device here I'm handicapped from debugging such issues.
+>
 
-1) The bridge controls the volume. Easy, just make a bridge volume control and
-that will hide any subdev volume controls you might have.
+I don't want to have this hacking as much as you do. But currently it's 
+the only way that works for me (I'm really glad that it has come that 
+far ^^)...
+I'll try to help here as good as I can (and time permits) to solve this 
+issue.
 
-2) The subdev handles the volume. Easy again, just don't make a bridge volume
-control. I am not sure whether I should make some code to remove a control.
-Right now you can only add, not remove, which makes the framework a lot easier.
-Some sort of removal scheme could be made, but it would be more like hiding
-controls than actually removing it (as that would make pointer management so
-much harder).
+> I've just made a change to the pvrusb2 driver to allow for the ability
+> to mark a piece of hardware (such as this device) as "experimental".
+> Such devices will generate a warning in the kernel log upon
+> initialization.  The experimental marker doesn't impact the ability to
+> use the device; it just triggers the warning message.  Once we know the
+> device is working acceptably well enough, the marker can be turned off.
+> This should help avoid misleading others about whether or not the
+> pvrusb2 driver fully supports a particular piece of hardware.
+>
 
-3) The bridge controls the volume, but needs to cooperate with the subdev's
-volume control. Fairly easy: make a bridge volume control, get a pointer to
-the subdev's volume control and let the volume control code of the bridge
-use that pointer to manipulate the volume of the subdev. Note that the bridge
-has to know how that control works. The min/max/step values for such a control
-may not match those of the bridge.
+No offense intended, but do you really think that people will read that? 
+Normal users (using Ubuntu, etc) don't really care whether their device 
+is marked as experimental or not... they just want it to work and thus 
+can go to great lengths to "disturb" the developers working on their 
+driver...
 
-4) The user needs to see both volume controls. While this is possible once
-subdevs have their own device nodes, this is really meant for embedded systems
-and not for use with consumer hardware. 
+>> PS: Did you read my mail from last December?
+>> http://www.isely.net/pipermail/pvrusb2/2009-December/002716.html
+>
+> Yeah, I saw it back then, and then I probably got distracted away :-(
 
-One option is to make a new set of control IDs to control the secondary audio
-controls. Then all I need to do in the control framework is to make something
-like:
+I know that problem pretty well. ^^ I was only curious.
 
-v4l2_ctrl_add_ctrl_remap(struct v4l2_ctrl_handler *hdl,
-			 struct v4l2_ctrl_info *cinfo,
-			 u32 new_id);
+>
+> The key issue is that your hardware doesn't seem to work until you make
+> those two changes to the v4l-dvb cx25840 driver.  Obviously one can't
+> just make those changes without understanding the implications for other
+> users of the driver.  I (or someone expert at the cx25840 module) needs
+> to study that patch and understand what is best to do for the driver.
+>
+>    -Mike
+>
+>
 
-However, that requires new control IDs (and who knows for what other controls
-we need to do this as well in the future) and a lot of manual work in the
-driver. Also, they won't be visible in applications unless those applications
-are recompiled with the new V4L2_CID_LASTP1 value (or unless they use the new
-FLAG_NEXT_CTRL).
+It would be interesting to know why the v4l devs disabled the audio 
+routing for cx2583x chips and whether it was intended that a cx25837 
+chip gets the same treatment as a e.g. cx25836.
+And those "implications" you're talking about is the reason why I wrote 
+here: I want to check whether there is a better or more correct way than 
+to disable those checks (it works here, because I have only that one 
+device that contains a cx2583x chip...).
 
-Another option would be to set aside a range of IDs at the end of each control
-class that could be used as a 'remap' area.
-
-For example: the IDs for user class controls go from 0x980000-0x98ffff. Of
-which anything >= 0x981000 is a private control (i.e. specific to a driver).
-We could set aside 0x98f000-0x98ffff for remapped controls.
-
-So if you want to make a subdev's volume control available as a secondary
-control you can do something like this:
-
-v4l2_ctrl_add_ctrl_remap(struct v4l2_ctrl_handler *hdl,
-			 struct v4l2_ctrl_info *cinfo,
-			 const char *fmt);
-
-The framework will pick a new ID from the remap range and add this control
-with the name created using snprintf(fmt, sz, cinfo->name). Since this control
-is remapped as a private control it will be seen by old applications as well
-since they just iterate from V4L2_CID_PRIVATE_BASE, and the framework handles
-that transparently.
-
-It is even possible to do this for all controls from a subdev, e.g.:
-
-v4l2_ctrl_add_handler_remap(struct v4l2_ctrl_handler *hdl,
-			    struct v4l2_ctrl_handler *add,
-			    const char *fmt);
-
-Every control in 'add' that already exists in 'hdl' would then be remapped
-and a new name is generated.
-
-> > Of course, once we can create device nodes for sub-devices, then the controls
-> > of the cs5435 will show up there as well so the user can have direct access
-> > to that volume control. But that's not really for applications, though.
-> 
-> I don't think  that a "technical" volume control  per subdevice would make sense,
->  except on a very few cases, where you might need to deal with more than one volume
-> control, to avoid distortions. On most cases, you need to use just one of
-> the controls.
-
-I agree.
-
-> >> 2. ivtv volume control for an AverTV M113 card.  The CX2584x chip is
-> >> normally the volume control.  However, due to some poor baseband audio
-> >> noise performance on this card, it is advantagous to adjust the volume
-> >> control on the WM8739 subdev that feeds I2S audio into the CX2584x chip.
-> >> Here, I would like a secondary volume control, not an override of the
-> >> primary.
-> >>
-> >> (Here's my old hack:
-> >> 	http://linuxtv.org/hg/~awalls/ivtv-avertv-m113/rev/c8f2378a3119 )
-> >>
-> >>
-> >> Maybe there's a way to use the control clusters to handle some of this.
-> >> I'm a bit too tired to figure it all out at the moment.
-> > 
-> > Interesting use case. I have several ideas, but I need some time to think
-> > about it a bit more. Basically you want to be able to merge-and-remap
-> > controls. Or perhaps even allow some sort of control hierarchy.
-> 
-> I'd say that the bridge driver should be able to disable the visibility of
-> a control from userspace, while keeping being able of accessing it for its
-> own control implementations.
-
-Sure, that's already possible since that is true for 95% of all use cases.
+Just a thought: can it be that my chip's audio routing isn't set to the 
+correct value after initialization and thus it needs to be set at least 
+once, while all other chips default to a working routing after 
+initialization? Could be a design mistake done by Terratec...
 
 Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Sven
