@@ -1,135 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:58164 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754049Ab0DDMfh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 4 Apr 2010 08:35:37 -0400
-Subject: Re: [PATCH 04/15] V4L/DVB: ir-core: Add logic to decode IR
- protocols at the IR core
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-input@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <4BB7C795.20506@redhat.com>
-References: <cover.1270142346.git.mchehab@redhat.com>
-	 <20100401145632.7b1b98d5@pedra>
-	 <1270251567.3027.55.camel@palomino.walls.org> <4BB69A95.5000705@redhat.com>
-	 <1270314992.9169.40.camel@palomino.walls.org>  <4BB7C795.20506@redhat.com>
-Content-Type: text/plain
-Date: Sun, 04 Apr 2010 08:35:51 -0400
-Message-Id: <1270384551.4979.47.camel@palomino.walls.org>
+Received: from cnc.isely.net ([64.81.146.143]:37730 "EHLO cnc.isely.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751048Ab0DXVEu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Apr 2010 17:04:50 -0400
+Date: Sat, 24 Apr 2010 16:04:49 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+To: Sven Barth <pascaldragon@googlemail.com>
+cc: linux-media@vger.kernel.org
+Subject: Re: Problem with cx25840 and Terratec Grabster AV400
+In-Reply-To: <4BD35AA3.7070003@googlemail.com>
+Message-ID: <alpine.DEB.1.10.1004241555420.5135@ivanova.isely.net>
+References: <4BD2EACA.5040005@googlemail.com> <alpine.DEB.1.10.1004241212100.5135@ivanova.isely.net> <4BD34E5A.40507@googlemail.com> <alpine.DEB.1.10.1004241517320.5135@ivanova.isely.net> <4BD35AA3.7070003@googlemail.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2010-04-03 at 19:56 -0300, Mauro Carvalho Chehab wrote:
-> Andy Walls wrote:
-> > On Fri, 2010-04-02 at 22:32 -0300, Mauro Carvalho Chehab wrote:
-> >> Andy Walls wrote:
-> >  
-> >>> I haven't taken a very hard look at this since I'm very busy this month.
-> >>>
-> >>> It looks OK so far. 
-> >> Thank you for your review. 
-> >>
-> >> One general comment: my main target of writing the NEC decoder is to have one
-> >> decoder for testing. I know that there are several other implementations, so I 
-> >> didn't try to write a perfect decoder, but, instead, I wrote a code that 
-> >> works, and that allows me to continue the Remote Controller subsystem design.
+On Sat, 24 Apr 2010, Sven Barth wrote:
+
+> Hi!
+> 
+> On 24.04.2010 22:24, Mike Isely wrote:
+> > On Sat, 24 Apr 2010, Sven Barth wrote:
+> > > 
+> > > Hi!
+> > > 
+> > > Although you never really completed that support for the AV400 it runs
+> > > pretty
+> > > well once you've touched the cx25840 source. I'm using it for months now
+> > > and
+> > > it runs better than it did with Windows (I sometimes had troubles with
+> > > audio
+> > > there which led to an "out of sync" audio track).
 > > 
-> > Understood.
-> 
-> Btw, I just finish rewriting the nec decoder:
-> 
-> http://git.linuxtv.org/mchehab/ir.git?a=blob;f=drivers/media/IR/ir-nec-decoder.c;h=33b260f517f509efd9c55067eb89c8cd748ed12c;hb=09b1808271b3d705b839ee3239fd1c85b7289f41
-> 
-> I've got your constants and a few of your ideas, but the code is different:
-> instead of getting a pulse/mark pair, the code handles event by event. Also,
-> it is controlled by a state machine.
-> 
-> The end result is that the code seems very reliable. It also handles both NEC
-> and NEC extended.
-
-Looks good.
-
-On intervals that are supposed to be longer than 1 NEC_UNIT, the
-tolerance of NEC_UNIT / 2 is a little unforgiving.  However, if this
-decoder is called not knowing apriori that the protocol is NEC, it is
-probably the right thing to do.
-
-
-And when you have time:
-
-I think all that is missing is a glitch (low pass) filter to discard
-pulses much shorter than 1 NEC_UNIT.  A way to generate random IR
-glitches is with bright sunlight reflecting off of a basin of water
-that's surface is being disturbed to make waves.  
-
-LIRC has a software glitch filter implementation in 
-
-	lirc-0.8.5/drivers/lirc_serial/lirc_serial.c:frbwrite()
-
-but it's not the simplest code to understand and it keeps its state in
-static variables in the function.
-
-(My kernel NEC decoder implementation didn't have a software glitch
-filter, because there was a filter provided by the hardware.  For NEC, I
-decided to discard any pulse less than 5/8 * NEC_UNIT.  For RC-5, I set
-it to discard pulses less than 3/4 of a pulse time.)
-
-
-Since a glitch filter is probably going to be needed by a number of
-drivers and since the minimum acceptable pulse depends slightly on the
-protocol, it probably makes sense for
-
-1. A driver to indicate if its raw events need glitch filtering
-
-2. A common glitch filtering library function that can be used by all
-decoders, and that also can accept a decoder specified minimum
-acceptable pulse width.
-
-
-> > Is it the case that some drivers will only be able to perform leading
-> > edge detection (measuring time between marks) or trailing edge detection
-> > (measuring time between spaces)?
-> 
-> In the specific case of saa7134, the IRQ can be enabled for a positive and/or
-> for a negative edge.
-> 
-> I'm not sure about the other IRQ driven hardware. On cx88, there's no IRQ code
-> for IR - maybe it is not supported. I haven't check yet how IRQ's work on bttv.
-> I've no idea about the other devices that support raw IR decoding.
-
-I can look into what the cx88 and bttv chips can do.  How the boards are
-wired up is a different issue.
-
-
-
-> >> I found one NEC IR here that uses the extended protocol. The issue I have here is that
-> >> maybe it could be interesting to allow enable or disable a more pedantic check.
-> >> At least on the room I'm working, I have two strong fluorescent lamps that interfere
-> >> on the IR sensor of the saa7134 board. I'll probably add a sysfs node to allow enable/
-> >> disable the strict check for non-extended protocol.
+> > Unfortunately I can't really "say" it is supported in the pvrusb2 driver
+> > until it actually works well enough that a user doesn't have to hack
+> > driver source (pvrusb2 or otherwise).  Otherwise I'm just going to get
+> > inundated with help requests for this.  Not having a sample of the
+> > device here I'm handicapped from debugging such issues.
 > > 
-> > Would that make the setting global or would it be on a per remote
-> > control basis?
 > 
-> The protocol sysfs nodes are per device. Yet, for now, I haven't created
-> such node.
+> I don't want to have this hacking as much as you do. But currently it's the
+> only way that works for me (I'm really glad that it has come that far ^^)...
+> I'll try to help here as good as I can (and time permits) to solve this issue.
 
-Per device means per IR receiver device?
+I understand.
 
- 
-> > I don't know if a driver or end user can set the expectaion of a remote
-> > control's NEC address in your recent design (or if the intent was to not
-> > require it and use discovery).
+
 > 
-> Well, bet to let it as-is. If later needed, it would be easy to add a sysfs
-> node parameter to control it.
+> > I've just made a change to the pvrusb2 driver to allow for the ability
+> > to mark a piece of hardware (such as this device) as "experimental".
+> > Such devices will generate a warning in the kernel log upon
+> > initialization.  The experimental marker doesn't impact the ability to
+> > use the device; it just triggers the warning message.  Once we know the
+> > device is working acceptably well enough, the marker can be turned off.
+> > This should help avoid misleading others about whether or not the
+> > pvrusb2 driver fully supports a particular piece of hardware.
+> > 
+> 
+> No offense intended, but do you really think that people will read that?
+> Normal users (using Ubuntu, etc) don't really care whether their device is
+> marked as experimental or not... they just want it to work and thus can go to
+> great lengths to "disturb" the developers working on their driver...
 
-OK.
+No offense taken.  Not a problem.  But I felt it was at least important 
+enough for the driver to document this fact.  For those who use the 
+device who are capable of attempting some hacking - those people WILL 
+see the message and hopefully that will encourage such folks to contact 
+the author (me) for assistance in further stabilizing the device.
 
-Regards,
-Andy
+The intent wasn't for the flag to be any excuse not to work on it - I 
+just want to leave a marker indicating that the driver is not expected 
+to be fully working (or "supported") at this time.
 
+
+> 
+> > > PS: Did you read my mail from last December?
+> > > http://www.isely.net/pipermail/pvrusb2/2009-December/002716.html
+> > 
+> > Yeah, I saw it back then, and then I probably got distracted away :-(
+> 
+> I know that problem pretty well. ^^ I was only curious.
+
+Spending a lot of time today catching up on stuff like this.  Just 
+smoked out two kernel oopses in the driver today as well.
+
+
+> 
+> > 
+> > The key issue is that your hardware doesn't seem to work until you make
+> > those two changes to the v4l-dvb cx25840 driver.  Obviously one can't
+> > just make those changes without understanding the implications for other
+> > users of the driver.  I (or someone expert at the cx25840 module) needs
+> > to study that patch and understand what is best to do for the driver.
+> > 
+> >    -Mike
+> > 
+> > 
+> 
+
+> It would be interesting to know why the v4l devs disabled the audio routing
+> for cx2583x chips and whether it was intended that a cx25837 chip gets the
+> same treatment as a e.g. cx25836.
+
+I wish I could provide specific information about that :-(
+
+
+> And those "implications" you're talking about is the reason why I wrote here:
+> I want to check whether there is a better or more correct way than to disable
+> those checks (it works here, because I have only that one device that contains
+> a cx2583x chip...).
+
+> Just a thought: can it be that my chip's audio routing isn't set to the
+> correct value after initialization and thus it needs to be set at least once,
+> while all other chips default to a working routing after initialization? Could
+> be a design mistake done by Terratec...
+
+There is no one "correct" audio routing.  And by "audio routing" I mean 
+the wiring between the chip and the various audio inputs that feed it.  
+The choice for how to route all this is up to the vendor of the device.  
+In many cases there is a common reference design that the vendor starts 
+from, in which case such routing will be more common across devices.  
+But that's just luck really.  The cx25840 driver provides an API to 
+things like the pvrusb2 driver to select the proper routing based on 
+that bridge driver's knowledge of the surrounding hardware.  This is one 
+of the areas that have to be worked on when porting to a new device.  
+The PVR2_ROUTING_SCHEME_xxxx enumeration in the pvrusb2 driver is part 
+of this.
+
+With that all said I haven't looked closely enough at your patch to the 
+cx25840 module so I'm only assuming that we're talking about the same 
+thing here.  I have a funny feeling that you're hitting on something 
+else however.  I need to look at this more closely.
+
+  -Mike
+
+
+-- 
+
+Mike Isely
+isely @ isely (dot) net
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
