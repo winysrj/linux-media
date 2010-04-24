@@ -1,710 +1,978 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1344 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754641Ab0DZHee (ORCPT
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:34940 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751723Ab0DXVOS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Apr 2010 03:34:34 -0400
-Message-Id: <510f60810ce99cfb6ba582423a7bcf5ccbbd9889.1272267137.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1272267136.git.hverkuil@xs4all.nl>
-References: <cover.1272267136.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Mon, 26 Apr 2010 09:34:32 +0200
-Subject: [PATCH 15/15] [RFC] ivtv: convert to the new control framework
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
+	Sat, 24 Apr 2010 17:14:18 -0400
+Subject: [PATCH 3/4] ir-core: move decoding state to ir_raw_event_ctrl
+To: mchehab@redhat.com
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org
+Date: Sat, 24 Apr 2010 23:14:11 +0200
+Message-ID: <20100424211411.11570.2189.stgit@localhost.localdomain>
+In-Reply-To: <20100424210843.11570.82007.stgit@localhost.localdomain>
+References: <20100424210843.11570.82007.stgit@localhost.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/ivtv/ivtv-controls.c |  275 ++++--------------------------
- drivers/media/video/ivtv/ivtv-controls.h |    6 +-
- drivers/media/video/ivtv/ivtv-driver.c   |   18 ++-
- drivers/media/video/ivtv/ivtv-driver.h   |    5 +-
- drivers/media/video/ivtv/ivtv-fileops.c  |   23 +--
- drivers/media/video/ivtv/ivtv-firmware.c |    6 +-
- drivers/media/video/ivtv/ivtv-ioctl.c    |   31 ++--
- drivers/media/video/ivtv/ivtv-streams.c  |   20 ++-
- 8 files changed, 86 insertions(+), 298 deletions(-)
+This patch moves the state from each raw decoder into the
+ir_raw_event_ctrl struct.
 
-diff --git a/drivers/media/video/ivtv/ivtv-controls.c b/drivers/media/video/ivtv/ivtv-controls.c
-index 4a9c8ce..57f74c2 100644
---- a/drivers/media/video/ivtv/ivtv-controls.c
-+++ b/drivers/media/video/ivtv/ivtv-controls.c
-@@ -17,162 +17,14 @@
-     along with this program; if not, write to the Free Software
-     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
--#include <linux/kernel.h>
+This allows the removal of code like this:
+
+        spin_lock(&decoder_lock);
+        list_for_each_entry(data, &decoder_list, list) {
+                if (data->ir_dev == ir_dev)
+                        break;
+        }
+        spin_unlock(&decoder_lock);
+        return data;
+
+which is currently run for each decoder on each event in order
+to get the client-specific decoding state data.
+
+In addition, ir decoding modules and ir driver module load
+order is now independent. Centralizing the data also allows
+for a nice code reduction of about 30% per raw decoder as
+client lists and client registration callbacks are no longer
+necessary.
+
+Out-of-tree modules can still use a similar trick to what
+the raw decoders did before this patch until they are merged.
+
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/IR/ir-core-priv.h    |   37 ++++++++++++-
+ drivers/media/IR/ir-jvc-decoder.c  |   90 ++-----------------------------
+ drivers/media/IR/ir-nec-decoder.c  |   89 +++----------------------------
+ drivers/media/IR/ir-raw-event.c    |   48 +++--------------
+ drivers/media/IR/ir-rc5-decoder.c  |  103 +++++-------------------------------
+ drivers/media/IR/ir-rc6-decoder.c  |   92 ++------------------------------
+ drivers/media/IR/ir-sony-decoder.c |   93 +++------------------------------
+ 7 files changed, 87 insertions(+), 465 deletions(-)
+
+diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
+index 821d012..1e9464a 100644
+--- a/drivers/media/IR/ir-core-priv.h
++++ b/drivers/media/IR/ir-core-priv.h
+@@ -23,8 +23,6 @@ struct ir_raw_handler {
  
- #include "ivtv-driver.h"
--#include "ivtv-cards.h"
- #include "ivtv-ioctl.h"
--#include "ivtv-routing.h"
--#include "ivtv-i2c.h"
--#include "ivtv-mailbox.h"
- #include "ivtv-controls.h"
- 
--/* Must be sorted from low to high control ID! */
--static const u32 user_ctrls[] = {
--	V4L2_CID_USER_CLASS,
--	V4L2_CID_BRIGHTNESS,
--	V4L2_CID_CONTRAST,
--	V4L2_CID_SATURATION,
--	V4L2_CID_HUE,
--	V4L2_CID_AUDIO_VOLUME,
--	V4L2_CID_AUDIO_BALANCE,
--	V4L2_CID_AUDIO_BASS,
--	V4L2_CID_AUDIO_TREBLE,
--	V4L2_CID_AUDIO_MUTE,
--	V4L2_CID_AUDIO_LOUDNESS,
--	0
--};
--
--static const u32 *ctrl_classes[] = {
--	user_ctrls,
--	cx2341x_mpeg_ctrls,
--	NULL
--};
--
--
--int ivtv_queryctrl(struct file *file, void *fh, struct v4l2_queryctrl *qctrl)
--{
--	struct ivtv *itv = ((struct ivtv_open_id *)fh)->itv;
--	const char *name;
--
--	qctrl->id = v4l2_ctrl_next(ctrl_classes, qctrl->id);
--	if (qctrl->id == 0)
--		return -EINVAL;
--
--	switch (qctrl->id) {
--	/* Standard V4L2 controls */
--	case V4L2_CID_USER_CLASS:
--		return v4l2_ctrl_query_fill(qctrl, 0, 0, 0, 0);
--	case V4L2_CID_BRIGHTNESS:
--	case V4L2_CID_HUE:
--	case V4L2_CID_SATURATION:
--	case V4L2_CID_CONTRAST:
--		if (v4l2_subdev_call(itv->sd_video, core, queryctrl, qctrl))
--			qctrl->flags |= V4L2_CTRL_FLAG_DISABLED;
--		return 0;
--
--	case V4L2_CID_AUDIO_VOLUME:
--	case V4L2_CID_AUDIO_MUTE:
--	case V4L2_CID_AUDIO_BALANCE:
--	case V4L2_CID_AUDIO_BASS:
--	case V4L2_CID_AUDIO_TREBLE:
--	case V4L2_CID_AUDIO_LOUDNESS:
--		if (v4l2_subdev_call(itv->sd_audio, core, queryctrl, qctrl))
--			qctrl->flags |= V4L2_CTRL_FLAG_DISABLED;
--		return 0;
--
--	default:
--		if (cx2341x_ctrl_query(&itv->params, qctrl))
--			qctrl->flags |= V4L2_CTRL_FLAG_DISABLED;
--		return 0;
--	}
--	strncpy(qctrl->name, name, sizeof(qctrl->name) - 1);
--	qctrl->name[sizeof(qctrl->name) - 1] = 0;
--	return 0;
--}
--
--int ivtv_querymenu(struct file *file, void *fh, struct v4l2_querymenu *qmenu)
--{
--	struct ivtv *itv = ((struct ivtv_open_id *)fh)->itv;
--	struct v4l2_queryctrl qctrl;
--
--	qctrl.id = qmenu->id;
--	ivtv_queryctrl(file, fh, &qctrl);
--	return v4l2_ctrl_query_menu(qmenu, &qctrl,
--			cx2341x_ctrl_get_menu(&itv->params, qmenu->id));
--}
--
--static int ivtv_try_ctrl(struct file *file, void *fh,
--					struct v4l2_ext_control *vctrl)
--{
--	struct v4l2_queryctrl qctrl;
--	const char **menu_items = NULL;
--	int err;
--
--	qctrl.id = vctrl->id;
--	err = ivtv_queryctrl(file, fh, &qctrl);
--	if (err)
--		return err;
--	if (qctrl.type == V4L2_CTRL_TYPE_MENU)
--		menu_items = v4l2_ctrl_get_menu(qctrl.id);
--	return v4l2_ctrl_check(vctrl, &qctrl, menu_items);
--}
--
--static int ivtv_s_ctrl(struct ivtv *itv, struct v4l2_control *vctrl)
--{
--	switch (vctrl->id) {
--		/* Standard V4L2 controls */
--	case V4L2_CID_BRIGHTNESS:
--	case V4L2_CID_HUE:
--	case V4L2_CID_SATURATION:
--	case V4L2_CID_CONTRAST:
--		return v4l2_subdev_call(itv->sd_video, core, s_ctrl, vctrl);
--
--	case V4L2_CID_AUDIO_VOLUME:
--	case V4L2_CID_AUDIO_MUTE:
--	case V4L2_CID_AUDIO_BALANCE:
--	case V4L2_CID_AUDIO_BASS:
--	case V4L2_CID_AUDIO_TREBLE:
--	case V4L2_CID_AUDIO_LOUDNESS:
--		return v4l2_subdev_call(itv->sd_audio, core, s_ctrl, vctrl);
--
--	default:
--		IVTV_DEBUG_IOCTL("invalid control 0x%x\n", vctrl->id);
--		return -EINVAL;
--	}
--	return 0;
--}
--
--static int ivtv_g_ctrl(struct ivtv *itv, struct v4l2_control *vctrl)
-+static int ivtv_s_stream_vbi_fmt(struct cx2341x_handler *cxhdl, u32 fmt)
- {
--	switch (vctrl->id) {
--		/* Standard V4L2 controls */
--	case V4L2_CID_BRIGHTNESS:
--	case V4L2_CID_HUE:
--	case V4L2_CID_SATURATION:
--	case V4L2_CID_CONTRAST:
--		return v4l2_subdev_call(itv->sd_video, core, g_ctrl, vctrl);
--
--	case V4L2_CID_AUDIO_VOLUME:
--	case V4L2_CID_AUDIO_MUTE:
--	case V4L2_CID_AUDIO_BALANCE:
--	case V4L2_CID_AUDIO_BASS:
--	case V4L2_CID_AUDIO_TREBLE:
--	case V4L2_CID_AUDIO_LOUDNESS:
--		return v4l2_subdev_call(itv->sd_audio, core, g_ctrl, vctrl);
--	default:
--		IVTV_DEBUG_IOCTL("invalid control 0x%x\n", vctrl->id);
--		return -EINVAL;
--	}
--	return 0;
--}
--
--static int ivtv_setup_vbi_fmt(struct ivtv *itv, enum v4l2_mpeg_stream_vbi_fmt fmt)
--{
--	if (!(itv->v4l2_cap & V4L2_CAP_SLICED_VBI_CAPTURE))
--		return -EINVAL;
--	if (atomic_read(&itv->capturing) > 0)
--		return -EBUSY;
-+	struct ivtv *itv = container_of(cxhdl, struct ivtv, cxhdl);
- 
- 	/* First try to allocate sliced VBI buffers if needed. */
- 	if (fmt && itv->vbi.sliced_mpeg_data[0] == NULL) {
-@@ -207,106 +59,43 @@ static int ivtv_setup_vbi_fmt(struct ivtv *itv, enum v4l2_mpeg_stream_vbi_fmt fm
- 	return 0;
- }
- 
--int ivtv_g_ext_ctrls(struct file *file, void *fh, struct v4l2_ext_controls *c)
-+static int ivtv_s_video_encoding(struct cx2341x_handler *cxhdl, u32 val)
- {
--	struct ivtv *itv = ((struct ivtv_open_id *)fh)->itv;
--	struct v4l2_control ctrl;
--
--	if (c->ctrl_class == V4L2_CTRL_CLASS_USER) {
--		int i;
--		int err = 0;
--
--		for (i = 0; i < c->count; i++) {
--			ctrl.id = c->controls[i].id;
--			ctrl.value = c->controls[i].value;
--			err = ivtv_g_ctrl(itv, &ctrl);
--			c->controls[i].value = ctrl.value;
--			if (err) {
--				c->error_idx = i;
--				break;
--			}
--		}
--		return err;
--	}
--	if (c->ctrl_class == V4L2_CTRL_CLASS_MPEG)
--		return cx2341x_ext_ctrls(&itv->params, 0, c, VIDIOC_G_EXT_CTRLS);
--	return -EINVAL;
-+	struct ivtv *itv = container_of(cxhdl, struct ivtv, cxhdl);
-+	int is_mpeg1 = val == V4L2_MPEG_VIDEO_ENCODING_MPEG_1;
-+	struct v4l2_format fmt;
-+
-+	/* fix videodecoder resolution */
-+	fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	fmt.fmt.pix.width = cxhdl->width / (is_mpeg1 ? 2 : 1);
-+	fmt.fmt.pix.height = cxhdl->height;
-+	v4l2_subdev_call(itv->sd_video, video, s_fmt, &fmt);
-+	return 0;
- }
- 
--int ivtv_s_ext_ctrls(struct file *file, void *fh, struct v4l2_ext_controls *c)
-+static int ivtv_s_audio_sampling_freq(struct cx2341x_handler *cxhdl, u32 idx)
- {
--	struct ivtv *itv = ((struct ivtv_open_id *)fh)->itv;
--	struct v4l2_control ctrl;
--
--	if (c->ctrl_class == V4L2_CTRL_CLASS_USER) {
--		int i;
--		int err = 0;
--
--		for (i = 0; i < c->count; i++) {
--			ctrl.id = c->controls[i].id;
--			ctrl.value = c->controls[i].value;
--			err = ivtv_s_ctrl(itv, &ctrl);
--			c->controls[i].value = ctrl.value;
--			if (err) {
--				c->error_idx = i;
--				break;
--			}
--		}
--		return err;
--	}
--	if (c->ctrl_class == V4L2_CTRL_CLASS_MPEG) {
--		static u32 freqs[3] = { 44100, 48000, 32000 };
--		struct cx2341x_mpeg_params p = itv->params;
--		int err = cx2341x_ext_ctrls(&p, atomic_read(&itv->capturing), c, VIDIOC_S_EXT_CTRLS);
--		unsigned idx;
--
--		if (err)
--			return err;
-+	static const u32 freqs[3] = { 44100, 48000, 32000 };
-+	struct ivtv *itv = container_of(cxhdl, struct ivtv, cxhdl);
- 
--		if (p.video_encoding != itv->params.video_encoding) {
--			int is_mpeg1 = p.video_encoding ==
--				V4L2_MPEG_VIDEO_ENCODING_MPEG_1;
--			struct v4l2_format fmt;
--
--			/* fix videodecoder resolution */
--			fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
--			fmt.fmt.pix.width = itv->params.width / (is_mpeg1 ? 2 : 1);
--			fmt.fmt.pix.height = itv->params.height;
--			v4l2_subdev_call(itv->sd_video, video, s_fmt, &fmt);
--		}
--		err = cx2341x_update(itv, ivtv_api_func, &itv->params, &p);
--		if (!err && itv->params.stream_vbi_fmt != p.stream_vbi_fmt)
--			err = ivtv_setup_vbi_fmt(itv, p.stream_vbi_fmt);
--		itv->params = p;
--		itv->dualwatch_stereo_mode = p.audio_properties & 0x0300;
--		idx = p.audio_properties & 0x03;
--		/* The audio clock of the digitizer must match the codec sample
--		   rate otherwise you get some very strange effects. */
--		if (idx < ARRAY_SIZE(freqs))
--			ivtv_call_all(itv, audio, s_clock_freq, freqs[idx]);
--		return err;
--	}
--	return -EINVAL;
-+	/* The audio clock of the digitizer must match the codec sample
-+	   rate otherwise you get some very strange effects. */
-+	if (idx < ARRAY_SIZE(freqs))
-+		ivtv_call_all(itv, audio, s_clock_freq, freqs[idx]);
-+	return 0;
- }
- 
--int ivtv_try_ext_ctrls(struct file *file, void *fh, struct v4l2_ext_controls *c)
-+static int ivtv_s_audio_mode(struct cx2341x_handler *cxhdl, u32 val)
- {
--	struct ivtv *itv = ((struct ivtv_open_id *)fh)->itv;
-+	struct ivtv *itv = container_of(cxhdl, struct ivtv, cxhdl);
- 
--	if (c->ctrl_class == V4L2_CTRL_CLASS_USER) {
--		int i;
--		int err = 0;
--
--		for (i = 0; i < c->count; i++) {
--			err = ivtv_try_ctrl(file, fh, &c->controls[i]);
--			if (err) {
--				c->error_idx = i;
--				break;
--			}
--		}
--		return err;
--	}
--	if (c->ctrl_class == V4L2_CTRL_CLASS_MPEG)
--		return cx2341x_ext_ctrls(&itv->params, atomic_read(&itv->capturing), c, VIDIOC_TRY_EXT_CTRLS);
--	return -EINVAL;
-+	itv->dualwatch_stereo_mode = val;
-+	return 0;
- }
-+
-+struct cx2341x_handler_ops ivtv_cxhdl_ops = {
-+	.s_audio_mode = ivtv_s_audio_mode,
-+	.s_audio_sampling_freq = ivtv_s_audio_sampling_freq,
-+	.s_video_encoding = ivtv_s_video_encoding,
-+	.s_stream_vbi_fmt = ivtv_s_stream_vbi_fmt,
-+};
-diff --git a/drivers/media/video/ivtv/ivtv-controls.h b/drivers/media/video/ivtv/ivtv-controls.h
-index 1c7721e..d12893d 100644
---- a/drivers/media/video/ivtv/ivtv-controls.h
-+++ b/drivers/media/video/ivtv/ivtv-controls.h
-@@ -21,10 +21,6 @@
- #ifndef IVTV_CONTROLS_H
- #define IVTV_CONTROLS_H
- 
--int ivtv_queryctrl(struct file *file, void *fh, struct v4l2_queryctrl *a);
--int ivtv_g_ext_ctrls(struct file *file, void *fh, struct v4l2_ext_controls *a);
--int ivtv_s_ext_ctrls(struct file *file, void *fh, struct v4l2_ext_controls *a);
--int ivtv_try_ext_ctrls(struct file *file, void *fh, struct v4l2_ext_controls *a);
--int ivtv_querymenu(struct file *file, void *fh, struct v4l2_querymenu *a);
-+extern struct cx2341x_handler_ops ivtv_cxhdl_ops;
- 
- #endif
-diff --git a/drivers/media/video/ivtv/ivtv-driver.c b/drivers/media/video/ivtv/ivtv-driver.c
-index 1232d92..54f25f3 100644
---- a/drivers/media/video/ivtv/ivtv-driver.c
-+++ b/drivers/media/video/ivtv/ivtv-driver.c
-@@ -53,6 +53,7 @@
- #include "ivtv-cards.h"
- #include "ivtv-vbi.h"
- #include "ivtv-routing.h"
-+#include "ivtv-controls.h"
- #include "ivtv-gpio.h"
- 
- #include <media/tveeprom.h>
-@@ -718,9 +719,8 @@ static int __devinit ivtv_init_struct1(struct ivtv *itv)
- 	itv->open_id = 1;
- 
- 	/* Initial settings */
--	cx2341x_fill_defaults(&itv->params);
--	itv->params.port = CX2341X_PORT_MEMORY;
--	itv->params.capabilities = CX2341X_CAP_HAS_SLICED_VBI;
-+	itv->cxhdl.port = CX2341X_PORT_MEMORY;
-+	itv->cxhdl.capabilities = CX2341X_CAP_HAS_SLICED_VBI;
- 	init_waitqueue_head(&itv->eos_waitq);
- 	init_waitqueue_head(&itv->event_waitq);
- 	init_waitqueue_head(&itv->vsync_waitq);
-@@ -990,6 +990,13 @@ static int __devinit ivtv_probe(struct pci_dev *pdev,
- 		retval = -ENOMEM;
- 		goto err;
- 	}
-+	retval = cx2341x_handler_init(&itv->cxhdl, 50);
-+	if (retval)
-+		goto err;
-+	itv->v4l2_dev.ctrl_handler = &itv->cxhdl.hdl;
-+	itv->cxhdl.ops = &ivtv_cxhdl_ops;
-+	itv->cxhdl.priv = itv;
-+	itv->cxhdl.func = ivtv_api_func;
- 
- 	IVTV_DEBUG_INFO("base addr: 0x%08x\n", itv->base_addr);
- 
-@@ -1111,7 +1118,7 @@ static int __devinit ivtv_probe(struct pci_dev *pdev,
- 	itv->yuv_info.v4l2_src_w = itv->yuv_info.osd_full_w;
- 	itv->yuv_info.v4l2_src_h = itv->yuv_info.osd_full_h;
- 
--	itv->params.video_gop_size = itv->is_60hz ? 15 : 12;
-+	cx2341x_handler_set_50hz(&itv->cxhdl, itv->is_50hz);
- 
- 	itv->stream_buf_size[IVTV_ENC_STREAM_TYPE_MPG] = 0x08000;
- 	itv->stream_buf_size[IVTV_ENC_STREAM_TYPE_PCM] = 0x01200;
-@@ -1306,6 +1313,8 @@ int ivtv_init_on_first_open(struct ivtv *itv)
- 	/* For cards with video out, this call needs interrupts enabled */
- 	ivtv_s_std(NULL, &fh, &itv->tuner_std);
- 
-+	/* Setup initial controls */
-+	cx2341x_handler_setup(&itv->cxhdl);
- 	return 0;
- }
- 
-@@ -1370,7 +1379,6 @@ static void ivtv_remove(struct pci_dev *pdev)
- 	printk(KERN_INFO "ivtv: Removed %s\n", itv->card_name);
- 
- 	v4l2_device_unregister(&itv->v4l2_dev);
--	v4l2_ctrl_handler_free(&itv->hdl_gpio);
- 	kfree(itv);
- }
- 
-diff --git a/drivers/media/video/ivtv/ivtv-driver.h b/drivers/media/video/ivtv/ivtv-driver.h
-index 0a85705..ff49e89 100644
---- a/drivers/media/video/ivtv/ivtv-driver.h
-+++ b/drivers/media/video/ivtv/ivtv-driver.h
-@@ -62,6 +62,7 @@
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-ctrls.h>
- #include <media/tuner.h>
- #include <media/cx2341x.h>
- #include <media/ir-kbd-i2c.h>
-@@ -621,8 +622,9 @@ struct ivtv {
- 	struct ivtv_options options; 	/* user options */
- 
- 	struct v4l2_device v4l2_dev;
--	struct v4l2_subdev sd_gpio;	/* GPIO sub-device */
-+	struct cx2341x_handler cxhdl;
- 	struct v4l2_ctrl_handler hdl_gpio;
-+	struct v4l2_subdev sd_gpio;	/* GPIO sub-device */
- 	u16 instance;
- 
- 	/* High-level state info */
-@@ -639,7 +641,6 @@ struct ivtv {
- 	v4l2_std_id std_out;            /* current TV output standard */
- 	u8 audio_stereo_mode;           /* decoder setting how to handle stereo MPEG audio */
- 	u8 audio_bilingual_mode;        /* decoder setting how to handle bilingual MPEG audio */
--	struct cx2341x_mpeg_params params;              /* current encoder parameters */
- 
- 
- 	/* Locking */
-diff --git a/drivers/media/video/ivtv/ivtv-fileops.c b/drivers/media/video/ivtv/ivtv-fileops.c
-index babcabd..0552044 100644
---- a/drivers/media/video/ivtv/ivtv-fileops.c
-+++ b/drivers/media/video/ivtv/ivtv-fileops.c
-@@ -148,12 +148,10 @@ void ivtv_release_stream(struct ivtv_stream *s)
- static void ivtv_dualwatch(struct ivtv *itv)
- {
- 	struct v4l2_tuner vt;
--	u32 new_bitmap;
- 	u32 new_stereo_mode;
--	const u32 stereo_mask = 0x0300;
--	const u32 dual = 0x0200;
-+	const u32 dual = 0x02;
- 
--	new_stereo_mode = itv->params.audio_properties & stereo_mask;
-+	new_stereo_mode = v4l2_ctrl_g(itv->cxhdl.audio_mode);
- 	memset(&vt, 0, sizeof(vt));
- 	ivtv_call_all(itv, tuner, g_tuner, &vt);
- 	if (vt.audmode == V4L2_TUNER_MODE_LANG1_LANG2 && (vt.rxsubchans & V4L2_TUNER_SUB_LANG2))
-@@ -162,16 +160,10 @@ static void ivtv_dualwatch(struct ivtv *itv)
- 	if (new_stereo_mode == itv->dualwatch_stereo_mode)
- 		return;
- 
--	new_bitmap = new_stereo_mode | (itv->params.audio_properties & ~stereo_mask);
--
--	IVTV_DEBUG_INFO("dualwatch: change stereo flag from 0x%x to 0x%x. new audio_bitmask=0x%ux\n",
--			   itv->dualwatch_stereo_mode, new_stereo_mode, new_bitmap);
--
--	if (ivtv_vapi(itv, CX2341X_ENC_SET_AUDIO_PROPERTIES, 1, new_bitmap) == 0) {
--		itv->dualwatch_stereo_mode = new_stereo_mode;
--		return;
--	}
--	IVTV_DEBUG_INFO("dualwatch: changing stereo flag failed\n");
-+	IVTV_DEBUG_INFO("dualwatch: change stereo flag from 0x%x to 0x%x.\n",
-+			   itv->dualwatch_stereo_mode, new_stereo_mode);
-+	if (v4l2_ctrl_s(itv->cxhdl.audio_mode, new_stereo_mode))
-+		IVTV_DEBUG_INFO("dualwatch: changing stereo flag failed\n");
- }
- 
- static void ivtv_update_pgm_info(struct ivtv *itv)
-@@ -867,7 +859,8 @@ int ivtv_v4l2_close(struct file *filp)
- 		if (atomic_read(&itv->capturing) > 0) {
- 			/* Undo video mute */
- 			ivtv_vapi(itv, CX2341X_ENC_MUTE_VIDEO, 1,
--				itv->params.video_mute | (itv->params.video_mute_yuv << 8));
-+				v4l2_ctrl_g(itv->cxhdl.video_mute) |
-+				(v4l2_ctrl_g(itv->cxhdl.video_mute_yuv) << 8));
- 		}
- 		/* Done! Unmute and continue. */
- 		ivtv_unmute(itv);
-diff --git a/drivers/media/video/ivtv/ivtv-firmware.c b/drivers/media/video/ivtv/ivtv-firmware.c
-index a71e8ba..11ca89a 100644
---- a/drivers/media/video/ivtv/ivtv-firmware.c
-+++ b/drivers/media/video/ivtv/ivtv-firmware.c
-@@ -245,9 +245,9 @@ void ivtv_init_mpeg_decoder(struct ivtv *itv)
- 	volatile u8 __iomem *mem_offset;
- 
- 	data[0] = 0;
--	data[1] = itv->params.width;	/* YUV source width */
--	data[2] = itv->params.height;
--	data[3] = itv->params.audio_properties;	/* Audio settings to use,
-+	data[1] = itv->cxhdl.width;	/* YUV source width */
-+	data[2] = itv->cxhdl.height;
-+	data[3] = itv->cxhdl.audio_properties;	/* Audio settings to use,
- 							   bitmap. see docs. */
- 	if (ivtv_api(itv, CX2341X_DEC_SET_DECODER_SOURCE, 4, data)) {
- 		IVTV_ERR("ivtv_init_mpeg_decoder failed to set decoder source\n");
-diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c b/drivers/media/video/ivtv/ivtv-ioctl.c
-index 6422cf8..e47d38e 100644
---- a/drivers/media/video/ivtv/ivtv-ioctl.c
-+++ b/drivers/media/video/ivtv/ivtv-ioctl.c
-@@ -161,7 +161,7 @@ int ivtv_set_speed(struct ivtv *itv, int speed)
- 	data[0] |= (speed > 1000 || speed < -1500) ? 0x40000000 : 0;
- 	data[1] = (speed < 0);
- 	data[2] = speed < 0 ? 3 : 7;
--	data[3] = itv->params.video_b_frames;
-+	data[3] = v4l2_ctrl_g(itv->cxhdl.video_b_frames);
- 	data[4] = (speed == 1500 || speed == 500) ? itv->speed_mute_audio : 0;
- 	data[5] = 0;
- 	data[6] = 0;
-@@ -338,8 +338,8 @@ static int ivtv_g_fmt_vid_cap(struct file *file, void *fh, struct v4l2_format *f
- 	struct ivtv *itv = id->itv;
- 	struct v4l2_pix_format *pixfmt = &fmt->fmt.pix;
- 
--	pixfmt->width = itv->params.width;
--	pixfmt->height = itv->params.height;
-+	pixfmt->width = itv->cxhdl.width;
-+	pixfmt->height = itv->cxhdl.height;
- 	pixfmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
- 	pixfmt->field = V4L2_FIELD_INTERLACED;
- 	pixfmt->priv = 0;
-@@ -567,7 +567,6 @@ static int ivtv_s_fmt_vid_cap(struct file *file, void *fh, struct v4l2_format *f
- {
- 	struct ivtv_open_id *id = fh;
- 	struct ivtv *itv = id->itv;
--	struct cx2341x_mpeg_params *p = &itv->params;
- 	int ret = ivtv_try_fmt_vid_cap(file, fh, fmt);
- 	int w = fmt->fmt.pix.width;
- 	int h = fmt->fmt.pix.height;
-@@ -575,15 +574,15 @@ static int ivtv_s_fmt_vid_cap(struct file *file, void *fh, struct v4l2_format *f
- 	if (ret)
- 		return ret;
- 
--	if (p->width == w && p->height == h)
-+	if (itv->cxhdl.width == w && itv->cxhdl.height == h)
- 		return 0;
- 
- 	if (atomic_read(&itv->capturing) > 0)
- 		return -EBUSY;
- 
--	p->width = w;
--	p->height = h;
--	if (p->video_encoding == V4L2_MPEG_VIDEO_ENCODING_MPEG_1)
-+	itv->cxhdl.width = w;
-+	itv->cxhdl.height = h;
-+	if (v4l2_ctrl_g(itv->cxhdl.video_encoding) == V4L2_MPEG_VIDEO_ENCODING_MPEG_1)
- 		fmt->fmt.pix.width /= 2;
- 	v4l2_subdev_call(itv->sd_video, video, s_fmt, fmt);
- 	return ivtv_g_fmt_vid_cap(file, fh, fmt);
-@@ -1109,9 +1108,10 @@ int ivtv_s_std(struct file *file, void *fh, v4l2_std_id *std)
- 
- 	itv->std = *std;
- 	itv->is_60hz = (*std & V4L2_STD_525_60) ? 1 : 0;
--	itv->params.is_50hz = itv->is_50hz = !itv->is_60hz;
--	itv->params.width = 720;
--	itv->params.height = itv->is_50hz ? 576 : 480;
-+	itv->is_50hz = !itv->is_60hz;
-+	cx2341x_handler_set_50hz(&itv->cxhdl, itv->is_50hz);
-+	itv->cxhdl.width = 720;
-+	itv->cxhdl.height = itv->is_50hz ? 576 : 480;
- 	itv->vbi.count = itv->is_50hz ? 18 : 12;
- 	itv->vbi.start[0] = itv->is_50hz ? 6 : 10;
- 	itv->vbi.start[1] = itv->is_50hz ? 318 : 273;
-@@ -1152,7 +1152,7 @@ int ivtv_s_std(struct file *file, void *fh, v4l2_std_id *std)
- 		ivtv_vapi(itv, CX2341X_DEC_SET_STANDARD, 1, itv->is_out_50hz);
- 		itv->main_rect.left = itv->main_rect.top = 0;
- 		itv->main_rect.width = 720;
--		itv->main_rect.height = itv->params.height;
-+		itv->main_rect.height = itv->cxhdl.height;
- 		ivtv_vapi(itv, CX2341X_OSD_SET_FRAMEBUFFER_WINDOW, 4,
- 			720, itv->main_rect.height, 0, 0);
- 		yi->main_rect = itv->main_rect;
-@@ -1537,7 +1537,7 @@ static int ivtv_log_status(struct file *file, void *fh)
- 	}
- 	IVTV_INFO("Tuner:  %s\n",
- 		test_bit(IVTV_F_I_RADIO_USER, &itv->i_flags) ? "Radio" : "TV");
--	cx2341x_log_status(&itv->params, itv->v4l2_dev.name);
-+	v4l2_ctrl_handler_log_status(&itv->cxhdl.hdl, itv->v4l2_dev.name);
- 	IVTV_INFO("Status flags:    0x%08lx\n", itv->i_flags);
- 	for (i = 0; i < IVTV_MAX_STREAMS; i++) {
- 		struct ivtv_stream *s = &itv->streams[i];
-@@ -1921,11 +1921,6 @@ static const struct v4l2_ioctl_ops ivtv_ioctl_ops = {
- 	.vidioc_s_register 		    = ivtv_s_register,
- #endif
- 	.vidioc_default 		    = ivtv_default,
--	.vidioc_queryctrl 		    = ivtv_queryctrl,
--	.vidioc_querymenu 		    = ivtv_querymenu,
--	.vidioc_g_ext_ctrls 		    = ivtv_g_ext_ctrls,
--	.vidioc_s_ext_ctrls 		    = ivtv_s_ext_ctrls,
--	.vidioc_try_ext_ctrls    	    = ivtv_try_ext_ctrls,
+ 	u64 protocols; /* which are handled by this handler */
+ 	int (*decode)(struct input_dev *input_dev, struct ir_raw_event event);
+-	int (*raw_register)(struct input_dev *input_dev);
+-	int (*raw_unregister)(struct input_dev *input_dev);
  };
  
- void ivtv_set_funcs(struct video_device *vdev)
-diff --git a/drivers/media/video/ivtv/ivtv-streams.c b/drivers/media/video/ivtv/ivtv-streams.c
-index 6917c49..c735d03 100644
---- a/drivers/media/video/ivtv/ivtv-streams.c
-+++ b/drivers/media/video/ivtv/ivtv-streams.c
-@@ -208,6 +208,7 @@ static int ivtv_prep_dev(struct ivtv *itv, int type)
- 
- 	s->vdev->num = num;
- 	s->vdev->v4l2_dev = &itv->v4l2_dev;
-+	s->vdev->ctrl_handler = itv->v4l2_dev.ctrl_handler;
- 	s->vdev->fops = ivtv_stream_info[type].fops;
- 	s->vdev->release = video_device_release;
- 	s->vdev->tvnorms = V4L2_STD_ALL;
-@@ -446,7 +447,6 @@ int ivtv_start_v4l2_encode_stream(struct ivtv_stream *s)
- {
- 	u32 data[CX2341X_MBOX_MAX_DATA];
- 	struct ivtv *itv = s->itv;
--	struct cx2341x_mpeg_params *p = &itv->params;
- 	int captype = 0, subtype = 0;
- 	int enable_passthrough = 0;
- 
-@@ -467,7 +467,7 @@ int ivtv_start_v4l2_encode_stream(struct ivtv_stream *s)
- 		}
- 		itv->mpg_data_received = itv->vbi_data_inserted = 0;
- 		itv->dualwatch_jiffies = jiffies;
--		itv->dualwatch_stereo_mode = p->audio_properties & 0x0300;
-+		itv->dualwatch_stereo_mode = v4l2_ctrl_g(itv->cxhdl.audio_mode);
- 		itv->search_pack_header = 0;
- 		break;
- 
-@@ -555,12 +555,12 @@ int ivtv_start_v4l2_encode_stream(struct ivtv_stream *s)
- 				itv->pgm_info_offset, itv->pgm_info_num);
- 
- 		/* Setup API for Stream */
--		cx2341x_update(itv, ivtv_api_func, NULL, p);
-+		cx2341x_handler_setup(&itv->cxhdl);
- 
- 		/* mute if capturing radio */
- 		if (test_bit(IVTV_F_I_RADIO_USER, &itv->i_flags))
- 			ivtv_vapi(itv, CX2341X_ENC_MUTE_VIDEO, 1,
--				1 | (p->video_mute_yuv << 8));
-+				1 | (v4l2_ctrl_g(itv->cxhdl.video_mute_yuv) << 8));
- 	}
- 
- 	/* Vsync Setup */
-@@ -576,6 +576,8 @@ int ivtv_start_v4l2_encode_stream(struct ivtv_stream *s)
- 
- 		clear_bit(IVTV_F_I_EOS, &itv->i_flags);
- 
-+		cx2341x_handler_set_busy(&itv->cxhdl, 1);
+ struct ir_raw_event_ctrl {
+@@ -34,6 +32,41 @@ struct ir_raw_event_ctrl {
+ 	enum raw_event_type		last_type;	/* last event type */
+ 	struct input_dev		*input_dev;	/* pointer to the parent input_dev */
+ 	u64				enabled_protocols; /* enabled raw protocol decoders */
 +
- 		/* Initialize Digitizer for Capture */
- 		/* Avoid tinny audio problem - ensure audio clocks are going */
- 		v4l2_subdev_call(itv->sd_audio, audio, s_stream, 1);
-@@ -612,7 +614,6 @@ static int ivtv_setup_v4l2_decode_stream(struct ivtv_stream *s)
- {
- 	u32 data[CX2341X_MBOX_MAX_DATA];
- 	struct ivtv *itv = s->itv;
--	struct cx2341x_mpeg_params *p = &itv->params;
- 	int datatype;
++	/* raw decoder state follows */
++	struct ir_raw_event prev_ev;
++	struct nec_dec {
++		int state;
++		unsigned count;
++		u32 bits;
++	} nec;
++	struct rc5_dec {
++		int state;
++		u32 bits;
++		unsigned count;
++		unsigned wanted_bits;
++	} rc5;
++	struct rc6_dec {
++		int state;
++		u8 header;
++		u32 body;
++		bool toggle;
++		unsigned count;
++		unsigned wanted_bits;
++	} rc6;
++	struct sony_dec {
++		int state;
++		u32 bits;
++		unsigned count;
++	} sony;
++	struct jvc_dec {
++		int state;
++		u16 bits;
++		u16 old_bits;
++		unsigned count;
++		bool first;
++		bool toggle;
++	} jvc;
+ };
  
- 	if (s->vdev == NULL)
-@@ -651,7 +652,7 @@ static int ivtv_setup_v4l2_decode_stream(struct ivtv_stream *s)
- 		break;
- 	}
- 	if (ivtv_vapi(itv, CX2341X_DEC_SET_DECODER_SOURCE, 4, datatype,
--			p->width, p->height, p->audio_properties)) {
-+			itv->cxhdl.width, itv->cxhdl.height, itv->cxhdl.audio_properties)) {
- 		IVTV_DEBUG_WARN("Couldn't initialize decoder source\n");
- 	}
- 	return 0;
-@@ -817,6 +818,8 @@ int ivtv_stop_v4l2_encode_stream(struct ivtv_stream *s, int gop_end)
+ /* macros for IR decoders */
+diff --git a/drivers/media/IR/ir-jvc-decoder.c b/drivers/media/IR/ir-jvc-decoder.c
+index 1055de4..8894d8b 100644
+--- a/drivers/media/IR/ir-jvc-decoder.c
++++ b/drivers/media/IR/ir-jvc-decoder.c
+@@ -25,10 +25,6 @@
+ #define JVC_TRAILER_PULSE	(1  * JVC_UNIT)
+ #define	JVC_TRAILER_SPACE	(35 * JVC_UNIT)
+ 
+-/* Used to register jvc_decoder clients */
+-static LIST_HEAD(decoder_list);
+-DEFINE_SPINLOCK(decoder_lock);
+-
+ enum jvc_state {
+ 	STATE_INACTIVE,
+ 	STATE_HEADER_SPACE,
+@@ -38,39 +34,6 @@ enum jvc_state {
+ 	STATE_TRAILER_SPACE,
+ };
+ 
+-struct decoder_data {
+-	struct list_head	list;
+-	struct ir_input_dev	*ir_dev;
+-
+-	/* State machine control */
+-	enum jvc_state		state;
+-	u16			jvc_bits;
+-	u16			jvc_old_bits;
+-	unsigned		count;
+-	bool			first;
+-	bool			toggle;
+-};
+-
+-
+-/**
+- * get_decoder_data()	- gets decoder data
+- * @input_dev:	input device
+- *
+- * Returns the struct decoder_data that corresponds to a device
+- */
+-static struct decoder_data *get_decoder_data(struct  ir_input_dev *ir_dev)
+-{
+-	struct decoder_data *data = NULL;
+-
+-	spin_lock(&decoder_lock);
+-	list_for_each_entry(data, &decoder_list, list) {
+-		if (data->ir_dev == ir_dev)
+-			break;
+-	}
+-	spin_unlock(&decoder_lock);
+-	return data;
+-}
+-
+ /**
+  * ir_jvc_decode() - Decode one JVC pulse or space
+  * @input_dev:	the struct input_dev descriptor of the device
+@@ -80,12 +43,8 @@ static struct decoder_data *get_decoder_data(struct  ir_input_dev *ir_dev)
+  */
+ static int ir_jvc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+ {
+-	struct decoder_data *data;
+ 	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
+-
+-	data = get_decoder_data(ir_dev);
+-	if (!data)
+-		return -EINVAL;
++	struct jvc_dec *data = &ir_dev->raw->jvc;
+ 
+ 	if (!(ir_dev->raw->enabled_protocols & IR_TYPE_JVC))
  		return 0;
- 	}
+@@ -140,9 +99,9 @@ static int ir_jvc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+ 		if (ev.pulse)
+ 			break;
  
-+	cx2341x_handler_set_busy(&itv->cxhdl, 0);
-+
- 	/* Set the following Interrupt mask bits for capture */
- 	ivtv_set_irq_mask(itv, IVTV_IRQ_MASK_CAPTURE);
- 	del_timer(&itv->dma_timer);
-@@ -930,7 +933,8 @@ int ivtv_passthrough_mode(struct ivtv *itv, int enable)
+-		data->jvc_bits <<= 1;
++		data->bits <<= 1;
+ 		if (eq_margin(ev.duration, JVC_BIT_1_SPACE, JVC_UNIT / 2)) {
+-			data->jvc_bits |= 1;
++			data->bits |= 1;
+ 			decrease_duration(&ev, JVC_BIT_1_SPACE);
+ 		} else if (eq_margin(ev.duration, JVC_BIT_0_SPACE, JVC_UNIT / 2))
+ 			decrease_duration(&ev, JVC_BIT_0_SPACE);
+@@ -175,13 +134,13 @@ static int ir_jvc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
  
- 		/* Setup capture if not already done */
- 		if (atomic_read(&itv->capturing) == 0) {
--			cx2341x_update(itv, ivtv_api_func, NULL, &itv->params);
-+			cx2341x_handler_setup(&itv->cxhdl);
-+			cx2341x_handler_set_busy(&itv->cxhdl, 1);
+ 		if (data->first) {
+ 			u32 scancode;
+-			scancode = (bitrev8((data->jvc_bits >> 8) & 0xff) << 8) |
+-				   (bitrev8((data->jvc_bits >> 0) & 0xff) << 0);
++			scancode = (bitrev8((data->bits >> 8) & 0xff) << 8) |
++				   (bitrev8((data->bits >> 0) & 0xff) << 0);
+ 			IR_dprintk(1, "JVC scancode 0x%04x\n", scancode);
+ 			ir_keydown(input_dev, scancode, data->toggle);
+ 			data->first = false;
+-			data->jvc_old_bits = data->jvc_bits;
+-		} else if (data->jvc_bits == data->jvc_old_bits) {
++			data->old_bits = data->bits;
++		} else if (data->bits == data->old_bits) {
+ 			IR_dprintk(1, "JVC repeat\n");
+ 			ir_repeat(input_dev);
+ 		} else {
+@@ -201,44 +160,9 @@ out:
+ 	return -EINVAL;
+ }
+ 
+-static int ir_jvc_register(struct input_dev *input_dev)
+-{
+-	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
+-	struct decoder_data *data;
+-
+-	data = kzalloc(sizeof(*data), GFP_KERNEL);
+-	if (!data)
+-		return -ENOMEM;
+-
+-	data->ir_dev = ir_dev;
+-	spin_lock(&decoder_lock);
+-	list_add_tail(&data->list, &decoder_list);
+-	spin_unlock(&decoder_lock);
+-
+-	return 0;
+-}
+-
+-static int ir_jvc_unregister(struct input_dev *input_dev)
+-{
+-	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
+-	static struct decoder_data *data;
+-
+-	data = get_decoder_data(ir_dev);
+-	if (!data)
+-		return 0;
+-
+-	spin_lock(&decoder_lock);
+-	list_del(&data->list);
+-	spin_unlock(&decoder_lock);
+-
+-	return 0;
+-}
+-
+ static struct ir_raw_handler jvc_handler = {
+ 	.protocols	= IR_TYPE_JVC,
+ 	.decode		= ir_jvc_decode,
+-	.raw_register	= ir_jvc_register,
+-	.raw_unregister	= ir_jvc_unregister,
+ };
+ 
+ static int __init ir_jvc_decode_init(void)
+diff --git a/drivers/media/IR/ir-nec-decoder.c b/drivers/media/IR/ir-nec-decoder.c
+index 2cc2b92..52e0f37 100644
+--- a/drivers/media/IR/ir-nec-decoder.c
++++ b/drivers/media/IR/ir-nec-decoder.c
+@@ -27,10 +27,6 @@
+ #define	NEC_TRAILER_PULSE	(1  * NEC_UNIT)
+ #define	NEC_TRAILER_SPACE	(10 * NEC_UNIT) /* even longer in reality */
+ 
+-/* Used to register nec_decoder clients */
+-static LIST_HEAD(decoder_list);
+-static DEFINE_SPINLOCK(decoder_lock);
+-
+ enum nec_state {
+ 	STATE_INACTIVE,
+ 	STATE_HEADER_SPACE,
+@@ -40,36 +36,6 @@ enum nec_state {
+ 	STATE_TRAILER_SPACE,
+ };
+ 
+-struct decoder_data {
+-	struct list_head	list;
+-	struct ir_input_dev	*ir_dev;
+-
+-	/* State machine control */
+-	enum nec_state		state;
+-	u32			nec_bits;
+-	unsigned		count;
+-};
+-
+-
+-/**
+- * get_decoder_data()	- gets decoder data
+- * @input_dev:	input device
+- *
+- * Returns the struct decoder_data that corresponds to a device
+- */
+-static struct decoder_data *get_decoder_data(struct  ir_input_dev *ir_dev)
+-{
+-	struct decoder_data *data = NULL;
+-
+-	spin_lock(&decoder_lock);
+-	list_for_each_entry(data, &decoder_list, list) {
+-		if (data->ir_dev == ir_dev)
+-			break;
+-	}
+-	spin_unlock(&decoder_lock);
+-	return data;
+-}
+-
+ /**
+  * ir_nec_decode() - Decode one NEC pulse or space
+  * @input_dev:	the struct input_dev descriptor of the device
+@@ -79,15 +45,11 @@ static struct decoder_data *get_decoder_data(struct  ir_input_dev *ir_dev)
+  */
+ static int ir_nec_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+ {
+-	struct decoder_data *data;
+ 	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
++	struct nec_dec *data = &ir_dev->raw->nec;
+ 	u32 scancode;
+ 	u8 address, not_address, command, not_command;
+ 
+-	data = get_decoder_data(ir_dev);
+-	if (!data)
+-		return -EINVAL;
+-
+ 	if (!(ir_dev->raw->enabled_protocols & IR_TYPE_NEC))
+ 		return 0;
+ 
+@@ -143,9 +105,9 @@ static int ir_nec_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+ 		if (ev.pulse)
+ 			break;
+ 
+-		data->nec_bits <<= 1;
++		data->bits <<= 1;
+ 		if (eq_margin(ev.duration, NEC_BIT_1_SPACE, NEC_UNIT / 2))
+-			data->nec_bits |= 1;
++			data->bits |= 1;
+ 		else if (!eq_margin(ev.duration, NEC_BIT_0_SPACE, NEC_UNIT / 2))
+ 			break;
+ 		data->count++;
+@@ -174,14 +136,14 @@ static int ir_nec_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+ 		if (!geq_margin(ev.duration, NEC_TRAILER_SPACE, NEC_UNIT / 2))
+ 			break;
+ 
+-		address     = bitrev8((data->nec_bits >> 24) & 0xff);
+-		not_address = bitrev8((data->nec_bits >> 16) & 0xff);
+-		command	    = bitrev8((data->nec_bits >>  8) & 0xff);
+-		not_command = bitrev8((data->nec_bits >>  0) & 0xff);
++		address     = bitrev8((data->bits >> 24) & 0xff);
++		not_address = bitrev8((data->bits >> 16) & 0xff);
++		command	    = bitrev8((data->bits >>  8) & 0xff);
++		not_command = bitrev8((data->bits >>  0) & 0xff);
+ 
+ 		if ((command ^ not_command) != 0xff) {
+ 			IR_dprintk(1, "NEC checksum error: received 0x%08x\n",
+-				   data->nec_bits);
++				   data->bits);
+ 			break;
  		}
  
- 		/* Start Passthrough Mode */
-@@ -951,6 +955,8 @@ int ivtv_passthrough_mode(struct ivtv *itv, int enable)
- 	clear_bit(IVTV_F_S_PASSTHROUGH, &dec_stream->s_flags);
- 	clear_bit(IVTV_F_S_STREAMING, &dec_stream->s_flags);
- 	itv->output_mode = OUT_NONE;
-+	if (atomic_read(&itv->capturing) == 0)
-+		cx2341x_handler_set_busy(&itv->cxhdl, 0);
- 
- 	return 0;
+@@ -208,44 +170,9 @@ static int ir_nec_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+ 	return -EINVAL;
  }
--- 
-1.6.4.2
+ 
+-static int ir_nec_register(struct input_dev *input_dev)
+-{
+-	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
+-	struct decoder_data *data;
+-
+-	data = kzalloc(sizeof(*data), GFP_KERNEL);
+-	if (!data)
+-		return -ENOMEM;
+-
+-	data->ir_dev = ir_dev;
+-	spin_lock(&decoder_lock);
+-	list_add_tail(&data->list, &decoder_list);
+-	spin_unlock(&decoder_lock);
+-
+-	return 0;
+-}
+-
+-static int ir_nec_unregister(struct input_dev *input_dev)
+-{
+-	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
+-	static struct decoder_data *data;
+-
+-	data = get_decoder_data(ir_dev);
+-	if (!data)
+-		return 0;
+-
+-	spin_lock(&decoder_lock);
+-	list_del(&data->list);
+-	spin_unlock(&decoder_lock);
+-
+-	return 0;
+-}
+-
+ static struct ir_raw_handler nec_handler = {
+ 	.protocols	= IR_TYPE_NEC,
+ 	.decode		= ir_nec_decode,
+-	.raw_register	= ir_nec_register,
+-	.raw_unregister	= ir_nec_unregister,
+ };
+ 
+ static int __init ir_nec_decode_init(void)
+diff --git a/drivers/media/IR/ir-raw-event.c b/drivers/media/IR/ir-raw-event.c
+index eeca8a8..eb77378 100644
+--- a/drivers/media/IR/ir-raw-event.c
++++ b/drivers/media/IR/ir-raw-event.c
+@@ -25,32 +25,6 @@ static DEFINE_SPINLOCK(ir_raw_handler_lock);
+ static LIST_HEAD(ir_raw_handler_list);
+ static u64 available_protocols;
+ 
+-/**
+- * RUN_DECODER()	- runs an operation on all IR decoders
+- * @ops:	IR raw handler operation to be called
+- * @arg:	arguments to be passed to the callback
+- *
+- * Calls ir_raw_handler::ops for all registered IR handlers. It prevents
+- * new decode addition/removal while running, by locking ir_raw_handler_lock
+- * mutex. If an error occurs, it stops the ops. Otherwise, it returns a sum
+- * of the return codes.
+- */
+-#define RUN_DECODER(ops, ...) ({					    \
+-	struct ir_raw_handler		*_ir_raw_handler;		    \
+-	int _sumrc = 0, _rc;						    \
+-	spin_lock(&ir_raw_handler_lock);				    \
+-	list_for_each_entry(_ir_raw_handler, &ir_raw_handler_list, list) {  \
+-		if (_ir_raw_handler->ops) {				    \
+-			_rc = _ir_raw_handler->ops(__VA_ARGS__);	    \
+-			if (_rc < 0)					    \
+-				break;					    \
+-			_sumrc += _rc;					    \
+-		}							    \
+-	}								    \
+-	spin_unlock(&ir_raw_handler_lock);				    \
+-	_sumrc;								    \
+-})
+-
+ #ifdef MODULE
+ /* Used to load the decoders */
+ static struct work_struct wq_load;
+@@ -59,11 +33,17 @@ static struct work_struct wq_load;
+ static void ir_raw_event_work(struct work_struct *work)
+ {
+ 	struct ir_raw_event ev;
++	struct ir_raw_handler *handler;
+ 	struct ir_raw_event_ctrl *raw =
+ 		container_of(work, struct ir_raw_event_ctrl, rx_work);
+ 
+-	while (kfifo_out(&raw->kfifo, &ev, sizeof(ev)) == sizeof(ev))
+-		RUN_DECODER(decode, raw->input_dev, ev);
++	while (kfifo_out(&raw->kfifo, &ev, sizeof(ev)) == sizeof(ev)) {
++		spin_lock(&ir_raw_handler_lock);
++		list_for_each_entry(handler, &ir_raw_handler_list, list)
++			handler->decode(raw->input_dev, ev);
++		spin_unlock(&ir_raw_handler_lock);
++		raw->prev_ev = ev;
++	}
+ }
+ 
+ /**
+@@ -193,15 +173,7 @@ int ir_raw_event_register(struct input_dev *input_dev)
+ 		return rc;
+ 	}
+ 
+-	rc = RUN_DECODER(raw_register, input_dev);
+-	if (rc < 0) {
+-		kfifo_free(&ir->raw->kfifo);
+-		kfree(ir->raw);
+-		ir->raw = NULL;
+-		return rc;
+-	}
+-
+-	return rc;
++	return 0;
+ }
+ 
+ void ir_raw_event_unregister(struct input_dev *input_dev)
+@@ -212,8 +184,6 @@ void ir_raw_event_unregister(struct input_dev *input_dev)
+ 		return;
+ 
+ 	cancel_work_sync(&ir->raw->rx_work);
+-	RUN_DECODER(raw_unregister, input_dev);
+-
+ 	kfifo_free(&ir->raw->kfifo);
+ 	kfree(ir->raw);
+ 	ir->raw = NULL;
+diff --git a/drivers/media/IR/ir-rc5-decoder.c b/drivers/media/IR/ir-rc5-decoder.c
+index 1be8981..7af656d 100644
+--- a/drivers/media/IR/ir-rc5-decoder.c
++++ b/drivers/media/IR/ir-rc5-decoder.c
+@@ -30,10 +30,6 @@
+ #define RC5_BIT_END		(1 * RC5_UNIT)
+ #define RC5X_SPACE		(4 * RC5_UNIT)
+ 
+-/* Used to register rc5_decoder clients */
+-static LIST_HEAD(decoder_list);
+-static DEFINE_SPINLOCK(decoder_lock);
+-
+ enum rc5_state {
+ 	STATE_INACTIVE,
+ 	STATE_BIT_START,
+@@ -42,39 +38,6 @@ enum rc5_state {
+ 	STATE_FINISHED,
+ };
+ 
+-struct decoder_data {
+-	struct list_head	list;
+-	struct ir_input_dev	*ir_dev;
+-
+-	/* State machine control */
+-	enum rc5_state		state;
+-	u32			rc5_bits;
+-	struct ir_raw_event	prev_ev;
+-	unsigned		count;
+-	unsigned		wanted_bits;
+-};
+-
+-
+-/**
+- * get_decoder_data()	- gets decoder data
+- * @input_dev:	input device
+- *
+- * Returns the struct decoder_data that corresponds to a device
+- */
+-
+-static struct decoder_data *get_decoder_data(struct  ir_input_dev *ir_dev)
+-{
+-	struct decoder_data *data = NULL;
+-
+-	spin_lock(&decoder_lock);
+-	list_for_each_entry(data, &decoder_list, list) {
+-		if (data->ir_dev == ir_dev)
+-			break;
+-	}
+-	spin_unlock(&decoder_lock);
+-	return data;
+-}
+-
+ /**
+  * ir_rc5_decode() - Decode one RC-5 pulse or space
+  * @input_dev:	the struct input_dev descriptor of the device
+@@ -84,15 +47,11 @@ static struct decoder_data *get_decoder_data(struct  ir_input_dev *ir_dev)
+  */
+ static int ir_rc5_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+ {
+-	struct decoder_data *data;
+ 	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
++	struct rc5_dec *data = &ir_dev->raw->rc5;
+ 	u8 toggle;
+ 	u32 scancode;
+ 
+-	data = get_decoder_data(ir_dev);
+-	if (!data)
+-		return -EINVAL;
+-
+ 	if (!(ir_dev->raw->enabled_protocols & IR_TYPE_RC5))
+ 		return 0;
+ 
+@@ -128,16 +87,15 @@ again:
+ 		if (!eq_margin(ev.duration, RC5_BIT_START, RC5_UNIT / 2))
+ 			break;
+ 
+-		data->rc5_bits <<= 1;
++		data->bits <<= 1;
+ 		if (!ev.pulse)
+-			data->rc5_bits |= 1;
++			data->bits |= 1;
+ 		data->count++;
+-		data->prev_ev = ev;
+ 		data->state = STATE_BIT_END;
+ 		return 0;
+ 
+ 	case STATE_BIT_END:
+-		if (!is_transition(&ev, &data->prev_ev))
++		if (!is_transition(&ev, &ir_dev->raw->prev_ev))
+ 			break;
+ 
+ 		if (data->count == data->wanted_bits)
+@@ -169,11 +127,11 @@ again:
+ 		if (data->wanted_bits == RC5X_NBITS) {
+ 			/* RC5X */
+ 			u8 xdata, command, system;
+-			xdata    = (data->rc5_bits & 0x0003F) >> 0;
+-			command  = (data->rc5_bits & 0x00FC0) >> 6;
+-			system   = (data->rc5_bits & 0x1F000) >> 12;
+-			toggle   = (data->rc5_bits & 0x20000) ? 1 : 0;
+-			command += (data->rc5_bits & 0x01000) ? 0 : 0x40;
++			xdata    = (data->bits & 0x0003F) >> 0;
++			command  = (data->bits & 0x00FC0) >> 6;
++			system   = (data->bits & 0x1F000) >> 12;
++			toggle   = (data->bits & 0x20000) ? 1 : 0;
++			command += (data->bits & 0x01000) ? 0 : 0x40;
+ 			scancode = system << 16 | command << 8 | xdata;
+ 
+ 			IR_dprintk(1, "RC5X scancode 0x%06x (toggle: %u)\n",
+@@ -182,10 +140,10 @@ again:
+ 		} else {
+ 			/* RC5 */
+ 			u8 command, system;
+-			command  = (data->rc5_bits & 0x0003F) >> 0;
+-			system   = (data->rc5_bits & 0x007C0) >> 6;
+-			toggle   = (data->rc5_bits & 0x00800) ? 1 : 0;
+-			command += (data->rc5_bits & 0x01000) ? 0 : 0x40;
++			command  = (data->bits & 0x0003F) >> 0;
++			system   = (data->bits & 0x007C0) >> 6;
++			toggle   = (data->bits & 0x00800) ? 1 : 0;
++			command += (data->bits & 0x01000) ? 0 : 0x40;
+ 			scancode = system << 8 | command;
+ 
+ 			IR_dprintk(1, "RC5 scancode 0x%04x (toggle: %u)\n",
+@@ -204,44 +162,9 @@ out:
+ 	return -EINVAL;
+ }
+ 
+-static int ir_rc5_register(struct input_dev *input_dev)
+-{
+-	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
+-	struct decoder_data *data;
+-
+-	data = kzalloc(sizeof(*data), GFP_KERNEL);
+-	if (!data)
+-		return -ENOMEM;
+-
+-	data->ir_dev = ir_dev;
+-	spin_lock(&decoder_lock);
+-	list_add_tail(&data->list, &decoder_list);
+-	spin_unlock(&decoder_lock);
+-
+-	return 0;
+-}
+-
+-static int ir_rc5_unregister(struct input_dev *input_dev)
+-{
+-	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
+-	static struct decoder_data *data;
+-
+-	data = get_decoder_data(ir_dev);
+-	if (!data)
+-		return 0;
+-
+-	spin_lock(&decoder_lock);
+-	list_del(&data->list);
+-	spin_unlock(&decoder_lock);
+-
+-	return 0;
+-}
+-
+ static struct ir_raw_handler rc5_handler = {
+ 	.protocols	= IR_TYPE_RC5,
+ 	.decode		= ir_rc5_decode,
+-	.raw_register	= ir_rc5_register,
+-	.raw_unregister	= ir_rc5_unregister,
+ };
+ 
+ static int __init ir_rc5_decode_init(void)
+diff --git a/drivers/media/IR/ir-rc6-decoder.c b/drivers/media/IR/ir-rc6-decoder.c
+index 5e940a8..a562952 100644
+--- a/drivers/media/IR/ir-rc6-decoder.c
++++ b/drivers/media/IR/ir-rc6-decoder.c
+@@ -36,10 +36,6 @@
+ #define RC6_STARTBIT_MASK	0x08	/* for the header bits */
+ #define RC6_6A_MCE_TOGGLE_MASK	0x8000	/* for the body bits */
+ 
+-/* Used to register rc6_decoder clients */
+-static LIST_HEAD(decoder_list);
+-static DEFINE_SPINLOCK(decoder_lock);
+-
+ enum rc6_mode {
+ 	RC6_MODE_0,
+ 	RC6_MODE_6A,
+@@ -58,41 +54,7 @@ enum rc6_state {
+ 	STATE_FINISHED,
+ };
+ 
+-struct decoder_data {
+-	struct list_head	list;
+-	struct ir_input_dev	*ir_dev;
+-
+-	/* State machine control */
+-	enum rc6_state		state;
+-	u8			header;
+-	u32			body;
+-	struct ir_raw_event	prev_ev;
+-	bool			toggle;
+-	unsigned		count;
+-	unsigned		wanted_bits;
+-};
+-
+-
+-/**
+- * get_decoder_data()	- gets decoder data
+- * @input_dev:	input device
+- *
+- * Returns the struct decoder_data that corresponds to a device
+- */
+-static struct decoder_data *get_decoder_data(struct  ir_input_dev *ir_dev)
+-{
+-	struct decoder_data *data = NULL;
+-
+-	spin_lock(&decoder_lock);
+-	list_for_each_entry(data, &decoder_list, list) {
+-		if (data->ir_dev == ir_dev)
+-			break;
+-	}
+-	spin_unlock(&decoder_lock);
+-	return data;
+-}
+-
+-static enum rc6_mode rc6_mode(struct decoder_data *data) {
++static enum rc6_mode rc6_mode(struct rc6_dec *data) {
+ 	switch (data->header & RC6_MODE_MASK) {
+ 	case 0:
+ 		return RC6_MODE_0;
+@@ -114,15 +76,11 @@ static enum rc6_mode rc6_mode(struct decoder_data *data) {
+  */
+ static int ir_rc6_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+ {
+-	struct decoder_data *data;
+ 	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
++	struct rc6_dec *data = &ir_dev->raw->rc6;
+ 	u32 scancode;
+ 	u8 toggle;
+ 
+-	data = get_decoder_data(ir_dev);
+-	if (!data)
+-		return -EINVAL;
+-
+ 	if (!(ir_dev->raw->enabled_protocols & IR_TYPE_RC6))
+ 		return 0;
+ 
+@@ -175,12 +133,11 @@ again:
+ 		if (ev.pulse)
+ 			data->header |= 1;
+ 		data->count++;
+-		data->prev_ev = ev;
+ 		data->state = STATE_HEADER_BIT_END;
+ 		return 0;
+ 
+ 	case STATE_HEADER_BIT_END:
+-		if (!is_transition(&ev, &data->prev_ev))
++		if (!is_transition(&ev, &ir_dev->raw->prev_ev))
+ 			break;
+ 
+ 		if (data->count == RC6_HEADER_NBITS)
+@@ -196,12 +153,11 @@ again:
+ 			break;
+ 
+ 		data->toggle = ev.pulse;
+-		data->prev_ev = ev;
+ 		data->state = STATE_TOGGLE_END;
+ 		return 0;
+ 
+ 	case STATE_TOGGLE_END:
+-		if (!is_transition(&ev, &data->prev_ev) ||
++		if (!is_transition(&ev, &ir_dev->raw->prev_ev) ||
+ 		    !geq_margin(ev.duration, RC6_TOGGLE_END, RC6_UNIT / 2))
+ 			break;
+ 
+@@ -211,7 +167,6 @@ again:
+ 		}
+ 
+ 		data->state = STATE_BODY_BIT_START;
+-		data->prev_ev = ev;
+ 		decrease_duration(&ev, RC6_TOGGLE_END);
+ 		data->count = 0;
+ 
+@@ -243,13 +198,11 @@ again:
+ 		if (ev.pulse)
+ 			data->body |= 1;
+ 		data->count++;
+-		data->prev_ev = ev;
+-
+ 		data->state = STATE_BODY_BIT_END;
+ 		return 0;
+ 
+ 	case STATE_BODY_BIT_END:
+-		if (!is_transition(&ev, &data->prev_ev))
++		if (!is_transition(&ev, &ir_dev->raw->prev_ev))
+ 			break;
+ 
+ 		if (data->count == data->wanted_bits)
+@@ -300,44 +253,9 @@ out:
+ 	return -EINVAL;
+ }
+ 
+-static int ir_rc6_register(struct input_dev *input_dev)
+-{
+-	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
+-	struct decoder_data *data;
+-
+-	data = kzalloc(sizeof(*data), GFP_KERNEL);
+-	if (!data)
+-		return -ENOMEM;
+-
+-	data->ir_dev = ir_dev;
+-	spin_lock(&decoder_lock);
+-	list_add_tail(&data->list, &decoder_list);
+-	spin_unlock(&decoder_lock);
+-
+-	return 0;
+-}
+-
+-static int ir_rc6_unregister(struct input_dev *input_dev)
+-{
+-	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
+-	static struct decoder_data *data;
+-
+-	data = get_decoder_data(ir_dev);
+-	if (!data)
+-		return 0;
+-
+-	spin_lock(&decoder_lock);
+-	list_del(&data->list);
+-	spin_unlock(&decoder_lock);
+-
+-	return 0;
+-}
+-
+ static struct ir_raw_handler rc6_handler = {
+ 	.protocols	= IR_TYPE_RC6,
+ 	.decode		= ir_rc6_decode,
+-	.raw_register	= ir_rc6_register,
+-	.raw_unregister	= ir_rc6_unregister,
+ };
+ 
+ static int __init ir_rc6_decode_init(void)
+diff --git a/drivers/media/IR/ir-sony-decoder.c b/drivers/media/IR/ir-sony-decoder.c
+index 8afd16a..b9074f0 100644
+--- a/drivers/media/IR/ir-sony-decoder.c
++++ b/drivers/media/IR/ir-sony-decoder.c
+@@ -23,10 +23,6 @@
+ #define SONY_BIT_SPACE		(1 * SONY_UNIT)
+ #define SONY_TRAILER_SPACE	(10 * SONY_UNIT) /* minimum */
+ 
+-/* Used to register sony_decoder clients */
+-static LIST_HEAD(decoder_list);
+-static DEFINE_SPINLOCK(decoder_lock);
+-
+ enum sony_state {
+ 	STATE_INACTIVE,
+ 	STATE_HEADER_SPACE,
+@@ -35,36 +31,6 @@ enum sony_state {
+ 	STATE_FINISHED,
+ };
+ 
+-struct decoder_data {
+-	struct list_head	list;
+-	struct ir_input_dev	*ir_dev;
+-
+-	/* State machine control */
+-	enum sony_state		state;
+-	u32			sony_bits;
+-	unsigned		count;
+-};
+-
+-
+-/**
+- * get_decoder_data()	- gets decoder data
+- * @input_dev:	input device
+- *
+- * Returns the struct decoder_data that corresponds to a device
+- */
+-static struct decoder_data *get_decoder_data(struct  ir_input_dev *ir_dev)
+-{
+-	struct decoder_data *data = NULL;
+-
+-	spin_lock(&decoder_lock);
+-	list_for_each_entry(data, &decoder_list, list) {
+-		if (data->ir_dev == ir_dev)
+-			break;
+-	}
+-	spin_unlock(&decoder_lock);
+-	return data;
+-}
+-
+ /**
+  * ir_sony_decode() - Decode one Sony pulse or space
+  * @input_dev:	the struct input_dev descriptor of the device
+@@ -74,15 +40,11 @@ static struct decoder_data *get_decoder_data(struct  ir_input_dev *ir_dev)
+  */
+ static int ir_sony_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+ {
+-	struct decoder_data *data;
+ 	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
++	struct sony_dec *data = &ir_dev->raw->sony;
+ 	u32 scancode;
+ 	u8 device, subdevice, function;
+ 
+-	data = get_decoder_data(ir_dev);
+-	if (!data)
+-		return -EINVAL;
+-
+ 	if (!(ir_dev->raw->enabled_protocols & IR_TYPE_SONY))
+ 		return 0;
+ 
+@@ -124,9 +86,9 @@ static int ir_sony_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+ 		if (!ev.pulse)
+ 			break;
+ 
+-		data->sony_bits <<= 1;
++		data->bits <<= 1;
+ 		if (eq_margin(ev.duration, SONY_BIT_1_PULSE, SONY_UNIT / 2))
+-			data->sony_bits |= 1;
++			data->bits |= 1;
+ 		else if (!eq_margin(ev.duration, SONY_BIT_0_PULSE, SONY_UNIT / 2))
+ 			break;
+ 
+@@ -160,19 +122,19 @@ static int ir_sony_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+ 
+ 		switch (data->count) {
+ 		case 12:
+-			device    = bitrev8((data->sony_bits <<  3) & 0xF8);
++			device    = bitrev8((data->bits <<  3) & 0xF8);
+ 			subdevice = 0;
+-			function  = bitrev8((data->sony_bits >>  4) & 0xFE);
++			function  = bitrev8((data->bits >>  4) & 0xFE);
+ 			break;
+ 		case 15:
+-			device    = bitrev8((data->sony_bits >>  0) & 0xFF);
++			device    = bitrev8((data->bits >>  0) & 0xFF);
+ 			subdevice = 0;
+-			function  = bitrev8((data->sony_bits >>  7) & 0xFD);
++			function  = bitrev8((data->bits >>  7) & 0xFD);
+ 			break;
+ 		case 20:
+-			device    = bitrev8((data->sony_bits >>  5) & 0xF8);
+-			subdevice = bitrev8((data->sony_bits >>  0) & 0xFF);
+-			function  = bitrev8((data->sony_bits >> 12) & 0xFE);
++			device    = bitrev8((data->bits >>  5) & 0xF8);
++			subdevice = bitrev8((data->bits >>  0) & 0xFF);
++			function  = bitrev8((data->bits >> 12) & 0xFE);
+ 			break;
+ 		default:
+ 			IR_dprintk(1, "Sony invalid bitcount %u\n", data->count);
+@@ -193,44 +155,9 @@ out:
+ 	return -EINVAL;
+ }
+ 
+-static int ir_sony_register(struct input_dev *input_dev)
+-{
+-	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
+-	struct decoder_data *data;
+-
+-	data = kzalloc(sizeof(*data), GFP_KERNEL);
+-	if (!data)
+-		return -ENOMEM;
+-
+-	data->ir_dev = ir_dev;
+-	spin_lock(&decoder_lock);
+-	list_add_tail(&data->list, &decoder_list);
+-	spin_unlock(&decoder_lock);
+-
+-	return 0;
+-}
+-
+-static int ir_sony_unregister(struct input_dev *input_dev)
+-{
+-	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
+-	static struct decoder_data *data;
+-
+-	data = get_decoder_data(ir_dev);
+-	if (!data)
+-		return 0;
+-
+-	spin_lock(&decoder_lock);
+-	list_del(&data->list);
+-	spin_unlock(&decoder_lock);
+-
+-	return 0;
+-}
+-
+ static struct ir_raw_handler sony_handler = {
+ 	.protocols	= IR_TYPE_SONY,
+ 	.decode		= ir_sony_decode,
+-	.raw_register	= ir_sony_register,
+-	.raw_unregister	= ir_sony_unregister,
+ };
+ 
+ static int __init ir_sony_decode_init(void)
 
