@@ -1,86 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2-g21.free.fr ([212.27.42.2]:55338 "EHLO smtp2-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754957Ab0DCTl4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 3 Apr 2010 15:41:56 -0400
-Message-ID: <4BB799FC.7010707@free.fr>
-Date: Sat, 03 Apr 2010 21:41:48 +0200
-From: matthieu castet <castet.matthieu@free.fr>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:34943 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752176Ab0DXVOU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Apr 2010 17:14:20 -0400
+Subject: [PATCH 4/4] ir-core: remove ir-functions usage from cx231xx
+To: mchehab@redhat.com
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org
+Date: Sat, 24 Apr 2010 23:14:16 +0200
+Message-ID: <20100424211416.11570.83633.stgit@localhost.localdomain>
+In-Reply-To: <20100424210843.11570.82007.stgit@localhost.localdomain>
+References: <20100424210843.11570.82007.stgit@localhost.localdomain>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] fix dvb frontend lockup
-References: <4BA603AB.6070809@free.fr> <4BAE810A.6030405@free.fr>
-In-Reply-To: <4BAE810A.6030405@free.fr>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-matthieu castet a écrit :
-> matthieu castet a écrit :
->> Hi,
->>
->> With my current kernel (2.6.32), if my dvb device is removed while in 
->> use, I got [1].
->>
->> After checking the source code, the problem seems to happen also in 
->> master :
->>
->> If there are users (for example users == -2) :
->> - dvb_unregister_frontend :
->> - stop kernel thread with dvb_frontend_stop :
->>  - fepriv->exit = 1;
->>  - thread loop catch stop event and break while loop
->>  - fepriv->thread = NULL; and fepriv->exit = 0;
->> - dvb_unregister_frontend wait on "fepriv->dvbdev->wait_queue" that 
->> fepriv->dvbdev->users==-1.
->> The user finish :
->> - dvb_frontend_release - set users to -1
->> - don't wait wait_queue because fepriv->exit != 1
->>
->> => dvb_unregister_frontend never exit the wait queue.
->>
->>
->> Matthieu
->>
->>
->> [ 4920.484047] khubd         D c2008000     0   198      2 0x00000000
->> [ 4920.484056]  f64c8000 00000046 00000000 c2008000 00000004 c13fa000 
->> c13fa000 f
->> 64c8000
->> [ 4920.484066]  f64c81bc c2008000 00000000 d9d9dce6 00000452 00000001 
->> f64c8000 c
->> 102daad
->> [ 4920.484075]  00100100 f64c81bc 00000286 f0a7ccc0 f0913404 f0cba404 
->> f644de58 f
->> 092b0a8
->> [ 4920.484084] Call Trace:
->> [ 4920.484102]  [<c102daad>] ? default_wake_function+0x0/0x8
->> [ 4920.484147]  [<f8cb09e1>] ? dvb_unregister_frontend+0x95/0xcc 
->> [dvb_core]
->> [ 4920.484157]  [<c1044412>] ? autoremove_wake_function+0x0/0x2d
->> [ 4920.484168]  [<f8dd1af2>] ? dvb_usb_adapter_frontend_exit+0x12/0x21 
->> [dvb_usb]
->> [ 4920.484176]  [<f8dd12f1>] ? dvb_usb_exit+0x26/0x88 [dvb_usb]
->> [ 4920.484184]  [<f8dd138d>] ? dvb_usb_device_exit+0x3a/0x4a [dvb_usb]
->> [ 4920.484217]  [<f7fe1b08>] ? usb_unbind_interface+0x3f/0xb4 [usbcore]
->> [ 4920.484227]  [<c11a4178>] ? __device_release_driver+0x74/0xb7
->> [ 4920.484233]  [<c11a4247>] ? device_release_driver+0x15/0x1e
->> [ 4920.484243]  [<c11a3a33>] ? bus_remove_device+0x6e/0x87
->> [ 4920.484249]  [<c11a26d6>] ? device_del+0xfa/0x152
->> [ 4920.484264]  [<f7fdf609>] ? usb_disable_device+0x59/0xb9 [usbcore]
->> [ 4920.484279]  [<f7fdb9ee>] ? usb_disconnect+0x70/0xdc [usbcore]
->> [ 4920.484294]  [<f7fdc728>] ? hub_thread+0x521/0xe1d [usbcore]
->> [ 4920.484301]  [<c1044412>] ? autoremove_wake_function+0x0/0x2d
->> [ 4920.484316]  [<f7fdc207>] ? hub_thread+0x0/0xe1d [usbcore]
->> [ 4920.484321]  [<c10441e0>] ? kthread+0x61/0x66
->> [ 4920.484327]  [<c104417f>] ? kthread+0x0/0x66
->> [ 4920.484336]  [<c1003d47>] ? kernel_thread_helper+0x7/0x10
->>
-> Here a patch that fix the issue
-> 
-> 
-> Signed-off-by: Matthieu CASTET <castet.matthieu@free.fr>
-> 
-Any news on that
+Convert drivers/media/video/cx231xx/cx231xx-input.c to not
+rely on ir-functions.c.
+
+(I do not have the hardware so I can only compile test this)
+
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/video/cx231xx/cx231xx-input.c |   47 +++++----------------------
+ drivers/media/video/cx231xx/cx231xx.h       |    2 +
+ 2 files changed, 10 insertions(+), 39 deletions(-)
+
+diff --git a/drivers/media/video/cx231xx/cx231xx-input.c b/drivers/media/video/cx231xx/cx231xx-input.c
+index dbd6218..a3d6593 100644
+--- a/drivers/media/video/cx231xx/cx231xx-input.c
++++ b/drivers/media/video/cx231xx/cx231xx-input.c
+@@ -60,7 +60,6 @@ struct cx231xx_ir_poll_result {
+ struct cx231xx_IR {
+ 	struct cx231xx *dev;
+ 	struct input_dev *input;
+-	struct ir_input_state ir;
+ 	char name[32];
+ 	char phys[32];
+ 
+@@ -68,9 +67,7 @@ struct cx231xx_IR {
+ 	int polling;
+ 	struct work_struct work;
+ 	struct timer_list timer;
+-	unsigned int last_toggle:1;
+ 	unsigned int last_readcount;
+-	unsigned int repeat_interval;
+ 
+ 	int (*get_key) (struct cx231xx_IR *, struct cx231xx_ir_poll_result *);
+ };
+@@ -82,7 +79,6 @@ struct cx231xx_IR {
+ static void cx231xx_ir_handle_key(struct cx231xx_IR *ir)
+ {
+ 	int result;
+-	int do_sendkey = 0;
+ 	struct cx231xx_ir_poll_result poll_result;
+ 
+ 	/* read the registers containing the IR status */
+@@ -96,44 +92,23 @@ static void cx231xx_ir_handle_key(struct cx231xx_IR *ir)
+ 		poll_result.toggle_bit, poll_result.read_count,
+ 		ir->last_readcount, poll_result.rc_data[0]);
+ 
+-	if (ir->dev->chip_id == CHIP_ID_EM2874) {
++	if (poll_result.read_count > 0 &&
++	    poll_result.read_count != ir->last_readcount)
++		ir_keydown(ir->input,
++			   poll_result.rc_data[0],
++			   poll_result.toggle_bit);
++
++	if (ir->dev->chip_id == CHIP_ID_EM2874)
+ 		/* The em2874 clears the readcount field every time the
+ 		   register is read.  The em2860/2880 datasheet says that it
+ 		   is supposed to clear the readcount, but it doesn't.  So with
+ 		   the em2874, we are looking for a non-zero read count as
+ 		   opposed to a readcount that is incrementing */
+ 		ir->last_readcount = 0;
+-	}
+-
+-	if (poll_result.read_count == 0) {
+-		/* The button has not been pressed since the last read */
+-	} else if (ir->last_toggle != poll_result.toggle_bit) {
+-		/* A button has been pressed */
+-		dprintk("button has been pressed\n");
+-		ir->last_toggle = poll_result.toggle_bit;
+-		ir->repeat_interval = 0;
+-		do_sendkey = 1;
+-	} else if (poll_result.toggle_bit == ir->last_toggle &&
+-		   poll_result.read_count > 0 &&
+-		   poll_result.read_count != ir->last_readcount) {
+-		/* The button is still being held down */
+-		dprintk("button being held down\n");
+-
+-		/* Debouncer for first keypress */
+-		if (ir->repeat_interval++ > 9) {
+-			/* Start repeating after 1 second */
+-			do_sendkey = 1;
+-		}
+-	}
++	else
++		ir->last_readcount = poll_result.read_count;
+ 
+-	if (do_sendkey) {
+-		dprintk("sending keypress\n");
+-		ir_input_keydown(ir->input, &ir->ir, poll_result.rc_data[0]);
+-		ir_input_nokey(ir->input, &ir->ir);
+ 	}
+-
+-	ir->last_readcount = poll_result.read_count;
+-	return;
+ }
+ 
+ static void ir_timer(unsigned long data)
+@@ -199,10 +174,6 @@ int cx231xx_ir_init(struct cx231xx *dev)
+ 	usb_make_path(dev->udev, ir->phys, sizeof(ir->phys));
+ 	strlcat(ir->phys, "/input0", sizeof(ir->phys));
+ 
+-	err = ir_input_init(input_dev, &ir->ir, IR_TYPE_OTHER);
+-	if (err < 0)
+-		goto err_out_free;
+-
+ 	input_dev->name = ir->name;
+ 	input_dev->phys = ir->phys;
+ 	input_dev->id.bustype = BUS_USB;
+diff --git a/drivers/media/video/cx231xx/cx231xx.h b/drivers/media/video/cx231xx/cx231xx.h
+index 17d4d1a..38d4171 100644
+--- a/drivers/media/video/cx231xx/cx231xx.h
++++ b/drivers/media/video/cx231xx/cx231xx.h
+@@ -32,7 +32,7 @@
+ 
+ #include <media/videobuf-vmalloc.h>
+ #include <media/v4l2-device.h>
+-#include <media/ir-kbd-i2c.h>
++#include <media/ir-core.h>
+ #if defined(CONFIG_VIDEO_CX231XX_DVB) || \
+ 	defined(CONFIG_VIDEO_CX231XX_DVB_MODULE)
+ #include <media/videobuf-dvb.h>
+
