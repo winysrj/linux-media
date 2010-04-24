@@ -1,75 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns1.tyldum.com ([91.189.178.231]:44345 "EHLO ns1.tyldum.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751374Ab0DQRhI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Apr 2010 13:37:08 -0400
-Received: from tyldum.com (unknown [192.168.168.50])
-	by ns1.tyldum.com (Postfix) with ESMTP
-	for <linux-media@vger.kernel.org>; Sat, 17 Apr 2010 19:37:03 +0200 (CEST)
-Date: Sat, 17 Apr 2010 07:47:49 +0200
-From: Vidar Tyldum Hansen <vidar@tyldum.com>
-To: linux-media@vger.kernel.org
-Subject: Re: mantis crashes
-Message-ID: <20100417054749.GA6067@mail.tyldum.com>
-References: <20100413150153.GB11631@mail.tyldum.com>
- <87ochne35i.fsf@nemi.mork.no>
- <20100413165616.GC11631@mail.tyldum.com>
- <loom.20100414T133315-652@post.gmane.org>
+Received: from mail-qy0-f179.google.com ([209.85.221.179]:54273 "EHLO
+	mail-qy0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751306Ab0DXV7s convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Apr 2010 17:59:48 -0400
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="PNTmBPCT7hxwcZjr"
-Content-Disposition: inline
-In-Reply-To: <loom.20100414T133315-652@post.gmane.org>
+In-Reply-To: <20100424212353.GB11879@hardeman.nu>
+References: <20100402102011.GA6947@hardeman.nu>
+	 <20100407093205.GB3029@hardeman.nu>
+	 <z2hbe3a4a1004231040uce51091fnf24b97de215e3ef1@mail.gmail.com>
+	 <o2l9e4733911004231106te8b727e9nfa75bfd9c73e9506@mail.gmail.com>
+	 <1272061228.3089.8.camel@palomino.walls.org>
+	 <20100424052254.GB3101@hardeman.nu>
+	 <m2j9e4733911004240535k4b14d64fu940f5dff17837b20@mail.gmail.com>
+	 <20100424141510.GA3070@hardeman.nu>
+	 <y2h9e4733911004240807wfa6b0e79q8deb18c425484b6f@mail.gmail.com>
+	 <20100424212353.GB11879@hardeman.nu>
+Date: Sat, 24 Apr 2010 17:59:46 -0400
+Message-ID: <v2z9e4733911004241459jd637bec0g5d76b24a611c3863@mail.gmail.com>
+Subject: Re: [PATCH 00/15] ir-core: Several improvements to allow adding LIRC
+	and decoder plugins
+From: Jon Smirl <jonsmirl@gmail.com>
+To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-input@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Sat, Apr 24, 2010 at 5:23 PM, David Härdeman <david@hardeman.nu> wrote:
+> I don't care either way. Get the input maintainers to agree and I'll
+> happily write patches that follow that approach (writing TX data to the
+> input dev will also have to be supported).
+>
+> The only real problem I see is if we implement > 1 input device per
+> rc/ir device (which I think we should do - each logical remote should
+> have a separate keytable and input device).
 
---PNTmBPCT7hxwcZjr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I forgot about the many to 1 aspect of the receiver. You should have
+started off with this point and I would have shut up, DRM does not
+have many to 1 mappings. My radio receivers show up as network
+devices. So I have multiple devices too.
 
-On Wed, Apr 14, 2010 at 11:41:18AM +0000, hans van den Bogert wrote:
-> So it kinda looks like this is a ubuntu thing? Or are there alternative=
-=20
-> conclusions?
+I don't think we want a 'rc' device. The IR transceiver should be an
+'ir' device. My radios are already 'net' devices. So my complaint
+really is, I don't want an three devices - input, rc and net.
 
-Yesterday I was able to lend a card from someone who has the same setup
-as me (Ubuntu Karmic with latest kernel and using s2-lipnianin) and same
-Terratec card. He too uses the blunt aproach and just build the v4l-tree
-and installs it on top of the Ubuntu kernel.
-
-After 5 hours of runtime the system crashed again. This time I had a
-keyboard hooked up, which flashed caps-lock and scroll-lock. Kernel
-panic, in other words. Different binay garbage in my syslog this time.
-
-So the card hardware is ruled out, and since I know can establish that
-it is a kernel panic I am almost rcertainly ruling out hardware in
-general. The system is stable if the card is not used.
-
-Things left to try hardware-wise is to switch to a different PCI slot,
-but I guess I'll go down the new kernel route... I'll have to do some
-research regarding v4l versions in .31, .32 and .33 to figure out to
-which kernel I can 'backport' mantis without replacing v4l completely.
-
-I am by no means a developer so this will hurt.
-
---=20
-       Vidar Tyldum Hansen
-                                 vidar@tyldum.com               PGP: 0x3110=
-AA98
-
---PNTmBPCT7hxwcZjr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkvJS4UACgkQsJJnSzEQqpgLfQCfTRb70JfRBXEJzBR58MBVLZpp
-P0AAn0A+72GBUN2bfox0+S87vOZkEVU5
-=Be5n
------END PGP SIGNATURE-----
-
---PNTmBPCT7hxwcZjr--
+-- 
+Jon Smirl
+jonsmirl@gmail.com
