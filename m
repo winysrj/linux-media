@@ -1,59 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:55957 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751502Ab0DJWXX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Apr 2010 18:23:23 -0400
-Date: Sun, 11 Apr 2010 00:23:19 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Andy Walls <awalls@radix.net>
-Cc: mchehab@redhat.com, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 4/4] Add RC6 support to ir-core
-Message-ID: <20100410222319.GA10473@hardeman.nu>
-References: <20100408230246.14453.97377.stgit@localhost.localdomain>
- <20100408230440.14453.36936.stgit@localhost.localdomain>
- <1270861928.3038.153.camel@palomino.walls.org>
+Received: from mx1.redhat.com ([209.132.183.28]:11551 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752972Ab0DYQNM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Apr 2010 12:13:12 -0400
+Message-ID: <4BD46A0E.8030705@redhat.com>
+Date: Sun, 25 Apr 2010 13:13:02 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+To: =?UTF-8?B?UmljaGFyZCBSw7ZqZm9ycw==?=
+	<richard.rojfors@pelagicore.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	"Williams, Dan J" <dan.j.williams@intel.com>
+Subject: Re: [PATCH 1/2] media: Add timberdale video-in driver
+References: <1271435291.11641.45.camel@debian> <4BD45EB1.5020804@redhat.com> <4BD46753.9010807@pelagicore.com>
+In-Reply-To: <4BD46753.9010807@pelagicore.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <1270861928.3038.153.camel@palomino.walls.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 09, 2010 at 09:12:08PM -0400, Andy Walls wrote:
-> On Fri, 2010-04-09 at 01:04 +0200, David Härdeman wrote:
-> > +again:
-> > +	IR_dprintk(2, "RC6 decode started at state %i (%i units, %ius)\n",
-> > +		   data->state, u, TO_US(duration));
-> > +
-> > +	if (DURATION(u) == 0 && data->state != STATE_FINISHED)
-> > +		return 0;
+Richard RÃ¶jfors wrote:
+> On 04/25/2010 05:24 PM, Mauro Carvalho Chehab wrote:
+>> Richard RÃ¶jfors wrote:
+>>> This patch adds the timberdale video-in driver.
+>>>
+>>> The video IP of timberdale delivers the video data via DMA.
+>>> The driver uses the DMA api to handle DMA transfers, and make use
+>>> of the V4L2 videobuffers to handle buffers against user space.
+>>> Due to some timing constraint it makes sense to do DMA into an
+>>> intermediate buffer and then copy the data to vmalloc:ed buffers.
+>>>
+>>> If available the driver uses an encoder to get/set the video standard
+>>>
+>>> Signed-off-by: Richard RÃ¶jfors<richard.rojfors@pelagicore.com>
+>>> +#define TIMBLOGIW_DMA_BUFFER_SIZE    (TIMBLOGIW_BYTES_PER_LINE * 576)
+>>
+>> ...
+>>
+>>> +static int __timblogiw_alloc_dma(struct timblogiw_fh *fh, struct
+>>> device *dev)
+>>> +{
+>>> +    dma_addr_t addr;
+>>> +    int err, i, pos;
+>>> +    int bytes_per_desc = TIMBLOGIW_LINES_PER_DESC *
+>>> +        timblogiw_bytes_per_line(fh->cur_norm);
+>>> +
+>>> +    fh->dma.cookie = -1;
+>>> +    fh->dma.dev = dev;
+>>> +
+>>> +    fh->dma.buf = kzalloc(TIMBLOGIW_DMA_BUFFER_SIZE, GFP_KERNEL);
+>>> +    if (!fh->dma.buf)
+>>> +        return -ENOMEM;
+>>
+>>
+>> Why do you need a fixed DMA buffer size? Just allocate the buffer size
+>> dynamically at
+>> buffer_prepare callback.
+>>> +    videobuf_queue_vmalloc_init(&fh->vb_vidq,&timblogiw_video_qops,
+>>> +            NULL,&fh->queue_lock, V4L2_BUF_TYPE_VIDEO_CAPTURE,
+>>> +            V4L2_FIELD_NONE, sizeof(struct videobuf_buffer), fh);
+>>
+>> You should be using, instead, videobuf_dma_sg or videobuf_cont,
+>> instead of
+>> using videobuf-vmalloc. This way, you'll avoid double buffering.
 > 
-> Isn't there a better way to structure the logic to break up two adjacent
-> pulse units than with goto's out of the switch back up to here?
+> 1. dma_sg can not be used, the DMA engine requires the memory blocks to
+> be aligned on a factor of bytes per line, so 4K pages wouldn't work.
 > 
-> A do {} while() loop would have been much clearer.
+> 2.
+> I tried using videobuf-dma-contig, but got poor performance. I can not
+> really explain why, I though it's due to the fact that the contiguous
+> buffer is allocated coherent -> no caching.
+> I saw both gstreamer and mplayer perform very badly.
+> The frame grabber requires the DMA transfer for a frame beeing started
+> while the frame is decoded. When I tested using contigous buffers
+> gstreamer sometimes was that slow that it sometimes missed to have a
+> frame queued when a transfer was finished, so I got frame drops. Any
+> other ideas of the poor performance? otherwise I would like to go for
+> the double buffered solution.
 
-I just tried it, and I'm not convinced. The main problem is that you'll 
-end up with:
-
-do {
-	switch(b) {
-	case c:
-		if (x)
-			break;
-		else if (y)
-			continue;
-while(a);
-
-Where the break statement will affect the switch() and the continue 
-statement will affect the do-while() loop which is kinda confusing.
-
-Especially if you're so far down in the function body that the 
-do-while() and switch() statements aren't visible any more.
-
+The better is to fix videobuf-dma_contig to better work on your hardware.
+It makes sense to add a flag to allow specifying if it should use coherent
+or non-coherent memory for the dma buffer alloc/free calls.
 
 -- 
-David Härdeman
+
+Cheers,
+Mauro
