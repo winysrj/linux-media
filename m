@@ -1,114 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2597 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750743Ab0DGT3b (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Apr 2010 15:29:31 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id o37JTQJL077906
-	for <linux-media@vger.kernel.org>; Wed, 7 Apr 2010 21:29:30 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 7 Apr 2010 21:29:26 +0200 (CEST)
-Message-Id: <201004071929.o37JTQJL077906@smtp-vbr14.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:44162 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752980Ab0DYA7N (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Apr 2010 20:59:13 -0400
+Subject: Re: Problem with cx25840 and Terratec Grabster AV400
+From: Andy Walls <awalls@md.metrocast.net>
+To: Sven Barth <pascaldragon@googlemail.com>
+Cc: Mike Isely <isely@isely.net>, linux-media@vger.kernel.org
+In-Reply-To: <4BD35AA3.7070003@googlemail.com>
+References: <4BD2EACA.5040005@googlemail.com>
+	 <alpine.DEB.1.10.1004241212100.5135@ivanova.isely.net>
+	 <4BD34E5A.40507@googlemail.com>
+	 <alpine.DEB.1.10.1004241517320.5135@ivanova.isely.net>
+	 <4BD35AA3.7070003@googlemail.com>
+Content-Type: text/plain
+Date: Sat, 24 Apr 2010 20:59:18 -0400
+Message-Id: <1272157158.7341.56.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Sat, 2010-04-24 at 22:54 +0200, Sven Barth wrote:
 
-Results of the daily build of v4l-dvb:
+> 
+> It would be interesting to know why the v4l devs disabled the audio 
+> routing for cx2583x chips and whether it was intended that a cx25837 
+> chip gets the same treatment as a e.g. cx25836.
+> And those "implications" you're talking about is the reason why I wrote 
+> here: I want to check whether there is a better or more correct way than 
+> to disable those checks (it works here, because I have only that one 
+> device that contains a cx2583x chip...).
 
-date:        Wed Apr  7 19:00:18 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14561:7c0b887911cf
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: a6eb7bc8e0eea78f96ad1b0f0195ec52b88c6a00
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+The CX25836 and CX25837 do not have any audio functions.  They are video
+only chips.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc1-armv5: OK
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-rc1-armv5-davinci: WARNINGS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-rc1-armv5-ixp: WARNINGS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-rc1-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.17-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-rc1-i686: WARNINGS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc1-m32r: OK
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-rc1-mips: WARNINGS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-rc1-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.17-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-rc1-x86_64: WARNINGS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: ERRORS
-sparse: ERRORS
-linux-2.6.16.62-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.7-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.62-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.7-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+The only difference between the chips is that the CX25837 comes in two
+different packages and has a version that is pin compatible with the
+CX2584[0123] chips.
 
-Detailed results are available here:
+The public data sheet is here:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+http://www.conexant.com/products/entry.jsp?id=77
 
-Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+Note that the CX2583x chip do have an AUX_PLL which can be output from
+the chip as an audio clock.
 
-The V4L-DVB specification failed to build, but the last compiled spec is here:
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> Just a thought: can it be that my chip's audio routing isn't set to the 
+> correct value after initialization and thus it needs to be set at least 
+> once, while all other chips default to a working routing after 
+> initialization? Could be a design mistake done by Terratec...
+
+No chip defaults are what they are, most people don't design a board to
+match up with them.
+
+I does look like Terratec saved themselves an external oscillator by
+using the AUX_PLL in the CX2583x as an audio clock.
+
+
+As for your changes.  They are wrong, but in a benign way I think.
+There is no real penalty for writing to the "Merlin" audio core
+registers that don't exist in this chip (0x800-0x9ff), as long as the
+chip is decoding all the address bits properly and not wrapping them
+back down to the "Thresher" video core registers at 0x000-0x1ff.  
+
+
+As for your first change:
+
+        @@ -849,10 +849,10 @@
+         
+                state->vid_input = vid_input;
+                state->aud_input = aud_input;
+        -       if (!is_cx2583x(state)) {
+        +//     if (!is_cx2583x(state)) {
+                        cx25840_audio_set_path(client);
+                        input_change(client);
+        -       }
+        +//     }
+         
+                if (is_cx2388x(state)) {
+                        /* Audio channel 1 src : Parallel 1 */
+
+This is incomplete.  Along with removing the check, you need to "push
+down" the is_cx2583x() check into input_change() and
+cx25840_audio_set_path().  What you likely also need to do for a CX2583x
+is:
+
+a. Modify input_change() to add is_cx2583x() checks to avoid the
+operations on registers in the 0x800-0x9ff range, but still let the
+operations to registers in the 0x400-0x4ff range be performed.  These
+are Chroma processing settings that may have some effect on your video.
+
+b. Modify cx25840_audio_set_path() to add is_cx2583x() checks to avoid
+the operations on registers in the 0x800-0x9ff range, but still let the
+call to set_audclk_freq() go through.  From there
+cx25836_set_audclk_freq() and cx25840_set_audclk_freq() will set up the
+PLLs while avoiding writes to registers in the 0x800-0x9ff range for the
+CX2583x chips.
+
+
+Let's look at your second change:
+
+        @@ -1504,8 +1504,8 @@
+                struct cx25840_state *state = to_state(sd);
+                struct i2c_client *client = v4l2_get_subdevdata(sd);
+         
+        -       if (is_cx2583x(state))
+        -               return -EINVAL;
+        +/*     if (is_cx2583x(state))
+        +               return -EINVAL;*/
+                return set_input(client, state->vid_input, input);
+         }
+
+If you made the proper changes to
+
+	set_input()
+		cx25840_audio_set_path()
+			set_audclk_freq()
+				cx25836_set_audclk_freq()
+					cx25840_set_audclk_freq()
+		input_change()
+
+then you have already pushed this check down to several places and
+allowed AUX_PLL reconfiguration to take place.  Thus it is then correct
+to remove the check from here.
+
+
+
+
+Well, that's my guess anyway.  Did it all make sense?
+
+Regards,
+Andy
+
