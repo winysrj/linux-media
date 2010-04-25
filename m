@@ -1,211 +1,315 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:36373 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751446Ab0DJQzg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Apr 2010 12:55:36 -0400
-Date: Sat, 10 Apr 2010 11:55:35 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: Wolfram Sang <w.sang@pengutronix.de>
-cc: kernel-janitors@vger.kernel.org,
-	"Eric W. Biederman" <ebiederm@xmission.com>,
-	Greg KH <gregkh@suse.de>,
-	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Sujith Thomas <sujith.thomas@intel.com>,
-	Matthew Garrett <mjg@redhat.com>, linuxppc-dev@ozlabs.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org, platform-driver-x86@vger.kernel.org,
-	Mike Isely <isely@isely.net>
-Subject: Re: [PATCH] device_attributes: add sysfs_attr_init() for dynamic
- attributes
-In-Reply-To: <1269238878-991-1-git-send-email-w.sang@pengutronix.de>
-Message-ID: <alpine.DEB.1.10.1004101154480.5518@ivanova.isely.net>
-References: <1269238878-991-1-git-send-email-w.sang@pengutronix.de>
+Received: from mail-ew0-f220.google.com ([209.85.219.220]:47706 "EHLO
+	mail-ew0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752338Ab0DYXnY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Apr 2010 19:43:24 -0400
+Received: by ewy20 with SMTP id 20so3496867ewy.1
+        for <linux-media@vger.kernel.org>; Sun, 25 Apr 2010 16:43:22 -0700 (PDT)
+Date: Mon, 26 Apr 2010 09:46:08 +1000
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: Bee Hock Goh <beehock@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] tm6000 fix i2c
+Message-ID: <20100426094608.1973b9bb@glory.loctelecom.ru>
+In-Reply-To: <m2s6e8e83e21004230557kb4f44b5dya243b5120a86282f@mail.gmail.com>
+References: <20100423104804.784fb730@glory.loctelecom.ru>
+	<m2s6e8e83e21004230557kb4f44b5dya243b5120a86282f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi
 
-Acked-By: Mike Isely <isely@pobox.com>
+It's my error. This code good only for tm6010. Now I rework my patch.
 
-(in the context of the pvrusb2 driver related changes)
+With my best regards, Dmitry.
 
-  -Mike
-
-On Mon, 22 Mar 2010, Wolfram Sang wrote:
-
-> Made necessary by 6992f5334995af474c2b58d010d08bc597f0f2fe.
+> I am still able to watch tv after applying the patch but the return
+> code is bad and is causing unnecessary reloading of the same
+> firmwares.
 > 
-> Found by this semantic patch:
+> [ 2482.599040] usb 1-1: firmware: requesting tm6000-xc3028.fw
+> [ 2482.607229] xc2028 2-0061: Loading 77 firmware images from
+> tm6000-xc3028.fw, type: xc2028 firmware, ver 2.4
+> [ 2482.788089] xc2028 2-0061: Loading firmware for type=BASE F8MHZ
+> (3), id 0000000000000000.
+> [ 2503.620069] (0), id 00000000000000ff:
+> [ 2503.620078] xc2028 2-0061: Loading firmware for type=(0), id
+> 0000000100000007.
+> [ 2504.380061] xc2028 2-0061: Loading SCODE for type=MONO SCODE
+> HAS_IF_5320 (60008000), id 0000000f00000007.
+> [ 2504.520063] xc2028 2-0061: i2c input error: rc = -32 (should be 2)
+> [ 2504.536064] xc2028 2-0061: Unable to read tuner registers.
+> [ 2504.776079] xc2028 2-0061: Loading firmware for type=BASE F8MHZ
+> (3), id 0000000000000000.
+> [ 2525.556048] (0), id 00000000000000ff:
+> [ 2525.556057] xc2028 2-0061: Loading firmware for type=(0), id
+> 0000000100000007.
+> [ 2526.312058] xc2028 2-0061: Loading SCODE for type=MONO SCODE
+> HAS_IF_5320 (60008000), id 0000000f00000007.
+> [ 2526.452061] xc2028 2-0061: i2c input error: rc = -32 (should be 2)
+> [ 2526.468050] xc2028 2-0061: Unable to read tuner registers.
+> [ 2527.648076] xc2028 2-0061: Loading firmware for type=BASE F8MHZ
+> (3), id 0000000000000000.
+> [ 2548.460067] (0), id 00000000000000ff:
+> [ 2548.460076] xc2028 2-0061: Loading firmware for type=(0), id
+> 0000000100000007.
+> [ 2549.216070] xc2028 2-0061: Loading SCODE for type=MONO SCODE
+> HAS_IF_5320 (60008000), id 0000000f00000007.
+> [ 2549.356064] xc2028 2-0061: i2c input error: rc = -32 (should be 2)
+> [ 2549.372065] xc2028 2-0061: Unable to read tuner registers.
+> [ 2549.612052] xc2028 2-0061: Loading firmware for type=BASE F8MHZ
+> (3), id 0000000000000000.
+> [ 2570.609041] (0), id 00000000000000ff:
+> [ 2570.609049] xc2028 2-0061: Loading firmware for type=(0), id
+> 0000000100000007.
+> [ 2571.397034] xc2028 2-0061: Loading SCODE for type=MONO SCODE
+> HAS_IF_5320 (60008000), id 0000000f00000007.
+> [ 2571.537025] xc2028 2-0061: i2c input error: rc = -32 (should be 2)
+> [ 2571.553024] xc2028 2-0061: Unable to read tuner registers.
+> [ 2572.553103] Trident TVMaster TM5600/TM6000/TM6010 USB2 board (Load
+> status: 0) [ 2572.561090] tm6000: open called (dev=video0)
+> [ 2573.081022] Original value=96
+> [ 2573.093037] tm6000: VIDIOC_QUERYCAP
+> [ 2573.149565] tm6000: open called (dev=video0)
 > 
-> @ init @
-> type T;
-> identifier A;
-> @@
 > 
->         T {
->                 ...
->                 struct device_attribute A;
->                 ...
->         };
 > 
-> @ main extends init @
-> expression E;
-> statement S;
-> identifier err;
-> T *name;
-> @@
-> 
->         ... when != sysfs_attr_init(&name->A.attr);
-> (
-> +       sysfs_attr_init(&name->A.attr);
->         if (device_create_file(E, &name->A))
->                 S
-> |
-> +       sysfs_attr_init(&name->A.attr);
->         err = device_create_file(E, &name->A);
-> )
-> 
-> While reviewing, I put the initialization to apropriate places.
-> 
-> Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
-> Cc: Eric W. Biederman <ebiederm@xmission.com>
-> Cc: Greg KH <gregkh@suse.de>
-> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> Cc: Mike Isely <isely@pobox.com>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Sujith Thomas <sujith.thomas@intel.com>
-> Cc: Matthew Garrett <mjg@redhat.com>
-> ---
-> 
-> The thermal-sys.c-part should fix bugs #15548 and #15584.
-> 
->  drivers/macintosh/windfarm_core.c           |    1 +
->  drivers/media/video/pvrusb2/pvrusb2-sysfs.c |    8 ++++++++
->  drivers/platform/x86/intel_menlow.c         |    1 +
->  drivers/thermal/thermal_sys.c               |    1 +
->  drivers/video/fsl-diu-fb.c                  |    1 +
->  5 files changed, 12 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/macintosh/windfarm_core.c b/drivers/macintosh/windfarm_core.c
-> index 419795f..f447642 100644
-> --- a/drivers/macintosh/windfarm_core.c
-> +++ b/drivers/macintosh/windfarm_core.c
-> @@ -209,6 +209,7 @@ int wf_register_control(struct wf_control *new_ct)
->  	kref_init(&new_ct->ref);
->  	list_add(&new_ct->link, &wf_controls);
->  
-> +	sysfs_attr_init(&new_ct->attr.attr);
->  	new_ct->attr.attr.name = new_ct->name;
->  	new_ct->attr.attr.mode = 0644;
->  	new_ct->attr.show = wf_show_control;
-> diff --git a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c b/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
-> index 6c23456..71f5056 100644
-> --- a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
-> +++ b/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
-> @@ -423,10 +423,12 @@ static void pvr2_sysfs_add_debugifc(struct pvr2_sysfs *sfp)
->  
->  	dip = kzalloc(sizeof(*dip),GFP_KERNEL);
->  	if (!dip) return;
-> +	sysfs_attr_init(&dip->attr_debugcmd.attr);
->  	dip->attr_debugcmd.attr.name = "debugcmd";
->  	dip->attr_debugcmd.attr.mode = S_IRUGO|S_IWUSR|S_IWGRP;
->  	dip->attr_debugcmd.show = debugcmd_show;
->  	dip->attr_debugcmd.store = debugcmd_store;
-> +	sysfs_attr_init(&dip->attr_debuginfo.attr);
->  	dip->attr_debuginfo.attr.name = "debuginfo";
->  	dip->attr_debuginfo.attr.mode = S_IRUGO;
->  	dip->attr_debuginfo.show = debuginfo_show;
-> @@ -644,6 +646,7 @@ static void class_dev_create(struct pvr2_sysfs *sfp,
->  		return;
->  	}
->  
-> +	sysfs_attr_init(&sfp->attr_v4l_minor_number.attr);
->  	sfp->attr_v4l_minor_number.attr.name = "v4l_minor_number";
->  	sfp->attr_v4l_minor_number.attr.mode = S_IRUGO;
->  	sfp->attr_v4l_minor_number.show = v4l_minor_number_show;
-> @@ -658,6 +661,7 @@ static void class_dev_create(struct pvr2_sysfs *sfp,
->  		sfp->v4l_minor_number_created_ok = !0;
->  	}
->  
-> +	sysfs_attr_init(&sfp->attr_v4l_radio_minor_number.attr);
->  	sfp->attr_v4l_radio_minor_number.attr.name = "v4l_radio_minor_number";
->  	sfp->attr_v4l_radio_minor_number.attr.mode = S_IRUGO;
->  	sfp->attr_v4l_radio_minor_number.show = v4l_radio_minor_number_show;
-> @@ -672,6 +676,7 @@ static void class_dev_create(struct pvr2_sysfs *sfp,
->  		sfp->v4l_radio_minor_number_created_ok = !0;
->  	}
->  
-> +	sysfs_attr_init(&sfp->attr_unit_number.attr);
->  	sfp->attr_unit_number.attr.name = "unit_number";
->  	sfp->attr_unit_number.attr.mode = S_IRUGO;
->  	sfp->attr_unit_number.show = unit_number_show;
-> @@ -685,6 +690,7 @@ static void class_dev_create(struct pvr2_sysfs *sfp,
->  		sfp->unit_number_created_ok = !0;
->  	}
->  
-> +	sysfs_attr_init(&sfp->attr_bus_info.attr);
->  	sfp->attr_bus_info.attr.name = "bus_info_str";
->  	sfp->attr_bus_info.attr.mode = S_IRUGO;
->  	sfp->attr_bus_info.show = bus_info_show;
-> @@ -699,6 +705,7 @@ static void class_dev_create(struct pvr2_sysfs *sfp,
->  		sfp->bus_info_created_ok = !0;
->  	}
->  
-> +	sysfs_attr_init(&sfp->attr_hdw_name.attr);
->  	sfp->attr_hdw_name.attr.name = "device_hardware_type";
->  	sfp->attr_hdw_name.attr.mode = S_IRUGO;
->  	sfp->attr_hdw_name.show = hdw_name_show;
-> @@ -713,6 +720,7 @@ static void class_dev_create(struct pvr2_sysfs *sfp,
->  		sfp->hdw_name_created_ok = !0;
->  	}
->  
-> +	sysfs_attr_init(&sfp->attr_hdw_desc.attr);
->  	sfp->attr_hdw_desc.attr.name = "device_hardware_description";
->  	sfp->attr_hdw_desc.attr.mode = S_IRUGO;
->  	sfp->attr_hdw_desc.show = hdw_desc_show;
-> diff --git a/drivers/platform/x86/intel_menlow.c b/drivers/platform/x86/intel_menlow.c
-> index f0a90a6..90ba5d7 100644
-> --- a/drivers/platform/x86/intel_menlow.c
-> +++ b/drivers/platform/x86/intel_menlow.c
-> @@ -396,6 +396,7 @@ static int intel_menlow_add_one_attribute(char *name, int mode, void *show,
->  	if (!attr)
->  		return -ENOMEM;
->  
-> +	sysfs_attr_init(&attr->attr.attr); /* That's consistent naming :D */
->  	attr->attr.attr.name = name;
->  	attr->attr.attr.mode = mode;
->  	attr->attr.show = show;
-> diff --git a/drivers/thermal/thermal_sys.c b/drivers/thermal/thermal_sys.c
-> index 5066de5..d4fec47 100644
-> --- a/drivers/thermal/thermal_sys.c
-> +++ b/drivers/thermal/thermal_sys.c
-> @@ -725,6 +725,7 @@ int thermal_zone_bind_cooling_device(struct thermal_zone_device *tz,
->  		goto release_idr;
->  
->  	sprintf(dev->attr_name, "cdev%d_trip_point", dev->id);
-> +	sysfs_attr_init(&dev->attr.attr);
->  	dev->attr.attr.name = dev->attr_name;
->  	dev->attr.attr.mode = 0444;
->  	dev->attr.show = thermal_cooling_device_trip_point_show;
-> diff --git a/drivers/video/fsl-diu-fb.c b/drivers/video/fsl-diu-fb.c
-> index 4637bcb..994358a 100644
-> --- a/drivers/video/fsl-diu-fb.c
-> +++ b/drivers/video/fsl-diu-fb.c
-> @@ -1536,6 +1536,7 @@ static int __devinit fsl_diu_probe(struct of_device *ofdev,
->  		goto error;
->  	}
->  
-> +	sysfs_attr_init(&machine_data->dev_attr.attr);
->  	machine_data->dev_attr.attr.name = "monitor";
->  	machine_data->dev_attr.attr.mode = S_IRUGO|S_IWUSR;
->  	machine_data->dev_attr.show = show_monitor;
-> 
-
--- 
-
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+> On Fri, Apr 23, 2010 at 8:48 AM, Dmitri Belimov <d.belimov@gmail.com>
+> wrote:
+> > Hi
+> >
+> > Rework I2C for read word from connected devices, now it works well.
+> > Add new functions for read/write blocks.
+> >
+> > diff -r 7c0b887911cf linux/drivers/staging/tm6000/tm6000-i2c.c
+> > --- a/linux/drivers/staging/tm6000/tm6000-i2c.c Mon Apr 05 22:56:43
+> > 2010 -0400 +++ b/linux/drivers/staging/tm6000/tm6000-i2c.c Fri Apr
+> > 23 04:23:03 2010 +1000 @@ -24,6 +24,7 @@
+> >  #include <linux/kernel.h>
+> >  #include <linux/usb.h>
+> >  #include <linux/i2c.h>
+> > +#include <linux/delay.h>
+> >
+> >  #include "compat.h"
+> >  #include "tm6000.h"
+> > @@ -45,11 +46,39 @@
+> >                        printk(KERN_DEBUG "%s at %s: " fmt, \
+> >                        dev->name, __FUNCTION__ , ##args); } while
+> > (0)
+> >
+> > +static void tm6000_i2c_reset(struct tm6000_core *dev)
+> > +{
+> > +       tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+> > TM6000_GPIO_CLK, 0);
+> > +       msleep(15);
+> > +       tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+> > TM6000_GPIO_CLK, 1);
+> > +       msleep(15);
+> > +}
+> > +
+> >  static int tm6000_i2c_send_regs(struct tm6000_core *dev, unsigned
+> > char addr, __u8 reg, char *buf, int len)
+> >  {
+> > -       return tm6000_read_write_usb(dev, USB_DIR_OUT |
+> > USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+> > -               REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0,
+> > buf, len);
+> > +       int rc;
+> > +       unsigned int tsleep;
+> > +
+> > +       if (!buf || len < 1 || len > 64)
+> > +               return -1;
+> > +
+> > +       /* capture mutex */
+> > +       rc = tm6000_read_write_usb(dev, USB_DIR_OUT |
+> > USB_TYPE_VENDOR |
+> > +               USB_RECIP_DEVICE, REQ_16_SET_GET_I2C_WR1_RDN,
+> > +               addr | reg << 8, 0, buf, len);
+> > +
+> > +       if (rc < 0) {
+> > +               /* release mutex */
+> > +               return rc;
+> > +       }
+> > +
+> > +       /* Calculate delay time, 14000us for 64 bytes */
+> > +       tsleep = ((len * 200) + 200 + 1000) / 1000;
+> > +       msleep(tsleep);
+> > +
+> > +       /* release mutex */
+> > +       return rc;
+> >  }
+> >
+> >  /* Generic read - doesn't work fine with 16bit registers */
+> > @@ -59,22 +88,30 @@
+> >        int rc;
+> >        u8 b[2];
+> >
+> > -       if ((dev->caps.has_zl10353) && (dev->demod_addr << 1 ==
+> > addr) && (reg % 2 == 0)) {
+> > +       if (!buf || len < 1 || len > 64)
+> > +               return -1;
+> > +
+> > +       /* capture mutex */
+> > +       if ((dev->caps.has_zl10353) && (dev->demod_addr << 1 ==
+> > addr)
+> > +       && (reg % 2 == 0)) {
+> >                /*
+> >                 * Workaround an I2C bug when reading from zl10353
+> >                 */
+> >                reg -= 1;
+> >                len += 1;
+> >
+> > -               rc = tm6000_read_write_usb(dev, USB_DIR_IN |
+> > USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+> > -                       REQ_16_SET_GET_I2C_WR1_RDN, addr | reg <<
+> > 8, 0, b, len);
+> > +               rc = tm6000_read_write_usb(dev, USB_DIR_IN |
+> > USB_TYPE_VENDOR |
+> > +               USB_RECIP_DEVICE, REQ_16_SET_GET_I2C_WR1_RDN,
+> > +               addr | reg << 8, 0, b, len);
+> >
+> >                *buf = b[1];
+> >        } else {
+> > -               rc = tm6000_read_write_usb(dev, USB_DIR_IN |
+> > USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+> > -                       REQ_16_SET_GET_I2C_WR1_RDN, addr | reg <<
+> > 8, 0, buf, len);
+> > +               rc = tm6000_read_write_usb(dev, USB_DIR_IN |
+> > USB_TYPE_VENDOR |
+> > +               USB_RECIP_DEVICE, REQ_16_SET_GET_I2C_WR1_RDN,
+> > +               addr | reg << 8, 0, buf, len);
+> >        }
+> >
+> > +       /* release mutex */
+> >        return rc;
+> >  }
+> >
+> > @@ -85,8 +122,106 @@
+> >  static int tm6000_i2c_recv_regs16(struct tm6000_core *dev,
+> > unsigned char addr, __u16 reg, char *buf, int len)
+> >  {
+> > -       return tm6000_read_write_usb(dev, USB_DIR_IN |
+> > USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+> > -               REQ_14_SET_GET_I2C_WR2_RDN, addr, reg, buf, len);
+> > +       int rc;
+> > +       unsigned char ureg;
+> > +
+> > +       if (!buf || len != 2)
+> > +               return -1;
+> > +
+> > +       /* capture mutex */
+> > +       ureg = reg & 0xFF;
+> > +       rc = tm6000_read_write_usb(dev, USB_DIR_OUT |
+> > USB_TYPE_VENDOR |
+> > +               USB_RECIP_DEVICE, REQ_16_SET_GET_I2C_WR1_RDN,
+> > +               addr | (reg & 0xFF00), 0, &ureg, 1);
+> > +
+> > +       if (rc < 0) {
+> > +               /* release mutex */
+> > +               return rc;
+> > +       }
+> > +
+> > +       msleep(1400 / 1000);
+> > +       rc = tm6000_read_write_usb(dev, USB_DIR_IN |
+> > USB_TYPE_VENDOR |
+> > +               USB_RECIP_DEVICE, REQ_35_AFTEK_TUNER_READ,
+> > +               reg, 0, buf, len);
+> > +
+> > +       if (rc < 0) {
+> > +               /* release mutex */
+> > +               return rc;
+> > +       }
+> > +
+> > +       /* release mutex */
+> > +       return rc;
+> > +}
+> > +
+> > +static int tm6000_i2c_read_sequence(struct tm6000_core *dev,
+> > unsigned char addr,
+> > +                                 __u16 reg, char *buf, int len)
+> > +{
+> > +       int rc;
+> > +
+> > +       if (!buf || len < 1 || len > 64)
+> > +               return -1;
+> > +
+> > +       /* capture mutex */
+> > +       rc = tm6000_read_write_usb(dev, USB_DIR_IN |
+> > USB_TYPE_VENDOR |
+> > +               USB_RECIP_DEVICE, REQ_35_AFTEK_TUNER_READ,
+> > +               reg, 0, buf, len);
+> > +       /* release mutex */
+> > +       return rc;
+> > +}
+> > +
+> > +static int tm6000_i2c_write_sequence(struct tm6000_core *dev,
+> > +                               unsigned char addr, __u16 reg, char
+> > *buf,
+> > +                               int len)
+> > +{
+> > +       int rc;
+> > +       unsigned int tsleep;
+> > +
+> > +       if (!buf || len < 1 || len > 64)
+> > +               return -1;
+> > +
+> > +       /* capture mutex */
+> > +       rc = tm6000_read_write_usb(dev, USB_DIR_OUT |
+> > USB_TYPE_VENDOR |
+> > +               USB_RECIP_DEVICE, REQ_16_SET_GET_I2C_WR1_RDN,
+> > +               addr | reg << 8, 0, buf+1, len-1);
+> > +
+> > +       if (rc < 0) {
+> > +               /* release mutex */
+> > +               return rc;
+> > +       }
+> > +
+> > +       /* Calculate delay time, 13800us for 64 bytes */
+> > +       tsleep = ((len * 200) + 1000) / 1000;
+> > +       msleep(tsleep);
+> > +
+> > +       /* release mutex */
+> > +       return rc;
+> > +}
+> > +
+> > +static int tm6000_i2c_write_uni(struct tm6000_core *dev, unsigned
+> > char addr,
+> > +                                 __u16 reg, char *buf, int len)
+> > +{
+> > +       int rc;
+> > +       unsigned int tsleep;
+> > +
+> > +       if (!buf || len < 1 || len > 64)
+> > +               return -1;
+> > +
+> > +       /* capture mutex */
+> > +       rc = tm6000_read_write_usb(dev, USB_DIR_OUT |
+> > USB_TYPE_VENDOR |
+> > +               USB_RECIP_DEVICE, REQ_30_I2C_WRITE,
+> > +               addr | reg << 8, 0, buf+1, len-1);
+> > +
+> > +       if (rc < 0) {
+> > +               /* release mutex */
+> > +               return rc;
+> > +       }
+> > +
+> > +       /* Calculate delay time, 14800us for 64 bytes */
+> > +       tsleep = ((len * 200) + 1000 + 1000) / 1000;
+> > +       msleep(tsleep);
+> > +
+> > +       /* release mutex */
+> > +       return rc;
+> >  }
+> >
+> >  static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
+> >
+> > Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov
+> > <d.belimov@gmail.com>
+> >
+> >
+> > With my best regards, Dmitry.
