@@ -1,62 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:34934 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751238Ab0DXVOA (ORCPT
+Received: from eterpe-smout.broadpark.no ([80.202.8.16]:43829 "EHLO
+	eterpe-smout.broadpark.no" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754784Ab0DZTor (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Apr 2010 17:14:00 -0400
-Subject: [PATCH 0/4] ir-core sysfs protocol selection simplification
-To: mchehab@redhat.com
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org
-Date: Sat, 24 Apr 2010 23:13:55 +0200
-Message-ID: <20100424210843.11570.82007.stgit@localhost.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	Mon, 26 Apr 2010 15:44:47 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; CHARSET=US-ASCII; format=flowed
+Received: from ignis-smin.broadpark.no ([unknown] [80.202.8.11])
+ by eterpe-smout.broadpark.no
+ (Sun Java(tm) System Messaging Server 7u3-12.01 64bit (built Oct 15 2009))
+ with ESMTP id <0L1H002NWYQ7LO10@eterpe-smout.broadpark.no> for
+ linux-media@vger.kernel.org; Mon, 26 Apr 2010 20:44:31 +0200 (CEST)
+Received: from [192.168.1.2] ([unknown] [84.48.45.152])
+ by ignis-smin.broadpark.no
+ (Sun Java(tm) System Messaging Server 7u3-12.01 64bit (built Oct 15 2009))
+ with ESMTPA id <0L1H00780YQ7A640@ignis-smin.broadpark.no> for
+ linux-media@vger.kernel.org; Mon, 26 Apr 2010 20:44:31 +0200 (CEST)
+Message-id: <4BD5DF5C.2070206@robin.no>
+Date: Mon, 26 Apr 2010 20:45:48 +0200
+From: Sigmund Skjelnes <skjelnes@robin.no>
+To: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org
+Subject: Re: faulty pac3711
+References: <20100425203918.6t1c16o0g84kwc40@webmail.robin.no>
+ <4BD544FE.1030605@redhat.com>
+In-reply-to: <4BD544FE.1030605@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following series changes the sysfs implementation in ir-core to
-make the protocol selection work in the same manner for hardware
-decoders and software decoders (the distinction between the two
-should be hidden from the user as much as possible IMHO).
+Cheese did the job perfectly, thanks a lot.
 
-This also allows for a nice reduction of duplicated code between
-the raw ir protocol decoders.
+Regards,
+Sigmund
 
-The first patch is merely preparatory and should hopefully not
-be controversial.
-
-The second and third patch should be considered RFC's on the
-implementation of the sysfs interface.
-
-The last patch is orthogonal to the rest of the patchset and should
-hopefully not be controversial (though it would be nice if someone
-with the actual hardware could test it).
-
----
-
-David Härdeman (4):
-      ir-core: remove IR_TYPE_PD
-      ir-core: centralize sysfs raw decoder enabling/disabling
-      ir-core: move decoding state to ir_raw_event_ctrl
-      ir-core: remove ir-functions usage from cx231xx
-
-
- drivers/media/IR/ir-core-priv.h             |   40 ++++
- drivers/media/IR/ir-jvc-decoder.c           |  152 +---------------
- drivers/media/IR/ir-nec-decoder.c           |  151 +---------------
- drivers/media/IR/ir-raw-event.c             |  136 ++++++--------
- drivers/media/IR/ir-rc5-decoder.c           |  165 ++---------------
- drivers/media/IR/ir-rc6-decoder.c           |  154 +---------------
- drivers/media/IR/ir-sony-decoder.c          |  155 +---------------
- drivers/media/IR/ir-sysfs.c                 |  262 +++++++++++++++------------
- drivers/media/video/cx231xx/cx231xx-input.c |   47 +----
- drivers/media/video/cx231xx/cx231xx.h       |    2 
- drivers/media/video/cx88/cx88-input.c       |    8 -
- include/media/ir-kbd-i2c.h                  |    2 
- include/media/rc-map.h                      |    9 -
- 13 files changed, 322 insertions(+), 961 deletions(-)
-
--- 
-David Härdeman
+Hans de Goede wrote:
+> Hi,
+>
+> make sure you're using the camera together with apps which are using
+> libv4l, such as cheese.
+>
+> Regards,
+>
+> Hans
+>
+>
+> On 04/25/2010 08:39 PM, skjelnes@robin.no wrote:
+>> Hi!
+>> I'd have an Exibel snakescope TF2808 which dont make any picure on
+>> Linux. It worked ok on windows, but I do not have windows installed any
+snip, snip
