@@ -1,39 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:56636 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756025Ab0DHLu0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Apr 2010 07:50:26 -0400
-Received: by qw-out-2122.google.com with SMTP id 8so752941qwh.37
-        for <linux-media@vger.kernel.org>; Thu, 08 Apr 2010 04:50:25 -0700 (PDT)
-From: Huang Weiyi <weiyi.huang@gmail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org, Huang Weiyi <weiyi.huang@gmail.com>
-Subject: [PATCH 11/16]  V4L/DVB: DVB: ngene, remove unused #include <linux/version.h>
-Date: Thu,  8 Apr 2010 19:50:17 +0800
-Message-Id: <1270727417-3872-1-git-send-email-weiyi.huang@gmail.com>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1273 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753269Ab0DZHze (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Apr 2010 03:55:34 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: Doing a stable v4l-utils release
+Date: Mon, 26 Apr 2010 09:55:13 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <4BD5423B.4040200@redhat.com>
+In-Reply-To: <4BD5423B.4040200@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201004260955.13792.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove unused #include <linux/version.h>('s) in
-  drivers/media/dvb/ngene/ngene-core.c
+On Monday 26 April 2010 09:35:23 Hans de Goede wrote:
+> Hi all,
+> 
+> Currently v4l-utils is at version 0.7.91, which as the version
+> suggests is meant as a beta release.
+> 
+> As this release seems to be working well I would like to do
+> a v4l-utils-0.8.0 release soon. This is a headsup, to give
+> people a chance to notify me of any bugs they would like to
+> see fixed first / any patches they would like to add first.
 
-Signed-off-by: Huang Weiyi <weiyi.huang@gmail.com>
----
- drivers/media/dvb/ngene/ngene-core.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+This is a good opportunity to mention that I would like to run checkpatch
+over the libs and clean them up.
 
-diff --git a/drivers/media/dvb/ngene/ngene-core.c b/drivers/media/dvb/ngene/ngene-core.c
-index 645e8b8..6dc567b 100644
---- a/drivers/media/dvb/ngene/ngene-core.c
-+++ b/drivers/media/dvb/ngene/ngene-core.c
-@@ -37,7 +37,6 @@
- #include <linux/pci_ids.h>
- #include <linux/smp_lock.h>
- #include <linux/timer.h>
--#include <linux/version.h>
- #include <linux/byteorder/generic.h>
- #include <linux/firmware.h>
- #include <linux/vmalloc.h>
+I also know that there is a bug in the control handling code w.r.t.
+V4L2_CTRL_FLAG_NEXT_CTRL. I have a patch, but I'd like to do the clean up
+first.
+
+If no one else has major patch series that they need to apply, then I can
+start working on this. The clean up is just purely whitespace changes to
+improve readability, no functionality will be touched.
+
+Regards,
+
+	Hans
+
 -- 
-1.6.1.3
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
