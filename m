@@ -1,132 +1,516 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mxweblb05fl.versatel.de ([89.246.255.248]:43657 "EHLO
-	mxweblb05fl.versatel.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755949Ab0DHR6G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Apr 2010 13:58:06 -0400
-Received: from ens28fl.versatel.de (ens28fl.versatel.de [82.140.32.10])
-	by mxweblb05fl.versatel.de (8.13.1/8.13.1) with ESMTP id o38Hvw0H021798
-	for <linux-media@vger.kernel.org>; Thu, 8 Apr 2010 19:57:58 +0200
-Received: from cinnamon-sage.de (i577A4B01.versanet.de [87.122.75.1])
-	(authenticated bits=0)
-	by ens28fl.versatel.de (8.12.11.20060308/8.12.11) with SMTP id o38HvwD4031239
-	for <linux-media@vger.kernel.org>; Thu, 8 Apr 2010 19:57:59 +0200
-Received: from 192.168.23.2:49542 by cinnamon-sage.de for <isely@isely.net>,<hermann-pitton@arcor.de>,<hverkuil@xs4all.nl>,<linux-media@vger.kernel.org> ; 08.04.2010 19:57:58
-Message-ID: <4BBE1926.1010207@cinnamon-sage.de>
-Date: Thu, 08 Apr 2010 19:57:58 +0200
-From: Lars Hanisch <dvb@cinnamon-sage.de>
-MIME-Version: 1.0
-To: Mike Isely <isely@isely.net>
-CC: hermann pitton <hermann-pitton@arcor.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: RFC: exposing controls in sysfs
-References: <201004052347.10845.hverkuil@xs4all.nl>  <alpine.DEB.1.10.1004060848540.27169@cnc.isely.net>  <4BBCD3F9.1070207@cinnamon-sage.de> <1270678528.6429.35.camel@pc07.localdom.local> <alpine.DEB.1.10.1004071939510.5518@ivanova.isely.net>
-In-Reply-To: <alpine.DEB.1.10.1004071939510.5518@ivanova.isely.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4010 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754541Ab0DZHdx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Apr 2010 03:33:53 -0400
+Message-Id: <4a55b56f7166edd18f511c2674ce071fee5f79cc.1272267137.git.hverkuil@xs4all.nl>
+In-Reply-To: <cover.1272267136.git.hverkuil@xs4all.nl>
+References: <cover.1272267136.git.hverkuil@xs4all.nl>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Mon, 26 Apr 2010 09:33:51 +0200
+Subject: [PATCH 06/15] [RFC] msp3400: convert to the new control framework
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 08.04.2010 02:47, schrieb Mike Isely:
-> On Thu, 8 Apr 2010, hermann pitton wrote:
->
->> Hi,
->>
->> Am Mittwoch, den 07.04.2010, 20:50 +0200 schrieb Lars Hanisch:
->>> Am 06.04.2010 16:33, schrieb Mike Isely:
->> [snip]
->>>>>
->>>>> Mike, do you know of anyone actively using that additional information?
->>>>
->>>> Yes.
->>>>
->>>> The VDR project at one time implemented a plugin to directly interface
->>>> to the pvrusb2 driver in this manner.  I do not know if it is still
->>>> being used since I don't maintain that plugin.
->>>
->>>    Just FYI:
->>>    The PVR USB2 device is now handled by the pvrinput-plugin, which uses only ioctls. The "old" pvrusb2-plugin is obsolete.
->>>
->>>    http://projects.vdr-developer.org/projects/show/plg-pvrinput
->
-> Lars:
->
-> Thanks for letting me know about that - until this message I had no idea
-> if VDR was still using that interface.
->
->
->>>
->>> Regards,
->>> Lars.
->>
->> [snip]
->>
->> thanks Lars.
->>
->> Mike is really caring and went out for even any most obscure tuner bit
->> to help to improve such stuff in the past, when we have been without any
->> data sheets.
->
-> Hermann:
->
-> You might have me confused with Mike Krufky there - he's the one who did
-> so much of the tuner driver overhauling in v4l-dvb in the past.
->
->
->>
->> To open second, maybe third and even forth ways for apps to use a
->> device, likely going out of sync soon, does only load maintenance work
->> without real gain.
->
-> Well it was an experiment at the time to see how well such a concept
-> would work.  I had done it in a way to minimize maintenance load going
-> forward.  On both counts I feel the interface actually has done very
-> well, nonstandard though it may be.
->
-> I still get the general impression that the user community really has
-> liked the sysfs interface, but the developers never really got very fond
-> of it :-(
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/video/msp3400-driver.c   |  248 +++++++++++--------------------
+ drivers/media/video/msp3400-driver.h   |   16 ++-
+ drivers/media/video/msp3400-kthreads.c |   16 +-
+ 3 files changed, 108 insertions(+), 172 deletions(-)
 
-  From my point of view as an application developer I never tried to use
-sysfs at all. I admit that it's nice to use from a shell script in "known
-environments" (like setting up a card for recording with cat etc.) but what
-about error handling? How will I (the script) know, if setting a control is
-successful or not? Currently I don't know if v4l2-ctl returns some useful
-exit code, but with ioctls it's a lot easier to track errors.
-  I never liked to handle with directories and files, reading and writing if
-there's a function which is doing the same thing in a much easier way. :-)
+diff --git a/drivers/media/video/msp3400-driver.c b/drivers/media/video/msp3400-driver.c
+index e9df3cb..de0da40 100644
+--- a/drivers/media/video/msp3400-driver.c
++++ b/drivers/media/video/msp3400-driver.c
+@@ -283,51 +283,6 @@ void msp_set_scart(struct i2c_client *client, int in, int out)
+ 		msp_write_dem(client, 0x40, state->i2s_mode);
+ }
+ 
+-void msp_set_audio(struct i2c_client *client)
+-{
+-	struct msp_state *state = to_state(i2c_get_clientdata(client));
+-	int bal = 0, bass, treble, loudness;
+-	int val = 0;
+-	int reallymuted = state->muted | state->scan_in_progress;
+-
+-	if (!reallymuted)
+-		val = (state->volume * 0x7f / 65535) << 8;
+-
+-	v4l_dbg(1, msp_debug, client, "mute=%s scanning=%s volume=%d\n",
+-		state->muted ? "on" : "off",
+-		state->scan_in_progress ? "yes" : "no",
+-		state->volume);
+-
+-	msp_write_dsp(client, 0x0000, val);
+-	msp_write_dsp(client, 0x0007, reallymuted ? 0x1 : (val | 0x1));
+-	if (state->has_scart2_out_volume)
+-		msp_write_dsp(client, 0x0040, reallymuted ? 0x1 : (val | 0x1));
+-	if (state->has_headphones)
+-		msp_write_dsp(client, 0x0006, val);
+-	if (!state->has_sound_processing)
+-		return;
+-
+-	if (val)
+-		bal = (u8)((state->balance / 256) - 128);
+-	bass = ((state->bass - 32768) * 0x60 / 65535) << 8;
+-	treble = ((state->treble - 32768) * 0x60 / 65535) << 8;
+-	loudness = state->loudness ? ((5 * 4) << 8) : 0;
+-
+-	v4l_dbg(1, msp_debug, client, "balance=%d bass=%d treble=%d loudness=%d\n",
+-		state->balance, state->bass, state->treble, state->loudness);
+-
+-	msp_write_dsp(client, 0x0001, bal << 8);
+-	msp_write_dsp(client, 0x0002, bass);
+-	msp_write_dsp(client, 0x0003, treble);
+-	msp_write_dsp(client, 0x0004, loudness);
+-	if (!state->has_headphones)
+-		return;
+-	msp_write_dsp(client, 0x0030, bal << 8);
+-	msp_write_dsp(client, 0x0031, bass);
+-	msp_write_dsp(client, 0x0032, treble);
+-	msp_write_dsp(client, 0x0033, loudness);
+-}
+-
+ /* ------------------------------------------------------------------------ */
+ 
+ static void msp_wake_thread(struct i2c_client *client)
+@@ -363,98 +318,73 @@ int msp_sleep(struct msp_state *state, int timeout)
+ 
+ /* ------------------------------------------------------------------------ */
+ 
+-static int msp_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
++static int msp_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+-	struct msp_state *state = to_state(sd);
++	struct msp_state *state = ctrl_to_state(ctrl);
++	struct i2c_client *client = v4l2_get_subdevdata(&state->sd);
++	int val = ctrl->val;
+ 
+ 	switch (ctrl->id) {
+-	case V4L2_CID_AUDIO_VOLUME:
+-		ctrl->value = state->volume;
+-		break;
+-
+-	case V4L2_CID_AUDIO_MUTE:
+-		ctrl->value = state->muted;
+-		break;
+-
+-	case V4L2_CID_AUDIO_BALANCE:
+-		if (!state->has_sound_processing)
+-			return -EINVAL;
+-		ctrl->value = state->balance;
+-		break;
+-
+-	case V4L2_CID_AUDIO_BASS:
+-		if (!state->has_sound_processing)
+-			return -EINVAL;
+-		ctrl->value = state->bass;
++	case V4L2_CID_AUDIO_VOLUME: {
++		/* audio volume cluster */
++		int reallymuted = state->muted->val | state->scan_in_progress;
++
++		if (!reallymuted)
++			val = (val * 0x7f / 65535) << 8;
++
++		v4l_dbg(1, msp_debug, client, "mute=%s scanning=%s volume=%d\n",
++				state->muted->val ? "on" : "off",
++				state->scan_in_progress ? "yes" : "no",
++				state->volume->val);
++
++		msp_write_dsp(client, 0x0000, val);
++		msp_write_dsp(client, 0x0007, reallymuted ? 0x1 : (val | 0x1));
++		if (state->has_scart2_out_volume)
++			msp_write_dsp(client, 0x0040, reallymuted ? 0x1 : (val | 0x1));
++		if (state->has_headphones)
++			msp_write_dsp(client, 0x0006, val);
+ 		break;
+-
+-	case V4L2_CID_AUDIO_TREBLE:
+-		if (!state->has_sound_processing)
+-			return -EINVAL;
+-		ctrl->value = state->treble;
+-		break;
+-
+-	case V4L2_CID_AUDIO_LOUDNESS:
+-		if (!state->has_sound_processing)
+-			return -EINVAL;
+-		ctrl->value = state->loudness;
+-		break;
+-
+-	default:
+-		return -EINVAL;
+ 	}
+-	return 0;
+-}
+-
+-static int msp_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+-{
+-	struct msp_state *state = to_state(sd);
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-
+-	switch (ctrl->id) {
+-	case V4L2_CID_AUDIO_VOLUME:
+-		state->volume = ctrl->value;
+-		if (state->volume == 0)
+-			state->balance = 32768;
+-		break;
+-
+-	case V4L2_CID_AUDIO_MUTE:
+-		if (ctrl->value < 0 || ctrl->value >= 2)
+-			return -ERANGE;
+-		state->muted = ctrl->value;
+-		break;
+ 
+ 	case V4L2_CID_AUDIO_BASS:
+-		if (!state->has_sound_processing)
+-			return -EINVAL;
+-		state->bass = ctrl->value;
++		val = ((val - 32768) * 0x60 / 65535) << 8;
++		msp_write_dsp(client, 0x0002, val);
++		if (state->has_headphones)
++			msp_write_dsp(client, 0x0031, val);
+ 		break;
+ 
+ 	case V4L2_CID_AUDIO_TREBLE:
+-		if (!state->has_sound_processing)
+-			return -EINVAL;
+-		state->treble = ctrl->value;
++		val = ((val - 32768) * 0x60 / 65535) << 8;
++		msp_write_dsp(client, 0x0003, val);
++		if (state->has_headphones)
++			msp_write_dsp(client, 0x0032, val);
+ 		break;
+ 
+ 	case V4L2_CID_AUDIO_LOUDNESS:
+-		if (!state->has_sound_processing)
+-			return -EINVAL;
+-		state->loudness = ctrl->value;
++		val = val ? ((5 * 4) << 8) : 0;
++		msp_write_dsp(client, 0x0004, val);
++		if (state->has_headphones)
++			msp_write_dsp(client, 0x0033, val);
+ 		break;
+ 
+ 	case V4L2_CID_AUDIO_BALANCE:
+-		if (!state->has_sound_processing)
+-			return -EINVAL;
+-		state->balance = ctrl->value;
++		val = (u8)((val / 256) - 128);
++		msp_write_dsp(client, 0x0001, val << 8);
++		if (state->has_headphones)
++			msp_write_dsp(client, 0x0030, val << 8);
+ 		break;
+ 
+ 	default:
+ 		return -EINVAL;
+ 	}
+-	msp_set_audio(client);
+ 	return 0;
+ }
+ 
++void msp_update_volume(struct msp_state *state)
++{
++	v4l2_ctrl_s(state->volume, v4l2_ctrl_g(state->volume));
++}
++
+ /* --- v4l2 ioctls --- */
+ static int msp_s_radio(struct v4l2_subdev *sd)
+ {
+@@ -472,7 +402,7 @@ static int msp_s_radio(struct v4l2_subdev *sd)
+ 		msp3400c_set_mode(client, MSP_MODE_FM_RADIO);
+ 		msp3400c_set_carrier(client, MSP_CARRIER(10.7),
+ 				MSP_CARRIER(10.7));
+-		msp_set_audio(client);
++		msp_update_volume(state);
+ 		break;
+ 	case OPMODE_AUTODETECT:
+ 	case OPMODE_AUTOSELECT:
+@@ -592,33 +522,6 @@ static int msp_s_i2s_clock_freq(struct v4l2_subdev *sd, u32 freq)
+ 	return 0;
+ }
+ 
+-static int msp_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc)
+-{
+-	struct msp_state *state = to_state(sd);
+-
+-	switch (qc->id) {
+-	case V4L2_CID_AUDIO_VOLUME:
+-		return v4l2_ctrl_query_fill(qc, 0, 65535, 65535 / 100, 58880);
+-	case V4L2_CID_AUDIO_MUTE:
+-		return v4l2_ctrl_query_fill(qc, 0, 1, 1, 0);
+-	default:
+-		break;
+-	}
+-	if (!state->has_sound_processing)
+-		return -EINVAL;
+-	switch (qc->id) {
+-	case V4L2_CID_AUDIO_LOUDNESS:
+-		return v4l2_ctrl_query_fill(qc, 0, 1, 1, 0);
+-	case V4L2_CID_AUDIO_BALANCE:
+-	case V4L2_CID_AUDIO_BASS:
+-	case V4L2_CID_AUDIO_TREBLE:
+-		return v4l2_ctrl_query_fill(qc, 0, 65535, 65535 / 100, 32768);
+-	default:
+-		return -EINVAL;
+-	}
+-	return 0;
+-}
+-
+ static int msp_g_chip_ident(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident *chip)
+ {
+ 	struct msp_state *state = to_state(sd);
+@@ -633,19 +536,14 @@ static int msp_log_status(struct v4l2_subdev *sd)
+ 	struct msp_state *state = to_state(sd);
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	const char *p;
++	char prefix[V4L2_SUBDEV_NAME_SIZE + 20];
+ 
+ 	if (state->opmode == OPMODE_AUTOSELECT)
+ 		msp_detect_stereo(client);
+ 	v4l_info(client, "%s rev1 = 0x%04x rev2 = 0x%04x\n",
+ 			client->name, state->rev1, state->rev2);
+-	v4l_info(client, "Audio:    volume %d%s\n",
+-			state->volume, state->muted ? " (muted)" : "");
+-	if (state->has_sound_processing) {
+-		v4l_info(client, "Audio:    balance %d bass %d treble %d loudness %s\n",
+-				state->balance, state->bass,
+-				state->treble,
+-				state->loudness ? "on" : "off");
+-	}
++	snprintf(prefix, sizeof(prefix), "%s: Audio:    ", sd->name);
++	v4l2_ctrl_handler_log_status(&state->hdl, prefix);
+ 	switch (state->mode) {
+ 		case MSP_MODE_AM_DETECT: p = "AM (for carrier detect)"; break;
+ 		case MSP_MODE_FM_RADIO: p = "FM Radio"; break;
+@@ -695,12 +593,20 @@ static int msp_resume(struct i2c_client *client)
+ 
+ /* ----------------------------------------------------------------------- */
+ 
++static const struct v4l2_ctrl_ops msp_ctrl_ops = {
++	.s_ctrl = msp_s_ctrl,
++};
++
+ static const struct v4l2_subdev_core_ops msp_core_ops = {
+ 	.log_status = msp_log_status,
+ 	.g_chip_ident = msp_g_chip_ident,
+-	.g_ctrl = msp_g_ctrl,
+-	.s_ctrl = msp_s_ctrl,
+-	.queryctrl = msp_queryctrl,
++	.g_ext_ctrls = v4l2_sd_g_ext_ctrls,
++	.try_ext_ctrls = v4l2_sd_try_ext_ctrls,
++	.s_ext_ctrls = v4l2_sd_s_ext_ctrls,
++	.g_ctrl = v4l2_sd_g_ctrl,
++	.s_ctrl = v4l2_sd_s_ctrl,
++	.queryctrl = v4l2_sd_queryctrl,
++	.querymenu = v4l2_sd_querymenu,
+ 	.s_std = msp_s_std,
+ };
+ 
+@@ -728,6 +634,7 @@ static int msp_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ {
+ 	struct msp_state *state;
+ 	struct v4l2_subdev *sd;
++	struct v4l2_ctrl_handler *hdl;
+ 	int (*thread_func)(void *data) = NULL;
+ 	int msp_hard;
+ 	int msp_family;
+@@ -752,13 +659,7 @@ static int msp_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 
+ 	state->v4l2_std = V4L2_STD_NTSC;
+ 	state->audmode = V4L2_TUNER_MODE_STEREO;
+-	state->volume = 58880;	/* 0db gain */
+-	state->balance = 32768;	/* 0db gain */
+-	state->bass = 32768;
+-	state->treble = 32768;
+-	state->loudness = 0;
+ 	state->input = -1;
+-	state->muted = 0;
+ 	state->i2s_mode = 0;
+ 	init_waitqueue_head(&state->wq);
+ 	/* These are the reset input/output positions */
+@@ -777,8 +678,6 @@ static int msp_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		return -ENODEV;
+ 	}
+ 
+-	msp_set_audio(client);
+-
+ 	msp_family = ((state->rev1 >> 4) & 0x0f) + 3;
+ 	msp_product = (state->rev2 >> 8) & 0xff;
+ 	msp_prod_hi = msp_product / 10;
+@@ -849,6 +748,34 @@ static int msp_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 			state->opmode = OPMODE_MANUAL;
+ 	}
+ 
++	hdl = &state->hdl;
++	v4l2_ctrl_handler_init(hdl, 6);
++	if (state->has_sound_processing) {
++		v4l2_ctrl_new_std(hdl, &msp_ctrl_ops,
++			V4L2_CID_AUDIO_BASS, 0, 65535, 65535 / 100, 32768);
++		v4l2_ctrl_new_std(hdl, &msp_ctrl_ops,
++			V4L2_CID_AUDIO_TREBLE, 0, 65535, 65535 / 100, 32768);
++		v4l2_ctrl_new_std(hdl, &msp_ctrl_ops,
++			V4L2_CID_AUDIO_LOUDNESS, 0, 1, 1, 0);
++	}
++	state->volume = v4l2_ctrl_new_std(hdl, &msp_ctrl_ops,
++			V4L2_CID_AUDIO_VOLUME, 0, 65535, 65535 / 100, 58880);
++	v4l2_ctrl_new_std(hdl, &msp_ctrl_ops,
++			V4L2_CID_AUDIO_BALANCE, 0, 65535, 65535 / 100, 32768);
++	state->muted = v4l2_ctrl_new_std(hdl, &msp_ctrl_ops,
++			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 0);
++	sd->ctrl_handler = hdl;
++	if (hdl->error) {
++		int err = hdl->error;
++
++		v4l2_ctrl_handler_free(hdl);
++		kfree(state);
++		return err;
++	}
++
++	v4l2_ctrl_cluster(2, &state->volume);
++	v4l2_ctrl_handler_setup(hdl);
++
+ 	/* hello world :-) */
+ 	v4l_info(client, "MSP%d4%02d%c-%c%d found @ 0x%x (%s)\n",
+ 			msp_family, msp_product,
+@@ -903,6 +830,7 @@ static int msp_remove(struct i2c_client *client)
+ 	}
+ 	msp_reset(client);
+ 
++	v4l2_ctrl_handler_free(&state->hdl);
+ 	kfree(state);
+ 	return 0;
+ }
+diff --git a/drivers/media/video/msp3400-driver.h b/drivers/media/video/msp3400-driver.h
+index d6b3e6d..cba4559 100644
+--- a/drivers/media/video/msp3400-driver.h
++++ b/drivers/media/video/msp3400-driver.h
+@@ -6,6 +6,7 @@
+ 
+ #include <media/msp3400.h>
+ #include <media/v4l2-device.h>
++#include <media/v4l2-ctrls.h>
+ 
+ /* ---------------------------------------------------------------------- */
+ 
+@@ -51,6 +52,7 @@ extern int msp_stereo_thresh;
+ 
+ struct msp_state {
+ 	struct v4l2_subdev sd;
++	struct v4l2_ctrl_handler hdl;
+ 	int rev1, rev2;
+ 	int ident;
+ 	u8 has_nicam;
+@@ -87,9 +89,10 @@ struct msp_state {
+ 	int audmode;
+ 	int rxsubchans;
+ 
+-	int volume, muted;
+-	int balance, loudness;
+-	int bass, treble;
++	/* volume cluster */
++	struct v4l2_ctrl *volume;
++	struct v4l2_ctrl *muted;
++
+ 	int scan_in_progress;
+ 
+ 	/* thread */
+@@ -104,6 +107,11 @@ static inline struct msp_state *to_state(struct v4l2_subdev *sd)
+ 	return container_of(sd, struct msp_state, sd);
+ }
+ 
++static inline struct msp_state *ctrl_to_state(struct v4l2_ctrl *ctrl)
++{
++	return container_of(ctrl->handler, struct msp_state, hdl);
++}
++
+ /* msp3400-driver.c */
+ int msp_write_dem(struct i2c_client *client, int addr, int val);
+ int msp_write_dsp(struct i2c_client *client, int addr, int val);
+@@ -111,7 +119,7 @@ int msp_read_dem(struct i2c_client *client, int addr);
+ int msp_read_dsp(struct i2c_client *client, int addr);
+ int msp_reset(struct i2c_client *client);
+ void msp_set_scart(struct i2c_client *client, int in, int out);
+-void msp_set_audio(struct i2c_client *client);
++void msp_update_volume(struct msp_state *state);
+ int msp_sleep(struct msp_state *state, int timeout);
+ 
+ /* msp3400-kthreads.c */
+diff --git a/drivers/media/video/msp3400-kthreads.c b/drivers/media/video/msp3400-kthreads.c
+index 168bca7..107d9c6 100644
+--- a/drivers/media/video/msp3400-kthreads.c
++++ b/drivers/media/video/msp3400-kthreads.c
+@@ -497,13 +497,13 @@ restart:
+ 			v4l_dbg(1, msp_debug, client,
+ 				"thread: no carrier scan\n");
+ 			state->scan_in_progress = 0;
+-			msp_set_audio(client);
++			msp_update_volume(state);
+ 			continue;
+ 		}
+ 
+ 		/* mute audio */
+ 		state->scan_in_progress = 1;
+-		msp_set_audio(client);
++		msp_update_volume(state);
+ 
+ 		msp3400c_set_mode(client, MSP_MODE_AM_DETECT);
+ 		val1 = val2 = 0;
+@@ -635,7 +635,7 @@ no_second:
+ 		/* unmute */
+ 		state->scan_in_progress = 0;
+ 		msp3400c_set_audmode(client);
+-		msp_set_audio(client);
++		msp_update_volume(state);
+ 
+ 		if (msp_debug)
+ 			msp3400c_print_mode(client);
+@@ -680,13 +680,13 @@ restart:
+ 			v4l_dbg(1, msp_debug, client,
+ 				"thread: no carrier scan\n");
+ 			state->scan_in_progress = 0;
+-			msp_set_audio(client);
++			msp_update_volume(state);
+ 			continue;
+ 		}
+ 
+ 		/* mute audio */
+ 		state->scan_in_progress = 1;
+-		msp_set_audio(client);
++		msp_update_volume(state);
+ 
+ 		/* start autodetect. Note: autodetect is not supported for
+ 		   NTSC-M and radio, hence we force the standard in those
+@@ -798,7 +798,7 @@ restart:
+ 		/* unmute */
+ 		msp3400c_set_audmode(client);
+ 		state->scan_in_progress = 0;
+-		msp_set_audio(client);
++		msp_update_volume(state);
+ 
+ 		/* monitor tv audio mode, the first time don't wait
+ 		   so long to get a quick stereo/bilingual result */
+@@ -975,7 +975,7 @@ restart:
+ 			v4l_dbg(1, msp_debug, client,
+ 				"thread: no carrier scan\n");
+ 			state->scan_in_progress = 0;
+-			msp_set_audio(client);
++			msp_update_volume(state);
+ 			continue;
+ 		}
+ 
+@@ -1021,7 +1021,7 @@ unmute:
+ 		}
+ 
+ 		/* unmute: dispatch sound to scart output, set scart volume */
+-		msp_set_audio(client);
++		msp_update_volume(state);
+ 
+ 		/* restore ACB */
+ 		if (msp_write_dsp(client, 0x13, state->acb))
+-- 
+1.6.4.2
 
-  But all this might be related to my not-really-present knowledge of using
-sysfs in the right way.
-
-  And reading other posts debugfs seems to be the better choice (just read
-some articles on it to get a general survey of it).
-
-Regards,
-Lars.
-
->
->
->>
->> We should stay sharp to discover something others don't want to let us
->> know about. All other ideas about markets are illusions. Or?
->>
->> So, debugfs sounds much better than sysfs for my taste.
->>
->> Any app and any driver, going out of sync on the latter, will remind us
->> that backward compat _must always be guaranteed_  ...
->>
->> Or did change anything on that and is sysfs excluded from that rule?
->
-> Backwards compatibility is very important and thus any kind of new
-> interface deserves a lot of forethought to ensure that choices are made
-> in the present that people will regret in the future.  Making an
-> interface self-describing is one way that helps with compatibility: if
-> the app can discover on its own how to use the interface then it can
-> adapt to interface changes in the future.  I think a lot of people get
-> their brains so wrapped around the "ioctl-way" of doing things and then
-> they try to map that concept into a sysfs-like (or debugfs-like)
-> abstraction that they don't see how to naturally take advantage of what
-> is possible there.
->
->    -Mike
->
