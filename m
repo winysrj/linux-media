@@ -1,65 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.perfora.net ([74.208.4.194]:65455 "EHLO mout.perfora.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753419Ab0DUCLD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Apr 2010 22:11:03 -0400
-Message-ID: <4BCE5EAD.4070107@vorgon.com>
-Date: Tue, 20 Apr 2010 19:10:53 -0700
-From: "Timothy D. Lenz" <tlenz@vorgon.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: cx5000 default auto sleep mode
-References: <4BC5FB77.2020303@vorgon.com> <k2h829197381004141040n4aa69e06x7a10c7ea70be3dcf@mail.gmail.com>
-In-Reply-To: <k2h829197381004141040n4aa69e06x7a10c7ea70be3dcf@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mail-in-16.arcor-online.net ([151.189.21.56]:47385 "EHLO
+	mail-in-16.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752894Ab0DZWI5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Apr 2010 18:08:57 -0400
+Subject: Re: Kworld Plus TV Hybrid PCI (DVB-T 210SE)
+From: hermann pitton <hermann-pitton@arcor.de>
+To: 0123peter@gmail.com
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <dabga7-50k.ln1@psd.motzarella.org>
+References: <4B94CF9B.3060000@gmail.com>
+	 <1268777563.5120.57.camel@pc07.localdom.local>
+	 <0h2e77-gjl.ln1@psd.motzarella.org>
+	 <1269298611.5158.20.camel@pc07.localdom.local>
+	 <0uh687-4c1.ln1@psd.motzarella.org>
+	 <1269895933.3176.12.camel@pc07.localdom.local>
+	 <iou897-qu3.ln1@psd.motzarella.org>
+	 <1271302350.3184.16.camel@pc07.localdom.local>
+	 <g1hj97-b2a.ln1@psd.motzarella.org>
+	 <1271375445.12504.69.camel@pc07.localdom.local>
+	 <dabga7-50k.ln1@psd.motzarella.org>
+Content-Type: text/plain
+Date: Tue, 27 Apr 2010 00:04:34 +0200
+Message-Id: <1272319474.4246.7.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+Am Montag, den 26.04.2010, 21:51 +1000 schrieb 0123peter@gmail.com:
 
-On 4/14/2010 10:40 AM, Devin Heitmueller wrote:
-> On Wed, Apr 14, 2010 at 1:29 PM, Timothy D. Lenz<tlenz@vorgon.com>  wrote:
->> Thanks to Andy Walls, found out why I kept loosing 1 tuner on a FusionHD7
->> Dual express. Didn't know linux supported an auto sleep mode on the tuner
->> chips and that it defaulted to on. Seems like it would be better to default
->> to off. If someone wants an auto power down/sleep mode and their software
->> supports it, then let the program activate it. Seems people are more likely
->> to want the tuners to stay on then keep shutting down.
->>
->> Spent over a year trying to figure out why vdr would loose control of 1 of
->> the dual tuners when the atscepg pluging was used thinking it was a problem
->> with the plugin.
->
-> The xc5000 power management changes I made were actually pretty
-> thoroughly tested with that card (between myself and Michael Krufky,
-> we tested it with just about every card that uses the tuner).  In
-> fact, we uncovered several power management bugs in other drivers as a
-> result of that effort.  It was a grueling effort that I spent almost
-> three months working on.
->
-> Generally I agree with the premise that functionality like this should
-> only be enabled for boards it was tested with.  However, in this case
-> it actually was pretty extensively tested with all the cards in
-> question (including this one), and thus it was deemed safe to enable
-> by default.  We've had cases in the past where developers exercised
-> poor judgement and blindly turned on power management to make it work
-> with one card, disregarding the possible breakage that could occur
-> with other cards that use the same driver -- this was *not* one of
-> those cases.
->
-> If there is a bug, it should be pretty straightforward to fix provided
-> it can be reproduced.
->
-> Regarding the general assertion that the power management should be
-> disabled by default, I disagree.  The power savings is considerable,
-> the time to bring the tuner out of sleep is negligible, and it's
-> generally good policy.
->
-> Andy, do you have any actual details regarding the nature of the problem?
->
-> Devin
->
+[snip]
+> >> >> > 
+> >> >> > If it is a additional new regression, then mercurial bisect can find the
+> >> >> > patch in question fairly quick.
+> >> >> 
+> >> >> That sounds like something that I should be able to do, if only 
+> >> >> I'd read the instructions.  
+> >> > 
+> >> > It is totally up to you and all others with that hardware.
+> >> 
+> >> Can you provide a like for where to start reading?
+> > 
+> > README.patches.  
+> > 
+> >      Part III - Best Practices
+> > 	1. Community best practices
+> > 	2. Mercurial specific procedures
+> > 	3. Knowing about newer patches committed at the development repositories
+> > 	4. Patch submission from the community
+> > 	5. Identifying regressions with Mercurial
+> 
+> I have not found the file README.patches.  
+> 
 
-Went down a second time today, so copied the logs over again. If what is 
-needed to fix this isn't in those, will have to look else where.
+Peter, for that one.
+
+"yum", or whatever, "install mercurial".
+
+"hg clone http://linuxtv.org/hg/v4l-dvb"
+"cd v4l-dvb"
+"less README.patches"
+
+Cheers,
+Hermann
+
+
