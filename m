@@ -1,95 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:64812 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752939Ab0D1HFn (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4040 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754510Ab0DZHdn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Apr 2010 03:05:43 -0400
-Received: from eu_spt2 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0L1K00K73RPG05@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 28 Apr 2010 08:05:41 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L1K000VYRPGEX@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 28 Apr 2010 08:05:40 +0100 (BST)
-Date: Wed, 28 Apr 2010 09:05:22 +0200
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: [PATCH 2/3] v4l: videobuf: Add support for V4L2_BUF_FLAG_ERROR
-In-reply-to: <1272438323-4790-1-git-send-email-p.osciak@samsung.com>
+	Mon, 26 Apr 2010 03:33:43 -0400
+Message-Id: <3f12383b60e6de656b1d5f60549ada4111194e37.1272267137.git.hverkuil@xs4all.nl>
+In-Reply-To: <cover.1272267136.git.hverkuil@xs4all.nl>
+References: <cover.1272267136.git.hverkuil@xs4all.nl>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Mon, 26 Apr 2010 09:33:40 +0200
+Subject: [PATCH 04/15] [RFC] v4l: hook up the new control framework into the core framework
 To: linux-media@vger.kernel.org
-Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, Hans Verkuil <hverkuil@xs4all.nl>
-Message-id: <1272438323-4790-3-git-send-email-p.osciak@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1272438323-4790-1-git-send-email-p.osciak@samsung.com>
+Cc: laurent.pinchart@ideasonboard.com
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Add the calls needed to automatically merge subdev controls into a bridge
+control handler.
 
-For recoverable stream errors dqbuf() now returns 0 and the error flag
-is set instead of returning EIO.
+Hook up the control framework in __video_ioctl2.
 
 Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
 ---
- drivers/media/video/videobuf-core.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/media/video/v4l2-device.c |    7 +++++
+ drivers/media/video/v4l2-ioctl.c  |   46 ++++++++++++++++++++++++++----------
+ 2 files changed, 40 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/video/videobuf-core.c b/drivers/media/video/videobuf-core.c
-index 03b32e4..7d33784 100644
---- a/drivers/media/video/videobuf-core.c
-+++ b/drivers/media/video/videobuf-core.c
-@@ -285,8 +285,10 @@ static void videobuf_status(struct videobuf_queue *q, struct v4l2_buffer *b,
- 	case VIDEOBUF_ACTIVE:
- 		b->flags |= V4L2_BUF_FLAG_QUEUED;
- 		break;
--	case VIDEOBUF_DONE:
- 	case VIDEOBUF_ERROR:
-+		b->flags |= V4L2_BUF_FLAG_ERROR;
-+		/* fall through */
-+	case VIDEOBUF_DONE:
- 		b->flags |= V4L2_BUF_FLAG_DONE;
- 		break;
- 	case VIDEOBUF_NEEDS_INIT:
-@@ -670,6 +672,7 @@ int videobuf_dqbuf(struct videobuf_queue *q,
+diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
+index 5a7dc4a..0b08f96 100644
+--- a/drivers/media/video/v4l2-device.c
++++ b/drivers/media/video/v4l2-device.c
+@@ -26,6 +26,7 @@
+ #endif
+ #include <linux/videodev2.h>
+ #include <media/v4l2-device.h>
++#include <media/v4l2-ctrls.h>
  
- 	MAGIC_CHECK(q->int_ops->magic, MAGIC_QTYPE_OPS);
+ int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
+ {
+@@ -115,6 +116,8 @@ EXPORT_SYMBOL_GPL(v4l2_device_unregister);
+ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ 						struct v4l2_subdev *sd)
+ {
++	int err;
++
+ 	/* Check for valid input */
+ 	if (v4l2_dev == NULL || sd == NULL || !sd->name[0])
+ 		return -EINVAL;
+@@ -122,6 +125,10 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ 	WARN_ON(sd->v4l2_dev != NULL);
+ 	if (!try_module_get(sd->owner))
+ 		return -ENODEV;
++	/* This just returns 0 if either of the two args is NULL */
++	err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd->ctrl_handler);
++	if (err)
++		return err;
+ 	sd->v4l2_dev = v4l2_dev;
+ 	spin_lock(&v4l2_dev->lock);
+ 	list_add_tail(&sd->list, &v4l2_dev->subdevs);
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index e138918..daa9d0c 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -25,6 +25,7 @@
+ #endif
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-ctrls.h>
+ #include <media/v4l2-chip-ident.h>
  
-+	memset(b, 0, sizeof(*b));
- 	mutex_lock(&q->vb_lock);
+ #define dbgarg(cmd, fmt, arg...) \
+@@ -1253,9 +1254,12 @@ static long __video_do_ioctl(struct file *file,
+ 	{
+ 		struct v4l2_queryctrl *p = arg;
  
- 	retval = stream_next_buffer(q, &buf, nonblocking);
-@@ -681,23 +684,20 @@ int videobuf_dqbuf(struct videobuf_queue *q,
- 	switch (buf->state) {
- 	case VIDEOBUF_ERROR:
- 		dprintk(1, "dqbuf: state is error\n");
--		retval = -EIO;
--		CALL(q, sync, q, buf);
--		buf->state = VIDEOBUF_IDLE;
+-		if (!ops->vidioc_queryctrl)
++		if (vfd->ctrl_handler)
++			ret = v4l2_queryctrl(vfd->ctrl_handler, p);
++		else if (ops->vidioc_queryctrl)
++			ret = ops->vidioc_queryctrl(file, fh, p);
++		else
+ 			break;
+-		ret = ops->vidioc_queryctrl(file, fh, p);
+ 		if (!ret)
+ 			dbgarg(cmd, "id=0x%x, type=%d, name=%s, min/max=%d/%d, "
+ 					"step=%d, default=%d, flags=0x%08x\n",
+@@ -1270,7 +1274,9 @@ static long __video_do_ioctl(struct file *file,
+ 	{
+ 		struct v4l2_control *p = arg;
+ 
+-		if (ops->vidioc_g_ctrl)
++		if (vfd->ctrl_handler)
++			ret = v4l2_g_ctrl(vfd->ctrl_handler, p);
++		else if (ops->vidioc_g_ctrl)
+ 			ret = ops->vidioc_g_ctrl(file, fh, p);
+ 		else if (ops->vidioc_g_ext_ctrls) {
+ 			struct v4l2_ext_controls ctrls;
+@@ -1300,11 +1306,16 @@ static long __video_do_ioctl(struct file *file,
+ 		struct v4l2_ext_controls ctrls;
+ 		struct v4l2_ext_control ctrl;
+ 
+-		if (!ops->vidioc_s_ctrl && !ops->vidioc_s_ext_ctrls)
++		if (!vfd->ctrl_handler &&
++			!ops->vidioc_s_ctrl && !ops->vidioc_s_ext_ctrls)
+ 			break;
+ 
+ 		dbgarg(cmd, "id=0x%x, value=%d\n", p->id, p->value);
+ 
++		if (vfd->ctrl_handler) {
++			ret = v4l2_s_ctrl(vfd->ctrl_handler, p);
++			break;
++		}
+ 		if (ops->vidioc_s_ctrl) {
+ 			ret = ops->vidioc_s_ctrl(file, fh, p);
+ 			break;
+@@ -1326,10 +1337,12 @@ static long __video_do_ioctl(struct file *file,
+ 		struct v4l2_ext_controls *p = arg;
+ 
+ 		p->error_idx = p->count;
+-		if (!ops->vidioc_g_ext_ctrls)
+-			break;
+-		if (check_ext_ctrls(p, 0))
++		if (vfd->ctrl_handler)
++			ret = v4l2_g_ext_ctrls(vfd->ctrl_handler, p);
++		else if (ops->vidioc_g_ext_ctrls && check_ext_ctrls(p, 0))
+ 			ret = ops->vidioc_g_ext_ctrls(file, fh, p);
++		else
++			break;
+ 		v4l_print_ext_ctrls(cmd, vfd, p, !ret);
  		break;
- 	case VIDEOBUF_DONE:
- 		dprintk(1, "dqbuf: state is done\n");
--		CALL(q, sync, q, buf);
--		buf->state = VIDEOBUF_IDLE;
- 		break;
- 	default:
- 		dprintk(1, "dqbuf: state invalid\n");
- 		retval = -EINVAL;
- 		goto done;
  	}
--	list_del(&buf->stream);
--	memset(b, 0, sizeof(*b));
-+	CALL(q, sync, q, buf);
- 	videobuf_status(q, b, buf, q->type);
-+	list_del(&buf->stream);
-+	buf->state = VIDEOBUF_IDLE;
-+	b->flags &= ~V4L2_BUF_FLAG_DONE;
- done:
- 	mutex_unlock(&q->vb_lock);
- 	return retval;
+@@ -1338,10 +1351,12 @@ static long __video_do_ioctl(struct file *file,
+ 		struct v4l2_ext_controls *p = arg;
+ 
+ 		p->error_idx = p->count;
+-		if (!ops->vidioc_s_ext_ctrls)
++		if (!vfd->ctrl_handler && !ops->vidioc_s_ext_ctrls)
+ 			break;
+ 		v4l_print_ext_ctrls(cmd, vfd, p, 1);
+-		if (check_ext_ctrls(p, 0))
++		if (vfd->ctrl_handler)
++			ret = v4l2_s_ext_ctrls(vfd->ctrl_handler, p);
++		else if (check_ext_ctrls(p, 0))
+ 			ret = ops->vidioc_s_ext_ctrls(file, fh, p);
+ 		break;
+ 	}
+@@ -1350,10 +1365,12 @@ static long __video_do_ioctl(struct file *file,
+ 		struct v4l2_ext_controls *p = arg;
+ 
+ 		p->error_idx = p->count;
+-		if (!ops->vidioc_try_ext_ctrls)
++		if (!vfd->ctrl_handler && !ops->vidioc_try_ext_ctrls)
+ 			break;
+ 		v4l_print_ext_ctrls(cmd, vfd, p, 1);
+-		if (check_ext_ctrls(p, 0))
++		if (vfd->ctrl_handler)
++			ret = v4l2_try_ext_ctrls(vfd->ctrl_handler, p);
++		else if (check_ext_ctrls(p, 0))
+ 			ret = ops->vidioc_try_ext_ctrls(file, fh, p);
+ 		break;
+ 	}
+@@ -1361,9 +1378,12 @@ static long __video_do_ioctl(struct file *file,
+ 	{
+ 		struct v4l2_querymenu *p = arg;
+ 
+-		if (!ops->vidioc_querymenu)
++		if (vfd->ctrl_handler)
++			ret = v4l2_querymenu(vfd->ctrl_handler, p);
++		else if (ops->vidioc_querymenu)
++			ret = ops->vidioc_querymenu(file, fh, p);
++		else
+ 			break;
+-		ret = ops->vidioc_querymenu(file, fh, p);
+ 		if (!ret)
+ 			dbgarg(cmd, "id=0x%x, index=%d, name=%s\n",
+ 				p->id, p->index, p->name);
 -- 
-1.7.1.rc1.12.ga601
+1.6.4.2
 
