@@ -1,55 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:23191 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751499Ab0DSKkR (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2134 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754541Ab0DZHeO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Apr 2010 06:40:17 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Mon, 19 Apr 2010 12:29:57 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH/RFC v1 0/3] [ARM] Add Samsung S5P camera interface driver
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com
-Message-id: <1271673000-3020-1-git-send-email-s.nawrocki@samsung.com>
+	Mon, 26 Apr 2010 03:34:14 -0400
+Message-Id: <4ac5b4151b331d08f6d7908fcf1ead0872fe8416.1272267137.git.hverkuil@xs4all.nl>
+In-Reply-To: <cover.1272267136.git.hverkuil@xs4all.nl>
+References: <cover.1272267136.git.hverkuil@xs4all.nl>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Mon, 26 Apr 2010 09:34:09 +0200
+Subject: [PATCH 11/15] [RFC] wm8775: convert to the new control framework
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/video/wm8775.c |   79 ++++++++++++++++++++++++++---------------
+ 1 files changed, 50 insertions(+), 29 deletions(-)
 
-The following  patch series is a camera interface driver for the Samsung S5PC100 and S5PV210 SoCs.
-The camera interface in these chips can operate in three modes:
-- ITU-R or MIPI camera capture mode
-- Memory to memory mode enabling color format conversion, scaling, flipping and rotation,
-- LCD FIFO mode where it can be configured to transfer image data from memory to LCD controller, 
-  through its direct FIFO channel to LCD controller; this allows to lower main data bus 
-  bandwidth and memory requirements.
+diff --git a/drivers/media/video/wm8775.c b/drivers/media/video/wm8775.c
+index f1f261a..9a8e3ad 100644
+--- a/drivers/media/video/wm8775.c
++++ b/drivers/media/video/wm8775.c
+@@ -34,6 +34,7 @@
+ #include <linux/videodev2.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-chip-ident.h>
++#include <media/v4l2-ctrls.h>
+ #include <media/v4l2-i2c-drv.h>
+ 
+ MODULE_DESCRIPTION("wm8775 driver");
+@@ -52,8 +53,9 @@ enum {
+ 
+ struct wm8775_state {
+ 	struct v4l2_subdev sd;
++	struct v4l2_ctrl_handler hdl;
++	struct v4l2_ctrl *mute;
+ 	u8 input;		/* Last selected input (0-0xf) */
+-	u8 muted;
+ };
+ 
+ static inline struct wm8775_state *to_state(struct v4l2_subdev *sd)
+@@ -61,6 +63,11 @@ static inline struct wm8775_state *to_state(struct v4l2_subdev *sd)
+ 	return container_of(sd, struct wm8775_state, sd);
+ }
+ 
++static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
++{
++	return &container_of(ctrl->handler, struct wm8775_state, hdl)->sd;
++}
++
+ static int wm8775_write(struct v4l2_subdev *sd, int reg, u16 val)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+@@ -94,7 +101,7 @@ static int wm8775_s_routing(struct v4l2_subdev *sd,
+ 		return -EINVAL;
+ 	}
+ 	state->input = input;
+-	if (state->muted)
++	if (!v4l2_ctrl_g(state->mute))
+ 		return 0;
+ 	wm8775_write(sd, R21, 0x0c0);
+ 	wm8775_write(sd, R14, 0x1d4);
+@@ -103,29 +110,21 @@ static int wm8775_s_routing(struct v4l2_subdev *sd,
+ 	return 0;
+ }
+ 
+-static int wm8775_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
++static int wm8775_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
++	struct v4l2_subdev *sd = to_sd(ctrl);
+ 	struct wm8775_state *state = to_state(sd);
+ 
+-	if (ctrl->id != V4L2_CID_AUDIO_MUTE)
+-		return -EINVAL;
+-	ctrl->value = state->muted;
+-	return 0;
+-}
+-
+-static int wm8775_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+-{
+-	struct wm8775_state *state = to_state(sd);
+-
+-	if (ctrl->id != V4L2_CID_AUDIO_MUTE)
+-		return -EINVAL;
+-	state->muted = ctrl->value;
+-	wm8775_write(sd, R21, 0x0c0);
+-	wm8775_write(sd, R14, 0x1d4);
+-	wm8775_write(sd, R15, 0x1d4);
+-	if (!state->muted)
+-		wm8775_write(sd, R21, 0x100 + state->input);
+-	return 0;
++	switch (ctrl->id) {
++	case V4L2_CID_AUDIO_MUTE:
++		wm8775_write(sd, R21, 0x0c0);
++		wm8775_write(sd, R14, 0x1d4);
++		wm8775_write(sd, R15, 0x1d4);
++		if (!ctrl->val)
++			wm8775_write(sd, R21, 0x100 + state->input);
++		return 0;
++	}
++	return -EINVAL;
+ }
+ 
+ static int wm8775_g_chip_ident(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident *chip)
+@@ -139,8 +138,8 @@ static int wm8775_log_status(struct v4l2_subdev *sd)
+ {
+ 	struct wm8775_state *state = to_state(sd);
+ 
+-	v4l2_info(sd, "Input: %d%s\n", state->input,
+-			state->muted ? " (muted)" : "");
++	v4l2_info(sd, "Input: %d\n", state->input);
++	v4l2_ctrl_handler_log_status(&state->hdl, sd->name);
+ 	return 0;
+ }
+ 
+@@ -161,11 +160,20 @@ static int wm8775_s_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *fre
+ 
+ /* ----------------------------------------------------------------------- */
+ 
++static const struct v4l2_ctrl_ops wm8775_ctrl_ops = {
++	.s_ctrl = wm8775_s_ctrl,
++};
++
+ static const struct v4l2_subdev_core_ops wm8775_core_ops = {
+ 	.log_status = wm8775_log_status,
+ 	.g_chip_ident = wm8775_g_chip_ident,
+-	.g_ctrl = wm8775_g_ctrl,
+-	.s_ctrl = wm8775_s_ctrl,
++	.g_ext_ctrls = v4l2_sd_g_ext_ctrls,
++	.try_ext_ctrls = v4l2_sd_try_ext_ctrls,
++	.s_ext_ctrls = v4l2_sd_s_ext_ctrls,
++	.g_ctrl = v4l2_sd_g_ctrl,
++	.s_ctrl = v4l2_sd_s_ctrl,
++	.queryctrl = v4l2_sd_queryctrl,
++	.querymenu = v4l2_sd_querymenu,
+ };
+ 
+ static const struct v4l2_subdev_tuner_ops wm8775_tuner_ops = {
+@@ -204,13 +212,24 @@ static int wm8775_probe(struct i2c_client *client,
+ 	v4l_info(client, "chip found @ 0x%02x (%s)\n",
+ 			client->addr << 1, client->adapter->name);
+ 
+-	state = kmalloc(sizeof(struct wm8775_state), GFP_KERNEL);
++	state = kzalloc(sizeof(struct wm8775_state), GFP_KERNEL);
+ 	if (state == NULL)
+ 		return -ENOMEM;
+ 	sd = &state->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &wm8775_ops);
+ 	state->input = 2;
+-	state->muted = 0;
++
++	v4l2_ctrl_handler_init(&state->hdl, 1);
++	state->mute = v4l2_ctrl_new_std(&state->hdl, &wm8775_ctrl_ops,
++			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 0);
++	sd->ctrl_handler = &state->hdl;
++	if (state->hdl.error) {
++		int err = state->hdl.error;
++
++		v4l2_ctrl_handler_free(&state->hdl);
++		kfree(state);
++		return err;
++	}
+ 
+ 	/* Initialize wm8775 */
+ 
+@@ -247,9 +266,11 @@ static int wm8775_probe(struct i2c_client *client,
+ static int wm8775_remove(struct i2c_client *client)
+ {
+ 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct wm8775_state *state = to_state(sd);
+ 
+ 	v4l2_device_unregister_subdev(sd);
+-	kfree(to_state(sd));
++	v4l2_ctrl_handler_free(&state->hdl);
++	kfree(state);
+ 	return 0;
+ }
+ 
+-- 
+1.6.4.2
 
-There is no designated memory for FIMC device (it shares the system memory) and it requires 
-physically contiguous buffers.
-We are planning  to use separate video nodes, each supporting one of the aforementioned features.
-
-The following patches implement memory to memory mode and require the memory to memory device framework
-posted by Pawel Osciak. Also in some use cases like video stream encoding, where FIMC acts as video 
-postprocessor, non contiguous multi-planar buffers, as discussed in this thread
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg15850.html
-would be needed. To simplify things a bit, I did not add a code related to non contiguous multi-planar 
-formats in the following patches. 
-
-Any comments and suggestions are really appreciated.
-
-This series contains:
-
-[PATCH v1 1/3] ARM: S5P: Add FIMC driver platform helpers
-[PATCH v1 2/3] ARM: S5PC100: Add FIMC driver platform helpers
-[PATCH v1 3/3] ARM: S5P: Add Camera interface (video postprocessor) driver
-
-
-Regards,
---
-Sylwester Nawrocki
-SPRC,
-Linux Platform Group
