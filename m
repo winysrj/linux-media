@@ -1,113 +1,299 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:40898 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755221Ab0DWCU4 convert rfc822-to-8bit (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:41242 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750991Ab0DZN3k (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Apr 2010 22:20:56 -0400
-Received: by gyg13 with SMTP id 13so4864769gyg.19
-        for <linux-media@vger.kernel.org>; Thu, 22 Apr 2010 19:20:56 -0700 (PDT)
+	Mon, 26 Apr 2010 09:29:40 -0400
+Message-ID: <4BD5953C.80702@infradead.org>
+Date: Mon, 26 Apr 2010 10:29:32 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-In-Reply-To: <4BD0B32B.8060505@redhat.com>
-References: <x2m6e8e83e21004062310ia0eef09fgf97bcfafcdf25737@mail.gmail.com>
-	 <4BD0B32B.8060505@redhat.com>
-Date: Fri, 23 Apr 2010 10:20:50 +0800
-Message-ID: <i2k6e8e83e21004221920q3f687324z8d8aba7ca26978ad@mail.gmail.com>
-Subject: Re: Help needed in understanding v4l2_device_call_all
-From: Bee Hock Goh <beehock@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+To: Dmitri Belimov <d.belimov@gmail.com>
+CC: Stefan Ringel <stefan.ringel@arcor.de>,
+	linux-media@vger.kernel.org, Bee Hock Goh <beehock@gmail.com>
+Subject: Re: [PATCH] tm6000 fix i2c
+References: <20100423104804.784fb730@glory.loctelecom.ru> <4BD1B985.8060703@arcor.de> <20100426102514.2c13761e@glory.loctelecom.ru>
+In-Reply-To: <20100426102514.2c13761e@glory.loctelecom.ru>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+Hi Dmitri,
 
-Thanks.
+Dmitri Belimov wrote:
+> Hi 
+> 
+> Rework last I2C patch.
+> Set correct limit for I2C packet.
+> Use different method for the tm5600/tm6000 and tm6010 to read word.
+> 
+> Try this patch.
+> 
+> diff -r 7c0b887911cf linux/drivers/staging/tm6000/tm6000-i2c.c
+> --- a/linux/drivers/staging/tm6000/tm6000-i2c.c	Mon Apr 05 22:56:43 2010 -0400
+> +++ b/linux/drivers/staging/tm6000/tm6000-i2c.c	Mon Apr 26 04:15:56 2010 +1000
+> @@ -24,6 +24,7 @@
+>  #include <linux/kernel.h>
+>  #include <linux/usb.h>
+>  #include <linux/i2c.h>
+> +#include <linux/delay.h>
 
-Previously, I have done some limited test and it seem that
-xc2028_signal seem to be getting the correct registered value for the
-detected a signal locked.
+You probably don't need this.
 
-Since I am now able to get video working(though somewhat limited since
-it still crashed if i change channel from mythtv), i will be spending
-more time to look getting a lock on the signal.
+>  
+>  #include "compat.h"
+>  #include "tm6000.h"
+> @@ -45,11 +46,49 @@
+>  			printk(KERN_DEBUG "%s at %s: " fmt, \
+>  			dev->name, __FUNCTION__ , ##args); } while (0)
+>  
+> +static void tm6000_i2c_reset(struct tm6000_core *dev)
+> +{
+> +	tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, TM6000_GPIO_CLK, 0);
+> +	msleep(15);
+> +	tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, TM6000_GPIO_CLK, 1);
+> +	msleep(15);
+> +}
+> +
+>  static int tm6000_i2c_send_regs(struct tm6000_core *dev, unsigned char addr,
+>  				__u8 reg, char *buf, int len)
+>  {
+> -	return tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+> -		REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0, buf, len);
+> +	int rc;
+> +	unsigned int tsleep;
+> +	unsigned int i2c_packet_limit = 16;
+> +
+> +	if (dev->dev_type == TM6010)
+> +		i2c_packet_limit = 64;
+> +
+> +	if (!buf)
+> +		return -1;
+> +
+> +	if (len < 1 || len > i2c_packet_limit){
+> +		printk("Incorrect lenght of i2c packet = %d, limit set to %d\n",
+> +			len, i2c_packet_limit);
+> +		return -1;
+> +	}
+> +
+> +	/* capture mutex */
+> +	rc = tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR |
+> +		USB_RECIP_DEVICE, REQ_16_SET_GET_I2C_WR1_RDN,
+> +		addr | reg << 8, 0, buf, len);
+> +
+> +	if (rc < 0) {
+> +		/* release mutex */
+> +		return rc;
+> +	}
+> +
+> +	/* Calculate delay time, 14000us for 64 bytes */
+> +	tsleep = ((len * 200) + 200 + 1000) / 1000;
+> +	msleep(tsleep);
+> +
+> +	/* release mutex */
+> +	return rc;
+>  }
+>  
+>  /* Generic read - doesn't work fine with 16bit registers */
+> @@ -58,23 +97,41 @@
+>  {
+>  	int rc;
+>  	u8 b[2];
+> +	unsigned int i2c_packet_limit = 16;
+>  
+> -	if ((dev->caps.has_zl10353) && (dev->demod_addr << 1 == addr) && (reg % 2 == 0)) {
+> +	if (dev->dev_type == TM6010)
+> +		i2c_packet_limit = 64;
+> +
+> +	if (!buf)
+> +		return -1;
+> +
+> +	if (len < 1 || len > i2c_packet_limit){
+> +		printk("Incorrect lenght of i2c packet = %d, limit set to %d\n",
+> +			len, i2c_packet_limit);
+> +		return -1;
+> +	}
+> +
+> +	/* capture mutex */
+> +	if ((dev->caps.has_zl10353) && (dev->demod_addr << 1 == addr)
+> +	&& (reg % 2 == 0)) {
+>  		/*
+>  		 * Workaround an I2C bug when reading from zl10353
+>  		 */
+>  		reg -= 1;
+>  		len += 1;
+>  
+> -		rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+> -			REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0, b, len);
+> +		rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR |
+> +		USB_RECIP_DEVICE, REQ_16_SET_GET_I2C_WR1_RDN,
+> +		addr | reg << 8, 0, b, len);
+>  
+>  		*buf = b[1];
+>  	} else {
+> -		rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+> -			REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0, buf, len);
+> +		rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR |
+> +		USB_RECIP_DEVICE, REQ_16_SET_GET_I2C_WR1_RDN,
+> +		addr | reg << 8, 0, buf, len);
+>  	}
+>  
+> +	/* release mutex */
+>  	return rc;
+>  }
+>  
+> @@ -85,8 +142,137 @@
+>  static int tm6000_i2c_recv_regs16(struct tm6000_core *dev, unsigned char addr,
+>  				  __u16 reg, char *buf, int len)
+>  {
+> -	return tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+> -		REQ_14_SET_GET_I2C_WR2_RDN, addr, reg, buf, len);
+> +	int rc;
+> +	unsigned char ureg;
+> +
+> +	if (!buf || len != 2)
+> +		return -1;
+> +
+> +	/* capture mutex */
+> +	if (dev->dev_type == TM6010){
+> +		ureg = reg & 0xFF;
+> +		rc = tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR |
+> +			USB_RECIP_DEVICE, REQ_16_SET_GET_I2C_WR1_RDN,
+> +			addr | (reg & 0xFF00), 0, &ureg, 1);
+> +
+> +		if (rc < 0) {
+> +			/* release mutex */
+> +			return rc;
+> +		}
+> +
+> +		msleep(1400 / 1000);
+> +		rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR |
+> +			USB_RECIP_DEVICE, REQ_35_AFTEK_TUNER_READ,
+> +			reg, 0, buf, len);
+> +	}
+> +	else {
+> +		rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR |
+> +			USB_RECIP_DEVICE, REQ_14_SET_GET_I2C_WR2_RDN,
+> +			addr, reg, buf, len);
+> +	}
+> +
+> +	/* release mutex */
+> +	return rc;
+> +}
+> +
+> +static int tm6000_i2c_read_sequence(struct tm6000_core *dev, unsigned char addr,
+> +				  __u16 reg, char *buf, int len)
+> +{
+> +	int rc;
+> +
+> +	if (dev->dev_type != TM6010)
+> +		return -1;
+> +
+> +	if (!buf)
+> +		return -1;
+> +
+> +	if (len < 1 || len > 64){
+> +		printk("Incorrect lenght of i2c packet = %d, limit set to 64\n",
+> +			len);
+> +		return -1;
+> +	}
+> +
+> +	/* capture mutex */
+> +	rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR |
+> +		USB_RECIP_DEVICE, REQ_35_AFTEK_TUNER_READ,
+> +		reg, 0, buf, len);
+> +	/* release mutex */
+> +	return rc;
+> +}
+> +
+> +static int tm6000_i2c_write_sequence(struct tm6000_core *dev,
+> +				unsigned char addr, __u16 reg, char *buf,
+> +				int len)
+> +{
+> +	int rc;
+> +	unsigned int tsleep;
+> +	unsigned int i2c_packet_limit = 16;
+> +
+> +	if (dev->dev_type == TM6010)
+> +		i2c_packet_limit = 64;
+> +
+> +	if (!buf)
+> +		return -1;
+> +
+> +	if (len < 1 || len > i2c_packet_limit){
+> +		printk("Incorrect lenght of i2c packet = %d, limit set to %d\n",
+> +			len, i2c_packet_limit);
+> +		return -1;
+> +	}
+> +
+> +	/* capture mutex */
+> +	rc = tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR |
+> +		USB_RECIP_DEVICE, REQ_16_SET_GET_I2C_WR1_RDN,
+> +		addr | reg << 8, 0, buf+1, len-1);
+> +
+> +	if (rc < 0) {
+> +		/* release mutex */
+> +		return rc;
+> +	}
+> +
+> +	/* Calculate delay time, 13800us for 64 bytes */
+> +	tsleep = ((len * 200) + 1000) / 1000;
+> +	msleep(tsleep);
+> +
+> +	/* release mutex */
+> +	return rc;
+> +}
+> +
+> +static int tm6000_i2c_write_uni(struct tm6000_core *dev, unsigned char addr,
+> +				  __u16 reg, char *buf, int len)
+> +{
+> +	int rc;
+> +	unsigned int tsleep;
+> +	unsigned int i2c_packet_limit = 16;
+> +
+> +	if (dev->dev_type == TM6010)
+> +		i2c_packet_limit = 64;
+> +
+> +	if (!buf)
+> +		return -1;
+> +
+> +	if (len < 1 || len > i2c_packet_limit){
+> +		printk("Incorrect lenght of i2c packet = %d, limit set to %d\n",
+> +			len, i2c_packet_limit);
+> +		return -1;
+> +	}
+> +
+> +	/* capture mutex */
+> +	rc = tm6000_read_write_usb(dev, USB_DIR_OUT | USB_TYPE_VENDOR |
+> +		USB_RECIP_DEVICE, REQ_30_I2C_WRITE,
+> +		addr | reg << 8, 0, buf+1, len-1);
+> +
+> +	if (rc < 0) {
+> +		/* release mutex */
+> +		return rc;
+> +	}
+> +
+> +	/* Calculate delay time, 14800us for 64 bytes */
+> +	tsleep = ((len * 200) + 1000 + 1000) / 1000;
+> +	msleep(tsleep);
+> +
+> +	/* release mutex */
+> +	return rc;
+>  }
+
+There are some troubles here that I noticed on your first patch: you're
+adding some new functions that aren't used on the code, generating some
+warnings. Please remove them or use.
+>  
+>  static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
+> 
+> 
+> With my best regards, Dmitry.
+> 
 
 
-Is line 139,140,155,156 needed? Its slowing down the loading of
-firmware and it working for me with the additional register setting.
+-- 
 
- 138 if (addr == dev->tuner_addr << 1) {
-139 tm6000_set_reg(dev, 0x32, 0,0);
-140 tm6000_set_reg(dev, 0x33, 0,0);
-141 }
-142 if (i2c_debug >= 2)
-143 for (byte = 0; byte < msgs[i].len; byte++)
-144 printk(" %02x", msgs[i].buf[byte]);
-145 } else {
-146 /* write bytes */
-147 if (i2c_debug >= 2)
-148 for (byte = 0; byte < msgs[i].len; byte++)
-149 printk(" %02x", msgs[i].buf[byte]);
-150 rc = tm6000_i2c_send_regs(dev, addr, msgs[i].buf[0],
-151 msgs[i].buf + 1, msgs[i].len - 1);
-152
-153 if (addr == dev->tuner_addr << 1) {
-154 tm6000_set_reg(dev, 0x32, 0,0);
-155 tm6000_set_reg(dev, 0x33, 0,0);
-
-
-On Fri, Apr 23, 2010 at 4:35 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Bee Hock Goh wrote:
->> Hi,
->>
->> I am trying to understand how the subdev function are triggered when I
->> use v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, g_tuner,t) on
->> tm600-video.
->
-> It calls tuner-core.c code, with g_tuner command. tuner-core
-> checks what's the used tuner and, in the case of tm6000, calls the corresponding
-> function at tuner-xc2028. This is implemented on tuner_g_tuner() function.
->
-> The function basically does some sanity checks, and some common tuner code, but
-> the actual implementation is handled by some callbacks that the driver needs to
-> define (get_afc, get_status, is_stereo, has_signal). In general, drivers use
-> get_status for it:
->                fe_tuner_ops->get_status(&t->fe, &tuner_status);
->
->
-> You will find a good example of how to implement such code at tuner-simple
-> simple_get_status() function.
->
-> In the case of tuner-xc2028, we never found a way for it to properly report the
-> status of the tuner lock. That's why this function is not implemented on the driver.
->
->> How am i able to link the callback from the tuner_xc2028 function?
->
-> The callback is used by tuner-xc2028 when it detects the need of changing the
-> firmware (or when the firmware is not loaded yet, or when you select a standard
-> that it is not supported by the current firmware).
->
-> Basically, xc2028 driver will use the callback that was set previously via:
->
->        v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_config, &xc2028_cfg);
->
->
->>
->> Please help me to understand or directly me to any documentation that
->> I can read up?
->>
->> thanks,
->>  Hock.
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
-> --
->
-> Cheers,
-> Mauro
->
+Cheers,
+Mauro
