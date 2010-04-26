@@ -1,96 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:54629 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752782Ab0DBSeq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Apr 2010 14:34:46 -0400
-Received: by gwb19 with SMTP id 19so277951gwb.19
-        for <linux-media@vger.kernel.org>; Fri, 02 Apr 2010 11:34:44 -0700 (PDT)
+Received: from mail-in-07.arcor-online.net ([151.189.21.47]:51254 "EHLO
+	mail-in-07.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750849Ab0DZP0r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Apr 2010 11:26:47 -0400
+Message-ID: <4BD5B061.9010001@arcor.de>
+Date: Mon, 26 Apr 2010 17:25:21 +0200
+From: Stefan Ringel <stefan.ringel@arcor.de>
 MIME-Version: 1.0
-In-Reply-To: <y2x1a297b361004021124jb2cc1b9ctc2c8bfb7c5a5f320@mail.gmail.com>
-References: <201004011937.39331.hverkuil@xs4all.nl>
-	 <4BB4E4CC.3020100@redhat.com>
-	 <y2v1a297b361004021043wa43821d2hfb5b573b110dd5e0@mail.gmail.com>
-	 <x2v829197381004021053nf77e2d42q4f1614eced7f999d@mail.gmail.com>
-	 <y2x1a297b361004021124jb2cc1b9ctc2c8bfb7c5a5f320@mail.gmail.com>
-Date: Fri, 2 Apr 2010 14:34:44 -0400
-Message-ID: <y2j829197381004021134gf51277c6wdfe2d1c892e7f12f@mail.gmail.com>
-Subject: Re: [RFC] Serialization flag example
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Manu Abraham <abraham.manu@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] tm6000: Properly set alternate when preparing to stream
+References: <4BD5A212.10104@redhat.com>
+In-Reply-To: <4BD5A212.10104@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 2, 2010 at 2:24 PM, Manu Abraham <abraham.manu@gmail.com> wrote:
-> Hi Devin,
+Am 26.04.2010 16:24, schrieb Mauro Carvalho Chehab:
+> Although the code is getting the better alternates, it is not really using
+> it. Get the interface/alternate numbers and use it where needed.
 >
->> Hello Manu,
->>
->> The argument I am trying to make is that there are numerous cases
->> where you should not be able to use both a particular DVB and V4L
->> device at the same time.  The implementation of such locking should be
->> handled by the v4l-dvb core, but the definition of the relationships
->> dictating which devices cannot be used in parallel is still the
->> responsibility of the driver.
->>
->> This way, a bridge driver can say "this DVB device cannot be used at
->> the same time as this V4L device" but the actual enforcement of the
->> locking is done in the core.  For cases where the devices can be used
->> in parallel, the bridge driver doesn't have to do anything.
+> This patch implements also one small fix at the last_line set, as 
+> proposed by Bee Hock Goh <behock@gmail.com>.
 >
-> I follow what you mean. Why I emphasized that it shouldn't be at the
-> core, but basically in the bridge driver:
->
-> Case 1
-> - there is a 1:n relation, In this case there is only 1 path and 3
-> users sharing that path
-> In such a case, You can use such a mentioned scheme, where things do
-> look okay, since it is only about locking a single path.
->
-> Case 2
-> - there is a n:n relation, in this case there are n paths and n users
-> In such a case, it is hard to make the core aware of all the details,
-> since there could be more than 1 resource of the same category;
-> Mapping each of them properly won't be easy, as for the same chip
-> driver Resource A on Card A, would mean different for Resource A on
-> Card B.
->
-> Case 3
-> - there is a m:n relation, in this case, there are m paths and n users
-> This case is even more painful than the previous ones.
->
-> In cases 2 & 3, the option to handle such cases is using a
-> configuration scheme based on the card type. I guess handling such
-> would be quite daunting and hard to get right. I guess it would be
-> much more efficient and useful to have such a feature to be made
-> available in the bridge driver as it is a resource of the card
-> configuration, rather than a common bridge resource.
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>   
+Hi Mauro,
 
-Hi Manu,
+dvb doesn't build.
 
-I don't have any problem with a bridge choosing to implement some much
-more complicated scheme to meet its own special requirements.
-However, it feels like the vast majority of bridges would fall into
-scenario #1, and having that functionality in the core would mean that
-all of those bridges would work properly (only needing a 2 line code
-change).  Hence, making the core handle the common case and still
-allowing the bridge maintainer to override the logic if necessary
-would seem like an ideal solution.
+  CC [M]  /usr/src/src/tm6010/v4l-dvb/v4l/tm6000-dvb.o
+/usr/src/src/tm6010/v4l-dvb/v4l/tm6000-dvb.c: In function
+'tm6000_start_stream':
+/usr/src/src/tm6010/v4l-dvb/v4l/tm6000-dvb.c:119:9: error: invalid type
+argument of '->' (have 'struct tm6000_endpoint')
+make[5]: *** [/usr/src/src/tm6010/v4l-dvb/v4l/tm6000-dvb.o] Fehler 1
+make[4]: *** [_module_/usr/src/src/tm6010/v4l-dvb/v4l] Fehler 2
+make[3]: *** [sub-make] Error 2
+make[2]: *** [all] Error 2
+make[2]: Leaving directory `/usr/src/linux-2.6.34-rc4-16-obj/x86_64/desktop'
+make[1]: *** [default] Fehler 2
+make[1]: Leaving directory `/usr/src/src/tm6010/v4l-dvb/v4l'
+make: *** [all] Fehler 2
 
-Nothing I have suggested precludes the bridge maintainer from *not*
-adding the code making the association in the core and instead adding
-his/her own locking infrastructure to the bridge driver.
-
-Right now, I can think of five or six bridges all of which fall into
-category #1.  Should we really add effectively the exact same locking
-code to all those bridges, running the risk of of screwing up the
-cut/paste?
-
-Devin
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Stefan Ringel <stefan.ringel@arcor.de>
+
