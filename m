@@ -1,176 +1,320 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:4138 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750733Ab0DKFJM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Apr 2010 01:09:12 -0400
-Message-ID: <4BC1596F.2020900@redhat.com>
-Date: Sun, 11 Apr 2010 02:09:03 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org, linux-input@vger.kernel.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Remote Controller subsystem status
-References: <E1O0o8u-0007A9-7r@www.linuxtv.org>
-In-Reply-To: <E1O0o8u-0007A9-7r@www.linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4879 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754508Ab0DZHdw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Apr 2010 03:33:52 -0400
+Message-Id: <023ccb019586ffff0282505abb5cb2c20f194fc4.1272267137.git.hverkuil@xs4all.nl>
+In-Reply-To: <cover.1272267136.git.hverkuil@xs4all.nl>
+References: <cover.1272267136.git.hverkuil@xs4all.nl>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Mon, 26 Apr 2010 09:33:42 +0200
+Subject: [PATCH 05/15] [RFC] saa7115: convert to the new control framework
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For those that are following the discussions, we're having lots of fun with the
-Remote Controller support those days ;)
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/video/saa7115.c |  180 ++++++++++++++++++-----------------------
+ 1 files changed, 80 insertions(+), 100 deletions(-)
 
-We're basically re-writing the entire subsystem, that used to be part of V4L/DVB
-core and drivers, into a core subsystem that can be used not only by media
-drivers, but also for separate Remote Controllers, like those media center
-infra red remote controllers. The idea is to also add support to send raw
-events to userspace applications like lirc. It started pretending to work
-just with Infra Red, but it makes sense to be used also with other type of
-transmission media, so Remote Controller is a more general name.
+diff --git a/drivers/media/video/saa7115.c b/drivers/media/video/saa7115.c
+index 72eaa66..8db056f 100644
+--- a/drivers/media/video/saa7115.c
++++ b/drivers/media/video/saa7115.c
+@@ -45,6 +45,7 @@
+ #include <linux/i2c.h>
+ #include <linux/videodev2.h>
+ #include <media/v4l2-device.h>
++#include <media/v4l2-ctrls.h>
+ #include <media/v4l2-chip-ident.h>
+ #include <media/v4l2-i2c-drv.h>
+ #include <media/saa7115.h>
+@@ -65,16 +66,17 @@ MODULE_PARM_DESC(debug, "Debug level (0-1)");
+ 
+ struct saa711x_state {
+ 	struct v4l2_subdev sd;
++	struct v4l2_ctrl_handler hdl;
++
++	/* chroma gain control cluster */
++	struct v4l2_ctrl *agc;
++	struct v4l2_ctrl *gain;
++
+ 	v4l2_std_id std;
+ 	int input;
+ 	int output;
+ 	int enable;
+ 	int radio;
+-	int bright;
+-	int contrast;
+-	int hue;
+-	int sat;
+-	int chroma_agc;
+ 	int width;
+ 	int height;
+ 	u32 ident;
+@@ -90,6 +92,11 @@ static inline struct saa711x_state *to_state(struct v4l2_subdev *sd)
+ 	return container_of(sd, struct saa711x_state, sd);
+ }
+ 
++static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
++{
++	return &container_of(ctrl->handler, struct saa711x_state, hdl)->sd;
++}
++
+ /* ----------------------------------------------------------------------- */
+ 
+ static inline int saa711x_write(struct v4l2_subdev *sd, u8 reg, u8 value)
+@@ -741,96 +748,53 @@ static int saa711x_s_clock_freq(struct v4l2_subdev *sd, u32 freq)
+ 	return 0;
+ }
+ 
+-static int saa711x_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
++static int saa711x_g_ctrl(struct v4l2_ctrl *ctrl)
+ {
++	struct v4l2_subdev *sd = to_sd(ctrl);
+ 	struct saa711x_state *state = to_state(sd);
+-	u8 val;
+ 
+ 	switch (ctrl->id) {
+-	case V4L2_CID_BRIGHTNESS:
+-		if (ctrl->value < 0 || ctrl->value > 255) {
+-			v4l2_err(sd, "invalid brightness setting %d\n", ctrl->value);
+-			return -ERANGE;
+-		}
+-
+-		state->bright = ctrl->value;
+-		saa711x_write(sd, R_0A_LUMA_BRIGHT_CNTL, state->bright);
+-		break;
+-
+-	case V4L2_CID_CONTRAST:
+-		if (ctrl->value < 0 || ctrl->value > 127) {
+-			v4l2_err(sd, "invalid contrast setting %d\n", ctrl->value);
+-			return -ERANGE;
+-		}
+-
+-		state->contrast = ctrl->value;
+-		saa711x_write(sd, R_0B_LUMA_CONTRAST_CNTL, state->contrast);
+-		break;
+-
+-	case V4L2_CID_SATURATION:
+-		if (ctrl->value < 0 || ctrl->value > 127) {
+-			v4l2_err(sd, "invalid saturation setting %d\n", ctrl->value);
+-			return -ERANGE;
+-		}
+-
+-		state->sat = ctrl->value;
+-		saa711x_write(sd, R_0C_CHROMA_SAT_CNTL, state->sat);
+-		break;
+-
+-	case V4L2_CID_HUE:
+-		if (ctrl->value < -128 || ctrl->value > 127) {
+-			v4l2_err(sd, "invalid hue setting %d\n", ctrl->value);
+-			return -ERANGE;
+-		}
+-
+-		state->hue = ctrl->value;
+-		saa711x_write(sd, R_0D_CHROMA_HUE_CNTL, state->hue);
+-		break;
+ 	case V4L2_CID_CHROMA_AGC:
+-		val = saa711x_read(sd, R_0F_CHROMA_GAIN_CNTL);
+-		state->chroma_agc = ctrl->value;
+-		if (ctrl->value)
+-			val &= 0x7f;
+-		else
+-			val |= 0x80;
+-		saa711x_write(sd, R_0F_CHROMA_GAIN_CNTL, val);
++		/* chroma gain cluster */
++		if (state->agc->cur.val)
++			state->gain->cur.val =
++				saa711x_read(sd, R_0F_CHROMA_GAIN_CNTL) & 0x7f;
+ 		break;
+-	case V4L2_CID_CHROMA_GAIN:
+-		/* Chroma gain cannot be set when AGC is enabled */
+-		if (state->chroma_agc == 1)
+-			return -EINVAL;
+-		saa711x_write(sd, R_0F_CHROMA_GAIN_CNTL, ctrl->value | 0x80);
+-		break;
+-	default:
+-		return -EINVAL;
+ 	}
+-
+ 	return 0;
+ }
+ 
+-static int saa711x_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
++static int saa711x_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
++	struct v4l2_subdev *sd = to_sd(ctrl);
+ 	struct saa711x_state *state = to_state(sd);
+ 
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_BRIGHTNESS:
+-		ctrl->value = state->bright;
++		saa711x_write(sd, R_0A_LUMA_BRIGHT_CNTL, ctrl->val);
+ 		break;
++
+ 	case V4L2_CID_CONTRAST:
+-		ctrl->value = state->contrast;
++		saa711x_write(sd, R_0B_LUMA_CONTRAST_CNTL, ctrl->val);
+ 		break;
++
+ 	case V4L2_CID_SATURATION:
+-		ctrl->value = state->sat;
++		saa711x_write(sd, R_0C_CHROMA_SAT_CNTL, ctrl->val);
+ 		break;
++
+ 	case V4L2_CID_HUE:
+-		ctrl->value = state->hue;
++		saa711x_write(sd, R_0D_CHROMA_HUE_CNTL, ctrl->val);
+ 		break;
++
+ 	case V4L2_CID_CHROMA_AGC:
+-		ctrl->value = state->chroma_agc;
+-		break;
+-	case V4L2_CID_CHROMA_GAIN:
+-		ctrl->value = saa711x_read(sd, R_0F_CHROMA_GAIN_CNTL) & 0x7f;
++		/* chroma gain cluster */
++		if (state->agc->val)
++			saa711x_write(sd, R_0F_CHROMA_GAIN_CNTL, state->gain->val);
++		else
++			saa711x_write(sd, R_0F_CHROMA_GAIN_CNTL, state->gain->val | 0x80);
++		v4l2_ctrl_activate(state->gain, !state->agc->val);
+ 		break;
++
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -1221,25 +1185,6 @@ static int saa711x_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+ 	return 0;
+ }
+ 
+-static int saa711x_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc)
+-{
+-	switch (qc->id) {
+-	case V4L2_CID_BRIGHTNESS:
+-		return v4l2_ctrl_query_fill(qc, 0, 255, 1, 128);
+-	case V4L2_CID_CONTRAST:
+-	case V4L2_CID_SATURATION:
+-		return v4l2_ctrl_query_fill(qc, 0, 127, 1, 64);
+-	case V4L2_CID_HUE:
+-		return v4l2_ctrl_query_fill(qc, -128, 127, 1, 0);
+-	case V4L2_CID_CHROMA_AGC:
+-		return v4l2_ctrl_query_fill(qc, 0, 1, 1, 1);
+-	case V4L2_CID_CHROMA_GAIN:
+-		return v4l2_ctrl_query_fill(qc, 0, 127, 1, 48);
+-	default:
+-		return -EINVAL;
+-	}
+-}
+-
+ static int saa711x_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
+ {
+ 	struct saa711x_state *state = to_state(sd);
+@@ -1516,17 +1461,27 @@ static int saa711x_log_status(struct v4l2_subdev *sd)
+ 		break;
+ 	}
+ 	v4l2_info(sd, "Width, Height:   %d, %d\n", state->width, state->height);
++	v4l2_ctrl_handler_log_status(&state->hdl, sd->name);
+ 	return 0;
+ }
+ 
+ /* ----------------------------------------------------------------------- */
+ 
++static const struct v4l2_ctrl_ops saa711x_ctrl_ops = {
++	.s_ctrl = saa711x_s_ctrl,
++	.g_ctrl = saa711x_g_ctrl,
++};
++
+ static const struct v4l2_subdev_core_ops saa711x_core_ops = {
+ 	.log_status = saa711x_log_status,
+ 	.g_chip_ident = saa711x_g_chip_ident,
+-	.g_ctrl = saa711x_g_ctrl,
+-	.s_ctrl = saa711x_s_ctrl,
+-	.queryctrl = saa711x_queryctrl,
++	.g_ext_ctrls = v4l2_sd_g_ext_ctrls,
++	.try_ext_ctrls = v4l2_sd_try_ext_ctrls,
++	.s_ext_ctrls = v4l2_sd_s_ext_ctrls,
++	.g_ctrl = v4l2_sd_g_ctrl,
++	.s_ctrl = v4l2_sd_s_ctrl,
++	.queryctrl = v4l2_sd_queryctrl,
++	.querymenu = v4l2_sd_querymenu,
+ 	.s_std = saa711x_s_std,
+ 	.reset = saa711x_reset,
+ 	.s_gpio = saa711x_s_gpio,
+@@ -1571,8 +1526,9 @@ static int saa711x_probe(struct i2c_client *client,
+ {
+ 	struct saa711x_state *state;
+ 	struct v4l2_subdev *sd;
+-	int	i;
+-	char	name[17];
++	struct v4l2_ctrl_handler *hdl;
++	int i;
++	char name[17];
+ 	char chip_id;
+ 	int autodetect = !id || id->driver_data == 1;
+ 
+@@ -1611,15 +1567,37 @@ static int saa711x_probe(struct i2c_client *client,
+ 		return -ENOMEM;
+ 	sd = &state->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &saa711x_ops);
++
++	hdl = &state->hdl;
++	v4l2_ctrl_handler_init(hdl, 6);
++	/* add in ascending ID order */
++	v4l2_ctrl_new_std(hdl, &saa711x_ctrl_ops,
++			V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
++	v4l2_ctrl_new_std(hdl, &saa711x_ctrl_ops,
++			V4L2_CID_CONTRAST, 0, 127, 1, 64);
++	v4l2_ctrl_new_std(hdl, &saa711x_ctrl_ops,
++			V4L2_CID_SATURATION, 0, 127, 1, 64);
++	v4l2_ctrl_new_std(hdl, &saa711x_ctrl_ops,
++			V4L2_CID_HUE, -128, 127, 1, 0);
++	state->agc = v4l2_ctrl_new_std(hdl, &saa711x_ctrl_ops,
++			V4L2_CID_CHROMA_AGC, 0, 1, 1, 1);
++	state->gain = v4l2_ctrl_new_std(hdl, &saa711x_ctrl_ops,
++			V4L2_CID_CHROMA_GAIN, 0, 127, 1, 40);
++	sd->ctrl_handler = hdl;
++	if (hdl->error) {
++		int err = hdl->error;
++
++		v4l2_ctrl_handler_free(hdl);
++		kfree(state);
++		return err;
++	}
++	state->agc->flags |= V4L2_CTRL_FLAG_UPDATE;
++	v4l2_ctrl_cluster(2, &state->agc);
++
+ 	state->input = -1;
+ 	state->output = SAA7115_IPORT_ON;
+ 	state->enable = 1;
+ 	state->radio = 0;
+-	state->bright = 128;
+-	state->contrast = 64;
+-	state->hue = 0;
+-	state->sat = 64;
+-	state->chroma_agc = 1;
+ 	switch (chip_id) {
+ 	case '1':
+ 		state->ident = V4L2_IDENT_SAA7111;
+@@ -1667,6 +1645,7 @@ static int saa711x_probe(struct i2c_client *client,
+ 	if (state->ident > V4L2_IDENT_SAA7111A)
+ 		saa711x_writeregs(sd, saa7115_init_misc);
+ 	saa711x_set_v4lstd(sd, V4L2_STD_NTSC);
++	v4l2_ctrl_handler_setup(hdl);
+ 
+ 	v4l2_dbg(1, debug, sd, "status: (1E) 0x%02x, (1F) 0x%02x\n",
+ 		saa711x_read(sd, R_1E_STATUS_BYTE_1_VD_DEC),
+@@ -1681,6 +1660,7 @@ static int saa711x_remove(struct i2c_client *client)
+ 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+ 
+ 	v4l2_device_unregister_subdev(sd);
++	v4l2_ctrl_handler_free(sd->ctrl_handler);
+ 	kfree(to_state(sd));
+ 	return 0;
+ }
+-- 
+1.6.4.2
 
-We had some important additions on the kernel drivers those days, and I did
-some major changes at the userspace tool that is meant to control the keymap
-tables used by Remote Controllers (ir-keytable). I also fixed yesterday two 
-kernel bugs at ir-core, that affected the userspace app.
-
-So, both the kernel driver and the userspace tool are in sync. With this, I 
-hope we don't need to change anymore any existing sysfs attribute (yet, this 
-might happen until kernel 2.6.35, where I expect that those changes will be 
-merged). Currently, only ir-keytable uses those sysfs attributes.
-
-The current version of the ir-keytable application is providing full support 
-to all features currently exported via sysfs by the remote controller sysfs 
-class, at:
-	/sys/class/rc
-
-Without any parameter, it lists all Remote Controllers on the machine:
-
-$ ir-keytable 
-Found /sys/class/rc/rc0/ (/dev/input/event8) with:
-        Driver saa7134, raw software decoder, table rc-avermedia-m135a-rm-jx
-        Supported protocols: NEC RC-5   Enabled protocols: RC-5 
-Found /sys/class/rc/rc1/ (/dev/input/event9) with:
-        Driver em28xx, hardware decoder, table rc-rc5-hauppauge-new
-        Supported protocols: NEC RC-5   Current protocols: RC-5 
-Found /sys/class/rc/rc2/ (/dev/input/event10) with:
-        Driver cx88xx, hardware decoder, table rc-pixelview-mk12
-        Supported protocols: other      Current protocols: NEC 
-
-There are parameters for reading the current table, to add another table to the
-driver, to clear the drivers table and to change the current protocol (on hardware
-decoders) or the enabled protocols (on software decoders).
-
-The most interesting option is "-a" or "--auto-load". It reads a file with rules
-that associates a device (by its driver name and by the table name - both info
-provided by the kernel driver), with a file with the corresponding keymap.
-
-The idea is to use it to automatically load a table via udev, with a rule like:
-
-ACTION=="add", SUBSYSTEM=="rc", RUN+="/usr/local/bin/ir-keytable -v -a /etc/rc_maps.cfg -s $name"
-
-Note: The above rule is not working yet (at least on the very quick test
-I did here with udev, just before starting writing this email).
-Currently, it is giving this error message:
-
-[16009.232502] ir-keytable[20836]: segfault at 4 ip 08048bb1 sp bf8fb110 error 4 in ir-keytable[8048000+5000]
-[16009.242716] Process 20836(ir-keytable) has RLIMIT_CORE set to 0
-[16009.248744] Aborting core
-
-I intend to do enable the core dump and do some tests to check why and fix it, but
-for sure not today. In fact, it may take some time, since I'm going to travel 
-those days to the Collaboration Summit. Maybe I'll find time to fix it only 
-after my return. Of course, people are welcome to fix it before ;)
-
-Anyway, with what we currently have, we have both the IR subsystem and the userspace
-application in a good shape for testing.
-
-There are still lots of things to do. On a very quick brainstorm, this is a non-exhaustive
-lists of tasks for a TODO list:
-
-- Add support for 64 bits scancode tables, using EVIOCGKEYCODEBIG/EVIOCSKEYCODEBIG;
-- Port the DVB drivers to IR core;
-- Remove ir-common module from V4L drivers (It currently contains only a few decoders - 
-  one of them  is pulse-distance - not implemented yet on rc-core);
-- Add the full scancodes for all RC tables;
-- Fix the script to get the new table formats and locations (better to port DVB drivers first);
-- Add lirc_dev;
-- Add other IR drivers;
-- Rename IR to RC on all files and move the subsystem to a better location (probably, this will be
-  the final step);
-- Add support for filtering scancode/keycode maps into different event devices;
-- Use it with other Remote Controller devices (HID, Bluetooth, radio RC?);
-- Cleanups;
-- Add more decoders;
-- IR blaster/transmitter;
-- Merge some keymaps;
-  ...
-
-Currently, all kernel patches are at the main development tree for V4L/DVB
-(and, as consequence, being exported to linux-next):
-	http://git.linuxtv.org/v4l-dvb.git
-
-The userspace application (ir-keycode) is at:
-	http://git.linuxtv.org/v4l-utils.git
-
-The make install will install it at the binary dir and copy the keymaps into /etc/rc_keymaps,
-together with an automatic mode example file, at /etc/rc_maps.cfg.example.
-
-I keep maintaining an experimental tree for new IR patches under testing at:
-	http://git.linuxtv.org/mchehab/ir.git
-	(today status: it is in sync with v4l-dvb.git).
-
-Thank you all that are helping to improve it,
-Mauro
-
-Mauro Carvalho Chehab wrote:
-
-> Subject: keytable: Add an example for rc_maps.cfg
-> Author:  Mauro Carvalho Chehab <mchehab@redhat.com>
-> Date:    Sun Apr 11 00:58:13 2010 -0300
-> 
-> 
->  utils/keytable/rc_maps.cfg.example |   27 +++++++++++++++++++++++++++
->  1 files changed, 27 insertions(+), 0 deletions(-)
-
-
-
-
-> 
-> ---
-> 
-> http://git.linuxtv.org/v4l-utils.git?a=commitdiff;h=82b1322de3964390657289116dc08fe4a714f085
-> 
-> diff --git a/utils/keytable/rc_maps.cfg.example b/utils/keytable/rc_maps.cfg.example
-> new file mode 100644
-> index 0000000..bfbae52
-> --- /dev/null
-> +++ b/utils/keytable/rc_maps.cfg.example
-> @@ -0,0 +1,27 @@
-> +#
-> +# Keymaps table
-> +#
-> +# This table creates an association between a keycode file and a kernel
-> +# driver. It can be used to automatically override a keycode definition.
-> +#
-> +# Although not yet tested, it is mented to be added at udev.
-> +#
-> +# To use, you just need to run:
-> +#	./ir-keytable -a
-> +#
-> +# Or, if the remote is not the first device:
-> +#	./ir-keytable -a -s rc1		# for RC at rc1
-> +#
-> +
-> +# Format:
-> +#	driver - name of the driver provided via uevent - use * for any driver
-> +#	table -  RC keymap table, provided via uevent - use * for any table
-> +#	file - file name. If directory is not specified, it will default to
-> +#		/etc/rc_keymaps.
-> +
-> +#driver	table				file
-> +cx8800	*				./keycodes/rc5_hauppauge_new
-> +*	rc-avermedia-m135a-rm-jx	./keycodes/kworld_315u
-> +saa7134	rc-avermedia-m135a-rm-jx	./keycodes/keycodes/nec_terratec_cinergy_xs
-> +em28xx	*				./keycodes/kworld_315u
-> +*	*				./keycodes/rc5_hauppauge_new
-> 
