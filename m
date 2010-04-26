@@ -1,103 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:4223 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755477Ab0DQKKa convert rfc822-to-8bit (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:60096 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750804Ab0DZNfu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Apr 2010 06:10:30 -0400
-Received: by fg-out-1718.google.com with SMTP id d23so787840fga.1
-        for <linux-media@vger.kernel.org>; Sat, 17 Apr 2010 03:10:28 -0700 (PDT)
+	Mon, 26 Apr 2010 09:35:50 -0400
+Message-ID: <4BD596AD.60707@infradead.org>
+Date: Mon, 26 Apr 2010 10:35:41 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-In-Reply-To: <4BC96A12.2040007@cogweb.net>
-References: <4BC8F087.3050805@cogweb.net>
-	 <u2g829197381004161714z2f0b827eu824a3bcb17d2aa17@mail.gmail.com>
-	 <g2w846899811004162344ib3c9223ek8bcef2df83e7f23b@mail.gmail.com>
-	 <4BC96A12.2040007@cogweb.net>
-Date: Sat, 17 Apr 2010 12:10:27 +0200
-Message-ID: <i2g846899811004170310s6f0a26fejace49a3886240bca@mail.gmail.com>
-Subject: Re: zvbi-atsc-cc device node conflict
-From: HoP <jpetrous@gmail.com>
-To: David Liontooth <lionteeth@cogweb.net>
-Cc: linux-media@vger.kernel.org
+To: VDR User <user.vdr@gmail.com>
+CC: Oliver Endriss <o.endriss@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	e9hack <e9hack@googlemail.com>, linux-media@vger.kernel.org,
+	Douglas Landgraf <dougsland@gmail.com>
+Subject: Re: av7110 and budget_av are broken!
+References: <ee20bb7da9d2708352bb7236108294d5.squirrel@webmail.xs4all.nl>	 <201004211144.19591@orion.escape-edv.de> <u2ka3ef07921004251057t36a6f9c3pe54a40fad3e8f515@mail.gmail.com>
+In-Reply-To: <u2ka3ef07921004251057t36a6f9c3pe54a40fad3e8f515@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2010/4/17 David Liontooth <lionteeth@cogweb.net>:
-> HoP wrote:
->>
->> 2010/4/17 Devin Heitmueller <dheitmueller@kernellabs.com>:
->>
->>>
->>> On Fri, Apr 16, 2010 at 7:19 PM, David Liontooth <lionteeth@cogweb.net>
->>> wrote:
->>>
->>>>
->>>> I'm using a HVR-1850 in digital mode and get good picture and sound
->>>> using
->>>>
->>>>  mplayer -autosync 30 -cache 2048 dvb://KCAL-DT
->>>>
->>>> Closed captioning works flawlessly with this command:
->>>>
->>>> zvbi-atsc-cc -C test-cc.txt KCAL-DT
->>>>
->>>> However, if I try to run both at the same time, I get a device node
->>>> conflict:
->>>>
->>>>  zvbi-atsc-cc: Cannot open '/dev/dvb/adapter0/frontend0': Device or
->>>> resource
->>>> busy.
->>>>
->>>> How do I get video and closed captioning at the same time?
->>>>
->>>
->>> To my knowledge, you cannot run two userland apps streaming from the
->>> frontend at the same time.  Generally, when people need to do this
->>> sort of thing they write a userland daemon that multiplexes.
->>> Alternatively, you can cat the frontend to disk and then have both
->>> mplayer and your cc parser reading the resulting file.
->>>
->>>
->>
->> Usually there is some way, for ex. command line option,
->> how to say to "second" app that frondend is already locked.
->> Then second app simply skips tuning at all.
->>
->> Rest processing is made using demux and dvr devices,
->> so there is not reason why 2 apps should tune in same
->> time.
->>
->> /Honza
->>
->
-> Thanks! I'm trying to create separate recordings of the video/audio file on
-> the one hand and the closed captioning on the other.
->
-> In one console, I issue
->
->  azap -r KOCE-HD
->
-> In a second, I issue
->
->  cat /dev/dvb/adapter0/dvr0 > test-cat3.mpeg
->
-> I cannot at the same time run this in a third:
->
->  zvbi-atsc-cc -C test-cc.txt KOCE-HD
->
-> because of resource conflict.
->
-> Using cat works, but how do I get closed captioning from the resulting mpeg
-> file?
->
+VDR User wrote:
+> On Wed, Apr 21, 2010 at 2:44 AM, Oliver Endriss <o.endriss@gmx.de> wrote:
+>>> It's merged in Mauro's fixes tree, but I don't think those pending patches
+>>> have been pushed upstream yet. Mauro, can you verify this? They should be
+>>> pushed to 2.6.34!
+>> What about the HG driver?
+>> The v4l-dvb HG repository is broken for 7 weeks...
+> 
+> It doesn't make any sense why someone would break a driver and then
+> leave it that way for such a long period of time.  Yes, please fix the
+> HG repository. 
 
-Very dump way is simply feed zvbi with resulting test-cat3.mpeg.
-If this page is correct: http://www.digipedia.pl/man/doc/view/zvbi-atsc-cc.1/
-using -t command line option you can get CC by issuing something like
-"cat test-cat3.mpeg > zvbi-atsc-cc -ts -C test-cc.txt"
+You need to ask Douglas about -hg issues. He is the actual maintainer of that tree.
+It is probably a good idea to merge also from fixes.git tree, but this may make
+his sync process more complicated, so, it is up to him to decide how to do it.
 
-Of course I'm assuming that CC pid is included in recording.
-But dunno if azap is demuxing pids others then A/V.
+I still thinking on having a better way to have those fixes patches merged earlier
+on -git, but I'll need to have some time to do some scripting and test some things.
 
-/Honza
+> I don't actually know anyone who bothers with the git
+> tree for obvious reasons
+
+About half of the developers are submitting git requests, so it seems that
+there are people using it.
+
+-- 
+
+Cheers,
+Mauro
