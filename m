@@ -1,60 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from a-pb-sasl-quonix.pobox.com ([208.72.237.25]:61808 "EHLO
-	sasl.smtp.pobox.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756574Ab0DQMJ4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Apr 2010 08:09:56 -0400
-Message-ID: <4BC9A507.3080807@pobox.com>
-Date: Sat, 17 Apr 2010 08:09:43 -0400
-From: Mark Lord <mlord@pobox.com>
-MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org, Darren Blaber <dmbtech@gmail.com>
-Subject: Re: cx18: "missing audio" for analog recordings
-References: <4B8BE647.7070709@teksavvy.com> <4B8CA8DD.5030605@teksavvy.com>
- <1267533630.3123.17.camel@palomino.walls.org> <4B9DA003.90306@teksavvy.com>
- <1268653884.3209.32.camel@palomino.walls.org>  <4BC0FB79.7080601@pobox.com>
- <1270940043.3100.43.camel@palomino.walls.org>  <4BC1401F.9080203@pobox.com>
- <1270961760.5365.14.camel@palomino.walls.org>
- <1270986453.3077.4.camel@palomino.walls.org>  <4BC1CDA2.7070003@pobox.com>
- <1271012464.24325.34.camel@palomino.walls.org> <4BC37DB2.3070107@pobox.com>
- <1271107061.3246.52.camel@palomino.walls.org> <4BC3D578.9060107@pobox.com>
- <4BC3D73D.5030106@pobox.com>  <4BC3D81E.9060808@pobox.com>
- <1271154932.3077.7.camel@palomino.walls.org>  <4BC466A1.3070403@pobox.com>
- <1271209520.4102.18.camel@palomino.walls.org> <4BC54569.7020301@pobox.com>
- <4BC64119.5070200@pobox.com> <1271306803.7643.67.camel@palomino.walls.org>
- <4BC6A135.4070400@pobox.com>  <4BC71F86.4020509@pobox.com>
- <1271479406.3120.9.camel@palomino.walls.org>
-In-Reply-To: <1271479406.3120.9.camel@palomino.walls.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from lo.gmane.org ([80.91.229.12]:54079 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752516Ab0DZQZU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Apr 2010 12:25:20 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1O6R7Q-0006uU-U7
+	for linux-media@vger.kernel.org; Mon, 26 Apr 2010 18:25:12 +0200
+Received: from 92.103.125.220 ([92.103.125.220])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 26 Apr 2010 18:25:12 +0200
+Received: from ticapix by 92.103.125.220 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 26 Apr 2010 18:25:12 +0200
+To: linux-media@vger.kernel.org
+From: "pierre.gronlier" <ticapix@gmail.com>
+Subject: [PATCH] Read MAC for TeVii S470 PCI-e DVB-S2 card
+Date: Mon, 26 Apr 2010 18:26:29 +0200
+Message-ID: <hr4eor$2t9$1@dough.gmane.org>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------000204000905010600000802"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17/04/10 12:43 AM, Andy Walls wrote:
-> I had to disassemble and study some of the microcontorller firmware, and
-> then reread some documents, to figure out how all the audio detection
-> "resets" must work.
->
-> I've just pushed some microcontroller reset related changes to the
-> cx18-audio2 repo.  Please test and see if things are better or worse.
-..
+This is a multi-part message in MIME format.
+--------------000204000905010600000802
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Mmm.. something is not right -- the audio is failing constantly with that change.
-Perhaps if I could dump out the registers, we might see what is wrong.
+This patch retrieve the correct mac address from the eeprom for TeVii
+S470 card.
 
-I also tried:
-      v4l2-dbg -d /dev/video1 -c type=host,chip=1 --list-registers=min=0x800,max=0x9ff
-but that fails to read any of the registers (ioctl: VIDIOC_DBG_G_REGISTER failed for 0xXXX).
 
-I think I'll patch the driver to dump them for us.
+Signed-off-by: Pierre Gronlier <pierre.gronlier@gmail.com>
 
-Thank-you for your work on this.  There are many of us here  hoping
-that we can figure out and fix whatever is wrong with our cards.
 
-Cheers
+diff --git a/linux/drivers/media/video/cx23885/cx23885-dvb.c
+b/linux/drivers/media/video/cx23885/cx23885-dvb.c
+--- a/linux/drivers/media/video/cx23885/cx23885-dvb.c
++++ b/linux/drivers/media/video/cx23885/cx23885-dvb.c
+@@ -929,6 +929,22 @@
+                netup_ci_init(port);
+                break;
+                }
++       case CX23885_BOARD_TEVII_S470: {
++               u8 eeprom[256]; /* 24C02 i2c eeprom */
++
++               if (port->nr != 1)
++                       break;
++
++               /* Read entire EEPROM */
++               dev->i2c_bus[0].i2c_client.addr = 0xa0 >> 1;
++               tveeprom_read(&dev->i2c_bus[0].i2c_client, eeprom,
+sizeof(eeprom));
++               printk(KERN_INFO "TeVii S470 MAC= "
++                               "%02X:%02X:%02X:%02X:%02X:%02X\n",
++                               eeprom[0xa0], eeprom[0xa1], eeprom[0xa2],
++                               eeprom[0xa3], eeprom[0xa4], eeprom[0xa5]);
++               memcpy(port->frontends.adapter.proposed_mac, eeprom +
+0xa0, 6);
++               break;
++               }
+        }
+
+        return ret;
+
+
 -- 
-Mark Lord
-Real-Time Remedies Inc.
-mlord@pobox.com
+pierre gronlier
+
+--------------000204000905010600000802
+Content-Type: text/x-patch;
+ name="s470_read_mac_address.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="s470_read_mac_address.patch"
+
+Read MAC for TeVii S470 PCI-e DVB-S2 card.
+Signed-off-by: Pierre Gronlier <pierre.gronlier@gmail.com>
+
+diff --git a/linux/drivers/media/video/cx23885/cx23885-dvb.c b/linux/drivers/media/video/cx23885/cx23885-dvb.c
+--- a/linux/drivers/media/video/cx23885/cx23885-dvb.c
++++ b/linux/drivers/media/video/cx23885/cx23885-dvb.c
+@@ -929,6 +929,22 @@
+ 		netup_ci_init(port);
+ 		break;
+ 		}
++	case CX23885_BOARD_TEVII_S470: {
++		u8 eeprom[256]; /* 24C02 i2c eeprom */
++
++		if (port->nr != 1)
++			break;
++
++		/* Read entire EEPROM */
++		dev->i2c_bus[0].i2c_client.addr = 0xa0 >> 1;
++		tveeprom_read(&dev->i2c_bus[0].i2c_client, eeprom, sizeof(eeprom));
++		printk(KERN_INFO "TeVii S470 MAC= "
++				"%02X:%02X:%02X:%02X:%02X:%02X\n",
++				eeprom[0xa0], eeprom[0xa1], eeprom[0xa2],
++				eeprom[0xa3], eeprom[0xa4], eeprom[0xa5]);
++		memcpy(port->frontends.adapter.proposed_mac, eeprom + 0xa0, 6);
++		break;
++		}
+ 	}
+ 
+ 	return ret;
+
+--------------000204000905010600000802--
+
