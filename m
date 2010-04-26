@@ -1,114 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4889 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754957Ab0DCTjK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Apr 2010 15:39:10 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o33Jd87c030408
-	for <linux-media@vger.kernel.org>; Sat, 3 Apr 2010 21:39:08 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 3 Apr 2010 21:39:08 +0200 (CEST)
-Message-Id: <201004031939.o33Jd87c030408@smtp-vbr7.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mout.perfora.net ([74.208.4.195]:61860 "EHLO mout.perfora.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752244Ab0DZTup (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Apr 2010 15:50:45 -0400
+Message-ID: <4BD5EE8E.5070603@vorgon.com>
+Date: Mon, 26 Apr 2010 12:50:38 -0700
+From: "Timothy D. Lenz" <tlenz@vorgon.com>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
+Subject: Re: tuner XC5000 race condition??
+References: <20100426104446.01bca601@glory.loctelecom.ru> <1272243610.3060.6.camel@palomino.walls.org> <4BD5E1FF.8030704@vorgon.com>
+In-Reply-To: <4BD5E1FF.8030704@vorgon.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
 
-Results of the daily build of v4l-dvb:
 
-date:        Sat Apr  3 19:00:19 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14536:a539e5b68945
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 8c69c6ed6c74c94fa7ad6fa24eda452e4b212d81
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+On 4/26/2010 11:57 AM, Timothy D. Lenz wrote:
+>
+>
+> On 4/25/2010 6:00 PM, Andy Walls wrote:
+>> On Mon, 2010-04-26 at 10:44 +1000, Dmitri Belimov wrote:
+>>> Hi
+>>>
+>>> Sometimes tuner XC5000 crashed on boot. This PC is dual-core.
+>>> It can be race condition or multi-core depend problem.
+>>>
+>>> Add mutex for solve this problem is correct?
+>>
+>> Dmitri,
+>>
+>> This problem may be related to the firmware loading race described here:
+>>
+>> https://bugzilla.kernel.org/show_bug.cgi?id=15294
+>>
+>> I still have not fixed that bug yet.
+>>
+>> But for your problem, perhaps you can try:
+>>
+>> echo 120> /sys/class/firmware/timeout
+>>
+>> as root in the initialization scripts to lengthen the firmware loading
+>> timeout to 120 seconds. Maybe that will work around the crash.
+>>
+>> I'll try and look at what is going on in your crash dumps, if I have
+>> time.
+>>
+>> Regards,
+>> Andy
+>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at http://vger.kernel.org/majordomo-info.html
+>>
+>
+> Could this problem also be related to the tuner problem I've been having
+> with one tuner stop tuning? Because it is on a Athlon64 x2 (dual core).
+> I put up logs with debug on. First set was I think about 24hrs with no
+> crash, then the file ext new and new2 where each copied out after the
+> tuner was found crashed.
+>
+> http://24.255.17.209:2400/vdr/logs/
+>
+> The computer hosting these logs, I hope to take down for a short while,
+> maybe a few hours to switch it over to raid boot. So if you can't
+> connect, try again later.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc1-armv5: OK
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-rc1-armv5-davinci: WARNINGS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-rc1-armv5-ixp: WARNINGS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-rc1-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.17-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-rc1-i686: WARNINGS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc1-m32r: OK
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-rc1-mips: WARNINGS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-rc1-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.17-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-rc1-x86_64: WARNINGS
-linux-git-armv5: OK
-linux-git-armv5-davinci: OK
-linux-git-armv5-ixp: OK
-linux-git-armv5-omap2: OK
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.7-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.62-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.7-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+Keep forgetting, reply on this list doesn't go to the list unless you 
+reply all or manually change the address:(
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Could this problem also be related to the tuner problem I've been having 
+with one tuner stop tuning? Because it is on a Athlon64 x2 (dual core). 
+I put up logs with debug on. First set was I think about 24hrs with no 
+crash, then the file ext new and new2 where each copied out after the 
+tuner was found crashed.
